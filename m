@@ -1,73 +1,84 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: [PATCH] driver-core: platform: Resolve DT interrupt references late
-Date: Wed,  8 Jan 2014 13:51:17 +0100
-Message-ID: <1389185477-507-1-git-send-email-treding@nvidia.com>
-References: <20140108011957.GK5074@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f41.google.com ([209.85.214.41]:56413 "EHLO
-	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755664AbaAHMx1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 07:53:27 -0500
-In-Reply-To: <20140108011957.GK5074@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH V5 0/4] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Wed, 8 Jan 2014 18:48:08 +0530
+Message-ID: <52CD5010.6030309@ti.com>
+References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
+ <52B168A5.4010202@ti.com> <52BBB614.5010707@ti.com> <52BC6B16.80507@ti.com>
+ <52BD856E.7010609@ti.com> <52C11284.2030500@ti.com>
+ <20140107230733.GD5074@atomide.com> <20140107235514.GG5074@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140107235514.GG5074@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Rob Herring <robherring2@gmail.com>, Grant Likely <grant.likely@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, nm@ti.com, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, marc.zyngier@arm.com, linus.walleij@linaro.org, rnayak@ti.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, bcousson@baylibre.com, galak@codeaurora.org, grant.likely@linaro.org, tglx@linutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-When devices are probed from the device tree, any interrupts that they
-reference are resolved at device creation time. This causes problems if
-the interrupt provider hasn't been registered yet at that time, which
-results in the interrupt being set to 0.
+Hi Tony,
 
-This is especially bad for platform devices because they are created at
-a very early stage during boot when the majority of interrupt providers
-haven't had a chance to be probed yet. One of the platform where this
-causes major issues is OMAP.
+On Wednesday 08 January 2014 05:25 AM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [140107 15:10]:
+>> * Sricharan R <r.sricharan@ti.com> [131229 22:30]:
+>>> On Friday 27 December 2013 07:19 PM, Sricharan R wrote:
+>>>> On Thursday 26 December 2013 11:14 PM, Santosh Shilimkar wrote:
+>>>>> On Wednesday 25 December 2013 11:52 PM, Sricharan R wrote:
+>>>>>> On Wednesday 18 December 2013 02:49 PM, Sricharan R wrote:
+>>>>>>> I have addressed all the comments on this series, can this be merged now ?
+>>>>>>>
+>>>>>>   Ping..
+>>>>>>
+>>>>> Thomas has already given his reviewed-by tag so the patches can be
+>>>>> taken via arm-soc tree considering OMAP and GIC changes. Can you
+>>>>> create a branch with all these patches applied and send it
+>>>>> to Tony ?
+>>>>>
+>>>> Ok, i will send out a branch for this.
+>>>>
+>>>  
+>>>  I have pushed the below branch
+>>>
+>>> git://github.com/Sricharanti/sricharan.git
+>>> branch: crossbar
+>>>
+>>> This is on top of Tony's linux-omap master branch
+>>
+>> The linux-omap master branch cannot be used as a base as it
+>> contains tons of commit history not in mainline. So I'll
+>> manually applied these patches into omap-for-v3.14/crosbar
+>> branch.
+> 
+> Oops, I noticed some errors on these:
+> 
+> WARNING: drivers/built-in.o(.text+0xcd0): Section mismatch in reference from the function irqcrossbar_init() to the function .init.text:crossbar_of_init()
+> The function irqcrossbar_init() references
+> the function __init crossbar_of_init().
+> This is often because irqcrossbar_init lacks a __init 
+> annotation or the annotation of crossbar_of_init is wrong.
+> 
+> WARNING: drivers/built-in.o(.text+0xcdc): Section mismatch in reference from the function irqcrossbar_init() to the (unknown reference) .init.rodata:(unknown)
+> The function irqcrossbar_init() references
+> the (unknown reference) __initconst (unknown).
+> This is often because irqcrossbar_init lacks a __initconst 
+> annotation or the annotation of (unknown) is wrong.
+> 
+> So I've dropped them for now. Care to fix up those errors and
+> base your patches against let's say v3.13-rc5?
+> 
+   Very Sorry for the section mismatch warning.
+   I have fixed it and pushed a new branch below based on v3.13-rc5
 
-Note that this patch is the easy way out to fix a large part of the
-problems for now. A more proper solution for the long term would be to
-transition drivers to an API that always resolves resources of any kind
-(not only interrupts) at probe time.
+   git://github.com/Sricharanti/sricharan.git
+   branch: crossbar_3.13_rc5
 
-For some background and discussion on possible solutions, see:
-
-	https://lkml.org/lkml/2013/11/22/520
-
-Acked-by: Rob Herring <robherring2@gmail.com>
-Signed-off-by: Thierry Reding <treding@nvidia.com>
----
-Note that this is somewhat urgent and should if at all possible go into
-v3.13 before the release.
-
- drivers/base/platform.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-index 3a94b799f166..c894d1af3a5e 100644
---- a/drivers/base/platform.c
-+++ b/drivers/base/platform.c
-@@ -13,6 +13,7 @@
- #include <linux/string.h>
- #include <linux/platform_device.h>
- #include <linux/of_device.h>
-+#include <linux/of_irq.h>
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/dma-mapping.h>
-@@ -87,7 +88,12 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
- 		return -ENXIO;
- 	return dev->archdata.irqs[num];
- #else
--	struct resource *r = platform_get_resource(dev, IORESOURCE_IRQ, num);
-+	struct resource *r;
-+
-+	if (IS_ENABLED(CONFIG_OF) && dev->dev.of_node)
-+		return irq_of_parse_and_map(dev->dev.of_node, num);
-+
-+	r = platform_get_resource(dev, IORESOURCE_IRQ, num);
- 
- 	return r ? r->start : -ENXIO;
- #endif
--- 
-1.8.4.2
-
+Regards,
+ Sricharan
