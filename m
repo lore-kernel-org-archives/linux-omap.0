@@ -1,33 +1,73 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 1/5] mfd: omap-usb-host: Update DT clock binding information
-Date: Wed, 8 Jan 2014 17:18:45 +0530
-Message-ID: <52CD3B1D.5080203@ti.com>
-References: <1389161742-10533-1-git-send-email-rogerq@ti.com> <3761842.HRY1CDBF4z@wuerfel> <52CD324D.3020701@ti.com> <201401081235.40927.arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201401081235.40927.arnd-r2nGTMty4D4@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, "Kristo, Tero" <t-kristo-l0cyMroinI0@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH] driver-core: platform: Resolve DT interrupt references late
+Date: Wed,  8 Jan 2014 13:51:17 +0100
+Message-ID: <1389185477-507-1-git-send-email-treding@nvidia.com>
+References: <20140108011957.GK5074@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f41.google.com ([209.85.214.41]:56413 "EHLO
+	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755664AbaAHMx1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 07:53:27 -0500
+In-Reply-To: <20140108011957.GK5074@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Rob Herring <robherring2@gmail.com>, Grant Likely <grant.likely@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 01/08/2014 05:05 PM, Arnd Bergmann wrote:
-> On Wednesday 08 January 2014, Roger Quadros wrote:
->> OK. I'll update the binding information to reflect all the clocks.
->>
->> But what about clk_get() vs of_clk_get_by_name() ?
-> 
-> I think the convention these days is to just use clk_get(), which calls
-> of_clk_get_by_name() internally. Not sure if that's what you are asking.
->
+When devices are probed from the device tree, any interrupts that they
+reference are resolved at device creation time. This causes problems if
+the interrupt provider hasn't been registered yet at that time, which
+results in the interrupt being set to 0.
 
-OK fine. I'll continue to use clk_get() then.
+This is especially bad for platform devices because they are created at
+a very early stage during boot when the majority of interrupt providers
+haven't had a chance to be probed yet. One of the platform where this
+causes major issues is OMAP.
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Note that this patch is the easy way out to fix a large part of the
+problems for now. A more proper solution for the long term would be to
+transition drivers to an API that always resolves resources of any kind
+(not only interrupts) at probe time.
+
+For some background and discussion on possible solutions, see:
+
+	https://lkml.org/lkml/2013/11/22/520
+
+Acked-by: Rob Herring <robherring2@gmail.com>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+---
+Note that this is somewhat urgent and should if at all possible go into
+v3.13 before the release.
+
+ drivers/base/platform.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index 3a94b799f166..c894d1af3a5e 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -13,6 +13,7 @@
+ #include <linux/string.h>
+ #include <linux/platform_device.h>
+ #include <linux/of_device.h>
++#include <linux/of_irq.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/dma-mapping.h>
+@@ -87,7 +88,12 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
+ 		return -ENXIO;
+ 	return dev->archdata.irqs[num];
+ #else
+-	struct resource *r = platform_get_resource(dev, IORESOURCE_IRQ, num);
++	struct resource *r;
++
++	if (IS_ENABLED(CONFIG_OF) && dev->dev.of_node)
++		return irq_of_parse_and_map(dev->dev.of_node, num);
++
++	r = platform_get_resource(dev, IORESOURCE_IRQ, num);
+ 
+ 	return r ? r->start : -ENXIO;
+ #endif
+-- 
+1.8.4.2
+
