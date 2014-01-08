@@ -1,64 +1,52 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 1/5] mfd: omap-usb-host: Update DT clock binding information
-Date: Wed, 8 Jan 2014 15:42:58 +0530
-Message-ID: <52CD24AA.8080605@ti.com>
-References: <1389161742-10533-1-git-send-email-rogerq@ti.com> <1389161742-10533-2-git-send-email-rogerq@ti.com> <20140108095652.GD6701@e106331-lin.cambridge.arm.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v4 1/5] mfd: omap-usb-host: Update DT clock binding
+ information
+Date: Wed, 08 Jan 2014 11:19:28 +0100
+Message-ID: <4812867.NuB3hNkV9d@wuerfel>
+References: <1389161742-10533-1-git-send-email-rogerq@ti.com>
+ <20140108090808.GB16313@earth.universe> <52CD23E0.8030400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34119 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755229AbaAHKSe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Jan 2014 05:18:34 -0500
-In-Reply-To: <20140108095652.GD6701@e106331-lin.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <52CD23E0.8030400@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: devicetree@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, "Kristo, Tero" <t-kristo@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "bcousson@baylibre.com" <bcousson@baylibre.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Mark,
+On Wednesday 08 January 2014 15:39:36 Roger Quadros wrote:
+> > What about the other clocks acquired in drivers/mfd/omap-usb-host.c? Shouldn't
+> > all of those be provided by via the DT phandle?
+> > 
+> 
+> All those clocks are identically named across the OMAP SoCs and are unique for each
+> SoC, so providing DT phandle for all of them is not required.
+> 
+> The init_60m_fclk was renamed to l3init_60m_fclk in OMAP5, and hence the need for
+> this binding.
 
-On 01/08/2014 03:26 PM, Mark Rutland wrote:
-> On Wed, Jan 08, 2014 at 06:15:38AM +0000, Roger Quadros wrote:
->> The omap-usb-host driver expects the 60MHz functional clock
->> of the USB host module to be named as "init_60m_fclk".
->> Add this information in the DT binding document.
->>
->> CC: Lee Jones <lee.jones@linaro.org>
->> CC: Samuel Ortiz <sameo@linux.intel.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  Documentation/devicetree/bindings/mfd/omap-usb-host.txt | 4 ++++
->>  1 file changed, 4 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
->> index b381fa6..5635202 100644
->> --- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
->> +++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
->> @@ -32,6 +32,10 @@ Optional properties:
->>  - single-ulpi-bypass: Must be present if the controller contains a single
->>    ULPI bypass control bit. e.g. OMAP3 silicon <= ES2.1
->>  
->> +- clocks: phandle to 60MHz functional clock to the USB Host module.
->> +
->> +- clock-names: must be "init_60m_fclk"
->> +
-> 
-> Nit: clocks aren't just phandles, there's a clock-specifier too.
-> 
-> Also, it would be nicer if clocks was defined in terms of clock-names,
-> as it makes the relationship between clocks and clock-names clear, and
-> makes it easier to extend the list in future. Something like:
-> 
-> - clocks: a list of phandles + clock-specifiers, one for each entry in
->   clock-names
-> 
-> - clock-names: should include:
->   * "init_60m_fclk" - the 60MHz functional clock to the USB host module.
-> 
+What do you mean it was renamed? Is it a different version of the omap-usb-host
+device then?
 
-OK, I'll update it as per your suggestion.
+> > Should the clk_get be changed to of_clk_get()/of_clk_get_by_name() in the
+> > driver? This would potentially remove the need of the init_60m_fclk name.
+> > 
+> 
+> If we use of_clk_xxx() then we'll need to update DT nodes for OMAP4 and OMAP3 as
+> well to explicitly provide the clock phandle. For now we make use of the fact that
+> SoC clock data names the clock rightly i.e. "init_60m_fclk".
 
-cheers,
--roger
+I'm getting the feeling that init_60m_fclk is not the name of the clock input
+of the omap-usb-host device at all, but rather the name of a signal on the
+omap soc, which would not be an appropriate identifier for the binding.
+
+	Arnd
