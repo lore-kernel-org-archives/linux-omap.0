@@ -1,86 +1,79 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v3 0/4] drm/omap: fix issues in omap_drv probe/remove
-Date: Wed, 8 Jan 2014 15:22:46 +0200
-Message-ID: <52CD5126.60804@ti.com>
-References: <1388654394-5708-1-git-send-email-archit@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [pandaboard] audio initialization fails due to TWL6040
+Date: Wed, 8 Jan 2014 15:23:09 +0200
+Message-ID: <52CD513D.8010403@ti.com>
+References: <529E5EC9.10008@math.uni-bielefeld.de> <20131205185349.GH26766@atomide.com> <52C12226.6010404@ti.com> <20140107225302.GC5074@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="hSUQcRLVcRl0DmbfQuIiFEoMsee2Lhbx2"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53272 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53279 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755717AbaAHNWu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Jan 2014 08:22:50 -0500
-In-Reply-To: <1388654394-5708-1-git-send-email-archit@ti.com>
+	id S1756071AbaAHNXP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Jan 2014 08:23:15 -0500
+In-Reply-To: <20140107225302.GC5074@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>, dri-devel@lists.freedesktop.org, robdclark@gmail.com
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, linux-omap@vger.kernel.org, "Kristo, Tero" <t-kristo@ti.com>
 
---hSUQcRLVcRl0DmbfQuIiFEoMsee2Lhbx2
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 2014-01-02 11:19, Archit Taneja wrote:
-> At the moment, the omapdrm driver doesn't work on panda/beagle when bui=
-lt-in
-> the kernel. The problem is that omapdrm doesn't defer probe if resource=
-s like
-> regulator/I2C etc are missing. The first patch fixes that.
+On 01/08/2014 12:53 AM, Tony Lindgren wrote:
+> Well we cannot sanely deprecate the "ti,hwmods" and move on to
+> matching hwmod data with DT data based on the compatible flag.
+> So it's a bit of a blocker for v3.15 or so time frame.
+>
+>> Due to a 'hw feature' around the sidetone this is not as straight fo=
+rward as
+>> it sounds...
 >=20
-> The next 3 patches make sure that omapdrm module can be inserted and re=
-moved
-> successively, and that omapdss is left in a consistent state when omapd=
-rm is
-> removed.
->=20
-> In the previous version of this series, there was a warning related to =
-apply_irq
-> being registered seen while removing omapdrm. This was a relatively sca=
-ry
-> warning, therefore, the "change dev_unload order" patch was added to ma=
-ke sure
-> we don't see that.
->=20
-> After these fixes, I still see the warning below once in a while. I don=
-'t know
-> how to fix it at the moment, but it's harmless and omapdrm is now usabl=
-e again.
-> These are critical fixes which I have posted since 3.12-rcs, it would b=
-e nice if
-> they can go in as soon as possible.
+> OK. The driver(s) should still be able to coordinate things
+> to sort it out hopefully?
 
-These look ok to me:
+After a quick look at the code:
+- sidetone _is_ broken when we boot with DT for sure already.
+- sidetone works only if we boot in legacy mode.
 
-Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+While it is true that ST block has it's own address space and even dedi=
+cated
+irq line, but..
+ST can be enabled from the McBSP address space (via SSELCR_REG).
+When ST is enabled we need to disable the corresponding McBSP's autoidl=
+e. The
+reason for this is that the ST block is clocked from the McBSP IP's int=
+erface
+clock. If the interface clock of the McBSP is idling there will be glit=
+ches in
+the sidetone generation due to not having continuously running clock fo=
+r it's
+internals.
 
- Tomi
+=46or legacy boot we had this handled by a custom callback to disable a=
+utoidle
+for the McBSP when the ST starts and enable it back when ST is stopped:
+arch/arm/mach-omap2/mcbsp.c:omap3_enable_st_clock() is the callback we =
+call.
 
+Normal audio will work via McBSP if we get rid of hwmod, the driver can=
+ load
+and operate that way. As for the sidetone functionality: it is broken w=
+hen we
+boot with DT and the removal of hwmod will have no effect on this.
 
+The Sidetone address space also have sysconfig register with AUTOIDLE b=
+it, but
+it has no effect on the McBSP_ICLK autoidle itself.
+In theory we can handle the sidetone as we do right now, but we need on=
+e
+thing: an API so drivers can disable/enable autoidle of an already enab=
+led clock.
 
---hSUQcRLVcRl0DmbfQuIiFEoMsee2Lhbx2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+CCing Tero for this, he might have pointers or idea on how we can do th=
+is.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSzVEmAAoJEPo9qoy8lh71V4oQAKwh7RaYpwBmzPdNLaTn7jRO
-AjFOzb6eynUBvbi8UTV4CsyMZ6VP4Fqypw4KUEbuJ4+8SSgoLY089oKOx2Xc6KHP
-ujcDGlca7tD0vFJLDRXa0nAyNhusnewg/EzNsndqmpUg7NOuhX6HokYeaeLH8IFO
-6n8Jah5RiFhcFAe+UindZmIeye/Dme+5Pu5U3eWoxV+Z1b+yNHR4LnPpemztTQnH
-qDv7FRS1jM7XLmqfO3ZuKg7RLjbIFLr0uPqoVR2e2G5W+WUxccT0Q29qd1g7mhK8
-rjgfIxVxMkyWMu/vWEyXzihJXJcNy031GIG+vcwDo4QNBQzFKfuW/5AQj0KRKz2r
-r/oArncBTAvCNRxJojVxig0V+RgNkQ52hgdj6+nAVC62o3oFI5Iad0fMfWM65lys
-7eHsMj/eyegW3Ag7VtEbjs/9DZqDHME/ShWE6DkUa6B8WKlJ0+JyJV1LaqtZBkGz
-wCORRLwsLAlkH5qCYBvNe/H30+e6dIdbnmNscU8iw9Y/HB3lBj+fXTOa2xnVO+c8
-vLI45f+9vhXIFjsyI7t5JLBli5pXNv4oqkXaC2xA1b8p+izWJg6e50Lagyn/HaeZ
-yaP1Ixr3CleKP526w8PVww0WWa5AG/NYWfzhXeBCjrofJmeWqV027roRHS7aCASz
-CtRGFarlFqWacg3dHdky
-=1L17
------END PGP SIGNATURE-----
-
---hSUQcRLVcRl0DmbfQuIiFEoMsee2Lhbx2--
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
