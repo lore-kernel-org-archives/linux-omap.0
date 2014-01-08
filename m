@@ -1,58 +1,142 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] driver-core: platform: Resolve DT interrupt references
- late
-Date: Wed, 08 Jan 2014 14:41:19 +0100
-Message-ID: <4589157.TquA4Q59fC@wuerfel>
-References: <20140108011957.GK5074@atomide.com>
- <1389185477-507-1-git-send-email-treding@nvidia.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] omapdss: dispc: Preload more data in pipeline DMAs for
+ OMAP4+ SoCs
+Date: Wed, 8 Jan 2014 15:52:38 +0200
+Message-ID: <52CD5826.9010501@ti.com>
+References: <1387278621-10966-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1389185477-507-1-git-send-email-treding@nvidia.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="89ex3LBEbHnBhX2GMB2kXEU9tv36SpcSG"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39527 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757061AbaAHNwk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 08:52:40 -0500
+In-Reply-To: <1387278621-10966-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Wednesday 08 January 2014 13:51:17 Thierry Reding wrote:
-> When devices are probed from the device tree, any interrupts that they
-> reference are resolved at device creation time. This causes problems if
-> the interrupt provider hasn't been registered yet at that time, which
-> results in the interrupt being set to 0.
+--89ex3LBEbHnBhX2GMB2kXEU9tv36SpcSG
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for looking at this problem, it has bothered a lot of people
-for a long time. I'm sorry I wasn't there for the discussion in November,
-but when it came up before, I suggested a different solution that
-apparently didn't get implemented.
+On 2013-12-17 13:10, Archit Taneja wrote:
+> DISPC pipeline DMAs preload some bytes of pixel data in the vertical bl=
+anking
+> region before the start of each frame. The preload ensures the pipeline=
+ doesn't
+> underflow when the active region of the display starts.
+>=20
+> DISPC_GFX/VIDp_PRELOAD registers allow us to program how many bytes of =
+data
+> should be preloaded for each pipeline. Calculating a precise preload va=
+lue
+> would be a complex function of the pixel clock of the connected display=
+, the
+> vertical blanking duration and the interconnect traffic at that instanc=
+e. If
+> the register is left untouched, a default value is preloaded.
+>=20
+> We observe underflows for OMAP4+ SoCs for certain bandwidth intensive u=
+se cases
+> with many other initiators active, and in situations where memory acces=
+s isn't
+> very efficient(like accessing Tiler mapped buffers and EMIF configured =
+in
+> non-interleaved more). The cause of the underflow is because the defaul=
+t preload
+> value isn't sufficient for the DMA to reach a steady state. We configur=
+e the
+> PRELOAD register such that the pipelines preload data up to the high th=
+reshold
+> of the FIFO.
+>=20
+> Preloading lot of data for older SoCs can have a negative impact. Due t=
+o slower
+> interconnects, it's possible that the DISPC DMA cannot preload up to th=
+e high
+> threshold within the vertical blanking region of the panel. We leave th=
+e PRELOAD
+> registers to their reset values since we haven't faced underflows with =
+these
+> SoCs because of low value of PRELOAD.
+>=20
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/video/omap2/dss/dispc.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+>=20
+> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/=
+dispc.c
+> index 6578540..ace179e 100644
+> --- a/drivers/video/omap2/dss/dispc.c
+> +++ b/drivers/video/omap2/dss/dispc.c
+> @@ -90,6 +90,8 @@ struct dispc_features {
+> =20
+>  	/* revert to the OMAP4 mechanism of DISPC Smart Standby operation */
+>  	bool mstandby_workaround:1;
+> +
+> +	bool set_max_preload:1;
+>  };
+> =20
+>  #define DISPC_MAX_NR_FIFOS 5
+> @@ -1200,6 +1202,15 @@ void dispc_ovl_set_fifo_threshold(enum omap_plan=
+e plane, u32 low, u32 high)
+>  	dispc_write_reg(DISPC_OVL_FIFO_THRESHOLD(plane),
+>  			FLD_VAL(high, hi_start, hi_end) |
+>  			FLD_VAL(low, lo_start, lo_end));
+> +
+> +	/*
+> +	 * configure the preload to the pipeline's high threhold, if HT it's =
+too
+> +	 * large for the preload field, set the threshold to the maximum valu=
+e
+> +	 * that can be held by the preload register
+> +	 */
+> +	if (dss_has_feature(FEAT_PRELOAD) && dispc.feat->set_max_preload &&
+> +			plane !=3D OMAP_DSS_WB)
+> +		dispc_write_reg(DISPC_OVL_PRELOAD(plane), min(high, 0xfff));
 
-> Note that this patch is the easy way out to fix a large part of the
-> problems for now. A more proper solution for the long term would be to
-> transition drivers to an API that always resolves resources of any kind
-> (not only interrupts) at probe time.
-> 
-> For some background and discussion on possible solutions, see:
-> 
-> 	https://lkml.org/lkml/2013/11/22/520
+This causes compile warning:
 
-I hope I read this thread correctly, sorry if I missed an important
-part. My idea was to add the code not in platform_get_irq() but add
-the resource in platform_drv_probe(), and just bail out with
--EPROBE_DEFER there if necessary.
+drivers/video/omap2/dss/dispc.c: In function =91dispc_ovl_set_fifo_thresh=
+old=92:
+drivers/video/omap2/dss/dispc.c:1213:152: warning: comparison of
+distinct pointer types lacks a cast
 
-We could then skip adding the resources at device creation time.
-Is this something you already plan to do later, or is there a reason
-it wouldn't work?
+I fixed it by changing 0xfff to 0xfffu
 
-In the meantime, I don't see anything with your patch, but it also
-wouldn't hurt to do it now if it solves all the problems.
+Queued for 3.14.
 
-	Arnd
+ Tomi
+
+
+
+--89ex3LBEbHnBhX2GMB2kXEU9tv36SpcSG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSzVgmAAoJEPo9qoy8lh71+EgQAJIq7w/G0MianyqGAav0fhPW
++2YIYpAaRoxZvnsBt6Fs0nX3982iFyq0C9dU94V+YONbi7CLetmWLJ+dorwipGoJ
+ORO4j7QEEBzwYxumQSD0VuNei4aD2LPQ8z/YsUK6cZC3/jXwhkXZ74dlDlQ/Gyxw
+NOrOQT0+HwuKOFbZ3C1Q9g0AFQfoeNv57xUGujaA0LLypuZlzsFEnvywA+NLp4RQ
+SblUOl05nzaer7XRqKBNQeWMGrB55CeJco0uQtO8d0QHAYvzBddRr4mta3PztWTV
+ubVh+/u5KOdKbxdz6o7YBZuHhalCkosU1QuHAdUVybvoVTcbU/A4B7A/4/yIZY+I
+lT/2oSal83WEXXwbM7mgZYFr/vpdUabDKJUqRhn39JZ6jzrJOxSATlFcpm38YWSv
+HSxoUhU9TE7FQ6/1ppAPBKThxaCo16/EkSHkD9Vyu5KQd/FJutxQGXVNJUR/SsPB
+Gc3m3eT2G2Bc4IVDi+W6Vgzqa7OhM7sF2L7gv5Oo8Kymcd7s6Xu9RqZ1WgTOy/Kp
+dyqrBNlwMF/D31C7X6IIi3r/2c40w616Frc6ii2hte26RtETS9uomgNhTCBd0Hue
+v+A/HRytcO2fM+LAo+wDmVFYJT9banwQO+xwYdqpHHxWPdhQ3saINCDOYYxzKAEW
+NfjwHCI0MbwF5e05qGzI
+=3CL+
+-----END PGP SIGNATURE-----
+
+--89ex3LBEbHnBhX2GMB2kXEU9tv36SpcSG--
