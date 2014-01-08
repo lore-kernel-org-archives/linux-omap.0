@@ -1,51 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] driver-core: platform: Resolve DT interrupt references
- late
-Date: Wed, 8 Jan 2014 13:43:54 -0800
-Message-ID: <20140108214354.GG31323@atomide.com>
-References: <20140108011957.GK5074@atomide.com>
- <1389185477-507-1-git-send-email-treding@nvidia.com>
- <20140108164040.GA31686@atomide.com>
- <20140108192830.GA1298@ulmo.nvidia.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH 0/3] omap2: Assorted GPMC cleanups
+Date: Wed, 8 Jan 2014 20:38:16 -0300
+Message-ID: <20140108233815.GC2595@localhost>
+References: <1382921508-5104-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20140108191836.GD31323@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:42052 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757355AbaAHXh7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 18:37:59 -0500
 Content-Disposition: inline
-In-Reply-To: <20140108192830.GA1298@ulmo.nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Rob Herring <robherring2@gmail.com>, Grant Likely <grant.likely@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20140108191836.GD31323@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Pekon Gupta <pekon@ti.com>, linux-mtd@lists.infradead.org, Jon Hunter <jgchunter@gmail.com>
 
-* Thierry Reding <thierry.reding@gmail.com> [140108 11:32]:
-> On Wed, Jan 08, 2014 at 08:40:41AM -0800, Tony Lindgren wrote:
-> > 
-> > There's nothing wrong with the interrupt related code paths, we're just
-> > trying to call the functions at a wrong time when thing are not yet
-> > initialized.
-> 
-> The patch won't get rid of that warning, but it should at least restore
-> things to a working state at runtime. At least for well-behaved drivers
-> that use platform_get_irq() rather than those that try to access the
-> resources directly.
+On Wed, Jan 08, 2014 at 11:18:37AM -0800, Tony Lindgren wrote:
+> * Ezequiel Garcia <ezequiel.garcia@free-electrons.com> [131027 17:52]=
+:
+> > (I'm CCing the MTD list, because GPMC is the memory controller
+> > used for NOR, NAND and OneNAND devices).
+> >=20
+> > Hi all,
+> >=20
+> > Just a small patchset containing two small cleanups and a minor fix
+> > for the GPMC memory controller. The first two are cleanups and can
+> > be considered as preparation work for the fix.
+> >=20
+> > The fix is patch 3/3: "Move legacy GPMC width setting". It makes
+> > explicit use of the DT property "gpmc,device-width" and removes the
+> > subsequent (and redundant) setting of the GPMC width, based in the
+> > NAND bus widht.
+>=20
+> Thanks and sorry for the delay. Applying these all into branch
+> omap-for-v3.14/fixes-not-urgent.
+>=20
 
-Well the problem I'm seeing is these nasty warnings.
+No problem. I'll give this a test/review next week.
 
-BTW, I think the issue you're talking about regarding platform_get_irq()
-got fixed by 4a43d686fe33 (of/irq: Pass trigger type in IRQ resource flags).
- 
-> > Below is a repost of what works for me without using notifiers. Anybody
-> > got any better ideas for a minimal fix?
-> 
-> That patch is somewhat big for something that should be a minimal fix.
-> Being the size that it is it might have undesired side-effects that may
-> not get noticed until it's way too late, so I'm hesitant to have
-> something like this merged at this point in the release cycle.
-
-Yes I agree it's rather invasive, but we also do have things pretty
-badly broken in the kernel for device tree based booting. And it seems
-that nobody has a smaller patch that would fix it.
-
-Regards,
-
-Tony
+Do we still need the board-file (legacy) workaround in this patchset?
+I was actually waiting for you to clean-up completely that, before
+re-sending the series, without the board-file workaround.
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
