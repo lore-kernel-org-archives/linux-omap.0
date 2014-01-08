@@ -1,15 +1,16 @@
-From: Arnd Bergmann <arnd@arndb.de>
+From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH v4 1/5] mfd: omap-usb-host: Update DT clock binding
  information
-Date: Wed, 08 Jan 2014 11:55:18 +0100
-Message-ID: <3761842.HRY1CDBF4z@wuerfel>
+Date: Wed, 8 Jan 2014 16:34:18 +0530
+Message-ID: <52CD30B2.2080807@ti.com>
 References: <1389161742-10533-1-git-send-email-rogerq@ti.com>
- <52CD23E0.8030400@ti.com> <20140108105244.GA21607@earth.universe>
+ <4812867.NuB3hNkV9d@wuerfel> <52CD2807.9000200@ti.com>
+ <4840680.vVGZYBJBID@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140108105244.GA21607@earth.universe>
+In-Reply-To: <4840680.vVGZYBJBID@wuerfel>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,33 +20,46 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: devicetree@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, "Kristo, Tero" <t-kristo@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: devicetree@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, "Kristo, Tero" <t-kristo@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 08 January 2014 11:52:44 Sebastian Reichel wrote:
+On 01/08/2014 04:10 PM, Arnd Bergmann wrote:
+> On Wednesday 08 January 2014 15:57:19 Roger Quadros wrote:
+>> It is a clock gate defined like so in the DT clock data
+>>
+>> on OMAP4
+>>         init_60m_fclk: init_60m_fclk {
+>>                 #clock-cells = <0>;
+>>                 compatible = "ti,divider-clock";
+>>                 clocks = <&dpll_usb_m2_ck>;
+>>                 reg = <0x0104>;
+>>                 ti,dividers = <1>, <8>;
+>>         };
+>>
+>> on OMAP5
+>>         l3init_60m_fclk: l3init_60m_fclk {
+>>                 #clock-cells = <0>;
+>>                 compatible = "ti,divider-clock";
+>>                 clocks = <&dpll_usb_m2_ck>;
+>>                 reg = <0x0104>;
+>>                 ti,dividers = <1>, <8>;
+>>         };
+>>
+>> So you can see that it is the same thing with a different name.
 > 
-> On Wed, Jan 08, 2014 at 03:39:36PM +0530, Roger Quadros wrote:
-> > > What about the other clocks acquired in drivers/mfd/omap-usb-host.c? Shouldn't
-> > > all of those be provided by via the DT phandle?
-> > 
-> > All those clocks are identically named across the OMAP SoCs and are unique for each
-> > SoC, so providing DT phandle for all of them is not required.
-> > 
-> > The init_60m_fclk was renamed to l3init_60m_fclk in OMAP5, and hence the need for
-> > this binding.
-> 
-> I understand the intention of this patch. I was just wondering if
-> all the clocks should be referenced from DT even if that is not
-> strictly needed at the moment. This would make clocks similar to
-> other resources like regulators, gpios, irqs, ...
-> 
-> Having the clocks referenced from DT looks cleaner to me. It means I
-> can check the DT file for any resources used by a driver. It also
-> creates some kind of consistency in the kernel.
+> Right, but init_60m_fclk is the name of the clock output of the
+> divider here, which is /not/ what you should put in the "clock-names"
+> property of the consumer. The clock input name should reflect what
+> the clock is used for instead.
 
-I think that would be best, yes. AFAIK most other platforms do this
-already, OMAP is a bit behind because it started using clocks when the
-infrastructure for doing this right was still incomplete.
+Ah, now I get it. :). I agree that the name should reflect the function.
 
-	Arnd
+Looking more closely, the driver doesn't enable/disable the init_60m_fclk but just
+uses it to configure the parent of utmi_p1_gfclk which is a clock input to the
+USB module. 
+
+Based on this I would call it "refclk_int" for internal reference clock.
+
+cheers,
+-roger
