@@ -1,112 +1,91 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2] mfd: omap-usb-tll: Don't hold lock during pm_runtime_get/put_sync()
-Date: Wed, 8 Jan 2014 12:45:33 +0530
-Message-ID: <1389165333-7573-1-git-send-email-rogerq@ti.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [PATCH v4 1/5] mfd: omap-usb-host: Update DT clock binding
+ information
+Date: Wed, 8 Jan 2014 10:08:08 +0100
+Message-ID: <20140108090808.GB16313@earth.universe>
+References: <1389161742-10533-1-git-send-email-rogerq@ti.com>
+ <1389161742-10533-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="8GpibOaaTibBMecb"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:60551 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755434AbaAHJIR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Jan 2014 04:08:17 -0500
+Content-Disposition: inline
+In-Reply-To: <1389161742-10533-2-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, arnd@arndb.de, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
 
-pm_runtime_get/put_sync() can sleep so don't hold spinlock while
-calling them.
 
-This patch prevents a BUG() during system suspend when
-CONFIG_DEBUG_ATOMIC_SLEEP is enabled.
+--8GpibOaaTibBMecb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Bug is present in Kernel versions v3.9 onwards.
+On Wed, Jan 08, 2014 at 11:45:38AM +0530, Roger Quadros wrote:
+> diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Do=
+cumentation/devicetree/bindings/mfd/omap-usb-host.txt
+> index b381fa6..5635202 100644
+> --- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+> +++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+> @@ -32,6 +32,10 @@ Optional properties:
+>  - single-ulpi-bypass: Must be present if the controller contains a single
+>    ULPI bypass control bit. e.g. OMAP3 silicon <=3D ES2.1
+> =20
+> +- clocks: phandle to 60MHz functional clock to the USB Host module.
+> +
+> +- clock-names: must be "init_60m_fclk"
+> +
+>  Required properties if child node exists:
+> =20
+>  - #address-cells: Must be 1
 
-Reported-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Tested-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 3.9+
----
- drivers/mfd/omap-usb-tll.c | 36 ++++++++++++------------------------
- 1 file changed, 12 insertions(+), 24 deletions(-)
+I have some questions:
 
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index 0d946ae1..c409be9 100644
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -333,21 +333,17 @@ int omap_tll_init(struct usbhs_omap_platform_data *pdata)
- 	unsigned reg;
- 	struct usbtll_omap *tll;
- 
--	spin_lock(&tll_lock);
--
--	if (!tll_dev) {
--		spin_unlock(&tll_lock);
-+	if (!tll_dev)
- 		return -ENODEV;
--	}
- 
--	tll = dev_get_drvdata(tll_dev);
-+	pm_runtime_get_sync(tll_dev);
- 
-+	spin_lock(&tll_lock);
-+	tll = dev_get_drvdata(tll_dev);
- 	needs_tll = false;
- 	for (i = 0; i < tll->nch; i++)
- 		needs_tll |= omap_usb_mode_needs_tll(pdata->port_mode[i]);
- 
--	pm_runtime_get_sync(tll_dev);
--
- 	if (needs_tll) {
- 		void __iomem *base = tll->base;
- 
-@@ -398,9 +394,8 @@ int omap_tll_init(struct usbhs_omap_platform_data *pdata)
- 		}
- 	}
- 
--	pm_runtime_put_sync(tll_dev);
--
- 	spin_unlock(&tll_lock);
-+	pm_runtime_put_sync(tll_dev);
- 
- 	return 0;
- }
-@@ -411,17 +406,14 @@ int omap_tll_enable(struct usbhs_omap_platform_data *pdata)
- 	int i;
- 	struct usbtll_omap *tll;
- 
--	spin_lock(&tll_lock);
--
--	if (!tll_dev) {
--		spin_unlock(&tll_lock);
-+	if (!tll_dev)
- 		return -ENODEV;
--	}
--
--	tll = dev_get_drvdata(tll_dev);
- 
- 	pm_runtime_get_sync(tll_dev);
- 
-+	spin_lock(&tll_lock);
-+	tll = dev_get_drvdata(tll_dev);
-+
- 	for (i = 0; i < tll->nch; i++) {
- 		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
- 			int r;
-@@ -448,13 +440,10 @@ int omap_tll_disable(struct usbhs_omap_platform_data *pdata)
- 	int i;
- 	struct usbtll_omap *tll;
- 
--	spin_lock(&tll_lock);
--
--	if (!tll_dev) {
--		spin_unlock(&tll_lock);
-+	if (!tll_dev)
- 		return -ENODEV;
--	}
- 
-+	spin_lock(&tll_lock);
- 	tll = dev_get_drvdata(tll_dev);
- 
- 	for (i = 0; i < tll->nch; i++) {
-@@ -464,9 +453,8 @@ int omap_tll_disable(struct usbhs_omap_platform_data *pdata)
- 		}
- 	}
- 
--	pm_runtime_put_sync(tll_dev);
+What about the other clocks acquired in drivers/mfd/omap-usb-host.c? Should=
+n't
+all of those be provided by via the DT phandle?
+
+Should the clk_get be changed to of_clk_get()/of_clk_get_by_name() in the
+driver? This would potentially remove the need of the init_60m_fclk name.
+
+$ grep clk_get drivers/mfd/omap-usb-host.c
+    omap->ehci_logic_fck =3D clk_get(dev, "ehci_logic_fck");
+    omap->utmi_p1_gfclk =3D clk_get(dev, "utmi_p1_gfclk");
+    omap->utmi_p2_gfclk =3D clk_get(dev, "utmi_p2_gfclk");
+    omap->xclk60mhsp1_ck =3D clk_get(dev, "xclk60mhsp1_ck");
+    omap->xclk60mhsp2_ck =3D clk_get(dev, "xclk60mhsp2_ck");
+    omap->init_60m_fclk =3D clk_get(dev, "init_60m_fclk");
+    omap->utmi_clk[i] =3D clk_get(dev, clkname);
+    omap->hsic480m_clk[i] =3D clk_get(dev, clkname);
+    omap->hsic60m_clk[i] =3D clk_get(dev, clkname);
+
+-- Sebastian
+
+--8GpibOaaTibBMecb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSzRV4AAoJENju1/PIO/qaDfQP/iqaqgXj6esvJbBlNZwvtyUj
+LTUkqoR1fXs5ydxJ839KjVK4GiWKZbqGkwLzOBzuIPYXmVtI/HTC5JMEVqAO6hQV
+be1IBSBqFqS0+FETlJ/H9UcoX46ml2NllZg/eyFWBR8lPebAc0Gyqu9LSo0vk7A6
+nmjn1z5nC96MlPvmv9yk9k6cNyVicqMpQ5/8tji/onLAn+LJQ0PCxR6Tqa4BwK48
+d5a84NAL4TVIAFf3d5p6z+5+Dww+RzcqcuT5xoPIqbye7mFsyXaGzjdop44xLUYc
+vMmTnaycdtiaZ4aIznoLGyZRQKD+xQPrLYxM82Wbykw8lVjJLAU3kJVtKgs1FNAA
+iN+6SJ8k5EbZvkHfpeCKJJ5No8mRRtzGz2tCDma8+rIVr6lSFw4UQv0slxrTZA+c
+pf/r5Zn+KFu6fNtIistCSw+JYmlLCS16OvsmCN02LuvXP5WRKsPA+1FyDzZcgyRM
+BGy2RHigWIW2/Imky1PY7+KZCvkPXSEHD0tYOyLMSl9bzIVoya+14h2R2IAach4d
++hrsbK3M1pcvrbw2DS0/uWzD2hFvB8D6972LX02VVvMz/NwJb5N4RODw4Gfe2usS
++O600SA6YX693ySwRLYPxUk+1RnYLrRfwmfBdwqRqL+xfEpQ3O0d6I4cCV/TjlZ+
+9IDaDbRevvtZ1/c/WFNY
+=YwMn
+-----END PGP SIGNATURE-----
+
+--8GpibOaaTibBMecb--
