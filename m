@@ -1,91 +1,42 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [PATCH v4 1/5] mfd: omap-usb-host: Update DT clock binding
- information
-Date: Wed, 8 Jan 2014 10:08:08 +0100
-Message-ID: <20140108090808.GB16313@earth.universe>
-References: <1389161742-10533-1-git-send-email-rogerq@ti.com>
- <1389161742-10533-2-git-send-email-rogerq@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2] mfd: omap-usb-tll: Don't hold lock during
+ pm_runtime_get/put_sync()
+Date: Wed, 8 Jan 2014 09:12:37 +0000
+Message-ID: <20140108091237.GE19974@lee--X1>
+References: <1389165333-7573-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="8GpibOaaTibBMecb"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:60551 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755434AbaAHJIR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Jan 2014 04:08:17 -0500
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1389161742-10533-2-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1389165333-7573-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
-Cc: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, arnd@arndb.de, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: sameo@linux.intel.com, balbi@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, stable@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
+> pm_runtime_get/put_sync() can sleep so don't hold spinlock while
+> calling them.
+>=20
+> This patch prevents a BUG() during system suspend when
+> CONFIG_DEBUG_ATOMIC_SLEEP is enabled.
+>=20
+> Bug is present in Kernel versions v3.9 onwards.
+>=20
+> Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: <stable@vger.kernel.org> # 3.9+
+> ---
+>  drivers/mfd/omap-usb-tll.c | 36 ++++++++++++------------------------
+>  1 file changed, 12 insertions(+), 24 deletions(-)
 
---8GpibOaaTibBMecb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Patch looks good to me now.
 
-On Wed, Jan 08, 2014 at 11:45:38AM +0530, Roger Quadros wrote:
-> diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Do=
-cumentation/devicetree/bindings/mfd/omap-usb-host.txt
-> index b381fa6..5635202 100644
-> --- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-> +++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-> @@ -32,6 +32,10 @@ Optional properties:
->  - single-ulpi-bypass: Must be present if the controller contains a single
->    ULPI bypass control bit. e.g. OMAP3 silicon <=3D ES2.1
-> =20
-> +- clocks: phandle to 60MHz functional clock to the USB Host module.
-> +
-> +- clock-names: must be "init_60m_fclk"
-> +
->  Required properties if child node exists:
-> =20
->  - #address-cells: Must be 1
+Applied, thanks.
 
-I have some questions:
-
-What about the other clocks acquired in drivers/mfd/omap-usb-host.c? Should=
-n't
-all of those be provided by via the DT phandle?
-
-Should the clk_get be changed to of_clk_get()/of_clk_get_by_name() in the
-driver? This would potentially remove the need of the init_60m_fclk name.
-
-$ grep clk_get drivers/mfd/omap-usb-host.c
-    omap->ehci_logic_fck =3D clk_get(dev, "ehci_logic_fck");
-    omap->utmi_p1_gfclk =3D clk_get(dev, "utmi_p1_gfclk");
-    omap->utmi_p2_gfclk =3D clk_get(dev, "utmi_p2_gfclk");
-    omap->xclk60mhsp1_ck =3D clk_get(dev, "xclk60mhsp1_ck");
-    omap->xclk60mhsp2_ck =3D clk_get(dev, "xclk60mhsp2_ck");
-    omap->init_60m_fclk =3D clk_get(dev, "init_60m_fclk");
-    omap->utmi_clk[i] =3D clk_get(dev, clkname);
-    omap->hsic480m_clk[i] =3D clk_get(dev, clkname);
-    omap->hsic60m_clk[i] =3D clk_get(dev, clkname);
-
--- Sebastian
-
---8GpibOaaTibBMecb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSzRV4AAoJENju1/PIO/qaDfQP/iqaqgXj6esvJbBlNZwvtyUj
-LTUkqoR1fXs5ydxJ839KjVK4GiWKZbqGkwLzOBzuIPYXmVtI/HTC5JMEVqAO6hQV
-be1IBSBqFqS0+FETlJ/H9UcoX46ml2NllZg/eyFWBR8lPebAc0Gyqu9LSo0vk7A6
-nmjn1z5nC96MlPvmv9yk9k6cNyVicqMpQ5/8tji/onLAn+LJQ0PCxR6Tqa4BwK48
-d5a84NAL4TVIAFf3d5p6z+5+Dww+RzcqcuT5xoPIqbye7mFsyXaGzjdop44xLUYc
-vMmTnaycdtiaZ4aIznoLGyZRQKD+xQPrLYxM82Wbykw8lVjJLAU3kJVtKgs1FNAA
-iN+6SJ8k5EbZvkHfpeCKJJ5No8mRRtzGz2tCDma8+rIVr6lSFw4UQv0slxrTZA+c
-pf/r5Zn+KFu6fNtIistCSw+JYmlLCS16OvsmCN02LuvXP5WRKsPA+1FyDzZcgyRM
-BGy2RHigWIW2/Imky1PY7+KZCvkPXSEHD0tYOyLMSl9bzIVoya+14h2R2IAach4d
-+hrsbK3M1pcvrbw2DS0/uWzD2hFvB8D6972LX02VVvMz/NwJb5N4RODw4Gfe2usS
-+O600SA6YX693ySwRLYPxUk+1RnYLrRfwmfBdwqRqL+xfEpQ3O0d6I4cCV/TjlZ+
-9IDaDbRevvtZ1/c/WFNY
-=YwMn
------END PGP SIGNATURE-----
-
---8GpibOaaTibBMecb--
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
