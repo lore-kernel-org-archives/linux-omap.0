@@ -1,67 +1,66 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2 0/2] ARM: OMAP2+/dts: standardize SoC naming
-Date: Wed, 8 Jan 2014 11:18:47 -0800
-Message-ID: <20140108191846.GE31323@atomide.com>
-References: <1386204578-6018-1-git-send-email-nm@ti.com>
- <CAGo_u6o+Lcf0wzmsSir1APd4T3A4D+GPtdRmkBM79mjW2aEGHA@mail.gmail.com>
+Subject: Re: [RFC/PATCH] arm: omap2plus_defconfig: enable more drivers
+Date: Wed, 8 Jan 2014 11:18:56 -0800
+Message-ID: <20140108191856.GF31323@atomide.com>
+References: <1382710831-5758-1-git-send-email-balbi@ti.com>
+ <20131025144426.GA15154@atomide.com>
+ <20131025155123.GF4400@gimli>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21697 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751052AbaAHTTA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 14:19:00 -0500
 Content-Disposition: inline
-In-Reply-To: <CAGo_u6o+Lcf0wzmsSir1APd4T3A4D+GPtdRmkBM79mjW2aEGHA@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Benoit Cousson <bcousson@baylibre.com>, Mark Rutland <mark.rutland@arm.com>, dt list <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, lkml <linux-kernel@vger.kernel.org>, Rob Landley <rob@landley.net>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20131025155123.GF4400@gimli>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Nishanth Menon <nm@ti.com> [140106 16:49]:
-> Hi Benoit, Tony,
+* Felipe Balbi <balbi@ti.com> [131025 08:51]:
+> Hi,
 > 
-> On Wed, Dec 4, 2013 at 6:49 PM, Nishanth Menon <nm@ti.com> wrote:
-> > Originally attempted partially in [1], the missing binding were
-> > reported as part of Rob's report in [2].
+> On Fri, Oct 25, 2013 at 07:44:26AM -0700, Tony Lindgren wrote:
+> > * Felipe Balbi <balbi@ti.com> [131025 07:20]:
+> > > enable a few more drivers as modules on omap2plus_defconfig,
+> > > this helps us getting more platforms working out of the box
+> > > by just building omap2plus_defconfig.
+> > > 
+> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > > ---
+> > > 
+> > > Hi Tony,
+> > > 
+> > > would you consider enabling these drivers ? I didn't, yet,
+> > > make sure that these drivers won't cause PM regressions. Wanted
+> > > to make sure you'd be ok enabling so many of them.
+> > 
+> > Sure, we should have all common drivers enabled, preferrably as
+> > loadable modules where possible.
+> > 
+> > Probably at least MUSB gadgets need to be loadable modulees as at
+> > least I have my test setup in a rack with USB cables connected
+> > all the time. That way the PM tests can be done without the USB
+> > modules loaded.
+> > 
+> > Or maybe we can just PM runtime suspend the USB drivers for PM
+> > tests?
 > 
-> Would you like me to send this series again since I do not see this in:
-> https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.14/dts
+> I'd rather just unload the drivers if they cause issues. The thing is
+> that with a patch like $subject, we get more working out-of-the-box and
+> since most everything is really already in mainline (at least after
+> v3.13 merge window) except for DTS (which should go up on v3.14, all the
+> pending stuff), then we should be in really good shape after enabling
+> all the necessary modules.
 
-No need to and sorry for the delays. I'm applying these into
-omap-for-v3.14/fixes-not-urgent as they should not conflict with
-other DT related patches.
+Just to update the status on this, I've been hoping to get the
+omap3 PM regression issues out of the way before enabling drivers
+so we can test for the regressions easily. I've applied patches to
+enable some of these in omap-for-v3.14/fixes-not-urgent, so this
+patch will eventually need to be slightly updated.
 
 Regards,
 
 Tony
- 
-> patchwork links:
-> https://patchwork.kernel.org/patch/3286051/
-> https://patchwork.kernel.org/patch/3286061/
-> 
-> >
-> > So, here is take two of the series, lacking an standard causes issues
-> > that was fixed such as [3]. Ideally, we should never again introduce a
-> > board file without a exact compatible SoC match.
-> >
-> > I have stayed a bit away from updating board and SoC dts files yet
-> > to look at the direction we'd like to go here. If we feel things are
-> > good, I would gladly try to clean our mess up.
-> >
-> > Nishanth Menon (2):
-> >   Documentation: dt: OMAP: explicitly state SoC compatible strings
-> >   ARM: OMAP2+: board-generic: update SoC compatibility strings
-> >
-> >  .../devicetree/bindings/arm/omap/omap.txt          |   53 ++++++++++++++++++++
-> >  arch/arm/mach-omap2/board-generic.c                |    7 +++
-> >  2 files changed, 60 insertions(+)
-> >
-> > [1] https://patchwork.kernel.org/patch/2998201/
-> > [2] http://marc.info/?l=linux-arm-kernel&m=138378029113665&w=2
-> > [3] https://patchwork.kernel.org/patch/3279281/
-> >
-> > --
-> > 1.7.9.5
-> >
-> >
-> > _______________________________________________
-> > linux-arm-kernel mailing list
-> > linux-arm-kernel@lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
