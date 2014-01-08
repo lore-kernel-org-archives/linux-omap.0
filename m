@@ -1,35 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: OMAP2: fix interrupt number for rng
-Date: Tue, 7 Jan 2014 16:28:44 -0800
-Message-ID: <20140108002843.GI5074@atomide.com>
-References: <1387839579-58292-1-git-send-email-s-anna@ti.com>
+Subject: Re: [PATCH 0/4] ARM: OMAP: raw read and write endian fix
+Date: Tue, 7 Jan 2014 16:39:28 -0800
+Message-ID: <20140108003927.GJ5074@atomide.com>
+References: <1387822234-11167-1-git-send-email-taras.kondratiuk@linaro.org>
+ <CAArO44vC4WKGHSqHX3+Mo5+jcNuyJLkh94+SPd4H+aZYAroYzw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51524 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14054 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754280AbaAHA2t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jan 2014 19:28:49 -0500
+	with ESMTP id S1751350AbaAHAjd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jan 2014 19:39:33 -0500
 Content-Disposition: inline
-In-Reply-To: <1387839579-58292-1-git-send-email-s-anna@ti.com>
+In-Reply-To: <CAArO44vC4WKGHSqHX3+Mo5+jcNuyJLkh94+SPd4H+aZYAroYzw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk
+To: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+Cc: Patch Tracking <patches@linaro.org>, Linaro Networking <linaro-networking@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>
 
-* Suman Anna <s-anna@ti.com> [131223 15:01]:
-> The irq data for rng module defined in hwmod data previously
-> missed the OMAP_INTC_START relative offset, so the interrupt
-> number is probably misconfigured during the DT node addition
-> adjusting for this OMAP_INTC_START. Interrupt #36 is associated
-> with a watchdog timer, so fix the rng module's interrupt to the
-> appropriate interrupt #52.
+* Taras Kondratiuk <taras.kondratiuk@linaro.org> [131223 10:20]:
+> On 23 December 2013 20:10, Taras Kondratiuk <taras.kondratiuk@linaro.org> wrote:
+> > This series does trivial replacement of __raw_xxx functions with xxx_relaxed
+> > endian-neutral variants in 'mach-omap2' and 'plat-omap' directories.
+> > Some code here most probably won't be used in BE mode (like debug-leds for
+> > OMAP1 boards), but changes are made anyway to remove __raw_xxx() functions
+> > completely and simplify future grep'ing for new __raw_xxx() entries.
 
-Hmm indeed as the .dtsi files were generated from the hwmod
-data. Are the other interrupts fixed earlier OK?
-
-With earlier I mean your commit 6d4c8830479444 (ARM: OMAP2+:
-hwmod_data: fix missing OMAP_INTC_START in irq data).
+Sorry for the delay on these, applying into omap-for-v3.14/be.
+These are trivial, and it's actually nice that you left out the
+assembly related changes as those should be acked by the PM
+people in case there are some issues dealing with the ROM code
+etc.
 
 Regards,
 
