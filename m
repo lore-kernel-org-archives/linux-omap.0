@@ -1,121 +1,70 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omapdss: dispc: Preload more data in pipeline DMAs for
- OMAP4+ SoCs
-Date: Wed, 8 Jan 2014 15:52:38 +0200
-Message-ID: <52CD5826.9010501@ti.com>
-References: <1387278621-10966-1-git-send-email-archit@ti.com>
+Subject: Re: [PATCH 1/2] ARM: omapfb: add coherent dma memory support
+Date: Wed, 8 Jan 2014 16:13:39 +0200
+Message-ID: <52CD5D13.9090806@ti.com>
+References: <1388409550-10720-1-git-send-email-tomi.valkeinen@ti.com> <1388409550-10720-2-git-send-email-tomi.valkeinen@ti.com> <20140107235951.GH5074@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="89ex3LBEbHnBhX2GMB2kXEU9tv36SpcSG"
+	boundary="G2pQxN3Uxuf0OcpLHQ5CufK7xDkKS8O5l"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39527 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757061AbaAHNwk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 08:52:40 -0500
-In-Reply-To: <1387278621-10966-1-git-send-email-archit@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54931 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756593AbaAHOON (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Jan 2014 09:14:13 -0500
+In-Reply-To: <20140107235951.GH5074@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <freemangordon@abv.bg>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
 
---89ex3LBEbHnBhX2GMB2kXEU9tv36SpcSG
-Content-Type: text/plain; charset=windows-1252
+--G2pQxN3Uxuf0OcpLHQ5CufK7xDkKS8O5l
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2013-12-17 13:10, Archit Taneja wrote:
-> DISPC pipeline DMAs preload some bytes of pixel data in the vertical bl=
-anking
-> region before the start of each frame. The preload ensures the pipeline=
- doesn't
-> underflow when the active region of the display starts.
->=20
-> DISPC_GFX/VIDp_PRELOAD registers allow us to program how many bytes of =
-data
-> should be preloaded for each pipeline. Calculating a precise preload va=
-lue
-> would be a complex function of the pixel clock of the connected display=
-, the
-> vertical blanking duration and the interconnect traffic at that instanc=
-e. If
-> the register is left untouched, a default value is preloaded.
->=20
-> We observe underflows for OMAP4+ SoCs for certain bandwidth intensive u=
-se cases
-> with many other initiators active, and in situations where memory acces=
-s isn't
-> very efficient(like accessing Tiler mapped buffers and EMIF configured =
-in
-> non-interleaved more). The cause of the underflow is because the defaul=
-t preload
-> value isn't sufficient for the DMA to reach a steady state. We configur=
-e the
-> PRELOAD register such that the pipelines preload data up to the high th=
-reshold
-> of the FIFO.
->=20
-> Preloading lot of data for older SoCs can have a negative impact. Due t=
-o slower
-> interconnects, it's possible that the DISPC DMA cannot preload up to th=
-e high
-> threshold within the vertical blanking region of the panel. We leave th=
-e PRELOAD
-> registers to their reset values since we haven't faced underflows with =
-these
-> SoCs because of low value of PRELOAD.
->=20
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/video/omap2/dss/dispc.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
->=20
-> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/=
-dispc.c
-> index 6578540..ace179e 100644
-> --- a/drivers/video/omap2/dss/dispc.c
-> +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -90,6 +90,8 @@ struct dispc_features {
-> =20
->  	/* revert to the OMAP4 mechanism of DISPC Smart Standby operation */
->  	bool mstandby_workaround:1;
-> +
-> +	bool set_max_preload:1;
->  };
-> =20
->  #define DISPC_MAX_NR_FIFOS 5
-> @@ -1200,6 +1202,15 @@ void dispc_ovl_set_fifo_threshold(enum omap_plan=
-e plane, u32 low, u32 high)
->  	dispc_write_reg(DISPC_OVL_FIFO_THRESHOLD(plane),
->  			FLD_VAL(high, hi_start, hi_end) |
->  			FLD_VAL(low, lo_start, lo_end));
-> +
-> +	/*
-> +	 * configure the preload to the pipeline's high threhold, if HT it's =
-too
-> +	 * large for the preload field, set the threshold to the maximum valu=
-e
-> +	 * that can be held by the preload register
-> +	 */
-> +	if (dss_has_feature(FEAT_PRELOAD) && dispc.feat->set_max_preload &&
-> +			plane !=3D OMAP_DSS_WB)
-> +		dispc_write_reg(DISPC_OVL_PRELOAD(plane), min(high, 0xfff));
+On 2014-01-08 01:59, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [131230 05:21]:
+>> The omapfb driver uses dma_alloc to reserve memory for the framebuffer=
+s.
+>> However, on some use cases, even when CMA is in use, it's quite probab=
+le
+>> that omapfb fails to allocate the fb, either due to not enough free dm=
+a
+>> memory, fragmented dma memory, or CMA failing to make enough contiguou=
+s
+>> space.
+>>
+>> This patch adds a kernel cmdline parameter 'omapfb_vram' which can be
+>> used to give the size of a memory area reserved exclusively for omapfb=
+,
+>> and optionally a physical address where the memory area is reserved.
+>>
+>> The memory area is reserved with memblock, and assigned to omapfb with=
 
-This causes compile warning:
+>> dma_declare_coherent_memory. The dma_alloc function will first try to
+>> allocate the fb from the coherent memory area, and if that fails, it'l=
+l
+>> use the normal method of allocation.
+>>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> Cc: Ivaylo Dimitrov <freemangordon@abv.bg>
+>=20
+> Feel free to queue this along with the DSS patches:
+>=20
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-drivers/video/omap2/dss/dispc.c: In function =91dispc_ovl_set_fifo_thresh=
-old=92:
-drivers/video/omap2/dss/dispc.c:1213:152: warning: comparison of
-distinct pointer types lacks a cast
+Thanks.
 
-I fixed it by changing 0xfff to 0xfffu
-
-Queued for 3.14.
+This introduces new kernel boot parameter, and I haven't really had time
+to test and think about this. If Ivaylo doesn't insist on this to be
+merged for 3.14, I'd rather leave this for 3.15 as adding new parameter
+that we need to support "forever" should be thought a bit more.
 
  Tomi
 
 
 
---89ex3LBEbHnBhX2GMB2kXEU9tv36SpcSG
+--G2pQxN3Uxuf0OcpLHQ5CufK7xDkKS8O5l
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -124,19 +73,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.14 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJSzVgmAAoJEPo9qoy8lh71+EgQAJIq7w/G0MianyqGAav0fhPW
-+2YIYpAaRoxZvnsBt6Fs0nX3982iFyq0C9dU94V+YONbi7CLetmWLJ+dorwipGoJ
-ORO4j7QEEBzwYxumQSD0VuNei4aD2LPQ8z/YsUK6cZC3/jXwhkXZ74dlDlQ/Gyxw
-NOrOQT0+HwuKOFbZ3C1Q9g0AFQfoeNv57xUGujaA0LLypuZlzsFEnvywA+NLp4RQ
-SblUOl05nzaer7XRqKBNQeWMGrB55CeJco0uQtO8d0QHAYvzBddRr4mta3PztWTV
-ubVh+/u5KOdKbxdz6o7YBZuHhalCkosU1QuHAdUVybvoVTcbU/A4B7A/4/yIZY+I
-lT/2oSal83WEXXwbM7mgZYFr/vpdUabDKJUqRhn39JZ6jzrJOxSATlFcpm38YWSv
-HSxoUhU9TE7FQ6/1ppAPBKThxaCo16/EkSHkD9Vyu5KQd/FJutxQGXVNJUR/SsPB
-Gc3m3eT2G2Bc4IVDi+W6Vgzqa7OhM7sF2L7gv5Oo8Kymcd7s6Xu9RqZ1WgTOy/Kp
-dyqrBNlwMF/D31C7X6IIi3r/2c40w616Frc6ii2hte26RtETS9uomgNhTCBd0Hue
-v+A/HRytcO2fM+LAo+wDmVFYJT9banwQO+xwYdqpHHxWPdhQ3saINCDOYYxzKAEW
-NfjwHCI0MbwF5e05qGzI
-=3CL+
+iQIcBAEBAgAGBQJSzV0UAAoJEPo9qoy8lh71KXcP/0PmuisX0VgIsz8zsqsijP7o
+DIphZXyyivZ6x0nf4LK+sglp4H+kE9YTXDby72l+sU0yoSW1qCGLiSqbUa7EK34a
+CagKy3apRrug2BJUvfQQQ7mHp1IK1YDu7FCeosNsm0JbQcfdTvaNm7EqoG1FitH8
+wCyI+b3+UlKm3bzfBcsBn4kirxeU8Z0xYB4GxcHfJORsvQwYH7ifOPIzPUuBI35V
+XTt4Ob7J8Vvk9c7/igzn5SAjsrqX41F/09ZurMGFfsJa5LHlJPNQdmTxUzVhCPvn
+h8cjryS3AhF36u/vYBdZeK2xs9rsQOWth2p2sFbdfphW8XI5rOqjfZNr/Ew1V3B5
+NwdfUhq9O0Fi1DyP1V/ruyQd3oj7hen1aetmkeWaotvzLNoFQIpOzMHSXh06VLPN
+cP7TxNCIVD3q1aI80aHXFtHF6tUrkfNdmY/rckijFaQkj1ZgFgKmFWmUEJysGcnx
+wbN9tmRVFUyW7DVbZz401XRJbxXAXI3Kwj7/6wI6pwMCmgBb26J7QeF68CQySM22
+INHBRCg2vcSl/A8cHhW+CDwmK/DiQ1pgL6553EZJ5vpZqdaGqGRbLc65q3QxxgRi
+g9BeKX9TlASugGqxpM3ziRzWA16noqEBculDNkDWJFYxKamZp0cDT3ELMJc3MBO7
+7LOxpzwO4jjEPyJY5Koy
+=odw/
 -----END PGP SIGNATURE-----
 
---89ex3LBEbHnBhX2GMB2kXEU9tv36SpcSG--
+--G2pQxN3Uxuf0OcpLHQ5CufK7xDkKS8O5l--
