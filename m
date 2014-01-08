@@ -1,59 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] of/platform: Fix no irq domain found errors when
- populating interrupts
-Date: Tue, 7 Jan 2014 17:19:58 -0800
-Message-ID: <20140108011957.GK5074@atomide.com>
-References: <20131123004334.GJ10023@atomide.com>
- <20131123010850.GN10023@atomide.com>
- <20131123015034.GP10023@atomide.com>
- <20131124212757.7D224C402A3@trevor.secretlab.ca>
- <alpine.DEB.2.02.1312100331460.32309@utopia.booyaka.com>
- <alpine.DEB.2.02.1312302209200.8869@utopia.booyaka.com>
- <CAL_Jsq+X5G94DUn-zFKQkhEy91cdjCyeciny+kDjr=V6EiBHfQ@mail.gmail.com>
- <alpine.DEB.2.02.1401062340240.31394@utopia.booyaka.com>
+Subject: Re: [PATCH RFC 00/26] Migrate more OMAP DMA code to DMA engine
+Date: Tue, 7 Jan 2014 17:21:11 -0800
+Message-ID: <20140108012110.GL5074@atomide.com>
+References: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55605 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753284AbaAHBUI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jan 2014 20:20:08 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26879 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754197AbaAHBVR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jan 2014 20:21:17 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1401062340240.31394@utopia.booyaka.com>
+In-Reply-To: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Thierry Reding <thierry.reding@gmail.com>
-Cc: Rob Herring <robherring2@gmail.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-* Paul Walmsley <paul@pwsan.com> [140106 15:43]:
-> On Tue, 31 Dec 2013, Rob Herring wrote:
-> > On Mon, Dec 30, 2013 at 4:10 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> > > On Tue, 10 Dec 2013, Paul Walmsley wrote:
-> > >> Is it possible to get this patch, or something similar, merged for
-> > >> v3.13-rc?
-> > >>
-> > >> Once something like PM is broken, it's pretty easy for other broken
-> > >> patches to make it into the tree, since it becomes very difficult to test
-> > >> without turning into a maintainer denial-of-service attack.
-> > >
-> > > Ping.  Could you please provide some guidance here about what you'd need
-> > > to get this solved for v3.13-rc?
-> > 
-> > I agree with doing the platform_get_irq modification and feel free to
-> > add my ack. I'm going to be offline for the next week.
-> 
-> Thanks Rob!
-> 
-> Tony, would you consider sending this patch upstream for v3.13-rc along 
-> with your 37xxevm fix patches?
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [140102 07:11]:
+> The following patch series moves code to setup the DMA hardware and
+> service interrupts from the hardware to the DMA engine driver.  This
+> reduces the dependency on the legacy DMA implementation.
+>=20
+> This series does not remove the channel allocation/freeing hooks whic=
+h
+> are used to manage the allocation of physical channels - this is the
+> next step in the evolution.
+>=20
+> The patches which move the interrupt handling are currently less than
+> perfect since they're writing to ENABLE_L0 under a different spinlock=
+,
+> and hence RFC only at the moment.
 
-Hmm I'd like to see a proper patch posted for platform_get_irq() by
-Thierry as that one is really his patch. And it also had a comment from
-Grant.
+Nice to see this happening. These seem to work for me based on a quick
+try on omap2+, but on omap1 the build fails:
 
-After that I can queue it if nobody else is picking it as I have a
-dependency to it.
+arch/arm/mach-omap1/dma.c: In function =E2=80=98dma_write=E2=80=99:
+arch/arm/mach-omap1/dma.c:186: error: =E2=80=98const struct omap_dma_re=
+g=E2=80=99 has no member named =E2=80=98size=E2=80=99
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
