@@ -1,84 +1,86 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V5 0/4] DRIVERS: IRQCHIP: Add support for crossbar IP
-Date: Wed, 8 Jan 2014 18:48:08 +0530
-Message-ID: <52CD5010.6030309@ti.com>
-References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
- <52B168A5.4010202@ti.com> <52BBB614.5010707@ti.com> <52BC6B16.80507@ti.com>
- <52BD856E.7010609@ti.com> <52C11284.2030500@ti.com>
- <20140107230733.GD5074@atomide.com> <20140107235514.GG5074@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 0/4] drm/omap: fix issues in omap_drv probe/remove
+Date: Wed, 8 Jan 2014 15:22:46 +0200
+Message-ID: <52CD5126.60804@ti.com>
+References: <1388654394-5708-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140107235514.GG5074@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, nm@ti.com, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, marc.zyngier@arm.com, linus.walleij@linaro.org, rnayak@ti.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, bcousson@baylibre.com, galak@codeaurora.org, grant.likely@linaro.org, tglx@linutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="hSUQcRLVcRl0DmbfQuIiFEoMsee2Lhbx2"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53272 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755717AbaAHNWu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Jan 2014 08:22:50 -0500
+In-Reply-To: <1388654394-5708-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>, dri-devel@lists.freedesktop.org, robdclark@gmail.com
+Cc: linux-omap@vger.kernel.org
 
-Hi Tony,
+--hSUQcRLVcRl0DmbfQuIiFEoMsee2Lhbx2
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Wednesday 08 January 2014 05:25 AM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [140107 15:10]:
->> * Sricharan R <r.sricharan@ti.com> [131229 22:30]:
->>> On Friday 27 December 2013 07:19 PM, Sricharan R wrote:
->>>> On Thursday 26 December 2013 11:14 PM, Santosh Shilimkar wrote:
->>>>> On Wednesday 25 December 2013 11:52 PM, Sricharan R wrote:
->>>>>> On Wednesday 18 December 2013 02:49 PM, Sricharan R wrote:
->>>>>>> I have addressed all the comments on this series, can this be merged now ?
->>>>>>>
->>>>>>   Ping..
->>>>>>
->>>>> Thomas has already given his reviewed-by tag so the patches can be
->>>>> taken via arm-soc tree considering OMAP and GIC changes. Can you
->>>>> create a branch with all these patches applied and send it
->>>>> to Tony ?
->>>>>
->>>> Ok, i will send out a branch for this.
->>>>
->>>  
->>>  I have pushed the below branch
->>>
->>> git://github.com/Sricharanti/sricharan.git
->>> branch: crossbar
->>>
->>> This is on top of Tony's linux-omap master branch
->>
->> The linux-omap master branch cannot be used as a base as it
->> contains tons of commit history not in mainline. So I'll
->> manually applied these patches into omap-for-v3.14/crosbar
->> branch.
-> 
-> Oops, I noticed some errors on these:
-> 
-> WARNING: drivers/built-in.o(.text+0xcd0): Section mismatch in reference from the function irqcrossbar_init() to the function .init.text:crossbar_of_init()
-> The function irqcrossbar_init() references
-> the function __init crossbar_of_init().
-> This is often because irqcrossbar_init lacks a __init 
-> annotation or the annotation of crossbar_of_init is wrong.
-> 
-> WARNING: drivers/built-in.o(.text+0xcdc): Section mismatch in reference from the function irqcrossbar_init() to the (unknown reference) .init.rodata:(unknown)
-> The function irqcrossbar_init() references
-> the (unknown reference) __initconst (unknown).
-> This is often because irqcrossbar_init lacks a __initconst 
-> annotation or the annotation of (unknown) is wrong.
-> 
-> So I've dropped them for now. Care to fix up those errors and
-> base your patches against let's say v3.13-rc5?
-> 
-   Very Sorry for the section mismatch warning.
-   I have fixed it and pushed a new branch below based on v3.13-rc5
+On 2014-01-02 11:19, Archit Taneja wrote:
+> At the moment, the omapdrm driver doesn't work on panda/beagle when bui=
+lt-in
+> the kernel. The problem is that omapdrm doesn't defer probe if resource=
+s like
+> regulator/I2C etc are missing. The first patch fixes that.
+>=20
+> The next 3 patches make sure that omapdrm module can be inserted and re=
+moved
+> successively, and that omapdss is left in a consistent state when omapd=
+rm is
+> removed.
+>=20
+> In the previous version of this series, there was a warning related to =
+apply_irq
+> being registered seen while removing omapdrm. This was a relatively sca=
+ry
+> warning, therefore, the "change dev_unload order" patch was added to ma=
+ke sure
+> we don't see that.
+>=20
+> After these fixes, I still see the warning below once in a while. I don=
+'t know
+> how to fix it at the moment, but it's harmless and omapdrm is now usabl=
+e again.
+> These are critical fixes which I have posted since 3.12-rcs, it would b=
+e nice if
+> they can go in as soon as possible.
 
-   git://github.com/Sricharanti/sricharan.git
-   branch: crossbar_3.13_rc5
+These look ok to me:
 
-Regards,
- Sricharan
+Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+ Tomi
+
+
+
+--hSUQcRLVcRl0DmbfQuIiFEoMsee2Lhbx2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSzVEmAAoJEPo9qoy8lh71V4oQAKwh7RaYpwBmzPdNLaTn7jRO
+AjFOzb6eynUBvbi8UTV4CsyMZ6VP4Fqypw4KUEbuJ4+8SSgoLY089oKOx2Xc6KHP
+ujcDGlca7tD0vFJLDRXa0nAyNhusnewg/EzNsndqmpUg7NOuhX6HokYeaeLH8IFO
+6n8Jah5RiFhcFAe+UindZmIeye/Dme+5Pu5U3eWoxV+Z1b+yNHR4LnPpemztTQnH
+qDv7FRS1jM7XLmqfO3ZuKg7RLjbIFLr0uPqoVR2e2G5W+WUxccT0Q29qd1g7mhK8
+rjgfIxVxMkyWMu/vWEyXzihJXJcNy031GIG+vcwDo4QNBQzFKfuW/5AQj0KRKz2r
+r/oArncBTAvCNRxJojVxig0V+RgNkQ52hgdj6+nAVC62o3oFI5Iad0fMfWM65lys
+7eHsMj/eyegW3Ag7VtEbjs/9DZqDHME/ShWE6DkUa6B8WKlJ0+JyJV1LaqtZBkGz
+wCORRLwsLAlkH5qCYBvNe/H30+e6dIdbnmNscU8iw9Y/HB3lBj+fXTOa2xnVO+c8
+vLI45f+9vhXIFjsyI7t5JLBli5pXNv4oqkXaC2xA1b8p+izWJg6e50Lagyn/HaeZ
+yaP1Ixr3CleKP526w8PVww0WWa5AG/NYWfzhXeBCjrofJmeWqV027roRHS7aCASz
+CtRGFarlFqWacg3dHdky
+=1L17
+-----END PGP SIGNATURE-----
+
+--hSUQcRLVcRl0DmbfQuIiFEoMsee2Lhbx2--
