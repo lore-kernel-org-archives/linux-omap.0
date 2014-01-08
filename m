@@ -1,71 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/5] arm: omap3: twl: use the new lookup method with usb
- phy
-Date: Wed, 8 Jan 2014 09:53:15 -0800
-Message-ID: <20140108175314.GC31686@atomide.com>
-References: <1386601737-8735-1-git-send-email-heikki.krogerus@linux.intel.com>
- <1386601737-8735-5-git-send-email-heikki.krogerus@linux.intel.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH V5 0/4] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Wed, 8 Jan 2014 11:18:03 -0800
+Message-ID: <20140108191802.GA31323@atomide.com>
+References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
+ <52B168A5.4010202@ti.com>
+ <52BBB614.5010707@ti.com>
+ <52BC6B16.80507@ti.com>
+ <52BD856E.7010609@ti.com>
+ <52C11284.2030500@ti.com>
+ <20140107230733.GD5074@atomide.com>
+ <20140107235514.GG5074@atomide.com>
+ <52CD5010.6030309@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1386601737-8735-5-git-send-email-heikki.krogerus@linux.intel.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+In-Reply-To: <52CD5010.6030309-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Heikki Krogerus <heikki.krogerus@linux.intel.com> [131209 07:10]:
-> Provide a complete association for the phy and it's user
-> (musb) with the new phy_lookup_table.
-
-This seems safe to queue via the USB list:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> ---
->  arch/arm/mach-omap2/twl-common.c | 15 ++++++---------
->  1 file changed, 6 insertions(+), 9 deletions(-)
+* Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org> [140108 05:20]:
+> On Wednesday 08 January 2014 05:25 AM, Tony Lindgren wrote:
+> > 
+> > Oops, I noticed some errors on these:
+> > 
+> > WARNING: drivers/built-in.o(.text+0xcd0): Section mismatch in reference from the function irqcrossbar_init() to the function .init.text:crossbar_of_init()
+> > The function irqcrossbar_init() references
+> > the function __init crossbar_of_init().
+> > This is often because irqcrossbar_init lacks a __init 
+> > annotation or the annotation of crossbar_of_init is wrong.
+> > 
+> > WARNING: drivers/built-in.o(.text+0xcdc): Section mismatch in reference from the function irqcrossbar_init() to the (unknown reference) .init.rodata:(unknown)
+> > The function irqcrossbar_init() references
+> > the (unknown reference) __initconst (unknown).
+> > This is often because irqcrossbar_init lacks a __initconst 
+> > annotation or the annotation of (unknown) is wrong.
+> > 
+> > So I've dropped them for now. Care to fix up those errors and
+> > base your patches against let's say v3.13-rc5?
+> > 
+>    Very Sorry for the section mismatch warning.
+>    I have fixed it and pushed a new branch below based on v3.13-rc5
 > 
-> diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-> index b0d54da..972430b 100644
-> --- a/arch/arm/mach-omap2/twl-common.c
-> +++ b/arch/arm/mach-omap2/twl-common.c
-> @@ -91,18 +91,13 @@ void __init omap_pmic_late_init(void)
->  }
->  
->  #if defined(CONFIG_ARCH_OMAP3)
-> -struct phy_consumer consumers[] = {
-> -	PHY_CONSUMER("musb-hdrc.0", "usb"),
-> -};
-> -
-> -struct phy_init_data init_data = {
-> -	.consumers = consumers,
-> -	.num_consumers = ARRAY_SIZE(consumers),
-> +static struct phy_lookup_table twl4030_usb_lookup = {
-> +	.dev_id = "musb-hdrc.0",
-> +	.table = PHY_LOOKUP("phy-twl4030_usb.0", NULL),
->  };
->  
->  static struct twl4030_usb_data omap3_usb_pdata = {
->  	.usb_mode	= T2_USB_MODE_ULPI,
-> -	.init_data	= &init_data,
->  };
->  
->  static int omap3_batt_table[] = {
-> @@ -225,8 +220,10 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
->  	}
->  
->  	/* Common platform data configurations */
-> -	if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb)
-> +	if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb) {
-> +		phy_add_lookup_table(&twl4030_usb_lookup);
->  		pmic_data->usb = &omap3_usb_pdata;
-> +	}
->  
->  	if (pdata_flags & TWL_COMMON_PDATA_BCI && !pmic_data->bci)
->  		pmic_data->bci = &omap3_bci_pdata;
-> -- 
-> 1.8.5.1
-> 
+>    git://github.com/Sricharanti/sricharan.git
+>    branch: crossbar_3.13_rc5
+
+Thanks, applying again.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
