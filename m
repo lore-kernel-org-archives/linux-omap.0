@@ -1,51 +1,48 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 1/5] mfd: omap-usb-host: Update DT clock binding information
-Date: Wed, 8 Jan 2014 11:45:38 +0530
-Message-ID: <1389161742-10533-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 3/5] ARM: dts: omap4-panda: Provide USB PHY clock
+Date: Wed, 8 Jan 2014 11:45:40 +0530
+Message-ID: <1389161742-10533-4-git-send-email-rogerq@ti.com>
 References: <1389161742-10533-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52758 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755068AbaAHGQ3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Jan 2014 01:16:29 -0500
 In-Reply-To: <1389161742-10533-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: bcousson@baylibre.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, arnd@arndb.de, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: balbi@ti.com, arnd@arndb.de, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-The omap-usb-host driver expects the 60MHz functional clock
-of the USB host module to be named as "init_60m_fclk".
-Add this information in the DT binding document.
+The USB PHY gets its clock from AUXCLK3. Provide this
+information.
 
-CC: Lee Jones <lee.jones@linaro.org>
-CC: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- Documentation/devicetree/bindings/mfd/omap-usb-host.txt | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/boot/dts/omap4-panda-common.dtsi | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-index b381fa6..5635202 100644
---- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-+++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-@@ -32,6 +32,10 @@ Optional properties:
- - single-ulpi-bypass: Must be present if the controller contains a single
-   ULPI bypass control bit. e.g. OMAP3 silicon <= ES2.1
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index 88c6a05..50b72966 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -83,12 +83,8 @@
+ 		compatible = "usb-nop-xceiv";
+ 		reset-gpios = <&gpio2 30 GPIO_ACTIVE_LOW>;   /* gpio_62 */
+ 		vcc-supply = <&hsusb1_power>;
+-	/**
+-	 * FIXME:
+-	 * put the right clock phandle here when available
+-	 *	clocks = <&auxclk3>;
+-	 *	clock-names = "main_clk";
+-	 */
++		clocks = <&auxclk3_ck>;
++		clock-names = "main_clk";
+ 		clock-frequency = <19200000>;
+ 	};
  
-+- clocks: phandle to 60MHz functional clock to the USB Host module.
-+
-+- clock-names: must be "init_60m_fclk"
-+
- Required properties if child node exists:
- 
- - #address-cells: Must be 1
 -- 
 1.8.3.2
+
