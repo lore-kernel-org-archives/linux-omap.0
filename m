@@ -1,48 +1,51 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 4/5] ARM: dts: omap5-uevm: Provide USB PHY clock
-Date: Wed, 8 Jan 2014 11:45:41 +0530
-Message-ID: <1389161742-10533-5-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v4 1/5] mfd: omap-usb-host: Update DT clock binding information
+Date: Wed, 8 Jan 2014 11:45:38 +0530
+Message-ID: <1389161742-10533-2-git-send-email-rogerq@ti.com>
 References: <1389161742-10533-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389161742-10533-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1389161742-10533-1-git-send-email-rogerq@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: devicetree@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, arnd@arndb.de, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The HS USB 2 PHY gets its clock from AUXCLK1. Provide this
-information.
+The omap-usb-host driver expects the 60MHz functional clock
+of the USB host module to be named as "init_60m_fclk".
+Add this information in the DT binding document.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+CC: Lee Jones <lee.jones@linaro.org>
+CC: Samuel Ortiz <sameo@linux.intel.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap5-uevm.dts | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ Documentation/devicetree/bindings/mfd/omap-usb-host.txt | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 002fa70..3b99ec2 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -31,12 +31,8 @@
- 	hsusb2_phy: hsusb2_phy {
- 		compatible = "usb-nop-xceiv";
- 		reset-gpios = <&gpio3 16 GPIO_ACTIVE_LOW>; /* gpio3_80 HUB_NRESET */
--	/**
--	  * FIXME
--	  * Put the right clock phandle here when available
--	  *	clocks = <&auxclk1>;
--	  *	clock-names = "main_clk";
--	  */
-+		clocks = <&auxclk1_ck>;
-+		clock-names = "main_clk";
- 		clock-frequency = <19200000>;
- 	};
+diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+index b381fa6..5635202 100644
+--- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
++++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+@@ -32,6 +32,10 @@ Optional properties:
+ - single-ulpi-bypass: Must be present if the controller contains a single
+   ULPI bypass control bit. e.g. OMAP3 silicon <= ES2.1
  
++- clocks: phandle to 60MHz functional clock to the USB Host module.
++
++- clock-names: must be "init_60m_fclk"
++
+ Required properties if child node exists:
+ 
+ - #address-cells: Must be 1
 -- 
 1.8.3.2
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
