@@ -1,47 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: OMAP2: fix interrupt number for rng
-Date: Wed, 8 Jan 2014 11:18:29 -0800
-Message-ID: <20140108191828.GC31323@atomide.com>
-References: <1387839579-58292-1-git-send-email-s-anna@ti.com>
- <20140108002843.GI5074@atomide.com>
- <52CD8B7E.8000709@ti.com>
+Subject: Re: [PATCH RESEND] arm: omap2plus_defconfig: enable AM33xx SOC EVM
+ audio
+Date: Wed, 8 Jan 2014 11:18:20 -0800
+Message-ID: <20140108191820.GB31323@atomide.com>
+References: <cover.1383639261.git.jsarha@ti.com>
+ <481115f4e0c15e22f0fa61f1f013fd2851e2737a.1383639261.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:58454 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757056AbaAHTSe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 14:18:34 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19976 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756882AbaAHTSY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 14:18:24 -0500
 Content-Disposition: inline
-In-Reply-To: <52CD8B7E.8000709@ti.com>
+In-Reply-To: <481115f4e0c15e22f0fa61f1f013fd2851e2737a.1383639261.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Anna, Suman" <s-anna@ti.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk
+To: Jyri Sarha <jsarha@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Anna, Suman <s-anna@ti.com> [140108 09:33]:
-> Tony,
+* Jyri Sarha <jsarha@ti.com> [131105 00:43]:
+> Modifying the omap2plus_defconfig to enable the audio support for
+> AM335x EVM and other AM33xx based devices with TLV320AIC3X connected
+> to McASP.
 > 
-> On 01/07/2014 06:28 PM, Tony Lindgren wrote:
-> >* Suman Anna <s-anna@ti.com> [131223 15:01]:
-> >>The irq data for rng module defined in hwmod data previously
-> >>missed the OMAP_INTC_START relative offset, so the interrupt
-> >>number is probably misconfigured during the DT node addition
-> >>adjusting for this OMAP_INTC_START. Interrupt #36 is associated
-> >>with a watchdog timer, so fix the rng module's interrupt to the
-> >>appropriate interrupt #52.
-> >
-> >Hmm indeed as the .dtsi files were generated from the hwmod
-> >data. Are the other interrupts fixed earlier OK?
-> 
-> GPMC DT nodes are already configured properly, the ISP MMU one needs
-> fixing. I left it out to be fixed as part of Florian's patch that
-> corrects the ISP MMU DT node. There is no IVA MMU DT node yet, and
-> will add the correct number when we add the DT node.
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
 
-OK thanks, adding this into omap-for-v3.14/dt as it won't
-be needed earlier.
-
-Regards,
+Thanks applying into omap-for-v3.14/fixes-not-urgent.
 
 Tony
+
+> ---
+>  arch/arm/configs/omap2plus_defconfig |    2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 254cf05..4443b92 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -210,6 +210,8 @@ CONFIG_SND_DEBUG=y
+>  CONFIG_SND_USB_AUDIO=m
+>  CONFIG_SND_SOC=m
+>  CONFIG_SND_OMAP_SOC=m
+> +CONFIG_SND_AM33XX_SOC_EVM=m
+> +CONFIG_SND_DAVINCI_SOC=m
+>  CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
+>  CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
+>  CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
+> -- 
