@@ -1,79 +1,58 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [pandaboard] audio initialization fails due to TWL6040
-Date: Wed, 8 Jan 2014 15:23:09 +0200
-Message-ID: <52CD513D.8010403@ti.com>
-References: <529E5EC9.10008@math.uni-bielefeld.de> <20131205185349.GH26766@atomide.com> <52C12226.6010404@ti.com> <20140107225302.GC5074@atomide.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] driver-core: platform: Resolve DT interrupt references
+ late
+Date: Wed, 08 Jan 2014 14:41:19 +0100
+Message-ID: <4589157.TquA4Q59fC@wuerfel>
+References: <20140108011957.GK5074@atomide.com>
+ <1389185477-507-1-git-send-email-treding@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53279 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756071AbaAHNXP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Jan 2014 08:23:15 -0500
-In-Reply-To: <20140107225302.GC5074@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1389185477-507-1-git-send-email-treding@nvidia.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, linux-omap@vger.kernel.org, "Kristo, Tero" <t-kristo@ti.com>
 
-On 01/08/2014 12:53 AM, Tony Lindgren wrote:
-> Well we cannot sanely deprecate the "ti,hwmods" and move on to
-> matching hwmod data with DT data based on the compatible flag.
-> So it's a bit of a blocker for v3.15 or so time frame.
->
->> Due to a 'hw feature' around the sidetone this is not as straight fo=
-rward as
->> it sounds...
->=20
-> OK. The driver(s) should still be able to coordinate things
-> to sort it out hopefully?
+On Wednesday 08 January 2014 13:51:17 Thierry Reding wrote:
+> When devices are probed from the device tree, any interrupts that they
+> reference are resolved at device creation time. This causes problems if
+> the interrupt provider hasn't been registered yet at that time, which
+> results in the interrupt being set to 0.
 
-After a quick look at the code:
-- sidetone _is_ broken when we boot with DT for sure already.
-- sidetone works only if we boot in legacy mode.
+Thanks for looking at this problem, it has bothered a lot of people
+for a long time. I'm sorry I wasn't there for the discussion in November,
+but when it came up before, I suggested a different solution that
+apparently didn't get implemented.
 
-While it is true that ST block has it's own address space and even dedi=
-cated
-irq line, but..
-ST can be enabled from the McBSP address space (via SSELCR_REG).
-When ST is enabled we need to disable the corresponding McBSP's autoidl=
-e. The
-reason for this is that the ST block is clocked from the McBSP IP's int=
-erface
-clock. If the interface clock of the McBSP is idling there will be glit=
-ches in
-the sidetone generation due to not having continuously running clock fo=
-r it's
-internals.
+> Note that this patch is the easy way out to fix a large part of the
+> problems for now. A more proper solution for the long term would be to
+> transition drivers to an API that always resolves resources of any kind
+> (not only interrupts) at probe time.
+> 
+> For some background and discussion on possible solutions, see:
+> 
+> 	https://lkml.org/lkml/2013/11/22/520
 
-=46or legacy boot we had this handled by a custom callback to disable a=
-utoidle
-for the McBSP when the ST starts and enable it back when ST is stopped:
-arch/arm/mach-omap2/mcbsp.c:omap3_enable_st_clock() is the callback we =
-call.
+I hope I read this thread correctly, sorry if I missed an important
+part. My idea was to add the code not in platform_get_irq() but add
+the resource in platform_drv_probe(), and just bail out with
+-EPROBE_DEFER there if necessary.
 
-Normal audio will work via McBSP if we get rid of hwmod, the driver can=
- load
-and operate that way. As for the sidetone functionality: it is broken w=
-hen we
-boot with DT and the removal of hwmod will have no effect on this.
+We could then skip adding the resources at device creation time.
+Is this something you already plan to do later, or is there a reason
+it wouldn't work?
 
-The Sidetone address space also have sysconfig register with AUTOIDLE b=
-it, but
-it has no effect on the McBSP_ICLK autoidle itself.
-In theory we can handle the sidetone as we do right now, but we need on=
-e
-thing: an API so drivers can disable/enable autoidle of an already enab=
-led clock.
+In the meantime, I don't see anything with your patch, but it also
+wouldn't hurt to do it now if it solves all the problems.
 
-CCing Tero for this, he might have pointers or idea on how we can do th=
-is.
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
