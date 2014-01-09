@@ -1,54 +1,73 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv13 19/40] CLK: TI: add am43xx clock init file
-Date: Thu, 9 Jan 2014 16:00:30 +0200
-Message-ID: <1389276051-1326-20-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv13 16/40] CLK: TI: add am33xx clock init file
+Date: Thu, 9 Jan 2014 16:00:27 +0200
+Message-ID: <1389276051-1326-17-git-send-email-t-kristo@ti.com>
 References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389276051-1326-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46904 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755733AbaAIOCp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Jan 2014 09:02:45 -0500
+In-Reply-To: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-clk-43xx.c now contains the clock init functionality for am43xx, including
+clk-33xx.c now contains the clock init functionality for am33xx, including
 DT clock registration and adding of static clkdev entries.
 
-Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Tested-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/clk/ti/Makefile   |    2 +-
- drivers/clk/ti/clk-43xx.c |  118 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/clk/ti.h    |    1 +
- 3 files changed, 120 insertions(+), 1 deletion(-)
- create mode 100644 drivers/clk/ti/clk-43xx.c
+This patch also moves the omap2_clk_enable_init_clocks declaration to
+the driver include, as this is needed by the am33xx clock init code.
 
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Tested-by: Nishanth Menon <nm@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/clock.h |    1 -
+ drivers/clk/ti/Makefile     |    1 +
+ drivers/clk/ti/clk-33xx.c   |  161 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/clk/ti.h      |    2 +
+ 4 files changed, 164 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/clk/ti/clk-33xx.c
+
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index b83fca6..1da9dc3 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -249,7 +249,6 @@ void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
+ int omap2_clk_enable_autoidle_all(void);
+ int omap2_clk_allow_idle(struct clk *clk);
+ int omap2_clk_deny_idle(struct clk *clk);
+-void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks);
+ int omap2_clk_switch_mpurate_at_boot(const char *mpurate_ck_name);
+ void omap2_clk_print_new_rates(const char *hfclkin_ck_name,
+ 			       const char *core_ck_name,
 diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index ab386c8..007c3c2 100644
+index f8ae4b5..7eb6f2b 100644
 --- a/drivers/clk/ti/Makefile
 +++ b/drivers/clk/ti/Makefile
-@@ -1,7 +1,7 @@
- ifneq ($(CONFIG_OF),)
+@@ -2,6 +2,7 @@ ifneq ($(CONFIG_OF),)
  obj-y					+= clk.o dpll.o autoidle.o divider.o \
  					   fixed-factor.o gate.o clockdomain.o \
--					   composite.o mux.o apll.o
-+					   composite.o mux.o apll.o clk-43xx.o
- obj-$(CONFIG_SOC_AM33XX)		+= clk-33xx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= interface.o clk-3xxx.o
+ 					   composite.o mux.o apll.o
++obj-$(CONFIG_SOC_AM33XX)		+= clk-33xx.o
  obj-$(CONFIG_ARCH_OMAP4)		+= clk-44xx.o
-diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
+ obj-$(CONFIG_SOC_OMAP5)			+= clk-54xx.o
+ obj-$(CONFIG_SOC_DRA7XX)		+= clk-7xx.o
+diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
 new file mode 100644
-index 0000000..67c8de5
+index 0000000..776ee45
 --- /dev/null
-+++ b/drivers/clk/ti/clk-43xx.c
-@@ -0,0 +1,118 @@
++++ b/drivers/clk/ti/clk-33xx.c
+@@ -0,0 +1,161 @@
 +/*
-+ * AM43XX Clock init
++ * AM33XX Clock init
 + *
 + * Copyright (C) 2013 Texas Instruments, Inc
-+ *     Tero Kristo (t-kristo-l0cyMroinI0@public.gmane.org)
++ *     Tero Kristo (t-kristo@ti.com)
 + *
 + * This program is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU General Public License as
@@ -65,7 +84,7 @@ index 0000000..67c8de5
 +#include <linux/clk-provider.h>
 +#include <linux/clk/ti.h>
 +
-+static struct ti_dt_clk am43xx_clks[] = {
++static struct ti_dt_clk am33xx_clks[] = {
 +	DT_CLK(NULL, "clk_32768_ck", "clk_32768_ck"),
 +	DT_CLK(NULL, "clk_rc32k_ck", "clk_rc32k_ck"),
 +	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
@@ -80,9 +99,11 @@ index 0000000..67c8de5
 +	DT_CLK(NULL, "dpll_core_m5_ck", "dpll_core_m5_ck"),
 +	DT_CLK(NULL, "dpll_core_m6_ck", "dpll_core_m6_ck"),
 +	DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
++	DT_CLK("cpu0", NULL, "dpll_mpu_ck"),
 +	DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
 +	DT_CLK(NULL, "dpll_ddr_ck", "dpll_ddr_ck"),
 +	DT_CLK(NULL, "dpll_ddr_m2_ck", "dpll_ddr_m2_ck"),
++	DT_CLK(NULL, "dpll_ddr_m2_div2_ck", "dpll_ddr_m2_div2_ck"),
 +	DT_CLK(NULL, "dpll_disp_ck", "dpll_disp_ck"),
 +	DT_CLK(NULL, "dpll_disp_m2_ck", "dpll_disp_m2_ck"),
 +	DT_CLK(NULL, "dpll_per_ck", "dpll_per_ck"),
@@ -90,17 +111,22 @@ index 0000000..67c8de5
 +	DT_CLK(NULL, "dpll_per_m2_div4_wkupdm_ck", "dpll_per_m2_div4_wkupdm_ck"),
 +	DT_CLK(NULL, "dpll_per_m2_div4_ck", "dpll_per_m2_div4_ck"),
 +	DT_CLK(NULL, "adc_tsc_fck", "adc_tsc_fck"),
++	DT_CLK(NULL, "cefuse_fck", "cefuse_fck"),
 +	DT_CLK(NULL, "clkdiv32k_ck", "clkdiv32k_ck"),
 +	DT_CLK(NULL, "clkdiv32k_ick", "clkdiv32k_ick"),
 +	DT_CLK(NULL, "dcan0_fck", "dcan0_fck"),
++	DT_CLK("481cc000.d_can", NULL, "dcan0_fck"),
 +	DT_CLK(NULL, "dcan1_fck", "dcan1_fck"),
++	DT_CLK("481d0000.d_can", NULL, "dcan1_fck"),
 +	DT_CLK(NULL, "pruss_ocp_gclk", "pruss_ocp_gclk"),
 +	DT_CLK(NULL, "mcasp0_fck", "mcasp0_fck"),
 +	DT_CLK(NULL, "mcasp1_fck", "mcasp1_fck"),
++	DT_CLK(NULL, "mmu_fck", "mmu_fck"),
 +	DT_CLK(NULL, "smartreflex0_fck", "smartreflex0_fck"),
 +	DT_CLK(NULL, "smartreflex1_fck", "smartreflex1_fck"),
 +	DT_CLK(NULL, "sha0_fck", "sha0_fck"),
 +	DT_CLK(NULL, "aes0_fck", "aes0_fck"),
++	DT_CLK(NULL, "rng_fck", "rng_fck"),
 +	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
 +	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
 +	DT_CLK(NULL, "timer3_fck", "timer3_fck"),
@@ -108,13 +134,18 @@ index 0000000..67c8de5
 +	DT_CLK(NULL, "timer5_fck", "timer5_fck"),
 +	DT_CLK(NULL, "timer6_fck", "timer6_fck"),
 +	DT_CLK(NULL, "timer7_fck", "timer7_fck"),
++	DT_CLK(NULL, "usbotg_fck", "usbotg_fck"),
++	DT_CLK(NULL, "ieee5000_fck", "ieee5000_fck"),
 +	DT_CLK(NULL, "wdt1_fck", "wdt1_fck"),
++	DT_CLK(NULL, "l4_rtc_gclk", "l4_rtc_gclk"),
 +	DT_CLK(NULL, "l3_gclk", "l3_gclk"),
 +	DT_CLK(NULL, "dpll_core_m4_div2_ck", "dpll_core_m4_div2_ck"),
 +	DT_CLK(NULL, "l4hs_gclk", "l4hs_gclk"),
 +	DT_CLK(NULL, "l3s_gclk", "l3s_gclk"),
++	DT_CLK(NULL, "l4fw_gclk", "l4fw_gclk"),
 +	DT_CLK(NULL, "l4ls_gclk", "l4ls_gclk"),
 +	DT_CLK(NULL, "clk_24mhz", "clk_24mhz"),
++	DT_CLK(NULL, "sysclk_div_ck", "sysclk_div_ck"),
 +	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
 +	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
 +	DT_CLK(NULL, "gpio0_dbclk_mux_ck", "gpio0_dbclk_mux_ck"),
@@ -122,62 +153,97 @@ index 0000000..67c8de5
 +	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
 +	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
 +	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
-+	DT_CLK(NULL, "gpio4_dbclk", "gpio4_dbclk"),
-+	DT_CLK(NULL, "gpio5_dbclk", "gpio5_dbclk"),
++	DT_CLK(NULL, "lcd_gclk", "lcd_gclk"),
 +	DT_CLK(NULL, "mmc_clk", "mmc_clk"),
 +	DT_CLK(NULL, "gfx_fclk_clksel_ck", "gfx_fclk_clksel_ck"),
 +	DT_CLK(NULL, "gfx_fck_div_ck", "gfx_fck_div_ck"),
++	DT_CLK(NULL, "sysclkout_pre_ck", "sysclkout_pre_ck"),
++	DT_CLK(NULL, "clkout2_div_ck", "clkout2_div_ck"),
 +	DT_CLK(NULL, "timer_32k_ck", "clkdiv32k_ick"),
 +	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
-+	DT_CLK(NULL, "sysclk_div", "sysclk_div"),
-+	DT_CLK(NULL, "disp_clk", "disp_clk"),
-+	DT_CLK(NULL, "clk_32k_mosc_ck", "clk_32k_mosc_ck"),
-+	DT_CLK(NULL, "clk_32k_tpm_ck", "clk_32k_tpm_ck"),
-+	DT_CLK(NULL, "dpll_extdev_ck", "dpll_extdev_ck"),
-+	DT_CLK(NULL, "dpll_extdev_m2_ck", "dpll_extdev_m2_ck"),
-+	DT_CLK(NULL, "mux_synctimer32k_ck", "mux_synctimer32k_ck"),
-+	DT_CLK(NULL, "synctimer_32kclk", "synctimer_32kclk"),
-+	DT_CLK(NULL, "timer8_fck", "timer8_fck"),
-+	DT_CLK(NULL, "timer9_fck", "timer9_fck"),
-+	DT_CLK(NULL, "timer10_fck", "timer10_fck"),
-+	DT_CLK(NULL, "timer11_fck", "timer11_fck"),
-+	DT_CLK(NULL, "cpsw_50m_clkdiv", "cpsw_50m_clkdiv"),
-+	DT_CLK(NULL, "cpsw_5m_clkdiv", "cpsw_5m_clkdiv"),
-+	DT_CLK(NULL, "dpll_ddr_x2_ck", "dpll_ddr_x2_ck"),
-+	DT_CLK(NULL, "dpll_ddr_m4_ck", "dpll_ddr_m4_ck"),
-+	DT_CLK(NULL, "dpll_per_clkdcoldo", "dpll_per_clkdcoldo"),
-+	DT_CLK(NULL, "dll_aging_clk_div", "dll_aging_clk_div"),
-+	DT_CLK(NULL, "div_core_25m_ck", "div_core_25m_ck"),
-+	DT_CLK(NULL, "func_12m_clk", "func_12m_clk"),
-+	DT_CLK(NULL, "vtp_clk_div", "vtp_clk_div"),
-+	DT_CLK(NULL, "usbphy_32khz_clkmux", "usbphy_32khz_clkmux"),
++	DT_CLK(NULL, "dbg_sysclk_ck", "dbg_sysclk_ck"),
++	DT_CLK(NULL, "dbg_clka_ck", "dbg_clka_ck"),
++	DT_CLK(NULL, "stm_pmd_clock_mux_ck", "stm_pmd_clock_mux_ck"),
++	DT_CLK(NULL, "trace_pmd_clk_mux_ck", "trace_pmd_clk_mux_ck"),
++	DT_CLK(NULL, "stm_clk_div_ck", "stm_clk_div_ck"),
++	DT_CLK(NULL, "trace_clk_div_ck", "trace_clk_div_ck"),
++	DT_CLK(NULL, "clkout2_ck", "clkout2_ck"),
++	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
++	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
++	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
 +	{ .node_name = NULL },
 +};
 +
-+int __init am43xx_dt_clk_init(void)
++static const char *enable_init_clks[] = {
++	"dpll_ddr_m2_ck",
++	"dpll_mpu_m2_ck",
++	"l3_gclk",
++	"l4hs_gclk",
++	"l4fw_gclk",
++	"l4ls_gclk",
++	/* Required for external peripherals like, Audio codecs */
++	"clkout2_ck",
++};
++
++int __init am33xx_dt_clk_init(void)
 +{
-+	ti_dt_clocks_register(am43xx_clks);
++	struct clk *clk1, *clk2;
++
++	ti_dt_clocks_register(am33xx_clks);
 +
 +	omap2_clk_disable_autoidle_all();
++
++	omap2_clk_enable_init_clocks(enable_init_clks,
++				     ARRAY_SIZE(enable_init_clks));
++
++	/* TRM ERRATA: Timer 3 & 6 default parent (TCLKIN) may not be always
++	 *    physically present, in such a case HWMOD enabling of
++	 *    clock would be failure with default parent. And timer
++	 *    probe thinks clock is already enabled, this leads to
++	 *    crash upon accessing timer 3 & 6 registers in probe.
++	 *    Fix by setting parent of both these timers to master
++	 *    oscillator clock.
++	 */
++
++	clk1 = clk_get_sys(NULL, "sys_clkin_ck");
++	clk2 = clk_get_sys(NULL, "timer3_fck");
++	clk_set_parent(clk2, clk1);
++
++	clk2 = clk_get_sys(NULL, "timer6_fck");
++	clk_set_parent(clk2, clk1);
++	/*
++	 * The On-Chip 32K RC Osc clock is not an accurate clock-source as per
++	 * the design/spec, so as a result, for example, timer which supposed
++	 * to get expired @60Sec, but will expire somewhere ~@40Sec, which is
++	 * not expected by any use-case, so change WDT1 clock source to PRCM
++	 * 32KHz clock.
++	 */
++	clk1 = clk_get_sys(NULL, "wdt1_fck");
++	clk2 = clk_get_sys(NULL, "clkdiv32k_ick");
++	clk_set_parent(clk1, clk2);
 +
 +	return 0;
 +}
 diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 3d2ba57..092b641 100644
+index 506155b..0e7c8d9 100644
 --- a/include/linux/clk/ti.h
 +++ b/include/linux/clk/ti.h
-@@ -273,6 +273,7 @@ int omap4xxx_dt_clk_init(void);
+@@ -248,6 +248,7 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
+ int omap2_clkops_enable_clkdm(struct clk_hw *hw);
+ void omap2_clkops_disable_clkdm(struct clk_hw *hw);
+ int omap2_clk_disable_autoidle_all(void);
++void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks);
+ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
+ 			 unsigned long parent_rate);
+ int omap2_dflt_clk_enable(struct clk_hw *hw);
+@@ -266,6 +267,7 @@ int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
+ int omap4xxx_dt_clk_init(void);
  int omap5xxx_dt_clk_init(void);
  int dra7xx_dt_clk_init(void);
- int am33xx_dt_clk_init(void);
-+int am43xx_dt_clk_init(void);
++int am33xx_dt_clk_init(void);
  
  #ifdef CONFIG_OF
  void of_ti_clk_allow_autoidle_all(void);
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
