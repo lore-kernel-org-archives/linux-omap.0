@@ -1,15 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/4] trivial omap big endian changes for v3.14 merge window
-Date: Wed, 8 Jan 2014 17:21:40 -0800
-Message-ID: <20140109012139.GK31323@atomide.com>
+Subject: [GIT PULL 4/4] GIC crossbar support for v3.14 merge window
+Date: Wed, 8 Jan 2014 17:22:16 -0800
+Message-ID: <20140109012215.GL31323@atomide.com>
 References: <20140109011940.GI31323@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10290 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11145 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbaAIBVp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 20:21:45 -0500
+	with ESMTP id S1750832AbaAIBWV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 20:22:21 -0500
 Content-Disposition: inline
 In-Reply-To: <20140109011940.GI31323@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -23,68 +23,34 @@ The following changes since commit 413541dd66d51f791a0b169d9b9014e4f56be13c:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.14/be-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.14/crossbar-signed
 
-for you to fetch changes up to fc6ca98c81bf0ea8b46064915b5947b971594101:
+for you to fetch changes up to 70d4545544853e2d95909b919d4565ff32c3e3c5:
 
-  ARM: OMAP: debug-leds: raw read and write endian fix (2014-01-07 16:09:45 -0800)
-
-----------------------------------------------------------------
-Trivial search and replace of read and write functions to allow
-further patches to make omaps work also in big endian mode.
+  ARM: DRA: Enable Crossbar IP support for DRA7XX (2014-01-08 09:21:42 -0800)
 
 ----------------------------------------------------------------
-Victor Kamensky (4):
-      ARM: OMAP2+: raw read and write endian fix
-      ARM: OMAP: dmtimer: raw read and write endian fix
-      ARM: OMAP: counter-32k: raw read and write endian fix
-      ARM: OMAP: debug-leds: raw read and write endian fix
+Add support for GIC crossbar that routes interrupts on newer omaps.
 
- arch/arm/mach-omap2/board-flash.c         |  4 +--
- arch/arm/mach-omap2/clkt2xxx_dpllcore.c   |  2 +-
- arch/arm/mach-omap2/clkt2xxx_osc.c        |  8 +++---
- arch/arm/mach-omap2/clkt2xxx_sys.c        |  2 +-
- arch/arm/mach-omap2/clkt_clksel.c         | 10 ++++----
- arch/arm/mach-omap2/clkt_dpll.c           |  6 ++---
- arch/arm/mach-omap2/clkt_iclk.c           |  8 +++---
- arch/arm/mach-omap2/clock.c               | 16 ++++++------
- arch/arm/mach-omap2/clock36xx.c           |  6 ++---
- arch/arm/mach-omap2/cm2xxx_3xxx.h         |  4 +--
- arch/arm/mach-omap2/cm33xx.c              |  4 +--
- arch/arm/mach-omap2/cm3xxx.c              |  8 +++---
- arch/arm/mach-omap2/cm44xx.c              |  8 +++---
- arch/arm/mach-omap2/cminst44xx.c          |  4 +--
- arch/arm/mach-omap2/control.c             | 20 +++++++--------
- arch/arm/mach-omap2/dma.c                 |  4 +--
- arch/arm/mach-omap2/dpll3xxx.c            | 32 +++++++++++------------
- arch/arm/mach-omap2/dpll44xx.c            | 12 ++++-----
- arch/arm/mach-omap2/gpmc.c                |  8 +++---
- arch/arm/mach-omap2/id.c                  |  2 +-
- arch/arm/mach-omap2/irq.c                 |  4 +--
- arch/arm/mach-omap2/mux.c                 |  8 +++---
- arch/arm/mach-omap2/omap-hotplug.c        |  4 +--
- arch/arm/mach-omap2/omap-mpuss-lowpower.c | 18 ++++++-------
- arch/arm/mach-omap2/omap-smp.c            |  4 +--
- arch/arm/mach-omap2/omap-wakeupgen.c      | 42 +++++++++++++++----------------
- arch/arm/mach-omap2/omap4-common.c        | 16 ++++++------
- arch/arm/mach-omap2/omap_hwmod.c          | 10 ++++----
- arch/arm/mach-omap2/omap_phy_internal.c   |  6 ++---
- arch/arm/mach-omap2/prcm_mpu44xx.c        |  4 +--
- arch/arm/mach-omap2/prm2xxx.h             |  2 +-
- arch/arm/mach-omap2/prm2xxx_3xxx.h        |  4 +--
- arch/arm/mach-omap2/prm33xx.c             |  4 +--
- arch/arm/mach-omap2/prm3xxx.h             |  2 +-
- arch/arm/mach-omap2/prm44xx.c             |  4 +--
- arch/arm/mach-omap2/prminst44xx.c         |  4 +--
- arch/arm/mach-omap2/sdrc.h                |  8 +++---
- arch/arm/mach-omap2/sdrc2xxx.c            |  4 +--
- arch/arm/mach-omap2/sr_device.c           |  2 +-
- arch/arm/mach-omap2/sram.c                | 16 ++++++------
- arch/arm/mach-omap2/timer.c               |  8 +++---
- arch/arm/mach-omap2/vc.c                  |  4 +--
- arch/arm/mach-omap2/wd_timer.c            |  8 +++---
- arch/arm/plat-omap/counter_32k.c          |  6 ++---
- arch/arm/plat-omap/debug-leds.c           | 14 +++++------
- arch/arm/plat-omap/dmtimer.c              |  8 +++---
- arch/arm/plat-omap/include/plat/dmtimer.h | 16 ++++++------
- 47 files changed, 199 insertions(+), 199 deletions(-)
+----------------------------------------------------------------
+Sricharan R (4):
+      irqchip: irq-gic: Add support for routable irqs
+      irqchip: crossbar: Add support for Crossbar IP
+      ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
+      ARM: DRA: Enable Crossbar IP support for DRA7XX
+
+ Documentation/devicetree/bindings/arm/gic.txt      |   6 +
+ .../devicetree/bindings/arm/omap/crossbar.txt      |  27 +++
+ arch/arm/mach-omap2/Kconfig                        |   1 +
+ arch/arm/mach-omap2/omap-wakeupgen.c               |   4 +-
+ arch/arm/mach-omap2/omap4-common.c                 |   4 +
+ drivers/irqchip/Kconfig                            |   8 +
+ drivers/irqchip/Makefile                           |   1 +
+ drivers/irqchip/irq-crossbar.c                     | 208 +++++++++++++++++++++
+ drivers/irqchip/irq-gic.c                          |  82 +++++++-
+ include/linux/irqchip/arm-gic.h                    |   7 +-
+ include/linux/irqchip/irq-crossbar.h               |  11 ++
+ 11 files changed, 346 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
+ create mode 100644 drivers/irqchip/irq-crossbar.c
+ create mode 100644 include/linux/irqchip/irq-crossbar.h
