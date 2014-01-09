@@ -1,144 +1,83 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 2/3] ARM: OMAP2+: Add support to parse optional clk
- info from DT
-Date: Thu, 9 Jan 2014 09:19:38 -0600
-Message-ID: <52CEBE0A.60007@ti.com>
-References: <1386848309-14076-1-git-send-email-rnayak@ti.com>
- <1386848309-14076-3-git-send-email-rnayak@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH RFC 00/26] Migrate more OMAP DMA code to DMA engine
+Date: Thu, 9 Jan 2014 15:24:37 +0000
+Message-ID: <20140109152437.GB27282@n2100.arm.linux.org.uk>
+References: <20140102150836.GA3826@n2100.arm.linux.org.uk> <20140108012110.GL5074@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1386848309-14076-3-git-send-email-rnayak@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
-Cc: mark.rutland@arm.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:60593 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751929AbaAIPYt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jan 2014 10:24:49 -0500
+Content-Disposition: inline
+In-Reply-To: <20140108012110.GL5074@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-On 12/12/2013 05:38 AM, Rajendra Nayak wrote:
-> With clocks for OMAP moving to DT, its now possible to pass all optional clock
-> data for each device from DT instead of having it in hwmod.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c |   65 ++++++++++++++++++++++++++++++++++++--
->  1 file changed, 63 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index f22bbbb..271634f 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -807,6 +807,64 @@ static int _init_interface_clks(struct omap_hwmod *oh)
->  	return ret;
->  }
->  
-> +static const char **_parse_opt_clks_dt(struct omap_hwmod *oh,
-> +				       struct device_node *np,
-> +				       int *opt_clks_cnt)
-> +{
-> +	int i, clks_cnt;
-> +	const char *clk_name;
-> +	const char **opt_clk_names;
-> +
-> +	clks_cnt = of_property_count_strings(np, "clock-names");
-> +	if (!clks_cnt)
-> +		return NULL;
-> +
-> +	opt_clk_names = kzalloc(sizeof(char *)*clks_cnt, GFP_KERNEL);
-> +	if (!opt_clk_names)
-> +		return NULL;
-> +
-> +	for (i = 0; i < clks_cnt; i++) {
-> +		of_property_read_string_index(np, "clock-names", i, &clk_name);
-> +		if (!strcmp(clk_name, "fck"))
-> +			continue;
-> +		opt_clks_cnt++;
-> +		opt_clk_names[i] = clk_name;
+On Tue, Jan 07, 2014 at 05:21:11PM -0800, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [140102 07:11]:
+> > The following patch series moves code to setup the DMA hardware and
+> > service interrupts from the hardware to the DMA engine driver.  Thi=
+s
+> > reduces the dependency on the legacy DMA implementation.
+> >=20
+> > This series does not remove the channel allocation/freeing hooks wh=
+ich
+> > are used to manage the allocation of physical channels - this is th=
+e
+> > next step in the evolution.
+> >=20
+> > The patches which move the interrupt handling are currently less th=
+an
+> > perfect since they're writing to ENABLE_L0 under a different spinlo=
+ck,
+> > and hence RFC only at the moment.
+>=20
+> Nice to see this happening. These seem to work for me based on a quic=
+k
+> try on omap2+, but on omap1 the build fails:
+>=20
+> arch/arm/mach-omap1/dma.c: In function =E2=80=98dma_write=E2=80=99:
+> arch/arm/mach-omap1/dma.c:186: error: =E2=80=98const struct omap_dma_=
+reg=E2=80=99 has no member named =E2=80=98size=E2=80=99
 
-This assumes that any clock-names entry which does not match "fck" is
-an optional clock that should be controlled by hwmod -> this is not
-always the case and in cases such as gpio or mmc, the optional
-debounce clock is actually prefered to be controlled by the driver.
+Right, needs this incremental patch:
 
-we wont have a way around that.
-
-> +	}
-> +	return opt_clk_names;
-> +}
-> +
-> +static int _init_opt_clks_dt(struct omap_hwmod *oh, struct device_node *np)
-> +{
-> +	struct clk *c;
-> +	int i, opt_clks_cnt = 0;
-> +	int ret = 0;
-> +	const char **opt_clk_names;
-> +
-> +	opt_clk_names = _parse_opt_clks_dt(oh, np, &opt_clks_cnt);
-> +	if (!opt_clk_names)
-> +		return -EINVAL;
-> +
-> +	oh->opt_clks = kzalloc(sizeof(struct omap_hwmod_opt_clk *)
-> +			       * opt_clks_cnt, GFP_KERNEL);
-> +	if (!oh->opt_clks)
-> +		return -ENOMEM;
-> +
-> +	oh->opt_clks_cnt = opt_clks_cnt;
-> +
-> +	for (i = 0; i < oh->opt_clks_cnt; i++) {
-> +		c = of_clk_get_by_name(np, opt_clk_names[i]);
-> +		if (IS_ERR(c)) {
-> +			pr_warn("omap_hwmod: %s: cannot clk_get opt_clk %s\n",
-> +				oh->name, opt_clk_names[i]);
-> +			ret = -EINVAL;
-> +		}
-> +		oh->opt_clks[i]._clk = c;
-> +		oh->opt_clks[i].role = opt_clk_names[i];
-> +		clk_prepare(oh->opt_clks[i]._clk);
-> +	}
-> +	return ret;
-> +}
-> +
->  /**
->   * _init_opt_clk - get a struct clk * for the the hwmod's optional clocks
->   * @oh: struct omap_hwmod *
-> @@ -814,13 +872,16 @@ static int _init_interface_clks(struct omap_hwmod *oh)
->   * Called from _init_clocks().  Populates the @oh omap_hwmod_opt_clk
->   * clock pointers.  Returns 0 on success or -EINVAL on error.
->   */
-> -static int _init_opt_clks(struct omap_hwmod *oh)
-> +static int _init_opt_clks(struct omap_hwmod *oh, struct device_node *np)
->  {
->  	struct omap_hwmod_opt_clk *oc;
->  	struct clk *c;
->  	int i;
->  	int ret = 0;
->  
-> +	if (of_get_property(np, "clocks", NULL))
-> +		return _init_opt_clks_dt(oh, np);
-> +
->  	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++) {
->  		c = clk_get(NULL, oc->clk);
->  		if (IS_ERR(c)) {
-> @@ -1590,7 +1651,7 @@ static int _init_clocks(struct omap_hwmod *oh, void *data,
->  
->  	ret |= _init_main_clk(oh, np);
->  	ret |= _init_interface_clks(oh);
-> -	ret |= _init_opt_clks(oh);
-> +	ret |= _init_opt_clks(oh, np);
->  
->  	if (!ret)
->  		oh->_state = _HWMOD_STATE_CLKS_INITED;
-> 
+diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+index 3afde9628839..404f89e3eeb8 100644
+--- a/arch/arm/mach-omap1/dma.c
++++ b/arch/arm/mach-omap1/dma.c
+@@ -183,7 +183,7 @@ static inline void dma_write(u32 val, int reg, int =
+lch)
+ 	addr +=3D reg_map[reg].stride * lch;
+=20
+ 	__raw_writew(val, addr);
+-	if (reg_map[reg].size =3D=3D OMAP_DMA_REG_2X16BIT)
++	if (reg_map[reg].type =3D=3D OMAP_DMA_REG_2X16BIT)
+ 		__raw_writew(val >> 16, addr + 2);
+ }
+=20
+@@ -196,7 +196,7 @@ static inline u32 dma_read(int reg, int lch)
+ 	addr +=3D reg_map[reg].stride * lch;
+=20
+ 	val =3D __raw_readw(addr);
+-	if (reg_map[reg].size =3D=3D OMAP_DMA_REG_2X16BIT)
++	if (reg_map[reg].type =3D=3D OMAP_DMA_REG_2X16BIT)
+ 		val |=3D __raw_readw(addr + 2) << 16;
+=20
+ 	return val;
 
 
--- 
-Regards,
-Nishanth Menon
+--=20
+=46TTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
+in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
+Estimate before purchase was "up to 13.2Mbit".
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
