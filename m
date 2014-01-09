@@ -1,39 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: DSS DT support for 3.14 probably not possible
-Date: Thu, 9 Jan 2014 07:51:58 -0800
-Message-ID: <20140109155157.GA27801@atomide.com>
-References: <52CE72C3.7020103@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: [PATCH 01/18] of: add vendor prefix for Gumstix
+Date: Thu,  9 Jan 2014 17:47:55 +0100
+Message-ID: <1389286092-27087-2-git-send-email-florian.vaussard@epfl.ch>
+References: <1389286092-27087-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56880 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751483AbaAIPwC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jan 2014 10:52:02 -0500
-Content-Disposition: inline
-In-Reply-To: <52CE72C3.7020103@ti.com>
+Received: from smtp4.epfl.ch ([128.178.224.219]:40987 "EHLO smtp4.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754343AbaAIQsk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Jan 2014 11:48:40 -0500
+In-Reply-To: <1389286092-27087-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, florian.vaussard@epfl.ch
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140109 02:00]:
-> Hi Tony,
-> 
-> Unfortunately I think the DSS DT series will miss 3.14 merge window.
-> 
-> The code feels quite fine, but I'm still in the process of writing the
-> binding documentation and getting those reviewed. And that review could
-> of course lead to some new changes.
+Using "gumstix" for Gumstix Inc.
 
-OK
- 
-> So if we're going for DT-only boot for 3.14, I guess the only option is
-> to create the quirk display platform data for all the boards...
+Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+---
+ Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-We can't quite yet make things DT-only. So let's just add the display
-quirk support as needed.
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index edbb8d8..968a955 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -33,6 +33,7 @@ fsl	Freescale Semiconductor
+ GEFanuc	GE Fanuc Intelligent Platforms Embedded Systems, Inc.
+ gef	GE Fanuc Intelligent Platforms Embedded Systems, Inc.
+ gmt	Global Mixed-mode Technology, Inc.
++gumstix	Gumstix, Inc.
+ hisilicon	Hisilicon Limited.
+ hp	Hewlett Packard
+ ibm	International Business Machines (IBM)
+-- 
+1.8.1.2
 
-Regards,
-
-Tony
