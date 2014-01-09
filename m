@@ -1,60 +1,319 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv13 23/40] ARM: dts: clk: Add apll related clocks
-Date: Thu, 9 Jan 2014 16:00:34 +0200
-Message-ID: <1389276051-1326-24-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv13 14/40] CLK: TI: DRA7: Add APLL support
+Date: Thu, 9 Jan 2014 16:00:25 +0200
+Message-ID: <1389276051-1326-15-git-send-email-t-kristo@ti.com>
 References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46915 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755850AbaAIOCv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Jan 2014 09:02:51 -0500
-In-Reply-To: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1389276051-1326-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, J Keerthy <j-keerthy@ti.com>
 
-From: J Keerthy <j-keerthy@ti.com>
+From: J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 
-The patch adds a mux node to choose the parent of apll_pcie_ck node.
+The patch adds support for DRA7 PCIe APLL. The APLL
+sources the optional functional clocks for PCIe module.
 
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Tested-by: Nishanth Menon <nm@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
+APLL stands for Analog PLL. This is different when comapred
+with DPLL meaning Digital PLL, the phase detection is done
+using an analog circuit.
+
+Signed-off-by: J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/dra7xx-clocks.dtsi |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ .../devicetree/bindings/clock/ti/apll.txt          |   31 +++
+ drivers/clk/ti/Makefile                            |    2 +-
+ drivers/clk/ti/apll.c                              |  223 ++++++++++++++++++++
+ 3 files changed, 255 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/clock/ti/apll.txt
+ create mode 100644 drivers/clk/ti/apll.c
 
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index 32df847..d4e7410 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -1150,11 +1150,19 @@
- 		ti,invert-autoidle-bit;
- 	};
- 
-+	apll_pcie_in_clk_mux: apll_pcie_in_clk_mux@4ae06118 {
-+		compatible = "ti,mux-clock";
-+		clocks = <&dpll_pcie_ref_ck>, <&pciesref_acs_clk_ck>;
-+		#clock-cells = <0>;
-+		reg = <0x021c 0x4>;
-+		ti,bit-shift = <7>;
-+	};
+diff --git a/Documentation/devicetree/bindings/clock/ti/apll.txt b/Documentation/devicetree/bindings/clock/ti/apll.txt
+new file mode 100644
+index 0000000..7faf5a6
+--- /dev/null
++++ b/Documentation/devicetree/bindings/clock/ti/apll.txt
+@@ -0,0 +1,31 @@
++Binding for Texas Instruments APLL clock.
 +
- 	apll_pcie_ck: apll_pcie_ck {
- 		#clock-cells = <0>;
--		compatible = "ti,omap4-dpll-clock";
--		clocks = <&dpll_pcie_ref_ck>, <&dpll_pcie_ref_ck>;
--		reg = <0x0200>, <0x0204>, <0x020c>, <0x0208>;
-+		compatible = "ti,dra7-apll-clock";
++Binding status: Unstable - ABI compatibility may be broken in the future
++
++This binding uses the common clock binding[1].  It assumes a
++register-mapped APLL with usually two selectable input clocks
++(reference clock and bypass clock), with analog phase locked
++loop logic for multiplying the input clock to a desired output
++clock. This clock also typically supports different operation
++modes (locked, low power stop etc.) APLL mostly behaves like
++a subtype of a DPLL [2], although a simplified one at that.
++
++[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
++[2] Documentation/devicetree/bindings/clock/ti/dpll.txt
++
++Required properties:
++- compatible : shall be "ti,dra7-apll-clock"
++- #clock-cells : from common clock binding; shall be set to 0.
++- clocks : link phandles of parent clocks (clk-ref and clk-bypass)
++- reg : address and length of the register set for controlling the APLL.
++  It contains the information of registers in the following order:
++	"control" - contains the control register base address
++	"idlest" - contains the idlest register base address
++
++Examples:
++	apll_pcie_ck: apll_pcie_ck@4a008200 {
++		#clock-cells = <0>;
 +		clocks = <&apll_pcie_in_clk_mux>, <&dpll_pcie_ref_ck>;
-+		reg = <0x021c>, <0x0220>;
- 	};
- 
- 	apll_pcie_clkvcoldo: apll_pcie_clkvcoldo {
++		reg = <0x4a00821c 0x4>, <0x4a008220 0x4>;
++		compatible = "ti,dra7-apll-clock";
++	};
+diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
+index 935e5d2..3d71e1e 100644
+--- a/drivers/clk/ti/Makefile
++++ b/drivers/clk/ti/Makefile
+@@ -1,7 +1,7 @@
+ ifneq ($(CONFIG_OF),)
+ obj-y					+= clk.o dpll.o autoidle.o divider.o \
+ 					   fixed-factor.o gate.o clockdomain.o \
+-					   composite.o mux.o
++					   composite.o mux.o apll.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= clk-44xx.o
+ obj-$(CONFIG_SOC_OMAP5)			+= clk-54xx.o
+ endif
+diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
+new file mode 100644
+index 0000000..b986f61
+--- /dev/null
++++ b/drivers/clk/ti/apll.c
+@@ -0,0 +1,223 @@
++/*
++ * OMAP APLL clock support
++ *
++ * Copyright (C) 2013 Texas Instruments, Inc.
++ *
++ * J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/clk-provider.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/io.h>
++#include <linux/err.h>
++#include <linux/string.h>
++#include <linux/log2.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/clk/ti.h>
++#include <linux/delay.h>
++
++#define APLL_FORCE_LOCK 0x1
++#define APLL_AUTO_IDLE	0x2
++#define MAX_APLL_WAIT_TRIES		1000000
++
++#undef pr_fmt
++#define pr_fmt(fmt) "%s: " fmt, __func__
++
++static int dra7_apll_enable(struct clk_hw *hw)
++{
++	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
++	int r = 0, i = 0;
++	struct dpll_data *ad;
++	const char *clk_name;
++	u8 state = 1;
++	u32 v;
++
++	ad = clk->dpll_data;
++	if (!ad)
++		return -EINVAL;
++
++	clk_name = __clk_get_name(clk->hw.clk);
++
++	state <<= __ffs(ad->idlest_mask);
++
++	/* Check is already locked */
++	v = ti_clk_ll_ops->clk_readl(ad->idlest_reg);
++
++	if ((v & ad->idlest_mask) == state)
++		return r;
++
++	v = ti_clk_ll_ops->clk_readl(ad->control_reg);
++	v &= ~ad->enable_mask;
++	v |= APLL_FORCE_LOCK << __ffs(ad->enable_mask);
++	ti_clk_ll_ops->clk_writel(v, ad->control_reg);
++
++	state <<= __ffs(ad->idlest_mask);
++
++	while (1) {
++		v = ti_clk_ll_ops->clk_readl(ad->idlest_reg);
++		if ((v & ad->idlest_mask) == state)
++			break;
++		if (i > MAX_APLL_WAIT_TRIES)
++			break;
++		i++;
++		udelay(1);
++	}
++
++	if (i == MAX_APLL_WAIT_TRIES) {
++		pr_warn("clock: %s failed transition to '%s'\n",
++			clk_name, (state) ? "locked" : "bypassed");
++	} else {
++		pr_debug("clock: %s transition to '%s' in %d loops\n",
++			 clk_name, (state) ? "locked" : "bypassed", i);
++
++		r = 0;
++	}
++
++	return r;
++}
++
++static void dra7_apll_disable(struct clk_hw *hw)
++{
++	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
++	struct dpll_data *ad;
++	u8 state = 1;
++	u32 v;
++
++	ad = clk->dpll_data;
++
++	state <<= __ffs(ad->idlest_mask);
++
++	v = ti_clk_ll_ops->clk_readl(ad->control_reg);
++	v &= ~ad->enable_mask;
++	v |= APLL_AUTO_IDLE << __ffs(ad->enable_mask);
++	ti_clk_ll_ops->clk_writel(v, ad->control_reg);
++}
++
++static int dra7_apll_is_enabled(struct clk_hw *hw)
++{
++	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
++	struct dpll_data *ad;
++	u32 v;
++
++	ad = clk->dpll_data;
++
++	v = ti_clk_ll_ops->clk_readl(ad->control_reg);
++	v &= ad->enable_mask;
++
++	v >>= __ffs(ad->enable_mask);
++
++	return v == APLL_AUTO_IDLE ? 0 : 1;
++}
++
++static u8 dra7_init_apll_parent(struct clk_hw *hw)
++{
++	return 0;
++}
++
++static const struct clk_ops apll_ck_ops = {
++	.enable		= &dra7_apll_enable,
++	.disable	= &dra7_apll_disable,
++	.is_enabled	= &dra7_apll_is_enabled,
++	.get_parent	= &dra7_init_apll_parent,
++};
++
++static void __init omap_clk_register_apll(struct clk_hw *hw,
++					  struct device_node *node)
++{
++	struct clk_hw_omap *clk_hw = to_clk_hw_omap(hw);
++	struct dpll_data *ad = clk_hw->dpll_data;
++	struct clk *clk;
++
++	ad->clk_ref = of_clk_get(node, 0);
++	ad->clk_bypass = of_clk_get(node, 1);
++
++	if (IS_ERR(ad->clk_ref) || IS_ERR(ad->clk_bypass)) {
++		pr_debug("clk-ref or clk-bypass for %s not ready, retry\n",
++			 node->name);
++		if (!ti_clk_retry_init(node, hw, omap_clk_register_apll))
++			return;
++
++		goto cleanup;
++	}
++
++	clk = clk_register(NULL, &clk_hw->hw);
++	if (!IS_ERR(clk)) {
++		of_clk_add_provider(node, of_clk_src_simple_get, clk);
++		kfree(clk_hw->hw.init->parent_names);
++		kfree(clk_hw->hw.init);
++		return;
++	}
++
++cleanup:
++	kfree(clk_hw->dpll_data);
++	kfree(clk_hw->hw.init->parent_names);
++	kfree(clk_hw->hw.init);
++	kfree(clk_hw);
++}
++
++static void __init of_dra7_apll_setup(struct device_node *node)
++{
++	struct dpll_data *ad = NULL;
++	struct clk_hw_omap *clk_hw = NULL;
++	struct clk_init_data *init = NULL;
++	const char **parent_names = NULL;
++	int i;
++
++	ad = kzalloc(sizeof(*ad), GFP_KERNEL);
++	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
++	init = kzalloc(sizeof(*init), GFP_KERNEL);
++	if (!ad || !clk_hw || !init)
++		goto cleanup;
++
++	clk_hw->dpll_data = ad;
++	clk_hw->hw.init = init;
++	clk_hw->flags = MEMMAP_ADDRESSING;
++
++	init->name = node->name;
++	init->ops = &apll_ck_ops;
++
++	init->num_parents = of_clk_get_parent_count(node);
++	if (init->num_parents < 1) {
++		pr_err("dra7 apll %s must have parent(s)\n", node->name);
++		goto cleanup;
++	}
++
++	parent_names = kzalloc(sizeof(char *) * init->num_parents, GFP_KERNEL);
++	if (!parent_names)
++		goto cleanup;
++
++	for (i = 0; i < init->num_parents; i++)
++		parent_names[i] = of_clk_get_parent_name(node, i);
++
++	init->parent_names = parent_names;
++
++	ad->control_reg = ti_clk_get_reg_addr(node, 0);
++	ad->idlest_reg = ti_clk_get_reg_addr(node, 1);
++
++	if (!ad->control_reg || !ad->idlest_reg)
++		goto cleanup;
++
++	ad->idlest_mask = 0x1;
++	ad->enable_mask = 0x3;
++
++	omap_clk_register_apll(&clk_hw->hw, node);
++	return;
++
++cleanup:
++	kfree(parent_names);
++	kfree(ad);
++	kfree(clk_hw);
++	kfree(init);
++}
++CLK_OF_DECLARE(dra7_apll_clock, "ti,dra7-apll-clock", of_dra7_apll_setup);
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
