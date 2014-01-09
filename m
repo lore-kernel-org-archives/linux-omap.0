@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv13 14/40] CLK: TI: DRA7: Add APLL support
-Date: Thu, 9 Jan 2014 16:00:25 +0200
-Message-ID: <1389276051-1326-15-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv13 19/40] CLK: TI: add am43xx clock init file
+Date: Thu, 9 Jan 2014 16:00:30 +0200
+Message-ID: <1389276051-1326-20-git-send-email-t-kristo@ti.com>
 References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,307 +9,171 @@ Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1389276051-1326-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+clk-43xx.c now contains the clock init functionality for am43xx, including
+DT clock registration and adding of static clkdev entries.
 
-The patch adds support for DRA7 PCIe APLL. The APLL
-sources the optional functional clocks for PCIe module.
-
-APLL stands for Analog PLL. This is different when comapred
-with DPLL meaning Digital PLL, the phase detection is done
-using an analog circuit.
-
-Signed-off-by: J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Tested-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- .../devicetree/bindings/clock/ti/apll.txt          |   31 +++
- drivers/clk/ti/Makefile                            |    2 +-
- drivers/clk/ti/apll.c                              |  223 ++++++++++++++++++++
- 3 files changed, 255 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/clock/ti/apll.txt
- create mode 100644 drivers/clk/ti/apll.c
+ drivers/clk/ti/Makefile   |    2 +-
+ drivers/clk/ti/clk-43xx.c |  118 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/clk/ti.h    |    1 +
+ 3 files changed, 120 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/clk/ti/clk-43xx.c
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/apll.txt b/Documentation/devicetree/bindings/clock/ti/apll.txt
-new file mode 100644
-index 0000000..7faf5a6
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti/apll.txt
-@@ -0,0 +1,31 @@
-+Binding for Texas Instruments APLL clock.
-+
-+Binding status: Unstable - ABI compatibility may be broken in the future
-+
-+This binding uses the common clock binding[1].  It assumes a
-+register-mapped APLL with usually two selectable input clocks
-+(reference clock and bypass clock), with analog phase locked
-+loop logic for multiplying the input clock to a desired output
-+clock. This clock also typically supports different operation
-+modes (locked, low power stop etc.) APLL mostly behaves like
-+a subtype of a DPLL [2], although a simplified one at that.
-+
-+[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+[2] Documentation/devicetree/bindings/clock/ti/dpll.txt
-+
-+Required properties:
-+- compatible : shall be "ti,dra7-apll-clock"
-+- #clock-cells : from common clock binding; shall be set to 0.
-+- clocks : link phandles of parent clocks (clk-ref and clk-bypass)
-+- reg : address and length of the register set for controlling the APLL.
-+  It contains the information of registers in the following order:
-+	"control" - contains the control register base address
-+	"idlest" - contains the idlest register base address
-+
-+Examples:
-+	apll_pcie_ck: apll_pcie_ck@4a008200 {
-+		#clock-cells = <0>;
-+		clocks = <&apll_pcie_in_clk_mux>, <&dpll_pcie_ref_ck>;
-+		reg = <0x4a00821c 0x4>, <0x4a008220 0x4>;
-+		compatible = "ti,dra7-apll-clock";
-+	};
 diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 935e5d2..3d71e1e 100644
+index ab386c8..007c3c2 100644
 --- a/drivers/clk/ti/Makefile
 +++ b/drivers/clk/ti/Makefile
 @@ -1,7 +1,7 @@
  ifneq ($(CONFIG_OF),)
  obj-y					+= clk.o dpll.o autoidle.o divider.o \
  					   fixed-factor.o gate.o clockdomain.o \
--					   composite.o mux.o
-+					   composite.o mux.o apll.o
+-					   composite.o mux.o apll.o
++					   composite.o mux.o apll.o clk-43xx.o
+ obj-$(CONFIG_SOC_AM33XX)		+= clk-33xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= interface.o clk-3xxx.o
  obj-$(CONFIG_ARCH_OMAP4)		+= clk-44xx.o
- obj-$(CONFIG_SOC_OMAP5)			+= clk-54xx.o
- endif
-diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
+diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
 new file mode 100644
-index 0000000..b986f61
+index 0000000..67c8de5
 --- /dev/null
-+++ b/drivers/clk/ti/apll.c
-@@ -0,0 +1,223 @@
++++ b/drivers/clk/ti/clk-43xx.c
+@@ -0,0 +1,118 @@
 +/*
-+ * OMAP APLL clock support
++ * AM43XX Clock init
 + *
-+ * Copyright (C) 2013 Texas Instruments, Inc.
++ * Copyright (C) 2013 Texas Instruments, Inc
++ *     Tero Kristo (t-kristo-l0cyMroinI0@public.gmane.org)
 + *
-+ * J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
 + *
 + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
 + * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 + * GNU General Public License for more details.
 + */
 +
++#include <linux/kernel.h>
++#include <linux/list.h>
 +#include <linux/clk-provider.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/io.h>
-+#include <linux/err.h>
-+#include <linux/string.h>
-+#include <linux/log2.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
 +#include <linux/clk/ti.h>
-+#include <linux/delay.h>
 +
-+#define APLL_FORCE_LOCK 0x1
-+#define APLL_AUTO_IDLE	0x2
-+#define MAX_APLL_WAIT_TRIES		1000000
-+
-+#undef pr_fmt
-+#define pr_fmt(fmt) "%s: " fmt, __func__
-+
-+static int dra7_apll_enable(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	int r = 0, i = 0;
-+	struct dpll_data *ad;
-+	const char *clk_name;
-+	u8 state = 1;
-+	u32 v;
-+
-+	ad = clk->dpll_data;
-+	if (!ad)
-+		return -EINVAL;
-+
-+	clk_name = __clk_get_name(clk->hw.clk);
-+
-+	state <<= __ffs(ad->idlest_mask);
-+
-+	/* Check is already locked */
-+	v = ti_clk_ll_ops->clk_readl(ad->idlest_reg);
-+
-+	if ((v & ad->idlest_mask) == state)
-+		return r;
-+
-+	v = ti_clk_ll_ops->clk_readl(ad->control_reg);
-+	v &= ~ad->enable_mask;
-+	v |= APLL_FORCE_LOCK << __ffs(ad->enable_mask);
-+	ti_clk_ll_ops->clk_writel(v, ad->control_reg);
-+
-+	state <<= __ffs(ad->idlest_mask);
-+
-+	while (1) {
-+		v = ti_clk_ll_ops->clk_readl(ad->idlest_reg);
-+		if ((v & ad->idlest_mask) == state)
-+			break;
-+		if (i > MAX_APLL_WAIT_TRIES)
-+			break;
-+		i++;
-+		udelay(1);
-+	}
-+
-+	if (i == MAX_APLL_WAIT_TRIES) {
-+		pr_warn("clock: %s failed transition to '%s'\n",
-+			clk_name, (state) ? "locked" : "bypassed");
-+	} else {
-+		pr_debug("clock: %s transition to '%s' in %d loops\n",
-+			 clk_name, (state) ? "locked" : "bypassed", i);
-+
-+		r = 0;
-+	}
-+
-+	return r;
-+}
-+
-+static void dra7_apll_disable(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct dpll_data *ad;
-+	u8 state = 1;
-+	u32 v;
-+
-+	ad = clk->dpll_data;
-+
-+	state <<= __ffs(ad->idlest_mask);
-+
-+	v = ti_clk_ll_ops->clk_readl(ad->control_reg);
-+	v &= ~ad->enable_mask;
-+	v |= APLL_AUTO_IDLE << __ffs(ad->enable_mask);
-+	ti_clk_ll_ops->clk_writel(v, ad->control_reg);
-+}
-+
-+static int dra7_apll_is_enabled(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct dpll_data *ad;
-+	u32 v;
-+
-+	ad = clk->dpll_data;
-+
-+	v = ti_clk_ll_ops->clk_readl(ad->control_reg);
-+	v &= ad->enable_mask;
-+
-+	v >>= __ffs(ad->enable_mask);
-+
-+	return v == APLL_AUTO_IDLE ? 0 : 1;
-+}
-+
-+static u8 dra7_init_apll_parent(struct clk_hw *hw)
-+{
-+	return 0;
-+}
-+
-+static const struct clk_ops apll_ck_ops = {
-+	.enable		= &dra7_apll_enable,
-+	.disable	= &dra7_apll_disable,
-+	.is_enabled	= &dra7_apll_is_enabled,
-+	.get_parent	= &dra7_init_apll_parent,
++static struct ti_dt_clk am43xx_clks[] = {
++	DT_CLK(NULL, "clk_32768_ck", "clk_32768_ck"),
++	DT_CLK(NULL, "clk_rc32k_ck", "clk_rc32k_ck"),
++	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
++	DT_CLK(NULL, "virt_24000000_ck", "virt_24000000_ck"),
++	DT_CLK(NULL, "virt_25000000_ck", "virt_25000000_ck"),
++	DT_CLK(NULL, "virt_26000000_ck", "virt_26000000_ck"),
++	DT_CLK(NULL, "sys_clkin_ck", "sys_clkin_ck"),
++	DT_CLK(NULL, "tclkin_ck", "tclkin_ck"),
++	DT_CLK(NULL, "dpll_core_ck", "dpll_core_ck"),
++	DT_CLK(NULL, "dpll_core_x2_ck", "dpll_core_x2_ck"),
++	DT_CLK(NULL, "dpll_core_m4_ck", "dpll_core_m4_ck"),
++	DT_CLK(NULL, "dpll_core_m5_ck", "dpll_core_m5_ck"),
++	DT_CLK(NULL, "dpll_core_m6_ck", "dpll_core_m6_ck"),
++	DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
++	DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
++	DT_CLK(NULL, "dpll_ddr_ck", "dpll_ddr_ck"),
++	DT_CLK(NULL, "dpll_ddr_m2_ck", "dpll_ddr_m2_ck"),
++	DT_CLK(NULL, "dpll_disp_ck", "dpll_disp_ck"),
++	DT_CLK(NULL, "dpll_disp_m2_ck", "dpll_disp_m2_ck"),
++	DT_CLK(NULL, "dpll_per_ck", "dpll_per_ck"),
++	DT_CLK(NULL, "dpll_per_m2_ck", "dpll_per_m2_ck"),
++	DT_CLK(NULL, "dpll_per_m2_div4_wkupdm_ck", "dpll_per_m2_div4_wkupdm_ck"),
++	DT_CLK(NULL, "dpll_per_m2_div4_ck", "dpll_per_m2_div4_ck"),
++	DT_CLK(NULL, "adc_tsc_fck", "adc_tsc_fck"),
++	DT_CLK(NULL, "clkdiv32k_ck", "clkdiv32k_ck"),
++	DT_CLK(NULL, "clkdiv32k_ick", "clkdiv32k_ick"),
++	DT_CLK(NULL, "dcan0_fck", "dcan0_fck"),
++	DT_CLK(NULL, "dcan1_fck", "dcan1_fck"),
++	DT_CLK(NULL, "pruss_ocp_gclk", "pruss_ocp_gclk"),
++	DT_CLK(NULL, "mcasp0_fck", "mcasp0_fck"),
++	DT_CLK(NULL, "mcasp1_fck", "mcasp1_fck"),
++	DT_CLK(NULL, "smartreflex0_fck", "smartreflex0_fck"),
++	DT_CLK(NULL, "smartreflex1_fck", "smartreflex1_fck"),
++	DT_CLK(NULL, "sha0_fck", "sha0_fck"),
++	DT_CLK(NULL, "aes0_fck", "aes0_fck"),
++	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
++	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
++	DT_CLK(NULL, "timer3_fck", "timer3_fck"),
++	DT_CLK(NULL, "timer4_fck", "timer4_fck"),
++	DT_CLK(NULL, "timer5_fck", "timer5_fck"),
++	DT_CLK(NULL, "timer6_fck", "timer6_fck"),
++	DT_CLK(NULL, "timer7_fck", "timer7_fck"),
++	DT_CLK(NULL, "wdt1_fck", "wdt1_fck"),
++	DT_CLK(NULL, "l3_gclk", "l3_gclk"),
++	DT_CLK(NULL, "dpll_core_m4_div2_ck", "dpll_core_m4_div2_ck"),
++	DT_CLK(NULL, "l4hs_gclk", "l4hs_gclk"),
++	DT_CLK(NULL, "l3s_gclk", "l3s_gclk"),
++	DT_CLK(NULL, "l4ls_gclk", "l4ls_gclk"),
++	DT_CLK(NULL, "clk_24mhz", "clk_24mhz"),
++	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
++	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
++	DT_CLK(NULL, "gpio0_dbclk_mux_ck", "gpio0_dbclk_mux_ck"),
++	DT_CLK(NULL, "gpio0_dbclk", "gpio0_dbclk"),
++	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
++	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
++	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
++	DT_CLK(NULL, "gpio4_dbclk", "gpio4_dbclk"),
++	DT_CLK(NULL, "gpio5_dbclk", "gpio5_dbclk"),
++	DT_CLK(NULL, "mmc_clk", "mmc_clk"),
++	DT_CLK(NULL, "gfx_fclk_clksel_ck", "gfx_fclk_clksel_ck"),
++	DT_CLK(NULL, "gfx_fck_div_ck", "gfx_fck_div_ck"),
++	DT_CLK(NULL, "timer_32k_ck", "clkdiv32k_ick"),
++	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
++	DT_CLK(NULL, "sysclk_div", "sysclk_div"),
++	DT_CLK(NULL, "disp_clk", "disp_clk"),
++	DT_CLK(NULL, "clk_32k_mosc_ck", "clk_32k_mosc_ck"),
++	DT_CLK(NULL, "clk_32k_tpm_ck", "clk_32k_tpm_ck"),
++	DT_CLK(NULL, "dpll_extdev_ck", "dpll_extdev_ck"),
++	DT_CLK(NULL, "dpll_extdev_m2_ck", "dpll_extdev_m2_ck"),
++	DT_CLK(NULL, "mux_synctimer32k_ck", "mux_synctimer32k_ck"),
++	DT_CLK(NULL, "synctimer_32kclk", "synctimer_32kclk"),
++	DT_CLK(NULL, "timer8_fck", "timer8_fck"),
++	DT_CLK(NULL, "timer9_fck", "timer9_fck"),
++	DT_CLK(NULL, "timer10_fck", "timer10_fck"),
++	DT_CLK(NULL, "timer11_fck", "timer11_fck"),
++	DT_CLK(NULL, "cpsw_50m_clkdiv", "cpsw_50m_clkdiv"),
++	DT_CLK(NULL, "cpsw_5m_clkdiv", "cpsw_5m_clkdiv"),
++	DT_CLK(NULL, "dpll_ddr_x2_ck", "dpll_ddr_x2_ck"),
++	DT_CLK(NULL, "dpll_ddr_m4_ck", "dpll_ddr_m4_ck"),
++	DT_CLK(NULL, "dpll_per_clkdcoldo", "dpll_per_clkdcoldo"),
++	DT_CLK(NULL, "dll_aging_clk_div", "dll_aging_clk_div"),
++	DT_CLK(NULL, "div_core_25m_ck", "div_core_25m_ck"),
++	DT_CLK(NULL, "func_12m_clk", "func_12m_clk"),
++	DT_CLK(NULL, "vtp_clk_div", "vtp_clk_div"),
++	DT_CLK(NULL, "usbphy_32khz_clkmux", "usbphy_32khz_clkmux"),
++	{ .node_name = NULL },
 +};
 +
-+static void __init omap_clk_register_apll(struct clk_hw *hw,
-+					  struct device_node *node)
++int __init am43xx_dt_clk_init(void)
 +{
-+	struct clk_hw_omap *clk_hw = to_clk_hw_omap(hw);
-+	struct dpll_data *ad = clk_hw->dpll_data;
-+	struct clk *clk;
++	ti_dt_clocks_register(am43xx_clks);
 +
-+	ad->clk_ref = of_clk_get(node, 0);
-+	ad->clk_bypass = of_clk_get(node, 1);
++	omap2_clk_disable_autoidle_all();
 +
-+	if (IS_ERR(ad->clk_ref) || IS_ERR(ad->clk_bypass)) {
-+		pr_debug("clk-ref or clk-bypass for %s not ready, retry\n",
-+			 node->name);
-+		if (!ti_clk_retry_init(node, hw, omap_clk_register_apll))
-+			return;
-+
-+		goto cleanup;
-+	}
-+
-+	clk = clk_register(NULL, &clk_hw->hw);
-+	if (!IS_ERR(clk)) {
-+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-+		kfree(clk_hw->hw.init->parent_names);
-+		kfree(clk_hw->hw.init);
-+		return;
-+	}
-+
-+cleanup:
-+	kfree(clk_hw->dpll_data);
-+	kfree(clk_hw->hw.init->parent_names);
-+	kfree(clk_hw->hw.init);
-+	kfree(clk_hw);
++	return 0;
 +}
-+
-+static void __init of_dra7_apll_setup(struct device_node *node)
-+{
-+	struct dpll_data *ad = NULL;
-+	struct clk_hw_omap *clk_hw = NULL;
-+	struct clk_init_data *init = NULL;
-+	const char **parent_names = NULL;
-+	int i;
-+
-+	ad = kzalloc(sizeof(*ad), GFP_KERNEL);
-+	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
-+	init = kzalloc(sizeof(*init), GFP_KERNEL);
-+	if (!ad || !clk_hw || !init)
-+		goto cleanup;
-+
-+	clk_hw->dpll_data = ad;
-+	clk_hw->hw.init = init;
-+	clk_hw->flags = MEMMAP_ADDRESSING;
-+
-+	init->name = node->name;
-+	init->ops = &apll_ck_ops;
-+
-+	init->num_parents = of_clk_get_parent_count(node);
-+	if (init->num_parents < 1) {
-+		pr_err("dra7 apll %s must have parent(s)\n", node->name);
-+		goto cleanup;
-+	}
-+
-+	parent_names = kzalloc(sizeof(char *) * init->num_parents, GFP_KERNEL);
-+	if (!parent_names)
-+		goto cleanup;
-+
-+	for (i = 0; i < init->num_parents; i++)
-+		parent_names[i] = of_clk_get_parent_name(node, i);
-+
-+	init->parent_names = parent_names;
-+
-+	ad->control_reg = ti_clk_get_reg_addr(node, 0);
-+	ad->idlest_reg = ti_clk_get_reg_addr(node, 1);
-+
-+	if (!ad->control_reg || !ad->idlest_reg)
-+		goto cleanup;
-+
-+	ad->idlest_mask = 0x1;
-+	ad->enable_mask = 0x3;
-+
-+	omap_clk_register_apll(&clk_hw->hw, node);
-+	return;
-+
-+cleanup:
-+	kfree(parent_names);
-+	kfree(ad);
-+	kfree(clk_hw);
-+	kfree(init);
-+}
-+CLK_OF_DECLARE(dra7_apll_clock, "ti,dra7-apll-clock", of_dra7_apll_setup);
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 3d2ba57..092b641 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -273,6 +273,7 @@ int omap4xxx_dt_clk_init(void);
+ int omap5xxx_dt_clk_init(void);
+ int dra7xx_dt_clk_init(void);
+ int am33xx_dt_clk_init(void);
++int am43xx_dt_clk_init(void);
+ 
+ #ifdef CONFIG_OF
+ void of_ti_clk_allow_autoidle_all(void);
 -- 
 1.7.9.5
 
