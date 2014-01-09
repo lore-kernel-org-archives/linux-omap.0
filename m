@@ -1,53 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] omap2: Assorted GPMC cleanups
-Date: Wed, 8 Jan 2014 15:40:48 -0800
-Message-ID: <20140108234048.GH31323@atomide.com>
-References: <1382921508-5104-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <20140108191836.GD31323@atomide.com>
- <20140108233815.GC2595@localhost>
+Subject: [GIT PULL 1/4] non-urgent omap fixes for v3.14 merge window
+Date: Wed, 8 Jan 2014 17:19:40 -0800
+Message-ID: <20140109011940.GI31323@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53165 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63127 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757425AbaAHXkx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 18:40:53 -0500
+	with ESMTP id S1750832AbaAIBTr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 20:19:47 -0500
 Content-Disposition: inline
-In-Reply-To: <20140108233815.GC2595@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Pekon Gupta <pekon@ti.com>, linux-mtd@lists.infradead.org, Jon Hunter <jgchunter@gmail.com>
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Ezequiel Garcia <ezequiel.garcia@free-electrons.com> [140108 15:39]:
-> On Wed, Jan 08, 2014 at 11:18:37AM -0800, Tony Lindgren wrote:
-> > * Ezequiel Garcia <ezequiel.garcia@free-electrons.com> [131027 17:52]:
-> > > (I'm CCing the MTD list, because GPMC is the memory controller
-> > > used for NOR, NAND and OneNAND devices).
-> > > 
-> > > Hi all,
-> > > 
-> > > Just a small patchset containing two small cleanups and a minor fix
-> > > for the GPMC memory controller. The first two are cleanups and can
-> > > be considered as preparation work for the fix.
-> > > 
-> > > The fix is patch 3/3: "Move legacy GPMC width setting". It makes
-> > > explicit use of the DT property "gpmc,device-width" and removes the
-> > > subsequent (and redundant) setting of the GPMC width, based in the
-> > > NAND bus widht.
-> > 
-> > Thanks and sorry for the delay. Applying these all into branch
-> > omap-for-v3.14/fixes-not-urgent.
-> > 
-> 
-> No problem. I'll give this a test/review next week.
-> 
-> Do we still need the board-file (legacy) workaround in this patchset?
-> I was actually waiting for you to clean-up completely that, before
-> re-sending the series, without the board-file workaround.
+The following changes since commit 413541dd66d51f791a0b169d9b9014e4f56be13c:
 
-Yes we still need it for a little bit longer.
+  Linux 3.13-rc5 (2013-12-22 13:08:32 -0800)
 
-Regards,
+are available in the git repository at:
 
-Tony
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.14/fixes-not-urgent-signed
+
+for you to fetch changes up to bbc28cdbd003be5ceeaf644be3533e898c25da2b:
+
+  ARM: OMAP2+: gpmc: Move legacy GPMC width setting (2014-01-08 09:49:47 -0800)
+
+----------------------------------------------------------------
+Some non-urgent fixes to enable am335x features, update documentation,
+and to remove unnecessary double initialization for the GPMC code.
+
+----------------------------------------------------------------
+Ezequiel Garcia (4):
+      ARM: OMAP2+: Select USB PHY for AM335x SoC
+      ARM: OMAP2+: gpmc: Move initialization outside the gpmc_t condition
+      ARM: OMAP2+: gpmc: Introduce gpmc_set_legacy()
+      ARM: OMAP2+: gpmc: Move legacy GPMC width setting
+
+Jyri Sarha (1):
+      ARM: OMAP2+: enable AM33xx SOC EVM audio
+
+Nishanth Menon (2):
+      Documentation: dt: OMAP: explicitly state SoC compatible strings
+      ARM: OMAP2+: board-generic: update SoC compatibility strings
+
+ .../devicetree/bindings/arm/omap/omap.txt          | 53 ++++++++++++++++++++++
+ arch/arm/configs/omap2plus_defconfig               |  3 ++
+ arch/arm/mach-omap2/board-generic.c                |  7 +++
+ arch/arm/mach-omap2/gpmc-nand.c                    | 50 +++++++++++---------
+ 4 files changed, 91 insertions(+), 22 deletions(-)
