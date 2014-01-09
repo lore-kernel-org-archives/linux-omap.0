@@ -1,56 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/4] GIC crossbar support for v3.14 merge window
-Date: Wed, 8 Jan 2014 17:22:16 -0800
-Message-ID: <20140109012215.GL31323@atomide.com>
-References: <20140109011940.GI31323@atomide.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 1/2] ARM: omapfb: add coherent dma memory support
+Date: Thu, 9 Jan 2014 05:06:25 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EDB11F5@DBDE04.ent.ti.com>
+References: <1388409550-10720-1-git-send-email-tomi.valkeinen@ti.com>
+ <1388409550-10720-2-git-send-email-tomi.valkeinen@ti.com>
+ <20140107235951.GH5074@atomide.com> <52CD5D13.9090806@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11145 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbaAIBWV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 20:22:21 -0500
-Content-Disposition: inline
-In-Reply-To: <20140109011940.GI31323@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:46741 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751135AbaAIFHD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jan 2014 00:07:03 -0500
+In-Reply-To: <52CD5D13.9090806@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <freemangordon@abv.bg>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-The following changes since commit 413541dd66d51f791a0b169d9b9014e4f56be13c:
+> -----Original Message-----
+> From: Valkeinen, Tomi
+> Sent: Wednesday, January 08, 2014 7:44 PM
+> To: Tony Lindgren; Ivaylo Dimitrov
+> Cc: Hiremath, Vaibhav; linux-omap@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; linux-fbdev@vger.kernel.org
+> Subject: Re: [PATCH 1/2] ARM: omapfb: add coherent dma memory support
+> 
+> On 2014-01-08 01:59, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [131230 05:21]:
+> >> The omapfb driver uses dma_alloc to reserve memory for the framebuffers.
+> >> However, on some use cases, even when CMA is in use, it's quite
+> >> probable that omapfb fails to allocate the fb, either due to not
+> >> enough free dma memory, fragmented dma memory, or CMA failing to make
+> >> enough contiguous space.
+> >>
+> >> This patch adds a kernel cmdline parameter 'omapfb_vram' which can be
+> >> used to give the size of a memory area reserved exclusively for
+> >> omapfb, and optionally a physical address where the memory area is
+> reserved.
+> >>
+> >> The memory area is reserved with memblock, and assigned to omapfb
+> >> with dma_declare_coherent_memory. The dma_alloc function will first
+> >> try to allocate the fb from the coherent memory area, and if that
+> >> fails, it'll use the normal method of allocation.
+> >>
+> >> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> >> Cc: Ivaylo Dimitrov <freemangordon@abv.bg>
+> >
+> > Feel free to queue this along with the DSS patches:
+> >
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+> 
+> Thanks.
+> 
+> This introduces new kernel boot parameter, and I haven't really had time to test
+> and think about this. If Ivaylo doesn't insist on this to be merged for 3.14, I'd
+> rather leave this for 3.15 as adding new parameter that we need to support
+> "forever" should be thought a bit more.
+> 
+Tomi,
 
-  Linux 3.13-rc5 (2013-12-22 13:08:32 -0800)
+I am seeing underflow issue on AM43x device if I use omapfb_vram argument.
+Did you see this on OMAP?
 
-are available in the git repository at:
+I am using "omapfb_vram=10M@0xA0000000", and I believe it is correct way of usage.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.14/crossbar-signed
+Thanks,
+Vaibhav
 
-for you to fetch changes up to 70d4545544853e2d95909b919d4565ff32c3e3c5:
 
-  ARM: DRA: Enable Crossbar IP support for DRA7XX (2014-01-08 09:21:42 -0800)
+>  Tomi
+> 
 
-----------------------------------------------------------------
-Add support for GIC crossbar that routes interrupts on newer omaps.
-
-----------------------------------------------------------------
-Sricharan R (4):
-      irqchip: irq-gic: Add support for routable irqs
-      irqchip: crossbar: Add support for Crossbar IP
-      ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
-      ARM: DRA: Enable Crossbar IP support for DRA7XX
-
- Documentation/devicetree/bindings/arm/gic.txt      |   6 +
- .../devicetree/bindings/arm/omap/crossbar.txt      |  27 +++
- arch/arm/mach-omap2/Kconfig                        |   1 +
- arch/arm/mach-omap2/omap-wakeupgen.c               |   4 +-
- arch/arm/mach-omap2/omap4-common.c                 |   4 +
- drivers/irqchip/Kconfig                            |   8 +
- drivers/irqchip/Makefile                           |   1 +
- drivers/irqchip/irq-crossbar.c                     | 208 +++++++++++++++++++++
- drivers/irqchip/irq-gic.c                          |  82 +++++++-
- include/linux/irqchip/arm-gic.h                    |   7 +-
- include/linux/irqchip/irq-crossbar.h               |  11 ++
- 11 files changed, 346 insertions(+), 13 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
- create mode 100644 drivers/irqchip/irq-crossbar.c
- create mode 100644 include/linux/irqchip/irq-crossbar.h
