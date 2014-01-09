@@ -1,116 +1,91 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
-Date: Thu, 9 Jan 2014 12:43:36 -0600
-Message-ID: <20140109184335.GN2417@saruman.home>
-References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
- <20140109172217.GH2417@saruman.home>
- <20140109184059.GM2417@saruman.home>
-Reply-To: balbi@ti.com
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH v2 1/2] ARM: dts: Add omap specific pinctrl defines to
+ use padconf addresses
+Date: Thu, 09 Jan 2014 20:51:34 +0100
+Message-ID: <52CEFDC6.4010408@epfl.ch>
+References: <1387554677-21100-1-git-send-email-laurent.pinchart@ideasonboard.com> <1387554677-21100-2-git-send-email-laurent.pinchart@ideasonboard.com> <20140107223021.GA5074@atomide.com> <1562680.iFW31kAxBU@avalon> <20140107232018.GE5074@atomide.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0750115615047707189=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140109184059.GM2417@saruman.home>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: nm@ti.com, devicetree@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, Tero Kristo <t-kristo@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
-
---===============0750115615047707189==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WYfJCIN5rqlfy3K0"
-Content-Disposition: inline
-
---WYfJCIN5rqlfy3K0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, Jan 09, 2014 at 12:40:59PM -0600, Felipe Balbi wrote:
-> Hi,
->=20
-> On Thu, Jan 09, 2014 at 11:22:17AM -0600, Felipe Balbi wrote:
-> > > Changes compared to previous version:
-> > > - Dropped any changes to generic clock drivers, as it seems impossible
-> > >   to agree anything in short term, this means the patch set shrank in
-> > >   size from 49 patches to 40 (first 9 patches were dropped).
-> > > - Copy pasted implementation for clk-divider and clk-mux from drivers=
-/clk
-> > >   to drivers/clk/ti, and made the modifications needed to the TI vers=
-ion
-> > >   of the clock drivers only (based on discussions with Mike, this is =
-fine)
-> > > - Changed name of clk_ll_ops to ti_clk_ll_ops so that this doesn't co=
-nflict
-> > >   with any generic implementation we might have at some point, migrat=
-ing
-> > >   this to the generic version should be easy enough also.
-> > > - Fixed trace_clk_div_div_ck for omap4, this node was broken in previ=
-ous
-> > >   versions and resulted into an orphan clock node
-> > > - Fixed compile problem for omap5 only build reported by Felipe
-> > > - Fixed a couple of sparse warnings
-> > > - changed the mach-omap2/clock.c to use readl_relaxed / writel_relaxed
-> > >   instead of __raw_readl / __raw_writel
-> >=20
-> > just caught a build breakage. .config attached
->=20
-> forgot to give you build errors found, they're here:
-> http://hastebin.com/jibuyuyoto.vbs
->=20
-> Also, just caught another build breakage:
->=20
-> http://hastebin.com/reravalupe.vbs
->=20
-> .config attached
-
-hmm, quite a few configs are failing, seems like have DRA7xx without
-OMAP4 or OMAP5 breaks builds.
-
---=20
-balbi
-
---WYfJCIN5rqlfy3K0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSzu3XAAoJEIaOsuA1yqREvF8P/22zdB/Bmpwbz9AWsg37yoDy
-OBhxLJUOKEZku/eek4qdTzEhDrFwSOLBd1ubkNk7S0FgpMf9xx605zSRIlL0/rBv
-5lL4fXrcAkBNvjawzAaG6S85C+LKrV4xy2mbDwR71fjoMK4chuknjCsvfCQ8P7C0
-7ML9REK9AC77/vxoD2YtJKDJLLM/UCBlCiDqI0z5DGFlAc2mWIOUOp8VbtJ7pEWD
-5OXFe9th9T4+EPI/VMZGvQ3xT5rMH1x7T4f58S3YWKp4TuBVZGJWrxqmmCeqsqnu
-Ls/q67z28l9hqBSDxEUI8O8eXBeCjgq4oqSYO5QWohBua3BP6yUzkEPSuJIyLnIO
-SxXaLUYYT5gcU9kbrgYJrx7oTwY0DpnINO5MpD97Qho80iZHkkFmcFLv23a1ft/5
-qTEwU7EgXwqwsFI+tzZFN8KFOmuI8Kci6kcRxZYS9lzqb+3pCzRpZ8Yufz5aovOa
-sgiPz4gGdYLCTPpPQjnxNQop1qrriDOns8i2KiRkCdhp3jBvjLwql9fslRWf2GPL
-ZehTwx4RbrTNXnrkKcXYPgLZT6jWrfVtnUcFwMkqE3MQuJz69qWYFAC3FT5T853r
-VP0hgq7mQNPLNGOlMMQWhEdCC+1JR4Q7laD+2yvPvImjMpUqknwMSf71azF+GahT
-aMD1yshFgdx886cpNr3l
-=byWs
------END PGP SIGNATURE-----
-
---WYfJCIN5rqlfy3K0--
-
-
---===============0750115615047707189==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp0.epfl.ch ([128.178.224.218]:48396 "EHLO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751751AbaAITwZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Jan 2014 14:52:25 -0500
+In-Reply-To: <20140107232018.GE5074@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Sebastian Reichel <sre@debian.org>, Sakari Ailus <sakari.ailus@iki.fi>
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Hi Tony,
 
---===============0750115615047707189==--
+On 01/08/2014 12:20 AM, Tony Lindgren wrote:
+> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140107 15:10]:
+>> Hi Tony,
+>>
+>> On Tuesday 07 January 2014 14:30:21 Tony Lindgren wrote:
+>>> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [131220 07:52]:
+>>>> From: Tony Lindgren <tony@atomide.com>
+>>>> +/*
+>>>> + * Macros to allow using the absolute physical address instead of the
+>>>> + * padconf registers instead of the offset from padconf base.
+>>>> + */
+>>>> +#define OMAP_IOPAD_OFFSET(pa, offset)	(((pa) & 0xffff) - (offset))
+>>>> +
+>>>> +#define OMAP2420_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x0030)
+>>>> (val)
+>>>> +#define OMAP2430_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2030)
+>>>> (val)
+>>>> +#define OMAP3_CORE1_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2030) (val)
+>>>> +#define OMAP3_CORE2_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x25a0) (val)
+>>>
+>>> Sorry for the delay on these, I'm only now getting back to looking
+>>> at all the emails since the holidays :)
+>>>
+>>> After looking at Nishant's omap3 pinctrl core2 patch, looks like we need
+>>> to have separate OMAP3430_CORE2_IOPAD and OMAP3630_CORE2_IOPAD defines.
+>>
+>> That was my first impression as well, but I think we actually don't need to. 
+>> The OMAP3430 just has no useful registers in the 0x25a0 - 0x25d7 area, so we 
+>> can make the CORE2 macro span that for both 3430 and 3630.
+> 
+> Hmm well I already did it :) In general my gut feeling is along the lines
+> what you're saying, I think the padconf registers are all there on all
+> omap3 SoCs, but only some of the padconf registers are used depending on
+> the SoC revision and package.
+> 
+> Anyways, it should not hurt to have the padconf registers defined the
+> same way as the documentation has them, at least we may get some extra
+> warnings if people try to configure unused registers for 3430.
+>  
+
+I can see one downside to this approach; if you update the revision of
+your processor from omap34xx to omap36xx, and if you are using pins from
+the overlapping range [0x25d8; 0x25fc], you will have to update all the
+macros, instead of simply updating the #include statement.
+
+Let me introduce a real-life example. I am using Overo products. The
+processor board must be stacked onto an expansion board. I currently
+have only one include file for the processor board (omap3-overo.dtsi).
+But in reality, Gumstix is currently selling 14 models, with
+pin-compatible processors (omap35x3, dm3730, am3703) [1].
+
+So I #include omap34xx.dtsi (to be compatible with the omap35x3 models).
+The range [0x25d8; 0x25fc] defines a number of used features (hsusb2,
+gpios). To update to newer versions, I have to change the #include, but
+also all the OMAP3430_CORE2_IOPAD() macros spread across the expansion
+boards (omap3-tobi + future expansion boards, see my series from today).
+Even if the newer models do not use the omap36xx-specific features.
+
+Obviously, I currently do not have a straightforward way to support all
+the models/revisions with one single file. But if a solution is found in
+the future, it will be far easier if the expansions boards do not depend
+on the exact processor with such macros.
+
+Regards,
+
+Florian
+
+[1] https://store.gumstix.com/index.php/category/33/
