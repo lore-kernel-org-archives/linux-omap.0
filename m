@@ -1,46 +1,92 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v5 5/9] ARM: dts: omap4: Update omap-usb-host node
-Date: Thu, 9 Jan 2014 17:38:19 +0530
-Message-ID: <1389269303-30465-6-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v5 3/9] mfd: omap-usb-host: Update DT clock binding information
+Date: Thu, 9 Jan 2014 17:38:17 +0530
+Message-ID: <1389269303-30465-4-git-send-email-rogerq@ti.com>
 References: <1389269303-30465-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389269303-30465-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, m.paolino-lrHrjnjw1UfHK3s98zE1ajGjJy/sRE9J@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1389269303-30465-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: balbi@ti.com, arnd@arndb.de, sre@debian.org, mark.rutland@arm.com, m.paolino@virtualopensystems.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-The omap-usb-host driver expects a certain name for internal
-and external reference clocks. Provide these clocks.
+The omap-usb-host driver expects certained named clocks.
+Add this information to the DT binding document.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Use clock names as per function for reference clocks.
+
+CC: Lee Jones <lee.jones@linaro.org>
+CC: Samuel Ortiz <sameo@linux.intel.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+ .../devicetree/bindings/mfd/omap-usb-host.txt      | 23 ++++++++++++++++++++++
+ drivers/mfd/omap-usb-host.c                        |  6 +++---
+ 2 files changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index d3f8a6e..39a05ce 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -697,6 +697,12 @@
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges;
-+			clocks = <&init_60m_fclk>,
-+				 <&xclk60mhsp1_ck>,
-+				 <&xclk60mhsp2_ck>;
-+			clock-names = "refclk_60m_int",
-+				      "refclk_60m_ext_p1",
-+				      "refclk_60m_ext_p2";
+diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+index b381fa6..4721b2d 100644
+--- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
++++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+@@ -32,6 +32,29 @@ Optional properties:
+ - single-ulpi-bypass: Must be present if the controller contains a single
+   ULPI bypass control bit. e.g. OMAP3 silicon <= ES2.1
  
- 			usbhsohci: ohci@4a064800 {
- 				compatible = "ti,ohci-omap3", "usb-ohci";
++- clocks: a list of phandles and clock-specifier pairs, one for each entry in
++  clock-names.
++
++- clock-names: should include:
++  For OMAP3
++  * "usbhost_120m_fck" - 120MHz Functional clock.
++
++  For OMAP4+
++  * "refclk_60m_int" - 60MHz internal reference clock for UTMI clock mux
++  * "refclk_60m_ext_p1" - 60MHz external ref. clock for Port 1's UTMI clock mux.
++  * "refclk_60m_ext_p2" - 60MHz external ref. clock for Port 2's UTMI clock mux
++  * "utmi_p1_gfclk" - Port 1 UTMI clock mux.
++  * "utmi_p2_gfclk" - Port 2 UTMI clock mux.
++  * "usb_host_hs_utmi_p1_clk" - Port 1 UTMI clock gate.
++  * "usb_host_hs_utmi_p2_clk" - Port 2 UTMI clock gate.
++  * "usb_host_hs_utmi_p3_clk" - Port 3 UTMI clock gate.
++  * "usb_host_hs_hsic480m_p1_clk" - Port 1 480MHz HSIC clock gate.
++  * "usb_host_hs_hsic480m_p2_clk" - Port 2 480MHz HSIC clock gate.
++  * "usb_host_hs_hsic480m_p3_clk" - Port 3 480MHz HSIC clock gate.
++  * "usb_host_hs_hsic60m_p1_clk" - Port 1 60MHz HSIC clock gate.
++  * "usb_host_hs_hsic60m_p2_clk" - Port 2 60MHz HSIC clock gate.
++  * "usb_host_hs_hsic60m_p3_clk" - Port 3 60MHz HSIC clock gate.
++
+ Required properties if child node exists:
+ 
+ - #address-cells: Must be 1
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 7202cc6..eeea6e6 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -713,21 +713,21 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+ 		goto err_mem;
+ 	}
+ 
+-	omap->xclk60mhsp1_ck = devm_clk_get(dev, "xclk60mhsp1_ck");
++	omap->xclk60mhsp1_ck = devm_clk_get(dev, "refclk_60m_ext_p1");
+ 	if (IS_ERR(omap->xclk60mhsp1_ck)) {
+ 		ret = PTR_ERR(omap->xclk60mhsp1_ck);
+ 		dev_err(dev, "xclk60mhsp1_ck failed error:%d\n", ret);
+ 		goto err_mem;
+ 	}
+ 
+-	omap->xclk60mhsp2_ck = devm_clk_get(dev, "xclk60mhsp2_ck");
++	omap->xclk60mhsp2_ck = devm_clk_get(dev, "refclk_60m_ext_p2");
+ 	if (IS_ERR(omap->xclk60mhsp2_ck)) {
+ 		ret = PTR_ERR(omap->xclk60mhsp2_ck);
+ 		dev_err(dev, "xclk60mhsp2_ck failed error:%d\n", ret);
+ 		goto err_mem;
+ 	}
+ 
+-	omap->init_60m_fclk = devm_clk_get(dev, "init_60m_fclk");
++	omap->init_60m_fclk = devm_clk_get(dev, "refclk_60m_int");
+ 	if (IS_ERR(omap->init_60m_fclk)) {
+ 		ret = PTR_ERR(omap->init_60m_fclk);
+ 		dev_err(dev, "init_60m_fclk failed error:%d\n", ret);
 -- 
 1.8.3.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
