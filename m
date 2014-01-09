@@ -1,186 +1,373 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv13 06/40] CLK: ti: add support for ti divider-clock
-Date: Thu, 9 Jan 2014 16:00:17 +0200
-Message-ID: <1389276051-1326-7-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv13 03/40] CLK: TI: Add DPLL clock support
+Date: Thu, 9 Jan 2014 16:00:14 +0200
+Message-ID: <1389276051-1326-4-git-send-email-t-kristo@ti.com>
 References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38632 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46872 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755351AbaAIOCQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Jan 2014 09:02:16 -0500
+	id S1755235AbaAIOCM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Jan 2014 09:02:12 -0500
 In-Reply-To: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-This patch adds support for TI divider clock binding, which simply uses
-the basic clock divider to provide the features needed.
+The OMAP clock driver now supports DPLL clock type. This patch also
+adds support for DT DPLL nodes.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../devicetree/bindings/clock/ti/divider.txt       |  114 +++++
- drivers/clk/ti/Makefile                            |    3 +-
- drivers/clk/ti/composite.c                         |    2 +-
- drivers/clk/ti/divider.c                           |  487 ++++++++++++++++++++
- include/linux/clk/ti.h                             |    2 +
- 5 files changed, 606 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/clock/ti/divider.txt
- create mode 100644 drivers/clk/ti/divider.c
+ .../devicetree/bindings/clock/ti/dpll.txt          |   75 +++
+ arch/arm/mach-omap2/clock.h                        |  164 +-----
+ arch/arm/mach-omap2/clock3xxx.h                    |    2 -
+ drivers/clk/ti/Makefile                            |    2 +-
+ drivers/clk/ti/dpll.c                              |  558 ++++++++++++++++++++
+ include/linux/clk/ti.h                             |  172 ++++++
+ 6 files changed, 807 insertions(+), 166 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/clock/ti/dpll.txt
+ create mode 100644 drivers/clk/ti/dpll.c
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/divider.txt b/Documentation/devicetree/bindings/clock/ti/divider.txt
+diff --git a/Documentation/devicetree/bindings/clock/ti/dpll.txt b/Documentation/devicetree/bindings/clock/ti/dpll.txt
 new file mode 100644
-index 0000000..35a6f5c
+index 0000000..30bfdb7
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti/divider.txt
-@@ -0,0 +1,114 @@
-+Binding for TI divider clock
++++ b/Documentation/devicetree/bindings/clock/ti/dpll.txt
+@@ -0,0 +1,75 @@
++Binding for Texas Instruments DPLL clock.
 +
 +Binding status: Unstable - ABI compatibility may be broken in the future
 +
 +This binding uses the common clock binding[1].  It assumes a
-+register-mapped adjustable clock rate divider that does not gate and has
-+only one input clock or parent.  By default the value programmed into
-+the register is one less than the actual divisor value.  E.g:
-+
-+register value		actual divisor value
-+0			1
-+1			2
-+2			3
-+
-+This assumption may be modified by the following optional properties:
-+
-+ti,index-starts-at-one - valid divisor values start at 1, not the default
-+of 0.  E.g:
-+register value		actual divisor value
-+1			1
-+2			2
-+3			3
-+
-+ti,index-power-of-two - valid divisor values are powers of two.  E.g:
-+register value		actual divisor value
-+0			1
-+1			2
-+2			4
-+
-+Additionally an array of valid dividers may be supplied like so:
-+
-+	ti,dividers = <4>, <8>, <0>, <16>;
-+
-+Which will map the resulting values to a divisor table by their index:
-+register value		actual divisor value
-+0			4
-+1			8
-+2			<invalid divisor, skipped>
-+3			16
-+
-+Any zero value in this array means the corresponding bit-value is invalid
-+and must not be used.
-+
-+The binding must also provide the register to control the divider and
-+unless the divider array is provided, min and max dividers. Optionally
-+the number of bits to shift that mask, if necessary. If the shift value
-+is missing it is the same as supplying a zero shift.
-+
-+This binding can also optionally provide support to the hardware autoidle
-+feature, see [2].
++register-mapped DPLL with usually two selectable input clocks
++(reference clock and bypass clock), with digital phase locked
++loop logic for multiplying the input clock to a desired output
++clock. This clock also typically supports different operation
++modes (locked, low power stop etc.) This binding has several
++sub-types, which effectively result in slightly different setup
++for the actual DPLL clock.
 +
 +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+[2] Documentation/devicetree/bindings/clock/ti/autoidle.txt
 +
 +Required properties:
-+- compatible : shall be "ti,divider-clock" or "ti,composite-divider-clock".
++- compatible : shall be one of:
++		"ti,omap3-dpll-clock",
++		"ti,omap3-dpll-core-clock",
++		"ti,omap3-dpll-per-clock",
++		"ti,omap3-dpll-per-j-type-clock",
++		"ti,omap4-dpll-clock",
++		"ti,omap4-dpll-x2-clock",
++		"ti,omap4-dpll-core-clock",
++		"ti,omap4-dpll-m4xen-clock",
++		"ti,omap4-dpll-j-type-clock",
++		"ti,am3-dpll-no-gate-clock",
++		"ti,am3-dpll-j-type-clock",
++		"ti,am3-dpll-no-gate-j-type-clock",
++		"ti,am3-dpll-clock",
++		"ti,am3-dpll-core-clock",
++		"ti,am3-dpll-x2-clock",
++
 +- #clock-cells : from common clock binding; shall be set to 0.
-+- clocks : link to phandle of parent clock
-+- reg : offset for register controlling adjustable divider
++- clocks : link phandles of parent clocks, first entry lists reference clock
++  and second entry bypass clock
++- reg : offsets for the register set for controlling the DPLL.
++  Registers are listed in following order:
++	"control" - contains the control register base address
++	"idlest" - contains the idle status register base address
++	"mult-div1" - contains the multiplier / divider register base address
++	"autoidle" - contains the autoidle register base address (optional)
++  ti,am3-* dpll types do not have autoidle register
 +
 +Optional properties:
-+- clock-output-names : from common clock binding.
-+- ti,dividers : array of integers defining divisors
-+- ti,bit-shift : number of bits to shift the divider value, defaults to 0
-+- ti,min-div : min divisor for dividing the input clock rate, only
-+  needed if the first divisor is offset from the default value (1)
-+- ti,max-div : max divisor for dividing the input clock rate, only needed
-+  if ti,dividers is not defined.
-+- ti,index-starts-at-one : valid divisor programming starts at 1, not zero,
-+  only valid if ti,dividers is not defined.
-+- ti,index-power-of-two : valid divisor programming must be a power of two,
-+  only valid if ti,dividers is not defined.
-+- ti,autoidle-shift : bit shift of the autoidle enable bit for the clock,
-+  see [2]
-+- ti,invert-autoidle-bit : autoidle is enabled by setting the bit to 0,
-+  see [2]
-+- ti,set-rate-parent : clk_set_rate is propagated to parent
++- DPLL mode setting - defining any one or more of the following overrides
++  default setting.
++	- ti,low-power-stop : DPLL supports low power stop mode, gating output
++	- ti,low-power-bypass : DPLL output matches rate of parent bypass clock
++	- ti,lock : DPLL locks in programmed rate
 +
 +Examples:
-+dpll_usb_m2_ck: dpll_usb_m2_ck@4a008190 {
-+	#clock-cells = <0>;
-+	compatible = "ti,divider-clock";
-+	clocks = <&dpll_usb_ck>;
-+	ti,max-div = <127>;
-+	reg = <0x190>;
-+	ti,index-starts-at-one;
-+};
++	dpll_core_ck: dpll_core_ck@44e00490 {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-dpll-core-clock";
++		clocks = <&sys_clkin_ck>, <&sys_clkin_ck>;
++		reg = <0x490>, <0x45c>, <0x488>, <0x468>;
++	};
 +
-+aess_fclk: aess_fclk@4a004528 {
-+	#clock-cells = <0>;
-+	compatible = "ti,divider-clock";
-+	clocks = <&abe_clk>;
-+	ti,bit-shift = <24>;
-+	reg = <0x528>;
-+	ti,max-div = <2>;
-+};
++	dpll2_ck: dpll2_ck@48004004 {
++		#clock-cells = <0>;
++		compatible = "ti,omap3-dpll-clock";
++		clocks = <&sys_ck>, <&dpll2_fck>;
++		ti,low-power-stop;
++		ti,low-power-bypass;
++		ti,lock;
++		reg = <0x4>, <0x24>, <0x34>, <0x40>;
++	};
 +
-+dpll_core_m3x2_div_ck: dpll_core_m3x2_div_ck {
-+	#clock-cells = <0>;
-+	compatible = "ti,composite-divider-clock";
-+	clocks = <&dpll_core_x2_ck>;
-+	ti,max-div = <31>;
-+	reg = <0x0134>;
-+	ti,index-starts-at-one;
-+};
-+
-+ssi_ssr_div_fck_3430es2: ssi_ssr_div_fck_3430es2 {
-+	#clock-cells = <0>;
-+	compatible = "ti,composite-divider-clock";
-+	clocks = <&corex2_fck>;
-+	ti,bit-shift = <8>;
-+	reg = <0x0a40>;
-+	ti,dividers = <0>, <1>, <2>, <3>, <4>, <0>, <6>, <0>, <8>;
-+};
++	dpll_core_ck: dpll_core_ck@44e00490 {
++		#clock-cells = <0>;
++		compatible = "ti,am3-dpll-core-clock";
++		clocks = <&sys_clkin_ck>, <&sys_clkin_ck>;
++		reg = <0x90>, <0x5c>, <0x68>;
++	};
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 82916cc..b345f3e 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -21,6 +21,7 @@
+ 
+ #include <linux/clkdev.h>
+ #include <linux/clk-provider.h>
++#include <linux/clk/ti.h>
+ 
+ struct omap_clk {
+ 	u16				cpu;
+@@ -37,7 +38,6 @@ struct omap_clk {
+ 	}
+ 
+ struct clockdomain;
+-#define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
+ 
+ #define DEFINE_STRUCT_CLK(_name, _parent_array_name, _clkops_name)	\
+ 	static struct clk _name = {				\
+@@ -178,141 +178,6 @@ struct clksel {
+ 	const struct clksel_rate *rates;
+ };
+ 
+-/**
+- * struct dpll_data - DPLL registers and integration data
+- * @mult_div1_reg: register containing the DPLL M and N bitfields
+- * @mult_mask: mask of the DPLL M bitfield in @mult_div1_reg
+- * @div1_mask: mask of the DPLL N bitfield in @mult_div1_reg
+- * @clk_bypass: struct clk pointer to the clock's bypass clock input
+- * @clk_ref: struct clk pointer to the clock's reference clock input
+- * @control_reg: register containing the DPLL mode bitfield
+- * @enable_mask: mask of the DPLL mode bitfield in @control_reg
+- * @last_rounded_rate: cache of the last rate result of omap2_dpll_round_rate()
+- * @last_rounded_m: cache of the last M result of omap2_dpll_round_rate()
+- * @last_rounded_m4xen: cache of the last M4X result of
+- *			omap4_dpll_regm4xen_round_rate()
+- * @last_rounded_lpmode: cache of the last lpmode result of
+- *			 omap4_dpll_lpmode_recalc()
+- * @max_multiplier: maximum valid non-bypass multiplier value (actual)
+- * @last_rounded_n: cache of the last N result of omap2_dpll_round_rate()
+- * @min_divider: minimum valid non-bypass divider value (actual)
+- * @max_divider: maximum valid non-bypass divider value (actual)
+- * @modes: possible values of @enable_mask
+- * @autoidle_reg: register containing the DPLL autoidle mode bitfield
+- * @idlest_reg: register containing the DPLL idle status bitfield
+- * @autoidle_mask: mask of the DPLL autoidle mode bitfield in @autoidle_reg
+- * @freqsel_mask: mask of the DPLL jitter correction bitfield in @control_reg
+- * @idlest_mask: mask of the DPLL idle status bitfield in @idlest_reg
+- * @lpmode_mask: mask of the DPLL low-power mode bitfield in @control_reg
+- * @m4xen_mask: mask of the DPLL M4X multiplier bitfield in @control_reg
+- * @auto_recal_bit: bitshift of the driftguard enable bit in @control_reg
+- * @recal_en_bit: bitshift of the PRM_IRQENABLE_* bit for recalibration IRQs
+- * @recal_st_bit: bitshift of the PRM_IRQSTATUS_* bit for recalibration IRQs
+- * @flags: DPLL type/features (see below)
+- *
+- * Possible values for @flags:
+- * DPLL_J_TYPE: "J-type DPLL" (only some 36xx, 4xxx DPLLs)
+- *
+- * @freqsel_mask is only used on the OMAP34xx family and AM35xx.
+- *
+- * XXX Some DPLLs have multiple bypass inputs, so it's not technically
+- * correct to only have one @clk_bypass pointer.
+- *
+- * XXX The runtime-variable fields (@last_rounded_rate, @last_rounded_m,
+- * @last_rounded_n) should be separated from the runtime-fixed fields
+- * and placed into a different structure, so that the runtime-fixed data
+- * can be placed into read-only space.
+- */
+-struct dpll_data {
+-	void __iomem		*mult_div1_reg;
+-	u32			mult_mask;
+-	u32			div1_mask;
+-	struct clk		*clk_bypass;
+-	struct clk		*clk_ref;
+-	void __iomem		*control_reg;
+-	u32			enable_mask;
+-	unsigned long		last_rounded_rate;
+-	u16			last_rounded_m;
+-	u8			last_rounded_m4xen;
+-	u8			last_rounded_lpmode;
+-	u16			max_multiplier;
+-	u8			last_rounded_n;
+-	u8			min_divider;
+-	u16			max_divider;
+-	u8			modes;
+-	void __iomem		*autoidle_reg;
+-	void __iomem		*idlest_reg;
+-	u32			autoidle_mask;
+-	u32			freqsel_mask;
+-	u32			idlest_mask;
+-	u32			dco_mask;
+-	u32			sddiv_mask;
+-	u32			lpmode_mask;
+-	u32			m4xen_mask;
+-	u8			auto_recal_bit;
+-	u8			recal_en_bit;
+-	u8			recal_st_bit;
+-	u8			flags;
+-};
+-
+-/*
+- * struct clk.flags possibilities
+- *
+- * XXX document the rest of the clock flags here
+- *
+- * CLOCK_CLKOUTX2: (OMAP4 only) DPLL CLKOUT and CLKOUTX2 GATE_CTRL
+- *     bits share the same register.  This flag allows the
+- *     omap4_dpllmx*() code to determine which GATE_CTRL bit field
+- *     should be used.  This is a temporary solution - a better approach
+- *     would be to associate clock type-specific data with the clock,
+- *     similar to the struct dpll_data approach.
+- */
+-#define ENABLE_REG_32BIT	(1 << 0)	/* Use 32-bit access */
+-#define CLOCK_IDLE_CONTROL	(1 << 1)
+-#define CLOCK_NO_IDLE_PARENT	(1 << 2)
+-#define ENABLE_ON_INIT		(1 << 3)	/* Enable upon framework init */
+-#define INVERT_ENABLE		(1 << 4)	/* 0 enables, 1 disables */
+-#define CLOCK_CLKOUTX2		(1 << 5)
+-
+-/**
+- * struct clk_hw_omap - OMAP struct clk
+- * @node: list_head connecting this clock into the full clock list
+- * @enable_reg: register to write to enable the clock (see @enable_bit)
+- * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
+- * @flags: see "struct clk.flags possibilities" above
+- * @clksel_reg: for clksel clks, register va containing src/divisor select
+- * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
+- * @clksel: for clksel clks, pointer to struct clksel for this clock
+- * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
+- * @clkdm_name: clockdomain name that this clock is contained in
+- * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
+- * @rate_offset: bitshift for rate selection bitfield (OMAP1 only)
+- * @src_offset: bitshift for source selection bitfield (OMAP1 only)
+- *
+- * XXX @rate_offset, @src_offset should probably be removed and OMAP1
+- * clock code converted to use clksel.
+- *
+- */
+-
+-struct clk_hw_omap_ops;
+-
+-struct clk_hw_omap {
+-	struct clk_hw		hw;
+-	struct list_head	node;
+-	unsigned long		fixed_rate;
+-	u8			fixed_div;
+-	void __iomem		*enable_reg;
+-	u8			enable_bit;
+-	u8			flags;
+-	void __iomem		*clksel_reg;
+-	u32			clksel_mask;
+-	const struct clksel	*clksel;
+-	struct dpll_data	*dpll_data;
+-	const char		*clkdm_name;
+-	struct clockdomain	*clkdm;
+-	const struct clk_hw_omap_ops	*ops;
+-};
+-
+ struct clk_hw_omap_ops {
+ 	void			(*find_idlest)(struct clk_hw_omap *oclk,
+ 					void __iomem **idlest_reg,
+@@ -348,36 +213,13 @@ unsigned long omap_fixed_divisor_recalc(struct clk_hw *hw,
+ #define OMAP4XXX_EN_DPLL_FRBYPASS		0x6
+ #define OMAP4XXX_EN_DPLL_LOCKED			0x7
+ 
+-/* CM_CLKEN_PLL*.EN* bit values - not all are available for every DPLL */
+-#define DPLL_LOW_POWER_STOP	0x1
+-#define DPLL_LOW_POWER_BYPASS	0x5
+-#define DPLL_LOCKED		0x7
+-
+-/* DPLL Type and DCO Selection Flags */
+-#define DPLL_J_TYPE		0x1
+-
+-long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
+-			unsigned long *parent_rate);
+-unsigned long omap3_dpll_recalc(struct clk_hw *hw, unsigned long parent_rate);
+-int omap3_noncore_dpll_enable(struct clk_hw *hw);
+-void omap3_noncore_dpll_disable(struct clk_hw *hw);
+-int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
+-				unsigned long parent_rate);
+ u32 omap3_dpll_autoidle_read(struct clk_hw_omap *clk);
+ void omap3_dpll_allow_idle(struct clk_hw_omap *clk);
+ void omap3_dpll_deny_idle(struct clk_hw_omap *clk);
+-unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
+-				    unsigned long parent_rate);
+ int omap4_dpllmx_gatectrl_read(struct clk_hw_omap *clk);
+ void omap4_dpllmx_allow_gatectrl(struct clk_hw_omap *clk);
+ void omap4_dpllmx_deny_gatectrl(struct clk_hw_omap *clk);
+-unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
+-				unsigned long parent_rate);
+-long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
+-				    unsigned long target_rate,
+-				    unsigned long *parent_rate);
+ 
+-void omap2_init_clk_clkdm(struct clk_hw *clk);
+ void __init omap2_clk_disable_clkdm_control(void);
+ 
+ /* clkt_clksel.c public functions */
+@@ -396,7 +238,6 @@ int omap2_clksel_set_parent(struct clk_hw *hw, u8 field_val);
+ extern void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
+ extern void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
+ 
+-u8 omap2_init_dpll_parent(struct clk_hw *hw);
+ unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk);
+ 
+ int omap2_dflt_clk_enable(struct clk_hw *hw);
+@@ -408,7 +249,6 @@ void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
+ void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
+ 				void __iomem **idlest_reg,
+ 				u8 *idlest_bit, u8 *idlest_val);
+-void omap2_init_clk_hw_omap_clocks(struct clk *clk);
+ int omap2_clk_enable_autoidle_all(void);
+ int omap2_clk_disable_autoidle_all(void);
+ int omap2_clk_allow_idle(struct clk *clk);
+@@ -433,10 +273,8 @@ extern const struct clksel_rate gfx_l3_rates[];
+ extern const struct clksel_rate dsp_ick_rates[];
+ extern struct clk dummy_ck;
+ 
+-extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
+ extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
+ extern const struct clk_hw_omap_ops clkhwops_wait;
+-extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
+ extern const struct clk_hw_omap_ops clkhwops_iclk;
+ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait;
+ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
+diff --git a/arch/arm/mach-omap2/clock3xxx.h b/arch/arm/mach-omap2/clock3xxx.h
+index 8cd4b0a..dab90e2 100644
+--- a/arch/arm/mach-omap2/clock3xxx.h
++++ b/arch/arm/mach-omap2/clock3xxx.h
+@@ -9,8 +9,6 @@
+ #define __ARCH_ARM_MACH_OMAP2_CLOCK3XXX_H
+ 
+ int omap3xxx_clk_init(void);
+-int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
+-					unsigned long parent_rate);
+ int omap3_core_dpll_m2_set_rate(struct clk_hw *clk, unsigned long rate,
+ 					unsigned long parent_rate);
+ void omap3_clk_lock_dpll5(void);
 diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index a4a7595..640ebf9 100644
+index 1825f7f..05af5d8 100644
 --- a/drivers/clk/ti/Makefile
 +++ b/drivers/clk/ti/Makefile
-@@ -1,3 +1,4 @@
+@@ -1,3 +1,3 @@
  ifneq ($(CONFIG_OF),)
--obj-y					+= clk.o dpll.o autoidle.o composite.o
-+obj-y					+= clk.o dpll.o autoidle.o divider.o \
-+					   composite.o
+-obj-y					+= clk.o
++obj-y					+= clk.o dpll.o
  endif
-diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
-index 6539b65..ffb8db4 100644
---- a/drivers/clk/ti/composite.c
-+++ b/drivers/clk/ti/composite.c
-@@ -31,7 +31,7 @@
- static unsigned long ti_composite_recalc_rate(struct clk_hw *hw,
- 					      unsigned long parent_rate)
- {
--	return clk_divider_ops.recalc_rate(hw, parent_rate);
-+	return ti_clk_divider_ops.recalc_rate(hw, parent_rate);
- }
- 
- static long ti_composite_round_rate(struct clk_hw *hw, unsigned long rate,
-diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
+diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
 new file mode 100644
-index 0000000..a15e445
+index 0000000..7e498a4
 --- /dev/null
-+++ b/drivers/clk/ti/divider.c
-@@ -0,0 +1,487 @@
++++ b/drivers/clk/ti/dpll.c
+@@ -0,0 +1,558 @@
 +/*
-+ * TI Divider Clock
++ * OMAP DPLL clock support
 + *
 + * Copyright (C) 2013 Texas Instruments, Inc.
 + *
@@ -206,479 +393,731 @@ index 0000000..a15e445
 +#undef pr_fmt
 +#define pr_fmt(fmt) "%s: " fmt, __func__
 +
-+#define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
++#define DPLL_HAS_AUTOIDLE	0x1
 +
-+#define div_mask(d)	((1 << ((d)->width)) - 1)
++#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
++	defined(CONFIG_SOC_DRA7XX)
++static const struct clk_ops dpll_m4xen_ck_ops = {
++	.enable		= &omap3_noncore_dpll_enable,
++	.disable	= &omap3_noncore_dpll_disable,
++	.recalc_rate	= &omap4_dpll_regm4xen_recalc,
++	.round_rate	= &omap4_dpll_regm4xen_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
++	.get_parent	= &omap2_init_dpll_parent,
++};
++#endif
 +
-+static unsigned int _get_table_maxdiv(const struct clk_div_table *table)
-+{
-+	unsigned int maxdiv = 0;
-+	const struct clk_div_table *clkt;
-+
-+	for (clkt = table; clkt->div; clkt++)
-+		if (clkt->div > maxdiv)
-+			maxdiv = clkt->div;
-+	return maxdiv;
-+}
-+
-+static unsigned int _get_maxdiv(struct clk_divider *divider)
-+{
-+	if (divider->flags & CLK_DIVIDER_ONE_BASED)
-+		return div_mask(divider);
-+	if (divider->flags & CLK_DIVIDER_POWER_OF_TWO)
-+		return 1 << div_mask(divider);
-+	if (divider->table)
-+		return _get_table_maxdiv(divider->table);
-+	return div_mask(divider) + 1;
-+}
-+
-+static unsigned int _get_table_div(const struct clk_div_table *table,
-+				   unsigned int val)
-+{
-+	const struct clk_div_table *clkt;
-+
-+	for (clkt = table; clkt->div; clkt++)
-+		if (clkt->val == val)
-+			return clkt->div;
-+	return 0;
-+}
-+
-+static unsigned int _get_div(struct clk_divider *divider, unsigned int val)
-+{
-+	if (divider->flags & CLK_DIVIDER_ONE_BASED)
-+		return val;
-+	if (divider->flags & CLK_DIVIDER_POWER_OF_TWO)
-+		return 1 << val;
-+	if (divider->table)
-+		return _get_table_div(divider->table, val);
-+	return val + 1;
-+}
-+
-+static unsigned int _get_table_val(const struct clk_div_table *table,
-+				   unsigned int div)
-+{
-+	const struct clk_div_table *clkt;
-+
-+	for (clkt = table; clkt->div; clkt++)
-+		if (clkt->div == div)
-+			return clkt->val;
-+	return 0;
-+}
-+
-+static unsigned int _get_val(struct clk_divider *divider, u8 div)
-+{
-+	if (divider->flags & CLK_DIVIDER_ONE_BASED)
-+		return div;
-+	if (divider->flags & CLK_DIVIDER_POWER_OF_TWO)
-+		return __ffs(div);
-+	if (divider->table)
-+		return  _get_table_val(divider->table, div);
-+	return div - 1;
-+}
-+
-+static unsigned long ti_clk_divider_recalc_rate(struct clk_hw *hw,
-+						unsigned long parent_rate)
-+{
-+	struct clk_divider *divider = to_clk_divider(hw);
-+	unsigned int div, val;
-+
-+	val = ti_clk_ll_ops->clk_readl(divider->reg) >> divider->shift;
-+	val &= div_mask(divider);
-+
-+	div = _get_div(divider, val);
-+	if (!div) {
-+		WARN(!(divider->flags & CLK_DIVIDER_ALLOW_ZERO),
-+		     "%s: Zero divisor and CLK_DIVIDER_ALLOW_ZERO not set\n",
-+		     __clk_get_name(hw->clk));
-+		return parent_rate;
-+	}
-+
-+	return parent_rate / div;
-+}
-+
-+/*
-+ * The reverse of DIV_ROUND_UP: The maximum number which
-+ * divided by m is r
-+ */
-+#define MULT_ROUND_UP(r, m) ((r) * (m) + (m) - 1)
-+
-+static bool _is_valid_table_div(const struct clk_div_table *table,
-+				unsigned int div)
-+{
-+	const struct clk_div_table *clkt;
-+
-+	for (clkt = table; clkt->div; clkt++)
-+		if (clkt->div == div)
-+			return true;
-+	return false;
-+}
-+
-+static bool _is_valid_div(struct clk_divider *divider, unsigned int div)
-+{
-+	if (divider->flags & CLK_DIVIDER_POWER_OF_TWO)
-+		return is_power_of_2(div);
-+	if (divider->table)
-+		return _is_valid_table_div(divider->table, div);
-+	return true;
-+}
-+
-+static int ti_clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
-+				  unsigned long *best_parent_rate)
-+{
-+	struct clk_divider *divider = to_clk_divider(hw);
-+	int i, bestdiv = 0;
-+	unsigned long parent_rate, best = 0, now, maxdiv;
-+	unsigned long parent_rate_saved = *best_parent_rate;
-+
-+	if (!rate)
-+		rate = 1;
-+
-+	maxdiv = _get_maxdiv(divider);
-+
-+	if (!(__clk_get_flags(hw->clk) & CLK_SET_RATE_PARENT)) {
-+		parent_rate = *best_parent_rate;
-+		bestdiv = DIV_ROUND_UP(parent_rate, rate);
-+		bestdiv = bestdiv == 0 ? 1 : bestdiv;
-+		bestdiv = bestdiv > maxdiv ? maxdiv : bestdiv;
-+		return bestdiv;
-+	}
-+
-+	/*
-+	 * The maximum divider we can use without overflowing
-+	 * unsigned long in rate * i below
-+	 */
-+	maxdiv = min(ULONG_MAX / rate, maxdiv);
-+
-+	for (i = 1; i <= maxdiv; i++) {
-+		if (!_is_valid_div(divider, i))
-+			continue;
-+		if (rate * i == parent_rate_saved) {
-+			/*
-+			 * It's the most ideal case if the requested rate can be
-+			 * divided from parent clock without needing to change
-+			 * parent rate, so return the divider immediately.
-+			 */
-+			*best_parent_rate = parent_rate_saved;
-+			return i;
-+		}
-+		parent_rate = __clk_round_rate(__clk_get_parent(hw->clk),
-+				MULT_ROUND_UP(rate, i));
-+		now = parent_rate / i;
-+		if (now <= rate && now > best) {
-+			bestdiv = i;
-+			best = now;
-+			*best_parent_rate = parent_rate;
-+		}
-+	}
-+
-+	if (!bestdiv) {
-+		bestdiv = _get_maxdiv(divider);
-+		*best_parent_rate =
-+			__clk_round_rate(__clk_get_parent(hw->clk), 1);
-+	}
-+
-+	return bestdiv;
-+}
-+
-+static long ti_clk_divider_round_rate(struct clk_hw *hw, unsigned long rate,
-+				      unsigned long *prate)
-+{
-+	int div;
-+	div = ti_clk_divider_bestdiv(hw, rate, prate);
-+
-+	return *prate / div;
-+}
-+
-+static int ti_clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
-+				   unsigned long parent_rate)
-+{
-+	struct clk_divider *divider = to_clk_divider(hw);
-+	unsigned int div, value;
-+	unsigned long flags = 0;
-+	u32 val;
-+
-+	div = parent_rate / rate;
-+	value = _get_val(divider, div);
-+
-+	if (value > div_mask(divider))
-+		value = div_mask(divider);
-+
-+	if (divider->lock)
-+		spin_lock_irqsave(divider->lock, flags);
-+
-+	if (divider->flags & CLK_DIVIDER_HIWORD_MASK) {
-+		val = div_mask(divider) << (divider->shift + 16);
-+	} else {
-+		val = ti_clk_ll_ops->clk_readl(divider->reg);
-+		val &= ~(div_mask(divider) << divider->shift);
-+	}
-+	val |= value << divider->shift;
-+	ti_clk_ll_ops->clk_writel(val, divider->reg);
-+
-+	if (divider->lock)
-+		spin_unlock_irqrestore(divider->lock, flags);
-+
-+	return 0;
-+}
-+
-+const struct clk_ops ti_clk_divider_ops = {
-+	.recalc_rate = ti_clk_divider_recalc_rate,
-+	.round_rate = ti_clk_divider_round_rate,
-+	.set_rate = ti_clk_divider_set_rate,
++static const struct clk_ops dpll_core_ck_ops = {
++	.recalc_rate	= &omap3_dpll_recalc,
++	.get_parent	= &omap2_init_dpll_parent,
 +};
 +
-+static struct clk *_register_divider(struct device *dev, const char *name,
-+				     const char *parent_name,
-+				     unsigned long flags, void __iomem *reg,
-+				     u8 shift, u8 width, u8 clk_divider_flags,
-+				     const struct clk_div_table *table,
-+				     spinlock_t *lock)
-+{
-+	struct clk_divider *div;
-+	struct clk *clk;
-+	struct clk_init_data init;
++#ifdef CONFIG_ARCH_OMAP3
++static const struct clk_ops omap3_dpll_core_ck_ops = {
++	.get_parent	= &omap2_init_dpll_parent,
++	.recalc_rate	= &omap3_dpll_recalc,
++	.round_rate	= &omap2_dpll_round_rate,
++};
++#endif
 +
-+	if (clk_divider_flags & CLK_DIVIDER_HIWORD_MASK) {
-+		if (width + shift > 16) {
-+			pr_warn("divider value exceeds LOWORD field\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+	}
++static const struct clk_ops dpll_ck_ops = {
++	.enable		= &omap3_noncore_dpll_enable,
++	.disable	= &omap3_noncore_dpll_disable,
++	.recalc_rate	= &omap3_dpll_recalc,
++	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
++	.get_parent	= &omap2_init_dpll_parent,
++};
 +
-+	/* allocate the divider */
-+	div = kzalloc(sizeof(*div), GFP_KERNEL);
-+	if (!div) {
-+		pr_err("%s: could not allocate divider clk\n", __func__);
-+		return ERR_PTR(-ENOMEM);
-+	}
++static const struct clk_ops dpll_no_gate_ck_ops = {
++	.recalc_rate	= &omap3_dpll_recalc,
++	.get_parent	= &omap2_init_dpll_parent,
++	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
++};
 +
-+	init.name = name;
-+	init.ops = &ti_clk_divider_ops;
-+	init.flags = flags | CLK_IS_BASIC;
-+	init.parent_names = (parent_name ? &parent_name : NULL);
-+	init.num_parents = (parent_name ? 1 : 0);
++#ifdef CONFIG_ARCH_OMAP3
++static const struct clk_ops omap3_dpll_ck_ops = {
++	.enable		= &omap3_noncore_dpll_enable,
++	.disable	= &omap3_noncore_dpll_disable,
++	.get_parent	= &omap2_init_dpll_parent,
++	.recalc_rate	= &omap3_dpll_recalc,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
++	.round_rate	= &omap2_dpll_round_rate,
++};
 +
-+	/* struct clk_divider assignments */
-+	div->reg = reg;
-+	div->shift = shift;
-+	div->width = width;
-+	div->flags = clk_divider_flags;
-+	div->lock = lock;
-+	div->hw.init = &init;
-+	div->table = table;
++static const struct clk_ops omap3_dpll_per_ck_ops = {
++	.enable		= &omap3_noncore_dpll_enable,
++	.disable	= &omap3_noncore_dpll_disable,
++	.get_parent	= &omap2_init_dpll_parent,
++	.recalc_rate	= &omap3_dpll_recalc,
++	.set_rate	= &omap3_dpll4_set_rate,
++	.round_rate	= &omap2_dpll_round_rate,
++};
++#endif
 +
-+	/* register the clock */
-+	clk = clk_register(dev, &div->hw);
-+
-+	if (IS_ERR(clk))
-+		kfree(div);
-+
-+	return clk;
-+}
-+
-+static struct clk_div_table
-+__init *ti_clk_get_div_table(struct device_node *node)
-+{
-+	struct clk_div_table *table;
-+	const __be32 *divspec;
-+	u32 val;
-+	u32 num_div;
-+	u32 valid_div;
-+	int i;
-+
-+	divspec = of_get_property(node, "ti,dividers", &num_div);
-+
-+	if (!divspec)
-+		return NULL;
-+
-+	num_div /= 4;
-+
-+	valid_div = 0;
-+
-+	/* Determine required size for divider table */
-+	for (i = 0; i < num_div; i++) {
-+		of_property_read_u32_index(node, "ti,dividers", i, &val);
-+		if (val)
-+			valid_div++;
-+	}
-+
-+	if (!valid_div) {
-+		pr_err("no valid dividers for %s table\n", node->name);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	table = kzalloc(sizeof(*table) * (valid_div + 1), GFP_KERNEL);
-+
-+	if (!table)
-+		return ERR_PTR(-ENOMEM);
-+
-+	valid_div = 0;
-+
-+	for (i = 0; i < num_div; i++) {
-+		of_property_read_u32_index(node, "ti,dividers", i, &val);
-+		if (val) {
-+			table[valid_div].div = val;
-+			table[valid_div].val = i;
-+			valid_div++;
-+		}
-+	}
-+
-+	return table;
-+}
-+
-+static int _get_divider_width(struct device_node *node,
-+			      const struct clk_div_table *table,
-+			      u8 flags)
-+{
-+	u32 min_div;
-+	u32 max_div;
-+	u32 val = 0;
-+	u32 div;
-+
-+	if (!table) {
-+		/* Clk divider table not provided, determine min/max divs */
-+		if (of_property_read_u32(node, "ti,min-div", &min_div))
-+			min_div = 1;
-+
-+		if (of_property_read_u32(node, "ti,max-div", &max_div)) {
-+			pr_err("no max-div for %s!\n", node->name);
-+			return -EINVAL;
-+		}
-+
-+		/* Determine bit width for the field */
-+		if (flags & CLK_DIVIDER_ONE_BASED)
-+			val = 1;
-+
-+		div = min_div;
-+
-+		while (div < max_div) {
-+			if (flags & CLK_DIVIDER_POWER_OF_TWO)
-+				div <<= 1;
-+			else
-+				div++;
-+			val++;
-+		}
-+	} else {
-+		div = 0;
-+
-+		while (table[div].div) {
-+			val = table[div].val;
-+			div++;
-+		}
-+	}
-+
-+	return fls(val);
-+}
-+
-+static int __init ti_clk_divider_populate(struct device_node *node,
-+	void __iomem **reg, const struct clk_div_table **table,
-+	u32 *flags, u8 *div_flags, u8 *width, u8 *shift)
-+{
-+	u32 val;
-+
-+	*reg = ti_clk_get_reg_addr(node, 0);
-+	if (!*reg)
-+		return -EINVAL;
-+
-+	if (!of_property_read_u32(node, "ti,bit-shift", &val))
-+		*shift = val;
-+	else
-+		*shift = 0;
-+
-+	*flags = 0;
-+	*div_flags = 0;
-+
-+	if (of_property_read_bool(node, "ti,index-starts-at-one"))
-+		*div_flags |= CLK_DIVIDER_ONE_BASED;
-+
-+	if (of_property_read_bool(node, "ti,index-power-of-two"))
-+		*div_flags |= CLK_DIVIDER_POWER_OF_TWO;
-+
-+	if (of_property_read_bool(node, "ti,set-rate-parent"))
-+		*flags |= CLK_SET_RATE_PARENT;
-+
-+	*table = ti_clk_get_div_table(node);
-+
-+	if (IS_ERR(*table))
-+		return PTR_ERR(*table);
-+
-+	*width = _get_divider_width(node, *table, *div_flags);
-+
-+	return 0;
-+}
++static const struct clk_ops dpll_x2_ck_ops = {
++	.recalc_rate	= &omap3_clkoutx2_recalc,
++};
 +
 +/**
-+ * of_ti_divider_clk_setup - Setup function for simple div rate clock
-+ * @node: device node for this clock
++ * ti_clk_register_dpll - low level registration of a DPLL clock
++ * @hw: hardware clock definition for the clock
++ * @node: device node for the clock
 + *
-+ * Sets up a basic divider clock.
++ * Finalizes DPLL registration process. In case a failure (clk-ref or
++ * clk-bypass is missing), the clock is added to retry list and
++ * the initialization is retried on later stage.
 + */
-+static void __init of_ti_divider_clk_setup(struct device_node *node)
++static void __init ti_clk_register_dpll(struct clk_hw *hw,
++					struct device_node *node)
 +{
++	struct clk_hw_omap *clk_hw = to_clk_hw_omap(hw);
++	struct dpll_data *dd = clk_hw->dpll_data;
 +	struct clk *clk;
-+	const char *parent_name;
-+	void __iomem *reg;
-+	u8 clk_divider_flags = 0;
-+	u8 width = 0;
-+	u8 shift = 0;
-+	const struct clk_div_table *table = NULL;
-+	u32 flags = 0;
 +
-+	parent_name = of_clk_get_parent_name(node, 0);
++	dd->clk_ref = of_clk_get(node, 0);
++	dd->clk_bypass = of_clk_get(node, 1);
 +
-+	if (ti_clk_divider_populate(node, &reg, &table, &flags,
-+				    &clk_divider_flags, &width, &shift))
++	if (IS_ERR(dd->clk_ref) || IS_ERR(dd->clk_bypass)) {
++		pr_debug("clk-ref or clk-bypass missing for %s, retry later\n",
++			 node->name);
++		if (!ti_clk_retry_init(node, hw, ti_clk_register_dpll))
++			return;
++
 +		goto cleanup;
++	}
 +
-+	clk = _register_divider(NULL, node->name, parent_name, flags, reg,
-+				shift, width, clk_divider_flags, table, NULL);
++	/* register the clock */
++	clk = clk_register(NULL, &clk_hw->hw);
 +
 +	if (!IS_ERR(clk)) {
++		omap2_init_clk_hw_omap_clocks(clk);
 +		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-+		of_ti_clk_autoidle_setup(node);
++		kfree(clk_hw->hw.init->parent_names);
++		kfree(clk_hw->hw.init);
 +		return;
 +	}
 +
 +cleanup:
-+	kfree(table);
++	kfree(clk_hw->dpll_data);
++	kfree(clk_hw->hw.init->parent_names);
++	kfree(clk_hw->hw.init);
++	kfree(clk_hw);
 +}
-+CLK_OF_DECLARE(divider_clk, "ti,divider-clock", of_ti_divider_clk_setup);
 +
-+static void __init of_ti_composite_divider_clk_setup(struct device_node *node)
++#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
++	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM33XX)
++/**
++ * ti_clk_register_dpll_x2 - Registers a DPLLx2 clock
++ * @node: device node for this clock
++ * @ops: clk_ops for this clock
++ * @hw_ops: clk_hw_ops for this clock
++ *
++ * Initializes a DPLL x 2 clock from device tree data.
++ */
++static void ti_clk_register_dpll_x2(struct device_node *node,
++				    const struct clk_ops *ops,
++				    const struct clk_hw_omap_ops *hw_ops)
 +{
-+	struct clk_divider *div;
-+	u32 val;
++	struct clk *clk;
++	struct clk_init_data init = { NULL };
++	struct clk_hw_omap *clk_hw;
++	const char *name = node->name;
++	const char *parent_name;
 +
-+	div = kzalloc(sizeof(*div), GFP_KERNEL);
-+	if (!div)
++	parent_name = of_clk_get_parent_name(node, 0);
++	if (!parent_name) {
++		pr_err("%s must have parent\n", node->name);
++		return;
++	}
++
++	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
++	if (!clk_hw)
 +		return;
 +
-+	if (ti_clk_divider_populate(node, &div->reg, &div->table, &val,
-+				    &div->flags, &div->width, &div->shift) < 0)
++	clk_hw->ops = hw_ops;
++	clk_hw->hw.init = &init;
++
++	init.name = name;
++	init.ops = ops;
++	init.parent_names = &parent_name;
++	init.num_parents = 1;
++
++	/* register the clock */
++	clk = clk_register(NULL, &clk_hw->hw);
++
++	if (IS_ERR(clk)) {
++		kfree(clk_hw);
++	} else {
++		omap2_init_clk_hw_omap_clocks(clk);
++		of_clk_add_provider(node, of_clk_src_simple_get, clk);
++	}
++}
++#endif
++
++/**
++ * of_ti_dpll_setup - Setup function for OMAP DPLL clocks
++ * @node: device node containing the DPLL info
++ * @ops: ops for the DPLL
++ * @ddt: DPLL data template to use
++ * @init_flags: flags for controlling init types
++ *
++ * Initializes a DPLL clock from device tree data.
++ */
++static void __init of_ti_dpll_setup(struct device_node *node,
++				    const struct clk_ops *ops,
++				    const struct dpll_data *ddt,
++				    u8 init_flags)
++{
++	struct clk_hw_omap *clk_hw = NULL;
++	struct clk_init_data *init = NULL;
++	const char **parent_names = NULL;
++	struct dpll_data *dd = NULL;
++	int i;
++	u8 dpll_mode = 0;
++
++	dd = kzalloc(sizeof(*dd), GFP_KERNEL);
++	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
++	init = kzalloc(sizeof(*init), GFP_KERNEL);
++	if (!dd || !clk_hw || !init)
 +		goto cleanup;
 +
-+	if (!ti_clk_add_component(node, &div->hw, CLK_COMPONENT_TYPE_DIVIDER))
-+		return;
++	memcpy(dd, ddt, sizeof(*dd));
++
++	clk_hw->dpll_data = dd;
++	clk_hw->ops = &clkhwops_omap3_dpll;
++	clk_hw->hw.init = init;
++	clk_hw->flags = MEMMAP_ADDRESSING;
++
++	init->name = node->name;
++	init->ops = ops;
++
++	init->num_parents = of_clk_get_parent_count(node);
++	if (init->num_parents < 1) {
++		pr_err("%s must have parent(s)\n", node->name);
++		goto cleanup;
++	}
++
++	parent_names = kzalloc(sizeof(char *) * init->num_parents, GFP_KERNEL);
++	if (!parent_names)
++		goto cleanup;
++
++	for (i = 0; i < init->num_parents; i++)
++		parent_names[i] = of_clk_get_parent_name(node, i);
++
++	init->parent_names = parent_names;
++
++	dd->control_reg = ti_clk_get_reg_addr(node, 0);
++	dd->idlest_reg = ti_clk_get_reg_addr(node, 1);
++	dd->mult_div1_reg = ti_clk_get_reg_addr(node, 2);
++
++	if (!dd->control_reg || !dd->idlest_reg || !dd->mult_div1_reg)
++		goto cleanup;
++
++	if (init_flags & DPLL_HAS_AUTOIDLE) {
++		dd->autoidle_reg = ti_clk_get_reg_addr(node, 3);
++		if (!dd->autoidle_reg)
++			goto cleanup;
++	}
++
++	if (of_property_read_bool(node, "ti,low-power-stop"))
++		dpll_mode |= 1 << DPLL_LOW_POWER_STOP;
++
++	if (of_property_read_bool(node, "ti,low-power-bypass"))
++		dpll_mode |= 1 << DPLL_LOW_POWER_BYPASS;
++
++	if (of_property_read_bool(node, "ti,lock"))
++		dpll_mode |= 1 << DPLL_LOCKED;
++
++	if (dpll_mode)
++		dd->modes = dpll_mode;
++
++	ti_clk_register_dpll(&clk_hw->hw, node);
++	return;
 +
 +cleanup:
-+	kfree(div->table);
-+	kfree(div);
++	kfree(dd);
++	kfree(parent_names);
++	kfree(init);
++	kfree(clk_hw);
 +}
-+CLK_OF_DECLARE(ti_composite_divider_clk, "ti,composite-divider-clock",
-+	       of_ti_composite_divider_clk_setup);
++
++#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
++	defined(CONFIG_SOC_DRA7XX)
++static void __init of_ti_omap4_dpll_x2_setup(struct device_node *node)
++{
++	ti_clk_register_dpll_x2(node, &dpll_x2_ck_ops, &clkhwops_omap4_dpllmx);
++}
++CLK_OF_DECLARE(ti_omap4_dpll_x2_clock, "ti,omap4-dpll-x2-clock",
++	       of_ti_omap4_dpll_x2_setup);
++#endif
++
++#ifdef CONFIG_SOC_AM33XX
++static void __init of_ti_am3_dpll_x2_setup(struct device_node *node)
++{
++	ti_clk_register_dpll_x2(node, &dpll_x2_ck_ops, NULL);
++}
++CLK_OF_DECLARE(ti_am3_dpll_x2_clock, "ti,am3-dpll-x2-clock",
++	       of_ti_am3_dpll_x2_setup);
++#endif
++
++#ifdef CONFIG_ARCH_OMAP3
++static void __init of_ti_omap3_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1,
++		.enable_mask = 0x7,
++		.autoidle_mask = 0x7,
++		.mult_mask = 0x7ff << 8,
++		.div1_mask = 0x7f,
++		.max_multiplier = 2047,
++		.max_divider = 128,
++		.min_divider = 1,
++		.freqsel_mask = 0xf0,
++		.modes = (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	};
++
++	of_ti_dpll_setup(node, &omap3_dpll_ck_ops, &dd, DPLL_HAS_AUTOIDLE);
++}
++CLK_OF_DECLARE(ti_omap3_dpll_clock, "ti,omap3-dpll-clock",
++	       of_ti_omap3_dpll_setup);
++
++static void __init of_ti_omap3_core_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1,
++		.enable_mask = 0x7,
++		.autoidle_mask = 0x7,
++		.mult_mask = 0x7ff << 16,
++		.div1_mask = 0x7f << 8,
++		.max_multiplier = 2047,
++		.max_divider = 128,
++		.min_divider = 1,
++		.freqsel_mask = 0xf0,
++	};
++
++	of_ti_dpll_setup(node, &omap3_dpll_core_ck_ops, &dd, DPLL_HAS_AUTOIDLE);
++}
++CLK_OF_DECLARE(ti_omap3_core_dpll_clock, "ti,omap3-dpll-core-clock",
++	       of_ti_omap3_core_dpll_setup);
++
++static void __init of_ti_omap3_per_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1 << 1,
++		.enable_mask = 0x7 << 16,
++		.autoidle_mask = 0x7 << 3,
++		.mult_mask = 0x7ff << 8,
++		.div1_mask = 0x7f,
++		.max_multiplier = 2047,
++		.max_divider = 128,
++		.min_divider = 1,
++		.freqsel_mask = 0xf00000,
++		.modes = (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED),
++	};
++
++	of_ti_dpll_setup(node, &omap3_dpll_per_ck_ops, &dd, DPLL_HAS_AUTOIDLE);
++}
++CLK_OF_DECLARE(ti_omap3_per_dpll_clock, "ti,omap3-dpll-per-clock",
++	       of_ti_omap3_per_dpll_setup);
++
++static void __init of_ti_omap3_per_jtype_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1 << 1,
++		.enable_mask = 0x7 << 16,
++		.autoidle_mask = 0x7 << 3,
++		.mult_mask = 0xfff << 8,
++		.div1_mask = 0x7f,
++		.max_multiplier = 4095,
++		.max_divider = 128,
++		.min_divider = 1,
++		.sddiv_mask = 0xff << 24,
++		.dco_mask = 0xe << 20,
++		.flags = DPLL_J_TYPE,
++		.modes = (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED),
++	};
++
++	of_ti_dpll_setup(node, &omap3_dpll_per_ck_ops, &dd, DPLL_HAS_AUTOIDLE);
++}
++CLK_OF_DECLARE(ti_omap3_per_jtype_dpll_clock, "ti,omap3-dpll-per-j-type-clock",
++	       of_ti_omap3_per_jtype_dpll_setup);
++#endif
++
++static void __init of_ti_omap4_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1,
++		.enable_mask = 0x7,
++		.autoidle_mask = 0x7,
++		.mult_mask = 0x7ff << 8,
++		.div1_mask = 0x7f,
++		.max_multiplier = 2047,
++		.max_divider = 128,
++		.min_divider = 1,
++		.modes = (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	};
++
++	of_ti_dpll_setup(node, &dpll_ck_ops, &dd, DPLL_HAS_AUTOIDLE);
++}
++CLK_OF_DECLARE(ti_omap4_dpll_clock, "ti,omap4-dpll-clock",
++	       of_ti_omap4_dpll_setup);
++
++static void __init of_ti_omap4_core_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1,
++		.enable_mask = 0x7,
++		.autoidle_mask = 0x7,
++		.mult_mask = 0x7ff << 8,
++		.div1_mask = 0x7f,
++		.max_multiplier = 2047,
++		.max_divider = 128,
++		.min_divider = 1,
++		.modes = (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	};
++
++	of_ti_dpll_setup(node, &dpll_core_ck_ops, &dd, DPLL_HAS_AUTOIDLE);
++}
++CLK_OF_DECLARE(ti_omap4_core_dpll_clock, "ti,omap4-dpll-core-clock",
++	       of_ti_omap4_core_dpll_setup);
++
++#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
++	defined(CONFIG_SOC_DRA7XX)
++static void __init of_ti_omap4_m4xen_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1,
++		.enable_mask = 0x7,
++		.autoidle_mask = 0x7,
++		.mult_mask = 0x7ff << 8,
++		.div1_mask = 0x7f,
++		.max_multiplier = 2047,
++		.max_divider = 128,
++		.min_divider = 1,
++		.m4xen_mask = 0x800,
++		.lpmode_mask = 1 << 10,
++		.modes = (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	};
++
++	of_ti_dpll_setup(node, &dpll_m4xen_ck_ops, &dd, DPLL_HAS_AUTOIDLE);
++}
++CLK_OF_DECLARE(ti_omap4_m4xen_dpll_clock, "ti,omap4-dpll-m4xen-clock",
++	       of_ti_omap4_m4xen_dpll_setup);
++
++static void __init of_ti_omap4_jtype_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1,
++		.enable_mask = 0x7,
++		.autoidle_mask = 0x7,
++		.mult_mask = 0xfff << 8,
++		.div1_mask = 0xff,
++		.max_multiplier = 4095,
++		.max_divider = 256,
++		.min_divider = 1,
++		.sddiv_mask = 0xff << 24,
++		.flags = DPLL_J_TYPE,
++		.modes = (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	};
++
++	of_ti_dpll_setup(node, &dpll_m4xen_ck_ops, &dd, DPLL_HAS_AUTOIDLE);
++}
++CLK_OF_DECLARE(ti_omap4_jtype_dpll_clock, "ti,omap4-dpll-j-type-clock",
++	       of_ti_omap4_jtype_dpll_setup);
++#endif
++
++static void __init of_ti_am3_no_gate_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1,
++		.enable_mask = 0x7,
++		.autoidle_mask = 0x7,
++		.mult_mask = 0x7ff << 8,
++		.div1_mask = 0x7f,
++		.max_multiplier = 2047,
++		.max_divider = 128,
++		.min_divider = 1,
++		.modes = (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	};
++
++	of_ti_dpll_setup(node, &dpll_no_gate_ck_ops, &dd, 0);
++}
++CLK_OF_DECLARE(ti_am3_no_gate_dpll_clock, "ti,am3-dpll-no-gate-clock",
++	       of_ti_am3_no_gate_dpll_setup);
++
++static void __init of_ti_am3_jtype_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1,
++		.enable_mask = 0x7,
++		.autoidle_mask = 0x7,
++		.mult_mask = 0x7ff << 8,
++		.div1_mask = 0x7f,
++		.max_multiplier = 4095,
++		.max_divider = 256,
++		.min_divider = 2,
++		.flags = DPLL_J_TYPE,
++		.modes = (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	};
++
++	of_ti_dpll_setup(node, &dpll_ck_ops, &dd, 0);
++}
++CLK_OF_DECLARE(ti_am3_jtype_dpll_clock, "ti,am3-dpll-j-type-clock",
++	       of_ti_am3_jtype_dpll_setup);
++
++static void __init of_ti_am3_no_gate_jtype_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1,
++		.enable_mask = 0x7,
++		.autoidle_mask = 0x7,
++		.mult_mask = 0x7ff << 8,
++		.div1_mask = 0x7f,
++		.max_multiplier = 2047,
++		.max_divider = 128,
++		.min_divider = 1,
++		.flags = DPLL_J_TYPE,
++		.modes = (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	};
++
++	of_ti_dpll_setup(node, &dpll_no_gate_ck_ops, &dd, 0);
++}
++CLK_OF_DECLARE(ti_am3_no_gate_jtype_dpll_clock,
++	       "ti,am3-dpll-no-gate-j-type-clock",
++	       of_ti_am3_no_gate_jtype_dpll_setup);
++
++static void __init of_ti_am3_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1,
++		.enable_mask = 0x7,
++		.autoidle_mask = 0x7,
++		.mult_mask = 0x7ff << 8,
++		.div1_mask = 0x7f,
++		.max_multiplier = 2047,
++		.max_divider = 128,
++		.min_divider = 1,
++		.modes = (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	};
++
++	of_ti_dpll_setup(node, &dpll_ck_ops, &dd, 0);
++}
++CLK_OF_DECLARE(ti_am3_dpll_clock, "ti,am3-dpll-clock", of_ti_am3_dpll_setup);
++
++static void __init of_ti_am3_core_dpll_setup(struct device_node *node)
++{
++	const struct dpll_data dd = {
++		.idlest_mask = 0x1,
++		.enable_mask = 0x7,
++		.autoidle_mask = 0x7,
++		.mult_mask = 0x7ff << 8,
++		.div1_mask = 0x7f,
++		.max_multiplier = 2047,
++		.max_divider = 128,
++		.min_divider = 1,
++		.modes = (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
++	};
++
++	of_ti_dpll_setup(node, &dpll_core_ck_ops, &dd, 0);
++}
++CLK_OF_DECLARE(ti_am3_core_dpll_clock, "ti,am3-dpll-core-clock",
++	       of_ti_am3_core_dpll_setup);
 diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index c8c591d..17fb49e 100644
+index c6eded5..3f9de39 100644
 --- a/include/linux/clk/ti.h
 +++ b/include/linux/clk/ti.h
-@@ -223,6 +223,8 @@ struct ti_clk_ll_ops {
+@@ -18,6 +18,153 @@
+ #include <linux/clkdev.h>
+ 
+ /**
++ * struct dpll_data - DPLL registers and integration data
++ * @mult_div1_reg: register containing the DPLL M and N bitfields
++ * @mult_mask: mask of the DPLL M bitfield in @mult_div1_reg
++ * @div1_mask: mask of the DPLL N bitfield in @mult_div1_reg
++ * @clk_bypass: struct clk pointer to the clock's bypass clock input
++ * @clk_ref: struct clk pointer to the clock's reference clock input
++ * @control_reg: register containing the DPLL mode bitfield
++ * @enable_mask: mask of the DPLL mode bitfield in @control_reg
++ * @last_rounded_rate: cache of the last rate result of omap2_dpll_round_rate()
++ * @last_rounded_m: cache of the last M result of omap2_dpll_round_rate()
++ * @last_rounded_m4xen: cache of the last M4X result of
++ *			omap4_dpll_regm4xen_round_rate()
++ * @last_rounded_lpmode: cache of the last lpmode result of
++ *			 omap4_dpll_lpmode_recalc()
++ * @max_multiplier: maximum valid non-bypass multiplier value (actual)
++ * @last_rounded_n: cache of the last N result of omap2_dpll_round_rate()
++ * @min_divider: minimum valid non-bypass divider value (actual)
++ * @max_divider: maximum valid non-bypass divider value (actual)
++ * @modes: possible values of @enable_mask
++ * @autoidle_reg: register containing the DPLL autoidle mode bitfield
++ * @idlest_reg: register containing the DPLL idle status bitfield
++ * @autoidle_mask: mask of the DPLL autoidle mode bitfield in @autoidle_reg
++ * @freqsel_mask: mask of the DPLL jitter correction bitfield in @control_reg
++ * @idlest_mask: mask of the DPLL idle status bitfield in @idlest_reg
++ * @lpmode_mask: mask of the DPLL low-power mode bitfield in @control_reg
++ * @m4xen_mask: mask of the DPLL M4X multiplier bitfield in @control_reg
++ * @auto_recal_bit: bitshift of the driftguard enable bit in @control_reg
++ * @recal_en_bit: bitshift of the PRM_IRQENABLE_* bit for recalibration IRQs
++ * @recal_st_bit: bitshift of the PRM_IRQSTATUS_* bit for recalibration IRQs
++ * @flags: DPLL type/features (see below)
++ *
++ * Possible values for @flags:
++ * DPLL_J_TYPE: "J-type DPLL" (only some 36xx, 4xxx DPLLs)
++ *
++ * @freqsel_mask is only used on the OMAP34xx family and AM35xx.
++ *
++ * XXX Some DPLLs have multiple bypass inputs, so it's not technically
++ * correct to only have one @clk_bypass pointer.
++ *
++ * XXX The runtime-variable fields (@last_rounded_rate, @last_rounded_m,
++ * @last_rounded_n) should be separated from the runtime-fixed fields
++ * and placed into a different structure, so that the runtime-fixed data
++ * can be placed into read-only space.
++ */
++struct dpll_data {
++	void __iomem		*mult_div1_reg;
++	u32			mult_mask;
++	u32			div1_mask;
++	struct clk		*clk_bypass;
++	struct clk		*clk_ref;
++	void __iomem		*control_reg;
++	u32			enable_mask;
++	unsigned long		last_rounded_rate;
++	u16			last_rounded_m;
++	u8			last_rounded_m4xen;
++	u8			last_rounded_lpmode;
++	u16			max_multiplier;
++	u8			last_rounded_n;
++	u8			min_divider;
++	u16			max_divider;
++	u8			modes;
++	void __iomem		*autoidle_reg;
++	void __iomem		*idlest_reg;
++	u32			autoidle_mask;
++	u32			freqsel_mask;
++	u32			idlest_mask;
++	u32			dco_mask;
++	u32			sddiv_mask;
++	u32			lpmode_mask;
++	u32			m4xen_mask;
++	u8			auto_recal_bit;
++	u8			recal_en_bit;
++	u8			recal_st_bit;
++	u8			flags;
++};
++
++struct clk_hw_omap_ops;
++
++/**
++ * struct clk_hw_omap - OMAP struct clk
++ * @node: list_head connecting this clock into the full clock list
++ * @enable_reg: register to write to enable the clock (see @enable_bit)
++ * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
++ * @flags: see "struct clk.flags possibilities" above
++ * @clksel_reg: for clksel clks, register va containing src/divisor select
++ * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
++ * @clksel: for clksel clks, pointer to struct clksel for this clock
++ * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
++ * @clkdm_name: clockdomain name that this clock is contained in
++ * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
++ * @ops: clock ops for this clock
++ */
++struct clk_hw_omap {
++	struct clk_hw		hw;
++	struct list_head	node;
++	unsigned long		fixed_rate;
++	u8			fixed_div;
++	void __iomem		*enable_reg;
++	u8			enable_bit;
++	u8			flags;
++	void __iomem		*clksel_reg;
++	u32			clksel_mask;
++	const struct clksel	*clksel;
++	struct dpll_data	*dpll_data;
++	const char		*clkdm_name;
++	struct clockdomain	*clkdm;
++	const struct clk_hw_omap_ops	*ops;
++};
++
++/*
++ * struct clk_hw_omap.flags possibilities
++ *
++ * XXX document the rest of the clock flags here
++ *
++ * ENABLE_REG_32BIT: (OMAP1 only) clock control register must be accessed
++ *     with 32bit ops, by default OMAP1 uses 16bit ops.
++ * CLOCK_IDLE_CONTROL: (OMAP1 only) clock has autoidle support.
++ * CLOCK_NO_IDLE_PARENT: (OMAP1 only) when clock is enabled, its parent
++ *     clock is put to no-idle mode.
++ * ENABLE_ON_INIT: Clock is enabled on init.
++ * INVERT_ENABLE: By default, clock enable bit behavior is '1' enable, '0'
++ *     disable. This inverts the behavior making '0' enable and '1' disable.
++ * CLOCK_CLKOUTX2: (OMAP4 only) DPLL CLKOUT and CLKOUTX2 GATE_CTRL
++ *     bits share the same register.  This flag allows the
++ *     omap4_dpllmx*() code to determine which GATE_CTRL bit field
++ *     should be used.  This is a temporary solution - a better approach
++ *     would be to associate clock type-specific data with the clock,
++ *     similar to the struct dpll_data approach.
++ * MEMMAP_ADDRESSING: Use memmap addressing to access clock registers.
++ */
++#define ENABLE_REG_32BIT	(1 << 0)	/* Use 32-bit access */
++#define CLOCK_IDLE_CONTROL	(1 << 1)
++#define CLOCK_NO_IDLE_PARENT	(1 << 2)
++#define ENABLE_ON_INIT		(1 << 3)	/* Enable upon framework init */
++#define INVERT_ENABLE		(1 << 4)	/* 0 enables, 1 disables */
++#define CLOCK_CLKOUTX2		(1 << 5)
++#define MEMMAP_ADDRESSING	(1 << 6)
++
++/* CM_CLKEN_PLL*.EN* bit values - not all are available for every DPLL */
++#define DPLL_LOW_POWER_STOP	0x1
++#define DPLL_LOW_POWER_BYPASS	0x5
++#define DPLL_LOCKED		0x7
++
++/* DPLL Type and DCO Selection Flags */
++#define DPLL_J_TYPE		0x1
++
++/**
+  * struct ti_dt_clk - OMAP DT clock alias declarations
+  * @lk: clock lookup definition
+  * @node_name: clock DT node to map to
+@@ -68,10 +215,35 @@ struct ti_clk_ll_ops {
  
  extern struct ti_clk_ll_ops *ti_clk_ll_ops;
  
-+extern const struct clk_ops ti_clk_divider_ops;
++#define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
 +
- #define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
++void omap2_init_clk_hw_omap_clocks(struct clk *clk);
++int omap3_noncore_dpll_enable(struct clk_hw *hw);
++void omap3_noncore_dpll_disable(struct clk_hw *hw);
++int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
++				unsigned long parent_rate);
++unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
++					 unsigned long parent_rate);
++long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
++				    unsigned long target_rate,
++				    unsigned long *parent_rate);
++u8 omap2_init_dpll_parent(struct clk_hw *hw);
++unsigned long omap3_dpll_recalc(struct clk_hw *hw, unsigned long parent_rate);
++long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
++			   unsigned long *parent_rate);
++void omap2_init_clk_clkdm(struct clk_hw *clk);
++unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
++				    unsigned long parent_rate);
++int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
++			 unsigned long parent_rate);
++
+ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
+ void ti_dt_clocks_register(struct ti_dt_clk *oclks);
+ void ti_dt_clk_init_provider(struct device_node *np, int index);
+ int ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
+ 		      ti_of_clk_init_cb_t func);
  
- void omap2_init_clk_hw_omap_clocks(struct clk *clk);
++extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
++extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
++
+ #endif
 -- 
 1.7.9.5
 
