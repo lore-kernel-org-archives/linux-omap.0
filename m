@@ -1,40 +1,1841 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv13 37/40] ARM: OMAP: DRA7: Enable clock init
-Date: Thu, 9 Jan 2014 16:00:48 +0200
-Message-ID: <1389276051-1326-38-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv13 20/40] ARM: dts: omap4 clock data
+Date: Thu, 9 Jan 2014 16:00:31 +0200
+Message-ID: <1389276051-1326-21-git-send-email-t-kristo@ti.com>
 References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389276051-1326-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46963 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756103AbaAIOD1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Jan 2014 09:03:27 -0500
+In-Reply-To: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Initializes clock data from device tree.
+This patch creates a unique node for each clock in the OMAP4 power,
+reset and clock manager (PRCM). OMAP443x and OMAP446x have slightly
+different clock tree which is taken into account in the data.
 
-Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/io.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/omap4.dtsi           |   54 ++
+ arch/arm/boot/dts/omap443x-clocks.dtsi |   18 +
+ arch/arm/boot/dts/omap443x.dtsi        |    2 +
+ arch/arm/boot/dts/omap4460.dtsi        |    2 +
+ arch/arm/boot/dts/omap446x-clocks.dtsi |   27 +
+ arch/arm/boot/dts/omap44xx-clocks.dtsi | 1651 ++++++++++++++++++++++++++++++++
+ 6 files changed, 1754 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap443x-clocks.dtsi
+ create mode 100644 arch/arm/boot/dts/omap446x-clocks.dtsi
+ create mode 100644 arch/arm/boot/dts/omap44xx-clocks.dtsi
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index c95b836..44fc8cd 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -692,6 +692,7 @@ void __init dra7xx_init_early(void)
- 	dra7xx_clockdomains_init();
- 	dra7xx_hwmod_init();
- 	omap_hwmod_init_postsetup();
-+	omap_clk_soc_init = dra7xx_dt_clk_init;
- }
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index a1e0585..d3f8a6e 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -107,6 +107,58 @@
+ 		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
+ 			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
  
- void __init dra7xx_init_late(void)
++		cm1: cm1@4a004000 {
++			compatible = "ti,omap4-cm1";
++			reg = <0x4a004000 0x2000>;
++
++			cm1_clocks: clocks {
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++
++			cm1_clockdomains: clockdomains {
++			};
++		};
++
++		prm: prm@4a306000 {
++			compatible = "ti,omap4-prm";
++			reg = <0x4a306000 0x3000>;
++
++			prm_clocks: clocks {
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++
++			prm_clockdomains: clockdomains {
++			};
++		};
++
++		cm2: cm2@4a008000 {
++			compatible = "ti,omap4-cm2";
++			reg = <0x4a008000 0x3000>;
++
++			cm2_clocks: clocks {
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++
++			cm2_clockdomains: clockdomains {
++			};
++		};
++
++		scrm: scrm@4a30a000 {
++			compatible = "ti,omap4-scrm";
++			reg = <0x4a30a000 0x2000>;
++
++			scrm_clocks: clocks {
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++
++			scrm_clockdomains: clockdomains {
++			};
++		};
++
+ 		counter32k: counter@4a304000 {
+ 			compatible = "ti,omap-counter32k";
+ 			reg = <0x4a304000 0x20>;
+@@ -707,3 +759,5 @@
+ 		};
+ 	};
+ };
++
++/include/ "omap44xx-clocks.dtsi"
+diff --git a/arch/arm/boot/dts/omap443x-clocks.dtsi b/arch/arm/boot/dts/omap443x-clocks.dtsi
+new file mode 100644
+index 0000000..2bd2166
+--- /dev/null
++++ b/arch/arm/boot/dts/omap443x-clocks.dtsi
+@@ -0,0 +1,18 @@
++/*
++ * Device Tree Source for OMAP4 clock data
++ *
++ * Copyright (C) 2013 Texas Instruments, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++&prm_clocks {
++	bandgap_fclk: bandgap_fclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&sys_32k_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x1888>;
++	};
++};
+diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap443x.dtsi
+index bcf455e..f67e191 100644
+--- a/arch/arm/boot/dts/omap443x.dtsi
++++ b/arch/arm/boot/dts/omap443x.dtsi
+@@ -31,3 +31,5 @@
+ 		compatible = "ti,omap4430-bandgap";
+ 	};
+ };
++
++/include/ "omap443x-clocks.dtsi"
+diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
+index c2f0f39..1758601 100644
+--- a/arch/arm/boot/dts/omap4460.dtsi
++++ b/arch/arm/boot/dts/omap4460.dtsi
+@@ -39,3 +39,5 @@
+ 		gpios = <&gpio3 22 0>; /* tshut */
+ 	};
+ };
++
++/include/ "omap446x-clocks.dtsi"
+diff --git a/arch/arm/boot/dts/omap446x-clocks.dtsi b/arch/arm/boot/dts/omap446x-clocks.dtsi
+new file mode 100644
+index 0000000..be033e9
+--- /dev/null
++++ b/arch/arm/boot/dts/omap446x-clocks.dtsi
+@@ -0,0 +1,27 @@
++/*
++ * Device Tree Source for OMAP4 clock data
++ *
++ * Copyright (C) 2013 Texas Instruments, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++&prm_clocks {
++	div_ts_ck: div_ts_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&l4_wkup_clk_mux_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1888>;
++		ti,dividers = <8>, <16>, <32>;
++	};
++
++	bandgap_ts_fclk: bandgap_ts_fclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&div_ts_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x1888>;
++	};
++};
+diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+new file mode 100644
+index 0000000..c821ff5
+--- /dev/null
++++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+@@ -0,0 +1,1651 @@
++/*
++ * Device Tree Source for OMAP4 clock data
++ *
++ * Copyright (C) 2013 Texas Instruments, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++&cm1_clocks {
++	extalt_clkin_ck: extalt_clkin_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <59000000>;
++	};
++
++	pad_clks_src_ck: pad_clks_src_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <12000000>;
++	};
++
++	pad_clks_ck: pad_clks_ck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&pad_clks_src_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x0108>;
++	};
++
++	pad_slimbus_core_clks_ck: pad_slimbus_core_clks_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <12000000>;
++	};
++
++	secure_32k_clk_src_ck: secure_32k_clk_src_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <32768>;
++	};
++
++	slimbus_src_clk: slimbus_src_clk {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <12000000>;
++	};
++
++	slimbus_clk: slimbus_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&slimbus_src_clk>;
++		ti,bit-shift = <10>;
++		reg = <0x0108>;
++	};
++
++	sys_32k_ck: sys_32k_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <32768>;
++	};
++
++	virt_12000000_ck: virt_12000000_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <12000000>;
++	};
++
++	virt_13000000_ck: virt_13000000_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <13000000>;
++	};
++
++	virt_16800000_ck: virt_16800000_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <16800000>;
++	};
++
++	virt_19200000_ck: virt_19200000_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <19200000>;
++	};
++
++	virt_26000000_ck: virt_26000000_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <26000000>;
++	};
++
++	virt_27000000_ck: virt_27000000_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <27000000>;
++	};
++
++	virt_38400000_ck: virt_38400000_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <38400000>;
++	};
++
++	tie_low_clock_ck: tie_low_clock_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <0>;
++	};
++
++	utmi_phy_clkout_ck: utmi_phy_clkout_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <60000000>;
++	};
++
++	xclk60mhsp1_ck: xclk60mhsp1_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <60000000>;
++	};
++
++	xclk60mhsp2_ck: xclk60mhsp2_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <60000000>;
++	};
++
++	xclk60motg_ck: xclk60motg_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <60000000>;
++	};
++
++	dpll_abe_ck: dpll_abe_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-dpll-m4xen-clock";
++		clocks = <&abe_dpll_refclk_mux_ck>, <&abe_dpll_bypass_clk_mux_ck>;
++		reg = <0x01e0>, <0x01e4>, <0x01ec>, <0x01e8>;
++	};
++
++	dpll_abe_x2_ck: dpll_abe_x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-dpll-x2-clock";
++		clocks = <&dpll_abe_ck>;
++		reg = <0x01f0>;
++	};
++
++	dpll_abe_m2x2_ck: dpll_abe_m2x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_abe_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x01f0>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	abe_24m_fclk: abe_24m_fclk {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_abe_m2x2_ck>;
++		clock-mult = <1>;
++		clock-div = <8>;
++	};
++
++	abe_clk: abe_clk {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_abe_m2x2_ck>;
++		ti,max-div = <4>;
++		reg = <0x0108>;
++		ti,index-power-of-two;
++	};
++
++	aess_fclk: aess_fclk {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&abe_clk>;
++		ti,bit-shift = <24>;
++		ti,max-div = <2>;
++		reg = <0x0528>;
++	};
++
++	dpll_abe_m3x2_ck: dpll_abe_m3x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_abe_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x01f4>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	core_hsd_byp_clk_mux_ck: core_hsd_byp_clk_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&dpll_abe_m3x2_ck>;
++		ti,bit-shift = <23>;
++		reg = <0x012c>;
++	};
++
++	dpll_core_ck: dpll_core_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-dpll-core-clock";
++		clocks = <&sys_clkin_ck>, <&core_hsd_byp_clk_mux_ck>;
++		reg = <0x0120>, <0x0124>, <0x012c>, <0x0128>;
++	};
++
++	dpll_core_x2_ck: dpll_core_x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-dpll-x2-clock";
++		clocks = <&dpll_core_ck>;
++	};
++
++	dpll_core_m6x2_ck: dpll_core_m6x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_core_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x0140>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	dpll_core_m2_ck: dpll_core_m2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_core_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x0130>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	ddrphy_ck: ddrphy_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_core_m2_ck>;
++		clock-mult = <1>;
++		clock-div = <2>;
++	};
++
++	dpll_core_m5x2_ck: dpll_core_m5x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_core_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x013c>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	div_core_ck: div_core_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_core_m5x2_ck>;
++		reg = <0x0100>;
++		ti,max-div = <2>;
++	};
++
++	div_iva_hs_clk: div_iva_hs_clk {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_core_m5x2_ck>;
++		ti,max-div = <4>;
++		reg = <0x01dc>;
++		ti,index-power-of-two;
++	};
++
++	div_mpu_hs_clk: div_mpu_hs_clk {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_core_m5x2_ck>;
++		ti,max-div = <4>;
++		reg = <0x019c>;
++		ti,index-power-of-two;
++	};
++
++	dpll_core_m4x2_ck: dpll_core_m4x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_core_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x0138>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	dll_clk_div_ck: dll_clk_div_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_core_m4x2_ck>;
++		clock-mult = <1>;
++		clock-div = <2>;
++	};
++
++	dpll_abe_m2_ck: dpll_abe_m2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_abe_ck>;
++		ti,max-div = <31>;
++		reg = <0x01f0>;
++		ti,index-starts-at-one;
++	};
++
++	dpll_core_m3x2_gate_ck: dpll_core_m3x2_gate_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_core_x2_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x0134>;
++	};
++
++	dpll_core_m3x2_div_ck: dpll_core_m3x2_div_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-divider-clock";
++		clocks = <&dpll_core_x2_ck>;
++		ti,max-div = <31>;
++		reg = <0x0134>;
++		ti,index-starts-at-one;
++	};
++
++	dpll_core_m3x2_ck: dpll_core_m3x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&dpll_core_m3x2_gate_ck>, <&dpll_core_m3x2_div_ck>;
++	};
++
++	dpll_core_m7x2_ck: dpll_core_m7x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_core_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x0144>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	iva_hsd_byp_clk_mux_ck: iva_hsd_byp_clk_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&div_iva_hs_clk>;
++		ti,bit-shift = <23>;
++		reg = <0x01ac>;
++	};
++
++	dpll_iva_ck: dpll_iva_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-dpll-clock";
++		clocks = <&sys_clkin_ck>, <&iva_hsd_byp_clk_mux_ck>;
++		reg = <0x01a0>, <0x01a4>, <0x01ac>, <0x01a8>;
++	};
++
++	dpll_iva_x2_ck: dpll_iva_x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-dpll-x2-clock";
++		clocks = <&dpll_iva_ck>;
++	};
++
++	dpll_iva_m4x2_ck: dpll_iva_m4x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_iva_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x01b8>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	dpll_iva_m5x2_ck: dpll_iva_m5x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_iva_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x01bc>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	dpll_mpu_ck: dpll_mpu_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-dpll-clock";
++		clocks = <&sys_clkin_ck>, <&div_mpu_hs_clk>;
++		reg = <0x0160>, <0x0164>, <0x016c>, <0x0168>;
++	};
++
++	dpll_mpu_m2_ck: dpll_mpu_m2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_mpu_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x0170>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	per_hs_clk_div_ck: per_hs_clk_div_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_abe_m3x2_ck>;
++		clock-mult = <1>;
++		clock-div = <2>;
++	};
++
++	usb_hs_clk_div_ck: usb_hs_clk_div_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_abe_m3x2_ck>;
++		clock-mult = <1>;
++		clock-div = <3>;
++	};
++
++	l3_div_ck: l3_div_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&div_core_ck>;
++		ti,bit-shift = <4>;
++		ti,max-div = <2>;
++		reg = <0x0100>;
++	};
++
++	l4_div_ck: l4_div_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&l3_div_ck>;
++		ti,bit-shift = <8>;
++		ti,max-div = <2>;
++		reg = <0x0100>;
++	};
++
++	lp_clk_div_ck: lp_clk_div_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_abe_m2x2_ck>;
++		clock-mult = <1>;
++		clock-div = <16>;
++	};
++
++	mpu_periphclk: mpu_periphclk {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_mpu_ck>;
++		clock-mult = <1>;
++		clock-div = <2>;
++	};
++
++	ocp_abe_iclk: ocp_abe_iclk {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&aess_fclk>;
++		ti,bit-shift = <24>;
++		reg = <0x0528>;
++		ti,dividers = <2>, <1>;
++	};
++
++	per_abe_24m_fclk: per_abe_24m_fclk {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_abe_m2_ck>;
++		clock-mult = <1>;
++		clock-div = <4>;
++	};
++
++	dmic_sync_mux_ck: dmic_sync_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&abe_24m_fclk>, <&syc_clk_div_ck>, <&func_24m_clk>;
++		ti,bit-shift = <25>;
++		reg = <0x0538>;
++	};
++
++	func_dmic_abe_gfclk: func_dmic_abe_gfclk {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&dmic_sync_mux_ck>, <&pad_clks_ck>, <&slimbus_clk>;
++		ti,bit-shift = <24>;
++		reg = <0x0538>;
++	};
++
++	mcasp_sync_mux_ck: mcasp_sync_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&abe_24m_fclk>, <&syc_clk_div_ck>, <&func_24m_clk>;
++		ti,bit-shift = <25>;
++		reg = <0x0540>;
++	};
++
++	func_mcasp_abe_gfclk: func_mcasp_abe_gfclk {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&mcasp_sync_mux_ck>, <&pad_clks_ck>, <&slimbus_clk>;
++		ti,bit-shift = <24>;
++		reg = <0x0540>;
++	};
++
++	mcbsp1_sync_mux_ck: mcbsp1_sync_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&abe_24m_fclk>, <&syc_clk_div_ck>, <&func_24m_clk>;
++		ti,bit-shift = <25>;
++		reg = <0x0548>;
++	};
++
++	func_mcbsp1_gfclk: func_mcbsp1_gfclk {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&mcbsp1_sync_mux_ck>, <&pad_clks_ck>, <&slimbus_clk>;
++		ti,bit-shift = <24>;
++		reg = <0x0548>;
++	};
++
++	mcbsp2_sync_mux_ck: mcbsp2_sync_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&abe_24m_fclk>, <&syc_clk_div_ck>, <&func_24m_clk>;
++		ti,bit-shift = <25>;
++		reg = <0x0550>;
++	};
++
++	func_mcbsp2_gfclk: func_mcbsp2_gfclk {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&mcbsp2_sync_mux_ck>, <&pad_clks_ck>, <&slimbus_clk>;
++		ti,bit-shift = <24>;
++		reg = <0x0550>;
++	};
++
++	mcbsp3_sync_mux_ck: mcbsp3_sync_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&abe_24m_fclk>, <&syc_clk_div_ck>, <&func_24m_clk>;
++		ti,bit-shift = <25>;
++		reg = <0x0558>;
++	};
++
++	func_mcbsp3_gfclk: func_mcbsp3_gfclk {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&mcbsp3_sync_mux_ck>, <&pad_clks_ck>, <&slimbus_clk>;
++		ti,bit-shift = <24>;
++		reg = <0x0558>;
++	};
++
++	slimbus1_fclk_1: slimbus1_fclk_1 {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&func_24m_clk>;
++		ti,bit-shift = <9>;
++		reg = <0x0560>;
++	};
++
++	slimbus1_fclk_0: slimbus1_fclk_0 {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&abe_24m_fclk>;
++		ti,bit-shift = <8>;
++		reg = <0x0560>;
++	};
++
++	slimbus1_fclk_2: slimbus1_fclk_2 {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&pad_clks_ck>;
++		ti,bit-shift = <10>;
++		reg = <0x0560>;
++	};
++
++	slimbus1_slimbus_clk: slimbus1_slimbus_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&slimbus_clk>;
++		ti,bit-shift = <11>;
++		reg = <0x0560>;
++	};
++
++	timer5_sync_mux: timer5_sync_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&syc_clk_div_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x0568>;
++	};
++
++	timer6_sync_mux: timer6_sync_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&syc_clk_div_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x0570>;
++	};
++
++	timer7_sync_mux: timer7_sync_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&syc_clk_div_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x0578>;
++	};
++
++	timer8_sync_mux: timer8_sync_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&syc_clk_div_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x0580>;
++	};
++
++	dummy_ck: dummy_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <0>;
++	};
++};
++&prm_clocks {
++	sys_clkin_ck: sys_clkin_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&virt_12000000_ck>, <&virt_13000000_ck>, <&virt_16800000_ck>, <&virt_19200000_ck>, <&virt_26000000_ck>, <&virt_27000000_ck>, <&virt_38400000_ck>;
++		reg = <0x0110>;
++		ti,index-starts-at-one;
++	};
++
++	abe_dpll_bypass_clk_mux_ck: abe_dpll_bypass_clk_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x0108>;
++	};
++
++	abe_dpll_refclk_mux_ck: abe_dpll_refclk_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&sys_32k_ck>;
++		reg = <0x010c>;
++	};
++
++	dbgclk_mux_ck: dbgclk_mux_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&sys_clkin_ck>;
++		clock-mult = <1>;
++		clock-div = <1>;
++	};
++
++	l4_wkup_clk_mux_ck: l4_wkup_clk_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&lp_clk_div_ck>;
++		reg = <0x0108>;
++	};
++
++	syc_clk_div_ck: syc_clk_div_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&sys_clkin_ck>;
++		reg = <0x0100>;
++		ti,max-div = <2>;
++	};
++
++	gpio1_dbclk: gpio1_dbclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&sys_32k_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x1838>;
++	};
++
++	dmt1_clk_mux: dmt1_clk_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1840>;
++	};
++
++	usim_ck: usim_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_per_m4x2_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1858>;
++		ti,dividers = <14>, <18>;
++	};
++
++	usim_fclk: usim_fclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&usim_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x1858>;
++	};
++
++	pmd_stm_clock_mux_ck: pmd_stm_clock_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&dpll_core_m6x2_ck>, <&tie_low_clock_ck>;
++		ti,bit-shift = <20>;
++		reg = <0x1a20>;
++	};
++
++	pmd_trace_clk_mux_ck: pmd_trace_clk_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&dpll_core_m6x2_ck>, <&tie_low_clock_ck>;
++		ti,bit-shift = <22>;
++		reg = <0x1a20>;
++	};
++
++	stm_clk_div_ck: stm_clk_div_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&pmd_stm_clock_mux_ck>;
++		ti,bit-shift = <27>;
++		ti,max-div = <64>;
++		reg = <0x1a20>;
++		ti,index-power-of-two;
++	};
++
++	trace_clk_div_div_ck: trace_clk_div_div_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&pmd_trace_clk_mux_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1a20>;
++		ti,dividers = <0>, <1>, <2>, <0>, <4>;
++	};
++
++	trace_clk_div_ck: trace_clk_div_ck {
++		#clock-cells = <0>;
++		compatible = "ti,clkdm-gate-clock";
++		clocks = <&trace_clk_div_div_ck>;
++	};
++};
++
++&prm_clockdomains {
++	emu_sys_clkdm: emu_sys_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&trace_clk_div_ck>;
++	};
++};
++
++&cm2_clocks {
++	per_hsd_byp_clk_mux_ck: per_hsd_byp_clk_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&per_hs_clk_div_ck>;
++		ti,bit-shift = <23>;
++		reg = <0x014c>;
++	};
++
++	dpll_per_ck: dpll_per_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-dpll-clock";
++		clocks = <&sys_clkin_ck>, <&per_hsd_byp_clk_mux_ck>;
++		reg = <0x0140>, <0x0144>, <0x014c>, <0x0148>;
++	};
++
++	dpll_per_m2_ck: dpll_per_m2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_per_ck>;
++		ti,max-div = <31>;
++		reg = <0x0150>;
++		ti,index-starts-at-one;
++	};
++
++	dpll_per_x2_ck: dpll_per_x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-dpll-x2-clock";
++		clocks = <&dpll_per_ck>;
++		reg = <0x0150>;
++	};
++
++	dpll_per_m2x2_ck: dpll_per_m2x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_per_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x0150>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	dpll_per_m3x2_gate_ck: dpll_per_m3x2_gate_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_per_x2_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x0154>;
++	};
++
++	dpll_per_m3x2_div_ck: dpll_per_m3x2_div_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-divider-clock";
++		clocks = <&dpll_per_x2_ck>;
++		ti,max-div = <31>;
++		reg = <0x0154>;
++		ti,index-starts-at-one;
++	};
++
++	dpll_per_m3x2_ck: dpll_per_m3x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&dpll_per_m3x2_gate_ck>, <&dpll_per_m3x2_div_ck>;
++	};
++
++	dpll_per_m4x2_ck: dpll_per_m4x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_per_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x0158>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	dpll_per_m5x2_ck: dpll_per_m5x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_per_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x015c>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	dpll_per_m6x2_ck: dpll_per_m6x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_per_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x0160>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	dpll_per_m7x2_ck: dpll_per_m7x2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_per_x2_ck>;
++		ti,max-div = <31>;
++		ti,autoidle-shift = <8>;
++		reg = <0x0164>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	dpll_usb_ck: dpll_usb_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-dpll-j-type-clock";
++		clocks = <&sys_clkin_ck>, <&usb_hs_clk_div_ck>;
++		reg = <0x0180>, <0x0184>, <0x018c>, <0x0188>;
++	};
++
++	dpll_usb_clkdcoldo_ck: dpll_usb_clkdcoldo_ck {
++		#clock-cells = <0>;
++		compatible = "ti,fixed-factor-clock";
++		clocks = <&dpll_usb_ck>;
++		ti,clock-div = <1>;
++		ti,autoidle-shift = <8>;
++		reg = <0x01b4>;
++		ti,clock-mult = <1>;
++		ti,invert-autoidle-bit;
++	};
++
++	dpll_usb_m2_ck: dpll_usb_m2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_usb_ck>;
++		ti,max-div = <127>;
++		ti,autoidle-shift = <8>;
++		reg = <0x0190>;
++		ti,index-starts-at-one;
++		ti,invert-autoidle-bit;
++	};
++
++	ducati_clk_mux_ck: ducati_clk_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&div_core_ck>, <&dpll_per_m6x2_ck>;
++		reg = <0x0100>;
++	};
++
++	func_12m_fclk: func_12m_fclk {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_per_m2x2_ck>;
++		clock-mult = <1>;
++		clock-div = <16>;
++	};
++
++	func_24m_clk: func_24m_clk {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_per_m2_ck>;
++		clock-mult = <1>;
++		clock-div = <4>;
++	};
++
++	func_24mc_fclk: func_24mc_fclk {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_per_m2x2_ck>;
++		clock-mult = <1>;
++		clock-div = <8>;
++	};
++
++	func_48m_fclk: func_48m_fclk {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_per_m2x2_ck>;
++		reg = <0x0108>;
++		ti,dividers = <4>, <8>;
++	};
++
++	func_48mc_fclk: func_48mc_fclk {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_per_m2x2_ck>;
++		clock-mult = <1>;
++		clock-div = <4>;
++	};
++
++	func_64m_fclk: func_64m_fclk {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_per_m4x2_ck>;
++		reg = <0x0108>;
++		ti,dividers = <2>, <4>;
++	};
++
++	func_96m_fclk: func_96m_fclk {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_per_m2x2_ck>;
++		reg = <0x0108>;
++		ti,dividers = <2>, <4>;
++	};
++
++	init_60m_fclk: init_60m_fclk {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_usb_m2_ck>;
++		reg = <0x0104>;
++		ti,dividers = <1>, <8>;
++	};
++
++	per_abe_nc_fclk: per_abe_nc_fclk {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_abe_m2_ck>;
++		reg = <0x0108>;
++		ti,max-div = <2>;
++	};
++
++	aes1_fck: aes1_fck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&l3_div_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x15a0>;
++	};
++
++	aes2_fck: aes2_fck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&l3_div_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x15a8>;
++	};
++
++	dss_sys_clk: dss_sys_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&syc_clk_div_ck>;
++		ti,bit-shift = <10>;
++		reg = <0x1120>;
++	};
++
++	dss_tv_clk: dss_tv_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&extalt_clkin_ck>;
++		ti,bit-shift = <11>;
++		reg = <0x1120>;
++	};
++
++	dss_dss_clk: dss_dss_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&dpll_per_m5x2_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x1120>;
++		ti,set-rate-parent;
++	};
++
++	dss_48mhz_clk: dss_48mhz_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&func_48mc_fclk>;
++		ti,bit-shift = <9>;
++		reg = <0x1120>;
++	};
++
++	dss_fck: dss_fck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&l3_div_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x1120>;
++	};
++
++	fdif_fck: fdif_fck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_per_m4x2_ck>;
++		ti,bit-shift = <24>;
++		ti,max-div = <4>;
++		reg = <0x1028>;
++		ti,index-power-of-two;
++	};
++
++	gpio2_dbclk: gpio2_dbclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&sys_32k_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x1460>;
++	};
++
++	gpio3_dbclk: gpio3_dbclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&sys_32k_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x1468>;
++	};
++
++	gpio4_dbclk: gpio4_dbclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&sys_32k_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x1470>;
++	};
++
++	gpio5_dbclk: gpio5_dbclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&sys_32k_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x1478>;
++	};
++
++	gpio6_dbclk: gpio6_dbclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&sys_32k_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x1480>;
++	};
++
++	sgx_clk_mux: sgx_clk_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&dpll_core_m7x2_ck>, <&dpll_per_m7x2_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1220>;
++	};
++
++	hsi_fck: hsi_fck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_per_m2x2_ck>;
++		ti,bit-shift = <24>;
++		ti,max-div = <4>;
++		reg = <0x1338>;
++		ti,index-power-of-two;
++	};
++
++	iss_ctrlclk: iss_ctrlclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&func_96m_fclk>;
++		ti,bit-shift = <8>;
++		reg = <0x1020>;
++	};
++
++	mcbsp4_sync_mux_ck: mcbsp4_sync_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&func_96m_fclk>, <&per_abe_nc_fclk>;
++		ti,bit-shift = <25>;
++		reg = <0x14e0>;
++	};
++
++	per_mcbsp4_gfclk: per_mcbsp4_gfclk {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&mcbsp4_sync_mux_ck>, <&pad_clks_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x14e0>;
++	};
++
++	hsmmc1_fclk: hsmmc1_fclk {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&func_64m_fclk>, <&func_96m_fclk>;
++		ti,bit-shift = <24>;
++		reg = <0x1328>;
++	};
++
++	hsmmc2_fclk: hsmmc2_fclk {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&func_64m_fclk>, <&func_96m_fclk>;
++		ti,bit-shift = <24>;
++		reg = <0x1330>;
++	};
++
++	ocp2scp_usb_phy_phy_48m: ocp2scp_usb_phy_phy_48m {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&func_48m_fclk>;
++		ti,bit-shift = <8>;
++		reg = <0x13e0>;
++	};
++
++	sha2md5_fck: sha2md5_fck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&l3_div_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x15c8>;
++	};
++
++	slimbus2_fclk_1: slimbus2_fclk_1 {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&per_abe_24m_fclk>;
++		ti,bit-shift = <9>;
++		reg = <0x1538>;
++	};
++
++	slimbus2_fclk_0: slimbus2_fclk_0 {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&func_24mc_fclk>;
++		ti,bit-shift = <8>;
++		reg = <0x1538>;
++	};
++
++	slimbus2_slimbus_clk: slimbus2_slimbus_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&pad_slimbus_core_clks_ck>;
++		ti,bit-shift = <10>;
++		reg = <0x1538>;
++	};
++
++	smartreflex_core_fck: smartreflex_core_fck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&l4_wkup_clk_mux_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x0638>;
++	};
++
++	smartreflex_iva_fck: smartreflex_iva_fck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&l4_wkup_clk_mux_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x0630>;
++	};
++
++	smartreflex_mpu_fck: smartreflex_mpu_fck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&l4_wkup_clk_mux_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x0628>;
++	};
++
++	cm2_dm10_mux: cm2_dm10_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1428>;
++	};
++
++	cm2_dm11_mux: cm2_dm11_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1430>;
++	};
++
++	cm2_dm2_mux: cm2_dm2_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1438>;
++	};
++
++	cm2_dm3_mux: cm2_dm3_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1440>;
++	};
++
++	cm2_dm4_mux: cm2_dm4_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1448>;
++	};
++
++	cm2_dm9_mux: cm2_dm9_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1450>;
++	};
++
++	usb_host_fs_fck: usb_host_fs_fck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&func_48mc_fclk>;
++		ti,bit-shift = <1>;
++		reg = <0x13d0>;
++	};
++
++	utmi_p1_gfclk: utmi_p1_gfclk {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&init_60m_fclk>, <&xclk60mhsp1_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1358>;
++	};
++
++	usb_host_hs_utmi_p1_clk: usb_host_hs_utmi_p1_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&utmi_p1_gfclk>;
++		ti,bit-shift = <8>;
++		reg = <0x1358>;
++	};
++
++	utmi_p2_gfclk: utmi_p2_gfclk {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&init_60m_fclk>, <&xclk60mhsp2_ck>;
++		ti,bit-shift = <25>;
++		reg = <0x1358>;
++	};
++
++	usb_host_hs_utmi_p2_clk: usb_host_hs_utmi_p2_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&utmi_p2_gfclk>;
++		ti,bit-shift = <9>;
++		reg = <0x1358>;
++	};
++
++	usb_host_hs_utmi_p3_clk: usb_host_hs_utmi_p3_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&init_60m_fclk>;
++		ti,bit-shift = <10>;
++		reg = <0x1358>;
++	};
++
++	usb_host_hs_hsic480m_p1_clk: usb_host_hs_hsic480m_p1_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&dpll_usb_m2_ck>;
++		ti,bit-shift = <13>;
++		reg = <0x1358>;
++	};
++
++	usb_host_hs_hsic60m_p1_clk: usb_host_hs_hsic60m_p1_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&init_60m_fclk>;
++		ti,bit-shift = <11>;
++		reg = <0x1358>;
++	};
++
++	usb_host_hs_hsic60m_p2_clk: usb_host_hs_hsic60m_p2_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&init_60m_fclk>;
++		ti,bit-shift = <12>;
++		reg = <0x1358>;
++	};
++
++	usb_host_hs_hsic480m_p2_clk: usb_host_hs_hsic480m_p2_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&dpll_usb_m2_ck>;
++		ti,bit-shift = <14>;
++		reg = <0x1358>;
++	};
++
++	usb_host_hs_func48mclk: usb_host_hs_func48mclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&func_48mc_fclk>;
++		ti,bit-shift = <15>;
++		reg = <0x1358>;
++	};
++
++	usb_host_hs_fck: usb_host_hs_fck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&init_60m_fclk>;
++		ti,bit-shift = <1>;
++		reg = <0x1358>;
++	};
++
++	otg_60m_gfclk: otg_60m_gfclk {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&utmi_phy_clkout_ck>, <&xclk60motg_ck>;
++		ti,bit-shift = <24>;
++		reg = <0x1360>;
++	};
++
++	usb_otg_hs_xclk: usb_otg_hs_xclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&otg_60m_gfclk>;
++		ti,bit-shift = <8>;
++		reg = <0x1360>;
++	};
++
++	usb_otg_hs_ick: usb_otg_hs_ick {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&l3_div_ck>;
++		ti,bit-shift = <0>;
++		reg = <0x1360>;
++	};
++
++	usb_phy_cm_clk32k: usb_phy_cm_clk32k {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&sys_32k_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x0640>;
++	};
++
++	usb_tll_hs_usb_ch2_clk: usb_tll_hs_usb_ch2_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&init_60m_fclk>;
++		ti,bit-shift = <10>;
++		reg = <0x1368>;
++	};
++
++	usb_tll_hs_usb_ch0_clk: usb_tll_hs_usb_ch0_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&init_60m_fclk>;
++		ti,bit-shift = <8>;
++		reg = <0x1368>;
++	};
++
++	usb_tll_hs_usb_ch1_clk: usb_tll_hs_usb_ch1_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&init_60m_fclk>;
++		ti,bit-shift = <9>;
++		reg = <0x1368>;
++	};
++
++	usb_tll_hs_ick: usb_tll_hs_ick {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&l4_div_ck>;
++		ti,bit-shift = <0>;
++		reg = <0x1368>;
++	};
++};
++
++&cm2_clockdomains {
++	l3_init_clkdm: l3_init_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&dpll_usb_ck>, <&usb_host_fs_fck>;
++	};
++};
++
++&scrm_clocks {
++	auxclk0_src_gate_ck: auxclk0_src_gate_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_core_m3x2_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x0310>;
++	};
++
++	auxclk0_src_mux_ck: auxclk0_src_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-mux-clock";
++		clocks = <&sys_clkin_ck>, <&dpll_core_m3x2_ck>, <&dpll_per_m3x2_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x0310>;
++	};
++
++	auxclk0_src_ck: auxclk0_src_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&auxclk0_src_gate_ck>, <&auxclk0_src_mux_ck>;
++	};
++
++	auxclk0_ck: auxclk0_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&auxclk0_src_ck>;
++		ti,bit-shift = <16>;
++		ti,max-div = <16>;
++		reg = <0x0310>;
++	};
++
++	auxclk1_src_gate_ck: auxclk1_src_gate_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_core_m3x2_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x0314>;
++	};
++
++	auxclk1_src_mux_ck: auxclk1_src_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-mux-clock";
++		clocks = <&sys_clkin_ck>, <&dpll_core_m3x2_ck>, <&dpll_per_m3x2_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x0314>;
++	};
++
++	auxclk1_src_ck: auxclk1_src_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&auxclk1_src_gate_ck>, <&auxclk1_src_mux_ck>;
++	};
++
++	auxclk1_ck: auxclk1_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&auxclk1_src_ck>;
++		ti,bit-shift = <16>;
++		ti,max-div = <16>;
++		reg = <0x0314>;
++	};
++
++	auxclk2_src_gate_ck: auxclk2_src_gate_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_core_m3x2_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x0318>;
++	};
++
++	auxclk2_src_mux_ck: auxclk2_src_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-mux-clock";
++		clocks = <&sys_clkin_ck>, <&dpll_core_m3x2_ck>, <&dpll_per_m3x2_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x0318>;
++	};
++
++	auxclk2_src_ck: auxclk2_src_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&auxclk2_src_gate_ck>, <&auxclk2_src_mux_ck>;
++	};
++
++	auxclk2_ck: auxclk2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&auxclk2_src_ck>;
++		ti,bit-shift = <16>;
++		ti,max-div = <16>;
++		reg = <0x0318>;
++	};
++
++	auxclk3_src_gate_ck: auxclk3_src_gate_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_core_m3x2_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x031c>;
++	};
++
++	auxclk3_src_mux_ck: auxclk3_src_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-mux-clock";
++		clocks = <&sys_clkin_ck>, <&dpll_core_m3x2_ck>, <&dpll_per_m3x2_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x031c>;
++	};
++
++	auxclk3_src_ck: auxclk3_src_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&auxclk3_src_gate_ck>, <&auxclk3_src_mux_ck>;
++	};
++
++	auxclk3_ck: auxclk3_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&auxclk3_src_ck>;
++		ti,bit-shift = <16>;
++		ti,max-div = <16>;
++		reg = <0x031c>;
++	};
++
++	auxclk4_src_gate_ck: auxclk4_src_gate_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_core_m3x2_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x0320>;
++	};
++
++	auxclk4_src_mux_ck: auxclk4_src_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-mux-clock";
++		clocks = <&sys_clkin_ck>, <&dpll_core_m3x2_ck>, <&dpll_per_m3x2_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x0320>;
++	};
++
++	auxclk4_src_ck: auxclk4_src_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&auxclk4_src_gate_ck>, <&auxclk4_src_mux_ck>;
++	};
++
++	auxclk4_ck: auxclk4_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&auxclk4_src_ck>;
++		ti,bit-shift = <16>;
++		ti,max-div = <16>;
++		reg = <0x0320>;
++	};
++
++	auxclk5_src_gate_ck: auxclk5_src_gate_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_core_m3x2_ck>;
++		ti,bit-shift = <8>;
++		reg = <0x0324>;
++	};
++
++	auxclk5_src_mux_ck: auxclk5_src_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-mux-clock";
++		clocks = <&sys_clkin_ck>, <&dpll_core_m3x2_ck>, <&dpll_per_m3x2_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x0324>;
++	};
++
++	auxclk5_src_ck: auxclk5_src_ck {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&auxclk5_src_gate_ck>, <&auxclk5_src_mux_ck>;
++	};
++
++	auxclk5_ck: auxclk5_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&auxclk5_src_ck>;
++		ti,bit-shift = <16>;
++		ti,max-div = <16>;
++		reg = <0x0324>;
++	};
++
++	auxclkreq0_ck: auxclkreq0_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&auxclk0_ck>, <&auxclk1_ck>, <&auxclk2_ck>, <&auxclk3_ck>, <&auxclk4_ck>, <&auxclk5_ck>;
++		ti,bit-shift = <2>;
++		reg = <0x0210>;
++	};
++
++	auxclkreq1_ck: auxclkreq1_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&auxclk0_ck>, <&auxclk1_ck>, <&auxclk2_ck>, <&auxclk3_ck>, <&auxclk4_ck>, <&auxclk5_ck>;
++		ti,bit-shift = <2>;
++		reg = <0x0214>;
++	};
++
++	auxclkreq2_ck: auxclkreq2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&auxclk0_ck>, <&auxclk1_ck>, <&auxclk2_ck>, <&auxclk3_ck>, <&auxclk4_ck>, <&auxclk5_ck>;
++		ti,bit-shift = <2>;
++		reg = <0x0218>;
++	};
++
++	auxclkreq3_ck: auxclkreq3_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&auxclk0_ck>, <&auxclk1_ck>, <&auxclk2_ck>, <&auxclk3_ck>, <&auxclk4_ck>, <&auxclk5_ck>;
++		ti,bit-shift = <2>;
++		reg = <0x021c>;
++	};
++
++	auxclkreq4_ck: auxclkreq4_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&auxclk0_ck>, <&auxclk1_ck>, <&auxclk2_ck>, <&auxclk3_ck>, <&auxclk4_ck>, <&auxclk5_ck>;
++		ti,bit-shift = <2>;
++		reg = <0x0220>;
++	};
++
++	auxclkreq5_ck: auxclkreq5_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&auxclk0_ck>, <&auxclk1_ck>, <&auxclk2_ck>, <&auxclk3_ck>, <&auxclk4_ck>, <&auxclk5_ck>;
++		ti,bit-shift = <2>;
++		reg = <0x0224>;
++	};
++};
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
