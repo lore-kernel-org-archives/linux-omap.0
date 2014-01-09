@@ -1,48 +1,70 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v5 7/9] ARM: dts: omap4-panda: Provide USB PHY clock
-Date: Thu, 9 Jan 2014 17:38:21 +0530
-Message-ID: <1389269303-30465-8-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v5 9/9] ARM: OMAP2+: Remove legacy_init_ehci_clk()
+Date: Thu, 9 Jan 2014 17:38:23 +0530
+Message-ID: <1389269303-30465-10-git-send-email-rogerq@ti.com>
 References: <1389269303-30465-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389269303-30465-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, m.paolino-lrHrjnjw1UfHK3s98zE1ajGjJy/sRE9J@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:34052 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754498AbaAIMJt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Jan 2014 07:09:49 -0500
+In-Reply-To: <1389269303-30465-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: balbi@ti.com, arnd@arndb.de, sre@debian.org, mark.rutland@arm.com, m.paolino@virtualopensystems.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-The USB PHY gets its clock from AUXCLK3. Provide this
-information.
+The necessary clock phandle for the EHCI clock is now provided
+via device tree so we no longer need this legacy method.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap4-panda-common.dtsi | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/pdata-quirks.c | 16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index 88c6a05..50b72966 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -83,12 +83,8 @@
- 		compatible = "usb-nop-xceiv";
- 		reset-gpios = <&gpio2 30 GPIO_ACTIVE_LOW>;   /* gpio_62 */
- 		vcc-supply = <&hsusb1_power>;
--	/**
--	 * FIXME:
--	 * put the right clock phandle here when available
--	 *	clocks = <&auxclk3>;
--	 *	clock-names = "main_clk";
--	 */
-+		clocks = <&auxclk3_ck>;
-+		clock-names = "main_clk";
- 		clock-frequency = <19200000>;
- 	};
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 39f020c..6a4e2d1 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -26,20 +26,6 @@ struct pdata_init {
+ 	void (*fn)(void);
+ };
+ 
+-/*
+- * Create alias for USB host PHY clock.
+- * Remove this when clock phandle can be provided via DT
+- */
+-static void __init __used legacy_init_ehci_clk(char *clkname)
+-{
+-	int ret;
+-
+-	ret = clk_add_alias("main_clk", NULL, clkname, NULL);
+-	if (ret)
+-		pr_err("%s:Failed to add main_clk alias to %s :%d\n",
+-		       __func__, clkname, ret);
+-}
+-
+ #if IS_ENABLED(CONFIG_WL12XX)
+ 
+ static struct wl12xx_platform_data wl12xx __initdata;
+@@ -105,7 +91,6 @@ static void __init omap4_sdp_legacy_init(void)
+ static void __init omap4_panda_legacy_init(void)
+ {
+ 	omap4_panda_display_init_of();
+-	legacy_init_ehci_clk("auxclk3_ck");
+ 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
+ }
+ #endif
+@@ -113,7 +98,6 @@ static void __init omap4_panda_legacy_init(void)
+ #ifdef CONFIG_SOC_OMAP5
+ static void __init omap5_uevm_legacy_init(void)
+ {
+-	legacy_init_ehci_clk("auxclk1_ck");
+ }
+ #endif
  
 -- 
 1.8.3.2
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
