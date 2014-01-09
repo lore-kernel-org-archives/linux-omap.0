@@ -1,190 +1,438 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v5 2/9] mfd: omap-usb-host: Get clocks based on hardware revision
-Date: Thu, 9 Jan 2014 17:38:16 +0530
-Message-ID: <1389269303-30465-3-git-send-email-rogerq@ti.com>
-References: <1389269303-30465-1-git-send-email-rogerq@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 1/2] ARM: omapfb: add coherent dma memory support
+Date: Thu, 9 Jan 2014 13:02:47 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EDB18E1@DBDE04.ent.ti.com>
+References: <1388409550-10720-1-git-send-email-tomi.valkeinen@ti.com>
+ <1388409550-10720-2-git-send-email-tomi.valkeinen@ti.com>
+ <20140107235951.GH5074@atomide.com> <52CD5D13.9090806@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EDB11F5@DBDE04.ent.ti.com>
+ <52CE5C1A.3070603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389269303-30465-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, m.paolino-lrHrjnjw1UfHK3s98zE1ajGjJy/sRE9J@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:35616 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751276AbaAINDY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jan 2014 08:03:24 -0500
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Ivaylo Dimitrov <freemangordon@abv.bg>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-Not all revisions have all the clocks so get the necessary clocks
-based on hardware revision.
 
-This should avoid un-necessary clk_get failure messages that were
-observed earlier.
 
-Be more strict and always fail on clk_get() error.
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Thursday, January 09, 2014 2:01 PM
+> To: Valkeinen, Tomi; Ivaylo Dimitrov
+> Cc: Tony Lindgren; linux-omap@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; linux-fbdev@vger.kernel.org
+> Subject: RE: [PATCH 1/2] ARM: omapfb: add coherent dma memory support
+> 
+> 
+> > -----Original Message-----
+> > From: Valkeinen, Tomi
+> > Sent: Thursday, January 09, 2014 1:52 PM
+> > To: Hiremath, Vaibhav; Ivaylo Dimitrov
+> > Cc: Tony Lindgren; linux-omap@vger.kernel.org; linux-arm-
+> > kernel@lists.infradead.org; linux-fbdev@vger.kernel.org
+> > Subject: Re: [PATCH 1/2] ARM: omapfb: add coherent dma memory support
+> >
+> > On 2014-01-09 07:06, Hiremath, Vaibhav wrote:
+> >
+> > > I am seeing underflow issue on AM43x device if I use omapfb_vram
+> argument.
+> > > Did you see this on OMAP?
+> > >
+> > > I am using "omapfb_vram=10M@0xA0000000", and I believe it is correct
+> > > way
+> > of usage.
+> >
+> > Hmm ok... The AM4x seems to have issues anyway, as we're seeing
+> > underflows easily in other situations also.
+> >
+> > Well, there's a small difference in the allocation. The normal dma
+> > alloc uses
+> > dma_alloc_attrs() and passes DMA_ATTR_WRITE_COMBINE as a flag, whereas
+> > allocating from the absolute address just uses the piece of memory. I
+> > couldn't find how to set write-combine for the abs memory area.
+> >
+> > Then again, that's for CPU caching, so I don't see why it would affect
+> > DSS as such (but that's still something we should measure, cpu
+> > read/write perf for normal and abs allocation).
+> >
+> > The only thought I have is that somehow the reserved memory area is
+> > missing some configuration that is done for the rest of the memory.
+> > But that's purely a guess, this is totally out of my area of expertise...
+> >
+> > Vaibhav, just to be sure, can you run both with normal dma_alloc and
+> > with the reserve, and verify that the dispc register dumps are the same?
+> > I don't see how they could be different, but just to be sure.
+> >
+> 
+> Will check and update you shortly.
+> 
 
-CC: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-CC: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- drivers/mfd/omap-usb-host.c | 93 +++++++++++++++++++++++++++++++--------------
- 1 file changed, 64 insertions(+), 29 deletions(-)
+I checked both the DSS configuration in both scenarios and they look same to me.
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 1c9bca2..7202cc6 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -92,7 +92,6 @@
- #define is_ehci_tll_mode(x)	(x == OMAP_EHCI_PORT_MODE_TLL)
- #define is_ehci_hsic_mode(x)	(x == OMAP_EHCI_PORT_MODE_HSIC)
- 
--
- struct usbhs_hcd_omap {
- 	int				nports;
- 	struct clk			**utmi_clk;
-@@ -665,22 +664,41 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 		goto err_mem;
- 	}
- 
--	need_logic_fck = false;
-+	/* Set all clocks as invalid to begin with */
-+	omap->ehci_logic_fck = omap->init_60m_fclk = ERR_PTR(-EINVAL);
-+	omap->utmi_p1_gfclk = omap->utmi_p2_gfclk = ERR_PTR(-EINVAL);
-+	omap->xclk60mhsp1_ck = omap->xclk60mhsp2_ck = ERR_PTR(-EINVAL);
-+
- 	for (i = 0; i < omap->nports; i++) {
--		if (is_ehci_phy_mode(i) || is_ehci_tll_mode(i) ||
--			is_ehci_hsic_mode(i))
--				need_logic_fck |= true;
-+		omap->utmi_clk[i] = ERR_PTR(-EINVAL);
-+		omap->hsic480m_clk[i] = ERR_PTR(-EINVAL);
-+		omap->hsic60m_clk[i] = ERR_PTR(-EINVAL);
- 	}
- 
--	omap->ehci_logic_fck = ERR_PTR(-EINVAL);
--	if (need_logic_fck) {
--		omap->ehci_logic_fck = devm_clk_get(dev, "ehci_logic_fck");
--		if (IS_ERR(omap->ehci_logic_fck)) {
--			ret = PTR_ERR(omap->ehci_logic_fck);
--			dev_dbg(dev, "ehci_logic_fck failed:%d\n", ret);
-+	/* for OMAP3 i.e. USBHS REV1 */
-+	if (omap->usbhs_rev == OMAP_USBHS_REV1) {
-+		need_logic_fck = false;
-+		for (i = 0; i < omap->nports; i++) {
-+			if (is_ehci_phy_mode(pdata->port_mode[i]) ||
-+			    is_ehci_tll_mode(pdata->port_mode[i]) ||
-+			    is_ehci_hsic_mode(pdata->port_mode[i]))
-+
-+				need_logic_fck |= true;
-+		}
-+
-+		if (need_logic_fck) {
-+			omap->ehci_logic_fck = clk_get(dev, "usbhost_120m_fck");
-+			if (IS_ERR(omap->ehci_logic_fck)) {
-+				ret = PTR_ERR(omap->ehci_logic_fck);
-+				dev_err(dev, "usbhost_120m_fck failed:%d\n",
-+					ret);
-+				goto err_mem;
-+			}
- 		}
-+		goto initialize;
- 	}
- 
-+	/* for OMAP4+ i.e. USBHS REV2+ */
- 	omap->utmi_p1_gfclk = devm_clk_get(dev, "utmi_p1_gfclk");
- 	if (IS_ERR(omap->utmi_p1_gfclk)) {
- 		ret = PTR_ERR(omap->utmi_p1_gfclk);
-@@ -728,54 +746,71 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 		 * them
- 		 */
- 		omap->utmi_clk[i] = devm_clk_get(dev, clkname);
--		if (IS_ERR(omap->utmi_clk[i]))
--			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
--				clkname, PTR_ERR(omap->utmi_clk[i]));
-+		if (IS_ERR(omap->utmi_clk[i])) {
-+			ret = PTR_ERR(omap->utmi_clk[i]);
-+			dev_err(dev, "Failed to get clock : %s : %d\n",
-+				clkname, ret);
-+			goto err_mem;
-+		}
- 
- 		snprintf(clkname, sizeof(clkname),
- 				"usb_host_hs_hsic480m_p%d_clk", i + 1);
- 		omap->hsic480m_clk[i] = devm_clk_get(dev, clkname);
--		if (IS_ERR(omap->hsic480m_clk[i]))
--			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
--				clkname, PTR_ERR(omap->hsic480m_clk[i]));
-+		if (IS_ERR(omap->hsic480m_clk[i])) {
-+			ret = PTR_ERR(omap->hsic480m_clk[i]);
-+			dev_err(dev, "Failed to get clock : %s : %d\n",
-+				clkname, ret);
-+			goto err_mem;
-+		}
- 
- 		snprintf(clkname, sizeof(clkname),
- 				"usb_host_hs_hsic60m_p%d_clk", i + 1);
- 		omap->hsic60m_clk[i] = devm_clk_get(dev, clkname);
--		if (IS_ERR(omap->hsic60m_clk[i]))
--			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
--				clkname, PTR_ERR(omap->hsic60m_clk[i]));
-+		if (IS_ERR(omap->hsic60m_clk[i])) {
-+			ret = PTR_ERR(omap->hsic60m_clk[i]);
-+			dev_err(dev, "Failed to get clock : %s : %d\n",
-+				clkname, ret);
-+			goto err_mem;
-+		}
- 	}
- 
- 	if (is_ehci_phy_mode(pdata->port_mode[0])) {
--		/* for OMAP3, clk_set_parent fails */
- 		ret = clk_set_parent(omap->utmi_p1_gfclk,
- 					omap->xclk60mhsp1_ck);
--		if (ret != 0)
--			dev_dbg(dev, "xclk60mhsp1_ck set parent failed: %d\n",
-+		if (ret != 0) {
-+			dev_err(dev, "xclk60mhsp1_ck set parent failed: %d\n",
- 					ret);
-+			goto err_mem;
-+		}
- 	} else if (is_ehci_tll_mode(pdata->port_mode[0])) {
- 		ret = clk_set_parent(omap->utmi_p1_gfclk,
- 					omap->init_60m_fclk);
--		if (ret != 0)
--			dev_dbg(dev, "P0 init_60m_fclk set parent failed: %d\n",
-+		if (ret != 0) {
-+			dev_err(dev, "P0 init_60m_fclk set parent failed: %d\n",
- 					ret);
-+			goto err_mem;
-+		}
- 	}
- 
- 	if (is_ehci_phy_mode(pdata->port_mode[1])) {
- 		ret = clk_set_parent(omap->utmi_p2_gfclk,
- 					omap->xclk60mhsp2_ck);
--		if (ret != 0)
--			dev_dbg(dev, "xclk60mhsp2_ck set parent failed: %d\n",
-+		if (ret != 0) {
-+			dev_err(dev, "xclk60mhsp2_ck set parent failed: %d\n",
- 					ret);
-+			goto err_mem;
-+		}
- 	} else if (is_ehci_tll_mode(pdata->port_mode[1])) {
- 		ret = clk_set_parent(omap->utmi_p2_gfclk,
- 						omap->init_60m_fclk);
--		if (ret != 0)
--			dev_dbg(dev, "P1 init_60m_fclk set parent failed: %d\n",
-+		if (ret != 0) {
-+			dev_err(dev, "P1 init_60m_fclk set parent failed: %d\n",
- 					ret);
-+			goto err_mem;
-+		}
- 	}
- 
-+initialize:
- 	omap_usbhs_init(dev);
- 
- 	if (dev->of_node) {
--- 
-1.8.3.2
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+With normal dma_alloc:
+===================
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~# cat /proc/cmdline
+console=ttyO0,115200n8 root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait mem=128M consoleblank=0 clocksource=gp_timer consoleblank=0 earlyprintk
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~# cat /sys/kernel/debug/omapdss/dss
+DSS_REVISION                        00000020
+DSS_SYSCONFIG                       00000001
+DSS_SYSSTATUS                       00000001
+DSS_CONTROL                         00000018
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~# cat /sys/kernel/debug/omapdss/clk
+- DSS -
+DSS_FCK (DSS_FCLK1) = 198000000
+- DISPC -
+dispc fclk source = DSS_FCK (DSS_FCLK1)
+fck             198000000
+- LCD -
+LCD clk source = DSS_FCK (DSS_FCLK1)
+lck             198000000       lck div 1
+pck             33000000        pck div 6
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~# cat /sys/kernel/debug/omapdss/dispc_irq
+period 44780 ms
+irqs 1
+FRAMEDONE                     0
+VSYNC                         1
+EVSYNC_EVEN                   1
+EVSYNC_ODD                    1
+ACBIAS_COUNT_STAT             0
+PROG_LINE_NUM                 1
+GFX_FIFO_UNDERFLOW            0
+GFX_END_WIN                   1
+PAL_GAMMA_MASK                0
+OCP_ERR                       0
+VID1_FIFO_UNDERFLOW           0
+VID1_END_WIN                  0
+VID2_FIFO_UNDERFLOW           0
+VID2_END_WIN                  0
+SYNC_LOST                     0
+SYNC_LOST_DIGIT               0
+WAKEUP                        0
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~# cat /sys/kernel/debug/omapdss/dispc
+DISPC_REVISION                                     00000030
+DISPC_SYSCONFIG                                    00002011
+DISPC_SYSSTATUS                                    00000001
+DISPC_IRQSTATUS                                    000000ae
+DISPC_IRQENABLE                                    0000d640
+DISPC_CONTROL                                      00018309
+DISPC_CONFIG                                       00000204
+DISPC_CAPABLE                                      000003ff
+DISPC_LINE_STATUS                                  000000b1
+DISPC_LINE_NUMBER                                  00000000
+DISPC_GLOBAL_ALPHA                                 000000ff
+DISPC_DEFAULT_COLOR(LCD)                           00000000
+DISPC_TRANS_COLOR(LCD)                             00000000
+DISPC_SIZE_MGR(LCD)                                01df031f
+DISPC_DEFAULT_COLOR(LCD)                           00000000
+DISPC_TRANS_COLOR(LCD)                             00000000
+DISPC_TIMING_H(LCD)                                00f0d11d
+DISPC_TIMING_V(LCD)                                00a0160c
+DISPC_POL_FREQ(LCD)                                00003000
+DISPC_DIVISORo(LCD)                                00010006
+DISPC_SIZE_MGR(LCD)                                01df031f
+DISPC_DATA_CYCLE1(LCD)                             00000000
+DISPC_DATA_CYCLE2(LCD)                             00000000
+DISPC_DATA_CYCLE3(LCD)                             00000000
+DISPC_CPR_COEF_R(LCD)                              00000000
+DISPC_CPR_COEF_G(LCD)                              00000000
+DISPC_CPR_COEF_B(LCD)                              00000000
+DISPC_OVL_BA0(GFX)                                 86900000
+DISPC_OVL_BA1(GFX)                                 86900000
+DISPC_OVL_POSITION(GFX)                            00000000
+DISPC_OVL_SIZE(GFX)                                01df031f
+DISPC_OVL_ATTRIBUTES(GFX)                          00000091
+DISPC_OVL_FIFO_THRESHOLD(GFX)                      03ff03c0
+DISPC_OVL_FIFO_SIZE_STATUS(GFX)                    00000400
+DISPC_OVL_ROW_INC(GFX)                             00000001
+DISPC_OVL_PIXEL_INC(GFX)                           00000001
+DISPC_OVL_PRELOAD(GFX)                             00000100
+DISPC_OVL_WINDOW_SKIP(GFX)                         00000000
+DISPC_OVL_TABLE_BA(GFX)                            00000000
+DISPC_OVL_BA0(VID1)                                00000000
+DISPC_OVL_BA1(VID1)                                00000000
+DISPC_OVL_POSITION(VID1)                           00000000
+DISPC_OVL_SIZE(VID1)                               00000000
+DISPC_OVL_ATTRIBUTES(VID1)                         00008000
+DISPC_OVL_FIFO_THRESHOLD(VID1)                     03ff03c0
+DISPC_OVL_FIFO_SIZE_STATUS(VID1)                   00000400
+DISPC_OVL_ROW_INC(VID1)                            00000001
+DISPC_OVL_PIXEL_INC(VID1)                          00000001
+DISPC_OVL_PRELOAD(VID1)                            00000100
+DISPC_OVL_FIR(VID1)                                00000000
+DISPC_OVL_PICTURE_SIZE(VID1)                       00000000
+DISPC_OVL_ACCU0(VID1)                              00000000
+DISPC_OVL_ACCU1(VID1)                              00000000
+DISPC_OVL_PRELOAD(VID1)                            00000100
+DISPC_OVL_BA0(VID2)                                00000000
+DISPC_OVL_BA1(VID2)                                00000000
+DISPC_OVL_POSITION(VID2)                           00000000
+DISPC_OVL_SIZE(VID2)                               00000000
+DISPC_OVL_ATTRIBUTES(VID2)                         00008000
+DISPC_OVL_FIFO_THRESHOLD(VID2)                     03ff03c0
+DISPC_OVL_FIFO_SIZE_STATUS(VID2)                   00000400
+DISPC_OVL_ROW_INC(VID2)                            00000001
+DISPC_OVL_PIXEL_INC(VID2)                          00000001
+DISPC_OVL_PRELOAD(VID2)                            00000100
+DISPC_OVL_FIR(VID2)                                00000000
+DISPC_OVL_PICTURE_SIZE(VID2)                       00000000
+DISPC_OVL_ACCU0(VID2)                              00000000
+DISPC_OVL_ACCU1(VID2)                              00000000
+DISPC_OVL_PRELOAD(VID2)                            00000100
+DISPC_OVL_FIR_COEF_H_0(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_1(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_2(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_3(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_4(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_5(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_6(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_7(VID1)                       00000000
+DISPC_OVL_FIR_COEF_HV_0(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_1(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_2(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_3(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_4(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_5(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_6(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_7(VID1)                      00000000
+DISPC_OVL_CONV_COEF_0(VID1)                        0199012a
+DISPC_OVL_CONV_COEF_1(VID1)                        012a0000
+DISPC_OVL_CONV_COEF_2(VID1)                        079c0730
+DISPC_OVL_CONV_COEF_3(VID1)                        0000012a
+DISPC_OVL_CONV_COEF_4(VID1)                        00000205
+DISPC_OVL_FIR_COEF_V_0(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_1(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_2(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_3(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_4(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_5(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_6(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_7(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_0(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_1(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_2(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_3(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_4(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_5(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_6(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_7(VID2)                       00000000
+DISPC_OVL_FIR_COEF_HV_0(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_1(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_2(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_3(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_4(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_5(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_6(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_7(VID2)                      00000000
+DISPC_OVL_CONV_COEF_0(VID2)                        0199012a
+DISPC_OVL_CONV_COEF_1(VID2)                        012a0000
+DISPC_OVL_CONV_COEF_2(VID2)                        079c0730
+DISPC_OVL_CONV_COEF_3(VID2)                        0000012a
+DISPC_OVL_CONV_COEF_4(VID2)                        00000205
+DISPC_OVL_FIR_COEF_V_0(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_1(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_2(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_3(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_4(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_5(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_6(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_7(VID2)                       00000000
+root@am43xx-epos-evm:~#
+
+
+
+
+With Reserved memory for FB:
+============================
+root@am43xx-epos-evm:~# cat /proc/cmdline
+console=ttyO0,115200n8 root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait mem=128M consoleblank=0 clocksource=gp_timer consoleblank=0 earlyprintk omapfb_vram=10M@0xA0000000
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~# cat /sys/kernel/debug/omapdss/dss
+DSS_REVISION                        00000020
+DSS_SYSCONFIG                       00000001
+DSS_SYSSTATUS                       00000001
+DSS_CONTROL                         00000018
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~# cat /sys/kernel/debug/omapdss/clk
+- DSS -
+DSS_FCK (DSS_FCLK1) = 198000000
+- DISPC -
+dispc fclk source = DSS_FCK (DSS_FCLK1)
+fck             198000000
+- LCD -
+LCD clk source = DSS_FCK (DSS_FCLK1)
+lck             198000000       lck div 1
+pck             33000000        pck div 6
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~# cat /sys/kernel/debug/omapdss/dispc_irq
+period 48010 ms
+irqs 2
+FRAMEDONE                     0
+VSYNC                         2
+EVSYNC_EVEN                   2
+EVSYNC_ODD                    2
+ACBIAS_COUNT_STAT             0
+PROG_LINE_NUM                 2
+GFX_FIFO_UNDERFLOW            2
+GFX_END_WIN                   2
+PAL_GAMMA_MASK                0
+OCP_ERR                       0
+VID1_FIFO_UNDERFLOW           0
+VID1_END_WIN                  0
+VID2_FIFO_UNDERFLOW           0
+VID2_END_WIN                  0
+SYNC_LOST                     0
+
+SYNC_LOST_DIGIT               0
+WAKEUP                        0
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~#
+root@am43xx-epos-evm:~# cat /sys/kernel/debug/omapdss/dispc
+DISPC_REVISION                                     00000030
+DISPC_SYSCONFIG                                    00002011
+DISPC_SYSSTATUS                                    00000001
+DISPC_IRQSTATUS                                    0000002e
+DISPC_IRQENABLE                                    0000d640
+DISPC_CONTROL                                      00018309
+DISPC_CONFIG                                       00000204
+DISPC_CAPABLE                                      000003ff
+DISPC_LINE_STATUS                                  0000011d
+DISPC_LINE_NUMBER                                  00000000
+DISPC_GLOBAL_ALPHA                                 000000ff
+DISPC_DEFAULT_COLOR(LCD)                           00000000
+DISPC_TRANS_COLOR(LCD)                             00000000
+DISPC_SIZE_MGR(LCD)                                01df031f
+DISPC_DEFAULT_COLOR(LCD)                           00000000
+DISPC_TRANS_COLOR(LCD)                             00000000
+DISPC_TIMING_H(LCD)                                00f0d11d
+DISPC_TIMING_V(LCD)                                00a0160c
+DISPC_POL_FREQ(LCD)                                00003000
+DISPC_DIVISORo(LCD)                                00010006
+DISPC_SIZE_MGR(LCD)                                01df031f
+DISPC_DATA_CYCLE1(LCD)                             00000000
+DISPC_DATA_CYCLE2(LCD)                             00000000
+DISPC_DATA_CYCLE3(LCD)                             00000000
+DISPC_CPR_COEF_R(LCD)                              00000000
+DISPC_CPR_COEF_G(LCD)                              00000000
+DISPC_CPR_COEF_B(LCD)                              00000000
+DISPC_OVL_BA0(GFX)                                 a0000000
+DISPC_OVL_BA1(GFX)                                 a0000000
+DISPC_OVL_POSITION(GFX)                            00000000
+DISPC_OVL_SIZE(GFX)                                01df031f
+DISPC_OVL_ATTRIBUTES(GFX)                          00000090
+DISPC_OVL_FIFO_THRESHOLD(GFX)                      03ff03c0
+DISPC_OVL_FIFO_SIZE_STATUS(GFX)                    00000400
+DISPC_OVL_ROW_INC(GFX)                             00000001
+DISPC_OVL_PIXEL_INC(GFX)                           00000001
+DISPC_OVL_PRELOAD(GFX)                             00000100
+DISPC_OVL_WINDOW_SKIP(GFX)                         00000000
+DISPC_OVL_TABLE_BA(GFX)                            00000000
+DISPC_OVL_BA0(VID1)                                00000000
+DISPC_OVL_BA1(VID1)                                00000000
+DISPC_OVL_POSITION(VID1)                           00000000
+DISPC_OVL_SIZE(VID1)                               00000000
+DISPC_OVL_ATTRIBUTES(VID1)                         00008000
+DISPC_OVL_FIFO_THRESHOLD(VID1)                     03ff03c0
+DISPC_OVL_FIFO_SIZE_STATUS(VID1)                   00000400
+DISPC_OVL_ROW_INC(VID1)                            00000001
+DISPC_OVL_PIXEL_INC(VID1)                          00000001
+DISPC_OVL_PRELOAD(VID1)                            00000100
+DISPC_OVL_FIR(VID1)                                00000000
+DISPC_OVL_PICTURE_SIZE(VID1)                       00000000
+DISPC_OVL_ACCU0(VID1)                              00000000
+DISPC_OVL_ACCU1(VID1)                              00000000
+DISPC_OVL_PRELOAD(VID1)                            00000100
+DISPC_OVL_BA0(VID2)                                00000000
+DISPC_OVL_BA1(VID2)                                00000000
+DISPC_OVL_POSITION(VID2)                           00000000
+DISPC_OVL_SIZE(VID2)                               00000000
+DISPC_OVL_ATTRIBUTES(VID2)                         00008000
+DISPC_OVL_FIFO_THRESHOLD(VID2)                     03ff03c0
+DISPC_OVL_FIFO_SIZE_STATUS(VID2)                   00000400
+DISPC_OVL_ROW_INC(VID2)                            00000001
+DISPC_OVL_PIXEL_INC(VID2)                          00000001
+DISPC_OVL_PRELOAD(VID2)                            00000100
+DISPC_OVL_FIR(VID2)                                00000000
+DISPC_OVL_PICTURE_SIZE(VID2)                       00000000
+DISPC_OVL_ACCU0(VID2)                              00000000
+DISPC_OVL_ACCU1(VID2)                              00000000
+DISPC_OVL_PRELOAD(VID2)                            00000100
+DISPC_OVL_FIR_COEF_H_0(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_1(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_2(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_3(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_4(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_5(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_6(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_7(VID1)                       00000000
+DISPC_OVL_FIR_COEF_HV_0(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_1(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_2(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_3(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_4(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_5(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_6(VID1)                      00000000
+DISPC_OVL_FIR_COEF_HV_7(VID1)                      00000000
+DISPC_OVL_CONV_COEF_0(VID1)                        0199012a
+DISPC_OVL_CONV_COEF_1(VID1)                        012a0000
+DISPC_OVL_CONV_COEF_2(VID1)                        079c0730
+DISPC_OVL_CONV_COEF_3(VID1)                        0000012a
+DISPC_OVL_CONV_COEF_4(VID1)                        00000205
+DISPC_OVL_FIR_COEF_V_0(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_1(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_2(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_3(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_4(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_5(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_6(VID1)                       00000000
+DISPC_OVL_FIR_COEF_V_7(VID1)                       00000000
+DISPC_OVL_FIR_COEF_H_0(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_1(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_2(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_3(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_4(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_5(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_6(VID2)                       00000000
+DISPC_OVL_FIR_COEF_H_7(VID2)                       00000000
+DISPC_OVL_FIR_COEF_HV_0(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_1(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_2(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_3(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_4(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_5(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_6(VID2)                      00000000
+DISPC_OVL_FIR_COEF_HV_7(VID2)                      00000000
+DISPC_OVL_CONV_COEF_0(VID2)                        0199012a
+DISPC_OVL_CONV_COEF_1(VID2)                        012a0000
+DISPC_OVL_CONV_COEF_2(VID2)                        079c0730
+DISPC_OVL_CONV_COEF_3(VID2)                        0000012a
+DISPC_OVL_CONV_COEF_4(VID2)                        00000205
+DISPC_OVL_FIR_COEF_V_0(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_1(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_2(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_3(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_4(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_5(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_6(VID2)                       00000000
+DISPC_OVL_FIR_COEF_V_7(VID2)                       00000000
+root@am43xx-epos-evm:~#
+
