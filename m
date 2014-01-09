@@ -1,15 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/4] omap device tree fixes for v3.14 merge window
-Date: Wed, 8 Jan 2014 17:20:54 -0800
-Message-ID: <20140109012053.GJ31323@atomide.com>
+Subject: [GIT PULL 3/4] trivial omap big endian changes for v3.14 merge window
+Date: Wed, 8 Jan 2014 17:21:40 -0800
+Message-ID: <20140109012139.GK31323@atomide.com>
 References: <20140109011940.GI31323@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64720 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10290 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbaAIBU6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 20:20:58 -0500
+	with ESMTP id S1750832AbaAIBVp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jan 2014 20:21:45 -0500
 Content-Disposition: inline
 In-Reply-To: <20140109011940.GI31323@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -17,58 +17,74 @@ List-Id: linux-omap@vger.kernel.org
 To: arm@kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The following changes since commit adfe9361b236154215d4b0fc8b6d79995394b15c:
+The following changes since commit 413541dd66d51f791a0b169d9b9014e4f56be13c:
 
-  ARM: dts: Add basic devices on am3517-evm (2013-12-08 14:15:46 -0800)
+  Linux 3.13-rc5 (2013-12-22 13:08:32 -0800)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.14/dt-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.14/be-signed
 
-for you to fetch changes up to e37e1cb0ee231ffdc9b5ef1da63a0c7e1077c603:
+for you to fetch changes up to fc6ca98c81bf0ea8b46064915b5947b971594101:
 
-  ARM: dts: OMAP2: fix interrupt number for rng (2014-01-08 10:24:44 -0800)
-
-----------------------------------------------------------------
-Split omap3 core padconf area into two as some of the registers in
-the padconf area are not accessible and used for other devices.
-Also fix the interrupt number for omap2 RNG, and add basic support
-for sbc-3xxx with cm-t3730.
-
-Note that the minor merge conflicts for omap_hwmod_2xxx_ipblock_data.c
-can be solved by just dropping the legacy hwmod data for interrupts
-for v3.14.
+  ARM: OMAP: debug-leds: raw read and write endian fix (2014-01-07 16:09:45 -0800)
 
 ----------------------------------------------------------------
-Laurent Pinchart (1):
-      ARM: dts: Split omap3 pinmux core device
+Trivial search and replace of read and write functions to allow
+further patches to make omaps work also in big endian mode.
 
-Suman Anna (1):
-      ARM: dts: OMAP2: fix interrupt number for rng
+----------------------------------------------------------------
+Victor Kamensky (4):
+      ARM: OMAP2+: raw read and write endian fix
+      ARM: OMAP: dmtimer: raw read and write endian fix
+      ARM: OMAP: counter-32k: raw read and write endian fix
+      ARM: OMAP: debug-leds: raw read and write endian fix
 
-Tony Lindgren (2):
-      ARM: dts: Add support for sbc-3xxx with cm-t3730
-      ARM: dts: Add omap specific pinctrl defines to use padconf addresses
-
- arch/arm/boot/dts/Makefile            |   2 +
- arch/arm/boot/dts/omap2.dtsi          |   2 +-
- arch/arm/boot/dts/omap3-beagle-xm.dts |  40 ++++++++-----
- arch/arm/boot/dts/omap3-beagle.dts    |  40 ++++++++-----
- arch/arm/boot/dts/omap3-cm-t3730.dts  | 104 ++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap3-cm-t3x30.dtsi |  95 +++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap3-igep.dtsi     |   2 -
- arch/arm/boot/dts/omap3-igep0020.dts  |  52 +++++++++--------
- arch/arm/boot/dts/omap3-igep0030.dts  |  10 ++--
- arch/arm/boot/dts/omap3-sb-t35.dtsi   |  40 +++++++++++++
- arch/arm/boot/dts/omap3-sbc-t3730.dts |  30 ++++++++++
- arch/arm/boot/dts/omap3-zoom3.dts     |  23 +++++---
- arch/arm/boot/dts/omap3.dtsi          |   2 +-
- arch/arm/boot/dts/omap34xx.dtsi       |  13 +++++
- arch/arm/boot/dts/omap36xx.dtsi       |  11 ++++
- arch/arm/mach-omap2/pdata-quirks.c    |  31 ++++++++++
- include/dt-bindings/pinctrl/omap.h    |  20 +++++++
- 17 files changed, 450 insertions(+), 67 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-cm-t3730.dts
- create mode 100644 arch/arm/boot/dts/omap3-cm-t3x30.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-sb-t35.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-sbc-t3730.dts
+ arch/arm/mach-omap2/board-flash.c         |  4 +--
+ arch/arm/mach-omap2/clkt2xxx_dpllcore.c   |  2 +-
+ arch/arm/mach-omap2/clkt2xxx_osc.c        |  8 +++---
+ arch/arm/mach-omap2/clkt2xxx_sys.c        |  2 +-
+ arch/arm/mach-omap2/clkt_clksel.c         | 10 ++++----
+ arch/arm/mach-omap2/clkt_dpll.c           |  6 ++---
+ arch/arm/mach-omap2/clkt_iclk.c           |  8 +++---
+ arch/arm/mach-omap2/clock.c               | 16 ++++++------
+ arch/arm/mach-omap2/clock36xx.c           |  6 ++---
+ arch/arm/mach-omap2/cm2xxx_3xxx.h         |  4 +--
+ arch/arm/mach-omap2/cm33xx.c              |  4 +--
+ arch/arm/mach-omap2/cm3xxx.c              |  8 +++---
+ arch/arm/mach-omap2/cm44xx.c              |  8 +++---
+ arch/arm/mach-omap2/cminst44xx.c          |  4 +--
+ arch/arm/mach-omap2/control.c             | 20 +++++++--------
+ arch/arm/mach-omap2/dma.c                 |  4 +--
+ arch/arm/mach-omap2/dpll3xxx.c            | 32 +++++++++++------------
+ arch/arm/mach-omap2/dpll44xx.c            | 12 ++++-----
+ arch/arm/mach-omap2/gpmc.c                |  8 +++---
+ arch/arm/mach-omap2/id.c                  |  2 +-
+ arch/arm/mach-omap2/irq.c                 |  4 +--
+ arch/arm/mach-omap2/mux.c                 |  8 +++---
+ arch/arm/mach-omap2/omap-hotplug.c        |  4 +--
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c | 18 ++++++-------
+ arch/arm/mach-omap2/omap-smp.c            |  4 +--
+ arch/arm/mach-omap2/omap-wakeupgen.c      | 42 +++++++++++++++----------------
+ arch/arm/mach-omap2/omap4-common.c        | 16 ++++++------
+ arch/arm/mach-omap2/omap_hwmod.c          | 10 ++++----
+ arch/arm/mach-omap2/omap_phy_internal.c   |  6 ++---
+ arch/arm/mach-omap2/prcm_mpu44xx.c        |  4 +--
+ arch/arm/mach-omap2/prm2xxx.h             |  2 +-
+ arch/arm/mach-omap2/prm2xxx_3xxx.h        |  4 +--
+ arch/arm/mach-omap2/prm33xx.c             |  4 +--
+ arch/arm/mach-omap2/prm3xxx.h             |  2 +-
+ arch/arm/mach-omap2/prm44xx.c             |  4 +--
+ arch/arm/mach-omap2/prminst44xx.c         |  4 +--
+ arch/arm/mach-omap2/sdrc.h                |  8 +++---
+ arch/arm/mach-omap2/sdrc2xxx.c            |  4 +--
+ arch/arm/mach-omap2/sr_device.c           |  2 +-
+ arch/arm/mach-omap2/sram.c                | 16 ++++++------
+ arch/arm/mach-omap2/timer.c               |  8 +++---
+ arch/arm/mach-omap2/vc.c                  |  4 +--
+ arch/arm/mach-omap2/wd_timer.c            |  8 +++---
+ arch/arm/plat-omap/counter_32k.c          |  6 ++---
+ arch/arm/plat-omap/debug-leds.c           | 14 +++++------
+ arch/arm/plat-omap/dmtimer.c              |  8 +++---
+ arch/arm/plat-omap/include/plat/dmtimer.h | 16 ++++++------
+ 47 files changed, 199 insertions(+), 199 deletions(-)
