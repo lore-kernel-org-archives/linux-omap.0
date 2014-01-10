@@ -1,43 +1,107 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH] ARM: AM43x: hwmod data: register spinlock OCP interface
-Date: Fri, 10 Jan 2014 17:44:24 -0600
-Message-ID: <1389397464-13345-1-git-send-email-s-anna@ti.com>
+From: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFCv4 05/11] Documentation: DT: omap-ssi binding documentation
+Date: Sat, 11 Jan 2014 00:52:09 +0100
+Message-ID: <20140110235208.GA16048@earth.universe>
+References: <1387150085-23173-1-git-send-email-sre@debian.org>
+ <1387150085-23173-6-git-send-email-sre@debian.org>
+ <20131219190344.GW27438@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56454 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751737AbaAJXod (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Jan 2014 18:44:33 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20131219190344.GW27438-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Carlos Chinea <cch.devel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, =?iso-8859-1?Q?'Beno=EEt?= Cousson' <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon-uiMcrn6V0Vs@public.gmane.org>, Joni Lapilainen <joni.lapilainen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Suman Anna <s-anna@ti.com>
 
-AM43xx has a spinlock module which is identical to the
-one present on AM33xx. Register the spinlock ocp_if link
-so that the spinlock hwmod and associated omap_device can
-be instantiated, and the runtime pm API could be used by
-the OMAP hwspinlock driver.
 
-Cc: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 1 +
- 1 file changed, 1 insertion(+)
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-index 9002fca..5c2cc80 100644
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -719,6 +719,7 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l4_ls__uart4,
- 	&am33xx_l4_ls__uart5,
- 	&am33xx_l4_ls__uart6,
-+	&am33xx_l4_ls__spinlock,
- 	&am33xx_l4_ls__elm,
- 	&am33xx_l4_ls__epwmss0,
- 	&am33xx_epwmss0__ecap0,
--- 
-1.8.4.3
+Hi Tony,
 
+On Thu, Dec 19, 2013 at 11:03:44AM -0800, Tony Lindgren wrote:
+> > +Required properties:
+> > +- compatible:		Should include "ti,omap3-ssi".
+> > +- reg-names:		Contains the values "sys" and "gdd".
+>=20
+> Do you need the reg-names? The order won't change so you can just
+> document the order in the binding?
+
+The names are not needed, but I like self-documenting code/bindings.
+
+Also the examples in Documentation/devicetree/bindings/resource-names.txt
+look similar to this case.
+
+What do you have against the -names properties?
+
+The same statement goes for the following -names comments, so I will
+skip them ;)
+
+> [...]
+> > +- ti,ssi-cawake-gpio:	Defines which GPIO pin is used to signify CAWAKE
+> > +			events for the port. This is an optional board-specific
+> > +			property. If it's missing the port will not be
+> > +			enabled.
+>=20
+> Hmm this might be just a wake-up GPIO? If so, you should be able to
+> just set it up as an interrupt and do a request_irq on the pinctrl-single
+> entry for it.
+
+Yes, this gpio is used as interrupt in the driver, but its also read
+directly. I already considered making it an irq in the DT data
+(since its mainly used as irq), but I could not find out how to read
+the current status of an irq line.
+
+> It might even be one of the already mapped interrupt lines that the code =
+is
+> remuxing to a GPIO for idle? If so, then you can just use the new binding
+> for interrupts-extended to handle the wake-up events.
+>=20
+> If you post the GPIO number for ti,ssi-cawake-gpio and the interrupt
+> numbers I can check if there's a need to handle it separately as a GPIO
+> pin or if it already can be automatically handled for the wake-up events.
+
+You can see it in one of the next patches, which adds the needed
+nodes in omap3-n900.dts. The used GPIO on N900 is 151 (gpio5 23)
+and I use the following pinmux configuration:
+
+0x152 (PIN_INPUT | WAKEUP_EN | MUX_MODE4)
+
+P.S.: I intend to get this into 3.15. Before I will send an updated
+      series, which uses the omap clock DT bindings as requested by
+      DT binding maintainers.
+
+-- Sebastian
+
+--OXfL5xGRrasGEqWY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJS0IeoAAoJENju1/PIO/qaho0P/jlMVmcDtQcefvXZb/gJtvOo
+sXPoAqLbBYKumZrJnaGPoI5AamZA3UQurXq4Z9Ljl9W1uSYE4kqnJ+Ez2o1UUoTF
+Sy4wK84FcAqD07Bzz8nuIvjpDoHr/lVplNx/BwvCnSYF9XfsH1lEVzgirXVX9T9E
+Q8eMt1V23/rpLXvLkrq9B8rOGULwgEYszhbGbBt6w0hDsDZg126eytiW9DvItwWv
+Uf6V6WSzTKsiLYHJUD874+tZ3msGXYmfJgywLwaDLF6Lq6l9I+FNBXJafKQEbHzU
+EIO9OOQvJF1PTr4l3PNvkm8PdbDLYs1y4x43u0wXRWeAd9qPUBAS0dPK/sg7t6Ue
+PApcZxwbjQiDzfZu1zEqvlc4GCiCGclGe+dvOXwBne5MjpQ40S+7MfTqkFoI5Sv+
+pLAFfaAWb6mmL576avHNEKzbGtqCsEFlMr06tmq/tD6nX4sFNiVkP7/J1O2FIeBy
+rFZLh+5jZEEXmAq1Xt5FgfhTLcKnYHtie9C2OtDuT37/+6HBVzjPCqpLXrrpfVez
+PLLhqlluyaVjahiZOoxEKfwFOxFcQwmaIdCxXgKrj/jAVrAlRFy+GcPWFQuGVrAr
+kEaiF4uoaqJ+mEZYCis+4GEAYnGATnq3I60lV040zOMdQMzKzDviCcgAGftoll5L
+5OmJ4RHHHfJzg9fu+2CO
+=Ni59
+-----END PGP SIGNATURE-----
+
+--OXfL5xGRrasGEqWY--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
