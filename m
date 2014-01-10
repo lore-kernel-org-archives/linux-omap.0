@@ -1,110 +1,281 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v8 1/7] mmc: omap_hsmmc: use devm_regulator API
-Date: Fri, 10 Jan 2014 09:58:02 -0600
-Message-ID: <20140110155802.GF6665@saruman.home>
-References: <1387560955-6547-1-git-send-email-balajitk@ti.com>
- <1389279062-32291-1-git-send-email-balajitk@ti.com>
- <1389279062-32291-2-git-send-email-balajitk@ti.com>
- <20140109151844.GB2417@saruman.home>
- <52D017E8.7000308@ti.com>
+Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
+Date: Fri, 10 Jan 2014 10:13:52 -0600
+Message-ID: <20140110161352.GG6665@saruman.home>
+References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
+ <52CF12FB.6000602@ti.com>
+ <20140109231513.GA11648@saruman.home>
+ <52CFC2F1.706@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8JPrznbw0YAQ/KXy"
-Return-path: <linux-mmc-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="8S1fMsFYqgBC+BN/"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:39635 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751306AbaAJQPX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jan 2014 11:15:23 -0500
 Content-Disposition: inline
-In-Reply-To: <52D017E8.7000308@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, chris@printf.net, broonie@kernel.org, tony@atomide.com, mark.rutland@arm.com
+In-Reply-To: <52CFC2F1.706@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: balbi@ti.com, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
---8JPrznbw0YAQ/KXy
+--8S1fMsFYqgBC+BN/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-hi,
+Hi,
 
-On Fri, Jan 10, 2014 at 09:25:20PM +0530, Balaji T K wrote:
-> On Thursday 09 January 2014 08:48 PM, Felipe Balbi wrote:
+On Fri, Jan 10, 2014 at 11:52:49AM +0200, Tero Kristo wrote:
+> On 01/10/2014 01:15 AM, Felipe Balbi wrote:
 > >Hi,
 > >
-> >On Thu, Jan 09, 2014 at 08:20:56PM +0530, Balaji T K wrote:
-> >>Use devm_regulator API, while at it use
-> >>devm_regulator_get_optional for optional vmmc_aux supply
+> >On Thu, Jan 09, 2014 at 03:22:03PM -0600, Nishanth Menon wrote:
+> >>>So, bad luck number release for this, as v12 wasn't sufficient still.
+> >>>
+> >>>Changes compared to previous version:
+> >>>- Dropped any changes to generic clock drivers, as it seems impossible
+> >>>   to agree anything in short term, this means the patch set shrank in
+> >>>   size from 49 patches to 40 (first 9 patches were dropped).
+> >>>- Copy pasted implementation for clk-divider and clk-mux from drivers/=
+clk
+> >>>   to drivers/clk/ti, and made the modifications needed to the TI vers=
+ion
+> >>>   of the clock drivers only (based on discussions with Mike, this is =
+fine)
+> >>>- Changed name of clk_ll_ops to ti_clk_ll_ops so that this doesn't con=
+flict
+> >>>   with any generic implementation we might have at some point, migrat=
+ing
+> >>>   this to the generic version should be easy enough also.
+> >>>- Fixed trace_clk_div_div_ck for omap4, this node was broken in previo=
+us
+> >>>   versions and resulted into an orphan clock node
+> >>>- Fixed compile problem for omap5 only build reported by Felipe
+> >>>- Fixed a couple of sparse warnings
+> >>>- changed the mach-omap2/clock.c to use readl_relaxed / writel_relaxed
+> >>>   instead of __raw_readl / __raw_writel
+> >>>
+> >>>Testing done:
+> >>>- omap3-beagle: boot / suspend-resume (RET) / suspend-resume (OFF)
+> >>>- omap4-panda-es: boot / suspend-resume (RET)
+> >>>- omap5-uevm: boot
+> >>>- am335x-bone: boot
+> >>>- dra7-evm: boot
+> >>>
+> >>>Maintainer friendly branches also available:
+> >>>
+> >>>tree: https://github.com/t-kristo/linux-pm.git
+> >>>
+> >>>clk driver only (Mike): clk-next-dt-clks-v13
+> >>>DTS data only (Benoit): dts_for_3.14-dt-clks-v13
+> >>>full-branch (Tony/Paul): 3.13-rc7-dt-clks-v13
+> >>>
+> >>>-Tero
+> >>>
 > >>
-> >>Signed-off-by: Balaji T K <balajitk@ti.com>
-> >>Acked-by: Tony Lindgren <tony@atomide.com>
-> >>---
-> >>  drivers/mmc/host/omap_hsmmc.c |    6 ++----
-> >>  1 files changed, 2 insertions(+), 4 deletions(-)
+> >>Maintainer branches conflicts (using 3.13-rc7-dt-clks-v13):
+> >>=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D
+> >>Conflict resolution during rebase to maintainer's -14 branches:
 > >>
-> >>diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmm=
-c.c
-> >>index dbd32ad..1eb4350 100644
-> >>--- a/drivers/mmc/host/omap_hsmmc.c
-> >>+++ b/drivers/mmc/host/omap_hsmmc.c
-> >>@@ -316,7 +316,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_hos=
-t *host)
-> >>  	struct regulator *reg;
-> >>  	int ocr_value =3D 0;
+> >>1. (trivial) Against mike's clk-next dbdf6ff Merge branch
+> >>'clk-next-unregister' into clk-next
 > >>
-> >>-	reg =3D regulator_get(host->dev, "vmmc");
-> >>+	reg =3D devm_regulator_get(host->dev, "vmmc");
-> >>  	if (IS_ERR(reg)) {
-> >>  		dev_err(host->dev, "vmmc regulator missing\n");
-> >>  		return PTR_ERR(reg);
-> >>@@ -336,7 +336,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_hos=
-t *host)
-> >>  		}
+> >>Could not apply 2edf7ad... CLK: TI: add DT alias clock registration
+> >>mechanism
+> >>conflict drivers/clk/Makefile (trivial fix)
 > >>
-> >>  		/* Allow an aux regulator */
-> >>-		reg =3D regulator_get(host->dev, "vmmc_aux");
-> >>+		reg =3D devm_regulator_get_optional(host->dev, "vmmc_aux");
-> >>  		host->vcc_aux =3D IS_ERR(reg) ? NULL : reg;
+> >>2. (manual, but changes are easy) Against Tony's omap-for-v3.14/be
+> >>fc6ca98 ARM: OMAP: debug-leds: raw read and write endian fix
 > >>
-> >>  		/* For eMMC do not power off when not in sleep state */
-> >>@@ -366,8 +366,6 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_hos=
-t *host)
+> >>ARM: OMAP2+: clock: use driver API instead of direct memory read/write
 > >>
-> >>  static void omap_hsmmc_reg_put(struct omap_hsmmc_host *host)
+> >>conflicts with be changes on Tony's be branch.
+> >>commit 80f304dd2360cf5d50953c4eb4e902536f6a1263
+> >>     ARM: OMAP2+: raw read and write endian fix
+> >>
+> >>Conflict:
+> >>arch/arm/mach-omap2/clkt_clksel.c
+> >>arch/arm/mach-omap2/clkt_dpll.c
+> >>arch/arm/mach-omap2/clkt_iclk.c
+> >>arch/arm/mach-omap2/clock.c
+> >>arch/arm/mach-omap2/clock36xx.c
+> >>arch/arm/mach-omap2/dpll3xxx.c
+> >>arch/arm/mach-omap2/dpll44xx.c
+> >>
+> >>Both change raw_readls -> should now be just clk api instead which
+> >>already does readl_relaxed etc.. If Tony feels like, then we should
+> >>probably post a branch based on 'be' branch for easy merge.
+> >>
+> >>3. I could not detect any merge conflict against Benoit's queued up
+> >>series (but maybe he has'nt pushed everything to remote tree)..
+> >>
+> >>
+> >>Patch verification report:
+> >>=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+> >>Report: http://pastebin.mozilla.org/3976492
+> >>
+> >>
+> >>* sparse warning added in [PATCH 06/40] CLK: ti: add support for ti
+> >>divider-clock, [PATCH 10/40] clk: ti: add support for basic mux clock
+> >>+drivers/clk/ti/divider.c: warning: context imbalance in
+> >>'ti_clk_divider_set_rate' - different lock contexts for basic block
+> >>+drivers/clk/ti/mux.c: warning: context imbalance in
+> >>'ti_clk_mux_set_parent' - different lock contexts for basic block
+> >>
+> >>* checkpatch warning [PATCH 16/40] CLK: TI: add am33xx clock init
+> >>file, [PATCH 18/40] CLK: TI: add omap3 clock init file
+> >>WARNING: static const char * array should probably be static const
+> >>char * const
+> >>
+> >>
+> >>Boot reports:
+> >>=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> >>- previous orphan clocks seem solved.
+> >>- All available platforms seem to boot fine and no regression could be
+> >>seen on initial view
+> >>
+> >>OMAP2430:
+> >>   1. SDP2430
+> >>     before: http://pastebin.mozilla.org/3976359
+> >>     after: http://pastebin.mozilla.org/3976467
+> >>
+> >>AM335x:
+> >>   2. am335x-evm
+> >>     before: http://pastebin.mozilla.org/3976284
+> >>     after: http://pastebin.mozilla.org/3976374
+> >>   3. am335x-sk
+> >>     before: http://pastebin.mozilla.org/3976295
+> >>     after: http://pastebin.mozilla.org/3976375
+> >>   4. BeagleBone Black:
+> >>     before: http://pastebin.mozilla.org/3976321
+> >>     after: http://pastebin.mozilla.org/3976441
+> >>
+> >>AM3517:
+> >>   5. am3517-evm
+> >>     before: http://pastebin.mozilla.org/3976297
+> >>     after: http://pastebin.mozilla.org/3976397
+> >>   6. craneboard
+> >>     before: http://pastebin.mozilla.org/3976322
+> >>     after: http://pastebin.mozilla.org/3976452
+> >>
+> >>OMAP3430:
+> >>   7. ldp
+> >>     before: http://pastebin.mozilla.org/3976356
+> >>     after: http://pastebin.mozilla.org/3976455
+> >>   8. sdp3430
+> >>     before: http://pastebin.mozilla.org/3976360
+> >>     after: http://pastebin.mozilla.org/3976468
+> >>
+> >>OMAP3630/DM3730:
+> >>   9. am37x-evm
+> >>     before: http://pastebin.mozilla.org/3976300
+> >>     after: http://pastebin.mozilla.org/3976398
+> >>   10. beagle-XM
+> >>     before: http://pastebin.mozilla.org/3976319
+> >>     after: http://pastebin.mozilla.org/3976440
+> >>
+> >>OMAP4430:
+> >>   11. SDP4430
+> >>     before: http://pastebin.mozilla.org/3976361
+> >>     after: http://pastebin.mozilla.org/3976470
+> >>
+> >>OMAP4460:
+> >>   12. PandaBoard-ES
+> >>     before: http://pastebin.mozilla.org/3976358
+> >>     after: http://pastebin.mozilla.org/3976456
+> >>
+> >>OMAP5432:
+> >>   13. OMAP5uEVM
+> >>     before: http://pastebin.mozilla.org/3976362 (no boot)
+> >>     after: http://pastebin.mozilla.org/3976471 (boot)
+> >>
+> >>DRA7:
+> >>   14. dra7evm
+> >>     before: http://pastebin.mozilla.org/3976354 (no boot)
+> >>     after: http://pastebin.mozilla.org/3976453 (boot)
+> >>
+> >>AM437x:
+> >>   15. am43xx-epos + out-of-tree patches for engineering samples
+> >>     before: http://pastebin.mozilla.org/3976306 (no boot)
+> >>     after: http://pastebin.mozilla.org/3976399 (boot)
 > >
-> >since this function does nothing now, you could pretty much remove it
-> >and move set_power assignment to ->remove() directly. No strong feelings
-> >though.
+> >to add here, I ran 70 different randconfigs, all seeds are available on
+> >pastebin (took RMK's 4430sdp seed as a starting point):
 > >
-> Hi Felipe,
+> >am33xx-only.config	http://pastebin.com/nVA3xSwb
+> >am43xx-only.config	http://pastebin.com/RbUdKuUh
+> >dra7xx-only.config	http://pastebin.com/ribnaSzS
+> >omap2-only.config	http://pastebin.com/QPUG0wqe
+> >omap3-only.config	http://pastebin.com/B8ctX8yM
+> >omap4-only.config	http://pastebin.com/3D8NAExm
+> >omap5-only.config	http://pastebin.com/3mtQN38Z
+> >
+> >Had a total of 16 failing builds, all .configs were also published on
+> >pastebin:
+> >
+> >config-am33xx-only.config-1	http://pastebin.com/5xhXZpev
+> >config-am33xx-only.config-2	http://pastebin.com/NsrruJcQ
+> >config-am33xx-only.config-3	http://pastebin.com/CGbB3qb8
+> >config-am33xx-only.config-4	http://pastebin.com/86cu0uZ1
+> >config-am43xx-only.config-1	http://pastebin.com/MCBCAd4X
+> >config-am43xx-only.config-3	http://pastebin.com/hVpCgwSn
+> >config-am43xx-only.config-4	http://pastebin.com/8SXAKHed
+> >config-am43xx-only.config-6	http://pastebin.com/59riPMfw
+> >config-am43xx-only.config-8	http://pastebin.com/03bt2VEZ
+> >config-am43xx-only.config-9	http://pastebin.com/tePGwtWA
+> >config-am43xx-only.config-10	http://pastebin.com/nrtXPqrF
+> >config-omap2-only.config-2	http://pastebin.com/AKyvMqQU
+> >config-omap2-only.config-4	http://paste.debian.net/75329
+> >config-omap2-only.config-5	http://paste.debian.net/75330/
+> >config-omap2-only.config-7	http://paste.debian.net/75332/
+> >config-omap2-only.config-10	http://paste.debian.net/75333/
+> >
+> >Failing configs all build fine on v3.13-rc7 except for
+> >config-omap2-only.config-10, which fails due to a broken staging driver.
+> >
 >=20
-> omap_hsmmc_reg_put is used in probe error handling path in addition to .r=
-emove(),
-> so I would keep it for now to balance omap_hsmmc_reg_get.
+> I think all of these fails are caused by the initially bugged
+> Makefile + Kconfig under mach-omap2. Seems like they can be fixed by
+> the patches I inlined at the end (will also post them as proper
+> patches to l-o list after this.) The question is, should Mike go
+> ahead and merge these along with the base clk patches or how should
+> we handle them? Patch 1 must be merged, patch 2 is a nice to have one
+> which allows DRA7 only builds (doing DRA7 only build currently seems
+> not possible.)
 
-right, but it does nothing but setting set_power to NULL ;-)
+If it's OK with Tony, I would suggest having a branch with both patches
+below which both Tony and Mike merge before merging CCF series. That way
+we avoid bisection problems.
 
 --=20
 balbi
 
---8JPrznbw0YAQ/KXy
+--8S1fMsFYqgBC+BN/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIbBAEBAgAGBQJS0BiKAAoJEIaOsuA1yqREqXgP91XDLMGCRn0oYrxyDaIqF4Du
-duubMXZ/fZRdSYqNJNtg0FPd7uKM3M4EJiUt9z0QJI55wLq/oNgInbBhVWvnNSie
-9T9T2rEl/SzFwYyLzW8maHO0A+RIzUzmkHtnwqsu9CjWJAbIDfplrTvMuwSvyQq9
-cpbpUrdzy/L0FuxQsXaelF2KhMkU0KGnKK/JOVwD3532hX8ALTaMGO+b0VGsCPPR
-x1nM/ey766HUE6u6pOj9NiXQdcIgwUs3P9zXj7LzpT09mXlefkzy15RphRSjL2fO
-NyDS+irsBigEUYO6UduP0ziNr8H5kcHEdQCPtPXz6K5ig3DPVHOppcjwt4h2LRD0
-MIsWDsF/OalyWnkUR5r+na5tOcP5GT5pgLe9OWeGxO8a6/JhwFA7pFxwtBfDkUHZ
-g7uQ4ToOUsX94gi5bmcBlyIozuBckBTg0lyJdXcrl13OVMScK46zUOodj4ikvFWI
-rGK66hTxlRASmCRWV49H4saGxfmz2sVppQvznIZp+TIPH58p6vvHqGOQfJMlSTPq
-ApeEaiiGJz8JtPdeygt9TFpYzLKFu9a0i1tgyi6yNpSQYfqmfn6Nlr9RhuB59FBJ
-/iZLFi5yrmAJPn7LVwOzXoIY5lLRa9COG5Ndo1TlnabozOgw+JQ4zywD5sobGSr3
-woY1ygcahoBacXtc3sU=
-=y67j
+iQIcBAEBAgAGBQJS0BxAAAoJEIaOsuA1yqREZMsQAIsmvmrKroTpaSGp3t39c8OJ
+TDvxUXumTmR1X65cQifB70XNQPNH3SyXokOz3q+NVGmSDGF4pSUMy9PhZIXwhgGq
+sNLvmG0eW6Xuyl9liG+2n8X8iPRN97w9c0H2unsiUY15URw18p9/824P7GGW4K+N
+gKDDIoJtMkNp/QgK5VyPkC0IHYyFy1zVbQt8VU7UW0ouuyRV93sEjrhxejVNRgOW
+ZCrdtC+etWbJoFi7O3aagI9uniHvgNq2yRWD5cplZf1naHyE6jeff3CW0uDimRZL
+Q5nmoHdpOnrCB8WvpoFe+R0PUsnVV1gQ4tCKd9jkETD9/dHS89V85kkh7/Ra8HRe
+cPzwChHoJEhSpOD498PnnxwOXjUXZ4rKaREvCiIbe8cG1/R9yq3jWAF7Ue/iDc5l
+jwRibHrTdT7Yoh2pXM/lrS/Q2uNjV128E3dh0d+O6nEJ4C/a3BGf1bxtmN8QhIEO
+H9dy6h2R1hDdsSRlQPBzgJDlAfd7RtY9k+h1IavheFetWfvEJr1+UEHDcgouPFTC
+WVOIV1nAdh3p5hrYK1H7o1wtjhXw3NiJm23VoAUtLz6ahNwU/jiO3vBpNTGNE07d
+2gBJ0IIxrAbEX6NnchAsamPY2hQD0W6NM+Dn8ZwqLimVtY68kvtbBPYkQuag7n03
+/jvrwdSjF8p9FlDtywWO
+=J9Hx
 -----END PGP SIGNATURE-----
 
---8JPrznbw0YAQ/KXy--
+--8S1fMsFYqgBC+BN/--
