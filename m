@@ -1,97 +1,52 @@
-From: Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: 3.13-rc2 phy-twl4030-usb.c - Timeout setting T2 HSUSB PHY DPLL
-Date: Fri, 10 Jan 2014 07:55:48 +0100
-Message-ID: <CAAfyv34ce=V_nheonE0HLGPNEF=Z_Ep-hj64dSuKrRqehNfOCw@mail.gmail.com>
-References: <CAAfyv37aM6SrpuU9fzKA6GKsWn=To5ANOpG_kSX509NjMjdecA@mail.gmail.com>
-	<529F1E89.6080700@ti.com>
-	<CAAfyv36sNyEiEHEOKfZWN1xRYLGUt-NW18uhcJbSTWRBA5=2BA@mail.gmail.com>
-	<52CE32AB.1050204@ti.com>
-	<52CF8455.5090506@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH 06/18] ARM: dts: omap3-overo: Enable MMC2
+Date: Fri, 10 Jan 2014 08:38:25 +0100
+Message-ID: <52CFA371.8090103@epfl.ch>
+References: <1389286092-27087-1-git-send-email-florian.vaussard@epfl.ch>	<1389286092-27087-7-git-send-email-florian.vaussard@epfl.ch> <CABxcv=nO1ZtC7wjVSq+Qw9AmFGahpDUSjOZOO1+tYHhqo9P0Pw@mail.gmail.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52CF8455.5090506-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp0.epfl.ch ([128.178.224.218]:36295 "EHLO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750793AbaAJHia (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jan 2014 02:38:30 -0500
+In-Reply-To: <CABxcv=nO1ZtC7wjVSq+Qw9AmFGahpDUSjOZOO1+tYHhqo9P0Pw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+Hello Javier,
 
-On Fri, Jan 10, 2014 at 6:25 AM, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> wrote:
-> Hi,
->
-> On Thursday 09 January 2014 10:54 AM, Roger Quadros wrote:
->> Hi Marek,
+On 01/09/2014 09:43 PM, Javier Martinez Canillas wrote:
+> [adding Enric Balletbo to cc]
+> 
+> Hello Florian,
+> 
+> On Thu, Jan 9, 2014 at 1:48 PM, Florian Vaussard
+> <florian.vaussard@epfl.ch> wrote:
+>> MMC2 is used by the on-board WiFi module populated on some boards
+>> (based on Marvell Libertas 8688 SDIO).
 >>
->> I have no idea what is happening there. Have you tried using device tree boot?
->> Board file boot support would be dropped eventually.
+>> Note: currently WiFi only works on cold boot, as the module is not
+>> properly reset (missing binding for the GPIO reset).
 >>
->> Did you try if I2C read write to the twl4030 device works and all necessary clocks/supplies are
->> present?
->>
->> Kishon, do you know what is causing the USB DPLL failure there?
-Issue was fixed. There was in 3.13-rc7 issue with unable to find phy
-(phy was twl4030_usb). After that
-issue is gone.
->
-> Not sure what's causing those failures :-s
->
-> -Kishon
->
->>
->> cheers,
->> -roger
->>
->> On 01/09/2014 02:31 AM, Belisko Marek wrote:
->>> Any pointers? Still present in 3.13-rc7.
->>>
->>> On Wed, Dec 4, 2013 at 1:22 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
->>>> +Kishon
->>>>
->>>> On 12/03/2013 11:33 PM, Belisko Marek wrote:
->>>>> Hi,
->>>>>
->>>>> current 3.13-rcX break usb support on gta04 board (similar to
->>>>> beagleboard) when booting via board file.
->>>>>
->>>>> In console we can see messages:
->>>>>  [ 5227.287841] twl4030_usb twl4030_usb: Timeout setting T2 HSUSB PHY DPLL clock
->>>>> [ 5232.936096] omap_musb_mailbox: musb core is not yet ready
->>>>> [ 5233.958160] twl4030_usb twl4030_usb: Timeout setting T2 HSUSB PHY DPLL clock
->>>>> [ 5235.058227] twl4030_usb twl4030_usb: Timeout setting T2 HSUSB PHY DPLL clock
->>>>>
->>>>> Any pointer what could cause that? (in 3.12 usb works fine)
->>>>>
->>>>> BR,
->>>>>
->>>>> marek
->>>>>
->>>>
->>>
->>> BR,
->>>
->>> marek
->>>
->>
->
+> 
+> Have you looked at commit 0e9fd777 ("ARM: dts: omap3-igep: Add support
+> for LBEE1USJYC WiFi connected to SDIO") ?
+> 
+> If I remember correctly the LBEE1USJYC Wifi/BT combo module is
+> basically a Marvell Libertas 8688 Wlan and Enric got soft reset
+> working too by adding a GPIO property to the regulator for the reset
+> GPIO.
+> 
 
-BR,
+Many thanks for the pointer. In the initial version, I had a regulator
+like you. But now I doubt if it was correctly added to the MMC node,
+which could be why it was not working... I will try again.
 
-marek
+Thanks for your help!
 
--- 
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-Freelance Developer
-
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-twitter: #opennandra
-web: http://open-nandra.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Florian
