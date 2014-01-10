@@ -1,136 +1,81 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: [PATCH v9 4/7] mmc: omap_hsmmc: adapt hsmmc to use pbias regulator
-Date: Fri, 10 Jan 2014 19:21:55 +0100
-Message-ID: <CAOf5uwkVsPA4_kuf4G0JBB9ewb1=HGD5vGMr9pttKuWmAzF1VQ@mail.gmail.com>
-References: <1389279062-32291-1-git-send-email-balajitk@ti.com>
-	<1389375049-5248-1-git-send-email-balajitk@ti.com>
-	<1389375049-5248-5-git-send-email-balajitk@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
+Date: Fri, 10 Jan 2014 10:51:11 -0800
+Message-ID: <20140110185110.GM31323@atomide.com>
+References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
+ <52CF12FB.6000602@ti.com>
+ <20140109231513.GA11648@saruman.home>
+ <52CFC2F1.706@ti.com>
+ <20140110161352.GG6665@saruman.home>
+ <52D02037.3090705@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:41181 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752557AbaAJSV5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jan 2014 13:21:57 -0500
-Received: by mail-we0-f175.google.com with SMTP id w62so4462808wes.34
-        for <linux-omap@vger.kernel.org>; Fri, 10 Jan 2014 10:21:55 -0800 (PST)
-In-Reply-To: <1389375049-5248-5-git-send-email-balajitk@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34068 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751698AbaAJSvU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jan 2014 13:51:20 -0500
+Content-Disposition: inline
+In-Reply-To: <52D02037.3090705@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, chris@printf.net, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, mark.rutland@arm.com
+To: Tero Kristo <t-kristo@ti.com>
+Cc: balbi@ti.com, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi
+* Tero Kristo <t-kristo@ti.com> [140110 08:32]:
+> On 01/10/2014 06:13 PM, Felipe Balbi wrote:
+> >On Fri, Jan 10, 2014 at 11:52:49AM +0200, Tero Kristo wrote:
+> >>On 01/10/2014 01:15 AM, Felipe Balbi wrote:
+> >>>On Thu, Jan 09, 2014 at 03:22:03PM -0600, Nishanth Menon wrote:
+> >>>>
+> >>>>conflicts with be changes on Tony's be branch.
+> >>>>commit 80f304dd2360cf5d50953c4eb4e902536f6a1263
+> >>>>     ARM: OMAP2+: raw read and write endian fix
+> >>>>
+> >>>>Conflict:
+> >>>>arch/arm/mach-omap2/clkt_clksel.c
+> >>>>arch/arm/mach-omap2/clkt_dpll.c
+> >>>>arch/arm/mach-omap2/clkt_iclk.c
+> >>>>arch/arm/mach-omap2/clock.c
+> >>>>arch/arm/mach-omap2/clock36xx.c
+> >>>>arch/arm/mach-omap2/dpll3xxx.c
+> >>>>arch/arm/mach-omap2/dpll44xx.c
+> >>>>
+> >>>>Both change raw_readls -> should now be just clk api instead which
+> >>>>already does readl_relaxed etc.. If Tony feels like, then we should
+> >>>>probably post a branch based on 'be' branch for easy merge.
 
-On Fri, Jan 10, 2014 at 6:30 PM, Balaji T K <balajitk@ti.com> wrote:
-> In DT case, PBAIS registers are programmed via regulator,
-> use regulator APIs to control PBIAS.
->
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |   39 +++++++++++++++++++++++++++++++++++++++
->  1 files changed, 39 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 342be25..0a390f8 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -126,6 +126,10 @@
->  #define OMAP_MMC_MAX_CLOCK     52000000
->  #define DRIVER_NAME            "omap_hsmmc"
->
-> +#define VDD_1V8                        1800000         /* 180000 uV */
-> +#define VDD_3V0                        3000000         /* 300000 uV */
-> +#define VDD_165_195            (ffs(MMC_VDD_165_195) - 1)
-> +
->  /*
->   * One controller can have multiple slots, like on some omap boards using
->   * omap.c controller driver. Luckily this is not currently done on any known
-> @@ -164,6 +168,8 @@ struct omap_hsmmc_host {
->          */
->         struct  regulator       *vcc;
->         struct  regulator       *vcc_aux;
-> +       struct  regulator       *pbias;
-> +       bool                    pbias_enabled;
->         int                     pbias_disable;
->         void    __iomem         *base;
->         resource_size_t         mapbase;
-> @@ -272,6 +278,15 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
->         if (mmc_slot(host).before_set_reg)
->                 mmc_slot(host).before_set_reg(dev, slot, power_on, vdd);
->
-> +       if (host->pbias) {
-> +               if (host->pbias_enabled == 1) {
-> +                       ret = regulator_disable(host->pbias);
-> +                       if (!ret)
-> +                               host->pbias_enabled = 0;
-> +               }
-> +               regulator_set_voltage(host->pbias, VDD_3V0, VDD_3V0);
-> +       }
-> +
->         /*
->          * Assume Vcc regulator is used only to power the card ... OMAP
->          * VDDS is used to power the pins, optionally with a transceiver to
-> @@ -306,9 +321,29 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
->                 }
->         }
->
-> +       if (host->pbias) {
-> +               if (vdd <= VDD_165_195)
-> +                       ret = regulator_set_voltage(host->pbias, VDD_1V8,
-> +                                                               VDD_1V8);
-> +               else
-> +                       ret = regulator_set_voltage(host->pbias, VDD_3V0,
-> +                                                               VDD_3V0);
-> +               if (ret < 0)
-> +                       goto error_set_power;
-> +
-> +               if (host->pbias_enabled == 0) {
-> +                       ret = regulator_enable(host->pbias);
-> +                       if (!ret) {
-> +                               host->pbias_enabled = 1;
-> +                               goto error_set_power;
+This should be a trivial merge conflict to handle, so let's not base
+things on the BE changes.
 
-why you a goto to error_set_power if the regulator enable was a succes?
-and if pbias_enabled is used for verify if is already enabled. Is the
-same to use
-regulator_is_enabled?
+> >>I think all of these fails are caused by the initially bugged
+> >>Makefile + Kconfig under mach-omap2. Seems like they can be fixed by
+> >>the patches I inlined at the end (will also post them as proper
+> >>patches to l-o list after this.) The question is, should Mike go
+> >>ahead and merge these along with the base clk patches or how should
+> >>we handle them? Patch 1 must be merged, patch 2 is a nice to have one
+> >>which allows DRA7 only builds (doing DRA7 only build currently seems
+> >>not possible.)
+> >
+> >If it's OK with Tony, I would suggest having a branch with both patches
+> >below which both Tony and Mike merge before merging CCF series. That way
+> >we avoid bisection problems.
 
-Michael
+I can queue those two separately as fixes.
+ 
+> That reminds me, I think the baseline branch for the mach-omap2
+> patches is still somewhat unclear to me, what should be used for
+> this? And which patches should be put there (the mach-omap2 patches
+> depend on the drivers/clk/ti part basically, so I need to put at
+> least those there also.)
 
-> +                       }
-> +               }
-> +       }
-> +
->         if (mmc_slot(host).after_set_reg)
->                 mmc_slot(host).after_set_reg(dev, slot, power_on, vdd);
->
-> +error_set_power:
->         return ret;
->  }
->
-> @@ -342,6 +377,9 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->         reg = devm_regulator_get_optional(host->dev, "vmmc_aux");
->         host->vcc_aux = IS_ERR(reg) ? NULL : reg;
->
-> +       reg = devm_regulator_get_optional(host->dev, "pbias");
-> +       host->pbias = IS_ERR(reg) ? NULL : reg;
-> +
->         /* For eMMC do not power off when not in sleep state */
->         if (mmc_slot(host).no_regulator_off_init)
->                 return 0;
-> @@ -1808,6 +1846,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->         host->base      = ioremap(host->mapbase, SZ_4K);
->         host->power_mode = MMC_POWER_OFF;
->         host->next_data.cookie = 1;
-> +       host->pbias_enabled = 0;
->
->         platform_set_drvdata(pdev, host);
->
-> --
-> 1.7.5.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I would keep the clock patches against some mainline -rc commit if
+possible, and if there are non trivial merge conflicts, the omap
+to use as the base is commit adfe9361b236154215d4b0fc8b6d79995394b15c.
+
+In any case, it's probably best that Mike merges this all via his
+clock tree unless there non-trivial merge conflicts.
+
+Regards,
+
+Tony
