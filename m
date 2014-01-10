@@ -1,50 +1,43 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH] ARM: DRA7: hwmod data: correct the sysc data for spinlock
-Date: Fri, 10 Jan 2014 17:43:08 -0600
-Message-ID: <1389397388-13247-1-git-send-email-s-anna@ti.com>
+Subject: [PATCH] ARM: AM43x: hwmod data: register spinlock OCP interface
+Date: Fri, 10 Jan 2014 17:44:24 -0600
+Message-ID: <1389397464-13345-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32844 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56454 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751642AbaAJXnX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Jan 2014 18:43:23 -0500
+	id S1751737AbaAJXod (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jan 2014 18:44:33 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Suman Anna <s-anna@ti.com>, Ambresh K <ambresh@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Suman Anna <s-anna@ti.com>
 
-The spinlock module's SYSCONFIG register on DRA7xx does not
-support smart wakeup, and also does not have the CLKACTIVITY
-field. The sysc data for spinlock module has been appropriately
-fixed up to reflect the same.
+AM43xx has a spinlock module which is identical to the
+one present on AM33xx. Register the spinlock ocp_if link
+so that the spinlock hwmod and associated omap_device can
+be instantiated, and the runtime pm API could be used by
+the OMAP hwspinlock driver.
 
-Cc: Ambresh K <ambresh@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 18f333c..810c205 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1365,11 +1365,10 @@ static struct omap_hwmod_class_sysconfig dra7xx_spinlock_sysc = {
- 	.rev_offs	= 0x0000,
- 	.sysc_offs	= 0x0010,
- 	.syss_offs	= 0x0014,
--	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
--			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
--			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			   SIDLE_SMART_WKUP),
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_ENAWAKEUP |
-+			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-+			   SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
- };
- 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+index 9002fca..5c2cc80 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+@@ -719,6 +719,7 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l4_ls__uart4,
+ 	&am33xx_l4_ls__uart5,
+ 	&am33xx_l4_ls__uart6,
++	&am33xx_l4_ls__spinlock,
+ 	&am33xx_l4_ls__elm,
+ 	&am33xx_l4_ls__epwmss0,
+ 	&am33xx_epwmss0__ecap0,
 -- 
 1.8.4.3
 
