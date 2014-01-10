@@ -1,51 +1,67 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v5 2/9] mfd: omap-usb-host: Get clocks based on hardware
- revision
-Date: Fri, 10 Jan 2014 14:26:40 +0000
-Message-ID: <20140110142640.GA32035@lee--X1>
-References: <1389269303-30465-1-git-send-email-rogerq@ti.com>
- <1389269303-30465-3-git-send-email-rogerq@ti.com>
- <20140110102251.GH28141@lee--X1>
- <201401101513.40470.arnd@arndb.de>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v8 1/7] mmc: omap_hsmmc: use devm_regulator API
+Date: Fri, 10 Jan 2014 21:25:20 +0530
+Message-ID: <52D017E8.7000308@ti.com>
+References: <1387560955-6547-1-git-send-email-balajitk@ti.com> <1389279062-32291-1-git-send-email-balajitk@ti.com> <1389279062-32291-2-git-send-email-balajitk@ti.com> <20140109151844.GB2417@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201401101513.40470.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Roger Quadros <rogerq@ti.com>, bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, sre@debian.org, mark.rutland@arm.com, m.paolino@virtualopensystems.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44317 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752456AbaAJPzt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jan 2014 10:55:49 -0500
+In-Reply-To: <20140109151844.GB2417@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, chris@printf.net, broonie@kernel.org, tony@atomide.com, mark.rutland@arm.com
 
-On Fri, 10 Jan 2014, Arnd Bergmann wrote:
+On Thursday 09 January 2014 08:48 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Thu, Jan 09, 2014 at 08:20:56PM +0530, Balaji T K wrote:
+>> Use devm_regulator API, while at it use
+>> devm_regulator_get_optional for optional vmmc_aux supply
+>>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
+>> ---
+>>   drivers/mmc/host/omap_hsmmc.c |    6 ++----
+>>   1 files changed, 2 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index dbd32ad..1eb4350 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -316,7 +316,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>>   	struct regulator *reg;
+>>   	int ocr_value = 0;
+>>
+>> -	reg = regulator_get(host->dev, "vmmc");
+>> +	reg = devm_regulator_get(host->dev, "vmmc");
+>>   	if (IS_ERR(reg)) {
+>>   		dev_err(host->dev, "vmmc regulator missing\n");
+>>   		return PTR_ERR(reg);
+>> @@ -336,7 +336,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>>   		}
+>>
+>>   		/* Allow an aux regulator */
+>> -		reg = regulator_get(host->dev, "vmmc_aux");
+>> +		reg = devm_regulator_get_optional(host->dev, "vmmc_aux");
+>>   		host->vcc_aux = IS_ERR(reg) ? NULL : reg;
+>>
+>>   		/* For eMMC do not power off when not in sleep state */
+>> @@ -366,8 +366,6 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>>
+>>   static void omap_hsmmc_reg_put(struct omap_hsmmc_host *host)
+>
+> since this function does nothing now, you could pretty much remove it
+> and move set_power assignment to ->remove() directly. No strong feelings
+> though.
+>
+Hi Felipe,
 
-> On Friday 10 January 2014, Lee Jones wrote:
-> > > =20
-> > > -     need_logic_fck =3D false;
-> > > +     /* Set all clocks as invalid to begin with */
-> > > +     omap->ehci_logic_fck =3D omap->init_60m_fclk =3D ERR_PTR(-E=
-INVAL);
-> > > +     omap->utmi_p1_gfclk =3D omap->utmi_p2_gfclk =3D ERR_PTR(-EI=
-NVAL);
-> > > +     omap->xclk60mhsp1_ck =3D omap->xclk60mhsp2_ck =3D ERR_PTR(-=
-EINVAL);
-> >=20
-> > I don't think this is the correct error code.
-> >=20
-> > -EINVAL means 'invalid parameter'.
-> >=20
-> > You probably want -ENODEV or -ENOSYS ('function not implemented'
-> > probably isn't ideal either tbh, but you get the idea). Perhaps you
-> > can set them as NULL and check for IS_ERR_OR_NULL() instead?
->=20
-> I think ENODEV is ok here, I'd much prefer this over IS_ERR_OR_NULL()=
-=2E
+omap_hsmmc_reg_put is used in probe error handling path in addition to .remove(),
+so I would keep it for now to balance omap_hsmmc_reg_get.
 
-Sounds good to me.
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
