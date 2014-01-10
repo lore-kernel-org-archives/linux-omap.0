@@ -1,110 +1,47 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v7 5/7] ARM: dts: add pbias dt node
-Date: Fri, 10 Jan 2014 11:32:34 +0000
-Message-ID: <20140110113234.GA25741@e106331-lin.cambridge.arm.com>
-References: <1387560955-6547-1-git-send-email-balajitk@ti.com>
- <1387560955-6547-6-git-send-email-balajitk@ti.com>
- <20140106181928.GK24664@e106331-lin.cambridge.arm.com>
- <52CBD467.6060909@ti.com>
- <20140107105738.GA4180@e106331-lin.cambridge.arm.com>
- <52CBF1CF.4040706@ti.com>
- <52CD6602.7040603@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH RFC 00/26] Migrate more OMAP DMA code to DMA engine
+Date: Fri, 10 Jan 2014 17:46:20 +0530
+Message-ID: <52CFE494.4010702@ti.com>
+References: <20140102150621.GJ16456@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52CD6602.7040603@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "broonie@kernel.org" <broonie@kernel.org>, "tony@atomide.com" <tony@atomide.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57641 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751930AbaAJMQf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jan 2014 07:16:35 -0500
+In-Reply-To: <20140102150621.GJ16456@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead, org@arm.linux.org.uk, linux-omap@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, sricharan.az@gmail.com
 
-On Wed, Jan 08, 2014 at 02:51:46PM +0000, Balaji T K wrote:
-> On Tuesday 07 January 2014 05:53 PM, Balaji T K wrote:
-> > On Tuesday 07 January 2014 04:27 PM, Mark Rutland wrote:
-> >> On Tue, Jan 07, 2014 at 10:18:15AM +0000, Balaji T K wrote:
-> >>> On Monday 06 January 2014 11:49 PM, Mark Rutland wrote:
-> >>>> On Fri, Dec 20, 2013 at 05:35:53PM +0000, Balaji T K wrote:
-> >>>>> Add pbias regulator node as a child of system control
-> >>>>> module - syscon.
-> >>>>>
-> >>>>> Signed-off-by: Balaji T K <balajitk@ti.com>
-> >>>>> ---
-> >>>>>    arch/arm/boot/dts/dra7.dtsi     |   18 ++++++++++++++++++
-> >>>>>    arch/arm/boot/dts/omap2430.dtsi |   18 ++++++++++++++++++
-> >>>>>    arch/arm/boot/dts/omap3.dtsi    |   18 ++++++++++++++++++
-> >>>>>    arch/arm/boot/dts/omap4.dtsi    |   18 ++++++++++++++++++
-> >>>>>    arch/arm/boot/dts/omap5.dtsi    |   18 ++++++++++++++++++
-> >>>>>    5 files changed, 90 insertions(+), 0 deletions(-)
-> >>>>>
-> >>>>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> >>>>> index d0df4c4..4e68df1 100644
-> >>>>> --- a/arch/arm/boot/dts/dra7.dtsi
-> >>>>> +++ b/arch/arm/boot/dts/dra7.dtsi
-> >>>>> @@ -110,6 +110,23 @@
-> >>>>>                ti,hwmods = "counter_32k";
-> >>>>>            };
-> >>>>>
-> >>>>> +        dra7_ctrl_general: tisyscon@4a002e00 {
-> >>>>> +            compatible = "ti,control-syscon", "syscon", "simple-bus";
-> >>>>
-> >>>> Please, don't use simple-bus like that. The components below this node
-> >>>> depend on it. It is _NOT_ a simple bus. Make the ti,control-syscon
-> >>>> driver probe it's children.
-> >>>
-> >>> Hi Mark,
-> >>>
-> >>> Actually ti,control-syscon driver does not exist, so I can remove it,
-> >>> and simple-bus is needed for child creation.
-> >>
-> >> This still shows up as a syscon node, with a reg property, and syscon is
-> >> not an extension of simple-bus.
-> >>
-> >> There are properties in the parent node that children depend on, and
-> >> that makes me wary of describing it as a simple bus. I'd expect to be
-> >> able to move child nodes out of a simple-bus if ranges provided an
-> >> idmap, and I can't do that here.
-> >>
-> > Hi Mark,
-> >
-> > Not sure if I am understanding here, can you please add more info.
-
-A node's compatible string list describes the set of devices (or rather
-descriptions of devices) with which it is compatible. The list goes from
-most specific to least specific. The idea is that an OS reads through
-the list until it finds a string it knows how to handle, then treats the
-node as that.
-
-Ignoring "ti,control-syscon", the node has both "syscon" and
-"simple-bus". Given you expect the OS to recognise "syscon", you should
-_not_ expect it to also treat the node as "simple-bus". Doing so is an
-abuse of the property and current Linux implementation details.
-
-The "syscon" binding is not a more specific version of "simple-bus".
-They imply completely different things.
-
-Either make a ti,control-syscon driver that probes the child nodes, or
-move the child nodes out and give them a phandle to the
-dra7_ctrl_general node that they can parse. I'd prefer the latter as
-relies on fewer topology details, is as easy to implement as your
-current parent node parsing, and is easier to extend in future.
-
-> >
-> Hi Mark,
+On Thursday 02 January 2014 08:36 PM, Russell King - ARM Linux wrote:
+> The following patch series moves code to setup the DMA hardware and
+> service interrupts from the hardware to the DMA engine driver.  This
+> reduces the dependency on the legacy DMA implementation.
 > 
->  From Documentation/devicetree/bindings.. , I could get below info about simple-bus
-> - "simple-bus" compatible value (to ensure creation of the children)
-> 	compatible = "simple-bus";
+> This series does not remove the channel allocation/freeing hooks which
+> are used to manage the allocation of physical channels - this is the
+> next step in the evolution.
+> 
+> The patches which move the interrupt handling are currently less than
+> perfect since they're writing to ENABLE_L0 under a different spinlock,
+> and hence RFC only at the moment.
+> 
+>  arch/arm/mach-omap1/dma.c |  183 +++++--------
+>  arch/arm/mach-omap2/dma.c |  183 ++++++--------
+>  arch/arm/plat-omap/dma.c  |   17 +-
+>  drivers/dma/omap-dma.c    |  653 ++++++++++++++++++++++++++++++++++++++++-----
+>  include/linux/omap-dma.h  |   25 ++-
+>  5 files changed, 774 insertions(+), 287 deletions(-)
+> 
 
-That's from the vexpress binding description of the smb node?
+I tested this series on DRA7 with mmc peripheral dma and it looked
+fine. Some how dmaengine test cases were not fine. But that may not
+have anything to do with this series. I will check more on that and
+will come back with that results as well.
 
-In that case, the smb node _is_ a simple-bus. It has no nonstandard
-properties, and the child nodes aren't reading arbitrary properties out
-of the smb node.
-
-There the simple-bus is used to remap addresses of child nodes via
-ranges. It does represent a simple bus, and that's all the OS is
-expected to know.
-
-Thanks,
-Mark.
+Regards,
+ Sricharan
