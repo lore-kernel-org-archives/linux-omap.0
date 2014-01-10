@@ -1,56 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
-Date: Fri, 10 Jan 2014 10:53:06 -0800
-Message-ID: <20140110185305.GN31323@atomide.com>
-References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
- <20140109222322.7168.74522@quantum>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH] ARM: DRA7: hwmod data: correct the sysc data for spinlock
+Date: Fri, 10 Jan 2014 17:43:08 -0600
+Message-ID: <1389397388-13247-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38686 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751172AbaAJSxO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jan 2014 13:53:14 -0500
-Content-Disposition: inline
-In-Reply-To: <20140109222322.7168.74522@quantum>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32844 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751642AbaAJXnX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jan 2014 18:43:23 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Suman Anna <s-anna@ti.com>, Ambresh K <ambresh@ti.com>
 
-* Mike Turquette <mturquette@linaro.org> [140109 14:25]:
-> Quoting Tero Kristo (2014-01-09 06:00:11)
-> > Hi,
-> > 
-> > So, bad luck number release for this, as v12 wasn't sufficient still.
-> > 
-> > Changes compared to previous version:
-> > - Dropped any changes to generic clock drivers, as it seems impossible
-> >   to agree anything in short term, this means the patch set shrank in
-> >   size from 49 patches to 40 (first 9 patches were dropped).
-> > - Copy pasted implementation for clk-divider and clk-mux from drivers/clk
-> >   to drivers/clk/ti, and made the modifications needed to the TI version
-> >   of the clock drivers only (based on discussions with Mike, this is fine)
-> > - Changed name of clk_ll_ops to ti_clk_ll_ops so that this doesn't conflict
-> >   with any generic implementation we might have at some point, migrating
-> >   this to the generic version should be easy enough also.
-> > - Fixed trace_clk_div_div_ck for omap4, this node was broken in previous
-> >   versions and resulted into an orphan clock node
-> > - Fixed compile problem for omap5 only build reported by Felipe
-> > - Fixed a couple of sparse warnings
-> > - changed the mach-omap2/clock.c to use readl_relaxed / writel_relaxed
-> >   instead of __raw_readl / __raw_writel
-> 
-> Hi Tero,
-> 
-> This approach takes care of all of my concerns with this series. Thanks
-> for your long suffering patience on it.
-> 
-> It seems some build errors are cropping up, so once those are fixed then
-> I'll be happy to merge clk-next-dt-clks-v13 into clk-next for 3.14.
+The spinlock module's SYSCONFIG register on DRA7xx does not
+support smart wakeup, and also does not have the CLKACTIVITY
+field. The sysc data for spinlock module has been appropriately
+fixed up to reflect the same.
 
-I'm fine with Mike merging these all via the clock tree assuming no more
-pending comments. For the patches changed from the last time around,
-please feel free to add:
+Cc: Ambresh K <ambresh@ti.com>
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 18f333c..810c205 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1365,11 +1365,10 @@ static struct omap_hwmod_class_sysconfig dra7xx_spinlock_sysc = {
+ 	.rev_offs	= 0x0000,
+ 	.sysc_offs	= 0x0010,
+ 	.syss_offs	= 0x0014,
+-	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
+-			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
+-			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
+-	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+-			   SIDLE_SMART_WKUP),
++	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_ENAWAKEUP |
++			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
++			   SYSS_HAS_RESET_STATUS),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+ 	.sysc_fields	= &omap_hwmod_sysc_type1,
+ };
+ 
+-- 
+1.8.4.3
+
