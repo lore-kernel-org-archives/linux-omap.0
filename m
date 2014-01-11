@@ -1,54 +1,62 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: [PATCH v2] ARM: OMAPFB: panel-sony-acx565akm: fix missing mutex
- unlocks
-Date: Sat, 11 Jan 2014 11:39:08 +0200
-Message-ID: <52D1113C.8020807@gmail.com>
-References: <52C956E9.2030008@gmail.com> <1388927585-5640-1-git-send-email-ivo.g.dimitrov.75@gmail.com> <52CFD1ED.7010302@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
+Date: Sat, 11 Jan 2014 11:54:45 +0200
+Message-ID: <52D114E5.7060503@ti.com>
+References: <1389276051-1326-1-git-send-email-t-kristo@ti.com> <20140109222322.7168.74522@quantum> <20140110185305.GN31323@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:55646 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100AbaAKJjX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Jan 2014 04:39:23 -0500
-In-Reply-To: <52CFD1ED.7010302@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:41277 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751100AbaAKJzP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 11 Jan 2014 04:55:15 -0500
+In-Reply-To: <20140110185305.GN31323@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: plagnioj@jcrosoft.com, pali.rohar@gmail.com, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 10.01.2014 12:56, Tomi Valkeinen wrote:
-> On 2014-01-05 15:13, Ivaylo Dimitrov wrote:
->> From: Ivaylo Dimitrov <freemangordon@abv.bg>
+On 01/10/2014 08:53 PM, Tony Lindgren wrote:
+> * Mike Turquette <mturquette@linaro.org> [140109 14:25]:
+>> Quoting Tero Kristo (2014-01-09 06:00:11)
+>>> Hi,
+>>>
+>>> So, bad luck number release for this, as v12 wasn't sufficient still.
+>>>
+>>> Changes compared to previous version:
+>>> - Dropped any changes to generic clock drivers, as it seems impossible
+>>>    to agree anything in short term, this means the patch set shrank in
+>>>    size from 49 patches to 40 (first 9 patches were dropped).
+>>> - Copy pasted implementation for clk-divider and clk-mux from drivers/clk
+>>>    to drivers/clk/ti, and made the modifications needed to the TI version
+>>>    of the clock drivers only (based on discussions with Mike, this is fine)
+>>> - Changed name of clk_ll_ops to ti_clk_ll_ops so that this doesn't conflict
+>>>    with any generic implementation we might have at some point, migrating
+>>>    this to the generic version should be easy enough also.
+>>> - Fixed trace_clk_div_div_ck for omap4, this node was broken in previous
+>>>    versions and resulted into an orphan clock node
+>>> - Fixed compile problem for omap5 only build reported by Felipe
+>>> - Fixed a couple of sparse warnings
+>>> - changed the mach-omap2/clock.c to use readl_relaxed / writel_relaxed
+>>>    instead of __raw_readl / __raw_writel
 >>
->> Commit c37dd677988ca50bc8bc60ab5ab053720583c168 fixes the unbalanced
->> unlock in acx565akm_enable but introduces another problem - if
->> acx565akm_panel_power_on exits early, the mutex is not unlocked. Fix
->> that by unlocking the mutex on early return. Also add mutex protection in
->> acx565akm_panel_power_off and remove an unused variable
+>> Hi Tero,
 >>
+>> This approach takes care of all of my concerns with this series. Thanks
+>> for your long suffering patience on it.
+>>
+>> It seems some build errors are cropping up, so once those are fixed then
+>> I'll be happy to merge clk-next-dt-clks-v13 into clk-next for 3.14.
 >
-> I think this is just getting more messy. How about we more or less revert the c37dd677988ca50bc8bc60ab5ab053720583c168 and fix it like this:
+> I'm fine with Mike merging these all via the clock tree assuming no more
+> pending comments. For the patches changed from the last time around,
+> please feel free to add:
 >
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-I am fine with whatever patch you may come with, as long as it fixes the 
-issue.
+How about the dts data patches? Should these also go via Mike's tree? 
+Otherwise we will have boot failures until the dts patches are merged.
 
->
-> diff --git a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-> index 714ee92dfb9f..8e97d06921ff 100644
-> --- a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-> +++ b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-
-The patch does not apply cleanly on top of rc7, however I applied it by 
-hand. So far it seems it fixes the issue brought by 
-c37dd677988ca50bc8bc60ab5ab053720583c168, though I didn't test if 
-mutex_lock/mutex_unlock are complementary in every code path (at least 
-not explicitly, I guess maemo is doing it for us anyway :) ).
-
-So, shall I send a patch incorporating your code changes, or you will do it?
-
-Regards,
-Ivo
+-Tero
 
