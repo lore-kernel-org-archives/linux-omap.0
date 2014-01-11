@@ -1,62 +1,106 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
-Date: Sat, 11 Jan 2014 11:54:45 +0200
-Message-ID: <52D114E5.7060503@ti.com>
-References: <1389276051-1326-1-git-send-email-t-kristo@ti.com> <20140109222322.7168.74522@quantum> <20140110185305.GN31323@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41277 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751100AbaAKJzP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 11 Jan 2014 04:55:15 -0500
-In-Reply-To: <20140110185305.GN31323@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH] OMAPDSS: DISPC: Fix 34xx overlay scaling calculation
+Date: Sat, 11 Jan 2014 14:42:05 +0200
+Message-ID: <1389444125-5000-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: plagnioj@jcrosoft.com, pali.rohar@gmail.com, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 01/10/2014 08:53 PM, Tony Lindgren wrote:
-> * Mike Turquette <mturquette@linaro.org> [140109 14:25]:
->> Quoting Tero Kristo (2014-01-09 06:00:11)
->>> Hi,
->>>
->>> So, bad luck number release for this, as v12 wasn't sufficient still.
->>>
->>> Changes compared to previous version:
->>> - Dropped any changes to generic clock drivers, as it seems impossible
->>>    to agree anything in short term, this means the patch set shrank in
->>>    size from 49 patches to 40 (first 9 patches were dropped).
->>> - Copy pasted implementation for clk-divider and clk-mux from drivers/clk
->>>    to drivers/clk/ti, and made the modifications needed to the TI version
->>>    of the clock drivers only (based on discussions with Mike, this is fine)
->>> - Changed name of clk_ll_ops to ti_clk_ll_ops so that this doesn't conflict
->>>    with any generic implementation we might have at some point, migrating
->>>    this to the generic version should be easy enough also.
->>> - Fixed trace_clk_div_div_ck for omap4, this node was broken in previous
->>>    versions and resulted into an orphan clock node
->>> - Fixed compile problem for omap5 only build reported by Felipe
->>> - Fixed a couple of sparse warnings
->>> - changed the mach-omap2/clock.c to use readl_relaxed / writel_relaxed
->>>    instead of __raw_readl / __raw_writel
->>
->> Hi Tero,
->>
->> This approach takes care of all of my concerns with this series. Thanks
->> for your long suffering patience on it.
->>
->> It seems some build errors are cropping up, so once those are fixed then
->> I'll be happy to merge clk-next-dt-clks-v13 into clk-next for 3.14.
->
-> I'm fine with Mike merging these all via the clock tree assuming no more
-> pending comments. For the patches changed from the last time around,
-> please feel free to add:
->
-> Acked-by: Tony Lindgren <tony@atomide.com>
+From: Ivaylo Dimitrov <freemangordon@abv.bg>
 
-How about the dts data patches? Should these also go via Mike's tree? 
-Otherwise we will have boot failures until the dts patches are merged.
+commit 7faa92339bbb1e6b9a80983b206642517327eb75 OMAPDSS: DISPC: Handle
+synclost errors in OMAP3 introduces limits check to prevent SYNCLOST errors
+on OMAP3. However, it misses the logic found in Nokia kernels that is
+needed to correctly calculate whether 3 tap or 5 tap rescaler to be used as
+well as the logic to fallback to 3 taps if 5 taps clock results in too
+tight horizontal timings. Without that patch "horizontal timing too tight"
+errors are seen when a video with resolution above 640x350 is tried to be
+played. The patch is a forward-ported logic found in Nokia N900 and N9/50
+kernels.
 
--Tero
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+---
+ drivers/video/omap2/dss/dispc.c |   36 +++++++++++++++++++++++++-----------
+ 1 files changed, 25 insertions(+), 11 deletions(-)
 
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 67e413e..9d1aa25 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -1999,7 +1999,8 @@ static void calc_tiler_rotation_offset(u16 screen_width, u16 width,
+  */
+ static int check_horiz_timing_omap3(unsigned long pclk, unsigned long lclk,
+ 		const struct omap_video_timings *t, u16 pos_x,
+-		u16 width, u16 height, u16 out_width, u16 out_height)
++		u16 width, u16 height, u16 out_width, u16 out_height,
++		bool five_taps)
+ {
+ 	const int ds = DIV_ROUND_UP(height, out_height);
+ 	unsigned long nonactive;
+@@ -2019,6 +2020,10 @@ static int check_horiz_timing_omap3(unsigned long pclk, unsigned long lclk,
+ 	if (blank <= limits[i])
+ 		return -EINVAL;
+ 
++	/* FIXME add checks for 3-tap filter once the limitations are known */
++	if (!five_taps)
++		return 0;
++
+ 	/*
+ 	 * Pixel data should be prepared before visible display point starts.
+ 	 * So, atleast DS-2 lines must have already been fetched by DISPC
+@@ -2191,24 +2196,33 @@ static int dispc_ovl_calc_scaling_34xx(unsigned long pclk, unsigned long lclk,
+ 	const int maxsinglelinewidth =
+ 			dss_feat_get_param_max(FEAT_PARAM_LINEWIDTH);
+ 
++	*five_taps = height > out_height;
++
+ 	do {
+ 		in_height = DIV_ROUND_UP(height, *decim_y);
+ 		in_width = DIV_ROUND_UP(width, *decim_x);
+-		*core_clk = calc_core_clk_five_taps(pclk, mgr_timings,
+-			in_width, in_height, out_width, out_height, color_mode);
+-
+-		error = check_horiz_timing_omap3(pclk, lclk, mgr_timings,
+-				pos_x, in_width, in_height, out_width,
+-				out_height);
+ 
+ 		if (in_width > maxsinglelinewidth)
+ 			if (in_height > out_height &&
+ 						in_height < out_height * 2)
+ 				*five_taps = false;
+-		if (!*five_taps)
++again:
++		if (*five_taps)
++			*core_clk = calc_core_clk_five_taps(pclk, mgr_timings,
++						in_width, in_height, out_width,
++						out_height, color_mode);
++		else
+ 			*core_clk = dispc.feat->calc_core_clk(pclk, in_width,
+-					in_height, out_width, out_height,
+-					mem_to_mem);
++				in_height, out_width, out_height,
++				mem_to_mem);
++
++		error = check_horiz_timing_omap3(pclk, lclk, mgr_timings,
++				pos_x, in_width, in_height, out_width,
++				out_height, *five_taps);
++		if (error && *five_taps) {
++			*five_taps = false;
++			goto again;
++		}
+ 
+ 		error = (error || in_width > maxsinglelinewidth * 2 ||
+ 			(in_width > maxsinglelinewidth && *five_taps) ||
+@@ -2226,7 +2240,7 @@ static int dispc_ovl_calc_scaling_34xx(unsigned long pclk, unsigned long lclk,
+ 	} while (*decim_x <= *x_predecim && *decim_y <= *y_predecim && error);
+ 
+ 	if (check_horiz_timing_omap3(pclk, lclk, mgr_timings, pos_x, width,
+-				height, out_width, out_height)){
++				height, out_width, out_height, *five_taps)) {
+ 			DSSERR("horizontal timing too tight\n");
+ 			return -EINVAL;
+ 	}
+-- 
+1.5.6.1
