@@ -1,106 +1,58 @@
 From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH] OMAPDSS: DISPC: Fix 34xx overlay scaling calculation
-Date: Sat, 11 Jan 2014 14:42:05 +0200
-Message-ID: <1389444125-5000-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: plagnioj@jcrosoft.com, pali.rohar@gmail.com, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: [PATCH 1/2] ARM: omapfb: add coherent dma memory support
+Date: Sat, 11 Jan 2014 15:28:08 +0200
+Message-ID: <52D146E8.4090105@gmail.com>
+References: <1388409550-10720-1-git-send-email-tomi.valkeinen@ti.com> <1388409550-10720-2-git-send-email-tomi.valkeinen@ti.com> <20140107235951.GH5074@atomide.com> <52CD5D13.9090806@ti.com> <79CD15C6BA57404B839C016229A409A83EDB11F5@DBDE04.ent.ti.com> <52CE5123.9050702@gmail.com> <79CD15C6BA57404B839C016229A409A83EDB141E@DBDE04.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ea0-f175.google.com ([209.85.215.175]:57200 "EHLO
+	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750950AbaAKN2X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Jan 2014 08:28:23 -0500
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EDB141E@DBDE04.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <freemangordon@abv.bg>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-From: Ivaylo Dimitrov <freemangordon@abv.bg>
+On 09.01.2014 10:08, Hiremath, Vaibhav wrote:
 
-commit 7faa92339bbb1e6b9a80983b206642517327eb75 OMAPDSS: DISPC: Handle
-synclost errors in OMAP3 introduces limits check to prevent SYNCLOST errors
-on OMAP3. However, it misses the logic found in Nokia kernels that is
-needed to correctly calculate whether 3 tap or 5 tap rescaler to be used as
-well as the logic to fallback to 3 taps if 5 taps clock results in too
-tight horizontal timings. Without that patch "horizontal timing too tight"
-errors are seen when a video with resolution above 640x350 is tried to be
-played. The patch is a forward-ported logic found in Nokia N900 and N9/50
-kernels.
+>
+> No, that's what is causing issue to me. Can you try predefined address flow?
+>
+> Thanks,
+> Vaibhav
+>
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
----
- drivers/video/omap2/dss/dispc.c |   36 +++++++++++++++++++++++++-----------
- 1 files changed, 25 insertions(+), 11 deletions(-)
+Booting Linux on physical CPU 0x0
+Initializing cgroup subsys cpu
+Linux version 3.13.0-rc7+ (maemo@maemo-desktop) (gcc version 4.7.2 
+20120701 (prerelease) (Linaro GCC 4.7-2012.07) ) #24 PREEMPT Sat Jan 11 
+17:06:39 EET 2014
+CPU: ARMv7 Processor [411fc083] revision 3 (ARMv7), cr=10c53c7d
+CPU: PIPT / VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+Machine: Nokia RX-51 board
+omapfb: reserved 0x00800000 bytes at 0x8f100000
+Memory policy: Data cache writeback
+On node 0 totalpages: 61696
+free_area_init_node: node 0, pgdat c05b73b4, node_mem_map c061b000
+   Normal zone: 512 pages used for memmap
+   Normal zone: 0 pages reserved
+   Normal zone: 61696 pages, LIFO batch:15
+CPU: All CPU(s) started in SVC mode.
+OMAP3430/3530 ES3.1 (l2cache iva sgx neon isp )
+pcpu-alloc: s0 r0 d32768 u32768 alloc=1*32768
+pcpu-alloc: [0] 0
+Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 61184
+Kernel command line: init=/sbin/preinit ubi.mtd=rootfs root=ubi0:rootfs 
+rootfstype=ubifs rootflags=bulk_read,no_chk_data_crc rw 
+mtdoops.mtddev=log console=tty0 console=ttyO2 omapfb_vram=8M@0x8F100000 
+omapfb.mode=lcd:848x480-16
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 67e413e..9d1aa25 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1999,7 +1999,8 @@ static void calc_tiler_rotation_offset(u16 screen_width, u16 width,
-  */
- static int check_horiz_timing_omap3(unsigned long pclk, unsigned long lclk,
- 		const struct omap_video_timings *t, u16 pos_x,
--		u16 width, u16 height, u16 out_width, u16 out_height)
-+		u16 width, u16 height, u16 out_width, u16 out_height,
-+		bool five_taps)
- {
- 	const int ds = DIV_ROUND_UP(height, out_height);
- 	unsigned long nonactive;
-@@ -2019,6 +2020,10 @@ static int check_horiz_timing_omap3(unsigned long pclk, unsigned long lclk,
- 	if (blank <= limits[i])
- 		return -EINVAL;
- 
-+	/* FIXME add checks for 3-tap filter once the limitations are known */
-+	if (!five_taps)
-+		return 0;
-+
- 	/*
- 	 * Pixel data should be prepared before visible display point starts.
- 	 * So, atleast DS-2 lines must have already been fetched by DISPC
-@@ -2191,24 +2196,33 @@ static int dispc_ovl_calc_scaling_34xx(unsigned long pclk, unsigned long lclk,
- 	const int maxsinglelinewidth =
- 			dss_feat_get_param_max(FEAT_PARAM_LINEWIDTH);
- 
-+	*five_taps = height > out_height;
-+
- 	do {
- 		in_height = DIV_ROUND_UP(height, *decim_y);
- 		in_width = DIV_ROUND_UP(width, *decim_x);
--		*core_clk = calc_core_clk_five_taps(pclk, mgr_timings,
--			in_width, in_height, out_width, out_height, color_mode);
--
--		error = check_horiz_timing_omap3(pclk, lclk, mgr_timings,
--				pos_x, in_width, in_height, out_width,
--				out_height);
- 
- 		if (in_width > maxsinglelinewidth)
- 			if (in_height > out_height &&
- 						in_height < out_height * 2)
- 				*five_taps = false;
--		if (!*five_taps)
-+again:
-+		if (*five_taps)
-+			*core_clk = calc_core_clk_five_taps(pclk, mgr_timings,
-+						in_width, in_height, out_width,
-+						out_height, color_mode);
-+		else
- 			*core_clk = dispc.feat->calc_core_clk(pclk, in_width,
--					in_height, out_width, out_height,
--					mem_to_mem);
-+				in_height, out_width, out_height,
-+				mem_to_mem);
-+
-+		error = check_horiz_timing_omap3(pclk, lclk, mgr_timings,
-+				pos_x, in_width, in_height, out_width,
-+				out_height, *five_taps);
-+		if (error && *five_taps) {
-+			*five_taps = false;
-+			goto again;
-+		}
- 
- 		error = (error || in_width > maxsinglelinewidth * 2 ||
- 			(in_width > maxsinglelinewidth && *five_taps) ||
-@@ -2226,7 +2240,7 @@ static int dispc_ovl_calc_scaling_34xx(unsigned long pclk, unsigned long lclk,
- 	} while (*decim_x <= *x_predecim && *decim_y <= *y_predecim && error);
- 
- 	if (check_horiz_timing_omap3(pclk, lclk, mgr_timings, pos_x, width,
--				height, out_width, out_height)){
-+				height, out_width, out_height, *five_taps)) {
- 			DSSERR("horizontal timing too tight\n");
- 			return -EINVAL;
- 	}
--- 
-1.5.6.1
+
+There are no (UNDERFLOW) errors on OMAP3 when predefined address is 
+used, I am still able to play every video I try.
+
+Ivo
