@@ -1,12 +1,12 @@
 From: Dmitry Lifshitz <lifshitz@compulab.co.il>
-Subject: [PATCH 12/12] ARM: OMAP2+: make reset pulse for sbc-t3x usb hubs
-Date: Sun, 12 Jan 2014 15:22:55 +0200
-Message-ID: <1389532975-28281-13-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH 05/12] ARM: dts: cm-t3x: add gpio-led pinmux
+Date: Sun, 12 Jan 2014 15:22:48 +0200
+Message-ID: <1389532975-28281-6-git-send-email-lifshitz@compulab.co.il>
 References: <1389532975-28281-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:52062 "EHLO
+Received: from softlayer.compulab.co.il ([50.23.254.55]:59830 "EHLO
 	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751090AbaALNXE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751118AbaALNXE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Sun, 12 Jan 2014 08:23:04 -0500
 In-Reply-To: <1389532975-28281-1-git-send-email-lifshitz@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,72 +14,40 @@ List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-sbc-t3x boards features two external USB ports on SB-T35 baseboard.
-The baseboardi USB hub reset signal should be de-asserted to make
-those ports functional.
-
-sbc-t3517 features additional (assembled on CoM) USB hub which also
-requires reset signal handling.
-
-Add quirks code to handle proper reset pulse signal.
+GPIO186 is used for the heartbeat led.
+Setup the pinmux for the GPIO186.
 
 Signed-off-by: Dmitry Lifshitz <lifshitz@compulab.co.il>
 ---
- arch/arm/mach-omap2/pdata-quirks.c |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap3-cm-t3x.dtsi |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 1ee831f..3e1407c 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -108,6 +108,23 @@ static int omap3_sbc_t3730_twl_callback(struct device *dev,
- 	return 0;
- }
+diff --git a/arch/arm/boot/dts/omap3-cm-t3x.dtsi b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
+index 842201c..abda493 100644
+--- a/arch/arm/boot/dts/omap3-cm-t3x.dtsi
++++ b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
+@@ -11,6 +11,8 @@
  
-+static void __init omap3_sbc_t3x_usb_hub_init(int gpio, char *hub_name)
-+{
-+	int err = gpio_request_one(gpio, GPIOF_OUT_INIT_LOW, hub_name);
+ 	leds {
+ 		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&green_led_pins>;
+ 		ledb {
+ 			label = "cm-t3x:green";
+ 			gpios = <&gpio6 26 GPIO_ACTIVE_HIGH>;  /* gpio186 */
+@@ -38,6 +40,12 @@
+ 			OMAP3_CORE1_IOPAD(0x214e, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3.sdmmc1_dat3 */
+ 		>;
+ 	};
 +
-+	if (err) {
-+		pr_err("SBC-T3x: %s reset gpio request failed: %d\n",
-+			hub_name, err);
-+		return;
-+	}
-+
-+	gpio_export(gpio, 0);
-+
-+	udelay(10);
-+	gpio_set_value(gpio, 1);
-+	msleep(1);
-+}
-+
- static void __init omap3_sbc_t3730_twl_init(void)
- {
- 	twl_gpio_auxdata.setup = omap3_sbc_t3730_twl_callback;
-@@ -115,12 +132,14 @@ static void __init omap3_sbc_t3730_twl_init(void)
++	green_led_pins: pinmux_green_led_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x21e2, PIN_OUTPUT | MUX_MODE4)	/* sys_clkout2.gpio_186 */
++		>;
++	};
+ };
  
- static void __init omap3_sbc_t3730_legacy_init(void)
- {
-+	omap3_sbc_t3x_usb_hub_init(167, "sb-t35 usb hub");
- 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 136);
- 	omap_ads7846_init(1, 57, 0, NULL);
- }
- 
- static void __init omap3_sbc_t3530_legacy_init(void)
- {
-+	omap3_sbc_t3x_usb_hub_init(167, "sb-t35 usb hub");
- 	omap_ads7846_init(1, 57, 0, NULL);
- }
- 
-@@ -198,6 +217,8 @@ static void __init omap3_sbc_t3517_wifi_init(void)
- 
- static void __init omap3_sbc_t3517_legacy_init(void)
- {
-+	omap3_sbc_t3x_usb_hub_init(152, "cm-t3517 usb hub");
-+	omap3_sbc_t3x_usb_hub_init(98, "sb-t35 usb hub");
- 	am35xx_emac_reset();
- 	hsmmc2_internal_input_clk();
- 	omap3_sbc_t3517_wifi_init();
+ &uart3 {
 -- 
 1.7.5.4
 
