@@ -1,84 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RFC 05/26] dmaengine: omap-dma: control start/stop
- directly
-Date: Mon, 13 Jan 2014 14:18:30 -0800
-Message-ID: <20140113221830.GE7993@atomide.com>
-References: <20140102150836.GA3826@n2100.arm.linux.org.uk>
- <E1Vyju0-0005EE-6a@rmk-PC.arm.linux.org.uk>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [patch] fix omap compile with randconfig
+Date: Mon, 13 Jan 2014 23:49:13 +0100
+Message-ID: <20140113224913.GA16235@amd.pavel.ucw.cz>
+References: <20140113010025.GA14431@amd.pavel.ucw.cz>
+ <CAOesGMjG37FprRX7U-+S3nFCuv=RVAOUv7wb8K-Tcqr26ETevw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40582 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751762AbaAMWSv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jan 2014 17:18:51 -0500
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42080 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751253AbaAMWtP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jan 2014 17:49:15 -0500
 Content-Disposition: inline
-In-Reply-To: <E1Vyju0-0005EE-6a@rmk-PC.arm.linux.org.uk>
+In-Reply-To: <CAOesGMjG37FprRX7U-+S3nFCuv=RVAOUv7wb8K-Tcqr26ETevw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: Olof Johansson <olof@lixom.net>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Russell King <rmk+kernel@arm.linux.org.uk> [140102 07:14]:
-> --- a/drivers/dma/omap-dma.c
-> +++ b/drivers/dma/omap-dma.c
-> @@ -570,20 +695,27 @@ static int omap_dma_terminate_all(struct omap_chan *c)
->  
->  	/*
->  	 * Stop DMA activity: we assume the callback will not be called
-> -	 * after omap_stop_dma() returns (even if it does, it will see
-> +	 * after omap_dma_stop() returns (even if it does, it will see
->  	 * c->desc is NULL and exit.)
->  	 */
->  	if (c->desc) {
->  		c->desc = NULL;
->  		/* Avoid stopping the dma twice */
->  		if (!c->paused)
-> -			omap_stop_dma(c->dma_ch);
-> +			omap_dma_stop(c);
->  	}
->  
->  	if (c->cyclic) {
->  		c->cyclic = false;
->  		c->paused = false;
-> -		omap_dma_unlink_lch(c->dma_ch, c->dma_ch);
-> +
-> +		if (__dma_omap15xx(od->plat->dma_attr)) {
-> +			uint32_t val;
-> +
-> +			val = c->plat->dma_read(CCR, c->dma_ch);
-> +			val &= ~(3 << 8);
-> +			c->plat->dma_write(val, CCR, c->dma_ch);
-> +		}
->  	}
->  
->  	vchan_get_all_descriptors(&c->vc, &head);
+On Mon 2014-01-13 10:02:58, Olof Johansson wrote:
+> On Sun, Jan 12, 2014 at 5:00 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> >
+> > This fixes:
+> >
+> > arch/arm/mach-omap2/built-in.o: In function `omap_reserve':
+> > /data/l/linux-n900/arch/arm/mach-omap2/common.c:36: undefined
+> >   reference to `omap_fb_reserve_memblock'
+> >
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> >
+> > diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
+> > index 9beecde..857907f 100644
+> > --- a/arch/arm/mach-omap2/common.c
+> > +++ b/arch/arm/mach-omap2/common.c
+> > @@ -33,5 +33,7 @@ void __init omap_reserve(void)
+> >         omap_dsp_reserve_sdram_memblock();
+> >         omap_secure_ram_reserve_memblock();
+> >         omap_barrier_reserve_memblock();
+> > +#ifdef CONFIG_OMAP2_VRFB
+> >         omap_fb_reserve_memblock();
+> > +#endif
+> >  }
+> 
+> What is this patch against? omap_fb_reserve_memblock() doesn't exist
+> in v3.13-rc8, nor in -next.
 
-This won't build for omap1 as od is just d in this function. Something
-like the following needs to be folded in.
+It is actually against -n900 tree, sorry about that. But this means
+that this regression likely will not hit -next :-).
 
-Tony
+> Adding an ifdef here is likely the wrong thing anyway, there should be
+> a stub provided for !CONFIG_OMAP2_VRFB in the header file instead.
 
-8< -----------------------
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -682,16 +682,16 @@ static int omap_dma_slave_config(struct omap_chan *c, struct dma_slave_config *c
- 
- static int omap_dma_terminate_all(struct omap_chan *c)
- {
--	struct omap_dmadev *d = to_omap_dma_dev(c->vc.chan.device);
-+	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
- 	unsigned long flags;
- 	LIST_HEAD(head);
- 
- 	spin_lock_irqsave(&c->vc.lock, flags);
- 
- 	/* Prevent this channel being scheduled */
--	spin_lock(&d->lock);
-+	spin_lock(&od->lock);
- 	list_del_init(&c->node);
--	spin_unlock(&d->lock);
-+	spin_unlock(&od->lock);
- 
- 	/*
- 	 * Stop DMA activity: we assume the callback will not be called
+Agreed.
+
+I found few more compile problems, but those are neither easy nor I
+expect them to happen commonly. In particular BIG_ENDIAN=y breaks
+flexcan, MMU=n break some core code, and CONFIG_ARM_KPROBES_TEST=y
+just does not work with my compiler here. Probably not worth trying to
+reproduce on vanilla tree?
+
+Thanks,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
