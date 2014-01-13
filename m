@@ -1,66 +1,38 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [patch] fix omap compile with randconfig
-Date: Mon, 13 Jan 2014 23:49:13 +0100
-Message-ID: <20140113224913.GA16235@amd.pavel.ucw.cz>
-References: <20140113010025.GA14431@amd.pavel.ucw.cz>
- <CAOesGMjG37FprRX7U-+S3nFCuv=RVAOUv7wb8K-Tcqr26ETevw@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH RFC 08/26] dmaengine: omap-dma: consolidate setup of CCR
+Date: Mon, 13 Jan 2014 23:12:27 +0000
+Message-ID: <20140113231227.GI27282@n2100.arm.linux.org.uk>
+References: <20140102150836.GA3826@n2100.arm.linux.org.uk> <E1VyjuU-0005EQ-H5@rmk-PC.arm.linux.org.uk> <20140113221425.GD7993@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42080 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253AbaAMWtP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jan 2014 17:49:15 -0500
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:36049 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751747AbaAMXMg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Jan 2014 18:12:36 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOesGMjG37FprRX7U-+S3nFCuv=RVAOUv7wb8K-Tcqr26ETevw@mail.gmail.com>
+In-Reply-To: <20140113221425.GD7993@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
 
-On Mon 2014-01-13 10:02:58, Olof Johansson wrote:
-> On Sun, Jan 12, 2014 at 5:00 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> >
-> > This fixes:
-> >
-> > arch/arm/mach-omap2/built-in.o: In function `omap_reserve':
-> > /data/l/linux-n900/arch/arm/mach-omap2/common.c:36: undefined
-> >   reference to `omap_fb_reserve_memblock'
-> >
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> >
-> > diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
-> > index 9beecde..857907f 100644
-> > --- a/arch/arm/mach-omap2/common.c
-> > +++ b/arch/arm/mach-omap2/common.c
-> > @@ -33,5 +33,7 @@ void __init omap_reserve(void)
-> >         omap_dsp_reserve_sdram_memblock();
-> >         omap_secure_ram_reserve_memblock();
-> >         omap_barrier_reserve_memblock();
-> > +#ifdef CONFIG_OMAP2_VRFB
-> >         omap_fb_reserve_memblock();
-> > +#endif
-> >  }
+On Mon, Jan 13, 2014 at 02:14:26PM -0800, Tony Lindgren wrote:
+> * Russell King <rmk+kernel@arm.linux.org.uk> [140102 07:17]:
+> > Consolidate the setup of the channel control register.  Prepare the
+> > basic value in the preparation of the DMA descriptor, and write it into
+> > the register upon descriptor execution.
 > 
-> What is this patch against? omap_fb_reserve_memblock() doesn't exist
-> in v3.13-rc8, nor in -next.
+> FYI, this patch seems to be the one that causes the
+> "DMA timeout with device 55" error for omap1.
 
-It is actually against -n900 tree, sorry about that. But this means
-that this regression likely will not hit -next :-).
+Okay, looks like I've missed some bit of muxing for DMA signals or
+something.  I've yet to find any information on this in the OMAP5912
+docs, so I guess I'm going to have to do this not only blind, but also
+without hardware.  GAH.
 
-> Adding an ifdef here is likely the wrong thing anyway, there should be
-> a stub provided for !CONFIG_OMAP2_VRFB in the header file instead.
-
-Agreed.
-
-I found few more compile problems, but those are neither easy nor I
-expect them to happen commonly. In particular BIG_ENDIAN=y breaks
-flexcan, MMU=n break some core code, and CONFIG_ARM_KPROBES_TEST=y
-just does not work with my compiler here. Probably not worth trying to
-reproduce on vanilla tree?
-
-Thanks,
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+FTTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
+in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
+Estimate before purchase was "up to 13.2Mbit".
