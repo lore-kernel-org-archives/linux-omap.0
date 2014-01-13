@@ -1,210 +1,101 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH v10 5/7] ARM: dts: add pbias dt node
-Date: Mon, 13 Jan 2014 21:06:13 +0530
-Message-ID: <1389627375-9107-6-git-send-email-balajitk@ti.com>
-References: <1389279062-32291-1-git-send-email-balajitk@ti.com>
- <1389627375-9107-1-git-send-email-balajitk@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
+Date: Mon, 13 Jan 2014 17:49:19 +0200
+Message-ID: <52D40AFF.9000308@ti.com>
+References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
+ <CAGhQ9Vz8i2EEG+GgFwXFj3vgeV_Eg0dDfRvKn-XRRVBjwJkDXQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39829 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751929AbaAMPgr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Jan 2014 10:36:47 -0500
-In-Reply-To: <1389627375-9107-1-git-send-email-balajitk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAGhQ9Vz8i2EEG+GgFwXFj3vgeV_Eg0dDfRvKn-XRRVBjwJkDXQ@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Joachim Eastwood <manabian@gmail.com>
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, Tony Lindgren <tony@atomide.com>, rnayak@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, chris@printf.net, broonie@kernel.org, tony@atomide.com
-Cc: Balaji T K <balajitk@ti.com>
 
-Add pbias regulator node as a child of system control
-module - syscon.
+On 01/11/2014 06:35 PM, Joachim Eastwood wrote:
+> On 9 January 2014 15:00, Tero Kristo <t-kristo@ti.com> wrote:
+>> Hi,
+>>
+>> So, bad luck number release for this, as v12 wasn't sufficient still.
+>>
+>> Changes compared to previous version:
+>> - Dropped any changes to generic clock drivers, as it seems impossible
+>>    to agree anything in short term, this means the patch set shrank in
+>>    size from 49 patches to 40 (first 9 patches were dropped).
+>> - Copy pasted implementation for clk-divider and clk-mux from drivers/clk
+>>    to drivers/clk/ti, and made the modifications needed to the TI version
+>>    of the clock drivers only (based on discussions with Mike, this is fine)
+>> - Changed name of clk_ll_ops to ti_clk_ll_ops so that this doesn't conflict
+>>    with any generic implementation we might have at some point, migrating
+>>    this to the generic version should be easy enough also.
+>> - Fixed trace_clk_div_div_ck for omap4, this node was broken in previous
+>>    versions and resulted into an orphan clock node
+>> - Fixed compile problem for omap5 only build reported by Felipe
+>> - Fixed a couple of sparse warnings
+>> - changed the mach-omap2/clock.c to use readl_relaxed / writel_relaxed
+>>    instead of __raw_readl / __raw_writel
+>>
+>> Testing done:
+>> - omap3-beagle: boot / suspend-resume (RET) / suspend-resume (OFF)
+>> - omap4-panda-es: boot / suspend-resume (RET)
+>> - omap5-uevm: boot
+>> - am335x-bone: boot
+>> - dra7-evm: boot
+>>
+>> Maintainer friendly branches also available:
+>>
+>> tree: https://github.com/t-kristo/linux-pm.git
+>>
+>> clk driver only (Mike): clk-next-dt-clks-v13
+>> DTS data only (Benoit): dts_for_3.14-dt-clks-v13
+>> full-branch (Tony/Paul): 3.13-rc7-dt-clks-v13
+>
+> I tested 3.13-rc7-dt-clks-v13 on top of a next branch I am working on
+> with a OMAP4460 and it's working fine.
+>
+> A couple of things I noticed in the boot log:
+> [ 0.000000] ti_dt_clocks_register: failed to lookup clock node bandgap_fclk
+> [ 0.000000] smp_twd: clock not found -2
+>
+> I am get the bandgap_fclk clock lookup fail since it doesn't exist on
+> 4460 and I guess the bandgap_ts_fclk clock will fail the same way on
+> 4430. So maybe you need to differentiate between 4460 and 4430 in
+> clk-44xx.c to get rid of this warning.
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/dra7.dtsi     |   17 +++++++++++++++++
- arch/arm/boot/dts/omap2430.dtsi |   17 +++++++++++++++++
- arch/arm/boot/dts/omap3.dtsi    |   17 +++++++++++++++++
- arch/arm/boot/dts/omap4.dtsi    |   17 +++++++++++++++++
- arch/arm/boot/dts/omap5.dtsi    |   17 +++++++++++++++++
- 5 files changed, 85 insertions(+), 0 deletions(-)
+Yeah thats true. I was kind of lazy with the omap4 clk file (these are 
+supposed to be temporary anyway until we can get rid of the clock 
+aliases through proper driver DT mappings), and didn't separate omap4430 
+vs omap4460 there. If this print needs to go away, we need to do this 
+similarly to what was done with different omap3 versions (the clock data 
+delta is much more larger there), but the additional code needed for 
+this was rather large for the minimal impact... we would need separate 
+board files, separate io.c setups, and logic within the clk-44xx.c file 
+itself.
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index d0df4c4..876c9b8 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -110,6 +110,22 @@
- 			ti,hwmods = "counter_32k";
- 		};
- 
-+		dra7_ctrl_general: tisyscon@4a002e00 {
-+			compatible = "syscon", "simple-bus";
-+			reg = <0x4a002e00 0x7c>;
-+		};
-+
-+		pbias_regulator: pbias_regulator {
-+			compatible = "ti,pbias-omap";
-+			reg = <0 0x4>;
-+			syscon = <&dra7_ctrl_general>;
-+			pbias_mmc_reg: pbias_mmc_omap5 {
-+				regulator-name = "pbias_mmc_omap5";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <3000000>;
-+			};
-+		};
-+
- 		dra7_pmx_core: pinmux@4a003400 {
- 			compatible = "pinctrl-single";
- 			reg = <0x4a003400 0x0464>;
-@@ -485,6 +501,7 @@
- 			dmas = <&sdma 61>, <&sdma 62>;
- 			dma-names = "tx", "rx";
- 			status = "disabled";
-+			pbias-supply = <&pbias_mmc_reg>;
- 		};
- 
- 		mmc2: mmc@480b4000 {
-diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
-index d624345..af71eb0 100644
---- a/arch/arm/boot/dts/omap2430.dtsi
-+++ b/arch/arm/boot/dts/omap2430.dtsi
-@@ -29,6 +29,22 @@
- 			pinctrl-single,function-mask = <0x3f>;
- 		};
- 
-+		omap2_scm_general: tisyscon@49002270 {
-+			compatible = "syscon", "simple-bus";
-+			reg = <0x49002270 0x240>;
-+		};
-+
-+		pbias_regulator: pbias_regulator {
-+			compatible = "ti,pbias-omap";
-+			reg = <0x230 0x4>;
-+			syscon = <&omap2_scm_general>;
-+			pbias_mmc_reg: pbias_mmc_omap2430 {
-+				regulator-name = "pbias_mmc_omap2430";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <3000000>;
-+			};
-+		};
-+
- 		gpio1: gpio@4900c000 {
- 			compatible = "ti,omap2-gpio";
- 			reg = <0x4900c000 0x200>;
-@@ -183,6 +199,7 @@
- 			ti,dual-volt;
- 			dmas = <&sdma 61>, <&sdma 62>;
- 			dma-names = "tx", "rx";
-+			pbias-supply = <&pbias_mmc_reg>;
- 		};
- 
- 		mmc2: mmc@480b4000 {
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index daabf99..b7828da 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -137,6 +137,22 @@
- 			pinctrl-single,function-mask = <0xff1f>;
- 		};
- 
-+		omap3_scm_general: tisyscon@48002270 {
-+			compatible = "syscon", "simple-bus";
-+			reg = <0x48002270 0x2f0>;
-+		};
-+
-+		pbias_regulator: pbias_regulator {
-+			compatible = "ti,pbias-omap";
-+			reg = <0x2b0 0x4>;
-+			syscon = <&omap3_scm_general>;
-+			pbias_mmc_reg: pbias_mmc_omap2430 {
-+				regulator-name = "pbias_mmc_omap2430";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <3000000>;
-+			};
-+		};
-+
- 		gpio1: gpio@48310000 {
- 			compatible = "ti,omap3-gpio";
- 			reg = <0x48310000 0x200>;
-@@ -351,6 +367,7 @@
- 			ti,dual-volt;
- 			dmas = <&sdma 61>, <&sdma 62>;
- 			dma-names = "tx", "rx";
-+			pbias-supply = <&pbias_mmc_reg>;
- 		};
- 
- 		mmc2: mmc@480b4000 {
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index a1e0585..9e19363 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -134,6 +134,22 @@
- 			pinctrl-single,function-mask = <0x7fff>;
- 		};
- 
-+		omap4_padconf_global: tisyscon@4a1005a0 {
-+			compatible = "syscon", "simple-bus";
-+			reg = <0x4a1005a0 0x170>;
-+		};
-+
-+		pbias_regulator: pbias_regulator {
-+			compatible = "ti,pbias-omap";
-+			reg = <0x60 0x4>;
-+			syscon = <&omap4_padconf_global>;
-+			pbias_mmc_reg: pbias_mmc_omap4 {
-+				regulator-name = "pbias_mmc_omap4";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <3000000>;
-+			};
-+		};
-+
- 		sdma: dma-controller@4a056000 {
- 			compatible = "ti,omap4430-sdma";
- 			reg = <0x4a056000 0x1000>;
-@@ -367,6 +383,7 @@
- 			ti,needs-special-reset;
- 			dmas = <&sdma 61>, <&sdma 62>;
- 			dma-names = "tx", "rx";
-+			pbias-supply = <&pbias_mmc_reg>;
- 		};
- 
- 		mmc2: mmc@480b4000 {
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index fc3fad5..f178899 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -130,6 +130,22 @@
- 			pinctrl-single,function-mask = <0x7fff>;
- 		};
- 
-+		omap5_padconf_global: tisyscon@4a002da0 {
-+			compatible = "syscon";
-+			reg = <0x4A002da0 0xec>;
-+		};
-+
-+		pbias_regulator: pbias_regulator {
-+			compatible = "ti,pbias-omap";
-+			reg = <0x60 0x4>;
-+			syscon = <&omap5_padconf_global>;
-+			pbias_mmc_reg: pbias_mmc_omap5 {
-+				regulator-name = "pbias_mmc_omap5";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <3000000>;
-+			};
-+		};
-+
- 		sdma: dma-controller@4a056000 {
- 			compatible = "ti,omap4430-sdma";
- 			reg = <0x4a056000 0x1000>;
-@@ -409,6 +425,7 @@
- 			ti,needs-special-reset;
- 			dmas = <&sdma 61>, <&sdma 62>;
- 			dma-names = "tx", "rx";
-+			pbias-supply = <&pbias_mmc_reg>;
- 		};
- 
- 		mmc2: mmc@480b4000 {
--- 
-1.7.5.4
+Just to re-phrase it, this doesn't impact functionality, the resultant 
+clock nodes etc. are exactly the same before-and-after this set, the 
+kernel just tries to register one additional clock alias which it can't 
+find and prints the single line out.
 
+-Tero
+
+>
+> As for the smp_twd clock I assume we can add "clocks =
+> <&mpu_periphclk>" to local-timer@48240600 in omap4.dtsi to get rid of
+> the warning. I can cook up a patch here if it is the right thing to
+> do.
+> I think the smp_twd warning existed before I applied this patch set.
+>
+> regards
+> Joachim Eastwood
+>
