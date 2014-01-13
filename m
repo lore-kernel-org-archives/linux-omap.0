@@ -1,103 +1,72 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH v2] OMAPDSS: DISPC: Fix 34xx overlay scaling calculation
-Date: Mon, 13 Jan 2014 18:33:02 +0200
-Message-ID: <1389630782-1764-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <52D3C3EB.6000104@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52D3C3EB.6000104@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: archit@ti.com, plagnioj@jcrosoft.com, pali.rohar@gmail.com, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+From: sourav <sourav.poddar@ti.com>
+Subject: Re: [PATCHv2 9/9] arm: dts: am43x-gp-evm: Add matrix gpio keys.
+Date: Mon, 13 Jan 2014 22:13:13 +0530
+Message-ID: <52D417A1.9060007@ti.com>
+References: <1387456421-21379-1-git-send-email-sourav.poddar@ti.com> <1387456421-21379-10-git-send-email-sourav.poddar@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44565 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754351AbaAMQng (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Jan 2014 11:43:36 -0500
+In-Reply-To: <1387456421-21379-10-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>, bcousson@baylibre.com
+Cc: balbi@ti.com, devicetree@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, mark.rutland@arm.com, lokeshvutla@ti.com
 
-From: Ivaylo Dimitrov <freemangordon@abv.bg>
+Benoit,
 
-commit 7faa92339bbb1e6b9a80983b206642517327eb75 OMAPDSS: DISPC: Handle
-synclost errors in OMAP3 introduces limits check to prevent SYNCLOST errors
-on OMAP3. However, it misses the logic found in Nokia kernels that is
-needed to correctly calculate whether 3 tap or 5 tap rescaler to be used as
-well as the logic to fallback to 3 taps if 5 taps clock results in too
-tight horizontal timings. Without that patch "horizontal timing too tight"
-errors are seen when a video with resolution above 640x350 is tried to be
-played. The patch is a forward-ported logic found in Nokia N900 and N9/50
-kernels.
+On Thursday 19 December 2013 06:03 PM, Sourav Poddar wrote:
+> Add gpio keys node for am43x gp evm.
+>
+> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+> ---
+>   arch/arm/boot/dts/am437x-gp-evm.dts |   21 +++++++++++++++++++++
+>   1 file changed, 21 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+> index 0dc248d..4eb72b8 100644
+> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
+> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+> @@ -13,6 +13,7 @@
+>   #include "am4372.dtsi"
+>   #include<dt-bindings/pinctrl/am43xx.h>
+>   #include<dt-bindings/pwm/pwm.h>
+> +#include<dt-bindings/gpio/gpio.h>
+>
+>   / {
+>   	model = "TI AM437x GP EVM";
+> @@ -24,6 +25,26 @@
+>   		brightness-levels =<0 51 53 56 62 75 101 152 255>;
+>   		default-brightness-level =<8>;
+>   	};
+> +
+> +	matrix_keypad: matrix_keypad@0 {
+> +		compatible = "gpio-matrix-keypad";
+> +		debounce-delay-ms =<5>;
+> +		col-scan-delay-us =<2>;
+> +
+> +		row-gpios =<&gpio3 21 GPIO_ACTIVE_HIGH /* Bank3, pin21 */
+> +				&gpio4 3 GPIO_ACTIVE_HIGH /* Bank4, pin3 */
+> +				&gpio4 2 GPIO_ACTIVE_HIGH>; /* Bank4, pin2 */
+> +
+> +		col-gpios =<&gpio3 19 GPIO_ACTIVE_HIGH /* Bank3, pin19 */
+> +				&gpio3 20 GPIO_ACTIVE_HIGH>; /* Bank3, pin20 */
+> +
+> +		linux,keymap =<0x00000201      /* P1 */
+> +				0x00010202      /* P2 */
+> +				0x01000067      /* UP */
+> +				0x0101006a      /* RIGHT */
+> +				0x02000069      /* LEFT */
+> +				0x0201006c>;      /* DOWN */
+> +		};
+>   };
+>
+>   &am43xx_pinmux {
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
----
- drivers/video/omap2/dss/dispc.c |   31 ++++++++++++++++++++++---------
- 1 files changed, 22 insertions(+), 9 deletions(-)
+ping on this series, this series is lying for a while.
+This series is based on your for_3.14 branch.
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 67e413e..66e0849 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1999,7 +1999,8 @@ static void calc_tiler_rotation_offset(u16 screen_width, u16 width,
-  */
- static int check_horiz_timing_omap3(unsigned long pclk, unsigned long lclk,
- 		const struct omap_video_timings *t, u16 pos_x,
--		u16 width, u16 height, u16 out_width, u16 out_height)
-+		u16 width, u16 height, u16 out_width, u16 out_height,
-+		bool five_taps)
- {
- 	const int ds = DIV_ROUND_UP(height, out_height);
- 	unsigned long nonactive;
-@@ -2019,6 +2020,10 @@ static int check_horiz_timing_omap3(unsigned long pclk, unsigned long lclk,
- 	if (blank <= limits[i])
- 		return -EINVAL;
- 
-+	/* FIXME add checks for 3-tap filter once the limitations are known */
-+	if (!five_taps)
-+		return 0;
-+
- 	/*
- 	 * Pixel data should be prepared before visible display point starts.
- 	 * So, atleast DS-2 lines must have already been fetched by DISPC
-@@ -2194,22 +2199,30 @@ static int dispc_ovl_calc_scaling_34xx(unsigned long pclk, unsigned long lclk,
- 	do {
- 		in_height = DIV_ROUND_UP(height, *decim_y);
- 		in_width = DIV_ROUND_UP(width, *decim_x);
--		*core_clk = calc_core_clk_five_taps(pclk, mgr_timings,
--			in_width, in_height, out_width, out_height, color_mode);
--
--		error = check_horiz_timing_omap3(pclk, lclk, mgr_timings,
--				pos_x, in_width, in_height, out_width,
--				out_height);
-+		*five_taps = in_height > out_height;
- 
- 		if (in_width > maxsinglelinewidth)
- 			if (in_height > out_height &&
- 						in_height < out_height * 2)
- 				*five_taps = false;
--		if (!*five_taps)
-+again:
-+		if (*five_taps)
-+			*core_clk = calc_core_clk_five_taps(pclk, mgr_timings,
-+						in_width, in_height, out_width,
-+						out_height, color_mode);
-+		else
- 			*core_clk = dispc.feat->calc_core_clk(pclk, in_width,
- 					in_height, out_width, out_height,
- 					mem_to_mem);
- 
-+		error = check_horiz_timing_omap3(pclk, lclk, mgr_timings,
-+				pos_x, in_width, in_height, out_width,
-+				out_height, *five_taps);
-+		if (error && *five_taps) {
-+			*five_taps = false;
-+			goto again;
-+		}
-+
- 		error = (error || in_width > maxsinglelinewidth * 2 ||
- 			(in_width > maxsinglelinewidth && *five_taps) ||
- 			!*core_clk || *core_clk > dispc_core_clk_rate());
-@@ -2226,7 +2239,7 @@ static int dispc_ovl_calc_scaling_34xx(unsigned long pclk, unsigned long lclk,
- 	} while (*decim_x <= *x_predecim && *decim_y <= *y_predecim && error);
- 
- 	if (check_horiz_timing_omap3(pclk, lclk, mgr_timings, pos_x, width,
--				height, out_width, out_height)){
-+				height, out_width, out_height, *five_taps)) {
- 			DSSERR("horizontal timing too tight\n");
- 			return -EINVAL;
- 	}
--- 
-1.5.6.1
