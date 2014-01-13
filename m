@@ -1,129 +1,142 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH] OMAPDSS: DISPC: Fix 34xx overlay scaling calculation
-Date: Mon, 13 Jan 2014 16:16:03 +0530
-Message-ID: <52D3C3EB.6000104@ti.com>
-References: <1389444125-5000-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v9 4/7] mmc: omap_hsmmc: adapt hsmmc to use pbias regulator
+Date: Mon, 13 Jan 2014 18:59:09 +0530
+Message-ID: <52D3EA25.5020508@ti.com>
+References: <1389279062-32291-1-git-send-email-balajitk@ti.com> <1389375049-5248-1-git-send-email-balajitk@ti.com> <1389375049-5248-5-git-send-email-balajitk@ti.com> <CAOf5uwkVsPA4_kuf4G0JBB9ewb1=HGD5vGMr9pttKuWmAzF1VQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58243 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751377AbaAMKqU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Jan 2014 05:46:20 -0500
-In-Reply-To: <1389444125-5000-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAOf5uwkVsPA4_kuf4G0JBB9ewb1=HGD5vGMr9pttKuWmAzF1VQ@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Michael Trimarchi <michael@amarulasolutions.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, chris@printf.net, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, tomi.valkeinen@ti.com
-Cc: plagnioj@jcrosoft.com, pali.rohar@gmail.com, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>
 
+On Friday 10 January 2014 11:51 PM, Michael Trimarchi wrote:
+> Hi
+>
+> On Fri, Jan 10, 2014 at 6:30 PM, Balaji T K <balajitk@ti.com> wrote:
+>> In DT case, PBAIS registers are programmed via regulator,
+>> use regulator APIs to control PBIAS.
+>>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>> ---
+>>   drivers/mmc/host/omap_hsmmc.c |   39 +++++++++++++++++++++++++++++++++++++++
+>>   1 files changed, 39 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index 342be25..0a390f8 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -126,6 +126,10 @@
+>>   #define OMAP_MMC_MAX_CLOCK     52000000
+>>   #define DRIVER_NAME            "omap_hsmmc"
+>>
+>> +#define VDD_1V8                        1800000         /* 180000 uV */
+>> +#define VDD_3V0                        3000000         /* 300000 uV */
+>> +#define VDD_165_195            (ffs(MMC_VDD_165_195) - 1)
+>> +
+>>   /*
+>>    * One controller can have multiple slots, like on some omap boards using
+>>    * omap.c controller driver. Luckily this is not currently done on any known
+>> @@ -164,6 +168,8 @@ struct omap_hsmmc_host {
+>>           */
+>>          struct  regulator       *vcc;
+>>          struct  regulator       *vcc_aux;
+>> +       struct  regulator       *pbias;
+>> +       bool                    pbias_enabled;
+>>          int                     pbias_disable;
+>>          void    __iomem         *base;
+>>          resource_size_t         mapbase;
+>> @@ -272,6 +278,15 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
+>>          if (mmc_slot(host).before_set_reg)
+>>                  mmc_slot(host).before_set_reg(dev, slot, power_on, vdd);
+>>
+>> +       if (host->pbias) {
+>> +               if (host->pbias_enabled == 1) {
+>> +                       ret = regulator_disable(host->pbias);
+>> +                       if (!ret)
+>> +                               host->pbias_enabled = 0;
+>> +               }
+>> +               regulator_set_voltage(host->pbias, VDD_3V0, VDD_3V0);
+>> +       }
+>> +
+>>          /*
+>>           * Assume Vcc regulator is used only to power the card ... OMAP
+>>           * VDDS is used to power the pins, optionally with a transceiver to
+>> @@ -306,9 +321,29 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
+>>                  }
+>>          }
+>>
+>> +       if (host->pbias) {
+>> +               if (vdd <= VDD_165_195)
+>> +                       ret = regulator_set_voltage(host->pbias, VDD_1V8,
+>> +                                                               VDD_1V8);
+>> +               else
+>> +                       ret = regulator_set_voltage(host->pbias, VDD_3V0,
+>> +                                                               VDD_3V0);
+>> +               if (ret < 0)
+>> +                       goto error_set_power;
+>> +
+>> +               if (host->pbias_enabled == 0) {
+>> +                       ret = regulator_enable(host->pbias);
+>> +                       if (!ret) {
+>> +                               host->pbias_enabled = 1;
+>> +                               goto error_set_power;
+>
+> why you a goto to error_set_power if the regulator enable was a succes?
 Hi,
 
-On Saturday 11 January 2014 06:12 PM, Ivaylo Dimitrov wrote:
-> From: Ivaylo Dimitrov <freemangordon@abv.bg>
->
-> commit 7faa92339bbb1e6b9a80983b206642517327eb75 OMAPDSS: DISPC: Handle
-> synclost errors in OMAP3 introduces limits check to prevent SYNCLOST errors
-> on OMAP3. However, it misses the logic found in Nokia kernels that is
-> needed to correctly calculate whether 3 tap or 5 tap rescaler to be used as
-> well as the logic to fallback to 3 taps if 5 taps clock results in too
-> tight horizontal timings. Without that patch "horizontal timing too tight"
-> errors are seen when a video with resolution above 640x350 is tried to be
-> played. The patch is a forward-ported logic found in Nokia N900 and N9/50
-> kernels.
->
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> ---
->   drivers/video/omap2/dss/dispc.c |   36 +++++++++++++++++++++++++-----------
->   1 files changed, 25 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-> index 67e413e..9d1aa25 100644
-> --- a/drivers/video/omap2/dss/dispc.c
-> +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -1999,7 +1999,8 @@ static void calc_tiler_rotation_offset(u16 screen_width, u16 width,
->    */
->   static int check_horiz_timing_omap3(unsigned long pclk, unsigned long lclk,
->   		const struct omap_video_timings *t, u16 pos_x,
-> -		u16 width, u16 height, u16 out_width, u16 out_height)
-> +		u16 width, u16 height, u16 out_width, u16 out_height,
-> +		bool five_taps)
->   {
->   	const int ds = DIV_ROUND_UP(height, out_height);
->   	unsigned long nonactive;
-> @@ -2019,6 +2020,10 @@ static int check_horiz_timing_omap3(unsigned long pclk, unsigned long lclk,
->   	if (blank <= limits[i])
->   		return -EINVAL;
->
-> +	/* FIXME add checks for 3-tap filter once the limitations are known */
-> +	if (!five_taps)
-> +		return 0;
-> +
->   	/*
->   	 * Pixel data should be prepared before visible display point starts.
->   	 * So, atleast DS-2 lines must have already been fetched by DISPC
-> @@ -2191,24 +2196,33 @@ static int dispc_ovl_calc_scaling_34xx(unsigned long pclk, unsigned long lclk,
->   	const int maxsinglelinewidth =
->   			dss_feat_get_param_max(FEAT_PARAM_LINEWIDTH);
->
-> +	*five_taps = height > out_height;
-> +
+My bad
+yes, goto error_set_power is not needed when regulator got enabled.
+will remove it.
 
-We should consider the decimated height when calculating the five taps. 
-I suggest the change below:
 
->   	do {
->   		in_height = DIV_ROUND_UP(height, *decim_y);
->   		in_width = DIV_ROUND_UP(width, *decim_x);
-> -		*core_clk = calc_core_clk_five_taps(pclk, mgr_timings,
-> -			in_width, in_height, out_width, out_height, color_mode);
-> -
-> -		error = check_horiz_timing_omap3(pclk, lclk, mgr_timings,
-> -				pos_x, in_width, in_height, out_width,
-> -				out_height);
+> and if pbias_enabled is used for verify if is already enabled. Is the
+> same to use
+> regulator_is_enabled?
 >
 
-set "*five_taps = in_height > out_height;" here. The rest of the code 
-remains the same.
+pbias_enabled is used to verify if it already enabled or not
+and it is used to balance regulator_enable/disable.
 
->   		if (in_width > maxsinglelinewidth)
->   			if (in_height > out_height &&
->   						in_height < out_height * 2)
->   				*five_taps = false;
-> -		if (!*five_taps)
-> +again:
-> +		if (*five_taps)
-> +			*core_clk = calc_core_clk_five_taps(pclk, mgr_timings,
-> +						in_width, in_height, out_width,
-> +						out_height, color_mode);
-> +		else
->   			*core_clk = dispc.feat->calc_core_clk(pclk, in_width,
-> -					in_height, out_width, out_height,
-> -					mem_to_mem);
-> +				in_height, out_width, out_height,
-> +				mem_to_mem);
-> +
-> +		error = check_horiz_timing_omap3(pclk, lclk, mgr_timings,
-> +				pos_x, in_width, in_height, out_width,
-> +				out_height, *five_taps);
-> +		if (error && *five_taps) {
-> +			*five_taps = false;
-> +			goto again;
-> +		}
+> Michael
 >
->   		error = (error || in_width > maxsinglelinewidth * 2 ||
->   			(in_width > maxsinglelinewidth && *five_taps) ||
-> @@ -2226,7 +2240,7 @@ static int dispc_ovl_calc_scaling_34xx(unsigned long pclk, unsigned long lclk,
->   	} while (*decim_x <= *x_predecim && *decim_y <= *y_predecim && error);
->
->   	if (check_horiz_timing_omap3(pclk, lclk, mgr_timings, pos_x, width,
-> -				height, out_width, out_height)){
-> +				height, out_width, out_height, *five_taps)) {
->   			DSSERR("horizontal timing too tight\n");
->   			return -EINVAL;
->   	}
->
-
-Thanks,
-Archit
+>> +                       }
+>> +               }
+>> +       }
+>> +
+>>          if (mmc_slot(host).after_set_reg)
+>>                  mmc_slot(host).after_set_reg(dev, slot, power_on, vdd);
+>>
+>> +error_set_power:
+>>          return ret;
+>>   }
+>>
+>> @@ -342,6 +377,9 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>>          reg = devm_regulator_get_optional(host->dev, "vmmc_aux");
+>>          host->vcc_aux = IS_ERR(reg) ? NULL : reg;
+>>
+>> +       reg = devm_regulator_get_optional(host->dev, "pbias");
+>> +       host->pbias = IS_ERR(reg) ? NULL : reg;
+>> +
+>>          /* For eMMC do not power off when not in sleep state */
+>>          if (mmc_slot(host).no_regulator_off_init)
+>>                  return 0;
+>> @@ -1808,6 +1846,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>>          host->base      = ioremap(host->mapbase, SZ_4K);
+>>          host->power_mode = MMC_POWER_OFF;
+>>          host->next_data.cookie = 1;
+>> +       host->pbias_enabled = 0;
+>>
+>>          platform_set_drvdata(pdev, host);
+>>
+>> --
+>> 1.7.5.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
