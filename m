@@ -1,91 +1,103 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/2] ARM: DRA7XX/AM43XX build fixes
-Date: Mon, 13 Jan 2014 10:24:37 -0600
-Message-ID: <20140113162412.GF26950@saruman.home>
-References: <1389347850-22435-1-git-send-email-t-kristo@ti.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0855684203809316423=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1389347850-22435-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH v2] OMAPDSS: DISPC: Fix 34xx overlay scaling calculation
+Date: Mon, 13 Jan 2014 18:33:02 +0200
+Message-ID: <1389630782-1764-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <52D3C3EB.6000104@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52D3C3EB.6000104@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: archit@ti.com, plagnioj@jcrosoft.com, pali.rohar@gmail.com, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============0855684203809316423==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6b3yLyRKT1M6kiA0"
-Content-Disposition: inline
+From: Ivaylo Dimitrov <freemangordon@abv.bg>
 
---6b3yLyRKT1M6kiA0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+commit 7faa92339bbb1e6b9a80983b206642517327eb75 OMAPDSS: DISPC: Handle
+synclost errors in OMAP3 introduces limits check to prevent SYNCLOST errors
+on OMAP3. However, it misses the logic found in Nokia kernels that is
+needed to correctly calculate whether 3 tap or 5 tap rescaler to be used as
+well as the logic to fallback to 3 taps if 5 taps clock results in too
+tight horizontal timings. Without that patch "horizontal timing too tight"
+errors are seen when a video with resolution above 640x350 is tried to be
+played. The patch is a forward-ported logic found in Nokia N900 and N9/50
+kernels.
 
-On Fri, Jan 10, 2014 at 11:57:28AM +0200, Tero Kristo wrote:
-> The move of clock code from mach-omap2 to drivers/clk/ti introduces
-> a couple of new build errors with AM43XX/DRA7XX only builds. The
-> following patches address these issues by modifying the Kconfig + Makefile
-> under mach-omap2.
->=20
-> Also, it seems DRA7XX only build is not possible at the moment, added
-> patch #2 to fix this.
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+---
+ drivers/video/omap2/dss/dispc.c |   31 ++++++++++++++++++++++---------
+ 1 files changed, 22 insertions(+), 9 deletions(-)
 
-looks like we still need some extra patches since OMAP2-only builds
-still fail :-(
-
-Also omap1_defconfig fails miserably :-(
-
-hoping this can still get fixed in time for 3.14 :-s
-
-cheers
-
---=20
-balbi
-
---6b3yLyRKT1M6kiA0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJS1BNFAAoJEIaOsuA1yqRElesP/3nFuYYfxfMofAwAx6k2LNh5
-bcRgMG6FlU+ESFyQ/uUrvKxZDbSG+/H0zDi49TA9PQ0mXd7/Qo6FWwkpu9UF9kDr
-IZQjJR4x0Ez3uVS0zUB7IHmRufrR8PKQUf84PyIPFxDtIImvIfnjAW+6e+lr5IC6
-a/qvdYsiQ4JCR5SqlRO7mYI79egXX4RgD+25cLh2aE4DcAozFcKYZ8poqXlYBC/2
-KwlzmH+dmTW2bQ7UQpI8OQIDNzERbLZxDoYzaG8AqTdKAumZWJZfl5ZiU1XyRq1x
-NMcdwiguznCYNa1hKzIyds802WwQ43wXFLeFl5FwQySXw7I5ABQ/Bqx+6+aeqli8
-a8ep1X4TI73oa4g9DSfuD5aI27S2Jw+iZ2Mwnpj478pmc/kEtOpVIbZxYKkUVqL3
-n9B5RbUuooRKgPliKMeGa+EyFwnm0wZQq5BJbc9reiUmClgeauNinVQ11fw8Eyw8
-6Isuc/e29GvzVqEGocsXoxxnT7kWrBf8rAH9fk0j+rI+u7DYgbxlL88hsrCmy1Rn
-iSCjbPFvDMJkbP9If08MxEAzOJYJYCezsY7A13/nOWm3EhAmskFnvAeorqI94yzQ
-V7evInLlYhgJ0hrarSaG20xc7Q7qg8EshrSbbqYtOe3yvkpUkh7Nh4DAnYSeasMJ
-UleM0I+NglaI4fCG5Nj1
-=Mnsr
------END PGP SIGNATURE-----
-
---6b3yLyRKT1M6kiA0--
-
-
---===============0855684203809316423==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============0855684203809316423==--
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 67e413e..66e0849 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -1999,7 +1999,8 @@ static void calc_tiler_rotation_offset(u16 screen_width, u16 width,
+  */
+ static int check_horiz_timing_omap3(unsigned long pclk, unsigned long lclk,
+ 		const struct omap_video_timings *t, u16 pos_x,
+-		u16 width, u16 height, u16 out_width, u16 out_height)
++		u16 width, u16 height, u16 out_width, u16 out_height,
++		bool five_taps)
+ {
+ 	const int ds = DIV_ROUND_UP(height, out_height);
+ 	unsigned long nonactive;
+@@ -2019,6 +2020,10 @@ static int check_horiz_timing_omap3(unsigned long pclk, unsigned long lclk,
+ 	if (blank <= limits[i])
+ 		return -EINVAL;
+ 
++	/* FIXME add checks for 3-tap filter once the limitations are known */
++	if (!five_taps)
++		return 0;
++
+ 	/*
+ 	 * Pixel data should be prepared before visible display point starts.
+ 	 * So, atleast DS-2 lines must have already been fetched by DISPC
+@@ -2194,22 +2199,30 @@ static int dispc_ovl_calc_scaling_34xx(unsigned long pclk, unsigned long lclk,
+ 	do {
+ 		in_height = DIV_ROUND_UP(height, *decim_y);
+ 		in_width = DIV_ROUND_UP(width, *decim_x);
+-		*core_clk = calc_core_clk_five_taps(pclk, mgr_timings,
+-			in_width, in_height, out_width, out_height, color_mode);
+-
+-		error = check_horiz_timing_omap3(pclk, lclk, mgr_timings,
+-				pos_x, in_width, in_height, out_width,
+-				out_height);
++		*five_taps = in_height > out_height;
+ 
+ 		if (in_width > maxsinglelinewidth)
+ 			if (in_height > out_height &&
+ 						in_height < out_height * 2)
+ 				*five_taps = false;
+-		if (!*five_taps)
++again:
++		if (*five_taps)
++			*core_clk = calc_core_clk_five_taps(pclk, mgr_timings,
++						in_width, in_height, out_width,
++						out_height, color_mode);
++		else
+ 			*core_clk = dispc.feat->calc_core_clk(pclk, in_width,
+ 					in_height, out_width, out_height,
+ 					mem_to_mem);
+ 
++		error = check_horiz_timing_omap3(pclk, lclk, mgr_timings,
++				pos_x, in_width, in_height, out_width,
++				out_height, *five_taps);
++		if (error && *five_taps) {
++			*five_taps = false;
++			goto again;
++		}
++
+ 		error = (error || in_width > maxsinglelinewidth * 2 ||
+ 			(in_width > maxsinglelinewidth && *five_taps) ||
+ 			!*core_clk || *core_clk > dispc_core_clk_rate());
+@@ -2226,7 +2239,7 @@ static int dispc_ovl_calc_scaling_34xx(unsigned long pclk, unsigned long lclk,
+ 	} while (*decim_x <= *x_predecim && *decim_y <= *y_predecim && error);
+ 
+ 	if (check_horiz_timing_omap3(pclk, lclk, mgr_timings, pos_x, width,
+-				height, out_width, out_height)){
++				height, out_width, out_height, *five_taps)) {
+ 			DSSERR("horizontal timing too tight\n");
+ 			return -EINVAL;
+ 	}
+-- 
+1.5.6.1
