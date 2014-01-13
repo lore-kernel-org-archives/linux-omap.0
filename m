@@ -1,14 +1,13 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
-Date: Mon, 13 Jan 2014 17:49:19 +0200
-Message-ID: <52D40AFF.9000308@ti.com>
-References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
- <CAGhQ9Vz8i2EEG+GgFwXFj3vgeV_Eg0dDfRvKn-XRRVBjwJkDXQ@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 0/2] ARM: DRA7XX/AM43XX build fixes
+Date: Mon, 13 Jan 2014 10:24:37 -0600
+Message-ID: <20140113162412.GF26950@saruman.home>
+References: <1389347850-22435-1-git-send-email-t-kristo@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0855684203809316423=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAGhQ9Vz8i2EEG+GgFwXFj3vgeV_Eg0dDfRvKn-XRRVBjwJkDXQ@mail.gmail.com>
+In-Reply-To: <1389347850-22435-1-git-send-email-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,84 +17,75 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Joachim Eastwood <manabian@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, Tony Lindgren <tony@atomide.com>, rnayak@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/11/2014 06:35 PM, Joachim Eastwood wrote:
-> On 9 January 2014 15:00, Tero Kristo <t-kristo@ti.com> wrote:
->> Hi,
->>
->> So, bad luck number release for this, as v12 wasn't sufficient still.
->>
->> Changes compared to previous version:
->> - Dropped any changes to generic clock drivers, as it seems impossible
->>    to agree anything in short term, this means the patch set shrank in
->>    size from 49 patches to 40 (first 9 patches were dropped).
->> - Copy pasted implementation for clk-divider and clk-mux from drivers/clk
->>    to drivers/clk/ti, and made the modifications needed to the TI version
->>    of the clock drivers only (based on discussions with Mike, this is fine)
->> - Changed name of clk_ll_ops to ti_clk_ll_ops so that this doesn't conflict
->>    with any generic implementation we might have at some point, migrating
->>    this to the generic version should be easy enough also.
->> - Fixed trace_clk_div_div_ck for omap4, this node was broken in previous
->>    versions and resulted into an orphan clock node
->> - Fixed compile problem for omap5 only build reported by Felipe
->> - Fixed a couple of sparse warnings
->> - changed the mach-omap2/clock.c to use readl_relaxed / writel_relaxed
->>    instead of __raw_readl / __raw_writel
->>
->> Testing done:
->> - omap3-beagle: boot / suspend-resume (RET) / suspend-resume (OFF)
->> - omap4-panda-es: boot / suspend-resume (RET)
->> - omap5-uevm: boot
->> - am335x-bone: boot
->> - dra7-evm: boot
->>
->> Maintainer friendly branches also available:
->>
->> tree: https://github.com/t-kristo/linux-pm.git
->>
->> clk driver only (Mike): clk-next-dt-clks-v13
->> DTS data only (Benoit): dts_for_3.14-dt-clks-v13
->> full-branch (Tony/Paul): 3.13-rc7-dt-clks-v13
->
-> I tested 3.13-rc7-dt-clks-v13 on top of a next branch I am working on
-> with a OMAP4460 and it's working fine.
->
-> A couple of things I noticed in the boot log:
-> [ 0.000000] ti_dt_clocks_register: failed to lookup clock node bandgap_fclk
-> [ 0.000000] smp_twd: clock not found -2
->
-> I am get the bandgap_fclk clock lookup fail since it doesn't exist on
-> 4460 and I guess the bandgap_ts_fclk clock will fail the same way on
-> 4430. So maybe you need to differentiate between 4460 and 4430 in
-> clk-44xx.c to get rid of this warning.
+--===============0855684203809316423==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6b3yLyRKT1M6kiA0"
+Content-Disposition: inline
 
-Yeah thats true. I was kind of lazy with the omap4 clk file (these are 
-supposed to be temporary anyway until we can get rid of the clock 
-aliases through proper driver DT mappings), and didn't separate omap4430 
-vs omap4460 there. If this print needs to go away, we need to do this 
-similarly to what was done with different omap3 versions (the clock data 
-delta is much more larger there), but the additional code needed for 
-this was rather large for the minimal impact... we would need separate 
-board files, separate io.c setups, and logic within the clk-44xx.c file 
-itself.
+--6b3yLyRKT1M6kiA0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Just to re-phrase it, this doesn't impact functionality, the resultant 
-clock nodes etc. are exactly the same before-and-after this set, the 
-kernel just tries to register one additional clock alias which it can't 
-find and prints the single line out.
+On Fri, Jan 10, 2014 at 11:57:28AM +0200, Tero Kristo wrote:
+> The move of clock code from mach-omap2 to drivers/clk/ti introduces
+> a couple of new build errors with AM43XX/DRA7XX only builds. The
+> following patches address these issues by modifying the Kconfig + Makefile
+> under mach-omap2.
+>=20
+> Also, it seems DRA7XX only build is not possible at the moment, added
+> patch #2 to fix this.
 
--Tero
+looks like we still need some extra patches since OMAP2-only builds
+still fail :-(
 
->
-> As for the smp_twd clock I assume we can add "clocks =
-> <&mpu_periphclk>" to local-timer@48240600 in omap4.dtsi to get rid of
-> the warning. I can cook up a patch here if it is the right thing to
-> do.
-> I think the smp_twd warning existed before I applied this patch set.
->
-> regards
-> Joachim Eastwood
->
+Also omap1_defconfig fails miserably :-(
+
+hoping this can still get fixed in time for 3.14 :-s
+
+cheers
+
+--=20
+balbi
+
+--6b3yLyRKT1M6kiA0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJS1BNFAAoJEIaOsuA1yqRElesP/3nFuYYfxfMofAwAx6k2LNh5
+bcRgMG6FlU+ESFyQ/uUrvKxZDbSG+/H0zDi49TA9PQ0mXd7/Qo6FWwkpu9UF9kDr
+IZQjJR4x0Ez3uVS0zUB7IHmRufrR8PKQUf84PyIPFxDtIImvIfnjAW+6e+lr5IC6
+a/qvdYsiQ4JCR5SqlRO7mYI79egXX4RgD+25cLh2aE4DcAozFcKYZ8poqXlYBC/2
+KwlzmH+dmTW2bQ7UQpI8OQIDNzERbLZxDoYzaG8AqTdKAumZWJZfl5ZiU1XyRq1x
+NMcdwiguznCYNa1hKzIyds802WwQ43wXFLeFl5FwQySXw7I5ABQ/Bqx+6+aeqli8
+a8ep1X4TI73oa4g9DSfuD5aI27S2Jw+iZ2Mwnpj478pmc/kEtOpVIbZxYKkUVqL3
+n9B5RbUuooRKgPliKMeGa+EyFwnm0wZQq5BJbc9reiUmClgeauNinVQ11fw8Eyw8
+6Isuc/e29GvzVqEGocsXoxxnT7kWrBf8rAH9fk0j+rI+u7DYgbxlL88hsrCmy1Rn
+iSCjbPFvDMJkbP9If08MxEAzOJYJYCezsY7A13/nOWm3EhAmskFnvAeorqI94yzQ
+V7evInLlYhgJ0hrarSaG20xc7Q7qg8EshrSbbqYtOe3yvkpUkh7Nh4DAnYSeasMJ
+UleM0I+NglaI4fCG5Nj1
+=Mnsr
+-----END PGP SIGNATURE-----
+
+--6b3yLyRKT1M6kiA0--
+
+
+--===============0855684203809316423==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============0855684203809316423==--
