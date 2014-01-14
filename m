@@ -1,86 +1,60 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCHv2 9/9] arm: dts: am43x-gp-evm: Add matrix gpio keys.
-Date: Tue, 14 Jan 2014 15:21:41 +0100
-Message-ID: <52D547F5.2080307@baylibre.com>
-References: <1387456421-21379-1-git-send-email-sourav.poddar@ti.com> <1387456421-21379-10-git-send-email-sourav.poddar@ti.com> <52D417A1.9060007@ti.com> <20140114131444.GD10818@saruman.home>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 2/5] phy: add support for indexed lookup
+Date: Tue, 14 Jan 2014 16:23:10 +0200
+Message-ID: <20140114142310.GA21169@xps8300>
+References: <1386601737-8735-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <1386601737-8735-3-git-send-email-heikki.krogerus@linux.intel.com>
+ <52AEDDE2.8060406@ti.com>
+ <20131216143227.GA22944@xps8300>
+ <52CC03D4.50603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:34632 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbaANOVp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jan 2014 09:21:45 -0500
-Received: by mail-wi0-f182.google.com with SMTP id ex4so771980wid.9
-        for <linux-omap@vger.kernel.org>; Tue, 14 Jan 2014 06:21:44 -0800 (PST)
-In-Reply-To: <20140114131444.GD10818@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52CC03D4.50603@ti.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, sourav <sourav.poddar@ti.com>
-Cc: devicetree@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, mark.rutland@arm.com, lokeshvutla@ti.com
 
-Hi Felipe,
+Hi Kishon,
 
-On 14/01/2014 14:14, Felipe Balbi wrote:
-> On Mon, Jan 13, 2014 at 10:13:13PM +0530, sourav wrote:
->> Benoit,
->>
->> On Thursday 19 December 2013 06:03 PM, Sourav Poddar wrote:
->>> Add gpio keys node for am43x gp evm.
->>>
->>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
->>> ---
->>>   arch/arm/boot/dts/am437x-gp-evm.dts |   21 +++++++++++++++++++++
->>>   1 file changed, 21 insertions(+)
->>>
->>> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
->>> index 0dc248d..4eb72b8 100644
->>> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
->>> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
->>> @@ -13,6 +13,7 @@
->>>   #include "am4372.dtsi"
->>>   #include<dt-bindings/pinctrl/am43xx.h>
->>>   #include<dt-bindings/pwm/pwm.h>
->>> +#include<dt-bindings/gpio/gpio.h>
->>>
->>>   / {
->>>   	model = "TI AM437x GP EVM";
->>> @@ -24,6 +25,26 @@
->>>   		brightness-levels =<0 51 53 56 62 75 101 152 255>;
->>>   		default-brightness-level =<8>;
->>>   	};
->>> +
->>> +	matrix_keypad: matrix_keypad@0 {
->>> +		compatible = "gpio-matrix-keypad";
->>> +		debounce-delay-ms =<5>;
->>> +		col-scan-delay-us =<2>;
->>> +
->>> +		row-gpios =<&gpio3 21 GPIO_ACTIVE_HIGH /* Bank3, pin21 */
->>> +				&gpio4 3 GPIO_ACTIVE_HIGH /* Bank4, pin3 */
->>> +				&gpio4 2 GPIO_ACTIVE_HIGH>; /* Bank4, pin2 */
->>> +
->>> +		col-gpios =<&gpio3 19 GPIO_ACTIVE_HIGH /* Bank3, pin19 */
->>> +				&gpio3 20 GPIO_ACTIVE_HIGH>; /* Bank3, pin20 */
->>> +
->>> +		linux,keymap =<0x00000201      /* P1 */
->>> +				0x00010202      /* P2 */
->>> +				0x01000067      /* UP */
->>> +				0x0101006a      /* RIGHT */
->>> +				0x02000069      /* LEFT */
->>> +				0x0201006c>;      /* DOWN */
->>> +		};
->>>   };
->>>
->>>   &am43xx_pinmux {
->>
->> ping on this series, this series is lying for a while.
->> This series is based on your for_3.14 branch.
->
-> Benoit, do you need us to do anything else to get this merged ? Sourav
-> already rebased the patches as you requested back in December 19th.
+And happy new year..
 
-Nope, I've just needed more BW. I'll apply it ASAP.
+On Tue, Jan 07, 2014 at 07:10:36PM +0530, Kishon Vijay Abraham I wrote:
+> >>>  /**
+> >>> - * phy_get() - lookup and obtain a reference to a phy.
+> >>> + * phy_get_index() - obtain a phy based on index
+> >>
+> >> NAK. It still takes a 'char' argument and the name is misleading.
+> >> Btw are you replacing phy_get() or adding a new API in addition to phy_get()?
+> > 
+> > Additional API. The phy_get() would in practice act as a wrapper after
+> 
+> In this patch it looks like you've replaced phy_get().
+> > this. It could actually be just a #define macro in the include file.
+> > The function naming I just copied straight from gpiolib.c. I did not
+> > have the imagination for anything fancier.
+> > 
+> > I would like to be able to use some function like phy_get_index() and
+> > be able to deliver it both the name and the index. With DT you guys
+> > will always be able to use the name (and the string will always
+> > supersede the index if we do it like this), but with ACPI, and possibly
+> > the platform lookup tables, the index can be used...
+> 
+> I think in that case, we should drop the 'string' from phy_get_index since we
+> have the other API to handle that? I don't know about ACPI, but is it not
+> possible to use strings with ACPI?
+
+No unfortunately. We just have what the ACPI tables provide. The PHYs
+would be "child" device entries under the controller and we can only
+get handle to them based on the index.
+
+I think I'll skip this patch from this set. Let's wait until we have
+an actual ACPI DSDT describing some PHYs.
+
 
 Thanks,
-Benoit
 
+-- 
+heikki
