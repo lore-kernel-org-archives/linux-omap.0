@@ -1,76 +1,114 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv4 0/7] omap hwspinlock dt support
-Date: Tue, 14 Jan 2014 07:12:23 -0600
-Message-ID: <20140114131223.GC10818@saruman.home>
-References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
+Subject: Re: [PATCHv2 9/9] arm: dts: am43x-gp-evm: Add matrix gpio keys.
+Date: Tue, 14 Jan 2014 07:14:44 -0600
+Message-ID: <20140114131444.GD10818@saruman.home>
+References: <1387456421-21379-1-git-send-email-sourav.poddar@ti.com>
+ <1387456421-21379-10-git-send-email-sourav.poddar@ti.com>
+ <52D417A1.9060007@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lCAWRPmW1mITcIfM"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="FFoLq8A0u+X9iRU8"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38565 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751379AbaANNPu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Jan 2014 08:15:50 -0500
 Content-Disposition: inline
-In-Reply-To: <1389658764-39199-1-git-send-email-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <52D417A1.9060007@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: sourav <sourav.poddar@ti.com>
+Cc: bcousson@baylibre.com, balbi@ti.com, devicetree@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, mark.rutland@arm.com, lokeshvutla@ti.com
 
---lCAWRPmW1mITcIfM
+--FFoLq8A0u+X9iRU8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jan 13, 2014 at 06:19:17PM -0600, Suman Anna wrote:
-> This is an updated series mainly addressing Mark Rutland's comments
-> about hwlock specifier being always one-cell. The series adds the
-> support for #hwlock-cells property and adds a simple default OF
-> translate function.
+On Mon, Jan 13, 2014 at 10:13:13PM +0530, sourav wrote:
+> Benoit,
 >=20
-> The DTS patches from previous series have already been merged, and
-> needs this property to be added. This is handled in a separate series
-> that only deals with OMAP hwspinlock DTS patches.
+> On Thursday 19 December 2013 06:03 PM, Sourav Poddar wrote:
+> >Add gpio keys node for am43x gp evm.
+> >
+> >Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+> >---
+> >  arch/arm/boot/dts/am437x-gp-evm.dts |   21 +++++++++++++++++++++
+> >  1 file changed, 21 insertions(+)
+> >
+> >diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am4=
+37x-gp-evm.dts
+> >index 0dc248d..4eb72b8 100644
+> >--- a/arch/arm/boot/dts/am437x-gp-evm.dts
+> >+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+> >@@ -13,6 +13,7 @@
+> >  #include "am4372.dtsi"
+> >  #include<dt-bindings/pinctrl/am43xx.h>
+> >  #include<dt-bindings/pwm/pwm.h>
+> >+#include<dt-bindings/gpio/gpio.h>
+> >
+> >  / {
+> >  	model =3D "TI AM437x GP EVM";
+> >@@ -24,6 +25,26 @@
+> >  		brightness-levels =3D<0 51 53 56 62 75 101 152 255>;
+> >  		default-brightness-level =3D<8>;
+> >  	};
+> >+
+> >+	matrix_keypad: matrix_keypad@0 {
+> >+		compatible =3D "gpio-matrix-keypad";
+> >+		debounce-delay-ms =3D<5>;
+> >+		col-scan-delay-us =3D<2>;
+> >+
+> >+		row-gpios =3D<&gpio3 21 GPIO_ACTIVE_HIGH /* Bank3, pin21 */
+> >+				&gpio4 3 GPIO_ACTIVE_HIGH /* Bank4, pin3 */
+> >+				&gpio4 2 GPIO_ACTIVE_HIGH>; /* Bank4, pin2 */
+> >+
+> >+		col-gpios =3D<&gpio3 19 GPIO_ACTIVE_HIGH /* Bank3, pin19 */
+> >+				&gpio3 20 GPIO_ACTIVE_HIGH>; /* Bank3, pin20 */
+> >+
+> >+		linux,keymap =3D<0x00000201      /* P1 */
+> >+				0x00010202      /* P2 */
+> >+				0x01000067      /* UP */
+> >+				0x0101006a      /* RIGHT */
+> >+				0x02000069      /* LEFT */
+> >+				0x0201006c>;      /* DOWN */
+> >+		};
+> >  };
+> >
+> >  &am43xx_pinmux {
 >=20
-> The series, along with the DTS patches, is tested on top of v3.13-rc8
-> plus Tero's v13 clock DT series and Tony's 3.14 staged branches. The
-> validation on OMAP5, DRA7, AM437 requires Tero's series with couple of
-> additional base patches for AM43xx. AM43xx functionality needs a hwmod
-> fix [1] for creating the associated omap_device as well.
->=20
-> The validation logs on all the applicable OMAP SoCs are at:
->   OMAP4 - http://paste2.org/YJ7ZwG80
->   OMAP5 - http://paste2.org/c6vO96b9
->   DRA7  - http://paste2.org/tHvxN439
->   AM33x - http://paste2.org/AjCv0U4t
->   AM43x - http://paste2.org/2AKIPa55
+> ping on this series, this series is lying for a while.
+> This series is based on your for_3.14 branch.
 
-I build tested your 3.13-rc8-v4 branch with the same script I used to
-build CCF series and hspinlock built without any problems ;-)
+Benoit, do you need us to do anything else to get this merged ? Sourav
+already rebased the patches as you requested back in December 19th.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+cheers
 
 --=20
 balbi
 
---lCAWRPmW1mITcIfM
+--FFoLq8A0u+X9iRU8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJS1Te3AAoJEIaOsuA1yqRE01gP/0tYtg9gUL311bYUBeE8gdXA
-dWm9JPdFYwVIhjUmumMuwlCf7L4QnDPZibWv4S6MAfNuj4j+GdNWMqHVEWdKLp4c
-s3Y2E6Qh3ej/LycWMBwo14VX5KVO1yLK37MZ9q3gnxokbNOt27a/fY7AtDdDhnCz
-vC9Bk+9HGN8ueyLFIIsja80KixctbXBI3O9aWhu3XIuVQVEh6C6+alpFxpScytK5
-uJWqSKulZONDQjuAW1yTejfDTltyvv4100E3oTmiIazHrXGg+0l0fO8Co2YmV3/p
-jN+XCrXz9CvJ/GB2l6PBv67DtaXg8gp4YxKcEokxHvcwOYvF6lWXtSWUo9ZYx/li
-SV7yjXi4gUi2YbAsVZFnolCmUuXLAQ91fx0Axh+BCXK+ZJTmlQXHy5VM1O2Oyoem
-cgjoKfIxEZzxdbJ5JpaAJf9Wsq+91xcRrXulXtjrSGNrrR4u17ZB7OKTY7uoCZxb
-hz8vac4D1Eav8YmFjAdxvfYlfwfcSP2yD7Q8Pb30ScT0/0xD5A+2cbA5q9MrsAUv
-h6GLhE2KiWbTo7Xg3M2gKKGfzA7LldJfq1T/AU0PnetOvCwEcfzMTdwxGFpwDN5/
-s0JUnbesGkm24G8tY1+M5F29UvqsMnAy0YQFMfQEFBGcBbeOl89uVvnqe3YFKrwT
-wx1DLS+4BgVMs7mCPFPF
-=FjsK
+iQIcBAEBAgAGBQJS1ThEAAoJEIaOsuA1yqREGqwP/i/IVMoNNh7M4wyfUAQNaPfR
+SiFlAaqtAY4SNs3H+OzlNR5OgEsPgpAvgi0XtuRI9wVeEKcj4yQENNOyiZg1IBxm
+pIdW1GfbGKj59WAM8N9db2QfxOUf8wnrb53MXgMHa/hwyzHHpJUmhyudC8OgBtIW
+7RIuGF1QveERrClSIihOTEaM+TfgjgjHldhUMLT4Ofrflk+T8wwL8CM+JQ4pOLaL
+vMEh248EBtUo7i67kQYH73sOEQimA5yGCO8wiHfXwYkZMywbhaw6kVRQtztX6CbH
+xFsuAWSf7F5ueZI/t85wMq+d62AIquTVM59EJuHF4es3LOfN0+NgQRA1B8S+dOMX
+wwxxnRiYDga2tJ9R14KitJ7piNgUq+v+OI6h5Jw8id8yaBTMU31W4RouEOdjbW+M
+NM3DeciCfH/GVaXRgdM8xxbiDUSU7q4DVBPR3v1tSonh/4kuHjOsaatq7VvgDNZN
+2u9N6VD3/A6vfN4vQqJotVwf2l+rwpUY1RwaiF0otskgI+WWZxnm0cyRNkNmXQSG
+QKYCTobWQlA2/wmTxg2JD0Gwjjl0zxv1HKT10G9/aEqVKpvb6/H/0C8O4B7c720b
+mJQU3rjY1MEPIRDjDqaygHyGAbj7zk8AyRpNXgJqvMwK1ZLXSGHuhss7HEA6IZU/
+BMC33Ni/0uiuVjQVegnn
+=/twJ
 -----END PGP SIGNATURE-----
 
---lCAWRPmW1mITcIfM--
+--FFoLq8A0u+X9iRU8--
