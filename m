@@ -1,49 +1,47 @@
-From: "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv4 6/7] hwspinlock/omap: enable module before reading SYSSTATUS
- register
-Date: Tue, 14 Jan 2014 10:56:26 -0600
-Message-ID: <52D56C3A.7000704@ti.com>
-References: <1389658764-39199-1-git-send-email-s-anna@ti.com> <1389658764-39199-7-git-send-email-s-anna@ti.com> <20140114131052.GA10818@saruman.home> <20140114140440.GA15785@saruman.home>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH RFC 08/26] dmaengine: omap-dma: consolidate setup of CCR
+Date: Tue, 14 Jan 2014 09:04:09 -0800
+Message-ID: <20140114170409.GA13306@atomide.com>
+References: <20140102150836.GA3826@n2100.arm.linux.org.uk>
+ <E1VyjuU-0005EQ-H5@rmk-PC.arm.linux.org.uk>
+ <20140113221425.GD7993@atomide.com>
+ <20140113231227.GI27282@n2100.arm.linux.org.uk>
+ <20140114133949.GJ27282@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140114140440.GA15785-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43544 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750751AbaANREO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jan 2014 12:04:14 -0500
+Content-Disposition: inline
+In-Reply-To: <20140114133949.GJ27282@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: dmaengine@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Felipe,
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [140114 05:41]:
+> On Mon, Jan 13, 2014 at 11:12:27PM +0000, Russell King - ARM Linux wrote:
+> > On Mon, Jan 13, 2014 at 02:14:26PM -0800, Tony Lindgren wrote:
+> > > * Russell King <rmk+kernel@arm.linux.org.uk> [140102 07:17]:
+> > > > Consolidate the setup of the channel control register.  Prepare the
+> > > > basic value in the preparation of the DMA descriptor, and write it into
+> > > > the register upon descriptor execution.
+> > > 
+> > > FYI, this patch seems to be the one that causes the
+> > > "DMA timeout with device 55" error for omap1.
+> > 
+> > Okay, looks like I've missed some bit of muxing for DMA signals or
+> > something.  I've yet to find any information on this in the OMAP5912
+> > docs, so I guess I'm going to have to do this not only blind, but also
+> > without hardware.  GAH.
+> 
+> Do you know which of the OMAP1 variants your device is?  Is it OMAP15xx
+> or OMAP16xx?  It looks like OMAP15xx is easy to fix for this as it hasn't
+> got the additional multiplexer on the DMA request signals.
 
-On 01/14/2014 08:04 AM, Felipe Balbi wrote:
-> Hi again,
->
-> On Tue, Jan 14, 2014 at 07:10:52AM -0600, Felipe Balbi wrote:
->>> diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
->>> index 9f56fb2..194886e 100644
->>> --- a/drivers/hwspinlock/omap_hwspinlock.c
->>> +++ b/drivers/hwspinlock/omap_hwspinlock.c
->>> @@ -101,10 +101,23 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
->>>   	if (!io_base)
->>>   		return -ENOMEM;
->>>
->>> +	/*
->>> +	 * make sure the module is enabled and clocked before reading
->>> +	 * the module SYSSTATUS register
->>> +	 */
->>> +	pm_runtime_enable(&pdev->dev);
->>> +	pm_runtime_get_sync(&pdev->dev);
->
-> another thing, you need to check return of pm_runtime_get_sync()
+This was with Nokia 770, which is 1710. Should be pretty much the same
+from SoC point of view as 5912 on OSK.
 
-OK, let me check this and your other comment, and the fix is probably a 
-separate patch.
-
-regards
-Suman
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
