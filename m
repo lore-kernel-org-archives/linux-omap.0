@@ -1,137 +1,128 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
-Date: Tue, 14 Jan 2014 14:36:13 -0600
-Message-ID: <20140114203613.GA604@saruman.home>
-References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
- <52CF12FB.6000602@ti.com>
- <20140109231513.GA11648@saruman.home>
- <52CFC2F1.706@ti.com>
- <20140110161352.GG6665@saruman.home>
- <52D02037.3090705@ti.com>
- <20140110185110.GM31323@atomide.com>
- <52D53084.1070105@ti.com>
-Reply-To: <balbi@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: sleep: byteswap data for big-endian
+Date: Tue, 14 Jan 2014 14:56:42 -0600
+Message-ID: <CAGo_u6p7ErrKOMy4Ljg3nehVpd=DOg3XDn6gZ1nrFE_OuOjsWg@mail.gmail.com>
+References: <1389625399-24087-1-git-send-email-taras.kondratiuk@linaro.org>
+	<52D404DE.2020806@ti.com>
+	<CAArO44samX_uMeC93w4DBbC+yskEmrvVt_i-5VV_seatM56ypw@mail.gmail.com>
+	<52D55CE5.1060902@ti.com>
+	<CAA3XUr2cnF_rxMYvZfjBx22Sa8YE45o_qUU8GNoerQwhWqxhNQ@mail.gmail.com>
+	<CAGo_u6oKpRFnPAWaqr9NTNAJB+m56jiDgBUgvsiZpaQ-3SF2kw@mail.gmail.com>
+	<CAA3XUr1_cNuPmMU6Fs6c7Si2So0VFGcLyGJe+tS_R47BVKRXnw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56022 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751928AbaANUhl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Jan 2014 15:37:41 -0500
-Content-Disposition: inline
-In-Reply-To: <52D53084.1070105@ti.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:39579 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751633AbaANU4o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jan 2014 15:56:44 -0500
+In-Reply-To: <CAA3XUr1_cNuPmMU6Fs6c7Si2So0VFGcLyGJe+tS_R47BVKRXnw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, balbi@ti.com, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Victor Kamensky <victor.kamensky@linaro.org>
+Cc: Linaro Kernel <linaro-kernel@lists.linaro.org>, Russell King <linux@arm.linux.org.uk>, Patch Tracking <patches@linaro.org>, Tony Lindgren <tony@atomide.com>, Taras Kondratiuk <taras.kondratiuk@linaro.org>, open list <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linaro Networking <linaro-networking@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---yrj/dFKFPuw6o+aM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Jan 14, 2014 at 2:20 PM, Victor Kamensky
+<victor.kamensky@linaro.org> wrote:
+> On 14 January 2014 09:56, Nishanth Menon <nm@ti.com> wrote:
+>> On Tue, Jan 14, 2014 at 11:35 AM, Victor Kamensky
+>> <victor.kamensky@linaro.org> wrote:
+>>>
+>>> When BE kernel is built Makefile does take of compiling code in BE
+>>> mode. I.e all proper flags like -mbig-endian and -Wl,--be8 will be set.
+>>
+>> Agreed, and I assume you cannot instead switch to LE mode when
+>> entering assembly assuming LE?
+>
+> Yes. Note that this asm interacts with other data in kernel that would
+> be in BE form. And after all linker will not allow to put together files
+> that were compiled in different endianity.
+>
+>> The reason I ask this is - most of our development is NOT in BE mode.
+>> we will continue to manipulate and add assembly - AM335x, DRA7/OMAP5
+>> etc.. and obviously not every code change will indulge in ensuring
+>> right markers will be in place.
+>>
+>> by ensuring readl_relaxed handles the variations, you have ensured
+>> that I dont need to care about drivers other than to ensure they use
+>> _relaxed variants. in the case of assembly, this does not seem long
+>> term manageable.
+>
+> Yes, I agree if it is outside of main use case it will get broken if not
+> attended to. Definitely universe entropy increases :) - if left without
+> attention things will decay. Note we admit that even with ARM CPU
+> core BE changes similar decay can happen eventually ...that is
+> what LNG BE group trying to prevent. I think
+> the deal here is that next user of it can/need to fix things if they
+> decayed.
+>
 
-On Tue, Jan 14, 2014 at 02:41:40PM +0200, Tero Kristo wrote:
-> On 01/10/2014 08:51 PM, Tony Lindgren wrote:
-> >* Tero Kristo <t-kristo@ti.com> [140110 08:32]:
-> >>On 01/10/2014 06:13 PM, Felipe Balbi wrote:
-> >>>On Fri, Jan 10, 2014 at 11:52:49AM +0200, Tero Kristo wrote:
-> >>>>On 01/10/2014 01:15 AM, Felipe Balbi wrote:
-> >>>>>On Thu, Jan 09, 2014 at 03:22:03PM -0600, Nishanth Menon wrote:
-> >>>>>>
-> >>>>>>conflicts with be changes on Tony's be branch.
-> >>>>>>commit 80f304dd2360cf5d50953c4eb4e902536f6a1263
-> >>>>>>     ARM: OMAP2+: raw read and write endian fix
-> >>>>>>
-> >>>>>>Conflict:
-> >>>>>>arch/arm/mach-omap2/clkt_clksel.c
-> >>>>>>arch/arm/mach-omap2/clkt_dpll.c
-> >>>>>>arch/arm/mach-omap2/clkt_iclk.c
-> >>>>>>arch/arm/mach-omap2/clock.c
-> >>>>>>arch/arm/mach-omap2/clock36xx.c
-> >>>>>>arch/arm/mach-omap2/dpll3xxx.c
-> >>>>>>arch/arm/mach-omap2/dpll44xx.c
-> >>>>>>
-> >>>>>>Both change raw_readls -> should now be just clk api instead which
-> >>>>>>already does readl_relaxed etc.. If Tony feels like, then we should
-> >>>>>>probably post a branch based on 'be' branch for easy merge.
-> >
-> >This should be a trivial merge conflict to handle, so let's not base
-> >things on the BE changes.
-> >
-> >>>>I think all of these fails are caused by the initially bugged
-> >>>>Makefile + Kconfig under mach-omap2. Seems like they can be fixed by
-> >>>>the patches I inlined at the end (will also post them as proper
-> >>>>patches to l-o list after this.) The question is, should Mike go
-> >>>>ahead and merge these along with the base clk patches or how should
-> >>>>we handle them? Patch 1 must be merged, patch 2 is a nice to have one
-> >>>>which allows DRA7 only builds (doing DRA7 only build currently seems
-> >>>>not possible.)
-> >>>
-> >>>If it's OK with Tony, I would suggest having a branch with both patches
-> >>>below which both Tony and Mike merge before merging CCF series. That w=
-ay
-> >>>we avoid bisection problems.
-> >
-> >I can queue those two separately as fixes.
-> >
-> >>That reminds me, I think the baseline branch for the mach-omap2
-> >>patches is still somewhat unclear to me, what should be used for
-> >>this? And which patches should be put there (the mach-omap2 patches
-> >>depend on the drivers/clk/ti part basically, so I need to put at
-> >>least those there also.)
-> >
-> >I would keep the clock patches against some mainline -rc commit if
-> >possible, and if there are non trivial merge conflicts, the omap
-> >to use as the base is commit adfe9361b236154215d4b0fc8b6d79995394b15c.
-> >
-> >In any case, it's probably best that Mike merges this all via his
-> >clock tree unless there non-trivial merge conflicts.
-> >
->=20
-> I just pushed a branch against rc7 with makefile fixes in place to
-> fix omap1 and omap2 only builds for this stuff. Inlined the delta
-> here at the end. Do you want me to repost the series as v14 for this
-> or is the attached delta ok for review purposes? All the changes have
-> been squashed to existing patches (except the 2 patches I posted
-> separately for DRA7xx / AM43xx only builds.)
->=20
-> The test branch itself can be found here:
->=20
-> tree: https://github.com/t-kristo/linux-pm.git
-> branch: 3.13-rc7-dt-clks-v13-build-fixes
->=20
-> Felipe, care to run your randconfig magic for this?
+Personally, I have no idea what "LNG BE" stands for.. I see the
+approach we are attempting here is to do any interaction external to
+ARM boundary to go through the ARM_BE8 macro.
 
-This branch builds just fine so far, I still have omap5 multiplaform and
-uniplatform builds, but since that was working before i'm assuming it
-won't break.
+If we want to make this something we can live with, then the platforms
+will have to ensure memory operations external to ARM must be operated
+upon by these macros. Instead, an approach that may be used is to
+introduce accessors macros that will provide right instruction based
+on BE/LE build and BE/LE SoC peripheral behavior.
 
-cheers
+>>>
+>>>> is the idea of BE build meant to deal with having a single BE kernel
+>>>> build work for all platforms (including LE ones)?
+>>>
+>>> Sort of. The idea here to run BE image on OMAP4 chip, with
+>>> kernel that would deals with LE periphery correctly, but ARM
+>>> core run in BE with special kernel that compiled for BE case (i.e
+>>> CONFIG_CPU_BIG_ENDIAN is set).
+>>
+>> I still dont get the usecase - other than "hey, we do this coz we can
+>> do it!".. I mean, yep, it sounds great and all.. but 4 years down the
+>> line, is this still going to work? is this going to be interesting
+>> careabout? or we are just maintaining additional code for a passing
+>> fancy or proof-of-concept?
+>
+> Valid concern. From LNG BE group point of view it is not "we can do
+> it". It is more like we've done it. We have Pandaboard ES running BE
+> kernel for a while. It is in LNG BE tree. We used it as development
+> and testing vehicle for BE work for a while. We are very grateful to
+> the platform for that - it is affordable and easily available! Given,
+> beyond ongoing BE testing on Pandaboard in LNG there may not be valid
+> use case for further things on OMAP4 BE. We had discussion
+> with Santosh Shilimkar from TI during last Linaro connect what to
+> do with LNG BE Pandaboard series. Santosh suggested and we
+> agreed that we would try to contribute them back to community. And
+> that is what Taras is doing. IMHO even though there may not be real
 
---=20
-balbi
+ok.. some sort of Linaro thing about which I have no background about
+- but dont really care in this context.
 
---yrj/dFKFPuw6o+aM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> product use case for BE OMAP4, it could serve in kernel source as good
+> example that shows how to work with LE periphery from BE kernel. After
+> all, these changes are noop for LE case and they don't introduce
+> a lot of clutter: all BE asm rev and rev16 instructions wrapped around
+> with ARM_BE8 macro.
+>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+So, why are we not doing this for *all* OMAP platforms? we try very
+hard not to regress on features introduced and wish to ensure all
+platforms are equivalent in terms of usage. it makes code sharing a
+little harder if we have to ensure that ARM_BE8 is supported in a mix
+of reusable codebases.
 
-iQIcBAEBAgAGBQJS1Z+9AAoJEIaOsuA1yqREGewP/3p9TxF6Bl8m+whQ+Dc9PpNP
-JO+ZJUZiTsRZNualVMRzxP5GnbeN4nd6wWT1ZQX/QBqZZgKErhJoxCvhbwzKxaFD
-uRbN185yczzNx0dwbe2fdeN08R44tsJvYOr2cGjIRud6uXWpQfidoXGBWAIAyGNA
-2Mr1F9WDOnY3vm7RcvkWMNAMJ9y6nY2FBkcGTsV80+y3BqbmwQ5QjE2dyX46fIor
-2HLFJo6yyM0buJWaI69jjFbzpxpcx1K5irqJAI14ZAe4tvDOPR1MLD505EV+ZjGw
-ix3LylXV7AnayTsuAo0KR1pfU7USLvokS9EQ1HWwVJw1jBrd6XhH/fxm8M7VRBP3
-SulMDm/loLI+0R6t6DHb1XWt3ffO7NAVHPzLY8MgmISCz1PiqnDaKTTSqZxpvJU6
-4IuflVqF5953dD/xoKdKiPQ2tzSEXW7+sSjP0Q+JjXyy0wDolkJAP0DFgb3jhsEw
-b5i4GCFymwGWFXoemz8OzqUu9PP+7h1cMenxDGWpauLcuU2QN0nIVyZIh+0b9IF9
-It2HyQqmrGSwcEBW3236+S4A1RbP+knDe+15R/M8ett/dL7PaEt28nFFcdmZClFW
-HzrkLwHY0dsOA0cAPERCbmMTgbXVaGOHUSuzKcvWIbrSyX5x55oJzm13IZ5kxZ1t
-SJbLYy0kEQOCb6FnQk7x
-=fWyv
------END PGP SIGNATURE-----
+Personally, here is what I might expect to see:
+a) if we are going to force usage of BE and LE build options - then we
+*must* be able to reuse code across platforms without having to worry
+about breaking platform x etc..
+b) this seems like - "take this code in" if something breaks, the guy
+who needs it later will come and fix - Shrug, I personally dont buy
+that. if something benefits many folks, lets all use it in upstream,
+if there is just an exception usage for a short duration which may
+impact code scalability and hard to maintain, keep it forked.
+c) considering this is non standard usage, some sort of regular test
+procedure and owner to ensure this feature is kept sane
 
---yrj/dFKFPuw6o+aM--
+With out the above, we are just adding dead code IMHO.
+
+Regards,
+Nishanth Menon
