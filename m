@@ -1,47 +1,98 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RFC 08/26] dmaengine: omap-dma: consolidate setup of CCR
-Date: Tue, 14 Jan 2014 09:04:09 -0800
-Message-ID: <20140114170409.GA13306@atomide.com>
-References: <20140102150836.GA3826@n2100.arm.linux.org.uk>
- <E1VyjuU-0005EQ-H5@rmk-PC.arm.linux.org.uk>
- <20140113221425.GD7993@atomide.com>
- <20140113231227.GI27282@n2100.arm.linux.org.uk>
- <20140114133949.GJ27282@n2100.arm.linux.org.uk>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv4 7/7] hwspinlock/omap: enable build for AM33xx, AM43xx &
+ DRA7xx
+Date: Tue, 14 Jan 2014 11:29:01 -0600
+Message-ID: <20140114172901.GB27374@saruman.home>
+References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
+ <1389658764-39199-8-git-send-email-s-anna@ti.com>
+ <20140114131207.GB10818@saruman.home>
+ <52D56B13.2050409@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="H1spWtNR+x+ondvy"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43544 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750751AbaANREO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jan 2014 12:04:14 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:44281 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751770AbaANRag (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jan 2014 12:30:36 -0500
 Content-Disposition: inline
-In-Reply-To: <20140114133949.GJ27282@n2100.arm.linux.org.uk>
+In-Reply-To: <52D56B13.2050409@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: dmaengine@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Anna, Suman" <s-anna@ti.com>
+Cc: balbi@ti.com, Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [140114 05:41]:
-> On Mon, Jan 13, 2014 at 11:12:27PM +0000, Russell King - ARM Linux wrote:
-> > On Mon, Jan 13, 2014 at 02:14:26PM -0800, Tony Lindgren wrote:
-> > > * Russell King <rmk+kernel@arm.linux.org.uk> [140102 07:17]:
-> > > > Consolidate the setup of the channel control register.  Prepare the
-> > > > basic value in the preparation of the DMA descriptor, and write it into
-> > > > the register upon descriptor execution.
-> > > 
-> > > FYI, this patch seems to be the one that causes the
-> > > "DMA timeout with device 55" error for omap1.
-> > 
-> > Okay, looks like I've missed some bit of muxing for DMA signals or
-> > something.  I've yet to find any information on this in the OMAP5912
-> > docs, so I guess I'm going to have to do this not only blind, but also
-> > without hardware.  GAH.
-> 
-> Do you know which of the OMAP1 variants your device is?  Is it OMAP15xx
-> or OMAP16xx?  It looks like OMAP15xx is easy to fix for this as it hasn't
-> got the additional multiplexer on the DMA request signals.
+--H1spWtNR+x+ondvy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This was with Nokia 770, which is 1710. Should be pretty much the same
-from SoC point of view as 5912 on OSK.
+On Tue, Jan 14, 2014 at 10:51:31AM -0600, Anna, Suman wrote:
+> Felipe,
+>=20
+> On 01/14/2014 07:12 AM, Felipe Balbi wrote:
+> >On Mon, Jan 13, 2014 at 06:19:24PM -0600, Suman Anna wrote:
+> >>HwSpinlocks are supported on AM33xx, AM43xx and DRA7xx SoC
+> >>device families as well. The IPs are identical to that of
+> >>OMAP4/OMAP5, except for the number of locks.
+> >>
+> >>Add a depends on to the above family of SoCs to enable the
+> >>build support for OMAP hwspinlock driver for any of the above
+> >>SoC configs.
+> >>
+> >>Signed-off-by: Suman Anna <s-anna@ti.com>
+> >>---
+> >>  drivers/hwspinlock/Kconfig | 2 +-
+> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>
+> >>diff --git a/drivers/hwspinlock/Kconfig b/drivers/hwspinlock/Kconfig
+> >>index 70637d2..3612cb5 100644
+> >>--- a/drivers/hwspinlock/Kconfig
+> >>+++ b/drivers/hwspinlock/Kconfig
+> >>@@ -10,7 +10,7 @@ menu "Hardware Spinlock drivers"
+> >>
+> >>  config HWSPINLOCK_OMAP
+> >>  	tristate "OMAP Hardware Spinlock device"
+> >>-	depends on ARCH_OMAP4 || SOC_OMAP5
+> >>+	depends on ARCH_OMAP4 || SOC_OMAP5 || SOC_DRA7XX || SOC_AM33XX || SOC=
+_AM43XX
+> >
+> >how about just using ARCH_OMAP2PLUS ?
+>=20
+> We do not want the driver to build in OMAP2-only and/or OMAP3-only
+> configurations, on which the hwspinlock IP is not even present.
 
-Tony
+It won't be enabled by default, will it ? You're just saying that it
+_can_ be enabled. In fact, I would go one step further and use:
+
+	depends on ARCH_OMAP2PLUS || COMPILE_TEST
+
+your choice though ;-)
+
+--=20
+balbi
+
+--H1spWtNR+x+ondvy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJS1XPdAAoJEIaOsuA1yqREOiMP/A1Pl6Sluq6jyk+3BcWR9QqM
+Fj2F5V8hW5VCVKYqn8944yUZ/Jhi30rVtGNwcWm/obMOM4Y4o0iCwl4iAT26szjG
+py9Ij2Fvnd8QaT0ytz04to3Sd6VTsB2xWW5PkgUI/yM7aTknBHszXGA0waDT7XXV
+CHWnhXRQ5zSbY7WxXCXELed7Mom/nhSiry0rocJxpVJFq0jnZ+gM+8Bonf6ozn+y
+Q1JathiBrSUzC0hij6md2TJh6i5cUxVtG/wzbw3hqHs06EwqHm/exoJqquiorRIt
+TPimHFGHK97F4OzJ0vTVcrNmIZGwHHBNXZ7CtW92owpRXiJ/UrhVF3NZPkGzKlxu
+7XZwL67NO3jqO8u8a6gaRLdg/sz9884hZXjGmkuv43rLFBB3pSg9HZF+UDYwozqj
+Ly1bnRfFHdTQdRUjmNQRNybh51d8v1x9LhnmHRp9iDqDG+uxhZZJzjjD2M4O9h4T
+21ju2rYyD+0+6xvVjHb/sP91PpnXtzh4RwhU+ZOFCJ/cO3Ly+UmGdlSIL5Zdw3YX
+ezY7tJMkFd+5wgqcvWuYTSp+Lw3ekMQGN08ldJbAKt55LZAcbTe2Ppx+oV8T5ao+
+rPjlEB98FTn+L86YS1urPvQRVLaVDznipdetwI0ZpDV9cx2AG32P2DySK9NaqlDz
+03Vv8bIvJOzEaNNJRGPh
+=FVki
+-----END PGP SIGNATURE-----
+
+--H1spWtNR+x+ondvy--
