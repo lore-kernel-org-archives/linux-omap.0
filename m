@@ -1,64 +1,94 @@
-From: "Anna, Suman" <s-anna@ti.com>
-Subject: Re: [PATCHv4 7/7] hwspinlock/omap: enable build for AM33xx, AM43xx
- & DRA7xx
-Date: Tue, 14 Jan 2014 12:36:13 -0600
-Message-ID: <52D5839D.9050100@ti.com>
-References: <1389658764-39199-1-git-send-email-s-anna@ti.com> <1389658764-39199-8-git-send-email-s-anna@ti.com> <20140114131207.GB10818@saruman.home> <52D56B13.2050409@ti.com> <20140114172901.GB27374@saruman.home>
+From: Victor Kamensky <victor.kamensky@linaro.org>
+Subject: Re: [PATCH] ARM: OMAP4: sleep: byteswap data for big-endian
+Date: Tue, 14 Jan 2014 12:20:17 -0800
+Message-ID: <CAA3XUr1_cNuPmMU6Fs6c7Si2So0VFGcLyGJe+tS_R47BVKRXnw@mail.gmail.com>
+References: <1389625399-24087-1-git-send-email-taras.kondratiuk@linaro.org>
+	<52D404DE.2020806@ti.com>
+	<CAArO44samX_uMeC93w4DBbC+yskEmrvVt_i-5VV_seatM56ypw@mail.gmail.com>
+	<52D55CE5.1060902@ti.com>
+	<CAA3XUr2cnF_rxMYvZfjBx22Sa8YE45o_qUU8GNoerQwhWqxhNQ@mail.gmail.com>
+	<CAGo_u6oKpRFnPAWaqr9NTNAJB+m56jiDgBUgvsiZpaQ-3SF2kw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46606 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751669AbaANSgq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jan 2014 13:36:46 -0500
-In-Reply-To: <20140114172901.GB27374@saruman.home>
+Received: from mail-qc0-f169.google.com ([209.85.216.169]:39200 "EHLO
+	mail-qc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751038AbaANUUS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jan 2014 15:20:18 -0500
+Received: by mail-qc0-f169.google.com with SMTP id w7so131369qcr.0
+        for <linux-omap@vger.kernel.org>; Tue, 14 Jan 2014 12:20:17 -0800 (PST)
+In-Reply-To: <CAGo_u6oKpRFnPAWaqr9NTNAJB+m56jiDgBUgvsiZpaQ-3SF2kw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Taras Kondratiuk <taras.kondratiuk@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tero Kristo <t-kristo@ti.com>, Patch Tracking <patches@linaro.org>, Linaro Networking <linaro-networking@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>
 
-On 01/14/2014 11:29 AM, Felipe Balbi wrote:
-> On Tue, Jan 14, 2014 at 10:51:31AM -0600, Anna, Suman wrote:
->> Felipe,
+On 14 January 2014 09:56, Nishanth Menon <nm@ti.com> wrote:
+> On Tue, Jan 14, 2014 at 11:35 AM, Victor Kamensky
+> <victor.kamensky@linaro.org> wrote:
 >>
->> On 01/14/2014 07:12 AM, Felipe Balbi wrote:
->>> On Mon, Jan 13, 2014 at 06:19:24PM -0600, Suman Anna wrote:
->>>> HwSpinlocks are supported on AM33xx, AM43xx and DRA7xx SoC
->>>> device families as well. The IPs are identical to that of
->>>> OMAP4/OMAP5, except for the number of locks.
->>>>
->>>> Add a depends on to the above family of SoCs to enable the
->>>> build support for OMAP hwspinlock driver for any of the above
->>>> SoC configs.
->>>>
->>>> Signed-off-by: Suman Anna <s-anna@ti.com>
->>>> ---
->>>>   drivers/hwspinlock/Kconfig | 2 +-
->>>>   1 file changed, 1 insertion(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/hwspinlock/Kconfig b/drivers/hwspinlock/Kconfig
->>>> index 70637d2..3612cb5 100644
->>>> --- a/drivers/hwspinlock/Kconfig
->>>> +++ b/drivers/hwspinlock/Kconfig
->>>> @@ -10,7 +10,7 @@ menu "Hardware Spinlock drivers"
->>>>
->>>>   config HWSPINLOCK_OMAP
->>>>   	tristate "OMAP Hardware Spinlock device"
->>>> -	depends on ARCH_OMAP4 || SOC_OMAP5
->>>> +	depends on ARCH_OMAP4 || SOC_OMAP5 || SOC_DRA7XX || SOC_AM33XX || SOC_AM43XX
->>>
->>> how about just using ARCH_OMAP2PLUS ?
->>
->> We do not want the driver to build in OMAP2-only and/or OMAP3-only
->> configurations, on which the hwspinlock IP is not even present.
+>> When BE kernel is built Makefile does take of compiling code in BE
+>> mode. I.e all proper flags like -mbig-endian and -Wl,--be8 will be set.
 >
-> It won't be enabled by default, will it ? You're just saying that it
-> _can_ be enabled.
->
-Yes, that's correct. The menuconfig will not even show this driver at 
-present on OMAP2-only and/or OMAP3-only configs. I would prefer to keep 
-it that way.
+> Agreed, and I assume you cannot instead switch to LE mode when
+> entering assembly assuming LE?
 
-regards
-Suman
+Yes. Note that this asm interacts with other data in kernel that would
+be in BE form. And after all linker will not allow to put together files
+that were compiled in different endianity.
+
+> The reason I ask this is - most of our development is NOT in BE mode.
+> we will continue to manipulate and add assembly - AM335x, DRA7/OMAP5
+> etc.. and obviously not every code change will indulge in ensuring
+> right markers will be in place.
+>
+> by ensuring readl_relaxed handles the variations, you have ensured
+> that I dont need to care about drivers other than to ensure they use
+> _relaxed variants. in the case of assembly, this does not seem long
+> term manageable.
+
+Yes, I agree if it is outside of main use case it will get broken if not
+attended to. Definitely universe entropy increases :) - if left without
+attention things will decay. Note we admit that even with ARM CPU
+core BE changes similar decay can happen eventually ...that is
+what LNG BE group trying to prevent. I think
+the deal here is that next user of it can/need to fix things if they
+decayed.
+
+>>
+>>> is the idea of BE build meant to deal with having a single BE kernel
+>>> build work for all platforms (including LE ones)?
+>>
+>> Sort of. The idea here to run BE image on OMAP4 chip, with
+>> kernel that would deals with LE periphery correctly, but ARM
+>> core run in BE with special kernel that compiled for BE case (i.e
+>> CONFIG_CPU_BIG_ENDIAN is set).
+>
+> I still dont get the usecase - other than "hey, we do this coz we can
+> do it!".. I mean, yep, it sounds great and all.. but 4 years down the
+> line, is this still going to work? is this going to be interesting
+> careabout? or we are just maintaining additional code for a passing
+> fancy or proof-of-concept?
+
+Valid concern. From LNG BE group point of view it is not "we can do
+it". It is more like we've done it. We have Pandaboard ES running BE
+kernel for a while. It is in LNG BE tree. We used it as development
+and testing vehicle for BE work for a while. We are very grateful to
+the platform for that - it is affordable and easily available! Given,
+beyond ongoing BE testing on Pandaboard in LNG there may not be valid
+use case for further things on OMAP4 BE. We had discussion
+with Santosh Shilimkar from TI during last Linaro connect what to
+do with LNG BE Pandaboard series. Santosh suggested and we
+agreed that we would try to contribute them back to community. And
+that is what Taras is doing. IMHO even though there may not be real
+product use case for BE OMAP4, it could serve in kernel source as good
+example that shows how to work with LE periphery from BE kernel. After
+all, these changes are noop for LE case and they don't introduce
+a lot of clutter: all BE asm rev and rev16 instructions wrapped around
+with ARM_BE8 macro.
+
+Thanks,
+Victor
+
+> Regards,
+> Nishanth Menon
