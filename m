@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 2/3] ARM: dts: DRA7: Add hwspinlock node
-Date: Mon, 13 Jan 2014 18:26:46 -0600
-Message-ID: <1389659207-39445-3-git-send-email-s-anna@ti.com>
+Subject: [PATCH 3/3] ARM: dts: AM4372: Add hwspinlock node
+Date: Mon, 13 Jan 2014 18:26:47 -0600
+Message-ID: <1389659207-39445-4-git-send-email-s-anna@ti.com>
 References: <1389659207-39445-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,30 +21,31 @@ To: Benoit Cousson <bcousson@baylibre.com>
 Cc: Mark Rutland <mark.rutland@arm.com>, Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add the hwspinlock device tree node for DRA7 SoCs.
+Add the hwspinlock device tree node for AM43xx family
+of SoCs.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 7 +++++++
+ arch/arm/boot/dts/am4372.dtsi | 7 +++++++
  1 file changed, 7 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index d0df4c4..672ffec 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -425,6 +425,13 @@
- 			ti,hwmods = "wd_timer2";
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 974d103..81bf21f 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -325,6 +325,13 @@
+ 			status = "disabled";
  		};
  
-+		hwspinlock: spinlock@4a0f6000 {
++		hwspinlock: spinlock@480ca000 {
 +			compatible = "ti,omap4-hwspinlock";
-+			reg = <0x4a0f6000 0x1000>;
++			reg = <0x480ca000 0x1000>;
 +			ti,hwmods = "spinlock";
 +			#hwlock-cells = <1>;
 +		};
 +
- 		i2c1: i2c@48070000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48070000 0x100>;
+ 		i2c0: i2c@44e0b000 {
+ 			compatible = "ti,am4372-i2c","ti,omap4-i2c";
+ 			reg = <0x44e0b000 0x1000>;
 -- 
 1.8.4.3
