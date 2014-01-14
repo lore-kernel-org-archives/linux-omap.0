@@ -1,98 +1,91 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv4 7/7] hwspinlock/omap: enable build for AM33xx, AM43xx &
- DRA7xx
-Date: Tue, 14 Jan 2014 11:29:01 -0600
-Message-ID: <20140114172901.GB27374@saruman.home>
-References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
- <1389658764-39199-8-git-send-email-s-anna@ti.com>
- <20140114131207.GB10818@saruman.home>
- <52D56B13.2050409@ti.com>
-Reply-To: <balbi@ti.com>
+From: Victor Kamensky <victor.kamensky@linaro.org>
+Subject: Re: [PATCH] ARM: OMAP4: sleep: byteswap data for big-endian
+Date: Tue, 14 Jan 2014 09:35:38 -0800
+Message-ID: <CAA3XUr2cnF_rxMYvZfjBx22Sa8YE45o_qUU8GNoerQwhWqxhNQ@mail.gmail.com>
+References: <1389625399-24087-1-git-send-email-taras.kondratiuk@linaro.org>
+	<52D404DE.2020806@ti.com>
+	<CAArO44samX_uMeC93w4DBbC+yskEmrvVt_i-5VV_seatM56ypw@mail.gmail.com>
+	<52D55CE5.1060902@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="H1spWtNR+x+ondvy"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44281 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751770AbaANRag (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jan 2014 12:30:36 -0500
-Content-Disposition: inline
-In-Reply-To: <52D56B13.2050409@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52D55CE5.1060902@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Taras Kondratiuk <taras.kondratiuk@linaro.org>, Tero Kristo <t-kristo@ti.com>, Patch Tracking <patches@linaro.org>, Linaro Networking <linaro-networking@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Anna, Suman" <s-anna@ti.com>
-Cc: balbi@ti.com, Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---H1spWtNR+x+ondvy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Nishanth,
 
-On Tue, Jan 14, 2014 at 10:51:31AM -0600, Anna, Suman wrote:
-> Felipe,
->=20
-> On 01/14/2014 07:12 AM, Felipe Balbi wrote:
-> >On Mon, Jan 13, 2014 at 06:19:24PM -0600, Suman Anna wrote:
-> >>HwSpinlocks are supported on AM33xx, AM43xx and DRA7xx SoC
-> >>device families as well. The IPs are identical to that of
-> >>OMAP4/OMAP5, except for the number of locks.
-> >>
-> >>Add a depends on to the above family of SoCs to enable the
-> >>build support for OMAP hwspinlock driver for any of the above
-> >>SoC configs.
-> >>
-> >>Signed-off-by: Suman Anna <s-anna@ti.com>
-> >>---
-> >>  drivers/hwspinlock/Kconfig | 2 +-
-> >>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>
-> >>diff --git a/drivers/hwspinlock/Kconfig b/drivers/hwspinlock/Kconfig
-> >>index 70637d2..3612cb5 100644
-> >>--- a/drivers/hwspinlock/Kconfig
-> >>+++ b/drivers/hwspinlock/Kconfig
-> >>@@ -10,7 +10,7 @@ menu "Hardware Spinlock drivers"
-> >>
-> >>  config HWSPINLOCK_OMAP
-> >>  	tristate "OMAP Hardware Spinlock device"
-> >>-	depends on ARCH_OMAP4 || SOC_OMAP5
-> >>+	depends on ARCH_OMAP4 || SOC_OMAP5 || SOC_DRA7XX || SOC_AM33XX || SOC=
-_AM43XX
-> >
-> >how about just using ARCH_OMAP2PLUS ?
->=20
-> We do not want the driver to build in OMAP2-only and/or OMAP3-only
-> configurations, on which the hwspinlock IP is not even present.
+On 14 January 2014 07:51, Nishanth Menon <nm@ti.com> wrote:
+> On 01/14/2014 05:14 AM, Taras Kondratiuk wrote:
+>> On 13 January 2014 17:23, Nishanth Menon <nm@ti.com> wrote:
+>>> On 01/13/2014 09:03 AM, Taras Kondratiuk wrote:
+>>>> From: Victor Kamensky <victor.kamensky@linaro.org>
+>>>>
+>>>> Assembler functions defined in sleep44xx.S need to byteswap values
+>>>> after read / before write from h/w register if code compiled in big
+>>>> endian mode. Simple change to do 'rev x, x' before str instruction
+>>>> and after ldr instruction that deals with h/w registers.
+>>>>
+>>>> Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
+>>>> Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+>>>> ---
+>>>> This is a part of RFC series [1].
+>>>> Based on v3.13-rc8.
+>>>>
+>>>> [1] http://www.spinics.net/lists/linux-omap/msg99927.html
+>>>>
+>>>>  arch/arm/mach-omap2/sleep44xx.S |   17 +++++++++++++++++
+>>>>  1 file changed, 17 insertions(+)
+>>>>
+>>>
+>>> OMAP4 is LE, and if there is a gcc flag for the same, is'nt it cleaner
+>>> to deal with it in Makefile rather than trying to make an assembly
+>>> meant only for LE by force building it for BE?
+>>
+>> Hi Nishanth
+>> I'm not sure I got your point.
+>> Do you propose to build this file as LE while the rest of kernel is BE?
+>>
+> I dont see why I should deal with the BE macro for every code change
+> we have in omap4,am335x assembly. The hardware is LE and wont change
+> just coz you are building it for BE. So I dont get the rationale for
+> changing the assembly here - yes, if the assembly can be maintained as
+> LE only mode and the build handling be adequately handled in Makefile
+> (similar to SMC handling), that would be the best.
 
-It won't be enabled by default, will it ? You're just saying that it
-_can_ be enabled. In fact, I would go one step further and use:
+ARM core is capable of running in LE or BE modes. Yes, OMAP
+memory mapped periphery gives data in LE form. When core runs
+in BE mode after reading h/w register it will byteswap it, also before
+writing h/w register it byteswap it. In such way BE kernel can work
+with LE periphery.
 
-	depends on ARCH_OMAP2PLUS || COMPILE_TEST
+When it comes to C code that works with LE periphery, if correct
+access functions are used like readl_relaxed and writel_relaxed
+(vs __raw_readl and __raw_writel), the functions will take care of
+the swaps. In case of asm files there is no other way than to insert
+those byteswaps manually and conditionally - they will be enabled only
+if kernel compiled in BE mode. The reason why it could be done only
+manually is that load/store opcodes behavior changes when core
+runs in BE mode (E bit set) in these case ldr/str treat memory as
+big endian. So when LE periphery register is read/stored additional
+byteswaps that compensate for it should be inserted.
 
-your choice though ;-)
+When BE kernel is built Makefile does take of compiling code in BE
+mode. I.e all proper flags like -mbig-endian and -Wl,--be8 will be set.
 
---=20
-balbi
+> is the idea of BE build meant to deal with having a single BE kernel
+> build work for all platforms (including LE ones)?
 
---H1spWtNR+x+ondvy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Sort of. The idea here to run BE image on OMAP4 chip, with
+kernel that would deals with LE periphery correctly, but ARM
+core run in BE with special kernel that compiled for BE case (i.e
+CONFIG_CPU_BIG_ENDIAN is set).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Thanks,
+Victor
 
-iQIcBAEBAgAGBQJS1XPdAAoJEIaOsuA1yqREOiMP/A1Pl6Sluq6jyk+3BcWR9QqM
-Fj2F5V8hW5VCVKYqn8944yUZ/Jhi30rVtGNwcWm/obMOM4Y4o0iCwl4iAT26szjG
-py9Ij2Fvnd8QaT0ytz04to3Sd6VTsB2xWW5PkgUI/yM7aTknBHszXGA0waDT7XXV
-CHWnhXRQ5zSbY7WxXCXELed7Mom/nhSiry0rocJxpVJFq0jnZ+gM+8Bonf6ozn+y
-Q1JathiBrSUzC0hij6md2TJh6i5cUxVtG/wzbw3hqHs06EwqHm/exoJqquiorRIt
-TPimHFGHK97F4OzJ0vTVcrNmIZGwHHBNXZ7CtW92owpRXiJ/UrhVF3NZPkGzKlxu
-7XZwL67NO3jqO8u8a6gaRLdg/sz9884hZXjGmkuv43rLFBB3pSg9HZF+UDYwozqj
-Ly1bnRfFHdTQdRUjmNQRNybh51d8v1x9LhnmHRp9iDqDG+uxhZZJzjjD2M4O9h4T
-21ju2rYyD+0+6xvVjHb/sP91PpnXtzh4RwhU+ZOFCJ/cO3Ly+UmGdlSIL5Zdw3YX
-ezY7tJMkFd+5wgqcvWuYTSp+Lw3ekMQGN08ldJbAKt55LZAcbTe2Ppx+oV8T5ao+
-rPjlEB98FTn+L86YS1urPvQRVLaVDznipdetwI0ZpDV9cx2AG32P2DySK9NaqlDz
-03Vv8bIvJOzEaNNJRGPh
-=FVki
------END PGP SIGNATURE-----
-
---H1spWtNR+x+ondvy--
+> --
+> Regards,
+> Nishanth Menon
