@@ -1,53 +1,41 @@
-From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: Re: [PATCH] ARM: OMAP4: sleep: byteswap data for big-endian
-Date: Tue, 14 Jan 2014 13:14:28 +0200
-Message-ID: <CAArO44samX_uMeC93w4DBbC+yskEmrvVt_i-5VV_seatM56ypw@mail.gmail.com>
-References: <1389625399-24087-1-git-send-email-taras.kondratiuk@linaro.org>
-	<52D404DE.2020806@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f47.google.com ([209.85.214.47]:64816 "EHLO
-	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368AbaANLO3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jan 2014 06:14:29 -0500
-Received: by mail-bk0-f47.google.com with SMTP id mx12so177445bkb.34
-        for <linux-omap@vger.kernel.org>; Tue, 14 Jan 2014 03:14:28 -0800 (PST)
-In-Reply-To: <52D404DE.2020806@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: [PATCH 5/7] drivers/usb/dwc3: don't check resource with devm_ioremap_resource
+Date: Tue, 14 Jan 2014 12:58:56 +0100
+Message-ID: <1389700739-3696-5-git-send-email-wsa@the-dreams.de>
+References: <1389700739-3696-1-git-send-email-wsa@the-dreams.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1389700739-3696-1-git-send-email-wsa@the-dreams.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Patch Tracking <patches@linaro.org>, Linaro Networking <linaro-networking@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, Victor Kamensky <victor.kamensky@linaro.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>
 
-On 13 January 2014 17:23, Nishanth Menon <nm@ti.com> wrote:
-> On 01/13/2014 09:03 AM, Taras Kondratiuk wrote:
->> From: Victor Kamensky <victor.kamensky@linaro.org>
->>
->> Assembler functions defined in sleep44xx.S need to byteswap values
->> after read / before write from h/w register if code compiled in big
->> endian mode. Simple change to do 'rev x, x' before str instruction
->> and after ldr instruction that deals with h/w registers.
->>
->> Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
->> Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
->> ---
->> This is a part of RFC series [1].
->> Based on v3.13-rc8.
->>
->> [1] http://www.spinics.net/lists/linux-omap/msg99927.html
->>
->>  arch/arm/mach-omap2/sleep44xx.S |   17 +++++++++++++++++
->>  1 file changed, 17 insertions(+)
->>
->
-> OMAP4 is LE, and if there is a gcc flag for the same, is'nt it cleaner
-> to deal with it in Makefile rather than trying to make an assembly
-> meant only for LE by force building it for BE?
+devm_ioremap_resource does sanity checks on the given resource. No need to
+duplicate this in the driver.
 
-Hi Nishanth
-I'm not sure I got your point.
-Do you propose to build this file as LE while the rest of kernel is BE?
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+---
 
+Should go via subsystem tree
+
+ drivers/usb/dwc3/dwc3-omap.c | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 7f7ea62..cbcd972 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -432,11 +432,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		dev_err(dev, "missing memory base resource\n");
+-		return -EINVAL;
+-	}
+-
+ 	base = devm_ioremap_resource(dev, res);
+ 	if (IS_ERR(base))
+ 		return PTR_ERR(base);
 -- 
-Regards,
-Taras Kondratiuk
+1.8.5.1
