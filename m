@@ -1,189 +1,122 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
-Date: Tue, 14 Jan 2014 14:41:40 +0200
-Message-ID: <52D53084.1070105@ti.com>
-References: <1389276051-1326-1-git-send-email-t-kristo@ti.com> <52CF12FB.6000602@ti.com> <20140109231513.GA11648@saruman.home> <52CFC2F1.706@ti.com> <20140110161352.GG6665@saruman.home> <52D02037.3090705@ti.com> <20140110185110.GM31323@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv4 6/7] hwspinlock/omap: enable module before reading
+ SYSSTATUS register
+Date: Tue, 14 Jan 2014 07:10:52 -0600
+Message-ID: <20140114131052.GA10818@saruman.home>
+References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
+ <1389658764-39199-7-git-send-email-s-anna@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37522 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751329AbaANMmL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Jan 2014 07:42:11 -0500
-In-Reply-To: <20140110185110.GM31323@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0567216070862837187=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1389658764-39199-7-git-send-email-s-anna@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 01/10/2014 08:51 PM, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [140110 08:32]:
->> On 01/10/2014 06:13 PM, Felipe Balbi wrote:
->>> On Fri, Jan 10, 2014 at 11:52:49AM +0200, Tero Kristo wrote:
->>>> On 01/10/2014 01:15 AM, Felipe Balbi wrote:
->>>>> On Thu, Jan 09, 2014 at 03:22:03PM -0600, Nishanth Menon wrote:
->>>>>>
->>>>>> conflicts with be changes on Tony's be branch.
->>>>>> commit 80f304dd2360cf5d50953c4eb4e902536f6a1263
->>>>>>      ARM: OMAP2+: raw read and write endian fix
->>>>>>
->>>>>> Conflict:
->>>>>> arch/arm/mach-omap2/clkt_clksel.c
->>>>>> arch/arm/mach-omap2/clkt_dpll.c
->>>>>> arch/arm/mach-omap2/clkt_iclk.c
->>>>>> arch/arm/mach-omap2/clock.c
->>>>>> arch/arm/mach-omap2/clock36xx.c
->>>>>> arch/arm/mach-omap2/dpll3xxx.c
->>>>>> arch/arm/mach-omap2/dpll44xx.c
->>>>>>
->>>>>> Both change raw_readls -> should now be just clk api instead which
->>>>>> already does readl_relaxed etc.. If Tony feels like, then we should
->>>>>> probably post a branch based on 'be' branch for easy merge.
->
-> This should be a trivial merge conflict to handle, so let's not base
-> things on the BE changes.
->
->>>> I think all of these fails are caused by the initially bugged
->>>> Makefile + Kconfig under mach-omap2. Seems like they can be fixed by
->>>> the patches I inlined at the end (will also post them as proper
->>>> patches to l-o list after this.) The question is, should Mike go
->>>> ahead and merge these along with the base clk patches or how should
->>>> we handle them? Patch 1 must be merged, patch 2 is a nice to have one
->>>> which allows DRA7 only builds (doing DRA7 only build currently seems
->>>> not possible.)
->>>
->>> If it's OK with Tony, I would suggest having a branch with both patches
->>> below which both Tony and Mike merge before merging CCF series. That way
->>> we avoid bisection problems.
->
-> I can queue those two separately as fixes.
->
->> That reminds me, I think the baseline branch for the mach-omap2
->> patches is still somewhat unclear to me, what should be used for
->> this? And which patches should be put there (the mach-omap2 patches
->> depend on the drivers/clk/ti part basically, so I need to put at
->> least those there also.)
->
-> I would keep the clock patches against some mainline -rc commit if
-> possible, and if there are non trivial merge conflicts, the omap
-> to use as the base is commit adfe9361b236154215d4b0fc8b6d79995394b15c.
->
-> In any case, it's probably best that Mike merges this all via his
-> clock tree unless there non-trivial merge conflicts.
->
+--===============0567216070862837187==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
+Content-Disposition: inline
 
-I just pushed a branch against rc7 with makefile fixes in place to fix 
-omap1 and omap2 only builds for this stuff. Inlined the delta here at 
-the end. Do you want me to repost the series as v14 for this or is the 
-attached delta ok for review purposes? All the changes have been 
-squashed to existing patches (except the 2 patches I posted separately 
-for DRA7xx / AM43xx only builds.)
+--YiEDa0DAkWCtVeE4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The test branch itself can be found here:
+On Mon, Jan 13, 2014 at 06:19:23PM -0600, Suman Anna wrote:
+> The number of hwspinlocks are determined based on the value read
+> from the IP block's SYSSTATUS register. However, the module may
+> not be enabled and clocked, and the read may result in a bus error.
+>=20
+> This particular issue is seen rather easily on AM33XX, since the
+> module wakeup is software controlled, and it is disabled out of
+> reset. Make sure the module is enabled and clocked before reading
+> the SYSSTATUS register.
+>=20
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+>  drivers/hwspinlock/omap_hwspinlock.c | 21 ++++++++++++++-------
+>  1 file changed, 14 insertions(+), 7 deletions(-)
+>=20
+> diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/om=
+ap_hwspinlock.c
+> index 9f56fb2..194886e 100644
+> --- a/drivers/hwspinlock/omap_hwspinlock.c
+> +++ b/drivers/hwspinlock/omap_hwspinlock.c
+> @@ -101,10 +101,23 @@ static int omap_hwspinlock_probe(struct platform_de=
+vice *pdev)
+>  	if (!io_base)
+>  		return -ENOMEM;
+> =20
+> +	/*
+> +	 * make sure the module is enabled and clocked before reading
+> +	 * the module SYSSTATUS register
+> +	 */
+> +	pm_runtime_enable(&pdev->dev);
+> +	pm_runtime_get_sync(&pdev->dev);
+> +
+>  	/* Determine number of locks */
+>  	i =3D readl(io_base + SYSSTATUS_OFFSET);
+>  	i >>=3D SPINLOCK_NUMLOCKS_BIT_OFFSET;
+> =20
+> +	/*
+> +	 * runtime PM will make sure the clock of this module is
+> +	 * enabled again iff at least one lock is requested
+> +	 */
+> +	pm_runtime_put(&pdev->dev);
 
-tree: https://github.com/t-kristo/linux-pm.git
-branch: 3.13-rc7-dt-clks-v13-build-fixes
+there is a small race here (which was already present previously) where
+you could return from probe() in a failure case before your PM runtime
+put request then you would disable pm_runtime while the device was still
+alive.
 
-Felipe, care to run your randconfig magic for this?
+--=20
+balbi
 
--Tero
+--YiEDa0DAkWCtVeE4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-----------------
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index dc21df1..e65948a 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -76,6 +76,16 @@ config SOC_AM43XX
-  	select ARM_GIC
-  	select MACH_OMAP_GENERIC
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-+config SOC_DRA7XX
-+	bool "TI DRA7XX"
-+	depends on ARCH_MULTI_V7
-+	select ARCH_OMAP2PLUS
-+	select ARM_CPU_SUSPEND if PM
-+	select ARM_GIC
-+	select CPU_V7
-+	select HAVE_SMP
-+	select HAVE_ARM_ARCH_TIMER
-+
-  config ARCH_OMAP2PLUS
-  	bool
-  	select ARCH_HAS_BANDGAP
-@@ -128,14 +138,6 @@ config SOC_HAS_REALTIME_COUNTER
-  	depends on SOC_OMAP5 || SOC_DRA7XX
-  	default y
+iQIcBAEBAgAGBQJS1TdcAAoJEIaOsuA1yqREaNYQAJlfWXJcytjYawQAp8EcTsMz
+jRAWiYJPlbMu65QWwqPu5KsjcUqCBQX/IOINCHoZkA8L4TtZI+BQGg345uhWqnkC
+gMND6DmH8vQeo1uTYU1R8+s6MquFAV9IjUwRAtAMuV2miu1aDQkIAY0b04qWiMgt
+o9jqpT/HWKL+H9yiWLawEj9JRJc8hcD2u/IlO6LLXwPdC7ABO1S/7ngOPq04WsJX
+lCHuMMo28/9x7Qoi/mu+kMG+UnLGb4uWGRkjxVsQ3Jf1px8INi1wtYHJLrGiE4PG
+5Lh8nN5CsZVkl8ZtqGKATkV9cYspWVd0ouMY4M1XYLolCjaAylFKs4XR2hvoDG/g
+ios0bmhlz1qQEyXhyLx1zCxRzSCQcxrtc3SKkf+bOcVUAR07gakQ8fsygyVG64Pq
+W7noIe2Z/3vg4Bf28bLuvXf9grsFv4yaFtqzNsKNZgbr6lJqgxu1s7rxYEQr4plF
+O111Ywq38z7ZsaRBZ0NHV5UaI4s1L7CNTb7M10gmBehdrEBLrXxpXSJyse7aeCjz
+CxjHD9Ib5hYEOMzLIzX0Ttey06hFppQWXdlUnpE1O4ctV6noitv6Gig2ieLfxl4P
+4QSawl2d1z6QtBZQDN42iYy5YqIJWziBpb4BMBJ+657n7Ob235JEVtm3T86nhzSf
+10aNevJvsHpuF7+Dk7nF
+=kjbG
+-----END PGP SIGNATURE-----
 
--config SOC_DRA7XX
--	bool "TI DRA7XX"
--	select ARM_ARCH_TIMER
--	select CPU_V7
--	select ARM_GIC
--	select HAVE_SMP
--	select COMMON_CLK
--
-  comment "OMAP Core Type"
-  	depends on ARCH_OMAP2
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 088305f..8ebe9f3 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -132,6 +132,7 @@ obj-$(CONFIG_SOC_AM33XX)		+= $(voltagedomain-common)
-  obj-$(CONFIG_SOC_AM43XX)		+= $(voltagedomain-common)
-  obj-$(CONFIG_SOC_OMAP5)			+= $(voltagedomain-common)
-  obj-$(CONFIG_SOC_OMAP5)                += voltagedomains54xx_data.o
-+obj-$(CONFIG_SOC_DRA7XX)		+= $(voltagedomain-common)
-
-  # OMAP powerdomain framework
-  powerdomain-common			+= powerdomain.o powerdomain-common.o
-@@ -191,6 +192,9 @@ obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o dpll44xx.o
-  obj-$(CONFIG_SOC_AM33XX)		+= $(clock-common) dpll3xxx.o
-  obj-$(CONFIG_SOC_OMAP5)			+= $(clock-common)
-  obj-$(CONFIG_SOC_OMAP5)			+= dpll3xxx.o dpll44xx.o
-+obj-$(CONFIG_SOC_DRA7XX)		+= $(clock-common)
-+obj-$(CONFIG_SOC_DRA7XX)		+= dpll3xxx.o dpll44xx.o
-+obj-$(CONFIG_SOC_AM43XX)		+= $(clock-common) dpll3xxx.o
-
-  # OMAP2 clock rate set data (old "OPP" data)
-  obj-$(CONFIG_SOC_OMAP2420)		+= opp2420_data.o
-diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-index c61f768..41bd909 100644
---- a/drivers/clk/Makefile
-+++ b/drivers/clk/Makefile
-@@ -35,7 +35,7 @@ obj-$(CONFIG_ARCH_TEGRA)	+= tegra/
-  obj-$(CONFIG_PLAT_SAMSUNG)	+= samsung/
-  obj-$(CONFIG_COMMON_CLK_XGENE)  += clk-xgene.o
-  obj-$(CONFIG_COMMON_CLK_KEYSTONE)	+= keystone/
--obj-$(CONFIG_ARCH_OMAP)		+= ti/
-+obj-$(CONFIG_ARCH_OMAP2PLUS)	+= ti/
-
-  obj-$(CONFIG_X86)		+= x86/
-
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 007c3c2..4319d40 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -1,10 +1,11 @@
-  ifneq ($(CONFIG_OF),)
--obj-y					+= clk.o dpll.o autoidle.o divider.o \
--					   fixed-factor.o gate.o clockdomain.o \
--					   composite.o mux.o apll.o clk-43xx.o
--obj-$(CONFIG_SOC_AM33XX)		+= clk-33xx.o
--obj-$(CONFIG_ARCH_OMAP3)		+= interface.o clk-3xxx.o
--obj-$(CONFIG_ARCH_OMAP4)		+= clk-44xx.o
--obj-$(CONFIG_SOC_OMAP5)			+= clk-54xx.o
--obj-$(CONFIG_SOC_DRA7XX)		+= clk-7xx.o
-+obj-y					+= clk.o autoidle.o clockdomain.o
-+clk-common				= dpll.o composite.o divider.o gate.o \
-+					  fixed-factor.o mux.o apll.o
-+obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o
-+obj-$(CONFIG_ARCH_OMAP3)		+= $(clk-common) interface.o clk-3xxx.o
-+obj-$(CONFIG_ARCH_OMAP4)		+= $(clk-common) clk-44xx.o
-+obj-$(CONFIG_SOC_OMAP5)			+= $(clk-common) clk-54xx.o
-+obj-$(CONFIG_SOC_DRA7XX)		+= $(clk-common) clk-7xx.o
-+obj-$(CONFIG_SOC_AM43XX)		+= $(clk-common) clk-43xx.o
-  endif
+--YiEDa0DAkWCtVeE4--
 
 
+--===============0567216070862837187==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============0567216070862837187==--
