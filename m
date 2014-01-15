@@ -1,210 +1,98 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: musb host mode suspend mode
-Date: Wed, 15 Jan 2014 21:47:40 +0100
-Message-ID: <CAOf5uwn-zXj_bUkN1EBSYxFMoFj0fK5ZydKiRAyn12r2-uCywQ@mail.gmail.com>
-References: <CAOf5uwn0gqLNWMks6Cw_9szC-Mpq6n+G3x9tqU8QpYOJoOKhfA@mail.gmail.com>
-	<CAOf5uwnJwE54wdwhJj90rJ0Lqv_ENrGL2vcdUtruw4zb0R+e+w@mail.gmail.com>
-	<CAOf5uw=NJ4XF5VsagEtsxKBVCx1shpWh1D1Eh-_uM58SA7_HCA@mail.gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [UPDATED PATCHv4 6/7] hwspinlock/omap: enable module before reading
+ SYSSTATUS register
+Date: Wed, 15 Jan 2014 17:36:48 -0600
+Message-ID: <1389829008-31941-1-git-send-email-s-anna@ti.com>
+References: <1389658764-39199-7-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:60058 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374AbaAOUrm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jan 2014 15:47:42 -0500
-Received: by mail-wi0-f174.google.com with SMTP id g10so4701802wiw.13
-        for <linux-omap@vger.kernel.org>; Wed, 15 Jan 2014 12:47:41 -0800 (PST)
-In-Reply-To: <CAOf5uw=NJ4XF5VsagEtsxKBVCx1shpWh1D1Eh-_uM58SA7_HCA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1389658764-39199-7-git-send-email-s-anna@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>
+Cc: devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hi
+The number of hwspinlocks are determined based on the value read
+from the IP block's SYSSTATUS register. However, the module may
+not be enabled and clocked, and the read may result in a bus error.
 
-I forget to post the solution for old kernel 3.0.31. The code to
-support the suspend/resume in host mode when some
-peripheral is connected (no wake lock should be taken for android device)
+This particular issue is seen rather easily on AM33XX, since the
+module wakeup is software controlled, and it is disabled out of
+reset. Make sure the module is enabled and clocked before reading
+the SYSSTATUS register.
 
-+static int omap2430_resume_noirq(struct device *dev)
-+{
-+       struct omap2430_glue            *glue = dev_get_drvdata(dev);
-+       struct musb                     *musb = glue_to_musb(glue);
-+       struct platform_device          *pdev = to_platform_device(dev);
-+
-+       if (pm_runtime_suspended(dev))
-+               return 0;
-+
-+       if (pdev)
-+               omap_device_enable(pdev);
-+
-+       omap2430_low_level_init(musb);
-+       musb_writel(musb->mregs, OTG_INTERFSEL,
-+                                       musb->context.otg_interfsel);
-+
-+       otg_set_suspend(musb->xceiv, 0);
-+
-+       return 0;
-+}
-+
-+
-+static int omap2430_suspend_noirq(struct device *dev)
-+{
-+       struct omap2430_glue            *glue = dev_get_drvdata(dev);
-+       struct musb                     *musb = glue_to_musb(glue);
-+       struct platform_device          *pdev = to_platform_device(dev);
-+
-+       if (pm_runtime_suspended(dev))
-+               return 0;
-+
-+       musb->context.otg_interfsel = musb_readl(musb->mregs,
-+                                               OTG_INTERFSEL);
-+
-+       omap2430_low_level_exit(musb);
-+       otg_set_suspend(musb->xceiv, 1);
-+       if (pdev)
-+               omap_device_idle(pdev);
-+
-+       return 0;
-+}
-+
-+struct dev_pm_ops omap2430_pm_ops = {
-+       SET_RUNTIME_PM_OPS(omap2430_runtime_suspend, omap2430_runtime_resume,
-+                          NULL)
-+       .suspend_noirq = omap2430_suspend_noirq,
-+       .resume_noirq = omap2430_resume_noirq,
- };
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+ drivers/hwspinlock/omap_hwspinlock.c | 27 ++++++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 7 deletions(-)
 
-
-Michael
-
-On Wed, Dec 11, 2013 at 5:14 PM, Michael Trimarchi
-<michael@amarulasolutions.com> wrote:
-> Hi
->
-> On Sat, Dec 7, 2013 at 6:22 PM, Michael Trimarchi
-> <michael@amarulasolutions.com> wrote:
->> Hi
->>
->> On Wed, Nov 27, 2013 at 4:26 PM, Michael Trimarchi
->> <michael@amarulasolutions.com> wrote:
->>> Hi Felipe,
->>>
->>> I'm trying to understand how dpll_usb and vbus should work in suspend mode.
->>> What I have in my kernel 3.0.31 from ti is that if I suspend the device with id
->>> pin ground and no device connected I have:
->>>
->>> - vbus 5v
->>> - dpll_usb locked problem so l3domain can not suspend
->>>
->>> If I have the id pin floating (device mode) and no device connected I
->>> can suspend
->>> without problem. I'm not care about remote wakeup and I would like to understand
->>> what is the reason of having no complete suspend in host mode. Can you give
->>> some insight?
->>
->> I get a bit further and if I do something like that so basically force
->> device mode I can suspend.
->>
->> +       if (val) {
->> +               twl->force_device = false;
->> +               twl6030_writeb(twl, TWL_MODULE_USB, 0x14, USB_ID_CTRL_SET);
->> +               twl6030_usb_irq(twl->irq2, twl);
->> +               twl6030_usbotg_irq(twl->irq1, twl);
->> +       } else {
->> +               twl->force_device = true;
->> +               twl6030_writeb(twl, TWL_MODULE_USB, 0x14, USB_ID_CTRL_CLR);
->> +               twl6030_usb_irq(twl->irq2, twl);
->> +               twl6030_usbotg_irq(twl->irq1, twl);
->> +       }
->>
->> So my problem is let the device connect host mode (remote wakeup
->> disable) and let the system suspend in the correct way.
->>
->
-> I think that I have almost fixed the problem of suspend resume of the
-> otg host mode in this old
-> version of the kernel. But I would like to share my short summary:
->
-> - I have implemented the suspend/resume hooks of the omap2430 and manually
-> call the omap_device_idle and omap_device_disable because in old
-> version of the kernel
-> this hooks are not implemented in the omap_device structure
->
-> - I understand the reason in not having the runtime_suspend the otg in
-> host mode but I'm not sure:
->   * the runtime_get_sync is taken on the ID_GND event so as soon it's
-> host connected the use_count
-> go to 1 but I did't find where it is released
->
-> - I still have a
->
-> <4>[   41.856445] WARNING: at
-> /home/michael/work/amarula/wincor/paypad/kernel/arch/arm/mach-omap2/omap_l3_noc.c:135
-> l3_interrupt_handler+0x254/0x344()
-> <4>[   41.856475] CUSTOM SRESP error with SOURCE:L4CFG
-> <4>[   41.856506] Modules linked in: pvrsrvkm_sgx540_120 gps_drv
-> wl12xx mac80211 cfg80211 compat
-> <4>[   41.856567] Backtrace:
-> <4>[   41.856597] [<c00e43e0>] (dump_backtrace+0x0/0x10c) from
-> [<c0679db0>] (dump_stack+0x18/0x1c)
-> <4>[   41.856628]  r7:00000009 r6:00000087 r5:c010652c r4:c783dc80
-> <4>[   41.856689] [<c0679d98>] (dump_stack+0x0/0x1c) from [<c012b31c>]
-> (warn_slowpath_common+0x54/0x6c)
-> <4>[   41.856750] [<c012b2c8>] (warn_slowpath_common+0x0/0x6c) from
-> [<c012b3d8>] (warn_slowpath_fmt+0x38/0x40)
-> <4>[   41.856781]  r9:00000000 r8:f8000400 r7:00080003 r6:c08ce948 r5:00000448
-> <4>[   41.856811] r4:f8000000
-> <4>[   41.856842] [<c012b3a0>] (warn_slowpath_fmt+0x0/0x40) from
-> [<c010652c>] (l3_interrupt_handler+0x254/0x344)
-> <4>[   41.856872]  r3:c07ee514 r2:c07ee4b0
-> <4>[   41.856933] [<c01062d8>] (l3_interrupt_handler+0x0/0x344) from
-> [<c017291c>] (handle_irq_event_percpu+0x6c/0x290)
-> <4>[   41.856964] [<c01728b0>] (handle_irq_event_percpu+0x0/0x290)
-> from [<c0172b84>] (handle_irq_event+0x44/0x64)
-> <4>[   41.857025] [<c0172b40>] (handle_irq_event+0x0/0x64) from
-> [<c01751fc>] (handle_fasteoi_irq+0xa0/0x144)
-> <4>[   41.857055]  r7:0000002a r6:c783c000 r5:c08a1b8c r4:c08a1b40
-> <4>[   41.857116] [<c017515c>] (handle_fasteoi_irq+0x0/0x144) from
-> [<c017246c>] (generic_handle_irq+0x3c/0x48)
-> <4>[   41.857116]  r5:c00d9020 r4:c08b0898
-> <4>[   41.857177] [<c0172430>] (generic_handle_irq+0x0/0x48) from
-> [<c00da054>] (asm_do_IRQ+0x54/0xb4)
-> <4>[   41.857238] [<c00da000>] (asm_do_IRQ+0x0/0xb4) from [<c067db88>]
-> (__irq_svc+0x48/0xe0)
-> <4>[   41.857238] Exception stack(0xc783dd80 to 0xc783ddc8)
->
-> But maybe somenthing is wrong in the sequence
->
-> +       struct omap2430_glue            *glue = dev_get_drvdata(dev);
-> +       struct musb                     *musb = glue_to_musb(glue);
-> +       struct platform_device          *pdev = to_platform_device(dev);
-> +
-> +       if (pm_runtime_suspended(dev))
-> +               return 0;
-> +
-> +       if (pdev)
-> +               omap_device_enable(pdev);
-> +
-> +       omap2430_low_level_init(musb);
-> +       musb_writel(musb->mregs, OTG_INTERFSEL,
-> +                                       musb->context.otg_interfsel);
-> +
-> +       otg_set_suspend(musb->xceiv, 0);
-> +
-> +       return 0;
-> +}
->
->
-> Michael
->
->
->
->> Michael
->>
->>>
->>> Michael
->
->
->
-> --
+diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
+index 9f56fb2..7764291 100644
+--- a/drivers/hwspinlock/omap_hwspinlock.c
++++ b/drivers/hwspinlock/omap_hwspinlock.c
+@@ -101,10 +101,29 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	if (!io_base)
+ 		return -ENOMEM;
+ 
++	/*
++	 * make sure the module is enabled and clocked before reading
++	 * the module SYSSTATUS register
++	 */
++	pm_runtime_enable(&pdev->dev);
++	ret = pm_runtime_get_sync(&pdev->dev);
++	if (ret < 0) {
++		pm_runtime_put_noidle(&pdev->dev);
++		goto iounmap_base;
++	}
++
+ 	/* Determine number of locks */
+ 	i = readl(io_base + SYSSTATUS_OFFSET);
+ 	i >>= SPINLOCK_NUMLOCKS_BIT_OFFSET;
+ 
++	/*
++	 * runtime PM will make sure the clock of this module is
++	 * enabled again iff at least one lock is requested
++	 */
++	ret = pm_runtime_put_sync(&pdev->dev);
++	if (ret < 0)
++		goto iounmap_base;
++
+ 	/* one of the four lsb's must be set, and nothing else */
+ 	if (hweight_long(i & 0xf) != 1 || i > 8) {
+ 		ret = -EINVAL;
+@@ -124,12 +143,6 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	for (i = 0, hwlock = &bank->lock[0]; i < num_locks; i++, hwlock++)
+ 		hwlock->priv = io_base + LOCK_BASE_OFFSET + sizeof(u32) * i;
+ 
+-	/*
+-	 * runtime PM will make sure the clock of this module is
+-	 * enabled iff at least one lock is requested
+-	 */
+-	pm_runtime_enable(&pdev->dev);
+-
+ 	ret = hwspin_lock_register(bank, &pdev->dev, &omap_hwspinlock_ops,
+ 						base_id, num_locks);
+ 	if (ret)
+@@ -138,9 +151,9 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ reg_fail:
+-	pm_runtime_disable(&pdev->dev);
+ 	kfree(bank);
+ iounmap_base:
++	pm_runtime_disable(&pdev->dev);
+ 	iounmap(io_base);
+ 	return ret;
+ }
+-- 
+1.8.4.3
