@@ -1,67 +1,210 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 4/5] arm: omap3: twl: use the new lookup method with usb
- phy
-Date: Wed, 15 Jan 2014 19:41:55 +0530
-Message-ID: <52D6972B.2030704@ti.com>
-References: <1386601737-8735-1-git-send-email-heikki.krogerus@linux.intel.com> <1386601737-8735-5-git-send-email-heikki.krogerus@linux.intel.com> <52AEDE43.8030005@ti.com> <20131216144314.GB22944@xps8300> <52CBFAC0.9040103@ti.com> <20140114143849.GB21169@xps8300>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v10 5/7] ARM: dts: add pbias dt node
+Date: Wed, 15 Jan 2014 20:39:28 +0530
+Message-ID: <52D6A4A8.5060307@ti.com>
+References: <1389279062-32291-1-git-send-email-balajitk@ti.com> <1389627375-9107-1-git-send-email-balajitk@ti.com> <1389627375-9107-6-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140114143849.GB21169@xps8300>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1389627375-9107-6-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, chris@printf.net, broonie@kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Monday 13 January 2014 09:06 PM, Balaji T K wrote:
+> Add pbias regulator node as a child of system control
+> module - syscon.
+>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+Hi Benoit,
 
-On Tuesday 14 January 2014 08:08 PM, Heikki Krogerus wrote:
-> On Tue, Jan 07, 2014 at 06:31:52PM +0530, Kishon Vijay Abraham I wrote:
->>> In any case, having two device names to deal with does not add any
->>> more risk. These associations should always be made in the place where
->>> the phy device is created so you will always know it's device name.
->>
->> huh.. we should also know the 'controller' device name while defining these
->> associations and in some cases the controller device and phy device are created
->> in entirely different places.
-> 
-> If you don't want to use the controller device name to do the
-> matching, we can use the con_id string as well. I believe the lookup
-> method I use in this set just needs a small change.
+Gentle Ping, Let me know if you have any comments.
 
-The point I'm trying to make is that we won't 'always' know the device names in
-advance.
-Btw how are you planning to differentiate between multiple controllers of the
-same type with con_id?
+> ---
+>   arch/arm/boot/dts/dra7.dtsi     |   17 +++++++++++++++++
+>   arch/arm/boot/dts/omap2430.dtsi |   17 +++++++++++++++++
+>   arch/arm/boot/dts/omap3.dtsi    |   17 +++++++++++++++++
+>   arch/arm/boot/dts/omap4.dtsi    |   17 +++++++++++++++++
+>   arch/arm/boot/dts/omap5.dtsi    |   17 +++++++++++++++++
+>   5 files changed, 85 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index d0df4c4..876c9b8 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -110,6 +110,22 @@
+>   			ti,hwmods = "counter_32k";
+>   		};
+>
+> +		dra7_ctrl_general: tisyscon@4a002e00 {
+> +			compatible = "syscon", "simple-bus";
+> +			reg = <0x4a002e00 0x7c>;
+> +		};
+> +
+> +		pbias_regulator: pbias_regulator {
+> +			compatible = "ti,pbias-omap";
+> +			reg = <0 0x4>;
+> +			syscon = <&dra7_ctrl_general>;
+> +			pbias_mmc_reg: pbias_mmc_omap5 {
+> +				regulator-name = "pbias_mmc_omap5";
+> +				regulator-min-microvolt = <1800000>;
+> +				regulator-max-microvolt = <3000000>;
+> +			};
+> +		};
+> +
+>   		dra7_pmx_core: pinmux@4a003400 {
+>   			compatible = "pinctrl-single";
+>   			reg = <0x4a003400 0x0464>;
+> @@ -485,6 +501,7 @@
+>   			dmas = <&sdma 61>, <&sdma 62>;
+>   			dma-names = "tx", "rx";
+>   			status = "disabled";
+> +			pbias-supply = <&pbias_mmc_reg>;
+>   		};
+>
+>   		mmc2: mmc@480b4000 {
+> diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+> index d624345..af71eb0 100644
+> --- a/arch/arm/boot/dts/omap2430.dtsi
+> +++ b/arch/arm/boot/dts/omap2430.dtsi
+> @@ -29,6 +29,22 @@
+>   			pinctrl-single,function-mask = <0x3f>;
+>   		};
+>
+> +		omap2_scm_general: tisyscon@49002270 {
+> +			compatible = "syscon", "simple-bus";
+> +			reg = <0x49002270 0x240>;
+> +		};
+> +
+> +		pbias_regulator: pbias_regulator {
+> +			compatible = "ti,pbias-omap";
+> +			reg = <0x230 0x4>;
+> +			syscon = <&omap2_scm_general>;
+> +			pbias_mmc_reg: pbias_mmc_omap2430 {
+> +				regulator-name = "pbias_mmc_omap2430";
+> +				regulator-min-microvolt = <1800000>;
+> +				regulator-max-microvolt = <3000000>;
+> +			};
+> +		};
+> +
+>   		gpio1: gpio@4900c000 {
+>   			compatible = "ti,omap2-gpio";
+>   			reg = <0x4900c000 0x200>;
+> @@ -183,6 +199,7 @@
+>   			ti,dual-volt;
+>   			dmas = <&sdma 61>, <&sdma 62>;
+>   			dma-names = "tx", "rx";
+> +			pbias-supply = <&pbias_mmc_reg>;
+>   		};
+>
+>   		mmc2: mmc@480b4000 {
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index daabf99..b7828da 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -137,6 +137,22 @@
+>   			pinctrl-single,function-mask = <0xff1f>;
+>   		};
+>
+> +		omap3_scm_general: tisyscon@48002270 {
+> +			compatible = "syscon", "simple-bus";
+> +			reg = <0x48002270 0x2f0>;
+> +		};
+> +
+> +		pbias_regulator: pbias_regulator {
+> +			compatible = "ti,pbias-omap";
+> +			reg = <0x2b0 0x4>;
+> +			syscon = <&omap3_scm_general>;
+> +			pbias_mmc_reg: pbias_mmc_omap2430 {
+> +				regulator-name = "pbias_mmc_omap2430";
+> +				regulator-min-microvolt = <1800000>;
+> +				regulator-max-microvolt = <3000000>;
+> +			};
+> +		};
+> +
+>   		gpio1: gpio@48310000 {
+>   			compatible = "ti,omap3-gpio";
+>   			reg = <0x48310000 0x200>;
+> @@ -351,6 +367,7 @@
+>   			ti,dual-volt;
+>   			dmas = <&sdma 61>, <&sdma 62>;
+>   			dma-names = "tx", "rx";
+> +			pbias-supply = <&pbias_mmc_reg>;
+>   		};
+>
+>   		mmc2: mmc@480b4000 {
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index a1e0585..9e19363 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -134,6 +134,22 @@
+>   			pinctrl-single,function-mask = <0x7fff>;
+>   		};
+>
+> +		omap4_padconf_global: tisyscon@4a1005a0 {
+> +			compatible = "syscon", "simple-bus";
+> +			reg = <0x4a1005a0 0x170>;
+> +		};
+> +
+> +		pbias_regulator: pbias_regulator {
+> +			compatible = "ti,pbias-omap";
+> +			reg = <0x60 0x4>;
+> +			syscon = <&omap4_padconf_global>;
+> +			pbias_mmc_reg: pbias_mmc_omap4 {
+> +				regulator-name = "pbias_mmc_omap4";
+> +				regulator-min-microvolt = <1800000>;
+> +				regulator-max-microvolt = <3000000>;
+> +			};
+> +		};
+> +
+>   		sdma: dma-controller@4a056000 {
+>   			compatible = "ti,omap4430-sdma";
+>   			reg = <0x4a056000 0x1000>;
+> @@ -367,6 +383,7 @@
+>   			ti,needs-special-reset;
+>   			dmas = <&sdma 61>, <&sdma 62>;
+>   			dma-names = "tx", "rx";
+> +			pbias-supply = <&pbias_mmc_reg>;
+>   		};
+>
+>   		mmc2: mmc@480b4000 {
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index fc3fad5..f178899 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -130,6 +130,22 @@
+>   			pinctrl-single,function-mask = <0x7fff>;
+>   		};
+>
+> +		omap5_padconf_global: tisyscon@4a002da0 {
+> +			compatible = "syscon";
+> +			reg = <0x4A002da0 0xec>;
+> +		};
+> +
+> +		pbias_regulator: pbias_regulator {
+> +			compatible = "ti,pbias-omap";
+> +			reg = <0x60 0x4>;
+> +			syscon = <&omap5_padconf_global>;
+> +			pbias_mmc_reg: pbias_mmc_omap5 {
+> +				regulator-name = "pbias_mmc_omap5";
+> +				regulator-min-microvolt = <1800000>;
+> +				regulator-max-microvolt = <3000000>;
+> +			};
+> +		};
+> +
+>   		sdma: dma-controller@4a056000 {
+>   			compatible = "ti,omap4430-sdma";
+>   			reg = <0x4a056000 0x1000>;
+> @@ -409,6 +425,7 @@
+>   			ti,needs-special-reset;
+>   			dmas = <&sdma 61>, <&sdma 62>;
+>   			dma-names = "tx", "rx";
+> +			pbias-supply = <&pbias_mmc_reg>;
+>   		};
+>
+>   		mmc2: mmc@480b4000 {
+>
 
-Maybe I'm missing the actual intention of this patch. Do you face problem if
-the PHY's have to know about it's consumers in ACPI?
-> 
-> Is that OK with you?
-> 
-> 
->>> Normally the platform code creates these associations in the same
->>> place it creates the platform devices, so you definitely know what the
->>> device names will be.
->>>
->>> In this case it's actually created in drivers/mfd/twl-core.c, so I do
->>> need to update this and move the lookup table there. We can still
->>> deliver the user name as platform data, though I believe it's always
->>> "musb". Maybe we could actually skip that and just hard code the name?
->>
->> I would rather leave the way it is modelled now.
-> 
-> Do you mean, leave it in the platform code? Why? We would reduce the
-> platform code by moving it to the mfd driver. Or did I misunderstood
-> something?
-
-In this case, the lookup table will be used only for non-dt boot so don't see
-much use in moving to mfd driver.
-I meant if the new method is not solving any problem then I would prefer the
-way it is modelled now where the PHY's know about it's consumers.
-
-Btw where does device gets created in ACPI boot?
-
-Cheers
-Kishon
