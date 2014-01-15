@@ -1,81 +1,109 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
-Date: Wed, 15 Jan 2014 11:35:48 -0800
-Message-ID: <20140115193547.GF7993@atomide.com>
-References: <20140110161352.GG6665@saruman.home>
- <52D02037.3090705@ti.com>
- <20140110185110.GM31323@atomide.com>
- <52D53084.1070105@ti.com>
- <20140114203613.GA604@saruman.home>
- <20140115020421.GA24195@saruman.home>
- <20140115031632.4167.2698@quantum>
- <20140115035011.4167.96678@quantum>
- <20140115171323.GA22739@atomide.com>
- <20140115192340.4167.87685@quantum>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.13-rc6
+Date: Wed, 15 Jan 2014 19:44:52 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1401151940370.20720@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59253 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751024AbaAOTfy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jan 2014 14:35:54 -0500
-Content-Disposition: inline
-In-Reply-To: <20140115192340.4167.87685@quantum>
+Received: from utopia.booyaka.com ([74.50.51.50]:54911 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750856AbaAOTox (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jan 2014 14:44:53 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: balbi@ti.com, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-* Mike Turquette <mturquette@linaro.org> [140115 11:25]:
-> Quoting Tony Lindgren (2014-01-15 09:13:23)
-> > * Mike Turquette <mturquette@linaro.org> [140114 19:52]:
-> > > > 
-> > > > These 40 patches apply very cleanly on top of clk-next with 2
-> > > > exceptions:
-> > > > 
-> > > > 1) I did not apply "[PATCH 30/42] ARM: dts: AM35xx: use DT clock data"
-> > > > because I do not have arch/arm/boot/dts/am3517.dtsi in clk-next (based
-> > > > on 3.13-rc1).
-> > > > 
-> > > > 2) Minor merge conflict in arch/arm/boot/dts/omap3.dtsi which I think I
-> > > > resolved correctly but would like verification.
-> > > > 
-> > > > I'd prefer to simply merge these patches into clk-next, which is the
-> > > > most straightforward route. Any ideas on how to handle the missing
-> > > > AM35xx dtsi data? It can always go as a separate fix after this stuff
-> > > > gets merged which, ironically, is how that file was created in the first
-> > > > place.
-> > 
-> > You could do something like this to take advantage of fast forward and
-> > not have to do a merge back from mainline:
-> > 
-> > $ git checkout -b am3517-clk v3.13-rc8 # or any other -rc with am3517.dtsi
-> > $ git merge clk-next-omap # this fast forwards clk-next-omap to the desired -rc
-> > $ git am am3517-clk-patch
-> > $ git checkout clk-next
-> > $ git merge clk-next-omap # this fast forwards clk-next to the desired -rc
-> 
-> That makes sense, but is there anything bad about doing that for a
-> branch you intend to send as a pull request? I don't see how any of the
-> commits get re-written or anything... I just wonder if there is some
-> subtlety that I am not accounting for that makes this approach bad for
-> sending to Linus.
 
-No there should not be any issues. That's the preferred way to keep
-development branches updated and pullable in long term without any need
-to rebase.
+Here are some basic OMAP test results for Linux v3.13-rc6.
+Logs and other details at:
 
-Note that there will be only a merge commit if there is a conflict,
-otherwise the fast forward will be transparent. So the trick to avoiding
-rebasing and back merges is to apply patches against what they need in a
-local branch, then after testing merge that local branch into the development
-branch. Then for the upsteam pull request, you just need to make it against
-the -rc you merged in.
+    http://www.pwsan.com/omap/testlogs/test_v3.13-rc6/20131229233555/
 
-AFAIK what Linus does not like is doing a back merge to a development
-branch from mainline, probably as it adds a pointless commit. Or rebasing
-a branch as that way it won't stay pullable.
 
-Regards,
+Test summary
+------------
 
-Tony
+Build: zImage:
+    Pass ( 2/ 2): omap2plus_defconfig, omap2plus_defconfig_am33xx_only
+
+Build: uImage:
+    Pass (14/14): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only, omap2plus_defconfig,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig
+
+Build: uImage+dtb:
+    Pass ( 3/ 3): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es
+
+Boot to userspace:
+    skip ( 2/ 2): 5912osk, 4460varsomom
+    Pass (10/10): 2430sdp, 3517evm, 3530es3beagle, 3730beaglexm,
+		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
+		  am335xbonelt, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 4/ 7): 2430sdp, 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 3/ 7): 3530es3beagle, 3730beaglexm, 37xxevm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 5/ 7): 2430sdp, 37xxevm, 4430es2panda, 4460pandaes,
+		  4460varsomom
+    Pass ( 2/ 7): 3530es3beagle, 3730beaglexm
+
+PM: chip off except CORE via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off except CORE via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 4/ 5): 37xxevm, 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 1/ 5): 3530es3beagle
+
+PM: chip off via dynamic idle:
+    FAIL ( 4/ 5): 37xxevm, 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 1/ 5): 3530es3beagle
+
+
+vmlinux object size
+(delta in bytes from test_v3.13-rc5 
+(413541dd66d51f791a0b169d9b9014e4f56be13c)):
+   text     data      bss    total  kernel
+   +140        0        0     +140  omap1_defconfig
+   +140        0        0     +140  omap1_defconfig_1510innovator_only
+   +140        0        0     +140  omap1_defconfig_5912osk_only
+   +352        0        0     +352  omap2plus_defconfig
+   +276        0        0     +276  omap2plus_defconfig_2430sdp_only
+   +496        0        0     +496  omap2plus_defconfig_cpupm
+   +172        0        0     +172  omap2plus_defconfig_n800_multi_omap2xxx
+   +140        0        0     +140  omap2plus_defconfig_n800_only_a
+  +4448        0        0    +4448  omap2plus_defconfig_no_pm
+   +332       +8        0     +340  omap2plus_defconfig_omap2_4_only
+   +288        0        0     +288  omap2plus_defconfig_omap3_4_only
+   +256      +32      -32     +256  rmk_omap3430_ldp_allnoconfig
+   +160      +64        0     +224  rmk_omap3430_ldp_oldconfig
+   +140        0        0     +140  rmk_omap4430_sdp_allnoconfig
+   +256        0        0     +256  rmk_omap4430_sdp_oldnoconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.13-rc5 (413541dd66d51f791a0b169d9b9014e4f56be13c))
+  avail  rsrvd   high  freed  board          kconfig
+ -1007736k -39816k -269312k  -384k  4460varsomom   omap2plus_defconfig
+
+
+The winter holidays seemed to be a good time for testbed disruptions here.  
+The 2430SDP lost its ability to communicate over Ethernet, so that's been 
+switched to serial booting.  And the 4460 VAR-SOM-OM decided it was going 
+to modulate its serial console TXD line with a 60 Hz ersatz triangle wave, 
+strong enough to confuse the serial port it was hooked up to, so that 
+board is offline until I can track down what the problem is.
