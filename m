@@ -1,102 +1,67 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.13-rc8
-Date: Wed, 15 Jan 2014 19:58:21 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1401151953580.20720@utopia.booyaka.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: OMAP2+: add missing ARCH_HAS_OPP
+Date: Wed, 15 Jan 2014 14:00:38 -0600
+Message-ID: <1389816038-17363-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:54977 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933AbaAOT6W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jan 2014 14:58:22 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:52856 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751468AbaAOUBD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Jan 2014 15:01:03 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nikhil.nd@ti.com, t-kristo@ti.com, Nishanth Menon <nm@ti.com>
 
+OMAP5, DRA7, AM43xx all have OPPs. So select the same to allow SoC
+only configuration boot to work with OPP.
 
-Here are some basic OMAP test results for Linux v3.13-rc8.
-Logs and other details at:
+Reported-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
 
-    http://www.pwsan.com/omap/testlogs/test_v3.13-rc8/20140113013852/
+For DRA7, depends on: https://patchwork.kernel.org/patch/3465411/
 
+ arch/arm/mach-omap2/Kconfig |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-Test summary
-------------
-
-Build: zImage:
-    Pass ( 2/ 2): omap2plus_defconfig, omap2plus_defconfig_am33xx_only
-
-Build: uImage+dtb:
-    Pass ( 3/ 3): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es
-
-Build: uImage:
-    Pass (14/14): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only, omap2plus_defconfig,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig
-
-Boot to userspace:
-    skip ( 2/ 2): 5912osk, 4460varsomom
-    Pass (10/10): 2430sdp, 3517evm, 3530es3beagle, 3730beaglexm,
-		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
-		  am335xbonelt, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
-    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
-
-PM: chip retention via dynamic idle:
-    FAIL ( 5/ 7): 2430sdp, 37xxevm, 4430es2panda, 4460pandaes,
-		  4460varsomom
-    Pass ( 2/ 7): 3530es3beagle, 3730beaglexm
-
-PM: chip off except CORE via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off except CORE via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 4/ 5): 37xxevm, 4430es2panda, 4460pandaes, 4460varsomom
-    Pass ( 1/ 5): 3530es3beagle
-
-PM: chip off via dynamic idle:
-    FAIL ( 4/ 5): 37xxevm, 4430es2panda, 4460pandaes, 4460varsomom
-    Pass ( 1/ 5): 3530es3beagle
-
-
-vmlinux object size
-(delta in bytes from test_v3.13-rc7 (d6e0a2dd12f4067a5bcefb8bbd8ddbeff800afbc)):
-   text     data      bss    total  kernel
-    +45        0        0      +45  omap1_defconfig
-    +49       -8        0      +41  omap1_defconfig_1510innovator_only
-    +77        0        0      +77  omap1_defconfig_5912osk_only
-     +5        0        0       +5  omap2plus_defconfig
-    +25        0        0      +25  omap2plus_defconfig_2430sdp_only
-     +5        0        0       +5  omap2plus_defconfig_cpupm
-      0        0        0        0  omap2plus_defconfig_n800_multi_omap2xxx
-      0        0        0        0  omap2plus_defconfig_n800_only_a
-     +5        0        0       +5  omap2plus_defconfig_no_pm
-    +69        0        0      +69  omap2plus_defconfig_omap2_4_only
-     +5        0        0       +5  omap2plus_defconfig_omap3_4_only
-    +80        0      -88       -8  rmk_omap3430_ldp_allnoconfig
-    +65        0        0      +65  rmk_omap3430_ldp_oldconfig
-    -16        0      -24      -40  rmk_omap4430_sdp_allnoconfig
-   +125        0        0     +125  rmk_omap4430_sdp_oldnoconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.13-rc7 (d6e0a2dd12f4067a5bcefb8bbd8ddbeff800afbc))
-  avail  rsrvd   high  freed  board          kconfig
-  (no differences)
-
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 35c23e5..66a9c4a 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -50,6 +50,7 @@ config SOC_OMAP5
+ 	bool "TI OMAP5"
+ 	depends on ARCH_MULTI_V7
+ 	select ARCH_OMAP2PLUS
++	select ARCH_HAS_OPP
+ 	select ARM_CPU_SUSPEND if PM
+ 	select ARM_GIC
+ 	select CPU_V7
+@@ -63,6 +64,7 @@ config SOC_AM33XX
+ 	bool "TI AM33XX"
+ 	depends on ARCH_MULTI_V7
+ 	select ARCH_OMAP2PLUS
++	select ARCH_HAS_OPP
+ 	select ARM_CPU_SUSPEND if PM
+ 	select CPU_V7
+ 	select MULTI_IRQ_HANDLER
+@@ -72,6 +74,7 @@ config SOC_AM43XX
+ 	depends on ARCH_MULTI_V7
+ 	select CPU_V7
+ 	select ARCH_OMAP2PLUS
++	select ARCH_HAS_OPP
+ 	select MULTI_IRQ_HANDLER
+ 	select ARM_GIC
+ 	select MACH_OMAP_GENERIC
+@@ -80,6 +83,7 @@ config SOC_DRA7XX
+ 	bool "TI DRA7XX"
+ 	depends on ARCH_MULTI_V7
+ 	select ARCH_OMAP2PLUS
++	select ARCH_HAS_OPP
+ 	select ARM_CPU_SUSPEND if PM
+ 	select ARM_GIC
+ 	select CPU_V7
+-- 
+1.7.9.5
 
