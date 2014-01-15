@@ -1,115 +1,82 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
-Date: Wed, 15 Jan 2014 09:59:25 -0600
-Message-ID: <52D6B05D.6000302@ti.com>
-References: <1389276051-1326-1-git-send-email-t-kristo@ti.com> <20140109231513.GA11648@saruman.home> <52CFC2F1.706@ti.com> <20140110161352.GG6665@saruman.home> <52D02037.3090705@ti.com> <20140110185110.GM31323@atomide.com> <52D53084.1070105@ti.com> <20140114203613.GA604@saruman.home> <20140115020421.GA24195@saruman.home> <20140115031632.4167.2698@quantum> <20140115035011.4167.96678@quantum> <52D68FFA.8000806@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH RFC v2 REPOST 3/8] ASoC: davinci-evm: HDMI
+ audio support for TDA998x trough McASP I2S bus
+Date: Wed, 15 Jan 2014 18:28:14 +0200
+Message-ID: <52D6B71E.5000702@ti.com>
+References: <cover.1387535299.git.jsarha@ti.com>
+ <d3c3f645d39338df0ee9686cb030255ce36a249d.1387535302.git.jsarha@ti.com>
+ <20131231132555.GA31886@sirena.org.uk> <52D67099.1040904@ti.com>
+ <52D691AD.3010206@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41743 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751754AbaAOP7v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Jan 2014 10:59:51 -0500
-In-Reply-To: <52D68FFA.8000806@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <52D691AD.3010206@iki.fi>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Anssi Hannula <anssi.hannula@iki.fi>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, balbi@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, paul@pwsan.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 01/15/2014 07:41 AM, Tero Kristo wrote:
-> On 01/15/2014 05:50 AM, Mike Turquette wrote:
->> Quoting Mike Turquette (2014-01-14 19:16:32)
->>> Quoting Felipe Balbi (2014-01-14 18:04:21)
->>>> Hi,
->>>>
->>>> On Tue, Jan 14, 2014 at 02:36:13PM -0600, Felipe Balbi wrote:
->>>>>> Felipe, care to run your randconfig magic for this?
->>>>>
->>>>> This branch builds just fine so far, I still have omap5 multiplaform and
->>>>> uniplatform builds, but since that was working before i'm assuming it
->>>>> won't break.
->>>>
->>>> No build failures in any of my 18 seeds (5 randconfigs of each), I'd
->>>> attach logs, but it's a 2.8MiB tarball, if anyone cares enough, I can
->>>> send it.
->>>>
->>>> FWIW:
->>>>
->>>> Acked-by: Felipe Balbi <balbi@ti.com>
+On 01/15/2014 03:48 PM, Anssi Hannula wrote:
+> 15.01.2014 13:27, Jyri Sarha kirjoitti:
+>> On 12/31/2013 03:25 PM, Mark Brown wrote:
+>>> On Fri, Dec 20, 2013 at 12:39:38PM +0200, Jyri Sarha wrote:
+>>>> support. The only supported sample format is SNDRV_PCM_FORMAT_S32_LE.
+>>>> The 8 least significant bits are ignored.
 >>>
->>> Felipe,
+>>> Where does this constraint come from?
 >>>
->>> That's great to hear. Thanks for testing.
->>>
->>> Tero & Tony,
->>>
->>> These 40 patches apply very cleanly on top of clk-next with 2
->>> exceptions:
->>>
->>> 1) I did not apply "[PATCH 30/42] ARM: dts: AM35xx: use DT clock data"
->>> because I do not have arch/arm/boot/dts/am3517.dtsi in clk-next (based
->>> on 3.13-rc1).
->>>
->>> 2) Minor merge conflict in arch/arm/boot/dts/omap3.dtsi which I think I
->>> resolved correctly but would like verification.
->>>
->>> I'd prefer to simply merge these patches into clk-next, which is the
->>> most straightforward route. Any ideas on how to handle the missing
->>> AM35xx dtsi data? It can always go as a separate fix after this stuff
->>> gets merged which, ironically, is how that file was created in the first
->>> place.
 >>
->> I've pushed my branch. Tero can you take a look and let me know if you
->> see any problems?
->>
->> git://git.linaro.org/people/mike.turquette/linux.git clk-next-omap
-> 
-> Hey Mike,
-> 
-> Can't see any issues there, also gave it a quick boot test with the 
-> boards I have access to and seems to work fine.
-> 
-Here are the logs with commit 12d0a30a45e3a85463a6cb2a9e886192e3123892
-( i need an additional patch for legacy platform testing).
+>>   From driver/gpu/drm/i2c/tda998x_drv.c. The driver configures CTS_N
+>> register statically to a value that works only with 4 byte samples.
+>> According to my tests it is possible to support 3 and 2 byte samples too
+>> by changing the CTS_N register value, but I am not sure if the
+>> configuration can be changed on the fly. My data sheet of the nxp chip
+>> is very vague about the register definitions, but I suppose the register
+>> configures some clock divider on the chip. HDMI supports only upto 24bit
+>> audio and the data sheet states that any extraneous least significant
+>> bits are ignored.
+>
+> That sounds strange, CTS/N values only depend on audio sample rate and
+> TMDS/video clock, not on the audio format or the size of samples (HDMI
+> spec sec 7.2 - Audio Sample Clock Capture and Regeneration).
+>
+> Sure there isn't anything more going on (like the used HDMI sink being
+> more tolerant to wrong CTS/N with 4-byte samples, or more likely
+> something else I can't immediately think of)?
+>
 
- 1: am335x-evm: http://slexy.org/raw/s215zNjZFv
- 2:  am335x-sk: http://slexy.org/raw/s20uTrPG7V
- 3: am3517-evm: http://slexy.org/raw/s21XPhGMCt
-(we should be based on .13-rc4 to get am3517 baseline patches -> So
-due to the dropped am3517 patch, we stop booting here).
- 4:  am37x-evm: http://slexy.org/raw/s20W2nuCQa
- 5: am43xx-epos: http://slexy.org/raw/s2I2qc961B (no boot yet)
- 6:    beag-xm: http://slexy.org/raw/s210lX2EvT
- 7: bone-black: http://slexy.org/raw/s2NgHa78JC (still have the
-fixed-regulator bug in rc1 so, wont boot to shell at rc1)
- 8: am3517-crane: http://slexy.org/raw/s2r1Bt4Hk2 (need benoit'
-for-next to boot)
- 9:       dra7: http://slexy.org/raw/s21UWF0yYd (same fixed regulator
-issue)
-10:        ldp: http://slexy.org/raw/s2oWL6qt2t (dts for this is
-pending merge in Tony's next)
-11:    panda-es: http://slexy.org/raw/s20NEXs51M
-12:    sdp2430: http://slexy.org/raw/s21kyDYjfk (dts for this pending
-in Tony's next)
-13:    sdp3430: http://slexy.org/raw/s2EYHpcAW0
-14:    sdp4430: http://slexy.org/raw/s2QPK7cBUP
-15:       uevm: http://slexy.org/raw/s21mMF6kN3 (same regulator stuff
-kicks again)
+On theoretical level I am not really sure about anything, because have 
+not been able to get my hands on proper NXP TDA19988 documentation.
 
+However, while playing around with my Beaglebone-Black I have have found 
+out in practice that by changing CTS_N register's (page 0x11 reg 0x0c) 
+K_SEL bits (bit 2 to 0)[1] I can get 2, 3 and 4 byte samples to work 
+consistently by setting:
 
-am3517-evm is concerning for 14-rc1 boot, am43xx-epos looks concerning
-too(not sure if there are follow on fixes in later rcs that allow it
-to boot)
-- considering that both did work on tests that I did based on next[1],
-only thing i am concerned in am3517 patch dropped in clk-next-omap.
+K_SEL = 1 for SNDRV_PCM_FORMAT_S16_LE
+K_SEL = 2 for SNDRV_PCM_FORMAT_S24_3LE
+K_SEL = 3 for SNDRV_PCM_FORMAT_S32_LE
 
-- will be good to get this merged on clk-next and see what we can get
-results on linux-next tag.
+Because I do not really know what is going on, I did not want to suggest 
+any changes to the driver and just use the format that works with the 
+current driver version.
 
+The HDMI sinks I have been using are a Toshiba 22B2LF1G and Thomson 
+42E90NF32 televisions. About those I just know that they both behave the 
+same way.
 
-[1] http://marc.info/?l=devicetree&m=138930255330882&w=2
+Best regards,
+Jyri
 
--- 
-Regards,
-Nishanth Menon
+[1] The closest data sheet that has any description about the chip 
+registers I have found is this: 
+http://media.digikey.com/pdf/Data%20Sheets/NXP%20PDFs/TDA9983B.pdf
