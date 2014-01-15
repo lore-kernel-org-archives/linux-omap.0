@@ -1,82 +1,58 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH RFC v2 REPOST 3/8] ASoC: davinci-evm: HDMI
- audio support for TDA998x trough McASP I2S bus
-Date: Wed, 15 Jan 2014 18:28:14 +0200
-Message-ID: <52D6B71E.5000702@ti.com>
-References: <cover.1387535299.git.jsarha@ti.com>
- <d3c3f645d39338df0ee9686cb030255ce36a249d.1387535302.git.jsarha@ti.com>
- <20131231132555.GA31886@sirena.org.uk> <52D67099.1040904@ti.com>
- <52D691AD.3010206@iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
+Date: Wed, 15 Jan 2014 09:13:23 -0800
+Message-ID: <20140115171323.GA22739@atomide.com>
+References: <20140109231513.GA11648@saruman.home>
+ <52CFC2F1.706@ti.com>
+ <20140110161352.GG6665@saruman.home>
+ <52D02037.3090705@ti.com>
+ <20140110185110.GM31323@atomide.com>
+ <52D53084.1070105@ti.com>
+ <20140114203613.GA604@saruman.home>
+ <20140115020421.GA24195@saruman.home>
+ <20140115031632.4167.2698@quantum>
+ <20140115035011.4167.96678@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <52D691AD.3010206@iki.fi>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Anssi Hannula <anssi.hannula@iki.fi>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37470 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751965AbaAORNa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jan 2014 12:13:30 -0500
+Content-Disposition: inline
+In-Reply-To: <20140115035011.4167.96678@quantum>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: balbi@ti.com, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 01/15/2014 03:48 PM, Anssi Hannula wrote:
-> 15.01.2014 13:27, Jyri Sarha kirjoitti:
->> On 12/31/2013 03:25 PM, Mark Brown wrote:
->>> On Fri, Dec 20, 2013 at 12:39:38PM +0200, Jyri Sarha wrote:
->>>> support. The only supported sample format is SNDRV_PCM_FORMAT_S32_LE.
->>>> The 8 least significant bits are ignored.
->>>
->>> Where does this constraint come from?
->>>
->>
->>   From driver/gpu/drm/i2c/tda998x_drv.c. The driver configures CTS_N
->> register statically to a value that works only with 4 byte samples.
->> According to my tests it is possible to support 3 and 2 byte samples too
->> by changing the CTS_N register value, but I am not sure if the
->> configuration can be changed on the fly. My data sheet of the nxp chip
->> is very vague about the register definitions, but I suppose the register
->> configures some clock divider on the chip. HDMI supports only upto 24bit
->> audio and the data sheet states that any extraneous least significant
->> bits are ignored.
->
-> That sounds strange, CTS/N values only depend on audio sample rate and
-> TMDS/video clock, not on the audio format or the size of samples (HDMI
-> spec sec 7.2 - Audio Sample Clock Capture and Regeneration).
->
-> Sure there isn't anything more going on (like the used HDMI sink being
-> more tolerant to wrong CTS/N with 4-byte samples, or more likely
-> something else I can't immediately think of)?
->
+* Mike Turquette <mturquette@linaro.org> [140114 19:52]:
+> > 
+> > These 40 patches apply very cleanly on top of clk-next with 2
+> > exceptions:
+> > 
+> > 1) I did not apply "[PATCH 30/42] ARM: dts: AM35xx: use DT clock data"
+> > because I do not have arch/arm/boot/dts/am3517.dtsi in clk-next (based
+> > on 3.13-rc1).
+> > 
+> > 2) Minor merge conflict in arch/arm/boot/dts/omap3.dtsi which I think I
+> > resolved correctly but would like verification.
+> > 
+> > I'd prefer to simply merge these patches into clk-next, which is the
+> > most straightforward route. Any ideas on how to handle the missing
+> > AM35xx dtsi data? It can always go as a separate fix after this stuff
+> > gets merged which, ironically, is how that file was created in the first
+> > place.
 
-On theoretical level I am not really sure about anything, because have 
-not been able to get my hands on proper NXP TDA19988 documentation.
+You could do something like this to take advantage of fast forward and
+not have to do a merge back from mainline:
 
-However, while playing around with my Beaglebone-Black I have have found 
-out in practice that by changing CTS_N register's (page 0x11 reg 0x0c) 
-K_SEL bits (bit 2 to 0)[1] I can get 2, 3 and 4 byte samples to work 
-consistently by setting:
+$ git checkout -b am3517-clk v3.13-rc8 # or any other -rc with am3517.dtsi
+$ git merge clk-next-omap # this fast forwards clk-next-omap to the desired -rc
+$ git am am3517-clk-patch
+$ git checkout clk-next
+$ git merge clk-next-omap # this fast forwards clk-next to the desired -rc
 
-K_SEL = 1 for SNDRV_PCM_FORMAT_S16_LE
-K_SEL = 2 for SNDRV_PCM_FORMAT_S24_3LE
-K_SEL = 3 for SNDRV_PCM_FORMAT_S32_LE
+Regards,
 
-Because I do not really know what is going on, I did not want to suggest 
-any changes to the driver and just use the format that works with the 
-current driver version.
-
-The HDMI sinks I have been using are a Toshiba 22B2LF1G and Thomson 
-42E90NF32 televisions. About those I just know that they both behave the 
-same way.
-
-Best regards,
-Jyri
-
-[1] The closest data sheet that has any description about the chip 
-registers I have found is this: 
-http://media.digikey.com/pdf/Data%20Sheets/NXP%20PDFs/TDA9983B.pdf
+Tony 
