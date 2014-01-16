@@ -1,52 +1,86 @@
-From: Markus Pargmann <mpa@pengutronix.de>
-Subject: [PATCH v2] ARM: dts: tps65910 backup battery regulator
-Date: Thu, 16 Jan 2014 17:08:23 +0100
-Message-ID: <1389888503-32013-1-git-send-email-mpa@pengutronix.de>
-References: <1387539808-24910-3-git-send-email-mpa@pengutronix.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:50224 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751512AbaAPQJC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jan 2014 11:09:02 -0500
-In-Reply-To: <1387539808-24910-3-git-send-email-mpa@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: Multiple CCR definitions (was: Re: mmc: omap_hsmmc: use the
+ generic config for omap2plus devices)
+Date: Thu, 16 Jan 2014 12:39:58 -0600
+Message-ID: <CAGo_u6or57HEqRQjSjUXFpRNiFNbJyRYrsPX19Gf97J-sg4iHQ@mail.gmail.com>
+References: <CAMuHMdVLat9-EMnCX=usthZLrP2YhCCT7-a3nhSQmgLvn_ftBg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <CAMuHMdVLat9-EMnCX=usthZLrP2YhCCT7-a3nhSQmgLvn_ftBg@mail.gmail.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>, Tony Lindgren <tony@atomide.com>
+Cc: Amarinder Bindra <a-bindra@ti.com>, Chris Ball <cjb@laptop.org>, "uclinux-dist-devel@blackfin.uclinux.org" <uclinux-dist-devel@blackfin.uclinux.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-sh list <linux-sh@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
 
-This patch adds a devicetree node for the backup battery regulator.
++linux-omap as well.
 
-Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
----
-Hi,
-
-Mark Brown applied [1] the other part of the series which adds 'vbb' as
-regulator-compatible. I forgot to add you in Cc.
-
-Regards,
-
-Markus
-
-[1] http://thread.gmane.org/gmane.linux.ports.arm.kernel/289815/focus=290089
-
- arch/arm/boot/dts/tps65910.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/arch/arm/boot/dts/tps65910.dtsi b/arch/arm/boot/dts/tps65910.dtsi
-index 92693a8..b0ac665 100644
---- a/arch/arm/boot/dts/tps65910.dtsi
-+++ b/arch/arm/boot/dts/tps65910.dtsi
-@@ -82,5 +82,10 @@
- 			reg = <12>;
- 			regulator-compatible = "vmmc";
- 		};
-+
-+		vbb_reg: regulator@13 {
-+			reg = <13>;
-+			regulator-compatible = "vbb";
-+		};
- 	};
- };
--- 
-1.8.5.2
-
+On Thu, Jan 16, 2014 at 7:07 AM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> On Tue, Sep 10, 2013 at 11:05 PM, Linux Kernel Mailing List
+> <linux-kernel@vger.kernel.org> wrote:
+>>     mmc: omap_hsmmc: use the generic config for omap2plus devices
+>>
+>>     OMAP's hs_mmc driver is used for MMC controller operation on many
+>>     omap2plus SoCs (OMAP2430, OMAP3, 4, 5 and AM335x).
+>>
+>>     Considering that the device tree entries are already present for these,
+>>     allow the driver to be built using the config ARCH_OMAP2PLUS rather
+>>     than individually adding a config for each SoC to enable the
+>>     support.
+>>
+>>     Use COMPILE_TEST to enable the build for other platforms.
+>>
+>>     Signed-off-by: Amarinder Bindra <a-bindra@ti.com>
+>>     Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+>>     Cc: Nishanth Menon <nm@ti.com>
+>>     Acked-by: Felipe Balbi <balbi@ti.com>
+>>     Acked-by: Balaji T K <balajitk@ti.com>
+>>     Signed-off-by: Chris Ball <cjb@laptop.org>
+>> ---
+>>  drivers/mmc/host/Kconfig |    6 +++---
+>>  1 files changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+>> index 84102bc..b8ce939 100644
+>> --- a/drivers/mmc/host/Kconfig
+>> +++ b/drivers/mmc/host/Kconfig
+>> @@ -284,11 +284,11 @@ config MMC_OMAP
+>>
+>>  config MMC_OMAP_HS
+>>         tristate "TI OMAP High Speed Multimedia Card Interface support"
+>> -       depends on SOC_OMAP2430 || ARCH_OMAP3 || ARCH_OMAP4
+>> +       depends on ARCH_OMAP2PLUS || COMPILE_TEST
+>
+> sh-allmodconfig (http://kisskb.ellerman.id.au/kisskb/buildresult/10477672/):
+> include/linux/omap-dma.h:171:8: error: expected identifier before
+> numeric constant
+> make[4]: *** [drivers/mmc/host/omap_hsmmc.o] Error 1
+>
+> It fails because sh #defines "CCR", which is one of the enum values in
+> include/linux/omap-dma.h.
+>
+> I expect a similar failure on blackfin, which also has #define CCR.
+>
+> Possible solutions:
+>   1. Rename CCR in sh/bfin to e.g. SH_CCR resp. BF_CCR.
+>   2. Use "depends on ARCH_OMAP2PLUS || (COMPILE_TEST && ARM)
+>   3. Stop using include/linux/omap-dma.h, as it says:
+>
+>      *  Legacy OMAP DMA handling defines and functions
+>      *
+>      *  NOTE: Do not use these any longer.
+>      *
+>      *  Use the generic dmaengine functions as defined in
+>      *  include/linux/dmaengine.h.
+>
+> Gr{oetje,eeting}s,
+>
+>                         Geert
+>
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+>
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
