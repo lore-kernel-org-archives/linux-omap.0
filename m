@@ -1,358 +1,102 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V5 2/4] DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar
- IP
-Date: Thu, 16 Jan 2014 15:52:02 +0530
-Message-ID: <52D7B2CA.8080902@ti.com>
-References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com> <1386066445-28245-3-git-send-email-r.sricharan@ti.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 4/5] arm: omap3: twl: use the new lookup method with usb
+ phy
+Date: Thu, 16 Jan 2014 13:58:10 +0200
+Message-ID: <20140116115810.GC11732@xps8300>
+References: <1386601737-8735-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <1386601737-8735-5-git-send-email-heikki.krogerus@linux.intel.com>
+ <52AEDE43.8030005@ti.com>
+ <20131216144314.GB22944@xps8300>
+ <52CBFAC0.9040103@ti.com>
+ <20140114143849.GB21169@xps8300>
+ <52D6972B.2030704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1386066445-28245-3-git-send-email-r.sricharan@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, Kevin Hilman <khilman@linaro.org>Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52D6972B.2030704@ti.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Thomas,
+On Wed, Jan 15, 2014 at 07:41:55PM +0530, Kishon Vijay Abraham I wrote:
+> The point I'm trying to make is that we won't 'always' know the device names in
+> advance.
 
-On Tuesday 03 December 2013 03:57 PM, Sricharan R wrote:
-> Some socs have a large number of interrupts requests to service
-> the needs of its many peripherals and subsystems. All of the
-> interrupt lines from the subsystems are not needed at the same
-> time, so they have to be muxed to the irq-controller appropriately.
-> In such places a interrupt controllers are preceded by an CROSSBAR
-> that provides flexibility in muxing the device requests to the controller
-> inputs.
+In which cases do we not know the device names, and please note, cases
+where we would need to use the lookup? The normal cases we would use
+it are..
+
+1) A driver creating a child device, like dwc3 when it creates the
+xhci. There the parent just delivers the phys it has to the child, so
+both the device name and the phys are known.
+
+2) Platform code. Hopefully we can get rid of the platform code one
+day, but in any case, when we use it, we always know at least how many
+users a phy has, and if there is only a singe user, we can rely con_id
+to do the matching. Though I still don't really see much risk in using
+the controller device name also there. The lookup table should in any
+case be made in the place where the phy devices are created, so the
+phy name is definitely always known.
+
+3) Phys part of something like mfd. This is in practice the same as
+the platform code case. For example, with twl we always know there is
+only one user for the phy, which is musb. So we can just use musb's
+con_id if it's to scary to use "musb-hdrc.0".
+
+In any other case, you get the phy from DT, and there is no need to
+use the lookup when linking the phys and the users.
+
+> Btw how are you planning to differentiate between multiple controllers of the
+> same type with con_id?
+
+You don't rely on the con_id alone in those cases. You then use the
+device name. The con_id is just one parameter you can use to do the
+matching.
+
+> Maybe I'm missing the actual intention of this patch. Do you face problem if
+> the PHY's have to know about it's consumers in ACPI?
+
+<snip>
+
+> >> I would rather leave the way it is modelled now.
+> > 
+> > Do you mean, leave it in the platform code? Why? We would reduce the
+> > platform code by moving it to the mfd driver. Or did I misunderstood
+> > something?
 > 
-> This driver takes care a allocating a free irq and then configuring the
-> crossbar IP as a part of the mpu's irqchip callbacks. crossbar_init should
-> be called right before the irqchip_init, so that it is setup to handle the
-> irqchip callbacks.
-> 
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Linus Walleij <linus.walleij@linaro.org>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Grant Likely <grant.likely@linaro.org>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> Signed-off-by: Sricharan R <r.sricharan@ti.com>
-> Acked-by: Kumar Gala <galak@codeaurora.org> (for DT binding portion)
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Acked-by: Linus Walleij <linus.walleij@linaro.org>
-> ---
->  [v5] Used the function of_property_read_u32_index instead of raw reading
->       from DT as per comments from Mark Rutland <mark.rutland@arm.com>
-> 
->  .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
->  drivers/irqchip/Kconfig                            |    8 +
->  drivers/irqchip/Makefile                           |    1 +
->  drivers/irqchip/irq-crossbar.c                     |  208 ++++++++++++++++++++
->  include/linux/irqchip/irq-crossbar.h               |   11 ++
->  5 files changed, 255 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
->  create mode 100644 drivers/irqchip/irq-crossbar.c
->  create mode 100644 include/linux/irqchip/irq-crossbar.h
-> 
-> diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-> new file mode 100644
-> index 0000000..fb88585
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-> @@ -0,0 +1,27 @@
-> +Some socs have a large number of interrupts requests to service
-> +the needs of its many peripherals and subsystems. All of the
-> +interrupt lines from the subsystems are not needed at the same
-> +time, so they have to be muxed to the irq-controller appropriately.
-> +In such places a interrupt controllers are preceded by an CROSSBAR
-> +that provides flexibility in muxing the device requests to the controller
-> +inputs.
-> +
-> +Required properties:
-> +- compatible : Should be "ti,irq-crossbar"
-> +- reg: Base address and the size of the crossbar registers.
-> +- ti,max-irqs: Total number of irqs available at the interrupt controller.
-> +- ti,reg-size: Size of a individual register in bytes. Every individual
-> +	    register is assumed to be of same size. Valid sizes are 1, 2, 4.
-> +- ti,irqs-reserved: List of the reserved irq lines that are not muxed using
-> +		 crossbar. These interrupt lines are reserved in the soc,
-> +		 so crossbar bar driver should not consider them as free
-> +		 lines.
-> +
-> +Examples:
-> +		crossbar_mpu: @4a020000 {
-> +			compatible = "ti,irq-crossbar";
-> +			reg = <0x4a002a48 0x130>;
-> +			ti,max-irqs = <160>;
-> +			ti,reg-size = <2>;
-> +			ti,irqs-reserved = <0 1 2 3 5 6 131 132 139 140>;
-> +		};
-> diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-> index 3792a1a..2efcde6 100644
-> --- a/drivers/irqchip/Kconfig
-> +++ b/drivers/irqchip/Kconfig
-> @@ -61,3 +61,11 @@ config VERSATILE_FPGA_IRQ_NR
->         int
->         default 4
->         depends on VERSATILE_FPGA_IRQ
-> +
-> +config IRQ_CROSSBAR
-> +	bool
-> +	help
-> +	  Support for a CROSSBAR ip that preceeds the main interrupt controller.
-> +	  The primary irqchip invokes the crossbar's callback which inturn allocates
-> +	  a free irq and configures the IP. Thus the peripheral interrupts are
-> +	  routed to one of the free irqchip interrupt lines.
-> diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
-> index c60b901..2edead9 100644
-> --- a/drivers/irqchip/Makefile
-> +++ b/drivers/irqchip/Makefile
-> @@ -22,3 +22,4 @@ obj-$(CONFIG_RENESAS_IRQC)		+= irq-renesas-irqc.o
->  obj-$(CONFIG_VERSATILE_FPGA_IRQ)	+= irq-versatile-fpga.o
->  obj-$(CONFIG_ARCH_VT8500)		+= irq-vt8500.o
->  obj-$(CONFIG_TB10X_IRQC)		+= irq-tb10x.o
-> +obj-$(CONFIG_IRQ_CROSSBAR)		+= irq-crossbar.o
-> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-> new file mode 100644
-> index 0000000..ae605a3
-> --- /dev/null
-> +++ b/drivers/irqchip/irq-crossbar.c
-> @@ -0,0 +1,208 @@
-> +/*
-> + *  drivers/irqchip/irq-crossbar.c
-> + *
-> + *  Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
-> + *  Author: Sricharan R <r.sricharan@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + */
-> +#include <linux/err.h>
-> +#include <linux/io.h>
-> +#include <linux/of_address.h>
-> +#include <linux/of_irq.h>
-> +#include <linux/slab.h>
-> +#include <linux/irqchip/arm-gic.h>
-> +
-> +#define IRQ_FREE	-1
-> +#define GIC_IRQ_START	32
-> +
-> +/*
-> + * @int_max: maximum number of supported interrupts
-> + * @irq_map: array of interrupts to crossbar number mapping
-> + * @crossbar_base: crossbar base address
-> + * @register_offsets: offsets for each irq number
-> + */
-> +struct crossbar_device {
-> +	uint int_max;
-> +	uint *irq_map;
-> +	void __iomem *crossbar_base;
-> +	int *register_offsets;
-> +	void (*write) (int, int);
-> +};
-> +
-> +static struct crossbar_device *cb;
-> +
-> +static inline void crossbar_writel(int irq_no, int cb_no)
-> +{
-> +	writel(cb_no, cb->crossbar_base + cb->register_offsets[irq_no]);
-> +}
-> +
-> +static inline void crossbar_writew(int irq_no, int cb_no)
-> +{
-> +	writew(cb_no, cb->crossbar_base + cb->register_offsets[irq_no]);
-> +}
-> +
-> +static inline void crossbar_writeb(int irq_no, int cb_no)
-> +{
-> +	writeb(cb_no, cb->crossbar_base + cb->register_offsets[irq_no]);
-> +}
-> +
-> +static inline int allocate_free_irq(int cb_no)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < cb->int_max; i++) {
-> +		if (cb->irq_map[i] == IRQ_FREE) {
-> +			cb->irq_map[i] = cb_no;
-> +			return i;
-> +		}
-> +	}
-> +
-> +	return -ENODEV;
-> +}
-> +
-> +static int crossbar_domain_map(struct irq_domain *d, unsigned int irq,
-> +			       irq_hw_number_t hw)
-> +{
-> +	cb->write(hw - GIC_IRQ_START, cb->irq_map[hw - GIC_IRQ_START]);
-> +	return 0;
-> +}
-> +
-> +static void crossbar_domain_unmap(struct irq_domain *d, unsigned int irq)
-> +{
-> +	irq_hw_number_t hw = irq_get_irq_data(irq)->hwirq;
-> +
-> +	if (hw > GIC_IRQ_START)
-> +		cb->irq_map[hw - GIC_IRQ_START] = IRQ_FREE;
-> +}
-> +
-> +static int crossbar_domain_xlate(struct irq_domain *d,
-> +				 struct device_node *controller,
-> +				 const u32 *intspec, unsigned int intsize,
-> +				 unsigned long *out_hwirq,
-> +				 unsigned int *out_type)
-> +{
-> +	unsigned long ret;
-> +
-> +	ret = allocate_free_irq(intspec[1]);
-> +
-> +	if (IS_ERR_VALUE(ret))
-> +		return ret;
-> +
-> +	*out_hwirq = ret + GIC_IRQ_START;
-> +	return 0;
-> +}
-> +
-> +const struct irq_domain_ops routable_irq_domain_ops = {
-> +	.map = crossbar_domain_map,
-> +	.unmap = crossbar_domain_unmap,
-> +	.xlate = crossbar_domain_xlate
-> +};
-> +
-> +static int __init crossbar_of_init(struct device_node *node)
-> +{
-> +	int i, size, max, reserved = 0, entry;
-> +	const __be32 *irqsr;
-> +
-> +	cb = kzalloc(sizeof(struct cb_device *), GFP_KERNEL);
-> +
-> +	if (!cb)
-> +		return -ENOMEM;
-> +
-> +	cb->crossbar_base = of_iomap(node, 0);
-> +	if (!cb->crossbar_base)
-> +		goto err1;
-> +
-> +	of_property_read_u32(node, "ti,max-irqs", &max);
-> +	cb->irq_map = kzalloc(max * sizeof(int), GFP_KERNEL);
-> +	if (!cb->irq_map)
-> +		goto err2;
-> +
-> +	cb->int_max = max;
-> +
-> +	for (i = 0; i < max; i++)
-> +		cb->irq_map[i] = IRQ_FREE;
-> +
-> +	/* Get and mark reserved irqs */
-> +	irqsr = of_get_property(node, "ti,irqs-reserved", &size);
-> +	if (irqsr) {
-> +		size /= sizeof(__be32);
-> +
-> +		for (i = 0; i < size; i++) {
-> +			of_property_read_u32_index(node,
-> +						   "ti,irqs-reserved",
-> +						   i, &entry);
-> +			if (entry > max) {
-> +				pr_err("Invalid reserved entry\n");
-> +				goto err3;
-> +			}
-> +			cb->irq_map[entry] = 0;
-> +		}
-> +	}
-> +
-> +	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
-> +	if (!cb->register_offsets)
-> +		goto err3;
-> +
-> +	of_property_read_u32(node, "ti,reg-size", &size);
-> +
-> +	switch (size) {
-> +	case 1:
-> +		cb->write = crossbar_writeb;
-> +		break;
-> +	case 2:
-> +		cb->write = crossbar_writew;
-> +		break;
-> +	case 4:
-> +		cb->write = crossbar_writel;
-> +		break;
-> +	default:
-> +		pr_err("Invalid reg-size property\n");
-> +		goto err4;
-> +		break;
-> +	}
-> +
-> +	/*
-> +	 * Register offsets are not linear because of the
-> +	 * reserved irqs. so find and store the offsets once.
-> +	 */
-> +	for (i = 0; i < max; i++) {
-> +		if (!cb->irq_map[i])
-> +			continue;
-> +
-> +		cb->register_offsets[i] = reserved;
-> +		reserved += size;
-> +	}
-> +
-> +	register_routable_domain_ops(&routable_irq_domain_ops);
-> +	return 0;
-> +
-> +err4:
-> +	kfree(cb->register_offsets);
-> +err3:
-> +	kfree(cb->irq_map);
-> +err2:
-> +	iounmap(cb->crossbar_base);
-> +err1:
-> +	kfree(cb);
-> +	return -ENOMEM;
-> +}
-> +
-> +static const struct of_device_id crossbar_match[] __initconst = {
-> +	{ .compatible = "ti,irq-crossbar" },
-> +	{}
-> +};
-> +
-> +int irqcrossbar_init(void)
-> +{
-> +	struct device_node *np;
-> +	np = of_find_matching_node(NULL, crossbar_match);
-> +	if (!np)
-> +		return -ENODEV;
-> +
-> +	crossbar_of_init(np);
-> +	return 0;
-> +}
-> diff --git a/include/linux/irqchip/irq-crossbar.h b/include/linux/irqchip/irq-crossbar.h
-> new file mode 100644
-> index 0000000..e5537b8
-> --- /dev/null
-> +++ b/include/linux/irqchip/irq-crossbar.h
-> @@ -0,0 +1,11 @@
-> +/*
-> + *  drivers/irqchip/irq-crossbar.h
-> + *
-> + *  Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + */
-> +int irqcrossbar_init(void);
+> In this case, the lookup table will be used only for non-dt boot so don't see
+> much use in moving to mfd driver.
+> I meant if the new method is not solving any problem then I would prefer the
+> way it is modelled now where the PHY's know about it's consumers.
 
-I already have your reviewed-by tag for the first patch in this series.
+OK, so that's what you meant. Things like that init_data promotes use
+of platform data in the drivers, something that we really should get
+rid of. Is that not a problem to you?
 
-Kevin was pointing out that irqchip maintainer tag is needed for this patch as well
-to be merged. We are planning to take this series through arm-soc tree.
+The phy drivers simply should not need to care about the consumers.
+They should not need to care about anything DT, ACPI, platform
+specific if it's possible, and here there is nothing preventing it.
+Let me clarify..
 
-Can i please have your tag for this patch as well ?
+The plan is that ultimately the drivers (meaning all the drivers, not
+just phy) don't need to care about things like DT properties, ACPI
+properties or anything DT, ACPI, platform specific. We will have
+generic driver properties and capabilities and the upper layers will
+take care of delivering the correct values from the source at hand.
+The drivers can be made truly platform agnostic.
 
-Regards,
- Sricharan
+That is the goal, and we should make everything new by keeping that in
+mind. Many existing frameworks are being converted to that direction,
+like the gpio framework and DMA Engine API. The way you force the phy
+drivers the deliver the consumers is taking a step backwards.
+
+> Btw where does device gets created in ACPI boot?
+
+drivers/acpi/acpi_platform.c
+
+Thanks,
+
+-- 
+heikki
