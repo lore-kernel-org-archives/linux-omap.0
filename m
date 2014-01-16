@@ -1,128 +1,67 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
-Date: Thu, 16 Jan 2014 17:05:46 -0600
-Message-ID: <52D865CA.2060007@ti.com>
-References: <20140110161352.GG6665@saruman.home> <20140110185110.GM31323@atomide.com> <52D53084.1070105@ti.com> <20140114203613.GA604@saruman.home> <20140115020421.GA24195@saruman.home> <20140115031632.4167.2698@quantum> <20140115035011.4167.96678@quantum> <20140115171323.GA22739@atomide.com> <20140115192340.4167.87685@quantum> <20140115193547.GF7993@atomide.com> <20140116213954.4167.37071@quantum>
+From: Charles Steinkuehler <charles@steinkuehler.net>
+Subject: General-Purpose "hacker" device tree add-on
+Date: Thu, 16 Jan 2014 15:57:45 -0600
+Message-ID: <52D855D9.1090308@steinkuehler.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="Ffi3FR6dOhk86TxFv45wgIGlP9ESTcHCc"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58215 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750775AbaAPXGO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Jan 2014 18:06:14 -0500
-In-Reply-To: <20140116213954.4167.37071@quantum>
+Received: from dukecmfep03.coxmail.com ([68.99.120.38]:39318 "EHLO
+	dukecmfep03.coxmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751298AbaAQAUT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jan 2014 19:20:19 -0500
+Received: from dukecmimpo01.coxmail.com ([68.99.120.134])
+          by dukecmmtar04.coxmail.com
+          (InterMail vM.8.01.05.06 201-2260-151-112-20120208) with ESMTP
+          id <20140116222905.TMSH8353.dukecmmtar04.coxmail.com@dukecmimpo01.coxmail.com>
+          for <linux-omap@vger.kernel.org>; Thu, 16 Jan 2014 17:29:05 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, paul@pwsan.com, rnayak@ti.com, balbi@ti.com, Tero Kristo <t-kristo@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
-On 01/16/2014 03:39 PM, Mike Turquette wrote:
-> Quoting Tony Lindgren (2014-01-15 11:35:48)
->> * Mike Turquette <mturquette@linaro.org> [140115 11:25]:
->>> Quoting Tony Lindgren (2014-01-15 09:13:23)
->>>> * Mike Turquette <mturquette@linaro.org> [140114 19:52]:
->>>>>>
->>>>>> These 40 patches apply very cleanly on top of clk-next with 2
->>>>>> exceptions:
->>>>>>
->>>>>> 1) I did not apply "[PATCH 30/42] ARM: dts: AM35xx: use DT clock data"
->>>>>> because I do not have arch/arm/boot/dts/am3517.dtsi in clk-next (based
->>>>>> on 3.13-rc1).
->>>>>>
->>>>>> 2) Minor merge conflict in arch/arm/boot/dts/omap3.dtsi which I think I
->>>>>> resolved correctly but would like verification.
->>>>>>
->>>>>> I'd prefer to simply merge these patches into clk-next, which is the
->>>>>> most straightforward route. Any ideas on how to handle the missing
->>>>>> AM35xx dtsi data? It can always go as a separate fix after this stuff
->>>>>> gets merged which, ironically, is how that file was created in the first
->>>>>> place.
->>>>
->>>> You could do something like this to take advantage of fast forward and
->>>> not have to do a merge back from mainline:
->>>>
->>>> $ git checkout -b am3517-clk v3.13-rc8 # or any other -rc with am3517.dtsi
->>>> $ git merge clk-next-omap # this fast forwards clk-next-omap to the desired -rc
->>>> $ git am am3517-clk-patch
->>>> $ git checkout clk-next
->>>> $ git merge clk-next-omap # this fast forwards clk-next to the desired -rc
->>>
->>> That makes sense, but is there anything bad about doing that for a
->>> branch you intend to send as a pull request? I don't see how any of the
->>> commits get re-written or anything... I just wonder if there is some
->>> subtlety that I am not accounting for that makes this approach bad for
->>> sending to Linus.
->>
->> No there should not be any issues. That's the preferred way to keep
->> development branches updated and pullable in long term without any need
->> to rebase.
->>
->> Note that there will be only a merge commit if there is a conflict,
->> otherwise the fast forward will be transparent. So the trick to avoiding
->> rebasing and back merges is to apply patches against what they need in a
->> local branch, then after testing merge that local branch into the development
->> branch. Then for the upsteam pull request, you just need to make it against
->> the -rc you merged in.
->>
->> AFAIK what Linus does not like is doing a back merge to a development
->> branch from mainline, probably as it adds a pointless commit. Or rebasing
->> a branch as that way it won't stay pullable.
-> 
-> Hi all,
-> 
-> I took Tony's advice and fast-forwarded clk-next to -rc7 and applied
-> Tero's series. This includes the AM3517 bits now. I've pushed this
-> branch to clk-next-omap (force update) on my Linaro mirror. Can you do a
-> final sanity test before I merge this into clk-next?
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--Ffi3FR6dOhk86TxFv45wgIGlP9ESTcHCc
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-multi_v7_defconfig:
- 1: am335x-evm:  Boot FAIL: http://slexy.org/raw/s25jHnIctr
-mmc/regulator missing stuff
- 2:  am335x-sk:  Boot FAIL: http://slexy.org/raw/s2e9oDkTbD
-mmc/regulator missing stuff
- 3: am3517-evm:  Boot PASS: http://slexy.org/raw/s2KL4qBOM6
- 4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s20jAHD1DE
- 5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s21vXGDma7
- 6:       beag:  Boot PASS: http://slexy.org/raw/s25ZJgkM9q
- 7:       bone:  Boot PASS: http://slexy.org/raw/s21U0U2lVW
- 8:      crane: No Image built - Missing platform support?:
- 9:       dra7:  Boot FAIL: http://slexy.org/raw/s24d4sXtTh
-CONFIG_SOC_DRA7XX not present in multi_v7
-10:        ldp: No Image built - Missing platform support?:
-11:      panda:  Boot PASS: http://slexy.org/raw/s21KrJmEWB
-12:    sdp2430: No Image built - Missing platform support?:
-13:    sdp3430:  Boot PASS: http://slexy.org/raw/s21uwA3Swz
-14:    sdp4430:  Boot PASS: http://slexy.org/raw/s21GE8FOPC
-15:       uevm:  Boot FAIL: http://slexy.org/raw/s2E3NAziyb
-mmc/regulator missing stuff
-TOTAL = 15 boards, Booted Boards = 8, No Boot boards = 7
+I am working with the BeagleBone and it's AM335x CPU and would like to
+have a way to control most of the available I/O from user-space.  I am
+considering making a general-purpose device tree overlay (which could be
+simply added to the DT if the BeagleBone specific overlay manager is not
+present).
 
-omap2plus_defconfig:
- 1: am335x-evm:  Boot PASS: http://slexy.org/raw/s2euW1YeS0
- 2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s2nxn1i5Ea
- 3: am3517-evm:  Boot PASS: http://slexy.org/raw/s20knQQExn
- 4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s21L1hfSHF
- 5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s2EpSMvtnF
- 6:       beag:  Boot PASS: http://slexy.org/raw/s21Z8ytsMS
- 7:       bone:  Boot PASS: http://slexy.org/raw/s21ZpxRieJ
- 8:      crane: No Image built - Missing platform support?:
- 9:       dra7:  Boot PASS: http://slexy.org/raw/s2owXcv5DW
-10:        ldp: No Image built - Missing platform support?:
-11:      panda:  Boot PASS: http://slexy.org/raw/s215rSL4p0
-12:    sdp2430: No Image built - Missing platform support?:
-13:    sdp3430:  Boot PASS: http://slexy.org/raw/s21dxlFJn7
-14:    sdp4430:  Boot PASS: http://slexy.org/raw/s20WIfzRqi
-15:       uevm:  Boot PASS: http://slexy.org/raw/s20Ba9mBTv
-TOTAL = 15 boards, Booted Boards = 12, No Boot boards = 3
+The idea is to enable most of the useful peripherals like gpio, timers,
+serial ports, I2C, SPI, etc, and create pinmux entries to allow
+switching between the various functions on a per-pin bases at run-time.
 
-the 3 no image built boards have pending dts patches in for-next from
-Tony and Benoit. So, linux-next should eventually be good.
+This seems useful enough I figure someone might have done it already,
+but I couldn't find anything similar.  I thought I'd ask here to see if
+anyone knows of a project like this, or perhaps some reason why trying
+to do this would be a Bad Idea.
 
-As far as I see: the test results are equivalent to the branch that
-Tero posted.
+Alternately, if this seems useful, I would appreciate any advice or help
+with implementation, particularly naming conventions for the user-space
+controls and anything to watch out for when setting up some of the SoC
+peripherals.
 
-Thanks for the patience and effort :).
--- 
-Regards,
-Nishanth Menon
+--=20
+Charles Steinkuehler
+charles@steinkuehler.net
+
+
+--Ffi3FR6dOhk86TxFv45wgIGlP9ESTcHCc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (MingW32)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iEYEARECAAYFAlLYVd8ACgkQLywbqEHdNFwI5QCcColBuB5W0NCgUyBj0zZlZZ/H
+P1cAn2X6eLzHDs/jLotzrTt2lELGTxT/
+=Wc+M
+-----END PGP SIGNATURE-----
+
+--Ffi3FR6dOhk86TxFv45wgIGlP9ESTcHCc--
