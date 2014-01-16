@@ -1,154 +1,358 @@
-From: Alan Ott <alan@signal11.us>
-Subject: Deadlock in do_page_fault() on ARM (old kernel)
-Date: Wed, 15 Jan 2014 20:13:04 -0500
-Message-ID: <52D73220.3030108@signal11.us>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH V5 2/4] DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar
+ IP
+Date: Thu, 16 Jan 2014 15:52:02 +0530
+Message-ID: <52D7B2CA.8080902@ti.com>
+References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com> <1386066445-28245-3-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:49129 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750900AbaAPBNG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Jan 2014 20:13:06 -0500
-Received: from compute1.internal (compute1.nyi.mail.srv.osa [10.202.2.41])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id DE12921012
-	for <linux-omap@vger.kernel.org>; Wed, 15 Jan 2014 20:13:02 -0500 (EST)
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1386066445-28245-3-git-send-email-r.sricharan@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, Kevin Hilman <khilman@linaro.org>Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 
-Hello,
+Hi Thomas,
 
-I have a deadlock that I'm trying to understand. The symptom is multiple 
-tasks trying to acquire a read lock (down_read()) on mm->mmap_sem in 
-do_page_fault(). I'll be right up front and say that this is a fairly 
-old kernel (2.6.37 TI PSP kernel) on a fairly old processor DaVinci 6446.
+On Tuesday 03 December 2013 03:57 PM, Sricharan R wrote:
+> Some socs have a large number of interrupts requests to service
+> the needs of its many peripherals and subsystems. All of the
+> interrupt lines from the subsystems are not needed at the same
+> time, so they have to be muxed to the irq-controller appropriately.
+> In such places a interrupt controllers are preceded by an CROSSBAR
+> that provides flexibility in muxing the device requests to the controller
+> inputs.
+> 
+> This driver takes care a allocating a free irq and then configuring the
+> crossbar IP as a part of the mpu's irqchip callbacks. crossbar_init should
+> be called right before the irqchip_init, so that it is setup to handle the
+> irqchip callbacks.
+> 
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> Cc: Grant Likely <grant.likely@linaro.org>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+> Acked-by: Kumar Gala <galak@codeaurora.org> (for DT binding portion)
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked-by: Linus Walleij <linus.walleij@linaro.org>
+> ---
+>  [v5] Used the function of_property_read_u32_index instead of raw reading
+>       from DT as per comments from Mark Rutland <mark.rutland@arm.com>
+> 
+>  .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
+>  drivers/irqchip/Kconfig                            |    8 +
+>  drivers/irqchip/Makefile                           |    1 +
+>  drivers/irqchip/irq-crossbar.c                     |  208 ++++++++++++++++++++
+>  include/linux/irqchip/irq-crossbar.h               |   11 ++
+>  5 files changed, 255 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
+>  create mode 100644 drivers/irqchip/irq-crossbar.c
+>  create mode 100644 include/linux/irqchip/irq-crossbar.h
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> new file mode 100644
+> index 0000000..fb88585
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> @@ -0,0 +1,27 @@
+> +Some socs have a large number of interrupts requests to service
+> +the needs of its many peripherals and subsystems. All of the
+> +interrupt lines from the subsystems are not needed at the same
+> +time, so they have to be muxed to the irq-controller appropriately.
+> +In such places a interrupt controllers are preceded by an CROSSBAR
+> +that provides flexibility in muxing the device requests to the controller
+> +inputs.
+> +
+> +Required properties:
+> +- compatible : Should be "ti,irq-crossbar"
+> +- reg: Base address and the size of the crossbar registers.
+> +- ti,max-irqs: Total number of irqs available at the interrupt controller.
+> +- ti,reg-size: Size of a individual register in bytes. Every individual
+> +	    register is assumed to be of same size. Valid sizes are 1, 2, 4.
+> +- ti,irqs-reserved: List of the reserved irq lines that are not muxed using
+> +		 crossbar. These interrupt lines are reserved in the soc,
+> +		 so crossbar bar driver should not consider them as free
+> +		 lines.
+> +
+> +Examples:
+> +		crossbar_mpu: @4a020000 {
+> +			compatible = "ti,irq-crossbar";
+> +			reg = <0x4a002a48 0x130>;
+> +			ti,max-irqs = <160>;
+> +			ti,reg-size = <2>;
+> +			ti,irqs-reserved = <0 1 2 3 5 6 131 132 139 140>;
+> +		};
+> diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
+> index 3792a1a..2efcde6 100644
+> --- a/drivers/irqchip/Kconfig
+> +++ b/drivers/irqchip/Kconfig
+> @@ -61,3 +61,11 @@ config VERSATILE_FPGA_IRQ_NR
+>         int
+>         default 4
+>         depends on VERSATILE_FPGA_IRQ
+> +
+> +config IRQ_CROSSBAR
+> +	bool
+> +	help
+> +	  Support for a CROSSBAR ip that preceeds the main interrupt controller.
+> +	  The primary irqchip invokes the crossbar's callback which inturn allocates
+> +	  a free irq and configures the IP. Thus the peripheral interrupts are
+> +	  routed to one of the free irqchip interrupt lines.
+> diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
+> index c60b901..2edead9 100644
+> --- a/drivers/irqchip/Makefile
+> +++ b/drivers/irqchip/Makefile
+> @@ -22,3 +22,4 @@ obj-$(CONFIG_RENESAS_IRQC)		+= irq-renesas-irqc.o
+>  obj-$(CONFIG_VERSATILE_FPGA_IRQ)	+= irq-versatile-fpga.o
+>  obj-$(CONFIG_ARCH_VT8500)		+= irq-vt8500.o
+>  obj-$(CONFIG_TB10X_IRQC)		+= irq-tb10x.o
+> +obj-$(CONFIG_IRQ_CROSSBAR)		+= irq-crossbar.o
+> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+> new file mode 100644
+> index 0000000..ae605a3
+> --- /dev/null
+> +++ b/drivers/irqchip/irq-crossbar.c
+> @@ -0,0 +1,208 @@
+> +/*
+> + *  drivers/irqchip/irq-crossbar.c
+> + *
+> + *  Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
+> + *  Author: Sricharan R <r.sricharan@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + */
+> +#include <linux/err.h>
+> +#include <linux/io.h>
+> +#include <linux/of_address.h>
+> +#include <linux/of_irq.h>
+> +#include <linux/slab.h>
+> +#include <linux/irqchip/arm-gic.h>
+> +
+> +#define IRQ_FREE	-1
+> +#define GIC_IRQ_START	32
+> +
+> +/*
+> + * @int_max: maximum number of supported interrupts
+> + * @irq_map: array of interrupts to crossbar number mapping
+> + * @crossbar_base: crossbar base address
+> + * @register_offsets: offsets for each irq number
+> + */
+> +struct crossbar_device {
+> +	uint int_max;
+> +	uint *irq_map;
+> +	void __iomem *crossbar_base;
+> +	int *register_offsets;
+> +	void (*write) (int, int);
+> +};
+> +
+> +static struct crossbar_device *cb;
+> +
+> +static inline void crossbar_writel(int irq_no, int cb_no)
+> +{
+> +	writel(cb_no, cb->crossbar_base + cb->register_offsets[irq_no]);
+> +}
+> +
+> +static inline void crossbar_writew(int irq_no, int cb_no)
+> +{
+> +	writew(cb_no, cb->crossbar_base + cb->register_offsets[irq_no]);
+> +}
+> +
+> +static inline void crossbar_writeb(int irq_no, int cb_no)
+> +{
+> +	writeb(cb_no, cb->crossbar_base + cb->register_offsets[irq_no]);
+> +}
+> +
+> +static inline int allocate_free_irq(int cb_no)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < cb->int_max; i++) {
+> +		if (cb->irq_map[i] == IRQ_FREE) {
+> +			cb->irq_map[i] = cb_no;
+> +			return i;
+> +		}
+> +	}
+> +
+> +	return -ENODEV;
+> +}
+> +
+> +static int crossbar_domain_map(struct irq_domain *d, unsigned int irq,
+> +			       irq_hw_number_t hw)
+> +{
+> +	cb->write(hw - GIC_IRQ_START, cb->irq_map[hw - GIC_IRQ_START]);
+> +	return 0;
+> +}
+> +
+> +static void crossbar_domain_unmap(struct irq_domain *d, unsigned int irq)
+> +{
+> +	irq_hw_number_t hw = irq_get_irq_data(irq)->hwirq;
+> +
+> +	if (hw > GIC_IRQ_START)
+> +		cb->irq_map[hw - GIC_IRQ_START] = IRQ_FREE;
+> +}
+> +
+> +static int crossbar_domain_xlate(struct irq_domain *d,
+> +				 struct device_node *controller,
+> +				 const u32 *intspec, unsigned int intsize,
+> +				 unsigned long *out_hwirq,
+> +				 unsigned int *out_type)
+> +{
+> +	unsigned long ret;
+> +
+> +	ret = allocate_free_irq(intspec[1]);
+> +
+> +	if (IS_ERR_VALUE(ret))
+> +		return ret;
+> +
+> +	*out_hwirq = ret + GIC_IRQ_START;
+> +	return 0;
+> +}
+> +
+> +const struct irq_domain_ops routable_irq_domain_ops = {
+> +	.map = crossbar_domain_map,
+> +	.unmap = crossbar_domain_unmap,
+> +	.xlate = crossbar_domain_xlate
+> +};
+> +
+> +static int __init crossbar_of_init(struct device_node *node)
+> +{
+> +	int i, size, max, reserved = 0, entry;
+> +	const __be32 *irqsr;
+> +
+> +	cb = kzalloc(sizeof(struct cb_device *), GFP_KERNEL);
+> +
+> +	if (!cb)
+> +		return -ENOMEM;
+> +
+> +	cb->crossbar_base = of_iomap(node, 0);
+> +	if (!cb->crossbar_base)
+> +		goto err1;
+> +
+> +	of_property_read_u32(node, "ti,max-irqs", &max);
+> +	cb->irq_map = kzalloc(max * sizeof(int), GFP_KERNEL);
+> +	if (!cb->irq_map)
+> +		goto err2;
+> +
+> +	cb->int_max = max;
+> +
+> +	for (i = 0; i < max; i++)
+> +		cb->irq_map[i] = IRQ_FREE;
+> +
+> +	/* Get and mark reserved irqs */
+> +	irqsr = of_get_property(node, "ti,irqs-reserved", &size);
+> +	if (irqsr) {
+> +		size /= sizeof(__be32);
+> +
+> +		for (i = 0; i < size; i++) {
+> +			of_property_read_u32_index(node,
+> +						   "ti,irqs-reserved",
+> +						   i, &entry);
+> +			if (entry > max) {
+> +				pr_err("Invalid reserved entry\n");
+> +				goto err3;
+> +			}
+> +			cb->irq_map[entry] = 0;
+> +		}
+> +	}
+> +
+> +	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
+> +	if (!cb->register_offsets)
+> +		goto err3;
+> +
+> +	of_property_read_u32(node, "ti,reg-size", &size);
+> +
+> +	switch (size) {
+> +	case 1:
+> +		cb->write = crossbar_writeb;
+> +		break;
+> +	case 2:
+> +		cb->write = crossbar_writew;
+> +		break;
+> +	case 4:
+> +		cb->write = crossbar_writel;
+> +		break;
+> +	default:
+> +		pr_err("Invalid reg-size property\n");
+> +		goto err4;
+> +		break;
+> +	}
+> +
+> +	/*
+> +	 * Register offsets are not linear because of the
+> +	 * reserved irqs. so find and store the offsets once.
+> +	 */
+> +	for (i = 0; i < max; i++) {
+> +		if (!cb->irq_map[i])
+> +			continue;
+> +
+> +		cb->register_offsets[i] = reserved;
+> +		reserved += size;
+> +	}
+> +
+> +	register_routable_domain_ops(&routable_irq_domain_ops);
+> +	return 0;
+> +
+> +err4:
+> +	kfree(cb->register_offsets);
+> +err3:
+> +	kfree(cb->irq_map);
+> +err2:
+> +	iounmap(cb->crossbar_base);
+> +err1:
+> +	kfree(cb);
+> +	return -ENOMEM;
+> +}
+> +
+> +static const struct of_device_id crossbar_match[] __initconst = {
+> +	{ .compatible = "ti,irq-crossbar" },
+> +	{}
+> +};
+> +
+> +int irqcrossbar_init(void)
+> +{
+> +	struct device_node *np;
+> +	np = of_find_matching_node(NULL, crossbar_match);
+> +	if (!np)
+> +		return -ENODEV;
+> +
+> +	crossbar_of_init(np);
+> +	return 0;
+> +}
+> diff --git a/include/linux/irqchip/irq-crossbar.h b/include/linux/irqchip/irq-crossbar.h
+> new file mode 100644
+> index 0000000..e5537b8
+> --- /dev/null
+> +++ b/include/linux/irqchip/irq-crossbar.h
+> @@ -0,0 +1,11 @@
+> +/*
+> + *  drivers/irqchip/irq-crossbar.h
+> + *
+> + *  Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + */
+> +int irqcrossbar_init(void);
 
-At the time of the deadlock, sysrq's show-all-tasks shows the following 
-for three of the tasks which are deadlocked (there are more, but I just 
-picked the interesting ones; the full output is at [1]):
+I already have your reviewed-by tag for the first patch in this series.
 
-ui            D c0ea8208     0  1405   1293 0x00000000
-[<c0ea8208>] (schedule+0x33c/0x3c4) from [<c0eaa3b4>] 
-(__down_read+0xbc/0xd4)
-[<c0eaa3b4>] (__down_read+0xbc/0xd4) from [<c0c0b378>] 
-(do_page_fault+0x94/0x248)
-[<c0c0b378>] (do_page_fault+0x94/0x248) from [<c0c052e0>] 
-(do_DataAbort+0x34/0x94)
-[<c0c052e0>] (do_DataAbort+0x34/0x94) from [<c0c05b0c>] 
-(__dabt_svc+0x4c/0x60)
-Exception stack(0xc048dce8 to 0xc048dd30)
-dce0:                   400e9a94 c048ddb0 ffffffec 00000000 c048c000 
-c048dda4
-dd00: 400e9a94 00000000 ffffff92 c048c000 00000000 00000001 00000014 
-c048dd34
-dd20: 00000000 c0d1f68c 00000013 ffffffff
-[<c0c05b0c>] (__dabt_svc+0x4c/0x60) from [<c0d1f68c>] 
-(__copy_to_user_std+0xcc/0x3a8)
+Kevin was pointing out that irqchip maintainer tag is needed for this patch as well
+to be merged. We are planning to take this series through arm-soc tree.
 
-ui            D c0ea8208     0  1406   1293 0x00000000
-[<c0ea8208>] (schedule+0x33c/0x3c4) from [<c0eaa3b4>] 
-(__down_read+0xbc/0xd4)
-[<c0eaa3b4>] (__down_read+0xbc/0xd4) from [<c0c0b378>] 
-(do_page_fault+0x94/0x248)
-[<c0c0b378>] (do_page_fault+0x94/0x248) from [<c0c052e0>] 
-(do_DataAbort+0x34/0x94)
-[<c0c052e0>] (do_DataAbort+0x34/0x94) from [<c0c05f0c>] 
-(ret_from_exception+0x0/0x10)
-Exception stack(0xc048ffb0 to 0xc048fff8)
-ffa0:                                     00000060 0000000a 000000a8 
-0010d000
-ffc0: 00c23d80 00c23de8 405af06c 00000000 405af03c 405af074 00000050 
-000001ff
-ffe0: 405ae000 40185748 404f5c4c 404f393c 80000010 ffffffff
+Can i please have your tag for this patch as well ?
 
-ui            D c0ea8208     0  1411   1293 0x00000000
-[<c0ea8208>] (schedule+0x33c/0x3c4) from [<c0eaa3b4>] 
-(__down_read+0xbc/0xd4)
-[<c0eaa3b4>] (__down_read+0xbc/0xd4) from [<c0c0b378>] 
-(do_page_fault+0x94/0x248)
-[<c0c0b378>] (do_page_fault+0x94/0x248) from [<c0c052e0>] 
-(do_DataAbort+0x34/0x94)
-[<c0c052e0>] (do_DataAbort+0x34/0x94) from [<c0c05f0c>] 
-(ret_from_exception+0x0/0x10)
-Exception stack(0xc053bfb0 to 0xc053bff8)
-bfa0:                                     00000000 00000001 00ba3610 
-00000000
-bfc0: 00000000 00ba3610 00bb6020 00ba3610 40074000 00b91024 415e4930 
-00000583
-bfe0: 00b611a0 415e38e0 4005f3e4 ffff0fc0 60000010 ffffffff
-
----- [snip] ----
-
-Showing all locks held in the system:
-1 lock held by getty/1294:
-  #0:  (&tty->atomic_read_lock){+.+...}, at: [<c0d45bf0>] 
-n_tty_read+0x21c/0x670
-1 lock held by ui/1405:
-  #0:  (&mm->mmap_sem){++++++}, at: [<c0c0b378>] do_page_fault+0x94/0x248
-1 lock held by ui/1406:
-  #0:  (&mm->mmap_sem){++++++}, at: [<c0c0b378>] do_page_fault+0x94/0x248
-1 lock held by ui/1408:
-  #0:  (&mm->mmap_sem){++++++}, at: [<c0c0b378>] do_page_fault+0x94/0x248
-1 lock held by ui/1409:
-  #0:  (&mm->mmap_sem){++++++}, at: [<c0c0b378>] do_page_fault+0x94/0x248
-1 lock held by ui/1411:
-  #0:  (&mm->mmap_sem){++++++}, at: [<c0c0b378>] do_page_fault+0x94/0x248
-1 lock held by ui/1416:
-  #0:  (&mm->mmap_sem){++++++}, at: [<c0c6e604>] sys_mmap_pgoff+0x70/0xc0
-1 lock held by ui/1418:
-  #0:  (&mm->mmap_sem){++++++}, at: [<c0c0b378>] do_page_fault+0x94/0x248
-1 lock held by ui/1420:
-  #0:  (&mm->mmap_sem){++++++}, at: [<c0c6e604>] sys_mmap_pgoff+0x70/0xc0
-1 lock held by ui/1434:
-  #0:  (&tty->atomic_read_lock){+.+...}, at: [<c0d45bf0>] 
-n_tty_read+0x21c/0x670
-
-
-Note that above, do_page_fault() takes out a read lock (down_read()) and 
-sys_mmap_pgoff() takes out a write lock (down_write()).
-
-I've searched for this kind of problem and found two patches which seem 
-to be related to this issue[2]. I have applied both with no better results.
-
-So my questions are:
-1. Why don't I see a full backtrace beyond the exception stack? It's the 
-same when dump_stack() is called manually.
-2. __copy_to_user_memcpy() takes a read lock (down_read()) on 
-mm->mmap_sem. While that lock is held, __copy_to_user_memcpy() can 
-generate a page fault, causing do_page_fault() to get called, which will 
-also try to get a read lock (down_read()) on mm->mmap_sem. Multiple read 
-locks can be taken on an rw_semaphore, but deadlock will occur if 
-another thread tries to get a write lock (down_write()) in between. For 
-example:
-     Task 1:         Task 2:
-     down_read(sem)
-                     down_write(sem)    <-- Goes to sleep
-     down_read(sem)                     <-- Goes to sleep
-
-There is a thread from 2005[3] which seems to discuss the same concept 
-of recursive rw_semaphores, but for futexes.
-
-Other comments:
-1. My analysis of this probably wrong. Otherwise it seems many others 
-would have the same problem, and they don't seem to. I'm hoping this 
-email will help to correct my understanding.
-2. I looked through the git logs for recent (since 2.6.37 time frame) 
-and nothing else jumped out at me as being an obvious fix for this 
-situation.
-
-Thanks for any insight you can give,
-
-Alan.
-
-[1] http://www.signal11.us/~alan/show-all-tasks-deadlock.txt
-
-[2] Some websites/bugtrackers mention this commit with a similar issue, 
-but I'm not entirely sure how it's related:
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=8878a539ff19a43cf3729e7562cd528f490246ae
-
-This one seems obviously related, but has no effect on my system:
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=435a7ef52db7d86e67a009b36cac1457f8972391
-
-[3] http://thread.gmane.org/gmane.linux.kernel/280900
+Regards,
+ Sricharan
