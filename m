@@ -1,56 +1,37 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH 06/18] ARM: dts: omap3-overo: Enable MMC2
-Date: Fri, 17 Jan 2014 14:22:27 +0100
-Message-ID: <52D92E93.8050804@epfl.ch>
-References: <1389286092-27087-1-git-send-email-florian.vaussard@epfl.ch>	<1389286092-27087-7-git-send-email-florian.vaussard@epfl.ch> <CABxcv=nO1ZtC7wjVSq+Qw9AmFGahpDUSjOZOO1+tYHhqo9P0Pw@mail.gmail.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Deadlock in do_page_fault() on ARM (old kernel)
+Date: Fri, 17 Jan 2014 13:46:46 +0000
+Message-ID: <20140117134646.GL27282@n2100.arm.linux.org.uk>
+References: <52D73220.3030108@signal11.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:57609 "EHLO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751401AbaAQNWc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Jan 2014 08:22:32 -0500
-In-Reply-To: <CABxcv=nO1ZtC7wjVSq+Qw9AmFGahpDUSjOZOO1+tYHhqo9P0Pw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52D73220.3030108@signal11.us>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Ott <alan@signal11.us>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hello Javier
+On Wed, Jan 15, 2014 at 08:13:04PM -0500, Alan Ott wrote:
+> So my questions are:
+> 1. Why don't I see a full backtrace beyond the exception stack? It's the  
+> same when dump_stack() is called manually.
 
-On 01/09/2014 09:43 PM, Javier Martinez Canillas wrote:
-> [adding Enric Balletbo to cc]
-> 
-> Hello Florian,
-> 
-> On Thu, Jan 9, 2014 at 1:48 PM, Florian Vaussard
-> <florian.vaussard@epfl.ch> wrote:
->> MMC2 is used by the on-board WiFi module populated on some boards
->> (based on Marvell Libertas 8688 SDIO).
->>
->> Note: currently WiFi only works on cold boot, as the module is not
->> properly reset (missing binding for the GPIO reset).
->>
-> 
-> Have you looked at commit 0e9fd777 ("ARM: dts: omap3-igep: Add support
-> for LBEE1USJYC WiFi connected to SDIO") ?
-> 
-> If I remember correctly the LBEE1USJYC Wifi/BT combo module is
-> basically a Marvell Libertas 8688 Wlan and Enric got soft reset
-> working too by adding a GPIO property to the regulator for the reset
-> GPIO.
-> 
-> Hope it helps,
+No idea - it looks like you're not using frame pointers, but are using
+the unwinder.  Full backtraces can always be created with frame pointers,
+it's just that unwinding seems unreliable.
 
-Thank you, I got it working. It is a bit messy, as I have 3 GPIOs
-(poweron, wifi-reset and bt-reset). As a regulator can control only one
-GPIO, I had to define 3 regulators, and assigning them to the vmmc,
-vqmmc, and vmmc_aux. I hope that a better solution will pop-up in this
-thread [1]. It is a pity that the previous version of the GPIO-reset
-controller was not merged.
+I think we do need to see the full backtrace here - from looking at the
+full state dump, I don't see any sign of the mmap_sem being held except
+by an attempt to process a fault, and two threads trying to do a
+sys_mmap_pgoff().
 
-Florian
+My suspicion therefore is that some other thread must have died while
+holding the mmap_sem, so there's probably a kernel oops earlier...
+that's my best guess at the moment without seeing the full backtrace.
 
-[1] http://thread.gmane.org/gmane.linux.ports.arm.kernel/294907
+-- 
+FTTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
+in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
+Estimate before purchase was "up to 13.2Mbit".
