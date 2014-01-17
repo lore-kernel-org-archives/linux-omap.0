@@ -1,37 +1,38 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Deadlock in do_page_fault() on ARM (old kernel)
-Date: Fri, 17 Jan 2014 13:46:46 +0000
-Message-ID: <20140117134646.GL27282@n2100.arm.linux.org.uk>
-References: <52D73220.3030108@signal11.us>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH RFC 00/26] Migrate more OMAP DMA code to DMA engine
+Date: Fri, 17 Jan 2014 19:53:26 +0530
+Message-ID: <52D93CDE.4010101@ti.com>
+References: <20140102150621.GJ16456@n2100.arm.linux.org.uk> <52CFE494.4010702@ti.com> <20140113141713.GC27282@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52D73220.3030108@signal11.us>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Ott <alan@signal11.us>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58583 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750971AbaAQOYC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Jan 2014 09:24:02 -0500
+In-Reply-To: <20140113141713.GC27282@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, sricharan.az@gmail.com
 
-On Wed, Jan 15, 2014 at 08:13:04PM -0500, Alan Ott wrote:
-> So my questions are:
-> 1. Why don't I see a full backtrace beyond the exception stack? It's the  
-> same when dump_stack() is called manually.
+On Monday 13 January 2014 07:47 PM, Russell King - ARM Linux wrote:
+> On Fri, Jan 10, 2014 at 05:46:20PM +0530, Sricharan R wrote:
+>> I tested this series on DRA7 with mmc peripheral dma and it looked
+>> fine. Some how dmaengine test cases were not fine. But that may not
+>> have anything to do with this series. I will check more on that and
+>> will come back with that results as well.
+> 
+> Not fine in what sense?
+> 
+Sorry for delayed response.
 
-No idea - it looks like you're not using frame pointers, but are using
-the unwinder.  Full backtraces can always be created with frame pointers,
-it's just that unwinding seems unreliable.
+So in the case of dmaengine test case, it looks for channels
+with DMA_MEMCPY, DMA_XOR, DMA_PQ capabilities. But the omap-dma
+ device is not registered with MEMCPY capabilities, hence the
+testcase fails as no channels are available.
 
-I think we do need to see the full backtrace here - from looking at the
-full state dump, I don't see any sign of the mmap_sem being held except
-by an attempt to process a fault, and two threads trying to do a
-sys_mmap_pgoff().
+Regards,
+ Sricharan
 
-My suspicion therefore is that some other thread must have died while
-holding the mmap_sem, so there's probably a kernel oops earlier...
-that's my best guess at the moment without seeing the full backtrace.
-
--- 
-FTTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
-in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
-Estimate before purchase was "up to 13.2Mbit".
