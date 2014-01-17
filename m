@@ -1,79 +1,82 @@
-From: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>
-Subject: Re: [PATCHv2 0/5] wl1251 device tree support
-Date: Fri, 17 Jan 2014 02:45:15 +0100
-Message-ID: <20140117014514.GA604@earth.universe>
-References: <1382890469-25286-1-git-send-email-sre@debian.org>
- <1386289336-26704-1-git-send-email-sre@debian.org>
- <20140106225709.GA23070@earth.universe>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v5 0/2] DMM DT adaptation
+Date: Fri, 17 Jan 2014 13:02:36 +0530
+Message-ID: <52D8DC94.6010307@ti.com>
+References: <1379063679-4869-1-git-send-email-archit@ti.com> <1387274542-29645-1-git-send-email-archit@ti.com> <52C6AE73.9020303@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="AhhlLboLdkugWU4S"
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140106225709.GA23070-SfvFxonMDyemK9LvCR3Hrw@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>
-Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <52C6AE73.9020303@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com, mark.rutland@arm.com
+Cc: robdclark@gmail.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Mark,
 
---AhhlLboLdkugWU4S
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Friday 03 January 2014 06:04 PM, Archit Taneja wrote:
+> Hullo,
+>
+> On Tuesday 17 December 2013 03:32 PM, Archit Taneja wrote:
+>> The DMM/Tiler block can used by omapdrm to allocate frame buffers.
+>> With the
+>> removal of address and irq data from the omap4 hwmods, the probe of
+>> DMM driver
+>> fails and omapdrm isn't able to utilize the DMM hardware.
+>>
+>> Add DMM bindings for OMAP4 and OMAP5 and DRA7x.
+>
+> Can this be pulled for 3.14? I've incorporated comments from Mark and
+> other folks.
 
-On Mon, Jan 06, 2014 at 11:57:09PM +0100, Sebastian Reichel wrote:
-> Hi John,
->=20
-> > The following patchset adds device tree support to
-> > the spi variant of the wl1251 driver.
-> >
-> > Luciano Coelho (1):
-> >   wl1251: split wl251 platform data to a separate structure
-> >=20
-> > Sebastian Reichel (4):
-> >   wl1251: move power GPIO handling into the driver
-> >   wl1251: spi: add vio regulator support
-> >   wl1251: spi: add device tree support
-> >   Documentation: dt: wireless: Add wl1251
->=20
-> What's the status of this patchset? Tony prepared an immutable
-> branch for patches 1+2 [0]. I think the other patches are also ok
-> (at least there were no more complains from the DT binding
-> maintainers). It would be nice to have wl1251 DT support in 3.14.
->=20
-> [0] http://www.spinics.net/lists/linux-omap/msg101165.html
->=20
-> -- Sebastian
+Can you please ack the first patch in the series?
 
-ping? I can't see it on wireless-next.
+The second one is going via a pull request to the drm maintainer:
 
--- Sebastian
+https://git.kernel.org/cgit/linux/kernel/git/tomba/linux.git/commit/?id=3d232346c5656b300028b6c920ddc10b229b5264
 
---AhhlLboLdkugWU4S
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Thanks,
+Archit
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+>
+> Thanks,
+> Archit
+>
+>>
+>> Changes in v5:
+>> - Use of_match_ptr() in the dmm driver.
+>> - Add DT node for DRA7x as dra7.dtsi is now in mainline.
+>>
+>> Changes in v4:
+>> - Clean up documentation further.
+>>
+>> Changes in v3:
+>> - Fix mistakes in documentation and remove aliases for dmm nodes.
+>>
+>> Changes in v2:
+>> - No changes, split out into a separate series containing only DT
+>> related parts.
+>>
+>>
+>> Archit Taneja (2):
+>>    arm: dts: omap4+: Add DMM bindings
+>>    drm: omap: Enable DT support for DMM
+>>
+>>   Documentation/devicetree/bindings/arm/omap/dmm.txt | 22
+>> ++++++++++++++++++++++
+>>   arch/arm/boot/dts/dra7.dtsi                        |  7 +++++++
+>>   arch/arm/boot/dts/omap4.dtsi                       |  7 +++++++
+>>   arch/arm/boot/dts/omap5.dtsi                       |  7 +++++++
+>>   drivers/gpu/drm/omapdrm/omap_dmm_tiler.c           |  7 +++++++
+>>   5 files changed, 50 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/arm/omap/dmm.txt
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
 
-iQIcBAEBCAAGBQJS2IsqAAoJENju1/PIO/qabYMP/1n34ptjeFX78Jc4hL8iqoij
-HnYCknz4PL3ztSI49QpFSnEoPLBeQWFJoNhsKnG/yc4m7kdQJagyO7GmRIpzjHvi
-x8EtvQwv/D9xJiZ675xrd5//BvR09UtrnUo9EOb67zxXgoY9YdkCUr9Skz83nUoK
-dkaVIbP8CLcULdYeGOgTTaAsTWFXbJc4OcYE+HhmK7WJdRQaJqBrZw8cNu7RFUIA
-Ye4aMxoYX4g42kPGjwWmi8mep7nKoT0sUAgkNGMdVO2soFZyA0f/y4F9BMOljvTb
-LAHUQu7g+lDs8fnaaRMPEVVEf9dIKPH/a0+aconMO2YCSM4vW4wf5eWMMwGYY4KP
-+tp6hHGrxFFN4oJ4rN+xdOpogNEqvDWD6jQprZGkONZ7cdNXCs1MhcgDEOMkCWCY
-NKK1UGVQNkw1h7+PiICmgv1Wugj0iLXGtgOHJT2g5gMgeFJEUoC33twZk9OZxol9
-AwKQM51ifkdRlW5mpo4ElPI3qABrNtOfMi+ycDHjgpZjREc5pnlIm1vmQYMofLDb
-465eMVAL/K7UOsRf0LJztCZ/L0Uel85V/zUqvsYIrHo9WBzHxGlcPr9YE9pZX/Fw
-OnkAn0evsNC5I7RBz8QSaFoIvHjd+ErtqGo7wNqWzr2iWQOVAM5ZngEHN84tk4FI
-L21XhFBzSgxhgNwD4Y5H
-=W7cO
------END PGP SIGNATURE-----
-
---AhhlLboLdkugWU4S--
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
