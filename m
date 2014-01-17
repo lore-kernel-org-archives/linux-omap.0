@@ -1,122 +1,75 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv13 00/40] ARM: TI SoC clock DT conversion
-Date: Fri, 17 Jan 2014 20:11:06 +0200
-Message-ID: <52D9723A.6000700@ti.com>
-References: <52D53084.1070105@ti.com> <20140114203613.GA604@saruman.home>
- <20140115020421.GA24195@saruman.home> <20140115031632.4167.2698@quantum>
- <20140115035011.4167.96678@quantum> <20140115171323.GA22739@atomide.com>
- <20140115192340.4167.87685@quantum> <20140115193547.GF7993@atomide.com>
- <20140116213954.4167.37071@quantum> <87r486mrh5.fsf@linaro.org>
- <20140117175312.GH7993@atomide.com>
+From: "John W. Linville" <linville@tuxdriver.com>
+Subject: Re: [PATCHv2 0/5] wl1251 device tree support
+Date: Fri, 17 Jan 2014 14:22:04 -0500
+Message-ID: <20140117192204.GB15145@tuxdriver.com>
+References: <1382890469-25286-1-git-send-email-sre@debian.org>
+ <1386289336-26704-1-git-send-email-sre@debian.org>
+ <20140106225709.GA23070@earth.universe>
+ <20140117014514.GA604@earth.universe>
+ <20140117150127.GA15145@tuxdriver.com>
+ <20140117174415.GG7993@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140117175312.GH7993@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, paul@pwsan.com, Mike Turquette <mturquette@linaro.org>, rnayak@ti.com, balbi@ti.com, bcousson@baylibre.com, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from charlotte.tuxdriver.com ([70.61.120.58]:60832 "EHLO
+	smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753132AbaAQTaV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jan 2014 14:30:21 -0500
+Content-Disposition: inline
+In-Reply-To: <20140117174415.GG7993@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 01/17/2014 07:53 PM, Tony Lindgren wrote:
-> * Kevin Hilman <khilman@linaro.org> [140117 09:48]:
->> Mike Turquette <mturquette@linaro.org> writes:
->>
->> [...]
->>
->>> I took Tony's advice and fast-forwarded clk-next to -rc7 and applied
->>> Tero's series. This includes the AM3517 bits now. I've pushed this
->>> branch to clk-next-omap (force update) on my Linaro mirror. Can you do a
->>> final sanity test before I merge this into clk-next?
+On Fri, Jan 17, 2014 at 09:44:16AM -0800, Tony Lindgren wrote:
+> * John W. Linville <linville@tuxdriver.com> [140117 07:17]:
+> > On Fri, Jan 17, 2014 at 02:45:15AM +0100, Sebastian Reichel wrote:
+> > > On Mon, Jan 06, 2014 at 11:57:09PM +0100, Sebastian Reichel wrote:
+> > > > Hi John,
+> > > > 
+> > > > > The following patchset adds device tree support to
+> > > > > the spi variant of the wl1251 driver.
+> > > > >
+> > > > > Luciano Coelho (1):
+> > > > >   wl1251: split wl251 platform data to a separate structure
+> > > > > 
+> > > > > Sebastian Reichel (4):
+> > > > >   wl1251: move power GPIO handling into the driver
+> > > > >   wl1251: spi: add vio regulator support
+> > > > >   wl1251: spi: add device tree support
+> > > > >   Documentation: dt: wireless: Add wl1251
+> > > > 
+> > > > What's the status of this patchset? Tony prepared an immutable
+> > > > branch for patches 1+2 [0]. I think the other patches are also ok
+> > > > (at least there were no more complains from the DT binding
+> > > > maintainers). It would be nice to have wl1251 DT support in 3.14.
+> > > > 
+> > > > [0] http://www.spinics.net/lists/linux-omap/msg101165.html
+> > > > 
+> > > > -- Sebastian
+> > > 
+> > > ping? I can't see it on wireless-next.
+> > 
+> > I can't pull it because the branch is based on a later source than
+> > that of wireless-next.
+> 
+> Hmm I thought v3.13-rc1 was the base we agreed on the immutable branch.
+> Care to explain what the issue is merging it in?
 
-I think you accidentally merged wrong branch to clk-next-omap with the 
-latest refresh. This is one is missing the build-fixes now, when it 
-earlier had those in.
+I think I was clear -- "the branch is based on a later source than
+that of wireless-next".
 
-The correct branch to merge was 3.13-rc7-dt-clks-v13-build-fixes.
+> AFAIK merging it fast forwards your branch to v3.13-rc1 and then
+> you just need to do the pull request against v3.13-rc1.
 
-This also causes the build failure below for omap1.
+It's not a forward, it's a merge.  And I don't want to do that in
+the wireless-next tree right now.
 
--Tero
+Are you sending that branch for 3.14?  Is there some reason that I
+have to have it in wireless-next?
 
->>
->> I merged clk-next-omap into next-20140117 and build/boot tested
->> omap2plus_defconfig, multi_v7_defconfig and
->> multi_v7_defconfig+CONFIG_LPAE=y and all passed a basic boot test for
->> omap5uevm.
->>
->> I'll add OMAP5 to the automated boot testing starting with the next
->> linux-next.
->
-> OK that's good news. Looks like omap1_defconfig build has now started
-> failing though:
->
-> vers/built-in.o: In function `omap5xxx_dt_clk_init':
-> :(.init.text+0x846c): undefined reference to `omap2_clk_disable_autoidle_all'
-> drivers/built-in.o: In function `am43xx_dt_clk_init':
-> :(.init.text+0x856c): undefined reference to `omap2_clk_disable_autoidle_all'
-> drivers/built-in.o:(.rodata+0xc3c4): undefined reference to `omap3_clkoutx2_recalc'
-> drivers/built-in.o:(.rodata+0xc40c): undefined reference to `omap3_noncore_dpll_enable'
-> drivers/built-in.o:(.rodata+0xc410): undefined reference to `omap3_noncore_dpll_disable'
-> drivers/built-in.o:(.rodata+0xc41c): undefined reference to `omap3_dpll_recalc'
-> drivers/built-in.o:(.rodata+0xc420): undefined reference to `omap2_dpll_round_rate'
-> drivers/built-in.o:(.rodata+0xc42c): undefined reference to `omap2_init_dpll_parent'
-> drivers/built-in.o:(.rodata+0xc430): undefined reference to `omap3_noncore_dpll_set_rate'
-> drivers/built-in.o:(.rodata+0xc470): undefined reference to `omap3_dpll_recalc'
-> drivers/built-in.o:(.rodata+0xc474): undefined reference to `omap2_dpll_round_rate'
-> drivers/built-in.o:(.rodata+0xc480): undefined reference to `omap2_init_dpll_parent'
-> drivers/built-in.o:(.rodata+0xc4a0): undefined reference to `omap3_noncore_dpll_enable'
-> drivers/built-in.o:(.rodata+0xc4a4): undefined reference to `omap3_noncore_dpll_disable'
-> drivers/built-in.o:(.rodata+0xc4b0): undefined reference to `omap3_dpll_recalc'
-> drivers/built-in.o:(.rodata+0xc4b4): undefined reference to `omap2_dpll_round_rate'
-> drivers/built-in.o:(.rodata+0xc4c0): undefined reference to `omap2_init_dpll_parent'
-> drivers/built-in.o:(.rodata+0xc4c4): undefined reference to `omap3_dpll4_set_rate'
-> drivers/built-in.o:(.rodata+0xc4e0): undefined reference to `omap3_noncore_dpll_enable'
-> drivers/built-in.o:(.rodata+0xc4e4): undefined reference to `omap3_noncore_dpll_disable'
-> drivers/built-in.o:(.rodata+0xc4f0): undefined reference to `omap3_dpll_recalc'
-> drivers/built-in.o:(.rodata+0xc4f4): undefined reference to `omap2_dpll_round_rate'
-> drivers/built-in.o:(.rodata+0xc500): undefined reference to `omap2_init_dpll_parent'
-> drivers/built-in.o:(.rodata+0xc504): undefined reference to `omap3_noncore_dpll_set_rate'
-> drivers/built-in.o:(.rodata+0xc530): undefined reference to `omap3_dpll_recalc'
-> drivers/built-in.o:(.rodata+0xc540): undefined reference to `omap2_init_dpll_parent'
-> drivers/built-in.o:(.rodata+0xc560): undefined reference to `omap3_noncore_dpll_enable'
-> drivers/built-in.o:(.rodata+0xc564): undefined reference to `omap3_noncore_dpll_disable'
-> drivers/built-in.o:(.rodata+0xc570): undefined reference to `omap4_dpll_regm4xen_recalc'
-> drivers/built-in.o:(.rodata+0xc574): undefined reference to `omap4_dpll_regm4xen_round_rate'
-> drivers/built-in.o:(.rodata+0xc580): undefined reference to `omap2_init_dpll_parent'
-> drivers/built-in.o:(.rodata+0xc584): undefined reference to `omap3_noncore_dpll_set_rate'
-> drivers/built-in.o:(.rodata+0xc5b0): undefined reference to `omap3_dpll_recalc'
-> drivers/built-in.o:(.rodata+0xc5b4): undefined reference to `omap2_dpll_round_rate'
-> drivers/built-in.o:(.rodata+0xc5c0): undefined reference to `omap2_init_dpll_parent'
-> drivers/built-in.o:(.rodata+0xc5c4): undefined reference to `omap3_noncore_dpll_set_rate'
-> drivers/built-in.o:(.rodata+0xc63c): undefined reference to `omap2_dflt_clk_enable'
-> drivers/built-in.o:(.rodata+0xc640): undefined reference to `omap2_dflt_clk_disable'
-> drivers/built-in.o:(.rodata+0xc644): undefined reference to `omap2_dflt_clk_is_enabled'
-> drivers/built-in.o:(.rodata+0xc728): undefined reference to `omap2_clkops_enable_clkdm'
-> drivers/built-in.o:(.rodata+0xc72c): undefined reference to `omap2_clkops_disable_clkdm'
-> drivers/built-in.o:(.rodata+0xc754): undefined reference to `omap2_init_clk_clkdm'
-> drivers/built-in.o:(.rodata+0xc784): undefined reference to `omap2_dflt_clk_disable'
-> drivers/built-in.o:(.rodata+0xc788): undefined reference to `omap2_dflt_clk_is_enabled'
-> drivers/built-in.o:(.rodata+0xc7ac): undefined reference to `omap2_init_clk_clkdm'
-> drivers/built-in.o:(.rodata+0xc7c0): undefined reference to `omap2_dflt_clk_enable'
-> drivers/built-in.o:(.rodata+0xc7c4): undefined reference to `omap2_dflt_clk_disable'
-> drivers/built-in.o:(.rodata+0xc7c8): undefined reference to `omap2_dflt_clk_is_enabled'
-> drivers/built-in.o:(.rodata+0xc7ec): undefined reference to `omap2_init_clk_clkdm'
-> drivers/built-in.o:(.rodata+0xc838): undefined reference to `__clk_mux_determine_rate'
-> drivers/built-in.o:(.rodata+0xc904): undefined reference to `omap2_dflt_clk_enable'
-> drivers/built-in.o:(.rodata+0xc908): undefined reference to `omap2_dflt_clk_disable'
-> drivers/built-in.o:(.rodata+0xc90c): undefined reference to `omap2_dflt_clk_is_enabled'
-> drivers/built-in.o:(.rodata+0xc930): undefined reference to `omap2_init_clk_clkdm'
->
-> Regards,
->
-> Tony
->
+John
+-- 
+John W. Linville		Someday the world will need a hero, and you
+linville@tuxdriver.com			might be all we have.  Be ready.
