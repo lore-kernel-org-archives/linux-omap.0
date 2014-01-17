@@ -1,82 +1,64 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v5 0/2] DMM DT adaptation
-Date: Fri, 17 Jan 2014 13:02:36 +0530
-Message-ID: <52D8DC94.6010307@ti.com>
-References: <1379063679-4869-1-git-send-email-archit@ti.com> <1387274542-29645-1-git-send-email-archit@ti.com> <52C6AE73.9020303@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 0/2] ARM: OMAP2+: Fix dpll rounding
+Date: Fri, 17 Jan 2014 09:44:57 +0200
+Message-ID: <1389944699-27962-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <52C6AE73.9020303@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, mark.rutland@arm.com
-Cc: robdclark@gmail.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
+Hi,
 
-On Friday 03 January 2014 06:04 PM, Archit Taneja wrote:
-> Hullo,
->
-> On Tuesday 17 December 2013 03:32 PM, Archit Taneja wrote:
->> The DMM/Tiler block can used by omapdrm to allocate frame buffers.
->> With the
->> removal of address and irq data from the omap4 hwmods, the probe of
->> DMM driver
->> fails and omapdrm isn't able to utilize the DMM hardware.
->>
->> Add DMM bindings for OMAP4 and OMAP5 and DRA7x.
->
-> Can this be pulled for 3.14? I've incorporated comments from Mark and
-> other folks.
+We had a problem with beaglebone black's HDMI output, where setting some clock
+rates to the display PLL failed oddly. The main issue was that the dpll code
+doesn't actually try to round the given rate, it only finds exact matches. That
+is what these patches fix (well, the second patch).
 
-Can you please ack the first patch in the series?
+However, there is another issue, which made finding and debugging this a bit
+difficult. When the dpll round_rate failed, it returned ~0 as a rate. However,
+drivers/clk/clk-divider.c, which called the round_rate, didn't realize that is
+an error value, and so didn't fail but proceeded, which didn't lead to anything
+good.
 
-The second one is going via a pull request to the drm maintainer:
+This series doesn't try to fix that other issue.
 
-https://git.kernel.org/cgit/linux/kernel/git/tomba/linux.git/commit/?id=3d232346c5656b300028b6c920ddc10b229b5264
+There's also a third issue that I think happens more easily after this series
+is applied: there are no checks for maximum rate for the DPLLs. I think the
+maximum rate is generally 2GHz, but at least my BeagleBone Black refused to
+lock the display PLL with anything over 1.3GHz-1.4GHz.
 
-Thanks,
-Archit
+High PLL clock rates happen quite easily with a setup where there's a DPLL and
+an additional divider, handled by clk-divider.c. When the clk-divider.c is
+asked to provide a clock rate (that could be quite low), it'll try to find a
+good clock from its parent, the DPLL, that it can divide down to the requested
+clock. As the DPLL driver is only limited by its multiplier and divider
+register widths, it'll gladly offer 2GHz+ clocks, which eventually will fail as
+they can't be locked.
 
->
-> Thanks,
-> Archit
->
->>
->> Changes in v5:
->> - Use of_match_ptr() in the dmm driver.
->> - Add DT node for DRA7x as dra7.dtsi is now in mainline.
->>
->> Changes in v4:
->> - Clean up documentation further.
->>
->> Changes in v3:
->> - Fix mistakes in documentation and remove aliases for dmm nodes.
->>
->> Changes in v2:
->> - No changes, split out into a separate series containing only DT
->> related parts.
->>
->>
->> Archit Taneja (2):
->>    arm: dts: omap4+: Add DMM bindings
->>    drm: omap: Enable DT support for DMM
->>
->>   Documentation/devicetree/bindings/arm/omap/dmm.txt | 22
->> ++++++++++++++++++++++
->>   arch/arm/boot/dts/dra7.dtsi                        |  7 +++++++
->>   arch/arm/boot/dts/omap4.dtsi                       |  7 +++++++
->>   arch/arm/boot/dts/omap5.dtsi                       |  7 +++++++
->>   drivers/gpu/drm/omapdrm/omap_dmm_tiler.c           |  7 +++++++
->>   5 files changed, 50 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/arm/omap/dmm.txt
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+So this series is only a partial fix for the clock issues. Also, while the
+board debugged was BB Black, I think the same code is used and thus the same
+issues are present on all (or most) omap2+ SoCs.
 
+ Tomi
+
+Tomi Valkeinen (2):
+  ARM: OMAP2+: fix rate prints
+  ARM: OMAP2+: fix dpll round_rate() to actually round
+
+ arch/arm/mach-omap2/clkt_dpll.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
+
+-- 
+1.8.3.2
