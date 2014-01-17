@@ -1,63 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Issues with GPIO and wake from sleep
-Date: Fri, 17 Jan 2014 09:39:03 -0800
-Message-ID: <20140117173902.GD7235@atomide.com>
-References: <F690310232FDDF4AB457E8B3EF90DDE09A56D39C@MARCM-SBS2011.marcmltd.local>
+Subject: Re: [PATCHv2 0/5] wl1251 device tree support
+Date: Fri, 17 Jan 2014 09:44:16 -0800
+Message-ID: <20140117174415.GG7993@atomide.com>
+References: <1382890469-25286-1-git-send-email-sre@debian.org>
+ <1386289336-26704-1-git-send-email-sre@debian.org>
+ <20140106225709.GA23070@earth.universe>
+ <20140117014514.GA604@earth.universe>
+ <20140117150127.GA15145@tuxdriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32268 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45489 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752225AbaAQRjH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jan 2014 12:39:07 -0500
+	with ESMTP id S1752816AbaAQRoZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jan 2014 12:44:25 -0500
 Content-Disposition: inline
-In-Reply-To: <F690310232FDDF4AB457E8B3EF90DDE09A56D39C@MARCM-SBS2011.marcmltd.local>
+In-Reply-To: <20140117150127.GA15145@tuxdriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Murphy <marcmltd@marcm.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "John W. Linville" <linville@tuxdriver.com>
+Cc: linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Marc Murphy <marcmltd@marcm.co.uk> [140117 04:32]:
-> I have resisted contacting the list with regards to an issue I am hav=
-ing trying to get what should be a simple part of my system working but=
- I cannot find any documentation or other posts to help.
-> =20
-> I am using 3.6 kernel but have tried 3.12 to see if the issue has bee=
-n addressed in that but its exactly the same.
-> =20
-> I am attempting to get a GPIO to wake my AM3517 system up from a susp=
-end to memory.  I have tried with a few different options for GPIO=E2=80=
-=99s
-> I have available GPIO-10, GPIO-28 and GPIO-30.
-> =20
-> I started by using GPIO-28 and that would configure nicely and I set =
-up the interrupt handler and could see my debug when triggering the inp=
-ut (brilliant) but for some reason I cannot use it  to wake the system =
-as it is not in the correct group for wakeup.  There is a note in the T=
-ech Ref Man -
->=20
-> Only gpio_1, gpio_9, gpio_10, gpio_11, gpio_30, and gpio_31 can be us=
-ed to generate a direct wake-up event.
->=20
-> So have to use a different one. GPIO-30 cannot be used as that holds =
-the system in reset, so all that is left is GPIO-10.
-> All seems to be good for initialisation;
+* John W. Linville <linville@tuxdriver.com> [140117 07:17]:
+> On Fri, Jan 17, 2014 at 02:45:15AM +0100, Sebastian Reichel wrote:
+> > On Mon, Jan 06, 2014 at 11:57:09PM +0100, Sebastian Reichel wrote:
+> > > Hi John,
+> > > 
+> > > > The following patchset adds device tree support to
+> > > > the spi variant of the wl1251 driver.
+> > > >
+> > > > Luciano Coelho (1):
+> > > >   wl1251: split wl251 platform data to a separate structure
+> > > > 
+> > > > Sebastian Reichel (4):
+> > > >   wl1251: move power GPIO handling into the driver
+> > > >   wl1251: spi: add vio regulator support
+> > > >   wl1251: spi: add device tree support
+> > > >   Documentation: dt: wireless: Add wl1251
+> > > 
+> > > What's the status of this patchset? Tony prepared an immutable
+> > > branch for patches 1+2 [0]. I think the other patches are also ok
+> > > (at least there were no more complains from the DT binding
+> > > maintainers). It would be nice to have wl1251 DT support in 3.14.
+> > > 
+> > > [0] http://www.spinics.net/lists/linux-omap/msg101165.html
+> > > 
+> > > -- Sebastian
+> > 
+> > ping? I can't see it on wireless-next.
+> 
+> I can't pull it because the branch is based on a later source than
+> that of wireless-next.
 
-I think you don't need the mux wake-up bits for the first GPIO bank, it=
-'s
-always powered. So just setting gpio10 as an interrupt should keep it
-working through suspend. The GPIO driver has it's own idle handling for
-the first bank, see _set_gpio_wakeup().
+Hmm I thought v3.13-rc1 was the base we agreed on the immutable branch.
+Care to explain what the issue is merging it in?
 
-Maybe you just need to do set_irq_wake() in the interrupt number
-for gpio10?
+AFAIK merging it fast forwards your branch to v3.13-rc1 and then
+you just need to do the pull request against v3.13-rc1.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
