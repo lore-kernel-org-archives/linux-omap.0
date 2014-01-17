@@ -1,81 +1,35 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/2] ARM: OMAP2+: fix dpll round_rate() to actually round
-Date: Fri, 17 Jan 2014 09:44:59 +0200
-Message-ID: <1389944699-27962-3-git-send-email-tomi.valkeinen@ti.com>
-References: <1389944699-27962-1-git-send-email-tomi.valkeinen@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46873 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751993AbaAQHph (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Jan 2014 02:45:37 -0500
-In-Reply-To: <1389944699-27962-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Markus Pargmann <mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: [PATCH v4 0/2] usb: musb dsps updates
+Date: Fri, 17 Jan 2014 10:22:34 +0100
+Message-ID: <1389950556-6453-1-git-send-email-mpa@pengutronix.de>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Markus Pargmann <mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-omap2_dpll_round_rate() doesn't actually round the given rate, even if
-the name and the description so hints. Instead it only tries to find an
-exact rate match, or if that fails, return ~0 as an error.
+Hi,
 
-What this basically means is that the user of the clock needs to know
-what rates the dpll can support, which obviously isn't right.
+The two remaining patches from the previous series "usb: musb bugfixes". In v4
+I used the device name for the debugfs root dir and added a commit message to
+the second patch.
 
-This patch adds a simple method of rounding: during the iteration, the
-code keeps track of the closest rate match. If no exact match is found,
-the closest is returned.
+Regards,
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/clkt_dpll.c | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+Markus
 
-diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
-index 1f1708ef77bb..1b4e68dfb713 100644
---- a/arch/arm/mach-omap2/clkt_dpll.c
-+++ b/arch/arm/mach-omap2/clkt_dpll.c
-@@ -298,6 +298,7 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
- 	struct dpll_data *dd;
- 	unsigned long ref_rate;
- 	const char *clk_name;
-+	unsigned long diff, closest_diff = ~0;
- 
- 	if (!clk || !clk->dpll_data)
- 		return ~0;
-@@ -345,20 +346,26 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
- 		pr_debug("clock: %s: m = %d: n = %d: new_rate = %lu\n",
- 			 clk_name, m, n, new_rate);
- 
--		if (target_rate == new_rate) {
-+		diff = max(target_rate, new_rate) - min(target_rate, new_rate);
-+
-+		if (diff < closest_diff) {
-+			closest_diff = diff;
-+
- 			dd->last_rounded_m = m;
- 			dd->last_rounded_n = n;
--			dd->last_rounded_rate = target_rate;
--			break;
-+			dd->last_rounded_rate = new_rate;
-+
-+			if (diff == 0)
-+				break;
- 		}
- 	}
- 
--	if (target_rate != new_rate) {
-+	if (closest_diff == ~0) {
- 		pr_debug("clock: %s: cannot round to rate %lu\n",
- 			 clk_name, target_rate);
- 		return ~0;
- 	}
- 
--	return target_rate;
-+	return dd->last_rounded_rate;
- }
- 
+
+Markus Pargmann (2):
+  usb: musb: dsps, debugfs files
+  usb: musb: dsps, use devm_kzalloc
+
+ drivers/usb/musb/musb_dsps.c | 58 +++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 55 insertions(+), 3 deletions(-)
+
 -- 
-1.8.3.2
+1.8.5.2
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
