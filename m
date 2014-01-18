@@ -1,62 +1,58 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Deadlock in do_page_fault() on ARM (old kernel)
-Date: Sat, 18 Jan 2014 01:20:34 +0000
-Message-ID: <20140118012034.GM27282@n2100.arm.linux.org.uk>
-References: <52D73220.3030108@signal11.us> <20140117134646.GL27282@n2100.arm.linux.org.uk> <52D9D16C.9080501@signal11.us>
+From: Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>
+Subject: Re: AM335x USB DMA seems broken on ISOC URBs
+Date: Sat, 18 Jan 2014 16:12:24 +0100
+Message-ID: <52DA99D8.8010003@zonque.org>
+References: <20131222055945.GA7194@localhost> <20140117162723.GB3843@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52D9D16C.9080501@signal11.us>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Ott <alan@signal11.us>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140117162723.GB3843@localhost>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 17, 2014 at 07:57:16PM -0500, Alan Ott wrote:
-> On 01/17/2014 08:46 AM, Russell King - ARM Linux wrote:
->> My suspicion therefore is that some other thread must have died while
->> holding the mmap_sem, so there's probably a kernel oops earlier...
->> that's my best guess at the moment without seeing the full backtrace.
->
-> There's no oops that I'm able to see.
->
-> Each of the tasks which lockdep reports as "holding" mmap_sem are  
-> blocking for it. If some other task had taken it and then crashed, I  
-> assume lockdep would list the crashed task as also holding the resource  
-> in the printout.
+Hi Ezequiel,
 
-My point is this:
+On 01/17/2014 05:27 PM, Ezequiel Garcia wrote:
+> On Sun, Dec 22, 2013 at 02:59:45AM -0300, Ezequiel Garcia wrote:
+>> Hello,
+>>
+>> While doing some experiments with the stk1160 driver (for "Easycap" TV video
+>> capture devices), ran into problems using v3.13-rc4. The problem is that the
+>> stk1160 IRQ handler receives no URBs at all.
+>>
+>> When configuring with CONFIG_MUSB_PIO_ONLY this looks solved, but the
+>> bandwidth requirements are too large for PIO (it's a raw video device) and the
+>> video can't get captured.
+>>
+>> Interesting enough, using an old backported for v3.2 stk1160 driver, this same
+>> setup works with TI PSP v3.2 kernel. So, I guess it's some software bug in
+>> either the cppi41 dmaengine or the musb.
+>>
+>> I tried to compare the PSP to the mainline drivers but they seems *very*
+>> different and really beyond my understanding.
+>>
+>> Any ideas on how can I help debugging this?
+>>
+> 
+> Ping? It would be good to hunt thig bug down. The TI PSP provided USB driver
+> works fine so at least that's a starting point...
+> 
 
-- the five (or six) threads which are trying to take the mmap_sem in
-  read-mode in the fault handler are all blocked on it - they haven't
-  taken the lock, which will only happen because there's a pending writer.
-- of these in your original post, there are two which faulted from
-  __copy_to_user_std().  __copy_to_user_std() doesn't take the mmap_sem -
-  this is the non-uaccess-with-memcpy path.
-- the pending writers are the two threads in sys_mmap_pgoff(), both of
-  which are blocked waiting to gain the write lock.
-- there are no *other* threads holding the mmap_sem lock.
+Did you try this with a different type of peripheral hardware, a USB
+audio device for example? You could also check whether the packets are
+actually received by the DMA driver but dropped before the USB subsys
+gets to see them for whatever reason.
 
-So... there's a question here how we got into this state - and frankly
-I don't know.  What I do see from your latest dump is that there's two
-unknown modules there - something called rcu2m and another called
-buttoms, and there are two threads inside ioctls there.  Both have
-faulted from the function at 0xc0d2a394 (which won't appear in the
-backtrace, but is most likely __copy_to_user_std.)
+Let me know if you find anything - I hope to find some time to do
+similar tests on AM33xx based hardware.
 
-So, in the absence of you saying anything about there being any preceding
-oopses, my conclusion now is that one of those modules is taking the
-mmap_sem itself, and is the culpret inducing this deadlock.
 
-Note that your dump ([2]) in your reply was just the hung task detector
-printing out the stacktrace for a few tasks, not the full all-threads
-stack dump which I was expecting.
+Daniel
 
-So I'm pulling out these conclusions from the very little information
-you're supplying.
-
--- 
-FTTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
-in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
-Estimate before purchase was "up to 13.2Mbit".
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
