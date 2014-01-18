@@ -1,58 +1,94 @@
-From: Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>
-Subject: Re: AM335x USB DMA seems broken on ISOC URBs
-Date: Sat, 18 Jan 2014 16:12:24 +0100
-Message-ID: <52DA99D8.8010003@zonque.org>
-References: <20131222055945.GA7194@localhost> <20140117162723.GB3843@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2 0/5] wl1251 device tree support
+Date: Sat, 18 Jan 2014 09:47:06 -0800
+Message-ID: <20140118174705.GE7235@atomide.com>
+References: <1382890469-25286-1-git-send-email-sre@debian.org>
+ <1386289336-26704-1-git-send-email-sre@debian.org>
+ <20140106225709.GA23070@earth.universe>
+ <20140117014514.GA604@earth.universe>
+ <20140117150127.GA15145@tuxdriver.com>
+ <20140117174415.GG7993@atomide.com>
+ <20140117192204.GB15145@tuxdriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140117162723.GB3843@localhost>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17587 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751064AbaARRrM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Jan 2014 12:47:12 -0500
+Content-Disposition: inline
+In-Reply-To: <20140117192204.GB15145@tuxdriver.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "John W. Linville" <linville@tuxdriver.com>
+Cc: linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Ezequiel,
-
-On 01/17/2014 05:27 PM, Ezequiel Garcia wrote:
-> On Sun, Dec 22, 2013 at 02:59:45AM -0300, Ezequiel Garcia wrote:
->> Hello,
->>
->> While doing some experiments with the stk1160 driver (for "Easycap" TV video
->> capture devices), ran into problems using v3.13-rc4. The problem is that the
->> stk1160 IRQ handler receives no URBs at all.
->>
->> When configuring with CONFIG_MUSB_PIO_ONLY this looks solved, but the
->> bandwidth requirements are too large for PIO (it's a raw video device) and the
->> video can't get captured.
->>
->> Interesting enough, using an old backported for v3.2 stk1160 driver, this same
->> setup works with TI PSP v3.2 kernel. So, I guess it's some software bug in
->> either the cppi41 dmaengine or the musb.
->>
->> I tried to compare the PSP to the mainline drivers but they seems *very*
->> different and really beyond my understanding.
->>
->> Any ideas on how can I help debugging this?
->>
+* John W. Linville <linville@tuxdriver.com> [140117 11:32]:
+> On Fri, Jan 17, 2014 at 09:44:16AM -0800, Tony Lindgren wrote:
+> > * John W. Linville <linville@tuxdriver.com> [140117 07:17]:
+> > > On Fri, Jan 17, 2014 at 02:45:15AM +0100, Sebastian Reichel wrote:
+> > > > On Mon, Jan 06, 2014 at 11:57:09PM +0100, Sebastian Reichel wrote:
+> > > > > Hi John,
+> > > > > 
+> > > > > > The following patchset adds device tree support to
+> > > > > > the spi variant of the wl1251 driver.
+> > > > > >
+> > > > > > Luciano Coelho (1):
+> > > > > >   wl1251: split wl251 platform data to a separate structure
+> > > > > > 
+> > > > > > Sebastian Reichel (4):
+> > > > > >   wl1251: move power GPIO handling into the driver
+> > > > > >   wl1251: spi: add vio regulator support
+> > > > > >   wl1251: spi: add device tree support
+> > > > > >   Documentation: dt: wireless: Add wl1251
+> > > > > 
+> > > > > What's the status of this patchset? Tony prepared an immutable
+> > > > > branch for patches 1+2 [0]. I think the other patches are also ok
+> > > > > (at least there were no more complains from the DT binding
+> > > > > maintainers). It would be nice to have wl1251 DT support in 3.14.
+> > > > > 
+> > > > > [0] http://www.spinics.net/lists/linux-omap/msg101165.html
+> > > > > 
+> > > > > -- Sebastian
+> > > > 
+> > > > ping? I can't see it on wireless-next.
+> > > 
+> > > I can't pull it because the branch is based on a later source than
+> > > that of wireless-next.
+> > 
+> > Hmm I thought v3.13-rc1 was the base we agreed on the immutable branch.
+> > Care to explain what the issue is merging it in?
 > 
-> Ping? It would be good to hunt thig bug down. The TI PSP provided USB driver
-> works fine so at least that's a starting point...
+> I think I was clear -- "the branch is based on a later source than
+> that of wireless-next".
+
+OK so it's the..
+ 
+> > AFAIK merging it fast forwards your branch to v3.13-rc1 and then
+> > you just need to do the pull request against v3.13-rc1.
 > 
+> It's not a forward, it's a merge.  And I don't want to do that in
+> the wireless-next tree right now.
 
-Did you try this with a different type of peripheral hardware, a USB
-audio device for example? You could also check whether the packets are
-actually received by the DMA driver but dropped before the USB subsys
-gets to see them for whatever reason.
+..merge part that you have problem. Fine with me.
+ 
+> Are you sending that branch for 3.14?  Is there some reason that I
+> have to have it in wireless-next?
 
-Let me know if you find anything - I hope to find some time to do
-similar tests on AM33xx based hardware.
+The reason was for keeping things building and git bisect working.
 
+I do have wl1251-pdata-signed as the base for branch
+omap-for-v3.14/omap3-board-removal. However the board removal was
+considered too early for v3.14, so that's been postponed. This is
+because people are still updating their systems to device tree
+based booting. So I can redo my omap-for-v3.14/omap3-board-removal
+against v3.14.
 
-Daniel
+So if you want to, feel free to pick all the wl12xx patches to your
+wireless tree. AFAIK my omap-for-v3.14/omap3-board-removal is the
+only other user for those patches, and that I can redo that on
+v3.14.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So for the arch/arm/*omap* touching patches, feel free to add:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
