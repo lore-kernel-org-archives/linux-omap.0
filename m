@@ -1,89 +1,48 @@
-From: Dmitry Lifshitz <lifshitz@compulab.co.il>
-Subject: [PATCH 00/12] ARM: dts: sbc-t3x: add support for more boards
-Date: Sun, 19 Jan 2014 10:48:55 +0200
-Message-ID: <1390121335-4917-1-git-send-email-lifshitz@compulab.co.il>
-References: <1389532975-28281-1-git-send-email-lifshitz@compulab.co.il>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:40711 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750818AbaASItT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 19 Jan 2014 03:49:19 -0500
-In-Reply-To: <1389532975-28281-1-git-send-email-lifshitz@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH] mmc: omap_hsmmc: Restrict compilation to ARM
+Date: Sun, 19 Jan 2014 10:29:54 +0100
+Message-ID: <1390123794-26401-1-git-send-email-geert@linux-m68k.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Amarinder Bindra <a-bindra@ti.com>, Balaji T K <balajitk@ti.com>, Chris Ball <cjb@laptop.org>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org, Geert Uytterhoeven <geert@linux-m68k.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This is the fixed cover letter.
-The previous one was not consistent with respect to the actual path set.
+commit bcf24e1daa94f4c52ef7a3f657e43cc6bc50d46b ("mmc: omap_hsmmc: use the
+generic config for omap2plus devices"), enabled the build for other
+platforms for compile testing.
 
-Add support for CompuLab SBC-T3530 and SBC-T3517 boards:
+sh-allmodconfig now fails with:
 
-https://compulab.co.il/products/sbcs/sbc-t3530/
-https://compulab.co.il/products/sbcs/sbc-t3517/
+    include/linux/omap-dma.h:171:8: error: expected identifier before numeric constant
+    make[4]: *** [drivers/mmc/host/omap_hsmmc.o] Error 1
 
-along with respective CoMs - CM-T3530 and CM-T3517:
+This happens because sh #defines "CCR", which is one of the enum values in
+include/linux/omap-dma.h.
 
-https://compulab.co.il/products/computer-on-modules/cm-t3530/
-https://compulab.co.il/products/computer-on-modules/cm-t3517/
+I expect a similar failure on blackfin, which also has #define CCR.
 
-The device tree files have the following structure:
+Restrict the build to ARM to fix this.
 
-omap3-cm-t3x.dtsi
- |
- |<-- omap3-cm-t3x30.dtsi
- |     |
- |     |
- |     |     -----                  -------          ------------
- |     |    | CoM |                | Board |        | Base board |
- |     |     -----                  -------          ------------
- |     |                                            omap3-sb-t35.dtsi
- |     |                                                  |
- |     |<-- omap3-cm-t3730.dts <-- omap3-sbc-t3730.dts -->|
- |     |                                                  |
- |     |<-- omap3-cm-t3530.dts <-- omap3-sbc-t3530.dts -->|
- |                                                        |
- |<-------- omap3-cm-t3517.dts <-- omap3-sbc-t3517.dts -->|
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+---
+http://kisskb.ellerman.id.au/kisskb/buildresult/10477672/
 
+ drivers/mmc/host/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-where omap3-cm-t3730.dts, omap3-cm-t3530.dts, omap3-cm-t3517.dts
-contain CoMs specific data, while omap3-sbc-t3730.dts, omap3-sbc-t3530.dts,
-omap3-sbc-t3517.dts represent eval boards with respective core modules.
-
-This series is based on Tony's omap-for-v3.14/dt branch
-
-Dmitry Lifshitz (12):
-  ARM: dts: sbc-t3x: use omap specific pinctrl defines
-  ARM: dts: sbc-t3x: refactor DT support
-  ARM: dts: sbc-t3x: disable mmc3
-  ARM: dts: sb-t35: fix Ethernet power supply
-  ARM: dts: cm-t3x: add gpio-led pinmux
-  ARM: dts: cm-t3x30: add twl4030 gpio pullups
-  ARM: dts: cm-t3x30: add HS USB Host support
-  ARM: dts: sbc-t3730: add pinmux for usb hub reset
-  ARM: dts: cm-t3x30: add USB OTG support
-  ARM: dts: sbc-t3530: add support for sbc-t3530
-  ARM: dts: sbc-t3517: add support for sbc-t3517
-  ARM: OMAP2+: make reset pulse for sbc-t3x usb hubs
-
- arch/arm/boot/dts/Makefile            |    4 +
- arch/arm/boot/dts/omap3-cm-t3517.dts  |  136 +++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap3-cm-t3530.dts  |   12 +++
- arch/arm/boot/dts/omap3-cm-t3730.dts  |   57 ++------------
- arch/arm/boot/dts/omap3-cm-t3x.dtsi   |  110 ++++++++++++++++++++++++++
- arch/arm/boot/dts/omap3-cm-t3x30.dtsi |   74 +++++++++++++-----
- arch/arm/boot/dts/omap3-sb-t35.dtsi   |   29 +++++++-
- arch/arm/boot/dts/omap3-sbc-t3517.dts |   43 ++++++++++
- arch/arm/boot/dts/omap3-sbc-t3530.dts |   36 +++++++++
- arch/arm/boot/dts/omap3-sbc-t3730.dts |   23 +++---
- arch/arm/mach-omap2/pdata-quirks.c    |   67 ++++++++++++++++-
- 11 files changed, 506 insertions(+), 85 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-cm-t3517.dts
- create mode 100644 arch/arm/boot/dts/omap3-cm-t3530.dts
- create mode 100644 arch/arm/boot/dts/omap3-cm-t3x.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-sbc-t3517.dts
- create mode 100644 arch/arm/boot/dts/omap3-sbc-t3530.dts
-
+diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+index 7fc5099e44b2..14e94fb39164 100644
+--- a/drivers/mmc/host/Kconfig
++++ b/drivers/mmc/host/Kconfig
+@@ -284,7 +284,7 @@ config MMC_OMAP
+ 
+ config MMC_OMAP_HS
+ 	tristate "TI OMAP High Speed Multimedia Card Interface support"
+-	depends on ARCH_OMAP2PLUS || COMPILE_TEST
++	depends on ARCH_OMAP2PLUS || (COMPILE_TEST && ARM)
+ 	help
+ 	  This selects the TI OMAP High Speed Multimedia card Interface.
+ 	  If you have an omap2plus board with a Multimedia Card slot,
 -- 
-1.7.5.4
-
+1.7.9.5
