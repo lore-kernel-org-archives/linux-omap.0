@@ -1,14 +1,16 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Add support for Erratum 2.1.1.128 in
- device tree boot
-Date: Mon, 20 Jan 2014 17:39:41 -0600
-Message-ID: <20140120233941.GG6516@saruman.home>
-References: <1390260542-22213-1-git-send-email-nm@ti.com>
-Reply-To: balbi@ti.com
+From: Alan Ott <alan@signal11.us>
+Subject: Re: Deadlock in do_page_fault() on ARM (old kernel)
+Date: Mon, 20 Jan 2014 18:50:53 -0500
+Message-ID: <52DDB65D.9060300@signal11.us>
+References: <52D73220.3030108@signal11.us>
+ <20140117134646.GL27282@n2100.arm.linux.org.uk>
+ <52D9D16C.9080501@signal11.us>
+ <20140118012034.GM27282@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4958116812461598747=="
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1390260542-22213-1-git-send-email-nm@ti.com>
+In-Reply-To: <20140118012034.GM27282@n2100.arm.linux.org.uk>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,68 +20,69 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: devicetree@vger.kernel.org, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, linux-mmc@vger.kernel.org, Chris Ball <chris@printf.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============4958116812461598747==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="w/VI3ydZO+RcZ3Ux"
-Content-Disposition: inline
+On 01/17/2014 08:20 PM, Russell King - ARM Linux wrote:
+> On Fri, Jan 17, 2014 at 07:57:16PM -0500, Alan Ott wrote:
+>> On 01/17/2014 08:46 AM, Russell King - ARM Linux wrote:
+>>> My suspicion therefore is that some other thread must have died while
+>>> holding the mmap_sem, so there's probably a kernel oops earlier...
+>>> that's my best guess at the moment without seeing the full backtrace.
+>> There's no oops that I'm able to see.
+>>
+>> Each of the tasks which lockdep reports as "holding" mmap_sem are
+>> blocking for it. If some other task had taken it and then crashed, I
+>> assume lockdep would list the crashed task as also holding the resource
+>> in the printout.
+> My point is this:
+>
+> - the five (or six) threads which are trying to take the mmap_sem in
+>    read-mode in the fault handler are all blocked on it - they haven't
+>    taken the lock, which will only happen because there's a pending writer.
+> - of these in your original post, there are two which faulted from
+>    __copy_to_user_std().  __copy_to_user_std() doesn't take the mmap_sem -
+>    this is the non-uaccess-with-memcpy path.
+> - the pending writers are the two threads in sys_mmap_pgoff(), both of
+>    which are blocked waiting to gain the write lock.
+> - there are no *other* threads holding the mmap_sem lock.
 
---w/VI3ydZO+RcZ3Ux
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yes, all true. I don't remember why I started looking at the memcpy() case.
 
-On Mon, Jan 20, 2014 at 05:29:02PM -0600, Nishanth Menon wrote:
-> When device is booted using devicetree, platforms impacted by
-> Erratum 2.1.1.128 is not detected easily in the mmc driver. This erratum
-> indicates that the module cannot do multi-block transfers.
->=20
-> Handle this by providing a boolean flag to indicate to driver that it is
-> working on a hardware with mentioned limitation.
+> So... there's a question here how we got into this state - and frankly
+> I don't know.  What I do see from your latest dump is that there's two
+> unknown modules there - something called rcu2m and another called
+> buttoms, and there are two threads inside ioctls there.  Both have
+> faulted from the function at 0xc0d2a394 (which won't appear in the
+> backtrace, but is most likely __copy_to_user_std.)
 
-sure there's no way of reading the revision register to figure this one
-out without having to add a new DT attribute ?
+Yes, there are a handful of out-of-tree modules.
 
---=20
-balbi
+> So, in the absence of you saying anything about there being any preceding
+> oopses, my conclusion now is that one of those modules is taking the
+> mmap_sem itself, and is the culpret inducing this deadlock.
 
---w/VI3ydZO+RcZ3Ux
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Yes, I came to that as well. I had checked for the presence of mmap_sem 
+in the sources of the out-of-tree modules and didn't see it. However, 
+upon closer inspection, my grep-fu failed me as there were some backward 
+symlinks I didn't account for. TI's cmemk module _is_ taking out 
+mmap_sem. I wish I had seen this days ago. That's my new investigation path.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> Note that your dump ([2]) in your reply was just the hung task detector
+> printing out the stacktrace for a few tasks, not the full all-threads
+> stack dump which I was expecting.
 
-iQIcBAEBAgAGBQJS3bO9AAoJEIaOsuA1yqREG3EP/05CRV54qvIN3Yxoea81Yshf
-WtufQ4v6Q6McZZOz3UXUQjh+ZuHRdP+eNylhUD2etI8mUY7PS7yVC8Cm+TdOPeg5
-sjrqiPxcIJbEC1+IhIrxHDaAFynArxQwXNg8ltF9sSNfNPamh9i8toSL7h/r17Ql
-N6jGVdJ/rLNCTSvQwgpqFdZwSYibV+toIO8CvSrp3mWlNApCeG/d9YvTyYTL8Cqa
-0+p3tqzsQLcSayXd3QZc83cMnYLNqDCytZVvGGRVL6AzM2sDsJXew9Ce8DCUkLfE
-Tv/HeLOwzgnESzf2ZB8g/YPhtlKrdo/PvmXye5DF/05tY/tpWvHLsB/hTTY+5qUY
-3se5l5moG+hjI4VbyMvOZmfZDmKxEobZeI3edTeMIN/1z/Z+6oXIsuCA1Lo4gxsI
-yx/KyoFap7CRpC404lB+m6oYlVBoQJz724Il2ZiaLPJgZ9V8Mpe0sydikrfuZzFO
-8c6fHFru7ZRQd1WykXeHuSk59v2cNLtXZI5HXe3J4wyyBlsRMhAdyFSRadVAzmoi
-T6Y4WrdfysAxx18Zz+r9Ia1VRPZa9Gq+dfOYAATmRUOKoqpVKQAUZ6XZo328lUmW
-/eLjPOTneDtHV7VyEzRDmSdC7uoV1ZGMdiRvI5XT3t26stzUes70nlPCz2dvHI+J
-FAQORV2TlKF+LkBILihz
-=j9gs
------END PGP SIGNATURE-----
+Yes, in a misguided attempt to keep the SNR high, I didn't include the 
+full dump, but only what I thought was the interesting part. I did 
+another capture and the full dump is at [1] .
 
---w/VI3ydZO+RcZ3Ux--
+> So I'm pulling out these conclusions from the very little information
+> you're supplying.
 
+I appreciate it. Thank you for taking the time to reply.
 
---===============4958116812461598747==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Alan.
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============4958116812461598747==--
+[1] 
+http://www.signal11.us/~alan/stack_dump_all_tasks_with_frame_pointers.txt
