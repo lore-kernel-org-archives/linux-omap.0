@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v6 04/10] mfd: omap-usb-host: Update DT clock binding information
-Date: Mon, 20 Jan 2014 16:11:25 +0200
-Message-ID: <1390227091-4523-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH v6 10/10] ARM: OMAP2+: Remove legacy_init_ehci_clk()
+Date: Mon, 20 Jan 2014 16:11:31 +0200
+Message-ID: <1390227091-4523-11-git-send-email-rogerq@ti.com>
 References: <1390227091-4523-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,52 +9,57 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1390227091-4523-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: bcousson@baylibre.com, tony@atomide.com
-Cc: balbi@ti.com, lee.jones@linaro.org, arnd@arndb.de, sre@debian.org, mark.rutland@arm.com, m.paolino@virtualopensystems.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: balbi@ti.com, lee.jones@linaro.org, arnd@arndb.de, sre@debian.org, mark.rutland@arm.com, m.paolino@virtualopensystems.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The omap-usb-host driver expects certained named clocks.
-Add this information to the DT binding document.
+The necessary clock phandle for the EHCI clock is now provided
+via device tree so we no longer need this legacy method.
 
-CC: Lee Jones <lee.jones@linaro.org>
-CC: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- .../devicetree/bindings/mfd/omap-usb-host.txt      | 23 ++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ arch/arm/mach-omap2/pdata-quirks.c | 16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-index b381fa6..4721b2d 100644
---- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-+++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-@@ -32,6 +32,29 @@ Optional properties:
- - single-ulpi-bypass: Must be present if the controller contains a single
-   ULPI bypass control bit. e.g. OMAP3 silicon <= ES2.1
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 39f020c..6a4e2d1 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -26,20 +26,6 @@ struct pdata_init {
+ 	void (*fn)(void);
+ };
  
-+- clocks: a list of phandles and clock-specifier pairs, one for each entry in
-+  clock-names.
-+
-+- clock-names: should include:
-+  For OMAP3
-+  * "usbhost_120m_fck" - 120MHz Functional clock.
-+
-+  For OMAP4+
-+  * "refclk_60m_int" - 60MHz internal reference clock for UTMI clock mux
-+  * "refclk_60m_ext_p1" - 60MHz external ref. clock for Port 1's UTMI clock mux.
-+  * "refclk_60m_ext_p2" - 60MHz external ref. clock for Port 2's UTMI clock mux
-+  * "utmi_p1_gfclk" - Port 1 UTMI clock mux.
-+  * "utmi_p2_gfclk" - Port 2 UTMI clock mux.
-+  * "usb_host_hs_utmi_p1_clk" - Port 1 UTMI clock gate.
-+  * "usb_host_hs_utmi_p2_clk" - Port 2 UTMI clock gate.
-+  * "usb_host_hs_utmi_p3_clk" - Port 3 UTMI clock gate.
-+  * "usb_host_hs_hsic480m_p1_clk" - Port 1 480MHz HSIC clock gate.
-+  * "usb_host_hs_hsic480m_p2_clk" - Port 2 480MHz HSIC clock gate.
-+  * "usb_host_hs_hsic480m_p3_clk" - Port 3 480MHz HSIC clock gate.
-+  * "usb_host_hs_hsic60m_p1_clk" - Port 1 60MHz HSIC clock gate.
-+  * "usb_host_hs_hsic60m_p2_clk" - Port 2 60MHz HSIC clock gate.
-+  * "usb_host_hs_hsic60m_p3_clk" - Port 3 60MHz HSIC clock gate.
-+
- Required properties if child node exists:
+-/*
+- * Create alias for USB host PHY clock.
+- * Remove this when clock phandle can be provided via DT
+- */
+-static void __init __used legacy_init_ehci_clk(char *clkname)
+-{
+-	int ret;
+-
+-	ret = clk_add_alias("main_clk", NULL, clkname, NULL);
+-	if (ret)
+-		pr_err("%s:Failed to add main_clk alias to %s :%d\n",
+-		       __func__, clkname, ret);
+-}
+-
+ #if IS_ENABLED(CONFIG_WL12XX)
  
- - #address-cells: Must be 1
+ static struct wl12xx_platform_data wl12xx __initdata;
+@@ -105,7 +91,6 @@ static void __init omap4_sdp_legacy_init(void)
+ static void __init omap4_panda_legacy_init(void)
+ {
+ 	omap4_panda_display_init_of();
+-	legacy_init_ehci_clk("auxclk3_ck");
+ 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
+ }
+ #endif
+@@ -113,7 +98,6 @@ static void __init omap4_panda_legacy_init(void)
+ #ifdef CONFIG_SOC_OMAP5
+ static void __init omap5_uevm_legacy_init(void)
+ {
+-	legacy_init_ehci_clk("auxclk1_ck");
+ }
+ #endif
+ 
 -- 
 1.8.3.2
