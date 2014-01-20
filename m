@@ -1,70 +1,95 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCHv13 27/40] ARM: dts: omap3 clock data
-Date: Mon, 20 Jan 2014 19:00:54 +0100
-Message-ID: <20140120180053.GA25920@earth.universe>
-References: <1389276051-1326-1-git-send-email-t-kristo@ti.com>
- <1389276051-1326-28-git-send-email-t-kristo@ti.com>
+From: Michal Hocko <mhocko@suse.cz>
+Subject: Re: Deadlock in do_page_fault() on ARM (old kernel)
+Date: Mon, 20 Jan 2014 19:45:25 +0100
+Message-ID: <20140120184525.GA29193@dhcp22.suse.cz>
+References: <52D73220.3030108@signal11.us>
+ <20140120101509.GA2626@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:38996 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750822AbaATSA6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Jan 2014 13:00:58 -0500
+Received: from mail-ea0-f175.google.com ([209.85.215.175]:38145 "EHLO
+	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750721AbaATSpj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jan 2014 13:45:39 -0500
 Content-Disposition: inline
-In-Reply-To: <1389276051-1326-28-git-send-email-t-kristo@ti.com>
+In-Reply-To: <20140120101509.GA2626@dhcp22.suse.cz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Alan Ott <alan@signal11.us>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 
+On Mon 20-01-14 11:15:09, Michal Hocko wrote:
+> On Wed 15-01-14 20:13:04, Alan Ott wrote:
+> [...]
+> > 2. __copy_to_user_memcpy() takes a read lock (down_read()) on
+> 
+> This looks like a bug. copy_to_user_* shouldn't take mmap_sem at all
+> Check the might_fault annotation used in generic code. Arm version of
+> copy_to_user* doesn't seem to use the annotation and I do not see a good
+> reason for that.
 
---h31gzZEtNLTqOjlF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+OK, so I have looked at the implementation of __copy_to_user_memcpy and
+it drops the semaphore before it does __put_user to fault memory in.  It
+then reacquires the lock to make sure that the pte doesn't vanish during
+memcpy. It holds pte lock to ensure that.
 
-Hi,
+The mmap_sem reacquire happens with pte lock held though and this smells
+like a deadlock situation because the page fault takes mmap_sem first
+and only then takes ptl. I am not sure this is exactly what happens in
+your case though because you seem to have tasks blocked on the mmap_sem
+already.
 
-I just found some time to update my SSI driver adding DT clock
-support. It works, but I wonder if the alias of the ssi clocks
-can be changed to something like the following:
+> > mm->mmap_sem. While that lock is held, __copy_to_user_memcpy() can
+> > generate a page fault, causing do_page_fault() to get called, which
+> > will also try to get a read lock (down_read()) on mm->mmap_sem.
+> > Multiple read locks can be taken on an rw_semaphore, but deadlock
+> > will occur if another thread tries to get a write lock
+> > (down_write()) in between. For example:
+> >     Task 1:         Task 2:
+> >     down_read(sem)
+> >                     down_write(sem)    <-- Goes to sleep
+> >     down_read(sem)                     <-- Goes to sleep
+> > 
+> > There is a thread from 2005[3] which seems to discuss the same
+> > concept of recursive rw_semaphores, but for futexes.
+> > 
+> > Other comments:
+> > 1. My analysis of this probably wrong. Otherwise it seems many
+> > others would have the same problem, and they don't seem to. I'm
+> > hoping this email will help to correct my understanding.
+> > 2. I looked through the git logs for recent (since 2.6.37 time
+> > frame) and nothing else jumped out at me as being an obvious fix for
+> > this situation.
+> > 
+> > Thanks for any insight you can give,
+> > 
+> > Alan.
+> > 
+> > [1] http://www.signal11.us/~alan/show-all-tasks-deadlock.txt
+> > 
+> > [2] Some websites/bugtrackers mention this commit with a similar
+> > issue, but I'm not entirely sure how it's related:
+> > http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=8878a539ff19a43cf3729e7562cd528f490246ae
+> > 
+> > This one seems obviously related, but has no effect on my system:
+> > http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=435a7ef52db7d86e67a009b36cac1457f8972391
+> > 
+> > [3] http://thread.gmane.org/gmane.linux.kernel/280900
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Please read the FAQ at  http://www.tux.org/lkml/
+> 
+> -- 
+> Michal Hocko
+> SUSE Labs
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
-/* omap3430es1-clocks.dtsi */
-ssi_ick: ssi_ick_3430es1 {};
-ssi_ssr_fck: ssi_ssr_fck_3430es1 {};
-ssi_sst_fck: ssi_sst_fck_3430es1 {};
-
-/* omap36xx-omap3430es2plus-clocks.dtsi */
-ssi_ick: ssi_ick_3430es2 {};
-ssi_ssr_fck: ssi_ssr_fck_3430es2 {};
-ssi_sst_fck: ssi_sst_fck_3430es2 {};
-
-With this change I can reference the ssi clocks in omap3.dtsi
-instead of creating files for omap3430es1 and omap3430es2+.
-
--- Sebastian
-
---h31gzZEtNLTqOjlF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCAAGBQJS3WRVAAoJENju1/PIO/qaICEP/Rv7AAzH4Id9zCTDDV2tuMh6
-5kYeqM05EcAA6ES5XaNI3cs76jnsGkLfHMWy682pZU0ePgtgQbOiHE81YYY55kW5
-+nN+dWz5hOhTmcgkaU+yv9NkluYfpu474EF4NODTjXSk1XPpZb45FdeANrLyRz4N
-6jcozWeUA0DPHRAN8cgM5Zj7J9lPdW4COO6QQA1W0cWMD0qGc4cWGYAuIptTloNV
-AzeT1zx0Cy2IRS90HmBKPVJOYKgfcCn6nn9wO5+Qaq+UIC2J0QgpT9T8IOyxfPsM
-m1LxY5678YpD1MK0FWpiNwZmBR0WjwEDLp/DwdJUHXpc1TnSxGNOhV+9vSSEGfwp
-WLzFr+pBZB8MYN646sJU6fAIMsXG13FbodjDM/WSa6yhMAAE+KOin5KbpqTY8wDv
-B1EgQoZfscEMn75Q77KIm91j4N+EZKdJ/Tkzgcwyt/BNM0IEadUnh2dImAoUq+0I
-uhjfZYlOGmdiANIwteWfgvR9qJrcJ3F29YCgf4pfUvTbIV5ly2NJlPwCbiqLvHEj
-ER4o9xqmWBU6y3LEZQizlSc3QNouirmnm2mC3X/9Tkg+rj/qm42hSPP1/SYBZbme
-zEWBzeFMZmsU6VV6Tjjp4BPnWl+BS68d2SYAHjpBxodTMbaLg8tCq8hlhN0gzRc8
-KN1Av8nyzQk8i+yx1iX6
-=HVxk
------END PGP SIGNATURE-----
-
---h31gzZEtNLTqOjlF--
+-- 
+Michal Hocko
+SUSE Labs
