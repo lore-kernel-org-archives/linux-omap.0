@@ -1,186 +1,66 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v6 01/10] mfd: omap-usb-host: Use resource managed clk_get()
-Date: Mon, 20 Jan 2014 16:11:22 +0200
-Message-ID: <1390227091-4523-2-git-send-email-rogerq@ti.com>
-References: <1390227091-4523-1-git-send-email-rogerq@ti.com>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCH 0/6] N900 DTS additions for 3.14
+Date: Mon, 20 Jan 2014 16:59:51 +0100
+Message-ID: <20140120155950.GB17118@earth.universe>
+References: <1389475023-11616-1-git-send-email-sre@debian.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1390227091-4523-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, m.paolino-lrHrjnjw1UfHK3s98zE1ajGjJy/sRE9J@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="MW5yreqqjyrRcusr"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:38427 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753970AbaATP74 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Jan 2014 10:59:56 -0500
+Content-Disposition: inline
+In-Reply-To: <1389475023-11616-1-git-send-email-sre@debian.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Use devm_clk_get() instead of clk_get().
 
-CC: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-CC: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Acked-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
- drivers/mfd/omap-usb-host.c | 81 +++++++++------------------------------------
- 1 file changed, 16 insertions(+), 65 deletions(-)
+--MW5yreqqjyrRcusr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 142650f..1c9bca2 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -674,46 +674,46 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 
- 	omap->ehci_logic_fck = ERR_PTR(-EINVAL);
- 	if (need_logic_fck) {
--		omap->ehci_logic_fck = clk_get(dev, "ehci_logic_fck");
-+		omap->ehci_logic_fck = devm_clk_get(dev, "ehci_logic_fck");
- 		if (IS_ERR(omap->ehci_logic_fck)) {
- 			ret = PTR_ERR(omap->ehci_logic_fck);
- 			dev_dbg(dev, "ehci_logic_fck failed:%d\n", ret);
- 		}
- 	}
- 
--	omap->utmi_p1_gfclk = clk_get(dev, "utmi_p1_gfclk");
-+	omap->utmi_p1_gfclk = devm_clk_get(dev, "utmi_p1_gfclk");
- 	if (IS_ERR(omap->utmi_p1_gfclk)) {
- 		ret = PTR_ERR(omap->utmi_p1_gfclk);
- 		dev_err(dev, "utmi_p1_gfclk failed error:%d\n", ret);
--		goto err_p1_gfclk;
-+		goto err_mem;
- 	}
- 
--	omap->utmi_p2_gfclk = clk_get(dev, "utmi_p2_gfclk");
-+	omap->utmi_p2_gfclk = devm_clk_get(dev, "utmi_p2_gfclk");
- 	if (IS_ERR(omap->utmi_p2_gfclk)) {
- 		ret = PTR_ERR(omap->utmi_p2_gfclk);
- 		dev_err(dev, "utmi_p2_gfclk failed error:%d\n", ret);
--		goto err_p2_gfclk;
-+		goto err_mem;
- 	}
- 
--	omap->xclk60mhsp1_ck = clk_get(dev, "xclk60mhsp1_ck");
-+	omap->xclk60mhsp1_ck = devm_clk_get(dev, "xclk60mhsp1_ck");
- 	if (IS_ERR(omap->xclk60mhsp1_ck)) {
- 		ret = PTR_ERR(omap->xclk60mhsp1_ck);
- 		dev_err(dev, "xclk60mhsp1_ck failed error:%d\n", ret);
--		goto err_xclk60mhsp1;
-+		goto err_mem;
- 	}
- 
--	omap->xclk60mhsp2_ck = clk_get(dev, "xclk60mhsp2_ck");
-+	omap->xclk60mhsp2_ck = devm_clk_get(dev, "xclk60mhsp2_ck");
- 	if (IS_ERR(omap->xclk60mhsp2_ck)) {
- 		ret = PTR_ERR(omap->xclk60mhsp2_ck);
- 		dev_err(dev, "xclk60mhsp2_ck failed error:%d\n", ret);
--		goto err_xclk60mhsp2;
-+		goto err_mem;
- 	}
- 
--	omap->init_60m_fclk = clk_get(dev, "init_60m_fclk");
-+	omap->init_60m_fclk = devm_clk_get(dev, "init_60m_fclk");
- 	if (IS_ERR(omap->init_60m_fclk)) {
- 		ret = PTR_ERR(omap->init_60m_fclk);
- 		dev_err(dev, "init_60m_fclk failed error:%d\n", ret);
--		goto err_init60m;
-+		goto err_mem;
- 	}
- 
- 	for (i = 0; i < omap->nports; i++) {
-@@ -727,21 +727,21 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 		 * platforms have all clocks and we can function without
- 		 * them
- 		 */
--		omap->utmi_clk[i] = clk_get(dev, clkname);
-+		omap->utmi_clk[i] = devm_clk_get(dev, clkname);
- 		if (IS_ERR(omap->utmi_clk[i]))
- 			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
- 				clkname, PTR_ERR(omap->utmi_clk[i]));
- 
- 		snprintf(clkname, sizeof(clkname),
- 				"usb_host_hs_hsic480m_p%d_clk", i + 1);
--		omap->hsic480m_clk[i] = clk_get(dev, clkname);
-+		omap->hsic480m_clk[i] = devm_clk_get(dev, clkname);
- 		if (IS_ERR(omap->hsic480m_clk[i]))
- 			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
- 				clkname, PTR_ERR(omap->hsic480m_clk[i]));
- 
- 		snprintf(clkname, sizeof(clkname),
- 				"usb_host_hs_hsic60m_p%d_clk", i + 1);
--		omap->hsic60m_clk[i] = clk_get(dev, clkname);
-+		omap->hsic60m_clk[i] = devm_clk_get(dev, clkname);
- 		if (IS_ERR(omap->hsic60m_clk[i]))
- 			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
- 				clkname, PTR_ERR(omap->hsic60m_clk[i]));
-@@ -784,7 +784,7 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 
- 		if (ret) {
- 			dev_err(dev, "Failed to create DT children: %d\n", ret);
--			goto err_alloc;
-+			goto err_mem;
- 		}
- 
- 	} else {
-@@ -792,40 +792,12 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 		if (ret) {
- 			dev_err(dev, "omap_usbhs_alloc_children failed: %d\n",
- 						ret);
--			goto err_alloc;
-+			goto err_mem;
- 		}
- 	}
- 
- 	return 0;
- 
--err_alloc:
--	for (i = 0; i < omap->nports; i++) {
--		if (!IS_ERR(omap->utmi_clk[i]))
--			clk_put(omap->utmi_clk[i]);
--		if (!IS_ERR(omap->hsic60m_clk[i]))
--			clk_put(omap->hsic60m_clk[i]);
--		if (!IS_ERR(omap->hsic480m_clk[i]))
--			clk_put(omap->hsic480m_clk[i]);
--	}
--
--	clk_put(omap->init_60m_fclk);
--
--err_init60m:
--	clk_put(omap->xclk60mhsp2_ck);
--
--err_xclk60mhsp2:
--	clk_put(omap->xclk60mhsp1_ck);
--
--err_xclk60mhsp1:
--	clk_put(omap->utmi_p2_gfclk);
--
--err_p2_gfclk:
--	clk_put(omap->utmi_p1_gfclk);
--
--err_p1_gfclk:
--	if (!IS_ERR(omap->ehci_logic_fck))
--		clk_put(omap->ehci_logic_fck);
--
- err_mem:
- 	pm_runtime_disable(dev);
- 
-@@ -847,27 +819,6 @@ static int usbhs_omap_remove_child(struct device *dev, void *data)
-  */
- static int usbhs_omap_remove(struct platform_device *pdev)
- {
--	struct usbhs_hcd_omap *omap = platform_get_drvdata(pdev);
--	int i;
--
--	for (i = 0; i < omap->nports; i++) {
--		if (!IS_ERR(omap->utmi_clk[i]))
--			clk_put(omap->utmi_clk[i]);
--		if (!IS_ERR(omap->hsic60m_clk[i]))
--			clk_put(omap->hsic60m_clk[i]);
--		if (!IS_ERR(omap->hsic480m_clk[i]))
--			clk_put(omap->hsic480m_clk[i]);
--	}
--
--	clk_put(omap->init_60m_fclk);
--	clk_put(omap->utmi_p1_gfclk);
--	clk_put(omap->utmi_p2_gfclk);
--	clk_put(omap->xclk60mhsp2_ck);
--	clk_put(omap->xclk60mhsp1_ck);
--
--	if (!IS_ERR(omap->ehci_logic_fck))
--		clk_put(omap->ehci_logic_fck);
+On Sat, Jan 11, 2014 at 10:16:57PM +0100, Sebastian Reichel wrote:
+> Here are a couple of additions for the Nokia N900 Device Tree
+> Source file. All related drivers changes are queued for 3.14
+> (except for the tpa6130a2, which got merged into 3.13).
+>=20
+> I may have some more additions if the driver changes for the
+> accelerometer, the touchscreen or the wireless lan chip will be
+> queued up.
+
+ping?
+
+Also it seems, that for_3.14/dts branch on bcousson/linux-omap-dt.git
+merged some branches, which Tony no longer intends to be merged for
+3.14.
+
+-- Sebastian
+
+--MW5yreqqjyrRcusr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCAAGBQJS3Uf2AAoJENju1/PIO/qaDcgP/iphWFKVVTOlnJ994CJ9rdvz
+pr/HbW0ERTSMeZ3OP/LNK9TFrwS9i+aExn2CXHGKkYPYEG/iaFj1BvjirT7QO5hN
+XqBM/evwqQNGO4cSVCGbBh2Eekwq9YQmOQiESC4fte3XlA7dGCy3hwOSDcFHJMoD
+vOb7K4gdI0+0YN9sEx6jyYiL74z6PSJyTBrAhzHE0gyYNCh5strGcu9H/2y6LOhn
+WUvbgmSJ2MRH67uX6SDT7YwTgrB32CZU+kEv4qFX/z/t3u550mi4kk0NazO7TLrc
+4IQHvJUIWFy68Dwebm9JdfvYkwQaQYSIIKcsb2mbRnu5/NAZfECxALX/c30D6q0m
+ZtUsd8iT9pdwZRvj/tbTNQFcTcVhJZC+DejFVBK9qlsrqBUFp8OUqjQ27KAp6lk8
+E+s+bbfzIJkob8315Pqqq/4E/n4f60o3kvZXW7wSAdY1FkrgjEgigeEkev2AO59j
+nWrVoXcwuEHqRjAs1oYw9Et36dwn7ALDfAY9aqpdU32rx62+4+H4si4zgcrv/SPy
+SjRjttpJszfrNLZ6XB2YfYzSXhI3Iwq8wASbkvfeAlSniVLL3b9Y4Rls4IyXf5e2
+kcZvHg1QjDFCcD25vMANwl2jR94lSlppacIjHULigXwDpmcct/RtRUJVraZDXRAv
+Br9VQHlS5tMb2bgdHswU
+=m6cS
+-----END PGP SIGNATURE-----
+
+--MW5yreqqjyrRcusr--
