@@ -1,56 +1,210 @@
-From: Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: AM335x USB DMA seems broken on ISOC URBs
-Date: Mon, 20 Jan 2014 08:25:28 -0300
-Message-ID: <20140120112527.GA10382@localhost>
-References: <20131222055945.GA7194@localhost>
- <20140117162723.GB3843@localhost>
- <52DA99D8.8010003@zonque.org>
- <52DD055C.1090806@zonque.org>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [net-next PATCH 1/1] drivers: net: cpsw: enable promiscuous mode support
+Date: Mon, 20 Jan 2014 17:38:38 +0530
+Message-ID: <1390219718-31749-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <52DD055C.1090806-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 20, 2014 at 12:15:40PM +0100, Daniel Mack wrote:
-> On 01/18/2014 04:12 PM, Daniel Mack wrote:
-> > On 01/17/2014 05:27 PM, Ezequiel Garcia wrote:
-> >> On Sun, Dec 22, 2013 at 02:59:45AM -0300, Ezequiel Garcia wrote:
->=20
-> >>> While doing some experiments with the stk1160 driver (for "Easyca=
-p" TV video
-> >>> capture devices), ran into problems using v3.13-rc4. The problem =
-is that the
-> >>> stk1160 IRQ handler receives no URBs at all.
->=20
-> [...]
->=20
-> > Let me know if you find anything - I hope to find some time to do
-> > similar tests on AM33xx based hardware.
->=20
-> I tried using an USB headset connected to a AM33xx based board, using
-> kernel v3.13.
->=20
-> The good news is that aplay gives me sound, so there's nothing genera=
-lly
-> wrong with isochronous streams on musb_dsps/cppi41.
->=20
+Enable promiscuous mode support for CPSW.
 
-Hm.. interesting. I wonder what's the difference between those URBs and
-the video URBs involved in stk1160 operation. Maybe the size of each
-buffer transfered?
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c     | 101 ++++++++++++++++++++++++++++---------
+ drivers/net/ethernet/ti/cpsw_ale.c |  16 ++++++
+ drivers/net/ethernet/ti/cpsw_ale.h |   2 +
+ 3 files changed, 94 insertions(+), 25 deletions(-)
 
-Can anybody bring some light on this?
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index e8bb77d..21bbdcb 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -541,14 +541,89 @@ static inline int cpsw_get_slave_port(struct cpsw_priv *priv, u32 slave_num)
+ 		return slave_num;
+ }
+ 
++static void cpsw_set_promiscious(struct net_device *ndev, bool enable)
++{
++	struct cpsw_priv *priv = netdev_priv(ndev);
++	struct cpsw_ale *ale = priv->ale;
++
++	if (priv->data.dual_emac) {
++		/* Enabling promiscuous mode for one interface will be
++		 * common for both the interface as the interface shares
++		 * the same hardware resource.
++		 */
++		if (!enable && ((priv->slaves[0].ndev->flags & IFF_PROMISC) ||
++				(priv->slaves[1].ndev->flags & IFF_PROMISC))) {
++			enable = true;
++			dev_err(&ndev->dev, "promiscuity not disabled as the other interface is still in promiscuity mode\n");
++		}
++
++		if (enable) {
++			/* Enable Bypass */
++			cpsw_ale_control_set(ale, 0, ALE_BYPASS, 1);
++
++			dev_dbg(&ndev->dev, "promiscuity enabled\n");
++		} else {
++			/* Disable Bypass */
++			cpsw_ale_control_set(ale, 0, ALE_BYPASS, 0);
++			dev_dbg(&ndev->dev, "promiscuity disabled\n");
++		}
++	} else {
++		int i;
++
++		if (enable) {
++			unsigned long timeout = jiffies + HZ;
++
++			/* Disable Learn for all ports */
++			for (i = 0; i <= priv->data.slaves; i++) {
++				cpsw_ale_control_set(ale, i,
++						     ALE_PORT_NOLEARN, 1);
++				cpsw_ale_control_set(ale, i,
++						     ALE_PORT_NO_SA_UPDATE, 1);
++			}
++
++			/* Clear All Untouched entries */
++			cpsw_ale_control_set(ale, 0, ALE_AGEOUT, 1);
++			do {
++				cpu_relax();
++				if (cpsw_ale_control_get(ale, 0, ALE_AGEOUT))
++					break;
++			} while (time_after(timeout, jiffies));
++			cpsw_ale_control_set(ale, 0, ALE_AGEOUT, 1);
++
++			/* Clear all mcast from ALE */
++			cpsw_ale_flush_multicast(ale, ALE_ALL_PORTS <<
++						 priv->host_port);
++
++			/* Flood All Unicast Packets to Host port */
++			cpsw_ale_control_set(ale, 0, ALE_P0_UNI_FLOOD, 1);
++			dev_dbg(&ndev->dev, "promiscuity enabled\n");
++		} else {
++			/* Flood All Unicast Packets to Host port */
++			cpsw_ale_control_set(ale, 0, ALE_P0_UNI_FLOOD, 0);
++
++			/* Enable Learn for all ports */
++			for (i = 0; i <= priv->data.slaves; i++) {
++				cpsw_ale_control_set(ale, i,
++						     ALE_PORT_NOLEARN, 0);
++				cpsw_ale_control_set(ale, i,
++						     ALE_PORT_NO_SA_UPDATE, 0);
++			}
++			dev_dbg(&ndev->dev, "promiscuity disabled\n");
++		}
++	}
++}
++
+ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
+ {
+ 	struct cpsw_priv *priv = netdev_priv(ndev);
+ 
+ 	if (ndev->flags & IFF_PROMISC) {
+ 		/* Enable promiscuous mode */
+-		dev_err(priv->dev, "Ignoring Promiscuous mode\n");
++		cpsw_set_promiscious(ndev, true);
+ 		return;
++	} else {
++		/* Disable promiscuous mode */
++		cpsw_set_promiscious(ndev, false);
+ 	}
+ 
+ 	/* Clear all mcast from ALE */
+@@ -1257,29 +1332,6 @@ fail:
+ 	return NETDEV_TX_BUSY;
+ }
+ 
+-static void cpsw_ndo_change_rx_flags(struct net_device *ndev, int flags)
+-{
+-	/*
+-	 * The switch cannot operate in promiscuous mode without substantial
+-	 * headache.  For promiscuous mode to work, we would need to put the
+-	 * ALE in bypass mode and route all traffic to the host port.
+-	 * Subsequently, the host will need to operate as a "bridge", learn,
+-	 * and flood as needed.  For now, we simply complain here and
+-	 * do nothing about it :-)
+-	 */
+-	if ((flags & IFF_PROMISC) && (ndev->flags & IFF_PROMISC))
+-		dev_err(&ndev->dev, "promiscuity ignored!\n");
+-
+-	/*
+-	 * The switch cannot filter multicast traffic unless it is configured
+-	 * in "VLAN Aware" mode.  Unfortunately, VLAN awareness requires a
+-	 * whole bunch of additional logic that this driver does not implement
+-	 * at present.
+-	 */
+-	if ((flags & IFF_ALLMULTI) && !(ndev->flags & IFF_ALLMULTI))
+-		dev_err(&ndev->dev, "multicast traffic cannot be filtered!\n");
+-}
+-
+ #ifdef CONFIG_TI_CPTS
+ 
+ static void cpsw_hwtstamp_v1(struct cpsw_priv *priv)
+@@ -1575,7 +1627,6 @@ static const struct net_device_ops cpsw_netdev_ops = {
+ 	.ndo_open		= cpsw_ndo_open,
+ 	.ndo_stop		= cpsw_ndo_stop,
+ 	.ndo_start_xmit		= cpsw_ndo_start_xmit,
+-	.ndo_change_rx_flags	= cpsw_ndo_change_rx_flags,
+ 	.ndo_set_mac_address	= cpsw_ndo_set_mac_address,
+ 	.ndo_do_ioctl		= cpsw_ndo_ioctl,
+ 	.ndo_validate_addr	= eth_validate_addr,
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+index 63e9819..7f89306 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.c
++++ b/drivers/net/ethernet/ti/cpsw_ale.c
+@@ -477,6 +477,14 @@ static const struct ale_control_info ale_controls[ALE_NUM_CONTROLS] = {
+ 		.port_shift	= 0,
+ 		.bits		= 1,
+ 	},
++	[ALE_P0_UNI_FLOOD]	= {
++		.name		= "port0_unicast_flood",
++		.offset		= ALE_CONTROL,
++		.port_offset	= 0,
++		.shift		= 8,
++		.port_shift	= 0,
++		.bits		= 1,
++	},
+ 	[ALE_VLAN_NOLEARN]	= {
+ 		.name		= "vlan_nolearn",
+ 		.offset		= ALE_CONTROL,
+@@ -573,6 +581,14 @@ static const struct ale_control_info ale_controls[ALE_NUM_CONTROLS] = {
+ 		.port_shift	= 0,
+ 		.bits		= 1,
+ 	},
++	[ALE_PORT_NO_SA_UPDATE]	= {
++		.name		= "no_source_update",
++		.offset		= ALE_PORTCTL,
++		.port_offset	= 4,
++		.shift		= 5,
++		.port_shift	= 0,
++		.bits		= 1,
++	},
+ 	[ALE_PORT_MCAST_LIMIT]	= {
+ 		.name		= "mcast_limit",
+ 		.offset		= ALE_PORTCTL,
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.h b/drivers/net/ethernet/ti/cpsw_ale.h
+index 30daa12..de409c3 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.h
++++ b/drivers/net/ethernet/ti/cpsw_ale.h
+@@ -34,6 +34,7 @@ enum cpsw_ale_control {
+ 	ALE_ENABLE,
+ 	ALE_CLEAR,
+ 	ALE_AGEOUT,
++	ALE_P0_UNI_FLOOD,
+ 	ALE_VLAN_NOLEARN,
+ 	ALE_NO_PORT_VLAN,
+ 	ALE_OUI_DENY,
+@@ -47,6 +48,7 @@ enum cpsw_ale_control {
+ 	ALE_PORT_DROP_UNTAGGED,
+ 	ALE_PORT_DROP_UNKNOWN_VLAN,
+ 	ALE_PORT_NOLEARN,
++	ALE_PORT_NO_SA_UPDATE,
+ 	ALE_PORT_UNKNOWN_VLAN_MEMBER,
+ 	ALE_PORT_UNKNOWN_MCAST_FLOOD,
+ 	ALE_PORT_UNKNOWN_REG_MCAST_FLOOD,
+-- 
+1.8.5.2.233.g932f7e4
