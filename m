@@ -1,50 +1,57 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v5 3/9] mfd: omap-usb-host: Update DT clock binding
- information
-Date: Mon, 20 Jan 2014 11:14:55 +0200
-Message-ID: <52DCE90F.8040908@ti.com>
-References: <1389269303-30465-1-git-send-email-rogerq@ti.com>
- <1389269303-30465-4-git-send-email-rogerq@ti.com>
- <20140110101107.GF28141@lee--X1>
+From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] spi: omap2-mcspi: Fix mcspi FIFO usage
+Date: Mon, 20 Jan 2014 15:14:04 +0530
+Message-ID: <1390211044-9791-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140110101107.GF28141@lee--X1>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: mark.rutland@arm.com, m.paolino@virtualopensystems.com, Samuel Ortiz <sameo@linux.intel.com>, arnd@arndb.de, devicetree@vger.kernel.org, tony@atomide.com, sre@debian.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/10/2014 12:11 PM, Lee Jones wrote:
-> On Thu, 09 Jan 2014, Roger Quadros wrote:
-> 
->> The omap-usb-host driver expects certained named clocks.
->> Add this information to the DT binding document.
->>
->> Use clock names as per function for reference clocks.
->>
->> CC: Lee Jones <lee.jones@linaro.org>
->> CC: Samuel Ortiz <sameo@linux.intel.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  .../devicetree/bindings/mfd/omap-usb-host.txt      | 23 ++++++++++++++++++++++
->>  drivers/mfd/omap-usb-host.c                        |  6 +++---
->>  2 files changed, 26 insertions(+), 3 deletions(-)
-> 
-> Please don't mix up binding changes with code ones.
-> 
-> Separate patch please.
-> 
-OK.
+The following commit add Fifo support for omap mcspi.
+commit d33f473dcd8e69321f001ba330d648f475b504c9
+Author: Illia Smyrnov <illia.smyrnov-l0cyMroinI0@public.gmane.org>
+Date:   Mon Jun 17 16:31:06 2013 +0300
 
-cheers,
--roger
+    spi: omap2-mcspi: Add FIFO buffer support
+
+Currently, enabling of FIFO is done based on rx_buf or tx_buf checks
+and only one of the RX or TX fifo is enabled. There can be transfers
+in which both RX/TX fifo is desired. Hence, fixing code for the
+same to allow setting both TX/RX fifo when needed.
+
+Application:
+While doing a loopback testing on beaglebone white(DMA
+with FIFO enabled), where both RX and TX buf buffers are passed,
+./spidev_test hangs.
+The $subject patch fixes that hang and data can be loopbacked.
+
+Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+---
+ drivers/spi/spi-omap2-mcspi.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index ed4af47..86402a7 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -299,7 +299,9 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
+ 		if (t->rx_buf != NULL) {
+ 			chconf |= OMAP2_MCSPI_CHCONF_FFER;
+ 			xferlevel |= (fifo_depth - 1) << 8;
+-		} else {
++		}
++
++		if (t->tx_buf != NULL) {
+ 			chconf |= OMAP2_MCSPI_CHCONF_FFET;
+ 			xferlevel |= fifo_depth - 1;
+ 		}
+-- 
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
