@@ -1,75 +1,56 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for
- automode
-Date: Mon, 20 Jan 2014 12:24:34 +0100
-Message-ID: <20140120112434.GA3225@earth.universe>
-References: <1384856285-19593-3-git-send-email-pali.rohar@gmail.com>
- <CAOf5uwkrep0PhOn67+9PHmP2A2Jxrp9DNK3BRp9D_sYu_PYvvw@mail.gmail.com>
- <201311242001.23126@pali>
- <CAOf5uw=-cy2QoDxjecxYTYsrQRD=LtN0N7DcYJHZ6HSbexzPRw@mail.gmail.com>
- <20131201223730.GD6271@lizard>
- <CAOf5uwnkQwkS7_fsLtC5nzdXyS1Rzw2SkxaziUuJrO9SKXh3yw@mail.gmail.com>
- <20131202002444.GA22418@teo>
- <CAOf5uwnz6SfeEsbGq62QFgRHJ2ys++VV1+VrULxyR4uH2Z_vJQ@mail.gmail.com>
- <20140119205402.GA24185@earth.universe>
- <20140120102129.GO27282@n2100.arm.linux.org.uk>
+From: Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: AM335x USB DMA seems broken on ISOC URBs
+Date: Mon, 20 Jan 2014 08:25:28 -0300
+Message-ID: <20140120112527.GA10382@localhost>
+References: <20131222055945.GA7194@localhost>
+ <20140117162723.GB3843@localhost>
+ <52DA99D8.8010003@zonque.org>
+ <52DD055C.1090806@zonque.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="k1lZvvs/B4yU6o8G"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20140120102129.GO27282@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Anton Vorontsov <anton@enomsg.org>, Michael Trimarchi <michael@amarulasolutions.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
+In-Reply-To: <52DD055C.1090806-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-
---k1lZvvs/B4yU6o8G
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Jan 20, 2014 at 10:21:29AM +0000, Russell King - ARM Linux wrote:
-> And another one using that evil mail-followup-to header:
+On Mon, Jan 20, 2014 at 12:15:40PM +0100, Daniel Mack wrote:
+> On 01/18/2014 04:12 PM, Daniel Mack wrote:
+> > On 01/17/2014 05:27 PM, Ezequiel Garcia wrote:
+> >> On Sun, Dec 22, 2013 at 02:59:45AM -0300, Ezequiel Garcia wrote:
 >=20
-> Mail-Followup-To: Pali Roh=E1r <pali.rohar@gmail.com>,
->         Anton Vorontsov <anton@enomsg.org>,
->         Michael Trimarchi <michael@amarulasolutions.com>,
->         David Woodhouse <dwmw2@infradead.org>,
->         Tony Lindgren <tony@atomide.com>,
->         Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.o=
-rg,
->         Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
->         freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
+> >>> While doing some experiments with the stk1160 driver (for "Easyca=
+p" TV video
+> >>> capture devices), ran into problems using v3.13-rc4. The problem =
+is that the
+> >>> stk1160 IRQ handler receives no URBs at all.
 >=20
-> which results in all the above being moved into the To: header by
-> unsuspecting recipients who reply to your message.
+> [...]
+>=20
+> > Let me know if you find anything - I hope to find some time to do
+> > similar tests on AM33xx based hardware.
+>=20
+> I tried using an USB headset connected to a AM33xx based board, using
+> kernel v3.13.
+>=20
+> The good news is that aplay gives me sound, so there's nothing genera=
+lly
+> wrong with isochronous streams on musb_dsps/cppi41.
+>=20
 
-Thanks for the hint. Should be fixed now.
+Hm.. interesting. I wonder what's the difference between those URBs and
+the video URBs involved in stk1160 operation. Maybe the size of each
+buffer transfered?
 
--- Sebastian
-
---k1lZvvs/B4yU6o8G
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCAAGBQJS3QdyAAoJENju1/PIO/qaQtYQAJdbVMdRzkY3Rsn0FdQANKoF
-mqml3w5T3SsZ6sU2zE7UbhSETkONOYqp3rn3TcApUecOZiaERjrQCtYoMqhU+HVQ
-t0jY/ucXH4cyGZw0nrm9OhnnB+Itx1qyMPD6KrAq1EYMNG9wv18XF97UrI1oRT74
-jb2QJDGKcMpmDTJk+1vAHDa6vvnSxKXklMZiU/aBXZTdQmoWGMeFzU4i/JRZod8M
-sdjl0YHAtktwFcoD2FzxVIhVvPzQL8bk4axF89zoq6OAOf0ZCpaAcUVtUXOmX5vB
-LPpxnY+xbvmxvK8ldrXrnorAYGIiwNpuU6K1CKW6mVBb73BSTOMH6kL0vYBp8yxL
-kkXYB5JKwHmbM+AG+wsdPJ4e0SMOW4u7zVfjijp3lJ2SU1PMYPM+sl6kMmfsSqY8
-UJweEUkp3AzFmbiQ0iR1ycM3LmMWIWH2FXLjo25tlKJSToAsMojiVLWna1iyuLYs
-607wyI/WKGsCDozSWeP3dnTFTGSItAGfXbFLFURHJCZHKIaGyfNkDsGY5Sp0/0+c
-F/ZGNuZT64cmfjIYI7e6a8jn9xphsXIRyMNHyo6p3ynwwlg3uhj5JD8Og6QSQekB
-YRVOAPC8m66viXuyktIYfQGXXSVDcalJsACgBOfcRoXrawHjpRx+cohhnaNW0QC2
-DgTsWk6bx6523ztF9UNv
-=Oc7n
------END PGP SIGNATURE-----
-
---k1lZvvs/B4yU6o8G--
+Can anybody bring some light on this?
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
