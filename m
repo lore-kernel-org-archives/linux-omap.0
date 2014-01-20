@@ -1,57 +1,69 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] spi: omap2-mcspi: Fix mcspi FIFO usage
-Date: Mon, 20 Jan 2014 15:14:04 +0530
-Message-ID: <1390211044-9791-1-git-send-email-sourav.poddar@ti.com>
+From: Michal Hocko <mhocko@suse.cz>
+Subject: Re: Deadlock in do_page_fault() on ARM (old kernel)
+Date: Mon, 20 Jan 2014 11:15:09 +0100
+Message-ID: <20140120101509.GA2626@dhcp22.suse.cz>
+References: <52D73220.3030108@signal11.us>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52D73220.3030108@signal11.us>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Ott <alan@signal11.us>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The following commit add Fifo support for omap mcspi.
-commit d33f473dcd8e69321f001ba330d648f475b504c9
-Author: Illia Smyrnov <illia.smyrnov-l0cyMroinI0@public.gmane.org>
-Date:   Mon Jun 17 16:31:06 2013 +0300
+On Wed 15-01-14 20:13:04, Alan Ott wrote:
+[...]
+> 2. __copy_to_user_memcpy() takes a read lock (down_read()) on
 
-    spi: omap2-mcspi: Add FIFO buffer support
+This looks like a bug. copy_to_user_* shouldn't take mmap_sem at all
+Check the might_fault annotation used in generic code. Arm version of
+copy_to_user* doesn't seem to use the annotation and I do not see a good
+reason for that.
 
-Currently, enabling of FIFO is done based on rx_buf or tx_buf checks
-and only one of the RX or TX fifo is enabled. There can be transfers
-in which both RX/TX fifo is desired. Hence, fixing code for the
-same to allow setting both TX/RX fifo when needed.
+> mm->mmap_sem. While that lock is held, __copy_to_user_memcpy() can
+> generate a page fault, causing do_page_fault() to get called, which
+> will also try to get a read lock (down_read()) on mm->mmap_sem.
+> Multiple read locks can be taken on an rw_semaphore, but deadlock
+> will occur if another thread tries to get a write lock
+> (down_write()) in between. For example:
+>     Task 1:         Task 2:
+>     down_read(sem)
+>                     down_write(sem)    <-- Goes to sleep
+>     down_read(sem)                     <-- Goes to sleep
+> 
+> There is a thread from 2005[3] which seems to discuss the same
+> concept of recursive rw_semaphores, but for futexes.
+> 
+> Other comments:
+> 1. My analysis of this probably wrong. Otherwise it seems many
+> others would have the same problem, and they don't seem to. I'm
+> hoping this email will help to correct my understanding.
+> 2. I looked through the git logs for recent (since 2.6.37 time
+> frame) and nothing else jumped out at me as being an obvious fix for
+> this situation.
+> 
+> Thanks for any insight you can give,
+> 
+> Alan.
+> 
+> [1] http://www.signal11.us/~alan/show-all-tasks-deadlock.txt
+> 
+> [2] Some websites/bugtrackers mention this commit with a similar
+> issue, but I'm not entirely sure how it's related:
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=8878a539ff19a43cf3729e7562cd528f490246ae
+> 
+> This one seems obviously related, but has no effect on my system:
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=435a7ef52db7d86e67a009b36cac1457f8972391
+> 
+> [3] http://thread.gmane.org/gmane.linux.kernel/280900
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
-Application:
-While doing a loopback testing on beaglebone white(DMA
-with FIFO enabled), where both RX and TX buf buffers are passed,
-./spidev_test hangs.
-The $subject patch fixes that hang and data can be loopbacked.
-
-Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
----
- drivers/spi/spi-omap2-mcspi.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index ed4af47..86402a7 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -299,7 +299,9 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
- 		if (t->rx_buf != NULL) {
- 			chconf |= OMAP2_MCSPI_CHCONF_FFER;
- 			xferlevel |= (fifo_depth - 1) << 8;
--		} else {
-+		}
-+
-+		if (t->tx_buf != NULL) {
- 			chconf |= OMAP2_MCSPI_CHCONF_FFET;
- 			xferlevel |= fifo_depth - 1;
- 		}
 -- 
-1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Michal Hocko
+SUSE Labs
