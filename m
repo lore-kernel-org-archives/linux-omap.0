@@ -1,69 +1,36 @@
-From: Michal Hocko <mhocko@suse.cz>
-Subject: Re: Deadlock in do_page_fault() on ARM (old kernel)
-Date: Mon, 20 Jan 2014 11:15:09 +0100
-Message-ID: <20140120101509.GA2626@dhcp22.suse.cz>
-References: <52D73220.3030108@signal11.us>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for
+	automode
+Date: Mon, 20 Jan 2014 10:21:29 +0000
+Message-ID: <20140120102129.GO27282@n2100.arm.linux.org.uk>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <1384856285-19593-3-git-send-email-pali.rohar@gmail.com> <CAOf5uwkrep0PhOn67+9PHmP2A2Jxrp9DNK3BRp9D_sYu_PYvvw@mail.gmail.com> <201311242001.23126@pali> <CAOf5uw=-cy2QoDxjecxYTYsrQRD=LtN0N7DcYJHZ6HSbexzPRw@mail.gmail.com> <20131201223730.GD6271@lizard> <CAOf5uwnkQwkS7_fsLtC5nzdXyS1Rzw2SkxaziUuJrO9SKXh3yw@mail.gmail.com> <20131202002444.GA22418@teo> <CAOf5uwnz6SfeEsbGq62QFgRHJ2ys++VV1+VrULxyR4uH2Z_vJQ@mail.gmail.com> <20140119205402.GA24185@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <52D73220.3030108@signal11.us>
+In-Reply-To: <20140119205402.GA24185@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Ott <alan@signal11.us>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+To: Sebastian Reichel <sre@ring0.de>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Anton Vorontsov <anton@enomsg.org>, Michael Trimarchi <michael@amarulasolutions.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
 List-Id: linux-omap@vger.kernel.org
 
-On Wed 15-01-14 20:13:04, Alan Ott wrote:
-[...]
-> 2. __copy_to_user_memcpy() takes a read lock (down_read()) on
+And another one using that evil mail-followup-to header:
 
-This looks like a bug. copy_to_user_* shouldn't take mmap_sem at all
-Check the might_fault annotation used in generic code. Arm version of
-copy_to_user* doesn't seem to use the annotation and I do not see a good
-reason for that.
+Mail-Followup-To: Pali Roh=E1r <pali.rohar@gmail.com>,
+        Anton Vorontsov <anton@enomsg.org>,
+        Michael Trimarchi <michael@amarulasolutions.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel=
+=2Eorg,
+        Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
+        freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
 
-> mm->mmap_sem. While that lock is held, __copy_to_user_memcpy() can
-> generate a page fault, causing do_page_fault() to get called, which
-> will also try to get a read lock (down_read()) on mm->mmap_sem.
-> Multiple read locks can be taken on an rw_semaphore, but deadlock
-> will occur if another thread tries to get a write lock
-> (down_write()) in between. For example:
->     Task 1:         Task 2:
->     down_read(sem)
->                     down_write(sem)    <-- Goes to sleep
->     down_read(sem)                     <-- Goes to sleep
-> 
-> There is a thread from 2005[3] which seems to discuss the same
-> concept of recursive rw_semaphores, but for futexes.
-> 
-> Other comments:
-> 1. My analysis of this probably wrong. Otherwise it seems many
-> others would have the same problem, and they don't seem to. I'm
-> hoping this email will help to correct my understanding.
-> 2. I looked through the git logs for recent (since 2.6.37 time
-> frame) and nothing else jumped out at me as being an obvious fix for
-> this situation.
-> 
-> Thanks for any insight you can give,
-> 
-> Alan.
-> 
-> [1] http://www.signal11.us/~alan/show-all-tasks-deadlock.txt
-> 
-> [2] Some websites/bugtrackers mention this commit with a similar
-> issue, but I'm not entirely sure how it's related:
-> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=8878a539ff19a43cf3729e7562cd528f490246ae
-> 
-> This one seems obviously related, but has no effect on my system:
-> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=435a7ef52db7d86e67a009b36cac1457f8972391
-> 
-> [3] http://thread.gmane.org/gmane.linux.kernel/280900
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+which results in all the above being moved into the To: header by
+unsuspecting recipients who reply to your message.
 
--- 
-Michal Hocko
-SUSE Labs
+--=20
+=46TTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
+in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
+Estimate before purchase was "up to 13.2Mbit".
