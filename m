@@ -1,66 +1,58 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH 0/6] N900 DTS additions for 3.14
-Date: Mon, 20 Jan 2014 16:59:51 +0100
-Message-ID: <20140120155950.GB17118@earth.universe>
-References: <1389475023-11616-1-git-send-email-sre@debian.org>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: dts: Add basic devices for AM3517-craneboard
+Date: Mon, 20 Jan 2014 10:43:26 -0600
+Message-ID: <52DD522E.1070607@ti.com>
+References: <1386626150-23504-1-git-send-email-nm@ti.com> <52B0A9C8.7070201@ti.com> <52B1D3DC.1010304@baylibre.com> <52B1D50A.50406@ti.com> <52B1D866.7040300@baylibre.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="MW5yreqqjyrRcusr"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:38427 "EHLO smtp.ring0.de"
+Received: from comal.ext.ti.com ([198.47.26.152]:56014 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753970AbaATP74 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Jan 2014 10:59:56 -0500
-Content-Disposition: inline
-In-Reply-To: <1389475023-11616-1-git-send-email-sre@debian.org>
+	id S1751669AbaATQoH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Jan 2014 11:44:07 -0500
+In-Reply-To: <52B1D866.7040300@baylibre.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+
+Benoit,
+
+On 12/18/2013 11:16 AM, Benoit Cousson wrote:
+> On 18/12/2013 18:02, Nishanth Menon wrote:
+>> On 12/18/2013 10:57 AM, Benoit Cousson wrote:
+>>> On 17/12/2013 20:45, Nishanth Menon wrote:
+>>>> On 12/09/2013 03:55 PM, Nishanth Menon wrote:
+>>>>> Craneboard is a hardware development platform based on the Sitara
+>>>>> AM3517 ARM Cortex - A8 microprocessor device - see [1] for more
+>>>>> details. Add basic devices for craneboard as replacement for the board
+>>>>> file scheduled for removal as part of device tree conversion
+>>>>>
+>>>>> [1] http://craneboard.org
+>>>>>
+>>>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>>>> ---
+>>>>
+>>>> gentle ping.. had'nt seen a response on this patch. Could we queue
+>>>> this up for v3.14-rc1?
+>>>
+>>> Yep, it looks good to me.
+>> Thanks benoit.
+>>
+>>> But if you don't mind I'll start pushing my branch after Xmas :-).
+>>
+>> As long as Tony is ok with it, I have no issues either - will be great
+>> to have dt only boot in .14-rc1 though.
+> 
+> Good point, it is already -rc4.
+> 
+> OK, I'll just queued it and pushed it to for_3.14/dts.
+
+I dont see this in next-20140120 yet - wondering if Tony or you have
+plans for one of .14 rcs OR if this is queued for .15.
 
 
---MW5yreqqjyrRcusr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, Jan 11, 2014 at 10:16:57PM +0100, Sebastian Reichel wrote:
-> Here are a couple of additions for the Nokia N900 Device Tree
-> Source file. All related drivers changes are queued for 3.14
-> (except for the tpa6130a2, which got merged into 3.13).
->=20
-> I may have some more additions if the driver changes for the
-> accelerometer, the touchscreen or the wireless lan chip will be
-> queued up.
-
-ping?
-
-Also it seems, that for_3.14/dts branch on bcousson/linux-omap-dt.git
-merged some branches, which Tony no longer intends to be merged for
-3.14.
-
--- Sebastian
-
---MW5yreqqjyrRcusr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCAAGBQJS3Uf2AAoJENju1/PIO/qaDcgP/iphWFKVVTOlnJ994CJ9rdvz
-pr/HbW0ERTSMeZ3OP/LNK9TFrwS9i+aExn2CXHGKkYPYEG/iaFj1BvjirT7QO5hN
-XqBM/evwqQNGO4cSVCGbBh2Eekwq9YQmOQiESC4fte3XlA7dGCy3hwOSDcFHJMoD
-vOb7K4gdI0+0YN9sEx6jyYiL74z6PSJyTBrAhzHE0gyYNCh5strGcu9H/2y6LOhn
-WUvbgmSJ2MRH67uX6SDT7YwTgrB32CZU+kEv4qFX/z/t3u550mi4kk0NazO7TLrc
-4IQHvJUIWFy68Dwebm9JdfvYkwQaQYSIIKcsb2mbRnu5/NAZfECxALX/c30D6q0m
-ZtUsd8iT9pdwZRvj/tbTNQFcTcVhJZC+DejFVBK9qlsrqBUFp8OUqjQ27KAp6lk8
-E+s+bbfzIJkob8315Pqqq/4E/n4f60o3kvZXW7wSAdY1FkrgjEgigeEkev2AO59j
-nWrVoXcwuEHqRjAs1oYw9Et36dwn7ALDfAY9aqpdU32rx62+4+H4si4zgcrv/SPy
-SjRjttpJszfrNLZ6XB2YfYzSXhI3Iwq8wASbkvfeAlSniVLL3b9Y4Rls4IyXf5e2
-kcZvHg1QjDFCcD25vMANwl2jR94lSlppacIjHULigXwDpmcct/RtRUJVraZDXRAv
-Br9VQHlS5tMb2bgdHswU
-=m6cS
------END PGP SIGNATURE-----
-
---MW5yreqqjyrRcusr--
+-- 
+Regards,
+Nishanth Menon
