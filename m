@@ -1,73 +1,72 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] mmc: omap_hsmmc: Add support for Erratum 2.1.1.128 in device
- tree boot
-Date: Mon, 20 Jan 2014 17:29:02 -0600
-Message-ID: <1390260542-22213-1-git-send-email-nm@ti.com>
+Subject: [PATCH] ARM: dts: omap3-ldp: fix mmc configuration
+Date: Mon, 20 Jan 2014 17:34:33 -0600
+Message-ID: <1390260873-22354-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Balaji T K <balajitk@ti.com>, Chris Ball <chris@printf.net>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42361 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753223AbaATXfD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Jan 2014 18:35:03 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-When device is booted using devicetree, platforms impacted by
-Erratum 2.1.1.128 is not detected easily in the mmc driver. This erratum
-indicates that the module cannot do multi-block transfers.
-
-Handle this by providing a boolean flag to indicate to driver that it is
-working on a hardware with mentioned limitation.
+MMC1 is the only MMC interface available on the platform. Further,
+since the platform is based on older revision of SoC which is not
+capable of doing multi-block writes, mark it so and add pinmux
+to ensure that all relevant pins are configured for non-MMC boot
+mode.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
+ti,erratum-2.1.1.128 introduced in https://patchwork.kernel.org/patch/3514851/
+hence depends on the same.
+ arch/arm/boot/dts/omap3-ldp.dts |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-This explains the logs I see:
-OMAP3430 LDP (ES2.2):
-	uImage only boot:  http://slexy.org/raw/s2YrbMAi7c 
-	uImage+dtb concatenated boot: http://slexy.org/raw/s20qVg17T0 
-
-With the following flag set, device is now able to consistently boot with
-device tree supported uImage+dtb concat boot.
-
- .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    2 ++
- drivers/mmc/host/omap_hsmmc.c                      |    3 +++
- 2 files changed, 5 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-index 8c8908a..ab36f8b 100644
---- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-+++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-@@ -26,6 +26,8 @@ specifier is required.
- dma-names: List of DMA request names. These strings correspond
- 1:1 with the DMA specifiers listed in dmas. The string naming is
- to be "rx" and "tx" for RX and TX DMA requests, respectively.
-+ti,erratum-2.1.1.128: boolean, for OMAP3430/OMAP35xx platforms with broken
-+multiblock reads
- 
- Examples:
- 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 014bfe5..f2d5940 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1730,6 +1730,9 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
- 	if (of_find_property(np, "ti,dual-volt", NULL))
- 		pdata->controller_flags |= OMAP_HSMMC_SUPPORTS_DUAL_VOLT;
- 
-+	if (of_find_property(np, "ti,erratum-2.1.1.128", NULL))
-+		pdata->controller_flags |= OMAP_HSMMC_BROKEN_MULTIBLOCK_READ;
+diff --git a/arch/arm/boot/dts/omap3-ldp.dts b/arch/arm/boot/dts/omap3-ldp.dts
+index ddce0d8..bc0cc66 100644
+--- a/arch/arm/boot/dts/omap3-ldp.dts
++++ b/arch/arm/boot/dts/omap3-ldp.dts
+@@ -176,6 +176,17 @@
+ &mmc1 {
+ 	vmmc-supply = <&vmmc1>;
+ 	bus-width = <4>;
++	ti,erratum-2.1.1.128;
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc1_pins>;
++};
 +
- 	/* This driver only supports 1 slot */
- 	pdata->nr_slots = 1;
- 	pdata->slots[0].switch_pin = cd_gpio;
++&mmc2 {
++	status="disabled";
++};
++
++&mmc3 {
++	status="disabled";
+ };
+ 
+ &omap3_pmx_core {
+@@ -209,6 +220,17 @@
+ 			0x174 (PIN_OUTPUT | MUX_MODE0)	/* hsusb0_stp.hsusb0_stp */
+ 		>;
+ 	};
++
++	mmc1_pins: pinmux_mmc1_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2144, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_clk.mmc1_clk */
++			OMAP3_CORE1_IOPAD(0x2146, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_cmd.mmc1_cmd */
++			OMAP3_CORE1_IOPAD(0x2148, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_dat0.mmc1_dat0 */
++			OMAP3_CORE1_IOPAD(0x214A, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_dat1.mmc1_dat1 */
++			OMAP3_CORE1_IOPAD(0x214C, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_dat2.mmc1_dat2 */
++			OMAP3_CORE1_IOPAD(0x214e, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_dat3.mmc1_dat3 */
++		>;
++	};
+ };
+ 
+ &usb_otg_hs {
 -- 
 1.7.9.5
+
