@@ -1,168 +1,75 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv3 26/41] ARM: omap4-sdp.dts: add display information
-Date: Tue, 21 Jan 2014 12:56:58 +0200
-Message-ID: <1390301833-24944-27-git-send-email-tomi.valkeinen@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv3 31/41] OMAPDSS: remove DT hacks for regulators
+Date: Tue, 21 Jan 2014 12:57:03 +0200
+Message-ID: <1390301833-24944-32-git-send-email-tomi.valkeinen@ti.com>
 References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1390301833-24944-1-git-send-email-tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Archit Taneja <archit-l0cyMroinI0@public.gmane.org>, Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Stefan Roese <stefan.roese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Dr . H . Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:39177 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754547AbaAULBE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Jan 2014 06:01:04 -0500
+In-Reply-To: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add DT data for OMAP4 SDP board. The board has the following displays:
+For booting Panda and 4430SDP with DT, while DSS did not support DT, we
+had to had small hacks in the omapdss driver to get the regulators. With
+DT now supported in DSS, we can remove those hacks.
 
-lcd0: a command mode DSI panel connected to OMAP DSI1 encoder
-lcd1: a command mode DSI panel connected to OMAP DSI2 encoder
-hdmi: OMAP HDMI output with TPD12S015 ESD/level shifter
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/boot/dts/omap4-sdp.dts | 107 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 105 insertions(+), 2 deletions(-)
+ drivers/video/omap2/dss/dsi.c   | 9 +--------
+ drivers/video/omap2/dss/hdmi4.c | 9 +--------
+ 2 files changed, 2 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index dbc81fb6ef03..cf9f6cbbd349 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -19,6 +19,12 @@
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 98bb2d68a462..f461fe015554 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -1162,16 +1162,9 @@ static int dsi_regulator_init(struct platform_device *dsidev)
  
-+	aliases {
-+		display0 = &lcd0;
-+		display1 = &lcd1;
-+		display2 = &hdmi0;
-+	};
-+
- 	vdd_eth: fixedregulator-vdd-eth {
- 		compatible = "regulator-fixed";
- 		regulator-name = "VDD_ETH";
-@@ -153,6 +159,47 @@
- 		startup-delay-us = <70000>;
- 		enable-active-high;
- 	};
-+
-+	tpd12s015: encoder@0 {
-+		compatible = "ti,tpd12s015";
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&tpd12s015_pins>;
-+
-+		gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>,	/* 60, CT CP HPD */
-+			<&gpio2 9 GPIO_ACTIVE_HIGH>,	/* 41, LS OE */
-+			<&gpio2 31 GPIO_ACTIVE_HIGH>;	/* 63, HPD */
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+
-+				tpd12s015_in: endpoint@0 {
-+					remote-endpoint = <&hdmi_out>;
-+				};
-+			};
-+
-+			port@1 {
-+				reg = <1>;
-+
-+				tpd12s015_out: endpoint@0 {
-+					remote-endpoint = <&hdmi_connector_in>;
-+				};
-+			};
-+		};
-+	};
-+
-+	hdmi0: connector@0 {
-+		compatible = "hdmi-connector";
-+		label = "hdmi";
-+
-+		hdmi_connector_in: endpoint {
-+			remote-endpoint = <&tpd12s015_out>;
-+		};
-+	};
- };
+ 	vdds_dsi = devm_regulator_get(&dsi->pdev->dev, "vdd");
  
- &omap4_pmx_core {
-@@ -163,8 +210,6 @@
- 			&dmic_pins
- 			&mcbsp1_pins
- 			&mcbsp2_pins
--			&dss_hdmi_pins
--			&tpd12s015_pins
- 	>;
+-	if (IS_ERR(vdds_dsi))
+-		vdds_dsi = devm_regulator_get(&dsi->pdev->dev, "vdds_dsi");
+-
+-	/* DT HACK: try VCXIO to make omapdss work for o4 sdp/panda */
+-	if (IS_ERR(vdds_dsi))
+-		vdds_dsi = devm_regulator_get(&dsi->pdev->dev, "VCXIO");
+-
+ 	if (IS_ERR(vdds_dsi)) {
+ 		if (PTR_ERR(vdds_dsi) != -EPROBE_DEFER)
+-			DSSERR("can't get VDDS_DSI regulator\n");
++			DSSERR("can't get DSI VDD regulator\n");
+ 		return PTR_ERR(vdds_dsi);
+ 	}
  
- 	uart2_pins: pinmux_uart2_pins {
-@@ -550,3 +595,61 @@
- 	mode = <3>;
- 	power = <50>;
- };
-+
-+&dss {
-+	status = "ok";
-+};
-+
-+&dsi1 {
-+	status = "ok";
-+	vdd-supply = <&vcxio>;
-+
-+	dsi1_out_ep: endpoint {
-+		remote-endpoint = <&lcd0_in>;
-+		lanes = <0 1 2 3 4 5>;
-+	};
-+
-+	lcd0: display {
-+		compatible = "tpo,taal", "panel-dsi-cm";
-+		label = "lcd0";
-+
-+		gpios = <&gpio4 6 GPIO_ACTIVE_HIGH>;	/* 102, reset */
-+
-+		lcd0_in: endpoint {
-+			remote-endpoint = <&dsi1_out_ep>;
-+		};
-+	};
-+};
-+
-+&dsi2 {
-+	status = "ok";
-+	vdd-supply = <&vcxio>;
-+
-+	dsi2_out_ep: endpoint {
-+		remote-endpoint = <&lcd1_in>;
-+		lanes = <0 1 2 3 4 5>;
-+	};
-+
-+	lcd1: display {
-+		compatible = "tpo,taal", "panel-dsi-cm";
-+		label = "lcd1";
-+
-+		gpios = <&gpio4 8 GPIO_ACTIVE_HIGH>;	/* 104, reset */
-+
-+		lcd1_in: endpoint {
-+			remote-endpoint = <&dsi2_out_ep>;
-+		};
-+	};
-+};
-+
-+&hdmi {
-+	status = "ok";
-+	vdda-supply = <&vdac>;
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&dss_hdmi_pins>;
-+
-+	hdmi_out: endpoint {
-+		remote-endpoint = <&tpd12s015_in>;
-+	};
-+};
+diff --git a/drivers/video/omap2/dss/hdmi4.c b/drivers/video/omap2/dss/hdmi4.c
+index 064bec4e08d4..17b24b26f6cd 100644
+--- a/drivers/video/omap2/dss/hdmi4.c
++++ b/drivers/video/omap2/dss/hdmi4.c
+@@ -90,16 +90,9 @@ static int hdmi_init_regulator(void)
+ 
+ 	reg = devm_regulator_get(&hdmi.pdev->dev, "vdda");
+ 
+-	if (IS_ERR(reg)
+-		reg = devm_regulator_get(&hdmi.pdev->dev, "vdda_hdmi_dac");
+-
+-	/* DT HACK: try VDAC to make omapdss work for o4 sdp/panda */
+-	if (IS_ERR(reg))
+-		reg = devm_regulator_get(&hdmi.pdev->dev, "VDAC");
+-
+ 	if (IS_ERR(reg)) {
+ 		if (PTR_ERR(reg) != -EPROBE_DEFER)
+-			DSSERR("can't get VDDA_HDMI_DAC regulator\n");
++			DSSERR("can't get VDDA regulator\n");
+ 		return PTR_ERR(reg);
+ 	}
+ 
 -- 
 1.8.3.2
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
