@@ -1,75 +1,93 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv3 17/41] OMAPDSS: encoder-tpd12s015: Add DT support
-Date: Tue, 21 Jan 2014 12:56:49 +0200
-Message-ID: <1390301833-24944-18-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv3 19/41] OMAPDSS: panel-dpi: Add DT support
+Date: Tue, 21 Jan 2014 12:56:51 +0200
+Message-ID: <1390301833-24944-20-git-send-email-tomi.valkeinen@ti.com>
 References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39089 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38782 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754250AbaAULAL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Jan 2014 06:00:11 -0500
+	id S1754512AbaAULAQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Jan 2014 06:00:16 -0500
 In-Reply-To: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add DT support for encoder-tpd12s015.
+Add DT support for panel-dpi.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- .../video/omap2/displays-new/encoder-tpd12s015.c   | 56 ++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+ drivers/video/omap2/displays-new/panel-dpi.c | 64 +++++++++++++++++++++++++++-
+ 1 file changed, 63 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/omap2/displays-new/encoder-tpd12s015.c b/drivers/video/omap2/displays-new/encoder-tpd12s015.c
-index d5c936cb217f..7e33686171e3 100644
---- a/drivers/video/omap2/displays-new/encoder-tpd12s015.c
-+++ b/drivers/video/omap2/displays-new/encoder-tpd12s015.c
-@@ -15,6 +15,7 @@
- #include <linux/slab.h>
- #include <linux/gpio.h>
+diff --git a/drivers/video/omap2/displays-new/panel-dpi.c b/drivers/video/omap2/displays-new/panel-dpi.c
+index 5f8f7e7c81ef..b032daf0f407 100644
+--- a/drivers/video/omap2/displays-new/panel-dpi.c
++++ b/drivers/video/omap2/displays-new/panel-dpi.c
+@@ -13,9 +13,12 @@
+ #include <linux/module.h>
  #include <linux/platform_device.h>
+ #include <linux/slab.h>
++#include <linux/of.h>
 +#include <linux/of_gpio.h>
  
  #include <video/omapdss.h>
  #include <video/omap-panel-data.h>
-@@ -289,6 +290,49 @@ static int tpd_probe_pdata(struct platform_device *pdev)
++#include <video/of_display_timing.h>
+ 
+ struct panel_drv_data {
+ 	struct omap_dss_device dssdev;
+@@ -70,7 +73,8 @@ static int panel_dpi_enable(struct omap_dss_device *dssdev)
+ 	if (omapdss_device_is_enabled(dssdev))
+ 		return 0;
+ 
+-	in->ops.dpi->set_data_lines(in, ddata->data_lines);
++	if (ddata->data_lines)
++		in->ops.dpi->set_data_lines(in, ddata->data_lines);
+ 	in->ops.dpi->set_timings(in, &ddata->videomode);
+ 
+ 	r = in->ops.dpi->enable(in);
+@@ -182,6 +186,52 @@ static int panel_dpi_probe_pdata(struct platform_device *pdev)
  	return 0;
  }
  
-+static int tpd_probe_of(struct platform_device *pdev)
++static int panel_dpi_probe_of(struct platform_device *pdev)
 +{
 +	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
 +	struct device_node *node = pdev->dev.of_node;
 +	struct omap_dss_device *in;
++	int r;
++	struct display_timing timing;
++	struct videomode vm;
 +	int gpio;
 +
-+	/* CT CP HPD GPIO */
 +	gpio = of_get_gpio(node, 0);
-+	if (!gpio_is_valid(gpio)) {
-+		dev_err(&pdev->dev, "failed to parse CT CP HPD gpio\n");
++	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
++		ddata->enable_gpio = gpio;
++	} else {
++		dev_err(&pdev->dev, "failed to parse enable gpio\n");
 +		return gpio;
 +	}
-+	ddata->ct_cp_hpd_gpio = gpio;
 +
-+	/* LS OE GPIO */
 +	gpio = of_get_gpio(node, 1);
 +	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
-+		ddata->ls_oe_gpio = gpio;
++		ddata->backlight_gpio = gpio;
 +	} else {
-+		dev_err(&pdev->dev, "failed to parse LS OE gpio\n");
++		dev_err(&pdev->dev, "failed to parse backlight gpio\n");
 +		return gpio;
 +	}
 +
-+	/* HPD GPIO */
-+	gpio = of_get_gpio(node, 2);
-+	if (!gpio_is_valid(gpio)) {
-+		dev_err(&pdev->dev, "failed to parse HPD gpio\n");
-+		return gpio;
++	r = of_get_display_timing(node, "panel-timing", &timing);
++	if (r) {
++		dev_err(&pdev->dev, "failed to get video timing\n");
++		return r;
 +	}
-+	ddata->hpd_gpio = gpio;
++
++	videomode_from_timing(&timing, &vm);
++	videomode_to_omap_video_timings(&vm, &ddata->videomode);
 +
 +	in = omapdss_of_find_source_for_first_ep(node);
 +	if (IS_ERR(in)) {
@@ -82,38 +100,38 @@ index d5c936cb217f..7e33686171e3 100644
 +	return 0;
 +}
 +
- static int tpd_probe(struct platform_device *pdev)
+ static int panel_dpi_probe(struct platform_device *pdev)
  {
- 	struct omap_dss_device *in, *dssdev;
-@@ -307,6 +351,10 @@ static int tpd_probe(struct platform_device *pdev)
- 		r = tpd_probe_pdata(pdev);
+ 	struct panel_drv_data *ddata;
+@@ -198,6 +248,10 @@ static int panel_dpi_probe(struct platform_device *pdev)
+ 		r = panel_dpi_probe_pdata(pdev);
  		if (r)
  			return r;
 +	} else if (pdev->dev.of_node) {
-+		r = tpd_probe_of(pdev);
++		r = panel_dpi_probe_of(pdev);
 +		if (r)
 +			return r;
  	} else {
  		return -ENODEV;
  	}
-@@ -379,12 +427,20 @@ static int __exit tpd_remove(struct platform_device *pdev)
+@@ -254,12 +308,20 @@ static int __exit panel_dpi_remove(struct platform_device *pdev)
  	return 0;
  }
  
-+static const struct of_device_id tpd_of_match[] = {
-+	{ .compatible = "omapdss,ti,tpd12s015", },
++static const struct of_device_id panel_dpi_of_match[] = {
++	{ .compatible = "omapdss,panel-dpi", },
 +	{},
 +};
 +
-+MODULE_DEVICE_TABLE(of, tpd_of_match);
++MODULE_DEVICE_TABLE(of, panel_dpi_of_match);
 +
- static struct platform_driver tpd_driver = {
- 	.probe	= tpd_probe,
- 	.remove	= __exit_p(tpd_remove),
- 	.driver	= {
- 		.name	= "tpd12s015",
- 		.owner	= THIS_MODULE,
-+		.of_match_table = tpd_of_match,
+ static struct platform_driver panel_dpi_driver = {
+ 	.probe = panel_dpi_probe,
+ 	.remove = __exit_p(panel_dpi_remove),
+ 	.driver = {
+ 		.name = "panel-dpi",
+ 		.owner = THIS_MODULE,
++		.of_match_table = panel_dpi_of_match,
  	},
  };
  
