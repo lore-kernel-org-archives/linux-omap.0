@@ -1,289 +1,513 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv3 32/41] ARM: OMAP2+: remove pdata quirks for displays
-Date: Tue, 21 Jan 2014 12:57:04 +0200
-Message-ID: <1390301833-24944-33-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv3 33/41] Doc/DT: Add OMAP DSS DT Bindings
+Date: Tue, 21 Jan 2014 12:57:05 +0200
+Message-ID: <1390301833-24944-34-git-send-email-tomi.valkeinen@ti.com>
 References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34964 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754204AbaAULBR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jan 2014 06:01:17 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33493 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754204AbaAULBX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Jan 2014 06:01:23 -0500
 In-Reply-To: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Remove pdata quirks for the displays on boards that are now supported
-properly with DT.
+Add device tree bindings for OMAP Display Subsystem for the following
+SoCs: OMAP2, OMAP3, OMAP4.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/dss-common.c   | 224 -------------------------------------
- arch/arm/mach-omap2/pdata-quirks.c |   3 -
- 2 files changed, 227 deletions(-)
+ .../devicetree/bindings/video/ti,omap-dss.txt      | 197 +++++++++++++++++++++
+ .../devicetree/bindings/video/ti,omap2-dss.txt     |  54 ++++++
+ .../devicetree/bindings/video/ti,omap3-dss.txt     |  73 ++++++++
+ .../devicetree/bindings/video/ti,omap4-dss.txt     |  99 +++++++++++
+ .../devicetree/bindings/video/video-ports.txt      |  22 +++
+ 5 files changed, 445 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap-dss.txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap2-dss.txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap3-dss.txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap4-dss.txt
+ create mode 100644 Documentation/devicetree/bindings/video/video-ports.txt
 
-diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
-index dadccc91488c..010bb72d2b75 100644
---- a/arch/arm/mach-omap2/dss-common.c
-+++ b/arch/arm/mach-omap2/dss-common.c
-@@ -33,227 +33,3 @@
- #include "soc.h"
- #include "dss-common.h"
- #include "mux.h"
--
--#define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
--#define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
--#define HDMI_GPIO_HPD  63 /* Hotplug detect */
--
--#define PANDA_DVI_TFP410_POWER_DOWN_GPIO	0
--
--/* DVI Connector */
--static struct connector_dvi_platform_data omap4_panda_dvi_connector_pdata = {
--	.name                   = "dvi",
--	.source                 = "tfp410.0",
--	.i2c_bus_num            = 2,
--};
--
--static struct platform_device omap4_panda_dvi_connector_device = {
--	.name                   = "connector-dvi",
--	.id                     = 0,
--	.dev.platform_data      = &omap4_panda_dvi_connector_pdata,
--};
--
--/* TFP410 DPI-to-DVI chip */
--static struct encoder_tfp410_platform_data omap4_panda_tfp410_pdata = {
--	.name                   = "tfp410.0",
--	.source                 = "dpi.0",
--	.data_lines             = 24,
--	.power_down_gpio        = PANDA_DVI_TFP410_POWER_DOWN_GPIO,
--};
--
--static struct platform_device omap4_panda_tfp410_device = {
--	.name                   = "tfp410",
--	.id                     = 0,
--	.dev.platform_data      = &omap4_panda_tfp410_pdata,
--};
--
--/* HDMI Connector */
--static struct connector_hdmi_platform_data omap4_panda_hdmi_connector_pdata = {
--	.name                   = "hdmi",
--	.source                 = "tpd12s015.0",
--};
--
--static struct platform_device omap4_panda_hdmi_connector_device = {
--	.name                   = "connector-hdmi",
--	.id                     = 0,
--	.dev.platform_data      = &omap4_panda_hdmi_connector_pdata,
--};
--
--/* TPD12S015 HDMI ESD protection & level shifter chip */
--static struct encoder_tpd12s015_platform_data omap4_panda_tpd_pdata = {
--	.name                   = "tpd12s015.0",
--	.source                 = "hdmi.0",
--
--	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
--	.ls_oe_gpio = HDMI_GPIO_LS_OE,
--	.hpd_gpio = HDMI_GPIO_HPD,
--};
--
--static struct platform_device omap4_panda_tpd_device = {
--	.name                   = "tpd12s015",
--	.id                     = 0,
--	.dev.platform_data      = &omap4_panda_tpd_pdata,
--};
--
--static struct omap_dss_board_info omap4_panda_dss_data = {
--	.default_display_name = "dvi",
--};
--
--void __init omap4_panda_display_init_of(void)
--{
--	omap_display_init(&omap4_panda_dss_data);
--
--	platform_device_register(&omap4_panda_tfp410_device);
--	platform_device_register(&omap4_panda_dvi_connector_device);
--
--	platform_device_register(&omap4_panda_tpd_device);
--	platform_device_register(&omap4_panda_hdmi_connector_device);
--}
--
--
--/* OMAP4 Blaze display data */
--
--#define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
--#define DLP_POWER_ON_GPIO	40
--
--static struct panel_dsicm_platform_data dsi1_panel = {
--	.name		= "lcd",
--	.source		= "dsi.0",
--	.reset_gpio	= 102,
--	.use_ext_te	= false,
--	.ext_te_gpio	= 101,
--	.pin_config = {
--		.num_pins	= 6,
--		.pins		= { 0, 1, 2, 3, 4, 5 },
--	},
--};
--
--static struct platform_device sdp4430_lcd_device = {
--	.name                   = "panel-dsi-cm",
--	.id                     = 0,
--	.dev.platform_data	= &dsi1_panel,
--};
--
--static struct panel_dsicm_platform_data dsi2_panel = {
--	.name		= "lcd2",
--	.source		= "dsi.1",
--	.reset_gpio	= 104,
--	.use_ext_te	= false,
--	.ext_te_gpio	= 103,
--	.pin_config = {
--		.num_pins	= 6,
--		.pins		= { 0, 1, 2, 3, 4, 5 },
--	},
--};
--
--static struct platform_device sdp4430_lcd2_device = {
--	.name                   = "panel-dsi-cm",
--	.id                     = 1,
--	.dev.platform_data	= &dsi2_panel,
--};
--
--/* HDMI Connector */
--static struct connector_hdmi_platform_data sdp4430_hdmi_connector_pdata = {
--	.name                   = "hdmi",
--	.source                 = "tpd12s015.0",
--};
--
--static struct platform_device sdp4430_hdmi_connector_device = {
--	.name                   = "connector-hdmi",
--	.id                     = 0,
--	.dev.platform_data      = &sdp4430_hdmi_connector_pdata,
--};
--
--/* TPD12S015 HDMI ESD protection & level shifter chip */
--static struct encoder_tpd12s015_platform_data sdp4430_tpd_pdata = {
--	.name                   = "tpd12s015.0",
--	.source                 = "hdmi.0",
--
--	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
--	.ls_oe_gpio = HDMI_GPIO_LS_OE,
--	.hpd_gpio = HDMI_GPIO_HPD,
--};
--
--static struct platform_device sdp4430_tpd_device = {
--	.name                   = "tpd12s015",
--	.id                     = 0,
--	.dev.platform_data      = &sdp4430_tpd_pdata,
--};
--
--
--static struct omap_dss_board_info sdp4430_dss_data = {
--	.default_display_name = "lcd",
--};
--
--/*
-- * we select LCD2 by default (instead of Pico DLP) by setting DISPLAY_SEL_GPIO.
-- * Setting DLP_POWER_ON gpio enables the VDLP_2V5 VDLP_1V8 and VDLP_1V0 rails
-- * used by picodlp on the 4430sdp platform. Keep this gpio disabled as LCD2 is
-- * selected by default
-- */
--void __init omap_4430sdp_display_init_of(void)
--{
--	int r;
--
--	r = gpio_request_one(DISPLAY_SEL_GPIO, GPIOF_OUT_INIT_HIGH,
--			"display_sel");
--	if (r)
--		pr_err("%s: Could not get display_sel GPIO\n", __func__);
--
--	r = gpio_request_one(DLP_POWER_ON_GPIO, GPIOF_OUT_INIT_LOW,
--		"DLP POWER ON");
--	if (r)
--		pr_err("%s: Could not get DLP POWER ON GPIO\n", __func__);
--
--	omap_display_init(&sdp4430_dss_data);
--
--	platform_device_register(&sdp4430_lcd_device);
--	platform_device_register(&sdp4430_lcd2_device);
--
--	platform_device_register(&sdp4430_tpd_device);
--	platform_device_register(&sdp4430_hdmi_connector_device);
--}
--
--
--/* OMAP3 IGEPv2 data */
--
--#define IGEP2_DVI_TFP410_POWER_DOWN_GPIO	170
--
--/* DVI Connector */
--static struct connector_dvi_platform_data omap3_igep2_dvi_connector_pdata = {
--	.name                   = "dvi",
--	.source                 = "tfp410.0",
--	.i2c_bus_num            = 2,
--};
--
--static struct platform_device omap3_igep2_dvi_connector_device = {
--	.name                   = "connector-dvi",
--	.id                     = 0,
--	.dev.platform_data      = &omap3_igep2_dvi_connector_pdata,
--};
--
--/* TFP410 DPI-to-DVI chip */
--static struct encoder_tfp410_platform_data omap3_igep2_tfp410_pdata = {
--	.name                   = "tfp410.0",
--	.source                 = "dpi.0",
--	.data_lines             = 24,
--	.power_down_gpio        = IGEP2_DVI_TFP410_POWER_DOWN_GPIO,
--};
--
--static struct platform_device omap3_igep2_tfp410_device = {
--	.name                   = "tfp410",
--	.id                     = 0,
--	.dev.platform_data      = &omap3_igep2_tfp410_pdata,
--};
--
--static struct omap_dss_board_info igep2_dss_data = {
--	.default_display_name = "dvi",
--};
--
--void __init omap3_igep2_display_init_of(void)
--{
--	omap_display_init(&igep2_dss_data);
--
--	platform_device_register(&omap3_igep2_tfp410_device);
--	platform_device_register(&omap3_igep2_dvi_connector_device);
--}
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 39f020c982e8..68e3bca42e60 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -80,7 +80,6 @@ static void __init hsmmc2_internal_input_clk(void)
- 
- static void __init omap3_igep0020_legacy_init(void)
- {
--	omap3_igep2_display_init_of();
- }
- 
- static void __init omap3_evm_legacy_init(void)
-@@ -97,14 +96,12 @@ static void __init omap3_zoom_legacy_init(void)
- #ifdef CONFIG_ARCH_OMAP4
- static void __init omap4_sdp_legacy_init(void)
- {
--	omap_4430sdp_display_init_of();
- 	legacy_init_wl12xx(WL12XX_REFCLOCK_26,
- 			   WL12XX_TCXOCLOCK_26, 53);
- }
- 
- static void __init omap4_panda_legacy_init(void)
- {
--	omap4_panda_display_init_of();
- 	legacy_init_ehci_clk("auxclk3_ck");
- 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
- }
+diff --git a/Documentation/devicetree/bindings/video/ti,omap-dss.txt b/Documentation/devicetree/bindings/video/ti,omap-dss.txt
+new file mode 100644
+index 000000000000..3b3a7c09106c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/ti,omap-dss.txt
+@@ -0,0 +1,197 @@
++Texas Instruments OMAP Display Subsystem
++========================================
++
++Generic Description
++-------------------
++
++This document is a generic description of the OMAP Display Subsystem bindings.
++Binding details for each OMAP SoC version are described in respective binding
++documentation.
++
++The OMAP Display Subsystem (DSS) hardware consists of DSS Core, DISPC module and
++a number of encoder modules. All DSS versions contain DSS Core and DISPC, but
++the encoder modules vary.
++
++The DSS Core is the parent of the other DSS modules, and manages clock routing,
++integration to the SoC, etc.
++
++DISPC is the display controller, which reads pixels from the memory and outputs
++a RGB pixel stream to encoders.
++
++The encoder modules encode the received RGB pixel stream to a video output like
++HDMI, MIPI DPI, etc.
++
++Video Ports
++-----------
++
++The DSS Core and the encoders have video port outputs. The structure of the
++video ports is described in Documentation/devicetree/bindings/video/video-
++ports.txt, and the properties for the ports and endpoints for each encoder are
++described in the SoC's DSS binding documentation.
++
++The video ports are used to describe the connections to external hardware, like
++panels or external encoders.
++
++Aliases
++-------
++
++The board dts file may define aliases for displays to assign "displayX" style
++name for each display. If no aliases are defined, a semi-random number is used
++for the display.
++
++Example
++-------
++
++A shortened example of the DSS description for OMAP4, with non-relevant parts
++removed, defined in omap4.dtsi:
++
++dss: dss@58000000 {
++	compatible = "ti,omap4-dss", "simple-bus";
++	reg = <0x58000000 0x80>;
++	status = "disabled";
++	ti,hwmods = "dss_core";
++	#address-cells = <1>;
++	#size-cells = <1>;
++	ranges;
++
++	dispc@58001000 {
++		compatible = "ti,omap4-dispc";
++		reg = <0x58001000 0x1000>;
++		interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
++		ti,hwmods = "dss_dispc";
++	};
++
++	hdmi: encoder@58006000 {
++		compatible = "ti,omap4-hdmi";
++		reg = <0x58006000 0x200>,
++		      <0x58006200 0x100>,
++		      <0x58006300 0x100>,
++		      <0x58006400 0x1000>;
++		reg-names = "wp", "pll", "phy", "core";
++		interrupts = <GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH>;
++		status = "disabled";
++		ti,hwmods = "dss_hdmi";
++	};
++};
++
++A shortened example of the board description for OMAP4 Panda board, defined in
++omap4-panda.dts.
++
++The Panda board has a DVI and a HDMI connector, and the board contains a TFP410
++chip (MIPI DPI to DVI encoder) and a TPD12S015 chip (HDMI ESD protection & level
++shifter). The video pipelines for the connectors are formed as follows:
++
++DSS Core --(MIPI DPI)--> TFP410 --(DVI)--> DVI Connector
++OMAP HDMI --(HDMI)--> TPD12S015 --(HDMI)--> HDMI COnnector
++
++/ {
++	aliases {
++		display0 = &dvi0;
++		display1 = &hdmi0;
++	};
++
++	tfp410: encoder@0 {
++		compatible = "ti,tfp410";
++		gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;	/* 0, power-down */
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&tfp410_pins>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++
++				tfp410_in: endpoint@0 {
++					remote-endpoint = <&dpi_out>;
++				};
++			};
++
++			port@1 {
++				reg = <1>;
++
++				tfp410_out: endpoint@0 {
++					remote-endpoint = <&dvi_connector_in>;
++				};
++			};
++		};
++	};
++
++	dvi0: connector@0 {
++		compatible = "dvi-connector";
++		label = "dvi";
++
++		i2c-bus = <&i2c3>;
++
++		dvi_connector_in: endpoint {
++			remote-endpoint = <&tfp410_out>;
++		};
++	};
++
++	tpd12s015: encoder@1 {
++		compatible = "ti,tpd12s015";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&tpd12s015_pins>;
++
++		gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>,	/* 60, CT CP HPD */
++			<&gpio2 9 GPIO_ACTIVE_HIGH>,	/* 41, LS OE */
++			<&gpio2 31 GPIO_ACTIVE_HIGH>;	/* 63, HPD */
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++
++				tpd12s015_in: endpoint@0 {
++					remote-endpoint = <&hdmi_out>;
++				};
++			};
++
++			port@1 {
++				reg = <1>;
++
++				tpd12s015_out: endpoint@0 {
++					remote-endpoint = <&hdmi_connector_in>;
++				};
++			};
++		};
++	};
++
++	hdmi0: connector@1 {
++		compatible = "hdmi-connector";
++		label = "hdmi";
++
++		hdmi_connector_in: endpoint {
++			remote-endpoint = <&tpd12s015_out>;
++		};
++	};
++};
++
++&dss {
++	status = "ok";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&dss_dpi_pins>;
++
++	dpi_out: endpoint {
++		remote-endpoint = <&tfp410_in>;
++		data-lines = <24>;
++	};
++};
++
++&hdmi {
++	status = "ok";
++	vdda-supply = <&vdac>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&dss_hdmi_pins>;
++
++	hdmi_out: endpoint {
++		remote-endpoint = <&tpd12s015_in>;
++	};
++};
+diff --git a/Documentation/devicetree/bindings/video/ti,omap2-dss.txt b/Documentation/devicetree/bindings/video/ti,omap2-dss.txt
+new file mode 100644
+index 000000000000..fa8bb2ed1170
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/ti,omap2-dss.txt
+@@ -0,0 +1,54 @@
++Texas Instruments OMAP2 Display Subsystem
++=========================================
++
++See Documentation/devicetree/bindings/video/ti,omap-dss.txt for generic
++description about OMAP Display Subsystem bindings.
++
++DSS Core
++--------
++
++Required properties:
++- compatible: "ti,omap2-dss"
++- reg: address and length of the register space
++- ti,hwmods: "dss_core"
++
++Optional nodes:
++- Video port for DPI output
++
++DPI Endpoint required properties:
++- data-lines: number of lines used
++
++
++DISPC
++-----
++
++Required properties:
++- compatible: "ti,omap2-dispc"
++- reg: address and length of the register space
++- ti,hwmods: "dss_dispc"
++- interrupts: the DISPC interrupt
++
++
++RFBI
++----
++
++Required properties:
++- compatible: "ti,omap2-rfbi"
++- reg: address and length of the register space
++- ti,hwmods: "dss_rfbi"
++
++
++VENC
++----
++
++Required properties:
++- compatible: "ti,omap2-venc"
++- reg: address and length of the register space
++- ti,hwmods: "dss_venc"
++- vdda-supply: power supply for DAC
++
++VENC Endpoint required properties:
++
++Required properties:
++- ti,invert-polarity: invert the polarity of the video signal
++- ti,channels: 1 for composite, 2 for s-video
+diff --git a/Documentation/devicetree/bindings/video/ti,omap3-dss.txt b/Documentation/devicetree/bindings/video/ti,omap3-dss.txt
+new file mode 100644
+index 000000000000..2b62c78c9596
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/ti,omap3-dss.txt
+@@ -0,0 +1,73 @@
++Texas Instruments OMAP3 Display Subsystem
++=========================================
++
++See Documentation/devicetree/bindings/video/ti,omap-dss.txt for generic
++description about OMAP Display Subsystem bindings.
++
++DSS Core
++--------
++
++Required properties:
++- compatible: "ti,omap3-dss"
++- reg: address and length of the register space
++- ti,hwmods: "dss_core"
++
++Optional nodes:
++- Video ports:
++	- Port 0: DPI output
++	- Port 1: SDI output
++
++DPI Endpoint required properties:
++- data-lines: number of lines used
++
++SDI Endpoint required properties:
++- datapairs: number of datapairs used
++
++
++DISPC
++-----
++
++Required properties:
++- compatible: "ti,omap3-dispc"
++- reg: address and length of the register space
++- ti,hwmods: "dss_dispc"
++- interrupts: the DISPC interrupt
++
++
++RFBI
++----
++
++Required properties:
++- compatible: "ti,omap3-rfbi"
++- reg: address and length of the register space
++- ti,hwmods: "dss_rfbi"
++
++
++VENC
++----
++
++Required properties:
++- compatible: "ti,omap3-venc"
++- reg: address and length of the register space
++- ti,hwmods: "dss_venc"
++- vdda-supply: power supply for DAC
++
++VENC Endpoint required properties:
++- ti,invert-polarity: invert the polarity of the video signal
++- ti,channels: 1 for composite, 2 for s-video
++
++
++DSI
++---
++
++Required properties:
++- compatible: "ti,omap3-dsi"
++- reg: addresses and lengths of the register spaces for 'proto', 'phy' and 'pll'
++- reg-names: "proto", "phy", "pll"
++- interrupts: the DSI interrupt line
++- ti,hwmods: "dss_dsi1"
++- vdd-supply: power supply for DSI
++
++DSI Endpoint required properties:
++- lanes: list of pin numbers for the DSI lanes: CLK+, CLK-, DATA0+, DATA0-,
++  DATA1+, DATA1-, ...
+diff --git a/Documentation/devicetree/bindings/video/ti,omap4-dss.txt b/Documentation/devicetree/bindings/video/ti,omap4-dss.txt
+new file mode 100644
+index 000000000000..37aa9e6a173e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/ti,omap4-dss.txt
+@@ -0,0 +1,99 @@
++Texas Instruments OMAP4 Display Subsystem
++=========================================
++
++See Documentation/devicetree/bindings/video/ti,omap-dss.txt for generic
++description about OMAP Display Subsystem bindings.
++
++DSS Core
++--------
++
++Required properties:
++- compatible: "ti,omap4-dss"
++- reg: address and length of the register space
++- ti,hwmods: "dss_core"
++
++Required nodes:
++- DISPC
++
++Optional nodes:
++- DSS Submodules: RFBI, VENC, DSI, HDMI
++- Video port for DPI output
++
++DPI Endpoint required properties:
++- data-lines: number of lines used
++
++
++DISPC
++-----
++
++Required properties:
++- compatible: "ti,omap4-dispc"
++- reg: address and length of the register space
++- ti,hwmods: "dss_dispc"
++- interrupts: the DISPC interrupt
++
++
++RFBI
++----
++
++Required properties:
++- compatible: "ti,omap4-rfbi"
++- reg: address and length of the register space
++- ti,hwmods: "dss_rfbi"
++
++Optional nodes:
++- Video port for RFBI output
++- RFBI controlled peripherals
++
++
++VENC
++----
++
++Required properties:
++- compatible: "ti,omap4-venc"
++- reg: address and length of the register space
++- ti,hwmods: "dss_venc"
++- vdda-supply: power supply for DAC
++
++Optional nodes:
++- Video port for VENC output
++
++VENC Endpoint required properties:
++- ti,invert-polarity: invert the polarity of the video signal
++- ti,channels: 1 for composite, 2 for s-video
++
++
++DSI
++---
++
++Required properties:
++- compatible: "ti,omap4-dsi"
++- reg: addresses and lengths of the register spaces for 'proto', 'phy' and 'pll'
++- reg-names: "proto", "phy", "pll"
++- interrupts: the DSI interrupt line
++- ti,hwmods: "dss_dsi1" or "dss_dsi2"
++- vdd-supply: power supply for DSI
++
++Optional nodes:
++- Video port for DSI output
++- DSI controlled peripherals
++
++DSI Endpoint required properties:
++- lanes: list of pin numbers for the DSI lanes: CLK+, CLK-, DATA0+, DATA0-,
++  DATA1+, DATA1-, ...
++
++
++HDMI
++----
++
++Required properties:
++- compatible: "ti,omap4-hdmi"
++- reg: addresses and lengths of the register spaces for 'wp', 'pll', 'phy',
++       'core'
++- reg-names: "wp", "pll", "phy", "core"
++- interrupts: the HDMI interrupt line
++- ti,hwmods: "dss_hdmi"
++- vdda-supply: vdda power supply
++
++Optional nodes:
++- Video port for HDMI output
+diff --git a/Documentation/devicetree/bindings/video/video-ports.txt b/Documentation/devicetree/bindings/video/video-ports.txt
+new file mode 100644
+index 000000000000..dad4c436caae
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/video-ports.txt
+@@ -0,0 +1,22 @@
++Video Ports
++===========
++
++The video port bindings used for display devices is a superset of the v4l2 video
++ports described here:
++
++Documentation/devicetree/bindings/media/video-interfaces.txt
++
++The only difference is a more compact way to describe devices with only one
++endpoint. In cases like that, the 'ports' and 'port' nodes are not needed. For
++example, a DPI panel with a single input endpoint:
++
++lcd0: display@0 {
++	compatible = "samsung,lte430wq-f0c", "panel-dpi";
++
++	lcd_in: endpoint {
++		remote-endpoint = <&dpi_out>;
++	};
++};
++
++The rest of the bindings are the same as in v4l2 video port bindings and not
++described here.
 -- 
 1.8.3.2
 
