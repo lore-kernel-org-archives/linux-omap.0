@@ -1,154 +1,111 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH 5/5] mmc: omap_hsmmc: add autocmd23 support
-Date: Tue, 21 Jan 2014 19:54:42 +0530
-Message-ID: <1390314282-20520-6-git-send-email-balajitk@ti.com>
-References: <1390314282-20520-1-git-send-email-balajitk@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Sebastian Reichel <sre@debian.org>
+Subject: [PATCH] ARM: dts: omap3 clocks: simplify ssi aliases
+Date: Tue, 21 Jan 2014 15:37:41 +0100
+Message-ID: <1390315061-14441-1-git-send-email-sre@debian.org>
+References: <52DE24DA.8050104@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40117 "EHLO arroyo.ext.ti.com"
+Received: from ring0.de ([91.143.88.219]:44027 "EHLO smtp.ring0.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754752AbaAUOZD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Jan 2014 09:25:03 -0500
-In-Reply-To: <1390314282-20520-1-git-send-email-balajitk@ti.com>
+	id S1754783AbaAUOhr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Jan 2014 09:37:47 -0500
+In-Reply-To: <52DE24DA.8050104@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mmc@vger.kernel.org, chris@printf.net
-Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>
+To: Sebastian Reichel <sre@ring0.de>, Tero Kristo <t-kristo@ti.com>
+Cc: mturquette@linaro.org, tony@atomide.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Sebastian Reichel <sre@debian.org>
 
-Add support for autocmd23 support
+update aliases for the ssi clocks ssi_ssr_fck, ssi_sst_fck and ssi_ick
+to make them consistent for omap34xx and omap36xx. This makes it
+possible to reference the clocks from generic omap3 dts files.
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
+Signed-off-by: Sebastian Reichel <sre@debian.org>
 ---
- drivers/mmc/host/omap_hsmmc.c |   39 ++++++++++++++++++++++++++++++++++++---
- 1 files changed, 36 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap3430es1-clocks.dtsi              | 10 +++++-----
+ arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi | 10 +++++-----
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index bad246e..fba67ab 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -45,6 +45,7 @@
- /* OMAP HSMMC Host Controller Registers */
- #define OMAP_HSMMC_SYSSTATUS	0x0014
- #define OMAP_HSMMC_CON		0x002C
-+#define OMAP_HSMMC_SDMASA	0x0100
- #define OMAP_HSMMC_BLK		0x0104
- #define OMAP_HSMMC_ARG		0x0108
- #define OMAP_HSMMC_CMD		0x010C
-@@ -58,6 +59,7 @@
- #define OMAP_HSMMC_STAT		0x0130
- #define OMAP_HSMMC_IE		0x0134
- #define OMAP_HSMMC_ISE		0x0138
-+#define OMAP_HSMMC_AC12		0x013C
- #define OMAP_HSMMC_CAPA		0x0140
+diff --git a/arch/arm/boot/dts/omap3430es1-clocks.dtsi b/arch/arm/boot/dts/omap3430es1-clocks.dtsi
+index 02f6c7f..6f31954 100644
+--- a/arch/arm/boot/dts/omap3430es1-clocks.dtsi
++++ b/arch/arm/boot/dts/omap3430es1-clocks.dtsi
+@@ -82,16 +82,16 @@
+ 		ti,dividers = <0>, <1>, <2>, <3>, <4>, <0>, <6>, <0>, <8>;
+ 	};
  
- #define VS18			(1 << 26)
-@@ -81,6 +83,7 @@
- #define DTO_MASK		0x000F0000
- #define DTO_SHIFT		16
- #define INIT_STREAM		(1 << 1)
-+#define ACEN_ACMD23		(2 << 2)
- #define DP_SELECT		(1 << 21)
- #define DDIR			(1 << 4)
- #define DMAE			0x1
-@@ -112,13 +115,21 @@
- #define DTO_EN			(1 << 20)
- #define DCRC_EN			(1 << 21)
- #define DEB_EN			(1 << 22)
-+#define ACE_EN			(1 << 24)
- #define CERR_EN			(1 << 28)
- #define BADA_EN			(1 << 29)
+-	ssi_ssr_fck_3430es1: ssi_ssr_fck_3430es1 {
++	ssi_ssr_fck: ssi_ssr_fck_3430es1 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,composite-clock";
+ 		clocks = <&ssi_ssr_gate_fck_3430es1>, <&ssi_ssr_div_fck_3430es1>;
+ 	};
  
--#define INT_EN_MASK		(BADA_EN | CERR_EN | DEB_EN | DCRC_EN |\
-+#define INT_EN_MASK (BADA_EN | CERR_EN | ACE_EN | DEB_EN | DCRC_EN |\
- 		DTO_EN | CIE_EN | CEB_EN | CCRC_EN | CTO_EN | \
- 		BRR_EN | BWR_EN | TC_EN | CC_EN)
+-	ssi_sst_fck_3430es1: ssi_sst_fck_3430es1 {
++	ssi_sst_fck: ssi_sst_fck_3430es1 {
+ 		#clock-cells = <0>;
+ 		compatible = "fixed-factor-clock";
+-		clocks = <&ssi_ssr_fck_3430es1>;
++		clocks = <&ssi_ssr_fck>;
+ 		clock-mult = <1>;
+ 		clock-div = <2>;
+ 	};
+@@ -120,7 +120,7 @@
+ 		clock-div = <1>;
+ 	};
  
-+#define CNI	(1 << 7)
-+#define ACIE	(1 << 4)
-+#define ACEB	(1 << 3)
-+#define ACCE	(1 << 2)
-+#define ACTO	(1 << 1)
-+#define ACNE	(1 << 0)
-+
- #define MMC_AUTOSUSPEND_DELAY	100
- #define MMC_TIMEOUT_MS		20		/* 20 mSec */
- #define MMC_TIMEOUT_US		20000		/* 20000 micro Sec */
-@@ -126,6 +137,7 @@
- #define OMAP_MMC_MAX_CLOCK	52000000
- #define DRIVER_NAME		"omap_hsmmc"
- 
-+#define AUTO_CMD23		(1 << 1)	/* Auto CMD23 support */
- /*
-  * One controller can have multiple slots, like on some omap boards using
-  * omap.c controller driver. Luckily this is not currently done on any known
-@@ -189,6 +201,7 @@ struct omap_hsmmc_host {
- 	int			use_reg;
- 	int			req_in_progress;
- 	unsigned long		clk_rate;
-+	unsigned int		flags;
- 	struct omap_hsmmc_next	next_data;
- 	struct	omap_mmc_platform_data	*pdata;
+-	ssi_ick_3430es1: ssi_ick_3430es1 {
++	ssi_ick: ssi_ick_3430es1 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap3-no-wait-interface-clock";
+ 		clocks = <&ssi_l4_ick>;
+@@ -203,6 +203,6 @@
+ 			 <&i2c1_ick>, <&uart2_ick>, <&uart1_ick>, <&gpt11_ick>,
+ 			 <&gpt10_ick>, <&mcbsp5_ick>, <&mcbsp1_ick>,
+ 			 <&omapctrl_ick>, <&aes2_ick>, <&sha12_ick>,
+-			 <&fshostusb_fck>, <&fac_ick>, <&ssi_ick_3430es1>;
++			 <&fshostusb_fck>, <&fac_ick>, <&ssi_ick>;
+ 	};
  };
-@@ -790,6 +803,11 @@ omap_hsmmc_start_command(struct omap_hsmmc_host *host, struct mmc_command *cmd,
+diff --git a/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi b/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi
+index 8ed475d..877318c 100644
+--- a/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi
++++ b/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi
+@@ -25,16 +25,16 @@
+ 		ti,dividers = <0>, <1>, <2>, <3>, <4>, <0>, <6>, <0>, <8>;
+ 	};
  
- 	cmdreg = (cmd->opcode << 24) | (resptype << 16) | (cmdtype << 22);
+-	ssi_ssr_fck_3430es2: ssi_ssr_fck_3430es2 {
++	ssi_ssr_fck: ssi_ssr_fck_3430es2 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,composite-clock";
+ 		clocks = <&ssi_ssr_gate_fck_3430es2>, <&ssi_ssr_div_fck_3430es2>;
+ 	};
  
-+	if ((host->flags & AUTO_CMD23) && mmc_op_multi(cmd->opcode) &&
-+	    host->mrq->sbc) {
-+		cmdreg |= ACEN_ACMD23;
-+		OMAP_HSMMC_WRITE(host->base, SDMASA, host->mrq->sbc->arg);
-+	}
- 	if (data) {
- 		cmdreg |= DP_SELECT | MSBS | BCE;
- 		if (data->flags & MMC_DATA_READ)
-@@ -882,7 +900,7 @@ omap_hsmmc_cmd_done(struct omap_hsmmc_host *host, struct mmc_command *cmd)
- 	host->cmd = NULL;
+-	ssi_sst_fck_3430es2: ssi_sst_fck_3430es2 {
++	ssi_sst_fck: ssi_sst_fck_3430es2 {
+ 		#clock-cells = <0>;
+ 		compatible = "fixed-factor-clock";
+-		clocks = <&ssi_ssr_fck_3430es2>;
++		clocks = <&ssi_ssr_fck>;
+ 		clock-mult = <1>;
+ 		clock-div = <2>;
+ 	};
+@@ -55,7 +55,7 @@
+ 		clock-div = <1>;
+ 	};
  
- 	if (host->mrq->sbc && (host->cmd == host->mrq->sbc) &&
--	    !host->mrq->sbc->error) {
-+	    !host->mrq->sbc->error && !(host->flags & AUTO_CMD23)) {
- 		omap_hsmmc_start_dma_transfer(host);
- 		omap_hsmmc_start_command(host, host->mrq->cmd,
- 						host->mrq->data);
-@@ -1025,6 +1043,7 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
- {
- 	struct mmc_data *data;
- 	int end_cmd = 0, end_trans = 0;
-+	int error = 0;
- 
- 	data = host->data;
- 	dev_vdbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
-@@ -1039,6 +1058,20 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
- 		else if (status & (CCRC_EN | DCRC_EN))
- 			hsmmc_command_incomplete(host, -EILSEQ, end_cmd);
- 
-+		if (status & ACE_EN) {
-+			u32 ac12;
-+			ac12 = OMAP_HSMMC_READ(host->base, AC12);
-+			if (!(ac12 & ACNE) && host->mrq->sbc) {
-+				end_cmd = 1;
-+				if (ac12 & ACTO)
-+					error =  -ETIMEDOUT;
-+				else if (ac12 & (ACCE | ACEB | ACIE))
-+					error = -EILSEQ;
-+				host->mrq->sbc->error = error;
-+				hsmmc_command_incomplete(host, error, end_cmd);
-+			}
-+			dev_dbg(mmc_dev(host->mmc), "AC12 err: 0x%x\n", ac12);
-+		}
- 		if (host->data || host->response_busy) {
- 			end_trans = !end_cmd;
- 			host->response_busy = 0;
-@@ -1491,7 +1524,7 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
- 		mmc_request_done(mmc, req);
- 		return;
- 	}
--	if (req->sbc) {
-+	if (req->sbc && !(host->flags & AUTO_CMD23)) {
- 		omap_hsmmc_start_command(host, req->sbc, NULL);
- 		return;
- 	}
+-	ssi_ick_3430es2: ssi_ick_3430es2 {
++	ssi_ick: ssi_ick_3430es2 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap3-ssi-interface-clock";
+ 		clocks = <&ssi_l4_ick>;
+@@ -193,6 +193,6 @@
+ 			 <&i2c1_ick>, <&uart2_ick>, <&uart1_ick>, <&gpt11_ick>,
+ 			 <&gpt10_ick>, <&mcbsp5_ick>, <&mcbsp1_ick>,
+ 			 <&omapctrl_ick>, <&aes2_ick>, <&sha12_ick>,
+-			 <&ssi_ick_3430es2>;
++			 <&ssi_ick>;
+ 	};
+ };
 -- 
-1.7.5.4
+1.8.5.2
 
