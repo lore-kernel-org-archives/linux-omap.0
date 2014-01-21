@@ -1,93 +1,49 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv3 19/41] OMAPDSS: panel-dpi: Add DT support
-Date: Tue, 21 Jan 2014 12:56:51 +0200
-Message-ID: <1390301833-24944-20-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv3 18/41] OMAPDSS: hdmi-connector: Add DT support
+Date: Tue, 21 Jan 2014 12:56:50 +0200
+Message-ID: <1390301833-24944-19-git-send-email-tomi.valkeinen@ti.com>
 References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38782 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754512AbaAULAQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Jan 2014 06:00:16 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:34897 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754500AbaAULAM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jan 2014 06:00:12 -0500
 In-Reply-To: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add DT support for panel-dpi.
+Add DT support for hdmi-connector.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays-new/panel-dpi.c | 64 +++++++++++++++++++++++++++-
- 1 file changed, 63 insertions(+), 1 deletion(-)
+ drivers/video/omap2/displays-new/connector-hdmi.c | 30 +++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/drivers/video/omap2/displays-new/panel-dpi.c b/drivers/video/omap2/displays-new/panel-dpi.c
-index 5f8f7e7c81ef..b032daf0f407 100644
---- a/drivers/video/omap2/displays-new/panel-dpi.c
-+++ b/drivers/video/omap2/displays-new/panel-dpi.c
-@@ -13,9 +13,12 @@
+diff --git a/drivers/video/omap2/displays-new/connector-hdmi.c b/drivers/video/omap2/displays-new/connector-hdmi.c
+index 9abe2c039ae9..2e026eab2dd0 100644
+--- a/drivers/video/omap2/displays-new/connector-hdmi.c
++++ b/drivers/video/omap2/displays-new/connector-hdmi.c
+@@ -12,6 +12,7 @@
+ #include <linux/slab.h>
  #include <linux/module.h>
  #include <linux/platform_device.h>
- #include <linux/slab.h>
 +#include <linux/of.h>
-+#include <linux/of_gpio.h>
  
- #include <video/omapdss.h>
- #include <video/omap-panel-data.h>
-+#include <video/of_display_timing.h>
+ #include <drm/drm_edid.h>
  
- struct panel_drv_data {
- 	struct omap_dss_device dssdev;
-@@ -70,7 +73,8 @@ static int panel_dpi_enable(struct omap_dss_device *dssdev)
- 	if (omapdss_device_is_enabled(dssdev))
- 		return 0;
- 
--	in->ops.dpi->set_data_lines(in, ddata->data_lines);
-+	if (ddata->data_lines)
-+		in->ops.dpi->set_data_lines(in, ddata->data_lines);
- 	in->ops.dpi->set_timings(in, &ddata->videomode);
- 
- 	r = in->ops.dpi->enable(in);
-@@ -182,6 +186,52 @@ static int panel_dpi_probe_pdata(struct platform_device *pdev)
+@@ -301,6 +302,23 @@ static int hdmic_probe_pdata(struct platform_device *pdev)
  	return 0;
  }
  
-+static int panel_dpi_probe_of(struct platform_device *pdev)
++static int hdmic_probe_of(struct platform_device *pdev)
 +{
 +	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
 +	struct device_node *node = pdev->dev.of_node;
 +	struct omap_dss_device *in;
-+	int r;
-+	struct display_timing timing;
-+	struct videomode vm;
-+	int gpio;
-+
-+	gpio = of_get_gpio(node, 0);
-+	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
-+		ddata->enable_gpio = gpio;
-+	} else {
-+		dev_err(&pdev->dev, "failed to parse enable gpio\n");
-+		return gpio;
-+	}
-+
-+	gpio = of_get_gpio(node, 1);
-+	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
-+		ddata->backlight_gpio = gpio;
-+	} else {
-+		dev_err(&pdev->dev, "failed to parse backlight gpio\n");
-+		return gpio;
-+	}
-+
-+	r = of_get_display_timing(node, "panel-timing", &timing);
-+	if (r) {
-+		dev_err(&pdev->dev, "failed to get video timing\n");
-+		return r;
-+	}
-+
-+	videomode_from_timing(&timing, &vm);
-+	videomode_to_omap_video_timings(&vm, &ddata->videomode);
 +
 +	in = omapdss_of_find_source_for_first_ep(node);
 +	if (IS_ERR(in)) {
@@ -100,38 +56,38 @@ index 5f8f7e7c81ef..b032daf0f407 100644
 +	return 0;
 +}
 +
- static int panel_dpi_probe(struct platform_device *pdev)
+ static int hdmic_probe(struct platform_device *pdev)
  {
  	struct panel_drv_data *ddata;
-@@ -198,6 +248,10 @@ static int panel_dpi_probe(struct platform_device *pdev)
- 		r = panel_dpi_probe_pdata(pdev);
+@@ -318,6 +336,10 @@ static int hdmic_probe(struct platform_device *pdev)
+ 		r = hdmic_probe_pdata(pdev);
  		if (r)
  			return r;
 +	} else if (pdev->dev.of_node) {
-+		r = panel_dpi_probe_of(pdev);
++		r = hdmic_probe_of(pdev);
 +		if (r)
 +			return r;
  	} else {
  		return -ENODEV;
  	}
-@@ -254,12 +308,20 @@ static int __exit panel_dpi_remove(struct platform_device *pdev)
+@@ -359,12 +381,20 @@ static int __exit hdmic_remove(struct platform_device *pdev)
  	return 0;
  }
  
-+static const struct of_device_id panel_dpi_of_match[] = {
-+	{ .compatible = "omapdss,panel-dpi", },
++static const struct of_device_id hdmic_of_match[] = {
++	{ .compatible = "omapdss,hdmi-connector", },
 +	{},
 +};
 +
-+MODULE_DEVICE_TABLE(of, panel_dpi_of_match);
++MODULE_DEVICE_TABLE(of, hdmic_of_match);
 +
- static struct platform_driver panel_dpi_driver = {
- 	.probe = panel_dpi_probe,
- 	.remove = __exit_p(panel_dpi_remove),
- 	.driver = {
- 		.name = "panel-dpi",
- 		.owner = THIS_MODULE,
-+		.of_match_table = panel_dpi_of_match,
+ static struct platform_driver hdmi_connector_driver = {
+ 	.probe	= hdmic_probe,
+ 	.remove	= __exit_p(hdmic_remove),
+ 	.driver	= {
+ 		.name	= "connector-hdmi",
+ 		.owner	= THIS_MODULE,
++		.of_match_table = hdmic_of_match,
  	},
  };
  
