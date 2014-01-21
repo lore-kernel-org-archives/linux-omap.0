@@ -1,111 +1,109 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCH] ARM: dts: omap3 clocks: simplify ssi aliases
-Date: Tue, 21 Jan 2014 15:37:41 +0100
-Message-ID: <1390315061-14441-1-git-send-email-sre@debian.org>
-References: <52DE24DA.8050104@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:44027 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754783AbaAUOhr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Jan 2014 09:37:47 -0500
-In-Reply-To: <52DE24DA.8050104@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/2] usb: dwc3: core: continue probing if usb phy library
+ returns -ENODEV/-ENXIO
+Date: Tue, 21 Jan 2014 08:47:25 -0600
+Message-ID: <20140121144725.GF30451@saruman.home>
+References: <1385373690-12170-1-git-send-email-kishon@ti.com>
+ <1390299099-14764-1-git-send-email-kishon@ti.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============7910864576823728045=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1390299099-14764-1-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, heikki.krogerus@linux.intel.com, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, Tero Kristo <t-kristo@ti.com>
-Cc: mturquette@linaro.org, tony@atomide.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Sebastian Reichel <sre@debian.org>
 
-update aliases for the ssi clocks ssi_ssr_fck, ssi_sst_fck and ssi_ick
-to make them consistent for omap34xx and omap36xx. This makes it
-possible to reference the clocks from generic omap3 dts files.
+--===============7910864576823728045==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="pyE8wggRBhVBcj8z"
+Content-Disposition: inline
 
-Signed-off-by: Sebastian Reichel <sre@debian.org>
----
- arch/arm/boot/dts/omap3430es1-clocks.dtsi              | 10 +++++-----
- arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi | 10 +++++-----
- 2 files changed, 10 insertions(+), 10 deletions(-)
+--pyE8wggRBhVBcj8z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/boot/dts/omap3430es1-clocks.dtsi b/arch/arm/boot/dts/omap3430es1-clocks.dtsi
-index 02f6c7f..6f31954 100644
---- a/arch/arm/boot/dts/omap3430es1-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap3430es1-clocks.dtsi
-@@ -82,16 +82,16 @@
- 		ti,dividers = <0>, <1>, <2>, <3>, <4>, <0>, <6>, <0>, <8>;
- 	};
- 
--	ssi_ssr_fck_3430es1: ssi_ssr_fck_3430es1 {
-+	ssi_ssr_fck: ssi_ssr_fck_3430es1 {
- 		#clock-cells = <0>;
- 		compatible = "ti,composite-clock";
- 		clocks = <&ssi_ssr_gate_fck_3430es1>, <&ssi_ssr_div_fck_3430es1>;
- 	};
- 
--	ssi_sst_fck_3430es1: ssi_sst_fck_3430es1 {
-+	ssi_sst_fck: ssi_sst_fck_3430es1 {
- 		#clock-cells = <0>;
- 		compatible = "fixed-factor-clock";
--		clocks = <&ssi_ssr_fck_3430es1>;
-+		clocks = <&ssi_ssr_fck>;
- 		clock-mult = <1>;
- 		clock-div = <2>;
- 	};
-@@ -120,7 +120,7 @@
- 		clock-div = <1>;
- 	};
- 
--	ssi_ick_3430es1: ssi_ick_3430es1 {
-+	ssi_ick: ssi_ick_3430es1 {
- 		#clock-cells = <0>;
- 		compatible = "ti,omap3-no-wait-interface-clock";
- 		clocks = <&ssi_l4_ick>;
-@@ -203,6 +203,6 @@
- 			 <&i2c1_ick>, <&uart2_ick>, <&uart1_ick>, <&gpt11_ick>,
- 			 <&gpt10_ick>, <&mcbsp5_ick>, <&mcbsp1_ick>,
- 			 <&omapctrl_ick>, <&aes2_ick>, <&sha12_ick>,
--			 <&fshostusb_fck>, <&fac_ick>, <&ssi_ick_3430es1>;
-+			 <&fshostusb_fck>, <&fac_ick>, <&ssi_ick>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi b/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi
-index 8ed475d..877318c 100644
---- a/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi
-@@ -25,16 +25,16 @@
- 		ti,dividers = <0>, <1>, <2>, <3>, <4>, <0>, <6>, <0>, <8>;
- 	};
- 
--	ssi_ssr_fck_3430es2: ssi_ssr_fck_3430es2 {
-+	ssi_ssr_fck: ssi_ssr_fck_3430es2 {
- 		#clock-cells = <0>;
- 		compatible = "ti,composite-clock";
- 		clocks = <&ssi_ssr_gate_fck_3430es2>, <&ssi_ssr_div_fck_3430es2>;
- 	};
- 
--	ssi_sst_fck_3430es2: ssi_sst_fck_3430es2 {
-+	ssi_sst_fck: ssi_sst_fck_3430es2 {
- 		#clock-cells = <0>;
- 		compatible = "fixed-factor-clock";
--		clocks = <&ssi_ssr_fck_3430es2>;
-+		clocks = <&ssi_ssr_fck>;
- 		clock-mult = <1>;
- 		clock-div = <2>;
- 	};
-@@ -55,7 +55,7 @@
- 		clock-div = <1>;
- 	};
- 
--	ssi_ick_3430es2: ssi_ick_3430es2 {
-+	ssi_ick: ssi_ick_3430es2 {
- 		#clock-cells = <0>;
- 		compatible = "ti,omap3-ssi-interface-clock";
- 		clocks = <&ssi_l4_ick>;
-@@ -193,6 +193,6 @@
- 			 <&i2c1_ick>, <&uart2_ick>, <&uart1_ick>, <&gpt11_ick>,
- 			 <&gpt10_ick>, <&mcbsp5_ick>, <&mcbsp1_ick>,
- 			 <&omapctrl_ick>, <&aes2_ick>, <&sha12_ick>,
--			 <&ssi_ick_3430es2>;
-+			 <&ssi_ick>;
- 	};
- };
--- 
-1.8.5.2
+On Tue, Jan 21, 2014 at 03:41:38PM +0530, Kishon Vijay Abraham I wrote:
+> Since PHYs for dwc3 is optional (not all SoCs that have DWC3 use PHYs),
+> do not return from probe if the USB PHY library returns -ENODEV as that
 
+this isn't correct, they all have PHYs, some of them might not be
+controllable.
+
+> indicates the platform does not have PHY.
+
+not really, that indicates the current platform tried to grab a PHY and
+the PHY doesn't exist. If there's anybody with a non-controllable PHY
+and someone gives me a really good reason for not using the generic
+no-op PHY, then we should add a flag and we could:
+
+	if (!likely(dwc->flags & DWC3_USB2PHY_DRIVER_NOT_NEEDED))
+		dwc3_grab_phys(dwc);
+
+But I really want to see the argument against using no-op. As far as I
+could see, everybody needs a PHY driver one way or another, some
+platforms just haven't sent any PHY driver upstream and have their own
+hacked up solution to avoid using the PHY layer.
+
+Your commit log really needs quite some extra work. What are you trying
+to achieve ? Is this related to AM437x which doesn't have a USB3 PHY due
+to the way the HW was wired up ? If so, please mention it. Explain how
+AM437x HW was wired up, why it lacks a USB3 PHY and why we should
+support it the way you want.
+
+That sort of detail needs to be clear in the commit log, specially
+considering the peculiar nature of AM43xx which uses a USB3 IP in
+USB2-only mode, that needs to be documented in the commit log :-)
+
+cheers
+
+--=20
+balbi
+
+--pyE8wggRBhVBcj8z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJS3oh9AAoJEIaOsuA1yqREkYAP/2VZ1tCp2VnzuTB+mNmb5Sm/
+Ss4045EJYGv0QhkGmDwnoUEZoZWFpyWo+4h8+J7BpReNuVnF4nqyKX7MvB7Ivd7d
+a8gAgebL26rpOfBTIlkdYduQxe/EM+95v+E9FQ/M0SKu36UwY93HEF8UnbjXHVsF
+2kAYRQMTVoHN6GxP6P4MCNGyojfYMA8uevv/SFr+zTIJTt4/PM17Qsuq1xSMtzRl
+YPzFDq1tNw+vXeF1IhpSjQ/UhIzOoG1D9Z88/e1CG1eosQQZWDTQDjYYTwhvMIyt
+PtAHqoEXop0xzQ0Kj6T+7BGwLhu5Zh7tl4vg5veQ7OZSFmpZOmXyNlZ7OeLNRU5h
+f+3Zj23x3JzDZb1KAxXXc8UYw5ITvF6x5zc82GFCQJgByO6u09vG7cAnKG+GrRiK
+hQJE5sAxczwXmEfPEOh+PAVU06ie1phF5kjqMdVuLV2uVNftMksaiyarLTixlbKd
+fryUujqB4oVD3/camDyq7K00zT+nVBE04hHdogtF6uw7GRaiy2eoLlPUSsdZp3V5
+Z6IywNb1daTncXcSPTzyZs/osy6hdJuabkuh89WIoBefI23RHnyi4keK+bvUePZs
+L6d0brIHl1zSOGJpx25SZIEEXeMr4rueXhqVG/CnbuE/zh77Pg4IAcMU/s6IDTzx
+M8yyG98HI/VHlcUF1O9e
+=CgjQ
+-----END PGP SIGNATURE-----
+
+--pyE8wggRBhVBcj8z--
+
+
+--===============7910864576823728045==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============7910864576823728045==--
