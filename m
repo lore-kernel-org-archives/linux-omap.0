@@ -1,50 +1,113 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv3 10/41] OMAPDSS: Add DT support to DISPC
-Date: Tue, 21 Jan 2014 12:56:42 +0200
-Message-ID: <1390301833-24944-11-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv3 15/41] OMAPDSS: encoder-tfp410: Add DT support
+Date: Tue, 21 Jan 2014 12:56:47 +0200
+Message-ID: <1390301833-24944-16-git-send-email-tomi.valkeinen@ti.com>
 References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34845 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754438AbaAUK7j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jan 2014 05:59:39 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:39076 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754476AbaAUK75 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Jan 2014 05:59:57 -0500
 In-Reply-To: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add DT support to DISPC. Only thing needed here is the of_match_table.
+Add DT support for encoder-tfp410.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/video/omap2/displays-new/encoder-tfp410.c | 43 ++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index f51646f15cf2..3ac51e125846 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -3781,12 +3781,20 @@ static const struct dev_pm_ops dispc_pm_ops = {
- 	.runtime_resume = dispc_runtime_resume,
- };
+diff --git a/drivers/video/omap2/displays-new/encoder-tfp410.c b/drivers/video/omap2/displays-new/encoder-tfp410.c
+index 4a291e756be9..e1ef972e33cd 100644
+--- a/drivers/video/omap2/displays-new/encoder-tfp410.c
++++ b/drivers/video/omap2/displays-new/encoder-tfp410.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
++#include <linux/of_gpio.h>
  
-+static const struct of_device_id dispc_of_match[] = {
-+	{ .compatible = "ti,omap2-dispc", },
-+	{ .compatible = "ti,omap3-dispc", },
-+	{ .compatible = "ti,omap4-dispc", },
+ #include <video/omapdss.h>
+ #include <video/omap-panel-data.h>
+@@ -82,7 +83,8 @@ static int tfp410_enable(struct omap_dss_device *dssdev)
+ 		return 0;
+ 
+ 	in->ops.dpi->set_timings(in, &ddata->timings);
+-	in->ops.dpi->set_data_lines(in, ddata->data_lines);
++	if (ddata->data_lines)
++		in->ops.dpi->set_data_lines(in, ddata->data_lines);
+ 
+ 	r = in->ops.dpi->enable(in);
+ 	if (r)
+@@ -179,6 +181,33 @@ static int tfp410_probe_pdata(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int tfp410_probe_of(struct platform_device *pdev)
++{
++	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	struct device_node *node = pdev->dev.of_node;
++	struct omap_dss_device *in;
++	int gpio;
++
++	gpio = of_get_gpio(node, 0);
++
++	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
++		ddata->pd_gpio = gpio;
++	} else {
++		dev_err(&pdev->dev, "failed to parse PD gpio\n");
++		return gpio;
++	}
++
++	in = omapdss_of_find_source_for_first_ep(node);
++	if (IS_ERR(in)) {
++		dev_err(&pdev->dev, "failed to find video source\n");
++		return PTR_ERR(in);
++	}
++
++	ddata->in = in;
++
++	return 0;
++}
++
+ static int tfp410_probe(struct platform_device *pdev)
+ {
+ 	struct panel_drv_data *ddata;
+@@ -195,6 +224,10 @@ static int tfp410_probe(struct platform_device *pdev)
+ 		r = tfp410_probe_pdata(pdev);
+ 		if (r)
+ 			return r;
++	} else if (pdev->dev.of_node) {
++		r = tfp410_probe_of(pdev);
++		if (r)
++			return r;
+ 	} else {
+ 		return -ENODEV;
+ 	}
+@@ -251,12 +284,20 @@ static int __exit tfp410_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct of_device_id tfp410_of_match[] = {
++	{ .compatible = "omapdss,ti,tfp410", },
 +	{},
 +};
 +
- static struct platform_driver omap_dispchw_driver = {
- 	.remove         = __exit_p(omap_dispchw_remove),
- 	.driver         = {
- 		.name   = "omapdss_dispc",
- 		.owner  = THIS_MODULE,
- 		.pm	= &dispc_pm_ops,
-+		.of_match_table = dispc_of_match,
++MODULE_DEVICE_TABLE(of, tfp410_of_match);
++
+ static struct platform_driver tfp410_driver = {
+ 	.probe	= tfp410_probe,
+ 	.remove	= __exit_p(tfp410_remove),
+ 	.driver	= {
+ 		.name	= "tfp410",
+ 		.owner	= THIS_MODULE,
++		.of_match_table = tfp410_of_match,
  	},
  };
  
