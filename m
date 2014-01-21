@@ -1,157 +1,151 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv3 00/41] OMAPDSS: DT support v3
-Date: Tue, 21 Jan 2014 12:56:32 +0200
-Message-ID: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv3 01/41] ARM: OMAP2+: add omapdss_init_of()
+Date: Tue, 21 Jan 2014 12:56:33 +0200
+Message-ID: <1390301833-24944-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Stefan Roese <stefan.roese@gmail.com>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@debian.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Darren Etheridge <detheridge@ti.com>, Sebastian Reichel <sre@ring0.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Robert Nelson <robertcnelson@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Florian Vaussard <florian.vaussard@epfl.ch>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38691 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754021AbaAUK7G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Jan 2014 05:59:06 -0500
+In-Reply-To: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+omapdss driver uses a omapdss platform device to pass platform specific
+function pointers and DSS hardware version from the arch code to the
+driver. This device is needed also when booting with DT.
 
-Here's version 3 of the DSS DT series.
+This patch adds omapdss_init_of() function, called from board-generic at
+init time, which creates the omapdss device.
 
-The previous version can be found from:
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/mach-omap2/board-generic.c |  2 +
+ arch/arm/mach-omap2/common.h        |  2 +
+ arch/arm/mach-omap2/display.c       | 76 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 80 insertions(+)
 
-v1: http://permalink.gmane.org/gmane.linux.ports.arm.omap/108249
-v2: http://permalink.gmane.org/gmane.linux.ports.arm.omap/108866
-
-The main changes to v2 are:
-
-- DT Binding documentation
-- OMAP2 DSS support
-- Split DSI register space
-- DSS nodes disabled by default
-- Hack to have generic DT bindings but OMAP specific drivers (for now)
-
-This series can also be found from:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt-review-3
-
- Tomi
-
-Javier Martinez Canillas (1):
-  ARM: omap3-igep0020.dts: add display information
-
-Sebastian Reichel (1):
-  OMAPDSS: acx565akm: Add DT support
-
-Tomi Valkeinen (39):
-  ARM: OMAP2+: add omapdss_init_of()
-  ARM: OMAP2+: DT 'compatible' tweak for displays
-  OMAPDSS: add 'label' support for DT
-  OMAPDSS: get dssdev->alias from DT alias
-  OMAPFB: clean up default display search
-  OMAPFB: search for default display with DT alias
-  OMAPDSS: add of helpers
-  OMAPDSS: Improve regulator names for DT
-  OMAPDSS: Add DT support to DSS
-  OMAPDSS: Add DT support to DISPC
-  OMAPDSS: Add DT support to HDMI
-  OMAPDSS: Add DT support to VENC
-  OMAPDSS: Add DT support to DSI
-  OMAPDSS: panel-dsi-cm: Add DT support
-  OMAPDSS: encoder-tfp410: Add DT support
-  OMAPDSS: connector-dvi: Add DT support
-  OMAPDSS: encoder-tpd12s015: Add DT support
-  OMAPDSS: hdmi-connector: Add DT support
-  OMAPDSS: panel-dpi: Add DT support
-  OMAPDSS: connector-analog-tv: Add DT support
-  ARM: omap2.dtsi: add omapdss information
-  ARM: omap3.dtsi: add omapdss information
-  ARM: omap4.dtsi: add omapdss information
-  ARM: omap4-panda.dts: add display information
-  ARM: omap4-sdp.dts: add display information
-  ARM: omap3-beagle.dts: add display information
-  ARM: omap3-beagle-xm.dts: add display information
-  ARM: omap3-n900.dts: add display information
-  OMAPDSS: remove DT hacks for regulators
-  ARM: OMAP2+: remove pdata quirks for displays
-  Doc/DT: Add OMAP DSS DT Bindings
-  Doc/DT: Add DT binding documentation for Analog TV Connector
-  Doc/DT: Add DT binding documentation for DVI Connector
-  Doc/DT: Add DT binding documentation for HDMI Connector
-  Doc/DT: Add DT binding documentation for MIPI DPI Panel
-  Doc/DT: Add DT binding documentation for MIPI DSI CM Panel
-  Doc/DT: Add DT binding documentation for Sony acx565akm panel
-  Doc/DT: Add DT binding documentation for TFP410 encoder
-  Doc/DT: Add DT binding documentation for tpd12s015 encoder
-
- .../bindings/video/analog-tv-connector.txt         |  23 +++
- .../devicetree/bindings/video/dvi-connector.txt    |  26 +++
- .../devicetree/bindings/video/hdmi-connector.txt   |  23 +++
- .../devicetree/bindings/video/panel-dpi.txt        |  43 ++++
- .../devicetree/bindings/video/panel-dsi-cm.txt     |  26 +++
- .../devicetree/bindings/video/sony,acx565akm.txt   |  28 +++
- .../devicetree/bindings/video/ti,omap-dss.txt      | 197 ++++++++++++++++++
- .../devicetree/bindings/video/ti,omap2-dss.txt     |  54 +++++
- .../devicetree/bindings/video/ti,omap3-dss.txt     |  73 +++++++
- .../devicetree/bindings/video/ti,omap4-dss.txt     |  99 +++++++++
- .../devicetree/bindings/video/ti,tfp410.txt        |  41 ++++
- .../devicetree/bindings/video/ti,tpd12s015.txt     |  44 ++++
- .../devicetree/bindings/video/video-ports.txt      |  22 ++
- arch/arm/boot/dts/omap2.dtsi                       |  31 +++
- arch/arm/boot/dts/omap3-beagle-xm.dts              | 119 +++++++++++
- arch/arm/boot/dts/omap3-beagle.dts                 | 116 +++++++++++
- arch/arm/boot/dts/omap3-igep0020.dts               |  59 +++++-
- arch/arm/boot/dts/omap3-n900.dts                   |  70 ++++++-
- arch/arm/boot/dts/omap3.dtsi                       |  42 ++++
- arch/arm/boot/dts/omap4-panda-common.dtsi          | 119 ++++++++++-
- arch/arm/boot/dts/omap4-sdp.dts                    | 107 +++++++++-
- arch/arm/boot/dts/omap4.dtsi                       |  65 ++++++
- arch/arm/mach-omap2/board-generic.c                |   4 +
- arch/arm/mach-omap2/common.h                       |   3 +
- arch/arm/mach-omap2/display.c                      | 132 ++++++++++++
- arch/arm/mach-omap2/dss-common.c                   | 224 ---------------------
- arch/arm/mach-omap2/pdata-quirks.c                 |   3 -
- .../video/omap2/displays-new/connector-analog-tv.c |  43 +++-
- drivers/video/omap2/displays-new/connector-dvi.c   |  43 ++++
- drivers/video/omap2/displays-new/connector-hdmi.c  |  30 +++
- drivers/video/omap2/displays-new/encoder-tfp410.c  |  43 +++-
- .../video/omap2/displays-new/encoder-tpd12s015.c   |  56 ++++++
- drivers/video/omap2/displays-new/panel-dpi.c       |  64 +++++-
- drivers/video/omap2/displays-new/panel-dsi-cm.c    |  65 +++++-
- .../omap2/displays-new/panel-sony-acx565akm.c      |  33 ++-
- drivers/video/omap2/dss/Makefile                   |   2 +-
- drivers/video/omap2/dss/dispc.c                    |   8 +
- drivers/video/omap2/dss/display.c                  |  28 ++-
- drivers/video/omap2/dss/dpi.c                      |  47 +++++
- drivers/video/omap2/dss/dsi.c                      | 147 +++++++++++++-
- drivers/video/omap2/dss/dss-of.c                   | 159 +++++++++++++++
- drivers/video/omap2/dss/dss.c                      |  64 ++++++
- drivers/video/omap2/dss/dss.h                      |   6 +
- drivers/video/omap2/dss/hdmi4.c                    |  14 +-
- drivers/video/omap2/dss/sdi.c                      |  45 +++++
- drivers/video/omap2/dss/venc.c                     |  66 +++++-
- drivers/video/omap2/omapfb/omapfb-main.c           |  67 ++++--
- include/video/omapdss.h                            |  14 ++
- 48 files changed, 2550 insertions(+), 287 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/video/analog-tv-connector.txt
- create mode 100644 Documentation/devicetree/bindings/video/dvi-connector.txt
- create mode 100644 Documentation/devicetree/bindings/video/hdmi-connector.txt
- create mode 100644 Documentation/devicetree/bindings/video/panel-dpi.txt
- create mode 100644 Documentation/devicetree/bindings/video/panel-dsi-cm.txt
- create mode 100644 Documentation/devicetree/bindings/video/sony,acx565akm.txt
- create mode 100644 Documentation/devicetree/bindings/video/ti,omap-dss.txt
- create mode 100644 Documentation/devicetree/bindings/video/ti,omap2-dss.txt
- create mode 100644 Documentation/devicetree/bindings/video/ti,omap3-dss.txt
- create mode 100644 Documentation/devicetree/bindings/video/ti,omap4-dss.txt
- create mode 100644 Documentation/devicetree/bindings/video/ti,tfp410.txt
- create mode 100644 Documentation/devicetree/bindings/video/ti,tpd12s015.txt
- create mode 100644 Documentation/devicetree/bindings/video/video-ports.txt
- create mode 100644 drivers/video/omap2/dss/dss-of.c
-
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 8d972ff18c56..842e4f21ab09 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -36,6 +36,8 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
+ static void __init omap_generic_init(void)
+ {
+ 	pdata_quirks_init(omap_dt_match_table);
++
++	omapdss_init_of();
+ }
+ 
+ #ifdef CONFIG_SOC_OMAP2420
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index e30ef6797c63..04a4d360dd20 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -307,5 +307,7 @@ extern int omap_dss_reset(struct omap_hwmod *);
+ /* SoC specific clock initializer */
+ extern int (*omap_clk_init)(void);
+ 
++int __init omapdss_init_of(void);
++
+ #endif /* __ASSEMBLER__ */
+ #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 4cf165502b35..77cd927e5acb 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -23,6 +23,8 @@
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/delay.h>
++#include <linux/of.h>
++#include <linux/of_platform.h>
+ 
+ #include <video/omapdss.h>
+ #include "omap_hwmod.h"
+@@ -552,3 +554,77 @@ int omap_dss_reset(struct omap_hwmod *oh)
+ 
+ 	return r;
+ }
++
++int __init omapdss_init_of(void)
++{
++	int r;
++	enum omapdss_version ver;
++	struct device_node *node;
++
++	static struct omap_dss_board_info board_data = {
++		.dsi_enable_pads = omap_dsi_enable_pads,
++		.dsi_disable_pads = omap_dsi_disable_pads,
++		.get_context_loss_count = omap_pm_get_dev_context_loss_count,
++		.set_min_bus_tput = omap_dss_set_min_bus_tput,
++	};
++
++	/* only create dss helper devices if dss is enabled in the .dts */
++
++	node = of_find_compatible_node(NULL, NULL, "ti,omap2-dss");
++	if (!node)
++		node = of_find_compatible_node(NULL, NULL, "ti,omap3-dss");
++	if (!node)
++		node = of_find_compatible_node(NULL, NULL, "ti,omap4-dss");
++	if (!node)
++		return 0;
++
++	if (!of_device_is_available(node))
++		return 0;
++
++	ver = omap_display_get_version();
++
++	if (ver == OMAPDSS_VER_UNKNOWN) {
++		pr_err("DSS not supported on this SoC\n");
++		return -ENODEV;
++	}
++
++	board_data.version = ver;
++
++	omap_display_device.dev.platform_data = &board_data;
++
++	r = platform_device_register(&omap_display_device);
++	if (r < 0) {
++		pr_err("Unable to register omapdss device\n");
++		return r;
++	}
++
++	/* create DRM device */
++	r = omap_init_drm();
++	if (r < 0) {
++		pr_err("Unable to register omapdrm device\n");
++		return r;
++	}
++
++	/* create vrfb device */
++	r = omap_init_vrfb();
++	if (r < 0) {
++		pr_err("Unable to register omapvrfb device\n");
++		return r;
++	}
++
++	/* create FB device */
++	r = omap_init_fb();
++	if (r < 0) {
++		pr_err("Unable to register omapfb device\n");
++		return r;
++	}
++
++	/* create V4L2 display device */
++	r = omap_init_vout();
++	if (r < 0) {
++		pr_err("Unable to register omap_vout device\n");
++		return r;
++	}
++
++	return 0;
++}
 -- 
 1.8.3.2
+
