@@ -1,211 +1,157 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 2/2] usb: dwc3: adapt dwc3 core to use Generic PHY Framework
-Date: Tue, 21 Jan 2014 15:41:39 +0530
-Message-ID: <1390299099-14764-2-git-send-email-kishon@ti.com>
-References: <1385373690-12170-1-git-send-email-kishon@ti.com>
- <1390299099-14764-1-git-send-email-kishon@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv3 00/41] OMAPDSS: DT support v3
+Date: Tue, 21 Jan 2014 12:56:32 +0200
+Message-ID: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1390299099-14764-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: george.cherian-l0cyMroinI0@public.gmane.org, heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: kishon-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Stefan Roese <stefan.roese@gmail.com>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@debian.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Darren Etheridge <detheridge@ti.com>, Sebastian Reichel <sre@ring0.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Robert Nelson <robertcnelson@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Florian Vaussard <florian.vaussard@epfl.ch>
 List-Id: linux-omap@vger.kernel.org
 
-Adapted dwc3 core to use the Generic PHY Framework. So for init, exit,
-power_on and power_off the following APIs are used phy_init(), phy_exit(),
-phy_power_on() and phy_power_off().
+Hi,
 
-However using the old USB phy library wont be removed till the PHYs of all
-other SoC's using dwc3 core is adapted to the Generic PHY Framework.
+Here's version 3 of the DSS DT series.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
----
-Changes from v3:
-* avoided using quirks
+The previous version can be found from:
 
- Documentation/devicetree/bindings/usb/dwc3.txt |    6 ++-
- drivers/usb/dwc3/core.c                        |   60 ++++++++++++++++++++++++
- drivers/usb/dwc3/core.h                        |    7 +++
- 3 files changed, 71 insertions(+), 2 deletions(-)
+v1: http://permalink.gmane.org/gmane.linux.ports.arm.omap/108249
+v2: http://permalink.gmane.org/gmane.linux.ports.arm.omap/108866
 
-diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
-index e807635..471366d 100644
---- a/Documentation/devicetree/bindings/usb/dwc3.txt
-+++ b/Documentation/devicetree/bindings/usb/dwc3.txt
-@@ -6,11 +6,13 @@ Required properties:
-  - compatible: must be "snps,dwc3"
-  - reg : Address and length of the register set for the device
-  - interrupts: Interrupts used by the dwc3 controller.
-+
-+Optional properties:
-  - usb-phy : array of phandle for the PHY device.  The first element
-    in the array is expected to be a handle to the USB2/HS PHY and
-    the second element is expected to be a handle to the USB3/SS PHY
--
--Optional properties:
-+ - phys: from the *Generic PHY* bindings
-+ - phy-names: from the *Generic PHY* bindings
-  - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
- 
- This is usually a subnode to DWC3 glue to which it is connected.
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index e009d4e..036d589 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -82,6 +82,11 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
- 
- 	usb_phy_init(dwc->usb2_phy);
- 	usb_phy_init(dwc->usb3_phy);
-+	if (dwc->usb2_generic_phy)
-+		phy_init(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_init(dwc->usb3_generic_phy);
-+
- 	mdelay(100);
- 
- 	/* Clear USB3 PHY reset */
-@@ -343,6 +348,11 @@ static void dwc3_core_exit(struct dwc3 *dwc)
- {
- 	usb_phy_shutdown(dwc->usb2_phy);
- 	usb_phy_shutdown(dwc->usb3_phy);
-+	if (dwc->usb2_generic_phy)
-+		phy_exit(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_exit(dwc->usb3_generic_phy);
-+
- }
- 
- #define DWC3_ALIGN_MASK		(16 - 1)
-@@ -433,6 +443,32 @@ static int dwc3_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	dwc->usb2_generic_phy = devm_phy_get(dev, "usb2-phy");
-+	if (IS_ERR(dwc->usb2_generic_phy)) {
-+		ret = PTR_ERR(dwc->usb2_generic_phy);
-+		if (ret == -ENOSYS || ret == -ENODEV) {
-+			dwc->usb2_generic_phy = NULL;
-+		} else if (ret == -EPROBE_DEFER) {
-+			return ret;
-+		} else {
-+			dev_err(dev, "no usb2 phy configured\n");
-+			return ret;
-+		}
-+	}
-+
-+	dwc->usb3_generic_phy = devm_phy_get(dev, "usb3-phy");
-+	if (IS_ERR(dwc->usb3_generic_phy)) {
-+		ret = PTR_ERR(dwc->usb3_generic_phy);
-+		if (ret == -ENOSYS || ret == -ENODEV) {
-+			dwc->usb3_generic_phy = NULL;
-+		} else if (ret == -EPROBE_DEFER) {
-+			return ret;
-+		} else {
-+			dev_err(dev, "no usb3 phy configured\n");
-+			return ret;
-+		}
-+	}
-+
- 	dwc->xhci_resources[0].start = res->start;
- 	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
- 					DWC3_XHCI_REGS_END;
-@@ -482,6 +518,11 @@ static int dwc3_probe(struct platform_device *pdev)
- 	usb_phy_set_suspend(dwc->usb2_phy, 0);
- 	usb_phy_set_suspend(dwc->usb3_phy, 0);
- 
-+	if (dwc->usb2_generic_phy)
-+		phy_power_on(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_power_on(dwc->usb3_generic_phy);
-+
- 	ret = dwc3_event_buffers_setup(dwc);
- 	if (ret) {
- 		dev_err(dwc->dev, "failed to setup event buffers\n");
-@@ -565,6 +606,10 @@ err2:
- err1:
- 	usb_phy_set_suspend(dwc->usb2_phy, 1);
- 	usb_phy_set_suspend(dwc->usb3_phy, 1);
-+	if (dwc->usb2_generic_phy)
-+		phy_power_off(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_power_off(dwc->usb3_generic_phy);
- 	dwc3_core_exit(dwc);
- 
- err0:
-@@ -580,6 +625,11 @@ static int dwc3_remove(struct platform_device *pdev)
- 	usb_phy_set_suspend(dwc->usb2_phy, 1);
- 	usb_phy_set_suspend(dwc->usb3_phy, 1);
- 
-+	if (dwc->usb2_generic_phy)
-+		phy_power_off(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_power_off(dwc->usb3_generic_phy);
-+
- 	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 
-@@ -677,6 +727,11 @@ static int dwc3_suspend(struct device *dev)
- 	usb_phy_shutdown(dwc->usb3_phy);
- 	usb_phy_shutdown(dwc->usb2_phy);
- 
-+	if (dwc->usb2_generic_phy)
-+		phy_exit(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_exit(dwc->usb3_generic_phy);
-+
- 	return 0;
- }
- 
-@@ -688,6 +743,11 @@ static int dwc3_resume(struct device *dev)
- 	usb_phy_init(dwc->usb3_phy);
- 	usb_phy_init(dwc->usb2_phy);
- 
-+	if (dwc->usb2_generic_phy)
-+		phy_init(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_init(dwc->usb3_generic_phy);
-+
- 	spin_lock_irqsave(&dwc->lock, flags);
- 
- 	dwc3_writel(dwc->regs, DWC3_GCTL, dwc->gctl);
-diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index f8af8d4..01ec7d7 100644
---- a/drivers/usb/dwc3/core.h
-+++ b/drivers/usb/dwc3/core.h
-@@ -31,6 +31,8 @@
- #include <linux/usb/gadget.h>
- #include <linux/usb/otg.h>
- 
-+#include <linux/phy/phy.h>
-+
- /* Global constants */
- #define DWC3_EP0_BOUNCE_SIZE	512
- #define DWC3_ENDPOINTS_NUM	32
-@@ -613,6 +615,8 @@ struct dwc3_scratchpad_array {
-  * @dr_mode: requested mode of operation
-  * @usb2_phy: pointer to USB2 PHY
-  * @usb3_phy: pointer to USB3 PHY
-+ * @usb2_generic_phy: pointer to USB2 PHY
-+ * @usb3_generic_phy: pointer to USB3 PHY
-  * @dcfg: saved contents of DCFG register
-  * @gctl: saved contents of GCTL register
-  * @is_selfpowered: true when we are selfpowered
-@@ -665,6 +669,9 @@ struct dwc3 {
- 	struct usb_phy		*usb2_phy;
- 	struct usb_phy		*usb3_phy;
- 
-+	struct phy		*usb2_generic_phy;
-+	struct phy		*usb3_generic_phy;
-+
- 	void __iomem		*regs;
- 	size_t			regs_size;
- 
+The main changes to v2 are:
+
+- DT Binding documentation
+- OMAP2 DSS support
+- Split DSI register space
+- DSS nodes disabled by default
+- Hack to have generic DT bindings but OMAP specific drivers (for now)
+
+This series can also be found from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt-review-3
+
+ Tomi
+
+Javier Martinez Canillas (1):
+  ARM: omap3-igep0020.dts: add display information
+
+Sebastian Reichel (1):
+  OMAPDSS: acx565akm: Add DT support
+
+Tomi Valkeinen (39):
+  ARM: OMAP2+: add omapdss_init_of()
+  ARM: OMAP2+: DT 'compatible' tweak for displays
+  OMAPDSS: add 'label' support for DT
+  OMAPDSS: get dssdev->alias from DT alias
+  OMAPFB: clean up default display search
+  OMAPFB: search for default display with DT alias
+  OMAPDSS: add of helpers
+  OMAPDSS: Improve regulator names for DT
+  OMAPDSS: Add DT support to DSS
+  OMAPDSS: Add DT support to DISPC
+  OMAPDSS: Add DT support to HDMI
+  OMAPDSS: Add DT support to VENC
+  OMAPDSS: Add DT support to DSI
+  OMAPDSS: panel-dsi-cm: Add DT support
+  OMAPDSS: encoder-tfp410: Add DT support
+  OMAPDSS: connector-dvi: Add DT support
+  OMAPDSS: encoder-tpd12s015: Add DT support
+  OMAPDSS: hdmi-connector: Add DT support
+  OMAPDSS: panel-dpi: Add DT support
+  OMAPDSS: connector-analog-tv: Add DT support
+  ARM: omap2.dtsi: add omapdss information
+  ARM: omap3.dtsi: add omapdss information
+  ARM: omap4.dtsi: add omapdss information
+  ARM: omap4-panda.dts: add display information
+  ARM: omap4-sdp.dts: add display information
+  ARM: omap3-beagle.dts: add display information
+  ARM: omap3-beagle-xm.dts: add display information
+  ARM: omap3-n900.dts: add display information
+  OMAPDSS: remove DT hacks for regulators
+  ARM: OMAP2+: remove pdata quirks for displays
+  Doc/DT: Add OMAP DSS DT Bindings
+  Doc/DT: Add DT binding documentation for Analog TV Connector
+  Doc/DT: Add DT binding documentation for DVI Connector
+  Doc/DT: Add DT binding documentation for HDMI Connector
+  Doc/DT: Add DT binding documentation for MIPI DPI Panel
+  Doc/DT: Add DT binding documentation for MIPI DSI CM Panel
+  Doc/DT: Add DT binding documentation for Sony acx565akm panel
+  Doc/DT: Add DT binding documentation for TFP410 encoder
+  Doc/DT: Add DT binding documentation for tpd12s015 encoder
+
+ .../bindings/video/analog-tv-connector.txt         |  23 +++
+ .../devicetree/bindings/video/dvi-connector.txt    |  26 +++
+ .../devicetree/bindings/video/hdmi-connector.txt   |  23 +++
+ .../devicetree/bindings/video/panel-dpi.txt        |  43 ++++
+ .../devicetree/bindings/video/panel-dsi-cm.txt     |  26 +++
+ .../devicetree/bindings/video/sony,acx565akm.txt   |  28 +++
+ .../devicetree/bindings/video/ti,omap-dss.txt      | 197 ++++++++++++++++++
+ .../devicetree/bindings/video/ti,omap2-dss.txt     |  54 +++++
+ .../devicetree/bindings/video/ti,omap3-dss.txt     |  73 +++++++
+ .../devicetree/bindings/video/ti,omap4-dss.txt     |  99 +++++++++
+ .../devicetree/bindings/video/ti,tfp410.txt        |  41 ++++
+ .../devicetree/bindings/video/ti,tpd12s015.txt     |  44 ++++
+ .../devicetree/bindings/video/video-ports.txt      |  22 ++
+ arch/arm/boot/dts/omap2.dtsi                       |  31 +++
+ arch/arm/boot/dts/omap3-beagle-xm.dts              | 119 +++++++++++
+ arch/arm/boot/dts/omap3-beagle.dts                 | 116 +++++++++++
+ arch/arm/boot/dts/omap3-igep0020.dts               |  59 +++++-
+ arch/arm/boot/dts/omap3-n900.dts                   |  70 ++++++-
+ arch/arm/boot/dts/omap3.dtsi                       |  42 ++++
+ arch/arm/boot/dts/omap4-panda-common.dtsi          | 119 ++++++++++-
+ arch/arm/boot/dts/omap4-sdp.dts                    | 107 +++++++++-
+ arch/arm/boot/dts/omap4.dtsi                       |  65 ++++++
+ arch/arm/mach-omap2/board-generic.c                |   4 +
+ arch/arm/mach-omap2/common.h                       |   3 +
+ arch/arm/mach-omap2/display.c                      | 132 ++++++++++++
+ arch/arm/mach-omap2/dss-common.c                   | 224 ---------------------
+ arch/arm/mach-omap2/pdata-quirks.c                 |   3 -
+ .../video/omap2/displays-new/connector-analog-tv.c |  43 +++-
+ drivers/video/omap2/displays-new/connector-dvi.c   |  43 ++++
+ drivers/video/omap2/displays-new/connector-hdmi.c  |  30 +++
+ drivers/video/omap2/displays-new/encoder-tfp410.c  |  43 +++-
+ .../video/omap2/displays-new/encoder-tpd12s015.c   |  56 ++++++
+ drivers/video/omap2/displays-new/panel-dpi.c       |  64 +++++-
+ drivers/video/omap2/displays-new/panel-dsi-cm.c    |  65 +++++-
+ .../omap2/displays-new/panel-sony-acx565akm.c      |  33 ++-
+ drivers/video/omap2/dss/Makefile                   |   2 +-
+ drivers/video/omap2/dss/dispc.c                    |   8 +
+ drivers/video/omap2/dss/display.c                  |  28 ++-
+ drivers/video/omap2/dss/dpi.c                      |  47 +++++
+ drivers/video/omap2/dss/dsi.c                      | 147 +++++++++++++-
+ drivers/video/omap2/dss/dss-of.c                   | 159 +++++++++++++++
+ drivers/video/omap2/dss/dss.c                      |  64 ++++++
+ drivers/video/omap2/dss/dss.h                      |   6 +
+ drivers/video/omap2/dss/hdmi4.c                    |  14 +-
+ drivers/video/omap2/dss/sdi.c                      |  45 +++++
+ drivers/video/omap2/dss/venc.c                     |  66 +++++-
+ drivers/video/omap2/omapfb/omapfb-main.c           |  67 ++++--
+ include/video/omapdss.h                            |  14 ++
+ 48 files changed, 2550 insertions(+), 287 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/video/analog-tv-connector.txt
+ create mode 100644 Documentation/devicetree/bindings/video/dvi-connector.txt
+ create mode 100644 Documentation/devicetree/bindings/video/hdmi-connector.txt
+ create mode 100644 Documentation/devicetree/bindings/video/panel-dpi.txt
+ create mode 100644 Documentation/devicetree/bindings/video/panel-dsi-cm.txt
+ create mode 100644 Documentation/devicetree/bindings/video/sony,acx565akm.txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap-dss.txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap2-dss.txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap3-dss.txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap4-dss.txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,tfp410.txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,tpd12s015.txt
+ create mode 100644 Documentation/devicetree/bindings/video/video-ports.txt
+ create mode 100644 drivers/video/omap2/dss/dss-of.c
+
 -- 
-1.7.10.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.8.3.2
