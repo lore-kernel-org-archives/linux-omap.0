@@ -1,14 +1,14 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv3 14/41] OMAPDSS: panel-dsi-cm: Add DT support
-Date: Tue, 21 Jan 2014 12:56:46 +0200
-Message-ID: <1390301833-24944-15-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv3 16/41] OMAPDSS: connector-dvi: Add DT support
+Date: Tue, 21 Jan 2014 12:56:48 +0200
+Message-ID: <1390301833-24944-17-git-send-email-tomi.valkeinen@ti.com>
 References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33424 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33422 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754500AbaAULAA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754083AbaAULAA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 21 Jan 2014 06:00:00 -0500
 In-Reply-To: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,74 +16,28 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add DT support for panel-dsi-cm.
+Add DT support for connector-dvi.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays-new/panel-dsi-cm.c | 65 +++++++++++++++++++++++--
- 1 file changed, 61 insertions(+), 4 deletions(-)
+ drivers/video/omap2/displays-new/connector-dvi.c | 43 ++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/drivers/video/omap2/displays-new/panel-dsi-cm.c b/drivers/video/omap2/displays-new/panel-dsi-cm.c
-index b7baafe83aa3..d302c4428ab7 100644
---- a/drivers/video/omap2/displays-new/panel-dsi-cm.c
-+++ b/drivers/video/omap2/displays-new/panel-dsi-cm.c
-@@ -22,6 +22,8 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/workqueue.h>
-+#include <linux/of_device.h>
-+#include <linux/of_gpio.h>
- 
- #include <video/omapdss.h>
- #include <video/omap-panel-data.h>
-@@ -595,10 +597,13 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 		.lp_clk_max = 10000000,
- 	};
- 
--	r = in->ops.dsi->configure_pins(in, &ddata->pin_config);
--	if (r) {
--		dev_err(&ddata->pdev->dev, "failed to configure DSI pins\n");
--		goto err0;
-+	if (ddata->pin_config.num_pins > 0) {
-+		r = in->ops.dsi->configure_pins(in, &ddata->pin_config);
-+		if (r) {
-+			dev_err(&ddata->pdev->dev,
-+				"failed to configure DSI pins\n");
-+			goto err0;
-+		}
- 	}
- 
- 	r = in->ops.dsi->set_config(in, &dsi_config);
-@@ -1156,6 +1161,46 @@ static int dsicm_probe_pdata(struct platform_device *pdev)
+diff --git a/drivers/video/omap2/displays-new/connector-dvi.c b/drivers/video/omap2/displays-new/connector-dvi.c
+index b6c50904038e..4ea26abdcb64 100644
+--- a/drivers/video/omap2/displays-new/connector-dvi.c
++++ b/drivers/video/omap2/displays-new/connector-dvi.c
+@@ -277,6 +277,37 @@ static int dvic_probe_pdata(struct platform_device *pdev)
  	return 0;
  }
  
-+static int dsicm_probe_of(struct platform_device *pdev)
++static int dvic_probe_of(struct platform_device *pdev)
 +{
-+	struct device_node *node = pdev->dev.of_node;
 +	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	struct device_node *node = pdev->dev.of_node;
 +	struct omap_dss_device *in;
-+	int gpio;
-+
-+	gpio = of_get_gpio(node, 0);
-+	if (!gpio_is_valid(gpio)) {
-+		dev_err(&pdev->dev, "failed to parse reset gpio\n");
-+		return gpio;
-+	}
-+	ddata->reset_gpio = gpio;
-+
-+	if (of_gpio_count(node) > 1) {
-+		gpio = of_get_gpio(node, 1);
-+
-+		if (gpio_is_valid(gpio) || gpio == -ENOENT) {
-+			ddata->ext_te_gpio = gpio;
-+		} else {
-+			dev_err(&pdev->dev, "failed to parse TE gpio\n");
-+			return gpio;
-+		}
-+	} else {
-+		ddata->ext_te_gpio = -1;
-+	}
++	struct device_node *adapter_node;
++	struct i2c_adapter *adapter;
 +
 +	in = omapdss_of_find_source_for_first_ep(node);
 +	if (IS_ERR(in)) {
@@ -93,43 +47,53 @@ index b7baafe83aa3..d302c4428ab7 100644
 +
 +	ddata->in = in;
 +
-+	/* TODO: ulps, backlight */
++	adapter_node = of_parse_phandle(node, "i2c-bus", 0);
++	if (adapter_node) {
++		adapter = of_find_i2c_adapter_by_node(adapter_node);
++		if (adapter == NULL) {
++			dev_err(&pdev->dev, "failed to parse i2c-bus\n");
++			omap_dss_put_device(ddata->in);
++			return -EPROBE_DEFER;
++		}
++
++		ddata->i2c_adapter = adapter;
++	}
 +
 +	return 0;
 +}
 +
- static int dsicm_probe(struct platform_device *pdev)
+ static int dvic_probe(struct platform_device *pdev)
  {
- 	struct backlight_properties props;
-@@ -1178,6 +1223,10 @@ static int dsicm_probe(struct platform_device *pdev)
- 		r = dsicm_probe_pdata(pdev);
+ 	struct panel_drv_data *ddata;
+@@ -293,6 +324,10 @@ static int dvic_probe(struct platform_device *pdev)
+ 		r = dvic_probe_pdata(pdev);
  		if (r)
  			return r;
 +	} else if (pdev->dev.of_node) {
-+		r = dsicm_probe_of(pdev);
++		r = dvic_probe_of(pdev);
 +		if (r)
 +			return r;
  	} else {
  		return -ENODEV;
  	}
-@@ -1320,12 +1369,20 @@ static int __exit dsicm_remove(struct platform_device *pdev)
+@@ -342,12 +377,20 @@ static int __exit dvic_remove(struct platform_device *pdev)
  	return 0;
  }
  
-+static const struct of_device_id dsicm_of_match[] = {
-+	{ .compatible = "omapdss,panel-dsi-cm", },
++static const struct of_device_id dvic_of_match[] = {
++	{ .compatible = "omapdss,dvi-connector", },
 +	{},
 +};
 +
-+MODULE_DEVICE_TABLE(of, dsicm_of_match);
++MODULE_DEVICE_TABLE(of, dvic_of_match);
 +
- static struct platform_driver dsicm_driver = {
- 	.probe = dsicm_probe,
- 	.remove = __exit_p(dsicm_remove),
- 	.driver = {
- 		.name = "panel-dsi-cm",
- 		.owner = THIS_MODULE,
-+		.of_match_table = dsicm_of_match,
+ static struct platform_driver dvi_connector_driver = {
+ 	.probe	= dvic_probe,
+ 	.remove	= __exit_p(dvic_remove),
+ 	.driver	= {
+ 		.name	= "connector-dvi",
+ 		.owner	= THIS_MODULE,
++		.of_match_table = dvic_of_match,
  	},
  };
  
