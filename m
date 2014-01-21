@@ -1,38 +1,62 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v6 00/10] USB Host support for OMAP5 uEVM (for 3.14)
-Date: Tue, 21 Jan 2014 17:19:01 +0000
-Message-ID: <20140121171901.GE27111@lee--X1>
-References: <1390227091-4523-1-git-send-email-rogerq@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: Add support for Erratum 2.1.1.128 in
+ device tree boot
+Date: Tue, 21 Jan 2014 11:38:00 -0600
+Message-ID: <52DEB078.5030005@ti.com>
+References: <1390260542-22213-1-git-send-email-nm@ti.com> <20140120233941.GG6516@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:59999 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754976AbaAURTI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jan 2014 12:19:08 -0500
-Received: by mail-wg0-f46.google.com with SMTP id x12so8147781wgg.13
-        for <linux-omap@vger.kernel.org>; Tue, 21 Jan 2014 09:19:07 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1390227091-4523-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20140120233941.GG6516@saruman.home>
+Sender: linux-mmc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Balaji T K <balajitk@ti.com>, Chris Ball <chris@printf.net>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, arnd@arndb.de, sre@debian.org, mark.rutland@arm.com, m.paolino@virtualopensystems.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-> This patchset brings up USB Host ports and Ethernet port on
-> the OMAP5 uEVM board.
+On 01/20/2014 05:39 PM, Felipe Balbi wrote:
+> On Mon, Jan 20, 2014 at 05:29:02PM -0600, Nishanth Menon wrote:
+>> When device is booted using devicetree, platforms impacted by
+>> Erratum 2.1.1.128 is not detected easily in the mmc driver. This erratum
+>> indicates that the module cannot do multi-block transfers.
+>>
+>> Handle this by providing a boolean flag to indicate to driver that it is
+>> working on a hardware with mentioned limitation.
+> 
+> sure there's no way of reading the revision register to figure this one
+> out without having to add a new DT attribute ?
+> 
+I did a quick patch to read the Module revision register:
+http://slexy.org/view/s21TKvlWlR
 
-I'd keep hold of this and send it out again when the merge-window is
-closed.
+sdp2430: Revision: 1.2, Spec: 0.0, normal interrupt
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OMAP3430-ldp: (ES2.1): Revision: 2.6, Spec: 0.0, normal interrupt
+SDP3430:(ES3.0) Revision: 2.6, Spec: 0.0, normal interrupt
+AM3517-evm: (ES1.1): Revision: 2.6, Spec: 0.0, normal interrupt
+AM3517-crane:(ES1.1): Revision: 2.6, Spec: 0.0, normal interrupt
+
+AM37x-evm: (ES1.2) Revision: 2.6, Spec: 0.0, normal interrupt
+OMAP3630-beag-xm (ES1.2): Revision: 2.6, Spec: 0.0, normal interrupt
+
+am335x-evm:(ES1.0): Revision: 3.1, Spec: 0.1, normal interrupt
+am335x-sk: (ES2.1): Revision: 3.1, Spec: 0.1, normal interrupt
+am335x-beaglebone-black:(ES2.0): Revision: 3.1, Spec: 0.1, normal
+interrupt
+
+sdp4430.txt: (ES2.2): Revision: 3.1, Spec: 0.1, normal interrupt
+
+OMAP4460-panda-es (ES1.1): Revision: 3.1, Spec: 0.1, normal interrupt
+
+OMAP5uevm:(ES2.0): Revision: 3.3, Spec: 0.2, normal interrupt
+dra7-evm (es1.1): Revision: 3.3, Spec: 0.2, normal interrupt
+
+
+OMAP3430-ldp seems to be the only one impacted with module revision
+2.6 -> so using revision information is not really helpful here. Hence
+the usage of a flag in dt attribute to indicate hardware impacted by
+erratum.
+
+-- 
+Regards,
+Nishanth Menon
