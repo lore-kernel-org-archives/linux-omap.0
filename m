@@ -1,181 +1,64 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v4 2/2] usb: dwc3: adapt dwc3 core to use Generic PHY
- Framework
-Date: Wed, 22 Jan 2014 15:44:31 +0530
-Message-ID: <52DF9A07.7030808@ti.com>
-References: <1385373690-12170-1-git-send-email-kishon@ti.com>	<1390299099-14764-1-git-send-email-kishon@ti.com>	<1390299099-14764-2-git-send-email-kishon@ti.com>	<52DE7D75.4040302@ti.com>
- <CAFp+6iFkgD8x4DozhQdRSx=KLWGwR5pOsCxrVgWbcnCMTFT-sg@mail.gmail.com>
- <52DF7A78.5030700@ti.com>
+From: Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [alsa-devel] [PATCH RFC v2 REPOST 3/8] ASoC: davinci-evm: HDMI
+	audio support for TDA998x trough McASP I2S bus
+Date: Wed, 22 Jan 2014 11:19:53 +0100
+Message-ID: <20140122111953.238349a5@armhf>
+References: <cover.1387535299.git.jsarha@ti.com>
+	<d3c3f645d39338df0ee9686cb030255ce36a249d.1387535302.git.jsarha@ti.com>
+	<20131231132555.GA31886@sirena.org.uk> <52D67099.1040904@ti.com>
+	<20140115165100.3bfab96f@armhf> <52DF8D60.9020505@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <52DF7A78.5030700@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>, Vivek Gautam <gautamvivek1987@gmail.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, george.cherian@ti.com, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-doc@vger.kernel.org, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <52DF8D60.9020505@ti.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces@lists.freedesktop.org
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, "Ujfalusi,
+	Peter" <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 22 January 2014 01:29 PM, Roger Quadros wrote:
-> On 01/22/2014 08:04 AM, Vivek Gautam wrote:
->> Hi,
->>
->>
->> On Tue, Jan 21, 2014 at 7:30 PM, Roger Quadros <rogerq@ti.com> wrote:
->>> Hi Kishon,
->>>
->>> On 01/21/2014 12:11 PM, Kishon Vijay Abraham I wrote:
->>>> Adapted dwc3 core to use the Generic PHY Framework. So for init, exit,
->>>> power_on and power_off the following APIs are used phy_init(), phy_exit(),
->>>> phy_power_on() and phy_power_off().
->>>>
->>>> However using the old USB phy library wont be removed till the PHYs of all
->>>> other SoC's using dwc3 core is adapted to the Generic PHY Framework.
->>>>
->>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>> ---
->>>> Changes from v3:
->>>> * avoided using quirks
->>>>
->>>>  Documentation/devicetree/bindings/usb/dwc3.txt |    6 ++-
->>>>  drivers/usb/dwc3/core.c                        |   60 ++++++++++++++++++++++++
->>>>  drivers/usb/dwc3/core.h                        |    7 +++
->>>>  3 files changed, 71 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
->>>> index e807635..471366d 100644
->>>> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
->>>> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
->>>> @@ -6,11 +6,13 @@ Required properties:
->>>>   - compatible: must be "snps,dwc3"
->>>>   - reg : Address and length of the register set for the device
->>>>   - interrupts: Interrupts used by the dwc3 controller.
->>>> +
->>>> +Optional properties:
->>>>   - usb-phy : array of phandle for the PHY device.  The first element
->>>>     in the array is expected to be a handle to the USB2/HS PHY and
->>>>     the second element is expected to be a handle to the USB3/SS PHY
->>>> -
->>>> -Optional properties:
->>>> + - phys: from the *Generic PHY* bindings
->>>> + - phy-names: from the *Generic PHY* bindings
->>>>   - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
->>>>
->>>>  This is usually a subnode to DWC3 glue to which it is connected.
->>>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->>>> index e009d4e..036d589 100644
->>>> --- a/drivers/usb/dwc3/core.c
->>>> +++ b/drivers/usb/dwc3/core.c
->>>> @@ -82,6 +82,11 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
->>>>
->>>>       usb_phy_init(dwc->usb2_phy);
->>>>       usb_phy_init(dwc->usb3_phy);
->>>> +     if (dwc->usb2_generic_phy)
->>>> +             phy_init(dwc->usb2_generic_phy);
->>>
->>> What if phy_init() fails? You need to report and fail. Same applies for all PHY apis in this patch.
->>>
->>>> +     if (dwc->usb3_generic_phy)
->>>> +             phy_init(dwc->usb3_generic_phy);
->>>> +
->>>>       mdelay(100);
->>>>
->>>>       /* Clear USB3 PHY reset */
->>>> @@ -343,6 +348,11 @@ static void dwc3_core_exit(struct dwc3 *dwc)
->>>>  {
->>>>       usb_phy_shutdown(dwc->usb2_phy);
->>>>       usb_phy_shutdown(dwc->usb3_phy);
->>>> +     if (dwc->usb2_generic_phy)
->>>> +             phy_exit(dwc->usb2_generic_phy);
->>>> +     if (dwc->usb3_generic_phy)
->>>> +             phy_exit(dwc->usb3_generic_phy);
->>>> +
->>>>  }
->>>>
->>>>  #define DWC3_ALIGN_MASK              (16 - 1)
->>>> @@ -433,6 +443,32 @@ static int dwc3_probe(struct platform_device *pdev)
->>>>               }
->>>>       }
->>>>
->>>> +     dwc->usb2_generic_phy = devm_phy_get(dev, "usb2-phy");
->>>> +     if (IS_ERR(dwc->usb2_generic_phy)) {
->>>> +             ret = PTR_ERR(dwc->usb2_generic_phy);
->>>> +             if (ret == -ENOSYS || ret == -ENODEV) {
->>>> +                     dwc->usb2_generic_phy = NULL;
->>>> +             } else if (ret == -EPROBE_DEFER) {
->>>> +                     return ret;
->>>> +             } else {
->>>> +                     dev_err(dev, "no usb2 phy configured\n");
->>>> +                     return ret;
->>>> +             }
->>>> +     }
->>>> +
->>>> +     dwc->usb3_generic_phy = devm_phy_get(dev, "usb3-phy");
->>>> +     if (IS_ERR(dwc->usb3_generic_phy)) {
->>>> +             ret = PTR_ERR(dwc->usb3_generic_phy);
->>>> +             if (ret == -ENOSYS || ret == -ENODEV) {
->>>> +                     dwc->usb3_generic_phy = NULL;
->>>> +             } else if (ret == -EPROBE_DEFER) {
->>>> +                     return ret;
->>>> +             } else {
->>>> +                     dev_err(dev, "no usb3 phy configured\n");
->>>> +                     return ret;
->>>> +             }
->>>> +     }
->>>> +
->>>>       dwc->xhci_resources[0].start = res->start;
->>>>       dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
->>>>                                       DWC3_XHCI_REGS_END;
->>>> @@ -482,6 +518,11 @@ static int dwc3_probe(struct platform_device *pdev)
->>>>       usb_phy_set_suspend(dwc->usb2_phy, 0);
->>>>       usb_phy_set_suspend(dwc->usb3_phy, 0);
->>>>
->>>> +     if (dwc->usb2_generic_phy)
->>>> +             phy_power_on(dwc->usb2_generic_phy);
->>>> +     if (dwc->usb3_generic_phy)
->>>> +             phy_power_on(dwc->usb3_generic_phy);
->>>> +
->>>
->>> Is it OK to power on the phy before phy_init()?
->>
->> Isn't phy_init() being done before phy_power_on() in the
->> core_soft_reset() in this patch ?
->> Isn't that what you want here ?
->>
->>>
->>> I suggest to move phy_init() from core_soft_reset() to here, just before phy_power_on().
->>
->> core_soft_reset() is called before phy_power_on() itself from
->> dwc3_core_init(), right ?
->> will moving the phy_inti() here make nay difference ?
-> 
-> You are right. This part is fine then.
-
-Yeah.. it was fixed in one of the earlier patches which got merged.
-
-commit 3088f1085d1c08f31f02db26796555a66cdf7ca1
-Author: Kishon Vijay Abraham I <kishon@ti.com>
-Date:   Mon Nov 25 15:31:21 2013 +0530
-
-    usb: dwc3: invoke phy_resume after phy_init
-
-    usb_phy_set_suspend(phy, 0) is called before usb_phy_init. Fix it.
-
-    Reported-by: Roger Quadros <rogerq@ti.com>
-    Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-    Signed-off-by: Felipe Balbi <balbi@ti.com>
-
-Cheers,
-Kishon
-> 
-> cheers,
-> -roger
-> 
+T24gV2VkLCAyMiBKYW4gMjAxNCAxMToyMDozMiArMDIwMApKeXJpIFNhcmhhIDxqc2FyaGFAdGku
+Y29tPiB3cm90ZToKCj4gT24gMDEvMTUvMjAxNCAwNTo1MSBQTSwgSmVhbi1GcmFuY29pcyBNb2lu
+ZSB3cm90ZToKPiA+IE9uIFdlZCwgMTUgSmFuIDIwMTQgMTM6Mjc6MjEgKzAyMDAKPiA+IEp5cmkg
+U2FyaGEgPGpzYXJoYUB0aS5jb20+IHdyb3RlOgo+ID4KPiA+PiAgIEZyb20gZHJpdmVyL2dwdS9k
+cm0vaTJjL3RkYTk5OHhfZHJ2LmMuIFRoZSBkcml2ZXIgY29uZmlndXJlcyBDVFNfTgo+ID4+IHJl
+Z2lzdGVyIHN0YXRpY2FsbHkgdG8gYSB2YWx1ZSB0aGF0IHdvcmtzIG9ubHkgd2l0aCA0IGJ5dGUg
+c2FtcGxlcy4KPiA+PiBBY2NvcmRpbmcgdG8gbXkgdGVzdHMgaXQgaXMgcG9zc2libGUgdG8gc3Vw
+cG9ydCAzIGFuZCAyIGJ5dGUgc2FtcGxlcyB0b28KPiA+PiBieSBjaGFuZ2luZyB0aGUgQ1RTX04g
+cmVnaXN0ZXIgdmFsdWUsIGJ1dCBJIGFtIG5vdCBzdXJlIGlmIHRoZQo+ID4+IGNvbmZpZ3VyYXRp
+b24gY2FuIGJlIGNoYW5nZWQgb24gdGhlIGZseS4gTXkgZGF0YSBzaGVldCBvZiB0aGUgbnhwIGNo
+aXAKPiA+PiBpcyB2ZXJ5IHZhZ3VlIGFib3V0IHRoZSByZWdpc3RlciBkZWZpbml0aW9ucywgYnV0
+IEkgc3VwcG9zZSB0aGUgcmVnaXN0ZXIKPiA+PiBjb25maWd1cmVzIHNvbWUgY2xvY2sgZGl2aWRl
+ciBvbiB0aGUgY2hpcC4gSERNSSBzdXBwb3J0cyBvbmx5IHVwdG8gMjRiaXQKPiA+PiBhdWRpbyBh
+bmQgdGhlIGRhdGEgc2hlZXQgc3RhdGVzIHRoYXQgYW55IGV4dHJhbmVvdXMgbGVhc3Qgc2lnbmlm
+aWNhbnQKPiA+PiBiaXRzIGFyZSBpZ25vcmVkLgo+ID4KPiA+IEluIHRoZSB0ZGE5OTh4IGRyaXZl
+ciwgdGhlIENUU19OIGlzIGF1dG9tYXRpYyAoQUlQX0NOVFJMXzBfQUNSX01BTiBpcwo+ID4gbm90
+IHNldCkuCj4gPgo+ID4gVGhlbiwgaW4gbXkgQ3Vib3ggKE1hcnZlbGwgQTUxMCArIHRkYTE5OTg4
+KSwgdGhlIDE2LCAyNCBhbmQgMzIgYml0cwo+ID4gZm9ybWF0cyBhcmUgd29ya2luZyB3ZWxsIHdp
+dGggSTJTIGlucHV0IGF0IGFueSByYXRlLgo+ID4KPiAKPiBDb3VsZCB5b3UgcmVmZXIgdGhlIGtl
+cm5lbCB2ZXJzaW9uIChtYWluIGxpbmU/KSBhbmQgdGhlIGludm9sdmVkIEFTb0MgCj4gZHJpdmVy
+cyBzbyBjb3VsZCB0YWtlIEkgYSBsb29rIGlmIHRoZXJlIGlzIHNvbWV0aGluZyBJIGNvdWxkIGRv
+IGRpZmZlcmVudGx5PwoKQm90aCBkcml2ZXJzIGFyZSBpbiB0aGUga2VybmVsIG1haW4gbGluZS4K
+ClRoZSBBU29DIGlzIGluIHNvdW5kL3NvYy9raXJrd29vZC8uIGtpcmt3b29kLWkycy5jIGRlZmlu
+ZXMgdGhlIERBSXMgSTJTCmFuZCBTL1BESUYgb3V0cHV0cy4KCkFzIGJvdGggSTJTIGFuZCBTL1BE
+SUYgbWF5IGJlIHVzZWQgZm9yIEhETUkgb3V0cHV0IGluIHRoZSBDdWJveCwKSSB3cm90ZSBhIHRk
+YTk5OHggQ09ERUMgd2hpY2ggZ2V0cyB0aGUgYXVkaW8gcG9ydHMgZnJvbSB0aGUgRFQgYW5kCmR5
+bmFtaWNhbGx5IHNldHMgdGhlc2UgcG9ydHMgYW5kIHRoZSBhdWRpbyB0eXBlIChpMnMgLyBzcGRp
+Zikgb24gYXVkaW8Kc3RyZWFtaW5nIHN0YXJ0LiBJIGhhdmUgbm90IHN1Ym1pdHRlZCB5ZXQgdGhp
+cyBjb2RlYyBhbmQgdGhlIGFzc29jaWF0ZWQKY2hhbmdlcyBpbiB0ZGE5OTh4LCBiZWNhdXNlIEkg
+YW0gd2FpdGluZyBmb3IgYSBmaXJzdCBwYXRjaCBzZXJpZXMgb24gdGhlCnRkYTk5OHggdG8gYmUg
+YXBwbGllZAooaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9hcmNoaXZlcy9kcmktZGV2ZWwv
+MjAxNC1KYW51YXJ5LzA1MTU1Mi5odG1sKS4KCi0tIApLZW4gYXIgYydoZW50YcOxCXwJICAgICAg
+KiogQnJlaXpoIGhhIExpbnV4IGF0YXYhICoqCkplZgkJfAkJaHR0cDovL21vaW5lamYuZnJlZS5m
+ci8KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRl
+dmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9s
+aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
