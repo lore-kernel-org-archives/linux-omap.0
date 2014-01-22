@@ -1,67 +1,45 @@
-From: Sebastian Reichel <sre@ring0.de>
+From: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
 Subject: Re: [PATCH 4/6] ARM: OMAP2+: add legacy display for omap3 DBB056
-Date: Wed, 22 Jan 2014 01:24:35 +0100
-Message-ID: <20140122002435.GA7943@earth.universe>
+Date: Tue, 21 Jan 2014 21:26:57 -0300
+Message-ID: <CABxcv=k+49QGcH6kX=J+5wSHoE0mGiqqyf1_kjmBZqydS-DfOw@mail.gmail.com>
 References: <1390333660-30573-1-git-send-email-chf.fritz@googlemail.com>
- <1390333660-30573-5-git-send-email-chf.fritz@googlemail.com>
- <CABxcv=nnkahNQBL3sjtd8zxevP+jT_pbKUChz-fr6wRXuuxGCQ@mail.gmail.com>
+	<1390333660-30573-5-git-send-email-chf.fritz@googlemail.com>
+	<CABxcv=nnkahNQBL3sjtd8zxevP+jT_pbKUChz-fr6wRXuuxGCQ@mail.gmail.com>
+	<20140122002435.GA7943@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="3MwIy2ne0vdjdPXF"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:46655 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750862AbaAVAYl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Jan 2014 19:24:41 -0500
-Content-Disposition: inline
-In-Reply-To: <CABxcv=nnkahNQBL3sjtd8zxevP+jT_pbKUChz-fr6wRXuuxGCQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140122002435.GA7943-SfvFxonMDyemK9LvCR3Hrw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>
+Cc: Christoph Fritz <chf.fritz-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Archit Taneja <archit-l0cyMroinI0@public.gmane.org>, Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hans J. Koch" <hjk-vqZO0P4V72/QD6PfKP4TzA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Christoph Fritz <chf.fritz@googlemail.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Benoit Cousson <bcousson@baylibre.com>, Archit Taneja <archit@ti.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Daniel Mack <zonque@gmail.com>, "Hans J. Koch" <hjk@hansjkoch.de>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Hi Sebastian,
 
---3MwIy2ne0vdjdPXF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Jan 21, 2014 at 9:24 PM, Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org> wrote:
+> Hi,
+>
+> On Tue, Jan 21, 2014 at 09:10:52PM -0300, Javier Martinez Canillas wrote:
+>> On Tue, Jan 21, 2014 at 4:47 PM, Christoph Fritz wrote:
+>> > [PATCH]
+>>
+>> I don't think that makes sense to add more legacy display support
+>> right now since Tomi has sent a v3 of his OMAPDSS DT support,
+>> which hopefully will be merged in v3.14.
+>
+> Tomi wrote, that the series will miss 3.14 merge window:
+>
+> http://www.spinics.net/lists/linux-omap/msg102149.html
+>
+> -- Sebastian
 
-Hi,
+I see, missed that email from Tomi. Thanks for the clarification and
+sorry for the noise then.
 
-On Tue, Jan 21, 2014 at 09:10:52PM -0300, Javier Martinez Canillas wrote:
-> On Tue, Jan 21, 2014 at 4:47 PM, Christoph Fritz wrote:
-> > [PATCH]
->=20
-> I don't think that makes sense to add more legacy display support
-> right now since Tomi has sent a v3 of his OMAPDSS DT support,
-> which hopefully will be merged in v3.14.
-
-Tomi wrote, that the series will miss 3.14 merge window:
-
-http://www.spinics.net/lists/linux-omap/msg102149.html
-
--- Sebastian
-
---3MwIy2ne0vdjdPXF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCAAGBQJS3w/DAAoJENju1/PIO/qaDHwP/RMYbortNiJ8x4FfemmmCbrq
-SjcW5hgurg3Lq8s751YTiEgtDOf8jF2RlWQGnkuOC2Vgz1HG8n8tmmZGy/Qf6GH5
-qW1m3H2YVFjv/X40giwBKGuOL5VMEBxQBRvyVoJeAV7zx0C7jMLaCrkb0krPJ2An
-u1pVJbH0z/E8lcSg/zQiu+ZayGej0JFI3/h+RStApVu31zqsLRhvLcergQSU1eX1
-gpohA46UU0IkPtleP1GTEg2WXYMHDwyz3U9rRxz7zxQJIMreaYh6DHZawCY5KmuQ
-pYip2frRKw2uSH6tms3eEADYgQGKPXNs1mpb5iFSe5nCARv3+gsMuzLKWt64htia
-6XonPuW/ORk9geZOBqws3XdqHNT6YyaI/nc2zPf+z3JpYcrCUwxFVVbgg+pu/szs
-fFzd2eZxB5AGoi3Br9JDmDEUmpSnzJdXpjgWeaCeC4LAwHA25WFieFPZs5vOWloz
-GWN9O2Z8V5DeVi7oEElZY6NIWSYnqTM0m20uETIzDsTlIw/CssCzEF8qcSv4exww
-TXn08NnoL1/u5dHGentp4BljZoEdi4NglJdasCIzQKBlVhgAx5I050Z63xdyASO3
-qaH5jFQeNtZp0INlvSN86trKkqxQDD7ZbACbowwVgUjNbRKG33Nd25fFbORhWomM
-zUN6PDVkMr+7TTpSwatk
-=iETf
------END PGP SIGNATURE-----
-
---3MwIy2ne0vdjdPXF--
+Best regards,
+Javier
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
