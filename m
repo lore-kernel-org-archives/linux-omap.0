@@ -1,64 +1,54 @@
 From: Jean-Francois Moine <moinejf@free.fr>
 Subject: Re: [alsa-devel] [PATCH RFC v2 REPOST 3/8] ASoC: davinci-evm: HDMI
-	audio support for TDA998x trough McASP I2S bus
-Date: Wed, 22 Jan 2014 11:19:53 +0100
-Message-ID: <20140122111953.238349a5@armhf>
+ audio support for TDA998x trough McASP I2S bus
+Date: Wed, 22 Jan 2014 11:46:47 +0100
+Message-ID: <20140122114647.20f75d0d@armhf>
 References: <cover.1387535299.git.jsarha@ti.com>
 	<d3c3f645d39338df0ee9686cb030255ce36a249d.1387535302.git.jsarha@ti.com>
-	<20131231132555.GA31886@sirena.org.uk> <52D67099.1040904@ti.com>
-	<20140115165100.3bfab96f@armhf> <52DF8D60.9020505@ti.com>
+	<20131231132555.GA31886@sirena.org.uk>
+	<52D67099.1040904@ti.com>
+	<20140115165100.3bfab96f@armhf>
+	<52DF8D60.9020505@ti.com>
+	<20140122111953.238349a5@armhf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <52DF8D60.9020505@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces@lists.freedesktop.org
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, "Ujfalusi,
-	Peter" <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp3-g21.free.fr ([212.27.42.3]:55768 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754571AbaAVKrG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jan 2014 05:47:06 -0500
+In-Reply-To: <20140122111953.238349a5@armhf>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Jyri Sarha <jsarha@ti.com>, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-T24gV2VkLCAyMiBKYW4gMjAxNCAxMToyMDozMiArMDIwMApKeXJpIFNhcmhhIDxqc2FyaGFAdGku
-Y29tPiB3cm90ZToKCj4gT24gMDEvMTUvMjAxNCAwNTo1MSBQTSwgSmVhbi1GcmFuY29pcyBNb2lu
-ZSB3cm90ZToKPiA+IE9uIFdlZCwgMTUgSmFuIDIwMTQgMTM6Mjc6MjEgKzAyMDAKPiA+IEp5cmkg
-U2FyaGEgPGpzYXJoYUB0aS5jb20+IHdyb3RlOgo+ID4KPiA+PiAgIEZyb20gZHJpdmVyL2dwdS9k
-cm0vaTJjL3RkYTk5OHhfZHJ2LmMuIFRoZSBkcml2ZXIgY29uZmlndXJlcyBDVFNfTgo+ID4+IHJl
-Z2lzdGVyIHN0YXRpY2FsbHkgdG8gYSB2YWx1ZSB0aGF0IHdvcmtzIG9ubHkgd2l0aCA0IGJ5dGUg
-c2FtcGxlcy4KPiA+PiBBY2NvcmRpbmcgdG8gbXkgdGVzdHMgaXQgaXMgcG9zc2libGUgdG8gc3Vw
-cG9ydCAzIGFuZCAyIGJ5dGUgc2FtcGxlcyB0b28KPiA+PiBieSBjaGFuZ2luZyB0aGUgQ1RTX04g
-cmVnaXN0ZXIgdmFsdWUsIGJ1dCBJIGFtIG5vdCBzdXJlIGlmIHRoZQo+ID4+IGNvbmZpZ3VyYXRp
-b24gY2FuIGJlIGNoYW5nZWQgb24gdGhlIGZseS4gTXkgZGF0YSBzaGVldCBvZiB0aGUgbnhwIGNo
-aXAKPiA+PiBpcyB2ZXJ5IHZhZ3VlIGFib3V0IHRoZSByZWdpc3RlciBkZWZpbml0aW9ucywgYnV0
-IEkgc3VwcG9zZSB0aGUgcmVnaXN0ZXIKPiA+PiBjb25maWd1cmVzIHNvbWUgY2xvY2sgZGl2aWRl
-ciBvbiB0aGUgY2hpcC4gSERNSSBzdXBwb3J0cyBvbmx5IHVwdG8gMjRiaXQKPiA+PiBhdWRpbyBh
-bmQgdGhlIGRhdGEgc2hlZXQgc3RhdGVzIHRoYXQgYW55IGV4dHJhbmVvdXMgbGVhc3Qgc2lnbmlm
-aWNhbnQKPiA+PiBiaXRzIGFyZSBpZ25vcmVkLgo+ID4KPiA+IEluIHRoZSB0ZGE5OTh4IGRyaXZl
-ciwgdGhlIENUU19OIGlzIGF1dG9tYXRpYyAoQUlQX0NOVFJMXzBfQUNSX01BTiBpcwo+ID4gbm90
-IHNldCkuCj4gPgo+ID4gVGhlbiwgaW4gbXkgQ3Vib3ggKE1hcnZlbGwgQTUxMCArIHRkYTE5OTg4
-KSwgdGhlIDE2LCAyNCBhbmQgMzIgYml0cwo+ID4gZm9ybWF0cyBhcmUgd29ya2luZyB3ZWxsIHdp
-dGggSTJTIGlucHV0IGF0IGFueSByYXRlLgo+ID4KPiAKPiBDb3VsZCB5b3UgcmVmZXIgdGhlIGtl
-cm5lbCB2ZXJzaW9uIChtYWluIGxpbmU/KSBhbmQgdGhlIGludm9sdmVkIEFTb0MgCj4gZHJpdmVy
-cyBzbyBjb3VsZCB0YWtlIEkgYSBsb29rIGlmIHRoZXJlIGlzIHNvbWV0aGluZyBJIGNvdWxkIGRv
-IGRpZmZlcmVudGx5PwoKQm90aCBkcml2ZXJzIGFyZSBpbiB0aGUga2VybmVsIG1haW4gbGluZS4K
-ClRoZSBBU29DIGlzIGluIHNvdW5kL3NvYy9raXJrd29vZC8uIGtpcmt3b29kLWkycy5jIGRlZmlu
-ZXMgdGhlIERBSXMgSTJTCmFuZCBTL1BESUYgb3V0cHV0cy4KCkFzIGJvdGggSTJTIGFuZCBTL1BE
-SUYgbWF5IGJlIHVzZWQgZm9yIEhETUkgb3V0cHV0IGluIHRoZSBDdWJveCwKSSB3cm90ZSBhIHRk
-YTk5OHggQ09ERUMgd2hpY2ggZ2V0cyB0aGUgYXVkaW8gcG9ydHMgZnJvbSB0aGUgRFQgYW5kCmR5
-bmFtaWNhbGx5IHNldHMgdGhlc2UgcG9ydHMgYW5kIHRoZSBhdWRpbyB0eXBlIChpMnMgLyBzcGRp
-Zikgb24gYXVkaW8Kc3RyZWFtaW5nIHN0YXJ0LiBJIGhhdmUgbm90IHN1Ym1pdHRlZCB5ZXQgdGhp
-cyBjb2RlYyBhbmQgdGhlIGFzc29jaWF0ZWQKY2hhbmdlcyBpbiB0ZGE5OTh4LCBiZWNhdXNlIEkg
-YW0gd2FpdGluZyBmb3IgYSBmaXJzdCBwYXRjaCBzZXJpZXMgb24gdGhlCnRkYTk5OHggdG8gYmUg
-YXBwbGllZAooaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9hcmNoaXZlcy9kcmktZGV2ZWwv
-MjAxNC1KYW51YXJ5LzA1MTU1Mi5odG1sKS4KCi0tIApLZW4gYXIgYydoZW50YcOxCXwJICAgICAg
-KiogQnJlaXpoIGhhIExpbnV4IGF0YXYhICoqCkplZgkJfAkJaHR0cDovL21vaW5lamYuZnJlZS5m
-ci8KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRl
-dmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9s
-aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+On Wed, 22 Jan 2014 11:19:53 +0100
+Jean-Francois Moine <moinejf@free.fr> wrote:
+
+> As both I2S and S/PDIF may be used for HDMI output in the Cubox,
+> I wrote a tda998x CODEC which gets the audio ports from the DT and
+> dynamically sets these ports and the audio type (i2s / spdif) on audi=
+o
+> streaming start. I have not submitted yet this codec and the associat=
+ed
+> changes in tda998x, because I am waiting for a first patch series on =
+the
+> tda998x to be applied
+> (http://lists.freedesktop.org/archives/dri-devel/2014-January/051552.=
+html).
+
+Sorry, the last patch request is
+
+http://lists.freedesktop.org/archives/dri-devel/2014-January/052201.htm=
+l
+
+--=20
+Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
