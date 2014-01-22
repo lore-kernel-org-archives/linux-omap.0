@@ -1,197 +1,86 @@
-From: Jack Mitchell <ml@embed.me.uk>
-Subject: [PATCH] ARM: dts: add BeagleBone Audio Cape (Rev A) dtsi
-Date: Wed, 22 Jan 2014 11:06:25 +0000
-Message-ID: <1390388785-19605-1-git-send-email-ml@embed.me.uk>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH RFC 03/26] dmaengine: omap-dma: program hardware directly
+Date: Wed, 22 Jan 2014 18:24:33 +0530
+Message-ID: <52DFBF89.3020102@ti.com>
+References: <20140102150836.GA3826@n2100.arm.linux.org.uk> <E1Vyjtf-0005E5-Vw@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk
-Cc: devicetree@vger.kernel.org, Jack Mitchell <jack@embed.me.uk>, linux-kernel@vger.kernel.org, Matt Porter <mporter@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45402 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755348AbaAVMzI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Jan 2014 07:55:08 -0500
+In-Reply-To: <E1Vyjtf-0005E5-Vw@rmk-PC.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
 
-From: Jack Mitchell <jack@embed.me.uk>
+On Thursday 02 January 2014 08:39 PM, Russell King wrote:
+> Program the transfer parameters directly into the hardware, rather
+> than using the functions in arch/arm/plat-omap/dma.c.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  drivers/dma/omap-dma.c   |  144 ++++++++++++++++++++++++++++++++++++++++-----
+>  include/linux/omap-dma.h |    6 +-
+>  2 files changed, 132 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+> index 3c1bb34aad0a..dd233ca2cf5a 100644
+> --- a/drivers/dma/omap-dma.c
+> +++ b/drivers/dma/omap-dma.c
+> @@ -99,16 +99,96 @@ static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d,
+>  	unsigned idx)
+>  {
+>  	struct omap_sg *sg = d->sg + idx;
+> +	uint32_t val;
+> +
+> +	if (d->dir == DMA_DEV_TO_MEM) {
+> +		if (dma_omap1()) {
+> +			val = c->plat->dma_read(CSDP, c->dma_ch);
+> +			val &= ~(0x1f << 9);
+> +			val |= OMAP_DMA_PORT_EMIFF << 9;
+> +			c->plat->dma_write(val, CSDP, c->dma_ch);
+> +		}
+>  
+> -	if (d->dir == DMA_DEV_TO_MEM)
+> -		omap_set_dma_dest_params(c->dma_ch, OMAP_DMA_PORT_EMIFF,
+> -			OMAP_DMA_AMODE_POST_INC, sg->addr, 0, 0);
+> -	else
+> -		omap_set_dma_src_params(c->dma_ch, OMAP_DMA_PORT_EMIFF,
+> -			OMAP_DMA_AMODE_POST_INC, sg->addr, 0, 0);
+> +		val = c->plat->dma_read(CCR, c->dma_ch);
+> +		val &= ~(0x03 << 14);
+> +		val |= OMAP_DMA_AMODE_POST_INC << 14;
+> +		c->plat->dma_write(val, CCR, c->dma_ch);
+> +
+> +		c->plat->dma_write(sg->addr, CDSA, c->dma_ch);
+> +		c->plat->dma_write(0, CDEI, c->dma_ch);
+> +		c->plat->dma_write(0, CDFI, c->dma_ch);
+> +	} else {
+> +		if (dma_omap1()) {
+> +			val = c->plat->dma_read(CSDP, c->dma_ch);
+> +			val &= ~(0x1f << 2);
+> +			val |= OMAP_DMA_PORT_EMIFF << 2;
+> +			c->plat->dma_write(val, CSDP, c->dma_ch);
+> +		}
+> +
+> +		val = c->plat->dma_read(CCR, c->dma_ch);
+> +		val &= ~(0x03 << 12);
+> +		val |= OMAP_DMA_AMODE_POST_INC << 12;
+> +		c->plat->dma_write(val, CCR, c->dma_ch);
+> +
+> +		c->plat->dma_write(sg->addr, CSSA, c->dma_ch);
+> +		c->plat->dma_write(0, CSEI, c->dma_ch);
+> +		c->plat->dma_write(0, CSFI, c->dma_ch);
+> +	}
+> +
+EI and FI are always set to zero. So interleaved transfers support
+have to enabled in omap-dma, as it was supported by the
+legacy driver. It was not enabled because of no users of the feature,
+ right  ?
 
-Devicetree include file for setting up the am335x mcasp bus, i2c-2
-bus, and audio codec required for a functioning BeagleBone Audio Cape.
-
-Signed-off-by: Jack Mitchell <jack@embed.me.uk>
-Signed-off-by: Matt Porter <mporter@linaro.org>
----
- arch/arm/boot/dts/am335x-bone-audio-cape-reva.dtsi | 124 +++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone-common.dtsi          |  14 +++
- 2 files changed, 138 insertions(+)
- create mode 100644 arch/arm/boot/dts/am335x-bone-audio-cape-reva.dtsi
-
-diff --git a/arch/arm/boot/dts/am335x-bone-audio-cape-reva.dtsi b/arch/arm/boot/dts/am335x-bone-audio-cape-reva.dtsi
-new file mode 100644
-index 0000000..b8ec3dc
---- /dev/null
-+++ b/arch/arm/boot/dts/am335x-bone-audio-cape-reva.dtsi
-@@ -0,0 +1,124 @@
-+/*
-+ * Copyright (C) 2014 Jack Mitchell <jack@embed.me.uk>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * In order to enable the BeagleBone Audio Cape this dtsi must be
-+ * incuded in the top level dts. On BeagleBone Black hardware the
-+ * status of the HDMI dts node must also be set to "disabled".
-+ *
-+ * --- a/arch/arm/boot/dts/am335x-bone.dts
-+ * +++ b/arch/arm/boot/dts/am335x-bone.dts
-+ * @@ -9,6 +9,7 @@
-+ *
-+ *  #include "am33xx.dtsi"
-+ *  #include "am335x-bone-common.dtsi"
-+ * +#include "am335x-bone-audio-cape-reva.dtsi"
-+ *
-+ *  &ldo3_reg {
-+ *  	regulator-min-microvolt = <1800000>;
-+ *
-+ * On BeagleBone Black hardware the status of the HDMI dts node must
-+ * also be set to "disabled"
-+ *
-+ * --- a/arch/arm/boot/dts/am335x-boneblack.dts
-+ * +++ b/arch/arm/boot/dts/am335x-boneblack.dts
-+ * @@ -73,6 +74,6 @@
-+ *  		pinctrl-names = "default", "off";
-+ *  		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
-+ *  		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
-+ * -		status = "okay";
-+ * +		status = "disabled";
-+ *  	};
-+ *  };
-+ */
-+
-+/ {
-+	sound {
-+		compatible = "ti,da830-evm-audio";
-+		ti,model = "AM335x BeagleBone Audio Cape Rev. A";
-+		ti,audio-codec = <&tlv320aic3106>;
-+		ti,mcasp-controller = <&mcasp0>;
-+		ti,codec-clock-rate = <12000000>;
-+		ti,audio-routing =
-+			"Headphone Jack",       "HPLOUT",
-+			"Headphone Jack",       "HPROUT",
-+			"LINE1L",               "Line In",
-+			"LINE1R",               "Line In";
-+	};
-+
-+	audio-cape-gpio-leds {
-+		compatible = "gpio-leds";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&bone_audio_cape_led_pins>;
-+
-+		audio-led0 {
-+			label = "audio:green:usr0";
-+			gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "heartbeat";
-+			default-state = "off";
-+		};
-+
-+		audio-led1 {
-+			label = "audio:green:usr1";
-+			gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "mmc0";
-+			default-state = "off";
-+		};
-+	};
-+};
-+
-+&am33xx_pinmux {
-+	bone_audio_cape_led_pins: pinmux_bone_audio_cape_led_pins {
-+		pinctrl-single,pins = <
-+			0x48 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_a2.gpio1_18 */
-+			0x4c (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_a3.gpio1_19 */
-+		>;
-+	};
-+
-+	bone_audio_cape_pins: bone_audio_cape_pins {
-+		pinctrl-single,pins = <
-+			0x190 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mcasp0_aclkx.mcasp0_aclkx */
-+			0x194 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mcasp0_fsx.mcasp0_fsx */
-+			0x19c (PIN_INPUT_PULLUP | MUX_MODE2)	/* mcasp0_ahclkr.mcasp0_axr2 */
-+			0x1ac (PIN_INPUT_PULLUP | MUX_MODE2)	/* mcasp0_ahclkx.mcasp0_axr3 */
-+		>;
-+	};
-+};
-+
-+&i2c2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c2_pins>;
-+
-+	status = "okay";
-+	clock-frequency = <100000>;
-+
-+	tlv320aic3106: tlv320aic3106@1b {
-+		compatible = "ti,tlv320aic3106";
-+		reg = <0x1b>;
-+		status = "okay";
-+
-+		/* Regulators */
-+		AVDD-supply = <&vmmcsd_fixed>;
-+		IOVDD-supply = <&vmmcsd_fixed>;
-+		DRVDD-supply = <&vmmcsd_fixed>;
-+		DVDD-supply = <&vdd1v8_fixed>;
-+	};
-+};
-+
-+&mcasp0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&bone_audio_cape_pins>;
-+
-+	status = "okay";
-+
-+	op-mode = <0>;      /* MCASP_IIS_MODE */
-+	tdm-slots = <2>;
-+	serial-dir = <      /* 0: INACTIVE, 1: TX, 2: RX */
-+		0 0 2 1
-+	>;
-+	tx-num-evt = <1>;
-+	rx-num-evt = <1>;
-+};
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index e3f27ec..c1c0f74 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -62,12 +62,26 @@
- 		regulator-min-microvolt = <3300000>;
- 		regulator-max-microvolt = <3300000>;
- 	};
-+
-+	vdd1v8_fixed: fixedregulator@1 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vdd1v8_fixed";
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
-+	};
- };
- 
- &am33xx_pinmux {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&clkout2_pin>;
- 
-+	i2c2_pins: pinmux_i2c2_pins {
-+		pinctrl-single,pins = <
-+			0x178 (PIN_INPUT_PULLUP | MUX_MODE3)  /* uart1_ctsn.i2c2_sda */
-+			0x17c (PIN_INPUT_PULLUP | MUX_MODE3)  /* uart1_rtsn.i2c2_scl */
-+		>;
-+	};
-+
- 	user_leds_s0: user_leds_s0 {
- 		pinctrl-single,pins = <
- 			0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a5.gpio1_21 */
--- 
-1.8.5.2
+Regards,
+ Sricharan
