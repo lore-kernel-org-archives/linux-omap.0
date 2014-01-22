@@ -1,103 +1,125 @@
 From: Christoph Fritz <chf.fritz@googlemail.com>
-Subject: [PATCH v2 0/5] ARM: add omap3 INCOstartec board support
-Date: Wed, 22 Jan 2014 20:04:15 +0100
-Message-ID: <1390417460-3134-1-git-send-email-chf.fritz@googlemail.com>
+Subject: [PATCH v2 3/5] ARM: OMAP2+: add legacy display for omap3 DBB056
+Date: Wed, 22 Jan 2014 20:04:18 +0100
+Message-ID: <1390417460-3134-4-git-send-email-chf.fritz@googlemail.com>
+References: <1390417460-3134-1-git-send-email-chf.fritz@googlemail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:64269 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755509AbaAVTEl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jan 2014 14:04:41 -0500
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:45727 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752408AbaAVTEu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jan 2014 14:04:50 -0500
+In-Reply-To: <1390417460-3134-1-git-send-email-chf.fritz@googlemail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Ulf Hansson <ulf.hansson@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, bcousson@baylibre.com, "Hans J. Koch" <hjk@hansjkoch.de>, Daniel Mack <zonque@gmail.com>
 Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-This set of patches adds board support for an omap3 system from INCOstartec.
-It's based on next-20140122.
+Full device tree support for omapdss is not yet accomplished. Until
+then, init display by legacy platform code.
 
-Previously it was based on next-20140115. There, everything works as expected.
+Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
+---
+ arch/arm/mach-omap2/dss-common.c   |   49 ++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/dss-common.h   |    1 +
+ arch/arm/mach-omap2/pdata-quirks.c |    7 +++++-
+ 3 files changed, 56 insertions(+), 1 deletion(-)
 
-On branch git://git.linaro.org/people/ulf.hansson/clk.git linaro_clk/clk-next
-which holdes all "clock DT conversion" commits, bootlog shows these abnormalities:
-
-  [    0.559600] ------------[ cut here ]------------
-  [    0.559631] WARNING: CPU: 0 PID: 1 at /home/honschu/media/linux/drivers/video/omap2/dss/dss.c:540 dss_set_clock_div+0xac/0xcc()
-  [    0.559661] clk rate mismatch: 345600000 != 172800000
-  [    0.559661] Modules linked in:
-  [    0.559692] CPU: 0 PID: 1 Comm: swapper Not tainted 3.13.0-rc7+ 0
-  [    0.559722] [<c0012fc4>] (unwind_backtrace+0x0/0xf8) from [<c0010e10>] (show_stack+0x10/0x14)
-  [    0.559753] [<c0010e10>] (show_stack+0x10/0x14) from [<c0033fdc>] (warn_slowpath_common+0x64/0x84)
-  [    0.559783] [<c0033fdc>] (warn_slowpath_common+0x64/0x84) from [<c0034090>] (warn_slowpath_fmt+0x30/0x40)
-  [    0.559814] [<c0034090>] (warn_slowpath_fmt+0x30/0x40) from [<c02b23c0>] (dss_set_clock_div+0xac/0xcc)
-  [    0.559844] [<c02b23c0>] (dss_set_clock_div+0xac/0xcc) from [<c0778f48>] (omap_dsshw_probe+0x1ec/0x2e0)
-  [    0.559875] [<c0778f48>] (omap_dsshw_probe+0x1ec/0x2e0) from [<c02ff360>] (platform_drv_probe+0x18/0x48)
-  [    0.559906] [<c02ff360>] (platform_drv_probe+0x18/0x48) from [<c02fdf84>] (driver_probe_device+0x110/0x230)
-  [    0.559936] [<c02fdf84>] (driver_probe_device+0x110/0x230) from [<c02fe138>] (__driver_attach+0x94/0x98)
-  [    0.559967] [<c02fe138>] (__driver_attach+0x94/0x98) from [<c02fc724>] (bus_for_each_dev+0x54/0x88)
-  [    0.559997] [<c02fc724>] (bus_for_each_dev+0x54/0x88) from [<c02fd720>] (bus_add_driver+0xd4/0x1d0)
-  [    0.559997] [<c02fd720>] (bus_add_driver+0xd4/0x1d0) from [<c02fe76c>] (driver_register+0x78/0xf4)
-  [    0.560028] [<c02fe76c>] (driver_register+0x78/0xf4) from [<c02ff2c4>] (platform_driver_probe+0x20/0xa4)
-  [    0.560058] [<c02ff2c4>] (platform_driver_probe+0x20/0xa4) from [<c0778ce0>] (omap_dss_init+0x1c/0x98)
-  [    0.560089] [<c0778ce0>] (omap_dss_init+0x1c/0x98) from [<c0008828>] (do_one_initcall+0xe4/0x144)
-  [    0.560119] [<c0008828>] (do_one_initcall+0xe4/0x144) from [<c075eadc>] (kernel_init_freeable+0xe8/0x1b0)
-  [    0.560150] [<c075eadc>] (kernel_init_freeable+0xe8/0x1b0) from [<c05522bc>] (kernel_init+0x8/0x118)
-  [    0.560180] [<c05522bc>] (kernel_init+0x8/0x118) from [<c000e4c8>] (ret_from_fork+0x14/0x2c)
-  [    0.560302] ---[ end trace 187e8d9dd0655394 ]---
-  [    0.560424] OMAP DSS rev 2.0
-  --snip--
-  [    2.601745] usb 1-1: new high-speed USB device number 2 using ehci-omap
-  [    2.767059] usb 1-1: device descriptor read/64, error -71
-  [    3.007934] usb 1-1: device descriptor read/64, error -71
-  [    3.237091] usb 1-1: new high-speed USB device number 3 using ehci-omap
-  [    3.387054] usb 1-1: device descriptor read/64, error -71
-  [    3.637054] usb 1-1: device descriptor read/64, error -71
-  [    3.867065] usb 1-1: new high-speed USB device number 4 using ehci-omap
-  [    4.296966] usb 1-1: device not accepting address 4, error -71
-  [    4.417053] usb 1-1: new high-speed USB device number 5 using ehci-omap
-  [    4.846954] usb 1-1: device not accepting address 5, error -71
-  [    4.853179] hub 1-0:1.0: unable to enumerate USB device on port 1
-  [    5.217041] usb 2-1: new full-speed USB device number 2 using ohci-omap3
-  [    5.407043] usb 2-1: device descriptor read/64, error -62
-  [    5.697052] usb 2-1: device descriptor read/64, error -62
-  [    5.987060] usb 2-1: new full-speed USB device number 3 using ohci-omap3
-  [    6.066955] .[    6.177062] usb 2-1: device descriptor read/64, error -62
-  [    6.467041] usb 2-1: device descriptor read/64, error -62
-  [    6.757049] usb 2-1: new full-speed USB device number 4 using ohci-omap3
-  [    7.176971] usb 2-1: device not accepting address 4, error -62
-  [    7.357055] usb 2-1: new full-speed USB device number 5 using ohci-omap3
-  [    7.776977] usb 2-1: device not accepting address 5, error -62
-  [    7.783233] hub 2-0:1.0: unable to enumerate USB device on port 1
-
-On next-20140122 the tps65930 (which should be compatible to twl4030) doesn't
-set voltage on IO.1P8 any more which leads to a lot of external subsystem
-failings like dss:
-
-[    0.602264] omapdss_dss: probe of omapdss_dss failed with error -22
-[    0.602691] omapdss CORE error: Failed to initialize DSS platform driver
-[    0.603240] panel-dpi panel-dpi.0: failed to find video source 'dpi.0'
-
-Changes compared to previous version:
- - rebased on next-20140122 from next-20140115
- - using omap36xx.dtsi instead of unsupported 1ghz omap37xx100
-
-Christoph Fritz (5):
-  ARM: dts: omap3: Add support for INCOstartec a83x module
-  ARM: dts: omap3: Add support for INCOstartec DBB056 baseboard
-  ARM: OMAP2+: add legacy display for omap3 DBB056
-  ARM: OMAP2+: Add pdata quirk for sys_clkout2 for omap3 DBB056
-  [RFC] omapdss: remove FEAT_DPI_USES_VDDS_DSI from omap3
-
- arch/arm/boot/dts/Makefile               |    1 +
- arch/arm/boot/dts/omap3-lilly-a83x.dtsi  |  445 ++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap3-lilly-dbb056.dts |  160 +++++++++++
- arch/arm/mach-omap2/dss-common.c         |   49 ++++
- arch/arm/mach-omap2/dss-common.h         |    1 +
- arch/arm/mach-omap2/pdata-quirks.c       |   44 ++-
- drivers/video/omap2/dss/dss_features.c   |    1 -
- 7 files changed, 699 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-lilly-a83x.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-lilly-dbb056.dts
-
+diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+index dadccc9..b8b4e39 100644
+--- a/arch/arm/mach-omap2/dss-common.c
++++ b/arch/arm/mach-omap2/dss-common.c
+@@ -257,3 +257,52 @@ void __init omap3_igep2_display_init_of(void)
+ 	platform_device_register(&omap3_igep2_tfp410_device);
+ 	platform_device_register(&omap3_igep2_dvi_connector_device);
+ }
++
++/* OMAP3 dbb056 data */
++
++#define DBB056_DISPLAY_ENABLE_GPIO 156
++
++static const struct display_timing dbb056_lcd_videomode = {
++	.pixelclock = { 0, 19200000, 0 },
++
++	.hactive = { 0, 640, 0 },
++	.hfront_porch = { 0, 104, 0 },
++	.hback_porch = { 0, 8, 0 },
++	.hsync_len = { 0, 8, 0 },
++
++	.vactive = { 0, 480, 0 },
++	.vfront_porch = { 0, 104, 0 },
++	.vback_porch = { 0, 8, 0 },
++	.vsync_len = { 0, 8, 0 },
++
++	.flags = DISPLAY_FLAGS_HSYNC_LOW | DISPLAY_FLAGS_VSYNC_LOW |
++		DISPLAY_FLAGS_DE_HIGH | DISPLAY_FLAGS_PIXDATA_NEGEDGE,
++};
++
++static struct panel_dpi_platform_data dbb056_lcd_pdata = {
++	.name                   = "lcd",
++	.source                 = "dpi.0",
++
++	.data_lines             = 18,
++
++	.display_timing         = &dbb056_lcd_videomode,
++
++	.enable_gpio            = DBB056_DISPLAY_ENABLE_GPIO,
++	.backlight_gpio         = -1,
++};
++
++static struct platform_device dbb056_lcd_device = {
++	.name                   = "panel-dpi",
++	.id                     = 0,
++	.dev.platform_data      = &dbb056_lcd_pdata,
++};
++
++static struct omap_dss_board_info omap_dbb056_dss_data = {
++	.default_display_name = "lcd",
++};
++
++void __init omap3_dbb056_display_init_of(void)
++{
++	platform_device_register(&dbb056_lcd_device);
++	omap_display_init(&omap_dbb056_dss_data);
++}
+diff --git a/arch/arm/mach-omap2/dss-common.h b/arch/arm/mach-omap2/dss-common.h
+index a9becf0..a125b55 100644
+--- a/arch/arm/mach-omap2/dss-common.h
++++ b/arch/arm/mach-omap2/dss-common.h
+@@ -9,5 +9,6 @@
+ void __init omap4_panda_display_init_of(void);
+ void __init omap_4430sdp_display_init_of(void);
+ void __init omap3_igep2_display_init_of(void);
++void __init omap3_dbb056_display_init_of(void);
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 3d5b24d..a58590f 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -169,6 +169,10 @@ static void __init am3517_evm_legacy_init(void)
+ 	omap_ctrl_writel(v, AM35XX_CONTROL_IP_SW_RESET);
+ 	omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET); /* OCP barrier */
+ }
++static void __init omap3_dbb056_legacy_init(void)
++{
++	omap3_dbb056_display_init_of();
++}
+ #endif /* CONFIG_ARCH_OMAP3 */
+ 
+ #ifdef CONFIG_ARCH_OMAP4
+@@ -259,10 +263,11 @@ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
+ static struct pdata_init pdata_quirks[] __initdata = {
+ #ifdef CONFIG_ARCH_OMAP3
+ 	{ "compulab,omap3-sbc-t3730", omap3_sbc_t3730_legacy_init, },
++	{ "incostartec,omap3-lilly-dbb056", omap3_dbb056_legacy_init, },
++	{ "isee,omap3-igep0020", omap3_igep0020_legacy_init, },
+ 	{ "nokia,omap3-n900", hsmmc2_internal_input_clk, },
+ 	{ "nokia,omap3-n9", hsmmc2_internal_input_clk, },
+ 	{ "nokia,omap3-n950", hsmmc2_internal_input_clk, },
+-	{ "isee,omap3-igep0020", omap3_igep0020_legacy_init, },
+ 	{ "ti,omap3-evm-37xx", omap3_evm_legacy_init, },
+ 	{ "ti,omap3-zoom3", omap3_zoom_legacy_init, },
+ 	{ "ti,am3517-evm", am3517_evm_legacy_init, },
 -- 
 1.7.10.4
 
