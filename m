@@ -1,152 +1,111 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 2/2] usb: dwc3: adapt dwc3 core to use Generic PHY
- Framework
-Date: Wed, 22 Jan 2014 09:59:52 +0200
-Message-ID: <52DF7A78.5030700@ti.com>
-References: <1385373690-12170-1-git-send-email-kishon@ti.com>	<1390299099-14764-1-git-send-email-kishon@ti.com>	<1390299099-14764-2-git-send-email-kishon@ti.com>	<52DE7D75.4040302@ti.com> <CAFp+6iFkgD8x4DozhQdRSx=KLWGwR5pOsCxrVgWbcnCMTFT-sg@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv3 00/41] OMAPDSS: DT support v3
+Date: Wed, 22 Jan 2014 10:41:55 +0200
+Message-ID: <52DF8453.7030501@ti.com>
+References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
+ <52DEE6B0.20106@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CAFp+6iFkgD8x4DozhQdRSx=KLWGwR5pOsCxrVgWbcnCMTFT-sg@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Vivek Gautam <gautamvivek1987@gmail.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, george.cherian@ti.com, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Felipe Balbi <balbi@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="===============0160918953518885383=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <52DEE6B0.20106@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Darren Etheridge <detheridge@ti.com>, Sebastian Reichel <sre@ring0.de>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@debian.org>, Stefan Roese <stefan.roese@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Archit Taneja <archit@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Robert Nelson <robertcnelson@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Florian Vaussard <florian.vaussard@epfl.ch>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/22/2014 08:04 AM, Vivek Gautam wrote:
-> Hi,
-> 
-> 
-> On Tue, Jan 21, 2014 at 7:30 PM, Roger Quadros <rogerq@ti.com> wrote:
->> Hi Kishon,
->>
->> On 01/21/2014 12:11 PM, Kishon Vijay Abraham I wrote:
->>> Adapted dwc3 core to use the Generic PHY Framework. So for init, exit,
->>> power_on and power_off the following APIs are used phy_init(), phy_exit(),
->>> phy_power_on() and phy_power_off().
->>>
->>> However using the old USB phy library wont be removed till the PHYs of all
->>> other SoC's using dwc3 core is adapted to the Generic PHY Framework.
->>>
->>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>> ---
->>> Changes from v3:
->>> * avoided using quirks
->>>
->>>  Documentation/devicetree/bindings/usb/dwc3.txt |    6 ++-
->>>  drivers/usb/dwc3/core.c                        |   60 ++++++++++++++++++++++++
->>>  drivers/usb/dwc3/core.h                        |    7 +++
->>>  3 files changed, 71 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
->>> index e807635..471366d 100644
->>> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
->>> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
->>> @@ -6,11 +6,13 @@ Required properties:
->>>   - compatible: must be "snps,dwc3"
->>>   - reg : Address and length of the register set for the device
->>>   - interrupts: Interrupts used by the dwc3 controller.
->>> +
->>> +Optional properties:
->>>   - usb-phy : array of phandle for the PHY device.  The first element
->>>     in the array is expected to be a handle to the USB2/HS PHY and
->>>     the second element is expected to be a handle to the USB3/SS PHY
->>> -
->>> -Optional properties:
->>> + - phys: from the *Generic PHY* bindings
->>> + - phy-names: from the *Generic PHY* bindings
->>>   - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
->>>
->>>  This is usually a subnode to DWC3 glue to which it is connected.
->>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->>> index e009d4e..036d589 100644
->>> --- a/drivers/usb/dwc3/core.c
->>> +++ b/drivers/usb/dwc3/core.c
->>> @@ -82,6 +82,11 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
->>>
->>>       usb_phy_init(dwc->usb2_phy);
->>>       usb_phy_init(dwc->usb3_phy);
->>> +     if (dwc->usb2_generic_phy)
->>> +             phy_init(dwc->usb2_generic_phy);
->>
->> What if phy_init() fails? You need to report and fail. Same applies for all PHY apis in this patch.
->>
->>> +     if (dwc->usb3_generic_phy)
->>> +             phy_init(dwc->usb3_generic_phy);
->>> +
->>>       mdelay(100);
->>>
->>>       /* Clear USB3 PHY reset */
->>> @@ -343,6 +348,11 @@ static void dwc3_core_exit(struct dwc3 *dwc)
->>>  {
->>>       usb_phy_shutdown(dwc->usb2_phy);
->>>       usb_phy_shutdown(dwc->usb3_phy);
->>> +     if (dwc->usb2_generic_phy)
->>> +             phy_exit(dwc->usb2_generic_phy);
->>> +     if (dwc->usb3_generic_phy)
->>> +             phy_exit(dwc->usb3_generic_phy);
->>> +
->>>  }
->>>
->>>  #define DWC3_ALIGN_MASK              (16 - 1)
->>> @@ -433,6 +443,32 @@ static int dwc3_probe(struct platform_device *pdev)
->>>               }
->>>       }
->>>
->>> +     dwc->usb2_generic_phy = devm_phy_get(dev, "usb2-phy");
->>> +     if (IS_ERR(dwc->usb2_generic_phy)) {
->>> +             ret = PTR_ERR(dwc->usb2_generic_phy);
->>> +             if (ret == -ENOSYS || ret == -ENODEV) {
->>> +                     dwc->usb2_generic_phy = NULL;
->>> +             } else if (ret == -EPROBE_DEFER) {
->>> +                     return ret;
->>> +             } else {
->>> +                     dev_err(dev, "no usb2 phy configured\n");
->>> +                     return ret;
->>> +             }
->>> +     }
->>> +
->>> +     dwc->usb3_generic_phy = devm_phy_get(dev, "usb3-phy");
->>> +     if (IS_ERR(dwc->usb3_generic_phy)) {
->>> +             ret = PTR_ERR(dwc->usb3_generic_phy);
->>> +             if (ret == -ENOSYS || ret == -ENODEV) {
->>> +                     dwc->usb3_generic_phy = NULL;
->>> +             } else if (ret == -EPROBE_DEFER) {
->>> +                     return ret;
->>> +             } else {
->>> +                     dev_err(dev, "no usb3 phy configured\n");
->>> +                     return ret;
->>> +             }
->>> +     }
->>> +
->>>       dwc->xhci_resources[0].start = res->start;
->>>       dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
->>>                                       DWC3_XHCI_REGS_END;
->>> @@ -482,6 +518,11 @@ static int dwc3_probe(struct platform_device *pdev)
->>>       usb_phy_set_suspend(dwc->usb2_phy, 0);
->>>       usb_phy_set_suspend(dwc->usb3_phy, 0);
->>>
->>> +     if (dwc->usb2_generic_phy)
->>> +             phy_power_on(dwc->usb2_generic_phy);
->>> +     if (dwc->usb3_generic_phy)
->>> +             phy_power_on(dwc->usb3_generic_phy);
->>> +
->>
->> Is it OK to power on the phy before phy_init()?
-> 
-> Isn't phy_init() being done before phy_power_on() in the
-> core_soft_reset() in this patch ?
-> Isn't that what you want here ?
-> 
->>
->> I suggest to move phy_init() from core_soft_reset() to here, just before phy_power_on().
-> 
-> core_soft_reset() is called before phy_power_on() itself from
-> dwc3_core_init(), right ?
-> will moving the phy_inti() here make nay difference ?
+--===============0160918953518885383==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="AgHv0g4DX2lgITqGmPg4bxLV8kbJCdjuG"
 
-You are right. This part is fine then.
+--AgHv0g4DX2lgITqGmPg4bxLV8kbJCdjuG
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-cheers,
--roger
+On 2014-01-21 23:29, Nishanth Menon wrote:
+> Tomi,
+>=20
+> On 01/21/2014 04:56 AM, Tomi Valkeinen wrote:
+>> Hi,
+>>
+>> Here's version 3 of the DSS DT series.
+>>
+>> The previous version can be found from:
+>>
+>> v1: http://permalink.gmane.org/gmane.linux.ports.arm.omap/108249
+>> v2: http://permalink.gmane.org/gmane.linux.ports.arm.omap/108866
+>>
+>> The main changes to v2 are:
+>>
+>> - DT Binding documentation
+>> - OMAP2 DSS support
+>> - Split DSI register space
+>> - DSS nodes disabled by default
+>> - Hack to have generic DT bindings but OMAP specific drivers (for now)=
+
+>>
+>> This series can also be found from:
+>>
+>> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss=
+-dt-review-3
+>>
+> http://slexy.org/view/s20JhteOFR is my quick build test report -> few
+> checkpatch and build bisect issues would probably need fixing.
+
+Thanks. Shouldn't make trivial changes, and then not run a full
+commit-by-commit compile test...
+
+I fixed the issues and pushed the branch again to work/dss-dt-review-3.
+The fixes are minor, so the already posted series can be reviewed.
+
+ Tomi
+
+
+
+--AgHv0g4DX2lgITqGmPg4bxLV8kbJCdjuG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJS34RXAAoJEPo9qoy8lh71JzkQAILQOThMuQQ7go86pEzYDWlj
+wDpXsf1FaJL9WcUqRsSihV3jNGvs7bcXEuOf22mwqIw45uZqSbwixElA9Uac9L4S
+f97a6Qx+iJJF1cbpgrsSSfvGk1RKLFARHwZwSouBO1hVaitT/+QHKFwLK6mi3Kqi
+5yU0B4kADFVkcWXrKPu+SyDbC9br2+I1iMN2jzFZLCfEXiI8YPPISD8HqRBA+fbp
+voA5Yx1uMqqlKHIvcdjdK8tVKxogmHI5uPTV7oqE30F6ldGww8aWO/P2iqI5LG+I
+euy1acy0gLJ8wSn8APyKS9+rfihIgXX0vtWThWqdmeyP42YTgUog+WqE6A0h6EAK
+Lf9dubne7x0g36FhjMuccqoko+bLg7kqM/TBnq44SBZ2bRlFhYOHnIOcWj6ZXm0J
+C7hg+BPPb+r5EU47ngEqC3NX73nXe6dZjrCdCYUTcEh9et2U7hhJSDzIvQJ84wG4
+TQyVmq7dX+UDLPStgjHrNPc85NwyCS+o0NL2yBkCfYBF69vGTIM05+wJvej+sZh+
+2l7PJaLaQhE0yLk/tqaa1c6gqOaYlWi2U6Lfhq9AjjuXHL9RhlUcdHW+B268lZYL
+r97A3zj2g8+E2pWRB3Q0/paEy87Nc+SuOxSGBbGxOAvaNck4Rpe5FHu4BRo6ircN
+OdqA85sK41AezbOLOQXK
+=QuRv
+-----END PGP SIGNATURE-----
+
+--AgHv0g4DX2lgITqGmPg4bxLV8kbJCdjuG--
+
+
+--===============0160918953518885383==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============0160918953518885383==--
