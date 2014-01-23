@@ -1,456 +1,177 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: next boot: 34 pass, 5 fail (next-20140122)
-Date: Thu, 23 Jan 2014 14:27:32 +0200
-Message-ID: <52E10AB4.9060002@ti.com>
-References: <52e06652.c103450a.79d7.6517@mx.google.com> <CAGa+x86=gKh11g1pzLqxdimeCxuZ478+ZAxd9GjO-m7Aa8L2fg@mail.gmail.com> <52E0B569.8000809@ti.com> <52E0CF58.5040109@epfl.ch> <52E0DA13.9090302@ti.com> <52E0DD9F.8000100@epfl.ch> <52E0E3D1.5050202@epfl.ch>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH 1/3] pwm: core: Rearrange pwm lock.
+Date: Thu, 23 Jan 2014 14:54:50 +0100
+Message-ID: <20140123135449.GA6503@ulmo.nvidia.com>
+References: <1387366615-23182-1-git-send-email-sourav.poddar@ti.com>
+ <1387366615-23182-2-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="------------040208030902030408020203"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59754 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751359AbaAWM1o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jan 2014 07:27:44 -0500
-In-Reply-To: <52E0E3D1.5050202@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1387366615-23182-2-git-send-email-sourav.poddar@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: florian.vaussard@epfl.ch, Kevin Hilman <khilman@linaro.org>, kernel-build-reports@lists.linaro.org, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "tony@atomide.com" <tony@atomide.com>
-Cc: Mike Turquette <mturquette@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Ash Charles <ash@gumstix.com>
-
---------------040208030902030408020203
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-
-On 01/23/2014 11:41 AM, Florian Vaussard wrote:
->
->
-> On 01/23/2014 10:15 AM, Florian Vaussard wrote:
->>
->>
->> On 01/23/2014 10:00 AM, Tero Kristo wrote:
->>> On 01/23/2014 10:14 AM, Florian Vaussard wrote:
->>>> Hello,
->>>>
->>>> On 01/23/2014 07:23 AM, Tero Kristo wrote:
->>>>> On 01/23/2014 03:35 AM, Kevin Hilman wrote:
->>>>>> On Wed, Jan 22, 2014 at 4:46 PM, Kevin's boot bot <khilman@linaro.org>
->>>>>> wrote:
->>>>>>> Automated DT boot report for various ARM defconfigs.
->>>>>>>
->>>>>>>
->>>>>>> Tree/Branch: next
->>>>>>> Git describe: next-20140122
->>>>>>> Failed boot tests (console logs at the end)
->>>>>>> ===========================================
->>>>>>>            omap3-tobi,3730storm:     FAIL:    omap2plus_defconfig
->>>>>> [...]
->>>>>>>            omap3-tobi,3730storm:     FAIL:    multi_v7_defconfig
->>>>>>
->>>>>> These OMAP3 failures are new regressions.  Full failure boot log
->>>>>> attached.
->>>>>> Bisected down to:
->>>>>>
->>>>>> cfa9667d4ac9da8b3ba2269f934ecd69ae504d39 is the first bad commit
->>>>>> commit cfa9667d4ac9da8b3ba2269f934ecd69ae504d39
->>>>>> Author: Tero Kristo <t-kristo@ti.com>
->>>>>> Date:   Tue Oct 22 11:53:02 2013 +0300
->>>>>>
->>>>>>        ARM: OMAP2+: io: use new clock init API
->>>>>>
->>>>>>        clk_init is now separated to a common function which gets called
->>>>>> for all
->>>>>>        SoC:s, which initializes the DT clocks and calls the SoC specific
->>>>>> clock init.
->>>>>>
->>>>>>        Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>>>>        Acked-by: Tony Lindgren <tony@atomide.com>
->>>>>>        Signed-off-by: Mike Turquette <mturquette@linaro.org>
->>>>>>
->>>>>> Kevin
->>>>>>
->>>>>
->>>>> Hi,
->>>>>
->>>>> I think this is because the tobi board is including wrong omap3-soc.dtsi
->>>>> file (omap34xx.dtsi) through omap3-overo.dtsi.
->>>>>
->>>>> The board should include omap36xx.dtsi at least based on the boot log:
->>>>>
->>>>> [    0.000000] OMAP3630 ES1.2 (l2cache iva sgx neon isp 192mhz_clk )
->>>>>
->>>>
->>>> The problem is that the Overo (processor card on the Tobi extension
->>>> board) can have a variety of processor depending on the exact model:
->>>>
->>>> - OMAP 35xx (1st generation: Air, Earth, Fire, Sand, Tide, Water, FE)
->>>> - OMAP 3730
->>>> - AM/DM 37xx
->>>>
->>>> omap3-overo.dtsi includes omap34xx.dtsi to be compatible with the first
->>>> generation.
->>>>
->>>>
->>>> omap34xx.dtsi
->>>>        |
->>>>        -> omap3-overo.dtsi (processor card)
->>>>                   |
->>>>                   -> omap3-tobi.dtsi (expansion board)
->>>>
->>>>
->>>> What is the fundamental incompatibility here? If we have to specifically
->>>> include omap36xx for newer Overo, it will become hard to maintain as it
->>>> will double the number of Overo / expansion boards possibilities.
->>>
->>> Well, you get different board declaration inside
->>> mach-omap2/board-generic.c for omap34xx vs omap36xx.
->>>
->>> The clock data issues can be fixed by adding cpu_is_omap34xx() vs.
->>> cpu_is_omap3630() checks within the mach-omap2/io.c file, but this is
->>> probably for Tony/Kevin to comment whether we can/should do that.
->>>
->>
->> I just tested next-20140123 with an OMAP3630 ES1.2 Overo/Tobi. Changing
->> the include to omap36xx.dtsi do not fix the issue. I still get the
->> external abort on non-linefetch (full log here [1]).
->>
->
-> So the issue is clearly caused by the hwmod warning just before the
-> panic I think:
->
-> omap_hwmod: usb_tll_hs: enabled state can only be entered from
-> initialized, idle, or disabled state
->
-> usb_tll_hs is thus not enabled, and we get a panic when trying to read
-> the revision register
->
->          ver =  usbtll_read(tll->base, OMAP_USBTLL_REVISION);
->
-> at drivers/mfd/omap-usb-tll.c:237.
->
-> I do not know enough about hwmod to efficiently debug why usb_tll_hs is
-> not _HWMOD_STATE_INITIALIZED before trying to enable it. Are we missing
-> some DT data?
-
-The problem is the point before this one, uart4_fck lookup fails. This 
-causes the hwmod code to bail out early and not init anything after it.
-
-I guess you are still mapping wrong clock init as it fails with uart4. 
-Give the attached patch a shot and see how it behaves.
-
--Tero
-
---------------040208030902030408020203
-Content-Type: text/x-patch;
-	name="0001-ARM-OMAP3-change-all-omap3-boards-to-use-common-earl.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename*0="0001-ARM-OMAP3-change-all-omap3-boards-to-use-common-earl.pa";
-	filename*1="tch"
-
->From b42055fb5c1712348a757d766dbd7c09140cfe66 Mon Sep 17 00:00:00 2001
-From: Tero Kristo <t-kristo@ti.com>
-Date: Thu, 23 Jan 2014 14:24:57 +0200
-Subject: [PATCH] ARM: OMAP3: change all omap3 boards to use common early_init
-
-early_init now checks the cpu type for the corresponding clock init
-function. Mainly needed by the overo board which can have almost
-any OMAP3 subtype installed on it.
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
- arch/arm/mach-omap2/board-am3517crane.c    |    2 +-
- arch/arm/mach-omap2/board-am3517evm.c      |    2 +-
- arch/arm/mach-omap2/board-cm-t35.c         |    4 ++--
- arch/arm/mach-omap2/board-cm-t3517.c       |    2 +-
- arch/arm/mach-omap2/board-devkit8000.c     |    2 +-
- arch/arm/mach-omap2/board-generic.c        |    8 +++----
- arch/arm/mach-omap2/board-ldp.c            |    2 +-
- arch/arm/mach-omap2/board-omap3logic.c     |    4 ++--
- arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
- arch/arm/mach-omap2/board-omap3stalker.c   |    2 +-
- arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
- arch/arm/mach-omap2/board-overo.c          |    2 +-
- arch/arm/mach-omap2/board-rx51.c           |    2 +-
- arch/arm/mach-omap2/io.c                   |   35 +++++++---------------------
- 15 files changed, 27 insertions(+), 46 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index d95d0ef..a1a5413 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -623,7 +623,7 @@ MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
- 	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap3430_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap_3430sdp_init,
-diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-index 0d499a1..d44f029 100644
---- a/arch/arm/mach-omap2/board-am3517crane.c
-+++ b/arch/arm/mach-omap2/board-am3517crane.c
-@@ -140,7 +140,7 @@ MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
- 	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= am35xx_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= am3517_crane_init,
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 543d9a8..22ce07f 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -369,7 +369,7 @@ MACHINE_START(OMAP3517EVM, "OMAP3517/AM3517 EVM")
- 	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= am35xx_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= am3517_evm_init,
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 8dd0ec8..5296dd0 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -748,7 +748,7 @@ MACHINE_START(CM_T35, "Compulab CM-T35")
- 	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap35xx_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= cm_t35_init,
-@@ -761,7 +761,7 @@ MACHINE_START(CM_T3730, "Compulab CM-T3730")
- 	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap3630_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= cm_t3730_init,
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index 4eb5e6f..37d8577 100644
---- a/arch/arm/mach-omap2/board-cm-t3517.c
-+++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -327,7 +327,7 @@ MACHINE_START(CM_T3517, "Compulab CM-T3517")
- 	.atag_offset	= 0x100,
- 	.reserve        = omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= am35xx_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= cm_t3517_init,
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index cdc4fb9..4836c19 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -645,7 +645,7 @@ MACHINE_START(DEVKIT8000, "OMAP3 Devkit8000")
- 	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap35xx_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= devkit8000_init,
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 8d972ff1..d1d211f 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -85,7 +85,7 @@ static const char *omap3_boards_compat[] __initdata = {
- DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap3430_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap_intc_of_init,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap_generic_init,
-@@ -103,7 +103,7 @@ static const char *omap36xx_boards_compat[] __initdata = {
- DT_MACHINE_START(OMAP36XX_DT, "Generic OMAP36xx (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap3630_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap_intc_of_init,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap_generic_init,
-@@ -122,7 +122,7 @@ static const char *omap3_gp_boards_compat[] __initdata = {
- DT_MACHINE_START(OMAP3_GP_DT, "Generic OMAP3-GP (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap3430_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap_intc_of_init,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap_generic_init,
-@@ -140,7 +140,7 @@ static const char *am3517_boards_compat[] __initdata = {
- DT_MACHINE_START(AM3517_DT, "Generic AM3517 (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= am35xx_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap_intc_of_init,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap_generic_init,
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 44a59c3..6534c4a 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -420,7 +420,7 @@ MACHINE_START(OMAP_LDP, "OMAP LDP board")
- 	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap3430_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap_ldp_init,
-diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-index bab51e6..0b942c4 100644
---- a/arch/arm/mach-omap2/board-omap3logic.c
-+++ b/arch/arm/mach-omap2/board-omap3logic.c
-@@ -228,7 +228,7 @@ MACHINE_START(OMAP3_TORPEDO, "Logic OMAP3 Torpedo board")
- 	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap35xx_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap3logic_init,
-@@ -241,7 +241,7 @@ MACHINE_START(OMAP3530_LV_SOM, "OMAP Logic 3530 LV SOM board")
- 	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap35xx_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap3logic_init,
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index de1bc6b..bf256ed 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -620,7 +620,7 @@ MACHINE_START(OMAP3_PANDORA, "Pandora Handheld Console")
- 	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap35xx_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap3pandora_init,
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index 119efaf..d7245e3 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -428,7 +428,7 @@ MACHINE_START(SBC3530, "OMAP3 STALKER")
- 	/* Maintainer: Jason Lam -lzg@ema-tech.com */
- 	.atag_offset		= 0x100,
- 	.map_io			= omap3_map_io,
--	.init_early		= omap35xx_init_early,
-+	.init_early		= omap3_init_early,
- 	.init_irq		= omap3_init_irq,
- 	.handle_irq		= omap3_intc_handle_irq,
- 	.init_machine		= omap3_stalker_init,
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 7da48bc..8385192 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -386,7 +386,7 @@ MACHINE_START(TOUCHBOOK, "OMAP3 touchbook Board")
- 	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap3430_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap3_touchbook_init,
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index f6d3841..c3c2a7f 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -562,7 +562,7 @@ MACHINE_START(OVERO, "Gumstix Overo")
- 	.atag_offset	= 0x100,
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap35xx_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= overo_init,
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index db168c9..0ca29b9 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -132,7 +132,7 @@ MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
- 	.atag_offset	= 0x100,
- 	.reserve	= rx51_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap3430_init_early,
-+	.init_early	= omap3_init_early,
- 	.init_irq	= omap3_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= rx51_init,
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index b8097fe..fa9919d 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -483,34 +483,15 @@ void __init omap3_init_early(void)
- 	omap3xxx_hwmod_init();
- 	omap_hwmod_init_postsetup();
- 	omap_clk_soc_init = omap3xxx_clk_init;
--}
--
--void __init omap3430_init_early(void)
--{
--	omap3_init_early();
--	if (of_have_populated_dt())
--		omap_clk_soc_init = omap3430_dt_clk_init;
--}
--
--void __init omap35xx_init_early(void)
--{
--	omap3_init_early();
--	if (of_have_populated_dt())
--		omap_clk_soc_init = omap3430_dt_clk_init;
--}
--
--void __init omap3630_init_early(void)
--{
--	omap3_init_early();
--	if (of_have_populated_dt())
--		omap_clk_soc_init = omap3630_dt_clk_init;
--}
- 
--void __init am35xx_init_early(void)
--{
--	omap3_init_early();
--	if (of_have_populated_dt())
--		omap_clk_soc_init = am35xx_dt_clk_init;
-+	if (of_have_populated_dt()) {
-+		if (soc_is_am35xx())
-+			omap_clk_soc_init = am35xx_dt_clk_init;
-+		else if (cpu_is_omap3630())
-+			omap_clk_soc_init = omap3630_dt_clk_init;
-+		else if (cpu_is_omap34xx())
-+			omap_clk_soc_init = omap3430_dt_clk_init;
-+	}
- }
- 
- void __init ti81xx_init_early(void)
--- 
-1.7.9.5
 
 
---------------040208030902030408020203--
+--VS++wcV0S1rZb1Fb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Dec 18, 2013 at 05:06:53PM +0530, Sourav Poddar wrote:
+> When tiecap is used as a module, then while doing a rmmod I
+> get the following dump.
+>=20
+> root@am437x-evm:/# rmmod pwm_tiecap
+> [  219.539245]
+> [  219.540771] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> [  219.546936] [ INFO: possible circular locking dependency detected ]
+> [  219.553192] 3.12.4-01557-g9921cde-dirty #134 Not tainted
+> [  219.558471] -------------------------------------------------------
+> [  219.564727] rmmod/1517 is trying to acquire lock:
+> [  219.569427]  (s_active#35){++++.+}, at: [<c017ab00>] sysfs_hash_and_re=
+move+0x4c/0x8c
+> [  219.577239]
+> [  219.577239] but task is already holding lock:
+> [  219.583068]  (pwm_lock){+.+.+.}, at: [<c0303598>] pwmchip_remove+0x14/=
+0xf8
+> [  219.589996]
+> [  219.589996] which lock already depends on the new lock.
+> [  219.589996]
+> [  219.598144]
+> [  219.598144] the existing dependency chain (in reverse order) is:
+> [  219.605590]
+> -> #1 (pwm_lock){+.+.+.}:
+> [  219.609497]        [<c00a2d1c>] lock_acquire+0x9c/0x128
+> [  219.614746]        [<c0639bc0>] mutex_lock_nested+0x50/0x3dc
+> [  219.620391]        [<c0303974>] pwm_request_from_chip+0x38/0x6c
+> [  219.626312]        [<c0303fe0>] pwm_export_store+0x50/0x140
+> [  219.631896]        [<c039aba8>] dev_attr_store+0x18/0x24
+> [  219.637207]        [<c017aff0>] sysfs_write_file+0x16c/0x1a0
+> [  219.642883]        [<c0119084>] vfs_write+0xb0/0x188
+> [  219.647857]        [<c0119478>] SyS_write+0x3c/0x70
+> [  219.652770]        [<c0014100>] ret_fast_syscall+0x0/0x48
+> [  219.658172]
+> -> #0 (s_active#35){++++.+}:
+> [  219.662353]        [<c00a2778>] __lock_acquire+0x1b28/0x1b70
+> [  219.667999]        [<c00a2d1c>] lock_acquire+0x9c/0x128
+> [  219.673248]        [<c017c780>] sysfs_addrm_finish+0xe8/0x158
+> [  219.678985]        [<c017ab00>] sysfs_hash_and_remove+0x4c/0x8c
+> [  219.684906]        [<c017e224>] remove_files+0x38/0x74
+> [  219.690063]        [<c017e2a4>] sysfs_remove_group+0x44/0x108
+> [  219.695800]        [<c017e38c>] sysfs_remove_groups+0x24/0x34
+> [  219.701538]        [<c039bc2c>] device_del+0xec/0x178
+> [  219.706604]        [<c039bcc4>] device_unregister+0xc/0x18
+> [  219.712097]        [<c0303658>] pwmchip_remove+0xd4/0xf8
+> [  219.717407]        [<c039fdc4>] platform_drv_remove+0x18/0x1c
+> [  219.723175]        [<c039e6c4>] __device_release_driver+0x70/0xc8
+> [  219.729248]        [<c039eec8>] driver_detach+0xb4/0xb8
+> [  219.734497]        [<c039e4ec>] bus_remove_driver+0x8c/0xd0
+> [  219.740081]        [<c00abd2c>] SyS_delete_module+0x118/0x22c
+> [  219.745819]        [<c0014100>] ret_fast_syscall+0x0/0x48
+> [  219.751220]
+> [  219.751220] other info that might help us debug this:
+> [  219.751220]
+> [  219.759216]  Possible unsafe locking scenario:
+> [  219.759216]
+> [  219.765106]        CPU0                    CPU1
+> [  219.769622]        ----                    ----
+> [  219.774139]   lock(pwm_lock);
+> [  219.777130]                                lock(s_active#35);
+> [  219.782897]                                lock(pwm_lock);
+> [  219.788391]   lock(s_active#35);
+> [  219.791656]
+> [  219.791656]  *** DEADLOCK ***
+> [  219.791656]
+> [  219.797546] 3 locks held by rmmod/1517:
+> [  219.801391]  #0:  (&__lockdep_no_validate__){......}, at: [<c039ee58>]=
+ driver_detach+0x44/0xb8
+> [  219.810028]  #1:  (&__lockdep_no_validate__){......}, at: [<c039ee64>]=
+ driver_detach+0x50/0xb8
+> [  219.818695]  #2:  (pwm_lock){+.+.+.}, at: [<c0303598>] pwmchip_remove+=
+0x14/0xf8
+> [  219.826049]
+> [  219.826049] stack backtrace:
+> [  219.830413] CPU: 0 PID: 1517 Comm: rmmod Not tainted 3.12.4-01557-g992=
+1cde-dirty #134
+> [  219.838256] [<c001cc98>] (unwind_backtrace+0x0/0xf0) from [<c0018124>]=
+ (show_stack+0x10/0x14)
+> [  219.846771] [<c0018124>] (show_stack+0x10/0x14) from [<c0636728>] (dum=
+p_stack+0x74/0xb4)
+> [  219.854858] [<c0636728>] (dump_stack+0x74/0xb4) from [<c06344e4>] (pri=
+nt_circular_bug+0x284/0x2d8)
+> [  219.863830] [<c06344e4>] (print_circular_bug+0x284/0x2d8) from [<c00a2=
+778>] (__lock_acquire+0x1b28/0x1b70)
+> [  219.873443] [<c00a2778>] (__lock_acquire+0x1b28/0x1b70) from [<c00a2d1=
+c>] (lock_acquire+0x9c/0x128)
+> [  219.882476] [<c00a2d1c>] (lock_acquire+0x9c/0x128) from [<c017c780>] (=
+sysfs_addrm_finish+0xe8/0x158)
+> [  219.891601] [<c017c780>] (sysfs_addrm_finish+0xe8/0x158) from [<c017ab=
+00>] (sysfs_hash_and_remove+0x4c/0x8c)
+> [  219.901397] [<c017ab00>] (sysfs_hash_and_remove+0x4c/0x8c) from [<c017=
+e224>] (remove_files+0x38/0x74)
+> [  219.910614] [<c017e224>] (remove_files+0x38/0x74) from [<c017e2a4>] (s=
+ysfs_remove_group+0x44/0x108)
+> [  219.919647] [<c017e2a4>] (sysfs_remove_group+0x44/0x108) from [<c017e3=
+8c>] (sysfs_remove_groups+0x24/0x34)
+> [  219.929260] [<c017e38c>] (sysfs_remove_groups+0x24/0x34) from [<c039bc=
+2c>] (device_del+0xec/0x178)
+> [  219.938201] [<c039bc2c>] (device_del+0xec/0x178) from [<c039bcc4>] (de=
+vice_unregister+0xc/0x18)
+> [  219.946899] [<c039bcc4>] (device_unregister+0xc/0x18) from [<c0303658>=
+] (pwmchip_remove+0xd4/0xf8)
+> [  219.955841] [<c0303658>] (pwmchip_remove+0xd4/0xf8) from [<c039fdc4>] =
+(platform_drv_remove+0x18/0x1c)
+> [  219.965057] [<c039fdc4>] (platform_drv_remove+0x18/0x1c) from [<c039e6=
+c4>] (__device_release_driver+0x70/0xc8)
+> [  219.975006] [<c039e6c4>] (__device_release_driver+0x70/0xc8) from [<c0=
+39eec8>] (driver_detach+0xb4/0xb8)
+> [  219.984466] [<c039eec8>] (driver_detach+0xb4/0xb8) from [<c039e4ec>] (=
+bus_remove_driver+0x8c/0xd0)
+> [  219.993438] [<c039e4ec>] (bus_remove_driver+0x8c/0xd0) from [<c00abd2c=
+>] (SyS_delete_module+0x118/0x22c)
+> [  220.002899] [<c00abd2c>] (SyS_delete_module+0x118/0x22c) from [<c00141=
+00>] (ret_fast_syscall+0x0/0x48)
+>=20
+> Looks like s_active lock cannot be held while pwm lock is held.
+> The patch fixes the above issue by unlocking the pwm lock before acquirin=
+g the
+> sysfs lock.
+
+I've been trying to reproduce this, but I can't. I've enabled LOCKDEP
+and PROVE_LOCKING in Kconfig, booted a Tegra-based board and did a
+couple of modprobe pwm-tegra && modprobe -r pwm-tegra. But I never saw
+LOCKDEP complain.
+
+Can you reproduce the issue on latest linux-next? Or is there something
+else I should be doing to trigger this?
+
+Thierry
+
+--VS++wcV0S1rZb1Fb
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJS4R8pAAoJEN0jrNd/PrOh2wsQAI2Oc1FGy9VevNL+1lozllRJ
+PfjoxAzcBHxdiM42K9fOCTTzXLtNW0z8bVJdDbvZCaNMErkItQI2ZAO82PDdHRRu
+fixZm+jB1gA2C/0pSqF7O0dmCudFw1Tss/loJQRROEE/j/BNaM80SfV/oADPRQq5
+/EcDkpFrJWH4hTOkDDpgbtySZpKnOtE8FjxnMKVS7MoyM19hXC5dv/gax96lvv6L
+Mxznsg2hI9iZdSbPrgDNpbHvFUvIl/lYKTSBaoz71YzkJ5g+u6muLQ9+lKmf2Iqi
+bdqiO0ZDc+qO+eDwdgf2TunfGcOv2Uap/SLBIu6i0t9ig5X5Esp5u3PlfuuEenhr
+Dv9vo8tNmpZRhbKj2OVLTVps5mlEVAxTxEM8A5I4C771sYNH4WtHJfR6ks308kQi
+UAbT/spXAiKyL+DI0zY+BKs86XUcRG2CSygkvjpUWg+BQKNrWGVJ3Djghn1LyeQX
+MUqa/Rp50kxZXsJJAsjnYAdiIE0JJ7f9PC/o1bFlJP6vT2Lk/K8lDZsa1edqJh8/
+rWg85jJKszsmxUFswxf0TVbfL0Mjmkcx+wK6p1xd8+qcKjFJVJlZmCTQffx4hnMB
+V09xYDoBpj4GfdwiUuK5Ja7lUTO1/PLMcXQCvC8WKf4BJKH84oXkhGfFL4GSBwsM
+MJC4ErzAVoeOtRyESi2F
+=JYK7
+-----END PGP SIGNATURE-----
+
+--VS++wcV0S1rZb1Fb--
