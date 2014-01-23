@@ -1,130 +1,104 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: next boot: 34 pass, 5 fail (next-20140122)
-Date: Thu, 23 Jan 2014 10:41:37 +0100
-Message-ID: <52E0E3D1.5050202@epfl.ch>
-References: <52e06652.c103450a.79d7.6517@mx.google.com> <CAGa+x86=gKh11g1pzLqxdimeCxuZ478+ZAxd9GjO-m7Aa8L2fg@mail.gmail.com> <52E0B569.8000809@ti.com> <52E0CF58.5040109@epfl.ch> <52E0DA13.9090302@ti.com> <52E0DD9F.8000100@epfl.ch>
-Reply-To: florian.vaussard@epfl.ch
+From: Marc Murphy <marcmltd@marcm.co.uk>
+Subject: RE: Issues with GPIO and wake from sleep
+Date: Thu, 23 Jan 2014 09:45:06 +0000
+Message-ID: <F690310232FDDF4AB457E8B3EF90DDE09A5A80E9@MARCM-SBS2011.marcmltd.local>
+References: <F690310232FDDF4AB457E8B3EF90DDE09A56D39C@MARCM-SBS2011.marcmltd.local>,<20140117173902.GD7235@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:49874 "EHLO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751710AbaAWJlm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jan 2014 04:41:42 -0500
-In-Reply-To: <52E0DD9F.8000100@epfl.ch>
+Received: from smtpout04.bt.lon5.cpcloud.co.uk ([65.20.0.124]:16103 "EHLO
+	smtpout04.bt.lon5.cpcloud.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751293AbaAWJpQ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Jan 2014 04:45:16 -0500
+In-Reply-To: <20140117173902.GD7235@atomide.com>
+Content-Language: en-GB
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@linaro.org>, kernel-build-reports@lists.linaro.org, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "tony@atomide.com" <tony@atomide.com>
-Cc: Mike Turquette <mturquette@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Ash Charles <ash@gumstix.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+I have tried all sorts of configurations now and still cannot get the s=
+ystem to wake from GPIO.
 
+The confusing thing is that if I use the power managements tests via de=
+bugfs I can make the system sleep and wakeup using the timer, so the su=
+spend and wake is configured and working.
 
-On 01/23/2014 10:15 AM, Florian Vaussard wrote:
-> 
-> 
-> On 01/23/2014 10:00 AM, Tero Kristo wrote:
->> On 01/23/2014 10:14 AM, Florian Vaussard wrote:
->>> Hello,
->>>
->>> On 01/23/2014 07:23 AM, Tero Kristo wrote:
->>>> On 01/23/2014 03:35 AM, Kevin Hilman wrote:
->>>>> On Wed, Jan 22, 2014 at 4:46 PM, Kevin's boot bot <khilman@linaro.org>
->>>>> wrote:
->>>>>> Automated DT boot report for various ARM defconfigs.
->>>>>>
->>>>>>
->>>>>> Tree/Branch: next
->>>>>> Git describe: next-20140122
->>>>>> Failed boot tests (console logs at the end)
->>>>>> ===========================================
->>>>>>           omap3-tobi,3730storm:     FAIL:    omap2plus_defconfig
->>>>> [...]
->>>>>>           omap3-tobi,3730storm:     FAIL:    multi_v7_defconfig
->>>>>
->>>>> These OMAP3 failures are new regressions.  Full failure boot log
->>>>> attached.
->>>>> Bisected down to:
->>>>>
->>>>> cfa9667d4ac9da8b3ba2269f934ecd69ae504d39 is the first bad commit
->>>>> commit cfa9667d4ac9da8b3ba2269f934ecd69ae504d39
->>>>> Author: Tero Kristo <t-kristo@ti.com>
->>>>> Date:   Tue Oct 22 11:53:02 2013 +0300
->>>>>
->>>>>       ARM: OMAP2+: io: use new clock init API
->>>>>
->>>>>       clk_init is now separated to a common function which gets called
->>>>> for all
->>>>>       SoC:s, which initializes the DT clocks and calls the SoC specific
->>>>> clock init.
->>>>>
->>>>>       Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>>>       Acked-by: Tony Lindgren <tony@atomide.com>
->>>>>       Signed-off-by: Mike Turquette <mturquette@linaro.org>
->>>>>
->>>>> Kevin
->>>>>
->>>>
->>>> Hi,
->>>>
->>>> I think this is because the tobi board is including wrong omap3-soc.dtsi
->>>> file (omap34xx.dtsi) through omap3-overo.dtsi.
->>>>
->>>> The board should include omap36xx.dtsi at least based on the boot log:
->>>>
->>>> [    0.000000] OMAP3630 ES1.2 (l2cache iva sgx neon isp 192mhz_clk )
->>>>
->>>
->>> The problem is that the Overo (processor card on the Tobi extension
->>> board) can have a variety of processor depending on the exact model:
->>>
->>> - OMAP 35xx (1st generation: Air, Earth, Fire, Sand, Tide, Water, FE)
->>> - OMAP 3730
->>> - AM/DM 37xx
->>>
->>> omap3-overo.dtsi includes omap34xx.dtsi to be compatible with the first
->>> generation.
->>>
->>>
->>> omap34xx.dtsi
->>>       |
->>>       -> omap3-overo.dtsi (processor card)
->>>                  |
->>>                  -> omap3-tobi.dtsi (expansion board)
->>>
->>>
->>> What is the fundamental incompatibility here? If we have to specifically
->>> include omap36xx for newer Overo, it will become hard to maintain as it
->>> will double the number of Overo / expansion boards possibilities.
->>
->> Well, you get different board declaration inside
->> mach-omap2/board-generic.c for omap34xx vs omap36xx.
->>
->> The clock data issues can be fixed by adding cpu_is_omap34xx() vs.
->> cpu_is_omap3630() checks within the mach-omap2/io.c file, but this is
->> probably for Tony/Kevin to comment whether we can/should do that.
->>
-> 
-> I just tested next-20140123 with an OMAP3630 ES1.2 Overo/Tobi. Changing
-> the include to omap36xx.dtsi do not fix the issue. I still get the
-> external abort on non-linefetch (full log here [1]).
-> 
+Using either method of configuring the GPIO to be an interrupt and wake=
+up source OR a GPIO key with wakeup capability results in the system ju=
+st sitting there in the suspended state.
+I know the GPIO and IRQ is working as I see the count increment in=20
+/proc/interrupts
 
-So the issue is clearly caused by the hwmod warning just before the
-panic I think:
+I have tried debugging with JTAG but not having any luck because the co=
+re enters a power down state so therefore disconnects the JTAG and the =
+debug session hangs.
 
-omap_hwmod: usb_tll_hs: enabled state can only be entered from
-initialized, idle, or disabled state
+I have also removed all devices going back to a very basic system think=
+ing drivers are causing the suspend resume issue but still it stays in =
+the sleep state.
 
-usb_tll_hs is thus not enabled, and we get a panic when trying to read
-the revision register
+All the references I can find online do not assist in getting a solutio=
+n for me.
 
-        ver =  usbtll_read(tll->base, OMAP_USBTLL_REVISION);
+Is there anyone out there that has managed to successfully get the wake=
+ from suspend to memory working via a GPIO on a 3.x kernel ?
 
-at drivers/mfd/omap-usb-tll.c:237.
+i am getting close to running out of options to make this system work.
 
-I do not know enough about hwmod to efficiently debug why usb_tll_hs is
-not _HWMOD_STATE_INITIALIZED before trying to enable it. Are we missing
-some DT data?
+Help appreciated and may help others out there with a similar issue.
 
-Florian
+Kind Regards
+Marc
+
+________________________________________
+=46rom: Tony Lindgren [tony@atomide.com]
+Sent: 17 January 2014 17:39
+To: Marc Murphy
+Cc: linux-omap@vger.kernel.org
+Subject: Re: Issues with GPIO and wake from sleep
+
+* Marc Murphy <marcmltd@marcm.co.uk> [140117 04:32]:
+> I have resisted contacting the list with regards to an issue I am hav=
+ing trying to get what should be a simple part of my system working but=
+ I cannot find any documentation or other posts to help.
+>
+> I am using 3.6 kernel but have tried 3.12 to see if the issue has bee=
+n addressed in that but its exactly the same.
+>
+> I am attempting to get a GPIO to wake my AM3517 system up from a susp=
+end to memory.  I have tried with a few different options for GPIO=92s
+> I have available GPIO-10, GPIO-28 and GPIO-30.
+>
+> I started by using GPIO-28 and that would configure nicely and I set =
+up the interrupt handler and could see my debug when triggering the inp=
+ut (brilliant) but for some reason I cannot use it  to wake the system =
+as it is not in the correct group for wakeup.  There is a note in the T=
+ech Ref Man -
+>
+> Only gpio_1, gpio_9, gpio_10, gpio_11, gpio_30, and gpio_31 can be us=
+ed to generate a direct wake-up event.
+>
+> So have to use a different one. GPIO-30 cannot be used as that holds =
+the system in reset, so all that is left is GPIO-10.
+> All seems to be good for initialisation;
+
+I think you don't need the mux wake-up bits for the first GPIO bank, it=
+'s
+always powered. So just setting gpio10 as an interrupt should keep it
+working through suspend. The GPIO driver has it's own idle handling for
+the first bank, see _set_gpio_wakeup().
+
+Maybe you just need to do set_irq_wake() in the interrupt number
+for gpio10?
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
