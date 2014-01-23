@@ -1,68 +1,53 @@
-From: Hans-Christian Egtvedt <egtvedt@samfundet.no>
-Subject: Re: [PATCH 2/2] clocksource: Make clocksource register functions void
-Date: Thu, 23 Jan 2014 08:40:01 +0100
-Message-ID: <20140123074001.GA3080@samfundet.no>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH 2/2] clocksource: Make clocksource register
+	functions void
+Date: Thu, 23 Jan 2014 08:58:09 +0100
+Message-ID: <CAMuHMdUcKb8m71Z7dUo86MQ_KZgPujxsduUUt3Mz8Oke+DLSVw@mail.gmail.com>
 References: <1390461166-36440-1-git-send-email-wangyijing@huawei.com>
+	<52E0C889.6000106@prisktech.co.nz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mips-bounce@linux-mips.org>
-Content-Disposition: inline
-In-Reply-To: <1390461166-36440-1-git-send-email-wangyijing@huawei.com>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-List-help: <mailto:ecartis@linux-mips.org?Subject=help>
-List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
-List-owner: <mailto:ralf@linux-mips.org>
-List-post: <mailto:linux-mips@linux-mips.org>
-List-archive: <http://www.linux-mips.org/archives/linux-mips/>
-To: Yijing Wang <wangyijing@huawei.com>
-Cc: John Stultz <john.stultz@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Mike Frysinger <vapier@gentoo.org>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, Jonas Bonn <jonas@southpole.se>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@ke
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-bounces@lists.openrisc.net>
+In-Reply-To: <52E0C889.6000106@prisktech.co.nz>
+List-Unsubscribe: <http://lists.openrisc.net/options/linux>,
+	<mailto:linux-request@lists.openrisc.net?subject=unsubscribe>
+List-Archive: <http://lists.openrisc.net/pipermail/linux>
+List-Post: <mailto:linux@lists.openrisc.net>
+List-Help: <mailto:linux-request@lists.openrisc.net?subject=help>
+List-Subscribe: <http://lists.openrisc.net/listinfo/linux>,
+	<mailto:linux-request@lists.openrisc.net?subject=subscribe>
+Sender: linux-bounces@lists.openrisc.net
+Errors-To: linux-bounces@lists.openrisc.net
+To: Tony Prisk <linux@prisktech.co.nz>
+Cc: Linux MIPS Mailing List <linux-mips@linux-mips.org>, the arch/x86 maintainers <x86@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux <linux@lists.openrisc.net>, Sekhar Nori <nsekhar@ti.com>, Michal Simek <monstr@monstr.eu>, Paul Mackerras <paulus@samba.org>, Ralf Baechle <ralf@linux-mips.org>, "H. Peter Anvin" <hpa@zytor.com>, Yijing Wang <wangyijing@huawei.com>, Daniel Walker <dwalker@fifo99.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Richard Weinberger <richard@nod.at>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tony Lindgren <tony@atomide.com>, Ingo Molnar <mingo@redhat.com>, microblaze-uclinux@itee.uq.edu.au, David Brown <davidb@codeaurora.org>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Mike Frysinger <vapier@gentoo.>
 List-Id: linux-omap@vger.kernel.org
 
-Around Thu 23 Jan 2014 15:12:46 +0800 or thereabout, Yijing Wang wrote:
-> Currently, clocksource_register() and __clocksource_register_scale()
-> functions always return 0, it's pointless, make functions void.
-> And remove the dead code that check the clocksource_register_hz()
-> return value.
-> 
-> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+On Thu, Jan 23, 2014 at 8:45 AM, Tony Prisk <linux@prisktech.co.nz> wrote:
+>>   -static inline int clocksource_register_hz(struct clocksource *cs, u32
+>> hz)
+>> +static inline void clocksource_register_hz(struct clocksource *cs, u32
+>> hz)
+>>   {
+>>         return __clocksource_register_scale(cs, 1, hz);
+>>   }
+>
+>
+> This doesn't make sense - you are still returning a value on a function
+> declared void, and the return is now from a function that doesn't return
+> anything either ?!?!
+> Doesn't this throw a compile-time warning??
 
-For the avr32 related change
+No, passing on void in functions returning void doesn't cause compiler
+warnings.
 
-Acked-by: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Gr{oetje,eeting}s,
 
-> ---
->  arch/arm/mach-davinci/time.c                    |    5 ++---
->  arch/arm/mach-msm/timer.c                       |    4 +---
->  arch/arm/mach-omap2/timer.c                     |    8 +++-----
->  arch/avr32/kernel/time.c                        |    4 +---
->  arch/blackfin/kernel/time-ts.c                  |    6 ++----
->  arch/microblaze/kernel/timer.c                  |    3 +--
->  arch/mips/jz4740/time.c                         |    6 +-----
->  arch/mips/loongson/common/cs5536/cs5536_mfgpt.c |    3 ++-
->  arch/openrisc/kernel/time.c                     |    3 +--
->  arch/powerpc/kernel/time.c                      |    6 +-----
->  arch/um/kernel/time.c                           |    6 +-----
->  arch/x86/platform/uv/uv_time.c                  |   14 ++++++--------
->  drivers/clocksource/acpi_pm.c                   |    3 ++-
->  drivers/clocksource/cadence_ttc_timer.c         |    6 +-----
->  drivers/clocksource/exynos_mct.c                |    4 +---
->  drivers/clocksource/i8253.c                     |    3 ++-
->  drivers/clocksource/mmio.c                      |    3 ++-
->  drivers/clocksource/samsung_pwm_timer.c         |    5 +----
->  drivers/clocksource/scx200_hrt.c                |    3 ++-
->  drivers/clocksource/tcb_clksrc.c                |    8 +-------
->  drivers/clocksource/timer-marco.c               |    2 +-
->  drivers/clocksource/timer-prima2.c              |    2 +-
->  drivers/clocksource/vt8500_timer.c              |    4 +---
->  include/linux/clocksource.h                     |    8 ++++----
->  kernel/time/clocksource.c                       |    6 ++----
->  kernel/time/jiffies.c                           |    3 ++-
->  26 files changed, 45 insertions(+), 83 deletions(-)
+                        Geert
 
-<snipp diffs>
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
--- 
-HcE
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
