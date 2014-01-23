@@ -1,397 +1,1010 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 2/2] clocksource: Make clocksource register functions void
-Date: Thu, 23 Jan 2014 09:40:21 +0100
-Message-ID: <52E0D575.5050702@linaro.org>
-References: <1390461166-36440-1-git-send-email-wangyijing@huawei.com>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: Re: [PATCH 4/4] power_supply: bq24261 charger driver
+Date: Thu, 23 Jan 2014 17:58:52 +0900
+Message-ID: <000001cf1819$56eb3d60$04c1b820$%han@samsung.com>
+References: <1390411194-21410-1-git-send-email-jenny.tc@intel.com>
+ <1390411194-21410-5-git-send-email-jenny.tc@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <1390461166-36440-1-git-send-email-wangyijing@huawei.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Yijing Wang <wangyijing@huawei.com>, John Stultz <john.stultz@linaro.org>, Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-mips@linux-mips.org, Kevin Hilman <khilman@deeprootsystems.com>, linux@lists.openrisc.net, Sekhar Nori <nsekhar@ti.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Daniel Walker <dwalker@fifo99.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Jonas Bonn <jonas@southpole.se>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Richard Weinberger <richard@nod.at>, x86@kernel.org, Tony Lindgren <tony@atomide.com>, Ingo Molnar <mingo@redhat.com>, linux-arm-msm@vger.kernel.org, David Brown <davidb@codeaurora.org>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Mike Frysinger <vapier@gentoo.org>, user-mode-linux-devel@lists.sourceforge.net, Nicolas Ferre <nicolas.ferre@atmel.com>, Jeff Dike <jdike@addtoit.com>, Barry Song <baohua@kernel.org>, linux-samsung-soc@vger.kernel.org, user-mode-linux-user@lists.sourceforge.netl
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <1390411194-21410-5-git-send-email-jenny.tc@intel.com>
+Content-language: ko
+Sender: linux-kernel-owner@vger.kernel.org
+To: 'Jenny TC' <jenny.tc@intel.com>, linux-kernel@vger.kernel.org, 'Dmitry Eremin-Solenikov' <dbaryshkov@gmail.com>
+Cc: 'Anton Vorontsov' <cbouatmailru@gmail.com>, 'Anton Vorontsov' <anton.vorontsov@linaro.org>, 'Kim Milo' <Milo.Kim@ti.com>, 'Lee Jones' <lee.jones@linaro.org>, 'Chanwoo Choi' <cw00.choi@samsung.com>, 'Sachin Kamat' <sachin.kamat@linaro.org>, 'Rupesh Kumar' <rupesh.kumar@stericsson.com>, 'Lars-Peter Clausen' <lars@metafoo.de>, =?utf-8?Q?'Pali_Roh=C3=A1r'?= <pali.rohar@gmail.com>, 'Mark Brown' <broonie@opensource.wolfsonmicro.com>, 'Rhyland Klein' <rklein@nvidia.com>, 'Pavel Machek' <pavel@ucw.cz>, 'David Woodhouse' <dwmw2@infradead.org>, 'Tony Lindgren' <tony@atomide.com>, 'Russell King' <linux@arm.linux.org.uk>, 'Sebastian Reichel' <sre@ring0.de>, aaro.koskinen@iki.fi, freemangordon@abv.bg, linux-omap@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDEvMjMvMjAxNCAwODoxMiBBTSwgWWlqaW5nIFdhbmcgd3JvdGU6Cj4gQ3VycmVudGx5LCBj
-bG9ja3NvdXJjZV9yZWdpc3RlcigpIGFuZCBfX2Nsb2Nrc291cmNlX3JlZ2lzdGVyX3NjYWxlKCkK
-PiBmdW5jdGlvbnMgYWx3YXlzIHJldHVybiAwLCBpdCdzIHBvaW50bGVzcywgbWFrZSBmdW5jdGlv
-bnMgdm9pZC4KPiBBbmQgcmVtb3ZlIHRoZSBkZWFkIGNvZGUgdGhhdCBjaGVjayB0aGUgY2xvY2tz
-b3VyY2VfcmVnaXN0ZXJfaHooKQo+IHJldHVybiB2YWx1ZS4KPgo+IFNpZ25lZC1vZmYtYnk6IFlp
-amluZyBXYW5nIDx3YW5neWlqaW5nQGh1YXdlaS5jb20+CgpXZWxsLCBkbyB3ZSByZWFsbHkgd2Fu
-dCB0byBjaGFuZ2UgYWxsIHRoZXNlIGZpbGVzIHRvIG5vdCB0YWtlIGNhcmUgb2YgYSAKcmV0dXJu
-IHZhbHVlID8gV2hhdCBhYm91dCBpcyB3ZSBoYXZlIHRvIGNoZWNrIGl0IGFnYWluIGxhdGVyID8K
-Ckkgd291bGQgcmVjb21tZW5kIHRvIGludmVzdGlnYXRlIF9fY2xvY2tzb3VyY2VfcmVnaXN0ZXJf
-c2NhbGUgYW5kIHRoZSAKdW5kZXJuZWF0aCBmdW5jdGlvbnMgaWYgdGhlcmUgaXMgbm90IGFuIGVy
-cm9yIHRvIGJlIHJldHVybmVkIGluIHRoZSBjYWxsIApzdGFjayBzb21ld2hlcmUgd2hpY2ggaXMg
-aWdub3JlZCB0b2RheS4KClRoZSBzYW1lIGFwcGxpZXMgZm9yIGNsb2Nrc291cmNlX3JlZ2lzdGVy
-LgoKVGhhbmtzCiAgIC0tIERhbmllbAoKPiAtLS0KPiAgIGFyY2gvYXJtL21hY2gtZGF2aW5jaS90
-aW1lLmMgICAgICAgICAgICAgICAgICAgIHwgICAgNSArKy0tLQo+ICAgYXJjaC9hcm0vbWFjaC1t
-c20vdGltZXIuYyAgICAgICAgICAgICAgICAgICAgICAgfCAgICA0ICstLS0KPiAgIGFyY2gvYXJt
-L21hY2gtb21hcDIvdGltZXIuYyAgICAgICAgICAgICAgICAgICAgIHwgICAgOCArKystLS0tLQo+
-ICAgYXJjaC9hdnIzMi9rZXJuZWwvdGltZS5jICAgICAgICAgICAgICAgICAgICAgICAgfCAgICA0
-ICstLS0KPiAgIGFyY2gvYmxhY2tmaW4va2VybmVsL3RpbWUtdHMuYyAgICAgICAgICAgICAgICAg
-IHwgICAgNiArKy0tLS0KPiAgIGFyY2gvbWljcm9ibGF6ZS9rZXJuZWwvdGltZXIuYyAgICAgICAg
-ICAgICAgICAgIHwgICAgMyArLS0KPiAgIGFyY2gvbWlwcy9qejQ3NDAvdGltZS5jICAgICAgICAg
-ICAgICAgICAgICAgICAgIHwgICAgNiArLS0tLS0KPiAgIGFyY2gvbWlwcy9sb29uZ3Nvbi9jb21t
-b24vY3M1NTM2L2NzNTUzNl9tZmdwdC5jIHwgICAgMyArKy0KPiAgIGFyY2gvb3BlbnJpc2Mva2Vy
-bmVsL3RpbWUuYyAgICAgICAgICAgICAgICAgICAgIHwgICAgMyArLS0KPiAgIGFyY2gvcG93ZXJw
-Yy9rZXJuZWwvdGltZS5jICAgICAgICAgICAgICAgICAgICAgIHwgICAgNiArLS0tLS0KPiAgIGFy
-Y2gvdW0va2VybmVsL3RpbWUuYyAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgNiArLS0t
-LS0KPiAgIGFyY2gveDg2L3BsYXRmb3JtL3V2L3V2X3RpbWUuYyAgICAgICAgICAgICAgICAgIHwg
-ICAxNCArKysrKystLS0tLS0tLQo+ICAgZHJpdmVycy9jbG9ja3NvdXJjZS9hY3BpX3BtLmMgICAg
-ICAgICAgICAgICAgICAgfCAgICAzICsrLQo+ICAgZHJpdmVycy9jbG9ja3NvdXJjZS9jYWRlbmNl
-X3R0Y190aW1lci5jICAgICAgICAgfCAgICA2ICstLS0tLQo+ICAgZHJpdmVycy9jbG9ja3NvdXJj
-ZS9leHlub3NfbWN0LmMgICAgICAgICAgICAgICAgfCAgICA0ICstLS0KPiAgIGRyaXZlcnMvY2xv
-Y2tzb3VyY2UvaTgyNTMuYyAgICAgICAgICAgICAgICAgICAgIHwgICAgMyArKy0KPiAgIGRyaXZl
-cnMvY2xvY2tzb3VyY2UvbW1pby5jICAgICAgICAgICAgICAgICAgICAgIHwgICAgMyArKy0KPiAg
-IGRyaXZlcnMvY2xvY2tzb3VyY2Uvc2Ftc3VuZ19wd21fdGltZXIuYyAgICAgICAgIHwgICAgNSAr
-LS0tLQo+ICAgZHJpdmVycy9jbG9ja3NvdXJjZS9zY3gyMDBfaHJ0LmMgICAgICAgICAgICAgICAg
-fCAgICAzICsrLQo+ICAgZHJpdmVycy9jbG9ja3NvdXJjZS90Y2JfY2xrc3JjLmMgICAgICAgICAg
-ICAgICAgfCAgICA4ICstLS0tLS0tCj4gICBkcml2ZXJzL2Nsb2Nrc291cmNlL3RpbWVyLW1hcmNv
-LmMgICAgICAgICAgICAgICB8ICAgIDIgKy0KPiAgIGRyaXZlcnMvY2xvY2tzb3VyY2UvdGltZXIt
-cHJpbWEyLmMgICAgICAgICAgICAgIHwgICAgMiArLQo+ICAgZHJpdmVycy9jbG9ja3NvdXJjZS92
-dDg1MDBfdGltZXIuYyAgICAgICAgICAgICAgfCAgICA0ICstLS0KPiAgIGluY2x1ZGUvbGludXgv
-Y2xvY2tzb3VyY2UuaCAgICAgICAgICAgICAgICAgICAgIHwgICAgOCArKysrLS0tLQo+ICAga2Vy
-bmVsL3RpbWUvY2xvY2tzb3VyY2UuYyAgICAgICAgICAgICAgICAgICAgICAgfCAgICA2ICsrLS0t
-LQo+ICAga2VybmVsL3RpbWUvamlmZmllcy5jICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAg
-ICAzICsrLQo+ICAgMjYgZmlsZXMgY2hhbmdlZCwgNDUgaW5zZXJ0aW9ucygrKSwgODMgZGVsZXRp
-b25zKC0pCj4KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1kYXZpbmNpL3RpbWUuYyBiL2Fy
-Y2gvYXJtL21hY2gtZGF2aW5jaS90aW1lLmMKPiBpbmRleCA1NmM2ZWI1Li45NTM2Zjg1IDEwMDY0
-NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtZGF2aW5jaS90aW1lLmMKPiArKysgYi9hcmNoL2FybS9t
-YWNoLWRhdmluY2kvdGltZS5jCj4gQEAgLTM4Nyw5ICszODcsOCBAQCB2b2lkIF9faW5pdCBkYXZp
-bmNpX3RpbWVyX2luaXQodm9pZCkKPgo+ICAgCS8qIHNldHVwIGNsb2Nrc291cmNlICovCj4gICAJ
-Y2xvY2tzb3VyY2VfZGF2aW5jaS5uYW1lID0gaWRfdG9fbmFtZVtjbG9ja3NvdXJjZV9pZF07Cj4g
-LQlpZiAoY2xvY2tzb3VyY2VfcmVnaXN0ZXJfaHooJmNsb2Nrc291cmNlX2RhdmluY2ksCj4gLQkJ
-CQkgICAgZGF2aW5jaV9jbG9ja190aWNrX3JhdGUpKQo+IC0JCXByaW50ayhlcnIsIGNsb2Nrc291
-cmNlX2RhdmluY2kubmFtZSk7Cj4gKwljbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmY2xvY2tzb3Vy
-Y2VfZGF2aW5jaSwKPiArCQkJCSAgICBkYXZpbmNpX2Nsb2NrX3RpY2tfcmF0ZSk7Cj4KPiAgIAlz
-ZXR1cF9zY2hlZF9jbG9jayhkYXZpbmNpX3JlYWRfc2NoZWRfY2xvY2ssIDMyLAo+ICAgCQkJICBk
-YXZpbmNpX2Nsb2NrX3RpY2tfcmF0ZSk7Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtbXNt
-L3RpbWVyLmMgYi9hcmNoL2FybS9tYWNoLW1zbS90aW1lci5jCj4gaW5kZXggMWU5YzMzOC4uYzk2
-ZTAzNCAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLW1zbS90aW1lci5jCj4gKysrIGIvYXJj
-aC9hcm0vbWFjaC1tc20vdGltZXIuYwo+IEBAIC0yMjYsOSArMjI2LDcgQEAgc3RhdGljIHZvaWQg
-X19pbml0IG1zbV90aW1lcl9pbml0KHUzMiBkZ3RfaHosIGludCBzY2hlZF9iaXRzLCBpbnQgaXJx
-LAo+Cj4gICBlcnI6Cj4gICAJd3JpdGVsX3JlbGF4ZWQoVElNRVJfRU5BQkxFX0VOLCBzb3VyY2Vf
-YmFzZSArIFRJTUVSX0VOQUJMRSk7Cj4gLQlyZXMgPSBjbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeihj
-cywgZGd0X2h6KTsKPiAtCWlmIChyZXMpCj4gLQkJcHJfZXJyKCJjbG9ja3NvdXJjZV9yZWdpc3Rl
-ciBmYWlsZWRcbiIpOwo+ICsJY2xvY2tzb3VyY2VfcmVnaXN0ZXJfaHooY3MsIGRndF9oeik7Cj4g
-ICAJc2V0dXBfc2NoZWRfY2xvY2sobXNtX3NjaGVkX2Nsb2NrX3JlYWQsIHNjaGVkX2JpdHMsIGRn
-dF9oeik7Cj4gICB9Cj4KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi90aW1lci5j
-IGIvYXJjaC9hcm0vbWFjaC1vbWFwMi90aW1lci5jCj4gaW5kZXggM2NhODFlMC4uYmVhZjdjNyAx
-MDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL3RpbWVyLmMKPiArKysgYi9hcmNoL2Fy
-bS9tYWNoLW9tYXAyL3RpbWVyLmMKPiBAQCAtNDczLDExICs0NzMsOSBAQCBzdGF0aWMgdm9pZCBf
-X2luaXQgb21hcDJfZ3B0aW1lcl9jbG9ja3NvdXJjZV9pbml0KGludCBncHRpbWVyX2lkLAo+ICAg
-CQkJCSAgIE9NQVBfVElNRVJfTk9OUE9TVEVEKTsKPiAgIAlzZXR1cF9zY2hlZF9jbG9jayhkbXRp
-bWVyX3JlYWRfc2NoZWRfY2xvY2ssIDMyLCBjbGtzcmMucmF0ZSk7Cj4KPiAtCWlmIChjbG9ja3Nv
-dXJjZV9yZWdpc3Rlcl9oeigmY2xvY2tzb3VyY2VfZ3B0LCBjbGtzcmMucmF0ZSkpCj4gLQkJcHJf
-ZXJyKCJDb3VsZCBub3QgcmVnaXN0ZXIgY2xvY2tzb3VyY2UgJXNcbiIsCj4gLQkJCWNsb2Nrc291
-cmNlX2dwdC5uYW1lKTsKPiAtCWVsc2UKPiAtCQlwcl9pbmZvKCJPTUFQIGNsb2Nrc291cmNlOiAl
-cyBhdCAlbHUgSHpcbiIsCj4gKwljbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmY2xvY2tzb3VyY2Vf
-Z3B0LCBjbGtzcmMucmF0ZSk7Cj4gKwo+ICsJcHJfaW5mbygiT01BUCBjbG9ja3NvdXJjZTogJXMg
-YXQgJWx1IEh6XG4iLAo+ICAgCQkJY2xvY2tzb3VyY2VfZ3B0Lm5hbWUsIGNsa3NyYy5yYXRlKTsK
-PiAgIH0KPgo+IGRpZmYgLS1naXQgYS9hcmNoL2F2cjMyL2tlcm5lbC90aW1lLmMgYi9hcmNoL2F2
-cjMyL2tlcm5lbC90aW1lLmMKPiBpbmRleCBkMGY3NzFiLi41MWI0YTY2IDEwMDY0NAo+IC0tLSBh
-L2FyY2gvYXZyMzIva2VybmVsL3RpbWUuYwo+ICsrKyBiL2FyY2gvYXZyMzIva2VybmVsL3RpbWUu
-Ywo+IEBAIC0xMzQsOSArMTM0LDcgQEAgdm9pZCBfX2luaXQgdGltZV9pbml0KHZvaWQpCj4KPiAg
-IAkvKiBmaWd1cmUgcmF0ZSBmb3IgY291bnRlciAqLwo+ICAgCWNvdW50ZXJfaHogPSBjbGtfZ2V0
-X3JhdGUoYm9vdF9jcHVfZGF0YS5jbGspOwo+IC0JcmV0ID0gY2xvY2tzb3VyY2VfcmVnaXN0ZXJf
-aHooJmNvdW50ZXIsIGNvdW50ZXJfaHopOwo+IC0JaWYgKHJldCkKPiAtCQlwcl9kZWJ1ZygidGlt
-ZXI6IGNvdWxkIG5vdCByZWdpc3RlciBjbG9ja3NvdXJjZTogJWRcbiIsIHJldCk7Cj4gKwljbG9j
-a3NvdXJjZV9yZWdpc3Rlcl9oeigmY291bnRlciwgY291bnRlcl9oeik7Cj4KPiAgIAkvKiBzZXR1
-cCBDT01QQVJFIGNsb2NrZXZlbnQgKi8KPiAgIAljb21wYXJhdG9yLm11bHQgPSBkaXZfc2MoY291
-bnRlcl9oeiwgTlNFQ19QRVJfU0VDLCBjb21wYXJhdG9yLnNoaWZ0KTsKPiBkaWZmIC0tZ2l0IGEv
-YXJjaC9ibGFja2Zpbi9rZXJuZWwvdGltZS10cy5jIGIvYXJjaC9ibGFja2Zpbi9rZXJuZWwvdGlt
-ZS10cy5jCj4gaW5kZXggY2IwYTQ4NC4uZGYzYmIwOCAxMDA2NDQKPiAtLS0gYS9hcmNoL2JsYWNr
-ZmluL2tlcm5lbC90aW1lLXRzLmMKPiArKysgYi9hcmNoL2JsYWNrZmluL2tlcm5lbC90aW1lLXRz
-LmMKPiBAQCAtNTEsOCArNTEsNyBAQCBzdGF0aWMgaW5saW5lIHVuc2lnbmVkIGxvbmcgbG9uZyBi
-ZmluX2NzX2N5Y2xlc19zY2hlZF9jbG9jayh2b2lkKQo+Cj4gICBzdGF0aWMgaW50IF9faW5pdCBi
-ZmluX2NzX2N5Y2xlc19pbml0KHZvaWQpCj4gICB7Cj4gLQlpZiAoY2xvY2tzb3VyY2VfcmVnaXN0
-ZXJfaHooJmJmaW5fY3NfY3ljbGVzLCBnZXRfY2NsaygpKSkKPiAtCQlwYW5pYygiZmFpbGVkIHRv
-IHJlZ2lzdGVyIGNsb2Nrc291cmNlIik7Cj4gKwljbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmYmZp
-bl9jc19jeWNsZXMsIGdldF9jY2xrKCkpOwo+Cj4gICAJcmV0dXJuIDA7Cj4gICB9Cj4gQEAgLTEw
-Myw4ICsxMDIsNyBAQCBzdGF0aWMgaW50IF9faW5pdCBiZmluX2NzX2dwdGltZXIwX2luaXQodm9p
-ZCkKPiAgIHsKPiAgIAlzZXR1cF9ncHRpbWVyMCgpOwo+Cj4gLQlpZiAoY2xvY2tzb3VyY2VfcmVn
-aXN0ZXJfaHooJmJmaW5fY3NfZ3B0aW1lcjAsIGdldF9zY2xrKCkpKQo+IC0JCXBhbmljKCJmYWls
-ZWQgdG8gcmVnaXN0ZXIgY2xvY2tzb3VyY2UiKTsKPiArCWNsb2Nrc291cmNlX3JlZ2lzdGVyX2h6
-KCZiZmluX2NzX2dwdGltZXIwLCBnZXRfc2NsaygpKTsKPgo+ICAgCXJldHVybiAwOwo+ICAgfQo+
-IGRpZmYgLS1naXQgYS9hcmNoL21pY3JvYmxhemUva2VybmVsL3RpbWVyLmMgYi9hcmNoL21pY3Jv
-YmxhemUva2VybmVsL3RpbWVyLmMKPiBpbmRleCAzZTM5YjEwLi42YTI0MTdlIDEwMDY0NAo+IC0t
-LSBhL2FyY2gvbWljcm9ibGF6ZS9rZXJuZWwvdGltZXIuYwo+ICsrKyBiL2FyY2gvbWljcm9ibGF6
-ZS9rZXJuZWwvdGltZXIuYwo+IEBAIC0yMDgsOCArMjA4LDcgQEAgc3RhdGljIHN0cnVjdCBjbG9j
-a3NvdXJjZSBjbG9ja3NvdXJjZV9taWNyb2JsYXplID0gewo+Cj4gICBzdGF0aWMgaW50IF9faW5p
-dCB4aWxpbnhfY2xvY2tzb3VyY2VfaW5pdCh2b2lkKQo+ICAgewo+IC0JaWYgKGNsb2Nrc291cmNl
-X3JlZ2lzdGVyX2h6KCZjbG9ja3NvdXJjZV9taWNyb2JsYXplLCB0aW1lcl9jbG9ja19mcmVxKSkK
-PiAtCQlwYW5pYygiZmFpbGVkIHRvIHJlZ2lzdGVyIGNsb2Nrc291cmNlIik7Cj4gKwljbG9ja3Nv
-dXJjZV9yZWdpc3Rlcl9oeigmY2xvY2tzb3VyY2VfbWljcm9ibGF6ZSwgdGltZXJfY2xvY2tfZnJl
-cSk7Cj4KPiAgIAkvKiBzdG9wIHRpbWVyMSAqLwo+ICAgCW91dF9iZTMyKHRpbWVyX2Jhc2VhZGRy
-ICsgVENTUjEsCj4gZGlmZiAtLWdpdCBhL2FyY2gvbWlwcy9qejQ3NDAvdGltZS5jIGIvYXJjaC9t
-aXBzL2p6NDc0MC90aW1lLmMKPiBpbmRleCA1ZTQzMGNlLi4wNDFjZGZmIDEwMDY0NAo+IC0tLSBh
-L2FyY2gvbWlwcy9qejQ3NDAvdGltZS5jCj4gKysrIGIvYXJjaC9taXBzL2p6NDc0MC90aW1lLmMK
-PiBAQCAtMTA1LDcgKzEwNSw2IEBAIHN0YXRpYyBzdHJ1Y3QgaXJxYWN0aW9uIHRpbWVyX2lycWFj
-dGlvbiA9IHsKPgo+ICAgdm9pZCBfX2luaXQgcGxhdF90aW1lX2luaXQodm9pZCkKPiAgIHsKPiAt
-CWludCByZXQ7Cj4gICAJdWludDMyX3QgY2xrX3JhdGU7Cj4gICAJdWludDE2X3QgY3RybDsKPgo+
-IEBAIC0xMjEsMTAgKzEyMCw3IEBAIHZvaWQgX19pbml0IHBsYXRfdGltZV9pbml0KHZvaWQpCj4K
-PiAgIAljbG9ja2V2ZW50c19yZWdpc3Rlcl9kZXZpY2UoJmp6NDc0MF9jbG9ja2V2ZW50KTsKPgo+
-IC0JcmV0ID0gY2xvY2tzb3VyY2VfcmVnaXN0ZXJfaHooJmp6NDc0MF9jbG9ja3NvdXJjZSwgY2xr
-X3JhdGUpOwo+IC0KPiAtCWlmIChyZXQpCj4gLQkJcHJpbnRrKEtFUk5fRVJSICJGYWlsZWQgdG8g
-cmVnaXN0ZXIgY2xvY2tzb3VyY2U6ICVkXG4iLCByZXQpOwo+ICsJY2xvY2tzb3VyY2VfcmVnaXN0
-ZXJfaHooJmp6NDc0MF9jbG9ja3NvdXJjZSwgY2xrX3JhdGUpOwo+Cj4gICAJc2V0dXBfaXJxKEpa
-NDc0MF9JUlFfVENVMCwgJnRpbWVyX2lycWFjdGlvbik7Cj4KPiBkaWZmIC0tZ2l0IGEvYXJjaC9t
-aXBzL2xvb25nc29uL2NvbW1vbi9jczU1MzYvY3M1NTM2X21mZ3B0LmMgYi9hcmNoL21pcHMvbG9v
-bmdzb24vY29tbW9uL2NzNTUzNi9jczU1MzZfbWZncHQuYwo+IGluZGV4IGM2MzliOWQuLjlmYTZk
-OTkgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9taXBzL2xvb25nc29uL2NvbW1vbi9jczU1MzYvY3M1NTM2
-X21mZ3B0LmMKPiArKysgYi9hcmNoL21pcHMvbG9vbmdzb24vY29tbW9uL2NzNTUzNi9jczU1MzZf
-bWZncHQuYwo+IEBAIC0yMDgsNyArMjA4LDggQEAgaW50IF9faW5pdCBpbml0X21mZ3B0X2Nsb2Nr
-c291cmNlKHZvaWQpCj4gICAJaWYgKG51bV9wb3NzaWJsZV9jcHVzKCkgPiAxKQkvKiBNRkdQVCBk
-b2VzIG5vdCBzY2FsZSEgKi8KPiAgIAkJcmV0dXJuIDA7Cj4KPiAtCXJldHVybiBjbG9ja3NvdXJj
-ZV9yZWdpc3Rlcl9oeigmY2xvY2tzb3VyY2VfbWZncHQsIE1GR1BUX1RJQ0tfUkFURSk7Cj4gKwlj
-bG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmY2xvY2tzb3VyY2VfbWZncHQsIE1GR1BUX1RJQ0tfUkFU
-RSk7Cj4gKwlyZXR1cm4gMDsKPiAgIH0KPgo+ICAgYXJjaF9pbml0Y2FsbChpbml0X21mZ3B0X2Ns
-b2Nrc291cmNlKTsKPiBkaWZmIC0tZ2l0IGEvYXJjaC9vcGVucmlzYy9rZXJuZWwvdGltZS5jIGIv
-YXJjaC9vcGVucmlzYy9rZXJuZWwvdGltZS5jCj4gaW5kZXggN2M1MmU5NC4uM2Y3ODlhYSAxMDA2
-NDQKPiAtLS0gYS9hcmNoL29wZW5yaXNjL2tlcm5lbC90aW1lLmMKPiArKysgYi9hcmNoL29wZW5y
-aXNjL2tlcm5lbC90aW1lLmMKPiBAQCAtMTU2LDggKzE1Niw3IEBAIHN0YXRpYyBzdHJ1Y3QgY2xv
-Y2tzb3VyY2Ugb3BlbnJpc2NfdGltZXIgPSB7Cj4KPiAgIHN0YXRpYyBpbnQgX19pbml0IG9wZW5y
-aXNjX3RpbWVyX2luaXQodm9pZCkKPiAgIHsKPiAtCWlmIChjbG9ja3NvdXJjZV9yZWdpc3Rlcl9o
-eigmb3BlbnJpc2NfdGltZXIsIGNwdWluZm8uY2xvY2tfZnJlcXVlbmN5KSkKPiAtCQlwYW5pYygi
-ZmFpbGVkIHRvIHJlZ2lzdGVyIGNsb2Nrc291cmNlIik7Cj4gKwljbG9ja3NvdXJjZV9yZWdpc3Rl
-cl9oeigmb3BlbnJpc2NfdGltZXIsIGNwdWluZm8uY2xvY2tfZnJlcXVlbmN5KTsKPgo+ICAgCS8q
-IEVuYWJsZSB0aGUgaW5jcmVtZW50ZXI6ICdjb250aW51b3VzJyBtb2RlIHdpdGggaW50ZXJydXB0
-IGRpc2FibGVkICovCj4gICAJbXRzcHIoU1BSX1RUTVIsIFNQUl9UVE1SX0NSKTsKPiBkaWZmIC0t
-Z2l0IGEvYXJjaC9wb3dlcnBjL2tlcm5lbC90aW1lLmMgYi9hcmNoL3Bvd2VycGMva2VybmVsL3Rp
-bWUuYwo+IGluZGV4IGIzYjE0NDEuLjI3YzA2MjcgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9wb3dlcnBj
-L2tlcm5lbC90aW1lLmMKPiArKysgYi9hcmNoL3Bvd2VycGMva2VybmVsL3RpbWUuYwo+IEBAIC03
-ODgsMTEgKzc4OCw3IEBAIHN0YXRpYyB2b2lkIF9faW5pdCBjbG9ja3NvdXJjZV9pbml0KHZvaWQp
-Cj4gICAJZWxzZQo+ICAgCQljbG9jayA9ICZjbG9ja3NvdXJjZV90aW1lYmFzZTsKPgo+IC0JaWYg
-KGNsb2Nrc291cmNlX3JlZ2lzdGVyX2h6KGNsb2NrLCB0Yl90aWNrc19wZXJfc2VjKSkgewo+IC0J
-CXByaW50ayhLRVJOX0VSUiAiY2xvY2tzb3VyY2U6ICVzIGlzIGFscmVhZHkgcmVnaXN0ZXJlZFxu
-IiwKPiAtCQkgICAgICAgY2xvY2stPm5hbWUpOwo+IC0JCXJldHVybjsKPiAtCX0KPiArCWNsb2Nr
-c291cmNlX3JlZ2lzdGVyX2h6KGNsb2NrLCB0Yl90aWNrc19wZXJfc2VjKTsKPgo+ICAgCXByaW50
-ayhLRVJOX0lORk8gImNsb2Nrc291cmNlOiAlcyBtdWx0WyV4XSBzaGlmdFslZF0gcmVnaXN0ZXJl
-ZFxuIiwKPiAgIAkgICAgICAgY2xvY2stPm5hbWUsIGNsb2NrLT5tdWx0LCBjbG9jay0+c2hpZnQp
-Owo+IGRpZmYgLS1naXQgYS9hcmNoL3VtL2tlcm5lbC90aW1lLmMgYi9hcmNoL3VtL2tlcm5lbC90
-aW1lLmMKPiBpbmRleCAxMTc1NjhkLi4yMDM0YjU4IDEwMDY0NAo+IC0tLSBhL2FyY2gvdW0va2Vy
-bmVsL3RpbWUuYwo+ICsrKyBiL2FyY2gvdW0va2VybmVsL3RpbWUuYwo+IEBAIC05MiwxMSArOTIs
-NyBAQCBzdGF0aWMgdm9pZCBfX2luaXQgc2V0dXBfaXRpbWVyKHZvaWQpCj4gICAJCWNsb2NrZXZl
-bnRfZGVsdGEybnMoNjAgKiBIWiwgJml0aW1lcl9jbG9ja2V2ZW50KTsKPiAgIAlpdGltZXJfY2xv
-Y2tldmVudC5taW5fZGVsdGFfbnMgPQo+ICAgCQljbG9ja2V2ZW50X2RlbHRhMm5zKDEsICZpdGlt
-ZXJfY2xvY2tldmVudCk7Cj4gLQllcnIgPSBjbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmaXRpbWVy
-X2Nsb2Nrc291cmNlLCBVU0VDX1BFUl9TRUMpOwo+IC0JaWYgKGVycikgewo+IC0JCXByaW50ayhL
-RVJOX0VSUiAiY2xvY2tzb3VyY2VfcmVnaXN0ZXJfaHogcmV0dXJuZWQgJWRcbiIsIGVycik7Cj4g
-LQkJcmV0dXJuOwo+IC0JfQo+ICsJY2xvY2tzb3VyY2VfcmVnaXN0ZXJfaHooJml0aW1lcl9jbG9j
-a3NvdXJjZSwgVVNFQ19QRVJfU0VDKTsKPiAgIAljbG9ja2V2ZW50c19yZWdpc3Rlcl9kZXZpY2Uo
-Jml0aW1lcl9jbG9ja2V2ZW50KTsKPiAgIH0KPgo+IGRpZmYgLS1naXQgYS9hcmNoL3g4Ni9wbGF0
-Zm9ybS91di91dl90aW1lLmMgYi9hcmNoL3g4Ni9wbGF0Zm9ybS91di91dl90aW1lLmMKPiBpbmRl
-eCA1Yzg2Nzg2Li5iOTYzNzc0IDEwMDY0NAo+IC0tLSBhL2FyY2gveDg2L3BsYXRmb3JtL3V2L3V2
-X3RpbWUuYwo+ICsrKyBiL2FyY2gveDg2L3BsYXRmb3JtL3V2L3V2X3RpbWUuYwo+IEBAIC0zNzks
-MTUgKzM3OSwxMyBAQCBzdGF0aWMgX19pbml0IGludCB1dl9ydGNfc2V0dXBfY2xvY2sodm9pZCkK
-PiAgIAlpZiAoIWlzX3V2X3N5c3RlbSgpKQo+ICAgCQlyZXR1cm4gLUVOT0RFVjsKPgo+IC0JcmMg
-PSBjbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmY2xvY2tzb3VyY2VfdXYsIHNuX3J0Y19jeWNsZXNf
-cGVyX3NlY29uZCk7Cj4gLQlpZiAocmMpCj4gLQkJcHJpbnRrKEtFUk5fSU5GTyAiVVYgUlRDIGNs
-b2Nrc291cmNlIGZhaWxlZCByYyAlZFxuIiwgcmMpOwo+IC0JZWxzZQo+IC0JCXByaW50ayhLRVJO
-X0lORk8gIlVWIFJUQyBjbG9ja3NvdXJjZSByZWdpc3RlcmVkIGZyZXEgJWx1IE1IelxuIiwKPiAt
-CQkJc25fcnRjX2N5Y2xlc19wZXJfc2Vjb25kLyh1bnNpZ25lZCBsb25nKTFFNik7Cj4gKwljbG9j
-a3NvdXJjZV9yZWdpc3Rlcl9oeigmY2xvY2tzb3VyY2VfdXYsIHNuX3J0Y19jeWNsZXNfcGVyX3Nl
-Y29uZCk7Cj4gKwo+ICsJcHJfaW5mbygiVVYgUlRDIGNsb2Nrc291cmNlIHJlZ2lzdGVyZWQgZnJl
-cSAlbHUgTUh6XG4iLAo+ICsJCXNuX3J0Y19jeWNsZXNfcGVyX3NlY29uZC8odW5zaWduZWQgbG9u
-ZykxRTYpOwo+Cj4gLQlpZiAocmMgfHwgIXV2X3J0Y19ldnRfZW5hYmxlIHx8IHg4Nl9wbGF0Zm9y
-bV9pcGlfY2FsbGJhY2spCj4gLQkJcmV0dXJuIHJjOwo+ICsJaWYgKCF1dl9ydGNfZXZ0X2VuYWJs
-ZSB8fCB4ODZfcGxhdGZvcm1faXBpX2NhbGxiYWNrKQo+ICsJCXJldHVybiAwOwo+Cj4gICAJLyog
-U2V0dXAgYW5kIHJlZ2lzdGVyIGNsb2NrZXZlbnRzICovCj4gICAJcmMgPSB1dl9ydGNfYWxsb2Nh
-dGVfdGltZXJzKCk7Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvY2xvY2tzb3VyY2UvYWNwaV9wbS5j
-IGIvZHJpdmVycy9jbG9ja3NvdXJjZS9hY3BpX3BtLmMKPiBpbmRleCA2ZWFiODg5Li5hYjFkYzYz
-IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvY2xvY2tzb3VyY2UvYWNwaV9wbS5jCj4gKysrIGIvZHJp
-dmVycy9jbG9ja3NvdXJjZS9hY3BpX3BtLmMKPiBAQCAtMjE4LDggKzIxOCw5IEBAIHN0YXRpYyBp
-bnQgX19pbml0IGluaXRfYWNwaV9wbV9jbG9ja3NvdXJjZSh2b2lkKQo+ICAgCQlyZXR1cm4gLUVO
-T0RFVjsKPiAgIAl9Cj4KPiAtCXJldHVybiBjbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmY2xvY2tz
-b3VyY2VfYWNwaV9wbSwKPiArCWNsb2Nrc291cmNlX3JlZ2lzdGVyX2h6KCZjbG9ja3NvdXJjZV9h
-Y3BpX3BtLAo+ICAgCQkJCQkJUE1UTVJfVElDS1NfUEVSX1NFQyk7Cj4gKwlyZXR1cm4gMDsKPiAg
-IH0KPgo+ICAgLyogV2UgdXNlIGZzX2luaXRjYWxsIGJlY2F1c2Ugd2Ugd2FudCB0aGUgUENJIGZp
-eHVwcyB0byBoYXZlIHJ1bgo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2Nsb2Nrc291cmNlL2NhZGVu
-Y2VfdHRjX3RpbWVyLmMgYi9kcml2ZXJzL2Nsb2Nrc291cmNlL2NhZGVuY2VfdHRjX3RpbWVyLmMK
-PiBpbmRleCA2M2YxNzZkLi5iOWI1NmVkIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvY2xvY2tzb3Vy
-Y2UvY2FkZW5jZV90dGNfdGltZXIuYwo+ICsrKyBiL2RyaXZlcnMvY2xvY2tzb3VyY2UvY2FkZW5j
-ZV90dGNfdGltZXIuYwo+IEBAIC0zMDEsMTEgKzMwMSw3IEBAIHN0YXRpYyB2b2lkIF9faW5pdCB0
-dGNfc2V0dXBfY2xvY2tzb3VyY2Uoc3RydWN0IGNsayAqY2xrLCB2b2lkIF9faW9tZW0gKmJhc2Up
-Cj4gICAJX19yYXdfd3JpdGVsKENOVF9DTlRSTF9SRVNFVCwKPiAgIAkJICAgICB0dGNjcy0+dHRj
-LmJhc2VfYWRkciArIFRUQ19DTlRfQ05UUkxfT0ZGU0VUKTsKPgo+IC0JZXJyID0gY2xvY2tzb3Vy
-Y2VfcmVnaXN0ZXJfaHooJnR0Y2NzLT5jcywgdHRjY3MtPnR0Yy5mcmVxIC8gUFJFU0NBTEUpOwo+
-IC0JaWYgKFdBUk5fT04oZXJyKSkgewo+IC0JCWtmcmVlKHR0Y2NzKTsKPiAtCQlyZXR1cm47Cj4g
-LQl9Cj4gKwljbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmdHRjY3MtPmNzLCB0dGNjcy0+dHRjLmZy
-ZXEgLyBQUkVTQ0FMRSk7Cj4KPiAgIAl0dGNfc2NoZWRfY2xvY2tfdmFsX3JlZyA9IGJhc2UgKyBU
-VENfQ09VTlRfVkFMX09GRlNFVDsKPiAgIAlzY2hlZF9jbG9ja19yZWdpc3Rlcih0dGNfc2NoZWRf
-Y2xvY2tfcmVhZCwgMTYsIHR0Y2NzLT50dGMuZnJlcSAvIFBSRVNDQUxFKTsKPiBkaWZmIC0tZ2l0
-IGEvZHJpdmVycy9jbG9ja3NvdXJjZS9leHlub3NfbWN0LmMgYi9kcml2ZXJzL2Nsb2Nrc291cmNl
-L2V4eW5vc19tY3QuYwo+IGluZGV4IDYyYjBkZTYuLjk4NjQ5YzcgMTAwNjQ0Cj4gLS0tIGEvZHJp
-dmVycy9jbG9ja3NvdXJjZS9leHlub3NfbWN0LmMKPiArKysgYi9kcml2ZXJzL2Nsb2Nrc291cmNl
-L2V4eW5vc19tY3QuYwo+IEBAIC0xOTMsOSArMTkzLDcgQEAgc3RydWN0IGNsb2Nrc291cmNlIG1j
-dF9mcmMgPSB7Cj4gICBzdGF0aWMgdm9pZCBfX2luaXQgZXh5bm9zNF9jbG9ja3NvdXJjZV9pbml0
-KHZvaWQpCj4gICB7Cj4gICAJZXh5bm9zNF9tY3RfZnJjX3N0YXJ0KDAsIDApOwo+IC0KPiAtCWlm
-IChjbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmbWN0X2ZyYywgY2xrX3JhdGUpKQo+IC0JCXBhbmlj
-KCIlczogY2FuJ3QgcmVnaXN0ZXIgY2xvY2tzb3VyY2VcbiIsIG1jdF9mcmMubmFtZSk7Cj4gKwlj
-bG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmbWN0X2ZyYywgY2xrX3JhdGUpOwo+ICAgfQo+Cj4gICBz
-dGF0aWMgdm9pZCBleHlub3M0X21jdF9jb21wMF9zdG9wKHZvaWQpCj4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvY2xvY2tzb3VyY2UvaTgyNTMuYyBiL2RyaXZlcnMvY2xvY2tzb3VyY2UvaTgyNTMuYwo+
-IGluZGV4IDE0ZWUzZWYuLjljNDVmMGEgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9jbG9ja3NvdXJj
-ZS9pODI1My5jCj4gKysrIGIvZHJpdmVycy9jbG9ja3NvdXJjZS9pODI1My5jCj4gQEAgLTk1LDcg
-Kzk1LDggQEAgc3RhdGljIHN0cnVjdCBjbG9ja3NvdXJjZSBpODI1M19jcyA9IHsKPgo+ICAgaW50
-IF9faW5pdCBjbG9ja3NvdXJjZV9pODI1M19pbml0KHZvaWQpCj4gICB7Cj4gLQlyZXR1cm4gY2xv
-Y2tzb3VyY2VfcmVnaXN0ZXJfaHooJmk4MjUzX2NzLCBQSVRfVElDS19SQVRFKTsKPiArCWNsb2Nr
-c291cmNlX3JlZ2lzdGVyX2h6KCZpODI1M19jcywgUElUX1RJQ0tfUkFURSk7Cj4gKwlyZXR1cm4g
-MDsKPiAgIH0KPiAgICNlbmRpZgo+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvY2xvY2tzb3VyY2Uv
-bW1pby5jIGIvZHJpdmVycy9jbG9ja3NvdXJjZS9tbWlvLmMKPiBpbmRleCBjMGUyNTEyLi42ZTBi
-NTMwIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvY2xvY2tzb3VyY2UvbW1pby5jCj4gKysrIGIvZHJp
-dmVycy9jbG9ja3NvdXJjZS9tbWlvLmMKPiBAQCAtNjksNSArNjksNiBAQCBpbnQgX19pbml0IGNs
-b2Nrc291cmNlX21taW9faW5pdCh2b2lkIF9faW9tZW0gKmJhc2UsIGNvbnN0IGNoYXIgKm5hbWUs
-Cj4gICAJY3MtPmNsa3NyYy5tYXNrID0gQ0xPQ0tTT1VSQ0VfTUFTSyhiaXRzKTsKPiAgIAljcy0+
-Y2xrc3JjLmZsYWdzID0gQ0xPQ0tfU09VUkNFX0lTX0NPTlRJTlVPVVM7Cj4KPiAtCXJldHVybiBj
-bG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmY3MtPmNsa3NyYywgaHopOwo+ICsJY2xvY2tzb3VyY2Vf
-cmVnaXN0ZXJfaHooJmNzLT5jbGtzcmMsIGh6KTsKPiArCXJldHVybiAwOwo+ICAgfQo+IGRpZmYg
-LS1naXQgYS9kcml2ZXJzL2Nsb2Nrc291cmNlL3NhbXN1bmdfcHdtX3RpbWVyLmMgYi9kcml2ZXJz
-L2Nsb2Nrc291cmNlL3NhbXN1bmdfcHdtX3RpbWVyLmMKPiBpbmRleCA1NjQ1Y2ZjLi5jNTkyOTJm
-IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvY2xvY2tzb3VyY2Uvc2Ftc3VuZ19wd21fdGltZXIuYwo+
-ICsrKyBiL2RyaXZlcnMvY2xvY2tzb3VyY2Uvc2Ftc3VuZ19wd21fdGltZXIuYwo+IEBAIC0zNDAs
-NyArMzQwLDYgQEAgc3RhdGljIHZvaWQgX19pbml0IHNhbXN1bmdfY2xvY2tzb3VyY2VfaW5pdCh2
-b2lkKQo+ICAgewo+ICAgCXVuc2lnbmVkIGxvbmcgcGNsazsKPiAgIAl1bnNpZ25lZCBsb25nIGNs
-b2NrX3JhdGU7Cj4gLQlpbnQgcmV0Owo+Cj4gICAJcGNsayA9IGNsa19nZXRfcmF0ZShwd20udGlt
-ZXJjbGspOwo+Cj4gQEAgLTM2MSw5ICszNjAsNyBAQCBzdGF0aWMgdm9pZCBfX2luaXQgc2Ftc3Vu
-Z19jbG9ja3NvdXJjZV9pbml0KHZvaWQpCj4gICAJCQkJCQlwd20udmFyaWFudC5iaXRzLCBjbG9j
-a19yYXRlKTsKPgo+ICAgCXNhbXN1bmdfY2xvY2tzb3VyY2UubWFzayA9IENMT0NLU09VUkNFX01B
-U0socHdtLnZhcmlhbnQuYml0cyk7Cj4gLQlyZXQgPSBjbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigm
-c2Ftc3VuZ19jbG9ja3NvdXJjZSwgY2xvY2tfcmF0ZSk7Cj4gLQlpZiAocmV0KQo+IC0JCXBhbmlj
-KCJzYW1zdW5nX2Nsb2Nrc291cmNlX3RpbWVyOiBjYW4ndCByZWdpc3RlciBjbG9ja3NvdXJjZVxu
-Iik7Cj4gKwljbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmc2Ftc3VuZ19jbG9ja3NvdXJjZSwgY2xv
-Y2tfcmF0ZSk7Cj4gICB9Cj4KPiAgIHN0YXRpYyB2b2lkIF9faW5pdCBzYW1zdW5nX3RpbWVyX3Jl
-c291cmNlcyh2b2lkKQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2Nsb2Nrc291cmNlL3NjeDIwMF9o
-cnQuYyBiL2RyaXZlcnMvY2xvY2tzb3VyY2Uvc2N4MjAwX2hydC5jCj4gaW5kZXggNjRmOWU4Mi4u
-NTdiZGMwNCAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2Nsb2Nrc291cmNlL3NjeDIwMF9ocnQuYwo+
-ICsrKyBiL2RyaXZlcnMvY2xvY2tzb3VyY2Uvc2N4MjAwX2hydC5jCj4gQEAgLTgzLDcgKzgzLDgg
-QEAgc3RhdGljIGludCBfX2luaXQgaW5pdF9ocnRfY2xvY2tzb3VyY2Uodm9pZCkKPgo+ICAgCXBy
-X2luZm8oImVuYWJsaW5nIHNjeDIwMCBoaWdoLXJlcyB0aW1lciAoJXMgTUh6ICslZCBwcG0pXG4i
-LCBtaHoyNyA/ICIyNyI6IjEiLCBwcG0pOwo+Cj4gLQlyZXR1cm4gY2xvY2tzb3VyY2VfcmVnaXN0
-ZXJfaHooJmNzX2hydCwgZnJlcSk7Cj4gKwljbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmY3NfaHJ0
-LCBmcmVxKTsKPiArCXJldHVybiAwOwo+ICAgfQo+Cj4gICBtb2R1bGVfaW5pdChpbml0X2hydF9j
-bG9ja3NvdXJjZSk7Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvY2xvY2tzb3VyY2UvdGNiX2Nsa3Ny
-Yy5jIGIvZHJpdmVycy9jbG9ja3NvdXJjZS90Y2JfY2xrc3JjLmMKPiBpbmRleCAwMGZkZDExLi44
-MDUyNDVkIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvY2xvY2tzb3VyY2UvdGNiX2Nsa3NyYy5jCj4g
-KysrIGIvZHJpdmVycy9jbG9ja3NvdXJjZS90Y2JfY2xrc3JjLmMKPiBAQCAtMzQwLDkgKzM0MCw3
-IEBAIHN0YXRpYyBpbnQgX19pbml0IHRjYl9jbGtzcmNfaW5pdCh2b2lkKQo+ICAgCX0KPgo+ICAg
-CS8qIGFuZCBhd2F5IHdlIGdvISAqLwo+IC0JcmV0ID0gY2xvY2tzb3VyY2VfcmVnaXN0ZXJfaHoo
-JmNsa3NyYywgZGl2aWRlZF9yYXRlKTsKPiAtCWlmIChyZXQpCj4gLQkJZ290byBlcnJfZGlzYWJs
-ZV90MTsKPiArCWNsb2Nrc291cmNlX3JlZ2lzdGVyX2h6KCZjbGtzcmMsIGRpdmlkZWRfcmF0ZSk7
-Cj4KPiAgIAkvKiBjaGFubmVsIDI6ICBwZXJpb2RpYyBhbmQgb25lc2hvdCB0aW1lciBzdXBwb3J0
-ICovCj4gICAJcmV0ID0gc2V0dXBfY2xrZXZlbnRzKHRjLCBjbGszMmtfZGl2aXNvcl9pZHgpOwo+
-IEBAIC0zNTQsMTAgKzM1Miw2IEBAIHN0YXRpYyBpbnQgX19pbml0IHRjYl9jbGtzcmNfaW5pdCh2
-b2lkKQo+ICAgZXJyX3VucmVnaXN0ZXJfY2xrc3JjOgo+ICAgCWNsb2Nrc291cmNlX3VucmVnaXN0
-ZXIoJmNsa3NyYyk7Cj4KPiAtZXJyX2Rpc2FibGVfdDE6Cj4gLQlpZiAoIXRjLT50Y2JfY29uZmln
-IHx8IHRjLT50Y2JfY29uZmlnLT5jb3VudGVyX3dpZHRoICE9IDMyKQo+IC0JCWNsa19kaXNhYmxl
-X3VucHJlcGFyZSh0Yy0+Y2xrWzFdKTsKPiAtCj4gICBlcnJfZGlzYWJsZV90MDoKPiAgIAljbGtf
-ZGlzYWJsZV91bnByZXBhcmUodDBfY2xrKTsKPgo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2Nsb2Nr
-c291cmNlL3RpbWVyLW1hcmNvLmMgYi9kcml2ZXJzL2Nsb2Nrc291cmNlL3RpbWVyLW1hcmNvLmMK
-PiBpbmRleCAwOWExN2Q5Li5hZTc4Y2UwIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvY2xvY2tzb3Vy
-Y2UvdGltZXItbWFyY28uYwo+ICsrKyBiL2RyaXZlcnMvY2xvY2tzb3VyY2UvdGltZXItbWFyY28u
-Ywo+IEBAIC0yODMsNyArMjgzLDcgQEAgc3RhdGljIHZvaWQgX19pbml0IHNpcmZzb2NfbWFyY29f
-dGltZXJfaW5pdCh2b2lkKQo+ICAgCS8qIENsZWFyIGFsbCBpbnRlcnJ1cHRzICovCj4gICAJd3Jp
-dGVsX3JlbGF4ZWQoMHhGRkZGLCBzaXJmc29jX3RpbWVyX2Jhc2UgKyBTSVJGU09DX1RJTUVSX0lO
-VFJfU1RBVFVTKTsKPgo+IC0JQlVHX09OKGNsb2Nrc291cmNlX3JlZ2lzdGVyX2h6KCZzaXJmc29j
-X2Nsb2Nrc291cmNlLCBDTE9DS19USUNLX1JBVEUpKTsKPiArCWNsb2Nrc291cmNlX3JlZ2lzdGVy
-X2h6KCZzaXJmc29jX2Nsb2Nrc291cmNlLCBDTE9DS19USUNLX1JBVEUpOwo+Cj4gICAJc2lyZnNv
-Y19jbG9ja2V2ZW50X2luaXQoKTsKPiAgIH0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9jbG9ja3Nv
-dXJjZS90aW1lci1wcmltYTIuYyBiL2RyaXZlcnMvY2xvY2tzb3VyY2UvdGltZXItcHJpbWEyLmMK
-PiBpbmRleCA4YTQ5MmQzLi5jOWNjMzA3IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvY2xvY2tzb3Vy
-Y2UvdGltZXItcHJpbWEyLmMKPiArKysgYi9kcml2ZXJzL2Nsb2Nrc291cmNlL3RpbWVyLXByaW1h
-Mi5jCj4gQEAgLTIwNCw3ICsyMDQsNyBAQCBzdGF0aWMgdm9pZCBfX2luaXQgc2lyZnNvY19wcmlt
-YTJfdGltZXJfaW5pdChzdHJ1Y3QgZGV2aWNlX25vZGUgKm5wKQo+ICAgCXdyaXRlbF9yZWxheGVk
-KDAsIHNpcmZzb2NfdGltZXJfYmFzZSArIFNJUkZTT0NfVElNRVJfQ09VTlRFUl9ISSk7Cj4gICAJ
-d3JpdGVsX3JlbGF4ZWQoQklUKDApLCBzaXJmc29jX3RpbWVyX2Jhc2UgKyBTSVJGU09DX1RJTUVS
-X1NUQVRVUyk7Cj4KPiAtCUJVR19PTihjbG9ja3NvdXJjZV9yZWdpc3Rlcl9oeigmc2lyZnNvY19j
-bG9ja3NvdXJjZSwgQ0xPQ0tfVElDS19SQVRFKSk7Cj4gKwljbG9ja3NvdXJjZV9yZWdpc3Rlcl9o
-eigmc2lyZnNvY19jbG9ja3NvdXJjZSwgQ0xPQ0tfVElDS19SQVRFKTsKPgo+ICAgCXNjaGVkX2Ns
-b2NrX3JlZ2lzdGVyKHNpcmZzb2NfcmVhZF9zY2hlZF9jbG9jaywgNjQsIENMT0NLX1RJQ0tfUkFU
-RSk7Cj4KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9jbG9ja3NvdXJjZS92dDg1MDBfdGltZXIuYyBi
-L2RyaXZlcnMvY2xvY2tzb3VyY2UvdnQ4NTAwX3RpbWVyLmMKPiBpbmRleCAxMDk4ZWQzLi4xM2Y1
-ZmE0IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvY2xvY2tzb3VyY2UvdnQ4NTAwX3RpbWVyLmMKPiAr
-KysgYi9kcml2ZXJzL2Nsb2Nrc291cmNlL3Z0ODUwMF90aW1lci5jCj4gQEAgLTE1MCw5ICsxNTAs
-NyBAQCBzdGF0aWMgdm9pZCBfX2luaXQgdnQ4NTAwX3RpbWVyX2luaXQoc3RydWN0IGRldmljZV9u
-b2RlICpucCkKPiAgIAl3cml0ZWwoMHhmLCByZWdiYXNlICsgVElNRVJfU1RBVFVTX1ZBTCk7Cj4g
-ICAJd3JpdGVsKH4wLCByZWdiYXNlICsgVElNRVJfTUFUQ0hfVkFMKTsKPgo+IC0JaWYgKGNsb2Nr
-c291cmNlX3JlZ2lzdGVyX2h6KCZjbG9ja3NvdXJjZSwgVlQ4NTAwX1RJTUVSX0haKSkKPiAtCQlw
-cl9lcnIoIiVzOiB2dDg1MDBfdGltZXJfaW5pdDogY2xvY2tzb3VyY2VfcmVnaXN0ZXIgZmFpbGVk
-IGZvciAlc1xuIiwKPiAtCQkJCQlfX2Z1bmNfXywgY2xvY2tzb3VyY2UubmFtZSk7Cj4gKwljbG9j
-a3NvdXJjZV9yZWdpc3Rlcl9oeigmY2xvY2tzb3VyY2UsIFZUODUwMF9USU1FUl9IWik7Cj4KPiAg
-IAljbG9ja2V2ZW50LmNwdW1hc2sgPSBjcHVtYXNrX29mKDApOwo+Cj4gZGlmZiAtLWdpdCBhL2lu
-Y2x1ZGUvbGludXgvY2xvY2tzb3VyY2UuaCBiL2luY2x1ZGUvbGludXgvY2xvY2tzb3VyY2UuaAo+
-IGluZGV4IDY3MzAxYTQuLjVhMTdjNWUgMTAwNjQ0Cj4gLS0tIGEvaW5jbHVkZS9saW51eC9jbG9j
-a3NvdXJjZS5oCj4gKysrIGIvaW5jbHVkZS9saW51eC9jbG9ja3NvdXJjZS5oCj4gQEAgLTI4Miw3
-ICsyODIsNyBAQCBzdGF0aWMgaW5saW5lIHM2NCBjbG9ja3NvdXJjZV9jeWMybnMoY3ljbGVfdCBj
-eWNsZXMsIHUzMiBtdWx0LCB1MzIgc2hpZnQpCj4gICB9Cj4KPgo+IC1leHRlcm4gaW50IGNsb2Nr
-c291cmNlX3JlZ2lzdGVyKHN0cnVjdCBjbG9ja3NvdXJjZSopOwo+ICtleHRlcm4gdm9pZCBjbG9j
-a3NvdXJjZV9yZWdpc3RlcihzdHJ1Y3QgY2xvY2tzb3VyY2UgKik7Cj4gICBleHRlcm4gaW50IGNs
-b2Nrc291cmNlX3VucmVnaXN0ZXIoc3RydWN0IGNsb2Nrc291cmNlKik7Cj4gICBleHRlcm4gdm9p
-ZCBjbG9ja3NvdXJjZV90b3VjaF93YXRjaGRvZyh2b2lkKTsKPiAgIGV4dGVybiBzdHJ1Y3QgY2xv
-Y2tzb3VyY2UqIGNsb2Nrc291cmNlX2dldF9uZXh0KHZvaWQpOwo+IEBAIC0zMDEsMTcgKzMwMSwx
-NyBAQCBjbG9ja3NfY2FsY19tdWx0X3NoaWZ0KHUzMiAqbXVsdCwgdTMyICpzaGlmdCwgdTMyIGZy
-b20sIHUzMiB0bywgdTMyIG1pbnNlYyk7Cj4gICAgKiBEb24ndCBjYWxsIF9fY2xvY2tzb3VyY2Vf
-cmVnaXN0ZXJfc2NhbGUgZGlyZWN0bHksIHVzZQo+ICAgICogY2xvY2tzb3VyY2VfcmVnaXN0ZXJf
-aHova2h6Cj4gICAgKi8KPiAtZXh0ZXJuIGludAo+ICtleHRlcm4gdm9pZAo+ICAgX19jbG9ja3Nv
-dXJjZV9yZWdpc3Rlcl9zY2FsZShzdHJ1Y3QgY2xvY2tzb3VyY2UgKmNzLCB1MzIgc2NhbGUsIHUz
-MiBmcmVxKTsKPiAgIGV4dGVybiB2b2lkCj4gICBfX2Nsb2Nrc291cmNlX3VwZGF0ZWZyZXFfc2Nh
-bGUoc3RydWN0IGNsb2Nrc291cmNlICpjcywgdTMyIHNjYWxlLCB1MzIgZnJlcSk7Cj4KPiAtc3Rh
-dGljIGlubGluZSBpbnQgY2xvY2tzb3VyY2VfcmVnaXN0ZXJfaHooc3RydWN0IGNsb2Nrc291cmNl
-ICpjcywgdTMyIGh6KQo+ICtzdGF0aWMgaW5saW5lIHZvaWQgY2xvY2tzb3VyY2VfcmVnaXN0ZXJf
-aHooc3RydWN0IGNsb2Nrc291cmNlICpjcywgdTMyIGh6KQo+ICAgewo+ICAgCXJldHVybiBfX2Ns
-b2Nrc291cmNlX3JlZ2lzdGVyX3NjYWxlKGNzLCAxLCBoeik7Cj4gICB9Cj4KPiAtc3RhdGljIGlu
-bGluZSBpbnQgY2xvY2tzb3VyY2VfcmVnaXN0ZXJfa2h6KHN0cnVjdCBjbG9ja3NvdXJjZSAqY3Ms
-IHUzMiBraHopCj4gK3N0YXRpYyBpbmxpbmUgdm9pZCBjbG9ja3NvdXJjZV9yZWdpc3Rlcl9raHoo
-c3RydWN0IGNsb2Nrc291cmNlICpjcywgdTMyIGtoeikKPiAgIHsKPiAgIAlyZXR1cm4gX19jbG9j
-a3NvdXJjZV9yZWdpc3Rlcl9zY2FsZShjcywgMTAwMCwga2h6KTsKPiAgIH0KPiBkaWZmIC0tZ2l0
-IGEva2VybmVsL3RpbWUvY2xvY2tzb3VyY2UuYyBiL2tlcm5lbC90aW1lL2Nsb2Nrc291cmNlLmMK
-PiBpbmRleCA5OTUxNTc1Li42ODZmZjcyIDEwMDY0NAo+IC0tLSBhL2tlcm5lbC90aW1lL2Nsb2Nr
-c291cmNlLmMKPiArKysgYi9rZXJuZWwvdGltZS9jbG9ja3NvdXJjZS5jCj4gQEAgLTc4Miw3ICs3
-ODIsNyBAQCBFWFBPUlRfU1lNQk9MX0dQTChfX2Nsb2Nrc291cmNlX3VwZGF0ZWZyZXFfc2NhbGUp
-Owo+ICAgICogVGhpcyAqU0hPVUxEIE5PVCogYmUgY2FsbGVkIGRpcmVjdGx5ISBQbGVhc2UgdXNl
-IHRoZQo+ICAgICogY2xvY2tzb3VyY2VfcmVnaXN0ZXJfaHooKSBvciBjbG9ja3NvdXJjZV9yZWdp
-c3Rlcl9raHogaGVscGVyIGZ1bmN0aW9ucy4KPiAgICAqLwo+IC1pbnQgX19jbG9ja3NvdXJjZV9y
-ZWdpc3Rlcl9zY2FsZShzdHJ1Y3QgY2xvY2tzb3VyY2UgKmNzLCB1MzIgc2NhbGUsIHUzMiBmcmVx
-KQo+ICt2b2lkIF9fY2xvY2tzb3VyY2VfcmVnaXN0ZXJfc2NhbGUoc3RydWN0IGNsb2Nrc291cmNl
-ICpjcywgdTMyIHNjYWxlLCB1MzIgZnJlcSkKPiAgIHsKPgo+ICAgCS8qIEluaXRpYWxpemUgbXVs
-dC9zaGlmdCBhbmQgbWF4X2lkbGVfbnMgKi8KPiBAQCAtNzk0LDcgKzc5NCw2IEBAIGludCBfX2Ns
-b2Nrc291cmNlX3JlZ2lzdGVyX3NjYWxlKHN0cnVjdCBjbG9ja3NvdXJjZSAqY3MsIHUzMiBzY2Fs
-ZSwgdTMyIGZyZXEpCj4gICAJY2xvY2tzb3VyY2VfZW5xdWV1ZV93YXRjaGRvZyhjcyk7Cj4gICAJ
-Y2xvY2tzb3VyY2Vfc2VsZWN0KCk7Cj4gICAJbXV0ZXhfdW5sb2NrKCZjbG9ja3NvdXJjZV9tdXRl
-eCk7Cj4gLQlyZXR1cm4gMDsKPiAgIH0KPiAgIEVYUE9SVF9TWU1CT0xfR1BMKF9fY2xvY2tzb3Vy
-Y2VfcmVnaXN0ZXJfc2NhbGUpOwo+Cj4gQEAgLTgwNCw3ICs4MDMsNyBAQCBFWFBPUlRfU1lNQk9M
-X0dQTChfX2Nsb2Nrc291cmNlX3JlZ2lzdGVyX3NjYWxlKTsKPiAgICAqIEBjczoJCWNsb2Nrc291
-cmNlIHRvIGJlIHJlZ2lzdGVyZWQKPiAgICAqCj4gICAgKi8KPiAtaW50IGNsb2Nrc291cmNlX3Jl
-Z2lzdGVyKHN0cnVjdCBjbG9ja3NvdXJjZSAqY3MpCj4gK3ZvaWQgY2xvY2tzb3VyY2VfcmVnaXN0
-ZXIoc3RydWN0IGNsb2Nrc291cmNlICpjcykKPiAgIHsKPiAgIAkvKiBjYWxjdWxhdGUgbWF4IGFk
-anVzdG1lbnQgZm9yIGdpdmVuIG11bHQvc2hpZnQgKi8KPiAgIAljcy0+bWF4YWRqID0gY2xvY2tz
-b3VyY2VfbWF4X2FkanVzdG1lbnQoY3MpOwo+IEBAIC04MjAsNyArODE5LDYgQEAgaW50IGNsb2Nr
-c291cmNlX3JlZ2lzdGVyKHN0cnVjdCBjbG9ja3NvdXJjZSAqY3MpCj4gICAJY2xvY2tzb3VyY2Vf
-ZW5xdWV1ZV93YXRjaGRvZyhjcyk7Cj4gICAJY2xvY2tzb3VyY2Vfc2VsZWN0KCk7Cj4gICAJbXV0
-ZXhfdW5sb2NrKCZjbG9ja3NvdXJjZV9tdXRleCk7Cj4gLQlyZXR1cm4gMDsKPiAgIH0KPiAgIEVY
-UE9SVF9TWU1CT0woY2xvY2tzb3VyY2VfcmVnaXN0ZXIpOwo+Cj4gZGlmZiAtLWdpdCBhL2tlcm5l
-bC90aW1lL2ppZmZpZXMuYyBiL2tlcm5lbC90aW1lL2ppZmZpZXMuYwo+IGluZGV4IDdhOTI1YmEu
-LmFlNGM1MzQgMTAwNjQ0Cj4gLS0tIGEva2VybmVsL3RpbWUvamlmZmllcy5jCj4gKysrIGIva2Vy
-bmVsL3RpbWUvamlmZmllcy5jCj4gQEAgLTg4LDcgKzg4LDggQEAgRVhQT1JUX1NZTUJPTChqaWZm
-aWVzKTsKPgo+ICAgc3RhdGljIGludCBfX2luaXQgaW5pdF9qaWZmaWVzX2Nsb2Nrc291cmNlKHZv
-aWQpCj4gICB7Cj4gLQlyZXR1cm4gY2xvY2tzb3VyY2VfcmVnaXN0ZXIoJmNsb2Nrc291cmNlX2pp
-ZmZpZXMpOwo+ICsJY2xvY2tzb3VyY2VfcmVnaXN0ZXIoJmNsb2Nrc291cmNlX2ppZmZpZXMpOwo+
-ICsJcmV0dXJuIDA7Cj4gICB9Cj4KPiAgIGNvcmVfaW5pdGNhbGwoaW5pdF9qaWZmaWVzX2Nsb2Nr
-c291cmNlKTsKPgoKCi0tIAogIDxodHRwOi8vd3d3LmxpbmFyby5vcmcvPiBMaW5hcm8ub3JnIOKU
-giBPcGVuIHNvdXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MKCkZvbGxvdyBMaW5hcm86ICA8aHR0
-cDovL3d3dy5mYWNlYm9vay5jb20vcGFnZXMvTGluYXJvPiBGYWNlYm9vayB8CjxodHRwOi8vdHdp
-dHRlci5jb20vIyEvbGluYXJvb3JnPiBUd2l0dGVyIHwKPGh0dHA6Ly93d3cubGluYXJvLm9yZy9s
-aW5hcm8tYmxvZy8+IEJsb2cKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCkxpbnV4cHBjLWRldiBtYWlsaW5nIGxpc3QKTGludXhwcGMtZGV2QGxpc3RzLm96
-bGFicy5vcmcKaHR0cHM6Ly9saXN0cy5vemxhYnMub3JnL2xpc3RpbmZvL2xpbnV4cHBjLWRldg==
+On Thursday, January 23, 2014 2:20 AM, Jenny TC wrote:
+> 
+> This patch introduces BQ24261 charger driver. The driver makes use of power
+> supply charging driver to setup charging. So the driver does hardware
+> abstraction and handles h/w specific corner cases. The charging logic resides
+> with power supply charging driver
+> 
+> Signed-off-by: Jenny TC <jenny.tc@intel.com>
+
+Hi Jenny,
+
+Thank you for including me.
+I added some minor comments. :-)
+
+> ---
+>  drivers/power/Kconfig                 |   10 +
+>  drivers/power/Makefile                |    1 +
+>  drivers/power/bq24261_charger.c       | 1447 +++++++++++++++++++++++++++++++++
+>  include/linux/power/bq24261_charger.h |   33 +
+>  4 files changed, 1491 insertions(+)
+>  create mode 100644 drivers/power/bq24261_charger.c
+>  create mode 100644 include/linux/power/bq24261_charger.h
+> 
+> diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
+> index 655457b..3f32f61 100644
+> --- a/drivers/power/Kconfig
+> +++ b/drivers/power/Kconfig
+> @@ -408,6 +408,16 @@ config BATTERY_GOLDFISH
+>  	  Say Y to enable support for the battery and AC power in the
+>  	  Goldfish emulator.
+> 
+> +config BQ24261_CHARGER
+> +	tristate "BQ24261 charger driver"
+> +	select POWER_SUPPLY_CHARGER
+> +	depends on I2C
+> +	help
+> +	  Say Y to include support for BQ24261 Charger driver. This driver
+> +	  makes use of power supply charging driver. So the driver gives
+> +	  the charger hardware abstraction only. Charging logic is abstracted
+> +	  in the power supply charging driver.
+> +
+>  source "drivers/power/reset/Kconfig"
+> 
+>  endif # POWER_SUPPLY
+> diff --git a/drivers/power/Makefile b/drivers/power/Makefile
+> index 77535fd..6d184c8 100644
+> --- a/drivers/power/Makefile
+> +++ b/drivers/power/Makefile
+> @@ -59,4 +59,5 @@ obj-$(CONFIG_CHARGER_BQ24735)	+= bq24735-charger.o
+>  obj-$(CONFIG_POWER_AVS)		+= avs/
+>  obj-$(CONFIG_CHARGER_SMB347)	+= smb347-charger.o
+>  obj-$(CONFIG_CHARGER_TPS65090)	+= tps65090-charger.o
+> +obj-$(CONFIG_BQ24261_CHARGER)	+= bq24261_charger.o
+>  obj-$(CONFIG_POWER_RESET)	+= reset/
+> diff --git a/drivers/power/bq24261_charger.c b/drivers/power/bq24261_charger.c
+> new file mode 100644
+> index 0000000..6ac063b
+> --- /dev/null
+> +++ b/drivers/power/bq24261_charger.c
+> @@ -0,0 +1,1447 @@
+> +/*
+> + * bq24261_charger.c - BQ24261 Charger I2C client driver
+> + *
+> + * Copyright (C) 2011 Intel Corporation
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; version 2 of the License.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the GNU
+> + * General Public License for more details.
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + * Author: Jenny TC <jenny.tc@intel.com>
+> + */
+> +#define DEBUG
+
+Please insert one line between the comment and the "#define".
+
+> +#include <linux/version.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/err.h>
+> +#include <linux/init.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/slab.h>
+> +#include <linux/device.h>
+> +#include <linux/i2c.h>
+> +#include <linux/power_supply.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/io.h>
+> +#include <linux/sched.h>
+> +#include <linux/delay.h>
+> +#include <linux/usb/otg.h>
+> +#include <linux/power/power_supply_charger.h>
+> +#include <linux/power/bq24261_charger.h>
+> +#include <linux/seq_file.h>
+
+Would you re-order these headers alphabetically?
+It enhances the readability.
+
+> +
+> +#include <asm/intel_scu_ipc.h>
+> +
+> +#define DEV_NAME "bq24261_charger"
+> +#define DEV_MANUFACTURER "TI"
+> +#define MODEL_NAME_SIZE 8
+> +#define DEV_MANUFACTURER_NAME_SIZE 4
+> +
+> +#define EXCEPTION_MONITOR_DELAY (60 * HZ)
+> +#define WDT_RESET_DELAY (15 * HZ)
+> +
+> +/* BQ24261 registers */
+> +#define BQ24261_STAT_CTRL0_ADDR		0x00
+> +#define BQ24261_CTRL_ADDR		0x01
+> +#define BQ24261_BATT_VOL_CTRL_ADDR	0x02
+> +#define BQ24261_VENDOR_REV_ADDR		0x03
+> +#define BQ24261_TERM_FCC_ADDR		0x04
+> +#define BQ24261_VINDPM_STAT_ADDR	0x05
+> +#define BQ24261_ST_NTC_MON_ADDR		0x06
+> +
+> +#define BQ24261_RESET_MASK		(0x01 << 7)
+> +#define BQ24261_RESET_ENABLE		(0x01 << 7)
+> +
+> +#define BQ24261_FAULT_MASK		0x07
+> +#define BQ24261_STAT_MASK		(0x03 << 4)
+> +#define BQ24261_BOOST_MASK		(0x01 << 6)
+> +#define BQ24261_TMR_RST_MASK		(0x01 << 7)
+> +#define BQ24261_TMR_RST			(0x01 << 7)
+> +
+> +#define BQ24261_ENABLE_BOOST		(0x01 << 6)
+> +
+> +#define BQ24261_VOVP			0x01
+> +#define BQ24261_LOW_SUPPLY		0x02
+> +#define BQ24261_THERMAL_SHUTDOWN	0x03
+> +#define BQ24261_BATT_TEMP_FAULT		0x04
+> +#define BQ24261_TIMER_FAULT		0x05
+> +#define BQ24261_BATT_OVP		0x06
+> +#define BQ24261_NO_BATTERY		0x07
+> +#define BQ24261_STAT_READY		0x00
+> +
+> +#define BQ24261_STAT_CHRG_PRGRSS	(0x01 << 4)
+> +#define BQ24261_STAT_CHRG_DONE		(0x02 << 4)
+> +#define BQ24261_STAT_FAULT		(0x03 << 4)
+> +
+> +#define BQ24261_CE_MASK			(0x01 << 1)
+> +#define BQ24261_CE_DISABLE		(0x01 << 1)
+> +
+> +#define BQ24261_HZ_MASK			(0x01)
+> +#define BQ24261_HZ_ENABLE		(0x01)
+> +
+> +#define BQ24261_ICHRG_MASK		(0x1F << 3)
+> +#define BQ24261_ICHRG_100ma		(0x01 << 3)
+> +#define BQ24261_ICHRG_200ma		(0x01 << 4)
+> +#define BQ24261_ICHRG_400ma		(0x01 << 5)
+> +#define BQ24261_ICHRG_800ma		(0x01 << 6)
+> +#define BQ24261_ICHRG_1600ma		(0x01 << 7)
+> +
+> +#define BQ24261_ITERM_MASK		(0x03)
+> +#define BQ24261_ITERM_50ma		(0x01 << 0)
+> +#define BQ24261_ITERM_100ma		(0x01 << 1)
+> +#define BQ24261_ITERM_200ma		(0x01 << 2)
+> +
+> +#define BQ24261_VBREG_MASK		(0x3F << 2)
+> +
+> +#define BQ24261_INLMT_MASK		(0x03 << 4)
+> +#define BQ24261_INLMT_100		0x00
+> +#define BQ24261_INLMT_150		(0x01 << 4)
+> +#define BQ24261_INLMT_500		(0x02 << 4)
+> +#define BQ24261_INLMT_900		(0x03 << 4)
+> +#define BQ24261_INLMT_1500		(0x04 << 4)
+> +#define BQ24261_INLMT_2500		(0x06 << 4)
+> +
+> +#define BQ24261_TE_MASK			(0x01 << 2)
+> +#define BQ24261_TE_ENABLE		(0x01 << 2)
+> +#define BQ24261_STAT_ENABLE_MASK	(0x01 << 3)
+> +#define BQ24261_STAT_ENABLE		(0x01 << 3)
+> +
+> +#define BQ24261_VENDOR_MASK		(0x07 << 5)
+> +#define BQ24261_VENDOR			(0x02 << 5)
+> +#define BQ24261_REV_MASK		(0x07)
+> +#define BQ24261_REV			(0x02)
+> +#define BQ24260_REV			(0x01)
+> +
+> +#define BQ24261_TS_MASK			(0x01 << 3)
+> +#define BQ24261_TS_ENABLED		(0x01 << 3)
+> +#define BQ24261_BOOST_ILIM_MASK		(0x01 << 4)
+> +#define BQ24261_BOOST_ILIM_500ma	(0x0)
+> +#define BQ24261_BOOST_ILIM_1A		(0x01 << 4)
+> +
+> +#define BQ24261_SAFETY_TIMER_MASK	(0x03 << 5)
+> +#define BQ24261_SAFETY_TIMER_40MIN	0x00
+> +#define BQ24261_SAFETY_TIMER_6HR	(0x01 << 5)
+> +#define BQ24261_SAFETY_TIMER_9HR	(0x02 << 5)
+> +#define BQ24261_SAFETY_TIMER_DISABLED	(0x03 << 5)
+> +
+> +/* 1% above voltage max design to report over voltage */
+> +#define BQ24261_OVP_MULTIPLIER			1010
+> +#define BQ24261_OVP_RECOVER_MULTIPLIER		990
+> +#define BQ24261_DEF_BAT_VOLT_MAX_DESIGN		4200000
+> +
+> +/* Settings for Voltage / DPPM Register (05) */
+> +#define BQ24261_VBATT_LEVEL1		3700000
+> +#define BQ24261_VBATT_LEVEL2		3960000
+> +#define BQ24261_VINDPM_MASK		(0x07)
+> +#define BQ24261_VINDPM_320MV		(0x01 << 2)
+> +#define BQ24261_VINDPM_160MV		(0x01 << 1)
+> +#define BQ24261_VINDPM_80MV		(0x01 << 0)
+> +#define BQ24261_CD_STATUS_MASK		(0x01 << 3)
+> +#define BQ24261_DPM_EN_MASK		(0x01 << 4)
+> +#define BQ24261_DPM_EN_FORCE		(0x01 << 4)
+> +#define BQ24261_LOW_CHG_MASK		(0x01 << 5)
+> +#define BQ24261_LOW_CHG_EN		(0x01 << 5)
+> +#define BQ24261_LOW_CHG_DIS		(~BQ24261_LOW_CHG_EN)
+> +#define BQ24261_DPM_STAT_MASK		(0x01 << 6)
+> +#define BQ24261_MINSYS_STAT_MASK	(0x01 << 7)
+> +
+> +#define BQ24261_MIN_CC			500
+> +
+> +u16 bq24261_sfty_tmr[][2] = {
+> +	{0, BQ24261_SAFETY_TIMER_DISABLED}
+> +	,
+> +	{40, BQ24261_SAFETY_TIMER_40MIN}
+> +	,
+> +	{360, BQ24261_SAFETY_TIMER_6HR}
+> +	,
+> +	{540, BQ24261_SAFETY_TIMER_9HR}
+> +	,
+> +};
+> +
+> +
+> +u16 bq24261_inlmt[][2] = {
+> +	{100, BQ24261_INLMT_100}
+> +	,
+> +	{150, BQ24261_INLMT_150}
+> +	,
+> +	{500, BQ24261_INLMT_500}
+> +	,
+> +	{900, BQ24261_INLMT_900}
+> +	,
+> +	{1500, BQ24261_INLMT_1500}
+> +	,
+> +	{2500, BQ24261_INLMT_2500}
+> +	,
+> +};
+> +
+> +u16 bq24261_iterm[][2] = {
+> +	{0, 0x00}
+> +	,
+> +	{50, BQ24261_ITERM_50ma}
+> +	,
+> +	{100, BQ24261_ITERM_100ma}
+> +	,
+> +	{150, BQ24261_ITERM_100ma | BQ24261_ITERM_50ma}
+> +	,
+> +	{200, BQ24261_ITERM_200ma}
+> +	,
+> +	{250, BQ24261_ITERM_200ma | BQ24261_ITERM_50ma}
+> +	,
+> +	{300, BQ24261_ITERM_200ma | BQ24261_ITERM_100ma}
+> +	,
+> +	{350, BQ24261_ITERM_200ma | BQ24261_ITERM_100ma | BQ24261_ITERM_50ma}
+> +	,
+> +};
+> +
+> +u16 bq24261_cc[][2] = {
+> +
+> +	{500, 0x00}
+> +	,
+> +	{600, BQ24261_ICHRG_100ma}
+> +	,
+> +	{700, BQ24261_ICHRG_200ma}
+> +	,
+> +	{800, BQ24261_ICHRG_100ma | BQ24261_ICHRG_200ma}
+> +	,
+> +	{900, BQ24261_ICHRG_400ma}
+> +	,
+> +	{1000, BQ24261_ICHRG_400ma | BQ24261_ICHRG_100ma}
+> +	,
+> +	{1100, BQ24261_ICHRG_400ma | BQ24261_ICHRG_200ma}
+> +	,
+> +	{1200, BQ24261_ICHRG_400ma | BQ24261_ICHRG_200ma | BQ24261_ICHRG_100ma}
+> +	,
+> +	{1300, BQ24261_ICHRG_800ma}
+> +	,
+> +	{1400, BQ24261_ICHRG_800ma | BQ24261_ICHRG_100ma}
+> +	,
+> +	{1500, BQ24261_ICHRG_800ma | BQ24261_ICHRG_200ma}
+> +	,
+> +};
+
+These 'u16 bq24261_*' looks to be used in only this file.
+Would you change these 'u16 bq24261_*' to 'static u16 bq24261_*'?
+
+For example,
+static u16 bq24261_sfty_tmr[][2] = {
+
+[.....]
+
+> +static void lookup_regval(u16 tbl[][2], size_t size, u16 in_val, u8 *out_val)
+> +{
+> +	int i;
+> +	for (i = 1; i < size; ++i)
+
+Please insert one line between variable and 'for' loop.
+
+
+> +		if (in_val < tbl[i][0])
+> +			break;
+> +
+> +	*out_val = (u8) tbl[i - 1][1];
+> +}
+> +
+> +void bq24261_cc_to_reg(int cc, u8 *reg_val)
+> +{
+> +	return lookup_regval(bq24261_cc, ARRAY_SIZE(bq24261_cc), cc, reg_val);
+> +
+> +}
+> +
+> +void bq24261_cv_to_reg(int cv, u8 *reg_val)
+> +{
+> +	int val;
+> +
+> +	val = clamp_t(int, cv, BQ24261_MIN_CV, BQ24261_MAX_CV);
+> +	*reg_val =
+> +		(((val - BQ24261_MIN_CV) / BQ24261_CV_DIV)
+> +			<< BQ24261_CV_BIT_POS);
+> +}
+> +
+> +void bq24261_inlmt_to_reg(int inlmt, u8 *regval)
+> +{
+> +	return lookup_regval(bq24261_inlmt, ARRAY_SIZE(bq24261_inlmt),
+> +			     inlmt, regval);
+> +}
+
+How about making these functions static?
+For instance,
+static void bq24261_cc_to_reg(int cc, u8 *reg_val)
+
+> +
+> +static inline void bq24261_iterm_to_reg(int iterm, u8 *regval)
+> +{
+> +	return lookup_regval(bq24261_iterm, ARRAY_SIZE(bq24261_iterm),
+> +			     iterm, regval);
+> +}
+> +
+> +static inline void bq24261_sfty_tmr_to_reg(int tmr, u8 *regval)
+> +{
+> +	return lookup_regval(bq24261_sfty_tmr, ARRAY_SIZE(bq24261_sfty_tmr),
+> +			     tmr, regval);
+> +}
+> +
+> +static inline int bq24261_read_reg(struct i2c_client *client, u8 reg)
+> +{
+> +	int ret;
+> +
+> +	ret = i2c_smbus_read_byte_data(client, reg);
+> +	if (ret < 0)
+> +		dev_err(&client->dev, "Error(%d) in reading reg %d\n", ret,
+> +			reg);
+> +
+> +	return ret;
+> +}
+> +
+> +static inline int bq24261_write_reg(struct i2c_client *client, u8 reg, u8 data)
+> +{
+> +	int ret;
+> +
+> +	ret = i2c_smbus_write_byte_data(client, reg, data);
+> +	if (ret < 0)
+> +		dev_err(&client->dev, "Error(%d) in writing %d to reg %d\n",
+> +			ret, data, reg);
+> +
+> +	return ret;
+> +}
+> +
+> +static inline int bq24261_read_modify_reg(struct i2c_client *client, u8 reg,
+> +					  u8 mask, u8 val)
+> +{
+> +	int ret;
+> +
+> +	ret = bq24261_read_reg(client, reg);
+> +	if (ret < 0)
+> +		return ret;
+> +	ret = (ret & ~mask) | (mask & val);
+> +	return bq24261_write_reg(client, reg, ret);
+> +}
+> +
+> +static inline int bq24261_tmr_ntc_init(struct bq24261_charger *chip)
+> +{
+> +	u8 reg_val;
+> +	int ret;
+> +
+> +	bq24261_sfty_tmr_to_reg(chip->pdata->safety_timer, &reg_val);
+> +
+> +	if (chip->pdata->is_ts_enabled)
+> +		reg_val |= BQ24261_TS_ENABLED;
+> +
+> +	ret = bq24261_read_modify_reg(chip->client, BQ24261_ST_NTC_MON_ADDR,
+> +			BQ24261_TS_MASK|BQ24261_SAFETY_TIMER_MASK|
+> +			BQ24261_BOOST_ILIM_MASK, reg_val);
+> +
+> +	return ret;
+> +}
+> +
+> +static inline int bq24261_enable_charging(
+> +	struct bq24261_charger *chip, bool val)
+> +{
+> +	int ret;
+> +	u8 reg_val;
+> +	bool is_ready;
+> +
+> +	ret = bq24261_read_reg(chip->client,
+> +					BQ24261_STAT_CTRL0_ADDR);
+> +	if (ret < 0) {
+> +		dev_err(&chip->client->dev,
+> +			"Error(%d) in reading BQ24261_STAT_CTRL0_ADDR\n", ret);
+> +	}
+> +
+> +	is_ready =  (ret & BQ24261_STAT_MASK) != BQ24261_STAT_FAULT;
+> +
+> +	/* If status is fault, wait for READY before enabling the charging */
+> +
+> +	if (!is_ready) {
+> +		ret = wait_event_timeout(chip->wait_ready,
+> +			(chip->chrgr_stat != BQ24261_CHRGR_STAT_READY),
+> +				HZ);
+> +		dev_info(&chip->client->dev,
+> +			"chrgr_stat=%x\n", chip->chrgr_stat);
+> +		if (ret == 0) {
+> +			dev_err(&chip->client->dev,
+> +				"Waiting for Charger Ready Failed.Enabling charging anyway\n");
+> +		}
+> +	}
+> +
+> +	if (val) {
+> +		reg_val = (~BQ24261_CE_DISABLE & BQ24261_CE_MASK);
+> +		if (chip->is_hw_chrg_term)
+> +			reg_val |= BQ24261_TE_ENABLE;
+> +	} else {
+> +		reg_val = BQ24261_CE_DISABLE;
+> +	}
+> +
+> +	reg_val |=  BQ24261_STAT_ENABLE;
+> +
+> +	ret = bq24261_read_modify_reg(chip->client, BQ24261_CTRL_ADDR,
+> +		       BQ24261_STAT_ENABLE_MASK|BQ24261_RESET_MASK|
+> +				BQ24261_CE_MASK|BQ24261_TE_MASK,
+> +					reg_val);
+> +	if (ret || !val) {
+> +		cancel_delayed_work_sync(&chip->notify_work);
+> +		return ret;
+> +	}
+> +
+> +	bq24261_set_iterm(chip, chip->iterm);
+> +	schedule_delayed_work(&chip->notify_work, 0);
+> +	bq24261_enable_hw_charge_term(chip, true);
+> +	return bq24261_tmr_ntc_init(chip);
+> +}
+> +
+> +static inline int bq24261_reset_timer(struct bq24261_charger *chip)
+> +{
+> +	return bq24261_read_modify_reg(chip->client, BQ24261_STAT_CTRL0_ADDR,
+> +			BQ24261_TMR_RST_MASK, BQ24261_TMR_RST);
+> +}
+> +
+> +static inline int bq24261_enable_charger(
+> +	struct bq24261_charger *chip, int val)
+> +{
+> +
+> +	/* TODO: Implement enable/disable HiZ mode to enable/
+> +	*  disable charger
+> +	*/
+
+According to the Coding Style, the preferred style for long (multi-line)
+comments is:
+
++	/*
++	 *  TODO: Implement enable/disable HiZ mode to enable/
++	 *  disable charger
++	 */
+
+
+> +	u8 reg_val;
+> +	int ret;
+> +
+> +	reg_val = val ? (~BQ24261_HZ_ENABLE & BQ24261_HZ_MASK)  :
+> +			BQ24261_HZ_ENABLE;
+> +
+> +	ret = bq24261_read_modify_reg(chip->client, BQ24261_CTRL_ADDR,
+> +		       BQ24261_HZ_MASK|BQ24261_RESET_MASK, reg_val);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return bq24261_reset_timer(chip);
+> +}
+> +
+> +static inline int bq24261_set_cc(struct bq24261_charger *chip, int cc)
+> +{
+> +	u8 reg_val;
+> +	int ret;
+> +
+> +	dev_dbg(&chip->client->dev, "cc=%d\n", cc);
+> +
+> +	if (cc && (cc < BQ24261_MIN_CC)) {
+> +		dev_dbg(&chip->client->dev, "Set LOW_CHG bit\n");
+> +		reg_val = BQ24261_LOW_CHG_EN;
+> +		ret = bq24261_read_modify_reg(chip->client,
+> +				BQ24261_VINDPM_STAT_ADDR,
+> +				BQ24261_LOW_CHG_MASK, reg_val);
+> +	} else {
+> +		dev_dbg(&chip->client->dev, "Clear LOW_CHG bit\n");
+> +		reg_val = BQ24261_LOW_CHG_DIS;
+> +		ret = bq24261_read_modify_reg(chip->client,
+> +				BQ24261_VINDPM_STAT_ADDR,
+> +				BQ24261_LOW_CHG_MASK, reg_val);
+> +	}
+> +
+> +	bq24261_cc_to_reg(cc, &reg_val);
+> +
+> +	return bq24261_read_modify_reg(chip->client, BQ24261_TERM_FCC_ADDR,
+> +			BQ24261_ICHRG_MASK, reg_val);
+> +}
+> +
+> +static inline int bq24261_set_cv(struct bq24261_charger *chip, int cv)
+> +{
+> +	int bat_volt;
+> +	int ret;
+> +	u8 reg_val;
+> +	u8 vindpm_val = 0x0;
+> +
+> +	/*
+> +	* Setting VINDPM value as per the battery voltage
+> +	*  VBatt           Vindpm     Register Setting
+> +	*  < 3.7v           4.2v       0x0 (default)
+> +	*  3.71v - 3.96v    4.36v      0x2
+> +	*  > 3.96v          4.6v       0x5
+> +	*/
+> +	ret = get_battery_voltage(&bat_volt);
+> +	if (ret) {
+> +		dev_err(&chip->client->dev,
+> +			"Error getting battery voltage!!\n");
+> +	} else {
+> +		if (bat_volt > BQ24261_VBATT_LEVEL2)
+> +			vindpm_val =
+> +				(BQ24261_VINDPM_320MV | BQ24261_VINDPM_80MV);
+> +		else if (bat_volt > BQ24261_VBATT_LEVEL1)
+> +			vindpm_val = BQ24261_VINDPM_160MV;
+> +	}
+> +
+> +	ret = bq24261_read_modify_reg(chip->client,
+> +			BQ24261_VINDPM_STAT_ADDR,
+> +			BQ24261_VINDPM_MASK,
+> +			vindpm_val);
+> +	if (ret) {
+> +		dev_err(&chip->client->dev,
+> +			"Error setting VINDPM setting!!\n");
+> +		return ret;
+> +	}
+> +
+> +
+> +	bq24261_cv_to_reg(cv, &reg_val);
+> +
+> +	return bq24261_read_modify_reg(chip->client, BQ24261_BATT_VOL_CTRL_ADDR,
+> +				       BQ24261_VBREG_MASK, reg_val);
+> +}
+> +
+> +static inline int bq24261_set_inlmt(struct bq24261_charger *chip, int inlmt)
+> +{
+> +	u8 reg_val;
+> +
+> +	bq24261_inlmt_to_reg(inlmt, &reg_val);
+> +
+> +	return bq24261_read_modify_reg(chip->client, BQ24261_CTRL_ADDR,
+> +		       BQ24261_RESET_MASK|BQ24261_INLMT_MASK, reg_val);
+> +
+> +}
+> +
+> +static inline void resume_charging(struct bq24261_charger *chip)
+> +{
+> +
+> +	if (chip->is_charger_enabled)
+> +		bq24261_enable_charger(chip, true);
+> +	if (chip->inlmt)
+> +		bq24261_set_inlmt(chip, chip->inlmt);
+> +	if (chip->cc)
+> +		bq24261_set_cc(chip, chip->cc);
+> +	if (chip->cv)
+> +		bq24261_set_cv(chip, chip->cv);
+> +	if (chip->is_charging_enabled)
+> +		bq24261_enable_charging(chip, true);
+> +}
+> +
+> +static inline int bq24261_set_iterm(struct bq24261_charger *chip, int iterm)
+> +{
+> +	u8 reg_val;
+> +
+> +	bq24261_iterm_to_reg(iterm, &reg_val);
+> +
+> +	return bq24261_read_modify_reg(chip->client, BQ24261_TERM_FCC_ADDR,
+> +				       BQ24261_ITERM_MASK, reg_val);
+> +}
+> +
+> +static inline int bq24261_enable_hw_charge_term(
+> +	struct bq24261_charger *chip, bool val)
+> +{
+> +	u8 data;
+> +	int ret;
+> +
+> +	data = val ? BQ24261_TE_ENABLE : (~BQ24261_TE_ENABLE & BQ24261_TE_MASK);
+> +
+> +
+> +	ret = bq24261_read_modify_reg(chip->client, BQ24261_CTRL_ADDR,
+> +			       BQ24261_RESET_MASK|BQ24261_TE_MASK, data);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	chip->is_hw_chrg_term = val ? true : false;
+> +
+> +	return ret;
+> +}
+> +
+> +
+
+Remove unnecessary line.
+
+> +static inline bool bq24261_is_vsys_on(struct bq24261_charger *chip)
+> +{
+> +	int ret;
+> +	struct i2c_client *client = chip->client;
+> +
+> +	ret = bq24261_read_reg(client, BQ24261_CTRL_ADDR);
+> +	if (ret < 0) {
+> +		dev_err(&client->dev,
+> +			"Error(%d) in reading BQ24261_CTRL_ADDR\n", ret);
+> +		return false;
+> +	}
+> +
+> +	if (((ret & BQ24261_HZ_MASK) == BQ24261_HZ_ENABLE) &&
+> +			chip->is_charger_enabled) {
+> +		dev_err(&client->dev, "Charger in Hi Z Mode\n");
+> +		return false;
+> +	}
+> +
+> +	ret = bq24261_read_reg(client, BQ24261_VINDPM_STAT_ADDR);
+> +	if (ret < 0) {
+> +		dev_err(&client->dev,
+> +			"Error(%d) in reading BQ24261_VINDPM_STAT_ADDR\n", ret);
+> +		return false;
+> +	}
+> +
+> +	if (ret & BQ24261_CD_STATUS_MASK) {
+> +		dev_err(&client->dev, "CD line asserted\n");
+> +		return false;
+> +	}
+> +
+> +	return true;
+> +}
+> +
+> +
+
+Remove unnecessary line.
+
+> +static inline bool is_bq24261_enabled(struct bq24261_charger *chip)
+> +{
+> +	if (chip->cable_type == PSY_CHARGER_CABLE_TYPE_NONE)
+> +		return false;
+> +	else if (!chip->is_charger_enabled)
+> +		return false;
+> +	/* BQ24261 gives interrupt only on stop/resume charging.
+> +	 * If charging is already stopped, we need to query the hardware
+> +	 * to see charger is still active and can supply vsys or not.
+> +	 */
+
+According to the Coding Style, the preferred style for long (multi-line)
+comments is:
+
++	/*
++	 * BQ24261 gives interrupt only on stop/resume charging.
++	 * If charging is already stopped, we need to query the hardware
++	 * to see charger is still active and can supply vsys or not.
++	 */
+
+
+> +	else if ((chip->chrgr_stat == BQ24261_CHRGR_STAT_FAULT) ||
+> +		 (!chip->is_charging_enabled))
+> +		return bq24261_is_vsys_on(chip);
+> +	else
+> +		return chip->is_vsys_on;
+> +}
+> +
+> +static int bq24261_usb_psyc_set_property(struct power_supply_charger *psyc,
+> +				    enum power_supply_charger_property pscp,
+> +				    const union power_supply_propval *val)
+> +{
+> +	struct bq24261_charger *chip = container_of(psyc,
+> +						    struct bq24261_charger,
+> +						    psyc_usb);
+> +	int ret = 0;
+
+For the readability, how about the following?
+
+	struct bq24261_charger *chip;
+	int ret = 0;
+
+	chip = container_of(psyc, struct bq24261_charger, psyc_usb);
+
+> +
+> +	mutex_lock(&chip->lock);
+> +	dev_dbg(&chip->client->dev, "%s: prop=%d, val=%d\n",
+> +			__func__, pscp, val->intval);
+> +
+> +	switch (pscp) {
+> +
+> +	case POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGING:
+> +		ret = bq24261_enable_charging(chip, val->intval);
+> +
+> +		if (ret)
+> +			dev_err(&chip->client->dev,
+> +				"Error(%d) in %s charging", ret,
+> +				(val->intval ? "enable" : "disable"));
+> +		else
+> +			chip->is_charging_enabled = val->intval;
+> +
+> +		break;
+> +	case POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGER:
+> +		/* Don't enable the charger unless overvoltage is recovered */
+> +
+> +		if (chip->bat_health != POWER_SUPPLY_HEALTH_OVERVOLTAGE) {
+> +			ret = bq24261_enable_charger(chip, val->intval);
+> +
+> +			if (ret)
+> +				dev_err(&chip->client->dev,
+> +					"Error(%d) in %s charger", ret,
+> +					(val->intval ? "enable" : "disable"));
+> +			else
+> +				chip->is_charger_enabled = val->intval;
+> +		} else {
+> +			dev_info(&chip->client->dev, "Battery Over Voltage. Charger will be disabled\n");
+> +		}
+> +		break;
+> +	case POWER_SUPPLY_CHARGER_PROP_CABLE_TYPE:
+> +		chip->cable_type = val->intval;
+> +		chip->psy_usb.type = get_power_supply_type(chip->cable_type);
+> +		if (chip->cable_type != PSY_CHARGER_CABLE_TYPE_NONE) {
+> +			chip->chrgr_health = POWER_SUPPLY_HEALTH_GOOD;
+> +			chip->chrgr_stat = BQ24261_CHRGR_STAT_UNKNOWN;
+> +
+> +			/* Adding this processing in order to check
+> +			for any faults during connect */
+> +
+> +			ret = bq24261_read_reg(chip->client,
+> +						BQ24261_STAT_CTRL0_ADDR);
+> +			if (ret < 0)
+> +				dev_err(&chip->client->dev,
+> +				"Error (%d) in reading status register(0x00)\n",
+> +				ret);
+> +			else
+> +				bq24261_handle_irq(chip, ret);
+> +		} else {
+> +			chip->chrgr_stat = BQ24261_CHRGR_STAT_UNKNOWN;
+> +			chip->chrgr_health = POWER_SUPPLY_HEALTH_UNKNOWN;
+> +			cancel_delayed_work_sync(&chip->low_supply_fault_work);
+> +		}
+> +		break;
+> +	case POWER_SUPPLY_CHARGER_PROP_RESET_WDT:
+> +		bq24261_reset_timer(chip);
+> +		break;
+> +	default:
+> +		ret = -ENODATA;
+> +	}
+> +
+> +	mutex_unlock(&chip->lock);
+> +	return ret;
+> +}
+> +
+> +static int bq24261_usb_set_property(struct power_supply *psy,
+> +				    enum power_supply_property psp,
+> +				    const union power_supply_propval *val)
+> +{
+> +	struct bq24261_charger *chip = container_of(psy,
+> +						    struct bq24261_charger,
+> +						    psy_usb);
+> +	int ret = 0;
+
+For the readability, how about the following?
+
+	struct bq24261_charger *chip;
+	int ret = 0;
+
+	chip = container_of(psyc, struct bq24261_charger, psyc_usb);
+
+> +
+> +	mutex_lock(&chip->lock);
+> +
+> +	switch (psp) {
+> +
+> +	case POWER_SUPPLY_PROP_PRESENT:
+> +		chip->present = val->intval;
+> +		break;
+> +	case POWER_SUPPLY_PROP_ONLINE:
+> +		chip->online = val->intval;
+> +		break;
+> +	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT:
+> +		ret = bq24261_set_cc(chip, val->intval);
+> +		if (!ret)
+> +			chip->cc = val->intval;
+> +		break;
+> +	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE:
+> +		ret = bq24261_set_cv(chip, val->intval);
+> +		if (!ret)
+> +			chip->cv = val->intval;
+> +		break;
+> +	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX:
+> +		chip->max_cc = val->intval;
+> +		break;
+> +	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX:
+> +		chip->max_cv = val->intval;
+> +		break;
+> +	case POWER_SUPPLY_PROP_CHARGE_TERM_CUR:
+> +		ret = bq24261_set_iterm(chip, val->intval);
+> +		if (!ret)
+> +			chip->iterm = val->intval;
+> +		break;
+> +	case POWER_SUPPLY_PROP_INLMT:
+> +		ret = bq24261_set_inlmt(chip, val->intval);
+> +		if (!ret)
+> +			chip->inlmt = val->intval;
+> +		break;
+> +	case POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT:
+> +		chip->cntl_state = val->intval;
+> +		break;
+> +	case POWER_SUPPLY_PROP_TEMP_MAX:
+> +		chip->max_temp = val->intval;
+> +		break;
+> +	case POWER_SUPPLY_PROP_TEMP_MIN:
+> +		chip->min_temp = val->intval;
+> +		break;
+> +	default:
+> +		ret = -ENODATA;
+> +	}
+> +
+> +	mutex_unlock(&chip->lock);
+> +	return ret;
+> +}
+> +
+> +static int bq24261_usb_psyc_get_property(struct power_supply_charger *psyc,
+> +				    enum power_supply_charger_property pscp,
+> +				    union power_supply_propval *val)
+> +{
+> +	struct bq24261_charger *chip = container_of(psyc,
+> +						    struct bq24261_charger,
+> +						    psyc_usb);
+> +
+
+For the readability, how about the following?
+
+	struct bq24261_charger *chip;
+
+	chip = container_of(psyc, struct bq24261_charger, psyc_usb);
+
+
+> +	mutex_lock(&chip->lock);
+> +
+> +	switch (pscp) {
+> +	case POWER_SUPPLY_CHARGER_PROP_CABLE_TYPE:
+> +		val->intval = chip->cable_type;
+> +		break;
+> +	case POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGING:
+> +		val->intval = (chip->is_charging_enabled &&
+> +			(chip->chrgr_stat == BQ24261_CHRGR_STAT_CHARGING));
+> +
+> +		break;
+> +	case POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGER:
+> +		val->intval = is_bq24261_enabled(chip);
+> +		break;
+> +	default:
+> +		mutex_unlock(&chip->lock);
+> +		return -EINVAL;
+> +	}
+> +
+> +	mutex_unlock(&chip->lock);
+> +	return 0;
+> +}
+> +
+> +static int bq24261_usb_get_property(struct power_supply *psy,
+> +				    enum power_supply_property psp,
+> +				    union power_supply_propval *val)
+> +{
+> +	struct bq24261_charger *chip = container_of(psy,
+> +						    struct bq24261_charger,
+> +						    psy_usb);
+> +
+
+For the readability, how about the following?
+
+	struct bq24261_charger *chip;
+
+	chip = container_of(psyc, struct bq24261_charger, psyc_usb);
+
+
+[.....]
+
+> +
+> +MODULE_DEVICE_TABLE(i2c, bq24261_id);
+> +
+> +static struct i2c_driver bq24261_driver = {
+> +	.driver = {
+> +		   .name = DEV_NAME,
+> +		   },
+
+Please fix indent problem as below:
+
++	},
+
+
+> +	.probe = bq24261_probe,
+> +	.remove = bq24261_remove,
+> +	.id_table = bq24261_id,
+> +};
+> +
+> +static int __init bq24261_init(void)
+> +{
+> +	return i2c_add_driver(&bq24261_driver);
+> +}
+> +
+> +module_init(bq24261_init);
+> +
+> +static void __exit bq24261_exit(void)
+> +{
+> +	i2c_del_driver(&bq24261_driver);
+> +}
+> +
+> +module_exit(bq24261_exit);
+
+Please use module_i2c_driver() macro in order to make the code
+simpler. Then, above 13 lines can be one line as below.
+
+module_i2c_driver(bq24261_driver);
+
+> +
+> +MODULE_AUTHOR("Jenny TC <jenny.tc@intel.com>");
+> +MODULE_DESCRIPTION("BQ24261 Charger Driver");
+> +MODULE_LICENSE("GPL");
+> diff --git a/include/linux/power/bq24261_charger.h b/include/linux/power/bq24261_charger.h
+> new file mode 100644
+> index 0000000..e6b399f
+> --- /dev/null
+> +++ b/include/linux/power/bq24261_charger.h
+> @@ -0,0 +1,33 @@
+> +/*
+> + * bq24261_charger.h: platform data structure for bq24261 driver
+> + *
+> + * (C) Copyright 2012 Intel Corporation
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * as published by the Free Software Foundation; version 2
+> + * of the License.
+> + */
+> +
+> +#ifndef __BQ24261_CHARGER_H__
+> +#define __BQ24261_CHARGER_H__
+> +
+> +struct bq24261_plat_data {
+> +	char **supplied_to;
+> +	size_t num_supplicants;
+> +	struct psy_throttle_state *throttle_states;
+> +	size_t num_throttle_states;
+> +	int safety_timer;
+> +	bool is_ts_enabled;
+> +
+> +	int (*enable_charging) (bool val);
+> +	int (*enable_charger) (bool val);
+> +	int (*set_inlmt) (int val);
+> +	int (*set_cc) (int val);
+> +	int (*set_cv) (int val);
+> +	int (*set_iterm) (int val);
+> +	int (*enable_vbus) (int val);
+> +};
+> +
+> +
+
+Remove unnecessary line. One line is good.
+
+> +#endif
+> --
+> 1.7.9.5
