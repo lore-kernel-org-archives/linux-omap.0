@@ -1,63 +1,52 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: next boot: 34 pass, 5 fail (next-20140122)
-Date: Thu, 23 Jan 2014 08:23:37 +0200
-Message-ID: <52E0B569.8000809@ti.com>
-References: <52e06652.c103450a.79d7.6517@mx.google.com> <CAGa+x86=gKh11g1pzLqxdimeCxuZ478+ZAxd9GjO-m7Aa8L2fg@mail.gmail.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: [PATCH 1/2] clocksource: Remove outdated comments
+Date: Thu, 23 Jan 2014 15:12:27 +0800
+Message-ID: <1390461147-36256-1-git-send-email-wangyijing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57616 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750831AbaAWGXo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jan 2014 01:23:44 -0500
-In-Reply-To: <CAGa+x86=gKh11g1pzLqxdimeCxuZ478+ZAxd9GjO-m7Aa8L2fg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mips-bounce@linux-mips.org>
+Sender: linux-mips-bounce@linux-mips.org
+Errors-to: linux-mips-bounce@linux-mips.org
+List-help: <mailto:ecartis@linux-mips.org?Subject=help>
+List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
+List-software: Ecartis version 1.0.0
+List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
+List-owner: <mailto:ralf@linux-mips.org>
+List-post: <mailto:linux-mips@linux-mips.org>
+List-archive: <http://www.linux-mips.org/archives/linux-mips/>
+To: John Stultz <john.stultz@linaro.org>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Mike Frysinger <vapier@gentoo.org>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, Jonas Bonn <jonas@southpole.se>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Daniel Lezcano <danie>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>, kernel-build-reports@lists.linaro.org, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Olof Johansson <olof@lixom.net>
 
-On 01/23/2014 03:35 AM, Kevin Hilman wrote:
-> On Wed, Jan 22, 2014 at 4:46 PM, Kevin's boot bot <khilman@linaro.org> wrote:
->> Automated DT boot report for various ARM defconfigs.
->>
->>
->> Tree/Branch: next
->> Git describe: next-20140122
->> Failed boot tests (console logs at the end)
->> ===========================================
->>          omap3-tobi,3730storm:     FAIL:    omap2plus_defconfig
-> [...]
->>          omap3-tobi,3730storm:     FAIL:    multi_v7_defconfig
->
-> These OMAP3 failures are new regressions.  Full failure boot log attached.
-> Bisected down to:
->
-> cfa9667d4ac9da8b3ba2269f934ecd69ae504d39 is the first bad commit
-> commit cfa9667d4ac9da8b3ba2269f934ecd69ae504d39
-> Author: Tero Kristo <t-kristo@ti.com>
-> Date:   Tue Oct 22 11:53:02 2013 +0300
->
->      ARM: OMAP2+: io: use new clock init API
->
->      clk_init is now separated to a common function which gets called for all
->      SoC:s, which initializes the DT clocks and calls the SoC specific
-> clock init.
->
->      Signed-off-by: Tero Kristo <t-kristo@ti.com>
->      Acked-by: Tony Lindgren <tony@atomide.com>
->      Signed-off-by: Mike Turquette <mturquette@linaro.org>
->
-> Kevin
->
+clocksource_register() and __clocksource_register_scale()
+always return 0, so the comment is just pointless, it's
+outdated, remove it.
 
-Hi,
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ kernel/time/clocksource.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-I think this is because the tobi board is including wrong omap3-soc.dtsi 
-file (omap34xx.dtsi) through omap3-overo.dtsi.
-
-The board should include omap36xx.dtsi at least based on the boot log:
-
-[    0.000000] OMAP3630 ES1.2 (l2cache iva sgx neon isp 192mhz_clk )
-
--Tero
+diff --git a/kernel/time/clocksource.c b/kernel/time/clocksource.c
+index ba3e502..9951575 100644
+--- a/kernel/time/clocksource.c
++++ b/kernel/time/clocksource.c
+@@ -779,8 +779,6 @@ EXPORT_SYMBOL_GPL(__clocksource_updatefreq_scale);
+  * @scale:	Scale factor multiplied against freq to get clocksource hz
+  * @freq:	clocksource frequency (cycles per second) divided by scale
+  *
+- * Returns -EBUSY if registration fails, zero otherwise.
+- *
+  * This *SHOULD NOT* be called directly! Please use the
+  * clocksource_register_hz() or clocksource_register_khz helper functions.
+  */
+@@ -805,7 +803,6 @@ EXPORT_SYMBOL_GPL(__clocksource_register_scale);
+  * clocksource_register - Used to install new clocksources
+  * @cs:		clocksource to be registered
+  *
+- * Returns -EBUSY if registration fails, zero otherwise.
+  */
+ int clocksource_register(struct clocksource *cs)
+ {
+-- 
+1.7.1
