@@ -1,107 +1,44 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: next boot: 34 pass, 5 fail (next-20140122)
-Date: Thu, 23 Jan 2014 11:00:03 +0200
-Message-ID: <52E0DA13.9090302@ti.com>
-References: <52e06652.c103450a.79d7.6517@mx.google.com> <CAGa+x86=gKh11g1pzLqxdimeCxuZ478+ZAxd9GjO-m7Aa8L2fg@mail.gmail.com> <52E0B569.8000809@ti.com> <52E0CF58.5040109@epfl.ch>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: RE: [PATCH 1/4] power_supply: Add inlmt,iterm, min/max temp props
+Date: Thu, 23 Jan 2014 18:00:55 +0900
+Message-ID: <000101cf1819$a0321700$e0964500$%han@samsung.com>
+References: <1390411194-21410-1-git-send-email-jenny.tc@intel.com>
+ <1390411194-21410-2-git-send-email-jenny.tc@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38239 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751686AbaAWJAQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jan 2014 04:00:16 -0500
-In-Reply-To: <52E0CF58.5040109@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <1390411194-21410-2-git-send-email-jenny.tc@intel.com>
+Content-language: ko
+Sender: linux-kernel-owner@vger.kernel.org
+To: 'Jenny TC' <jenny.tc@intel.com>, linux-kernel@vger.kernel.org, 'Dmitry Eremin-Solenikov' <dbaryshkov@gmail.com>
+Cc: 'Anton Vorontsov' <cbouatmailru@gmail.com>, 'Anton Vorontsov' <anton.vorontsov@linaro.org>, 'Kim Milo' <Milo.Kim@ti.com>, 'Lee Jones' <lee.jones@linaro.org>, 'Chanwoo Choi' <cw00.choi@samsung.com>, 'Sachin Kamat' <sachin.kamat@linaro.org>, 'Rupesh Kumar' <rupesh.kumar@stericsson.com>, 'Lars-Peter Clausen' <lars@metafoo.de>, =?utf-8?Q?'Pali_Roh=C3=A1r'?= <pali.rohar@gmail.com>, 'Mark Brown' <broonie@opensource.wolfsonmicro.com>, 'Rhyland Klein' <rklein@nvidia.com>, 'Pavel Machek' <pavel@ucw.cz>, 'David Woodhouse' <dwmw2@infradead.org>, 'Tony Lindgren' <tony@atomide.com>, 'Russell King' <linux@arm.linux.org.uk>, 'Sebastian Reichel' <sre@ring0.de>, aaro.koskinen@iki.fi, freemangordon@abv.bg, linux-omap@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>
 List-Id: linux-omap@vger.kernel.org
-To: florian.vaussard@epfl.ch, Kevin Hilman <khilman@linaro.org>, kernel-build-reports@lists.linaro.org, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Ash Charles <ash@gumstix.com>
 
-On 01/23/2014 10:14 AM, Florian Vaussard wrote:
-> Hello,
->
-> On 01/23/2014 07:23 AM, Tero Kristo wrote:
->> On 01/23/2014 03:35 AM, Kevin Hilman wrote:
->>> On Wed, Jan 22, 2014 at 4:46 PM, Kevin's boot bot <khilman@linaro.org>
->>> wrote:
->>>> Automated DT boot report for various ARM defconfigs.
->>>>
->>>>
->>>> Tree/Branch: next
->>>> Git describe: next-20140122
->>>> Failed boot tests (console logs at the end)
->>>> ===========================================
->>>>           omap3-tobi,3730storm:     FAIL:    omap2plus_defconfig
->>> [...]
->>>>           omap3-tobi,3730storm:     FAIL:    multi_v7_defconfig
->>>
->>> These OMAP3 failures are new regressions.  Full failure boot log
->>> attached.
->>> Bisected down to:
->>>
->>> cfa9667d4ac9da8b3ba2269f934ecd69ae504d39 is the first bad commit
->>> commit cfa9667d4ac9da8b3ba2269f934ecd69ae504d39
->>> Author: Tero Kristo <t-kristo@ti.com>
->>> Date:   Tue Oct 22 11:53:02 2013 +0300
->>>
->>>       ARM: OMAP2+: io: use new clock init API
->>>
->>>       clk_init is now separated to a common function which gets called
->>> for all
->>>       SoC:s, which initializes the DT clocks and calls the SoC specific
->>> clock init.
->>>
->>>       Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>       Acked-by: Tony Lindgren <tony@atomide.com>
->>>       Signed-off-by: Mike Turquette <mturquette@linaro.org>
->>>
->>> Kevin
->>>
->>
->> Hi,
->>
->> I think this is because the tobi board is including wrong omap3-soc.dtsi
->> file (omap34xx.dtsi) through omap3-overo.dtsi.
->>
->> The board should include omap36xx.dtsi at least based on the boot log:
->>
->> [    0.000000] OMAP3630 ES1.2 (l2cache iva sgx neon isp 192mhz_clk )
->>
->
-> The problem is that the Overo (processor card on the Tobi extension
-> board) can have a variety of processor depending on the exact model:
->
-> - OMAP 35xx (1st generation: Air, Earth, Fire, Sand, Tide, Water, FE)
-> - OMAP 3730
-> - AM/DM 37xx
->
-> omap3-overo.dtsi includes omap34xx.dtsi to be compatible with the first
-> generation.
->
->
-> omap34xx.dtsi
->       |
->       -> omap3-overo.dtsi (processor card)
->                  |
->                  -> omap3-tobi.dtsi (expansion board)
->
->
-> What is the fundamental incompatibility here? If we have to specifically
-> include omap36xx for newer Overo, it will become hard to maintain as it
-> will double the number of Overo / expansion boards possibilities.
+On Thursday, January 23, 2014 2:20 AM, Jenny TC wrote:
+> 
+> Add new power supply properties for input current, charge termination
+> current, min and max temperature
+> 
+> POWER_SUPPLY_PROP_TEMP_MIN - minimum operatable temperature
+> POWER_SUPPLY_PROP_TEMP_MAX - maximum operatable temperature
+> 
+> POWER_SUPPLY_PROP_INLMT - input current limit programmed by charger. Indicates
+> the input current for a charging source.
+> 
+> POWER_SUPPLY_PROP_CHARGE_TERM_CUR - Charge termination current used to detect
+> the end of charge condition
+> 
+> Change-Id: Ifb40662bbfa24387ac7493ffa7ce01c6fae7e800
 
-Well, you get different board declaration inside 
-mach-omap2/board-generic.c for omap34xx vs omap36xx.
+Please remove this 'Change-Id' from the commit message.
 
-The clock data issues can be fixed by adding cpu_is_omap34xx() vs. 
-cpu_is_omap3630() checks within the mach-omap2/io.c file, but this is 
-probably for Tony/Kevin to comment whether we can/should do that.
+Best regards,
+Jingoo Han
 
--Tero
-
->
-> Regards,
->
-> Florian
->
-
+> Signed-off-by: Jenny TC <jenny.tc@intel.com>
+> ---
+>  Documentation/power/power_supply_class.txt |    6 ++++++
+>  drivers/power/power_supply_sysfs.c         |    4 ++++
+>  include/linux/power_supply.h               |    4 ++++
+>  3 files changed, 14 insertions(+)
