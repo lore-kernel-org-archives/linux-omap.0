@@ -1,156 +1,191 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: next boot: 34 pass, 5 fail (next-20140122)
-Date: Thu, 23 Jan 2014 17:35:08 +0100
-Message-ID: <52E144BC.4000900@epfl.ch>
-References: <52e06652.c103450a.79d7.6517@mx.google.com> <CAGa+x86=gKh11g1pzLqxdimeCxuZ478+ZAxd9GjO-m7Aa8L2fg@mail.gmail.com> <52E0B569.8000809@ti.com> <52E0CF58.5040109@epfl.ch> <52E0DA13.9090302@ti.com> <52E0DD9F.8000100@epfl.ch> <52E0E3D1.5050202@epfl.ch> <52E10AB4.9060002@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: "Incoming Fax" <Incoming.Fax6-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Subject: INCOMING FAX REPORT : Remote ID: 383-688-4778
+Date: Fri, 24 Jan 2014 00:56:52 +0800
+Message-ID: <RR9E3I38S0AYD2F0JOOWMEWAT9N5I3YB9689YI@vger.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:53573 "EHLO smtp4.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751564AbaAWQfN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Jan 2014 11:35:13 -0500
-In-Reply-To: <52E10AB4.9060002@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed;
+  boundary="_009_8CUR030XZ2JRCOGVEB64FK9J1X4W8O1M37QGFJ8J618HGSF1VURH49I_"
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ppp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@linaro.org>, kernel-build-reports@lists.linaro.org, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "tony@atomide.com" <tony@atomide.com>
-Cc: Mike Turquette <mturquette@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Ash Charles <ash@gumstix.com>
 
+--_009_8CUR030XZ2JRCOGVEB64FK9J1X4W8O1M37QGFJ8J618HGSF1VURH49I_
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: 8bit
 
+*********************************************************
+INCOMING FAX REPORT
+*********************************************************
 
-On 01/23/2014 01:27 PM, Tero Kristo wrote:
-> On 01/23/2014 11:41 AM, Florian Vaussard wrote:
->>
->>
->> On 01/23/2014 10:15 AM, Florian Vaussard wrote:
->>>
->>>
->>> On 01/23/2014 10:00 AM, Tero Kristo wrote:
->>>> On 01/23/2014 10:14 AM, Florian Vaussard wrote:
->>>>> Hello,
->>>>>
->>>>> On 01/23/2014 07:23 AM, Tero Kristo wrote:
->>>>>> On 01/23/2014 03:35 AM, Kevin Hilman wrote:
->>>>>>> On Wed, Jan 22, 2014 at 4:46 PM, Kevin's boot bot
->>>>>>> <khilman@linaro.org>
->>>>>>> wrote:
->>>>>>>> Automated DT boot report for various ARM defconfigs.
->>>>>>>>
->>>>>>>>
->>>>>>>> Tree/Branch: next
->>>>>>>> Git describe: next-20140122
->>>>>>>> Failed boot tests (console logs at the end)
->>>>>>>> ===========================================
->>>>>>>>            omap3-tobi,3730storm:     FAIL:    omap2plus_defconfig
->>>>>>> [...]
->>>>>>>>            omap3-tobi,3730storm:     FAIL:    multi_v7_defconfig
->>>>>>>
->>>>>>> These OMAP3 failures are new regressions.  Full failure boot log
->>>>>>> attached.
->>>>>>> Bisected down to:
->>>>>>>
->>>>>>> cfa9667d4ac9da8b3ba2269f934ecd69ae504d39 is the first bad commit
->>>>>>> commit cfa9667d4ac9da8b3ba2269f934ecd69ae504d39
->>>>>>> Author: Tero Kristo <t-kristo@ti.com>
->>>>>>> Date:   Tue Oct 22 11:53:02 2013 +0300
->>>>>>>
->>>>>>>        ARM: OMAP2+: io: use new clock init API
->>>>>>>
->>>>>>>        clk_init is now separated to a common function which gets
->>>>>>> called
->>>>>>> for all
->>>>>>>        SoC:s, which initializes the DT clocks and calls the SoC
->>>>>>> specific
->>>>>>> clock init.
->>>>>>>
->>>>>>>        Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>>>>>        Acked-by: Tony Lindgren <tony@atomide.com>
->>>>>>>        Signed-off-by: Mike Turquette <mturquette@linaro.org>
->>>>>>>
->>>>>>> Kevin
->>>>>>>
->>>>>>
->>>>>> Hi,
->>>>>>
->>>>>> I think this is because the tobi board is including wrong
->>>>>> omap3-soc.dtsi
->>>>>> file (omap34xx.dtsi) through omap3-overo.dtsi.
->>>>>>
->>>>>> The board should include omap36xx.dtsi at least based on the boot
->>>>>> log:
->>>>>>
->>>>>> [    0.000000] OMAP3630 ES1.2 (l2cache iva sgx neon isp 192mhz_clk )
->>>>>>
->>>>>
->>>>> The problem is that the Overo (processor card on the Tobi extension
->>>>> board) can have a variety of processor depending on the exact model:
->>>>>
->>>>> - OMAP 35xx (1st generation: Air, Earth, Fire, Sand, Tide, Water, FE)
->>>>> - OMAP 3730
->>>>> - AM/DM 37xx
->>>>>
->>>>> omap3-overo.dtsi includes omap34xx.dtsi to be compatible with the
->>>>> first
->>>>> generation.
->>>>>
->>>>>
->>>>> omap34xx.dtsi
->>>>>        |
->>>>>        -> omap3-overo.dtsi (processor card)
->>>>>                   |
->>>>>                   -> omap3-tobi.dtsi (expansion board)
->>>>>
->>>>>
->>>>> What is the fundamental incompatibility here? If we have to
->>>>> specifically
->>>>> include omap36xx for newer Overo, it will become hard to maintain
->>>>> as it
->>>>> will double the number of Overo / expansion boards possibilities.
->>>>
->>>> Well, you get different board declaration inside
->>>> mach-omap2/board-generic.c for omap34xx vs omap36xx.
->>>>
->>>> The clock data issues can be fixed by adding cpu_is_omap34xx() vs.
->>>> cpu_is_omap3630() checks within the mach-omap2/io.c file, but this is
->>>> probably for Tony/Kevin to comment whether we can/should do that.
->>>>
->>>
->>> I just tested next-20140123 with an OMAP3630 ES1.2 Overo/Tobi. Changing
->>> the include to omap36xx.dtsi do not fix the issue. I still get the
->>> external abort on non-linefetch (full log here [1]).
->>>
->>
->> So the issue is clearly caused by the hwmod warning just before the
->> panic I think:
->>
->> omap_hwmod: usb_tll_hs: enabled state can only be entered from
->> initialized, idle, or disabled state
->>
->> usb_tll_hs is thus not enabled, and we get a panic when trying to read
->> the revision register
->>
->>          ver =  usbtll_read(tll->base, OMAP_USBTLL_REVISION);
->>
->> at drivers/mfd/omap-usb-tll.c:237.
->>
->> I do not know enough about hwmod to efficiently debug why usb_tll_hs is
->> not _HWMOD_STATE_INITIALIZED before trying to enable it. Are we missing
->> some DT data?
-> 
-> The problem is the point before this one, uart4_fck lookup fails. This
-> causes the hwmod code to bail out early and not init anything after it.
-> 
-> I guess you are still mapping wrong clock init as it fails with uart4.
-> Give the attached patch a shot and see how it behaves.
-> 
+Date/Time: 01/23/2014 01:32:25 EST
+Speed: 05829 bps
+Connection time: 01:04
+Pages: 7
+Resolution: Normal
+Remote ID: 383-688-4778
+Line number: 383-688-4778
+DTMF/DID:
+Description: New Docs.pdf
 
-Ok, so with your patch and changing the include from omap34xx to
-omap36xx, it works. Now I have to come up with a way to manage all the
-versions without duplicating all the DT files :-(
+*********************************************************
 
-Regards,
+CONFIDENTIALITY NOTICE: 
+This electronic mail transmission and any attached files contain information intended for the exclusive use of the individual or entity to whom it is addressed and may contain information belonging to the sender that is proprietary, privileged, confidential and/or protected from disclosure under applicable law. If you are not the intended recipient, you are hereby notified that any viewing, copying, disclosure or distributions of this electronic message are violations of federal law. Please notify the sender of any unintended recipients and delete the original message without making any copies.  Thank You
 
-Florian
+--_009_8CUR030XZ2JRCOGVEB64FK9J1X4W8O1M37QGFJ8J618HGSF1VURH49I_
+Content-Type: application/zip; name="Scan_001_383-688-4778.zip"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="Scan_001_383-688-4778.zip"
 
+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
+AAEAZwAAAIQdAAAAAA== 
+
+--_009_8CUR030XZ2JRCOGVEB64FK9J1X4W8O1M37QGFJ8J618HGSF1VURH49I_
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--_009_8CUR030XZ2JRCOGVEB64FK9J1X4W8O1M37QGFJ8J618HGSF1VURH49I_--
