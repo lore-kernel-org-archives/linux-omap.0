@@ -1,73 +1,42 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 6/9] ARM: DTS: omap5: Set all audio related IP's status to disabled as default
-Date: Fri, 24 Jan 2014 10:19:04 +0200
-Message-ID: <1390551547-12406-7-git-send-email-peter.ujfalusi@ti.com>
-References: <1390551547-12406-1-git-send-email-peter.ujfalusi@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 1/2] ARM: omapfb: add coherent dma memory support
+Date: Fri, 24 Jan 2014 08:47:03 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EDBF11F@DBDE04.ent.ti.com>
+References: <1388409550-10720-1-git-send-email-tomi.valkeinen@ti.com>
+ <1388409550-10720-2-git-send-email-tomi.valkeinen@ti.com>
+ <20140107235951.GH5074@atomide.com> <52CD5D13.9090806@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EDB11F5@DBDE04.ent.ti.com>
+ <52CE5123.9050702@gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EDB141E@DBDE04.ent.ti.com>
+ <52D146E8.4090105@gmail.com> <52E0333F.4000400@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60990 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752115AbaAXITt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jan 2014 03:19:49 -0500
-In-Reply-To: <1390551547-12406-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:44858 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752127AbaAXIrb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jan 2014 03:47:31 -0500
+In-Reply-To: <52E0333F.4000400@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-Board dts files will need to enable the IP nodes which they are using and
-does not have to care about the not used ones (to disable them).
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/boot/dts/omap5.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index fc3fad563861..84cee44f1fad 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -467,6 +467,7 @@
- 			dmas = <&sdma 65>,
- 			       <&sdma 66>;
- 			dma-names = "up_link", "dn_link";
-+			status = "disabled";
- 		};
- 
- 		dmic: dmic@4012e000 {
-@@ -478,6 +479,7 @@
- 			ti,hwmods = "dmic";
- 			dmas = <&sdma 67>;
- 			dma-names = "up_link";
-+			status = "disabled";
- 		};
- 
- 		mcbsp1: mcbsp@40122000 {
-@@ -492,6 +494,7 @@
- 			dmas = <&sdma 33>,
- 			       <&sdma 34>;
- 			dma-names = "tx", "rx";
-+			status = "disabled";
- 		};
- 
- 		mcbsp2: mcbsp@40124000 {
-@@ -506,6 +509,7 @@
- 			dmas = <&sdma 17>,
- 			       <&sdma 18>;
- 			dma-names = "tx", "rx";
-+			status = "disabled";
- 		};
- 
- 		mcbsp3: mcbsp@40126000 {
-@@ -520,6 +524,7 @@
- 			dmas = <&sdma 19>,
- 			       <&sdma 20>;
- 			dma-names = "tx", "rx";
-+			status = "disabled";
- 		};
- 
- 		timer1: timer@4ae18000 {
--- 
-1.8.5.3
+> -----Original Message-----
+> From: Ivaylo Dimitrov [mailto:ivo.g.dimitrov.75@gmail.com]
+> Sent: Thursday, January 23, 2014 2:38 AM
+> To: Hiremath, Vaibhav; Ivaylo Dimitrov; Valkeinen, Tomi
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+> fbdev@vger.kernel.org
+> Subject: Re: [PATCH 1/2] ARM: omapfb: add coherent dma memory support
+> 
+> Hmm, maybe this https://lkml.org/lkml/2014/1/22/386 will solve our issues
+> 
+Link seems to be coming blank to me :)
 
+Thanks,
+Vaibhav
