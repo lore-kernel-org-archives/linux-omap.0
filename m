@@ -1,66 +1,87 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] serial: omap-serial: Move info message to probe function
-Date: Fri, 24 Jan 2014 09:37:32 -0800
-Message-ID: <20140124173731.GA25488@atomide.com>
-References: <1390583381-9076-1-git-send-email-mpa@pengutronix.de>
+Subject: Re: next boot: 34 pass, 5 fail (next-20140122)
+Date: Fri, 24 Jan 2014 10:00:20 -0800
+Message-ID: <20140124180020.GB25488@atomide.com>
+References: <52e06652.c103450a.79d7.6517@mx.google.com>
+ <CAGa+x86=gKh11g1pzLqxdimeCxuZ478+ZAxd9GjO-m7Aa8L2fg@mail.gmail.com>
+ <52E0B569.8000809@ti.com>
+ <52E0CF58.5040109@epfl.ch>
+ <52E0DA13.9090302@ti.com>
+ <52E0DD9F.8000100@epfl.ch>
+ <52E0E3D1.5050202@epfl.ch>
+ <52E10AB4.9060002@ti.com>
+ <52E144BC.4000900@epfl.ch>
+ <20140123173500.GI7993@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50354 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50787 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750997AbaAXRhl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jan 2014 12:37:41 -0500
+	with ESMTP id S1751723AbaAXSAc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jan 2014 13:00:32 -0500
 Content-Disposition: inline
-In-Reply-To: <1390583381-9076-1-git-send-email-mpa@pengutronix.de>
+In-Reply-To: <20140123173500.GI7993@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Markus Pargmann <mpa@pengutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, kernel@pengutronix.de
+To: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@linaro.org>, kernel-build-reports@lists.linaro.org, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Mike Turquette <mturquette@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Ash Charles <ash@gumstix.com>
 
-* Markus Pargmann <mpa@pengutronix.de> [140124 09:12]:
-> Currently the info message about a missing wakeirq for uart is printed
-> every time the serial driver's startup function is called. This happens
-> multiple times and not just once.
+* Tony Lindgren <tony@atomide.com> [140123 09:37]:
+> * Florian Vaussard <florian.vaussard@epfl.ch> [140123 08:37]:
+> > On 01/23/2014 01:27 PM, Tero Kristo wrote:
+> > >>>>>
+> > >>>>> The problem is that the Overo (processor card on the Tobi extension
+> > >>>>> board) can have a variety of processor depending on the exact model:
+> > >>>>>
+> > >>>>> - OMAP 35xx (1st generation: Air, Earth, Fire, Sand, Tide, Water, FE)
+> > >>>>> - OMAP 3730
+> > >>>>> - AM/DM 37xx
 > 
-> This patch moves the infomessage to the probe function to display it
-> only once.
+> With the legacy booting, the real problem is that board-overo.c is
+> trying to boot all overos with just one machine ID. Tero's patch works
+> around that issue for legacy booting, but maybe it's best to do the SoC
+> detection in the board-*.c files in init_early as needed rather than
+> patch all the board-*.c files.
+> 
+> Sounds like we need to do the same for legacy booting for the original
+> beagle as well?
 
-Makes sense to me:
+Looks like the beagle boards are OK as for legacy booting we're
+seeting omap_clk_soc_init = omap3xxx_clk_init. And for DT based booting
+we have separate omap3-beagle.dts and omap3-beagle-xm.dts that include
+omap34xx.dtsi and omap36xx.dtsi respectively.
+
+So it seems that only the over .dts files need to be fixed.
  
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
-> ---
->  drivers/tty/serial/omap-serial.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+> > Ok, so with your patch and changing the include from omap34xx to
+> > omap36xx, it works. Now I have to come up with a way to manage all the
+> > versions without duplicating all the DT files :-(
 > 
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> index fa511eb..2051581 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -738,9 +738,6 @@ static int serial_omap_startup(struct uart_port *port)
->  			return retval;
->  		}
->  		disable_irq(up->wakeirq);
-> -	} else {
-> -		dev_info(up->port.dev, "no wakeirq for uart%d\n",
-> -			 up->port.line);
->  	}
->  
->  	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
-> @@ -1687,6 +1684,9 @@ static int serial_omap_probe(struct platform_device *pdev)
->  	up->port.iotype = UPIO_MEM;
->  	up->port.irq = uartirq;
->  	up->wakeirq = wakeirq;
-> +	if (!up->wakeirq)
-> +		dev_info(up->port.dev, "no wakeirq for uart%d\n",
-> +			 up->port.line);
->  
->  	up->port.regshift = 2;
->  	up->port.fifosize = 64;
-> -- 
-> 1.8.5.2
+> Yeah there's no quick fix here that's suitable in the long run. The
+> proper fix is to have minimal SoC specific .dts files for the
+> supported overo variants that include the common board specific
+> .dtsi file(s).
 > 
+> We did a similar thing recently for the compulab variants, see
+> commit 0f0cfc69547e (ARM: dts: Add support for sbc-3xxx with cm-t3730)
+> for example. Also take a look at the follo-up patches posted to
+> the mailing list.
+> 
+> With device tree based booting we don't want to build data into the
+> kernel for all the SoC variants for things like clocks, pinctrl and
+> hwmod. And we already need to define SoC specific things in the .dts
+> files for pinctrl with clocks and hwmod heading that way too, so
+> relying on the built-in kernel data won't work in the long run.
+> 
+> If we really wanted to, we could set some devices to disabled state
+> in the bootloader or in the kernel and rely on the SoC detection. But
+> then we're back to building all the data into the kernel. And we
+> won't be able to boot new SoC variants with just .dts changes in
+> the long run like device tree is supposed to do.
+> 
+> Regards,
+> 
+> Tony
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
