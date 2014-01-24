@@ -1,42 +1,48 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/2] ARM: omapfb: add coherent dma memory support
-Date: Fri, 24 Jan 2014 12:35:30 +0200
-Message-ID: <52E241F2.2040103@ti.com>
-References: <1388409550-10720-1-git-send-email-tomi.valkeinen@ti.com> <1388409550-10720-2-git-send-email-tomi.valkeinen@ti.com> <20140107235951.GH5074@atomide.com> <52CD5D13.9090806@ti.com> <79CD15C6BA57404B839C016229A409A83EDB11F5@DBDE04.ent.ti.com> <52CE5123.9050702@gmail.com> <79CD15C6BA57404B839C016229A409A83EDB141E@DBDE04.ent.ti.com> <52D146E8.4090105@gmail.com> <52E0333F.4000400@gmail.com>
+Subject: Re: [PATCHv3 30/41] ARM: omap3-n900.dts: add display information
+Date: Fri, 24 Jan 2014 13:46:15 +0200
+Message-ID: <52E25287.9070201@ti.com>
+References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com> <1390301833-24944-31-git-send-email-tomi.valkeinen@ti.com> <20140121152605.GA5983@earth.universe>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="vhVGecjX8RAjmRcrLhAt5bK5GsQt5KrOT"
+	boundary="gAJL65kDhGdddwPDSCcpIcWBCR5AvWcUr"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48776 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49253 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752168AbaAXKgA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Jan 2014 05:36:00 -0500
-In-Reply-To: <52E0333F.4000400@gmail.com>
+	id S1752112AbaAXLrA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Jan 2014 06:47:00 -0500
+In-Reply-To: <20140121152605.GA5983@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: Sebastian Reichel <sre@debian.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
---vhVGecjX8RAjmRcrLhAt5bK5GsQt5KrOT
+--gAJL65kDhGdddwPDSCcpIcWBCR5AvWcUr
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2014-01-22 23:08, Ivaylo Dimitrov wrote:
-> Hmm, maybe this https://lkml.org/lkml/2014/1/22/386 will solve our issu=
-es
+On 2014-01-21 17:26, Sebastian Reichel wrote:
+> On Tue, Jan 21, 2014 at 12:57:02PM +0200, Tomi Valkeinen wrote:
+>> Add DT data for OMAP3 N900 board. The board has the following
+>> displays:
+>>
+>> lcd: LCD panel connected to OMAP's SDI output
+>> tv: analog svideo
+>>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>=20
+> Your dss-dt-review-3 branch boots on my N900 with working display.
+>=20
+> Tested-by: Sebastian Reichel <sre@debian.org>
 
-I don't know, it wasn't immediately clear to me if the reserved memory
-was handled with CMA or not.
-
-Also, we have this funniness that omapfb is not present in DT data, so
-we can't give reserved memory to omapfb directly like that.
+Ok, thanks!
 
  Tomi
 
 
 
---vhVGecjX8RAjmRcrLhAt5bK5GsQt5KrOT
+--gAJL65kDhGdddwPDSCcpIcWBCR5AvWcUr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -45,19 +51,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.14 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJS4kH2AAoJEPo9qoy8lh71HwUP/1m3rgiW+mpWfVsPVvkhGDZJ
-X5t62Sg8Y8k14tgjRoKU5TtCMcAHS5ol/PMlF/9F25H+txJI4xA0o0a9KNLUn0og
-qmxqoTmmToA49R9dzKkrs9mh09htr0x4dVGRdh8gIyYiardzoM10/b4UGt8goJqU
-HWW02gKaVRPahjGKU19P8dmSOykhcafPHEYY5m0MihlaFTKwGP2HCiwLDorE8UCM
-zEre638vANjX6UR44MxkDHKB2BsmSnXkLhqwGUMCldPO2qF4th2SwCH6vFhl9XT4
-+f11CsN9N+Q3plTy1jBGlGWVf1d5bzDDurzNebvVKuRQLG7yc9u0LIjISXyFXvy7
-kmvmTw1RvEALb1vpA7mI5nUxVkeTj41RP8svAR6QGCx0UYETeJAbIxoEQ/jNlKPQ
-HV1f54kRlySk9uCpo0guUu6/mHnxbzpvfrOz2ErVF7B0TDsmHPJ56Ehg+8jhYY65
-xDfnwbuf8RxNX+D22FMpbLTBbfkZ2DnVFGdQw7eRqPFp0gYdkLXfX+O/pO65uFk/
-0fCuGwewMvhgk8E9NNlkDfOfSg2eCEiat7CAschpmUpIBwAVo5lDGyVfD34Ec2Ir
-zGRsEPyYBYfiA4nk7Q6LuqWCmT9v2CtU08ng7cLApaKfH8XPBTvKcLc9vHkZr3te
-uneVB4qdOGwM6yS4rYWC
-=cE1l
+iQIcBAEBAgAGBQJS4lKHAAoJEPo9qoy8lh71S98P/jFlnLDfwch1bSGpEroUk98Q
+3LD3accp0ziNan4VW4O6C0nSq0at48Cr/XGCXJhYRzQHPFgZGUp2QiBhZC+4lsX2
+j73NGdVoclaS+GaZM+SSM3pjDFa0XJKzDIsS4YajxHaX1RRdn7QwyUJ4rrHupirH
+T/URJCjuBSF8wwSdBlDdpiQ/7qg04KIJmL6LgoxrFXoyQ1zRT/jbfDW9WQGp98XX
+CjOHbYde7WyVqHvF+SumIXCIpUqW3t4/4Bpb/hPG7qBKvR99piJ0cO9sqOHS+XVI
+vuuC4AX4EunxfpqeGEqNW8HdlL+O6WRMWYGjwuDDfDPM/5w7DV7fixOJ69SNWoR5
+ULx6Ues3UPLhNYUYBTDH4rGrZFxRxMhHHCcrAz+dUfis11x0IZwJbBomYQPu0+Kd
+oTsuDtmwEZ1IY1X7yn0WfuUboEN2HQnURhteodocuL9Rg5G2ObwKbdphnOOkHTMq
+BLNwbn4xdlld4c/jQBKvx+Lv/vsi66hFU9GZQXQoIWudKjPVKT/yRphFnKiEub11
+OzFVFCqWxrW9PKJZdE34zdqgGsxhrSyV/I9zPtgrNCYBO4voTJ2QIjPlgNAHUoem
+clYtW+Mv1CJqGZ4ksDwTWA8QI/fyAtc7FUEw2IgnquCuLXXNU7R2GW4iRH5THAJQ
+g+kl4mTUmyMbd8CpjrKs
+=fJZZ
 -----END PGP SIGNATURE-----
 
---vhVGecjX8RAjmRcrLhAt5bK5GsQt5KrOT--
+--gAJL65kDhGdddwPDSCcpIcWBCR5AvWcUr--
