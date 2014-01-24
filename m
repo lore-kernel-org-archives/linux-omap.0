@@ -1,87 +1,82 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: next boot: 34 pass, 5 fail (next-20140122)
-Date: Fri, 24 Jan 2014 21:51:14 +0100
-Message-ID: <52E2D242.3080307@epfl.ch>
-References: <52e06652.c103450a.79d7.6517@mx.google.com> <CAGa+x86=gKh11g1pzLqxdimeCxuZ478+ZAxd9GjO-m7Aa8L2fg@mail.gmail.com> <52E0B569.8000809@ti.com> <52E0CF58.5040109@epfl.ch> <52E0DA13.9090302@ti.com> <52E0DD9F.8000100@epfl.ch> <52E0E3D1.5050202@epfl.ch> <52E10AB4.9060002@ti.com> <52E144BC.4000900@epfl.ch> <20140123173500.GI7993@atomide.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCHv2 0/5] wl1251 device tree support
+Date: Fri, 24 Jan 2014 22:53:22 +0100
+Message-ID: <20140124215321.GA25727@earth.universe>
+References: <1382890469-25286-1-git-send-email-sre@debian.org>
+ <1386289336-26704-1-git-send-email-sre@debian.org>
+ <20140106225709.GA23070@earth.universe>
+ <20140117014514.GA604@earth.universe>
+ <20140117150127.GA15145@tuxdriver.com>
+ <20140117174415.GG7993@atomide.com>
+ <20140117192204.GB15145@tuxdriver.com>
+ <20140118174705.GE7235@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp5.epfl.ch ([128.178.224.8]:55548 "EHLO smtp5.epfl.ch"
+Received: from ring0.de ([91.143.88.219]:34720 "EHLO smtp.ring0.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751896AbaAXUvT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Jan 2014 15:51:19 -0500
-In-Reply-To: <20140123173500.GI7993@atomide.com>
+	id S1751674AbaAXVxi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Jan 2014 16:53:38 -0500
+Content-Disposition: inline
+In-Reply-To: <20140118174705.GE7235@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@linaro.org>, kernel-build-reports@lists.linaro.org, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Mike Turquette <mturquette@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Ash Charles <ash@gumstix.com>
+To: "John W. Linville" <linville@tuxdriver.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org
 
 
+--FCuugMFkClbJLl1L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 01/23/2014 06:35 PM, Tony Lindgren wrote:
-> * Florian Vaussard <florian.vaussard@epfl.ch> [140123 08:37]:
->> On 01/23/2014 01:27 PM, Tero Kristo wrote:
->>>>>>>
->>>>>>> The problem is that the Overo (processor card on the Tobi extension
->>>>>>> board) can have a variety of processor depending on the exact model:
->>>>>>>
->>>>>>> - OMAP 35xx (1st generation: Air, Earth, Fire, Sand, Tide, Water, FE)
->>>>>>> - OMAP 3730
->>>>>>> - AM/DM 37xx
-> 
-> With the legacy booting, the real problem is that board-overo.c is
-> trying to boot all overos with just one machine ID. Tero's patch works
-> around that issue for legacy booting, but maybe it's best to do the SoC
-> detection in the board-*.c files in init_early as needed rather than
-> patch all the board-*.c files.
-> 
-> Sounds like we need to do the same for legacy booting for the original
-> beagle as well?
-> 
->> Ok, so with your patch and changing the include from omap34xx to
->> omap36xx, it works. Now I have to come up with a way to manage all the
->> versions without duplicating all the DT files :-(
-> 
-> Yeah there's no quick fix here that's suitable in the long run. The
-> proper fix is to have minimal SoC specific .dts files for the
-> supported overo variants that include the common board specific
-> .dtsi file(s).
-> 
-> We did a similar thing recently for the compulab variants, see
-> commit 0f0cfc69547e (ARM: dts: Add support for sbc-3xxx with cm-t3730)
-> for example. Also take a look at the follo-up patches posted to
-> the mailing list.
-> 
+On Sat, Jan 18, 2014 at 09:47:06AM -0800, Tony Lindgren wrote:
+> [...]
+>=20
+> The reason was for keeping things building and git bisect working.
+>=20
+> I do have wl1251-pdata-signed as the base for branch
+> omap-for-v3.14/omap3-board-removal. However the board removal was
+> considered too early for v3.14, so that's been postponed. This is
+> because people are still updating their systems to device tree
+> based booting. So I can redo my omap-for-v3.14/omap3-board-removal
+> against v3.14.
+>=20
+> So if you want to, feel free to pick all the wl12xx patches to your
+> wireless tree. AFAIK my omap-for-v3.14/omap3-board-removal is the
+> only other user for those patches, and that I can redo that on
+> v3.14.
+>=20
+> So for the arch/arm/*omap* touching patches, feel free to add:
+>=20
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-I agree with your approach. But in my case, I have N x M combinations (N
-Overo variants, M expansion boards). Currently we have something like 2
-x 10, so having ~20 dts files (not counting all the common dtsi files)
-will start to get really messy. And this will only get worst as time
-goes by (more expansion boards, and maybe other pin-compatible Overo).
+Another ping. If this does not go into 3.14 via wireless tree
+it will become complicated for 3.15 again.
 
-> With device tree based booting we don't want to build data into the
-> kernel for all the SoC variants for things like clocks, pinctrl and
-> hwmod. And we already need to define SoC specific things in the .dts
-> files for pinctrl with clocks and hwmod heading that way too, so
-> relying on the built-in kernel data won't work in the long run.
-> 
-> If we really wanted to, we could set some devices to disabled state
-> in the bootloader or in the kernel and rely on the SoC detection. But
-> then we're back to building all the data into the kernel. And we
-> won't be able to boot new SoC variants with just .dts changes in
-> the long run like device tree is supposed to do.
-> 
+-- Sebastian
 
-Data must by in the dts file, but what is needed is a mechanism similar
-to the hardware connector: the Overo's dts should be combined with the
-expansion board's dts (at runtime, or offline). Overlays seem a good
-candidate, but I have no experience with them. As I said to Nishanth in
-the other thread, overlays are fused by the userspace in the case of
-BeagleBone AFAIK. But I need them early in the boot process (otherwise,
-no NIC, thus no NFS or similar goodies). I need to think more on this.
+--FCuugMFkClbJLl1L
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Florian
+iQIcBAEBCAAGBQJS4uDRAAoJENju1/PIO/qaAOkP/AnKO//56D5poxvhpsDbnG1/
+kQz24cexjIPlWeeWHlFQaiU7gTl5ftqhhtR0xBES6CbPfQKD3zFMqN3I6llN66eA
+SaNVP6/l/AN6PTvMKxrf2EYzRw/tD/axGKyl2DfTylcZlXjVaW0kErbtLAts/ghl
+fHbAT4R3B2OoHOlzlFDrm/0rw7/uVSoiXFcIZwmwxTItQXJrOMwL/OmpoOdbmoqE
+Q+uXEl6qroM2lH+JjAhIoj04z66R9bWawBr18Xb36jNhRFHwhEz3WZx+feqoM9JI
+bdNyl35iUDba/hgDxoTLsa9NXPeWQd7j6ONbcCYypOF748ix9AW8Du8hefdEY5ab
+Pa0eVfa7191+SulBFAwhddNeXzlHy+KiBi9CTqSDGOO7/K3Wh3ISBHl8ZdlUvt+o
+k4w8lcF//K8D9IG1k1dk1+0OFrCfcOOPLYXznTbt1zPkLr2sxci7K4Rt48jBahyF
+q9A93IQEJ/GUlp//HSybLUGG5Pkz3SU7qHvRc+MdsWBSvqIvWndAzDgRmA4kSS2d
+pJju2qTMavqNcxxOjksR6hQ3U7j2HJ1V867UeM60TmvnDiHODPlJb9z5zr3MvGEK
+vObVFoWEK+sRrZV2CjeeN8rmL3fsW9d5ODKfc/vnTlZAWTrwsyzC291sK7YoJh/b
+9FhEweMck6Ia3so0s7th
+=4YoO
+-----END PGP SIGNATURE-----
+
+--FCuugMFkClbJLl1L--
