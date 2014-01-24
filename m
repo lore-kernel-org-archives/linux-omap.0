@@ -1,69 +1,54 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv3 30/41] ARM: omap3-n900.dts: add display information
-Date: Fri, 24 Jan 2014 13:46:15 +0200
-Message-ID: <52E25287.9070201@ti.com>
-References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com> <1390301833-24944-31-git-send-email-tomi.valkeinen@ti.com> <20140121152605.GA5983@earth.universe>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH RFC v2 REPOST 3/8] ASoC: davinci-evm: HDMI
+ audio support for TDA998x trough McASP I2S bus
+Date: Fri, 24 Jan 2014 14:57:09 +0200
+Message-ID: <52E26325.4040203@ti.com>
+References: <cover.1387535299.git.jsarha@ti.com>	<d3c3f645d39338df0ee9686cb030255ce36a249d.1387535302.git.jsarha@ti.com>	<20131231132555.GA31886@sirena.org.uk>	<52D67099.1040904@ti.com>	<20140115165100.3bfab96f@armhf>	<52DF8D60.9020505@ti.com>	<20140122111953.238349a5@armhf>
+ <20140122114647.20f75d0d@armhf>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="gAJL65kDhGdddwPDSCcpIcWBCR5AvWcUr"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49253 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752112AbaAXLrA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Jan 2014 06:47:00 -0500
-In-Reply-To: <20140121152605.GA5983@earth.universe>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20140122114647.20f75d0d@armhf>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
---gAJL65kDhGdddwPDSCcpIcWBCR5AvWcUr
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On 01/22/2014 12:46 PM, Jean-Francois Moine wrote:
+> On Wed, 22 Jan 2014 11:19:53 +0100
+> Jean-Francois Moine <moinejf@free.fr> wrote:
+>
+>> As both I2S and S/PDIF may be used for HDMI output in the Cubox,
+>> I wrote a tda998x CODEC which gets the audio ports from the DT and
+>> dynamically sets these ports and the audio type (i2s / spdif) on audio
+>> streaming start. I have not submitted yet this codec and the associated
+>> changes in tda998x, because I am waiting for a first patch series on the
+>> tda998x to be applied
+>> (http://lists.freedesktop.org/archives/dri-devel/2014-January/051552.html).
+>
+> Sorry, the last patch request is
+>
+> http://lists.freedesktop.org/archives/dri-devel/2014-January/052201.html
+>
 
-On 2014-01-21 17:26, Sebastian Reichel wrote:
-> On Tue, Jan 21, 2014 at 12:57:02PM +0200, Tomi Valkeinen wrote:
->> Add DT data for OMAP3 N900 board. The board has the following
->> displays:
->>
->> lcd: LCD panel connected to OMAP's SDI output
->> tv: analog svideo
->>
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->=20
-> Your dss-dt-review-3 branch boots on my N900 with working display.
->=20
-> Tested-by: Sebastian Reichel <sre@debian.org>
+I checked the sample format support again with and without your patches.
 
-Ok, thanks!
+On my other TV all the formats produce something that sounds Ok if you 
+do not listen too carefully or use sine sweep etc. make the short 
+comings audible. The other TV is completely silent when playing the "non 
+supported" formats.
 
- Tomi
+Could you give me a link to a git repo with your tda998x codec code so I 
+could prepare to use that too?
 
-
-
---gAJL65kDhGdddwPDSCcpIcWBCR5AvWcUr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJS4lKHAAoJEPo9qoy8lh71S98P/jFlnLDfwch1bSGpEroUk98Q
-3LD3accp0ziNan4VW4O6C0nSq0at48Cr/XGCXJhYRzQHPFgZGUp2QiBhZC+4lsX2
-j73NGdVoclaS+GaZM+SSM3pjDFa0XJKzDIsS4YajxHaX1RRdn7QwyUJ4rrHupirH
-T/URJCjuBSF8wwSdBlDdpiQ/7qg04KIJmL6LgoxrFXoyQ1zRT/jbfDW9WQGp98XX
-CjOHbYde7WyVqHvF+SumIXCIpUqW3t4/4Bpb/hPG7qBKvR99piJ0cO9sqOHS+XVI
-vuuC4AX4EunxfpqeGEqNW8HdlL+O6WRMWYGjwuDDfDPM/5w7DV7fixOJ69SNWoR5
-ULx6Ues3UPLhNYUYBTDH4rGrZFxRxMhHHCcrAz+dUfis11x0IZwJbBomYQPu0+Kd
-oTsuDtmwEZ1IY1X7yn0WfuUboEN2HQnURhteodocuL9Rg5G2ObwKbdphnOOkHTMq
-BLNwbn4xdlld4c/jQBKvx+Lv/vsi66hFU9GZQXQoIWudKjPVKT/yRphFnKiEub11
-OzFVFCqWxrW9PKJZdE34zdqgGsxhrSyV/I9zPtgrNCYBO4voTJ2QIjPlgNAHUoem
-clYtW+Mv1CJqGZ4ksDwTWA8QI/fyAtc7FUEw2IgnquCuLXXNU7R2GW4iRH5THAJQ
-g+kl4mTUmyMbd8CpjrKs
-=fJZZ
------END PGP SIGNATURE-----
-
---gAJL65kDhGdddwPDSCcpIcWBCR5AvWcUr--
+Best regards,
+Jyri
