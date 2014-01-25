@@ -1,7 +1,7 @@
-From: "John W. Linville" <linville@tuxdriver.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCHv2 0/5] wl1251 device tree support
-Date: Fri, 24 Jan 2014 18:56:57 -0500
-Message-ID: <20140124235656.GM4309@tuxdriver.com>
+Date: Fri, 24 Jan 2014 16:09:29 -0800
+Message-ID: <20140125000929.GD25488@atomide.com>
 References: <1382890469-25286-1-git-send-email-sre@debian.org>
  <1386289336-26704-1-git-send-email-sre@debian.org>
  <20140106225709.GA23070@earth.universe>
@@ -11,52 +11,62 @@ References: <1382890469-25286-1-git-send-email-sre@debian.org>
  <20140117192204.GB15145@tuxdriver.com>
  <20140118174705.GE7235@atomide.com>
  <20140124215321.GA25727@earth.universe>
+ <20140124235656.GM4309@tuxdriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from charlotte.tuxdriver.com ([70.61.120.58]:48631 "EHLO
-	smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751884AbaAYAAz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jan 2014 19:00:55 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51271 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750903AbaAYAJf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jan 2014 19:09:35 -0500
 Content-Disposition: inline
-In-Reply-To: <20140124215321.GA25727@earth.universe>
+In-Reply-To: <20140124235656.GM4309@tuxdriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org
+To: "John W. Linville" <linville@tuxdriver.com>
+Cc: Sebastian Reichel <sre@ring0.de>, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Fri, Jan 24, 2014 at 10:53:22PM +0100, Sebastian Reichel wrote:
-> On Sat, Jan 18, 2014 at 09:47:06AM -0800, Tony Lindgren wrote:
-> > [...]
+* John W. Linville <linville@tuxdriver.com> [140124 16:03]:
+> On Fri, Jan 24, 2014 at 10:53:22PM +0100, Sebastian Reichel wrote:
+> > On Sat, Jan 18, 2014 at 09:47:06AM -0800, Tony Lindgren wrote:
+> > > [...]
+> > > 
+> > > The reason was for keeping things building and git bisect working.
+> > > 
+> > > I do have wl1251-pdata-signed as the base for branch
+> > > omap-for-v3.14/omap3-board-removal. However the board removal was
+> > > considered too early for v3.14, so that's been postponed. This is
+> > > because people are still updating their systems to device tree
+> > > based booting. So I can redo my omap-for-v3.14/omap3-board-removal
+> > > against v3.14.
+> > > 
+> > > So if you want to, feel free to pick all the wl12xx patches to your
+> > > wireless tree. AFAIK my omap-for-v3.14/omap3-board-removal is the
+> > > only other user for those patches, and that I can redo that on
+> > > v3.14.
+> > > 
+> > > So for the arch/arm/*omap* touching patches, feel free to add:
+> > > 
+> > > Acked-by: Tony Lindgren <tony@atomide.com>
 > > 
-> > The reason was for keeping things building and git bisect working.
-> > 
-> > I do have wl1251-pdata-signed as the base for branch
-> > omap-for-v3.14/omap3-board-removal. However the board removal was
-> > considered too early for v3.14, so that's been postponed. This is
-> > because people are still updating their systems to device tree
-> > based booting. So I can redo my omap-for-v3.14/omap3-board-removal
-> > against v3.14.
-> > 
-> > So if you want to, feel free to pick all the wl12xx patches to your
-> > wireless tree. AFAIK my omap-for-v3.14/omap3-board-removal is the
-> > only other user for those patches, and that I can redo that on
-> > v3.14.
-> > 
-> > So for the arch/arm/*omap* touching patches, feel free to add:
-> > 
-> > Acked-by: Tony Lindgren <tony@atomide.com>
+> > Another ping. If this does not go into 3.14 via wireless tree
+> > it will become complicated for 3.15 again.
 > 
-> Another ping. If this does not go into 3.14 via wireless tree
-> it will become complicated for 3.15 again.
+> It's too late for new networking features in 3.14.  Why wouldn't Tony
+> send it via his tree?
 
-It's too late for new networking features in 3.14.  Why wouldn't Tony
-send it via his tree?
+It's mostly drivers/net/wireless related to patch the wl12xx driver
+further.
+ 
+> At any rate, I don't have the patches.  If you still want them through
+> the wireless tree (for 3.15) then you'll need to resend them.
 
-At any rate, I don't have the patches.  If you still want them through
-the wireless tree (for 3.15) then you'll need to resend them.
+Sebastian, please resend the whole series to John and feel free
+to add my acks. It's best that John picks them all up, otherwise
+we'll have the same issue for v3.15. It seems that we should have
+just taken the merge conflict rather than going back and forth
+with this.
 
-John
--- 
-John W. Linville		Someday the world will need a hero, and you
-linville@tuxdriver.com			might be all we have.  Be ready.
+Cheers,
+
+Tony
