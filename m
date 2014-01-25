@@ -1,41 +1,40 @@
 From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH 8/9] ARM: dts: omap3-gta04: Add support for magnetometer.
-Date: Sat, 25 Jan 2014 22:29:02 +0100
-Message-ID: <1390685343-11663-9-git-send-email-marek@goldelico.com>
+Subject: [PATCH 7/9] ARM: dts: omap3-gta04: Add touchscreen properties.
+Date: Sat, 25 Jan 2014 22:29:01 +0100
+Message-ID: <1390685343-11663-8-git-send-email-marek@goldelico.com>
 References: <1390685343-11663-1-git-send-email-marek@goldelico.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f173.google.com ([209.85.215.173]:36615 "EHLO
-	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753228AbaAYV3x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jan 2014 16:29:53 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1390685343-11663-1-git-send-email-marek@goldelico.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, neilb@suse.de, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
+List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Marek Belisko <marek@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dts | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm/boot/dts/omap3-gta04.dts | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
-index 151ed3b..ea1b94d 100644
+index f72e408..151ed3b 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dts
 +++ b/arch/arm/boot/dts/omap3-gta04.dts
-@@ -100,6 +100,12 @@
- 			regulator-max-microvolt = <3150000>;
+@@ -150,6 +150,16 @@
+ 			reg = <0x4>;
  		};
  	};
 +
-+	/* compass aka magnetometer */
-+	hmc5843@1e {
-+		compatible = "honeywell,hmc5843";
-+		reg = <0x1e>;
++	/* touchscreen */
++	tsc2007@48 {
++		compatible = "ti,tsc2007";
++		reg = <0x48>;
++		interrupt-parent = <&gpio6>;
++		interrupts = <0 IRQ_TYPE_EDGE_FALLING>;
++		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;
++		ti,x-plate-ohms = <600>;
 +	};
  };
  
- #include "twl4030.dtsi"
+ &i2c3 {
 -- 
 1.8.3.2
-
