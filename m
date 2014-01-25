@@ -1,52 +1,141 @@
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH v1 2/2] mtd: nand: omap: fix ecclayout to be in sync with
- u-boot NAND driver
-Date: Sat, 25 Jan 2014 00:57:19 -0800
-Message-ID: <20140125085719.GC3162@norris-Latitude-E6410>
-References: <1386925978-23705-1-git-send-email-pekon@ti.com>
- <1386925978-23705-3-git-send-email-pekon@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 2/4] power_supply: Introduce Generic Power Supply
+ charging driver
+Date: Sat, 25 Jan 2014 18:04:03 +0100
+Message-ID: <20140125170402.GA27959@Nokia-N900>
+References: <1390411194-21410-1-git-send-email-jenny.tc@intel.com>
+ <1390411194-21410-3-git-send-email-jenny.tc@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:57189 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751663AbaAYI5Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jan 2014 03:57:24 -0500
-Received: by mail-pd0-f170.google.com with SMTP id p10so3997209pdj.15
-        for <linux-omap@vger.kernel.org>; Sat, 25 Jan 2014 00:57:24 -0800 (PST)
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39691 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751914AbaAYREJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jan 2014 12:04:09 -0500
 Content-Disposition: inline
-In-Reply-To: <1386925978-23705-3-git-send-email-pekon@ti.com>
+In-Reply-To: <1390411194-21410-3-git-send-email-jenny.tc@intel.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, Scott Wood <scottwood@freescale.com>, Tom Rini <trini@ti.com>, u-boot@lists.denx.de, linux-mtd@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>, Enric Balletbo Serra <eballetbo@iseebcn.com>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Igor Grinberg <grinberg@compulab.co.il>, Michael Trimarchi <michael@amarulasolutions.com>, r.meier@siemens.com, r-woodruff2@ti.com, Nikita Kiryanov <nikita@compulab.co.il>, jp.francois@cynove.com, ivan.djelic@parrot.com, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, avinashphilipk@gmail.com, balbi@ti.com
+To: Jenny TC <jenny.tc@intel.com>
+Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Rupesh Kumar <rupesh.kumar@stericsson.com>, Lars-Peter Clausen <lars@metafoo.de>, Pali Roh?r <pali.rohar@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rhyland Klein <rklein@nvidia.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, freemangordon@abv.bg, linux-omap@vger.kernel.org
 
-On Fri, Dec 13, 2013 at 02:42:58PM +0530, Pekon Gupta wrote:
-> @@ -1851,7 +1854,13 @@ static int omap_nand_probe(struct platform_device *pdev)
->  		ecclayout->eccbytes		= nand_chip->ecc.bytes *
->  							(mtd->writesize /
->  							nand_chip->ecc.size);
-> -		ecclayout->eccpos[0]		= BADBLOCK_MARKER_LENGTH;
-> +		oob_index			= BADBLOCK_MARKER_LENGTH;
-> +		for (i = 0; i < ecclayout->eccbytes; i++, oob_index++) {
-> +			if ((i % nand_chip->ecc.bytes) || (i == 0))
-> +				ecclayout->eccpos[i] = oob_index;
-> +			else
-> +				ecclayout->eccpos[i] = ++oob_index;
+Hi!
 
-This if-else structure, with a combined assignment and increment kind of
-obscures the logic of what you're really trying to do. Could this be
-better as follows?
+> The Power Supply charging driver connects multiple subsystems
+> to do charging in a generic way. The subsystems involves power_supply,
+> thermal and battery communication subsystems (1wire).
+> With this the charging is handled in a generic way.
 
-		for (i = 0; i < ecclayout->eccbytes; i++, oob_index++) {
-			ecclayout->eccpos[i] = oob_index;
-			if (((i + 1) % nand_chip->ecc.bytes) == 0)
-				oob_index++;
-		}
+...do we really need copy of documentation file in changelog?
 
-> +		}
->  		/* software bch library is used for locating errors */
->  		nand_chip->ecc.priv		= nand_bch_init(mtd,
->  							nand_chip->ecc.size,
+> +2. Reading Battery charging profile
+> +===================================
+> +
+> +Power Supply charging driver expose sAPIs to retrieve battery profile of a
 
-Brian
+typo sAPI.
+
+> +battery. The battery profile can be read by battery identification driver which
+> +may be 1wire/I2C/SFI driver. Battery identification driver can register the
+> +battery profile with the power supply charging driver using the API
+> +psy_battery_prop_changed(). The driver also exposes API
+> +psy_get_batt_prop() to retrieve the battery profile which can be
+
+Please be consistent. _get_battery_pro_ ?
+
+> +used by power supply drivers to setup the charging. Also drivers
+> +can register for battery removal/insertion notifications using
+> +power_supply_reg_notifier()
+
+> +/* register with power_supply subsystem */
+> +power_supply_registe(device, &psy_usb);
+
+"r("
+> +	* Read access using get_property_function
+> +		* Returns the online property set using the set_property
+> +		  function
+> +	* Write access using set_property function
+> +		* Expose the value through get_property_fucntion.
+
+typo "function"
+
+> +* POWER_SUPPLY_PROP_PRESENT
+> +	* Read access using get_property_function
+> +		* Returns the present property set using the set_property
+> +		  function
+> +	* Write access using set_property function
+> +		* Expose the value through get_property_fucntion.
+
+here too.
+
+> +	* Write access using set_property
+> +		* Set Maximum charging current
+> +		* Action: Configure safety charging registers if any. If not no
+> +			  actions expected for this.
+
+Having property that does nothing sounds evil to me.
+
+> +* POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGING
+> +	* Write access using set_property
+> +		* Enable/Disable charging. Charger supplies power to platform,
+> +		  but charging is disabled
+
+This is unclear. Charging is always disabled?
+
+> +	* Write access using set_property
+> +		* Reset charger Watch Dog Timer
+> +		* Action: Reset charger Watch dog timer.
+
+IntereSting caPitalization.
+
+Also how do higher levels know how often to reset wdt?
+
+> +3.4 Throttling data configuration
+> +=============================
+> +Power supply charging driver can take actions for Thermal throttling requests.
+> +Power supply core sends event PSY_EVENT_THROTTLE  on power_supply_notifier
+> +chain. Power supply charging driver handle this event and takes throttling
+> +actions as in the throttling configuration structure. The throttling
+> +configuration structure has the following format
+
+missing :
+
+> +Power supply charging driver process this event and takes actions to setup
+> +charging
+
+Missing .
+
+> +Power supply charging driver supports pluggable charging algorithms. Charging
+> +algorithms process charging profile and/or applies different logic (pulse
+
+"processes".
+
+> +	/* callback function to retreive battery thresholds */
+> +	pse_algo.get_batt_thresholds = my_algo__get_bat_thresholds;
+
+Too many __s.
+
+> +config POWER_SUPPLY_CHARGER
+> +	bool "Power Supply Charger"
+> +	help
+> +	  Say Y here to enable the power supply charging control driver. Charging
+> +	  control supports charging in a generic way. This allows the charger
+> +	  drivers to keep the charging logic outside and the charger driver
+> +	  just need to abstract the charger hardware
+
+Missing .
+
+> +struct psy_event_node {
+> +	struct list_head node;
+> +	unsigned long event;
+> +	struct psy_cable_props cap;
+> +	struct power_supply *psy;
+> +	struct psy_ps_batt_chg_prof batt_property;
+
+Pls gt sm readable identfrs.
+
+> +struct power_supply_charger_cxt {
+
+ps_charger_context ?
+
+						Pavel
