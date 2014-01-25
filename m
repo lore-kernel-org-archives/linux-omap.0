@@ -1,43 +1,37 @@
-From: Manish Badarkhe <badarkhe.manish@gmail.com>
-Subject: [PATCH] regulator: fixed: Use devm_regulator_register
-Date: Sat, 25 Jan 2014 23:35:54 +0530
-Message-ID: <1390673154-15839-1-git-send-email-badarkhe.manish@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: broonie@kernel.org, lgirdwood@gmail.com, badarkhe.manish@gmail.com
+From: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: [PATCH 0/9] ARM: dts: omap3-gta04: Various devicetree updates.
+Date: Sat, 25 Jan 2014 22:28:54 +0100
+Message-ID: <1390685343-11663-1-git-send-email-marek@goldelico.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neilb-l3A5Bk7waGM@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Use "devm_regulator_register" instead of "regulator_register"
-which simplifies the code.
+This pathes fix some wrong property issues and add some new devices to
+devicetree. This was tested on linux-next (next-20140124).
 
-Signed-off-by: Manish Badarkhe <badarkhe.manish@gmail.com>
----
-:100644 100644 5ea64b9... 6d32341... M	drivers/regulator/fixed.c
- drivers/regulator/fixed.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Marek Belisko (6):
+  ARM: dts: omap3-gta04: Fix mmc1 properties.
+  ARM: dts: omap3-gta04: Add basic sound support.
+  ARM: dts: omap3-gta04: Add twl4030 charger.
+  ARM: dts: omap3-gta04: Add touchscreen properties.
+  ARM: dts: omap3-gta04: Add support for magnetometer.
+  ARM: dts: omap3-gta04: Add ti,omap36xx to compatible property to avoid
+    problems with booting.
 
-diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
-index 5ea64b9..6d32341 100644
---- a/drivers/regulator/fixed.c
-+++ b/drivers/regulator/fixed.c
-@@ -186,7 +186,8 @@ static int reg_fixed_voltage_probe(struct platform_device *pdev)
- 	cfg.driver_data = drvdata;
- 	cfg.of_node = pdev->dev.of_node;
- 
--	drvdata->dev = regulator_register(&drvdata->desc, &cfg);
-+	drvdata->dev = devm_regulator_register(&pdev->dev, &drvdata->desc,
-+					       &cfg);
- 	if (IS_ERR(drvdata->dev)) {
- 		ret = PTR_ERR(drvdata->dev);
- 		dev_err(&pdev->dev, "Failed to register regulator: %d\n", ret);
-@@ -212,7 +213,6 @@ static int reg_fixed_voltage_remove(struct platform_device *pdev)
- {
- 	struct fixed_voltage_data *drvdata = platform_get_drvdata(pdev);
- 
--	regulator_unregister(drvdata->dev);
- 	kfree(drvdata->desc.supply_name);
- 	kfree(drvdata->desc.name);
- 
+NeilBrown (3):
+  ARM: dts: omap3-gta04: Fix 'aux' gpio key flags.
+  ARM: dts: omap3-gta04: Add bma180 accelerometer.
+  ARM: dts: omap3-gta04: Enable mmc2 for wifi.
+
+ arch/arm/boot/dts/omap3-gta04.dts | 58 ++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 54 insertions(+), 4 deletions(-)
+
 -- 
-1.7.10.4
+1.8.3.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
