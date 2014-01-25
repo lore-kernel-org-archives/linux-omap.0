@@ -1,72 +1,97 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 0/5] wl1251 device tree support
-Date: Fri, 24 Jan 2014 16:09:29 -0800
-Message-ID: <20140125000929.GD25488@atomide.com>
-References: <1382890469-25286-1-git-send-email-sre@debian.org>
- <1386289336-26704-1-git-send-email-sre@debian.org>
- <20140106225709.GA23070@earth.universe>
- <20140117014514.GA604@earth.universe>
- <20140117150127.GA15145@tuxdriver.com>
- <20140117174415.GG7993@atomide.com>
- <20140117192204.GB15145@tuxdriver.com>
- <20140118174705.GE7235@atomide.com>
- <20140124215321.GA25727@earth.universe>
- <20140124235656.GM4309@tuxdriver.com>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH v1 0/2] mtd: nand: omap: booting from NAND using u-boot
+Date: Sat, 25 Jan 2014 00:55:37 -0800
+Message-ID: <20140125085537.GA3162@norris-Latitude-E6410>
+References: <1386925978-23705-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51271 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750903AbaAYAJf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jan 2014 19:09:35 -0500
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:42574 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751178AbaAYIzs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jan 2014 03:55:48 -0500
+Received: by mail-pa0-f47.google.com with SMTP id kp14so4127065pab.6
+        for <linux-omap@vger.kernel.org>; Sat, 25 Jan 2014 00:55:48 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20140124235656.GM4309@tuxdriver.com>
+In-Reply-To: <1386925978-23705-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "John W. Linville" <linville@tuxdriver.com>
-Cc: Sebastian Reichel <sre@ring0.de>, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org
+To: Pekon Gupta <pekon@ti.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, Scott Wood <scottwood@freescale.com>, Tom Rini <trini@ti.com>, u-boot@lists.denx.de, linux-mtd@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>, Enric Balletbo Serra <eballetbo@iseebcn.com>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Igor Grinberg <grinberg@compulab.co.il>, Michael Trimarchi <michael@amarulasolutions.com>, r.meier@siemens.com, r-woodruff2@ti.com, Nikita Kiryanov <nikita@compulab.co.il>, jp.francois@cynove.com, ivan.djelic@parrot.com, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, avinashphilipk@gmail.com, balbi@ti.com
 
-* John W. Linville <linville@tuxdriver.com> [140124 16:03]:
-> On Fri, Jan 24, 2014 at 10:53:22PM +0100, Sebastian Reichel wrote:
-> > On Sat, Jan 18, 2014 at 09:47:06AM -0800, Tony Lindgren wrote:
-> > > [...]
-> > > 
-> > > The reason was for keeping things building and git bisect working.
-> > > 
-> > > I do have wl1251-pdata-signed as the base for branch
-> > > omap-for-v3.14/omap3-board-removal. However the board removal was
-> > > considered too early for v3.14, so that's been postponed. This is
-> > > because people are still updating their systems to device tree
-> > > based booting. So I can redo my omap-for-v3.14/omap3-board-removal
-> > > against v3.14.
-> > > 
-> > > So if you want to, feel free to pick all the wl12xx patches to your
-> > > wireless tree. AFAIK my omap-for-v3.14/omap3-board-removal is the
-> > > only other user for those patches, and that I can redo that on
-> > > v3.14.
-> > > 
-> > > So for the arch/arm/*omap* touching patches, feel free to add:
-> > > 
-> > > Acked-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > Another ping. If this does not go into 3.14 via wireless tree
-> > it will become complicated for 3.15 again.
-> 
-> It's too late for new networking features in 3.14.  Why wouldn't Tony
-> send it via his tree?
+Hi Pekon,
 
-It's mostly drivers/net/wireless related to patch the wl12xx driver
-further.
- 
-> At any rate, I don't have the patches.  If you still want them through
-> the wireless tree (for 3.15) then you'll need to resend them.
+Sorry, I'm revisiting your patch series a bit late. There are a few
+factors that contributed to this, though.
 
-Sebastian, please resend the whole series to John and feel free
-to add my acks. It's best that John picks them all up, otherwise
-we'll have the same issue for v3.15. It seems that we should have
-just taken the merge conflict rather than going back and forth
-with this.
+1. This patch series talks extensively about U-Boot. U-Boot is not my
+   interest, nor should it be the focus of kernel (driver) development.
+   Any work done here should be framed in the kernel driver context. [1]
 
-Cheers,
+2. You have previously CC'd me on U-Boot patches. Or at least, I think
+   so. More about this in the next point...
 
-Tony
+3. The U-Boot source code structure is rather similar to pieces of Linux
+   subsystems. So without additional effort, it is hard to discern
+   whether a patch is intended for Linux MTD or U-Boot MTD.
+
+4. You cross-posted to both the U-Boot and Linux-MTD mailing lists.
+
+So the sum of all this is that I ignored these patches at first, as they
+weren't clearly intended for me.
+
+On Fri, Dec 13, 2013 at 02:42:56PM +0530, Pekon Gupta wrote:
+> As there were parallel set of patches running between u-boot and kernel.
+
+I don't know what patches you're talking about.
+
+> hence, some patch-sets caused regression for OMAP3x platforms when booting
+
+"Hence" is not the right word. The previous sentence doesn't imply that
+there were regressions.
+
+> using u-boot specifically for ecc-schemes (like BCH4_SW).
+
+Huh? What does "specifically for ecc-schemes" mean? You mean that only
+some schemes had regressions? Can you be more specific? What are these
+regressions?
+
+The rest of this cover letter (and most of the patch descriptions)
+describes the configurations and testing (which is all very good, don't
+get me wrong), with a lot of focus on things I don't follow (namely,
+U-Boot), but you omit many of the important details, like
+
+ * What is the regression? I honestly don't see a description of the
+   actual regression. (I can read the code to intuit that, but what's
+   the point of your pages of description if it doesn't mention this?)
+   Please give some logical description of the problem
+ * What are the effects of the regression? ECC bytes in the wrong place,
+   so you see correction failures/corruption? JFFS2 failures? (The
+   "oobfree" changes, for instance, should only affect something like
+   JFFS2.)
+ * What Linux commit caused the regression?
+ * Should this patch set be marked for -stable? And for what kernel
+   release? (the previous question would help answer this)
+
+> Hence this patch series fixes those regressions, and tests complete
+[...] snip
+
+I'm preparing a 3.14 pull request soon, and since you seem committed to
+fixing and properly testing a known regression here, I'd like to see
+this go in. But given the late timing and the unanswered questions, I
+think it's unlikely to go in -rc1. Perhaps I can send a later pull
+request if we can get it together properly.
+
+So I'd like to first of all get a few answers to my questions, and then
+I think we might want to refresh this patch series with a little better
+commit messages and perhaps a separate documentation file (not
+necessarily in the same patch series, as the fix is more urgent).
+
+Brian
+
+   [1] For instance, rather than saying "the ECC layout doesn't match
+   U-Boot", you should probably describe what the intended ECC layout
+   should look like and show that Linux does not match it. Perhaps it's
+   time for some better documentation, like Ezequiel stashed under
+   Documentation/mtd/nand/ for pxa3xx. You could also take some cues
+   from Huang's comments on ECC layouts, etc., in gpmi-nand.c.
