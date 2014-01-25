@@ -1,141 +1,43 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2/4] power_supply: Introduce Generic Power Supply
- charging driver
-Date: Sat, 25 Jan 2014 18:04:03 +0100
-Message-ID: <20140125170402.GA27959@Nokia-N900>
-References: <1390411194-21410-1-git-send-email-jenny.tc@intel.com>
- <1390411194-21410-3-git-send-email-jenny.tc@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39691 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751914AbaAYREJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jan 2014 12:04:09 -0500
-Content-Disposition: inline
-In-Reply-To: <1390411194-21410-3-git-send-email-jenny.tc@intel.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Manish Badarkhe <badarkhe.manish@gmail.com>
+Subject: [PATCH] regulator: fixed: Use devm_regulator_register
+Date: Sat, 25 Jan 2014 23:35:54 +0530
+Message-ID: <1390673154-15839-1-git-send-email-badarkhe.manish@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: broonie@kernel.org, lgirdwood@gmail.com, badarkhe.manish@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Jenny TC <jenny.tc@intel.com>
-Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Rupesh Kumar <rupesh.kumar@stericsson.com>, Lars-Peter Clausen <lars@metafoo.de>, Pali Roh?r <pali.rohar@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rhyland Klein <rklein@nvidia.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, freemangordon@abv.bg, linux-omap@vger.kernel.org
 
-Hi!
+Use "devm_regulator_register" instead of "regulator_register"
+which simplifies the code.
 
-> The Power Supply charging driver connects multiple subsystems
-> to do charging in a generic way. The subsystems involves power_supply,
-> thermal and battery communication subsystems (1wire).
-> With this the charging is handled in a generic way.
+Signed-off-by: Manish Badarkhe <badarkhe.manish@gmail.com>
+---
+:100644 100644 5ea64b9... 6d32341... M	drivers/regulator/fixed.c
+ drivers/regulator/fixed.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-...do we really need copy of documentation file in changelog?
-
-> +2. Reading Battery charging profile
-> +===================================
-> +
-> +Power Supply charging driver expose sAPIs to retrieve battery profile of a
-
-typo sAPI.
-
-> +battery. The battery profile can be read by battery identification driver which
-> +may be 1wire/I2C/SFI driver. Battery identification driver can register the
-> +battery profile with the power supply charging driver using the API
-> +psy_battery_prop_changed(). The driver also exposes API
-> +psy_get_batt_prop() to retrieve the battery profile which can be
-
-Please be consistent. _get_battery_pro_ ?
-
-> +used by power supply drivers to setup the charging. Also drivers
-> +can register for battery removal/insertion notifications using
-> +power_supply_reg_notifier()
-
-> +/* register with power_supply subsystem */
-> +power_supply_registe(device, &psy_usb);
-
-"r("
-> +	* Read access using get_property_function
-> +		* Returns the online property set using the set_property
-> +		  function
-> +	* Write access using set_property function
-> +		* Expose the value through get_property_fucntion.
-
-typo "function"
-
-> +* POWER_SUPPLY_PROP_PRESENT
-> +	* Read access using get_property_function
-> +		* Returns the present property set using the set_property
-> +		  function
-> +	* Write access using set_property function
-> +		* Expose the value through get_property_fucntion.
-
-here too.
-
-> +	* Write access using set_property
-> +		* Set Maximum charging current
-> +		* Action: Configure safety charging registers if any. If not no
-> +			  actions expected for this.
-
-Having property that does nothing sounds evil to me.
-
-> +* POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGING
-> +	* Write access using set_property
-> +		* Enable/Disable charging. Charger supplies power to platform,
-> +		  but charging is disabled
-
-This is unclear. Charging is always disabled?
-
-> +	* Write access using set_property
-> +		* Reset charger Watch Dog Timer
-> +		* Action: Reset charger Watch dog timer.
-
-IntereSting caPitalization.
-
-Also how do higher levels know how often to reset wdt?
-
-> +3.4 Throttling data configuration
-> +=============================
-> +Power supply charging driver can take actions for Thermal throttling requests.
-> +Power supply core sends event PSY_EVENT_THROTTLE  on power_supply_notifier
-> +chain. Power supply charging driver handle this event and takes throttling
-> +actions as in the throttling configuration structure. The throttling
-> +configuration structure has the following format
-
-missing :
-
-> +Power supply charging driver process this event and takes actions to setup
-> +charging
-
-Missing .
-
-> +Power supply charging driver supports pluggable charging algorithms. Charging
-> +algorithms process charging profile and/or applies different logic (pulse
-
-"processes".
-
-> +	/* callback function to retreive battery thresholds */
-> +	pse_algo.get_batt_thresholds = my_algo__get_bat_thresholds;
-
-Too many __s.
-
-> +config POWER_SUPPLY_CHARGER
-> +	bool "Power Supply Charger"
-> +	help
-> +	  Say Y here to enable the power supply charging control driver. Charging
-> +	  control supports charging in a generic way. This allows the charger
-> +	  drivers to keep the charging logic outside and the charger driver
-> +	  just need to abstract the charger hardware
-
-Missing .
-
-> +struct psy_event_node {
-> +	struct list_head node;
-> +	unsigned long event;
-> +	struct psy_cable_props cap;
-> +	struct power_supply *psy;
-> +	struct psy_ps_batt_chg_prof batt_property;
-
-Pls gt sm readable identfrs.
-
-> +struct power_supply_charger_cxt {
-
-ps_charger_context ?
-
-						Pavel
+diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
+index 5ea64b9..6d32341 100644
+--- a/drivers/regulator/fixed.c
++++ b/drivers/regulator/fixed.c
+@@ -186,7 +186,8 @@ static int reg_fixed_voltage_probe(struct platform_device *pdev)
+ 	cfg.driver_data = drvdata;
+ 	cfg.of_node = pdev->dev.of_node;
+ 
+-	drvdata->dev = regulator_register(&drvdata->desc, &cfg);
++	drvdata->dev = devm_regulator_register(&pdev->dev, &drvdata->desc,
++					       &cfg);
+ 	if (IS_ERR(drvdata->dev)) {
+ 		ret = PTR_ERR(drvdata->dev);
+ 		dev_err(&pdev->dev, "Failed to register regulator: %d\n", ret);
+@@ -212,7 +213,6 @@ static int reg_fixed_voltage_remove(struct platform_device *pdev)
+ {
+ 	struct fixed_voltage_data *drvdata = platform_get_drvdata(pdev);
+ 
+-	regulator_unregister(drvdata->dev);
+ 	kfree(drvdata->desc.supply_name);
+ 	kfree(drvdata->desc.name);
+ 
+-- 
+1.7.10.4
