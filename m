@@ -1,72 +1,59 @@
-From: Manish Badarkhe <badarkhe.manish@gmail.com>
-Subject: [PATCH V2] max8925_power: Use "IS_ENABLED(CONFIG_OF)" for DT code.
-Date: Sun, 26 Jan 2014 20:08:07 +0530
-Message-ID: <1390747087-5394-1-git-send-email-badarkhe.manish@gmail.com>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: broonie@kernel.org, lgirdwood@gmail.com, badarkhe.manish@gmail.com
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] regulator: fixed: Use devm_regulator_register
+Date: Sun, 26 Jan 2014 13:36:53 -0800
+Message-ID: <20140126213653.GB18840@core.coreip.homeip.net>
+References: <1390673154-15839-1-git-send-email-badarkhe.manish@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1390673154-15839-1-git-send-email-badarkhe.manish@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Manish Badarkhe <badarkhe.manish@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, broonie@kernel.org, lgirdwood@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Instead of "#ifdef CONFIG_OF" use "IS_ENABLED(CONFIG_OF)"
-option for DT code to avoid if-deffery in code.
+Hi Manish,
 
-Signed-off-by: Manish Badarkhe <badarkhe.manish@gmail.com>
----
-Changes since V1:
-1. update code to retrieve platform/dt data in same function
+On Sat, Jan 25, 2014 at 11:35:54PM +0530, Manish Badarkhe wrote:
+> Use "devm_regulator_register" instead of "regulator_register"
+> which simplifies the code.
 
-:100644 100644 b4513f2... 20a7100... M	drivers/power/max8925_power.c
- drivers/power/max8925_power.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+... and also breaks the driver: now you are freeing desc->name and
+desc->supply_name while regulator structures are still alive and can be
+referenced from its sysfs attributes, etc.
 
-diff --git a/drivers/power/max8925_power.c b/drivers/power/max8925_power.c
-index b4513f2..20a7100 100644
---- a/drivers/power/max8925_power.c
-+++ b/drivers/power/max8925_power.c
-@@ -427,9 +427,8 @@ static int max8925_deinit_charger(struct max8925_power_info *info)
- 	return 0;
- }
- 
--#ifdef CONFIG_OF
- static struct max8925_power_pdata *
--max8925_power_dt_init(struct platform_device *pdev)
-+max8925_get_data(struct platform_device *pdev)
- {
- 	struct device_node *nproot = pdev->dev.parent->of_node;
- 	struct device_node *np;
-@@ -440,7 +439,7 @@ max8925_power_dt_init(struct platform_device *pdev)
- 	int no_insert_detect;
- 	struct max8925_power_pdata *pdata;
- 
--	if (!nproot)
-+	if (!IS_ENABLED(CONFIG_OF) || !nproot)
- 		return pdev->dev.platform_data;
- 
- 	np = of_find_node_by_name(nproot, "charger");
-@@ -468,13 +467,6 @@ max8925_power_dt_init(struct platform_device *pdev)
- 
- 	return pdata;
- }
--#else
--static struct max8925_power_pdata *
--max8925_power_dt_init(struct platform_device *pdev)
--{
--	return pdev->dev.platform_data;
--}
--#endif
- 
- static int max8925_power_probe(struct platform_device *pdev)
- {
-@@ -483,7 +475,8 @@ static int max8925_power_probe(struct platform_device *pdev)
- 	struct max8925_power_info *info;
- 	int ret;
- 
--	pdata = max8925_power_dt_init(pdev);
-+	pdata = max8925_get_data(pdev);
-+
- 	if (!pdata) {
- 		dev_err(&pdev->dev, "platform data isn't assigned to "
- 			"power supply\n");
+> 
+> Signed-off-by: Manish Badarkhe <badarkhe.manish@gmail.com>
+> ---
+> :100644 100644 5ea64b9... 6d32341... M	drivers/regulator/fixed.c
+>  drivers/regulator/fixed.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
+> index 5ea64b9..6d32341 100644
+> --- a/drivers/regulator/fixed.c
+> +++ b/drivers/regulator/fixed.c
+> @@ -186,7 +186,8 @@ static int reg_fixed_voltage_probe(struct platform_device *pdev)
+>  	cfg.driver_data = drvdata;
+>  	cfg.of_node = pdev->dev.of_node;
+>  
+> -	drvdata->dev = regulator_register(&drvdata->desc, &cfg);
+> +	drvdata->dev = devm_regulator_register(&pdev->dev, &drvdata->desc,
+> +					       &cfg);
+>  	if (IS_ERR(drvdata->dev)) {
+>  		ret = PTR_ERR(drvdata->dev);
+>  		dev_err(&pdev->dev, "Failed to register regulator: %d\n", ret);
+> @@ -212,7 +213,6 @@ static int reg_fixed_voltage_remove(struct platform_device *pdev)
+>  {
+>  	struct fixed_voltage_data *drvdata = platform_get_drvdata(pdev);
+>  
+> -	regulator_unregister(drvdata->dev);
+>  	kfree(drvdata->desc.supply_name);
+>  	kfree(drvdata->desc.name);
+>  
+
+Thanks.
+
 -- 
-1.7.10.4
+Dmitry
