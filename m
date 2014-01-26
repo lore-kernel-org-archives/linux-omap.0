@@ -1,40 +1,72 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 4/4] power_supply: bq24261 charger driver
-Date: Sat, 25 Jan 2014 23:30:17 +0100
-Message-ID: <20140125223017.GB30083@Nokia-N900>
-References: <1390411194-21410-1-git-send-email-jenny.tc@intel.com>
- <1390411194-21410-5-git-send-email-jenny.tc@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1390411194-21410-5-git-send-email-jenny.tc@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jenny TC <jenny.tc@intel.com>
-Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Rupesh Kumar <rupesh.kumar@stericsson.com>, Lars-Peter Clausen <lars@metafoo.de>, Pali Roh?r <pali.rohar@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rhyland Klein <rklein@nvidia.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, freemangordon@abv.bg, linux-omap@vger.kernel.org
+From: Manish Badarkhe <badarkhe.manish@gmail.com>
+Subject: [PATCH V2] max8925_power: Use "IS_ENABLED(CONFIG_OF)" for DT code.
+Date: Sun, 26 Jan 2014 20:08:07 +0530
+Message-ID: <1390747087-5394-1-git-send-email-badarkhe.manish@gmail.com>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: broonie@kernel.org, lgirdwood@gmail.com, badarkhe.manish@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+Instead of "#ifdef CONFIG_OF" use "IS_ENABLED(CONFIG_OF)"
+option for DT code to avoid if-deffery in code.
 
-> +++ b/drivers/power/Makefile
-> @@ -59,4 +59,5 @@ obj-$(CONFIG_CHARGER_BQ24735)	+= bq24735-charger.o
->  obj-$(CONFIG_POWER_AVS)		+= avs/
->  obj-$(CONFIG_CHARGER_SMB347)	+= smb347-charger.o
->  obj-$(CONFIG_CHARGER_TPS65090)	+= tps65090-charger.o
-> +obj-$(CONFIG_BQ24261_CHARGER)	+= bq24261_charger.o
->  obj-$(CONFIG_POWER_RESET)	+= reset/
+Signed-off-by: Manish Badarkhe <badarkhe.manish@gmail.com>
+---
+Changes since V1:
+1. update code to retrieve platform/dt data in same function
 
-Spot two inconsistencies.
+:100644 100644 b4513f2... 20a7100... M	drivers/power/max8925_power.c
+ drivers/power/max8925_power.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-> +			if (ret < 0)
-> +				dev_err(&chip->client->dev,
-> +				"Error (%d) in reading status register(0x00)\n",
-> +				ret);
-
-If you have code indented 10 levels like this, you are
-doing something wrong.
-
-Check codingstyle.
-
-Maybe Rafael should be cced on the series?
-						Pavel
+diff --git a/drivers/power/max8925_power.c b/drivers/power/max8925_power.c
+index b4513f2..20a7100 100644
+--- a/drivers/power/max8925_power.c
++++ b/drivers/power/max8925_power.c
+@@ -427,9 +427,8 @@ static int max8925_deinit_charger(struct max8925_power_info *info)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_OF
+ static struct max8925_power_pdata *
+-max8925_power_dt_init(struct platform_device *pdev)
++max8925_get_data(struct platform_device *pdev)
+ {
+ 	struct device_node *nproot = pdev->dev.parent->of_node;
+ 	struct device_node *np;
+@@ -440,7 +439,7 @@ max8925_power_dt_init(struct platform_device *pdev)
+ 	int no_insert_detect;
+ 	struct max8925_power_pdata *pdata;
+ 
+-	if (!nproot)
++	if (!IS_ENABLED(CONFIG_OF) || !nproot)
+ 		return pdev->dev.platform_data;
+ 
+ 	np = of_find_node_by_name(nproot, "charger");
+@@ -468,13 +467,6 @@ max8925_power_dt_init(struct platform_device *pdev)
+ 
+ 	return pdata;
+ }
+-#else
+-static struct max8925_power_pdata *
+-max8925_power_dt_init(struct platform_device *pdev)
+-{
+-	return pdev->dev.platform_data;
+-}
+-#endif
+ 
+ static int max8925_power_probe(struct platform_device *pdev)
+ {
+@@ -483,7 +475,8 @@ static int max8925_power_probe(struct platform_device *pdev)
+ 	struct max8925_power_info *info;
+ 	int ret;
+ 
+-	pdata = max8925_power_dt_init(pdev);
++	pdata = max8925_get_data(pdev);
++
+ 	if (!pdata) {
+ 		dev_err(&pdev->dev, "platform data isn't assigned to "
+ 			"power supply\n");
+-- 
+1.7.10.4
