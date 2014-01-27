@@ -1,41 +1,57 @@
-From: Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [alsa-devel] [PATCH RFC v3 0/8] Beaglebone-Black HDMI audio
-Date: Mon, 27 Jan 2014 19:06:41 +0100
-Message-ID: <20140127190641.273890c6@armhf>
-References: <y> <cover.1390836773.git.jsarha@ti.com>
-	<52E6806A.2090109@metafoo.de> <52E686B2.9060806@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH RFC v3 2/8] ASoC: davinci-evm: Add named clock reference
+ to DT bindings
+Date: Mon, 27 Jan 2014 18:10:40 +0000
+Message-ID: <20140127181040.GA11841@sirena.org.uk>
+References: <cover.1390836773.git.jsarha@ti.com>
+ <a16e2a877740942c1742ac0da403013c72ae3727.1390836773.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <52E686B2.9060806@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces@lists.freedesktop.org
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-To: Jyri Sarha <jsarha@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com, broonie@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:60073 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753675AbaA0SKu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jan 2014 13:10:50 -0500
+Content-Disposition: inline
+In-Reply-To: <a16e2a877740942c1742ac0da403013c72ae3727.1390836773.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com, detheridge@ti.com, bcousson@baylibre.com
 
-T24gTW9uLCAyNyBKYW4gMjAxNCAxODoxNzo1NCArMDIwMApKeXJpIFNhcmhhIDxqc2FyaGFAdGku
-Y29tPiB3cm90ZToKCj4gU3VwcG9ydCBmb3IgUzE2X0xFIGNvdWxkIG1heWJlIGJlIGFkZGVkIGlm
-IHRoZSB0ZGE5OTh4IHNwZWNpZmljIGNvZGVjIAo+IHdvdWxkIGZpZGRsZSB3aXRoIENUU19OIHBy
-ZWRpdmlkZXItc2V0dGluZyAoSyBzZWxlY3QpIGFjY29yZGluZyB0byB0aGUgCj4gdXNlZCBzYW1w
-bGUgd2lkdGguIEJ1dCBpdCBhcHBlYXJzIENvYm94IHBsYXlzIGFsbCB0aGUgc2FtcGxlIGZvcm1h
-dHMgCj4gZmluZSB3aXRob3V0IHRoaXMgY2hhbmdlLCBzbyB0aGUgcXVlc3Rpb24gaXMgaWYgcGxh
-eWluZyBhcm91bmQgd2l0aCAKPiBDVFNfTiBwcmVkaXZpZGVyIHdvdWxkIGJyZWFrIGFscmVhZHkg
-d29ya2luZyBzdXBwb3J0IHRoZXJlIChzb21ldGhpbmcgdG8gCj4gYmUgdGVzdGVkKS4KCkp5cmks
-CgpTZXR0aW5nCgoJY3RzX24gPSBDVFNfTl9NKDMpIHwgQ1RTX05fSygxKTsKCmluc3RlYWQgb2Yg
-SygzKSBpbiB0aGUgSTJTIHNlcXVlbmNlIG9mIHRkYTk5OHhfY29uZmlndXJlX2F1ZGlvKCkgaW4g
-dGhlCnRkYTk5OHggZHJpdmVyIHdvcmtzIGZpbmUgZm9yIG1lIHdpdGggUzE2X0xFIGFuZCBTMjRf
-TEUuCgpEb2VzIHRoaXMgc29sdmUgeW91ciBwcm9ibGVtPwoKUnVzc2VsbCwgZG8geW91IHNlZSBh
-bnkgcHJvYmxlbSBhYm91dCB0aGlzIGNoYW5nZT8KCi0tIApLZW4gYXIgYydoZW50YcOxCXwJICAg
-ICAgKiogQnJlaXpoIGhhIExpbnV4IGF0YXYhICoqCkplZgkJfAkJaHR0cDovL21vaW5lamYuZnJl
-ZS5mci8KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
-LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6
-Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+
+--vkogqOf2sHV7VnPd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Jan 27, 2014 at 05:37:51PM +0200, Jyri Sarha wrote:
+> The referenced clock is used to get codec clock rate and the clock is
+> disabled and enabled in startup and shutdown snd_soc_ops call
+> backs. The change is also documented in DT bindigs document.
+
+Applied, thanks.
+
+--vkogqOf2sHV7VnPd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJS5qEdAAoJELSic+t+oim9WWoP/0SM6K3pHlki2OWVZcgFCV/Z
+xrL4ldRa5X/48PpIeH3ejs7VdrsPcOR7L73YOj+wQBWxOHF4/fCRTi/h2cslbQsG
+tAqS/1DTrTKc5OoKwIlVbQPzsqeoNH7xD4wiDT2C6nE+kT7qKZXfIzKWvs5cwPD+
+1TDQTxP/ZO5xJQdOjhy1g2B9SDmWHOHKTQUTUGQTVI+Xttr0vUrWRr0kn0VM0t6L
+U+Mq50aS90pQZTxSTVN79Wbwc6dHi9NvlGGreKSu8FhySLEOJnnIs/WPfUC4Neg9
+b/OZw5PQmj0DECPDsIIcG8BY/gbbZhUnaKYdB2Mi2wkyI1TGT1cNYZvLBRGRI8VH
+BG4ZjqQEIrBe2y/b76G67MIY5AiJYO8wgof0v9W7IV/IkkhrOwNf70oGbfLNkx54
+WHfJKHlwfxnvzlV71wvbrFeqXkWqzNuIWF9umaaV9qyJQFFxkUZe9gfGDgbLvq5u
+4Ui5xGniO5zWFl7UEnlwTgZL4JjJ0OO4SGTmYiwo1FZuKt3iL/Vs+/PWc0SUeekV
+3MwJjs6SyRRUIf5NyP9g7e+X4L92PFoD0hugjPAJEAJ/Tcl/Z5ukwc4T/RN88OZ4
+PGR19VnrLUzVxV4/FultliQaZE35zLeJeLAo+aYDcglprhy1zgYuJ+BWc+EBfJqn
+Av+NbHQPwtkPo5Bmf6vs
+=MTS3
+-----END PGP SIGNATURE-----
+
+--vkogqOf2sHV7VnPd--
