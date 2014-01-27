@@ -1,76 +1,39 @@
-From: Christoph Fritz <chf.fritz@googlemail.com>
-Subject: [PATCH 4/4] ARM: OMAP2+: Add pdata quirk for sys_clkout2 for omap3 DBB056
-Date: Mon, 27 Jan 2014 01:33:17 +0100
-Message-ID: <1390782797-24105-5-git-send-email-chf.fritz@googlemail.com>
-References: <1390782797-24105-1-git-send-email-chf.fritz@googlemail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:39146 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753594AbaA0Adt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Jan 2014 19:33:49 -0500
-In-Reply-To: <1390782797-24105-1-git-send-email-chf.fritz@googlemail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Manish Badarkhe <badarkhe.manish@gmail.com>
+Subject: Re: [PATCH] regulator: fixed: Use devm_regulator_register
+Date: Mon, 27 Jan 2014 09:59:12 +0530
+Message-ID: <CAKDJKT6FVx+mZ1AvD1CuW66AfUJsF9BavsPJAMfgkBz1GMqz4A@mail.gmail.com>
+References: <1390673154-15839-1-git-send-email-badarkhe.manish@gmail.com>
+	<20140126213653.GB18840@core.coreip.homeip.net>
+	<20140127000300.GR11727@sirena.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140127000300.GR11727@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-tegra@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Ulf Hansson <ulf.hansson@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, bcousson@baylibre.com, Daniel Mack <zonque@gmail.com>, "Hans J. Koch" <hjk@hansjkoch.de>
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Full device tree support for clock control, especially to set frequencies,
-is not yet accomplished. Until then, configure the 24Mhz of sys_clkout2 to
-feed an USB-Hub here.
+Hi
 
-Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
----
- arch/arm/mach-omap2/pdata-quirks.c |   37 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+On Mon, Jan 27, 2014 at 5:33 AM, Mark Brown <broonie@kernel.org> wrote:
+> On Sun, Jan 26, 2014 at 01:36:53PM -0800, Dmitry Torokhov wrote:
+>> On Sat, Jan 25, 2014 at 11:35:54PM +0530, Manish Badarkhe wrote:
+>
+>> > Use "devm_regulator_register" instead of "regulator_register"
+>> > which simplifies the code.
+>
+>> ... and also breaks the driver: now you are freeing desc->name and
+>> desc->supply_name while regulator structures are still alive and can be
+>> referenced from its sysfs attributes, etc.
+>
+> Yup, they need to be converted to managed allocations too if the
+> regulator_register() is going to be converted (see previous discussions
+> on similar patches).  It would be good to do so.
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 435a823..e36ac3f 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -172,6 +172,43 @@ static void __init am3517_evm_legacy_init(void)
- 
- static void __init omap3_dbb056_legacy_init(void)
- {
-+	struct clk *clkout2;
-+	struct clk *cm96fck;
-+
-+	/* Reparent clkout2 to 96M_FCK */
-+	pr_info("%s: Late Reparent clkout2 to 96M_FCK\n", __func__);
-+	clkout2 = clk_get(NULL, "clkout2_src_ck");
-+	if (clkout2 < 0) {
-+		pr_err("a83x-quirk: couldn't get clkout2_src_ck\n");
-+		return;
-+	}
-+	cm96fck = clk_get(NULL, "cm_96m_fck");
-+	if (cm96fck < 0) {
-+		pr_err("a83x-quirk: couldn't get cm_96m_fck\n");
-+		return;
-+	}
-+	if (clk_set_parent(clkout2, cm96fck) < 0) {
-+		pr_err("a83x-quirk: couldn't reparent clkout2_src_ck\n");
-+		return;
-+	}
-+
-+	/* Set clkout2 to 24MHz for internal usb hub*/
-+	pr_info("%s: Set clkout2 to 24MHz for internal usb hub\n", __func__);
-+	clkout2 = clk_get(NULL, "sys_clkout2");
-+	if (clkout2 < 0) {
-+		pr_err("%s: couldn't get sys_clkout2\n", __func__);
-+		return;
-+	}
-+	if (clk_set_rate(clkout2, 24000000) < 0) {
-+		pr_err("%s: couldn't set sys_clkout2 rate\n", __func__);
-+		return;
-+	}
-+	if (clk_prepare_enable(clkout2) < 0) {
-+		pr_err("%s: couldn't enable sys_clkout2\n", __func__);
-+		return;
-+	}
-+
-+	/* Initialize display */
- 	omap3_dbb056_display_init_of();
- }
- #endif /* CONFIG_ARCH_OMAP3 */
--- 
-1.7.10.4
+Thank you for pointing this out.
+I missed to convert these two " desc->name" and "desc->supply_name"
+to manage allocation. I will modify code and repost patch.
 
+Regards
+Manish Badarkhe
