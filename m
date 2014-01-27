@@ -1,67 +1,77 @@
-From: Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH 1/2] usb: dwc3: core: continue probing if usb phy library
- returns -ENODEV/-ENXIO
-Date: Mon, 27 Jan 2014 17:08:55 +0200
-Message-ID: <20140127150855.GA17928@xps8300>
-References: <1385373690-12170-1-git-send-email-kishon@ti.com>
- <1390299099-14764-1-git-send-email-kishon@ti.com>
- <20140121144725.GF30451@saruman.home>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH RFC v3 0/8] Beaglebone-Black HDMI audio
+Date: Mon, 27 Jan 2014 17:37:49 +0200
+Message-ID: <cover.1390836773.git.jsarha@ti.com>
+References: <y>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140121144725.GF30451-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, george.cherian-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <y>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, broonie@kernel.org
+Cc: peter.ujfalusi@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+Changes since RFC v2 version of the patches:
+- Dropped out already applied:
+  ASoC: hdmi-codec: Add devicetree binding with documentation
+- Addresses Mark's comments here:
+  http://mailman.alsa-project.org/pipermail/alsa-devel/2013-December/070605.html
+  - ASoC: davinci-evm: Add named clock reference to DT bindings
+    - Get rid of unnecessary castings
+    - Add mclk NULL checks
+    - Use devm_clk_get()
+    - Change clock name from "ti,codec-clock" to "mclk"
+- Address Mark's comments here:
+  http://mailman.alsa-project.org/pipermail/alsa-devel/2013-December/070606.html  - ASoC: davinci-evm: HDMI audio support for TDA998x trough McASP I2S bus
+    - Get rid of unnecessary castings
+    - Update commit message
+  - Add: ASoC: davinci-mcasp: Set BCLK divider if McASP is BCLK master
+    - Use snd_soc_params_to_bclk()
 
-On Tue, Jan 21, 2014 at 08:47:25AM -0600, Felipe Balbi wrote:
-> On Tue, Jan 21, 2014 at 03:41:38PM +0530, Kishon Vijay Abraham I wrote:
-> > Since PHYs for dwc3 is optional (not all SoCs that have DWC3 use PHYs),
-> > do not return from probe if the USB PHY library returns -ENODEV as that
-> 
-> this isn't correct, they all have PHYs, some of them might not be
-> controllable.
-> 
-> > indicates the platform does not have PHY.
-> 
-> not really, that indicates the current platform tried to grab a PHY and
-> the PHY doesn't exist. If there's anybody with a non-controllable PHY
-> and someone gives me a really good reason for not using the generic
-> no-op PHY, then we should add a flag and we could:
-> 
-> 	if (!likely(dwc->flags & DWC3_USB2PHY_DRIVER_NOT_NEEDED))
-> 		dwc3_grab_phys(dwc);
+Changes since the first RFC version of the patches:
+- Drop out already applied: 
+  ASoC: hdmi-codec: Add SNDRV_PCM_FMTBIT_32_LE playback format
+- Change sound node's compatible property
+  form: "ti,am33xx-beaglebone-black" to "ti,am33xx-beaglebone-black-audio"
+- Some minor style issue fixes from TI internal review
 
-Why would you need to know if the PHY drivers are needed or not
-explicitly in your controller driver?
+Jyri Sarha (8):
+  clk: add gpio controlled clock
+  ASoC: davinci-evm: Add named clock reference to DT bindings
+  ASoC: davinci-mcasp: Set BCLK divider if McASP is BCLK master
+  ASoC: davinci-evm: HDMI audio support for TDA998x trough McASP I2S
+    bus
+  ASoC: davinci: HDMI audio build for AM33XX and TDA998x
+  drm/tilcdc: Add I2C HDMI audio config for tda998x
+  ARM: OMAP2+: omap2plus_defconfig: Enable tilcdc and TDA998X HDMI
+    support
+  ARM: OMAP2+: omap2plus_defconfig: Enable BeagleBone Black HDMI audio
+    support
 
-> But I really want to see the argument against using no-op. As far as I
-> could see, everybody needs a PHY driver one way or another, some
-> platforms just haven't sent any PHY driver upstream and have their own
-> hacked up solution to avoid using the PHY layer.
-
-Not true in our case. Platforms using Intel's SoCs and chip sets may
-or may not have controllable USB PHY. Quite often they don't. The
-Baytrails have usually ULPI PHY for USB2, but that does not mean they
-provide any vendor specific functions or any need for a driver in any
-case.
-
-Are we talking about the old USB PHY library or the new PHY framework
-with the no-op PHY driver?
-
-Well, in any case, I don't understand what is the purpose of the no-op
-PHY driver. What are you drying to achieve with that?
-
-
-Thanks,
+ .../devicetree/bindings/clock/gpio-clock.txt       |   21 ++
+ .../bindings/sound/davinci-evm-audio.txt           |   13 +-
+ arch/arm/configs/omap2plus_defconfig               |    5 +
+ drivers/clk/Makefile                               |    1 +
+ drivers/clk/clk-gpio.c                             |  210 +++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c              |   24 ++-
+ include/linux/clk-provider.h                       |   25 +++
+ sound/soc/davinci/Kconfig                          |   12 ++
+ sound/soc/davinci/Makefile                         |    1 +
+ sound/soc/davinci/davinci-evm.c                    |  211 +++++++++++++++++++-
+ sound/soc/davinci/davinci-mcasp.c                  |   20 ++
+ 11 files changed, 534 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/clock/gpio-clock.txt
+ create mode 100644 drivers/clk/clk-gpio.c
 
 -- 
-heikki
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.9.5
