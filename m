@@ -1,77 +1,162 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v3 0/8] Beaglebone-Black HDMI audio
-Date: Mon, 27 Jan 2014 17:37:49 +0200
-Message-ID: <cover.1390836773.git.jsarha@ti.com>
-References: <y>
+Subject: [PATCH RFC v3 2/8] ASoC: davinci-evm: Add named clock reference to DT bindings
+Date: Mon, 27 Jan 2014 17:37:51 +0200
+Message-ID: <a16e2a877740942c1742ac0da403013c72ae3727.1390836773.git.jsarha@ti.com>
+References: <cover.1390836773.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <y>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, broonie@kernel.org
-Cc: peter.ujfalusi@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54437 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753138AbaA0Pit (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Jan 2014 10:38:49 -0500
+In-Reply-To: <cover.1390836773.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, broonie@kernel.org
+Cc: peter.ujfalusi@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>, bcousson@baylibre.com
 
-Changes since RFC v2 version of the patches:
-- Dropped out already applied:
-  ASoC: hdmi-codec: Add devicetree binding with documentation
-- Addresses Mark's comments here:
-  http://mailman.alsa-project.org/pipermail/alsa-devel/2013-December/070605.html
-  - ASoC: davinci-evm: Add named clock reference to DT bindings
-    - Get rid of unnecessary castings
-    - Add mclk NULL checks
-    - Use devm_clk_get()
-    - Change clock name from "ti,codec-clock" to "mclk"
-- Address Mark's comments here:
-  http://mailman.alsa-project.org/pipermail/alsa-devel/2013-December/070606.html  - ASoC: davinci-evm: HDMI audio support for TDA998x trough McASP I2S bus
-    - Get rid of unnecessary castings
-    - Update commit message
-  - Add: ASoC: davinci-mcasp: Set BCLK divider if McASP is BCLK master
-    - Use snd_soc_params_to_bclk()
+The referenced clock is used to get codec clock rate and the clock is
+disabled and enabled in startup and shutdown snd_soc_ops call
+backs. The change is also documented in DT bindigs document.
 
-Changes since the first RFC version of the patches:
-- Drop out already applied: 
-  ASoC: hdmi-codec: Add SNDRV_PCM_FMTBIT_32_LE playback format
-- Change sound node's compatible property
-  form: "ti,am33xx-beaglebone-black" to "ti,am33xx-beaglebone-black-audio"
-- Some minor style issue fixes from TI internal review
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+cc: bcousson@baylibre.com
+---
+ .../bindings/sound/davinci-evm-audio.txt           |    9 ++-
+ sound/soc/davinci/davinci-evm.c                    |   58 +++++++++++++++++++-
+ 2 files changed, 64 insertions(+), 3 deletions(-)
 
-Jyri Sarha (8):
-  clk: add gpio controlled clock
-  ASoC: davinci-evm: Add named clock reference to DT bindings
-  ASoC: davinci-mcasp: Set BCLK divider if McASP is BCLK master
-  ASoC: davinci-evm: HDMI audio support for TDA998x trough McASP I2S
-    bus
-  ASoC: davinci: HDMI audio build for AM33XX and TDA998x
-  drm/tilcdc: Add I2C HDMI audio config for tda998x
-  ARM: OMAP2+: omap2plus_defconfig: Enable tilcdc and TDA998X HDMI
-    support
-  ARM: OMAP2+: omap2plus_defconfig: Enable BeagleBone Black HDMI audio
-    support
-
- .../devicetree/bindings/clock/gpio-clock.txt       |   21 ++
- .../bindings/sound/davinci-evm-audio.txt           |   13 +-
- arch/arm/configs/omap2plus_defconfig               |    5 +
- drivers/clk/Makefile                               |    1 +
- drivers/clk/clk-gpio.c                             |  210 +++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_slave.c              |   24 ++-
- include/linux/clk-provider.h                       |   25 +++
- sound/soc/davinci/Kconfig                          |   12 ++
- sound/soc/davinci/Makefile                         |    1 +
- sound/soc/davinci/davinci-evm.c                    |  211 +++++++++++++++++++-
- sound/soc/davinci/davinci-mcasp.c                  |   20 ++
- 11 files changed, 534 insertions(+), 9 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/clock/gpio-clock.txt
- create mode 100644 drivers/clk/clk-gpio.c
-
+diff --git a/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
+index 865178d..963e100 100644
+--- a/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
++++ b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
+@@ -5,12 +5,19 @@ Required properties:
+ - ti,model : The user-visible name of this sound complex.
+ - ti,audio-codec : The phandle of the TLV320AIC3x audio codec
+ - ti,mcasp-controller : The phandle of the McASP controller
+-- ti,codec-clock-rate : The Codec Clock rate (in Hz) applied to the Codec
+ - ti,audio-routing : A list of the connections between audio components.
+   Each entry is a pair of strings, the first being the connection's sink,
+   the second being the connection's source. Valid names for sources and
+   sinks are the codec's pins, and the jacks on the board:
+ 
++Optional properties:
++- ti,codec-clock-rate : The Codec Clock rate (in Hz) applied to the Codec.
++- clocks : Reference to the master clock
++- clock-names : The clock should be named "mclk"
++- Either codec-clock-rate or the codec-clock reference has to be defined. If
++  the both are defined the driver attempts to set referenced clock to the
++  defined rate and takes the rate from the clock reference.
++
+   Board connectors:
+ 
+   * Headphone Jack
+diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
+index 70ff377..d3e4cb0 100644
+--- a/sound/soc/davinci/davinci-evm.c
++++ b/sound/soc/davinci/davinci-evm.c
+@@ -17,6 +17,7 @@
+ #include <linux/platform_data/edma.h>
+ #include <linux/i2c.h>
+ #include <linux/of_platform.h>
++#include <linux/clk.h>
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+ #include <sound/soc.h>
+@@ -30,9 +31,34 @@
+ #include "davinci-i2s.h"
+ 
+ struct snd_soc_card_drvdata_davinci {
++	struct clk *mclk;
+ 	unsigned sysclk;
+ };
+ 
++static int evm_startup(struct snd_pcm_substream *substream)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_card *soc_card = rtd->codec->card;
++	struct snd_soc_card_drvdata_davinci *drvdata =
++		snd_soc_card_get_drvdata(soc_card);
++
++	if (drvdata->mclk)
++		return clk_prepare_enable(drvdata->mclk);
++
++	return 0;
++}
++
++static void evm_shutdown(struct snd_pcm_substream *substream)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_card *soc_card = rtd->codec->card;
++	struct snd_soc_card_drvdata_davinci *drvdata =
++		snd_soc_card_get_drvdata(soc_card);
++
++	if (drvdata->mclk)
++		clk_disable_unprepare(drvdata->mclk);
++}
++
+ static int evm_hw_params(struct snd_pcm_substream *substream,
+ 			 struct snd_pcm_hw_params *params)
+ {
+@@ -59,6 +85,8 @@ static int evm_hw_params(struct snd_pcm_substream *substream,
+ }
+ 
+ static struct snd_soc_ops evm_ops = {
++	.startup = evm_startup,
++	.shutdown = evm_shutdown,
+ 	.hw_params = evm_hw_params,
+ };
+ 
+@@ -348,6 +376,7 @@ static int davinci_evm_probe(struct platform_device *pdev)
+ 		of_match_device(of_match_ptr(davinci_evm_dt_ids), &pdev->dev);
+ 	struct snd_soc_dai_link *dai = (struct snd_soc_dai_link *) match->data;
+ 	struct snd_soc_card_drvdata_davinci *drvdata = NULL;
++	struct clk *mclk;
+ 	int ret = 0;
+ 
+ 	evm_soc_card.dai_link = dai;
+@@ -367,13 +396,38 @@ static int davinci_evm_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
++	mclk = devm_clk_get(&pdev->dev, "mclk");
++	if (PTR_ERR(mclk) == -EPROBE_DEFER) {
++		return -EPROBE_DEFER;
++	} else if (IS_ERR(mclk)) {
++		dev_dbg(&pdev->dev, "mclk not found.\n");
++		mclk = NULL;
++	}
++
+ 	drvdata = devm_kzalloc(&pdev->dev, sizeof(*drvdata), GFP_KERNEL);
+ 	if (!drvdata)
+ 		return -ENOMEM;
+ 
++	drvdata->mclk = mclk;
++
+ 	ret = of_property_read_u32(np, "ti,codec-clock-rate", &drvdata->sysclk);
+-	if (ret < 0)
+-		return -EINVAL;
++
++	if (ret < 0) {
++		if (!drvdata->mclk) {
++			dev_err(&pdev->dev,
++				"No clock or clock rate defined.\n");
++			return -EINVAL;
++		}
++		drvdata->sysclk = clk_get_rate(drvdata->mclk);
++	} else if (drvdata->mclk) {
++		unsigned int requestd_rate = drvdata->sysclk;
++		clk_set_rate(drvdata->mclk, drvdata->sysclk);
++		drvdata->sysclk = clk_get_rate(drvdata->mclk);
++		if (drvdata->sysclk != requestd_rate)
++			dev_warn(&pdev->dev,
++				 "Could not get requested rate %u using %u.\n",
++				 requestd_rate, drvdata->sysclk);
++	}
+ 
+ 	snd_soc_card_set_drvdata(&evm_soc_card, drvdata);
+ 	ret = devm_snd_soc_register_card(&pdev->dev, &evm_soc_card);
 -- 
 1.7.9.5
+
