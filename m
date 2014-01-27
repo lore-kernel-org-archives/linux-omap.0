@@ -1,169 +1,110 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCHv3 00/41] OMAPDSS: DT support v3
-Date: Sun, 26 Jan 2014 20:07:45 -0300
-Message-ID: <CABxcv=n5Et5s00zzwANaBpjic7iEEoPEkX2CoCY98AS=0Jb30Q@mail.gmail.com>
-References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: Re: [PATCH v2 4/5] ARM: OMAP2+: Add pdata quirk for sys_clkout2 for
+ omap3 DBB056
+Date: Mon, 27 Jan 2014 01:01:18 +0100
+Message-ID: <20140127000118.GA30378@mars>
+References: <1390417460-3134-1-git-send-email-chf.fritz@googlemail.com>
+ <1390417460-3134-5-git-send-email-chf.fritz@googlemail.com>
+ <52E01D01.2010709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:47343 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753040AbaAZXHr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Jan 2014 18:07:47 -0500
-Received: by mail-wg0-f42.google.com with SMTP id l18so3604839wgh.5
-        for <linux-omap@vger.kernel.org>; Sun, 26 Jan 2014 15:07:46 -0800 (PST)
-In-Reply-To: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:33420 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753076AbaA0ABZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Jan 2014 19:01:25 -0500
+Content-Disposition: inline
+In-Reply-To: <52E01D01.2010709@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
+To: Nishanth Menon <nm@ti.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Ulf Hansson <ulf.hansson@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, bcousson@baylibre.com, "Hans J. Koch" <hjk@hansjkoch.de>, Daniel Mack <zonque@gmail.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 
-Hi Tomi,
+Hi Nishanth,
 
-On Tue, Jan 21, 2014 at 7:56 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> Hi,
->
-> Here's version 3 of the DSS DT series.
->
-> The previous version can be found from:
->
-> v1: http://permalink.gmane.org/gmane.linux.ports.arm.omap/108249
-> v2: http://permalink.gmane.org/gmane.linux.ports.arm.omap/108866
->
-> The main changes to v2 are:
->
-> - DT Binding documentation
-> - OMAP2 DSS support
-> - Split DSI register space
-> - DSS nodes disabled by default
-> - Hack to have generic DT bindings but OMAP specific drivers (for now)
->
-> This series can also be found from:
->
-> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt-review-3
->
+ thanks for reviewing this patch. Please see my comments below.
 
-I tested this branch on my DM3730 IGEPv2 and output display is working
-correctly.
+On Wed, Jan 22, 2014 at 01:33:21PM -0600, Nishanth Menon wrote:
+> On 01/22/2014 01:04 PM, Christoph Fritz wrote:
+> > Full device tree support for clock control is not yet accomplished. Until
+> > then, configure the 24Mhz of sys_clkout2 to feed an USB-Hub here.
+> > 
+> > Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
+> > ---
+> >  arch/arm/mach-omap2/pdata-quirks.c |   37 ++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 37 insertions(+)
+> > 
+> > diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+> > index a58590f..9ef7ca8 100644
+> > --- a/arch/arm/mach-omap2/pdata-quirks.c
+> > +++ b/arch/arm/mach-omap2/pdata-quirks.c
+> > @@ -171,6 +171,43 @@ static void __init am3517_evm_legacy_init(void)
+> >  }
+> >  static void __init omap3_dbb056_legacy_init(void)
+> >  {
+> > +	struct clk *clkout2;
+> > +	struct clk *cm96fck;
+> > +
+> > +	/* Reparent clkout2 to 96M_FCK */
+> > +	pr_info("a83x-quirk: Late Reparent clkout2 to 96M_FCK\n");
+> what'd be a83x?
 
-Tested-by: Javier Martinez Canillas <javier@dowhile0.org>
+It's the computer-on-module name. Will get changed to __func__.
 
->  Tomi
->
-> Javier Martinez Canillas (1):
->   ARM: omap3-igep0020.dts: add display information
->
-> Sebastian Reichel (1):
->   OMAPDSS: acx565akm: Add DT support
->
-> Tomi Valkeinen (39):
->   ARM: OMAP2+: add omapdss_init_of()
->   ARM: OMAP2+: DT 'compatible' tweak for displays
->   OMAPDSS: add 'label' support for DT
->   OMAPDSS: get dssdev->alias from DT alias
->   OMAPFB: clean up default display search
->   OMAPFB: search for default display with DT alias
->   OMAPDSS: add of helpers
->   OMAPDSS: Improve regulator names for DT
->   OMAPDSS: Add DT support to DSS
->   OMAPDSS: Add DT support to DISPC
->   OMAPDSS: Add DT support to HDMI
->   OMAPDSS: Add DT support to VENC
->   OMAPDSS: Add DT support to DSI
->   OMAPDSS: panel-dsi-cm: Add DT support
->   OMAPDSS: encoder-tfp410: Add DT support
->   OMAPDSS: connector-dvi: Add DT support
->   OMAPDSS: encoder-tpd12s015: Add DT support
->   OMAPDSS: hdmi-connector: Add DT support
->   OMAPDSS: panel-dpi: Add DT support
->   OMAPDSS: connector-analog-tv: Add DT support
->   ARM: omap2.dtsi: add omapdss information
->   ARM: omap3.dtsi: add omapdss information
->   ARM: omap4.dtsi: add omapdss information
->   ARM: omap4-panda.dts: add display information
->   ARM: omap4-sdp.dts: add display information
->   ARM: omap3-beagle.dts: add display information
->   ARM: omap3-beagle-xm.dts: add display information
->   ARM: omap3-n900.dts: add display information
->   OMAPDSS: remove DT hacks for regulators
->   ARM: OMAP2+: remove pdata quirks for displays
->   Doc/DT: Add OMAP DSS DT Bindings
->   Doc/DT: Add DT binding documentation for Analog TV Connector
->   Doc/DT: Add DT binding documentation for DVI Connector
->   Doc/DT: Add DT binding documentation for HDMI Connector
->   Doc/DT: Add DT binding documentation for MIPI DPI Panel
->   Doc/DT: Add DT binding documentation for MIPI DSI CM Panel
->   Doc/DT: Add DT binding documentation for Sony acx565akm panel
->   Doc/DT: Add DT binding documentation for TFP410 encoder
->   Doc/DT: Add DT binding documentation for tpd12s015 encoder
->
->  .../bindings/video/analog-tv-connector.txt         |  23 +++
->  .../devicetree/bindings/video/dvi-connector.txt    |  26 +++
->  .../devicetree/bindings/video/hdmi-connector.txt   |  23 +++
->  .../devicetree/bindings/video/panel-dpi.txt        |  43 ++++
->  .../devicetree/bindings/video/panel-dsi-cm.txt     |  26 +++
->  .../devicetree/bindings/video/sony,acx565akm.txt   |  28 +++
->  .../devicetree/bindings/video/ti,omap-dss.txt      | 197 ++++++++++++++++++
->  .../devicetree/bindings/video/ti,omap2-dss.txt     |  54 +++++
->  .../devicetree/bindings/video/ti,omap3-dss.txt     |  73 +++++++
->  .../devicetree/bindings/video/ti,omap4-dss.txt     |  99 +++++++++
->  .../devicetree/bindings/video/ti,tfp410.txt        |  41 ++++
->  .../devicetree/bindings/video/ti,tpd12s015.txt     |  44 ++++
->  .../devicetree/bindings/video/video-ports.txt      |  22 ++
->  arch/arm/boot/dts/omap2.dtsi                       |  31 +++
->  arch/arm/boot/dts/omap3-beagle-xm.dts              | 119 +++++++++++
->  arch/arm/boot/dts/omap3-beagle.dts                 | 116 +++++++++++
->  arch/arm/boot/dts/omap3-igep0020.dts               |  59 +++++-
->  arch/arm/boot/dts/omap3-n900.dts                   |  70 ++++++-
->  arch/arm/boot/dts/omap3.dtsi                       |  42 ++++
->  arch/arm/boot/dts/omap4-panda-common.dtsi          | 119 ++++++++++-
->  arch/arm/boot/dts/omap4-sdp.dts                    | 107 +++++++++-
->  arch/arm/boot/dts/omap4.dtsi                       |  65 ++++++
->  arch/arm/mach-omap2/board-generic.c                |   4 +
->  arch/arm/mach-omap2/common.h                       |   3 +
->  arch/arm/mach-omap2/display.c                      | 132 ++++++++++++
->  arch/arm/mach-omap2/dss-common.c                   | 224 ---------------------
->  arch/arm/mach-omap2/pdata-quirks.c                 |   3 -
->  .../video/omap2/displays-new/connector-analog-tv.c |  43 +++-
->  drivers/video/omap2/displays-new/connector-dvi.c   |  43 ++++
->  drivers/video/omap2/displays-new/connector-hdmi.c  |  30 +++
->  drivers/video/omap2/displays-new/encoder-tfp410.c  |  43 +++-
->  .../video/omap2/displays-new/encoder-tpd12s015.c   |  56 ++++++
->  drivers/video/omap2/displays-new/panel-dpi.c       |  64 +++++-
->  drivers/video/omap2/displays-new/panel-dsi-cm.c    |  65 +++++-
->  .../omap2/displays-new/panel-sony-acx565akm.c      |  33 ++-
->  drivers/video/omap2/dss/Makefile                   |   2 +-
->  drivers/video/omap2/dss/dispc.c                    |   8 +
->  drivers/video/omap2/dss/display.c                  |  28 ++-
->  drivers/video/omap2/dss/dpi.c                      |  47 +++++
->  drivers/video/omap2/dss/dsi.c                      | 147 +++++++++++++-
->  drivers/video/omap2/dss/dss-of.c                   | 159 +++++++++++++++
->  drivers/video/omap2/dss/dss.c                      |  64 ++++++
->  drivers/video/omap2/dss/dss.h                      |   6 +
->  drivers/video/omap2/dss/hdmi4.c                    |  14 +-
->  drivers/video/omap2/dss/sdi.c                      |  45 +++++
->  drivers/video/omap2/dss/venc.c                     |  66 +++++-
->  drivers/video/omap2/omapfb/omapfb-main.c           |  67 ++++--
->  include/video/omapdss.h                            |  14 ++
->  48 files changed, 2550 insertions(+), 287 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/video/analog-tv-connector.txt
->  create mode 100644 Documentation/devicetree/bindings/video/dvi-connector.txt
->  create mode 100644 Documentation/devicetree/bindings/video/hdmi-connector.txt
->  create mode 100644 Documentation/devicetree/bindings/video/panel-dpi.txt
->  create mode 100644 Documentation/devicetree/bindings/video/panel-dsi-cm.txt
->  create mode 100644 Documentation/devicetree/bindings/video/sony,acx565akm.txt
->  create mode 100644 Documentation/devicetree/bindings/video/ti,omap-dss.txt
->  create mode 100644 Documentation/devicetree/bindings/video/ti,omap2-dss.txt
->  create mode 100644 Documentation/devicetree/bindings/video/ti,omap3-dss.txt
->  create mode 100644 Documentation/devicetree/bindings/video/ti,omap4-dss.txt
->  create mode 100644 Documentation/devicetree/bindings/video/ti,tfp410.txt
->  create mode 100644 Documentation/devicetree/bindings/video/ti,tpd12s015.txt
->  create mode 100644 Documentation/devicetree/bindings/video/video-ports.txt
->  create mode 100644 drivers/video/omap2/dss/dss-of.c
->
-> --
-> 1.8.3.2
->
+> > +	clkout2 = clk_get(NULL, "clkout2_src_ck");
+> > +	if(clkout2 < 0) {
+> > +		pr_err("a83x-quirk: couldn't get clkout2_src_ck\n");
+> > +		return;
+> > +	}
+> > +	cm96fck = clk_get(NULL, "cm_96m_fck");
+> > +	if(cm96fck < 0) {
+> > +		pr_err("a83x-quirk: couldn't get cm_96m_fck\n");
+> > +		return;
+> > +	}
+> > +	if(clk_set_parent(clkout2, cm96fck) < 0) {
+> > +		pr_err("a83x-quirk: couldn't reparent clkout2_src_ck\n");
+> > +		return;
+> > +	}
+> yep - we have bunch of similar code in drivers/clk/ti -> but we'd need
+> a generic property to handle this.
 
-Thanks a lot and best regards,
-Javier
+This whole quirk of configuring sys_clkout2 in a platform file will
+go away. Tero is planning to post some RFC patches to configure this
+by DT.
+
+> > +
+> > +	/* Set clkout2 to 24MHz for internal usb hub*/
+> > +	pr_info("a83x-quirk: Set clkout2 to 24MHz for internal usb hub\n");
+> > +	clkout2 = clk_get(NULL, "sys_clkout2");
+> > +	if(clkout2 < 0) {
+> > +		pr_err("a83x-quirk: couldn't get sys_clkout2\n");
+> > +		return;
+> > +	}
+> > +	if(clk_set_rate(clkout2, 24000000) < 0) {
+> same here.
+> > +		printk(KERN_ERR "board-omap3evm: couldn't set sys_clkout2 rate\n");
+> "board-omap3evm:" copy paste?
+> any reason why not pr_err?
+
+will get fixed
+
+> > +		return;
+> > +	}
+> > +	if(clk_prepare_enable(clkout2) < 0) {
+> > +		pr_err("a83x-quirk: couldn't enable sys_clkout2\n");
+> > +		return;
+> > +	}
+> > +
+> > +	/* Initialize display */
+> >  	omap3_dbb056_display_init_of();
+> >  }
+> >  #endif /* CONFIG_ARCH_OMAP3 */
+> > 
+> 
+> looking at the coding style, I assume we'd missed running
+> checkpatch.pl --strict?
+
+Let me reroll this patch in a new v3 set.
+
+Thanks
+  -- Christoph
