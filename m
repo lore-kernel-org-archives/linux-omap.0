@@ -1,71 +1,51 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [BISECTED] OMAP: DSS: clk rate mismatch
-Date: Tue, 28 Jan 2014 11:04:35 +0200
-Message-ID: <52E772A3.4090401@ti.com>
-References: <52E697C0.6000202@gmail.com> <1390848104.4936.62.camel@mars>
+From: Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [alsa-devel] [PATCH RFC v3 0/8] Beaglebone-Black HDMI audio
+Date: Tue, 28 Jan 2014 10:23:53 +0100
+Message-ID: <20140128102353.48e8fb51@armhf>
+References: <y>
+	<cover.1390836773.git.jsarha@ti.com>
+	<52E6806A.2090109@metafoo.de>
+	<52E686B2.9060806@ti.com>
+	<20140127190641.273890c6@armhf>
+	<52E6B42F.4050901@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="dDHe9PUjef0koNQfeq5jCibkk6UbhUul4"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1390848104.4936.62.camel@mars>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Fritz <chf.fritz@googlemail.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>
-List-Id: linux-omap@vger.kernel.org
-
---dDHe9PUjef0koNQfeq5jCibkk6UbhUul4
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:35774 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754635AbaA1JX5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jan 2014 04:23:57 -0500
+In-Reply-To: <52E6B42F.4050901@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Lars-Peter Clausen <lars@metafoo.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, broonie@kernel.org, peter.ujfalusi@ti.com, detheridge@ti.com
 
-On 2014-01-27 20:41, Christoph Fritz wrote:
-> On Mon, 2014-01-27 at 19:30 +0200, Ivaylo Dimitrov wrote:
->> linux-next-20140124 DSS is broken on N900  - display stays black (ther=
-e=20
->> is some noise though). I booted the kernel with qemu and it gives the =
+On Mon, 27 Jan 2014 21:31:59 +0200
+Jyri Sarha <jsarha@ti.com> wrote:
 
->> following warning:
->>
->> [    0.623779] DSS: set fck to 172800000
->> [    0.624237] ------------[ cut here ]------------
->> [    0.624298] WARNING: CPU: 0 PID: 1 at=20
->> drivers/video/omap2/dss/dss.c:497 dss_set_fck_rate+0x68/0x8c()
->> [    0.624359] clk rate mismatch: 288000000 !=3D 172800000
->=20
-> Here are also clock regressions since next-20140122 regarding
-> dss_set_fck_rate() and sys_clkout2 occuring in my current patchset for =
-a
-> dm37xx100 board. Please see here:
+> I would suggest to leave the CTS_N_K to the current setting (3), unle=
+ss=20
+> we can change the CTS_N_K on the fly according to the used sample for=
+mat.
 
-I presume you get a similar warning on your board? What rates does it
-report?
+Yes, this is possible:
 
- Tomi
+- the tda998x codec may call the tda998x hdmi in the hw_params()
+  function, i.e. when the sample format is known, and then,
 
+- the tda998x_audio_update() function may have the audio parameters
+  (struct snd_pcm_hw_params) as an argument, and CTS_N_K may be set
+  to either 1, 2 or 3 for SNDRV_PCM_FORMAT_S16_LE / S24_LE and S32_LE.
 
+This is working in my machine. Would it also work for you?
 
---dDHe9PUjef0koNQfeq5jCibkk6UbhUul4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJS53KjAAoJEPo9qoy8lh71nrUP/Aozq4UI3WJfP6KEppXq0lBS
-MB67vtGweAA9DpxF/G9dlex0hU5ORuuBYSczlRfjSNABp5Zj06yaq2Hx8Xkejsn0
-4tqPXQPGeRsj+h7IoWMH+RjqFtJ8xkFW62xlTC5eghQxBBBzgydIXomikCp57Sd8
-UnWcrTQSFUbsUo/dOT8BvjmFMD2ZuLV6fvIh5D5uzzQO88EV2LpFs6DTPp247F1x
-/Jp3uA5AeFGY5m+6y4rbf+HcdcDFKInRoG+YA7k4Ck/Vgf33N8Mo4NDRRoXED4nh
-a3SQIHS2MFpiDqsJNdK4x5d9JY9YzAZmPzHi8QfE0OmyCQht24zIN6lyXzJDTcRo
-ErKWbSg69K579tweBugEV7MQZaoQopY7T96FkGOUyK6AYDE+oWjtXewedGVOTCnS
-t55IzAwdzWiY8LgF7n5sGf1rLqID4SYc+wawO0/79+eO7LZERbELD+xZJ8pYR2iQ
-7kbev9+6ETqcaVCUQA0v2zhOCuw/kFHZiWMxuHwu4G8fHLJgbBindSKvEt25E1E4
-js74iEPTXc6tfxR4wRJEDXj4Y4ZcSga2Eh3IUSolp7ZAvAqpsz738PLcTTH3qzU/
-gUQAqCid9SgPiUrkjDI8MUZC1Um/MtK8DCz+lzfqEanV9GZPVdurnuupc9BVm02n
-8+yEO1VBEJW+OZ1so4YC
-=y9vf
------END PGP SIGNATURE-----
-
---dDHe9PUjef0koNQfeq5jCibkk6UbhUul4--
+--=20
+Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
