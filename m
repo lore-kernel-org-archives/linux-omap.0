@@ -1,78 +1,96 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [BISECTED] OMAP: DSS: clk rate mismatch
-Date: Tue, 28 Jan 2014 15:40:49 +0200
-Message-ID: <52E7B361.2030601@ti.com>
-References: <52E697C0.6000202@gmail.com> <1390848104.4936.62.camel@mars>	 <52E772A3.4090401@ti.com> <1390901735.2963.8.camel@lovely> <52E77D03.8090001@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 4/4] power_supply: bq24261 charger driver
+Date: Tue, 28 Jan 2014 15:14:45 +0100
+Message-ID: <20140128141445.GC8713@xo-6d-61-c0.localdomain>
+References: <1390411194-21410-1-git-send-email-jenny.tc@intel.com>
+ <1390411194-21410-5-git-send-email-jenny.tc@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52E77D03.8090001@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1390411194-21410-5-git-send-email-jenny.tc@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Christoph Fritz <chf.fritz@googlemail.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, Nishanth Menon <nm@ti.com>
+To: Jenny TC <jenny.tc@intel.com>
+Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Rupesh Kumar <rupesh.kumar@stericsson.com>, Lars-Peter Clausen <lars@metafoo.de>, Pali Roh?r <pali.rohar@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rhyland Klein <rklein@nvidia.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, freemangordon@abv.bg, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/28/2014 11:48 AM, Tomi Valkeinen wrote:
-> On 2014-01-28 11:35, Christoph Fritz wrote:
->> On Tue, 2014-01-28 at 11:04 +0200, Tomi Valkeinen wrote:
->>> On 2014-01-27 20:41, Christoph Fritz wrote:
->>>> On Mon, 2014-01-27 at 19:30 +0200, Ivaylo Dimitrov wrote:
->>>>> linux-next-20140124 DSS is broken on N900  - display stays black (there
->>>>> is some noise though). I booted the kernel with qemu and it gives the
->>>>> following warning:
->>>>>
->>>>> [    0.623779] DSS: set fck to 172800000
->>>>> [    0.624237] ------------[ cut here ]------------
->>>>> [    0.624298] WARNING: CPU: 0 PID: 1 at
->>>>> drivers/video/omap2/dss/dss.c:497 dss_set_fck_rate+0x68/0x8c()
->>>>> [    0.624359] clk rate mismatch: 288000000 != 172800000
->>>>
->>>> Here are also clock regressions since next-20140122 regarding
->>>> dss_set_fck_rate() and sys_clkout2 occuring in my current patchset for a
->>>> dm37xx100 board. Please see here:
->>>
->>> I presume you get a similar warning on your board? What rates does it
->>> report?
->>
->> None, dss_set_fck_rate() just fails so omapdss_dss exits with error -22.
->
-> Ok, then it's something else. That means clk_set_rate() fails.
->
-> If you can do some tests, you could print the rate that the
-> dss_set_fck_rate() is given, to see that it's something reasonable, and
-> also do a clk_get_rate(dss.dss_clk) to see that the clock itself is ok
-> and there's some valid rate there.
->
->> To quote the cover-letter[1] of my board-support patch series here:
->>
->> Due to a regression since next-20140122 the following errors are present:
->>
->>   - pin sys_clkout2, which gets configured to 24 Mhz by the fourth patch
->>     in this set, erroneously outputs only 12 Mhz.
->>     Just out of curiosity, configuring it to 48 Mhz puts out desired 24 Mhz.
->>
->>   - omap_dss, which gets configured by the third patch in this set, fails
->>     to do 'dss_set_fck_rate(fck);' in
->>     drivers/video/omap2/dss/dss.c:dss_setup_default_clock() which leads to:
->>
->>      | omapdss_dss: probe of omapdss_dss failed with error -22
->>      | omapdss CORE error: Failed to initialize DSS platform driver
->>      | panel-dpi panel-dpi.0: failed to find video source 'dpi.0
->>
->>    Both regressions seem to have something to do with the clock framework.
->>    Could this be related to the DT clock conversion patches?
->
-> No idea...
+Hi!
 
-Yea its definitely possible, as the clock DT conversion touches pretty 
-much everything. Have you tried whether this works properly with legacy 
-boot? Personally I don't have access to any omap3 devices that would 
-have display and have no possibility to check this out myself. Anyway, 
-my initial guess is that some clock divider setup might be wrong with 
-omap3, or we are missing some ti,set-rate-parent flag for some clock 
-node which prevents escalating clk_set_rate properly. However, it should 
-be easy to debug this by looking at the clock node in question, and its 
-parent nodes to see if there are any problems.
+> +#define BQ24261_ICHRG_MASK		(0x1F << 3)
+> +#define BQ24261_ICHRG_100ma		(0x01 << 3)
+> +#define BQ24261_ICHRG_200ma		(0x01 << 4)
+> +#define BQ24261_ICHRG_400ma		(0x01 << 5)
+> +#define BQ24261_ICHRG_800ma		(0x01 << 6)
+> +#define BQ24261_ICHRG_1600ma		(0x01 << 7)
 
--Tero
+First, its mA, not ma.
+
+And second:
+
+> +#define BQ24261_VINDPM_320MV		(0x01 << 2)
+> +#define BQ24261_VINDPM_160MV		(0x01 << 1)
+> +#define BQ24261_VINDPM_80MV		(0x01 << 0)
+
+(Same here).
+
+> +u16 bq24261_iterm[][2] = {
+> +	{0, 0x00}
+> +	,
+> +	{50, BQ24261_ITERM_50ma}
+> +	,
+> +	{100, BQ24261_ITERM_100ma}
+> +	,
+> +	{150, BQ24261_ITERM_100ma | BQ24261_ITERM_50ma}
+
+...this is very obscure way to do with table what can be done with
+
+(x/50) << 3, right ?
+ 
+
+> +u16 bq24261_cc[][2] = {
+> +
+> +	{500, 0x00}
+> +	,
+> +	{600, BQ24261_ICHRG_100ma}
+> +	,
+> +	{700, BQ24261_ICHRG_200ma}
+> +	,
+> +	{800, BQ24261_ICHRG_100ma | BQ24261_ICHRG_200ma}
+> +	,
+> +	{900, BQ24261_ICHRG_400ma}
+
+I suspect you can get rid of this, too, if you expand macros.
+
+> +static inline bool is_bq24261_enabled(struct bq24261_charger *chip)
+> +{
+> +	if (chip->cable_type == PSY_CHARGER_CABLE_TYPE_NONE)
+> +		return false;
+> +	else if (!chip->is_charger_enabled)
+> +		return false;
+
+No need to do elses if all you do is return...
+
+> +		return -EINVAL;
+> +
+> +	ret = psy->get_property(psy, POWER_SUPPLY_PROP_CURRENT_NOW, &val);
+> +	if (!ret)
+> +		*cur = val.intval;
+> +
+> +	return ret;
+
+You can merge two very similar functions here, AFAICT.
+
+
+> +	if (verify_recovery) {
+> +		if ((bat_volt) <= (bat_volt_max_des / 1000 *
+> +				BQ24261_OVP_RECOVER_MULTIPLIER))
+> +			return true;
+> +		else
+> +			return false;
+
+Do this without if().
+
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
