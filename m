@@ -1,51 +1,58 @@
-From: Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [alsa-devel] [PATCH RFC v3 0/8] Beaglebone-Black HDMI audio
-Date: Tue, 28 Jan 2014 10:23:53 +0100
-Message-ID: <20140128102353.48e8fb51@armhf>
-References: <y>
-	<cover.1390836773.git.jsarha@ti.com>
-	<52E6806A.2090109@metafoo.de>
-	<52E686B2.9060806@ti.com>
-	<20140127190641.273890c6@armhf>
-	<52E6B42F.4050901@ti.com>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: Re: [BISECTED] OMAP: DSS: clk rate mismatch
+Date: Tue, 28 Jan 2014 10:35:35 +0100
+Message-ID: <1390901735.2963.8.camel@lovely>
+References: <52E697C0.6000202@gmail.com> <1390848104.4936.62.camel@mars>
+	 <52E772A3.4090401@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:35774 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754635AbaA1JX5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jan 2014 04:23:57 -0500
-In-Reply-To: <52E6B42F.4050901@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52E772A3.4090401@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Lars-Peter Clausen <lars@metafoo.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, broonie@kernel.org, peter.ujfalusi@ti.com, detheridge@ti.com
 
-On Mon, 27 Jan 2014 21:31:59 +0200
-Jyri Sarha <jsarha@ti.com> wrote:
+On Tue, 2014-01-28 at 11:04 +0200, Tomi Valkeinen wrote:
+> On 2014-01-27 20:41, Christoph Fritz wrote:
+> > On Mon, 2014-01-27 at 19:30 +0200, Ivaylo Dimitrov wrote:
+> >> linux-next-20140124 DSS is broken on N900  - display stays black (there 
+> >> is some noise though). I booted the kernel with qemu and it gives the 
+> >> following warning:
+> >>
+> >> [    0.623779] DSS: set fck to 172800000
+> >> [    0.624237] ------------[ cut here ]------------
+> >> [    0.624298] WARNING: CPU: 0 PID: 1 at 
+> >> drivers/video/omap2/dss/dss.c:497 dss_set_fck_rate+0x68/0x8c()
+> >> [    0.624359] clk rate mismatch: 288000000 != 172800000
+> > 
+> > Here are also clock regressions since next-20140122 regarding
+> > dss_set_fck_rate() and sys_clkout2 occuring in my current patchset for a
+> > dm37xx100 board. Please see here:
+> 
+> I presume you get a similar warning on your board? What rates does it
+> report?
 
-> I would suggest to leave the CTS_N_K to the current setting (3), unle=
-ss=20
-> we can change the CTS_N_K on the fly according to the used sample for=
-mat.
+None, dss_set_fck_rate() just fails so omapdss_dss exits with error -22.
 
-Yes, this is possible:
+To quote the cover-letter[1] of my board-support patch series here:
 
-- the tda998x codec may call the tda998x hdmi in the hw_params()
-  function, i.e. when the sample format is known, and then,
+Due to a regression since next-20140122 the following errors are present:
 
-- the tda998x_audio_update() function may have the audio parameters
-  (struct snd_pcm_hw_params) as an argument, and CTS_N_K may be set
-  to either 1, 2 or 3 for SNDRV_PCM_FORMAT_S16_LE / S24_LE and S32_LE.
+ - pin sys_clkout2, which gets configured to 24 Mhz by the fourth patch
+   in this set, erroneously outputs only 12 Mhz.
+   Just out of curiosity, configuring it to 48 Mhz puts out desired 24 Mhz.
 
-This is working in my machine. Would it also work for you?
+ - omap_dss, which gets configured by the third patch in this set, fails
+   to do 'dss_set_fck_rate(fck);' in
+   drivers/video/omap2/dss/dss.c:dss_setup_default_clock() which leads to:
 
---=20
-Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    | omapdss_dss: probe of omapdss_dss failed with error -22
+    | omapdss CORE error: Failed to initialize DSS platform driver
+    | panel-dpi panel-dpi.0: failed to find video source 'dpi.0
+
+  Both regressions seem to have something to do with the clock framework. 
+  Could this be related to the DT clock conversion patches?
+
+[1]: http://thread.gmane.org/gmane.linux.ports.arm.omap/110095
