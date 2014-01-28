@@ -1,102 +1,120 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [BISECTED] OMAP: DSS: clk rate mismatch
-Date: Tue, 28 Jan 2014 09:50:38 +0200
-Message-ID: <52E7614E.8010903@ti.com>
-References: <52E697C0.6000202@gmail.com>
+From: Manish Badarkhe <badarkhe.manish@gmail.com>
+Subject: Re: [PATCH V2] regulator: fixed: update to devm_* API
+Date: Tue, 28 Jan 2014 14:16:39 +0530
+Message-ID: <CAKDJKT4jPLmtrm6Ngp+nT5vf0H4zXwwAM=oURDF-DSAJodVN6A@mail.gmail.com>
+References: <1390878720-8676-1-git-send-email-badarkhe.manish@gmail.com>
+	<20140128063308.GA5965@core.coreip.homeip.net>
+	<CAKDJKT5COnY=i4Dd-P8_eMoWBU+ShqVKVhoVGBk1qWxffe+wMg@mail.gmail.com>
+	<10462793.IYoAK2XtXv@phil>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="pCIia1f2wkOdMp1h5t0Gj0gRFEppCWOVo"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53361 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752092AbaA1Hus (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Jan 2014 02:50:48 -0500
-In-Reply-To: <52E697C0.6000202@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz
-
---pCIia1f2wkOdMp1h5t0Gj0gRFEppCWOVo
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <10462793.IYoAK2XtXv@phil>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: =?ISO-8859-1?Q?Heiko_St=FCbner?= <heiko@sntech.de>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-tegra@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
+List-Id: linux-omap@vger.kernel.org
 
-On 2014-01-27 19:30, Ivaylo Dimitrov wrote:
-> Hi Tomi,
->=20
-> linux-next-20140124 DSS is broken on N900  - display stays black (there=
+Hi Heiko
 
-> is some noise though). I booted the kernel with qemu and it gives the
-> following warning:
->=20
-> [    0.623779] DSS: set fck to 172800000
-> [    0.624237] ------------[ cut here ]------------
-> [    0.624298] WARNING: CPU: 0 PID: 1 at
-> drivers/video/omap2/dss/dss.c:497 dss_set_fck_rate+0x68/0x8c()
-> [    0.624359] clk rate mismatch: 288000000 !=3D 172800000
+Thank you for your reply.
 
-That says that the omapdss tries to set the func clock to 172.8 MHz, but
-after setting the rate, the clock is at 288 MHz.
+On Tue, Jan 28, 2014 at 1:08 PM, Heiko St=FCbner <heiko@sntech.de> wrot=
+e:
+> On Tuesday, 28. January 2014 12:46:01 Manish Badarkhe wrote:
+>> Hi Dmitry,
+>>
+>> Thank you for your review.
+>>
+>> On Tue, Jan 28, 2014 at 12:03 PM, Dmitry Torokhov
+>>
+>> <dmitry.torokhov@gmail.com> wrote:
+>> > Hi Manish,
+>> >
+>> > On Tue, Jan 28, 2014 at 08:42:00AM +0530, Manish Badarkhe wrote:
+>> >> Update the code to use devm_* API so that driver core will manage
+>> >> resources.
+>> >>
+>> >> Signed-off-by: Manish Badarkhe <badarkhe.manish@gmail.com>
+>> >> ---
+>> >> Changes since V1:
+>> >> 1. Updated driver to use "devm_kzalloc" to "kstrdup".
+>> >> 2. Updated commit message.
+>> >>
+>> >> Not tested on any board.
+>> >>
+>> >> :100644 100644 5ea64b9... e9763a4... M        drivers/regulator/f=
+ixed.c
+>> >> :
+>> >>  drivers/regulator/fixed.c |   42
+>> >>  ++++++++++++------------------------------
+>> >>  1 file changed, 12 insertions(+), 30 deletions(-)
+>> >>
+>> >> diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.=
+c
+>> >> index 5ea64b9..e9763a4 100644
+>> >> --- a/drivers/regulator/fixed.c
+>> >> +++ b/drivers/regulator/fixed.c
+>> >> @@ -132,15 +132,15 @@ static int reg_fixed_voltage_probe(struct
+>> >> platform_device *pdev)>>
+>> >>                              GFP_KERNEL);
+>> >>
+>> >>       if (drvdata =3D=3D NULL) {
+>> >>
+>> >>               dev_err(&pdev->dev, "Failed to allocate device data=
+\n");
+>> >>
+>> >> -             ret =3D -ENOMEM;
+>> >> -             goto err;
+>> >> +             return -ENOMEM;
+>> >>
+>> >>       }
+>> >>
+>> >> -     drvdata->desc.name =3D kstrdup(config->supply_name, GFP_KER=
+NEL);
+>> >> +     drvdata->desc.name =3D devm_kzalloc(&pdev->dev,
+>> >> +                                       strlen(config->supply_nam=
+e) + 1,
+>> >> +                                       GFP_KERNEL);
+>> >>
+>> >>       if (drvdata->desc.name =3D=3D NULL) {
+>> >>
+>> >>               dev_err(&pdev->dev, "Failed to allocate supply name=
+\n");
+>> >>
+>> >> -             ret =3D -ENOMEM;
+>> >> -             goto err;
+>> >> +             return -ENOMEM;
+>> >>
+>> >>       }
+>> >
+>> > Umm, I am fairly certain that devm_kzalloc() can't be used as a
+>> > substitute for kstrdup, at least not without accompanying memcpy.
+>>
+>> Yes, I have provided allocation but it should be followed with assig=
+nment.
+>> Can I modify like this,
+>>
+>> +     drvdata->desc.name =3D devm_kzalloc(&pdev->dev,
+>> +                                       strlen(config->supply_name) =
++ 1,
+>> +                                       GFP_KERNEL);
+>> +     if (drvdata->desc.name)
+>> +     sprintf(drvdata->desc.name, "%s", config->supply_name);
+>
+> hmm, so you replaced a general helper function by open coding the str=
+ing-
+> duplication. Doesn't this defeat the target of simplifying the code?
 
-I just hit the same warning with beagle-xm yesterday, with v3.13-rc6 +
-DSS device tree patches, although it might be a different thing. I see
-that the actual clock is lower than what omapdss tries to set, you have
-the other way around.
+Intention here, is to use devm_ API and to adopt this I have to do thes=
+e
+modifications for "kstrdup" functions. I have seen in regulator folder =
+almost
+all drivers adopted to "devm_" API. Hence same thing I am following to
+update this driver. Please let me know whether to go ahead with this pa=
+tch
+or retain driver as it is.
 
-The beagle-xm issue is related to a clk-divider fix I have sent some
-time ago:
-
-http://mid.gmane.org/1383736008-22764-1-git-send-email-tomi.valkeinen@ti.=
-com
-
-Basically the issue is that omapdss needs to produce very precise pixel
-clocks, derived from fck, but the fck rate options are quite limited. So
-omapdss tries to find out what kind of rates it could get for the fck,
-i.e. it does the clock divider calculations itself that would normally
-be left to the clock framework.
-
-That means the omapdss should do rounding the same way as the clock
-framework does. But clock framework has no rules about the rounding, so
-omapdss easily gets it wrong. And when you add the bug for which I
-posted the patch above, it seems the omapdss clock calculations are not
-very functional at the moment with fractional clock rates.
-
-However, I think the issue I see with beagle-xm should always result in
-lower actual fck than requested, but you see the other way around. So I
-wonder if it's something else... N900 clock calculations do initiate
-from sdi.c, instead of dpi.c for beagle, but they do look rather
-similar, and use the same helper functions from dss.c and dispc.c.
-
-How is the dss clock calculated on n900? Can you attach
-debug/clk/clk_summary output?
-
- Tomi
-
-
-
---pCIia1f2wkOdMp1h5t0Gj0gRFEppCWOVo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJS52FRAAoJEPo9qoy8lh71xAcP/A7Wq7phKz2s7611nubBgd6O
-Uvotnb9896BTPaefhunHHudUdergZb5iZVAeHrOMgT6Nhemppn0BcT25T7nr/4ba
-AEtvJOFlMcXbQeTXpoUrDAsTZsLSLPpBNw3jZDuLKciCE4WpYVLWBpR88DyYIblr
-z0hgfQmojViUNT+uPs04G02eXHMQQmEbQ28q4+sD16ZAmscH7N2WAj/2YSZgr0BS
-Fa34q3D6DoTQ7XBM3oLcrDBdUqkmkdot2fTg/NXT5sFpK6fwk3fURy8D36bSsfJJ
-NPFpkYl1BJdklwH7DryAQOXSjIWE8dpqowiKMm7+O42+tZ1eEvbo96yDLKKpMmsU
-W0QGI+SUbLyiy5lkrD/8TNz0YrSsqi7RT+o3NrfXJGDxdOfgNciYSZblEG9NRTdK
-dg8o228QDeND38tZ/s2PrPrI3TbKUULOe1+BPDYoepei6Ovf/FOkjixqLabeEyQN
-2eBoy0nT83rOIAk2rGeWqgoBM37aWHY1BzNmmLa3KiCPdYMe6eTMVhcoaotnmNIt
-2wI3N/cmuRPlmU6Tqg3/NypSCFIJgBO/fA464V2VOwPpNMZfwf5Umh4XguVEeqes
-r28/CAnPaMLh7c6Vz6sF0Ohq86368v/VVoCKjdtEPJgr32Jh8FtrdfQKn7mupCGC
-T+mQ6f7BPlucbc00Swel
-=uDYS
------END PGP SIGNATURE-----
-
---pCIia1f2wkOdMp1h5t0Gj0gRFEppCWOVo--
+Regards
+Manish Badarkhe
