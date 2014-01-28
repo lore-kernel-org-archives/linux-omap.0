@@ -1,54 +1,64 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH] ARM: OMAP2+: gpmc: fix: DT ONENAND child nodes not probed when MTD_ONENAND is built as module
-Date: Tue, 28 Jan 2014 11:42:41 +0530
-Message-ID: <1390889561-11410-2-git-send-email-pekon@ti.com>
-References: <1390889561-11410-1-git-send-email-pekon@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V2] regulator: fixed: update to devm_* API
+Date: Mon, 27 Jan 2014 22:33:08 -0800
+Message-ID: <20140128063308.GA5965@core.coreip.homeip.net>
+References: <1390878720-8676-1-git-send-email-badarkhe.manish@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49902 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752015AbaA1GM7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Jan 2014 01:12:59 -0500
-In-Reply-To: <1390889561-11410-1-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1390878720-8676-1-git-send-email-badarkhe.manish-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Manish Badarkhe <badarkhe.manish-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Daniel Mack <zonque@gmail.com>
 
-Fixes: commit 75d3625e0e86b2d8d77b4e9c6f685fd7ea0d5a96
-       ARM: OMAP2+: gpmc: add DT bindings for OneNAND
+Hi Manish,
 
-OMAP SoC(s) depend on GPMC controller driver to parse GPMC DT child nodes and
-register them platform_device for ONENAND driver to probe later. However this does
-not happen if generic MTD_ONENAND framework is built as module (CONFIG_MTD_ONENAND=m).
+On Tue, Jan 28, 2014 at 08:42:00AM +0530, Manish Badarkhe wrote:
+> Update the code to use devm_* API so that driver core will manage
+> resources.
+> 
+> Signed-off-by: Manish Badarkhe <badarkhe.manish-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+> Changes since V1:
+> 1. Updated driver to use "devm_kzalloc" to "kstrdup".
+> 2. Updated commit message.
+> 
+> Not tested on any board.
+> 
+> :100644 100644 5ea64b9... e9763a4... M	drivers/regulator/fixed.c
+>  drivers/regulator/fixed.c |   42 ++++++++++++------------------------------
+>  1 file changed, 12 insertions(+), 30 deletions(-)
+> 
+> diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
+> index 5ea64b9..e9763a4 100644
+> --- a/drivers/regulator/fixed.c
+> +++ b/drivers/regulator/fixed.c
+> @@ -132,15 +132,15 @@ static int reg_fixed_voltage_probe(struct platform_device *pdev)
+>  			       GFP_KERNEL);
+>  	if (drvdata == NULL) {
+>  		dev_err(&pdev->dev, "Failed to allocate device data\n");
+> -		ret = -ENOMEM;
+> -		goto err;
+> +		return -ENOMEM;
+>  	}
+>  
+> -	drvdata->desc.name = kstrdup(config->supply_name, GFP_KERNEL);
+> +	drvdata->desc.name = devm_kzalloc(&pdev->dev,
+> +					  strlen(config->supply_name) + 1,
+> +					  GFP_KERNEL);
+>  	if (drvdata->desc.name == NULL) {
+>  		dev_err(&pdev->dev, "Failed to allocate supply name\n");
+> -		ret = -ENOMEM;
+> -		goto err;
+> +		return -ENOMEM;
+>  	}
 
-Therefore, when MTD/ONENAND and MTD/ONENAND/OMAP2 modules are loaded, they are unable
-to find any matching platform_device and remain un-binded. This causes on board
-ONENAND flash to remain un-detected.
+Umm, I am fairly certain that devm_kzalloc() can't be used as a
+substitute for kstrdup, at least not without accompanying memcpy.
 
-This patch causes GPMC controller to parse DT nodes when
-CONFIG_MTD_ONENAND=y || CONFIG_MTD_ONENAND=m
+Thanks.
 
-CC: <stable@vger.kernel.org> # 3.9.x+
-Signed-off-by: Pekon Gupta <pekon@ti.com>
----
- arch/arm/mach-omap2/gpmc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index c77a84b..ab43755 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1429,7 +1429,7 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
- }
- #endif
- 
--#ifdef CONFIG_MTD_ONENAND
-+#if IS_ENABLED(CONFIG_MTD_ONENAND)
- static int gpmc_probe_onenand_child(struct platform_device *pdev,
- 				 struct device_node *child)
- {
 -- 
-1.8.1
-
+Dmitry
