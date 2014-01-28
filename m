@@ -1,96 +1,108 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 4/4] power_supply: bq24261 charger driver
-Date: Tue, 28 Jan 2014 15:14:45 +0100
-Message-ID: <20140128141445.GC8713@xo-6d-61-c0.localdomain>
-References: <1390411194-21410-1-git-send-email-jenny.tc@intel.com>
- <1390411194-21410-5-git-send-email-jenny.tc@intel.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 1/2] usb: dwc3: core: continue probing if usb phy library
+ returns -ENODEV/-ENXIO
+Date: Tue, 28 Jan 2014 17:32:30 +0200
+Message-ID: <20140128153230.GA20991@xps8300>
+References: <1385373690-12170-1-git-send-email-kishon@ti.com>
+ <1390299099-14764-1-git-send-email-kishon@ti.com>
+ <20140121144725.GF30451@saruman.home>
+ <20140127150855.GA17928@xps8300>
+ <20140127160458.GF13268@saruman.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1390411194-21410-5-git-send-email-jenny.tc@intel.com>
+In-Reply-To: <20140127160458.GF13268@saruman.home>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jenny TC <jenny.tc@intel.com>
-Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Rupesh Kumar <rupesh.kumar@stericsson.com>, Lars-Peter Clausen <lars@metafoo.de>, Pali Roh?r <pali.rohar@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rhyland Klein <rklein@nvidia.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, freemangordon@abv.bg, linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, george.cherian@ti.com, rogerq@ti.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+Hi,
 
-> +#define BQ24261_ICHRG_MASK		(0x1F << 3)
-> +#define BQ24261_ICHRG_100ma		(0x01 << 3)
-> +#define BQ24261_ICHRG_200ma		(0x01 << 4)
-> +#define BQ24261_ICHRG_400ma		(0x01 << 5)
-> +#define BQ24261_ICHRG_800ma		(0x01 << 6)
-> +#define BQ24261_ICHRG_1600ma		(0x01 << 7)
+On Mon, Jan 27, 2014 at 10:05:20AM -0600, Felipe Balbi wrote:
+> > Why would you need to know if the PHY drivers are needed or not
+> > explicitly in your controller driver?
+> 
+> because, one way or another, they all do need it. Except for quirky ones
+> like AM437x where a USB3 IP was hardwired into USB2-only mode, so it
+> really lacks a USB3 PHY.
 
-First, its mA, not ma.
+The Baytrail board I deal with has completely autonomous PHYs. But my
+question is, why would you need to care about the PHYs in your
+controller driver? Why can't you leave the responsibility of them to
+the upper layers and trust what they tell you?
 
-And second:
+If there is no USB3 PHY for dwc3 then, the driver gets something like
+-ENODEV and just continues. There is no need to know about the
+details.
 
-> +#define BQ24261_VINDPM_320MV		(0x01 << 2)
-> +#define BQ24261_VINDPM_160MV		(0x01 << 1)
-> +#define BQ24261_VINDPM_80MV		(0x01 << 0)
+For the controller drivers the PHYs are just a resource like any
+other. The controller drivers can't have any responsibility of
+them. They should not care if PHY drivers are available for them or
+not, or even if the PHY framework is available or not.
 
-(Same here).
+> > > But I really want to see the argument against using no-op. As far as I
+> > > could see, everybody needs a PHY driver one way or another, some
+> > > platforms just haven't sent any PHY driver upstream and have their own
+> > > hacked up solution to avoid using the PHY layer.
+> > 
+> > Not true in our case. Platforms using Intel's SoCs and chip sets may
+> > or may not have controllable USB PHY. Quite often they don't. The
+> > Baytrails have usually ULPI PHY for USB2, but that does not mean they
+> > provide any vendor specific functions or any need for a driver in any
+> > case.
+> 
+> that's different from what I heard.
 
-> +u16 bq24261_iterm[][2] = {
-> +	{0, 0x00}
-> +	,
-> +	{50, BQ24261_ITERM_50ma}
-> +	,
-> +	{100, BQ24261_ITERM_100ma}
-> +	,
-> +	{150, BQ24261_ITERM_100ma | BQ24261_ITERM_50ma}
+I don't know where you got that impression, but it's not true. The
+Baytrail SoCs for example don't have internal USB PHYs, which means
+the manufacturers using it can select what they want. So we have
+boards where PHY driver(s) is needed and boards where it isn't.
 
-...this is very obscure way to do with table what can be done with
+The problem is that we just don't always know all the details about
+the platform. If the PHY is ULPI PHY, we can do runtime detection, but
+we can't even rely on always having ULPI.
 
-(x/50) << 3, right ?
- 
+> > Are we talking about the old USB PHY library or the new PHY framework
+> > with the no-op PHY driver?
+> > 
+> > Well, in any case, I don't understand what is the purpose of the no-op
+> > PHY driver. What are you drying to achieve with that?
+> 
+> I'm trying to avoid supporting 500 different combinations for a single
+> driver. We already support old USB PHY layer and generic PHY layer, now
+> they both need to be made optional.
 
-> +u16 bq24261_cc[][2] = {
-> +
-> +	{500, 0x00}
-> +	,
-> +	{600, BQ24261_ICHRG_100ma}
-> +	,
-> +	{700, BQ24261_ICHRG_200ma}
-> +	,
-> +	{800, BQ24261_ICHRG_100ma | BQ24261_ICHRG_200ma}
-> +	,
-> +	{900, BQ24261_ICHRG_400ma}
+This is really good to get. We have some projects where we are dealing
+with more embedded environments, like IVI, where the kernel should be
+stripped of everything useless. Since the PHYs are autonomous, we
+should be able to disable the PHY libraries/frameworks.
 
-I suspect you can get rid of this, too, if you expand macros.
+But I still don't understand what is the benefit in the no-op? You
+really need to explain this. What you have now in dwc3 is expectations
+regarding the PHY, which put a lot of pressure on upper layers to
+satisfy the driver. The no-op is just an extra thing that you have to
+provide when you fail to determine if the system requires a PHY driver
+or not, or if you know that it doesn't, plus an additional check for
+the case where the PHY lib/framework is not enabled. I don't see the
+value in it.
 
-> +static inline bool is_bq24261_enabled(struct bq24261_charger *chip)
-> +{
-> +	if (chip->cable_type == PSY_CHARGER_CABLE_TYPE_NONE)
-> +		return false;
-> +	else if (!chip->is_charger_enabled)
-> +		return false;
+> The old USB PHY layer also provides
+> a no-op, now called phy-generic, which is actually pretty useful.
+> 
+> On top of all that, I'm sure you'll subscribe to the idea of preventing
+> dwc3 from becoming another MUSB which supports several different
+> configurations and none work correctly. I much prefer to take baby steps
+> which are well thought-out and very well exercised, so I'll be very
+> pedantic about proof of testing.
 
-No need to do elses if all you do is return...
-
-> +		return -EINVAL;
-> +
-> +	ret = psy->get_property(psy, POWER_SUPPLY_PROP_CURRENT_NOW, &val);
-> +	if (!ret)
-> +		*cur = val.intval;
-> +
-> +	return ret;
-
-You can merge two very similar functions here, AFAICT.
+I think our goals are the same. I just want to also minimize the need
+for any platform specific extra work from the upper layers regarding
+the PHYs.
 
 
-> +	if (verify_recovery) {
-> +		if ((bat_volt) <= (bat_volt_max_des / 1000 *
-> +				BQ24261_OVP_RECOVER_MULTIPLIER))
-> +			return true;
-> +		else
-> +			return false;
+Thanks,
 
-Do this without if().
-
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+heikki
