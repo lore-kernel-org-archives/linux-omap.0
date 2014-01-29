@@ -1,52 +1,38 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [BISECTED] OMAP: DSS: clk rate mismatch
-Date: Wed, 29 Jan 2014 11:50:06 +0200
-Message-ID: <52E8CECE.5010905@ti.com>
-References: <52E697C0.6000202@gmail.com> <52E7614E.8010903@ti.com> <52E76EE0.2060006@ti.com> <52E7F451.7040708@gmail.com> <52E8C586.7040907@ti.com> <52E8CA00.7060303@gmail.com> <52E8CC03.7080207@ti.com>
+From: Jenny Tc <jenny.tc@intel.com>
+Subject: Re: [PATCH 2/4] power_supply: Introduce Generic Power Supply
+ charging driver
+Date: Thu, 30 Jan 2014 00:43:24 +0530
+Message-ID: <20140129191324.GC15355@jenny-desktop>
+References: <1390411194-21410-1-git-send-email-jenny.tc@intel.com>
+ <1390411194-21410-3-git-send-email-jenny.tc@intel.com>
+ <20140125170402.GA27959@Nokia-N900>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32975 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750925AbaA2JuP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jan 2014 04:50:15 -0500
-In-Reply-To: <52E8CC03.7080207@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140125170402.GA27959@Nokia-N900>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Rupesh Kumar <rupesh.kumar@stericsson.com>, Lars-Peter Clausen <lars@metafoo.de>, Pali Roh?r <pali.rohar@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rhyland Klein <rklein@nvidia.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "freemangordon@abv.bg" <freemangordon@abv.bg>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, chf.fritz@googlemail.com, nm@ti.com
 
-On 01/29/2014 11:38 AM, Tomi Valkeinen wrote:
-> On 2014-01-29 11:29, Ivaylo Dimitrov wrote:
->>
->>
->> On 29.01.2014 11:10, Tero Kristo wrote:
->>
->>>
->>> It looks like the omap36xx version of the omap96m_alwon_fck is modelled
->>> improperly in the dts files. I don't have access to omap36xx hardware
->>> myself, but give a try for the following patch:
->>>
->>>
->>
->> It could be that 36xx omap96m_alwon_fck clock is wrongly modeled, but I
->> am testing on 1) 3430es2 (Nokia N900) and 2) legacy boot, so I guess
->> that patch won't help much (unless I am missing something and DT is used
->> even with legacy boot and 36xx clocks are used on 3430es2)
->
-> I think Tero's reply was to Christoph. I believe the issues you see and
-> what Christoph sees are totally different.
->
->   Tomi
+On Sat, Jan 25, 2014 at 10:04:03AM -0700, Pavel Machek wrote:
+> > +	* Write access using set_property
+> > +		* Set Maximum charging current
+> > +		* Action: Configure safety charging registers if any. If not no
+> > +			  actions expected for this.
+> 
+> Having property that does nothing sounds evil to me.
 
-Oh yea sorry about the confusion, have too many separate issues listed 
-under this thread. :P That was definitely for Christoph.
+No h/w actions expected. But driver action expected. Will fix in next patch set
 
-For the DSS clk rate part, Tomi should answer that as it seems to come 
-from some display driver changes. This might be caused by the infamous 
-rounding issues with the clk_set_rate / clk_round_rate and the hackery 
-around it in display driver...
+> > +* POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGING
+> > +	* Write access using set_property
+> > +		* Enable/Disable charging. Charger supplies power to platform,
+> > +		  but charging is disabled
+> 
+> This is unclear. Charging is always disabled?
 
--Tero
+Writing 0, disables charger. Writing 1 enables charging. 
 
+-Jenny
