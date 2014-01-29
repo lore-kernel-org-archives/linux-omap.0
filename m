@@ -1,33 +1,47 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: [BISECTED] OMAP: DSS: clk rate mismatch
-Date: Wed, 29 Jan 2014 11:29:36 +0200
-Message-ID: <52E8CA00.7060303@gmail.com>
-References: <52E697C0.6000202@gmail.com> <52E7614E.8010903@ti.com> <52E76EE0.2060006@ti.com> <52E7F451.7040708@gmail.com> <52E8C586.7040907@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 4/4] power_supply: bq24261 charger driver
+Date: Wed, 29 Jan 2014 10:36:33 +0100
+Message-ID: <20140129093633.GA16691@amd.pavel.ucw.cz>
+References: <1390411194-21410-1-git-send-email-jenny.tc@intel.com>
+ <1390411194-21410-5-git-send-email-jenny.tc@intel.com>
+ <20140128141445.GC8713@xo-6d-61-c0.localdomain>
+ <20140129132334.GB15355@jenny-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52E8C586.7040907@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20140129132334.GB15355@jenny-desktop>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, chf.fritz@googlemail.com, nm@ti.com
+To: Jenny Tc <jenny.tc@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Rupesh Kumar <rupesh.kumar@stericsson.com>, Lars-Peter Clausen <lars@metafoo.de>, Pali Roh?r <pali.rohar@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rhyland Klein <rklein@nvidia.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "freemangordon@abv.bg" <freemangordon@abv.bg>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed 2014-01-29 18:53:34, Jenny Tc wrote:
+> On Tue, Jan 28, 2014 at 07:14:45AM -0700, Pavel Machek wrote:
+> > > +#define BQ24261_ICHRG_MASK		(0x1F << 3)
+> > > +#define BQ24261_ICHRG_100ma		(0x01 << 3)
+> > > +#define BQ24261_ICHRG_200ma		(0x01 << 4)
+> > > +#define BQ24261_ICHRG_400ma		(0x01 << 5)
+> > > +#define BQ24261_ICHRG_800ma		(0x01 << 6)
+> > > +#define BQ24261_ICHRG_1600ma		(0x01 << 7)
+> > 
+> > First, its mA, not ma.
+> 
+> Camel Case allowed? Ignore Checkpatch.pl warning?
 
+This is not camel case, this is mili ampers. 
 
-On 29.01.2014 11:10, Tero Kristo wrote:
+> > (x/50) << 3, right ?
+> 
+> Few register settings need table mapping, but some can have logic as your
+> comment say. Just wanted to keep same logic for all register settings.
+> Doesn't it make more readable?
 
->
-> It looks like the omap36xx version of the omap96m_alwon_fck is modelled
-> improperly in the dts files. I don't have access to omap36xx hardware
-> myself, but give a try for the following patch:
->
->
-
-It could be that 36xx omap96m_alwon_fck clock is wrongly modeled, but I 
-am testing on 1) 3430es2 (Nokia N900) and 2) legacy boot, so I guess 
-that patch won't help much (unless I am missing something and DT is used 
-even with legacy boot and 36xx clocks are used on 3430es2)
+No, it is definitely not readable. Please use logic where you can.
 
 Thanks,
-Ivo
+									Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
