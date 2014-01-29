@@ -1,49 +1,46 @@
 From: Matt Porter <mporter@linaro.org>
-Subject: [PATCH 1/5] iio: add support for pulse width capture devices
-Date: Wed, 29 Jan 2014 15:59:55 -0500
-Message-ID: <1391029199-3670-2-git-send-email-mporter@linaro.org>
+Subject: [PATCH 3/5] iio: enable selection and build of pulse drivers
+Date: Wed, 29 Jan 2014 15:59:57 -0500
+Message-ID: <1391029199-3670-4-git-send-email-mporter@linaro.org>
 References: <1391029199-3670-1-git-send-email-mporter@linaro.org>
-Return-path: <linux-pwm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1391029199-3670-1-git-send-email-mporter@linaro.org>
-Sender: linux-pwm-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jonathan Cameron <jic23@kernel.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Thierry Reding <thierry.reding@gmail.com>
 Cc: linux-iio@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Devicetree List <devicetree@vger.kernel.org>, linux-pwm@vger.kernel.org, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linaro Patches <patches@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add a channel type to support pulse width capture devices.
-These devices capture the timing of a PWM signal based on a
-configurable trigger
+Add the pulse driver subdirectory when configuring and building
+IIO.
 
 Signed-off-by: Matt Porter <mporter@linaro.org>
 ---
- drivers/iio/industrialio-core.c | 1 +
- include/linux/iio/types.h       | 1 +
+ drivers/iio/Kconfig  | 1 +
+ drivers/iio/Makefile | 1 +
  2 files changed, 2 insertions(+)
 
-diff --git a/drivers/iio/industrialio-core.c b/drivers/iio/industrialio-core.c
-index acc911a..6ea0cf8 100644
---- a/drivers/iio/industrialio-core.c
-+++ b/drivers/iio/industrialio-core.c
-@@ -70,6 +70,7 @@ static const char * const iio_chan_type_name_spec[] = {
- 	[IIO_CCT] = "cct",
- 	[IIO_PRESSURE] = "pressure",
- 	[IIO_HUMIDITYRELATIVE] = "humidityrelative",
-+	[IIO_PULSE] = "pulse",
- };
+diff --git a/drivers/iio/Kconfig b/drivers/iio/Kconfig
+index 5dd0e12..286acc3 100644
+--- a/drivers/iio/Kconfig
++++ b/drivers/iio/Kconfig
+@@ -74,6 +74,7 @@ if IIO_TRIGGER
+    source "drivers/iio/trigger/Kconfig"
+ endif #IIO_TRIGGER
+ source "drivers/iio/pressure/Kconfig"
++source "drivers/iio/pulse/Kconfig"
+ source "drivers/iio/temperature/Kconfig"
  
- static const char * const iio_modifier_names[] = {
-diff --git a/include/linux/iio/types.h b/include/linux/iio/types.h
-index 084d882..4fa8840 100644
---- a/include/linux/iio/types.h
-+++ b/include/linux/iio/types.h
-@@ -30,6 +30,7 @@ enum iio_chan_type {
- 	IIO_CCT,
- 	IIO_PRESSURE,
- 	IIO_HUMIDITYRELATIVE,
-+	IIO_PULSE,
- };
- 
- enum iio_modifier {
+ endif # IIO
+diff --git a/drivers/iio/Makefile b/drivers/iio/Makefile
+index 887d390..9a953c9 100644
+--- a/drivers/iio/Makefile
++++ b/drivers/iio/Makefile
+@@ -24,5 +24,6 @@ obj-y += light/
+ obj-y += magnetometer/
+ obj-y += orientation/
+ obj-y += pressure/
++obj-y += pulse/
+ obj-y += temperature/
+ obj-y += trigger/
 -- 
 1.8.4
-
