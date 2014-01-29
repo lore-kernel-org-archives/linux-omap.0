@@ -1,113 +1,46 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 3/4] ARM: dts: OMAP5: Add device nodes for ABB
-Date: Wed, 29 Jan 2014 17:46:15 -0600
-Message-ID: <1391039177-25284-4-git-send-email-nm@ti.com>
-References: <1391039177-25284-1-git-send-email-nm@ti.com>
+Subject: [PATCH 0/4] ARM: dts: OMAP3630+: Add ABB device nodes
+Date: Wed, 29 Jan 2014 17:46:12 -0600
+Message-ID: <1391039177-25284-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1391039177-25284-1-git-send-email-nm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
+Now that clock nodes have been merged to master,
+refresh of the series meant for all TI platforms using ABB.
+Originally posted [1], I will restart with v1.
 
-Add ABB device nodes for OMAP5 family of devices. Data is based on
-OMAP543x Technical Reference Manual revision U (April 2013).
-NOTE: clock node has been disabled in this patch due to the lack of
-OMAP5 clock data.
+dt bindings and driver is already in upstream, and only the dt node is missing.
 
-[nm@ti.com: co-developer]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Andrii.Tseglytskyi <andrii.tseglytskyi@ti.com>
----
- arch/arm/boot/dts/omap5.dtsi |   63 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 63 insertions(+)
+NOTE: dra7 support depends on [2] - but dt can get sequenced as needed.
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index a72813a..6159f20 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -801,6 +801,69 @@
- 
- 			#thermal-sensor-cells = <1>;
- 		};
-+
-+		abb_mpu: regulator-abb-mpu {
-+			compatible = "ti,abb-v2";
-+			regulator-name = "abb_mpu";
-+			#address-cells = <0>;
-+			#size-cells = <0>;
-+			clocks = <&sys_clkin>;
-+			ti,settling-time = <50>;
-+			ti,clock-cycles = <16>;
-+
-+			reg = <0x4ae07cdc 0x8>, <0x4ae06014 0x4>,
-+			      <0x4a0021ac 0x18>, <0x4ae0C318 0x4>;
-+			reg-names = "base-address", "int-address",
-+				    "efuse-address", "ldo-address";
-+			ti,tranxdone-status-mask = <0x80>;
-+			/* LDOVBBMPU_MUX_CTRL */
-+			ti,ldovbb-override-mask = <0x400>;
-+			/* LDOVBBMPU_VSET_OUT */
-+			ti,ldovbb-vset-mask = <0x1F>;
-+
-+			/*
-+			 * NOTE: only FBB mode used but actual vset will
-+			 * determine final biasing
-+			 */
-+			ti,abb_info = <
-+			/*uV		ABB	efuse	rbb_m fbb_m	vset_m*/
-+			880000		0	0x4	0 0x20000000 0x1F000000
-+			1060000		0	0x8	0 0x20000000 0x1F000000
-+			1250000		0	0x10	0 0x20000000 0x1F000000
-+			1260000		1	0x14	0 0x20000000 0x1F000000
-+			>;
-+		};
-+
-+		abb_mm: regulator-abb-mm {
-+			compatible = "ti,abb-v2";
-+			regulator-name = "abb_mm";
-+			#address-cells = <0>;
-+			#size-cells = <0>;
-+			clocks = <&sys_clkin>;
-+			ti,settling-time = <50>;
-+			ti,clock-cycles = <16>;
-+
-+			reg = <0x4ae07ce4 0x8>, <0x4ae06010 0x4>,
-+			      <0x4a002194 0x14>, <0x4ae0C314 0x4>;
-+			reg-names = "base-address", "int-address",
-+				    "efuse-address", "ldo-address";
-+			ti,tranxdone-status-mask = <0x80000000>;
-+			/* LDOVBBMM_MUX_CTRL */
-+			ti,ldovbb-override-mask = <0x400>;
-+			/* LDOVBBMM_VSET_OUT */
-+			ti,ldovbb-vset-mask = <0x1F>;
-+
-+			/*
-+			 * NOTE: only FBB mode used but actual vset will
-+			 * determine final biasing
-+			 */
-+			ti,abb_info = <
-+			/*uV		ABB	efuse	rbb_m fbb_m	vset_m*/
-+			880000		0	0x4	0 0x20000000 0x1F000000
-+			1025000		0	0x8	0 0x20000000 0x1F000000
-+			1120000		1	0x10	0 0x20000000 0x1F000000
-+			>;
-+		};
- 	};
- };
- 
+This series is based on:
+master     0e47c96 Merge tag 'for-linus-20140127' of git://git.infradead.org/linux-mtd
+Testing was performed on next-20140123[3]
+
+Andrii.Tseglytskyi (3):
+  ARM: dts: OMAP36xx: Add device node for ABB
+  ARM: dts: OMAP4: Add device nodes for ABB
+  ARM: dts: OMAP5: Add device nodes for ABB
+
+Nishanth Menon (1):
+  ARM: dts: DRA7: Add device nodes for ABB
+
+ arch/arm/boot/dts/dra7.dtsi     |  132 +++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap36xx.dtsi |   20 ++++++
+ arch/arm/boot/dts/omap4.dtsi    |   26 ++++++++
+ arch/arm/boot/dts/omap443x.dtsi |   26 ++++++++
+ arch/arm/boot/dts/omap4460.dtsi |   37 +++++++++++
+ arch/arm/boot/dts/omap5.dtsi    |   63 +++++++++++++++++++
+ 6 files changed, 304 insertions(+)
+
+[1] http://marc.info/?l=linux-omap&m=136751535923806&w=2
+[2] https://git.kernel.org/cgit/linux/kernel/git/broonie/regulator.git/log/?h=topic/ti-abb
+[3] https://patchwork.kernel.org/patch/3530111/
+
 -- 
 1.7.9.5
