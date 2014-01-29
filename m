@@ -1,84 +1,72 @@
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: Re: [PATCH 4/4] power_supply: bq24261 charger driver
-Date: Wed, 29 Jan 2014 16:26:45 +0900
-Message-ID: <000001cf1cc3$7747ac20$65d70460$%han@samsung.com>
-References: <1390411194-21410-1-git-send-email-jenny.tc@intel.com>
- <1390411194-21410-5-git-send-email-jenny.tc@intel.com>
- <20140128141445.GC8713@xo-6d-61-c0.localdomain>
- <20140129132334.GB15355@jenny-desktop>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [BISECTED] OMAP: DSS: clk rate mismatch
+Date: Wed, 29 Jan 2014 11:10:30 +0200
+Message-ID: <52E8C586.7040907@ti.com>
+References: <52E697C0.6000202@gmail.com> <52E7614E.8010903@ti.com> <52E76EE0.2060006@ti.com> <52E7F451.7040708@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:30011 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750908AbaA2H0t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jan 2014 02:26:49 -0500
-In-reply-to: <20140129132334.GB15355@jenny-desktop>
-Content-language: ko
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52E7F451.7040708@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, chf.fritz@googlemail.com, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: 'Jenny Tc' <jenny.tc@intel.com>, 'Pavel Machek' <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, 'Dmitry Eremin-Solenikov' <dbaryshkov@gmail.com>, 'Anton Vorontsov' <cbouatmailru@gmail.com>, 'Anton Vorontsov' <anton.vorontsov@linaro.org>, 'Kim Milo' <Milo.Kim@ti.com>, 'Lee Jones' <lee.jones@linaro.org>, 'Chanwoo Choi' <cw00.choi@samsung.com>, 'Sachin Kamat' <sachin.kamat@linaro.org>, 'Rupesh Kumar' <rupesh.kumar@stericsson.com>, 'Lars-Peter Clausen' <lars@metafoo.de>, 'Pali Roh?r' <pali.rohar@gmail.com>, 'Mark Brown' <broonie@opensource.wolfsonmicro.com>, 'Rhyland Klein' <rklein@nvidia.com>, 'David Woodhouse' <dwmw2@infradead.org>, 'Tony Lindgren' <tony@atomide.com>, 'Russell King' <linux@arm.linux.org.uk>, 'Sebastian Reichel' <sre@ring0.de>, aaro.koskinen@iki.fi, freemangordon@abv.bg, linux-omap@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>
 
-On Wednesday, January 29, 2014 10:24 PM, Jenny Tc wrote:
-> On Tue, Jan 28, 2014 at 07:14:45AM -0700, Pavel Machek wrote:
-> > > +#define BQ24261_ICHRG_MASK		(0x1F << 3)
-> > > +#define BQ24261_ICHRG_100ma		(0x01 << 3)
-> > > +#define BQ24261_ICHRG_200ma		(0x01 << 4)
-> > > +#define BQ24261_ICHRG_400ma		(0x01 << 5)
-> > > +#define BQ24261_ICHRG_800ma		(0x01 << 6)
-> > > +#define BQ24261_ICHRG_1600ma		(0x01 << 7)
-> >
-> > First, its mA, not ma.
-> 
-> Camel Case allowed? Ignore Checkpatch.pl warning?
+On 01/28/2014 08:17 PM, Ivaylo Dimitrov wrote:
+>
+>
+> On 28.01.2014 10:48, Tomi Valkeinen wrote:
+>
+>> I made a somewhat hacky quickfix for beagle. Applying that and the
+>> clk-divider from the link above makes things work for me. However, as I
+>> said, the issue with n900 might be different, but it'd be interesting to
+>> hear if it has any effect.
+>>
+>>   Tomi
+>>
+>
+> Applying those 2 patches doesn't help, still get exactly the same warning.
+>
+> Find attached my clk_summary (with my hacky patch applied, otherwise I
+> cannot boot the device)
+>
+> Ivo
 
-Yep, Camel Case is allowed by the commit d8b0771 "checkpatch:
-extend CamelCase types and ignore existing CamelCase uses in
-a patch".
+It looks like the omap36xx version of the omap96m_alwon_fck is modelled 
+improperly in the dts files. I don't have access to omap36xx hardware 
+myself, but give a try for the following patch:
 
-Thus, the following cases are currently allowed.
 
-#define BQ24261_ICHRG_1600ma           (0x01 << 7)
-#define BQ24261_ICHRG_1600MA           (0x01 << 7)
-#define BQ24261_ICHRG_1600mA           (0x01 << 7)
-....
+From: Tero Kristo <t-kristo@ti.com>
+Date: Wed, 29 Jan 2014 11:03:46 +0200
+Subject: [PATCH] ARM: dts: omap36xx: fix omap96m_alwon_fck
 
-Best regards,
-Jingoo Han
+OMAP36xx has different hardware implementation for the omap96m_alwon_fck
+compared to other OMAP3 variants. Reflect this properly in the dts file.
 
-> > > +u16 bq24261_iterm[][2] = {
-> > > +	{0, 0x00}
-> > > +	,
-> > > +	{50, BQ24261_ITERM_50ma}
-> > > +	,
-> > > +	{100, BQ24261_ITERM_100ma}
-> > > +	,
-> > > +	{150, BQ24261_ITERM_100ma | BQ24261_ITERM_50ma}
-> >
-> > ...this is very obscure way to do with table what can be done with
-> >
-> > (x/50) << 3, right ?
-> 
-> Few register settings need table mapping, but some can have logic as your
-> comment say. Just wanted to keep same logic for all register settings.
-> Doesn't it make more readable?
-> 
-> > > +u16 bq24261_cc[][2] = {
-> > > +
-> > > +	{500, 0x00}
-> > > +	,
-> > > +	{600, BQ24261_ICHRG_100ma}
-> > > +	,
-> > > +	{700, BQ24261_ICHRG_200ma}
-> > > +	,
-> > > +	{800, BQ24261_ICHRG_100ma | BQ24261_ICHRG_200ma}
-> > > +	,
-> > > +	{900, BQ24261_ICHRG_400ma}
-> >
-> > I suspect you can get rid of this, too, if you expand macros.
-> Same as above comment.
-> 
-> -Jenny
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+  arch/arm/boot/dts/omap36xx-clocks.dtsi |    9 +++++++++
+  1 file changed, 9 insertions(+)
 
+diff --git a/arch/arm/boot/dts/omap36xx-clocks.dtsi 
+b/arch/arm/boot/dts/omap36xx-clocks.dtsi
+index 2fcf253..24ddf3f 100644
+--- a/arch/arm/boot/dts/omap36xx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap36xx-clocks.dtsi
+@@ -88,3 +88,12 @@
+  			 <&mcbsp4_ick>, <&uart4_fck>;
+  	};
+  };
++
++&omap_96m_alwon_fck {
++	compatible = "ti,divider-clock";
++	clocks = <&omap_192m_alwon_fck>;
++	ti,bit-shift = <12>;
++	ti,max-div = <2>;
++	reg = <0x0a40>;
++	ti,index-starts-at-one;
++};
+-- 
+1.7.9.5
