@@ -1,14 +1,13 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/2] ARM: dts: OMAP3+: add clock nodes for CPU
-Date: Wed, 29 Jan 2014 17:32:41 -0600
-Message-ID: <52E98F99.2050600@ti.com>
-References: <1391019557-22313-1-git-send-email-nm@ti.com>	<1391019557-22313-3-git-send-email-nm@ti.com>
- <CAOCHtYjaCBn2oOk66ef9wiz_GJnVwHDyx446_mrkipPoENaeUQ@mail.gmail.com>
+Subject: [PATCH 3/4] ARM: dts: OMAP5: Add device nodes for ABB
+Date: Wed, 29 Jan 2014 17:46:15 -0600
+Message-ID: <1391039177-25284-4-git-send-email-nm@ti.com>
+References: <1391039177-25284-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAOCHtYjaCBn2oOk66ef9wiz_GJnVwHDyx446_mrkipPoENaeUQ@mail.gmail.com>
+In-Reply-To: <1391039177-25284-1-git-send-email-nm@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,53 +17,97 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: devicetree@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Tony Lindgren <tony@atomide.com>, linux kernel <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/29/2014 01:29 PM, Robert Nelson wrote:
-> On Wed, Jan 29, 2014 at 12:19 PM, Nishanth Menon <nm@ti.com> wrote:
->> OMAP34xx, AM3517 and OMAP36xx platforms use dpll1 clock.
->>
->> OMAP443x, OMAP446x, OMAP447x, OMAP5, DRA7, AM43xx platforms use
->> dpll_mpu clock.
->>
->> Latency used is the generic latency defined in omap-cpufreq
->> driver.
->>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
-> 
-> Hi Nishanth,
-> 
-> After this patch, do you see any limitation to finally enabling 1Ghz
-> operation on the beagle-xm by default? Or are we still missing a
-> dependicy somewhere?
+From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
 
-yes, there is:
-a) ABB dt series - i will repost this in a few mins
-b) AVS conversion from non-dt mode to dt supported mode. (which by
-itself depends on VC/VP conversion).
-c) clk notifier based dvfs for cpufreq-cpu0 -> this allows us to
-introduce the necessary plumbing for mpu voltage domain such that the
-TWL4030 regulator, AVS and ABB are rightly sequenced.
+Add ABB device nodes for OMAP5 family of devices. Data is based on
+OMAP543x Technical Reference Manual revision U (April 2013).
+NOTE: clock node has been disabled in this patch due to the lack of
+OMAP5 clock data.
 
-What you have done in the patch below is to introduce ABB regulator -
-but no one is actually using it -> this might actually work on certain
-samples at 1GHz, but prolonged operation will either damage the device
-or fail on other samples - I have tried numerous times Internally to
-get approval for non ABB/AVS configuration for 1GHz - but I have a
-clear feedback that it cannot be done with the constraints of
-DM3730/OMAP3630.
+[nm@ti.com: co-developer]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Andrii.Tseglytskyi <andrii.tseglytskyi@ti.com>
+---
+ arch/arm/boot/dts/omap5.dtsi |   63 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 63 insertions(+)
 
-Lets do this a series at a time and build up the necessary support -
-we get clock nodes for dvfs (using i2c1) here with cpufreq-cpu0 with
-this series. If folks can ack and queue this up, we can get in ABB dts
-nodes in place - allowing us to work on the next set -> sequencing
-using clock notifier. in parallel we could work on converting AVS back
-to dt based solution.
-
-yes, the road is long.
-
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index a72813a..6159f20 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -801,6 +801,69 @@
+ 
+ 			#thermal-sensor-cells = <1>;
+ 		};
++
++		abb_mpu: regulator-abb-mpu {
++			compatible = "ti,abb-v2";
++			regulator-name = "abb_mpu";
++			#address-cells = <0>;
++			#size-cells = <0>;
++			clocks = <&sys_clkin>;
++			ti,settling-time = <50>;
++			ti,clock-cycles = <16>;
++
++			reg = <0x4ae07cdc 0x8>, <0x4ae06014 0x4>,
++			      <0x4a0021ac 0x18>, <0x4ae0C318 0x4>;
++			reg-names = "base-address", "int-address",
++				    "efuse-address", "ldo-address";
++			ti,tranxdone-status-mask = <0x80>;
++			/* LDOVBBMPU_MUX_CTRL */
++			ti,ldovbb-override-mask = <0x400>;
++			/* LDOVBBMPU_VSET_OUT */
++			ti,ldovbb-vset-mask = <0x1F>;
++
++			/*
++			 * NOTE: only FBB mode used but actual vset will
++			 * determine final biasing
++			 */
++			ti,abb_info = <
++			/*uV		ABB	efuse	rbb_m fbb_m	vset_m*/
++			880000		0	0x4	0 0x20000000 0x1F000000
++			1060000		0	0x8	0 0x20000000 0x1F000000
++			1250000		0	0x10	0 0x20000000 0x1F000000
++			1260000		1	0x14	0 0x20000000 0x1F000000
++			>;
++		};
++
++		abb_mm: regulator-abb-mm {
++			compatible = "ti,abb-v2";
++			regulator-name = "abb_mm";
++			#address-cells = <0>;
++			#size-cells = <0>;
++			clocks = <&sys_clkin>;
++			ti,settling-time = <50>;
++			ti,clock-cycles = <16>;
++
++			reg = <0x4ae07ce4 0x8>, <0x4ae06010 0x4>,
++			      <0x4a002194 0x14>, <0x4ae0C314 0x4>;
++			reg-names = "base-address", "int-address",
++				    "efuse-address", "ldo-address";
++			ti,tranxdone-status-mask = <0x80000000>;
++			/* LDOVBBMM_MUX_CTRL */
++			ti,ldovbb-override-mask = <0x400>;
++			/* LDOVBBMM_VSET_OUT */
++			ti,ldovbb-vset-mask = <0x1F>;
++
++			/*
++			 * NOTE: only FBB mode used but actual vset will
++			 * determine final biasing
++			 */
++			ti,abb_info = <
++			/*uV		ABB	efuse	rbb_m fbb_m	vset_m*/
++			880000		0	0x4	0 0x20000000 0x1F000000
++			1025000		0	0x8	0 0x20000000 0x1F000000
++			1120000		1	0x10	0 0x20000000 0x1F000000
++			>;
++		};
+ 	};
+ };
+ 
 -- 
-Regards,
-Nishanth Menon
+1.7.9.5
