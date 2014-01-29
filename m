@@ -1,80 +1,59 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: add missing ARCH_HAS_OPP
-Date: Wed, 29 Jan 2014 07:27:15 -0600
-Message-ID: <52E901B3.5070307@ti.com>
-References: <1389816038-17363-1-git-send-email-nm@ti.com>
+Subject: Re: [PATCH] ARM: dts: Add basic devices for AM3517-craneboard
+Date: Wed, 29 Jan 2014 07:30:59 -0600
+Message-ID: <52E90293.5080906@ti.com>
+References: <1386626150-23504-1-git-send-email-nm@ti.com> <52B0A9C8.7070201@ti.com> <52B1D3DC.1010304@baylibre.com> <52B1D50A.50406@ti.com> <52B1D866.7040300@baylibre.com> <52DD522E.1070607@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43987 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44120 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751086AbaA2N1m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jan 2014 08:27:42 -0500
-In-Reply-To: <1389816038-17363-1-git-send-email-nm@ti.com>
+	id S1751448AbaA2NbX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Jan 2014 08:31:23 -0500
+In-Reply-To: <52DD522E.1070607@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nikhil.nd@ti.com, t-kristo@ti.com, Nishanth Menon <nm@ti.com>
+To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
-On 01/15/2014 02:00 PM, Nishanth Menon wrote:
-> OMAP5, DRA7, AM43xx all have OPPs. So select the same to allow SoC
-> only configuration boot to work with OPP.
+On 01/20/2014 10:43 AM, Nishanth Menon wrote:
+> Benoit,
 > 
-> Reported-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
+> On 12/18/2013 11:16 AM, Benoit Cousson wrote:
+>> On 18/12/2013 18:02, Nishanth Menon wrote:
+>>> On 12/18/2013 10:57 AM, Benoit Cousson wrote:
+>>>> On 17/12/2013 20:45, Nishanth Menon wrote:
+>>>>> On 12/09/2013 03:55 PM, Nishanth Menon wrote:
+>>>>>> Craneboard is a hardware development platform based on the Sitara
+>>>>>> AM3517 ARM Cortex - A8 microprocessor device - see [1] for more
+>>>>>> details. Add basic devices for craneboard as replacement for the board
+>>>>>> file scheduled for removal as part of device tree conversion
+>>>>>>
+>>>>>> [1] http://craneboard.org
+>>>>>>
+>>>>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>>>>> ---
+>>>>>
+>>>>> gentle ping.. had'nt seen a response on this patch. Could we queue
+>>>>> this up for v3.14-rc1?
+>>>>
+>>>> Yep, it looks good to me.
+>>> Thanks benoit.
+>>>
+>>>> But if you don't mind I'll start pushing my branch after Xmas :-).
+>>>
+>>> As long as Tony is ok with it, I have no issues either - will be great
+>>> to have dt only boot in .14-rc1 though.
+>>
+>> Good point, it is already -rc4.
+>>
+>> OK, I'll just queued it and pushed it to for_3.14/dts.
 > 
-> For DRA7, depends on: https://patchwork.kernel.org/patch/3465411/
+> I dont see this in next-20140120 yet - wondering if Tony or you have
+> plans for one of .14 rcs OR if this is queued for .15.
 
-Considering that dependent patch is now on linus master,
-a gentle ping -> The patch does apply on latest linus master commit
-0e47c969c65e213421450c31043353ebe3c67e0c
-
-patchworks reference: https://patchwork.kernel.org/patch/3493581/
-
-> 
->  arch/arm/mach-omap2/Kconfig |    4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 35c23e5..66a9c4a 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -50,6 +50,7 @@ config SOC_OMAP5
->  	bool "TI OMAP5"
->  	depends on ARCH_MULTI_V7
->  	select ARCH_OMAP2PLUS
-> +	select ARCH_HAS_OPP
->  	select ARM_CPU_SUSPEND if PM
->  	select ARM_GIC
->  	select CPU_V7
-> @@ -63,6 +64,7 @@ config SOC_AM33XX
->  	bool "TI AM33XX"
->  	depends on ARCH_MULTI_V7
->  	select ARCH_OMAP2PLUS
-> +	select ARCH_HAS_OPP
->  	select ARM_CPU_SUSPEND if PM
->  	select CPU_V7
->  	select MULTI_IRQ_HANDLER
-> @@ -72,6 +74,7 @@ config SOC_AM43XX
->  	depends on ARCH_MULTI_V7
->  	select CPU_V7
->  	select ARCH_OMAP2PLUS
-> +	select ARCH_HAS_OPP
->  	select MULTI_IRQ_HANDLER
->  	select ARM_GIC
->  	select MACH_OMAP_GENERIC
-> @@ -80,6 +83,7 @@ config SOC_DRA7XX
->  	bool "TI DRA7XX"
->  	depends on ARCH_MULTI_V7
->  	select ARCH_OMAP2PLUS
-> +	select ARCH_HAS_OPP
->  	select ARM_CPU_SUSPEND if PM
->  	select ARM_GIC
->  	select CPU_V7
-> 
+gentle ping yet again :(
 
 
 -- 
