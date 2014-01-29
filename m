@@ -1,162 +1,144 @@
-From: Christoph Fritz <chf.fritz@googlemail.com>
-Subject: OMAP: clock DT conversion issues with omap36xx
-Date: Wed, 29 Jan 2014 12:21:45 +0100
-Message-ID: <1390994505.5023.32.camel@mars>
-References: <52E697C0.6000202@gmail.com> <1390848104.4936.62.camel@mars>
-	 <52E772A3.4090401@ti.com> <1390901735.2963.8.camel@lovely>
-	 <52E77D03.8090001@ti.com>  <52E7B361.2030601@ti.com>
-	 <1390928565.4904.88.camel@mars>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [BISECTED] OMAP: DSS: clk rate mismatch
+Date: Wed, 29 Jan 2014 13:30:11 +0200
+Message-ID: <52E8E643.60408@ti.com>
+References: <52E697C0.6000202@gmail.com> <52E7614E.8010903@ti.com> <52E76EE0.2060006@ti.com> <52E7F451.7040708@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="3qQcAOrURL6exX3dCugF5If6S98H58eXg"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1390928565.4904.88.camel@mars>
+In-Reply-To: <52E7F451.7040708@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, Nishanth Menon <nm@ti.com>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, chf.fritz@googlemail.com, Tero Kristo <t-kristo@ti.com>, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2014-01-28 at 18:02 +0100, Christoph Fritz wrote:
-> On Tue, 2014-01-28 at 15:40 +0200, Tero Kristo wrote:
-> > 
-> > >> Due to a regression since next-20140122 the following errors are present:
-> > >>
-> > >>   - pin sys_clkout2, which gets configured to 24 Mhz by the fourth patch
-> > >>     in this set, erroneously outputs only 12 Mhz.
-> > >>     Just out of curiosity, configuring it to 48 Mhz puts out desired 24 Mhz.
-> > >>
-> > >>   - omap_dss, which gets configured by the third patch in this set, fails
-> > >>     to do 'dss_set_fck_rate(fck);' in
-> > >>     drivers/video/omap2/dss/dss.c:dss_setup_default_clock() which leads to:
-> > >>
-> > >>      | omapdss_dss: probe of omapdss_dss failed with error -22
-> > >>      | omapdss CORE error: Failed to initialize DSS platform driver
-> > >>      | panel-dpi panel-dpi.0: failed to find video source 'dpi.0
-> > >>
-> > >>    Both regressions seem to have something to do with the clock framework.
-> > >>    Could this be related to the DT clock conversion patches?
-> > >
-> > 
-> > Yea its definitely possible, as the clock DT conversion touches pretty 
-> > much everything. Have you tried whether this works properly with legacy 
-> > boot? Personally I don't have access to any omap3 devices that would 
-> > have display and have no possibility to check this out myself. Anyway, 
-> > my initial guess is that some clock divider setup might be wrong with 
-> > omap3, or we are missing some ti,set-rate-parent flag for some clock 
-> > node which prevents escalating clk_set_rate properly. However, it should 
-> > be easy to debug this by looking at the clock node in question, and its 
-> > parent nodes to see if there are any problems.
-> 
-> Currently I only analyzed sys_clkout2 (see attachments for full
-> clk_summary files):
-> 
-> clk_summary__next-20140115__works_as_expected:
->              dpll4_m2_ck        1           1            96000000
->                 dpll4_m2x2_ck   1           1            96000000
->                    omap_192m_alwon_fck 1           1            96000000
->                       omap_96m_alwon_fck 1           2            96000000
->                          per_96m_fck 0           6            96000000
->                             mcbsp4_fck 0           1            96000000
->                             mcbsp3_fck 0           2            96000000
->                             mcbsp2_fck 0           2            96000000
->                          cm_96m_fck 2           3            96000000
->                             clkout2_src_ck 1           1            96000000
->                                sys_clkout2 1           1            24000000
-> 
-> For real, on pin sys_clkout2 are correctly 24 Mhz measured.
-> 
-> clk_summary__next-20140124__sysclkout2_dss_fails:
->              dpll4_m2_ck        1           1            96000000
->                 dpll4_m2x2_mul_ck 1           1            192000000
->                    dpll4_m2x2_ck 1           1            192000000
->                       omap_192m_alwon_fck 0           0            192000000
->                       omap_96m_alwon_fck 1           2            192000000
->                          per_96m_fck 0           6            192000000
->                             mcbsp4_fck 0           1            192000000
->                             mcbsp3_fck 0           2            192000000
->                             mcbsp2_fck 0           2            192000000
->                          cm_96m_fck 2           3            192000000
->                             clkout2_src_ck 1           1            192000000
->                                sys_clkout2 1           1            24000000
-> 
-> For real, on pin sys_clkout2 are only ~12 Mhz measured.
-> 
-> So I added this patch:
-> 
-> Subject: [PATCH] ARM: dts: fix omap3 clock multiplier for dpll4_m2x2_ck
-> 
-> Before DT clock conversion, there was no multiplier for dpll4_m2x2_ck.
-> So to be compatible again, set dpll4_m2x2_mul_ck multiplier back to 1.
-> ---
->  arch/arm/boot/dts/omap3xxx-clocks.dtsi |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3xxx-clocks.dtsi b/arch/arm/boot/dts/omap3xxx-clocks.dtsi
-> index cb04d4b..b594050 100644
-> --- a/arch/arm/boot/dts/omap3xxx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/omap3xxx-clocks.dtsi
-> @@ -212,7 +212,7 @@
->  		#clock-cells = <0>;
->  		compatible = "fixed-factor-clock";
->  		clocks = <&dpll4_m2_ck>;
-> -		clock-mult = <2>;
-> +		clock-mult = <1>;
->  		clock-div = <1>;
->  	};
->
-> And it works again. But due to the fact that sys_clkout2 was at 12 Mhz
-> instead of 24, shouldn't it have been at 48 caused by "clock-mult = 2 ?
+--3qQcAOrURL6exX3dCugF5If6S98H58eXg
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Any ideas on that?
+On 2014-01-28 20:17, Ivaylo Dimitrov wrote:
+>=20
+>=20
+> On 28.01.2014 10:48, Tomi Valkeinen wrote:
+>=20
+>> I made a somewhat hacky quickfix for beagle. Applying that and the
+>> clk-divider from the link above makes things work for me. However, as =
+I
+>> said, the issue with n900 might be different, but it'd be interesting =
+to
+>> hear if it has any effect.
+>>
+>>   Tomi
+>>
+>=20
+> Applying those 2 patches doesn't help, still get exactly the same warni=
+ng.
+>=20
+> Find attached my clk_summary (with my hacky patch applied, otherwise I
+> cannot boot the device)
 
-I reverted the patch above and added:
+Can you try this one:
 
-From: Tero Kristo <t-kristo@ti.com>
-Date: Wed, 29 Jan 2014 11:03:46 +0200
-Subject: [PATCH] ARM: dts: omap36xx: fix omap96m_alwon_fck
+=46rom e511789f7be00beeeee0712910c60a57c51b2705 Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Wed, 29 Jan 2014 13:28:53 +0200
+Subject: [PATCH] clkoutx2 fix
 
-OMAP36xx has different hardware implementation for the omap96m_alwon_fck
-compared to other OMAP3 variants. Reflect this properly in the dts file.
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
-  arch/arm/boot/dts/omap36xx-clocks.dtsi |    9 +++++++++
-  1 file changed, 9 insertions(+)
+ arch/arm/mach-omap2/cclock3xxx_data.c |  7 +++++++
+ arch/arm/mach-omap2/dpll3xxx.c        | 20 ++++++++++++++++++++
+ 2 files changed, 27 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap36xx-clocks.dtsi 
-b/arch/arm/boot/dts/omap36xx-clocks.dtsi
-index 2fcf253..24ddf3f 100644
---- a/arch/arm/boot/dts/omap36xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap36xx-clocks.dtsi
-@@ -88,3 +88,12 @@
-  			 <&mcbsp4_ick>, <&uart4_fck>;
-  	};
-  };
+diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/=
+cclock3xxx_data.c
+index 3b05aea56d1f..49247701a56c 100644
+--- a/arch/arm/mach-omap2/cclock3xxx_data.c
++++ b/arch/arm/mach-omap2/cclock3xxx_data.c
+@@ -428,12 +428,19 @@ static const char *dpll4_m5x2_ck_parent_names[] =3D=
+ {
+ 	"dpll4_m5_ck",
+ };
+=20
++int omap3_clkoutx2_set_rate(struct clk_hw *hw, unsigned long rate,
++					unsigned long parent_rate);
++long omap3_clkoutx2_round_rate(struct clk_hw *hw, unsigned long target_r=
+ate,
++		unsigned long *parent_rate);
 +
-+&omap_96m_alwon_fck {
-+	compatible = "ti,divider-clock";
-+	clocks = <&omap_192m_alwon_fck>;
-+	ti,bit-shift = <12>;
-+	ti,max-div = <2>;
-+	reg = <0x0a40>;
-+	ti,index-starts-at-one;
-+};
+ static const struct clk_ops dpll4_m5x2_ck_ops =3D {
+ 	.init		=3D &omap2_init_clk_clkdm,
+ 	.enable		=3D &omap2_dflt_clk_enable,
+ 	.disable	=3D &omap2_dflt_clk_disable,
+ 	.is_enabled	=3D &omap2_dflt_clk_is_enabled,
++	.set_rate	=3D &omap3_clkoutx2_set_rate,
+ 	.recalc_rate	=3D &omap3_clkoutx2_recalc,
++	.round_rate	=3D &omap3_clkoutx2_round_rate,
+ };
+=20
+ static const struct clk_ops dpll4_m5x2_ck_3630_ops =3D {
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xx=
+x.c
+index 3a0296cfcace..794665fe234b 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -669,6 +669,26 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *h=
+w,
+ 	return rate;
+ }
+=20
++int omap3_clkoutx2_set_rate(struct clk_hw *hw, unsigned long rate,
++					unsigned long parent_rate)
++{
++	return 0;
++}
++
++long omap3_clkoutx2_round_rate(struct clk_hw *hw, unsigned long rate,
++		unsigned long *prate)
++{
++	if (__clk_get_flags(hw->clk) & CLK_SET_RATE_PARENT) {
++		unsigned long best_parent;
++
++		best_parent =3D (rate / 2);
++		*prate =3D __clk_round_rate(__clk_get_parent(hw->clk),
++				best_parent);
++	}
++
++	return *prate * 2;
++}
++
+ /* OMAP3/4 non-CORE DPLL clkops */
+ const struct clk_hw_omap_ops clkhwops_omap3_dpll =3D {
+ 	.allow_idle	=3D omap3_dpll_allow_idle,
+--=20
+1.8.3.2
 
-But the output of sys_clkout2 is still wrong.
 
-clk_summary__next-20140124__patch_tero_fix_omap96m_alwon_fck
-             dpll4_m2_ck        1           1            96000000
-                dpll4_m2x2_mul_ck 1           1            192000000
-                   dpll4_m2x2_ck 1           1            192000000
-                      omap_192m_alwon_fck 1           1            192000000
-                         omap_96m_alwon_fck 1           2            192000000
-                            per_96m_fck 0           6            192000000
-                               mcbsp4_fck 0           1            192000000
-                               mcbsp3_fck 0           2            192000000
-                               mcbsp2_fck 0           2            192000000
-                            cm_96m_fck 2           3            192000000
-                               clkout2_src_ck 1           1            192000000
-                                  sys_clkout2 1           1            24000000
 
-Thanks
-  -- Christoph
+
+--3qQcAOrURL6exX3dCugF5If6S98H58eXg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJS6OZDAAoJEPo9qoy8lh71YFYP/RQkvtDneum1Cmw3Yua0k+J6
+udV4qeNhbDVA8lJgrGFWihIN7UYyC4X6kn84uiXePZZ6Vfe0K9UfP2LkFfZvhv8l
+I4GChupl1sslV+eKtCBTWG2Hlbix4/nUqfkbAHiA7ljeDs7HtEQtUnWz9L0lAQYH
+WPspFOZJ/KMjX3Z4try9do+nyM3uze+vjEOk22a25zhsbrVDoKv2gI4yT/4+RCUc
+rVmLlZ2XLo0GNTykHuIurJnG4AWgMHH/GbIRNuRZ+gmy6UYXDtLw03p/yFqSFt8i
+tjvtFS9Svl36EMkdya3meC9UPpxHtdSZqNOVvib0dRBDY2ZsK7/VPN3hlkYOJXWO
+V15CQuS1MPGRGrRv2ARMZwEmabFbc4mhyKpqaSqn55PlnYirAxVGfJ0mcS+PWB00
+orZ2yl1O/Z/TPaQR9DxOyCKxIi4csC15BofqH3ZytHMbJkPi6HawCWxs8Epkr12q
+w2Zh+U2Kt3DVDqHm3j6lhtc4LPutqpoBtNYhtSemHQ508d5dWH74U0UYIQt2z4NU
+u1oAsgnUE3VqppqYQyU4B+yAz5J9ttdS4u5HMcKvXm7QBtUOQrkD9PzIckhkblEH
+0EV8TJU8+4Q1Fis+I87RREqEVBnaXio5tKAOjKTBlputokwhgKre69PdpCPgEYe5
+imS82XIUZxK1ggbRJqNx
+=hsce
+-----END PGP SIGNATURE-----
+
+--3qQcAOrURL6exX3dCugF5If6S98H58eXg--
