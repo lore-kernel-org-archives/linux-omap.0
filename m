@@ -1,163 +1,76 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 2/4] ARM: dts: OMAP4: Add device nodes for ABB
-Date: Wed, 29 Jan 2014 17:46:14 -0600
-Message-ID: <1391039177-25284-3-git-send-email-nm@ti.com>
-References: <1391039177-25284-1-git-send-email-nm@ti.com>
+From: Satish Patel <satish.patel-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 0/5] Smart Card(SC) interface, TI USIM & NxP SC phy
+ driver
+Date: Thu, 30 Jan 2014 11:22:48 +0530
+Message-ID: <52E9E8B0.2020000@ti.com>
+References: <1390192434-19386-1-git-send-email-satish.patel@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38999 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752241AbaA2Xqp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jan 2014 18:46:45 -0500
-In-Reply-To: <1391039177-25284-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1390192434-19386-1-git-send-email-satish.patel-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Satish Patel <satish.patel-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>, Nishanth Menon <nm@ti.com>
 
-From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
 
-Add ABB device nodes for OMAP443x family of devices. abb_iva is
-populated, but disabled as it is not used on current OMAP443x family,
-but the node is used on OMAP446x family. Data is based on OMAP443x
-Technical Reference Manual revision AN (April 2013).
+On 1/20/2014 10:03 AM, Satish Patel wrote:
+> Changes from v1:
+> * RFC(v1) comments are fixed
+>
+> ** removed "gpio_to_irq" as GPIO controller process  cell from DT and
+> give it to DT node
+> ** comments on documentation
+> ** few other comments on null checks are resolved
+>
+> * BWT timing configuration is added to ti-usim driver
+>
+> v1 cover letter link#
+> https://lkml.org/lkml/2014/1/6/250
+>
+> Satish Patel (5):
+>   sc_phy:SmartCard(SC) PHY interface to SC controller
+>   misc: tda8026: Add NXP TDA8026 PHY driver
+>   char: ti-usim: Add driver for USIM module on AM43xx
+>   ARM: dts: AM43xx: DT entries added for ti-usim
+>   ARM: dts: AM43xx-epos-evm: DT entries  for ti-usim and phy
+>
+>  Documentation/devicetree/bindings/misc/tda8026.txt |   19 +
+>  .../devicetree/bindings/ti-usim/ti-usim.txt        |   31 +
+>  Documentation/sc_phy.txt                           |  171 ++
+>  arch/arm/boot/dts/am4372.dtsi                      |   10 +
+>  arch/arm/boot/dts/am43x-epos-evm.dts               |   43 +
+>  drivers/char/Kconfig                               |    7 +
+>  drivers/char/Makefile                              |    1 +
+>  drivers/char/ti-usim-hw.h                          |  863 +++++++++
+>  drivers/char/ti-usim.c                             | 1859 ++++++++++++++++++++
+>  drivers/misc/Kconfig                               |    7 +
+>  drivers/misc/Makefile                              |    1 +
+>  drivers/misc/tda8026.c                             | 1255 +++++++++++++
+>  include/linux/sc_phy.h                             |  132 ++
+>  include/linux/ti-usim.h                            |   98 +
+>  14 files changed, 4497 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/misc/tda8026.txt
+>  create mode 100644 Documentation/devicetree/bindings/ti-usim/ti-usim.txt
+>  create mode 100644 Documentation/sc_phy.txt
+>  create mode 100644 drivers/char/ti-usim-hw.h
+>  create mode 100644 drivers/char/ti-usim.c
+>  create mode 100644 drivers/misc/tda8026.c
+>  create mode 100644 include/linux/sc_phy.h
+>  create mode 100644 include/linux/ti-usim.h
+Any comments on this patch series ?
 
-ABB device nodes for OMAP4460 device Data is based on OMAP4460
-Technical Reference Manual revision Z (April 2013)
+If not,
+Can you accept these patches for next merge window
 
-[nm@ti.com: co-developer]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Andrii.Tseglytskyi <andrii.tseglytskyi@ti.com>
----
- arch/arm/boot/dts/omap4.dtsi    |   26 ++++++++++++++++++++++++++
- arch/arm/boot/dts/omap443x.dtsi |   26 ++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4460.dtsi |   37 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 89 insertions(+)
+Thanks
+Satish
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index d3f8a6e..72e6bd7 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -757,6 +757,32 @@
- 			dmas = <&sdma 117>, <&sdma 116>;
- 			dma-names = "tx", "rx";
- 		};
-+
-+		abb_mpu: regulator-abb-mpu {
-+			compatible = "ti,abb-v2";
-+			regulator-name = "abb_mpu";
-+			#address-cells = <0>;
-+			#size-cells = <0>;
-+			ti,tranxdone-status-mask = <0x80>;
-+			clocks = <&sys_clkin_ck>;
-+			ti,settling-time = <50>;
-+			ti,clock-cycles = <16>;
-+
-+			status = "disabled";
-+		};
-+
-+		abb_iva: regulator-abb-iva {
-+			compatible = "ti,abb-v2";
-+			regulator-name = "abb_iva";
-+			#address-cells = <0>;
-+			#size-cells = <0>;
-+			ti,tranxdone-status-mask = <0x80000000>;
-+			clocks = <&sys_clkin_ck>;
-+			ti,settling-time = <50>;
-+			ti,clock-cycles = <16>;
-+
-+			status = "disabled";
-+		};
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap443x.dtsi
-index 8c1cfad..0adfa1d 100644
---- a/arch/arm/boot/dts/omap443x.dtsi
-+++ b/arch/arm/boot/dts/omap443x.dtsi
-@@ -43,6 +43,32 @@
- 			#thermal-sensor-cells = <0>;
- 		};
- 	};
-+
-+	ocp {
-+		abb_mpu: regulator-abb-mpu {
-+			status = "okay";
-+
-+			reg = <0x4a307bd0 0x8>, <0x4a306014 0x4>;
-+			reg-names = "base-address", "int-address";
-+
-+			ti,abb_info = <
-+			/*uV		ABB	efuse	rbb_m	fbb_m	vset_m*/
-+			1025000		0	0	0	0	0
-+			1200000		0	0	0	0	0
-+			1313000		0	0	0	0	0
-+			1375000		1	0	0	0	0
-+			1389000		1	0	0	0	0
-+			>;
-+		};
-+
-+		/* Default unused, just provide register info for record */
-+		abb_iva: regulator-abb-iva {
-+			reg = <0x4a307bd8 0x8>, <0x4a306010 0x4>;
-+			reg-names = "base-address", "int-address";
-+		};
-+
-+	};
-+
- };
- 
- /include/ "omap443x-clocks.dtsi"
-diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
-index 6b32f52..194f9ef 100644
---- a/arch/arm/boot/dts/omap4460.dtsi
-+++ b/arch/arm/boot/dts/omap4460.dtsi
-@@ -50,7 +50,44 @@
- 
- 			#thermal-sensor-cells = <0>;
- 		};
-+
-+		abb_mpu: regulator-abb-mpu {
-+			status = "okay";
-+
-+			reg = <0x4a307bd0 0x8>, <0x4a306014 0x4>,
-+			      <0x4A002268 0x4>;
-+			reg-names = "base-address", "int-address",
-+				    "efuse-address";
-+
-+			ti,abb_info = <
-+			/*uV		ABB	efuse	rbb_m	fbb_m	vset_m*/
-+			1025000		0	0	0	0	0
-+			1200000		0	0	0	0	0
-+			1313000		0	0	0x100000 0x40000 0
-+			1375000		1	0	0	0	0
-+			1389000		1	0	0	0	0
-+			>;
-+		};
-+
-+		abb_iva: regulator-abb-iva {
-+			status = "okay";
-+
-+			reg = <0x4a307bd8 0x8>, <0x4a306010 0x4>,
-+			      <0x4A002268 0x4>;
-+			reg-names = "base-address", "int-address",
-+				    "efuse-address";
-+
-+			ti,abb_info = <
-+			/*uV		ABB	efuse	rbb_m	fbb_m	vset_m*/
-+			950000		0	0	0	0	0
-+			1140000		0	0	0	0	0
-+			1291000		0	0	0x200000 0	0
-+			1375000		1	0	0	0	0
-+			1376000		1	0	0	0	0
-+			>;
-+		};
- 	};
-+
- };
- 
- /include/ "omap446x-clocks.dtsi"
--- 
-1.7.9.5
+>
+>
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
