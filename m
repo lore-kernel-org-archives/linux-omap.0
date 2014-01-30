@@ -1,34 +1,54 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch 2/2] mmc: omap_hsmmc: checking for ERR_PTR instead of NULL
-Date: Thu, 30 Jan 2014 15:15:49 +0300
-Message-ID: <20140130121548.GB10368@elgon.mountain>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH RFC v3 0/8] Beaglebone-Black HDMI audio
+Date: Thu, 30 Jan 2014 14:20:56 +0200
+Message-ID: <52EA43A8.9050909@ti.com>
+References: <y>	<cover.1390836773.git.jsarha@ti.com>	<52E6806A.2090109@metafoo.de>	<52E686B2.9060806@ti.com>	<20140127190641.273890c6@armhf>	<52E6B42F.4050901@ti.com>
+ <20140128102353.48e8fb51@armhf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: Chris Ball <chris@printf.net>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20140128102353.48e8fb51@armhf>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: detheridge@ti.com, alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com, broonie@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The of_get_hsmmc_pdata() function returns NULL on error, it doesn't
-return ERR_PTRs.
+On 01/28/2014 11:23 AM, Jean-Francois Moine wrote:
+> On Mon, 27 Jan 2014 21:31:59 +0200
+> Jyri Sarha <jsarha@ti.com> wrote:
+>
+>> I would suggest to leave the CTS_N_K to the current setting (3), unless
+>> we can change the CTS_N_K on the fly according to the used sample format.
+>
+> Yes, this is possible:
+>
+> - the tda998x codec may call the tda998x hdmi in the hw_params()
+>    function, i.e. when the sample format is known, and then,
+>
+> - the tda998x_audio_update() function may have the audio parameters
+>    (struct snd_pcm_hw_params) as an argument, and CTS_N_K may be set
+>    to either 1, 2 or 3 for SNDRV_PCM_FORMAT_S16_LE / S24_LE and S32_LE.
+>
+> This is working in my machine. Would it also work for you?
+>
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+I am having trouble getting the tda998x-codec working on BBB. The 
+problem is I do not have a DT node for the tda998x driver. Instead I 
+have tilcdc-slave node that provides pdata for the tda-driver.
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index bfb0dbd052c0..76dbc7b759c2 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1761,9 +1761,8 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 	match = of_match_device(of_match_ptr(omap_mmc_of_match), &pdev->dev);
- 	if (match) {
- 		pdata = of_get_hsmmc_pdata(&pdev->dev);
--
--		if (IS_ERR(pdata))
--			return PTR_ERR(pdata);
-+		if (!pdata)
-+			return -ENOMEM;
- 
- 		if (match->data) {
- 			const u16 *offsetp = match->data;
+I am thinking of solving the problem by adding a reference to the 
+i2c-adapter hosting tda998x as an optional DT property to the codec 
+node. I could then dig the driver instance from the i2c adapter's 
+children. Any better ideas?
+
+Best regards,
+Jyri
