@@ -1,79 +1,69 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [BISECTED] OMAP: DSS: clk rate mismatch
-Date: Thu, 30 Jan 2014 08:04:23 +0200
-Message-ID: <52E9EB67.3010409@ti.com>
-References: <52E697C0.6000202@gmail.com> <52E7614E.8010903@ti.com> <52E76EE0.2060006@ti.com> <52E7F451.7040708@gmail.com> <52E8E643.60408@ti.com> <52E94DE6.9050806@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="Jwswxmx8qEJ4tordlXRGcS7vSm0hUFSGM"
+From: Jenny TC <jenny.tc@intel.com>
+Subject: [PATCH v4 0/4] power_supply: Introduce power supply charging driver
+Date: Thu, 30 Jan 2014 23:00:48 +0530
+Message-ID: <1391103052-10954-1-git-send-email-jenny.tc@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52E94DE6.9050806@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, chf.fritz@googlemail.com, Tero Kristo <t-kristo@ti.com>, nm@ti.com
+To: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Jenny TC <jenny.tc@intel.com>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, freemangordon@abv.bg, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---Jwswxmx8qEJ4tordlXRGcS7vSm0hUFSGM
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+v1: introduced feature as a framework within power supply class driver with
+	separate files for battid framework and charging framework
+v2: fixed review comments, moved macros and inline functions to power_supply.h
+v3: moved the feature as a separate driver, combined battid framework and
+	charging framework inside the power supply charging driver. Moved
+	charger specific properties to power_supply_charger.h and plugged the
+	driver with power supply subsystem using power_supply_notifier
+	introduced in my previous patch. Also a sample charger chip driver
+	(bq24261) patch added to give more idea on the psy charging driver
+	usage
+v4: Fixed review comments, no major design changes.
 
-On 2014-01-29 20:52, Ivaylo Dimitrov wrote:
+The Power Supply charging driver connects multiple subsystems
+to do charging in a generic way. The subsystems involves power_supply,
+thermal and battery communication subsystems (1wire).With this the charging is
+handled in a generic way.
 
->> Can you try this one:
->>
->>  From e511789f7be00beeeee0712910c60a57c51b2705 Mon Sep 17 00:00:00 200=
-1
->> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> Date: Wed, 29 Jan 2014 13:28:53 +0200
->> Subject: [PATCH] clkoutx2 fix
->>
->> ---
->>   arch/arm/mach-omap2/cclock3xxx_data.c |  7 +++++++
->>   arch/arm/mach-omap2/dpll3xxx.c        | 20 ++++++++++++++++++++
->>   2 files changed, 27 insertions(+)
->>
->=20
-> Yep, that one fixes the problem. Thanks!
+The driver makes use of different new features - Battery Identification
+interfaces, pluggable charging algorithms, charger cable arbitrations etc.
+The patch also introduces generic interface for charger cable notifications.
+Charger cable events and capabilities can be notified using the generic
+power_supply_notifier chain.
 
-Ok, good. I'll probably do some studying about clk framework and clean
-up the patch and post it.
-
-Btw, the clkoutx2 fix makes the DSS clocks work for you generally, but
-if you happen to hit clock rates that don't divide evenly, you may also
-need the patches for clk-divider and dss I posted earlier.
-
-> Now I only need to find why maemo is 10 times slower with linux-next
-> compared to 3.13-rc7, but that is another story :).
-
-I sure hope it's not DSS's doings =3D).
-
- Tomi
+Overall this driver removes the charging logic out of the charger chip driver
+and the charger chip driver can just listen to the request from the power
+supply charging driver to set the charger properties. This can be implemented
+by exposing get_property and set property callbacks.
 
 
+Jenny TC (4):
+  power_supply: Add inlmt,iterm, min/max temp props
+  power_supply: Introduce generic psy charging driver
+  power_supply: Introduce PSE compliant algorithm
+  power_supply: bq24261 charger driver
 
---Jwswxmx8qEJ4tordlXRGcS7vSm0hUFSGM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+ Documentation/power/power_supply_charger.txt |  339 +++++++
+ Documentation/power/power_supply_class.txt   |    6 +
+ drivers/power/Kconfig                        |   31 +
+ drivers/power/Makefile                       |    3 +
+ drivers/power/bq24261_charger.c              | 1364 ++++++++++++++++++++++++++
+ drivers/power/charging_algo_pse.c            |  198 ++++
+ drivers/power/power_supply_charger.c         | 1196 ++++++++++++++++++++++
+ drivers/power/power_supply_charger.h         |  218 ++++
+ drivers/power/power_supply_core.c            |    3 +
+ drivers/power/power_supply_sysfs.c           |    4 +
+ include/linux/power/bq24261_charger.h        |   32 +
+ include/linux/power/power_supply_charger.h   |  237 +++++
+ include/linux/power_supply.h                 |  164 ++++
+ 13 files changed, 3795 insertions(+)
+ create mode 100644 Documentation/power/power_supply_charger.txt
+ create mode 100644 drivers/power/bq24261_charger.c
+ create mode 100644 drivers/power/charging_algo_pse.c
+ create mode 100644 drivers/power/power_supply_charger.c
+ create mode 100644 drivers/power/power_supply_charger.h
+ create mode 100644 include/linux/power/bq24261_charger.h
+ create mode 100644 include/linux/power/power_supply_charger.h
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJS6etnAAoJEPo9qoy8lh71gr0QAJknPjdIyY3qCeIPgm27MxW0
-qLMPfgHRkH6xOUl0+qN7S6gMBTJuViWSLU8iiKdmdlgZS3z8zRNlUjOLb2mNjD0D
-DmQE1yvAgQtauEGzNSQepGDsQEi4iS+yvkcg2Zh2L+WqLzgjcDcNSUgV8TYcldL5
-5FBtz4MpofpfRZ2M3QQwN4NWie4csUMvVMGoohiRIvaUJ5UxvAjrv/rFb9ZglVwk
-0p0xpf+xPA4DtEWzK/kzw14Ao2B5FP9+26o4OvlCN4ElSf1lXIukVl9t5w10ig/C
-FeQlU315xNOwG9K9EQS1jRlrmlloMbmMEXa4arFlTTzYsZ7jZ+53PgfedBAH3ORV
-SsQ94Q/jrK0bHowf1TAq5I+NUpkO4ToRutvsO99TZjtreLGH/Z7VHk14rwCrA6An
-quHqFh+lTCVdALHV0H8cgoPuaDou9LDzxKTmqH2KrBJu1m+nRAGJqkGzcGakYVoS
-eDz7uSZO8XhVVlzUtQ75MZGFgefqi3ZJv3ILF/z1ebPu+p/LIn43Jd/CfzyZOJzV
-Vx+R6Om24eRT4upUZfR1yA2psdU55hB/ZQGo97nb5IQVa1NYOILkM8ei1/1PqATR
-2tLmoiuW7PC7oV4MiuFdnB0kIxoHGCfyM/jpuRBTZIXgqp2Qb8+Z0g9wcoki6N+n
-B+GeB1nu3atJwB/clT5Q
-=+Q/q
------END PGP SIGNATURE-----
-
---Jwswxmx8qEJ4tordlXRGcS7vSm0hUFSGM--
+-- 
+1.7.9.5
