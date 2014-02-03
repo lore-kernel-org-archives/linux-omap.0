@@ -1,104 +1,53 @@
 From: Matt Porter <mporter@linaro.org>
-Subject: [PATCH v2 4/6] iio: Add ABI docs for pulse capture devices
-Date: Mon,  3 Feb 2014 08:40:30 -0500
-Message-ID: <1391434832-23807-5-git-send-email-mporter@linaro.org>
-References: <1391434832-23807-1-git-send-email-mporter@linaro.org>
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <1391434832-23807-1-git-send-email-mporter@linaro.org>
-Sender: linux-pwm-owner@vger.kernel.org
+Subject: [PATCH v2 0/6] IIO pulse capture support for TI ECAP
+Date: Mon,  3 Feb 2014 08:40:26 -0500
+Message-ID: <1391434832-23807-1-git-send-email-mporter@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jonathan Cameron <jic23@kernel.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Thierry Reding <thierry.reding@gmail.com>
 Cc: Linux IIO List <linux-iio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Devicetree List <devicetree@vger.kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add standard ABI entries for pulse capture devices. Also add
-a separate ABI entry for the TI ECAP driver polarity option.
+Changes since v1:
+	- Rebased to 3.14-rc1
+	- Renamed in_pulse_polarity to pulse_polarity
+	- Added ABI entries for pulse devices and TI ECAP
 
-Signed-off-by: Matt Porter <mporter@linaro.org>
----
- Documentation/ABI/testing/sysfs-bus-iio              | 18 ++++++++++++++++++
- Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap |  9 +++++++++
- 2 files changed, 27 insertions(+)
+This series adds support for PWM capture devices within IIO and
+adds a TI ECAP IIO driver.
+
+PWM capture devices are supported using a new IIO "pulse" channel type.
+
+The IIO ECAP driver implements interrupt driven triggered buffer capture
+only as raw sample reads are not applicable to this hardware.
+Initially, the driver supports a single pulse width measurement with
+configurable polarity. The ECAP hardware can support measurement of a
+complete period and duty cycle but this is not yet implemented.
+
+Matt Porter (6):
+  iio: add support for pulse width capture devices
+  iio: pulse: add TI ECAP driver
+  iio: enable selection and build of pulse drivers
+  iio: Add ABI docs for pulse capture devices
+  pwm: enable TI PWMSS if the IIO tiecap driver is selected
+  ARM: dts: AM33XX: Add ecap interrupt properties
+
+ Documentation/ABI/testing/sysfs-bus-iio            |  18 +
+ .../ABI/testing/sysfs-bus-iio-pulse-tiecap         |   9 +
+ arch/arm/boot/dts/am33xx.dtsi                      |   6 +
+ drivers/iio/Kconfig                                |   1 +
+ drivers/iio/Makefile                               |   1 +
+ drivers/iio/industrialio-core.c                    |   1 +
+ drivers/iio/pulse/Kconfig                          |  20 +
+ drivers/iio/pulse/Makefile                         |   6 +
+ drivers/iio/pulse/tiecap.c                         | 493 +++++++++++++++++++++
+ drivers/pwm/Kconfig                                |   2 +-
+ include/linux/iio/types.h                          |   1 +
+ 11 files changed, 557 insertions(+), 1 deletion(-)
  create mode 100644 Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap
+ create mode 100644 drivers/iio/pulse/Kconfig
+ create mode 100644 drivers/iio/pulse/Makefile
+ create mode 100644 drivers/iio/pulse/tiecap.c
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-iio b/Documentation/ABI/testing/sysfs-bus-iio
-index 6e02c50..918a201 100644
---- a/Documentation/ABI/testing/sysfs-bus-iio
-+++ b/Documentation/ABI/testing/sysfs-bus-iio
-@@ -210,6 +210,14 @@ Contact:	linux-iio@vger.kernel.org
- Description:
- 		Scaled humidity measurement in milli percent.
- 
-+What:		/sys/bus/iio/devices/iio:deviceX/in_pulseY_raw
-+What:		/sys/bus/iio/devices/iio:deviceX/in_pulse_raw
-+KernelVersion:	3.15
-+Contact:	linux-iio@vger.kernel.org
-+Description:
-+		Raw pulse measurement from channel Y. Units after
-+		application of scale and offset are nanoseconds.
-+
- What:		/sys/bus/iio/devices/iio:deviceX/in_accel_offset
- What:		/sys/bus/iio/devices/iio:deviceX/in_accel_x_offset
- What:		/sys/bus/iio/devices/iio:deviceX/in_accel_y_offset
-@@ -220,6 +228,8 @@ What:		/sys/bus/iio/devices/iio:deviceX/in_tempY_offset
- What:		/sys/bus/iio/devices/iio:deviceX/in_temp_offset
- What:		/sys/bus/iio/devices/iio:deviceX/in_pressureY_offset
- What:		/sys/bus/iio/devices/iio:deviceX/in_pressure_offset
-+What:		/sys/bus/iio/devices/iio:deviceX/in_pulseY_offset
-+What:		/sys/bus/iio/devices/iio:deviceX/in_pulse_offset
- KernelVersion:	2.6.35
- Contact:	linux-iio@vger.kernel.org
- Description:
-@@ -251,6 +261,8 @@ What:		/sys/bus/iio/devices/iio:deviceX/in_magn_y_scale
- What:		/sys/bus/iio/devices/iio:deviceX/in_magn_z_scale
- What:		/sys/bus/iio/devices/iio:deviceX/in_pressureY_scale
- What:		/sys/bus/iio/devices/iio:deviceX/in_pressure_scale
-+What:		/sys/bus/iio/devices/iio:deviceX/in_pulseY_scale
-+What:		/sys/bus/iio/devices/iio:deviceX/in_pulse_scale
- KernelVersion:	2.6.35
- Contact:	linux-iio@vger.kernel.org
- Description:
-@@ -784,6 +796,8 @@ What:		/sys/.../iio:deviceX/scan_elements/in_incli_x_en
- What:		/sys/.../iio:deviceX/scan_elements/in_incli_y_en
- What:		/sys/.../iio:deviceX/scan_elements/in_pressureY_en
- What:		/sys/.../iio:deviceX/scan_elements/in_pressure_en
-+What:		/sys/.../iio:deviceX/scan_elements/in_pulseY_en
-+What:		/sys/.../iio:deviceX/scan_elements/in_pulse_en
- KernelVersion:	2.6.37
- Contact:	linux-iio@vger.kernel.org
- Description:
-@@ -799,6 +813,8 @@ What:		/sys/.../iio:deviceX/scan_elements/in_voltageY_supply_type
- What:		/sys/.../iio:deviceX/scan_elements/in_timestamp_type
- What:		/sys/.../iio:deviceX/scan_elements/in_pressureY_type
- What:		/sys/.../iio:deviceX/scan_elements/in_pressure_type
-+What:		/sys/.../iio:deviceX/scan_elements/in_pulseY_type
-+What:		/sys/.../iio:deviceX/scan_elements/in_pulse_type
- KernelVersion:	2.6.37
- Contact:	linux-iio@vger.kernel.org
- Description:
-@@ -845,6 +861,8 @@ What:		/sys/.../iio:deviceX/scan_elements/in_incli_y_index
- What:		/sys/.../iio:deviceX/scan_elements/in_timestamp_index
- What:		/sys/.../iio:deviceX/scan_elements/in_pressureY_index
- What:		/sys/.../iio:deviceX/scan_elements/in_pressure_index
-+What:		/sys/.../iio:deviceX/scan_elements/in_pulseY_index
-+What:		/sys/.../iio:deviceX/scan_elements/in_pulse_index
- KernelVersion:	2.6.37
- Contact:	linux-iio@vger.kernel.org
- Description:
-diff --git a/Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap b/Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap
-new file mode 100644
-index 0000000..a9e4a9f
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap
-@@ -0,0 +1,9 @@
-+What:		/sys/bus/iio/devices/iio:deviceX/pulse_polarityY
-+What:		/sys/bus/iio/devices/iio:deviceX/pulse_polarity
-+Date:		January 2014
-+KernelVersion:	3.15
-+Contact:	Matt Porter <mporter@linaro.org>
-+Description:
-+		Get and set the polarity of the pulse signal to be captured
-+		for channel Y.  1 indicates a high pulse signal and 0
-+		indicates a low pulse signal.
 -- 
 1.8.4
-
