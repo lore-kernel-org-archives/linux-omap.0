@@ -1,36 +1,104 @@
-From: Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH v2 5/6] pwm: enable TI PWMSS if the IIO tiecap driver is selected
-Date: Mon,  3 Feb 2014 08:40:31 -0500
-Message-ID: <1391434832-23807-6-git-send-email-mporter@linaro.org>
+From: Matt Porter <mporter@linaro.org>
+Subject: [PATCH v2 4/6] iio: Add ABI docs for pulse capture devices
+Date: Mon,  3 Feb 2014 08:40:30 -0500
+Message-ID: <1391434832-23807-5-git-send-email-mporter@linaro.org>
 References: <1391434832-23807-1-git-send-email-mporter@linaro.org>
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1391434832-23807-1-git-send-email-mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Linux IIO List <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PWM List <linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <1391434832-23807-1-git-send-email-mporter@linaro.org>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Jonathan Cameron <jic23@kernel.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Thierry Reding <thierry.reding@gmail.com>
+Cc: Linux IIO List <linux-iio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Devicetree List <devicetree@vger.kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The IIO TI ECAP driver depends on the TI PWMSS management
-driver in this subsystem. Enable PWMSS when the IIO TI ECAP
-driver is selected.
+Add standard ABI entries for pulse capture devices. Also add
+a separate ABI entry for the TI ECAP driver polarity option.
 
-Signed-off-by: Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Signed-off-by: Matt Porter <mporter@linaro.org>
 ---
- drivers/pwm/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/ABI/testing/sysfs-bus-iio              | 18 ++++++++++++++++++
+ Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap |  9 +++++++++
+ 2 files changed, 27 insertions(+)
+ create mode 100644 Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap
 
-diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-index 22f2f28..bd3cc65 100644
---- a/drivers/pwm/Kconfig
-+++ b/drivers/pwm/Kconfig
-@@ -219,7 +219,7 @@ config  PWM_TIEHRPWM
+diff --git a/Documentation/ABI/testing/sysfs-bus-iio b/Documentation/ABI/testing/sysfs-bus-iio
+index 6e02c50..918a201 100644
+--- a/Documentation/ABI/testing/sysfs-bus-iio
++++ b/Documentation/ABI/testing/sysfs-bus-iio
+@@ -210,6 +210,14 @@ Contact:	linux-iio@vger.kernel.org
+ Description:
+ 		Scaled humidity measurement in milli percent.
  
- config  PWM_TIPWMSS
- 	bool
--	default y if SOC_AM33XX && (PWM_TIECAP || PWM_TIEHRPWM)
-+	default y if SOC_AM33XX && (IIO_TIECAP || PWM_TIECAP || PWM_TIEHRPWM)
- 	help
- 	  PWM Subsystem driver support for AM33xx SOC.
- 
++What:		/sys/bus/iio/devices/iio:deviceX/in_pulseY_raw
++What:		/sys/bus/iio/devices/iio:deviceX/in_pulse_raw
++KernelVersion:	3.15
++Contact:	linux-iio@vger.kernel.org
++Description:
++		Raw pulse measurement from channel Y. Units after
++		application of scale and offset are nanoseconds.
++
+ What:		/sys/bus/iio/devices/iio:deviceX/in_accel_offset
+ What:		/sys/bus/iio/devices/iio:deviceX/in_accel_x_offset
+ What:		/sys/bus/iio/devices/iio:deviceX/in_accel_y_offset
+@@ -220,6 +228,8 @@ What:		/sys/bus/iio/devices/iio:deviceX/in_tempY_offset
+ What:		/sys/bus/iio/devices/iio:deviceX/in_temp_offset
+ What:		/sys/bus/iio/devices/iio:deviceX/in_pressureY_offset
+ What:		/sys/bus/iio/devices/iio:deviceX/in_pressure_offset
++What:		/sys/bus/iio/devices/iio:deviceX/in_pulseY_offset
++What:		/sys/bus/iio/devices/iio:deviceX/in_pulse_offset
+ KernelVersion:	2.6.35
+ Contact:	linux-iio@vger.kernel.org
+ Description:
+@@ -251,6 +261,8 @@ What:		/sys/bus/iio/devices/iio:deviceX/in_magn_y_scale
+ What:		/sys/bus/iio/devices/iio:deviceX/in_magn_z_scale
+ What:		/sys/bus/iio/devices/iio:deviceX/in_pressureY_scale
+ What:		/sys/bus/iio/devices/iio:deviceX/in_pressure_scale
++What:		/sys/bus/iio/devices/iio:deviceX/in_pulseY_scale
++What:		/sys/bus/iio/devices/iio:deviceX/in_pulse_scale
+ KernelVersion:	2.6.35
+ Contact:	linux-iio@vger.kernel.org
+ Description:
+@@ -784,6 +796,8 @@ What:		/sys/.../iio:deviceX/scan_elements/in_incli_x_en
+ What:		/sys/.../iio:deviceX/scan_elements/in_incli_y_en
+ What:		/sys/.../iio:deviceX/scan_elements/in_pressureY_en
+ What:		/sys/.../iio:deviceX/scan_elements/in_pressure_en
++What:		/sys/.../iio:deviceX/scan_elements/in_pulseY_en
++What:		/sys/.../iio:deviceX/scan_elements/in_pulse_en
+ KernelVersion:	2.6.37
+ Contact:	linux-iio@vger.kernel.org
+ Description:
+@@ -799,6 +813,8 @@ What:		/sys/.../iio:deviceX/scan_elements/in_voltageY_supply_type
+ What:		/sys/.../iio:deviceX/scan_elements/in_timestamp_type
+ What:		/sys/.../iio:deviceX/scan_elements/in_pressureY_type
+ What:		/sys/.../iio:deviceX/scan_elements/in_pressure_type
++What:		/sys/.../iio:deviceX/scan_elements/in_pulseY_type
++What:		/sys/.../iio:deviceX/scan_elements/in_pulse_type
+ KernelVersion:	2.6.37
+ Contact:	linux-iio@vger.kernel.org
+ Description:
+@@ -845,6 +861,8 @@ What:		/sys/.../iio:deviceX/scan_elements/in_incli_y_index
+ What:		/sys/.../iio:deviceX/scan_elements/in_timestamp_index
+ What:		/sys/.../iio:deviceX/scan_elements/in_pressureY_index
+ What:		/sys/.../iio:deviceX/scan_elements/in_pressure_index
++What:		/sys/.../iio:deviceX/scan_elements/in_pulseY_index
++What:		/sys/.../iio:deviceX/scan_elements/in_pulse_index
+ KernelVersion:	2.6.37
+ Contact:	linux-iio@vger.kernel.org
+ Description:
+diff --git a/Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap b/Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap
+new file mode 100644
+index 0000000..a9e4a9f
+--- /dev/null
++++ b/Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap
+@@ -0,0 +1,9 @@
++What:		/sys/bus/iio/devices/iio:deviceX/pulse_polarityY
++What:		/sys/bus/iio/devices/iio:deviceX/pulse_polarity
++Date:		January 2014
++KernelVersion:	3.15
++Contact:	Matt Porter <mporter@linaro.org>
++Description:
++		Get and set the polarity of the pulse signal to be captured
++		for channel Y.  1 indicates a high pulse signal and 0
++		indicates a low pulse signal.
 -- 
 1.8.4
+
