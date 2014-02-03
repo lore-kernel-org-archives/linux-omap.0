@@ -1,363 +1,46 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V5 2/4] DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar
- IP
-Date: Mon, 3 Feb 2014 16:59:09 +0530
-Message-ID: <52EF7D85.5070705@ti.com>
-References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com> <1386066445-28245-3-git-send-email-r.sricharan@ti.com> <52D7B2CA.8080902@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <52D7B2CA.8080902@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, Kevin Hilman <khilman@linaro.org>, Sricharan R <r.sricharan@ti.com>
+From: Matt Porter <mporter@linaro.org>
+Subject: [PATCH v2 3/6] iio: enable selection and build of pulse drivers
+Date: Mon,  3 Feb 2014 08:40:29 -0500
+Message-ID: <1391434832-23807-4-git-send-email-mporter@linaro.org>
+References: <1391434832-23807-1-git-send-email-mporter@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1391434832-23807-1-git-send-email-mporter@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jonathan Cameron <jic23@kernel.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Thierry Reding <thierry.reding@gmail.com>
+Cc: Linux IIO List <linux-iio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Devicetree List <devicetree@vger.kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Thomas,
+Add the pulse driver subdirectory when configuring and building
+IIO.
 
-On Thursday 16 January 2014 03:52 PM, Sricharan R wrote:
-> Hi Thomas,
-> 
-> On Tuesday 03 December 2013 03:57 PM, Sricharan R wrote:
->> Some socs have a large number of interrupts requests to service
->> the needs of its many peripherals and subsystems. All of the
->> interrupt lines from the subsystems are not needed at the same
->> time, so they have to be muxed to the irq-controller appropriately.
->> In such places a interrupt controllers are preceded by an CROSSBAR
->> that provides flexibility in muxing the device requests to the controller
->> inputs.
->>
->> This driver takes care a allocating a free irq and then configuring the
->> crossbar IP as a part of the mpu's irqchip callbacks. crossbar_init should
->> be called right before the irqchip_init, so that it is setup to handle the
->> irqchip callbacks.
->>
->> Cc: Thomas Gleixner <tglx@linutronix.de>
->> Cc: Linus Walleij <linus.walleij@linaro.org>
->> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Russell King <linux@arm.linux.org.uk>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Cc: Marc Zyngier <marc.zyngier@arm.com>
->> Cc: Grant Likely <grant.likely@linaro.org>
->> Cc: Rob Herring <rob.herring@calxeda.com>
->> Signed-off-by: Sricharan R <r.sricharan@ti.com>
->> Acked-by: Kumar Gala <galak@codeaurora.org> (for DT binding portion)
->> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Acked-by: Linus Walleij <linus.walleij@linaro.org>
->> ---
->>  [v5] Used the function of_property_read_u32_index instead of raw reading
->>       from DT as per comments from Mark Rutland <mark.rutland@arm.com>
->>
->>  .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
->>  drivers/irqchip/Kconfig                            |    8 +
->>  drivers/irqchip/Makefile                           |    1 +
->>  drivers/irqchip/irq-crossbar.c                     |  208 ++++++++++++++++++++
->>  include/linux/irqchip/irq-crossbar.h               |   11 ++
->>  5 files changed, 255 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
->>  create mode 100644 drivers/irqchip/irq-crossbar.c
->>  create mode 100644 include/linux/irqchip/irq-crossbar.h
->>
->> diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
->> new file mode 100644
->> index 0000000..fb88585
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
->> @@ -0,0 +1,27 @@
->> +Some socs have a large number of interrupts requests to service
->> +the needs of its many peripherals and subsystems. All of the
->> +interrupt lines from the subsystems are not needed at the same
->> +time, so they have to be muxed to the irq-controller appropriately.
->> +In such places a interrupt controllers are preceded by an CROSSBAR
->> +that provides flexibility in muxing the device requests to the controller
->> +inputs.
->> +
->> +Required properties:
->> +- compatible : Should be "ti,irq-crossbar"
->> +- reg: Base address and the size of the crossbar registers.
->> +- ti,max-irqs: Total number of irqs available at the interrupt controller.
->> +- ti,reg-size: Size of a individual register in bytes. Every individual
->> +	    register is assumed to be of same size. Valid sizes are 1, 2, 4.
->> +- ti,irqs-reserved: List of the reserved irq lines that are not muxed using
->> +		 crossbar. These interrupt lines are reserved in the soc,
->> +		 so crossbar bar driver should not consider them as free
->> +		 lines.
->> +
->> +Examples:
->> +		crossbar_mpu: @4a020000 {
->> +			compatible = "ti,irq-crossbar";
->> +			reg = <0x4a002a48 0x130>;
->> +			ti,max-irqs = <160>;
->> +			ti,reg-size = <2>;
->> +			ti,irqs-reserved = <0 1 2 3 5 6 131 132 139 140>;
->> +		};
->> diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
->> index 3792a1a..2efcde6 100644
->> --- a/drivers/irqchip/Kconfig
->> +++ b/drivers/irqchip/Kconfig
->> @@ -61,3 +61,11 @@ config VERSATILE_FPGA_IRQ_NR
->>         int
->>         default 4
->>         depends on VERSATILE_FPGA_IRQ
->> +
->> +config IRQ_CROSSBAR
->> +	bool
->> +	help
->> +	  Support for a CROSSBAR ip that preceeds the main interrupt controller.
->> +	  The primary irqchip invokes the crossbar's callback which inturn allocates
->> +	  a free irq and configures the IP. Thus the peripheral interrupts are
->> +	  routed to one of the free irqchip interrupt lines.
->> diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
->> index c60b901..2edead9 100644
->> --- a/drivers/irqchip/Makefile
->> +++ b/drivers/irqchip/Makefile
->> @@ -22,3 +22,4 @@ obj-$(CONFIG_RENESAS_IRQC)		+= irq-renesas-irqc.o
->>  obj-$(CONFIG_VERSATILE_FPGA_IRQ)	+= irq-versatile-fpga.o
->>  obj-$(CONFIG_ARCH_VT8500)		+= irq-vt8500.o
->>  obj-$(CONFIG_TB10X_IRQC)		+= irq-tb10x.o
->> +obj-$(CONFIG_IRQ_CROSSBAR)		+= irq-crossbar.o
->> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
->> new file mode 100644
->> index 0000000..ae605a3
->> --- /dev/null
->> +++ b/drivers/irqchip/irq-crossbar.c
->> @@ -0,0 +1,208 @@
->> +/*
->> + *  drivers/irqchip/irq-crossbar.c
->> + *
->> + *  Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
->> + *  Author: Sricharan R <r.sricharan@ti.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + *
->> + */
->> +#include <linux/err.h>
->> +#include <linux/io.h>
->> +#include <linux/of_address.h>
->> +#include <linux/of_irq.h>
->> +#include <linux/slab.h>
->> +#include <linux/irqchip/arm-gic.h>
->> +
->> +#define IRQ_FREE	-1
->> +#define GIC_IRQ_START	32
->> +
->> +/*
->> + * @int_max: maximum number of supported interrupts
->> + * @irq_map: array of interrupts to crossbar number mapping
->> + * @crossbar_base: crossbar base address
->> + * @register_offsets: offsets for each irq number
->> + */
->> +struct crossbar_device {
->> +	uint int_max;
->> +	uint *irq_map;
->> +	void __iomem *crossbar_base;
->> +	int *register_offsets;
->> +	void (*write) (int, int);
->> +};
->> +
->> +static struct crossbar_device *cb;
->> +
->> +static inline void crossbar_writel(int irq_no, int cb_no)
->> +{
->> +	writel(cb_no, cb->crossbar_base + cb->register_offsets[irq_no]);
->> +}
->> +
->> +static inline void crossbar_writew(int irq_no, int cb_no)
->> +{
->> +	writew(cb_no, cb->crossbar_base + cb->register_offsets[irq_no]);
->> +}
->> +
->> +static inline void crossbar_writeb(int irq_no, int cb_no)
->> +{
->> +	writeb(cb_no, cb->crossbar_base + cb->register_offsets[irq_no]);
->> +}
->> +
->> +static inline int allocate_free_irq(int cb_no)
->> +{
->> +	int i;
->> +
->> +	for (i = 0; i < cb->int_max; i++) {
->> +		if (cb->irq_map[i] == IRQ_FREE) {
->> +			cb->irq_map[i] = cb_no;
->> +			return i;
->> +		}
->> +	}
->> +
->> +	return -ENODEV;
->> +}
->> +
->> +static int crossbar_domain_map(struct irq_domain *d, unsigned int irq,
->> +			       irq_hw_number_t hw)
->> +{
->> +	cb->write(hw - GIC_IRQ_START, cb->irq_map[hw - GIC_IRQ_START]);
->> +	return 0;
->> +}
->> +
->> +static void crossbar_domain_unmap(struct irq_domain *d, unsigned int irq)
->> +{
->> +	irq_hw_number_t hw = irq_get_irq_data(irq)->hwirq;
->> +
->> +	if (hw > GIC_IRQ_START)
->> +		cb->irq_map[hw - GIC_IRQ_START] = IRQ_FREE;
->> +}
->> +
->> +static int crossbar_domain_xlate(struct irq_domain *d,
->> +				 struct device_node *controller,
->> +				 const u32 *intspec, unsigned int intsize,
->> +				 unsigned long *out_hwirq,
->> +				 unsigned int *out_type)
->> +{
->> +	unsigned long ret;
->> +
->> +	ret = allocate_free_irq(intspec[1]);
->> +
->> +	if (IS_ERR_VALUE(ret))
->> +		return ret;
->> +
->> +	*out_hwirq = ret + GIC_IRQ_START;
->> +	return 0;
->> +}
->> +
->> +const struct irq_domain_ops routable_irq_domain_ops = {
->> +	.map = crossbar_domain_map,
->> +	.unmap = crossbar_domain_unmap,
->> +	.xlate = crossbar_domain_xlate
->> +};
->> +
->> +static int __init crossbar_of_init(struct device_node *node)
->> +{
->> +	int i, size, max, reserved = 0, entry;
->> +	const __be32 *irqsr;
->> +
->> +	cb = kzalloc(sizeof(struct cb_device *), GFP_KERNEL);
->> +
->> +	if (!cb)
->> +		return -ENOMEM;
->> +
->> +	cb->crossbar_base = of_iomap(node, 0);
->> +	if (!cb->crossbar_base)
->> +		goto err1;
->> +
->> +	of_property_read_u32(node, "ti,max-irqs", &max);
->> +	cb->irq_map = kzalloc(max * sizeof(int), GFP_KERNEL);
->> +	if (!cb->irq_map)
->> +		goto err2;
->> +
->> +	cb->int_max = max;
->> +
->> +	for (i = 0; i < max; i++)
->> +		cb->irq_map[i] = IRQ_FREE;
->> +
->> +	/* Get and mark reserved irqs */
->> +	irqsr = of_get_property(node, "ti,irqs-reserved", &size);
->> +	if (irqsr) {
->> +		size /= sizeof(__be32);
->> +
->> +		for (i = 0; i < size; i++) {
->> +			of_property_read_u32_index(node,
->> +						   "ti,irqs-reserved",
->> +						   i, &entry);
->> +			if (entry > max) {
->> +				pr_err("Invalid reserved entry\n");
->> +				goto err3;
->> +			}
->> +			cb->irq_map[entry] = 0;
->> +		}
->> +	}
->> +
->> +	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
->> +	if (!cb->register_offsets)
->> +		goto err3;
->> +
->> +	of_property_read_u32(node, "ti,reg-size", &size);
->> +
->> +	switch (size) {
->> +	case 1:
->> +		cb->write = crossbar_writeb;
->> +		break;
->> +	case 2:
->> +		cb->write = crossbar_writew;
->> +		break;
->> +	case 4:
->> +		cb->write = crossbar_writel;
->> +		break;
->> +	default:
->> +		pr_err("Invalid reg-size property\n");
->> +		goto err4;
->> +		break;
->> +	}
->> +
->> +	/*
->> +	 * Register offsets are not linear because of the
->> +	 * reserved irqs. so find and store the offsets once.
->> +	 */
->> +	for (i = 0; i < max; i++) {
->> +		if (!cb->irq_map[i])
->> +			continue;
->> +
->> +		cb->register_offsets[i] = reserved;
->> +		reserved += size;
->> +	}
->> +
->> +	register_routable_domain_ops(&routable_irq_domain_ops);
->> +	return 0;
->> +
->> +err4:
->> +	kfree(cb->register_offsets);
->> +err3:
->> +	kfree(cb->irq_map);
->> +err2:
->> +	iounmap(cb->crossbar_base);
->> +err1:
->> +	kfree(cb);
->> +	return -ENOMEM;
->> +}
->> +
->> +static const struct of_device_id crossbar_match[] __initconst = {
->> +	{ .compatible = "ti,irq-crossbar" },
->> +	{}
->> +};
->> +
->> +int irqcrossbar_init(void)
->> +{
->> +	struct device_node *np;
->> +	np = of_find_matching_node(NULL, crossbar_match);
->> +	if (!np)
->> +		return -ENODEV;
->> +
->> +	crossbar_of_init(np);
->> +	return 0;
->> +}
->> diff --git a/include/linux/irqchip/irq-crossbar.h b/include/linux/irqchip/irq-crossbar.h
->> new file mode 100644
->> index 0000000..e5537b8
->> --- /dev/null
->> +++ b/include/linux/irqchip/irq-crossbar.h
->> @@ -0,0 +1,11 @@
->> +/*
->> + *  drivers/irqchip/irq-crossbar.h
->> + *
->> + *  Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + *
->> + */
->> +int irqcrossbar_init(void);
-> 
-> I already have your reviewed-by tag for the first patch in this series.
-> 
-> Kevin was pointing out that irqchip maintainer tag is needed for this patch as well
-> to be merged. We are planning to take this series through arm-soc tree.
-> 
-> Can i please have your tag for this patch as well ?
-> 
-  Ping..
+Signed-off-by: Matt Porter <mporter@linaro.org>
+---
+ drivers/iio/Kconfig  | 1 +
+ drivers/iio/Makefile | 1 +
+ 2 files changed, 2 insertions(+)
 
-Regards,
- Sricharan
-
+diff --git a/drivers/iio/Kconfig b/drivers/iio/Kconfig
+index 5dd0e12..286acc3 100644
+--- a/drivers/iio/Kconfig
++++ b/drivers/iio/Kconfig
+@@ -74,6 +74,7 @@ if IIO_TRIGGER
+    source "drivers/iio/trigger/Kconfig"
+ endif #IIO_TRIGGER
+ source "drivers/iio/pressure/Kconfig"
++source "drivers/iio/pulse/Kconfig"
+ source "drivers/iio/temperature/Kconfig"
+ 
+ endif # IIO
+diff --git a/drivers/iio/Makefile b/drivers/iio/Makefile
+index 887d390..9a953c9 100644
+--- a/drivers/iio/Makefile
++++ b/drivers/iio/Makefile
+@@ -24,5 +24,6 @@ obj-y += light/
+ obj-y += magnetometer/
+ obj-y += orientation/
+ obj-y += pressure/
++obj-y += pulse/
+ obj-y += temperature/
+ obj-y += trigger/
+-- 
+1.8.4
