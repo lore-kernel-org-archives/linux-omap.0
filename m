@@ -1,124 +1,24 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: OMAP: clock DT conversion issues with omap36xx
-Date: Tue, 4 Feb 2014 17:50:21 +0200
-Message-ID: <52F10C3D.7000507@ti.com>
-References: <52E697C0.6000202@gmail.com> <1390848104.4936.62.camel@mars>	 <52E772A3.4090401@ti.com> <1390901735.2963.8.camel@lovely>	 <52E77D03.8090001@ti.com>  <52E7B361.2030601@ti.com>	 <1390928565.4904.88.camel@mars> <1390994505.5023.32.camel@mars>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH V5 2/4] DRIVERS: IRQCHIP: CROSSBAR: Add support for
+ Crossbar IP
+Date: Tue, 4 Feb 2014 17:14:04 +0100 (CET)
+Message-ID: <alpine.DEB.2.02.1402041713470.24986@ionos.tec.linutronix.de>
+References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com> <1386066445-28245-3-git-send-email-r.sricharan@ti.com> <52D7B2CA.8080902@ti.com> <52EF7D85.5070705@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37240 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751056AbaBDPua (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Feb 2014 10:50:30 -0500
-In-Reply-To: <1390994505.5023.32.camel@mars>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <52EF7D85.5070705@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Christoph Fritz <chf.fritz@googlemail.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, Nishanth Menon <nm@ti.com>
 
-On 01/29/2014 01:21 PM, Christoph Fritz wrote:
-> On Tue, 2014-01-28 at 18:02 +0100, Christoph Fritz wrote:
->> On Tue, 2014-01-28 at 15:40 +0200, Tero Kristo wrote:
->>>
->>>>> Due to a regression since next-20140122 the following errors are present:
->>>>>
->>>>>    - pin sys_clkout2, which gets configured to 24 Mhz by the fourth patch
->>>>>      in this set, erroneously outputs only 12 Mhz.
->>>>>      Just out of curiosity, configuring it to 48 Mhz puts out desired 24 Mhz.
->>>>>
->>>>>    - omap_dss, which gets configured by the third patch in this set, fails
->>>>>      to do 'dss_set_fck_rate(fck);' in
->>>>>      drivers/video/omap2/dss/dss.c:dss_setup_default_clock() which leads to:
->>>>>
->>>>>       | omapdss_dss: probe of omapdss_dss failed with error -22
->>>>>       | omapdss CORE error: Failed to initialize DSS platform driver
->>>>>       | panel-dpi panel-dpi.0: failed to find video source 'dpi.0
->>>>>
->>>>>     Both regressions seem to have something to do with the clock framework.
->>>>>     Could this be related to the DT clock conversion patches?
->>>>
->>>
->>> Yea its definitely possible, as the clock DT conversion touches pretty
->>> much everything. Have you tried whether this works properly with legacy
->>> boot? Personally I don't have access to any omap3 devices that would
->>> have display and have no possibility to check this out myself. Anyway,
->>> my initial guess is that some clock divider setup might be wrong with
->>> omap3, or we are missing some ti,set-rate-parent flag for some clock
->>> node which prevents escalating clk_set_rate properly. However, it should
->>> be easy to debug this by looking at the clock node in question, and its
->>> parent nodes to see if there are any problems.
->>
->> Currently I only analyzed sys_clkout2 (see attachments for full
->> clk_summary files):
->>
->> clk_summary__next-20140115__works_as_expected:
->>               dpll4_m2_ck        1           1            96000000
->>                  dpll4_m2x2_ck   1           1            96000000
->>                     omap_192m_alwon_fck 1           1            96000000
->>                        omap_96m_alwon_fck 1           2            96000000
->>                           per_96m_fck 0           6            96000000
->>                              mcbsp4_fck 0           1            96000000
->>                              mcbsp3_fck 0           2            96000000
->>                              mcbsp2_fck 0           2            96000000
->>                           cm_96m_fck 2           3            96000000
->>                              clkout2_src_ck 1           1            96000000
->>                                 sys_clkout2 1           1            24000000
->>
->> For real, on pin sys_clkout2 are correctly 24 Mhz measured.
->>
->> clk_summary__next-20140124__sysclkout2_dss_fails:
->>               dpll4_m2_ck        1           1            96000000
->>                  dpll4_m2x2_mul_ck 1           1            192000000
->>                     dpll4_m2x2_ck 1           1            192000000
->>                        omap_192m_alwon_fck 0           0            192000000
->>                        omap_96m_alwon_fck 1           2            192000000
->>                           per_96m_fck 0           6            192000000
->>                              mcbsp4_fck 0           1            192000000
->>                              mcbsp3_fck 0           2            192000000
->>                              mcbsp2_fck 0           2            192000000
->>                           cm_96m_fck 2           3            192000000
->>                              clkout2_src_ck 1           1            192000000
->>                                 sys_clkout2 1           1            24000000
->>
->> For real, on pin sys_clkout2 are only ~12 Mhz measured.
+On Mon, 3 Feb 2014, Sricharan R wrote:
+> > I already have your reviewed-by tag for the first patch in this series.
+> > 
+> > Kevin was pointing out that irqchip maintainer tag is needed for this patch as well
+> > to be merged. We are planning to take this series through arm-soc tree.
+> > 
+> > Can i please have your tag for this patch as well ?
 
-Hey Christoph,
-
-I had a chance to look at this in more detail, and it looks like your 
-patch above was almost the correct one (except that I think you modified 
-wrong property and also modified the clock node for all omap3 variants.) 
-Can you give this one a shot? Can you also send me the clk-summary dump 
-with this patch (with the relevant nodes)?
-
-From: Tero Kristo <t-kristo@ti.com>
-Date: Tue, 4 Feb 2014 17:37:37 +0200
-Subject: [PATCH] ARM: dts: omap36xx: fix omap96m_alwon_fck
-
-OMAP36xx has different hardware implementation for the omap96m_alwon_fck
-compared to other OMAP3 variants. Reflect this properly in the dts file.
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
-  arch/arm/boot/dts/omap36xx-clocks.dtsi |    4 ++++
-  1 file changed, 4 insertions(+)
-
-diff --git a/arch/arm/boot/dts/omap36xx-clocks.dtsi 
-b/arch/arm/boot/dts/omap36xx-clocks.dtsi
-index 2fcf253..24869cb 100644
---- a/arch/arm/boot/dts/omap36xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap36xx-clocks.dtsi
-@@ -70,6 +70,10 @@
-  	};
-  };
-
-+&omap_96m_alwon_fck {
-+	clock-div = <2>;
-+};
-+
-  &cm_clockdomains {
-  	dpll4_clkdm: dpll4_clkdm {
-  		compatible = "ti,clockdomain";
--- 
-1.7.9.5
-
+Acked-by-me
