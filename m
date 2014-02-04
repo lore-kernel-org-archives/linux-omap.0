@@ -1,20 +1,74 @@
-From: Grant <emailgrant@gmail.com>
-Subject: omapfb: resizing video doesn't work
-Date: Mon, 3 Feb 2014 20:55:54 -0800
-Message-ID: <CAN0CFw3eHveR2ejkwWbkN9i1Zq3kzKzrwpxRx33wDzf5F5hu2A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Jenny TC <jenny.tc@intel.com>
+Subject: [PATCH v5 0/4] power_supply: Introduce power supply charging driver
+Date: Tue,  4 Feb 2014 10:42:56 +0530
+Message-ID: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f44.google.com ([209.85.216.44]:41078 "EHLO
-	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752394AbaBDEzz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Feb 2014 23:55:55 -0500
-Received: by mail-qa0-f44.google.com with SMTP id w5so11663842qac.31
-        for <linux-omap@vger.kernel.org>; Mon, 03 Feb 2014 20:55:54 -0800 (PST)
+Received: from mga02.intel.com ([134.134.136.20]:35642 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750754AbaBDFNZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Feb 2014 00:13:25 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Jenny TC <jenny.tc@intel.com>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org
 
-I'm not able to resize video when using omapfb.  Should this work?
+v1: introduced feature as a framework within power supply class driver with
+	separate files for battid framework and charging framework
+v2: fixed review comments, moved macros and inline functions to power_supply.h
+v3: moved the feature as a separate driver, combined battid framework and
+	charging framework inside the power supply charging driver. Moved
+	charger specific properties to power_supply_charger.h and plugged the
+	driver with power supply subsystem using power_supply_notifier
+	introduced in my previous patch. Also a sample charger chip driver
+	(bq24261) patch added to give more idea on the psy charging driver
+	usage
+v4: Fixed review comments, no major design changes.
+v5: Fixed makefile inconsistencies, removed unused pdata callbacks
 
-- Grant
+The Power Supply charging driver connects multiple subsystems
+to do charging in a generic way. The subsystems involves power_supply,
+thermal and battery communication subsystems (1wire).With this the charging is
+handled in a generic way.
+
+The driver makes use of different new features - Battery Identification
+interfaces, pluggable charging algorithms, charger cable arbitrations etc.
+The patch also introduces generic interface for charger cable notifications.
+Charger cable events and capabilities can be notified using the generic
+power_supply_notifier chain.
+
+Overall this driver removes the charging logic out of the charger chip driver
+and the charger chip driver can just listen to the request from the power
+supply charging driver to set the charger properties. This can be implemented
+by exposing get_property and set property callbacks.
+
+Jenny TC (4):
+  power_supply: Add inlmt,iterm, min/max temp props
+  power_supply: Introduce generic psy charging driver
+  power_supply: Introduce PSE compliant algorithm
+  power_supply: bq24261 charger driver
+
+ Documentation/power/power_supply_charger.txt |  339 +++++++
+ Documentation/power/power_supply_class.txt   |    6 +
+ drivers/power/Kconfig                        |   31 +
+ drivers/power/Makefile                       |    3 +
+ drivers/power/bq24261-charger.c              | 1364 ++++++++++++++++++++++++++
+ drivers/power/charging_algo_pse.c            |  198 ++++
+ drivers/power/power_supply_charger.c         | 1196 ++++++++++++++++++++++
+ drivers/power/power_supply_charger.h         |  218 ++++
+ drivers/power/power_supply_core.c            |    3 +
+ drivers/power/power_supply_sysfs.c           |    4 +
+ include/linux/power/bq24261-charger.h        |   25 +
+ include/linux/power/power_supply_charger.h   |  237 +++++
+ include/linux/power_supply.h                 |  164 ++++
+ 13 files changed, 3788 insertions(+)
+ create mode 100644 Documentation/power/power_supply_charger.txt
+ create mode 100644 drivers/power/bq24261-charger.c
+ create mode 100644 drivers/power/charging_algo_pse.c
+ create mode 100644 drivers/power/power_supply_charger.c
+ create mode 100644 drivers/power/power_supply_charger.h
+ create mode 100644 include/linux/power/bq24261-charger.h
+ create mode 100644 include/linux/power/power_supply_charger.h
+
+-- 
+1.7.9.5
+
