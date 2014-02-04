@@ -1,81 +1,60 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap3-ldp: fix mmc configuration
-Date: Tue, 4 Feb 2014 18:16:01 +0530
-Message-ID: <52F0E109.30801@ti.com>
-References: <1390260873-22354-1-git-send-email-nm@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 3/5] char: ti-usim: Add driver for USIM module on AM43xx
+Date: Tue, 4 Feb 2014 15:19:40 +0200
+Message-ID: <52F0E8EC.8030900@ti.com>
+References: <1390192434-19386-1-git-send-email-satish.patel@ti.com> <1390192434-19386-4-git-send-email-satish.patel@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55708 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750937AbaBDMq2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Feb 2014 07:46:28 -0500
-In-Reply-To: <1390260873-22354-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1390192434-19386-4-git-send-email-satish.patel-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Satish Patel <satish.patel-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 21 January 2014 05:04 AM, Nishanth Menon wrote:
-> MMC1 is the only MMC interface available on the platform. Further,
-> since the platform is based on older revision of SoC which is not
-> capable of doing multi-block writes, mark it so and add pinmux
+Hi Satish,
 
-s/writes/read
-
-Thanks and Regards,
-Balaji T K
-
-> to ensure that all relevant pins are configured for non-MMC boot
-> mode.
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+On 01/20/2014 06:33 AM, Satish Patel wrote:
+> TI-USIM driver is a platform driver that provides a character
+> driver interface to user applications.
+> 
+> It allows user applications to call IOCTL's to
+> perform smart card operations.
+> 
+> Driver currently supports
+> - ATR
+> - T=0 & T=1 protocol
+> - clock stop mode
+> - smart card clock configuration
+> - Tx/Rx application data units (APDU) to smart card
+> - Interface to PHY using DT & phy interface
+> 
+> Validation is done with ACOS3 smart cards
+> 
+> Signed-off-by: Satish Patel <satish.patel-l0cyMroinI0@public.gmane.org>
 > ---
-> ti,erratum-2.1.1.128 introduced in https://patchwork.kernel.org/patch/3514851/
-> hence depends on the same.
->   arch/arm/boot/dts/omap3-ldp.dts |   22 ++++++++++++++++++++++
->   1 file changed, 22 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/omap3-ldp.dts b/arch/arm/boot/dts/omap3-ldp.dts
-> index ddce0d8..bc0cc66 100644
-> --- a/arch/arm/boot/dts/omap3-ldp.dts
-> +++ b/arch/arm/boot/dts/omap3-ldp.dts
-> @@ -176,6 +176,17 @@
->   &mmc1 {
->   	vmmc-supply = <&vmmc1>;
->   	bus-width = <4>;
-> +	ti,erratum-2.1.1.128;
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&mmc1_pins>;
-> +};
-> +
-> +&mmc2 {
-> +	status="disabled";
-> +};
-> +
-> +&mmc3 {
-> +	status="disabled";
->   };
->
->   &omap3_pmx_core {
-> @@ -209,6 +220,17 @@
->   			0x174 (PIN_OUTPUT | MUX_MODE0)	/* hsusb0_stp.hsusb0_stp */
->   		>;
->   	};
-> +
-> +	mmc1_pins: pinmux_mmc1_pins {
-> +		pinctrl-single,pins = <
-> +			OMAP3_CORE1_IOPAD(0x2144, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_clk.mmc1_clk */
-> +			OMAP3_CORE1_IOPAD(0x2146, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_cmd.mmc1_cmd */
-> +			OMAP3_CORE1_IOPAD(0x2148, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_dat0.mmc1_dat0 */
-> +			OMAP3_CORE1_IOPAD(0x214A, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_dat1.mmc1_dat1 */
-> +			OMAP3_CORE1_IOPAD(0x214C, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_dat2.mmc1_dat2 */
-> +			OMAP3_CORE1_IOPAD(0x214e, PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc1_dat3.mmc1_dat3 */
-> +		>;
-> +	};
->   };
->
->   &usb_otg_hs {
->
+>  .../devicetree/bindings/ti-usim/ti-usim.txt        |   31 +
+>  drivers/char/Kconfig                               |    7 +
+>  drivers/char/Makefile                              |    1 +
+>  drivers/char/ti-usim-hw.h                          |  863 +++++++++
+>  drivers/char/ti-usim.c                             | 1859 ++++++++++++++++++++
 
+ti-usim.c is a very large driver that does everything but looks like limited to TI hardware.
+How about splitting it into generic stuff and hw specific glue logic so that most of the generic stuff
+could be used by different hardware types.
+
+>  include/linux/ti-usim.h                            |   98 +
+>  6 files changed, 2859 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/ti-usim/ti-usim.txt
+>  create mode 100644 drivers/char/ti-usim-hw.h
+>  create mode 100644 drivers/char/ti-usim.c
+>  create mode 100644 include/linux/ti-usim.h
+> 
+
+cheers,
+-roger
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
