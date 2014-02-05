@@ -1,69 +1,79 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH RESEND] ARM: dts: add BeagleBone Audio Cape (Rev A) dtsi
-Date: Wed, 5 Feb 2014 08:56:34 -0600
-Message-ID: <52F25122.50400@ti.com>
-References: <1391608084-12665-1-git-send-email-ml@embed.me.uk> <52F2460C.3080908@ti.com> <20140205143800.GB22153@beef>
+From: Illia Smyrnov <illia.smyrnov@globallogic.com>
+Subject: [PATCH] ARM: OMAP4: hwmod: Fix SOFTRESET logic for OMAP4
+Date: Wed,  5 Feb 2014 17:06:09 +0200
+Message-ID: <1391612769-27890-1-git-send-email-illia.smyrnov@globallogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140205143800.GB22153@beef>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Porter <mporter@linaro.org>
-Cc: Jack Mitchell <ml@embed.me.uk>, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Jack Mitchell <jack@embed.me.uk>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: Illia Smyrnov <illia.smyrnov@globallogic.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/05/2014 08:38 AM, Matt Porter wrote:
-> On Wed, Feb 05, 2014 at 08:09:16AM -0600, Nishanth Menon wrote:
->> On 02/05/2014 07:48 AM, Jack Mitchell wrote:
-[...]
->>> + * --- a/arch/arm/boot/dts/am335x-boneblack.dts
->>> + * +++ b/arch/arm/boot/dts/am335x-boneblack.dts
->>> + * @@ -73,6 +74,6 @@
->>> + *  		pinctrl-names = "default", "off";
->>> + *  		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
->>> + *  		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
->>> + * -		status = "okay";
->>> + * +		status = "disabled";
->>> + *  	};
->>> + *  };
->>> + */
->>> +
->> how about making the audio-cape-reva.dts which includes and overrides
->> parameters of boneblack.dts?
-> 
-> Yeah, that might be a little cleaner. Black makes things unfortunately
-> messy for these capes that were really intended for BBW :(
+Commit 313a76e (ARM: OMAP2+: hwmod: Fix SOFTRESET logic) introduced
+softreset bit cleaning right after set one. It is caused L3 error for
+OMAP4 ISS because ISS register write occurs when ISS reset process is in
+progress. Avoid this situation by cleaning softreset bit later, when reset
+process is successfully finished.
 
-yes indeed - we might have to live with more dts in such a case.
-> 
->> Further, I see a bunch of capes in
->> http://elinux.org/Beagleboard:BeagleBone_Capes
->>
->> Assuming that we dont want to discuss capebus all over again, is this
->> the approach we'd like to consider in the interim?
-> 
-> I think that's a fair assumption...I'll note that there is work slowly
-> in progress on a very minimal implementation DT overlays upstream. But
-> that doesn't exist. We are simply interested in a sane way to use the
-> hardware we own in mainline and this approach makes it possible to build
-> a kernel+dtb from mainline that works for this configuration. If
-> there's a better way to support this hardware *today* let's discuss it.
-> One of the big benefits to having this upstream is that it's no longer
-> out of sight out of mind. It should be managed alongside all the other
-> am335x dts data.
-> 
-> Incidentally, I'm hoping to contribute a similar patch for the DVI cape
-> I have here.
+Signed-off-by: Illia Smyrnov <illia.smyrnov@globallogic.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-If I am not mistaken, the capes are stackable (within reason), and are
-not exactly hotpluggable.. question pops up as to how do we handle
-multiple cape descriptions on the same board without having the user
-to create custom dts which includes each relevant cape dts he has on
-his/her bone? I wonder(without proper research, just thinking aloud)
-if u-boot can do some sort of merge of dtbs - assuming ofcourse eeprom
-data is used to detect the capes plugged on board?
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 42d8188..1f33f5d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1947,29 +1947,31 @@ static int _ocp_softreset(struct omap_hwmod *oh)
+ 		goto dis_opt_clks;
+ 
+ 	_write_sysconfig(v, oh);
+-	ret = _clear_softreset(oh, &v);
+-	if (ret)
+-		goto dis_opt_clks;
+-
+-	_write_sysconfig(v, oh);
+ 
+ 	if (oh->class->sysc->srst_udelay)
+ 		udelay(oh->class->sysc->srst_udelay);
+ 
+ 	c = _wait_softreset_complete(oh);
+-	if (c == MAX_MODULE_SOFTRESET_WAIT)
++	if (c == MAX_MODULE_SOFTRESET_WAIT) {
+ 		pr_warning("omap_hwmod: %s: softreset failed (waited %d usec)\n",
+ 			   oh->name, MAX_MODULE_SOFTRESET_WAIT);
+-	else
++		ret = -ETIMEDOUT;
++		goto dis_opt_clks;
++	} else {
+ 		pr_debug("omap_hwmod: %s: softreset in %d usec\n", oh->name, c);
++	}
++
++	ret = _clear_softreset(oh, &v);
++	if (ret)
++		goto dis_opt_clks;
++
++	_write_sysconfig(v, oh);
+ 
+ 	/*
+ 	 * XXX add _HWMOD_STATE_WEDGED for modules that don't come back from
+ 	 * _wait_target_ready() or _reset()
+ 	 */
+ 
+-	ret = (c == MAX_MODULE_SOFTRESET_WAIT) ? -ETIMEDOUT : 0;
+-
+ dis_opt_clks:
+ 	if (oh->flags & HWMOD_CONTROL_OPT_CLKS_IN_RESET)
+ 		_disable_optional_clocks(oh);
 -- 
-Regards,
-Nishanth Menon
+1.8.5.3
