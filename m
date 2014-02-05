@@ -1,74 +1,52 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [PATCH] ARM: OMAP2+: Add support for thumb mode on DT booted N900
-Date: Wed, 5 Feb 2014 18:17:29 +0100
-Message-ID: <20140205171729.GA17974@earth.universe>
-References: <1391603582-11371-1-git-send-email-sre@debian.org>
- <CAHYPw2Ep9VP6Tem979ewcztdxkHkG8eR_U31U=f5ibsVa5AS4Q@mail.gmail.com>
- <20140205163117.GA15996@earth.universe>
- <CAHYPw2HX478ZZPfDTKCKSGhVdFc1-G5DszUR4vG+WRgZx=8+dQ@mail.gmail.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 1/3] arm: dts: am33xx.dtsi: Add node name to rtc device
+ node
+Date: Wed, 05 Feb 2014 21:29:37 +0300
+Message-ID: <52F28311.20905@cogentembedded.com>
+References: <1391602361-2666-1-git-send-email-sr@denx.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHYPw2HX478ZZPfDTKCKSGhVdFc1-G5DszUR4vG+WRgZx=8+dQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, freemangordon@abv.bg
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-la0-f47.google.com ([209.85.215.47]:40021 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752924AbaBER3M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Feb 2014 12:29:12 -0500
+Received: by mail-la0-f47.google.com with SMTP id hr17so577441lab.6
+        for <linux-omap@vger.kernel.org>; Wed, 05 Feb 2014 09:29:11 -0800 (PST)
+In-Reply-To: <1391602361-2666-1-git-send-email-sr@denx.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stefan Roese <sr@denx.de>, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Lukas Stockmann <lukas.stockmann@siemens.com>, linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>
 
+Hello.
 
---7AUc2qLy4jB3hD7Z
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 02/05/2014 03:12 PM, Stefan Roese wrote:
 
-Hi,
+> Making it possible to reference and therefor change (disable) this
+> device node from other dts file which import this dtsi file.
 
-On Wed, Feb 05, 2014 at 05:38:54PM +0100, Pali Roh=E1r wrote:
-> > I assumed, that the workaround is not needed for this device type.
->=20
-> That rx51 secure call must not be called on non secure devices (e.g.
-> qemu), because it cause kernel crash. So I thought that kernel should
-> write something like secure call is disabled on that device types.
-> Kernel code for errata 430973 will update ibe bit for non secure
-> devices.
+> Signed-off-by: Stefan Roese <sr@denx.de>
+> Cc: Lukas Stockmann <lukas.stockmann@siemens.com>
+> Cc: Benoit Cousson <bcousson@baylibre.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+>   arch/arm/boot/dts/am33xx.dtsi | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
 
-Do you see any advantage in having that message?
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 6d95d3d..b8daf8c 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -399,7 +399,7 @@
+>   			ti,timer-pwm;
+>   		};
+>
+> -		rtc@44e3e000 {
+> +		rtc: rtc@44e3e000 {
 
-> > I just added the warning for missing CONFIG_ARM_ERRATA_430973,
-> > because its very likely a misconfigured kernel.
->=20
-> Yes, it can be misconfigured kernel, but if you do not have any thumb
-> binary (like stock Maemo 5 system), then it is safe and OK.
+    Node name is "rtc@44e3e000" -- what you are adding is a label.
 
-I think running this kernel may also be a potential security
-problem. If I understand it right the ARM core is left in an
-unstable state when you run Thumb code, so this may result in
-funny effects in the kernel?
+WBR, Sergei
 
--- Sebastian
-
---7AUc2qLy4jB3hD7Z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJS8nIpAAoJENju1/PIO/qaDoEP/jUxpjyjriZBkOhRFXKglNJH
-mmBfeMYeBkFuNOvmjrqd8kmAEZauYMcWxIWaRRKY0ckvTp0ZDHWLPYYrZpf3cXa8
-4nNKgl4pQZHKawxyniq0Nq6bQkaN3ozMIqrVDYvMQ78ZUElUOwUR6WGnwlqKYEUl
-wiLBWtJJjGumsYDmkRh2LOpK8B2cXztgvsECfuiv4P+3jS3vIi1dtpK/an65dju1
-9aCDTYCWsAXISetOowGHuoMA3M3bcUPwYdZTM4DGn9eEFAxfEnnjK5HvUcLxrMxL
-WdZkbdkFg2LM8JDxO8Xuqt4pUmKpeTC0Mhini/xTnZl0NwFrxvVUQapgFy8QuRfX
-zHAJd81e5JsZbaKrv/zCrSPycJkmD8Sx/F4R33KxKvFhsGhwkMBrHP8rwtUPlm4b
-qTHmZWt4jJvBZRRT89NJIBh6kTibH7t0qKbUBdxg4gpIuyqijJkTTj5YxXi62nbm
-5IMuHexJM7NBHSiNQesyZJJcQ+FuvQyTXabaeJe0u2Vad41eOjvLFjvHcbp7JmQ7
-6Z3uCJ4etevXD6xh8hnvVdXcSilltifqtcBFOhEXGyj8y32uWSmGmyC+PItBIwra
-EnwKsQ/wpsrMgjxRP3OHkegE3i1EMqzmIomBUgheOyKyKOdmw4CBDdzEnF2FuhwW
-NxRJEqsZBWlYBKGBq5EQ
-=/oK1
------END PGP SIGNATURE-----
-
---7AUc2qLy4jB3hD7Z--
