@@ -1,58 +1,45 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: RE: [PATCH 2/2] clocksource: Make clocksource register functions void
-Date: Wed, 5 Feb 2014 21:40:53 +0100 (CET)
-Message-ID: <alpine.DEB.2.02.1402052139560.24986@ionos.tec.linutronix.de>
-References: <1390461166-36440-1-git-send-email-wangyijing@huawei.com>
- <52E0C889.6000106@prisktech.co.nz>
- <063D6719AE5E284EB5DD2968C1650D6D46489C@AcuExch.aculab.com>
+From: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Add support for thumb mode on DT booted N900
+Date: Wed, 5 Feb 2014 21:42:30 +0100
+Message-ID: <CAHYPw2FRbcR_anv9f2igcFV6XnCfpjJMHaeZmcNs8KpXuG96cQ@mail.gmail.com>
+References: <1391603582-11371-1-git-send-email-sre@debian.org>
+ <CAHYPw2Ep9VP6Tem979ewcztdxkHkG8eR_U31U=f5ibsVa5AS4Q@mail.gmail.com>
+ <20140205163117.GA15996@earth.universe> <CAHYPw2HX478ZZPfDTKCKSGhVdFc1-G5DszUR4vG+WRgZx=8+dQ@mail.gmail.com>
+ <20140205171729.GA17974@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D46489C@AcuExch.aculab.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: David Laight <David.Laight@ACULAB.COM>
-Cc: "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, "x86@kernel.org" <x86@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "linux@lists.openrisc.net" <linux@lists.openrisc.net>, Sekhar Nori <nsekhar@ti.com>, Michal Simek <monstr@monstr.eu>, Paul Mackerras <paulus@samba.org>, Ralf Baechle <ralf@linux-mips.org>, "H. Peter Anvin" <hpa@zytor.com>, Yijing Wang <wangyijing@huawei.com>, Daniel Walker <dwalker@fifo99.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Jonas Bonn <jonas@southpole.se>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Richard Weinberger <richard@nod.at>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tony Lindgren <tony@atomide.com>, Ingo Molnar <mingo@redhat.com>, "microblaze-uclinux@itee.uq.edu.au" <microblaze-uclinux@itee.uq.edu.au>, David Brown <davidb@codeaurora.org>, Haavard Skinnemoen <hskinnemoen@gmail.>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140205171729.GA17974@earth.universe>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, freemangordon@abv.bg
 List-Id: linux-omap@vger.kernel.org
 
-Yijing,
+2014-02-05 Sebastian Reichel <sre@debian.org>:
+> Hi,
+>
+> On Wed, Feb 05, 2014 at 05:38:54PM +0100, Pali Roh=C3=A1r wrote:
+>> > I assumed, that the workaround is not needed for this device type.
+>>
+>> That rx51 secure call must not be called on non secure devices (e.g.
+>> qemu), because it cause kernel crash. So I thought that kernel shoul=
+d
+>> write something like secure call is disabled on that device types.
+>> Kernel code for errata 430973 will update ibe bit for non secure
+>> devices.
+>
+> Do you see any advantage in having that message?
+>
 
-On Thu, 23 Jan 2014, David Laight wrote:
+Consistency. Print message 1) only if secure rx51 smc instruction is
+called or 2) print message always (also if smc is not called). With
+that patch message is printed (enabled/disabled) only if device is
+rx51 and device type is HS.
 
-> From: Linuxppc-dev Tony Prisk
-> > On 23/01/14 20:12, Yijing Wang wrote:
-> > > Currently, clocksource_register() and __clocksource_register_scale()
-> > > functions always return 0, it's pointless, make functions void.
-> > > And remove the dead code that check the clocksource_register_hz()
-> > > return value.
-> > ......
-> > > -static inline int clocksource_register_hz(struct clocksource *cs, u32 hz)
-> > > +static inline void clocksource_register_hz(struct clocksource *cs, u32 hz)
-> > >   {
-> > >   	return __clocksource_register_scale(cs, 1, hz);
-> > >   }
-> > 
-> > This doesn't make sense - you are still returning a value on a function
-> > declared void, and the return is now from a function that doesn't return
-> > anything either ?!?!
-> > Doesn't this throw a compile-time warning??
-> 
-> It depends on the compiler.
-> Recent gcc allow it.
-> I don't know if it is actually valid C though.
-> 
-> There is no excuse for it on lines like the above though.
+=46or information it is also good to know that in qemu that special
+secure smc instruction was not called.
 
-Can you please resend with that fixed against 3.14-rc1 ?
-
-Thanks,
-
-	tglx
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
