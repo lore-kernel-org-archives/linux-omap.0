@@ -1,210 +1,91 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH RESEND] ARM: dts: add BeagleBone Audio Cape (Rev A) dtsi
-Date: Wed, 5 Feb 2014 08:09:16 -0600
-Message-ID: <52F2460C.3080908@ti.com>
-References: <1391608084-12665-1-git-send-email-ml@embed.me.uk>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: Add support for Erratum 2.1.1.128 in
+ device tree boot
+Date: Wed, 5 Feb 2014 19:40:34 +0530
+Message-ID: <52F2465A.6060804@ti.com>
+References: <1390260542-22213-1-git-send-email-nm@ti.com> <52F0E098.3050404@ti.com> <52F104B7.6040606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58182 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750799AbaBEOKQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Feb 2014 09:10:16 -0500
-In-Reply-To: <1391608084-12665-1-git-send-email-ml@embed.me.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <52F104B7.6040606@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Chris Ball <chris@printf.net>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Jack Mitchell <ml@embed.me.uk>, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Jack Mitchell <jack@embed.me.uk>, Matt Porter <mporter@linaro.org>
 
-On 02/05/2014 07:48 AM, Jack Mitchell wrote:
-> From: Jack Mitchell <jack@embed.me.uk>
-> 
-> Devicetree include file for setting up the am335x mcasp bus, i2c-2
-> bus, and audio codec required for a functioning BeagleBone Audio Cape.
-> 
-> Signed-off-by: Jack Mitchell <jack@embed.me.uk>
-> Signed-off-by: Matt Porter <mporter@linaro.org>
-> ---
->  arch/arm/boot/dts/am335x-bone-audio-cape-reva.dtsi | 124 +++++++++++++++++++++
->  arch/arm/boot/dts/am335x-bone-common.dtsi          |  14 +++
->  2 files changed, 138 insertions(+)
->  create mode 100644 arch/arm/boot/dts/am335x-bone-audio-cape-reva.dtsi
-> 
-> diff --git a/arch/arm/boot/dts/am335x-bone-audio-cape-reva.dtsi b/arch/arm/boot/dts/am335x-bone-audio-cape-reva.dtsi
-> new file mode 100644
-> index 0000000..b8ec3dc
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am335x-bone-audio-cape-reva.dtsi
-> @@ -0,0 +1,124 @@
-> +/*
-> + * Copyright (C) 2014 Jack Mitchell <jack@embed.me.uk>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * In order to enable the BeagleBone Audio Cape this dtsi must be
-> + * incuded in the top level dts. On BeagleBone Black hardware the
-> + * status of the HDMI dts node must also be set to "disabled".
-> + *
-> + * --- a/arch/arm/boot/dts/am335x-bone.dts
-> + * +++ b/arch/arm/boot/dts/am335x-bone.dts
-> + * @@ -9,6 +9,7 @@
-> + *
-> + *  #include "am33xx.dtsi"
-> + *  #include "am335x-bone-common.dtsi"
-> + * +#include "am335x-bone-audio-cape-reva.dtsi"
-> + *
-> + *  &ldo3_reg {
-> + *  	regulator-min-microvolt = <1800000>;
-> + *
-> + * On BeagleBone Black hardware the status of the HDMI dts node must
-> + * also be set to "disabled"
-> + *
-> + * --- a/arch/arm/boot/dts/am335x-boneblack.dts
-> + * +++ b/arch/arm/boot/dts/am335x-boneblack.dts
-> + * @@ -73,6 +74,6 @@
-> + *  		pinctrl-names = "default", "off";
-> + *  		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
-> + *  		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
-> + * -		status = "okay";
-> + * +		status = "disabled";
-> + *  	};
-> + *  };
-> + */
-> +
-how about making the audio-cape-reva.dts which includes and overrides
-parameters of boneblack.dts?
+On Tuesday 04 February 2014 08:48 PM, Nishanth Menon wrote:
+> On 02/04/2014 06:44 AM, Balaji T K wrote:
+>> On Tuesday 21 January 2014 04:59 AM, Nishanth Menon wrote:
+>>> When device is booted using devicetree, platforms impacted by
+>>> Erratum 2.1.1.128 is not detected easily in the mmc driver. This erratum
+>>> indicates that the module cannot do multi-block transfers.
+>>>
+>>> Handle this by providing a boolean flag to indicate to driver that it is
+>>> working on a hardware with mentioned limitation.
+>>>
+>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>> ---
+>>>
+>>> This explains the logs I see:
+>>> OMAP3430 LDP (ES2.2):
+>>> 	uImage only boot:  http://slexy.org/raw/s2YrbMAi7c
+>>> 	uImage+dtb concatenated boot: http://slexy.org/raw/s20qVg17T0
+>>>
+>>> With the following flag set, device is now able to consistently boot with
+>>> device tree supported uImage+dtb concat boot.
+>>>
+>>>    .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    2 ++
+>>>    drivers/mmc/host/omap_hsmmc.c                      |    3 +++
+>>>    2 files changed, 5 insertions(+)
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+>>> index 8c8908a..ab36f8b 100644
+>>> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+>>> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+>>> @@ -26,6 +26,8 @@ specifier is required.
+>>>    dma-names: List of DMA request names. These strings correspond
+>>>    1:1 with the DMA specifiers listed in dmas. The string naming is
+>>>    to be "rx" and "tx" for RX and TX DMA requests, respectively.
+>>> +ti,erratum-2.1.1.128: boolean, for OMAP3430/OMAP35xx platforms with broken
+>>> +multiblock reads
+>>
+>> Rather than ti,errata.. specific property, something like
+>> caps no/disable multiblock read is more readable in my opinion, Otherwise
+>
+> Is'nt the better definition to state i have quirk X and allow the
+> driver to do the necessary thing/things needed to handle quirk X? in
+> this case, there is just one thing to do: broken multi_block_read, in
+> the case of other quirks, there might be more than 1 thing to do.. let
+> driver figure that out, dts just states the h/w capabilty or in this
+> case, the quirk capability.
+>
 
+But in this case there is only one. disable multi block read is more readable
+than the errata reference, No strong feelings though.
 
-Further, I see a bunch of capes in
-http://elinux.org/Beagleboard:BeagleBone_Capes
+>>
+>> Acked-by: Balaji T K <balajitk@ti.com>
+>>
+>>>
+>>>    Examples:
+>>>
+>>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>>> index 014bfe5..f2d5940 100644
+>>> --- a/drivers/mmc/host/omap_hsmmc.c
+>>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>>> @@ -1730,6 +1730,9 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
+>>>    	if (of_find_property(np, "ti,dual-volt", NULL))
+>>>    		pdata->controller_flags |= OMAP_HSMMC_SUPPORTS_DUAL_VOLT;
+>>>
+>>> +	if (of_find_property(np, "ti,erratum-2.1.1.128", NULL))
+>>> +		pdata->controller_flags |= OMAP_HSMMC_BROKEN_MULTIBLOCK_READ;
+>>> +
+>>>    	/* This driver only supports 1 slot */
+>>>    	pdata->nr_slots = 1;
+>>>    	pdata->slots[0].switch_pin = cd_gpio;
+>>>
+>>
+>
+>
 
-Assuming that we dont want to discuss capebus all over again, is this
-the approach we'd like to consider in the interim?
-
-> +/ {
-> +	sound {
-> +		compatible = "ti,da830-evm-audio";
-> +		ti,model = "AM335x BeagleBone Audio Cape Rev. A";
-> +		ti,audio-codec = <&tlv320aic3106>;
-> +		ti,mcasp-controller = <&mcasp0>;
-> +		ti,codec-clock-rate = <12000000>;
-> +		ti,audio-routing =
-> +			"Headphone Jack",       "HPLOUT",
-> +			"Headphone Jack",       "HPROUT",
-> +			"LINE1L",               "Line In",
-> +			"LINE1R",               "Line In";
-> +	};
-> +
-> +	audio-cape-gpio-leds {
-> +		compatible = "gpio-leds";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&bone_audio_cape_led_pins>;
-> +
-> +		audio-led0 {
-> +			label = "audio:green:usr0";
-> +			gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
-> +			linux,default-trigger = "heartbeat";
-> +			default-state = "off";
-> +		};
-> +
-> +		audio-led1 {
-> +			label = "audio:green:usr1";
-> +			gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
-> +			linux,default-trigger = "mmc0";
-> +			default-state = "off";
-> +		};
-> +	};
-> +};
-> +
-> +&am33xx_pinmux {
-> +	bone_audio_cape_led_pins: pinmux_bone_audio_cape_led_pins {
-> +		pinctrl-single,pins = <
-> +			0x48 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_a2.gpio1_18 */
-> +			0x4c (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_a3.gpio1_19 */
-> +		>;
-> +	};
-> +
-> +	bone_audio_cape_pins: bone_audio_cape_pins {
-> +		pinctrl-single,pins = <
-> +			0x190 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mcasp0_aclkx.mcasp0_aclkx */
-> +			0x194 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mcasp0_fsx.mcasp0_fsx */
-> +			0x19c (PIN_INPUT_PULLUP | MUX_MODE2)	/* mcasp0_ahclkr.mcasp0_axr2 */
-> +			0x1ac (PIN_INPUT_PULLUP | MUX_MODE2)	/* mcasp0_ahclkx.mcasp0_axr3 */
-> +		>;
-> +	};
-> +};
-> +
-> +&i2c2 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&i2c2_pins>;
-> +
-> +	status = "okay";
-> +	clock-frequency = <100000>;
-> +
-> +	tlv320aic3106: tlv320aic3106@1b {
-> +		compatible = "ti,tlv320aic3106";
-> +		reg = <0x1b>;
-> +		status = "okay";
-> +
-> +		/* Regulators */
-> +		AVDD-supply = <&vmmcsd_fixed>;
-> +		IOVDD-supply = <&vmmcsd_fixed>;
-> +		DRVDD-supply = <&vmmcsd_fixed>;
-> +		DVDD-supply = <&vdd1v8_fixed>;
-> +	};
-> +};
-> +
-> +&mcasp0 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&bone_audio_cape_pins>;
-> +
-> +	status = "okay";
-> +
-> +	op-mode = <0>;      /* MCASP_IIS_MODE */
-> +	tdm-slots = <2>;
-> +	serial-dir = <      /* 0: INACTIVE, 1: TX, 2: RX */
-> +		0 0 2 1
-> +	>;
-> +	tx-num-evt = <1>;
-> +	rx-num-evt = <1>;
-> +};
-> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> index e3f27ec..c1c0f74 100644
-> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> @@ -62,12 +62,26 @@
->  		regulator-min-microvolt = <3300000>;
->  		regulator-max-microvolt = <3300000>;
->  	};
-> +
-> +	vdd1v8_fixed: fixedregulator@1 {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "vdd1v8_fixed";
-> +		regulator-min-microvolt = <1800000>;
-> +		regulator-max-microvolt = <1800000>;
-> +	};
->  };
->  
->  &am33xx_pinmux {
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&clkout2_pin>;
->  
-> +	i2c2_pins: pinmux_i2c2_pins {
-> +		pinctrl-single,pins = <
-> +			0x178 (PIN_INPUT_PULLUP | MUX_MODE3)  /* uart1_ctsn.i2c2_sda */
-> +			0x17c (PIN_INPUT_PULLUP | MUX_MODE3)  /* uart1_rtsn.i2c2_scl */
-> +		>;
-> +	};
-> +
->  	user_leds_s0: user_leds_s0 {
->  		pinctrl-single,pins = <
->  			0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a5.gpio1_21 */
-> 
-
-
--- 
-Regards,
-Nishanth Menon
