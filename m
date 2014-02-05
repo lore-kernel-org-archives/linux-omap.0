@@ -1,91 +1,125 @@
 From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v1 1/5] ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms and ECC schemes
-Date: Wed, 5 Feb 2014 18:58:30 +0530
-Message-ID: <1391606914-9947-2-git-send-email-pekon@ti.com>
+Subject: [PATCH v1 2/5] ARM: dts: am335x-evm: NAND: update MTD partition table
+Date: Wed, 5 Feb 2014 18:58:31 +0530
+Message-ID: <1391606914-9947-3-git-send-email-pekon@ti.com>
 References: <1391606914-9947-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56504 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33057 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750985AbaBEN2m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Feb 2014 08:28:42 -0500
+	id S1750985AbaBEN2n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Feb 2014 08:28:43 -0500
 In-Reply-To: <1391606914-9947-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com
 Cc: linux-omap <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>
 
-This patch
- - refactors gpmc_hwecc_bch_capable()
- - add checks for new platforms like dra7xx, am43xx
- - add checks for OMAP3 SoC, w.r.t. new ECC schemes spawned in following commit:
-    commit ac65caf514ec3e55e8d3d510ee37f80dd97418fe
-    ARM: OMAP2+: cleaned-up DT support of various ECC schemes
+This patch has following updates, specific to MTD/NAND DT
+ - update MTD NAND partition table to keep compatibility between
+   different boards and mainline u-boot.
+ - prefix 'NAND.' in names of NAND device MTD partitions to differentiate them
+   from other MTD device partitions (like NOR and QSPI)
+               Partition_Name            Partition_Size
+    /dev/mtd0  NAND.SPL                  1 block-size*
+    /dev/mtd1  NAND.SPL.backup1          1 block-size*
+    /dev/mtd2  NAND.SPL.backup2          1 block-size*
+    /dev/mtd3  NAND.SPL.backup3          1 block-size*
+    /dev/mtd5  NAND.u-boot-spl-os        2 block-size* [for falcon boot]
+    /dev/mtd4  NAND.u-boot               1 MB
+    /dev/mtd6  NAND.u-boot-env           1 block-size*
+    /dev/mtd7  NAND.u-boot-env.backup1   1 block-size*
+    /dev/mtd8  NAND.kernel               till 0xA00000
+    /dev/mtd9  NAND.file-system          till end of device
+
+* am335x-evm uses NAND device with block-size=128KiB
 
 Signed-off-by: Pekon Gupta <pekon@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-nand.c | 31 ++++++++++++++++++++-----------
- 1 file changed, 20 insertions(+), 11 deletions(-)
+ arch/arm/boot/dts/am335x-evm.dts | 48 +++++++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 23 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 174caec..4349e82 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -45,24 +45,31 @@ static struct platform_device gpmc_nand_device = {
- 
- static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
- {
--	/* support only OMAP3 class */
--	if (!cpu_is_omap34xx() && !soc_is_am33xx()) {
--		pr_err("BCH ecc is not supported on this CPU\n");
-+	/* platforms which support all ECC schemes */
-+	if (soc_is_am33xx() || cpu_is_omap44xx() ||
-+		 soc_is_omap54xx() || soc_is_dra7xx())
-+		return 1;
-+
-+	/* OMAP3xxx do not have ELM engine, so cannot support ECC schemes
-+	 * which require H/W based ECC error detection */
-+	if ((cpu_is_omap34xx() || cpu_is_omap3630()) &&
-+	    ((ecc_opt == OMAP_ECC_BCH4_CODE_HW) ||
-+		 (ecc_opt == OMAP_ECC_BCH8_CODE_HW)))
- 		return 0;
--	}
- 
- 	/*
- 	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1
- 	 * and AM33xx derivates. Other chips may be added if confirmed to work.
- 	 */
--	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW) &&
--	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0)) &&
--	    (!soc_is_am33xx())) {
--		pr_err("BCH 4-bit mode is not supported on this CPU\n");
-+	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW_DETECTION_SW) &&
-+	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0)))
- 		return 0;
--	}
- 
--	return 1;
-+	/* legacy platforms support only HAM1 (1-bit Hamming) ECC scheme */
-+	if (ecc_opt == OMAP_ECC_HAM1_CODE_HW)
-+		return 1;
-+	else
-+		return 0;
- }
- 
- /* This function will go away once the device-tree convertion is complete */
-@@ -133,8 +140,10 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 
- 	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
- 
--	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt))
-+	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
-+		dev_err(dev, "Unsupported NAND ECC scheme selected\n");
- 		return -EINVAL;
-+	}
- 
- 	err = platform_device_register(&gpmc_nand_device);
- 	if (err < 0) {
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 7e6c64e..17c3cc0 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -460,50 +460,52 @@
+ 		gpmc,wait-monitoring-ns = <0>;
+ 		gpmc,wr-access-ns = <40>;
+ 		gpmc,wr-data-mux-bus-ns = <0>;
+-
+-		#address-cells = <1>;
+-		#size-cells = <1>;
+ 		elm_id = <&elm>;
+-
+ 		/* MTD partition table */
++		/* All SPL-* partitions are sized to minimal length
++		 * which can be independently programmable. For
++		 * NAND flash this is equal to size of erase-block */
++		#address-cells = <1>;
++		#size-cells = <1>;
+ 		partition@0 {
+-			label = "SPL1";
++			label = "NAND.SPL";
+ 			reg = <0x00000000 0x000020000>;
+ 		};
+-
+ 		partition@1 {
+-			label = "SPL2";
++			label = "NAND.SPL.backup1";
+ 			reg = <0x00020000 0x00020000>;
+ 		};
+-
+ 		partition@2 {
+-			label = "SPL3";
++			label = "NAND.SPL.backup2";
+ 			reg = <0x00040000 0x00020000>;
+ 		};
+-
+ 		partition@3 {
+-			label = "SPL4";
++			label = "NAND.SPL.backup3";
+ 			reg = <0x00060000 0x00020000>;
+ 		};
+-
+ 		partition@4 {
+-			label = "U-boot";
+-			reg = <0x00080000 0x001e0000>;
++			label = "NAND.u-boot-spl";
++			reg = <0x00080000 0x00040000>;
+ 		};
+-
+ 		partition@5 {
+-			label = "environment";
+-			reg = <0x00260000 0x00020000>;
++			label = "NAND.u-boot";
++			reg = <0x000C0000 0x00100000>;
+ 		};
+-
+ 		partition@6 {
+-			label = "Kernel";
+-			reg = <0x00280000 0x00500000>;
++			label = "NAND.u-boot-env";
++			reg = <0x001C0000 0x00020000>;
+ 		};
+-
+ 		partition@7 {
+-			label = "File-System";
+-			reg = <0x00780000 0x0F880000>;
++			label = "NAND.u-boot-env.backup1";
++			reg = <0x001E0000 0x00020000>;
++		};
++		partition@8 {
++			label = "NAND.kernel";
++			reg = <0x00200000 0x00800000>;
++		};
++		partition@9 {
++			label = "NAND.file-system";
++			reg = <0x00A00000 0x0F600000>;
+ 		};
+ 	};
+ };
 -- 
 1.8.5.1.163.gd7aced9
 
