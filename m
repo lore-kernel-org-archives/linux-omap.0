@@ -1,52 +1,43 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 1/3] arm: dts: am33xx.dtsi: Add node name to rtc device
- node
-Date: Wed, 05 Feb 2014 21:29:37 +0300
-Message-ID: <52F28311.20905@cogentembedded.com>
-References: <1391602361-2666-1-git-send-email-sr@denx.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: hwmod: Fix SOFTRESET logic for OMAP4
+Date: Wed, 5 Feb 2014 11:41:31 -0600
+Message-ID: <CAGo_u6qt2qqsxRSdJM26g6_UHObTQQTyPin0fU_1fOViAqW8Lg@mail.gmail.com>
+References: <1391612769-27890-1-git-send-email-illia.smyrnov@globallogic.com>
+	<52F26F53.20408@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:40021 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752924AbaBER3M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Feb 2014 12:29:12 -0500
-Received: by mail-la0-f47.google.com with SMTP id hr17so577441lab.6
-        for <linux-omap@vger.kernel.org>; Wed, 05 Feb 2014 09:29:11 -0800 (PST)
-In-Reply-To: <1391602361-2666-1-git-send-email-sr@denx.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52F26F53.20408@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Dan Murphy <dmurphy@ti.com>
+Cc: Illia Smyrnov <illia.smyrnov@globallogic.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Roger Quadros <rogerq@ti.com>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Stefan Roese <sr@denx.de>, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Lukas Stockmann <lukas.stockmann@siemens.com>, linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>
 
-Hello.
-
-On 02/05/2014 03:12 PM, Stefan Roese wrote:
-
-> Making it possible to reference and therefor change (disable) this
-> device node from other dts file which import this dtsi file.
-
-> Signed-off-by: Stefan Roese <sr@denx.de>
-> Cc: Lukas Stockmann <lukas.stockmann@siemens.com>
-> Cc: Benoit Cousson <bcousson@baylibre.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> ---
->   arch/arm/boot/dts/am33xx.dtsi | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 6d95d3d..b8daf8c 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -399,7 +399,7 @@
->   			ti,timer-pwm;
->   		};
+2014-02-05 Grygorii Strashko <grygorii.strashko@ti.com>:
+> Hi All,
+> On 02/05/2014 05:06 PM, Illia Smyrnov wrote:
+>> Commit 313a76e (ARM: OMAP2+: hwmod: Fix SOFTRESET logic) introduced
+>> softreset bit cleaning right after set one. It is caused L3 error for
+>> OMAP4 ISS because ISS register write occurs when ISS reset process is in
+>> progress. Avoid this situation by cleaning softreset bit later, when reset
+>> process is successfully finished.
 >
-> -		rtc@44e3e000 {
-> +		rtc: rtc@44e3e000 {
+> I'd like to mention that this issue has been caught while upgrading
+> custom Linux Kernel 3.4 to the last Stable Kernel linux-3.4.y.
+> So, the same OMAP4+ functionality can be broken in all Stable trees
+> where commit "ARM: OMAP2+: hwmod: Fix SOFTRESET logic" was merged to.
+>
+> On OMAP4+ we should always try to wait until IP reset is finished before proceed.
+>
+> Reviewed-by: "Grygorii Strashko <grygorii.strashko@ti.com>"
+>
+> Error log example (k3.4):
+>
 
-    Node name is "rtc@44e3e000" -- what you are adding is a label.
+Thanks - I for a moment thought it was on newer kernels :).
 
-WBR, Sergei
+Looping in Dan who is currently looking at reset driver replacement
+for existing hwmod based reset solution.
 
+Regards,
+Nishanth Menon
