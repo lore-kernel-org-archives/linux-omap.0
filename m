@@ -1,56 +1,84 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: next boot: 34 pass, 5 fail (next-20140122)
-Date: Wed, 5 Feb 2014 07:23:14 -0800
-Message-ID: <CAGa+x86d4BbefALJhY2c=kMFmpJ+SLGu2ibfwuZxStCzXm65Uw@mail.gmail.com>
-References: <52e06652.c103450a.79d7.6517@mx.google.com>
-	<CAGa+x86=gKh11g1pzLqxdimeCxuZ478+ZAxd9GjO-m7Aa8L2fg@mail.gmail.com>
-	<52E0B569.8000809@ti.com>
-	<52E0CF58.5040109@epfl.ch>
-	<52E0DA13.9090302@ti.com>
-	<52E0DD9F.8000100@epfl.ch>
-	<20140124181155.GC25488@atomide.com>
-	<52E2AD49.9060301@epfl.ch>
+From: Matt Porter <mporter@linaro.org>
+Subject: Re: [PATCH RESEND] ARM: dts: add BeagleBone Audio Cape (Rev A) dtsi
+Date: Wed, 5 Feb 2014 10:29:40 -0500
+Message-ID: <20140205152940.GD22153@beef>
+References: <1391608084-12665-1-git-send-email-ml@embed.me.uk>
+ <52F2460C.3080908@ti.com>
+ <20140205143800.GB22153@beef>
+ <52F25122.50400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:62137 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751650AbaBEPXP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Feb 2014 10:23:15 -0500
-Received: by mail-qa0-f53.google.com with SMTP id cm18so726660qab.12
-        for <linux-omap@vger.kernel.org>; Wed, 05 Feb 2014 07:23:14 -0800 (PST)
-In-Reply-To: <52E2AD49.9060301@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52F25122.50400@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Jack Mitchell <ml@embed.me.uk>, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Jack Mitchell <jack@embed.me.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, kernel-build-reports@lists.linaro.org, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Mike Turquette <mturquette@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Ash Charles <ash@gumstix.com>
 
-On Fri, Jan 24, 2014 at 10:13 AM, Florian Vaussard
-<florian.vaussard@epfl.ch> wrote:
-> Hi,
->
-> On 01/24/2014 07:11 PM, Tony Lindgren wrote:
->> * Florian Vaussard <florian.vaussard@epfl.ch> [140123 01:17]:
->>>
->>> I just tested next-20140123 with an OMAP3630 ES1.2 Overo/Tobi. Changing
->>> the include to omap36xx.dtsi do not fix the issue. I still get the
->>> external abort on non-linefetch (full log here [1]).
->>
->> I think the issue here is that you need to have "ti,omap36xx" in
->> the compatible string in addition to including omap36xx.dtsi.
->> Otherwise "ti,omap3" will initialize things for 34xx.
->>
->> For the initial minimal fix, I suggest we do something like the
->> following. This should fix things for 36xx based tobi, then
->> 34xx based tobi support can be added later on. Untested as I
->> don't have one.
->>
->
-> You are probably right. I will test Monday.
+On Wed, Feb 05, 2014 at 08:56:34AM -0600, Nishanth Menon wrote:
+> On 02/05/2014 08:38 AM, Matt Porter wrote:
+> > On Wed, Feb 05, 2014 at 08:09:16AM -0600, Nishanth Menon wrote:
+> >> On 02/05/2014 07:48 AM, Jack Mitchell wrote:
+> [...]
+> >>> + * --- a/arch/arm/boot/dts/am335x-boneblack.dts
+> >>> + * +++ b/arch/arm/boot/dts/am335x-boneblack.dts
+> >>> + * @@ -73,6 +74,6 @@
+> >>> + *  		pinctrl-names = "default", "off";
+> >>> + *  		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+> >>> + *  		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
+> >>> + * -		status = "okay";
+> >>> + * +		status = "disabled";
+> >>> + *  	};
+> >>> + *  };
+> >>> + */
+> >>> +
+> >> how about making the audio-cape-reva.dts which includes and overrides
+> >> parameters of boneblack.dts?
+> > 
+> > Yeah, that might be a little cleaner. Black makes things unfortunately
+> > messy for these capes that were really intended for BBW :(
+> 
+> yes indeed - we might have to live with more dts in such a case.
+> > 
+> >> Further, I see a bunch of capes in
+> >> http://elinux.org/Beagleboard:BeagleBone_Capes
+> >>
+> >> Assuming that we dont want to discuss capebus all over again, is this
+> >> the approach we'd like to consider in the interim?
+> > 
+> > I think that's a fair assumption...I'll note that there is work slowly
+> > in progress on a very minimal implementation DT overlays upstream. But
+> > that doesn't exist. We are simply interested in a sane way to use the
+> > hardware we own in mainline and this approach makes it possible to build
+> > a kernel+dtb from mainline that works for this configuration. If
+> > there's a better way to support this hardware *today* let's discuss it.
+> > One of the big benefits to having this upstream is that it's no longer
+> > out of sight out of mind. It should be managed alongside all the other
+> > am335x dts data.
+> > 
+> > Incidentally, I'm hoping to contribute a similar patch for the DVI cape
+> > I have here.
+> 
+> If I am not mistaken, the capes are stackable (within reason), and are
+> not exactly hotpluggable.. question pops up as to how do we handle
+> multiple cape descriptions on the same board without having the user
+> to create custom dts which includes each relevant cape dts he has on
+> his/her bone? I wonder(without proper research, just thinking aloud)
+> if u-boot can do some sort of merge of dtbs - assuming ofcourse eeprom
+> data is used to detect the capes plugged on board?
 
-Any progress on this?
+Well covered in the original discussion. gcl summarizes options in
+https://lkml.org/lkml/2012/11/5/615
 
-We still have the 36xx Tobi boards failing basic boot tests -next, but
-now also in mainline.
+Since then, the basic overlay support for the kernel is pretty much a
+done deal. It has a wide variety of users (FPGA folks) beyond this board
+specific case. The problem you describe about resource management and
+conflicts would probably need to be built on top of that. Pantelis
+had a PoC implementation with capebus/not-a-capebus but that's not part
+of what is being upstreamed. I'm not sure if there's anybody with enough
+time out of the Beagleboard community to upstream a resource manager on
+top of the basic overlay support that's in progress. However, it might
+make a nice GSoC2014 project. :)
 
-Kevin
+-Matt
