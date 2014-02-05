@@ -1,43 +1,58 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: hwmod: Fix SOFTRESET logic for OMAP4
-Date: Wed, 5 Feb 2014 11:41:31 -0600
-Message-ID: <CAGo_u6qt2qqsxRSdJM26g6_UHObTQQTyPin0fU_1fOViAqW8Lg@mail.gmail.com>
-References: <1391612769-27890-1-git-send-email-illia.smyrnov@globallogic.com>
-	<52F26F53.20408@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52F26F53.20408@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Dan Murphy <dmurphy@ti.com>
-Cc: Illia Smyrnov <illia.smyrnov@globallogic.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Roger Quadros <rogerq@ti.com>, Rajendra Nayak <rnayak@ti.com>
+From: Matt Porter <mporter@linaro.org>
+Subject: [PATCH v3 0/6] IIO pulse capture support for TI ECAP
+Date: Wed,  5 Feb 2014 14:01:35 -0500
+Message-ID: <1391626901-31684-1-git-send-email-mporter@linaro.org>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Jonathan Cameron <jic23@kernel.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Thierry Reding <thierry.reding@gmail.com>
+Cc: Linux IIO List <linux-iio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Devicetree List <devicetree@vger.kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-2014-02-05 Grygorii Strashko <grygorii.strashko@ti.com>:
-> Hi All,
-> On 02/05/2014 05:06 PM, Illia Smyrnov wrote:
->> Commit 313a76e (ARM: OMAP2+: hwmod: Fix SOFTRESET logic) introduced
->> softreset bit cleaning right after set one. It is caused L3 error for
->> OMAP4 ISS because ISS register write occurs when ISS reset process is in
->> progress. Avoid this situation by cleaning softreset bit later, when reset
->> process is successfully finished.
->
-> I'd like to mention that this issue has been caught while upgrading
-> custom Linux Kernel 3.4 to the last Stable Kernel linux-3.4.y.
-> So, the same OMAP4+ functionality can be broken in all Stable trees
-> where commit "ARM: OMAP2+: hwmod: Fix SOFTRESET logic" was merged to.
->
-> On OMAP4+ we should always try to wait until IP reset is finished before proceed.
->
-> Reviewed-by: "Grygorii Strashko <grygorii.strashko@ti.com>"
->
-> Error log example (k3.4):
->
+Changes since v2:
+	- Remove various unneeded field initialization
+	- Call iio_triggered_buffer_cleanup() on remove
 
-Thanks - I for a moment thought it was on newer kernels :).
+Changes since v1:
+	- Rebased to 3.14-rc1
+	- Renamed in_pulse_polarity to pulse_polarity
+	- Added ABI entries for pulse devices and TI ECAP
 
-Looping in Dan who is currently looking at reset driver replacement
-for existing hwmod based reset solution.
+This series adds support for PWM capture devices within IIO and
+adds a TI ECAP IIO driver.
 
-Regards,
-Nishanth Menon
+PWM capture devices are supported using a new IIO "pulse" channel type.
+
+The IIO ECAP driver implements interrupt driven triggered buffer capture
+only as raw sample reads are not applicable to this hardware.
+Initially, the driver supports a single pulse width measurement with
+configurable polarity. The ECAP hardware can support measurement of a
+complete period and duty cycle but this is not yet implemented.
+
+Matt Porter (6):
+  iio: add support for pulse width capture devices
+  iio: pulse: add TI ECAP driver
+  iio: enable selection and build of pulse drivers
+  iio: Add ABI docs for pulse capture devices
+  pwm: enable TI PWMSS if the IIO tiecap driver is selected
+  ARM: dts: AM33XX: Add ecap interrupt properties
+
+ Documentation/ABI/testing/sysfs-bus-iio            |  18 +
+ .../ABI/testing/sysfs-bus-iio-pulse-tiecap         |   9 +
+ arch/arm/boot/dts/am33xx.dtsi                      |   6 +
+ drivers/iio/Kconfig                                |   1 +
+ drivers/iio/Makefile                               |   1 +
+ drivers/iio/industrialio-core.c                    |   1 +
+ drivers/iio/pulse/Kconfig                          |  20 +
+ drivers/iio/pulse/Makefile                         |   6 +
+ drivers/iio/pulse/tiecap.c                         | 491 +++++++++++++++++++++
+ drivers/pwm/Kconfig                                |   2 +-
+ include/linux/iio/types.h                          |   1 +
+ 11 files changed, 555 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap
+ create mode 100644 drivers/iio/pulse/Kconfig
+ create mode 100644 drivers/iio/pulse/Makefile
+ create mode 100644 drivers/iio/pulse/tiecap.c
+
+-- 
+1.8.4
+
