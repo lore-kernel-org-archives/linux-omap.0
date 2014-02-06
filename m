@@ -1,89 +1,66 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: hwmod: Fix SOFTRESET logic for OMAP4
-Date: Thu, 6 Feb 2014 13:26:51 +0200
-Message-ID: <52F3717B.6020809@ti.com>
-References: <1391612769-27890-1-git-send-email-illia.smyrnov@globallogic.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/3] ARM: dts: Add support for both OMAP35xx and OMAP36xx
+ Overo/Tobi
+Date: Thu, 6 Feb 2014 08:35:56 -0600
+Message-ID: <52F39DCC.8000006@ti.com>
+References: <1391677818-21154-1-git-send-email-florian.vaussard@epfl.ch> <1391677818-21154-4-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1391612769-27890-1-git-send-email-illia.smyrnov@globallogic.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Illia Smyrnov <illia.smyrnov@globallogic.com>, =?ISO-8859-1?Q?Beno=EE?= =?ISO-8859-1?Q?t_Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:45502 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750732AbaBFOgY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Feb 2014 09:36:24 -0500
+In-Reply-To: <1391677818-21154-4-git-send-email-florian.vaussard@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@linaro.org>, Mike Turquette <mturquette@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-Hi Illia,
-
-On 02/05/2014 05:06 PM, Illia Smyrnov wrote:
-> Commit 313a76e (ARM: OMAP2+: hwmod: Fix SOFTRESET logic) introduced
-> softreset bit cleaning right after set one. It is caused L3 error for
-> OMAP4 ISS because ISS register write occurs when ISS reset process is in
-> progress. Avoid this situation by cleaning softreset bit later, when reset
-> process is successfully finished.
+On 02/06/2014 03:10 AM, Florian Vaussard wrote:
+> Unfortunatly the device tree for older OMAP35xx Overo cannot be used
+Unfortunately ?
+> with newer OMAP36xx and vice-versa. To address this issue, move most of
+> the Tobi DTS to a common include file, and create model-specific Tobi
+> DTS.
 > 
-> Signed-off-by: Illia Smyrnov <illia.smyrnov@globallogic.com>
-
-Thanks for the patch. Could you please send --cc this to stable as well. Thanks.
-
-cheers,
--roger
-
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c | 20 +++++++++++---------
->  1 file changed, 11 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 42d8188..1f33f5d 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -1947,29 +1947,31 @@ static int _ocp_softreset(struct omap_hwmod *oh)
->  		goto dis_opt_clks;
->  
->  	_write_sysconfig(v, oh);
-> -	ret = _clear_softreset(oh, &v);
-> -	if (ret)
-> -		goto dis_opt_clks;
-> -
-> -	_write_sysconfig(v, oh);
->  
->  	if (oh->class->sysc->srst_udelay)
->  		udelay(oh->class->sysc->srst_udelay);
->  
->  	c = _wait_softreset_complete(oh);
-> -	if (c == MAX_MODULE_SOFTRESET_WAIT)
-> +	if (c == MAX_MODULE_SOFTRESET_WAIT) {
->  		pr_warning("omap_hwmod: %s: softreset failed (waited %d usec)\n",
->  			   oh->name, MAX_MODULE_SOFTRESET_WAIT);
-> -	else
-> +		ret = -ETIMEDOUT;
-> +		goto dis_opt_clks;
-> +	} else {
->  		pr_debug("omap_hwmod: %s: softreset in %d usec\n", oh->name, c);
-> +	}
+[...]
+> diff --git a/arch/arm/boot/dts/omap3-overo-tobi.dts b/arch/arm/boot/dts/omap3-overo-tobi.dts
+> new file mode 100644
+> index 0000000..2f82192
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap3-overo-tobi.dts
+> @@ -0,0 +1,22 @@
+> +/*
+> + * Copyright (C) 2012 Florian Vaussard, EPFL Mobots group
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
 > +
-> +	ret = _clear_softreset(oh, &v);
-> +	if (ret)
-> +		goto dis_opt_clks;
+> +/*
+> + * Tobi expansion board is manufactured by Gumstix Inc.
+> + */
 > +
-> +	_write_sysconfig(v, oh);
->  
->  	/*
->  	 * XXX add _HWMOD_STATE_WEDGED for modules that don't come back from
->  	 * _wait_target_ready() or _reset()
->  	 */
->  
-> -	ret = (c == MAX_MODULE_SOFTRESET_WAIT) ? -ETIMEDOUT : 0;
-> -
->  dis_opt_clks:
->  	if (oh->flags & HWMOD_CONTROL_OPT_CLKS_IN_RESET)
->  		_disable_optional_clocks(oh);
+> +/dts-v1/;
+> +
+> +#include "omap34xx.dtsi"
+> +#include "omap3-overo-tobi-common.dtsi"
+> +
+> +/ {
+> +	model = "OMAP35xx Gumstix Overo on Tobi";
+> +	compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3";
+To reduce any future problems, I suggest:
+compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo",
+"ti,omap3430", "ti,omap3";
+
+> +};
+> +
 > 
+
+
+-- 
+Regards,
+Nishanth Menon
