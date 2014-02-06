@@ -1,57 +1,75 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v2 2/4] MFD: TPS65218: Add driver for the TPS65218 PMIC
-Date: Thu, 6 Feb 2014 14:37:00 +0000
-Message-ID: <20140206143700.GA14727@lee--X1>
-References: <1391665814-18814-1-git-send-email-j-keerthy@ti.com>
- <1391665814-18814-3-git-send-email-j-keerthy@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP2+: AM43x: Add ID for ES1.1
+Date: Thu, 6 Feb 2014 08:38:44 -0600
+Message-ID: <52F39E74.3030404@ti.com>
+References: <1391676348-32339-1-git-send-email-lokeshvutla@ti.com> <1391676348-32339-3-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1391665814-18814-3-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33007 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757AbaBFOjP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Feb 2014 09:39:15 -0500
+In-Reply-To: <1391676348-32339-3-git-send-email-lokeshvutla@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux@arm.linux.org.uk, rnayak@ti.com, nsekhar@ti.com
 
-> The TPS65218 chip is a power management IC for Portable Navigation Sy=
-stems
-> and Tablet Computing devices. It contains the following components:
->=20
->  - Regulators.
->  - Over Temperature warning and Shut down.
->=20
-> This patch adds support for tps65218 mfd device. At this time only
-> the regulator functionality is made available.
->=20
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
+On 02/06/2014 02:45 AM, Lokesh Vutla wrote:
+> Adding ID for AM437x ES1.1 silicon.
+> 
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 > ---
->  drivers/mfd/Kconfig          |   15 +++
->  drivers/mfd/Makefile         |    1 +
->  drivers/mfd/tps65218.c       |  281 ++++++++++++++++++++++++++++++++=
-+++++++++
+>  arch/arm/mach-omap2/id.c  |   14 ++++++++++++--
+>  arch/arm/mach-omap2/soc.h |    3 ++-
+>  2 files changed, 14 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 9428c5f..8a05eaf 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -465,8 +465,18 @@ void __init omap3xxx_check_revision(void)
+>  		}
+>  		break;
+>  	case 0xb98c:
+> -		omap_revision = AM437X_REV_ES1_0;
+> -		cpu_rev = "1.0";
+> +		switch (rev) {
+> +		case 0:
+> +			omap_revision = AM437X_REV_ES1_0;
+> +			cpu_rev = "1.0";
+> +			break;
+> +		case 1:
+> +		/* FALLTHROUGH */
+> +		default:
+> +			omap_revision = AM437X_REV_ES1_1;
+> +			cpu_rev = "1.1";
+> +			break;
+> +		}
+>  		break;
+>  	case 0xb8f2:
+>  		switch (rev) {
+> diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+> index 076bd90..30abcc8 100644
+> --- a/arch/arm/mach-omap2/soc.h
+> +++ b/arch/arm/mach-omap2/soc.h
+> @@ -438,7 +438,8 @@ IS_OMAP_TYPE(3430, 0x3430)
+>  #define AM335X_REV_ES2_1	(AM335X_CLASS | (0x2 << 8))
+>  
+>  #define AM437X_CLASS		0x43700000
+> -#define AM437X_REV_ES1_0	AM437X_CLASS
+> +#define AM437X_REV_ES1_0	(AM437X_CLASS | (0x10 << 8))
+> +#define AM437X_REV_ES1_1	(AM437X_CLASS | (0x11 << 8))
+>  
+>  #define OMAP443X_CLASS		0x44300044
+>  #define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
+> 
 
-How much different is the TPS65218 to all the other TPS drivers?
+can you also check if socbus shows proper results?
+I had http://slexy.org/view/s20e3OsIVx with v3.14-rc1
 
-drivers/mfd/tps6105x.c
-drivers/mfd/tps65010.c
-drivers/mfd/tps6507x.c
-drivers/mfd/tps65090.c
-drivers/mfd/tps65217.c
-drivers/mfd/tps6586x.c
-drivers/mfd/tps65910.c
-drivers/mfd/tps65911-comparator.c
-drivers/mfd/tps65912-core.c
-drivers/mfd/tps65912-i2c.c
-drivers/mfd/tps65912-irq.c
-drivers/mfd/tps65912-spi.c
-drivers/mfd/tps80031.c
-
-Perhaps some consolidating might be in order?
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+-- 
+Regards,
+Nishanth Menon
