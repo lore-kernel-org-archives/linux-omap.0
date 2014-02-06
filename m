@@ -1,47 +1,34 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: multi_v7_defconfig: Select CONFIG_SOC_DRA7XX
-Date: Thu, 6 Feb 2014 09:29:31 -0600
-Message-ID: <1391700571-31784-1-git-send-email-nm@ti.com>
+From: Marc Murphy <marcmltd@marcm.co.uk>
+Subject: AM3517 EVM
+Date: Thu, 6 Feb 2014 15:44:49 +0000
+Message-ID: <F690310232FDDF4AB457E8B3EF90DDE09A5BCEE9@MARCM-SBS2011.marcmltd.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <linux@arm.linux.org.uk>, Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtpout13.bt.lon5.cpcloud.co.uk ([65.20.0.133]:5166 "EHLO
+	smtpout13.bt.lon5.cpcloud.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756084AbaBFPoy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Feb 2014 10:44:54 -0500
+Received: from MARCM-SBS2011.marcmltd.local (31.185.139.65) by smtpout13.bt.lon5.cpcloud.co.uk (8.6.100.99.10223) (authenticated as marcmltd@btinternet.com)
+        id 52F028960029CCF1 for linux-omap@vger.kernel.org; Thu, 6 Feb 2014 15:44:52 +0000
+Content-Language: en-GB
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Select CONFIG_SOC_DRA7XX so that we can boot dra7-evm.
-DRA7 family are A15 based processors that supports LPAE and an
-evolutionary update to the OMAP5 generation of processors.
+I have been trying to get the WFI working on my AM3517 and wondering about the nohlt command I have in the boot args and wondering if I should be able to boot 3.6.11 kernel on the AM3517EVM without the nohlt arg ?
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+What config should I use (omap2plus_defconfig and then select the AM3517EVM option) ?
 
-based on v3.13-rc1 kernel tag - tested on v3.14-rc1 and next-20140206
+I would like to get the EVM system working properly with the sleep and wake before I apply the changes to my AM3517 system.
 
- arch/arm/configs/multi_v7_defconfig |    1 +
- 1 file changed, 1 insertion(+)
+Thanks for any feedback
 
-diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
-index 845bc74..ee69829 100644
---- a/arch/arm/configs/multi_v7_defconfig
-+++ b/arch/arm/configs/multi_v7_defconfig
-@@ -29,6 +29,7 @@ CONFIG_ARCH_OMAP3=y
- CONFIG_ARCH_OMAP4=y
- CONFIG_SOC_OMAP5=y
- CONFIG_SOC_AM33XX=y
-+CONFIG_SOC_DRA7XX=y
- CONFIG_SOC_AM43XX=y
- CONFIG_ARCH_ROCKCHIP=y
- CONFIG_ARCH_SOCFPGA=y
--- 
-1.7.9.5
+Marc
+
+
+
+
+
