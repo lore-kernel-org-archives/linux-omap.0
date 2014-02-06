@@ -1,52 +1,78 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v2 2/4] MFD: TPS65218: Add driver for the TPS65218 PMIC
-Date: Thu, 6 Feb 2014 22:39:26 +0530
-Message-ID: <52F3C1C6.5030301@ti.com>
-References: <1391665814-18814-1-git-send-email-j-keerthy@ti.com> <1391665814-18814-3-git-send-email-j-keerthy@ti.com> <20140206143700.GA14727@lee--X1>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCHv5] omap3: Add basic support for 720MHz part
+Date: Thu, 06 Feb 2014 20:26:56 +0100
+Message-ID: <1623915.4eAJkBo57q@avalon>
+References: <1297239010-29683-1-git-send-email-premi@ti.com> <87d3mzx2ib.fsf@ti.com> <1527616.Ycr1jOn0QT@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140206143700.GA14727@lee--X1>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Keerthy <j-keerthy@ti.com>, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40855 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753183AbaBFTZ6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Feb 2014 14:25:58 -0500
+In-Reply-To: <1527616.Ycr1jOn0QT@avalon>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday 06 February 2014 08:07 PM, Lee Jones wrote:
->> The TPS65218 chip is a power management IC for Portable Navigation Systems
->> and Tablet Computing devices. It contains the following components:
->>
->>   - Regulators.
->>   - Over Temperature warning and Shut down.
->>
->> This patch adds support for tps65218 mfd device. At this time only
->> the regulator functionality is made available.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>   drivers/mfd/Kconfig          |   15 +++
->>   drivers/mfd/Makefile         |    1 +
->>   drivers/mfd/tps65218.c       |  281 +++++++++++++++++++++++++++++++++++++++++
-> How much different is the TPS65218 to all the other TPS drivers?
->
-> drivers/mfd/tps6105x.c
-> drivers/mfd/tps65010.c
-> drivers/mfd/tps6507x.c
-> drivers/mfd/tps65090.c
-> drivers/mfd/tps65217.c
-> drivers/mfd/tps6586x.c
-> drivers/mfd/tps65910.c
-> drivers/mfd/tps65911-comparator.c
-> drivers/mfd/tps65912-core.c
-> drivers/mfd/tps65912-i2c.c
-> drivers/mfd/tps65912-irq.c
-> drivers/mfd/tps65912-spi.c
-> drivers/mfd/tps80031.c
->
-> Perhaps some consolidating might be in order?
+Hi all,
 
-Well the closest one is tps65217.c  but then register space is different
-and components are different. So a new driver.
+On Friday 22 June 2012 11:33:51 Laurent Pinchart wrote:
+> On Thursday 10 February 2011 08:45:00 Kevin Hilman wrote:
+> > Sanjeev Premi <premi@ti.com> writes:
+> > > This patch adds support for speed enhanced variant of OMAP35x
+> > > processors. These parts allow ARM and IVA running at 720MHz
+> > > and 520MHz respectively.
+> > > 
+> > > These parts can be detected at runtime by reading contents of
+> > > PRODID.SKUID[3:0] at 0x4830A20C [1].
+> > > 
+> > > This patch specifically does following:
+> > >  * Add new OPP to omap34xx_opp_def_list[] - disabled by default.
+> > >  * Detect devices capable of running at new OPP.
+> > >  * Enable new OPP only if device supports it.
+> > >  * Check for presence of IVA before attempting to enable the
+> > >  
+> > >    corresponding OPP.
+> > >   
+> > >   [1] http://focus.ti.com/lit/ug/spruff1d/spruff1d.pdf
+> > > 
+> > > It appears from discussions (on this patch) that a variant of
+> > > OMAP3430 supports this OPP but lacks runtime detection. This
+> > > 
+> > > OPP can be enabled for these device by either:
+> > >  1) Setting the bit corresponding to OMAP3_HAS_720MHZ
+> > >  
+> > >     in 'omap3_features'. (Refer changes to id.c)
+> > >  
+> > >  2) Removing check for omap3_has_720mhz() before enabling
+> > >  
+> > >     the OPP. (Refer changes to opp3xxx_data.c)
+> > >  
+> > >  3) Calling opp_enable() for 720MHz/VDD1 and 520MHz/VDD2 in
+> > >  
+> > >     the board file. (Refer changes to opp3xxx_data.c).
+> > >     This should, ideally, be done before omap3_opp_init() is
+> > >     called during device_initcall().
+> > > 
+> > > CAUTION: This should be done for identified parts only.
+> > > 
+> > >          Else, the device could be damaged permanently.
+> > > 
+> > > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> > > Reviewed-by: G, Manjunath Kondaiah <manjugk@ti.com>
+> > 
+> > Acked-by: Kevin Hilman <khilman@ti.com>
+> 
+> This patch seems to never have made it upstream. Is there a reason for that
+> ?
 
->
+Ping ?
+
+-- 
+Regards,
+
+Laurent Pinchart
+
