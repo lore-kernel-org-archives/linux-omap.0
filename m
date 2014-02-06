@@ -1,8 +1,8 @@
 From: Lokesh Vutla <lokeshvutla@ti.com>
 Subject: [PATCH 0/3] ARM: OMAP2+: AM43x: Enable in OMAP2PLUS and add ID for
  ES1.1
-Date: Thu, 6 Feb 2014 13:56:26 +0530
-Message-ID: <1391675189-10608-1-git-send-email-lokeshvutla@ti.com>
+Date: Thu, 6 Feb 2014 14:15:45 +0530
+Message-ID: <1391676348-32339-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
