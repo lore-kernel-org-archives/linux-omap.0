@@ -1,91 +1,73 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: Re: [PATCH] ARM: OMAP2+: Add support for thumb mode on DT booted
- N900
-Date: Thu, 6 Feb 2014 01:39:58 +0100
-Message-ID: <20140206003958.GB654@earth.universe>
-References: <1391603582-11371-1-git-send-email-sre@debian.org>
- <CAHYPw2Ep9VP6Tem979ewcztdxkHkG8eR_U31U=f5ibsVa5AS4Q@mail.gmail.com>
- <20140205163117.GA15996@earth.universe>
- <CAHYPw2HX478ZZPfDTKCKSGhVdFc1-G5DszUR4vG+WRgZx=8+dQ@mail.gmail.com>
- <20140205171729.GA17974@earth.universe>
- <52F29F7C.4080502@gmail.com>
+From: Satish Patel <satish.patel@ti.com>
+Subject: Re: [PATCH v2 3/5] char: ti-usim: Add driver for USIM module on AM43xx
+Date: Thu, 6 Feb 2014 09:16:24 +0530
+Message-ID: <52F30590.1020802@ti.com>
+References: <1390192434-19386-1-git-send-email-satish.patel@ti.com> <1390192434-19386-4-git-send-email-satish.patel@ti.com> <52F0E8EC.8030900@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="1UWUbFP1cBYEclgG"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52F29F7C.4080502@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, freemangordon@abv.bg
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36490 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753942AbaBFDrE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Feb 2014 22:47:04 -0500
+In-Reply-To: <52F0E8EC.8030900@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, gregkh@linuxfoundation.org, rob@landley.net
 
 
---1UWUbFP1cBYEclgG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-Hi,
+On 2/4/2014 6:49 PM, Roger Quadros wrote:
+> Hi Satish,
+> 
+> On 01/20/2014 06:33 AM, Satish Patel wrote:
+>> TI-USIM driver is a platform driver that provides a character
+>> driver interface to user applications.
+>>
+>> It allows user applications to call IOCTL's to
+>> perform smart card operations.
+>>
+>> Driver currently supports
+>> - ATR
+>> - T=0 & T=1 protocol
+>> - clock stop mode
+>> - smart card clock configuration
+>> - Tx/Rx application data units (APDU) to smart card
+>> - Interface to PHY using DT & phy interface
+>>
+>> Validation is done with ACOS3 smart cards
+>>
+>> Signed-off-by: Satish Patel <satish.patel@ti.com>
+>> ---
+>>  .../devicetree/bindings/ti-usim/ti-usim.txt        |   31 +
+>>  drivers/char/Kconfig                               |    7 +
+>>  drivers/char/Makefile                              |    1 +
+>>  drivers/char/ti-usim-hw.h                          |  863 +++++++++
+>>  drivers/char/ti-usim.c                             | 1859 ++++++++++++++++++++
+> 
+> ti-usim.c is a very large driver that does everything but looks like limited to TI hardware.
+> How about splitting it into generic stuff and hw specific glue logic so that most of the generic stuff
+> could be used by different hardware types.
+> 
+Two things over here
+- First interface between user application and smartcard controller
+driver. There is already an open source f/w in user space called "pcsc"
+exists for this.
 
-On Wed, Feb 05, 2014 at 10:30:52PM +0200, Ivaylo Dimitrov wrote:
-> In theory having that workaround disabled might be a security
-> problem, but honestly, knowing its nature I don't think it is easily
-> exploitable, if at all. The final result when bitten by it is a
-> SIGILL, but in userspace, not in the kernel(assuming the kernel is
-> ARM), and userspace runs in totally different mode (nonsecure,
-> nonprivileged) compared to the kernel(nonsecure, privileged) and
-> IIRC every mode has its own set of stack, registers etc. BTW I don't
-> think the kernel itself can be thumb2-compiled for cores with that
-> errata, but I might wrong. Also, as Pali noted, the problem appears
-> if and only if there is an userspace binary containing thumb2 code.
-> If all of the userspace is pure ARM, there is no problem.
+- Second communication between smartcard controller and smartcard phy. I
+have introduce lite interface called sc_phy which covers generic stuff
+between controller and phy.
 
-Ok. I assumed, that a single thumb2-compiled binary can potentially
-trigger problems for the whole system. Basically because the ERRATA
-helptext in KConfig is:
 
-[...], Cortex-A8 does not recover from the stale interworking branch
-prediction.
-
-> And as the errata workaround has its drawbacks (BTB is cleared on
-> every context switch which affects performance), one might want to
-> not have it enabled.
-
-I guess the workaround would be persistently enabled if there were
-no drawbacks.
-
-> Maybe that warning should be spit only if CONFIG_THUMB2_KERNEL (or
-> whatever the option was) is enabled. Though if that option is
-> enabled I'd rather #error during compile time if errata workaround
-> is not enabled, instead of printing a warning while booting a
-> system that will crash in a matter of seconds.
-
-THUMB2 userland code is supported by the kernel by default, so that
-does not work. (Enabling CONFIG_THUMB2_KERNEL will result in a
-thumb2-compiled kernel.)
-
--- Sebastian
-
---1UWUbFP1cBYEclgG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJS8tneAAoJENju1/PIO/qaYoUQAICZlh8msZ+RAtLA2DnZkOgJ
-peOVIH6yCySpMEE+5LUGCRWl4HL9kteOtgzhHDuItfGYRr1kRzBVtmKDCwSOuAT8
-fK94ZUKU10XQ6V3j+l30zR11SdX9C8kksK1dcvGMW0xno9WQeSfWbwzpt75xqHZu
-gJ7iComkTJCqCKeEk8au+F/5vDEmUJIaPLiW98GgzWsSUgPVn+7UCFY+rO/AIbMd
-FWK9m1UGAOHf6t5KqQ00XO/+oaJCV64dl5XQswsuaOD4MFdNTQ1N+48BG+5H/tOy
-PWsL+sRYtsduqNCGVFn28tHJ/hepVI9jE3Dad+G4fOxw8YgkkRhtlYVlL4V+uxj9
-5kBG9dB+PlRdzBL3lXj+8MHcPa+qqYa6mq7/Akfm76JklGNlyzckP1XQxFh77/tk
-4jGrBayCTkjt1YKx1tvXkqRTwZl+UI9tutWKk/zy5NHzwrVuI5enciP8EAye/w8r
-MBFasrNts5BWn7R+i0HaGdFhT+0noVULRTVGUi2qwwnCYKosfW+5Nxz4mcijtjIo
-JPByFXkdOpek1gK5B/ImNr+EZmFNLnSFEVbBiSQ92RW1qn9B52tQLROX70dH+WNZ
-ATo3cqklhAbxhsscRjhkd8bIZ7j6/fk/qEGOr/NB/scv9v4/QxD5QhXcGS21qroe
-UmwLzapFJShSlBzMDZhT
-=znoC
------END PGP SIGNATURE-----
-
---1UWUbFP1cBYEclgG--
+>>  include/linux/ti-usim.h                            |   98 +
+>>  6 files changed, 2859 insertions(+), 0 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/ti-usim/ti-usim.txt
+>>  create mode 100644 drivers/char/ti-usim-hw.h
+>>  create mode 100644 drivers/char/ti-usim.c
+>>  create mode 100644 include/linux/ti-usim.h
+>>
+> 
+> cheers,
+> -roger
+> 
