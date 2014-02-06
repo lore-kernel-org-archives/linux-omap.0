@@ -1,53 +1,52 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 0/3] ARM: dts: Fixes for Overo/Tobi against 3.14-rc1
-Date: Thu, 06 Feb 2014 09:09:47 -0800
-Message-ID: <87d2j0rwv8.fsf@paris.lan>
-References: <1391677818-21154-1-git-send-email-florian.vaussard@epfl.ch>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH v2 2/4] MFD: TPS65218: Add driver for the TPS65218 PMIC
+Date: Thu, 6 Feb 2014 22:39:26 +0530
+Message-ID: <52F3C1C6.5030301@ti.com>
+References: <1391665814-18814-1-git-send-email-j-keerthy@ti.com> <1391665814-18814-3-git-send-email-j-keerthy@ti.com> <20140206143700.GA14727@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1391677818-21154-1-git-send-email-florian.vaussard@epfl.ch>
- (Florian Vaussard's message of "Thu, 6 Feb 2014 10:10:15 +0100")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, linux-arm-kernel@lists.infradead.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140206143700.GA14727@lee--X1>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Keerthy <j-keerthy@ti.com>, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Florian Vaussard <florian.vaussard@epfl.ch> writes:
-
-> OMAP36xx-based Overo (Storm and alike) are now failing to boot with 3.14-rc1 [1].
-> This series fixes this, by moving model-agnostic DT into a common dtsi file,
-> and creating model-specific DT files:
+On Thursday 06 February 2014 08:07 PM, Lee Jones wrote:
+>> The TPS65218 chip is a power management IC for Portable Navigation Systems
+>> and Tablet Computing devices. It contains the following components:
+>>
+>>   - Regulators.
+>>   - Over Temperature warning and Shut down.
+>>
+>> This patch adds support for tps65218 mfd device. At this time only
+>> the regulator functionality is made available.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>   drivers/mfd/Kconfig          |   15 +++
+>>   drivers/mfd/Makefile         |    1 +
+>>   drivers/mfd/tps65218.c       |  281 +++++++++++++++++++++++++++++++++++++++++
+> How much different is the TPS65218 to all the other TPS drivers?
 >
-> - omap3-overo-tobi.dts -> older OMAP35xx Overo
-> - omap3-overo-storm-tobi.dts -> newer OMAP36xx/AM37xx/DM37xx Overo
+> drivers/mfd/tps6105x.c
+> drivers/mfd/tps65010.c
+> drivers/mfd/tps6507x.c
+> drivers/mfd/tps65090.c
+> drivers/mfd/tps65217.c
+> drivers/mfd/tps6586x.c
+> drivers/mfd/tps65910.c
+> drivers/mfd/tps65911-comparator.c
+> drivers/mfd/tps65912-core.c
+> drivers/mfd/tps65912-i2c.c
+> drivers/mfd/tps65912-irq.c
+> drivers/mfd/tps65912-spi.c
+> drivers/mfd/tps80031.c
 >
-> People will have to use the right Overo / expansion board combination.
+> Perhaps some consolidating might be in order?
+
+Well the closest one is tps65217.c  but then register space is different
+and components are different. So a new driver.
+
 >
-> (Patch 2 in an unrelated fix that was waiting in my queue.)
->
-> omap3-overo-tobi.dts tested with Overo Sand (OMAP3503) and omap3-overo-storm-tobi.dts
-> tested with Overo EarthStorm (AM3703). Both boot. With the Overo Sand, I cannot
-> mount the ext3 rootfs, but this seems unrelated to the current topic, maybe
-> a missing errata.
-
-And I tested with my 35xx/Overo with omap3-overo-tobi.dts and my
-37xx/Overo STORM with omap3-overo-storm-tobi.dts and they're both
-working.
-
-Tested-by: Kevin Hilman <khilman@linaro.org>
-
-Tony, with your ack, I can apply these directly to arm-soc/fixes.
-
-Florian, thanks for the fixes.
-
-Kevin
