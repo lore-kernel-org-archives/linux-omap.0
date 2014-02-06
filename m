@@ -1,73 +1,55 @@
-From: Satish Patel <satish.patel@ti.com>
-Subject: Re: [PATCH v2 3/5] char: ti-usim: Add driver for USIM module on AM43xx
-Date: Thu, 6 Feb 2014 09:16:24 +0530
-Message-ID: <52F30590.1020802@ti.com>
-References: <1390192434-19386-1-git-send-email-satish.patel@ti.com> <1390192434-19386-4-git-send-email-satish.patel@ti.com> <52F0E8EC.8030900@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 0/4] [PATCH v2 0/4] MFD: TPS65218: Drivers for TPS65218 PMIC.
+Date: Thu, 6 Feb 2014 11:20:10 +0530
+Message-ID: <1391665814-18814-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36490 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753942AbaBFDrE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Feb 2014 22:47:04 -0500
-In-Reply-To: <52F0E8EC.8030900@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, lee.jones@linaro.org, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org
+Cc: j-keerthy@ti.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, gregkh@linuxfoundation.org, rob@landley.net
 
+The TPS65218 chip is a power management IC for Portable Navigation Systems
+and Tablet Computing devices. It contains the following components:
 
+ - Regulators.
+ - Over Temperature warning and Shut down.
 
-On 2/4/2014 6:49 PM, Roger Quadros wrote:
-> Hi Satish,
-> 
-> On 01/20/2014 06:33 AM, Satish Patel wrote:
->> TI-USIM driver is a platform driver that provides a character
->> driver interface to user applications.
->>
->> It allows user applications to call IOCTL's to
->> perform smart card operations.
->>
->> Driver currently supports
->> - ATR
->> - T=0 & T=1 protocol
->> - clock stop mode
->> - smart card clock configuration
->> - Tx/Rx application data units (APDU) to smart card
->> - Interface to PHY using DT & phy interface
->>
->> Validation is done with ACOS3 smart cards
->>
->> Signed-off-by: Satish Patel <satish.patel@ti.com>
->> ---
->>  .../devicetree/bindings/ti-usim/ti-usim.txt        |   31 +
->>  drivers/char/Kconfig                               |    7 +
->>  drivers/char/Makefile                              |    1 +
->>  drivers/char/ti-usim-hw.h                          |  863 +++++++++
->>  drivers/char/ti-usim.c                             | 1859 ++++++++++++++++++++
-> 
-> ti-usim.c is a very large driver that does everything but looks like limited to TI hardware.
-> How about splitting it into generic stuff and hw specific glue logic so that most of the generic stuff
-> could be used by different hardware types.
-> 
-Two things over here
-- First interface between user application and smartcard controller
-driver. There is already an open source f/w in user space called "pcsc"
-exists for this.
+This patch adds support for TPS65218 mfd device. At this time only
+the regulator functionality is made available.
 
-- Second communication between smartcard controller and smartcard phy. I
-have introduce lite interface called sc_phy which covers generic stuff
-between controller and phy.
+The series is boot tested on am43x-epos-evm board.
 
+Changes in v2:
 
->>  include/linux/ti-usim.h                            |   98 +
->>  6 files changed, 2859 insertions(+), 0 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/ti-usim/ti-usim.txt
->>  create mode 100644 drivers/char/ti-usim-hw.h
->>  create mode 100644 drivers/char/ti-usim.c
->>  create mode 100644 include/linux/ti-usim.h
->>
-> 
-> cheers,
-> -roger
-> 
+* Introduced register cache for interrupt mask register. 
+* regulator_map_voltage_linear_range instead of custom functions.
+* Fixed couple of more minor comments.
+
+Keerthy (4):
+  mfd: DT bindings for TPS65218 PMIC
+  MFD: TPS65218: Add driver for the TPS65218 PMIC
+  Regulators: TPS65218: Add Regulator driver for TPS65218 PMIC
+  ARM: dts: TPS65218: Add dts nodes of TPS65218 PMIC
+
+ Documentation/devicetree/bindings/mfd/tps65218.txt |   58 ++++
+ .../devicetree/bindings/regulator/tps65218.txt     |   22 ++
+ arch/arm/boot/dts/am43x-epos-evm.dts               |   40 +++
+ drivers/mfd/Kconfig                                |   15 +
+ drivers/mfd/Makefile                               |    1 +
+ drivers/mfd/tps65218.c                             |  281 ++++++++++++++++++
+ drivers/regulator/Kconfig                          |    9 +
+ drivers/regulator/Makefile                         |    1 +
+ drivers/regulator/tps65218-regulator.c             |  304 ++++++++++++++++++++
+ include/linux/mfd/tps65218.h                       |  284 ++++++++++++++++++
+ 10 files changed, 1015 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/mfd/tps65218.txt
+ create mode 100644 Documentation/devicetree/bindings/regulator/tps65218.txt
+ create mode 100644 drivers/mfd/tps65218.c
+ create mode 100644 drivers/regulator/tps65218-regulator.c
+ create mode 100644 include/linux/mfd/tps65218.h
+
+-- 
+1.7.9.5
+
