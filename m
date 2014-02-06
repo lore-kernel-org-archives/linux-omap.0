@@ -1,34 +1,53 @@
-From: Marc Murphy <marcmltd@marcm.co.uk>
-Subject: AM3517 EVM
-Date: Thu, 6 Feb 2014 15:44:49 +0000
-Message-ID: <F690310232FDDF4AB457E8B3EF90DDE09A5BCEE9@MARCM-SBS2011.marcmltd.local>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 0/3] ARM: dts: Fixes for Overo/Tobi against 3.14-rc1
+Date: Thu, 06 Feb 2014 09:09:47 -0800
+Message-ID: <87d2j0rwv8.fsf@paris.lan>
+References: <1391677818-21154-1-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtpout13.bt.lon5.cpcloud.co.uk ([65.20.0.133]:5166 "EHLO
-	smtpout13.bt.lon5.cpcloud.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756084AbaBFPoy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Feb 2014 10:44:54 -0500
-Received: from MARCM-SBS2011.marcmltd.local (31.185.139.65) by smtpout13.bt.lon5.cpcloud.co.uk (8.6.100.99.10223) (authenticated as marcmltd@btinternet.com)
-        id 52F028960029CCF1 for linux-omap@vger.kernel.org; Thu, 6 Feb 2014 15:44:52 +0000
-Content-Language: en-GB
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1391677818-21154-1-git-send-email-florian.vaussard@epfl.ch>
+ (Florian Vaussard's message of "Thu, 6 Feb 2014 10:10:15 +0100")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, linux-arm-kernel@lists.infradead.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-I have been trying to get the WFI working on my AM3517 and wondering about the nohlt command I have in the boot args and wondering if I should be able to boot 3.6.11 kernel on the AM3517EVM without the nohlt arg ?
+Florian Vaussard <florian.vaussard@epfl.ch> writes:
 
-What config should I use (omap2plus_defconfig and then select the AM3517EVM option) ?
+> OMAP36xx-based Overo (Storm and alike) are now failing to boot with 3.14-rc1 [1].
+> This series fixes this, by moving model-agnostic DT into a common dtsi file,
+> and creating model-specific DT files:
+>
+> - omap3-overo-tobi.dts -> older OMAP35xx Overo
+> - omap3-overo-storm-tobi.dts -> newer OMAP36xx/AM37xx/DM37xx Overo
+>
+> People will have to use the right Overo / expansion board combination.
+>
+> (Patch 2 in an unrelated fix that was waiting in my queue.)
+>
+> omap3-overo-tobi.dts tested with Overo Sand (OMAP3503) and omap3-overo-storm-tobi.dts
+> tested with Overo EarthStorm (AM3703). Both boot. With the Overo Sand, I cannot
+> mount the ext3 rootfs, but this seems unrelated to the current topic, maybe
+> a missing errata.
 
-I would like to get the EVM system working properly with the sleep and wake before I apply the changes to my AM3517 system.
+And I tested with my 35xx/Overo with omap3-overo-tobi.dts and my
+37xx/Overo STORM with omap3-overo-storm-tobi.dts and they're both
+working.
 
-Thanks for any feedback
+Tested-by: Kevin Hilman <khilman@linaro.org>
 
-Marc
+Tony, with your ack, I can apply these directly to arm-soc/fixes.
 
+Florian, thanks for the fixes.
 
-
-
-
+Kevin
