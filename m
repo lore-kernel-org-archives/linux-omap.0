@@ -1,66 +1,57 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 3/3] ARM: dts: Add support for both OMAP35xx and OMAP36xx
- Overo/Tobi
-Date: Thu, 6 Feb 2014 08:35:56 -0600
-Message-ID: <52F39DCC.8000006@ti.com>
-References: <1391677818-21154-1-git-send-email-florian.vaussard@epfl.ch> <1391677818-21154-4-git-send-email-florian.vaussard@epfl.ch>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2 2/4] MFD: TPS65218: Add driver for the TPS65218 PMIC
+Date: Thu, 6 Feb 2014 14:37:00 +0000
+Message-ID: <20140206143700.GA14727@lee--X1>
+References: <1391665814-18814-1-git-send-email-j-keerthy@ti.com>
+ <1391665814-18814-3-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45502 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750732AbaBFOgY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Feb 2014 09:36:24 -0500
-In-Reply-To: <1391677818-21154-4-git-send-email-florian.vaussard@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1391665814-18814-3-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@linaro.org>, Mike Turquette <mturquette@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On 02/06/2014 03:10 AM, Florian Vaussard wrote:
-> Unfortunatly the device tree for older OMAP35xx Overo cannot be used
-Unfortunately ?
-> with newer OMAP36xx and vice-versa. To address this issue, move most of
-> the Tobi DTS to a common include file, and create model-specific Tobi
-> DTS.
-> 
-[...]
-> diff --git a/arch/arm/boot/dts/omap3-overo-tobi.dts b/arch/arm/boot/dts/omap3-overo-tobi.dts
-> new file mode 100644
-> index 0000000..2f82192
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-overo-tobi.dts
-> @@ -0,0 +1,22 @@
-> +/*
-> + * Copyright (C) 2012 Florian Vaussard, EPFL Mobots group
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +/*
-> + * Tobi expansion board is manufactured by Gumstix Inc.
-> + */
-> +
-> +/dts-v1/;
-> +
-> +#include "omap34xx.dtsi"
-> +#include "omap3-overo-tobi-common.dtsi"
-> +
-> +/ {
-> +	model = "OMAP35xx Gumstix Overo on Tobi";
-> +	compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3";
-To reduce any future problems, I suggest:
-compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo",
-"ti,omap3430", "ti,omap3";
+> The TPS65218 chip is a power management IC for Portable Navigation Sy=
+stems
+> and Tablet Computing devices. It contains the following components:
+>=20
+>  - Regulators.
+>  - Over Temperature warning and Shut down.
+>=20
+> This patch adds support for tps65218 mfd device. At this time only
+> the regulator functionality is made available.
+>=20
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  drivers/mfd/Kconfig          |   15 +++
+>  drivers/mfd/Makefile         |    1 +
+>  drivers/mfd/tps65218.c       |  281 ++++++++++++++++++++++++++++++++=
++++++++++
 
-> +};
-> +
-> 
+How much different is the TPS65218 to all the other TPS drivers?
 
+drivers/mfd/tps6105x.c
+drivers/mfd/tps65010.c
+drivers/mfd/tps6507x.c
+drivers/mfd/tps65090.c
+drivers/mfd/tps65217.c
+drivers/mfd/tps6586x.c
+drivers/mfd/tps65910.c
+drivers/mfd/tps65911-comparator.c
+drivers/mfd/tps65912-core.c
+drivers/mfd/tps65912-i2c.c
+drivers/mfd/tps65912-irq.c
+drivers/mfd/tps65912-spi.c
+drivers/mfd/tps80031.c
 
--- 
-Regards,
-Nishanth Menon
+Perhaps some consolidating might be in order?
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
