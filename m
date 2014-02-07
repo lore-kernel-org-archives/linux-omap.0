@@ -1,80 +1,146 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP2+: AM43x: Add ID for ES1.1
-Date: Fri, 7 Feb 2014 09:38:52 +0530
-Message-ID: <52F45C54.7020604@ti.com>
-References: <1391676348-32339-1-git-send-email-lokeshvutla@ti.com> <1391676348-32339-3-git-send-email-lokeshvutla@ti.com> <52F39E74.3030404@ti.com>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: Re: OMAP: clock DT conversion issues with omap36xx
+Date: Fri, 07 Feb 2014 11:12:03 +0100
+Message-ID: <1391767923.4937.110.camel@mars>
+References: <52E697C0.6000202@gmail.com> <1390848104.4936.62.camel@mars>
+	 <52E772A3.4090401@ti.com> <1390901735.2963.8.camel@lovely>
+	 <52E77D03.8090001@ti.com>  <52E7B361.2030601@ti.com>
+	 <1390928565.4904.88.camel@mars> <1390994505.5023.32.camel@mars>
+	 <52F10C3D.7000507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38828 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751224AbaBGEJX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Feb 2014 23:09:23 -0500
-In-Reply-To: <52F39E74.3030404@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52F10C3D.7000507@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux@arm.linux.org.uk, rnayak@ti.com, nsekhar@ti.com
 
-Hi Nishanth,
-On Thursday 06 February 2014 08:08 PM, Nishanth Menon wrote:
-> On 02/06/2014 02:45 AM, Lokesh Vutla wrote:
->> Adding ID for AM437x ES1.1 silicon.
->>
->> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->> ---
->>  arch/arm/mach-omap2/id.c  |   14 ++++++++++++--
->>  arch/arm/mach-omap2/soc.h |    3 ++-
->>  2 files changed, 14 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
->> index 9428c5f..8a05eaf 100644
->> --- a/arch/arm/mach-omap2/id.c
->> +++ b/arch/arm/mach-omap2/id.c
->> @@ -465,8 +465,18 @@ void __init omap3xxx_check_revision(void)
->>  		}
->>  		break;
->>  	case 0xb98c:
->> -		omap_revision = AM437X_REV_ES1_0;
->> -		cpu_rev = "1.0";
->> +		switch (rev) {
->> +		case 0:
->> +			omap_revision = AM437X_REV_ES1_0;
->> +			cpu_rev = "1.0";
->> +			break;
->> +		case 1:
->> +		/* FALLTHROUGH */
->> +		default:
->> +			omap_revision = AM437X_REV_ES1_1;
->> +			cpu_rev = "1.1";
->> +			break;
->> +		}
->>  		break;
->>  	case 0xb8f2:
->>  		switch (rev) {
->> diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
->> index 076bd90..30abcc8 100644
->> --- a/arch/arm/mach-omap2/soc.h
->> +++ b/arch/arm/mach-omap2/soc.h
->> @@ -438,7 +438,8 @@ IS_OMAP_TYPE(3430, 0x3430)
->>  #define AM335X_REV_ES2_1	(AM335X_CLASS | (0x2 << 8))
->>  
->>  #define AM437X_CLASS		0x43700000
->> -#define AM437X_REV_ES1_0	AM437X_CLASS
->> +#define AM437X_REV_ES1_0	(AM437X_CLASS | (0x10 << 8))
->> +#define AM437X_REV_ES1_1	(AM437X_CLASS | (0x11 << 8))
->>  
->>  #define OMAP443X_CLASS		0x44300044
->>  #define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
->>
+On Tue, 2014-02-04 at 17:50 +0200, Tero Kristo wrote:
+> On 01/29/2014 01:21 PM, Christoph Fritz wrote:
+> >> Currently I only analyzed sys_clkout2 (see attachments for full
+> >> clk_summary files):
+> >>
+> >> clk_summary__next-20140115__works_as_expected:
+> >>               dpll4_m2_ck        1           1            96000000
+> >>                  dpll4_m2x2_ck   1           1            96000000
+> >>                     omap_192m_alwon_fck 1           1            96000000
+> >>                        omap_96m_alwon_fck 1           2            96000000
+> >>                           per_96m_fck 0           6            96000000
+> >>                              mcbsp4_fck 0           1            96000000
+> >>                              mcbsp3_fck 0           2            96000000
+> >>                              mcbsp2_fck 0           2            96000000
+> >>                           cm_96m_fck 2           3            96000000
+> >>                              clkout2_src_ck 1           1            96000000
+> >>                                 sys_clkout2 1           1            24000000
+> >>
+> >> For real, on pin sys_clkout2 are correctly 24 Mhz measured.
+> >>
+> >> clk_summary__next-20140124__sysclkout2_dss_fails:
+> >>               dpll4_m2_ck        1           1            96000000
+> >>                  dpll4_m2x2_mul_ck 1           1            192000000
+> >>                     dpll4_m2x2_ck 1           1            192000000
+> >>                        omap_192m_alwon_fck 0           0            192000000
+> >>                        omap_96m_alwon_fck 1           2            192000000
+> >>                           per_96m_fck 0           6            192000000
+> >>                              mcbsp4_fck 0           1            192000000
+> >>                              mcbsp3_fck 0           2            192000000
+> >>                              mcbsp2_fck 0           2            192000000
+> >>                           cm_96m_fck 2           3            192000000
+> >>                              clkout2_src_ck 1           1            192000000
+> >>                                 sys_clkout2 1           1            24000000
+> >>
+> >> For real, on pin sys_clkout2 are only ~12 Mhz measured.
 > 
-> can you also check if socbus shows proper results?
-> I had http://slexy.org/view/s20e3OsIVx with v3.14-rc1
-Oops....missed out formating and sending "AM43x : determine features patch".
-Thanks for pointing it out. ll update and send a v2 for this series.
-
-Thanks and regards,
-Lokesh
+> Hey Christoph,
 > 
+> I had a chance to look at this in more detail, and it looks like your 
+> patch above was almost the correct one (except that I think you modified 
+> wrong property and also modified the clock node for all omap3 variants.) 
+> Can you give this one a shot? Can you also send me the clk-summary dump 
+> with this patch (with the relevant nodes)?
 
+             dpll4_m2_ck        1           1            96000000   0
+                dpll4_m2x2_mul_ck 1           1            192000000  0
+                   dpll4_m2x2_ck 1           1            192000000  0
+                      omap_192m_alwon_fck 0           0            192000000  0
+                      omap_96m_alwon_fck 1           2            96000000   0
+                         per_96m_fck 0           6            96000000   0
+                            mcbsp4_fck 0           1            96000000   0
+                            mcbsp3_fck 0           2            96000000   0
+                            mcbsp2_fck 0           2            96000000   0
+                         cm_96m_fck 2           3            96000000   0
+                            clkout2_src_ck 1           1            96000000   0
+                               sys_clkout2 1           1            24000000   0
+
+Yes, your patch fixes the issues for sys_clkout2. Thanks! If you want,
+you can add my:
+Tested-by: Christoph Fritz <chf.fritz@googlemail.com>
+
+Below is my clock fix for dss:
+
+>From b90a62128068e1b6b0ba2a11c5cc0c8e587cf301 Mon Sep 17 00:00:00 2001
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Date: Fri, 7 Feb 2014 10:51:15 +0100
+Subject: [PATCH] ARM: dts: omap36xx: fix dpll4_m4_ck tree
+
+OMAP36xx has different hardware implementation for the dpll4_m4_ck tree
+compared to other OMAP3 variants. Reflect this properly in the dts file.
+
+before omap dt clock conversion:
+             dpll4_m4_ck        1           1            57600000
+                dpll4_m4x2_ck   1           1            57600000
+                   dss1_alwon_fck_3430es2 2           4            57600000
+
+after omap dt clock conversion:
+             dpll4_m4_ck        0           1            96000000   0
+                dpll4_m4x2_mul_ck 0           1            192000000  0
+                   dpll4_m4x2_ck 0           1            192000000  0
+                      dss1_alwon_fck_3430es2 0           4            192000000  0
+with this patch:
+             dpll4_m4_ck        1           1            57600000   0
+                dss1_alwon_fck_3430es2 2           4            57600000   0
+                dpll4_m4x2_mul_ck 0           0            115200000  0
+                   dpll4_m4x2_ck 0           0            115200000  0
+
+Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
+---
+ arch/arm/boot/dts/omap36xx-clocks.dtsi |    8 ++++++++
+ arch/arm/boot/dts/omap36xx.dtsi        |    2 +-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/omap36xx-clocks.dtsi b/arch/arm/boot/dts/omap36xx-clocks.dtsi
+index 24869cb..8ac8926 100644
+--- a/arch/arm/boot/dts/omap36xx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap36xx-clocks.dtsi
+@@ -74,6 +74,14 @@
+ 	clock-div = <2>;
+ };
+ 
++&dpll4_m4_ck {
++	clock-div = <15>;
++};
++
++&dss1_alwon_fck_3430es2 {
++	clocks = <&dpll4_m4_ck>;
++};
++
+ &cm_clockdomains {
+ 	dpll4_clkdm: dpll4_clkdm {
+ 		compatible = "ti,clockdomain";
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+index 7e8dee9..5e1bcd0 100644
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -52,7 +52,7 @@
+ 	};
+ };
+ 
+-/include/ "omap36xx-clocks.dtsi"
+ /include/ "omap34xx-omap36xx-clocks.dtsi"
+ /include/ "omap36xx-omap3430es2plus-clocks.dtsi"
+ /include/ "omap36xx-am35xx-omap3430es2plus-clocks.dtsi"
++/include/ "omap36xx-clocks.dtsi"
+-- 
+1.7.10.4
