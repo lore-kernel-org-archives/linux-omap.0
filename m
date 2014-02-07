@@ -1,69 +1,105 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [RFC PATCH] ARM: OMAP2+: clockdomain: Reintroduce SW_SLEEP Support
-Date: Fri, 7 Feb 2014 16:20:59 -0600
-Message-ID: <1391811659-33716-2-git-send-email-d-gerlach@ti.com>
-References: <1391811659-33716-1-git-send-email-d-gerlach@ti.com>
+From: Bjorn Andersson <bjorn@kryo.se>
+Subject: Re: [PATCHv4 4/7] hwspinlock/core: add common OF helpers
+Date: Fri, 7 Feb 2014 14:49:07 -0800
+Message-ID: <CAJAp7Oi7wD+VsMAd37gT04yZ4TH4ygXFmheDhvmWuanUjpBmVQ@mail.gmail.com>
+References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
+	<1389658764-39199-5-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40705 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751013AbaBGWVU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Feb 2014 17:21:20 -0500
-In-Reply-To: <1391811659-33716-1-git-send-email-d-gerlach@ti.com>
+Received: from mail-ob0-f172.google.com ([209.85.214.172]:53620 "EHLO
+	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751453AbaBGWtH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Feb 2014 17:49:07 -0500
+Received: by mail-ob0-f172.google.com with SMTP id vb8so4792855obc.3
+        for <linux-omap@vger.kernel.org>; Fri, 07 Feb 2014 14:49:07 -0800 (PST)
+In-Reply-To: <1389658764-39199-5-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+To: Suman Anna <s-anna@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Since commit 65aa94b204d (ARM: OMAP4: clockdomain/CM code: Update supported
-transition modes), on OMAP4, all CLKDMs support HW_AUTO so this is used
-instead of SW_SLEEP for the idling of clockdomains. However, additional
-SoCs now leverage the OMAP4 clockdomain code so update it to use SW_SLEEP
-if the clockdomain data specifies that the CLKDM has the
-CLKDM_CAN_FORCE_SLEEP flag set rather than using HW_AUTO for both cases.
+On Mon, Jan 13, 2014 at 4:19 PM, Suman Anna <s-anna@ti.com> wrote:
+> This patch adds three new OF helper functions to use/request
+> locks from a hwspinlock device instantiated through a
+> device-tree blob.
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- arch/arm/mach-omap2/cminst44xx.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+Nice, I ran in to the problem of needing a probe deferral on a
+hwspinlock earlier this week so I implemented this yesterday...then I
+got a pointer to your series.
 
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index 731ca13..f5c4731 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -254,6 +254,11 @@ void omap4_cminst_clkdm_force_wakeup(u8 part, u16 inst, u16 cdoffs)
-  *
-  */
- 
-+void omap4_cminst_clkdm_force_sleep(u8 part, u16 inst, u16 cdoffs)
-+{
-+	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_SLEEP, part, inst, cdoffs);
-+}
-+
- /**
-  * omap4_cminst_wait_module_ready - wait for a module to be in 'func' state
-  * @part: PRCM partition ID that the CM_CLKCTRL register exists in
-@@ -404,8 +409,17 @@ static int omap4_clkdm_clear_all_wkup_sleep_deps(struct clockdomain *clkdm)
- 
- static int omap4_clkdm_sleep(struct clockdomain *clkdm)
- {
--	omap4_cminst_clkdm_enable_hwsup(clkdm->prcm_partition,
--					clkdm->cm_inst, clkdm->clkdm_offs);
-+	if (clkdm->flags & CLKDM_CAN_HWSUP)
-+		omap4_cminst_clkdm_enable_hwsup(clkdm->prcm_partition,
-+						clkdm->cm_inst,
-+						clkdm->clkdm_offs);
-+	else if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP)
-+		omap4_cminst_clkdm_force_sleep(clkdm->prcm_partition,
-+					       clkdm->cm_inst,
-+					       clkdm->clkdm_offs);
-+	else
-+		return -EINVAL;
-+
- 	return 0;
- }
- 
--- 
-1.7.9.5
+[snip]
+>  /**
+> + * of_hwspin_lock_request_specific() - request a OF phandle-based specific lock
+> + * @np: device node from which to request the specific hwlock
+> + * @propname: property name containing hwlock specifier(s)
+> + * @index: index of the hwlock
+> + *
+> + * This function is the OF equivalent of hwspin_lock_request_specific(). This
+> + * function provides a means for users of the hwspinlock module to request a
+> + * specific hwspinlock using the phandle of the hwspinlock device. The requested
+> + * lock number is indexed relative to the hwspinlock device, unlike the
+> + * hwspin_lock_request_specific() which is an absolute lock number.
+> + *
+> + * Returns the address of the assigned hwspinlock, or NULL on error
+> + */
+> +struct hwspinlock *of_hwspin_lock_request_specific(struct device_node *np,
+> +                                       const char *propname, int index)
+> +{
+> +       struct hwspinlock_device *bank;
+> +       struct of_phandle_args args;
+> +       int id;
+> +       int ret;
+> +
+> +       ret = of_parse_phandle_with_args(np, propname, "#hwlock-cells", index,
+> +                                        &args);
+> +       if (ret) {
+> +               pr_warn("%s: can't parse hwlocks property of node '%s[%d]' ret = %d\n",
+> +                       __func__, np->full_name, index, ret);
+> +               return NULL;
+> +       }
 
+of_parse_phandle_with_args() already does pr_err if it can't find the
+phandle and on some of the issues related to arguments. So please
+remove this pr_warn().
+
+It seems to be standard practice to pass the error value back to the
+consumer, so you should
+return ERR_PTR(ret); here instead of the NULL...
+
+> +
+> +       mutex_lock(&hwspinlock_tree_lock);
+> +       list_for_each_entry(bank, &hwspinlock_devices, list)
+> +               if (bank->dev->of_node == args.np)
+> +                       break;
+> +       mutex_unlock(&hwspinlock_tree_lock);
+> +       if (&bank->list == &hwspinlock_devices) {
+> +               pr_warn("%s: requested hwspinlock device %s is not registered\n",
+> +                       __func__, args.np->full_name);
+> +               return NULL;
+
+...especially since you want the consumer to have the ability to
+identify this error. Here you should
+return ERR_PTR(-EPROBE_DEFER); so that the consumer knows that this
+lock is not _yet_ registered, but will be in the future.
+
+You should remove this pr_warn as well. The standard use of this
+function would be in a probe() and just returning this error value
+from that probe will give you a line in the log indicating that this
+was in fact the issue.
+
+> +       }
+> +
+> +       id = bank->ops->of_xlate(bank, &args);
+> +       if (id < 0 || id >= bank->num_locks) {
+> +               pr_warn("%s: requested lock %d is either out of range [0, %d] or failed translation\n",
+> +                       __func__, id, bank->num_locks - 1);
+> +               return NULL;
+
+Please return ERR_PTR(-EINVAL); here.
+
+
+Looking forward to your next spin, as I will actually use this interface :)
+
+Regards,
+Bjorn
