@@ -1,67 +1,63 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH V2 4/4] ARM: OMAP2+: AM43x: Use gptimer as clocksource
-Date: Fri, 7 Feb 2014 15:51:26 +0530
-Message-ID: <1391768486-2134-5-git-send-email-lokeshvutla@ti.com>
-References: <1391768486-2134-1-git-send-email-lokeshvutla@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [RFC PATCH 08/15] ata: ahci_platform: Manage SATA PHY
+Date: Fri, 7 Feb 2014 12:33:38 +0200
+Message-ID: <52F4B682.2000201@ti.com>
+References: <1379595943-14622-1-git-send-email-rogerq@ti.com> <1379595943-14622-9-git-send-email-rogerq@ti.com> <20130922165817.GD30946@htj.dyndns.org> <523F35E4.6050707@cogentembedded.com> <20130922215107.GD27616@mtj.dyndns.org> <523FEFC2.801@ti.com> <52403B4F.3070406@cogentembedded.com> <5240492D.6060204@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45392 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752046AbaBGKWC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Feb 2014 05:22:02 -0500
-In-Reply-To: <1391768486-2134-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <5240492D.6060204@ti.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, kishon@ti.com
+Cc: Tejun Heo <tj@kernel.org>, balbi@ti.com, bcousson@baylibre.com, tony@atomide.com, balajitk@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, nm@ti.com, tony@atomide.com, linux@arm.linux.org.uk, rnayak@ti.com, nsekhar@ti.com, lokeshvutla@ti.com
 
-From: Rajendra Nayak <rnayak@ti.com>
+Hi,
 
-The SyncTimer in AM43x is clocked using the following two sources:
-1) An inaccuarte 32k clock (CLK_32KHZ) derived from PER DPLL, causing system
-   time to go slowly (~10% deviation).
-2) external 32KHz RTC clock, which may not always be available on board like
-   in the case of ePOS EVM
+On 09/23/2013 04:59 PM, Roger Quadros wrote:
+> On 09/23/2013 03:59 PM, Sergei Shtylyov wrote:
+>> Hello.
+>>
+>> On 23-09-2013 11:37, Roger Quadros wrote:
+>>
+>>>>>     Not sure why you asked -- I'm not using this driver, neither I'm
+>>
+>>>> Well, you have better grip of what's going on in the embedded world
+>>>> than me.  I'm mostly curious whether adding dependency on PHY is okay.
+>>
+>>> There is no hard dependency on presence of PHY. The driver will continue
+>>> as usual if devm_phy_get() fails.
+>>> I hope selecting GENERIC_PHY in Kconfig is not an issue.
+>>
+>>    Selecting in the AHCI_PLATFORM section? It seems I have overlooked it. No, I don't think it's a good idea. The generic PHY functions seem to be stubbed when GENERIC_PHY=n.
+>>
+> OK I will remove the select then.
 
-Use gptimer as clocksource instead, as is done in the case of AM335x
-(which does not have a SyncTimer). With this, system time keeping works
-accurately.
+If I remove the select then build fails like so if we set CONFIG_GENERIC_PHY to 'm' and CONFIG_SATA_AHCI_PLATFORM to 'y'
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- arch/arm/mach-omap2/board-generic.c |    2 +-
- arch/arm/mach-omap2/timer.c         |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+drivers/built-in.o: In function `ahci_platform_enable_resources':
+(.text+0x162647): undefined reference to `phy_init'
+drivers/built-in.o: In function `ahci_platform_enable_resources':
+(.text+0x16267c): undefined reference to `phy_power_on'
+drivers/built-in.o: In function `ahci_platform_enable_resources':
+(.text+0x162694): undefined reference to `phy_exit'
+drivers/built-in.o: In function `ahci_platform_disable_resources':
+(.text+0x1626af): undefined reference to `phy_power_off'
+drivers/built-in.o: In function `ahci_platform_disable_resources':
+(.text+0x1626b7): undefined reference to `phy_exit'
+drivers/built-in.o: In function `ahci_platform_get_resources':
+(.text+0x162768): undefined reference to `devm_phy_get'
+make: *** [vmlinux] Error 1
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 8e3daa1..5679464a 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -229,7 +229,7 @@ DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
- 	.init_late	= am43xx_init_late,
- 	.init_irq	= omap_gic_of_init,
- 	.init_machine	= omap_generic_init,
--	.init_time	= omap3_sync32k_timer_init,
-+	.init_time	= omap3_gptimer_timer_init,
- 	.dt_compat	= am43_boards_compat,
- MACHINE_END
- #endif
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 74044aa..b62de9f 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -604,7 +604,8 @@ OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
- 			2, "timer_sys_ck", NULL);
- #endif /* CONFIG_ARCH_OMAP3 */
- 
--#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
-+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX) || \
-+	defined(CONFIG_SOC_AM43XX)
- OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
- 		       1, "timer_sys_ck", "ti,timer-alwon");
- #endif
--- 
-1.7.9.5
+This means we need to make CONFIG_SATA_AHCI_PLATFORM depend on CONFIG_GENERIC_PHY or
+select it.
 
+OR
+
+Generic PHY layer must be fixed so that the API's are always built in.
+
+What is the better option? I believe making the PHY API's always built in is the better option.
+
+cheers,
+-roger
