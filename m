@@ -1,60 +1,44 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 3/4] Regulators: TPS65218: Add Regulator driver for
- TPS65218 PMIC
-Date: Fri, 7 Feb 2014 17:27:03 +0000
-Message-ID: <20140207172703.GG1757@sirena.org.uk>
-References: <1391665814-18814-1-git-send-email-j-keerthy@ti.com>
- <1391665814-18814-4-git-send-email-j-keerthy@ti.com>
- <52F4E685.4060605@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [RFC PATCH] ARM: OMAP2+: Re-enable SW_SLEEP for clockdomains
+Date: Fri, 7 Feb 2014 16:20:58 -0600
+Message-ID: <1391811659-33716-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fCcDWlUEdh43YKr8"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <52F4E685.4060605-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:32860 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751013AbaBGWVO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Feb 2014 17:21:14 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 
+This patch changes clockdomain handling for platforms using omap4
+operations. Commit 65aa94b204d removed SW_SLEEP functionality
+from the omap4 clockdomain controls with the intention that, because
+all IPs support HW_AUTO, that should be used instead. This may make
+sense for omap4, but many platforms, including AM43xx and DRA7x, use
+these same functions. It definitely does not make sense on AM43xx
+as all clockdomains are software controlled only. This means that as
+of right now clockdomain handling is broken on AM43xx and no
+clockdomains are actually being put into idle on this platform. Any
+attempt to idle them results in the HW_AUTO value (0x3) being written
+to them with no apparent effect.
 
---fCcDWlUEdh43YKr8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This patch will allow actual idling for am43xx clockdomains however the
+effects of this patch will reach beyond that. This is something that
+should be corrected for AM43xx however the bigger question is about how
+this change affects other non-omap4 platforms leveraging the same code.
+omap4_clkdm_operations are used by omap5, omap4, dra7x and am43xx. Is
+SW_SLEEP something we also want back on omap5 and dra7x?
 
-On Fri, Feb 07, 2014 at 07:28:29PM +0530, Keerthy wrote:
-> On Thursday 06 February 2014 11:20 AM, Keerthy wrote:
+Dave Gerlach (1):
+  ARM: OMAP2+: clockdomain: Reintroduce SW_SLEEP Support
 
-> If there are no further comments on this could you
-> please pull this?
+ arch/arm/mach-omap2/cminst44xx.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-You've sent this mail a day after sending the original patch, don't do
-that.
+-- 
+1.7.9.5
 
---fCcDWlUEdh43YKr8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJS9RdkAAoJELSic+t+oim9LpEQAJBYAfrP5QO4bf15y7r2nTfi
-csYEV+PcP6TGxWReUHYpzuyIQuf+LFQb0WGYYORGsNUCCS+Ke3OvVJzwBKJ+0TPk
-qRdyO4jkwNBHVbeGew2oCKMhQhUFvcvzk6QY35YDXSEGOi0kJ/SvRbg6bVRpZxnT
-wNEwpLQiWlHP0+fC2YlnnXyrl6MagK6FsDuTyNZwQ9YgFEl7/ZXnOCsp+BczNPq+
-s3e+P9r2x9Dw3tYdSVsBxhlFfn9C44tvDmuIICS27CfH9Zgkj6TFteHtYOM5E5bu
-JFqQAm1KAhKQqBVn+52YAcdN/2Sm2XADu+I04n2jVFAsYbHXkL7MGl/T+GcVSZo5
-CLzNMm11ioWVkpBkfyG85lXReuOgCqtpQbPI7PJE9MddVgSlP+c2Iqs94YvWmeiV
-dNcnnQc5AoatXBYAJ/WlDOZDKrZmu8YNC6Febe8XBF/eey/P2ALIcjDKzUrbtQ8e
-Am3aHKlKmsntvQKv0+G6XDTOOVQHraGQA+NdEf0rVlcULIDVRE/bC7rev29iLi9h
-HGOw3GNr85B6SXmCzd0UFq7yVv1w/8tN+YghlNYcdMlCmpsTuGoQDlHqA/AIExx+
-yKF0XXOKHRtlzINWhEHgv1uSiMubAy4T6oRCrCD8myCtL7snraSfURjkf1WIize4
-QwsSChkdTnfdRpa+zR2w
-=ZEDO
------END PGP SIGNATURE-----
-
---fCcDWlUEdh43YKr8--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
