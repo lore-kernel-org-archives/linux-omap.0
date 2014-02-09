@@ -1,47 +1,57 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH 2/2] ARM: dts: N900: add missing compatible property
-Date: Sun,  9 Feb 2014 14:12:36 +0200
-Message-ID: <1391947956-24462-2-git-send-email-aaro.koskinen@iki.fi>
-References: <1391947956-24462-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:56537 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751360AbaBIMM6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Feb 2014 07:12:58 -0500
-In-Reply-To: <1391947956-24462-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: [PATCH] ARM: OMAP2+: Remove MACH_NOKIA_N800
+Date: Sun, 09 Feb 2014 16:01:28 +0100
+Message-ID: <1391958088.25424.17.camel@x220>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Add missing compatible property to avoid problems in the future.
+The last caller of machine_is_nokia_n800() was removed in commit
+5a87cde490e1 ("ARM: OMAP2+: Remove legacy booting support for n8x0").
+That means that the Kconfig symbol MACH_NOKIA_N800 is now unused. It can
+safely be removed.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
 ---
- arch/arm/boot/dts/omap3-n900.dts | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Untested.
 
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 6fc85f963530..0bf40c90faba 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
-- * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
-+ * Copyright (C) 2013-2014 Aaro Koskinen <aaro.koskinen@iki.fi>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 (or later) as
-@@ -13,7 +13,7 @@
+ arch/arm/mach-omap2/Kconfig | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 653b489..66da3f5 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -268,9 +268,6 @@ config MACH_OMAP_3430SDP
+ 	default y
+ 	select OMAP_PACKAGE_CBB
  
- / {
- 	model = "Nokia N900";
--	compatible = "nokia,omap3-n900", "ti,omap3";
-+	compatible = "nokia,omap3-n900", "ti,omap3430", "ti,omap3";
+-config MACH_NOKIA_N800
+-       bool
+-
+ config MACH_NOKIA_N810
+        bool
  
- 	cpus {
- 		cpu@0 {
+@@ -281,7 +278,6 @@ config MACH_NOKIA_N8X0
+ 	bool "Nokia N800/N810"
+ 	depends on SOC_OMAP2420
+ 	default y
+-	select MACH_NOKIA_N800
+ 	select MACH_NOKIA_N810
+ 	select MACH_NOKIA_N810_WIMAX
+ 	select OMAP_PACKAGE_ZAC
 -- 
 1.8.5.3
-
