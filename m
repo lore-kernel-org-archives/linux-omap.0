@@ -1,149 +1,148 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH 26/26] dmaengine: omap-dma: more consolidation of CCR register
- setup
-Date: Mon, 10 Feb 2014 15:58:06 +0000
-Message-ID: <E1WCtFG-0006Xn-9O@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 22/26] ARM: omap: move dma channel allocation into plat-omap
+ code
+Date: Mon, 10 Feb 2014 15:57:45 +0000
+Message-ID: <E1WCtEv-0006XW-QU@rmk-PC.arm.linux.org.uk>
 References: <20140210155531.GB26684@n2100.arm.linux.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:60112 "EHLO
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:60093 "EHLO
 	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752985AbaBJP6I (ORCPT
+	by vger.kernel.org with ESMTP id S1752557AbaBJP5s (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Feb 2014 10:58:08 -0500
+	Mon, 10 Feb 2014 10:57:48 -0500
 In-Reply-To: <20140210155531.GB26684@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>
+Cc: Tony Lindgren <tony@atomide.com>
 
-We can move the handling of the DMA synchronisation control out of the
-prepare functions; this can be pre-calculated when the DMA channel has
-been allocated, so we don't need to duplicate this in both prepare
-functions.
+This really needs to be there, because otherwise the plat-omap code can
+kfree() this data structure, and then re-use the pointer later.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/dma/omap-dma.c | 46 ++++++++++++++++++----------------------------
- 1 file changed, 18 insertions(+), 28 deletions(-)
+ arch/arm/mach-omap1/dma.c | 17 ++---------------
+ arch/arm/mach-omap2/dma.c |  7 -------
+ arch/arm/plat-omap/dma.c  | 11 ++++++++---
+ include/linux/omap-dma.h  |  1 -
+ 4 files changed, 10 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index ec98e718de70..64ceca2920b8 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -41,6 +41,7 @@ struct omap_chan {
- 	struct list_head node;
- 	void __iomem *channel_base;
- 	const struct omap_dma_reg *reg_map;
-+	uint32_t ccr;
+diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+index c979e3f88bbb..d170f7d0a6ac 100644
+--- a/arch/arm/mach-omap1/dma.c
++++ b/arch/arm/mach-omap1/dma.c
+@@ -325,17 +325,6 @@ static int __init omap1_system_dma_init(void)
+ 	d->dev_caps		|= CLEAR_CSR_ON_READ;
+ 	d->dev_caps		|= IS_WORD_16;
  
- 	struct dma_slave_config	cfg;
- 	unsigned dma_sig;
-@@ -552,6 +553,21 @@ static int omap_dma_alloc_chan_resources(struct dma_chan *chan)
- 		}
+-
+-	d->chan = kzalloc(sizeof(struct omap_dma_lch) *
+-					(d->lch_count), GFP_KERNEL);
+-	if (!d->chan) {
+-		dev_err(&pdev->dev,
+-			"%s: Memory allocation failed for d->chan!\n",
+-			__func__);
+-		ret = -ENOMEM;
+-		goto exit_release_d;
+-	}
+-
+ 	if (cpu_is_omap15xx())
+ 		d->chan_count = 9;
+ 	else if (cpu_is_omap16xx() || cpu_is_omap7xx()) {
+@@ -359,14 +348,14 @@ static int __init omap1_system_dma_init(void)
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
+ 			__func__, pdev->name, pdev->id);
+-		goto exit_release_chan;
++		goto exit_release_d;
  	}
  
-+	if (dma_omap1()) {
-+		if (__dma_omap16xx(od->plat->dma_attr)) {
-+			c->ccr = CCR_OMAP31_DISABLE;
-+			/* Duplicate what plat-omap/dma.c does */
-+			c->ccr |= c->dma_ch + 1;
-+		} else {
-+			c->ccr = c->dma_sig & 0x1f;
-+		}
-+	} else {
-+		c->ccr = c->dma_sig & 0x1f;
-+		c->ccr |= (c->dma_sig & ~0x1f) << 14;
+ 	ret = platform_device_add(pdev);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
+ 			__func__, pdev->name, pdev->id);
+-		goto exit_release_chan;
++		goto exit_release_d;
+ 	}
+ 
+ 	dma_pdev = platform_device_register_full(&omap_dma_dev_info);
+@@ -379,8 +368,6 @@ static int __init omap1_system_dma_init(void)
+ 
+ exit_release_pdev:
+ 	platform_device_del(pdev);
+-exit_release_chan:
+-	kfree(d->chan);
+ exit_release_d:
+ 	kfree(d);
+ exit_release_p:
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index 244ff5012aed..9f210d637354 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -251,13 +251,6 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 	}
+ 
+ 	d = oh->dev_attr;
+-	d->chan = kzalloc(sizeof(struct omap_dma_lch) *
+-					(d->lch_count), GFP_KERNEL);
+-
+-	if (!d->chan) {
+-		dev_err(&pdev->dev, "%s: kzalloc fail\n", __func__);
+-		return -ENOMEM;
+-	}
+ 
+ 	if (cpu_is_omap34xx() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
+ 		d->dev_caps |= HS_CHANNELS_RESERVED;
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index d4d9a5e62152..5f5b975887fc 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -2030,9 +2030,16 @@ static int omap_system_dma_probe(struct platform_device *pdev)
+ 
+ 	dma_lch_count		= d->lch_count;
+ 	dma_chan_count		= dma_lch_count;
+-	dma_chan		= d->chan;
+ 	enable_1510_mode	= d->dev_caps & ENABLE_1510_MODE;
+ 
++	dma_chan = devm_kcalloc(&pdev->dev, dma_lch_count,
++				sizeof(struct omap_dma_lch), GFP_KERNEL);
++	if (!dma_chan) {
++		dev_err(&pdev->dev, "%s: kzalloc fail\n", __func__);
++		return -ENOMEM;
 +	}
-+	if (od->plat->errata & DMA_ERRATA_IFRAME_BUFFERING)
-+		c->ccr |= CCR_BUFFERING_DISABLE;
 +
++
+ 	if (dma_omap2plus()) {
+ 		dma_linked_lch = kzalloc(sizeof(struct dma_link_info) *
+ 						dma_lch_count, GFP_KERNEL);
+@@ -2117,7 +2124,6 @@ static int omap_system_dma_probe(struct platform_device *pdev)
+ 	}
+ 
+ exit_dma_lch_fail:
+-	kfree(dma_chan);
  	return ret;
  }
  
-@@ -787,7 +803,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
- 	d->dev_addr = dev_addr;
- 	d->es = es;
- 
--	d->ccr = CCR_SYNC_FRAME;
-+	d->ccr = c->ccr | CCR_SYNC_FRAME;
- 	if (dir == DMA_DEV_TO_MEM)
- 		d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_CONSTANT;
- 	else
-@@ -797,14 +813,6 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
- 	d->csdp = es;
- 
- 	if (dma_omap1()) {
--		if (__dma_omap16xx(od->plat->dma_attr)) {
--			d->ccr |= CCR_OMAP31_DISABLE;
--			/* Duplicate what plat-omap/dma.c does */
--			d->ccr |= c->dma_ch + 1;
--		} else {
--			d->ccr |= c->dma_sig & 0x1f;
--		}
--
- 		d->cicr |= CICR_TOUT_IE;
- 
- 		if (dir == DMA_DEV_TO_MEM)
-@@ -812,16 +820,11 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
- 		else
- 			d->csdp |= CSDP_DST_PORT_TIPB | CSDP_SRC_PORT_EMIFF;
- 	} else {
--		d->ccr |= (c->dma_sig & ~0x1f) << 14;
--		d->ccr |= c->dma_sig & 0x1f;
--
- 		if (dir == DMA_DEV_TO_MEM)
- 			d->ccr |= CCR_TRIGGER_SRC;
- 
- 		d->cicr |= CICR_MISALIGNED_ERR_IE | CICR_TRANS_ERR_IE;
+@@ -2137,7 +2143,6 @@ static int omap_system_dma_remove(struct platform_device *pdev)
+ 			free_irq(dma_irq, (void *)(irq_rel + 1));
+ 		}
  	}
--	if (od->plat->errata & DMA_ERRATA_IFRAME_BUFFERING)
--		d->ccr |= CCR_BUFFERING_DISABLE;
- 	if (od->plat->errata & DMA_ERRATA_PARALLEL_CHANNELS)
- 		d->clnk_ctrl = c->dma_ch;
+-	kfree(dma_chan);
+ 	return 0;
+ }
  
-@@ -903,7 +906,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
- 	d->sg[0].fn = buf_len / period_len;
- 	d->sglen = 1;
+diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
+index 41328725721a..7813636a193d 100644
+--- a/include/linux/omap-dma.h
++++ b/include/linux/omap-dma.h
+@@ -268,7 +268,6 @@ struct omap_dma_dev_attr {
+ 	u32 dev_caps;
+ 	u16 lch_count;
+ 	u16 chan_count;
+-	struct omap_dma_lch *chan;
+ };
  
--	d->ccr = 0;
-+	d->ccr = c->ccr;
- 	if (dir == DMA_DEV_TO_MEM)
- 		d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_CONSTANT;
- 	else
-@@ -916,14 +919,6 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
- 	d->csdp = es;
- 
- 	if (dma_omap1()) {
--		if (__dma_omap16xx(od->plat->dma_attr)) {
--			d->ccr |= CCR_OMAP31_DISABLE;
--			/* Duplicate what plat-omap/dma.c does */
--			d->ccr |= c->dma_ch + 1;
--		} else {
--			d->ccr |= c->dma_sig & 0x1f;
--		}
--
- 		d->cicr |= CICR_TOUT_IE;
- 
- 		if (dir == DMA_DEV_TO_MEM)
-@@ -931,9 +926,6 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
- 		else
- 			d->csdp |= CSDP_DST_PORT_MPUI | CSDP_SRC_PORT_EMIFF;
- 	} else {
--		d->ccr |= (c->dma_sig & ~0x1f) << 14;
--		d->ccr |= c->dma_sig & 0x1f;
--
- 		if (burst)
- 			d->ccr |= CCR_SYNC_PACKET;
- 		else
-@@ -946,8 +938,6 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
- 
- 		d->csdp |= CSDP_DST_BURST_64 | CSDP_SRC_BURST_64;
- 	}
--	if (od->plat->errata & DMA_ERRATA_IFRAME_BUFFERING)
--		d->ccr |= CCR_BUFFERING_DISABLE;
- 
- 	if (__dma_omap15xx(od->plat->dma_attr))
- 		d->ccr |= CCR_AUTO_INIT | CCR_REPEAT;
+ enum {
 -- 
 1.8.3.1
 
