@@ -1,64 +1,40 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 1/5] ARM: omap2: cm-t35: Add regulators and clock for camera sensor
-Date: Mon, 10 Feb 2014 22:54:40 +0100
-Message-ID: <1392069284-18024-2-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 0/5] mt9t001 and mt9p031 sensors drivers patches
+Date: Mon, 10 Feb 2014 22:54:39 +0100
+Message-ID: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42213 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42212 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752787AbaBJVxq (ORCPT
+	with ESMTP id S1752508AbaBJVxq (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Feb 2014 16:53:46 -0500
-In-Reply-To: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The camera sensor will soon require regulators and clocks. Register
-fixed regulators for its VAA and VDD power supplies and a fixed rate
-clock for its master clock.
+Hello,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- arch/arm/mach-omap2/board-cm-t35.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+This is a set of miscellaneous patches for the mt9t001 and mt9p031 sensors
+drivers. Please see individual commit messages for details.
 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 8dd0ec8..018353d 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -16,6 +16,8 @@
-  *
-  */
- 
-+#include <linux/clk-provider.h>
-+#include <linux/clkdev.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
-@@ -542,8 +544,22 @@ static struct isp_platform_data cm_t35_isp_pdata = {
- 	.subdevs = cm_t35_isp_subdevs,
- };
- 
-+static struct regulator_consumer_supply cm_t35_camera_supplies[] = {
-+	REGULATOR_SUPPLY("vaa", "3-005d"),
-+	REGULATOR_SUPPLY("vdd", "3-005d"),
-+};
-+
- static void __init cm_t35_init_camera(void)
- {
-+	struct clk *clk;
-+
-+	clk = clk_register_fixed_rate(NULL, "mt9t001-clkin", NULL, CLK_IS_ROOT,
-+				      48000000);
-+	clk_register_clkdev(clk, NULL, "3-005d");
-+
-+	regulator_register_fixed(2, cm_t35_camera_supplies,
-+				 ARRAY_SIZE(cm_t35_camera_supplies));
-+
- 	if (omap3_init_camera(&cm_t35_isp_pdata) < 0)
- 		pr_warn("CM-T3x: Failed registering camera device!\n");
- }
+The mt9t001 driver receives support for regulators and clocks. As a
+prerequisite, patch 1/5 registers a fixed rate clock and two fixed voltage
+regulators for the CM-T35 board camera sensor.
+
+Laurent Pinchart (5):
+  ARM: omap2: cm-t35: Add regulators and clock for camera sensor
+  mt9t001: Add regulator support
+  mt9t001: Add clock support
+  mt9p031: Fix typo in comment
+  mt9p031: Add support for PLL bypass
+
+ arch/arm/mach-omap2/board-cm-t35.c |  16 +++
+ drivers/media/i2c/mt9p031.c        |  34 +++++-
+ drivers/media/i2c/mt9t001.c        | 229 +++++++++++++++++++++++++++++--------
+ 3 files changed, 228 insertions(+), 51 deletions(-)
+
 -- 
-1.8.3.2
+Regards,
+
+Laurent Pinchart
 
