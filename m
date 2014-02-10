@@ -1,46 +1,94 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv4 0/7] omap hwspinlock dt support
-Date: Mon, 10 Feb 2014 13:27:39 -0600
-Message-ID: <52F9282B.5000702@ti.com>
-References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: regression(ti platforms): next-20140210 (ehci?)
+Date: Mon, 10 Feb 2014 13:33:14 -0600
+Message-ID: <52F9297A.1080206@ti.com>
+References: <52F8F77B.70605@ti.com> <52F9117C.8000405@ti.com> <7h61omakk9.fsf@paris.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389658764-39199-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41487 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752124AbaBJTdR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Feb 2014 14:33:17 -0500
+In-Reply-To: <7h61omakk9.fsf@paris.lan>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>, Roger Quadros <rogerq@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-usb@vger.kernel.org, "Balbi, Felipe" <balbi@ti.com>, linux-next@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-Mark,
+On 02/10/2014 12:28 PM, Kevin Hilman wrote:
+> Roger Quadros <rogerq@ti.com> writes:
+> 
+>> +devicetree
+>>
+>> On 02/10/2014 05:59 PM, Nishanth Menon wrote:
+>>> Hi,
+>>>
+>>> A quick note to report that I saw regression in today's next tag (logs
+>>> indicate around EHCI) boot on various TI platforms:
+>>>
+>>> Note: crane and sdp2430 are not expected to pass with
+>>> multi_v7_defconfig (note: omap2plus_defconfig boot seems to be sane
+>>> but USB is disabled there)
+>>>
+>>> next-20140210-multi_v7_defconfig
+>>>  1: am335x-evm:  Boot PASS: http://slexy.org/raw/s2zYHdPb94
+>>>  2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s2UChLyzSE
+>>>  3: am3517-evm:  Boot FAIL: http://slexy.org/raw/s20Br9XLO1
+>>> around ehci
+>>>
+>>>  4:  am37x-evm:  Boot FAIL: http://slexy.org/raw/s20mVz9Wc7
+>>> around ehci
+>>>
+>>>  5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s2byveBYtT
+>>>  6: BeagleBoard-XM:  Boot FAIL: http://slexy.org/raw/s21sOgJNwK
+>>> around ehci
+>>>
+>>>  7: BeagleBone-Black:  Boot PASS: http://slexy.org/raw/s2ovVNAmO7
+>>>  8:      crane: No Image built - Missing platform support?:
+>>>  9:       dra7:  Boot PASS: http://slexy.org/raw/s217qwaXsM
+>>> 10:        ldp:  Boot FAIL: http://slexy.org/raw/s203IvjE23
+>>> around ehci
+>>>
+>>> 11: PandaBoard-ES:  Boot FAIL: http://slexy.org/raw/s2NvkRx2YJ
+>>> around ehci
+>>
+>> I think the problem is that ehci-platform driver gets loaded instead of ehci-omap.
+>>
+>> In the DT node we have compatible ids for both. e.g. for omap4.dtsi
+>>
+>>                         usbhsehci: ehci@4a064c00 {
+>>                                 compatible = "ti,ehci-omap", "usb-ehci";
+>>                                 reg = <0x4a064c00 0x400>;
+>>                                 interrupt-parent = <&gic>;
+>>                                 interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
+>>                         };
+>>
+>> Shouldn't ehci-omap driver be getting a higher priority than usb-ehci?
+>>
+>> A quick fix would be to eliminate "usb-ehci" from the DT node of all failing platforms.
+> 
+> I can confirm that simply remvoing usb-ehci from omap[34].dtsi nodes
+> fixed the problem for me on 3530/overo, 3730/beagle-xM and
+> 4460/panda-es.  But I don't think that's the right fix.  First we have
+> to figure out why ehci-omap stopped getting loaded first.
 
-On 01/13/2014 06:19 PM, Suman Anna wrote:
-> Hi,
->
-> This is an updated series mainly addressing Mark Rutland's comments
-> about hwlock specifier being always one-cell. The series adds the
-> support for #hwlock-cells property and adds a simple default OF
-> translate function.
->
-> The DTS patches from previous series have already been merged, and
-> needs this property to be added. This is handled in a separate series
-> that only deals with OMAP hwspinlock DTS patches.
->
-> The series, along with the DTS patches, is tested on top of v3.13-rc8
-> plus Tero's v13 clock DT series and Tony's 3.14 staged branches. The
-> validation on OMAP5, DRA7, AM437 requires Tero's series with couple of
-> additional base patches for AM43xx. AM43xx functionality needs a hwmod
-> fix [1] for creating the associated omap_device as well.
->
+Wont that depend on driver probe order? of_match_device is fairly
+simple compatible walk through without looking at other drivers which
+might also be compatible, but not yet probed?
 
-Can you please take a look at this series and give your ack on the 
-bindings if you do not have any further comments? The only comments so 
-far are from Bjorn on the OF helpers.
+The issue started I think with the following patch getting merged:
+ehci-platform: Add support for clks and phy passed through devicetree
+some version of http://www.spinics.net/lists/linux-usb/msg101061.html
+introduced { .compatible = "usb-ehci", },
 
-regards
-Suman
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Now, in the build we have two drivers which dts claims compatibility
+with, but only 1 driver actually works (drivers/usb/host/ehci-omap.c)
+for the platform. Thinking that way, in fact, the current
+compatibility even matches drivers/usb/host/ehci-ppc-of.c which
+obviously wont work either.
+
+-- 
+Regards,
+Nishanth Menon
