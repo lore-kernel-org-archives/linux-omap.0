@@ -1,61 +1,64 @@
-From: Christoph Fritz <chf.fritz@googlemail.com>
-Subject: Re: OMAP: clock DT conversion issues with omap36xx
-Date: Mon, 10 Feb 2014 21:54:56 +0100
-Message-ID: <1392065696.4898.163.camel@mars>
-References: <52E697C0.6000202@gmail.com> <1390848104.4936.62.camel@mars>
-	 <52E772A3.4090401@ti.com> <1390901735.2963.8.camel@lovely>
-	 <52E77D03.8090001@ti.com>  <52E7B361.2030601@ti.com>
-	 <1390928565.4904.88.camel@mars> <1390994505.5023.32.camel@mars>
-	 <52F10C3D.7000507@ti.com> <1391767923.4937.110.camel@mars>
-	 <52F4E45B.1020107@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52F4E45B.1020107@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, Nishanth Menon <nm@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 1/5] ARM: omap2: cm-t35: Add regulators and clock for camera sensor
+Date: Mon, 10 Feb 2014 22:54:40 +0100
+Message-ID: <1392069284-18024-2-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42213 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752787AbaBJVxq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Feb 2014 16:53:46 -0500
+In-Reply-To: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, 2014-02-07 at 15:49 +0200, Tomi Valkeinen wrote:
-> On 07/02/14 12:12, Christoph Fritz wrote:
-> 
-> > Yes, your patch fixes the issues for sys_clkout2. Thanks! If you want,
-> > you can add my:
-> > Tested-by: Christoph Fritz <chf.fritz@googlemail.com>
-> > 
-> > Below is my clock fix for dss:
-> > 
-> > From b90a62128068e1b6b0ba2a11c5cc0c8e587cf301 Mon Sep 17 00:00:00 2001
-> > From: Christoph Fritz <chf.fritz@googlemail.com>
-> > Date: Fri, 7 Feb 2014 10:51:15 +0100
-> > Subject: [PATCH] ARM: dts: omap36xx: fix dpll4_m4_ck tree
-> > 
-> > OMAP36xx has different hardware implementation for the dpll4_m4_ck tree
-> > compared to other OMAP3 variants. Reflect this properly in the dts file.
-> 
-> I rebased the DSS DT branch on top of v3.14-rc1, and I'm trying to get
-> beagle-xM working. Pinmuxing was wrong, but after fixing that, the
-> clk_set_rate for dss fclk failed. I applied Tero's and your patches, but
-> now when starting omapdss I see:
-> 
-> [   19.704193] omap clock: module associated with clock
-> dss1_alwon_fck_3430es2 didn't enable in 1000
-> 00 tries
-> 
-> I wonder if I'm still missing some patch?
+The camera sensor will soon require regulators and clocks. Register
+fixed regulators for its VAA and VDD power supplies and a fixed rate
+clock for its master clock.
 
-Is beagle-xM using DSI? Because here the LILLY-A83X board is not. The
-clock registers are all fine now as before the dt clock conversion
-patches.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/arm/mach-omap2/board-cm-t35.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-I suppose you are using current linus tree. I tested 'next' but didn't
-get DSS working. I guessed that it would have something to do with early
-DSS DT integration issues.
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 8dd0ec8..018353d 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -16,6 +16,8 @@
+  *
+  */
+ 
++#include <linux/clk-provider.h>
++#include <linux/clkdev.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+@@ -542,8 +544,22 @@ static struct isp_platform_data cm_t35_isp_pdata = {
+ 	.subdevs = cm_t35_isp_subdevs,
+ };
+ 
++static struct regulator_consumer_supply cm_t35_camera_supplies[] = {
++	REGULATOR_SUPPLY("vaa", "3-005d"),
++	REGULATOR_SUPPLY("vdd", "3-005d"),
++};
++
+ static void __init cm_t35_init_camera(void)
+ {
++	struct clk *clk;
++
++	clk = clk_register_fixed_rate(NULL, "mt9t001-clkin", NULL, CLK_IS_ROOT,
++				      48000000);
++	clk_register_clkdev(clk, NULL, "3-005d");
++
++	regulator_register_fixed(2, cm_t35_camera_supplies,
++				 ARRAY_SIZE(cm_t35_camera_supplies));
++
+ 	if (omap3_init_camera(&cm_t35_isp_pdata) < 0)
+ 		pr_warn("CM-T3x: Failed registering camera device!\n");
+ }
+-- 
+1.8.3.2
 
-I'll rebase my current dt board support patchset for LILLY-A83X to
-current linus tree and investigate DSS further.
-
- Thanks
-  -- Christoph
