@@ -1,69 +1,92 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Subject: Re: [PATCH 2/2] clocksource: Make clocksource register functions
- void
-Date: Mon, 10 Feb 2014 09:13:55 +0800
-Message-ID: <52F827D3.5080906@huawei.com>
-References: <1390461166-36440-1-git-send-email-wangyijing@huawei.com> <52E0C889.6000106@prisktech.co.nz> <063D6719AE5E284EB5DD2968C1650D6D46489C@AcuExch.aculab.com> <alpine.DEB.2.02.1402052139560.24986@ionos.tec.linutronix.de>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: [PATCH 00/17] i2c: deprecate class based instantiation for embedded
+	I2C drivers
+Date: Mon, 10 Feb 2014 11:03:54 +0100
+Message-ID: <1392026654-5343-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mips-bounce@linux-mips.org>
-In-Reply-To: <alpine.DEB.2.02.1402052139560.24986@ionos.tec.linutronix.de>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-List-help: <mailto:ecartis@linux-mips.org?Subject=help>
-List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
-List-owner: <mailto:ralf@linux-mips.org>
-List-post: <mailto:linux-mips@linux-mips.org>
-List-archive: <http://www.linux-mips.org/archives/linux-mips/>
-To: Thomas Gleixner <tglx@linutronix.de>, David Laight <David.Laight@ACULAB.COM>
-Cc: 'Tony Prisk' <linux@prisktech.co.nz>, John Stultz <john.stultz@linaro.org>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Kevin Hilman <khilman@deeprootsystems.com>, "linux@lists.openrisc.net" <linux@openrisc.net>, Sekhar Nori <nsekhar@ti.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Daniel Walker <dwalker@fifo99.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Jonas Bonn <jonas@southpole.se>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Richard Weinberger <richard@nod.at>, "x86@kernel.org" <x86@kernel.org>, Tony Lindgren <tony@atomide.com>, Ingo Molnar <mingo@redhat.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@v>
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2014/2/6 4:40, Thomas Gleixner wrote:
-> Yijing,
-> 
-> On Thu, 23 Jan 2014, David Laight wrote:
-> 
->> From: Linuxppc-dev Tony Prisk
->>> On 23/01/14 20:12, Yijing Wang wrote:
->>>> Currently, clocksource_register() and __clocksource_register_scale()
->>>> functions always return 0, it's pointless, make functions void.
->>>> And remove the dead code that check the clocksource_register_hz()
->>>> return value.
->>> ......
->>>> -static inline int clocksource_register_hz(struct clocksource *cs, u32 hz)
->>>> +static inline void clocksource_register_hz(struct clocksource *cs, u32 hz)
->>>>   {
->>>>   	return __clocksource_register_scale(cs, 1, hz);
->>>>   }
->>>
->>> This doesn't make sense - you are still returning a value on a function
->>> declared void, and the return is now from a function that doesn't return
->>> anything either ?!?!
->>> Doesn't this throw a compile-time warning??
->>
->> It depends on the compiler.
->> Recent gcc allow it.
->> I don't know if it is actually valid C though.
->>
->> There is no excuse for it on lines like the above though.
-> 
-> Can you please resend with that fixed against 3.14-rc1 ?
+With I2C, class based instantiation means if a master driver has e.g.
+I2C_CLASS_HWMON set, all slave drivers with this class will try to probe a
+device using an array of possible addresses and some heuristics. That creates
+traffic and needs time, even when nothing is connected. This mechanism is
+needed when you do not have another method to describe the slaves. Embedded I2C
+drivers do not need class based instantiation, since there is i2c_board_info or
+devicetree description. Some drivers have the class flags set, though, and it
+has spread further over the years. We can't remove the flags directly, because
+there might be users out there relying on this feature. So, we add a
+deprecation warning if a device is instantiated via class attributes. After
+giving some time to switch over, we can then finally remove the class flags and
+gain boot time.
 
-OK, I will resend later.
+Patch 1 adds some missing documentation. Patch 2 adds the deprecation feature.
+Patches 3+4 are tested on hardware I need. Patches 5-17 are suggestions for
+drivers I think could benefit from that. For those, acks are needed before I
+will apply them to my tree. If you use a different driver which can also
+benefit from this, just send a patch adding the new DEPRECATED flag.
 
-Thanks!
-Yijing.
+The series can also be found here:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git i2c/deprecated_class
+
+Thanks,
+
+   Wolfram
 
 
-> 
-> .
-> 
+Wolfram Sang (17):
+  Documentation: i2c: describe devicetree method for instantiating
+    devices
+  i2c: add deprecation warning for class based instantiation
+  i2c: i2c-omap: deprecate class based instantiation
+  i2c: i2c-at91: deprecate class based instantiation
+  i2c: i2c-bcm2835: deprecate class based instantiation
+  i2c: i2c-bfin-twi: deprecate class based instantiation
+  i2c: i2c-davinci: deprecate class based instantiation
+  i2c: i2c-designware-platdrv: deprecate class based instantiation
+  i2c: i2c-mv64xxx: deprecate class based instantiation
+  i2c: i2c-nomadik: deprecate class based instantiation
+  i2c: i2c-ocores: deprecate class based instantiation
+  i2c: i2c-rcar: deprecate class based instantiation
+  i2c: i2c-s3c2410: deprecate class based instantiation
+  i2c: i2c-sirf: deprecate class based instantiation
+  i2c: i2c-stu300: deprecate class based instantiation
+  i2c: i2c-tegra: deprecate class based instantiation
+  i2c: i2c-xiic: deprecate class based instantiation
 
+ Documentation/i2c/instantiating-devices     | 34 +++++++++++++++++++++++++++--
+ drivers/i2c/busses/i2c-at91.c               |  2 +-
+ drivers/i2c/busses/i2c-bcm2835.c            |  2 +-
+ drivers/i2c/busses/i2c-bfin-twi.c           |  2 +-
+ drivers/i2c/busses/i2c-davinci.c            |  2 +-
+ drivers/i2c/busses/i2c-designware-platdrv.c |  2 +-
+ drivers/i2c/busses/i2c-mv64xxx.c            |  2 +-
+ drivers/i2c/busses/i2c-nomadik.c            |  2 +-
+ drivers/i2c/busses/i2c-ocores.c             |  2 +-
+ drivers/i2c/busses/i2c-omap.c               |  2 +-
+ drivers/i2c/busses/i2c-rcar.c               |  2 +-
+ drivers/i2c/busses/i2c-s3c2410.c            |  2 +-
+ drivers/i2c/busses/i2c-sirf.c               |  2 +-
+ drivers/i2c/busses/i2c-stu300.c             |  2 +-
+ drivers/i2c/busses/i2c-tegra.c              |  2 +-
+ drivers/i2c/busses/i2c-xiic.c               |  2 +-
+ drivers/i2c/i2c-core.c                      |  7 ++++++
+ include/linux/i2c.h                         |  1 +
+ 18 files changed, 55 insertions(+), 17 deletions(-)
 
 -- 
-Thanks!
-Yijing
+1.8.5.1
