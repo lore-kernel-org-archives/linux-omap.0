@@ -1,39 +1,61 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: dts: OMAP2+: Fix boot with multi_v7_defconfig
-Date: Mon, 10 Feb 2014 13:50:22 -0600
-Message-ID: <52F92D7E.9030304@ti.com>
-References: <1392055835-6494-1-git-send-email-rogerq@ti.com>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: Re: OMAP: clock DT conversion issues with omap36xx
+Date: Mon, 10 Feb 2014 21:54:56 +0100
+Message-ID: <1392065696.4898.163.camel@mars>
+References: <52E697C0.6000202@gmail.com> <1390848104.4936.62.camel@mars>
+	 <52E772A3.4090401@ti.com> <1390901735.2963.8.camel@lovely>
+	 <52E77D03.8090001@ti.com>  <52E7B361.2030601@ti.com>
+	 <1390928565.4904.88.camel@mars> <1390994505.5023.32.camel@mars>
+	 <52F10C3D.7000507@ti.com> <1391767923.4937.110.camel@mars>
+	 <52F4E45B.1020107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1392055835-6494-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <52F4E45B.1020107@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
-Cc: bcousson@baylibre.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-$subject probably needs clarity.
-On 02/10/2014 12:10 PM, Roger Quadros wrote:
-> The OMAP EHCI controller is not compatible with the EHCI
-> platform HCD driver so don't claim that we are.
-
-might want to refer to the change in drivers/usb/host/ehci-platform.c
-that created this regression as well.
-
-we also probably want to make better explanation about this issue and
-why we think this is the correct fix for it - for example, question
-Kevin asked in [1]
+On Fri, 2014-02-07 at 15:49 +0200, Tomi Valkeinen wrote:
+> On 07/02/14 12:12, Christoph Fritz wrote:
 > 
-> This fixes boot on OMAP platforms with CONFIG_USB_EHCI_HCD_PLATFORM=y
-> e.g. multi_v7_defconfig
+> > Yes, your patch fixes the issues for sys_clkout2. Thanks! If you want,
+> > you can add my:
+> > Tested-by: Christoph Fritz <chf.fritz@googlemail.com>
+> > 
+> > Below is my clock fix for dss:
+> > 
+> > From b90a62128068e1b6b0ba2a11c5cc0c8e587cf301 Mon Sep 17 00:00:00 2001
+> > From: Christoph Fritz <chf.fritz@googlemail.com>
+> > Date: Fri, 7 Feb 2014 10:51:15 +0100
+> > Subject: [PATCH] ARM: dts: omap36xx: fix dpll4_m4_ck tree
+> > 
+> > OMAP36xx has different hardware implementation for the dpll4_m4_ck tree
+> > compared to other OMAP3 variants. Reflect this properly in the dts file.
 > 
-> Reported-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
+> I rebased the DSS DT branch on top of v3.14-rc1, and I'm trying to get
+> beagle-xM working. Pinmuxing was wrong, but after fixing that, the
+> clk_set_rate for dss fclk failed. I applied Tero's and your patches, but
+> now when starting omapdss I see:
+> 
+> [   19.704193] omap clock: module associated with clock
+> dss1_alwon_fck_3430es2 didn't enable in 1000
+> 00 tries
+> 
+> I wonder if I'm still missing some patch?
 
-[1] http://marc.info/?t=139204803900004&r=1&w=2
+Is beagle-xM using DSI? Because here the LILLY-A83X board is not. The
+clock registers are all fine now as before the dt clock conversion
+patches.
 
--- 
-Regards,
-Nishanth Menon
+I suppose you are using current linus tree. I tested 'next' but didn't
+get DSS working. I guessed that it would have something to do with early
+DSS DT integration issues.
+
+I'll rebase my current dt board support patchset for LILLY-A83X to
+current linus tree and investigate DSS further.
+
+ Thanks
+  -- Christoph
