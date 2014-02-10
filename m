@@ -1,168 +1,224 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH 23/26] ARM: omap: dma: get rid of 'p' allocation and clean up
-Date: Mon, 10 Feb 2014 15:57:50 +0000
-Message-ID: <E1WCtF0-0006Xa-UN@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 25/26] dmaengine: omap-dma: move IRQ handling to omap-dma
+Date: Mon, 10 Feb 2014 15:58:01 +0000
+Message-ID: <E1WCtFB-0006Xi-5X@rmk-PC.arm.linux.org.uk>
 References: <20140210155531.GB26684@n2100.arm.linux.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:60097 "EHLO
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:60106 "EHLO
 	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752948AbaBJP5x (ORCPT
+	by vger.kernel.org with ESMTP id S1752964AbaBJP6E (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Feb 2014 10:57:53 -0500
+	Mon, 10 Feb 2014 10:58:04 -0500
 In-Reply-To: <20140210155531.GB26684@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
-
-The omap_system_dma_plat_info structure is only seven words, it's not
-worth the expense of kmalloc()'ing backing store for this only to
-release it later.  Note that platform_device_add_data() copies the
-data anyway.  Clean up the initialisation of this structure - we don't
-even need code to initialise most of this structure.
+Cc: Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap1/dma.c | 36 ++++++++++++++----------------------
- arch/arm/mach-omap2/dma.c | 34 +++++++++++++---------------------
- 2 files changed, 27 insertions(+), 43 deletions(-)
+ drivers/dma/omap-dma.c | 121 ++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 115 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
-index d170f7d0a6ac..a8c83ccc36fb 100644
---- a/arch/arm/mach-omap1/dma.c
-+++ b/arch/arm/mach-omap1/dma.c
-@@ -263,9 +263,17 @@ static const struct platform_device_info omap_dma_dev_info = {
- 	.dma_mask = DMA_BIT_MASK(32),
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 00f8e566cf12..ec98e718de70 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -30,6 +30,10 @@ struct omap_dmadev {
+ 	void __iomem *base;
+ 	const struct omap_dma_reg *reg_map;
+ 	struct omap_system_dma_plat_info *plat;
++	bool legacy;
++	spinlock_t irq_lock;
++	uint32_t irq_enable_mask;
++	struct omap_chan *lch_map[32];
  };
  
-+static struct omap_system_dma_plat_info dma_plat_info __initdata = {
-+	.show_dma_caps	= omap1_show_dma_caps,
-+	.clear_lch_regs	= omap1_clear_lch_regs,
-+	.clear_dma	= omap1_clear_dma,
-+	.dma_write	= dma_write,
-+	.dma_read	= dma_read,
-+};
-+
- static int __init omap1_system_dma_init(void)
- {
--	struct omap_system_dma_plat_info	*p;
-+	struct omap_system_dma_plat_info	p;
- 	struct omap_dma_dev_attr		*d;
- 	struct platform_device			*pdev, *dma_pdev;
- 	int ret;
-@@ -291,20 +299,12 @@ static int __init omap1_system_dma_init(void)
- 		goto exit_iounmap;
- 	}
- 
--	p = kzalloc(sizeof(struct omap_system_dma_plat_info), GFP_KERNEL);
--	if (!p) {
--		dev_err(&pdev->dev, "%s: Unable to allocate 'p' for %s\n",
--			__func__, pdev->name);
--		ret = -ENOMEM;
--		goto exit_iounmap;
--	}
--
- 	d = kzalloc(sizeof(struct omap_dma_dev_attr), GFP_KERNEL);
- 	if (!d) {
- 		dev_err(&pdev->dev, "%s: Unable to allocate 'd' for %s\n",
- 			__func__, pdev->name);
- 		ret = -ENOMEM;
--		goto exit_release_p;
-+		goto exit_iounmap;
- 	}
- 
- 	d->lch_count		= OMAP1_LOGICAL_DMA_CH_COUNT;
-@@ -334,17 +334,11 @@ static int __init omap1_system_dma_init(void)
- 			d->chan_count = 9;
- 	}
- 
--	p->dma_attr = d;
--
--	p->show_dma_caps	= omap1_show_dma_caps;
--	p->clear_lch_regs	= omap1_clear_lch_regs;
--	p->clear_dma		= omap1_clear_dma;
--	p->dma_write		= dma_write;
--	p->dma_read		= dma_read;
--
--	p->errata = configure_dma_errata();
-+	p = dma_plat_info;
-+	p.dma_attr = d;
-+	p.errata = configure_dma_errata();
- 
--	ret = platform_device_add_data(pdev, p, sizeof(*p));
-+	ret = platform_device_add_data(pdev, &p, sizeof(p));
- 	if (ret) {
- 		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
- 			__func__, pdev->name, pdev->id);
-@@ -370,8 +364,6 @@ static int __init omap1_system_dma_init(void)
- 	platform_device_del(pdev);
- exit_release_d:
- 	kfree(d);
--exit_release_p:
--	kfree(p);
- exit_iounmap:
- 	iounmap(dma_base);
- exit_device_put:
-diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
-index 9f210d637354..6331fc4b4054 100644
---- a/arch/arm/mach-omap2/dma.c
-+++ b/arch/arm/mach-omap2/dma.c
-@@ -35,8 +35,6 @@
- #include "omap_hwmod.h"
- #include "omap_device.h"
- 
--static struct omap_dma_dev_attr *d;
--
- static enum omap_reg_offsets dma_common_ch_end;
- 
- static const struct omap_dma_reg reg_map[] = {
-@@ -206,33 +204,27 @@ static unsigned configure_dma_errata(void)
- 	return errata;
+ struct omap_chan {
+@@ -254,10 +258,22 @@ static void omap_dma_clear_csr(struct omap_chan *c)
+ 		omap_dma_chan_write(c, CSR, ~0);
  }
  
-+static struct omap_system_dma_plat_info dma_plat_info __initdata = {
-+	.show_dma_caps	= omap2_show_dma_caps,
-+	.clear_dma	= omap2_clear_dma,
-+	.dma_write	= dma_write,
-+	.dma_read	= dma_read,
-+};
++static unsigned omap_dma_get_csr(struct omap_chan *c)
++{
++	unsigned val = omap_dma_chan_read(c, CSR);
 +
- /* One time initializations */
- static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
++	if (!dma_omap1())
++		omap_dma_chan_write(c, CSR, val);
++
++	return val;
++}
++
+ static void omap_dma_assign(struct omap_dmadev *od, struct omap_chan *c,
+ 	unsigned lch)
  {
- 	struct platform_device			*pdev;
--	struct omap_system_dma_plat_info	*p;
-+	struct omap_system_dma_plat_info	p;
-+	struct omap_dma_dev_attr		*d;
- 	struct resource				*mem;
- 	char					*name = "omap_dma_system";
+ 	c->channel_base = od->base + od->plat->channel_stride * lch;
++
++	od->lch_map[lch] = c;
+ }
  
--	p = kzalloc(sizeof(struct omap_system_dma_plat_info), GFP_KERNEL);
--	if (!p) {
--		pr_err("%s: Unable to allocate pdata for %s:%s\n",
--			__func__, name, oh->name);
--		return -ENOMEM;
--	}
--
--	p->dma_attr		= (struct omap_dma_dev_attr *)oh->dev_attr;
--	p->show_dma_caps	= omap2_show_dma_caps;
--	p->clear_dma		= omap2_clear_dma;
--	p->dma_write		= dma_write;
--	p->dma_read		= dma_read;
--
--	p->clear_lch_regs	= NULL;
--
--	p->errata		= configure_dma_errata();
-+	p = dma_plat_info;
-+	p.dma_attr = (struct omap_dma_dev_attr *)oh->dev_attr;
-+	p.errata = configure_dma_errata();
+ static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
+@@ -460,32 +476,103 @@ static void omap_dma_sched(unsigned long data)
+ 	}
+ }
  
--	pdev = omap_device_build(name, 0, oh, p, sizeof(*p));
--	kfree(p);
-+	pdev = omap_device_build(name, 0, oh, &p, sizeof(p));
- 	if (IS_ERR(pdev)) {
- 		pr_err("%s: Can't build omap_device for %s:%s.\n",
- 			__func__, name, oh->name);
++static irqreturn_t omap_dma_irq(int irq, void *devid)
++{
++	struct omap_dmadev *od = devid;
++	unsigned status, channel;
++
++	spin_lock(&od->irq_lock);
++
++	status = omap_dma_glbl_read(od, IRQSTATUS_L1);
++	status &= od->irq_enable_mask;
++	if (status == 0) {
++		spin_unlock(&od->irq_lock);
++		return IRQ_NONE;
++	}
++
++	while ((channel = ffs(status)) != 0) {
++		unsigned mask, csr;
++		struct omap_chan *c;
++
++		channel -= 1;
++		mask = BIT(channel);
++		status &= ~mask;
++
++		c = od->lch_map[channel];
++		if (c == NULL) {
++			/* This should never happen */
++			dev_err(od->ddev.dev, "invalid channel %u\n", channel);
++			continue;
++		}
++
++		csr = omap_dma_get_csr(c);
++		omap_dma_glbl_write(od, IRQSTATUS_L1, mask);
++
++		omap_dma_callback(channel, csr, c);
++	}
++
++	spin_unlock(&od->irq_lock);
++
++	return IRQ_HANDLED;
++}
++
+ static int omap_dma_alloc_chan_resources(struct dma_chan *chan)
+ {
+ 	struct omap_dmadev *od = to_omap_dma_dev(chan->device);
+ 	struct omap_chan *c = to_omap_dma_chan(chan);
+ 	int ret;
+ 
+-	dev_dbg(od->ddev.dev, "allocating channel for %u\n", c->dma_sig);
++	if (od->legacy) {
++		ret = omap_request_dma(c->dma_sig, "DMA engine",
++				       omap_dma_callback, c, &c->dma_ch);
++	} else {
++		ret = omap_request_dma(c->dma_sig, "DMA engine", NULL, NULL,
++				       &c->dma_ch);
++	}
+ 
+-	ret = omap_request_dma(c->dma_sig, "DMA engine", omap_dma_callback,
+-			       c, &c->dma_ch);
++	dev_dbg(od->ddev.dev, "allocating channel %u for %u\n",
++		c->dma_ch, c->dma_sig);
+ 
+-	if (ret >= 0)
++	if (ret >= 0) {
+ 		omap_dma_assign(od, c, c->dma_ch);
+ 
++		if (!od->legacy) {
++			unsigned val;
++
++			spin_lock_irq(&od->irq_lock);
++			val = BIT(c->dma_ch);
++			omap_dma_glbl_write(od, IRQSTATUS_L1, val);
++			od->irq_enable_mask |= val;
++			omap_dma_glbl_write(od, IRQENABLE_L1, od->irq_enable_mask);
++
++			val = omap_dma_glbl_read(od, IRQENABLE_L0);
++			val &= ~BIT(c->dma_ch);
++			omap_dma_glbl_write(od, IRQENABLE_L0, val);
++			spin_unlock_irq(&od->irq_lock);
++		}
++	}
++
+ 	return ret;
+ }
+ 
+ static void omap_dma_free_chan_resources(struct dma_chan *chan)
+ {
++	struct omap_dmadev *od = to_omap_dma_dev(chan->device);
+ 	struct omap_chan *c = to_omap_dma_chan(chan);
+ 
++	if (!od->legacy) {
++		spin_lock_irq(&od->irq_lock);
++		od->irq_enable_mask &= ~BIT(c->dma_ch);
++		omap_dma_glbl_write(od, IRQENABLE_L1, od->irq_enable_mask);
++		spin_unlock_irq(&od->irq_lock);
++	}
++
+ 	c->channel_base = NULL;
++	od->lch_map[c->dma_ch] = NULL;
+ 	vchan_free_chan_resources(&c->vc);
+ 	omap_free_dma(c->dma_ch);
+ 
+-	dev_dbg(c->vc.chan.device->dev, "freeing channel for %u\n", c->dma_sig);
++	dev_dbg(od->ddev.dev, "freeing channel for %u\n", c->dma_sig);
+ }
+ 
+ static size_t omap_dma_sg_size(struct omap_sg *sg)
+@@ -1015,7 +1102,7 @@ static int omap_dma_probe(struct platform_device *pdev)
+ {
+ 	struct omap_dmadev *od;
+ 	struct resource *res;
+-	int rc, i;
++	int rc, i, irq;
+ 
+ 	od = devm_kzalloc(&pdev->dev, sizeof(*od), GFP_KERNEL);
+ 	if (!od)
+@@ -1045,6 +1132,7 @@ static int omap_dma_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&od->ddev.channels);
+ 	INIT_LIST_HEAD(&od->pending);
+ 	spin_lock_init(&od->lock);
++	spin_lock_init(&od->irq_lock);
+ 
+ 	tasklet_init(&od->task, omap_dma_sched, (unsigned long)od);
+ 
+@@ -1056,6 +1144,21 @@ static int omap_dma_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	irq = platform_get_irq(pdev, 1);
++	if (irq <= 0) {
++		dev_info(&pdev->dev, "failed to get L1 IRQ: %d\n", irq);
++		od->legacy = true;
++	} else {
++		/* Disable all interrupts */
++		od->irq_enable_mask = 0;
++		omap_dma_glbl_write(od, IRQENABLE_L1, 0);
++
++		rc = devm_request_irq(&pdev->dev, irq, omap_dma_irq,
++				      IRQF_SHARED, "omap-dma-engine", od);
++		if (rc)
++			return rc;
++	}
++
+ 	rc = dma_async_device_register(&od->ddev);
+ 	if (rc) {
+ 		pr_warn("OMAP-DMA: failed to register slave DMA engine device: %d\n",
+@@ -1092,6 +1195,12 @@ static int omap_dma_remove(struct platform_device *pdev)
+ 		of_dma_controller_free(pdev->dev.of_node);
+ 
+ 	dma_async_device_unregister(&od->ddev);
++
++	if (!od->legacy) {
++		/* Disable all interrupts */
++		omap_dma_glbl_write(od, IRQENABLE_L0, 0);
++	}
++
+ 	omap_dma_free(od);
+ 
+ 	return 0;
 -- 
 1.8.3.1
 
