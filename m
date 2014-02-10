@@ -1,38 +1,39 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.14-rc1
-Date: Mon, 10 Feb 2014 18:02:08 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1402101801170.30435@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1402101733340.30435@utopia.booyaka.com> <52F913A5.7040207@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: regression(ti platforms): next-20140210 (ehci?)
+Date: Mon, 10 Feb 2014 12:02:57 -0600
+Message-ID: <52F91451.8050802@ti.com>
+References: <52F8F77B.70605@ti.com> <52F9117C.8000405@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:54665 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752295AbaBJSCK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Feb 2014 13:02:10 -0500
-In-Reply-To: <52F913A5.7040207@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <52F9117C.8000405@ti.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-usb@vger.kernel.org, "Balbi, Felipe" <balbi@ti.com>
+Cc: linux-next@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On Mon, 10 Feb 2014, Nishanth Menon wrote:
-
-> On 02/10/2014 11:48 AM, Paul Walmsley wrote:
-> [...]
-> > Boot to userspace:
-> >     FAIL ( 1/10): 2430sdp
+On 02/10/2014 11:50 AM, Roger Quadros wrote:
+> +devicetree
 > 
-> Comparing boot logs I reported
-> http://marc.info/?l=linux-omap&m=139144642318949&w=2 Vs
-> http://www.pwsan.com/omap/testlogs/test_v3.14-rc1/20140210035354/boot/2430sdp/2430sdp_log.txt
+[...]
+> In the DT node we have compatible ids for both. e.g. for omap4.dtsi
 > 
-> I see that bootargs are different -> I was attempting to boot sdp2430
-> with nfs boot which seems to work fine for me, I believe you are
-> attempting mmc boot here.
+>                         usbhsehci: ehci@4a064c00 {
+>                                 compatible = "ti,ehci-omap", "usb-ehci";
+>                                 reg = <0x4a064c00 0x400>;
+>                                 interrupt-parent = <&gic>;
+>                                 interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
+>                         };
+> 
+> Shouldn't ehci-omap driver be getting a higher priority than usb-ehci?
+> 
+> A quick fix would be to eliminate "usb-ehci" from the DT node of all failing platforms.
 
-Yep.  My 2430SDP's Ethernet interface flaked out a month or two ago, so, 
-switched it to serial booting.  Hey, better test coverage from us ;-)
+If the driver is not compatible with "usb-ehci", not sure why do we
+even state that in dts node?
 
 
-- Paul
+-- 
+Regards,
+Nishanth Menon
