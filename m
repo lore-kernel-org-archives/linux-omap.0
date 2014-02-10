@@ -1,40 +1,37 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 0/5] mt9t001 and mt9p031 sensors drivers patches
-Date: Mon, 10 Feb 2014 22:54:39 +0100
-Message-ID: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 4/5] mt9p031: Fix typo in comment
+Date: Mon, 10 Feb 2014 22:54:43 +0100
+Message-ID: <1392069284-18024-5-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42212 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42214 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752508AbaBJVxq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Feb 2014 16:53:46 -0500
+	with ESMTP id S1752787AbaBJVxw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Feb 2014 16:53:52 -0500
+In-Reply-To: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hello,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/mt9p031.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This is a set of miscellaneous patches for the mt9t001 and mt9p031 sensors
-drivers. Please see individual commit messages for details.
-
-The mt9t001 driver receives support for regulators and clocks. As a
-prerequisite, patch 1/5 registers a fixed rate clock and two fixed voltage
-regulators for the CM-T35 board camera sensor.
-
-Laurent Pinchart (5):
-  ARM: omap2: cm-t35: Add regulators and clock for camera sensor
-  mt9t001: Add regulator support
-  mt9t001: Add clock support
-  mt9p031: Fix typo in comment
-  mt9p031: Add support for PLL bypass
-
- arch/arm/mach-omap2/board-cm-t35.c |  16 +++
- drivers/media/i2c/mt9p031.c        |  34 +++++-
- drivers/media/i2c/mt9t001.c        | 229 +++++++++++++++++++++++++++++--------
- 3 files changed, 228 insertions(+), 51 deletions(-)
-
+diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+index 05278f5..14a616e 100644
+--- a/drivers/media/i2c/mt9p031.c
++++ b/drivers/media/i2c/mt9p031.c
+@@ -288,7 +288,7 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	/* Emable clock */
++	/* Enable clock */
+ 	if (mt9p031->clk) {
+ 		ret = clk_prepare_enable(mt9p031->clk);
+ 		if (ret) {
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.2
 
