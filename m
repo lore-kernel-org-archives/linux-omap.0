@@ -1,70 +1,84 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: dts: omap3-n9 family: mark proper OMAP version
-Date: Tue, 11 Feb 2014 09:29:01 -0600
-Message-ID: <1392132541-25340-1-git-send-email-nm@ti.com>
+From: Peter Meerwald <pmeerw@pmeerw.net>
+Subject: OMAP3 ISP capabilities (fwd)
+Date: Tue, 11 Feb 2014 17:02:23 +0100 (CET)
+Message-ID: <alpine.DEB.2.01.1402111650330.6474@pmeerw.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns.pmeerw.net ([87.118.82.44]:46859 "EHLO pmeerw.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750984AbaBKQCY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Feb 2014 11:02:24 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-Nokia N900 uses OMAP3430 and N9/N950 uses OMAP3630. Mark SoC compatibilty
-as per Documentation/devicetree/bindings/arm/omap/omap.txt else
-N9/N950 will be probed as a OMAP3430 type device, since default ti,omap3
-maps to OMAP3430 compatibility.
+Hello,
 
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+trying (3) below and hitting
 
-just build tested. but given examples such as 
-http://thread.gmane.org/gmane.linux.ports.arm.omap/110006
+[ 6241.536071] WARNING: at drivers/media/v4l2-core/v4l2-subdev.c:424 v4l2_subdev_link_validate_get_format+0x90/0xa8()
+[ 6241.573150] Driver bug! Wrong media entity type 65536, entity OMAP3 ISP resizer input
+[ 6241.595153] [<c0011cdc>] (unwind_backtrace+0x0/0xe0) from [<c002ed28>] (warn_slowpath_common+0x4c/0x64)
+[ 6241.605651] [<c002ed28>] (warn_slowpath_common+0x4c/0x64) from [<c002edc0>] (warn_slowpath_fmt+0x2c/0x3c)
+[ 6241.615997] [<c002edc0>] (warn_slowpath_fmt+0x2c/0x3c) from [<c027e2e4>] (v4l2_subdev_link_validate_get_format+0x90/0xa8)
+[ 6241.632751] [<c027e2e4>] (v4l2_subdev_link_validate_get_format+0x90/0xa8) from [<c027e314>] (v4l2_subdev_link_validate+0x18)
+[ 6241.645324] [<c027e314>] (v4l2_subdev_link_validate+0x18/0xac) from [<c0272954>] (media_entity_pipeline_start+0xc8/0x170)
+[ 6241.657012] [<c0272954>] (media_entity_pipeline_start+0xc8/0x170) from [<c0285820>] (isp_video_streamon+0xa4/0x314)
+[ 6241.672027] [<c0285820>] (isp_video_streamon+0xa4/0x314) from [<c02748ec>] (v4l_streamon+0x18/0x1c)
+[ 6241.681884] [<c02748ec>] (v4l_streamon+0x18/0x1c) from [<c02779c0>] (__video_do_ioctl+0x1c4/0x2e4)
+[ 6241.691558] [<c02779c0>] (__video_do_ioctl+0x1c4/0x2e4) from [<c0277d84>] (video_usercopy+0x2a4/0x3e0)
+[ 6241.701507] [<c0277d84>] (video_usercopy+0x2a4/0x3e0) from [<c02730e0>] (v4l2_ioctl+0x6c/0x110)
+[ 6241.715240] [<c02730e0>] (v4l2_ioctl+0x6c/0x110) from [<c00c36ec>] (do_vfs_ioctl+0x548/0x5b8)
+[ 6241.724792] [<c00c36ec>] (do_vfs_ioctl+0x548/0x5b8) from [<c00c3794>] (sys_ioctl+0x38/0x54)
+[ 6241.733795] [<c00c3794>] (sys_ioctl+0x38/0x54) from [<c000d420>] (ret_fast_syscall+0x0/0x30)
+[ 6241.743438] ---[ end trace 3ce601d6bddf2d7e ]---
 
-I guess, some form of failure is expected.
+pipeline is
 
-based on v3.14-rc2
+media-ctl -r
+media-ctl -l '"OMAP3 ISP resizer input":0->"OMAP3 ISP resizer":0[1]'
+media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+media-ctl -V '"OMAP3 ISP resizer":0 [YUYV2X8 640x480]'
+media-ctl -V '"OMAP3 ISP resizer":1 [YUYV2X8 320x240]'
 
- arch/arm/boot/dts/omap3-n9.dts   |    2 +-
- arch/arm/boot/dts/omap3-n900.dts |    2 +-
- arch/arm/boot/dts/omap3-n950.dts |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+I'm opening /dev/video5 and /dev/video6, do S_FMT on both as VIDEO_OUTPUT 
+and VIDEO_CAPTURE, respectively, configure buffers and then STREAMON --
+bang!
 
-diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-index 39828ce..9938b5d 100644
---- a/arch/arm/boot/dts/omap3-n9.dts
-+++ b/arch/arm/boot/dts/omap3-n9.dts
-@@ -14,5 +14,5 @@
- 
- / {
- 	model = "Nokia N9";
--	compatible = "nokia,omap3-n9", "ti,omap3";
-+	compatible = "nokia,omap3-n9", "ti,omap36xx", "ti,omap3";
- };
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 6fc85f9..97db027 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -13,7 +13,7 @@
- 
- / {
- 	model = "Nokia N900";
--	compatible = "nokia,omap3-n900", "ti,omap3";
-+	compatible = "nokia,omap3-n900", "ti,omap3430", "ti,omap3";
- 
- 	cpus {
- 		cpu@0 {
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index b076a52..261c558 100644
---- a/arch/arm/boot/dts/omap3-n950.dts
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -14,5 +14,5 @@
- 
- / {
- 	model = "Nokia N950";
--	compatible = "nokia,omap3-n950", "ti,omap3";
-+	compatible = "nokia,omap3-n950", "ti,omap36xx", "ti,omap3";
- };
+regards, p.
+
 -- 
-1.7.9.5
+
+Peter Meerwald
++43-664-2444418 (mobile)
+
+---------- Forwarded message ----------
+Date: Tue, 11 Feb 2014 15:54:00 +0100 (CET)
+From: Peter Meerwald <pmeerw@pmeerw.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: OMAP3 ISP capabilities
+
+Hello Laurent,
+
+some quick question about the OMAP3 ISP pipeline capabilities:
+
+(1) can the OMAP3 ISP CCDC output concurrently to memory AND the resizer 
+in YUV mode? I think the answer is no due to hardware limitation
+
+(2) in RAW mode, I think it should be possible to connect pad 1 of the 
+OMAP3 ISP CCDC to CCDC output and pad 2 to the ISP preview and 
+subsequently to the resizer? so two stream can be read concurrently from 
+video2 and video6?
+
+(3) it should be possible to use the ISP resizer input / output 
+(memory-to-memory) independently; it there any example code doing this?
+
+thanks, regards, p.
+
+-- 
+
+Peter Meerwald
++43-664-2444418 (mobile)
