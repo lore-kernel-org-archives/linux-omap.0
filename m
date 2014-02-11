@@ -1,38 +1,56 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap3-n9 family: mark proper OMAP version
-Date: Tue, 11 Feb 2014 14:10:07 -0600
-Message-ID: <52FA839F.5090304@ti.com>
-References: <1392132541-25340-1-git-send-email-nm@ti.com> <20140211185136.GG573@drone.musicnaut.iki.fi>
+Subject: Re: [PATCH 1/2] ARM: dts: N9/N950: fix boot hang with 3.14-rc1
+Date: Tue, 11 Feb 2014 14:11:10 -0600
+Message-ID: <52FA83DE.70504@ti.com>
+References: <1391947956-24462-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140211185136.GG573@drone.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:53922 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753938AbaBKULr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Feb 2014 15:11:47 -0500
+In-Reply-To: <1391947956-24462-1-git-send-email-aaro.koskinen@iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, =?ISO-8859-1?Q?Beno=EEt_Couss?= =?ISO-8859-1?Q?on?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Aaro,
-On 02/11/2014 12:51 PM, Aaro Koskinen wrote:
-> Hi,
+On 02/09/2014 06:12 AM, Aaro Koskinen wrote:
+> N9/N950 does not boot anymore with 3.14-rc1, because SoC compatible
+> property is missing. Fix that.
 > 
-> On Tue, Feb 11, 2014 at 09:29:01AM -0600, Nishanth Menon wrote:
->> Nokia N900 uses OMAP3430 and N9/N950 uses OMAP3630. Mark SoC compatibilty
->> as per Documentation/devicetree/bindings/arm/omap/omap.txt else
->> N9/N950 will be probed as a OMAP3430 type device, since default ti,omap3
->> maps to OMAP3430 compatibility.
-> 
-> I already sent & tested patches for this:
-> 
-> http://marc.info/?l=linux-omap&m=139194800711362&w=2
-> http://marc.info/?l=linux-omap&m=139194800011360&w=2
-> 
-> The N9/N950 is mandatory for 3.14, as the boot hangs without it.
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Thanks. Apologies on missing these, I caught these based on a git grep
-on an unrelated thing.. I will ack your patches - they are obvious
-regressions.
+Reviewed-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/boot/dts/omap3-n9.dts   | 2 +-
+>  arch/arm/boot/dts/omap3-n950.dts | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+> index 39828ce464ee..9938b5dc1909 100644
+> --- a/arch/arm/boot/dts/omap3-n9.dts
+> +++ b/arch/arm/boot/dts/omap3-n9.dts
+> @@ -14,5 +14,5 @@
+>  
+>  / {
+>  	model = "Nokia N9";
+> -	compatible = "nokia,omap3-n9", "ti,omap3";
+> +	compatible = "nokia,omap3-n9", "ti,omap36xx", "ti,omap3";
+>  };
+> diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+> index b076a526b999..261c5589bfa3 100644
+> --- a/arch/arm/boot/dts/omap3-n950.dts
+> +++ b/arch/arm/boot/dts/omap3-n950.dts
+> @@ -14,5 +14,5 @@
+>  
+>  / {
+>  	model = "Nokia N950";
+> -	compatible = "nokia,omap3-n950", "ti,omap3";
+> +	compatible = "nokia,omap3-n950", "ti,omap36xx", "ti,omap3";
+>  };
+> 
 
 
 -- 
