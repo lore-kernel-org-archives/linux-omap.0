@@ -1,54 +1,194 @@
-From: Nathan Lynch <Nathan_Lynch@mentor.com>
-Subject: Re: [PATCH] ARM: dts: OMAP5: add pmu node
-Date: Tue, 11 Feb 2014 14:14:16 -0600
-Message-ID: <52FA8498.5050507@mentor.com>
-References: <1391014601-31663-1-git-send-email-nathan_lynch@mentor.com>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH v1 0/2] mtd: nand: omap: booting from NAND using u-boot
+Date: Tue, 11 Feb 2014 15:40:40 -0800
+Message-ID: <20140211234040.GN18440@ld-irv-0074>
+References: <1386925978-23705-1-git-send-email-pekon@ti.com>
+ <20140125085537.GA3162@norris-Latitude-E6410>
+ <20980858CB6D3A4BAE95CA194937D5E73EA6B567@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:34079 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143AbaBKUOU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Feb 2014 15:14:20 -0500
-In-Reply-To: <1391014601-31663-1-git-send-email-nathan_lynch@mentor.com>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:63897 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751585AbaBKXkp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Feb 2014 18:40:45 -0500
+Received: by mail-ie0-f177.google.com with SMTP id rp18so293832iec.22
+        for <linux-omap@vger.kernel.org>; Tue, 11 Feb 2014 15:40:44 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA6B567@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: bcousson@baylibre.com, tony@atomide.com
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, "u-boot@lists.denx.de" <u-boot@lists.denx.de>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Enric Balletbo Serra <eballetbo@iseebcn.com>, "Balbi, Felipe" <balbi@ti.com>
 
-On 01/29/2014 10:56 AM, Nathan Lynch wrote:
-> Expose the PMU on OMAP5.
-> 
-> Signed-off-by: Nathan Lynch <nathan_lynch@mentor.com>
+Hi Pekon,
 
-OMAP folks, any issues with this patch?
+On Tue, Jan 28, 2014 at 07:42:09AM +0000, Pekon Gupta wrote:
+> >From: Brian Norris
+> >
+> >On Fri, Dec 13, 2013 at 02:42:56PM +0530, Pekon Gupta wrote:
+> >> As there were parallel set of patches running between u-boot and kernel.
+> >
+> >I don't know what patches you're talking about.
+> >
+> Following patch-sets touched ecc.layout while cleaning up OMAP NAND driver.
+> u-boot: http://lists.denx.de/pipermail/u-boot/2013-November/167551.html
+> kernel: http://lists.infradead.org/pipermail/linux-mtd/2013-October/049414.html
+> 
+> >> hence, some patch-sets caused regression for OMAP3x platforms when booting
+> >
+> >"Hence" is not the right word. The previous sentence doesn't imply that
+> >there were regressions.
+> >
+> >> using u-boot specifically for ecc-schemes (like BCH4_SW).
+> >
+> >Huh? What does "specifically for ecc-schemes" mean? You mean that only
+> >some schemes had regressions? Can you be more specific? What are these
+> >regressions?
+> >
+> It was reported by Enric Balletbo Serra <eballetbo@iseebcn.com> [2] that
+> when using 'OMAP_ECC_BCH8_CODE_HW_DETECTION_SW' ecc-scheme
+> there was a mismatch in ECC layout between mainline u-boot and kernel.
+> This caused boot failure when kernel tried to mount UBIFS with image
+> flashed from u-boot.
+> 
+> This was missed while testing earlier patch-sets because only OMAP3 boards
+> use above ecc-scheme as OMAP3 SoC do not have ELM hardware engine.
+> All the later platforms use 'OMAP_ECC_BCH8_CODE_HW' ecc-scheme.
+> Both ecc-scheme are based on same algorithm of BCH8 ECC code except that:
+> (1) 'OMAP_ECC_BCH8_CODE_HW_DETECTION_SW' uses /lib/bch.c software
+> library for ecc-correction.
+> (2) 'OMAP_ECC_BCH8_CODE_HW' uses ELM hardware engine for ecc-correction.
+> 
+> This regression affects following ecc-schemes, as ecc.layout logic is just
+> copy-paste of each-other.
+> - 'OMAP_ECC_BCH4_CODE_HW_DETECTION_SW' and
+> - 'OMAP_ECC_BCH8_CODE_HW_DETECTION_SW'
 
+OK
 
-> ---
-> 
-> Notes:
->     Briefly tested with perf on OMAP5 UEVM with next-20140124.
-> 
->  arch/arm/boot/dts/omap5.dtsi | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index a72813a9663e..fbf4661436e2 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -76,6 +76,12 @@
->  			     <GIC_PPI 10 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>;
->  	};
->  
-> +	pmu {
-> +		compatible = "arm,cortex-a15-pmu";
-> +		interrupts = <0 131 4>,
-> +			     <0 132 4>;
-> +	};
-> +
->  	gic: interrupt-controller@48211000 {
->  		compatible = "arm,cortex-a15-gic";
->  		interrupt-controller;
-> 
+> >The rest of this cover letter (and most of the patch descriptions)
+> >describes the configurations and testing (which is all very good, don't
+> >get me wrong), with a lot of focus on things I don't follow (namely,
+> >U-Boot), but you omit many of the important details, like
+> >
+> > * What is the regression? I honestly don't see a description of the
+> >   actual regression. (I can read the code to intuit that, but what's
+> >   the point of your pages of description if it doesn't mention this?)
+> >   Please give some logical description of the problem
+> >
+> [Patch 1/2] of this series actually simplification of 'ecclayout->oobfree->offset'
+> It does not fix the regression, but it's important to clean it, before any new
+> feature additions.
 
+By my reading, it is actually wrong, and therefore not just a clean up.
+Can you address my comment there about your indexing into the eccpos[]
+array?
+
+Did you actually check (e.g., print out) the resulting ecclayout before
+and after your cleanup to make sure it's exactly the same? I'm looking
+at the oobfree[] values, which looked wrong to me.
+
+> [Patch 2/2] Actually fixes the regression for affected ecc-schemes. But
+> "this patch also touches other ecc-schemes as the fix required
+>  refactoring common code, into ecc-scheme specific code."
+> 
+> 
+> > * What are the effects of the regression? ECC bytes in the wrong place,
+> >   so you see correction failures/corruption? JFFS2 failures? (The
+> >   "oobfree" changes, for instance, should only affect something like
+> >   JFFS2.)
+> >
+> As mentioned above [PATCH 1/2] which touches 'ecclayout->oobfree->offset'
+> is a clean-up not affecting regression, but it should be taken in before
+> any further feature or ecc-scheme changes.
+
+That's fine; a fixup patch can come just before a bugfix, if that helps
+simplify the bufix.
+
+> Now, what is your preference?
+> (a)  Take [PATCH 1/2] ecc.layout clean-up separately.
+> (b) Take ecc.layout as part of this series, but may be with different patch title.
+
+I think we'll keep these patches together, but they both need to have
+better descriptions to tell what's actually going on.
+
+> > * What Linux commit caused the regression?
+> > * Should this patch set be marked for -stable? And for what kernel
+> >   release? (the previous question would help answer this)
+> >
+> This regression was caused in 
+> 	commit b491da7233d5dc1a24d46ca1ad0209900329c5d0
+> 	 mtd: nand: omap: clean-up ecc layout for BCH ecc schemes
+> So, this should be applicable from 3.13.x+
+> 
+> 
+> >> Hence this patch series fixes those regressions, and tests complete
+> >[...] snip
+> >
+> >I'm preparing a 3.14 pull request soon, and since you seem committed to
+> >fixing and properly testing a known regression here, I'd like to see
+> >this go in. But given the late timing and the unanswered questions, I
+> >think it's unlikely to go in -rc1. Perhaps I can send a later pull
+> >request if we can get it together properly.
+> >
+> Yes, if the above details are sufficient, then I'll:
+> (1) re-word [PATCH 1/2] commit log & title to mention that it's a clean-up
+> (2) Add above description and details of regression into commit log of [PATCH 2/2]
+> (3) Include your other comments on individual patches.
+
+That's a good plan. But please, before sending another version, can you
+at least address my comment on patch 1 about the eccpos[] indexing you
+are using? It doesn't look right to me.
+
+Also, can you please print out your full layout (eccpos, eccbytes,
+oobavail, and oobfree) and check it?
+
+> >So I'd like to first of all get a few answers to my questions, and then
+> >I think we might want to refresh this patch series with a little better
+> >commit messages and perhaps a separate documentation file (not
+> >necessarily in the same patch series, as the fix is more urgent).
+> >
+> Yes, I plan to get some documentation in kernel docs. But for now
+> I do have a 'un-polished' page for OMAP NAND driver on TI wiki [3].
+> Please let me know if you would like something similar for kernel docs.
+
+Thanks for the link. Some portion of that doc is probably useful to
+include in Linux eventually.
+
+> I'm happy that you are scrutinizing each patch and their commit logs wisely.
+> Thanks much for that. This helps me and probably everyone else to tighten-up
+> so that only good quality patch-sets go in. This eventually will make the
+> sub-system and the drivers more stable for long-term.
+> 
+> Also, if you don't mind, I'll still continue to cross-post this particular
+> Patch-series on both u-boot and kernel mailing lists just to maintain
+> continuity, as I know there are lot of OMAP3 users which are following
+> only one of the two lists.. (but I'm cutting down on the CC list).
+> I'll avoid cross posting in future.
+
+Cross-posting is OK with me if it's made a little more clear who is
+targeted. The restrictive U-Boot mailing list policy (which rejects
+non-member / too-large-CC-list email) diminishes the usefulness of
+cross-posting too.
+
+But most of all, using "u-boot" in the subject of the cover letter email
+does not clearly convey that this is a Linux patch!
+
+> >Brian
+> >
+> >   [1] For instance, rather than saying "the ECC layout doesn't match
+> >   U-Boot", you should probably describe what the intended ECC layout
+> >   should look like and show that Linux does not match it. Perhaps it's
+> >   time for some better documentation, like Ezequiel stashed under
+> >   Documentation/mtd/nand/ for pxa3xx. You could also take some cues
+> >   from Huang's comments on ECC layouts, etc., in gpmi-nand.c.
+> 
+> 
+> [2] http://lists.denx.de/pipermail/u-boot/2013-December/168440.html
+> [3] https://processors.wiki.ti.com/index.php/Linux_Core_NAND_User%27s_Guide (under construction)
+
+I look forward to you addressing my last concerns and sending a good v2.
+Thanks!
+
+Brian
