@@ -1,65 +1,90 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 0/3] ARM: dts: Fixes for Overo/Tobi against 3.14-rc1
-Date: Tue, 11 Feb 2014 08:47:26 -0800
-Message-ID: <7hsirp7g0x.fsf@paris.lan>
-References: <1391677818-21154-1-git-send-email-florian.vaussard@epfl.ch>
-	<87d2j0rwv8.fsf@paris.lan> <52FA20A9.2060702@epfl.ch>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] ARM: dts: omap3-n9 family: mark proper OMAP version
+Date: Tue, 11 Feb 2014 20:51:36 +0200
+Message-ID: <20140211185136.GG573@drone.musicnaut.iki.fi>
+References: <1392132541-25340-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:50703 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750779AbaBKQr3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Feb 2014 11:47:29 -0500
-Received: by mail-pd0-f171.google.com with SMTP id g10so7755524pdj.2
-        for <linux-omap@vger.kernel.org>; Tue, 11 Feb 2014 08:47:28 -0800 (PST)
-In-Reply-To: <52FA20A9.2060702@epfl.ch> (Florian Vaussard's message of "Tue,
-	11 Feb 2014 14:07:53 +0100")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1392132541-25340-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Tony Lindgren <tony@atomide.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-Florian Vaussard <florian.vaussard@epfl.ch> writes:
+Hi,
 
-> Hi,
->
-> On 02/06/2014 06:09 PM, Kevin Hilman wrote:
->> Florian Vaussard <florian.vaussard@epfl.ch> writes:
->> 
->>> OMAP36xx-based Overo (Storm and alike) are now failing to boot with 3.14-rc1 [1].
->>> This series fixes this, by moving model-agnostic DT into a common dtsi file,
->>> and creating model-specific DT files:
->>>
->>> - omap3-overo-tobi.dts -> older OMAP35xx Overo
->>> - omap3-overo-storm-tobi.dts -> newer OMAP36xx/AM37xx/DM37xx Overo
->>>
->>> People will have to use the right Overo / expansion board combination.
->>>
->>> (Patch 2 in an unrelated fix that was waiting in my queue.)
->>>
->>> omap3-overo-tobi.dts tested with Overo Sand (OMAP3503) and omap3-overo-storm-tobi.dts
->>> tested with Overo EarthStorm (AM3703). Both boot. With the Overo Sand, I cannot
->>> mount the ext3 rootfs, but this seems unrelated to the current topic, maybe
->>> a missing errata.
->> 
->> And I tested with my 35xx/Overo with omap3-overo-tobi.dts and my
->> 37xx/Overo STORM with omap3-overo-storm-tobi.dts and they're both
->> working.
->> 
->> Tested-by: Kevin Hilman <khilman@linaro.org>
->> 
->> Tony, with your ack, I can apply these directly to arm-soc/fixes.
->> 
->> Florian, thanks for the fixes.
->> 
->
-> This issue is still present in 3.14-rc2.
->
-> Shall I send a v2, including the suggestion of Nishanth, against 3.14-rc2?
->
+On Tue, Feb 11, 2014 at 09:29:01AM -0600, Nishanth Menon wrote:
+> Nokia N900 uses OMAP3430 and N9/N950 uses OMAP3630. Mark SoC compatibilty
+> as per Documentation/devicetree/bindings/arm/omap/omap.txt else
+> N9/N950 will be probed as a OMAP3430 type device, since default ti,omap3
+> maps to OMAP3430 compatibility.
 
-Feel free to send a v2.  I was just waiting for Tony to queue them up
-(or ack and I'll take them through arm-soc.)
+I already sent & tested patches for this:
 
-Kevin
+http://marc.info/?l=linux-omap&m=139194800711362&w=2
+http://marc.info/?l=linux-omap&m=139194800011360&w=2
+
+The N9/N950 is mandatory for 3.14, as the boot hangs without it.
+
+A.
+
+> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> 
+> just build tested. but given examples such as 
+> http://thread.gmane.org/gmane.linux.ports.arm.omap/110006
+> 
+> I guess, some form of failure is expected.
+> 
+> based on v3.14-rc2
+> 
+>  arch/arm/boot/dts/omap3-n9.dts   |    2 +-
+>  arch/arm/boot/dts/omap3-n900.dts |    2 +-
+>  arch/arm/boot/dts/omap3-n950.dts |    2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+> index 39828ce..9938b5d 100644
+> --- a/arch/arm/boot/dts/omap3-n9.dts
+> +++ b/arch/arm/boot/dts/omap3-n9.dts
+> @@ -14,5 +14,5 @@
+>  
+>  / {
+>  	model = "Nokia N9";
+> -	compatible = "nokia,omap3-n9", "ti,omap3";
+> +	compatible = "nokia,omap3-n9", "ti,omap36xx", "ti,omap3";
+>  };
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index 6fc85f9..97db027 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -13,7 +13,7 @@
+>  
+>  / {
+>  	model = "Nokia N900";
+> -	compatible = "nokia,omap3-n900", "ti,omap3";
+> +	compatible = "nokia,omap3-n900", "ti,omap3430", "ti,omap3";
+>  
+>  	cpus {
+>  		cpu@0 {
+> diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+> index b076a52..261c558 100644
+> --- a/arch/arm/boot/dts/omap3-n950.dts
+> +++ b/arch/arm/boot/dts/omap3-n950.dts
+> @@ -14,5 +14,5 @@
+>  
+>  / {
+>  	model = "Nokia N950";
+> -	compatible = "nokia,omap3-n950", "ti,omap3";
+> +	compatible = "nokia,omap3-n950", "ti,omap36xx", "ti,omap3";
+>  };
+> -- 
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
