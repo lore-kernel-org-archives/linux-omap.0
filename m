@@ -1,48 +1,60 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v7 09/12] ARM: dts: omap5-uevm: Provide USB PHY clock
-Date: Wed, 12 Feb 2014 12:18:50 +0200
-Message-ID: <1392200333-28397-10-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v7 04/12] mfd: omap-usb-host: Update DT clock binding information
+Date: Wed, 12 Feb 2014 12:18:45 +0200
+Message-ID: <1392200333-28397-5-git-send-email-rogerq@ti.com>
 References: <1392200333-28397-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1392200333-28397-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1392200333-28397-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
+Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-The HS USB 2 PHY gets its clock from AUXCLK1. Provide this
-information.
+The omap-usb-host driver expects certained named clocks.
+Add this information to the DT binding document.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+CC: Lee Jones <lee.jones@linaro.org>
+CC: Samuel Ortiz <sameo@linux.intel.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap5-uevm.dts | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ .../devicetree/bindings/mfd/omap-usb-host.txt      | 23 ++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 002fa70..3b99ec2 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -31,12 +31,8 @@
- 	hsusb2_phy: hsusb2_phy {
- 		compatible = "usb-nop-xceiv";
- 		reset-gpios = <&gpio3 16 GPIO_ACTIVE_LOW>; /* gpio3_80 HUB_NRESET */
--	/**
--	  * FIXME
--	  * Put the right clock phandle here when available
--	  *	clocks = <&auxclk1>;
--	  *	clock-names = "main_clk";
--	  */
-+		clocks = <&auxclk1_ck>;
-+		clock-names = "main_clk";
- 		clock-frequency = <19200000>;
- 	};
+diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+index b381fa6..4721b2d 100644
+--- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
++++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+@@ -32,6 +32,29 @@ Optional properties:
+ - single-ulpi-bypass: Must be present if the controller contains a single
+   ULPI bypass control bit. e.g. OMAP3 silicon <= ES2.1
  
++- clocks: a list of phandles and clock-specifier pairs, one for each entry in
++  clock-names.
++
++- clock-names: should include:
++  For OMAP3
++  * "usbhost_120m_fck" - 120MHz Functional clock.
++
++  For OMAP4+
++  * "refclk_60m_int" - 60MHz internal reference clock for UTMI clock mux
++  * "refclk_60m_ext_p1" - 60MHz external ref. clock for Port 1's UTMI clock mux.
++  * "refclk_60m_ext_p2" - 60MHz external ref. clock for Port 2's UTMI clock mux
++  * "utmi_p1_gfclk" - Port 1 UTMI clock mux.
++  * "utmi_p2_gfclk" - Port 2 UTMI clock mux.
++  * "usb_host_hs_utmi_p1_clk" - Port 1 UTMI clock gate.
++  * "usb_host_hs_utmi_p2_clk" - Port 2 UTMI clock gate.
++  * "usb_host_hs_utmi_p3_clk" - Port 3 UTMI clock gate.
++  * "usb_host_hs_hsic480m_p1_clk" - Port 1 480MHz HSIC clock gate.
++  * "usb_host_hs_hsic480m_p2_clk" - Port 2 480MHz HSIC clock gate.
++  * "usb_host_hs_hsic480m_p3_clk" - Port 3 480MHz HSIC clock gate.
++  * "usb_host_hs_hsic60m_p1_clk" - Port 1 60MHz HSIC clock gate.
++  * "usb_host_hs_hsic60m_p2_clk" - Port 2 60MHz HSIC clock gate.
++  * "usb_host_hs_hsic60m_p3_clk" - Port 3 60MHz HSIC clock gate.
++
+ Required properties if child node exists:
+ 
+ - #address-cells: Must be 1
 -- 
 1.8.3.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
