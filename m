@@ -1,187 +1,91 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v7 02/12] mfd: omap-usb-host: Get clocks based on hardware
- revision
-Date: Wed, 12 Feb 2014 12:18:43 +0200
-Message-ID: <1392200333-28397-3-git-send-email-rogerq@ti.com>
+Subject: [PATCH v7 11/12] ARM: dts: OMAP2+: Get rid of incompatible ids for USB host nodes
+Date: Wed, 12 Feb 2014 12:18:52 +0200
+Message-ID: <1392200333-28397-12-git-send-email-rogerq@ti.com>
 References: <1392200333-28397-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1392200333-28397-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
-Cc: nm@ti.com, devicetree@vger.kernel.org, khilman@linaro.org, Samuel Ortiz <sameo@linux.intel.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Alan Stern <stern@rowland.harvard.edu>
 List-Id: linux-omap@vger.kernel.org
 
-Not all revisions have all the clocks so get the necessary clocks
-based on hardware revision.
+The OMAP EHCI and OHCI controllers are not compatible with drivers
+other than "ti,ehci-omap" and "ti,ohci-omap3" respectively, so get
+rid of the incompatible ids.
 
-This should avoid un-necessary clk_get failure messages that were
-observed earlier.
-
-Be more strict and always fail on clk_get() error.
-
-CC: Lee Jones <lee.jones@linaro.org>
-CC: Samuel Ortiz <sameo@linux.intel.com>
+CC: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mfd/omap-usb-host.c | 92 +++++++++++++++++++++++++++++++--------------
- 1 file changed, 64 insertions(+), 28 deletions(-)
+ arch/arm/boot/dts/omap3.dtsi | 4 ++--
+ arch/arm/boot/dts/omap4.dtsi | 4 ++--
+ arch/arm/boot/dts/omap5.dtsi | 4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 0c3c9a0..60a3bed 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -665,22 +665,41 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 		goto err_mem;
- 	}
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index a5fc83b..8e7de9e 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -634,14 +634,14 @@
+ 			ranges;
  
--	need_logic_fck = false;
-+	/* Set all clocks as invalid to begin with */
-+	omap->ehci_logic_fck = omap->init_60m_fclk = ERR_PTR(-ENODEV);
-+	omap->utmi_p1_gfclk = omap->utmi_p2_gfclk = ERR_PTR(-ENODEV);
-+	omap->xclk60mhsp1_ck = omap->xclk60mhsp2_ck = ERR_PTR(-ENODEV);
-+
- 	for (i = 0; i < omap->nports; i++) {
--		if (is_ehci_phy_mode(i) || is_ehci_tll_mode(i) ||
--			is_ehci_hsic_mode(i))
--				need_logic_fck |= true;
-+		omap->utmi_clk[i] = ERR_PTR(-ENODEV);
-+		omap->hsic480m_clk[i] = ERR_PTR(-ENODEV);
-+		omap->hsic60m_clk[i] = ERR_PTR(-ENODEV);
- 	}
+ 			usbhsohci: ohci@48064400 {
+-				compatible = "ti,ohci-omap3", "usb-ohci";
++				compatible = "ti,ohci-omap3";
+ 				reg = <0x48064400 0x400>;
+ 				interrupt-parent = <&intc>;
+ 				interrupts = <76>;
+ 			};
  
--	omap->ehci_logic_fck = ERR_PTR(-EINVAL);
--	if (need_logic_fck) {
--		omap->ehci_logic_fck = devm_clk_get(dev, "ehci_logic_fck");
--		if (IS_ERR(omap->ehci_logic_fck)) {
--			ret = PTR_ERR(omap->ehci_logic_fck);
--			dev_dbg(dev, "ehci_logic_fck failed:%d\n", ret);
-+	/* for OMAP3 i.e. USBHS REV1 */
-+	if (omap->usbhs_rev == OMAP_USBHS_REV1) {
-+		need_logic_fck = false;
-+		for (i = 0; i < omap->nports; i++) {
-+			if (is_ehci_phy_mode(pdata->port_mode[i]) ||
-+			    is_ehci_tll_mode(pdata->port_mode[i]) ||
-+			    is_ehci_hsic_mode(pdata->port_mode[i]))
-+
-+				need_logic_fck |= true;
-+		}
-+
-+		if (need_logic_fck) {
-+			omap->ehci_logic_fck = clk_get(dev, "usbhost_120m_fck");
-+			if (IS_ERR(omap->ehci_logic_fck)) {
-+				ret = PTR_ERR(omap->ehci_logic_fck);
-+				dev_err(dev, "usbhost_120m_fck failed:%d\n",
-+					ret);
-+				goto err_mem;
-+			}
- 		}
-+		goto initialize;
- 	}
+ 			usbhsehci: ehci@48064800 {
+-				compatible = "ti,ehci-omap", "usb-ehci";
++				compatible = "ti,ehci-omap";
+ 				reg = <0x48064800 0x400>;
+ 				interrupt-parent = <&intc>;
+ 				interrupts = <77>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 39a05ce..ff1b057 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -705,14 +705,14 @@
+ 				      "refclk_60m_ext_p2";
  
-+	/* for OMAP4+ i.e. USBHS REV2+ */
- 	omap->utmi_p1_gfclk = devm_clk_get(dev, "utmi_p1_gfclk");
- 	if (IS_ERR(omap->utmi_p1_gfclk)) {
- 		ret = PTR_ERR(omap->utmi_p1_gfclk);
-@@ -728,54 +747,71 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 		 * them
- 		 */
- 		omap->utmi_clk[i] = devm_clk_get(dev, clkname);
--		if (IS_ERR(omap->utmi_clk[i]))
--			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
--				clkname, PTR_ERR(omap->utmi_clk[i]));
-+		if (IS_ERR(omap->utmi_clk[i])) {
-+			ret = PTR_ERR(omap->utmi_clk[i]);
-+			dev_err(dev, "Failed to get clock : %s : %d\n",
-+				clkname, ret);
-+			goto err_mem;
-+		}
+ 			usbhsohci: ohci@4a064800 {
+-				compatible = "ti,ohci-omap3", "usb-ohci";
++				compatible = "ti,ohci-omap3";
+ 				reg = <0x4a064800 0x400>;
+ 				interrupt-parent = <&gic>;
+ 				interrupts = <GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
+ 			};
  
- 		snprintf(clkname, sizeof(clkname),
- 				"usb_host_hs_hsic480m_p%d_clk", i + 1);
- 		omap->hsic480m_clk[i] = devm_clk_get(dev, clkname);
--		if (IS_ERR(omap->hsic480m_clk[i]))
--			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
--				clkname, PTR_ERR(omap->hsic480m_clk[i]));
-+		if (IS_ERR(omap->hsic480m_clk[i])) {
-+			ret = PTR_ERR(omap->hsic480m_clk[i]);
-+			dev_err(dev, "Failed to get clock : %s : %d\n",
-+				clkname, ret);
-+			goto err_mem;
-+		}
+ 			usbhsehci: ehci@4a064c00 {
+-				compatible = "ti,ehci-omap", "usb-ehci";
++				compatible = "ti,ehci-omap";
+ 				reg = <0x4a064c00 0x400>;
+ 				interrupt-parent = <&gic>;
+ 				interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index d4dae48..f65aa65 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -783,14 +783,14 @@
+ 				      "refclk_60m_ext_p2";
  
- 		snprintf(clkname, sizeof(clkname),
- 				"usb_host_hs_hsic60m_p%d_clk", i + 1);
- 		omap->hsic60m_clk[i] = devm_clk_get(dev, clkname);
--		if (IS_ERR(omap->hsic60m_clk[i]))
--			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
--				clkname, PTR_ERR(omap->hsic60m_clk[i]));
-+		if (IS_ERR(omap->hsic60m_clk[i])) {
-+			ret = PTR_ERR(omap->hsic60m_clk[i]);
-+			dev_err(dev, "Failed to get clock : %s : %d\n",
-+				clkname, ret);
-+			goto err_mem;
-+		}
- 	}
+ 			usbhsohci: ohci@4a064800 {
+-				compatible = "ti,ohci-omap3", "usb-ohci";
++				compatible = "ti,ohci-omap3";
+ 				reg = <0x4a064800 0x400>;
+ 				interrupt-parent = <&gic>;
+ 				interrupts = <GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
+ 			};
  
- 	if (is_ehci_phy_mode(pdata->port_mode[0])) {
--		/* for OMAP3, clk_set_parent fails */
- 		ret = clk_set_parent(omap->utmi_p1_gfclk,
- 					omap->xclk60mhsp1_ck);
--		if (ret != 0)
--			dev_dbg(dev, "xclk60mhsp1_ck set parent failed: %d\n",
-+		if (ret != 0) {
-+			dev_err(dev, "xclk60mhsp1_ck set parent failed: %d\n",
- 					ret);
-+			goto err_mem;
-+		}
- 	} else if (is_ehci_tll_mode(pdata->port_mode[0])) {
- 		ret = clk_set_parent(omap->utmi_p1_gfclk,
- 					omap->init_60m_fclk);
--		if (ret != 0)
--			dev_dbg(dev, "P0 init_60m_fclk set parent failed: %d\n",
-+		if (ret != 0) {
-+			dev_err(dev, "P0 init_60m_fclk set parent failed: %d\n",
- 					ret);
-+			goto err_mem;
-+		}
- 	}
- 
- 	if (is_ehci_phy_mode(pdata->port_mode[1])) {
- 		ret = clk_set_parent(omap->utmi_p2_gfclk,
- 					omap->xclk60mhsp2_ck);
--		if (ret != 0)
--			dev_dbg(dev, "xclk60mhsp2_ck set parent failed: %d\n",
-+		if (ret != 0) {
-+			dev_err(dev, "xclk60mhsp2_ck set parent failed: %d\n",
- 					ret);
-+			goto err_mem;
-+		}
- 	} else if (is_ehci_tll_mode(pdata->port_mode[1])) {
- 		ret = clk_set_parent(omap->utmi_p2_gfclk,
- 						omap->init_60m_fclk);
--		if (ret != 0)
--			dev_dbg(dev, "P1 init_60m_fclk set parent failed: %d\n",
-+		if (ret != 0) {
-+			dev_err(dev, "P1 init_60m_fclk set parent failed: %d\n",
- 					ret);
-+			goto err_mem;
-+		}
- 	}
- 
-+initialize:
- 	omap_usbhs_init(dev);
- 
- 	if (dev->of_node) {
+ 			usbhsehci: ehci@4a064c00 {
+-				compatible = "ti,ehci-omap", "usb-ehci";
++				compatible = "ti,ehci-omap";
+ 				reg = <0x4a064c00 0x400>;
+ 				interrupt-parent = <&gic>;
+ 				interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
 -- 
 1.8.3.2
