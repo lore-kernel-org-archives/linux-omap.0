@@ -1,43 +1,187 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v7 08/12] ARM: dts: omap4-panda: Provide USB PHY clock
-Date: Wed, 12 Feb 2014 12:18:49 +0200
-Message-ID: <1392200333-28397-9-git-send-email-rogerq@ti.com>
+Subject: [PATCH v7 02/12] mfd: omap-usb-host: Get clocks based on hardware
+ revision
+Date: Wed, 12 Feb 2014 12:18:43 +0200
+Message-ID: <1392200333-28397-3-git-send-email-rogerq@ti.com>
 References: <1392200333-28397-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1392200333-28397-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
-Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Cc: nm@ti.com, devicetree@vger.kernel.org, khilman@linaro.org, Samuel Ortiz <sameo@linux.intel.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The USB PHY gets its clock from AUXCLK3. Provide this
-information.
+Not all revisions have all the clocks so get the necessary clocks
+based on hardware revision.
 
+This should avoid un-necessary clk_get failure messages that were
+observed earlier.
+
+Be more strict and always fail on clk_get() error.
+
+CC: Lee Jones <lee.jones@linaro.org>
+CC: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap4-panda-common.dtsi | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/mfd/omap-usb-host.c | 92 +++++++++++++++++++++++++++++++--------------
+ 1 file changed, 64 insertions(+), 28 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index 88c6a05..50b72966 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -83,12 +83,8 @@
- 		compatible = "usb-nop-xceiv";
- 		reset-gpios = <&gpio2 30 GPIO_ACTIVE_LOW>;   /* gpio_62 */
- 		vcc-supply = <&hsusb1_power>;
--	/**
--	 * FIXME:
--	 * put the right clock phandle here when available
--	 *	clocks = <&auxclk3>;
--	 *	clock-names = "main_clk";
--	 */
-+		clocks = <&auxclk3_ck>;
-+		clock-names = "main_clk";
- 		clock-frequency = <19200000>;
- 	};
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 0c3c9a0..60a3bed 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -665,22 +665,41 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+ 		goto err_mem;
+ 	}
  
+-	need_logic_fck = false;
++	/* Set all clocks as invalid to begin with */
++	omap->ehci_logic_fck = omap->init_60m_fclk = ERR_PTR(-ENODEV);
++	omap->utmi_p1_gfclk = omap->utmi_p2_gfclk = ERR_PTR(-ENODEV);
++	omap->xclk60mhsp1_ck = omap->xclk60mhsp2_ck = ERR_PTR(-ENODEV);
++
+ 	for (i = 0; i < omap->nports; i++) {
+-		if (is_ehci_phy_mode(i) || is_ehci_tll_mode(i) ||
+-			is_ehci_hsic_mode(i))
+-				need_logic_fck |= true;
++		omap->utmi_clk[i] = ERR_PTR(-ENODEV);
++		omap->hsic480m_clk[i] = ERR_PTR(-ENODEV);
++		omap->hsic60m_clk[i] = ERR_PTR(-ENODEV);
+ 	}
+ 
+-	omap->ehci_logic_fck = ERR_PTR(-EINVAL);
+-	if (need_logic_fck) {
+-		omap->ehci_logic_fck = devm_clk_get(dev, "ehci_logic_fck");
+-		if (IS_ERR(omap->ehci_logic_fck)) {
+-			ret = PTR_ERR(omap->ehci_logic_fck);
+-			dev_dbg(dev, "ehci_logic_fck failed:%d\n", ret);
++	/* for OMAP3 i.e. USBHS REV1 */
++	if (omap->usbhs_rev == OMAP_USBHS_REV1) {
++		need_logic_fck = false;
++		for (i = 0; i < omap->nports; i++) {
++			if (is_ehci_phy_mode(pdata->port_mode[i]) ||
++			    is_ehci_tll_mode(pdata->port_mode[i]) ||
++			    is_ehci_hsic_mode(pdata->port_mode[i]))
++
++				need_logic_fck |= true;
++		}
++
++		if (need_logic_fck) {
++			omap->ehci_logic_fck = clk_get(dev, "usbhost_120m_fck");
++			if (IS_ERR(omap->ehci_logic_fck)) {
++				ret = PTR_ERR(omap->ehci_logic_fck);
++				dev_err(dev, "usbhost_120m_fck failed:%d\n",
++					ret);
++				goto err_mem;
++			}
+ 		}
++		goto initialize;
+ 	}
+ 
++	/* for OMAP4+ i.e. USBHS REV2+ */
+ 	omap->utmi_p1_gfclk = devm_clk_get(dev, "utmi_p1_gfclk");
+ 	if (IS_ERR(omap->utmi_p1_gfclk)) {
+ 		ret = PTR_ERR(omap->utmi_p1_gfclk);
+@@ -728,54 +747,71 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+ 		 * them
+ 		 */
+ 		omap->utmi_clk[i] = devm_clk_get(dev, clkname);
+-		if (IS_ERR(omap->utmi_clk[i]))
+-			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
+-				clkname, PTR_ERR(omap->utmi_clk[i]));
++		if (IS_ERR(omap->utmi_clk[i])) {
++			ret = PTR_ERR(omap->utmi_clk[i]);
++			dev_err(dev, "Failed to get clock : %s : %d\n",
++				clkname, ret);
++			goto err_mem;
++		}
+ 
+ 		snprintf(clkname, sizeof(clkname),
+ 				"usb_host_hs_hsic480m_p%d_clk", i + 1);
+ 		omap->hsic480m_clk[i] = devm_clk_get(dev, clkname);
+-		if (IS_ERR(omap->hsic480m_clk[i]))
+-			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
+-				clkname, PTR_ERR(omap->hsic480m_clk[i]));
++		if (IS_ERR(omap->hsic480m_clk[i])) {
++			ret = PTR_ERR(omap->hsic480m_clk[i]);
++			dev_err(dev, "Failed to get clock : %s : %d\n",
++				clkname, ret);
++			goto err_mem;
++		}
+ 
+ 		snprintf(clkname, sizeof(clkname),
+ 				"usb_host_hs_hsic60m_p%d_clk", i + 1);
+ 		omap->hsic60m_clk[i] = devm_clk_get(dev, clkname);
+-		if (IS_ERR(omap->hsic60m_clk[i]))
+-			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
+-				clkname, PTR_ERR(omap->hsic60m_clk[i]));
++		if (IS_ERR(omap->hsic60m_clk[i])) {
++			ret = PTR_ERR(omap->hsic60m_clk[i]);
++			dev_err(dev, "Failed to get clock : %s : %d\n",
++				clkname, ret);
++			goto err_mem;
++		}
+ 	}
+ 
+ 	if (is_ehci_phy_mode(pdata->port_mode[0])) {
+-		/* for OMAP3, clk_set_parent fails */
+ 		ret = clk_set_parent(omap->utmi_p1_gfclk,
+ 					omap->xclk60mhsp1_ck);
+-		if (ret != 0)
+-			dev_dbg(dev, "xclk60mhsp1_ck set parent failed: %d\n",
++		if (ret != 0) {
++			dev_err(dev, "xclk60mhsp1_ck set parent failed: %d\n",
+ 					ret);
++			goto err_mem;
++		}
+ 	} else if (is_ehci_tll_mode(pdata->port_mode[0])) {
+ 		ret = clk_set_parent(omap->utmi_p1_gfclk,
+ 					omap->init_60m_fclk);
+-		if (ret != 0)
+-			dev_dbg(dev, "P0 init_60m_fclk set parent failed: %d\n",
++		if (ret != 0) {
++			dev_err(dev, "P0 init_60m_fclk set parent failed: %d\n",
+ 					ret);
++			goto err_mem;
++		}
+ 	}
+ 
+ 	if (is_ehci_phy_mode(pdata->port_mode[1])) {
+ 		ret = clk_set_parent(omap->utmi_p2_gfclk,
+ 					omap->xclk60mhsp2_ck);
+-		if (ret != 0)
+-			dev_dbg(dev, "xclk60mhsp2_ck set parent failed: %d\n",
++		if (ret != 0) {
++			dev_err(dev, "xclk60mhsp2_ck set parent failed: %d\n",
+ 					ret);
++			goto err_mem;
++		}
+ 	} else if (is_ehci_tll_mode(pdata->port_mode[1])) {
+ 		ret = clk_set_parent(omap->utmi_p2_gfclk,
+ 						omap->init_60m_fclk);
+-		if (ret != 0)
+-			dev_dbg(dev, "P1 init_60m_fclk set parent failed: %d\n",
++		if (ret != 0) {
++			dev_err(dev, "P1 init_60m_fclk set parent failed: %d\n",
+ 					ret);
++			goto err_mem;
++		}
+ 	}
+ 
++initialize:
+ 	omap_usbhs_init(dev);
+ 
+ 	if (dev->of_node) {
 -- 
 1.8.3.2
