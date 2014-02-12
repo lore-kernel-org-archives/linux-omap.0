@@ -1,60 +1,56 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v7 04/12] mfd: omap-usb-host: Update DT clock binding information
-Date: Wed, 12 Feb 2014 12:18:45 +0200
-Message-ID: <1392200333-28397-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH v7 12/12] usb: omap: dts: Update DT binding example usage
+Date: Wed, 12 Feb 2014 12:18:53 +0200
+Message-ID: <1392200333-28397-13-git-send-email-rogerq@ti.com>
 References: <1392200333-28397-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55018 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752583AbaBLKUU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Feb 2014 05:20:20 -0500
 In-Reply-To: <1392200333-28397-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
-Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
+Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Alan Stern <stern@rowland.harvard.edu>
 
-The omap-usb-host driver expects certained named clocks.
-Add this information to the DT binding document.
+Remove non-compatible id from examples.
 
-CC: Lee Jones <lee.jones@linaro.org>
-CC: Samuel Ortiz <sameo@linux.intel.com>
+CC: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- .../devicetree/bindings/mfd/omap-usb-host.txt      | 23 ++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ Documentation/devicetree/bindings/usb/ehci-omap.txt  | 2 +-
+ Documentation/devicetree/bindings/usb/ohci-omap3.txt | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-index b381fa6..4721b2d 100644
---- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-+++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-@@ -32,6 +32,29 @@ Optional properties:
- - single-ulpi-bypass: Must be present if the controller contains a single
-   ULPI bypass control bit. e.g. OMAP3 silicon <= ES2.1
+diff --git a/Documentation/devicetree/bindings/usb/ehci-omap.txt b/Documentation/devicetree/bindings/usb/ehci-omap.txt
+index 485a9a1..3dc231c 100644
+--- a/Documentation/devicetree/bindings/usb/ehci-omap.txt
++++ b/Documentation/devicetree/bindings/usb/ehci-omap.txt
+@@ -21,7 +21,7 @@ Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+ Example for OMAP4:
  
-+- clocks: a list of phandles and clock-specifier pairs, one for each entry in
-+  clock-names.
-+
-+- clock-names: should include:
-+  For OMAP3
-+  * "usbhost_120m_fck" - 120MHz Functional clock.
-+
-+  For OMAP4+
-+  * "refclk_60m_int" - 60MHz internal reference clock for UTMI clock mux
-+  * "refclk_60m_ext_p1" - 60MHz external ref. clock for Port 1's UTMI clock mux.
-+  * "refclk_60m_ext_p2" - 60MHz external ref. clock for Port 2's UTMI clock mux
-+  * "utmi_p1_gfclk" - Port 1 UTMI clock mux.
-+  * "utmi_p2_gfclk" - Port 2 UTMI clock mux.
-+  * "usb_host_hs_utmi_p1_clk" - Port 1 UTMI clock gate.
-+  * "usb_host_hs_utmi_p2_clk" - Port 2 UTMI clock gate.
-+  * "usb_host_hs_utmi_p3_clk" - Port 3 UTMI clock gate.
-+  * "usb_host_hs_hsic480m_p1_clk" - Port 1 480MHz HSIC clock gate.
-+  * "usb_host_hs_hsic480m_p2_clk" - Port 2 480MHz HSIC clock gate.
-+  * "usb_host_hs_hsic480m_p3_clk" - Port 3 480MHz HSIC clock gate.
-+  * "usb_host_hs_hsic60m_p1_clk" - Port 1 60MHz HSIC clock gate.
-+  * "usb_host_hs_hsic60m_p2_clk" - Port 2 60MHz HSIC clock gate.
-+  * "usb_host_hs_hsic60m_p3_clk" - Port 3 60MHz HSIC clock gate.
-+
- Required properties if child node exists:
+ usbhsehci: ehci@4a064c00 {
+-	compatible = "ti,ehci-omap", "usb-ehci";
++	compatible = "ti,ehci-omap";
+ 	reg = <0x4a064c00 0x400>;
+ 	interrupts = <0 77 0x4>;
+ };
+diff --git a/Documentation/devicetree/bindings/usb/ohci-omap3.txt b/Documentation/devicetree/bindings/usb/ohci-omap3.txt
+index 14ab428..ce8c47cff 100644
+--- a/Documentation/devicetree/bindings/usb/ohci-omap3.txt
++++ b/Documentation/devicetree/bindings/usb/ohci-omap3.txt
+@@ -9,7 +9,7 @@ Required properties:
+ Example for OMAP4:
  
- - #address-cells: Must be 1
+ usbhsohci: ohci@4a064800 {
+-	compatible = "ti,ohci-omap3", "usb-ohci";
++	compatible = "ti,ohci-omap3";
+ 	reg = <0x4a064800 0x400>;
+ 	interrupts = <0 76 0x4>;
+ };
 -- 
 1.8.3.2
+
