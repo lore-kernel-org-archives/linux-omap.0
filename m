@@ -1,92 +1,70 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 00/11] ARM: dts: sbc-t3x: add support for more boards
-Date: Wed, 12 Feb 2014 14:38:06 +0200
-Message-ID: <52FB6B2E.9070106@compulab.co.il>
-References: <1389532975-28281-1-git-send-email-lifshitz@compulab.co.il>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH] ARM: dts: OMAP5: add pmu node
+Date: Wed, 12 Feb 2014 14:00:34 +0100
+Message-ID: <52FB7072.5000005@baylibre.com>
+References: <1391014601-31663-1-git-send-email-nathan_lynch@mentor.com> <52FA8498.5050507@mentor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:39415 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751435AbaBLMiK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Feb 2014 07:38:10 -0500
-In-Reply-To: <1389532975-28281-1-git-send-email-lifshitz@compulab.co.il>
+Received: from mail-we0-f176.google.com ([74.125.82.176]:47150 "EHLO
+	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751041AbaBLNAi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Feb 2014 08:00:38 -0500
+Received: by mail-we0-f176.google.com with SMTP id q58so5932147wes.35
+        for <linux-omap@vger.kernel.org>; Wed, 12 Feb 2014 05:00:37 -0800 (PST)
+In-Reply-To: <52FA8498.5050507@mentor.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Lifshitz <lifshitz@compulab.co.il>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Nathan Lynch <Nathan_Lynch@mentor.com>, linux-omap@vger.kernel.org
+Cc: tony@atomide.com
 
-ping!
+Hi Nathan,
 
-On 01/12/14 15:22, Dmitry Lifshitz wrote:
-> Add support for CompuLab SBC-T3530 and SBC-T3517 boards:
-> 
-> https://compulab.co.il/products/sbcs/sbc-t3530/
-> https://compulab.co.il/products/sbcs/sbc-t3517/
-> 
-> along with respective CoMs - CM-T3530 and CM-T3517:
-> 
-> https://compulab.co.il/products/computer-on-modules/cm-t3530/
-> https://compulab.co.il/products/computer-on-modules/cm-t3517/
-> 
-> The device tree files have the following structure:
-> 
-> omap3-cm-t3x.dtsi
->  |
->  |<-- omap3-cm-t3x30.dtsi
->  |     |
->  |     |
->  |     |     -----                  -------          ------------
->  |     |    | CoM |                | Board |        | Base board |
->  |     |     -----                  -------          ------------
->  |     |                                            omap3-sb-t35.dtsi
->  |     |                                                  |
->  |     |<-- omap3-cm-t3730.dts <-- omap3-sbc-t3730.dts -->|
->  |     |                                                  |
->  |     |<-- omap3-cm-t3530.dts <-- omap3-sbc-t3530.dts -->|
->  |                                                        |
->  |<-------- omap3-cm-t3517.dts <-- omap3-sbc-t3517.dts -->|
-> 
-> 
-> where omap3-cm-t3730.dts, omap3-cm-t3530.dts, omap3-cm-t3517.dts
-> contain CoMs specific data, while omap3-sbc-t3730.dts, omap3-sbc-t3530.dts,
-> omap3-sbc-t3517.dts represent eval boards with respective core modules.
-> 
-> This series is based on Tony's omap-for-v3.14/dt branch
-> 
-> Dmitry Lifshitz (11):
->   ARM: dts: sbc-t3x: refactor DT support
->   ARM: dts: sbc-t3x: disable mmc3
->   ARM: dts: sb-t35: fix Ethernet power supply
->   ARM: dts: cm-t3x: add gpio-led pinmux
->   ARM: dts: cm-t3x30: add twl4030 gpio pullups
->   ARM: dts: cm-t3x30: add HS USB Host support
->   ARM: dts: sbc-t3730: add pinmux for usb hub reset
->   ARM: dts: cm-t3x30: add USB OTG support
->   ARM: dts: sbc-t3530: add support for sbc-t3530
->   ARM: dts: sbc-t3517: add support for sbc-t3517
->   ARM: OMAP2+: make reset pulse for sbc-t3x usb hubs
-> 
->  arch/arm/boot/dts/Makefile            |    4 +
->  arch/arm/boot/dts/omap3-cm-t3517.dts  |  137 +++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap3-cm-t3530.dts  |   13 +++
->  arch/arm/boot/dts/omap3-cm-t3730.dts  |   40 ----------
->  arch/arm/boot/dts/omap3-cm-t3x.dtsi   |  112 +++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap3-cm-t3x30.dtsi |   74 +++++++++++++-----
->  arch/arm/boot/dts/omap3-sb-t35.dtsi   |   30 +++++++-
->  arch/arm/boot/dts/omap3-sbc-t3517.dts |   44 +++++++++++
->  arch/arm/boot/dts/omap3-sbc-t3530.dts |   37 +++++++++
->  arch/arm/boot/dts/omap3-sbc-t3730.dts |   24 +++---
->  arch/arm/mach-omap2/pdata-quirks.c    |   67 ++++++++++++++++-
->  11 files changed, 506 insertions(+), 76 deletions(-)
->  create mode 100644 arch/arm/boot/dts/omap3-cm-t3517.dts
->  create mode 100644 arch/arm/boot/dts/omap3-cm-t3530.dts
->  create mode 100644 arch/arm/boot/dts/omap3-cm-t3x.dtsi
->  create mode 100644 arch/arm/boot/dts/omap3-sbc-t3517.dts
->  create mode 100644 arch/arm/boot/dts/omap3-sbc-t3530.dts
-> 
+On 11/02/2014 21:14, Nathan Lynch wrote:
+> On 01/29/2014 10:56 AM, Nathan Lynch wrote:
+>> Expose the PMU on OMAP5.
+>>
+>> Signed-off-by: Nathan Lynch <nathan_lynch@mentor.com>
+>
+> OMAP folks, any issues with this patch?
 
--- 
-Regards,
-Igor.
+Yes :-)
+
+>> Notes:
+>>      Briefly tested with perf on OMAP5 UEVM with next-20140124.
+>>
+>>   arch/arm/boot/dts/omap5.dtsi | 6 ++++++
+>>   1 file changed, 6 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.=
+dtsi
+>> index a72813a9663e..fbf4661436e2 100644
+>> --- a/arch/arm/boot/dts/omap5.dtsi
+>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>> @@ -76,6 +76,12 @@
+>>   			     <GIC_PPI 10 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>;
+>>   	};
+>>
+>> +	pmu {
+>> +		compatible =3D "arm,cortex-a15-pmu";
+>> +		interrupts =3D <0 131 4>,
+>> +			     <0 132 4>;
+
+Could you use the macros instead of hard coded value? You have the=20
+example just before your modification in the patch itself.
+
+Thanks,
+Benoit
+
+--=20
+Beno=EEt Cousson
+BayLibre
+Embedded Linux Technology Lab
+www.baylibre.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
