@@ -1,91 +1,57 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v7 11/12] ARM: dts: OMAP2+: Get rid of incompatible ids for USB host nodes
-Date: Wed, 12 Feb 2014 12:18:52 +0200
-Message-ID: <1392200333-28397-12-git-send-email-rogerq@ti.com>
+Subject: [PATCH v7 05/12] mfd: omap-usb-tll: Update DT clock binding
+ information
+Date: Wed, 12 Feb 2014 12:18:46 +0200
+Message-ID: <1392200333-28397-6-git-send-email-rogerq@ti.com>
 References: <1392200333-28397-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1392200333-28397-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
-Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Alan Stern <stern@rowland.harvard.edu>
+Cc: nm@ti.com, devicetree@vger.kernel.org, khilman@linaro.org, Samuel Ortiz <sameo@linux.intel.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP EHCI and OHCI controllers are not compatible with drivers
-other than "ti,ehci-omap" and "ti,ohci-omap3" respectively, so get
-rid of the incompatible ids.
+The omap-usb-tll driver needs one clock for each TLL channel.
+Add this information to the DT binding document.
 
-CC: Alan Stern <stern@rowland.harvard.edu>
+CC: Lee Jones <lee.jones@linaro.org>
+CC: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap3.dtsi | 4 ++--
- arch/arm/boot/dts/omap4.dtsi | 4 ++--
- arch/arm/boot/dts/omap5.dtsi | 4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ Documentation/devicetree/bindings/mfd/omap-usb-tll.txt | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index a5fc83b..8e7de9e 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -634,14 +634,14 @@
- 			ranges;
+diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt b/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
+index 62fe697..c58d704 100644
+--- a/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
++++ b/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
+@@ -7,6 +7,16 @@ Required properties:
+ - interrupts : should contain the TLL module's interrupt
+ - ti,hwmod : must contain "usb_tll_hs"
  
- 			usbhsohci: ohci@48064400 {
--				compatible = "ti,ohci-omap3", "usb-ohci";
-+				compatible = "ti,ohci-omap3";
- 				reg = <0x48064400 0x400>;
- 				interrupt-parent = <&intc>;
- 				interrupts = <76>;
- 			};
++Optional properties:
++
++- clocks: a list of phandles and clock-specifier pairs, one for each entry in
++  clock-names.
++
++- clock-names: should include:
++  * "usb_tll_hs_usb_ch0_clk" - USB TLL channel 0 clock
++  * "usb_tll_hs_usb_ch1_clk" - USB TLL channel 1 clock
++  * "usb_tll_hs_usb_ch2_clk" - USB TLL channel 2 clock
++
+ Example:
  
- 			usbhsehci: ehci@48064800 {
--				compatible = "ti,ehci-omap", "usb-ehci";
-+				compatible = "ti,ehci-omap";
- 				reg = <0x48064800 0x400>;
- 				interrupt-parent = <&intc>;
- 				interrupts = <77>;
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 39a05ce..ff1b057 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -705,14 +705,14 @@
- 				      "refclk_60m_ext_p2";
- 
- 			usbhsohci: ohci@4a064800 {
--				compatible = "ti,ohci-omap3", "usb-ohci";
-+				compatible = "ti,ohci-omap3";
- 				reg = <0x4a064800 0x400>;
- 				interrupt-parent = <&gic>;
- 				interrupts = <GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
- 			};
- 
- 			usbhsehci: ehci@4a064c00 {
--				compatible = "ti,ehci-omap", "usb-ehci";
-+				compatible = "ti,ehci-omap";
- 				reg = <0x4a064c00 0x400>;
- 				interrupt-parent = <&gic>;
- 				interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index d4dae48..f65aa65 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -783,14 +783,14 @@
- 				      "refclk_60m_ext_p2";
- 
- 			usbhsohci: ohci@4a064800 {
--				compatible = "ti,ohci-omap3", "usb-ohci";
-+				compatible = "ti,ohci-omap3";
- 				reg = <0x4a064800 0x400>;
- 				interrupt-parent = <&gic>;
- 				interrupts = <GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
- 			};
- 
- 			usbhsehci: ehci@4a064c00 {
--				compatible = "ti,ehci-omap", "usb-ehci";
-+				compatible = "ti,ehci-omap";
- 				reg = <0x4a064c00 0x400>;
- 				interrupt-parent = <&gic>;
- 				interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
+ 	usbhstll: usbhstll@4a062000 {
 -- 
 1.8.3.2
