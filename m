@@ -1,80 +1,56 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH] serial: omap-serial: Move info message to probe function
-Date: Thu, 13 Feb 2014 10:56:33 +0100
-Message-ID: <20140213095633.GA17650@pengutronix.de>
-References: <1390583381-9076-1-git-send-email-mpa@pengutronix.de>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 0/8] OMAP: OMAP3 DSS related clock patches
+Date: Thu, 13 Feb 2014 12:03:58 +0200
+Message-ID: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:38445 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753718AbaBMJ4z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 04:56:55 -0500
-Content-Disposition: inline
-In-Reply-To: <1390583381-9076-1-git-send-email-mpa@pengutronix.de>
+Received: from comal.ext.ti.com ([198.47.26.152]:51762 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751880AbaBMKEt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Feb 2014 05:04:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Markus Pargmann <mpa@pengutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, kernel@pengutronix.de, Tony Lindgren <tony@atomide.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Fri, Jan 24, 2014 at 06:09:41PM +0100, Markus Pargmann wrote:
-> Currently the info message about a missing wakeirq for uart is printe=
-d
-> every time the serial driver's startup function is called. This happe=
-ns
-> multiple times and not just once.
->=20
-> This patch moves the infomessage to the probe function to display it
-> only once.
->=20
-> Cc: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
-Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-> ---
->  drivers/tty/serial/omap-serial.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/om=
-ap-serial.c
-> index fa511eb..2051581 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -738,9 +738,6 @@ static int serial_omap_startup(struct uart_port *=
-port)
->  			return retval;
->  		}
->  		disable_irq(up->wakeirq);
-> -	} else {
-> -		dev_info(up->port.dev, "no wakeirq for uart%d\n",
-> -			 up->port.line);
->  	}
-> =20
->  	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
-> @@ -1687,6 +1684,9 @@ static int serial_omap_probe(struct platform_de=
-vice *pdev)
->  	up->port.iotype =3D UPIO_MEM;
->  	up->port.irq =3D uartirq;
->  	up->wakeirq =3D wakeirq;
-> +	if (!up->wakeirq)
-> +		dev_info(up->port.dev, "no wakeirq for uart%d\n",
-> +			 up->port.line);
-> =20
->  	up->port.regshift =3D 2;
->  	up->port.fifosize =3D 64;
-> --=20
-> 1.8.5.2
->=20
->=20
+Hi,
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I've been debugging OMAP3 related issues with DSS clocks, and I hopefully have
+them all fixed with this series. This fixes the problems for both non-DT boot,
+but also for DT boot with DSS DT support (which is not merged yet).
+
+The non-DT boot related fixes should be merged for 3.14, but I'd like the DT
+boot related fixes to be merged for 3.14 also, as that'll make handling the DSS
+DT support easier.
+
+This is based on v3.14-rc2.
+
+ Tomi
+
+Tomi Valkeinen (8):
+  clk: divider: fix rate calculation for fractional rates
+  clk: ti/divider: fix rate calculation for fractional rates
+  ARM: OMAP2+: clock: fix clkoutx2 with CLK_SET_RATE_PARENT
+  ARM: dts: fix omap3 dss clock handle names
+  ARM: dts: fix DPLL4 x2 clkouts on 3630
+  ARM: dts: use ti,fixed-factor-clock for dpll4_m4x2_mul_ck
+  ARM: dts: set 'ti,set-rate-parent' for dpll4_m4 path
+  OMAPDSS: fix rounding when calculating fclk rate
+
+ arch/arm/boot/dts/omap3430es1-clocks.dtsi          |  6 +--
+ .../omap36xx-am35xx-omap3430es2plus-clocks.dtsi    |  6 +--
+ arch/arm/boot/dts/omap36xx-clocks.dtsi             | 20 +++++++
+ arch/arm/boot/dts/omap36xx.dtsi                    |  2 +-
+ arch/arm/boot/dts/omap3xxx-clocks.dtsi             |  8 +--
+ arch/arm/mach-omap2/cclock3xxx_data.c              |  2 +
+ arch/arm/mach-omap2/dpll3xxx.c                     | 62 ++++++++++++++++++++++
+ drivers/clk/clk-divider.c                          | 10 ++--
+ drivers/clk/ti/divider.c                           |  8 +--
+ drivers/video/omap2/dss/dss.c                      |  4 +-
+ include/linux/clk/ti.h                             |  4 ++
+ 11 files changed, 111 insertions(+), 21 deletions(-)
+
+-- 
+1.8.3.2
+
