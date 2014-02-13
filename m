@@ -1,121 +1,106 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv2 01/16] iommu/omap: convert to devm_* interfaces
-Date: Thu, 13 Feb 2014 12:15:32 -0600
-Message-ID: <1392315347-32967-2-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv2 10/16] ARM: OMAP2+: use pdata quirks for iommu reset lines
+Date: Thu, 13 Feb 2014 12:15:41 -0600
+Message-ID: <1392315347-32967-11-git-send-email-s-anna@ti.com>
 References: <1392315347-32967-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41952 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752199AbaBMSRN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Feb 2014 13:17:13 -0500
-In-Reply-To: <1392315347-32967-1-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1392315347-32967-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>, Tony Lindgren <tony@atomide.com>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-Use the various devm_ interfaces to simplify the cleanup in
-probe and remove functions.
+The OMAP iommu driver performs the reset management for the
+iommu instances in processor sub-systems using the omap_device
+API which are currently supplied as platform data ops. Use pdata
+quirks to maintain the functionality as the OMAP iommu driver
+gets converted to use DT nodes, until the reset portions are
+decoupled from omap_hwmod/omap_device into a separate reset
+driver.
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-Signed-off-by: Suman Anna <s-anna@ti.com>
+This patch adds the pdata quirks for the reset management of
+iommus within the DSP (OMAP3 & OMAP4) and IPU subsystems (OMAP4).
+
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.c | 52 +++++++++-------------------------------------
- 1 file changed, 10 insertions(+), 42 deletions(-)
+ arch/arm/mach-omap2/pdata-quirks.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index bcd78a7..fff2ffd 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -941,7 +941,7 @@ static int omap_iommu_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	struct iommu_platform_data *pdata = pdev->dev.platform_data;
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 3d5b24d..74e094a 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -16,12 +16,14 @@
+ #include <linux/wl12xx.h>
  
--	obj = kzalloc(sizeof(*obj) + MMU_REG_SIZE, GFP_KERNEL);
-+	obj = devm_kzalloc(&pdev->dev, sizeof(*obj) + MMU_REG_SIZE, GFP_KERNEL);
- 	if (!obj)
- 		return -ENOMEM;
+ #include <linux/platform_data/pinctrl-single.h>
++#include <linux/platform_data/iommu-omap.h>
  
-@@ -958,33 +958,18 @@ static int omap_iommu_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&obj->mmap);
+ #include "am35xx.h"
+ #include "common.h"
+ #include "common-board-devices.h"
+ #include "dss-common.h"
+ #include "control.h"
++#include "omap_device.h"
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		err = -ENODEV;
--		goto err_mem;
--	}
--
--	res = request_mem_region(res->start, resource_size(res),
--				 dev_name(&pdev->dev));
--	if (!res) {
--		err = -EIO;
--		goto err_mem;
--	}
--
--	obj->regbase = ioremap(res->start, resource_size(res));
--	if (!obj->regbase) {
--		err = -ENOMEM;
--		goto err_ioremap;
--	}
-+	obj->regbase = devm_ioremap_resource(obj->dev, res);
-+	if (IS_ERR(obj->regbase))
-+		return PTR_ERR(obj->regbase);
+ struct pdata_init {
+ 	const char *compatible;
+@@ -92,6 +94,12 @@ static void __init hsmmc2_internal_input_clk(void)
+ 	omap_ctrl_writel(reg, OMAP343X_CONTROL_DEVCONF1);
+ }
  
- 	irq = platform_get_irq(pdev, 0);
--	if (irq < 0) {
--		err = -ENODEV;
--		goto err_irq;
--	}
--	err = request_irq(irq, iommu_fault_handler, IRQF_SHARED,
--			  dev_name(&pdev->dev), obj);
-+	if (irq < 0)
-+		return -ENODEV;
++static struct iommu_platform_data omap3_iommu_pdata = {
++	.reset_name = "mmu",
++	.assert_reset = omap_device_assert_hardreset,
++	.deassert_reset = omap_device_deassert_hardreset,
++};
 +
-+	err = devm_request_irq(obj->dev, irq, iommu_fault_handler, IRQF_SHARED,
-+			       dev_name(obj->dev), obj);
- 	if (err < 0)
--		goto err_irq;
-+		return err;
- 	platform_set_drvdata(pdev, obj);
- 
- 	pm_runtime_irq_safe(obj->dev);
-@@ -992,34 +977,17 @@ static int omap_iommu_probe(struct platform_device *pdev)
- 
- 	dev_info(&pdev->dev, "%s registered\n", obj->name);
- 	return 0;
--
--err_irq:
--	iounmap(obj->regbase);
--err_ioremap:
--	release_mem_region(res->start, resource_size(res));
--err_mem:
--	kfree(obj);
--	return err;
+ static int omap3_sbc_t3730_twl_callback(struct device *dev,
+ 					   unsigned gpio,
+ 					   unsigned ngpio)
+@@ -185,6 +193,12 @@ static void __init omap4_panda_legacy_init(void)
+ 	legacy_init_ehci_clk("auxclk3_ck");
+ 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
  }
++
++static struct iommu_platform_data omap4_iommu_pdata = {
++	.reset_name = "mmu_cache",
++	.assert_reset = omap_device_assert_hardreset,
++	.deassert_reset = omap_device_deassert_hardreset,
++};
+ #endif
  
- static int omap_iommu_remove(struct platform_device *pdev)
- {
--	int irq;
--	struct resource *res;
- 	struct omap_iommu *obj = platform_get_drvdata(pdev);
- 
- 	iopgtable_clear_entry_all(obj);
- 
--	irq = platform_get_irq(pdev, 0);
--	free_irq(irq, obj);
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	release_mem_region(res->start, resource_size(res));
--	iounmap(obj->regbase);
--
- 	pm_runtime_disable(obj->dev);
- 
- 	dev_info(&pdev->dev, "%s removed\n", obj->name);
--	kfree(obj);
- 	return 0;
- }
- 
+ #ifdef CONFIG_SOC_OMAP5
+@@ -240,6 +254,8 @@ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
+ #ifdef CONFIG_ARCH_OMAP3
+ 	OF_DEV_AUXDATA("ti,omap3-padconf", 0x48002030, "48002030.pinmux", &pcs_pdata),
+ 	OF_DEV_AUXDATA("ti,omap3-padconf", 0x48002a00, "48002a00.pinmux", &pcs_pdata),
++	OF_DEV_AUXDATA("ti,omap2-iommu", 0x5d000000, "5d000000.mmu",
++		       &omap3_iommu_pdata),
+ 	/* Only on am3517 */
+ 	OF_DEV_AUXDATA("ti,davinci_mdio", 0x5c030000, "davinci_mdio.0", NULL),
+ 	OF_DEV_AUXDATA("ti,am3517-emac", 0x5c000000, "davinci_emac.0",
+@@ -248,6 +264,10 @@ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
+ #ifdef CONFIG_ARCH_OMAP4
+ 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a100040, "4a100040.pinmux", &pcs_pdata),
+ 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a31e040, "4a31e040.pinmux", &pcs_pdata),
++	OF_DEV_AUXDATA("ti,omap4-iommu", 0x4a066000, "4a066000.mmu",
++		       &omap4_iommu_pdata),
++	OF_DEV_AUXDATA("ti,omap4-iommu", 0x55082000, "55082000.mmu",
++		       &omap4_iommu_pdata),
+ #endif
+ 	{ /* sentinel */ },
+ };
 -- 
 1.8.5.3
-
