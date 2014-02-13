@@ -1,77 +1,59 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP: clock DT conversion issues with omap36xx
-Date: Thu, 13 Feb 2014 12:05:51 +0200
-Message-ID: <52FC98FF.20800@ti.com>
-References: <52E697C0.6000202@gmail.com> <1390848104.4936.62.camel@mars>	 <52E772A3.4090401@ti.com> <1390901735.2963.8.camel@lovely>	 <52E77D03.8090001@ti.com>  <52E7B361.2030601@ti.com>	 <1390928565.4904.88.camel@mars> <1390994505.5023.32.camel@mars>	 <52F10C3D.7000507@ti.com> <1391767923.4937.110.camel@mars> <52FB748E.6050007@ti.com> <52FC8A78.1050500@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="bs9L4nDHBH4XlFILvQE0ow5G1Qe1q3FRg"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52FC8A78.1050500@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Fritz <chf.fritz@googlemail.com>, Tero Kristo <t-kristo@ti.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, Nishanth Menon <nm@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: [PATCH v2 0/4] ARM: dts: Fixes for Overo/Tobi against 3.14-rc2
+Date: Thu, 13 Feb 2014 11:25:12 +0100
+Message-ID: <1392287116-4548-1-git-send-email-florian.vaussard@epfl.ch>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp5.epfl.ch ([128.178.224.8]:46914 "EHLO smtp5.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751440AbaBMKZe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Feb 2014 05:25:34 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Kevin Hilman <khilman@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
---bs9L4nDHBH4XlFILvQE0ow5G1Qe1q3FRg
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+OMAP36xx-based Overo (Storm and alike) are now failing to boot with 3.14-rc2 [1].
+This series fixes this, by moving model-agnostic DT into a common dtsi file,
+and creating model-specific DT files:
 
-On 13/02/14 11:03, Tomi Valkeinen wrote:
-> On 12/02/14 15:18, Tomi Valkeinen wrote:
->=20
->> However, I hacked together the patch below, which "fixes" the issue fo=
-r
->> 96m and dss fclk. It sets the clock parents so that the x2 clocks are
->> skipped, and makes the x2 clock nodes compatible with "unused", making=
+- omap3-overo-tobi.dts -> older OMAP35xx Overo
+- omap3-overo-storm-tobi.dts -> newer OMAP36xx/AM37xx/DM37xx Overo
 
->> them effectively disappear. I only verified dss fclk, so Christoph, ca=
-n
->> you verify the 96m clock?
->=20
-> Aaand the hack patch I sent is crap... We can't skip the x2 clock path,=
+People will have to use the right Overo / expansion board combination.
 
-> as the dpll4_mNx2_ck clock nodes handle enable/disable bit, which is
-> present on 3630 also.
->=20
-> I think the best and simplest way to fix this is by setting the
-> multiplier in the dpll4_mNx2_mul_ck nodes to 1. I don't know why I
-> didn't think of it yesterday.
->=20
-> I have a bunch of other patches needed to get the clocks right, so I'll=
+(Patch 2 in an unrelated fix that was waiting in my queue.)
 
-> send a series separately a bit later today.
+omap3-overo-tobi.dts tested with Overo Sand (OMAP3503) and omap3-overo-storm-tobi.dts
+tested with Overo EarthStorm (AM3703). Both boot. With the Overo Sand, I cannot
+mount the ext3 rootfs, but this seems unrelated to the current topic, maybe
+a missing errata.
 
-I just sent the "OMAP: OMAP3 DSS related clock patches" series to l-o
-and arm lists, which hopefully solves issues discussed in this thread.
+Regards,
+Florian
 
- Tomi
+Changes since v1:
+- Add "ti,omap3430" as a compatible string for OMAP35xx-based Overo
+- Update the DT documentation to silence out checkpatch warnings (patch 4)
 
+[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/110006
 
+Florian Vaussard (4):
+  ARM: dts: omap3-tobi: Fix boot with OMAP36xx-based Overo
+  ARM: dts: omap3-tobi: Use the correct vendor prefix
+  ARM: dts: Add support for both OMAP35xx and OMAP36xx Overo/Tobi
+  Documentation: dt: OMAP: Update Overo/Tobi
 
---bs9L4nDHBH4XlFILvQE0ow5G1Qe1q3FRg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+ .../devicetree/bindings/arm/omap/omap.txt          |  2 +-
+ arch/arm/boot/dts/Makefile                         |  3 ++-
+ arch/arm/boot/dts/omap3-overo-storm-tobi.dts       | 22 ++++++++++++++++++++++
+ ...omap3-tobi.dts => omap3-overo-tobi-common.dtsi} |  3 ---
+ arch/arm/boot/dts/omap3-overo-tobi.dts             | 22 ++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-overo.dtsi                 |  3 ---
+ 6 files changed, 47 insertions(+), 8 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-overo-storm-tobi.dts
+ rename arch/arm/boot/dts/{omap3-tobi.dts => omap3-overo-tobi-common.dtsi} (94%)
+ create mode 100644 arch/arm/boot/dts/omap3-overo-tobi.dts
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+-- 
+1.8.1.2
 
-iQIcBAEBAgAGBQJS/Jj/AAoJEPo9qoy8lh71AOwP/2QDs4IUVMucXwp5LhpYz+J6
-OxLPL/GiR7UZRjml2fc6A0wvAyRqZkZ1xyJx68/xWcCq3hYlYpOFB4me5BtUkwT2
-C2h4sYmBmUWZT2TDYKmzfvg+c6mGTXZeg0yzJV95krvGka+j2n9xw7wWlTfdENb4
-F5CLRnvSEGSLknuceMfJoFtAtpmjgBoyrACfDezIGY0ys3c+guTt/yPBx7t3q97N
-m7IHrYV4Hr2uXjZ15ta7Pa7waFaPeepCxrHFbeXZsMsVGOBFPgqMFR8g6Sf5Wob7
-bVTdWval8szz7lut0YOJIGqjMkDlHvcXa4VjBLNVAGE6uFZx3khRZChPBiC13mmQ
-7XbT0JjlI2GdoWMgGWdMV6Kzz2GDAlv8up/RSC36uFfgMsUxaawj20q3h59V9uCn
-3eqAz19OqVJcl1l6MlPgAXSpyxylUU3R9uNJF/GSTslpOmxswEw3IRwZHLEJQA7Z
-2DtgBzjXOmFqRlPpuwIE89H2xx9PCcC9+i6JMYgU9vWMDl+B33ELiPEVpmSQ1IuC
-1KQGi8t2kCFphJQEvwS7H3WVdpbonEFXvGo90o3TiIzYcP4o+UEPtCPU0S6vfomG
-VckILBwTXQIGoSnqCWd7WRcFQEywRQMKlBrUiTGnDUidHD53VUy7DXetc3EDXilk
-0WrW14tsupMyQPA32IOL
-=Kogz
------END PGP SIGNATURE-----
-
---bs9L4nDHBH4XlFILvQE0ow5G1Qe1q3FRg--
