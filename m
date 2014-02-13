@@ -1,48 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/9] ARM: dts: omap3-gta04: Fix mmc1 properties.
-Date: Thu, 13 Feb 2014 15:08:48 -0800
-Message-ID: <20140213230847.GK28216@atomide.com>
-References: <1390685343-11663-1-git-send-email-marek@goldelico.com>
- <1390685343-11663-4-git-send-email-marek@goldelico.com>
+Subject: Re: [PATCH] ARM: OMAP2+: gpmc: fix: DT NAND child nodes not probed
+ when MTD_NAND is built as module
+Date: Thu, 13 Feb 2014 15:11:16 -0800
+Message-ID: <20140213231116.GL28216@atomide.com>
+References: <1390889561-11410-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55777 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59556 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532AbaBMXJG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 18:09:06 -0500
+	with ESMTP id S1751824AbaBMXL2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 18:11:28 -0500
 Content-Disposition: inline
-In-Reply-To: <1390685343-11663-4-git-send-email-marek@goldelico.com>
+In-Reply-To: <1390889561-11410-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marek Belisko <marek@goldelico.com>
-Cc: bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, neilb@suse.de, hns@goldelico.com
+To: Pekon Gupta <pekon@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Daniel Mack <zonque@gmail.com>
 
-* Marek Belisko <marek@goldelico.com> [140125 13:31]:
-> Does not have an aux supply, and must be non-removable.
+* Pekon Gupta <pekon@ti.com> [140127 22:15]:
+> Fixes: commit bc6b1e7b86f5d8e4a6fc1c0189e64bba4077efe0
+>        ARM: OMAP: gpmc: add DT bindings for GPMC timings and NAND
 > 
-> Otherwise it is removed during suspend and filesystem gets confused.
+> OMAP SoC(s) depend on GPMC controller driver to parse GPMC DT child nodes and
+> register them platform_device for NAND driver to probe later. However this does
+> not happen if generic MTD_NAND framework is built as module (CONFIG_MTD_NAND=m).
 > 
-> Signed-off-by: NeilBrown <neilb@suse.de>
-> ---
->  arch/arm/boot/dts/omap3-gta04.dts | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Therefore, when MTD/NAND and MTD/NAND/OMAP2 modules are loaded, they are unable
+> to find any matching platform_device and remain un-binded. This causes on board
+> NAND flash to remain un-detected.
 > 
-> diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
-> index e315675..6011151 100644
-> --- a/arch/arm/boot/dts/omap3-gta04.dts
-> +++ b/arch/arm/boot/dts/omap3-gta04.dts
-> @@ -149,8 +149,8 @@
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&mmc1_pins>;
->  	vmmc-supply = <&vmmc1>;
-> -	vmmc_aux-supply = <&vsim>;
->  	bus-width = <4>;
-> +	ti,non-removable;
->  };
->  
->  &mmc2 {
+> This patch causes GPMC controller to parse DT nodes when
+> CONFIG_MTD_NAND=y || CONFIG_MTD_NAND=m
 
-Taking this too into omap-for-v3.14/fixes.
+Applying into omap-for-v3.14/fixes for this and the onenand patch.
 
 Tony
