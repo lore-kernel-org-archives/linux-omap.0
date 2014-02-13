@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv2 03/16] Documentation: dt: add OMAP iommu bindings
-Date: Thu, 13 Feb 2014 12:15:34 -0600
-Message-ID: <1392315347-32967-4-git-send-email-s-anna@ti.com>
+Subject: [PATCHv2 16/16] ARM: OMAP2+: Remove legacy omap-iommu.c
+Date: Thu, 13 Feb 2014 12:15:47 -0600
+Message-ID: <1392315347-32967-17-git-send-email-s-anna@ti.com>
 References: <1392315347-32967-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,52 +23,114 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 
-This patch adds the iommu bindings for all OMAP2+ SoCs. Apart from
-the standard bindings used by OMAP peripherals, this patch uses a
-'dma-window' (already used by Tegra SMMU) and adds two OMAP custom
-bindings - 'ti,#tlb-entries' and 'ti,iommu-bus-err-back'.
+With full DT boot, the legacy mode of platform device creation
+for OMAP IOMMUs is not needed anymore.
 
 Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-[s-anna-l0cyMroinI0@public.gmane.org: split bindings document, add dra7 and bus error back]
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 28 ++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
+ arch/arm/mach-omap2/Makefile     |  3 --
+ arch/arm/mach-omap2/omap-iommu.c | 79 ----------------------------------------
+ 2 files changed, 82 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/omap-iommu.c
 
-diff --git a/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
-new file mode 100644
-index 0000000..116492d
---- /dev/null
-+++ b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
-@@ -0,0 +1,28 @@
-+OMAP2+ IOMMU
-+
-+Required properties:
-+- compatible : Should be one of,
-+		"ti,omap2-iommu" for OMAP2/OMAP3 IOMMU instances
-+		"ti,omap4-iommu" for OMAP4/OMAP5 IOMMU instances
-+		"ti,dra7-iommu" for DRA7xx IOMMU instances
-+- ti,hwmods  : Name of the hwmod associated with the IOMMU instance
-+- reg        : Address space for the configuration registers
-+- interrupts : Interrupt specifier for the IOMMU instance
-+- dma-window : IOVA start address and length
-+
-+Optional properties:
-+- ti,#tlb-entries : Number of entries in the translation look-aside buffer.
-+                    Should be either 8 or 32 (default: 32)
-+- ti,iommu-bus-err-back : Indicates the IOMMU instance supports throwing
-+		          back a bus error response on MMU faults.
-+
-+Example:
-+	/* OMAP3 ISP MMU */
-+	mmu_isp: mmu@480bd400 {
-+		compatible = "ti,omap2-iommu";
-+		reg = <0x480bd400 0x80>;
-+		interrupts = <24>;
-+		ti,hwmods = "mmu_isp";
-+		ti,#tlb-entries = <8>;
-+		dma-window = <0 0xfffff000>;
-+	};
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index e6eec6f..242933f 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -226,9 +226,6 @@ obj-$(CONFIG_SOC_DRA7XX)		+= omap_hwmod_7xx_data.o
+ obj-$(CONFIG_OMAP3_EMU)			+= emu.o
+ obj-$(CONFIG_HW_PERF_EVENTS)		+= pmu.o
+ 
+-iommu-$(CONFIG_OMAP_IOMMU)		:= omap-iommu.o
+-obj-y					+= $(iommu-m) $(iommu-y)
+-
+ ifneq ($(CONFIG_TIDSPBRIDGE),)
+ obj-y					+= dsp.o
+ endif
+diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+deleted file mode 100644
+index f1fab56..0000000
+--- a/arch/arm/mach-omap2/omap-iommu.c
++++ /dev/null
+@@ -1,79 +0,0 @@
+-/*
+- * omap iommu: omap device registration
+- *
+- * Copyright (C) 2008-2009 Nokia Corporation
+- *
+- * Written by Hiroshi DOYU <Hiroshi.DOYU-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/of.h>
+-#include <linux/module.h>
+-#include <linux/platform_device.h>
+-#include <linux/err.h>
+-#include <linux/slab.h>
+-
+-#include <linux/platform_data/iommu-omap.h>
+-#include "soc.h"
+-#include "omap_hwmod.h"
+-#include "omap_device.h"
+-
+-static int __init omap_iommu_dev_init(struct omap_hwmod *oh, void *unused)
+-{
+-	struct platform_device *pdev;
+-	struct iommu_platform_data *pdata;
+-	struct omap_mmu_dev_attr *a = (struct omap_mmu_dev_attr *)oh->dev_attr;
+-	static int i;
+-
+-	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+-	if (!pdata)
+-		return -ENOMEM;
+-
+-	pdata->name = oh->name;
+-	pdata->nr_tlb_entries = a->nr_tlb_entries;
+-	pdata->da_start = a->da_start;
+-	pdata->da_end = a->da_end;
+-
+-	if (oh->rst_lines_cnt == 1) {
+-		pdata->reset_name = oh->rst_lines->name;
+-		pdata->assert_reset = omap_device_assert_hardreset;
+-		pdata->deassert_reset = omap_device_deassert_hardreset;
+-	}
+-
+-	pdev = omap_device_build("omap-iommu", i, oh, pdata, sizeof(*pdata));
+-
+-	kfree(pdata);
+-
+-	if (IS_ERR(pdev)) {
+-		pr_err("%s: device build err: %ld\n", __func__, PTR_ERR(pdev));
+-		return PTR_ERR(pdev);
+-	}
+-
+-	i++;
+-
+-	return 0;
+-}
+-
+-static int __init omap_iommu_init(void)
+-{
+-	/* If dtb is there, the devices will be created dynamically */
+-	if (of_have_populated_dt())
+-		return -ENODEV;
+-
+-	return omap_hwmod_for_each_by_class("mmu", omap_iommu_dev_init, NULL);
+-}
+-/* must be ready before omap3isp is probed */
+-omap_subsys_initcall(omap_iommu_init);
+-
+-static void __exit omap_iommu_exit(void)
+-{
+-	/* Do nothing */
+-}
+-module_exit(omap_iommu_exit);
+-
+-MODULE_AUTHOR("Hiroshi DOYU");
+-MODULE_DESCRIPTION("omap iommu: omap device registration");
+-MODULE_LICENSE("GPL v2");
 -- 
 1.8.5.3
