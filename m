@@ -1,14 +1,14 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/8] clk: ti/divider: fix rate calculation for fractional rates
-Date: Thu, 13 Feb 2014 12:04:00 +0200
-Message-ID: <1392285846-13199-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 4/8] ARM: dts: fix omap3 dss clock handle names
+Date: Thu, 13 Feb 2014 12:04:02 +0200
+Message-ID: <1392285846-13199-5-git-send-email-tomi.valkeinen@ti.com>
 References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57377 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57378 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751880AbaBMKEy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753254AbaBMKEy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 13 Feb 2014 05:04:54 -0500
 In-Reply-To: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,90 +16,86 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-ti/clk-divider.c does not calculate the rates consistently at the moment.
+The DSS fclk and iclk handles are named differently on OMAP3430 ES1 than
+on later OMAP revisions. The ES1 has handles 'dss1_alwon_fck_3430es1'
+and 'dss_ick_3430es1', whereas later revisions have similar names but
+ending with 'es2'.
 
-As an example, on OMAP3 we have a clock divider with a source clock of
-864000000 Hz. With dividers 6, 7 and 8 the theoretical rates are:
+This means we don't have one clock handle to which we could refer to
+when defining the DSS clocks.
 
-6: 144000000
-7: 123428571.428571...
-8: 108000000
-
-Calling clk_round_rate() with the rate in the first column will give the
-rate in the second column:
-
-144000000 -> 144000000
-143999999 -> 123428571
-123428572 -> 123428571
-123428571 -> 108000000
-
-Note how clk_round_rate() returns 123428571 for rates from 123428572 to
-143999999, which is mathematically correct, but when clk_round_rate() is
-called with 123428571, the returned value is surprisingly 108000000.
-
-This means that the following code works a bit oddly:
-
-rate = clk_round_rate(clk, 123428572);
-clk_set_rate(clk, rate);
-
-As clk_set_rate() also does clock rate rounding, the result is that the
-clock is set to the rate of 108000000, not 123428571 returned by the
-clk_round_rate.
-
-This patch changes the ti/clk-divider.c to use DIV_ROUND_UP when
-calculating the rate. This gives the following behavior which fixes the
-inconsistency:
-
-144000000 -> 144000000
-143999999 -> 123428572
-123428572 -> 123428572
-123428571 -> 108000000
+However, as the namespaces are separate for ES1 and ES2+ OMAPs, we can
+just rename the handles to 'dss1_alwon_fck' and 'dss_ick' for both ES1
+and ES2+, removing the issue.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/clk/ti/divider.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/omap3430es1-clocks.dtsi                     | 6 +++---
+ arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi | 6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
-index a15e445570b2..e6aa10db7bba 100644
---- a/drivers/clk/ti/divider.c
-+++ b/drivers/clk/ti/divider.c
-@@ -112,7 +112,7 @@ static unsigned long ti_clk_divider_recalc_rate(struct clk_hw *hw,
- 		return parent_rate;
- 	}
+diff --git a/arch/arm/boot/dts/omap3430es1-clocks.dtsi b/arch/arm/boot/dts/omap3430es1-clocks.dtsi
+index 02f6c7fabbec..f9202656168f 100644
+--- a/arch/arm/boot/dts/omap3430es1-clocks.dtsi
++++ b/arch/arm/boot/dts/omap3430es1-clocks.dtsi
+@@ -152,7 +152,7 @@
+ 		clocks = <&usb_l4_gate_ick>, <&usb_l4_div_ick>;
+ 	};
  
--	return parent_rate / div;
-+	return DIV_ROUND_UP(parent_rate, div);
- }
+-	dss1_alwon_fck_3430es1: dss1_alwon_fck_3430es1 {
++	dss1_alwon_fck: dss1_alwon_fck_3430es1 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+ 		clocks = <&dpll4_m4x2_ck>;
+@@ -161,7 +161,7 @@
+ 		ti,set-rate-parent;
+ 	};
  
- /*
-@@ -182,7 +182,7 @@ static int ti_clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
- 		}
- 		parent_rate = __clk_round_rate(__clk_get_parent(hw->clk),
- 				MULT_ROUND_UP(rate, i));
--		now = parent_rate / i;
-+		now = DIV_ROUND_UP(parent_rate, i);
- 		if (now <= rate && now > best) {
- 			bestdiv = i;
- 			best = now;
-@@ -205,7 +205,7 @@ static long ti_clk_divider_round_rate(struct clk_hw *hw, unsigned long rate,
- 	int div;
- 	div = ti_clk_divider_bestdiv(hw, rate, prate);
+-	dss_ick_3430es1: dss_ick_3430es1 {
++	dss_ick: dss_ick_3430es1 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap3-no-wait-interface-clock";
+ 		clocks = <&l4_ick>;
+@@ -184,7 +184,7 @@
+ 	dss_clkdm: dss_clkdm {
+ 		compatible = "ti,clockdomain";
+ 		clocks = <&dss_tv_fck>, <&dss_96m_fck>, <&dss2_alwon_fck>,
+-			 <&dss1_alwon_fck_3430es1>, <&dss_ick_3430es1>;
++			 <&dss1_alwon_fck>, <&dss_ick>;
+ 	};
  
--	return *prate / div;
-+	return DIV_ROUND_UP(*prate, div);
- }
+ 	d2d_clkdm: d2d_clkdm {
+diff --git a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+index af9ae5346bf2..080fb3f4e429 100644
+--- a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
++++ b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+@@ -160,7 +160,7 @@
+ 		ti,bit-shift = <30>;
+ 	};
  
- static int ti_clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
-@@ -216,7 +216,7 @@ static int ti_clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
- 	unsigned long flags = 0;
- 	u32 val;
+-	dss1_alwon_fck_3430es2: dss1_alwon_fck_3430es2 {
++	dss1_alwon_fck: dss1_alwon_fck_3430es2 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,dss-gate-clock";
+ 		clocks = <&dpll4_m4x2_ck>;
+@@ -169,7 +169,7 @@
+ 		ti,set-rate-parent;
+ 	};
  
--	div = parent_rate / rate;
-+	div = DIV_ROUND_UP(parent_rate, rate);
- 	value = _get_val(divider, div);
+-	dss_ick_3430es2: dss_ick_3430es2 {
++	dss_ick: dss_ick_3430es2 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap3-dss-interface-clock";
+ 		clocks = <&l4_ick>;
+@@ -216,7 +216,7 @@
+ 	dss_clkdm: dss_clkdm {
+ 		compatible = "ti,clockdomain";
+ 		clocks = <&dss_tv_fck>, <&dss_96m_fck>, <&dss2_alwon_fck>,
+-			 <&dss1_alwon_fck_3430es2>, <&dss_ick_3430es2>;
++			 <&dss1_alwon_fck>, <&dss_ick>;
+ 	};
  
- 	if (value > div_mask(divider))
+ 	core_l4_clkdm: core_l4_clkdm {
 -- 
 1.8.3.2
 
