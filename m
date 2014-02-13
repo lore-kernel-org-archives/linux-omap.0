@@ -1,49 +1,67 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 4/4] Documentation: dt: OMAP: Update Overo/Tobi
-Date: Thu, 13 Feb 2014 08:43:53 -0600
-Message-ID: <52FCDA29.90605@ti.com>
-References: <1392287116-4548-1-git-send-email-florian.vaussard@epfl.ch> <1392287116-4548-5-git-send-email-florian.vaussard@epfl.ch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Paolo Pisati <paolo.pisati@canonical.com>
+Subject: [PATCH] ARM/dts: hdmi-codec: panda/es dt entries
+Date: Thu, 13 Feb 2014 16:25:58 +0100
+Message-ID: <1392305158-6667-1-git-send-email-paolo.pisati@canonical.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37252 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750861AbaBMOoU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Feb 2014 09:44:20 -0500
-In-Reply-To: <1392287116-4548-5-git-send-email-florian.vaussard@epfl.ch>
+Received: from youngberry.canonical.com ([91.189.89.112]:53216 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751282AbaBMP0B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 10:26:01 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Kevin Hilman <khilman@linaro.org>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
-On 02/13/2014 04:25 AM, Florian Vaussard wrote:
-> Update the compatible string for Overo/Tobi to reflect the latest
-> changes.
-> 
-> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> ---
->  Documentation/devicetree/bindings/arm/omap/omap.txt | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> index 34dc40c..af9b4a0 100644
-> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> @@ -91,7 +91,7 @@ Boards:
->    compatible = "ti,omap3-beagle", "ti,omap3"
->  
->  - OMAP3 Tobi with Overo : Commercial expansion board with daughter board
-> -  compatible = "ti,omap3-tobi", "ti,omap3-overo", "ti,omap3"
-> +  compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3"
-omap3-overo-storm-tobi.dts is not covered here, so, I wonder as the
-number of boards supported keep increasing, is'nt it better we drop
-the board information from omap.txt?
+Signed-off-by: Paolo Pisati <paolo.pisati@canonical.com>
+---
+ arch/arm/boot/dts/omap4-panda-common.dtsi |    9 ++++++++-
+ arch/arm/boot/dts/omap4-panda-es.dts      |    3 ++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
->  
->  - OMAP4 SDP : Software Development Board
->    compatible = "ti,omap4-sdp", "ti,omap4430"
-> 
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index 88c6a05..f4aeaa1 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -36,9 +36,15 @@
+ 		};
+ 	};
+ 
++	hdmi_audio: hdmi_audio@0 {
++		compatible = "linux,hdmi-audio";
++		status = "okay";
++	};
++
+ 	sound: sound {
+ 		compatible = "ti,abe-twl6040";
+ 		ti,model = "PandaBoard";
++		ti,audio-codec = <&hdmi_audio>;
+ 
+ 		ti,mclk-freq = <38400000>;
+ 
+@@ -57,7 +63,8 @@
+ 			"HSMIC", "Headset Mic",
+ 			"Headset Mic", "Headset Mic Bias",
+ 			"AFML", "Line In",
+-			"AFMR", "Line In";
++			"AFMR", "Line In",
++			"HDMI Out", "TX";
+ 	};
+ 
+ 	/* HS USB Port 1 Power */
+diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+index 816d1c9..70152d6 100644
+--- a/arch/arm/boot/dts/omap4-panda-es.dts
++++ b/arch/arm/boot/dts/omap4-panda-es.dts
+@@ -23,7 +23,8 @@
+ 		"Line Out", "AUXL",
+ 		"Line Out", "AUXR",
+ 		"AFML", "Line In",
+-		"AFMR", "Line In";
++		"AFMR", "Line In",
++		"HDMI Out", "TX";
+ };
+ 
+ /* PandaboardES has external pullups on SCL & SDA */
 -- 
-Regards,
-Nishanth Menon
+1.7.9.5
+
