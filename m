@@ -1,169 +1,123 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 2/4] clk: add support for default-rate
-Date: Thu, 13 Feb 2014 11:00:46 +0200
-Message-ID: <1392282048-6284-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 1/4] clk: ti: mux: add support for default-parenting
+Date: Thu, 13 Feb 2014 11:00:45 +0200
+Message-ID: <1392282048-6284-2-git-send-email-t-kristo@ti.com>
 References: <1392282048-6284-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55186 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58380 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753423AbaBMJBb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Feb 2014 04:01:31 -0500
+	id S1753423AbaBMJB3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Feb 2014 04:01:29 -0500
 In-Reply-To: <1392282048-6284-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-default-rate property can now be used to set initial rates for clocks.
-This is added by default for all clocks which get initialized through
-of_clk_init().
+ti,mux-clock now supports ti,default-parent property, which can be used
+to configure the default parent of the clock during boot. This property
+can be added to board specific files, or under the clock data itself.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../devicetree/bindings/clock/clock-bindings.txt   |    9 ++
- drivers/clk/clk.c                                  |   86 ++++++++++++++++++++
- include/linux/clk-provider.h                       |    2 +
- 3 files changed, 97 insertions(+)
+ Documentation/devicetree/bindings/clock/ti/mux.txt |    7 ++++++
+ drivers/clk/ti/mux.c                               |   24 ++++++++++++++++++--
+ 2 files changed, 29 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/clock/clock-bindings.txt b/Documentation/devicetree/bindings/clock/clock-bindings.txt
-index 7c52c29..d676112 100644
---- a/Documentation/devicetree/bindings/clock/clock-bindings.txt
-+++ b/Documentation/devicetree/bindings/clock/clock-bindings.txt
-@@ -44,6 +44,15 @@ For example:
-   clocks by index. The names should reflect the clock output signal
-   names for the device.
+diff --git a/Documentation/devicetree/bindings/clock/ti/mux.txt b/Documentation/devicetree/bindings/clock/ti/mux.txt
+index 2d0d170..4e291eb 100644
+--- a/Documentation/devicetree/bindings/clock/ti/mux.txt
++++ b/Documentation/devicetree/bindings/clock/ti/mux.txt
+@@ -48,6 +48,8 @@ Optional properties:
+   zero
+ - ti,set-rate-parent : clk_set_rate is propagated to parent clock,
+   not supported by the composite-mux-clock subtype
++- ti,default-parent : configures mux parent during boot to be the provided
++  phandle clock
  
-+default-rate:	Sets the rate of the clock during boot to the provided
-+		rate.
-+
-+For example:
-+
-+    clk-divider {
-+        default-rate = <1000000>;
-+    };
-+
- ==Clock consumers==
+ Examples:
  
- Required properties:
-diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index 5517944..cb144e4 100644
---- a/drivers/clk/clk.c
-+++ b/drivers/clk/clk.c
-@@ -2526,6 +2526,89 @@ const char *of_clk_get_parent_name(struct device_node *np, int index)
- }
- EXPORT_SYMBOL_GPL(of_clk_get_parent_name);
+@@ -65,6 +67,7 @@ abe_dpll_bypass_clk_mux_ck: abe_dpll_bypass_clk_mux_ck@4a306108 {
+ 	clocks = <&sys_clkin_ck>, <&sys_32k_ck>;
+ 	ti,bit-shift = <24>;
+ 	reg = <0x0108>;
++	ti,default-parent = <&sys_32k_ck>;
+ };
  
-+static LIST_HEAD(clk_init_info_list);
+ mcbsp5_mux_fck: mcbsp5_mux_fck {
+@@ -74,3 +77,7 @@ mcbsp5_mux_fck: mcbsp5_mux_fck {
+ 	ti,bit-shift = <4>;
+ 	reg = <0x02d8>;
+ };
 +
-+struct clk_init_info {
-+	struct device_node *node;
-+	struct clk *clk;
-+	u32 rate;
-+	struct list_head link;
-+	struct list_head sort_link;
++&mcbsp5_mux_fck {
++	ti,default-parent = <&mcbsp_clks>;
 +};
+diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+index 0197a47..557a7ce 100644
+--- a/drivers/clk/ti/mux.c
++++ b/drivers/clk/ti/mux.c
+@@ -108,7 +108,8 @@ static struct clk *_register_mux(struct device *dev, const char *name,
+ 				 const char **parent_names, u8 num_parents,
+ 				 unsigned long flags, void __iomem *reg,
+ 				 u8 shift, u32 mask, u8 clk_mux_flags,
+-				 u32 *table, spinlock_t *lock)
++				 u32 *table, int default_parent,
++				 spinlock_t *lock)
+ {
+ 	struct clk_mux *mux;
+ 	struct clk *clk;
+@@ -136,6 +137,9 @@ static struct clk *_register_mux(struct device *dev, const char *name,
+ 	mux->table = table;
+ 	mux->hw.init = &init;
+ 
++	if (default_parent >= 0)
++		ti_clk_mux_set_parent(&mux->hw, default_parent);
 +
-+int __init of_clk_parse_init_rate(struct device_node *node, struct clk *clk)
-+{
-+	u32 rate;
-+	struct clk_init_info *cinfo;
+ 	clk = clk_register(dev, &mux->hw);
+ 
+ 	if (IS_ERR(clk))
+@@ -161,6 +165,8 @@ static void of_mux_clk_setup(struct device_node *node)
+ 	u32 mask = 0;
+ 	u32 shift = 0;
+ 	u32 flags = 0;
++	struct device_node *default_parent;
++	int default_parent_idx = -1;
+ 
+ 	num_parents = of_clk_get_parent_count(node);
+ 	if (num_parents < 2) {
+@@ -174,6 +180,19 @@ static void of_mux_clk_setup(struct device_node *node)
+ 	for (i = 0; i < num_parents; i++)
+ 		parent_names[i] = of_clk_get_parent_name(node, i);
+ 
++	default_parent = of_parse_phandle(node, "ti,default-parent", 0);
 +
-+	if (of_property_read_u32(node, "default-rate", &rate))
-+		return 0;
-+
-+	cinfo = kzalloc(sizeof(*cinfo), GFP_KERNEL);
-+	if (!cinfo)
-+		return -ENOMEM;
-+
-+	cinfo->node = node;
-+	cinfo->clk = clk;
-+	cinfo->rate = rate;
-+	list_add(&cinfo->link, &clk_init_info_list);
-+	INIT_LIST_HEAD(&cinfo->sort_link);
-+
-+	return 0;
-+}
-+
-+int __init of_clk_set_init_rates(void)
-+{
-+	struct clk_init_info *cinfo, *tmp;
-+	struct of_phandle_args clkspec;
-+	int ret = 0;
-+	struct list_head sorted_list;
-+	struct clk *clk;
-+
-+	INIT_LIST_HEAD(&sorted_list);
-+
-+	list_for_each_entry(cinfo, &clk_init_info_list, link) {
-+		/* Get missing clk pointers */
-+		if (!cinfo->clk) {
-+			clkspec.np = cinfo->node;
-+			cinfo->clk = of_clk_get_from_provider(&clkspec);
-+		}
-+
-+		/* Check if we are the parent of any of the sorted clocks */
-+		list_for_each_entry(tmp, &sorted_list, sort_link) {
-+			clk = tmp->clk;
-+			while (clk && clk != cinfo->clk)
-+				clk = clk->parent;
-+
-+			if (clk == cinfo->clk) {
-+				/* Add us before this node in the list */
-+				list_add_tail(&cinfo->sort_link,
-+					      &tmp->sort_link);
++	if (default_parent) {
++		for (i = 0; i < num_parents; i++) {
++			struct device_node *tmp;
++			tmp = of_parse_phandle(node, "clocks", i);
++			if (tmp == default_parent) {
++				default_parent_idx = i;
 +				break;
 +			}
 +		}
-+
-+		if (list_empty(&cinfo->sort_link))
-+			list_add_tail(&cinfo->sort_link, &sorted_list);
 +	}
 +
-+	/* Process sorted list and set clk rates */
-+	list_for_each_entry_safe(cinfo, tmp, &sorted_list, sort_link) {
-+		int r = clk_set_rate(cinfo->clk, cinfo->rate);
-+		if (r) {
-+			pr_err("%s: clk_set_rate for %s failed: %d\n", __func__,
-+			       cinfo->node->name, ret);
-+			ret = r;
-+		}
-+
-+		/* Clean up the static list */
-+		list_del(&cinfo->link);
-+		kfree(cinfo);
-+	}
-+
-+	return ret;
-+}
-+
- /**
-  * of_clk_init() - Scan and init clock providers from the DT
-  * @matches: array of compatible values and init functions for providers.
-@@ -2544,6 +2627,9 @@ void __init of_clk_init(const struct of_device_id *matches)
- 	for_each_matching_node_and_match(np, matches, &match) {
- 		of_clk_init_cb_t clk_init_cb = match->data;
- 		clk_init_cb(np);
-+		of_clk_parse_init_rate(np, NULL);
- 	}
-+
-+	of_clk_set_init_rates();
- }
- #endif
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 939533d..1bbd194 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -506,6 +506,8 @@ struct clk *of_clk_src_simple_get(struct of_phandle_args *clkspec,
- struct clk *of_clk_src_onecell_get(struct of_phandle_args *clkspec, void *data);
- int of_clk_get_parent_count(struct device_node *np);
- const char *of_clk_get_parent_name(struct device_node *np, int index);
-+int of_clk_parse_init_rate(struct device_node *node, struct clk *clk);
-+int of_clk_set_init_rates(void);
+ 	reg = ti_clk_get_reg_addr(node, 0);
  
- void of_clk_init(const struct of_device_id *matches);
+ 	if (!reg)
+@@ -195,7 +214,8 @@ static void of_mux_clk_setup(struct device_node *node)
+ 	mask = (1 << fls(mask)) - 1;
  
+ 	clk = _register_mux(NULL, node->name, parent_names, num_parents, flags,
+-			    reg, shift, mask, clk_mux_flags, NULL, NULL);
++			    reg, shift, mask, clk_mux_flags, NULL,
++			    default_parent_idx, NULL);
+ 
+ 	if (!IS_ERR(clk))
+ 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
 -- 
 1.7.9.5
 
