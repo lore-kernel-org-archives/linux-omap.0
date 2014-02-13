@@ -1,16 +1,16 @@
 From: Paolo Pisati <paolo.pisati@canonical.com>
-Subject: [PATCH] ARM/dts: hdmi-codec: panda/es dt entries
-Date: Thu, 13 Feb 2014 16:25:58 +0100
-Message-ID: <1392305158-6667-1-git-send-email-paolo.pisati@canonical.com>
+Subject: [PATCH] [RESEND] ARM/dts: hdmi-codec: panda/es dt entries
+Date: Thu, 13 Feb 2014 16:58:01 +0100
+Message-ID: <1392307081-12299-1-git-send-email-paolo.pisati@canonical.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:53216 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:53408 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751282AbaBMP0B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 10:26:01 -0500
+	with ESMTP id S1751795AbaBMP6H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 10:58:07 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
 Signed-off-by: Paolo Pisati <paolo.pisati@canonical.com>
 ---
