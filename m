@@ -1,58 +1,67 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 4/4] ARM: dts: OMAP5: Add IOMMU nodes
-Date: Thu, 13 Feb 2014 12:22:56 -0600
-Message-ID: <1392315776-33197-5-git-send-email-s-anna@ti.com>
-References: <1392315776-33197-1-git-send-email-s-anna@ti.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH 0/6] net: cpsw: Support for am335x chip MACIDs
+Date: Thu, 13 Feb 2014 20:33:01 +0100
+Message-ID: <20140213193301.GD17650@pengutronix.de>
+References: <1387385242-1161-1-git-send-email-mpa@pengutronix.de>
+ <52B1D4C7.6030004@ti.com>
+ <20131218170818.GR4970@saruman.home>
+ <52B1D722.3040500@ti.com>
+ <20131218171301.GT4970@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42281 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752750AbaBMSYL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Feb 2014 13:24:11 -0500
-In-Reply-To: <1392315776-33197-1-git-send-email-s-anna@ti.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44399 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751808AbaBMTdK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 14:33:10 -0500
+Content-Disposition: inline
+In-Reply-To: <20131218171301.GT4970@saruman.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree@vger.kernel.org, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, Markus Pargmann <mpa@pengutronix.de>, "David S. Miller" <davem@davemloft.net>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 
-The IOMMU DT nodes have been added for the DSP and IPU
-subsystems. The MMUs in OMAP5 are identical to those in
-OMAP4, including the bus error back capability on IPU.
+Hello,
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- arch/arm/boot/dts/omap5.dtsi | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+On Wed, Dec 18, 2013 at 11:13:01AM -0600, Felipe Balbi wrote:
+> On Wed, Dec 18, 2013 at 10:40:58PM +0530, Mugunthan V N wrote:
+> > On Wednesday 18 December 2013 10:38 PM, Felipe Balbi wrote:
+> > > On Wed, Dec 18, 2013 at 10:30:55PM +0530, Mugunthan V N wrote:
+> > >> On Wednesday 18 December 2013 10:17 PM, Markus Pargmann wrote:
+> > >> Mac ID is to be filled by U-Boot and this kind of approach is al=
+ready
+> > >> rejected in linux-omap list.
+> > >>
+> > >> If proper ethaddr/eth*addr is populated in U-boot environment va=
+riable
+> > >> then mac-address dt property in ethernet* device nodes will be p=
+opulated
+> > >> before boot kernel in U-boot. So I don't think this patch series=
+ is
+> > >> required.
+> > > but will u-boot read MACID from control module ?
+> > >
+> > Yes, U-Boot will read the MACID from control module and if a custom=
+er
+> > wants to have his own MACID, U-boot ENV variable ethaddr/eth1addr m=
+ust
+> > be updated.
+>=20
+> cool, then I agree this series shouldn't be applied ;-)
+But even then I'd suggest to take at least patches 1 and 2.
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index a72813a..a78fdaa 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -513,6 +513,23 @@
- 			dma-names = "tx", "rx";
- 		};
- 
-+		mmu_dsp: mmu@4a066000 {
-+			compatible = "ti,omap4-iommu";
-+			reg = <0x4a066000 0xff>;
-+			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,hwmods = "mmu_dsp";
-+			dma-window = <0x20000000 0xdffff000>;
-+		};
-+
-+		mmu_ipu: mmu@55082000 {
-+			compatible = "ti,omap4-iommu";
-+			reg = <0x55082000 0xff>;
-+			interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,hwmods = "mmu_ipu";
-+			dma-window = <0 0xdffff000>;
-+			ti,iommu-bus-err-back;
-+		};
-+
- 		keypad: keypad@4ae1c000 {
- 			compatible = "ti,omap4-keypad";
- 			reg = <0x4ae1c000 0x400>;
--- 
-1.8.5.3
+Best regards
+Uwe
 
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
