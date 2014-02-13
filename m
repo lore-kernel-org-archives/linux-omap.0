@@ -1,113 +1,70 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 4/4] clk: ti: omap4: set default-parents and default-rates using DT
-Date: Thu, 13 Feb 2014 11:00:48 +0200
-Message-ID: <1392282048-6284-5-git-send-email-t-kristo@ti.com>
-References: <1392282048-6284-1-git-send-email-t-kristo@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: OMAP: clock DT conversion issues with omap36xx
+Date: Thu, 13 Feb 2014 11:03:52 +0200
+Message-ID: <52FC8A78.1050500@ti.com>
+References: <52E697C0.6000202@gmail.com> <1390848104.4936.62.camel@mars>	 <52E772A3.4090401@ti.com> <1390901735.2963.8.camel@lovely>	 <52E77D03.8090001@ti.com>  <52E7B361.2030601@ti.com>	 <1390928565.4904.88.camel@mars> <1390994505.5023.32.camel@mars>	 <52F10C3D.7000507@ti.com> <1391767923.4937.110.camel@mars> <52FB748E.6050007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34518 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753475AbaBMJBh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 04:01:37 -0500
-In-Reply-To: <1392282048-6284-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="i14cdrHiJG2Pfjt8r58ua8vBpwe0DJWxo"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52FB748E.6050007@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Fritz <chf.fritz@googlemail.com>, Tero Kristo <t-kristo@ti.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Setup dpll_usb_ck and dpll_abe_ck using DT properties instead of hardcoding
-the parents and rates in kernel.
+--i14cdrHiJG2Pfjt8r58ua8vBpwe0DJWxo
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/boot/dts/omap4.dtsi |   12 ++++++++++++
- drivers/clk/ti/clk-44xx.c    |   42 ------------------------------------------
- 2 files changed, 12 insertions(+), 42 deletions(-)
+On 12/02/14 15:18, Tomi Valkeinen wrote:
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index d3f8a6e..282ce66 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -761,3 +761,15 @@
- };
- 
- /include/ "omap44xx-clocks.dtsi"
-+
-+&dpll_usb_ck {
-+	default-rate = <960000000>;
-+};
-+
-+&dpll_abe_ck {
-+	default-rate = <98304000>;
-+};
-+
-+&abe_dpll_refclk_mux_ck {
-+	ti,default-parent = <&sys_32k_ck>;
-+};
-diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
-index ae00218..bc14a49 100644
---- a/drivers/clk/ti/clk-44xx.c
-+++ b/drivers/clk/ti/clk-44xx.c
-@@ -16,21 +16,6 @@
- #include <linux/clkdev.h>
- #include <linux/clk/ti.h>
- 
--/*
-- * OMAP4 ABE DPLL default frequency. In OMAP4460 TRM version V, section
-- * "3.6.3.2.3 CM1_ABE Clock Generator" states that the "DPLL_ABE_X2_CLK
-- * must be set to 196.608 MHz" and hence, the DPLL locked frequency is
-- * half of this value.
-- */
--#define OMAP4_DPLL_ABE_DEFFREQ				98304000
--
--/*
-- * OMAP4 USB DPLL default frequency. In OMAP4430 TRM version V, section
-- * "3.6.3.9.5 DPLL_USB Preferred Settings" shows that the preferred
-- * locked frequency for the USB DPLL is 960MHz.
-- */
--#define OMAP4_DPLL_USB_DEFFREQ				960000000
--
- static struct ti_dt_clk omap44xx_clks[] = {
- 	DT_CLK(NULL, "extalt_clkin_ck", "extalt_clkin_ck"),
- 	DT_CLK(NULL, "pad_clks_src_ck", "pad_clks_src_ck"),
-@@ -281,36 +266,9 @@ static struct ti_dt_clk omap44xx_clks[] = {
- 
- int __init omap4xxx_dt_clk_init(void)
- {
--	int rc;
--	struct clk *abe_dpll_ref, *abe_dpll, *sys_32k_ck, *usb_dpll;
--
- 	ti_dt_clocks_register(omap44xx_clks);
- 
- 	omap2_clk_disable_autoidle_all();
- 
--	/*
--	 * Lock USB DPLL on OMAP4 devices so that the L3INIT power
--	 * domain can transition to retention state when not in use.
--	 */
--	usb_dpll = clk_get_sys(NULL, "dpll_usb_ck");
--	rc = clk_set_rate(usb_dpll, OMAP4_DPLL_USB_DEFFREQ);
--	if (rc)
--		pr_err("%s: failed to configure USB DPLL!\n", __func__);
--
--	/*
--	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
--	 * state when turning the ABE clock domain. Workaround this by
--	 * locking the ABE DPLL on boot.
--	 * Lock the ABE DPLL in any case to avoid issues with audio.
--	 */
--	abe_dpll_ref = clk_get_sys(NULL, "abe_dpll_refclk_mux_ck");
--	sys_32k_ck = clk_get_sys(NULL, "sys_32k_ck");
--	rc = clk_set_parent(abe_dpll_ref, sys_32k_ck);
--	abe_dpll = clk_get_sys(NULL, "dpll_abe_ck");
--	if (!rc)
--		rc = clk_set_rate(abe_dpll, OMAP4_DPLL_ABE_DEFFREQ);
--	if (rc)
--		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
--
- 	return 0;
- }
--- 
-1.7.9.5
+> However, I hacked together the patch below, which "fixes" the issue for=
 
+> 96m and dss fclk. It sets the clock parents so that the x2 clocks are
+> skipped, and makes the x2 clock nodes compatible with "unused", making
+> them effectively disappear. I only verified dss fclk, so Christoph, can=
+
+> you verify the 96m clock?
+
+Aaand the hack patch I sent is crap... We can't skip the x2 clock path,
+as the dpll4_mNx2_ck clock nodes handle enable/disable bit, which is
+present on 3630 also.
+
+I think the best and simplest way to fix this is by setting the
+multiplier in the dpll4_mNx2_mul_ck nodes to 1. I don't know why I
+didn't think of it yesterday.
+
+I have a bunch of other patches needed to get the clocks right, so I'll
+send a series separately a bit later today.
+
+ Tomi
+
+
+
+--i14cdrHiJG2Pfjt8r58ua8vBpwe0DJWxo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJS/Ip4AAoJEPo9qoy8lh71Z5MP/iSntFIJXnIY4mlMoM1mWH3j
+MvahhzY4M/faeNyLEt9mTs7f5aa/D5wE0gRMHxN8GIpzLC8C1JByMMkV0D1kZxTD
+5uQOrL/JrmHU0DYiW5Rdr0hpu4ZcynHYsqEEfxRIswJHiSTO2fvMwP6vva8UQkaF
+7GRucXAa4GIwspmRa+JRdcorMTjUkq5lYXCarvvgUkq87DaUBewQPGf+lEgg39sS
+amJv1qPTLFPECXCYa+2ccxRrgDbAzhlYJuKjLj3BbQptC5CTWxDY5nYJlZs3XOUC
+CrntRxiG51WsSU0lb6tyCZjm+igpmwa9NsvwBae9FpjMNSUfskXztSkbwXHXb3Ve
+89/Tmoy40KYVv4OldK4kPYddz0FkxC0Xeeav9c2ht4M2DcbA4UuHwzkJi4KVsR6t
+6L5GI+OZirznICO9Eld/mJrojpDVulWz2mg7I9Bo5xddsytAca5mhwrCh8NLaBXp
+1Umr3/t7igOt9+FJc2dXt9Rdip4Ngk8FASKixEQOvigmieQQ8+ZGMOYpkybRNl3E
+xeBa9fx56A7Oi0HRUbKsAexod6m2gRI6HUH9zDNkeYAoF+lGvbbcrP1ph3TF88A+
+hIQ8gKFG3I4drFip+lOAUVOScBrCscsK2Qq5DDH+lLPx1s8hDPJwci3WW5spq7UM
+pRvcLxGAGtZP6hp+9WgO
+=BrcT
+-----END PGP SIGNATURE-----
+
+--i14cdrHiJG2Pfjt8r58ua8vBpwe0DJWxo--
