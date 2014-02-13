@@ -1,47 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3+: DPLL: stop reparenting to same parent if
- already done
-Date: Thu, 13 Feb 2014 15:13:17 -0800
-Message-ID: <20140213231317.GN28216@atomide.com>
-References: <1391591048-19433-1-git-send-email-nm@ti.com>
+From: Markus Pargmann <mpa@pengutronix.de>
+Subject: Re: [PATCH] arm: dtsi: am335x-bone-common, usb0 is peripheral only
+Date: Fri, 14 Feb 2014 00:13:33 +0100
+Message-ID: <20140213231333.GK31787@pengutronix.de>
+References: <1389448851-20010-1-git-send-email-mpa@pengutronix.de>
+ <20140213225438.GF28216@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54005 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752359AbaBMXNi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 18:13:38 -0500
 Content-Disposition: inline
-In-Reply-To: <1391591048-19433-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
+In-Reply-To: <20140213225438.GF28216@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 
-* Nishanth Menon <nm@ti.com> [140205 01:06]:
-> omap3_noncore_dpll_set_rate forces a reparent to the same clk_ref
-> for every call that takes place. This is an can be done only if a change
-> is detected.
+Hi,
+
+On Thu, Feb 13, 2014 at 02:54:38PM -0800, Tony Lindgren wrote:
+> * Markus Pargmann <mpa@pengutronix.de> [140111 06:03]:
+> > The PMIC is using usb0 vbus line as power source. It is also connected
+> > to the am335x processor as vbus sense. But there is no possibility to
+> > pullup usb0 vbus to operate as host. This patch fixes the dr_mode of usb0.
 > 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> That's the MUSB? AFAIK it's not possible to operate MUSB in peripheral
+> only mode because the hardware does what it wants based on the ID
+> pin state.
 
-Would like to see acks on this too before applying.
+Yes that's MUSB. The am335x reference manual describes that it is
+possible to force peripheral/host mode by setting bit 7 (IDDIG_MUX) in
+register USBnMODE to 1. Then it uses the bit written in bit 8 (IDDIG) of
+register USBnMODE to set host/peripheral mode.
 
-Tony
+I am not sure if the driver supports it yet but I think the DTS should
+contain the correct mode nevertheless, especially to avoid starting the
+otg loops in the musb driver.
 
-> ---
->  arch/arm/mach-omap2/dpll3xxx.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-> index 3185ced..d9bcbf7 100644
-> --- a/arch/arm/mach-omap2/dpll3xxx.c
-> +++ b/arch/arm/mach-omap2/dpll3xxx.c
-> @@ -525,7 +525,7 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
->  	* stuff is inherited for free
->  	*/
->  
-> -	if (!ret)
-> +	if (!ret && clk_get_parent(hw->clk) != new_parent)
->  		__clk_reparent(hw->clk, new_parent);
->  
->  	return 0;
-> -- 
-> 1.7.9.5
-> 
+Regards,
+
+Markus
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
