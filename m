@@ -1,39 +1,41 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v1 0/5] add parallel NAND support for TI's new OMAPx and
- AMxx platforms
-Date: Thu, 13 Feb 2014 04:27:30 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA6FE42@DBDE04.ent.ti.com>
-References: <1391606914-9947-1-git-send-email-pekon@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 0/4] clk: dt: add support for default rate/parent
+Date: Thu, 13 Feb 2014 11:00:44 +0200
+Message-ID: <1392282048-6284-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48951 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49426 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751403AbaBME1k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Feb 2014 23:27:40 -0500
-In-Reply-To: <1391606914-9947-1-git-send-email-pekon@ti.com>
-Content-Language: en-US
+	id S1751464AbaBMJB1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Feb 2014 04:01:27 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "Benoit Cousson (benoit.cousson@linaro.org)" <benoit.cousson@linaro.org>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi Benoit, Tony,
- 
->From: Gupta, Pekon
->
->This patch-set adds and updates parallel NAND support on following TI platforms
-> - AM335x (am335x-evm)
-> - DRA7xx (dra7-evm
-> - AM43xx (am43X-epos-evm)
->
->In addition, following OMAP2+/GPMC patch is also added in this series as
->it add checks DRA7xx and AM43xxx platforms for non-DT kernels.
->	ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms
->
-Please let me know, if this patch-set is in acceptable state,
-Or should I rebase it against any specific branch at your side ?
+Hi,
 
+This set is a mix-match of new DT properties for generic and TI specific
+clock drivers. Basically provided for commenting purposes. The patches
+provide a way to configure clock parents / rates during boot through DT.
 
-with regards, pekon
+"default-rate" : sets rate of a clock during boot, supported for any DT
+		 clock type (through generic clock driver)
+"ti,default-parent" : selects a default parent for a multiplexer clock,
+		      only supported for TI specific mux clock for now,
+		      as generic mux clock does not support DT clocks
+
+Patch #4 provided as a reference how to move the default rates / parents
+from kernel code to DT.
+
+Default-rate logic in patch #2 looks somewhat complicated, as the clocks
+need to be sorted based on their parents to avoid cases where a child clock
+would set its rate first, just to be overridden by its parent changing
+rate later and resulting in incorrect rate for the child clock.
+
+If the default-rate generic property is not going to fly, it can be moved
+to TI only drivers also.
+
+-Tero
+
