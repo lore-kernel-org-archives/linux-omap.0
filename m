@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/4] ARM: dts: OMAP3: Add IVA IOMMU node
-Date: Thu, 13 Feb 2014 12:22:54 -0600
-Message-ID: <1392315776-33197-3-git-send-email-s-anna@ti.com>
+Subject: [PATCH 3/4] ARM: dts: OMAP4: Add IOMMU nodes
+Date: Thu, 13 Feb 2014 12:22:55 -0600
+Message-ID: <1392315776-33197-4-git-send-email-s-anna@ti.com>
 References: <1392315776-33197-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,35 +23,47 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 
-Add the DT node for the IOMMU within the DSP subsystem. The entry
-is disabled to keep in line with the current hwmod usage.
+Add the IOMMU nodes for the DSP and IPU subsystems. The external
+address space for DSP starts at 0x20000000 in OMAP4 compared to
+0x11000000 in OMAP3, and the addresses beyond 0xE0000000 are
+private address space for the Cortex-M3 cores in the IPU subsystem.
+The MMU within the IPU sub-system also supports a bus error back
+capability, not available on the DSP MMU.
 
 Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-[s-anna-l0cyMroinI0@public.gmane.org: split the entry and disable the node]
+[s-anna-l0cyMroinI0@public.gmane.org: dma-window updates and bus error back addition]
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3.dtsi | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/boot/dts/omap4.dtsi | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index ac91cc3..9607187 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -419,6 +419,15 @@
- 			dma-window = <0 0xfffff000>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index d3f8a6e..1885f90 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -461,6 +461,23 @@
+ 			dma-names = "tx", "rx";
  		};
  
-+		mmu_iva: mmu@5d000000 {
-+			compatible = "ti,omap2-iommu";
-+			reg = <0x5d000000 0x80>;
-+			interrupts = <28>;
-+			ti,hwmods = "mmu_iva";
-+			dma-window = <0x11000000 0xeefff000>;
-+			status = "disabled";
++		mmu_dsp: mmu@4a066000 {
++			compatible = "ti,omap4-iommu";
++			reg = <0x4a066000 0xff>;
++			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
++			ti,hwmods = "mmu_dsp";
++			dma-window = <0x20000000 0xdffff000>;
 +		};
 +
- 		wdt2: wdt@48314000 {
- 			compatible = "ti,omap3-wdt";
- 			reg = <0x48314000 0x80>;
++		mmu_ipu: mmu@55082000 {
++			compatible = "ti,omap4-iommu";
++			reg = <0x55082000 0xff>;
++			interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
++			ti,hwmods = "mmu_ipu";
++			dma-window = <0 0xdffff000>;
++			ti,iommu-bus-err-back;
++		};
++
+ 		wdt2: wdt@4a314000 {
+ 			compatible = "ti,omap4-wdt", "ti,omap3-wdt";
+ 			reg = <0x4a314000 0x80>;
 -- 
 1.8.5.3
