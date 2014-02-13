@@ -1,201 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: clock: fix clkoutx2 with CLK_SET_RATE_PARENT
-Date: Thu, 13 Feb 2014 15:12:22 -0800
-Message-ID: <20140213231222.GM28216@atomide.com>
-References: <1391080640-23370-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] ARM: OMAP3+: DPLL: stop reparenting to same parent if
+ already done
+Date: Thu, 13 Feb 2014 15:13:17 -0800
+Message-ID: <20140213231317.GN28216@atomide.com>
+References: <1391591048-19433-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:27092 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751615AbaBMXMj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 18:12:39 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1391080640-23370-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1391591048-19433-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Tero Kristo <t-kristo@ti.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140130 03:19]:
-> If CLK_SET_RATE_PARENT is set for a clkoutx2 clock, calling
-> clk_set_rate() on the clock "skips" the x2 multiplier as there are no
-> set_rate and round_rate functions defined for the clkoutx2.
+* Nishanth Menon <nm@ti.com> [140205 01:06]:
+> omap3_noncore_dpll_set_rate forces a reparent to the same clk_ref
+> for every call that takes place. This is an can be done only if a change
+> is detected.
 > 
-> This results in getting double the requested clock rates, breaking the
-> display on omap3430 based devices. This got broken when
-> d0f58bd3bba3877fb1af4664c4e33273d36f00e4 and related patches were merged
-> for v3.14, as omapdss driver now relies more on the clk-framework and
-> CLK_SET_RATE_PARENT.
-> 
-> This patch implements set_rate and round_rate for clkoutx2.
-> 
-> Tested on OMAP3430, OMAP3630, OMAP4460.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-Would like to see acks from Paul and Tero on this too before applying.
+Would like to see acks on this too before applying.
 
 Tony
 
 > ---
->  arch/arm/mach-omap2/cclock3xxx_data.c |  2 +
->  arch/arm/mach-omap2/dpll3xxx.c        | 92 +++++++++++++++++++++++++++++------
->  include/linux/clk/ti.h                |  4 ++
->  3 files changed, 83 insertions(+), 15 deletions(-)
+>  arch/arm/mach-omap2/dpll3xxx.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
-> index 3b05aea56d1f..11ed9152e665 100644
-> --- a/arch/arm/mach-omap2/cclock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/cclock3xxx_data.c
-> @@ -433,7 +433,9 @@ static const struct clk_ops dpll4_m5x2_ck_ops = {
->  	.enable		= &omap2_dflt_clk_enable,
->  	.disable	= &omap2_dflt_clk_disable,
->  	.is_enabled	= &omap2_dflt_clk_is_enabled,
-> +	.set_rate	= &omap3_clkoutx2_set_rate,
->  	.recalc_rate	= &omap3_clkoutx2_recalc,
-> +	.round_rate	= &omap3_clkoutx2_round_rate,
->  };
->  
->  static const struct clk_ops dpll4_m5x2_ck_3630_ops = {
 > diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-> index 3185ced807c9..3c418ea54bbe 100644
+> index 3185ced..d9bcbf7 100644
 > --- a/arch/arm/mach-omap2/dpll3xxx.c
 > +++ b/arch/arm/mach-omap2/dpll3xxx.c
-> @@ -623,6 +623,32 @@ void omap3_dpll_deny_idle(struct clk_hw_omap *clk)
+> @@ -525,7 +525,7 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
+>  	* stuff is inherited for free
+>  	*/
 >  
->  /* Clock control for DPLL outputs */
+> -	if (!ret)
+> +	if (!ret && clk_get_parent(hw->clk) != new_parent)
+>  		__clk_reparent(hw->clk, new_parent);
 >  
-> +/* Find the parent DPLL for the given clkoutx2 clock */
-> +static struct clk_hw_omap *omap3_find_clkoutx2_dpll(struct clk_hw *hw)
-> +{
-> +	struct clk_hw_omap *pclk = NULL;
-> +	struct clk *parent;
-> +
-> +	/* Walk up the parents of clk, looking for a DPLL */
-> +	do {
-> +		do {
-> +			parent = __clk_get_parent(hw->clk);
-> +			hw = __clk_get_hw(parent);
-> +		} while (hw && (__clk_get_flags(hw->clk) & CLK_IS_BASIC));
-> +		if (!hw)
-> +			break;
-> +		pclk = to_clk_hw_omap(hw);
-> +	} while (pclk && !pclk->dpll_data);
-> +
-> +	/* clk does not have a DPLL as a parent?  error in the clock data */
-> +	if (!pclk) {
-> +		WARN_ON(1);
-> +		return NULL;
-> +	}
-> +
-> +	return pclk;
-> +}
-> +
->  /**
->   * omap3_clkoutx2_recalc - recalculate DPLL X2 output virtual clock rate
->   * @clk: DPLL output struct clk
-> @@ -637,27 +663,14 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
->  	unsigned long rate;
->  	u32 v;
->  	struct clk_hw_omap *pclk = NULL;
-> -	struct clk *parent;
->  
->  	if (!parent_rate)
->  		return 0;
->  
-> -	/* Walk up the parents of clk, looking for a DPLL */
-> -	do {
-> -		do {
-> -			parent = __clk_get_parent(hw->clk);
-> -			hw = __clk_get_hw(parent);
-> -		} while (hw && (__clk_get_flags(hw->clk) & CLK_IS_BASIC));
-> -		if (!hw)
-> -			break;
-> -		pclk = to_clk_hw_omap(hw);
-> -	} while (pclk && !pclk->dpll_data);
-> +	pclk = omap3_find_clkoutx2_dpll(hw);
->  
-> -	/* clk does not have a DPLL as a parent?  error in the clock data */
-> -	if (!pclk) {
-> -		WARN_ON(1);
-> +	if (!pclk)
->  		return 0;
-> -	}
->  
->  	dd = pclk->dpll_data;
->  
-> @@ -672,6 +685,55 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
->  	return rate;
->  }
->  
-> +int omap3_clkoutx2_set_rate(struct clk_hw *hw, unsigned long rate,
-> +					unsigned long parent_rate)
-> +{
-> +	return 0;
-> +}
-> +
-> +long omap3_clkoutx2_round_rate(struct clk_hw *hw, unsigned long rate,
-> +		unsigned long *prate)
-> +{
-> +	const struct dpll_data *dd;
-> +	u32 v;
-> +	struct clk_hw_omap *pclk = NULL;
-> +
-> +	if (!*prate)
-> +		return 0;
-> +
-> +	pclk = omap3_find_clkoutx2_dpll(hw);
-> +
-> +	if (!pclk)
-> +		return 0;
-> +
-> +	dd = pclk->dpll_data;
-> +
-> +	/* TYPE J does not have a clkoutx2 */
-> +	if (dd->flags & DPLL_J_TYPE) {
-> +		*prate = __clk_round_rate(__clk_get_parent(pclk->hw.clk), rate);
-> +		return *prate;
-> +	}
-> +
-> +	WARN_ON(!dd->enable_mask);
-> +
-> +	v = omap2_clk_readl(pclk, dd->control_reg) & dd->enable_mask;
-> +	v >>= __ffs(dd->enable_mask);
-> +
-> +	/* If in bypass, the rate is fixed to the bypass rate*/
-> +	if (v != OMAP3XXX_EN_DPLL_LOCKED)
-> +		return *prate;
-> +
-> +	if (__clk_get_flags(hw->clk) & CLK_SET_RATE_PARENT) {
-> +		unsigned long best_parent;
-> +
-> +		best_parent = (rate / 2);
-> +		*prate = __clk_round_rate(__clk_get_parent(hw->clk),
-> +				best_parent);
-> +	}
-> +
-> +	return *prate * 2;
-> +}
-> +
->  /* OMAP3/4 non-CORE DPLL clkops */
->  const struct clk_hw_omap_ops clkhwops_omap3_dpll = {
->  	.allow_idle	= omap3_dpll_allow_idle,
-> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-> index 092b64168d7f..4a21a872dbbd 100644
-> --- a/include/linux/clk/ti.h
-> +++ b/include/linux/clk/ti.h
-> @@ -245,6 +245,10 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
->  void omap2_init_clk_clkdm(struct clk_hw *clk);
->  unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
->  				    unsigned long parent_rate);
-> +int omap3_clkoutx2_set_rate(struct clk_hw *hw, unsigned long rate,
-> +					unsigned long parent_rate);
-> +long omap3_clkoutx2_round_rate(struct clk_hw *hw, unsigned long rate,
-> +		unsigned long *prate);
->  int omap2_clkops_enable_clkdm(struct clk_hw *hw);
->  void omap2_clkops_disable_clkdm(struct clk_hw *hw);
->  int omap2_clk_disable_autoidle_all(void);
+>  	return 0;
 > -- 
-> 1.8.3.2
+> 1.7.9.5
 > 
