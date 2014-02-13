@@ -1,89 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: fix dpll round_rate() to actually round
-Date: Thu, 13 Feb 2014 15:00:11 -0800
-Message-ID: <20140213230011.GH28216@atomide.com>
-References: <1389944699-27962-1-git-send-email-tomi.valkeinen@ti.com>
- <1389944699-27962-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: Add support for Erratum 2.1.1.128 in
+ device tree boot
+Date: Thu, 13 Feb 2014 15:05:54 -0800
+Message-ID: <20140213230554.GI28216@atomide.com>
+References: <1390260542-22213-1-git-send-email-nm@ti.com>
+ <52F0E098.3050404@ti.com>
+ <52F104B7.6040606@ti.com>
+ <52F2465A.6060804@ti.com>
+ <52F246CC.6070600@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55438 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750932AbaBMXAY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 18:00:24 -0500
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1389944699-27962-3-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <52F246CC.6070600@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Balaji T K <balajitk@ti.com>, Chris Ball <chris@printf.net>, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140116 23:47]:
-> omap2_dpll_round_rate() doesn't actually round the given rate, even if
-> the name and the description so hints. Instead it only tries to find an
-> exact rate match, or if that fails, return ~0 as an error.
+* Nishanth Menon <nm@ti.com> [140205 06:15]:
+> On Wed 05 Feb 2014 08:10:34 AM CST, Balaji T K wrote:
+> >>>
+> >>> Rather than ti,errata.. specific property, something like
+> >>> caps no/disable multiblock read is more readable in my opinion, Otherwise
+> >>
+> >> Is'nt the better definition to state i have quirk X and allow the
+> >> driver to do the necessary thing/things needed to handle quirk X? in
+> >> this case, there is just one thing to do: broken multi_block_read, in
+> >> the case of other quirks, there might be more than 1 thing to do.. let
+> >> driver figure that out, dts just states the h/w capabilty or in this
+> >> case, the quirk capability.
+> >>
+> >
+> > But in this case there is only one. disable multi block read is more readable
+> > than the errata reference, No strong feelings though.
 > 
-> What this basically means is that the user of the clock needs to know
-> what rates the dpll can support, which obviously isn't right.
-> 
-> This patch adds a simple method of rounding: during the iteration, the
-> code keeps track of the closest rate match. If no exact match is found,
-> the closest is returned.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Considering this might set an precedence for other quirk description, 
+> I'd like to leave it as it stands.
 
-Paul & Tero, please ack if you want me to queue this.
+Hmm if this really depends on the hardware version, how about
+just add new compatible flag ti,omap3430-rev-xyz-hsmmc that
+allows the driver to deal with the errata?
+
+Regards,
 
 Tony
-
-> ---
->  arch/arm/mach-omap2/clkt_dpll.c | 17 ++++++++++++-----
->  1 file changed, 12 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
-> index 1f1708ef77bb..1b4e68dfb713 100644
-> --- a/arch/arm/mach-omap2/clkt_dpll.c
-> +++ b/arch/arm/mach-omap2/clkt_dpll.c
-> @@ -298,6 +298,7 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
->  	struct dpll_data *dd;
->  	unsigned long ref_rate;
->  	const char *clk_name;
-> +	unsigned long diff, closest_diff = ~0;
->  
->  	if (!clk || !clk->dpll_data)
->  		return ~0;
-> @@ -345,20 +346,26 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
->  		pr_debug("clock: %s: m = %d: n = %d: new_rate = %lu\n",
->  			 clk_name, m, n, new_rate);
->  
-> -		if (target_rate == new_rate) {
-> +		diff = max(target_rate, new_rate) - min(target_rate, new_rate);
-> +
-> +		if (diff < closest_diff) {
-> +			closest_diff = diff;
-> +
->  			dd->last_rounded_m = m;
->  			dd->last_rounded_n = n;
-> -			dd->last_rounded_rate = target_rate;
-> -			break;
-> +			dd->last_rounded_rate = new_rate;
-> +
-> +			if (diff == 0)
-> +				break;
->  		}
->  	}
->  
-> -	if (target_rate != new_rate) {
-> +	if (closest_diff == ~0) {
->  		pr_debug("clock: %s: cannot round to rate %lu\n",
->  			 clk_name, target_rate);
->  		return ~0;
->  	}
->  
-> -	return target_rate;
-> +	return dd->last_rounded_rate;
->  }
->  
-> -- 
-> 1.8.3.2
-> 
