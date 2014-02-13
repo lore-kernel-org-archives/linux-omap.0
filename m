@@ -1,43 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: sleep: byteswap data for big-endian
-Date: Thu, 13 Feb 2014 09:47:25 -0800
-Message-ID: <20140213174724.GB27022@atomide.com>
-References: <52D404DE.2020806@ti.com>
- <CAArO44samX_uMeC93w4DBbC+yskEmrvVt_i-5VV_seatM56ypw@mail.gmail.com>
- <52D55CE5.1060902@ti.com>
- <CAA3XUr2cnF_rxMYvZfjBx22Sa8YE45o_qUU8GNoerQwhWqxhNQ@mail.gmail.com>
- <CAGo_u6oKpRFnPAWaqr9NTNAJB+m56jiDgBUgvsiZpaQ-3SF2kw@mail.gmail.com>
- <CAA3XUr1_cNuPmMU6Fs6c7Si2So0VFGcLyGJe+tS_R47BVKRXnw@mail.gmail.com>
- <CAGo_u6p7ErrKOMy4Ljg3nehVpd=DOg3XDn6gZ1nrFE_OuOjsWg@mail.gmail.com>
- <52D5A60C.7080800@ti.com>
- <CAGo_u6oGDK5s0SeE6Z7UFM6eYdgoy-E+Tj67+pBWP-wQ3r9=QA@mail.gmail.com>
- <52D5CBC9.5020201@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv2 07/16] iommu/omap: allow enable/disable even without pdata
+Date: Thu, 13 Feb 2014 12:15:38 -0600
+Message-ID: <1392315347-32967-8-git-send-email-s-anna@ti.com>
+References: <1392315347-32967-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34171 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752696AbaBMRrn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 12:47:43 -0500
-Content-Disposition: inline
-In-Reply-To: <52D5CBC9.5020201@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1392315347-32967-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Linaro Kernel <linaro-kernel@lists.linaro.org>, Russell King <linux@arm.linux.org.uk>, Patch Tracking <patches@linaro.org>, Taras Kondratiuk <taras.kondratiuk@linaro.org>, Victor Kamensky <victor.kamensky@linaro.org>, open list <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Linaro Networking <linaro-networking@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [140114 15:46]:
-> On Tuesday 14 January 2014 04:13 PM, Nishanth Menon wrote:
-> 
-> I haven't looked at patch myself but as you pointed out if it adds
-> dead code and makes the code un-readable then probably that something
-> we shouldn't merge.
+From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 
-Yeah it seems the assembly parts should be done in more generic
-way using macros so the same setup can then be used for other
-SoCs. For the other trivial changes, let's try to get them merged
-to shrink down the patchset.
+When booting with a devicetree, no platform data is provided.
+Do not prematurely exit iommu_enable() and iommu_disable() in
+such a case.
 
-Regards,
+Note: As OMAP do not yet has a proper reset controller driver,
+IOMMUs requiring a reset signal should use pdata-quirks as a
+transitional solution.
 
-Tony
+Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+---
+ drivers/iommu/omap-iommu.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index f6afe8f..7672eb4 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -149,13 +149,10 @@ static int iommu_enable(struct omap_iommu *obj)
+ 	struct platform_device *pdev = to_platform_device(obj->dev);
+ 	struct iommu_platform_data *pdata = pdev->dev.platform_data;
+ 
+-	if (!pdata)
+-		return -EINVAL;
+-
+ 	if (!arch_iommu)
+ 		return -ENODEV;
+ 
+-	if (pdata->deassert_reset) {
++	if (pdata && pdata->deassert_reset) {
+ 		err = pdata->deassert_reset(pdev, pdata->reset_name);
+ 		if (err) {
+ 			dev_err(obj->dev, "deassert_reset failed: %d\n", err);
+@@ -175,14 +172,11 @@ static void iommu_disable(struct omap_iommu *obj)
+ 	struct platform_device *pdev = to_platform_device(obj->dev);
+ 	struct iommu_platform_data *pdata = pdev->dev.platform_data;
+ 
+-	if (!pdata)
+-		return;
+-
+ 	arch_iommu->disable(obj);
+ 
+ 	pm_runtime_put_sync(obj->dev);
+ 
+-	if (pdata->assert_reset)
++	if (pdata && pdata->assert_reset)
+ 		pdata->assert_reset(pdev, pdata->reset_name);
+ }
+ 
+-- 
+1.8.5.3
