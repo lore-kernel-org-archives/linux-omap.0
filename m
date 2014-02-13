@@ -1,40 +1,81 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/4] ARM: dts: Fixes for Overo/Tobi against 3.14-rc2
-Date: Thu, 13 Feb 2014 15:36:52 -0800
-Message-ID: <20140213233652.GU28216@atomide.com>
-References: <1392287116-4548-1-git-send-email-florian.vaussard@epfl.ch>
+Subject: Re: [PATCH] [RESEND] ARM/dts: hdmi-codec: panda/es dt entries
+Date: Thu, 13 Feb 2014 15:38:10 -0800
+Message-ID: <20140213233809.GV28216@atomide.com>
+References: <1392307081-12299-1-git-send-email-paolo.pisati@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17906 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751694AbaBMXhH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 18:37:07 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59226 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752673AbaBMXiW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 18:38:22 -0500
 Content-Disposition: inline
-In-Reply-To: <1392287116-4548-1-git-send-email-florian.vaussard@epfl.ch>
+In-Reply-To: <1392307081-12299-1-git-send-email-paolo.pisati@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Paolo Pisati <paolo.pisati@canonical.com>
+Cc: bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Florian Vaussard <florian.vaussard@epfl.ch> [140213 02:28]:
-> OMAP36xx-based Overo (Storm and alike) are now failing to boot with 3.14-rc2 [1].
-> This series fixes this, by moving model-agnostic DT into a common dtsi file,
-> and creating model-specific DT files:
-> 
-> - omap3-overo-tobi.dts -> older OMAP35xx Overo
-> - omap3-overo-storm-tobi.dts -> newer OMAP36xx/AM37xx/DM37xx Overo
-> 
-> People will have to use the right Overo / expansion board combination.
-> 
-> (Patch 2 in an unrelated fix that was waiting in my queue.)
-> 
-> omap3-overo-tobi.dts tested with Overo Sand (OMAP3503) and omap3-overo-storm-tobi.dts
-> tested with Overo EarthStorm (AM3703). Both boot. With the Overo Sand, I cannot
-> mount the ext3 rootfs, but this seems unrelated to the current topic, maybe
-> a missing errata.
+* Paolo Pisati <paolo.pisati@canonical.com> [140213 08:00]:
+> Signed-off-by: Paolo Pisati <paolo.pisati@canonical.com>
 
-Applying patches 1 to 3 into omap-for-v3.14/fixes thanks, the last
-one still seems to have discussion going.
+Missing description? Please also Cc Peter Ujfalusi on this
+and let me know if this is needed as a fix for the -rc cycle.
+
+Regards,
 
 Tony
+
+> ---
+>  arch/arm/boot/dts/omap4-panda-common.dtsi |    9 ++++++++-
+>  arch/arm/boot/dts/omap4-panda-es.dts      |    3 ++-
+>  2 files changed, 10 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> index 88c6a05..f4aeaa1 100644
+> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
+> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> @@ -36,9 +36,15 @@
+>  		};
+>  	};
+>  
+> +	hdmi_audio: hdmi_audio@0 {
+> +		compatible = "linux,hdmi-audio";
+> +		status = "okay";
+> +	};
+> +
+>  	sound: sound {
+>  		compatible = "ti,abe-twl6040";
+>  		ti,model = "PandaBoard";
+> +		ti,audio-codec = <&hdmi_audio>;
+>  
+>  		ti,mclk-freq = <38400000>;
+>  
+> @@ -57,7 +63,8 @@
+>  			"HSMIC", "Headset Mic",
+>  			"Headset Mic", "Headset Mic Bias",
+>  			"AFML", "Line In",
+> -			"AFMR", "Line In";
+> +			"AFMR", "Line In",
+> +			"HDMI Out", "TX";
+>  	};
+>  
+>  	/* HS USB Port 1 Power */
+> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+> index 816d1c9..70152d6 100644
+> --- a/arch/arm/boot/dts/omap4-panda-es.dts
+> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
+> @@ -23,7 +23,8 @@
+>  		"Line Out", "AUXL",
+>  		"Line Out", "AUXR",
+>  		"AFML", "Line In",
+> -		"AFMR", "Line In";
+> +		"AFMR", "Line In",
+> +		"HDMI Out", "TX";
+>  };
+>  
+>  /* PandaboardES has external pullups on SCL & SDA */
+> -- 
+> 1.7.9.5
+> 
