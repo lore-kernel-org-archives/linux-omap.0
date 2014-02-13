@@ -1,56 +1,105 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 0/8] OMAP: OMAP3 DSS related clock patches
-Date: Thu, 13 Feb 2014 12:03:58 +0200
-Message-ID: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 2/8] clk: ti/divider: fix rate calculation for fractional rates
+Date: Thu, 13 Feb 2014 12:04:00 +0200
+Message-ID: <1392285846-13199-3-git-send-email-tomi.valkeinen@ti.com>
+References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51762 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57377 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751880AbaBMKEt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Feb 2014 05:04:49 -0500
+	id S1751880AbaBMKEy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Feb 2014 05:04:54 -0500
+In-Reply-To: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+ti/clk-divider.c does not calculate the rates consistently at the moment.
 
-I've been debugging OMAP3 related issues with DSS clocks, and I hopefully have
-them all fixed with this series. This fixes the problems for both non-DT boot,
-but also for DT boot with DSS DT support (which is not merged yet).
+As an example, on OMAP3 we have a clock divider with a source clock of
+864000000 Hz. With dividers 6, 7 and 8 the theoretical rates are:
 
-The non-DT boot related fixes should be merged for 3.14, but I'd like the DT
-boot related fixes to be merged for 3.14 also, as that'll make handling the DSS
-DT support easier.
+6: 144000000
+7: 123428571.428571...
+8: 108000000
 
-This is based on v3.14-rc2.
+Calling clk_round_rate() with the rate in the first column will give the
+rate in the second column:
 
- Tomi
+144000000 -> 144000000
+143999999 -> 123428571
+123428572 -> 123428571
+123428571 -> 108000000
 
-Tomi Valkeinen (8):
-  clk: divider: fix rate calculation for fractional rates
-  clk: ti/divider: fix rate calculation for fractional rates
-  ARM: OMAP2+: clock: fix clkoutx2 with CLK_SET_RATE_PARENT
-  ARM: dts: fix omap3 dss clock handle names
-  ARM: dts: fix DPLL4 x2 clkouts on 3630
-  ARM: dts: use ti,fixed-factor-clock for dpll4_m4x2_mul_ck
-  ARM: dts: set 'ti,set-rate-parent' for dpll4_m4 path
-  OMAPDSS: fix rounding when calculating fclk rate
+Note how clk_round_rate() returns 123428571 for rates from 123428572 to
+143999999, which is mathematically correct, but when clk_round_rate() is
+called with 123428571, the returned value is surprisingly 108000000.
 
- arch/arm/boot/dts/omap3430es1-clocks.dtsi          |  6 +--
- .../omap36xx-am35xx-omap3430es2plus-clocks.dtsi    |  6 +--
- arch/arm/boot/dts/omap36xx-clocks.dtsi             | 20 +++++++
- arch/arm/boot/dts/omap36xx.dtsi                    |  2 +-
- arch/arm/boot/dts/omap3xxx-clocks.dtsi             |  8 +--
- arch/arm/mach-omap2/cclock3xxx_data.c              |  2 +
- arch/arm/mach-omap2/dpll3xxx.c                     | 62 ++++++++++++++++++++++
- drivers/clk/clk-divider.c                          | 10 ++--
- drivers/clk/ti/divider.c                           |  8 +--
- drivers/video/omap2/dss/dss.c                      |  4 +-
- include/linux/clk/ti.h                             |  4 ++
- 11 files changed, 111 insertions(+), 21 deletions(-)
+This means that the following code works a bit oddly:
 
+rate = clk_round_rate(clk, 123428572);
+clk_set_rate(clk, rate);
+
+As clk_set_rate() also does clock rate rounding, the result is that the
+clock is set to the rate of 108000000, not 123428571 returned by the
+clk_round_rate.
+
+This patch changes the ti/clk-divider.c to use DIV_ROUND_UP when
+calculating the rate. This gives the following behavior which fixes the
+inconsistency:
+
+144000000 -> 144000000
+143999999 -> 123428572
+123428572 -> 123428572
+123428571 -> 108000000
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/clk/ti/divider.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
+index a15e445570b2..e6aa10db7bba 100644
+--- a/drivers/clk/ti/divider.c
++++ b/drivers/clk/ti/divider.c
+@@ -112,7 +112,7 @@ static unsigned long ti_clk_divider_recalc_rate(struct clk_hw *hw,
+ 		return parent_rate;
+ 	}
+ 
+-	return parent_rate / div;
++	return DIV_ROUND_UP(parent_rate, div);
+ }
+ 
+ /*
+@@ -182,7 +182,7 @@ static int ti_clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
+ 		}
+ 		parent_rate = __clk_round_rate(__clk_get_parent(hw->clk),
+ 				MULT_ROUND_UP(rate, i));
+-		now = parent_rate / i;
++		now = DIV_ROUND_UP(parent_rate, i);
+ 		if (now <= rate && now > best) {
+ 			bestdiv = i;
+ 			best = now;
+@@ -205,7 +205,7 @@ static long ti_clk_divider_round_rate(struct clk_hw *hw, unsigned long rate,
+ 	int div;
+ 	div = ti_clk_divider_bestdiv(hw, rate, prate);
+ 
+-	return *prate / div;
++	return DIV_ROUND_UP(*prate, div);
+ }
+ 
+ static int ti_clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
+@@ -216,7 +216,7 @@ static int ti_clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
+ 	unsigned long flags = 0;
+ 	u32 val;
+ 
+-	div = parent_rate / rate;
++	div = DIV_ROUND_UP(parent_rate, rate);
+ 	value = _get_val(divider, div);
+ 
+ 	if (value > div_mask(divider))
 -- 
 1.8.3.2
 
