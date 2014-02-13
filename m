@@ -1,66 +1,45 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH 6/6] arm: dts: am335x beagle bone use processor macids
-Date: Thu, 13 Feb 2014 20:47:03 +0100
-Message-ID: <20140213194703.GG17650@pengutronix.de>
-References: <1387385242-1161-1-git-send-email-mpa@pengutronix.de>
- <1387385242-1161-7-git-send-email-mpa@pengutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Issues with GPIO and wake from sleep
+Date: Thu, 13 Feb 2014 14:40:49 -0800
+Message-ID: <20140213224048.GA28216@atomide.com>
+References: <F690310232FDDF4AB457E8B3EF90DDE09A56D39C@MARCM-SBS2011.marcmltd.local>
+ <20140117173902.GD7235@atomide.com>
+ <F690310232FDDF4AB457E8B3EF90DDE09A5A80E9@MARCM-SBS2011.marcmltd.local>
+ <F690310232FDDF4AB457E8B3EF90DDE09A5B971D@MARCM-SBS2011.marcmltd.local>
+ <F690310232FDDF4AB457E8B3EF90DDE09A5BA71D@MARCM-SBS2011.marcmltd.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43854 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752540AbaBMTrJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 14:47:09 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52573 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751854AbaBMWlB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Feb 2014 17:41:01 -0500
 Content-Disposition: inline
-In-Reply-To: <1387385242-1161-7-git-send-email-mpa@pengutronix.de>
+In-Reply-To: <F690310232FDDF4AB457E8B3EF90DDE09A5BA71D@MARCM-SBS2011.marcmltd.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Markus Pargmann <mpa@pengutronix.de>
-Cc: "David S. Miller" <davem@davemloft.net>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
+To: Marc Murphy <marcmltd@marcm.co.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello,
+* Marc Murphy <marcmltd@marcm.co.uk> [140205 15:20]:
+> I have now stepped through most of the system as it goes into the sleep state.  It will transition into omap34xx_cpu_suspend and eventually work itself into an endless loop.
+> 
+> I have then taken a step back to see the config of the system and all kernel options seem to be correct with power management. 
+> 
+> I then looked at the boot line, I am running tftp which should be a problem for the suspend to ram, and there is an option of nohlt :
+> setenv bootargs console=${console},115200n8 ${mem_size} mpurate=${mpurate} ${video_mode} ${extra_options} root=${nfsroot} rootfstype=nfs ip=dhcp nohlt rw
+> 
+> I was informed I needed to do this quite some time ago when I was having issue with the system booting.  Upon reading the kernel-paramters doc I see that the description is what I am experiencing;
+> 	nohlt		[BUGS=ARM,SH] Tells the kernel that the sleep(SH) or
+> 			wfi(ARM) instruction doesn't work correctly and not to
+> 			use it. This is also useful when using JTAG debugger.
+> 
+> OK so WFI doesn't work correctly, I have no WFI operating.  If I remove the nohlt from the boot line the system freezes;
+> [    2.833587] voltdm_scale: No voltage scale API registered for vdd_core
+> [    2.840454] PM: no software I/O chain control; some wakeups may be lost
+> [    2.856536] davinci_emac davinci_emac.0: using random MAC addr: 86:2d:4d:a4:87:3e
 
-On Wed, Dec 18, 2013 at 05:47:22PM +0100, Markus Pargmann wrote:
-> Use macids stored in the am335x chip.
->=20
-> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
-> ---
->  arch/arm/boot/dts/am335x-bone.dts      | 8 ++++++++
->  arch/arm/boot/dts/am335x-boneblack.dts | 8 ++++++++
->  2 files changed, 16 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am=
-335x-bone.dts
-> index 94ee427..9b65a62 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -10,6 +10,14 @@
->  #include "am33xx.dtsi"
->  #include "am335x-bone-common.dtsi"
-> =20
-> +&cpsw_emac0 {
-> +	ti,mac-address-ctrl =3D <&cpsw_ctrl_macid 0>;
-> +};
-> +
-> +&cpsw_emac1 {
-> +	ti,mac-address-ctrl =3D <&cpsw_ctrl_macid 1>;
-> +};
-with the mac-address property overwriting the addresses found in the
-mac-address-ctrl block as I suggested in reply to the respective patch,
-I'd add this property not per machine but directly in am33xx.dtsi.
+It seems that this is a 3517 based issue, maybe the davinci_emac driver
+won't work properly with runtime PM?
 
-Best regards
-Uwe
-
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
