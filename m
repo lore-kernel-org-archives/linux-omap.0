@@ -1,47 +1,35 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/4] ARM: dts: OMAP4: Add IOMMU nodes
-Date: Thu, 13 Feb 2014 12:22:55 -0600
-Message-ID: <1392315776-33197-4-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH 4/4] ARM: dts: OMAP5: Add IOMMU nodes
+Date: Thu, 13 Feb 2014 12:22:56 -0600
+Message-ID: <1392315776-33197-5-git-send-email-s-anna@ti.com>
 References: <1392315776-33197-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1392315776-33197-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42281 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752750AbaBMSYL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Feb 2014 13:24:11 -0500
+In-Reply-To: <1392315776-33197-1-git-send-email-s-anna@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree@vger.kernel.org, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+The IOMMU DT nodes have been added for the DSP and IPU
+subsystems. The MMUs in OMAP5 are identical to those in
+OMAP4, including the bus error back capability on IPU.
 
-Add the IOMMU nodes for the DSP and IPU subsystems. The external
-address space for DSP starts at 0x20000000 in OMAP4 compared to
-0x11000000 in OMAP3, and the addresses beyond 0xE0000000 are
-private address space for the Cortex-M3 cores in the IPU subsystem.
-The MMU within the IPU sub-system also supports a bus error back
-capability, not available on the DSP MMU.
-
-Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-[s-anna-l0cyMroinI0@public.gmane.org: dma-window updates and bus error back addition]
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi | 17 +++++++++++++++++
+ arch/arm/boot/dts/omap5.dtsi | 17 +++++++++++++++++
  1 file changed, 17 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index d3f8a6e..1885f90 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -461,6 +461,23 @@
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index a72813a..a78fdaa 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -513,6 +513,23 @@
  			dma-names = "tx", "rx";
  		};
  
@@ -62,8 +50,9 @@ index d3f8a6e..1885f90 100644
 +			ti,iommu-bus-err-back;
 +		};
 +
- 		wdt2: wdt@4a314000 {
- 			compatible = "ti,omap4-wdt", "ti,omap3-wdt";
- 			reg = <0x4a314000 0x80>;
+ 		keypad: keypad@4ae1c000 {
+ 			compatible = "ti,omap4-keypad";
+ 			reg = <0x4ae1c000 0x400>;
 -- 
 1.8.5.3
+
