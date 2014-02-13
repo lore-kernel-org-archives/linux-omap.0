@@ -1,139 +1,55 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 3/8] ARM: OMAP2+: clock: fix clkoutx2 with CLK_SET_RATE_PARENT
-Date: Thu, 13 Feb 2014 12:04:01 +0200
-Message-ID: <1392285846-13199-4-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 8/8] OMAPDSS: fix rounding when calculating fclk rate
+Date: Thu, 13 Feb 2014 12:04:06 +0200
+Message-ID: <1392285846-13199-9-git-send-email-tomi.valkeinen@ti.com>
 References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57379 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60620 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753910AbaBMKFB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Feb 2014 05:05:01 -0500
+	id S1754090AbaBMKFD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Feb 2014 05:05:03 -0500
 In-Reply-To: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-If CLK_SET_RATE_PARENT is set for a clkoutx2 clock, calling
-clk_set_rate() on the clock "skips" the x2 multiplier as there are no
-set_rate and round_rate functions defined for the clkoutx2.
+"clk: divider: fix rate calculation for fractional rates" patch (and
+similar for TI specific divider) fixes the clk-divider's rounding. This
+patch updates the DSS driver to round the rates accordingly.
 
-This results in getting double the requested clock rates, breaking the
-display on omap3430 based devices.
-
-This patch implements set_rate and round_rate for clkoutx2.
+This fixes the DSS's warnings about clock rate mismatch, and also fixes
+the wrong fclk rate being set.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/cclock3xxx_data.c |  2 ++
- arch/arm/mach-omap2/dpll3xxx.c        | 62 +++++++++++++++++++++++++++++++++++
- include/linux/clk/ti.h                |  4 +++
- 3 files changed, 68 insertions(+)
+ drivers/video/omap2/dss/dss.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
-index 3b05aea56d1f..11ed9152e665 100644
---- a/arch/arm/mach-omap2/cclock3xxx_data.c
-+++ b/arch/arm/mach-omap2/cclock3xxx_data.c
-@@ -433,7 +433,9 @@ static const struct clk_ops dpll4_m5x2_ck_ops = {
- 	.enable		= &omap2_dflt_clk_enable,
- 	.disable	= &omap2_dflt_clk_disable,
- 	.is_enabled	= &omap2_dflt_clk_is_enabled,
-+	.set_rate	= &omap3_clkoutx2_set_rate,
- 	.recalc_rate	= &omap3_clkoutx2_recalc,
-+	.round_rate	= &omap3_clkoutx2_round_rate,
- };
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 9a145da35ad3..efe7c308341d 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -471,7 +471,7 @@ bool dss_div_calc(unsigned long pck, unsigned long fck_min,
+ 	fckd_stop = max(DIV_ROUND_UP(prate * m, fck_hw_max), 1ul);
  
- static const struct clk_ops dpll4_m5x2_ck_3630_ops = {
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index 3185ced807c9..4ba7e90e127b 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -672,6 +672,68 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
- 	return rate;
- }
+ 	for (fckd = fckd_start; fckd >= fckd_stop; --fckd) {
+-		fck = prate / fckd * m;
++		fck = DIV_ROUND_UP(prate, fckd) * m;
  
-+int omap3_clkoutx2_set_rate(struct clk_hw *hw, unsigned long rate,
-+					unsigned long parent_rate)
-+{
-+	return 0;
-+}
-+
-+long omap3_clkoutx2_round_rate(struct clk_hw *hw, unsigned long rate,
-+		unsigned long *prate)
-+{
-+	const struct dpll_data *dd;
-+	u32 v;
-+	struct clk_hw_omap *pclk = NULL;
-+	struct clk *parent;
-+
-+	if (!*prate)
-+		return 0;
-+
-+	/* Walk up the parents of clk, looking for a DPLL */
-+	do {
-+		do {
-+			parent = __clk_get_parent(hw->clk);
-+			hw = __clk_get_hw(parent);
-+		} while (hw && (__clk_get_flags(hw->clk) & CLK_IS_BASIC));
-+		if (!hw)
-+			break;
-+		pclk = to_clk_hw_omap(hw);
-+	} while (pclk && !pclk->dpll_data);
-+
-+	/* clk does not have a DPLL as a parent?  error in the clock data */
-+	if (!pclk) {
-+		WARN_ON(1);
-+		return 0;
-+	}
-+
-+	dd = pclk->dpll_data;
-+
-+	/* TYPE J does not have a clkoutx2 */
-+	if (dd->flags & DPLL_J_TYPE) {
-+		*prate = __clk_round_rate(__clk_get_parent(pclk->hw.clk), rate);
-+		return *prate;
-+	}
-+
-+	WARN_ON(!dd->enable_mask);
-+
-+	v = omap2_clk_readl(pclk, dd->control_reg) & dd->enable_mask;
-+	v >>= __ffs(dd->enable_mask);
-+
-+	/* If in bypass, the rate is fixed to the bypass rate*/
-+	if (v != OMAP3XXX_EN_DPLL_LOCKED)
-+		return *prate;
-+
-+	if (__clk_get_flags(hw->clk) & CLK_SET_RATE_PARENT) {
-+		unsigned long best_parent;
-+
-+		best_parent = (rate / 2);
-+		*prate = __clk_round_rate(__clk_get_parent(hw->clk),
-+				best_parent);
-+	}
-+
-+	return *prate * 2;
-+}
-+
- /* OMAP3/4 non-CORE DPLL clkops */
- const struct clk_hw_omap_ops clkhwops_omap3_dpll = {
- 	.allow_idle	= omap3_dpll_allow_idle,
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 092b64168d7f..4a21a872dbbd 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -245,6 +245,10 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
- void omap2_init_clk_clkdm(struct clk_hw *clk);
- unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
- 				    unsigned long parent_rate);
-+int omap3_clkoutx2_set_rate(struct clk_hw *hw, unsigned long rate,
-+					unsigned long parent_rate);
-+long omap3_clkoutx2_round_rate(struct clk_hw *hw, unsigned long rate,
-+		unsigned long *prate);
- int omap2_clkops_enable_clkdm(struct clk_hw *hw);
- void omap2_clkops_disable_clkdm(struct clk_hw *hw);
- int omap2_clk_disable_autoidle_all(void);
+ 		if (func(fck, data))
+ 			return true;
+@@ -520,7 +520,7 @@ static int dss_setup_default_clock(void)
+ 
+ 		fck_div = DIV_ROUND_UP(prate * dss.feat->dss_fck_multiplier,
+ 				max_dss_fck);
+-		fck = prate / fck_div * dss.feat->dss_fck_multiplier;
++		fck = DIV_ROUND_UP(prate, fck_div) * dss.feat->dss_fck_multiplier;
+ 	}
+ 
+ 	r = dss_set_fck_rate(fck);
 -- 
 1.8.3.2
 
