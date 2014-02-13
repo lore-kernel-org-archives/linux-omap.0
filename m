@@ -1,47 +1,39 @@
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: Re: [PATCH 2/4] power_supply: Introduce generic psy charging driver
-Date: Thu, 13 Feb 2014 09:51:29 +0900
-Message-ID: <002301cf2855$bb121790$313646b0$%han@samsung.com>
-References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
- <1391490780-6141-3-git-send-email-jenny.tc@intel.com>
- <20140204113630.GC2450@amd.pavel.ucw.cz>
- <20140205081458.GA19586@jenny-desktop>
- <20140212110005.GF25706@amd.pavel.ucw.cz>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v1 0/5] add parallel NAND support for TI's new OMAPx and
+ AMxx platforms
+Date: Thu, 13 Feb 2014 04:27:30 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA6FE42@DBDE04.ent.ti.com>
+References: <1391606914-9947-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20140212110005.GF25706@amd.pavel.ucw.cz>
-Content-language: ko
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'Pavel Machek' <pavel@ucw.cz>, 'Jenny Tc' <jenny.tc@intel.com>
-Cc: linux-kernel@vger.kernel.org, 'Dmitry Eremin-Solenikov' <dbaryshkov@gmail.com>, 'Anton Vorontsov' <cbouatmailru@gmail.com>, 'Anton Vorontsov' <anton.vorontsov@linaro.org>, 'Kim Milo' <Milo.Kim@ti.com>, 'Lee Jones' <lee.jones@linaro.org>, 'Chanwoo Choi' <cw00.choi@samsung.com>, 'Sachin Kamat' <sachin.kamat@linaro.org>, 'Lars-Peter Clausen' <lars@metafoo.de>, =?ISO-8859-1?Q?'Pali_Roh=E1r'?= <pali.rohar@gmail.com>, 'Rhyland Klein' <rklein@nvidia.com>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, 'David Woodhouse' <dwmw2@infradead.org>, 'Tony Lindgren' <tony@atomide.com>, 'Russell King' <linux@arm.linux.org.uk>, 'Sebastian Reichel' <sre@ring0.de>, aaro.koskinen@iki.fi, 'Pallala Ramakrishna' <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48951 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751403AbaBME1k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Feb 2014 23:27:40 -0500
+In-Reply-To: <1391606914-9947-1-git-send-email-pekon@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "Benoit Cousson (benoit.cousson@linaro.org)" <benoit.cousson@linaro.org>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Wednesday, February 12, 2014 8:00 PM, Pavel Machek wrote:
-> On Wed 2014-02-05 13:44:58, Jenny Tc wrote:
-> > On Tue, Feb 04, 2014 at 12:36:30PM +0100, Pavel Machek wrote:
-> > > > +struct psy_charger_context {
-> > > > +	bool is_usb_cable_evt_reg;
-> > > > +	int psyc_cnt;
-> > > > +	int batt_status;
-> > > > +	/*cache battery and charger properties */
-> > >
-> > > Comment coding style. Please run you patches through checkpatch.
-> >
-> > checkpatch doesn't throw any error/warning. /* ... */ not allowed for single line
-> > comments? (will fix missing space after /*)
-> 
-> I meant the space after /*. Maybe checkpatch does not report anything
-> here, but I guess there are other places where it will comment :-).
+Hi Benoit, Tony,
+ 
+>From: Gupta, Pekon
+>
+>This patch-set adds and updates parallel NAND support on following TI platforms
+> - AM335x (am335x-evm)
+> - DRA7xx (dra7-evm
+> - AM43xx (am43X-epos-evm)
+>
+>In addition, following OMAP2+/GPMC patch is also added in this series as
+>it add checks DRA7xx and AM43xxx platforms for non-DT kernels.
+>	ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms
+>
+Please let me know, if this patch-set is in acceptable state,
+Or should I rebase it against any specific branch at your side ?
 
-Yes, right.
 
-+	/*cache battery and charger properties */
-           ^
-'one space' is necessary between '/*' and 'cache'.
-This can be fixed as below.
-+	/* cache battery and charger properties */
-
-Best regards,
-Jingoo Han
+with regards, pekon
