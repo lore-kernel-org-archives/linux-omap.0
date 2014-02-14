@@ -1,40 +1,72 @@
-From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v7 01/12] mfd: omap-usb-host: Use resource managed
- clk_get()
-Date: Fri, 14 Feb 2014 09:57:13 +0000
-Message-ID: <20140214095713.GB7380@lee--X1>
-References: <1392200333-28397-1-git-send-email-rogerq@ti.com>
- <1392200333-28397-2-git-send-email-rogerq@ti.com>
+From: Markus Pargmann <mpa@pengutronix.de>
+Subject: Re: [PATCH] arm: dtsi: am335x-bone-common, usb0 is peripheral only
+Date: Fri, 14 Feb 2014 11:02:48 +0100
+Message-ID: <20140214100248.GO31787@pengutronix.de>
+References: <1389448851-20010-1-git-send-email-mpa@pengutronix.de>
+ <20140213225438.GF28216@atomide.com>
+ <20140213231333.GK31787@pengutronix.de>
+ <20140213232552.GR28216@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:43621 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751108AbaBNKCx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2014 05:02:53 -0500
 Content-Disposition: inline
-In-Reply-To: <1392200333-28397-2-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+In-Reply-To: <20140213232552.GR28216@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 
-> Use devm_clk_get() instead of clk_get().
->=20
-> CC: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> CC: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> Acked-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/mfd/omap-usb-host.c | 81 +++++++++--------------------------=
-----------
->  1 file changed, 16 insertions(+), 65 deletions(-)
+Hi,
 
-Applied, thanks.
+On Thu, Feb 13, 2014 at 03:25:52PM -0800, Tony Lindgren wrote:
+> * Markus Pargmann <mpa@pengutronix.de> [140213 15:16]:
+> > Hi,
+> > 
+> > On Thu, Feb 13, 2014 at 02:54:38PM -0800, Tony Lindgren wrote:
+> > > * Markus Pargmann <mpa@pengutronix.de> [140111 06:03]:
+> > > > The PMIC is using usb0 vbus line as power source. It is also connected
+> > > > to the am335x processor as vbus sense. But there is no possibility to
+> > > > pullup usb0 vbus to operate as host. This patch fixes the dr_mode of usb0.
+> > > 
+> > > That's the MUSB? AFAIK it's not possible to operate MUSB in peripheral
+> > > only mode because the hardware does what it wants based on the ID
+> > > pin state.
+> > 
+> > Yes that's MUSB. The am335x reference manual describes that it is
+> > possible to force peripheral/host mode by setting bit 7 (IDDIG_MUX) in
+> > register USBnMODE to 1. Then it uses the bit written in bit 8 (IDDIG) of
+> > register USBnMODE to set host/peripheral mode.
+> 
+> OK
+>  
+> > I am not sure if the driver supports it yet but I think the DTS should
+> > contain the correct mode nevertheless, especially to avoid starting the
+> > otg loops in the musb driver.
+> 
+> Well there's one more thing to consider.. I think in the OTG role change
+> case the VBUS is still driven externally from the original host, so the
+> lack of VBUS does not always mean that host mode should be disabled.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I thought more about the hardware description than the possible role
+changes through software protocols. In a hardware perspective, this USB
+port is only in peripheral mode, as it can't drive VBUS. However is
+there any support for role change protocols in the kernel yet?
+
+Perhaps we have to add a seperate DT binding for usb role changes when
+they are supported. This would help to describe the hardware
+capabilities (host, peripheral or OTG) and the role change protocols
+supported.
+
+Regards,
+
+Markus
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
