@@ -1,59 +1,94 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 4/4] Documentation: dt: OMAP: Update Overo/Tobi
-Date: Fri, 14 Feb 2014 02:14:58 -0600
-Message-ID: <52FDD082.9090006@ti.com>
-References: <1392287116-4548-1-git-send-email-florian.vaussard@epfl.ch> <1392287116-4548-5-git-send-email-florian.vaussard@epfl.ch> <52FCDA29.90605@ti.com> <52FDCC9B.2050608@epfl.ch>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 1/2] OMAPDSS: use DISPC register to detect context loss
+Date: Fri, 14 Feb 2014 10:29:31 +0200
+Message-ID: <1392366572-31729-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54962 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:55371 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752103AbaBNIP1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2014 03:15:27 -0500
-In-Reply-To: <52FDCC9B.2050608@epfl.ch>
+	with ESMTP id S1751538AbaBNI3t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2014 03:29:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: florian.vaussard@epfl.ch, Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Kevin Hilman <khilman@linaro.org>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On 02/14/2014 01:58 AM, Florian Vaussard wrote:
-> Hi,
-> 
-> On 02/13/2014 03:43 PM, Nishanth Menon wrote:
->> On 02/13/2014 04:25 AM, Florian Vaussard wrote:
->>> Update the compatible string for Overo/Tobi to reflect the latest
->>> changes.
->>>
->>> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
->>> ---
->>>  Documentation/devicetree/bindings/arm/omap/omap.txt | 2 +-
->>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
->>> index 34dc40c..af9b4a0 100644
->>> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
->>> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
->>> @@ -91,7 +91,7 @@ Boards:
->>>    compatible = "ti,omap3-beagle", "ti,omap3"
->>>  
->>>  - OMAP3 Tobi with Overo : Commercial expansion board with daughter board
->>> -  compatible = "ti,omap3-tobi", "ti,omap3-overo", "ti,omap3"
->>> +  compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3"
->> omap3-overo-storm-tobi.dts is not covered here, so, I wonder as the
->> number of boards supported keep increasing, is'nt it better we drop
->> the board information from omap.txt?
->>
-> 
-> I am not opposed to this. We will just have checkpatch warnings due to
-> undocumented compatible strings.
+Instead of relying on the OMAP specific
+omap_pm_get_dev_context_loss_count() to detect register context loss, we
+can achieve the same in a much simpler way by just observing the DISPC
+registers.
 
-Aaah, I seemed to have missed bff5da43 commit, thanks for pointing me
-at it - unrelated to this patch, I think the board cleanups is a
-little overdue :(
+We always set DISPC's load mode to LOAD_FRAME_ONLY, which is not the
+reset value. Thus we can just observe the load mode to see if we have
+lost register context.
 
-Acked-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/dss/dispc.c | 24 +++++++++++-------------
+ 1 file changed, 11 insertions(+), 13 deletions(-)
 
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index bbeb8dd7f108..1659aa912d2b 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -100,8 +100,6 @@ static struct {
+ 	struct platform_device *pdev;
+ 	void __iomem    *base;
+ 
+-	int		ctx_loss_cnt;
+-
+ 	int irq;
+ 
+ 	unsigned long core_clk_rate;
+@@ -357,29 +355,20 @@ static void dispc_save_context(void)
+ 	if (dss_has_feature(FEAT_CORE_CLK_DIV))
+ 		SR(DIVISOR);
+ 
+-	dispc.ctx_loss_cnt = dss_get_ctx_loss_count();
+ 	dispc.ctx_valid = true;
+ 
+-	DSSDBG("context saved, ctx_loss_count %d\n", dispc.ctx_loss_cnt);
++	DSSDBG("context saved\n");
+ }
+ 
+ static void dispc_restore_context(void)
+ {
+-	int i, j, ctx;
++	int i, j;
+ 
+ 	DSSDBG("dispc_restore_context\n");
+ 
+ 	if (!dispc.ctx_valid)
+ 		return;
+ 
+-	ctx = dss_get_ctx_loss_count();
+-
+-	if (ctx >= 0 && ctx == dispc.ctx_loss_cnt)
+-		return;
+-
+-	DSSDBG("ctx_loss_count: saved %d, current %d\n",
+-			dispc.ctx_loss_cnt, ctx);
+-
+ 	/*RR(IRQENABLE);*/
+ 	/*RR(CONTROL);*/
+ 	RR(CONFIG);
+@@ -3768,6 +3757,15 @@ static int dispc_runtime_suspend(struct device *dev)
+ 
+ static int dispc_runtime_resume(struct device *dev)
+ {
++	/*
++	 * The reset value for load mode is 0 (OMAP_DSS_LOAD_CLUT_AND_FRAME)
++	 * but we always initialize it to 2 (OMAP_DSS_LOAD_FRAME_ONLY) in
++	 * _omap_dispc_initial_config(). We can thus use it to detect if
++	 * we have lost register context.
++	 */
++	if (REG_GET(DISPC_CONFIG, 2, 1) == OMAP_DSS_LOAD_FRAME_ONLY)
++		return 0;
++
+ 	_omap_dispc_initial_config();
+ 
+ 	dispc_restore_context();
 -- 
-Regards,
-Nishanth Menon
+1.8.3.2
+
