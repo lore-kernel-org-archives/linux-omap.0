@@ -1,72 +1,112 @@
-From: Markus Pargmann <mpa@pengutronix.de>
-Subject: Re: [PATCH] arm: dtsi: am335x-bone-common, usb0 is peripheral only
-Date: Fri, 14 Feb 2014 11:02:48 +0100
-Message-ID: <20140214100248.GO31787@pengutronix.de>
-References: <1389448851-20010-1-git-send-email-mpa@pengutronix.de>
- <20140213225438.GF28216@atomide.com>
- <20140213231333.GK31787@pengutronix.de>
- <20140213232552.GR28216@atomide.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v7 02/12] mfd: omap-usb-host: Get clocks based on
+ hardware revision
+Date: Fri, 14 Feb 2014 10:07:01 +0000
+Message-ID: <20140214100701.GC7380@lee--X1>
+References: <1392200333-28397-1-git-send-email-rogerq@ti.com>
+ <1392200333-28397-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43621 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751108AbaBNKCx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2014 05:02:53 -0500
+Received: from mail-we0-f175.google.com ([74.125.82.175]:48952 "EHLO
+	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751199AbaBNKHf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2014 05:07:35 -0500
+Received: by mail-we0-f175.google.com with SMTP id q59so8677229wes.34
+        for <linux-omap@vger.kernel.org>; Fri, 14 Feb 2014 02:07:34 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20140213232552.GR28216@atomide.com>
+In-Reply-To: <1392200333-28397-3-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, bcousson@baylibre.com, balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 
-Hi,
+> Not all revisions have all the clocks so get the necessary clocks
+> based on hardware revision.
+>=20
+> This should avoid un-necessary clk_get failure messages that were
+> observed earlier.
+>=20
+> Be more strict and always fail on clk_get() error.
 
-On Thu, Feb 13, 2014 at 03:25:52PM -0800, Tony Lindgren wrote:
-> * Markus Pargmann <mpa@pengutronix.de> [140213 15:16]:
-> > Hi,
-> > 
-> > On Thu, Feb 13, 2014 at 02:54:38PM -0800, Tony Lindgren wrote:
-> > > * Markus Pargmann <mpa@pengutronix.de> [140111 06:03]:
-> > > > The PMIC is using usb0 vbus line as power source. It is also connected
-> > > > to the am335x processor as vbus sense. But there is no possibility to
-> > > > pullup usb0 vbus to operate as host. This patch fixes the dr_mode of usb0.
-> > > 
-> > > That's the MUSB? AFAIK it's not possible to operate MUSB in peripheral
-> > > only mode because the hardware does what it wants based on the ID
-> > > pin state.
-> > 
-> > Yes that's MUSB. The am335x reference manual describes that it is
-> > possible to force peripheral/host mode by setting bit 7 (IDDIG_MUX) in
-> > register USBnMODE to 1. Then it uses the bit written in bit 8 (IDDIG) of
-> > register USBnMODE to set host/peripheral mode.
-> 
-> OK
->  
-> > I am not sure if the driver supports it yet but I think the DTS should
-> > contain the correct mode nevertheless, especially to avoid starting the
-> > otg loops in the musb driver.
-> 
-> Well there's one more thing to consider.. I think in the OTG role change
-> case the VBUS is still driven externally from the original host, so the
-> lack of VBUS does not always mean that host mode should be disabled.
+It might have been clearer if you'd broken these two pieces of
+functionality changes into two different patches. In future it would
+be preferred.
 
-I thought more about the hardware description than the possible role
-changes through software protocols. In a hardware perspective, this USB
-port is only in peripheral mode, as it can't drive VBUS. However is
-there any support for role change protocols in the kernel yet?
+> CC: Lee Jones <lee.jones@linaro.org>
+> CC: Samuel Ortiz <sameo@linux.intel.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/mfd/omap-usb-host.c | 92 +++++++++++++++++++++++++++++++----=
+----------
+>  1 file changed, 64 insertions(+), 28 deletions(-)
+>=20
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.=
+c
+> index 0c3c9a0..60a3bed 100644
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -665,22 +665,41 @@ static int usbhs_omap_probe(struct platform_dev=
+ice *pdev)
+>  		goto err_mem;
+>  	}
+> =20
+> -	need_logic_fck =3D false;
+> +	/* Set all clocks as invalid to begin with */
+> +	omap->ehci_logic_fck =3D omap->init_60m_fclk =3D ERR_PTR(-ENODEV);
+> +	omap->utmi_p1_gfclk =3D omap->utmi_p2_gfclk =3D ERR_PTR(-ENODEV);
+> +	omap->xclk60mhsp1_ck =3D omap->xclk60mhsp2_ck =3D ERR_PTR(-ENODEV);
+> +
 
-Perhaps we have to add a seperate DT binding for usb role changes when
-they are supported. This would help to describe the hardware
-capabilities (host, peripheral or OTG) and the role change protocols
-supported.
+=46or readability you should probably do these one per line.
 
-Regards,
+>  	for (i =3D 0; i < omap->nports; i++) {
+> -		if (is_ehci_phy_mode(i) || is_ehci_tll_mode(i) ||
+> -			is_ehci_hsic_mode(i))
+> -				need_logic_fck |=3D true;
+> +		omap->utmi_clk[i] =3D ERR_PTR(-ENODEV);
+> +		omap->hsic480m_clk[i] =3D ERR_PTR(-ENODEV);
+> +		omap->hsic60m_clk[i] =3D ERR_PTR(-ENODEV);
+>  	}
+> =20
+> -	omap->ehci_logic_fck =3D ERR_PTR(-EINVAL);
+> -	if (need_logic_fck) {
+> -		omap->ehci_logic_fck =3D devm_clk_get(dev, "ehci_logic_fck");
 
-Markus
+Has this clock been renamed, or is it no longer required?
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Perhaps you should be explicit in the commit log as to which clocks
+you're removing.
+
+> -		if (IS_ERR(omap->ehci_logic_fck)) {
+> -			ret =3D PTR_ERR(omap->ehci_logic_fck);
+> -			dev_dbg(dev, "ehci_logic_fck failed:%d\n", ret);
+> +	/* for OMAP3 i.e. USBHS REV1 */
+> +	if (omap->usbhs_rev =3D=3D OMAP_USBHS_REV1) {
+> +		need_logic_fck =3D false;
+> +		for (i =3D 0; i < omap->nports; i++) {
+> +			if (is_ehci_phy_mode(pdata->port_mode[i]) ||
+> +			    is_ehci_tll_mode(pdata->port_mode[i]) ||
+> +			    is_ehci_hsic_mode(pdata->port_mode[i]))
+> +
+> +				need_logic_fck |=3D true;
+> +		}
+> +
+> +		if (need_logic_fck) {
+> +			omap->ehci_logic_fck =3D clk_get(dev, "usbhost_120m_fck");
+
+devm_clk_get()?
+
+<snip>
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
