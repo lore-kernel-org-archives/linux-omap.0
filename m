@@ -1,68 +1,56 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [PATCH] ARM: dts: omap3 clocks: simplify ssi aliases
-Date: Fri, 14 Feb 2014 02:25:46 +0100
-Message-ID: <20140214012546.GA7996@earth.universe>
-References: <52DE24DA.8050104@ti.com>
- <1390315061-14441-1-git-send-email-sre@debian.org>
- <20140213224914.GD28216@atomide.com>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: Re: OMAP: clock DT conversion issues with omap36xx
+Date: Fri, 14 Feb 2014 03:18:07 +0100
+Message-ID: <1392344287.4893.11.camel@mars>
+References: <52E697C0.6000202@gmail.com> <1390848104.4936.62.camel@mars>
+	 <52E772A3.4090401@ti.com> <1390901735.2963.8.camel@lovely>
+	 <52E77D03.8090001@ti.com>  <52E7B361.2030601@ti.com>
+	 <1390928565.4904.88.camel@mars> <1390994505.5023.32.camel@mars>
+	 <52F10C3D.7000507@ti.com> <1391767923.4937.110.camel@mars>
+	 <52FB748E.6050007@ti.com> <52FC8A78.1050500@ti.com> <52FC98FF.20800@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.105.125]:56949 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751598AbaBNBZv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Feb 2014 20:25:51 -0500
-Content-Disposition: inline
-In-Reply-To: <20140213224914.GD28216@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52FC98FF.20800@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, pavel@ucw.cz, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, mturquette@linaro.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
+On Thu, 2014-02-13 at 12:05 +0200, Tomi Valkeinen wrote:
+> On 13/02/14 11:03, Tomi Valkeinen wrote:
+> > On 12/02/14 15:18, Tomi Valkeinen wrote:
+> > 
+> >> However, I hacked together the patch below, which "fixes" the issue for
+> >> 96m and dss fclk. It sets the clock parents so that the x2 clocks are
+> >> skipped, and makes the x2 clock nodes compatible with "unused", making
+> >> them effectively disappear. I only verified dss fclk, so Christoph, can
+> >> you verify the 96m clock?
+> > 
+> > Aaand the hack patch I sent is crap... We can't skip the x2 clock path,
+> > as the dpll4_mNx2_ck clock nodes handle enable/disable bit, which is
+> > present on 3630 also.
+> > 
+> > I think the best and simplest way to fix this is by setting the
+> > multiplier in the dpll4_mNx2_mul_ck nodes to 1. I don't know why I
+> > didn't think of it yesterday.
+> > 
+> > I have a bunch of other patches needed to get the clocks right, so I'll
+> > send a series separately a bit later today.
+> 
+> I just sent the "OMAP: OMAP3 DSS related clock patches" series to l-o
+> and arm lists, which hopefully solves issues discussed in this thread.
 
---sm4nu43k4a2Rpi4c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yes, thanks Tomi. I tested your patch series on a83x board. 96m clock
+and DSS-clocks are fine now. If you want, you can add my:
 
-On Thu, Feb 13, 2014 at 02:49:14PM -0800, Tony Lindgren wrote:
-> * Sebastian Reichel <sre@debian.org> [140121 06:39]:
-> > update aliases for the ssi clocks ssi_ssr_fck, ssi_sst_fck and ssi_ick
-> > to make them consistent for omap34xx and omap36xx. This makes it
-> > possible to reference the clocks from generic omap3 dts files.
->=20
-> Is this needed as a fix for v3.14-rc? If so, please let me know
-> and ack if you want me to take it.
+ Tested-by: Christoph Fritz <chf.fritz@googlemail.com>
 
-The SSI driver will not arrive before 3.15 and 3.14 dts files do not
-contain any SSI nodes.
+to your series "OMAP: OMAP3 DSS related clock patches".
 
-Thus it should be enough to queue it for 3.15 if it goes via the
-same tree as the SSI dts patches.
+The only issue left on current mainline for a83x board is that twl4030
+(tps65920) doesn't set VIO as on next-20140120.
 
--- Sebastian
-
---sm4nu43k4a2Rpi4c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJS/XCaAAoJENju1/PIO/qauL8P/0GuoERRyYGfiX1jsxga8OoN
-DSP13kLFV94HW5FvCp4tPLnFxYk110uNNP4+frhbXO6Dpt27+UIpoKieL+Pahreb
-1BMcpen/y3TQmiuEZG7wCpSDDNOe5Sf3e/aj78FSyD4l1A1uszDy63eXezAf3+Zq
-X+cyI37tYgA33Eri9XECEJlzOjObU/+GfS4nmqFyfoDQLhEDUOKhz1AyduGtOZJY
-E6IVLKcwCIm3/IXL6b2fwnGKWQP5Ij15kvkojMqbYg1SjWxZ7+OCpzh/D/rRbj5J
-bl7KdUE8lRczFyArVTvk/4thwH5cxREouYIbISOfKtnXGU4wu8u1uWXK5MmUPMf3
-1gbfXMMYK7Bo1VaBTEQHAlaogD1FaKaeH7iqzr/IigaIt2zOU/09T06ye9k5ujwN
-vpd6Tz+fvQRPc0LzcqcnRsE51VHXWHUw8j2XD22W45fAOxNoqISzHVfTOIcpXzPt
-yW/IjyvBhZhOin6hkFzY6y2nof3rskphb3067sMUj0AveAon/M9DSNjJPJ7SiNci
-Dp7ZcI8FT5UatcMQsfQiyEv0IIMzOX4b405hFHT/+jnORJBYTcclu2SMsKh0vyta
-7LDiuci6UVQo+dXp+d4chx/TGaPZoal630yaIsNpR5TvHnnM3vo+fHG2vEHzN7XQ
-Fys2cQO9PTqOrPq4vQHz
-=Pu0r
------END PGP SIGNATURE-----
-
---sm4nu43k4a2Rpi4c--
+ Thanks
+  -- Christoph
