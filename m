@@ -1,52 +1,74 @@
-From: "Dr.William Davies" <purchase@veltechuniv.edu.in>
-Subject: Re: Instructions to release your payment.
-Date: Fri, 14 Feb 2014 18:06:49 +0530
-Message-ID: <05850bfa675129882bc42edd957194c7__24702.7075420649$1392389469$gmane$org@127.0.0.1>
-Reply-To: williamdavies54@yahoo.co.uk
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: dtsi: am335x-bone-common, usb0 is peripheral only
+Date: Fri, 14 Feb 2014 08:20:03 -0800
+Message-ID: <20140214162003.GB9743@atomide.com>
+References: <1389448851-20010-1-git-send-email-mpa@pengutronix.de>
+ <20140213225438.GF28216@atomide.com>
+ <20140213231333.GK31787@pengutronix.de>
+ <20140213232552.GR28216@atomide.com>
+ <20140214100248.GO31787@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from webmail.veltechuniv.edu.in ([202.71.145.3]:57988 "EHLO
-	server.veltechuniv.edu.in" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751065AbaBNOul (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Feb 2014 09:50:41 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11280 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751749AbaBNQUI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2014 11:20:08 -0500
+Content-Disposition: inline
+In-Reply-To: <20140214100248.GO31787@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Markus Pargmann <mpa@pengutronix.de>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 
-Attention
+* Markus Pargmann <mpa@pengutronix.de> [140214 02:05]:
+> Hi,
+> 
+> On Thu, Feb 13, 2014 at 03:25:52PM -0800, Tony Lindgren wrote:
+> > * Markus Pargmann <mpa@pengutronix.de> [140213 15:16]:
+> > > Hi,
+> > > 
+> > > On Thu, Feb 13, 2014 at 02:54:38PM -0800, Tony Lindgren wrote:
+> > > > * Markus Pargmann <mpa@pengutronix.de> [140111 06:03]:
+> > > > > The PMIC is using usb0 vbus line as power source. It is also connected
+> > > > > to the am335x processor as vbus sense. But there is no possibility to
+> > > > > pullup usb0 vbus to operate as host. This patch fixes the dr_mode of usb0.
+> > > > 
+> > > > That's the MUSB? AFAIK it's not possible to operate MUSB in peripheral
+> > > > only mode because the hardware does what it wants based on the ID
+> > > > pin state.
+> > > 
+> > > Yes that's MUSB. The am335x reference manual describes that it is
+> > > possible to force peripheral/host mode by setting bit 7 (IDDIG_MUX) in
+> > > register USBnMODE to 1. Then it uses the bit written in bit 8 (IDDIG) of
+> > > register USBnMODE to set host/peripheral mode.
+> > 
+> > OK
+> >  
+> > > I am not sure if the driver supports it yet but I think the DTS should
+> > > contain the correct mode nevertheless, especially to avoid starting the
+> > > otg loops in the musb driver.
+> > 
+> > Well there's one more thing to consider.. I think in the OTG role change
+> > case the VBUS is still driven externally from the original host, so the
+> > lack of VBUS does not always mean that host mode should be disabled.
+> 
+> I thought more about the hardware description than the possible role
+> changes through software protocols. In a hardware perspective, this USB
+> port is only in peripheral mode, as it can't drive VBUS. However is
+> there any support for role change protocols in the kernel yet?
 
-Sir,
+There's some to trigger it, if you grep -ri hnp drivers/usb/
+you'll see some references to it.
+ 
+> Perhaps we have to add a seperate DT binding for usb role changes when
+> they are supported. This would help to describe the hardware
+> capabilities (host, peripheral or OTG) and the role change protocols
+> supported.
 
-Following an application brought, seeking the release of your due payment
-through British bank, I am directed to inform you that the application has
-been approved and Natwest bank of London has been mandated to make transfer
-of your payment to the bank account you will nominate. Please kindly reply
-for immediate release of your US$6.2 Million to you nominates account.
+Yeah it might be worth discussing on the USB list what's the best way
+to deal with all that.
 
-Sir, for the avoidance of doubts, reconfirm the following information to
-me to enable us forward same to Natwest bank to contact you for your
-payment.
+Regards,
 
-Name:
-
-Address:
-
-Tel/Fax No.:
-
-Nationality:
-
-Occupation:
-
-Date of birth: 
-
-As soon as I received the above information, I will forward them to
-Natwest bank to contact you for your approved payment. Please see in the
-attachment, letter I wrote to Natwest bank informing them of the
-transaction
-
-Yours faithfully
-
-Dr.William Davies
-Chairman,British Banking Regulatory Board.
+Tony
