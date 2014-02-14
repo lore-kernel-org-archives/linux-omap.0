@@ -1,111 +1,57 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: OMAP3 ISP capabilities, resizer
-Date: Sat, 15 Feb 2014 02:20:03 +0100
-Message-ID: <1820490.0WrQgPlyuR@avalon>
-References: <alpine.DEB.2.01.1402121601100.6337@pmeerw.net>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v2 3/4] Regulators: TPS65218: Add Regulator driver for
+ TPS65218 PMIC
+Date: Fri, 14 Feb 2014 20:21:08 +0000
+Message-ID: <20140214202108.GI4451@sirena.org.uk>
+References: <1391665814-18814-1-git-send-email-j-keerthy@ti.com>
+ <1391665814-18814-4-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44782 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753258AbaBOBS7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2014 20:18:59 -0500
-In-Reply-To: <alpine.DEB.2.01.1402121601100.6337@pmeerw.net>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6b3yLyRKT1M6kiA0"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1391665814-18814-4-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, lee.jones@linaro.org, grant.likely@linaro.org, lgirdwood@gmail.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@iki.fi
 
-Hi Peter,
 
-On Wednesday 12 February 2014 16:19:55 Peter Meerwald wrote:
-> Hello,
-> 
-> some more findings:
-> 
-> * the driver bug seen below was observed with kernel 3.7 and is already
-> fixed in more recent kernels, likely with commit 864a121274,
-> [media] v4l: Don't warn during link validation when encountering a V4L2
-> devnode
+--6b3yLyRKT1M6kiA0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Correct. I tend to forget about bugs that have been fixed ;-)
+On Thu, Feb 06, 2014 at 11:20:13AM +0530, Keerthy wrote:
+> This patch adds support for TPS65218 PMIC regulators.
+>=20
+> The regulators set consists of 6 DCDCs and 1 LDO. The output
+> voltages are configurable and are meant to supply power to the
+> main processor and other components.
 
-> * there still is a a confusing warning:
->   omap3isp omap3isp: can't find source, failing now
-> which may be addressed by the patch here https://linuxtv.org/patch/15200/,
-> but has not been applied
+Applied, thanks.  Please use subject lines consistent with the
+subsystem.
 
-The patch won't apply anymore. I've just submitted two other patches (you've 
-been CCed) to fix the problem, could you please test them ?
+--6b3yLyRKT1M6kiA0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> * I have a test program, http://pmeerw.net/scaler.c, which exercises the
-> OMAP3 ISP resizer standalone with the pipeline given below; it crashes the
-> system quite reliably on 3.7 and recent kernels :(
-> 
-> the reason for the crash is that the ISP resizer can still be busy and
-> doesn't like to be turned off then; a little sleep before
-> omap3isp_sbl_disable() helps (or waiting for the ISP resize to become
-> idle, see the patch below)
-> 
-> I'm not sure what omap3isp_module_sync_idle() is supposed to do, it
-> immediately returns since we are in SINGLESHOT mode and
-> isp_pipeline_ready() is false
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-The function is supposed to wait until the module becomes idle. I'm not sure 
-why we don't call it for memory-to-memory pipelines, I need to investigate 
-that. Sakari, do you remember what we've done there ?
+iQIcBAEBAgAGBQJS/nqxAAoJELSic+t+oim9HuMQAJ1V+nCKHsVPaI/Gt13j4UI3
+SupKWLr7jay5rtAPV5Yun7Lugdpua8q2PL3v2aWEEE//SkAxvINNyKvcJTbTyZuh
+QzLJORzi4u4Zk/nb3jOfEZ/5LVI8mkZ3Danv4PlIUHzcoTLcfA7hF4UCX4le20WY
+DGgj4xQZ/OVyRe0Lbdy7LukwTzeJ5WUJvos9l57QXItrazridd8jWsl3G/4iyKcH
+xbYMxDgp1cdfH0JqWjIPjQFeXSa1RRotyo5ru0aeBqDiRZQHi7nPqsnnWfqdphTF
+2Fy8KJrgnSpFXD9wGQr1jwc7kjQRhzZSHyPaBlEvK9DiFHg6rJt125SNRPXNzRHh
+SQ0QGrVGB9tKAICWwz/bkT9Sx+7nebTLriBR/oUEodZmRvno3poSRlxbRPKnc3xN
+ZES51spULEWwZIuV703sp+z8xieN5uh5V95zx11TxDJblyL/PFAwLhVsmWm6ZL29
+AFwW9v1LD+47anX1IIcg25djdKFtRnkzCMdP90iG3xXMsqOGsal6qAt/JwRSt5xk
+WPCY1C8pJp9FJZPtiMYbSXggTNh+t3ql6I/u47jxQTn3feB7TLneCNams+8tSp0M
+qHHuieLP1krbON0kxLryVAXqPe9OiwCwNLjMQAzPZuTVMGxh+gqB6hCWHCCBq9YX
+ezsjSO9p2Nianw6bOAFZ
+=PXmD
+-----END PGP SIGNATURE-----
 
-> with below patch I am happily resizing...
-> 
-> // snip, RFC
-> From: Peter Meerwald <p.meerwald@bct-electronic.com>
-> Date: Wed, 12 Feb 2014 15:59:20 +0100
-> Subject: [PATCH] omap3isp: Wait for resizer to become idle before
-> disabling
-> 
-> ---
->  drivers/media/platform/omap3isp/ispresizer.c |   10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispresizer.c
-> b/drivers/media/platform/omap3isp/ispresizer.c
-> index d11fb26..fea98f7 100644
-> --- a/drivers/media/platform/omap3isp/ispresizer.c
-> +++ b/drivers/media/platform/omap3isp/ispresizer.c
-> @@ -1145,6 +1145,7 @@ static int resizer_set_stream(struct v4l2_subdev *sd,
-> int enable) struct isp_video *video_out = &res->video_out;
->         struct isp_device *isp = to_isp_device(res);
->         struct device *dev = to_device(res);
-> +       unsigned long timeout = 0;
-> 
->         if (res->state == ISP_PIPELINE_STREAM_STOPPED) {
->                 if (enable == ISP_PIPELINE_STREAM_STOPPED)
-> @@ -1176,6 +1177,15 @@ static int resizer_set_stream(struct v4l2_subdev *sd,
-> int enable) if (omap3isp_module_sync_idle(&sd->entity, &res->wait,
-> &res->stopping))
->                         dev_dbg(dev, "%s: module stop timeout.\n",
-> sd->name);
-> +
-> +               while (omap3isp_resizer_busy(res)) {
-> +                       if (timeout++ > 1000) {
-> +                               dev_alert(isp->dev, "ISP resizer does not
-> become idle\n");
-> +                               return -ETIMEDOUT;
-> +                       }
-> +                       udelay(100);
-> +               }
-> +
-
-Let's try to avoid busy loops if possible. Does it help if you comment out the 
-condition at the top of omap3isp_module_sync_idle() ?
-
->                 omap3isp_sbl_disable(isp, OMAP3_ISP_SBL_RESIZER_READ |
->                                 OMAP3_ISP_SBL_RESIZER_WRITE);
->                 omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_RESIZER);
-
--- 
-Regards,
-
-Laurent Pinchart
-
+--6b3yLyRKT1M6kiA0--
