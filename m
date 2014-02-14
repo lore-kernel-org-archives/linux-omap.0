@@ -1,55 +1,58 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Add support for Erratum 2.1.1.128 in
- device tree boot
-Date: Thu, 13 Feb 2014 23:48:54 -0600
-Message-ID: <52FDAE46.4060501@ti.com>
-References: <1390260542-22213-1-git-send-email-nm@ti.com> <52F0E098.3050404@ti.com> <52F104B7.6040606@ti.com> <52F2465A.6060804@ti.com> <52F246CC.6070600@ti.com> <20140213230554.GI28216@atomide.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH v2 4/4] Documentation: dt: OMAP: Update Overo/Tobi
+Date: Fri, 14 Feb 2014 08:58:19 +0100
+Message-ID: <52FDCC9B.2050608@epfl.ch>
+References: <1392287116-4548-1-git-send-email-florian.vaussard@epfl.ch>
+ <1392287116-4548-5-git-send-email-florian.vaussard@epfl.ch>
+ <52FCDA29.90605@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37973 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751135AbaBNFtZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Feb 2014 00:49:25 -0500
-In-Reply-To: <20140213230554.GI28216@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <52FCDA29.90605@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Kevin Hilman <khilman@linaro.org>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Balaji T K <balajitk@ti.com>, Chris Ball <chris@printf.net>, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 02/13/2014 05:05 PM, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [140205 06:15]:
->> On Wed 05 Feb 2014 08:10:34 AM CST, Balaji T K wrote:
->>>>>
->>>>> Rather than ti,errata.. specific property, something like
->>>>> caps no/disable multiblock read is more readable in my opinion, Otherwise
->>>>
->>>> Is'nt the better definition to state i have quirk X and allow the
->>>> driver to do the necessary thing/things needed to handle quirk X? in
->>>> this case, there is just one thing to do: broken multi_block_read, in
->>>> the case of other quirks, there might be more than 1 thing to do.. let
->>>> driver figure that out, dts just states the h/w capabilty or in this
->>>> case, the quirk capability.
->>>>
->>>
->>> But in this case there is only one. disable multi block read is more readable
->>> than the errata reference, No strong feelings though.
+Hi,
+
+On 02/13/2014 03:43 PM, Nishanth Menon wrote:
+> On 02/13/2014 04:25 AM, Florian Vaussard wrote:
+>> Update the compatible string for Overo/Tobi to reflect the latest
+>> changes.
 >>
->> Considering this might set an precedence for other quirk description, 
->> I'd like to leave it as it stands.
+>> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+>> ---
+>>  Documentation/devicetree/bindings/arm/omap/omap.txt | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+>> index 34dc40c..af9b4a0 100644
+>> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
+>> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+>> @@ -91,7 +91,7 @@ Boards:
+>>    compatible = "ti,omap3-beagle", "ti,omap3"
+>>  
+>>  - OMAP3 Tobi with Overo : Commercial expansion board with daughter board
+>> -  compatible = "ti,omap3-tobi", "ti,omap3-overo", "ti,omap3"
+>> +  compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3"
+> omap3-overo-storm-tobi.dts is not covered here, so, I wonder as the
+> number of boards supported keep increasing, is'nt it better we drop
+> the board information from omap.txt?
 > 
-> Hmm if this really depends on the hardware version, how about
-> just add new compatible flag ti,omap3430-rev-xyz-hsmmc that
-> allows the driver to deal with the errata?
-> 
 
-yep - that is a very good idea. updated v2 series tested and posted:
-http://marc.info/?l=linux-omap&m=139235682727541&w=2
-https://patchwork.kernel.org/patch/3650061/
-https://patchwork.kernel.org/patch/3650031/
+I am not opposed to this. We will just have checkpatch warnings due to
+undocumented compatible strings.
 
-
--- 
 Regards,
-Nishanth Menon
+Florian
