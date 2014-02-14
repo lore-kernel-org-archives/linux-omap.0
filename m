@@ -1,81 +1,125 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v7 03/12] mfd: omap-usb-host: Use clock names as per
- function for reference clocks
-Date: Fri, 14 Feb 2014 13:33:30 +0000
-Message-ID: <20140214133330.GC13293@lee--X1>
-References: <1392200333-28397-1-git-send-email-rogerq@ti.com>
- <1392200333-28397-4-git-send-email-rogerq@ti.com>
- <20140214100915.GD7380@lee--X1>
- <52FE164F.80503@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 1/8] clk: divider: fix rate calculation for fractional
+ rates
+Date: Fri, 14 Feb 2014 15:45:22 +0200
+Message-ID: <52FE1DF2.2040707@ti.com>
+References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com> <1392285846-13199-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52FE164F.80503@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, bcousson@baylibre.com, balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35610 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751690AbaBNNps (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2014 08:45:48 -0500
+In-Reply-To: <1392285846-13199-2-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Mike Turquette <mturquette@linaro.org>
 
-> >> Use a meaningful name for the reference clocks so that it indicate=
-s the function.
-> >>
-> >> CC: Lee Jones <lee.jones@linaro.org>
-> >> CC: Samuel Ortiz <sameo@linux.intel.com>
-> >> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >> ---
-> >>  drivers/mfd/omap-usb-host.c | 6 +++---
-> >>  1 file changed, 3 insertions(+), 3 deletions(-)
-> >>
-> >> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-ho=
-st.c
-> >> index 60a3bed..ce620a8 100644
-> >> --- a/drivers/mfd/omap-usb-host.c
-> >> +++ b/drivers/mfd/omap-usb-host.c
-> >> @@ -714,21 +714,21 @@ static int usbhs_omap_probe(struct platform_=
-device *pdev)
-> >>  		goto err_mem;
-> >>  	}
-> >> =20
-> >> -	omap->xclk60mhsp1_ck =3D devm_clk_get(dev, "xclk60mhsp1_ck");
-> >> +	omap->xclk60mhsp1_ck =3D devm_clk_get(dev, "refclk_60m_ext_p1");
-> >=20
-> > You can't do that. These changes will have to be in the same patch =
-as
-> > the core change i.e. where they are initialised.
->=20
-> I'm not touching them anywhere in this series. When core changes are =
-you
-> referring to?
+On 02/13/2014 12:03 PM, Tomi Valkeinen wrote:
+> clk-divider.c does not calculate the rates consistently at the moment.
+>
+> As an example, on OMAP3 we have a clock divider with a source clock of
+> 864000000 Hz. With dividers 6, 7 and 8 the theoretical rates are:
+>
+> 6: 144000000
+> 7: 123428571.428571...
+> 8: 108000000
+>
+> Calling clk_round_rate() with the rate in the first column will give the
+> rate in the second column:
+>
+> 144000000 -> 144000000
+> 143999999 -> 123428571
+> 123428572 -> 123428571
+> 123428571 -> 108000000
+>
+> Note how clk_round_rate() returns 123428571 for rates from 123428572 to
+> 143999999, which is mathematically correct, but when clk_round_rate() is
+> called with 123428571, the returned value is surprisingly 108000000.
+>
+> This means that the following code works a bit oddly:
+>
+> rate = clk_round_rate(clk, 123428572);
+> clk_set_rate(clk, rate);
+>
+> As clk_set_rate() also does clock rate rounding, the result is that the
+> clock is set to the rate of 108000000, not 123428571 returned by the
+> clk_round_rate.
+>
+> This patch changes the clk-divider.c to use DIV_ROUND_UP when
+> calculating the rate. This gives the following behavior which fixes the
+> inconsistency:
+>
+> 144000000 -> 144000000
+> 143999999 -> 123428572
+> 123428572 -> 123428572
+> 123428571 -> 108000000
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: Mike Turquette <mturquette@linaro.org>
+> ---
+>   drivers/clk/clk-divider.c | 10 +++++-----
+>   1 file changed, 5 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
+> index 5543b7df8e16..ec22112e569f 100644
+> --- a/drivers/clk/clk-divider.c
+> +++ b/drivers/clk/clk-divider.c
+> @@ -24,7 +24,7 @@
+>    * Traits of this clock:
+>    * prepare - clk_prepare only ensures that parents are prepared
+>    * enable - clk_enable only ensures that parents are enabled
+> - * rate - rate is adjustable.  clk->rate = parent->rate / divisor
+> + * rate - rate is adjustable.  clk->rate = DIV_ROUND_UP(parent->rate / divisor)
+>    * parent - fixed parent.  No clk_set_parent support
+>    */
+>
+> @@ -115,7 +115,7 @@ static unsigned long clk_divider_recalc_rate(struct clk_hw *hw,
+>   		return parent_rate;
+>   	}
+>
+> -	return parent_rate / div;
+> +	return DIV_ROUND_UP(parent_rate, div);
+>   }
+>
+>   /*
+> @@ -185,7 +185,7 @@ static int clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
+>   		}
+>   		parent_rate = __clk_round_rate(__clk_get_parent(hw->clk),
+>   				MULT_ROUND_UP(rate, i));
+> -		now = parent_rate / i;
+> +		now = DIV_ROUND_UP(parent_rate, i);
+>   		if (now <= rate && now > best) {
+>   			bestdiv = i;
+>   			best = now;
+> @@ -207,7 +207,7 @@ static long clk_divider_round_rate(struct clk_hw *hw, unsigned long rate,
+>   	int div;
+>   	div = clk_divider_bestdiv(hw, rate, prate);
+>
+> -	return *prate / div;
+> +	return DIV_ROUND_UP(*prate, div);
+>   }
+>
+>   static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
+> @@ -218,7 +218,7 @@ static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
+>   	unsigned long flags = 0;
+>   	u32 val;
+>
+> -	div = parent_rate / rate;
+> +	div = DIV_ROUND_UP(parent_rate, rate);
+>   	value = _get_val(divider, div);
+>
+>   	if (value > div_mask(divider))
+>
 
-The ones in:
-  arch/arm/mach-omap2/cclock3xxx_data.c
+Basically the patch looks good to me, but it might be good to have a 
+testing round of sort with this. It can potentially cause regressions on 
+multiple boards if the drivers happen to rely on the "broken" clock 
+rates. Same for patch #2 which is a copy paste of this one, but only 
+impacts TI boards.
 
-> >>  	if (IS_ERR(omap->xclk60mhsp1_ck)) {
-> >>  		ret =3D PTR_ERR(omap->xclk60mhsp1_ck);
-> >>  		dev_err(dev, "xclk60mhsp1_ck failed error:%d\n", ret);
-> >>  		goto err_mem;
-> >>  	}
-> >> =20
-> >> -	omap->xclk60mhsp2_ck =3D devm_clk_get(dev, "xclk60mhsp2_ck");
-> >> +	omap->xclk60mhsp2_ck =3D devm_clk_get(dev, "refclk_60m_ext_p2");
-> >>  	if (IS_ERR(omap->xclk60mhsp2_ck)) {
-> >>  		ret =3D PTR_ERR(omap->xclk60mhsp2_ck);
-> >>  		dev_err(dev, "xclk60mhsp2_ck failed error:%d\n", ret);
-> >>  		goto err_mem;
-> >>  	}
-> >> =20
-> >> -	omap->init_60m_fclk =3D devm_clk_get(dev, "init_60m_fclk");
-> >> +	omap->init_60m_fclk =3D devm_clk_get(dev, "refclk_60m_int");
-> >>  	if (IS_ERR(omap->init_60m_fclk)) {
-> >>  		ret =3D PTR_ERR(omap->init_60m_fclk);
-> >>  		dev_err(dev, "init_60m_fclk failed error:%d\n", ret);
-> >=20
->=20
+-Tero
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
