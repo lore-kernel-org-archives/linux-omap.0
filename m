@@ -1,76 +1,79 @@
-From: Christoph Fritz <chf.fritz-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Subject: [PATCH v4 4/4] ARM: OMAP2+: Add pdata quirk for sys_clkout2 for omap3 DBB056
-Date: Fri, 14 Feb 2014 15:20:56 +0100
-Message-ID: <1392387656-15186-5-git-send-email-chf.fritz@googlemail.com>
-References: <1392387656-15186-1-git-send-email-chf.fritz@googlemail.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1392387656-15186-1-git-send-email-chf.fritz-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v4 3/4] ARM: OMAP2+: add legacy display for omap3 DBB056
+Date: Fri, 14 Feb 2014 16:35:43 +0200
+Message-ID: <52FE29BF.9040307@ti.com>
+References: <1392387656-15186-1-git-send-email-chf.fritz@googlemail.com> <1392387656-15186-4-git-send-email-chf.fritz@googlemail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="0IPKaTqtmAitIxMGBUPfN13osjBusFdcI"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54519 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751525AbaBNOgT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Feb 2014 09:36:19 -0500
+In-Reply-To: <1392387656-15186-4-git-send-email-chf.fritz@googlemail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Christoph Fritz <chf.fritz@googlemail.com>
+Cc: bcousson@baylibre.com, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Full device tree support for clock control, especially to set frequencies,
-is not yet accomplished. Until then, configure the 24Mhz of sys_clkout2 to
-feed an USB-Hub here.
+--0IPKaTqtmAitIxMGBUPfN13osjBusFdcI
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Christoph Fritz <chf.fritz-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
----
- arch/arm/mach-omap2/pdata-quirks.c |   37 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+Hi,
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 435a823..e36ac3f 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -172,6 +172,43 @@ static void __init am3517_evm_legacy_init(void)
- 
- static void __init omap3_dbb056_legacy_init(void)
- {
-+	struct clk *clkout2;
-+	struct clk *cm96fck;
-+
-+	/* Reparent clkout2 to 96M_FCK */
-+	pr_info("%s: Late Reparent clkout2 to 96M_FCK\n", __func__);
-+	clkout2 = clk_get(NULL, "clkout2_src_ck");
-+	if (clkout2 < 0) {
-+		pr_err("a83x-quirk: couldn't get clkout2_src_ck\n");
-+		return;
-+	}
-+	cm96fck = clk_get(NULL, "cm_96m_fck");
-+	if (cm96fck < 0) {
-+		pr_err("a83x-quirk: couldn't get cm_96m_fck\n");
-+		return;
-+	}
-+	if (clk_set_parent(clkout2, cm96fck) < 0) {
-+		pr_err("a83x-quirk: couldn't reparent clkout2_src_ck\n");
-+		return;
-+	}
-+
-+	/* Set clkout2 to 24MHz for internal usb hub*/
-+	pr_info("%s: Set clkout2 to 24MHz for internal usb hub\n", __func__);
-+	clkout2 = clk_get(NULL, "sys_clkout2");
-+	if (clkout2 < 0) {
-+		pr_err("%s: couldn't get sys_clkout2\n", __func__);
-+		return;
-+	}
-+	if (clk_set_rate(clkout2, 24000000) < 0) {
-+		pr_err("%s: couldn't set sys_clkout2 rate\n", __func__);
-+		return;
-+	}
-+	if (clk_prepare_enable(clkout2) < 0) {
-+		pr_err("%s: couldn't enable sys_clkout2\n", __func__);
-+		return;
-+	}
-+
-+	/* Initialize display */
- 	omap3_dbb056_display_init_of();
- }
- #endif /* CONFIG_ARCH_OMAP3 */
--- 
-1.7.10.4
+On 14/02/14 16:20, Christoph Fritz wrote:
+> Full device tree support for omapdss is not yet accomplished. Until
+> then, init display by legacy platform code.
+>=20
+> Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
+> ---
+>  arch/arm/mach-omap2/dss-common.c   |   49 ++++++++++++++++++++++++++++=
+++++++++
+>  arch/arm/mach-omap2/dss-common.h   |    1 +
+>  arch/arm/mach-omap2/pdata-quirks.c |    8 +++++-
+>  3 files changed, 57 insertions(+), 1 deletion(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm not nack'ing this, but I'm again hoping to get DSS DT support for
+3.15. I haven't done any bigger changes to my branch for some time now,
+and I'm just waiting to get some comments/acks for the bindings.
+
+So I suggest to also try out DSS DT for your board, based on the latest
+DSS DT branch:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt=
+
+
+That way you have it ready and tested if DSS DT goes forward.
+
+ Tomi
+
+
+
+--0IPKaTqtmAitIxMGBUPfN13osjBusFdcI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJS/im/AAoJEPo9qoy8lh71fwsQAKK7Ji5aWGdM4uKddovDuJUw
+n5TX66IB6VpAvWK5qC9CeAqm4LFby0wdJ/RNJE7z3I466SxHE5hAZkbKux4H0+0K
+KcCmDegglqmlfXL04F1g+ZWvWBJgKUdzaCtgjzuapdyqRIgPSiPpd1qrR6w6NC6M
++9sX+MrofS+4c3bsLvoTgPEcv4N65/S5YfynvZgBVEGD7J5XimZivPYgmcuYMSgt
+gJHuZ2U5+PtK+qFYkcgaFmELhZmvo0JwprYqpL1wnJBFj3MSI4ODfyIMtzygjSi7
+DBiBOGyRx7FGOy7gH8NLksFhqAX0YppyXdbOMS3pGW1DUs5J92g6oGm3Nm5gx1X4
+/RWxItfLSnKpZx6BZ17Q1y0xzNqjyWlAcbE3f4k77Iz8GF2bCiSifY3cUyKAE/0O
+0pEy94lzOvW3UlRHRJJC3lPyJsH9xWxAh4t/aJy3FYNYvJmslGEQF7WsCQWezmdV
+sTN2dyYUVaDVGjKTE1/XJj+QKufJICGVSOX5v48ePMcnXGFLf1fp2CiFl0n99fS4
+G9vyZpvZVPeX4m00Meo6az+02K40FqoLeF1rOaFozDcodmxLb0H+kDza0oR67HC0
+EU6FPeD0Fv3BGuO9KQDXQM5Pm+NcF3XscYvSk8RUonyWyOOBBKEgxgPhec6AMhA5
+IGp9WwAtduD5g7bqSt2e
+=2UK5
+-----END PGP SIGNATURE-----
+
+--0IPKaTqtmAitIxMGBUPfN13osjBusFdcI--
