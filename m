@@ -1,41 +1,104 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap3 clocks: simplify ssi aliases
-Date: Fri, 14 Feb 2014 15:47:57 +0200
-Message-ID: <52FE1E8D.7010807@ti.com>
-References: <52DE24DA.8050104@ti.com> <1390315061-14441-1-git-send-email-sre@debian.org> <20140213224914.GD28216@atomide.com> <20140214012546.GA7996@earth.universe>
+Subject: Re: [PATCH 4/8] ARM: dts: fix omap3 dss clock handle names
+Date: Fri, 14 Feb 2014 15:48:42 +0200
+Message-ID: <52FE1EBA.7060901@ti.com>
+References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com> <1392285846-13199-5-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52467 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33340 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752727AbaBNNsL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Feb 2014 08:48:11 -0500
-In-Reply-To: <20140214012546.GA7996@earth.universe>
+	id S1752334AbaBNNtH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Feb 2014 08:49:07 -0500
+In-Reply-To: <1392285846-13199-5-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>, Tony Lindgren <tony@atomide.com>
-Cc: mturquette@linaro.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 02/14/2014 03:25 AM, Sebastian Reichel wrote:
-> On Thu, Feb 13, 2014 at 02:49:14PM -0800, Tony Lindgren wrote:
->> * Sebastian Reichel <sre@debian.org> [140121 06:39]:
->>> update aliases for the ssi clocks ssi_ssr_fck, ssi_sst_fck and ssi_ick
->>> to make them consistent for omap34xx and omap36xx. This makes it
->>> possible to reference the clocks from generic omap3 dts files.
->>
->> Is this needed as a fix for v3.14-rc? If so, please let me know
->> and ack if you want me to take it.
+On 02/13/2014 12:04 PM, Tomi Valkeinen wrote:
+> The DSS fclk and iclk handles are named differently on OMAP3430 ES1 than
+> on later OMAP revisions. The ES1 has handles 'dss1_alwon_fck_3430es1'
+> and 'dss_ick_3430es1', whereas later revisions have similar names but
+> ending with 'es2'.
 >
-> The SSI driver will not arrive before 3.15 and 3.14 dts files do not
-> contain any SSI nodes.
+> This means we don't have one clock handle to which we could refer to
+> when defining the DSS clocks.
 >
-> Thus it should be enough to queue it for 3.15 if it goes via the
-> same tree as the SSI dts patches.
+> However, as the namespaces are separate for ES1 and ES2+ OMAPs, we can
+> just rename the handles to 'dss1_alwon_fck' and 'dss_ick' for both ES1
+> and ES2+, removing the issue.
 >
-> -- Sebastian
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+Acked-by: Tero Kristo <t-kristo@ti.com>
+
+> ---
+>   arch/arm/boot/dts/omap3430es1-clocks.dtsi                     | 6 +++---
+>   arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi | 6 +++---
+>   2 files changed, 6 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/omap3430es1-clocks.dtsi b/arch/arm/boot/dts/omap3430es1-clocks.dtsi
+> index 02f6c7fabbec..f9202656168f 100644
+> --- a/arch/arm/boot/dts/omap3430es1-clocks.dtsi
+> +++ b/arch/arm/boot/dts/omap3430es1-clocks.dtsi
+> @@ -152,7 +152,7 @@
+>   		clocks = <&usb_l4_gate_ick>, <&usb_l4_div_ick>;
+>   	};
+>
+> -	dss1_alwon_fck_3430es1: dss1_alwon_fck_3430es1 {
+> +	dss1_alwon_fck: dss1_alwon_fck_3430es1 {
+>   		#clock-cells = <0>;
+>   		compatible = "ti,gate-clock";
+>   		clocks = <&dpll4_m4x2_ck>;
+> @@ -161,7 +161,7 @@
+>   		ti,set-rate-parent;
+>   	};
+>
+> -	dss_ick_3430es1: dss_ick_3430es1 {
+> +	dss_ick: dss_ick_3430es1 {
+>   		#clock-cells = <0>;
+>   		compatible = "ti,omap3-no-wait-interface-clock";
+>   		clocks = <&l4_ick>;
+> @@ -184,7 +184,7 @@
+>   	dss_clkdm: dss_clkdm {
+>   		compatible = "ti,clockdomain";
+>   		clocks = <&dss_tv_fck>, <&dss_96m_fck>, <&dss2_alwon_fck>,
+> -			 <&dss1_alwon_fck_3430es1>, <&dss_ick_3430es1>;
+> +			 <&dss1_alwon_fck>, <&dss_ick>;
+>   	};
+>
+>   	d2d_clkdm: d2d_clkdm {
+> diff --git a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+> index af9ae5346bf2..080fb3f4e429 100644
+> --- a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+> +++ b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+> @@ -160,7 +160,7 @@
+>   		ti,bit-shift = <30>;
+>   	};
+>
+> -	dss1_alwon_fck_3430es2: dss1_alwon_fck_3430es2 {
+> +	dss1_alwon_fck: dss1_alwon_fck_3430es2 {
+>   		#clock-cells = <0>;
+>   		compatible = "ti,dss-gate-clock";
+>   		clocks = <&dpll4_m4x2_ck>;
+> @@ -169,7 +169,7 @@
+>   		ti,set-rate-parent;
+>   	};
+>
+> -	dss_ick_3430es2: dss_ick_3430es2 {
+> +	dss_ick: dss_ick_3430es2 {
+>   		#clock-cells = <0>;
+>   		compatible = "ti,omap3-dss-interface-clock";
+>   		clocks = <&l4_ick>;
+> @@ -216,7 +216,7 @@
+>   	dss_clkdm: dss_clkdm {
+>   		compatible = "ti,clockdomain";
+>   		clocks = <&dss_tv_fck>, <&dss_96m_fck>, <&dss2_alwon_fck>,
+> -			 <&dss1_alwon_fck_3430es2>, <&dss_ick_3430es2>;
+> +			 <&dss1_alwon_fck>, <&dss_ick>;
+>   	};
+>
+>   	core_l4_clkdm: core_l4_clkdm {
 >
 
-The patch itself looks good to me, so acked.
-
--Tero
