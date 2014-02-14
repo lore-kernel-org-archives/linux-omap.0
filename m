@@ -1,104 +1,84 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 4/8] ARM: dts: fix omap3 dss clock handle names
-Date: Fri, 14 Feb 2014 15:48:42 +0200
-Message-ID: <52FE1EBA.7060901@ti.com>
-References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com> <1392285846-13199-5-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 5/8] ARM: dts: fix DPLL4 x2 clkouts on 3630
+Date: Fri, 14 Feb 2014 15:52:39 +0200
+Message-ID: <52FE1FA7.3080306@ti.com>
+References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com> <1392285846-13199-6-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33340 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53075 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752334AbaBNNtH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Feb 2014 08:49:07 -0500
-In-Reply-To: <1392285846-13199-5-git-send-email-tomi.valkeinen@ti.com>
+	id S1752307AbaBNNxD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Feb 2014 08:53:03 -0500
+In-Reply-To: <1392285846-13199-6-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
 On 02/13/2014 12:04 PM, Tomi Valkeinen wrote:
-> The DSS fclk and iclk handles are named differently on OMAP3430 ES1 than
-> on later OMAP revisions. The ES1 has handles 'dss1_alwon_fck_3430es1'
-> and 'dss_ick_3430es1', whereas later revisions have similar names but
-> ending with 'es2'.
+> OMAP3630 DPLL4 is different than on OMAP3430, in that it doesn't have
+> the x2 multiplier for its outputs. This is not currently reflected in
+> the clock DT data.
 >
-> This means we don't have one clock handle to which we could refer to
-> when defining the DSS clocks.
->
-> However, as the namespaces are separate for ES1 and ES2+ OMAPs, we can
-> just rename the handles to 'dss1_alwon_fck' and 'dss_ick' for both ES1
-> and ES2+, removing the issue.
+> Fix the issue by setting the clock multiplier to 1 (instead of 2) for the
+> DPLL4 output clocks.
 >
 > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-
-Acked-by: Tero Kristo <t-kristo@ti.com>
-
 > ---
->   arch/arm/boot/dts/omap3430es1-clocks.dtsi                     | 6 +++---
->   arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi | 6 +++---
->   2 files changed, 6 insertions(+), 6 deletions(-)
+>   arch/arm/boot/dts/omap36xx-clocks.dtsi | 20 ++++++++++++++++++++
+>   arch/arm/boot/dts/omap36xx.dtsi        |  2 +-
+>   2 files changed, 21 insertions(+), 1 deletion(-)
 >
-> diff --git a/arch/arm/boot/dts/omap3430es1-clocks.dtsi b/arch/arm/boot/dts/omap3430es1-clocks.dtsi
-> index 02f6c7fabbec..f9202656168f 100644
-> --- a/arch/arm/boot/dts/omap3430es1-clocks.dtsi
-> +++ b/arch/arm/boot/dts/omap3430es1-clocks.dtsi
-> @@ -152,7 +152,7 @@
->   		clocks = <&usb_l4_gate_ick>, <&usb_l4_div_ick>;
+> diff --git a/arch/arm/boot/dts/omap36xx-clocks.dtsi b/arch/arm/boot/dts/omap36xx-clocks.dtsi
+> index 2fcf253b677c..0b2df76b9d38 100644
+> --- a/arch/arm/boot/dts/omap36xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/omap36xx-clocks.dtsi
+> @@ -70,6 +70,26 @@
 >   	};
+>   };
 >
-> -	dss1_alwon_fck_3430es1: dss1_alwon_fck_3430es1 {
-> +	dss1_alwon_fck: dss1_alwon_fck_3430es1 {
->   		#clock-cells = <0>;
->   		compatible = "ti,gate-clock";
->   		clocks = <&dpll4_m4x2_ck>;
-> @@ -161,7 +161,7 @@
->   		ti,set-rate-parent;
->   	};
->
-> -	dss_ick_3430es1: dss_ick_3430es1 {
-> +	dss_ick: dss_ick_3430es1 {
->   		#clock-cells = <0>;
->   		compatible = "ti,omap3-no-wait-interface-clock";
->   		clocks = <&l4_ick>;
-> @@ -184,7 +184,7 @@
->   	dss_clkdm: dss_clkdm {
+> +&dpll4_m2x2_mul_ck {
+> +	clock-mult = <1>;
+> +};
+> +
+> +&dpll4_m3x2_mul_ck {
+> +	clock-mult = <1>;
+> +};
+> +
+> +&dpll4_m4x2_mul_ck {
+> +	clock-mult = <1>;
+> +};
+> +
+> +&dpll4_m5x2_mul_ck {
+> +	clock-mult = <1>;
+> +};
+> +
+> +&dpll4_m6x2_mul_ck {
+> +	clock-mult = <1>;
+> +};
+> +
+>   &cm_clockdomains {
+>   	dpll4_clkdm: dpll4_clkdm {
 >   		compatible = "ti,clockdomain";
->   		clocks = <&dss_tv_fck>, <&dss_96m_fck>, <&dss2_alwon_fck>,
-> -			 <&dss1_alwon_fck_3430es1>, <&dss_ick_3430es1>;
-> +			 <&dss1_alwon_fck>, <&dss_ick>;
+> diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+> index 7e8dee9175d6..5e1bcd06a996 100644
+> --- a/arch/arm/boot/dts/omap36xx.dtsi
+> +++ b/arch/arm/boot/dts/omap36xx.dtsi
+> @@ -52,7 +52,7 @@
 >   	};
+>   };
 >
->   	d2d_clkdm: d2d_clkdm {
-> diff --git a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-> index af9ae5346bf2..080fb3f4e429 100644
-> --- a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-> +++ b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-> @@ -160,7 +160,7 @@
->   		ti,bit-shift = <30>;
->   	};
+> -/include/ "omap36xx-clocks.dtsi"
+>   /include/ "omap34xx-omap36xx-clocks.dtsi"
+>   /include/ "omap36xx-omap3430es2plus-clocks.dtsi"
+>   /include/ "omap36xx-am35xx-omap3430es2plus-clocks.dtsi"
+> +/include/ "omap36xx-clocks.dtsi"
 >
-> -	dss1_alwon_fck_3430es2: dss1_alwon_fck_3430es2 {
-> +	dss1_alwon_fck: dss1_alwon_fck_3430es2 {
->   		#clock-cells = <0>;
->   		compatible = "ti,dss-gate-clock";
->   		clocks = <&dpll4_m4x2_ck>;
-> @@ -169,7 +169,7 @@
->   		ti,set-rate-parent;
->   	};
->
-> -	dss_ick_3430es2: dss_ick_3430es2 {
-> +	dss_ick: dss_ick_3430es2 {
->   		#clock-cells = <0>;
->   		compatible = "ti,omap3-dss-interface-clock";
->   		clocks = <&l4_ick>;
-> @@ -216,7 +216,7 @@
->   	dss_clkdm: dss_clkdm {
->   		compatible = "ti,clockdomain";
->   		clocks = <&dss_tv_fck>, <&dss_96m_fck>, <&dss2_alwon_fck>,
-> -			 <&dss1_alwon_fck_3430es2>, <&dss_ick_3430es2>;
-> +			 <&dss1_alwon_fck>, <&dss_ick>;
->   	};
->
->   	core_l4_clkdm: core_l4_clkdm {
->
+
+I think this re-ordering of the includes is unnecessary.
+
+Other than that, the patch looks okay to me, so acked.
+
+-Tero
 
