@@ -1,42 +1,73 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH 00/26] OMAP dma engine rework
-Date: Fri, 14 Feb 2014 18:24:56 +0530
-Message-ID: <52FE1220.6090502@ti.com>
-References: <20140210155531.GB26684@n2100.arm.linux.org.uk>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 03/12] mfd: omap-usb-host: Use clock names as per function
+ for reference clocks
+Date: Fri, 14 Feb 2014 15:12:47 +0200
+Message-ID: <52FE164F.80503@ti.com>
+References: <1392200333-28397-1-git-send-email-rogerq@ti.com> <1392200333-28397-4-git-send-email-rogerq@ti.com> <20140214100915.GD7380@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34234 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932AbaBNMzs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2014 07:55:48 -0500
-In-Reply-To: <20140210155531.GB26684@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140214100915.GD7380@lee--X1>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>
 
-On Monday 10 February 2014 09:25 PM, Russell King - ARM Linux wrote:
-> This is the current set of patches for the OMAP DMA engine rework,
-> which should now work correctly on OMAP1 platforms thanks to Tony's
-> testing.
+On 02/14/2014 12:09 PM, Lee Jones wrote:
+>> Use a meaningful name for the reference clocks so that it indicates the function.
+>>
+>> CC: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> CC: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/mfd/omap-usb-host.c | 6 +++---
+>>  1 file changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+>> index 60a3bed..ce620a8 100644
+>> --- a/drivers/mfd/omap-usb-host.c
+>> +++ b/drivers/mfd/omap-usb-host.c
+>> @@ -714,21 +714,21 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+>>  		goto err_mem;
+>>  	}
+>>  
+>> -	omap->xclk60mhsp1_ck = devm_clk_get(dev, "xclk60mhsp1_ck");
+>> +	omap->xclk60mhsp1_ck = devm_clk_get(dev, "refclk_60m_ext_p1");
 > 
-> It would be good to get this validated by others across a range of
-> OMAP platforms, and queued up for the next merge window, so it can
-> be built upon.
-> 
-> Acks appreciated, and once sufficient have been added, I'll send a
-> pull request for this to Vinod.
-> 
->  arch/arm/mach-omap1/dma.c | 191 ++++++--------
->  arch/arm/mach-omap2/dma.c | 183 ++++++-------
->  arch/arm/plat-omap/dma.c  |  17 +-
->  drivers/dma/omap-dma.c    | 659 +++++++++++++++++++++++++++++++++++++++++-----
->  include/linux/omap-dma.h  |  25 +-
->  5 files changed, 784 insertions(+), 291 deletions(-)
-> 
-Tested this on DRA7XX with MMC peripheral DMA
+> You can't do that. These changes will have to be in the same patch as
+> the core change i.e. where they are initialised.
 
-Regards,
- Sricharan
+I'm not touching them anywhere in this series. When core changes are you
+referring to?
+
+> 
+>>  	if (IS_ERR(omap->xclk60mhsp1_ck)) {
+>>  		ret = PTR_ERR(omap->xclk60mhsp1_ck);
+>>  		dev_err(dev, "xclk60mhsp1_ck failed error:%d\n", ret);
+>>  		goto err_mem;
+>>  	}
+>>  
+>> -	omap->xclk60mhsp2_ck = devm_clk_get(dev, "xclk60mhsp2_ck");
+>> +	omap->xclk60mhsp2_ck = devm_clk_get(dev, "refclk_60m_ext_p2");
+>>  	if (IS_ERR(omap->xclk60mhsp2_ck)) {
+>>  		ret = PTR_ERR(omap->xclk60mhsp2_ck);
+>>  		dev_err(dev, "xclk60mhsp2_ck failed error:%d\n", ret);
+>>  		goto err_mem;
+>>  	}
+>>  
+>> -	omap->init_60m_fclk = devm_clk_get(dev, "init_60m_fclk");
+>> +	omap->init_60m_fclk = devm_clk_get(dev, "refclk_60m_int");
+>>  	if (IS_ERR(omap->init_60m_fclk)) {
+>>  		ret = PTR_ERR(omap->init_60m_fclk);
+>>  		dev_err(dev, "init_60m_fclk failed error:%d\n", ret);
+> 
+
+--
+cheers,
+-roger
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
