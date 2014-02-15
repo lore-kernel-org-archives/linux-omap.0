@@ -1,242 +1,111 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCHv2 2/5] wl1251: move power GPIO handling into the driver
-Date: Sat, 15 Feb 2014 00:05:53 +0100
-Message-ID: <1392419156-14394-3-git-send-email-sre@debian.org>
-References: <20140125000929.GD25488@atomide.com>
- <1392419156-14394-1-git-send-email-sre@debian.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1392419156-14394-1-git-send-email-sre@debian.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, Luciano Coelho <luca@coelho.fi>, Tony Lindgren <tony@atomide.com>, "John W. Linville" <linville@tuxdriver.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Sebastian Reichel <sre@debian.org>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: OMAP3 ISP capabilities, resizer
+Date: Sat, 15 Feb 2014 02:20:03 +0100
+Message-ID: <1820490.0WrQgPlyuR@avalon>
+References: <alpine.DEB.2.01.1402121601100.6337@pmeerw.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44782 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753258AbaBOBS7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Feb 2014 20:18:59 -0500
+In-Reply-To: <alpine.DEB.2.01.1402121601100.6337@pmeerw.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@iki.fi
 
-Move the power GPIO handling from the board code into
-the driver. This is a dependency for device tree support.
+Hi Peter,
 
-Signed-off-by: Sebastian Reichel <sre@debian.org>
-Reviewed-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-omap3pandora.c     |  2 ++
- arch/arm/mach-omap2/board-rx51-peripherals.c | 11 ++--------
- drivers/net/wireless/ti/wl1251/sdio.c        | 21 +++++++++++++-----
- drivers/net/wireless/ti/wl1251/spi.c         | 33 ++++++++++++++++++----------
- drivers/net/wireless/ti/wl1251/wl1251.h      |  2 +-
- include/linux/wl12xx.h                       |  2 +-
- 6 files changed, 43 insertions(+), 28 deletions(-)
+On Wednesday 12 February 2014 16:19:55 Peter Meerwald wrote:
+> Hello,
+> 
+> some more findings:
+> 
+> * the driver bug seen below was observed with kernel 3.7 and is already
+> fixed in more recent kernels, likely with commit 864a121274,
+> [media] v4l: Don't warn during link validation when encountering a V4L2
+> devnode
 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 24f3c1b..cf18340 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -541,6 +541,8 @@ static void __init pandora_wl1251_init(void)
- 
- 	memset(&pandora_wl1251_pdata, 0, sizeof(pandora_wl1251_pdata));
- 
-+	pandora_wl1251_pdata.power_gpio = -1;
-+
- 	ret = gpio_request_one(PANDORA_WIFI_IRQ_GPIO, GPIOF_IN, "wl1251 irq");
- 	if (ret < 0)
- 		goto fail;
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index e05e740..ddfc8df 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -1173,13 +1173,7 @@ static inline void board_smc91x_init(void)
- 
- #endif
- 
--static void rx51_wl1251_set_power(bool enable)
--{
--	gpio_set_value(RX51_WL1251_POWER_GPIO, enable);
--}
--
- static struct gpio rx51_wl1251_gpios[] __initdata = {
--	{ RX51_WL1251_POWER_GPIO, GPIOF_OUT_INIT_LOW,	"wl1251 power"	},
- 	{ RX51_WL1251_IRQ_GPIO,	  GPIOF_IN,		"wl1251 irq"	},
- };
- 
-@@ -1196,17 +1190,16 @@ static void __init rx51_init_wl1251(void)
- 	if (irq < 0)
- 		goto err_irq;
- 
--	wl1251_pdata.set_power = rx51_wl1251_set_power;
-+	wl1251_pdata.power_gpio = RX51_WL1251_POWER_GPIO;
- 	rx51_peripherals_spi_board_info[RX51_SPI_WL1251].irq = irq;
- 
- 	return;
- 
- err_irq:
- 	gpio_free(RX51_WL1251_IRQ_GPIO);
--	gpio_free(RX51_WL1251_POWER_GPIO);
- error:
- 	printk(KERN_ERR "wl1251 board initialisation failed\n");
--	wl1251_pdata.set_power = NULL;
-+	wl1251_pdata.power_gpio = -1;
- 
- 	/*
- 	 * Now rx51_peripherals_spi_board_info[1].irq is zero and
-diff --git a/drivers/net/wireless/ti/wl1251/sdio.c b/drivers/net/wireless/ti/wl1251/sdio.c
-index b75a37a..b661f89 100644
---- a/drivers/net/wireless/ti/wl1251/sdio.c
-+++ b/drivers/net/wireless/ti/wl1251/sdio.c
-@@ -28,6 +28,7 @@
- #include <linux/wl12xx.h>
- #include <linux/irq.h>
- #include <linux/pm_runtime.h>
-+#include <linux/gpio.h>
- 
- #include "wl1251.h"
- 
-@@ -182,8 +183,9 @@ static int wl1251_sdio_set_power(struct wl1251 *wl, bool enable)
- 		 * callback in case it wants to do any additional setup,
- 		 * for example enabling clock buffer for the module.
- 		 */
--		if (wl->set_power)
--			wl->set_power(true);
-+		if (gpio_is_valid(wl->power_gpio))
-+			gpio_set_value(wl->power_gpio, true);
-+
- 
- 		ret = pm_runtime_get_sync(&func->dev);
- 		if (ret < 0) {
-@@ -203,8 +205,8 @@ static int wl1251_sdio_set_power(struct wl1251 *wl, bool enable)
- 		if (ret < 0)
- 			goto out;
- 
--		if (wl->set_power)
--			wl->set_power(false);
-+		if (gpio_is_valid(wl->power_gpio))
-+			gpio_set_value(wl->power_gpio, false);
- 	}
- 
- out:
-@@ -256,11 +258,20 @@ static int wl1251_sdio_probe(struct sdio_func *func,
- 
- 	wl1251_board_data = wl1251_get_platform_data();
- 	if (!IS_ERR(wl1251_board_data)) {
--		wl->set_power = wl1251_board_data->set_power;
-+		wl->power_gpio = wl1251_board_data->power_gpio;
- 		wl->irq = wl1251_board_data->irq;
- 		wl->use_eeprom = wl1251_board_data->use_eeprom;
- 	}
- 
-+	if (gpio_is_valid(wl->power_gpio)) {
-+		ret = devm_gpio_request(&func->dev, wl->power_gpio,
-+								"wl1251 power");
-+		if (ret) {
-+			wl1251_error("Failed to request gpio: %d\n", ret);
-+			goto disable;
-+		}
-+	}
-+
- 	if (wl->irq) {
- 		irq_set_status_flags(wl->irq, IRQ_NOAUTOEN);
- 		ret = request_irq(wl->irq, wl1251_line_irq, 0, "wl1251", wl);
-diff --git a/drivers/net/wireless/ti/wl1251/spi.c b/drivers/net/wireless/ti/wl1251/spi.c
-index 62403a1..6abcbc3 100644
---- a/drivers/net/wireless/ti/wl1251/spi.c
-+++ b/drivers/net/wireless/ti/wl1251/spi.c
-@@ -26,6 +26,7 @@
- #include <linux/crc7.h>
- #include <linux/spi/spi.h>
- #include <linux/wl12xx.h>
-+#include <linux/gpio.h>
- 
- #include "wl1251.h"
- #include "reg.h"
-@@ -221,8 +222,8 @@ static void wl1251_spi_disable_irq(struct wl1251 *wl)
- 
- static int wl1251_spi_set_power(struct wl1251 *wl, bool enable)
- {
--	if (wl->set_power)
--		wl->set_power(enable);
-+	if (gpio_is_valid(wl->power_gpio))
-+		gpio_set_value(wl->power_gpio, enable);
- 
- 	return 0;
- }
-@@ -271,22 +272,33 @@ static int wl1251_spi_probe(struct spi_device *spi)
- 		goto out_free;
- 	}
- 
--	wl->set_power = pdata->set_power;
--	if (!wl->set_power) {
--		wl1251_error("set power function missing in platform data");
--		return -ENODEV;
-+	wl->power_gpio = pdata->power_gpio;
-+
-+	if (gpio_is_valid(wl->power_gpio)) {
-+		ret = devm_gpio_request_one(&spi->dev, wl->power_gpio,
-+					GPIOF_OUT_INIT_LOW, "wl1251 power");
-+		if (ret) {
-+			wl1251_error("Failed to request gpio: %d\n", ret);
-+			goto out_free;
-+		}
-+	} else {
-+		wl1251_error("set power gpio missing in platform data");
-+		ret = -ENODEV;
-+		goto out_free;
- 	}
- 
- 	wl->irq = spi->irq;
- 	if (wl->irq < 0) {
- 		wl1251_error("irq missing in platform data");
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto out_free;
- 	}
- 
- 	wl->use_eeprom = pdata->use_eeprom;
- 
- 	irq_set_status_flags(wl->irq, IRQ_NOAUTOEN);
--	ret = request_irq(wl->irq, wl1251_irq, 0, DRIVER_NAME, wl);
-+	ret = devm_request_irq(&spi->dev, wl->irq, wl1251_irq, 0,
-+							DRIVER_NAME, wl);
- 	if (ret < 0) {
- 		wl1251_error("request_irq() failed: %d", ret);
- 		goto out_free;
-@@ -296,13 +308,10 @@ static int wl1251_spi_probe(struct spi_device *spi)
- 
- 	ret = wl1251_init_ieee80211(wl);
- 	if (ret)
--		goto out_irq;
-+		goto out_free;
- 
- 	return 0;
- 
-- out_irq:
--	free_irq(wl->irq, wl);
--
-  out_free:
- 	ieee80211_free_hw(hw);
- 
-diff --git a/drivers/net/wireless/ti/wl1251/wl1251.h b/drivers/net/wireless/ti/wl1251/wl1251.h
-index 235617a..389fe25 100644
---- a/drivers/net/wireless/ti/wl1251/wl1251.h
-+++ b/drivers/net/wireless/ti/wl1251/wl1251.h
-@@ -276,7 +276,7 @@ struct wl1251 {
- 	void *if_priv;
- 	const struct wl1251_if_operations *if_ops;
- 
--	void (*set_power)(bool enable);
-+	int power_gpio;
- 	int irq;
- 	bool use_eeprom;
- 
-diff --git a/include/linux/wl12xx.h b/include/linux/wl12xx.h
-index b516b4f..a9c723b 100644
---- a/include/linux/wl12xx.h
-+++ b/include/linux/wl12xx.h
-@@ -49,7 +49,7 @@ enum {
- };
- 
- struct wl1251_platform_data {
--	void (*set_power)(bool enable);
-+	int power_gpio;
- 	/* SDIO only: IRQ number if WLAN_IRQ line is used, 0 for SDIO IRQs */
- 	int irq;
- 	bool use_eeprom;
+Correct. I tend to forget about bugs that have been fixed ;-)
+
+> * there still is a a confusing warning:
+>   omap3isp omap3isp: can't find source, failing now
+> which may be addressed by the patch here https://linuxtv.org/patch/15200/,
+> but has not been applied
+
+The patch won't apply anymore. I've just submitted two other patches (you've 
+been CCed) to fix the problem, could you please test them ?
+
+> * I have a test program, http://pmeerw.net/scaler.c, which exercises the
+> OMAP3 ISP resizer standalone with the pipeline given below; it crashes the
+> system quite reliably on 3.7 and recent kernels :(
+> 
+> the reason for the crash is that the ISP resizer can still be busy and
+> doesn't like to be turned off then; a little sleep before
+> omap3isp_sbl_disable() helps (or waiting for the ISP resize to become
+> idle, see the patch below)
+> 
+> I'm not sure what omap3isp_module_sync_idle() is supposed to do, it
+> immediately returns since we are in SINGLESHOT mode and
+> isp_pipeline_ready() is false
+
+The function is supposed to wait until the module becomes idle. I'm not sure 
+why we don't call it for memory-to-memory pipelines, I need to investigate 
+that. Sakari, do you remember what we've done there ?
+
+> with below patch I am happily resizing...
+> 
+> // snip, RFC
+> From: Peter Meerwald <p.meerwald@bct-electronic.com>
+> Date: Wed, 12 Feb 2014 15:59:20 +0100
+> Subject: [PATCH] omap3isp: Wait for resizer to become idle before
+> disabling
+> 
+> ---
+>  drivers/media/platform/omap3isp/ispresizer.c |   10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispresizer.c
+> b/drivers/media/platform/omap3isp/ispresizer.c
+> index d11fb26..fea98f7 100644
+> --- a/drivers/media/platform/omap3isp/ispresizer.c
+> +++ b/drivers/media/platform/omap3isp/ispresizer.c
+> @@ -1145,6 +1145,7 @@ static int resizer_set_stream(struct v4l2_subdev *sd,
+> int enable) struct isp_video *video_out = &res->video_out;
+>         struct isp_device *isp = to_isp_device(res);
+>         struct device *dev = to_device(res);
+> +       unsigned long timeout = 0;
+> 
+>         if (res->state == ISP_PIPELINE_STREAM_STOPPED) {
+>                 if (enable == ISP_PIPELINE_STREAM_STOPPED)
+> @@ -1176,6 +1177,15 @@ static int resizer_set_stream(struct v4l2_subdev *sd,
+> int enable) if (omap3isp_module_sync_idle(&sd->entity, &res->wait,
+> &res->stopping))
+>                         dev_dbg(dev, "%s: module stop timeout.\n",
+> sd->name);
+> +
+> +               while (omap3isp_resizer_busy(res)) {
+> +                       if (timeout++ > 1000) {
+> +                               dev_alert(isp->dev, "ISP resizer does not
+> become idle\n");
+> +                               return -ETIMEDOUT;
+> +                       }
+> +                       udelay(100);
+> +               }
+> +
+
+Let's try to avoid busy loops if possible. Does it help if you comment out the 
+condition at the top of omap3isp_module_sync_idle() ?
+
+>                 omap3isp_sbl_disable(isp, OMAP3_ISP_SBL_RESIZER_READ |
+>                                 OMAP3_ISP_SBL_RESIZER_WRITE);
+>                 omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_RESIZER);
+
 -- 
-1.8.5.3
+Regards,
+
+Laurent Pinchart
+
