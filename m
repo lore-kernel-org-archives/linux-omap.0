@@ -1,170 +1,56 @@
-From: Jonathan Cameron <jic23@kernel.org>
-Subject: Re: [PATCH v3 4/6] iio: Add ABI docs for pulse capture devices
-Date: Sat, 15 Feb 2014 11:40:16 +0000
-Message-ID: <52FF5220.3010702@kernel.org>
-References: <1391626901-31684-1-git-send-email-mporter@linaro.org> <1391626901-31684-5-git-send-email-mporter@linaro.org>
+From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 3/6] iio: enable selection and build of pulse drivers
+Date: Sat, 15 Feb 2014 11:41:40 +0000
+Message-ID: <52FF5274.5060408@kernel.org>
+References: <1391626901-31684-1-git-send-email-mporter@linaro.org> <1391626901-31684-4-git-send-email-mporter@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <1391626901-31684-5-git-send-email-mporter@linaro.org>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Matt Porter <mporter@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <robh+dt@kernel.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Thierry Reding <thierry.reding@gmail.com>
-Cc: Linux IIO List <linux-iio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Devicetree List <devicetree@vger.kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Lars-Peter Clausen <lars@metafoo.de>
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1391626901-31684-4-git-send-email-mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Linux IIO List <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PWM List <linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 On 05/02/14 19:01, Matt Porter wrote:
-> Add standard ABI entries for pulse capture devices. Also add
-> a separate ABI entry for the TI ECAP driver polarity option.
+> Add the pulse driver subdirectory when configuring and building
+> IIO.
 >
-> Signed-off-by: Matt Porter <mporter@linaro.org>
-Lars, I've cc'd you for the various Analog devices dds and frequency devices.
-Ideally we want a consistent interface for devices capturing info about these
-waveforms and devices generating them.  Please CC anyone else who might have
-opinions.  This interface is not obvious, so we need to spend some time getting
-it right.
+> Signed-off-by: Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Hi Matt,
+
+This wants rolling into the driver patch before it.  No point it giving it
+it's own patch.  This will just lead to confusion on git bisections etc.
+
+
+Jonathan
 > ---
->   Documentation/ABI/testing/sysfs-bus-iio              | 18 ++++++++++++++++++
->   Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap |  9 +++++++++
->   2 files changed, 27 insertions(+)
->   create mode 100644 Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap
+>   drivers/iio/Kconfig  | 1 +
+>   drivers/iio/Makefile | 1 +
+>   2 files changed, 2 insertions(+)
 >
-> diff --git a/Documentation/ABI/testing/sysfs-bus-iio b/Documentation/ABI/testing/sysfs-bus-iio
-> index 6e02c50..918a201 100644
-> --- a/Documentation/ABI/testing/sysfs-bus-iio
-> +++ b/Documentation/ABI/testing/sysfs-bus-iio
-> @@ -210,6 +210,14 @@ Contact:	linux-iio@vger.kernel.org
->   Description:
->   		Scaled humidity measurement in milli percent.
+> diff --git a/drivers/iio/Kconfig b/drivers/iio/Kconfig
+> index 5dd0e12..286acc3 100644
+> --- a/drivers/iio/Kconfig
+> +++ b/drivers/iio/Kconfig
+> @@ -74,6 +74,7 @@ if IIO_TRIGGER
+>      source "drivers/iio/trigger/Kconfig"
+>   endif #IIO_TRIGGER
+>   source "drivers/iio/pressure/Kconfig"
+> +source "drivers/iio/pulse/Kconfig"
+>   source "drivers/iio/temperature/Kconfig"
 >
-> +What:		/sys/bus/iio/devices/iio:deviceX/in_pulseY_raw
-> +What:		/sys/bus/iio/devices/iio:deviceX/in_pulse_raw
-> +KernelVersion:	3.15
-> +Contact:	linux-iio@vger.kernel.org
-> +Description:
-> +		Raw pulse measurement from channel Y. Units after
-> +		application of scale and offset are nanoseconds.
-> +
-I wonder if we are being a little bit too specific in this interface.  What other things
-might we want to capture about a pulse?  Right now you have it either capturing the
-'high width' or the 'low width'.  Presumably there are devices that will capture
-both via different 'channels'?
-
-So lets list what we might capture about a wave - including values computable from
-the base quantities.
-* High time
-* Low time
-* Mark Space Ratio
-* Period (rising edge to rising edge  or falling edge to falling edge).
-(This might be treated as instantaneous frequency - as would be done in
-frequency modulation)
-* Peak to peak Amplitude.
-
-For imperfect waves
-* Rise time,
-* Fall time,
-
-Funnily enough this is pretty much what an oscilloscope will allow you to automatically
-measure on a square wave...
-
-So next question is base units for the time measurements.
-I'd prefer the base to be seconds rather than nano seconds
-for consistency with the other time measurements already in the ABI.  All it will do is
-change the type for scale factors output in sysfs.  Userspace can trivially convert
-back to nano seconds if that is what it wants.  If we need to futher expand our small
-units, then that is fine.
-
-Next, the question is do we want to cover other waveform types. The dds drivers that
-are most relevant are still in staging, so we can mess around with their interfaces
-without 'too' much pain.  They allow specifying of a waveform 'type' (square, triangle,
-sine so far I think).
-
-So do we want to have an iio type corresponding to a time feature of a waveform then
-use modifiers for the various characteristics. I'll describe this in the sysfs attribute
-names (they translate directly into the buffer channels, but are easier to read!)
-
-
-We do have a few modifiers that lead to different units already so there is precedence
-e.g. IIO_MOD_SUM_SQUARED_X_Y_Z, (often (m/s^2)^2
-for the following (as long as well documented!)
-in_waveformX_type - (Square, triangle etc).
-
-in_waveformX_hightime_raw
-in_waveformX_lowtime_raw
-in_waveformX_period_raw
-in_waveformX_markspace_raw
-in_waveformX_peaktopeak_raw (similar to existing peak abi elements - these are not typically
-                             read from a buffer and hence we have rushed them in as a modifier).
-in_waveformX_risetime_raw
-in_waveformX_falltime_raw
-
-
-Would this work for both this sort of capture device and for synthesis chips?
-
-
-
->   What:		/sys/bus/iio/devices/iio:deviceX/in_accel_offset
->   What:		/sys/bus/iio/devices/iio:deviceX/in_accel_x_offset
->   What:		/sys/bus/iio/devices/iio:deviceX/in_accel_y_offset
-> @@ -220,6 +228,8 @@ What:		/sys/bus/iio/devices/iio:deviceX/in_tempY_offset
->   What:		/sys/bus/iio/devices/iio:deviceX/in_temp_offset
->   What:		/sys/bus/iio/devices/iio:deviceX/in_pressureY_offset
->   What:		/sys/bus/iio/devices/iio:deviceX/in_pressure_offset
-> +What:		/sys/bus/iio/devices/iio:deviceX/in_pulseY_offset
-> +What:		/sys/bus/iio/devices/iio:deviceX/in_pulse_offset
->   KernelVersion:	2.6.35
->   Contact:	linux-iio@vger.kernel.org
->   Description:
-> @@ -251,6 +261,8 @@ What:		/sys/bus/iio/devices/iio:deviceX/in_magn_y_scale
->   What:		/sys/bus/iio/devices/iio:deviceX/in_magn_z_scale
->   What:		/sys/bus/iio/devices/iio:deviceX/in_pressureY_scale
->   What:		/sys/bus/iio/devices/iio:deviceX/in_pressure_scale
-> +What:		/sys/bus/iio/devices/iio:deviceX/in_pulseY_scale
-> +What:		/sys/bus/iio/devices/iio:deviceX/in_pulse_scale
->   KernelVersion:	2.6.35
->   Contact:	linux-iio@vger.kernel.org
->   Description:
-> @@ -784,6 +796,8 @@ What:		/sys/.../iio:deviceX/scan_elements/in_incli_x_en
->   What:		/sys/.../iio:deviceX/scan_elements/in_incli_y_en
->   What:		/sys/.../iio:deviceX/scan_elements/in_pressureY_en
->   What:		/sys/.../iio:deviceX/scan_elements/in_pressure_en
-> +What:		/sys/.../iio:deviceX/scan_elements/in_pulseY_en
-> +What:		/sys/.../iio:deviceX/scan_elements/in_pulse_en
->   KernelVersion:	2.6.37
->   Contact:	linux-iio@vger.kernel.org
->   Description:
-> @@ -799,6 +813,8 @@ What:		/sys/.../iio:deviceX/scan_elements/in_voltageY_supply_type
->   What:		/sys/.../iio:deviceX/scan_elements/in_timestamp_type
->   What:		/sys/.../iio:deviceX/scan_elements/in_pressureY_type
->   What:		/sys/.../iio:deviceX/scan_elements/in_pressure_type
-> +What:		/sys/.../iio:deviceX/scan_elements/in_pulseY_type
-> +What:		/sys/.../iio:deviceX/scan_elements/in_pulse_type
->   KernelVersion:	2.6.37
->   Contact:	linux-iio@vger.kernel.org
->   Description:
-> @@ -845,6 +861,8 @@ What:		/sys/.../iio:deviceX/scan_elements/in_incli_y_index
->   What:		/sys/.../iio:deviceX/scan_elements/in_timestamp_index
->   What:		/sys/.../iio:deviceX/scan_elements/in_pressureY_index
->   What:		/sys/.../iio:deviceX/scan_elements/in_pressure_index
-> +What:		/sys/.../iio:deviceX/scan_elements/in_pulseY_index
-> +What:		/sys/.../iio:deviceX/scan_elements/in_pulse_index
->   KernelVersion:	2.6.37
->   Contact:	linux-iio@vger.kernel.org
->   Description:
-> diff --git a/Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap b/Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap
-> new file mode 100644
-> index 0000000..a9e4a9f
-> --- /dev/null
-> +++ b/Documentation/ABI/testing/sysfs-bus-iio-pulse-tiecap
-> @@ -0,0 +1,9 @@
-> +What:		/sys/bus/iio/devices/iio:deviceX/pulse_polarityY
-> +What:		/sys/bus/iio/devices/iio:deviceX/pulse_polarity
-> +Date:		January 2014
-> +KernelVersion:	3.15
-> +Contact:	Matt Porter <mporter@linaro.org>
-> +Description:
-> +		Get and set the polarity of the pulse signal to be captured
-> +		for channel Y.  1 indicates a high pulse signal and 0
-> +		indicates a low pulse signal.
+>   endif # IIO
+> diff --git a/drivers/iio/Makefile b/drivers/iio/Makefile
+> index 887d390..9a953c9 100644
+> --- a/drivers/iio/Makefile
+> +++ b/drivers/iio/Makefile
+> @@ -24,5 +24,6 @@ obj-y += light/
+>   obj-y += magnetometer/
+>   obj-y += orientation/
+>   obj-y += pressure/
+> +obj-y += pulse/
+>   obj-y += temperature/
+>   obj-y += trigger/
 >
-
