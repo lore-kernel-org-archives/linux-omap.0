@@ -1,38 +1,30 @@
-From: Markus Pargmann <mpa@pengutronix.de>
-Subject: Re: [PATCH v2] ARM: dts: tps65910 backup battery regulator
-Date: Sun, 16 Feb 2014 23:01:42 +0100
-Message-ID: <20140216220142.GA31006@pengutronix.de>
-References: <1387539808-24910-3-git-send-email-mpa@pengutronix.de>
- <1389888503-32013-1-git-send-email-mpa@pengutronix.de>
+From: Markus Pargmann <mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH v4 0/2] usb: musb dsps updates
+Date: Sun, 16 Feb 2014 23:03:11 +0100
+Message-ID: <20140216220311.GB31006@pengutronix.de>
+References: <1389950556-6453-1-git-send-email-mpa@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47664 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752540AbaBPWBp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Feb 2014 17:01:45 -0500
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1389888503-32013-1-git-send-email-mpa@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1389950556-6453-1-git-send-email-mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 
 Hi,
 
-On Thu, Jan 16, 2014 at 05:08:23PM +0100, Markus Pargmann wrote:
-> This patch adds a devicetree node for the backup battery regulator.
-> 
-> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
-> ---
+On Fri, Jan 17, 2014 at 10:22:34AM +0100, Markus Pargmann wrote:
 > Hi,
 > 
-> Mark Brown applied [1] the other part of the series which adds 'vbb' as
-> regulator-compatible. I forgot to add you in Cc.
+> The two remaining patches from the previous series "usb: musb bugfixes". In v4
+> I used the device name for the debugfs root dir and added a commit message to
+> the second patch.
 
-Any comments on this?
+Felipe, could you please have a look at this?
 
-Regards,
+Thanks,
 
 Markus
 
@@ -41,26 +33,14 @@ Markus
 > 
 > Markus
 > 
-> [1] http://thread.gmane.org/gmane.linux.ports.arm.kernel/289815/focus=290089
 > 
->  arch/arm/boot/dts/tps65910.dtsi | 5 +++++
->  1 file changed, 5 insertions(+)
+> Markus Pargmann (2):
+>   usb: musb: dsps, debugfs files
+>   usb: musb: dsps, use devm_kzalloc
 > 
-> diff --git a/arch/arm/boot/dts/tps65910.dtsi b/arch/arm/boot/dts/tps65910.dtsi
-> index 92693a8..b0ac665 100644
-> --- a/arch/arm/boot/dts/tps65910.dtsi
-> +++ b/arch/arm/boot/dts/tps65910.dtsi
-> @@ -82,5 +82,10 @@
->  			reg = <12>;
->  			regulator-compatible = "vmmc";
->  		};
-> +
-> +		vbb_reg: regulator@13 {
-> +			reg = <13>;
-> +			regulator-compatible = "vbb";
-> +		};
->  	};
->  };
+>  drivers/usb/musb/musb_dsps.c | 58 +++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 55 insertions(+), 3 deletions(-)
+> 
 > -- 
 > 1.8.5.2
 > 
@@ -71,3 +51,7 @@ Pengutronix e.K.                           |                             |
 Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
 Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
