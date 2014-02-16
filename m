@@ -1,50 +1,48 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ARM: OMAP2+: Add support for thumb mode on DT booted
- N900
-Date: Mon, 17 Feb 2014 00:04:08 +0100
-Message-ID: <20140216230408.GA4376@amd.pavel.ucw.cz>
-References: <1391603582-11371-1-git-send-email-sre@debian.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Vaibhav Bedia <vaibhav.bedia@gmail.com>
+Subject: [PATCH 1/1] ARM: OMAP5: Fix reboot handling
+Date: Sun, 16 Feb 2014 18:15:44 -0500
+Message-ID: <1392592544-7884-1-git-send-email-vaibhav.bedia@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41219 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750938AbaBPXEL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Feb 2014 18:04:11 -0500
-Content-Disposition: inline
-In-Reply-To: <1391603582-11371-1-git-send-email-sre@debian.org>
+Received: from mail-yh0-f44.google.com ([209.85.213.44]:63438 "EHLO
+	mail-yh0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751197AbaBPXPx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Feb 2014 18:15:53 -0500
+Received: by mail-yh0-f44.google.com with SMTP id f73so13688614yha.31
+        for <linux-omap@vger.kernel.org>; Sun, 16 Feb 2014 15:15:52 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+To: tony@atomide.com, rnayak@ti.com, paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vaibhav Bedia <vaibhav.bedia@gmail.com>
 
-On Wed 2014-02-05 13:33:02, Sebastian Reichel wrote:
-> Without enabling the workaround for ARM errata 430973 thumb
-> compiled userland crashes randomly on the Nokia N900.
-> 
-> Signed-off-by: Sebastian Reichel <sre@debian.org>
+Use the correct register offset for issuing the
+reset command in OMAP5. Since dev_inst is set dynamically
+OMAP4 should not be affected by this change.
 
-Reviewed-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@gmail.com>
+---
+Applies on top of v3.14-rc3
 
+ arch/arm/mach-omap2/prminst44xx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> +static void __init nokia_n900_legacy_init(void)
-> +{
-> +	hsmmc2_internal_input_clk();
-> +
-> +	if (omap_type() == OMAP2_DEVICE_TYPE_SEC) {
-> +		if (IS_ENABLED(CONFIG_ARM_ERRATA_430973)) {
-> +			pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
-> +			/* set IBE to 1 */
-> +			rx51_secure_update_aux_cr(BIT(6), 0);
-> +		} else {
-> +			pr_warning("RX-51: Not enabling ARM errata 430973 workaround\n");
-> +		}
-
-I'd use higher loglevel there, and added "thumb binaries can now crash
-randomly, and can crash the system" ... or something like that, if you
-are going to send new version of the patch.
-
-									Pavel
+diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+index 6334b96..280f3c5 100644
+--- a/arch/arm/mach-omap2/prminst44xx.c
++++ b/arch/arm/mach-omap2/prminst44xx.c
+@@ -183,11 +183,11 @@ void omap4_prminst_global_warm_sw_reset(void)
+ 					OMAP4_PRM_RSTCTRL_OFFSET);
+ 	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
+ 	omap4_prminst_write_inst_reg(v, OMAP4430_PRM_PARTITION,
+-				 OMAP4430_PRM_DEVICE_INST,
++				 dev_inst,
+ 				 OMAP4_PRM_RSTCTRL_OFFSET);
+ 
+ 	/* OCP barrier */
+ 	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
+-				    OMAP4430_PRM_DEVICE_INST,
++				    dev_inst,
+ 				    OMAP4_PRM_RSTCTRL_OFFSET);
+ }
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.8.1.2
+
