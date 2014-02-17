@@ -1,67 +1,65 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 2/2] ARM: DTS: OMAP4: Add gpmc_fck clock node
-Date: Mon, 17 Feb 2014 14:29:45 +0200
-Message-ID: <530200B9.8090407@ti.com>
-References: <1392636465-31459-1-git-send-email-florian.vaussard@epfl.ch> <1392636465-31459-3-git-send-email-florian.vaussard@epfl.ch>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] arm: omap3: cm-t35: remove MACH_CM_T3730
+Date: Mon, 17 Feb 2014 14:33:03 +0200
+Message-ID: <5302017F.40900@compulab.co.il>
+References: <1392571560.28866.16.camel@x220>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59558 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751594AbaBQMaT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Feb 2014 07:30:19 -0500
-In-Reply-To: <1392636465-31459-3-git-send-email-florian.vaussard@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1392571560.28866.16.camel@x220>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Bolle <pebolle@tiscali.nl>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: Richard Weinberger <richard@nod.at>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>, =?ISO-8859-1?Q?Beno=EEt_?= =?ISO-8859-1?Q?Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 02/17/2014 01:27 PM, Florian Vaussard wrote:
-> Add the gpmc_fck clock, derived from l3_ick, and reference it from
-> the GPMC node to get it correctly working.
->
-> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+Hi Paul,
+
+On 02/16/14 19:26, Paul Bolle wrote:
+> The Kconfig symbol MACH_CM_T3730 was added in v3.1. It has never been
+> used. Setting it has no effect. There are no calls for
+> machine_is_cm_t3730(). This symbol can safely be removed.
+
+Indeed...
+
+Is it such a burden to keep it just until we switch OMAP3 to DT?
+Because, it makes a bit harder to hack on the kernel.
+Well, not too much as it can be reverted, but still one needs
+to remember to do this...
+I'd like to keep it just until we remove the board files, please.
+
+> 
+> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
 > ---
->   arch/arm/boot/dts/omap4.dtsi           | 2 ++
->   arch/arm/boot/dts/omap44xx-clocks.dtsi | 6 ++++++
->   2 files changed, 8 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index d3f8a6e..8a0cc71 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -275,6 +275,8 @@
->   			gpmc,num-waitpins = <4>;
->   			ti,hwmods = "gpmc";
->   			ti,no-idle-on-init;
-> +			clocks = <&gpmc_fck>;
-> +			clock-names = "fck";
->   		};
->
->   		uart1: serial@4806a000 {
-> diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-> index c821ff5..ae2c441 100644
-> --- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-> @@ -1036,6 +1036,12 @@
->   		ti,index-power-of-two;
->   	};
->
-> +	gpmc_fck: gpmc_fck {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,clkdm-gate-clock";
-> +		clocks = <&l3_div_ck>;
-> +	};
-> +
+> Tested only with "git grep".
+> 
+>  arch/arm/mach-omap2/Kconfig | 4 ----
+>  1 file changed, 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 66da3f5..7d4934e 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -292,7 +292,6 @@ config MACH_CM_T35
+>  	bool "CompuLab CM-T35/CM-T3730 modules"
+>  	depends on ARCH_OMAP3
+>  	default y
+> -	select MACH_CM_T3730
+>  	select OMAP_PACKAGE_CUS
+>  
+>  config MACH_CM_T3517
+> @@ -301,9 +300,6 @@ config MACH_CM_T3517
+>  	default y
+>  	select OMAP_PACKAGE_CBB
+>  
+> -config MACH_CM_T3730
+> -       bool
+> -
+>  config MACH_SBC3530
+>  	bool "OMAP3 SBC STALKER board"
+>  	depends on ARCH_OMAP3
+> 
 
-Why not implement a proper gate clock for CM_L3_2_GPMC_CLKCTRL? The 
-approach you have taken looks good to me otherwise.
-
--Tero
-
->   	gpio2_dbclk: gpio2_dbclk {
->   		#clock-cells = <0>;
->   		compatible = "ti,gate-clock";
->
-
+-- 
+Regards,
+Igor.
