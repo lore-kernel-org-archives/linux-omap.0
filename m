@@ -1,65 +1,51 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
+From: Paul Bolle <pebolle@tiscali.nl>
 Subject: Re: [PATCH] arm: omap3: cm-t35: remove MACH_CM_T3730
-Date: Mon, 17 Feb 2014 14:33:03 +0200
-Message-ID: <5302017F.40900@compulab.co.il>
-References: <1392571560.28866.16.camel@x220>
+Date: Mon, 17 Feb 2014 13:48:13 +0100
+Message-ID: <1392641293.13000.9.camel@x220>
+References: <1392571560.28866.16.camel@x220> <5302017F.40900@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1392571560.28866.16.camel@x220>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: Richard Weinberger <richard@nod.at>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cpsmtpb-ews08.kpnxchange.com ([213.75.39.13]:55552 "EHLO
+	cpsmtpb-ews08.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751552AbaBQMsP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Feb 2014 07:48:15 -0500
+In-Reply-To: <5302017F.40900@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Richard Weinberger <richard@nod.at>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Paul,
+Hi Igor,
 
-On 02/16/14 19:26, Paul Bolle wrote:
-> The Kconfig symbol MACH_CM_T3730 was added in v3.1. It has never been
-> used. Setting it has no effect. There are no calls for
-> machine_is_cm_t3730(). This symbol can safely be removed.
-
-Indeed...
-
-Is it such a burden to keep it just until we switch OMAP3 to DT?
-Because, it makes a bit harder to hack on the kernel.
-Well, not too much as it can be reverted, but still one needs
-to remember to do this...
-I'd like to keep it just until we remove the board files, please.
-
+On Mon, 2014-02-17 at 14:33 +0200, Igor Grinberg wrote:
+> On 02/16/14 19:26, Paul Bolle wrote:
+> > The Kconfig symbol MACH_CM_T3730 was added in v3.1. It has never been
+> > used. Setting it has no effect. There are no calls for
+> > machine_is_cm_t3730(). This symbol can safely be removed.
 > 
-> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-> ---
-> Tested only with "git grep".
-> 
->  arch/arm/mach-omap2/Kconfig | 4 ----
->  1 file changed, 4 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 66da3f5..7d4934e 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -292,7 +292,6 @@ config MACH_CM_T35
->  	bool "CompuLab CM-T35/CM-T3730 modules"
->  	depends on ARCH_OMAP3
->  	default y
-> -	select MACH_CM_T3730
->  	select OMAP_PACKAGE_CUS
->  
->  config MACH_CM_T3517
-> @@ -301,9 +300,6 @@ config MACH_CM_T3517
->  	default y
->  	select OMAP_PACKAGE_CBB
->  
-> -config MACH_CM_T3730
-> -       bool
-> -
->  config MACH_SBC3530
->  	bool "OMAP3 SBC STALKER board"
->  	depends on ARCH_OMAP3
-> 
+> Indeed...
 
--- 
-Regards,
-Igor.
+Please note that I now doubt my reasoning was correct here. I'm going to
+revisit my recent batch of patches regarding, in short, arm Kconfig
+symbols used in mach-types.h. (lkml.org is sort of down, so I can't
+provide a link.)
+
+> Is it such a burden to keep it just until we switch OMAP3 to DT?
+> Because, it makes a bit harder to hack on the kernel.
+> Well, not too much as it can be reverted, but still one needs
+> to remember to do this...
+
+No, not really. The worst that could happen, from your perspective, is
+that if it turns out this was the right thing to do, I might send a
+reminder in a few months.
+
+> I'd like to keep it just until we remove the board files, please.
+
+Thanks,
+
+
+Paul Bolle
+
