@@ -1,54 +1,71 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP5: Fix reboot handling
-Date: Mon, 17 Feb 2014 12:28:00 +0530
-Message-ID: <5301B2F8.2000007@ti.com>
-References: <1392592544-7884-1-git-send-email-vaibhav.bedia@gmail.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH 1/1] ARM: OMAP: Kill warning in CPUIDLE code with !CONFIG_SMP
+Date: Mon, 17 Feb 2014 13:22:55 +0530
+Message-ID: <1392623575-4884-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43302 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751151AbaBQG6z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Feb 2014 01:58:55 -0500
-In-Reply-To: <1392592544-7884-1-git-send-email-vaibhav.bedia@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: nm@ti.com, Mugunthan V N <mugunthanvnm@ti.com>, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Bedia <vaibhav.bedia@gmail.com>
-Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Monday 17 February 2014 04:45 AM, Vaibhav Bedia wrote:
-> Use the correct register offset for issuing the
-> reset command in OMAP5. Since dev_inst is set dynamically
-> OMAP4 should not be affected by this change.
-> 
-> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Acked-by: Rajendra Nayak <rnayak@ti.com>
+for non SMP build, NR_CPUS is 1 and hence the code complains with below
+warnings.
 
-> ---
-> Applies on top of v3.14-rc3
-> 
->  arch/arm/mach-omap2/prminst44xx.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
-> index 6334b96..280f3c5 100644
-> --- a/arch/arm/mach-omap2/prminst44xx.c
-> +++ b/arch/arm/mach-omap2/prminst44xx.c
-> @@ -183,11 +183,11 @@ void omap4_prminst_global_warm_sw_reset(void)
->  					OMAP4_PRM_RSTCTRL_OFFSET);
->  	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
->  	omap4_prminst_write_inst_reg(v, OMAP4430_PRM_PARTITION,
-> -				 OMAP4430_PRM_DEVICE_INST,
-> +				 dev_inst,
->  				 OMAP4_PRM_RSTCTRL_OFFSET);
->  
->  	/* OCP barrier */
->  	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
-> -				    OMAP4430_PRM_DEVICE_INST,
-> +				    dev_inst,
->  				    OMAP4_PRM_RSTCTRL_OFFSET);
->  }
-> 
+arch/arm/mach-omap2/cpuidle44xx.c:207:8: warning: array subscript is above array bounds [-Warray-bounds]
+arch/arm/mach-omap2/cpuidle44xx.c:212:11: warning: array subscript is above array bounds [-Warray-bounds]
 
+Kill it by making array size fixed.
+
+Acked-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+This patch is created on top of git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git master
+
+---
+ arch/arm/mach-omap2/cpuidle44xx.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index 4c158c8..01fc710 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -23,6 +23,8 @@
+ #include "prm.h"
+ #include "clockdomain.h"
+ 
++#define MAX_CPUS	2
++
+ /* Machine specific information */
+ struct idle_statedata {
+ 	u32 cpu_state;
+@@ -48,11 +50,11 @@ static struct idle_statedata omap4_idle_data[] = {
+ 	},
+ };
+ 
+-static struct powerdomain *mpu_pd, *cpu_pd[NR_CPUS];
+-static struct clockdomain *cpu_clkdm[NR_CPUS];
++static struct powerdomain *mpu_pd, *cpu_pd[MAX_CPUS];
++static struct clockdomain *cpu_clkdm[MAX_CPUS];
+ 
+ static atomic_t abort_barrier;
+-static bool cpu_done[NR_CPUS];
++static bool cpu_done[MAX_CPUS];
+ static struct idle_statedata *state_ptr = &omap4_idle_data[0];
+ 
+ /* Private functions */
+-- 
+1.9.0.rc3.21.g475c52b
