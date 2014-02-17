@@ -1,51 +1,81 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: Re: [PATCH] arm: omap3: cm-t35: remove MACH_CM_T3730
-Date: Mon, 17 Feb 2014 13:48:13 +0100
-Message-ID: <1392641293.13000.9.camel@x220>
-References: <1392571560.28866.16.camel@x220> <5302017F.40900@compulab.co.il>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH 2/2] ARM: DTS: OMAP4: Add gpmc_fck clock node
+Date: Mon, 17 Feb 2014 17:13:50 +0100
+Message-ID: <5302353E.7090506@epfl.ch>
+References: <1392636465-31459-1-git-send-email-florian.vaussard@epfl.ch> <1392636465-31459-3-git-send-email-florian.vaussard@epfl.ch> <530200B9.8090407@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cpsmtpb-ews08.kpnxchange.com ([213.75.39.13]:55552 "EHLO
-	cpsmtpb-ews08.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751552AbaBQMsP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Feb 2014 07:48:15 -0500
-In-Reply-To: <5302017F.40900@compulab.co.il>
+Received: from smtp5.epfl.ch ([128.178.224.8]:42901 "EHLO smtp5.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750958AbaBQQNz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Feb 2014 11:13:55 -0500
+In-Reply-To: <530200B9.8090407@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Richard Weinberger <richard@nod.at>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Igor,
+Hi,
 
-On Mon, 2014-02-17 at 14:33 +0200, Igor Grinberg wrote:
-> On 02/16/14 19:26, Paul Bolle wrote:
-> > The Kconfig symbol MACH_CM_T3730 was added in v3.1. It has never been
-> > used. Setting it has no effect. There are no calls for
-> > machine_is_cm_t3730(). This symbol can safely be removed.
+On 02/17/2014 01:29 PM, Tero Kristo wrote:
+> On 02/17/2014 01:27 PM, Florian Vaussard wrote:
+>> Add the gpmc_fck clock, derived from l3_ick, and reference it from
+>> the GPMC node to get it correctly working.
+>>
+>> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+>> ---
+>>   arch/arm/boot/dts/omap4.dtsi           | 2 ++
+>>   arch/arm/boot/dts/omap44xx-clocks.dtsi | 6 ++++++
+>>   2 files changed, 8 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>> index d3f8a6e..8a0cc71 100644
+>> --- a/arch/arm/boot/dts/omap4.dtsi
+>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>> @@ -275,6 +275,8 @@
+>>               gpmc,num-waitpins = <4>;
+>>               ti,hwmods = "gpmc";
+>>               ti,no-idle-on-init;
+>> +            clocks = <&gpmc_fck>;
+>> +            clock-names = "fck";
+>>           };
+>>
+>>           uart1: serial@4806a000 {
+>> diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi
+>> b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+>> index c821ff5..ae2c441 100644
+>> --- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
+>> +++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+>> @@ -1036,6 +1036,12 @@
+>>           ti,index-power-of-two;
+>>       };
+>>
+>> +    gpmc_fck: gpmc_fck {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,clkdm-gate-clock";
+>> +        clocks = <&l3_div_ck>;
+>> +    };
+>> +
 > 
-> Indeed...
+> Why not implement a proper gate clock for CM_L3_2_GPMC_CLKCTRL? The
+> approach you have taken looks good to me otherwise.
+> 
 
-Please note that I now doubt my reasoning was correct here. I'm going to
-revisit my recent batch of patches regarding, in short, arm Kconfig
-symbols used in mach-types.h. (lkml.org is sort of down, so I can't
-provide a link.)
+So something like:
 
-> Is it such a burden to keep it just until we switch OMAP3 to DT?
-> Because, it makes a bit harder to hack on the kernel.
-> Well, not too much as it can be reverted, but still one needs
-> to remember to do this...
+        gpmc_fck: gpmc_fck {
+                #clock-cells = <0>;
+                compatible = "ti,gate-clock";
+                clocks = <&l3_div_ck>;
+                reg = <(CM_L3_2_GPMC_CLKCTRL)>;
+                ti,bit-shift = <0>;
+        };
 
-No, not really. The worst that could happen, from your perspective, is
-that if it turns out this was the right thing to do, I might send a
-reminder in a few months.
+? I was not sure for gate-clock, as setting the bit will enable the
+clock only if the corresponding clock domain (CD_L3_2) is enabled as well.
 
-> I'd like to keep it just until we remove the board files, please.
-
-Thanks,
-
-
-Paul Bolle
-
+Regards,
+Florian
