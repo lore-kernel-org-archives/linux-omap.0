@@ -1,40 +1,67 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH] mmc: omap_hsmmc: support more DT properties
-Date: Mon, 17 Feb 2014 12:36:33 +0100
-Message-ID: <1392636993-15864-1-git-send-email-zonque@gmail.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: balajitk@ti.com, chris@printf.net
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 2/2] ARM: DTS: OMAP4: Add gpmc_fck clock node
+Date: Mon, 17 Feb 2014 14:29:45 +0200
+Message-ID: <530200B9.8090407@ti.com>
+References: <1392636465-31459-1-git-send-email-florian.vaussard@epfl.ch> <1392636465-31459-3-git-send-email-florian.vaussard@epfl.ch>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59558 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751594AbaBQMaT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Feb 2014 07:30:19 -0500
+In-Reply-To: <1392636465-31459-3-git-send-email-florian.vaussard@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>, =?ISO-8859-1?Q?Beno=EEt_?= =?ISO-8859-1?Q?Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This should probably be done implicitly through mmc_of_parse(), but that
-doesn't play well along with the multi-slot model the hsmmc driver
-features. Hence, for now, do it manually. The properties are already
-documented in Documentation/devicetree/bindings/mmc/mmc.txt.
+On 02/17/2014 01:27 PM, Florian Vaussard wrote:
+> Add the gpmc_fck clock, derived from l3_ick, and reference it from
+> the GPMC node to get it correctly working.
+>
+> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+> ---
+>   arch/arm/boot/dts/omap4.dtsi           | 2 ++
+>   arch/arm/boot/dts/omap44xx-clocks.dtsi | 6 ++++++
+>   2 files changed, 8 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index d3f8a6e..8a0cc71 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -275,6 +275,8 @@
+>   			gpmc,num-waitpins = <4>;
+>   			ti,hwmods = "gpmc";
+>   			ti,no-idle-on-init;
+> +			clocks = <&gpmc_fck>;
+> +			clock-names = "fck";
+>   		};
+>
+>   		uart1: serial@4806a000 {
+> diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+> index c821ff5..ae2c441 100644
+> --- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+> @@ -1036,6 +1036,12 @@
+>   		ti,index-power-of-two;
+>   	};
+>
+> +	gpmc_fck: gpmc_fck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,clkdm-gate-clock";
+> +		clocks = <&l3_div_ck>;
+> +	};
+> +
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
----
- drivers/mmc/host/omap_hsmmc.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+Why not implement a proper gate clock for CM_L3_2_GPMC_CLKCTRL? The 
+approach you have taken looks good to me otherwise.
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 2815de6..a5a38cc 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1765,6 +1765,12 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
- 	if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
- 		pdata->slots[0].features |= HSMMC_HAS_HSPE_SUPPORT;
- 
-+	if (of_find_property(np, "keep-power-in-suspend", NULL))
-+		pdata->slots[0].pm_caps |= MMC_PM_KEEP_POWER;
-+
-+	if (of_find_property(np, "enable-sdio-wakeup", NULL))
-+		pdata->slots[0].pm_caps |= MMC_PM_WAKE_SDIO_IRQ;
-+
- 	return pdata;
- }
- #else
--- 
-1.8.5.3
+-Tero
+
+>   	gpio2_dbclk: gpio2_dbclk {
+>   		#clock-cells = <0>;
+>   		compatible = "ti,gate-clock";
+>
 
