@@ -1,95 +1,87 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCHv2] ARM: OMAP2+: Add support for thumb mode on DT booted N900
-Date: Mon, 17 Feb 2014 22:30:58 +0100
-Message-ID: <1392672658-13866-1-git-send-email-sre@debian.org>
-References: <1391603582-11371-1-git-send-email-sre@debian.org>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 2/2] ARM: DTS: OMAP4: Add gpmc_fck clock node
+Date: Tue, 18 Feb 2014 09:27:57 +0200
+Message-ID: <53030B7D.6010004@ti.com>
+References: <1392636465-31459-1-git-send-email-florian.vaussard@epfl.ch> <1392636465-31459-3-git-send-email-florian.vaussard@epfl.ch> <530200B9.8090407@ti.com> <5302353E.7090506@epfl.ch>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.105.125]:47168 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751330AbaBQVbF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Feb 2014 16:31:05 -0500
-In-Reply-To: <1391603582-11371-1-git-send-email-sre@debian.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38808 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751435AbaBRH2g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Feb 2014 02:28:36 -0500
+In-Reply-To: <5302353E.7090506@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: florian.vaussard@epfl.ch, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Without enabling the workaround for ARM errata 430973 thumb
-compiled userland crashes randomly on the Nokia N900.
+On 02/17/2014 06:13 PM, Florian Vaussard wrote:
+> Hi,
+>
+> On 02/17/2014 01:29 PM, Tero Kristo wrote:
+>> On 02/17/2014 01:27 PM, Florian Vaussard wrote:
+>>> Add the gpmc_fck clock, derived from l3_ick, and reference it from
+>>> the GPMC node to get it correctly working.
+>>>
+>>> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+>>> ---
+>>>    arch/arm/boot/dts/omap4.dtsi           | 2 ++
+>>>    arch/arm/boot/dts/omap44xx-clocks.dtsi | 6 ++++++
+>>>    2 files changed, 8 insertions(+)
+>>>
+>>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>>> index d3f8a6e..8a0cc71 100644
+>>> --- a/arch/arm/boot/dts/omap4.dtsi
+>>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>>> @@ -275,6 +275,8 @@
+>>>                gpmc,num-waitpins = <4>;
+>>>                ti,hwmods = "gpmc";
+>>>                ti,no-idle-on-init;
+>>> +            clocks = <&gpmc_fck>;
+>>> +            clock-names = "fck";
+>>>            };
+>>>
+>>>            uart1: serial@4806a000 {
+>>> diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi
+>>> b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+>>> index c821ff5..ae2c441 100644
+>>> --- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
+>>> +++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+>>> @@ -1036,6 +1036,12 @@
+>>>            ti,index-power-of-two;
+>>>        };
+>>>
+>>> +    gpmc_fck: gpmc_fck {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,clkdm-gate-clock";
+>>> +        clocks = <&l3_div_ck>;
+>>> +    };
+>>> +
+>>
+>> Why not implement a proper gate clock for CM_L3_2_GPMC_CLKCTRL? The
+>> approach you have taken looks good to me otherwise.
+>>
+>
+> So something like:
+>
+>          gpmc_fck: gpmc_fck {
+>                  #clock-cells = <0>;
+>                  compatible = "ti,gate-clock";
+>                  clocks = <&l3_div_ck>;
+>                  reg = <(CM_L3_2_GPMC_CLKCTRL)>;
+>                  ti,bit-shift = <0>;
+>          };
+>
+> ? I was not sure for gate-clock, as setting the bit will enable the
+> clock only if the corresponding clock domain (CD_L3_2) is enabled as well.
 
-Signed-off-by: Sebastian Reichel <sre@debian.org>
-Reviewed-by: Pavel Machek <pavel@ucw.cz>
----
-Hi,
+Actually you may want not to add a gate clock for this, as this would 
+result in duplicate control to the same bits... hwmod is already 
+controlling this. Do you need the clkdm control for something? If not, 
+you could just link the gpmc node directly to use l3_div_ck as the 
+provider for its clock rate. Looking at the driver, I think you don't 
+need it for anything else.
 
-This is PATCHv2 for the thumb errata workaround for N900 DT
-boot, which should go into 3.14-rc.
-
-Changes since PATCHv1:
- * Add Reviewed-By: Pavel Machek
- * Add more verbose warning about the errata as suggested by Pavel
-
-I did not increase the verbose level, since the next higher verbose
-level is pr_err and the message is not an error.
-
-I think it would make sense to update the Kconfig entry for the errata to
-enable the workaround by default for the Nokia N900. That should be done in
-its own patch, though.
-
-Apart from that it would be nice if errata workaround could be enabled
-via DeviceTree instead of kernel configuration. This will require some
-discussion though, so I think we should start with this patch for now.
-
--- Sebastian
----
- arch/arm/mach-omap2/pdata-quirks.c | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 3d5b24d..0cc710d 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -22,6 +22,8 @@
- #include "common-board-devices.h"
- #include "dss-common.h"
- #include "control.h"
-+#include "omap-secure.h"
-+#include "soc.h"
- 
- struct pdata_init {
- 	const char *compatible;
-@@ -169,6 +171,22 @@ static void __init am3517_evm_legacy_init(void)
- 	omap_ctrl_writel(v, AM35XX_CONTROL_IP_SW_RESET);
- 	omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET); /* OCP barrier */
- }
-+
-+static void __init nokia_n900_legacy_init(void)
-+{
-+	hsmmc2_internal_input_clk();
-+
-+	if (omap_type() == OMAP2_DEVICE_TYPE_SEC) {
-+		if (IS_ENABLED(CONFIG_ARM_ERRATA_430973)) {
-+			pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
-+			/* set IBE to 1 */
-+			rx51_secure_update_aux_cr(BIT(6), 0);
-+		} else {
-+			pr_warning("RX-51: Not enabling ARM errata 430973 workaround\n");
-+			pr_warning("Thumb binaries may crash randomly without this workaround\n");
-+		}
-+	}
-+}
- #endif /* CONFIG_ARCH_OMAP3 */
- 
- #ifdef CONFIG_ARCH_OMAP4
-@@ -259,7 +277,7 @@ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
- static struct pdata_init pdata_quirks[] __initdata = {
- #ifdef CONFIG_ARCH_OMAP3
- 	{ "compulab,omap3-sbc-t3730", omap3_sbc_t3730_legacy_init, },
--	{ "nokia,omap3-n900", hsmmc2_internal_input_clk, },
-+	{ "nokia,omap3-n900", nokia_n900_legacy_init, },
- 	{ "nokia,omap3-n9", hsmmc2_internal_input_clk, },
- 	{ "nokia,omap3-n950", hsmmc2_internal_input_clk, },
- 	{ "isee,omap3-igep0020", omap3_igep0020_legacy_init, },
--- 
-1.8.5.3
-
+-Tero
