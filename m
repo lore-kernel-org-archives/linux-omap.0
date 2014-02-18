@@ -1,98 +1,57 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [RFC PATCH 0/6] PM: introduce voltage domain abstraction
-Date: Tue, 18 Feb 2014 14:32:17 -0600
-Message-ID: <1392755543-28335-1-git-send-email-nm@ti.com>
+Subject: [RFC PATCH 6/6] devicetree: bindings: voltagedomain: add bindings for OMAP compatible SoCs
+Date: Tue, 18 Feb 2014 14:32:23 -0600
+Message-ID: <1392755543-28335-7-git-send-email-nm@ti.com>
+References: <1392755543-28335-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-Sender: linux-doc-owner@vger.kernel.org
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <1392755543-28335-1-git-send-email-nm@ti.com>
+Sender: cpufreq-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Mark Brown <broonie@kernel.org>, Mike Turquette <mturquette@linaro.org>
 Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Add documentation for device tree description for basic voltage domain
+for Texas Instruments OMAP compatible SoC family of processors which
+controls both bias and supply voltage planes.
 
-On many SoCs such as OMAP, hardware blocks are isolated into voltage
-domains allowing for individual tweaks for optimal power-performance
-tradeoffs. Frameworks such as cpufreq, devfreq provide a top level
-control of these hardware blocks. Most SoCs have different knobs to
-fine tune the voltages. They may supply multiple supplies to various
-voltage planes on the same voltage domains.
-
-Regulator framework provides us a with an appropriate representation
-of consumer model, however, we lack the abstraction necessary to
-isolate the necessary sequencing for a specific voltage domain.
-
-There has been few attempts previously taken such as [3] [4],
-this series is a further development of of Mike's series[1] where
-cpufreq-cpu0 driver was first targetted with clk notifiers. While I do
-understand the concerns Mike has in [2], this could be a base on which
-further work may be done.
-
-In a nutshell, this (for cpufreq-cpu0 as an example):
-maintains the legacy definitions used by cpufreq/devfreq such as:
-&cpu0 {
-	cpu0-supply = <&regulator_x>;
-};
-
-on other SoCs where this might turn out to be a more detailed
-implementation,
-&cpu0 {
-	cpu0-voltdm = <&voltdm_x>;
-};
-
-To enure this is split off from clk framework, I chose
-drivers/power/voltdm as the location for the new files, I'd love to
-hear opinions and suggestions on the approach.
-
-The series is based on 3.14-rc3 and is available here:
-https://github.com/nmenon/linux-2.6-playground/commits/push/voltdm-notifier-rfc
-
-A testing branch for Beagle-XM (OMAP3630 as testbed):
-	https://github.com/nmenon/linux-2.6-playground/commits/testing/beagle-xm-voltdm-notifier-rfc
-	Log: http://slexy.org/view/s20TgkN7kf
-
-NOTE: TI platforms potentially need further development, however, this
-forms the basis of the development.
-
-Mike Turquette (2):
-  PM / Voltagedomain: Add generic clk notifier handler for regulator
-    based dynamic voltage scaling
-  cpufreq: cpufreq-cpu0: use clk rate-change notifiers
-
-Nishanth Menon (4):
-  PM / Voltagedomain: introduce voltage domain driver support
-  devicetree: bindings: add documentation for voltagedomain
-  PM / Voltagedomain: introduce basic voltage domain support for OMAP
-  devicetree: bindings: voltagedomain: add bindings for OMAP compatible
-    SoCs
-
- .../bindings/power/voltdm/voltage_domain.txt       |   65 +++
- .../bindings/power/voltdm/voltdm_omap.txt          |   24 +
- drivers/cpufreq/Kconfig                            |    1 +
- drivers/cpufreq/cpufreq-cpu0.c                     |  140 ++----
- drivers/power/Kconfig                              |    1 +
- drivers/power/Makefile                             |    1 +
- drivers/power/voltdm/Kconfig                       |   19 +
- drivers/power/voltdm/Makefile                      |    6 +
- drivers/power/voltdm/core.c                        |  508 ++++++++++++++++++++
- drivers/power/voltdm/voltage_domain_private.h      |   86 ++++
- drivers/power/voltdm/voltdm_omap.c                 |  287 +++++++++++
- include/linux/pm_voltage_domain.h                  |   47 ++
- 12 files changed, 1086 insertions(+), 99 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/power/voltdm/voltage_domain.txt
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ .../bindings/power/voltdm/voltdm_omap.txt          |   24 ++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/power/voltdm/voltdm_omap.txt
- create mode 100644 drivers/power/voltdm/Kconfig
- create mode 100644 drivers/power/voltdm/Makefile
- create mode 100644 drivers/power/voltdm/core.c
- create mode 100644 drivers/power/voltdm/voltage_domain_private.h
- create mode 100644 drivers/power/voltdm/voltdm_omap.c
- create mode 100644 include/linux/pm_voltage_domain.h
 
-[1] https://lkml.org/lkml/2013/7/7/110 (original RFC)
-[2] http://marc.info/?l=linux-arm-kernel&m=137947787621572&w=2 (runtime pm should enable regulator)
-[3] http://marc.info/?t=136603111700006&r=1&w=2
-[4] http://git.omapzoom.org/?p=kernel/omap.git;a=blob;f=arch/arm/mach-omap2/dvfs.c;hb=p-linux-omap-3.4
+diff --git a/Documentation/devicetree/bindings/power/voltdm/voltdm_omap.txt b/Documentation/devicetree/bindings/power/voltdm/voltdm_omap.txt
+new file mode 100644
+index 0000000..30cd3d2
+--- /dev/null
++++ b/Documentation/devicetree/bindings/power/voltdm/voltdm_omap.txt
+@@ -0,0 +1,24 @@
++Texas Instruments OMAP compatible voltage domain description
++
++This binding uses [1] and describes the voltage domain devices
++typically used on Texas Instruments OMAP compatible SoC family of
++processors.
++
++[1] Documentation/devicetree/bindings/power/voltdm/voltage_domain.txt
++
++Required Properties:
++- compatible: Should be one of:
++	"ti,omap-voltdm" - basic voltage domain controlling VDD and VBB
++- vdd-supply: phandle to regulator controlling VDD supply
++- vbb-supply: phandle to regulator controlling Body Bias supply
++  (Usually Adaptive Body Bias regulator)
++- #voltdm-cells: shall be <0>
++
++Example:
++voltage_domain_mpu: voltdm@1 {
++	compatible = "ti,omap-voltdm";
++	#voltdm-cells = <0>;
++
++	vdd-supply = <&vcc>;
++	vbb-supply = <&abb_mpu>;
++};
 -- 
 1.7.9.5
 
