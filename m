@@ -1,102 +1,80 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/5] ARM: omap2: cm-t35: Add regulators and clock for camera sensor
-Date: Tue, 18 Feb 2014 16:03:22 +0100
-Message-ID: <3444638.OmucgL67eO@avalon>
-References: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com> <9621770.WFqvfViqR7@avalon> <53036840.3050605@compulab.co.il>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 03/12] mfd: omap-usb-host: Use clock names as per function
+ for reference clocks
+Date: Tue, 18 Feb 2014 17:28:43 +0200
+Message-ID: <53037C2B.6070701@ti.com>
+References: <1392200333-28397-1-git-send-email-rogerq@ti.com> <1392200333-28397-4-git-send-email-rogerq@ti.com> <20140214100915.GD7380@lee--X1> <52FE164F.80503@ti.com> <20140214133330.GC13293@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <53036840.3050605@compulab.co.il>
-Sender: linux-media-owner@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>, Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140214133330.GC13293@lee--X1>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Igor,
-
-On Tuesday 18 February 2014 16:03:44 Igor Grinberg wrote:
-> On 02/18/14 14:47, Laurent Pinchart wrote:
-> > On Monday 10 February 2014 22:54:40 Laurent Pinchart wrote:
-> >> The camera sensor will soon require regulators and clocks. Register
-> >> fixed regulators for its VAA and VDD power supplies and a fixed rate
-> >> clock for its master clock.
-> > 
-> > This patch is a prerequisite for a set of 4 patches that need to go
-> > through the linux-media tree. It would simpler if it could go through the
-> > same tree as well. Given that arch/arm/mach-omap2/board-cm-t35.c has seen
-> > very little activity recently I believe the risk of conflict is pretty
-> > low.
+On 02/14/2014 03:33 PM, Lee Jones wrote:
+>>>> Use a meaningful name for the reference clocks so that it indicates the function.
+>>>>
+>>>> CC: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>>>> CC: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>>>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>>>> ---
+>>>>  drivers/mfd/omap-usb-host.c | 6 +++---
+>>>>  1 file changed, 3 insertions(+), 3 deletions(-)
+>>>>
+>>>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+>>>> index 60a3bed..ce620a8 100644
+>>>> --- a/drivers/mfd/omap-usb-host.c
+>>>> +++ b/drivers/mfd/omap-usb-host.c
+>>>> @@ -714,21 +714,21 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+>>>>  		goto err_mem;
+>>>>  	}
+>>>>  
+>>>> -	omap->xclk60mhsp1_ck = devm_clk_get(dev, "xclk60mhsp1_ck");
+>>>> +	omap->xclk60mhsp1_ck = devm_clk_get(dev, "refclk_60m_ext_p1");
+>>>
+>>> You can't do that. These changes will have to be in the same patch as
+>>> the core change i.e. where they are initialised.
+>>
+>> I'm not touching them anywhere in this series. When core changes are you
+>> referring to?
 > 
-> Indeed, as we work on DT stuff of cm-t35/3730 and pretty much stopped
-> updating the board-cm-t35.c file.
+> The ones in:
+>   arch/arm/mach-omap2/cclock3xxx_data.c
 
-DT support for the OMAP3 ISP is coming. Too slowly, but it's coming :-)
+OK, right. They are now no longer needed so I'll get rid of them.
+In fact that change should either be in a separate patch or combined with PATCH 2
+in this series. What do you suggest?
 
-> > Tony, would
-> > that be fine with you ?
-> > 
-> >> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cheers,
+-roger
 > 
-> Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+>>>>  	if (IS_ERR(omap->xclk60mhsp1_ck)) {
+>>>>  		ret = PTR_ERR(omap->xclk60mhsp1_ck);
+>>>>  		dev_err(dev, "xclk60mhsp1_ck failed error:%d\n", ret);
+>>>>  		goto err_mem;
+>>>>  	}
+>>>>  
+>>>> -	omap->xclk60mhsp2_ck = devm_clk_get(dev, "xclk60mhsp2_ck");
+>>>> +	omap->xclk60mhsp2_ck = devm_clk_get(dev, "refclk_60m_ext_p2");
+>>>>  	if (IS_ERR(omap->xclk60mhsp2_ck)) {
+>>>>  		ret = PTR_ERR(omap->xclk60mhsp2_ck);
+>>>>  		dev_err(dev, "xclk60mhsp2_ck failed error:%d\n", ret);
+>>>>  		goto err_mem;
+>>>>  	}
+>>>>  
+>>>> -	omap->init_60m_fclk = devm_clk_get(dev, "init_60m_fclk");
+>>>> +	omap->init_60m_fclk = devm_clk_get(dev, "refclk_60m_int");
+>>>>  	if (IS_ERR(omap->init_60m_fclk)) {
+>>>>  		ret = PTR_ERR(omap->init_60m_fclk);
+>>>>  		dev_err(dev, "init_60m_fclk failed error:%d\n", ret);
+>>>
+>>
+> 
 
-Thank you. Tony, could I get your ack as well to push this through Mauro's 
-tree ?
-
-> >> ---
-> >> 
-> >>  arch/arm/mach-omap2/board-cm-t35.c | 16 ++++++++++++++++
-> >>  1 file changed, 16 insertions(+)
-> >> 
-> >> diff --git a/arch/arm/mach-omap2/board-cm-t35.c
-> >> b/arch/arm/mach-omap2/board-cm-t35.c index 8dd0ec8..018353d 100644
-> >> --- a/arch/arm/mach-omap2/board-cm-t35.c
-> >> +++ b/arch/arm/mach-omap2/board-cm-t35.c
-> >> @@ -16,6 +16,8 @@
-> >> 
-> >>   *
-> >>   */
-> >> 
-> >> +#include <linux/clk-provider.h>
-> >> +#include <linux/clkdev.h>
-> >> 
-> >>  #include <linux/kernel.h>
-> >>  #include <linux/init.h>
-> >>  #include <linux/platform_device.h>
-> >> 
-> >> @@ -542,8 +544,22 @@ static struct isp_platform_data cm_t35_isp_pdata = {
-> >> 
-> >>  	.subdevs = cm_t35_isp_subdevs,
-> >>  
-> >>  };
-> >> 
-> >> +static struct regulator_consumer_supply cm_t35_camera_supplies[] = {
-> >> +	REGULATOR_SUPPLY("vaa", "3-005d"),
-> >> +	REGULATOR_SUPPLY("vdd", "3-005d"),
-> >> +};
-> >> +
-> >> 
-> >>  static void __init cm_t35_init_camera(void)
-> >>  {
-> >> 
-> >> +	struct clk *clk;
-> >> +
-> >> +	clk = clk_register_fixed_rate(NULL, "mt9t001-clkin", NULL, 
-CLK_IS_ROOT,
-> >> +				      48000000);
-> >> +	clk_register_clkdev(clk, NULL, "3-005d");
-> >> +
-> >> +	regulator_register_fixed(2, cm_t35_camera_supplies,
-> >> +				 ARRAY_SIZE(cm_t35_camera_supplies));
-> >> +
-> >> 
-> >>  	if (omap3_init_camera(&cm_t35_isp_pdata) < 0)
-> >>  	
-> >>  		pr_warn("CM-T3x: Failed registering camera device!\n");
-> >>  
-> >>  }
-
--- 
-Regards,
-
-Laurent Pinchart
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
