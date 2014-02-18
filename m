@@ -1,127 +1,122 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.14-rc3
-Date: Tue, 18 Feb 2014 17:48:33 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1402181746390.6702@utopia.booyaka.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v4 1/2] usb: musb: dsps, debugfs files
+Date: Tue, 18 Feb 2014 11:50:19 -0600
+Message-ID: <20140218175018.GF28506@saruman.home>
+References: <1389950556-6453-1-git-send-email-mpa@pengutronix.de>
+ <1389950556-6453-2-git-send-email-mpa@pengutronix.de>
+ <20140218162054.GE9878@saruman.home>
+ <20140218165911.GA17486@kroah.com>
+ <20140218170335.GC28506@saruman.home>
+ <20140218173021.GA17368@kroah.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:55779 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751260AbaBRRse (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Feb 2014 12:48:34 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============2722986530587737222=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140218173021.GA17368@kroah.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Bin Liu <binmlist@gmail.com>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+
+--===============2722986530587737222==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ChQOR20MqfxkMJg9"
+Content-Disposition: inline
+
+--ChQOR20MqfxkMJg9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Tue, Feb 18, 2014 at 09:30:21AM -0800, Greg KH wrote:
+> > > > > +static int dsps_musb_dbg_init(struct musb *musb, struct dsps_glu=
+e *glue)
+> > > > > +{
+> > > > > +	struct dentry *root;
+> > > > > +	struct dentry *file;
+> > > > > +	char buf[128];
+> > > > > +
+> > > > > +	sprintf(buf, "%s.dsps", dev_name(musb->controller));
+> > > > > +	root =3D debugfs_create_dir(buf, NULL);
+> > > > > +	if (!root)
+> > > >=20
+> > > > wrong, you should be using IS_ERR()
+> > >=20
+> > > !root is fine, IS_ERR() will fail if CONFIG_DEBUGFS is not enabled.
+> >=20
+> > in that case, files will be created on parent directory right ?
+>=20
+> If, for some reason, creating a directory fails and then creating a file
+> would succeed, yes, that will happen.
+>=20
+> > If we pass a ERR_PTR(-ENODEV), otoh, we will try to dereference it in
+> > __create_file().
+>=20
+> No, because -ENODEV will only happen if debugfs is not enabled, so no
+> dereference will ever happen.
+>=20
+> Don't worry about checking return values from debugfs, it shouldn't be
+> needed.
+
+aha, now I see. I missed the:
+
+348         if (error) {
+349                 dentry =3D NULL;
+350                 simple_release_fs(&debugfs_mount, &debugfs_mount_count);
+351         }
+
+in fs/debugfs/inode.c::__create_file(). I'll apply this patch in a few
+hours (randconfig running).
+
+cheers
+
+--=20
+balbi
+
+--ChQOR20MqfxkMJg9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIbBAEBAgAGBQJTA51aAAoJEIaOsuA1yqREQPMP90j7I4lIyrdkQQ5ikvFMPCt/
+l9j2Pi5gP4FADu0fb33IFfHThDtWCGlQO/Wj2/1oamMM8cXWGaMf1UzSGD2B6ykQ
+PyrmMp5lXzW4M8A0+id1OfD04ZhV6TZGsQTcmxkTHZb5MABEAeyv3EAiavdncAx+
+Mq9y18ZjoqxfziM9h4ONoZwPvVacJdUCiQ8Kf/4cxDs8GPM35dfJ05LO6UUil0x6
+jqGlRyjFM6biJ3VShKq9AIjw8CUa+f/ghwjEQBUbwnNIS6NiGNsMj7XsYYfSVeJ3
+2yc4JHm/+7CDrx4ftHuXBHv84+IJz3ypLLisKfjsbI29B73rec/yVK/4exD6jNeu
+XfI/AfdbM/69OVjqT7ukzZvQxReQDvIfdqZxeZv0/BRhBMA5AzdTfPdnY64ImqF7
+0HLgSbOR+QrwsHF7rQ4J4dWczwc1NHhZSSHRJ1kk7FHnY6iDKwmBus+0ET4bD42N
+GP7IduMfezWwVlOcBhi8Pet1jTumc3Gp0VhDIJvP0nI4RXt39wiAQC5gL+rwxZPQ
+ZDZZ+scVPm6DCYKex4/23mXJQLIN7Dee9ipidGPa2KqrvNMheY4Q5pZl3fivhQ93
+qJ7hQ4xhlXmgkDKKzi9ds1/6zOIfnrXNgi2aheF2PBXWl99p1KffPu+oV7ynDPs7
+rcpWd2NFYj1Y7utXQLg=
+=qUST
+-----END PGP SIGNATURE-----
+
+--ChQOR20MqfxkMJg9--
 
 
-Here are some basic OMAP test results for Linux v3.14-rc3.
-Logs and other details at:
+--===============2722986530587737222==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-    http://www.pwsan.com/omap/testlogs/test_v3.14-rc3/20140217214814/
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass ( 9/ 9): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig/omap4-var-som
-
-Build: zImage:
-    Pass (13/13): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig
-
-Boot to userspace:
-    FAIL ( 1/12): 2430sdp
-    skip ( 2/12): 5912osk, cmt3517
-    Pass ( 9/12): 3517evm, 3530es3beagle, 3730beaglexm, 37xxevm,
-		  4430es2panda, 4460pandaes, am335xbone, am335xbonelt,
-		  4460varsomom
-
-PM: chip retention via suspend:
-    FAIL ( 4/ 7): 2430sdp, 4430es2panda, 4460pandaes, 4460varsomom
-    Pass ( 3/ 7): 3530es3beagle, 3730beaglexm, 37xxevm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 7/ 7): 2430sdp, 3530es3beagle, 3730beaglexm, 37xxevm,
-		  4430es2panda, 4460pandaes, 4460varsomom
-
-PM: chip off except CORE via suspend:
-    FAIL ( 1/ 1): 3730beaglexm
-
-PM: chip off except CORE via dynamic idle:
-    FAIL ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
-		  4460varsomom
-
-PM: chip off via dynamic idle:
-    FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
-		  4460varsomom
-
-
-vmlinux object size
-(delta in bytes from test_v3.14-rc2 
-(b28a960c42fcd9cfc987441fa6d1c1a471f0f9ed)):
-   text     data      bss    total  kernel
-  +9089     +256        0    +9345  omap1_defconfig
-  +5085     +288        0    +5373  omap1_defconfig_1510innovator_only
-  +4993     +264        0    +5257  omap1_defconfig_5912osk_only
-+8797439  +826332  +291072  +9914843  multi_v7_defconfig
-  +5340     +304        0    +5644  omap2plus_defconfig
-  +9164     +288        0    +9452  omap2plus_defconfig_2430sdp_only
-  +4996     +272        0    +5268  omap2plus_defconfig_am33xx_only
-  +5068     +304        0    +5372  omap2plus_defconfig_am43xx_only
-  +9372     +264        0    +9636  omap2plus_defconfig_cpupm
-  +5148     +264        0    +5412  omap2plus_defconfig_dra7xx_only
-   +581        0        0     +581  omap2plus_defconfig_n800_multi_omap2xxx
-   +549        0        0     +549  omap2plus_defconfig_n800_only_a
-  +9372     +256        0    +9628  omap2plus_defconfig_no_pm
-  +5276     +256        0    +5532  omap2plus_defconfig_omap2_4_only
-  +5276     +272        0    +5548  omap2plus_defconfig_omap3_4_only
- +11048     +896        0   +11944  omap2plus_defconfig_omap5_only
-   +388        0      -88     +300  rmk_omap3430_ldp_allnoconfig
-   +449        0        0     +449  rmk_omap3430_ldp_oldconfig
-   +388        0      -88     +300  rmk_omap4430_sdp_allnoconfig
-   +317        0      -64     +253  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.14-rc2 
-(b28a960c42fcd9cfc987441fa6d1c1a471f0f9ed))
-  avail  rsrvd   high  freed  board          kconfig
-    -8k     8k      .      .  2430sdp        omap2plus_defconfig
-    -8k     8k      .      .  3517evm        omap2plus_defconfig
-    -8k     8k      .      .  3530es3beagle  omap2plus_defconfig
-    -8k     8k      .      .  3730beaglexm   omap2plus_defconfig
-    -8k     8k      .      .  37xxevm        omap2plus_defconfig
-    -8k     8k      .      .  4430es2panda   omap2plus_defconfig
-    -8k     8k      .      .  4460pandaes    omap2plus_defconfig
-    -8k     8k      .      .  4460varsomom   omap2plus_defconfig
-    -8k     8k      .      .  am335xbone     omap2plus_defconfig_am33xx_only
-
-
-Have added a build config for multi_v7_defconfig.  Not booting it yet on 
-any boards.
-
+--===============2722986530587737222==--
