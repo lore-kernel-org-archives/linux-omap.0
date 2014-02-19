@@ -1,41 +1,109 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: clock: fix clkoutx2 with
- CLK_SET_RATE_PARENT
-Date: Wed, 19 Feb 2014 19:09:10 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1402191908520.8777@utopia.booyaka.com>
-References: <1391080640-23370-1-git-send-email-tomi.valkeinen@ti.com>
+From: Vaibhav Bedia <vaibhav.bedia@gmail.com>
+Subject: Re: [RFC PATCH] ARM: OMAP2+: clockdomain: Reintroduce SW_SLEEP
+ Support (fwd)
+Date: Wed, 19 Feb 2014 14:17:43 -0500
+Message-ID: <CANacCWy10TTJenrZ6hdTN8bCpAQQjRa5MOBPde7bnn-LM+VFbw@mail.gmail.com>
+References: <alpine.DEB.2.02.1402191824260.8777@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42900 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754486AbaBSTJL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Feb 2014 14:09:11 -0500
-In-Reply-To: <1391080640-23370-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-qa0-f52.google.com ([209.85.216.52]:44360 "EHLO
+	mail-qa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755032AbaBSTRo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Feb 2014 14:17:44 -0500
+Received: by mail-qa0-f52.google.com with SMTP id j15so1228066qaq.39
+        for <linux-omap@vger.kernel.org>; Wed, 19 Feb 2014 11:17:43 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.02.1402191824260.8777@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Dave Gerlach <d-gerlach@ti.com>
 
-On Thu, 30 Jan 2014, Tomi Valkeinen wrote:
+On Wed, Feb 19, 2014 at 1:25 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>
+> Just FYI.  Queued for v3.15 unless someone complains.
+>
 
-> If CLK_SET_RATE_PARENT is set for a clkoutx2 clock, calling
-> clk_set_rate() on the clock "skips" the x2 multiplier as there are no
-> set_rate and round_rate functions defined for the clkoutx2.
-> 
-> This results in getting double the requested clock rates, breaking the
-> display on omap3430 based devices. This got broken when
-> d0f58bd3bba3877fb1af4664c4e33273d36f00e4 and related patches were merged
-> for v3.14, as omapdss driver now relies more on the clk-framework and
-> CLK_SET_RATE_PARENT.
-> 
-> This patch implements set_rate and round_rate for clkoutx2.
-> 
-> Tested on OMAP3430, OMAP3630, OMAP4460.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+No complains but i wanted to point out that with some additional
+changes it's possible
+to consolidate AM335x (and AM437x) very nicely with the rest of OMAP4+
+PRM/CM code.
 
-Thanks, queued for v3.14-rc with Tero's ack.
+I had posted a series (which had a similar patch) a while back [1] but
+that got never
+got any feedback :/
 
+If one looks hard enough AM335x/AM437x/TI81xx are not that different
+from OMAP4+ :)
 
-- Paul
+Regards,
+Vaibhav
+
+[1] http://comments.gmane.org/gmane.linux.ports.arm.omap/100474
+
+> - Paul
+>
+> ---------- Forwarded message ----------
+> Date: Fri, 7 Feb 2014 16:20:59 -0600
+> From: Dave Gerlach <d-gerlach@ti.com>
+> To: linux-omap@vger.kernel.org
+> Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>,
+>     Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>,
+>     Dave Gerlach <d-gerlach@ti.com>
+> Subject: [RFC PATCH] ARM: OMAP2+: clockdomain: Reintroduce SW_SLEEP Support
+>
+> Since commit 65aa94b204d (ARM: OMAP4: clockdomain/CM code: Update supported
+> transition modes), on OMAP4, all CLKDMs support HW_AUTO so this is used
+> instead of SW_SLEEP for the idling of clockdomains. However, additional
+> SoCs now leverage the OMAP4 clockdomain code so update it to use SW_SLEEP
+> if the clockdomain data specifies that the CLKDM has the
+> CLKDM_CAN_FORCE_SLEEP flag set rather than using HW_AUTO for both cases.
+>
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
+>  arch/arm/mach-omap2/cminst44xx.c |   18 ++++++++++++++++--
+>  1 file changed, 16 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+> index 731ca13..f5c4731 100644
+> --- a/arch/arm/mach-omap2/cminst44xx.c
+> +++ b/arch/arm/mach-omap2/cminst44xx.c
+> @@ -254,6 +254,11 @@ void omap4_cminst_clkdm_force_wakeup(u8 part, u16 inst, u16 cdoffs)
+>   *
+>   */
+>
+> +void omap4_cminst_clkdm_force_sleep(u8 part, u16 inst, u16 cdoffs)
+> +{
+> +       _clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_SLEEP, part, inst, cdoffs);
+> +}
+> +
+>  /**
+>   * omap4_cminst_wait_module_ready - wait for a module to be in 'func' state
+>   * @part: PRCM partition ID that the CM_CLKCTRL register exists in
+> @@ -404,8 +409,17 @@ static int omap4_clkdm_clear_all_wkup_sleep_deps(struct clockdomain *clkdm)
+>
+>  static int omap4_clkdm_sleep(struct clockdomain *clkdm)
+>  {
+> -       omap4_cminst_clkdm_enable_hwsup(clkdm->prcm_partition,
+> -                                       clkdm->cm_inst, clkdm->clkdm_offs);
+> +       if (clkdm->flags & CLKDM_CAN_HWSUP)
+> +               omap4_cminst_clkdm_enable_hwsup(clkdm->prcm_partition,
+> +                                               clkdm->cm_inst,
+> +                                               clkdm->clkdm_offs);
+> +       else if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP)
+> +               omap4_cminst_clkdm_force_sleep(clkdm->prcm_partition,
+> +                                              clkdm->cm_inst,
+> +                                              clkdm->clkdm_offs);
+> +       else
+> +               return -EINVAL;
+> +
+>         return 0;
+>  }
+>
+> --
+> 1.7.9.5
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
