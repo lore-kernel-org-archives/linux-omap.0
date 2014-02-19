@@ -1,57 +1,30 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] ARM: omap2: cm-t35: Add regulators and clock for
- camera sensor
-Date: Wed, 19 Feb 2014 09:05:45 -0800
-Message-ID: <20140219170545.GC27263@atomide.com>
-References: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <9621770.WFqvfViqR7@avalon>
- <53036840.3050605@compulab.co.il>
- <3444638.OmucgL67eO@avalon>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP5: Fix reboot handling
+Date: Wed, 19 Feb 2014 17:39:14 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1402191738320.8777@utopia.booyaka.com>
+References: <1392592544-7884-1-git-send-email-vaibhav.bedia@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43972 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754475AbaBSRFx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Feb 2014 12:05:53 -0500
-Content-Disposition: inline
-In-Reply-To: <3444638.OmucgL67eO@avalon>
+Received: from utopia.booyaka.com ([74.50.51.50]:41738 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754688AbaBSRjP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Feb 2014 12:39:15 -0500
+In-Reply-To: <1392592544-7884-1-git-send-email-vaibhav.bedia@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Mauro Carvalho Chehab <m.chehab@samsung.com>, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Vaibhav Bedia <vaibhav.bedia@gmail.com>
+Cc: tony@atomide.com, rnayak@ti.com, lokeshvutla@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140218 07:05]:
-> Hi Igor,
-> 
-> On Tuesday 18 February 2014 16:03:44 Igor Grinberg wrote:
-> > On 02/18/14 14:47, Laurent Pinchart wrote:
-> > > On Monday 10 February 2014 22:54:40 Laurent Pinchart wrote:
-> > >> The camera sensor will soon require regulators and clocks. Register
-> > >> fixed regulators for its VAA and VDD power supplies and a fixed rate
-> > >> clock for its master clock.
-> > > 
-> > > This patch is a prerequisite for a set of 4 patches that need to go
-> > > through the linux-media tree. It would simpler if it could go through the
-> > > same tree as well. Given that arch/arm/mach-omap2/board-cm-t35.c has seen
-> > > very little activity recently I believe the risk of conflict is pretty
-> > > low.
-> > 
-> > Indeed, as we work on DT stuff of cm-t35/3730 and pretty much stopped
-> > updating the board-cm-t35.c file.
-> 
-> DT support for the OMAP3 ISP is coming. Too slowly, but it's coming :-)
-> 
-> > > Tony, would
-> > > that be fine with you ?
-> > > 
-> > >> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > Acked-by: Igor Grinberg <grinberg@compulab.co.il>
-> 
-> Thank you. Tony, could I get your ack as well to push this through Mauro's 
-> tree ?
+On Sun, 16 Feb 2014, Vaibhav Bedia wrote:
 
-Sure, the board-*.c files will get removed soonish, but meanwhile:
+> Use the correct register offset for issuing the
+> reset command in OMAP5. Since dev_inst is set dynamically
+> OMAP4 should not be affected by this change.
+> 
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@gmail.com>
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Thanks, queued for v3.14-rc with Lokesh's Tested-by:.
+
+
+- Paul
