@@ -1,56 +1,57 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v2 0/2] ARM: OMAP4: Fix gpmc_fck clock
-Date: Wed, 19 Feb 2014 18:22:04 +0200
-Message-ID: <5304DA2C.3030605@ti.com>
-References: <1392801305-1698-1-git-send-email-florian.vaussard@epfl.ch>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/5] ARM: omap2: cm-t35: Add regulators and clock for
+ camera sensor
+Date: Wed, 19 Feb 2014 09:05:45 -0800
+Message-ID: <20140219170545.GC27263@atomide.com>
+References: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <9621770.WFqvfViqR7@avalon>
+ <53036840.3050605@compulab.co.il>
+ <3444638.OmucgL67eO@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1392801305-1698-1-git-send-email-florian.vaussard@epfl.ch>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>, =?ISO-8859-1?Q?Beno=EEt_?= =?ISO-8859-1?Q?Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43972 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754475AbaBSRFx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Feb 2014 12:05:53 -0500
+Content-Disposition: inline
+In-Reply-To: <3444638.OmucgL67eO@avalon>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Mauro Carvalho Chehab <m.chehab@samsung.com>, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 02/19/2014 11:15 AM, Florian Vaussard wrote:
-> Hello,
->
-> Trying to get my SMSC9221 working on OMAP4 with DT,
-> I faced a misconfigured gpmc_fck (dummy clock set to 0)
-> resulting in serveral division-by-zero, misconfigured
-> timings and driver lost in the La La Land.
->
-> To solve this, patch 1 removes gpmc_fck from the dummy
-> clocks, and patch 2 adds the gpmc_fck DT node and
-> reference it from the gpmc node.
->
-> Tested on DuoVero/Parlor (OMAP4430) with SMSC9221.
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140218 07:05]:
+> Hi Igor,
+> 
+> On Tuesday 18 February 2014 16:03:44 Igor Grinberg wrote:
+> > On 02/18/14 14:47, Laurent Pinchart wrote:
+> > > On Monday 10 February 2014 22:54:40 Laurent Pinchart wrote:
+> > >> The camera sensor will soon require regulators and clocks. Register
+> > >> fixed regulators for its VAA and VDD power supplies and a fixed rate
+> > >> clock for its master clock.
+> > > 
+> > > This patch is a prerequisite for a set of 4 patches that need to go
+> > > through the linux-media tree. It would simpler if it could go through the
+> > > same tree as well. Given that arch/arm/mach-omap2/board-cm-t35.c has seen
+> > > very little activity recently I believe the risk of conflict is pretty
+> > > low.
+> > 
+> > Indeed, as we work on DT stuff of cm-t35/3730 and pretty much stopped
+> > updating the board-cm-t35.c file.
+> 
+> DT support for the OMAP3 ISP is coming. Too slowly, but it's coming :-)
+> 
+> > > Tony, would
+> > > that be fine with you ?
+> > > 
+> > >> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+> 
+> Thank you. Tony, could I get your ack as well to push this through Mauro's 
+> tree ?
 
-I can't test GPMC myself, but other than that, this set looks good to go.
+Sure, the board-*.c files will get removed soonish, but meanwhile:
 
--Tero
-
->
-> Regards,
-> Florian
-> ---
-> Since v1:
-> - Removed the gpmc_fck clock node, and reference directly l3_ick
->
-> Florian Vaussard (2):
->    CLK: TI: OMAP4: Remove gpmc_fck from dummy clocks
->    ARM: DTS: OMAP4: Use l3_ick for the gpmc node
->
->   arch/arm/boot/dts/omap4.dtsi | 2 ++
->   drivers/clk/ti/clk-44xx.c    | 1 -
->   2 files changed, 2 insertions(+), 1 deletion(-)
->
+Acked-by: Tony Lindgren <tony@atomide.com>
