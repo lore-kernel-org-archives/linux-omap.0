@@ -1,33 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: fix rate prints
-Date: Wed, 19 Feb 2014 19:25:43 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1402191924520.8777@utopia.booyaka.com>
-References: <1389944699-27962-1-git-send-email-tomi.valkeinen@ti.com> <1389944699-27962-2-git-send-email-tomi.valkeinen@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH v2 0/2] ARM: OMAP4: Fix gpmc_fck clock
+Date: Wed, 19 Feb 2014 20:26:43 +0100
+Message-ID: <53050573.8090506@epfl.ch>
+References: <1392801305-1698-1-git-send-email-florian.vaussard@epfl.ch> <5304DA2C.3030605@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43125 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754542AbaBSTZo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Feb 2014 14:25:44 -0500
-In-Reply-To: <1389944699-27962-2-git-send-email-tomi.valkeinen@ti.com>
+Received: from smtp0.epfl.ch ([128.178.224.218]:59824 "EHLO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754692AbaBST04 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Feb 2014 14:26:56 -0500
+In-Reply-To: <5304DA2C.3030605@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
+To: Tero Kristo <t-kristo@ti.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, 17 Jan 2014, Tomi Valkeinen wrote:
 
-> Printing with unsigned long rates with %ld gives wrong result if the
-> rate is high enough. Fix this by using %lu.
+On 02/19/2014 05:22 PM, Tero Kristo wrote:
+> On 02/19/2014 11:15 AM, Florian Vaussard wrote:
+>> Hello,
+>>
+>> Trying to get my SMSC9221 working on OMAP4 with DT,
+>> I faced a misconfigured gpmc_fck (dummy clock set to 0)
+>> resulting in serveral division-by-zero, misconfigured
+>> timings and driver lost in the La La Land.
+>>
+>> To solve this, patch 1 removes gpmc_fck from the dummy
+>> clocks, and patch 2 adds the gpmc_fck DT node and
+>> reference it from the gpmc node.
+>>
+>> Tested on DuoVero/Parlor (OMAP4430) with SMSC9221.
 > 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> I can't test GPMC myself, but other than that, this set looks good to go.
+> 
 
-Thanks, queued for v3.15. 
+Thank you. Would you like more test coverage by other people? I would
+like to see this in -rc if possible, as it is needed to boot my OMAP4
+system.
 
-There's a series here that converts the OMAP clock code away from signed 
-longs for clock rates that was originally intended for v3.14, but it's 
-been delayed.
-
-
-- Paul
+Regards,
+Florian
