@@ -1,65 +1,74 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: fix dpll round_rate() to actually
- round
-Date: Wed, 19 Feb 2014 19:49:19 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1402191928480.8777@utopia.booyaka.com>
-References: <1389944699-27962-1-git-send-email-tomi.valkeinen@ti.com> <1389944699-27962-3-git-send-email-tomi.valkeinen@ti.com>
+From: Vaibhav Bedia <vaibhav.bedia@gmail.com>
+Subject: Re: [RFC PATCH] ARM: OMAP2+: clockdomain: Reintroduce SW_SLEEP
+ Support (fwd)
+Date: Wed, 19 Feb 2014 14:52:52 -0500
+Message-ID: <CANacCWxZ8bfXvMed8Qk93n81uEb9YBtHK-Pe_EtJSAUYzrfL-g@mail.gmail.com>
+References: <alpine.DEB.2.02.1402191824260.8777@utopia.booyaka.com>
+	<CANacCWy10TTJenrZ6hdTN8bCpAQQjRa5MOBPde7bnn-LM+VFbw@mail.gmail.com>
+	<alpine.DEB.2.02.1402191920040.8777@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43347 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755094AbaBSTtT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Feb 2014 14:49:19 -0500
-In-Reply-To: <1389944699-27962-3-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-qa0-f44.google.com ([209.85.216.44]:37389 "EHLO
+	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751865AbaBSTwx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Feb 2014 14:52:53 -0500
+Received: by mail-qa0-f44.google.com with SMTP id w5so1334913qac.3
+        for <linux-omap@vger.kernel.org>; Wed, 19 Feb 2014 11:52:53 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.02.1402191920040.8777@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Dave Gerlach <d-gerlach@ti.com>
 
-On Fri, 17 Jan 2014, Tomi Valkeinen wrote:
+On Wed, Feb 19, 2014 at 2:22 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Wed, 19 Feb 2014, Vaibhav Bedia wrote:
+>
+>> On Wed, Feb 19, 2014 at 1:25 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>> >
+>> > Just FYI.  Queued for v3.15 unless someone complains.
+>> >
+>>
+>> No complains but i wanted to point out that with some additional
+>> changes it's possible
+>> to consolidate AM335x (and AM437x) very nicely with the rest of OMAP4+
+>> PRM/CM code.
+>>
+>> I had posted a series (which had a similar patch) a while back [1] but
+>> that got never
+>> got any feedback :/
+>
+> Yeah, to be honest I don't like the consolidation approach.  The reason
+> why is because the hardware seems to be quite different underneath, so the
+> risk of breaking another chip is high.
+>
+>> If one looks hard enough AM335x/AM437x/TI81xx are not that different
+>> from OMAP4+ :)
+>
+> Hmm, it's my understanding that the hardware implementations are quite
+> different between the Wireless and the Catalog parts.  Certainly the
+> Wireless engineers didn't have any knowledge at all of what Catalog folks
+> were doing, and many implementation assumptions that held true across
+> several Wireless parts did not hold up at all when extended to Catalog
+> parts.
+>
 
-> omap2_dpll_round_rate() doesn't actually round the given rate, even if
-> the name and the description so hints. Instead it only tries to find an
-> exact rate match, or if that fails, return ~0 as an error.
+After spending a lot of time looking at the code and PRCM specs for the
+different chips i had come to the conclusion that in reality the Catalog
+parts had the same hardware minus intelligence ;)
 
-In the past, we had "rate tolerance" code, which allowed the clock code to 
-return an approximate rate within some margin.  See for example commit 
-241d3a8dca239610d3d991bf58d4fe38c2d86fd5 ("OMAP2+: clock: remove the DPLL 
-rate tolerance code").  The rate tolerance was set at compile-time, but it 
-was set on a per-PLL basis, which in theory allowed PLLs responsible for 
-audio, etc. to have a very low rate tolerance, but PLLs that only drove 
-internal functional blocks to have a high rate tolerance.  
+The control bits are the same with just the AUTO modes in the PWRDM,
+CLKDM, CLKCTRL never being supported.
 
-Part of the reason why this was removed is because some of the TI hardware 
-guys didn't want any PLL rates used that were not explicitly 
-characterized.
+The series touched less than 100 lines of OMAP4 code and from what
+i can see it was just making it generic in a couple of places. Most of the
+changes were just getting rid of AM335x specific pieces.
 
-> What this basically means is that the user of the clock needs to know
-> what rates the dpll can support, which obviously isn't right.
+FWIW i had even suspend/resume also working on AM335x on top of that
+series so a breakage, if any, should be simple to fix up. On the contrary
+i found it easier to fix any breakage on AM335x due to common code.
 
-In principle I agree with you, but I'm not sure that this rate rounding 
-function is the solution.
+But i'll leave the final decision to you :)
 
-> This patch adds a simple method of rounding: during the iteration, the 
-> code keeps track of the closest rate match. If no exact match is found, 
-> the closest is returned.
-
-So that's one possible rounding policy; maybe it works fine for a display 
-interface PLL, at least for some values of "closest rate".  But another 
-might be "only allow a selection from a set of pre-determined rates 
-characterized by the silicon validation team".  Or another rounding 
-function might need to select a more distant rate that minimizes jitter, 
-EMI, or power consumption.  
-
-Seems to me that there needs to be some way for a clock user to 
-communicate its requirements along these lines to the clock framework for 
-use by the rate rounding code.  At the very least, some kind of [min, max] 
-interval seems appropriate.
-
-Also I've often thought that it would be useful for your purposes to be 
-able to query a clock to return a list or some other parametric 
-description of the rates that it can provide. 
-
-
-- Paul
+Regards,
+Vaibhav
