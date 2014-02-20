@@ -1,70 +1,57 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v8 03/14] mfd: omap-usb-host: Use clock names as per function
- for reference clocks
-Date: Thu, 20 Feb 2014 13:39:58 +0200
-Message-ID: <1392896409-5101-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v8 06/14] CLK: TI: OMAP3: Get rid of unused USB Host dummy clocks
+Date: Thu, 20 Feb 2014 13:40:01 +0200
+Message-ID: <1392896409-5101-7-git-send-email-rogerq@ti.com>
 References: <1392896409-5101-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1392896409-5101-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
-Cc: nm@ti.com, devicetree@vger.kernel.org, khilman@linaro.org, Samuel Ortiz <sameo@linux.intel.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Use a meaningful name for the reference clocks so that it indicates the function.
+The OMAP USB Host MFD driver no longer expects these non-existing
+clocks from the OMAP3 platform, so get rid of them.
 
-CC: Lee Jones <lee.jones@linaro.org>
-CC: Samuel Ortiz <sameo@linux.intel.com>
+CC: Tero Kristo <t-kristo@ti.com>
+CC: Mike Turquette <mturquette@linaro.org>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mfd/omap-usb-host.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/cclock3xxx_data.c | 4 ----
+ drivers/clk/ti/clk-3xxx.c             | 4 ----
+ 2 files changed, 8 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 865c276..651e249 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -718,24 +718,24 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 		goto err_mem;
- 	}
- 
--	omap->xclk60mhsp1_ck = devm_clk_get(dev, "xclk60mhsp1_ck");
-+	omap->xclk60mhsp1_ck = devm_clk_get(dev, "refclk_60m_ext_p1");
- 	if (IS_ERR(omap->xclk60mhsp1_ck)) {
- 		ret = PTR_ERR(omap->xclk60mhsp1_ck);
--		dev_err(dev, "xclk60mhsp1_ck failed error:%d\n", ret);
-+		dev_err(dev, "refclk_60m_ext_p1 failed error:%d\n", ret);
- 		goto err_mem;
- 	}
- 
--	omap->xclk60mhsp2_ck = devm_clk_get(dev, "xclk60mhsp2_ck");
-+	omap->xclk60mhsp2_ck = devm_clk_get(dev, "refclk_60m_ext_p2");
- 	if (IS_ERR(omap->xclk60mhsp2_ck)) {
- 		ret = PTR_ERR(omap->xclk60mhsp2_ck);
--		dev_err(dev, "xclk60mhsp2_ck failed error:%d\n", ret);
-+		dev_err(dev, "refclk_60m_ext_p2 failed error:%d\n", ret);
- 		goto err_mem;
- 	}
- 
--	omap->init_60m_fclk = devm_clk_get(dev, "init_60m_fclk");
-+	omap->init_60m_fclk = devm_clk_get(dev, "refclk_60m_int");
- 	if (IS_ERR(omap->init_60m_fclk)) {
- 		ret = PTR_ERR(omap->init_60m_fclk);
--		dev_err(dev, "init_60m_fclk failed error:%d\n", ret);
-+		dev_err(dev, "refclk_60m_int failed error:%d\n", ret);
- 		goto err_mem;
- 	}
- 
+diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
+index 3b05aea..4299a55 100644
+--- a/arch/arm/mach-omap2/cclock3xxx_data.c
++++ b/arch/arm/mach-omap2/cclock3xxx_data.c
+@@ -3495,10 +3495,6 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"dss_tv_fck",	&dss_tv_fck),
+ 	CLK(NULL,	"dss_96m_fck",	&dss_96m_fck),
+ 	CLK(NULL,	"dss2_alwon_fck",	&dss2_alwon_fck),
+-	CLK(NULL,	"utmi_p1_gfclk",	&dummy_ck),
+-	CLK(NULL,	"utmi_p2_gfclk",	&dummy_ck),
+-	CLK(NULL,	"xclk60mhsp1_ck",	&dummy_ck),
+-	CLK(NULL,	"xclk60mhsp2_ck",	&dummy_ck),
+ 	CLK(NULL,	"init_60m_fclk",	&dummy_ck),
+ 	CLK(NULL,	"gpt1_fck",	&gpt1_fck),
+ 	CLK(NULL,	"aes2_ick",	&aes2_ick),
+diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+index d323023..0d1750a 100644
+--- a/drivers/clk/ti/clk-3xxx.c
++++ b/drivers/clk/ti/clk-3xxx.c
+@@ -130,10 +130,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
+ 	DT_CLK(NULL, "dss_tv_fck", "dss_tv_fck"),
+ 	DT_CLK(NULL, "dss_96m_fck", "dss_96m_fck"),
+ 	DT_CLK(NULL, "dss2_alwon_fck", "dss2_alwon_fck"),
+-	DT_CLK(NULL, "utmi_p1_gfclk", "dummy_ck"),
+-	DT_CLK(NULL, "utmi_p2_gfclk", "dummy_ck"),
+-	DT_CLK(NULL, "xclk60mhsp1_ck", "dummy_ck"),
+-	DT_CLK(NULL, "xclk60mhsp2_ck", "dummy_ck"),
+ 	DT_CLK(NULL, "init_60m_fclk", "dummy_ck"),
+ 	DT_CLK(NULL, "gpt1_fck", "gpt1_fck"),
+ 	DT_CLK(NULL, "aes2_ick", "aes2_ick"),
 -- 
 1.8.3.2
