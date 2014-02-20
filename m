@@ -1,62 +1,116 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/2] usb: musb: host: fixes for 3.14-rc
-Date: Thu, 20 Feb 2014 09:46:10 -0600
-Message-ID: <20140220154549.GB23217@saruman.home>
-References: <1391520349-26192-1-git-send-email-rogerq@ti.com>
- <5305E01A.3020905@ti.com>
-Reply-To: <balbi@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/4] ARM: dts: OMAP5: Add device nodes for ABB
+Date: Thu, 20 Feb 2014 10:36:11 -0600
+Message-ID: <53062EFB.3080501@ti.com>
+References: <1391039177-25284-1-git-send-email-nm@ti.com> <1391039177-25284-4-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mSxgbZZZvrAyzONB"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5305E01A.3020905@ti.com>
+In-Reply-To: <1391039177-25284-4-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---mSxgbZZZvrAyzONB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 01/29/2014 05:46 PM, Nishanth Menon wrote:
+> From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
+> 
+> Add ABB device nodes for OMAP5 family of devices. Data is based on
+> OMAP543x Technical Reference Manual revision U (April 2013).
+> NOTE: clock node has been disabled in this patch due to the lack of
+> OMAP5 clock data.
+> 
+> [nm@ti.com: co-developer]
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Andrii.Tseglytskyi <andrii.tseglytskyi@ti.com>
+> ---
 
-Hi,
+I have been informed that there is an fix in TI official documentation
+which is due end of this month. So, I have to drop this patch from the
+series for the time being - I will refresh this along with necessary
+OMAP5 updates once the official documentation is available.
 
-On Thu, Feb 20, 2014 at 12:59:38PM +0200, Roger Quadros wrote:
-> Hi Felipe,
->=20
-> Hope you had a good vacation :).
+>  arch/arm/boot/dts/omap5.dtsi |   63 ++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 63 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index a72813a..6159f20 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -801,6 +801,69 @@
+>  
+>  			#thermal-sensor-cells = <1>;
+>  		};
+> +
+> +		abb_mpu: regulator-abb-mpu {
+> +			compatible = "ti,abb-v2";
+> +			regulator-name = "abb_mpu";
+> +			#address-cells = <0>;
+> +			#size-cells = <0>;
+> +			clocks = <&sys_clkin>;
+> +			ti,settling-time = <50>;
+> +			ti,clock-cycles = <16>;
+> +
+> +			reg = <0x4ae07cdc 0x8>, <0x4ae06014 0x4>,
+> +			      <0x4a0021ac 0x18>, <0x4ae0C318 0x4>;
+> +			reg-names = "base-address", "int-address",
+> +				    "efuse-address", "ldo-address";
+> +			ti,tranxdone-status-mask = <0x80>;
+> +			/* LDOVBBMPU_MUX_CTRL */
+> +			ti,ldovbb-override-mask = <0x400>;
+> +			/* LDOVBBMPU_VSET_OUT */
+> +			ti,ldovbb-vset-mask = <0x1F>;
+> +
+> +			/*
+> +			 * NOTE: only FBB mode used but actual vset will
+> +			 * determine final biasing
+> +			 */
+> +			ti,abb_info = <
+> +			/*uV		ABB	efuse	rbb_m fbb_m	vset_m*/
+> +			880000		0	0x4	0 0x20000000 0x1F000000
+> +			1060000		0	0x8	0 0x20000000 0x1F000000
+> +			1250000		0	0x10	0 0x20000000 0x1F000000
+> +			1260000		1	0x14	0 0x20000000 0x1F000000
+> +			>;
+> +		};
+> +
+> +		abb_mm: regulator-abb-mm {
+> +			compatible = "ti,abb-v2";
+> +			regulator-name = "abb_mm";
+> +			#address-cells = <0>;
+> +			#size-cells = <0>;
+> +			clocks = <&sys_clkin>;
+> +			ti,settling-time = <50>;
+> +			ti,clock-cycles = <16>;
+> +
+> +			reg = <0x4ae07ce4 0x8>, <0x4ae06010 0x4>,
+> +			      <0x4a002194 0x14>, <0x4ae0C314 0x4>;
+> +			reg-names = "base-address", "int-address",
+> +				    "efuse-address", "ldo-address";
+> +			ti,tranxdone-status-mask = <0x80000000>;
+> +			/* LDOVBBMM_MUX_CTRL */
+> +			ti,ldovbb-override-mask = <0x400>;
+> +			/* LDOVBBMM_VSET_OUT */
+> +			ti,ldovbb-vset-mask = <0x1F>;
+> +
+> +			/*
+> +			 * NOTE: only FBB mode used but actual vset will
+> +			 * determine final biasing
+> +			 */
+> +			ti,abb_info = <
+> +			/*uV		ABB	efuse	rbb_m fbb_m	vset_m*/
+> +			880000		0	0x4	0 0x20000000 0x1F000000
+> +			1025000		0	0x8	0 0x20000000 0x1F000000
+> +			1120000		1	0x10	0 0x20000000 0x1F000000
+> +			>;
+> +		};
+>  	};
+>  };
+>  
+> 
 
-sure had.
 
-> Could you please take a look at these two fixes? Thanks.
-
-you should have received my confirmation email ;-)
-
---=20
-balbi
-
---mSxgbZZZvrAyzONB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTBiNCAAoJEIaOsuA1yqRETu0P/1tDTT5H3jLcHtGIjikZlPdr
-MUHdht+1oUnbfB+ds85yNzvtJeJxpgmww8EIb9UPqMsRzbvzYxPZGea8IwIFY9uH
-DpdEr4GEJ0Er6yj0nbGqL6jq+GkdmxXtJyoqcFofdRL5KLihvbq+U67fq9S2nO97
-wO1wDtJxpeSQjKWO0g2OUC0rRDeerBrLyDfSZFJ3U6V/gitIlacdDfNlciiVLaob
-3WFXIdUjMdxNDZdRDZKMMvgkLhI37aSUGceWfIHsrrG3kHV04FKud648wtrtwUiE
-k59fBzWTbdiPlVwUBIQRoSyMfRhhGTLiDTuBlZ4UnbF+sOHZuggD6peEJ5rH3nU2
-KH7iOhB4RRPtLI9Eddd0+PG+pUMCzDhtT6JYsbfiqNiopm0Kw6gkcAEZLPX5Y3Va
-9cM0I+7sz/PXoG7JnlUAFF/drL9PMSHAAwNBrjMD9nY5UawdONtv0z0N4FRXD7n4
-h82XlHrV4aycDVpfFoUx28Bivlizj4uB2fkJWe52MoQQxYWEiLwbClhlrZFvWoc9
-5TVuCBO+qRR5na5fOsYz5eHgpF36Fa8a2Q1vqrVQ8+S4fgAMvDtJ15M8dP87mzKV
-yA0pMNbT5Rz6CaDo1WSpzTzFjogI/XMN1tEDf7Xqq6YbtiHmtd+eHz9UBoyYZAkC
-+iq/OO6bvbIBdFm9S1kj
-=ijDS
------END PGP SIGNATURE-----
-
---mSxgbZZZvrAyzONB--
+-- 
+Regards,
+Nishanth Menon
