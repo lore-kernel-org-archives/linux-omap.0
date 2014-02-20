@@ -1,41 +1,70 @@
-From: Jenny Tc <jenny.tc@intel.com>
-Subject: Re: [PATCH 3/4] power_supply: Introduce PSE compliant algorithm
-Date: Thu, 20 Feb 2014 10:46:55 +0530
-Message-ID: <20140220051655.GB2498@jenny-desktop>
-References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
- <1391490780-6141-4-git-send-email-jenny.tc@intel.com>
- <20140204113640.GD2450@amd.pavel.ucw.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jenny TC <jenny.tc@intel.com>
+Subject: [PATCH v6 0/4] power_supply: Introduce power supply charging driver
+Date: Thu, 20 Feb 2014 11:23:56 +0530
+Message-ID: <1392875640-29230-1-git-send-email-jenny.tc@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140204113640.GD2450@amd.pavel.ucw.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Jenny TC <jenny.tc@intel.com>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Feb 04, 2014 at 12:36:40PM +0100, Pavel Machek wrote:
-> > --- a/drivers/power/Kconfig
-> > +++ b/drivers/power/Kconfig
-> > @@ -22,6 +22,19 @@ config POWER_SUPPLY_CHARGER
-> >  	  drivers to keep the charging logic outside and the charger driver
-> >  	  just need to abstract the charger hardware.
-> >  
-> > +config POWER_SUPPLY_CHARGING_ALGO_PSE
-> > +	bool "PSE compliant charging algorithm"
-> > +	help
-> > +	  Say Y here to select Product Safety Engineering (PSE) compliant
-> > +	  charging algorithm. As per PSE standard the battery characteristics
-> > +	  and thereby the charging rates can vary on different temperature
-> > +	  zones. This config will enable PSE compliant charging algorithm with
-> > +	  maintenance charging support. At runtime the algorithm will be
-> > +	  selected by the psy charger driver based on the type of the battery
-> > +	  charging profile.
-> 
-> Information where to expect PSE compliant chargers would be nice.
+v1: introduced feature as a framework within power supply class driver with
+	separate files for battid framework and charging framework
+v2: fixed review comments, moved macros and inline functions to power_supply.h
+v3: moved the feature as a separate driver, combined battid framework and
+	charging framework inside the power supply charging driver. Moved
+	charger specific properties to power_supply_charger.h and plugged the
+	driver with power supply subsystem using power_supply_notifier
+	introduced in my previous patch. Also a sample charger chip driver
+	(bq24261) patch added to give more idea on the psy charging driver
+	usage
+v4: Fixed review comments, no major design changes.
+v5: Fixed makefile inconsistencies, removed unused pdata callbacks
+v6: Fixed nested loops, commenting style
 
-This algorithm can be used with non PSE compliant chargers also. This is a SW
-based charging algorithm.
+The Power Supply charging driver connects multiple subsystems
+to do charging in a generic way. The subsystems involves power_supply,
+thermal and battery communication subsystems (1wire).With this the charging is
+handled in a generic way.
 
--Jenny
+The driver makes use of different new features - Battery Identification
+interfaces, pluggable charging algorithms, charger cable arbitrations etc.
+The patch also introduces generic interface for charger cable notifications.
+Charger cable events and capabilities can be notified using the generic
+power_supply_notifier chain.
+
+Overall this driver removes the charging logic out of the charger chip driver
+and the charger chip driver can just listen to the request from the power
+supply charging driver to set the charger properties. This can be implemented
+by exposing get_property and set property callbacks.
+
+Jenny TC (4):
+  power_supply: Add inlmt,iterm, min/max temp props
+  power_supply: Introduce generic psy charging driver
+  power_supply: Introduce PSE compliant algorithm
+  power_supply: bq24261 charger driver
+
+ Documentation/power/power_supply_charger.txt |  353 +++++++
+ Documentation/power/power_supply_class.txt   |    6 +
+ drivers/power/Kconfig                        |   31 +
+ drivers/power/Makefile                       |    3 +
+ drivers/power/bq24261-charger.c              | 1350 ++++++++++++++++++++++++++
+ drivers/power/charging_algo_pse.c            |  204 ++++
+ drivers/power/power_supply_charger.c         | 1186 ++++++++++++++++++++++
+ drivers/power/power_supply_charger.h         |  218 +++++
+ drivers/power/power_supply_core.c            |    3 +
+ drivers/power/power_supply_sysfs.c           |    4 +
+ include/linux/power/bq24261-charger.h        |   25 +
+ include/linux/power/power_supply_charger.h   |  235 +++++
+ include/linux/power_supply.h                 |  164 ++++
+ 13 files changed, 3782 insertions(+)
+ create mode 100644 Documentation/power/power_supply_charger.txt
+ create mode 100644 drivers/power/bq24261-charger.c
+ create mode 100644 drivers/power/charging_algo_pse.c
+ create mode 100644 drivers/power/power_supply_charger.c
+ create mode 100644 drivers/power/power_supply_charger.h
+ create mode 100644 include/linux/power/bq24261-charger.h
+ create mode 100644 include/linux/power/power_supply_charger.h
+
+-- 
+1.7.9.5
