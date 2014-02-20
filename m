@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v8 08/14] ARM: dts: omap4: Update omap-usb-host node
-Date: Thu, 20 Feb 2014 13:40:03 +0200
-Message-ID: <1392896409-5101-9-git-send-email-rogerq@ti.com>
+Subject: [PATCH v8 09/14] ARM: dts: omap5: Update omap-usb-host node
+Date: Thu, 20 Feb 2014 13:40:04 +0200
+Message-ID: <1392896409-5101-10-git-send-email-rogerq@ti.com>
 References: <1392896409-5101-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,18 +17,18 @@ and external reference clocks. Provide these clocks.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi | 6 ++++++
+ arch/arm/boot/dts/omap5.dtsi | 6 ++++++
  1 file changed, 6 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index d3f8a6e..39a05ce 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -697,6 +697,12 @@
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index a72813a..d4dae48 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -775,6 +775,12 @@
  			#address-cells = <1>;
  			#size-cells = <1>;
  			ranges;
-+			clocks = <&init_60m_fclk>,
++			clocks = <&l3init_60m_fclk>,
 +				 <&xclk60mhsp1_ck>,
 +				 <&xclk60mhsp2_ck>;
 +			clock-names = "refclk_60m_int",
