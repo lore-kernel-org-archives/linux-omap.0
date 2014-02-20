@@ -1,47 +1,102 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 0/2] usb: musb: host: fixes for 3.14-rc
-Date: Thu, 20 Feb 2014 12:59:38 +0200
-Message-ID: <5305E01A.3020905@ti.com>
-References: <1391520349-26192-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v8 00/14] USB Host support for OMAP5 uEVM
+Date: Thu, 20 Feb 2014 13:39:55 +0200
+Message-ID: <1392896409-5101-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1391520349-26192-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
+Cc: nm@ti.com, devicetree@vger.kernel.org, khilman@linaro.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+Hi Benoit, Tony & Lee,
 
-Hope you had a good vacation :).
+This patchset brings up USB Host ports and Ethernet port on
+the OMAP5 uEVM board.
 
-Could you please take a look at these two fixes? Thanks.
+It also does some cleanup with respect to DT clock binding
+for the mfd/omap-usb-host driver.
+
+Please queue these for -next.
+
+Tested on:
+ - OMAP5 uEVM
+ - Pandaboard ES Rev. B1
+ - Beagleboard-XM Rev C2 (DT + Legacy)
+ - Beagleboard Rev C4 (DT + Legacy)
+
+Changelog:
+
+v8:
+- Addressed review comments and split patch
+  "mfd: omap-usb-host: Get clocks based on hardware revision"
+- Removed unnecessary usb host dummy clocks on OMAP3
+- Removed unnecessary clock alias "ehci_logic_fck" for OMAP3
+- Rebased on 3.14-rc3
+
+v7:
+- Rebased on 3.14-rc2
+- Removed incompatible ids from DT files and examples
+
+v6:
+- Initialized clocks to -ENODEV and split patch 3.
+
+v5:
+- Expose all clocks in the DT binding document for mfd:omap-usb-host
+and mfd:omap-usb-tll
+
+v4:
+- Updated DT binding document for clock binding
+
+v3:
+- Rebased on top of 3.13-rc7
 
 cheers,
 -roger
 
-On 02/04/2014 03:25 PM, Roger Quadros wrote:
-> Hi Greg,
-> 
-> Patch 1 fixes SuperSpeed hub enumeration on beaglebone.
-> Patch 2 fixes remote-wakeup resume on beaglebone.
-> 
-> Felipe has Acked the 1st patch but still needs to Ack the 2nd one.
-> 
-> Patches are based on 3.14-rc1
-> 
-> cheers,
-> -roger
-> 
-> Ajay Kumar Gupta (1):
->   usb: musb: host: Fix SuperSpeed hub enumeration
-> 
-> Roger Quadros (1):
->   usb: musb: core: Fix remote-wakeup resume
-> 
->  drivers/usb/musb/musb_core.c | 10 +++++++++-
->  drivers/usb/musb/musb_host.c |  3 +++
->  2 files changed, 12 insertions(+), 1 deletion(-)
-> 
+---
+Roger Quadros (14):
+  mfd: omap-usb-host: Get clocks based on hardware revision
+  mfd: omap-usb-host: Always fail on clk_get() error
+  mfd: omap-usb-host: Use clock names as per function for reference
+    clocks
+  mfd: omap-usb-host: Update DT clock binding information
+  mfd: omap-usb-tll: Update DT clock binding information
+  CLK: TI: OMAP3: Get rid of unused USB Host dummy clocks
+  ARM: OMAP3: hwmod data: Remove optional clock from usb_host_hs module
+  ARM: dts: omap4: Update omap-usb-host node
+  ARM: dts: omap5: Update omap-usb-host node
+  ARM: dts: omap4-panda: Provide USB PHY clock
+  ARM: dts: omap5-uevm: Provide USB PHY clock
+  ARM: OMAP2+: Remove legacy_init_ehci_clk()
+  ARM: dts: OMAP2+: Get rid of incompatible ids for USB host nodes
+  usb: omap: dts: Update DT binding example usage
+
+ .../devicetree/bindings/mfd/omap-usb-host.txt      |  23 ++++
+ .../devicetree/bindings/mfd/omap-usb-tll.txt       |  10 ++
+ .../devicetree/bindings/usb/ehci-omap.txt          |   2 +-
+ .../devicetree/bindings/usb/ohci-omap3.txt         |   2 +-
+ arch/arm/boot/dts/omap3.dtsi                       |   4 +-
+ arch/arm/boot/dts/omap4-panda-common.dtsi          |   8 +-
+ arch/arm/boot/dts/omap4.dtsi                       |  10 +-
+ arch/arm/boot/dts/omap5-uevm.dts                   |   8 +-
+ arch/arm/boot/dts/omap5.dtsi                       |  10 +-
+ arch/arm/mach-omap2/cclock3xxx_data.c              |   4 -
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   6 --
+ arch/arm/mach-omap2/pdata-quirks.c                 |  16 ---
+ drivers/clk/ti/clk-3xxx.c                          |   4 -
+ drivers/mfd/omap-usb-host.c                        | 116 ++++++++++++++-------
+ 14 files changed, 135 insertions(+), 88 deletions(-)
+
+-- 
+1.8.3.2
