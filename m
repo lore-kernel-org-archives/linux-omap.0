@@ -1,50 +1,70 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v8 07/14] ARM: OMAP3: hwmod data: Remove optional clock from usb_host_hs module
-Date: Thu, 20 Feb 2014 13:40:02 +0200
-Message-ID: <1392896409-5101-8-git-send-email-rogerq@ti.com>
+Subject: [PATCH v8 03/14] mfd: omap-usb-host: Use clock names as per function
+ for reference clocks
+Date: Thu, 20 Feb 2014 13:39:58 +0200
+Message-ID: <1392896409-5101-4-git-send-email-rogerq@ti.com>
 References: <1392896409-5101-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1392896409-5101-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
-Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: nm@ti.com, devicetree@vger.kernel.org, khilman@linaro.org, Samuel Ortiz <sameo@linux.intel.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The USB Host driver manages this clock so no need to have it in
-the hwmod data. We also get rid of the 'ehci_logic_fck' alias
-for 'usbhost_120m_fck' clock.
+Use a meaningful name for the reference clocks so that it indicates the function.
 
-CC: Paul Walmsley <paul@pwsan.com>
+CC: Lee Jones <lee.jones@linaro.org>
+CC: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 6 ------
- 1 file changed, 6 deletions(-)
+ drivers/mfd/omap-usb-host.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 4c3b1e6..ad87f46 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1955,10 +1955,6 @@ static struct omap_hwmod_class omap3xxx_usb_host_hs_hwmod_class = {
- 	.sysc = &omap3xxx_usb_host_hs_sysc,
- };
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 865c276..651e249 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -718,24 +718,24 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+ 		goto err_mem;
+ 	}
  
--static struct omap_hwmod_opt_clk omap3xxx_usb_host_hs_opt_clks[] = {
--	  { .role = "ehci_logic_fck", .clk = "usbhost_120m_fck", },
--};
--
- static struct omap_hwmod_irq_info omap3xxx_usb_host_hs_irqs[] = {
- 	{ .name = "ohci-irq", .irq = 76 + OMAP_INTC_START, },
- 	{ .name = "ehci-irq", .irq = 77 + OMAP_INTC_START, },
-@@ -1981,8 +1977,6 @@ static struct omap_hwmod omap3xxx_usb_host_hs_hwmod = {
- 			.idlest_stdby_bit = OMAP3430ES2_ST_USBHOST_STDBY_SHIFT,
- 		},
- 	},
--	.opt_clks	= omap3xxx_usb_host_hs_opt_clks,
--	.opt_clks_cnt	= ARRAY_SIZE(omap3xxx_usb_host_hs_opt_clks),
+-	omap->xclk60mhsp1_ck = devm_clk_get(dev, "xclk60mhsp1_ck");
++	omap->xclk60mhsp1_ck = devm_clk_get(dev, "refclk_60m_ext_p1");
+ 	if (IS_ERR(omap->xclk60mhsp1_ck)) {
+ 		ret = PTR_ERR(omap->xclk60mhsp1_ck);
+-		dev_err(dev, "xclk60mhsp1_ck failed error:%d\n", ret);
++		dev_err(dev, "refclk_60m_ext_p1 failed error:%d\n", ret);
+ 		goto err_mem;
+ 	}
  
- 	/*
- 	 * Errata: USBHOST Configured In Smart-Idle Can Lead To a Deadlock
+-	omap->xclk60mhsp2_ck = devm_clk_get(dev, "xclk60mhsp2_ck");
++	omap->xclk60mhsp2_ck = devm_clk_get(dev, "refclk_60m_ext_p2");
+ 	if (IS_ERR(omap->xclk60mhsp2_ck)) {
+ 		ret = PTR_ERR(omap->xclk60mhsp2_ck);
+-		dev_err(dev, "xclk60mhsp2_ck failed error:%d\n", ret);
++		dev_err(dev, "refclk_60m_ext_p2 failed error:%d\n", ret);
+ 		goto err_mem;
+ 	}
+ 
+-	omap->init_60m_fclk = devm_clk_get(dev, "init_60m_fclk");
++	omap->init_60m_fclk = devm_clk_get(dev, "refclk_60m_int");
+ 	if (IS_ERR(omap->init_60m_fclk)) {
+ 		ret = PTR_ERR(omap->init_60m_fclk);
+-		dev_err(dev, "init_60m_fclk failed error:%d\n", ret);
++		dev_err(dev, "refclk_60m_int failed error:%d\n", ret);
+ 		goto err_mem;
+ 	}
+ 
 -- 
 1.8.3.2
