@@ -1,57 +1,51 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v8 05/14] mfd: omap-usb-tll: Update DT clock binding
- information
-Date: Thu, 20 Feb 2014 13:40:00 +0200
-Message-ID: <1392896409-5101-6-git-send-email-rogerq@ti.com>
+Subject: [PATCH v8 14/14] usb: omap: dts: Update DT binding example usage
+Date: Thu, 20 Feb 2014 13:40:09 +0200
+Message-ID: <1392896409-5101-15-git-send-email-rogerq@ti.com>
 References: <1392896409-5101-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1392896409-5101-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
-Cc: nm@ti.com, devicetree@vger.kernel.org, khilman@linaro.org, Samuel Ortiz <sameo@linux.intel.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Alan Stern <stern@rowland.harvard.edu>
 List-Id: linux-omap@vger.kernel.org
 
-The omap-usb-tll driver needs one clock for each TLL channel.
-Add this information to the DT binding document.
+Remove non-compatible id from examples.
 
-CC: Lee Jones <lee.jones@linaro.org>
-CC: Samuel Ortiz <sameo@linux.intel.com>
+CC: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- Documentation/devicetree/bindings/mfd/omap-usb-tll.txt | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ Documentation/devicetree/bindings/usb/ehci-omap.txt  | 2 +-
+ Documentation/devicetree/bindings/usb/ohci-omap3.txt | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt b/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
-index 62fe697..c58d704 100644
---- a/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
-+++ b/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
-@@ -7,6 +7,16 @@ Required properties:
- - interrupts : should contain the TLL module's interrupt
- - ti,hwmod : must contain "usb_tll_hs"
+diff --git a/Documentation/devicetree/bindings/usb/ehci-omap.txt b/Documentation/devicetree/bindings/usb/ehci-omap.txt
+index 485a9a1..3dc231c 100644
+--- a/Documentation/devicetree/bindings/usb/ehci-omap.txt
++++ b/Documentation/devicetree/bindings/usb/ehci-omap.txt
+@@ -21,7 +21,7 @@ Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+ Example for OMAP4:
  
-+Optional properties:
-+
-+- clocks: a list of phandles and clock-specifier pairs, one for each entry in
-+  clock-names.
-+
-+- clock-names: should include:
-+  * "usb_tll_hs_usb_ch0_clk" - USB TLL channel 0 clock
-+  * "usb_tll_hs_usb_ch1_clk" - USB TLL channel 1 clock
-+  * "usb_tll_hs_usb_ch2_clk" - USB TLL channel 2 clock
-+
- Example:
+ usbhsehci: ehci@4a064c00 {
+-	compatible = "ti,ehci-omap", "usb-ehci";
++	compatible = "ti,ehci-omap";
+ 	reg = <0x4a064c00 0x400>;
+ 	interrupts = <0 77 0x4>;
+ };
+diff --git a/Documentation/devicetree/bindings/usb/ohci-omap3.txt b/Documentation/devicetree/bindings/usb/ohci-omap3.txt
+index 14ab428..ce8c47cff 100644
+--- a/Documentation/devicetree/bindings/usb/ohci-omap3.txt
++++ b/Documentation/devicetree/bindings/usb/ohci-omap3.txt
+@@ -9,7 +9,7 @@ Required properties:
+ Example for OMAP4:
  
- 	usbhstll: usbhstll@4a062000 {
+ usbhsohci: ohci@4a064800 {
+-	compatible = "ti,ohci-omap3", "usb-ohci";
++	compatible = "ti,ohci-omap3";
+ 	reg = <0x4a064800 0x400>;
+ 	interrupts = <0 76 0x4>;
+ };
 -- 
 1.8.3.2
