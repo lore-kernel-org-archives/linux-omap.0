@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v8 04/14] mfd: omap-usb-host: Update DT clock binding information
-Date: Thu, 20 Feb 2014 13:39:59 +0200
-Message-ID: <1392896409-5101-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH v8 10/14] ARM: dts: omap4-panda: Provide USB PHY clock
+Date: Thu, 20 Feb 2014 13:40:05 +0200
+Message-ID: <1392896409-5101-11-git-send-email-rogerq@ti.com>
 References: <1392896409-5101-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,52 +9,35 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1392896409-5101-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
-Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The omap-usb-host driver expects certained named clocks.
-Add this information to the DT binding document.
+The USB PHY gets its clock from AUXCLK3. Provide this
+information.
 
-CC: Lee Jones <lee.jones@linaro.org>
-CC: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- .../devicetree/bindings/mfd/omap-usb-host.txt      | 23 ++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ arch/arm/boot/dts/omap4-panda-common.dtsi | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-index b381fa6..4721b2d 100644
---- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-+++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
-@@ -32,6 +32,29 @@ Optional properties:
- - single-ulpi-bypass: Must be present if the controller contains a single
-   ULPI bypass control bit. e.g. OMAP3 silicon <= ES2.1
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index 88c6a05..50b72966 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -83,12 +83,8 @@
+ 		compatible = "usb-nop-xceiv";
+ 		reset-gpios = <&gpio2 30 GPIO_ACTIVE_LOW>;   /* gpio_62 */
+ 		vcc-supply = <&hsusb1_power>;
+-	/**
+-	 * FIXME:
+-	 * put the right clock phandle here when available
+-	 *	clocks = <&auxclk3>;
+-	 *	clock-names = "main_clk";
+-	 */
++		clocks = <&auxclk3_ck>;
++		clock-names = "main_clk";
+ 		clock-frequency = <19200000>;
+ 	};
  
-+- clocks: a list of phandles and clock-specifier pairs, one for each entry in
-+  clock-names.
-+
-+- clock-names: should include:
-+  For OMAP3
-+  * "usbhost_120m_fck" - 120MHz Functional clock.
-+
-+  For OMAP4+
-+  * "refclk_60m_int" - 60MHz internal reference clock for UTMI clock mux
-+  * "refclk_60m_ext_p1" - 60MHz external ref. clock for Port 1's UTMI clock mux.
-+  * "refclk_60m_ext_p2" - 60MHz external ref. clock for Port 2's UTMI clock mux
-+  * "utmi_p1_gfclk" - Port 1 UTMI clock mux.
-+  * "utmi_p2_gfclk" - Port 2 UTMI clock mux.
-+  * "usb_host_hs_utmi_p1_clk" - Port 1 UTMI clock gate.
-+  * "usb_host_hs_utmi_p2_clk" - Port 2 UTMI clock gate.
-+  * "usb_host_hs_utmi_p3_clk" - Port 3 UTMI clock gate.
-+  * "usb_host_hs_hsic480m_p1_clk" - Port 1 480MHz HSIC clock gate.
-+  * "usb_host_hs_hsic480m_p2_clk" - Port 2 480MHz HSIC clock gate.
-+  * "usb_host_hs_hsic480m_p3_clk" - Port 3 480MHz HSIC clock gate.
-+  * "usb_host_hs_hsic60m_p1_clk" - Port 1 60MHz HSIC clock gate.
-+  * "usb_host_hs_hsic60m_p2_clk" - Port 2 60MHz HSIC clock gate.
-+  * "usb_host_hs_hsic60m_p3_clk" - Port 3 60MHz HSIC clock gate.
-+
- Required properties if child node exists:
- 
- - #address-cells: Must be 1
 -- 
 1.8.3.2
