@@ -1,96 +1,65 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v8 13/14] ARM: dts: OMAP2+: Get rid of incompatible ids for USB host nodes
-Date: Thu, 20 Feb 2014 13:40:08 +0200
-Message-ID: <1392896409-5101-14-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v8 12/14] ARM: OMAP2+: Remove legacy_init_ehci_clk()
+Date: Thu, 20 Feb 2014 13:40:07 +0200
+Message-ID: <1392896409-5101-13-git-send-email-rogerq@ti.com>
 References: <1392896409-5101-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1392896409-5101-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1392896409-5101-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
+Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP EHCI and OHCI controllers are not compatible with drivers
-other than "ti,ehci-omap" and "ti,ohci-omap3" respectively, so get
-rid of the incompatible ids.
+The necessary clock phandle for the EHCI clock is now provided
+via device tree so we no longer need this legacy method.
 
-CC: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap3.dtsi | 4 ++--
- arch/arm/boot/dts/omap4.dtsi | 4 ++--
- arch/arm/boot/dts/omap5.dtsi | 4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/pdata-quirks.c | 16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index a5fc83b..8e7de9e 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -634,14 +634,14 @@
- 			ranges;
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 3d5b24d..f1ecd86 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -31,20 +31,6 @@ struct pdata_init {
+ struct of_dev_auxdata omap_auxdata_lookup[];
+ static struct twl4030_gpio_platform_data twl_gpio_auxdata;
  
- 			usbhsohci: ohci@48064400 {
--				compatible = "ti,ohci-omap3", "usb-ohci";
-+				compatible = "ti,ohci-omap3";
- 				reg = <0x48064400 0x400>;
- 				interrupt-parent = <&intc>;
- 				interrupts = <76>;
- 			};
+-/*
+- * Create alias for USB host PHY clock.
+- * Remove this when clock phandle can be provided via DT
+- */
+-static void __init __used legacy_init_ehci_clk(char *clkname)
+-{
+-	int ret;
+-
+-	ret = clk_add_alias("main_clk", NULL, clkname, NULL);
+-	if (ret)
+-		pr_err("%s:Failed to add main_clk alias to %s :%d\n",
+-		       __func__, clkname, ret);
+-}
+-
+ #if IS_ENABLED(CONFIG_WL12XX)
  
- 			usbhsehci: ehci@48064800 {
--				compatible = "ti,ehci-omap", "usb-ehci";
-+				compatible = "ti,ehci-omap";
- 				reg = <0x48064800 0x400>;
- 				interrupt-parent = <&intc>;
- 				interrupts = <77>;
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 39a05ce..ff1b057 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -705,14 +705,14 @@
- 				      "refclk_60m_ext_p2";
+ static struct wl12xx_platform_data wl12xx __initdata;
+@@ -182,7 +168,6 @@ static void __init omap4_sdp_legacy_init(void)
+ static void __init omap4_panda_legacy_init(void)
+ {
+ 	omap4_panda_display_init_of();
+-	legacy_init_ehci_clk("auxclk3_ck");
+ 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
+ }
+ #endif
+@@ -190,7 +175,6 @@ static void __init omap4_panda_legacy_init(void)
+ #ifdef CONFIG_SOC_OMAP5
+ static void __init omap5_uevm_legacy_init(void)
+ {
+-	legacy_init_ehci_clk("auxclk1_ck");
+ }
+ #endif
  
- 			usbhsohci: ohci@4a064800 {
--				compatible = "ti,ohci-omap3", "usb-ohci";
-+				compatible = "ti,ohci-omap3";
- 				reg = <0x4a064800 0x400>;
- 				interrupt-parent = <&gic>;
- 				interrupts = <GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
- 			};
- 
- 			usbhsehci: ehci@4a064c00 {
--				compatible = "ti,ehci-omap", "usb-ehci";
-+				compatible = "ti,ehci-omap";
- 				reg = <0x4a064c00 0x400>;
- 				interrupt-parent = <&gic>;
- 				interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index d4dae48..f65aa65 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -783,14 +783,14 @@
- 				      "refclk_60m_ext_p2";
- 
- 			usbhsohci: ohci@4a064800 {
--				compatible = "ti,ohci-omap3", "usb-ohci";
-+				compatible = "ti,ohci-omap3";
- 				reg = <0x4a064800 0x400>;
- 				interrupt-parent = <&gic>;
- 				interrupts = <GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
- 			};
- 
- 			usbhsehci: ehci@4a064c00 {
--				compatible = "ti,ehci-omap", "usb-ehci";
-+				compatible = "ti,ehci-omap";
- 				reg = <0x4a064c00 0x400>;
- 				interrupt-parent = <&gic>;
- 				interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
 -- 
 1.8.3.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
