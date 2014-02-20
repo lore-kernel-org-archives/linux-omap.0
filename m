@@ -1,136 +1,48 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 2/2] ARM: dts: OMAP3+: add clock nodes for CPU
-Date: Thu, 20 Feb 2014 18:57:12 +0200
-Message-ID: <530633E8.3000608@ti.com>
-References: <1391019557-22313-1-git-send-email-nm@ti.com> <1391019557-22313-3-git-send-email-nm@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: fix dpll round_rate() to actually
+ round
+Date: Thu, 20 Feb 2014 19:30:08 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1402201927280.10791@utopia.booyaka.com>
+References: <1389944699-27962-1-git-send-email-tomi.valkeinen@ti.com> <1389944699-27962-3-git-send-email-tomi.valkeinen@ti.com> <alpine.DEB.2.02.1402191928480.8777@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1391019557-22313-3-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:55002 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752966AbaBTTaJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Feb 2014 14:30:09 -0500
+In-Reply-To: <alpine.DEB.2.02.1402191928480.8777@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
 
-On 01/29/2014 08:19 PM, Nishanth Menon wrote:
-> OMAP34xx, AM3517 and OMAP36xx platforms use dpll1 clock.
->
-> OMAP443x, OMAP446x, OMAP447x, OMAP5, DRA7, AM43xx platforms use
-> dpll_mpu clock.
->
-> Latency used is the generic latency defined in omap-cpufreq
-> driver.
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+On Wed, 19 Feb 2014, Paul Walmsley wrote:
 
-Looks good to me.
+> On Fri, 17 Jan 2014, Tomi Valkeinen wrote:
+> 
+> > This patch adds a simple method of rounding: during the iteration, the 
+> > code keeps track of the closest rate match. If no exact match is found, 
+> > the closest is returned.
+> 
+> So that's one possible rounding policy; maybe it works fine for a display 
+> interface PLL, at least for some values of "closest rate".  But another 
+> might be "only allow a selection from a set of pre-determined rates 
+> characterized by the silicon validation team".  Or another rounding 
+> function might need to select a more distant rate that minimizes jitter, 
+> EMI, or power consumption.  
 
-Acked-by: Tero Kristo <t-kristo@ti.com>
+Thought about this some more.  Do you only need this for the DSS PLL, or 
+do you need it for one of the core OMAP PLLs?
 
-> ---
->   arch/arm/boot/dts/am33xx.dtsi |    4 ++++
->   arch/arm/boot/dts/am4372.dtsi |    5 +++++
->   arch/arm/boot/dts/dra7.dtsi   |    5 +++++
->   arch/arm/boot/dts/omap3.dtsi  |    5 +++++
->   arch/arm/boot/dts/omap4.dtsi  |    5 +++++
->   arch/arm/boot/dts/omap5.dtsi  |    6 ++++++
->   6 files changed, 30 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 6d95d3d..4bbba26 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -58,6 +58,10 @@
->   				275000  1125000
->   			>;
->   			voltage-tolerance = <2>; /* 2 percentage */
-> +
-> +			clocks = <&dpll_mpu_ck>;
-> +			clock-names = "cpu";
-> +
->   			clock-latency = <300000>; /* From omap-cpufreq driver */
->   		};
->   	};
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> index c6bd4d9..33798d9 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
-> @@ -33,6 +33,11 @@
->   			compatible = "arm,cortex-a9";
->   			device_type = "cpu";
->   			reg = <0>;
-> +
-> +			clocks = <&dpll_mpu_ck>;
-> +			clock-names = "cpu";
-> +
-> +			clock-latency = <300000>; /* From omap-cpufreq driver */
->   		};
->   	};
->
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index 1fd75aa..ce591e5 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -47,6 +47,11 @@
->   				1000000	1060000
->   				1176000	1160000
->   				>;
-> +
-> +			clocks = <&dpll_mpu_ck>;
-> +			clock-names = "cpu";
-> +
-> +			clock-latency = <300000>; /* From omap-cpufreq driver */
->   		};
->   		cpu@1 {
->   			device_type = "cpu";
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index a5fc83b..01f2b3b 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -35,6 +35,11 @@
->   			compatible = "arm,cortex-a8";
->   			device_type = "cpu";
->   			reg = <0x0>;
-> +
-> +			clocks = <&dpll1_ck>;
-> +			clock-names = "cpu";
-> +
-> +			clock-latency = <300000>; /* From omap-cpufreq driver */
->   		};
->   	};
->
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index d3f8a6e..ce87996 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -36,6 +36,11 @@
->   			device_type = "cpu";
->   			next-level-cache = <&L2>;
->   			reg = <0x0>;
-> +
-> +			clocks = <&dpll_mpu_ck>;
-> +			clock-names = "cpu";
-> +
-> +			clock-latency = <300000>; /* From omap-cpufreq driver */
->   		};
->   		cpu@1 {
->   			compatible = "arm,cortex-a9";
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index a72813a..8bb4134 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -49,6 +49,12 @@
->   				1000000 1060000
->   				1500000 1250000
->   			>;
-> +
-> +			clocks = <&dpll_mpu_ck>;
-> +			clock-names = "cpu";
-> +
-> +			clock-latency = <300000>; /* From omap-cpufreq driver */
-> +
->   			/* cooling options */
->   			cooling-min-level = <0>;
->   			cooling-max-level = <2>;
->
+If the former, then how about modifying your patch to create a separate 
+round_rate function that's only used for the DSS PLL that implements the 
+behavior that you want?
+
+That would eliminate any risk of impacting other users on the system.  And 
+would also allow this change to get into the codebase much faster, since 
+there's no need for clk API changes, etc.
+
+
+
+- Paul
