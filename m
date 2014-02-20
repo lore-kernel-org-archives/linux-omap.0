@@ -1,48 +1,141 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: fix dpll round_rate() to actually
- round
-Date: Thu, 20 Feb 2014 19:30:08 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1402201927280.10791@utopia.booyaka.com>
-References: <1389944699-27962-1-git-send-email-tomi.valkeinen@ti.com> <1389944699-27962-3-git-send-email-tomi.valkeinen@ti.com> <alpine.DEB.2.02.1402191928480.8777@utopia.booyaka.com>
+From: Chris Kimber <chris.kimber@enatel.net>
+Subject: USB lockups on BeagleBone/AM335x
+Date: Thu, 20 Feb 2014 22:39:00 +0000
+Message-ID: <BCBA70ECF3E0284F86C53FAF9ED7FCA1426C07@SRVEXCH01.enatel.local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:55002 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752966AbaBTTaJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Feb 2014 14:30:09 -0500
-In-Reply-To: <alpine.DEB.2.02.1402191928480.8777@utopia.booyaka.com>
+Received: from mail.enatel.co.nz ([131.203.63.198]:1200 "EHLO
+	mail.enatel.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751522AbaBTWoZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Feb 2014 17:44:25 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 19 Feb 2014, Paul Walmsley wrote:
+Hi,
 
-> On Fri, 17 Jan 2014, Tomi Valkeinen wrote:
-> 
-> > This patch adds a simple method of rounding: during the iteration, the 
-> > code keeps track of the closest rate match. If no exact match is found, 
-> > the closest is returned.
-> 
-> So that's one possible rounding policy; maybe it works fine for a display 
-> interface PLL, at least for some values of "closest rate".  But another 
-> might be "only allow a selection from a set of pre-determined rates 
-> characterized by the silicon validation team".  Or another rounding 
-> function might need to select a more distant rate that minimizes jitter, 
-> EMI, or power consumption.  
+I've been experiencing USB issues with a BeagleBone white rev A5.  I've not seen any symptoms with the TI 3.2 kernel but I need to get access to some of the later drivers and didn't fancy back porting... 
 
-Thought about this some more.  Do you only need this for the DSS PLL, or 
-do you need it for one of the core OMAP PLLs?
+So I've tried 3.8, 3,12 & 3.13 kernels with the patches from https://github.com/beagleboard/kernel and they seem to be able to talk to a USB memory stick but when making use of a cp210x and ftdi_sio based USB to UART adaptor the controller hangs.
 
-If the former, then how about modifying your patch to create a separate 
-round_rate function that's only used for the DSS PLL that implements the 
-behavior that you want?
+I've also tried linux-next, linux-usb and now linux-omap3 and they seem to be more unstable and even communicating with a USB stick seems flaky.
 
-That would eliminate any risk of impacting other users on the system.  And 
-would also allow this change to get into the codebase much faster, since 
-there's no need for clk API changes, etc.
+I've got a test app that just writes "TESTING <count>\n" to the tty for ever.
 
+Here's some dmesg from linux-omap3 (1fbb354). I've added -DDEBUG to drivers/usb/{musb, serial}.
 
+OK:
+[   16.573781] tty ttyUSB0: serial_write - 11 byte(s)
+[   16.573802] cp210x ttyUSB0: usb_serial_generic_write_start - length = 11, data = 54 45 53 54 49 4e 47 20 34 32 0a
+[   16.573825] musb-hdrc musb-hdrc.1.auto: qh ce474b00 periodic slot 10
+[   16.573846] musb-hdrc musb-hdrc.1.auto: qh ce474b00 urb ce489700 dev2 ep1out-bulk, hw_ep 10, ce44f700/11
+[   16.573866] musb-hdrc musb-hdrc.1.auto: --> hw10 urb ce489700 spd2 dev2 ep1out h_addr00 h_port00 bytes 11
+[   16.573887] musb-hdrc musb-hdrc.1.auto: configure ep10/a4 packet_sz=64, mode=0, dma_addr=0x8e44f700, len=11 is_tx=1
+[   16.573905] musb-hdrc musb-hdrc.1.auto: Start TX10 dma
+[   16.573928] musb-hdrc musb-hdrc.1.auto: DMA transfer done on hw_ep=10 bytes=11/11
+[   16.573945] musb-hdrc musb-hdrc.1.auto: OUT/TX10 end, csr 3500, dma
+[   16.573986] musb-hdrc musb-hdrc.1.auto: complete ce489700 usb_serial_generic_write_bulk_callback+0x0/0xd4 [usbserial] (0), dev2 ep1out, 11/11
 
-- Paul
+FAIL:
+[   16.574085] tty ttyUSB0: serial_write - 11 byte(s)
+[   16.574106] cp210x ttyUSB0: usb_serial_generic_write_start - length = 11, data = 54 45 53 54 49 4e 47 20 34 33 0a
+[   16.574129] musb-hdrc musb-hdrc.1.auto: qh ce474b00 periodic slot 10
+[   16.574149] musb-hdrc musb-hdrc.1.auto: qh ce474b00 urb ce489700 dev2 ep1out-bulk, hw_ep 10, ce44f700/11
+[   16.574169] musb-hdrc musb-hdrc.1.auto: --> hw10 urb ce489700 spd2 dev2 ep1out h_addr00 h_port00 bytes 11
+[   16.574191] musb-hdrc musb-hdrc.1.auto: configure ep10/a4 packet_sz=64, mode=0, dma_addr=0x8e44f700, len=11 is_tx=1
+[   16.574208] musb-hdrc musb-hdrc.1.auto: Start TX10 dma
+[   16.574231] musb-hdrc musb-hdrc.1.auto: DMA transfer done on hw_ep=10 bytes=11/11
+[   16.574302] tty ttyUSB0: serial_write - 11 byte(s)
+[   16.574322] cp210x ttyUSB0: usb_serial_generic_write_start - length = 11, data = 54 45 53 54 49 4e 47 20 34 34 0a
+[   16.574381] tty ttyUSB0: serial_write - 11 byte(s)
+[   16.574452] tty ttyUSB0: serial_write - 11 byte(s)
+[   16.574508] tty ttyUSB0: serial_write - 11 byte(s)
+...
+[   16.930271] tty ttyUSB0: serial_write - 1 byte(s)
+
+Then my test app blocks.
+
+It looks like in the first fail case the DMA "succeeds", but the USB controller doesn't send the frame and consequently the TXPKTRDY bit in the csr register never gets cleared. Thus musb_is_tx_fifo_empty() always returns false and consequently falls into cppi41_recheck_tx_req() waiting for the queue to clear.  Eventually we must fill up some buffer and cause my sending app to block. 
+
+I've tried to force the FIFO to flush by setting the appropriate bits in the csr after a timeout and that doesn't seem to do anything.
+
+If I try and reboot the platform I get a punch of  warnings:
+
+/ # reboot
+The system is going down NOW!
+Sent SIGTERM to all processes
+[  990.007339] ------------[ cut here ]------------
+[  990.014193] WARNING: CPU: 0 PID: 100 at drivers/dma/cppi41.c:605 cppi41_dma_control+0x230/0x2a8()
+[  990.023567] Modules linked in: cp210x usbserial
+[  990.028383] CPU: 0 PID: 100 Comm: blast Not tainted 3.14.0-rc2+ #3
+[  990.034967] [<c00148d8>] (unwind_backtrace) from [<c00115cc>] (show_stack+0x10/0x14)
+[  990.043179] [<c00115cc>] (show_stack) from [<c073b784>] (dump_stack+0x68/0x84)
+[  990.050823] [<c073b784>] (dump_stack) from [<c003a4b0>] (warn_slowpath_common+0x64/0x88)
+[  990.059375] [<c003a4b0>] (warn_slowpath_common) from [<c003a4ec>] (warn_slowpath_null+0x18/0x1c)
+[  990.068656] [<c003a4ec>] (warn_slowpath_null) from [<c0434cf8>] (cppi41_dma_control+0x230/0x2a8)
+[  990.077948] [<c0434cf8>] (cppi41_dma_control) from [<c0543610>] (cppi41_dma_channel_abort+0x108/0x148)
+[  990.087801] [<c0543610>] (cppi41_dma_channel_abort) from [<c053e5c8>] (musb_cleanup_urb+0x40/0x100)
+[  990.097364] [<c053e5c8>] (musb_cleanup_urb) from [<c053e7a8>] (musb_urb_dequeue+0x120/0x154)
+[  990.106293] [<c053e7a8>] (musb_urb_dequeue) from [<c05240e0>] (unlink1+0xb4/0xc4)
+[  990.114206] [<c05240e0>] (unlink1) from [<c05254c8>] (usb_hcd_unlink_urb+0x60/0x80)
+[  990.122304] [<c05254c8>] (usb_hcd_unlink_urb) from [<c052637c>] (usb_kill_urb+0x50/0xc8)
+[  990.130917] [<c052637c>] (usb_kill_urb) from [<bf002c90>] (usb_serial_generic_close+0x20/0x64 [usbserial])
+[  990.141145] [<bf002c90>] (usb_serial_generic_close [usbserial]) from [<bf00fe88>] (cp210x_close+0xc/0x28 [cp210x])
+[  990.152094] [<bf00fe88>] (cp210x_close [cp210x]) from [<bf000024>] (serial_port_shutdown+0x24/0x28 [usbserial])
+[  990.162771] [<bf000024>] (serial_port_shutdown [usbserial]) from [<c044d484>] (tty_port_shutdown+0x6c/0x78)
+[  990.173071] [<c044d484>] (tty_port_shutdown) from [<c044dee8>] (tty_port_close+0x24/0x4c)
+[  990.181733] [<c044dee8>] (tty_port_close) from [<c0446120>] (tty_release+0x118/0x49c)
+[  990.190029] [<c0446120>] (tty_release) from [<c012c600>] (__fput+0xd4/0x1e4)
+[  990.197498] [<c012c600>] (__fput) from [<c0055974>] (task_work_run+0xb4/0xc8)
+[  990.205045] [<c0055974>] (task_work_run) from [<c003cae0>] (do_exit+0x3f8/0x948)
+[  990.212865] [<c003cae0>] (do_exit) from [<c003d0f4>] (do_group_exit+0x98/0xd4)
+[  990.220512] [<c003d0f4>] (do_group_exit) from [<c004a9c4>] (get_signal_to_deliver+0x510/0x58c)
+[  990.229616] [<c004a9c4>] (get_signal_to_deliver) from [<c0010a28>] (do_signal+0xa8/0x3b8)
+[  990.238260] [<c0010a28>] (do_signal) from [<c0011034>] (do_work_pending+0x54/0x9c)
+[  990.246264] [<c0011034>] (do_work_pending) from [<c000dea0>] (work_pending+0xc/0x20)
+[  990.254441] ---[ end trace 6bbc95d827ba3e8c ]---
+
+[  991.506236] ------------[ cut here ]------------
+[  991.511118] WARNING: CPU: 0 PID: 100 at drivers/usb/musb/musb_host.c:128 musb_h_tx_flush_fifo+0x78/0xc4()
+[  991.521219] Could not flush host TX10 fifo: csr: 2503
+[  991.526552] Modules linked in: cp210x usbserial
+[  991.531352] CPU: 0 PID: 100 Comm: blast Tainted: G        W    3.14.0-rc2+ #3
+[  991.538897] [<c00148d8>] (unwind_backtrace) from [<c00115cc>] (show_stack+0x10/0x14)
+[  991.547081] [<c00115cc>] (show_stack) from [<c073b784>] (dump_stack+0x68/0x84)
+[  991.554713] [<c073b784>] (dump_stack) from [<c003a4b0>] (warn_slowpath_common+0x64/0x88)
+[  991.563262] [<c003a4b0>] (warn_slowpath_common) from [<c003a554>] (warn_slowpath_fmt+0x2c/0x3c)
+[  991.572456] [<c003a554>] (warn_slowpath_fmt) from [<c053ccf0>] (musb_h_tx_flush_fifo+0x78/0xc4)
+[  991.581651] [<c053ccf0>] (musb_h_tx_flush_fifo) from [<c053e62c>] (musb_cleanup_urb+0xa4/0x100)
+[  991.590844] [<c053e62c>] (musb_cleanup_urb) from [<c053e7a8>] (musb_urb_dequeue+0x120/0x154)
+[  991.599759] [<c053e7a8>] (musb_urb_dequeue) from [<c05240e0>] (unlink1+0xb4/0xc4)
+[  991.607669] [<c05240e0>] (unlink1) from [<c05254c8>] (usb_hcd_unlink_urb+0x60/0x80)
+[  991.615762] [<c05254c8>] (usb_hcd_unlink_urb) from [<c052637c>] (usb_kill_urb+0x50/0xc8)
+[  991.624329] [<c052637c>] (usb_kill_urb) from [<bf002c90>] (usb_serial_generic_close+0x20/0x64 [usbserial])
+[  991.634544] [<bf002c90>] (usb_serial_generic_close [usbserial]) from [<bf00fe88>] (cp210x_close+0xc/0x28 [cp210x])
+[  991.645487] [<bf00fe88>] (cp210x_close [cp210x]) from [<bf000024>] (serial_port_shutdown+0x24/0x28 [usbserial])
+[  991.656156] [<bf000024>] (serial_port_shutdown [usbserial]) from [<c044d484>] (tty_port_shutdown+0x6c/0x78)
+[  991.666452] [<c044d484>] (tty_port_shutdown) from [<c044dee8>] (tty_port_close+0x24/0x4c)
+[  991.675095] [<c044dee8>] (tty_port_close) from [<c0446120>] (tty_release+0x118/0x49c)
+[  991.683372] [<c0446120>] (tty_release) from [<c012c600>] (__fput+0xd4/0x1e4)
+[  991.690824] [<c012c600>] (__fput) from [<c0055974>] (task_work_run+0xb4/0xc8)
+[  991.698368] [<c0055974>] (task_work_run) from [<c003cae0>] (do_exit+0x3f8/0x948)
+[  991.706184] [<c003cae0>] (do_exit) from [<c003d0f4>] (do_group_exit+0x98/0xd4)
+[  991.713821] [<c003d0f4>] (do_group_exit) from [<c004a9c4>] (get_signal_to_deliver+0x510/0x58c)
+[  991.722921] [<c004a9c4>] (get_signal_to_deliver) from [<c0010a28>] (do_signal+0xa8/0x3b8)
+[  991.731564] [<c0010a28>] (do_signal) from [<c0011034>] (do_work_pending+0x54/0x9c)
+[  991.739561] [<c0011034>] (do_work_pending) from [<c000dea0>] (work_pending+0xc/0x20)
+[  991.747736] ---[ end trace 6bbc95d827ba3e8e ]---
+
+Full dmesg: https://gist.github.com/anonymous/9124604
+
+Anyone have any ideas on where else to look? 
+
+I've put my defconfig here https://gist.github.com/anonymous/9124565  (it's based from the 3.13 one from the beagleboard github) just in case there is anything stupid going on. 
+
+Is the USB in a known state of flux?
+
+Chris
+
