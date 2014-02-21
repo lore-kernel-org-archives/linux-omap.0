@@ -1,46 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] ARM: OMAP2+: Add support for thumb mode on DT booted
- N900
-Date: Fri, 21 Feb 2014 15:08:21 -0800
-Message-ID: <20140221230821.GB5342@atomide.com>
-References: <1391603582-11371-1-git-send-email-sre@debian.org>
- <1392672658-13866-1-git-send-email-sre@debian.org>
+Subject: Re: [PATCH 1/1] ARM: OMAP: Kill warning in CPUIDLE code with
+ !CONFIG_SMP
+Date: Fri, 21 Feb 2014 15:17:15 -0800
+Message-ID: <20140221231714.GC5342@atomide.com>
+References: <1392623575-4884-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:24517 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753116AbaBUXRc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2014 18:17:32 -0500
 Content-Disposition: inline
-In-Reply-To: <1392672658-13866-1-git-send-email-sre@debian.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <1392623575-4884-1-git-send-email-mugunthanvnm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: linux@arm.linux.org.uk, nm@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* Sebastian Reichel <sre@debian.org> [140217 13:33]:
-> Without enabling the workaround for ARM errata 430973 thumb
-> compiled userland crashes randomly on the Nokia N900.
+* Mugunthan V N <mugunthanvnm@ti.com> [140216 23:56]:
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > 
-> Signed-off-by: Sebastian Reichel <sre@debian.org>
-> Reviewed-by: Pavel Machek <pavel@ucw.cz>
-> ---
-> Hi,
+> for non SMP build, NR_CPUS is 1 and hence the code complains with below
+> warnings.
 > 
-> This is PATCHv2 for the thumb errata workaround for N900 DT
-> boot, which should go into 3.14-rc.
+> arch/arm/mach-omap2/cpuidle44xx.c:207:8: warning: array subscript is above array bounds [-Warray-bounds]
+> arch/arm/mach-omap2/cpuidle44xx.c:212:11: warning: array subscript is above array bounds [-Warray-bounds]
 > 
-> Changes since PATCHv1:
->  * Add Reviewed-By: Pavel Machek
->  * Add more verbose warning about the errata as suggested by Pavel
+> Kill it by making array size fixed.
 > 
-> I did not increase the verbose level, since the next higher verbose
-> level is pr_err and the message is not an error.
-> 
-> I think it would make sense to update the Kconfig entry for the errata to
-> enable the workaround by default for the Nokia N900. That should be done in
-> its own patch, though.
-> 
-> Apart from that it would be nice if errata workaround could be enabled
-> via DeviceTree instead of kernel configuration. This will require some
-> discussion though, so I think we should start with this patch for now.
+> Acked-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 
 Thanks applying into omap-for-v3.14/fixes.
 
