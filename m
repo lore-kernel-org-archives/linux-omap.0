@@ -1,51 +1,60 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: EDMA: Use platform_get_resource functions for DT
-Date: Fri, 21 Feb 2014 13:24:16 +0000
-Message-ID: <20140221132416.GS27282@n2100.arm.linux.org.uk>
-References: <1392956661-28787-1-git-send-email-joelf@ti.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH 0/6] N900 DTS additions for 3.14
+Date: Fri, 21 Feb 2014 15:26:27 +0100
+Message-ID: <53076213.6030001@baylibre.com>
+References: <1389475023-11616-1-git-send-email-sre@debian.org> <20140120155950.GB17118@earth.universe> <52DE612E.2080205@baylibre.com> <20140121132653.GA8964@earth.universe> <20140129150328.GA25527@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:45731 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932568AbaBUNYV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Feb 2014 08:24:21 -0500
-Content-Disposition: inline
-In-Reply-To: <1392956661-28787-1-git-send-email-joelf@ti.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:53454 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751325AbaBUO03 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2014 09:26:29 -0500
+Received: by mail-wi0-f172.google.com with SMTP id e4so881487wiv.11
+        for <linux-omap@vger.kernel.org>; Fri, 21 Feb 2014 06:26:28 -0800 (PST)
+In-Reply-To: <20140129150328.GA25527@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, nsekhar@ti.com
+To: Sebastian Reichel <sre@ring0.de>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Thu, Feb 20, 2014 at 10:24:21PM -0600, Joel Fernandes wrote:
-> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-> index dc95efc..ae0ccae 100644
-> --- a/arch/arm/common/edma.c
-> +++ b/arch/arm/common/edma.c
-> @@ -1469,11 +1470,14 @@ static int edma_xbar_event_map(struct device *dev,
->  	if (!xbar_chans)
->  		return -ENOMEM;
->  
-> -	ret = of_address_to_resource(node, 1, &res);
-> -	if (ret)
-> +	pdev = to_platform_device(dev);
-> +	res = platform_get_resource_byname(pdev,
-> +					   IORESOURCE_MEM,
-> +					   "edma_xbar");
-> +	if (!res)
->  		return -EIO;
->  
-> -	xbar = devm_ioremap(dev, res.start, resource_size(&res));
-> +	xbar = devm_ioremap(dev, res->start, resource_size(res));
->  	if (!xbar)
->  		return -ENOMEM;
+Hi Sebastian,
 
-Irrespective of what Mark said, this should be upgraded to use
-devm_ioremap_resource() which does all the checking necessary (and
-claims the resource.)  That can be done irrespective of this change.
+On 29/01/2014 16:03, Sebastian Reichel wrote:
+> Hi,
+>
+> On Sat, Jan 11, 2014 at 10:16:57PM +0100, Sebastian Reichel wrote:
+>> Here are a couple of additions for the Nokia N900 Device Tree
+>> Source file. All related drivers changes are queued for 3.14
+>> (except for the tpa6130a2, which got merged into 3.13).
+>>
+>> I may have some more additions if the driver changes for the
+>> accelerometer, the touchscreen or the wireless lan chip will be
+>> queued up.
+>
+> Ping. If I'm not mistaken the merge window will probably be closed
+> at the weekend (2014-01-19 + 2 weeks =3D 2014-02-02).
+>
+> P.S.: Accelerometer, Touchscreen and WLAN driver changes haven't
+> made it into 3.14, so the patchset I mailed is complete.
 
--- 
-FTTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
-in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
-Estimate before purchase was "up to 13.2Mbit".
+
+Sorry for the delay, I've just applied them for 3.15.
+
+BTW, do you have any other pending DTS patches?
+
+Thanks,
+Benoit
+
+--=20
+Beno=EEt Cousson
+BayLibre
+Embedded Linux Technology Lab
+www.baylibre.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
