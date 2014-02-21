@@ -1,38 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP: Kill warning in CPUIDLE code with
- !CONFIG_SMP
-Date: Fri, 21 Feb 2014 15:17:15 -0800
-Message-ID: <20140221231714.GC5342@atomide.com>
-References: <1392623575-4884-1-git-send-email-mugunthanvnm@ti.com>
+Subject: Re: [PATCH v2 0/2] ARM: OMAP4: Fix gpmc_fck clock
+Date: Fri, 21 Feb 2014 15:23:23 -0800
+Message-ID: <20140221232323.GD5342@atomide.com>
+References: <1392801305-1698-1-git-send-email-florian.vaussard@epfl.ch>
+ <5304DA2C.3030605@ti.com>
+ <53050573.8090506@epfl.ch>
+ <5305D02D.5020702@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:24517 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753116AbaBUXRc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2014 18:17:32 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30200 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752769AbaBUXXi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2014 18:23:38 -0500
 Content-Disposition: inline
-In-Reply-To: <1392623575-4884-1-git-send-email-mugunthanvnm@ti.com>
+In-Reply-To: <5305D02D.5020702@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: linux@arm.linux.org.uk, nm@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: florian.vaussard@epfl.ch, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Mugunthan V N <mugunthanvnm@ti.com> [140216 23:56]:
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+* Tero Kristo <t-kristo@ti.com> [140220 01:54]:
+> On 02/19/2014 09:26 PM, Florian Vaussard wrote:
+> >
+> >On 02/19/2014 05:22 PM, Tero Kristo wrote:
+> >>On 02/19/2014 11:15 AM, Florian Vaussard wrote:
+> >>>Hello,
+> >>>
+> >>>Trying to get my SMSC9221 working on OMAP4 with DT,
+> >>>I faced a misconfigured gpmc_fck (dummy clock set to 0)
+> >>>resulting in serveral division-by-zero, misconfigured
+> >>>timings and driver lost in the La La Land.
+> >>>
+> >>>To solve this, patch 1 removes gpmc_fck from the dummy
+> >>>clocks, and patch 2 adds the gpmc_fck DT node and
+> >>>reference it from the gpmc node.
+> >>>
+> >>>Tested on DuoVero/Parlor (OMAP4430) with SMSC9221.
+> >>
+> >>I can't test GPMC myself, but other than that, this set looks good to go.
+> >>
+> >
+> >Thank you. Would you like more test coverage by other people? I would
+> >like to see this in -rc if possible, as it is needed to boot my OMAP4
+> >system.
 > 
-> for non SMP build, NR_CPUS is 1 and hence the code complains with below
-> warnings.
-> 
-> arch/arm/mach-omap2/cpuidle44xx.c:207:8: warning: array subscript is above array bounds [-Warray-bounds]
-> arch/arm/mach-omap2/cpuidle44xx.c:212:11: warning: array subscript is above array bounds [-Warray-bounds]
-> 
-> Kill it by making array size fixed.
-> 
-> Acked-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> Well, I just think the driver clock change should be acked by
+> someone who knows gpmc better than me.
 
-Thanks applying into omap-for-v3.14/fixes.
+Hmm do we also need to fix this for other omaps? We at least have
+the following refrerences:
+
+$ git grep dummy_ck drivers/ | grep -i gpmc
+drivers/clk/ti/clk-44xx.c:      DT_CLK("50000000.gpmc", "fck", "dummy_ck"),
+drivers/clk/ti/clk-54xx.c:      DT_CLK(NULL, "gpmc_ck", "dummy_ck"),
+drivers/clk/ti/clk-7xx.c:       DT_CLK(NULL, "gpmc_ck", "dummy_ck"),
+
+Regards,
 
 Tony
