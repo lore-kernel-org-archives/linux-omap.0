@@ -1,51 +1,128 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 3/4] power_supply: Introduce PSE compliant algorithm
-Date: Fri, 21 Feb 2014 15:45:29 +0100
-Message-ID: <20140221144529.GB5238@amd.pavel.ucw.cz>
-References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
- <1391490780-6141-4-git-send-email-jenny.tc@intel.com>
- <20140204113640.GD2450@amd.pavel.ucw.cz>
- <20140220051655.GB2498@jenny-desktop>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: USB lockups on BeagleBone/AM335x
+Date: Fri, 21 Feb 2014 09:33:21 -0600
+Message-ID: <20140221153321.GD31902@saruman.home>
+References: <BCBA70ECF3E0284F86C53FAF9ED7FCA1426C07@SRVEXCH01.enatel.local>
+ <20140220224902.GB10878@saruman.home>
+ <BCBA70ECF3E0284F86C53FAF9ED7FCA1426C96@SRVEXCH01.enatel.local>
+ <20140221011405.GB19336@saruman.home>
+ <5306B97D.8070306@enatel.net>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bygAmIonOAIqBxQB"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:34864 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932317AbaBUPes (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Feb 2014 10:34:48 -0500
 Content-Disposition: inline
-In-Reply-To: <20140220051655.GB2498@jenny-desktop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jenny Tc <jenny.tc@intel.com>
-Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org
+In-Reply-To: <5306B97D.8070306@enatel.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Chris Kimber <chris.kimber@enatel.net>
+Cc: "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu 2014-02-20 10:46:55, Jenny Tc wrote:
-> On Tue, Feb 04, 2014 at 12:36:40PM +0100, Pavel Machek wrote:
-> > > --- a/drivers/power/Kconfig
-> > > +++ b/drivers/power/Kconfig
-> > > @@ -22,6 +22,19 @@ config POWER_SUPPLY_CHARGER
-> > >  	  drivers to keep the charging logic outside and the charger driver
-> > >  	  just need to abstract the charger hardware.
-> > >  
-> > > +config POWER_SUPPLY_CHARGING_ALGO_PSE
-> > > +	bool "PSE compliant charging algorithm"
-> > > +	help
-> > > +	  Say Y here to select Product Safety Engineering (PSE) compliant
-> > > +	  charging algorithm. As per PSE standard the battery characteristics
-> > > +	  and thereby the charging rates can vary on different temperature
-> > > +	  zones. This config will enable PSE compliant charging algorithm with
-> > > +	  maintenance charging support. At runtime the algorithm will be
-> > > +	  selected by the psy charger driver based on the type of the battery
-> > > +	  charging profile.
-> > 
-> > Information where to expect PSE compliant chargers would be nice.
-> 
-> This algorithm can be used with non PSE compliant chargers also. This is a SW
-> based charging algorithm.
+--bygAmIonOAIqBxQB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Ok, but you need to explain for the users when it might be good idea
-to select this option...
+On Fri, Feb 21, 2014 at 03:27:09PM +1300, Chris Kimber wrote:
+> Hey
+>=20
+> On 21/02/2014 2:14 p.m., Felipe Balbi wrote:
+> >Hi,
+> >
+> >(please avoid top-posting)
+> >
+> >On Fri, Feb 21, 2014 at 12:11:40AM +0000, Chris Kimber wrote:
+> >>Hey,
+> >>
+> >>Thanks for the response.
+> >>
+> >>I've disabled the DMA (CONFIG_MUSB_PIO_ONLY=3Dy) but the problem still
+> >>persists (for both USB sticks & USB serial ports).
+> >hmm, that's weird.
+> >
+> >>Now it looks like dsps_interrupt() never fires and causes the hang
+> >>up...
+> >>
+> >>[   94.865635] tty ttyUSB0: serial_write - 11 byte(s)
+> >>[   94.865656] cp210x ttyUSB0: usb_serial_generic_write_start - length =
+=3D 11, data =3D 54 45 53 54 49 4e 47 20 34 32 0a
+> >>[   94.865680] musb-hdrc musb-hdrc.1.auto: qh ce461a00 periodic slot 10
+> >>[   94.865700] musb-hdrc musb-hdrc.1.auto: qh ce461a00 urb ce481e80 dev=
+2 ep1out-bulk, hw_ep 10, ce43db00/11
+> >>[   94.865721] musb-hdrc musb-hdrc.1.auto: --> hw10 urb ce481e80 spd2 d=
+ev2 ep1out h_addr00 h_port00 bytes 11
+> >>[   94.865740] musb-hdrc musb-hdrc.1.auto: TX ep10 fifo d0832c48 count =
+11 buf ce43db00
+> >>[   94.865755] musb-hdrc musb-hdrc.1.auto: Start TX10 pio
+> >>[   94.865792] musb-hdrc musb-hdrc.1.auto: usbintr (0) epintr(400)
+> >>[   94.865810] musb-hdrc musb-hdrc.1.auto: ** IRQ host usb0000 tx0400 r=
+x0000
+> >>[   94.865826] musb-hdrc musb-hdrc.1.auto: OUT/TX10 end, csr 2100
+> >>[   94.865866] musb-hdrc musb-hdrc.1.auto: complete ce481e80 usb_serial=
+_generic_write_bulk_callback+0x0/0xd4 [usbserial] (0), dev2 ep1out, 11/11
+> >so the first one completed just fine.
+> >
+> >>[   94.865971] tty ttyUSB0: serial_write - 11 byte(s)
+> >>[   94.865991] cp210x ttyUSB0: usb_serial_generic_write_start - length =
+=3D 11, data =3D 54 45 53 54 49 4e 47 20 34 33 0a
+> >>[   94.866015] musb-hdrc musb-hdrc.1.auto: qh ce461a00 periodic slot 10
+> >>[   94.866035] musb-hdrc musb-hdrc.1.auto: qh ce461a00 urb ce481e80 dev=
+2 ep1out-bulk, hw_ep 10, ce43db00/11
+> >>[   94.866055] musb-hdrc musb-hdrc.1.auto: --> hw10 urb ce481e80 spd2 d=
+ev2 ep1out h_addr00 h_port00 bytes 11
+> >>[   94.866075] musb-hdrc musb-hdrc.1.auto: TX ep10 fifo d0832c48 count =
+11 buf ce43db00
+> >>[   94.866089] musb-hdrc musb-hdrc.1.auto: Start TX10 pio
+> >can you dump TXCSR, DEVCTL and IRQ registers when this happens ?
+> >
+> I added the IRQ registers to the debugfs interface..
+>=20
+> IntrTX      : 0000
+> IntrRX      : 0000
+> IntrTXE     : ffff
+> IntrRXE     : fffe
+> IntrUSB     : 08
+> IntrUSBE    : f7
+> TxCSRp      : 0000
+> DevCtl      : 5d
+>=20
+> Oddly the VBUSERR bit is set, if I disconnect the USB cable then it
+> goes to 0. I just tried plugging in via powered hub and that doesn't
+> change the status.
 
-Or maybe this should not be user configurable and drivers should just
-select it?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+that might be the issue you're having, then. for whatever reason VBUS
+level fluctuates and that confuses MUSB.
+
+I'll see if there's anyway to work around that.
+
+--=20
+balbi
+
+--bygAmIonOAIqBxQB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTB3HBAAoJEIaOsuA1yqREvKAQALHsERi3vbR/Ln7/6w7ZauWJ
+EuNiIsFCzW9DgPr1C6rxLCdtxtvYO/pmvnqjdqeA4S7oArHAMez12eDl9SkfTd1a
+dkDFXc9YmgbxMlojR9ZC15Of4ZqDSSnCHSrIDab/TB1YDglB5RxbwCUPCqFYOd0p
+xKLM3AVlbAoHXBNm0ouTGNY2qUvqDS+jDFycdNuwtwLWofP25Or7SILk9e0715FL
+c0Ogf7GuQ8wtzAmf5ywC3067zy9IirBIcSAnOHqW8ijpaVOHyFdaI1Psp4AvFC+i
+U7gN1nrYjWmtfe49nhoFX3a9jXMGogspUD9Q6B6uCVNJ71x6VHOFm5qvXrnk/aD1
+zztjTrsXjWdesDMafjQiwMT8OyJG2ET+wB5X4Re+JRIbfo9fXQ3FnQUGkaMStc5f
+GeO+IK4sZLpcJZeCBK3fHRrdEvi3DLZh9CiG9UIRdqh5N9qjQfzdIBqzszsXO/Jn
+NMfiQQVXUYIjTo+NqdYIJ9lFP8xbW8M7zmyF1xGDVMurwlA/YLhCiCkdPHwBkeW3
+tYKUYnheyhDgfSShywcx6rcZVeMtwK/FhmKHB0MgbLf3M3pfD2bv6g5wanwju3r2
+Li8yP/73m1XfSQ2rpJX/fxr/RhFe2W8r3/46YXHbDUr4j2fcl+rOvGIMct7TR+GA
+fmxKe+6gaX+pVdkdRD+q
+=24Jh
+-----END PGP SIGNATURE-----
+
+--bygAmIonOAIqBxQB--
