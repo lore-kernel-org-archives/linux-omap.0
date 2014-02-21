@@ -1,31 +1,29 @@
-From: Laszlo Papp <lpapp@kde.org>
-Subject: Re: OMAP138 (davinci) ecap driver support
-Date: Fri, 21 Feb 2014 07:13:59 +0000
-Message-ID: <CAOMwXhMAJwVHPBS=KWGH+HofX275JxyxZkLXMfnKkr04yA7Qig@mail.gmail.com>
-References: <CAOMwXhP-e1wt+SnX8WuaxFRq2hZrnO4NLutzaa_ByuJ9J2a9FQ@mail.gmail.com>
+From: Yung Kyu Kim <cparedes@juntos.gob.pe>
+Subject: STAKEHOLDER NEEDED!!!
+Date: Fri, 21 Feb 2014 06:31:29 -0500 (PET)
+Message-ID: <1906024911.339876.1392982289071.JavaMail.root@juntos.gob.pe>
+Reply-To: Yung Kyu Kim <2784295239@qq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOMwXhP-e1wt+SnX8WuaxFRq2hZrnO4NLutzaa_ByuJ9J2a9FQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: treding@nvidia.com
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.juntos.gob.pe ([181.65.165.56]:57375 "EHLO
+	mail.juntos.gob.pe" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751886AbaBULih (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2014 06:38:37 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Feb 21, 2014 at 6:43 AM, Laszlo Papp <lpapp@kde.org> wrote:
-> Hi,
->
-> we are currently having some implementation of it for an older kernel,
-> and I was just wondering if it is worth upstreaming, or the latest
-> linux kernel already has support for it, and we can drop our code
-> respectively?
->
-> I have seen the "./drivers/pwm/pwm-tiecap.c" file, but it seems to be
-> designed for AM33XX regardless its generic file name, and Kconfig
-> entry.
->
-> Cheers, L.
+Hello,
 
-Since both included emails are broken from Thierry and Philip, I am
-resending the email with Thierry's updated email as well as including
-the linux-omap mailing list.
+The Project is about the exportation of 100,000 barrels of Light Crude
+Oil daily out from Iraq to Turkey through my client's company in Iraq
+at the rate of $92.00 per barrel. This amount to $9,200,000 daily. I ask
+for your support as a foreigner to handle this business project with my
+client and you are not expected to invest in Iraq
+
+If yes, let me know and we will discuss this project proper.
+
+Kim.  
+
+Contact My Private Email  : 2784295239@qq.com
