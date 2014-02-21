@@ -1,77 +1,146 @@
-From: Chris Kimber <chris.kimber@enatel.net>
-Subject: Re: USB lockups on BeagleBone/AM335x
-Date: Fri, 21 Feb 2014 15:27:09 +1300
-Message-ID: <5306B97D.8070306@enatel.net>
-References: <BCBA70ECF3E0284F86C53FAF9ED7FCA1426C07@SRVEXCH01.enatel.local> <20140220224902.GB10878@saruman.home> <BCBA70ECF3E0284F86C53FAF9ED7FCA1426C96@SRVEXCH01.enatel.local> <20140221011405.GB19336@saruman.home>
+From: Joel Fernandes <joelf@ti.com>
+Subject: [PATCH] ARM: EDMA: Use platform_get_resource functions for DT
+Date: Thu, 20 Feb 2014 22:24:21 -0600
+Message-ID: <1392956661-28787-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.enatel.co.nz ([131.203.63.198]:1808 "EHLO
-	mail.enatel.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600AbaBUC1R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Feb 2014 21:27:17 -0500
-In-Reply-To: <20140221011405.GB19336@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: nsekhar@ti.com, Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "balbi@ti.com" <balbi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hey
+Currently, EDMA driver uses of_address_to_resource for getting Channel
+controller and x-bar register resources. Use platform_get_resource_by_name
+instead regardless of whether its DT-boot or not, document the new reg-names
+properties.
 
-On 21/02/2014 2:14 p.m., Felipe Balbi wrote:
-> Hi,
->
-> (please avoid top-posting)
->
-> On Fri, Feb 21, 2014 at 12:11:40AM +0000, Chris Kimber wrote:
->> Hey,
->>
->> Thanks for the response.
->>
->> I've disabled the DMA (CONFIG_MUSB_PIO_ONLY=y) but the problem still
->> persists (for both USB sticks & USB serial ports).
-> hmm, that's weird.
->
->> Now it looks like dsps_interrupt() never fires and causes the hang
->> up...
->>
->> [   94.865635] tty ttyUSB0: serial_write - 11 byte(s)
->> [   94.865656] cp210x ttyUSB0: usb_serial_generic_write_start - length = 11, data = 54 45 53 54 49 4e 47 20 34 32 0a
->> [   94.865680] musb-hdrc musb-hdrc.1.auto: qh ce461a00 periodic slot 10
->> [   94.865700] musb-hdrc musb-hdrc.1.auto: qh ce461a00 urb ce481e80 dev2 ep1out-bulk, hw_ep 10, ce43db00/11
->> [   94.865721] musb-hdrc musb-hdrc.1.auto: --> hw10 urb ce481e80 spd2 dev2 ep1out h_addr00 h_port00 bytes 11
->> [   94.865740] musb-hdrc musb-hdrc.1.auto: TX ep10 fifo d0832c48 count 11 buf ce43db00
->> [   94.865755] musb-hdrc musb-hdrc.1.auto: Start TX10 pio
->> [   94.865792] musb-hdrc musb-hdrc.1.auto: usbintr (0) epintr(400)
->> [   94.865810] musb-hdrc musb-hdrc.1.auto: ** IRQ host usb0000 tx0400 rx0000
->> [   94.865826] musb-hdrc musb-hdrc.1.auto: OUT/TX10 end, csr 2100
->> [   94.865866] musb-hdrc musb-hdrc.1.auto: complete ce481e80 usb_serial_generic_write_bulk_callback+0x0/0xd4 [usbserial] (0), dev2 ep1out, 11/11
-> so the first one completed just fine.
->
->> [   94.865971] tty ttyUSB0: serial_write - 11 byte(s)
->> [   94.865991] cp210x ttyUSB0: usb_serial_generic_write_start - length = 11, data = 54 45 53 54 49 4e 47 20 34 33 0a
->> [   94.866015] musb-hdrc musb-hdrc.1.auto: qh ce461a00 periodic slot 10
->> [   94.866035] musb-hdrc musb-hdrc.1.auto: qh ce461a00 urb ce481e80 dev2 ep1out-bulk, hw_ep 10, ce43db00/11
->> [   94.866055] musb-hdrc musb-hdrc.1.auto: --> hw10 urb ce481e80 spd2 dev2 ep1out h_addr00 h_port00 bytes 11
->> [   94.866075] musb-hdrc musb-hdrc.1.auto: TX ep10 fifo d0832c48 count 11 buf ce43db00
->> [   94.866089] musb-hdrc musb-hdrc.1.auto: Start TX10 pio
-> can you dump TXCSR, DEVCTL and IRQ registers when this happens ?
->
-I added the IRQ registers to the debugfs interface..
+Also, while at it get rid of the assumption in the code that "CC" is at reg
+index 0 in the DT and xbar is at offset 1. Instead use reg-names to get the
+memory resource in concern keeping things much cleaner and simpler. This also
+makes it possible to have multiple channel controllers.
 
-IntrTX      : 0000
-IntrRX      : 0000
-IntrTXE     : ffff
-IntrRXE     : fffe
-IntrUSB     : 08
-IntrUSBE    : f7
-TxCSRp      : 0000
-DevCtl      : 5d
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
+ Documentation/devicetree/bindings/dma/ti-edma.txt |    7 ++++++
+ arch/arm/boot/dts/am33xx.dtsi                     |    1 +
+ arch/arm/boot/dts/am4372.dtsi                     |    1 +
+ arch/arm/common/edma.c                            |   28 ++++++++++-----------
+ 4 files changed, 22 insertions(+), 15 deletions(-)
 
-Oddly the VBUSERR bit is set, if I disconnect the USB cable then it goes 
-to 0. I just tried plugging in via powered hub and that doesn't change 
-the status.
-
-Chris
-
+diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
+index 9fbbdb7..176e42b 100644
+--- a/Documentation/devicetree/bindings/dma/ti-edma.txt
++++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
+@@ -8,6 +8,12 @@ Required properties:
+               Clients should use a single channel number per DMA request.
+ - dma-channels: Specify total DMA channels per CC
+ - reg: Memory map for accessing module
++- reg-names: Since there can be different memory regions, each reg
++  entry should correspond to one of the following reg-names (X being 0 to N):
++	edma_ccX: memory map for Xth Channel Controller
++	edma_tcX: memory map for Xth Transfer Controller
++	Additionally there can be a memory map for xbar (in control module):
++		edma_xbar: memory map for xbar access.
+ - interrupt-parent: Interrupt controller the interrupt is routed through
+ - interrupts: Exactly 3 interrupts need to be specified in the order:
+               1. Transfer completion interrupt.
+@@ -21,6 +27,7 @@ Example:
+ 
+ edma: edma@49000000 {
+ 	reg = <0x49000000 0x10000>;
++	reg-names = "edma_cc0";
+ 	interrupt-parent = <&intc>;
+ 	interrupts = <12 13 14>;
+ 	compatible = "ti,edma3";
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 2b66e67..55f5723 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -123,6 +123,7 @@
+ 			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
+ 			reg =	<0x49000000 0x10000>,
+ 				<0x44e10f90 0x10>;
++			reg-names = "edma_cc0", "edma_xbar";
+ 			interrupts = <12 13 14>;
+ 			#dma-cells = <1>;
+ 			dma-channels = <64>;
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index babdc84..1323a97 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -100,6 +100,7 @@
+ 			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
+ 			reg =	<0x49000000 0x10000>,
+ 				<0x44e10f90 0x10>;
++			reg-names = "edma_cc0", "edma_xbar";
+ 			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
+ 					<GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
+ 					<GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index dc95efc..ae0ccae 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -1458,10 +1458,11 @@ static int edma_xbar_event_map(struct device *dev,
+ 			       struct edma_soc_info *pdata, int len)
+ {
+ 	int ret, i;
+-	struct resource res;
++	struct resource *res;
+ 	void __iomem *xbar;
+ 	const s16 (*xbar_chans)[2];
+ 	u32 shift, offset, mux;
++	struct platform_device *pdev;
+ 
+ 	xbar_chans = devm_kzalloc(dev,
+ 				  len/sizeof(s16) + 2*sizeof(s16),
+@@ -1469,11 +1470,14 @@ static int edma_xbar_event_map(struct device *dev,
+ 	if (!xbar_chans)
+ 		return -ENOMEM;
+ 
+-	ret = of_address_to_resource(node, 1, &res);
+-	if (ret)
++	pdev = to_platform_device(dev);
++	res = platform_get_resource_byname(pdev,
++					   IORESOURCE_MEM,
++					   "edma_xbar");
++	if (!res)
+ 		return -EIO;
+ 
+-	xbar = devm_ioremap(dev, res.start, resource_size(&res));
++	xbar = devm_ioremap(dev, res->start, resource_size(res));
+ 	if (!xbar)
+ 		return -ENOMEM;
+ 
+@@ -1614,7 +1618,6 @@ static int edma_probe(struct platform_device *pdev)
+ 	int			irq[EDMA_MAX_CC] = {0, 0};
+ 	int			err_irq[EDMA_MAX_CC] = {0, 0};
+ 	struct resource		*r[EDMA_MAX_CC] = {NULL};
+-	struct resource		res[EDMA_MAX_CC];
+ 	char			res_name[10];
+ 	char			irq_name[10];
+ 	struct device_node	*node = pdev->dev.of_node;
+@@ -1653,16 +1656,11 @@ static int edma_probe(struct platform_device *pdev)
+ 				return -ENODEV;
+ 			break;
+ 		}
+-		if (node) {
+-			ret = of_address_to_resource(node, j, &res[j]);
+-			if (!ret)
+-				r[j] = &res[j];
+-		} else {
+-			sprintf(res_name, "edma_cc%d", j);
+-			r[j] = platform_get_resource_byname(pdev,
+-						IORESOURCE_MEM,
+-						res_name);
+-		}
++
++		sprintf(res_name, "edma_cc%d", j);
++		r[j] = platform_get_resource_byname(pdev,
++					IORESOURCE_MEM,
++					res_name);
+ 		if (!r[j]) {
+ 			if (found)
+ 				break;
+-- 
+1.7.9.5
