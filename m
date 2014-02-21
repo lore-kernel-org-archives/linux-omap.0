@@ -1,53 +1,50 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 4/4] power_supply: bq24261 charger driver
-Date: Fri, 21 Feb 2014 15:44:00 +0100
-Message-ID: <20140221144400.GA5238@amd.pavel.ucw.cz>
+Subject: Re: [PATCH 3/4] power_supply: Introduce PSE compliant algorithm
+Date: Fri, 21 Feb 2014 15:45:29 +0100
+Message-ID: <20140221144529.GB5238@amd.pavel.ucw.cz>
 References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
- <1391490780-6141-5-git-send-email-jenny.tc@intel.com>
- <20140204113621.GB2450@amd.pavel.ucw.cz>
- <20140220050310.GA2498@jenny-desktop>
+ <1391490780-6141-4-git-send-email-jenny.tc@intel.com>
+ <20140204113640.GD2450@amd.pavel.ucw.cz>
+ <20140220051655.GB2498@jenny-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52210 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753830AbaBUOoD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2014 09:44:03 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140220050310.GA2498@jenny-desktop>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <20140220051655.GB2498@jenny-desktop>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jenny Tc <jenny.tc@intel.com>
 Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Hi!
-
-> > > +static inline int bq24261_set_cv(struct bq24261_charger *chip, int cv)
-> > > +{
-> > > +	int bat_volt;
-> > > +	int ret;
-> > > +	u8 reg_val;
-> > > +	u8 vindpm_val = 0x0;
-> > > +
-> > > +	/*
-> > > +	* Setting VINDPM value as per the battery voltage
-> > > +	*  VBatt           Vindpm     Register Setting
-> > > +	*  < 3.7v           4.2v       0x0 (default)
-> > > +	*  3.71v - 3.96v    4.36v      0x2
-> > > +	*  > 3.96v          4.6v       0x5
-> > > +	*/
-> > > +	ret = get_battery_voltage(&bat_volt);
-> > > +	if (ret) {
-> > > +		dev_err(&chip->client->dev,
-> > > +			"Error getting battery voltage!!\n");
-> > > +	} else {
+On Thu 2014-02-20 10:46:55, Jenny Tc wrote:
+> On Tue, Feb 04, 2014 at 12:36:40PM +0100, Pavel Machek wrote:
+> > > --- a/drivers/power/Kconfig
+> > > +++ b/drivers/power/Kconfig
+> > > @@ -22,6 +22,19 @@ config POWER_SUPPLY_CHARGER
+> > >  	  drivers to keep the charging logic outside and the charger driver
+> > >  	  just need to abstract the charger hardware.
+> > >  
+> > > +config POWER_SUPPLY_CHARGING_ALGO_PSE
+> > > +	bool "PSE compliant charging algorithm"
+> > > +	help
+> > > +	  Say Y here to select Product Safety Engineering (PSE) compliant
+> > > +	  charging algorithm. As per PSE standard the battery characteristics
+> > > +	  and thereby the charging rates can vary on different temperature
+> > > +	  zones. This config will enable PSE compliant charging algorithm with
+> > > +	  maintenance charging support. At runtime the algorithm will be
+> > > +	  selected by the psy charger driver based on the type of the battery
+> > > +	  charging profile.
 > > 
-> > You forget the error value and continue anyway.
+> > Information where to expect PSE compliant chargers would be nice.
 > 
-> On error, throw the error and program default VINDPM value.
+> This algorithm can be used with non PSE compliant chargers also. This is a SW
+> based charging algorithm.
 
-Is it good idea to attempt charging when we can't read battery
-voltage?
+Ok, but you need to explain for the users when it might be good idea
+to select this option...
+
+Or maybe this should not be user configurable and drivers should just
+select it?
 									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
