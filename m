@@ -1,88 +1,74 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCHv2 9/9] arm: dts: am43x-gp-evm: Add matrix gpio keys.
-Date: Fri, 21 Feb 2014 19:58:29 +0530
-Message-ID: <5307628D.50109@ti.com>
-References: <1387456421-21379-1-git-send-email-sourav.poddar@ti.com> <1387456421-21379-10-git-send-email-sourav.poddar@ti.com> <52D417A1.9060007@ti.com> <20140114131444.GD10818@saruman.home> <52D547F5.2080307@baylibre.com>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCH 0/6] N900 DTS additions for 3.14
+Date: Fri, 21 Feb 2014 15:42:51 +0100
+Message-ID: <20140221144250.GA31325@earth.universe>
+References: <1389475023-11616-1-git-send-email-sre@debian.org>
+ <20140120155950.GB17118@earth.universe>
+ <52DE612E.2080205@baylibre.com>
+ <20140121132653.GA8964@earth.universe>
+ <20140129150328.GA25527@earth.universe>
+ <53076213.6030001@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="wac7ysb48OaltWcw"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60487 "EHLO comal.ext.ti.com"
+Received: from ring0.de ([5.45.105.125]:47944 "EHLO smtp.ring0.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754867AbaBUO2i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Feb 2014 09:28:38 -0500
-In-Reply-To: <52D547F5.2080307@baylibre.com>
+	id S1754504AbaBUOm4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Feb 2014 09:42:56 -0500
+Content-Disposition: inline
+In-Reply-To: <53076213.6030001@baylibre.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <bcousson@baylibre.com>
-Cc: balbi@ti.com, devicetree@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, mark.rutland@arm.com, lokeshvutla@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+
+
+--wac7ysb48OaltWcw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
 Hi Benoit,
-On Tuesday 14 January 2014 07:51 PM, Benoit Cousson wrote:
-> Hi Felipe,
->
-> On 14/01/2014 14:14, Felipe Balbi wrote:
->> On Mon, Jan 13, 2014 at 10:13:13PM +0530, sourav wrote:
->>> Benoit,
->>>
->>> On Thursday 19 December 2013 06:03 PM, Sourav Poddar wrote:
->>>> Add gpio keys node for am43x gp evm.
->>>>
->>>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
->>>> ---
->>>>   arch/arm/boot/dts/am437x-gp-evm.dts |   21 +++++++++++++++++++++
->>>>   1 file changed, 21 insertions(+)
->>>>
->>>> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts 
->>>> b/arch/arm/boot/dts/am437x-gp-evm.dts
->>>> index 0dc248d..4eb72b8 100644
->>>> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
->>>> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
->>>> @@ -13,6 +13,7 @@
->>>>   #include "am4372.dtsi"
->>>>   #include<dt-bindings/pinctrl/am43xx.h>
->>>>   #include<dt-bindings/pwm/pwm.h>
->>>> +#include<dt-bindings/gpio/gpio.h>
->>>>
->>>>   / {
->>>>       model = "TI AM437x GP EVM";
->>>> @@ -24,6 +25,26 @@
->>>>           brightness-levels =<0 51 53 56 62 75 101 152 255>;
->>>>           default-brightness-level =<8>;
->>>>       };
->>>> +
->>>> +    matrix_keypad: matrix_keypad@0 {
->>>> +        compatible = "gpio-matrix-keypad";
->>>> +        debounce-delay-ms =<5>;
->>>> +        col-scan-delay-us =<2>;
->>>> +
->>>> +        row-gpios =<&gpio3 21 GPIO_ACTIVE_HIGH /* Bank3, pin21 */
->>>> + &gpio4 3 GPIO_ACTIVE_HIGH /* Bank4, pin3 */
->>>> + &gpio4 2 GPIO_ACTIVE_HIGH>; /* Bank4, pin2 */
->>>> +
->>>> +        col-gpios =<&gpio3 19 GPIO_ACTIVE_HIGH /* Bank3, pin19 */
->>>> + &gpio3 20 GPIO_ACTIVE_HIGH>; /* Bank3, pin20 */
->>>> +
->>>> +        linux,keymap =<0x00000201      /* P1 */
->>>> +                0x00010202      /* P2 */
->>>> +                0x01000067      /* UP */
->>>> +                0x0101006a      /* RIGHT */
->>>> +                0x02000069      /* LEFT */
->>>> +                0x0201006c>;      /* DOWN */
->>>> +        };
->>>>   };
->>>>
->>>> &am43xx_pinmux {
->>>
->>> ping on this series, this series is lying for a while.
->>> This series is based on your for_3.14 branch.
->>
->> Benoit, do you need us to do anything else to get this merged ? Sourav
->> already rebased the patches as you requested back in December 19th.
->
-> Nope, I've just needed more BW. I'll apply it ASAP.
->
-> Thanks,
-> Benoit
->
-Ping on this.
+
+On Fri, Feb 21, 2014 at 03:26:27PM +0100, Benoit Cousson wrote:
+> Sorry for the delay, I've just applied them for 3.15.
+
+Thanks.
+
+> BTW, do you have any other pending DTS patches?
+
+Not yet. I hope that the following drivers will have DT support
+added in 3.15:
+
+* Sent to Mainters, waiting for feedback
+ * WLAN (Patches sent to John W. Linville, no feedback yet, not merged yet)
+ * Accelerometer (Sent quite some time ago, no feedback yet, not merged yet)
+* Updated patches will be sent at the weekend
+ * Touchscreen
+ * SSI
+
+-- Sebastian
+
+--wac7ysb48OaltWcw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJTB2XqAAoJENju1/PIO/qao5UQAKLW5Ge5RrYdlOAEGXBSNDIc
+x0w+s05ZflaltE3ewx7JjUEnaOtNuvWCyGE92Oc4rD7o/ugM2PDMXq2WJ6Nb0O53
+ip9o6l1JrpuXTb7a7nfs8RPhHb/UMyQ/svOSOSqt4Iom9F0iQURWKbp7rsXbw3mk
+A1V+t2MAnPPEaB4Pf5nIZ77NH2zocK5ZJXmFe+UO0UbG7KfRKd7l2SVRsRMfltnF
+EkEqkxULtOO+yJXY/4xyrexkENnYaFP2EsBsbO5YyWUQdbP/cjgMrXVhknTUJZ/p
+r2qon79e3vOSM8WFcjFhKKSO9Np+h3i2bR7BgaQdoKFRVd3MDAVMnrjOz/C0+9WY
+Oh663/7/ujONZi214gbZZrlabnv6tyk6s1pasx7UypihBxANDKeky7BL9OS4o5qe
+Qkq0ZLBgOabb1fJgfOI2s4hSUAtxkxggwT8WJAPA2uxdwu8uu+D4w1siAeBF78fi
+EZ36vX8IqsMDaxYepIEejZtLi2GMxEmSnDQS+Kt0hdcYlW4HEceu55xHlqBGsBbM
+yF3/UBhvkhGPNtuM3E03umoldhaT5CmNHmuIy+IYqfHYUh/koauPFx32ve6BgUQt
+RlVob4N8cI7Fb7rZrRTXm2fAJJG3R3W9FyZ+CdT4LkGBJ/vy3V60yz62/mhTA362
++dHkuTlPfG2/GPiiT2W+
+=IH17
+-----END PGP SIGNATURE-----
+
+--wac7ysb48OaltWcw--
