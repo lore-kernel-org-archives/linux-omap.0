@@ -1,74 +1,54 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH 0/6] N900 DTS additions for 3.14
-Date: Fri, 21 Feb 2014 15:42:51 +0100
-Message-ID: <20140221144250.GA31325@earth.universe>
-References: <1389475023-11616-1-git-send-email-sre@debian.org>
- <20140120155950.GB17118@earth.universe>
- <52DE612E.2080205@baylibre.com>
- <20140121132653.GA8964@earth.universe>
- <20140129150328.GA25527@earth.universe>
- <53076213.6030001@baylibre.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 4/4] power_supply: bq24261 charger driver
+Date: Fri, 21 Feb 2014 15:44:00 +0100
+Message-ID: <20140221144400.GA5238@amd.pavel.ucw.cz>
+References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
+ <1391490780-6141-5-git-send-email-jenny.tc@intel.com>
+ <20140204113621.GB2450@amd.pavel.ucw.cz>
+ <20140220050310.GA2498@jenny-desktop>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="wac7ysb48OaltWcw"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.105.125]:47944 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754504AbaBUOm4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Feb 2014 09:42:56 -0500
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52210 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753830AbaBUOoD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Feb 2014 09:44:03 -0500
 Content-Disposition: inline
-In-Reply-To: <53076213.6030001@baylibre.com>
+In-Reply-To: <20140220050310.GA2498@jenny-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Jenny Tc <jenny.tc@intel.com>
+Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org
 
+Hi!
 
---wac7ysb48OaltWcw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> > > +static inline int bq24261_set_cv(struct bq24261_charger *chip, int cv)
+> > > +{
+> > > +	int bat_volt;
+> > > +	int ret;
+> > > +	u8 reg_val;
+> > > +	u8 vindpm_val = 0x0;
+> > > +
+> > > +	/*
+> > > +	* Setting VINDPM value as per the battery voltage
+> > > +	*  VBatt           Vindpm     Register Setting
+> > > +	*  < 3.7v           4.2v       0x0 (default)
+> > > +	*  3.71v - 3.96v    4.36v      0x2
+> > > +	*  > 3.96v          4.6v       0x5
+> > > +	*/
+> > > +	ret = get_battery_voltage(&bat_volt);
+> > > +	if (ret) {
+> > > +		dev_err(&chip->client->dev,
+> > > +			"Error getting battery voltage!!\n");
+> > > +	} else {
+> > 
+> > You forget the error value and continue anyway.
+> 
+> On error, throw the error and program default VINDPM value.
 
-Hi Benoit,
-
-On Fri, Feb 21, 2014 at 03:26:27PM +0100, Benoit Cousson wrote:
-> Sorry for the delay, I've just applied them for 3.15.
-
-Thanks.
-
-> BTW, do you have any other pending DTS patches?
-
-Not yet. I hope that the following drivers will have DT support
-added in 3.15:
-
-* Sent to Mainters, waiting for feedback
- * WLAN (Patches sent to John W. Linville, no feedback yet, not merged yet)
- * Accelerometer (Sent quite some time ago, no feedback yet, not merged yet)
-* Updated patches will be sent at the weekend
- * Touchscreen
- * SSI
-
--- Sebastian
-
---wac7ysb48OaltWcw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTB2XqAAoJENju1/PIO/qao5UQAKLW5Ge5RrYdlOAEGXBSNDIc
-x0w+s05ZflaltE3ewx7JjUEnaOtNuvWCyGE92Oc4rD7o/ugM2PDMXq2WJ6Nb0O53
-ip9o6l1JrpuXTb7a7nfs8RPhHb/UMyQ/svOSOSqt4Iom9F0iQURWKbp7rsXbw3mk
-A1V+t2MAnPPEaB4Pf5nIZ77NH2zocK5ZJXmFe+UO0UbG7KfRKd7l2SVRsRMfltnF
-EkEqkxULtOO+yJXY/4xyrexkENnYaFP2EsBsbO5YyWUQdbP/cjgMrXVhknTUJZ/p
-r2qon79e3vOSM8WFcjFhKKSO9Np+h3i2bR7BgaQdoKFRVd3MDAVMnrjOz/C0+9WY
-Oh663/7/ujONZi214gbZZrlabnv6tyk6s1pasx7UypihBxANDKeky7BL9OS4o5qe
-Qkq0ZLBgOabb1fJgfOI2s4hSUAtxkxggwT8WJAPA2uxdwu8uu+D4w1siAeBF78fi
-EZ36vX8IqsMDaxYepIEejZtLi2GMxEmSnDQS+Kt0hdcYlW4HEceu55xHlqBGsBbM
-yF3/UBhvkhGPNtuM3E03umoldhaT5CmNHmuIy+IYqfHYUh/koauPFx32ve6BgUQt
-RlVob4N8cI7Fb7rZrRTXm2fAJJG3R3W9FyZ+CdT4LkGBJ/vy3V60yz62/mhTA362
-+dHkuTlPfG2/GPiiT2W+
-=IH17
------END PGP SIGNATURE-----
-
---wac7ysb48OaltWcw--
+Is it good idea to attempt charging when we can't read battery
+voltage?
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
