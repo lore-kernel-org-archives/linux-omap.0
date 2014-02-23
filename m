@@ -1,72 +1,62 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: [patch 08/26] arm: Replace various irq_desc accesses
-Date: Sun, 23 Feb 2014 21:40:12 -0000
-Message-ID: <20140223212737.099151500@linutronix.de>
-References: <20140223212703.511977310@linutronix.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline;
- filename=arm-replace-various-irq-to-desc-accesses.patch
-Sender: linux-kernel-owner@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, Shawn Guo <shawn.guo@linaro.org>, arm <linux-arm-kernel@lists.infradead.org>, omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] omap3isp: Fix kerneldoc for _module_sync_is_stopping and isp_isr()
+Date: Sun, 23 Feb 2014 23:11:17 +0100
+Message-ID: <1603681.R3i3XynjN4@avalon>
+References: <1393175335-15984-1-git-send-email-pmeerw@pmeerw.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52253 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913AbaBWWKC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Feb 2014 17:10:02 -0500
+In-Reply-To: <1393175335-15984-1-git-send-email-pmeerw@pmeerw.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@iki.fi
 
-Use the proper functions. There is no need to fiddle with irq_desc.
+Hi Peter,
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Shawn Guo <shawn.guo@linaro.org>
-Cc: arm <linux-arm-kernel@lists.infradead.org>
-Cc: omap <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/mach-imx/pm-imx6q.c        |    7 +++----
- arch/arm/mach-omap1/ams-delta-fiq.c |    7 ++-----
- 2 files changed, 5 insertions(+), 9 deletions(-)
+Thank you for the patch.
 
-Index: tip/arch/arm/mach-imx/pm-imx6q.c
-===================================================================
---- tip.orig/arch/arm/mach-imx/pm-imx6q.c
-+++ tip/arch/arm/mach-imx/pm-imx6q.c
-@@ -120,7 +120,7 @@ static void imx6q_enable_wb(bool enable)
- 
- int imx6q_set_lpm(enum mxc_cpu_pwr_mode mode)
- {
--	struct irq_desc *iomuxc_irq_desc;
-+	struct irq_data *iomuxc_irq_data = irq_get_irq_data(32);
- 	u32 val = readl_relaxed(ccm_base + CLPCR);
- 
- 	val &= ~BM_CLPCR_LPM;
-@@ -167,10 +167,9 @@ int imx6q_set_lpm(enum mxc_cpu_pwr_mode
- 	 * 3) Software should mask IRQ #32 right after CCM Low-Power mode
- 	 *    is set (set bits 0-1 of CCM_CLPCR).
- 	 */
--	iomuxc_irq_desc = irq_to_desc(32);
--	imx_gpc_irq_unmask(&iomuxc_irq_desc->irq_data);
-+	imx_gpc_irq_unmask(iomuxc_irq_data);
- 	writel_relaxed(val, ccm_base + CLPCR);
--	imx_gpc_irq_mask(&iomuxc_irq_desc->irq_data);
-+	imx_gpc_irq_mask(iomuxc_irq_data);
- 
- 	return 0;
- }
-Index: tip/arch/arm/mach-omap1/ams-delta-fiq.c
-===================================================================
---- tip.orig/arch/arm/mach-omap1/ams-delta-fiq.c
-+++ tip/arch/arm/mach-omap1/ams-delta-fiq.c
-@@ -44,13 +44,10 @@ static unsigned int irq_counter[16];
- 
- static irqreturn_t deferred_fiq(int irq, void *dev_id)
- {
--	struct irq_desc *irq_desc;
--	struct irq_chip *irq_chip = NULL;
- 	int gpio, irq_num, fiq_count;
-+	struct irq_chip *irq_chip;
- 
--	irq_desc = irq_to_desc(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
--	if (irq_desc)
--		irq_chip = irq_desc->irq_data.chip;
-+	irq_chip = irq_get_irq_chip(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
- 
- 	/*
- 	 * For each handled GPIO interrupt, keep calling its interrupt handler
+On Sunday 23 February 2014 18:08:55 Peter Meerwald wrote:
+> Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 5807185..d60a4b7 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -588,9 +588,6 @@ static void isp_isr_sbl(struct isp_device *isp)
+>   * @_isp: Pointer to the OMAP3 ISP device
+>   *
+>   * Handles the corresponding callback if plugged in.
+> - *
+> - * Returns IRQ_HANDLED when IRQ was correctly handled, or IRQ_NONE when the
+> - * IRQ wasn't handled.
+
+While I don't object to this change, doesn't it deserve a brief explanation in 
+the commit message ?
+
+>   */
+>  static irqreturn_t isp_isr(int irq, void *_isp)
+>  {
+> @@ -1420,7 +1417,7 @@ int omap3isp_module_sync_idle(struct media_entity *me,
+> wait_queue_head_t *wait, }
+> 
+>  /*
+> - * omap3isp_module_sync_is_stopped - Helper to verify if module was
+> stopping + * omap3isp_module_sync_is_stopping - Helper to verify if module
+> was stopping * @wait: ISP submodule's wait queue for streamoff/interrupt
+> synchronization * @stopping: flag which tells module wants to stop
+>   *
+
+-- 
+Regards,
+
+Laurent Pinchart
+
