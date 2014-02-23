@@ -1,67 +1,72 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH v2 0/2] ARM: OMAP4: Fix gpmc_fck clock
-Date: Sun, 23 Feb 2014 21:36:12 +0100
-Message-ID: <530A5BBC.90009@epfl.ch>
-References: <1392801305-1698-1-git-send-email-florian.vaussard@epfl.ch> <5304DA2C.3030605@ti.com> <53050573.8090506@epfl.ch> <5305D02D.5020702@ti.com> <20140221232323.GD5342@atomide.com>
-Reply-To: florian.vaussard@epfl.ch
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:39715 "EHLO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751915AbaBWUgR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 23 Feb 2014 15:36:17 -0500
-In-Reply-To: <20140221232323.GD5342@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: [patch 08/26] arm: Replace various irq_desc accesses
+Date: Sun, 23 Feb 2014 21:40:12 -0000
+Message-ID: <20140223212737.099151500@linutronix.de>
+References: <20140223212703.511977310@linutronix.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline;
+ filename=arm-replace-various-irq-to-desc-accesses.patch
+Sender: linux-kernel-owner@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, Shawn Guo <shawn.guo@linaro.org>, arm <linux-arm-kernel@lists.infradead.org>, omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
-Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Use the proper functions. There is no need to fiddle with irq_desc.
 
-On 02/22/2014 12:23 AM, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [140220 01:54]:
->> On 02/19/2014 09:26 PM, Florian Vaussard wrote:
->>>
->>> On 02/19/2014 05:22 PM, Tero Kristo wrote:
->>>> On 02/19/2014 11:15 AM, Florian Vaussard wrote:
->>>>> Hello,
->>>>>
->>>>> Trying to get my SMSC9221 working on OMAP4 with DT,
->>>>> I faced a misconfigured gpmc_fck (dummy clock set to 0)
->>>>> resulting in serveral division-by-zero, misconfigured
->>>>> timings and driver lost in the La La Land.
->>>>>
->>>>> To solve this, patch 1 removes gpmc_fck from the dummy
->>>>> clocks, and patch 2 adds the gpmc_fck DT node and
->>>>> reference it from the gpmc node.
->>>>>
->>>>> Tested on DuoVero/Parlor (OMAP4430) with SMSC9221.
->>>>
->>>> I can't test GPMC myself, but other than that, this set looks good to go.
->>>>
->>>
->>> Thank you. Would you like more test coverage by other people? I would
->>> like to see this in -rc if possible, as it is needed to boot my OMAP4
->>> system.
->>
->> Well, I just think the driver clock change should be acked by
->> someone who knows gpmc better than me.
-> 
-> Hmm do we also need to fix this for other omaps? We at least have
-> the following refrerences:
-> 
-> $ git grep dummy_ck drivers/ | grep -i gpmc
-> drivers/clk/ti/clk-44xx.c:      DT_CLK("50000000.gpmc", "fck", "dummy_ck"),
-> drivers/clk/ti/clk-54xx.c:      DT_CLK(NULL, "gpmc_ck", "dummy_ck"),
-> drivers/clk/ti/clk-7xx.c:       DT_CLK(NULL, "gpmc_ck", "dummy_ck"),
-> 
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: arm <linux-arm-kernel@lists.infradead.org>
+Cc: omap <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/mach-imx/pm-imx6q.c        |    7 +++----
+ arch/arm/mach-omap1/ams-delta-fiq.c |    7 ++-----
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
-Yes, the same applies to OMAP5 and DRA7. For OMAP5, gpmc_fclk is
-connected to L3MAIN2_L3_GICLK, which is a gated l3_iclk. For DRA7, I
-have no idea, as the TRM is not public. Someone from  TI?
-
-And I have no way to test this.
-
-Cheers,
-Florian
+Index: tip/arch/arm/mach-imx/pm-imx6q.c
+===================================================================
+--- tip.orig/arch/arm/mach-imx/pm-imx6q.c
++++ tip/arch/arm/mach-imx/pm-imx6q.c
+@@ -120,7 +120,7 @@ static void imx6q_enable_wb(bool enable)
+ 
+ int imx6q_set_lpm(enum mxc_cpu_pwr_mode mode)
+ {
+-	struct irq_desc *iomuxc_irq_desc;
++	struct irq_data *iomuxc_irq_data = irq_get_irq_data(32);
+ 	u32 val = readl_relaxed(ccm_base + CLPCR);
+ 
+ 	val &= ~BM_CLPCR_LPM;
+@@ -167,10 +167,9 @@ int imx6q_set_lpm(enum mxc_cpu_pwr_mode
+ 	 * 3) Software should mask IRQ #32 right after CCM Low-Power mode
+ 	 *    is set (set bits 0-1 of CCM_CLPCR).
+ 	 */
+-	iomuxc_irq_desc = irq_to_desc(32);
+-	imx_gpc_irq_unmask(&iomuxc_irq_desc->irq_data);
++	imx_gpc_irq_unmask(iomuxc_irq_data);
+ 	writel_relaxed(val, ccm_base + CLPCR);
+-	imx_gpc_irq_mask(&iomuxc_irq_desc->irq_data);
++	imx_gpc_irq_mask(iomuxc_irq_data);
+ 
+ 	return 0;
+ }
+Index: tip/arch/arm/mach-omap1/ams-delta-fiq.c
+===================================================================
+--- tip.orig/arch/arm/mach-omap1/ams-delta-fiq.c
++++ tip/arch/arm/mach-omap1/ams-delta-fiq.c
+@@ -44,13 +44,10 @@ static unsigned int irq_counter[16];
+ 
+ static irqreturn_t deferred_fiq(int irq, void *dev_id)
+ {
+-	struct irq_desc *irq_desc;
+-	struct irq_chip *irq_chip = NULL;
+ 	int gpio, irq_num, fiq_count;
++	struct irq_chip *irq_chip;
+ 
+-	irq_desc = irq_to_desc(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
+-	if (irq_desc)
+-		irq_chip = irq_desc->irq_data.chip;
++	irq_chip = irq_get_irq_chip(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
+ 
+ 	/*
+ 	 * For each handled GPIO interrupt, keep calling its interrupt handler
