@@ -1,37 +1,96 @@
-From: Chris Ball <chris@printf.net>
-Subject: Re: [RESEND 0/7] mmc: omap: Fixes, cleanup and add ERASE capability
-Date: Sat, 22 Feb 2014 18:18:25 +0000
-Message-ID: <86eh2vvwni.fsf@void.printf.net>
-References: <1393084903-7194-1-git-send-email-jarkko.nikula@bitmer.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 00/11] ARM: dts: sbc-t3x: add support for more boards
+Date: Sun, 23 Feb 2014 14:30:38 +0200
+Message-ID: <5309E9EE.2040705@compulab.co.il>
+References: <1389532975-28281-1-git-send-email-lifshitz@compulab.co.il> <52FB6B2E.9070106@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from void.printf.net ([89.145.121.20]:42405 "EHLO void.printf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751745AbaBVSS1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 22 Feb 2014 13:18:27 -0500
-In-Reply-To: <1393084903-7194-1-git-send-email-jarkko.nikula@bitmer.com>
-	(Jarkko Nikula's message of "Sat, 22 Feb 2014 18:01:36 +0200")
+Received: from softlayer.compulab.co.il ([50.23.254.55]:49652 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750977AbaBWMao (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 23 Feb 2014 07:30:44 -0500
+In-Reply-To: <52FB6B2E.9070106@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Dmitry Lifshitz <lifshitz@compulab.co.il>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Jarkko,
+ping x2!
 
-On Sat, Feb 22 2014, Jarkko Nikula wrote:
-> I've sent these patches earlier early December. See
-> http://www.spinics.net/lists/linux-mmc/msg23540.html
->
-> Resending now as mmc.git is updated over v3.13-rc2-208-g8ecffd791448.
-> No other changes than added Acked-by and Tested-by lines from Tony and Aaro.
-> Note Jarkko Lavinen is not cc'ed since he no longer works for Samsung and I
-> don't know his personal address.
->
-> Set goes on top of mmc.git v3.14-rc2-10-g7536d3f83aa4.
+On 02/12/14 14:38, Igor Grinberg wrote:
+> ping!
+> 
+> On 01/12/14 15:22, Dmitry Lifshitz wrote:
+>> Add support for CompuLab SBC-T3530 and SBC-T3517 boards:
+>>
+>> https://compulab.co.il/products/sbcs/sbc-t3530/
+>> https://compulab.co.il/products/sbcs/sbc-t3517/
+>>
+>> along with respective CoMs - CM-T3530 and CM-T3517:
+>>
+>> https://compulab.co.il/products/computer-on-modules/cm-t3530/
+>> https://compulab.co.il/products/computer-on-modules/cm-t3517/
+>>
+>> The device tree files have the following structure:
+>>
+>> omap3-cm-t3x.dtsi
+>>  |
+>>  |<-- omap3-cm-t3x30.dtsi
+>>  |     |
+>>  |     |
+>>  |     |     -----                  -------          ------------
+>>  |     |    | CoM |                | Board |        | Base board |
+>>  |     |     -----                  -------          ------------
+>>  |     |                                            omap3-sb-t35.dtsi
+>>  |     |                                                  |
+>>  |     |<-- omap3-cm-t3730.dts <-- omap3-sbc-t3730.dts -->|
+>>  |     |                                                  |
+>>  |     |<-- omap3-cm-t3530.dts <-- omap3-sbc-t3530.dts -->|
+>>  |                                                        |
+>>  |<-------- omap3-cm-t3517.dts <-- omap3-sbc-t3517.dts -->|
+>>
+>>
+>> where omap3-cm-t3730.dts, omap3-cm-t3530.dts, omap3-cm-t3517.dts
+>> contain CoMs specific data, while omap3-sbc-t3730.dts, omap3-sbc-t3530.dts,
+>> omap3-sbc-t3517.dts represent eval boards with respective core modules.
+>>
+>> This series is based on Tony's omap-for-v3.14/dt branch
+>>
+>> Dmitry Lifshitz (11):
+>>   ARM: dts: sbc-t3x: refactor DT support
+>>   ARM: dts: sbc-t3x: disable mmc3
+>>   ARM: dts: sb-t35: fix Ethernet power supply
+>>   ARM: dts: cm-t3x: add gpio-led pinmux
+>>   ARM: dts: cm-t3x30: add twl4030 gpio pullups
+>>   ARM: dts: cm-t3x30: add HS USB Host support
+>>   ARM: dts: sbc-t3730: add pinmux for usb hub reset
+>>   ARM: dts: cm-t3x30: add USB OTG support
+>>   ARM: dts: sbc-t3530: add support for sbc-t3530
+>>   ARM: dts: sbc-t3517: add support for sbc-t3517
+>>   ARM: OMAP2+: make reset pulse for sbc-t3x usb hubs
+>>
+>>  arch/arm/boot/dts/Makefile            |    4 +
+>>  arch/arm/boot/dts/omap3-cm-t3517.dts  |  137 +++++++++++++++++++++++++++++++++
+>>  arch/arm/boot/dts/omap3-cm-t3530.dts  |   13 +++
+>>  arch/arm/boot/dts/omap3-cm-t3730.dts  |   40 ----------
+>>  arch/arm/boot/dts/omap3-cm-t3x.dtsi   |  112 +++++++++++++++++++++++++++
+>>  arch/arm/boot/dts/omap3-cm-t3x30.dtsi |   74 +++++++++++++-----
+>>  arch/arm/boot/dts/omap3-sb-t35.dtsi   |   30 +++++++-
+>>  arch/arm/boot/dts/omap3-sbc-t3517.dts |   44 +++++++++++
+>>  arch/arm/boot/dts/omap3-sbc-t3530.dts |   37 +++++++++
+>>  arch/arm/boot/dts/omap3-sbc-t3730.dts |   24 +++---
+>>  arch/arm/mach-omap2/pdata-quirks.c    |   67 ++++++++++++++++-
+>>  11 files changed, 506 insertions(+), 76 deletions(-)
+>>  create mode 100644 arch/arm/boot/dts/omap3-cm-t3517.dts
+>>  create mode 100644 arch/arm/boot/dts/omap3-cm-t3530.dts
+>>  create mode 100644 arch/arm/boot/dts/omap3-cm-t3x.dtsi
+>>  create mode 100644 arch/arm/boot/dts/omap3-sbc-t3517.dts
+>>  create mode 100644 arch/arm/boot/dts/omap3-sbc-t3530.dts
+>>
+> 
 
-Thanks, all 7 pushed to mmc-next for 3.15.
-
-- Chris.
 -- 
-Chris Ball   <chris@printf.net>   <http://printf.net/>
+Regards,
+Igor.
