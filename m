@@ -1,62 +1,74 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] omap3isp: Fix kerneldoc for _module_sync_is_stopping and isp_isr()
-Date: Sun, 23 Feb 2014 23:11:17 +0100
-Message-ID: <1603681.R3i3XynjN4@avalon>
-References: <1393175335-15984-1-git-send-email-pmeerw@pmeerw.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52253 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751913AbaBWWKC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Feb 2014 17:10:02 -0500
-In-Reply-To: <1393175335-15984-1-git-send-email-pmeerw@pmeerw.net>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sebastian Reichel <sre@debian.org>
+Subject: [PATCHv1 0/6] OMAP SSI driver
+Date: Mon, 24 Feb 2014 00:49:55 +0100
+Message-ID: <1393199401-27197-1-git-send-email-sre@debian.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, =?UTF-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE=20=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@debian.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@iki.fi
 
-Hi Peter,
+Hi,
 
-Thank you for the patch.
+This is the fifth round of the OMAP SSI driver patches. I think the OMAP SSI
+driver is ready for mainline and should be included in 3.15. I haven't heard
+anything from DT binding maintainers since some months though and would like
+to get some feedback about the binding from them.
 
-On Sunday 23 February 2014 18:08:55 Peter Meerwald wrote:
-> Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
-> ---
->  drivers/media/platform/omap3isp/isp.c | 5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 5807185..d60a4b7 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -588,9 +588,6 @@ static void isp_isr_sbl(struct isp_device *isp)
->   * @_isp: Pointer to the OMAP3 ISP device
->   *
->   * Handles the corresponding callback if plugged in.
-> - *
-> - * Returns IRQ_HANDLED when IRQ was correctly handled, or IRQ_NONE when the
-> - * IRQ wasn't handled.
+Changes since RFCv4 [0]:
+ * Removed patches for nokia-cmt and ssi-protocol, those are still WIP
+ * tested with CONFIG_DEBUG_ATOMIC_SLEEP
+ * tested with Russel's "OMAP dma engine rework" patchset
+ * acquire clocks from DT
+ * minor cleanups
+  - removed unused include of omap specific dma header
+ * updated patch subjects
 
-While I don't object to this change, doesn't it deserve a brief explanation in 
-the commit message ?
+TODO:
+* Central Message Queue
+  I did not yet implement a central message queue in the HSI framework.
+  I will do this after Nokia N900 modem is working in the mainline kernel.
+* Remove the hwmod DT hack
+  This depends on some future work merging hwmod data into DT.
 
->   */
->  static irqreturn_t isp_isr(int irq, void *_isp)
->  {
-> @@ -1420,7 +1417,7 @@ int omap3isp_module_sync_idle(struct media_entity *me,
-> wait_queue_head_t *wait, }
-> 
->  /*
-> - * omap3isp_module_sync_is_stopped - Helper to verify if module was
-> stopping + * omap3isp_module_sync_is_stopping - Helper to verify if module
-> was stopping * @wait: ISP submodule's wait queue for streamoff/interrupt
-> synchronization * @stopping: flag which tells module wants to stop
->   *
+P.S.: It would be nice if I get some Reviewed-By/Acked-By.
+
+[0] http://marc.info/?l=linux-kernel&m=138715030530931&w=2
+
+-- Sebastian
+
+Sebastian Reichel (6):
+  HSI: add Device Tree support for HSI clients
+  HSI: method to unregister clients from an hsi port
+  HSI: hsi-char: add Device Tree support
+  HSI: hsi-char: fix driver for multiport scenarios
+  HSI: Introduce OMAP SSI driver
+  Documentation: DT: omap-ssi binding documentation
+
+ Documentation/devicetree/bindings/hsi/omap_ssi.txt |   82 ++
+ .../devicetree/bindings/hsi/trivial-devices.txt    |   36 +
+ drivers/hsi/Kconfig                                |    1 +
+ drivers/hsi/Makefile                               |    1 +
+ drivers/hsi/clients/hsi_char.c                     |   13 +-
+ drivers/hsi/controllers/Kconfig                    |   19 +
+ drivers/hsi/controllers/Makefile                   |    6 +
+ drivers/hsi/controllers/omap_ssi.c                 |  618 +++++++++
+ drivers/hsi/controllers/omap_ssi.h                 |  166 +++
+ drivers/hsi/controllers/omap_ssi_port.c            | 1401 ++++++++++++++++++++
+ drivers/hsi/controllers/omap_ssi_regs.h            |  171 +++
+ drivers/hsi/hsi.c                                  |   80 +-
+ include/dt-bindings/hsi/hsi.h                      |   17 +
+ include/linux/hsi/hsi.h                            |    3 +
+ 14 files changed, 2612 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/hsi/omap_ssi.txt
+ create mode 100644 Documentation/devicetree/bindings/hsi/trivial-devices.txt
+ create mode 100644 drivers/hsi/controllers/Kconfig
+ create mode 100644 drivers/hsi/controllers/Makefile
+ create mode 100644 drivers/hsi/controllers/omap_ssi.c
+ create mode 100644 drivers/hsi/controllers/omap_ssi.h
+ create mode 100644 drivers/hsi/controllers/omap_ssi_port.c
+ create mode 100644 drivers/hsi/controllers/omap_ssi_regs.h
+ create mode 100644 include/dt-bindings/hsi/hsi.h
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+1.8.5.3
