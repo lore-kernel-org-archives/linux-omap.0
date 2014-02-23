@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCHv1 4/6] HSI: hsi-char: fix driver for multiport scenarios
-Date: Mon, 24 Feb 2014 00:49:59 +0100
-Message-ID: <1393199401-27197-5-git-send-email-sre@debian.org>
+Subject: [PATCHv1 3/6] HSI: hsi-char: add Device Tree support
+Date: Mon, 24 Feb 2014 00:49:58 +0100
+Message-ID: <1393199401-27197-4-git-send-email-sre@debian.org>
 References: <1393199401-27197-1-git-send-email-sre@debian.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1393199401-27197-1-git-send-email-sre@debian.org>
@@ -10,26 +10,48 @@ To: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, 
 Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, =?UTF-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE=20=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@debian.org>
 List-Id: linux-omap@vger.kernel.org
 
-Fix return code check of alloc_chrdev_region, which
-returns 0 on success.
+Add of_match_table to hsi_char driver, so that it can
+be referenced from Device Tree.
 
 Signed-off-by: Sebastian Reichel <sre@debian.org>
 ---
- drivers/hsi/clients/hsi_char.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/hsi/clients/hsi_char.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
 diff --git a/drivers/hsi/clients/hsi_char.c b/drivers/hsi/clients/hsi_char.c
-index 7f64bed..f51cf45 100644
+index e61e5f9..7f64bed 100644
 --- a/drivers/hsi/clients/hsi_char.c
 +++ b/drivers/hsi/clients/hsi_char.c
-@@ -706,7 +706,7 @@ static int hsc_probe(struct device *dev)
- 	if (!hsc_major) {
- 		ret = alloc_chrdev_region(&hsc_dev, hsc_baseminor,
- 						HSC_DEVS, devname);
--		if (ret > 0)
-+		if (ret == 0)
- 			hsc_major = MAJOR(hsc_dev);
- 	} else {
- 		hsc_dev = MKDEV(hsc_major, hsc_baseminor);
+@@ -42,6 +42,7 @@
+ #include <linux/stat.h>
+ #include <linux/hsi/hsi.h>
+ #include <linux/hsi/hsi_char.h>
++#include <linux/of_device.h>
+ 
+ #define HSC_DEVS		16 /* Num of channels */
+ #define HSC_MSGS		4
+@@ -758,12 +759,22 @@ static int hsc_remove(struct device *dev)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id hsi_char_of_match[] = {
++	{ .compatible = "ssi-char", },
++	{ .compatible = "hsi-char", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, hsi_char_of_match);
++#endif
++
+ static struct hsi_client_driver hsc_driver = {
+ 	.driver = {
+ 		.name	= "hsi_char",
+ 		.owner	= THIS_MODULE,
+ 		.probe	= hsc_probe,
+ 		.remove	= hsc_remove,
++		.of_match_table = of_match_ptr(hsi_char_of_match),
+ 	},
+ };
+ 
 -- 
 1.8.5.3
