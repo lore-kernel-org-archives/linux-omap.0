@@ -1,79 +1,98 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCHv2 03/16] Documentation: dt: add OMAP iommu bindings
-Date: Mon, 24 Feb 2014 13:57:17 +0100
-Message-ID: <530B41AD.2030608@epfl.ch>
-References: <1392315347-32967-1-git-send-email-s-anna@ti.com> <1392315347-32967-4-git-send-email-s-anna@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH V2 4/4] ARM: OMAP2+: AM43x: Use gptimer as clocksource
+Date: Mon, 24 Feb 2014 18:35:21 +0530
+Message-ID: <530B4391.2050205@ti.com>
+References: <1391768486-2134-1-git-send-email-lokeshvutla@ti.com>
+ <1391768486-2134-5-git-send-email-lokeshvutla@ti.com>
+ <20140213231919.GO28216@atomide.com> <52FDD7D5.30508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp5.epfl.ch ([128.178.224.8]:56695 "EHLO smtp5.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752210AbaBXM5W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Feb 2014 07:57:22 -0500
-In-Reply-To: <1392315347-32967-4-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <52FDD7D5.30508@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: nm@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org
-Cc: Suman Anna <s-anna@ti.com>, Joerg Roedel <joro@8bytes.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
-
-On 02/13/2014 07:15 PM, Suman Anna wrote:
-> From: Florian Vaussard <florian.vaussard@epfl.ch>
+Hi Tony,
+On Friday 14 February 2014 02:16 PM, Rajendra Nayak wrote:
+> On Friday 14 February 2014 04:49 AM, Tony Lindgren wrote:
+>> * Lokesh Vutla <lokeshvutla@ti.com> [140207 02:24]:
+>>> From: Rajendra Nayak <rnayak@ti.com>
+>>>
+>>> The SyncTimer in AM43x is clocked using the following two sources:
+>>> 1) An inaccuarte 32k clock (CLK_32KHZ) derived from PER DPLL, causing system
+>>>    time to go slowly (~10% deviation).
+>>> 2) external 32KHz RTC clock, which may not always be available on board like
+>>>    in the case of ePOS EVM
+>>>
+>>> Use gptimer as clocksource instead, as is done in the case of AM335x
+>>> (which does not have a SyncTimer). With this, system time keeping works
+>>> accurately.
+>>
+>> Hmm doesn't this also mean that PM for any deeper idle states won't
+>> work properly?
 > 
-> This patch adds the iommu bindings for all OMAP2+ SoCs. Apart from
-> the standard bindings used by OMAP peripherals, this patch uses a
-> 'dma-window' (already used by Tegra SMMU) and adds two OMAP custom
-> bindings - 'ti,#tlb-entries' and 'ti,iommu-bus-err-back'.
-> 
-> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> [s-anna@ti.com: split bindings document, add dra7 and bus error back]
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> ---
->  .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 28 ++++++++++++++++++++++
->  1 file changed, 28 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
-> new file mode 100644
-> index 0000000..116492d
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
-> @@ -0,0 +1,28 @@
-> +OMAP2+ IOMMU
-> +
-> +Required properties:
-> +- compatible : Should be one of,
-> +		"ti,omap2-iommu" for OMAP2/OMAP3 IOMMU instances
-> +		"ti,omap4-iommu" for OMAP4/OMAP5 IOMMU instances
-> +		"ti,dra7-iommu" for DRA7xx IOMMU instances
-> +- ti,hwmods  : Name of the hwmod associated with the IOMMU instance
-> +- reg        : Address space for the configuration registers
-> +- interrupts : Interrupt specifier for the IOMMU instance
-> +- dma-window : IOVA start address and length
-> +
-> +Optional properties:
-> +- ti,#tlb-entries : Number of entries in the translation look-aside buffer.
-> +                    Should be either 8 or 32 (default: 32)
-> +- ti,iommu-bus-err-back : Indicates the IOMMU instance supports throwing
-> +		          back a bus error response on MMU faults.
-> +
-> +Example:
-> +	/* OMAP3 ISP MMU */
-> +	mmu_isp: mmu@480bd400 {
-> +		compatible = "ti,omap2-iommu";
-> +		reg = <0x480bd400 0x80>;
-> +		interrupts = <24>;
-> +		ti,hwmods = "mmu_isp";
-> +		ti,#tlb-entries = <8>;
-> +		dma-window = <0 0xfffff000>;
-> +	};
-> 
+> Thats true. This would mean we cannot put the peripheral/core domain down
+> in idle. Suspend however can still work if suspend/resume callbacks are added
+> to the clockevent and clocksource code to shut the non-wakeup domain timer.
+This is a platform level limitation that only MPU domain can be put down in idle, just like AM335x.
 
-Any comments on this binding?
-
-Regards,
-Florian
-
+Thanks and regards,
+Lokesh
+> 
+> regards,
+> Rajendra
+> 
+>>
+>> Regards,
+>>
+>> Tony
+>>  
+>>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/board-generic.c |    2 +-
+>>>  arch/arm/mach-omap2/timer.c         |    3 ++-
+>>>  2 files changed, 3 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+>>> index 8e3daa1..5679464a 100644
+>>> --- a/arch/arm/mach-omap2/board-generic.c
+>>> +++ b/arch/arm/mach-omap2/board-generic.c
+>>> @@ -229,7 +229,7 @@ DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
+>>>  	.init_late	= am43xx_init_late,
+>>>  	.init_irq	= omap_gic_of_init,
+>>>  	.init_machine	= omap_generic_init,
+>>> -	.init_time	= omap3_sync32k_timer_init,
+>>> +	.init_time	= omap3_gptimer_timer_init,
+>>>  	.dt_compat	= am43_boards_compat,
+>>>  MACHINE_END
+>>>  #endif
+>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+>>> index 74044aa..b62de9f 100644
+>>> --- a/arch/arm/mach-omap2/timer.c
+>>> +++ b/arch/arm/mach-omap2/timer.c
+>>> @@ -604,7 +604,8 @@ OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
+>>>  			2, "timer_sys_ck", NULL);
+>>>  #endif /* CONFIG_ARCH_OMAP3 */
+>>>  
+>>> -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
+>>> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX) || \
+>>> +	defined(CONFIG_SOC_AM43XX)
+>>>  OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
+>>>  		       1, "timer_sys_ck", "ti,timer-alwon");
+>>>  #endif
+>>> -- 
+>>> 1.7.9.5
+>>>
+> 
