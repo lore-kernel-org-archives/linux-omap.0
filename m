@@ -1,58 +1,57 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCHv1 3/6] HSI: hsi-char: add Device Tree support
-Date: Mon, 24 Feb 2014 15:13:01 +0000
-Message-ID: <20140224151301.GJ28555@e106331-lin.cambridge.arm.com>
-References: <1393199401-27197-1-git-send-email-sre@debian.org>
- <1393199401-27197-4-git-send-email-sre@debian.org>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: support more DT properties
+Date: Mon, 24 Feb 2014 16:31:56 +0100
+Message-ID: <530B65EC.3010806@gmail.com>
+References: <1392636993-15864-1-git-send-email-zonque@gmail.com> <53036FF4.2000906@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1393199401-27197-4-git-send-email-sre@debian.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Tony Lindgren <tony@atomide.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <53036FF4.2000906@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: chris@printf.net, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Feb 23, 2014 at 11:49:58PM +0000, Sebastian Reichel wrote:
-> Add of_match_table to hsi_char driver, so that it can
-> be referenced from Device Tree.
+On 02/18/2014 03:36 PM, Balaji T K wrote:
+> On Monday 17 February 2014 05:06 PM, Daniel Mack wrote:
+>> This should probably be done implicitly through mmc_of_parse(), but that
+>> doesn't play well along with the multi-slot model the hsmmc driver
+>> features. Hence, for now, do it manually. The properties are already
+>> documented in Documentation/devicetree/bindings/mmc/mmc.txt.
+>>
+>> Signed-off-by: Daniel Mack <zonque@gmail.com>
 > 
-> Signed-off-by: Sebastian Reichel <sre@debian.org>
-> ---
->  drivers/hsi/clients/hsi_char.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
+> looks good to me
+> Acked-by: Balaji T K <balajitk@ti.com>
+
+Thanks for the review! Did it land in any tree yet?
+
+
+Best regards,
+Daniel
+
+>> ---
+>>   drivers/mmc/host/omap_hsmmc.c | 6 ++++++
+>>   1 file changed, 6 insertions(+)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index 2815de6..a5a38cc 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -1765,6 +1765,12 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
+>>   	if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
+>>   		pdata->slots[0].features |= HSMMC_HAS_HSPE_SUPPORT;
+>>
+>> +	if (of_find_property(np, "keep-power-in-suspend", NULL))
+>> +		pdata->slots[0].pm_caps |= MMC_PM_KEEP_POWER;
+>> +
+>> +	if (of_find_property(np, "enable-sdio-wakeup", NULL))
+>> +		pdata->slots[0].pm_caps |= MMC_PM_WAKE_SDIO_IRQ;
+>> +
+>>   	return pdata;
+>>   }
+>>   #else
+>>
 > 
-> diff --git a/drivers/hsi/clients/hsi_char.c b/drivers/hsi/clients/hsi_char.c
-> index e61e5f9..7f64bed 100644
-> --- a/drivers/hsi/clients/hsi_char.c
-> +++ b/drivers/hsi/clients/hsi_char.c
-> @@ -42,6 +42,7 @@
->  #include <linux/stat.h>
->  #include <linux/hsi/hsi.h>
->  #include <linux/hsi/hsi_char.h>
-> +#include <linux/of_device.h>
->  
->  #define HSC_DEVS		16 /* Num of channels */
->  #define HSC_MSGS		4
-> @@ -758,12 +759,22 @@ static int hsc_remove(struct device *dev)
->  	return 0;
->  }
->  
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id hsi_char_of_match[] = {
-> +	{ .compatible = "ssi-char", },
 
-This string is undocumented.
-
-> +	{ .compatible = "hsi-char", },
-
-I'm not sure either string makes sense though; this feels like a binding
-for the sake of the driver rather than describing the device and
-allowing the driver to pick it up if it makes sense to do so.
-
-What exactly is a "ssi-char" device or a "hsi-char" device?
-
-Cheers,
-Mark.
