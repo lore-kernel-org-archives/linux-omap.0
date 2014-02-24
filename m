@@ -1,62 +1,49 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: clock/PRCM/hwmod fixes for v3.14-rc
-Date: Mon, 24 Feb 2014 11:06:18 -0600
-Message-ID: <530B7C0A.2020002@ti.com>
-References: <alpine.DEB.2.02.1402192120200.8777@utopia.booyaka.com> <53052219.9060109@ti.com> <alpine.DEB.2.02.1402200257060.25798@utopia.booyaka.com> <53061D61.6000105@ti.com> <20140221230300.GA5342@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: [PATCH 0/2] ARM: dts: OMAP4: Add support for DuoVero/Parlor
+Date: Mon, 24 Feb 2014 18:07:47 +0100
+Message-ID: <1393261669-32039-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60629 "EHLO comal.ext.ti.com"
+Received: from smtp4.epfl.ch ([128.178.224.219]:49266 "EHLO smtp4.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752256AbaBXRGo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Feb 2014 12:06:44 -0500
-In-Reply-To: <20140221230300.GA5342@atomide.com>
+	id S1752362AbaBXRIG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Feb 2014 12:08:06 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Ash Charles <ash@gumstix.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Tony,
+Hi Benoit, Tony,
 
-On 02/21/2014 05:03 PM, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [140220 07:24]:
->> On 02/19/2014 08:58 PM, Paul Walmsley wrote:
->>> On Wed, 19 Feb 2014, Nishanth Menon wrote:
->>>
->>>> Paul,
->>>> On 02/19/2014 03:22 PM, Paul Walmsley wrote:
->>>> [...]
->>>>>
->>>>> - ----------------------------------------------------------------
->>>>> Illia Smyrnov (1):
->>>>>        ARM: OMAP4: hwmod: Fix SOFTRESET logic for OMAP4
->>>>>
->>>>> Suman Anna (1):
->>>>>        ARM: DRA7: hwmod data: correct the sysc data for spinlock
->>>>>
->>>>> Tomi Valkeinen (1):
->>>>>        ARM: OMAP2+: clock: fix clkoutx2 with CLK_SET_RATE_PARENT
->>>>>
->>>>> Vaibhav Bedia (1):
->>>>>        ARM: OMAP5: PRM: Fix reboot handling
->>>>>
->>>>
->>>> https://patchwork.kernel.org/patch/3585321/ missing?
->>>
->>> If that fixes a bug, then that should be documented in the commit
->>> description.
->>>
->>> Otherwise it's 3.15 material.
->> Fair enough, this'd be something that might be called an optimization,
->> thanks for queueing it.
->
+Here is a device tree to support the OMAP4430-based Gumstix DuoVero
+with the Parlor expansion boards. All peripherals should be working
+with current 3.14-rc4, except:
 
-Can you also pull in the following fix for OMAP4 that is similar to the 
-one that Paul already pulled in for DRA7
+- GPMC ethernet (needs patches [1])
+- TWL6040 init may fail (will send a bug report to ML)
+- The HDMI output depends on Tomi's DSS series [2] (not yet merged)
 
-https://patchwork.kernel.org/patch/3399021/
+I split the HDMI part into a second patch, so it can be merged with the DSS
+series, even if the nodes could be merged independently.
 
-regards
-Suman
+Regards,
+Florian
+
+[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/110662
+[2] http://thread.gmane.org/gmane.linux.ports.arm.kernel/295881
+
+
+Florian Vaussard (2):
+  ARM: dts: Add support for OMAP4 Gumstix DuoVero/Parlor
+  ARM: dts: duovero-parlor: Add HDMI output
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   3 +
+ arch/arm/boot/dts/Makefile                         |   1 +
+ arch/arm/boot/dts/omap4-duovero-parlor.dts         | 182 +++++++++++++++
+ arch/arm/boot/dts/omap4-duovero.dtsi               | 252 +++++++++++++++++++++
+ 4 files changed, 438 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap4-duovero-parlor.dts
+ create mode 100644 arch/arm/boot/dts/omap4-duovero.dtsi
+
+-- 
+1.8.1.2
 
