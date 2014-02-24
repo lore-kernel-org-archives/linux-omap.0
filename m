@@ -1,82 +1,57 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCHv2 03/16] Documentation: dt: add OMAP iommu bindings
-Date: Mon, 24 Feb 2014 12:09:36 -0600
-Message-ID: <530B8AE0.9020301@ti.com>
-References: <1392315347-32967-1-git-send-email-s-anna@ti.com> <1392315347-32967-4-git-send-email-s-anna@ti.com> <530B41AD.2030608@epfl.ch>
+Subject: Re: [PATCHv4 0/7] omap hwspinlock dt support
+Date: Mon, 24 Feb 2014 12:14:24 -0600
+Message-ID: <530B8C00.8020001@ti.com>
+References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
+ <52F9282B.5000702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45099 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751867AbaBXSKX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2014 13:10:23 -0500
-In-Reply-To: <530B41AD.2030608@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <52F9282B.5000702@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>
+Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: florian.vaussard@epfl.ch, Tony Lindgren <tony@atomide.com>, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Rob Herring <robh+dt@kernel.org>
-Cc: Joerg Roedel <joro@8bytes.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Mark, Kumar, Rob,
+Mark, Ohad,
 
-> On 02/13/2014 07:15 PM, Suman Anna wrote:
->> From: Florian Vaussard <florian.vaussard@epfl.ch>
+On 02/10/2014 01:27 PM, Suman Anna wrote:
+> Mark,
+>
+> On 01/13/2014 06:19 PM, Suman Anna wrote:
+>> Hi,
 >>
->> This patch adds the iommu bindings for all OMAP2+ SoCs. Apart from
->> the standard bindings used by OMAP peripherals, this patch uses a
->> 'dma-window' (already used by Tegra SMMU) and adds two OMAP custom
->> bindings - 'ti,#tlb-entries' and 'ti,iommu-bus-err-back'.
+>> This is an updated series mainly addressing Mark Rutland's comments
+>> about hwlock specifier being always one-cell. The series adds the
+>> support for #hwlock-cells property and adds a simple default OF
+>> translate function.
 >>
->> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
->> [s-anna@ti.com: split bindings document, add dra7 and bus error back]
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> ---
->>   .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 28 ++++++++++++++++++++++
->>   1 file changed, 28 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
+>> The DTS patches from previous series have already been merged, and
+>> needs this property to be added. This is handled in a separate series
+>> that only deals with OMAP hwspinlock DTS patches.
 >>
->> diff --git a/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
->> new file mode 100644
->> index 0000000..116492d
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
->> @@ -0,0 +1,28 @@
->> +OMAP2+ IOMMU
->> +
->> +Required properties:
->> +- compatible : Should be one of,
->> +		"ti,omap2-iommu" for OMAP2/OMAP3 IOMMU instances
->> +		"ti,omap4-iommu" for OMAP4/OMAP5 IOMMU instances
->> +		"ti,dra7-iommu" for DRA7xx IOMMU instances
->> +- ti,hwmods  : Name of the hwmod associated with the IOMMU instance
->> +- reg        : Address space for the configuration registers
->> +- interrupts : Interrupt specifier for the IOMMU instance
->> +- dma-window : IOVA start address and length
->> +
->> +Optional properties:
->> +- ti,#tlb-entries : Number of entries in the translation look-aside buffer.
->> +                    Should be either 8 or 32 (default: 32)
->> +- ti,iommu-bus-err-back : Indicates the IOMMU instance supports throwing
->> +		          back a bus error response on MMU faults.
->> +
->> +Example:
->> +	/* OMAP3 ISP MMU */
->> +	mmu_isp: mmu@480bd400 {
->> +		compatible = "ti,omap2-iommu";
->> +		reg = <0x480bd400 0x80>;
->> +		interrupts = <24>;
->> +		ti,hwmods = "mmu_isp";
->> +		ti,#tlb-entries = <8>;
->> +		dma-window = <0 0xfffff000>;
->> +	};
+>> The series, along with the DTS patches, is tested on top of v3.13-rc8
+>> plus Tero's v13 clock DT series and Tony's 3.14 staged branches. The
+>> validation on OMAP5, DRA7, AM437 requires Tero's series with couple of
+>> additional base patches for AM43xx. AM43xx functionality needs a hwmod
+>> fix [1] for creating the associated omap_device as well.
 >>
 >
-> Any comments on this binding?
+> Can you please take a look at this series and give your ack on the
+> bindings if you do not have any further comments? The only comments so
+> far are from Bjorn on the OF helpers.
+>
 
-Can one of you look through this binding and ack/suggest changes?
-As I mentioned in the cover letter, the optional properties usually 
-apply only to specific subsystems, so do let me know if this should be 
-handled using compatible string per subsystem per SoC rather than per SoC.
+Gentle reminder, can you provide your acks/comments?
 
 regards
 Suman
