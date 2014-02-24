@@ -1,34 +1,18 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
 Subject: Re: [PATCH 1/2] usb: dwc3: core: continue probing if usb phy library
  returns -ENODEV/-ENXIO
-Date: Mon, 24 Feb 2014 15:21:05 +0530
-Message-ID: <530B1609.8030804@ti.com>
-References: <1385373690-12170-1-git-send-email-kishon@ti.com>
- <1390299099-14764-1-git-send-email-kishon@ti.com>
- <20140121144725.GF30451@saruman.home> <20140127150855.GA17928@xps8300>
- <20140127160458.GF13268@saruman.home> <20140128153230.GA20991@xps8300>
- <20140128163036.GD28546@saruman.home> <20140129144659.GA22152@xps8300>
- <52FB42DE.4090203@ti.com> <5304A58C.2030306@ti.com> <5307459D.9080707@ti.com>
- <5307468E.6040304@ti.com>
+Date: Mon, 24 Feb 2014 15:25:12 +0530
+Message-ID: <530B1700.8030705@ti.com>
+References: <1385373690-12170-1-git-send-email-kishon@ti.com> <1390299099-14764-1-git-send-email-kishon@ti.com> <20140121144725.GF30451@saruman.home> <20140127150855.GA17928@xps8300> <20140127160458.GF13268@saruman.home> <20140128153230.GA20991@xps8300> <20140128163036.GD28546@saruman.home> <20140129144659.GA22152@xps8300> <52FB42DE.4090203@ti.com> <5304A58C.2030306@ti.com> <5307459D.9080707@ti.com> <5307468E.6040304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 In-Reply-To: <5307468E.6040304@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-doc-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Felipe Balbi <balbi@ti.com>
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: george.cherian@ti.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hi Roger,
 
 On Friday 21 February 2014 05:59 PM, Roger Quadros wrote:
 > On 02/21/2014 02:25 PM, Kishon Vijay Abraham I wrote:
@@ -130,6 +114,10 @@ On Friday 21 February 2014 05:59 PM, Roger Quadros wrote:
 >>>
 >>> 1) dwc3 core shouldn't worry about platform specific stuff i.e. PHY needed or not.
 >>> It should be as generic as possible.
+
+I think this contradicts with Felipe's requirement of
+dwc3 core bailing out if a particular platform needs a PHY but it's not able to
+get it.
 >>>
 >>> 2) dwc3 core should continue probe even if PHY layer is not enabled, as not all platforms need it.
 >>>
@@ -148,14 +136,8 @@ On Friday 21 February 2014 05:59 PM, Roger Quadros wrote:
 > 
 > Sorry, I didn't get you. My reasoning was that since OMAP platform has this strict requirement of requiring
 > explicit PHY control in order to work, we must do the sanity checks in OMAP specific code and not in the dwc3 core code. It has nothing to do with how hardware is laid out.
-
-What kind of sanity check do you think can be done in OMAP code? We don't use
-any of the PHY API's in glue code. If we add the same PHY APIs in glue code it
-will be duplication of the same code without much value besides breaking the
-design guideline of the software to be modelled similar to hardware.
-
-However in Kconfig of dwc3 glue we can add 'select GENERIC_PHY, select
-PHY_OMAP_USB2, select OMAP_USB3' I guess.
+> 
+> What alternative do you suggest otherwise?
 
 Thanks
 Kishon
