@@ -1,53 +1,62 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv1 5/6] HSI: Introduce OMAP SSI driver
-Date: Mon, 24 Feb 2014 09:56:51 -0600
-Message-ID: <530B6BC3.6070306@ti.com>
-References: <1393199401-27197-1-git-send-email-sre@debian.org> <1393199401-27197-6-git-send-email-sre@debian.org> <20140224155132.GK28555@e106331-lin.cambridge.arm.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: clock/PRCM/hwmod fixes for v3.14-rc
+Date: Mon, 24 Feb 2014 11:06:18 -0600
+Message-ID: <530B7C0A.2020002@ti.com>
+References: <alpine.DEB.2.02.1402192120200.8777@utopia.booyaka.com> <53052219.9060109@ti.com> <alpine.DEB.2.02.1402200257060.25798@utopia.booyaka.com> <53061D61.6000105@ti.com> <20140221230300.GA5342@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140224155132.GK28555@e106331-lin.cambridge.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@debian.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Tony Lindgren <tony@atomide.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, =?UTF-8?B?0JjQstCw0Lk=?= =?UTF-8?B?0LvQviDQlNC40LzQuNGC0YDQvtCy?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60629 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752256AbaBXRGo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Feb 2014 12:06:44 -0500
+In-Reply-To: <20140221230300.GA5342@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 02/24/2014 09:51 AM, Mark Rutland wrote:
-> On Sun, Feb 23, 2014 at 11:50:00PM +0000, Sebastian Reichel wrote:
+Tony,
 
-[...]
->> +static int omap_ssi_port_runtime_suspend(struct device *dev)
->> +{
->> +       struct hsi_port *port = dev_get_drvdata(dev);
->> +       struct omap_ssi_port *omap_port = hsi_port_drvdata(port);
->> +       struct hsi_controller *ssi = to_hsi_controller(port->device.parent);
->> +       struct omap_ssi_controller *omap_ssi = hsi_controller_drvdata(ssi);
->> +
->> +       dev_dbg(dev, "port runtime suspend!\n");
->> +
->> +       ssi_set_port_mode(omap_port, SSI_MODE_SLEEP);
->> +       if (omap_ssi->get_loss)
->> +               omap_port->loss_count =
->> +                               (*omap_ssi->get_loss)(ssi->device.parent);
-> 
-> You don't need to do (*struct->func)(args) when invoking a function
-> pointer. You can jsut have struct->func(args) as we do elsewhere. This
-> can be:
-> 
->   omap_ssi->get_loss(ssi->device.parent)
-> 
-> This should be fixed up in the other sites too.
+On 02/21/2014 05:03 PM, Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [140220 07:24]:
+>> On 02/19/2014 08:58 PM, Paul Walmsley wrote:
+>>> On Wed, 19 Feb 2014, Nishanth Menon wrote:
+>>>
+>>>> Paul,
+>>>> On 02/19/2014 03:22 PM, Paul Walmsley wrote:
+>>>> [...]
+>>>>>
+>>>>> - ----------------------------------------------------------------
+>>>>> Illia Smyrnov (1):
+>>>>>        ARM: OMAP4: hwmod: Fix SOFTRESET logic for OMAP4
+>>>>>
+>>>>> Suman Anna (1):
+>>>>>        ARM: DRA7: hwmod data: correct the sysc data for spinlock
+>>>>>
+>>>>> Tomi Valkeinen (1):
+>>>>>        ARM: OMAP2+: clock: fix clkoutx2 with CLK_SET_RATE_PARENT
+>>>>>
+>>>>> Vaibhav Bedia (1):
+>>>>>        ARM: OMAP5: PRM: Fix reboot handling
+>>>>>
+>>>>
+>>>> https://patchwork.kernel.org/patch/3585321/ missing?
+>>>
+>>> If that fixes a bug, then that should be documented in the commit
+>>> description.
+>>>
+>>> Otherwise it's 3.15 material.
+>> Fair enough, this'd be something that might be called an optimization,
+>> thanks for queueing it.
+>
 
-in fact, we should stop expecting that service and drivers should
-manage their own context_loss detection
-Examples:
-MMC:
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=0a82e06e6183a252608df48cc4793b83e2d73dfd
+Can you also pull in the following fix for OMAP4 that is similar to the 
+one that Paul already pulled in for DRA7
 
-DSS: http://marc.info/?l=linux-omap&m=139272358619064&w=2
+https://patchwork.kernel.org/patch/3399021/
 
+regards
+Suman
 
--- 
-Regards,
-Nishanth Menon
