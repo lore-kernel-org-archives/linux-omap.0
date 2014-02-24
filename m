@@ -1,112 +1,112 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH 3/6] PM / Voltagedomain: introduce voltage domain
- driver support
-Date: Mon, 24 Feb 2014 08:38:07 -0600
-Message-ID: <530B594F.2030500@ti.com>
-References: <1392755543-28335-1-git-send-email-nm@ti.com>
- <1392755543-28335-4-git-send-email-nm@ti.com>
- <20140224015826.GU25940@sirena.org.uk>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCHv1 1/6] HSI: add Device Tree support for HSI clients
+Date: Mon, 24 Feb 2014 15:09:31 +0000
+Message-ID: <20140224150930.GI28555@e106331-lin.cambridge.arm.com>
+References: <1393199401-27197-1-git-send-email-sre@debian.org>
+ <1393199401-27197-2-git-send-email-sre@debian.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140224015826.GU25940@sirena.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, linux-doc@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, MyungJoo Ham <myungjoo.ham@samsung.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1393199401-27197-2-git-send-email-sre@debian.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Tony Lindgren <tony@atomide.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/23/2014 07:58 PM, Mark Brown wrote:
-> On Tue, Feb 18, 2014 at 02:32:20PM -0600, Nishanth Menon wrote:
+On Sun, Feb 23, 2014 at 11:49:56PM +0000, Sebastian Reichel wrote:
+> Add new method hsi_add_clients_from_dt, which can be used
+> to initialize HSI clients from a device tree node.
 > 
->> The current regulator model provides the basic building blocks for the
->> transitions, however SoC drivers specific to each of these devices, be
->> it cpufreq/devfreq have to replicate the logic for functionality.
+> The patch also documents the DT binding for trivial HSI
+> clients.
 > 
->> To simply the logic, we can hence introduce a layer that takes care
->> of the mundane transition logic, registration mechanisms to provide
->> the "user drivers" such as cpufreq/devfreq a generic interface, whose
->> details are abstracted by the device tree description for the SoC on
->> which the driver operates on.
-> 
-> This doesn't really provide a picture of what the generic interface
-> that's being offered is and...
-I should have probably picked up part of the cover letter[1] and
-elaborated further in the commit message here.
+> Signed-off-by: Sebastian Reichel <sre@debian.org>
+> ---
+>  .../devicetree/bindings/hsi/trivial-devices.txt    | 36 +++++++++++
+>  drivers/hsi/hsi.c                                  | 70 +++++++++++++++++++++-
+>  include/dt-bindings/hsi/hsi.h                      | 17 ++++++
+>  include/linux/hsi/hsi.h                            |  2 +
+>  4 files changed, 124 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/devicetree/bindings/hsi/trivial-devices.txt
+>  create mode 100644 include/dt-bindings/hsi/hsi.h
 
-Intent here is to allow drivers such as cpufreq-cpu0 to be reused on
-platforms such as TI's OMAP derivatives, and other SoCs which differ
-only by the sequence involved in voltage scale operations. So, this
-patch provides a framework for registering the underlying
-implementation of the SoC specific voltage change methodology.
+It would be nice if we had a general HSI binding document that explains
+what HSI is and how HSI bus devices and clients are expected too look.
 
-Overall the sequence takes place after this patch is as follows:
-a) voltage domain drivers such as those of TI or others register with
-voltage domain with devm_voltdm_register.
-b) cpufreq-cpu0/devfreq drivers:
-of_pm_voltdm_notifier_register(introduced as part of patch #1) to
-register notifiers around clk of interest. This request is linked to
-the specific voltage domain using phandle in device tree.
-c) when cpufreq-cpu0/devfreq does a clk_set_rate, the common clock
-framework triggers notifiers in voltage domain core which in turn,
-invokes the corresponding handlers for the voltage domain driver
-ensuring the right dvfs sequence specific to the SoC is triggered.
-
-With this patch, the logic for a SoC specific voltage domain
-intricacies can now be abstracted out to the voltage domain layer.
-This allows reuse of the logic by multiple drivers such as
-devfreq/cpufreq and allows these to remain consistent with very
-minimal SoC(if any at all) specific implementations in them.
-
-Among the other obvious alternatives to this approach are:
-a) To duplicate the logic multiple times for various drivers such as
-devfreq/cpufreq and try to ensure the logic sequences are proper.
-basically, create cpufreq-abb-omap, cpufreq-avs-omap,
-devfreq-abb-omap, devfreq-avs-omap etc..
-b) introduce a specific API for voltage change (something like
-pm_dev_scale_opp_frequency or the equivalent).
-
+Does HSI have an addressing scheme, or does each port have a single
+device?
 
 > 
->>  drivers/power/voltdm/Kconfig                  |    5 +
->>  drivers/power/voltdm/Makefile                 |    3 +
->>  drivers/power/voltdm/core.c                   |  347 +++++++++++++++++++++++--
->>  drivers/power/voltdm/voltage_domain_private.h |   86 ++++++
->>  4 files changed, 424 insertions(+), 17 deletions(-)
-> 
-> ...the diffstat doesn't make it obvious what the external interface is
-> either.  It would be much easier to review this with a clearer picture
-> of what it's aiming to implement.
+> diff --git a/Documentation/devicetree/bindings/hsi/trivial-devices.txt b/Documentation/devicetree/bindings/hsi/trivial-devices.txt
+> new file mode 100644
+> index 0000000..1ace14a
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/hsi/trivial-devices.txt
+> @@ -0,0 +1,36 @@
+> +This is a list of trivial hsi client devices that have simple
+> +device tree bindings, consisting only of a compatible field
+> +and the optional hsi configuration.
+> +
+> +If a device needs more specific bindings, such as properties to
+> +describe some aspect of it, there needs to be a specific binding
+> +document for it just like any other devices.
 
-The drivers such as cpufreq/devfreq has the same interface introduced
-by patch #1 in this series of_pm_voltdm_notifier_register/unregister
-which is exposed by include/linux/pm_voltage_domain.h
+Might this make more sense as a hsi-clients binding doc? I assume these
+properties could be applied to non-trivial devices?
 
-Underlying implementation of the SoC specific voltage change
-methodology can now be isolated by voltage domain driver using
-voltage_domain_private.h and services provided by core.c
+> +
+> +Optional HSI configuration properties:
+> +
+> +- hsi,mode		Bit transmission mode (STREAM or FRAME)
+> +			The first value is used for RX and the second one for
+> +			TX configuration. If only one value is provided it will
+> +			be used for RX and TX.
+> +			The assignments may be found in header file
+> +			<dt-bindings/hsi/hsi.h>.
 
-> 
->> +	voltdm_np = of_parse_phandle(np, prop_name, 0);
->> +	if (voltdm_np) {
->> +		ret = of_parse_phandle_with_args(np, prop_name, "#voltdm-cells",
->> +						 0, args);
->> +		if (ret)
->> +			return ERR_PTR(ret);
-> 
-> There seems to be some DT stuff going on here, is the interface DT only?
-> 
-yes. i will make that clear in the documentation.
+Why not have hsi,rx-mode and hsi,tx-mode? I'll certainly get confused as
+to which cell is tx and which is rx with the current binding.
 
-[1] http://marc.info/?l=linux-kernel&m=139275560531711&w=2
--- 
-Regards,
-Nishanth Menon
+Having separate tx-* and rx-* versions of the remaining properties would
+be good too.
+
+I note that the defines are called HSI_MODE_STREAM and HSI_MODE_FRAME,
+not STREAM and FRAME as the binding document implies. Please refer to
+exact names.
+
+It may make more sense to use a string here and for the other
+properties. They're easier for humans to read, and they survive
+decompilation (so you get _much_ better error messages).
+
+> +- hsi,channels		Number of channels to use [1..16]
+> +			The first value is used for RX and the second one for
+> +			TX configuration. If only one value is provided it will
+> +			be used for RX and TX.
+> +- hsi,speed		Max bit transmission speed (Kbit/s)
+> +			The first value is used for RX and the second one for
+> +			TX configuration. If only one value is provided it will
+> +			be used for RX and TX.
+> +- hsi,flow		RX flow type (SYNCHRONIZED or PIPELINE)
+> +			The assignments may be found in header file
+> +			<dt-bindings/hsi/hsi.h>.
+> +- hsi,arb_mode		Arbitration mode for TX frame (Round robin, priority)
+> +			The assignments may be found in header file
+> +			<dt-bindings/hsi/hsi.h>.
+
+s/_/-/ in property names please.
+
+> +
+> +This is the list of trivial client devices:
+> +
+> +Compatible		Description
+> +==========		=============
+> +hsi-char		HSI character device
+
+What exactly is a HSI character device?
+
+This seems more like a Linux abstraction than a real class of device.
+
+Cheers,
+Mark.
