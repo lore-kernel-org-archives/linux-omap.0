@@ -1,85 +1,61 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCHv1 1/6] HSI: add Device Tree support for HSI clients
-Date: Mon, 24 Feb 2014 18:47:37 -0600
-Message-ID: <CAL_JsqJ5eHLSztBgjvi1TAEVeM6dfwnLwm4ygLnD+H0xrNXMfA@mail.gmail.com>
-References: <1393199401-27197-1-git-send-email-sre@debian.org>
-	<1393199401-27197-2-git-send-email-sre@debian.org>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [RFC PATCH 1/6] PM / Voltagedomain: Add generic clk notifier handler for
+ regulator based dynamic voltage scaling
+Date: Mon, 24 Feb 2014 21:51:42 -0800
+Message-ID: <20140225055142.22529.21814@quantum>
+References: <1392755543-28335-1-git-send-email-nm@ti.com>
+ <1392755543-28335-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1393199401-27197-2-git-send-email-sre@debian.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, =?ISO-8859-1?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, =?windows-1251?B?yOLg6evuIMTo7Ojy8O7i?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <1392755543-28335-2-git-send-email-nm@ti.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Mark Brown <broonie@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Feb 23, 2014 at 5:49 PM, Sebastian Reichel <sre@debian.org> wrote:
-> Add new method hsi_add_clients_from_dt, which can be used
-> to initialize HSI clients from a device tree node.
->
-> The patch also documents the DT binding for trivial HSI
-> clients.
->
-> Signed-off-by: Sebastian Reichel <sre@debian.org>
-> ---
->  .../devicetree/bindings/hsi/trivial-devices.txt    | 36 +++++++++++
->  drivers/hsi/hsi.c                                  | 70 +++++++++++++++++++++-
->  include/dt-bindings/hsi/hsi.h                      | 17 ++++++
->  include/linux/hsi/hsi.h                            |  2 +
->  4 files changed, 124 insertions(+), 1 deletion(-)
->  create mode 100644 Documentation/devicetree/bindings/hsi/trivial-devices.txt
->  create mode 100644 include/dt-bindings/hsi/hsi.h
->
-> diff --git a/Documentation/devicetree/bindings/hsi/trivial-devices.txt b/Documentation/devicetree/bindings/hsi/trivial-devices.txt
-> new file mode 100644
-> index 0000000..1ace14a
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/hsi/trivial-devices.txt
-> @@ -0,0 +1,36 @@
-> +This is a list of trivial hsi client devices that have simple
-> +device tree bindings, consisting only of a compatible field
-> +and the optional hsi configuration.
-> +
-> +If a device needs more specific bindings, such as properties to
-> +describe some aspect of it, there needs to be a specific binding
-> +document for it just like any other devices.
-> +
-> +Optional HSI configuration properties:
-> +
-> +- hsi,mode             Bit transmission mode (STREAM or FRAME)
+Quoting Nishanth Menon (2014-02-18 12:32:18)
+> From: Mike Turquette <mturquette@linaro.org>
+> 
+> This patch provides helper functions for drivers that wish to scale
+> voltage through the clock rate-change notifiers. The approach taken
+> is that the user-driver(cpufreq/devfreq) do not care about the
+> details of the OPP table, nor does it care about handling the voltage
+> regulator directly.
+> 
+> By using the clk notifier flags, we are able to sequence the operations
+> in the right order. The current logic is heavily influenced by
+> implementation done in cpufreq-cpu0.
+> 
+> [nm@ti.com: Fixes in logic, and broken out from clk to allow building
+> a generic voltagedomain solution independent of cpufreq]
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Mike Turquette <mturquette@linaro.org>
 
-hsi is not a vendor prefix, so all these properties should be hsi-*.
+Not-signed-off-by: Mike Turquette <mturquette@linaro.org>
 
-> +                       The first value is used for RX and the second one for
-> +                       TX configuration. If only one value is provided it will
-> +                       be used for RX and TX.
-> +                       The assignments may be found in header file
-> +                       <dt-bindings/hsi/hsi.h>.
-> +- hsi,channels         Number of channels to use [1..16]
-> +                       The first value is used for RX and the second one for
-> +                       TX configuration. If only one value is provided it will
-> +                       be used for RX and TX.
-> +- hsi,speed            Max bit transmission speed (Kbit/s)
+I haven't reviewed this series and it is a pretty big deviation from my
+original RFC. You can have authorship of the patches if you want.
 
-Include the units in the prop name: hsi-speed-kbps
+I'm not sure about trying to capture the "voltdm" as a core concept. It
+feels a bit unwieldy to me. I have wondered about making an abstract
+"performance domain" which is the dvfs analogue to generic power
+domains. This a reasonable split since gpd are good for idle power
+savings (e.g. clock gate, power gate, sleep state, etc) and "perf
+domains" would be good for active power savings (dvfs).
 
-> +                       The first value is used for RX and the second one for
-> +                       TX configuration. If only one value is provided it will
-> +                       be used for RX and TX.
-> +- hsi,flow             RX flow type (SYNCHRONIZED or PIPELINE)
-> +                       The assignments may be found in header file
-> +                       <dt-bindings/hsi/hsi.h>.
-> +- hsi,arb_mode         Arbitration mode for TX frame (Round robin, priority)
-> +                       The assignments may be found in header file
-> +                       <dt-bindings/hsi/hsi.h>.
-> +
-> +This is the list of trivial client devices:
-> +
-> +Compatible             Description
-> +==========             =============
-> +hsi-char               HSI character device
+Having a generic container for performance domains might make a good
+place to stuff all of this glue logic that we keep running into (e.g.
+CPU and GPU max frequencies that are related), and it might make another
+nice knob for the thermal folks to use.
 
+For the case of the OMAP voltage domains, it would be a place to stuff
+all of the VC/VP -> ABB -> Smart Reflex AVS stuff.
 
-I've gotten this far and still have no idea what HSI is.
+Anyways, I don't have a real proposal. I just don't want my name on
+these patches since they are really yours now. I might resurrect them
+some day in a different context.
 
-Rob
+Regards,
+Mike
