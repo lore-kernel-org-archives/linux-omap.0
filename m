@@ -1,103 +1,90 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: TWL6040 fails to initialize
-Date: Tue, 25 Feb 2014 16:41:58 +0100
-Message-ID: <530CB9C6.60806@epfl.ch>
-References: <530C70B3.4010103@epfl.ch> <530CA8DA.8050806@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH] ARM: EDMA: Use platform_get_resource functions for DT
+Date: Tue, 25 Feb 2014 10:22:45 -0600
+Message-ID: <CAL_JsqKedQu30rX=k8U5Harzki1jAzKhG3OyPT75y=K+by7pVw@mail.gmail.com>
+References: <1392956661-28787-1-git-send-email-joelf@ti.com>
+	<20140221121548.GF8783@e106331-lin.cambridge.arm.com>
+	<53078E9B.5010806@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:48979 "EHLO smtp4.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753125AbaBYPmD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Feb 2014 10:42:03 -0500
-In-Reply-To: <530CA8DA.8050806@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53078E9B.5010806@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Linux OMAP List <linux-omap@vger.kernel.org>, "nsekhar@ti.com" <nsekhar@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, =?ISO-8859-1?Q?Philippe_R=E9tornaz?= <philippe.retornaz@epfl.ch>
 
-Hi Peter,
-
-On 02/25/2014 03:29 PM, Peter Ujfalusi wrote:
-> Hi Florian,
-> 
-> On 02/25/2014 12:30 PM, Florian Vaussard wrote:
->> Hi Peter,
+On Fri, Feb 21, 2014 at 11:36 AM, Joel Fernandes <joelf@ti.com> wrote:
+> On 02/21/2014 06:15 AM, Mark Rutland wrote:
+>>> Also, while at it get rid of the assumption in the code that "CC" is at reg
+>>> index 0 in the DT and xbar is at offset 1. Instead use reg-names to get the
+>>> memory resource in concern keeping things much cleaner and simpler. This also
+>>> makes it possible to have multiple channel controllers.
 >>
->> I got recently to work on the DT support for an OMAP4 board [1], and I
->> encountered some troubles with the probe of the twl6040 audio codec on
->> 3.14-rc kernels. On 3.13, things were working correctly. So I somewhat
->> managed to bisect this down to [c7f9129 mfd: twl6040: reg_defaults
->> support for regmap]. But looking more into it, things are less obvious.
-> 
-> Interesting. I just booted 3.14.0-rc4 with HEAD:
-> 7472e009a3f1 Merge branch 'for-linus' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/jmorris/linux-security
-> 
-> on my PandaBoard-ES and audio comes up just fine (twl6040).
-> 
+>> While this is nice I think we have to have a fallback to the existing
+>> behaviour if there's no reg-names property present, unless we know for
+>> certain no-one is possibly using an existing DTB.
+>
+> Yes, its true it break existing DTBs but currently only 2 TI SoCs use EDMA this
+> way, the vast majority of EDMA users are yet to follow where we can do it right.
+>  Further, the old bindings are really limiting specially the 2 CC case and if
+> additionally memory maps are used in the future. So keeping the old binding is
+> limiting in this regard.
+>
+> Here is what the platform_data used to look like when used by mach-davinci:
+>
+> static struct resource da850_edma_resources[] = {
+>         {
+>                 .name   = "edma_cc0",
+>                 .start  = DA8XX_TPCC_BASE,
+>                 .end    = DA8XX_TPCC_BASE + SZ_32K - 1,
+>                 .flags  = IORESOURCE_MEM,
+>         },
+>         {
+>                 .name   = "edma_tc0",
+>                 .start  = DA8XX_TPTC0_BASE,
+>                 .end    = DA8XX_TPTC0_BASE + SZ_1K - 1,
+>                 .flags  = IORESOURCE_MEM,
+>         },
+>         {
+>                 .name   = "edma_tc1",
+>                 .start  = DA8XX_TPTC1_BASE,
+>                 .end    = DA8XX_TPTC1_BASE + SZ_1K - 1,
+>                 .flags  = IORESOURCE_MEM,
+>         },
+>         {
+>                 .name   = "edma_cc1",
+>                 .start  = DA850_TPCC1_BASE,
+>                 .end    = DA850_TPCC1_BASE + SZ_32K - 1,
+>                 .flags  = IORESOURCE_MEM,
+>         },
+>
+> As you can see, there are several memory maps and different interpretations.
+> Considering this, IMO- it makes sense to pay a small price to keep the semantics
+> sane.
 
-I know, it is weird. It appeared with 3.14-rc1, 3.13 was working just fine.
+Then do 1 compatible string per interpretation. That can then define
+the number of CCs and TCs.
 
->>
->> When the init fails, here is what happens:
->>
->> [    2.455749] twl6040 0-004b: Looking up vio-supply from device tree
->> [    2.456359] twl6040 0-004b: Looking up v2v1-supply from device tree
->> [    2.457061] twl6040 0-004b: Failed to set masks in 0x4: -121
->> [    2.463043] twl6040: probe of 0-004b failed with error -121
->>
->> logically resulting in
-> 
-> Do you have the regulators in your dts file? vio and v2v1 is needed by the
-> twl6040.
-> 
+>
+> On the other hand, the other 2 options are:
+> 1. We add a fallback if reg-names look up fails.
 
-Yes, I have both regulators. Here is the relevant part of the DTS:
+reg-names is supposed to be optional, so you should already have that fallback.
 
-        twl6040: twl@4b {
-                compatible = "ti,twl6040";
-                reg = <0x4b>;
-                interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
-                interrupt-parent = <&gic>;
-                ti,audpwron-gpio = <&gpio6 0 GPIO_ACTIVE_HIGH>;
+Rob
 
-                vio-supply = <&v1v8>;
-                v2v1-supply = <&v2v1>;
-                enable-active-high;
-        };
-
-
->>
->> [    2.770050] omap-abe-twl6040 sound.4: ASoC: CODEC twl6040-codec not
->> registered
->> [    2.777770] omap-abe-twl6040 sound.4: snd_soc_register_card() failed:
->> -517
->> [    2.785095] platform sound.4: Driver omap-abe-twl6040 requests probe
->> deferral
->>
->> We get a EREMOTEIO when calling regmap_add_irq_chip() from
->> twl6040_probe(). regmap_add_irq_chip() will try to perform non-cached
->> i2c writes, where the omap-i2c driver get a NACK from the remote chip.
->> Strange enough, the non-cached read just before (i.e.
->> twl6040_reg_read(twl6040, TWL6040_REG_ASICREV)) succeeds.
-> 
-> Power is not enabled? There might be missing 32K clock for twl6040, can you
-> check your board's schema against PandaBoard-ES?
-> 
-
-If the power was not enabled at all, I would be unable to read the
-revision register, no? And delaying the probe by one millisecond would
-be of no help in this case IMHO.
-
-Unfortunately, I don't have access to the schematics of the processor
-board. Only the expansion boards from Gumstix have public schematics.
-
-For the 32K, if it was disabled, I think that I would be unable to play
-with the headset output in low-power mode, right? When I put the
-msleep(), I can play to HSL/HSR and everything seems to work as expected.
-
-Regards,
-Florian
+> 2. We inject reg-names property into edma DT nodes that don't have them, and
+> make sure all future dtsi with edma nodes mention the reg-names property.
+>
+> These 2 are a bit error prone though, for example if someone deliberately
+> forgets to mention reg-names, and the code still works, but misbehaves in some way.
+>
+> Regards,
+> -Joel
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
