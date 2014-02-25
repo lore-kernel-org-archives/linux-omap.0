@@ -1,38 +1,43 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v8 01/14] mfd: omap-usb-host: Get clocks based on hardware
- revision
-Date: Tue, 25 Feb 2014 11:40:22 +0200
-Message-ID: <530C6506.5050607@ti.com>
-References: <1392896409-5101-1-git-send-email-rogerq@ti.com> <1392896409-5101-2-git-send-email-rogerq@ti.com> <20140225093759.GA22755@lee--X1>
+From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v8 02/14] mfd: omap-usb-host: Always fail on clk_get()
+ error
+Date: Tue, 25 Feb 2014 09:59:13 +0000
+Message-ID: <20140225095913.GA13143@lee--X1>
+References: <1392896409-5101-1-git-send-email-rogerq@ti.com>
+ <1392896409-5101-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140225093759.GA22755@lee--X1>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: tony@atomide.com, bcousson@baylibre.com, balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1392896409-5101-3-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/25/2014 11:37 AM, Lee Jones wrote:
->> Not all revisions have all the clocks so get the necessary clocks
->> based on hardware revision.
->>
->> This should avoid un-necessary clk_get failure messages that were
->> observed earlier.
->>
->> CC: Lee Jones <lee.jones@linaro.org>
->> CC: Samuel Ortiz <sameo@linux.intel.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  drivers/mfd/omap-usb-host.c | 43 ++++++++++++++++++++++++++++++++-----------
->>  1 file changed, 32 insertions(+), 11 deletions(-)
-> 
-> What about patches 1 and 2. Are these safe to go in alone?
-> 
-patch 6 must not go in without 1. I've just asked Mike if we can squash it into 1.
+> Be more strict and always fail on clk_get() error.
+>=20
+> For OMAP3 platforms, get the 120MHz EHCI clock by its proper name
+> 'usbhost_120m_fck' instead of its alias 'ehci_logic_fck'.
+>=20
+> CC: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> CC: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/mfd/omap-usb-host.c | 65 +++++++++++++++++++++++++++++------=
+----------
+>  1 file changed, 42 insertions(+), 23 deletions(-)
 
-patch 2 can go alone.
+Appied, thanks.
 
-cheers,
--roger
+--
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
