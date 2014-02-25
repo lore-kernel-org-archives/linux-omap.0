@@ -1,15 +1,15 @@
 From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCHv2 07/16] iommu/omap: allow enable/disable even without
-	pdata
-Date: Tue, 25 Feb 2014 22:15:32 +0100
-Message-ID: <5986613.CineS9pX88@avalon>
+Subject: Re: [PATCHv2 08/16] ARM: OMAP3: remove deprecated
+	CONFIG_OMAP_IOMMU_IVA2
+Date: Tue, 25 Feb 2014 22:17:13 +0100
+Message-ID: <1488816.z8hE0Kk16e@avalon>
 References: <1392315347-32967-1-git-send-email-s-anna@ti.com>
-	<1392315347-32967-8-git-send-email-s-anna@ti.com>
+	<1392315347-32967-9-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1392315347-32967-8-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1392315347-32967-9-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -20,69 +20,85 @@ List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
 Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Suman,
-
-Thank you for the patch.
-
-On Thursday 13 February 2014 12:15:38 Suman Anna wrote:
+On Thursday 13 February 2014 12:15:39 Suman Anna wrote:
 > From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 > 
-> When booting with a devicetree, no platform data is provided.
-> Do not prematurely exit iommu_enable() and iommu_disable() in
-> such a case.
+> CONFIG_OMAP_IOMMU_IVA2 was defined originally to avoid conflicting
+> usage by tidspbridge and other iommu users. The same can be achieved
+> by marking the DT node disabled, so remove this obsolete flag and
+> the corresponding hwmod data can be enabled.
 > 
-> Note: As OMAP do not yet has a proper reset controller driver,
-> IOMMUs requiring a reset signal should use pdata-quirks as a
-> transitional solution.
-> 
+> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 > Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-
-This looks good to me, but you should move this patch before 04/16, otherwise 
-you'll break bisection.
+> [s-anna-l0cyMroinI0@public.gmane.org: revise commit log]
+> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 
 Acked-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 
 > ---
->  drivers/iommu/omap-iommu.c | 10 ++--------
->  1 file changed, 2 insertions(+), 8 deletions(-)
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 8 --------
+>  arch/arm/plat-omap/Kconfig                 | 3 ---
+>  2 files changed, 11 deletions(-)
 > 
-> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> index f6afe8f..7672eb4 100644
-> --- a/drivers/iommu/omap-iommu.c
-> +++ b/drivers/iommu/omap-iommu.c
-> @@ -149,13 +149,10 @@ static int iommu_enable(struct omap_iommu *obj)
->  	struct platform_device *pdev = to_platform_device(obj->dev);
->  	struct iommu_platform_data *pdata = pdev->dev.platform_data;
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c index 4c3b1e6..81dd071 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -3029,8 +3029,6 @@ static struct omap_hwmod omap3xxx_mmu_isp_hwmod = {
+>  	.flags		= HWMOD_NO_IDLEST,
+>  };
 > 
-> -	if (!pdata)
-> -		return -EINVAL;
+> -#ifdef CONFIG_OMAP_IOMMU_IVA2
 > -
->  	if (!arch_iommu)
->  		return -ENODEV;
+>  /* mmu iva */
 > 
-> -	if (pdata->deassert_reset) {
-> +	if (pdata && pdata->deassert_reset) {
->  		err = pdata->deassert_reset(pdev, pdata->reset_name);
->  		if (err) {
->  			dev_err(obj->dev, "deassert_reset failed: %d\n", err);
-> @@ -175,14 +172,11 @@ static void iommu_disable(struct omap_iommu *obj)
->  	struct platform_device *pdev = to_platform_device(obj->dev);
->  	struct iommu_platform_data *pdata = pdev->dev.platform_data;
+>  static struct omap_mmu_dev_attr mmu_iva_dev_attr = {
+> @@ -3082,8 +3080,6 @@ static struct omap_hwmod omap3xxx_mmu_iva_hwmod = {
+>  	.flags		= HWMOD_NO_IDLEST,
+>  };
 > 
-> -	if (!pdata)
-> -		return;
+> -#endif
 > -
->  	arch_iommu->disable(obj);
+>  /* l4_per -> gpio4 */
+>  static struct omap_hwmod_addr_space omap3xxx_gpio4_addrs[] = {
+>  	{
+> @@ -3855,9 +3851,7 @@ static struct omap_hwmod_ocp_if
+> *omap34xx_hwmod_ocp_ifs[] __initdata = { &omap3xxx_l4_core__hdq1w,
+>  	&omap3xxx_sad2d__l3,
+>  	&omap3xxx_l4_core__mmu_isp,
+> -#ifdef CONFIG_OMAP_IOMMU_IVA2
+>  	&omap3xxx_l3_main__mmu_iva,
+> -#endif
+>  	&omap34xx_l4_core__ssi,
+>  	NULL
+>  };
+> @@ -3881,9 +3875,7 @@ static struct omap_hwmod_ocp_if
+> *omap36xx_hwmod_ocp_ifs[] __initdata = { &omap3xxx_l4_core__hdq1w,
+>  	&omap3xxx_sad2d__l3,
+>  	&omap3xxx_l4_core__mmu_isp,
+> -#ifdef CONFIG_OMAP_IOMMU_IVA2
+>  	&omap3xxx_l3_main__mmu_iva,
+> -#endif
+>  	NULL
+>  };
 > 
->  	pm_runtime_put_sync(obj->dev);
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index 436ea97..02fc10d 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -86,9 +86,6 @@ config OMAP_MUX_WARNINGS
+>  	  to change the pin multiplexing setup.	 When there are no warnings
+>  	  printed, it's safe to deselect OMAP_MUX for your product.
 > 
-> -	if (pdata->assert_reset)
-> +	if (pdata && pdata->assert_reset)
->  		pdata->assert_reset(pdev, pdata->reset_name);
->  }
+> -config OMAP_IOMMU_IVA2
+> -	bool
+> -
+>  config OMAP_MPU_TIMER
+>  	bool "Use mpu timer"
+>  	depends on ARCH_OMAP1
 
 -- 
 Regards,
