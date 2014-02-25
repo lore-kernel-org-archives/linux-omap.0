@@ -1,97 +1,137 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH 1/6] PM / Voltagedomain: Add generic clk notifier
- handler for regulator based dynamic voltage scaling
-Date: Tue, 25 Feb 2014 14:56:52 -0600
-Message-ID: <530D0394.4020208@ti.com>
-References: <1392755543-28335-1-git-send-email-nm@ti.com>
- <1392755543-28335-2-git-send-email-nm@ti.com>
- <20140225055142.22529.21814@quantum>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCHv2 01/16] iommu/omap: convert to devm_* interfaces
+Date: Tue, 25 Feb 2014 22:10:46 +0100
+Message-ID: <11064948.xVKxJB3hrL@avalon>
+References: <1392315347-32967-1-git-send-email-s-anna@ti.com>
+	<1392315347-32967-2-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140225055142.22529.21814@quantum>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1392315347-32967-2-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mike,
-On 02/24/2014 11:51 PM, Mike Turquette wrote:
-> Quoting Nishanth Menon (2014-02-18 12:32:18)
->> From: Mike Turquette <mturquette@linaro.org>
->>
->> This patch provides helper functions for drivers that wish to scale
->> voltage through the clock rate-change notifiers. The approach taken
->> is that the user-driver(cpufreq/devfreq) do not care about the
->> details of the OPP table, nor does it care about handling the voltage
->> regulator directly.
->>
->> By using the clk notifier flags, we are able to sequence the operations
->> in the right order. The current logic is heavily influenced by
->> implementation done in cpufreq-cpu0.
->>
->> [nm@ti.com: Fixes in logic, and broken out from clk to allow building
->> a generic voltagedomain solution independent of cpufreq]
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> Signed-off-by: Mike Turquette <mturquette@linaro.org>
+Hi Suman,
+
+Thank you for the patch.
+
+On Thursday 13 February 2014 12:15:32 Suman Anna wrote:
+> Use the various devm_ interfaces to simplify the cleanup in
+> probe and remove functions.
 > 
-> Not-signed-off-by: Mike Turquette <mturquette@linaro.org>
+> Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+
+Acked-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+
+> ---
+>  drivers/iommu/omap-iommu.c | 52  ++++++++----------------------------------
+>  1 file changed, 10 insertions(+), 42 deletions(-)
 > 
-> I haven't reviewed this series and it is a pretty big deviation from my
-> original RFC. You can have authorship of the patches if you want.
-
-Sure, I had send a private note requesting clarification about the
-authorship, but I guess I can take this as the response :).
-
+> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> index bcd78a7..fff2ffd 100644
+> --- a/drivers/iommu/omap-iommu.c
+> +++ b/drivers/iommu/omap-iommu.c
+> @@ -941,7 +941,7 @@ static int omap_iommu_probe(struct platform_device
+> *pdev) struct resource *res;
+>  	struct iommu_platform_data *pdata = pdev->dev.platform_data;
 > 
-> I'm not sure about trying to capture the "voltdm" as a core concept. It
-> feels a bit unwieldy to me.
-
-Considering it is a simple collation of regulators and SoC specific
-"magic" which have to be operated in tandem to clock operation, Why
-does it seem unwieldy? Usage of multiple voltage planes in a single
-voltage domain concept does not seem unique to TI processors either:
-For example, imx6q-cpufreq.c uses 3 regulators (arm, pu, soc),
-s5pv210-cpufreq.c uses two regulators (vddarm, vddint), ideally OMAP
-implementation would use two (vdd_mpu, vbb_mpu).
-
-> I have wondered about making an abstract
-> "performance domain" which is the dvfs analogue to generic power
-> domains. This a reasonable split since gpd are good for idle power
-> savings (e.g. clock gate, power gate, sleep state, etc) and "perf
-> domains" would be good for active power savings (dvfs).
+> -	obj = kzalloc(sizeof(*obj) + MMU_REG_SIZE, GFP_KERNEL);
+> +	obj = devm_kzalloc(&pdev->dev, sizeof(*obj) + MMU_REG_SIZE, GFP_KERNEL);
+>  	if (!obj)
+>  		return -ENOMEM;
 > 
-> Having a generic container for performance domains might make a good
-> place to stuff all of this glue logic that we keep running into (e.g.
-> CPU and GPU max frequencies that are related), and it might make another
-> nice knob for the thermal folks to use.
-
-This sounds like one level higher abstraction that we are speaking of
-here? I was'nt intending to solve the bigger picture problem here -
-just an abstraction level that might allow reusablity for multiple
-SoCs. In fact, having an abstraction away for voltage domain(which may
-consist of multiple regulators and any SoC specific magic) purely
-allows us to move towards a direction you mention here.
-
+> @@ -958,33 +958,18 @@ static int omap_iommu_probe(struct platform_device
+> *pdev) INIT_LIST_HEAD(&obj->mmap);
 > 
-> For the case of the OMAP voltage domains, it would be a place to stuff
-> all of the VC/VP -> ABB -> Smart Reflex AVS stuff.
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	if (!res) {
+> -		err = -ENODEV;
+> -		goto err_mem;
+> -	}
+> -
+> -	res = request_mem_region(res->start, resource_size(res),
+> -				 dev_name(&pdev->dev));
+> -	if (!res) {
+> -		err = -EIO;
+> -		goto err_mem;
+> -	}
+> -
+> -	obj->regbase = ioremap(res->start, resource_size(res));
+> -	if (!obj->regbase) {
+> -		err = -ENOMEM;
+> -		goto err_ioremap;
+> -	}
+> +	obj->regbase = devm_ioremap_resource(obj->dev, res);
+> +	if (IS_ERR(obj->regbase))
+> +		return PTR_ERR(obj->regbase);
 > 
-
-Unfortunately, I dont completely comprehend objection we have to this
-approach (other than an higher level abstraction is needed) and if we
-do have an objection, what is the alternate approach should be for
-representing hardware which this series attempts to present.
+>  	irq = platform_get_irq(pdev, 0);
+> -	if (irq < 0) {
+> -		err = -ENODEV;
+> -		goto err_irq;
+> -	}
+> -	err = request_irq(irq, iommu_fault_handler, IRQF_SHARED,
+> -			  dev_name(&pdev->dev), obj);
+> +	if (irq < 0)
+> +		return -ENODEV;
+> +
+> +	err = devm_request_irq(obj->dev, irq, iommu_fault_handler, IRQF_SHARED,
+> +			       dev_name(obj->dev), obj);
+>  	if (err < 0)
+> -		goto err_irq;
+> +		return err;
+>  	platform_set_drvdata(pdev, obj);
+> 
+>  	pm_runtime_irq_safe(obj->dev);
+> @@ -992,34 +977,17 @@ static int omap_iommu_probe(struct platform_device
+> *pdev)
+> 
+>  	dev_info(&pdev->dev, "%s registered\n", obj->name);
+>  	return 0;
+> -
+> -err_irq:
+> -	iounmap(obj->regbase);
+> -err_ioremap:
+> -	release_mem_region(res->start, resource_size(res));
+> -err_mem:
+> -	kfree(obj);
+> -	return err;
+>  }
+> 
+>  static int omap_iommu_remove(struct platform_device *pdev)
+>  {
+> -	int irq;
+> -	struct resource *res;
+>  	struct omap_iommu *obj = platform_get_drvdata(pdev);
+> 
+>  	iopgtable_clear_entry_all(obj);
+> 
+> -	irq = platform_get_irq(pdev, 0);
+> -	free_irq(irq, obj);
+> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	release_mem_region(res->start, resource_size(res));
+> -	iounmap(obj->regbase);
+> -
+>  	pm_runtime_disable(obj->dev);
+> 
+>  	dev_info(&pdev->dev, "%s removed\n", obj->name);
+> -	kfree(obj);
+>  	return 0;
+>  }
 
 -- 
 Regards,
-Nishanth Menon
+
+Laurent Pinchart
