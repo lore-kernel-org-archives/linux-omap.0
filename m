@@ -1,69 +1,50 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/2] ARM: dts: duovero-parlor: Add HDMI output
-Date: Tue, 25 Feb 2014 12:39:21 +0000
-Message-ID: <20140225123921.GY27282@n2100.arm.linux.org.uk>
-References: <1393261669-32039-1-git-send-email-florian.vaussard@epfl.ch> <1393261669-32039-3-git-send-email-florian.vaussard@epfl.ch> <20140224180336.GU27282@n2100.arm.linux.org.uk> <CABxcv=kKxidVJWcMrueB+edW=g_6gcucvi6=7p=EZ_WooCpbMA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:50146 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752639AbaBYMjf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Feb 2014 07:39:35 -0500
-Content-Disposition: inline
-In-Reply-To: <CABxcv=kKxidVJWcMrueB+edW=g_6gcucvi6=7p=EZ_WooCpbMA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: [PATCH v7 0/4] mmc: omap_hsmmc: SDIO IRQ.
+Date: Tue, 25 Feb 2014 13:37:42 +0100
+Message-ID: <1393331866-28307-1-git-send-email-afenkart@gmail.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Andreas Fenkart <afenkart@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ash Charles <ash@gumstix.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Feb 24, 2014 at 05:22:27PM -0300, Javier Martinez Canillas wrote:
-> Hi Russell,
-> 
-> On Mon, Feb 24, 2014 at 3:03 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Mon, Feb 24, 2014 at 06:07:49PM +0100, Florian Vaussard wrote:
-> >> +     hdmi0: connector@0 {
-> >> +             compatible = "hdmi-connector";
-> >
-> > This looks way to generic a compatible string.  Are you sure it's
-> > correct?
-> >
-> 
-> That compatible string is correct according to the latest series
-> posted by Tomi Valkeinen to add DT bindings for the OMAP Display
-> SubSystem (DSS) [0].
+v7
+- rebase on 3.14.0-rc3-49726-g77e15ec
+- split omap_hsmmc_pin_init due to regression on omap-3730 platform
+@tony pls try if it still works after applying patch 2?
 
-in which case:
+v6
+- rebase on Linux 3.13-rc3
+- reformatting debugfs
 
-N    N   AA     CCCC  K  K
-NN   N  A  A   C    C K K
-N N  N A    A C       KK
-N  N N AAAAAA C       KK
-N   NN A    A  C    C K K
-N    N A    A   CCCC  K  K
+v5
+- fix compile error introduced by last minute one line fix
 
-Yes, that's a very big nack.  Two things:
+v4:
+- switch to interrupts-extended format
+- drop ti,swakeup-missing flag convert to comaptible section
 
-1. OMAP really doesn't have the right to define a compatible string which
-   is as generic as "hdmi-connector".
+v3:
+- removed gpio_irq from platform_data
 
-2. Even with "omapdss," before it, the convention that DT people have adopted
-   is for the prefix to be "companyname," and not a subsystem.
+v2:
+- incorparated changes as suggested by reviewers
+- simplified workaround for am335x, gpio will now only wake
+  the module from runtime suspend, not handle the sdio irq
+  itself 
 
-I'm not the only one with this concern - I discussed it with Arnd last
-night and his comments were about it being "obviously bogus".
+Andreas Fenkart (4):
+  mmc: omap_hsmmc: Enable SDIO IRQ.
+  mmc: omap_hsmmc: Remux SDIO pins within driver.
+  mmc: omap_hsmmc: Pin remux workaround to support SDIO interrupt on
+    AM335x.
+  mmc: omap_hsmmc: Extend debugfs for SDIO IRQ, GPIO and pinmux.
 
-> The property is added on this patch [1] and as far as I understood the
-> idea is that it could be a generic DT binding that can be used by
-> platform specific HDMI connectors like the omap dss HDMI connector [2].
-
-Why do the physical connectors need a DT binding?  Surely what needs the
-DT binding is the HDMI encoder - and that certainly should no way be a
-generic name, because there's no such thing as a generic HDMI encoder
-chip.
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   50 ++++
+ drivers/mmc/host/omap_hsmmc.c                      |  315 ++++++++++++++++++--
+ include/linux/platform_data/mmc-omap.h             |    1 +
+ 3 files changed, 341 insertions(+), 25 deletions(-)
 
 -- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+1.7.10.4
+
