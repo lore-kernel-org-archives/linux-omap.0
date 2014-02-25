@@ -1,61 +1,31 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [RFC PATCH 1/6] PM / Voltagedomain: Add generic clk notifier handler for
- regulator based dynamic voltage scaling
-Date: Mon, 24 Feb 2014 21:51:42 -0800
-Message-ID: <20140225055142.22529.21814@quantum>
-References: <1392755543-28335-1-git-send-email-nm@ti.com>
- <1392755543-28335-2-git-send-email-nm@ti.com>
+From: Yung Kyu Kim <2794615276@qq.com>
+Subject: Hello
+Date: Tue, 25 Feb 2014 07:21:51 +0100
+Message-ID: <316f78df11ad17384fb966371ecc9032__3433.76967725835$1393311452$gmane$org@41.203.69.3>
+Reply-To: Yung Kyu Kim <2794615276@qq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <1392755543-28335-2-git-send-email-nm@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.isis-com.hu ([77.221.39.10]:39586 "EHLO smtp.isiscom.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750712AbaBYG5P convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Feb 2014 01:57:15 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Nishanth Menon (2014-02-18 12:32:18)
-> From: Mike Turquette <mturquette@linaro.org>
-> 
-> This patch provides helper functions for drivers that wish to scale
-> voltage through the clock rate-change notifiers. The approach taken
-> is that the user-driver(cpufreq/devfreq) do not care about the
-> details of the OPP table, nor does it care about handling the voltage
-> regulator directly.
-> 
-> By using the clk notifier flags, we are able to sequence the operations
-> in the right order. The current logic is heavily influenced by
-> implementation done in cpufreq-cpu0.
-> 
-> [nm@ti.com: Fixes in logic, and broken out from clk to allow building
-> a generic voltagedomain solution independent of cpufreq]
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Mike Turquette <mturquette@linaro.org>
+Hello,
 
-Not-signed-off-by: Mike Turquette <mturquette@linaro.org>
+The Project is about the exportation of 100,000 barrels of Light Crude Oil
+daily out from Iraq to Turkey through my client's company in Iraq at the
+rate of $92.00 a barrel. This amount to $9,200,000 daily. I ask for your
+support as a foreigner to handle this business project with my client and
+you are not expected to invest in Iraq
 
-I haven't reviewed this series and it is a pretty big deviation from my
-original RFC. You can have authorship of the patches if you want.
+If yes, let me know and we will discuss this project proper.
 
-I'm not sure about trying to capture the "voltdm" as a core concept. It
-feels a bit unwieldy to me. I have wondered about making an abstract
-"performance domain" which is the dvfs analogue to generic power
-domains. This a reasonable split since gpd are good for idle power
-savings (e.g. clock gate, power gate, sleep state, etc) and "perf
-domains" would be good for active power savings (dvfs).
+Yung Kyu Kim.
 
-Having a generic container for performance domains might make a good
-place to stuff all of this glue logic that we keep running into (e.g.
-CPU and GPU max frequencies that are related), and it might make another
-nice knob for the thermal folks to use.
+Contact This Email If Interested : 2794615276@qq.com
 
-For the case of the OMAP voltage domains, it would be a place to stuff
-all of the VC/VP -> ABB -> Smart Reflex AVS stuff.
 
-Anyways, I don't have a real proposal. I just don't want my name on
-these patches since they are really yours now. I might resurrect them
-some day in a different context.
-
-Regards,
-Mike
