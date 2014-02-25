@@ -1,49 +1,74 @@
-From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v8 02/14] mfd: omap-usb-host: Always fail on clk_get()
- error
-Date: Tue, 25 Feb 2014 10:28:59 +0000
-Message-ID: <20140225102859.GB13246@lee--X1>
-References: <1392896409-5101-1-git-send-email-rogerq@ti.com>
- <1392896409-5101-3-git-send-email-rogerq@ti.com>
- <20140225095913.GA13143@lee--X1>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: TWL6040 fails to initialize
+Date: Tue, 25 Feb 2014 11:30:11 +0100
+Message-ID: <530C70B3.4010103@epfl.ch>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140225095913.GA13143@lee--X1>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: =?ISO-8859-1?Q?Philippe_R=E9tornaz?= <philippe.retornaz@epfl.ch>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 25 Feb 2014, Lee Jones wrote:
+Hi Peter,
 
-> > Be more strict and always fail on clk_get() error.
-> >=20
-> > For OMAP3 platforms, get the 120MHz EHCI clock by its proper name
-> > 'usbhost_120m_fck' instead of its alias 'ehci_logic_fck'.
-> >=20
-> > CC: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > CC: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> > Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> > ---
-> >  drivers/mfd/omap-usb-host.c | 65 +++++++++++++++++++++++++++++----=
-------------
-> >  1 file changed, 42 insertions(+), 23 deletions(-)
->=20
-> Appied, thanks.
+I got recently to work on the DT support for an OMAP4 board [1], and I
+encountered some troubles with the probe of the twl6040 audio codec on
+3.14-rc kernels. On 3.13, things were working correctly. So I somewhat
+managed to bisect this down to [c7f9129 mfd: twl6040: reg_defaults
+support for regmap]. But looking more into it, things are less obvious.
 
-Won't apply. I guess this depends on the changes made in patch 1.
+When the init fails, here is what happens:
 
-I'll wait for the next drop.
+[    2.455749] twl6040 0-004b: Looking up vio-supply from device tree
+[    2.456359] twl6040 0-004b: Looking up v2v1-supply from device tree
+[    2.457061] twl6040 0-004b: Failed to set masks in 0x4: -121
+[    2.463043] twl6040: probe of 0-004b failed with error -121
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+logically resulting in
+
+[    2.770050] omap-abe-twl6040 sound.4: ASoC: CODEC twl6040-codec not
+registered
+[    2.777770] omap-abe-twl6040 sound.4: snd_soc_register_card() failed:
+-517
+[    2.785095] platform sound.4: Driver omap-abe-twl6040 requests probe
+deferral
+
+We get a EREMOTEIO when calling regmap_add_irq_chip() from
+twl6040_probe(). regmap_add_irq_chip() will try to perform non-cached
+i2c writes, where the omap-i2c driver get a NACK from the remote chip.
+Strange enough, the non-cached read just before (i.e.
+twl6040_reg_read(twl6040, TWL6040_REG_ASICREV)) succeeds.
+
+After some fiddling around, I could find that delaying the call to
+regmap_add_irq_chip(), let's say by msleep(1), will "solve" the problem.
+
+As the TRM for TWL6040 is not public, and I cannot physically access the
+i2c bus on the board, I ran out of hypothesis. I first suspected a
+concurrent access from the McPDM bus, but the mcpdm driver does not seem
+to perform command (write) access.
+
+As the regulators are enabled just before, could it be the twl6040 IP
+which is not yet initialized, and NACK'ing writes but not reads? The
+commit c7f9129 changed the regmap logic by reducing the number of
+non-cached accesses, and thus changed the access timings, so it may have
+trigged this behaviour. But this is pure supposition, as I cannot hack
+the i2c bus :( And adding any kind of tracing before
+regmap_add_irq_chip() usually delays enough to make the probe succeeds.
+
+Any ideas?
+
+Regards,
+Florian
+
+[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/110801
