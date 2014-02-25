@@ -1,71 +1,97 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/2] ARM: dts: duovero-parlor: Add HDMI output
-Date: Tue, 25 Feb 2014 20:56:34 +0000
-Message-ID: <20140225205634.GZ27282@n2100.arm.linux.org.uk>
-References: <1393261669-32039-1-git-send-email-florian.vaussard@epfl.ch> <20140225123921.GY27282@n2100.arm.linux.org.uk> <20140225134139.GA23898@earth.universe> <2364124.7r818M0xAj@avalon>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC PATCH 1/6] PM / Voltagedomain: Add generic clk notifier
+ handler for regulator based dynamic voltage scaling
+Date: Tue, 25 Feb 2014 14:56:52 -0600
+Message-ID: <530D0394.4020208@ti.com>
+References: <1392755543-28335-1-git-send-email-nm@ti.com>
+ <1392755543-28335-2-git-send-email-nm@ti.com>
+ <20140225055142.22529.21814@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:50634 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752660AbaBYU4u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Feb 2014 15:56:50 -0500
-Content-Disposition: inline
-In-Reply-To: <2364124.7r818M0xAj@avalon>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140225055142.22529.21814@quantum>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Mark Brown <broonie@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ash Charles <ash@gumstix.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Feb 25, 2014 at 05:51:21PM +0100, Laurent Pinchart wrote:
-> I don't think all physical connectors require a DT binding per-se, but they 
-> need to be represented in DT as they're part of the hardware. We could push 
-> connector-related information to the nodes of all chips that have interfaces 
-> wired directly to connectors, but that would result in more complex DT 
-> bindings and core. I believe modeling connectors using separate DT nodes is be 
-> best, and would allow easier support for more complex connectors that carry 
-> multiple streams/signals in parallel (video, audio, DDC, ...).
+Hi Mike,
+On 02/24/2014 11:51 PM, Mike Turquette wrote:
+> Quoting Nishanth Menon (2014-02-18 12:32:18)
+>> From: Mike Turquette <mturquette@linaro.org>
+>>
+>> This patch provides helper functions for drivers that wish to scale
+>> voltage through the clock rate-change notifiers. The approach taken
+>> is that the user-driver(cpufreq/devfreq) do not care about the
+>> details of the OPP table, nor does it care about handling the voltage
+>> regulator directly.
+>>
+>> By using the clk notifier flags, we are able to sequence the operations
+>> in the right order. The current logic is heavily influenced by
+>> implementation done in cpufreq-cpu0.
+>>
+>> [nm@ti.com: Fixes in logic, and broken out from clk to allow building
+>> a generic voltagedomain solution independent of cpufreq]
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> Signed-off-by: Mike Turquette <mturquette@linaro.org>
+> 
+> Not-signed-off-by: Mike Turquette <mturquette@linaro.org>
+> 
+> I haven't reviewed this series and it is a pretty big deviation from my
+> original RFC. You can have authorship of the patches if you want.
 
-There is some sanity to representing physical connectors in DT, but it's
-not for the reason you mention above.  If you consider that it's possible
-on PCs to find out what connectors are on the motherboard and where they
-are located, this is very useful information to be stored and presented.
+Sure, I had send a private note requesting clarification about the
+authorship, but I guess I can take this as the response :).
 
-However, the idea that you combine streams at connectors is not a
-universal truth, and is certainly false for HDMI.  HDMI combines video
-and audio at the encoder stage, not at the connector stage, and many
-HDMI encoders will provide everything required for driving the connector.
+> 
+> I'm not sure about trying to capture the "voltdm" as a core concept. It
+> feels a bit unwieldy to me.
 
-However, my major objection here is not really that: my major objection
-is using something as generic as "hdmi-connector" as a compatible string.
-The reason is that we have to remember that DT is not just "a Linux thing".
-It's /supposed/ to be an OS independent representation of the hardware.
+Considering it is a simple collation of regulators and SoC specific
+"magic" which have to be operated in tandem to clock operation, Why
+does it seem unwieldy? Usage of multiple voltage planes in a single
+voltage domain concept does not seem unique to TI processors either:
+For example, imx6q-cpufreq.c uses 3 regulators (arm, pu, soc),
+s5pv210-cpufreq.c uses two regulators (vddarm, vddint), ideally OMAP
+implementation would use two (vdd_mpu, vbb_mpu).
 
-If we invent something generic called a "hdmi-connector" then we had
-better first do a thorough search to make sure we're not trampling on
-anything which is standardized or becoming a standard - if there is,
-we should work with them - and if that's not possible, then we need to
-distingush ourselves from them.
+> I have wondered about making an abstract
+> "performance domain" which is the dvfs analogue to generic power
+> domains. This a reasonable split since gpd are good for idle power
+> savings (e.g. clock gate, power gate, sleep state, etc) and "perf
+> domains" would be good for active power savings (dvfs).
+> 
+> Having a generic container for performance domains might make a good
+> place to stuff all of this glue logic that we keep running into (e.g.
+> CPU and GPU max frequencies that are related), and it might make another
+> nice knob for the thermal folks to use.
 
-What we can't do is go around inventing generic stuff without having our
-eyes wide open.
+This sounds like one level higher abstraction that we are speaking of
+here? I was'nt intending to solve the bigger picture problem here -
+just an abstraction level that might allow reusablity for multiple
+SoCs. In fact, having an abstraction away for voltage domain(which may
+consist of multiple regulators and any SoC specific magic) purely
+allows us to move towards a direction you mention here.
 
-So, here's a good question to probe how far this has been thought through
-already: what has been done to discuss the creation of this generic
-"hdmi-connector" thing with the various parties who are interested in
-HDMI outputs under DRM using device tree?
+> 
+> For the case of the OMAP voltage domains, it would be a place to stuff
+> all of the VC/VP -> ABB -> Smart Reflex AVS stuff.
+> 
 
-If that hasn't happened, that's quite a failing - it means that we're
-on the road to having two _implementation specific_ DT representations
-for the same hardware - one for fbdev and one for DRM.  That really
-isn't on.
-
-Yes, it then opens a pandora's box of problems about how we determine
-whether DRM or fbdev should bind to the DT nodes, but that should be
-an entirely separate issue (and, ideally of course, both should use
-the same sub-drivers for the components.)
+Unfortunately, I dont completely comprehend objection we have to this
+approach (other than an higher level abstraction is needed) and if we
+do have an objection, what is the alternate approach should be for
+representing hardware which this series attempts to present.
 
 -- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+Regards,
+Nishanth Menon
