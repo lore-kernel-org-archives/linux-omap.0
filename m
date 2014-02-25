@@ -1,113 +1,75 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2 03/16] Documentation: dt: add OMAP iommu bindings
-Date: Tue, 25 Feb 2014 17:02:35 -0600
-Message-ID: <530D210B.3070602@ti.com>
-References: <1392315347-32967-1-git-send-email-s-anna@ti.com>
-	<1392315347-32967-4-git-send-email-s-anna@ti.com>
-	<13151454.2tbkC7YZsi@avalon>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: SD card timeout problems on Nokia N900 (omap_hsmmc on OMAP3)
+Date: Wed, 26 Feb 2014 00:47:46 +0100
+Message-ID: <20140225234746.GA13866@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <13151454.2tbkC7YZsi@avalon>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="2oS5YaxWCcQjTEyO"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Laurent,
 
-On 02/25/2014 03:26 PM, Laurent Pinchart wrote:
-> Hi Suman,
->
-> Thank you for the patch.
->
-> On Thursday 13 February 2014 12:15:34 Suman Anna wrote:
->> From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
->>
->> This patch adds the iommu bindings for all OMAP2+ SoCs. Apart from
->> the standard bindings used by OMAP peripherals, this patch uses a
->> 'dma-window' (already used by Tegra SMMU) and adds two OMAP custom
->> bindings - 'ti,#tlb-entries' and 'ti,iommu-bus-err-back'.
->>
->> Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
->> [s-anna-l0cyMroinI0@public.gmane.org: split bindings document, add dra7 and bus error back]
->> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
->> ---
->>   .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 28 +++++++++++++++++++
->>   1 file changed, 28 insertions(+)
->>   create mode 100644
->>   Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
->>
->> diff --git a/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
->> b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt new file mode
->> 100644
->> index 0000000..116492d
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
->> @@ -0,0 +1,28 @@
->> +OMAP2+ IOMMU
->> +
->> +Required properties:
->> +- compatible : Should be one of,
->> +		"ti,omap2-iommu" for OMAP2/OMAP3 IOMMU instances
->> +		"ti,omap4-iommu" for OMAP4/OMAP5 IOMMU instances
->> +		"ti,dra7-iommu" for DRA7xx IOMMU instances
->> +- ti,hwmods  : Name of the hwmod associated with the IOMMU instance
->> +- reg        : Address space for the configuration registers
->> +- interrupts : Interrupt specifier for the IOMMU instance
->> +- dma-window : IOVA start address and length
->
-> Isn't the dma window more of a system configuration property than a hardware
-> property ? How do you expect it to be set?
+--2oS5YaxWCcQjTEyO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-We are setting it based on the addressable range for the MMU. We are 
-reusing the existing defined property and it allows us to get rid of the 
-IOVA start and end addresses defined in the pre-DT OMAP iommu platform data.
+Hi,
 
->
->> +Optional properties:
->> +- ti,#tlb-entries : Number of entries in the translation look-aside buffer.
->> +                    Should be either 8 or 32 (default: 32)
->> +- ti,iommu-bus-err-back : Indicates the IOMMU instance supports throwing
->> +		          back a bus error response on MMU faults.
->
-> Do these features vary per IOMMU instance or per IOMMU model ? In the latter
-> case they could be inferred from the compatible string by the driver without
-> requiring them to be explicit in DT (whether you want to do so is left to you
-> though).
+I have problems with the SD-card initialization on my Nokia N900
+using a 3.14-rc1 based kernel in DT boot mode. The bug is can be
+circumvented by changing the kernel slightly (e.g. remove some DT
+nodes or mark them as disabled). So the SD card's timeout problems
+seem to derive from kernel timing problems. I'm pretty sure, that
+the problems are not originating from a broken SD card, since
 
-Well, these are fixed features given an IOMMU instance, like the OMAP3 
-ISP is the only one that has 8 TLB entries, all the remaining ones have 
-32, and the IPU iommu instances are the only ones that support the bus 
-error response back. I have no preference to any particular way, and 
-sure the driver can infer these easily based on unique compatible 
-strings per subsystem per SoC. I just happened to go with defining 
-compatible strings per SoC, with the optional properties differentiating 
-the fixed behavior between different IOMMU instances on that SoC. This 
-is where I was looking for some inputs/guidance from the DT bindings 
-maintainers on what is the preferred method.
+ 1. The SD card worked quite good before and still does depending
+    on unrelated DTS changes (=> loading less drivers).
+ 2. The SD card works flawlessly on my notebook using a USB adapter
+ 3. Another SD card showed the same problem
 
-regards
-Suman
+I tried to git bisect the problem, but I just get shown some
+unrelated driver additions.
 
->
->> +Example:
->> +	/* OMAP3 ISP MMU */
->> +	mmu_isp: mmu@480bd400 {
->> +		compatible = "ti,omap2-iommu";
->> +		reg = <0x480bd400 0x80>;
->> +		interrupts = <24>;
->> +		ti,hwmods = "mmu_isp";
->> +		ti,#tlb-entries = <8>;
->> +		dma-window = <0 0xfffff000>;
->> +	};
->
+Anyways, this is the error I get during boot:
+
+[    3.896820] mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
+...
+[    5.956237] mmc0: error -110 whilst initialising SD card
+
+I added some debug prints to trace the error:
+
+ * mmc_sd_init_card()
+ * mmc_sd_get_cid()
+ * mmc_send_app_op_cond()
+
+Can you give me any hints how to find & fix the problem's source?
+
+-- Sebastian
+
+--2oS5YaxWCcQjTEyO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJTDSuiAAoJENju1/PIO/qaQUEP/0hKExggHT/zi7I7MdJcUGhs
+VKJN+nEAB6XzYfnW1cQimP56cUUk8NT05IYVHipH3iD0oh6MZ5UpxNxYG6810jbv
+W8thtRqck0a0Wi5cJ/DTuyo5SSHyWqOVC4BAfYgdAwX5Vi9tEAYSApKNW1+gCPE6
+DcAHqJdlj+I37qH/QxhzLCnLZpjhankHagfVoBiRBNy4wtkWEpOJaTGmt63UQN6g
+py3pekjo6fl8fPsVOTqoU+rPNRfgtqwRA0xmwPi6E3Pu2+K36CuxaCyheA6Gzysn
+BRm5zS8UQ4goHMz/zzIiHkGKfJLntG3aSn/RNKFgGvZBaOpNFhiAstGKA12hdk4P
+OJ+BqW6Is7/pzvRQwRGa1nKTFhxXBI+VTc9huqdd8K8l5i5Me0CJ4l3jMqiLyIx/
+iykX6H37oJRil2xrpuWFRE+8q+PhNvbMPtek/11vC2QxKVzSC9gcndjiUzW9FI8Q
+K+AUPbh+yt5BA7cAScooS+EGePVL51U3o/h1PVFMtVzhUA5NcsjptIJwbG0kcbbl
+tZkm3KQ6eFZawgBpHW4+wNHFe6f3Raz7ONOOj7tlF+RMDNxIUF/+uXXTXlJloEQD
+V9EJJ8W1+qfndXuLWB2YrBxEjZZhnR6FDYdFAOfzQ+quWMU9anFBQRof6BlkF5pn
+x2hNqySsKFN/EaAxR9xn
+=GLXc
+-----END PGP SIGNATURE-----
+
+--2oS5YaxWCcQjTEyO--
