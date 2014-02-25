@@ -1,91 +1,52 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH v2 0/2] ARM: OMAP4: Fix gpmc_fck clock
-Date: Tue, 25 Feb 2014 09:10:21 +0100
-Message-ID: <530C4FED.80403@epfl.ch>
-References: <1392801305-1698-1-git-send-email-florian.vaussard@epfl.ch> <5304DA2C.3030605@ti.com> <53050573.8090506@epfl.ch> <20140223212309.22529.75068@quantum> <530ADC39.1010300@epfl.ch> <20140225062615.22529.88499@quantum>
-Reply-To: florian.vaussard@epfl.ch
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH 1/2] clk: ti: am335x: remove unecessary cpu0 clk node
+Date: Tue, 25 Feb 2014 00:24:11 -0800
+Message-ID: <20140225082411.22529.21466@quantum>
+References: <1391019557-22313-1-git-send-email-nm@ti.com>
+ <1391019557-22313-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:41613 "EHLO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751352AbaBYIK0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Feb 2014 03:10:26 -0500
-In-Reply-To: <20140225062615.22529.88499@quantum>
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:54026 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752072AbaBYIYT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Feb 2014 03:24:19 -0500
+Received: by mail-pd0-f173.google.com with SMTP id z10so2276717pdj.18
+        for <linux-omap@vger.kernel.org>; Tue, 25 Feb 2014 00:24:18 -0800 (PST)
+In-Reply-To: <1391019557-22313-2-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, "Anna, Suman" <s-anna@ti.com>
+To: =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-On 02/25/2014 07:26 AM, Mike Turquette wrote:
-> Quoting Florian Vaussard (2014-02-23 21:44:25)
->> On 02/23/2014 10:23 PM, Mike Turquette wrote:
->>> Quoting Florian Vaussard (2014-02-19 11:26:43)
->>>>
->>>> On 02/19/2014 05:22 PM, Tero Kristo wrote:
->>>>> On 02/19/2014 11:15 AM, Florian Vaussard wrote:
->>>>>> Hello,
->>>>>>
->>>>>> Trying to get my SMSC9221 working on OMAP4 with DT,
->>>>>> I faced a misconfigured gpmc_fck (dummy clock set to 0)
->>>>>> resulting in serveral division-by-zero, misconfigured
->>>>>> timings and driver lost in the La La Land.
->>>>>>
->>>>>> To solve this, patch 1 removes gpmc_fck from the dummy
->>>>>> clocks, and patch 2 adds the gpmc_fck DT node and
->>>>>> reference it from the gpmc node.
->>>>>>
->>>>>> Tested on DuoVero/Parlor (OMAP4430) with SMSC9221.
->>>>>
->>>>> I can't test GPMC myself, but other than that, this set looks goo=
-d to go.
->>>>>
->>>>
->>>> Thank you. Would you like more test coverage by other people? I wo=
-uld
->>>> like to see this in -rc if possible, as it is needed to boot my OM=
-AP4
->>>> system.
->>>
->>> What OMAP4 system is this? Is this a regression for board that alre=
-ady
->>> has support merged into mainline?
->>>
->>
->> No, it is not yet merged into mainline. I was planning to post the D=
-TS
->> this week, when most issues are cleared. Looking at the current main=
-line
->> boards, no one seems to use the GPMC, so I am just the first one to =
-hit
->> this issue.
->=20
-> OK, well typically the later -rc's are for fixing observed regression=
-s.
-> Since your platform is not yet merged in then it's probably fine to p=
-ush
-> this for 3.15.
->=20
+Quoting Nishanth Menon (2014-01-29 10:19:16)
+> cpu0 clock node has no functionality, since cpufreq-cpu0 is already
+> capable of picking up the clock from dts.
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-=46air enough. 3.15 is fine.
-
-> This also gives time to test the fix for other OMAP-ish processors.
->=20
-
-I can do the v3, including OMAP5 and DRA7. But for DRA7, I will need
-someone with the TRM telling me where is connected gpmc_fclk (Suman?).
-
-BTW, your mail client seems to have corrupted the To: header, double
-quotes " are missing between Tero, Beno=EEt and Tony's addresses, mixin=
-g
-them as the same person. Maybe an indigestion caused by the UTF8
-character of Beno=EEt?
+Taken into clk-next!
 
 Regards,
-=46lorian
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Mike
+
+> ---
+>  drivers/clk/ti/clk-33xx.c |    1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
+> index 776ee45..028b337 100644
+> --- a/drivers/clk/ti/clk-33xx.c
+> +++ b/drivers/clk/ti/clk-33xx.c
+> @@ -34,7 +34,6 @@ static struct ti_dt_clk am33xx_clks[] = {
+>         DT_CLK(NULL, "dpll_core_m5_ck", "dpll_core_m5_ck"),
+>         DT_CLK(NULL, "dpll_core_m6_ck", "dpll_core_m6_ck"),
+>         DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
+> -       DT_CLK("cpu0", NULL, "dpll_mpu_ck"),
+>         DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
+>         DT_CLK(NULL, "dpll_ddr_ck", "dpll_ddr_ck"),
+>         DT_CLK(NULL, "dpll_ddr_m2_ck", "dpll_ddr_m2_ck"),
+> -- 
+> 1.7.9.5
+> 
