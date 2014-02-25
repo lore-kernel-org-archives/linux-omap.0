@@ -1,76 +1,85 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: Ideas/suggestions to avoid repeated locking and reducing too
- many lists with dmaengine?
-Date: Mon, 24 Feb 2014 16:53:33 -0600
-Message-ID: <530BCD6D.9010208@ti.com>
-References: <530B9784.5060904@ti.com> <20140224192152.GV27282@n2100.arm.linux.org.uk> <530BC9F8.2040402@ti.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCHv1 1/6] HSI: add Device Tree support for HSI clients
+Date: Mon, 24 Feb 2014 18:47:37 -0600
+Message-ID: <CAL_JsqJ5eHLSztBgjvi1TAEVeM6dfwnLwm4ygLnD+H0xrNXMfA@mail.gmail.com>
+References: <1393199401-27197-1-git-send-email-sre@debian.org>
+	<1393199401-27197-2-git-send-email-sre@debian.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56764 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388AbaBXWyE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Feb 2014 17:54:04 -0500
-In-Reply-To: <530BC9F8.2040402@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1393199401-27197-2-git-send-email-sre@debian.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, =?ISO-8859-1?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, =?windows-1251?B?yOLg6evuIMTo7Ojy8O7i?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, linux-rt-users@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Correcting myself from an earlier post..
+On Sun, Feb 23, 2014 at 5:49 PM, Sebastian Reichel <sre@debian.org> wrote:
+> Add new method hsi_add_clients_from_dt, which can be used
+> to initialize HSI clients from a device tree node.
+>
+> The patch also documents the DT binding for trivial HSI
+> clients.
+>
+> Signed-off-by: Sebastian Reichel <sre@debian.org>
+> ---
+>  .../devicetree/bindings/hsi/trivial-devices.txt    | 36 +++++++++++
+>  drivers/hsi/hsi.c                                  | 70 +++++++++++++++++++++-
+>  include/dt-bindings/hsi/hsi.h                      | 17 ++++++
+>  include/linux/hsi/hsi.h                            |  2 +
+>  4 files changed, 124 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/devicetree/bindings/hsi/trivial-devices.txt
+>  create mode 100644 include/dt-bindings/hsi/hsi.h
+>
+> diff --git a/Documentation/devicetree/bindings/hsi/trivial-devices.txt b/Documentation/devicetree/bindings/hsi/trivial-devices.txt
+> new file mode 100644
+> index 0000000..1ace14a
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/hsi/trivial-devices.txt
+> @@ -0,0 +1,36 @@
+> +This is a list of trivial hsi client devices that have simple
+> +device tree bindings, consisting only of a compatible field
+> +and the optional hsi configuration.
+> +
+> +If a device needs more specific bindings, such as properties to
+> +describe some aspect of it, there needs to be a specific binding
+> +document for it just like any other devices.
+> +
+> +Optional HSI configuration properties:
+> +
+> +- hsi,mode             Bit transmission mode (STREAM or FRAME)
 
-On 02/24/2014 04:38 PM, Joel Fernandes wrote:
->>>  Also with respect to virt_dma (which is used by edma to manage all the
->>> descriptors and lists) there are too many lists: submitted, issued,
->>> completed etc and the descriptor moves from one to the other. I am
->>> thinking if there is a way we can avoid using so many lists and just
->>> have 2 lists and move the desc from one list to the other, That could
->>> avoid using the intermediate list altogether and classify dma requests
->>> as "done" or "not done".
->>
->> The reason I created separate submitted and issued lists is that it's
->> much easier to manage than having everything on a single list.
->>
->> We could deal with the submitted vs issued list, and that's to have the
->> channel store the cookie for the last issued descriptor - but I wonder
->> if it's worth the effort.
->>
->> What I'd suggest is to try some profiling, and post some profiling
->> results which show where the problems are, rather than pointing at
->> bits of code you might not particularly like.
->>
-> 
-> Actually I did do some tracing earlier before I posted this thread- and
-> notice there was excessive traces of locking/unlocking. It is very light
-> though as you pointed and lighter without debug options. The only other
-> notable difference is the fact that we are now going through the dmaengine
-> framework in the newer kernel vs the faster one.
-> 
-> One more thing in my trace is omap_dma_sync repeatedly call in memcpy_to_io
-> for every barrier call which is not necessary. I am working on a fix this.
-> 
-> On turning off DEBUG_KERNEL and running more tests, I do see some
-> improvements however the throughput reduction is still =~ 10%
-> 
-> With a modified openssl speed test app, I sent 16-byte sized block
-> repeatedly to the AES crypto hardware accelerator using EDMA:
-> 
-> On v3.13.5 kernel:
-> root@am335x-evm:~# openssl speed -evp aes-128-cbc -engine cryptodev
-> engine "cryptodev" set.
-> Doing aes-128-cbc for 3s on 16 size blocks: 79902 aes-128-cbc's
-> 
-> With v3.2 kernel,
-> Doing aes-128-cbc for 3s on 16 size blocks: 92314 aes-128-cbc's
-> 
-> So we're able to encrypt around 13k more ops, or around 4.5k ops/second
-> with 3.13.5
+hsi is not a vendor prefix, so all these properties should be hsi-*.
 
-We're able to encrypt around 13k more ops, or around 4.5k ops/second
-with the older 3.2 kernel that didn't use DMAEngine.
+> +                       The first value is used for RX and the second one for
+> +                       TX configuration. If only one value is provided it will
+> +                       be used for RX and TX.
+> +                       The assignments may be found in header file
+> +                       <dt-bindings/hsi/hsi.h>.
+> +- hsi,channels         Number of channels to use [1..16]
+> +                       The first value is used for RX and the second one for
+> +                       TX configuration. If only one value is provided it will
+> +                       be used for RX and TX.
+> +- hsi,speed            Max bit transmission speed (Kbit/s)
 
-Regards,
--Joel
+Include the units in the prop name: hsi-speed-kbps
+
+> +                       The first value is used for RX and the second one for
+> +                       TX configuration. If only one value is provided it will
+> +                       be used for RX and TX.
+> +- hsi,flow             RX flow type (SYNCHRONIZED or PIPELINE)
+> +                       The assignments may be found in header file
+> +                       <dt-bindings/hsi/hsi.h>.
+> +- hsi,arb_mode         Arbitration mode for TX frame (Round robin, priority)
+> +                       The assignments may be found in header file
+> +                       <dt-bindings/hsi/hsi.h>.
+> +
+> +This is the list of trivial client devices:
+> +
+> +Compatible             Description
+> +==========             =============
+> +hsi-char               HSI character device
 
 
+I've gotten this far and still have no idea what HSI is.
+
+Rob
