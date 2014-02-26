@@ -1,79 +1,29 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: SD card timeout problems on Nokia N900 (omap_hsmmc on OMAP3)
-Date: Wed, 26 Feb 2014 09:03:23 -0800
-Message-ID: <20140226170323.GB11654@atomide.com>
-References: <20140225234746.GA13866@earth.universe>
- <CAOf5uwn0sziBhE9edyiVqj8MUTidbX19YhgDsgikn5VLbx0B7A@mail.gmail.com>
- <530D8FF2.3070100@gmail.com>
- <530DA97E.7090406@ti.com>
+Subject: Re: [patch 08/26] arm: Replace various irq_desc accesses
+Date: Wed, 26 Feb 2014 09:05:31 -0800
+Message-ID: <20140226170530.GC11654@atomide.com>
+References: <20140223212703.511977310@linutronix.de>
+ <20140223212737.099151500@linutronix.de>
+ <20140224025539.GE25011@S2101-09.ap.freescale.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <530DA97E.7090406@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@ring0.de>, Michael Trimarchi <michael@amarulasolutions.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, 'Chris Ball' <chris@printf.net>
+In-Reply-To: <20140224025539.GE25011@S2101-09.ap.freescale.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Shawn Guo <shawn.guo@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, arm <linux-arm-kernel@lists.infradead.org>, omap <linux-omap@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-* Balaji T K <balajitk@ti.com> [140226 00:48]:
-> On Wednesday 26 February 2014 12:25 PM, Stefan Roese wrote:
-> >Hi Sebastian,
-> >
-> >On 26.02.2014 07:02, Michael Trimarchi wrote:
-> >>Hi Sebastian
-> >>
-> >>On Wed, Feb 26, 2014 at 12:47 AM, Sebastian Reichel <sre@ring0.de> wrote:
-> >>>Hi,
-> >>>
-> >>>I have problems with the SD-card initialization on my Nokia N900
-> >>>using a 3.14-rc1 based kernel in DT boot mode. The bug is can be
-> >>>circumvented by changing the kernel slightly (e.g. remove some DT
-> >>>nodes or mark them as disabled). So the SD card's timeout problems
-> >>>seem to derive from kernel timing problems. I'm pretty sure, that
-> >>>the problems are not originating from a broken SD card, since
+* Shawn Guo <shawn.guo@linaro.org> [140223 18:58]:
+> On Sun, Feb 23, 2014 at 09:40:12PM -0000, Thomas Gleixner wrote:
+> > Use the proper functions. There is no need to fiddle with irq_desc.
+> > 
+> > Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> > Cc: Shawn Guo <shawn.guo@linaro.org>
+> ...
+> >  arch/arm/mach-imx/pm-imx6q.c        |    7 +++----
 > 
-> Can you provide removed/Disabled dt nodes, it might give some clue ?
-> 
-> >>>
-> >>>  1. The SD card worked quite good before and still does depending
-> >>>     on unrelated DTS changes (=> loading less drivers).
-> >>>  2. The SD card works flawlessly on my notebook using a USB adapter
-> >>>  3. Another SD card showed the same problem
-> >>>
-> >>>I tried to git bisect the problem, but I just get shown some
-> >>>unrelated driver additions.
-> >>>
-> >>>Anyways, this is the error I get during boot:
-> >>>
-> >>>[    3.896820] mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
-> >>>...
-> >>>[    5.956237] mmc0: error -110 whilst initialising SD card
-> >>>
-> >>
-> >>Are you sure that some subsystem that you deactivate don't change
-> >>pin muxing setting? Can you check in the broken system if the pins of the sdcard
-> >>are correctly muxed? Does it happen even if you change the sdcard?
-> >
-> >Did you try to add this patch series:
-> >
-> >http://www.spinics.net/lists/linux-omap/msg103264.html
-> >
-> >Without it I'm also having problems with MMC detection on some OMAP3 based boards.
-> >
-> >Balaji, what is the status of this patch series? Are there any chances that it will be included in v3.14?
-> >
-> 
-> Due to dependencies between regulator, mmc, omap def config, devicetree changes,
-> I am hoping either Chris or Tony pick the whole series for 3.15
+> Acked-by: Shawn Guo <shawn.guo@linaro.org>
 
-Best that Chris takes it all, I just acked the only patch that did not have
-my ack yet.
- 
-> Couple of tested-by will surely help.
-
-Yeah please ack in the thread above if you did not already.
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com> 
