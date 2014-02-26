@@ -1,87 +1,62 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH v2 0/2] ARM: OMAP4: Fix gpmc_fck clock
-Date: Wed, 26 Feb 2014 06:11:52 +0100
-Message-ID: <530D7798.8020407@epfl.ch>
-References: <1392801305-1698-1-git-send-email-florian.vaussard@epfl.ch> <5304DA2C.3030605@ti.com> <53050573.8090506@epfl.ch> <20140223212309.22529.75068@quantum> <530ADC39.1010300@epfl.ch> <20140225062615.22529.88499@quantum> <530C4FED.80403@epfl.ch> <530D2FC9.2010800@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Michael Trimarchi <michael@amarulasolutions.com>
+Subject: Re: SD card timeout problems on Nokia N900 (omap_hsmmc on OMAP3)
+Date: Wed, 26 Feb 2014 07:02:40 +0100
+Message-ID: <CAOf5uwn0sziBhE9edyiVqj8MUTidbX19YhgDsgikn5VLbx0B7A@mail.gmail.com>
+References: <20140225234746.GA13866@earth.universe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:58975 "EHLO smtp4.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752596AbaBZFL5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Feb 2014 00:11:57 -0500
-In-Reply-To: <530D2FC9.2010800@ti.com>
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:63997 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751333AbaBZGCl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Feb 2014 01:02:41 -0500
+Received: by mail-wg0-f51.google.com with SMTP id a1so1240671wgh.34
+        for <linux-omap@vger.kernel.org>; Tue, 25 Feb 2014 22:02:40 -0800 (PST)
+In-Reply-To: <20140225234746.GA13866@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, Mike Turquette <mturquette@linaro.org>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+To: Sebastian Reichel <sre@ring0.de>
+Cc: Balaji T K <balajitk@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-mmc@vger.kernel.org
 
-Hi Suman,
+Hi Sebastian
 
-On 02/26/2014 01:05 AM, Suman Anna wrote:
-> Florian,
-> 
-> On 02/25/2014 02:10 AM, Florian Vaussard wrote:
->> On 02/25/2014 07:26 AM, Mike Turquette wrote:
->>> Quoting Florian Vaussard (2014-02-23 21:44:25)
->>>> On 02/23/2014 10:23 PM, Mike Turquette wrote:
->>>>> Quoting Florian Vaussard (2014-02-19 11:26:43)
->>>>>>
->>>>>> On 02/19/2014 05:22 PM, Tero Kristo wrote:
->>>>>>> On 02/19/2014 11:15 AM, Florian Vaussard wrote:
->>>>>>>> Hello,
->>>>>>>>
->>>>>>>> Trying to get my SMSC9221 working on OMAP4 with DT,
->>>>>>>> I faced a misconfigured gpmc_fck (dummy clock set to 0)
->>>>>>>> resulting in serveral division-by-zero, misconfigured
->>>>>>>> timings and driver lost in the La La Land.
->>>>>>>>
->>>>>>>> To solve this, patch 1 removes gpmc_fck from the dummy
->>>>>>>> clocks, and patch 2 adds the gpmc_fck DT node and
->>>>>>>> reference it from the gpmc node.
->>>>>>>>
->>>>>>>> Tested on DuoVero/Parlor (OMAP4430) with SMSC9221.
->>>>>>>
->>>>>>> I can't test GPMC myself, but other than that, this set looks
->>>>>>> good to go.
->>>>>>>
->>>>>>
->>>>>> Thank you. Would you like more test coverage by other people? I would
->>>>>> like to see this in -rc if possible, as it is needed to boot my OMAP4
->>>>>> system.
->>>>>
->>>>> What OMAP4 system is this? Is this a regression for board that already
->>>>> has support merged into mainline?
->>>>>
->>>>
->>>> No, it is not yet merged into mainline. I was planning to post the DTS
->>>> this week, when most issues are cleared. Looking at the current
->>>> mainline
->>>> boards, no one seems to use the GPMC, so I am just the first one to hit
->>>> this issue.
->>>
->>> OK, well typically the later -rc's are for fixing observed regressions.
->>> Since your platform is not yet merged in then it's probably fine to push
->>> this for 3.15.
->>>
->>
->> Fair enough. 3.15 is fine.
->>
->>> This also gives time to test the fix for other OMAP-ish processors.
->>>
->>
->> I can do the v3, including OMAP5 and DRA7. But for DRA7, I will need
->> someone with the TRM telling me where is connected gpmc_fclk (Suman?).
-> 
-> For DRA7, GPMC is connected off L3MAIN1_L3_GICLK (compared to
-> L3MAIN2_L3_GICLK on OMAP5), both of which are actually just L3_ICLK.
-> This is the l3_iclk_div in both the omap54xx-clocks.dtsi and
-> dra7xx-clocks.dtsi files.
-> 
+On Wed, Feb 26, 2014 at 12:47 AM, Sebastian Reichel <sre@ring0.de> wrote:
+> Hi,
+>
+> I have problems with the SD-card initialization on my Nokia N900
+> using a 3.14-rc1 based kernel in DT boot mode. The bug is can be
+> circumvented by changing the kernel slightly (e.g. remove some DT
+> nodes or mark them as disabled). So the SD card's timeout problems
+> seem to derive from kernel timing problems. I'm pretty sure, that
+> the problems are not originating from a broken SD card, since
+>
+>  1. The SD card worked quite good before and still does depending
+>     on unrelated DTS changes (=> loading less drivers).
+>  2. The SD card works flawlessly on my notebook using a USB adapter
+>  3. Another SD card showed the same problem
+>
+> I tried to git bisect the problem, but I just get shown some
+> unrelated driver additions.
+>
+> Anyways, this is the error I get during boot:
+>
+> [    3.896820] mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
+> ...
+> [    5.956237] mmc0: error -110 whilst initialising SD card
+>
 
-Thank you very much. So I will send a v3 including this.
+Are you sure that some subsystem that you deactivate don't change
+pin muxing setting? Can you check in the broken system if the pins of the sdcard
+are correctly muxed? Does it happen even if you change the sdcard?
 
-Regards,
-Florian
+Michael
+
+> I added some debug prints to trace the error:
+>
+>  * mmc_sd_init_card()
+>  * mmc_sd_get_cid()
+>  * mmc_send_app_op_cond()
+>
+> Can you give me any hints how to find & fix the problem's source?
+>
+> -- Sebastian
