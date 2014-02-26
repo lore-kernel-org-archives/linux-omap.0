@@ -1,51 +1,87 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V5 2/4] DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar
- IP
-Date: Wed, 26 Feb 2014 10:26:54 +0530
-Message-ID: <530D7416.8090805@ti.com>
-References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com> <1386066445-28245-3-git-send-email-r.sricharan@ti.com> <52D7B2CA.8080902@ti.com> <52EF7D85.5070705@ti.com> <alpine.DEB.2.02.1402041713470.24986@ionos.tec.linutronix.de> <52F23887.9060209@ti.com> <52F24683.9060200@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH v2 0/2] ARM: OMAP4: Fix gpmc_fck clock
+Date: Wed, 26 Feb 2014 06:11:52 +0100
+Message-ID: <530D7798.8020407@epfl.ch>
+References: <1392801305-1698-1-git-send-email-florian.vaussard@epfl.ch> <5304DA2C.3030605@ti.com> <53050573.8090506@epfl.ch> <20140223212309.22529.75068@quantum> <530ADC39.1010300@epfl.ch> <20140225062615.22529.88499@quantum> <530C4FED.80403@epfl.ch> <530D2FC9.2010800@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <52F24683.9060200@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, Kevin Hilman <khilman@linaro.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp4.epfl.ch ([128.178.224.219]:58975 "EHLO smtp4.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752596AbaBZFL5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Feb 2014 00:11:57 -0500
+In-Reply-To: <530D2FC9.2010800@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Tony,
+Hi Suman,
 
-On Wednesday 05 February 2014 07:41 PM, Sricharan R wrote:
-> Tony,
+On 02/26/2014 01:05 AM, Suman Anna wrote:
+> Florian,
 > 
-> On Wednesday 05 February 2014 06:41 PM, Sricharan R wrote:
->> On Tuesday 04 February 2014 09:44 PM, Thomas Gleixner wrote:
->>> On Mon, 3 Feb 2014, Sricharan R wrote:
->>>>> I already have your reviewed-by tag for the first patch in this series.
+> On 02/25/2014 02:10 AM, Florian Vaussard wrote:
+>> On 02/25/2014 07:26 AM, Mike Turquette wrote:
+>>> Quoting Florian Vaussard (2014-02-23 21:44:25)
+>>>> On 02/23/2014 10:23 PM, Mike Turquette wrote:
+>>>>> Quoting Florian Vaussard (2014-02-19 11:26:43)
+>>>>>>
+>>>>>> On 02/19/2014 05:22 PM, Tero Kristo wrote:
+>>>>>>> On 02/19/2014 11:15 AM, Florian Vaussard wrote:
+>>>>>>>> Hello,
+>>>>>>>>
+>>>>>>>> Trying to get my SMSC9221 working on OMAP4 with DT,
+>>>>>>>> I faced a misconfigured gpmc_fck (dummy clock set to 0)
+>>>>>>>> resulting in serveral division-by-zero, misconfigured
+>>>>>>>> timings and driver lost in the La La Land.
+>>>>>>>>
+>>>>>>>> To solve this, patch 1 removes gpmc_fck from the dummy
+>>>>>>>> clocks, and patch 2 adds the gpmc_fck DT node and
+>>>>>>>> reference it from the gpmc node.
+>>>>>>>>
+>>>>>>>> Tested on DuoVero/Parlor (OMAP4430) with SMSC9221.
+>>>>>>>
+>>>>>>> I can't test GPMC myself, but other than that, this set looks
+>>>>>>> good to go.
+>>>>>>>
+>>>>>>
+>>>>>> Thank you. Would you like more test coverage by other people? I would
+>>>>>> like to see this in -rc if possible, as it is needed to boot my OMAP4
+>>>>>> system.
 >>>>>
->>>>> Kevin was pointing out that irqchip maintainer tag is needed for this patch as well
->>>>> to be merged. We are planning to take this series through arm-soc tree.
+>>>>> What OMAP4 system is this? Is this a regression for board that already
+>>>>> has support merged into mainline?
 >>>>>
->>>>> Can i please have your tag for this patch as well ?
+>>>>
+>>>> No, it is not yet merged into mainline. I was planning to post the DTS
+>>>> this week, when most issues are cleared. Looking at the current
+>>>> mainline
+>>>> boards, no one seems to use the GPMC, so I am just the first one to hit
+>>>> this issue.
 >>>
->>> Acked-by-me
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> OK, well typically the later -rc's are for fixing observed regressions.
+>>> Since your platform is not yet merged in then it's probably fine to push
+>>> this for 3.15.
+>>>
 >>
->> Thanks Thomas.
+>> Fair enough. 3.15 is fine.
 >>
->> Kevin,
->>     I will re-send a branch based on rc1 for this.
+>>> This also gives time to test the fix for other OMAP-ish processors.
+>>>
 >>
+>> I can do the v3, including OMAP5 and DRA7. But for DRA7, I will need
+>> someone with the TRM telling me where is connected gpmc_fclk (Suman?).
 > 
-> I have pushed a branch based on mainline,
->    git://github.com/Sricharanti/sricharan.git
->    branch: crossbar_3.14_rc1
+> For DRA7, GPMC is connected off L3MAIN1_L3_GICLK (compared to
+> L3MAIN2_L3_GICLK on OMAP5), both of which are actually just L3_ICLK.
+> This is the l3_iclk_div in both the omap54xx-clocks.dtsi and
+> dra7xx-clocks.dtsi files.
 > 
- Ping on this..
+
+Thank you very much. So I will send a v3 including this.
 
 Regards,
- Sricharan
+Florian
