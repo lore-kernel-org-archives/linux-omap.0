@@ -1,200 +1,158 @@
-From: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv1 5/6] HSI: Introduce OMAP SSI driver
-Date: Wed, 26 Feb 2014 23:49:25 +0100
-Message-ID: <20140226224924.GA12143@earth.universe>
-References: <1393199401-27197-1-git-send-email-sre@debian.org>
- <1393199401-27197-6-git-send-email-sre@debian.org>
- <20140224155132.GK28555@e106331-lin.cambridge.arm.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv2 03/16] Documentation: dt: add OMAP iommu bindings
+Date: Wed, 26 Feb 2014 17:14:01 -0600
+Message-ID: <530E7539.6040106@ti.com>
+References: <1392315347-32967-1-git-send-email-s-anna@ti.com>
+	<530E682D.9070005@ti.com> <530E6A78.9060503@ti.com>
+	<2109933.259zooPLHZ@avalon>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="gBBFr7Ir9EOA20Yy"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140224155132.GK28555-NuALmloUBlrZROr8t4l/smS4ubULX0JqMm0uRHvK7Nw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Carlos Chinea <cch.devel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <Pawel.Moll-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon-uiMcrn6V0Vs@public.gmane.org>, Joni Lapilainen <joni.lapilainen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <2109933.259zooPLHZ@avalon>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Laurent,
 
---gBBFr7Ir9EOA20Yy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ >
+> On Wednesday 26 February 2014 16:28:08 Suman Anna wrote:
+>> On 02/26/2014 04:18 PM, Suman Anna wrote:
+>>> On 02/26/2014 02:36 PM, Laurent Pinchart wrote:
+>>>> On Wednesday 26 February 2014 14:23:03 Suman Anna wrote:
+>>>>>> On Wednesday 26 February 2014 11:02:24 Suman Anna wrote:
+>>>>>>> On 02/25/2014 08:13 PM, Laurent Pinchart wrote:
+>>>>>>>> On Tuesday 25 February 2014 17:02:35 Suman Anna wrote:
+>>>>>>>>> On 02/25/2014 03:26 PM, Laurent Pinchart wrote:
+>>>>>>>>>> On Thursday 13 February 2014 12:15:34 Suman Anna wrote:
+>>>>>>>>>>> From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+>>>>>>>>>>>
+>>>>>>>>>>> This patch adds the iommu bindings for all OMAP2+ SoCs. Apart from
+>>>>>>>>>>> the standard bindings used by OMAP peripherals, this patch uses a
+>>>>>>>>>>> 'dma-window' (already used by Tegra SMMU) and adds two OMAP custom
+>>>>>>>>>>> bindings - 'ti,#tlb-entries' and 'ti,iommu-bus-err-back'.
+>>>>>>>>>>>
+>>>>>>>>>>> Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+>>>>>>>>>>> [s-anna-l0cyMroinI0@public.gmane.org: split bindings document, add dra7 and bus error
+>>>>>>>>>>> back]
+>>>>>>>>>>> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+>>>>>>>>>>> ---
+>>>>>>>>>>>
+>>>>>>>>>>>   .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 28 +++++++++
+>>>>>>>>>>>   1 file changed, 28 insertions(+)
+>>>>>>>>>>>   create mode 100644
+>>>>>>>>>>>   Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
+>>>>>>>>>>>
+>>>>>>>>>>> diff --git
+>>>>>>>>>>> a/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
+>>>>>>>>>>> b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt new
+>>>>>>>>>>> file
+>>>>>>>>>>> mode 100644
+>>>>>>>>>>> index 0000000..116492d
+>>>>>>>>>>> --- /dev/null
+>>>>>>>>>>> +++ b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
+>>>>>>>>>>> @@ -0,0 +1,28 @@
+>>>>>>>>>>> +OMAP2+ IOMMU
+>>>>>>>>>>> +
+>>>>>>>>>>> +Required properties:
+>>>>>>>>>>> +- compatible : Should be one of,
+>>>>>>>>>>> +        "ti,omap2-iommu" for OMAP2/OMAP3 IOMMU instances
+>>>>>>>>>>> +        "ti,omap4-iommu" for OMAP4/OMAP5 IOMMU instances
+>>>>>>>>>>> +        "ti,dra7-iommu" for DRA7xx IOMMU instances
+>>>>>>>>>>> +- ti,hwmods  : Name of the hwmod associated with the IOMMU
+>>>>>>>>>>> instance
+>>>>>>>>>>> +- reg        : Address space for the configuration registers
+>>>>>>>>>>> +- interrupts : Interrupt specifier for the IOMMU instance
+>>>>>>>>>>> +- dma-window : IOVA start address and length
+>>>>>>>>>>
+>>>>>>>>>> Isn't the dma window more of a system configuration property than a
+>>>>>>>>>> hardware property ? How do you expect it to be set?
+>>>>>>>>>
+>>>>>>>>> We are setting it based on the addressable range for the MMU.
+>>>>>>>>
+>>>>>>>> A quick look at the ISP and IVA IOMMUs in the OMAP3 shows that both
+>>>>>>>> support the full 4GB VA space. Why do you need to restrict it ?
+>>>>>>>
+>>>>>>> I should have rephrased it better when I said addressable range. While
+>>>>>>> the MMUs are capable of programming the full 4GB space, there are some
+>>>>>>> address ranges that are private from the processor view. This
+>>>>>>> window is currently used to set the range for the omap-iovmm driver
+>>>>>>> (which only OMAP3 ISP is using atm), and there is no point in allowing
+>>>>>>> the omap-iovmm driver the full range when the processor could never
+>>>>>>> reach/access those addresses.
+>>>>>>
+>>>>>> But the IOMMU VA space is from a device point of view, not from a CPU
+>>>>>> point of view. Could you point me to where those private ranges are
+>>>>>> documented, in order to understand the problem correctly ?
+>>>>>
+>>>>> Yes, they are indeed from the device perspective. I meant DSP and/or IPU
+>>>>> by processor.
+>>>>>
+>>>>> For example on OMAP3, you can refer to Table 2-9 in section 2.4.5 "DSP
+>>>>> Subsystem Memory Space Mapping" of the OMAP36xx TRM, and the external
+>>>>> addressable range starts from 0x11000000.
+>>>>
+>>>> OK, so it looks more like a property of the IOMMU master than a
+>>>> property of the IOMMU itself. It would be better to express it as such,
+>>>> but I wonder how that could be done, and if it would be worth it in this
+>>>> case.
+>>>
+>>> This property is currently solely used to configure the range for the
+>>> omap-iovmm module, which were supplied through platform data in the
+>>> non-DT case.
+>
+> If I'm not mistaken omap-iovmm is something we want to get rid of. I know that
+> the OMAP3 ISP driver is the only user of that module, and I've started working
+> on fixing that, but I'm currently lacking time to complete the work.
+>
+> Now, if we get rid of omap-iovmm, does that mean that the dma-window property
+> won't need to be specified anymore ? If so, given that the only omap-iovmm
+> user is the OMAP3 ISP driver, I would propose to drop the property and just
+> hardcode the value.
 
-Hi Mark,
+Yeah, none of our OMAP4+ stacks use omap-iovmm, or similar dynamic 
+reservation scheme at the moment. I am perfectly fine with dropping the 
+property and hard-coding it in the driver with a note. DSP/Bridge has a 
+similar usage (in dmm.c), but that code is localized within the driver.
 
-On Mon, Feb 24, 2014 at 03:51:32PM +0000, Mark Rutland wrote:
-> > +       irq =3D platform_get_resource_byname(pd, IORESOURCE_IRQ, "gdd_m=
-pu");
-> > +       if (!irq) {
-> > +               dev_err(&pd->dev, "GDD IRQ resource missing\n");
-> > +               err =3D -ENXIO;
-> > +               goto out_err;
-> > +       }
-> > +       omap_ssi->gdd_irq =3D irq->start;
->=20
-> You can use platform_get_irq_byname here.
+Thanks for all the comments.
 
-Right. Will be changed in PATCHv2.
+regards
+Suman
 
-> > +static inline int ssi_of_get_available_child_count(const struct device=
-_node *np)
-> > +{
-> > +       struct device_node *child;
-> > +       int num =3D 0;
-> > +
-> > +       for_each_child_of_node(np, child)
-> > +               if (of_device_is_available(child))
-> > +                       num++;
-> > +
-> > +       return num;
-> > +}
->=20
-> You can find of_get_available_child_count in <linux/of.h>.
 
-That did not exist when I started with the DT conversion of the
-driver.
+>
+> Please let me know if there's something I've missed.
 
-> That said, this seems to be trying to count the number of ports,
-> which should all be compatible with "ti,omap3-ssi-port", no?
->=20
-> So maybe you should count all available child nodes compatible with
-> that.
 
-I updated the function to check the compatible string
-and use for_each_available_child_of_node(), which has
-also been added after I wrote this function.
-
-> > +static int __init ssi_probe(struct platform_device *pd)
-> > +{
-> > +       struct device_node *np =3D pd->dev.of_node;
-> > +       struct hsi_controller *ssi;
-> > +       int err;
-> > +       int num_ports;
-> > +
-> > +       if (!np) {
-> > +               dev_err(&pd->dev, "missing device tree data\n");
-> > +               return -EINVAL;
-> > +       }
-> > +
-> > +       num_ports =3D ssi_of_get_available_child_count(np);
-> > +
-> > +       ssi =3D hsi_alloc_controller(num_ports, GFP_KERNEL);
-> > +       if (!ssi) {
-> > +               dev_err(&pd->dev, "No memory for controller\n");
-> > +               return -ENOMEM;
-> > +       }
-> > +
-> > +       platform_set_drvdata(pd, ssi);
-> > +
-> > +       err =3D ssi_add_controller(ssi, pd);
-> > +       if (err < 0)
-> > +               goto out1;
-> > +
-> > +       pm_runtime_irq_safe(&pd->dev);
-> > +       pm_runtime_enable(&pd->dev);
-> > +
-> > +       err =3D ssi_hw_init(ssi);
-> > +       if (err < 0)
-> > +               goto out2;
-> > +#ifdef CONFIG_DEBUG_FS
-> > +       err =3D ssi_debug_add_ctrl(ssi);
-> > +       if (err < 0)
-> > +               goto out2;
-> > +#endif
-> > +
-> > +       err =3D of_platform_populate(pd->dev.of_node, NULL, NULL, &pd->=
-dev);
->=20
-> I'm not keen on doing this because it allows arbitrary devices which are
-> not ssi ports to be placed in the ssi host controller node that will be
-> probed, which is nonsensical and something I'd like to avoid by
-> construction.
->=20
-> Is there any reason the ports have to be platform devices at all?
-
-not strictly, but I get system resources via platform_get_resource_byname.
-
-> If so, is there no way we can register them directly and skip any other
-> devices?
-
-I set the second parameter (matches) of the of_platform_populate()
-call to a table containing the ssi-port compatible value.
-
-> > +static int __exit ssi_remove(struct platform_device *pd)
-> > +{
-> > +       struct hsi_controller *ssi =3D platform_get_drvdata(pd);
-> > +
-> > +#ifdef CONFIG_DEBUG_FS
-> > +       ssi_debug_remove_ctrl(ssi);
-> > +#endif
-> > +       ssi_remove_controller(ssi);
-> > +       platform_set_drvdata(pd, NULL);
-> > +
-> > +       pm_runtime_disable(&pd->dev);
-> > +
-> > +       /* cleanup of of_platform_populate() call */
-> > +       device_for_each_child(&pd->dev, NULL, ssi_remove_ports);
->=20
-> This would certainly be broken for a non ssi port device.
-
-I never intended to support other subdevices, but this only
-unregisters each subdevice, so its probably safe...
-
-> > +static int omap_ssi_port_runtime_suspend(struct device *dev)
-> > +{
-> > +       struct hsi_port *port =3D dev_get_drvdata(dev);
-> > +       struct omap_ssi_port *omap_port =3D hsi_port_drvdata(port);
-> > +       struct hsi_controller *ssi =3D to_hsi_controller(port->device.p=
-arent);
-> > +       struct omap_ssi_controller *omap_ssi =3D hsi_controller_drvdata=
-(ssi);
-> > +
-> > +       dev_dbg(dev, "port runtime suspend!\n");
-> > +
-> > +       ssi_set_port_mode(omap_port, SSI_MODE_SLEEP);
-> > +       if (omap_ssi->get_loss)
-> > +               omap_port->loss_count =3D
-> > +                               (*omap_ssi->get_loss)(ssi->device.paren=
-t);
->=20
-> You don't need to do (*struct->func)(args) when invoking a function
-> pointer. You can jsut have struct->func(args) as we do elsewhere. This
-> can be:
->=20
->   omap_ssi->get_loss(ssi->device.parent)
->=20
-> This should be fixed up in the other sites too.
-
-Thanks, fixed everywhere.
-
--- Sebastian
-
---gBBFr7Ir9EOA20Yy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTDm90AAoJENju1/PIO/qakjEP/0RIP3Q6tS1dkrokytDsBPjf
-cJ4VtbxzzhITCfkt34L2fNw3xQthJfzJTRvJcxEjstO/FTLoOp4soBawPD6iMWJr
-D7FtDmEX0+uKvFs/XYPZwP5qjBXvKX5aL2wOv2DMXI+oNs3iTGL8jswvT5SK8q66
-Ge1jg9HkB/Z6Cnc3xv0Y9CAbjPjXiO0gsDn/dznEgyxPiGB4xNf89kKWAgwjMKSn
-BhRVhJnBXSOC10UyfFD+QsmyZ15OFHl8Nx9HbIn/ap5vF6/YZKVi7IeNCaAXcOCd
-XIQZbBBMNeVw7RaKnI2AeRTDp7oKUdmXlqjsm6VDVMJIFsG8ucFdhOPvF7YsfJZ3
-42YHq8LT5WyFngrqZqQEM5B3DVxIVrVSwq2nMPZnLHNk6zswaGHpDMwmMam6xqfj
-5Bn8aqqw0LV4tYsGjTUxkksAYrnaT9L0MDiH9bKpx23krgdhprk24LaEd4z2zhK9
-RZNRgv2RdCsnEhfQmU9VKjg71R2lXi1SM2AjwN7ntR3gkcAlhO2gNK0+d2+1ApO8
-XqCfzI+oqvjrnagXJs+mUmOftNquNKKgBfruzVde6z+ocdRWAcH86wk4R2RuwAc5
-BtqEx08qk7ZplGfGmi3ivtl104g1bB8zeYdALYssmb0Wlmxl17hfMqRHEdvLSJWL
-rLIsDdpY5DZWRn9Lia89
-=fPlW
------END PGP SIGNATURE-----
-
---gBBFr7Ir9EOA20Yy--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>>> I am wondering if the way to go here is to use iommu_domain_set_attr() and
+>>> use the domain geometry values.
+>>
+>> The other option is to supply these as driver match data, and switching
+>> the compatible strings to identify the MMU instance precisely.
+>>
+>> regards
+>> Suman
+>>
+>>>> As not all masters (the OMAP3 ISP doesn't for instance) have restrictions
+>>>> regarding the VA range they can address, should this property be at
+>>>> least made
+>>>> optional ?
+>>>>
+>>>>>>>>> We are reusing the existing defined property and it allows us to get
+>>>>>>>>> rid of the IOVA start and end addresses defined in the pre-DT OMAP
+>>>>>>>>> iommu platform data.
+>
+> [snip]
+>
