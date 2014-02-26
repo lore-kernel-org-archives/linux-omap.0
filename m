@@ -1,87 +1,65 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2 02/16] iommu/omap: omap_iommu_attach() should return
-	ENODEV, not NULL
-Date: Wed, 26 Feb 2014 10:45:02 -0600
-Message-ID: <530E1A0E.4020609@ti.com>
-References: <1392315347-32967-1-git-send-email-s-anna@ti.com>
-	<2290716.T9AJoGfoRd@avalon> <530D19E3.9030407@ti.com>
-	<18584919.CMGx44dZjC@avalon>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH RESEND v11 6/7] ARM: OMAP: enable SYSCON and
+ REGULATOR_PBIAS in omap2plus_defconfig
+Date: Wed, 26 Feb 2014 09:01:53 -0800
+Message-ID: <20140226170152.GA11654@atomide.com>
+References: <1389627375-9107-1-git-send-email-balajitk@ti.com>
+ <1392821801-29673-1-git-send-email-balajitk@ti.com>
+ <1392821801-29673-7-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <18584919.CMGx44dZjC@avalon>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65532 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753414AbaBZRCG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Feb 2014 12:02:06 -0500
+Content-Disposition: inline
+In-Reply-To: <1392821801-29673-7-git-send-email-balajitk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, chris@printf.net, broonie@kernel.org
 
-Hi Laurent,
+* Balaji T K <balajitk@ti.com> [140219 07:00]:
+> Enable REGULATOR_PBIAS needed for SD card on most OMAPs.
+> 
+> Signed-off-by: Balaji T K <balajitk@ti.com>
 
-> On Tuesday 25 February 2014 16:32:03 Suman Anna wrote:
->> On 02/25/2014 03:13 PM, Laurent Pinchart wrote:
->>> On Thursday 13 February 2014 12:15:33 Suman Anna wrote:
->>>> From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
->>>>
->>>> omap_iommu_attach() returns NULL or ERR_PTR in case of error, but
->>>> omap_iommu_attach_dev() only checks for IS_ERR. Thus a NULL return value
->>>> (in case driver_find_device fails) will cause the kernel to panic when
->>>> omap_iommu_attach_dev() dereferences the pointer.
->>>>
->>>> In such case, omap_iommu_attach() should return ENODEV, not NULL.
->>>>
->>>> Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
->>>> Acked-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
->>>> ---
->>>>
->>>>    drivers/iommu/omap-iommu.c | 4 ++--
->>>>    1 file changed, 2 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
->>>> index fff2ffd..6272c36 100644
->>>> --- a/drivers/iommu/omap-iommu.c
->>>> +++ b/drivers/iommu/omap-iommu.c
->>>> @@ -863,7 +863,7 @@ static int device_match_by_alias(struct device *dev,
->>>> void *data) **/
->>>>
->>>>    static struct omap_iommu *omap_iommu_attach(const char *name, u32
->>>>    *iopgd)
->>>>    {
->>>> -	int err = -ENOMEM;
->>>> +	int err = -ENODEV;
->>>>    	struct device *dev;
->>>>    	struct omap_iommu *obj;
->>>>
->>>> @@ -871,7 +871,7 @@ static struct omap_iommu *omap_iommu_attach(const
->>>> char *name, u32 *iopgd)
->>>>    				(void *)name,
->>>>    				device_match_by_alias);
->>>>    	if (!dev)
->>>> -		return NULL;
->>>> +		return ERR_PTR(err);
->>>
->>> I would return ERR_PTR(-ENODEV) here, and remove the initialization at
->>> declaration of err above.
->>
->> The initialization at the beginning is also serving one another exit
->> path (a check for try_module_get), where err is not being set. If the
->> initialization is removed, then the err has to be set explicitly at the
->> other place. Let me know if you still want this changed.
->
-> The return value of iommu_enable() is unconditionally stored in err before the
-> try_module_get() call, so that code patch is buggy anyway and should be fixed.
-> I would still remove the initialization at declaration and assign -ENODEV to
-> err explicitly when try_module_get() fails before the goto err_module.
+I belive this is the only one missing my ack:
 
-OK, I will fix this up.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-regards
-Suman
+Probably best that this all gets queued along with other MMC related
+patches by Balaji and Chris.
+
+> ---
+>  arch/arm/configs/omap2plus_defconfig |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 3a0b53d..e4fec1c 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -169,6 +169,7 @@ CONFIG_DRA752_THERMAL=y
+>  CONFIG_WATCHDOG=y
+>  CONFIG_OMAP_WATCHDOG=y
+>  CONFIG_TWL4030_WATCHDOG=y
+> +CONFIG_MFD_SYSCON=y
+>  CONFIG_MFD_PALMAS=y
+>  CONFIG_MFD_TPS65217=y
+>  CONFIG_MFD_TPS65910=y
+> @@ -180,6 +181,7 @@ CONFIG_REGULATOR_TPS6507X=y
+>  CONFIG_REGULATOR_TPS65217=y
+>  CONFIG_REGULATOR_TPS65910=y
+>  CONFIG_REGULATOR_TWL4030=y
+> +CONFIG_REGULATOR_PBIAS=y
+>  CONFIG_FB=y
+>  CONFIG_FIRMWARE_EDID=y
+>  CONFIG_FB_MODE_HELPERS=y
+> -- 
+> 1.7.5.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
