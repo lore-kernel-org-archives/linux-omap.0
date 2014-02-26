@@ -1,115 +1,55 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCHv2 03/16] Documentation: dt: add OMAP iommu bindings
-Date: Wed, 26 Feb 2014 03:13:46 +0100
-Message-ID: <1552997.8jd4jgn3Ze@avalon>
-References: <1392315347-32967-1-git-send-email-s-anna@ti.com> <13151454.2tbkC7YZsi@avalon> <530D210B.3070602@ti.com>
+From: Jenny Tc <jenny.tc@intel.com>
+Subject: Re: [PATCH 3/4] power_supply: Introduce PSE compliant algorithm
+Date: Wed, 26 Feb 2014 08:24:44 +0530
+Message-ID: <20140226025444.GA21449@jenny-desktop>
+References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
+ <1391490780-6141-4-git-send-email-jenny.tc@intel.com>
+ <20140204113640.GD2450@amd.pavel.ucw.cz>
+ <20140220051655.GB2498@jenny-desktop>
+ <20140221144529.GB5238@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40094 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751114AbaBZCM2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Feb 2014 21:12:28 -0500
-In-Reply-To: <530D210B.3070602@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140221144529.GB5238@amd.pavel.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Joerg Roedel <joro@8bytes.org>, Tony Lindgren <tony@atomide.com>, Florian Vaussard <florian.vaussard@epfl.ch>, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Suman,
-
-On Tuesday 25 February 2014 17:02:35 Suman Anna wrote:
-> On 02/25/2014 03:26 PM, Laurent Pinchart wrote:
-> > On Thursday 13 February 2014 12:15:34 Suman Anna wrote:
-> >> From: Florian Vaussard <florian.vaussard@epfl.ch>
-> >> 
-> >> This patch adds the iommu bindings for all OMAP2+ SoCs. Apart from
-> >> the standard bindings used by OMAP peripherals, this patch uses a
-> >> 'dma-window' (already used by Tegra SMMU) and adds two OMAP custom
-> >> bindings - 'ti,#tlb-entries' and 'ti,iommu-bus-err-back'.
-> >> 
-> >> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> >> [s-anna@ti.com: split bindings document, add dra7 and bus error back]
-> >> Signed-off-by: Suman Anna <s-anna@ti.com>
-> >> ---
-> >> 
-> >>   .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 28
-> >>   +++++++++++++++++++
-> >>   1 file changed, 28 insertions(+)
-> >>   create mode 100644
-> >>   Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
-> >> 
-> >> diff --git a/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
-> >> b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt new file mode
-> >> 100644
-> >> index 0000000..116492d
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
-> >> @@ -0,0 +1,28 @@
-> >> +OMAP2+ IOMMU
-> >> +
-> >> +Required properties:
-> >> +- compatible : Should be one of,
-> >> +		"ti,omap2-iommu" for OMAP2/OMAP3 IOMMU instances
-> >> +		"ti,omap4-iommu" for OMAP4/OMAP5 IOMMU instances
-> >> +		"ti,dra7-iommu" for DRA7xx IOMMU instances
-> >> +- ti,hwmods  : Name of the hwmod associated with the IOMMU instance
-> >> +- reg        : Address space for the configuration registers
-> >> +- interrupts : Interrupt specifier for the IOMMU instance
-> >> +- dma-window : IOVA start address and length
+On Fri, Feb 21, 2014 at 03:45:29PM +0100, Pavel Machek wrote:
+> On Thu 2014-02-20 10:46:55, Jenny Tc wrote:
+> > On Tue, Feb 04, 2014 at 12:36:40PM +0100, Pavel Machek wrote:
+> > > > --- a/drivers/power/Kconfig
+> > > > +++ b/drivers/power/Kconfig
+> > > > @@ -22,6 +22,19 @@ config POWER_SUPPLY_CHARGER
+> > > >  	  drivers to keep the charging logic outside and the charger driver
+> > > >  	  just need to abstract the charger hardware.
+> > > >  
+> > > > +config POWER_SUPPLY_CHARGING_ALGO_PSE
+> > > > +	bool "PSE compliant charging algorithm"
+> > > > +	help
+> > > > +	  Say Y here to select Product Safety Engineering (PSE) compliant
+> > > > +	  charging algorithm. As per PSE standard the battery characteristics
+> > > > +	  and thereby the charging rates can vary on different temperature
+> > > > +	  zones. This config will enable PSE compliant charging algorithm with
+> > > > +	  maintenance charging support. At runtime the algorithm will be
+> > > > +	  selected by the psy charger driver based on the type of the battery
+> > > > +	  charging profile.
+> > > 
+> > > Information where to expect PSE compliant chargers would be nice.
 > > 
-> > Isn't the dma window more of a system configuration property than a
-> > hardware property ? How do you expect it to be set?
+> > This algorithm can be used with non PSE compliant chargers also. This is a SW
+> > based charging algorithm.
 > 
-> We are setting it based on the addressable range for the MMU.
-
-A quick look at the ISP and IVA IOMMUs in the OMAP3 shows that both support 
-the full 4GB VA space. Why do you need to restrict it ?
-
-> We are reusing the existing defined property and it allows us to get rid of
-> the IOVA start and end addresses defined in the pre-DT OMAP iommu platform
-> data.
->
-> >> +Optional properties:
-> >> +- ti,#tlb-entries : Number of entries in the translation look-aside
-> >> buffer. +                    Should be either 8 or 32 (default: 32)
-> >> +- ti,iommu-bus-err-back : Indicates the IOMMU instance supports throwing
-> >> +		          back a bus error response on MMU faults.
-> > 
-> > Do these features vary per IOMMU instance or per IOMMU model ? In the
-> > latter case they could be inferred from the compatible string by the
-> > driver without requiring them to be explicit in DT (whether you want to
-> > do so is left to you though).
+> Ok, but you need to explain for the users when it might be good idea
+> to select this option...
 > 
-> Well, these are fixed features given an IOMMU instance, like the OMAP3
-> ISP is the only one that has 8 TLB entries, all the remaining ones have
-> 32, and the IPU iommu instances are the only ones that support the bus
-> error response back. I have no preference to any particular way, and
-> sure the driver can infer these easily based on unique compatible
-> strings per subsystem per SoC. I just happened to go with defining
-> compatible strings per SoC, with the optional properties differentiating
-> the fixed behavior between different IOMMU instances on that SoC. This
-> is where I was looking for some inputs/guidance from the DT bindings
-> maintainers on what is the preferred method.
+> Or maybe this should not be user configurable and drivers should just
+> select it?
 
-I think you've made the right choice. I wasn't sure whether those parameters 
-varied across IOMMU instances of compatible devices (from a compatible string 
-point of view) or were constant. As they vary they should be expressed in DT.
-
-> >> +Example:
-> >> +	/* OMAP3 ISP MMU */
-> >> +	mmu_isp: mmu@480bd400 {
-> >> +		compatible = "ti,omap2-iommu";
-> >> +		reg = <0x480bd400 0x80>;
-> >> +		interrupts = <24>;
-> >> +		ti,hwmods = "mmu_isp";
-> >> +		ti,#tlb-entries = <8>;
-> >> +		dma-window = <0 0xfffff000>;
-> >> +	};
-
--- 
-Regards,
-
-Laurent Pinchart
-
+The idea is to allow pluggable charging algorithms. Currently we have only one
+charging algorithm proposed, but can have other charging algorithms (like pulse
+charging, rule based charging etc.). Based on the platform need, the algorithms
+can be selected. So this should be a user configurable option. I can add more
+explanation on when to select this option.
