@@ -1,56 +1,70 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH v3 2/2] ARM: DTS: OMAP4/5: Use l3_ick for the gpmc node
-Date: Wed, 26 Feb 2014 11:38:09 +0100
-Message-ID: <1393411089-9550-3-git-send-email-florian.vaussard@epfl.ch>
+Subject: [PATCH v3 1/2] CLK: TI: OMAP4/5/DRA7: Remove gpmc_fck from dummy clocks
+Date: Wed, 26 Feb 2014 11:38:08 +0100
+Message-ID: <1393411089-9550-2-git-send-email-florian.vaussard@epfl.ch>
 References: <1393411089-9550-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:57671 "EHLO smtp0.epfl.ch"
+Received: from smtp0.epfl.ch ([128.178.224.218]:57661 "EHLO smtp0.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750811AbaBZKiZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Feb 2014 05:38:25 -0500
+	id S1750799AbaBZKiY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Feb 2014 05:38:24 -0500
 In-Reply-To: <1393411089-9550-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
 Cc: Mike Turquette <mturquette@linaro.org>, Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-The GPMC clock is derived from l3_ick. The simplest solution is
-to reference directly l3_ick to provide the GPMC fck in order to
-get correct timings. The real management of the clock is left to
-hwmod.
+When arch/arm/mach-omap2/gpmc.c calls clk_get(..., "fck"), it will
+get a dummy clock and try to use it. As the rate is configured to zero,
+this will result in several divisions by zero, and misconfigured
+timings, with devices on the bus being lost in the La La Land.
+
+It is better to remove gpmc_fck from the dummy clocks, so that gpmc.c
+can fail gracefully.
 
 Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 ---
- arch/arm/boot/dts/omap4.dtsi | 2 ++
- arch/arm/boot/dts/omap5.dtsi | 2 ++
- 2 files changed, 4 insertions(+)
+ drivers/clk/ti/clk-44xx.c | 1 -
+ drivers/clk/ti/clk-54xx.c | 1 -
+ drivers/clk/ti/clk-7xx.c  | 1 -
+ 3 files changed, 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 756cd34..381c0cc 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -275,6 +275,8 @@
- 			gpmc,num-waitpins = <4>;
- 			ti,hwmods = "gpmc";
- 			ti,no-idle-on-init;
-+			clocks = <&l3_div_ck>;
-+			clock-names = "fck";
- 		};
- 
- 		uart1: serial@4806a000 {
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index a72813a..7a16647 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -302,6 +302,8 @@
- 			gpmc,num-cs = <8>;
- 			gpmc,num-waitpins = <4>;
- 			ti,hwmods = "gpmc";
-+			clocks = <&l3_iclk_div>;
-+			clock-names = "fck";
- 		};
- 
- 		i2c1: i2c@48070000 {
+diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
+index ae00218..02517a8 100644
+--- a/drivers/clk/ti/clk-44xx.c
++++ b/drivers/clk/ti/clk-44xx.c
+@@ -222,7 +222,6 @@ static struct ti_dt_clk omap44xx_clks[] = {
+ 	DT_CLK(NULL, "auxclk5_src_ck", "auxclk5_src_ck"),
+ 	DT_CLK(NULL, "auxclk5_ck", "auxclk5_ck"),
+ 	DT_CLK(NULL, "auxclkreq5_ck", "auxclkreq5_ck"),
+-	DT_CLK("50000000.gpmc", "fck", "dummy_ck"),
+ 	DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
+ 	DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
+ 	DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
+diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
+index 0ef9f58..08f3d1b 100644
+--- a/drivers/clk/ti/clk-54xx.c
++++ b/drivers/clk/ti/clk-54xx.c
+@@ -182,7 +182,6 @@ static struct ti_dt_clk omap54xx_clks[] = {
+ 	DT_CLK(NULL, "auxclk3_src_ck", "auxclk3_src_ck"),
+ 	DT_CLK(NULL, "auxclk3_ck", "auxclk3_ck"),
+ 	DT_CLK(NULL, "auxclkreq3_ck", "auxclkreq3_ck"),
+-	DT_CLK(NULL, "gpmc_ck", "dummy_ck"),
+ 	DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
+ 	DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
+ 	DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
+diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+index 9977653..f7e4073 100644
+--- a/drivers/clk/ti/clk-7xx.c
++++ b/drivers/clk/ti/clk-7xx.c
+@@ -262,7 +262,6 @@ static struct ti_dt_clk dra7xx_clks[] = {
+ 	DT_CLK(NULL, "vip1_gclk_mux", "vip1_gclk_mux"),
+ 	DT_CLK(NULL, "vip2_gclk_mux", "vip2_gclk_mux"),
+ 	DT_CLK(NULL, "vip3_gclk_mux", "vip3_gclk_mux"),
+-	DT_CLK(NULL, "gpmc_ck", "dummy_ck"),
+ 	DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
+ 	DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
+ 	DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
 -- 
 1.8.1.2
 
