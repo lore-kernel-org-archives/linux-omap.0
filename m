@@ -1,55 +1,51 @@
-From: Jenny Tc <jenny.tc@intel.com>
-Subject: Re: [PATCH 3/4] power_supply: Introduce PSE compliant algorithm
-Date: Wed, 26 Feb 2014 08:24:44 +0530
-Message-ID: <20140226025444.GA21449@jenny-desktop>
-References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
- <1391490780-6141-4-git-send-email-jenny.tc@intel.com>
- <20140204113640.GD2450@amd.pavel.ucw.cz>
- <20140220051655.GB2498@jenny-desktop>
- <20140221144529.GB5238@amd.pavel.ucw.cz>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH V5 2/4] DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar
+ IP
+Date: Wed, 26 Feb 2014 10:26:54 +0530
+Message-ID: <530D7416.8090805@ti.com>
+References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com> <1386066445-28245-3-git-send-email-r.sricharan@ti.com> <52D7B2CA.8080902@ti.com> <52EF7D85.5070705@ti.com> <alpine.DEB.2.02.1402041713470.24986@ionos.tec.linutronix.de> <52F23887.9060209@ti.com> <52F24683.9060200@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140221144529.GB5238@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <52F24683.9060200@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Feb 21, 2014 at 03:45:29PM +0100, Pavel Machek wrote:
-> On Thu 2014-02-20 10:46:55, Jenny Tc wrote:
-> > On Tue, Feb 04, 2014 at 12:36:40PM +0100, Pavel Machek wrote:
-> > > > --- a/drivers/power/Kconfig
-> > > > +++ b/drivers/power/Kconfig
-> > > > @@ -22,6 +22,19 @@ config POWER_SUPPLY_CHARGER
-> > > >  	  drivers to keep the charging logic outside and the charger driver
-> > > >  	  just need to abstract the charger hardware.
-> > > >  
-> > > > +config POWER_SUPPLY_CHARGING_ALGO_PSE
-> > > > +	bool "PSE compliant charging algorithm"
-> > > > +	help
-> > > > +	  Say Y here to select Product Safety Engineering (PSE) compliant
-> > > > +	  charging algorithm. As per PSE standard the battery characteristics
-> > > > +	  and thereby the charging rates can vary on different temperature
-> > > > +	  zones. This config will enable PSE compliant charging algorithm with
-> > > > +	  maintenance charging support. At runtime the algorithm will be
-> > > > +	  selected by the psy charger driver based on the type of the battery
-> > > > +	  charging profile.
-> > > 
-> > > Information where to expect PSE compliant chargers would be nice.
-> > 
-> > This algorithm can be used with non PSE compliant chargers also. This is a SW
-> > based charging algorithm.
-> 
-> Ok, but you need to explain for the users when it might be good idea
-> to select this option...
-> 
-> Or maybe this should not be user configurable and drivers should just
-> select it?
+Hi Tony,
 
-The idea is to allow pluggable charging algorithms. Currently we have only one
-charging algorithm proposed, but can have other charging algorithms (like pulse
-charging, rule based charging etc.). Based on the platform need, the algorithms
-can be selected. So this should be a user configurable option. I can add more
-explanation on when to select this option.
+On Wednesday 05 February 2014 07:41 PM, Sricharan R wrote:
+> Tony,
+> 
+> On Wednesday 05 February 2014 06:41 PM, Sricharan R wrote:
+>> On Tuesday 04 February 2014 09:44 PM, Thomas Gleixner wrote:
+>>> On Mon, 3 Feb 2014, Sricharan R wrote:
+>>>>> I already have your reviewed-by tag for the first patch in this series.
+>>>>>
+>>>>> Kevin was pointing out that irqchip maintainer tag is needed for this patch as well
+>>>>> to be merged. We are planning to take this series through arm-soc tree.
+>>>>>
+>>>>> Can i please have your tag for this patch as well ?
+>>>
+>>> Acked-by-me
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>> Thanks Thomas.
+>>
+>> Kevin,
+>>     I will re-send a branch based on rc1 for this.
+>>
+> 
+> I have pushed a branch based on mainline,
+>    git://github.com/Sricharanti/sricharan.git
+>    branch: crossbar_3.14_rc1
+> 
+ Ping on this..
+
+Regards,
+ Sricharan
