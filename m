@@ -1,39 +1,30 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
 Subject: Re: Help running latest linux-omap kernel on Nokia N810
-Date: Wed, 26 Feb 2014 13:18:10 -0800
-Message-ID: <20140226211810.GI11654@atomide.com>
+Date: Wed, 26 Feb 2014 23:29:27 +0200
+Message-ID: <20140226212927.GB671@drone.musicnaut.iki.fi>
 References: <c57950d5cfbbdcf952b9fceb4cd243d4@doppler.thel33t.co.uk>
  <20140226185331.GA17632@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="EeQfGwPcQSOJBaQU"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19010 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753482AbaBZVSk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Feb 2014 16:18:40 -0500
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:51495 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751094AbaBZVaf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Feb 2014 16:30:35 -0500
 Content-Disposition: inline
 In-Reply-To: <20140226185331.GA17632@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>
-Cc: Leigh Brown <leigh@solinno.co.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Sebastian Reichel <sre@ring0.de>, Leigh Brown <leigh@solinno.co.uk>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
+Hi,
 
---EeQfGwPcQSOJBaQU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-* Sebastian Reichel <sre@ring0.de> [140226 10:56]:
-> Hi,
-> 
+On Wed, Feb 26, 2014 at 07:53:32PM +0100, Sebastian Reichel wrote:
 > On Wed, Feb 26, 2014 at 06:24:36PM +0000, Leigh Brown wrote:
-> > I have built the latest linux-omap git tree for my N810 but when I
-> > boot it I get a black screen with the backlight on.
-> > 
 > > Does anyone have a working .config that they could share with me?
 
-Attached is what I've been using for my boot testing. If it does not
-fit into the memory, you need to cut down on the options.
+Yes.
 
 > > During my investigations I have discovered that the kernel
 > > configuration has changed enormously in the last couple of years.  I
@@ -45,297 +36,30 @@ fit into the memory, you need to cut down on the options.
 > > I will document the latest state of play with the N810 once I have
 > > got things going.  All I really want is a text console with working
 > > keyboard and wifi, initially.
-> > 
-> > Any help will be gratefully received.
-> 
-> I can't help much, because I do not own any N8x0 device, but you
-> should probably visit [0] (and update it once you get stuff working
-> :))
-> 
-> The omap platform is currently moving over to Device Tree [1] based
-> booting, so you come at the right time to test DT based booting on
-> your N810. Building a DT kernel for your N810 works like this:
-> 
-> enable the following config entries:
-> 
-> CONFIG_ARM_APPENDED_DTB=y
-> CONFIG_ARM_ATAG_DTB_COMPAT=y
-> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND=y
-> CONFIG_PINCTRL=y
-> CONFIG_PINCTRL_SINGLE=y
-> 
-> and build zImage like this:
-> 
-> $ export ARCH=arm
-> $ export CROSS_COMPILE=arm-linux-gnueabi-
-> $ make zImage
-> $ make omap2420-n810.dtb
-> $ cat arch/arm/boot/zImage arch/arm/boot/dts/omap3-n900.dtb > zImage
-> 
-> Be aware, that the DTS file seems to lack display & keyboard support
-> at the moment, so you may want to start building a serial adapter
-> first. See [2] for details on this. This may seem like lots of work,
-> but it really makes things much easier.
 
-Yeah the above should pretty much do it for booting it :)
+First the bad news: display support is not in the mainline kernel. Also
+since linux-omap tree follows the mainline, it's not there either anymore.
+Tomi removed the n8x0 panel driver some time ago (I don't know why), but
+even then it wasn't working as the platform data failed to set up some
+needed things properly. I was trying to get it working at but failed before
+the driver got removed. Anyway, this is still on my "backlog" and at some
+point I will try to reintroduce the display support. Meanwhile, the OMAP2
+has been converted to DT so this is not going to be trivial so any help
+in this effort is appreciated. (Read: please send patches :))
 
-Regards,
+Good news: it's still possible to run current mainline Linux on N8x0.
+But only basic functionality is there. You can interact with the device
+at least over UART and USB (e.g. ssh connection with USB networking).
+MMC and flash should work too. I haven't yet tested the WIFI. I'm booting
+test kernels with 0xFFFF - the N8x0 has 2MB limitation for the kernel, so
+I'm using kexec ("tiny kernel") to boot a full-featured kernel from MMC.
+My kernel configs for 3.13 are available here:
 
-Tony
- 
-> [0] http://elinux.org/N800
-> [1] http://devicetree.org/
-> [2] http://bues.ch/cms/hacking/n810-serial.html
+	<http://www.iki.fi/aaro/comp/linux/v3.13/arm-testresults.html>.
 
---EeQfGwPcQSOJBaQU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=tony-n8x0
+Building a serial adapter to develop Linux on N8x0 isn't strictly necessary
+as long as you get the USB is working. However it will ease things alot.
+770/N800 are more friendly in this regard, as you can access the serial pins
+without removing the battery.
 
-CONFIG_SYSVIPC=y
-CONFIG_POSIX_MQUEUE=y
-CONFIG_NO_HZ=y
-CONFIG_HIGH_RES_TIMERS=y
-CONFIG_BSD_PROCESS_ACCT=y
-CONFIG_IKCONFIG=y
-CONFIG_IKCONFIG_PROC=y
-CONFIG_LOG_BUF_SHIFT=16
-CONFIG_BLK_DEV_INITRD=y
-CONFIG_EXPERT=y
-CONFIG_SLAB=y
-CONFIG_PROFILING=y
-CONFIG_OPROFILE=y
-CONFIG_KPROBES=y
-CONFIG_MODULES=y
-CONFIG_MODULE_FORCE_LOAD=y
-CONFIG_MODULE_UNLOAD=y
-CONFIG_MODULE_FORCE_UNLOAD=y
-CONFIG_MODVERSIONS=y
-CONFIG_MODULE_SRCVERSION_ALL=y
-# CONFIG_BLK_DEV_BSG is not set
-CONFIG_PARTITION_ADVANCED=y
-# CONFIG_EFI_PARTITION is not set
-CONFIG_ARCH_MULTI_V6=y
-CONFIG_OMAP_RESET_CLOCKS=y
-CONFIG_OMAP_MUX_DEBUG=y
-CONFIG_ARCH_OMAP2=y
-# CONFIG_SOC_OMAP2430 is not set
-CONFIG_ARM_THUMBEE=y
-CONFIG_ARM_ERRATA_411920=y
-CONFIG_ARM_ERRATA_720789=y
-CONFIG_ARM_ERRATA_754322=y
-CONFIG_ARM_ERRATA_775420=y
-# CONFIG_COMPACTION is not set
-CONFIG_ZBOOT_ROM_TEXT=0x0
-CONFIG_ZBOOT_ROM_BSS=0x0
-CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200 earlyprintk ignore_loglevel"
-CONFIG_KEXEC=y
-CONFIG_FPE_NWFPE=y
-CONFIG_BINFMT_MISC=y
-CONFIG_PM_DEBUG=y
-CONFIG_NET=y
-CONFIG_PACKET=y
-CONFIG_UNIX=y
-CONFIG_XFRM_USER=y
-CONFIG_NET_KEY=y
-CONFIG_NET_KEY_MIGRATE=y
-CONFIG_INET=y
-CONFIG_IP_MULTICAST=y
-CONFIG_IP_PNP=y
-CONFIG_IP_PNP_DHCP=y
-CONFIG_IP_PNP_BOOTP=y
-CONFIG_IP_PNP_RARP=y
-# CONFIG_INET_LRO is not set
-# CONFIG_IPV6 is not set
-CONFIG_NETFILTER=y
-CONFIG_BT=m
-CONFIG_BT_HCIUART=m
-CONFIG_BT_HCIUART_H4=y
-CONFIG_BT_HCIUART_BCSP=y
-CONFIG_BT_HCIUART_LL=y
-CONFIG_BT_HCIBCM203X=m
-CONFIG_BT_HCIBPA10X=m
-CONFIG_CFG80211=m
-CONFIG_CFG80211_WEXT=y
-CONFIG_MAC80211=m
-CONFIG_MAC80211_RC_PID=y
-CONFIG_MAC80211_RC_DEFAULT_PID=y
-CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
-CONFIG_OMAP_INTERCONNECT=y
-CONFIG_CONNECTOR=y
-CONFIG_MTD=y
-CONFIG_MTD_CMDLINE_PARTS=y
-CONFIG_MTD_BLOCK=y
-CONFIG_MTD_OOPS=y
-CONFIG_MTD_CFI=y
-CONFIG_MTD_CFI_INTELEXT=y
-CONFIG_MTD_NAND=y
-CONFIG_MTD_NAND_OMAP2=y
-CONFIG_MTD_ONENAND=y
-CONFIG_MTD_ONENAND_VERIFY_WRITE=y
-CONFIG_MTD_ONENAND_OMAP2=y
-CONFIG_MTD_UBI=y
-CONFIG_BLK_DEV_LOOP=y
-CONFIG_BLK_DEV_RAM=y
-CONFIG_BLK_DEV_RAM_SIZE=16384
-CONFIG_SCSI=y
-CONFIG_BLK_DEV_SD=y
-CONFIG_SCSI_MULTI_LUN=y
-CONFIG_SCSI_SCAN_ASYNC=y
-CONFIG_MD=y
-CONFIG_NETDEVICES=y
-CONFIG_KS8851=y
-CONFIG_KS8851_MLL=y
-CONFIG_SMC91X=y
-CONFIG_SMSC911X=y
-CONFIG_SMSC_PHY=y
-CONFIG_USB_USBNET=y
-CONFIG_USB_NET_SMSC95XX=y
-CONFIG_USB_ALI_M5632=y
-CONFIG_USB_AN2720=y
-CONFIG_USB_EPSON2888=y
-CONFIG_USB_KC2190=y
-CONFIG_LIBERTAS=m
-CONFIG_LIBERTAS_USB=m
-CONFIG_LIBERTAS_SDIO=m
-CONFIG_LIBERTAS_DEBUG=y
-CONFIG_INPUT_JOYDEV=y
-CONFIG_INPUT_EVDEV=y
-CONFIG_KEYBOARD_GPIO=y
-CONFIG_KEYBOARD_TWL4030=y
-CONFIG_INPUT_TOUCHSCREEN=y
-CONFIG_TOUCHSCREEN_ADS7846=y
-CONFIG_INPUT_MISC=y
-CONFIG_INPUT_RETU_PWRBUTTON=y
-CONFIG_INPUT_TWL4030_PWRBUTTON=y
-# CONFIG_LEGACY_PTYS is not set
-CONFIG_SERIAL_8250=y
-CONFIG_SERIAL_8250_CONSOLE=y
-CONFIG_SERIAL_8250_NR_UARTS=32
-CONFIG_SERIAL_8250_EXTENDED=y
-CONFIG_SERIAL_8250_MANY_PORTS=y
-CONFIG_SERIAL_8250_SHARE_IRQ=y
-CONFIG_SERIAL_8250_DETECT_IRQ=y
-CONFIG_SERIAL_8250_RSA=y
-CONFIG_SERIAL_OMAP=y
-CONFIG_SERIAL_OMAP_CONSOLE=y
-CONFIG_HW_RANDOM=y
-CONFIG_I2C_CHARDEV=y
-CONFIG_I2C_CBUS_GPIO=y
-CONFIG_SPI=y
-CONFIG_SPI_OMAP24XX=y
-CONFIG_DEBUG_GPIO=y
-CONFIG_GPIO_SYSFS=y
-CONFIG_GPIO_TWL4030=y
-CONFIG_W1=y
-CONFIG_POWER_SUPPLY=y
-CONFIG_WATCHDOG=y
-CONFIG_OMAP_WATCHDOG=y
-CONFIG_TWL4030_WATCHDOG=y
-CONFIG_RETU_WATCHDOG=y
-CONFIG_MFD_RETU=y
-CONFIG_TWL4030_CORE=y
-CONFIG_TWL4030_POWER=y
-CONFIG_MFD_TWL4030_AUDIO=y
-CONFIG_REGULATOR_FIXED_VOLTAGE=y
-CONFIG_REGULATOR_TPS65023=y
-CONFIG_REGULATOR_TPS6507X=y
-CONFIG_REGULATOR_TWL4030=y
-CONFIG_FB=y
-CONFIG_FIRMWARE_EDID=y
-CONFIG_FB_MODE_HELPERS=y
-CONFIG_FB_TILEBLITTING=y
-CONFIG_OMAP2_DSS=m
-CONFIG_OMAP2_DSS_SDI=y
-CONFIG_OMAP2_DSS_DSI=y
-CONFIG_FB_OMAP2=m
-CONFIG_BACKLIGHT_LCD_SUPPORT=y
-CONFIG_LCD_CLASS_DEVICE=y
-CONFIG_LCD_PLATFORM=y
-CONFIG_FRAMEBUFFER_CONSOLE=y
-CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
-CONFIG_LOGO=y
-CONFIG_SOUND=m
-CONFIG_SND=m
-CONFIG_SND_MIXER_OSS=m
-CONFIG_SND_PCM_OSS=m
-CONFIG_SND_VERBOSE_PRINTK=y
-CONFIG_SND_DEBUG=y
-CONFIG_SND_USB_AUDIO=m
-CONFIG_SND_SOC=m
-CONFIG_SND_OMAP_SOC=m
-CONFIG_USB=y
-CONFIG_USB_DEBUG=y
-CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
-CONFIG_USB_DYNAMIC_MINORS=y
-CONFIG_USB_OTG=y
-# CONFIG_USB_OTG_WHITELIST is not set
-CONFIG_USB_MON=y
-CONFIG_USB_EHCI_HCD=y
-CONFIG_USB_MUSB_HDRC=y
-CONFIG_USB_MUSB_TUSB6010=y
-CONFIG_USB_TUSB_OMAP_DMA=y
-CONFIG_USB_WDM=y
-CONFIG_USB_STORAGE=y
-CONFIG_USB_TEST=y
-CONFIG_USB_ULPI=y
-CONFIG_USB_GADGET=y
-CONFIG_USB_GADGET_DEBUG=y
-CONFIG_USB_GADGET_DEBUG_FILES=y
-CONFIG_USB_GADGET_DEBUG_FS=y
-CONFIG_USB_ETH=y
-CONFIG_USB_ETH_EEM=y
-CONFIG_MMC=y
-CONFIG_MMC_UNSAFE_RESUME=y
-CONFIG_SDIO_UART=y
-CONFIG_MMC_OMAP=y
-CONFIG_MMC_OMAP_HS=y
-CONFIG_RTC_CLASS=y
-CONFIG_RTC_DRV_TWL92330=y
-CONFIG_RTC_DRV_TWL4030=y
-CONFIG_DMADEVICES=y
-CONFIG_DMA_OMAP=y
-CONFIG_EXT2_FS=y
-CONFIG_EXT3_FS=y
-# CONFIG_EXT3_FS_XATTR is not set
-CONFIG_QUOTA=y
-CONFIG_QFMT_V2=y
-CONFIG_MSDOS_FS=y
-CONFIG_VFAT_FS=y
-CONFIG_TMPFS=y
-CONFIG_JFFS2_FS=y
-CONFIG_JFFS2_SUMMARY=y
-CONFIG_JFFS2_FS_XATTR=y
-CONFIG_JFFS2_COMPRESSION_OPTIONS=y
-CONFIG_JFFS2_LZO=y
-CONFIG_JFFS2_RUBIN=y
-CONFIG_UBIFS_FS=y
-CONFIG_CRAMFS=y
-CONFIG_NFS_FS=y
-CONFIG_NFS_V3_ACL=y
-CONFIG_NFS_V4=y
-CONFIG_ROOT_NFS=y
-CONFIG_NLS_CODEPAGE_437=y
-CONFIG_NLS_ISO8859_1=y
-CONFIG_PRINTK_TIME=y
-CONFIG_DEBUG_INFO=y
-CONFIG_MAGIC_SYSRQ=y
-CONFIG_SCHEDSTATS=y
-CONFIG_TIMER_STATS=y
-CONFIG_PROVE_LOCKING=y
-# CONFIG_DEBUG_BUGVERBOSE is not set
-CONFIG_DEBUG_LL=y
-CONFIG_DEBUG_OMAP2UART3=y
-CONFIG_EARLY_PRINTK=y
-CONFIG_SECURITY=y
-CONFIG_CRYPTO_MICHAEL_MIC=y
-# CONFIG_CRYPTO_ANSI_CPRNG is not set
-CONFIG_CRC_CCITT=y
-CONFIG_CRC_T10DIF=y
-CONFIG_CRC_ITU_T=y
-CONFIG_CRC7=y
-CONFIG_LIBCRC32C=y
-CONFIG_FONTS=y
-CONFIG_FONT_8x8=y
-CONFIG_FONT_8x16=y
-
---EeQfGwPcQSOJBaQU--
+A.
