@@ -1,83 +1,82 @@
 From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH v3 1/2] CLK: TI: OMAP4/5/DRA7: Remove gpmc_fck from dummy clocks
-Date: Wed, 26 Feb 2014 12:40:03 -0800
-Message-ID: <20140226204003.4353.17772@quantum>
-References: <1393411089-9550-1-git-send-email-florian.vaussard@epfl.ch>
- <1393411089-9550-2-git-send-email-florian.vaussard@epfl.ch>
+Subject: Re: [PATCH v8 06/14] CLK: TI: OMAP3: Get rid of unused USB Host dummy clocks
+Date: Wed, 26 Feb 2014 12:56:24 -0800
+Message-ID: <20140226205624.12081.67770@quantum>
+References: <1392896409-5101-1-git-send-email-rogerq@ti.com>
+ <1392896409-5101-7-git-send-email-rogerq@ti.com>
+ <20140225084327.22529.86075@quantum> <530C6323.90205@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:50183 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750999AbaBZUkH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Feb 2014 15:40:07 -0500
-Received: by mail-pa0-f43.google.com with SMTP id rd3so1474593pab.30
-        for <linux-omap@vger.kernel.org>; Wed, 26 Feb 2014 12:40:07 -0800 (PST)
-In-Reply-To: <1393411089-9550-2-git-send-email-florian.vaussard@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <530C6323.90205@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com, bcousson@baylibre.com, lee.jones@linaro.org
+Cc: balbi@ti.com, nm@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
-Cc: Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Quoting Florian Vaussard (2014-02-26 02:38:08)
-> When arch/arm/mach-omap2/gpmc.c calls clk_get(..., "fck"), it will
-> get a dummy clock and try to use it. As the rate is configured to zero,
-> this will result in several divisions by zero, and misconfigured
-> timings, with devices on the bus being lost in the La La Land.
+Quoting Roger Quadros (2014-02-25 01:32:19)
+> Hi Mike,
 > 
-> It is better to remove gpmc_fck from the dummy clocks, so that gpmc.c
-> can fail gracefully.
+> On 02/25/2014 10:43 AM, Mike Turquette wrote:
+> > Quoting Roger Quadros (2014-02-20 03:40:01)
+> >> The OMAP USB Host MFD driver no longer expects these non-existing
+> >> clocks from the OMAP3 platform, so get rid of them.
+> > 
+> > Looks good to me.
 > 
-> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+> Is it OK if I squash this patch with [1] and take it through the MFD tree?
+> Keeping them separate could break functionality if both don't go in together.
 
-Looks good to me.
+Acked-by: Mike Turquette <mturquette@linaro.org>
 
-Regards,
-Mike
-
-> ---
->  drivers/clk/ti/clk-44xx.c | 1 -
->  drivers/clk/ti/clk-54xx.c | 1 -
->  drivers/clk/ti/clk-7xx.c  | 1 -
->  3 files changed, 3 deletions(-)
 > 
-> diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
-> index ae00218..02517a8 100644
-> --- a/drivers/clk/ti/clk-44xx.c
-> +++ b/drivers/clk/ti/clk-44xx.c
-> @@ -222,7 +222,6 @@ static struct ti_dt_clk omap44xx_clks[] = {
->         DT_CLK(NULL, "auxclk5_src_ck", "auxclk5_src_ck"),
->         DT_CLK(NULL, "auxclk5_ck", "auxclk5_ck"),
->         DT_CLK(NULL, "auxclkreq5_ck", "auxclkreq5_ck"),
-> -       DT_CLK("50000000.gpmc", "fck", "dummy_ck"),
->         DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
->         DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
->         DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
-> diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
-> index 0ef9f58..08f3d1b 100644
-> --- a/drivers/clk/ti/clk-54xx.c
-> +++ b/drivers/clk/ti/clk-54xx.c
-> @@ -182,7 +182,6 @@ static struct ti_dt_clk omap54xx_clks[] = {
->         DT_CLK(NULL, "auxclk3_src_ck", "auxclk3_src_ck"),
->         DT_CLK(NULL, "auxclk3_ck", "auxclk3_ck"),
->         DT_CLK(NULL, "auxclkreq3_ck", "auxclkreq3_ck"),
-> -       DT_CLK(NULL, "gpmc_ck", "dummy_ck"),
->         DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
->         DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
->         DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
-> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-> index 9977653..f7e4073 100644
-> --- a/drivers/clk/ti/clk-7xx.c
-> +++ b/drivers/clk/ti/clk-7xx.c
-> @@ -262,7 +262,6 @@ static struct ti_dt_clk dra7xx_clks[] = {
->         DT_CLK(NULL, "vip1_gclk_mux", "vip1_gclk_mux"),
->         DT_CLK(NULL, "vip2_gclk_mux", "vip2_gclk_mux"),
->         DT_CLK(NULL, "vip3_gclk_mux", "vip3_gclk_mux"),
-> -       DT_CLK(NULL, "gpmc_ck", "dummy_ck"),
->         DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
->         DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
->         DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
-> -- 
-> 1.8.1.2
+> [1] - http://article.gmane.org/gmane.linux.ports.arm.kernel/303266
+> 
+> cheers,
+> -roger
+> 
+> > 
+> >>
+> >> CC: Tero Kristo <t-kristo@ti.com>
+> >> CC: Mike Turquette <mturquette@linaro.org>
+> >> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >> ---
+> >>  arch/arm/mach-omap2/cclock3xxx_data.c | 4 ----
+> >>  drivers/clk/ti/clk-3xxx.c             | 4 ----
+> >>  2 files changed, 8 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
+> >> index 3b05aea..4299a55 100644
+> >> --- a/arch/arm/mach-omap2/cclock3xxx_data.c
+> >> +++ b/arch/arm/mach-omap2/cclock3xxx_data.c
+> >> @@ -3495,10 +3495,6 @@ static struct omap_clk omap3xxx_clks[] = {
+> >>         CLK(NULL,       "dss_tv_fck",   &dss_tv_fck),
+> >>         CLK(NULL,       "dss_96m_fck",  &dss_96m_fck),
+> >>         CLK(NULL,       "dss2_alwon_fck",       &dss2_alwon_fck),
+> >> -       CLK(NULL,       "utmi_p1_gfclk",        &dummy_ck),
+> >> -       CLK(NULL,       "utmi_p2_gfclk",        &dummy_ck),
+> >> -       CLK(NULL,       "xclk60mhsp1_ck",       &dummy_ck),
+> >> -       CLK(NULL,       "xclk60mhsp2_ck",       &dummy_ck),
+> >>         CLK(NULL,       "init_60m_fclk",        &dummy_ck),
+> >>         CLK(NULL,       "gpt1_fck",     &gpt1_fck),
+> >>         CLK(NULL,       "aes2_ick",     &aes2_ick),
+> >> diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+> >> index d323023..0d1750a 100644
+> >> --- a/drivers/clk/ti/clk-3xxx.c
+> >> +++ b/drivers/clk/ti/clk-3xxx.c
+> >> @@ -130,10 +130,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
+> >>         DT_CLK(NULL, "dss_tv_fck", "dss_tv_fck"),
+> >>         DT_CLK(NULL, "dss_96m_fck", "dss_96m_fck"),
+> >>         DT_CLK(NULL, "dss2_alwon_fck", "dss2_alwon_fck"),
+> >> -       DT_CLK(NULL, "utmi_p1_gfclk", "dummy_ck"),
+> >> -       DT_CLK(NULL, "utmi_p2_gfclk", "dummy_ck"),
+> >> -       DT_CLK(NULL, "xclk60mhsp1_ck", "dummy_ck"),
+> >> -       DT_CLK(NULL, "xclk60mhsp2_ck", "dummy_ck"),
+> >>         DT_CLK(NULL, "init_60m_fclk", "dummy_ck"),
+> >>         DT_CLK(NULL, "gpt1_fck", "gpt1_fck"),
+> >>         DT_CLK(NULL, "aes2_ick", "aes2_ick"),
+> >> -- 
+> >> 1.8.3.2
+> >>
 > 
