@@ -1,79 +1,88 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v2 0/2] ARM: OMAP4: Fix gpmc_fck clock
-Date: Tue, 25 Feb 2014 18:05:29 -0600
-Message-ID: <530D2FC9.2010800@ti.com>
-References: <1392801305-1698-1-git-send-email-florian.vaussard@epfl.ch> <5304DA2C.3030605@ti.com> <53050573.8090506@epfl.ch> <20140223212309.22529.75068@quantum> <530ADC39.1010300@epfl.ch> <20140225062615.22529.88499@quantum> <530C4FED.80403@epfl.ch>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCHv2 02/16] iommu/omap: omap_iommu_attach() should return
+	ENODEV, not NULL
+Date: Wed, 26 Feb 2014 03:05:42 +0100
+Message-ID: <18584919.CMGx44dZjC@avalon>
+References: <1392315347-32967-1-git-send-email-s-anna@ti.com>
+	<2290716.T9AJoGfoRd@avalon> <530D19E3.9030407@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53554 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752541AbaBZAF7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Feb 2014 19:05:59 -0500
-In-Reply-To: <530C4FED.80403@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <530D19E3.9030407-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: florian.vaussard@epfl.ch, Mike Turquette <mturquette@linaro.org>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
 
-Florian,
+Hi Suman,
 
-On 02/25/2014 02:10 AM, Florian Vaussard wrote:
-> On 02/25/2014 07:26 AM, Mike Turquette wrote:
->> Quoting Florian Vaussard (2014-02-23 21:44:25)
->>> On 02/23/2014 10:23 PM, Mike Turquette wrote:
->>>> Quoting Florian Vaussard (2014-02-19 11:26:43)
->>>>>
->>>>> On 02/19/2014 05:22 PM, Tero Kristo wrote:
->>>>>> On 02/19/2014 11:15 AM, Florian Vaussard wrote:
->>>>>>> Hello,
->>>>>>>
->>>>>>> Trying to get my SMSC9221 working on OMAP4 with DT,
->>>>>>> I faced a misconfigured gpmc_fck (dummy clock set to 0)
->>>>>>> resulting in serveral division-by-zero, misconfigured
->>>>>>> timings and driver lost in the La La Land.
->>>>>>>
->>>>>>> To solve this, patch 1 removes gpmc_fck from the dummy
->>>>>>> clocks, and patch 2 adds the gpmc_fck DT node and
->>>>>>> reference it from the gpmc node.
->>>>>>>
->>>>>>> Tested on DuoVero/Parlor (OMAP4430) with SMSC9221.
->>>>>>
->>>>>> I can't test GPMC myself, but other than that, this set looks good to go.
->>>>>>
->>>>>
->>>>> Thank you. Would you like more test coverage by other people? I would
->>>>> like to see this in -rc if possible, as it is needed to boot my OMAP4
->>>>> system.
->>>>
->>>> What OMAP4 system is this? Is this a regression for board that already
->>>> has support merged into mainline?
->>>>
->>>
->>> No, it is not yet merged into mainline. I was planning to post the DTS
->>> this week, when most issues are cleared. Looking at the current mainline
->>> boards, no one seems to use the GPMC, so I am just the first one to hit
->>> this issue.
->>
->> OK, well typically the later -rc's are for fixing observed regressions.
->> Since your platform is not yet merged in then it's probably fine to push
->> this for 3.15.
->>
->
-> Fair enough. 3.15 is fine.
->
->> This also gives time to test the fix for other OMAP-ish processors.
->>
->
-> I can do the v3, including OMAP5 and DRA7. But for DRA7, I will need
-> someone with the TRM telling me where is connected gpmc_fclk (Suman?).
+On Tuesday 25 February 2014 16:32:03 Suman Anna wrote:
+> On 02/25/2014 03:13 PM, Laurent Pinchart wrote:
+> > On Thursday 13 February 2014 12:15:33 Suman Anna wrote:
+> >> From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+> >> 
+> >> omap_iommu_attach() returns NULL or ERR_PTR in case of error, but
+> >> omap_iommu_attach_dev() only checks for IS_ERR. Thus a NULL return value
+> >> (in case driver_find_device fails) will cause the kernel to panic when
+> >> omap_iommu_attach_dev() dereferences the pointer.
+> >> 
+> >> In such case, omap_iommu_attach() should return ENODEV, not NULL.
+> >> 
+> >> Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+> >> Acked-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+> >> ---
+> >> 
+> >>   drivers/iommu/omap-iommu.c | 4 ++--
+> >>   1 file changed, 2 insertions(+), 2 deletions(-)
+> >> 
+> >> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> >> index fff2ffd..6272c36 100644
+> >> --- a/drivers/iommu/omap-iommu.c
+> >> +++ b/drivers/iommu/omap-iommu.c
+> >> @@ -863,7 +863,7 @@ static int device_match_by_alias(struct device *dev,
+> >> void *data) **/
+> >> 
+> >>   static struct omap_iommu *omap_iommu_attach(const char *name, u32
+> >>   *iopgd)
+> >>   {
+> >> -	int err = -ENOMEM;
+> >> +	int err = -ENODEV;
+> >>   	struct device *dev;
+> >>   	struct omap_iommu *obj;
+> >> 
+> >> @@ -871,7 +871,7 @@ static struct omap_iommu *omap_iommu_attach(const
+> >> char *name, u32 *iopgd)
+> >>   				(void *)name,
+> >>   				device_match_by_alias);
+> >>   	if (!dev)
+> >> -		return NULL;
+> >> +		return ERR_PTR(err);
+> > 
+> > I would return ERR_PTR(-ENODEV) here, and remove the initialization at
+> > declaration of err above.
+> 
+> The initialization at the beginning is also serving one another exit
+> path (a check for try_module_get), where err is not being set. If the
+> initialization is removed, then the err has to be set explicitly at the
+> other place. Let me know if you still want this changed.
 
-For DRA7, GPMC is connected off L3MAIN1_L3_GICLK (compared to 
-L3MAIN2_L3_GICLK on OMAP5), both of which are actually just L3_ICLK.
-This is the l3_iclk_div in both the omap54xx-clocks.dtsi and 
-dra7xx-clocks.dtsi files.
+The return value of iommu_enable() is unconditionally stored in err before the 
+try_module_get() call, so that code patch is buggy anyway and should be fixed. 
+I would still remove the initialization at declaration and assign -ENODEV to 
+err explicitly when try_module_get() fails before the goto err_module.
 
-regards
-Suman
+> >>   	obj = to_iommu(dev);
 
+-- 
+Regards,
+
+Laurent Pinchart
