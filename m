@@ -1,59 +1,69 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: TWL6040 fails to initialize
-Date: Wed, 26 Feb 2014 09:26:39 +0200
-Message-ID: <530D972F.805@ti.com>
-References: <530C70B3.4010103@epfl.ch> <530CA8DA.8050806@ti.com> <530CB9C6.60806@epfl.ch>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: SD card timeout problems on Nokia N900 (omap_hsmmc on OMAP3)
+Date: Wed, 26 Feb 2014 14:14:46 +0530
+Message-ID: <530DA97E.7090406@ti.com>
+References: <20140225234746.GA13866@earth.universe> <CAOf5uwn0sziBhE9edyiVqj8MUTidbX19YhgDsgikn5VLbx0B7A@mail.gmail.com> <530D8FF2.3070100@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34042 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750858AbaBZH1I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Feb 2014 02:27:08 -0500
-In-Reply-To: <530CB9C6.60806@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <530D8FF2.3070100@gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@ring0.de>
+Cc: Michael Trimarchi <michael@amarulasolutions.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, 'Chris Ball' <chris@printf.net>
 List-Id: linux-omap@vger.kernel.org
-To: florian.vaussard@epfl.ch
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, =?ISO-8859-1?Q?Philippe_R=E9tornaz?= <philippe.retornaz@epfl.ch>
 
-On 02/25/2014 05:41 PM, Florian Vaussard wrote:
-> If the power was not enabled at all, I would be unable to read the
-> revision register, no? And delaying the probe by one millisecond woul=
-d
-> be of no help in this case IMHO.
+On Wednesday 26 February 2014 12:25 PM, Stefan Roese wrote:
+> Hi Sebastian,
+>
+> On 26.02.2014 07:02, Michael Trimarchi wrote:
+>> Hi Sebastian
+>>
+>> On Wed, Feb 26, 2014 at 12:47 AM, Sebastian Reichel <sre@ring0.de> wrote:
+>>> Hi,
+>>>
+>>> I have problems with the SD-card initialization on my Nokia N900
+>>> using a 3.14-rc1 based kernel in DT boot mode. The bug is can be
+>>> circumvented by changing the kernel slightly (e.g. remove some DT
+>>> nodes or mark them as disabled). So the SD card's timeout problems
+>>> seem to derive from kernel timing problems. I'm pretty sure, that
+>>> the problems are not originating from a broken SD card, since
 
-One thing which might cause this is that if the audpwron GPIO is set hi=
-gh
-before the twl6040 module is probing. When I request the GPIO I ask it =
-to be
-set to low. If the line was high before this means we initiate the powe=
-r off
-sequence.
-Can you try something like this:
+Can you provide removed/Disabled dt nodes, it might give some clue ?
 
-diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
-index 75316fb33448..d2a0bd1539ae 100644
---- a/drivers/mfd/twl6040.c
-+++ b/drivers/mfd/twl6040.c
-@@ -674,6 +674,9 @@ static int twl6040_probe(struct i2c_client *client,
-                                            GPIOF_OUT_INIT_LOW, "audpwr=
-on");
-                if (ret)
-                        goto gpio_err;
-+
-+               /* power-down sequence latency */
-+               usleep_range(500, 700);
-        }
+>>>
+>>>   1. The SD card worked quite good before and still does depending
+>>>      on unrelated DTS changes (=> loading less drivers).
+>>>   2. The SD card works flawlessly on my notebook using a USB adapter
+>>>   3. Another SD card showed the same problem
+>>>
+>>> I tried to git bisect the problem, but I just get shown some
+>>> unrelated driver additions.
+>>>
+>>> Anyways, this is the error I get during boot:
+>>>
+>>> [    3.896820] mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
+>>> ...
+>>> [    5.956237] mmc0: error -110 whilst initialising SD card
+>>>
+>>
+>> Are you sure that some subsystem that you deactivate don't change
+>> pin muxing setting? Can you check in the broken system if the pins of the sdcard
+>> are correctly muxed? Does it happen even if you change the sdcard?
+>
+> Did you try to add this patch series:
+>
+> http://www.spinics.net/lists/linux-omap/msg103264.html
+>
+> Without it I'm also having problems with MMC detection on some OMAP3 based boards.
+>
+> Balaji, what is the status of this patch series? Are there any chances that it will be included in v3.14?
+>
 
-        ret =3D regmap_add_irq_chip(twl6040->regmap, twl6040->irq, IRQF=
-_ONESHOT,
+Due to dependencies between regulator, mmc, omap def config, devicetree changes,
+I am hoping either Chris or Tony pick the whole series for 3.15
 
+Couple of tested-by will surely help.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks and Regards,
+Balaji T K
