@@ -1,79 +1,341 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 3/4] ARM: dts: OMAP4: Add IOMMU nodes
-Date: Wed, 26 Feb 2014 22:05:17 +0100
-Message-ID: <5025565.C2g8cq3k2V@avalon>
-References: <1392315776-33197-1-git-send-email-s-anna@ti.com> <1392315776-33197-4-git-send-email-s-anna@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Help running latest linux-omap kernel on Nokia N810
+Date: Wed, 26 Feb 2014 13:18:10 -0800
+Message-ID: <20140226211810.GI11654@atomide.com>
+References: <c57950d5cfbbdcf952b9fceb4cd243d4@doppler.thel33t.co.uk>
+ <20140226185331.GA17632@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/mixed; boundary="EeQfGwPcQSOJBaQU"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46031 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751539AbaBZVD6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Feb 2014 16:03:58 -0500
-In-Reply-To: <1392315776-33197-4-git-send-email-s-anna@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19010 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753482AbaBZVSk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Feb 2014 16:18:40 -0500
+Content-Disposition: inline
+In-Reply-To: <20140226185331.GA17632@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Florian Vaussard <florian.vaussard@epfl.ch>, devicetree@vger.kernel.org, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sebastian Reichel <sre@ring0.de>
+Cc: Leigh Brown <leigh@solinno.co.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hi Suman,
 
-Thank you for the patch.
+--EeQfGwPcQSOJBaQU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Thursday 13 February 2014 12:22:55 Suman Anna wrote:
-> From: Florian Vaussard <florian.vaussard@epfl.ch>
+* Sebastian Reichel <sre@ring0.de> [140226 10:56]:
+> Hi,
 > 
-> Add the IOMMU nodes for the DSP and IPU subsystems. The external
-> address space for DSP starts at 0x20000000 in OMAP4 compared to
-> 0x11000000 in OMAP3, and the addresses beyond 0xE0000000 are
-> private address space for the Cortex-M3 cores in the IPU subsystem.
-> The MMU within the IPU sub-system also supports a bus error back
-> capability, not available on the DSP MMU.
-> 
-> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> [s-anna@ti.com: dma-window updates and bus error back addition]
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> ---
->  arch/arm/boot/dts/omap4.dtsi | 17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index d3f8a6e..1885f90 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -461,6 +461,23 @@
->  			dma-names = "tx", "rx";
->  		};
-> 
-> +		mmu_dsp: mmu@4a066000 {
-> +			compatible = "ti,omap4-iommu";
-> +			reg = <0x4a066000 0xff>;
-> +			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
-> +			ti,hwmods = "mmu_dsp";
-> +			dma-window = <0x20000000 0xdffff000>;
-> +		};
-> +
-> +		mmu_ipu: mmu@55082000 {
-> +			compatible = "ti,omap4-iommu";
-> +			reg = <0x55082000 0xff>;
-> +			interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
-> +			ti,hwmods = "mmu_ipu";
-> +			dma-window = <0 0xdffff000>;
+> On Wed, Feb 26, 2014 at 06:24:36PM +0000, Leigh Brown wrote:
+> > I have built the latest linux-omap git tree for my N810 but when I
+> > boot it I get a black screen with the backlight on.
+> > 
+> > Does anyone have a working .config that they could share with me?
 
-I'm not too familiar with the M3 MPU in the OMAP4, but doesn't its memory map 
-also include other reserved regions, such as 0x55040000- 0x5505ffff to access 
-the ISS ?
+Attached is what I've been using for my boot testing. If it does not
+fit into the memory, you need to cut down on the options.
 
-> +			ti,iommu-bus-err-back;
-> +		};
-> +
->  		wdt2: wdt@4a314000 {
->  			compatible = "ti,omap4-wdt", "ti,omap3-wdt";
->  			reg = <0x4a314000 0x80>;
+> > During my investigations I have discovered that the kernel
+> > configuration has changed enormously in the last couple of years.  I
+> > was worried that the N810 was no longer supported at allm especially
+> > when I saw that a few of the old drivers (blizzard) had been
+> > removed.  I was pleasantly surprised when I discovered that a lot of
+> > the old drivers had been replaced by new ones.
+> > 
+> > I will document the latest state of play with the N810 once I have
+> > got things going.  All I really want is a text console with working
+> > keyboard and wifi, initially.
+> > 
+> > Any help will be gratefully received.
+> 
+> I can't help much, because I do not own any N8x0 device, but you
+> should probably visit [0] (and update it once you get stuff working
+> :))
+> 
+> The omap platform is currently moving over to Device Tree [1] based
+> booting, so you come at the right time to test DT based booting on
+> your N810. Building a DT kernel for your N810 works like this:
+> 
+> enable the following config entries:
+> 
+> CONFIG_ARM_APPENDED_DTB=y
+> CONFIG_ARM_ATAG_DTB_COMPAT=y
+> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND=y
+> CONFIG_PINCTRL=y
+> CONFIG_PINCTRL_SINGLE=y
+> 
+> and build zImage like this:
+> 
+> $ export ARCH=arm
+> $ export CROSS_COMPILE=arm-linux-gnueabi-
+> $ make zImage
+> $ make omap2420-n810.dtb
+> $ cat arch/arm/boot/zImage arch/arm/boot/dts/omap3-n900.dtb > zImage
+> 
+> Be aware, that the DTS file seems to lack display & keyboard support
+> at the moment, so you may want to start building a serial adapter
+> first. See [2] for details on this. This may seem like lots of work,
+> but it really makes things much easier.
 
--- 
+Yeah the above should pretty much do it for booting it :)
+
 Regards,
 
-Laurent Pinchart
+Tony
+ 
+> [0] http://elinux.org/N800
+> [1] http://devicetree.org/
+> [2] http://bues.ch/cms/hacking/n810-serial.html
 
+--EeQfGwPcQSOJBaQU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=tony-n8x0
+
+CONFIG_SYSVIPC=y
+CONFIG_POSIX_MQUEUE=y
+CONFIG_NO_HZ=y
+CONFIG_HIGH_RES_TIMERS=y
+CONFIG_BSD_PROCESS_ACCT=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_LOG_BUF_SHIFT=16
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_EXPERT=y
+CONFIG_SLAB=y
+CONFIG_PROFILING=y
+CONFIG_OPROFILE=y
+CONFIG_KPROBES=y
+CONFIG_MODULES=y
+CONFIG_MODULE_FORCE_LOAD=y
+CONFIG_MODULE_UNLOAD=y
+CONFIG_MODULE_FORCE_UNLOAD=y
+CONFIG_MODVERSIONS=y
+CONFIG_MODULE_SRCVERSION_ALL=y
+# CONFIG_BLK_DEV_BSG is not set
+CONFIG_PARTITION_ADVANCED=y
+# CONFIG_EFI_PARTITION is not set
+CONFIG_ARCH_MULTI_V6=y
+CONFIG_OMAP_RESET_CLOCKS=y
+CONFIG_OMAP_MUX_DEBUG=y
+CONFIG_ARCH_OMAP2=y
+# CONFIG_SOC_OMAP2430 is not set
+CONFIG_ARM_THUMBEE=y
+CONFIG_ARM_ERRATA_411920=y
+CONFIG_ARM_ERRATA_720789=y
+CONFIG_ARM_ERRATA_754322=y
+CONFIG_ARM_ERRATA_775420=y
+# CONFIG_COMPACTION is not set
+CONFIG_ZBOOT_ROM_TEXT=0x0
+CONFIG_ZBOOT_ROM_BSS=0x0
+CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200 earlyprintk ignore_loglevel"
+CONFIG_KEXEC=y
+CONFIG_FPE_NWFPE=y
+CONFIG_BINFMT_MISC=y
+CONFIG_PM_DEBUG=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_UNIX=y
+CONFIG_XFRM_USER=y
+CONFIG_NET_KEY=y
+CONFIG_NET_KEY_MIGRATE=y
+CONFIG_INET=y
+CONFIG_IP_MULTICAST=y
+CONFIG_IP_PNP=y
+CONFIG_IP_PNP_DHCP=y
+CONFIG_IP_PNP_BOOTP=y
+CONFIG_IP_PNP_RARP=y
+# CONFIG_INET_LRO is not set
+# CONFIG_IPV6 is not set
+CONFIG_NETFILTER=y
+CONFIG_BT=m
+CONFIG_BT_HCIUART=m
+CONFIG_BT_HCIUART_H4=y
+CONFIG_BT_HCIUART_BCSP=y
+CONFIG_BT_HCIUART_LL=y
+CONFIG_BT_HCIBCM203X=m
+CONFIG_BT_HCIBPA10X=m
+CONFIG_CFG80211=m
+CONFIG_CFG80211_WEXT=y
+CONFIG_MAC80211=m
+CONFIG_MAC80211_RC_PID=y
+CONFIG_MAC80211_RC_DEFAULT_PID=y
+CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+CONFIG_OMAP_INTERCONNECT=y
+CONFIG_CONNECTOR=y
+CONFIG_MTD=y
+CONFIG_MTD_CMDLINE_PARTS=y
+CONFIG_MTD_BLOCK=y
+CONFIG_MTD_OOPS=y
+CONFIG_MTD_CFI=y
+CONFIG_MTD_CFI_INTELEXT=y
+CONFIG_MTD_NAND=y
+CONFIG_MTD_NAND_OMAP2=y
+CONFIG_MTD_ONENAND=y
+CONFIG_MTD_ONENAND_VERIFY_WRITE=y
+CONFIG_MTD_ONENAND_OMAP2=y
+CONFIG_MTD_UBI=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_BLK_DEV_RAM=y
+CONFIG_BLK_DEV_RAM_SIZE=16384
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_SCSI_MULTI_LUN=y
+CONFIG_SCSI_SCAN_ASYNC=y
+CONFIG_MD=y
+CONFIG_NETDEVICES=y
+CONFIG_KS8851=y
+CONFIG_KS8851_MLL=y
+CONFIG_SMC91X=y
+CONFIG_SMSC911X=y
+CONFIG_SMSC_PHY=y
+CONFIG_USB_USBNET=y
+CONFIG_USB_NET_SMSC95XX=y
+CONFIG_USB_ALI_M5632=y
+CONFIG_USB_AN2720=y
+CONFIG_USB_EPSON2888=y
+CONFIG_USB_KC2190=y
+CONFIG_LIBERTAS=m
+CONFIG_LIBERTAS_USB=m
+CONFIG_LIBERTAS_SDIO=m
+CONFIG_LIBERTAS_DEBUG=y
+CONFIG_INPUT_JOYDEV=y
+CONFIG_INPUT_EVDEV=y
+CONFIG_KEYBOARD_GPIO=y
+CONFIG_KEYBOARD_TWL4030=y
+CONFIG_INPUT_TOUCHSCREEN=y
+CONFIG_TOUCHSCREEN_ADS7846=y
+CONFIG_INPUT_MISC=y
+CONFIG_INPUT_RETU_PWRBUTTON=y
+CONFIG_INPUT_TWL4030_PWRBUTTON=y
+# CONFIG_LEGACY_PTYS is not set
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_SERIAL_8250_NR_UARTS=32
+CONFIG_SERIAL_8250_EXTENDED=y
+CONFIG_SERIAL_8250_MANY_PORTS=y
+CONFIG_SERIAL_8250_SHARE_IRQ=y
+CONFIG_SERIAL_8250_DETECT_IRQ=y
+CONFIG_SERIAL_8250_RSA=y
+CONFIG_SERIAL_OMAP=y
+CONFIG_SERIAL_OMAP_CONSOLE=y
+CONFIG_HW_RANDOM=y
+CONFIG_I2C_CHARDEV=y
+CONFIG_I2C_CBUS_GPIO=y
+CONFIG_SPI=y
+CONFIG_SPI_OMAP24XX=y
+CONFIG_DEBUG_GPIO=y
+CONFIG_GPIO_SYSFS=y
+CONFIG_GPIO_TWL4030=y
+CONFIG_W1=y
+CONFIG_POWER_SUPPLY=y
+CONFIG_WATCHDOG=y
+CONFIG_OMAP_WATCHDOG=y
+CONFIG_TWL4030_WATCHDOG=y
+CONFIG_RETU_WATCHDOG=y
+CONFIG_MFD_RETU=y
+CONFIG_TWL4030_CORE=y
+CONFIG_TWL4030_POWER=y
+CONFIG_MFD_TWL4030_AUDIO=y
+CONFIG_REGULATOR_FIXED_VOLTAGE=y
+CONFIG_REGULATOR_TPS65023=y
+CONFIG_REGULATOR_TPS6507X=y
+CONFIG_REGULATOR_TWL4030=y
+CONFIG_FB=y
+CONFIG_FIRMWARE_EDID=y
+CONFIG_FB_MODE_HELPERS=y
+CONFIG_FB_TILEBLITTING=y
+CONFIG_OMAP2_DSS=m
+CONFIG_OMAP2_DSS_SDI=y
+CONFIG_OMAP2_DSS_DSI=y
+CONFIG_FB_OMAP2=m
+CONFIG_BACKLIGHT_LCD_SUPPORT=y
+CONFIG_LCD_CLASS_DEVICE=y
+CONFIG_LCD_PLATFORM=y
+CONFIG_FRAMEBUFFER_CONSOLE=y
+CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
+CONFIG_LOGO=y
+CONFIG_SOUND=m
+CONFIG_SND=m
+CONFIG_SND_MIXER_OSS=m
+CONFIG_SND_PCM_OSS=m
+CONFIG_SND_VERBOSE_PRINTK=y
+CONFIG_SND_DEBUG=y
+CONFIG_SND_USB_AUDIO=m
+CONFIG_SND_SOC=m
+CONFIG_SND_OMAP_SOC=m
+CONFIG_USB=y
+CONFIG_USB_DEBUG=y
+CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+CONFIG_USB_DYNAMIC_MINORS=y
+CONFIG_USB_OTG=y
+# CONFIG_USB_OTG_WHITELIST is not set
+CONFIG_USB_MON=y
+CONFIG_USB_EHCI_HCD=y
+CONFIG_USB_MUSB_HDRC=y
+CONFIG_USB_MUSB_TUSB6010=y
+CONFIG_USB_TUSB_OMAP_DMA=y
+CONFIG_USB_WDM=y
+CONFIG_USB_STORAGE=y
+CONFIG_USB_TEST=y
+CONFIG_USB_ULPI=y
+CONFIG_USB_GADGET=y
+CONFIG_USB_GADGET_DEBUG=y
+CONFIG_USB_GADGET_DEBUG_FILES=y
+CONFIG_USB_GADGET_DEBUG_FS=y
+CONFIG_USB_ETH=y
+CONFIG_USB_ETH_EEM=y
+CONFIG_MMC=y
+CONFIG_MMC_UNSAFE_RESUME=y
+CONFIG_SDIO_UART=y
+CONFIG_MMC_OMAP=y
+CONFIG_MMC_OMAP_HS=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_DRV_TWL92330=y
+CONFIG_RTC_DRV_TWL4030=y
+CONFIG_DMADEVICES=y
+CONFIG_DMA_OMAP=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+# CONFIG_EXT3_FS_XATTR is not set
+CONFIG_QUOTA=y
+CONFIG_QFMT_V2=y
+CONFIG_MSDOS_FS=y
+CONFIG_VFAT_FS=y
+CONFIG_TMPFS=y
+CONFIG_JFFS2_FS=y
+CONFIG_JFFS2_SUMMARY=y
+CONFIG_JFFS2_FS_XATTR=y
+CONFIG_JFFS2_COMPRESSION_OPTIONS=y
+CONFIG_JFFS2_LZO=y
+CONFIG_JFFS2_RUBIN=y
+CONFIG_UBIFS_FS=y
+CONFIG_CRAMFS=y
+CONFIG_NFS_FS=y
+CONFIG_NFS_V3_ACL=y
+CONFIG_NFS_V4=y
+CONFIG_ROOT_NFS=y
+CONFIG_NLS_CODEPAGE_437=y
+CONFIG_NLS_ISO8859_1=y
+CONFIG_PRINTK_TIME=y
+CONFIG_DEBUG_INFO=y
+CONFIG_MAGIC_SYSRQ=y
+CONFIG_SCHEDSTATS=y
+CONFIG_TIMER_STATS=y
+CONFIG_PROVE_LOCKING=y
+# CONFIG_DEBUG_BUGVERBOSE is not set
+CONFIG_DEBUG_LL=y
+CONFIG_DEBUG_OMAP2UART3=y
+CONFIG_EARLY_PRINTK=y
+CONFIG_SECURITY=y
+CONFIG_CRYPTO_MICHAEL_MIC=y
+# CONFIG_CRYPTO_ANSI_CPRNG is not set
+CONFIG_CRC_CCITT=y
+CONFIG_CRC_T10DIF=y
+CONFIG_CRC_ITU_T=y
+CONFIG_CRC7=y
+CONFIG_LIBCRC32C=y
+CONFIG_FONTS=y
+CONFIG_FONT_8x8=y
+CONFIG_FONT_8x16=y
+
+--EeQfGwPcQSOJBaQU--
