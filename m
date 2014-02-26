@@ -1,75 +1,79 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: SD card timeout problems on Nokia N900 (omap_hsmmc on OMAP3)
-Date: Wed, 26 Feb 2014 00:47:46 +0100
-Message-ID: <20140225234746.GA13866@earth.universe>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH v2 0/2] ARM: OMAP4: Fix gpmc_fck clock
+Date: Tue, 25 Feb 2014 18:05:29 -0600
+Message-ID: <530D2FC9.2010800@ti.com>
+References: <1392801305-1698-1-git-send-email-florian.vaussard@epfl.ch> <5304DA2C.3030605@ti.com> <53050573.8090506@epfl.ch> <20140223212309.22529.75068@quantum> <530ADC39.1010300@epfl.ch> <20140225062615.22529.88499@quantum> <530C4FED.80403@epfl.ch>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="2oS5YaxWCcQjTEyO"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53554 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752541AbaBZAF7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Feb 2014 19:05:59 -0500
+In-Reply-To: <530C4FED.80403@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: florian.vaussard@epfl.ch, Mike Turquette <mturquette@linaro.org>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
 
+Florian,
 
---2oS5YaxWCcQjTEyO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 02/25/2014 02:10 AM, Florian Vaussard wrote:
+> On 02/25/2014 07:26 AM, Mike Turquette wrote:
+>> Quoting Florian Vaussard (2014-02-23 21:44:25)
+>>> On 02/23/2014 10:23 PM, Mike Turquette wrote:
+>>>> Quoting Florian Vaussard (2014-02-19 11:26:43)
+>>>>>
+>>>>> On 02/19/2014 05:22 PM, Tero Kristo wrote:
+>>>>>> On 02/19/2014 11:15 AM, Florian Vaussard wrote:
+>>>>>>> Hello,
+>>>>>>>
+>>>>>>> Trying to get my SMSC9221 working on OMAP4 with DT,
+>>>>>>> I faced a misconfigured gpmc_fck (dummy clock set to 0)
+>>>>>>> resulting in serveral division-by-zero, misconfigured
+>>>>>>> timings and driver lost in the La La Land.
+>>>>>>>
+>>>>>>> To solve this, patch 1 removes gpmc_fck from the dummy
+>>>>>>> clocks, and patch 2 adds the gpmc_fck DT node and
+>>>>>>> reference it from the gpmc node.
+>>>>>>>
+>>>>>>> Tested on DuoVero/Parlor (OMAP4430) with SMSC9221.
+>>>>>>
+>>>>>> I can't test GPMC myself, but other than that, this set looks good to go.
+>>>>>>
+>>>>>
+>>>>> Thank you. Would you like more test coverage by other people? I would
+>>>>> like to see this in -rc if possible, as it is needed to boot my OMAP4
+>>>>> system.
+>>>>
+>>>> What OMAP4 system is this? Is this a regression for board that already
+>>>> has support merged into mainline?
+>>>>
+>>>
+>>> No, it is not yet merged into mainline. I was planning to post the DTS
+>>> this week, when most issues are cleared. Looking at the current mainline
+>>> boards, no one seems to use the GPMC, so I am just the first one to hit
+>>> this issue.
+>>
+>> OK, well typically the later -rc's are for fixing observed regressions.
+>> Since your platform is not yet merged in then it's probably fine to push
+>> this for 3.15.
+>>
+>
+> Fair enough. 3.15 is fine.
+>
+>> This also gives time to test the fix for other OMAP-ish processors.
+>>
+>
+> I can do the v3, including OMAP5 and DRA7. But for DRA7, I will need
+> someone with the TRM telling me where is connected gpmc_fclk (Suman?).
 
-Hi,
+For DRA7, GPMC is connected off L3MAIN1_L3_GICLK (compared to 
+L3MAIN2_L3_GICLK on OMAP5), both of which are actually just L3_ICLK.
+This is the l3_iclk_div in both the omap54xx-clocks.dtsi and 
+dra7xx-clocks.dtsi files.
 
-I have problems with the SD-card initialization on my Nokia N900
-using a 3.14-rc1 based kernel in DT boot mode. The bug is can be
-circumvented by changing the kernel slightly (e.g. remove some DT
-nodes or mark them as disabled). So the SD card's timeout problems
-seem to derive from kernel timing problems. I'm pretty sure, that
-the problems are not originating from a broken SD card, since
+regards
+Suman
 
- 1. The SD card worked quite good before and still does depending
-    on unrelated DTS changes (=> loading less drivers).
- 2. The SD card works flawlessly on my notebook using a USB adapter
- 3. Another SD card showed the same problem
-
-I tried to git bisect the problem, but I just get shown some
-unrelated driver additions.
-
-Anyways, this is the error I get during boot:
-
-[    3.896820] mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
-...
-[    5.956237] mmc0: error -110 whilst initialising SD card
-
-I added some debug prints to trace the error:
-
- * mmc_sd_init_card()
- * mmc_sd_get_cid()
- * mmc_send_app_op_cond()
-
-Can you give me any hints how to find & fix the problem's source?
-
--- Sebastian
-
---2oS5YaxWCcQjTEyO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTDSuiAAoJENju1/PIO/qaQUEP/0hKExggHT/zi7I7MdJcUGhs
-VKJN+nEAB6XzYfnW1cQimP56cUUk8NT05IYVHipH3iD0oh6MZ5UpxNxYG6810jbv
-W8thtRqck0a0Wi5cJ/DTuyo5SSHyWqOVC4BAfYgdAwX5Vi9tEAYSApKNW1+gCPE6
-DcAHqJdlj+I37qH/QxhzLCnLZpjhankHagfVoBiRBNy4wtkWEpOJaTGmt63UQN6g
-py3pekjo6fl8fPsVOTqoU+rPNRfgtqwRA0xmwPi6E3Pu2+K36CuxaCyheA6Gzysn
-BRm5zS8UQ4goHMz/zzIiHkGKfJLntG3aSn/RNKFgGvZBaOpNFhiAstGKA12hdk4P
-OJ+BqW6Is7/pzvRQwRGa1nKTFhxXBI+VTc9huqdd8K8l5i5Me0CJ4l3jMqiLyIx/
-iykX6H37oJRil2xrpuWFRE+8q+PhNvbMPtek/11vC2QxKVzSC9gcndjiUzW9FI8Q
-K+AUPbh+yt5BA7cAScooS+EGePVL51U3o/h1PVFMtVzhUA5NcsjptIJwbG0kcbbl
-tZkm3KQ6eFZawgBpHW4+wNHFe6f3Raz7ONOOj7tlF+RMDNxIUF/+uXXTXlJloEQD
-V9EJJ8W1+qfndXuLWB2YrBxEjZZhnR6FDYdFAOfzQ+quWMU9anFBQRof6BlkF5pn
-x2hNqySsKFN/EaAxR9xn
-=GLXc
------END PGP SIGNATURE-----
-
---2oS5YaxWCcQjTEyO--
