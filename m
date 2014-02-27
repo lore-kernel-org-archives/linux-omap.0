@@ -1,47 +1,138 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v9 6/9] mfd: omap-usb-tll: Update DT clock binding information
-Date: Thu, 27 Feb 2014 16:18:28 +0200
-Message-ID: <1393510711-4697-7-git-send-email-rogerq@ti.com>
+Subject: [PATCH v9 2/9] mfd: omap-usb-host: Always fail on clk_get() error
+Date: Thu, 27 Feb 2014 16:18:24 +0200
+Message-ID: <1393510711-4697-3-git-send-email-rogerq@ti.com>
 References: <1393510711-4697-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1393510711-4697-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: lee.jones@linaro.org, tony@atomide.com, bcousson@baylibre.com
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: devicetree@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The omap-usb-tll driver needs one clock for each TLL channel.
-Add this information to the DT binding document.
+Be more strict and always fail on clk_get() error.
 
 CC: Lee Jones <lee.jones@linaro.org>
 CC: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- Documentation/devicetree/bindings/mfd/omap-usb-tll.txt | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/mfd/omap-usb-host.c | 62 +++++++++++++++++++++++++++++----------------
+ 1 file changed, 40 insertions(+), 22 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt b/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
-index 62fe697..c58d704 100644
---- a/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
-+++ b/Documentation/devicetree/bindings/mfd/omap-usb-tll.txt
-@@ -7,6 +7,16 @@ Required properties:
- - interrupts : should contain the TLL module's interrupt
- - ti,hwmod : must contain "usb_tll_hs"
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index c63bfdf..c31baa7 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -695,7 +695,8 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+ 							    "ehci_logic_fck");
+ 			if (IS_ERR(omap->ehci_logic_fck)) {
+ 				ret = PTR_ERR(omap->ehci_logic_fck);
+-				dev_dbg(dev, "ehci_logic_fck failed:%d\n", ret);
++				dev_err(dev, "ehci_logic_fck failed:%d\n", ret);
++				goto err_mem;
+ 			}
+ 		}
+ 		goto initialize;
+@@ -749,51 +750,68 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+ 		 * them
+ 		 */
+ 		omap->utmi_clk[i] = devm_clk_get(dev, clkname);
+-		if (IS_ERR(omap->utmi_clk[i]))
+-			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
+-				clkname, PTR_ERR(omap->utmi_clk[i]));
++		if (IS_ERR(omap->utmi_clk[i])) {
++			ret = PTR_ERR(omap->utmi_clk[i]);
++			dev_err(dev, "Failed to get clock : %s : %d\n",
++				clkname, ret);
++			goto err_mem;
++		}
  
-+Optional properties:
-+
-+- clocks: a list of phandles and clock-specifier pairs, one for each entry in
-+  clock-names.
-+
-+- clock-names: should include:
-+  * "usb_tll_hs_usb_ch0_clk" - USB TLL channel 0 clock
-+  * "usb_tll_hs_usb_ch1_clk" - USB TLL channel 1 clock
-+  * "usb_tll_hs_usb_ch2_clk" - USB TLL channel 2 clock
-+
- Example:
+ 		snprintf(clkname, sizeof(clkname),
+ 				"usb_host_hs_hsic480m_p%d_clk", i + 1);
+ 		omap->hsic480m_clk[i] = devm_clk_get(dev, clkname);
+-		if (IS_ERR(omap->hsic480m_clk[i]))
+-			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
+-				clkname, PTR_ERR(omap->hsic480m_clk[i]));
++		if (IS_ERR(omap->hsic480m_clk[i])) {
++			ret = PTR_ERR(omap->hsic480m_clk[i]);
++			dev_err(dev, "Failed to get clock : %s : %d\n",
++				clkname, ret);
++			goto err_mem;
++		}
  
- 	usbhstll: usbhstll@4a062000 {
+ 		snprintf(clkname, sizeof(clkname),
+ 				"usb_host_hs_hsic60m_p%d_clk", i + 1);
+ 		omap->hsic60m_clk[i] = devm_clk_get(dev, clkname);
+-		if (IS_ERR(omap->hsic60m_clk[i]))
+-			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
+-				clkname, PTR_ERR(omap->hsic60m_clk[i]));
++		if (IS_ERR(omap->hsic60m_clk[i])) {
++			ret = PTR_ERR(omap->hsic60m_clk[i]);
++			dev_err(dev, "Failed to get clock : %s : %d\n",
++				clkname, ret);
++			goto err_mem;
++		}
+ 	}
+ 
+ 	if (is_ehci_phy_mode(pdata->port_mode[0])) {
+ 		ret = clk_set_parent(omap->utmi_p1_gfclk,
+ 					omap->xclk60mhsp1_ck);
+-		if (ret != 0)
+-			dev_dbg(dev, "xclk60mhsp1_ck set parent failed: %d\n",
+-					ret);
++		if (ret != 0) {
++			dev_err(dev, "xclk60mhsp1_ck set parent failed: %d\n",
++				ret);
++			goto err_mem;
++		}
+ 	} else if (is_ehci_tll_mode(pdata->port_mode[0])) {
+ 		ret = clk_set_parent(omap->utmi_p1_gfclk,
+ 					omap->init_60m_fclk);
+-		if (ret != 0)
+-			dev_dbg(dev, "P0 init_60m_fclk set parent failed: %d\n",
+-					ret);
++		if (ret != 0) {
++			dev_err(dev, "P0 init_60m_fclk set parent failed: %d\n",
++				ret);
++			goto err_mem;
++		}
+ 	}
+ 
+ 	if (is_ehci_phy_mode(pdata->port_mode[1])) {
+ 		ret = clk_set_parent(omap->utmi_p2_gfclk,
+ 					omap->xclk60mhsp2_ck);
+-		if (ret != 0)
+-			dev_dbg(dev, "xclk60mhsp2_ck set parent failed: %d\n",
+-					ret);
++		if (ret != 0) {
++			dev_err(dev, "xclk60mhsp2_ck set parent failed: %d\n",
++				ret);
++			goto err_mem;
++		}
+ 	} else if (is_ehci_tll_mode(pdata->port_mode[1])) {
+ 		ret = clk_set_parent(omap->utmi_p2_gfclk,
+ 						omap->init_60m_fclk);
+-		if (ret != 0)
+-			dev_dbg(dev, "P1 init_60m_fclk set parent failed: %d\n",
+-					ret);
++		if (ret != 0) {
++			dev_err(dev, "P1 init_60m_fclk set parent failed: %d\n",
++				ret);
++			goto err_mem;
++		}
+ 	}
+ 
+ initialize:
 -- 
 1.8.3.2
