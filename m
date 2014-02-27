@@ -1,135 +1,340 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH 1/8] clk: divider: fix rate calculation for fractional rates
-Date: Wed, 26 Feb 2014 18:25:24 -0800
-Message-ID: <20140227022524.12081.32368@quantum>
-References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
- <1392285846-13199-2-git-send-email-tomi.valkeinen@ti.com>
- <52FE1DF2.2040707@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC PATCH 1/6] PM / Voltagedomain: Add generic clk notifier
+ handler for regulator based dynamic voltage scaling
+Date: Wed, 26 Feb 2014 20:34:55 -0600
+Message-ID: <20140227023455.GA15712@kahuna>
+References: <1392755543-28335-1-git-send-email-nm@ti.com>
+ <1392755543-28335-2-git-send-email-nm@ti.com>
+ <20140225055142.22529.21814@quantum> <530D0394.4020208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:48545 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753288AbaB0CZ2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Feb 2014 21:25:28 -0500
-Received: by mail-pb0-f42.google.com with SMTP id rr13so1869669pbb.1
-        for <linux-omap@vger.kernel.org>; Wed, 26 Feb 2014 18:25:28 -0800 (PST)
-In-Reply-To: <52FE1DF2.2040707@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <530D0394.4020208@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Mark Brown <broonie@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Quoting Tero Kristo (2014-02-14 05:45:22)
-> On 02/13/2014 12:03 PM, Tomi Valkeinen wrote:
-> > clk-divider.c does not calculate the rates consistently at the moment.
-> >
-> > As an example, on OMAP3 we have a clock divider with a source clock of
-> > 864000000 Hz. With dividers 6, 7 and 8 the theoretical rates are:
-> >
-> > 6: 144000000
-> > 7: 123428571.428571...
-> > 8: 108000000
-> >
-> > Calling clk_round_rate() with the rate in the first column will give the
-> > rate in the second column:
-> >
-> > 144000000 -> 144000000
-> > 143999999 -> 123428571
-> > 123428572 -> 123428571
-> > 123428571 -> 108000000
-> >
-> > Note how clk_round_rate() returns 123428571 for rates from 123428572 to
-> > 143999999, which is mathematically correct, but when clk_round_rate() is
-> > called with 123428571, the returned value is surprisingly 108000000.
-> >
-> > This means that the following code works a bit oddly:
-> >
-> > rate = clk_round_rate(clk, 123428572);
-> > clk_set_rate(clk, rate);
-> >
-> > As clk_set_rate() also does clock rate rounding, the result is that the
-> > clock is set to the rate of 108000000, not 123428571 returned by the
-> > clk_round_rate.
-> >
-> > This patch changes the clk-divider.c to use DIV_ROUND_UP when
-> > calculating the rate. This gives the following behavior which fixes the
-> > inconsistency:
-> >
-> > 144000000 -> 144000000
-> > 143999999 -> 123428572
-> > 123428572 -> 123428572
-> > 123428571 -> 108000000
-> >
-> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > Cc: Mike Turquette <mturquette@linaro.org>
-> > ---
-> >   drivers/clk/clk-divider.c | 10 +++++-----
-> >   1 file changed, 5 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
-> > index 5543b7df8e16..ec22112e569f 100644
-> > --- a/drivers/clk/clk-divider.c
-> > +++ b/drivers/clk/clk-divider.c
-> > @@ -24,7 +24,7 @@
-> >    * Traits of this clock:
-> >    * prepare - clk_prepare only ensures that parents are prepared
-> >    * enable - clk_enable only ensures that parents are enabled
-> > - * rate - rate is adjustable.  clk->rate = parent->rate / divisor
-> > + * rate - rate is adjustable.  clk->rate = DIV_ROUND_UP(parent->rate / divisor)
-> >    * parent - fixed parent.  No clk_set_parent support
-> >    */
-> >
-> > @@ -115,7 +115,7 @@ static unsigned long clk_divider_recalc_rate(struct clk_hw *hw,
-> >               return parent_rate;
-> >       }
-> >
-> > -     return parent_rate / div;
-> > +     return DIV_ROUND_UP(parent_rate, div);
-> >   }
-> >
-> >   /*
-> > @@ -185,7 +185,7 @@ static int clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
-> >               }
-> >               parent_rate = __clk_round_rate(__clk_get_parent(hw->clk),
-> >                               MULT_ROUND_UP(rate, i));
-> > -             now = parent_rate / i;
-> > +             now = DIV_ROUND_UP(parent_rate, i);
-> >               if (now <= rate && now > best) {
-> >                       bestdiv = i;
-> >                       best = now;
-> > @@ -207,7 +207,7 @@ static long clk_divider_round_rate(struct clk_hw *hw, unsigned long rate,
-> >       int div;
-> >       div = clk_divider_bestdiv(hw, rate, prate);
-> >
-> > -     return *prate / div;
-> > +     return DIV_ROUND_UP(*prate, div);
-> >   }
-> >
-> >   static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
-> > @@ -218,7 +218,7 @@ static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
-> >       unsigned long flags = 0;
-> >       u32 val;
-> >
-> > -     div = parent_rate / rate;
-> > +     div = DIV_ROUND_UP(parent_rate, rate);
-> >       value = _get_val(divider, div);
-> >
-> >       if (value > div_mask(divider))
-> >
+On 14:56-20140225, Nishanth Menon wrote:
+> On 02/24/2014 11:51 PM, Mike Turquette wrote:
+> > Quoting Nishanth Menon (2014-02-18 12:32:18)
+[...]
+> > I'm not sure about trying to capture the "voltdm" as a core concept. It
+> > feels a bit unwieldy to me.
 > 
-> Basically the patch looks good to me, but it might be good to have a 
-> testing round of sort with this. It can potentially cause regressions on 
-> multiple boards if the drivers happen to rely on the "broken" clock 
-> rates. Same for patch #2 which is a copy paste of this one, but only 
-> impacts TI boards.
+> Considering it is a simple collation of regulators and SoC specific
+> "magic" which have to be operated in tandem to clock operation, Why
+> does it seem unwieldy? Usage of multiple voltage planes in a single
+> voltage domain concept does not seem unique to TI processors either:
+> For example, imx6q-cpufreq.c uses 3 regulators (arm, pu, soc),
+> s5pv210-cpufreq.c uses two regulators (vddarm, vddint), ideally OMAP
+> implementation would use two (vdd_mpu, vbb_mpu).
+> 
+> > I have wondered about making an abstract
+> > "performance domain" which is the dvfs analogue to generic power
+> > domains. This a reasonable split since gpd are good for idle power
+> > savings (e.g. clock gate, power gate, sleep state, etc) and "perf
+> > domains" would be good for active power savings (dvfs).
+> > 
+> > Having a generic container for performance domains might make a good
+> > place to stuff all of this glue logic that we keep running into (e.g.
+> > CPU and GPU max frequencies that are related), and it might make another
+> > nice knob for the thermal folks to use.
+> 
+> This sounds like one level higher abstraction that we are speaking of
+> here? I was'nt intending to solve the bigger picture problem here -
+> just an abstraction level that might allow reusablity for multiple
+> SoCs. In fact, having an abstraction away for voltage domain(which may
+> consist of multiple regulators and any SoC specific magic) purely
+> allows us to move towards a direction you mention here.
+> 
+> > 
+> > For the case of the OMAP voltage domains, it would be a place to stuff
+> > all of the VC/VP -> ABB -> Smart Reflex AVS stuff.
+> > 
+> 
+> Unfortunately, I dont completely comprehend objection we have to this
+> approach (other than an higher level abstraction is needed) and if we
+> do have an objection, what is the alternate approach should be for
+> representing hardware which this series attempts to present.
 
-Agreed. I've taken patches #1 & #2 into clk-next. Let's let them stew in
--next for a while and see if anyone's board catches on fire.
+I think the following is around the lines of your thought direction -
+if Rafael or others have comments on the following approach, it'd be a
+good starting point for me to progress.
 
+-->8--
+>From 62e50b9f920495db88e5594aa6bceb52e83a443d Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Wed, 26 Feb 2014 10:59:59 -0600
+Subject: [PATCH] PM / Runtime: introduce active power management callbacks
+ for pm_domain
+
+dev_pm_domain currently handles just device idle power management
+using the generic pm_runtime_get|put and related family of functions.
+
+Logically with appropriate pm_domain hooks this can translate to
+hardware specific clock and related operations. Given that pm_domains
+may contain this information, this provides an opportunity to extend
+current pm_runtime do dynamic power operations as well.
+
+What this means for drivers is as follows:
+
+Today, drivers(with some level of complexity) do:
+pm_runtime_get_sync(dev);
+clk = clk_get(dev, "name");
+old_rate = clk_get_rate(clk);
+...
+clk_set_rate(clk, new_rate);
+...
+clk_put(clk);
+pm_runtime_get_sync(dev);
+
+Instead, on pm_domains that can handle this as part of
+pm_domain->active_ops functions, They can now do the following:
+pm_runtime_get_sync(dev);
+old_rate = pm_runtime_get_rate(dev);
+...
+pm_runtime_set_rate(dev, new_rate);
+...
+pm_runtime_put_sync(dev);
+
+Obviously, this'd work for devices that handle a single main
+functional clock, but this could reduce complexity of drivers having
+to deal with power management details to have pm_runtime as the main
+point of interface.
+
+CAVEAT: For power domains that are capable of handling multiple
+clocks (example on OMAP, where there are the concepts of interface,
+functional and optional clocks per block), appropriate handling will
+be necessary from pm_domain callbacks. So, the question about which
+clock rate is being controlled or returned to is entirely upto the
+pm_domain implementation.
+
+On the otherhand, we can debate about defining and querying ACPI style
+"Performance state" instead of frequencies and wrap P-states inside
+or the other way around.. but given that majority of drivers using
+pm_runtime would rather be interested in frequencies and my naieve
+belief that we can index P-states with frequencies, kind of influenced
+my choice here of proposing frequencies as base query parameter..
+ofcourse, debate is still open here.
+
+Yes, we can still debate if providing yet another wrapper on top of
+clock APIs makes sense at all as well.
+
+Nyet-signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ drivers/base/power/runtime.c |  101 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/pm.h           |   25 +++++++++--
+ include/linux/pm_runtime.h   |   21 +++++++++
+ 3 files changed, 143 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+index 72e00e6..ef230b4 100644
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -1401,3 +1401,104 @@ void pm_runtime_remove(struct device *dev)
+ 	if (dev->power.irq_safe && dev->parent)
+ 		pm_runtime_put(dev->parent);
+ }
++
++/**
++ * pm_runtime_get_rate() - Returns the device operational frequency
++ * @dev:	Device to handle
++ * @rate:	Returns rate in Hz.
++ *
++ * Returns appropriate error value in case of error conditions, else
++ * returns 0 and rate is updated. The pm_domain logic does all the necessary
++ * operation (which may consider magic hardware stuff) to provide the rate.
++ *
++ * NOTE: the rate returned is a snapshot and in many cases just a bypass
++ * to clk api to set the rate.
++ */
++int pm_runtime_get_rate(struct device *dev, unsigned long *rate)
++{
++	unsigned long flags;
++	int error = -ENOSYS;
++
++	if (!rate || !dev)
++		return -EINVAL;
++
++	spin_lock_irqsave(&dev->power.lock, flags);
++	if (!pm_runtime_active(dev)) {
++		error = -EINVAL;
++		goto out;
++	}
++
++	if (dev->pm_domain && dev->pm_domain->active_ops.get_rate)
++		error = dev->pm_domain->active_ops.get_rate(dev, rate);
++out:
++	spin_unlock_irqrestore(&dev->power.lock, flags);
++
++	return error;
++}
++
++/**
++ * pm_runtime_set_rate() - Set a specific rate for the device operation
++ * @dev:	Device to handle
++ * @rate:	Rate to set in Hz
++ *
++ * Returns appropriate error value in case of error conditions, else
++ * returns 0. The pm_domain logic does all the necessary operation (which
++ * may include voltage scale operations or other magic hardware stuff) to
++ * achieve the operation. It is guarenteed that the requested rate is achieved
++ * on returning from this function if return value is 0.
++ */
++int pm_runtime_set_rate(struct device *dev, unsigned long rate)
++{
++	unsigned long flags;
++	int error = -ENOSYS;
++
++	if (!rate || !dev)
++		return -EINVAL;
++
++	spin_lock_irqsave(&dev->power.lock, flags);
++	if (!pm_runtime_active(dev)) {
++		error = -EINVAL;
++		goto out;
++	}
++
++	if (dev->pm_domain && dev->pm_domain->active_ops.set_rate)
++		error = dev->pm_domain->active_ops.set_rate(dev, rate);
++out:
++	spin_unlock_irqrestore(&dev->power.lock, flags);
++
++	return error;
++}
++
++/**
++ * pm_runtime_get_transition_latency() - determine transition latency`
++ * @dev:	Device to handle
++ * @from_rate:	Transition from which rate
++ * @to_rate:	Transition to which rate
++ *
++ * Returns appropriate error value in case of error conditions, else
++ * returns the latency in uSecs for transition between two given rates
++ */
++int pm_runtime_get_transition_latency(struct device *dev,
++				      unsigned long from_rate,
++				      unsigned long to_rate)
++{
++	unsigned long flags;
++	int error = -ENOSYS;
++
++	if (!from_rate || !to_rate || !dev)
++		return -EINVAL;
++
++	spin_lock_irqsave(&dev->power.lock, flags);
++	if (!pm_runtime_active(dev)) {
++		error = -EINVAL;
++		goto out;
++	}
++
++	if (dev->pm_domain && dev->pm_domain->active_ops.get_transition_latency)
++		error = dev->pm_domain->active_ops.get_transition_latency(dev,
++				from_rate, to_rate);
++out:
++	spin_unlock_irqrestore(&dev->power.lock, flags);
++
++	return error;
++}
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index 8c6583a..f907b27 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -299,6 +299,20 @@ struct dev_pm_ops {
+ 	int (*runtime_idle)(struct device *dev);
+ };
+ 
++/**
++ * struct dev_pm_active_ops - Active power management operations
++ * @get_rate:	get the current operational frequency
++ * @set_rate:	set the current operational frequency
++ * @get_transition_latency: get the transition latency in uSeconds
++ */
++struct dev_pm_active_ops {
++	int (*get_rate)(struct device *dev, unsigned long *rate);
++	int (*set_rate)(struct device *dev, unsigned long rate);
++	int (*get_transition_latency)(struct device *dev,
++				      unsigned long from_rate,
++				      unsigned long to_rate);
++};
++
+ #ifdef CONFIG_PM_SLEEP
+ #define SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
+ 	.suspend = suspend_fn, \
+@@ -589,13 +603,16 @@ extern void update_pm_runtime_accounting(struct device *dev);
+ extern int dev_pm_get_subsys_data(struct device *dev);
+ extern int dev_pm_put_subsys_data(struct device *dev);
+ 
+-/*
+- * Power domains provide callbacks that are executed during system suspend,
+- * hibernation, system resume and during runtime PM transitions along with
+- * subsystem-level and driver-level callbacks.
++/**
++ * struct dev_pm_domain - power domain information
++ * @ops: Power domains provide callbacks that are executed during system
++ *	suspend, hibernation, system resume and during runtime PM transitions
++ *	along with subsystem-level and driver-level callbacks.
++ * @active_ops: Active operational callbacks
+  */
+ struct dev_pm_domain {
+ 	struct dev_pm_ops	ops;
++	struct dev_pm_active_ops active_ops;
+ };
+ 
+ /*
+diff --git a/include/linux/pm_runtime.h b/include/linux/pm_runtime.h
+index 16c9a62..731a6e4 100644
+--- a/include/linux/pm_runtime.h
++++ b/include/linux/pm_runtime.h
+@@ -112,6 +112,11 @@ static inline void pm_runtime_mark_last_busy(struct device *dev)
+ 	ACCESS_ONCE(dev->power.last_busy) = jiffies;
+ }
+ 
++extern int pm_runtime_get_rate(struct device *dev, unsigned long *rate);
++extern int pm_runtime_set_rate(struct device *dev, unsigned long rate);
++extern int pm_runtime_get_transition_latency(struct device *dev,
++					     unsigned long from_rate,
++					     unsigned long to_rate);
+ #else /* !CONFIG_PM_RUNTIME */
+ 
+ static inline int __pm_runtime_idle(struct device *dev, int rpmflags)
+@@ -162,6 +167,22 @@ static inline unsigned long pm_runtime_autosuspend_expiration(
+ static inline void pm_runtime_set_memalloc_noio(struct device *dev,
+ 						bool enable){}
+ 
++static inline int pm_runtime_get_rate(struct device *dev, unsigned long *rate)
++{
++	return -ENOSYS;
++}
++
++static inline int pm_runtime_set_rate(struct device *dev, unsigned long rate)
++{
++	return -ENOSYS;
++}
++
++static inline int pm_runtime_get_transition_latency(struct device *dev,
++						    unsigned long from_rate,
++						    unsigned long to_rate)
++{
++	return -ENOSYS;
++}
+ #endif /* !CONFIG_PM_RUNTIME */
+ 
+ static inline int pm_runtime_idle(struct device *dev)
+-- 
+1.7.9.5
+
+-- 
 Regards,
-Mike
-
-> 
-> -Tero
-> 
+Nishanth Menon
