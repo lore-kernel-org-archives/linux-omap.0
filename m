@@ -1,42 +1,54 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH v2 3/8] ARM: dts: omap3-overo: Use complete poweroff
-Date: Thu, 27 Feb 2014 21:30:27 +0100
-Message-ID: <1393533032-1619-4-git-send-email-florian.vaussard@epfl.ch>
+Subject: [PATCH v2 1/8] ARM: dts: omap3-tobi: Add missing pinctrl
+Date: Thu, 27 Feb 2014 21:30:25 +0100
+Message-ID: <1393533032-1619-2-git-send-email-florian.vaussard@epfl.ch>
 References: <1393533032-1619-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:39907 "EHLO smtp0.epfl.ch"
+Received: from smtp0.epfl.ch ([128.178.224.218]:39890 "EHLO smtp0.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751067AbaB0Uau (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Feb 2014 15:30:50 -0500
+	id S1751067AbaB0Uas (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Feb 2014 15:30:48 -0500
 In-Reply-To: <1393533032-1619-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Currently, the TWL4030 PMIC does not completely poweroff the processor.
-Commit b0fc1da4d0359d3cce8f12e0f014aed0704ae202 introduced the necessary
-binding to do this, so use it.
+Add missing pinctrl entries:
+- i2c3
 
 Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 ---
- arch/arm/boot/dts/omap3-overo.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/boot/dts/omap3-overo-tobi-common.dtsi | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
-index aea64c0..018e1e0 100644
---- a/arch/arm/boot/dts/omap3-overo.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo.dtsi
-@@ -73,6 +73,11 @@
- 			codec {
- 			};
- 		};
-+
-+		twl_power: power {
-+			compatible = "ti,twl4030-power";
-+			ti,use_poweroff;
-+		};
+diff --git a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
+index 4edc013..da7d85b 100644
+--- a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
++++ b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
+@@ -35,6 +35,15 @@
  	};
+ };
+ 
++&omap3_pmx_core {
++	i2c3_pins: pinmux_i2c3_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x21c2, PIN_INPUT | MUX_MODE0)	/* i2c3_scl.i2c3_scl */
++			OMAP3_CORE1_IOPAD(0x21c4, PIN_INPUT | MUX_MODE0)	/* i2c3_sda.i2c3_sda */
++		>;
++	};
++};
++
+ &gpmc {
+ 	ranges = <5 0 0x2c000000 0x1000000>;	/* CS5 */
+ 
+@@ -72,6 +81,8 @@
+ };
+ 
+ &i2c3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c3_pins>;
+ 	clock-frequency = <100000>;
  };
  
 -- 
