@@ -1,98 +1,94 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH v2 6/8] ARM: dts: omap: Add common file for SMSC9221
-Date: Thu, 27 Feb 2014 21:30:30 +0100
-Message-ID: <1393533032-1619-7-git-send-email-florian.vaussard@epfl.ch>
-References: <1393533032-1619-1-git-send-email-florian.vaussard@epfl.ch>
+From: Chris Kimber <chris.kimber@enatel.net>
+Subject: Re: USB lockups on BeagleBone/AM335x
+Date: Fri, 28 Feb 2014 09:34:27 +1300
+Message-ID: <530FA153.809@enatel.net>
+References: <BCBA70ECF3E0284F86C53FAF9ED7FCA1426C07@SRVEXCH01.enatel.local> <20140220224902.GB10878@saruman.home> <BCBA70ECF3E0284F86C53FAF9ED7FCA1426C96@SRVEXCH01.enatel.local> <20140221011405.GB19336@saruman.home> <5306B97D.8070306@enatel.net> <20140221153321.GD31902@saruman.home>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:39931 "EHLO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751406AbaB0Uax (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Feb 2014 15:30:53 -0500
-In-Reply-To: <1393533032-1619-1-git-send-email-florian.vaussard@epfl.ch>
+Received: from mail.enatel.co.nz ([131.203.63.198]:2825 "EHLO
+	mail.enatel.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751202AbaB0Ued (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Feb 2014 15:34:33 -0500
+In-Reply-To: <20140221153321.GD31902@saruman.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
+To: balbi@ti.com
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Some devices (SMSC9217, SMSC9218 and SMSC9221 at least) have better
-timings, allowing a higher transfer speed. Create a common file
-with these timings.
+Hi,
 
-Performance results with iperf:
+On 22/02/2014 4:33 a.m., Felipe Balbi wrote:
+> On Fri, Feb 21, 2014 at 03:27:09PM +1300, Chris Kimber wrote:
+>> Hey
+>>
+>> On 21/02/2014 2:14 p.m., Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> (please avoid top-posting)
+>>>
+>>> On Fri, Feb 21, 2014 at 12:11:40AM +0000, Chris Kimber wrote:
+>>>> Hey,
+>>>>
+>>>> Thanks for the response.
+>>>>
+>>>> I've disabled the DMA (CONFIG_MUSB_PIO_ONLY=y) but the problem still
+>>>> persists (for both USB sticks & USB serial ports).
+>>> hmm, that's weird.
+>>>
+>>>> Now it looks like dsps_interrupt() never fires and causes the hang
+>>>> up...
+>>>>
+>>>> [   94.865635] tty ttyUSB0: serial_write - 11 byte(s)
+>>>> [   94.865656] cp210x ttyUSB0: usb_serial_generic_write_start - length = 11, data = 54 45 53 54 49 4e 47 20 34 32 0a
+>>>> [   94.865680] musb-hdrc musb-hdrc.1.auto: qh ce461a00 periodic slot 10
+>>>> [   94.865700] musb-hdrc musb-hdrc.1.auto: qh ce461a00 urb ce481e80 dev2 ep1out-bulk, hw_ep 10, ce43db00/11
+>>>> [   94.865721] musb-hdrc musb-hdrc.1.auto: --> hw10 urb ce481e80 spd2 dev2 ep1out h_addr00 h_port00 bytes 11
+>>>> [   94.865740] musb-hdrc musb-hdrc.1.auto: TX ep10 fifo d0832c48 count 11 buf ce43db00
+>>>> [   94.865755] musb-hdrc musb-hdrc.1.auto: Start TX10 pio
+>>>> [   94.865792] musb-hdrc musb-hdrc.1.auto: usbintr (0) epintr(400)
+>>>> [   94.865810] musb-hdrc musb-hdrc.1.auto: ** IRQ host usb0000 tx0400 rx0000
+>>>> [   94.865826] musb-hdrc musb-hdrc.1.auto: OUT/TX10 end, csr 2100
+>>>> [   94.865866] musb-hdrc musb-hdrc.1.auto: complete ce481e80 usb_serial_generic_write_bulk_callback+0x0/0xd4 [usbserial] (0), dev2 ep1out, 11/11
+>>> so the first one completed just fine.
+>>>
+>>>> [   94.865971] tty ttyUSB0: serial_write - 11 byte(s)
+>>>> [   94.865991] cp210x ttyUSB0: usb_serial_generic_write_start - length = 11, data = 54 45 53 54 49 4e 47 20 34 33 0a
+>>>> [   94.866015] musb-hdrc musb-hdrc.1.auto: qh ce461a00 periodic slot 10
+>>>> [   94.866035] musb-hdrc musb-hdrc.1.auto: qh ce461a00 urb ce481e80 dev2 ep1out-bulk, hw_ep 10, ce43db00/11
+>>>> [   94.866055] musb-hdrc musb-hdrc.1.auto: --> hw10 urb ce481e80 spd2 dev2 ep1out h_addr00 h_port00 bytes 11
+>>>> [   94.866075] musb-hdrc musb-hdrc.1.auto: TX ep10 fifo d0832c48 count 11 buf ce43db00
+>>>> [   94.866089] musb-hdrc musb-hdrc.1.auto: Start TX10 pio
+>>> can you dump TXCSR, DEVCTL and IRQ registers when this happens ?
+>>>
+>> I added the IRQ registers to the debugfs interface..
+>>
+>> IntrTX      : 0000
+>> IntrRX      : 0000
+>> IntrTXE     : ffff
+>> IntrRXE     : fffe
+>> IntrUSB     : 08
+>> IntrUSBE    : f7
+>> TxCSRp      : 0000
+>> DevCtl      : 5d
+>>
+>> Oddly the VBUSERR bit is set, if I disconnect the USB cable then it
+>> goes to 0. I just tried plugging in via powered hub and that doesn't
+>> change the status.
+> that might be the issue you're having, then. for whatever reason VBUS
+> level fluctuates and that confuses MUSB.
+>
+> I'll see if there's anyway to work around that.
+>
 
-- omap-gpmc-smsc911x.dtsi => 54.9 Mbps
-- omap-gpmc-smsc9221.dtsi => 92.7 Mbps
+I've finally managed to find some time to check the old 3.2 kernel's 
+Interrupt registers and have found that the VBUSERR bit is still set, so 
+this might be a red herring.
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
----
- arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi | 58 +++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
+I've ordered a BeagleBone Black just to make sure this isn't just 
+related to the AM335x Silicon v1 problems you mentioned before.
 
-diff --git a/arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi b/arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
-new file mode 100644
-index 0000000..73e272f
---- /dev/null
-+++ b/arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
-@@ -0,0 +1,58 @@
-+/*
-+ * Common file for GPMC connected smsc9221 on omaps
-+ *
-+ * Compared to smsc911x, smsc9221 (and others like smsc9217
-+ * or smsc 9218) has faster timings, leading to higher
-+ * bandwidth.
-+ *
-+ * Note that the board specifc DTS file needs to specify
-+ * ranges, pinctrl, reg, interrupt parent and interrupts.
-+ */
-+
-+/ {
-+	vddvario: regulator-vddvario {
-+		  compatible = "regulator-fixed";
-+		  regulator-name = "vddvario";
-+		  regulator-always-on;
-+	};
-+
-+	vdd33a: regulator-vdd33a {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vdd33a";
-+		regulator-always-on;
-+	};
-+};
-+
-+&gpmc {
-+	ethernet@gpmc {
-+		compatible = "smsc,lan9221","smsc,lan9115";
-+		bank-width = <2>;
-+
-+		gpmc,mux-add-data;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <42>;
-+		gpmc,cs-wr-off-ns = <36>;
-+		gpmc,adv-on-ns = <6>;
-+		gpmc,adv-rd-off-ns = <12>;
-+		gpmc,adv-wr-off-ns = <12>;
-+		gpmc,oe-on-ns = <0>;
-+		gpmc,oe-off-ns = <42>;
-+		gpmc,we-on-ns = <0>;
-+		gpmc,we-off-ns = <36>;
-+		gpmc,rd-cycle-ns = <60>;
-+		gpmc,wr-cycle-ns = <54>;
-+		gpmc,access-ns = <36>;
-+		gpmc,page-burst-access-ns = <0>;
-+		gpmc,bus-turnaround-ns = <0>;
-+		gpmc,cycle2cycle-delay-ns = <0>;
-+		gpmc,wr-data-mux-bus-ns = <18>;
-+		gpmc,wr-access-ns = <42>;
-+		gpmc,cycle2cycle-samecsen;
-+		gpmc,cycle2cycle-diffcsen;
-+
-+		vddvario-supply = <&vddvario>;
-+		vdd33a-supply = <&vdd33a>;
-+		reg-io-width = <4>;
-+		smsc,save-mac-address;
-+	};
-+};
--- 
-1.8.5.3
+The search continues.
 
+Chris
