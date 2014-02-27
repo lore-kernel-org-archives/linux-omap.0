@@ -1,51 +1,67 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/3] mfd: twl6040: Select i2c fast mode as default with
- regmap patch
-Date: Thu, 27 Feb 2014 09:00:51 -0600
-Message-ID: <530F5323.1020305@ti.com>
-References: <1393509410-1640-1-git-send-email-peter.ujfalusi@ti.com> <1393509410-1640-2-git-send-email-peter.ujfalusi@ti.com> <530F4A84.9070906@ti.com> <530F4CA5.6030502@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH 0/3] mfd: twl6040: Updates for i2s speed and fix for chip
+ deadlock
+Date: Thu, 27 Feb 2014 16:11:21 +0100
+Message-ID: <530F5599.2060100@epfl.ch>
+References: <1393509410-1640-1-git-send-email-peter.ujfalusi@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <530F4CA5.6030502@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Lee Jones <lee.jones@linaro.org>
-Cc: florian.vaussard@epfl.ch, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp0.epfl.ch ([128.178.224.218]:33478 "EHLO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751850AbaB0PL2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Feb 2014 10:11:28 -0500
+In-Reply-To: <1393509410-1640-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 
-On 02/27/2014 08:33 AM, Peter Ujfalusi wrote:
-> On 02/27/2014 04:24 PM, Nishanth Menon wrote:
->>
->> we should ideally have been using highspeed for i2c bus.
->>
->> is'nt it better if i2c_check_functionality (and adding required flags
->> for func) be used to check the adapter speed and decide this in the
->> driver instead of hardcoding the bus speed within TWL6040 -
->> considering that 6040 can infact do max high speed as well?
+Hi Peter,
+
+On 02/27/2014 02:56 PM, Peter Ujfalusi wrote:
+> Hi,
 > 
-> Yeah, I was thinking of something similar. Just did not found the API to get
-> the speed the i2c bus has been configured to.
-> I'll check this.
+> While looking into a report by Florian Vaussard [1] I have noticed couple of most
+> likely unrelated issues:
+> - all boards using twl6040 configures the i2c bus to 400KHz while twl6040 is set
+>   to 100KHz as default.
+> - if I set the audpwron GPIO high [2] in the bootloader the i2c communication towards
+>   twl6040 will be broken
+> 
+> The solution or these are:
+> set the twl6040 to i2c fast mode with regmap patch
+> Clear the INTID register right after we request the audpwron GPIO and set it to
+> low.
+> 
+> Generated on top of:
+> git://git.linaro.org/people/lee.jones/mfd.git for-mfd-next
+> 
+> Tested on PandaBoard, PandaBoardES, OMAP4-blaze (SDP)
+> 
+> [1] http://www.spinics.net/lists/arm-kernel/msg310725.html
+> [2] Command in u-boot to enable the audpwron on PandaBoards: gpio set 127
+> 
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (3):
+>   mfd: twl6040: Select i2c fast mode as default with regmap patch
+>   mfd: twl6040: Move register patching earlier in probe
+>   mfd: twl6040: Clear the interrupt ID register before requesting IRQ
 
-The other option might be to blindly configure 6040 to max speed ->
-but then you do have an issue with that single register write
-operation to configure the speed?
+Patch 3 is making my system to boot normally.
 
-TWL6040 is by default at 100KHz, bus_speed is configured (via dts or
-otherwise) is 400KHz/3.4MHz, the register write for configuring 6040
-to max speed will occur at 400KHz/3.4MHz, which implies 6040 register
-write operation might not actually take place (as 6040 still expects
-to talk 100KHz till the mentioned register write takes place).
+Now, it is hard to devise if this is the root cause of the problem that
+I was experiencing, since adding a sleep at the exact same place was
+fixing my issue. Your twl6040_reg_read() could have the same effect,
+without solving directly the issue.
 
-Ideally, the behavior you need is as follows:
-talk at 100KHz for the first register write(of configuring speed),
-followed by 400KHz/3.4 MHz for the subsequent operations on the bus
-(assuming 400KHz/3.4 is the least common denominator speed on the bus).
+Anyway, I tested your series on DuoVero.
 
-I am not sure if the i2c framework has ability to do that.
+Tested-by: Florian Vaussard <florian.vaussard@epfl.ch>
 
-
--- 
 Regards,
-Nishanth Menon
+Florian
