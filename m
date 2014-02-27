@@ -1,25 +1,74 @@
-From: E-hooldus <mevludin.avdic@untz.ba>
-Subject: =?utf-8?Q?s=C3=BCsteemihaldur?=
-Date: Thu, 27 Feb 2014 12:00:18 +0100 (CET)
-Message-ID: <207993357.1968065.1393498818857.JavaMail.zimbra@untz.ba>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: TWL6040 fails to initialize
+Date: Thu, 27 Feb 2014 14:05:01 +0200
+Message-ID: <530F29ED.9020706@ti.com>
+References: <530C70B3.4010103@epfl.ch> <530CA8DA.8050806@ti.com>
+ <530CB9C6.60806@epfl.ch> <530D972F.805@ti.com> <530DB97E.80309@epfl.ch>
+ <530DC1D3.8040800@ti.com> <530DC291.2060708@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.untz.ba ([80.65.66.198]:35802 "EHLO mail.untz.ba"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751263AbaB0LQy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Feb 2014 06:16:54 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <530DC291.2060708@epfl.ch>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: florian.vaussard@epfl.ch
+Cc: =?UTF-8?B?UGhpbGlwcGUgUsOpdG9ybmF6?= <philippe.retornaz@epfl.ch>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hea kasutaja=20
-parooli aegub 3 p=C3=A4eva Vajuta siia, et kinnitada oma e-mail=20
-http://web-estonline.jimdo.com/
-t=C3=A4nan=20
-s=C3=BCsteemihaldur
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gMDIvMjYvMjAxNCAxMjozMSBQTSwgRmxvcmlhbiBWYXVzc2FyZCB3cm90ZToKPj4+IEkgc3Rh
+dGlzdGljYWxseSBjaGVja2VkIHRoYXQgdGhlIHNsZWVwIHNob3VsZCBiZSBwbGFjZWQgYWZ0ZXIg
+dGhlIEdQSU8KPj4+IHJlcXVlc3QsIHNvIGluZGVlZCB0aGlzIHNlZW1zIHRvIGJlIHRoZSBwcm9i
+bGVtLCBhbmQgeW91ciBleHBsYW5hdGlvbiBpcwo+Pj4gcGxhdXNpYmxlLiBDYW4geW91IHNlbmQg
+YSBwcm9wZXIgcGF0Y2g/Cj4+Pgo+Pj4gTm93LCByZWxhdGVkIHRvIHRoaXMsIEkgbWFuYWdlZCB0
+byBmb3VuZCBhIHBhcnQgb2YgdGhlIGRhdGFzaGVldCBvbiB0aGUKPj4+IEdyZWF0IEludGVybmV0
+LiBMb29raW5nIGF0IHRoZSAiUG93ZXItVXAgU2VxdWVuY2UiIHNlY3Rpb24sIGl0IGlzIHdyaXR0
+ZW46Cj4+Pgo+Pj4gLSBOUkVTUFdST04gZ29lcyBoaWdoIC0+IHBsdWcgZGV0ZWN0IGFuZCBHUE8g
+YXJlIGF2YWlsYWJsZQo+Pj4gLSBWMlYxIGdvZXMgaGlnaCAtPiBob29rLWRldGVjdCBhdmFpbGFi
+bGUgYnkgSTJDIHByb2dyYW1taW5nIChzbGVlcCBtb2RlKQo+Pj4gLSBBVURQV1JPTiBnb2VzIGhp
+Z2ggJiYgUkVBRFlJTlQgLT4gcmVhZHkgdG8gY29tbXVuaWNhdGUgdGhyb3VnaCBJMkMgYW5kIFBE
+TQo+Pj4KPj4+IFNvLCBhbHRob3VnaCB0aGVyZSBzZWVtcyB0byBiZSBzb21lIGNvbnRyYWRpY3Rp
+b25zIG9uIHdoZW4gaXQgaXMKPj4+IHBvc3NpYmxlIHRvIGFjY2VzcyB0aGUgSTJDLCBzaG91bGRu
+J3Qgd2UgZW5hYmxlIHRoZSBBVURQV1JPTiBHUElPCj4+PiBfYmVmb3JlXyBtYWtpbmcgYW55IEky
+QyBhY2Nlc3M/Cj4+Pgo+Pj4gRm9yIHRoZSB0d2w2MDQwX3Byb2JlLCB0aGUgZm9sbG93aW5nIHBh
+dGggd291bGQgc2VlbSBtb3JlIGNvcnJlY3QgdG8gbWU6Cj4+Pgo+Pj4gMSkgZW5hYmxlIHJlZ3Vs
+YXRvcnMKPj4+IDIpIHJlcXVlc3QgQVVEUFdST04KPj4+IDMpIHR3bDYwNDBfcG93ZXIoT04pICYm
+IHJlZ2NhY2hlX2NhY2hlX29ubHkoZmFsc2UpCj4+PiA0KSB3YWl0IGZvciBSRUFEWUlOVCAob3Ig
+c2xlZXAgaWYgZGV0ZXJtaW5pc3RpYykKPj4+IDUpIHBlcmZvcm0gYWxsIHJlcXVpcmVkIEkyQyBh
+Y2Nlc3NlcyAocmVhZCByZXZpc2lvbiwgZXRjLikKPj4+IDYpIHR3bDYwNDBfcG93ZXIoT0ZGKSAm
+JiByZWdjYWNoZV9jYWNoZV9vbmx5KHRydWUpCj4+Pgo+Pj4gV2hhdCBkbyB5b3UgdGhpbms/Cj4+
+Cj4+IEV2ZW4gd2hlbiB0aGUgQVVEUFdST04gc2lnbmFsIGlzIGxvdyB3ZSBjYW4gYWNjZXNzIHRv
+IHJlZ2lzdGVycyBpbiBWSU8gZG9tYWluLAo+PiBwbHVnIGRldGVjdCBhbmQgR1BPIGZ1bmN0aW9u
+cy4gU28gdGhlcmUncyBubyBuZWVkIHRvIHBvd2VyIG9uIHRoZSBjb2RlYyBqdXN0Cj4+IHRvIHBv
+d2VyIGl0IGRvd24gbGF0ZXIuCj4+Cj4gCj4gT2ssIGlmIGl0IGlzIHNhZmUgdG8gZG8gc28sIEkg
+YW0gZmluZSB3aXRoIHRoZSBjdXJyZW50IHByb2JlLiBJIGxldCB5b3UKPiBwb3N0IGEgcGF0Y2gg
+dG8gYWRkIGEgZGVsYXkgYWZ0ZXIgcmVxdWVzdGluZyB0aGUgR1BJTy4KCgpUaGVyZSdzIHNvbWV0
+aGluZyBlbHNlIGdvaW5nIG9uIG9uIHlvdXIgYm9hcmQuCkkgZGlkIHNvbWUgZXhwZXJpbWVudHMg
+b24gUGFuZGFCb2FyZHM6IGluIHUtYm9vdCBJIHNldCB0aGUgR1BJTzEyNyAoYXVkcHdyb24pCmhp
+Z2ggYW5kIGJvb3QgdGhlIGtlcm5lbC4KRHVyaW5nIHRoZSBib290IEkgc2VlIGFsbCBzb3J0cyBv
+ZiBlcnJvcnMsIG1jcGRtIGZhaWxzIHRvIHJlc2V0LCBpMmMgdGltZW91dHMKdG93YXJkcyB0d2w2
+MDQwLgpGb3IgdGhpcyB0aGUgc29sdXRpb24gaXMgdG8gcmVhZCB0aGUgSU5USUQgcmVnaXN0ZXIg
+anVzdCBhZnRlciBJIHJlcXVlc3QgdGhlCmdwaW8gLSB0byBjbGVhciBhbnkgbm8gbG9uZ2VyIHZh
+bGlkIGludGVycnVwdHMgYmVmb3JlIHdlIHJlcXVlc3QgdGhlIElSUS4gVGhpcwp3b3JrcyBmaW5l
+IG9uIG15IGJvYXJkcy4KClRoZSBpc3N1ZSB5b3UgaGF2ZSB3aXRoIHlvdXIgYm9hcmQgaXMgc29t
+ZXRoaW5nIHRvdGFsbHkgZGlmZmVyZW50LgpPbmUgdGhpbmcgbWlnaHQgYmUgdGhhdCB0aGUgaTJj
+IGJ1cyBpcyBzZXQgdG8gNDAwS0h6IHdoaWxlIHRoZSB0d2w2MDQwIGJ5CmRlZmF1bHQgaXMgc2V0
+IGZvciBub3JtYWwgbW9kZSAoMTAwS0h6KS4gT24gYWxsIG9mIHRoZSBib2FyZHMgSSBoYXZlIGFj
+Y2Vzcwp0aGlzIHdvcmtzIGZpbmUgYnV0IHRoZXJlIG1pZ2h0IGJlIHNvbWUgZWxlY3RyaWNhbCBp
+c3N1ZSBvbiB5b3VyIGJvYXJkIHdoaWNoCmNhdXNlcyBpMmMgdG8gZmFpbC4KClRoZXJlJ3MgYWxz
+byBhbm90aGVyIHRoaW5nIEkganVzdCBub3RpY2VkOiB0aGUgcmVnbWFwIHBhdGNoCnJlZ21hcF9y
+ZWdpc3Rlcl9wYXRjaCgpIHdoZW4gaXQgaXMgYXBwbGllZCB3aWxsIG5vdCB1cGRhdGUgdGhlIHJl
+Z2NhY2hlIGJ5CmRlc2lnbi4gSSBkbyBub3QgbGlrZSB0aGF0IHRvbyBtdWNoLiBPbiB0aGUgb3Ro
+ZXIgaGFuZCBpdCBpcyBoYW5keSB0byBzZXQgdGhlCkFDQ0NUTCByZWdpc3RlciBhcyBlYXJseSBh
+cyBwb3NzaWJsZS4KClNvLCBJJ20gbm90IHN1cmUgYWJvdXQgdGhlIGRlbGF5IGFuZCB3aHkgaXQg
+aGVscHMgb24geW91ciBib2FyZC4KCi0tIApQw6l0ZXIKCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0Cmxp
+bnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFk
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
