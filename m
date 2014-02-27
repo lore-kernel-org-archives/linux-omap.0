@@ -1,48 +1,51 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 0/3] mfd: twl6040: Updates for i2s speed and fix for chip deadlock
-Date: Thu, 27 Feb 2014 15:56:47 +0200
-Message-ID: <1393509410-1640-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 2/3] mfd: twl6040: Move register patching earlier in probe
+Date: Thu, 27 Feb 2014 15:56:49 +0200
+Message-ID: <1393509410-1640-3-git-send-email-peter.ujfalusi@ti.com>
+References: <1393509410-1640-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1393509410-1640-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Lee Jones <lee.jones@linaro.org>
 Cc: florian.vaussard@epfl.ch, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Make sure that we patch the ACCCTL register as the first thing when the
+driver loads, thus configuring I2C fast mode and i2c access for dual access
+registers.
 
-While looking into a report by Florian Vaussard [1] I have noticed couple of most
-likely unrelated issues:
-- all boards using twl6040 configures the i2c bus to 400KHz while twl6040 is set
-  to 100KHz as default.
-- if I set the audpwron GPIO high [2] in the bootloader the i2c communication towards
-  twl6040 will be broken
-
-The solution or these are:
-set the twl6040 to i2c fast mode with regmap patch
-Clear the INTID register right after we request the audpwron GPIO and set it to
-low.
-
-Generated on top of:
-git://git.linaro.org/people/lee.jones/mfd.git for-mfd-next
-
-Tested on PandaBoard, PandaBoardES, OMAP4-blaze (SDP)
-
-[1] http://www.spinics.net/lists/arm-kernel/msg310725.html
-[2] Command in u-boot to enable the audpwron on PandaBoards: gpio set 127
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (3):
-  mfd: twl6040: Select i2c fast mode as default with regmap patch
-  mfd: twl6040: Move register patching earlier in probe
-  mfd: twl6040: Clear the interrupt ID register before requesting IRQ
+ drivers/mfd/twl6040.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
- drivers/mfd/twl6040.c       | 20 ++++++++++++++------
- include/linux/mfd/twl6040.h |  1 +
- 2 files changed, 15 insertions(+), 6 deletions(-)
-
+diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+index 2c308750f40f..693d547db1de 100644
+--- a/drivers/mfd/twl6040.c
++++ b/drivers/mfd/twl6040.c
+@@ -665,6 +665,10 @@ static int twl6040_probe(struct i2c_client *client,
+ 	mutex_init(&twl6040->mutex);
+ 	init_completion(&twl6040->ready);
+ 
++	regmap_register_patch(twl6040->regmap, twl6040_patch,
++			      ARRAY_SIZE(twl6040_patch));
++
++
+ 	twl6040->rev = twl6040_reg_read(twl6040, TWL6040_REG_ASICREV);
+ 	if (twl6040->rev < 0) {
+ 		dev_err(&client->dev, "Failed to read revision register: %d\n",
+@@ -712,10 +716,6 @@ static int twl6040_probe(struct i2c_client *client,
+ 		goto readyirq_err;
+ 	}
+ 
+-	/* dual-access registers controlled by I2C only */
+-	regmap_register_patch(twl6040->regmap, twl6040_patch,
+-			      ARRAY_SIZE(twl6040_patch));
+-
+ 	/*
+ 	 * The main functionality of twl6040 to provide audio on OMAP4+ systems.
+ 	 * We can add the ASoC codec child whenever this driver has been loaded.
 -- 
 1.9.0
