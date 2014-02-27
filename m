@@ -1,108 +1,71 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v9 7/9] ARM: OMAP2+: Remove legacy_init_ehci_clk()
-Date: Thu, 27 Feb 2014 16:18:29 +0200
-Message-ID: <1393510711-4697-8-git-send-email-rogerq@ti.com>
-References: <1393510711-4697-1-git-send-email-rogerq@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/3] mfd: twl6040: Select i2c fast mode as default with
+ regmap patch
+Date: Thu, 27 Feb 2014 08:24:04 -0600
+Message-ID: <530F4A84.9070906@ti.com>
+References: <1393509410-1640-1-git-send-email-peter.ujfalusi@ti.com> <1393509410-1640-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1393510711-4697-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <1393509410-1640-2-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: lee.jones@linaro.org, tony@atomide.com, bcousson@baylibre.com
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Lee Jones <lee.jones@linaro.org>
+Cc: florian.vaussard@epfl.ch, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-The necessary clock phandle for the EHCI clock is now provided
-via device tree so we no longer need this legacy method.
+On 02/27/2014 07:56 AM, Peter Ujfalusi wrote:
+> All boards using twl6040 configures the i2c bus to 400KHz. While twl6040's
+> defaults to normal mode (100KHz). So far twl6040 has no problem with i2c
+> communication in this configuration it is safer to select fast i2c mode.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  drivers/mfd/twl6040.c       | 9 +++++++--
+>  include/linux/mfd/twl6040.h | 1 +
+>  2 files changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+> index 6e88f25832fb..2c308750f40f 100644
+> --- a/drivers/mfd/twl6040.c
+> +++ b/drivers/mfd/twl6040.c
+> @@ -87,8 +87,13 @@ static struct reg_default twl6040_defaults[] = {
+>  };
+>  
+>  static struct reg_default twl6040_patch[] = {
+> -	/* Select I2C bus access to dual access registers */
+> -	{ TWL6040_REG_ACCCTL, 0x09 },
+> +	/*
+> +	 * Select I2C bus access to dual access registers
+> +	 * Interrupt register is cleared on read
+> +	 * Select fast mode for i2c (400KHz)
+> +	 */
+> +	{ TWL6040_REG_ACCCTL,
+> +		TWL6040_I2CSEL | TWL6040_INTCLRMODE | TWL6040_I2CMODE(1) },
+>  };
+>  
+>  
+> diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
+> index 81f639bc1ae6..a69d16b30c18 100644
+> --- a/include/linux/mfd/twl6040.h
+> +++ b/include/linux/mfd/twl6040.h
+> @@ -157,6 +157,7 @@
+>  #define TWL6040_I2CSEL			0x01
+>  #define TWL6040_RESETSPLIT		0x04
+>  #define TWL6040_INTCLRMODE		0x08
+> +#define TWL6040_I2CMODE(x)		((x & 0x3) << 4)
+>  
+>  /* STATUS (0x2E) fields */
+>  
+> 
 
-Update the omap4-panda and omap5-uevm board DTS to provide the
-necessary EHCI PHY clock information.
+we should ideally have been using highspeed for i2c bus.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/omap4-panda-common.dtsi |  8 ++------
- arch/arm/boot/dts/omap5-uevm.dts          |  8 ++------
- arch/arm/mach-omap2/pdata-quirks.c        | 16 ----------------
- 3 files changed, 4 insertions(+), 28 deletions(-)
+is'nt it better if i2c_check_functionality (and adding required flags
+for func) be used to check the adapter speed and decide this in the
+driver instead of hardcoding the bus speed within TWL6040 -
+considering that 6040 can infact do max high speed as well?
 
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index 88c6a05..50b72966 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -83,12 +83,8 @@
- 		compatible = "usb-nop-xceiv";
- 		reset-gpios = <&gpio2 30 GPIO_ACTIVE_LOW>;   /* gpio_62 */
- 		vcc-supply = <&hsusb1_power>;
--	/**
--	 * FIXME:
--	 * put the right clock phandle here when available
--	 *	clocks = <&auxclk3>;
--	 *	clock-names = "main_clk";
--	 */
-+		clocks = <&auxclk3_ck>;
-+		clock-names = "main_clk";
- 		clock-frequency = <19200000>;
- 	};
- 
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 002fa70..3b99ec2 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -31,12 +31,8 @@
- 	hsusb2_phy: hsusb2_phy {
- 		compatible = "usb-nop-xceiv";
- 		reset-gpios = <&gpio3 16 GPIO_ACTIVE_LOW>; /* gpio3_80 HUB_NRESET */
--	/**
--	  * FIXME
--	  * Put the right clock phandle here when available
--	  *	clocks = <&auxclk1>;
--	  *	clock-names = "main_clk";
--	  */
-+		clocks = <&auxclk1_ck>;
-+		clock-names = "main_clk";
- 		clock-frequency = <19200000>;
- 	};
- 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 3d5b24d..f1ecd86 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -31,20 +31,6 @@ struct pdata_init {
- struct of_dev_auxdata omap_auxdata_lookup[];
- static struct twl4030_gpio_platform_data twl_gpio_auxdata;
- 
--/*
-- * Create alias for USB host PHY clock.
-- * Remove this when clock phandle can be provided via DT
-- */
--static void __init __used legacy_init_ehci_clk(char *clkname)
--{
--	int ret;
--
--	ret = clk_add_alias("main_clk", NULL, clkname, NULL);
--	if (ret)
--		pr_err("%s:Failed to add main_clk alias to %s :%d\n",
--		       __func__, clkname, ret);
--}
--
- #if IS_ENABLED(CONFIG_WL12XX)
- 
- static struct wl12xx_platform_data wl12xx __initdata;
-@@ -182,7 +168,6 @@ static void __init omap4_sdp_legacy_init(void)
- static void __init omap4_panda_legacy_init(void)
- {
- 	omap4_panda_display_init_of();
--	legacy_init_ehci_clk("auxclk3_ck");
- 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
- }
- #endif
-@@ -190,7 +175,6 @@ static void __init omap4_panda_legacy_init(void)
- #ifdef CONFIG_SOC_OMAP5
- static void __init omap5_uevm_legacy_init(void)
- {
--	legacy_init_ehci_clk("auxclk1_ck");
- }
- #endif
- 
 -- 
-1.8.3.2
+Regards,
+Nishanth Menon
