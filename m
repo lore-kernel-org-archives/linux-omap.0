@@ -1,63 +1,71 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 3/4] power_supply: Introduce PSE compliant algorithm
-Date: Thu, 27 Feb 2014 21:46:37 +0100
-Message-ID: <20140227204636.GA5053@amd.pavel.ucw.cz>
-References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
- <1391490780-6141-4-git-send-email-jenny.tc@intel.com>
- <20140204113640.GD2450@amd.pavel.ucw.cz>
- <20140220051655.GB2498@jenny-desktop>
- <20140221144529.GB5238@amd.pavel.ucw.cz>
- <20140226025444.GA21449@jenny-desktop>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH v2 3/8] ARM: dts: omap3-overo: Use complete poweroff
+Date: Thu, 27 Feb 2014 21:48:23 +0100
+Message-ID: <530FA497.7000407@epfl.ch>
+References: <1393533032-1619-1-git-send-email-florian.vaussard@epfl.ch> <1393533032-1619-4-git-send-email-florian.vaussard@epfl.ch> <530FA23E.1040909@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140226025444.GA21449@jenny-desktop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jenny Tc <jenny.tc@intel.com>
-Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp0.epfl.ch ([128.178.224.218]:45175 "EHLO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750904AbaB0Usc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Feb 2014 15:48:32 -0500
+In-Reply-To: <530FA23E.1040909@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed 2014-02-26 08:24:44, Jenny Tc wrote:
-> On Fri, Feb 21, 2014 at 03:45:29PM +0100, Pavel Machek wrote:
-> > On Thu 2014-02-20 10:46:55, Jenny Tc wrote:
-> > > On Tue, Feb 04, 2014 at 12:36:40PM +0100, Pavel Machek wrote:
-> > > > > --- a/drivers/power/Kconfig
-> > > > > +++ b/drivers/power/Kconfig
-> > > > > @@ -22,6 +22,19 @@ config POWER_SUPPLY_CHARGER
-> > > > >  	  drivers to keep the charging logic outside and the charger driver
-> > > > >  	  just need to abstract the charger hardware.
-> > > > >  
-> > > > > +config POWER_SUPPLY_CHARGING_ALGO_PSE
-> > > > > +	bool "PSE compliant charging algorithm"
-> > > > > +	help
-> > > > > +	  Say Y here to select Product Safety Engineering (PSE) compliant
-> > > > > +	  charging algorithm. As per PSE standard the battery characteristics
-> > > > > +	  and thereby the charging rates can vary on different temperature
-> > > > > +	  zones. This config will enable PSE compliant charging algorithm with
-> > > > > +	  maintenance charging support. At runtime the algorithm will be
-> > > > > +	  selected by the psy charger driver based on the type of the battery
-> > > > > +	  charging profile.
-> > > > 
-> > > > Information where to expect PSE compliant chargers would be nice.
-> > > 
-> > > This algorithm can be used with non PSE compliant chargers also. This is a SW
-> > > based charging algorithm.
-> > 
-> > Ok, but you need to explain for the users when it might be good idea
-> > to select this option...
-> > 
-> > Or maybe this should not be user configurable and drivers should just
-> > select it?
+
+
+On 02/27/2014 09:38 PM, Nishanth Menon wrote:
+> On 02/27/2014 02:30 PM, Florian Vaussard wrote:
+>> Currently, the TWL4030 PMIC does not completely poweroff the processor.
+>> Commit b0fc1da4d0359d3cce8f12e0f014aed0704ae202 introduced the necessary
+>> binding to do this, so use it.
+>>
+>> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+>> ---
+>>  arch/arm/boot/dts/omap3-overo.dtsi | 5 +++++
+>>  1 file changed, 5 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
+>> index aea64c0..018e1e0 100644
+>> --- a/arch/arm/boot/dts/omap3-overo.dtsi
+>> +++ b/arch/arm/boot/dts/omap3-overo.dtsi
+>> @@ -73,6 +73,11 @@
+>>  			codec {
+>>  			};
+>>  		};
+>> +
+>> +		twl_power: power {
+>> +			compatible = "ti,twl4030-power";
+>> +			ti,use_poweroff;
+>> +		};
+>>  	};
+>>  };
+>>  
+>>
+> Urrgh.. this slipped past.. :(
 > 
-> The idea is to allow pluggable charging algorithms. Currently we have only one
-> charging algorithm proposed, but can have other charging algorithms (like pulse
-> charging, rule based charging etc.). Based on the platform need, the algorithms
-> can be selected. So this should be a user configurable option. I can add more
-> explanation on when to select this option.
+> ti,system-power-controller is traditionally used for other PMICs from
+> TI to indicate that poweroff functionality will be provided by the
+> PMIC driver. similar approach is taken by Maxim as well.. I know the
+> commit introducing the binding has been around for long, but
+> considering that we do not have a single dts using this yet, should we
+> consider adding "ti,system-power-controller"(as against removing
+> ti,use_poweroff - so that older down stream dtbs still work) and using
+> it in the new code?
+> 
 
-Yes please. Because with current description, user has no chance.
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+It does make sense, so I am not against it. My only concern is that I
+find the name to be slightly less easy to understand, but I can live
+with it :-)
+
+I do not remember if DT maintainers came up with a clear policy to
+deprecate a binding.
+
+Regards,
+Florian
