@@ -1,12 +1,11 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v9 4/9] mfd: omap-usb-host: Use clock names as per function
- for reference clocks
-Date: Thu, 27 Feb 2014 16:18:26 +0200
-Message-ID: <1393510711-4697-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH v9 5/9] mfd: omap-usb-host: Update DT clock binding information
+Date: Thu, 27 Feb 2014 16:18:27 +0200
+Message-ID: <1393510711-4697-6-git-send-email-rogerq@ti.com>
 References: <1393510711-4697-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1393510711-4697-1-git-send-email-rogerq@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
@@ -22,57 +21,49 @@ To: lee.jones@linaro.org, tony@atomide.com, bcousson@baylibre.com
 Cc: devicetree@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-VXNlIGEgbWVhbmluZ2Z1bCBuYW1lIGZvciB0aGUgcmVmZXJlbmNlIGNsb2NrcyBzbyB0aGF0IGl0
-IGluZGljYXRlcyB0aGUgZnVuY3Rpb24uCgpVcGRhdGUgdGhlIE9NQVA0KyBVU0IgSG9zdCBub2Rl
-IGFzIHdlbGwgdG8gYmUgaW4gc3luYyB3aXRoIHRoZSBjaGFuZ2VzLgoKQ0M6IEJlbm/DrnQgQ291
-c3NvbiA8YmNvdXNzb25AYmF5bGlicmUuY29tPgpDQzogTGVlIEpvbmVzIDxsZWUuam9uZXNAbGlu
-YXJvLm9yZz4KQ0M6IFNhbXVlbCBPcnRpeiA8c2FtZW9AbGludXguaW50ZWwuY29tPgpTaWduZWQt
-b2ZmLWJ5OiBSb2dlciBRdWFkcm9zIDxyb2dlcnFAdGkuY29tPgotLS0KIGFyY2gvYXJtL2Jvb3Qv
-ZHRzL29tYXA0LmR0c2kgfCAgNiArKysrKysKIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kg
-fCAgNiArKysrKysKIGRyaXZlcnMvbWZkL29tYXAtdXNiLWhvc3QuYyAgfCAxMiArKysrKystLS0t
-LS0KIDMgZmlsZXMgY2hhbmdlZCwgMTggaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkKCmRp
-ZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNC5kdHNpIGIvYXJjaC9hcm0vYm9vdC9k
-dHMvb21hcDQuZHRzaQppbmRleCBkM2Y4YTZlLi4zOWEwNWNlIDEwMDY0NAotLS0gYS9hcmNoL2Fy
-bS9ib290L2R0cy9vbWFwNC5kdHNpCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LmR0c2kK
-QEAgLTY5Nyw2ICs2OTcsMTIgQEAKIAkJCSNhZGRyZXNzLWNlbGxzID0gPDE+OwogCQkJI3NpemUt
-Y2VsbHMgPSA8MT47CiAJCQlyYW5nZXM7CisJCQljbG9ja3MgPSA8JmluaXRfNjBtX2ZjbGs+LAor
-CQkJCSA8JnhjbGs2MG1oc3AxX2NrPiwKKwkJCQkgPCZ4Y2xrNjBtaHNwMl9jaz47CisJCQljbG9j
-ay1uYW1lcyA9ICJyZWZjbGtfNjBtX2ludCIsCisJCQkJICAgICAgInJlZmNsa182MG1fZXh0X3Ax
-IiwKKwkJCQkgICAgICAicmVmY2xrXzYwbV9leHRfcDIiOwogCiAJCQl1c2Joc29oY2k6IG9oY2lA
-NGEwNjQ4MDAgewogCQkJCWNvbXBhdGlibGUgPSAidGksb2hjaS1vbWFwMyIsICJ1c2Itb2hjaSI7
-CmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpIGIvYXJjaC9hcm0vYm9v
-dC9kdHMvb21hcDUuZHRzaQppbmRleCBhNzI4MTNhLi5kNGRhZTQ4IDEwMDY0NAotLS0gYS9hcmNo
-L2FybS9ib290L2R0cy9vbWFwNS5kdHNpCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0
-c2kKQEAgLTc3NSw2ICs3NzUsMTIgQEAKIAkJCSNhZGRyZXNzLWNlbGxzID0gPDE+OwogCQkJI3Np
-emUtY2VsbHMgPSA8MT47CiAJCQlyYW5nZXM7CisJCQljbG9ja3MgPSA8JmwzaW5pdF82MG1fZmNs
-az4sCisJCQkJIDwmeGNsazYwbWhzcDFfY2s+LAorCQkJCSA8JnhjbGs2MG1oc3AyX2NrPjsKKwkJ
-CWNsb2NrLW5hbWVzID0gInJlZmNsa182MG1faW50IiwKKwkJCQkgICAgICAicmVmY2xrXzYwbV9l
-eHRfcDEiLAorCQkJCSAgICAgICJyZWZjbGtfNjBtX2V4dF9wMiI7CiAKIAkJCXVzYmhzb2hjaTog
-b2hjaUA0YTA2NDgwMCB7CiAJCQkJY29tcGF0aWJsZSA9ICJ0aSxvaGNpLW9tYXAzIiwgInVzYi1v
-aGNpIjsKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWZkL29tYXAtdXNiLWhvc3QuYyBiL2RyaXZlcnMv
-bWZkL29tYXAtdXNiLWhvc3QuYwppbmRleCA4NjVjMjc2Li42NTFlMjQ5IDEwMDY0NAotLS0gYS9k
-cml2ZXJzL21mZC9vbWFwLXVzYi1ob3N0LmMKKysrIGIvZHJpdmVycy9tZmQvb21hcC11c2ItaG9z
-dC5jCkBAIC03MTgsMjQgKzcxOCwyNCBAQCBzdGF0aWMgaW50IHVzYmhzX29tYXBfcHJvYmUoc3Ry
-dWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAkJZ290byBlcnJfbWVtOwogCX0KIAotCW9tYXAt
-PnhjbGs2MG1oc3AxX2NrID0gZGV2bV9jbGtfZ2V0KGRldiwgInhjbGs2MG1oc3AxX2NrIik7CisJ
-b21hcC0+eGNsazYwbWhzcDFfY2sgPSBkZXZtX2Nsa19nZXQoZGV2LCAicmVmY2xrXzYwbV9leHRf
-cDEiKTsKIAlpZiAoSVNfRVJSKG9tYXAtPnhjbGs2MG1oc3AxX2NrKSkgewogCQlyZXQgPSBQVFJf
-RVJSKG9tYXAtPnhjbGs2MG1oc3AxX2NrKTsKLQkJZGV2X2VycihkZXYsICJ4Y2xrNjBtaHNwMV9j
-ayBmYWlsZWQgZXJyb3I6JWRcbiIsIHJldCk7CisJCWRldl9lcnIoZGV2LCAicmVmY2xrXzYwbV9l
-eHRfcDEgZmFpbGVkIGVycm9yOiVkXG4iLCByZXQpOwogCQlnb3RvIGVycl9tZW07CiAJfQogCi0J
-b21hcC0+eGNsazYwbWhzcDJfY2sgPSBkZXZtX2Nsa19nZXQoZGV2LCAieGNsazYwbWhzcDJfY2si
-KTsKKwlvbWFwLT54Y2xrNjBtaHNwMl9jayA9IGRldm1fY2xrX2dldChkZXYsICJyZWZjbGtfNjBt
-X2V4dF9wMiIpOwogCWlmIChJU19FUlIob21hcC0+eGNsazYwbWhzcDJfY2spKSB7CiAJCXJldCA9
-IFBUUl9FUlIob21hcC0+eGNsazYwbWhzcDJfY2spOwotCQlkZXZfZXJyKGRldiwgInhjbGs2MG1o
-c3AyX2NrIGZhaWxlZCBlcnJvcjolZFxuIiwgcmV0KTsKKwkJZGV2X2VycihkZXYsICJyZWZjbGtf
-NjBtX2V4dF9wMiBmYWlsZWQgZXJyb3I6JWRcbiIsIHJldCk7CiAJCWdvdG8gZXJyX21lbTsKIAl9
-CiAKLQlvbWFwLT5pbml0XzYwbV9mY2xrID0gZGV2bV9jbGtfZ2V0KGRldiwgImluaXRfNjBtX2Zj
-bGsiKTsKKwlvbWFwLT5pbml0XzYwbV9mY2xrID0gZGV2bV9jbGtfZ2V0KGRldiwgInJlZmNsa182
-MG1faW50Iik7CiAJaWYgKElTX0VSUihvbWFwLT5pbml0XzYwbV9mY2xrKSkgewogCQlyZXQgPSBQ
-VFJfRVJSKG9tYXAtPmluaXRfNjBtX2ZjbGspOwotCQlkZXZfZXJyKGRldiwgImluaXRfNjBtX2Zj
-bGsgZmFpbGVkIGVycm9yOiVkXG4iLCByZXQpOworCQlkZXZfZXJyKGRldiwgInJlZmNsa182MG1f
-aW50IGZhaWxlZCBlcnJvcjolZFxuIiwgcmV0KTsKIAkJZ290byBlcnJfbWVtOwogCX0KIAotLSAK
-MS44LjMuMgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-CmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
-cmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LWFybS1rZXJuZWwK
+The omap-usb-host driver expects certained named clocks.
+Add this information to the DT binding document.
+
+CC: Lee Jones <lee.jones@linaro.org>
+CC: Samuel Ortiz <sameo@linux.intel.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ .../devicetree/bindings/mfd/omap-usb-host.txt      | 23 ++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+index b381fa6..4721b2d 100644
+--- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
++++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+@@ -32,6 +32,29 @@ Optional properties:
+ - single-ulpi-bypass: Must be present if the controller contains a single
+   ULPI bypass control bit. e.g. OMAP3 silicon <= ES2.1
+ 
++- clocks: a list of phandles and clock-specifier pairs, one for each entry in
++  clock-names.
++
++- clock-names: should include:
++  For OMAP3
++  * "usbhost_120m_fck" - 120MHz Functional clock.
++
++  For OMAP4+
++  * "refclk_60m_int" - 60MHz internal reference clock for UTMI clock mux
++  * "refclk_60m_ext_p1" - 60MHz external ref. clock for Port 1's UTMI clock mux.
++  * "refclk_60m_ext_p2" - 60MHz external ref. clock for Port 2's UTMI clock mux
++  * "utmi_p1_gfclk" - Port 1 UTMI clock mux.
++  * "utmi_p2_gfclk" - Port 2 UTMI clock mux.
++  * "usb_host_hs_utmi_p1_clk" - Port 1 UTMI clock gate.
++  * "usb_host_hs_utmi_p2_clk" - Port 2 UTMI clock gate.
++  * "usb_host_hs_utmi_p3_clk" - Port 3 UTMI clock gate.
++  * "usb_host_hs_hsic480m_p1_clk" - Port 1 480MHz HSIC clock gate.
++  * "usb_host_hs_hsic480m_p2_clk" - Port 2 480MHz HSIC clock gate.
++  * "usb_host_hs_hsic480m_p3_clk" - Port 3 480MHz HSIC clock gate.
++  * "usb_host_hs_hsic60m_p1_clk" - Port 1 60MHz HSIC clock gate.
++  * "usb_host_hs_hsic60m_p2_clk" - Port 2 60MHz HSIC clock gate.
++  * "usb_host_hs_hsic60m_p3_clk" - Port 3 60MHz HSIC clock gate.
++
+ Required properties if child node exists:
+ 
+ - #address-cells: Must be 1
+-- 
+1.8.3.2
