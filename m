@@ -1,87 +1,60 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 3/4] power_supply: Introduce PSE compliant algorithm
-Date: Thu, 27 Feb 2014 21:18:57 +0100
-Message-ID: <CACRpkdbppewuSSJu=Y=1T7oOCxz_ynhNspyPT=S894KoUB6H6g@mail.gmail.com>
-References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
-	<1391490780-6141-4-git-send-email-jenny.tc@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: [PATCH v2 0/8] ARM: dts: Better support for Gumstix Overo
+Date: Thu, 27 Feb 2014 21:30:24 +0100
+Message-ID: <1393533032-1619-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f43.google.com ([209.85.219.43]:44630 "EHLO
-	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbaB0US6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Feb 2014 15:18:58 -0500
-Received: by mail-oa0-f43.google.com with SMTP id g12so3044586oah.30
-        for <linux-omap@vger.kernel.org>; Thu, 27 Feb 2014 12:18:57 -0800 (PST)
-In-Reply-To: <1391490780-6141-4-git-send-email-jenny.tc@intel.com>
+Received: from smtp0.epfl.ch ([128.178.224.218]:39885 "EHLO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750942AbaB0Uar (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Feb 2014 15:30:47 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jenny TC <jenny.tc@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, =?ISO-8859-1?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, =?windows-1251?B?yOLg6evuIMTo7Ojy8O7i?= <freemangordon@abv.bg>, Linux-
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-On Tue, Feb 4, 2014 at 6:12 AM, Jenny TC <jenny.tc@intel.com> wrote:
+Hello Tony, Benoit,
 
-> +static inline bool __is_battery_full
-> +       (long volt, long cur, long iterm, unsigned long cv)
+This is the second version of my Overo series.
+Compared to the first version [1], I decided to split it into three parts:
 
-Overall I wonder if you've run checkpatch on these patches, but why
-are you naming this one function with a double __underscore?
-Just is_battery_full_check() or something would work fine I guess?
+1) Extend current support for Overo/Tobi boards (this part)
+2) Add new expansion boards
+3) Add display support based on Tomi's DSS series
 
-(...)
-> +/* Parameters defining the charging range */
-> +struct psy_ps_temp_chg_table {
-> +       /* upper temperature limit for each zone */
-> +       short int temp_up_lim; /* Degree Celsius */
-> +
-> +       /* charge current and voltage */
-> +       short int full_chrg_vol; /* mV */
-> +       short int full_chrg_cur; /* mA */
-> +
-> +       /*
-> +       *  Maintenance charging thresholds.
-> +       *  Maintenance charging voltage lower limit - Once battery hits full,
-> +       *  charging will be resumed when battery voltage <= this voltage
-> +       */
-> +       short int maint_chrg_vol_ll; /* mV */
-> +
-> +       /* Charge current and voltage in maintenance charging mode */
-> +       short int maint_chrg_vol_ul; /* mV */
-> +       short int maint_chrg_cur;   /* mA */
-> +} __packed;
+I will send 2) and 3) in a couple of days.
 
-Why are you packing these structs? If no real reason, remove it.
-The compiler will pack what it thinks is appropriate anyway.
+Most patches are pretty obvious. Patch 6 adds some specific timings for
+LAN9221 into a generic file. By using shorter timing, it is possible to
+double the Ethernet bandwidth. Thus is may interest people using a similar
+chip.
 
-Convert all comments to kerneldoc.
+I tested this series with both the OMAP35xx Overo and the OMAP36xx Overo.
+Wifi is functional, HSUSB works.
 
-> +#define BATTID_STR_LEN         8
-> +#define BATT_TEMP_NR_RNG       6
-> +
-> +struct psy_pse_chrg_prof {
-> +       /* battery id */
-> +       char batt_id[BATTID_STR_LEN];
-> +       u16 battery_type; /* Defined as POWER_SUPPLY_TECHNOLOGY_* */
+Regards,
 
-Use a named enum by patching that in <linux/power_supply.h>?
+Florian
 
-> +       u16 capacity;   /* mAh */
-> +       u16 voltage_max; /* mV */
-> +       /* charge termination current */
-> +       u16 chrg_term_mA;
-> +       /* Low battery level voltage */
-> +       u16 low_batt_mV;
-> +       /* upper and lower temperature limits on discharging */
-> +       s8 disch_temp_ul; /* Degree Celsius */
-> +       s8 disch_temp_ll; /* Degree Celsius */
-> +       /* number of temperature monitoring ranges */
-> +       u16 temp_mon_ranges;
-> +       struct psy_ps_temp_chg_table temp_mon_range[BATT_TEMP_NR_RNG];
-> +       /* lowest temperature supported */
-> +       s8 temp_low_lim;
-> +} __packed;
+[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/109589
 
-Why packed, and convert to kerneldoc for this struct.
+Florian Vaussard (8):
+  ARM: dts: omap3-tobi: Add missing pinctrl
+  ARM: dts: omap3-overo: Add missing pinctrl
+  ARM: dts: omap3-overo: Use complete poweroff
+  ARM: dts: omap3-overo: Enable WiFi/BT combo
+  ARM: dts: omap3-overo: Add HSUSB PHY
+  ARM: dts: omap: Add common file for SMSC9221
+  ARM: dts: omap3-tobi: Use include file omap-gpmc-smsc9221
+  ARM: dts: omap3-tobi: Add AT24C01 EEPROM
 
-Yours,
-Linus Walleij
+ arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi      |  58 ++++++++++
+ arch/arm/boot/dts/omap3-overo-storm-tobi.dts   |  24 +++++
+ arch/arm/boot/dts/omap3-overo-tobi-common.dtsi |  48 ++++-----
+ arch/arm/boot/dts/omap3-overo-tobi.dts         |  24 +++++
+ arch/arm/boot/dts/omap3-overo.dtsi             | 143 +++++++++++++++++++++++--
+ 5 files changed, 263 insertions(+), 34 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
+
+-- 
+1.8.5.3
+
