@@ -1,88 +1,112 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH RFC 2/5] ASoC: tlv320aic31xx: Add codec driver to Makefile
- and Kconfig
-Date: Thu, 27 Feb 2014 16:11:24 +0200
-Message-ID: <530F478C.20408@ti.com>
-References: <cover.1393405575.git.jsarha@ti.com> <e5ddd051ac319649d50da0da804750c1c6619edb.1393405575.git.jsarha@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v9 0/9] USB Host support for OMAP5 uEVM
+Date: Thu, 27 Feb 2014 16:18:22 +0200
+Message-ID: <1393510711-4697-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49321 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751424AbaB0OLd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Feb 2014 09:11:33 -0500
-In-Reply-To: <e5ddd051ac319649d50da0da804750c1c6619edb.1393405575.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: lee.jones@linaro.org, tony@atomide.com, bcousson@baylibre.com
+Cc: devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, devicetree@vger.kernel.org, bcousson@baylibre.com, broonie@kernel.org
-Cc: detheridge@ti.com
 
-On 02/26/2014 11:14 AM, Jyri Sarha wrote:
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  sound/soc/codecs/Kconfig  |    4 ++++
->  sound/soc/codecs/Makefile |    2 ++
->  2 files changed, 6 insertions(+)
->=20
-> diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-> index 983d087a..ead9dc5 100644
-> --- a/sound/soc/codecs/Kconfig
-> +++ b/sound/soc/codecs/Kconfig
-> @@ -74,6 +74,7 @@ config SND_SOC_ALL_CODECS
->  	select SND_SOC_TLV320AIC23 if I2C
->  	select SND_SOC_TLV320AIC26 if SPI_MASTER
->  	select SND_SOC_TLV320AIC32X4 if I2C
-> +	select SND_SOC_TLV320AIC31XX if I2C
+Hi,
 
-You should keep this file ordered.
+This patchset brings up USB Host ports and Ethernet port on
+the OMAP5 uEVM board.
 
->  	select SND_SOC_TLV320AIC3X if I2C
->  	select SND_SOC_TPA6130A2 if I2C
->  	select SND_SOC_TLV320DAC33 if I2C
-> @@ -364,6 +365,9 @@ config SND_SOC_TLV320AIC26
->  config SND_SOC_TLV320AIC32X4
->  	tristate
-> =20
-> +config SND_SOC_TLV320AIC31XX
-> +        tristate
-> +
->  config SND_SOC_TLV320AIC3X
->  	tristate
-> =20
-> diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
-> index bc12676..23f8042 100644
-> --- a/sound/soc/codecs/Makefile
-> +++ b/sound/soc/codecs/Makefile
-> @@ -64,6 +64,7 @@ snd-soc-stac9766-objs :=3D stac9766.o
->  snd-soc-tas5086-objs :=3D tas5086.o
->  snd-soc-tlv320aic23-objs :=3D tlv320aic23.o
->  snd-soc-tlv320aic26-objs :=3D tlv320aic26.o
-> +snd-soc-tlv320aic31xx-objs :=3D tlv320aic31xx.o
+It also does some cleanup with respect to DT clock binding
+for the mfd/omap-usb-host driver.
 
-Same here.
+Please queue these for -next.
 
->  snd-soc-tlv320aic3x-objs :=3D tlv320aic3x.o
->  snd-soc-tlv320aic32x4-objs :=3D tlv320aic32x4.o
->  snd-soc-tlv320dac33-objs :=3D tlv320dac33.o
-> @@ -194,6 +195,7 @@ obj-$(CONFIG_SND_SOC_STAC9766)	+=3D snd-soc-stac9=
-766.o
->  obj-$(CONFIG_SND_SOC_TAS5086)	+=3D snd-soc-tas5086.o
->  obj-$(CONFIG_SND_SOC_TLV320AIC23)	+=3D snd-soc-tlv320aic23.o
->  obj-$(CONFIG_SND_SOC_TLV320AIC26)	+=3D snd-soc-tlv320aic26.o
-> +obj-$(CONFIG_SND_SOC_TLV320AIC31XX)     +=3D snd-soc-tlv320aic31xx.o
+Lee,
 
-and here
+I've folded some platform data dependent patches with mfd patches
+so that they don't break functionality when applied individually.
+You can safely pull in all MFD patches (1 to 6).
 
->  obj-$(CONFIG_SND_SOC_TLV320AIC3X)	+=3D snd-soc-tlv320aic3x.o
->  obj-$(CONFIG_SND_SOC_TLV320AIC32X4)     +=3D snd-soc-tlv320aic32x4.o
->  obj-$(CONFIG_SND_SOC_TLV320DAC33)	+=3D snd-soc-tlv320dac33.o
->=20
+Tony & Benoit,
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Can you please accept patches 7, 8 and 9?
+
+Thanks.
+
+Tested on:
+ - OMAP5 uEVM
+ - Pandaboard ES Rev. B1
+ - Beagleboard-XM Rev C2 (DT + Legacy)
+ - Beagleboard Rev C4 (DT + Legacy)
+
+Changelog:
+
+v9:
+- Folded dependent platform data patches into MFD patches.
+
+v8:
+- Addressed review comments and split patch
+  "mfd: omap-usb-host: Get clocks based on hardware revision"
+- Removed unnecessary usb host dummy clocks on OMAP3
+- Removed unnecessary clock alias "ehci_logic_fck" for OMAP3
+- Rebased on 3.14-rc3
+
+v7:
+- Rebased on 3.14-rc2
+- Removed incompatible ids from DT files and examples
+
+v6:
+- Initialized clocks to -ENODEV and split patch 3.
+
+v5:
+- Expose all clocks in the DT binding document for mfd:omap-usb-host
+and mfd:omap-usb-tll
+
+v4:
+- Updated DT binding document for clock binding
+
+v3:
+- Rebased on top of 3.13-rc7
+
+cheers,
+-roger
+
+---
+Roger Quadros (9):
+  mfd: omap-usb-host: Get clocks based on hardware revision
+  mfd: omap-usb-host: Always fail on clk_get() error
+  mfd: omap-usb-host: Use proper clock name instead of alias
+  mfd: omap-usb-host: Use clock names as per function for reference
+    clocks
+  mfd: omap-usb-host: Update DT clock binding information
+  mfd: omap-usb-tll: Update DT clock binding information
+  ARM: OMAP2+: Remove legacy_init_ehci_clk()
+  ARM: dts: OMAP2+: Get rid of incompatible ids for USB host nodes
+  usb: omap: dts: Update DT binding example usage
+
+ .../devicetree/bindings/mfd/omap-usb-host.txt      |  23 ++++
+ .../devicetree/bindings/mfd/omap-usb-tll.txt       |  10 ++
+ .../devicetree/bindings/usb/ehci-omap.txt          |   2 +-
+ .../devicetree/bindings/usb/ohci-omap3.txt         |   2 +-
+ arch/arm/boot/dts/omap3.dtsi                       |   4 +-
+ arch/arm/boot/dts/omap4-panda-common.dtsi          |   8 +-
+ arch/arm/boot/dts/omap4.dtsi                       |  10 +-
+ arch/arm/boot/dts/omap5-uevm.dts                   |   8 +-
+ arch/arm/boot/dts/omap5.dtsi                       |  10 +-
+ arch/arm/mach-omap2/cclock3xxx_data.c              |   4 -
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   6 --
+ arch/arm/mach-omap2/pdata-quirks.c                 |  16 ---
+ drivers/clk/ti/clk-3xxx.c                          |   4 -
+ drivers/mfd/omap-usb-host.c                        | 116 ++++++++++++++-------
+ 14 files changed, 135 insertions(+), 88 deletions(-)
+
+-- 
+1.8.3.2
