@@ -1,94 +1,62 @@
-From: Chris Kimber <chris.kimber@enatel.net>
-Subject: Re: USB lockups on BeagleBone/AM335x
-Date: Fri, 28 Feb 2014 09:34:27 +1300
-Message-ID: <530FA153.809@enatel.net>
-References: <BCBA70ECF3E0284F86C53FAF9ED7FCA1426C07@SRVEXCH01.enatel.local> <20140220224902.GB10878@saruman.home> <BCBA70ECF3E0284F86C53FAF9ED7FCA1426C96@SRVEXCH01.enatel.local> <20140221011405.GB19336@saruman.home> <5306B97D.8070306@enatel.net> <20140221153321.GD31902@saruman.home>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2 3/8] ARM: dts: omap3-overo: Use complete poweroff
+Date: Thu, 27 Feb 2014 14:38:22 -0600
+Message-ID: <530FA23E.1040909@ti.com>
+References: <1393533032-1619-1-git-send-email-florian.vaussard@epfl.ch> <1393533032-1619-4-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.enatel.co.nz ([131.203.63.198]:2825 "EHLO
-	mail.enatel.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202AbaB0Ued (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Feb 2014 15:34:33 -0500
-In-Reply-To: <20140221153321.GD31902@saruman.home>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44675 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751026AbaB0Uiu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Feb 2014 15:38:50 -0500
+In-Reply-To: <1393533032-1619-4-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On 02/27/2014 02:30 PM, Florian Vaussard wrote:
+> Currently, the TWL4030 PMIC does not completely poweroff the processor.
+> Commit b0fc1da4d0359d3cce8f12e0f014aed0704ae202 introduced the necessary
+> binding to do this, so use it.
+> 
+> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+> ---
+>  arch/arm/boot/dts/omap3-overo.dtsi | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
+> index aea64c0..018e1e0 100644
+> --- a/arch/arm/boot/dts/omap3-overo.dtsi
+> +++ b/arch/arm/boot/dts/omap3-overo.dtsi
+> @@ -73,6 +73,11 @@
+>  			codec {
+>  			};
+>  		};
+> +
+> +		twl_power: power {
+> +			compatible = "ti,twl4030-power";
+> +			ti,use_poweroff;
+> +		};
+>  	};
+>  };
+>  
+> 
+Urrgh.. this slipped past.. :(
 
-On 22/02/2014 4:33 a.m., Felipe Balbi wrote:
-> On Fri, Feb 21, 2014 at 03:27:09PM +1300, Chris Kimber wrote:
->> Hey
->>
->> On 21/02/2014 2:14 p.m., Felipe Balbi wrote:
->>> Hi,
->>>
->>> (please avoid top-posting)
->>>
->>> On Fri, Feb 21, 2014 at 12:11:40AM +0000, Chris Kimber wrote:
->>>> Hey,
->>>>
->>>> Thanks for the response.
->>>>
->>>> I've disabled the DMA (CONFIG_MUSB_PIO_ONLY=y) but the problem still
->>>> persists (for both USB sticks & USB serial ports).
->>> hmm, that's weird.
->>>
->>>> Now it looks like dsps_interrupt() never fires and causes the hang
->>>> up...
->>>>
->>>> [   94.865635] tty ttyUSB0: serial_write - 11 byte(s)
->>>> [   94.865656] cp210x ttyUSB0: usb_serial_generic_write_start - length = 11, data = 54 45 53 54 49 4e 47 20 34 32 0a
->>>> [   94.865680] musb-hdrc musb-hdrc.1.auto: qh ce461a00 periodic slot 10
->>>> [   94.865700] musb-hdrc musb-hdrc.1.auto: qh ce461a00 urb ce481e80 dev2 ep1out-bulk, hw_ep 10, ce43db00/11
->>>> [   94.865721] musb-hdrc musb-hdrc.1.auto: --> hw10 urb ce481e80 spd2 dev2 ep1out h_addr00 h_port00 bytes 11
->>>> [   94.865740] musb-hdrc musb-hdrc.1.auto: TX ep10 fifo d0832c48 count 11 buf ce43db00
->>>> [   94.865755] musb-hdrc musb-hdrc.1.auto: Start TX10 pio
->>>> [   94.865792] musb-hdrc musb-hdrc.1.auto: usbintr (0) epintr(400)
->>>> [   94.865810] musb-hdrc musb-hdrc.1.auto: ** IRQ host usb0000 tx0400 rx0000
->>>> [   94.865826] musb-hdrc musb-hdrc.1.auto: OUT/TX10 end, csr 2100
->>>> [   94.865866] musb-hdrc musb-hdrc.1.auto: complete ce481e80 usb_serial_generic_write_bulk_callback+0x0/0xd4 [usbserial] (0), dev2 ep1out, 11/11
->>> so the first one completed just fine.
->>>
->>>> [   94.865971] tty ttyUSB0: serial_write - 11 byte(s)
->>>> [   94.865991] cp210x ttyUSB0: usb_serial_generic_write_start - length = 11, data = 54 45 53 54 49 4e 47 20 34 33 0a
->>>> [   94.866015] musb-hdrc musb-hdrc.1.auto: qh ce461a00 periodic slot 10
->>>> [   94.866035] musb-hdrc musb-hdrc.1.auto: qh ce461a00 urb ce481e80 dev2 ep1out-bulk, hw_ep 10, ce43db00/11
->>>> [   94.866055] musb-hdrc musb-hdrc.1.auto: --> hw10 urb ce481e80 spd2 dev2 ep1out h_addr00 h_port00 bytes 11
->>>> [   94.866075] musb-hdrc musb-hdrc.1.auto: TX ep10 fifo d0832c48 count 11 buf ce43db00
->>>> [   94.866089] musb-hdrc musb-hdrc.1.auto: Start TX10 pio
->>> can you dump TXCSR, DEVCTL and IRQ registers when this happens ?
->>>
->> I added the IRQ registers to the debugfs interface..
->>
->> IntrTX      : 0000
->> IntrRX      : 0000
->> IntrTXE     : ffff
->> IntrRXE     : fffe
->> IntrUSB     : 08
->> IntrUSBE    : f7
->> TxCSRp      : 0000
->> DevCtl      : 5d
->>
->> Oddly the VBUSERR bit is set, if I disconnect the USB cable then it
->> goes to 0. I just tried plugging in via powered hub and that doesn't
->> change the status.
-> that might be the issue you're having, then. for whatever reason VBUS
-> level fluctuates and that confuses MUSB.
->
-> I'll see if there's anyway to work around that.
->
+ti,system-power-controller is traditionally used for other PMICs from
+TI to indicate that poweroff functionality will be provided by the
+PMIC driver. similar approach is taken by Maxim as well.. I know the
+commit introducing the binding has been around for long, but
+considering that we do not have a single dts using this yet, should we
+consider adding "ti,system-power-controller"(as against removing
+ti,use_poweroff - so that older down stream dtbs still work) and using
+it in the new code?
 
-I've finally managed to find some time to check the old 3.2 kernel's 
-Interrupt registers and have found that the VBUSERR bit is still set, so 
-this might be a red herring.
+just proposing here.
 
-I've ordered a BeagleBone Black just to make sure this isn't just 
-related to the AM335x Silicon v1 problems you mentioned before.
-
-The search continues.
-
-Chris
+-- 
+Regards,
+Nishanth Menon
