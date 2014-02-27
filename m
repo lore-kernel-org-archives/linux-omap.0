@@ -1,98 +1,135 @@
-From: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv1 3/6] HSI: hsi-char: add Device Tree support
-Date: Thu, 27 Feb 2014 01:24:20 +0100
-Message-ID: <20140227002420.GA25804@earth.universe>
-References: <1393199401-27197-1-git-send-email-sre@debian.org>
- <1393199401-27197-4-git-send-email-sre@debian.org>
- <20140224151301.GJ28555@e106331-lin.cambridge.arm.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH 1/8] clk: divider: fix rate calculation for fractional rates
+Date: Wed, 26 Feb 2014 18:25:24 -0800
+Message-ID: <20140227022524.12081.32368@quantum>
+References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
+ <1392285846-13199-2-git-send-email-tomi.valkeinen@ti.com>
+ <52FE1DF2.2040707@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="7JfCtLOvnd9MIVvH"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140224151301.GJ28555-NuALmloUBlrZROr8t4l/smS4ubULX0JqMm0uRHvK7Nw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Carlos Chinea <cch.devel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <Pawel.Moll-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon-uiMcrn6V0Vs@public.gmane.org>, Joni Lapilainen <joni.lapilainen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:48545 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753288AbaB0CZ2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Feb 2014 21:25:28 -0500
+Received: by mail-pb0-f42.google.com with SMTP id rr13so1869669pbb.1
+        for <linux-omap@vger.kernel.org>; Wed, 26 Feb 2014 18:25:28 -0800 (PST)
+In-Reply-To: <52FE1DF2.2040707@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-
---7JfCtLOvnd9MIVvH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Feb 24, 2014 at 03:13:01PM +0000, Mark Rutland wrote:
-> On Sun, Feb 23, 2014 at 11:49:58PM +0000, Sebastian Reichel wrote:
-> > Add of_match_table to hsi_char driver, so that it can
-> > be referenced from Device Tree.
-> >=20
-> > Signed-off-by: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Quoting Tero Kristo (2014-02-14 05:45:22)
+> On 02/13/2014 12:03 PM, Tomi Valkeinen wrote:
+> > clk-divider.c does not calculate the rates consistently at the moment.
+> >
+> > As an example, on OMAP3 we have a clock divider with a source clock of
+> > 864000000 Hz. With dividers 6, 7 and 8 the theoretical rates are:
+> >
+> > 6: 144000000
+> > 7: 123428571.428571...
+> > 8: 108000000
+> >
+> > Calling clk_round_rate() with the rate in the first column will give the
+> > rate in the second column:
+> >
+> > 144000000 -> 144000000
+> > 143999999 -> 123428571
+> > 123428572 -> 123428571
+> > 123428571 -> 108000000
+> >
+> > Note how clk_round_rate() returns 123428571 for rates from 123428572 to
+> > 143999999, which is mathematically correct, but when clk_round_rate() is
+> > called with 123428571, the returned value is surprisingly 108000000.
+> >
+> > This means that the following code works a bit oddly:
+> >
+> > rate = clk_round_rate(clk, 123428572);
+> > clk_set_rate(clk, rate);
+> >
+> > As clk_set_rate() also does clock rate rounding, the result is that the
+> > clock is set to the rate of 108000000, not 123428571 returned by the
+> > clk_round_rate.
+> >
+> > This patch changes the clk-divider.c to use DIV_ROUND_UP when
+> > calculating the rate. This gives the following behavior which fixes the
+> > inconsistency:
+> >
+> > 144000000 -> 144000000
+> > 143999999 -> 123428572
+> > 123428572 -> 123428572
+> > 123428571 -> 108000000
+> >
+> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > Cc: Mike Turquette <mturquette@linaro.org>
 > > ---
-> >  drivers/hsi/clients/hsi_char.c | 11 +++++++++++
-> >  1 file changed, 11 insertions(+)
-> >=20
-> > diff --git a/drivers/hsi/clients/hsi_char.c b/drivers/hsi/clients/hsi_c=
-har.c
-> > index e61e5f9..7f64bed 100644
-> > --- a/drivers/hsi/clients/hsi_char.c
-> > +++ b/drivers/hsi/clients/hsi_char.c
-> > @@ -42,6 +42,7 @@
-> >  #include <linux/stat.h>
-> >  #include <linux/hsi/hsi.h>
-> >  #include <linux/hsi/hsi_char.h>
-> > +#include <linux/of_device.h>
-> > =20
-> >  #define HSC_DEVS		16 /* Num of channels */
-> >  #define HSC_MSGS		4
-> > @@ -758,12 +759,22 @@ static int hsc_remove(struct device *dev)
-> >  	return 0;
-> >  }
-> > =20
-> > +#ifdef CONFIG_OF
-> > +static const struct of_device_id hsi_char_of_match[] =3D {
-> > +	{ .compatible =3D "ssi-char", },
->=20
-> This string is undocumented.
->=20
-> > +	{ .compatible =3D "hsi-char", },
->=20
-> I'm not sure either string makes sense though; this feels like a binding
-> for the sake of the driver rather than describing the device and
-> allowing the driver to pick it up if it makes sense to do so.
->=20
-> What exactly is a "ssi-char" device or a "hsi-char" device?
+> >   drivers/clk/clk-divider.c | 10 +++++-----
+> >   1 file changed, 5 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
+> > index 5543b7df8e16..ec22112e569f 100644
+> > --- a/drivers/clk/clk-divider.c
+> > +++ b/drivers/clk/clk-divider.c
+> > @@ -24,7 +24,7 @@
+> >    * Traits of this clock:
+> >    * prepare - clk_prepare only ensures that parents are prepared
+> >    * enable - clk_enable only ensures that parents are enabled
+> > - * rate - rate is adjustable.  clk->rate = parent->rate / divisor
+> > + * rate - rate is adjustable.  clk->rate = DIV_ROUND_UP(parent->rate / divisor)
+> >    * parent - fixed parent.  No clk_set_parent support
+> >    */
+> >
+> > @@ -115,7 +115,7 @@ static unsigned long clk_divider_recalc_rate(struct clk_hw *hw,
+> >               return parent_rate;
+> >       }
+> >
+> > -     return parent_rate / div;
+> > +     return DIV_ROUND_UP(parent_rate, div);
+> >   }
+> >
+> >   /*
+> > @@ -185,7 +185,7 @@ static int clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
+> >               }
+> >               parent_rate = __clk_round_rate(__clk_get_parent(hw->clk),
+> >                               MULT_ROUND_UP(rate, i));
+> > -             now = parent_rate / i;
+> > +             now = DIV_ROUND_UP(parent_rate, i);
+> >               if (now <= rate && now > best) {
+> >                       bestdiv = i;
+> >                       best = now;
+> > @@ -207,7 +207,7 @@ static long clk_divider_round_rate(struct clk_hw *hw, unsigned long rate,
+> >       int div;
+> >       div = clk_divider_bestdiv(hw, rate, prate);
+> >
+> > -     return *prate / div;
+> > +     return DIV_ROUND_UP(*prate, div);
+> >   }
+> >
+> >   static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
+> > @@ -218,7 +218,7 @@ static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
+> >       unsigned long flags = 0;
+> >       u32 val;
+> >
+> > -     div = parent_rate / rate;
+> > +     div = DIV_ROUND_UP(parent_rate, rate);
+> >       value = _get_val(divider, div);
+> >
+> >       if (value > div_mask(divider))
+> >
+> 
+> Basically the patch looks good to me, but it might be good to have a 
+> testing round of sort with this. It can potentially cause regressions on 
+> multiple boards if the drivers happen to rely on the "broken" clock 
+> rates. Same for patch #2 which is a copy paste of this one, but only 
+> impacts TI boards.
 
-mh. I guess I will update the hsi framework, so that it simply loads
-the client driver for each registered port. This is indeed only a
-binding to load the driver.
+Agreed. I've taken patches #1 & #2 into clk-next. Let's let them stew in
+-next for a while and see if anyone's board catches on fire.
 
--- Sebastian
+Regards,
+Mike
 
---7JfCtLOvnd9MIVvH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTDoW0AAoJENju1/PIO/qaw4UP/jd4zbh+Q04KmMn1YwCNXFHu
-mF1xM6QxScm2sSCSRiYNaqf947u6FfKg7CE6zByQ5fcSTztSqmJsicEmNtxAI6/g
-s4gV6p+HdUjXmp2nULOx/wZcqLC2RCE4m3XvT24rKkiDrymCOXIrAgy5+TNQRXXx
-Q1lgShNYL7KPd42B9hlJIovM55zMxrSWwt4iidJtAxHYJy9z4H9MWTl5q2sLyypH
-9SAnfwWBIpf34MeFj4B66PBS+S7aTvkoXJuvWD9VWSjx8Qei4UZ4LbxR5iNavISG
-KVwTF0q10zBZO0q3QECdnaxoqfsJCmrUT8Y7N0C5Tlz3sHbna0WtlMjgjBXhc5hy
-lTlf14ydRg6R1uWai30wwhzDAsvnsyBySxusyoT4IQ3GfgBF097wtPkTnUZu+oC8
-jfVCMijyv0mDb5vA4JRRL/i014NPVC0G+C5JN376GueDX6XiX9ANe4oEgVMnYMl4
-ZzR1OkvvTQkoaWUlwxIxZIbqNrX/H+jGcqbi2JfdnCG+Blu8Tqj0Jy2Hjdxg4E73
-YmtR5uwKLkxqbfK8JbFhsBeNuC23DSRU+ckjOHGopAFhJ71PfPW7uXG3ypsGKiKp
-SHRUPh0lLMuOjfDALF1Ynu1dingvyshGHZbbFvNSbcsBNC5XkR4m5T/l3KQTFtWY
-ph0GfKj1AcvCSmlBLwa5
-=nTF4
------END PGP SIGNATURE-----
-
---7JfCtLOvnd9MIVvH--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -Tero
+> 
