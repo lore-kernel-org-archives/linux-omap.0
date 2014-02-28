@@ -1,66 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v3.14-rc4
-Date: Thu, 27 Feb 2014 16:07:15 -0800
-Message-ID: <20140228000715.GA14514@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv2 14/16] ARM: OMAP3: hwmod data: cleanup data for IOMMUs
+Date: Thu, 27 Feb 2014 16:25:03 -0800
+Message-ID: <20140228002502.GB14514@atomide.com>
+References: <1392315347-32967-1-git-send-email-s-anna@ti.com>
+	<1392315347-32967-15-git-send-email-s-anna@ti.com>
+	<20140226171824.GH11654@atomide.com> <530E2B67.9050300@ti.com>
+	<530F0255.0@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:17815 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751163AbaB1AHu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Feb 2014 19:07:50 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <530F0255.0-p8DiymsW2f8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The following changes since commit 8842446ac74263f1330f46e11ed649e2b0ed6545:
+* Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org> [140227 01:19]:
+> Hi,
+> 
+> On 02/26/2014 06:59 PM, Suman Anna wrote:
+> > Tony,
+> > 
+> > On 02/26/2014 11:18 AM, Tony Lindgren wrote:
+> >> * Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [140213 10:19]:
+> >>> From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+> >>>
+> >>> The irq numbers, ocp address space and device attribute data
+> >>> have all been cleaned up for OMAP3 IOMMUs. All this data is
+> >>> populated via the corresponding dt node.
+> >>>
+> >>> Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+> >>> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+> >>
+> >> This will need to wait until we've made omap3 to be DT only
+> >> as this will break idling of things for the legacy booting.
+> >>
+> > 
+> > OK, will drop this and I will adjust Patch 9 to support the legacy boot
+> > for OMAP3 ISP.
+> > 
+> 
+> BTW, Tony do you have a new window for omap3 to be DT onyl?
 
-  Documentation: dt: OMAP: Update Overo/Tobi (2014-02-14 08:37:53 -0800)
+I think a good point would be when we have DSS working with DT,
+and have a .dts file for the Pandora board.
 
-are available in the git repository at:
+Regards,
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.14/fixes-rc4
-
-for you to fetch changes up to 4b41636878ee32d4c45a49de7749abca9721bd6a:
-
-  ARM: OMAP3: Fix pinctrl interrupts for core2 (2014-02-27 15:35:48 -0800)
-
-----------------------------------------------------------------
-Fixes for omaps mostly to fix the 3430 display regression,
-and random crashes if booting n900 with device tree and
-thumb mode. Also few other regressions and fixes.
-
-----------------------------------------------------------------
-Illia Smyrnov (1):
-      ARM: OMAP4: hwmod: Fix SOFTRESET logic for OMAP4
-
-Santosh Shilimkar (1):
-      ARM: OMAP: Kill warning in CPUIDLE code with !CONFIG_SMP
-
-Sebastian Reichel (1):
-      ARM: OMAP2+: Add support for thumb mode on DT booted N900
-
-Suman Anna (1):
-      ARM: DRA7: hwmod data: correct the sysc data for spinlock
-
-Tomi Valkeinen (1):
-      ARM: OMAP2+: clock: fix clkoutx2 with CLK_SET_RATE_PARENT
-
-Tony Lindgren (2):
-      Merge tag 'for-v3.14-rc/omap-fixes-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.14/fixes
-      ARM: OMAP3: Fix pinctrl interrupts for core2
-
-Vaibhav Bedia (1):
-      ARM: OMAP5: PRM: Fix reboot handling
-
- arch/arm/mach-omap2/cclock3xxx_data.c     |  2 +
- arch/arm/mach-omap2/cpuidle44xx.c         |  8 ++-
- arch/arm/mach-omap2/dpll3xxx.c            | 92 ++++++++++++++++++++++++++-----
- arch/arm/mach-omap2/omap_hwmod.c          | 20 ++++---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  9 ++-
- arch/arm/mach-omap2/pdata-quirks.c        | 21 ++++++-
- arch/arm/mach-omap2/prminst44xx.c         |  4 +-
- include/linux/clk/ti.h                    |  4 ++
- 8 files changed, 125 insertions(+), 35 deletions(-)
+Tony
