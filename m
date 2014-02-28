@@ -1,67 +1,53 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 5/5] ARM: dts: AM33XX: Add ecap interrupt properties
-Date: Fri, 28 Feb 2014 14:43:07 -0800
-Message-ID: <20140228224307.GP13624@atomide.com>
-References: <1391029199-3670-1-git-send-email-mporter@linaro.org>
- <1391029199-3670-6-git-send-email-mporter@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] arm: dts: am33xx.dtsi: Add node name to rtc device
+ node
+Date: Fri, 28 Feb 2014 14:45:05 -0800
+Message-ID: <20140228224504.GQ13624@atomide.com>
+References: <1391602361-2666-1-git-send-email-sr@denx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16352 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751729AbaB1WpS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 17:45:18 -0500
 Content-Disposition: inline
-In-Reply-To: <1391029199-3670-6-git-send-email-mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linaro Patches <patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1391602361-2666-1-git-send-email-sr@denx.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stefan Roese <sr@denx.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Lukas Stockmann <lukas.stockmann@siemens.com>, Benoit Cousson <bcousson@baylibre.com>
 
-* Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [140129 13:02]:
-> Add missing interrupt properties to the ecap0, ecap1, and ecap2
-> nodes.
+* Stefan Roese <sr@denx.de> [140205 04:14]:
+> Making it possible to reference and therefor change (disable) this
+> device node from other dts file which import this dtsi file.
 > 
-> Signed-off-by: Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Stefan Roese <sr@denx.de>
+> Cc: Lukas Stockmann <lukas.stockmann@siemens.com>
+> Cc: Benoit Cousson <bcousson@baylibre.com>
+> Cc: Tony Lindgren <tony@atomide.com>
 
-Thanks taking this patch only into omap-for-v3.15/dt, the rest
-should go via the driver mailing lists.
-
-Regards,
+Thanks applying into omap-for-v3.15/dt.
 
 Tony
 
 > ---
->  arch/arm/boot/dts/am33xx.dtsi | 6 ++++++
->  1 file changed, 6 insertions(+)
+>  arch/arm/boot/dts/am33xx.dtsi | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
 > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 6d95d3d..b4139ba 100644
+> index 6d95d3d..b8daf8c 100644
 > --- a/arch/arm/boot/dts/am33xx.dtsi
 > +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -582,6 +582,8 @@
->  				compatible = "ti,am33xx-ecap";
->  				#pwm-cells = <3>;
->  				reg = <0x48300100 0x80>;
-> +				interrupts = <31>;
-> +				interrupt-names = "ecap0";
->  				ti,hwmods = "ecap0";
->  				status = "disabled";
->  			};
-> @@ -610,6 +612,8 @@
->  				compatible = "ti,am33xx-ecap";
->  				#pwm-cells = <3>;
->  				reg = <0x48302100 0x80>;
-> +				interrupts = <47>;
-> +				interrupt-names = "ecap1";
->  				ti,hwmods = "ecap1";
->  				status = "disabled";
->  			};
-> @@ -638,6 +642,8 @@
->  				compatible = "ti,am33xx-ecap";
->  				#pwm-cells = <3>;
->  				reg = <0x48304100 0x80>;
-> +				interrupts = <61>;
-> +				interrupt-names = "ecap2";
->  				ti,hwmods = "ecap2";
->  				status = "disabled";
->  			};
+> @@ -399,7 +399,7 @@
+>  			ti,timer-pwm;
+>  		};
+>  
+> -		rtc@44e3e000 {
+> +		rtc: rtc@44e3e000 {
+>  			compatible = "ti,da830-rtc";
+>  			reg = <0x44e3e000 0x1000>;
+>  			interrupts = <75
 > -- 
-> 1.8.4
+> 1.8.5.3
 > 
