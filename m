@@ -1,39 +1,40 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv2 3/4] ARM: dts: OMAP4: Add IOMMU nodes
-Date: Fri, 28 Feb 2014 14:49:53 -0600
-Message-ID: <1393620594-14957-4-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv2 4/4] ARM: dts: OMAP5: Add IOMMU nodes
+Date: Fri, 28 Feb 2014 14:49:54 -0600
+Message-ID: <1393620594-14957-5-git-send-email-s-anna@ti.com>
 References: <1393620594-14957-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58496 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751665AbaB1Uu2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Feb 2014 15:50:28 -0500
-In-Reply-To: <1393620594-14957-1-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1393620594-14957-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree@vger.kernel.org, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-From: Florian Vaussard <florian.vaussard@epfl.ch>
+The IOMMU DT nodes have been added for the DSP and IPU
+subsystems. The MMUs in OMAP5 are identical to those in
+OMAP4, including the bus error back capability on IPU.
 
-Add the IOMMU nodes for the DSP and IPU subsystems. The MMU
-within the IPU sub-system also supports a bus error back
-capability, not available on the DSP MMU.
-
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-[s-anna@ti.com: IPU bus error back addition]
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap4.dtsi | 15 +++++++++++++++
+ arch/arm/boot/dts/omap5.dtsi | 15 +++++++++++++++
  1 file changed, 15 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index d3f8a6e..ab7be95 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -461,6 +461,21 @@
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index a72813a..42b9a44 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -513,6 +513,21 @@
  			dma-names = "tx", "rx";
  		};
  
@@ -52,9 +53,8 @@ index d3f8a6e..ab7be95 100644
 +			ti,iommu-bus-err-back;
 +		};
 +
- 		wdt2: wdt@4a314000 {
- 			compatible = "ti,omap4-wdt", "ti,omap3-wdt";
- 			reg = <0x4a314000 0x80>;
+ 		keypad: keypad@4ae1c000 {
+ 			compatible = "ti,omap4-keypad";
+ 			reg = <0x4ae1c000 0x400>;
 -- 
 1.9.0
-
