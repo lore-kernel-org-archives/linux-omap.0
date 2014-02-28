@@ -1,37 +1,115 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 00/12] ARM: OMAP2 DT clock conversion
-Date: Fri, 28 Feb 2014 11:22:52 +0200
-Message-ID: <1393579384-23440-1-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 02/12] ARM: OMAP2420: clock: get rid of fixed-div property use
+Date: Fri, 28 Feb 2014 11:22:54 +0200
+Message-ID: <1393579384-23440-3-git-send-email-t-kristo@ti.com>
+References: <1393579384-23440-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40316 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751240AbaB1JYO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Feb 2014 04:24:14 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1393579384-23440-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi,
+Cleans up the code a bit and is useful for clock data DT conversion.
 
-This set concludes the omap2+ clock DT conversion work by creating the
-DT clock data for omap2 SoC also.
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/mach-omap2/cclock2420_data.c |   15 ++++-----------
+ arch/arm/mach-omap2/clock.c           |   21 ---------------------
+ arch/arm/mach-omap2/clock.h           |    3 ---
+ 3 files changed, 4 insertions(+), 35 deletions(-)
 
-I am also currently doing related work to cleanup CM/PRM codebase in
-preparation to move it into drivers/, this set is basically going to
-be a pre-requisite for that. I'll hopefully post something related
-to that early next week.
+diff --git a/arch/arm/mach-omap2/cclock2420_data.c b/arch/arm/mach-omap2/cclock2420_data.c
+index 3e46ac1..3b0beea 100644
+--- a/arch/arm/mach-omap2/cclock2420_data.c
++++ b/arch/arm/mach-omap2/cclock2420_data.c
+@@ -1025,18 +1025,12 @@ DEFINE_CLK_OMAP_MUX_GATE(iva1_ifck, "iva1_clkdm", dsp_fck_clksel,
+ 			 OMAP2420_EN_IVA_COP_SHIFT, &clkhwops_wait,
+ 			 dsp_fck_parent_names, dsp_fck_ops);
+ 
++DEFINE_CLK_FIXED_FACTOR(iva1_ifck_div, "iva1_ifck", &iva1_ifck, 0x0, 1, 2);
++
+ static struct clk iva1_mpu_int_ifck;
+ 
+ static const char *iva1_mpu_int_ifck_parent_names[] = {
+-	"iva1_ifck",
+-};
+-
+-static const struct clk_ops iva1_mpu_int_ifck_ops = {
+-	.init		= &omap2_init_clk_clkdm,
+-	.enable		= &omap2_dflt_clk_enable,
+-	.disable	= &omap2_dflt_clk_disable,
+-	.is_enabled	= &omap2_dflt_clk_is_enabled,
+-	.recalc_rate	= &omap_fixed_divisor_recalc,
++	"iva1_ifck_div",
+ };
+ 
+ static struct clk_hw_omap iva1_mpu_int_ifck_hw = {
+@@ -1047,11 +1041,10 @@ static struct clk_hw_omap iva1_mpu_int_ifck_hw = {
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP2420_EN_IVA_MPU_SHIFT,
+ 	.clkdm_name	= "iva1_clkdm",
+-	.fixed_div	= 2,
+ };
+ 
+ DEFINE_STRUCT_CLK(iva1_mpu_int_ifck, iva1_mpu_int_ifck_parent_names,
+-		  iva1_mpu_int_ifck_ops);
++		  aes_ick_ops);
+ 
+ static struct clk mailboxes_ick;
+ 
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 591581a..4ac6e3d 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -82,27 +82,6 @@ u32 omap2_clk_readl(struct clk_hw_omap *clk, void __iomem *reg)
+ }
+ 
+ /*
+- * Used for clocks that have the same value as the parent clock,
+- * divided by some factor
+- */
+-unsigned long omap_fixed_divisor_recalc(struct clk_hw *hw,
+-		unsigned long parent_rate)
+-{
+-	struct clk_hw_omap *oclk;
+-
+-	if (!hw) {
+-		pr_warn("%s: hw is NULL\n", __func__);
+-		return -EINVAL;
+-	}
+-
+-	oclk = to_clk_hw_omap(hw);
+-
+-	WARN_ON(!oclk->fixed_div);
+-
+-	return parent_rate / oclk->fixed_div;
+-}
+-
+-/*
+  * OMAP2+ specific clock functions
+  */
+ 
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index bda767a..3843c9f 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -189,9 +189,6 @@ struct clk_hw_omap_ops {
+ 	void			(*deny_idle)(struct clk_hw_omap *oclk);
+ };
+ 
+-unsigned long omap_fixed_divisor_recalc(struct clk_hw *hw,
+-					unsigned long parent_rate);
+-
+ /* CM_CLKSEL2_PLL.CORE_CLK_SRC bits (2XXX) */
+ #define CORE_CLK_SRC_32K		0x0
+ #define CORE_CLK_SRC_DPLL		0x1
+-- 
+1.7.9.5
 
-This set has been boot tested on OMAP2430 only (thanks Nishanth, I don't
-have access to OMAP2 hardware myself), so any testing feedback on
-2420 board(s) would be appreciated.
-
-Working tree:
-
-Tree: https://github.com/t-kristo/linux-pm.git
-Branch: 3.14-rc4-omap2-dt-clks
-
--Tero
-
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
