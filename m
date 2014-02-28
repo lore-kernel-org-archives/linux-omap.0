@@ -1,57 +1,74 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V2 1/2] mmc: omap_hsmmc: Add support for quirky omap3
- hsmmc controller
-Date: Fri, 28 Feb 2014 09:09:26 -0600
-Message-ID: <5310A6A6.6030803@ti.com>
-References: <1392356749-32091-1-git-send-email-nm@ti.com>
- <1392356749-32091-2-git-send-email-nm@ti.com>
- <20140214163102.GA21592@atomide.com>
+Subject: Re: [PATCH 00/12] ARM: OMAP2 DT clock conversion
+Date: Fri, 28 Feb 2014 09:59:45 -0600
+Message-ID: <5310B271.5040708@ti.com>
+References: <1393579384-23440-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140214163102.GA21592@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>
-Cc: devicetree@vger.kernel.org, Balaji T K <balajitk@ti.com>, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:44509 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752499AbaB1QAK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 11:00:10 -0500
+In-Reply-To: <1393579384-23440-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 02/14/2014 10:31 AM, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [140213 21:48]:
->> When device is booted using devicetree, platforms impacted by Erratum
->> 2.1.1.128 is not detected easily in the mmc driver. This erratum
->> indicates that the module cannot do multi-block transfers. Platforms
->> such as LDP which use OMAP3 ES revision prior to ES3.0 are impacted by
->> this.
->>
->> Provide a new compatible property "ti,omap3-pre-es3-hsmmc" to allow
->> driver to determine if driver needs to implement quirks associated
->> with the specific module version (primarily because the IP revision
->> information is not sufficient for the same).
->>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
+On 02/28/2014 03:22 AM, Tero Kristo wrote:
+> Hi,
 > 
-> Looks good to me, would be good to get this into the -rc cycle
-> as LDP is one of the automated boot testing boards for us.
+> This set concludes the omap2+ clock DT conversion work by creating the
+> DT clock data for omap2 SoC also.
 > 
-> If you guys want me to pick up both of the patches let me know,
-> otherwise feel free to add my ack.
+> I am also currently doing related work to cleanup CM/PRM codebase in
+> preparation to move it into drivers/, this set is basically going to
+> be a pre-requisite for that. I'll hopefully post something related
+> to that early next week.
 > 
+> This set has been boot tested on OMAP2430 only (thanks Nishanth, I don't
+> have access to OMAP2 hardware myself), so any testing feedback on
+> 2420 board(s) would be appreciated.
+> 
+> Working tree:
+> 
+> Tree: https://github.com/t-kristo/linux-pm.git
+> Branch: 3.14-rc4-omap2-dt-clks
 
-Chris,
-would you be picking up the series that fixes LDP dt boot behavior or
-should Tony pick it up?
+I do see checkpatch warnings in the series:
+http://slexy.org/view/s20mzhlJ93
 
-https://patchwork.kernel.org/patch/3650061/
-https://patchwork.kernel.org/patch/3650031/
+Series boot tested with:
+3.14-rc4-omap2-dt-clks  fc73a96 ARM: OMAP2: clock: use DT clock boot
+if available
+from the tree mentioned above.
+
+Things look good other than the checkpatch violation noticed in
+report, so other than that,
+
+Tested-by: Nishanth Menon <nm@ti.com>
+
+omap2plus_defconfig
+ 1: am335x-evm:  Boot PASS: http://slexy.org/raw/s2jdV3XMCC
+ 2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s210nZI8Hx
+ 3: am3517-evm:  Boot PASS: http://slexy.org/raw/s21MG8kg6u
+ 4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s20coVhzLt
+ 5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s21XKjjwyk
+ 6: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s27PCmlDq7
+ 7: BeagleBone-Black:  Boot PASS: http://slexy.org/raw/s2HX1Q3iPb
+ 8:      crane: No Image built - Missing platform support?:
+ 9:       dra7:  Boot PASS: http://slexy.org/raw/s21ofDfpD2
+10:        ldp:  Boot FAIL: http://slexy.org/raw/s2SbrpyX2p
+^^ legacy behavior
+11: PandaBoard-ES:  Boot PASS: http://slexy.org/raw/s21n4iMUKd
+12:    sdp2430:  Boot PASS: http://slexy.org/raw/s2CJ5hYl72
+13:    sdp3430:  Boot PASS: http://slexy.org/raw/s20axZ1nyb
+14:    sdp4430:  Boot PASS: http://slexy.org/raw/s21wt3C5F3
+15: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s208PhmCpm
+TOTAL = 15 boards, Booted Boards = 13, No Boot boards = 2
+
 
 
 -- 
