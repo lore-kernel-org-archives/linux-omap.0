@@ -1,60 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: am335x-evmsk: enable USB1
-Date: Fri, 28 Feb 2014 14:57:51 -0800
-Message-ID: <20140228225750.GV13624@atomide.com>
-References: <1393571944-10438-1-git-send-email-yegorslists@googlemail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv3 00/13] OMAP IOMMU DT adaptation for 3.15
+Date: Fri, 28 Feb 2014 15:00:00 -0800
+Message-ID: <20140228230000.GW13624@atomide.com>
+References: <1393620164-14633-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56744 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752554AbaB1W6C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 17:58:02 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1393571944-10438-1-git-send-email-yegorslists@googlemail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1393620164-14633-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: yegorslists@googlemail.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-* yegorslists@googlemail.com <yegorslists@googlemail.com> [140227 23:22]:
-> From: Yegor Yefremov <yegorslists@googlemail.com>
+* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [140228 12:46]:
+> Hi Joerg, Tony,
 > 
-> Enable second USB channel and set it into 'host' mode.
+> This is an updated series of the OMAP IOMMU DT adaptation intended
+> for 3.15 merge window, addressing the comments from the v2 series.
+> This series is rebased onto 3.14-rc4, and the only change to bindings
+> is to drop the dma-window property.
 > 
-> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+> The first 7 patches in the series are in drivers/iommu, with the first
+> 3 patches performing some cleanup. The DT bindings and adaptation are
+> done in patches 4 and 5.
+> 
+> Tony,
+> Patches 8 through 13 are in arch/arm/mach-omap2 layer, so I am guessing
+> these would have to go through your tree. Of these, patches 8 and 9 are
+> cleanup fixes to get OMAP3 IVA MMU working, patches 10 & 11 are fixes
+> required with DT-boot for OMAP3/4, patches 12 & 13 add the OMAP5 support.
 
-Thanks applying into omap-for-v3.15/dt.
+Are patches 8 to 13 OK to apply separately from the iommu patches or
+do they need to wait for the iommu patches to get merged first?
+
+Regards,
 
 Tony
-
-> ---
->  arch/arm/boot/dts/am335x-evmsk.dts |    9 +++++++++
->  1 files changed, 9 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-> index 486880b..40a66bd 100644
-> --- a/arch/arm/boot/dts/am335x-evmsk.dts
-> +++ b/arch/arm/boot/dts/am335x-evmsk.dts
-> @@ -342,9 +342,18 @@
->  		status = "okay";
->  	};
->  
-> +	usb-phy@47401b00 {
-> +		status = "okay";
-> +	};
-> +
->  	usb@47401000 {
->  		status = "okay";
->  	};
-> +
-> +	usb@47401800 {
-> +		status = "okay";
-> +		dr_mode = "host";
-> +	};
->  };
->  
->  &epwmss2 {
-> -- 
-> 1.7.7
-> 
