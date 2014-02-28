@@ -1,58 +1,107 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] Add more device nodes for am43x-epos-evm
-Date: Fri, 28 Feb 2014 14:04:54 -0800
-Message-ID: <20140228220453.GG13624@atomide.com>
-References: <1385537447-6922-1-git-send-email-sourav.poddar@ti.com>
- <52A04C11.1030007@ti.com>
+Subject: Re: [PATCH 00/11] ARM: dts: sbc-t3x: add support for more boards
+Date: Fri, 28 Feb 2014 14:12:20 -0800
+Message-ID: <20140228221219.GH13624@atomide.com>
+References: <1389532975-28281-1-git-send-email-lifshitz@compulab.co.il>
+ <52FB6B2E.9070106@compulab.co.il>
+ <5309E9EE.2040705@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56256 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:14822 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751729AbaB1WFJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 17:05:09 -0500
+	with ESMTP id S1751711AbaB1WMe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 17:12:34 -0500
 Content-Disposition: inline
-In-Reply-To: <52A04C11.1030007@ti.com>
+In-Reply-To: <5309E9EE.2040705@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: bcousson@baylibre.com, rob.herring@calxeda.com, mark.rutland@arm.com, swarren@wwwdotorg.org, devicetree@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Sourav Poddar <sourav.poddar@ti.com> [131205 01:50]:
-> On Wednesday 27 November 2013 01:00 PM, Sourav Poddar wrote:
-> >The patch series adds support for enabling pwm backlight, i2c2, spi and
-> >matrix gpio keys on am43x-gp-evm.
-> >
-> >Done on top of 3.13-rc1 + tero clock series(1)
-> >
-> >[1]: https://patchwork.kernel.org/patch/3009541/
-> >
-> >Tested on am43x-gp-evm.
-> >
-> >There is a some bug while using regulators through backlight
-> >driver on 3.13-rc1. So, tested pwm part with this temporary patch[2].
-> >
-> >[2]: http://www.spinics.net/lists/arm-kernel/msg288215.html
-> >
-> >Darren Etheridge (1):
-> >   pinctrl: am43xx: dt-bindings: add MUX_MODE8
-> >
-> >Sourav Poddar (4):
-> >   arm: dts: am4372: Add pwm-cellsproperty for ecap device.
-> >   arm: dts: am43x-epos-evm: Add I2C data.
-> >   arm: dts: am43x-epos-evm: Add SPI data.
-> >   ARM: dts: am43x-epos-evm: Add pwm backlight support.
-> >
-> >  arch/arm/boot/dts/am4372.dtsi        |    9 +++++
-> >  arch/arm/boot/dts/am43x-epos-evm.dts |   67 ++++++++++++++++++++++++++++++++++
-> >  include/dt-bindings/pinctrl/am43xx.h |    1 +
-> >  3 files changed, 77 insertions(+), 0 deletions(-)
-> >
-> gentle ping on this..
+* Igor Grinberg <grinberg@compulab.co.il> [140223 04:33]:
+> ping x2!
 
-FYI at least I don't even have these patches in my inbox any longer,
-so hopefully Benoit queues them.
+Thanks applying into omap-for-v3.15/dt finally.
+
+Is it OK to remove the board-cm-*.c files for v3.15?
 
 Regards,
 
 Tony
+ 
+> On 02/12/14 14:38, Igor Grinberg wrote:
+> > ping!
+> > 
+> > On 01/12/14 15:22, Dmitry Lifshitz wrote:
+> >> Add support for CompuLab SBC-T3530 and SBC-T3517 boards:
+> >>
+> >> https://compulab.co.il/products/sbcs/sbc-t3530/
+> >> https://compulab.co.il/products/sbcs/sbc-t3517/
+> >>
+> >> along with respective CoMs - CM-T3530 and CM-T3517:
+> >>
+> >> https://compulab.co.il/products/computer-on-modules/cm-t3530/
+> >> https://compulab.co.il/products/computer-on-modules/cm-t3517/
+> >>
+> >> The device tree files have the following structure:
+> >>
+> >> omap3-cm-t3x.dtsi
+> >>  |
+> >>  |<-- omap3-cm-t3x30.dtsi
+> >>  |     |
+> >>  |     |
+> >>  |     |     -----                  -------          ------------
+> >>  |     |    | CoM |                | Board |        | Base board |
+> >>  |     |     -----                  -------          ------------
+> >>  |     |                                            omap3-sb-t35.dtsi
+> >>  |     |                                                  |
+> >>  |     |<-- omap3-cm-t3730.dts <-- omap3-sbc-t3730.dts -->|
+> >>  |     |                                                  |
+> >>  |     |<-- omap3-cm-t3530.dts <-- omap3-sbc-t3530.dts -->|
+> >>  |                                                        |
+> >>  |<-------- omap3-cm-t3517.dts <-- omap3-sbc-t3517.dts -->|
+> >>
+> >>
+> >> where omap3-cm-t3730.dts, omap3-cm-t3530.dts, omap3-cm-t3517.dts
+> >> contain CoMs specific data, while omap3-sbc-t3730.dts, omap3-sbc-t3530.dts,
+> >> omap3-sbc-t3517.dts represent eval boards with respective core modules.
+> >>
+> >> This series is based on Tony's omap-for-v3.14/dt branch
+> >>
+> >> Dmitry Lifshitz (11):
+> >>   ARM: dts: sbc-t3x: refactor DT support
+> >>   ARM: dts: sbc-t3x: disable mmc3
+> >>   ARM: dts: sb-t35: fix Ethernet power supply
+> >>   ARM: dts: cm-t3x: add gpio-led pinmux
+> >>   ARM: dts: cm-t3x30: add twl4030 gpio pullups
+> >>   ARM: dts: cm-t3x30: add HS USB Host support
+> >>   ARM: dts: sbc-t3730: add pinmux for usb hub reset
+> >>   ARM: dts: cm-t3x30: add USB OTG support
+> >>   ARM: dts: sbc-t3530: add support for sbc-t3530
+> >>   ARM: dts: sbc-t3517: add support for sbc-t3517
+> >>   ARM: OMAP2+: make reset pulse for sbc-t3x usb hubs
+> >>
+> >>  arch/arm/boot/dts/Makefile            |    4 +
+> >>  arch/arm/boot/dts/omap3-cm-t3517.dts  |  137 +++++++++++++++++++++++++++++++++
+> >>  arch/arm/boot/dts/omap3-cm-t3530.dts  |   13 +++
+> >>  arch/arm/boot/dts/omap3-cm-t3730.dts  |   40 ----------
+> >>  arch/arm/boot/dts/omap3-cm-t3x.dtsi   |  112 +++++++++++++++++++++++++++
+> >>  arch/arm/boot/dts/omap3-cm-t3x30.dtsi |   74 +++++++++++++-----
+> >>  arch/arm/boot/dts/omap3-sb-t35.dtsi   |   30 +++++++-
+> >>  arch/arm/boot/dts/omap3-sbc-t3517.dts |   44 +++++++++++
+> >>  arch/arm/boot/dts/omap3-sbc-t3530.dts |   37 +++++++++
+> >>  arch/arm/boot/dts/omap3-sbc-t3730.dts |   24 +++---
+> >>  arch/arm/mach-omap2/pdata-quirks.c    |   67 ++++++++++++++++-
+> >>  11 files changed, 506 insertions(+), 76 deletions(-)
+> >>  create mode 100644 arch/arm/boot/dts/omap3-cm-t3517.dts
+> >>  create mode 100644 arch/arm/boot/dts/omap3-cm-t3530.dts
+> >>  create mode 100644 arch/arm/boot/dts/omap3-cm-t3x.dtsi
+> >>  create mode 100644 arch/arm/boot/dts/omap3-sbc-t3517.dts
+> >>  create mode 100644 arch/arm/boot/dts/omap3-sbc-t3530.dts
+> >>
+> > 
+> 
+> -- 
+> Regards,
+> Igor.
