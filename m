@@ -1,74 +1,89 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/9] ARM: dts: omap3-gta04: Add basic sound support.
-Date: Fri, 28 Feb 2014 14:25:02 -0800
-Message-ID: <20140228222501.GL13624@atomide.com>
-References: <1390685343-11663-1-git-send-email-marek@goldelico.com>
- <1390685343-11663-6-git-send-email-marek@goldelico.com>
+Subject: Re: [PATCH v4 4/4] ARM: OMAP2+: Add pdata quirk for sys_clkout2 for
+ omap3 DBB056
+Date: Fri, 28 Feb 2014 14:37:41 -0800
+Message-ID: <20140228223741.GM13624@atomide.com>
+References: <1392387656-15186-1-git-send-email-chf.fritz@googlemail.com>
+ <1392387656-15186-5-git-send-email-chf.fritz@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:23413 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751184AbaB1Wh5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 17:37:57 -0500
 Content-Disposition: inline
-In-Reply-To: <1390685343-11663-6-git-send-email-marek@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marek Belisko <marek@goldelico.com>
-Cc: bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, neilb@suse.de, hns@goldelico.com
+In-Reply-To: <1392387656-15186-5-git-send-email-chf.fritz@googlemail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Christoph Fritz <chf.fritz@googlemail.com>
+Cc: bcousson@baylibre.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Daniel Mack <zonque@gmail.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Marek Belisko <marek@goldelico.com> [140125 13:31]:
+* Christoph Fritz <chf.fritz@googlemail.com> [140214 06:24]:
+> Full device tree support for clock control, especially to set frequencies,
+> is not yet accomplished. Until then, configure the 24Mhz of sys_clkout2 to
+> feed an USB-Hub here.
 
-Hmm care to add descriptions and repost the remaining patches
-that I did not yet pick up for the fixes?
-
-> Signed-off-by: NeilBrown <neilb@suse.de>
-
-Hmm should this also have From: NeilBrown <neilb@suse.de>?
-
-Also, while at it, maybe change your long time habit of adding
-a period to the end of the subject line? That is of course
-if you don't insist on having it, it's not usually used if
-you look at git log --pretty=oneline :)
+Hmm would like to see Tero's comments on this, I wonder if we should
+wait on this to avoid extra churn?
 
 Regards,
 
 Tony
-
+ 
+> Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
 > ---
->  arch/arm/boot/dts/omap3-gta04.dts | 15 +++++++++++++++
->  1 file changed, 15 insertions(+)
+>  arch/arm/mach-omap2/pdata-quirks.c |   37 ++++++++++++++++++++++++++++++++++++
+>  1 file changed, 37 insertions(+)
 > 
-> diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
-> index 7e09410..a924a843 100644
-> --- a/arch/arm/boot/dts/omap3-gta04.dts
-> +++ b/arch/arm/boot/dts/omap3-gta04.dts
-> @@ -36,6 +36,14 @@
->  			gpio-key,wakeup;
->  		};
->  	};
-> +
-> +	sound {
-> +		compatible = "ti,omap-twl4030";
-> +		ti,model = "gta04";
-> +
-> +		ti,mcbsp = <&mcbsp2>;
-> +		ti,codec = <&twl_audio>;
-> +	};
->  };
+> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+> index 435a823..e36ac3f 100644
+> --- a/arch/arm/mach-omap2/pdata-quirks.c
+> +++ b/arch/arm/mach-omap2/pdata-quirks.c
+> @@ -172,6 +172,43 @@ static void __init am3517_evm_legacy_init(void)
 >  
->  &omap3_pmx_core {
-> @@ -79,6 +87,13 @@
->  		reg = <0x48>;
->  		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
->  		interrupt-parent = <&intc>;
+>  static void __init omap3_dbb056_legacy_init(void)
+>  {
+> +	struct clk *clkout2;
+> +	struct clk *cm96fck;
 > +
-> +		twl_audio: audio {
-> +			compatible = "ti,twl4030-audio";
-> +			codec {
-> +			};
-> +		};
+> +	/* Reparent clkout2 to 96M_FCK */
+> +	pr_info("%s: Late Reparent clkout2 to 96M_FCK\n", __func__);
+> +	clkout2 = clk_get(NULL, "clkout2_src_ck");
+> +	if (clkout2 < 0) {
+> +		pr_err("a83x-quirk: couldn't get clkout2_src_ck\n");
+> +		return;
+> +	}
+> +	cm96fck = clk_get(NULL, "cm_96m_fck");
+> +	if (cm96fck < 0) {
+> +		pr_err("a83x-quirk: couldn't get cm_96m_fck\n");
+> +		return;
+> +	}
+> +	if (clk_set_parent(clkout2, cm96fck) < 0) {
+> +		pr_err("a83x-quirk: couldn't reparent clkout2_src_ck\n");
+> +		return;
+> +	}
 > +
->  		vaux4: regulator-vaux4 {
->  			compatible = "ti,twl4030-vaux4";
->  			regulator-min-microvolt = <2800000>;
+> +	/* Set clkout2 to 24MHz for internal usb hub*/
+> +	pr_info("%s: Set clkout2 to 24MHz for internal usb hub\n", __func__);
+> +	clkout2 = clk_get(NULL, "sys_clkout2");
+> +	if (clkout2 < 0) {
+> +		pr_err("%s: couldn't get sys_clkout2\n", __func__);
+> +		return;
+> +	}
+> +	if (clk_set_rate(clkout2, 24000000) < 0) {
+> +		pr_err("%s: couldn't set sys_clkout2 rate\n", __func__);
+> +		return;
+> +	}
+> +	if (clk_prepare_enable(clkout2) < 0) {
+> +		pr_err("%s: couldn't enable sys_clkout2\n", __func__);
+> +		return;
+> +	}
+> +
+> +	/* Initialize display */
+>  	omap3_dbb056_display_init_of();
+>  }
+>  #endif /* CONFIG_ARCH_OMAP3 */
 > -- 
-> 1.8.3.2
+> 1.7.10.4
 > 
