@@ -1,70 +1,31 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/8] clk: divider: fix rate calculation for fractional
- rates
-Date: Fri, 28 Feb 2014 10:49:26 +0200
-Message-ID: <53104D96.5040704@ti.com>
-References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com> <1392285846-13199-2-git-send-email-tomi.valkeinen@ti.com> <52FE1DF2.2040707@ti.com> <20140227022524.12081.32368@quantum>
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Subject: Re: [PATCH v4 0/8] wilink: add device tree support
+Date: Fri, 28 Feb 2014 10:22:03 +0100
+Message-ID: <20140228092203.GA2974@piout.net>
+References: <1375189476-21557-1-git-send-email-coelho@ti.com>
+ <CAGm1_kvdzkvzEEymQ+H0XiKugifHF27KDz3jwX5Frg_U=S7KgA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="kGQNgDN8If3dN42Nw83VID57b1dicf9jJ"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57805 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751164AbaB1Itw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Feb 2014 03:49:52 -0500
-In-Reply-To: <20140227022524.12081.32368@quantum>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAGm1_kvdzkvzEEymQ+H0XiKugifHF27KDz3jwX5Frg_U=S7KgA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yegor Yefremov <yegorslists@googlemail.com>
+Cc: Luciano Coelho <coelho@ti.com>, mark.rutland@arm.com, nm@ti.com, mturquette@linaro.org, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, "Nori, Sekhar" <nsekhar@ti.com>, kernel list <linux-kernel@vger.kernel.org>, balbi@ti.com, martinez.javier@gmail.com, rob.herring@calxeda.com, grant.likely@linaro.org, linux-omap@vger.kernel.org, luca@coelho.fi, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
---kGQNgDN8If3dN42Nw83VID57b1dicf9jJ
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On 28/02/2014 at 08:26:46 +0100, Yegor Yefremov wrote :
+> 
+> What is the state of the series? Who is now responsible for the
+> patches? What issues were still not handled?
+> 
 
-On 27/02/14 04:25, Mike Turquette wrote:
+We probably want to end that discussion before taking those bindings in:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2014-February/232185.html
 
->> Basically the patch looks good to me, but it might be good to have a=20
->> testing round of sort with this. It can potentially cause regressions =
-on=20
->> multiple boards if the drivers happen to rely on the "broken" clock=20
->> rates. Same for patch #2 which is a copy paste of this one, but only=20
->> impacts TI boards.
->=20
-> Agreed. I've taken patches #1 & #2 into clk-next. Let's let them stew i=
-n
-> -next for a while and see if anyone's board catches on fire.
+I've hit the issue, precisely using those bindings.
 
-Thanks. I understand there's a possibility this could break some other
-driver. I still wish we could get this to 3.14, as this would fix OMAP
-display subsystem.
-
- Tomi
-
-
-
---kGQNgDN8If3dN42Nw83VID57b1dicf9jJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTEE2WAAoJEPo9qoy8lh71IS8P/0GK8wXHxtQN+xwzl+dV7kj8
-jaHrI7HZ+BAy6P6Ehg8xVMn15CeYT+NPCfw0Juuv4C4F+mW+NXU9znrfNR/pee0Y
-MI2fH23NARUT8CB/fP80Wz8gOBiQpjemNJxR3iKNSr1VJyNeV1tpP/8hOdV6UrRF
-KQKANmsKRJUdTSV7w67re3DmF6USK/gbpxUoyQY61IgtaAwdrNO4CnmvtnngFG+p
-Exwy7BkVPDKP4lC6c/fUhlgVJ6cMpvpC93wVE9whcQkUM1qUmwDmDVrTQyzBod8p
-YvbqJjn+3nyP3GcRjq9GGOyoDVPjZ/aRYv1ENm3aj5dJOFi0CwGKn+Zr/binM+VL
-dRRvGOYwvA9iZkI7OokXQrafNkXR9hpxl6VRMdZ5R5K5I1YRkRWfwpdgsNGSWVFt
-aHMSdrOAeKsiUvW4JzXpncocHxcZEXT5RS2p6bR5pcLkwdsMuH7dZIajhlyb3PJk
-hcJxcCR0lNs4eDF/oMPzCOQja1drjmVRGNtmv8PbBqktFj3kp5X9AeOIKXO/cAaW
-rGMtgIBFmSWy+cuqKn087PUQLDoAmh2jFuQk9TXFU4FjJqD8q6HKlHMU0qc1TcoV
-Y+U0G+BB5+G/UOSO+qppey9snP48a9+nDnxAjyDjpzjktIDfgwgwiKG7Um/sb4m7
-5LH9zyTacMHZLCYyRDtf
-=NqPr
------END PGP SIGNATURE-----
-
---kGQNgDN8If3dN42Nw83VID57b1dicf9jJ--
+-- 
+Alexandre Belloni, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
