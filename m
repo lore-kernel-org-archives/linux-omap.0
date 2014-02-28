@@ -1,92 +1,66 @@
-From: Marc Murphy <marcmltd@marcm.co.uk>
-Subject: USB hub disconnected at resume ???
-Date: Thu, 27 Feb 2014 22:44:51 +0000
-Message-ID: <F690310232FDDF4AB457E8B3EF90DDE0AA85AA36@MARCM-SBS2011.marcmltd.local>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v3.14-rc4
+Date: Thu, 27 Feb 2014 16:07:15 -0800
+Message-ID: <20140228000715.GA14514@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtpout07.bt.lon5.cpcloud.co.uk ([65.20.0.127]:30251 "EHLO
-	smtpout07.bt.lon5.cpcloud.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752036AbaB0Wo4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Feb 2014 17:44:56 -0500
-Received: from MARCM-SBS2011.marcmltd.local (87.113.117.163) by smtpout07.bt.lon5.cpcloud.co.uk (8.6.100.99.10223) (authenticated as marcmltd@btinternet.com)
-        id 52F02CE600FA9375 for linux-omap@vger.kernel.org; Thu, 27 Feb 2014 22:44:53 +0000
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:17815 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751163AbaB1AHu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Feb 2014 19:07:50 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hello All,
-I have had an interesting journey getting my AM3517 system to reliably use the suspend to RAM and resume from a GPIO signal.
-After a lot of investigation and some patches I now have a stable kernel booting and coming in and out of suspend.
+The following changes since commit 8842446ac74263f1330f46e11ed649e2b0ed6545:
 
-The kernel is latest stable 3.4.80 with some changes to get the EMAC Phy to initialise correctly after a suspend/resume.
+  Documentation: dt: OMAP: Update Overo/Tobi (2014-02-14 08:37:53 -0800)
 
-I have 1 issue though and need some advice/help to get the system to use the USB hub I have connected to the EHCI controller.  At boot all is recognised;
+are available in the git repository at:
 
-[    1.486816] usbcore: registered new interface driver cdc_ether
-[    1.493255] usbcore: registered new interface driver cdc_ncm
-[    1.499450] usbcore: registered new interface driver qmi_wwan
-[    1.506622] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
-[    1.513580] ehci-omap.0 supply hsusb0 not found, using dummy regulator
-[    2.521881] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
-[    2.528411] ehci-omap ehci-omap.0: new USB bus registered, assigned bus number 1
-[    2.536468] ehci-omap ehci-omap.0: irq 77, io mem 0x48064800
-[    2.553070] ehci-omap ehci-omap.0: USB 2.0 started, EHCI 1.00
-[    2.559295] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
-[    2.566436] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
-[    2.574035] usb usb1: Product: OMAP-EHCI Host Controller
-[    2.579620] usb usb1: Manufacturer: Linux 3.4.80 ehci_hcd
-[    2.585296] usb usb1: SerialNumber: ehci-omap.0
-[    2.591278] hub 1-0:1.0: USB hub found
-[    2.595306] hub 1-0:1.0: 3 ports detected
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.14/fixes-rc4
 
-And I can see everything OK.
+for you to fetch changes up to 4b41636878ee32d4c45a49de7749abca9721bd6a:
 
-# lsusb
-Bus 001 Device 002: ID 0424:2513 Standard Microsystems Corp. 2.0 Hub
-Bus 002 Device 002: ID 05e3:0718 Genesys Logic, Inc. IDE/SATA Adapter
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 001 Device 003: ID 1199:68a2 Sierra Wireless, Inc.
-#
-#
-# echo mem > /sys/power/state
-[   73.736572] PM: Syncing filesystems ... done.
-[   73.743530] Freezing user space processes ... (elapsed 0.01 seconds) done.
-[   73.766784] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
-[   73.959289] davinci_mdio davinci_mdio.0: timed out waiting for idle
-[   73.968872] PM: suspend of devices complete after 170.410 msecs
-[   73.975433] PM: late suspend of devices complete after 0.305 msecs
-[   73.982635] PM: noirq suspend of devices complete after 0.732 msecs
-[   83.430450] Powerdomain (core_pwrdm) didn't enter target state 1
-[   83.436737] Could not enter target state in pm_suspend
-[   83.443176] PM: noirq resume of devices complete after 0.915 msecs
- [   83.450164] PM: early resume of devices complete after 0.274 msecs
-[   83.457336] <6>Waiting for PHY clock good...
-[   83.463287] davinci_mdio davinci_mdio.0: resetting idled controller
-[   83.471343] net eth0: attached PHY driver [SMSC LAN8710/LAN8720] (mii_bus:phy_addr=davinci_mdio-0:00, id=7c0f1)
-[   84.771881] PM: resume of devices complete after 1315.185 msecs
-[   84.778472] Restarting tasks ...
-[   84.782379] usb 1-1: USB disconnect, device number 2
-[   84.790557] done.
-[   84.792938] mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
-sh: write error:[   84.800781] usb 1-1.1: USB disconnect, device number 3
- Operation not p[   84.808349] qmi_wwan 1-1.1:1.8: wwan0: unregister 'qmi_wwan' usb-ehci-omap.0-1.1, Sierra Wireless wwan/QMI device
-ermitted
-[   84.859191] mmc1: mmc_rescan_try_freq: trying to init card at 400000 Hz
-[   86.490356] PHY: davinci_mdio-0:00 - Link is Up - 100/Full
-#
-#
-# lsusb
-Bus 002 Device 002: ID 05e3:0718 Genesys Logic, Inc. IDE/SATA Adapter
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-#
+  ARM: OMAP3: Fix pinctrl interrupts for core2 (2014-02-27 15:35:48 -0800)
 
-Is there any relevant patch out there that would address the issue that I see ?
+----------------------------------------------------------------
+Fixes for omaps mostly to fix the 3430 display regression,
+and random crashes if booting n900 with device tree and
+thumb mode. Also few other regressions and fixes.
 
-Kind Regards
-Marc
+----------------------------------------------------------------
+Illia Smyrnov (1):
+      ARM: OMAP4: hwmod: Fix SOFTRESET logic for OMAP4
+
+Santosh Shilimkar (1):
+      ARM: OMAP: Kill warning in CPUIDLE code with !CONFIG_SMP
+
+Sebastian Reichel (1):
+      ARM: OMAP2+: Add support for thumb mode on DT booted N900
+
+Suman Anna (1):
+      ARM: DRA7: hwmod data: correct the sysc data for spinlock
+
+Tomi Valkeinen (1):
+      ARM: OMAP2+: clock: fix clkoutx2 with CLK_SET_RATE_PARENT
+
+Tony Lindgren (2):
+      Merge tag 'for-v3.14-rc/omap-fixes-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.14/fixes
+      ARM: OMAP3: Fix pinctrl interrupts for core2
+
+Vaibhav Bedia (1):
+      ARM: OMAP5: PRM: Fix reboot handling
+
+ arch/arm/mach-omap2/cclock3xxx_data.c     |  2 +
+ arch/arm/mach-omap2/cpuidle44xx.c         |  8 ++-
+ arch/arm/mach-omap2/dpll3xxx.c            | 92 ++++++++++++++++++++++++++-----
+ arch/arm/mach-omap2/omap_hwmod.c          | 20 ++++---
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  9 ++-
+ arch/arm/mach-omap2/pdata-quirks.c        | 21 ++++++-
+ arch/arm/mach-omap2/prminst44xx.c         |  4 +-
+ include/linux/clk/ti.h                    |  4 ++
+ 8 files changed, 125 insertions(+), 35 deletions(-)
