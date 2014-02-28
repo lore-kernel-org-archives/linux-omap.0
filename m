@@ -1,39 +1,33 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv2 08/16] ARM: OMAP3: remove deprecated
- CONFIG_OMAP_IOMMU_IVA2
-Date: Fri, 28 Feb 2014 19:58:47 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1402281958170.453@utopia.booyaka.com>
-References: <1392315347-32967-1-git-send-email-s-anna@ti.com> <1392315347-32967-9-git-send-email-s-anna@ti.com>
+From: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
+Subject: [pandaboard] OTG port not working (updated)
+Date: Fri, 28 Feb 2014 21:30:39 +0100
+Message-ID: <5310F1EF.2040108@math.uni-bielefeld.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:60544 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457AbaB1T6s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 14:58:48 -0500
-In-Reply-To: <1392315347-32967-9-git-send-email-s-anna@ti.com>
+Received: from smtp.math.uni-bielefeld.de ([129.70.45.10]:59546 "EHLO
+	smtp.math.uni-bielefeld.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751556AbaB1UiU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Feb 2014 15:38:20 -0500
+Received: from [192.168.0.34] (ip-84-119-26-155.unity-media.net [84.119.26.155])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(Client did not present a certificate)
+	by smtp.math.uni-bielefeld.de (Postfix) with ESMTPSA id 74B3F60106
+	for <linux-omap@vger.kernel.org>; Fri, 28 Feb 2014 21:30:42 +0100 (CET)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Joerg Roedel <joro@8bytes.org>, Tony Lindgren <tony@atomide.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
-On Thu, 13 Feb 2014, Suman Anna wrote:
+Hello,
 
-> From: Florian Vaussard <florian.vaussard@epfl.ch>
-> 
-> CONFIG_OMAP_IOMMU_IVA2 was defined originally to avoid conflicting
-> usage by tidspbridge and other iommu users. The same can be achieved
-> by marking the DT node disabled, so remove this obsolete flag and
-> the corresponding hwmod data can be enabled.
-> 
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> [s-anna@ti.com: revise commit log]
-> Signed-off-by: Suman Anna <s-anna@ti.com>
+I just updated: https://bugzilla.kernel.org/show_bug.cgi?id=64771
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+Kernel is now 3.13-rc4, plus some patches (also the USB ones by Roger
+Quadros). Still no working host mode on the port.
 
-Am assuming that someone else will be merging this as part of the entire 
-series.
+Maybe some of the TI USB guys can a look?
 
-- Paul
+With best wishes,
+Tobias
