@@ -1,96 +1,42 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 06/12] CLK: TI: gate: fixed DT binding documentation bugs
-Date: Fri, 28 Feb 2014 11:22:58 +0200
-Message-ID: <1393579384-23440-7-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 11/12] ARM: OMAP2: PRM: add support for OMAP2 specific clock providers
+Date: Fri, 28 Feb 2014 11:23:03 +0200
+Message-ID: <1393579384-23440-12-git-send-email-t-kristo@ti.com>
 References: <1393579384-23440-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59079 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43801 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751240AbaB1JY1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Feb 2014 04:24:27 -0500
+	id S1751532AbaB1JYh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Feb 2014 04:24:37 -0500
 In-Reply-To: <1393579384-23440-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-ti,composite-gate-clock documentation was missing, also the register
-offset examples were wrong.
+This patch adds support for initializing also omap2-prcm and omap2-scrm
+through DT.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../devicetree/bindings/clock/ti/gate.txt          |   29 +++++++++++++++++---
- 1 file changed, 25 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/prm_common.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/gate.txt b/Documentation/devicetree/bindings/clock/ti/gate.txt
-index 125281a..03f8fde 100644
---- a/Documentation/devicetree/bindings/clock/ti/gate.txt
-+++ b/Documentation/devicetree/bindings/clock/ti/gate.txt
-@@ -25,6 +25,11 @@ Required properties:
- 			  to map clockdomains properly
-   "ti,hsdiv-gate-clock" - gate clock with OMAP36xx specific hardware handling,
- 			  required for a hardware errata
-+  "ti,composite-gate-clock" - composite gate clock, to be part of composite
-+			      clock
-+  "ti,composite-no-wait-gate-clock" - composite gate clock that does not wait
-+				      for clock to be active before returning
-+				      from clk_enable()
- - #clock-cells : from common clock binding; shall be set to 0
- - clocks : link to phandle of parent clock
- - reg : offset for register controlling adjustable gate, not needed for
-@@ -41,7 +46,7 @@ Examples:
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
- 		clocks = <&core_96m_fck>;
--		reg = <0x48004a00 0x4>;
-+		reg = <0x0a00>;
- 		ti,bit-shift = <25>;
- 	};
- 
-@@ -57,7 +62,7 @@ Examples:
- 		#clock-cells = <0>;
- 		compatible = "ti,dss-gate-clock";
- 		clocks = <&dpll4_m4x2_ck>;
--		reg = <0x48004e00 0x4>;
-+		reg = <0x0e00>;
- 		ti,bit-shift = <0>;
- 	};
- 
-@@ -65,7 +70,7 @@ Examples:
- 		#clock-cells = <0>;
- 		compatible = "ti,am35xx-gate-clock";
- 		clocks = <&ipss_ick>;
--		reg = <0x4800259c 0x4>;
-+		reg = <0x059c>;
- 		ti,bit-shift = <1>;
- 	};
- 
-@@ -80,6 +85,22 @@ Examples:
- 		compatible = "ti,hsdiv-gate-clock";
- 		clocks = <&dpll4_m2x2_mul_ck>;
- 		ti,bit-shift = <0x1b>;
--		reg = <0x48004d00 0x4>;
-+		reg = <0x0d00>;
- 		ti,set-bit-to-disable;
- 	};
-+
-+	vlynq_gate_fck: vlynq_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&core_ck>;
-+		ti,bit-shift = <3>;
-+		reg = <0x0200>;
-+	};
-+
-+	sys_clkout2_src_gate: sys_clkout2_src_gate {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-no-wait-gate-clock";
-+		clocks = <&core_ck>;
-+		ti,bit-shift = <15>;
-+		reg = <0x0070>;
-+	};
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index b4c4ab9..878ae9f 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -475,6 +475,8 @@ static struct of_device_id omap_prcm_dt_match_table[] = {
+ 	{ .compatible = "ti,am3-scrm" },
+ 	{ .compatible = "ti,am4-prcm" },
+ 	{ .compatible = "ti,am4-scrm" },
++	{ .compatible = "ti,omap2-prcm" },
++	{ .compatible = "ti,omap2-scrm" },
+ 	{ .compatible = "ti,omap3-prm" },
+ 	{ .compatible = "ti,omap3-cm" },
+ 	{ .compatible = "ti,omap3-scrm" },
 -- 
 1.7.9.5
 
