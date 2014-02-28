@@ -1,69 +1,94 @@
-From: Luca Coelho <luca@coelho.fi>
-Subject: Re: [PATCH v4 0/8] wilink: add device tree support
-Date: Fri, 28 Feb 2014 14:29:51 +0200
-Message-ID: <1393590591.13669.36.camel@dubbel>
-References: <1375189476-21557-1-git-send-email-coelho@ti.com>
-	 <CAGm1_kvdzkvzEEymQ+H0XiKugifHF27KDz3jwX5Frg_U=S7KgA@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/3] mfd: twl6040: Select i2c fast mode as default with
+ regmap patch
+Date: Fri, 28 Feb 2014 07:30:56 -0600
+Message-ID: <53108F90.7070608@ti.com>
+References: <1393509410-1640-1-git-send-email-peter.ujfalusi@ti.com> <1393509410-1640-2-git-send-email-peter.ujfalusi@ti.com> <530F4A84.9070906@ti.com> <530F4CA5.6030502@ti.com> <530F5323.1020305@ti.com> <53103D34.8050101@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAGm1_kvdzkvzEEymQ+H0XiKugifHF27KDz3jwX5Frg_U=S7KgA@mail.gmail.com>
+In-Reply-To: <53103D34.8050101@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yegor Yefremov <yegorslists@googlemail.com>
-Cc: linux-wireless@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, nm@ti.com, martinez.javier@gmail.com
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Lee Jones <lee.jones@linaro.org>
+Cc: florian.vaussard@epfl.ch, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 2014-02-28 at 08:26 +0100, Yegor Yefremov wrote:
-> On Tue, Jul 30, 2013 at 3:04 PM, Luciano Coelho <coelho@ti.com> wrote:
-> > Hi,
-> >
-> > This patch series adds device tree support to the wlcore_sdio driver,
-> > which is used by WiLink6, WiLink7 and WiLink8.
-> >
-> > The first patches do some clean-up to make the data needed in the
-> > wilink device tree node smaller.  The remaining patches implement the
-> > actual device tree node parsing in wlcore_sdio.
-> >
-> > Regarding the XTAL clock issues, for now we don't support XTAL mode
-> > with DT, but I have sent a proposal for a small change in the clock
-> > framework to support this, but it's still under discussions [1].
-> >
-> > The DTS file changes will be sent separately, since they need to go
-> > via different trees.
-> >
-> > A new version of the bindings documentation has been sent [2] and, if
-> > no more comments are given to it, I'll apply it via my tree.
-> >
-> > [1] http://news.gmane.org/find-root.php?message_id=1372971912-10877-1-git-send-email-coelho@ti.com
-> > [2] http://news.gmane.org/find-root.php?message_id=1375109728-5931-1-git-send-email-coelho@ti.com
-> >
-> > Changes in v4:
-> >
-> > * Rebased on top of 3.11-rc3 (eg. no more changes on the board files
-> >   that were removed);
-> >
-> > * Use the new irq_get_trigger_type() instead of
-> >   irqd_get_trigger_type() (thanks Javier);
-> >
-> > * Added some missing const's (thanks Felipe);
-> >
-> > * Reverted Tony's workaround to get WiLink to work on Panda while DT
-> >   was not supported yet.
-> >
-> >
-> > Please review.
+On 02/28/2014 01:39 AM, Peter Ujfalusi wrote:
+> On 02/27/2014 05:00 PM, Nishanth Menon wrote:
+>> The other option might be to blindly configure 6040 to max speed ->
+>> but then you do have an issue with that single register write
+>> operation to configure the speed?
 > 
-> What is the state of the series? Who is now responsible for the
-> patches? What issues were still not handled?
+> Yes, exactly. It is unfortunate that twl6040's i2c speed is configured via i2c
+> write. It would have been better if we would have had pins to configure this.
+> 
+>> TWL6040 is by default at 100KHz, bus_speed is configured (via dts or
+>> otherwise) is 400KHz/3.4MHz, the register write for configuring 6040
+>> to max speed will occur at 400KHz/3.4MHz, which implies 6040 register
+>> write operation might not actually take place (as 6040 still expects
+>> to talk 100KHz till the mentioned register write takes place).
+>>
+>> Ideally, the behavior you need is as follows:
+>> talk at 100KHz for the first register write(of configuring speed),
+>> followed by 400KHz/3.4 MHz for the subsequent operations on the bus
+>> (assuming 400KHz/3.4 is the least common denominator speed on the bus).
+> 
+> Yes. Or the bootloader should have been configuring the twl6040 to 3.4MHz with
+> a single write. When the driver comes up the i2c controller had been already
 
-There were some comments about this series (or more precisely, the one
-that added the bindings documentation[1]).  Unfortunately, I have left
-TI since and have no time to handle them.  Feel free to pick it up and
-continue from there.
+you would not be able to do that unless you have powered on TWL6040
+regulators - and the moment you power them down (example on module
+removal: regulator_bulk_disable(TWL6040_NUM_SUPPLIES,
+twl6040->supplies);), you are back to square 1.
 
-[1] https://lkml.org/lkml/2013/7/30/712
+> probed and it would know that the bus can be used in 3.4MHz and we would not
+> have issues with the speed.
+> Yous see: twl6030 is also on the same bus (usually). Not sure how twl6030's
+> i2c speed is selected but the fact that twl6040 is not alone on the bus makes
+> things complicated.
 
---
-Cheers,
-Luca.
+TWL6030 can do 3.3MHz by default and there are no speed registers to
+configure.
+
+> Also you could have more devices on the bus, wired for 3.4MHz. In that case we
+> would need to make sure that the first access happens with 100KHz to twl6040
+> to select 3.4MHz mode, switch the controller speed and allow the communication
+> to other chips. It is another question how the 3.4MHz clients will interpret
+> the 100KHz communication on the bus, I guess it is ignored by them.
+As far as the i2c spec 2.1 says:
+"Fast-mode devices are downward-compatible and can communicate with
+Standard-mode devices in a 0 to 100 kbit/s I2C-bus system"
+...
+"Hs-mode devices can transfer information at bit rates of up to 3.4
+Mbit/s, yet they remain fully downward compatible with Fast- or
+Standard-mode (F/S-mode) devices for bi-directional communication in a
+mixed-speed bus system."
+
+So, they are backward compatible.
+
+> 
+>> I am not sure if the i2c framework has ability to do that.
+> 
+> AFAIK we do not have such a thing in i2c framework. We would need client
+> drivers reporting what they support, notification mechanism to notify clients
+> on speed change and couple of other things might be needed as well. So there
+> are quite a number of things missing to get dynamic/adaptive i2c working where
+> the master configuration depends on the attached devices and not the other way
+> around.
+> 
+> I'll do some experiments with the twl6040 and i2c speeds today, but so far I
+> think the 400KHz change is a safe thing to do.
+> 
+I dont think that is correct. The safest thing to do is to switch the
+i2c bus speed to 100KHz. you are depending on emperical results and a
+specification violation by expecting to let a chip default set for
+100KHz to always allow for the first communication at 400KHz.
+
+Unless ofcourse, you can confirm that the default speed register
+writes are allowed at 400KHz contrary to the data sheet info you
+mentioned in the patch.
+
+-- 
+Regards,
+Nishanth Menon
