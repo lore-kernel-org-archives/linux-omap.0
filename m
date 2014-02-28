@@ -1,31 +1,67 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 5/9] ARM: dts: omap3-gta04: Add basic sound support.
-Date: Fri, 28 Feb 2014 14:46:45 -0800
-Message-ID: <20140228224645.GR13624@atomide.com>
-References: <1390685343-11663-1-git-send-email-marek@goldelico.com>
- <1390685343-11663-6-git-send-email-marek@goldelico.com>
- <20140228222501.GL13624@atomide.com>
- <CAAfyv34Agdabr3eg1VS9mHmTtefHf3HQrS6CWF4D9jkp2fEqzA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] clk: ti: add support for default-rate property from
+ DT
+Date: Fri, 28 Feb 2014 14:51:47 -0800
+Message-ID: <20140228225147.GS13624@atomide.com>
+References: <1392282048-6284-1-git-send-email-t-kristo@ti.com>
+ <1392282048-6284-4-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:27697 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751849AbaB1Wv7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 17:51:59 -0500
 Content-Disposition: inline
-In-Reply-To: <CAAfyv34Agdabr3eg1VS9mHmTtefHf3HQrS6CWF4D9jkp2fEqzA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>, "Dr. H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+In-Reply-To: <1392282048-6284-4-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-* Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [140228 14:42]:
-> Sure . Thanks for notice ;). It there possibility that missing patches
-> go to 3.15?
+* Tero Kristo <t-kristo@ti.com> [140213 01:04]:
+> default-rate property can now be used to define default rates for clocks,
+> which get configured during boot.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-Sure if you update them over next few days.
+This can go with the drivers/clk patches as far as I'm concerned:
 
-Regards,
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  arch/arm/mach-omap2/prm_common.c |    2 ++
+>  drivers/clk/ti/clk.c             |    1 +
+>  2 files changed, 3 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+> index b4c4ab9..4703545 100644
+> --- a/arch/arm/mach-omap2/prm_common.c
+> +++ b/arch/arm/mach-omap2/prm_common.c
+> @@ -528,5 +528,7 @@ int __init of_prcm_init(void)
+>  
+>  	ti_dt_clockdomains_setup();
+>  
+> +	of_clk_set_init_rates();
+> +
+>  	return 0;
+>  }
+> diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+> index b1a6f71..23998b7 100644
+> --- a/drivers/clk/ti/clk.c
+> +++ b/drivers/clk/ti/clk.c
+> @@ -156,6 +156,7 @@ void ti_dt_clk_init_provider(struct device_node *parent, int index)
+>  		clk_init_cb = (of_clk_init_cb_t)match->data;
+>  		pr_debug("%s: initializing: %s\n", __func__, np->name);
+>  		clk_init_cb(np);
+> +		of_clk_parse_init_rate(np, NULL);
+>  	}
+>  
+>  	list_for_each_entry_safe(retry, tmp, &retry_list, link) {
+> -- 
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
