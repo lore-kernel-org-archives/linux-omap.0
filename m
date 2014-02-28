@@ -1,80 +1,70 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 1/3] mfd: twl6040: Select i2c fast mode as default with
- regmap patch
-Date: Fri, 28 Feb 2014 09:39:32 +0200
-Message-ID: <53103D34.8050101@ti.com>
-References: <1393509410-1640-1-git-send-email-peter.ujfalusi@ti.com> <1393509410-1640-2-git-send-email-peter.ujfalusi@ti.com> <530F4A84.9070906@ti.com> <530F4CA5.6030502@ti.com> <530F5323.1020305@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/8] clk: divider: fix rate calculation for fractional
+ rates
+Date: Fri, 28 Feb 2014 10:49:26 +0200
+Message-ID: <53104D96.5040704@ti.com>
+References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com> <1392285846-13199-2-git-send-email-tomi.valkeinen@ti.com> <52FE1DF2.2040707@ti.com> <20140227022524.12081.32368@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <530F5323.1020305@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Lee Jones <lee.jones@linaro.org>
-Cc: florian.vaussard@epfl.ch, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="kGQNgDN8If3dN42Nw83VID57b1dicf9jJ"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:57805 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751164AbaB1Itw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Feb 2014 03:49:52 -0500
+In-Reply-To: <20140227022524.12081.32368@quantum>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 02/27/2014 05:00 PM, Nishanth Menon wrote:
-> The other option might be to blindly configure 6040 to max speed ->
-> but then you do have an issue with that single register write
-> operation to configure the speed?
+--kGQNgDN8If3dN42Nw83VID57b1dicf9jJ
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Yes, exactly. It is unfortunate that twl6040's i2c speed is configured =
-via i2c
-write. It would have been better if we would have had pins to configure=
- this.
+On 27/02/14 04:25, Mike Turquette wrote:
 
-> TWL6040 is by default at 100KHz, bus_speed is configured (via dts or
-> otherwise) is 400KHz/3.4MHz, the register write for configuring 6040
-> to max speed will occur at 400KHz/3.4MHz, which implies 6040 register
-> write operation might not actually take place (as 6040 still expects
-> to talk 100KHz till the mentioned register write takes place).
+>> Basically the patch looks good to me, but it might be good to have a=20
+>> testing round of sort with this. It can potentially cause regressions =
+on=20
+>> multiple boards if the drivers happen to rely on the "broken" clock=20
+>> rates. Same for patch #2 which is a copy paste of this one, but only=20
+>> impacts TI boards.
 >=20
-> Ideally, the behavior you need is as follows:
-> talk at 100KHz for the first register write(of configuring speed),
-> followed by 400KHz/3.4 MHz for the subsequent operations on the bus
-> (assuming 400KHz/3.4 is the least common denominator speed on the bus=
-).
+> Agreed. I've taken patches #1 & #2 into clk-next. Let's let them stew i=
+n
+> -next for a while and see if anyone's board catches on fire.
 
-Yes. Or the bootloader should have been configuring the twl6040 to 3.4M=
-Hz with
-a single write. When the driver comes up the i2c controller had been al=
-ready
-probed and it would know that the bus can be used in 3.4MHz and we woul=
-d not
-have issues with the speed.
-Yous see: twl6030 is also on the same bus (usually). Not sure how twl60=
-30's
-i2c speed is selected but the fact that twl6040 is not alone on the bus=
- makes
-things complicated.
-Also you could have more devices on the bus, wired for 3.4MHz. In that =
-case we
-would need to make sure that the first access happens with 100KHz to tw=
-l6040
-to select 3.4MHz mode, switch the controller speed and allow the commun=
-ication
-to other chips. It is another question how the 3.4MHz clients will inte=
-rpret
-the 100KHz communication on the bus, I guess it is ignored by them.
+Thanks. I understand there's a possibility this could break some other
+driver. I still wish we could get this to 3.14, as this would fix OMAP
+display subsystem.
 
-> I am not sure if the i2c framework has ability to do that.
+ Tomi
 
-AFAIK we do not have such a thing in i2c framework. We would need clien=
-t
-drivers reporting what they support, notification mechanism to notify c=
-lients
-on speed change and couple of other things might be needed as well. So =
-there
-are quite a number of things missing to get dynamic/adaptive i2c workin=
-g where
-the master configuration depends on the attached devices and not the ot=
-her way
-around.
 
-I'll do some experiments with the twl6040 and i2c speeds today, but so =
-far I
-think the 400KHz change is a safe thing to do.
 
---=20
-P=E9ter
+--kGQNgDN8If3dN42Nw83VID57b1dicf9jJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTEE2WAAoJEPo9qoy8lh71IS8P/0GK8wXHxtQN+xwzl+dV7kj8
+jaHrI7HZ+BAy6P6Ehg8xVMn15CeYT+NPCfw0Juuv4C4F+mW+NXU9znrfNR/pee0Y
+MI2fH23NARUT8CB/fP80Wz8gOBiQpjemNJxR3iKNSr1VJyNeV1tpP/8hOdV6UrRF
+KQKANmsKRJUdTSV7w67re3DmF6USK/gbpxUoyQY61IgtaAwdrNO4CnmvtnngFG+p
+Exwy7BkVPDKP4lC6c/fUhlgVJ6cMpvpC93wVE9whcQkUM1qUmwDmDVrTQyzBod8p
+YvbqJjn+3nyP3GcRjq9GGOyoDVPjZ/aRYv1ENm3aj5dJOFi0CwGKn+Zr/binM+VL
+dRRvGOYwvA9iZkI7OokXQrafNkXR9hpxl6VRMdZ5R5K5I1YRkRWfwpdgsNGSWVFt
+aHMSdrOAeKsiUvW4JzXpncocHxcZEXT5RS2p6bR5pcLkwdsMuH7dZIajhlyb3PJk
+hcJxcCR0lNs4eDF/oMPzCOQja1drjmVRGNtmv8PbBqktFj3kp5X9AeOIKXO/cAaW
+rGMtgIBFmSWy+cuqKn087PUQLDoAmh2jFuQk9TXFU4FjJqD8q6HKlHMU0qc1TcoV
+Y+U0G+BB5+G/UOSO+qppey9snP48a9+nDnxAjyDjpzjktIDfgwgwiKG7Um/sb4m7
+5LH9zyTacMHZLCYyRDtf
+=NqPr
+-----END PGP SIGNATURE-----
+
+--kGQNgDN8If3dN42Nw83VID57b1dicf9jJ--
