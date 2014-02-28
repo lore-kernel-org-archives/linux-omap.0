@@ -1,97 +1,104 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 1/1] ARM: dts: omap3-igep: fix boot fail due wrong
- compatible match
-Date: Fri, 28 Feb 2014 16:04:16 -0300
-Message-ID: <CABxcv=kFLr4BUW-Lak7gj59THDJYo7SLwUQ+R7Vm45nc8XOG9Q@mail.gmail.com>
-References: <1393077576-25730-1-git-send-email-javier.martinez@collabora.co.uk>
-	<CABxcv=nomABe13t+zKL1=ofeGvB2hL7B3tVU6KohzGw9y5OTKg@mail.gmail.com>
-	<20140228185736.GE15399@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 05/12] CLK: TI: APLL: add support for omap2 aplls
+Date: Fri, 28 Feb 2014 13:14:59 -0600
+Message-ID: <5310E033.3000900@ti.com>
+References: <1393579384-23440-1-git-send-email-t-kristo@ti.com>
+ <1393579384-23440-6-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:34514 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434AbaB1TER (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 14:04:17 -0500
-Received: by mail-pa0-f49.google.com with SMTP id hz1so1128387pad.8
-        for <linux-omap@vger.kernel.org>; Fri, 28 Feb 2014 11:04:16 -0800 (PST)
-In-Reply-To: <20140228185736.GE15399@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1393579384-23440-6-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, mturquette@linaro.org
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Nishanth Menon <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-Hi Tony,
+On 02/28/2014 03:22 AM, Tero Kristo wrote:
+[...]
+> +static void __init of_omap2_apll_setup(struct device_node *node)
+> +{
+> +	struct dpll_data *ad = NULL;
+> +	struct clk_hw_omap *clk_hw = NULL;
+> +	struct clk_init_data *init = NULL;
+> +	struct clk *clk;
+> +	const char *parent_name;
+> +	u32 val;
+> +
+> +	ad = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
+> +	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
+> +	init = kzalloc(sizeof(*init), GFP_KERNEL);
+> +
+> +	if (!ad || !clk_hw || !init)
+> +		goto cleanup;
+> +
+> +	clk_hw->dpll_data = ad;
+> +	clk_hw->hw.init = init;
+> +	init->ops = &omap2_apll_ops;
+> +	init->name = node->name;
+> +	clk_hw->ops = &omap2_apll_hwops;
+> +
+> +	init->num_parents = of_clk_get_parent_count(node);
+> +	if (init->num_parents != 1) {
+> +		pr_err("%s must have one parent\n", node->name);
+> +		goto cleanup;
+> +	}
+> +
+> +	parent_name = of_clk_get_parent_name(node, 0);
+> +	init->parent_names = &parent_name;
+> +
+> +	if (of_property_read_u32(node, "ti,clock-frequency", &val)) {
+> +		pr_err("%s missing clock-frequency\n", node->name);
+> +		goto cleanup;
+> +	}
+> +	clk_hw->fixed_rate = val;
+> +
+> +	if (of_property_read_u32(node, "ti,bit-shift", &val)) {
+> +		pr_err("%s missing bit-shift\n", node->name);
+> +		goto cleanup;
+> +	}
+> +
+> +	clk_hw->enable_bit = val;
+> +	ad->enable_mask = 0x3 << val;
+> +	ad->autoidle_mask = 0x3 << val;
+> +
+> +	if (of_property_read_u32(node, "ti,idlest-shift", &val)) {
+> +		pr_err("%s missing idlest-shift\n", node->name);
+> +		goto cleanup;
+> +	}
+> +
+> +	ad->idlest_mask = 1 << val;
+> +
+> +	ad->control_reg = ti_clk_get_reg_addr(node, 0);
+> +	ad->autoidle_reg = ti_clk_get_reg_addr(node, 1);
+> +	ad->idlest_reg = ti_clk_get_reg_addr(node, 2);
+> +
+> +	if (!ad->control_reg || !ad->autoidle_reg || !ad->idlest_reg)
+> +		goto cleanup;
+> +
+> +	clk = clk_register(NULL, &clk_hw->hw);
+> +	if (!IS_ERR(clk)) {
+> +		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+> +		kfree(init);
+> +		return;
+> +	}
+> +cleanup:
+> +	kfree(clk_hw);
+> +	kfree(init);
+kfree(ad)?
 
-On Fri, Feb 28, 2014 at 3:57 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Javier Martinez Canillas <javier@dowhile0.org> [140228 10:52]:
->> Hi Tony,
->>
->> On Sat, Feb 22, 2014 at 10:59 AM, Javier Martinez Canillas
->> <javier.martinez@collabora.co.uk> wrote:
->> > This patch is based on commit:
->> >
->> > 016c12d2 ("ARM: OMAP3: Fix hardware detection for omap3630 when booted with device tree")
->> >
->> > and fixes a boot hang due the IGEP board being wrongly initialized
->> > as an OMAP3430 platform instead of an OMAP3630.
->> >
->> > Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
->> > ---
->> >
->> > Tony and Benoit,
->> >
->> > Sorry for posting this patch this late on the -rc cycle but I just didn't
->> > have time before to test IGEP boards against 3.14.
->> >
->> > I hope this fix can still make it to 3.14 since is a very big issue
->> > (board not even booting).
->> >
->> > Thanks a lot and best regards,
->> > Javier
->> >
->> >  arch/arm/boot/dts/omap3-igep0020.dts | 2 +-
->> >  arch/arm/boot/dts/omap3-igep0030.dts | 2 +-
->> >  2 files changed, 2 insertions(+), 2 deletions(-)
->> >
->> > diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
->> > index 25a2b5f..f2779ac 100644
->> > --- a/arch/arm/boot/dts/omap3-igep0020.dts
->> > +++ b/arch/arm/boot/dts/omap3-igep0020.dts
->> > @@ -14,7 +14,7 @@
->> >
->> >  / {
->> >         model = "IGEPv2 (TI OMAP AM/DM37x)";
->> > -       compatible = "isee,omap3-igep0020", "ti,omap3";
->> > +       compatible = "isee,omap3-igep0020", "ti,omap36xx", "ti,omap3";
->> >
->> >         leds {
->> >                 pinctrl-names = "default";
->> > diff --git a/arch/arm/boot/dts/omap3-igep0030.dts b/arch/arm/boot/dts/omap3-igep0030.dts
->> > index 145c58c..2793749 100644
->> > --- a/arch/arm/boot/dts/omap3-igep0030.dts
->> > +++ b/arch/arm/boot/dts/omap3-igep0030.dts
->> > @@ -13,7 +13,7 @@
->> >
->> >  / {
->> >         model = "IGEP COM MODULE (TI OMAP AM/DM37x)";
->> > -       compatible = "isee,omap3-igep0030", "ti,omap3";
->> > +       compatible = "isee,omap3-igep0030", "ti,omap36xx", "ti,omap3";
->> >
->> >         leds {
->> >                 pinctrl-names = "default";
->> > --
->> > 1.8.5.3
->> >
->>
->> I saw you send a pull request for 3.14-rc4 fixes and this fix was not included.
->>
->> Are you planning to send more fixes for 3.14?
->
-> Yes hoping to send one more set, got this one tagged for it.
->
+smatch reported (as part of the kernel_patch_verify_report:
++drivers/clk/ti/apll.c:400 of_omap2_apll_setup() warn: possible memory
+leak of 'ad'
 
-Great, thanks a lot for your help!
-
-Best regards,
-Javier
+-- 
+Regards,
+Nishanth Menon
