@@ -1,49 +1,39 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 11/12] ARM: OMAP2: PRM: add support for OMAP2 specific
- clock providers
-Date: Fri, 28 Feb 2014 13:17:01 -0600
-Message-ID: <5310E0AD.6080104@ti.com>
-References: <1393579384-23440-1-git-send-email-t-kristo@ti.com> <1393579384-23440-12-git-send-email-t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] ARM: dts: omap3-igep: fix boot fail due wrong
+ compatible match
+Date: Fri, 28 Feb 2014 11:31:44 -0800
+Message-ID: <20140228193143.GF15399@atomide.com>
+References: <1393077576-25730-1-git-send-email-javier.martinez@collabora.co.uk>
+ <CABxcv=nomABe13t+zKL1=ofeGvB2hL7B3tVU6KohzGw9y5OTKg@mail.gmail.com>
+ <20140228185736.GE15399@atomide.com>
+ <CABxcv=kFLr4BUW-Lak7gj59THDJYo7SLwUQ+R7Vm45nc8XOG9Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36622 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750746AbaB1TR0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Feb 2014 14:17:26 -0500
-In-Reply-To: <1393579384-23440-12-git-send-email-t-kristo@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42972 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751715AbaB1TcA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 14:32:00 -0500
+Content-Disposition: inline
+In-Reply-To: <CABxcv=kFLr4BUW-Lak7gj59THDJYo7SLwUQ+R7Vm45nc8XOG9Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Nishanth Menon <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-On 02/28/2014 03:23 AM, Tero Kristo wrote:
-> This patch adds support for initializing also omap2-prcm and omap2-scrm
-> through DT.
+* Javier Martinez Canillas <javier@dowhile0.org> [140228 11:07]:
+> On Fri, Feb 28, 2014 at 3:57 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Javier Martinez Canillas <javier@dowhile0.org> [140228 10:52]:
+> >>
+> >> I saw you send a pull request for 3.14-rc4 fixes and this fix was not included.
+> >>
+> >> Are you planning to send more fixes for 3.14?
+> >
+> > Yes hoping to send one more set, got this one tagged for it.
+> >
 > 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  arch/arm/mach-omap2/prm_common.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-> index b4c4ab9..878ae9f 100644
-> --- a/arch/arm/mach-omap2/prm_common.c
-> +++ b/arch/arm/mach-omap2/prm_common.c
-> @@ -475,6 +475,8 @@ static struct of_device_id omap_prcm_dt_match_table[] = {
->  	{ .compatible = "ti,am3-scrm" },
->  	{ .compatible = "ti,am4-prcm" },
->  	{ .compatible = "ti,am4-scrm" },
-> +	{ .compatible = "ti,omap2-prcm" },
-> +	{ .compatible = "ti,omap2-scrm" },
->  	{ .compatible = "ti,omap3-prm" },
->  	{ .compatible = "ti,omap3-cm" },
->  	{ .compatible = "ti,omap3-scrm" },
-> 
+> Great, thanks a lot for your help!
 
-probably needs Bindings documentation as well.
+Applied to omap-for-v3.14/fixes and pushed out now thanks.
 
--- 
-Regards,
-Nishanth Menon
+Tony
