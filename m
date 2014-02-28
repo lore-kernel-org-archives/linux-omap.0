@@ -1,79 +1,24 @@
-From: Luca Coelho <luca@coelho.fi>
-Subject: Re: [PATCH v4 0/8] wilink: add device tree support
-Date: Fri, 28 Feb 2014 16:12:08 +0200
-Message-ID: <1393596728.13669.48.camel@dubbel>
-References: <1375189476-21557-1-git-send-email-coelho@ti.com>
-	 <CAGm1_kvdzkvzEEymQ+H0XiKugifHF27KDz3jwX5Frg_U=S7KgA@mail.gmail.com>
-	 <1393590591.13669.36.camel@dubbel>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH 0/2] mmc: omap_hsmmc: checkpatch cleanup
+Date: Fri, 28 Feb 2014 19:52:30 +0530
+Message-ID: <1393597352-13282-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from emh06.mail.saunalahti.fi ([62.142.5.116]:42555 "EHLO
-	emh06.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798AbaB1OMN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 09:12:13 -0500
-In-Reply-To: <1393590591.13669.36.camel@dubbel>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, chris@printf.net
+Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Yegor Yefremov <yegorslists@googlemail.com>
-Cc: linux-wireless@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, nm@ti.com, martinez.javier@gmail.com
 
-On Fri, 2014-02-28 at 14:29 +0200, Luca Coelho wrote:
-> On Fri, 2014-02-28 at 08:26 +0100, Yegor Yefremov wrote:
-> > On Tue, Jul 30, 2013 at 3:04 PM, Luciano Coelho <coelho@ti.com> wrote:
-> > > Hi,
-> > >
-> > > This patch series adds device tree support to the wlcore_sdio driver,
-> > > which is used by WiLink6, WiLink7 and WiLink8.
-> > >
-> > > The first patches do some clean-up to make the data needed in the
-> > > wilink device tree node smaller.  The remaining patches implement the
-> > > actual device tree node parsing in wlcore_sdio.
-> > >
-> > > Regarding the XTAL clock issues, for now we don't support XTAL mode
-> > > with DT, but I have sent a proposal for a small change in the clock
-> > > framework to support this, but it's still under discussions [1].
-> > >
-> > > The DTS file changes will be sent separately, since they need to go
-> > > via different trees.
-> > >
-> > > A new version of the bindings documentation has been sent [2] and, if
-> > > no more comments are given to it, I'll apply it via my tree.
-> > >
-> > > [1] http://news.gmane.org/find-root.php?message_id=1372971912-10877-1-git-send-email-coelho@ti.com
-> > > [2] http://news.gmane.org/find-root.php?message_id=1375109728-5931-1-git-send-email-coelho@ti.com
-> > >
-> > > Changes in v4:
-> > >
-> > > * Rebased on top of 3.11-rc3 (eg. no more changes on the board files
-> > >   that were removed);
-> > >
-> > > * Use the new irq_get_trigger_type() instead of
-> > >   irqd_get_trigger_type() (thanks Javier);
-> > >
-> > > * Added some missing const's (thanks Felipe);
-> > >
-> > > * Reverted Tony's workaround to get WiLink to work on Panda while DT
-> > >   was not supported yet.
-> > >
-> > >
-> > > Please review.
-> > 
-> > What is the state of the series? Who is now responsible for the
-> > patches? What issues were still not handled?
-> 
-> There were some comments about this series (or more precisely, the one
-> that added the bindings documentation[1]).  Unfortunately, I have left
-> TI since and have no time to handle them.  Feel free to pick it up and
-> continue from there.
-> 
-> [1] https://lkml.org/lkml/2013/7/30/712
+fixes for checkpatch warnings.
 
-There's also this thread, which I'm not sure has been resolved:
+Balaji T K (2):
+  mmc: omap_hsmmc: fix return error code for of_get_hsmmc_pdata
+  mmc: omap_hsmmc: remove redundant reset done
 
-http://thread.gmane.org/gmane.linux.kernel/1520752
+ drivers/mmc/host/omap_hsmmc.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
---
-Luca.
+-- 
+1.7.5.4
 
