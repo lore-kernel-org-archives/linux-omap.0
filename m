@@ -1,53 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] arm: dts: am33xx.dtsi: Add node name to rtc device
- node
-Date: Fri, 28 Feb 2014 14:45:05 -0800
-Message-ID: <20140228224504.GQ13624@atomide.com>
-References: <1391602361-2666-1-git-send-email-sr@denx.de>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 5/9] ARM: dts: omap3-gta04: Add basic sound support.
+Date: Fri, 28 Feb 2014 14:46:45 -0800
+Message-ID: <20140228224645.GR13624@atomide.com>
+References: <1390685343-11663-1-git-send-email-marek@goldelico.com>
+ <1390685343-11663-6-git-send-email-marek@goldelico.com>
+ <20140228222501.GL13624@atomide.com>
+ <CAAfyv34Agdabr3eg1VS9mHmTtefHf3HQrS6CWF4D9jkp2fEqzA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16352 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751729AbaB1WpS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 17:45:18 -0500
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1391602361-2666-1-git-send-email-sr@denx.de>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAAfyv34Agdabr3eg1VS9mHmTtefHf3HQrS6CWF4D9jkp2fEqzA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>, "Dr. H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Stefan Roese <sr@denx.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Lukas Stockmann <lukas.stockmann@siemens.com>, Benoit Cousson <bcousson@baylibre.com>
 
-* Stefan Roese <sr@denx.de> [140205 04:14]:
-> Making it possible to reference and therefor change (disable) this
-> device node from other dts file which import this dtsi file.
-> 
-> Signed-off-by: Stefan Roese <sr@denx.de>
-> Cc: Lukas Stockmann <lukas.stockmann@siemens.com>
-> Cc: Benoit Cousson <bcousson@baylibre.com>
-> Cc: Tony Lindgren <tony@atomide.com>
+* Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [140228 14:42]:
+> Sure . Thanks for notice ;). It there possibility that missing patches
+> go to 3.15?
 
-Thanks applying into omap-for-v3.15/dt.
+Sure if you update them over next few days.
+
+Regards,
 
 Tony
-
-> ---
->  arch/arm/boot/dts/am33xx.dtsi | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 6d95d3d..b8daf8c 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -399,7 +399,7 @@
->  			ti,timer-pwm;
->  		};
->  
-> -		rtc@44e3e000 {
-> +		rtc: rtc@44e3e000 {
->  			compatible = "ti,da830-rtc";
->  			reg = <0x44e3e000 0x1000>;
->  			interrupts = <75
-> -- 
-> 1.8.5.3
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
