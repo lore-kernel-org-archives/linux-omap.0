@@ -1,7 +1,8 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv3 01/13] iommu/omap: convert to devm_* interfaces
-Date: Fri, 28 Feb 2014 14:42:32 -0600
-Message-ID: <1393620164-14633-2-git-send-email-s-anna@ti.com>
+Subject: [PATCHv3 02/13] iommu/omap: fix error return paths in
+	omap_iommu_attach()
+Date: Fri, 28 Feb 2014 14:42:33 -0600
+Message-ID: <1393620164-14633-3-git-send-email-s-anna@ti.com>
 References: <1393620164-14633-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,106 +22,58 @@ To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Tony Lindgren <
 Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Use the various devm_ interfaces to simplify the cleanup in
-probe and remove functions.
+There are couple of issues with the error return paths in
+omap_iommu_attach():
+1. omap_iommu_attach() returns NULL or ERR_PTR in case of error,
+   but omap_iommu_attach_dev() only checks for IS_ERR. Thus a NULL
+   return value (in case driver_find_device fails) will cause the
+   kernel to panic when omap_iommu_attach_dev() dereferences the
+   pointer.
+2. A try_module_get() failure returns a valid success value as
+   returned from iommu_enable().
+
+Both the above issues have been fixed up to return the proper
+ERR_PTR.
 
 Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Acked-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.c | 52 +++++++++-------------------------------------
- 1 file changed, 10 insertions(+), 42 deletions(-)
+ drivers/iommu/omap-iommu.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index bcd78a7..fff2ffd 100644
+index fff2ffd..647e4ba 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -941,7 +941,7 @@ static int omap_iommu_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	struct iommu_platform_data *pdata = pdev->dev.platform_data;
- 
--	obj = kzalloc(sizeof(*obj) + MMU_REG_SIZE, GFP_KERNEL);
-+	obj = devm_kzalloc(&pdev->dev, sizeof(*obj) + MMU_REG_SIZE, GFP_KERNEL);
- 	if (!obj)
- 		return -ENOMEM;
- 
-@@ -958,33 +958,18 @@ static int omap_iommu_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&obj->mmap);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		err = -ENODEV;
--		goto err_mem;
--	}
--
--	res = request_mem_region(res->start, resource_size(res),
--				 dev_name(&pdev->dev));
--	if (!res) {
--		err = -EIO;
--		goto err_mem;
--	}
--
--	obj->regbase = ioremap(res->start, resource_size(res));
--	if (!obj->regbase) {
--		err = -ENOMEM;
--		goto err_ioremap;
--	}
-+	obj->regbase = devm_ioremap_resource(obj->dev, res);
-+	if (IS_ERR(obj->regbase))
-+		return PTR_ERR(obj->regbase);
- 
- 	irq = platform_get_irq(pdev, 0);
--	if (irq < 0) {
--		err = -ENODEV;
--		goto err_irq;
--	}
--	err = request_irq(irq, iommu_fault_handler, IRQF_SHARED,
--			  dev_name(&pdev->dev), obj);
-+	if (irq < 0)
-+		return -ENODEV;
-+
-+	err = devm_request_irq(obj->dev, irq, iommu_fault_handler, IRQF_SHARED,
-+			       dev_name(obj->dev), obj);
- 	if (err < 0)
--		goto err_irq;
-+		return err;
- 	platform_set_drvdata(pdev, obj);
- 
- 	pm_runtime_irq_safe(obj->dev);
-@@ -992,34 +977,17 @@ static int omap_iommu_probe(struct platform_device *pdev)
- 
- 	dev_info(&pdev->dev, "%s registered\n", obj->name);
- 	return 0;
--
--err_irq:
--	iounmap(obj->regbase);
--err_ioremap:
--	release_mem_region(res->start, resource_size(res));
--err_mem:
--	kfree(obj);
--	return err;
- }
- 
- static int omap_iommu_remove(struct platform_device *pdev)
+@@ -863,7 +863,7 @@ static int device_match_by_alias(struct device *dev, void *data)
+  **/
+ static struct omap_iommu *omap_iommu_attach(const char *name, u32 *iopgd)
  {
--	int irq;
--	struct resource *res;
- 	struct omap_iommu *obj = platform_get_drvdata(pdev);
+-	int err = -ENOMEM;
++	int err;
+ 	struct device *dev;
+ 	struct omap_iommu *obj;
  
- 	iopgtable_clear_entry_all(obj);
+@@ -871,7 +871,7 @@ static struct omap_iommu *omap_iommu_attach(const char *name, u32 *iopgd)
+ 				(void *)name,
+ 				device_match_by_alias);
+ 	if (!dev)
+-		return NULL;
++		return ERR_PTR(-ENODEV);
  
--	irq = platform_get_irq(pdev, 0);
--	free_irq(irq, obj);
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	release_mem_region(res->start, resource_size(res));
--	iounmap(obj->regbase);
--
- 	pm_runtime_disable(obj->dev);
+ 	obj = to_iommu(dev);
  
- 	dev_info(&pdev->dev, "%s removed\n", obj->name);
--	kfree(obj);
- 	return 0;
- }
+@@ -890,8 +890,10 @@ static struct omap_iommu *omap_iommu_attach(const char *name, u32 *iopgd)
+ 		goto err_enable;
+ 	flush_iotlb_all(obj);
+ 
+-	if (!try_module_get(obj->owner))
++	if (!try_module_get(obj->owner)) {
++		err = -ENODEV;
+ 		goto err_module;
++	}
+ 
+ 	spin_unlock(&obj->iommu_lock);
  
 -- 
 1.9.0
