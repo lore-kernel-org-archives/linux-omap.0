@@ -1,72 +1,72 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: dts: tps65910 backup battery regulator
-Date: Fri, 28 Feb 2014 13:52:56 -0800
-Message-ID: <20140228215256.GC13624@atomide.com>
-References: <1387539808-24910-3-git-send-email-mpa@pengutronix.de>
- <1389888503-32013-1-git-send-email-mpa@pengutronix.de>
- <20140216220142.GA31006@pengutronix.de>
+Subject: Re: [PATCH v2 0/3] OMAP2+: hwmod: Add support to parse clock info
+ from DT
+Date: Fri, 28 Feb 2014 13:56:16 -0800
+Message-ID: <20140228215615.GD13624@atomide.com>
+References: <1386848309-14076-1-git-send-email-rnayak@ti.com>
+ <20131213173110.GF28184@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59256 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65067 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752116AbaB1VxK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 16:53:10 -0500
+	with ESMTP id S1752329AbaB1V42 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 16:56:28 -0500
 Content-Disposition: inline
-In-Reply-To: <20140216220142.GA31006@pengutronix.de>
+In-Reply-To: <20131213173110.GF28184@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Markus Pargmann <mpa@pengutronix.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, mark.rutland@arm.com, mturquette@linaro.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org
 
-* Markus Pargmann <mpa@pengutronix.de> [140216 14:04]:
-> Hi,
-> 
-> On Thu, Jan 16, 2014 at 05:08:23PM +0100, Markus Pargmann wrote:
-> > This patch adds a devicetree node for the backup battery regulator.
+* Tony Lindgren <tony@atomide.com> [131213 09:32]:
+> * Rajendra Nayak <rnayak@ti.com> [131212 03:40]:
+> > v1 of this series was posted a while back [1] but there wasn't much that
+> > was concluded if the approach used in the series was acceptable or if there
+> > are better alternatives. So I am just doing a repost of these to see if we
+> > can conclude this time around.
 > > 
-> > Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
-> > ---
-> > Hi,
-> > 
-> > Mark Brown applied [1] the other part of the series which adds 'vbb' as
-> > regulator-compatible. I forgot to add you in Cc.
+> > Needless to say, patches are based off Teros omap-clocks-to-dt v10 series [2]
+> > and I also pulled in Tonys fix to handle DT nodes with multiple 'ti,hwmod'
+> > values [3]. The approach taken in the series *does not* work for cases with
+> > multiple 'ti,hwmod' values and hence [3] helps me skip those instances
+> > for now. But based on some of the recent discussions on multiple 'ti-hwmod'
+> > values [4] it looks like its generally agreed upon that having DT nodes with
+> > multiple 'ti-hwmod' property is wrong and that those instances need to be
+> > fixed up anyway.
 > 
-> Any comments on this?
+> Yeah we need to have 1-to-1 mapping of device entries in the .dtsi files
+> to the device entries in the omap_hwmod_*_data.c files. And then we can
+> just deprecate "ti,hwmods" property and start parsing the standard compatible
+> flag instead.
 
-Thanks applying into omap-for-v3.15/dt.
+FYI seems like this series needs some dependencies solved first, so assuming
+you'll be resposting this.
 
 Regards,
 
 Tony
- 
-> > [1] http://thread.gmane.org/gmane.linux.ports.arm.kernel/289815/focus=290089
+
+  
+> > [1] http://www.spinics.net/lists/linux-omap/msg95746.html
+> > [2] http://www.spinics.net/lists/devicetree/msg13455.html
+> > [3] http://www.spinics.net/lists/arm-kernel/msg288036.html
+> > [4] http://www.spinics.net/lists/arm-kernel/msg288023.html
 > > 
-> >  arch/arm/boot/dts/tps65910.dtsi | 5 +++++
-> >  1 file changed, 5 insertions(+)
+> > Rajendra Nayak (3):
+> >   ARM: OMAP2+: Add support to parse 'main_clk' info from DT
+> >   ARM: OMAP2+: Add support to parse optional clk info from DT
+> >   ARM: OMAP4: dts: Add main and optional clock data into DT
 > > 
-> > diff --git a/arch/arm/boot/dts/tps65910.dtsi b/arch/arm/boot/dts/tps65910.dtsi
-> > index 92693a8..b0ac665 100644
-> > --- a/arch/arm/boot/dts/tps65910.dtsi
-> > +++ b/arch/arm/boot/dts/tps65910.dtsi
-> > @@ -82,5 +82,10 @@
-> >  			reg = <12>;
-> >  			regulator-compatible = "vmmc";
-> >  		};
-> > +
-> > +		vbb_reg: regulator@13 {
-> > +			reg = <13>;
-> > +			regulator-compatible = "vbb";
-> > +		};
-> >  	};
-> >  };
+> >  arch/arm/boot/dts/omap4.dtsi               |  100 +++++++++++++++++++++++
+> >  arch/arm/mach-omap2/omap_hwmod.c           |   88 ++++++++++++++++++--
+> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  122 ----------------------------
+> >  3 files changed, 180 insertions(+), 130 deletions(-)
+> > 
 > > -- 
-> > 1.8.5.2
+> > 1.7.9.5
 > > 
-> > 
-> 
-> -- 
-> Pengutronix e.K.                           |                             |
-> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
