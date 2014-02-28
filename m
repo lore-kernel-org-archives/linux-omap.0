@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv3 03/13] iommu/omap: allow enable/disable even without pdata
-Date: Fri, 28 Feb 2014 14:42:34 -0600
-Message-ID: <1393620164-14633-4-git-send-email-s-anna@ti.com>
+Subject: [PATCHv3 04/13] Documentation: dt: add OMAP iommu bindings
+Date: Fri, 28 Feb 2014 14:42:35 -0600
+Message-ID: <1393620164-14633-5-git-send-email-s-anna@ti.com>
 References: <1393620164-14633-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,55 +23,50 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 
-When booting with a devicetree, no platform data is provided.
-Do not prematurely exit iommu_enable() and iommu_disable() in
-such a case.
-
-Note: As OMAP do not yet has a proper reset controller driver,
-IOMMUs requiring a reset signal should use pdata-quirks as a
-transitional solution.
+This patch adds the iommu bindings for all OMAP2+ SoCs. Apart from
+the standard bindings used by OMAP peripherals, this patch uses a
+'dma-window' (already used by Tegra SMMU) and adds two OMAP custom
+bindings - 'ti,#tlb-entries' and 'ti,iommu-bus-err-back'.
 
 Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+[s-anna-l0cyMroinI0@public.gmane.org: split bindings document, add dra7 and bus error back]
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Acked-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 26 ++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 647e4ba..217952b 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -146,13 +146,10 @@ static int iommu_enable(struct omap_iommu *obj)
- 	struct platform_device *pdev = to_platform_device(obj->dev);
- 	struct iommu_platform_data *pdata = pdev->dev.platform_data;
- 
--	if (!pdata)
--		return -EINVAL;
--
- 	if (!arch_iommu)
- 		return -ENODEV;
- 
--	if (pdata->deassert_reset) {
-+	if (pdata && pdata->deassert_reset) {
- 		err = pdata->deassert_reset(pdev, pdata->reset_name);
- 		if (err) {
- 			dev_err(obj->dev, "deassert_reset failed: %d\n", err);
-@@ -172,14 +169,11 @@ static void iommu_disable(struct omap_iommu *obj)
- 	struct platform_device *pdev = to_platform_device(obj->dev);
- 	struct iommu_platform_data *pdata = pdev->dev.platform_data;
- 
--	if (!pdata)
--		return;
--
- 	arch_iommu->disable(obj);
- 
- 	pm_runtime_put_sync(obj->dev);
- 
--	if (pdata->assert_reset)
-+	if (pdata && pdata->assert_reset)
- 		pdata->assert_reset(pdev, pdata->reset_name);
- }
- 
+diff --git a/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
+new file mode 100644
+index 0000000..42531dc
+--- /dev/null
++++ b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
+@@ -0,0 +1,26 @@
++OMAP2+ IOMMU
++
++Required properties:
++- compatible : Should be one of,
++		"ti,omap2-iommu" for OMAP2/OMAP3 IOMMU instances
++		"ti,omap4-iommu" for OMAP4/OMAP5 IOMMU instances
++		"ti,dra7-iommu" for DRA7xx IOMMU instances
++- ti,hwmods  : Name of the hwmod associated with the IOMMU instance
++- reg        : Address space for the configuration registers
++- interrupts : Interrupt specifier for the IOMMU instance
++
++Optional properties:
++- ti,#tlb-entries : Number of entries in the translation look-aside buffer.
++                    Should be either 8 or 32 (default: 32)
++- ti,iommu-bus-err-back : Indicates the IOMMU instance supports throwing
++		          back a bus error response on MMU faults.
++
++Example:
++	/* OMAP3 ISP MMU */
++	mmu_isp: mmu@480bd400 {
++		compatible = "ti,omap2-iommu";
++		reg = <0x480bd400 0x80>;
++		interrupts = <24>;
++		ti,hwmods = "mmu_isp";
++		ti,#tlb-entries = <8>;
++	};
 -- 
 1.9.0
