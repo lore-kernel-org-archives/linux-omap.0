@@ -1,65 +1,21 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap: remove OMAP_PACKAGE_ZAC and OMAP_PACKAGE_ZAF
-Date: Fri, 28 Feb 2014 15:38:17 -0800
-Message-ID: <20140228233817.GZ13624@atomide.com>
-References: <1392576697.28866.27.camel@x220>
+From: Jantima Khuntaraksa <jantima@steelintertech.com>
+Subject: CONTACT KENYA COMMERCIAL BANK LTD IMMEDIATELY FOR YOUR PAYMENT
+ (3MILLION UNITED STATE DOLLARS)
+Date: Fri, 28 Feb 2014 21:11:48 +0000 (UTC)
+Message-ID: <597971520.33985.1393621908151.JavaMail.root__36754.7577051029$1393630825$gmane$org@steelintertech.com>
+Reply-To: "services1@kenya.ncommercialbnk.com"
+	  <services1@kenya.ncommercialbnk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1392576697.28866.27.camel@x220>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Russell King <linux@arm.linux.org.uk>, Richard Weinberger <richard@nod.at>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.mailgateway02.dragonhispeed.com ([103.4.216.22]:55490 "EHLO
+	mail.cmcgw.dragonhispeed.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752124AbaB1Xjq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Feb 2014 18:39:46 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Bolle <pebolle@tiscali.nl> [140216 10:54]:
-> The Kconfig symbols OMAP_PACKAGE_ZAC and OMAP_PACKAGE_ZAF were added in
-> v2.6.36. They have never been used. Setting them has no effect. These
-> symbols can safely be removed.
-> 
-> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-> ---
-> Tested with "git grep".
-
-Thanks applying into omap-for-v3.15/soc with the related entries also
-removed from arch/arm/mach-omap2/mux.h.
-
-Regards,
-
-Tony
+Attention: Please, Kindly contact KENYA COMMERCIAL BANK immediately for your compensation payment of (3MILLION UNITED STATE DOLLARS) via email: Email:(services1@kenya.ncommercialbnk.com) quote your payment Ref No:KCB/00Y/2014 For purposes of immediate payment.   
  
-> A sort of related cleanup would be removing the preprocessoer defines of
-> OMAP_PACKAGE_ZAC and OMAP_PACKAGE_ZAF that are unused since v3.14-rc1.
-> 
->  arch/arm/mach-omap2/Kconfig | 7 -------
->  1 file changed, 7 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 7d4934e..bb51eeb 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -165,12 +165,6 @@ config SOC_TI81XX
->  	depends on ARCH_OMAP3
->  	default y
->  
-> -config OMAP_PACKAGE_ZAF
-> -       bool
-> -
-> -config OMAP_PACKAGE_ZAC
-> -       bool
-> -
->  config OMAP_PACKAGE_CBC
->         bool
->  
-> @@ -280,7 +274,6 @@ config MACH_NOKIA_N8X0
->  	default y
->  	select MACH_NOKIA_N810
->  	select MACH_NOKIA_N810_WIMAX
-> -	select OMAP_PACKAGE_ZAC
->  
->  config MACH_NOKIA_RX51
->  	bool "Nokia N900 (RX-51) phone"
-> -- 
-> 1.8.5.3
-> 
