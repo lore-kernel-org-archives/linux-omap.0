@@ -1,143 +1,104 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv3 05/13] iommu/omap: add devicetree support
-Date: Fri, 28 Feb 2014 14:42:36 -0600
-Message-ID: <1393620164-14633-6-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv3 06/13] iommu/omap: enable bus-error back on supported iommus
+Date: Fri, 28 Feb 2014 14:42:37 -0600
+Message-ID: <1393620164-14633-7-git-send-email-s-anna@ti.com>
 References: <1393620164-14633-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58255 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751712AbaB1Uoe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Feb 2014 15:44:34 -0500
-In-Reply-To: <1393620164-14633-1-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1393620164-14633-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Subramaniam Chanderashekarapuram <subramaniam.ca-l0cyMroinI0@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>, Tony Lindgren <tony@atomide.com>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-From: Florian Vaussard <florian.vaussard@epfl.ch>
+The remoteproc MMUs in OMAP4+ SoCs have some additional debug
+registers that can give out the PC value in addition to the
+MMU fault address. The PC value can be extracted properly only
+on the DSP cores, and is not available on the ARM processors
+within the IPU sub-systems. Instead, the MMUs have been enhanced
+to throw a bus-error response back to the IPU processors.
 
-As OMAP2+ is moving to a full DT boot for all SoC families, commit
-7ce93f3 "ARM: OMAP2+: Fix more missing data for omap3.dtsi file"
-adds basic DT bits for OMAP3. But the driver is not yet converted,
-so this will not work and driver will not be probed. Convert it!
+This functionality is programmable through the MMU_GP_REG register.
+The cores are simply stalled if the MMU_GP_REG.BUS_ERR_BACK_EN bit
+is not set. When set, a bus-error exception is raised allowing the
+processor to handle it as a bus fault and provide additional debug
+information. This feature is turned on by default by the driver on
+iommus supporting it.
 
-The legacy boot mode is still supported until OMAP3 is converted
-to DT-boot only.
-
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-[s-anna@ti.com: dev_name adaptation and improved error checking]
-Signed-off-by: Suman Anna <s-anna@ti.com>
-[tony@atomide.com: Ack for arch/arm/*omap* parts]
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Subramaniam Chanderashekarapuram <subramaniam.ca-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/omap-iommu.c |  5 +++++
- drivers/iommu/omap-iommu.c       | 42 ++++++++++++++++++++++++++++++++++++----
- 2 files changed, 43 insertions(+), 4 deletions(-)
+ drivers/iommu/omap-iommu.c  | 2 ++
+ drivers/iommu/omap-iommu.h  | 5 +++++
+ drivers/iommu/omap-iommu2.c | 3 +++
+ 3 files changed, 10 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-index f6daae8..f1fab56 100644
---- a/arch/arm/mach-omap2/omap-iommu.c
-+++ b/arch/arm/mach-omap2/omap-iommu.c
-@@ -10,6 +10,7 @@
-  * published by the Free Software Foundation.
-  */
- 
-+#include <linux/of.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/err.h>
-@@ -58,6 +59,10 @@ static int __init omap_iommu_dev_init(struct omap_hwmod *oh, void *unused)
- 
- static int __init omap_iommu_init(void)
- {
-+	/* If dtb is there, the devices will be created dynamically */
-+	if (of_have_populated_dt())
-+		return -ENODEV;
-+
- 	return omap_hwmod_for_each_by_class("mmu", omap_iommu_dev_init, NULL);
- }
- /* must be ready before omap3isp is probed */
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 217952b..eb73ef2 100644
+index eb73ef2..28bc631 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -23,6 +23,9 @@
- #include <linux/spinlock.h>
- #include <linux/io.h>
- #include <linux/pm_runtime.h>
-+#include <linux/of.h>
-+#include <linux/of_iommu.h>
-+#include <linux/of_irq.h>
- 
- #include <asm/cacheflush.h>
- 
-@@ -936,17 +939,39 @@ static int omap_iommu_probe(struct platform_device *pdev)
- 	struct omap_iommu *obj;
- 	struct resource *res;
- 	struct iommu_platform_data *pdata = pdev->dev.platform_data;
-+	struct device_node *of = pdev->dev.of_node;
- 
- 	obj = devm_kzalloc(&pdev->dev, sizeof(*obj) + MMU_REG_SIZE, GFP_KERNEL);
- 	if (!obj)
- 		return -ENOMEM;
- 
--	obj->nr_tlb_entries = pdata->nr_tlb_entries;
--	obj->name = pdata->name;
-+	if (of) {
-+		obj->name = dev_name(&pdev->dev);
-+		obj->nr_tlb_entries = 32;
-+		err = of_property_read_u32(of, "ti,#tlb-entries",
-+					   &obj->nr_tlb_entries);
-+		if (err && err != -EINVAL)
-+			return err;
-+		if (obj->nr_tlb_entries != 32 && obj->nr_tlb_entries != 8)
-+			return -EINVAL;
-+		/*
-+		 * da_start and da_end are needed for omap-iovmm, so hardcode
-+		 * these values as used by OMAP3 ISP - the only user for
-+		 * omap-iovmm
-+		 */
-+		obj->da_start = 0;
-+		obj->da_end = 0xfffff000;
-+	} else {
-+		obj->nr_tlb_entries = pdata->nr_tlb_entries;
-+		obj->name = pdata->name;
-+		obj->da_start = pdata->da_start;
-+		obj->da_end = pdata->da_end;
-+	}
-+	if (obj->da_end <= obj->da_start)
-+		return -EINVAL;
+@@ -961,6 +961,8 @@ static int omap_iommu_probe(struct platform_device *pdev)
+ 		 */
+ 		obj->da_start = 0;
+ 		obj->da_end = 0xfffff000;
++		if (of_find_property(of, "ti,iommu-bus-err-back", NULL))
++			obj->has_bus_err_back = MMU_GP_REG_BUS_ERR_BACK_EN;
+ 	} else {
+ 		obj->nr_tlb_entries = pdata->nr_tlb_entries;
+ 		obj->name = pdata->name;
+diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
+index 1200842..ea920c3 100644
+--- a/drivers/iommu/omap-iommu.h
++++ b/drivers/iommu/omap-iommu.h
+@@ -52,6 +52,8 @@ struct omap_iommu {
+ 	void *ctx; /* iommu context: registres saved area */
+ 	u32 da_start;
+ 	u32 da_end;
 +
- 	obj->dev = &pdev->dev;
- 	obj->ctx = (void *)obj + sizeof(*obj);
--	obj->da_start = pdata->da_start;
--	obj->da_end = pdata->da_end;
- 
- 	spin_lock_init(&obj->iommu_lock);
- 	mutex_init(&obj->mmap_lock);
-@@ -987,11 +1012,20 @@ static int omap_iommu_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static struct of_device_id omap_iommu_of_match[] = {
-+	{ .compatible = "ti,omap2-iommu" },
-+	{ .compatible = "ti,omap4-iommu" },
-+	{ .compatible = "ti,dra7-iommu"	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, omap_iommu_of_match);
-+
- static struct platform_driver omap_iommu_driver = {
- 	.probe	= omap_iommu_probe,
- 	.remove	= omap_iommu_remove,
- 	.driver	= {
- 		.name	= "omap-iommu",
-+		.of_match_table = of_match_ptr(omap_iommu_of_match),
- 	},
++	int has_bus_err_back;
  };
  
+ struct cr_regs {
+@@ -130,6 +132,7 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+ #define MMU_READ_CAM		0x68
+ #define MMU_READ_RAM		0x6c
+ #define MMU_EMU_FAULT_AD	0x70
++#define MMU_GP_REG		0x88
+ 
+ #define MMU_REG_SIZE		256
+ 
+@@ -163,6 +166,8 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+ #define MMU_RAM_MIXED_MASK	(1 << MMU_RAM_MIXED_SHIFT)
+ #define MMU_RAM_MIXED		MMU_RAM_MIXED_MASK
+ 
++#define MMU_GP_REG_BUS_ERR_BACK_EN	0x1
++
+ /*
+  * utilities for super page(16MB, 1MB, 64KB and 4KB)
+  */
+diff --git a/drivers/iommu/omap-iommu2.c b/drivers/iommu/omap-iommu2.c
+index d745094..5e1ea3b 100644
+--- a/drivers/iommu/omap-iommu2.c
++++ b/drivers/iommu/omap-iommu2.c
+@@ -98,6 +98,9 @@ static int omap2_iommu_enable(struct omap_iommu *obj)
+ 
+ 	iommu_write_reg(obj, pa, MMU_TTB);
+ 
++	if (obj->has_bus_err_back)
++		iommu_write_reg(obj, MMU_GP_REG_BUS_ERR_BACK_EN, MMU_GP_REG);
++
+ 	__iommu_set_twl(obj, true);
+ 
+ 	return 0;
 -- 
 1.9.0
-
