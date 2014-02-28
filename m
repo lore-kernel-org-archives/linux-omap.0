@@ -1,48 +1,51 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv3 00/13] OMAP IOMMU DT adaptation for 3.15
-Date: Fri, 28 Feb 2014 15:00:00 -0800
-Message-ID: <20140228230000.GW13624@atomide.com>
-References: <1393620164-14633-1-git-send-email-s-anna@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V2 4/4] ARM: OMAP2+: AM43x: Use gptimer as clocksource
+Date: Fri, 28 Feb 2014 15:34:02 -0800
+Message-ID: <20140228233402.GY13624@atomide.com>
+References: <1391768486-2134-1-git-send-email-lokeshvutla@ti.com>
+ <1391768486-2134-5-git-send-email-lokeshvutla@ti.com>
+ <20140213231919.GO28216@atomide.com>
+ <52FDD7D5.30508@ti.com>
+ <530B4391.2050205@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35981 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752139AbaB1XeP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 18:34:15 -0500
 Content-Disposition: inline
-In-Reply-To: <1393620164-14633-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+In-Reply-To: <530B4391.2050205@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, linux@arm.linux.org.uk, nsekhar@ti.com
 
-* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [140228 12:46]:
-> Hi Joerg, Tony,
-> 
-> This is an updated series of the OMAP IOMMU DT adaptation intended
-> for 3.15 merge window, addressing the comments from the v2 series.
-> This series is rebased onto 3.14-rc4, and the only change to bindings
-> is to drop the dma-window property.
-> 
-> The first 7 patches in the series are in drivers/iommu, with the first
-> 3 patches performing some cleanup. The DT bindings and adaptation are
-> done in patches 4 and 5.
-> 
-> Tony,
-> Patches 8 through 13 are in arch/arm/mach-omap2 layer, so I am guessing
-> these would have to go through your tree. Of these, patches 8 and 9 are
-> cleanup fixes to get OMAP3 IVA MMU working, patches 10 & 11 are fixes
-> required with DT-boot for OMAP3/4, patches 12 & 13 add the OMAP5 support.
+* Lokesh Vutla <lokeshvutla@ti.com> [140224 05:08]:
+> Hi Tony,
+> On Friday 14 February 2014 02:16 PM, Rajendra Nayak wrote:
+> > On Friday 14 February 2014 04:49 AM, Tony Lindgren wrote:
+> >> * Lokesh Vutla <lokeshvutla@ti.com> [140207 02:24]:
+> >>> From: Rajendra Nayak <rnayak@ti.com>
+> >>>
+> >>> The SyncTimer in AM43x is clocked using the following two sources:
+> >>> 1) An inaccuarte 32k clock (CLK_32KHZ) derived from PER DPLL, causing system
+> >>>    time to go slowly (~10% deviation).
+> >>> 2) external 32KHz RTC clock, which may not always be available on board like
+> >>>    in the case of ePOS EVM
+> >>>
+> >>> Use gptimer as clocksource instead, as is done in the case of AM335x
+> >>> (which does not have a SyncTimer). With this, system time keeping works
+> >>> accurately.
+> >>
+> >> Hmm doesn't this also mean that PM for any deeper idle states won't
+> >> work properly?
+> > 
+> > Thats true. This would mean we cannot put the peripheral/core domain down
+> > in idle. Suspend however can still work if suspend/resume callbacks are added
+> > to the clockevent and clocksource code to shut the non-wakeup domain timer.
+> This is a platform level limitation that only MPU domain can be put down in idle, just like AM335x.
 
-Are patches 8 to 13 OK to apply separately from the iommu patches or
-do they need to wait for the iommu patches to get merged first?
-
-Regards,
+OK applying all four into omap-for-v3.15/soc thanks.
 
 Tony
