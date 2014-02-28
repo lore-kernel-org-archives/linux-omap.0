@@ -1,8 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv3 10/13] ARM: OMAP2+: change the ISP device archdata MMU name
-	for DT
-Date: Fri, 28 Feb 2014 14:42:41 -0600
-Message-ID: <1393620164-14633-11-git-send-email-s-anna@ti.com>
+Subject: [PATCHv3 13/13] ARM: OMAP2+: extend iommu pdata-quirks to OMAP5
+Date: Fri, 28 Feb 2014 14:42:44 -0600
+Message-ID: <1393620164-14633-14-git-send-email-s-anna@ti.com>
 References: <1393620164-14633-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,31 +21,36 @@ To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Tony Lindgren <
 Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The IOMMU DT adaptation support uses the device name instead
-of an iommu object name. Fixup the ISP device archdata MMU
-name at runtime if using DT-boot. This allows the OMAP3 camera
-to be functional in both legacy and DT boots. The iommu object
-names should eventually vanish when all the IOMMU users have
-been converted to DT nodes.
+OMAP5 has the same iommus as OMAP4, so extend the OMAP4
+iommu pdata quirks for OMAP5 as well.
 
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/devices.c | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/mach-omap2/pdata-quirks.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 0dd6398..e58609b 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -229,6 +229,9 @@ static struct omap_iommu_arch_data omap3_isp_iommu = {
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 74e094a..551877f 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -193,7 +193,9 @@ static void __init omap4_panda_legacy_init(void)
+ 	legacy_init_ehci_clk("auxclk3_ck");
+ 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
+ }
++#endif
  
- int omap3_init_camera(struct isp_platform_data *pdata)
- {
-+	if (of_have_populated_dt())
-+		omap3_isp_iommu.name = "480bd400.mmu";
-+
- 	omap3isp_device.dev.platform_data = pdata;
- 	omap3isp_device.dev.archdata.iommu = &omap3_isp_iommu;
- 
++#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
+ static struct iommu_platform_data omap4_iommu_pdata = {
+ 	.reset_name = "mmu_cache",
+ 	.assert_reset = omap_device_assert_hardreset,
+@@ -264,6 +266,8 @@ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
+ #ifdef CONFIG_ARCH_OMAP4
+ 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a100040, "4a100040.pinmux", &pcs_pdata),
+ 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a31e040, "4a31e040.pinmux", &pcs_pdata),
++#endif
++#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
+ 	OF_DEV_AUXDATA("ti,omap4-iommu", 0x4a066000, "4a066000.mmu",
+ 		       &omap4_iommu_pdata),
+ 	OF_DEV_AUXDATA("ti,omap4-iommu", 0x55082000, "55082000.mmu",
 -- 
 1.9.0
