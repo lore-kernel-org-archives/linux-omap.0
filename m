@@ -1,38 +1,64 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2/4] power_supply: Introduce generic psy charging driver
-Date: Fri, 28 Feb 2014 11:01:15 +0100
-Message-ID: <20140228100114.GA13189@amd.pavel.ucw.cz>
-References: <1392875640-29230-1-git-send-email-jenny.tc@intel.com>
- <1392875640-29230-3-git-send-email-jenny.tc@intel.com>
- <CACRpkdaU44iinj2iDNdYm62J+4jQbg+XJ=Zq4GmJryPeu7GfTQ@mail.gmail.com>
+Subject: Re: [PATCH 3/4] power_supply: Introduce PSE compliant algorithm
+Date: Fri, 28 Feb 2014 11:08:16 +0100
+Message-ID: <20140228100816.GA13406@amd.pavel.ucw.cz>
+References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
+ <1391490780-6141-4-git-send-email-jenny.tc@intel.com>
+ <CACRpkdbppewuSSJu=Y=1T7oOCxz_ynhNspyPT=S894KoUB6H6g@mail.gmail.com>
+ <20140228030727.GB27921@jenny-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:37949 "EHLO
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:38358 "EHLO
 	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927AbaB1KBQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 05:01:16 -0500
+	with ESMTP id S1751018AbaB1KIS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 05:08:18 -0500
 Content-Disposition: inline
-In-Reply-To: <CACRpkdaU44iinj2iDNdYm62J+4jQbg+XJ=Zq4GmJryPeu7GfTQ@mail.gmail.com>
+In-Reply-To: <20140228030727.GB27921@jenny-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Jenny TC <jenny.tc@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordo>
+To: Jenny Tc <jenny.tc@intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>=?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <f>
 
-On Thu 2014-02-27 21:08:01, Linus Walleij wrote:
-> On Thu, Feb 20, 2014 at 6:53 AM, Jenny TC <jenny.tc@intel.com> wrote:
+On Fri 2014-02-28 08:37:27, Jenny Tc wrote:
+> On Thu, Feb 27, 2014 at 09:18:57PM +0100, Linus Walleij wrote:
+> > On Tue, Feb 4, 2014 at 6:12 AM, Jenny TC <jenny.tc@intel.com> wrote:
+> > 
+> > > +static inline bool __is_battery_full
+> > > +       (long volt, long cur, long iterm, unsigned long cv)
+> > 
+> > Overall I wonder if you've run checkpatch on these patches, but why
+> > are you naming this one function with a double __underscore?
+> > Just is_battery_full_check() or something would work fine I guess?
 > 
-> > +++ b/include/linux/power/power_supply_charger.h
-> 
-> > +#define MAX_CUR_VOLT_SAMPLES 3
-> > +#define DEF_CUR_VOLT_SAMPLE_JIFF (30*HZ)
-> 
-> Why are things defined in Jiffies like this insead of seconds, milliseconds
-> etc? This will vary with the current operating frequency of the system,
-> why should physical measurements do that?
+> Just to convey that is_battery_full is a local function and not generic. You
+> can find similar usage in power_supply_core.c (__power_supply_changed_work)
+> and in other drivers. Isn't it advised to have __ prefixes?
 
-It is actually ok. The define is relative to jiffies, and that's what
-interface expects.
+It is static; everybody sees it is local. __ prefix usually means
+something else.
+
+> > > +       u16 capacity;   /* mAh */
+> > > +       u16 voltage_max; /* mV */
+> > > +       /* charge termination current */
+> > > +       u16 chrg_term_mA;
+> > > +       /* Low battery level voltage */
+> > > +       u16 low_batt_mV;
+> > > +       /* upper and lower temperature limits on discharging */
+> > > +       s8 disch_temp_ul; /* Degree Celsius */
+> > > +       s8 disch_temp_ll; /* Degree Celsius */
+> > > +       /* number of temperature monitoring ranges */
+> > > +       u16 temp_mon_ranges;
+> > > +       struct psy_ps_temp_chg_table temp_mon_range[BATT_TEMP_NR_RNG];
+> > > +       /* lowest temperature supported */
+> > > +       s8 temp_low_lim;
+> > > +} __packed;
+> > 
+> > Why packed, and convert to kerneldoc for this struct.
+> 
+> Battery charging profile, may come from EEPROM/emmc which would be packed.
+
+Do you need to do endianness conversion, too?
 									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
