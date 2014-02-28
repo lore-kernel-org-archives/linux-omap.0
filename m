@@ -1,115 +1,413 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 02/12] ARM: OMAP2420: clock: get rid of fixed-div property use
-Date: Fri, 28 Feb 2014 11:22:54 +0200
-Message-ID: <1393579384-23440-3-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 01/12] ARM: OMAP2: convert sys_ck and osc_ck to standard clock types
+Date: Fri, 28 Feb 2014 11:22:53 +0200
+Message-ID: <1393579384-23440-2-git-send-email-t-kristo@ti.com>
 References: <1393579384-23440-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1393579384-23440-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57411 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751356AbaB1JYQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 04:24:16 -0500
+In-Reply-To: <1393579384-23440-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Cleans up the code a bit and is useful for clock data DT conversion.
+osc_ck can be simply defined as a multiplexer clock, and the sys_ck
+can be a simple divider.
 
-Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/cclock2420_data.c |   15 ++++-----------
- arch/arm/mach-omap2/clock.c           |   21 ---------------------
- arch/arm/mach-omap2/clock.h           |    3 ---
- 3 files changed, 4 insertions(+), 35 deletions(-)
+ arch/arm/mach-omap2/Makefile          |    3 +-
+ arch/arm/mach-omap2/cclock2420_data.c |   52 +++++++++++++------------
+ arch/arm/mach-omap2/cclock2430_data.c |   60 +++++++++++++++-------------
+ arch/arm/mach-omap2/clkt2xxx_osc.c    |   69 ---------------------------------
+ arch/arm/mach-omap2/clkt2xxx_sys.c    |   47 ----------------------
+ arch/arm/mach-omap2/clock2xxx.h       |    2 -
+ arch/arm/mach-omap2/cm-regbits-24xx.h |    1 +
+ arch/arm/mach-omap2/pm24xx.c          |    4 ++
+ 8 files changed, 67 insertions(+), 171 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/clkt2xxx_osc.c
+ delete mode 100644 arch/arm/mach-omap2/clkt2xxx_sys.c
 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index e6eec6f..2c40cc3 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -173,10 +173,9 @@ obj-$(CONFIG_SOC_DRA7XX)		+= clockdomains7xx_data.o
+ 
+ # Clock framework
+ obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o
+-obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_sys.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpllcore.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_virt_prcm_set.o
+-obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_apll.o clkt2xxx_osc.o
++obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_apll.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpll.o clkt_iclk.o
+ obj-$(CONFIG_SOC_OMAP2420)		+= cclock2420_data.o
+ obj-$(CONFIG_SOC_OMAP2430)		+= clock2430.o cclock2430_data.o
 diff --git a/arch/arm/mach-omap2/cclock2420_data.c b/arch/arm/mach-omap2/cclock2420_data.c
-index 3e46ac1..3b0beea 100644
+index 3662f4d..3e46ac1 100644
 --- a/arch/arm/mach-omap2/cclock2420_data.c
 +++ b/arch/arm/mach-omap2/cclock2420_data.c
-@@ -1025,18 +1025,12 @@ DEFINE_CLK_OMAP_MUX_GATE(iva1_ifck, "iva1_clkdm", dsp_fck_clksel,
- 			 OMAP2420_EN_IVA_COP_SHIFT, &clkhwops_wait,
- 			 dsp_fck_parent_names, dsp_fck_ops);
+@@ -57,40 +57,39 @@ DEFINE_CLK_FIXED_RATE(func_32k_ck, CLK_IS_ROOT, 32768, 0x0);
  
-+DEFINE_CLK_FIXED_FACTOR(iva1_ifck_div, "iva1_ifck", &iva1_ifck, 0x0, 1, 2);
-+
- static struct clk iva1_mpu_int_ifck;
+ DEFINE_CLK_FIXED_RATE(mcbsp_clks, CLK_IS_ROOT, 0x0, 0x0);
  
- static const char *iva1_mpu_int_ifck_parent_names[] = {
--	"iva1_ifck",
+-static struct clk osc_ck;
++DEFINE_CLK_FIXED_RATE(virt_12m_ck, CLK_IS_ROOT, 12000000, 0x0);
+ 
+-static const struct clk_ops osc_ck_ops = {
+-	.recalc_rate	= &omap2_osc_clk_recalc,
 -};
--
--static const struct clk_ops iva1_mpu_int_ifck_ops = {
++DEFINE_CLK_FIXED_RATE(virt_13m_ck, CLK_IS_ROOT, 13000000, 0x0);
+ 
+-static struct clk_hw_omap osc_ck_hw = {
+-	.hw = {
+-		.clk = &osc_ck,
+-	},
+-};
++DEFINE_CLK_FIXED_RATE(virt_19200000_ck, CLK_IS_ROOT, 19200000, 0x0);
++
++DEFINE_CLK_FIXED_RATE(virt_26m_ck, CLK_IS_ROOT, 26000000, 0x0);
+ 
+-static struct clk osc_ck = {
+-	.name	= "osc_ck",
+-	.ops	= &osc_ck_ops,
+-	.hw	= &osc_ck_hw.hw,
+-	.flags	= CLK_IS_ROOT,
++/* 26M ck is a dummy, added to fill the hole in the aplls_clkin parent list */
++static const char *aplls_clkin_ck_parent_names[] = {
++	"virt_19200000_ck", "virt_26m_ck", "virt_13m_ck", "virt_12m_ck",
+ };
+ 
++DEFINE_CLK_MUX(aplls_clkin_ck, aplls_clkin_ck_parent_names, NULL, 0x0,
++	       OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1), OMAP24XX_APLLS_CLKIN_SHIFT,
++	       OMAP24XX_APLLS_CLKIN_WIDTH, 0x0, NULL);
++
+ DEFINE_CLK_FIXED_RATE(secure_32k_ck, CLK_IS_ROOT, 32768, 0x0);
+ 
+-static struct clk sys_ck;
++DEFINE_CLK_FIXED_FACTOR(aplls_clkin_x2_ck, "aplls_clkin_ck", &aplls_clkin_ck,
++			0x0, 2, 1);
+ 
+-static const char *sys_ck_parent_names[] = {
+-	"osc_ck",
++static const char *osc_ck_parent_names[] = {
++	"aplls_clkin_ck", "aplls_clkin_x2_ck",
+ };
+ 
+-static const struct clk_ops sys_ck_ops = {
 -	.init		= &omap2_init_clk_clkdm,
--	.enable		= &omap2_dflt_clk_enable,
--	.disable	= &omap2_dflt_clk_disable,
--	.is_enabled	= &omap2_dflt_clk_is_enabled,
--	.recalc_rate	= &omap_fixed_divisor_recalc,
-+	"iva1_ifck_div",
+-	.recalc_rate	= &omap2xxx_sys_clk_recalc,
+-};
++DEFINE_CLK_MUX(osc_ck, osc_ck_parent_names, NULL, 0x0,
++	       OMAP2420_PRCM_CLKSRC_CTRL, OMAP_SYSCLKDIV_SHIFT,
++	       OMAP_SYSCLKDIV_WIDTH, CLK_MUX_INDEX_ONE, NULL);
+ 
+-DEFINE_STRUCT_CLK_HW_OMAP(sys_ck, "wkup_clkdm");
+-DEFINE_STRUCT_CLK(sys_ck, sys_ck_parent_names, sys_ck_ops);
++DEFINE_CLK_DIVIDER(sys_ck, "osc_ck", &osc_ck, 0x0, OMAP2420_PRCM_CLKSRC_CTRL,
++		   OMAP_SYSCLKDIV_SHIFT, OMAP_SYSCLKDIV_WIDTH,
++		   CLK_DIVIDER_ONE_BASED, NULL);
+ 
+ static struct dpll_data dpll_dd = {
+ 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+@@ -1741,6 +1740,12 @@ static struct omap_clk omap2420_clks[] = {
+ 	/* external root sources */
+ 	CLK(NULL,	"func_32k_ck",	&func_32k_ck),
+ 	CLK(NULL,	"secure_32k_ck", &secure_32k_ck),
++	CLK(NULL,	"virt_12m_ck",	&virt_12m_ck),
++	CLK(NULL,	"virt_13m_ck",	&virt_13m_ck),
++	CLK(NULL,	"virt_19200000_ck",	&virt_19200000_ck),
++	CLK(NULL,	"virt_26m_ck",	&virt_26m_ck),
++	CLK(NULL,	"aplls_clkin_ck",	&aplls_clkin_ck),
++	CLK(NULL,	"aplls_clkin_x2_ck",	&aplls_clkin_x2_ck),
+ 	CLK(NULL,	"osc_ck",	&osc_ck),
+ 	CLK(NULL,	"sys_ck",	&sys_ck),
+ 	CLK(NULL,	"alt_ck",	&alt_ck),
+@@ -1904,7 +1909,6 @@ static const char *enable_init_clks[] = {
+ 
+ int __init omap2420_clk_init(void)
+ {
+-	prcm_clksrc_ctrl = OMAP2420_PRCM_CLKSRC_CTRL;
+ 	cpu_mask = RATE_IN_242X;
+ 	rate_table = omap2420_rate_table;
+ 
+diff --git a/arch/arm/mach-omap2/cclock2430_data.c b/arch/arm/mach-omap2/cclock2430_data.c
+index 5e4b037..582abc2 100644
+--- a/arch/arm/mach-omap2/cclock2430_data.c
++++ b/arch/arm/mach-omap2/cclock2430_data.c
+@@ -55,42 +55,39 @@ DEFINE_CLK_FIXED_RATE(func_32k_ck, CLK_IS_ROOT, 32768, 0x0);
+ 
+ DEFINE_CLK_FIXED_RATE(mcbsp_clks, CLK_IS_ROOT, 0x0, 0x0);
+ 
+-static struct clk osc_ck;
++DEFINE_CLK_FIXED_RATE(virt_12m_ck, CLK_IS_ROOT, 12000000, 0x0);
+ 
+-static const struct clk_ops osc_ck_ops = {
+-	.enable		= &omap2_enable_osc_ck,
+-	.disable	= omap2_disable_osc_ck,
+-	.recalc_rate	= &omap2_osc_clk_recalc,
+-};
++DEFINE_CLK_FIXED_RATE(virt_13m_ck, CLK_IS_ROOT, 13000000, 0x0);
+ 
+-static struct clk_hw_omap osc_ck_hw = {
+-	.hw = {
+-		.clk = &osc_ck,
+-	},
+-};
++DEFINE_CLK_FIXED_RATE(virt_19200000_ck, CLK_IS_ROOT, 19200000, 0x0);
+ 
+-static struct clk osc_ck = {
+-	.name	= "osc_ck",
+-	.ops	= &osc_ck_ops,
+-	.hw	= &osc_ck_hw.hw,
+-	.flags	= CLK_IS_ROOT,
++DEFINE_CLK_FIXED_RATE(virt_26m_ck, CLK_IS_ROOT, 26000000, 0x0);
++
++/* 26M ck is a dummy, added to filla hole in the aplls_clkin parent list */
++static const char *aplls_clkin_ck_parent_names[] = {
++	"virt_19200000_ck", "virt_26m_ck", "virt_13m_ck", "virt_12m_ck",
  };
  
- static struct clk_hw_omap iva1_mpu_int_ifck_hw = {
-@@ -1047,11 +1041,10 @@ static struct clk_hw_omap iva1_mpu_int_ifck_hw = {
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP2420_EN_IVA_MPU_SHIFT,
- 	.clkdm_name	= "iva1_clkdm",
--	.fixed_div	= 2,
++DEFINE_CLK_MUX(aplls_clkin_ck, aplls_clkin_ck_parent_names, NULL, 0x0,
++	       OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1), OMAP24XX_APLLS_CLKIN_SHIFT,
++	       OMAP24XX_APLLS_CLKIN_WIDTH, 0x0, NULL);
++
+ DEFINE_CLK_FIXED_RATE(secure_32k_ck, CLK_IS_ROOT, 32768, 0x0);
+ 
+-static struct clk sys_ck;
++DEFINE_CLK_FIXED_FACTOR(aplls_clkin_x2_ck, "aplls_clkin_ck", &aplls_clkin_ck,
++			0x0, 2, 1);
+ 
+-static const char *sys_ck_parent_names[] = {
+-	"osc_ck",
++static const char *osc_ck_parent_names[] = {
++	"aplls_clkin_ck", "aplls_clkin_x2_ck",
  };
  
- DEFINE_STRUCT_CLK(iva1_mpu_int_ifck, iva1_mpu_int_ifck_parent_names,
--		  iva1_mpu_int_ifck_ops);
-+		  aes_ick_ops);
+-static const struct clk_ops sys_ck_ops = {
+-	.init		= &omap2_init_clk_clkdm,
+-	.recalc_rate	= &omap2xxx_sys_clk_recalc,
+-};
++DEFINE_CLK_MUX(osc_ck, osc_ck_parent_names, NULL, 0x0,
++	       OMAP2430_PRCM_CLKSRC_CTRL, OMAP_SYSCLKDIV_SHIFT,
++	       OMAP_SYSCLKDIV_WIDTH, CLK_MUX_INDEX_ONE, NULL);
  
- static struct clk mailboxes_ick;
+-DEFINE_STRUCT_CLK_HW_OMAP(sys_ck, "wkup_clkdm");
+-DEFINE_STRUCT_CLK(sys_ck, sys_ck_parent_names, sys_ck_ops);
++DEFINE_CLK_DIVIDER(sys_ck, "osc_ck", &osc_ck, 0x0, OMAP2430_PRCM_CLKSRC_CTRL,
++		   OMAP_SYSCLKDIV_SHIFT, OMAP_SYSCLKDIV_WIDTH,
++		   CLK_DIVIDER_ONE_BASED, NULL);
  
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 591581a..4ac6e3d 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -82,27 +82,6 @@ u32 omap2_clk_readl(struct clk_hw_omap *clk, void __iomem *reg)
- }
+ static struct dpll_data dpll_dd = {
+ 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+@@ -1308,7 +1305,11 @@ static struct clk_hw_omap mdm_osc_ck_hw = {
+ 	.clkdm_name	= "mdm_clkdm",
+ };
  
- /*
-- * Used for clocks that have the same value as the parent clock,
-- * divided by some factor
+-DEFINE_STRUCT_CLK(mdm_osc_ck, sys_ck_parent_names, aes_ick_ops);
++static const char *mdm_osc_ck_parent_names[] = {
++	"osc_ck",
++};
++
++DEFINE_STRUCT_CLK(mdm_osc_ck, mdm_osc_ck_parent_names, aes_ick_ops);
+ 
+ static struct clk mmchs1_fck;
+ 
+@@ -1842,6 +1843,12 @@ static struct omap_clk omap2430_clks[] = {
+ 	/* external root sources */
+ 	CLK(NULL,	"func_32k_ck",	&func_32k_ck),
+ 	CLK(NULL,	"secure_32k_ck", &secure_32k_ck),
++	CLK(NULL,	"virt_12m_ck",	&virt_12m_ck),
++	CLK(NULL,	"virt_13m_ck",	&virt_13m_ck),
++	CLK(NULL,	"virt_19200000_ck",	&virt_19200000_ck),
++	CLK(NULL,	"virt_26m_ck",	&virt_26m_ck),
++	CLK(NULL,	"aplls_clkin_ck",	&aplls_clkin_ck),
++	CLK(NULL,	"aplls_clkin_x2_ck",	&aplls_clkin_x2_ck),
+ 	CLK(NULL,	"osc_ck",	&osc_ck),
+ 	CLK("twl",	"fck",		&osc_ck),
+ 	CLK(NULL,	"sys_ck",	&sys_ck),
+@@ -2021,7 +2028,6 @@ static const char *enable_init_clks[] = {
+ 
+ int __init omap2430_clk_init(void)
+ {
+-	prcm_clksrc_ctrl = OMAP2430_PRCM_CLKSRC_CTRL;
+ 	cpu_mask = RATE_IN_243X;
+ 	rate_table = omap2430_rate_table;
+ 
+diff --git a/arch/arm/mach-omap2/clkt2xxx_osc.c b/arch/arm/mach-omap2/clkt2xxx_osc.c
+deleted file mode 100644
+index 19f54d4..0000000
+--- a/arch/arm/mach-omap2/clkt2xxx_osc.c
++++ /dev/null
+@@ -1,69 +0,0 @@
+-/*
+- * OMAP2xxx osc_clk-specific clock code
+- *
+- * Copyright (C) 2005-2008 Texas Instruments, Inc.
+- * Copyright (C) 2004-2010 Nokia Corporation
+- *
+- * Contacts:
+- * Richard Woodruff <r-woodruff2@ti.com>
+- * Paul Walmsley
+- *
+- * Based on earlier work by Tuukka Tikkanen, Tony Lindgren,
+- * Gordon McNutt and RidgeRun, Inc.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
 - */
--unsigned long omap_fixed_divisor_recalc(struct clk_hw *hw,
--		unsigned long parent_rate)
+-#undef DEBUG
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/clk.h>
+-#include <linux/io.h>
+-
+-#include "clock.h"
+-#include "clock2xxx.h"
+-#include "prm2xxx_3xxx.h"
+-#include "prm-regbits-24xx.h"
+-
+-/*
+- * XXX This does not actually enable the osc_ck, since the osc_ck must
+- * be running for this function to be called.  Instead, this function
+- * is used to disable an autoidle mode on the osc_ck.  The existing
+- * clk_enable/clk_disable()-based usecounting for osc_ck should be
+- * replaced with autoidle-based usecounting.
+- */
+-int omap2_enable_osc_ck(struct clk_hw *clk)
 -{
--	struct clk_hw_omap *oclk;
+-	u32 pcc;
 -
--	if (!hw) {
--		pr_warn("%s: hw is NULL\n", __func__);
--		return -EINVAL;
--	}
+-	pcc = __raw_readl(prcm_clksrc_ctrl);
 -
--	oclk = to_clk_hw_omap(hw);
+-	__raw_writel(pcc & ~OMAP_AUTOEXTCLKMODE_MASK, prcm_clksrc_ctrl);
 -
--	WARN_ON(!oclk->fixed_div);
--
--	return parent_rate / oclk->fixed_div;
+-	return 0;
 -}
 -
 -/*
-  * OMAP2+ specific clock functions
-  */
- 
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index bda767a..3843c9f 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -189,9 +189,6 @@ struct clk_hw_omap_ops {
- 	void			(*deny_idle)(struct clk_hw_omap *oclk);
- };
- 
--unsigned long omap_fixed_divisor_recalc(struct clk_hw *hw,
--					unsigned long parent_rate);
+- * XXX This does not actually disable the osc_ck, since doing so would
+- * immediately halt the system.  Instead, this function is used to
+- * enable an autoidle mode on the osc_ck.  The existing
+- * clk_enable/clk_disable()-based usecounting for osc_ck should be
+- * replaced with autoidle-based usecounting.
+- */
+-void omap2_disable_osc_ck(struct clk_hw *clk)
+-{
+-	u32 pcc;
 -
- /* CM_CLKSEL2_PLL.CORE_CLK_SRC bits (2XXX) */
- #define CORE_CLK_SRC_32K		0x0
- #define CORE_CLK_SRC_DPLL		0x1
+-	pcc = __raw_readl(prcm_clksrc_ctrl);
+-
+-	__raw_writel(pcc | OMAP_AUTOEXTCLKMODE_MASK, prcm_clksrc_ctrl);
+-}
+-
+-unsigned long omap2_osc_clk_recalc(struct clk_hw *clk,
+-				   unsigned long parent_rate)
+-{
+-	return omap2xxx_get_apll_clkin() * omap2xxx_get_sysclkdiv();
+-}
+diff --git a/arch/arm/mach-omap2/clkt2xxx_sys.c b/arch/arm/mach-omap2/clkt2xxx_sys.c
+deleted file mode 100644
+index f467d07..0000000
+--- a/arch/arm/mach-omap2/clkt2xxx_sys.c
++++ /dev/null
+@@ -1,47 +0,0 @@
+-/*
+- * OMAP2xxx sys_clk-specific clock code
+- *
+- * Copyright (C) 2005-2008 Texas Instruments, Inc.
+- * Copyright (C) 2004-2010 Nokia Corporation
+- *
+- * Contacts:
+- * Richard Woodruff <r-woodruff2@ti.com>
+- * Paul Walmsley
+- *
+- * Based on earlier work by Tuukka Tikkanen, Tony Lindgren,
+- * Gordon McNutt and RidgeRun, Inc.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-#undef DEBUG
+-
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/clk.h>
+-#include <linux/io.h>
+-
+-#include "clock.h"
+-#include "clock2xxx.h"
+-#include "prm2xxx_3xxx.h"
+-#include "prm-regbits-24xx.h"
+-
+-void __iomem *prcm_clksrc_ctrl;
+-
+-u32 omap2xxx_get_sysclkdiv(void)
+-{
+-	u32 div;
+-
+-	div = __raw_readl(prcm_clksrc_ctrl);
+-	div &= OMAP_SYSCLKDIV_MASK;
+-	div >>= OMAP_SYSCLKDIV_SHIFT;
+-
+-	return div;
+-}
+-
+-unsigned long omap2xxx_sys_clk_recalc(struct clk_hw *clk,
+-				      unsigned long parent_rate)
+-{
+-	return parent_rate / omap2xxx_get_sysclkdiv();
+-}
+diff --git a/arch/arm/mach-omap2/clock2xxx.h b/arch/arm/mach-omap2/clock2xxx.h
+index 539dc08..8d52a0c 100644
+--- a/arch/arm/mach-omap2/clock2xxx.h
++++ b/arch/arm/mach-omap2/clock2xxx.h
+@@ -49,8 +49,6 @@ int omap2430_clk_init(void);
+ #define omap2430_clk_init()	do { } while(0)
+ #endif
+ 
+-extern void __iomem *prcm_clksrc_ctrl;
+-
+ extern struct clk_hw *dclk_hw;
+ int omap2_enable_osc_ck(struct clk_hw *hw);
+ void omap2_disable_osc_ck(struct clk_hw *hw);
+diff --git a/arch/arm/mach-omap2/cm-regbits-24xx.h b/arch/arm/mach-omap2/cm-regbits-24xx.h
+index 8538669..d7a5d11 100644
+--- a/arch/arm/mach-omap2/cm-regbits-24xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-24xx.h
+@@ -107,6 +107,7 @@
+ #define OMAP24XX_AUTO_DPLL_SHIFT			0
+ #define OMAP24XX_AUTO_DPLL_MASK				(0x3 << 0)
+ #define OMAP24XX_APLLS_CLKIN_SHIFT			23
++#define OMAP24XX_APLLS_CLKIN_WIDTH			3
+ #define OMAP24XX_APLLS_CLKIN_MASK			(0x7 << 23)
+ #define OMAP24XX_DPLL_MULT_MASK				(0x3ff << 12)
+ #define OMAP24XX_DPLL_DIV_MASK				(0xf << 8)
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index 8c07594..2dbc30c 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -251,6 +251,10 @@ static void __init prcm_setup_regs(void)
+ 	/* Enable wake-up events */
+ 	omap2_prm_write_mod_reg(OMAP24XX_EN_GPIOS_MASK | OMAP24XX_EN_GPT1_MASK,
+ 				WKUP_MOD, PM_WKEN);
++
++	/* Enable SYS_CLKEN control when all domains idle */
++	omap2_prm_set_mod_reg_bits(OMAP_AUTOEXTCLKMODE_MASK, OMAP24XX_GR_MOD,
++				   OMAP2_PRCM_CLKSRC_CTRL_OFFSET);
+ }
+ 
+ int __init omap2_pm_init(void)
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
