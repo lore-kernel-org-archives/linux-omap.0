@@ -1,51 +1,97 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 3/4] ARM: OMAP2+: add legacy display for omap3 DBB056
-Date: Fri, 28 Feb 2014 14:38:25 -0800
-Message-ID: <20140228223824.GN13624@atomide.com>
-References: <1392387656-15186-1-git-send-email-chf.fritz@googlemail.com>
- <1392387656-15186-4-git-send-email-chf.fritz@googlemail.com>
- <52FE29BF.9040307@ti.com>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: Re: [PATCH 5/9] ARM: dts: omap3-gta04: Add basic sound support.
+Date: Fri, 28 Feb 2014 23:40:00 +0100
+Message-ID: <CAAfyv34Agdabr3eg1VS9mHmTtefHf3HQrS6CWF4D9jkp2fEqzA@mail.gmail.com>
+References: <1390685343-11663-1-git-send-email-marek@goldelico.com>
+	<1390685343-11663-6-git-send-email-marek@goldelico.com>
+	<20140228222501.GL13624@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:60928 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751876AbaB1Wil (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 17:38:41 -0500
-Content-Disposition: inline
-In-Reply-To: <52FE29BF.9040307@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140228222501.GL13624@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, LKML <linux-kernel@vger.kernel.org>, NeilBrown <neilb@suse.de>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Christoph Fritz <chf.fritz@googlemail.com>, bcousson@baylibre.com, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Daniel Mack <zonque@gmail.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140214 06:38]:
-> Hi,
-> 
-> On 14/02/14 16:20, Christoph Fritz wrote:
-> > Full device tree support for omapdss is not yet accomplished. Until
-> > then, init display by legacy platform code.
-> > 
-> > Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
-> > ---
-> >  arch/arm/mach-omap2/dss-common.c   |   49 ++++++++++++++++++++++++++++++++++++
-> >  arch/arm/mach-omap2/dss-common.h   |    1 +
-> >  arch/arm/mach-omap2/pdata-quirks.c |    8 +++++-
-> >  3 files changed, 57 insertions(+), 1 deletion(-)
-> 
-> I'm not nack'ing this, but I'm again hoping to get DSS DT support for
-> 3.15. I haven't done any bigger changes to my branch for some time now,
-> and I'm just waiting to get some comments/acks for the bindings.
-> 
-> So I suggest to also try out DSS DT for your board, based on the latest
-> DSS DT branch:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt
-> 
-> That way you have it ready and tested if DSS DT goes forward.
+Hi Tony,
 
-Applying only patches 1 & 2 into omap-for-v3.15/dt thanks.
+On Fri, Feb 28, 2014 at 11:25 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Marek Belisko <marek@goldelico.com> [140125 13:31]:
+>
+> Hmm care to add descriptions and repost the remaining patches
+> that I did not yet pick up for the fixes?
+Sure I'll do.
+>
+>> Signed-off-by: NeilBrown <neilb@suse.de>
+>
+> Hmm should this also have From: NeilBrown <neilb@suse.de>?
+Maybe I did some changes and forgot add my Signed-off-by? I'll recheck.
+>
+> Also, while at it, maybe change your long time habit of adding
+> a period to the end of the subject line? That is of course
+> if you don't insist on having it, it's not usually used if
+> you look at git log --pretty=oneline :)
+Sure . Thanks for notice ;). It there possibility that missing patches
+go to 3.15?
+>
+> Regards,
+>
+> Tony
+>
+>> ---
+>>  arch/arm/boot/dts/omap3-gta04.dts | 15 +++++++++++++++
+>>  1 file changed, 15 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
+>> index 7e09410..a924a843 100644
+>> --- a/arch/arm/boot/dts/omap3-gta04.dts
+>> +++ b/arch/arm/boot/dts/omap3-gta04.dts
+>> @@ -36,6 +36,14 @@
+>>                       gpio-key,wakeup;
+>>               };
+>>       };
+>> +
+>> +     sound {
+>> +             compatible = "ti,omap-twl4030";
+>> +             ti,model = "gta04";
+>> +
+>> +             ti,mcbsp = <&mcbsp2>;
+>> +             ti,codec = <&twl_audio>;
+>> +     };
+>>  };
+>>
+>>  &omap3_pmx_core {
+>> @@ -79,6 +87,13 @@
+>>               reg = <0x48>;
+>>               interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+>>               interrupt-parent = <&intc>;
+>> +
+>> +             twl_audio: audio {
+>> +                     compatible = "ti,twl4030-audio";
+>> +                     codec {
+>> +                     };
+>> +             };
+>> +
+>>               vaux4: regulator-vaux4 {
+>>                       compatible = "ti,twl4030-vaux4";
+>>                       regulator-min-microvolt = <2800000>;
+>> --
+>> 1.8.3.2
+>>
 
-Regards,
+BR,
 
-Tony
+marek
+
+-- 
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+Freelance Developer
+
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+twitter: #opennandra
+web: http://open-nandra.com
