@@ -1,94 +1,87 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Use handle_fasteoi_irq for INTC interrupt
- handling
-Date: Fri, 28 Feb 2014 09:11:12 -0800
-Message-ID: <20140228171111.GA15399@atomide.com>
-References: <1393236556-12361-1-git-send-email-stefan.sorensen@spectralink.com>
+Subject: Re: [PATCH v3 1/2] CLK: TI: OMAP4/5/DRA7: Remove gpmc_fck from dummy
+ clocks
+Date: Fri, 28 Feb 2014 09:28:37 -0800
+Message-ID: <20140228172836.GB15399@atomide.com>
+References: <1393411089-9550-1-git-send-email-florian.vaussard@epfl.ch>
+ <1393411089-9550-2-git-send-email-florian.vaussard@epfl.ch>
+ <20140226204003.4353.17772@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38621 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751974AbaB1RLY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 12:11:24 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31138 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752636AbaB1R2x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 12:28:53 -0500
 Content-Disposition: inline
-In-Reply-To: <1393236556-12361-1-git-send-email-stefan.sorensen@spectralink.com>
+In-Reply-To: <20140226204003.4353.17772@quantum>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stefan =?utf-8?B?U8O4cmVuc2Vu?= <stefan.sorensen@spectralink.com>
-Cc: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Florian Vaussard <florian.vaussard@epfl.ch>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tero Kristo <t-kristo@ti.com>, Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Stefan S=C3=B8rensen <stefan.sorensen@spectralink.com> [140224 02:12]=
-:
-> Currently INTC interrupts are handled using handle_level_irq which
-> will acknowledge the interrupt before running the handler. If a secon=
-d
-> interrupt is then asserted and this interrupt is disabled while
-> running the first handler, the INTC will be brought into an
-> inconsistent state.
+* Mike Turquette <mturquette@linaro.org> [140226 12:43]:
+> Quoting Florian Vaussard (2014-02-26 02:38:08)
+> > When arch/arm/mach-omap2/gpmc.c calls clk_get(..., "fck"), it will
+> > get a dummy clock and try to use it. As the rate is configured to zero,
+> > this will result in several divisions by zero, and misconfigured
+> > timings, with devices on the bus being lost in the La La Land.
+> > 
+> > It is better to remove gpmc_fck from the dummy clocks, so that gpmc.c
+> > can fail gracefully.
+> > 
+> > Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+> 
+> Looks good to me.
 
-Hmm care to explain a bit more here if the second interrupt you're
-talking about is the same interrupt or any interrupt in the same
-interrupt bank? Is this limited to GPIO interrupts?
+Can that be upgraded to an ack then?
 
-The reason I'm asking is because of the issues we've seen earlier
-with not flushing posted writes from the interrupt handlers. In
-those case the interrupt on the device gets acked too late without
-the read back call.
+Regards,
 
-> In this state the INTC will interrupt the CPU but
-> the interrupt pending registers will show no pending interrupts
-> causing the CPU to take no action. This will repeat until another
-> higher priority interrupt triggers, hogging the CPU.
->=20
-> handle_fasteoi_irq does not acknowledge the interrupt before after
-> running the handler, so using this for handling INTC interrupts avoid
-> the above problem. This also brings the handling more in line with th=
-e
-> sequence described in the TRM.
->=20
-> Signed-off-by: Stefan S=C3=B8rensen <stefan.sorensen@spectralink.com>
-> ---
->  arch/arm/mach-omap2/irq.c | 10 ++--------
->  1 file changed, 2 insertions(+), 8 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-> index e022a86..9d09914 100644
-> --- a/arch/arm/mach-omap2/irq.c
-> +++ b/arch/arm/mach-omap2/irq.c
-> @@ -97,12 +97,6 @@ static void omap_ack_irq(struct irq_data *d)
->  	intc_bank_write_reg(0x1, &irq_banks[0], INTC_CONTROL);
->  }
-> =20
-> -static void omap_mask_ack_irq(struct irq_data *d)
-> -{
-> -	irq_gc_mask_disable_reg(d);
-> -	omap_ack_irq(d);
-> -}
-> -
->  static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank=
-)
->  {
->  	unsigned long tmp;
-> @@ -145,9 +139,9 @@ omap_alloc_gc(void __iomem *base, unsigned int ir=
-q_start, unsigned int num)
->  	struct irq_chip_type *ct;
-> =20
->  	gc =3D irq_alloc_generic_chip("INTC", 1, irq_start, base,
-> -					handle_level_irq);
-> +					handle_fasteoi_irq);
->  	ct =3D gc->chip_types;
-> -	ct->chip.irq_ack =3D omap_mask_ack_irq;
-> +	ct->chip.irq_eoi =3D omap_ack_irq;
->  	ct->chip.irq_mask =3D irq_gc_mask_disable_reg;
->  	ct->chip.irq_unmask =3D irq_gc_unmask_enable_reg;
->  	ct->chip.flags |=3D IRQCHIP_SKIP_SET_WAKE;
-> --=20
-> 1.8.5.3
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
+ 
+> > ---
+> >  drivers/clk/ti/clk-44xx.c | 1 -
+> >  drivers/clk/ti/clk-54xx.c | 1 -
+> >  drivers/clk/ti/clk-7xx.c  | 1 -
+> >  3 files changed, 3 deletions(-)
+> > 
+> > diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
+> > index ae00218..02517a8 100644
+> > --- a/drivers/clk/ti/clk-44xx.c
+> > +++ b/drivers/clk/ti/clk-44xx.c
+> > @@ -222,7 +222,6 @@ static struct ti_dt_clk omap44xx_clks[] = {
+> >         DT_CLK(NULL, "auxclk5_src_ck", "auxclk5_src_ck"),
+> >         DT_CLK(NULL, "auxclk5_ck", "auxclk5_ck"),
+> >         DT_CLK(NULL, "auxclkreq5_ck", "auxclkreq5_ck"),
+> > -       DT_CLK("50000000.gpmc", "fck", "dummy_ck"),
+> >         DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
+> >         DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
+> >         DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
+> > diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
+> > index 0ef9f58..08f3d1b 100644
+> > --- a/drivers/clk/ti/clk-54xx.c
+> > +++ b/drivers/clk/ti/clk-54xx.c
+> > @@ -182,7 +182,6 @@ static struct ti_dt_clk omap54xx_clks[] = {
+> >         DT_CLK(NULL, "auxclk3_src_ck", "auxclk3_src_ck"),
+> >         DT_CLK(NULL, "auxclk3_ck", "auxclk3_ck"),
+> >         DT_CLK(NULL, "auxclkreq3_ck", "auxclkreq3_ck"),
+> > -       DT_CLK(NULL, "gpmc_ck", "dummy_ck"),
+> >         DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
+> >         DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
+> >         DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
+> > diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+> > index 9977653..f7e4073 100644
+> > --- a/drivers/clk/ti/clk-7xx.c
+> > +++ b/drivers/clk/ti/clk-7xx.c
+> > @@ -262,7 +262,6 @@ static struct ti_dt_clk dra7xx_clks[] = {
+> >         DT_CLK(NULL, "vip1_gclk_mux", "vip1_gclk_mux"),
+> >         DT_CLK(NULL, "vip2_gclk_mux", "vip2_gclk_mux"),
+> >         DT_CLK(NULL, "vip3_gclk_mux", "vip3_gclk_mux"),
+> > -       DT_CLK(NULL, "gpmc_ck", "dummy_ck"),
+> >         DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
+> >         DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
+> >         DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
+> > -- 
+> > 1.8.1.2
+> > 
