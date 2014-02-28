@@ -1,72 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/9] ARM: DTS: OMAP: Audio related cleanups for dtsi and
- dts files
-Date: Fri, 28 Feb 2014 14:20:23 -0800
-Message-ID: <20140228222023.GK13624@atomide.com>
-References: <1390551547-12406-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 5/9] ARM: dts: omap3-gta04: Add basic sound support.
+Date: Fri, 28 Feb 2014 14:25:02 -0800
+Message-ID: <20140228222501.GL13624@atomide.com>
+References: <1390685343-11663-1-git-send-email-marek@goldelico.com>
+ <1390685343-11663-6-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50548 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752431AbaB1WUg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 17:20:36 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1390551547-12406-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1390685343-11663-6-git-send-email-marek@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marek Belisko <marek@goldelico.com>
+Cc: bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, neilb@suse.de, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [140124 00:21]:
-> Hi Benoit,
-> 
-> OMAP: Put the audio nodes to disabled styate by default and board dts files should
-> enable the nodes which is used on the board.
-> 
-> am335x: correct the audio mclk clock. This patch has been marked to go to 3.13
-> 	stable as well.
+* Marek Belisko <marek@goldelico.com> [140125 13:31]:
 
-Looks like these should get merged, assuming Benoit did not pick them
-up yet so applying into omap-for-v3.15/dt.
+Hmm care to add descriptions and repost the remaining patches
+that I did not yet pick up for the fixes?
+
+> Signed-off-by: NeilBrown <neilb@suse.de>
+
+Hmm should this also have From: NeilBrown <neilb@suse.de>?
+
+Also, while at it, maybe change your long time habit of adding
+a period to the end of the subject line? That is of course
+if you don't insist on having it, it's not usually used if
+you look at git log --pretty=oneline :)
 
 Regards,
 
 Tony
 
-
-> Peter Ujfalusi (9):
->   ARM: DTS: omap4-panda-common: Move audio related pinmux to respective
->     nodes
->   ARM: DTS: omap4-sdp: Move audio related pinmux to respective nodes
->   ARM: DTS: omap4: Set all audio related IP's status to disabled as
->     default
->   ARM: DTS: omap4-panda-common: No need to disable the unused audio
->     nodes
->   ARM: DTS: omap4-sdp: No need to disable mcbsp3 node
->   ARM: DTS: omap5: Set all audio related IP's status to disabled as
->     default
->   ARM: DTS: omap3: Set disabled status for McBSP instances as default
->     state
->   ARM: DTS: omap2: Set disabled status for McBSP instances as default
->     state
->   ARM: DTS: am335x-evmsk: Correct audio clock frequency
+> ---
+>  arch/arm/boot/dts/omap3-gta04.dts | 15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
 > 
->  arch/arm/boot/dts/am335x-evmsk.dts        |  2 +-
->  arch/arm/boot/dts/omap2420.dtsi           |  2 ++
->  arch/arm/boot/dts/omap2430.dtsi           |  5 +++++
->  arch/arm/boot/dts/omap3-beagle-xm.dts     |  4 ++++
->  arch/arm/boot/dts/omap3-beagle.dts        |  4 ++++
->  arch/arm/boot/dts/omap3-devkit8000.dts    | 16 ++-------------
->  arch/arm/boot/dts/omap3-igep.dtsi         |  1 +
->  arch/arm/boot/dts/omap3-overo.dtsi        |  4 ++++
->  arch/arm/boot/dts/omap3.dtsi              |  5 +++++
->  arch/arm/boot/dts/omap4-panda-common.dtsi | 23 ++++++++++-----------
->  arch/arm/boot/dts/omap4-sdp.dts           | 33 ++++++++++++++++++++++++-------
->  arch/arm/boot/dts/omap4.dtsi              |  6 ++++++
->  arch/arm/boot/dts/omap5.dtsi              |  5 +++++
->  13 files changed, 77 insertions(+), 33 deletions(-)
-> 
+> diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
+> index 7e09410..a924a843 100644
+> --- a/arch/arm/boot/dts/omap3-gta04.dts
+> +++ b/arch/arm/boot/dts/omap3-gta04.dts
+> @@ -36,6 +36,14 @@
+>  			gpio-key,wakeup;
+>  		};
+>  	};
+> +
+> +	sound {
+> +		compatible = "ti,omap-twl4030";
+> +		ti,model = "gta04";
+> +
+> +		ti,mcbsp = <&mcbsp2>;
+> +		ti,codec = <&twl_audio>;
+> +	};
+>  };
+>  
+>  &omap3_pmx_core {
+> @@ -79,6 +87,13 @@
+>  		reg = <0x48>;
+>  		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+>  		interrupt-parent = <&intc>;
+> +
+> +		twl_audio: audio {
+> +			compatible = "ti,twl4030-audio";
+> +			codec {
+> +			};
+> +		};
+> +
+>  		vaux4: regulator-vaux4 {
+>  			compatible = "ti,twl4030-vaux4";
+>  			regulator-min-microvolt = <2800000>;
 > -- 
-> 1.8.5.3
+> 1.8.3.2
 > 
