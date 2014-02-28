@@ -1,31 +1,37 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: Re: [PATCH v4 0/8] wilink: add device tree support
-Date: Fri, 28 Feb 2014 10:22:03 +0100
-Message-ID: <20140228092203.GA2974@piout.net>
-References: <1375189476-21557-1-git-send-email-coelho@ti.com>
- <CAGm1_kvdzkvzEEymQ+H0XiKugifHF27KDz3jwX5Frg_U=S7KgA@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 00/12] ARM: OMAP2 DT clock conversion
+Date: Fri, 28 Feb 2014 11:22:52 +0200
+Message-ID: <1393579384-23440-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAGm1_kvdzkvzEEymQ+H0XiKugifHF27KDz3jwX5Frg_U=S7KgA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yegor Yefremov <yegorslists@googlemail.com>
-Cc: Luciano Coelho <coelho@ti.com>, mark.rutland@arm.com, nm@ti.com, mturquette@linaro.org, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, "Nori, Sekhar" <nsekhar@ti.com>, kernel list <linux-kernel@vger.kernel.org>, balbi@ti.com, martinez.javier@gmail.com, rob.herring@calxeda.com, grant.likely@linaro.org, linux-omap@vger.kernel.org, luca@coelho.fi, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:40316 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751240AbaB1JYO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Feb 2014 04:24:14 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 28/02/2014 at 08:26:46 +0100, Yegor Yefremov wrote :
-> 
-> What is the state of the series? Who is now responsible for the
-> patches? What issues were still not handled?
-> 
+Hi,
 
-We probably want to end that discussion before taking those bindings in:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2014-February/232185.html
+This set concludes the omap2+ clock DT conversion work by creating the
+DT clock data for omap2 SoC also.
 
-I've hit the issue, precisely using those bindings.
+I am also currently doing related work to cleanup CM/PRM codebase in
+preparation to move it into drivers/, this set is basically going to
+be a pre-requisite for that. I'll hopefully post something related
+to that early next week.
 
--- 
-Alexandre Belloni, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+This set has been boot tested on OMAP2430 only (thanks Nishanth, I don't
+have access to OMAP2 hardware myself), so any testing feedback on
+2420 board(s) would be appreciated.
+
+Working tree:
+
+Tree: https://github.com/t-kristo/linux-pm.git
+Branch: 3.14-rc4-omap2-dt-clks
+
+-Tero
+
