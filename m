@@ -1,39 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: dts: omap3-igep: fix boot fail due wrong
- compatible match
-Date: Fri, 28 Feb 2014 11:31:44 -0800
-Message-ID: <20140228193143.GF15399@atomide.com>
-References: <1393077576-25730-1-git-send-email-javier.martinez@collabora.co.uk>
- <CABxcv=nomABe13t+zKL1=ofeGvB2hL7B3tVU6KohzGw9y5OTKg@mail.gmail.com>
- <20140228185736.GE15399@atomide.com>
- <CABxcv=kFLr4BUW-Lak7gj59THDJYo7SLwUQ+R7Vm45nc8XOG9Q@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv2 08/16] ARM: OMAP3: remove deprecated
+ CONFIG_OMAP_IOMMU_IVA2
+Date: Fri, 28 Feb 2014 19:58:47 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1402281958170.453@utopia.booyaka.com>
+References: <1392315347-32967-1-git-send-email-s-anna@ti.com> <1392315347-32967-9-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42972 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751715AbaB1TcA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 14:32:00 -0500
-Content-Disposition: inline
-In-Reply-To: <CABxcv=kFLr4BUW-Lak7gj59THDJYo7SLwUQ+R7Vm45nc8XOG9Q@mail.gmail.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:60544 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751457AbaB1T6s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 14:58:48 -0500
+In-Reply-To: <1392315347-32967-9-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Nishanth Menon <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Suman Anna <s-anna@ti.com>
+Cc: Joerg Roedel <joro@8bytes.org>, Tony Lindgren <tony@atomide.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Javier Martinez Canillas <javier@dowhile0.org> [140228 11:07]:
-> On Fri, Feb 28, 2014 at 3:57 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Javier Martinez Canillas <javier@dowhile0.org> [140228 10:52]:
-> >>
-> >> I saw you send a pull request for 3.14-rc4 fixes and this fix was not included.
-> >>
-> >> Are you planning to send more fixes for 3.14?
-> >
-> > Yes hoping to send one more set, got this one tagged for it.
-> >
+On Thu, 13 Feb 2014, Suman Anna wrote:
+
+> From: Florian Vaussard <florian.vaussard@epfl.ch>
 > 
-> Great, thanks a lot for your help!
+> CONFIG_OMAP_IOMMU_IVA2 was defined originally to avoid conflicting
+> usage by tidspbridge and other iommu users. The same can be achieved
+> by marking the DT node disabled, so remove this obsolete flag and
+> the corresponding hwmod data can be enabled.
+> 
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+> [s-anna@ti.com: revise commit log]
+> Signed-off-by: Suman Anna <s-anna@ti.com>
 
-Applied to omap-for-v3.14/fixes and pushed out now thanks.
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
-Tony
+Am assuming that someone else will be merging this as part of the entire 
+series.
+
+- Paul
