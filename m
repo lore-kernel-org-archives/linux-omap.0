@@ -1,47 +1,60 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v9 0/9] USB Host support for OMAP5 uEVM
-Date: Fri, 28 Feb 2014 14:56:28 -0800
-Message-ID: <20140228225627.GU13624@atomide.com>
-References: <1393510711-4697-1-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: am335x-evmsk: enable USB1
+Date: Fri, 28 Feb 2014 14:57:51 -0800
+Message-ID: <20140228225750.GV13624@atomide.com>
+References: <1393571944-10438-1-git-send-email-yegorslists@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56744 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752554AbaB1W6C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 17:58:02 -0500
 Content-Disposition: inline
-In-Reply-To: <1393510711-4697-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1393571944-10438-1-git-send-email-yegorslists@googlemail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: yegorslists@googlemail.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140227 06:21]:
-> Hi,
+* yegorslists@googlemail.com <yegorslists@googlemail.com> [140227 23:22]:
+> From: Yegor Yefremov <yegorslists@googlemail.com>
 > 
-> This patchset brings up USB Host ports and Ethernet port on
-> the OMAP5 uEVM board.
+> Enable second USB channel and set it into 'host' mode.
 > 
-> It also does some cleanup with respect to DT clock binding
-> for the mfd/omap-usb-host driver.
-> 
-> Please queue these for -next.
-> 
-> Lee,
-> 
-> I've folded some platform data dependent patches with mfd patches
-> so that they don't break functionality when applied individually.
-> You can safely pull in all MFD patches (1 to 6).
-> 
-> Tony & Benoit,
-> 
-> Can you please accept patches 7, 8 and 9?
+> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
 
-Are 7, 8 and 9 safe to queue separately from the MFD changes
-or do they need to wait for the MFD changes to get merged
-first?
-
-Regards,
+Thanks applying into omap-for-v3.15/dt.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> ---
+>  arch/arm/boot/dts/am335x-evmsk.dts |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+> index 486880b..40a66bd 100644
+> --- a/arch/arm/boot/dts/am335x-evmsk.dts
+> +++ b/arch/arm/boot/dts/am335x-evmsk.dts
+> @@ -342,9 +342,18 @@
+>  		status = "okay";
+>  	};
+>  
+> +	usb-phy@47401b00 {
+> +		status = "okay";
+> +	};
+> +
+>  	usb@47401000 {
+>  		status = "okay";
+>  	};
+> +
+> +	usb@47401800 {
+> +		status = "okay";
+> +		dr_mode = "host";
+> +	};
+>  };
+>  
+>  &epwmss2 {
+> -- 
+> 1.7.7
+> 
