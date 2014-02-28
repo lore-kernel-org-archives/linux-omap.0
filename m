@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv3 06/13] iommu/omap: enable bus-error back on supported iommus
-Date: Fri, 28 Feb 2014 14:42:37 -0600
-Message-ID: <1393620164-14633-7-git-send-email-s-anna@ti.com>
+Subject: [PATCHv3 08/13] ARM: OMAP3: remove deprecated CONFIG_OMAP_IOMMU_IVA2
+Date: Fri, 28 Feb 2014 14:42:39 -0600
+Message-ID: <1393620164-14633-9-git-send-email-s-anna@ti.com>
 References: <1393620164-14633-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,87 +18,83 @@ List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
 Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Subramaniam Chanderashekarapuram <subramaniam.ca-l0cyMroinI0@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The remoteproc MMUs in OMAP4+ SoCs have some additional debug
-registers that can give out the PC value in addition to the
-MMU fault address. The PC value can be extracted properly only
-on the DSP cores, and is not available on the ARM processors
-within the IPU sub-systems. Instead, the MMUs have been enhanced
-to throw a bus-error response back to the IPU processors.
+From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 
-This functionality is programmable through the MMU_GP_REG register.
-The cores are simply stalled if the MMU_GP_REG.BUS_ERR_BACK_EN bit
-is not set. When set, a bus-error exception is raised allowing the
-processor to handle it as a bus fault and provide additional debug
-information. This feature is turned on by default by the driver on
-iommus supporting it.
+CONFIG_OMAP_IOMMU_IVA2 was defined originally to avoid conflicting
+usage by tidspbridge and other iommu users. The same can be achieved
+by marking the DT node disabled, so remove this obsolete flag and
+the corresponding hwmod data can be enabled.
 
-Signed-off-by: Subramaniam Chanderashekarapuram <subramaniam.ca-l0cyMroinI0@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+[s-anna-l0cyMroinI0@public.gmane.org: revise commit log]
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Acked-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Acked-by: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.c  | 2 ++
- drivers/iommu/omap-iommu.h  | 5 +++++
- drivers/iommu/omap-iommu2.c | 3 +++
- 3 files changed, 10 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 8 --------
+ arch/arm/plat-omap/Kconfig                 | 3 ---
+ 2 files changed, 11 deletions(-)
 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index eb73ef2..28bc631 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -961,6 +961,8 @@ static int omap_iommu_probe(struct platform_device *pdev)
- 		 */
- 		obj->da_start = 0;
- 		obj->da_end = 0xfffff000;
-+		if (of_find_property(of, "ti,iommu-bus-err-back", NULL))
-+			obj->has_bus_err_back = MMU_GP_REG_BUS_ERR_BACK_EN;
- 	} else {
- 		obj->nr_tlb_entries = pdata->nr_tlb_entries;
- 		obj->name = pdata->name;
-diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-index 1200842..ea920c3 100644
---- a/drivers/iommu/omap-iommu.h
-+++ b/drivers/iommu/omap-iommu.h
-@@ -52,6 +52,8 @@ struct omap_iommu {
- 	void *ctx; /* iommu context: registres saved area */
- 	u32 da_start;
- 	u32 da_end;
-+
-+	int has_bus_err_back;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 4c3b1e6..81dd071 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3029,8 +3029,6 @@ static struct omap_hwmod omap3xxx_mmu_isp_hwmod = {
+ 	.flags		= HWMOD_NO_IDLEST,
  };
  
- struct cr_regs {
-@@ -130,6 +132,7 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
- #define MMU_READ_CAM		0x68
- #define MMU_READ_RAM		0x6c
- #define MMU_EMU_FAULT_AD	0x70
-+#define MMU_GP_REG		0x88
+-#ifdef CONFIG_OMAP_IOMMU_IVA2
+-
+ /* mmu iva */
  
- #define MMU_REG_SIZE		256
+ static struct omap_mmu_dev_attr mmu_iva_dev_attr = {
+@@ -3082,8 +3080,6 @@ static struct omap_hwmod omap3xxx_mmu_iva_hwmod = {
+ 	.flags		= HWMOD_NO_IDLEST,
+ };
  
-@@ -163,6 +166,8 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
- #define MMU_RAM_MIXED_MASK	(1 << MMU_RAM_MIXED_SHIFT)
- #define MMU_RAM_MIXED		MMU_RAM_MIXED_MASK
+-#endif
+-
+ /* l4_per -> gpio4 */
+ static struct omap_hwmod_addr_space omap3xxx_gpio4_addrs[] = {
+ 	{
+@@ -3855,9 +3851,7 @@ static struct omap_hwmod_ocp_if *omap34xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap3xxx_l4_core__hdq1w,
+ 	&omap3xxx_sad2d__l3,
+ 	&omap3xxx_l4_core__mmu_isp,
+-#ifdef CONFIG_OMAP_IOMMU_IVA2
+ 	&omap3xxx_l3_main__mmu_iva,
+-#endif
+ 	&omap34xx_l4_core__ssi,
+ 	NULL
+ };
+@@ -3881,9 +3875,7 @@ static struct omap_hwmod_ocp_if *omap36xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap3xxx_l4_core__hdq1w,
+ 	&omap3xxx_sad2d__l3,
+ 	&omap3xxx_l4_core__mmu_isp,
+-#ifdef CONFIG_OMAP_IOMMU_IVA2
+ 	&omap3xxx_l3_main__mmu_iva,
+-#endif
+ 	NULL
+ };
  
-+#define MMU_GP_REG_BUS_ERR_BACK_EN	0x1
-+
- /*
-  * utilities for super page(16MB, 1MB, 64KB and 4KB)
-  */
-diff --git a/drivers/iommu/omap-iommu2.c b/drivers/iommu/omap-iommu2.c
-index d745094..5e1ea3b 100644
---- a/drivers/iommu/omap-iommu2.c
-+++ b/drivers/iommu/omap-iommu2.c
-@@ -98,6 +98,9 @@ static int omap2_iommu_enable(struct omap_iommu *obj)
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 436ea97..02fc10d 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -86,9 +86,6 @@ config OMAP_MUX_WARNINGS
+ 	  to change the pin multiplexing setup.	 When there are no warnings
+ 	  printed, it's safe to deselect OMAP_MUX for your product.
  
- 	iommu_write_reg(obj, pa, MMU_TTB);
- 
-+	if (obj->has_bus_err_back)
-+		iommu_write_reg(obj, MMU_GP_REG_BUS_ERR_BACK_EN, MMU_GP_REG);
-+
- 	__iommu_set_twl(obj, true);
- 
- 	return 0;
+-config OMAP_IOMMU_IVA2
+-	bool
+-
+ config OMAP_MPU_TIMER
+ 	bool "Use mpu timer"
+ 	depends on ARCH_OMAP1
 -- 
 1.9.0
