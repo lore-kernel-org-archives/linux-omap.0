@@ -1,76 +1,62 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 00/12] ARM: OMAP2 DT clock conversion
-Date: Fri, 28 Feb 2014 09:59:45 -0600
-Message-ID: <5310B271.5040708@ti.com>
-References: <1393579384-23440-1-git-send-email-t-kristo@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v7 1/4] mmc: omap_hsmmc: Enable SDIO IRQ.
+Date: Fri, 28 Feb 2014 22:34:44 +0530
+Message-ID: <5310C1AC.5060301@ti.com>
+References: <1393331866-28307-1-git-send-email-afenkart@gmail.com> <1393331866-28307-2-git-send-email-afenkart@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44509 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752499AbaB1QAK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 11:00:10 -0500
-In-Reply-To: <1393579384-23440-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1393331866-28307-2-git-send-email-afenkart@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Andreas Fenkart <afenkart@gmail.com>
+Cc: Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 02/28/2014 03:22 AM, Tero Kristo wrote:
-> Hi,
-> 
-> This set concludes the omap2+ clock DT conversion work by creating the
-> DT clock data for omap2 SoC also.
-> 
-> I am also currently doing related work to cleanup CM/PRM codebase in
-> preparation to move it into drivers/, this set is basically going to
-> be a pre-requisite for that. I'll hopefully post something related
-> to that early next week.
-> 
-> This set has been boot tested on OMAP2430 only (thanks Nishanth, I don't
-> have access to OMAP2 hardware myself), so any testing feedback on
-> 2420 board(s) would be appreciated.
-> 
-> Working tree:
-> 
-> Tree: https://github.com/t-kristo/linux-pm.git
-> Branch: 3.14-rc4-omap2-dt-clks
+On Tuesday 25 February 2014 06:07 PM, Andreas Fenkart wrote:
+> For now, only support SDIO interrupt if we are booted with
+> DT. This is because some platforms need special quirks. And
+> we don't want to add new legacy mux platform init code
+> callbacks any longer as we are moving to DT based booting
+> anyways.
+>
+> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index a5a38cc..bd3bb0c 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
 
-I do see checkpatch warnings in the series:
-http://slexy.org/view/s20mzhlJ93
+<snip>
 
-Series boot tested with:
-3.14-rc4-omap2-dt-clks  fc73a96 ARM: OMAP2: clock: use DT clock boot
-if available
-from the tree mentioned above.
+> @@ -1705,7 +1757,18 @@ static void omap_hsmmc_debugfs(struct mmc_host *mmc)
+>   #endif
+>
+>   #ifdef CONFIG_OF
+> -static u16 omap4_reg_offset = 0x100;
+> +struct of_data {
+> +	u16 offset;
+> +	int flags;
+> +};
+> +
+Hi Andreas,
 
-Things look good other than the checkpatch violation noticed in
-report, so other than that,
+struct of_data declaration needs to be moved out of #ifdef CONFIG_OF
+for !CONFIG_OF build.
 
-Tested-by: Nishanth Menon <nm@ti.com>
+I tried testing this patch series on am335x, I see throughput in the
+range of KBs. Will give another try with Tony's version.
 
-omap2plus_defconfig
- 1: am335x-evm:  Boot PASS: http://slexy.org/raw/s2jdV3XMCC
- 2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s210nZI8Hx
- 3: am3517-evm:  Boot PASS: http://slexy.org/raw/s21MG8kg6u
- 4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s20coVhzLt
- 5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s21XKjjwyk
- 6: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s27PCmlDq7
- 7: BeagleBone-Black:  Boot PASS: http://slexy.org/raw/s2HX1Q3iPb
- 8:      crane: No Image built - Missing platform support?:
- 9:       dra7:  Boot PASS: http://slexy.org/raw/s21ofDfpD2
-10:        ldp:  Boot FAIL: http://slexy.org/raw/s2SbrpyX2p
-^^ legacy behavior
-11: PandaBoard-ES:  Boot PASS: http://slexy.org/raw/s21n4iMUKd
-12:    sdp2430:  Boot PASS: http://slexy.org/raw/s2CJ5hYl72
-13:    sdp3430:  Boot PASS: http://slexy.org/raw/s20axZ1nyb
-14:    sdp4430:  Boot PASS: http://slexy.org/raw/s21wt3C5F3
-15: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s208PhmCpm
-TOTAL = 15 boards, Booted Boards = 13, No Boot boards = 2
+Thanks and Regards,
+Balaji T K
 
-
-
--- 
-Regards,
-Nishanth Menon
+> +static struct of_data omap4_data = {
+> +	.offset	= 0x100,
+> +};
+> +static struct of_data am33xx_data = {
+> +	.offset	= 0x100,
+> +	.flags	= OMAP_HSMMC_SWAKEUP_MISSING,
+> +};
+>
+>   static const struct of_device_id omap_mmc_of_match[] = {
+>   	{
