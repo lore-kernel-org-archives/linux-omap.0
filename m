@@ -1,21 +1,107 @@
-From: Jantima Khuntaraksa <jantima@steelintertech.com>
-Subject: CONTACT KENYA COMMERCIAL BANK LTD IMMEDIATELY FOR YOUR PAYMENT
- (3MILLION UNITED STATE DOLLARS)
-Date: Fri, 28 Feb 2014 21:11:48 +0000 (UTC)
-Message-ID: <597971520.33985.1393621908151.JavaMail.root__36754.7577051029$1393630825$gmane$org@steelintertech.com>
-Reply-To: "services1@kenya.ncommercialbnk.com"
-	  <services1@kenya.ncommercialbnk.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: PRCM/hwmod/clock non-regression fixes
+ and optimizations for v3.15
+Date: Fri, 28 Feb 2014 15:41:58 -0800
+Message-ID: <20140228234158.GA13624@atomide.com>
+References: <alpine.DEB.2.02.1402282039400.453@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.mailgateway02.dragonhispeed.com ([103.4.216.22]:55490 "EHLO
-	mail.cmcgw.dragonhispeed.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752124AbaB1Xjq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Feb 2014 18:39:46 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:46819 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751691AbaB1XmL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 18:42:11 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1402282039400.453@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Attention: Please, Kindly contact KENYA COMMERCIAL BANK immediately for your compensation payment of (3MILLION UNITED STATE DOLLARS) via email: Email:(services1@kenya.ncommercialbnk.com) quote your payment Ref No:KCB/00Y/2014 For purposes of immediate payment.   
+* Paul Walmsley <paul@pwsan.com> [140228 12:44]:
+> Hi Tony,
+> 
+> The following changes since commit 38dbfb59d1175ef458d006556061adeaa8751b72:
+> 
+>   Linus 3.14-rc1 (2014-02-02 16:42:13 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.15/omap-hwmod-clk-prcm-a
+> 
+> for you to fetch changes up to 110e884d829448e24959f424b31be5bc75bcca6e:
+> 
+>   ARM: OMAP3+: DPLL: stop reparenting to same parent if already done (2014-02-28 12:43:47 -0700)
+> 
+> ----------------------------------------------------------------
+> Some low-level optimizations and fixes that don't belong in an -rc
+> series for various OMAP-family chips, targeted for v3.15.
+> 
+> Basic build, boot, and PM test logs are available here:
+> 
+> http://www.pwsan.com/omap/testlogs/prcm-a-for-v3.15/20140228124518/
+
+Thanks pulling into omap-for-v3.15/prcm.
+
+Tony
  
+> ----------------------------------------------------------------
+> Dave Gerlach (1):
+>       ARM: OMAP2+: clockdomain: Reintroduce SW_SLEEP Support
+> 
+> Lokesh Vutla (1):
+>       ARM: OMAP2+: AM43xx: implement support for machine restart
+> 
+> Nishanth Menon (1):
+>       ARM: OMAP3+: DPLL: stop reparenting to same parent if already done
+> 
+> Suman Anna (1):
+>       ARM: AM43x: hwmod data: register spinlock OCP interface
+> 
+> Tomi Valkeinen (1):
+>       ARM: OMAP2+: clock: fix rate prints
+> 
+>  arch/arm/mach-omap2/Makefile               |  1 +
+>  arch/arm/mach-omap2/board-generic.c        |  1 +
+>  arch/arm/mach-omap2/clkt_dpll.c            |  6 +++---
+>  arch/arm/mach-omap2/cminst44xx.c           | 18 ++++++++++++++++--
+>  arch/arm/mach-omap2/dpll3xxx.c             |  2 +-
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c |  1 +
+>  arch/arm/mach-omap2/prminst44xx.c          |  3 +++
+>  7 files changed, 26 insertions(+), 6 deletions(-)
+> 
+> 
+> vmlinux object size
+> (delta in bytes from test_v3.14-rc1 (38dbfb59d1175ef458d006556061adeaa8751b72)):
+>    text     data      bss    total  kernel
+>       0       -8        0       -8  omap1_defconfig
+>       0        0        0        0  omap1_defconfig_1510innovator_only
+>       0        0        0        0  omap1_defconfig_5912osk_only
+> 
+> vmlinux object size
+> (delta in bytes from test_v3.14-rc1 (38dbfb59d1175ef458d006556061adeaa8751b72)):
+>    text     data      bss    total  kernel
+> +8791542  +826036  +291072  +9908650  multi_v7_defconfig
+>    +116        0        0     +116  omap2plus_defconfig
+>       0        0        0        0  omap2plus_defconfig_2430sdp_only
+>       0        0        0        0  omap2plus_defconfig_am33xx_only
+>    +148        0        0     +148  omap2plus_defconfig_am43xx_only
+>    +116        0        0     +116  omap2plus_defconfig_cpupm
+>    +116        0        0     +116  omap2plus_defconfig_dra7xx_only
+>       0        0        0        0  omap2plus_defconfig_n800_multi_omap2xxx
+>       0        0        0        0  omap2plus_defconfig_n800_only_a
+>     +52        0        0      +52  omap2plus_defconfig_no_pm
+>    +116        0        0     +116  omap2plus_defconfig_omap2_4_only
+>     +52        0        0      +52  omap2plus_defconfig_omap3_4_only
+>     +52        0        0      +52  omap2plus_defconfig_omap5_only
+>     +32        0        0      +32  rmk_omap3430_ldp_allnoconfig
+>     +32        0        0      +32  rmk_omap3430_ldp_oldconfig
+>    +100        0      -16      +84  rmk_omap4430_sdp_allnoconfig
+>     +96        0        0      +96  rmk_omap4430_sdp_oldconfig
+> 
+> Boot-time memory difference
+> (delta in bytes from test_v3.14-rc1 (38dbfb59d1175ef458d006556061adeaa8751b72))
+>   avail  rsrvd   high  freed  board          kconfig
+> (no differences)
+> 
+> 
