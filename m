@@ -1,65 +1,69 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 3/4] power_supply: Introduce PSE compliant algorithm
-Date: Fri, 28 Feb 2014 11:08:16 +0100
-Message-ID: <20140228100816.GA13406@amd.pavel.ucw.cz>
-References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
- <1391490780-6141-4-git-send-email-jenny.tc@intel.com>
- <CACRpkdbppewuSSJu=Y=1T7oOCxz_ynhNspyPT=S894KoUB6H6g@mail.gmail.com>
- <20140228030727.GB27921@jenny-desktop>
+From: Luca Coelho <luca@coelho.fi>
+Subject: Re: [PATCH v4 0/8] wilink: add device tree support
+Date: Fri, 28 Feb 2014 14:29:51 +0200
+Message-ID: <1393590591.13669.36.camel@dubbel>
+References: <1375189476-21557-1-git-send-email-coelho@ti.com>
+	 <CAGm1_kvdzkvzEEymQ+H0XiKugifHF27KDz3jwX5Frg_U=S7KgA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:38358 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751018AbaB1KIS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 05:08:18 -0500
-Content-Disposition: inline
-In-Reply-To: <20140228030727.GB27921@jenny-desktop>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAGm1_kvdzkvzEEymQ+H0XiKugifHF27KDz3jwX5Frg_U=S7KgA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yegor Yefremov <yegorslists@googlemail.com>
+Cc: linux-wireless@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, nm@ti.com, martinez.javier@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Jenny Tc <jenny.tc@intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>=?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <f>
 
-On Fri 2014-02-28 08:37:27, Jenny Tc wrote:
-> On Thu, Feb 27, 2014 at 09:18:57PM +0100, Linus Walleij wrote:
-> > On Tue, Feb 4, 2014 at 6:12 AM, Jenny TC <jenny.tc@intel.com> wrote:
-> > 
-> > > +static inline bool __is_battery_full
-> > > +       (long volt, long cur, long iterm, unsigned long cv)
-> > 
-> > Overall I wonder if you've run checkpatch on these patches, but why
-> > are you naming this one function with a double __underscore?
-> > Just is_battery_full_check() or something would work fine I guess?
+On Fri, 2014-02-28 at 08:26 +0100, Yegor Yefremov wrote:
+> On Tue, Jul 30, 2013 at 3:04 PM, Luciano Coelho <coelho@ti.com> wrote:
+> > Hi,
+> >
+> > This patch series adds device tree support to the wlcore_sdio driver,
+> > which is used by WiLink6, WiLink7 and WiLink8.
+> >
+> > The first patches do some clean-up to make the data needed in the
+> > wilink device tree node smaller.  The remaining patches implement the
+> > actual device tree node parsing in wlcore_sdio.
+> >
+> > Regarding the XTAL clock issues, for now we don't support XTAL mode
+> > with DT, but I have sent a proposal for a small change in the clock
+> > framework to support this, but it's still under discussions [1].
+> >
+> > The DTS file changes will be sent separately, since they need to go
+> > via different trees.
+> >
+> > A new version of the bindings documentation has been sent [2] and, if
+> > no more comments are given to it, I'll apply it via my tree.
+> >
+> > [1] http://news.gmane.org/find-root.php?message_id=1372971912-10877-1-git-send-email-coelho@ti.com
+> > [2] http://news.gmane.org/find-root.php?message_id=1375109728-5931-1-git-send-email-coelho@ti.com
+> >
+> > Changes in v4:
+> >
+> > * Rebased on top of 3.11-rc3 (eg. no more changes on the board files
+> >   that were removed);
+> >
+> > * Use the new irq_get_trigger_type() instead of
+> >   irqd_get_trigger_type() (thanks Javier);
+> >
+> > * Added some missing const's (thanks Felipe);
+> >
+> > * Reverted Tony's workaround to get WiLink to work on Panda while DT
+> >   was not supported yet.
+> >
+> >
+> > Please review.
 > 
-> Just to convey that is_battery_full is a local function and not generic. You
-> can find similar usage in power_supply_core.c (__power_supply_changed_work)
-> and in other drivers. Isn't it advised to have __ prefixes?
+> What is the state of the series? Who is now responsible for the
+> patches? What issues were still not handled?
 
-It is static; everybody sees it is local. __ prefix usually means
-something else.
+There were some comments about this series (or more precisely, the one
+that added the bindings documentation[1]).  Unfortunately, I have left
+TI since and have no time to handle them.  Feel free to pick it up and
+continue from there.
 
-> > > +       u16 capacity;   /* mAh */
-> > > +       u16 voltage_max; /* mV */
-> > > +       /* charge termination current */
-> > > +       u16 chrg_term_mA;
-> > > +       /* Low battery level voltage */
-> > > +       u16 low_batt_mV;
-> > > +       /* upper and lower temperature limits on discharging */
-> > > +       s8 disch_temp_ul; /* Degree Celsius */
-> > > +       s8 disch_temp_ll; /* Degree Celsius */
-> > > +       /* number of temperature monitoring ranges */
-> > > +       u16 temp_mon_ranges;
-> > > +       struct psy_ps_temp_chg_table temp_mon_range[BATT_TEMP_NR_RNG];
-> > > +       /* lowest temperature supported */
-> > > +       s8 temp_low_lim;
-> > > +} __packed;
-> > 
-> > Why packed, and convert to kerneldoc for this struct.
-> 
-> Battery charging profile, may come from EEPROM/emmc which would be packed.
+[1] https://lkml.org/lkml/2013/7/30/712
 
-Do you need to do endianness conversion, too?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--
+Cheers,
+Luca.
