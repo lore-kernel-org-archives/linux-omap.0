@@ -1,151 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: dts: OMAP3+: add clock nodes for CPU
-Date: Fri, 28 Feb 2014 14:40:53 -0800
-Message-ID: <20140228224053.GO13624@atomide.com>
-References: <1391019557-22313-1-git-send-email-nm@ti.com>
- <1391019557-22313-3-git-send-email-nm@ti.com>
- <530633E8.3000608@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 5/5] ARM: dts: AM33XX: Add ecap interrupt properties
+Date: Fri, 28 Feb 2014 14:43:07 -0800
+Message-ID: <20140228224307.GP13624@atomide.com>
+References: <1391029199-3670-1-git-send-email-mporter@linaro.org>
+ <1391029199-3670-6-git-send-email-mporter@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:65368 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752116AbaB1WlG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Feb 2014 17:41:06 -0500
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <530633E8.3000608@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1391029199-3670-6-git-send-email-mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linaro Patches <patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [140220 09:00]:
-> On 01/29/2014 08:19 PM, Nishanth Menon wrote:
-> >OMAP34xx, AM3517 and OMAP36xx platforms use dpll1 clock.
-> >
-> >OMAP443x, OMAP446x, OMAP447x, OMAP5, DRA7, AM43xx platforms use
-> >dpll_mpu clock.
-> >
-> >Latency used is the generic latency defined in omap-cpufreq
-> >driver.
-> >
-> >Signed-off-by: Nishanth Menon <nm@ti.com>
+* Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [140129 13:02]:
+> Add missing interrupt properties to the ecap0, ecap1, and ecap2
+> nodes.
 > 
-> Looks good to me.
-> 
-> Acked-by: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Matt Porter <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-Thanks applying into omap-for-v3.15/dt.
+Thanks taking this patch only into omap-for-v3.15/dt, the rest
+should go via the driver mailing lists.
 
 Regards,
 
 Tony
 
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi | 6 ++++++
+>  1 file changed, 6 insertions(+)
 > 
-> >---
-> >  arch/arm/boot/dts/am33xx.dtsi |    4 ++++
-> >  arch/arm/boot/dts/am4372.dtsi |    5 +++++
-> >  arch/arm/boot/dts/dra7.dtsi   |    5 +++++
-> >  arch/arm/boot/dts/omap3.dtsi  |    5 +++++
-> >  arch/arm/boot/dts/omap4.dtsi  |    5 +++++
-> >  arch/arm/boot/dts/omap5.dtsi  |    6 ++++++
-> >  6 files changed, 30 insertions(+)
-> >
-> >diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> >index 6d95d3d..4bbba26 100644
-> >--- a/arch/arm/boot/dts/am33xx.dtsi
-> >+++ b/arch/arm/boot/dts/am33xx.dtsi
-> >@@ -58,6 +58,10 @@
-> >  				275000  1125000
-> >  			>;
-> >  			voltage-tolerance = <2>; /* 2 percentage */
-> >+
-> >+			clocks = <&dpll_mpu_ck>;
-> >+			clock-names = "cpu";
-> >+
-> >  			clock-latency = <300000>; /* From omap-cpufreq driver */
-> >  		};
-> >  	};
-> >diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> >index c6bd4d9..33798d9 100644
-> >--- a/arch/arm/boot/dts/am4372.dtsi
-> >+++ b/arch/arm/boot/dts/am4372.dtsi
-> >@@ -33,6 +33,11 @@
-> >  			compatible = "arm,cortex-a9";
-> >  			device_type = "cpu";
-> >  			reg = <0>;
-> >+
-> >+			clocks = <&dpll_mpu_ck>;
-> >+			clock-names = "cpu";
-> >+
-> >+			clock-latency = <300000>; /* From omap-cpufreq driver */
-> >  		};
-> >  	};
-> >
-> >diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> >index 1fd75aa..ce591e5 100644
-> >--- a/arch/arm/boot/dts/dra7.dtsi
-> >+++ b/arch/arm/boot/dts/dra7.dtsi
-> >@@ -47,6 +47,11 @@
-> >  				1000000	1060000
-> >  				1176000	1160000
-> >  				>;
-> >+
-> >+			clocks = <&dpll_mpu_ck>;
-> >+			clock-names = "cpu";
-> >+
-> >+			clock-latency = <300000>; /* From omap-cpufreq driver */
-> >  		};
-> >  		cpu@1 {
-> >  			device_type = "cpu";
-> >diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> >index a5fc83b..01f2b3b 100644
-> >--- a/arch/arm/boot/dts/omap3.dtsi
-> >+++ b/arch/arm/boot/dts/omap3.dtsi
-> >@@ -35,6 +35,11 @@
-> >  			compatible = "arm,cortex-a8";
-> >  			device_type = "cpu";
-> >  			reg = <0x0>;
-> >+
-> >+			clocks = <&dpll1_ck>;
-> >+			clock-names = "cpu";
-> >+
-> >+			clock-latency = <300000>; /* From omap-cpufreq driver */
-> >  		};
-> >  	};
-> >
-> >diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> >index d3f8a6e..ce87996 100644
-> >--- a/arch/arm/boot/dts/omap4.dtsi
-> >+++ b/arch/arm/boot/dts/omap4.dtsi
-> >@@ -36,6 +36,11 @@
-> >  			device_type = "cpu";
-> >  			next-level-cache = <&L2>;
-> >  			reg = <0x0>;
-> >+
-> >+			clocks = <&dpll_mpu_ck>;
-> >+			clock-names = "cpu";
-> >+
-> >+			clock-latency = <300000>; /* From omap-cpufreq driver */
-> >  		};
-> >  		cpu@1 {
-> >  			compatible = "arm,cortex-a9";
-> >diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> >index a72813a..8bb4134 100644
-> >--- a/arch/arm/boot/dts/omap5.dtsi
-> >+++ b/arch/arm/boot/dts/omap5.dtsi
-> >@@ -49,6 +49,12 @@
-> >  				1000000 1060000
-> >  				1500000 1250000
-> >  			>;
-> >+
-> >+			clocks = <&dpll_mpu_ck>;
-> >+			clock-names = "cpu";
-> >+
-> >+			clock-latency = <300000>; /* From omap-cpufreq driver */
-> >+
-> >  			/* cooling options */
-> >  			cooling-min-level = <0>;
-> >  			cooling-max-level = <2>;
-> >
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 6d95d3d..b4139ba 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -582,6 +582,8 @@
+>  				compatible = "ti,am33xx-ecap";
+>  				#pwm-cells = <3>;
+>  				reg = <0x48300100 0x80>;
+> +				interrupts = <31>;
+> +				interrupt-names = "ecap0";
+>  				ti,hwmods = "ecap0";
+>  				status = "disabled";
+>  			};
+> @@ -610,6 +612,8 @@
+>  				compatible = "ti,am33xx-ecap";
+>  				#pwm-cells = <3>;
+>  				reg = <0x48302100 0x80>;
+> +				interrupts = <47>;
+> +				interrupt-names = "ecap1";
+>  				ti,hwmods = "ecap1";
+>  				status = "disabled";
+>  			};
+> @@ -638,6 +642,8 @@
+>  				compatible = "ti,am33xx-ecap";
+>  				#pwm-cells = <3>;
+>  				reg = <0x48304100 0x80>;
+> +				interrupts = <61>;
+> +				interrupt-names = "ecap2";
+>  				ti,hwmods = "ecap2";
+>  				status = "disabled";
+>  			};
+> -- 
+> 1.8.4
 > 
