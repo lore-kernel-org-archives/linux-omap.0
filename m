@@ -1,56 +1,34 @@
-From: =?utf-8?B?U8O4cmVuc2VuLCBTdGVmYW4=?=
-	<Stefan.Sorensen@spectralink.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Use handle_fasteoi_irq for INTC interrupt
- handling
-Date: Sat, 1 Mar 2014 09:59:18 +0000
-Message-ID: <1393667952.21887.15.camel@e37108.spectralink.com>
-References: <1393236556-12361-1-git-send-email-stefan.sorensen@spectralink.com>
-	 <20140228171111.GA15399@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [207.46.163.143] ([207.46.163.143]:28396 "EHLO
-	na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750797AbaCAKOp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 1 Mar 2014 05:14:45 -0500
-In-Reply-To: <20140228171111.GA15399@atomide.com>
-Content-Language: en-US
-Content-ID: <604E1E1CDAEC9D42B4C29CE9D5D960BC@namprd07.prod.outlook.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH v2 0/7] ARM: dts: omap3-gta04: Various devicetree updates
+Date: Sat,  1 Mar 2014 14:58:47 +0100
+Message-ID: <1393682334-26805-1-git-send-email-marek@goldelico.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-T24gRnJpLCAyMDE0LTAyLTI4IGF0IDA5OjExIC0wODAwLCBUb255IExpbmRncmVuIHdyb3RlOg0K
-PiAqIFN0ZWZhbiBTw7hyZW5zZW4gPHN0ZWZhbi5zb3JlbnNlbkBzcGVjdHJhbGluay5jb20+IFsx
-NDAyMjQgMDI6MTJdOg0KPiA+IEN1cnJlbnRseSBJTlRDIGludGVycnVwdHMgYXJlIGhhbmRsZWQg
-dXNpbmcgaGFuZGxlX2xldmVsX2lycSB3aGljaA0KPiA+IHdpbGwgYWNrbm93bGVkZ2UgdGhlIGlu
-dGVycnVwdCBiZWZvcmUgcnVubmluZyB0aGUgaGFuZGxlci4gSWYgYSBzZWNvbmQNCj4gPiBpbnRl
-cnJ1cHQgaXMgdGhlbiBhc3NlcnRlZCBhbmQgdGhpcyBpbnRlcnJ1cHQgaXMgZGlzYWJsZWQgd2hp
-bGUNCj4gPiBydW5uaW5nIHRoZSBmaXJzdCBoYW5kbGVyLCB0aGUgSU5UQyB3aWxsIGJlIGJyb3Vn
-aHQgaW50byBhbg0KPiA+IGluY29uc2lzdGVudCBzdGF0ZS4NCj4gDQo+IEhtbSBjYXJlIHRvIGV4
-cGxhaW4gYSBiaXQgbW9yZSBoZXJlIGlmIHRoZSBzZWNvbmQgaW50ZXJydXB0IHlvdSdyZQ0KPiB0
-YWxraW5nIGFib3V0IGlzIHRoZSBzYW1lIGludGVycnVwdCBvciBhbnkgaW50ZXJydXB0IGluIHRo
-ZSBzYW1lDQo+IGludGVycnVwdCBiYW5rPyBJcyB0aGlzIGxpbWl0ZWQgdG8gR1BJTyBpbnRlcnJ1
-cHRzPw0KDQpJIGFtIHNlZWluZyBpdCB3aXRoIHRoZSBjcHN3IGRyaXZlciBvbiBhIGN1c3RvbSBi
-b2FyZCBhbmQgb24gdGhlDQpiZWFnbGVib25lLiBXaGVuIGEgdHggaXJxIGlzIGhhbmRsZWQgdGhl
-IGNwc3cgaXJxIGhhbmRsZXIgZGlzYWJsZXMgYm90aA0KdGhlIHR4IGFuZCB0aGUgcnggaXJxcywg
-YW5kIGlmIHRoZSByeCBpcnEgd2FzIGFsc28gYXNzZXJ0ZWQgKGkuZS4gZHVwbGV4DQp0cmFmZmlj
-KSwgdGhpcyBidWcgd2lsbCB0cmlnZ2VyLiBSZXByb2R1Y2luZyBpdCBpcyB2ZXJ5IHNpbXBsZSwg
-anVzdCBoaXQNCmEgYmVhZ2xlYm9uZSB3aXRoIGEgZmxvb2QgcGluZyBhbmQgd2F0Y2ggYSBmdW5j
-dGlvbiB0cmFjZS4NCg0KQXBwbHlpbmcgdGhpcyBwYXRjaCBJIHNlZSBhIHNpZ25pZmljYW50IHBl
-cmZvcm1hbmNlIGJvb3N0IG9uIGR1cGxleA0KdHJhZmZpYy4gQW4gaXBlcmYgZnVsbCBkdXBsZXgg
-dGVzdCBnaXZlcyBhIDUwLTEwMCUgaW5jcmVhc2UgaW4gcmVjZWl2ZQ0KYmFuZHdpZHRoIC0gaXQg
-bm93IGZ1bGx5IHNhdHVyYXRlcyBhIDEwME1iIGludGVyZmFjZSwgc28gdGhlIGluY3JlYXNlDQpt
-aWdodCBiZSBldmVuIGxhcmdlciB3aXRoIGEgZ2lnYWJpdCBpbnRlcmZhY2UuDQoNCj4gVGhlIHJl
-YXNvbiBJJ20gYXNraW5nIGlzIGJlY2F1c2Ugb2YgdGhlIGlzc3VlcyB3ZSd2ZSBzZWVuIGVhcmxp
-ZXINCj4gd2l0aCBub3QgZmx1c2hpbmcgcG9zdGVkIHdyaXRlcyBmcm9tIHRoZSBpbnRlcnJ1cHQg
-aGFuZGxlcnMuIEluDQo+IHRob3NlIGNhc2UgdGhlIGludGVycnVwdCBvbiB0aGUgZGV2aWNlIGdl
-dHMgYWNrZWQgdG9vIGxhdGUgd2l0aG91dA0KPiB0aGUgcmVhZCBiYWNrIGNhbGwuDQoNCkkgYW0g
-bm90IHZlcnkgZmFtaWxpYXIgd2l0aCB0aGUgbG93IGxldmVsIGRldGFpbHMgb2YgdGhlIGlycSBo
-YW5kbGluZywgIA0KYnV0IGFtMzM1eCBUUk0gc3RhdGVzIHRoYXQgYSBkYXRhIHN5bmNocm9uaXph
-dGlvbiBiYXJyaWVyIHNob3VsZCBiZSB1c2VkDQphZnRlciB0aGUgQUNLIGlzIHBvc3RlZCB0byB0
-aGUgSU5UQywgYW5kIEkgZG9uJ3Qgc2VlIHRoYXQgYW55d2hlcmUgaW4NCnRoZSBjb2RlLiBJcyB0
-aGlzIHJlbGF0ZWQ/DQoNClN0ZWZhbg0KDQo=
+This updated series fix issue with proper gta04 booting in 3.14 kernel
+and add various devices to devicetree.
+
+Changes from V1: 
+- removed fixes which was merged to 3.14 already
+- add bma180 accelerometer + booting fix
+
+Marek Belisko (2):
+  ARM: dts: omap3-gta04: Add ti,omap36xx to compatible property to avoid
+    problems with booting
+  ARM: dts: omap3-gta04: Add touchscreen properties
+
+NeilBrown (5):
+  ARM: dts: omap3-gta04: Add support for magnetometer
+  ARM: dts: omap3-gta04: Add twl4030 charger
+  ARM: dts: omap3-gta04: Add basic sound support
+  ARM: dts: omap3-gta04: Enable mmc2 for wifi
+  ARM: dts: omap3-gta04: Add bma180 accelerometer
+
+ arch/arm/boot/dts/omap3-gta04.dts | 53 +++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 51 insertions(+), 2 deletions(-)
+
+-- 
+1.8.3.2
