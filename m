@@ -1,32 +1,56 @@
-From: "Harley Wang" <bn.jha@adityabirla.com>
-Subject: contact me
-Date: Sat, 1 Mar 2014 01:38:05 +0100
-Message-ID: <20140301003822.71B54228004@MS3XF>
-Reply-To: <hctthg-h1@yahoo.com>
+From: =?utf-8?B?U8O4cmVuc2VuLCBTdGVmYW4=?=
+	<Stefan.Sorensen@spectralink.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Use handle_fasteoi_irq for INTC interrupt
+ handling
+Date: Sat, 1 Mar 2014 09:59:18 +0000
+Message-ID: <1393667952.21887.15.camel@e37108.spectralink.com>
+References: <1393236556-12361-1-git-send-email-stefan.sorensen@spectralink.com>
+	 <20140228171111.GA15399@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [203.77.177.222] ([203.77.177.222]:42243 "EHLO
-	imssnew.adityabirla.com" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752727AbaCAA7F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Feb 2014 19:59:05 -0500
-Received: from smtpprotector02.abgplanet.abg.com (unknown [127.0.0.1])
-	by smtpprotector02.abgplanet.abg.com (Service) with ESMTP id 5AC74104E9
-	for <linux-omap@vger.kernel.org>; Sat,  1 Mar 2014 06:12:23 +0530 (IST)
-Received: from MS3XF (unknown [10.1.0.32])
-	by smtpprotector02.abgplanet.abg.com (Service) with ESMTP id E12AD1132C
-	for <linux-omap@vger.kernel.org>; Sat,  1 Mar 2014 06:08:21 +0530 (IST)
-Received: from adityabirla.com (localhost.localdomain [127.0.0.1])
-	by MS3XF (Postfix-outgoingimss) with ESMTP id 71B54228004
-	for <linux-omap@vger.kernel.org>; Sat,  1 Mar 2014 06:08:22 +0530 (IST)
+Received: from [207.46.163.143] ([207.46.163.143]:28396 "EHLO
+	na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750797AbaCAKOp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 1 Mar 2014 05:14:45 -0500
+In-Reply-To: <20140228171111.GA15399@atomide.com>
+Content-Language: en-US
+Content-ID: <604E1E1CDAEC9D42B4C29CE9D5D960BC@namprd07.prod.outlook.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-contact me for details of $21.4m transfer.
-
-
-The information contained in this electronic communication is intended solely for the individual(s) or entity to which it is addressed. It may contain proprietary, confidential and/or legally privileged information. Any review, retransmission, dissemination, printing, copying or other use of, or taking any action in reliance on the contents of this information by person(s) or entities other than the intended recipient is strictly prohibited and may be unlawful. If you have received this communication in error, please notify us by responding to this email or telephone and immediately and permanently delete all copies of this message and any attachments from your system(s). The contents of this message do not necessarily represent the views or policies of Aditya Birla Group. 
-
-Computer viruses can be transmitted via email. Aditya Birla Group Companies attempts to sweep e-mails and attachments for viruses, it does not guarantee that either are virus free. The recipient should check this email and any attachments for the presence of viruses.  Aditya Birla Group does not accept any liability for any damage sustained as a result of viruses.
+T24gRnJpLCAyMDE0LTAyLTI4IGF0IDA5OjExIC0wODAwLCBUb255IExpbmRncmVuIHdyb3RlOg0K
+PiAqIFN0ZWZhbiBTw7hyZW5zZW4gPHN0ZWZhbi5zb3JlbnNlbkBzcGVjdHJhbGluay5jb20+IFsx
+NDAyMjQgMDI6MTJdOg0KPiA+IEN1cnJlbnRseSBJTlRDIGludGVycnVwdHMgYXJlIGhhbmRsZWQg
+dXNpbmcgaGFuZGxlX2xldmVsX2lycSB3aGljaA0KPiA+IHdpbGwgYWNrbm93bGVkZ2UgdGhlIGlu
+dGVycnVwdCBiZWZvcmUgcnVubmluZyB0aGUgaGFuZGxlci4gSWYgYSBzZWNvbmQNCj4gPiBpbnRl
+cnJ1cHQgaXMgdGhlbiBhc3NlcnRlZCBhbmQgdGhpcyBpbnRlcnJ1cHQgaXMgZGlzYWJsZWQgd2hp
+bGUNCj4gPiBydW5uaW5nIHRoZSBmaXJzdCBoYW5kbGVyLCB0aGUgSU5UQyB3aWxsIGJlIGJyb3Vn
+aHQgaW50byBhbg0KPiA+IGluY29uc2lzdGVudCBzdGF0ZS4NCj4gDQo+IEhtbSBjYXJlIHRvIGV4
+cGxhaW4gYSBiaXQgbW9yZSBoZXJlIGlmIHRoZSBzZWNvbmQgaW50ZXJydXB0IHlvdSdyZQ0KPiB0
+YWxraW5nIGFib3V0IGlzIHRoZSBzYW1lIGludGVycnVwdCBvciBhbnkgaW50ZXJydXB0IGluIHRo
+ZSBzYW1lDQo+IGludGVycnVwdCBiYW5rPyBJcyB0aGlzIGxpbWl0ZWQgdG8gR1BJTyBpbnRlcnJ1
+cHRzPw0KDQpJIGFtIHNlZWluZyBpdCB3aXRoIHRoZSBjcHN3IGRyaXZlciBvbiBhIGN1c3RvbSBi
+b2FyZCBhbmQgb24gdGhlDQpiZWFnbGVib25lLiBXaGVuIGEgdHggaXJxIGlzIGhhbmRsZWQgdGhl
+IGNwc3cgaXJxIGhhbmRsZXIgZGlzYWJsZXMgYm90aA0KdGhlIHR4IGFuZCB0aGUgcnggaXJxcywg
+YW5kIGlmIHRoZSByeCBpcnEgd2FzIGFsc28gYXNzZXJ0ZWQgKGkuZS4gZHVwbGV4DQp0cmFmZmlj
+KSwgdGhpcyBidWcgd2lsbCB0cmlnZ2VyLiBSZXByb2R1Y2luZyBpdCBpcyB2ZXJ5IHNpbXBsZSwg
+anVzdCBoaXQNCmEgYmVhZ2xlYm9uZSB3aXRoIGEgZmxvb2QgcGluZyBhbmQgd2F0Y2ggYSBmdW5j
+dGlvbiB0cmFjZS4NCg0KQXBwbHlpbmcgdGhpcyBwYXRjaCBJIHNlZSBhIHNpZ25pZmljYW50IHBl
+cmZvcm1hbmNlIGJvb3N0IG9uIGR1cGxleA0KdHJhZmZpYy4gQW4gaXBlcmYgZnVsbCBkdXBsZXgg
+dGVzdCBnaXZlcyBhIDUwLTEwMCUgaW5jcmVhc2UgaW4gcmVjZWl2ZQ0KYmFuZHdpZHRoIC0gaXQg
+bm93IGZ1bGx5IHNhdHVyYXRlcyBhIDEwME1iIGludGVyZmFjZSwgc28gdGhlIGluY3JlYXNlDQpt
+aWdodCBiZSBldmVuIGxhcmdlciB3aXRoIGEgZ2lnYWJpdCBpbnRlcmZhY2UuDQoNCj4gVGhlIHJl
+YXNvbiBJJ20gYXNraW5nIGlzIGJlY2F1c2Ugb2YgdGhlIGlzc3VlcyB3ZSd2ZSBzZWVuIGVhcmxp
+ZXINCj4gd2l0aCBub3QgZmx1c2hpbmcgcG9zdGVkIHdyaXRlcyBmcm9tIHRoZSBpbnRlcnJ1cHQg
+aGFuZGxlcnMuIEluDQo+IHRob3NlIGNhc2UgdGhlIGludGVycnVwdCBvbiB0aGUgZGV2aWNlIGdl
+dHMgYWNrZWQgdG9vIGxhdGUgd2l0aG91dA0KPiB0aGUgcmVhZCBiYWNrIGNhbGwuDQoNCkkgYW0g
+bm90IHZlcnkgZmFtaWxpYXIgd2l0aCB0aGUgbG93IGxldmVsIGRldGFpbHMgb2YgdGhlIGlycSBo
+YW5kbGluZywgIA0KYnV0IGFtMzM1eCBUUk0gc3RhdGVzIHRoYXQgYSBkYXRhIHN5bmNocm9uaXph
+dGlvbiBiYXJyaWVyIHNob3VsZCBiZSB1c2VkDQphZnRlciB0aGUgQUNLIGlzIHBvc3RlZCB0byB0
+aGUgSU5UQywgYW5kIEkgZG9uJ3Qgc2VlIHRoYXQgYW55d2hlcmUgaW4NCnRoZSBjb2RlLiBJcyB0
+aGlzIHJlbGF0ZWQ/DQoNClN0ZWZhbg0KDQo=
