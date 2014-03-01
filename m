@@ -1,41 +1,34 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] sound: omap: n810: fix init with DT boot
-Date: Sat,  1 Mar 2014 20:08:37 +0200
-Message-ID: <1393697317-16733-1-git-send-email-aaro.koskinen@iki.fi>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: Re: [PATCH v4 3/4] ARM: OMAP2+: add legacy display for omap3 DBB056
+Date: Sat, 01 Mar 2014 21:07:30 +0100
+Message-ID: <1393704450.4909.41.camel@mars>
+References: <1392387656-15186-1-git-send-email-chf.fritz@googlemail.com>
+	 <1392387656-15186-4-git-send-email-chf.fritz@googlemail.com>
+	 <52FE29BF.9040307@ti.com>  <20140228223824.GN13624@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri5.pp.htv.fi ([213.243.153.188]:35970 "EHLO
-	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753232AbaCASIX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Mar 2014 13:08:23 -0500
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:54139 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753205AbaCAUHg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Mar 2014 15:07:36 -0500
+In-Reply-To: <20140228223824.GN13624@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, bcousson@baylibre.com, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Daniel Mack <zonque@gmail.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Since 3.14-rc1 only DT boot has been supported on N810. Make a minimal
-fix to retain functionality. This file should be properly converted
-to DT in longer term.
+On Fri, 2014-02-28 at 14:38 -0800, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140214 06:38]:
+> > git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt
+> > 
+> > That way you have it ready and tested if DSS DT goes forward.
+> 
+> Applying only patches 1 & 2 into omap-for-v3.15/dt thanks.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- sound/soc/omap/n810.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+I'll send a display support patch as soon as DSS DT is in linux-next.
 
-diff --git a/sound/soc/omap/n810.c b/sound/soc/omap/n810.c
-index 3fde9e4..d163e18 100644
---- a/sound/soc/omap/n810.c
-+++ b/sound/soc/omap/n810.c
-@@ -305,7 +305,9 @@ static int __init n810_soc_init(void)
- 	int err;
- 	struct device *dev;
- 
--	if (!(machine_is_nokia_n810() || machine_is_nokia_n810_wimax()))
-+	if (!of_have_populated_dt() ||
-+	    (!of_machine_is_compatible("nokia,n810") &&
-+	     !of_machine_is_compatible("nokia,n810-wimax")))
- 		return -ENODEV;
- 
- 	n810_snd_device = platform_device_alloc("soc-audio", -1);
--- 
-1.8.3.3
+ Thanks
+  -- Christoph
 
