@@ -1,41 +1,41 @@
-From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH v2 2/7] ARM: dts: omap3-gta04: Add support for magnetometer
-Date: Sat,  1 Mar 2014 14:58:49 +0100
-Message-ID: <1393682334-26805-3-git-send-email-marek@goldelico.com>
-References: <1393682334-26805-1-git-send-email-marek@goldelico.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1393682334-26805-1-git-send-email-marek@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hns@goldelico.com, NeilBrown <neilb@suse.de>, Marek Belisko <marek@goldelico.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH] sound: omap: n810: fix init with DT boot
+Date: Sat,  1 Mar 2014 20:08:37 +0200
+Message-ID: <1393697317-16733-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri5.pp.htv.fi ([213.243.153.188]:35970 "EHLO
+	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753232AbaCASIX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Mar 2014 13:08:23 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-From: NeilBrown <neilb@suse.de>
+Since 3.14-rc1 only DT boot has been supported on N810. Make a minimal
+fix to retain functionality. This file should be properly converted
+to DT in longer term.
 
-Add magnetometer hmc5843 node.
-
-Signed-off-by: NeilBrown <neilb@suse.de>
-Signed-off-by: Marek Belisko <marek@goldelico.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- arch/arm/boot/dts/omap3-gta04.dts | 6 ++++++
- 1 file changed, 6 insertions(+)
+ sound/soc/omap/n810.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
-index d3b253b..d9917b8 100644
---- a/arch/arm/boot/dts/omap3-gta04.dts
-+++ b/arch/arm/boot/dts/omap3-gta04.dts
-@@ -124,6 +124,12 @@
- 			reg = <0x4>;
- 		};
- 	};
-+
-+	/* compass aka magnetometer */
-+	hmc5843@1e {
-+		compatible = "honeywell,hmc5843";
-+		reg = <0x1e>;
-+	};
- };
+diff --git a/sound/soc/omap/n810.c b/sound/soc/omap/n810.c
+index 3fde9e4..d163e18 100644
+--- a/sound/soc/omap/n810.c
++++ b/sound/soc/omap/n810.c
+@@ -305,7 +305,9 @@ static int __init n810_soc_init(void)
+ 	int err;
+ 	struct device *dev;
  
- &i2c3 {
+-	if (!(machine_is_nokia_n810() || machine_is_nokia_n810_wimax()))
++	if (!of_have_populated_dt() ||
++	    (!of_machine_is_compatible("nokia,n810") &&
++	     !of_machine_is_compatible("nokia,n810-wimax")))
+ 		return -ENODEV;
+ 
+ 	n810_snd_device = platform_device_alloc("soc-audio", -1);
 -- 
-1.8.3.2
+1.8.3.3
+
