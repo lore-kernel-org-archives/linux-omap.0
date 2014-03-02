@@ -1,47 +1,113 @@
-From: Bjorn Andersson <bjorn@kryo.se>
-Subject: Re: [PATCHv4 4/7] hwspinlock/core: add common OF helpers
-Date: Sun, 2 Mar 2014 12:19:10 -0800
-Message-ID: <CAJAp7Ohf43hbKatCwS5Y1+OfEkJYWOkuhZhW-E_=t_9mfM+UaA@mail.gmail.com>
-References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
-	<1389658764-39199-5-git-send-email-s-anna@ti.com>
-	<CAJAp7Oi7wD+VsMAd37gT04yZ4TH4ygXFmheDhvmWuanUjpBmVQ@mail.gmail.com>
-	<52F92524.3080402@ti.com>
-	<CAK=WgbY0wDtGCm71E8VXi2g5+VcGogHEy8jdekTRg8xtp6-3rQ@mail.gmail.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: [GIT PULL] ARM: OMAP: Device Tree for 3.15
+Date: Sun, 02 Mar 2014 21:42:48 +0100
+Message-ID: <531397C8.9070309@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=WgbY0wDtGCm71E8VXi2g5+VcGogHEy8jdekTRg8xtp6-3rQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Suman Anna <s-anna@ti.com>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:37616 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751918AbaCBUmw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Mar 2014 15:42:52 -0500
+Received: by mail-wg0-f49.google.com with SMTP id b13so495172wgh.32
+        for <linux-omap@vger.kernel.org>; Sun, 02 Mar 2014 12:42:51 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Sat, Mar 1, 2014 at 9:14 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> On Mon, Feb 10, 2014 at 9:14 PM, Suman Anna <s-anna@ti.com> wrote:
->> On 02/07/2014 04:49 PM, Bjorn Andersson wrote:
->>> It seems to be standard practice to pass the error value back to the
->>> consumer, so you should
->>> return ERR_PTR(ret); here instead of the NULL...
->>
->>
->> I have modelled the return values in this function based on the return
->> values in the existing hwspin_lock_request interfaces. I would need to
->> change those functions as well.
->>
->> Ohad,
->> Do you have any objections to the return code convention change?
->
-> Unless strictly needed, I prefer we don't switch to the ERR_PTR code
-> convention, as it reduces code readability and increases chances of
-> user bugs.
->
-> In our case, switching to ERR_PTR and friends seems only to optimize a
-> few error paths, and I'm not sure it's a big win over simplicity.
+Hi Tony,
 
-When introducing the ability to reference a hwspin lock via a phandle
-in device tree it makes a big difference to be able to differ between
-the case of "initialization failed" or "device not yet probed"; so
-that the client knows if it should fail or retry later.
+Please pull the following commits for OMAP Device Tree for v3.15.
 
-Regards,
-Bjorn
+Thanks,
+Beno=EEt
+
+
+The following changes since commit 6d0abeca3242a88cab8232e4acd7e2bf088f=
+3bc2:
+
+  Linux 3.14-rc3 (2014-02-16 13:30:25 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.=
+git tags/for_3.15/dts_signed
+
+for you to fetch changes up to 1a5fe3ca5ea192d4309dd61f3626b79ff38693c2=
+:
+
+  ARM: dts: omap4+: Add DMM bindings (2014-03-02 21:26:27 +0100)
+
+----------------------------------------------------------------
+Add craneboard devices
+Add more N900 devices
+Add am43x-epos-evm and am437x-gp-evm devices
+Add OMAP4 DMM devices
+
+----------------------------------------------------------------
+Archit Taneja (1):
+      ARM: dts: omap4+: Add DMM bindings
+
+Darren Etheridge (1):
+      pinctrl: am43xx: dt-bindings: add MUX_MODE8
+
+Lokesh Vutla (1):
+      ARM: dts: am437x-gp-evm: Add gp dts.
+
+Nishanth Menon (2):
+      ARM: dts: Add basic devices for AM3517-craneboard
+      ARM: dts: omap3430-sdp: add dip switch information for MMC operat=
+ion
+
+Sebastian Reichel (6):
+      ARM: dts: TWL4030: Add keypad node
+      ARM: dts: OMAP3-N900: Add TWL4030 Keypad Matrix
+      ARM: dts: OMAP3-N900: Add support for tsl2563
+      ARM: dts: OMAP3-N900: Add tpa6130a2 support
+      ARM: dts: OMAP3-N900: Add isp1704 support
+      ARM: dts: OMAP3-N900: Add bq24150a support
+
+Sourav Poddar (7):
+      ARM: dts: am4372: Add pwm-cells property for ecap device.
+      ARM: dts: am43x-epos-evm: Add pwm backlight support.
+      ARM: dts: am43x-epos-evm: Add I2C2 data.
+      ARM: dts: am43x-epos-evm: Add SPI data.
+      ARM: dts: am437x-gp-evm: Add pwm backlight support.
+      ARM: dts: am437x-gp-evm: Enable gpio.
+      ARM: dts: am43x-gp-evm: Add matrix gpio keys.
+
+ Documentation/devicetree/bindings/arm/omap/dmm.txt  |  22 ++++++++++
+ Documentation/devicetree/bindings/arm/omap/omap.txt |   3 ++
+ arch/arm/boot/dts/Makefile                          |   2 +
+ arch/arm/boot/dts/am3517-craneboard.dts             | 174 ++++++++++++=
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am4372.dtsi                       |   9 +++++
+ arch/arm/boot/dts/am437x-gp-evm.dts                 | 100 ++++++++++++=
++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am43x-epos-evm.dts                |  67 ++++++++++++=
++++++++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi                         |   7 ++++
+ arch/arm/boot/dts/omap3-n900.dts                    |  90 ++++++++++++=
++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3430-sdp.dts                  |   4 ++
+ arch/arm/boot/dts/omap4.dtsi                        |   7 ++++
+ arch/arm/boot/dts/omap5.dtsi                        |   7 ++++
+ arch/arm/boot/dts/twl4030.dtsi                      |   7 ++++
+ include/dt-bindings/pinctrl/am43xx.h                |   1 +
+ 14 files changed, 500 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/dmm.txt
+ create mode 100644 arch/arm/boot/dts/am3517-craneboard.dts
+ create mode 100644 arch/arm/boot/dts/am437x-gp-evm.dts
+
+--=20
+Beno=EEt Cousson
+BayLibre
+Embedded Linux Technology Lab
+www.baylibre.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
