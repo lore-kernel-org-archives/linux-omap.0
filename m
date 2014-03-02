@@ -1,112 +1,98 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCHv2 9/9] arm: dts: am43x-gp-evm: Add matrix gpio keys.
-Date: Sun, 02 Mar 2014 18:30:02 +0100
-Message-ID: <53136A9A.2070003@baylibre.com>
-References: <1387456421-21379-1-git-send-email-sourav.poddar@ti.com> <1387456421-21379-10-git-send-email-sourav.poddar@ti.com> <52D417A1.9060007@ti.com> <20140114131444.GD10818@saruman.home> <52D547F5.2080307@baylibre.com> <5307628D.50109@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Use handle_fasteoi_irq for INTC interrupt
+ handling
+Date: Sun, 2 Mar 2014 09:37:28 -0800
+Message-ID: <20140302173727.GB18496@atomide.com>
+References: <1393236556-12361-1-git-send-email-stefan.sorensen@spectralink.com>
+ <20140228171111.GA15399@atomide.com>
+ <1393667952.21887.15.camel@e37108.spectralink.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:65008 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752453AbaCBRaI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Mar 2014 12:30:08 -0500
-Received: by mail-wi0-f179.google.com with SMTP id bs8so2320173wib.0
-        for <linux-omap@vger.kernel.org>; Sun, 02 Mar 2014 09:30:05 -0800 (PST)
-In-Reply-To: <5307628D.50109@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14007 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750878AbaCBRhl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Mar 2014 12:37:41 -0500
+Content-Disposition: inline
+In-Reply-To: <1393667952.21887.15.camel@e37108.spectralink.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: balbi@ti.com, devicetree@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, mark.rutland@arm.com, lokeshvutla@ti.com
+To: =?utf-8?Q?S=C3=B8rensen=2C?= Stefan <Stefan.Sorensen@spectralink.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Sourav,
+* S=C3=B8rensen, Stefan <Stefan.Sorensen@spectralink.com> [140301 02:02=
+]:
+> On Fri, 2014-02-28 at 09:11 -0800, Tony Lindgren wrote:
+> > * Stefan S=C3=B8rensen <stefan.sorensen@spectralink.com> [140224 02=
+:12]:
+> > > Currently INTC interrupts are handled using handle_level_irq whic=
+h
+> > > will acknowledge the interrupt before running the handler. If a s=
+econd
+> > > interrupt is then asserted and this interrupt is disabled while
+> > > running the first handler, the INTC will be brought into an
+> > > inconsistent state.
+> >=20
+> > Hmm care to explain a bit more here if the second interrupt you're
+> > talking about is the same interrupt or any interrupt in the same
+> > interrupt bank? Is this limited to GPIO interrupts?
+>=20
+> I am seeing it with the cpsw driver on a custom board and on the
+> beaglebone. When a tx irq is handled the cpsw irq handler disables bo=
+th
+> the tx and the rx irqs, and if the rx irq was also asserted (i.e. dup=
+lex
+> traffic), this bug will trigger. Reproducing it is very simple, just =
+hit
+> a beaglebone with a flood ping and watch a function trace.
 
-On 21/02/2014 15:28, Sourav Poddar wrote:
-> Hi Benoit,
-> On Tuesday 14 January 2014 07:51 PM, Benoit Cousson wrote:
->> Hi Felipe,
->>
->> On 14/01/2014 14:14, Felipe Balbi wrote:
->>> On Mon, Jan 13, 2014 at 10:13:13PM +0530, sourav wrote:
->>>> Benoit,
->>>>
->>>> On Thursday 19 December 2013 06:03 PM, Sourav Poddar wrote:
->>>>> Add gpio keys node for am43x gp evm.
->>>>>
->>>>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
->>>>> ---
->>>>>   arch/arm/boot/dts/am437x-gp-evm.dts |   21 ++++++++++++++++++++=
-+
->>>>>   1 file changed, 21 insertions(+)
->>>>>
->>>>> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts
->>>>> b/arch/arm/boot/dts/am437x-gp-evm.dts
->>>>> index 0dc248d..4eb72b8 100644
->>>>> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
->>>>> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
->>>>> @@ -13,6 +13,7 @@
->>>>>   #include "am4372.dtsi"
->>>>>   #include<dt-bindings/pinctrl/am43xx.h>
->>>>>   #include<dt-bindings/pwm/pwm.h>
->>>>> +#include<dt-bindings/gpio/gpio.h>
->>>>>
->>>>>   / {
->>>>>       model =3D "TI AM437x GP EVM";
->>>>> @@ -24,6 +25,26 @@
->>>>>           brightness-levels =3D<0 51 53 56 62 75 101 152 255>;
->>>>>           default-brightness-level =3D<8>;
->>>>>       };
->>>>> +
->>>>> +    matrix_keypad: matrix_keypad@0 {
->>>>> +        compatible =3D "gpio-matrix-keypad";
->>>>> +        debounce-delay-ms =3D<5>;
->>>>> +        col-scan-delay-us =3D<2>;
->>>>> +
->>>>> +        row-gpios =3D<&gpio3 21 GPIO_ACTIVE_HIGH /* Bank3, pin21=
- */
->>>>> + &gpio4 3 GPIO_ACTIVE_HIGH /* Bank4, pin3 */
->>>>> + &gpio4 2 GPIO_ACTIVE_HIGH>; /* Bank4, pin2 */
->>>>> +
->>>>> +        col-gpios =3D<&gpio3 19 GPIO_ACTIVE_HIGH /* Bank3, pin19=
- */
->>>>> + &gpio3 20 GPIO_ACTIVE_HIGH>; /* Bank3, pin20 */
->>>>> +
->>>>> +        linux,keymap =3D<0x00000201      /* P1 */
->>>>> +                0x00010202      /* P2 */
->>>>> +                0x01000067      /* UP */
->>>>> +                0x0101006a      /* RIGHT */
->>>>> +                0x02000069      /* LEFT */
->>>>> +                0x0201006c>;      /* DOWN */
->>>>> +        };
->>>>>   };
->>>>>
->>>>> &am43xx_pinmux {
->>>>
->>>> ping on this series, this series is lying for a while.
->>>> This series is based on your for_3.14 branch.
->>>
->>> Benoit, do you need us to do anything else to get this merged ? Sou=
-rav
->>> already rebased the patches as you requested back in December 19th.
->>
->> Nope, I've just needed more BW. I'll apply it ASAP.
->>
->> Thanks,
->> Benoit
->>
-> Ping on this.
+OK so it's for the same interrupt. And that sounds like a good test :)
+=20
+> Applying this patch I see a significant performance boost on duplex
+> traffic. An iperf full duplex test gives a 50-100% increase in receiv=
+e
+> bandwidth - it now fully saturates a 100Mb interface, so the increase
+> might be even larger with a gigabit interface.
+>=20
+> > The reason I'm asking is because of the issues we've seen earlier
+> > with not flushing posted writes from the interrupt handlers. In
+> > those case the interrupt on the device gets acked too late without
+> > the read back call.
+>=20
+> I am not very familiar with the low level details of the irq handling=
+, =20
+> but am335x TRM states that a data synchronization barrier should be u=
+sed
+> after the ACK is posted to the INTC, and I don't see that anywhere in
+> the code. Is this related?
 
-I've just applied them. Sorry for the delay,
+Well sort of, except DSB won't do it as it won't guarantee the write
+gets to the device on the bus. So a readback from the device is needed
+as only the order of reads and writes is guaranteed.
+
+A good sanity check would be to find the related interrupt handler(s)
+in the cpsw driver that do the write to the cpsw registers to ack
+interrupts.
+
+Then check if there's a readback in the cpsw interrupt handler(s) of
+some harmless cpsw register after acking the interrupt(s) and before
+doing return IRQ_HANDLED.
+
+If this fixes things without your patch, then we know it's a driver
+issue and there's no need to debug it further :) The missing flush of
+posted write usually shows up as a spurious interrupts with no status
+in the device, but depending on the driver code handling of spurious
+interrupts it may also have other side effects.
+
+I'm not too familiar with the cpsw driver so I can't do a test patch
+without digging into it further sorry. For similar examples, you
+may want to grep for "flush posted write" and "OCP barrier" in the
+kernel code.
 
 Regards,
-Benoit
 
---=20
-Beno=EEt Cousson
-BayLibre
-Embedded Linux Technology Lab
-www.baylibre.com
+Tony
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
