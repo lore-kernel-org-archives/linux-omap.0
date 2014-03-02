@@ -1,63 +1,45 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2] omap3isp: Fix kerneldoc for _module_sync_is_stopping and isp_isr()
-Date: Sun, 02 Mar 2014 19:06:26 +0100
-Message-ID: <1709992.clf7muDlF1@avalon>
-References: <1603681.R3i3XynjN4@avalon> <1393608967-9171-1-git-send-email-pmeerw@pmeerw.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v1 0/5] add parallel NAND support for TI's new OMAPx and
+ AMxx platforms
+Date: Sun, 2 Mar 2014 10:17:10 -0800
+Message-ID: <20140302181710.GD18496@atomide.com>
+References: <1391606914-9947-1-git-send-email-pekon@ti.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA6FE42@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1393608967-9171-1-git-send-email-pmeerw@pmeerw.net>
-Sender: linux-media-owner@vger.kernel.org
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@iki.fi
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20243 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751554AbaCBSRi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Mar 2014 13:17:38 -0500
+Content-Disposition: inline
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA6FE42@DBDE04.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: "bcousson@baylibre.com" <bcousson@baylibre.com>, "Benoit Cousson (benoit.cousson@linaro.org)" <benoit.cousson@linaro.org>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Peter,
+* Gupta, Pekon <pekon@ti.com> [140212 20:30]:
+> Hi Benoit, Tony,
+>  
+> >From: Gupta, Pekon
+> >
+> >This patch-set adds and updates parallel NAND support on following TI platforms
+> > - AM335x (am335x-evm)
+> > - DRA7xx (dra7-evm
+> > - AM43xx (am43X-epos-evm)
+> >
+> >In addition, following OMAP2+/GPMC patch is also added in this series as
+> >it add checks DRA7xx and AM43xxx platforms for non-DT kernels.
+> >	ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms
+> >
+> Please let me know, if this patch-set is in acceptable state,
+> Or should I rebase it against any specific branch at your side ?
 
-Thank you for the patch.
+Thanks applying all except 4/5 into omap-for-v3.15/dt. Patch 4
+should be just updated for the macros, I'll comment on that
+separately.
 
-On Friday 28 February 2014 18:36:07 Peter Meerwald wrote:
-> use the correct name in the comment describing function
-> omap3isp_module_sync_is_stopping()
-> 
-> isp_isr() never returned IRQ_NONE, remove the comment saying so
-> 
-> Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
-
-> ---
->  drivers/media/platform/omap3isp/isp.c | 5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 5807185..d60a4b7 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -588,9 +588,6 @@ static void isp_isr_sbl(struct isp_device *isp)
->   * @_isp: Pointer to the OMAP3 ISP device
->   *
->   * Handles the corresponding callback if plugged in.
-> - *
-> - * Returns IRQ_HANDLED when IRQ was correctly handled, or IRQ_NONE when the
-> - * IRQ wasn't handled.
->   */
->  static irqreturn_t isp_isr(int irq, void *_isp)
->  {
-> @@ -1420,7 +1417,7 @@ int omap3isp_module_sync_idle(struct media_entity *me,
-> wait_queue_head_t *wait, }
-> 
->  /*
-> - * omap3isp_module_sync_is_stopped - Helper to verify if module was
-> stopping + * omap3isp_module_sync_is_stopping - Helper to verify if module
-> was stopping * @wait: ISP submodule's wait queue for streamoff/interrupt
-> synchronization * @stopping: flag which tells module wants to stop
->   *
-
--- 
 Regards,
 
-Laurent Pinchart
+Tony
