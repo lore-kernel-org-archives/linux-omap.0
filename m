@@ -1,79 +1,68 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH 3/6] PM / Voltagedomain: introduce voltage domain
- driver support
-Date: Mon, 3 Mar 2014 11:54:26 +0800
-Message-ID: <20140303035426.GC2411@sirena.org.uk>
-References: <1392755543-28335-1-git-send-email-nm@ti.com>
- <1392755543-28335-4-git-send-email-nm@ti.com>
- <20140224015826.GU25940@sirena.org.uk>
- <530B594F.2030500@ti.com>
+Subject: Re: [PATCH RFC 2/5] ASoC: tlv320aic31xx: Add codec driver to
+ Makefile and Kconfig
+Date: Mon, 3 Mar 2014 13:09:31 +0800
+Message-ID: <20140303050931.GQ2411@sirena.org.uk>
+References: <cover.1393405575.git.jsarha@ti.com>
+ <e5ddd051ac319649d50da0da804750c1c6619edb.1393405575.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="r6fxLKBTHCmC166Z"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="KZa8Qkr7Zx+i11wB"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:54704 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751427AbaCCFJf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 00:09:35 -0500
 Content-Disposition: inline
-In-Reply-To: <530B594F.2030500@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Mike Turquette <mturquette@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+In-Reply-To: <e5ddd051ac319649d50da0da804750c1c6619edb.1393405575.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, devicetree@vger.kernel.org, bcousson@baylibre.com, peter.ujfalusi@ti.com, detheridge@ti.com
 
 
---r6fxLKBTHCmC166Z
+--KZa8Qkr7Zx+i11wB
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Feb 24, 2014 at 08:38:07AM -0600, Nishanth Menon wrote:
+On Wed, Feb 26, 2014 at 11:14:26AM +0200, Jyri Sarha wrote:
 
-> Intent here is to allow drivers such as cpufreq-cpu0 to be reused on
-> platforms such as TI's OMAP derivatives, and other SoCs which differ
-> only by the sequence involved in voltage scale operations. So, this
-> patch provides a framework for registering the underlying
-> implementation of the SoC specific voltage change methodology.
+> --- a/sound/soc/codecs/Kconfig
+> +++ b/sound/soc/codecs/Kconfig
+> @@ -74,6 +74,7 @@ config SND_SOC_ALL_CODECS
+>  	select SND_SOC_TLV320AIC23 if I2C
+>  	select SND_SOC_TLV320AIC26 if SPI_MASTER
+>  	select SND_SOC_TLV320AIC32X4 if I2C
+> +	select SND_SOC_TLV320AIC31XX if I2C
+>  	select SND_SOC_TLV320AIC3X if I2C
+>  	select SND_SOC_TPA6130A2 if I2C
+>  	select SND_SOC_TLV320DAC33 if I2C
 
-That bit is clear, what's very opaque from the code is how this is going
-to be accomplished.
+Keep these files sorted and don't send the build infrastructure as a
+separate patch unless the driver as a whole is split into multiple
+patches - there is no value unless the driver is being built up over
+several patches, it just raises a review question on the driver patch.
 
-> Overall the sequence takes place after this patch is as follows:
-> a) voltage domain drivers such as those of TI or others register with
-> voltage domain with devm_voltdm_register.
-> b) cpufreq-cpu0/devfreq drivers:
-> of_pm_voltdm_notifier_register(introduced as part of patch #1) to
-> register notifiers around clk of interest. This request is linked to
-> the specific voltage domain using phandle in device tree.
-> c) when cpufreq-cpu0/devfreq does a clk_set_rate, the common clock
-> framework triggers notifiers in voltage domain core which in turn,
-> invokes the corresponding handlers for the voltage domain driver
-> ensuring the right dvfs sequence specific to the SoC is triggered.
-
-So the first question I have here is what happens if multiple clocks
-need to be updated in lock step - if we're only triggering off clock
-notifiers that seems tricky.  The other thing here is that the fact that
-your API is "of_" suggests that it is in fact linked very srongly to DT
-- it'd be good to split out the layers to make sure things make sense
-standalone, the DT helpers are obviously good but the API should be able
-to stand separately.
-
---r6fxLKBTHCmC166Z
+--KZa8Qkr7Zx+i11wB
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJTE/zvAAoJELSic+t+oim9cMcP/i0JAKgjHEbGVsgjUDypV9q1
-iF7cDi5/DSCxirm9mNtVG6UbR5iy8XuYJznaHcNct5K5CGc5Eydan5+NZr556M2E
-RG5G/KjNIukhvVT1eBhBm7S81uoF5wSJAsJnu/xUM9WCpJenbI7FqEEscYIMfU9o
-mZJ8uHn4t9VvEnmhEwTZcg2Qyq+6vP5eooRtb0BbO7t7COPcSFAdCji6XZJ2alAk
-PilOoP2Gh/ip3A7+mmMWiDvbRrfJUUkELruhDScvRwt6jY1y0HD8x5iUu1gIqRRJ
-Qifu2etbCcejsSEa6DfnyjbRhRRTeL6FnJR9dHnv0qs9tzryW+DEVXYT5DvYa5oi
-KkJoQaLsb2tJ1HlMmBSxtavqBz6yx2VD4t4PREWfTx+ZH6FRZOVifanSJUhggtKG
-RtQduD1GAkHZwu6yRrXND1YoPz0Ihrldb08tgqxQYVBqZaN/fX6ncX3/Jpl38Cih
-3EoAnm2UOSkZ1NjkeMT6ZB/ap5j6hwu4i7QJgcbrvf68J+RJAposA/5mj4OwVg3e
-+thB2kaTtV1jOxi7T9mOtAff/1oOkEB+Xc1Q3E7q7t1vcV/VNmCS2St0BMffzQeS
-pAiAe8OCQjHQ5TQIblrIf9SsvEmE+Du9TmpG6DwniCzAJvjL6aUr7mObanihfeeA
-IMTO0jrdB42Sh6/55OMI
-=PhJi
+iQIcBAEBAgAGBQJTFA6IAAoJELSic+t+oim9JwcP/ioC6TFOTfJQRQBYFGsDFKXX
+GIUE4wnOremY889iMVkKHNPBgOzwuQ83BL1MdXpIQR3K6fE5Uv5PnfJBs06UnBtp
+qWICjAF0Mgr7FoFY1Fg543GmCqkwIFu9OxeulYdgZuArRv/jSRNUJBRhBAfyl5tH
+1Msu0K2Zfx/SPIMcsJSZlm0TMI110pk29jJv3ntYOk0OMkyb8oOLLELoDd3CQ0Iq
+HZToO69HFdsDDrJ3IOOcsq9lLx7JZPjrXI7HitN0B/yDlCrEmbkzxSHxrhQz8GQC
+ximNHdoRj2sv+S9JEDOs19gJ2bI9/H2uSSHFxVZSWuOjhe8wFx+REY8iFrqmIRwa
+8JKqESPet9t0xWZ8/EWMhKVmhYsMG9Uhpn++YbCmWZJv0yzc04YAQ2/DvHV2zyrC
+vEufB8OvqeDQG4K7dnnA/rBmjUTzPrZfX3ytl8+dCwE1Xfjkb4hTFia/L6Db0JvY
+VpSgdL251w42+JSCcBk9SD0cR+n1unnWxk3xuABEabPnLBYdAhVsF0HXjPcAzI8u
++R/Fsp4VgZujATXA4Y0Ok3e7YAoQrCgy5fcy2NpfcG2EFmgN8V+4qLz7G5Gnzdvn
+N+hnrTebGiU1X5yAlRa8XVbs/y3hB6dYnshIcNlkWKTKvQTfLExWsFhbU8ip1LES
+2snxtMcbcxL58OyiVdca
+=QoOQ
 -----END PGP SIGNATURE-----
 
---r6fxLKBTHCmC166Z--
+--KZa8Qkr7Zx+i11wB--
