@@ -1,60 +1,81 @@
 From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [RESEND Patch 4/9] ARM: dts: OMAP36xx: Add device node for ABB
-Date: Mon, 3 Mar 2014 20:20:21 +0530
-Message-ID: <1393858226-32595-6-git-send-email-mugunthanvnm@ti.com>
-References: <1393858226-32595-1-git-send-email-mugunthanvnm@ti.com>
+Subject: [RESEND Patch 0/9] dts pending patches for TI omap
+Date: Mon, 3 Mar 2014 20:20:16 +0530
+Message-ID: <1393858226-32595-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1393858226-32595-1-git-send-email-mugunthanvnm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: bcousson@baylibre.com, tony@atomide.com
 Cc: linux@arm.linux.org.uk, akpm@linux-foundation.org, nm@ti.com, balajitk@ti.com, r.sricharan@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
+Benoit/Tony
 
-Add ABB device node for OMAP36xx family of devices. Data is based on
-OMAP36XX Technical Reference Manual revision AB (Dec 2012).
+Here I am send all the pending dt patches that can go into 3.15 merge window,
+all the patches were already posted to mailing list and has beed reviewed.
 
-[nm@ti.com: co-developer]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Andrii.Tseglytskyi <andrii.tseglytskyi@ti.com>
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- arch/arm/boot/dts/omap36xx.dtsi | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+I have rebased the patches on top of
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git omap-for-v3.15/dt
+and fixed all the merge conflicts.
 
-diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
-index 7e8dee9..ba077cd 100644
---- a/arch/arm/boot/dts/omap36xx.dtsi
-+++ b/arch/arm/boot/dts/omap36xx.dtsi
-@@ -39,6 +39,26 @@
- 			clock-frequency = <48000000>;
- 		};
- 
-+		abb_mpu_iva: regulator-abb-mpu {
-+			compatible = "ti,abb-v1";
-+			regulator-name = "abb_mpu_iva";
-+			#address-cell = <0>;
-+			#size-cells = <0>;
-+			reg = <0x483072f0 0x8>, <0x48306818 0x4>;
-+			reg-names = "base-address", "int-address";
-+			ti,tranxdone-status-mask = <0x4000000>;
-+			clocks = <&sys_ck>;
-+			ti,settling-time = <30>;
-+			ti,clock-cycles = <8>;
-+			ti,abb_info = <
-+			/*uV		ABB	efuse	rbb_m	fbb_m	vset_m*/
-+			1012500		0	0	0	0	0
-+			1200000		0	0	0	0	0
-+			1325000		0	0	0	0	0
-+			1375000		1	0	0	0	0
-+			>;
-+		};
-+
- 		omap3_pmx_core2: pinmux@480025a0 {
- 			compatible = "ti,omap3-padconf", "pinctrl-single";
- 			reg = <0x480025a0 0x5c>;
+Pasting the mail archive for the patches series
+
+* Add ABB device nodes
+http://linux-kernel.2935.n7.nabble.com/PATCH-0-4-ARM-dts-OMAP3630-Add-ABB-device-nodes-td794852.html
+
+* MMC hot plug support
+http://mail.blameitonlove.com/lists/linux-omap/msg101933.html
+Dropped [PATCH 2/3] ARM: dts: am335x-evmsk: add SD card hotplug support as this
+is already merged with commit id 29ea5efb0bb612d352aa360de26e2095cb230e4a
+
+* DRA7 Cross bar DTS patches
+Cross bar driver has been pulled for next merge, so the dts patches can also
+be pulled for next merge window.
+
+Here is the pull request for the same patch series.
+
+The following changes since commit f777ba1780584b100ab9664cc06d04f3bb273a84:
+
+  Merge tag 'for_3.15/dts_signed' of git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt into omap-for-v3.15/dt (2014-03-02 14:22:03 -0800)
+
+are available in the git repository at:
+
+
+  git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git omapdt-for-3.15
+
+for you to fetch changes up to 5f78b45aa45c5b2c4de895c3b0740fda4684dae4:
+
+  ARM: DTS: DRA7: Add routable-irqs property for gic node (2014-03-03 19:53:25 +0530)
+
+----------------------------------------------------------------
+Andrii.Tseglytskyi (2):
+      ARM: dts: OMAP36xx: Add device node for ABB
+      ARM: dts: OMAP4: Add device nodes for ABB
+
+Balaji T K (3):
+      ARM: dts: am437x gp-evm: add sd card dt nodes
+      ARM: dts: am335x-evm: add SD card hotplug support
+      ARM: dts: am43x-epos-evm: add SD card hotplug support
+
+Nishanth Menon (1):
+      ARM: dts: DRA7: Add device nodes for ABB
+
+Sricharan R (3):
+      ARM: DTS: DRA7: Add crossbar device binding
+      ARM: DTS: DRA7: Replace peripheral interrupt numbers with crossbar inputs
+      ARM: DTS: DRA7: Add routable-irqs property for gic node
+
+ arch/arm/boot/dts/am335x-evm.dts     |   9 ++
+ arch/arm/boot/dts/am4372.dtsi        |   1 +
+ arch/arm/boot/dts/am437x-gp-evm.dts  |  27 +++++
+ arch/arm/boot/dts/am43x-epos-evm.dts |   9 ++
+ arch/arm/boot/dts/dra7.dtsi          | 227 ++++++++++++++++++++++++++++-------
+ arch/arm/boot/dts/omap36xx.dtsi      |  20 +++
+ arch/arm/boot/dts/omap4.dtsi         |  26 ++++
+ arch/arm/boot/dts/omap443x.dtsi      |  26 ++++
+ arch/arm/boot/dts/omap4460.dtsi      |  37 ++++++
+ 9 files changed, 339 insertions(+), 43 deletions(-)
+
 -- 
 1.9.0
