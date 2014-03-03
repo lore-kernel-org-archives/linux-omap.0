@@ -1,140 +1,126 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH 2/5] ARM: dts: AM4372: Add USB nodes
-Date: Mon, 3 Mar 2014 19:23:51 +0530
-Message-ID: <1393854834-23810-3-git-send-email-george.cherian@ti.com>
-References: <1393854834-23810-1-git-send-email-george.cherian@ti.com>
+From: Marc Murphy <marcmltd@marcm.co.uk>
+Subject: RE: Help needed USB hub disconnected at resume
+Date: Mon, 3 Mar 2014 14:11:30 +0000
+Message-ID: <F690310232FDDF4AB457E8B3EF90DDE0AA85E7F2@MARCM-SBS2011.marcmltd.local>
+References: <F690310232FDDF4AB457E8B3EF90DDE0AA85E10B@MARCM-SBS2011.marcmltd.local>,<F690310232FDDF4AB457E8B3EF90DDE0AA85E1E7@MARCM-SBS2011.marcmltd.local>
+ <F690310232FDDF4AB457E8B3EF90DDE0AA85E21F@MARCM-SBS2011.marcmltd.local>
+ <53146225.8040403@ti.com>,<531472B3.1060104@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1393854834-23810-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org
-Cc: anatol.pomozov@gmail.com, gregkh@linuxfoundation.org, balbi@ti.com, rogerq@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com, George Cherian <george.cherian@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtpout06.bt.lon5.cpcloud.co.uk ([65.20.0.126]:17056 "EHLO
+	smtpout06.bt.lon5.cpcloud.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754103AbaCCOLo convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Mar 2014 09:11:44 -0500
+In-Reply-To: <531472B3.1060104@compulab.co.il>
+Content-Language: en-GB
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>, Roger Quadros <rogerq@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Add nodes for 2 instances each of
-	- ocp2scp
-	- USB PHY control module
-	- USB PHY
-	- dwc3_omap
-	- USB
+Hi Igor
 
-for AM43xx.
+The Hub is a Microchip USB2513B-AEZG and is connected to EHCI controller port via the DUP_P and DUP_N pins.  There is a reset applied to the chip at power on.
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
----
- arch/arm/boot/dts/am4372.dtsi | 99 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 99 insertions(+)
+Regards
+Marc
+________________________________________
+From: Igor Grinberg [grinberg@compulab.co.il]
+Sent: 03 March 2014 12:16
+To: Roger Quadros; Marc Murphy; linux-omap@vger.kernel.org
+Subject: Re: Help needed USB hub disconnected at resume
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 5a7cc38..90408b3 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -698,6 +698,105 @@
- 			       <&edma 11>;
- 			dma-names = "tx", "rx";
- 		};
-+
-+		am43xx_control_usb2phy1: control-phy@44e10620 {
-+			compatible = "ti,control-phy-am437usb2";
-+			reg = <0x44e10620 0x4>;
-+			reg-names = "power";
-+			status = "disabled";
-+		};
-+
-+		am43xx_control_usb2phy2: control-phy@0x44e10628 {
-+			compatible = "ti,control-phy-am437usb2";
-+			reg = <0x44e10628 0x4>;
-+			reg-names = "power";
-+			status = "disabled";
-+		};
-+
-+		ocp2scp0: ocp2scp@483a8000 {
-+			compatible = "ti,omap-ocp2scp";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			ti,hwmods = "ocp2scp0";
-+			status = "disabled";
-+
-+			usb2_phy1: usb2phy1@483a8000 {
-+				compatible = "ti,am437x-usb2";
-+				reg = <0x483a8000 0x8000>;
-+				ctrl-module = <&am43xx_control_usb2phy1>;
-+				clocks = <&clk_32768_ck>,
-+					 <&usb_otg_ss0_refclk960m>;
-+				clock-names = "usb_phy_cm_clk32k",
-+					      "usb_otg_ss_refclk960m";
-+				#phy-cells = <0>;
-+				status = "disabled";
-+			};
-+		};
-+
-+		ocp2scp1: ocp2scp@483e8000 {
-+			compatible = "ti,omap-ocp2scp";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			ti,hwmods = "ocp2scp1";
-+			status = "disabled";
-+
-+			usb2_phy2: usb2phy2@483e8000 {
-+				compatible = "ti,am437x-usb2";
-+				reg = <0x483e8000 0x8000>;
-+				ctrl-module = <&am43xx_control_usb2phy2>;
-+				clocks = <&clk_32768_ck>,
-+					 <&usb_otg_ss1_refclk960m>;
-+				clock-names = "usb_phy_cm_clk32k",
-+					      "usb_otg_ss_refclk960m";
-+				#phy-cells = <0>;
-+				status = "disabled";
-+			};
-+		};
-+
-+		dwc3_1: omap_dwc3_1@48380000 {
-+			compatible = "ti,am437x-dwc3";
-+			ti,hwmods = "usb_otg_ss0";
-+			reg = <0x48380000 0x10000>;
-+			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			utmi-mode = <1>;
-+			ranges;
-+			status = "disabled";
-+
-+			usb1: usb@48390000 {
-+				compatible = "synopsys,dwc3";
-+				reg = <0x48390000 0x17000>;
-+				interrupts = <GIC_SPI 168 IRQ_TYPE_LEVEL_HIGH>;
-+				usb-phy = <&usb2_phy1>;
-+				phy-names = "usb2-phy";
-+				status = "disabled";
-+			};
-+		};
-+
-+		dwc3_2: omap_dwc3_2@483c0000 {
-+			compatible = "ti,am437x-dwc3";
-+			ti,hwmods = "usb_otg_ss1";
-+			reg = <0x483c0000 0x10000>;
-+			interrupts = <GIC_SPI 178 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			utmi-mode = <1>;
-+			ranges;
-+			status = "disabled";
-+
-+			usb2: usb@483d0000 {
-+				compatible = "synopsys,dwc3";
-+				reg = <0x483d0000 0x17000>;
-+				interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
-+				usb-phy = <&usb2_phy2>;
-+				phy-names = "usb2-phy";
-+				status = "disabled";
-+			};
-+		};
-+
- 	};
- };
- 
--- 
-1.8.3.1
+On 03/03/14 13:06, Roger Quadros wrote:
+> Hi Marc,
+>
+> On 03/03/2014 12:04 PM, Marc Murphy wrote:
+>> Hi,
+>> I am using the latest stable 3.4.80 kernel with some changes to get the EMAC Phy to initialise correctly after a suspend/resume.  The platform is AM3517 with most of the system working nice and smoothly. I have 1 issue though and need some advice/help to get the system to use the USB hub I have connected to the EHCI controller after a suspend to memory and resume.
+>>
+>> At boot all is recognised;
+>>
+>> [    1.486816] usbcore: registered new interface driver cdc_ether
+>> [    1.493255] usbcore: registered new interface driver cdc_ncm
+>> [    1.499450] usbcore: registered new interface driver qmi_wwan
+>> [    1.506622] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+>> [    1.513580] ehci-omap.0 supply hsusb0 not found, using dummy regulator
+>> [    2.521881] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
+>> [    2.528411] ehci-omap ehci-omap.0: new USB bus registered, assigned bus number 1
+>> [    2.536468] ehci-omap ehci-omap.0: irq 77, io mem 0x48064800
+>> [    2.553070] ehci-omap ehci-omap.0: USB 2.0 started, EHCI 1.00
+>> [    2.559295] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+>> [    2.566436] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+>> [    2.574035] usb usb1: Product: OMAP-EHCI Host Controller
+>> [    2.579620] usb usb1: Manufacturer: Linux 3.4.80 ehci_hcd
+>> [    2.585296] usb usb1: SerialNumber: ehci-omap.0
+>> [    2.591278] hub 1-0:1.0: USB hub found
+>> [    2.595306] hub 1-0:1.0: 3 ports detected
+>>
+>> And I can see everything OK.
+>>
+>> # lsusb
+>> Bus 001 Device 002: ID 0424:2513 Standard Microsystems Corp. 2.0 Hub
+>> Bus 002 Device 002: ID 05e3:0718 Genesys Logic, Inc. IDE/SATA Adapter
+>> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+>> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+>> Bus 001 Device 003: ID 1199:68a2 Sierra Wireless, Inc.
+>> #
+>> #
+>> # echo mem > /sys/power/state
+>> [   73.736572] PM: Syncing filesystems ... done.
+>> [   73.743530] Freezing user space processes ... (elapsed 0.01 seconds) done.
+>> [   73.766784] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+>> [   73.959289] davinci_mdio davinci_mdio.0: timed out waiting for idle
+>> [   73.968872] PM: suspend of devices complete after 170.410 msecs
+>> [   73.975433] PM: late suspend of devices complete after 0.305 msecs
+>> [   73.982635] PM: noirq suspend of devices complete after 0.732 msecs
+>> [   83.430450] Powerdomain (core_pwrdm) didn't enter target state 1
+>> [   83.436737] Could not enter target state in pm_suspend
+>> [   83.443176] PM: noirq resume of devices complete after 0.915 msecs
+>>  [   83.450164] PM: early resume of devices complete after 0.274 msecs
+>> [   83.457336] <6>Waiting for PHY clock good...
+>> [   83.463287] davinci_mdio davinci_mdio.0: resetting idled controller
+>> [   83.471343] net eth0: attached PHY driver [SMSC LAN8710/LAN8720] (mii_bus:phy_addr=davinci_mdio-0:00, id=7c0f1)
+>> [   84.771881] PM: resume of devices complete after 1315.185 msecs
+>> [   84.778472] Restarting tasks ...
+>> [   84.782379] usb 1-1: USB disconnect, device number 2
+>> [   84.790557] done.
+>> [   84.792938] mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
+>> sh: write error:[   84.800781] usb 1-1.1: USB disconnect, device number 3
+>>  Operation not p[   84.808349] qmi_wwan 1-1.1:1.8: wwan0: unregister 'qmi_wwan' usb-ehci-omap.0-1.1, Sierra Wireless wwan/QMI device
+>> ermitted
+>> [   84.859191] mmc1: mmc_rescan_try_freq: trying to init card at 400000 Hz
+>> [   86.490356] PHY: davinci_mdio-0:00 - Link is Up - 100/Full
+>> #
+>> #
+>> # lsusb
+>> Bus 002 Device 002: ID 05e3:0718 Genesys Logic, Inc. IDE/SATA Adapter
+>> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+>> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+>> #
+>>
+>> Is there any relevant patch out there that would address the issue that I see ?
+>
+> Does this happen because of OFF mode?
+> Can you please try the tests with off mode disabled?
+>
+> e.g.
+> mount -t debugfs none /sys/kernel/debug
+> echo 0 > /sys/kernel/debug/pm_debug/enable_off_mode
+> suspend & resume
+
+AFAIK, AM3517 does not have OFF mode.
+We had something similar with runtime pm...
+It might be useful to know which hub is this and how is it connected...
+
+>
+> Also please send the output of /sys/kernel/debug/pm_debug/count
+> before suspend and after resume. Thanks.
+
+
+
+--
+Regards,
+Igor.
