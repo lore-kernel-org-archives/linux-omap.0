@@ -1,68 +1,52 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH RFC 2/5] ASoC: tlv320aic31xx: Add codec driver to
- Makefile and Kconfig
-Date: Mon, 3 Mar 2014 13:09:31 +0800
-Message-ID: <20140303050931.GQ2411@sirena.org.uk>
-References: <cover.1393405575.git.jsarha@ti.com>
- <e5ddd051ac319649d50da0da804750c1c6619edb.1393405575.git.jsarha@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCHv3 00/13] OMAP IOMMU DT adaptation for 3.15
+Date: Sun, 2 Mar 2014 23:35:30 -0600
+Message-ID: <531414A2.8040100@ti.com>
+References: <1393620164-14633-1-git-send-email-s-anna@ti.com> <20140228230000.GW13624@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KZa8Qkr7Zx+i11wB"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:54704 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751427AbaCCFJf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 00:09:35 -0500
-Content-Disposition: inline
-In-Reply-To: <e5ddd051ac319649d50da0da804750c1c6619edb.1393405575.git.jsarha@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:35831 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750800AbaCCFgX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 00:36:23 -0500
+In-Reply-To: <20140228230000.GW13624@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, devicetree@vger.kernel.org, bcousson@baylibre.com, peter.ujfalusi@ti.com, detheridge@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Joerg Roedel <joro@8bytes.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Tony,
 
---KZa8Qkr7Zx+i11wB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 02/28/2014 05:00 PM, Tony Lindgren wrote:
+> * Suman Anna <s-anna@ti.com> [140228 12:46]:
+>> Hi Joerg, Tony,
+>>
+>> This is an updated series of the OMAP IOMMU DT adaptation intended
+>> for 3.15 merge window, addressing the comments from the v2 series.
+>> This series is rebased onto 3.14-rc4, and the only change to bindings
+>> is to drop the dma-window property.
+>>
+>> The first 7 patches in the series are in drivers/iommu, with the first
+>> 3 patches performing some cleanup. The DT bindings and adaptation are
+>> done in patches 4 and 5.
+>>
+>> Tony,
+>> Patches 8 through 13 are in arch/arm/mach-omap2 layer, so I am guessing
+>> these would have to go through your tree. Of these, patches 8 and 9 are
+>> cleanup fixes to get OMAP3 IVA MMU working, patches 10 & 11 are fixes
+>> required with DT-boot for OMAP3/4, patches 12 & 13 add the OMAP5 support.
+>
+> Are patches 8 to 13 OK to apply separately from the iommu patches or
+> do they need to wait for the iommu patches to get merged first?
+>
 
-On Wed, Feb 26, 2014 at 11:14:26AM +0200, Jyri Sarha wrote:
+Yeah, they don't have any direct dependencies. Patches 8, 9 and 12 are 
+totally independent. Patches 10, 11 and 13 add the needed platform data 
+or archdata to get the corresponding DT iommu devices functional by any 
+users (OMAP3 ISP is the only user in kernel). The only remote dependency 
+is the compatible string names used in the pdata-quirks.
 
-> --- a/sound/soc/codecs/Kconfig
-> +++ b/sound/soc/codecs/Kconfig
-> @@ -74,6 +74,7 @@ config SND_SOC_ALL_CODECS
->  	select SND_SOC_TLV320AIC23 if I2C
->  	select SND_SOC_TLV320AIC26 if SPI_MASTER
->  	select SND_SOC_TLV320AIC32X4 if I2C
-> +	select SND_SOC_TLV320AIC31XX if I2C
->  	select SND_SOC_TLV320AIC3X if I2C
->  	select SND_SOC_TPA6130A2 if I2C
->  	select SND_SOC_TLV320DAC33 if I2C
-
-Keep these files sorted and don't send the build infrastructure as a
-separate patch unless the driver as a whole is split into multiple
-patches - there is no value unless the driver is being built up over
-several patches, it just raises a review question on the driver patch.
-
---KZa8Qkr7Zx+i11wB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTFA6IAAoJELSic+t+oim9JwcP/ioC6TFOTfJQRQBYFGsDFKXX
-GIUE4wnOremY889iMVkKHNPBgOzwuQ83BL1MdXpIQR3K6fE5Uv5PnfJBs06UnBtp
-qWICjAF0Mgr7FoFY1Fg543GmCqkwIFu9OxeulYdgZuArRv/jSRNUJBRhBAfyl5tH
-1Msu0K2Zfx/SPIMcsJSZlm0TMI110pk29jJv3ntYOk0OMkyb8oOLLELoDd3CQ0Iq
-HZToO69HFdsDDrJ3IOOcsq9lLx7JZPjrXI7HitN0B/yDlCrEmbkzxSHxrhQz8GQC
-ximNHdoRj2sv+S9JEDOs19gJ2bI9/H2uSSHFxVZSWuOjhe8wFx+REY8iFrqmIRwa
-8JKqESPet9t0xWZ8/EWMhKVmhYsMG9Uhpn++YbCmWZJv0yzc04YAQ2/DvHV2zyrC
-vEufB8OvqeDQG4K7dnnA/rBmjUTzPrZfX3ytl8+dCwE1Xfjkb4hTFia/L6Db0JvY
-VpSgdL251w42+JSCcBk9SD0cR+n1unnWxk3xuABEabPnLBYdAhVsF0HXjPcAzI8u
-+R/Fsp4VgZujATXA4Y0Ok3e7YAoQrCgy5fcy2NpfcG2EFmgN8V+4qLz7G5Gnzdvn
-N+hnrTebGiU1X5yAlRa8XVbs/y3hB6dYnshIcNlkWKTKvQTfLExWsFhbU8ip1LES
-2snxtMcbcxL58OyiVdca
-=QoOQ
------END PGP SIGNATURE-----
-
---KZa8Qkr7Zx+i11wB--
+regards
+Suman
