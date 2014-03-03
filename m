@@ -1,55 +1,172 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [PATCH 1/1] net: cpsw: fix cpdma rx descriptor leak on down interface
-Date: Mon, 3 Mar 2014 16:19:06 +0530
-Message-ID: <1393843746-6554-1-git-send-email-mugunthanvnm@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 4/7] ARM: dts: omap3-overo: Add HSUSB PHY
+Date: Mon, 3 Mar 2014 13:03:02 +0200
+Message-ID: <53146166.4050906@ti.com>
+References: <1393839247-6516-1-git-send-email-florian.vaussard@epfl.ch> <1393839247-6516-5-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Schuyler Patton <spatton@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47347 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753114AbaCCLDb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Mar 2014 06:03:31 -0500
+In-Reply-To: <1393839247-6516-5-git-send-email-florian.vaussard@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Schuyler Patton <spatton@ti.com>
+Hi Florian,
 
-This patch fixes a CPDMA RX Descriptor leak that occurs after taking
-the interface down when the CPSW is in Dual MAC mode. Previously
-the CPSW_ALE port was left open up which causes packets to be received
-and processed by the RX interrupt handler and were passed to the
-non active network interface where they were ignored.
 
-The fix is for the slave_stop function of the selected interface
-to disable the respective CPSW_ALE Port from forwarding packets. This
-blocks traffic from being received on the inactive interface.
+On 03/03/2014 11:34 AM, Florian Vaussard wrote:
+> Add the High-Speed USB PHY.
+> 
+> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+> ---
+>  arch/arm/boot/dts/omap3-overo-storm-tobi.dts | 16 ++++++++++
+>  arch/arm/boot/dts/omap3-overo-tobi.dts       | 16 ++++++++++
+>  arch/arm/boot/dts/omap3-overo.dtsi           | 44 ++++++++++++++++++++++++++++
+>  3 files changed, 76 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-overo-storm-tobi.dts b/arch/arm/boot/dts/omap3-overo-storm-tobi.dts
+> index 2033b52..eb93e3a 100644
+> --- a/arch/arm/boot/dts/omap3-overo-storm-tobi.dts
+> +++ b/arch/arm/boot/dts/omap3-overo-storm-tobi.dts
+> @@ -21,6 +21,22 @@
+>  };
+>  
+>  &omap3_pmx_core2 {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <
+> +			&hsusb2_2_pins
+> +	>;
+> +
+> +	hsusb2_2_pins: pinmux_hsusb2_2_pins {
+> +		pinctrl-single,pins = <
+> +			OMAP3630_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
+> +			OMAP3630_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
+> +			OMAP3630_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
+> +			OMAP3630_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
+> +			OMAP3630_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
+> +			OMAP3630_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
+> +		>;
+> +	};
+> +
+>  	w3cbw003c_2_pins: pinmux_w3cbw003c_2_pins {
+>  		pinctrl-single,pins = <
+>  			OMAP3630_CORE2_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE4)		/* etk_d2.gpio_16 */
+> diff --git a/arch/arm/boot/dts/omap3-overo-tobi.dts b/arch/arm/boot/dts/omap3-overo-tobi.dts
+> index 21de31d..e77be26 100644
+> --- a/arch/arm/boot/dts/omap3-overo-tobi.dts
+> +++ b/arch/arm/boot/dts/omap3-overo-tobi.dts
+> @@ -21,6 +21,22 @@
+>  };
+>  
+>  &omap3_pmx_core2 {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <
+> +			&hsusb2_2_pins
+> +	>;
+> +
+> +	hsusb2_2_pins: pinmux_hsusb2_2_pins {
+> +		pinctrl-single,pins = <
+> +			OMAP3430_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
+> +			OMAP3430_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
+> +			OMAP3430_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
+> +			OMAP3430_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
+> +			OMAP3430_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
+> +			OMAP3430_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
+> +		>;
+> +	};
+> +
+>  	w3cbw003c_2_pins: pinmux_w3cbw003c_2_pins {
+>  		pinctrl-single,pins = <
+>  			OMAP3430_CORE2_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE4)		/* etk_d2.gpio_16 */
+> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
+> index 07467cc..8f810db 100644
+> --- a/arch/arm/boot/dts/omap3-overo.dtsi
+> +++ b/arch/arm/boot/dts/omap3-overo.dtsi
+> @@ -30,6 +30,24 @@
+>  		ti,codec = <&twl_audio>;
+>  	};
+>  
+> +	/* HS USB Port 2 Power */
+> +	hsusb2_power: hsusb2_power_reg {
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "hsusb2_vbus";
+> +		regulator-min-microvolt = <5000000>;
+> +		regulator-max-microvolt = <5000000>;
+> +		gpio = <&gpio6 8 0>;				/* gpio_168: vbus enable */
+> +		startup-delay-us = <70000>;
+> +		enable-active-high;
+> +	};
+> +
+> +	/* HS USB Host PHY on PORT 2 */
+> +	hsusb2_phy: hsusb2_phy {
+> +		compatible = "usb-nop-xceiv";
+> +		reset-gpios = <&gpio6 23 GPIO_ACTIVE_LOW>;	/* gpio_183 */
+> +		vcc-supply = <&hsusb2_power>;
+> +	};
+> +
+>  	/* Regulator to trigger the nPoweron signal of the Wifi module */
+>  	w3cbw003c_npoweron: regulator-w3cbw003c-npoweron {
+>  		compatible = "regulator-fixed";
+> @@ -64,6 +82,11 @@
+>  };
+>  
+>  &omap3_pmx_core {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <
+> +			&hsusb2_pins
+> +	>;
+> +
+>  	uart3_pins: pinmux_uart3_pins {
+>  		pinctrl-single,pins = <
+>  			OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0)	/* uart3_rx_irrx.uart3_rx_irrx */
+> @@ -107,6 +130,19 @@
+>  			OMAP3_CORE1_IOPAD(0x219c, PIN_OUTPUT | MUX_MODE4)		/* uart3_rts_sd.gpio_164 */
+>  		>;
+>  	};
+> +
+> +	hsusb2_pins: pinmux_hsusb2_pins {
+> +		pinctrl-single,pins = <
+> +			OMAP3_CORE1_IOPAD(0x21d4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
+> +			OMAP3_CORE1_IOPAD(0x21d6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
+> +			OMAP3_CORE1_IOPAD(0x21d8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
+> +			OMAP3_CORE1_IOPAD(0x21da, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
+> +			OMAP3_CORE1_IOPAD(0x21dc, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
+> +			OMAP3_CORE1_IOPAD(0x21de, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
+> +			OMAP3_CORE1_IOPAD(0x21be, PIN_OUTPUT | MUX_MODE4)		/* i2c2_scl.gpio_168 */
+> +			OMAP3_CORE1_IOPAD(0x21c0, PIN_OUTPUT | MUX_MODE4)		/* i2c2_sda.gpio_183 */
+> +		>;
+> +	};
 
-Signed-off-by: Schuyler Patton <spatton@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+Does this mean all overo variants use the USB host feature on hsusb2 pins? If not then this can't be here.
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 651087b..ffd4d12 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1164,11 +1164,17 @@ static void cpsw_init_host_port(struct cpsw_priv *priv)
- 
- static void cpsw_slave_stop(struct cpsw_slave *slave, struct cpsw_priv *priv)
- {
-+	u32 slave_port;
-+
-+	slave_port = cpsw_get_slave_port(priv, slave->slave_num);
-+
- 	if (!slave->phy)
- 		return;
- 	phy_stop(slave->phy);
- 	phy_disconnect(slave->phy);
- 	slave->phy = NULL;
-+	cpsw_ale_control_set(priv->ale, slave_port,
-+			     ALE_PORT_STATE, ALE_PORT_STATE_DISABLE);
- }
- 
- static int cpsw_ndo_open(struct net_device *ndev)
--- 
-1.9.0
+If yes then I didn't understand why the hsusb2 pinmux is split up half here and half in "omap3-overo-tobi.dts"
+and "omap3-overo-storm-tobi.dts"
+
+>  };
+>  
+>  &i2c1 {
+> @@ -168,6 +204,14 @@
+>  	power = <50>;
+>  };
+>  
+> +&usbhshost {
+> +	port2-mode = "ehci-phy";
+> +};
+> +
+> +&usbhsehci {
+> +	phys = <0 &hsusb2_phy>;
+> +};
+> +
+>  &uart3 {
+>  	pinctrl-names = "default";
+>  	pinctrl-0 = <&uart3_pins>;
+> 
+
+cheers,
+-roger
