@@ -1,55 +1,48 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 00/12] ARM: OMAP2 DT clock conversion
-Date: Mon, 3 Mar 2014 10:16:58 +0200
-Message-ID: <53143A7A.9020703@ti.com>
-References: <1393579384-23440-1-git-send-email-t-kristo@ti.com> <5310B271.5040708@ti.com> <20140228180112.GC15399@atomide.com> <5310D2FE.5090209@ti.com> <20140228183313.GD15399@atomide.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 7/7] v4l: ti-vpe: Add crop support in VPE driver
+Date: Mon, 3 Mar 2014 13:56:19 +0530
+Message-ID: <53143CAB.4020202@ti.com>
+References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393832008-22174-8-git-send-email-archit@ti.com> <53143439.5030007@xs4all.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53350 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53794 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751910AbaCCIR1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Mar 2014 03:17:27 -0500
-In-Reply-To: <20140228183313.GD15399@atomide.com>
+	id S1752988AbaCCI05 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Mar 2014 03:26:57 -0500
+In-Reply-To: <53143439.5030007@xs4all.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>, k.debski@samsung.com
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
 
-On 02/28/2014 08:33 PM, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [140228 10:21]:
+Hi,
+
+On Monday 03 March 2014 01:20 PM, Hans Verkuil wrote:
+> Hi Archit!
+>
+> On 03/03/2014 08:33 AM, Archit Taneja wrote:
+>> Add crop ioctl ops. For VPE, cropping only makes sense with the input to VPE, or
+>> the V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE buffer type.
 >>
->> Hmm, some clock node is broken, might be missing a name or parent
->> name for some reason. Can you try to boot with DEBUG enabled so you
->> get pr_debug:s out and see which clock is being initialized during
->> the crash?
+>> For the CAPTURE type, a S_CROP ioctl results in setting the crop region as the
+>> whole image itself, hence making crop dimensions same as the pix dimensions.
+>>
+>> Setting the crop successfully should result in re-configuration of those
+>> registers which are affected when either source or destination dimensions
+>> change, set_srcdst_params() is called for this purpose.
+>>
+>> Some standard crop parameter checks are done in __vpe_try_crop().
 >
-> ...
-> [    0.000000] ti_dt_clk_init_provider: ti_dt_clk_init_provider: initializing: core_d18_ck
-> [    0.000000] ti_dt_clk_init_provider: ti_dt_clk_init_provider: initializing: vlynq_mux_fck
-> [    0.000000] ti_dt_clk_init_provider: ti_dt_clk_init_provider: initializing: vlynq_fck
-> [    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
-> ...
->
-> We really should be registering the clocks lazily as needed BTW. That
-> leaves out the dependency to DEBUG_LL for seeing any kind of decent
-> error messages during the booting.
->
-> Regards,
->
-> Tony
->
+> Please use the selection ops instead: if you implement cropping with those then you'll
+> support both the selection API and the old cropping API will be implemented by the v4l2
+> core using the selection ops. Two for the price of one...
 
-Hey Tony,
+<snip>
 
-Can you retry with the branch? I just pushed one patch there, seems the 
-parents for the vlynq_mux_fck were somewhat broken (there are holes in 
-the valid mux values list, which hasn't happened with any other 
-mux-clock so far.)
+Thanks for the feedback. I'll use selection ops here.
 
-If this works, I will rework the series a bit and send v2 out. 
-Alternatively I need to add extra debug info.
+Archit
 
--Tero
 
