@@ -1,65 +1,79 @@
-From: Jenny Tc <jenny.tc@intel.com>
-Subject: Re: [PATCH 3/4] power_supply: Introduce PSE compliant algorithm
-Date: Mon, 3 Mar 2014 08:41:37 +0530
-Message-ID: <20140303031137.GA1132@jenny-desktop>
-References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
- <1391490780-6141-4-git-send-email-jenny.tc@intel.com>
- <CACRpkdbppewuSSJu=Y=1T7oOCxz_ynhNspyPT=S894KoUB6H6g@mail.gmail.com>
- <20140228030727.GB27921@jenny-desktop>
- <20140228100816.GA13406@amd.pavel.ucw.cz>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC PATCH 3/6] PM / Voltagedomain: introduce voltage domain
+ driver support
+Date: Mon, 3 Mar 2014 11:54:26 +0800
+Message-ID: <20140303035426.GC2411@sirena.org.uk>
+References: <1392755543-28335-1-git-send-email-nm@ti.com>
+ <1392755543-28335-4-git-send-email-nm@ti.com>
+ <20140224015826.GU25940@sirena.org.uk>
+ <530B594F.2030500@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="r6fxLKBTHCmC166Z"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140228100816.GA13406@amd.pavel.ucw.cz>
+In-Reply-To: <530B594F.2030500@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>=?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <f>
+To: Nishanth Menon <nm@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Mike Turquette <mturquette@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Feb 28, 2014 at 11:08:16AM +0100, Pavel Machek wrote:
-> On Fri 2014-02-28 08:37:27, Jenny Tc wrote:
-> > On Thu, Feb 27, 2014 at 09:18:57PM +0100, Linus Walleij wrote:
-> > > On Tue, Feb 4, 2014 at 6:12 AM, Jenny TC <jenny.tc@intel.com> wrote:
-> > > 
-> > > > +static inline bool __is_battery_full
-> > > > +       (long volt, long cur, long iterm, unsigned long cv)
-> > > 
-> > > Overall I wonder if you've run checkpatch on these patches, but why
-> > > are you naming this one function with a double __underscore?
-> > > Just is_battery_full_check() or something would work fine I guess?
-> > 
-> > Just to convey that is_battery_full is a local function and not generic. You
-> > can find similar usage in power_supply_core.c (__power_supply_changed_work)
-> > and in other drivers. Isn't it advised to have __ prefixes?
-> 
-> It is static; everybody sees it is local. __ prefix usually means
-> something else.
 
-Agreed, I will remove the __ prefix in next patchset. Meanwhile I would
-appreciate if anyone could help me to understand what __ prefix really means.
+--r6fxLKBTHCmC166Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> > > > +       u16 capacity;   /* mAh */
-> > > > +       u16 voltage_max; /* mV */
-> > > > +       /* charge termination current */
-> > > > +       u16 chrg_term_mA;
-> > > > +       /* Low battery level voltage */
-> > > > +       u16 low_batt_mV;
-> > > > +       /* upper and lower temperature limits on discharging */
-> > > > +       s8 disch_temp_ul; /* Degree Celsius */
-> > > > +       s8 disch_temp_ll; /* Degree Celsius */
-> > > > +       /* number of temperature monitoring ranges */
-> > > > +       u16 temp_mon_ranges;
-> > > > +       struct psy_ps_temp_chg_table temp_mon_range[BATT_TEMP_NR_RNG];
-> > > > +       /* lowest temperature supported */
-> > > > +       s8 temp_low_lim;
-> > > > +} __packed;
-> > > 
-> > > Why packed, and convert to kerneldoc for this struct.
-> > 
-> > Battery charging profile, may come from EEPROM/emmc which would be packed.
-> 
-> Do you need to do endianness conversion, too?
+On Mon, Feb 24, 2014 at 08:38:07AM -0600, Nishanth Menon wrote:
 
-May/may not depending on the stored format. If needed, the endianess conversion
-should be done at driver level where the EEPROM/emmc reading happens.
+> Intent here is to allow drivers such as cpufreq-cpu0 to be reused on
+> platforms such as TI's OMAP derivatives, and other SoCs which differ
+> only by the sequence involved in voltage scale operations. So, this
+> patch provides a framework for registering the underlying
+> implementation of the SoC specific voltage change methodology.
+
+That bit is clear, what's very opaque from the code is how this is going
+to be accomplished.
+
+> Overall the sequence takes place after this patch is as follows:
+> a) voltage domain drivers such as those of TI or others register with
+> voltage domain with devm_voltdm_register.
+> b) cpufreq-cpu0/devfreq drivers:
+> of_pm_voltdm_notifier_register(introduced as part of patch #1) to
+> register notifiers around clk of interest. This request is linked to
+> the specific voltage domain using phandle in device tree.
+> c) when cpufreq-cpu0/devfreq does a clk_set_rate, the common clock
+> framework triggers notifiers in voltage domain core which in turn,
+> invokes the corresponding handlers for the voltage domain driver
+> ensuring the right dvfs sequence specific to the SoC is triggered.
+
+So the first question I have here is what happens if multiple clocks
+need to be updated in lock step - if we're only triggering off clock
+notifiers that seems tricky.  The other thing here is that the fact that
+your API is "of_" suggests that it is in fact linked very srongly to DT
+- it'd be good to split out the layers to make sure things make sense
+standalone, the DT helpers are obviously good but the API should be able
+to stand separately.
+
+--r6fxLKBTHCmC166Z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTE/zvAAoJELSic+t+oim9cMcP/i0JAKgjHEbGVsgjUDypV9q1
+iF7cDi5/DSCxirm9mNtVG6UbR5iy8XuYJznaHcNct5K5CGc5Eydan5+NZr556M2E
+RG5G/KjNIukhvVT1eBhBm7S81uoF5wSJAsJnu/xUM9WCpJenbI7FqEEscYIMfU9o
+mZJ8uHn4t9VvEnmhEwTZcg2Qyq+6vP5eooRtb0BbO7t7COPcSFAdCji6XZJ2alAk
+PilOoP2Gh/ip3A7+mmMWiDvbRrfJUUkELruhDScvRwt6jY1y0HD8x5iUu1gIqRRJ
+Qifu2etbCcejsSEa6DfnyjbRhRRTeL6FnJR9dHnv0qs9tzryW+DEVXYT5DvYa5oi
+KkJoQaLsb2tJ1HlMmBSxtavqBz6yx2VD4t4PREWfTx+ZH6FRZOVifanSJUhggtKG
+RtQduD1GAkHZwu6yRrXND1YoPz0Ihrldb08tgqxQYVBqZaN/fX6ncX3/Jpl38Cih
+3EoAnm2UOSkZ1NjkeMT6ZB/ap5j6hwu4i7QJgcbrvf68J+RJAposA/5mj4OwVg3e
++thB2kaTtV1jOxi7T9mOtAff/1oOkEB+Xc1Q3E7q7t1vcV/VNmCS2St0BMffzQeS
+pAiAe8OCQjHQ5TQIblrIf9SsvEmE+Du9TmpG6DwniCzAJvjL6aUr7mObanihfeeA
+IMTO0jrdB42Sh6/55OMI
+=PhJi
+-----END PGP SIGNATURE-----
+
+--r6fxLKBTHCmC166Z--
