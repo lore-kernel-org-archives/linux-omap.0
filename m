@@ -1,62 +1,58 @@
 From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [RESEND Patch 2/9] ARM: dts: am335x-evm: add SD card hotplug support
-Date: Mon, 3 Mar 2014 20:20:19 +0530
-Message-ID: <1393858226-32595-4-git-send-email-mugunthanvnm@ti.com>
+Subject: [RESEND Patch 7/9] ARM: DTS: DRA7: Add crossbar device binding
+Date: Mon, 3 Mar 2014 20:20:24 +0530
+Message-ID: <1393858226-32595-9-git-send-email-mugunthanvnm@ti.com>
 References: <1393858226-32595-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1393858226-32595-1-git-send-email-mugunthanvnm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: bcousson@baylibre.com, tony@atomide.com
-Cc: nm@ti.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, balajitk@ti.com, linux-kernel@vger.kernel.org, r.sricharan@ti.com, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux@arm.linux.org.uk, akpm@linux-foundation.org, nm@ti.com, balajitk@ti.com, r.sricharan@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Balaji T K <balajitk@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
 
-Add card detect gpio for SD card slot
+This adds the irq crossbar device node.
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
+There is a IRQ crossbar device in the soc, which
+maps the irq requests from the peripherals to the
+mpu interrupt controller's inputs. The Peripheral irq
+requests are connected to only one crossbar
+input and the output of the crossbar is connected to only one
+controller's input line. The crossbar device is used to map
+a peripheral input to a free mpu's interrupt controller line.
+
+Cc: Benoit Cousson <bcousson@baylibre.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sricharan R <r.sricharan@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 ---
- arch/arm/boot/dts/am335x-evm.dts | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 07d61bb..28ae040 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -260,6 +260,12 @@
- 		>;
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 9e3caf3..88fc2eb 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -773,6 +773,14 @@
+ 			status = "disabled";
+ 		};
  	};
- 
-+	mmc1_pins: pinmux_mmc1_pins {
-+		pinctrl-single,pins = <
-+			0x160 (PIN_INPUT | MUX_MODE7) /* spi0_cs1.gpio0_6 */
-+		>;
-+	};
 +
- 	lcd_pins_s0: lcd_pins_s0 {
- 		pinctrl-single,pins = <
- 			0x20 0x01	/* gpmc_ad8.lcd_data16, OUTPUT | MODE1 */
-@@ -644,6 +650,9 @@
- 	status = "okay";
- 	vmmc-supply = <&vmmc_reg>;
- 	bus-width = <4>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc1_pins>;
-+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
++	crossbar_mpu: crossbar@4a020000 {
++		compatible = "ti,irq-crossbar";
++		reg = <0x4a002a48 0x130>;
++		ti,max-irqs = <160>;
++		ti,reg-size = <2>;
++		ti,irqs-reserved = <0 1 2 3 5 6 131 132 139 140>;
++	};
  };
  
- &sham {
+ /include/ "dra7xx-clocks.dtsi"
 -- 
 1.9.0
