@@ -1,76 +1,71 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH RESEND v11 6/7] ARM: OMAP: enable SYSCON and REGULATOR_PBIAS
- in omap2plus_defconfig
-Date: Mon, 3 Mar 2014 20:03:40 +0530
-Message-ID: <531492C4.9010005@ti.com>
-References: <1389627375-9107-1-git-send-email-balajitk@ti.com> <1392821801-29673-1-git-send-email-balajitk@ti.com> <1392821801-29673-7-git-send-email-balajitk@ti.com> <20140226170152.GA11654@atomide.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: [RESEND Patch 3/9] ARM: dts: am43x-epos-evm: add SD card hotplug support
+Date: Mon, 3 Mar 2014 20:20:20 +0530
+Message-ID: <1393858226-32595-5-git-send-email-mugunthanvnm@ti.com>
+References: <1393858226-32595-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40477 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754639AbaCCOdz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Mar 2014 09:33:55 -0500
-In-Reply-To: <20140226170152.GA11654@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1393858226-32595-1-git-send-email-mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, r.sricharan-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, chris@printf.net, broonie@kernel.org
 
-On Wednesday 26 February 2014 10:31 PM, Tony Lindgren wrote:
-> * Balaji T K <balajitk@ti.com> [140219 07:00]:
->> Enable REGULATOR_PBIAS needed for SD card on most OMAPs.
->>
->> Signed-off-by: Balaji T K <balajitk@ti.com>
->
-> I belive this is the only one missing my ack:
->
-> Acked-by: Tony Lindgren <tony@atomide.com>
->
+From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
 
-Thanks Tony
+Add card detect gpio for SD card slot and include dt gpio header.
 
-> Probably best that this all gets queued along with other MMC related
-> patches by Balaji and Chris.
+Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am4372.dtsi        | 1 +
+ arch/arm/boot/dts/am43x-epos-evm.dts | 9 +++++++++
+ 2 files changed, 10 insertions(+)
 
-Hi Chris,
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index b687869..36d523a 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -8,6 +8,7 @@
+  * kind, whether express or implied.
+  */
+ 
++#include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
+ 
+ #include "skeleton.dtsi"
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index a3a53ce..167dbc8 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -132,6 +132,12 @@
+ 				0x19c (PIN_OUTPUT | MUX_MODE3)          /* mcasp0_ahclkr.spi1_cs0 */
+ 			>;
+ 		};
++
++		mmc1_pins: pinmux_mmc1_pins {
++			pinctrl-single,pins = <
++				0x160 (PIN_INPUT | MUX_MODE7) /* spi0_cs1.gpio0_6 */
++			>;
++		};
+ 	};
+ 
+ 	matrix_keypad: matrix_keypad@0 {
+@@ -179,6 +185,9 @@
+ 	status = "okay";
+ 	vmmc-supply = <&vmmcsd_fixed>;
+ 	bus-width = <4>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc1_pins>;
++	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+ };
+ 
+ &mac {
+-- 
+1.9.0
 
-Can you please pull this patch series for 3.15?
-
-Thanks and Regards,
-Balaji T K
-
->
->> ---
->>   arch/arm/configs/omap2plus_defconfig |    2 ++
->>   1 files changed, 2 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
->> index 3a0b53d..e4fec1c 100644
->> --- a/arch/arm/configs/omap2plus_defconfig
->> +++ b/arch/arm/configs/omap2plus_defconfig
->> @@ -169,6 +169,7 @@ CONFIG_DRA752_THERMAL=y
->>   CONFIG_WATCHDOG=y
->>   CONFIG_OMAP_WATCHDOG=y
->>   CONFIG_TWL4030_WATCHDOG=y
->> +CONFIG_MFD_SYSCON=y
->>   CONFIG_MFD_PALMAS=y
->>   CONFIG_MFD_TPS65217=y
->>   CONFIG_MFD_TPS65910=y
->> @@ -180,6 +181,7 @@ CONFIG_REGULATOR_TPS6507X=y
->>   CONFIG_REGULATOR_TPS65217=y
->>   CONFIG_REGULATOR_TPS65910=y
->>   CONFIG_REGULATOR_TWL4030=y
->> +CONFIG_REGULATOR_PBIAS=y
->>   CONFIG_FB=y
->>   CONFIG_FIRMWARE_EDID=y
->>   CONFIG_FB_MODE_HELPERS=y
->> --
->> 1.7.5.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
