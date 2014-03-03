@@ -1,36 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 1/1] net: cpsw: fix cpdma rx descriptor leak on down
- interface
-Date: Mon, 03 Mar 2014 15:50:50 -0500 (EST)
-Message-ID: <20140303.155050.1061715025396456537.davem@davemloft.net>
-References: <1393843746-6554-1-git-send-email-mugunthanvnm@ti.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1393843746-6554-1-git-send-email-mugunthanvnm@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: mugunthanvnm@ti.com
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, spatton@ti.com
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH RESEND] mmc: omap_hsmmc: support more DT properties
+Date: Mon,  3 Mar 2014 22:16:16 +0100
+Message-ID: <1393881376-10751-1-git-send-email-zonque@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:48382 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755342AbaCCVQY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 16:16:24 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balajitk@ti.com, chris@printf.net
+Cc: linux-mmc@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>
 
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Date: Mon, 3 Mar 2014 16:19:06 +0530
+This should probably be done implicitly through mmc_of_parse(), but that
+doesn't play well along with the multi-slot model the hsmmc driver
+features. Hence, for now, do it manually. The properties are already
+documented in Documentation/devicetree/bindings/mmc/mmc.txt.
 
-> From: Schuyler Patton <spatton@ti.com>
-> 
-> This patch fixes a CPDMA RX Descriptor leak that occurs after taking
-> the interface down when the CPSW is in Dual MAC mode. Previously
-> the CPSW_ALE port was left open up which causes packets to be received
-> and processed by the RX interrupt handler and were passed to the
-> non active network interface where they were ignored.
-> 
-> The fix is for the slave_stop function of the selected interface
-> to disable the respective CPSW_ALE Port from forwarding packets. This
-> blocks traffic from being received on the inactive interface.
-> 
-> Signed-off-by: Schuyler Patton <spatton@ti.com>
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+Acked-by: Balaji T K <balajitk@ti.com>
+---
+This is a resend of a patch that was already acked by Balaji T K:
 
-Applied.
+  http://www.spinics.net/lists/linux-mmc/msg25029.html
+
+
+ drivers/mmc/host/omap_hsmmc.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 2815de6..a5a38cc 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1765,6 +1765,12 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
+ 	if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
+ 		pdata->slots[0].features |= HSMMC_HAS_HSPE_SUPPORT;
+ 
++	if (of_find_property(np, "keep-power-in-suspend", NULL))
++		pdata->slots[0].pm_caps |= MMC_PM_KEEP_POWER;
++
++	if (of_find_property(np, "enable-sdio-wakeup", NULL))
++		pdata->slots[0].pm_caps |= MMC_PM_WAKE_SDIO_IRQ;
++
+ 	return pdata;
+ }
+ #else
+-- 
+1.8.5.3
+
