@@ -1,172 +1,98 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 4/7] ARM: dts: omap3-overo: Add HSUSB PHY
-Date: Mon, 3 Mar 2014 13:03:02 +0200
-Message-ID: <53146166.4050906@ti.com>
-References: <1393839247-6516-1-git-send-email-florian.vaussard@epfl.ch> <1393839247-6516-5-git-send-email-florian.vaussard@epfl.ch>
+From: =?utf-8?B?U8O4cmVuc2VuLCBTdGVmYW4=?=
+	<Stefan.Sorensen@spectralink.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Use handle_fasteoi_irq for INTC interrupt
+ handling
+Date: Mon, 3 Mar 2014 11:05:36 +0000
+Message-ID: <1393844735.2507.21.camel@e37108.spectralink.com>
+References: <1393236556-12361-1-git-send-email-stefan.sorensen@spectralink.com>
+	 <20140228171111.GA15399@atomide.com>
+	 <1393667952.21887.15.camel@e37108.spectralink.com>
+	 <20140302173727.GB18496@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47347 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753114AbaCCLDb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Mar 2014 06:03:31 -0500
-In-Reply-To: <1393839247-6516-5-git-send-email-florian.vaussard@epfl.ch>
+Received: from mail-by2lp0238.outbound.protection.outlook.com ([207.46.163.238]:50176
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754057AbaCCLFl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Mar 2014 06:05:41 -0500
+In-Reply-To: <20140302173727.GB18496@atomide.com>
+Content-Language: en-US
+Content-ID: <4DCBACA578604B45A8D53B354515353E@namprd07.prod.outlook.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Florian,
-
-
-On 03/03/2014 11:34 AM, Florian Vaussard wrote:
-> Add the High-Speed USB PHY.
-> 
-> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> ---
->  arch/arm/boot/dts/omap3-overo-storm-tobi.dts | 16 ++++++++++
->  arch/arm/boot/dts/omap3-overo-tobi.dts       | 16 ++++++++++
->  arch/arm/boot/dts/omap3-overo.dtsi           | 44 ++++++++++++++++++++++++++++
->  3 files changed, 76 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-overo-storm-tobi.dts b/arch/arm/boot/dts/omap3-overo-storm-tobi.dts
-> index 2033b52..eb93e3a 100644
-> --- a/arch/arm/boot/dts/omap3-overo-storm-tobi.dts
-> +++ b/arch/arm/boot/dts/omap3-overo-storm-tobi.dts
-> @@ -21,6 +21,22 @@
->  };
->  
->  &omap3_pmx_core2 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <
-> +			&hsusb2_2_pins
-> +	>;
-> +
-> +	hsusb2_2_pins: pinmux_hsusb2_2_pins {
-> +		pinctrl-single,pins = <
-> +			OMAP3630_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
-> +			OMAP3630_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
-> +			OMAP3630_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
-> +			OMAP3630_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
-> +			OMAP3630_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
-> +			OMAP3630_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
-> +		>;
-> +	};
-> +
->  	w3cbw003c_2_pins: pinmux_w3cbw003c_2_pins {
->  		pinctrl-single,pins = <
->  			OMAP3630_CORE2_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE4)		/* etk_d2.gpio_16 */
-> diff --git a/arch/arm/boot/dts/omap3-overo-tobi.dts b/arch/arm/boot/dts/omap3-overo-tobi.dts
-> index 21de31d..e77be26 100644
-> --- a/arch/arm/boot/dts/omap3-overo-tobi.dts
-> +++ b/arch/arm/boot/dts/omap3-overo-tobi.dts
-> @@ -21,6 +21,22 @@
->  };
->  
->  &omap3_pmx_core2 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <
-> +			&hsusb2_2_pins
-> +	>;
-> +
-> +	hsusb2_2_pins: pinmux_hsusb2_2_pins {
-> +		pinctrl-single,pins = <
-> +			OMAP3430_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
-> +			OMAP3430_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
-> +			OMAP3430_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
-> +			OMAP3430_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
-> +			OMAP3430_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
-> +			OMAP3430_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
-> +		>;
-> +	};
-> +
->  	w3cbw003c_2_pins: pinmux_w3cbw003c_2_pins {
->  		pinctrl-single,pins = <
->  			OMAP3430_CORE2_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE4)		/* etk_d2.gpio_16 */
-> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
-> index 07467cc..8f810db 100644
-> --- a/arch/arm/boot/dts/omap3-overo.dtsi
-> +++ b/arch/arm/boot/dts/omap3-overo.dtsi
-> @@ -30,6 +30,24 @@
->  		ti,codec = <&twl_audio>;
->  	};
->  
-> +	/* HS USB Port 2 Power */
-> +	hsusb2_power: hsusb2_power_reg {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "hsusb2_vbus";
-> +		regulator-min-microvolt = <5000000>;
-> +		regulator-max-microvolt = <5000000>;
-> +		gpio = <&gpio6 8 0>;				/* gpio_168: vbus enable */
-> +		startup-delay-us = <70000>;
-> +		enable-active-high;
-> +	};
-> +
-> +	/* HS USB Host PHY on PORT 2 */
-> +	hsusb2_phy: hsusb2_phy {
-> +		compatible = "usb-nop-xceiv";
-> +		reset-gpios = <&gpio6 23 GPIO_ACTIVE_LOW>;	/* gpio_183 */
-> +		vcc-supply = <&hsusb2_power>;
-> +	};
-> +
->  	/* Regulator to trigger the nPoweron signal of the Wifi module */
->  	w3cbw003c_npoweron: regulator-w3cbw003c-npoweron {
->  		compatible = "regulator-fixed";
-> @@ -64,6 +82,11 @@
->  };
->  
->  &omap3_pmx_core {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <
-> +			&hsusb2_pins
-> +	>;
-> +
->  	uart3_pins: pinmux_uart3_pins {
->  		pinctrl-single,pins = <
->  			OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0)	/* uart3_rx_irrx.uart3_rx_irrx */
-> @@ -107,6 +130,19 @@
->  			OMAP3_CORE1_IOPAD(0x219c, PIN_OUTPUT | MUX_MODE4)		/* uart3_rts_sd.gpio_164 */
->  		>;
->  	};
-> +
-> +	hsusb2_pins: pinmux_hsusb2_pins {
-> +		pinctrl-single,pins = <
-> +			OMAP3_CORE1_IOPAD(0x21d4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
-> +			OMAP3_CORE1_IOPAD(0x21d6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
-> +			OMAP3_CORE1_IOPAD(0x21d8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
-> +			OMAP3_CORE1_IOPAD(0x21da, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
-> +			OMAP3_CORE1_IOPAD(0x21dc, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
-> +			OMAP3_CORE1_IOPAD(0x21de, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
-> +			OMAP3_CORE1_IOPAD(0x21be, PIN_OUTPUT | MUX_MODE4)		/* i2c2_scl.gpio_168 */
-> +			OMAP3_CORE1_IOPAD(0x21c0, PIN_OUTPUT | MUX_MODE4)		/* i2c2_sda.gpio_183 */
-> +		>;
-> +	};
-
-Does this mean all overo variants use the USB host feature on hsusb2 pins? If not then this can't be here.
-
-If yes then I didn't understand why the hsusb2 pinmux is split up half here and half in "omap3-overo-tobi.dts"
-and "omap3-overo-storm-tobi.dts"
-
->  };
->  
->  &i2c1 {
-> @@ -168,6 +204,14 @@
->  	power = <50>;
->  };
->  
-> +&usbhshost {
-> +	port2-mode = "ehci-phy";
-> +};
-> +
-> +&usbhsehci {
-> +	phys = <0 &hsusb2_phy>;
-> +};
-> +
->  &uart3 {
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&uart3_pins>;
-> 
-
-cheers,
--roger
+T24gU3VuLCAyMDE0LTAzLTAyIGF0IDA5OjM3IC0wODAwLCBUb255IExpbmRncmVuIHdyb3RlOg0K
+PiAqIFPDuHJlbnNlbiwgU3RlZmFuIDxTdGVmYW4uU29yZW5zZW5Ac3BlY3RyYWxpbmsuY29tPiBb
+MTQwMzAxIDAyOjAyXToNCj4gPiBPbiBGcmksIDIwMTQtMDItMjggYXQgMDk6MTEgLTA4MDAsIFRv
+bnkgTGluZGdyZW4gd3JvdGU6DQo+ID4gPiAqIFN0ZWZhbiBTw7hyZW5zZW4gPHN0ZWZhbi5zb3Jl
+bnNlbkBzcGVjdHJhbGluay5jb20+IFsxNDAyMjQgMDI6MTJdOg0KPiA+ID4gPiBDdXJyZW50bHkg
+SU5UQyBpbnRlcnJ1cHRzIGFyZSBoYW5kbGVkIHVzaW5nIGhhbmRsZV9sZXZlbF9pcnEgd2hpY2gN
+Cj4gPiA+ID4gd2lsbCBhY2tub3dsZWRnZSB0aGUgaW50ZXJydXB0IGJlZm9yZSBydW5uaW5nIHRo
+ZSBoYW5kbGVyLiBJZiBhIHNlY29uZA0KPiA+ID4gPiBpbnRlcnJ1cHQgaXMgdGhlbiBhc3NlcnRl
+ZCBhbmQgdGhpcyBpbnRlcnJ1cHQgaXMgZGlzYWJsZWQgd2hpbGUNCj4gPiA+ID4gcnVubmluZyB0
+aGUgZmlyc3QgaGFuZGxlciwgdGhlIElOVEMgd2lsbCBiZSBicm91Z2h0IGludG8gYW4NCj4gPiA+
+ID4gaW5jb25zaXN0ZW50IHN0YXRlLg0KPiA+ID4gDQo+ID4gPiBIbW0gY2FyZSB0byBleHBsYWlu
+IGEgYml0IG1vcmUgaGVyZSBpZiB0aGUgc2Vjb25kIGludGVycnVwdCB5b3UncmUNCj4gPiA+IHRh
+bGtpbmcgYWJvdXQgaXMgdGhlIHNhbWUgaW50ZXJydXB0IG9yIGFueSBpbnRlcnJ1cHQgaW4gdGhl
+IHNhbWUNCj4gPiA+IGludGVycnVwdCBiYW5rPyBJcyB0aGlzIGxpbWl0ZWQgdG8gR1BJTyBpbnRl
+cnJ1cHRzPw0KPiA+IA0KPiA+IEkgYW0gc2VlaW5nIGl0IHdpdGggdGhlIGNwc3cgZHJpdmVyIG9u
+IGEgY3VzdG9tIGJvYXJkIGFuZCBvbiB0aGUNCj4gPiBiZWFnbGVib25lLiBXaGVuIGEgdHggaXJx
+IGlzIGhhbmRsZWQgdGhlIGNwc3cgaXJxIGhhbmRsZXIgZGlzYWJsZXMgYm90aA0KPiA+IHRoZSB0
+eCBhbmQgdGhlIHJ4IGlycXMsIGFuZCBpZiB0aGUgcnggaXJxIHdhcyBhbHNvIGFzc2VydGVkIChp
+LmUuIGR1cGxleA0KPiA+IHRyYWZmaWMpLCB0aGlzIGJ1ZyB3aWxsIHRyaWdnZXIuIFJlcHJvZHVj
+aW5nIGl0IGlzIHZlcnkgc2ltcGxlLCBqdXN0IGhpdA0KPiA+IGEgYmVhZ2xlYm9uZSB3aXRoIGEg
+Zmxvb2QgcGluZyBhbmQgd2F0Y2ggYSBmdW5jdGlvbiB0cmFjZS4NCj4gDQo+IE9LIHNvIGl0J3Mg
+Zm9yIHRoZSBzYW1lIGludGVycnVwdC4gQW5kIHRoYXQgc291bmRzIGxpa2UgYSBnb29kIHRlc3Qg
+OikNCg0KTm8sIHRoZSB0eCBhbmQgcnggYXJlIHNlcGFyYXRlIGludGVycnVwdHMsIGJ1dCB0aGUg
+Y3BzdyBkcml2ZXIgaGFzIGENCmNvbW1vbiBoYW5kbGVyLg0KIA0KPiA+ID4gVGhlIHJlYXNvbiBJ
+J20gYXNraW5nIGlzIGJlY2F1c2Ugb2YgdGhlIGlzc3VlcyB3ZSd2ZSBzZWVuIGVhcmxpZXINCj4g
+PiA+IHdpdGggbm90IGZsdXNoaW5nIHBvc3RlZCB3cml0ZXMgZnJvbSB0aGUgaW50ZXJydXB0IGhh
+bmRsZXJzLiBJbg0KPiA+ID4gdGhvc2UgY2FzZSB0aGUgaW50ZXJydXB0IG9uIHRoZSBkZXZpY2Ug
+Z2V0cyBhY2tlZCB0b28gbGF0ZSB3aXRob3V0DQo+ID4gPiB0aGUgcmVhZCBiYWNrIGNhbGwuDQo+
+ID4gDQo+ID4gSSBhbSBub3QgdmVyeSBmYW1pbGlhciB3aXRoIHRoZSBsb3cgbGV2ZWwgZGV0YWls
+cyBvZiB0aGUgaXJxIGhhbmRsaW5nLCAgDQo+ID4gYnV0IGFtMzM1eCBUUk0gc3RhdGVzIHRoYXQg
+YSBkYXRhIHN5bmNocm9uaXphdGlvbiBiYXJyaWVyIHNob3VsZCBiZSB1c2VkDQo+ID4gYWZ0ZXIg
+dGhlIEFDSyBpcyBwb3N0ZWQgdG8gdGhlIElOVEMsIGFuZCBJIGRvbid0IHNlZSB0aGF0IGFueXdo
+ZXJlIGluDQo+ID4gdGhlIGNvZGUuIElzIHRoaXMgcmVsYXRlZD8NCj4gDQo+IFdlbGwgc29ydCBv
+ZiwgZXhjZXB0IERTQiB3b24ndCBkbyBpdCBhcyBpdCB3b24ndCBndWFyYW50ZWUgdGhlIHdyaXRl
+DQo+IGdldHMgdG8gdGhlIGRldmljZSBvbiB0aGUgYnVzLiBTbyBhIHJlYWRiYWNrIGZyb20gdGhl
+IGRldmljZSBpcyBuZWVkZWQNCj4gYXMgb25seSB0aGUgb3JkZXIgb2YgcmVhZHMgYW5kIHdyaXRl
+cyBpcyBndWFyYW50ZWVkLg0KDQpJIHRoaW5rIHRoYXQgd2UgYXJlIHRhbGtpbmcgYWJvdXQgdHdv
+IGRpZmZlcmVudCBzY2VuYXJpb3MsIHdoYXQgSSBhbQ0Kc2VlaW5nIGlzIHRoYXQgYW4gaW50ZXJy
+dXB0IGlzIGRpc2FibGVkIHdoaWxlIGFjdGl2ZSBvbiB0aGUgSU5UQy4NCg0KCTEuIENQU1cgZGV2
+aWNlIGFzc2VydHMgVFggSVJRDQoJMi4gQ1BTVyBkZXZpY2UgYXNzZXJ0cyBSWCBJUlENCgkzLiBJ
+TlRDIGludGVycnVwdHMgQ1BVLCBUWCBJUlEgbWFya2VkIGFzIGFjdGl2ZQ0KCTQuIG9tYXBfaW50
+Y19oYW5kbGVfaXJxIEFDS3MgVFggSVJRIG9uIHRoZSBJTlRDDQoJNS4gSU5UQyBtYXJrcyBSWCBJ
+UlEgYXMgYWN0aXZlDQoJNi4gb21hcF9pbnRjX2hhbmRsZV9pcnEgY2FsbHMgY3Bzd19pbnRlcnJ1
+cHQNCgk3LiBjcHN3X2ludGVycnVwdCBkaXNhYmxlcyBSWCtUWCBJUlEgaW4gQ1BTVyBkZXZpY2UN
+Cgk4LiBjcHN3X2ludGVycnVwdCBkaXNhYmxlcyBSWCtUWCBJUlEgaW4gSU5UQyAodGhlIElSUXMg
+YXJlIG1hc2tlZCkNCgk5Li4gb21hcF9pbnRjX2hhbmRsZV9pcnEgc2VlcyBubyB1bm1hc2tlZCBJ
+UlFzIGFyZSBwZW5kaW5nIGFuZCByZXR1cm5zDQoJMTAuIElOVEMgaW50ZXJydXB0cyBDUFUsIFJY
+IElSUSBtYXJrZWQgYXMgcGVuZGluZw0KCTExLiBvbWFwX2ludGNfaGFuZGxlX2lycSBzZWVzIG5v
+IHVubWFza2VkIElSUXMgYXJlIHBlbmRpbmcgYW5kIHJldHVybnMNCgkxMi4gR28gdG8gc3RlcCAx
+MA0KDQpUaGUgcHJvYmxlbSBhcmlzZXMgaW4gc3RlcCA4IHdoZXJlIGFuIGFjdGl2ZSBJUlEgaXMg
+bWFza2VkLiBUaGlzIHdpbGwNCm5vdCBtYWtlIGl0IGluYWN0aXZlIGluIHRoZSBJTlRDIGJ1dCBp
+dCB3aWxsIGJlIGNsZWFyZWQgZnJvbSB0aGUNCnBlbmRpbmcgSVJRIHJlZ2lzdGVycyAtIHRoaXMg
+aXMgdGhlIHJlZ2lzdGVyIHRoYXQgb21hcF9pbnRjX2hhbmRsZV9pcnENCnVzZXMgdG8gZGVjaWRl
+IHdoaWNoIElSUSBpcyBhY3RpdmUuDQoNCj4gQSBnb29kIHNhbml0eSBjaGVjayB3b3VsZCBiZSB0
+byBmaW5kIHRoZSByZWxhdGVkIGludGVycnVwdCBoYW5kbGVyKHMpDQo+IGluIHRoZSBjcHN3IGRy
+aXZlciB0aGF0IGRvIHRoZSB3cml0ZSB0byB0aGUgY3BzdyByZWdpc3RlcnMgdG8gYWNrDQo+IGlu
+dGVycnVwdHMuDQo+IA0KPiBUaGVuIGNoZWNrIGlmIHRoZXJlJ3MgYSByZWFkYmFjayBpbiB0aGUg
+Y3BzdyBpbnRlcnJ1cHQgaGFuZGxlcihzKSBvZg0KPiBzb21lIGhhcm1sZXNzIGNwc3cgcmVnaXN0
+ZXIgYWZ0ZXIgYWNraW5nIHRoZSBpbnRlcnJ1cHQocykgYW5kIGJlZm9yZQ0KPiBkb2luZyByZXR1
+cm4gSVJRX0hBTkRMRUQuDQo+IA0KPiBJZiB0aGlzIGZpeGVzIHRoaW5ncyB3aXRob3V0IHlvdXIg
+cGF0Y2gsIHRoZW4gd2Uga25vdyBpdCdzIGEgZHJpdmVyDQo+IGlzc3VlIGFuZCB0aGVyZSdzIG5v
+IG5lZWQgdG8gZGVidWcgaXQgZnVydGhlciA6KSBUaGUgbWlzc2luZyBmbHVzaCBvZg0KPiBwb3N0
+ZWQgd3JpdGUgdXN1YWxseSBzaG93cyB1cCBhcyBhIHNwdXJpb3VzIGludGVycnVwdHMgd2l0aCBu
+byBzdGF0dXMNCj4gaW4gdGhlIGRldmljZSwgYnV0IGRlcGVuZGluZyBvbiB0aGUgZHJpdmVyIGNv
+ZGUgaGFuZGxpbmcgb2Ygc3B1cmlvdXMNCj4gaW50ZXJydXB0cyBpdCBtYXkgYWxzbyBoYXZlIG90
+aGVyIHNpZGUgZWZmZWN0cy4NCj4gDQo+IEknbSBub3QgdG9vIGZhbWlsaWFyIHdpdGggdGhlIGNw
+c3cgZHJpdmVyIHNvIEkgY2FuJ3QgZG8gYSB0ZXN0IHBhdGNoDQo+IHdpdGhvdXQgZGlnZ2luZyBp
+bnRvIGl0IGZ1cnRoZXIgc29ycnkuIEZvciBzaW1pbGFyIGV4YW1wbGVzLCB5b3UNCj4gbWF5IHdh
+bnQgdG8gZ3JlcCBmb3IgImZsdXNoIHBvc3RlZCB3cml0ZSIgYW5kICJPQ1AgYmFycmllciIgaW4g
+dGhlDQo+IGtlcm5lbCBjb2RlLg0KDQpJIHRyaWVkIHRoaXMgd2l0aCBhbiBhc3NvcnRtZW50IG9m
+IGRpZmZlcmVudCBDUFNXIHJlZ2lzdGVycyAtIG5vIGNoYW5nZS4NCg0KU3RlZmFuDQoNCg==
