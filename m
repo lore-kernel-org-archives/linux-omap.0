@@ -1,143 +1,45 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 03/12] phy: ti-pipe3: cleanup clock handling
-Date: Mon, 3 Mar 2014 17:07:25 +0200
-Message-ID: <1393859254-10937-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH 06/12] phy: omap: Select OMAP_OCP2SCP bus driver
+Date: Mon, 3 Mar 2014 17:07:28 +0200
+Message-ID: <1393859254-10937-7-git-send-email-rogerq@ti.com>
 References: <1393859254-10937-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1393859254-10937-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: kishon@ti.com, balbi@ti.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, balajitk@ti.com, linux-ide@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
+Cc: george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-As this driver is no longer USB specific, use generic clock names.
-- Fix PLL_SD_SHIFT from 9 to 10
-- As optclk and wkupclk may not be always required, don't bail out
-if they aren't available.
-- Don't separate prepare/unprepare clock from enable/disable. This
-ensures optimal power savings.
+The OMAP_USB2 and OMAP_PIP3 phy devices will not be
+detected if the OMAP_OCP2SCP driver is not present.
+So select it.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/phy/phy-ti-pipe3.c | 57 ++++++++++++++++++++++------------------------
- 1 file changed, 27 insertions(+), 30 deletions(-)
+ drivers/phy/Kconfig | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-index 54859fc..3662e28 100644
---- a/drivers/phy/phy-ti-pipe3.c
-+++ b/drivers/phy/phy-ti-pipe3.c
-@@ -45,7 +45,7 @@
- #define	PLL_SELFREQDCO_MASK	0x0000000E
- #define	PLL_SELFREQDCO_SHIFT	0x1
- #define	PLL_SD_MASK		0x0003FC00
--#define	PLL_SD_SHIFT		0x9
-+#define	PLL_SD_SHIFT		10
- #define	SET_PLL_GO		0x1
- #define	PLL_TICOPWDN		0x10000
- #define	PLL_LOCK		0x2
-@@ -270,23 +270,17 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 
- 	phy->dev		= &pdev->dev;
- 
--	phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
--	if (IS_ERR(phy->wkupclk)) {
--		dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
--		return PTR_ERR(phy->wkupclk);
--	}
--	clk_prepare(phy->wkupclk);
-+	phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
-+	if (IS_ERR(phy->wkupclk))
-+		dev_dbg(&pdev->dev, "unable to get wkupclk\n");
- 
--	phy->optclk = devm_clk_get(phy->dev, "usb_otg_ss_refclk960m");
--	if (IS_ERR(phy->optclk)) {
--		dev_err(&pdev->dev, "unable to get usb_otg_ss_refclk960m\n");
--		return PTR_ERR(phy->optclk);
--	}
--	clk_prepare(phy->optclk);
-+	phy->optclk = devm_clk_get(phy->dev, "optclk");
-+	if (IS_ERR(phy->optclk))
-+		dev_dbg(&pdev->dev, "unable to get optclk\n");
- 
--	phy->sys_clk = devm_clk_get(phy->dev, "sys_clkin");
-+	phy->sys_clk = devm_clk_get(phy->dev, "sysclk");
- 	if (IS_ERR(phy->sys_clk)) {
--		pr_err("%s: unable to get sys_clkin\n", __func__);
-+		dev_err(&pdev->dev, "unable to get sysclk\n");
- 		return -EINVAL;
- 	}
- 
-@@ -326,10 +320,6 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 
- static int ti_pipe3_remove(struct platform_device *pdev)
- {
--	struct ti_pipe3 *phy = platform_get_drvdata(pdev);
--
--	clk_unprepare(phy->wkupclk);
--	clk_unprepare(phy->optclk);
- 	if (!pm_runtime_suspended(&pdev->dev))
- 		pm_runtime_put(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
-@@ -343,8 +333,10 @@ static int ti_pipe3_runtime_suspend(struct device *dev)
- {
- 	struct ti_pipe3	*phy = dev_get_drvdata(dev);
- 
--	clk_disable(phy->wkupclk);
--	clk_disable(phy->optclk);
-+	if (!IS_ERR(phy->wkupclk))
-+		clk_disable_unprepare(phy->wkupclk);
-+	if (!IS_ERR(phy->optclk))
-+		clk_disable_unprepare(phy->optclk);
- 
- 	return 0;
- }
-@@ -354,22 +346,27 @@ static int ti_pipe3_runtime_resume(struct device *dev)
- 	u32 ret = 0;
- 	struct ti_pipe3	*phy = dev_get_drvdata(dev);
- 
--	ret = clk_enable(phy->optclk);
--	if (ret) {
--		dev_err(phy->dev, "Failed to enable optclk %d\n", ret);
--		goto err1;
-+	if (!IS_ERR(phy->optclk)) {
-+		ret = clk_prepare_enable(phy->optclk);
-+		if (ret) {
-+			dev_err(phy->dev, "Failed to enable optclk %d\n", ret);
-+			goto err1;
-+		}
- 	}
- 
--	ret = clk_enable(phy->wkupclk);
--	if (ret) {
--		dev_err(phy->dev, "Failed to enable wkupclk %d\n", ret);
--		goto err2;
-+	if (!IS_ERR(phy->wkupclk)) {
-+		ret = clk_prepare_enable(phy->wkupclk);
-+		if (ret) {
-+			dev_err(phy->dev, "Failed to enable wkupclk %d\n", ret);
-+			goto err2;
-+		}
- 	}
- 
- 	return 0;
- 
- err2:
--	clk_disable(phy->optclk);
-+	if (!IS_ERR(phy->optclk))
-+		clk_disable_unprepare(phy->optclk);
- 
- err1:
- 	return ret;
+diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+index 2f02ec8..afdab3e 100644
+--- a/drivers/phy/Kconfig
++++ b/drivers/phy/Kconfig
+@@ -44,6 +44,7 @@ config OMAP_USB2
+ 	depends on USB_PHY
+ 	select GENERIC_PHY
+ 	select OMAP_CONTROL_PHY
++	select OMAP_OCP2SCP
+ 	help
+ 	  Enable this to support the transceiver that is part of SOC. This
+ 	  driver takes care of all the PHY functionality apart from comparator.
+@@ -55,6 +56,7 @@ config TI_PIPE3
+ 	depends on ARCH_OMAP2PLUS || COMPILE_TEST
+ 	select GENERIC_PHY
+ 	select OMAP_CONTROL_PHY
++	select OMAP_OCP2SCP
+ 	help
+ 	  Enable this to support the PIPE3 PHY that is part of TI SOCs. This
+ 	  driver takes care of all the PHY functionality apart from comparator.
 -- 
 1.8.3.2
