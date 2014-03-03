@@ -1,39 +1,55 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 3/4] power_supply: Introduce PSE compliant algorithm
-Date: Mon, 3 Mar 2014 11:42:22 +0100
-Message-ID: <20140303104222.GA26675@amd.pavel.ucw.cz>
-References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
- <1391490780-6141-4-git-send-email-jenny.tc@intel.com>
- <CACRpkdbppewuSSJu=Y=1T7oOCxz_ynhNspyPT=S894KoUB6H6g@mail.gmail.com>
- <20140228030727.GB27921@jenny-desktop>
- <20140228100816.GA13406@amd.pavel.ucw.cz>
- <20140303031137.GA1132@jenny-desktop>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH 1/1] net: cpsw: fix cpdma rx descriptor leak on down interface
+Date: Mon, 3 Mar 2014 16:19:06 +0530
+Message-ID: <1393843746-6554-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140303031137.GA1132@jenny-desktop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jenny Tc <jenny.tc@intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>=?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <f>
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Schuyler Patton <spatton@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+From: Schuyler Patton <spatton@ti.com>
 
-> > > Just to convey that is_battery_full is a local function and not generic. You
-> > > can find similar usage in power_supply_core.c (__power_supply_changed_work)
-> > > and in other drivers. Isn't it advised to have __ prefixes?
-> > 
-> > It is static; everybody sees it is local. __ prefix usually means
-> > something else.
-> 
-> Agreed, I will remove the __ prefix in next patchset. Meanwhile I would
-> appreciate if anyone could help me to understand what __ prefix
-> really means.
+This patch fixes a CPDMA RX Descriptor leak that occurs after taking
+the interface down when the CPSW is in Dual MAC mode. Previously
+the CPSW_ALE port was left open up which causes packets to be received
+and processed by the RX interrupt handler and were passed to the
+non active network interface where they were ignored.
 
-If you have __foo() and foo(), the __foo() is typically worker
-function, where foo() provides locking around it etc. 
-									Pavel
+The fix is for the slave_stop function of the selected interface
+to disable the respective CPSW_ALE Port from forwarding packets. This
+blocks traffic from being received on the inactive interface.
+
+Signed-off-by: Schuyler Patton <spatton@ti.com>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 651087b..ffd4d12 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1164,11 +1164,17 @@ static void cpsw_init_host_port(struct cpsw_priv *priv)
+ 
+ static void cpsw_slave_stop(struct cpsw_slave *slave, struct cpsw_priv *priv)
+ {
++	u32 slave_port;
++
++	slave_port = cpsw_get_slave_port(priv, slave->slave_num);
++
+ 	if (!slave->phy)
+ 		return;
+ 	phy_stop(slave->phy);
+ 	phy_disconnect(slave->phy);
+ 	slave->phy = NULL;
++	cpsw_ale_control_set(priv->ale, slave_port,
++			     ALE_PORT_STATE, ALE_PORT_STATE_DISABLE);
+ }
+ 
+ static int cpsw_ndo_open(struct net_device *ndev)
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.9.0
