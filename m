@@ -1,53 +1,45 @@
-From: Jon Ringle <jon@ringle.org>
-Subject: Ethernet controller not starting
-Date: Mon, 3 Mar 2014 14:41:01 -0500
-Message-ID: <CAMwGMjwjyZkj3_bKUcx4GXNP764UaUG=d6V1us8GgMKj=HoXVw@mail.gmail.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [GIT PULL] ARM: OMAP: Device Tree for 3.15
+Date: Mon, 03 Mar 2014 21:28:39 +0100
+Message-ID: <5314E5F7.5080807@baylibre.com>
+References: <531397C8.9070309@baylibre.com> <20140302221750.GA5000@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: rafael.j.wysocki@intel.com
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:46883 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753999AbaCCU2m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 15:28:42 -0500
+Received: by mail-wg0-f51.google.com with SMTP id a1so3813002wgh.34
+        for <linux-omap@vger.kernel.org>; Mon, 03 Mar 2014 12:28:41 -0800 (PST)
+In-Reply-To: <20140302221750.GA5000@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-I'm working on porting an ARM board from linux-3.10 to linux-3.12 (now
-the latest LTS kernel).
-I found that Ethernet controller on the board no longer comes up on linux-3.12.
-I was able to bisect the issue I'm having to the following commit:
+On 02/03/2014 23:17, Tony Lindgren wrote:
+> * Benoit Cousson <bcousson@baylibre.com> [140302 12:45]:
+>> Hi Tony,
+>>
+>> Please pull the following commits for OMAP Device Tree for v3.15.
+>
+> Thanks pulling into omap-for-v3.15/dt.
 
->   45f0a85c8258741d11bda25c0a5669c06267204a is the first bad commit
->   commit 45f0a85c8258741d11bda25c0a5669c06267204a
->   Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->   Date:   Mon Jun 3 21:49:52 2013 +0200
->
->       PM / Runtime: Rework the "runtime idle" helper routine
->
->       The "runtime idle" helper routine, rpm_idle(), currently ignores
->       return values from .runtime_idle() callbacks executed by it.
->       However, it turns out that many subsystems use
->       pm_generic_runtime_idle() which checks the return value of the
->       driver's callback and executes pm_runtime_suspend() for the device
->       unless that value is not 0.  If that logic is moved to rpm_idle()
->       instead, pm_generic_runtime_idle() can be dropped and its users
->       will not need any .runtime_idle() callbacks any more.
->
->       Moreover, the PCI, SCSI, and SATA subsystems' .runtime_idle()
->       routines, pci_pm_runtime_idle(), scsi_runtime_idle(), and
->       ata_port_runtime_idle(), respectively, as well as a few drivers'
->       ones may be simplified if rpm_idle() calls rpm_suspend() after 0 has
->       been returned by the .runtime_idle() callback executed by it.
->
->       To reduce overall code bloat, make the changes described above.
->
->       Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->       Tested-by: Kevin Hilman <khilman@linaro.org>
->       Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->       Acked-by: Kevin Hilman <khilman@linaro.org>
->       Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
->       Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Thank you Tony.
 
-Can anyone offer any suggestions on what I should be looking for to
-fix this on my board?
+Regards,
+Benoit
 
-Thanks,
-Jon
+--=20
+Beno=EEt Cousson
+BayLibre
+Embedded Linux Technology Lab
+www.baylibre.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
