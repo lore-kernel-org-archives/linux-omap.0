@@ -1,60 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 06/12] phy: omap: Select OMAP_OCP2SCP bus driver
-Date: Mon, 3 Mar 2014 10:52:36 -0800
-Message-ID: <20140303185235.GC25804@atomide.com>
+Subject: Re: [PATCH 02/12] phy: omap-control: Update DT binding information
+Date: Mon, 3 Mar 2014 11:02:49 -0800
+Message-ID: <20140303190247.GD25804@atomide.com>
 References: <1393859254-10937-1-git-send-email-rogerq@ti.com>
- <1393859254-10937-7-git-send-email-rogerq@ti.com>
+ <1393859254-10937-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1393859254-10937-7-git-send-email-rogerq@ti.com>
-Sender: linux-ide-owner@vger.kernel.org
+In-Reply-To: <1393859254-10937-3-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
 Cc: kishon@ti.com, balbi@ti.com, george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [140303 07:11]:
-> The OMAP_USB2 and OMAP_PIP3 phy devices will not be
-> detected if the OMAP_OCP2SCP driver is not present.
-> So select it.
+* Roger Quadros <rogerq@ti.com> [140303 07:10]:
+> Move omap-control binding information to the right location.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  Documentation/devicetree/bindings/phy/ti-phy.txt   | 25 ++++++++++++++++++++++
+>  Documentation/devicetree/bindings/usb/omap-usb.txt | 24 ---------------------
+>  2 files changed, 25 insertions(+), 24 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+> index 207e14c..41dc132 100644
+> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+> @@ -1,5 +1,30 @@
+>  TI PHY: DT DOCUMENTATION FOR PHYs in TI PLATFORMs
+>  
+> +OMAP CONTROL PHY
+> +
+> +Required properties:
+> + - compatible: Should be one of
+> + "ti,control-phy-otghs" - if it has otghs_control mailbox register as on OMAP4.
+> + "ti,control-phy-usb2" - if it has Power down bit in control_dev_conf register
+> +                        e.g. USB2_PHY on OMAP5.
+> + "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
+> +                        e.g. USB3 PHY and SATA PHY on OMAP5.
+> + "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY on
+> +                        DRA7 platform.
+> + "ti,control-phy-am437usb2" - if it has power down register like USB2 PHY on
+> +                        AM437 platform.
 
-Selecting drivers like this will easily lead into missing
-dependencies. Especially it's bad for tristate driver
-options that people may want to have as loadable modules.
+To me it seems that you can leave out all the above. You can set these falgs
+flags directly in the driver based on the compatible flag. Then just initialize
+the .data in the driver based on the compatible flag.
 
-How about instead depends on OMAP_OCP2SCP?
+> + - reg : Address and length of the register set for the device. It contains
+> +   the address of "otghs_control" for control-phy-otghs or "power" register
+> +   for other types.
+> + - reg-names: should be "otghs_control" control-phy-otghs and "power" for
+> +   other types.
+> +
+> +omap_control_usb: omap-control-usb@4a002300 {
+> +        compatible = "ti,control-phy-otghs";
+> +        reg = <0x4a00233c 0x4>;
+> +        reg-names = "otghs_control";
+> +};
+
+Then you would instead have something like this:
+
+	compatible = "ti,am347-control-phy-otghs";
+
+That way you can initialize things without a need for custom bindings.
 
 Regards,
 
 Tony
-
- 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  drivers/phy/Kconfig | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-> index 2f02ec8..afdab3e 100644
-> --- a/drivers/phy/Kconfig
-> +++ b/drivers/phy/Kconfig
-> @@ -44,6 +44,7 @@ config OMAP_USB2
->  	depends on USB_PHY
->  	select GENERIC_PHY
->  	select OMAP_CONTROL_PHY
-> +	select OMAP_OCP2SCP
->  	help
->  	  Enable this to support the transceiver that is part of SOC. This
->  	  driver takes care of all the PHY functionality apart from comparator.
-> @@ -55,6 +56,7 @@ config TI_PIPE3
->  	depends on ARCH_OMAP2PLUS || COMPILE_TEST
->  	select GENERIC_PHY
->  	select OMAP_CONTROL_PHY
-> +	select OMAP_OCP2SCP
->  	help
->  	  Enable this to support the PIPE3 PHY that is part of TI SOCs. This
->  	  driver takes care of all the PHY functionality apart from comparator.
-> -- 
-> 1.8.3.2
-> 
