@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 12/12] ARM: dts: dra7: add OCP2SCP3 and SATA nodes
-Date: Mon, 3 Mar 2014 17:07:34 +0200
-Message-ID: <1393859254-10937-13-git-send-email-rogerq@ti.com>
+Subject: [PATCH 10/12] phy: ti-pipe3: Fix suspend/resume and module reload
+Date: Mon, 3 Mar 2014 17:07:32 +0200
+Message-ID: <1393859254-10937-11-git-send-email-rogerq@ti.com>
 References: <1393859254-10937-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,71 +9,33 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1393859254-10937-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: kishon@ti.com, balbi@ti.com, tony@atomide.com
-Cc: george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, rogerq@ti.com, Benoit Cousson <bcousson@baylibre.com>
+Cc: george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Balaji T K <balajitk@ti.com>
+Due to Errata i783, SATA breaks if its DPLL is idled. The recommeded
+workaround to issue a softreset to the SATA controller doesn't seem to
+work. Here we just prevent SATA DPLL from Idling and hence avoid
+the issue altogether.
 
-Add nodes for OCP2SCP3 bus, SATA controller and SATA PHY.
-
-[Roger Q] Clean up.
-
-CC: Benoit Cousson <bcousson@baylibre.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ drivers/phy/phy-ti-pipe3.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 1fd75aa..74e44bc 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -621,6 +621,45 @@
- 			dma-names = "tx0", "rx0";
- 			status = "disabled";
- 		};
-+
-+		omap_control_sata: control-phy@4a002374 {
-+			compatible = "ti,control-phy-pipe3";
-+			reg = <0x4a002374 0x4>;
-+			reg-names = "power";
-+			clocks = <&sys_clkin1>;
-+			clock-names = "sysclk";
-+		};
-+
-+		/* OCP2SCP3 */
-+		ocp2scp@4a090000 {
-+			compatible = "ti,omap-ocp2scp";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			reg = <0x4a090000 0x20>;
-+			ti,hwmods = "ocp2scp3";
-+			sata_phy: phy@4A096000 {
-+				compatible = "ti,phy-pipe3-sata";
-+				reg = <0x4A096000 0x80>, /* phy_rx */
-+				      <0x4A096400 0x64>, /* phy_tx */
-+				      <0x4A096800 0x40>; /* pll_ctrl */
-+				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
-+				ctrl-module = <&omap_control_sata>;
-+				clocks = <&sys_clkin1>;
-+				clock-names = "sysclk";
-+				#phy-cells = <0>;
-+			};
-+		};
-+
-+		sata: sata@4a141100 {
-+			compatible = "snps,dwc-ahci";
-+			reg = <0x4a140000 0x1100>, <0x4a141100 0x7>;
-+			interrupts = <GIC_SPI 54 IRQ_TYPE_LEVEL_HIGH>;
-+			phys = <&sata_phy>;
-+			phy-names = "sata-phy";
-+			clocks = <&sata_ref_clk>;
-+			ti,hwmods = "sata";
-+		};
- 	};
- };
+diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+index d3c085a..611f7c3 100644
+--- a/drivers/phy/phy-ti-pipe3.c
++++ b/drivers/phy/phy-ti-pipe3.c
+@@ -238,6 +238,10 @@ static int ti_pipe3_exit(struct phy *x)
+ 	u32 val;
+ 	unsigned long timeout;
  
++	/* SATA DPLL can't be powered down due to Errata i783 */
++	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata"))
++		return 0;
++
+ 	/* Put DPLL in IDLE mode */
+ 	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
+ 	val |= PLL_IDLE;
 -- 
 1.8.3.2
