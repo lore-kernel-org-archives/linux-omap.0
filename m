@@ -1,64 +1,103 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH RFC 3/5] ASoC: tlv320aic31xx: Add DT binding document
-Date: Mon, 3 Mar 2014 14:38:19 +0800
-Message-ID: <20140303063819.GS2411@sirena.org.uk>
-References: <cover.1393405575.git.jsarha@ti.com>
- <a72a69de5c86ee9e0931bac8d42cd72e4bee1a6b.1393405575.git.jsarha@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [RFC PATCH v1 1/2] ARM: dts: AM43xx-clocks: Entries added for
+ ti-usim
+Date: Mon, 3 Mar 2014 09:15:46 +0200
+Message-ID: <53142C22.4020700@ti.com>
+References: <1389010351-17320-1-git-send-email-satish.patel@ti.com> <1389010351-17320-2-git-send-email-satish.patel@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YHEjEQMqr9bPKtC0"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:54729 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750861AbaCCGiq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 01:38:46 -0500
-Content-Disposition: inline
-In-Reply-To: <a72a69de5c86ee9e0931bac8d42cd72e4bee1a6b.1393405575.git.jsarha@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40596 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751366AbaCCHQS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 02:16:18 -0500
+In-Reply-To: <1389010351-17320-2-git-send-email-satish.patel@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, devicetree@vger.kernel.org, bcousson@baylibre.com, peter.ujfalusi@ti.com, detheridge@ti.com
+To: Satish Patel <satish.patel@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
+On 01/06/2014 02:12 PM, Satish Patel wrote:
+> Clock  entries support for TI's USIM - Smart card controller of AM43xx platform
+> USIM controller has multiple sources for debounce and functional clock.Entry
+> for each source has been added.
 
---YHEjEQMqr9bPKtC0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This patch is using unsupported/old version of DT data layout for mux 
+and gate clocks, and as such does not work at all (probably causes a 
+hang during boot.) Please update against latest kernel.
 
-On Wed, Feb 26, 2014 at 11:14:27AM +0200, Jyri Sarha wrote:
+>
+> Signed-off-by: Satish Patel <satish.patel@ti.com>
+> ---
+>   arch/arm/boot/dts/am43xx-clocks.dtsi |   34 ++++++++++++++++++++++++++++++++++
+>   drivers/clk/ti/clk-43xx.c            |    4 ++++
+>   2 files changed, 38 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+> index c127e7b..7ccfa75 100644
+> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+> @@ -420,6 +420,40 @@ wdt1_fck: wdt1_fck@44df422c {
+>   	bit-mask = <0x1>;
+>   };
+>
+> +usim0_fck: usim0_fck@44df4254 {
+> +	#clock-cells = <0>;
+> +	compatible = "mux-clock";
+> +	clocks = <&sys_clkin_ck>, <&dpll_core_m4_ck>;
+> +	reg = <0x44df4254 0x4>;
+> +	bit-mask = <0x1>;
+> +};
+> +
+> +usim_dbck: usim_dbck@44df425c {
+> +	#clock-cells = <0>;
+> +	compatible = "mux-clock";
+> +	clocks = <&clk_rc32k_ck>, <&clk_32k_mosc_ck>, <&clkdiv32k_ick>;
+> +	reg = <0x44df425c 0x4>;
+> +	bit-mask = <0x3>;
+> +};
+> +
+> +usim0_opt_fck: usim0_opt_fck@44df8da8 {
+> +	#clock-cells = <0>;
+> +	compatible = "gate-clock";
+> +	clocks = <&usim0_fck>;
+> +	reg = <0x44df8da8 0x4>;
+> +	bit-shift = <8>;
+> +	bit-mask = <0x1>;
+> +};
+> +
+> +usim0_opt_fck32: usim0_opt_fck32@44df8da8 {
+> +	#clock-cells = <0>;
+> +	compatible = "gate-clock";
+> +	clocks = <&usim_dbck>;
+> +	bit-shift = <9>;
+> +	bit-mask = <0x1>;
+> +	reg = <0x44df8da8 0x4>;
+> +};
+> +
+>   l3_gclk: l3_gclk {
+>   	#clock-cells = <0>;
+>   	compatible = "fixed-factor-clock";
+> diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
+> index ff3ad1b..8ed05f2 100644
+> --- a/drivers/clk/ti/clk-43xx.c
+> +++ b/drivers/clk/ti/clk-43xx.c
+> @@ -66,6 +66,10 @@ static struct omap_dt_clk am43xx_clks[] = {
+>   	DT_CLK(NULL, "timer6_fck", "timer6_fck"),
+>   	DT_CLK(NULL, "timer7_fck", "timer7_fck"),
+>   	DT_CLK(NULL, "wdt1_fck", "wdt1_fck"),
+> +	DT_CLK(NULL, "usim0_fck", "usim0_fck"),
+> +	DT_CLK(NULL, "usim_dbck", "usim_dbck"),
+> +	DT_CLK(NULL, "usim0_opt_fck", "usim0_opt_fck"),
+> +	DT_CLK(NULL, "usim0_opt_fck32", "usim0_opt_fck32"),
 
-> +- ai31xx-micbias-vg - MicBias Voltage required.
-> +	1 - MICBIAS output is powered to 2.0V,
-> +	2 - MICBIAS output is powered to 2.5V,
-> +	3 - MICBIAS output is connected to AVDD,
-> +	If this node is not mentioned or if the value is incorrect, then MicBias
-> +	is powered down.
+Do you need to add these aliases? Please avoid if possible.
 
-Please provide defines for these as part of the binding.  It's not clear
-to me why leaving the micbias powered down is a sane default, it'll only
-be powered up if it's connected to something and used which doesn't seem
-altogether sane.  I'd suggest picking 2.0V (the lowest voltage so least
-likely to cause damage).
+-Tero
 
---YHEjEQMqr9bPKtC0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+>   	DT_CLK(NULL, "l3_gclk", "l3_gclk"),
+>   	DT_CLK(NULL, "dpll_core_m4_div2_ck", "dpll_core_m4_div2_ck"),
+>   	DT_CLK(NULL, "l4hs_gclk", "l4hs_gclk"),
+>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTFCNYAAoJELSic+t+oim9IXsP/3+uG/OfbmudlM7w0fBFPk/f
-zG7oEQ4j/aBDVZPMYJhqq0Mz5hGLh79W63533nLQg57G2RQzIrRzSdU8/VGq3Nab
-6dns3kvS1hiZF9GqbSesXyYSXfTgWrH0kguke8OmS1Tb59TtdZWJG7RQ9tfWAOut
-q/pppQEYvh1i8dncuCRmezaU10QNAzyGbSbw/hOX4/YtQfVClA4m9gbehhu6IPX7
-5XJyugD/ysbDN/nCfOLS3W2xul0II4npqVOwnSc/nSrcZ3bbsLZ37sj15NOpkX9e
-41WZcHiucb07HQO8K8KJMs027PdHqk2mqx6CDsjhncZU0J2w0/9XgHBI8a80GzuE
-FssBne+OVGN5kK4w3DX3ElCNVdXxZn8TlbCw7AGtxnnPB0KCRln38a9JanZM9SXv
-2L289c6NvPsAtGB5zpCG9XzktVavtBnPnDMj6HOGuGA8hzpI++mryFuTqVMhzBuJ
-RlFalBXDC7QEsSMGexWuSoxZvmC7AKXUpi0lk06OjYqHHQ58bm6CkL7Yr8go25eF
-HeWv3mjcWN58mwNIg0vUrRn3A2B8VbvsdHkb0JxsktCB648yuPJjaufYaSEhoTbj
-80ycLXNeCeGjPKYujIdUB9AYpMBMI8TsdWamfOrG2wRJQsB3PJadnumZYqzf6Ral
-arAxpp31byG5iB8Nbc3V
-=BW/b
------END PGP SIGNATURE-----
-
---YHEjEQMqr9bPKtC0--
