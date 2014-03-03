@@ -1,110 +1,74 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: Help needed USB hub disconnected at resume
-Date: Mon, 03 Mar 2014 14:16:51 +0200
-Message-ID: <531472B3.1060104@compulab.co.il>
-References: <F690310232FDDF4AB457E8B3EF90DDE0AA85E10B@MARCM-SBS2011.marcmltd.local>,<F690310232FDDF4AB457E8B3EF90DDE0AA85E1E7@MARCM-SBS2011.marcmltd.local> <F690310232FDDF4AB457E8B3EF90DDE0AA85E21F@MARCM-SBS2011.marcmltd.local> <53146225.8040403@ti.com>
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [PATCH 7/7] v4l: ti-vpe: Add crop support in VPE driver
+Date: Mon, 03 Mar 2014 13:21:42 +0100
+Message-ID: <16d801cf36db$23696080$6a3c2180$%debski@samsung.com>
+References: <1393832008-22174-1-git-send-email-archit@ti.com>
+ <1393832008-22174-8-git-send-email-archit@ti.com> <53143439.5030007@xs4all.nl>
+ <53143CAB.4020202@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:53022 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753721AbaCCMRG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Mar 2014 07:17:06 -0500
-In-Reply-To: <53146225.8040403@ti.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:20316 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753924AbaCCMVp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 07:21:45 -0500
+In-reply-to: <53143CAB.4020202@ti.com>
+Content-language: pl
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Marc Murphy <marcmltd@marcm.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: 'Archit Taneja' <archit@ti.com>, 'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
 
-On 03/03/14 13:06, Roger Quadros wrote:
-> Hi Marc,
+Hi Archit,
+
+> From: Archit Taneja [mailto:archit@ti.com]
+> Sent: Monday, March 03, 2014 9:26 AM
 > 
-> On 03/03/2014 12:04 PM, Marc Murphy wrote:
->> Hi,
->> I am using the latest stable 3.4.80 kernel with some changes to get the EMAC Phy to initialise correctly after a suspend/resume.  The platform is AM3517 with most of the system working nice and smoothly. I have 1 issue though and need some advice/help to get the system to use the USB hub I have connected to the EHCI controller after a suspend to memory and resume.
->>
->> At boot all is recognised;
->>
->> [    1.486816] usbcore: registered new interface driver cdc_ether
->> [    1.493255] usbcore: registered new interface driver cdc_ncm
->> [    1.499450] usbcore: registered new interface driver qmi_wwan
->> [    1.506622] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
->> [    1.513580] ehci-omap.0 supply hsusb0 not found, using dummy regulator
->> [    2.521881] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
->> [    2.528411] ehci-omap ehci-omap.0: new USB bus registered, assigned bus number 1
->> [    2.536468] ehci-omap ehci-omap.0: irq 77, io mem 0x48064800
->> [    2.553070] ehci-omap ehci-omap.0: USB 2.0 started, EHCI 1.00
->> [    2.559295] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
->> [    2.566436] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
->> [    2.574035] usb usb1: Product: OMAP-EHCI Host Controller
->> [    2.579620] usb usb1: Manufacturer: Linux 3.4.80 ehci_hcd
->> [    2.585296] usb usb1: SerialNumber: ehci-omap.0
->> [    2.591278] hub 1-0:1.0: USB hub found
->> [    2.595306] hub 1-0:1.0: 3 ports detected
->>
->> And I can see everything OK.
->>
->> # lsusb
->> Bus 001 Device 002: ID 0424:2513 Standard Microsystems Corp. 2.0 Hub
->> Bus 002 Device 002: ID 05e3:0718 Genesys Logic, Inc. IDE/SATA Adapter
->> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
->> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
->> Bus 001 Device 003: ID 1199:68a2 Sierra Wireless, Inc.
->> #
->> #
->> # echo mem > /sys/power/state
->> [   73.736572] PM: Syncing filesystems ... done.
->> [   73.743530] Freezing user space processes ... (elapsed 0.01 seconds) done.
->> [   73.766784] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
->> [   73.959289] davinci_mdio davinci_mdio.0: timed out waiting for idle
->> [   73.968872] PM: suspend of devices complete after 170.410 msecs
->> [   73.975433] PM: late suspend of devices complete after 0.305 msecs
->> [   73.982635] PM: noirq suspend of devices complete after 0.732 msecs
->> [   83.430450] Powerdomain (core_pwrdm) didn't enter target state 1
->> [   83.436737] Could not enter target state in pm_suspend
->> [   83.443176] PM: noirq resume of devices complete after 0.915 msecs
->>  [   83.450164] PM: early resume of devices complete after 0.274 msecs
->> [   83.457336] <6>Waiting for PHY clock good...
->> [   83.463287] davinci_mdio davinci_mdio.0: resetting idled controller
->> [   83.471343] net eth0: attached PHY driver [SMSC LAN8710/LAN8720] (mii_bus:phy_addr=davinci_mdio-0:00, id=7c0f1)
->> [   84.771881] PM: resume of devices complete after 1315.185 msecs
->> [   84.778472] Restarting tasks ...
->> [   84.782379] usb 1-1: USB disconnect, device number 2
->> [   84.790557] done.
->> [   84.792938] mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
->> sh: write error:[   84.800781] usb 1-1.1: USB disconnect, device number 3
->>  Operation not p[   84.808349] qmi_wwan 1-1.1:1.8: wwan0: unregister 'qmi_wwan' usb-ehci-omap.0-1.1, Sierra Wireless wwan/QMI device
->> ermitted
->> [   84.859191] mmc1: mmc_rescan_try_freq: trying to init card at 400000 Hz
->> [   86.490356] PHY: davinci_mdio-0:00 - Link is Up - 100/Full
->> #
->> #
->> # lsusb
->> Bus 002 Device 002: ID 05e3:0718 Genesys Logic, Inc. IDE/SATA Adapter
->> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
->> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
->> #
->>
->> Is there any relevant patch out there that would address the issue that I see ?
+> Hi,
 > 
-> Does this happen because of OFF mode?
-> Can you please try the tests with off mode disabled?
+> On Monday 03 March 2014 01:20 PM, Hans Verkuil wrote:
+> > Hi Archit!
+> >
+> > On 03/03/2014 08:33 AM, Archit Taneja wrote:
+> >> Add crop ioctl ops. For VPE, cropping only makes sense with the
+> input
+> >> to VPE, or the V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE buffer type.
+> >>
+> >> For the CAPTURE type, a S_CROP ioctl results in setting the crop
+> >> region as the whole image itself, hence making crop dimensions same
+> as the pix dimensions.
+> >>
+> >> Setting the crop successfully should result in re-configuration of
+> >> those registers which are affected when either source or destination
+> >> dimensions change, set_srcdst_params() is called for this purpose.
+> >>
+> >> Some standard crop parameter checks are done in __vpe_try_crop().
+> >
+> > Please use the selection ops instead: if you implement cropping with
+> > those then you'll support both the selection API and the old cropping
+> > API will be implemented by the v4l2 core using the selection ops. Two
+> for the price of one...
 > 
-> e.g.
-> mount -t debugfs none /sys/kernel/debug
-> echo 0 > /sys/kernel/debug/pm_debug/enable_off_mode
-> suspend & resume
-
-AFAIK, AM3517 does not have OFF mode.
-We had something similar with runtime pm...
-It might be useful to know which hub is this and how is it connected...
-
+> <snip>
 > 
-> Also please send the output of /sys/kernel/debug/pm_debug/count
-> before suspend and after resume. Thanks.
+> Thanks for the feedback. I'll use selection ops here.
 
+>From your reply I understand that you will send a v2 of these patches,
+right?
+If so, please correct the typos I mentioned in the patch 5/7.
 
+Also, it is quite late for v3.15. I did already send a pull request to
+Mauro,
+However I have one patch pending. Could you tell me when are you planning to
+post v2 of these patches? I want to decide whether should I wait for your
+patchset or should I send the second pull request with the pending patch
+as soon as possible.
+ 
 
+Best wishes,
 -- 
-Regards,
-Igor.
+Kamil Debski
+Samsung R&D Institute Poland
+
+
