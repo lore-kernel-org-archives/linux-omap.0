@@ -1,81 +1,175 @@
 From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [RESEND Patch 0/9] dts pending patches for TI omap
-Date: Mon, 3 Mar 2014 20:20:16 +0530
-Message-ID: <1393858226-32595-1-git-send-email-mugunthanvnm@ti.com>
+Subject: [RESEND Patch 6/9] ARM: dts: DRA7: Add device nodes for ABB
+Date: Mon, 3 Mar 2014 20:20:23 +0530
+Message-ID: <1393858226-32595-8-git-send-email-mugunthanvnm@ti.com>
+References: <1393858226-32595-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32872 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754815AbaCCOvR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Mar 2014 09:51:17 -0500
+In-Reply-To: <1393858226-32595-1-git-send-email-mugunthanvnm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: bcousson@baylibre.com, tony@atomide.com
 Cc: linux@arm.linux.org.uk, akpm@linux-foundation.org, nm@ti.com, balajitk@ti.com, r.sricharan@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
-Benoit/Tony
+From: Nishanth Menon <nm@ti.com>
 
-Here I am send all the pending dt patches that can go into 3.15 merge window,
-all the patches were already posted to mailing list and has beed reviewed.
+Add ABB device nodes for DRA7 family of devices. Data is based on
+DRA7 Technical Reference Manual revision I (Sept 2013)
 
-I have rebased the patches on top of
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git omap-for-v3.15/dt
-and fixed all the merge conflicts.
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ arch/arm/boot/dts/dra7.dtsi | 132 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 132 insertions(+)
 
-Pasting the mail archive for the patches series
-
-* Add ABB device nodes
-http://linux-kernel.2935.n7.nabble.com/PATCH-0-4-ARM-dts-OMAP3630-Add-ABB-device-nodes-td794852.html
-
-* MMC hot plug support
-http://mail.blameitonlove.com/lists/linux-omap/msg101933.html
-Dropped [PATCH 2/3] ARM: dts: am335x-evmsk: add SD card hotplug support as this
-is already merged with commit id 29ea5efb0bb612d352aa360de26e2095cb230e4a
-
-* DRA7 Cross bar DTS patches
-Cross bar driver has been pulled for next merge, so the dts patches can also
-be pulled for next merge window.
-
-Here is the pull request for the same patch series.
-
-The following changes since commit f777ba1780584b100ab9664cc06d04f3bb273a84:
-
-  Merge tag 'for_3.15/dts_signed' of git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt into omap-for-v3.15/dt (2014-03-02 14:22:03 -0800)
-
-are available in the git repository at:
-
-
-  git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git omapdt-for-3.15
-
-for you to fetch changes up to 5f78b45aa45c5b2c4de895c3b0740fda4684dae4:
-
-  ARM: DTS: DRA7: Add routable-irqs property for gic node (2014-03-03 19:53:25 +0530)
-
-----------------------------------------------------------------
-Andrii.Tseglytskyi (2):
-      ARM: dts: OMAP36xx: Add device node for ABB
-      ARM: dts: OMAP4: Add device nodes for ABB
-
-Balaji T K (3):
-      ARM: dts: am437x gp-evm: add sd card dt nodes
-      ARM: dts: am335x-evm: add SD card hotplug support
-      ARM: dts: am43x-epos-evm: add SD card hotplug support
-
-Nishanth Menon (1):
-      ARM: dts: DRA7: Add device nodes for ABB
-
-Sricharan R (3):
-      ARM: DTS: DRA7: Add crossbar device binding
-      ARM: DTS: DRA7: Replace peripheral interrupt numbers with crossbar inputs
-      ARM: DTS: DRA7: Add routable-irqs property for gic node
-
- arch/arm/boot/dts/am335x-evm.dts     |   9 ++
- arch/arm/boot/dts/am4372.dtsi        |   1 +
- arch/arm/boot/dts/am437x-gp-evm.dts  |  27 +++++
- arch/arm/boot/dts/am43x-epos-evm.dts |   9 ++
- arch/arm/boot/dts/dra7.dtsi          | 227 ++++++++++++++++++++++++++++-------
- arch/arm/boot/dts/omap36xx.dtsi      |  20 +++
- arch/arm/boot/dts/omap4.dtsi         |  26 ++++
- arch/arm/boot/dts/omap443x.dtsi      |  26 ++++
- arch/arm/boot/dts/omap4460.dtsi      |  37 ++++++
- 9 files changed, 339 insertions(+), 43 deletions(-)
-
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 499974a..9e3caf3 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -578,6 +578,138 @@
+ 			status = "disabled";
+ 		};
+ 
++		abb_mpu: regulator-abb-mpu {
++			compatible = "ti,abb-v3";
++			regulator-name = "abb_mpu";
++			#address-cells = <0>;
++			#size-cells = <0>;
++			clocks = <&sys_clkin1>;
++			ti,settling-time = <50>;
++			ti,clock-cycles = <16>;
++
++			reg = <0x4ae07ddc 0x4>, <0x4ae07de0 0x4>,
++			      <0x4ae06014 0x4>, <0x4a003b20 0x8>,
++			      <0x4ae0c158 0x4>;
++			reg-names = "setup-address", "control-address",
++				    "int-address", "efuse-address",
++				    "ldo-address";
++			ti,tranxdone-status-mask = <0x80>;
++			/* LDOVBBMPU_FBB_MUX_CTRL */
++			ti,ldovbb-override-mask = <0x400>;
++			/* LDOVBBMPU_FBB_VSET_OUT */
++			ti,ldovbb-vset-mask = <0x1F>;
++
++			/*
++			 * NOTE: only FBB mode used but actual vset will
++			 * determine final biasing
++			 */
++			ti,abb_info = <
++			/*uV		ABB	efuse	rbb_m fbb_m	vset_m*/
++			1060000		0	0x0	0 0x02000000 0x01F00000
++			1160000		0	0x4	0 0x02000000 0x01F00000
++			1210000		0	0x8	0 0x02000000 0x01F00000
++			>;
++		};
++
++		abb_ivahd: regulator-abb-ivahd {
++			compatible = "ti,abb-v3";
++			regulator-name = "abb_ivahd";
++			#address-cells = <0>;
++			#size-cells = <0>;
++			clocks = <&sys_clkin1>;
++			ti,settling-time = <50>;
++			ti,clock-cycles = <16>;
++
++			reg = <0x4ae07e34 0x4>, <0x4ae07e24 0x4>,
++			      <0x4ae06010 0x4>, <0x4a0025cc 0x8>,
++			      <0x4a002470 0x4>;
++			reg-names = "setup-address", "control-address",
++				    "int-address", "efuse-address",
++				    "ldo-address";
++			ti,tranxdone-status-mask = <0x40000000>;
++			/* LDOVBBIVA_FBB_MUX_CTRL */
++			ti,ldovbb-override-mask = <0x400>;
++			/* LDOVBBIVA_FBB_VSET_OUT */
++			ti,ldovbb-vset-mask = <0x1F>;
++
++			/*
++			 * NOTE: only FBB mode used but actual vset will
++			 * determine final biasing
++			 */
++			ti,abb_info = <
++			/*uV		ABB	efuse	rbb_m fbb_m	vset_m*/
++			1055000		0	0x0	0 0x02000000 0x01F00000
++			1150000		0	0x4	0 0x02000000 0x01F00000
++			1250000		0	0x8	0 0x02000000 0x01F00000
++			>;
++		};
++
++		abb_dspeve: regulator-abb-dspeve {
++			compatible = "ti,abb-v3";
++			regulator-name = "abb_dspeve";
++			#address-cells = <0>;
++			#size-cells = <0>;
++			clocks = <&sys_clkin1>;
++			ti,settling-time = <50>;
++			ti,clock-cycles = <16>;
++
++			reg = <0x4ae07e30 0x4>, <0x4ae07e20 0x4>,
++			      <0x4ae06010 0x4>, <0x4a0025e0 0x8>,
++			      <0x4a00246c 0x4>;
++			reg-names = "setup-address", "control-address",
++				    "int-address", "efuse-address",
++				    "ldo-address";
++			ti,tranxdone-status-mask = <0x20000000>;
++			/* LDOVBBDSPEVE_FBB_MUX_CTRL */
++			ti,ldovbb-override-mask = <0x400>;
++			/* LDOVBBDSPEVE_FBB_VSET_OUT */
++			ti,ldovbb-vset-mask = <0x1F>;
++
++			/*
++			 * NOTE: only FBB mode used but actual vset will
++			 * determine final biasing
++			 */
++			ti,abb_info = <
++			/*uV		ABB	efuse	rbb_m fbb_m	vset_m*/
++			1055000		0	0x0	0 0x02000000 0x01F00000
++			1150000		0	0x4	0 0x02000000 0x01F00000
++			1250000		0	0x8	0 0x02000000 0x01F00000
++			>;
++		};
++
++		abb_gpu: regulator-abb-gpu {
++			compatible = "ti,abb-v3";
++			regulator-name = "abb_gpu";
++			#address-cells = <0>;
++			#size-cells = <0>;
++			clocks = <&sys_clkin1>;
++			ti,settling-time = <50>;
++			ti,clock-cycles = <16>;
++
++			reg = <0x4ae07de4 0x4>, <0x4ae07de8 0x4>,
++			      <0x4ae06010 0x4>, <0x4a003b08 0x8>,
++			      <0x4ae0c154 0x4>;
++			reg-names = "setup-address", "control-address",
++				    "int-address", "efuse-address",
++				    "ldo-address";
++			ti,tranxdone-status-mask = <0x10000000>;
++			/* LDOVBBGPU_FBB_MUX_CTRL */
++			ti,ldovbb-override-mask = <0x400>;
++			/* LDOVBBGPU_FBB_VSET_OUT */
++			ti,ldovbb-vset-mask = <0x1F>;
++
++			/*
++			 * NOTE: only FBB mode used but actual vset will
++			 * determine final biasing
++			 */
++			ti,abb_info = <
++			/*uV		ABB	efuse	rbb_m fbb_m	vset_m*/
++			1090000		0	0x0	0 0x02000000 0x01F00000
++			1210000		0	0x4	0 0x02000000 0x01F00000
++			1280000		0	0x8	0 0x02000000 0x01F00000
++			>;
++		};
++
+ 		mcspi1: spi@48098000 {
+ 			compatible = "ti,omap4-mcspi";
+ 			reg = <0x48098000 0x200>;
 -- 
 1.9.0
+
