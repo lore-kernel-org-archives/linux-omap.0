@@ -1,50 +1,50 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH RESEND] mmc: omap_hsmmc: support more DT properties
-Date: Mon,  3 Mar 2014 22:16:16 +0100
-Message-ID: <1393881376-10751-1-git-send-email-zonque@gmail.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH RESEND] sound: omap: n810: fix init with DT boot
+Date: Tue,  4 Mar 2014 00:45:18 +0200
+Message-ID: <1393886718-1817-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:48382 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755342AbaCCVQY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 16:16:24 -0500
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:33637 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754951AbaCCWoj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 17:44:39 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balajitk@ti.com, chris@printf.net
-Cc: linux-mmc@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>
+To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-This should probably be done implicitly through mmc_of_parse(), but that
-doesn't play well along with the multi-slot model the hsmmc driver
-features. Hence, for now, do it manually. The properties are already
-documented in Documentation/devicetree/bindings/mmc/mmc.txt.
+Since 3.14-rc1 only DT boot has been supported on N810, so this
+file fails to init. Make a minimal fix to retain functionality.
+This file should be properly converted to DT in longer term.
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
-Acked-by: Balaji T K <balajitk@ti.com>
+There seems to be still other unresolved issues with N810 audio support,
+but this patch is needed at minimum as otherwise the machine driver
+probing would completely fail.
+
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Acked-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
 ---
-This is a resend of a patch that was already acked by Balaji T K:
 
-  http://www.spinics.net/lists/linux-mmc/msg25029.html
+	Previous discussion:
+	http://marc.info/?l=linux-omap&m=139387208426122&w=2
 
+ sound/soc/omap/n810.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
- drivers/mmc/host/omap_hsmmc.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 2815de6..a5a38cc 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1765,6 +1765,12 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
- 	if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
- 		pdata->slots[0].features |= HSMMC_HAS_HSPE_SUPPORT;
+diff --git a/sound/soc/omap/n810.c b/sound/soc/omap/n810.c
+index 3fde9e4..d163e18 100644
+--- a/sound/soc/omap/n810.c
++++ b/sound/soc/omap/n810.c
+@@ -305,7 +305,9 @@ static int __init n810_soc_init(void)
+ 	int err;
+ 	struct device *dev;
  
-+	if (of_find_property(np, "keep-power-in-suspend", NULL))
-+		pdata->slots[0].pm_caps |= MMC_PM_KEEP_POWER;
-+
-+	if (of_find_property(np, "enable-sdio-wakeup", NULL))
-+		pdata->slots[0].pm_caps |= MMC_PM_WAKE_SDIO_IRQ;
-+
- 	return pdata;
- }
- #else
+-	if (!(machine_is_nokia_n810() || machine_is_nokia_n810_wimax()))
++	if (!of_have_populated_dt() ||
++	    (!of_machine_is_compatible("nokia,n810") &&
++	     !of_machine_is_compatible("nokia,n810-wimax")))
+ 		return -ENODEV;
+ 
+ 	n810_snd_device = platform_device_alloc("soc-audio", -1);
 -- 
-1.8.5.3
+1.9.0
 
