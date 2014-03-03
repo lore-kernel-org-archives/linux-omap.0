@@ -1,56 +1,53 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RFC PATCH v1 0/2] clock and HWMOD changes for USIM module
-Date: Mon, 3 Mar 2014 09:16:18 +0200
-Message-ID: <53142C42.1020809@ti.com>
-References: <1389010351-17320-1-git-send-email-satish.patel@ti.com> <52CE59C8.6040409@ti.com> <20140228215936.GE13624@atomide.com> <53141CB7.20906@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH 0/7] v4l: ti-vpe: Some VPE fixes and enhancements
+Date: Mon, 3 Mar 2014 13:03:21 +0530
+Message-ID: <1393832008-22174-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50709 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38169 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751366AbaCCHQr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Mar 2014 02:16:47 -0500
-In-Reply-To: <53141CB7.20906@ti.com>
+	id S1752952AbaCCHeK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Mar 2014 02:34:10 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Satish Patel <satish.patel@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: k.debski@samsung.com
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, Archit Taneja <archit@ti.com>
 
-On 03/03/2014 08:09 AM, Satish Patel wrote:
->
->
-> On 3/1/2014 3:29 AM, Tony Lindgren wrote:
->> * Satish Patel <satish.patel@ti.com> [140109 00:13]:
->>>
->>>
->>> On 1/6/2014 5:42 PM, Satish Patel wrote:
->>>> Patch set includes clock and HWMOD entries for AM43x's USIM modoule.
->>>>
->>>> Note: I am in process of mainlining usim driver.
->>>>
->>>> Satish Patel (2):
->>>>    ARM: dts: AM43xx-clocks: Entries added for ti-usim
->>>>    ARM: OMAP: AM43xx: HWMOD changes added for ti-usim
->>>>
->>>
->>> Tony,
->>>
->>> Can you pull in these patches if there are no comments?
->>
->> Would like to see acks from Benoit/Tero/Paul first.
->>
-> Benoit/Tero/Paul:
-> Can you please review and ack this patch series,
-> so that tony can pick it up.
+This patch set mainly consists of minor fixes for the VPE driver. These fixes
+ensure the following:
 
-NAK, patch #1 is broken.
+- The VPE module can be inserted and removed successively.
+- Make sure that smaller resolutions like qcif work correctly.
+- Prevent race condition between firmware loading and an open call to the v4l2
+  device.
+- Prevent the possibility of output m2m queue not having sufficient 'ready'
+  buffers.
+- Some VPDMA data descriptor fields weren't understood correctly before. They
+  are now used correctly.
 
->
-> Thanks
-> satish
->> Regards,
->>
->> Tony
->>
+The rest of the patches add some minor features like DMA buf support and
+cropping.
+
+Reference branch:
+
+git@github.com:boddob/linux.git vpe_for_315
+
+Archit Taneja (7):
+  v4l: ti-vpe: Make sure in job_ready that we have the needed number of
+    dst_bufs
+  v4l: ti-vpe: register video device only when firmware is loaded
+  v4l: ti-vpe: Use video_device_release_empty
+  v4l: ti-vpe: Allow DMABUF buffer type support
+  v4l: ti-vpe: Allow usage of smaller images
+  v4l: ti-vpe: Fix some params in VPE data descriptors
+  v4l: ti-vpe: Add crop support in VPE driver
+
+ drivers/media/platform/ti-vpe/vpdma.c |  58 ++++++++---
+ drivers/media/platform/ti-vpe/vpdma.h |  16 +--
+ drivers/media/platform/ti-vpe/vpe.c   | 180 +++++++++++++++++++++++++++-------
+ 3 files changed, 198 insertions(+), 56 deletions(-)
+
+-- 
+1.8.3.2
 
