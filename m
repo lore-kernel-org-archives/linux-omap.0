@@ -1,71 +1,60 @@
-From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Subject: [RESEND Patch 3/9] ARM: dts: am43x-epos-evm: add SD card hotplug support
-Date: Mon, 3 Mar 2014 20:20:20 +0530
-Message-ID: <1393858226-32595-5-git-send-email-mugunthanvnm@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [RESEND Patch 4/9] ARM: dts: OMAP36xx: Add device node for ABB
+Date: Mon, 3 Mar 2014 20:20:21 +0530
+Message-ID: <1393858226-32595-6-git-send-email-mugunthanvnm@ti.com>
 References: <1393858226-32595-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1393858226-32595-1-git-send-email-mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, r.sricharan-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1393858226-32595-1-git-send-email-mugunthanvnm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: linux@arm.linux.org.uk, akpm@linux-foundation.org, nm@ti.com, balajitk@ti.com, r.sricharan@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
 
-Add card detect gpio for SD card slot and include dt gpio header.
+Add ABB device node for OMAP36xx family of devices. Data is based on
+OMAP36XX Technical Reference Manual revision AB (Dec 2012).
 
-Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+[nm@ti.com: co-developer]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Andrii.Tseglytskyi <andrii.tseglytskyi@ti.com>
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi        | 1 +
- arch/arm/boot/dts/am43x-epos-evm.dts | 9 +++++++++
- 2 files changed, 10 insertions(+)
+ arch/arm/boot/dts/omap36xx.dtsi | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index b687869..36d523a 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -8,6 +8,7 @@
-  * kind, whether express or implied.
-  */
- 
-+#include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/interrupt-controller/arm-gic.h>
- 
- #include "skeleton.dtsi"
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index a3a53ce..167dbc8 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -132,6 +132,12 @@
- 				0x19c (PIN_OUTPUT | MUX_MODE3)          /* mcasp0_ahclkr.spi1_cs0 */
- 			>;
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+index 7e8dee9..ba077cd 100644
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -39,6 +39,26 @@
+ 			clock-frequency = <48000000>;
  		};
-+
-+		mmc1_pins: pinmux_mmc1_pins {
-+			pinctrl-single,pins = <
-+				0x160 (PIN_INPUT | MUX_MODE7) /* spi0_cs1.gpio0_6 */
+ 
++		abb_mpu_iva: regulator-abb-mpu {
++			compatible = "ti,abb-v1";
++			regulator-name = "abb_mpu_iva";
++			#address-cell = <0>;
++			#size-cells = <0>;
++			reg = <0x483072f0 0x8>, <0x48306818 0x4>;
++			reg-names = "base-address", "int-address";
++			ti,tranxdone-status-mask = <0x4000000>;
++			clocks = <&sys_ck>;
++			ti,settling-time = <30>;
++			ti,clock-cycles = <8>;
++			ti,abb_info = <
++			/*uV		ABB	efuse	rbb_m	fbb_m	vset_m*/
++			1012500		0	0	0	0	0
++			1200000		0	0	0	0	0
++			1325000		0	0	0	0	0
++			1375000		1	0	0	0	0
 +			>;
 +		};
- 	};
- 
- 	matrix_keypad: matrix_keypad@0 {
-@@ -179,6 +185,9 @@
- 	status = "okay";
- 	vmmc-supply = <&vmmcsd_fixed>;
- 	bus-width = <4>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc1_pins>;
-+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
- };
- 
- &mac {
++
+ 		omap3_pmx_core2: pinmux@480025a0 {
+ 			compatible = "ti,omap3-padconf", "pinctrl-single";
+ 			reg = <0x480025a0 0x5c>;
 -- 
 1.9.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
