@@ -1,53 +1,56 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 0/7] v4l: ti-vpe: Some VPE fixes and enhancements
-Date: Mon, 3 Mar 2014 13:03:21 +0530
-Message-ID: <1393832008-22174-1-git-send-email-archit@ti.com>
+Subject: [PATCH 1/7] v4l: ti-vpe: Make sure in job_ready that we have the needed number of dst_bufs
+Date: Mon, 3 Mar 2014 13:03:22 +0530
+Message-ID: <1393832008-22174-2-git-send-email-archit@ti.com>
+References: <1393832008-22174-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38169 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38176 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752952AbaCCHeK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Mar 2014 02:34:10 -0500
+	id S1753482AbaCCHeO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Mar 2014 02:34:14 -0500
+In-Reply-To: <1393832008-22174-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: k.debski@samsung.com
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, Archit Taneja <archit@ti.com>
 
-This patch set mainly consists of minor fixes for the VPE driver. These fixes
-ensure the following:
+VPE has a ctrl parameter which decides how many mem to mem transactions the
+active job from the job queue can perform.
 
-- The VPE module can be inserted and removed successively.
-- Make sure that smaller resolutions like qcif work correctly.
-- Prevent race condition between firmware loading and an open call to the v4l2
-  device.
-- Prevent the possibility of output m2m queue not having sufficient 'ready'
-  buffers.
-- Some VPDMA data descriptor fields weren't understood correctly before. They
-  are now used correctly.
+The driver's job_ready() made sure that the number of ready source buffers are
+sufficient for the job to execute successfully. But it didn't make sure if
+there are sufficient ready destination buffers in the capture queue for the
+VPE output.
 
-The rest of the patches add some minor features like DMA buf support and
-cropping.
+If the time taken by VPE to process a single frame is really slow, then it's
+possible that we don't need to imply such a restriction on the dst queue, but
+really fast transactions(small resolution, no de-interlacing) may cause us to
+hit the condition where we don't have any free buffers for the VPE to write on.
 
-Reference branch:
+Add the extra check in job_ready() to make sure we have the sufficient amount
+of destination buffers.
 
-git@github.com:boddob/linux.git vpe_for_315
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Archit Taneja (7):
-  v4l: ti-vpe: Make sure in job_ready that we have the needed number of
-    dst_bufs
-  v4l: ti-vpe: register video device only when firmware is loaded
-  v4l: ti-vpe: Use video_device_release_empty
-  v4l: ti-vpe: Allow DMABUF buffer type support
-  v4l: ti-vpe: Allow usage of smaller images
-  v4l: ti-vpe: Fix some params in VPE data descriptors
-  v4l: ti-vpe: Add crop support in VPE driver
-
- drivers/media/platform/ti-vpe/vpdma.c |  58 ++++++++---
- drivers/media/platform/ti-vpe/vpdma.h |  16 +--
- drivers/media/platform/ti-vpe/vpe.c   | 180 +++++++++++++++++++++++++++-------
- 3 files changed, 198 insertions(+), 56 deletions(-)
-
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 1296c53..623e59e 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -887,6 +887,9 @@ static int job_ready(void *priv)
+ 	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < needed)
+ 		return 0;
+ 
++	if (v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) < needed)
++		return 0;
++
+ 	return 1;
+ }
+ 
 -- 
 1.8.3.2
 
