@@ -1,71 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/12] phy: omap-control: Update DT binding information
-Date: Mon, 3 Mar 2014 11:02:49 -0800
-Message-ID: <20140303190247.GD25804@atomide.com>
-References: <1393859254-10937-1-git-send-email-rogerq@ti.com>
- <1393859254-10937-3-git-send-email-rogerq@ti.com>
+From: Jon Ringle <jon@ringle.org>
+Subject: Ethernet controller not starting
+Date: Mon, 3 Mar 2014 14:41:01 -0500
+Message-ID: <CAMwGMjwjyZkj3_bKUcx4GXNP764UaUG=d6V1us8GgMKj=HoXVw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1393859254-10937-3-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: kishon@ti.com, balbi@ti.com, george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: rafael.j.wysocki@intel.com
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [140303 07:10]:
-> Move omap-control binding information to the right location.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  Documentation/devicetree/bindings/phy/ti-phy.txt   | 25 ++++++++++++++++++++++
->  Documentation/devicetree/bindings/usb/omap-usb.txt | 24 ---------------------
->  2 files changed, 25 insertions(+), 24 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-> index 207e14c..41dc132 100644
-> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
-> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-> @@ -1,5 +1,30 @@
->  TI PHY: DT DOCUMENTATION FOR PHYs in TI PLATFORMs
->  
-> +OMAP CONTROL PHY
-> +
-> +Required properties:
-> + - compatible: Should be one of
-> + "ti,control-phy-otghs" - if it has otghs_control mailbox register as on OMAP4.
-> + "ti,control-phy-usb2" - if it has Power down bit in control_dev_conf register
-> +                        e.g. USB2_PHY on OMAP5.
-> + "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
-> +                        e.g. USB3 PHY and SATA PHY on OMAP5.
-> + "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY on
-> +                        DRA7 platform.
-> + "ti,control-phy-am437usb2" - if it has power down register like USB2 PHY on
-> +                        AM437 platform.
+I'm working on porting an ARM board from linux-3.10 to linux-3.12 (now
+the latest LTS kernel).
+I found that Ethernet controller on the board no longer comes up on linux-3.12.
+I was able to bisect the issue I'm having to the following commit:
 
-To me it seems that you can leave out all the above. You can set these falgs
-flags directly in the driver based on the compatible flag. Then just initialize
-the .data in the driver based on the compatible flag.
+>   45f0a85c8258741d11bda25c0a5669c06267204a is the first bad commit
+>   commit 45f0a85c8258741d11bda25c0a5669c06267204a
+>   Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>   Date:   Mon Jun 3 21:49:52 2013 +0200
+>
+>       PM / Runtime: Rework the "runtime idle" helper routine
+>
+>       The "runtime idle" helper routine, rpm_idle(), currently ignores
+>       return values from .runtime_idle() callbacks executed by it.
+>       However, it turns out that many subsystems use
+>       pm_generic_runtime_idle() which checks the return value of the
+>       driver's callback and executes pm_runtime_suspend() for the device
+>       unless that value is not 0.  If that logic is moved to rpm_idle()
+>       instead, pm_generic_runtime_idle() can be dropped and its users
+>       will not need any .runtime_idle() callbacks any more.
+>
+>       Moreover, the PCI, SCSI, and SATA subsystems' .runtime_idle()
+>       routines, pci_pm_runtime_idle(), scsi_runtime_idle(), and
+>       ata_port_runtime_idle(), respectively, as well as a few drivers'
+>       ones may be simplified if rpm_idle() calls rpm_suspend() after 0 has
+>       been returned by the .runtime_idle() callback executed by it.
+>
+>       To reduce overall code bloat, make the changes described above.
+>
+>       Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>       Tested-by: Kevin Hilman <khilman@linaro.org>
+>       Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>       Acked-by: Kevin Hilman <khilman@linaro.org>
+>       Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
+>       Acked-by: Alan Stern <stern@rowland.harvard.edu>
 
-> + - reg : Address and length of the register set for the device. It contains
-> +   the address of "otghs_control" for control-phy-otghs or "power" register
-> +   for other types.
-> + - reg-names: should be "otghs_control" control-phy-otghs and "power" for
-> +   other types.
-> +
-> +omap_control_usb: omap-control-usb@4a002300 {
-> +        compatible = "ti,control-phy-otghs";
-> +        reg = <0x4a00233c 0x4>;
-> +        reg-names = "otghs_control";
-> +};
+Can anyone offer any suggestions on what I should be looking for to
+fix this on my board?
 
-Then you would instead have something like this:
-
-	compatible = "ti,am347-control-phy-otghs";
-
-That way you can initialize things without a need for custom bindings.
-
-Regards,
-
-Tony
+Thanks,
+Jon
