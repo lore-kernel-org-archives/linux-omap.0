@@ -1,102 +1,166 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 0/6] Make dwc3 use Generic PHY Framework
-Date: Mon, 3 Mar 2014 10:40:51 -0600
-Message-ID: <20140303164051.GB10987@saruman.home>
-References: <1393846695-14644-1-git-send-email-kishon@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Use handle_fasteoi_irq for INTC interrupt
+ handling
+Date: Mon, 3 Mar 2014 09:49:03 -0800
+Message-ID: <20140303174903.GA25804@atomide.com>
+References: <1393236556-12361-1-git-send-email-stefan.sorensen@spectralink.com>
+ <20140228171111.GA15399@atomide.com>
+ <1393667952.21887.15.camel@e37108.spectralink.com>
+ <20140302173727.GB18496@atomide.com>
+ <1393844735.2507.21.camel@e37108.spectralink.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ftEhullJWpWg/VHq"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62689 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751661AbaCCRtH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 12:49:07 -0500
 Content-Disposition: inline
-In-Reply-To: <1393846695-14644-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
+In-Reply-To: <1393844735.2507.21.camel@e37108.spectralink.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?utf-8?Q?S=C3=B8rensen=2C?= Stefan <Stefan.Sorensen@spectralink.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---ftEhullJWpWg/VHq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, Mar 03, 2014 at 05:08:09PM +0530, Kishon Vijay Abraham I wrote:
-> Added support for optional PHY in dwc3 as not all SoCs having PHYs for DW=
-C3
-> should be programmed. While this can be considered as a temporary fix,
-> a long term solution would be to add 'nop' PHY for platforms that does
-> not have programmable PHY.
-> Adapted DWC3 and USB3 PHY to use Generic PHY framework. Also changed the
-> name of USB3 PHY driver to PIPE3 PHY driver since the same driver has to
-> be used for SATA and PCIE too.
+* S=C3=B8rensen, Stefan <Stefan.Sorensen@spectralink.com> [140303 03:08=
+]:
+> On Sun, 2014-03-02 at 09:37 -0800, Tony Lindgren wrote:
+> > * S=C3=B8rensen, Stefan <Stefan.Sorensen@spectralink.com> [140301 0=
+2:02]:
+> > > On Fri, 2014-02-28 at 09:11 -0800, Tony Lindgren wrote:
+> > > > * Stefan S=C3=B8rensen <stefan.sorensen@spectralink.com> [14022=
+4 02:12]:
+> > > > > Currently INTC interrupts are handled using handle_level_irq =
+which
+> > > > > will acknowledge the interrupt before running the handler. If=
+ a second
+> > > > > interrupt is then asserted and this interrupt is disabled whi=
+le
+> > > > > running the first handler, the INTC will be brought into an
+> > > > > inconsistent state.
+> > > >=20
+> > > > Hmm care to explain a bit more here if the second interrupt you=
+'re
+> > > > talking about is the same interrupt or any interrupt in the sam=
+e
+> > > > interrupt bank? Is this limited to GPIO interrupts?
+> > >=20
+> > > I am seeing it with the cpsw driver on a custom board and on the
+> > > beaglebone. When a tx irq is handled the cpsw irq handler disable=
+s both
+> > > the tx and the rx irqs, and if the rx irq was also asserted (i.e.=
+ duplex
+> > > traffic), this bug will trigger. Reproducing it is very simple, j=
+ust hit
+> > > a beaglebone with a flood ping and watch a function trace.
+> >=20
+> > OK so it's for the same interrupt. And that sounds like a good test=
+ :)
 >=20
-> Changes from v4: (sending the entire patch series again)
-> * check the return values of phy_init and phy_power_on
-> * print errors if power_on or power_off of PHY fails.
+> No, the tx and rx are separate interrupts, but the cpsw driver has a
+> common handler.
+
+Oh OK sounds like that's where the problem is :)
+ =20
+> > > > The reason I'm asking is because of the issues we've seen earli=
+er
+> > > > with not flushing posted writes from the interrupt handlers. In
+> > > > those case the interrupt on the device gets acked too late with=
+out
+> > > > the read back call.
+> > >=20
+> > > I am not very familiar with the low level details of the irq hand=
+ling, =20
+> > > but am335x TRM states that a data synchronization barrier should =
+be used
+> > > after the ACK is posted to the INTC, and I don't see that anywher=
+e in
+> > > the code. Is this related?
+> >=20
+> > Well sort of, except DSB won't do it as it won't guarantee the writ=
+e
+> > gets to the device on the bus. So a readback from the device is nee=
+ded
+> > as only the order of reads and writes is guaranteed.
 >=20
-> Changes from v3: (Sent only adapt dwc3 core to use Generic PHY Framework)=
+> I think that we are talking about two different scenarios, what I am
+> seeing is that an interrupt is disabled while active on the INTC.
+
+Yes sounds like these are different issues.
 =20
-> * avoided using quirks and rely on the return values of PHY APIs to find =
-the
-> presence of PHY.
+> 	1. CPSW device asserts TX IRQ
+> 	2. CPSW device asserts RX IRQ
+> 	3. INTC interrupts CPU, TX IRQ marked as active
+> 	4. omap_intc_handle_irq ACKs TX IRQ on the INTC
+> 	5. INTC marks RX IRQ as active
+> 	6. omap_intc_handle_irq calls cpsw_interrupt
+> 	7. cpsw_interrupt disables RX+TX IRQ in CPSW device
+> 	8. cpsw_interrupt disables RX+TX IRQ in INTC (the IRQs are masked)
+> 	9.. omap_intc_handle_irq sees no unmasked IRQs are pending and retur=
+ns
+> 	10. INTC interrupts CPU, RX IRQ marked as pending
+> 	11. omap_intc_handle_irq sees no unmasked IRQs are pending and retur=
+ns
+> 	12. Go to step 10
 >=20
-> Changes from v2:
-> * added a couple of fixes. One is invoking phy_resume after phy_init and =
-the
-> other is power off phy in error patch
-> * used quirks to identify if a particular platform does not have PHYs
-> * removed using separate header for pipe3 driver and also removed all ref=
-erencs
-> to SATA and PCIe in pipe3 driver since it's not yet adapted for those dri=
-vers.
+> The problem arises in step 8 where an active IRQ is masked. This will
+> not make it inactive in the INTC but it will be cleared from the
+> pending IRQ registers - this is the register that omap_intc_handle_ir=
+q
+> uses to decide which IRQ is active.
+
+OK thanks for the info. Looking at your trace above it seems like the
+two separate TX and RX INTC interrupts are not really treated as separa=
+te
+interrupts in the cpsw driver. It seems the real fix is to fix up the
+cpsw interrupt handler so it's not racy. It seems that at least step 7
+and 8 above should be handled separately for TX and RX based on the INT=
+C
+interrupts.
+
+=46rom the INTC point of view we should just have standard level IRQ
+handling for each interrupt, right? INTC does not need to know about
+driver specific coordination between two separate interrupts.
+=20
+> > A good sanity check would be to find the related interrupt handler(=
+s)
+> > in the cpsw driver that do the write to the cpsw registers to ack
+> > interrupts.
+> >=20
+> > Then check if there's a readback in the cpsw interrupt handler(s) o=
+f
+> > some harmless cpsw register after acking the interrupt(s) and befor=
+e
+> > doing return IRQ_HANDLED.
+> >=20
+> > If this fixes things without your patch, then we know it's a driver
+> > issue and there's no need to debug it further :) The missing flush =
+of
+> > posted write usually shows up as a spurious interrupts with no stat=
+us
+> > in the device, but depending on the driver code handling of spuriou=
+s
+> > interrupts it may also have other side effects.
+> >=20
+> > I'm not too familiar with the cpsw driver so I can't do a test patc=
+h
+> > without digging into it further sorry. For similar examples, you
+> > may want to grep for "flush posted write" and "OCP barrier" in the
+> > kernel code.
 >=20
-> Changes from v1:
-> * The logic in which the driver detects the presence of PHYs has changed.
-> * patch ordering has changed
-> * udelay is replaced with usleep_range
-> * A patch to remove set_suspend callback which was deferred from Generic
-> PHY Framework series has been included.
->=20
-> Kishon Vijay Abraham I (6):
->   usb: dwc3: core: support optional PHYs
->   usb: dwc3: adapt dwc3 core to use Generic PHY Framework
->   drivers: phy: usb3/pipe3: Adapt pipe3 driver to Generic PHY Framework
->   usb: phy: omap-usb2: remove *set_suspend* callback from omap-usb2
->   phy: omap-usb2: move omap_usb.h from linux/usb/ to linux/phy/
->   arm/dts: added dt properties to adapt to the new phy framwork
+> I tried this with an assortment of different CPSW registers - no chan=
+ge.
 
-patches 1 and 2 are in my testing/next, I guess 3,4,5 and 6 have no
-direct dependency on those, right ?
+OK thanks for trying. Based on your description above it seems that
+the problem you found is not related to flushing posted writes even
+though that issue might be there also once race issue is fixed.
 
---=20
-balbi
+Regards,
 
---ftEhullJWpWg/VHq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTFLCTAAoJEIaOsuA1yqREt1kP+wX6Shd/dZdsubpGv+I+fEVl
-sMInbt/HfO8bKjFlZ/NMYs27WGU0FRmzlVA9jFHtRg+cZCVVKKyXyEegnveS/kTV
-MkG1UpwV2Ml3/emMDvIjV+opdtnVvy5FPqfc39GT8P+4VukWHfJW41k7eifZV5R6
-/GF03OB8qcCR3kv2fsKr4MFTvIqMkoCMBo2szjAk/qZixQKAwmXZR5+6VpPrQtt2
-k7YF0M4kzs/hQ0RllqsHB6wK8YacorpL1I+xlQ67zhcIqyL6Qq+p2TmZpguMFlU3
-iFGdx7QUeclawz7Xuq4WicYUW4Ouw7J6b4LGjAoGmUVO69jEex0gVRxas5yvf8xH
-x67qdZtTPgyMDbbSjbO1cMU9o9Fb8HpYZUo/CyDSE675m+V1eMNo+01y4bBCkywb
-7TNGWvm/mWlTNqaPQQ/DIrStDijSShLhLllc+xJggTk7UdES2s8YqT4jfyicA86W
-PAuusq+bXZP6eOGEke5hNOJHG7Bxbv7wAbDMd+CCi+r5ZbeCW0TDVEK7o8Y3Ohmq
-i0owImJeT2UMBaNc9/55G5S9C2wdoA0csLX1/Hye5LFkarB9xXdfmxPi/+rBtUdl
-/HH/juGyi+VLs58VumIKlplfDkttgZpBLvCUQTBgPB9PNwEesua1MhRw1EmTI9u0
-ccgCmoUXNXMAQcA6Hz1Q
-=fYr0
------END PGP SIGNATURE-----
-
---ftEhullJWpWg/VHq--
+Tony
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
