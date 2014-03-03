@@ -1,48 +1,85 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 7/7] v4l: ti-vpe: Add crop support in VPE driver
-Date: Mon, 3 Mar 2014 13:56:19 +0530
-Message-ID: <53143CAB.4020202@ti.com>
-References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393832008-22174-8-git-send-email-archit@ti.com> <53143439.5030007@xs4all.nl>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH v2 3/8] ARM: dts: omap3-overo: Use complete poweroff
+Date: Mon, 03 Mar 2014 09:55:47 +0100
+Message-ID: <53144393.6050408@epfl.ch>
+References: <1393533032-1619-1-git-send-email-florian.vaussard@epfl.ch> <1393533032-1619-4-git-send-email-florian.vaussard@epfl.ch> <530FA23E.1040909@ti.com> <530FA497.7000407@epfl.ch> <530FA916.8030001@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53794 "EHLO comal.ext.ti.com"
+Received: from smtp5.epfl.ch ([128.178.224.8]:41787 "EHLO smtp5.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752988AbaCCI05 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Mar 2014 03:26:57 -0500
-In-Reply-To: <53143439.5030007@xs4all.nl>
+	id S1754060AbaCCIz5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Mar 2014 03:55:57 -0500
+In-Reply-To: <530FA916.8030001@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>, k.debski@samsung.com
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
+To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-Hi,
-
-On Monday 03 March 2014 01:20 PM, Hans Verkuil wrote:
-> Hi Archit!
->
-> On 03/03/2014 08:33 AM, Archit Taneja wrote:
->> Add crop ioctl ops. For VPE, cropping only makes sense with the input to VPE, or
->> the V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE buffer type.
+On 02/27/2014 10:07 PM, Nishanth Menon wrote:
+> +devicetree list.
+> 
+> On 02/27/2014 02:48 PM, Florian Vaussard wrote:
+>> On 02/27/2014 09:38 PM, Nishanth Menon wrote:
+>>> On 02/27/2014 02:30 PM, Florian Vaussard wrote:
+>>>> Currently, the TWL4030 PMIC does not completely poweroff the processor.
+>>>> Commit b0fc1da4d0359d3cce8f12e0f014aed0704ae202 introduced the necessary
+>>>> binding to do this, so use it.
+>>>>
+>>>> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+>>>> ---
+>>>>  arch/arm/boot/dts/omap3-overo.dtsi | 5 +++++
+>>>>  1 file changed, 5 insertions(+)
+>>>>
+>>>> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
+>>>> index aea64c0..018e1e0 100644
+>>>> --- a/arch/arm/boot/dts/omap3-overo.dtsi
+>>>> +++ b/arch/arm/boot/dts/omap3-overo.dtsi
+>>>> @@ -73,6 +73,11 @@
+>>>>  			codec {
+>>>>  			};
+>>>>  		};
+>>>> +
+>>>> +		twl_power: power {
+>>>> +			compatible = "ti,twl4030-power";
+>>>> +			ti,use_poweroff;
+>>>> +		};
+>>>>  	};
+>>>>  };
+>>>>  
+>>>>
+>>> Urrgh.. this slipped past.. :(
+>>>
+>>> ti,system-power-controller is traditionally used for other PMICs from
+>>> TI to indicate that poweroff functionality will be provided by the
+>>> PMIC driver. similar approach is taken by Maxim as well.. I know the
+>>> commit introducing the binding has been around for long, but
+>>> considering that we do not have a single dts using this yet, should we
+>>> consider adding "ti,system-power-controller"(as against removing
+>>> ti,use_poweroff - so that older down stream dtbs still work) and using
+>>> it in the new code?
+>>>
 >>
->> For the CAPTURE type, a S_CROP ioctl results in setting the crop region as the
->> whole image itself, hence making crop dimensions same as the pix dimensions.
+>> It does make sense, so I am not against it. My only concern is that I
+>> find the name to be slightly less easy to understand, but I can live
+>> with it :-)
+> :)
+> 
 >>
->> Setting the crop successfully should result in re-configuration of those
->> registers which are affected when either source or destination dimensions
->> change, set_srcdst_params() is called for this purpose.
->>
->> Some standard crop parameter checks are done in __vpe_try_crop().
->
-> Please use the selection ops instead: if you implement cropping with those then you'll
-> support both the selection API and the old cropping API will be implemented by the v4l2
-> core using the selection ops. Two for the price of one...
+>> I do not remember if DT maintainers came up with a clear policy to
+>> deprecate a binding.
+> I dont think we can depreciate a binding [1] - as you mentioned -
+> renaming the property is probably what is appropriate, but introducing
+> a new one which has the same behavior as the old one does'nt seem
+> covered either.. considering potential downstream kernel usage, I'd
+> suggest additional property inline with today's convention.
+> 
 
-<snip>
+Ok, so I will drop this patch from the series, so that the other patches
+can hopefully go into 3.15. I will address this issue separately. Thank
+you for pointing out this binding issue.
 
-Thanks for the feedback. I'll use selection ops here.
-
-Archit
-
-
+Regards,
+Florian
