@@ -1,164 +1,55 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 7/7] v4l: ti-vpe: Add crop support in VPE driver
-Date: Mon, 03 Mar 2014 08:50:17 +0100
-Message-ID: <53143439.5030007@xs4all.nl>
-References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393832008-22174-8-git-send-email-archit@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 00/12] ARM: OMAP2 DT clock conversion
+Date: Mon, 3 Mar 2014 10:16:58 +0200
+Message-ID: <53143A7A.9020703@ti.com>
+References: <1393579384-23440-1-git-send-email-t-kristo@ti.com> <5310B271.5040708@ti.com> <20140228180112.GC15399@atomide.com> <5310D2FE.5090209@ti.com> <20140228183313.GD15399@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1676 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753964AbaCCHup (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 02:50:45 -0500
-In-Reply-To: <1393832008-22174-8-git-send-email-archit@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:53350 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751910AbaCCIR1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Mar 2014 03:17:27 -0500
+In-Reply-To: <20140228183313.GD15399@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>, k.debski@samsung.com
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi Archit!
+On 02/28/2014 08:33 PM, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [140228 10:21]:
+>>
+>> Hmm, some clock node is broken, might be missing a name or parent
+>> name for some reason. Can you try to boot with DEBUG enabled so you
+>> get pr_debug:s out and see which clock is being initialized during
+>> the crash?
+>
+> ...
+> [    0.000000] ti_dt_clk_init_provider: ti_dt_clk_init_provider: initializing: core_d18_ck
+> [    0.000000] ti_dt_clk_init_provider: ti_dt_clk_init_provider: initializing: vlynq_mux_fck
+> [    0.000000] ti_dt_clk_init_provider: ti_dt_clk_init_provider: initializing: vlynq_fck
+> [    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+> ...
+>
+> We really should be registering the clocks lazily as needed BTW. That
+> leaves out the dependency to DEBUG_LL for seeing any kind of decent
+> error messages during the booting.
+>
+> Regards,
+>
+> Tony
+>
 
-On 03/03/2014 08:33 AM, Archit Taneja wrote:
-> Add crop ioctl ops. For VPE, cropping only makes sense with the input to VPE, or
-> the V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE buffer type.
-> 
-> For the CAPTURE type, a S_CROP ioctl results in setting the crop region as the
-> whole image itself, hence making crop dimensions same as the pix dimensions.
-> 
-> Setting the crop successfully should result in re-configuration of those
-> registers which are affected when either source or destination dimensions
-> change, set_srcdst_params() is called for this purpose.
-> 
-> Some standard crop parameter checks are done in __vpe_try_crop().
+Hey Tony,
 
-Please use the selection ops instead: if you implement cropping with those then you'll
-support both the selection API and the old cropping API will be implemented by the v4l2
-core using the selection ops. Two for the price of one...
+Can you retry with the branch? I just pushed one patch there, seems the 
+parents for the vlynq_mux_fck were somewhat broken (there are holes in 
+the valid mux values list, which hasn't happened with any other 
+mux-clock so far.)
 
-Regards,
+If this works, I will rework the series a bit and send v2 out. 
+Alternatively I need to add extra debug info.
 
-	Hans
-
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 96 +++++++++++++++++++++++++++++++++++++
->  1 file changed, 96 insertions(+)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 6acdcd8..c6778f4 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -1585,6 +1585,98 @@ static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  	return set_srcdst_params(ctx);
->  }
->  
-> +static int __vpe_try_crop(struct vpe_ctx *ctx, struct v4l2_crop *cr)
-> +{
-> +	struct vpe_q_data *q_data;
-> +
-> +	q_data = get_q_data(ctx, cr->type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	/* we don't support crop on capture plane */
-> +	if (cr->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-> +		cr->c.top = cr->c.left = 0;
-> +		cr->c.width = q_data->width;
-> +		cr->c.height = q_data->height;
-> +		return 0;
-> +	}
-> +
-> +	if (cr->c.top < 0 || cr->c.left < 0) {
-> +		vpe_err(ctx->dev, "negative values for top and left\n");
-> +		cr->c.top = cr->c.left = 0;
-> +	}
-> +
-> +	v4l_bound_align_image(&cr->c.width, MIN_W, q_data->width, 1,
-> +		&cr->c.height, MIN_H, q_data->height, H_ALIGN, S_ALIGN);
-> +
-> +	/* adjust left/top if cropping rectangle is out of bounds */
-> +	if (cr->c.left + cr->c.width > q_data->width)
-> +		cr->c.left = q_data->width - cr->c.width;
-> +	if (cr->c.top + cr->c.height > q_data->height)
-> +		cr->c.top = q_data->height - cr->c.height;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vpe_cropcap(struct file *file, void *priv, struct v4l2_cropcap *cr)
-> +{
-> +	struct vpe_ctx *ctx = file2ctx(file);
-> +	struct vpe_q_data *q_data;
-> +
-> +	q_data = get_q_data(ctx, cr->type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	cr->bounds.left = 0;
-> +	cr->bounds.top = 0;
-> +	cr->bounds.width = q_data->width;
-> +	cr->bounds.height = q_data->height;
-> +	cr->defrect = cr->bounds;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vpe_g_crop(struct file *file, void *fh, struct v4l2_crop *cr)
-> +{
-> +	struct vpe_ctx *ctx = file2ctx(file);
-> +	struct vpe_q_data *q_data;
-> +
-> +	q_data = get_q_data(ctx, cr->type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	cr->c = q_data->c_rect;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vpe_s_crop(struct file *file, void *priv,
-> +		const struct v4l2_crop *crop)
-> +{
-> +	struct vpe_ctx *ctx = file2ctx(file);
-> +	struct vpe_q_data *q_data;
-> +	struct v4l2_crop cr = *crop;
-> +	int ret;
-> +
-> +	ret = __vpe_try_crop(ctx, &cr);
-> +	if (ret)
-> +		return ret;
-> +
-> +	q_data = get_q_data(ctx, cr.type);
-> +
-> +	if ((q_data->c_rect.left == cr.c.left) &&
-> +			(q_data->c_rect.top == cr.c.top) &&
-> +			(q_data->c_rect.width == cr.c.width) &&
-> +			(q_data->c_rect.height == cr.c.height)) {
-> +		vpe_dbg(ctx->dev, "requested crop values are already set\n");
-> +		return 0;
-> +	}
-> +
-> +	q_data->c_rect = cr.c;
-> +
-> +	return set_srcdst_params(ctx);
-> +}
-> +
->  static int vpe_reqbufs(struct file *file, void *priv,
->  		       struct v4l2_requestbuffers *reqbufs)
->  {
-> @@ -1672,6 +1764,10 @@ static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
->  	.vidioc_try_fmt_vid_out_mplane	= vpe_try_fmt,
->  	.vidioc_s_fmt_vid_out_mplane	= vpe_s_fmt,
->  
-> +	.vidioc_cropcap			= vpe_cropcap,
-> +	.vidioc_g_crop			= vpe_g_crop,
-> +	.vidioc_s_crop			= vpe_s_crop,
-> +
->  	.vidioc_reqbufs		= vpe_reqbufs,
->  	.vidioc_querybuf	= vpe_querybuf,
->  
-> 
+-Tero
 
