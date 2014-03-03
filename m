@@ -1,99 +1,51 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCHv2 9/9] arm: dts: am43x-gp-evm: Add matrix gpio keys.
-Date: Mon, 3 Mar 2014 11:27:39 +0530
-Message-ID: <531419D3.6000207@ti.com>
-References: <1387456421-21379-1-git-send-email-sourav.poddar@ti.com> <1387456421-21379-10-git-send-email-sourav.poddar@ti.com> <52D417A1.9060007@ti.com> <20140114131444.GD10818@saruman.home> <52D547F5.2080307@baylibre.com> <5307628D.50109@ti.com> <53136A9A.2070003@baylibre.com>
+From: Satish Patel <satish.patel@ti.com>
+Subject: Re: [RFC PATCH v1 0/2] clock and HWMOD changes for USIM module
+Date: Mon, 3 Mar 2014 11:39:59 +0530
+Message-ID: <53141CB7.20906@ti.com>
+References: <1389010351-17320-1-git-send-email-satish.patel@ti.com> <52CE59C8.6040409@ti.com> <20140228215936.GE13624@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38790 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34665 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750800AbaCCF5t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Mar 2014 00:57:49 -0500
-In-Reply-To: <53136A9A.2070003@baylibre.com>
+	id S1750885AbaCCGKc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Mar 2014 01:10:32 -0500
+In-Reply-To: <20140228215936.GE13624@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: balbi@ti.com, devicetree@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, mark.rutland@arm.com, lokeshvutla@ti.com
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sunday 02 March 2014 11:00 PM, Benoit Cousson wrote:
-> Hi Sourav,
->
-> On 21/02/2014 15:28, Sourav Poddar wrote:
->> Hi Benoit,
->> On Tuesday 14 January 2014 07:51 PM, Benoit Cousson wrote:
->>> Hi Felipe,
+
+
+On 3/1/2014 3:29 AM, Tony Lindgren wrote:
+> * Satish Patel <satish.patel@ti.com> [140109 00:13]:
+>>
+>>
+>> On 1/6/2014 5:42 PM, Satish Patel wrote:
+>>> Patch set includes clock and HWMOD entries for AM43x's USIM modoule.
 >>>
->>> On 14/01/2014 14:14, Felipe Balbi wrote:
->>>> On Mon, Jan 13, 2014 at 10:13:13PM +0530, sourav wrote:
->>>>> Benoit,
->>>>>
->>>>> On Thursday 19 December 2013 06:03 PM, Sourav Poddar wrote:
->>>>>> Add gpio keys node for am43x gp evm.
->>>>>>
->>>>>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
->>>>>> ---
->>>>>>   arch/arm/boot/dts/am437x-gp-evm.dts |   21 +++++++++++++++++++++
->>>>>>   1 file changed, 21 insertions(+)
->>>>>>
->>>>>> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts
->>>>>> b/arch/arm/boot/dts/am437x-gp-evm.dts
->>>>>> index 0dc248d..4eb72b8 100644
->>>>>> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
->>>>>> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
->>>>>> @@ -13,6 +13,7 @@
->>>>>>   #include "am4372.dtsi"
->>>>>>   #include<dt-bindings/pinctrl/am43xx.h>
->>>>>>   #include<dt-bindings/pwm/pwm.h>
->>>>>> +#include<dt-bindings/gpio/gpio.h>
->>>>>>
->>>>>>   / {
->>>>>>       model = "TI AM437x GP EVM";
->>>>>> @@ -24,6 +25,26 @@
->>>>>>           brightness-levels =<0 51 53 56 62 75 101 152 255>;
->>>>>>           default-brightness-level =<8>;
->>>>>>       };
->>>>>> +
->>>>>> +    matrix_keypad: matrix_keypad@0 {
->>>>>> +        compatible = "gpio-matrix-keypad";
->>>>>> +        debounce-delay-ms =<5>;
->>>>>> +        col-scan-delay-us =<2>;
->>>>>> +
->>>>>> +        row-gpios =<&gpio3 21 GPIO_ACTIVE_HIGH /* Bank3, pin21 */
->>>>>> + &gpio4 3 GPIO_ACTIVE_HIGH /* Bank4, pin3 */
->>>>>> + &gpio4 2 GPIO_ACTIVE_HIGH>; /* Bank4, pin2 */
->>>>>> +
->>>>>> +        col-gpios =<&gpio3 19 GPIO_ACTIVE_HIGH /* Bank3, pin19 */
->>>>>> + &gpio3 20 GPIO_ACTIVE_HIGH>; /* Bank3, pin20 */
->>>>>> +
->>>>>> +        linux,keymap =<0x00000201      /* P1 */
->>>>>> +                0x00010202      /* P2 */
->>>>>> +                0x01000067      /* UP */
->>>>>> +                0x0101006a      /* RIGHT */
->>>>>> +                0x02000069      /* LEFT */
->>>>>> +                0x0201006c>;      /* DOWN */
->>>>>> +        };
->>>>>>   };
->>>>>>
->>>>>> &am43xx_pinmux {
->>>>>
->>>>> ping on this series, this series is lying for a while.
->>>>> This series is based on your for_3.14 branch.
->>>>
->>>> Benoit, do you need us to do anything else to get this merged ? Sourav
->>>> already rebased the patches as you requested back in December 19th.
+>>> Note: I am in process of mainlining usim driver.
 >>>
->>> Nope, I've just needed more BW. I'll apply it ASAP.
+>>> Satish Patel (2):
+>>>   ARM: dts: AM43xx-clocks: Entries added for ti-usim
+>>>   ARM: OMAP: AM43xx: HWMOD changes added for ti-usim
 >>>
->>> Thanks,
->>> Benoit
->>>
->> Ping on this.
->
-> I've just applied them. Sorry for the delay,
->
+>>
+>> Tony,
+>>
+>> Can you pull in these patches if there are no comments?
+> 
+> Would like to see acks from Benoit/Tero/Paul first.
+> 
+Benoit/Tero/Paul:
+Can you please review and ack this patch series,
+so that tony can pick it up.
+
+Thanks
+satish
 > Regards,
-> Benoit
->
-Thanks!
+> 
+> Tony
+> 
