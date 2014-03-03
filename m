@@ -1,98 +1,101 @@
-From: =?utf-8?B?U8O4cmVuc2VuLCBTdGVmYW4=?=
-	<Stefan.Sorensen@spectralink.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Use handle_fasteoi_irq for INTC interrupt
- handling
-Date: Mon, 3 Mar 2014 11:05:36 +0000
-Message-ID: <1393844735.2507.21.camel@e37108.spectralink.com>
-References: <1393236556-12361-1-git-send-email-stefan.sorensen@spectralink.com>
-	 <20140228171111.GA15399@atomide.com>
-	 <1393667952.21887.15.camel@e37108.spectralink.com>
-	 <20140302173727.GB18496@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: Help needed USB hub disconnected at resume
+Date: Mon, 3 Mar 2014 13:06:13 +0200
+Message-ID: <53146225.8040403@ti.com>
+References: <F690310232FDDF4AB457E8B3EF90DDE0AA85E10B@MARCM-SBS2011.marcmltd.local>,<F690310232FDDF4AB457E8B3EF90DDE0AA85E1E7@MARCM-SBS2011.marcmltd.local> <F690310232FDDF4AB457E8B3EF90DDE0AA85E21F@MARCM-SBS2011.marcmltd.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-by2lp0238.outbound.protection.outlook.com ([207.46.163.238]:50176
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754057AbaCCLFl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Mar 2014 06:05:41 -0500
-In-Reply-To: <20140302173727.GB18496@atomide.com>
-Content-Language: en-US
-Content-ID: <4DCBACA578604B45A8D53B354515353E@namprd07.prod.outlook.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52370 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753836AbaCCLGV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Mar 2014 06:06:21 -0500
+In-Reply-To: <F690310232FDDF4AB457E8B3EF90DDE0AA85E21F@MARCM-SBS2011.marcmltd.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Marc Murphy <marcmltd@marcm.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-T24gU3VuLCAyMDE0LTAzLTAyIGF0IDA5OjM3IC0wODAwLCBUb255IExpbmRncmVuIHdyb3RlOg0K
-PiAqIFPDuHJlbnNlbiwgU3RlZmFuIDxTdGVmYW4uU29yZW5zZW5Ac3BlY3RyYWxpbmsuY29tPiBb
-MTQwMzAxIDAyOjAyXToNCj4gPiBPbiBGcmksIDIwMTQtMDItMjggYXQgMDk6MTEgLTA4MDAsIFRv
-bnkgTGluZGdyZW4gd3JvdGU6DQo+ID4gPiAqIFN0ZWZhbiBTw7hyZW5zZW4gPHN0ZWZhbi5zb3Jl
-bnNlbkBzcGVjdHJhbGluay5jb20+IFsxNDAyMjQgMDI6MTJdOg0KPiA+ID4gPiBDdXJyZW50bHkg
-SU5UQyBpbnRlcnJ1cHRzIGFyZSBoYW5kbGVkIHVzaW5nIGhhbmRsZV9sZXZlbF9pcnEgd2hpY2gN
-Cj4gPiA+ID4gd2lsbCBhY2tub3dsZWRnZSB0aGUgaW50ZXJydXB0IGJlZm9yZSBydW5uaW5nIHRo
-ZSBoYW5kbGVyLiBJZiBhIHNlY29uZA0KPiA+ID4gPiBpbnRlcnJ1cHQgaXMgdGhlbiBhc3NlcnRl
-ZCBhbmQgdGhpcyBpbnRlcnJ1cHQgaXMgZGlzYWJsZWQgd2hpbGUNCj4gPiA+ID4gcnVubmluZyB0
-aGUgZmlyc3QgaGFuZGxlciwgdGhlIElOVEMgd2lsbCBiZSBicm91Z2h0IGludG8gYW4NCj4gPiA+
-ID4gaW5jb25zaXN0ZW50IHN0YXRlLg0KPiA+ID4gDQo+ID4gPiBIbW0gY2FyZSB0byBleHBsYWlu
-IGEgYml0IG1vcmUgaGVyZSBpZiB0aGUgc2Vjb25kIGludGVycnVwdCB5b3UncmUNCj4gPiA+IHRh
-bGtpbmcgYWJvdXQgaXMgdGhlIHNhbWUgaW50ZXJydXB0IG9yIGFueSBpbnRlcnJ1cHQgaW4gdGhl
-IHNhbWUNCj4gPiA+IGludGVycnVwdCBiYW5rPyBJcyB0aGlzIGxpbWl0ZWQgdG8gR1BJTyBpbnRl
-cnJ1cHRzPw0KPiA+IA0KPiA+IEkgYW0gc2VlaW5nIGl0IHdpdGggdGhlIGNwc3cgZHJpdmVyIG9u
-IGEgY3VzdG9tIGJvYXJkIGFuZCBvbiB0aGUNCj4gPiBiZWFnbGVib25lLiBXaGVuIGEgdHggaXJx
-IGlzIGhhbmRsZWQgdGhlIGNwc3cgaXJxIGhhbmRsZXIgZGlzYWJsZXMgYm90aA0KPiA+IHRoZSB0
-eCBhbmQgdGhlIHJ4IGlycXMsIGFuZCBpZiB0aGUgcnggaXJxIHdhcyBhbHNvIGFzc2VydGVkIChp
-LmUuIGR1cGxleA0KPiA+IHRyYWZmaWMpLCB0aGlzIGJ1ZyB3aWxsIHRyaWdnZXIuIFJlcHJvZHVj
-aW5nIGl0IGlzIHZlcnkgc2ltcGxlLCBqdXN0IGhpdA0KPiA+IGEgYmVhZ2xlYm9uZSB3aXRoIGEg
-Zmxvb2QgcGluZyBhbmQgd2F0Y2ggYSBmdW5jdGlvbiB0cmFjZS4NCj4gDQo+IE9LIHNvIGl0J3Mg
-Zm9yIHRoZSBzYW1lIGludGVycnVwdC4gQW5kIHRoYXQgc291bmRzIGxpa2UgYSBnb29kIHRlc3Qg
-OikNCg0KTm8sIHRoZSB0eCBhbmQgcnggYXJlIHNlcGFyYXRlIGludGVycnVwdHMsIGJ1dCB0aGUg
-Y3BzdyBkcml2ZXIgaGFzIGENCmNvbW1vbiBoYW5kbGVyLg0KIA0KPiA+ID4gVGhlIHJlYXNvbiBJ
-J20gYXNraW5nIGlzIGJlY2F1c2Ugb2YgdGhlIGlzc3VlcyB3ZSd2ZSBzZWVuIGVhcmxpZXINCj4g
-PiA+IHdpdGggbm90IGZsdXNoaW5nIHBvc3RlZCB3cml0ZXMgZnJvbSB0aGUgaW50ZXJydXB0IGhh
-bmRsZXJzLiBJbg0KPiA+ID4gdGhvc2UgY2FzZSB0aGUgaW50ZXJydXB0IG9uIHRoZSBkZXZpY2Ug
-Z2V0cyBhY2tlZCB0b28gbGF0ZSB3aXRob3V0DQo+ID4gPiB0aGUgcmVhZCBiYWNrIGNhbGwuDQo+
-ID4gDQo+ID4gSSBhbSBub3QgdmVyeSBmYW1pbGlhciB3aXRoIHRoZSBsb3cgbGV2ZWwgZGV0YWls
-cyBvZiB0aGUgaXJxIGhhbmRsaW5nLCAgDQo+ID4gYnV0IGFtMzM1eCBUUk0gc3RhdGVzIHRoYXQg
-YSBkYXRhIHN5bmNocm9uaXphdGlvbiBiYXJyaWVyIHNob3VsZCBiZSB1c2VkDQo+ID4gYWZ0ZXIg
-dGhlIEFDSyBpcyBwb3N0ZWQgdG8gdGhlIElOVEMsIGFuZCBJIGRvbid0IHNlZSB0aGF0IGFueXdo
-ZXJlIGluDQo+ID4gdGhlIGNvZGUuIElzIHRoaXMgcmVsYXRlZD8NCj4gDQo+IFdlbGwgc29ydCBv
-ZiwgZXhjZXB0IERTQiB3b24ndCBkbyBpdCBhcyBpdCB3b24ndCBndWFyYW50ZWUgdGhlIHdyaXRl
-DQo+IGdldHMgdG8gdGhlIGRldmljZSBvbiB0aGUgYnVzLiBTbyBhIHJlYWRiYWNrIGZyb20gdGhl
-IGRldmljZSBpcyBuZWVkZWQNCj4gYXMgb25seSB0aGUgb3JkZXIgb2YgcmVhZHMgYW5kIHdyaXRl
-cyBpcyBndWFyYW50ZWVkLg0KDQpJIHRoaW5rIHRoYXQgd2UgYXJlIHRhbGtpbmcgYWJvdXQgdHdv
-IGRpZmZlcmVudCBzY2VuYXJpb3MsIHdoYXQgSSBhbQ0Kc2VlaW5nIGlzIHRoYXQgYW4gaW50ZXJy
-dXB0IGlzIGRpc2FibGVkIHdoaWxlIGFjdGl2ZSBvbiB0aGUgSU5UQy4NCg0KCTEuIENQU1cgZGV2
-aWNlIGFzc2VydHMgVFggSVJRDQoJMi4gQ1BTVyBkZXZpY2UgYXNzZXJ0cyBSWCBJUlENCgkzLiBJ
-TlRDIGludGVycnVwdHMgQ1BVLCBUWCBJUlEgbWFya2VkIGFzIGFjdGl2ZQ0KCTQuIG9tYXBfaW50
-Y19oYW5kbGVfaXJxIEFDS3MgVFggSVJRIG9uIHRoZSBJTlRDDQoJNS4gSU5UQyBtYXJrcyBSWCBJ
-UlEgYXMgYWN0aXZlDQoJNi4gb21hcF9pbnRjX2hhbmRsZV9pcnEgY2FsbHMgY3Bzd19pbnRlcnJ1
-cHQNCgk3LiBjcHN3X2ludGVycnVwdCBkaXNhYmxlcyBSWCtUWCBJUlEgaW4gQ1BTVyBkZXZpY2UN
-Cgk4LiBjcHN3X2ludGVycnVwdCBkaXNhYmxlcyBSWCtUWCBJUlEgaW4gSU5UQyAodGhlIElSUXMg
-YXJlIG1hc2tlZCkNCgk5Li4gb21hcF9pbnRjX2hhbmRsZV9pcnEgc2VlcyBubyB1bm1hc2tlZCBJ
-UlFzIGFyZSBwZW5kaW5nIGFuZCByZXR1cm5zDQoJMTAuIElOVEMgaW50ZXJydXB0cyBDUFUsIFJY
-IElSUSBtYXJrZWQgYXMgcGVuZGluZw0KCTExLiBvbWFwX2ludGNfaGFuZGxlX2lycSBzZWVzIG5v
-IHVubWFza2VkIElSUXMgYXJlIHBlbmRpbmcgYW5kIHJldHVybnMNCgkxMi4gR28gdG8gc3RlcCAx
-MA0KDQpUaGUgcHJvYmxlbSBhcmlzZXMgaW4gc3RlcCA4IHdoZXJlIGFuIGFjdGl2ZSBJUlEgaXMg
-bWFza2VkLiBUaGlzIHdpbGwNCm5vdCBtYWtlIGl0IGluYWN0aXZlIGluIHRoZSBJTlRDIGJ1dCBp
-dCB3aWxsIGJlIGNsZWFyZWQgZnJvbSB0aGUNCnBlbmRpbmcgSVJRIHJlZ2lzdGVycyAtIHRoaXMg
-aXMgdGhlIHJlZ2lzdGVyIHRoYXQgb21hcF9pbnRjX2hhbmRsZV9pcnENCnVzZXMgdG8gZGVjaWRl
-IHdoaWNoIElSUSBpcyBhY3RpdmUuDQoNCj4gQSBnb29kIHNhbml0eSBjaGVjayB3b3VsZCBiZSB0
-byBmaW5kIHRoZSByZWxhdGVkIGludGVycnVwdCBoYW5kbGVyKHMpDQo+IGluIHRoZSBjcHN3IGRy
-aXZlciB0aGF0IGRvIHRoZSB3cml0ZSB0byB0aGUgY3BzdyByZWdpc3RlcnMgdG8gYWNrDQo+IGlu
-dGVycnVwdHMuDQo+IA0KPiBUaGVuIGNoZWNrIGlmIHRoZXJlJ3MgYSByZWFkYmFjayBpbiB0aGUg
-Y3BzdyBpbnRlcnJ1cHQgaGFuZGxlcihzKSBvZg0KPiBzb21lIGhhcm1sZXNzIGNwc3cgcmVnaXN0
-ZXIgYWZ0ZXIgYWNraW5nIHRoZSBpbnRlcnJ1cHQocykgYW5kIGJlZm9yZQ0KPiBkb2luZyByZXR1
-cm4gSVJRX0hBTkRMRUQuDQo+IA0KPiBJZiB0aGlzIGZpeGVzIHRoaW5ncyB3aXRob3V0IHlvdXIg
-cGF0Y2gsIHRoZW4gd2Uga25vdyBpdCdzIGEgZHJpdmVyDQo+IGlzc3VlIGFuZCB0aGVyZSdzIG5v
-IG5lZWQgdG8gZGVidWcgaXQgZnVydGhlciA6KSBUaGUgbWlzc2luZyBmbHVzaCBvZg0KPiBwb3N0
-ZWQgd3JpdGUgdXN1YWxseSBzaG93cyB1cCBhcyBhIHNwdXJpb3VzIGludGVycnVwdHMgd2l0aCBu
-byBzdGF0dXMNCj4gaW4gdGhlIGRldmljZSwgYnV0IGRlcGVuZGluZyBvbiB0aGUgZHJpdmVyIGNv
-ZGUgaGFuZGxpbmcgb2Ygc3B1cmlvdXMNCj4gaW50ZXJydXB0cyBpdCBtYXkgYWxzbyBoYXZlIG90
-aGVyIHNpZGUgZWZmZWN0cy4NCj4gDQo+IEknbSBub3QgdG9vIGZhbWlsaWFyIHdpdGggdGhlIGNw
-c3cgZHJpdmVyIHNvIEkgY2FuJ3QgZG8gYSB0ZXN0IHBhdGNoDQo+IHdpdGhvdXQgZGlnZ2luZyBp
-bnRvIGl0IGZ1cnRoZXIgc29ycnkuIEZvciBzaW1pbGFyIGV4YW1wbGVzLCB5b3UNCj4gbWF5IHdh
-bnQgdG8gZ3JlcCBmb3IgImZsdXNoIHBvc3RlZCB3cml0ZSIgYW5kICJPQ1AgYmFycmllciIgaW4g
-dGhlDQo+IGtlcm5lbCBjb2RlLg0KDQpJIHRyaWVkIHRoaXMgd2l0aCBhbiBhc3NvcnRtZW50IG9m
-IGRpZmZlcmVudCBDUFNXIHJlZ2lzdGVycyAtIG5vIGNoYW5nZS4NCg0KU3RlZmFuDQoNCg==
+Hi Marc,
+
+On 03/03/2014 12:04 PM, Marc Murphy wrote:
+> Hi,
+> I am using the latest stable 3.4.80 kernel with some changes to get the EMAC Phy to initialise correctly after a suspend/resume.  The platform is AM3517 with most of the system working nice and smoothly. I have 1 issue though and need some advice/help to get the system to use the USB hub I have connected to the EHCI controller after a suspend to memory and resume.
+> 
+> At boot all is recognised;
+> 
+> [    1.486816] usbcore: registered new interface driver cdc_ether
+> [    1.493255] usbcore: registered new interface driver cdc_ncm
+> [    1.499450] usbcore: registered new interface driver qmi_wwan
+> [    1.506622] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+> [    1.513580] ehci-omap.0 supply hsusb0 not found, using dummy regulator
+> [    2.521881] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
+> [    2.528411] ehci-omap ehci-omap.0: new USB bus registered, assigned bus number 1
+> [    2.536468] ehci-omap ehci-omap.0: irq 77, io mem 0x48064800
+> [    2.553070] ehci-omap ehci-omap.0: USB 2.0 started, EHCI 1.00
+> [    2.559295] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+> [    2.566436] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+> [    2.574035] usb usb1: Product: OMAP-EHCI Host Controller
+> [    2.579620] usb usb1: Manufacturer: Linux 3.4.80 ehci_hcd
+> [    2.585296] usb usb1: SerialNumber: ehci-omap.0
+> [    2.591278] hub 1-0:1.0: USB hub found
+> [    2.595306] hub 1-0:1.0: 3 ports detected
+> 
+> And I can see everything OK.
+> 
+> # lsusb
+> Bus 001 Device 002: ID 0424:2513 Standard Microsystems Corp. 2.0 Hub
+> Bus 002 Device 002: ID 05e3:0718 Genesys Logic, Inc. IDE/SATA Adapter
+> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 001 Device 003: ID 1199:68a2 Sierra Wireless, Inc.
+> #
+> #
+> # echo mem > /sys/power/state
+> [   73.736572] PM: Syncing filesystems ... done.
+> [   73.743530] Freezing user space processes ... (elapsed 0.01 seconds) done.
+> [   73.766784] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+> [   73.959289] davinci_mdio davinci_mdio.0: timed out waiting for idle
+> [   73.968872] PM: suspend of devices complete after 170.410 msecs
+> [   73.975433] PM: late suspend of devices complete after 0.305 msecs
+> [   73.982635] PM: noirq suspend of devices complete after 0.732 msecs
+> [   83.430450] Powerdomain (core_pwrdm) didn't enter target state 1
+> [   83.436737] Could not enter target state in pm_suspend
+> [   83.443176] PM: noirq resume of devices complete after 0.915 msecs
+>  [   83.450164] PM: early resume of devices complete after 0.274 msecs
+> [   83.457336] <6>Waiting for PHY clock good...
+> [   83.463287] davinci_mdio davinci_mdio.0: resetting idled controller
+> [   83.471343] net eth0: attached PHY driver [SMSC LAN8710/LAN8720] (mii_bus:phy_addr=davinci_mdio-0:00, id=7c0f1)
+> [   84.771881] PM: resume of devices complete after 1315.185 msecs
+> [   84.778472] Restarting tasks ...
+> [   84.782379] usb 1-1: USB disconnect, device number 2
+> [   84.790557] done.
+> [   84.792938] mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
+> sh: write error:[   84.800781] usb 1-1.1: USB disconnect, device number 3
+>  Operation not p[   84.808349] qmi_wwan 1-1.1:1.8: wwan0: unregister 'qmi_wwan' usb-ehci-omap.0-1.1, Sierra Wireless wwan/QMI device
+> ermitted
+> [   84.859191] mmc1: mmc_rescan_try_freq: trying to init card at 400000 Hz
+> [   86.490356] PHY: davinci_mdio-0:00 - Link is Up - 100/Full
+> #
+> #
+> # lsusb
+> Bus 002 Device 002: ID 05e3:0718 Genesys Logic, Inc. IDE/SATA Adapter
+> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> #
+> 
+> Is there any relevant patch out there that would address the issue that I see ?
+
+Does this happen because of OFF mode?
+Can you please try the tests with off mode disabled?
+
+e.g.
+mount -t debugfs none /sys/kernel/debug
+echo 0 > /sys/kernel/debug/pm_debug/enable_off_mode
+suspend & resume
+
+Also please send the output of /sys/kernel/debug/pm_debug/count
+before suspend and after resume. Thanks.
+
+cheers,
+-roger
