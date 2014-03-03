@@ -1,49 +1,48 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 3/7] v4l: ti-vpe: Use video_device_release_empty
-Date: Mon, 3 Mar 2014 13:03:24 +0530
-Message-ID: <1393832008-22174-4-git-send-email-archit@ti.com>
+Subject: [PATCH 5/7] v4l: ti-vpe: Allow usage of smaller images
+Date: Mon, 3 Mar 2014 13:03:26 +0530
+Message-ID: <1393832008-22174-6-git-send-email-archit@ti.com>
 References: <1393832008-22174-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41315 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:41323 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753830AbaCCHeV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 02:34:21 -0500
+	with ESMTP id S1752339AbaCCHe2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Mar 2014 02:34:28 -0500
 In-Reply-To: <1393832008-22174-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: k.debski@samsung.com
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, Archit Taneja <archit@ti.com>
 
-The video_device struct is currently embedded in the driver data struct vpe_dev.
-A vpe_dev instance is allocated by the driver, and the memory for the vfd is a
-part of this struct.
+The minimum width and height for VPE input/output was kept as 128 pixels. VPE
+doesn't have a constraint on the image height, it requires the image width to
+be atleast 16 bytes.
 
-The v4l2 core, however, manages the removal of the vfd region, through the
-video_device's .release() op, which currently is the helper
-video_device_release. This causes memory corruption, and leads to issues when
-we try to re-insert the vpe module.
-
-Use the video_device_release_empty helper function instead
+Change the minimum supported dimensions to 32x32. This allows us to de-interlace
+qcif content. A smaller image size than 32x32 didn't make much sense, so stopped
+at this.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/ti-vpe/vpe.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 4243687..bb275f4 100644
+index 915029b..3a610a6 100644
 --- a/drivers/media/platform/ti-vpe/vpe.c
 +++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1998,7 +1998,7 @@ static struct video_device vpe_videodev = {
- 	.fops		= &vpe_fops,
- 	.ioctl_ops	= &vpe_ioctl_ops,
- 	.minor		= -1,
--	.release	= video_device_release,
-+	.release	= video_device_release_empty,
- 	.vfl_dir	= VFL_DIR_M2M,
- };
+@@ -49,8 +49,8 @@
+ #define VPE_MODULE_NAME "vpe"
+ 
+ /* minimum and maximum frame sizes */
+-#define MIN_W		128
+-#define MIN_H		128
++#define MIN_W		32
++#define MIN_H		32
+ #define MAX_W		1920
+ #define MAX_H		1080
  
 -- 
 1.8.3.2
