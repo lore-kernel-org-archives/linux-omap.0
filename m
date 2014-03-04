@@ -1,93 +1,38 @@
-From: Balaji T K <balajitk@TI.COM>
-Subject: Re: [PATCH RESEND] mmc: omap_hsmmc: support more DT properties
-Date: Tue, 4 Mar 2014 21:49:52 +0530
-Message-ID: <5315FD28.4020800@ti.com>
-References: <1393881376-10751-1-git-send-email-zonque@gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 00/18] ARM: OMAP2+: CM/PRM cleanup set
+Date: Tue, 4 Mar 2014 18:19:00 +0200
+Message-ID: <1393949958-816-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1393881376-10751-1-git-send-email-zonque@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: chris@printf.net, linux-mmc@vger.kernel.org
-Cc: Daniel Mack <zonque@gmail.com>, tony@atomide.com, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48402 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751275AbaCDQUG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Mar 2014 11:20:06 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, khilman@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Tuesday 04 March 2014 02:46 AM, Daniel Mack wrote:
-> This should probably be done implicitly through mmc_of_parse(), but that
-> doesn't play well along with the multi-slot model the hsmmc driver
-> features. Hence, for now, do it manually. The properties are already
-> documented in Documentation/devicetree/bindings/mmc/mmc.txt.
->
-> Signed-off-by: Daniel Mack <zonque@gmail.com>
-> Acked-by: Balaji T K <balajitk@ti.com>
-> ---
-> This is a resend of a patch that was already acked by Balaji T K:
->
->    http://www.spinics.net/lists/linux-mmc/msg25029.html
+Hi,
 
-Hi Chris,
+This set cleans up the CM/PRM codebase a bit, removing the need for direct
+CM/PRM register access macros outside CM/PRM drivers. This is done in
+preparation to isolate these drivers into its own driver directory.
+Currently my plan is to create a single PRCM driver, which will contain
+both, and as such, CM/PRM inter-access is not removed in this set.
 
-To make it easier for you, I have collected omap_hsmmc patches [1]
-and pushed a branch omap_hsmmc-for-3.15 based on 3.14rc2.
+This set is built on top of the OMAP2 DT clock conversion set, but most
+of the patches can also be standalone if need be.
 
-Please pull or cherry pick
+Testing done:
+- omap2 : none (any feedback welcome)
+- omap3-beagle : boot, suspend-resume (RET), suspend-resume (OFF)
+- omap4-panda-es : boot, suspend-resume (RET)
 
-The following changes since commit b28a960c42fcd9cfc987441fa6d1c1a471f0f9ed:
+Branch also available here:
+tree: https://github.com/t-kristo/linux-pm.git
+branch: 3.14-rc4-cm-prm-cleanup
 
-   Linux 3.14-rc2 (2014-02-09 18:15:47 -0800)
-
-are available in the git repository at:
-   git://git.ti.com/~balajitk/ti-linux-kernel/omap-hsmmc.git omap_hsmmc-for-3.15
-
-Balaji T K (14):
-       mmc: omap_hsmmc: use devm_regulator API
-       mmc: omap_hsmmc: handle vcc and vcc_aux independently
-       regulator: add pbias regulator support
-       mmc: omap_hsmmc: adapt hsmmc to use pbias regulator
-       ARM: dts: add pbias dt node
-       ARM: OMAP: enable SYSCON and REGULATOR_PBIAS in omap2plus_defconfig
-       mmc: omap_hsmmc: remove pbias workaround
-       mmc: omap_hsmmc: fix return error code for of_get_hsmmc_pdata
-       mmc: omap_hsmmc: remove redundant reset done
-       mmc: omap_hsmmc: save clock rate to use in interrupt context
-       mmc: omap_hsmmc: fix request done for sbc error case
-       mmc: omap_hsmmc: split dma setup
-       mmc: omap_hsmmc: add cmd23 support
-       mmc: omap_hsmmc: add autocmd23 support
-
-Dan Carpenter (1):
-       mmc: omap_hsmmc: remove a duplicative test
-
-Daniel Mack (1):
-       mmc: omap_hsmmc: support more DT properties
-
-Nishanth Menon (2):
-       mmc: omap_hsmmc: Add support for quirky omap3 hsmmc controller
-       ARM: dts: omap3-ldp: fix mmc configuration
-
-  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    1 +
-  .../bindings/regulator/pbias-regulator.txt         |   27 ++
-  arch/arm/boot/dts/dra7.dtsi                        |   17 ++
-  arch/arm/boot/dts/omap2430.dtsi                    |   17 ++
-  arch/arm/boot/dts/omap3-ldp.dts                    |   23 ++
-  arch/arm/boot/dts/omap3.dtsi                       |   17 ++
-  arch/arm/boot/dts/omap4.dtsi                       |   17 ++
-  arch/arm/boot/dts/omap5.dtsi                       |   17 ++
-  arch/arm/configs/omap2plus_defconfig               |    2 +
-  drivers/mmc/host/omap_hsmmc.c                      |  242 +++++++++++++------
-  drivers/regulator/Kconfig                          |    9 +
-  drivers/regulator/Makefile                         |    1 +
-  drivers/regulator/pbias-regulator.c                |  255 ++++++++++++++++++++
-  13 files changed, 569 insertions(+), 76 deletions(-)
-  create mode 100644 Documentation/devicetree/bindings/regulator/pbias-regulator.txt
-  create mode 100644 drivers/regulator/pbias-regulator.c
-
-[1]
-http://www.spinics.net/lists/linux-omap/msg102811.html
-http://lkml.org/lkml/2014/2/14/13
-http://www.spinics.net/lists/linux-mmc/msg25029.html
-http://www.spinics.net/lists/linux-omap/msg103488.html
-http://www.spinics.net/lists/linux-omap/msg103608.html
-http://comments.gmane.org/gmane.linux.kernel.mmc/24777
+-Tero
 
