@@ -1,2000 +1,3867 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 10/14] ARM: dts: omap2 clock data
-Date: Tue, 4 Mar 2014 11:18:16 +0200
-Message-ID: <1393924700-6510-11-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: =?UTF-8?q?=5BPATCHv2=2014/14=5D=20ARM=3A=20OMAP3=3A=20clock=3A=20remove=20legacy=20clock=20data?=
+Date: Tue, 4 Mar 2014 11:18:20 +0200
+Message-ID: <1393924700-6510-15-git-send-email-t-kristo@ti.com>
 References: <1393924700-6510-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44072 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756677AbaCDJUJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Mar 2014 04:20:09 -0500
-In-Reply-To: <1393924700-6510-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1393924700-6510-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, mturquette@linaro.org, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-This patch creates a unique node for each clock in the OMAP2 power,
-reset and clock manager (PRCM).
+This is no longer needed as clock data is provided through DT.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap2420-clocks.dtsi |  270 +++++++
- arch/arm/boot/dts/omap2420.dtsi        |   29 +
- arch/arm/boot/dts/omap2430-clocks.dtsi |  344 +++++++++
- arch/arm/boot/dts/omap2430.dtsi        |   29 +
- arch/arm/boot/dts/omap24xx-clocks.dtsi | 1244 ++++++++++++++++++++++++++++++++
- 5 files changed, 1916 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap2420-clocks.dtsi
- create mode 100644 arch/arm/boot/dts/omap2430-clocks.dtsi
- create mode 100644 arch/arm/boot/dts/omap24xx-clocks.dtsi
+ arch/arm/mach-omap2/Makefile          |    2 +-
+ arch/arm/mach-omap2/cclock3xxx_data.c | 3682 -------------------------=
+--------
+ arch/arm/mach-omap2/io.c              |   18 +-
+ 3 files changed, 6 insertions(+), 3696 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/cclock3xxx_data.c
 
-diff --git a/arch/arm/boot/dts/omap2420-clocks.dtsi b/arch/arm/boot/dts/omap2420-clocks.dtsi
-new file mode 100644
-index 0000000..ce8c742
---- /dev/null
-+++ b/arch/arm/boot/dts/omap2420-clocks.dtsi
-@@ -0,0 +1,270 @@
-+/*
-+ * Device Tree Source for OMAP2420 clock data
-+ *
-+ * Copyright (C) 2014 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+&prcm_clocks {
-+	sys_clkout2_src_gate: sys_clkout2_src_gate {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-no-wait-gate-clock";
-+		clocks = <&core_ck>;
-+		ti,bit-shift = <15>;
-+		reg = <0x0070>;
-+	};
-+
-+	sys_clkout2_src_mux: sys_clkout2_src_mux {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&core_ck>, <&sys_ck>, <&func_96m_ck>, <&func_54m_ck>;
-+		ti,bit-shift = <8>;
-+		reg = <0x0070>;
-+	};
-+
-+	sys_clkout2_src: sys_clkout2_src {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&sys_clkout2_src_gate>, <&sys_clkout2_src_mux>;
-+	};
-+
-+	sys_clkout2: sys_clkout2 {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&sys_clkout2_src>;
-+		ti,bit-shift = <11>;
-+		ti,max-div = <64>;
-+		reg = <0x0070>;
-+		ti,index-power-of-two;
-+	};
-+
-+	dsp_gate_ick: dsp_gate_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-interface-clock";
-+		clocks = <&dsp_fck>;
-+		ti,bit-shift = <1>;
-+		reg = <0x0810>;
-+	};
-+
-+	dsp_div_ick: dsp_div_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-divider-clock";
-+		clocks = <&dsp_fck>;
-+		ti,bit-shift = <5>;
-+		ti,max-div = <3>;
-+		reg = <0x0840>;
-+		ti,index-starts-at-one;
-+	};
-+
-+	dsp_ick: dsp_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&dsp_gate_ick>, <&dsp_div_ick>;
-+	};
-+
-+	iva1_gate_ifck: iva1_gate_ifck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&core_ck>;
-+		ti,bit-shift = <10>;
-+		reg = <0x0800>;
-+	};
-+
-+	iva1_div_ifck: iva1_div_ifck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-divider-clock";
-+		clocks = <&core_ck>;
-+		ti,bit-shift = <8>;
-+		reg = <0x0840>;
-+		ti,dividers = <0>, <1>, <2>, <3>, <4>, <0>, <6>, <0>, <8>, <0>, <0>, <0>, <12>;
-+	};
-+
-+	iva1_ifck: iva1_ifck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&iva1_gate_ifck>, <&iva1_div_ifck>;
-+	};
-+
-+	iva1_ifck_div: iva1_ifck_div {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&iva1_ifck>;
-+		clock-mult = <1>;
-+		clock-div = <2>;
-+	};
-+
-+	iva1_mpu_int_ifck: iva1_mpu_int_ifck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&iva1_ifck_div>;
-+		ti,bit-shift = <8>;
-+		reg = <0x0800>;
-+	};
-+
-+	wdt3_ick: wdt3_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <28>;
-+		reg = <0x0210>;
-+	};
-+
-+	wdt3_fck: wdt3_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <28>;
-+		reg = <0x0200>;
-+	};
-+
-+	mmc_ick: mmc_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <26>;
-+		reg = <0x0210>;
-+	};
-+
-+	mmc_fck: mmc_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_96m_ck>;
-+		ti,bit-shift = <26>;
-+		reg = <0x0200>;
-+	};
-+
-+	eac_ick: eac_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <24>;
-+		reg = <0x0210>;
-+	};
-+
-+	eac_fck: eac_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_96m_ck>;
-+		ti,bit-shift = <24>;
-+		reg = <0x0200>;
-+	};
-+
-+	i2c1_fck: i2c1_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_12m_ck>;
-+		ti,bit-shift = <19>;
-+		reg = <0x0200>;
-+	};
-+
-+	i2c2_fck: i2c2_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_12m_ck>;
-+		ti,bit-shift = <20>;
-+		reg = <0x0200>;
-+	};
-+
-+	vlynq_ick: vlynq_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,bit-shift = <3>;
-+		reg = <0x0210>;
-+	};
-+
-+	vlynq_gate_fck: vlynq_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&core_ck>;
-+		ti,bit-shift = <3>;
-+		reg = <0x0200>;
-+	};
-+
-+	core_d18_ck: core_d18_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&core_ck>;
-+		clock-mult = <1>;
-+		clock-div = <18>;
-+	};
-+
-+	vlynq_mux_fck: vlynq_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_96m_ck>, <&core_ck>, <&core_d2_ck>, <&core_d3_ck>, <&core_d4_ck>, <&dummy_ck>, <&core_d6_ck>, <&dummy_ck>, <&core_d8_ck>, <&core_d9_ck>, <&dummy_ck>, <&dummy_ck>, <&core_d12_ck>, <&dummy_ck>, <&dummy_ck>, <&dummy_ck>, <&core_d16_ck>, <&dummy_ck>, <&core_d18_ck>;
-+		ti,bit-shift = <15>;
-+		reg = <0x0240>;
-+	};
-+
-+	vlynq_fck: vlynq_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&vlynq_gate_fck>, <&vlynq_mux_fck>;
-+	};
-+};
-+
-+&prcm_clockdomains {
-+	gfx_clkdm: gfx_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&gfx_ick>;
-+	};
-+
-+	core_l3_clkdm: core_l3_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&cam_fck>, <&vlynq_ick>, <&usb_fck>;
-+	};
-+
-+	wkup_clkdm: wkup_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&dpll_ck>, <&emul_ck>, <&gpt1_ick>, <&gpios_ick>,
-+			 <&gpios_fck>, <&mpu_wdt_ick>, <&mpu_wdt_fck>,
-+			 <&sync_32k_ick>, <&wdt1_ick>, <&omapctrl_ick>;
-+	};
-+
-+	iva1_clkdm: iva1_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&iva1_mpu_int_ifck>;
-+	};
-+
-+	dss_clkdm: dss_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&dss_ick>, <&dss_54m_fck>;
-+	};
-+
-+	core_l4_clkdm: core_l4_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&ssi_l4_ick>, <&gpt2_ick>, <&gpt3_ick>, <&gpt4_ick>,
-+			 <&gpt5_ick>, <&gpt6_ick>, <&gpt7_ick>, <&gpt8_ick>,
-+			 <&gpt9_ick>, <&gpt10_ick>, <&gpt11_ick>, <&gpt12_ick>,
-+			 <&mcbsp1_ick>, <&mcbsp2_ick>, <&mcspi1_ick>,
-+			 <&mcspi1_fck>, <&mcspi2_ick>, <&mcspi2_fck>,
-+			 <&uart1_ick>, <&uart1_fck>, <&uart2_ick>, <&uart2_fck>,
-+			 <&uart3_ick>, <&uart3_fck>, <&cam_ick>,
-+			 <&mailboxes_ick>, <&wdt4_ick>, <&wdt4_fck>,
-+			 <&wdt3_ick>, <&wdt3_fck>, <&mspro_ick>, <&mspro_fck>,
-+			 <&mmc_ick>, <&mmc_fck>, <&fac_ick>, <&fac_fck>,
-+			 <&eac_ick>, <&eac_fck>, <&hdq_ick>, <&hdq_fck>,
-+			 <&i2c1_ick>, <&i2c1_fck>, <&i2c2_ick>, <&i2c2_fck>,
-+			 <&des_ick>, <&sha_ick>, <&rng_ick>, <&aes_ick>,
-+			 <&pka_ick>;
-+	};
-+};
-+
-+&func_96m_ck {
-+	compatible = "fixed-factor-clock";
-+	clocks = <&apll96_ck>;
-+	clock-mult = <1>;
-+	clock-div = <1>;
-+};
-+
-+&dsp_div_fck {
-+	ti,dividers = <0>, <1>, <2>, <3>, <4>, <0>, <6>, <0>, <8>, <0>, <0>, <0>, <12>;
-+};
-+
-+&ssi_ssr_sst_div_fck {
-+	ti,dividers = <0>, <1>, <2>, <3>, <4>, <0>, <6>, <0>, <8>;
-+};
-diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
-index 60c605d..795c9bd 100644
---- a/arch/arm/boot/dts/omap2420.dtsi
-+++ b/arch/arm/boot/dts/omap2420.dtsi
-@@ -14,6 +14,32 @@
- 	compatible = "ti,omap2420", "ti,omap2";
- 
- 	ocp {
-+		prcm: prcm@48008000 {
-+			compatible = "ti,omap2-prcm";
-+			reg = <0x48008000 0x1000>;
-+
-+			prcm_clocks: clocks {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+			};
-+
-+			prcm_clockdomains: clockdomains {
-+			};
-+		};
-+
-+		scrm: scrm@48000000 {
-+			compatible = "ti,omap2-scrm";
-+			reg = <0x48000000 0x1000>;
-+
-+			scrm_clocks: clocks {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+			};
-+
-+			scrm_clockdomains: clockdomains {
-+			};
-+		};
-+
- 		counter32k: counter@48004000 {
- 			compatible = "ti,omap-counter32k";
- 			reg = <0x48004000 0x20>;
-@@ -146,3 +172,6 @@
- &i2c2 {
- 	compatible = "ti,omap2420-i2c";
- };
-+
-+/include/ "omap24xx-clocks.dtsi"
-+/include/ "omap2420-clocks.dtsi"
-diff --git a/arch/arm/boot/dts/omap2430-clocks.dtsi b/arch/arm/boot/dts/omap2430-clocks.dtsi
-new file mode 100644
-index 0000000..805f75d
---- /dev/null
-+++ b/arch/arm/boot/dts/omap2430-clocks.dtsi
-@@ -0,0 +1,344 @@
-+/*
-+ * Device Tree Source for OMAP2430 clock data
-+ *
-+ * Copyright (C) 2014 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+&scrm_clocks {
-+	mcbsp3_mux_fck: mcbsp3_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_96m_ck>, <&mcbsp_clks>;
-+		reg = <0x02e8>;
-+	};
-+
-+	mcbsp3_fck: mcbsp3_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&mcbsp3_gate_fck>, <&mcbsp3_mux_fck>;
-+	};
-+
-+	mcbsp4_mux_fck: mcbsp4_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_96m_ck>, <&mcbsp_clks>;
-+		ti,bit-shift = <2>;
-+		reg = <0x02e8>;
-+	};
-+
-+	mcbsp4_fck: mcbsp4_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&mcbsp4_gate_fck>, <&mcbsp4_mux_fck>;
-+	};
-+
-+	mcbsp5_mux_fck: mcbsp5_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_96m_ck>, <&mcbsp_clks>;
-+		ti,bit-shift = <4>;
-+		reg = <0x02e8>;
-+	};
-+
-+	mcbsp5_fck: mcbsp5_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&mcbsp5_gate_fck>, <&mcbsp5_mux_fck>;
-+	};
-+};
-+
-+&prcm_clocks {
-+	iva2_1_gate_ick: iva2_1_gate_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&dsp_fck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0800>;
-+	};
-+
-+	iva2_1_div_ick: iva2_1_div_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-divider-clock";
-+		clocks = <&dsp_fck>;
-+		ti,bit-shift = <5>;
-+		ti,max-div = <3>;
-+		reg = <0x0840>;
-+		ti,index-starts-at-one;
-+	};
-+
-+	iva2_1_ick: iva2_1_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&iva2_1_gate_ick>, <&iva2_1_div_ick>;
-+	};
-+
-+	mdm_gate_ick: mdm_gate_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-interface-clock";
-+		clocks = <&core_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0c10>;
-+	};
-+
-+	mdm_div_ick: mdm_div_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-divider-clock";
-+		clocks = <&core_ck>;
-+		reg = <0x0c40>;
-+		ti,dividers = <0>, <1>, <0>, <0>, <4>, <0>, <6>, <0>, <0>, <9>;
-+	};
-+
-+	mdm_ick: mdm_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&mdm_gate_ick>, <&mdm_div_ick>;
-+	};
-+
-+	mdm_osc_ck: mdm_osc_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&osc_ck>;
-+		ti,bit-shift = <1>;
-+		reg = <0x0c00>;
-+	};
-+
-+	mcbsp3_ick: mcbsp3_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <3>;
-+		reg = <0x0214>;
-+	};
-+
-+	mcbsp3_gate_fck: mcbsp3_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&mcbsp_clks>;
-+		ti,bit-shift = <3>;
-+		reg = <0x0204>;
-+	};
-+
-+	mcbsp4_ick: mcbsp4_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <4>;
-+		reg = <0x0214>;
-+	};
-+
-+	mcbsp4_gate_fck: mcbsp4_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&mcbsp_clks>;
-+		ti,bit-shift = <4>;
-+		reg = <0x0204>;
-+	};
-+
-+	mcbsp5_ick: mcbsp5_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <5>;
-+		reg = <0x0214>;
-+	};
-+
-+	mcbsp5_gate_fck: mcbsp5_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&mcbsp_clks>;
-+		ti,bit-shift = <5>;
-+		reg = <0x0204>;
-+	};
-+
-+	mcspi3_ick: mcspi3_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <9>;
-+		reg = <0x0214>;
-+	};
-+
-+	mcspi3_fck: mcspi3_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_48m_ck>;
-+		ti,bit-shift = <9>;
-+		reg = <0x0204>;
-+	};
-+
-+	icr_ick: icr_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&sys_ck>;
-+		ti,bit-shift = <6>;
-+		reg = <0x0410>;
-+	};
-+
-+	i2chs1_fck: i2chs1_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap2430-interface-clock";
-+		clocks = <&func_96m_ck>;
-+		ti,bit-shift = <19>;
-+		reg = <0x0204>;
-+	};
-+
-+	i2chs2_fck: i2chs2_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap2430-interface-clock";
-+		clocks = <&func_96m_ck>;
-+		ti,bit-shift = <20>;
-+		reg = <0x0204>;
-+	};
-+
-+	usbhs_ick: usbhs_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,bit-shift = <6>;
-+		reg = <0x0214>;
-+	};
-+
-+	mmchs1_ick: mmchs1_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <7>;
-+		reg = <0x0214>;
-+	};
-+
-+	mmchs1_fck: mmchs1_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_96m_ck>;
-+		ti,bit-shift = <7>;
-+		reg = <0x0204>;
-+	};
-+
-+	mmchs2_ick: mmchs2_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <8>;
-+		reg = <0x0214>;
-+	};
-+
-+	mmchs2_fck: mmchs2_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_96m_ck>;
-+		ti,bit-shift = <8>;
-+		reg = <0x0204>;
-+	};
-+
-+	gpio5_ick: gpio5_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <10>;
-+		reg = <0x0214>;
-+	};
-+
-+	gpio5_fck: gpio5_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <10>;
-+		reg = <0x0204>;
-+	};
-+
-+	mdm_intc_ick: mdm_intc_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <11>;
-+		reg = <0x0214>;
-+	};
-+
-+	mmchsdb1_fck: mmchsdb1_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <16>;
-+		reg = <0x0204>;
-+	};
-+
-+	mmchsdb2_fck: mmchsdb2_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <17>;
-+		reg = <0x0204>;
-+	};
-+};
-+
-+&prcm_clockdomains {
-+	gfx_clkdm: gfx_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&gfx_ick>;
-+	};
-+
-+	core_l3_clkdm: core_l3_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&cam_fck>, <&usb_fck>, <&usbhs_ick>;
-+	};
-+
-+	wkup_clkdm: wkup_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&dpll_ck>, <&emul_ck>, <&gpt1_ick>, <&gpios_ick>,
-+			 <&gpios_fck>, <&mpu_wdt_ick>, <&mpu_wdt_fck>,
-+			 <&sync_32k_ick>, <&wdt1_ick>, <&omapctrl_ick>,
-+			 <&icr_ick>;
-+	};
-+
-+	dss_clkdm: dss_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&dss_ick>, <&dss_54m_fck>;
-+	};
-+
-+	core_l4_clkdm: core_l4_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&ssi_l4_ick>, <&gpt2_ick>, <&gpt3_ick>, <&gpt4_ick>,
-+			 <&gpt5_ick>, <&gpt6_ick>, <&gpt7_ick>, <&gpt8_ick>,
-+			 <&gpt9_ick>, <&gpt10_ick>, <&gpt11_ick>, <&gpt12_ick>,
-+			 <&mcbsp1_ick>, <&mcbsp2_ick>, <&mcbsp3_ick>,
-+			 <&mcbsp4_ick>, <&mcbsp5_ick>, <&mcspi1_ick>,
-+			 <&mcspi1_fck>, <&mcspi2_ick>, <&mcspi2_fck>,
-+			 <&mcspi3_ick>, <&mcspi3_fck>, <&uart1_ick>,
-+			 <&uart1_fck>, <&uart2_ick>, <&uart2_fck>, <&uart3_ick>,
-+			 <&uart3_fck>, <&cam_ick>, <&mailboxes_ick>,
-+			 <&wdt4_ick>, <&wdt4_fck>, <&mspro_ick>, <&mspro_fck>,
-+			 <&fac_ick>, <&fac_fck>, <&hdq_ick>, <&hdq_fck>,
-+			 <&i2c1_ick>, <&i2chs1_fck>, <&i2c2_ick>, <&i2chs2_fck>,
-+			 <&des_ick>, <&sha_ick>, <&rng_ick>, <&aes_ick>,
-+			 <&pka_ick>, <&mmchs1_ick>, <&mmchs1_fck>,
-+			 <&mmchs2_ick>, <&mmchs2_fck>, <&gpio5_ick>,
-+			 <&gpio5_fck>, <&mdm_intc_ick>, <&mmchsdb1_fck>,
-+			 <&mmchsdb2_fck>;
-+	};
-+
-+	mdm_clkdm: mdm_clkdm {
-+		compatible = "ti,clockdomain";
-+		clocks = <&mdm_osc_ck>;
-+	};
-+};
-+
-+&func_96m_ck {
-+	compatible = "ti,mux-clock";
-+	clocks = <&apll96_ck>, <&alt_ck>;
-+	ti,bit-shift = <4>;
-+	reg = <0x0540>;
-+};
-+
-+&dsp_div_fck {
-+	ti,max-div = <4>;
-+	ti,index-starts-at-one;
-+};
-+
-+&ssi_ssr_sst_div_fck {
-+	ti,max-div = <5>;
-+	ti,index-starts-at-one;
-+};
-diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
-index d624345..bbdd0a9 100644
---- a/arch/arm/boot/dts/omap2430.dtsi
-+++ b/arch/arm/boot/dts/omap2430.dtsi
-@@ -14,6 +14,32 @@
- 	compatible = "ti,omap2430", "ti,omap2";
- 
- 	ocp {
-+		prcm: prcm@49006000 {
-+			compatible = "ti,omap2-prcm";
-+			reg = <0x49006000 0x1000>;
-+
-+			prcm_clocks: clocks {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+			};
-+
-+			prcm_clockdomains: clockdomains {
-+			};
-+		};
-+
-+		scrm: scrm@49002000 {
-+			compatible = "ti,omap2-scrm";
-+			reg = <0x49002000 0x1000>;
-+
-+			scrm_clocks: clocks {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+			};
-+
-+			scrm_clockdomains: clockdomains {
-+			};
-+		};
-+
- 		counter32k: counter@49020000 {
- 			compatible = "ti,omap-counter32k";
- 			reg = <0x49020000 0x20>;
-@@ -233,3 +259,6 @@
- &i2c2 {
- 	compatible = "ti,omap2430-i2c";
- };
-+
-+/include/ "omap24xx-clocks.dtsi"
-+/include/ "omap2430-clocks.dtsi"
-diff --git a/arch/arm/boot/dts/omap24xx-clocks.dtsi b/arch/arm/boot/dts/omap24xx-clocks.dtsi
-new file mode 100644
-index 0000000..a1365ca
---- /dev/null
-+++ b/arch/arm/boot/dts/omap24xx-clocks.dtsi
-@@ -0,0 +1,1244 @@
-+/*
-+ * Device Tree Source for OMAP24xx clock data
-+ *
-+ * Copyright (C) 2014 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+&scrm_clocks {
-+	mcbsp1_mux_fck: mcbsp1_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_96m_ck>, <&mcbsp_clks>;
-+		ti,bit-shift = <2>;
-+		reg = <0x0274>;
-+	};
-+
-+	mcbsp1_fck: mcbsp1_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&mcbsp1_gate_fck>, <&mcbsp1_mux_fck>;
-+	};
-+
-+	mcbsp2_mux_fck: mcbsp2_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_96m_ck>, <&mcbsp_clks>;
-+		ti,bit-shift = <6>;
-+		reg = <0x0274>;
-+	};
-+
-+	mcbsp2_fck: mcbsp2_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&mcbsp2_gate_fck>, <&mcbsp2_mux_fck>;
-+	};
-+};
-+
-+&prcm_clocks {
-+	func_32k_ck: func_32k_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <32768>;
-+	};
-+
-+	secure_32k_ck: secure_32k_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <32768>;
-+	};
-+
-+	virt_12m_ck: virt_12m_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <12000000>;
-+	};
-+
-+	virt_13m_ck: virt_13m_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <13000000>;
-+	};
-+
-+	virt_19200000_ck: virt_19200000_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <19200000>;
-+	};
-+
-+	virt_26m_ck: virt_26m_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <26000000>;
-+	};
-+
-+	aplls_clkin_ck: aplls_clkin_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&virt_19200000_ck>, <&virt_26m_ck>, <&virt_13m_ck>, <&virt_12m_ck>;
-+		ti,bit-shift = <23>;
-+		reg = <0x0540>;
-+	};
-+
-+	aplls_clkin_x2_ck: aplls_clkin_x2_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&aplls_clkin_ck>;
-+		clock-mult = <2>;
-+		clock-div = <1>;
-+	};
-+
-+	osc_ck: osc_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&aplls_clkin_ck>, <&aplls_clkin_x2_ck>;
-+		ti,bit-shift = <6>;
-+		reg = <0x0060>;
-+		ti,index-starts-at-one;
-+	};
-+
-+	sys_ck: sys_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&osc_ck>;
-+		ti,bit-shift = <6>;
-+		ti,max-div = <3>;
-+		reg = <0x0060>;
-+		ti,index-starts-at-one;
-+	};
-+
-+	alt_ck: alt_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <54000000>;
-+	};
-+
-+	mcbsp_clks: mcbsp_clks {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <0x0>;
-+	};
-+
-+	dpll_ck: dpll_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap2-dpll-core-clock";
-+		clocks = <&sys_ck>, <&sys_ck>;
-+		reg = <0x0500>, <0x0540>;
-+	};
-+
-+	apll96_ck: apll96_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap2-apll-clock";
-+		clocks = <&sys_ck>;
-+		ti,bit-shift = <2>;
-+		ti,idlest-shift = <8>;
-+		ti,clock-frequency = <96000000>;
-+		reg = <0x0500>, <0x0530>, <0x0520>;
-+	};
-+
-+	apll54_ck: apll54_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap2-apll-clock";
-+		clocks = <&sys_ck>;
-+		ti,bit-shift = <6>;
-+		ti,idlest-shift = <9>;
-+		ti,clock-frequency = <54000000>;
-+		reg = <0x0500>, <0x0530>, <0x0520>;
-+	};
-+
-+	func_54m_ck: func_54m_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&apll54_ck>, <&alt_ck>;
-+		ti,bit-shift = <5>;
-+		reg = <0x0540>;
-+	};
-+
-+	core_ck: core_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&dpll_ck>;
-+		clock-mult = <1>;
-+		clock-div = <1>;
-+	};
-+
-+	func_96m_ck: func_96m_ck {
-+		#clock-cells = <0>;
-+	};
-+
-+	apll96_d2_ck: apll96_d2_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&apll96_ck>;
-+		clock-mult = <1>;
-+		clock-div = <2>;
-+	};
-+
-+	func_48m_ck: func_48m_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&apll96_d2_ck>, <&alt_ck>;
-+		ti,bit-shift = <3>;
-+		reg = <0x0540>;
-+	};
-+
-+	func_12m_ck: func_12m_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&func_48m_ck>;
-+		clock-mult = <1>;
-+		clock-div = <4>;
-+	};
-+
-+	sys_clkout_src_gate: sys_clkout_src_gate {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-no-wait-gate-clock";
-+		clocks = <&core_ck>;
-+		ti,bit-shift = <7>;
-+		reg = <0x0070>;
-+	};
-+
-+	sys_clkout_src_mux: sys_clkout_src_mux {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&core_ck>, <&sys_ck>, <&func_96m_ck>, <&func_54m_ck>;
-+		reg = <0x0070>;
-+	};
-+
-+	sys_clkout_src: sys_clkout_src {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&sys_clkout_src_gate>, <&sys_clkout_src_mux>;
-+	};
-+
-+	sys_clkout: sys_clkout {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&sys_clkout_src>;
-+		ti,bit-shift = <3>;
-+		ti,max-div = <64>;
-+		reg = <0x0070>;
-+		ti,index-power-of-two;
-+	};
-+
-+	emul_ck: emul_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&func_54m_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0078>;
-+	};
-+
-+	mpu_ck: mpu_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&core_ck>;
-+		ti,max-div = <31>;
-+		reg = <0x0140>;
-+		ti,index-starts-at-one;
-+	};
-+
-+	dsp_gate_fck: dsp_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&core_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0800>;
-+	};
-+
-+	dsp_div_fck: dsp_div_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-divider-clock";
-+		clocks = <&core_ck>;
-+		reg = <0x0840>;
-+	};
-+
-+	dsp_fck: dsp_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&dsp_gate_fck>, <&dsp_div_fck>;
-+	};
-+
-+	core_l3_ck: core_l3_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&core_ck>;
-+		ti,max-div = <31>;
-+		reg = <0x0240>;
-+		ti,index-starts-at-one;
-+	};
-+
-+	gfx_3d_gate_fck: gfx_3d_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,bit-shift = <2>;
-+		reg = <0x0300>;
-+	};
-+
-+	gfx_3d_div_fck: gfx_3d_div_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-divider-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,max-div = <4>;
-+		reg = <0x0340>;
-+		ti,index-starts-at-one;
-+	};
-+
-+	gfx_3d_fck: gfx_3d_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gfx_3d_gate_fck>, <&gfx_3d_div_fck>;
-+	};
-+
-+	gfx_2d_gate_fck: gfx_2d_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,bit-shift = <1>;
-+		reg = <0x0300>;
-+	};
-+
-+	gfx_2d_div_fck: gfx_2d_div_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-divider-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,max-div = <4>;
-+		reg = <0x0340>;
-+		ti,index-starts-at-one;
-+	};
-+
-+	gfx_2d_fck: gfx_2d_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gfx_2d_gate_fck>, <&gfx_2d_div_fck>;
-+	};
-+
-+	gfx_ick: gfx_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0310>;
-+	};
-+
-+	l4_ck: l4_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,bit-shift = <5>;
-+		ti,max-div = <3>;
-+		reg = <0x0240>;
-+		ti,index-starts-at-one;
-+	};
-+
-+	dss_ick: dss_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-no-wait-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0210>;
-+	};
-+
-+	dss1_gate_fck: dss1_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-no-wait-gate-clock";
-+		clocks = <&core_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0200>;
-+	};
-+
-+	core_d2_ck: core_d2_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&core_ck>;
-+		clock-mult = <1>;
-+		clock-div = <2>;
-+	};
-+
-+	core_d3_ck: core_d3_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&core_ck>;
-+		clock-mult = <1>;
-+		clock-div = <3>;
-+	};
-+
-+	core_d4_ck: core_d4_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&core_ck>;
-+		clock-mult = <1>;
-+		clock-div = <4>;
-+	};
-+
-+	core_d5_ck: core_d5_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&core_ck>;
-+		clock-mult = <1>;
-+		clock-div = <5>;
-+	};
-+
-+	core_d6_ck: core_d6_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&core_ck>;
-+		clock-mult = <1>;
-+		clock-div = <6>;
-+	};
-+
-+	dummy_ck: dummy_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <0>;
-+	};
-+
-+	core_d8_ck: core_d8_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&core_ck>;
-+		clock-mult = <1>;
-+		clock-div = <8>;
-+	};
-+
-+	core_d9_ck: core_d9_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&core_ck>;
-+		clock-mult = <1>;
-+		clock-div = <9>;
-+	};
-+
-+	core_d12_ck: core_d12_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&core_ck>;
-+		clock-mult = <1>;
-+		clock-div = <12>;
-+	};
-+
-+	core_d16_ck: core_d16_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&core_ck>;
-+		clock-mult = <1>;
-+		clock-div = <16>;
-+	};
-+
-+	dss1_mux_fck: dss1_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&sys_ck>, <&core_ck>, <&core_d2_ck>, <&core_d3_ck>, <&core_d4_ck>, <&core_d5_ck>, <&core_d6_ck>, <&core_d8_ck>, <&core_d9_ck>, <&core_d12_ck>, <&core_d16_ck>;
-+		ti,bit-shift = <8>;
-+		reg = <0x0240>;
-+	};
-+
-+	dss1_fck: dss1_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&dss1_gate_fck>, <&dss1_mux_fck>;
-+	};
-+
-+	dss2_gate_fck: dss2_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-no-wait-gate-clock";
-+		clocks = <&func_48m_ck>;
-+		ti,bit-shift = <1>;
-+		reg = <0x0200>;
-+	};
-+
-+	dss2_mux_fck: dss2_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&sys_ck>, <&func_48m_ck>;
-+		ti,bit-shift = <13>;
-+		reg = <0x0240>;
-+	};
-+
-+	dss2_fck: dss2_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&dss2_gate_fck>, <&dss2_mux_fck>;
-+	};
-+
-+	dss_54m_fck: dss_54m_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_54m_ck>;
-+		ti,bit-shift = <2>;
-+		reg = <0x0200>;
-+	};
-+
-+	ssi_ssr_sst_gate_fck: ssi_ssr_sst_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&core_ck>;
-+		ti,bit-shift = <1>;
-+		reg = <0x0204>;
-+	};
-+
-+	ssi_ssr_sst_div_fck: ssi_ssr_sst_div_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-divider-clock";
-+		clocks = <&core_ck>;
-+		ti,bit-shift = <20>;
-+		reg = <0x0240>;
-+	};
-+
-+	ssi_ssr_sst_fck: ssi_ssr_sst_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&ssi_ssr_sst_gate_fck>, <&ssi_ssr_sst_div_fck>;
-+	};
-+
-+	usb_l4_gate_ick: usb_l4_gate_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-interface-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0214>;
-+	};
-+
-+	usb_l4_div_ick: usb_l4_div_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-divider-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,bit-shift = <25>;
-+		reg = <0x0240>;
-+		ti,dividers = <0>, <1>, <2>, <0>, <4>;
-+	};
-+
-+	usb_l4_ick: usb_l4_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&usb_l4_gate_ick>, <&usb_l4_div_ick>;
-+	};
-+
-+	ssi_l4_ick: ssi_l4_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <1>;
-+		reg = <0x0214>;
-+	};
-+
-+	gpt1_ick: gpt1_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&sys_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0410>;
-+	};
-+
-+	gpt1_gate_fck: gpt1_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0400>;
-+	};
-+
-+	gpt1_mux_fck: gpt1_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_32k_ck>, <&sys_ck>, <&alt_ck>;
-+		reg = <0x0440>;
-+	};
-+
-+	gpt1_fck: gpt1_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gpt1_gate_fck>, <&gpt1_mux_fck>;
-+	};
-+
-+	gpt2_ick: gpt2_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <4>;
-+		reg = <0x0210>;
-+	};
-+
-+	gpt2_gate_fck: gpt2_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <4>;
-+		reg = <0x0200>;
-+	};
-+
-+	gpt2_mux_fck: gpt2_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_32k_ck>, <&sys_ck>, <&alt_ck>;
-+		ti,bit-shift = <2>;
-+		reg = <0x0244>;
-+	};
-+
-+	gpt2_fck: gpt2_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gpt2_gate_fck>, <&gpt2_mux_fck>;
-+	};
-+
-+	gpt3_ick: gpt3_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <5>;
-+		reg = <0x0210>;
-+	};
-+
-+	gpt3_gate_fck: gpt3_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <5>;
-+		reg = <0x0200>;
-+	};
-+
-+	gpt3_mux_fck: gpt3_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_32k_ck>, <&sys_ck>, <&alt_ck>;
-+		ti,bit-shift = <4>;
-+		reg = <0x0244>;
-+	};
-+
-+	gpt3_fck: gpt3_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gpt3_gate_fck>, <&gpt3_mux_fck>;
-+	};
-+
-+	gpt4_ick: gpt4_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <6>;
-+		reg = <0x0210>;
-+	};
-+
-+	gpt4_gate_fck: gpt4_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <6>;
-+		reg = <0x0200>;
-+	};
-+
-+	gpt4_mux_fck: gpt4_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_32k_ck>, <&sys_ck>, <&alt_ck>;
-+		ti,bit-shift = <6>;
-+		reg = <0x0244>;
-+	};
-+
-+	gpt4_fck: gpt4_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gpt4_gate_fck>, <&gpt4_mux_fck>;
-+	};
-+
-+	gpt5_ick: gpt5_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <7>;
-+		reg = <0x0210>;
-+	};
-+
-+	gpt5_gate_fck: gpt5_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <7>;
-+		reg = <0x0200>;
-+	};
-+
-+	gpt5_mux_fck: gpt5_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_32k_ck>, <&sys_ck>, <&alt_ck>;
-+		ti,bit-shift = <8>;
-+		reg = <0x0244>;
-+	};
-+
-+	gpt5_fck: gpt5_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gpt5_gate_fck>, <&gpt5_mux_fck>;
-+	};
-+
-+	gpt6_ick: gpt6_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <8>;
-+		reg = <0x0210>;
-+	};
-+
-+	gpt6_gate_fck: gpt6_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <8>;
-+		reg = <0x0200>;
-+	};
-+
-+	gpt6_mux_fck: gpt6_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_32k_ck>, <&sys_ck>, <&alt_ck>;
-+		ti,bit-shift = <10>;
-+		reg = <0x0244>;
-+	};
-+
-+	gpt6_fck: gpt6_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gpt6_gate_fck>, <&gpt6_mux_fck>;
-+	};
-+
-+	gpt7_ick: gpt7_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <9>;
-+		reg = <0x0210>;
-+	};
-+
-+	gpt7_gate_fck: gpt7_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <9>;
-+		reg = <0x0200>;
-+	};
-+
-+	gpt7_mux_fck: gpt7_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_32k_ck>, <&sys_ck>, <&alt_ck>;
-+		ti,bit-shift = <12>;
-+		reg = <0x0244>;
-+	};
-+
-+	gpt7_fck: gpt7_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gpt7_gate_fck>, <&gpt7_mux_fck>;
-+	};
-+
-+	gpt8_ick: gpt8_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <10>;
-+		reg = <0x0210>;
-+	};
-+
-+	gpt8_gate_fck: gpt8_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <10>;
-+		reg = <0x0200>;
-+	};
-+
-+	gpt8_mux_fck: gpt8_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_32k_ck>, <&sys_ck>, <&alt_ck>;
-+		ti,bit-shift = <14>;
-+		reg = <0x0244>;
-+	};
-+
-+	gpt8_fck: gpt8_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gpt8_gate_fck>, <&gpt8_mux_fck>;
-+	};
-+
-+	gpt9_ick: gpt9_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <11>;
-+		reg = <0x0210>;
-+	};
-+
-+	gpt9_gate_fck: gpt9_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <11>;
-+		reg = <0x0200>;
-+	};
-+
-+	gpt9_mux_fck: gpt9_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_32k_ck>, <&sys_ck>, <&alt_ck>;
-+		ti,bit-shift = <16>;
-+		reg = <0x0244>;
-+	};
-+
-+	gpt9_fck: gpt9_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gpt9_gate_fck>, <&gpt9_mux_fck>;
-+	};
-+
-+	gpt10_ick: gpt10_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <12>;
-+		reg = <0x0210>;
-+	};
-+
-+	gpt10_gate_fck: gpt10_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <12>;
-+		reg = <0x0200>;
-+	};
-+
-+	gpt10_mux_fck: gpt10_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_32k_ck>, <&sys_ck>, <&alt_ck>;
-+		ti,bit-shift = <18>;
-+		reg = <0x0244>;
-+	};
-+
-+	gpt10_fck: gpt10_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gpt10_gate_fck>, <&gpt10_mux_fck>;
-+	};
-+
-+	gpt11_ick: gpt11_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <13>;
-+		reg = <0x0210>;
-+	};
-+
-+	gpt11_gate_fck: gpt11_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <13>;
-+		reg = <0x0200>;
-+	};
-+
-+	gpt11_mux_fck: gpt11_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_32k_ck>, <&sys_ck>, <&alt_ck>;
-+		ti,bit-shift = <20>;
-+		reg = <0x0244>;
-+	};
-+
-+	gpt11_fck: gpt11_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gpt11_gate_fck>, <&gpt11_mux_fck>;
-+	};
-+
-+	gpt12_ick: gpt12_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <14>;
-+		reg = <0x0210>;
-+	};
-+
-+	gpt12_gate_fck: gpt12_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <14>;
-+		reg = <0x0200>;
-+	};
-+
-+	gpt12_mux_fck: gpt12_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&func_32k_ck>, <&sys_ck>, <&alt_ck>;
-+		ti,bit-shift = <22>;
-+		reg = <0x0244>;
-+	};
-+
-+	gpt12_fck: gpt12_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-clock";
-+		clocks = <&gpt12_gate_fck>, <&gpt12_mux_fck>;
-+	};
-+
-+	mcbsp1_ick: mcbsp1_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <15>;
-+		reg = <0x0210>;
-+	};
-+
-+	mcbsp1_gate_fck: mcbsp1_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&mcbsp_clks>;
-+		ti,bit-shift = <15>;
-+		reg = <0x0200>;
-+	};
-+
-+	mcbsp2_ick: mcbsp2_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <16>;
-+		reg = <0x0210>;
-+	};
-+
-+	mcbsp2_gate_fck: mcbsp2_gate_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-gate-clock";
-+		clocks = <&mcbsp_clks>;
-+		ti,bit-shift = <16>;
-+		reg = <0x0200>;
-+	};
-+
-+	mcspi1_ick: mcspi1_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <17>;
-+		reg = <0x0210>;
-+	};
-+
-+	mcspi1_fck: mcspi1_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_48m_ck>;
-+		ti,bit-shift = <17>;
-+		reg = <0x0200>;
-+	};
-+
-+	mcspi2_ick: mcspi2_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <18>;
-+		reg = <0x0210>;
-+	};
-+
-+	mcspi2_fck: mcspi2_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_48m_ck>;
-+		ti,bit-shift = <18>;
-+		reg = <0x0200>;
-+	};
-+
-+	uart1_ick: uart1_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <21>;
-+		reg = <0x0210>;
-+	};
-+
-+	uart1_fck: uart1_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_48m_ck>;
-+		ti,bit-shift = <21>;
-+		reg = <0x0200>;
-+	};
-+
-+	uart2_ick: uart2_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <22>;
-+		reg = <0x0210>;
-+	};
-+
-+	uart2_fck: uart2_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_48m_ck>;
-+		ti,bit-shift = <22>;
-+		reg = <0x0200>;
-+	};
-+
-+	uart3_ick: uart3_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <2>;
-+		reg = <0x0214>;
-+	};
-+
-+	uart3_fck: uart3_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_48m_ck>;
-+		ti,bit-shift = <2>;
-+		reg = <0x0204>;
-+	};
-+
-+	gpios_ick: gpios_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&sys_ck>;
-+		ti,bit-shift = <2>;
-+		reg = <0x0410>;
-+	};
-+
-+	gpios_fck: gpios_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <2>;
-+		reg = <0x0400>;
-+	};
-+
-+	mpu_wdt_ick: mpu_wdt_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&sys_ck>;
-+		ti,bit-shift = <3>;
-+		reg = <0x0410>;
-+	};
-+
-+	mpu_wdt_fck: mpu_wdt_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <3>;
-+		reg = <0x0400>;
-+	};
-+
-+	sync_32k_ick: sync_32k_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&sys_ck>;
-+		ti,bit-shift = <1>;
-+		reg = <0x0410>;
-+	};
-+
-+	wdt1_ick: wdt1_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&sys_ck>;
-+		ti,bit-shift = <4>;
-+		reg = <0x0410>;
-+	};
-+
-+	omapctrl_ick: omapctrl_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&sys_ck>;
-+		ti,bit-shift = <5>;
-+		reg = <0x0410>;
-+	};
-+
-+	cam_fck: cam_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&func_96m_ck>;
-+		ti,bit-shift = <31>;
-+		reg = <0x0200>;
-+	};
-+
-+	cam_ick: cam_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-no-wait-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <31>;
-+		reg = <0x0210>;
-+	};
-+
-+	mailboxes_ick: mailboxes_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <30>;
-+		reg = <0x0210>;
-+	};
-+
-+	wdt4_ick: wdt4_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <29>;
-+		reg = <0x0210>;
-+	};
-+
-+	wdt4_fck: wdt4_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_32k_ck>;
-+		ti,bit-shift = <29>;
-+		reg = <0x0200>;
-+	};
-+
-+	mspro_ick: mspro_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <27>;
-+		reg = <0x0210>;
-+	};
-+
-+	mspro_fck: mspro_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_96m_ck>;
-+		ti,bit-shift = <27>;
-+		reg = <0x0200>;
-+	};
-+
-+	fac_ick: fac_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <25>;
-+		reg = <0x0210>;
-+	};
-+
-+	fac_fck: fac_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_12m_ck>;
-+		ti,bit-shift = <25>;
-+		reg = <0x0200>;
-+	};
-+
-+	hdq_ick: hdq_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <23>;
-+		reg = <0x0210>;
-+	};
-+
-+	hdq_fck: hdq_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_12m_ck>;
-+		ti,bit-shift = <23>;
-+		reg = <0x0200>;
-+	};
-+
-+	i2c1_ick: i2c1_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <19>;
-+		reg = <0x0210>;
-+	};
-+
-+	i2c2_ick: i2c2_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <20>;
-+		reg = <0x0210>;
-+	};
-+
-+	gpmc_fck: gpmc_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,fixed-factor-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,clock-div = <1>;
-+		ti,autoidle-shift = <1>;
-+		reg = <0x0238>;
-+		ti,clock-mult = <1>;
-+	};
-+
-+	sdma_fck: sdma_fck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&core_l3_ck>;
-+		clock-mult = <1>;
-+		clock-div = <1>;
-+	};
-+
-+	sdma_ick: sdma_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,fixed-factor-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,clock-div = <1>;
-+		ti,autoidle-shift = <0>;
-+		reg = <0x0238>;
-+		ti,clock-mult = <1>;
-+	};
-+
-+	sdrc_ick: sdrc_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,fixed-factor-clock";
-+		clocks = <&core_l3_ck>;
-+		ti,clock-div = <1>;
-+		ti,autoidle-shift = <2>;
-+		reg = <0x0238>;
-+		ti,clock-mult = <1>;
-+	};
-+
-+	des_ick: des_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x021c>;
-+	};
-+
-+	sha_ick: sha_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <1>;
-+		reg = <0x021c>;
-+	};
-+
-+	rng_ick: rng_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <2>;
-+		reg = <0x021c>;
-+	};
-+
-+	aes_ick: aes_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <3>;
-+		reg = <0x021c>;
-+	};
-+
-+	pka_ick: pka_ick {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&l4_ck>;
-+		ti,bit-shift = <4>;
-+		reg = <0x021c>;
-+	};
-+
-+	usb_fck: usb_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,wait-gate-clock";
-+		clocks = <&func_48m_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0204>;
-+	};
-+};
--- 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefil=
+e
+index b5e63e7..048358c 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -181,7 +181,7 @@ obj-$(CONFIG_SOC_OMAP2430)		+=3D clock2430.o
+ obj-$(CONFIG_ARCH_OMAP3)		+=3D $(clock-common) clock3xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+=3D clock34xx.o clkt34xx_dpll3m2.o
+ obj-$(CONFIG_ARCH_OMAP3)		+=3D clock3517.o clock36xx.o
+-obj-$(CONFIG_ARCH_OMAP3)		+=3D dpll3xxx.o cclock3xxx_data.o
++obj-$(CONFIG_ARCH_OMAP3)		+=3D dpll3xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+=3D clkt_iclk.o
+ obj-$(CONFIG_ARCH_OMAP4)		+=3D $(clock-common)
+ obj-$(CONFIG_ARCH_OMAP4)		+=3D dpll3xxx.o dpll44xx.o
+diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap=
+2/cclock3xxx_data.c
+deleted file mode 100644
+index 3b05aea..0000000
+--- a/arch/arm/mach-omap2/cclock3xxx_data.c
++++ /dev/null
+@@ -1,3682 +0,0 @@
+-/*
+- * OMAP3 clock data
+- *
+- * Copyright (C) 2007-2012 Texas Instruments, Inc.
+- * Copyright (C) 2007-2011 Nokia Corporation
+- *
+- * Written by Paul Walmsley
+- * Updated to COMMON clk data format by Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+- * With many device clock fixes by Kevin Hilman and Jouni H=C3=B6gande=
+r
+- * DPLL bypass clock support added by Roman Tereshonkov
+- *
+- */
+-
+-/*
+- * Virtual clocks are introduced as convenient tools.
+- * They are sources for other clocks and not supposed
+- * to be requested from drivers directly.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/clk.h>
+-#include <linux/clk-private.h>
+-#include <linux/list.h>
+-#include <linux/io.h>
+-
+-#include "soc.h"
+-#include "iomap.h"
+-#include "clock.h"
+-#include "clock3xxx.h"
+-#include "clock34xx.h"
+-#include "clock36xx.h"
+-#include "clock3517.h"
+-#include "cm3xxx.h"
+-#include "cm-regbits-34xx.h"
+-#include "prm3xxx.h"
+-#include "prm-regbits-34xx.h"
+-#include "control.h"
+-
+-/*
+- * clocks
+- */
+-
+-#define OMAP_CM_REGADDR		OMAP34XX_CM_REGADDR
+-
+-/* Maximum DPLL multiplier, divider values for OMAP3 */
+-#define OMAP3_MAX_DPLL_MULT		2047
+-#define OMAP3630_MAX_JTYPE_DPLL_MULT	4095
+-#define OMAP3_MAX_DPLL_DIV		128
+-
+-DEFINE_CLK_FIXED_RATE(dummy_apb_pclk, CLK_IS_ROOT, 0x0, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(mcbsp_clks, CLK_IS_ROOT, 0x0, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(omap_32k_fck, CLK_IS_ROOT, 32768, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(pclk_ck, CLK_IS_ROOT, 27000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(rmii_ck, CLK_IS_ROOT, 50000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(secure_32k_fck, CLK_IS_ROOT, 32768, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(sys_altclk, CLK_IS_ROOT, 0x0, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(virt_12m_ck, CLK_IS_ROOT, 12000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(virt_13m_ck, CLK_IS_ROOT, 13000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(virt_16_8m_ck, CLK_IS_ROOT, 16800000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(virt_19200000_ck, CLK_IS_ROOT, 19200000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(virt_26000000_ck, CLK_IS_ROOT, 26000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(virt_38_4m_ck, CLK_IS_ROOT, 38400000, 0x0);
+-
+-static const char *osc_sys_ck_parent_names[] =3D {
+-	"virt_12m_ck", "virt_13m_ck", "virt_19200000_ck", "virt_26000000_ck",
+-	"virt_38_4m_ck", "virt_16_8m_ck",
+-};
+-
+-DEFINE_CLK_MUX(osc_sys_ck, osc_sys_ck_parent_names, NULL, 0x0,
+-	       OMAP3430_PRM_CLKSEL, OMAP3430_SYS_CLKIN_SEL_SHIFT,
+-	       OMAP3430_SYS_CLKIN_SEL_WIDTH, 0x0, NULL);
+-
+-DEFINE_CLK_DIVIDER(sys_ck, "osc_sys_ck", &osc_sys_ck, 0x0,
+-		   OMAP3430_PRM_CLKSRC_CTRL, OMAP_SYSCLKDIV_SHIFT,
+-		   OMAP_SYSCLKDIV_WIDTH, CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct dpll_data dpll3_dd =3D {
+-	.mult_div1_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+-	.mult_mask	=3D OMAP3430_CORE_DPLL_MULT_MASK,
+-	.div1_mask	=3D OMAP3430_CORE_DPLL_DIV_MASK,
+-	.clk_bypass	=3D &sys_ck,
+-	.clk_ref	=3D &sys_ck,
+-	.freqsel_mask	=3D OMAP3430_CORE_DPLL_FREQSEL_MASK,
+-	.control_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+-	.enable_mask	=3D OMAP3430_EN_CORE_DPLL_MASK,
+-	.auto_recal_bit	=3D OMAP3430_EN_CORE_DPLL_DRIFTGUARD_SHIFT,
+-	.recal_en_bit	=3D OMAP3430_CORE_DPLL_RECAL_EN_SHIFT,
+-	.recal_st_bit	=3D OMAP3430_CORE_DPLL_ST_SHIFT,
+-	.autoidle_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_AUTOIDLE),
+-	.autoidle_mask	=3D OMAP3430_AUTO_CORE_DPLL_MASK,
+-	.idlest_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
+-	.idlest_mask	=3D OMAP3430_ST_CORE_CLK_MASK,
+-	.max_multiplier	=3D OMAP3_MAX_DPLL_MULT,
+-	.min_divider	=3D 1,
+-	.max_divider	=3D OMAP3_MAX_DPLL_DIV,
+-};
+-
+-static struct clk dpll3_ck;
+-
+-static const char *dpll3_ck_parent_names[] =3D {
+-	"sys_ck",
+-};
+-
+-static const struct clk_ops dpll3_ck_ops =3D {
+-	.init		=3D &omap2_init_clk_clkdm,
+-	.get_parent	=3D &omap2_init_dpll_parent,
+-	.recalc_rate	=3D &omap3_dpll_recalc,
+-	.round_rate	=3D &omap2_dpll_round_rate,
+-};
+-
+-static struct clk_hw_omap dpll3_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dpll3_ck,
+-	},
+-	.ops		=3D &clkhwops_omap3_dpll,
+-	.dpll_data	=3D &dpll3_dd,
+-	.clkdm_name	=3D "dpll3_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dpll3_ck, dpll3_ck_parent_names, dpll3_ck_ops);
+-
+-DEFINE_CLK_DIVIDER(dpll3_m2_ck, "dpll3_ck", &dpll3_ck, 0x0,
+-		   OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+-		   OMAP3430_CORE_DPLL_CLKOUT_DIV_SHIFT,
+-		   OMAP3430_CORE_DPLL_CLKOUT_DIV_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk core_ck;
+-
+-static const char *core_ck_parent_names[] =3D {
+-	"dpll3_m2_ck",
+-};
+-
+-static const struct clk_ops core_ck_ops =3D {};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(core_ck, NULL);
+-DEFINE_STRUCT_CLK(core_ck, core_ck_parent_names, core_ck_ops);
+-
+-DEFINE_CLK_DIVIDER(l3_ick, "core_ck", &core_ck, 0x0,
+-		   OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
+-		   OMAP3430_CLKSEL_L3_SHIFT, OMAP3430_CLKSEL_L3_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-DEFINE_CLK_DIVIDER(l4_ick, "l3_ick", &l3_ick, 0x0,
+-		   OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
+-		   OMAP3430_CLKSEL_L4_SHIFT, OMAP3430_CLKSEL_L4_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk security_l4_ick2;
+-
+-static const char *security_l4_ick2_parent_names[] =3D {
+-	"l4_ick",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(security_l4_ick2, NULL);
+-DEFINE_STRUCT_CLK(security_l4_ick2, security_l4_ick2_parent_names, cor=
+e_ck_ops);
+-
+-static struct clk aes1_ick;
+-
+-static const char *aes1_ick_parent_names[] =3D {
+-	"security_l4_ick2",
+-};
+-
+-static const struct clk_ops aes1_ick_ops =3D {
+-	.enable		=3D &omap2_dflt_clk_enable,
+-	.disable	=3D &omap2_dflt_clk_disable,
+-	.is_enabled	=3D &omap2_dflt_clk_is_enabled,
+-};
+-
+-static struct clk_hw_omap aes1_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &aes1_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
+-	.enable_bit	=3D OMAP3430_EN_AES1_SHIFT,
+-};
+-
+-DEFINE_STRUCT_CLK(aes1_ick, aes1_ick_parent_names, aes1_ick_ops);
+-
+-static struct clk core_l4_ick;
+-
+-static const struct clk_ops core_l4_ick_ops =3D {
+-	.init		=3D &omap2_init_clk_clkdm,
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(core_l4_ick, "core_l4_clkdm");
+-DEFINE_STRUCT_CLK(core_l4_ick, security_l4_ick2_parent_names, core_l4_=
+ick_ops);
+-
+-static struct clk aes2_ick;
+-
+-static const char *aes2_ick_parent_names[] =3D {
+-	"core_l4_ick",
+-};
+-
+-static const struct clk_ops aes2_ick_ops =3D {
+-	.init		=3D &omap2_init_clk_clkdm,
+-	.enable		=3D &omap2_dflt_clk_enable,
+-	.disable	=3D &omap2_dflt_clk_disable,
+-	.is_enabled	=3D &omap2_dflt_clk_is_enabled,
+-};
+-
+-static struct clk_hw_omap aes2_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &aes2_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_AES2_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(aes2_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk dpll1_fck;
+-
+-static struct dpll_data dpll1_dd =3D {
+-	.mult_div1_reg	=3D OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL),
+-	.mult_mask	=3D OMAP3430_MPU_DPLL_MULT_MASK,
+-	.div1_mask	=3D OMAP3430_MPU_DPLL_DIV_MASK,
+-	.clk_bypass	=3D &dpll1_fck,
+-	.clk_ref	=3D &sys_ck,
+-	.freqsel_mask	=3D OMAP3430_MPU_DPLL_FREQSEL_MASK,
+-	.control_reg	=3D OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKEN_PLL),
+-	.enable_mask	=3D OMAP3430_EN_MPU_DPLL_MASK,
+-	.modes		=3D (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+-	.auto_recal_bit	=3D OMAP3430_EN_MPU_DPLL_DRIFTGUARD_SHIFT,
+-	.recal_en_bit	=3D OMAP3430_MPU_DPLL_RECAL_EN_SHIFT,
+-	.recal_st_bit	=3D OMAP3430_MPU_DPLL_ST_SHIFT,
+-	.autoidle_reg	=3D OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_AUTOIDLE_PLL),
+-	.autoidle_mask	=3D OMAP3430_AUTO_MPU_DPLL_MASK,
+-	.idlest_reg	=3D OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_IDLEST_PLL),
+-	.idlest_mask	=3D OMAP3430_ST_MPU_CLK_MASK,
+-	.max_multiplier	=3D OMAP3_MAX_DPLL_MULT,
+-	.min_divider	=3D 1,
+-	.max_divider	=3D OMAP3_MAX_DPLL_DIV,
+-};
+-
+-static struct clk dpll1_ck;
+-
+-static const struct clk_ops dpll1_ck_ops =3D {
+-	.init		=3D &omap2_init_clk_clkdm,
+-	.enable		=3D &omap3_noncore_dpll_enable,
+-	.disable	=3D &omap3_noncore_dpll_disable,
+-	.get_parent	=3D &omap2_init_dpll_parent,
+-	.recalc_rate	=3D &omap3_dpll_recalc,
+-	.set_rate	=3D &omap3_noncore_dpll_set_rate,
+-	.round_rate	=3D &omap2_dpll_round_rate,
+-};
+-
+-static struct clk_hw_omap dpll1_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dpll1_ck,
+-	},
+-	.ops		=3D &clkhwops_omap3_dpll,
+-	.dpll_data	=3D &dpll1_dd,
+-	.clkdm_name	=3D "dpll1_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dpll1_ck, dpll3_ck_parent_names, dpll1_ck_ops);
+-
+-DEFINE_CLK_FIXED_FACTOR(dpll1_x2_ck, "dpll1_ck", &dpll1_ck, 0x0, 2, 1)=
+;
+-
+-DEFINE_CLK_DIVIDER(dpll1_x2m2_ck, "dpll1_x2_ck", &dpll1_x2_ck, 0x0,
+-		   OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL2_PLL),
+-		   OMAP3430_MPU_DPLL_CLKOUT_DIV_SHIFT,
+-		   OMAP3430_MPU_DPLL_CLKOUT_DIV_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk mpu_ck;
+-
+-static const char *mpu_ck_parent_names[] =3D {
+-	"dpll1_x2m2_ck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(mpu_ck, "mpu_clkdm");
+-DEFINE_STRUCT_CLK(mpu_ck, mpu_ck_parent_names, core_l4_ick_ops);
+-
+-DEFINE_CLK_DIVIDER(arm_fck, "mpu_ck", &mpu_ck, 0x0,
+-		   OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_IDLEST_PLL),
+-		   OMAP3430_ST_MPU_CLK_SHIFT, OMAP3430_ST_MPU_CLK_WIDTH,
+-		   0x0, NULL);
+-
+-static struct clk cam_ick;
+-
+-static struct clk_hw_omap cam_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &cam_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_CAM_SHIFT,
+-	.clkdm_name	=3D "cam_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(cam_ick, security_l4_ick2_parent_names, aes2_ick_ops=
+);
+-
+-/* DPLL4 */
+-/* Supplies 96MHz, 54Mhz TV DAC, DSS fclk, CAM sensor clock, emul trac=
+e clk */
+-/* Type: DPLL */
+-static struct dpll_data dpll4_dd;
+-
+-static struct dpll_data dpll4_dd_34xx __initdata =3D {
+-	.mult_div1_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL2),
+-	.mult_mask	=3D OMAP3430_PERIPH_DPLL_MULT_MASK,
+-	.div1_mask	=3D OMAP3430_PERIPH_DPLL_DIV_MASK,
+-	.clk_bypass	=3D &sys_ck,
+-	.clk_ref	=3D &sys_ck,
+-	.freqsel_mask	=3D OMAP3430_PERIPH_DPLL_FREQSEL_MASK,
+-	.control_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+-	.enable_mask	=3D OMAP3430_EN_PERIPH_DPLL_MASK,
+-	.modes		=3D (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED),
+-	.auto_recal_bit	=3D OMAP3430_EN_PERIPH_DPLL_DRIFTGUARD_SHIFT,
+-	.recal_en_bit	=3D OMAP3430_PERIPH_DPLL_RECAL_EN_SHIFT,
+-	.recal_st_bit	=3D OMAP3430_PERIPH_DPLL_ST_SHIFT,
+-	.autoidle_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_AUTOIDLE),
+-	.autoidle_mask	=3D OMAP3430_AUTO_PERIPH_DPLL_MASK,
+-	.idlest_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
+-	.idlest_mask	=3D OMAP3430_ST_PERIPH_CLK_MASK,
+-	.max_multiplier =3D OMAP3_MAX_DPLL_MULT,
+-	.min_divider	=3D 1,
+-	.max_divider	=3D OMAP3_MAX_DPLL_DIV,
+-};
+-
+-static struct dpll_data dpll4_dd_3630 __initdata =3D {
+-	.mult_div1_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL2),
+-	.mult_mask	=3D OMAP3630_PERIPH_DPLL_MULT_MASK,
+-	.div1_mask	=3D OMAP3430_PERIPH_DPLL_DIV_MASK,
+-	.clk_bypass	=3D &sys_ck,
+-	.clk_ref	=3D &sys_ck,
+-	.control_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+-	.enable_mask	=3D OMAP3430_EN_PERIPH_DPLL_MASK,
+-	.modes		=3D (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED),
+-	.auto_recal_bit	=3D OMAP3430_EN_PERIPH_DPLL_DRIFTGUARD_SHIFT,
+-	.recal_en_bit	=3D OMAP3430_PERIPH_DPLL_RECAL_EN_SHIFT,
+-	.recal_st_bit	=3D OMAP3430_PERIPH_DPLL_ST_SHIFT,
+-	.autoidle_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_AUTOIDLE),
+-	.autoidle_mask	=3D OMAP3430_AUTO_PERIPH_DPLL_MASK,
+-	.idlest_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
+-	.idlest_mask	=3D OMAP3430_ST_PERIPH_CLK_MASK,
+-	.dco_mask	=3D OMAP3630_PERIPH_DPLL_DCO_SEL_MASK,
+-	.sddiv_mask	=3D OMAP3630_PERIPH_DPLL_SD_DIV_MASK,
+-	.max_multiplier =3D OMAP3630_MAX_JTYPE_DPLL_MULT,
+-	.min_divider	=3D 1,
+-	.max_divider	=3D OMAP3_MAX_DPLL_DIV,
+-	.flags		=3D DPLL_J_TYPE
+-};
+-
+-static struct clk dpll4_ck;
+-
+-static const struct clk_ops dpll4_ck_ops =3D {
+-	.init		=3D &omap2_init_clk_clkdm,
+-	.enable		=3D &omap3_noncore_dpll_enable,
+-	.disable	=3D &omap3_noncore_dpll_disable,
+-	.get_parent	=3D &omap2_init_dpll_parent,
+-	.recalc_rate	=3D &omap3_dpll_recalc,
+-	.set_rate	=3D &omap3_dpll4_set_rate,
+-	.round_rate	=3D &omap2_dpll_round_rate,
+-};
+-
+-static struct clk_hw_omap dpll4_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dpll4_ck,
+-	},
+-	.dpll_data	=3D &dpll4_dd,
+-	.ops		=3D &clkhwops_omap3_dpll,
+-	.clkdm_name	=3D "dpll4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dpll4_ck, dpll3_ck_parent_names, dpll4_ck_ops);
+-
+-static const struct clk_div_table dpll4_mx_ck_div_table[] =3D {
+-	{ .div =3D 1, .val =3D 1 },
+-	{ .div =3D 2, .val =3D 2 },
+-	{ .div =3D 3, .val =3D 3 },
+-	{ .div =3D 4, .val =3D 4 },
+-	{ .div =3D 5, .val =3D 5 },
+-	{ .div =3D 6, .val =3D 6 },
+-	{ .div =3D 7, .val =3D 7 },
+-	{ .div =3D 8, .val =3D 8 },
+-	{ .div =3D 9, .val =3D 9 },
+-	{ .div =3D 10, .val =3D 10 },
+-	{ .div =3D 11, .val =3D 11 },
+-	{ .div =3D 12, .val =3D 12 },
+-	{ .div =3D 13, .val =3D 13 },
+-	{ .div =3D 14, .val =3D 14 },
+-	{ .div =3D 15, .val =3D 15 },
+-	{ .div =3D 16, .val =3D 16 },
+-	{ .div =3D 17, .val =3D 17 },
+-	{ .div =3D 18, .val =3D 18 },
+-	{ .div =3D 19, .val =3D 19 },
+-	{ .div =3D 20, .val =3D 20 },
+-	{ .div =3D 21, .val =3D 21 },
+-	{ .div =3D 22, .val =3D 22 },
+-	{ .div =3D 23, .val =3D 23 },
+-	{ .div =3D 24, .val =3D 24 },
+-	{ .div =3D 25, .val =3D 25 },
+-	{ .div =3D 26, .val =3D 26 },
+-	{ .div =3D 27, .val =3D 27 },
+-	{ .div =3D 28, .val =3D 28 },
+-	{ .div =3D 29, .val =3D 29 },
+-	{ .div =3D 30, .val =3D 30 },
+-	{ .div =3D 31, .val =3D 31 },
+-	{ .div =3D 32, .val =3D 32 },
+-	{ .div =3D 0 },
+-};
+-
+-DEFINE_CLK_DIVIDER(dpll4_m5_ck, "dpll4_ck", &dpll4_ck, 0x0,
+-		   OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_CLKSEL),
+-		   OMAP3430_CLKSEL_CAM_SHIFT, OMAP3630_CLKSEL_CAM_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk dpll4_m5x2_ck;
+-
+-static const char *dpll4_m5x2_ck_parent_names[] =3D {
+-	"dpll4_m5_ck",
+-};
+-
+-static const struct clk_ops dpll4_m5x2_ck_ops =3D {
+-	.init		=3D &omap2_init_clk_clkdm,
+-	.enable		=3D &omap2_dflt_clk_enable,
+-	.disable	=3D &omap2_dflt_clk_disable,
+-	.is_enabled	=3D &omap2_dflt_clk_is_enabled,
+-	.recalc_rate	=3D &omap3_clkoutx2_recalc,
+-};
+-
+-static const struct clk_ops dpll4_m5x2_ck_3630_ops =3D {
+-	.init		=3D &omap2_init_clk_clkdm,
+-	.enable		=3D &omap36xx_pwrdn_clk_enable_with_hsdiv_restore,
+-	.disable	=3D &omap2_dflt_clk_disable,
+-	.recalc_rate	=3D &omap3_clkoutx2_recalc,
+-};
+-
+-static struct clk_hw_omap dpll4_m5x2_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dpll4_m5x2_ck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+-	.enable_bit	=3D OMAP3430_PWRDN_CAM_SHIFT,
+-	.flags		=3D INVERT_ENABLE,
+-	.clkdm_name	=3D "dpll4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dpll4_m5x2_ck, dpll4_m5x2_ck_parent_names, dpll4_m5x=
+2_ck_ops);
+-
+-static struct clk dpll4_m5x2_ck_3630 =3D {
+-	.name		=3D "dpll4_m5x2_ck",
+-	.hw		=3D &dpll4_m5x2_ck_hw.hw,
+-	.parent_names	=3D dpll4_m5x2_ck_parent_names,
+-	.num_parents	=3D ARRAY_SIZE(dpll4_m5x2_ck_parent_names),
+-	.ops		=3D &dpll4_m5x2_ck_3630_ops,
+-	.flags		=3D CLK_SET_RATE_PARENT,
+-};
+-
+-static struct clk cam_mclk;
+-
+-static const char *cam_mclk_parent_names[] =3D {
+-	"dpll4_m5x2_ck",
+-};
+-
+-static struct clk_hw_omap cam_mclk_hw =3D {
+-	.hw =3D {
+-		.clk =3D &cam_mclk,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_CAM_SHIFT,
+-	.clkdm_name	=3D "cam_clkdm",
+-};
+-
+-static struct clk cam_mclk =3D {
+-	.name		=3D "cam_mclk",
+-	.hw		=3D &cam_mclk_hw.hw,
+-	.parent_names	=3D cam_mclk_parent_names,
+-	.num_parents	=3D ARRAY_SIZE(cam_mclk_parent_names),
+-	.ops		=3D &aes2_ick_ops,
+-	.flags		=3D CLK_SET_RATE_PARENT,
+-};
+-
+-static const struct clksel_rate clkout2_src_core_rates[] =3D {
+-	{ .div =3D 1, .val =3D 0, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel_rate clkout2_src_sys_rates[] =3D {
+-	{ .div =3D 1, .val =3D 1, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel_rate clkout2_src_96m_rates[] =3D {
+-	{ .div =3D 1, .val =3D 2, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-DEFINE_CLK_DIVIDER(dpll4_m2_ck, "dpll4_ck", &dpll4_ck, 0x0,
+-		   OMAP_CM_REGADDR(PLL_MOD, OMAP3430_CM_CLKSEL3),
+-		   OMAP3430_DIV_96M_SHIFT, OMAP3630_DIV_96M_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk dpll4_m2x2_ck;
+-
+-static const char *dpll4_m2x2_ck_parent_names[] =3D {
+-	"dpll4_m2_ck",
+-};
+-
+-static struct clk_hw_omap dpll4_m2x2_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dpll4_m2x2_ck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+-	.enable_bit	=3D OMAP3430_PWRDN_96M_SHIFT,
+-	.flags		=3D INVERT_ENABLE,
+-	.clkdm_name	=3D "dpll4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dpll4_m2x2_ck, dpll4_m2x2_ck_parent_names, dpll4_m5x=
+2_ck_ops);
+-
+-static struct clk dpll4_m2x2_ck_3630 =3D {
+-	.name		=3D "dpll4_m2x2_ck",
+-	.hw		=3D &dpll4_m2x2_ck_hw.hw,
+-	.parent_names	=3D dpll4_m2x2_ck_parent_names,
+-	.num_parents	=3D ARRAY_SIZE(dpll4_m2x2_ck_parent_names),
+-	.ops		=3D &dpll4_m5x2_ck_3630_ops,
+-};
+-
+-static struct clk omap_96m_alwon_fck;
+-
+-static const char *omap_96m_alwon_fck_parent_names[] =3D {
+-	"dpll4_m2x2_ck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(omap_96m_alwon_fck, NULL);
+-DEFINE_STRUCT_CLK(omap_96m_alwon_fck, omap_96m_alwon_fck_parent_names,
+-		  core_ck_ops);
+-
+-static struct clk cm_96m_fck;
+-
+-static const char *cm_96m_fck_parent_names[] =3D {
+-	"omap_96m_alwon_fck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(cm_96m_fck, NULL);
+-DEFINE_STRUCT_CLK(cm_96m_fck, cm_96m_fck_parent_names, core_ck_ops);
+-
+-static const struct clksel_rate clkout2_src_54m_rates[] =3D {
+-	{ .div =3D 1, .val =3D 3, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-DEFINE_CLK_DIVIDER_TABLE(dpll4_m3_ck, "dpll4_ck", &dpll4_ck, 0x0,
+-		   OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
+-		   OMAP3430_CLKSEL_TV_SHIFT, OMAP3630_CLKSEL_TV_WIDTH,
+-		   0, dpll4_mx_ck_div_table, NULL);
+-
+-static struct clk dpll4_m3x2_ck;
+-
+-static const char *dpll4_m3x2_ck_parent_names[] =3D {
+-	"dpll4_m3_ck",
+-};
+-
+-static struct clk_hw_omap dpll4_m3x2_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dpll4_m3x2_ck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+-	.enable_bit	=3D OMAP3430_PWRDN_TV_SHIFT,
+-	.flags		=3D INVERT_ENABLE,
+-	.clkdm_name	=3D "dpll4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dpll4_m3x2_ck, dpll4_m3x2_ck_parent_names, dpll4_m5x=
+2_ck_ops);
+-
+-static struct clk dpll4_m3x2_ck_3630 =3D {
+-	.name		=3D "dpll4_m3x2_ck",
+-	.hw		=3D &dpll4_m3x2_ck_hw.hw,
+-	.parent_names	=3D dpll4_m3x2_ck_parent_names,
+-	.num_parents	=3D ARRAY_SIZE(dpll4_m3x2_ck_parent_names),
+-	.ops		=3D &dpll4_m5x2_ck_3630_ops,
+-};
+-
+-static const char *omap_54m_fck_parent_names[] =3D {
+-	"dpll4_m3x2_ck", "sys_altclk",
+-};
+-
+-DEFINE_CLK_MUX(omap_54m_fck, omap_54m_fck_parent_names, NULL, 0x0,
+-	       OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1), OMAP3430_SOURCE_54M_SHIF=
+T,
+-	       OMAP3430_SOURCE_54M_WIDTH, 0x0, NULL);
+-
+-static const struct clksel clkout2_src_clksel[] =3D {
+-	{ .parent =3D &core_ck, .rates =3D clkout2_src_core_rates },
+-	{ .parent =3D &sys_ck, .rates =3D clkout2_src_sys_rates },
+-	{ .parent =3D &cm_96m_fck, .rates =3D clkout2_src_96m_rates },
+-	{ .parent =3D &omap_54m_fck, .rates =3D clkout2_src_54m_rates },
+-	{ .parent =3D NULL },
+-};
+-
+-static const char *clkout2_src_ck_parent_names[] =3D {
+-	"core_ck", "sys_ck", "cm_96m_fck", "omap_54m_fck",
+-};
+-
+-static const struct clk_ops clkout2_src_ck_ops =3D {
+-	.init		=3D &omap2_init_clk_clkdm,
+-	.enable		=3D &omap2_dflt_clk_enable,
+-	.disable	=3D &omap2_dflt_clk_disable,
+-	.is_enabled	=3D &omap2_dflt_clk_is_enabled,
+-	.recalc_rate	=3D &omap2_clksel_recalc,
+-	.get_parent	=3D &omap2_clksel_find_parent_index,
+-	.set_parent	=3D &omap2_clksel_set_parent,
+-};
+-
+-DEFINE_CLK_OMAP_MUX_GATE(clkout2_src_ck, "core_clkdm",
+-			 clkout2_src_clksel, OMAP3430_CM_CLKOUT_CTRL,
+-			 OMAP3430_CLKOUT2SOURCE_MASK,
+-			 OMAP3430_CM_CLKOUT_CTRL, OMAP3430_CLKOUT2_EN_SHIFT,
+-			 NULL, clkout2_src_ck_parent_names, clkout2_src_ck_ops);
+-
+-static const struct clksel_rate omap_48m_cm96m_rates[] =3D {
+-	{ .div =3D 2, .val =3D 0, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel_rate omap_48m_alt_rates[] =3D {
+-	{ .div =3D 1, .val =3D 1, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel omap_48m_clksel[] =3D {
+-	{ .parent =3D &cm_96m_fck, .rates =3D omap_48m_cm96m_rates },
+-	{ .parent =3D &sys_altclk, .rates =3D omap_48m_alt_rates },
+-	{ .parent =3D NULL },
+-};
+-
+-static const char *omap_48m_fck_parent_names[] =3D {
+-	"cm_96m_fck", "sys_altclk",
+-};
+-
+-static struct clk omap_48m_fck;
+-
+-static const struct clk_ops omap_48m_fck_ops =3D {
+-	.recalc_rate	=3D &omap2_clksel_recalc,
+-	.get_parent	=3D &omap2_clksel_find_parent_index,
+-	.set_parent	=3D &omap2_clksel_set_parent,
+-};
+-
+-static struct clk_hw_omap omap_48m_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &omap_48m_fck,
+-	},
+-	.clksel		=3D omap_48m_clksel,
+-	.clksel_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+-	.clksel_mask	=3D OMAP3430_SOURCE_48M_MASK,
+-};
+-
+-DEFINE_STRUCT_CLK(omap_48m_fck, omap_48m_fck_parent_names, omap_48m_fc=
+k_ops);
+-
+-DEFINE_CLK_FIXED_FACTOR(omap_12m_fck, "omap_48m_fck", &omap_48m_fck, 0=
+x0, 1, 4);
+-
+-static struct clk core_12m_fck;
+-
+-static const char *core_12m_fck_parent_names[] =3D {
+-	"omap_12m_fck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(core_12m_fck, "core_l4_clkdm");
+-DEFINE_STRUCT_CLK(core_12m_fck, core_12m_fck_parent_names, core_l4_ick=
+_ops);
+-
+-static struct clk core_48m_fck;
+-
+-static const char *core_48m_fck_parent_names[] =3D {
+-	"omap_48m_fck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(core_48m_fck, "core_l4_clkdm");
+-DEFINE_STRUCT_CLK(core_48m_fck, core_48m_fck_parent_names, core_l4_ick=
+_ops);
+-
+-static const char *omap_96m_fck_parent_names[] =3D {
+-	"cm_96m_fck", "sys_ck",
+-};
+-
+-DEFINE_CLK_MUX(omap_96m_fck, omap_96m_fck_parent_names, NULL, 0x0,
+-	       OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+-	       OMAP3430_SOURCE_96M_SHIFT, OMAP3430_SOURCE_96M_WIDTH, 0x0, NUL=
+L);
+-
+-static struct clk core_96m_fck;
+-
+-static const char *core_96m_fck_parent_names[] =3D {
+-	"omap_96m_fck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(core_96m_fck, "core_l4_clkdm");
+-DEFINE_STRUCT_CLK(core_96m_fck, core_96m_fck_parent_names, core_l4_ick=
+_ops);
+-
+-static struct clk core_l3_ick;
+-
+-static const char *core_l3_ick_parent_names[] =3D {
+-	"l3_ick",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(core_l3_ick, "core_l3_clkdm");
+-DEFINE_STRUCT_CLK(core_l3_ick, core_l3_ick_parent_names, core_l4_ick_o=
+ps);
+-
+-DEFINE_CLK_FIXED_FACTOR(dpll3_m2x2_ck, "dpll3_m2_ck", &dpll3_m2_ck, 0x=
+0, 2, 1);
+-
+-static struct clk corex2_fck;
+-
+-static const char *corex2_fck_parent_names[] =3D {
+-	"dpll3_m2x2_ck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(corex2_fck, NULL);
+-DEFINE_STRUCT_CLK(corex2_fck, corex2_fck_parent_names, core_ck_ops);
+-
+-static struct clk cpefuse_fck;
+-
+-static struct clk_hw_omap cpefuse_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &cpefuse_fck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
+-	.enable_bit	=3D OMAP3430ES2_EN_CPEFUSE_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(cpefuse_fck, dpll3_ck_parent_names, aes2_ick_ops);
+-
+-static struct clk csi2_96m_fck;
+-
+-static const char *csi2_96m_fck_parent_names[] =3D {
+-	"core_96m_fck",
+-};
+-
+-static struct clk_hw_omap csi2_96m_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &csi2_96m_fck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_CSI2_SHIFT,
+-	.clkdm_name	=3D "cam_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(csi2_96m_fck, csi2_96m_fck_parent_names, aes2_ick_op=
+s);
+-
+-static struct clk d2d_26m_fck;
+-
+-static struct clk_hw_omap d2d_26m_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &d2d_26m_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430ES1_EN_D2D_SHIFT,
+-	.clkdm_name	=3D "d2d_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(d2d_26m_fck, dpll3_ck_parent_names, aes2_ick_ops);
+-
+-static struct clk des1_ick;
+-
+-static struct clk_hw_omap des1_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &des1_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
+-	.enable_bit	=3D OMAP3430_EN_DES1_SHIFT,
+-};
+-
+-DEFINE_STRUCT_CLK(des1_ick, aes1_ick_parent_names, aes1_ick_ops);
+-
+-static struct clk des2_ick;
+-
+-static struct clk_hw_omap des2_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &des2_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_DES2_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(des2_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_DIVIDER(dpll1_fck, "core_ck", &core_ck, 0x0,
+-		   OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL),
+-		   OMAP3430_MPU_CLK_SRC_SHIFT, OMAP3430_MPU_CLK_SRC_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk dpll2_fck;
+-
+-static struct dpll_data dpll2_dd =3D {
+-	.mult_div1_reg	=3D OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLK=
+SEL1_PLL),
+-	.mult_mask	=3D OMAP3430_IVA2_DPLL_MULT_MASK,
+-	.div1_mask	=3D OMAP3430_IVA2_DPLL_DIV_MASK,
+-	.clk_bypass	=3D &dpll2_fck,
+-	.clk_ref	=3D &sys_ck,
+-	.freqsel_mask	=3D OMAP3430_IVA2_DPLL_FREQSEL_MASK,
+-	.control_reg	=3D OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKEN=
+_PLL),
+-	.enable_mask	=3D OMAP3430_EN_IVA2_DPLL_MASK,
+-	.modes		=3D ((1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED) |
+-			   (1 << DPLL_LOW_POWER_BYPASS)),
+-	.auto_recal_bit	=3D OMAP3430_EN_IVA2_DPLL_DRIFTGUARD_SHIFT,
+-	.recal_en_bit	=3D OMAP3430_PRM_IRQENABLE_MPU_IVA2_DPLL_RECAL_EN_SHIFT=
+,
+-	.recal_st_bit	=3D OMAP3430_PRM_IRQSTATUS_MPU_IVA2_DPLL_ST_SHIFT,
+-	.autoidle_reg	=3D OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_AUTO=
+IDLE_PLL),
+-	.autoidle_mask	=3D OMAP3430_AUTO_IVA2_DPLL_MASK,
+-	.idlest_reg	=3D OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_IDLEST=
+_PLL),
+-	.idlest_mask	=3D OMAP3430_ST_IVA2_CLK_MASK,
+-	.max_multiplier	=3D OMAP3_MAX_DPLL_MULT,
+-	.min_divider	=3D 1,
+-	.max_divider	=3D OMAP3_MAX_DPLL_DIV,
+-};
+-
+-static struct clk dpll2_ck;
+-
+-static struct clk_hw_omap dpll2_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dpll2_ck,
+-	},
+-	.ops		=3D &clkhwops_omap3_dpll,
+-	.dpll_data	=3D &dpll2_dd,
+-	.clkdm_name	=3D "dpll2_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dpll2_ck, dpll3_ck_parent_names, dpll1_ck_ops);
+-
+-DEFINE_CLK_DIVIDER(dpll2_fck, "core_ck", &core_ck, 0x0,
+-		   OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSEL1_PLL),
+-		   OMAP3430_IVA2_CLK_SRC_SHIFT, OMAP3430_IVA2_CLK_SRC_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-DEFINE_CLK_DIVIDER(dpll2_m2_ck, "dpll2_ck", &dpll2_ck, 0x0,
+-		   OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSEL2_PLL),
+-		   OMAP3430_IVA2_DPLL_CLKOUT_DIV_SHIFT,
+-		   OMAP3430_IVA2_DPLL_CLKOUT_DIV_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-DEFINE_CLK_DIVIDER(dpll3_m3_ck, "dpll3_ck", &dpll3_ck, 0x0,
+-		   OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
+-		   OMAP3430_DIV_DPLL3_SHIFT, OMAP3430_DIV_DPLL3_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk dpll3_m3x2_ck;
+-
+-static const char *dpll3_m3x2_ck_parent_names[] =3D {
+-	"dpll3_m3_ck",
+-};
+-
+-static struct clk_hw_omap dpll3_m3x2_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dpll3_m3x2_ck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+-	.enable_bit	=3D OMAP3430_PWRDN_EMU_CORE_SHIFT,
+-	.flags		=3D INVERT_ENABLE,
+-	.clkdm_name	=3D "dpll3_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dpll3_m3x2_ck, dpll3_m3x2_ck_parent_names, dpll4_m5x=
+2_ck_ops);
+-
+-static struct clk dpll3_m3x2_ck_3630 =3D {
+-	.name		=3D "dpll3_m3x2_ck",
+-	.hw		=3D &dpll3_m3x2_ck_hw.hw,
+-	.parent_names	=3D dpll3_m3x2_ck_parent_names,
+-	.num_parents	=3D ARRAY_SIZE(dpll3_m3x2_ck_parent_names),
+-	.ops		=3D &dpll4_m5x2_ck_3630_ops,
+-};
+-
+-DEFINE_CLK_FIXED_FACTOR(dpll3_x2_ck, "dpll3_ck", &dpll3_ck, 0x0, 2, 1)=
+;
+-
+-DEFINE_CLK_DIVIDER_TABLE(dpll4_m4_ck, "dpll4_ck", &dpll4_ck, 0x0,
+-		   OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
+-		   OMAP3430_CLKSEL_DSS1_SHIFT, OMAP3630_CLKSEL_DSS1_WIDTH,
+-		   0, dpll4_mx_ck_div_table, NULL);
+-
+-static struct clk dpll4_m4x2_ck;
+-
+-static const char *dpll4_m4x2_ck_parent_names[] =3D {
+-	"dpll4_m4_ck",
+-};
+-
+-static struct clk_hw_omap dpll4_m4x2_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dpll4_m4x2_ck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+-	.enable_bit	=3D OMAP3430_PWRDN_DSS1_SHIFT,
+-	.flags		=3D INVERT_ENABLE,
+-	.clkdm_name	=3D "dpll4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK_FLAGS(dpll4_m4x2_ck, dpll4_m4x2_ck_parent_names,
+-		dpll4_m5x2_ck_ops, CLK_SET_RATE_PARENT);
+-
+-static struct clk dpll4_m4x2_ck_3630 =3D {
+-	.name		=3D "dpll4_m4x2_ck",
+-	.hw		=3D &dpll4_m4x2_ck_hw.hw,
+-	.parent_names	=3D dpll4_m4x2_ck_parent_names,
+-	.num_parents	=3D ARRAY_SIZE(dpll4_m4x2_ck_parent_names),
+-	.ops		=3D &dpll4_m5x2_ck_3630_ops,
+-	.flags		=3D CLK_SET_RATE_PARENT,
+-};
+-
+-DEFINE_CLK_DIVIDER(dpll4_m6_ck, "dpll4_ck", &dpll4_ck, 0x0,
+-		   OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
+-		   OMAP3430_DIV_DPLL4_SHIFT, OMAP3630_DIV_DPLL4_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk dpll4_m6x2_ck;
+-
+-static const char *dpll4_m6x2_ck_parent_names[] =3D {
+-	"dpll4_m6_ck",
+-};
+-
+-static struct clk_hw_omap dpll4_m6x2_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dpll4_m6x2_ck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+-	.enable_bit	=3D OMAP3430_PWRDN_EMU_PERIPH_SHIFT,
+-	.flags		=3D INVERT_ENABLE,
+-	.clkdm_name	=3D "dpll4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dpll4_m6x2_ck, dpll4_m6x2_ck_parent_names, dpll4_m5x=
+2_ck_ops);
+-
+-static struct clk dpll4_m6x2_ck_3630 =3D {
+-	.name		=3D "dpll4_m6x2_ck",
+-	.hw		=3D &dpll4_m6x2_ck_hw.hw,
+-	.parent_names	=3D dpll4_m6x2_ck_parent_names,
+-	.num_parents	=3D ARRAY_SIZE(dpll4_m6x2_ck_parent_names),
+-	.ops		=3D &dpll4_m5x2_ck_3630_ops,
+-};
+-
+-DEFINE_CLK_FIXED_FACTOR(dpll4_x2_ck, "dpll4_ck", &dpll4_ck, 0x0, 2, 1)=
+;
+-
+-static struct dpll_data dpll5_dd =3D {
+-	.mult_div1_reg	=3D OMAP_CM_REGADDR(PLL_MOD, OMAP3430ES2_CM_CLKSEL4),
+-	.mult_mask	=3D OMAP3430ES2_PERIPH2_DPLL_MULT_MASK,
+-	.div1_mask	=3D OMAP3430ES2_PERIPH2_DPLL_DIV_MASK,
+-	.clk_bypass	=3D &sys_ck,
+-	.clk_ref	=3D &sys_ck,
+-	.freqsel_mask	=3D OMAP3430ES2_PERIPH2_DPLL_FREQSEL_MASK,
+-	.control_reg	=3D OMAP_CM_REGADDR(PLL_MOD, OMAP3430ES2_CM_CLKEN2),
+-	.enable_mask	=3D OMAP3430ES2_EN_PERIPH2_DPLL_MASK,
+-	.modes		=3D (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED),
+-	.auto_recal_bit	=3D OMAP3430ES2_EN_PERIPH2_DPLL_DRIFTGUARD_SHIFT,
+-	.recal_en_bit	=3D OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN_SHIFT,
+-	.recal_st_bit	=3D OMAP3430ES2_SND_PERIPH_DPLL_ST_SHIFT,
+-	.autoidle_reg	=3D OMAP_CM_REGADDR(PLL_MOD, OMAP3430ES2_CM_AUTOIDLE2_P=
+LL),
+-	.autoidle_mask	=3D OMAP3430ES2_AUTO_PERIPH2_DPLL_MASK,
+-	.idlest_reg	=3D OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST2),
+-	.idlest_mask	=3D OMAP3430ES2_ST_PERIPH2_CLK_MASK,
+-	.max_multiplier	=3D OMAP3_MAX_DPLL_MULT,
+-	.min_divider	=3D 1,
+-	.max_divider	=3D OMAP3_MAX_DPLL_DIV,
+-};
+-
+-static struct clk dpll5_ck;
+-
+-static struct clk_hw_omap dpll5_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dpll5_ck,
+-	},
+-	.ops		=3D &clkhwops_omap3_dpll,
+-	.dpll_data	=3D &dpll5_dd,
+-	.clkdm_name	=3D "dpll5_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dpll5_ck, dpll3_ck_parent_names, dpll1_ck_ops);
+-
+-DEFINE_CLK_DIVIDER(dpll5_m2_ck, "dpll5_ck", &dpll5_ck, 0x0,
+-		   OMAP_CM_REGADDR(PLL_MOD, OMAP3430ES2_CM_CLKSEL5),
+-		   OMAP3430ES2_DIV_120M_SHIFT, OMAP3430ES2_DIV_120M_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk dss1_alwon_fck_3430es1;
+-
+-static const char *dss1_alwon_fck_3430es1_parent_names[] =3D {
+-	"dpll4_m4x2_ck",
+-};
+-
+-static struct clk_hw_omap dss1_alwon_fck_3430es1_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dss1_alwon_fck_3430es1,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_DSS1_SHIFT,
+-	.clkdm_name	=3D "dss_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK_FLAGS(dss1_alwon_fck_3430es1,
+-		dss1_alwon_fck_3430es1_parent_names, aes2_ick_ops,
+-		CLK_SET_RATE_PARENT);
+-
+-static struct clk dss1_alwon_fck_3430es2;
+-
+-static struct clk_hw_omap dss1_alwon_fck_3430es2_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dss1_alwon_fck_3430es2,
+-	},
+-	.ops		=3D &clkhwops_omap3430es2_dss_usbhost_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_DSS1_SHIFT,
+-	.clkdm_name	=3D "dss_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK_FLAGS(dss1_alwon_fck_3430es2,
+-		dss1_alwon_fck_3430es1_parent_names, aes2_ick_ops,
+-		CLK_SET_RATE_PARENT);
+-
+-static struct clk dss2_alwon_fck;
+-
+-static struct clk_hw_omap dss2_alwon_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dss2_alwon_fck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_DSS2_SHIFT,
+-	.clkdm_name	=3D "dss_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dss2_alwon_fck, dpll3_ck_parent_names, aes2_ick_ops)=
+;
+-
+-static struct clk dss_96m_fck;
+-
+-static struct clk_hw_omap dss_96m_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dss_96m_fck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_TV_SHIFT,
+-	.clkdm_name	=3D "dss_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dss_96m_fck, core_96m_fck_parent_names, aes2_ick_ops=
+);
+-
+-static struct clk dss_ick_3430es1;
+-
+-static struct clk_hw_omap dss_ick_3430es1_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dss_ick_3430es1,
+-	},
+-	.ops		=3D &clkhwops_iclk,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_CM_ICLKEN_DSS_EN_DSS_SHIFT,
+-	.clkdm_name	=3D "dss_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dss_ick_3430es1, security_l4_ick2_parent_names, aes2=
+_ick_ops);
+-
+-static struct clk dss_ick_3430es2;
+-
+-static struct clk_hw_omap dss_ick_3430es2_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dss_ick_3430es2,
+-	},
+-	.ops		=3D &clkhwops_omap3430es2_iclk_dss_usbhost_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_CM_ICLKEN_DSS_EN_DSS_SHIFT,
+-	.clkdm_name	=3D "dss_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dss_ick_3430es2, security_l4_ick2_parent_names, aes2=
+_ick_ops);
+-
+-static struct clk dss_tv_fck;
+-
+-static const char *dss_tv_fck_parent_names[] =3D {
+-	"omap_54m_fck",
+-};
+-
+-static struct clk_hw_omap dss_tv_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &dss_tv_fck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_TV_SHIFT,
+-	.clkdm_name	=3D "dss_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(dss_tv_fck, dss_tv_fck_parent_names, aes2_ick_ops);
+-
+-static struct clk emac_fck;
+-
+-static const char *emac_fck_parent_names[] =3D {
+-	"rmii_ck",
+-};
+-
+-static struct clk_hw_omap emac_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &emac_fck,
+-	},
+-	.enable_reg	=3D OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+-	.enable_bit	=3D AM35XX_CPGMAC_FCLK_SHIFT,
+-};
+-
+-DEFINE_STRUCT_CLK(emac_fck, emac_fck_parent_names, aes1_ick_ops);
+-
+-static struct clk ipss_ick;
+-
+-static const char *ipss_ick_parent_names[] =3D {
+-	"core_l3_ick",
+-};
+-
+-static struct clk_hw_omap ipss_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &ipss_ick,
+-	},
+-	.ops		=3D &clkhwops_am35xx_ipss_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D AM35XX_EN_IPSS_SHIFT,
+-	.clkdm_name	=3D "core_l3_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(ipss_ick, ipss_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk emac_ick;
+-
+-static const char *emac_ick_parent_names[] =3D {
+-	"ipss_ick",
+-};
+-
+-static struct clk_hw_omap emac_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &emac_ick,
+-	},
+-	.ops		=3D &clkhwops_am35xx_ipss_module_wait,
+-	.enable_reg	=3D OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+-	.enable_bit	=3D AM35XX_CPGMAC_VBUSP_CLK_SHIFT,
+-	.clkdm_name	=3D "core_l3_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(emac_ick, emac_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk emu_core_alwon_ck;
+-
+-static const char *emu_core_alwon_ck_parent_names[] =3D {
+-	"dpll3_m3x2_ck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(emu_core_alwon_ck, "dpll3_clkdm");
+-DEFINE_STRUCT_CLK(emu_core_alwon_ck, emu_core_alwon_ck_parent_names,
+-		  core_l4_ick_ops);
+-
+-static struct clk emu_mpu_alwon_ck;
+-
+-static const char *emu_mpu_alwon_ck_parent_names[] =3D {
+-	"mpu_ck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(emu_mpu_alwon_ck, NULL);
+-DEFINE_STRUCT_CLK(emu_mpu_alwon_ck, emu_mpu_alwon_ck_parent_names, cor=
+e_ck_ops);
+-
+-static struct clk emu_per_alwon_ck;
+-
+-static const char *emu_per_alwon_ck_parent_names[] =3D {
+-	"dpll4_m6x2_ck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(emu_per_alwon_ck, "dpll4_clkdm");
+-DEFINE_STRUCT_CLK(emu_per_alwon_ck, emu_per_alwon_ck_parent_names,
+-		  core_l4_ick_ops);
+-
+-static const char *emu_src_ck_parent_names[] =3D {
+-	"sys_ck", "emu_core_alwon_ck", "emu_per_alwon_ck", "emu_mpu_alwon_ck"=
+,
+-};
+-
+-static const struct clksel_rate emu_src_sys_rates[] =3D {
+-	{ .div =3D 1, .val =3D 0, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 },
+-};
+-
+-static const struct clksel_rate emu_src_core_rates[] =3D {
+-	{ .div =3D 1, .val =3D 1, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 },
+-};
+-
+-static const struct clksel_rate emu_src_per_rates[] =3D {
+-	{ .div =3D 1, .val =3D 2, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 },
+-};
+-
+-static const struct clksel_rate emu_src_mpu_rates[] =3D {
+-	{ .div =3D 1, .val =3D 3, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 },
+-};
+-
+-static const struct clksel emu_src_clksel[] =3D {
+-	{ .parent =3D &sys_ck,		.rates =3D emu_src_sys_rates },
+-	{ .parent =3D &emu_core_alwon_ck, .rates =3D emu_src_core_rates },
+-	{ .parent =3D &emu_per_alwon_ck,	.rates =3D emu_src_per_rates },
+-	{ .parent =3D &emu_mpu_alwon_ck,	.rates =3D emu_src_mpu_rates },
+-	{ .parent =3D NULL },
+-};
+-
+-static const struct clk_ops emu_src_ck_ops =3D {
+-	.init		=3D &omap2_init_clk_clkdm,
+-	.recalc_rate	=3D &omap2_clksel_recalc,
+-	.get_parent	=3D &omap2_clksel_find_parent_index,
+-	.set_parent	=3D &omap2_clksel_set_parent,
+-	.enable		=3D &omap2_clkops_enable_clkdm,
+-	.disable	=3D &omap2_clkops_disable_clkdm,
+-};
+-
+-static struct clk emu_src_ck;
+-
+-static struct clk_hw_omap emu_src_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &emu_src_ck,
+-	},
+-	.clksel		=3D emu_src_clksel,
+-	.clksel_reg	=3D OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
+-	.clksel_mask	=3D OMAP3430_MUX_CTRL_MASK,
+-	.clkdm_name	=3D "emu_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(emu_src_ck, emu_src_ck_parent_names, emu_src_ck_ops)=
+;
+-
+-DEFINE_CLK_DIVIDER(atclk_fck, "emu_src_ck", &emu_src_ck, 0x0,
+-		   OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
+-		   OMAP3430_CLKSEL_ATCLK_SHIFT, OMAP3430_CLKSEL_ATCLK_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk fac_ick;
+-
+-static struct clk_hw_omap fac_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &fac_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430ES1_EN_FAC_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(fac_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk fshostusb_fck;
+-
+-static const char *fshostusb_fck_parent_names[] =3D {
+-	"core_48m_fck",
+-};
+-
+-static struct clk_hw_omap fshostusb_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &fshostusb_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430ES1_EN_FSHOSTUSB_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(fshostusb_fck, fshostusb_fck_parent_names, aes2_ick_=
+ops);
+-
+-static struct clk gfx_l3_ck;
+-
+-static struct clk_hw_omap gfx_l3_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gfx_l3_ck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(GFX_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP_EN_GFX_SHIFT,
+-	.clkdm_name	=3D "gfx_3430es1_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gfx_l3_ck, core_l3_ick_parent_names, aes1_ick_ops);
+-
+-DEFINE_CLK_DIVIDER(gfx_l3_fck, "l3_ick", &l3_ick, 0x0,
+-		   OMAP_CM_REGADDR(GFX_MOD, CM_CLKSEL),
+-		   OMAP_CLKSEL_GFX_SHIFT, OMAP_CLKSEL_GFX_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk gfx_cg1_ck;
+-
+-static const char *gfx_cg1_ck_parent_names[] =3D {
+-	"gfx_l3_fck",
+-};
+-
+-static struct clk_hw_omap gfx_cg1_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gfx_cg1_ck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(GFX_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430ES1_EN_2D_SHIFT,
+-	.clkdm_name	=3D "gfx_3430es1_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gfx_cg1_ck, gfx_cg1_ck_parent_names, aes2_ick_ops);
+-
+-static struct clk gfx_cg2_ck;
+-
+-static struct clk_hw_omap gfx_cg2_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gfx_cg2_ck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(GFX_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430ES1_EN_3D_SHIFT,
+-	.clkdm_name	=3D "gfx_3430es1_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gfx_cg2_ck, gfx_cg1_ck_parent_names, aes2_ick_ops);
+-
+-static struct clk gfx_l3_ick;
+-
+-static const char *gfx_l3_ick_parent_names[] =3D {
+-	"gfx_l3_ck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(gfx_l3_ick, "gfx_3430es1_clkdm");
+-DEFINE_STRUCT_CLK(gfx_l3_ick, gfx_l3_ick_parent_names, core_l4_ick_ops=
+);
+-
+-static struct clk wkup_32k_fck;
+-
+-static const char *wkup_32k_fck_parent_names[] =3D {
+-	"omap_32k_fck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(wkup_32k_fck, "wkup_clkdm");
+-DEFINE_STRUCT_CLK(wkup_32k_fck, wkup_32k_fck_parent_names, core_l4_ick=
+_ops);
+-
+-static struct clk gpio1_dbck;
+-
+-static const char *gpio1_dbck_parent_names[] =3D {
+-	"wkup_32k_fck",
+-};
+-
+-static struct clk_hw_omap gpio1_dbck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpio1_dbck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPIO1_SHIFT,
+-	.clkdm_name	=3D "wkup_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpio1_dbck, gpio1_dbck_parent_names, aes2_ick_ops);
+-
+-static struct clk wkup_l4_ick;
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(wkup_l4_ick, "wkup_clkdm");
+-DEFINE_STRUCT_CLK(wkup_l4_ick, dpll3_ck_parent_names, core_l4_ick_ops)=
+;
+-
+-static struct clk gpio1_ick;
+-
+-static const char *gpio1_ick_parent_names[] =3D {
+-	"wkup_l4_ick",
+-};
+-
+-static struct clk_hw_omap gpio1_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpio1_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPIO1_SHIFT,
+-	.clkdm_name	=3D "wkup_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpio1_ick, gpio1_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk per_32k_alwon_fck;
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(per_32k_alwon_fck, "per_clkdm");
+-DEFINE_STRUCT_CLK(per_32k_alwon_fck, wkup_32k_fck_parent_names,
+-		  core_l4_ick_ops);
+-
+-static struct clk gpio2_dbck;
+-
+-static const char *gpio2_dbck_parent_names[] =3D {
+-	"per_32k_alwon_fck",
+-};
+-
+-static struct clk_hw_omap gpio2_dbck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpio2_dbck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPIO2_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpio2_dbck, gpio2_dbck_parent_names, aes2_ick_ops);
+-
+-static struct clk per_l4_ick;
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(per_l4_ick, "per_clkdm");
+-DEFINE_STRUCT_CLK(per_l4_ick, security_l4_ick2_parent_names, core_l4_i=
+ck_ops);
+-
+-static struct clk gpio2_ick;
+-
+-static const char *gpio2_ick_parent_names[] =3D {
+-	"per_l4_ick",
+-};
+-
+-static struct clk_hw_omap gpio2_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpio2_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPIO2_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpio2_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk gpio3_dbck;
+-
+-static struct clk_hw_omap gpio3_dbck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpio3_dbck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPIO3_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpio3_dbck, gpio2_dbck_parent_names, aes2_ick_ops);
+-
+-static struct clk gpio3_ick;
+-
+-static struct clk_hw_omap gpio3_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpio3_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPIO3_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpio3_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk gpio4_dbck;
+-
+-static struct clk_hw_omap gpio4_dbck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpio4_dbck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPIO4_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpio4_dbck, gpio2_dbck_parent_names, aes2_ick_ops);
+-
+-static struct clk gpio4_ick;
+-
+-static struct clk_hw_omap gpio4_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpio4_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPIO4_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpio4_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk gpio5_dbck;
+-
+-static struct clk_hw_omap gpio5_dbck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpio5_dbck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPIO5_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpio5_dbck, gpio2_dbck_parent_names, aes2_ick_ops);
+-
+-static struct clk gpio5_ick;
+-
+-static struct clk_hw_omap gpio5_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpio5_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPIO5_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpio5_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk gpio6_dbck;
+-
+-static struct clk_hw_omap gpio6_dbck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpio6_dbck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPIO6_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpio6_dbck, gpio2_dbck_parent_names, aes2_ick_ops);
+-
+-static struct clk gpio6_ick;
+-
+-static struct clk_hw_omap gpio6_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpio6_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPIO6_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpio6_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk gpmc_fck;
+-
+-static struct clk_hw_omap gpmc_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpmc_fck,
+-	},
+-	.flags		=3D ENABLE_ON_INIT,
+-	.clkdm_name	=3D "core_l3_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpmc_fck, ipss_ick_parent_names, core_l4_ick_ops);
+-
+-static const struct clksel omap343x_gpt_clksel[] =3D {
+-	{ .parent =3D &omap_32k_fck, .rates =3D gpt_32k_rates },
+-	{ .parent =3D &sys_ck, .rates =3D gpt_sys_rates },
+-	{ .parent =3D NULL },
+-};
+-
+-static const char *gpt10_fck_parent_names[] =3D {
+-	"omap_32k_fck", "sys_ck",
+-};
+-
+-DEFINE_CLK_OMAP_MUX_GATE(gpt10_fck, "core_l4_clkdm", omap343x_gpt_clks=
+el,
+-			 OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_GPT10_MASK,
+-			 OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-			 OMAP3430_EN_GPT10_SHIFT, &clkhwops_wait,
+-			 gpt10_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk gpt10_ick;
+-
+-static struct clk_hw_omap gpt10_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpt10_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_GPT10_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpt10_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(gpt11_fck, "core_l4_clkdm", omap343x_gpt_clks=
+el,
+-			 OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_GPT11_MASK,
+-			 OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-			 OMAP3430_EN_GPT11_SHIFT, &clkhwops_wait,
+-			 gpt10_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk gpt11_ick;
+-
+-static struct clk_hw_omap gpt11_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpt11_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_GPT11_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpt11_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk gpt12_fck;
+-
+-static const char *gpt12_fck_parent_names[] =3D {
+-	"secure_32k_fck",
+-};
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(gpt12_fck, "wkup_clkdm");
+-DEFINE_STRUCT_CLK(gpt12_fck, gpt12_fck_parent_names, core_l4_ick_ops);
+-
+-static struct clk gpt12_ick;
+-
+-static struct clk_hw_omap gpt12_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpt12_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPT12_SHIFT,
+-	.clkdm_name	=3D "wkup_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpt12_ick, gpio1_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(gpt1_fck, "wkup_clkdm", omap343x_gpt_clksel,
+-			 OMAP_CM_REGADDR(WKUP_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_GPT1_MASK,
+-			 OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+-			 OMAP3430_EN_GPT1_SHIFT, &clkhwops_wait,
+-			 gpt10_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk gpt1_ick;
+-
+-static struct clk_hw_omap gpt1_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpt1_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPT1_SHIFT,
+-	.clkdm_name	=3D "wkup_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpt1_ick, gpio1_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(gpt2_fck, "per_clkdm", omap343x_gpt_clksel,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_GPT2_MASK,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-			 OMAP3430_EN_GPT2_SHIFT, &clkhwops_wait,
+-			 gpt10_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk gpt2_ick;
+-
+-static struct clk_hw_omap gpt2_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpt2_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPT2_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpt2_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(gpt3_fck, "per_clkdm", omap343x_gpt_clksel,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_GPT3_MASK,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-			 OMAP3430_EN_GPT3_SHIFT, &clkhwops_wait,
+-			 gpt10_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk gpt3_ick;
+-
+-static struct clk_hw_omap gpt3_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpt3_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPT3_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpt3_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(gpt4_fck, "per_clkdm", omap343x_gpt_clksel,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_GPT4_MASK,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-			 OMAP3430_EN_GPT4_SHIFT, &clkhwops_wait,
+-			 gpt10_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk gpt4_ick;
+-
+-static struct clk_hw_omap gpt4_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpt4_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPT4_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpt4_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(gpt5_fck, "per_clkdm", omap343x_gpt_clksel,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_GPT5_MASK,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-			 OMAP3430_EN_GPT5_SHIFT, &clkhwops_wait,
+-			 gpt10_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk gpt5_ick;
+-
+-static struct clk_hw_omap gpt5_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpt5_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPT5_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpt5_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(gpt6_fck, "per_clkdm", omap343x_gpt_clksel,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_GPT6_MASK,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-			 OMAP3430_EN_GPT6_SHIFT, &clkhwops_wait,
+-			 gpt10_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk gpt6_ick;
+-
+-static struct clk_hw_omap gpt6_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpt6_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPT6_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpt6_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(gpt7_fck, "per_clkdm", omap343x_gpt_clksel,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_GPT7_MASK,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-			 OMAP3430_EN_GPT7_SHIFT, &clkhwops_wait,
+-			 gpt10_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk gpt7_ick;
+-
+-static struct clk_hw_omap gpt7_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpt7_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPT7_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpt7_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(gpt8_fck, "per_clkdm", omap343x_gpt_clksel,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_GPT8_MASK,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-			 OMAP3430_EN_GPT8_SHIFT, &clkhwops_wait,
+-			 gpt10_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk gpt8_ick;
+-
+-static struct clk_hw_omap gpt8_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpt8_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPT8_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpt8_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(gpt9_fck, "per_clkdm", omap343x_gpt_clksel,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_GPT9_MASK,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-			 OMAP3430_EN_GPT9_SHIFT, &clkhwops_wait,
+-			 gpt10_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk gpt9_ick;
+-
+-static struct clk_hw_omap gpt9_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &gpt9_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_GPT9_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(gpt9_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk hdq_fck;
+-
+-static const char *hdq_fck_parent_names[] =3D {
+-	"core_12m_fck",
+-};
+-
+-static struct clk_hw_omap hdq_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &hdq_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_HDQ_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(hdq_fck, hdq_fck_parent_names, aes2_ick_ops);
+-
+-static struct clk hdq_ick;
+-
+-static struct clk_hw_omap hdq_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &hdq_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_HDQ_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(hdq_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk hecc_ck;
+-
+-static struct clk_hw_omap hecc_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &hecc_ck,
+-	},
+-	.ops		=3D &clkhwops_am35xx_ipss_module_wait,
+-	.enable_reg	=3D OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+-	.enable_bit	=3D AM35XX_HECC_VBUSP_CLK_SHIFT,
+-	.clkdm_name	=3D "core_l3_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(hecc_ck, dpll3_ck_parent_names, aes2_ick_ops);
+-
+-static struct clk hsotgusb_fck_am35xx;
+-
+-static struct clk_hw_omap hsotgusb_fck_am35xx_hw =3D {
+-	.hw =3D {
+-		.clk =3D &hsotgusb_fck_am35xx,
+-	},
+-	.enable_reg	=3D OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+-	.enable_bit	=3D AM35XX_USBOTG_FCLK_SHIFT,
+-	.clkdm_name	=3D "core_l3_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(hsotgusb_fck_am35xx, dpll3_ck_parent_names, aes2_ick=
+_ops);
+-
+-static struct clk hsotgusb_ick_3430es1;
+-
+-static struct clk_hw_omap hsotgusb_ick_3430es1_hw =3D {
+-	.hw =3D {
+-		.clk =3D &hsotgusb_ick_3430es1,
+-	},
+-	.ops		=3D &clkhwops_iclk,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_HSOTGUSB_SHIFT,
+-	.clkdm_name	=3D "core_l3_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(hsotgusb_ick_3430es1, ipss_ick_parent_names, aes2_ic=
+k_ops);
+-
+-static struct clk hsotgusb_ick_3430es2;
+-
+-static struct clk_hw_omap hsotgusb_ick_3430es2_hw =3D {
+-	.hw =3D {
+-		.clk =3D &hsotgusb_ick_3430es2,
+-	},
+-	.ops		=3D &clkhwops_omap3430es2_iclk_hsotgusb_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_HSOTGUSB_SHIFT,
+-	.clkdm_name	=3D "core_l3_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(hsotgusb_ick_3430es2, ipss_ick_parent_names, aes2_ic=
+k_ops);
+-
+-static struct clk hsotgusb_ick_am35xx;
+-
+-static struct clk_hw_omap hsotgusb_ick_am35xx_hw =3D {
+-	.hw =3D {
+-		.clk =3D &hsotgusb_ick_am35xx,
+-	},
+-	.ops		=3D &clkhwops_am35xx_ipss_module_wait,
+-	.enable_reg	=3D OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+-	.enable_bit	=3D AM35XX_USBOTG_VBUSP_CLK_SHIFT,
+-	.clkdm_name	=3D "core_l3_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(hsotgusb_ick_am35xx, emac_ick_parent_names, aes2_ick=
+_ops);
+-
+-static struct clk i2c1_fck;
+-
+-static struct clk_hw_omap i2c1_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &i2c1_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_I2C1_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(i2c1_fck, csi2_96m_fck_parent_names, aes2_ick_ops);
+-
+-static struct clk i2c1_ick;
+-
+-static struct clk_hw_omap i2c1_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &i2c1_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_I2C1_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(i2c1_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk i2c2_fck;
+-
+-static struct clk_hw_omap i2c2_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &i2c2_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_I2C2_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(i2c2_fck, csi2_96m_fck_parent_names, aes2_ick_ops);
+-
+-static struct clk i2c2_ick;
+-
+-static struct clk_hw_omap i2c2_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &i2c2_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_I2C2_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(i2c2_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk i2c3_fck;
+-
+-static struct clk_hw_omap i2c3_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &i2c3_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_I2C3_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(i2c3_fck, csi2_96m_fck_parent_names, aes2_ick_ops);
+-
+-static struct clk i2c3_ick;
+-
+-static struct clk_hw_omap i2c3_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &i2c3_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_I2C3_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(i2c3_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk icr_ick;
+-
+-static struct clk_hw_omap icr_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &icr_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_ICR_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(icr_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk iva2_ck;
+-
+-static const char *iva2_ck_parent_names[] =3D {
+-	"dpll2_m2_ck",
+-};
+-
+-static struct clk_hw_omap iva2_ck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &iva2_ck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_SHIFT,
+-	.clkdm_name	=3D "iva2_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(iva2_ck, iva2_ck_parent_names, aes2_ick_ops);
+-
+-static struct clk mad2d_ick;
+-
+-static struct clk_hw_omap mad2d_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mad2d_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN3),
+-	.enable_bit	=3D OMAP3430_EN_MAD2D_SHIFT,
+-	.clkdm_name	=3D "d2d_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mad2d_ick, core_l3_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk mailboxes_ick;
+-
+-static struct clk_hw_omap mailboxes_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mailboxes_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MAILBOXES_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mailboxes_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static const struct clksel_rate common_mcbsp_96m_rates[] =3D {
+-	{ .div =3D 1, .val =3D 0, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel_rate common_mcbsp_mcbsp_rates[] =3D {
+-	{ .div =3D 1, .val =3D 1, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel mcbsp_15_clksel[] =3D {
+-	{ .parent =3D &core_96m_fck, .rates =3D common_mcbsp_96m_rates },
+-	{ .parent =3D &mcbsp_clks, .rates =3D common_mcbsp_mcbsp_rates },
+-	{ .parent =3D NULL },
+-};
+-
+-static const char *mcbsp1_fck_parent_names[] =3D {
+-	"core_96m_fck", "mcbsp_clks",
+-};
+-
+-DEFINE_CLK_OMAP_MUX_GATE(mcbsp1_fck, "core_l4_clkdm", mcbsp_15_clksel,
+-			 OMAP343X_CTRL_REGADDR(OMAP2_CONTROL_DEVCONF0),
+-			 OMAP2_MCBSP1_CLKS_MASK,
+-			 OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-			 OMAP3430_EN_MCBSP1_SHIFT, &clkhwops_wait,
+-			 mcbsp1_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk mcbsp1_ick;
+-
+-static struct clk_hw_omap mcbsp1_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcbsp1_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MCBSP1_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcbsp1_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk per_96m_fck;
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(per_96m_fck, "per_clkdm");
+-DEFINE_STRUCT_CLK(per_96m_fck, cm_96m_fck_parent_names, core_l4_ick_op=
+s);
+-
+-static const struct clksel mcbsp_234_clksel[] =3D {
+-	{ .parent =3D &per_96m_fck, .rates =3D common_mcbsp_96m_rates },
+-	{ .parent =3D &mcbsp_clks, .rates =3D common_mcbsp_mcbsp_rates },
+-	{ .parent =3D NULL },
+-};
+-
+-static const char *mcbsp2_fck_parent_names[] =3D {
+-	"per_96m_fck", "mcbsp_clks",
+-};
+-
+-DEFINE_CLK_OMAP_MUX_GATE(mcbsp2_fck, "per_clkdm", mcbsp_234_clksel,
+-			 OMAP343X_CTRL_REGADDR(OMAP2_CONTROL_DEVCONF0),
+-			 OMAP2_MCBSP2_CLKS_MASK,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-			 OMAP3430_EN_MCBSP2_SHIFT, &clkhwops_wait,
+-			 mcbsp2_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk mcbsp2_ick;
+-
+-static struct clk_hw_omap mcbsp2_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcbsp2_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_MCBSP2_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcbsp2_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(mcbsp3_fck, "per_clkdm", mcbsp_234_clksel,
+-			 OMAP343X_CTRL_REGADDR(OMAP343X_CONTROL_DEVCONF1),
+-			 OMAP2_MCBSP3_CLKS_MASK,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-			 OMAP3430_EN_MCBSP3_SHIFT, &clkhwops_wait,
+-			 mcbsp2_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk mcbsp3_ick;
+-
+-static struct clk_hw_omap mcbsp3_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcbsp3_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_MCBSP3_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcbsp3_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(mcbsp4_fck, "per_clkdm", mcbsp_234_clksel,
+-			 OMAP343X_CTRL_REGADDR(OMAP343X_CONTROL_DEVCONF1),
+-			 OMAP2_MCBSP4_CLKS_MASK,
+-			 OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-			 OMAP3430_EN_MCBSP4_SHIFT, &clkhwops_wait,
+-			 mcbsp2_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk mcbsp4_ick;
+-
+-static struct clk_hw_omap mcbsp4_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcbsp4_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_MCBSP4_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcbsp4_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(mcbsp5_fck, "core_l4_clkdm", mcbsp_15_clksel,
+-			 OMAP343X_CTRL_REGADDR(OMAP343X_CONTROL_DEVCONF1),
+-			 OMAP2_MCBSP5_CLKS_MASK,
+-			 OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-			 OMAP3430_EN_MCBSP5_SHIFT, &clkhwops_wait,
+-			 mcbsp1_fck_parent_names, clkout2_src_ck_ops);
+-
+-static struct clk mcbsp5_ick;
+-
+-static struct clk_hw_omap mcbsp5_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcbsp5_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MCBSP5_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcbsp5_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk mcspi1_fck;
+-
+-static struct clk_hw_omap mcspi1_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcspi1_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MCSPI1_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcspi1_fck, fshostusb_fck_parent_names, aes2_ick_ops=
+);
+-
+-static struct clk mcspi1_ick;
+-
+-static struct clk_hw_omap mcspi1_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcspi1_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MCSPI1_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcspi1_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk mcspi2_fck;
+-
+-static struct clk_hw_omap mcspi2_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcspi2_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MCSPI2_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcspi2_fck, fshostusb_fck_parent_names, aes2_ick_ops=
+);
+-
+-static struct clk mcspi2_ick;
+-
+-static struct clk_hw_omap mcspi2_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcspi2_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MCSPI2_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcspi2_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk mcspi3_fck;
+-
+-static struct clk_hw_omap mcspi3_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcspi3_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MCSPI3_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcspi3_fck, fshostusb_fck_parent_names, aes2_ick_ops=
+);
+-
+-static struct clk mcspi3_ick;
+-
+-static struct clk_hw_omap mcspi3_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcspi3_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MCSPI3_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcspi3_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk mcspi4_fck;
+-
+-static struct clk_hw_omap mcspi4_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcspi4_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MCSPI4_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcspi4_fck, fshostusb_fck_parent_names, aes2_ick_ops=
+);
+-
+-static struct clk mcspi4_ick;
+-
+-static struct clk_hw_omap mcspi4_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mcspi4_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MCSPI4_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mcspi4_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk mmchs1_fck;
+-
+-static struct clk_hw_omap mmchs1_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mmchs1_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MMC1_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mmchs1_fck, csi2_96m_fck_parent_names, aes2_ick_ops)=
+;
+-
+-static struct clk mmchs1_ick;
+-
+-static struct clk_hw_omap mmchs1_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mmchs1_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MMC1_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mmchs1_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk mmchs2_fck;
+-
+-static struct clk_hw_omap mmchs2_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mmchs2_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MMC2_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mmchs2_fck, csi2_96m_fck_parent_names, aes2_ick_ops)=
+;
+-
+-static struct clk mmchs2_ick;
+-
+-static struct clk_hw_omap mmchs2_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mmchs2_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MMC2_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mmchs2_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk mmchs3_fck;
+-
+-static struct clk_hw_omap mmchs3_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mmchs3_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430ES2_EN_MMC3_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mmchs3_fck, csi2_96m_fck_parent_names, aes2_ick_ops)=
+;
+-
+-static struct clk mmchs3_ick;
+-
+-static struct clk_hw_omap mmchs3_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mmchs3_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430ES2_EN_MMC3_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mmchs3_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk modem_fck;
+-
+-static struct clk_hw_omap modem_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &modem_fck,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MODEM_SHIFT,
+-	.clkdm_name	=3D "d2d_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(modem_fck, dpll3_ck_parent_names, aes2_ick_ops);
+-
+-static struct clk mspro_fck;
+-
+-static struct clk_hw_omap mspro_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mspro_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MSPRO_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mspro_fck, csi2_96m_fck_parent_names, aes2_ick_ops);
+-
+-static struct clk mspro_ick;
+-
+-static struct clk_hw_omap mspro_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &mspro_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_MSPRO_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(mspro_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk omap_192m_alwon_fck;
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(omap_192m_alwon_fck, NULL);
+-DEFINE_STRUCT_CLK(omap_192m_alwon_fck, omap_96m_alwon_fck_parent_names=
+,
+-		  core_ck_ops);
+-
+-static struct clk omap_32ksync_ick;
+-
+-static struct clk_hw_omap omap_32ksync_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &omap_32ksync_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_32KSYNC_SHIFT,
+-	.clkdm_name	=3D "wkup_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(omap_32ksync_ick, gpio1_ick_parent_names, aes2_ick_o=
+ps);
+-
+-static const struct clksel_rate omap_96m_alwon_fck_rates[] =3D {
+-	{ .div =3D 1, .val =3D 1, .flags =3D RATE_IN_36XX },
+-	{ .div =3D 2, .val =3D 2, .flags =3D RATE_IN_36XX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel omap_96m_alwon_fck_clksel[] =3D {
+-	{ .parent =3D &omap_192m_alwon_fck, .rates =3D omap_96m_alwon_fck_rat=
+es },
+-	{ .parent =3D NULL }
+-};
+-
+-static struct clk omap_96m_alwon_fck_3630;
+-
+-static const char *omap_96m_alwon_fck_3630_parent_names[] =3D {
+-	"omap_192m_alwon_fck",
+-};
+-
+-static const struct clk_ops omap_96m_alwon_fck_3630_ops =3D {
+-	.set_rate	=3D &omap2_clksel_set_rate,
+-	.recalc_rate	=3D &omap2_clksel_recalc,
+-	.round_rate	=3D &omap2_clksel_round_rate,
+-};
+-
+-static struct clk_hw_omap omap_96m_alwon_fck_3630_hw =3D {
+-	.hw =3D {
+-		.clk =3D &omap_96m_alwon_fck_3630,
+-	},
+-	.clksel		=3D omap_96m_alwon_fck_clksel,
+-	.clksel_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
+-	.clksel_mask	=3D OMAP3630_CLKSEL_96M_MASK,
+-};
+-
+-static struct clk omap_96m_alwon_fck_3630 =3D {
+-	.name	=3D "omap_96m_alwon_fck",
+-	.hw	=3D &omap_96m_alwon_fck_3630_hw.hw,
+-	.parent_names	=3D omap_96m_alwon_fck_3630_parent_names,
+-	.num_parents	=3D ARRAY_SIZE(omap_96m_alwon_fck_3630_parent_names),
+-	.ops	=3D &omap_96m_alwon_fck_3630_ops,
+-};
+-
+-static struct clk omapctrl_ick;
+-
+-static struct clk_hw_omap omapctrl_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &omapctrl_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_OMAPCTRL_SHIFT,
+-	.flags		=3D ENABLE_ON_INIT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(omapctrl_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-DEFINE_CLK_DIVIDER(pclk_fck, "emu_src_ck", &emu_src_ck, 0x0,
+-		   OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
+-		   OMAP3430_CLKSEL_PCLK_SHIFT, OMAP3430_CLKSEL_PCLK_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-DEFINE_CLK_DIVIDER(pclkx2_fck, "emu_src_ck", &emu_src_ck, 0x0,
+-		   OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
+-		   OMAP3430_CLKSEL_PCLKX2_SHIFT, OMAP3430_CLKSEL_PCLKX2_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk per_48m_fck;
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(per_48m_fck, "per_clkdm");
+-DEFINE_STRUCT_CLK(per_48m_fck, core_48m_fck_parent_names, core_l4_ick_=
+ops);
+-
+-static struct clk security_l3_ick;
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(security_l3_ick, NULL);
+-DEFINE_STRUCT_CLK(security_l3_ick, core_l3_ick_parent_names, core_ck_o=
+ps);
+-
+-static struct clk pka_ick;
+-
+-static const char *pka_ick_parent_names[] =3D {
+-	"security_l3_ick",
+-};
+-
+-static struct clk_hw_omap pka_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &pka_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
+-	.enable_bit	=3D OMAP3430_EN_PKA_SHIFT,
+-};
+-
+-DEFINE_STRUCT_CLK(pka_ick, pka_ick_parent_names, aes1_ick_ops);
+-
+-DEFINE_CLK_DIVIDER(rm_ick, "l4_ick", &l4_ick, 0x0,
+-		   OMAP_CM_REGADDR(WKUP_MOD, CM_CLKSEL),
+-		   OMAP3430_CLKSEL_RM_SHIFT, OMAP3430_CLKSEL_RM_WIDTH,
+-		   CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk rng_ick;
+-
+-static struct clk_hw_omap rng_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &rng_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
+-	.enable_bit	=3D OMAP3430_EN_RNG_SHIFT,
+-};
+-
+-DEFINE_STRUCT_CLK(rng_ick, aes1_ick_parent_names, aes1_ick_ops);
+-
+-static struct clk sad2d_ick;
+-
+-static struct clk_hw_omap sad2d_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &sad2d_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_SAD2D_SHIFT,
+-	.clkdm_name	=3D "d2d_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(sad2d_ick, core_l3_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk sdrc_ick;
+-
+-static struct clk_hw_omap sdrc_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &sdrc_ick,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_SDRC_SHIFT,
+-	.flags		=3D ENABLE_ON_INIT,
+-	.clkdm_name	=3D "core_l3_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(sdrc_ick, ipss_ick_parent_names, aes2_ick_ops);
+-
+-static const struct clksel_rate sgx_core_rates[] =3D {
+-	{ .div =3D 2, .val =3D 5, .flags =3D RATE_IN_36XX },
+-	{ .div =3D 3, .val =3D 0, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 4, .val =3D 1, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 6, .val =3D 2, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel_rate sgx_96m_rates[] =3D {
+-	{ .div =3D 1, .val =3D 3, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel_rate sgx_192m_rates[] =3D {
+-	{ .div =3D 1, .val =3D 4, .flags =3D RATE_IN_36XX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel_rate sgx_corex2_rates[] =3D {
+-	{ .div =3D 3, .val =3D 6, .flags =3D RATE_IN_36XX },
+-	{ .div =3D 5, .val =3D 7, .flags =3D RATE_IN_36XX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel sgx_clksel[] =3D {
+-	{ .parent =3D &core_ck, .rates =3D sgx_core_rates },
+-	{ .parent =3D &cm_96m_fck, .rates =3D sgx_96m_rates },
+-	{ .parent =3D &omap_192m_alwon_fck, .rates =3D sgx_192m_rates },
+-	{ .parent =3D &corex2_fck, .rates =3D sgx_corex2_rates },
+-	{ .parent =3D NULL },
+-};
+-
+-static const char *sgx_fck_parent_names[] =3D {
+-	"core_ck", "cm_96m_fck", "omap_192m_alwon_fck", "corex2_fck",
+-};
+-
+-static struct clk sgx_fck;
+-
+-static const struct clk_ops sgx_fck_ops =3D {
+-	.init		=3D &omap2_init_clk_clkdm,
+-	.enable		=3D &omap2_dflt_clk_enable,
+-	.disable	=3D &omap2_dflt_clk_disable,
+-	.is_enabled	=3D &omap2_dflt_clk_is_enabled,
+-	.recalc_rate	=3D &omap2_clksel_recalc,
+-	.set_rate	=3D &omap2_clksel_set_rate,
+-	.round_rate	=3D &omap2_clksel_round_rate,
+-	.get_parent	=3D &omap2_clksel_find_parent_index,
+-	.set_parent	=3D &omap2_clksel_set_parent,
+-};
+-
+-DEFINE_CLK_OMAP_MUX_GATE(sgx_fck, "sgx_clkdm", sgx_clksel,
+-			 OMAP_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_CLKSEL),
+-			 OMAP3430ES2_CLKSEL_SGX_MASK,
+-			 OMAP_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_FCLKEN),
+-			 OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_SHIFT,
+-			 &clkhwops_wait, sgx_fck_parent_names, sgx_fck_ops);
+-
+-static struct clk sgx_ick;
+-
+-static struct clk_hw_omap sgx_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &sgx_ick,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_SHIFT,
+-	.clkdm_name	=3D "sgx_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(sgx_ick, core_l3_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk sha11_ick;
+-
+-static struct clk_hw_omap sha11_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &sha11_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
+-	.enable_bit	=3D OMAP3430_EN_SHA11_SHIFT,
+-};
+-
+-DEFINE_STRUCT_CLK(sha11_ick, aes1_ick_parent_names, aes1_ick_ops);
+-
+-static struct clk sha12_ick;
+-
+-static struct clk_hw_omap sha12_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &sha12_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_SHA12_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(sha12_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk sr1_fck;
+-
+-static struct clk_hw_omap sr1_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &sr1_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_SR1_SHIFT,
+-	.clkdm_name	=3D "wkup_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(sr1_fck, dpll3_ck_parent_names, aes2_ick_ops);
+-
+-static struct clk sr2_fck;
+-
+-static struct clk_hw_omap sr2_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &sr2_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_SR2_SHIFT,
+-	.clkdm_name	=3D "wkup_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(sr2_fck, dpll3_ck_parent_names, aes2_ick_ops);
+-
+-static struct clk sr_l4_ick;
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(sr_l4_ick, "core_l4_clkdm");
+-DEFINE_STRUCT_CLK(sr_l4_ick, security_l4_ick2_parent_names, core_l4_ic=
+k_ops);
+-
+-static struct clk ssi_l4_ick;
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(ssi_l4_ick, "core_l4_clkdm");
+-DEFINE_STRUCT_CLK(ssi_l4_ick, security_l4_ick2_parent_names, core_l4_i=
+ck_ops);
+-
+-static struct clk ssi_ick_3430es1;
+-
+-static const char *ssi_ick_3430es1_parent_names[] =3D {
+-	"ssi_l4_ick",
+-};
+-
+-static struct clk_hw_omap ssi_ick_3430es1_hw =3D {
+-	.hw =3D {
+-		.clk =3D &ssi_ick_3430es1,
+-	},
+-	.ops		=3D &clkhwops_iclk,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_SSI_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(ssi_ick_3430es1, ssi_ick_3430es1_parent_names, aes2_=
+ick_ops);
+-
+-static struct clk ssi_ick_3430es2;
+-
+-static struct clk_hw_omap ssi_ick_3430es2_hw =3D {
+-	.hw =3D {
+-		.clk =3D &ssi_ick_3430es2,
+-	},
+-	.ops		=3D &clkhwops_omap3430es2_iclk_ssi_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_SSI_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(ssi_ick_3430es2, ssi_ick_3430es1_parent_names, aes2_=
+ick_ops);
+-
+-static const struct clksel_rate ssi_ssr_corex2_rates[] =3D {
+-	{ .div =3D 1, .val =3D 1, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 2, .val =3D 2, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 3, .val =3D 3, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 4, .val =3D 4, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 6, .val =3D 6, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 8, .val =3D 8, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel ssi_ssr_clksel[] =3D {
+-	{ .parent =3D &corex2_fck, .rates =3D ssi_ssr_corex2_rates },
+-	{ .parent =3D NULL },
+-};
+-
+-static const char *ssi_ssr_fck_3430es1_parent_names[] =3D {
+-	"corex2_fck",
+-};
+-
+-static const struct clk_ops ssi_ssr_fck_3430es1_ops =3D {
+-	.init		=3D &omap2_init_clk_clkdm,
+-	.enable		=3D &omap2_dflt_clk_enable,
+-	.disable	=3D &omap2_dflt_clk_disable,
+-	.is_enabled	=3D &omap2_dflt_clk_is_enabled,
+-	.recalc_rate	=3D &omap2_clksel_recalc,
+-	.set_rate	=3D &omap2_clksel_set_rate,
+-	.round_rate	=3D &omap2_clksel_round_rate,
+-};
+-
+-DEFINE_CLK_OMAP_MUX_GATE(ssi_ssr_fck_3430es1, "core_l4_clkdm",
+-			 ssi_ssr_clksel, OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_SSI_MASK,
+-			 OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-			 OMAP3430_EN_SSI_SHIFT,
+-			 NULL, ssi_ssr_fck_3430es1_parent_names,
+-			 ssi_ssr_fck_3430es1_ops);
+-
+-DEFINE_CLK_OMAP_MUX_GATE(ssi_ssr_fck_3430es2, "core_l4_clkdm",
+-			 ssi_ssr_clksel, OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
+-			 OMAP3430_CLKSEL_SSI_MASK,
+-			 OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-			 OMAP3430_EN_SSI_SHIFT,
+-			 NULL, ssi_ssr_fck_3430es1_parent_names,
+-			 ssi_ssr_fck_3430es1_ops);
+-
+-DEFINE_CLK_FIXED_FACTOR(ssi_sst_fck_3430es1, "ssi_ssr_fck_3430es1",
+-			&ssi_ssr_fck_3430es1, 0x0, 1, 2);
+-
+-DEFINE_CLK_FIXED_FACTOR(ssi_sst_fck_3430es2, "ssi_ssr_fck_3430es2",
+-			&ssi_ssr_fck_3430es2, 0x0, 1, 2);
+-
+-static struct clk sys_clkout1;
+-
+-static const char *sys_clkout1_parent_names[] =3D {
+-	"osc_sys_ck",
+-};
+-
+-static struct clk_hw_omap sys_clkout1_hw =3D {
+-	.hw =3D {
+-		.clk =3D &sys_clkout1,
+-	},
+-	.enable_reg	=3D OMAP3430_PRM_CLKOUT_CTRL,
+-	.enable_bit	=3D OMAP3430_CLKOUT_EN_SHIFT,
+-};
+-
+-DEFINE_STRUCT_CLK(sys_clkout1, sys_clkout1_parent_names, aes1_ick_ops)=
+;
+-
+-DEFINE_CLK_DIVIDER(sys_clkout2, "clkout2_src_ck", &clkout2_src_ck, 0x0=
+,
+-		   OMAP3430_CM_CLKOUT_CTRL, OMAP3430_CLKOUT2_DIV_SHIFT,
+-		   OMAP3430_CLKOUT2_DIV_WIDTH, CLK_DIVIDER_POWER_OF_TWO, NULL);
+-
+-DEFINE_CLK_MUX(traceclk_src_fck, emu_src_ck_parent_names, NULL, 0x0,
+-	       OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
+-	       OMAP3430_TRACE_MUX_CTRL_SHIFT, OMAP3430_TRACE_MUX_CTRL_WIDTH,
+-	       0x0, NULL);
+-
+-DEFINE_CLK_DIVIDER(traceclk_fck, "traceclk_src_fck", &traceclk_src_fck=
+, 0x0,
+-		   OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
+-		   OMAP3430_CLKSEL_TRACECLK_SHIFT,
+-		   OMAP3430_CLKSEL_TRACECLK_WIDTH, CLK_DIVIDER_ONE_BASED, NULL);
+-
+-static struct clk ts_fck;
+-
+-static struct clk_hw_omap ts_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &ts_fck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
+-	.enable_bit	=3D OMAP3430ES2_EN_TS_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(ts_fck, wkup_32k_fck_parent_names, aes2_ick_ops);
+-
+-static struct clk uart1_fck;
+-
+-static struct clk_hw_omap uart1_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &uart1_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_UART1_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(uart1_fck, fshostusb_fck_parent_names, aes2_ick_ops)=
+;
+-
+-static struct clk uart1_ick;
+-
+-static struct clk_hw_omap uart1_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &uart1_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_UART1_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(uart1_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk uart2_fck;
+-
+-static struct clk_hw_omap uart2_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &uart2_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_UART2_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(uart2_fck, fshostusb_fck_parent_names, aes2_ick_ops)=
+;
+-
+-static struct clk uart2_ick;
+-
+-static struct clk_hw_omap uart2_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &uart2_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D OMAP3430_EN_UART2_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(uart2_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk uart3_fck;
+-
+-static const char *uart3_fck_parent_names[] =3D {
+-	"per_48m_fck",
+-};
+-
+-static struct clk_hw_omap uart3_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &uart3_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_UART3_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(uart3_fck, uart3_fck_parent_names, aes2_ick_ops);
+-
+-static struct clk uart3_ick;
+-
+-static struct clk_hw_omap uart3_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &uart3_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_UART3_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(uart3_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk uart4_fck;
+-
+-static struct clk_hw_omap uart4_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &uart4_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3630_EN_UART4_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(uart4_fck, uart3_fck_parent_names, aes2_ick_ops);
+-
+-static struct clk uart4_fck_am35xx;
+-
+-static struct clk_hw_omap uart4_fck_am35xx_hw =3D {
+-	.hw =3D {
+-		.clk =3D &uart4_fck_am35xx,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	=3D AM35XX_EN_UART4_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(uart4_fck_am35xx, fshostusb_fck_parent_names, aes2_i=
+ck_ops);
+-
+-static struct clk uart4_ick;
+-
+-static struct clk_hw_omap uart4_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &uart4_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3630_EN_UART4_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(uart4_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk uart4_ick_am35xx;
+-
+-static struct clk_hw_omap uart4_ick_am35xx_hw =3D {
+-	.hw =3D {
+-		.clk =3D &uart4_ick_am35xx,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-	.enable_bit	=3D AM35XX_EN_UART4_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(uart4_ick_am35xx, aes2_ick_parent_names, aes2_ick_op=
+s);
+-
+-static const struct clksel_rate div2_rates[] =3D {
+-	{ .div =3D 1, .val =3D 1, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 2, .val =3D 2, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel usb_l4_clksel[] =3D {
+-	{ .parent =3D &l4_ick, .rates =3D div2_rates },
+-	{ .parent =3D NULL },
+-};
+-
+-static const char *usb_l4_ick_parent_names[] =3D {
+-	"l4_ick",
+-};
+-
+-DEFINE_CLK_OMAP_MUX_GATE(usb_l4_ick, "core_l4_clkdm", usb_l4_clksel,
+-			 OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
+-			 OMAP3430ES1_CLKSEL_FSHOSTUSB_MASK,
+-			 OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+-			 OMAP3430ES1_EN_FSHOSTUSB_SHIFT,
+-			 &clkhwops_iclk_wait, usb_l4_ick_parent_names,
+-			 ssi_ssr_fck_3430es1_ops);
+-
+-static struct clk usbhost_120m_fck;
+-
+-static const char *usbhost_120m_fck_parent_names[] =3D {
+-	"dpll5_m2_ck",
+-};
+-
+-static struct clk_hw_omap usbhost_120m_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &usbhost_120m_fck,
+-	},
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430ES2_USBHOST_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430ES2_EN_USBHOST2_SHIFT,
+-	.clkdm_name	=3D "usbhost_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(usbhost_120m_fck, usbhost_120m_fck_parent_names,
+-		  aes2_ick_ops);
+-
+-static struct clk usbhost_48m_fck;
+-
+-static struct clk_hw_omap usbhost_48m_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &usbhost_48m_fck,
+-	},
+-	.ops		=3D &clkhwops_omap3430es2_dss_usbhost_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430ES2_USBHOST_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430ES2_EN_USBHOST1_SHIFT,
+-	.clkdm_name	=3D "usbhost_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(usbhost_48m_fck, core_48m_fck_parent_names, aes2_ick=
+_ops);
+-
+-static struct clk usbhost_ick;
+-
+-static struct clk_hw_omap usbhost_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &usbhost_ick,
+-	},
+-	.ops		=3D &clkhwops_omap3430es2_iclk_dss_usbhost_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430ES2_USBHOST_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430ES2_EN_USBHOST_SHIFT,
+-	.clkdm_name	=3D "usbhost_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(usbhost_ick, security_l4_ick2_parent_names, aes2_ick=
+_ops);
+-
+-static struct clk usbtll_fck;
+-
+-static struct clk_hw_omap usbtll_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &usbtll_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
+-	.enable_bit	=3D OMAP3430ES2_EN_USBTLL_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(usbtll_fck, usbhost_120m_fck_parent_names, aes2_ick_=
+ops);
+-
+-static struct clk usbtll_ick;
+-
+-static struct clk_hw_omap usbtll_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &usbtll_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN3),
+-	.enable_bit	=3D OMAP3430ES2_EN_USBTLL_SHIFT,
+-	.clkdm_name	=3D "core_l4_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(usbtll_ick, aes2_ick_parent_names, aes2_ick_ops);
+-
+-static const struct clksel_rate usim_96m_rates[] =3D {
+-	{ .div =3D 2, .val =3D 3, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 4, .val =3D 4, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 8, .val =3D 5, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 10, .val =3D 6, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel_rate usim_120m_rates[] =3D {
+-	{ .div =3D 4, .val =3D 7, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 8, .val =3D 8, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 16, .val =3D 9, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 20, .val =3D 10, .flags =3D RATE_IN_3XXX },
+-	{ .div =3D 0 }
+-};
+-
+-static const struct clksel usim_clksel[] =3D {
+-	{ .parent =3D &omap_96m_fck, .rates =3D usim_96m_rates },
+-	{ .parent =3D &dpll5_m2_ck, .rates =3D usim_120m_rates },
+-	{ .parent =3D &sys_ck, .rates =3D div2_rates },
+-	{ .parent =3D NULL },
+-};
+-
+-static const char *usim_fck_parent_names[] =3D {
+-	"omap_96m_fck", "dpll5_m2_ck", "sys_ck",
+-};
+-
+-static struct clk usim_fck;
+-
+-static const struct clk_ops usim_fck_ops =3D {
+-	.enable		=3D &omap2_dflt_clk_enable,
+-	.disable	=3D &omap2_dflt_clk_disable,
+-	.is_enabled	=3D &omap2_dflt_clk_is_enabled,
+-	.recalc_rate	=3D &omap2_clksel_recalc,
+-	.get_parent	=3D &omap2_clksel_find_parent_index,
+-	.set_parent	=3D &omap2_clksel_set_parent,
+-};
+-
+-DEFINE_CLK_OMAP_MUX_GATE(usim_fck, NULL, usim_clksel,
+-			 OMAP_CM_REGADDR(WKUP_MOD, CM_CLKSEL),
+-			 OMAP3430ES2_CLKSEL_USIMOCP_MASK,
+-			 OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+-			 OMAP3430ES2_EN_USIMOCP_SHIFT, &clkhwops_wait,
+-			 usim_fck_parent_names, usim_fck_ops);
+-
+-static struct clk usim_ick;
+-
+-static struct clk_hw_omap usim_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &usim_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430ES2_EN_USIMOCP_SHIFT,
+-	.clkdm_name	=3D "wkup_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(usim_ick, gpio1_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk vpfe_fck;
+-
+-static const char *vpfe_fck_parent_names[] =3D {
+-	"pclk_ck",
+-};
+-
+-static struct clk_hw_omap vpfe_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &vpfe_fck,
+-	},
+-	.enable_reg	=3D OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+-	.enable_bit	=3D AM35XX_VPFE_FCLK_SHIFT,
+-};
+-
+-DEFINE_STRUCT_CLK(vpfe_fck, vpfe_fck_parent_names, aes1_ick_ops);
+-
+-static struct clk vpfe_ick;
+-
+-static struct clk_hw_omap vpfe_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &vpfe_ick,
+-	},
+-	.ops		=3D &clkhwops_am35xx_ipss_module_wait,
+-	.enable_reg	=3D OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+-	.enable_bit	=3D AM35XX_VPFE_VBUSP_CLK_SHIFT,
+-	.clkdm_name	=3D "core_l3_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(vpfe_ick, emac_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk wdt1_fck;
+-
+-DEFINE_STRUCT_CLK_HW_OMAP(wdt1_fck, "wkup_clkdm");
+-DEFINE_STRUCT_CLK(wdt1_fck, gpt12_fck_parent_names, core_l4_ick_ops);
+-
+-static struct clk wdt1_ick;
+-
+-static struct clk_hw_omap wdt1_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &wdt1_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_WDT1_SHIFT,
+-	.clkdm_name	=3D "wkup_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(wdt1_ick, gpio1_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk wdt2_fck;
+-
+-static struct clk_hw_omap wdt2_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &wdt2_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_WDT2_SHIFT,
+-	.clkdm_name	=3D "wkup_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(wdt2_fck, gpio1_dbck_parent_names, aes2_ick_ops);
+-
+-static struct clk wdt2_ick;
+-
+-static struct clk_hw_omap wdt2_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &wdt2_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_WDT2_SHIFT,
+-	.clkdm_name	=3D "wkup_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(wdt2_ick, gpio1_ick_parent_names, aes2_ick_ops);
+-
+-static struct clk wdt3_fck;
+-
+-static struct clk_hw_omap wdt3_fck_hw =3D {
+-	.hw =3D {
+-		.clk =3D &wdt3_fck,
+-	},
+-	.ops		=3D &clkhwops_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+-	.enable_bit	=3D OMAP3430_EN_WDT3_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(wdt3_fck, gpio2_dbck_parent_names, aes2_ick_ops);
+-
+-static struct clk wdt3_ick;
+-
+-static struct clk_hw_omap wdt3_ick_hw =3D {
+-	.hw =3D {
+-		.clk =3D &wdt3_ick,
+-	},
+-	.ops		=3D &clkhwops_iclk_wait,
+-	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+-	.enable_bit	=3D OMAP3430_EN_WDT3_SHIFT,
+-	.clkdm_name	=3D "per_clkdm",
+-};
+-
+-DEFINE_STRUCT_CLK(wdt3_ick, gpio2_ick_parent_names, aes2_ick_ops);
+-
+-/*
+- * clocks specific to omap3430es1
+- */
+-static struct omap_clk omap3430es1_clks[] =3D {
+-	CLK(NULL,	"gfx_l3_ck",	&gfx_l3_ck),
+-	CLK(NULL,	"gfx_l3_fck",	&gfx_l3_fck),
+-	CLK(NULL,	"gfx_l3_ick",	&gfx_l3_ick),
+-	CLK(NULL,	"gfx_cg1_ck",	&gfx_cg1_ck),
+-	CLK(NULL,	"gfx_cg2_ck",	&gfx_cg2_ck),
+-	CLK(NULL,	"d2d_26m_fck",	&d2d_26m_fck),
+-	CLK(NULL,	"fshostusb_fck", &fshostusb_fck),
+-	CLK(NULL,	"ssi_ssr_fck",	&ssi_ssr_fck_3430es1),
+-	CLK(NULL,	"ssi_sst_fck",	&ssi_sst_fck_3430es1),
+-	CLK("musb-omap2430",	"ick",	&hsotgusb_ick_3430es1),
+-	CLK(NULL,	"hsotgusb_ick",	&hsotgusb_ick_3430es1),
+-	CLK(NULL,	"fac_ick",	&fac_ick),
+-	CLK(NULL,	"ssi_ick",	&ssi_ick_3430es1),
+-	CLK(NULL,	"usb_l4_ick",	&usb_l4_ick),
+-	CLK(NULL,	"dss1_alwon_fck",	&dss1_alwon_fck_3430es1),
+-	CLK("omapdss_dss",	"ick",		&dss_ick_3430es1),
+-	CLK(NULL,	"dss_ick",		&dss_ick_3430es1),
+-};
+-
+-/*
+- * clocks specific to am35xx
+- */
+-static struct omap_clk am35xx_clks[] =3D {
+-	CLK(NULL,	"ipss_ick",	&ipss_ick),
+-	CLK(NULL,	"rmii_ck",	&rmii_ck),
+-	CLK(NULL,	"pclk_ck",	&pclk_ck),
+-	CLK(NULL,	"emac_ick",	&emac_ick),
+-	CLK(NULL,	"emac_fck",	&emac_fck),
+-	CLK("davinci_emac.0",	NULL,	&emac_ick),
+-	CLK("davinci_mdio.0",	NULL,	&emac_fck),
+-	CLK("vpfe-capture",	"master",	&vpfe_ick),
+-	CLK("vpfe-capture",	"slave",	&vpfe_fck),
+-	CLK(NULL,	"hsotgusb_ick",		&hsotgusb_ick_am35xx),
+-	CLK(NULL,	"hsotgusb_fck",		&hsotgusb_fck_am35xx),
+-	CLK(NULL,	"hecc_ck",	&hecc_ck),
+-	CLK(NULL,	"uart4_ick",	&uart4_ick_am35xx),
+-	CLK(NULL,	"uart4_fck",	&uart4_fck_am35xx),
+-};
+-
+-/*
+- * clocks specific to omap36xx
+- */
+-static struct omap_clk omap36xx_clks[] =3D {
+-	CLK(NULL,	"omap_192m_alwon_fck", &omap_192m_alwon_fck),
+-	CLK(NULL,	"uart4_fck",	&uart4_fck),
+-};
+-
+-/*
+- * clocks common to omap36xx omap34xx
+- */
+-static struct omap_clk omap34xx_omap36xx_clks[] =3D {
+-	CLK(NULL,	"aes1_ick",	&aes1_ick),
+-	CLK("omap_rng",	"ick",		&rng_ick),
+-	CLK("omap3-rom-rng",	"ick",	&rng_ick),
+-	CLK(NULL,	"sha11_ick",	&sha11_ick),
+-	CLK(NULL,	"des1_ick",	&des1_ick),
+-	CLK(NULL,	"cam_mclk",	&cam_mclk),
+-	CLK(NULL,	"cam_ick",	&cam_ick),
+-	CLK(NULL,	"csi2_96m_fck",	&csi2_96m_fck),
+-	CLK(NULL,	"security_l3_ick", &security_l3_ick),
+-	CLK(NULL,	"pka_ick",	&pka_ick),
+-	CLK(NULL,	"icr_ick",	&icr_ick),
+-	CLK("omap-aes",	"ick",	&aes2_ick),
+-	CLK("omap-sham",	"ick",	&sha12_ick),
+-	CLK(NULL,	"des2_ick",	&des2_ick),
+-	CLK(NULL,	"mspro_ick",	&mspro_ick),
+-	CLK(NULL,	"mailboxes_ick", &mailboxes_ick),
+-	CLK(NULL,	"ssi_l4_ick",	&ssi_l4_ick),
+-	CLK(NULL,	"sr1_fck",	&sr1_fck),
+-	CLK(NULL,	"sr2_fck",	&sr2_fck),
+-	CLK(NULL,	"sr_l4_ick",	&sr_l4_ick),
+-	CLK(NULL,	"security_l4_ick2", &security_l4_ick2),
+-	CLK(NULL,	"wkup_l4_ick",	&wkup_l4_ick),
+-	CLK(NULL,	"dpll2_fck",	&dpll2_fck),
+-	CLK(NULL,	"iva2_ck",	&iva2_ck),
+-	CLK(NULL,	"modem_fck",	&modem_fck),
+-	CLK(NULL,	"sad2d_ick",	&sad2d_ick),
+-	CLK(NULL,	"mad2d_ick",	&mad2d_ick),
+-	CLK(NULL,	"mspro_fck",	&mspro_fck),
+-	CLK(NULL,	"dpll2_ck",	&dpll2_ck),
+-	CLK(NULL,	"dpll2_m2_ck",	&dpll2_m2_ck),
+-};
+-
+-/*
+- * clocks common to omap36xx and omap3430es2plus
+- */
+-static struct omap_clk omap36xx_omap3430es2plus_clks[] =3D {
+-	CLK(NULL,	"ssi_ssr_fck",	&ssi_ssr_fck_3430es2),
+-	CLK(NULL,	"ssi_sst_fck",	&ssi_sst_fck_3430es2),
+-	CLK("musb-omap2430",	"ick",	&hsotgusb_ick_3430es2),
+-	CLK(NULL,	"hsotgusb_ick",	&hsotgusb_ick_3430es2),
+-	CLK(NULL,	"ssi_ick",	&ssi_ick_3430es2),
+-	CLK(NULL,	"usim_fck",	&usim_fck),
+-	CLK(NULL,	"usim_ick",	&usim_ick),
+-};
+-
+-/*
+- * clocks common to am35xx omap36xx and omap3430es2plus
+- */
+-static struct omap_clk omap36xx_am35xx_omap3430es2plus_clks[] =3D {
+-	CLK(NULL,	"virt_16_8m_ck", &virt_16_8m_ck),
+-	CLK(NULL,	"dpll5_ck",	&dpll5_ck),
+-	CLK(NULL,	"dpll5_m2_ck",	&dpll5_m2_ck),
+-	CLK(NULL,	"sgx_fck",	&sgx_fck),
+-	CLK(NULL,	"sgx_ick",	&sgx_ick),
+-	CLK(NULL,	"cpefuse_fck",	&cpefuse_fck),
+-	CLK(NULL,	"ts_fck",	&ts_fck),
+-	CLK(NULL,	"usbtll_fck",	&usbtll_fck),
+-	CLK(NULL,	"usbtll_ick",	&usbtll_ick),
+-	CLK("omap_hsmmc.2",	"ick",	&mmchs3_ick),
+-	CLK(NULL,	"mmchs3_ick",	&mmchs3_ick),
+-	CLK(NULL,	"mmchs3_fck",	&mmchs3_fck),
+-	CLK(NULL,	"dss1_alwon_fck",	&dss1_alwon_fck_3430es2),
+-	CLK("omapdss_dss",	"ick",		&dss_ick_3430es2),
+-	CLK(NULL,	"dss_ick",		&dss_ick_3430es2),
+-	CLK(NULL,	"usbhost_120m_fck", &usbhost_120m_fck),
+-	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck),
+-	CLK(NULL,	"usbhost_ick",	&usbhost_ick),
+-};
+-
+-/*
+- * common clocks
+- */
+-static struct omap_clk omap3xxx_clks[] =3D {
+-	CLK(NULL,	"apb_pclk",	&dummy_apb_pclk),
+-	CLK(NULL,	"omap_32k_fck",	&omap_32k_fck),
+-	CLK(NULL,	"virt_12m_ck",	&virt_12m_ck),
+-	CLK(NULL,	"virt_13m_ck",	&virt_13m_ck),
+-	CLK(NULL,	"virt_19200000_ck", &virt_19200000_ck),
+-	CLK(NULL,	"virt_26000000_ck", &virt_26000000_ck),
+-	CLK(NULL,	"virt_38_4m_ck", &virt_38_4m_ck),
+-	CLK(NULL,	"osc_sys_ck",	&osc_sys_ck),
+-	CLK("twl",	"fck",		&osc_sys_ck),
+-	CLK(NULL,	"sys_ck",	&sys_ck),
+-	CLK(NULL,	"omap_96m_alwon_fck", &omap_96m_alwon_fck),
+-	CLK("etb",	"emu_core_alwon_ck", &emu_core_alwon_ck),
+-	CLK(NULL,	"sys_altclk",	&sys_altclk),
+-	CLK(NULL,	"mcbsp_clks",	&mcbsp_clks),
+-	CLK(NULL,	"sys_clkout1",	&sys_clkout1),
+-	CLK(NULL,	"dpll1_ck",	&dpll1_ck),
+-	CLK(NULL,	"dpll1_x2_ck",	&dpll1_x2_ck),
+-	CLK(NULL,	"dpll1_x2m2_ck", &dpll1_x2m2_ck),
+-	CLK(NULL,	"dpll3_ck",	&dpll3_ck),
+-	CLK(NULL,	"core_ck",	&core_ck),
+-	CLK(NULL,	"dpll3_x2_ck",	&dpll3_x2_ck),
+-	CLK(NULL,	"dpll3_m2_ck",	&dpll3_m2_ck),
+-	CLK(NULL,	"dpll3_m2x2_ck", &dpll3_m2x2_ck),
+-	CLK(NULL,	"dpll3_m3_ck",	&dpll3_m3_ck),
+-	CLK(NULL,	"dpll3_m3x2_ck", &dpll3_m3x2_ck),
+-	CLK(NULL,	"dpll4_ck",	&dpll4_ck),
+-	CLK(NULL,	"dpll4_x2_ck",	&dpll4_x2_ck),
+-	CLK(NULL,	"omap_96m_fck",	&omap_96m_fck),
+-	CLK(NULL,	"cm_96m_fck",	&cm_96m_fck),
+-	CLK(NULL,	"omap_54m_fck",	&omap_54m_fck),
+-	CLK(NULL,	"omap_48m_fck",	&omap_48m_fck),
+-	CLK(NULL,	"omap_12m_fck",	&omap_12m_fck),
+-	CLK(NULL,	"dpll4_m2_ck",	&dpll4_m2_ck),
+-	CLK(NULL,	"dpll4_m2x2_ck", &dpll4_m2x2_ck),
+-	CLK(NULL,	"dpll4_m3_ck",	&dpll4_m3_ck),
+-	CLK(NULL,	"dpll4_m3x2_ck", &dpll4_m3x2_ck),
+-	CLK(NULL,	"dpll4_m4_ck",	&dpll4_m4_ck),
+-	CLK(NULL,	"dpll4_m4x2_ck", &dpll4_m4x2_ck),
+-	CLK(NULL,	"dpll4_m5_ck",	&dpll4_m5_ck),
+-	CLK(NULL,	"dpll4_m5x2_ck", &dpll4_m5x2_ck),
+-	CLK(NULL,	"dpll4_m6_ck",	&dpll4_m6_ck),
+-	CLK(NULL,	"dpll4_m6x2_ck", &dpll4_m6x2_ck),
+-	CLK("etb",	"emu_per_alwon_ck", &emu_per_alwon_ck),
+-	CLK(NULL,	"clkout2_src_ck", &clkout2_src_ck),
+-	CLK(NULL,	"sys_clkout2",	&sys_clkout2),
+-	CLK(NULL,	"corex2_fck",	&corex2_fck),
+-	CLK(NULL,	"dpll1_fck",	&dpll1_fck),
+-	CLK(NULL,	"mpu_ck",	&mpu_ck),
+-	CLK(NULL,	"arm_fck",	&arm_fck),
+-	CLK("etb",	"emu_mpu_alwon_ck", &emu_mpu_alwon_ck),
+-	CLK(NULL,	"l3_ick",	&l3_ick),
+-	CLK(NULL,	"l4_ick",	&l4_ick),
+-	CLK(NULL,	"rm_ick",	&rm_ick),
+-	CLK(NULL,	"gpt10_fck",	&gpt10_fck),
+-	CLK(NULL,	"gpt11_fck",	&gpt11_fck),
+-	CLK(NULL,	"core_96m_fck",	&core_96m_fck),
+-	CLK(NULL,	"mmchs2_fck",	&mmchs2_fck),
+-	CLK(NULL,	"mmchs1_fck",	&mmchs1_fck),
+-	CLK(NULL,	"i2c3_fck",	&i2c3_fck),
+-	CLK(NULL,	"i2c2_fck",	&i2c2_fck),
+-	CLK(NULL,	"i2c1_fck",	&i2c1_fck),
+-	CLK(NULL,	"mcbsp5_fck",	&mcbsp5_fck),
+-	CLK(NULL,	"mcbsp1_fck",	&mcbsp1_fck),
+-	CLK(NULL,	"core_48m_fck",	&core_48m_fck),
+-	CLK(NULL,	"mcspi4_fck",	&mcspi4_fck),
+-	CLK(NULL,	"mcspi3_fck",	&mcspi3_fck),
+-	CLK(NULL,	"mcspi2_fck",	&mcspi2_fck),
+-	CLK(NULL,	"mcspi1_fck",	&mcspi1_fck),
+-	CLK(NULL,	"uart2_fck",	&uart2_fck),
+-	CLK(NULL,	"uart1_fck",	&uart1_fck),
+-	CLK(NULL,	"core_12m_fck",	&core_12m_fck),
+-	CLK("omap_hdq.0",	"fck",	&hdq_fck),
+-	CLK(NULL,	"hdq_fck",	&hdq_fck),
+-	CLK(NULL,	"core_l3_ick",	&core_l3_ick),
+-	CLK(NULL,	"sdrc_ick",	&sdrc_ick),
+-	CLK(NULL,	"gpmc_fck",	&gpmc_fck),
+-	CLK(NULL,	"core_l4_ick",	&core_l4_ick),
+-	CLK("omap_hsmmc.1",	"ick",	&mmchs2_ick),
+-	CLK("omap_hsmmc.0",	"ick",	&mmchs1_ick),
+-	CLK(NULL,	"mmchs2_ick",	&mmchs2_ick),
+-	CLK(NULL,	"mmchs1_ick",	&mmchs1_ick),
+-	CLK("omap_hdq.0", "ick",	&hdq_ick),
+-	CLK(NULL,	"hdq_ick",	&hdq_ick),
+-	CLK("omap2_mcspi.4", "ick",	&mcspi4_ick),
+-	CLK("omap2_mcspi.3", "ick",	&mcspi3_ick),
+-	CLK("omap2_mcspi.2", "ick",	&mcspi2_ick),
+-	CLK("omap2_mcspi.1", "ick",	&mcspi1_ick),
+-	CLK(NULL,	"mcspi4_ick",	&mcspi4_ick),
+-	CLK(NULL,	"mcspi3_ick",	&mcspi3_ick),
+-	CLK(NULL,	"mcspi2_ick",	&mcspi2_ick),
+-	CLK(NULL,	"mcspi1_ick",	&mcspi1_ick),
+-	CLK("omap_i2c.3", "ick",	&i2c3_ick),
+-	CLK("omap_i2c.2", "ick",	&i2c2_ick),
+-	CLK("omap_i2c.1", "ick",	&i2c1_ick),
+-	CLK(NULL,	"i2c3_ick",	&i2c3_ick),
+-	CLK(NULL,	"i2c2_ick",	&i2c2_ick),
+-	CLK(NULL,	"i2c1_ick",	&i2c1_ick),
+-	CLK(NULL,	"uart2_ick",	&uart2_ick),
+-	CLK(NULL,	"uart1_ick",	&uart1_ick),
+-	CLK(NULL,	"gpt11_ick",	&gpt11_ick),
+-	CLK(NULL,	"gpt10_ick",	&gpt10_ick),
+-	CLK("omap-mcbsp.5", "ick",	&mcbsp5_ick),
+-	CLK("omap-mcbsp.1", "ick",	&mcbsp1_ick),
+-	CLK(NULL,	"mcbsp5_ick",	&mcbsp5_ick),
+-	CLK(NULL,	"mcbsp1_ick",	&mcbsp1_ick),
+-	CLK(NULL,	"omapctrl_ick",	&omapctrl_ick),
+-	CLK(NULL,	"dss_tv_fck",	&dss_tv_fck),
+-	CLK(NULL,	"dss_96m_fck",	&dss_96m_fck),
+-	CLK(NULL,	"dss2_alwon_fck",	&dss2_alwon_fck),
+-	CLK(NULL,	"utmi_p1_gfclk",	&dummy_ck),
+-	CLK(NULL,	"utmi_p2_gfclk",	&dummy_ck),
+-	CLK(NULL,	"xclk60mhsp1_ck",	&dummy_ck),
+-	CLK(NULL,	"xclk60mhsp2_ck",	&dummy_ck),
+-	CLK(NULL,	"init_60m_fclk",	&dummy_ck),
+-	CLK(NULL,	"gpt1_fck",	&gpt1_fck),
+-	CLK(NULL,	"aes2_ick",	&aes2_ick),
+-	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck),
+-	CLK(NULL,	"gpio1_dbck",	&gpio1_dbck),
+-	CLK(NULL,	"sha12_ick",	&sha12_ick),
+-	CLK(NULL,	"wdt2_fck",		&wdt2_fck),
+-	CLK("omap_wdt",	"ick",		&wdt2_ick),
+-	CLK(NULL,	"wdt2_ick",	&wdt2_ick),
+-	CLK(NULL,	"wdt1_ick",	&wdt1_ick),
+-	CLK(NULL,	"gpio1_ick",	&gpio1_ick),
+-	CLK(NULL,	"omap_32ksync_ick", &omap_32ksync_ick),
+-	CLK(NULL,	"gpt12_ick",	&gpt12_ick),
+-	CLK(NULL,	"gpt1_ick",	&gpt1_ick),
+-	CLK(NULL,	"per_96m_fck",	&per_96m_fck),
+-	CLK(NULL,	"per_48m_fck",	&per_48m_fck),
+-	CLK(NULL,	"uart3_fck",	&uart3_fck),
+-	CLK(NULL,	"gpt2_fck",	&gpt2_fck),
+-	CLK(NULL,	"gpt3_fck",	&gpt3_fck),
+-	CLK(NULL,	"gpt4_fck",	&gpt4_fck),
+-	CLK(NULL,	"gpt5_fck",	&gpt5_fck),
+-	CLK(NULL,	"gpt6_fck",	&gpt6_fck),
+-	CLK(NULL,	"gpt7_fck",	&gpt7_fck),
+-	CLK(NULL,	"gpt8_fck",	&gpt8_fck),
+-	CLK(NULL,	"gpt9_fck",	&gpt9_fck),
+-	CLK(NULL,	"per_32k_alwon_fck", &per_32k_alwon_fck),
+-	CLK(NULL,	"gpio6_dbck",	&gpio6_dbck),
+-	CLK(NULL,	"gpio5_dbck",	&gpio5_dbck),
+-	CLK(NULL,	"gpio4_dbck",	&gpio4_dbck),
+-	CLK(NULL,	"gpio3_dbck",	&gpio3_dbck),
+-	CLK(NULL,	"gpio2_dbck",	&gpio2_dbck),
+-	CLK(NULL,	"wdt3_fck",	&wdt3_fck),
+-	CLK(NULL,	"per_l4_ick",	&per_l4_ick),
+-	CLK(NULL,	"gpio6_ick",	&gpio6_ick),
+-	CLK(NULL,	"gpio5_ick",	&gpio5_ick),
+-	CLK(NULL,	"gpio4_ick",	&gpio4_ick),
+-	CLK(NULL,	"gpio3_ick",	&gpio3_ick),
+-	CLK(NULL,	"gpio2_ick",	&gpio2_ick),
+-	CLK(NULL,	"wdt3_ick",	&wdt3_ick),
+-	CLK(NULL,	"uart3_ick",	&uart3_ick),
+-	CLK(NULL,	"uart4_ick",	&uart4_ick),
+-	CLK(NULL,	"gpt9_ick",	&gpt9_ick),
+-	CLK(NULL,	"gpt8_ick",	&gpt8_ick),
+-	CLK(NULL,	"gpt7_ick",	&gpt7_ick),
+-	CLK(NULL,	"gpt6_ick",	&gpt6_ick),
+-	CLK(NULL,	"gpt5_ick",	&gpt5_ick),
+-	CLK(NULL,	"gpt4_ick",	&gpt4_ick),
+-	CLK(NULL,	"gpt3_ick",	&gpt3_ick),
+-	CLK(NULL,	"gpt2_ick",	&gpt2_ick),
+-	CLK("omap-mcbsp.2", "ick",	&mcbsp2_ick),
+-	CLK("omap-mcbsp.3", "ick",	&mcbsp3_ick),
+-	CLK("omap-mcbsp.4", "ick",	&mcbsp4_ick),
+-	CLK(NULL,	"mcbsp4_ick",	&mcbsp2_ick),
+-	CLK(NULL,	"mcbsp3_ick",	&mcbsp3_ick),
+-	CLK(NULL,	"mcbsp2_ick",	&mcbsp4_ick),
+-	CLK(NULL,	"mcbsp2_fck",	&mcbsp2_fck),
+-	CLK(NULL,	"mcbsp3_fck",	&mcbsp3_fck),
+-	CLK(NULL,	"mcbsp4_fck",	&mcbsp4_fck),
+-	CLK("etb",	"emu_src_ck",	&emu_src_ck),
+-	CLK(NULL,	"emu_src_ck",	&emu_src_ck),
+-	CLK(NULL,	"pclk_fck",	&pclk_fck),
+-	CLK(NULL,	"pclkx2_fck",	&pclkx2_fck),
+-	CLK(NULL,	"atclk_fck",	&atclk_fck),
+-	CLK(NULL,	"traceclk_src_fck", &traceclk_src_fck),
+-	CLK(NULL,	"traceclk_fck",	&traceclk_fck),
+-	CLK(NULL,	"secure_32k_fck", &secure_32k_fck),
+-	CLK(NULL,	"gpt12_fck",	&gpt12_fck),
+-	CLK(NULL,	"wdt1_fck",	&wdt1_fck),
+-	CLK(NULL,	"timer_32k_ck",	&omap_32k_fck),
+-	CLK(NULL,	"timer_sys_ck",	&sys_ck),
+-	CLK(NULL,	"cpufreq_ck",	&dpll1_ck),
+-};
+-
+-static const char *enable_init_clks[] =3D {
+-	"sdrc_ick",
+-	"gpmc_fck",
+-	"omapctrl_ick",
+-};
+-
+-int __init omap3xxx_clk_init(void)
+-{
+-	if (omap3_has_192mhz_clk())
+-		omap_96m_alwon_fck =3D omap_96m_alwon_fck_3630;
+-
+-	if (cpu_is_omap3630()) {
+-		dpll3_m3x2_ck =3D dpll3_m3x2_ck_3630;
+-		dpll4_m2x2_ck =3D dpll4_m2x2_ck_3630;
+-		dpll4_m3x2_ck =3D dpll4_m3x2_ck_3630;
+-		dpll4_m4x2_ck =3D dpll4_m4x2_ck_3630;
+-		dpll4_m5x2_ck =3D dpll4_m5x2_ck_3630;
+-		dpll4_m6x2_ck =3D dpll4_m6x2_ck_3630;
+-	}
+-
+-	/*
+-	 * XXX This type of dynamic rewriting of the clock tree is
+-	 * deprecated and should be revised soon.
+-	 */
+-	if (cpu_is_omap3630())
+-		dpll4_dd =3D dpll4_dd_3630;
+-	else
+-		dpll4_dd =3D dpll4_dd_34xx;
+-
+-
+-	/*
+-	 * 3505 must be tested before 3517, since 3517 returns true
+-	 * for both AM3517 chips and AM3517 family chips, which
+-	 * includes 3505.  Unfortunately there's no obvious family
+-	 * test for 3517/3505 :-(
+-	 */
+-	if (soc_is_am35xx()) {
+-		cpu_mask =3D RATE_IN_34XX;
+-		omap_clocks_register(am35xx_clks, ARRAY_SIZE(am35xx_clks));
+-		omap_clocks_register(omap36xx_am35xx_omap3430es2plus_clks,
+-				     ARRAY_SIZE(omap36xx_am35xx_omap3430es2plus_clks));
+-		omap_clocks_register(omap3xxx_clks, ARRAY_SIZE(omap3xxx_clks));
+-	} else if (cpu_is_omap3630()) {
+-		cpu_mask =3D (RATE_IN_34XX | RATE_IN_36XX);
+-		omap_clocks_register(omap36xx_clks, ARRAY_SIZE(omap36xx_clks));
+-		omap_clocks_register(omap36xx_omap3430es2plus_clks,
+-				     ARRAY_SIZE(omap36xx_omap3430es2plus_clks));
+-		omap_clocks_register(omap34xx_omap36xx_clks,
+-				     ARRAY_SIZE(omap34xx_omap36xx_clks));
+-		omap_clocks_register(omap36xx_am35xx_omap3430es2plus_clks,
+-				     ARRAY_SIZE(omap36xx_am35xx_omap3430es2plus_clks));
+-		omap_clocks_register(omap3xxx_clks, ARRAY_SIZE(omap3xxx_clks));
+-	} else if (soc_is_am33xx()) {
+-		cpu_mask =3D RATE_IN_AM33XX;
+-	} else if (cpu_is_ti814x()) {
+-		cpu_mask =3D RATE_IN_TI814X;
+-	} else if (cpu_is_omap34xx()) {
+-		if (omap_rev() =3D=3D OMAP3430_REV_ES1_0) {
+-			cpu_mask =3D RATE_IN_3430ES1;
+-			omap_clocks_register(omap3430es1_clks,
+-					     ARRAY_SIZE(omap3430es1_clks));
+-			omap_clocks_register(omap34xx_omap36xx_clks,
+-					     ARRAY_SIZE(omap34xx_omap36xx_clks));
+-			omap_clocks_register(omap3xxx_clks,
+-					     ARRAY_SIZE(omap3xxx_clks));
+-		} else {
+-			/*
+-			 * Assume that anything that we haven't matched yet
+-			 * has 3430ES2-type clocks.
+-			 */
+-			cpu_mask =3D RATE_IN_3430ES2PLUS;
+-			omap_clocks_register(omap34xx_omap36xx_clks,
+-					     ARRAY_SIZE(omap34xx_omap36xx_clks));
+-			omap_clocks_register(omap36xx_omap3430es2plus_clks,
+-					     ARRAY_SIZE(omap36xx_omap3430es2plus_clks));
+-			omap_clocks_register(omap36xx_am35xx_omap3430es2plus_clks,
+-					     ARRAY_SIZE(omap36xx_am35xx_omap3430es2plus_clks));
+-			omap_clocks_register(omap3xxx_clks,
+-					     ARRAY_SIZE(omap3xxx_clks));
+-		}
+-	} else {
+-		WARN(1, "clock: could not identify OMAP3 variant\n");
+-	}
+-
+-		omap2_clk_disable_autoidle_all();
+-
+-	omap2_clk_enable_init_clocks(enable_init_clks,
+-				     ARRAY_SIZE(enable_init_clks));
+-
+-	pr_info("Clocking rate (Crystal/Core/MPU): %ld.%01ld/%ld/%ld MHz\n",
+-		(clk_get_rate(&osc_sys_ck) / 1000000),
+-		(clk_get_rate(&osc_sys_ck) / 100000) % 10,
+-		(clk_get_rate(&core_ck) / 1000000),
+-		(clk_get_rate(&arm_fck) / 1000000));
+-
+-	/*
+-	 * Lock DPLL5 -- here only until other device init code can
+-	 * handle this
+-	 */
+-	if (!cpu_is_ti81xx() && (omap_rev() >=3D OMAP3430_REV_ES2_0))
+-		omap3_clk_lock_dpll5();
+-
+-	/* Avoid sleeping during omap3_core_dpll_m2_set_rate() */
+-	sdrc_ick_p =3D clk_get(NULL, "sdrc_ick");
+-	arm_fck_p =3D clk_get(NULL, "arm_fck");
+-
+-	return 0;
+-}
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 5b19efd..a7b0652 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -476,35 +476,30 @@ void __init omap3_init_early(void)
+ 	omap3xxx_clockdomains_init();
+ 	omap3xxx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap_clk_soc_init =3D omap3xxx_clk_init;
+ }
+=20
+ void __init omap3430_init_early(void)
+ {
+ 	omap3_init_early();
+-	if (of_have_populated_dt())
+-		omap_clk_soc_init =3D omap3430_dt_clk_init;
++	omap_clk_soc_init =3D omap3430_dt_clk_init;
+ }
+=20
+ void __init omap35xx_init_early(void)
+ {
+ 	omap3_init_early();
+-	if (of_have_populated_dt())
+-		omap_clk_soc_init =3D omap3430_dt_clk_init;
++	omap_clk_soc_init =3D omap3430_dt_clk_init;
+ }
+=20
+ void __init omap3630_init_early(void)
+ {
+ 	omap3_init_early();
+-	if (of_have_populated_dt())
+-		omap_clk_soc_init =3D omap3630_dt_clk_init;
++	omap_clk_soc_init =3D omap3630_dt_clk_init;
+ }
+=20
+ void __init am35xx_init_early(void)
+ {
+ 	omap3_init_early();
+-	if (of_have_populated_dt())
+-		omap_clk_soc_init =3D am35xx_dt_clk_init;
++	omap_clk_soc_init =3D am35xx_dt_clk_init;
+ }
+=20
+ void __init ti81xx_init_early(void)
+@@ -522,10 +517,7 @@ void __init ti81xx_init_early(void)
+ 	omap3xxx_clockdomains_init();
+ 	omap3xxx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	if (of_have_populated_dt())
+-		omap_clk_soc_init =3D ti81xx_dt_clk_init;
+-	else
+-		omap_clk_soc_init =3D omap3xxx_clk_init;
++	omap_clk_soc_init =3D ti81xx_dt_clk_init;
+ }
+=20
+ void __init omap3_init_late(void)
+--=20
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
