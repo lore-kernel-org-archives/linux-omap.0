@@ -1,235 +1,42 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
-Date: Tue, 04 Mar 2014 10:40:13 +0100
-Message-ID: <53159F7D.8020707@xs4all.nl>
-References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 2/5] drivers: bus: omap_l3: Convert to use
+ devm_request_and_ioremap()
+Date: Tue, 4 Mar 2014 11:42:06 +0200
+Message-ID: <53159FEE.3030801@ti.com>
+References: <1393923710-10377-1-git-send-email-peter.ujfalusi@ti.com>
+ <1393923710-10377-3-git-send-email-peter.ujfalusi@ti.com>
+ <1393924359.866301359@f148.i.mail.ru> <1393925000.716948505@f148.i.mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1393922965-15967-8-git-send-email-archit@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: k.debski@samsung.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1393925000.716948505@f148.i.mail.ru>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Alexander Shiyan <shc_work@mail.ru>
+Cc: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Archit,
-
-On 03/04/14 09:49, Archit Taneja wrote:
-> Add selection ioctl ops. For VPE, cropping makes sense only for the input to
-> VPE(or V4L2_BUF_TYPE_VIDEO_OUTPUT/MPLANE buffers) and composing makes sense
-> only for the output of VPE(or V4L2_BUF_TYPE_VIDEO_CAPTURE/MPLANE buffers).
-> 
-> For the CAPTURE type, V4L2_SEL_TGT_COMPOSE results in VPE writing the output
-> in a rectangle within the capture buffer. For the OUTPUT type, V4L2_SEL_TGT_CROP
-> results in selecting a rectangle region within the source buffer.
-> 
-> Setting the crop/compose rectangles should successfully result in
-> re-configuration of registers which are affected when either source or
-> destination dimensions change, set_srcdst_params() is called for this purpose.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 142 ++++++++++++++++++++++++++++++++++++
->  1 file changed, 142 insertions(+)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 03a6846..b938590 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -410,8 +410,10 @@ static struct vpe_q_data *get_q_data(struct vpe_ctx *ctx,
->  {
->  	switch (type) {
->  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
->  		return &ctx->q_data[Q_DATA_SRC];
->  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-
-I noticed that the querycap implementation is wrong. It reports
-V4L2_CAP_VIDEO_M2M instead of V4L2_CAP_VIDEO_M2M_MPLANE.
-
-This driver is using the multiplanar formats, so the M2M_MPLANE cap should
-be set.
-
-This should be a separate patch.
-
-BTW, did you test the driver with the v4l2-compliance tool? The latest version
-(http://git.linuxtv.org/v4l-utils.git) has m2m support.
-
-However, if you want to test streaming (the -s option), then you will probably
-need to base your kernel on this tree:
-
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/vb2-part1
-
-That branch contains a pile of fixes for vb2 and without that v4l2-compliance -s
-will fail a number of tests.
-
->  		return &ctx->q_data[Q_DATA_DST];
->  	default:
->  		BUG();
-> @@ -1585,6 +1587,143 @@ static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  	return set_srcdst_params(ctx);
->  }
->  
-> +static int __vpe_try_selection(struct vpe_ctx *ctx, struct v4l2_selection *s)
-> +{
-> +	struct vpe_q_data *q_data;
-> +
-> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
-> +		return -EINVAL;
-> +
-> +	q_data = get_q_data(ctx, s->type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	switch (s->target) {
-> +	case V4L2_SEL_TGT_COMPOSE:
-> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-> +		/*
-> +		 * COMPOSE target is only valid for capture buffer type, for
-> +		 * output buffer type, assign existing crop parameters to the
-> +		 * selection rectangle
-> +		 */
-> +		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-> +			break;
-> +		} else {
-
-No need for the 'else' keywork here.
-
-> +			s->r = q_data->c_rect;
-> +			return 0;
-> +		}
-> +
-> +	case V4L2_SEL_TGT_CROP:
-> +	case V4L2_SEL_TGT_CROP_DEFAULT:
-> +	case V4L2_SEL_TGT_CROP_BOUNDS:
-> +		/*
-> +		 * CROP target is only valid for output buffer type, for capture
-> +		 * buffer type, assign existing compose parameters to the
-> +		 * selection rectangle
-> +		 */
-> +		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> +			break;
-> +		} else {
-
-Ditto.
-
-> +			s->r = q_data->c_rect;
-> +			return 0;
-> +		}
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (s->r.top < 0 || s->r.left < 0) {
-> +		vpe_err(ctx->dev, "negative values for top and left\n");
-> +		s->r.top = s->r.left = 0;
-> +	}
-> +
-> +	v4l_bound_align_image(&s->r.width, MIN_W, q_data->width, 1,
-> +		&s->r.height, MIN_H, q_data->height, H_ALIGN, S_ALIGN);
-> +
-> +	/* adjust left/top if cropping rectangle is out of bounds */
-> +	if (s->r.left + s->r.width > q_data->width)
-> +		s->r.left = q_data->width - s->r.width;
-> +	if (s->r.top + s->r.height > q_data->height)
-> +		s->r.top = q_data->height - s->r.height;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vpe_g_selection(struct file *file, void *fh,
-> +		struct v4l2_selection *s)
-> +{
-> +	struct vpe_ctx *ctx = file2ctx(file);
-> +	struct vpe_q_data *q_data;
-> +
-> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
-> +		return -EINVAL;
-> +
-> +	q_data = get_q_data(ctx, s->type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	switch (s->target) {
-> +	/* return width and height from S_FMT of the respective buffer type */
-> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-> +	case V4L2_SEL_TGT_CROP_BOUNDS:
-> +	case V4L2_SEL_TGT_CROP_DEFAULT:
-> +		s->r.left = 0;
-> +		s->r.top = 0;
-> +		s->r.width = q_data->width;
-> +		s->r.height = q_data->height;
-> +		return 0;
-> +
-> +	/*
-> +	 * CROP target holds for the output buffer type, and COMPOSE target
-> +	 * holds for the capture buffer type. We still return the c_rect params
-> +	 * for both the target types.
-> +	 */
-> +	case V4L2_SEL_TGT_COMPOSE:
-> +	case V4L2_SEL_TGT_CROP:
-> +		s->r.left = q_data->c_rect.left;
-> +		s->r.top = q_data->c_rect.top;
-> +		s->r.width = q_data->c_rect.width;
-> +		s->r.height = q_data->c_rect.height;
-> +		return 0;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +
-> +static int vpe_s_selection(struct file *file, void *fh,
-> +		struct v4l2_selection *s)
-> +{
-> +	struct vpe_ctx *ctx = file2ctx(file);
-> +	struct vpe_q_data *q_data;
-> +	struct v4l2_selection sel = *s;
-> +	int ret;
-> +
-> +	ret = __vpe_try_selection(ctx, &sel);
-> +	if (ret)
-> +		return ret;
-> +
-> +	q_data = get_q_data(ctx, sel.type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	if ((q_data->c_rect.left == sel.r.left) &&
-> +			(q_data->c_rect.top == sel.r.top) &&
-> +			(q_data->c_rect.width == sel.r.width) &&
-> +			(q_data->c_rect.height == sel.r.height)) {
-> +		vpe_dbg(ctx->dev,
-> +			"requested crop/compose values are already set\n");
-> +		return 0;
-> +	}
-> +
-> +	q_data->c_rect = sel.r;
-> +
-> +	return set_srcdst_params(ctx);
-> +}
-> +
->  static int vpe_reqbufs(struct file *file, void *priv,
->  		       struct v4l2_requestbuffers *reqbufs)
->  {
-> @@ -1672,6 +1811,9 @@ static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
->  	.vidioc_try_fmt_vid_out_mplane	= vpe_try_fmt,
->  	.vidioc_s_fmt_vid_out_mplane	= vpe_s_fmt,
->  
-> +	.vidioc_g_selection		= vpe_g_selection,
-> +	.vidioc_s_selection		= vpe_s_selection,
-> +
->  	.vidioc_reqbufs		= vpe_reqbufs,
->  	.vidioc_querybuf	= vpe_querybuf,
->  
-> 
-
-Regards,
-
-	Hans
+T24gMDMvMDQvMjAxNCAxMToyMyBBTSwgQWxleGFuZGVyIFNoaXlhbiB3cm90ZToKPj4+IC0JbDMt
+PmwzX2Jhc2VbMl0gPSBpb3JlbWFwKHJlcy0+c3RhcnQsIHJlc291cmNlX3NpemUocmVzKSk7Cj4+
+PiAtCWlmICghbDMtPmwzX2Jhc2VbMl0pIHsKPj4+IC0JCWRldl9lcnIoJnBkZXYtPmRldiwgImlv
+cmVtYXAgZmFpbGVkXG4iKTsKPj4+IC0JCXJldCA9IC1FTk9NRU07Cj4+PiAtCQlnb3RvIGVycjI7
+Cj4+PiArCQlsMy0+bDNfYmFzZVtpXSA9IGRldm1fcmVxdWVzdF9hbmRfaW9yZW1hcCgmcGRldi0+
+ZGV2LCByZXMpOwo+Pj4gKwkJaWYgKCFsMy0+bDNfYmFzZVtpXSkgewo+Pgo+PiBpZiAoSVNfRVJS
+KGwzLT5sM19iYXNlW2ldKSkKPiAKPiBBaGgsIEkgbWVzc2VkIHVwIHRoaXMgd2l0aCBkZXZtX2lv
+cmVtYXBfcmVzb3VyY2UoKS4KPiBIb3dldmVyLCBpZiB0aGVyZSBpcyByZWFzb24gdG8gdXNlIGRl
+dm1fcmVxdWVzdF9hbmRfaW9yZW1hcCgpIGhlcmU/CgpkZXZtX3JlcXVlc3RfYW5kX2lvcmVtYXAo
+KSBpcyBqdXN0IGEgd3JhcHBlciBmb3IgZGV2bV9pb3JlbWFwX3Jlc291cmNlKCkuIEl0CnJldHVy
+bnMgTlVMTCBpbiBjYXNlIG9mIGVycm9yIChlYXRzIHVwIHRoZSBlcnJvciBjb2RlIGF0IHRoZSBz
+YW1lIHRpbWUpLgpJIGRvbid0IGhhdmUgc3Ryb25nIHByZWZlcmVuY2Ugb24gdGhpcyBzbyBJIGNh
+biBjaGFuZ2UgaXQgdG8KZGV2bV9pb3JlbWFwX3Jlc291cmNlKCkKCi0tIApQw6l0ZXIKCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJu
+ZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRw
+Oi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
