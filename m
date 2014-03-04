@@ -1,7 +1,7 @@
 From: Marc Murphy <marcmltd@marcm.co.uk>
 Subject: RE: Help needed USB hub disconnected at resume
-Date: Tue, 4 Mar 2014 23:01:16 +0000
-Message-ID: <F690310232FDDF4AB457E8B3EF90DDE0AA85FFF0@MARCM-SBS2011.marcmltd.local>
+Date: Tue, 4 Mar 2014 23:05:58 +0000
+Message-ID: <F690310232FDDF4AB457E8B3EF90DDE0AA86001B@MARCM-SBS2011.marcmltd.local>
 References: <F690310232FDDF4AB457E8B3EF90DDE0AA85E10B@MARCM-SBS2011.marcmltd.local>
  <F690310232FDDF4AB457E8B3EF90DDE0AA85E1E7@MARCM-SBS2011.marcmltd.local>
  <F690310232FDDF4AB457E8B3EF90DDE0AA85E21F@MARCM-SBS2011.marcmltd.local>
@@ -14,18 +14,17 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtpout05.bt.lon5.cpcloud.co.uk ([65.20.0.125]:8905 "EHLO
-	smtpout05.bt.lon5.cpcloud.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754614AbaCDXBv convert rfc822-to-8bit
+Received: from smtpout09.bt.lon5.cpcloud.co.uk ([65.20.0.129]:2434 "EHLO
+	smtpout09.bt.lon5.cpcloud.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755220AbaCDXGG convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Mar 2014 18:01:51 -0500
+	Tue, 4 Mar 2014 18:06:06 -0500
 In-Reply-To: <20140304224427.GA31462@saruman.home>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "'balbi@ti.com'" <balbi@ti.com>
 Cc: 'Igor Grinberg' <grinberg@compulab.co.il>, Roger Quadros <rogerq@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
 
 > -----Original Message-----
 > From: Felipe Balbi [mailto:balbi@ti.com]
@@ -47,10 +46,11 @@ Cc: 'Igor Grinberg' <grinberg@compulab.co.il>, Roger Quadros <rogerq@ti.com>, "l
 > 
 > why are you exporting this gpio ?
 
-I thought I needed to so that the Phy is reset.  I will try with it disabled.
+
+It makes no difference whether I configure the GPIO or not.
 
 Regards
-Marc
+Marc 
 
 > 
 > --
