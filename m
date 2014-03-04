@@ -1,74 +1,54 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: randconfig build error with next-20140304, in
- drivers/usb/dwc3/core.c
-Date: Tue, 4 Mar 2014 09:18:50 -0600
-Message-ID: <20140304151850.GF15233@saruman.home>
-References: <CA+r1Zhg3iv4RxC=bWenE+bX=9He6DhfFBXM3L=GOc-Uv=Mxf=g@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv3 00/13] OMAP IOMMU DT adaptation for 3.15
+Date: Tue, 4 Mar 2014 17:04:32 +0100
+Message-ID: <20140304160432.GG2799@8bytes.org>
+References: <1393620164-14633-1-git-send-email-s-anna@ti.com>
+	<20140228230000.GW13624@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OzxllxdKGCiKxUZM"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44972 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757259AbaCDPU3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Mar 2014 10:20:29 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CA+r1Zhg3iv4RxC=bWenE+bX=9He6DhfFBXM3L=GOc-Uv=Mxf=g@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20140228230000.GW13624-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jim Davis <jim.epost@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next <linux-next@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, grant.likely@linaro.org, Rob Herring <robh+dt@kernel.org>, linux-usb <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org
 
---OzxllxdKGCiKxUZM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Fri, Feb 28, 2014 at 03:00:00PM -0800, Tony Lindgren wrote:
+> * Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [140228 12:46]:
+> > Hi Joerg, Tony,
+> > 
+> > This is an updated series of the OMAP IOMMU DT adaptation intended
+> > for 3.15 merge window, addressing the comments from the v2 series.
+> > This series is rebased onto 3.14-rc4, and the only change to bindings
+> > is to drop the dma-window property.
+> > 
+> > The first 7 patches in the series are in drivers/iommu, with the first
+> > 3 patches performing some cleanup. The DT bindings and adaptation are
+> > done in patches 4 and 5.
+> > 
+> > Tony,
+> > Patches 8 through 13 are in arch/arm/mach-omap2 layer, so I am guessing
+> > these would have to go through your tree. Of these, patches 8 and 9 are
+> > cleanup fixes to get OMAP3 IVA MMU working, patches 10 & 11 are fixes
+> > required with DT-boot for OMAP3/4, patches 12 & 13 add the OMAP5 support.
+> 
+> Are patches 8 to 13 OK to apply separately from the iommu patches or
+> do they need to wait for the iommu patches to get merged first?
 
-Hi,
+Applied patches 1-7 to my arm/omap branch.
 
-On Tue, Mar 04, 2014 at 07:30:20AM -0700, Jim Davis wrote:
-> Building with the attached random configuration file,
->=20
-> warning: (USB_OTG_FSM && FSL_USB2_OTG && USB_MV_OTG) selects USB_OTG
-> which has unmet direct dependencies (USB_SUPPORT && USB && PM_RUNTIME)
-> warning: (USB_OTG_FSM && FSL_USB2_OTG && USB_MV_OTG) selects USB_OTG
-> which has unmet direct dependencies (USB_SUPPORT && USB && PM_RUNTIME)
->=20
->   LD      init/built-in.o
-> drivers/built-in.o: In function `dwc3_setup_scratch_buffers':
-> /home/jim/linux/drivers/usb/dwc3/core.c:280: undefined reference to
-> `dwc3_send_gadget_generic_command'
-> /home/jim/linux/drivers/usb/dwc3/core.c:287: undefined reference to
-> `dwc3_send_gadget_generic_command'
-> make: *** [vmlinux] Error 1
+Tony, you can pull that branch into your tree if needed (when I pushed
+it, which will happen today or tomorrow).
 
-will fix it now. Damn, I do 200 randconfigs every week and never caught
-that, good job ;-)
 
---=20
-balbi
-
---OzxllxdKGCiKxUZM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTFe7aAAoJEIaOsuA1yqREKqIP/A4rI8ke0DNp3bpDmVXueQza
-BSqakRpmuiawAFbR7twmiyxbWSq1r2VeV8x8d8Z25okxYYlvHmvvsf/xzVq5IQSD
-mYpQaI3Yo75QWtlRq17p9I8udzBEAAkKeTmemZUrRMwLVPeBGSk+eTnMQWONPdqS
-NZedeyvIQe0Wewcu6rX66ESjfKyXr1ARnNDgI3hI7qio4ZwBq7QGNFrZp8Z5PwUQ
-cvG8+qZJxDiK9fxoarJ0xdZQ2oBN/TOXufxpxWqP0lp26YLDsV6NOJbQjJsrhLZP
-rz6T1oBTlWFZFgHYTJUYsS6/41dzoHslmnWt+rWHY0KmzcUlanDGo8Y1NTtH9E4N
-0831uRFEymYY/+P6brmbmPmR8D/6rkwwncw/mu4iLdpgM0V3XFq/dMWi534h9Ukj
-wEVdfoJz/sSnlCME8BVW+Tr6HQLc/ymO9XeMvqOO1a1fXksZurttSfewr1pa9PRG
-NT1AggAK0Q04Z6uhJzbxgK9Rr/r6So3JXL+Nj/nYDDO1JVPfnpAY5Enm0NcOw70/
-92aUtYqSQd+wik9Xh2F4DzAEmijEbXIO9GGLj1ZROckepG9n2Z3hahKq87jIP/qG
-O6sckd6znRtZ4CovcUBP12l/kpnbddcE2zwbhkl/AQKAW/1d4Zwo5HtxF7cFIgKl
-BXZRo5yirJYYrpkEiWuv
-=Bi0O
------END PGP SIGNATURE-----
-
---OzxllxdKGCiKxUZM--
+	Joerg
