@@ -1,181 +1,74 @@
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
-Date: Tue, 04 Mar 2014 14:28:10 +0100
-Message-ID: <17f101cf37ad$96e23230$c4a69690$%debski@samsung.com>
-References: <1393832008-22174-1-git-send-email-archit@ti.com>
- <1393922965-15967-1-git-send-email-archit@ti.com>
- <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl>
- <5315B822.7010005@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v5 0/6] Make dwc3 use Generic PHY Framework
+Date: Tue, 4 Mar 2014 19:01:25 +0530
+Message-ID: <5315D5AD.7070501@ti.com>
+References: <1393846695-14644-1-git-send-email-kishon@ti.com>
+ <20140303164051.GB10987@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-reply-to: <5315B822.7010005@ti.com>
-Content-language: pl
-Sender: linux-media-owner@vger.kernel.org
-To: 'Archit Taneja' <archit@ti.com>, 'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140303164051.GB10987@saruman.home>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com
+Cc: mark.rutland@arm.com, heikki.krogerus@linux.intel.com, linux-doc@vger.kernel.org, tony@atomide.com, s.nawrocki@samsung.com, linux@arm.linux.org.uk, swarren@wwwdotorg.org, grant.likely@linaro.org, devicetree@vger.kernel.org, george.cherian@ti.com, bcousson@baylibre.com, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, rob@landley.net, galak@codeaurora.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Archit,
 
-> From: Archit Taneja [mailto:archit@ti.com]
-> Sent: Tuesday, March 04, 2014 12:25 PM
-> 
+On Monday 03 March 2014 10:10 PM, Felipe Balbi wrote:
 > Hi,
-> 
-> On Tuesday 04 March 2014 03:10 PM, Hans Verkuil wrote:
-> > Hi Archit,
-> >
-> > On 03/04/14 09:49, Archit Taneja wrote:
-> >> Add selection ioctl ops. For VPE, cropping makes sense only for the
-> >> input to VPE(or V4L2_BUF_TYPE_VIDEO_OUTPUT/MPLANE buffers) and
-> >> composing makes sense only for the output of VPE(or
-> V4L2_BUF_TYPE_VIDEO_CAPTURE/MPLANE buffers).
-> >>
-> >> For the CAPTURE type, V4L2_SEL_TGT_COMPOSE results in VPE writing
-> the
-> >> output in a rectangle within the capture buffer. For the OUTPUT
-> type,
-> >> V4L2_SEL_TGT_CROP results in selecting a rectangle region within the
-> source buffer.
-> >>
-> >> Setting the crop/compose rectangles should successfully result in
-> >> re-configuration of registers which are affected when either source
-> >> or destination dimensions change, set_srcdst_params() is called for
-> this purpose.
-> >>
-> >> Signed-off-by: Archit Taneja <archit@ti.com>
-> >> ---
-> >>   drivers/media/platform/ti-vpe/vpe.c | 142
-> ++++++++++++++++++++++++++++++++++++
-> >>   1 file changed, 142 insertions(+)
-> >>
-> >> diff --git a/drivers/media/platform/ti-vpe/vpe.c
-> >> b/drivers/media/platform/ti-vpe/vpe.c
-> >> index 03a6846..b938590 100644
-> >> --- a/drivers/media/platform/ti-vpe/vpe.c
-> >> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> >> @@ -410,8 +410,10 @@ static struct vpe_q_data *get_q_data(struct
-> vpe_ctx *ctx,
-> >>   {
-> >>   	switch (type) {
-> >>   	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-> >> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> >>   		return &ctx->q_data[Q_DATA_SRC];
-> >>   	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-> >> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-> >
-> > I noticed that the querycap implementation is wrong. It reports
-> > V4L2_CAP_VIDEO_M2M instead of V4L2_CAP_VIDEO_M2M_MPLANE.
-> >
-> > This driver is using the multiplanar formats, so the M2M_MPLANE cap
-> > should be set.
-> >
-> > This should be a separate patch.
-> 
-> Thanks for pointing this out, I'll make a patch for that.
-> 
-> >
-> > BTW, did you test the driver with the v4l2-compliance tool? The
-> latest
-> > version
-> > (http://git.linuxtv.org/v4l-utils.git) has m2m support.
-> >
-> 
-> I haven't tested it with this yet.
-> 
-> > However, if you want to test streaming (the -s option), then you will
-> > probably need to base your kernel on this tree:
-> >
-> >
-> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/vb2
-> > -part1
-> 
-> I can give it a try. It'll probably take a bit more time to try this
-> out. I'll need to port some minor DRA7x stuff.
-> 
-> Kamil,
-> 
-> Do you think you have some more time for the m2m pull request?
+>
+> On Mon, Mar 03, 2014 at 05:08:09PM +0530, Kishon Vijay Abraham I wrote:
+>> Added support for optional PHY in dwc3 as not all SoCs having PHYs for DWC3
+>> should be programmed. While this can be considered as a temporary fix,
+>> a long term solution would be to add 'nop' PHY for platforms that does
+>> not have programmable PHY.
+>> Adapted DWC3 and USB3 PHY to use Generic PHY framework. Also changed the
+>> name of USB3 PHY driver to PIPE3 PHY driver since the same driver has to
+>> be used for SATA and PCIE too.
+>>
+>> Changes from v4: (sending the entire patch series again)
+>> * check the return values of phy_init and phy_power_on
+>> * print errors if power_on or power_off of PHY fails.
+>>
+>> Changes from v3: (Sent only adapt dwc3 core to use Generic PHY Framework)
+>> * avoided using quirks and rely on the return values of PHY APIs to find the
+>> presence of PHY.
+>>
+>> Changes from v2:
+>> * added a couple of fixes. One is invoking phy_resume after phy_init and the
+>> other is power off phy in error patch
+>> * used quirks to identify if a particular platform does not have PHYs
+>> * removed using separate header for pipe3 driver and also removed all referencs
+>> to SATA and PCIe in pipe3 driver since it's not yet adapted for those drivers.
+>>
+>> Changes from v1:
+>> * The logic in which the driver detects the presence of PHYs has changed.
+>> * patch ordering has changed
+>> * udelay is replaced with usleep_range
+>> * A patch to remove set_suspend callback which was deferred from Generic
+>> PHY Framework series has been included.
+>>
+>> Kishon Vijay Abraham I (6):
+>>    usb: dwc3: core: support optional PHYs
+>>    usb: dwc3: adapt dwc3 core to use Generic PHY Framework
+>>    drivers: phy: usb3/pipe3: Adapt pipe3 driver to Generic PHY Framework
+>>    usb: phy: omap-usb2: remove *set_suspend* callback from omap-usb2
+>>    phy: omap-usb2: move omap_usb.h from linux/usb/ to linux/phy/
+>>    arm/dts: added dt properties to adapt to the new phy framwork
+>
+> patches 1 and 2 are in my testing/next, I guess 3,4,5 and 6 have no
+> direct dependency on those, right ?
 
-Yes, I would like to send the final pull request at the beginning of
-the coming week.
+that's right. I'll take 3, 4 and 5th patch in my tree and ping Tony to 
+take 6th patch.
 
-> >
-> > That branch contains a pile of fixes for vb2 and without that
-> > v4l2-compliance -s will fail a number of tests.
-> >
-> >>   		return &ctx->q_data[Q_DATA_DST];
-> >>   	default:
-> >>   		BUG();
-> >> @@ -1585,6 +1587,143 @@ static int vpe_s_fmt(struct file *file, void
-> *priv, struct v4l2_format *f)
-> >>   	return set_srcdst_params(ctx);
-> >>   }
-> >>
-> >> +static int __vpe_try_selection(struct vpe_ctx *ctx, struct
-> >> +v4l2_selection *s) {
-> >> +	struct vpe_q_data *q_data;
-> >> +
-> >> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-> >> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
-> >> +		return -EINVAL;
-> >> +
-> >> +	q_data = get_q_data(ctx, s->type);
-> >> +	if (!q_data)
-> >> +		return -EINVAL;
-> >> +
-> >> +	switch (s->target) {
-> >> +	case V4L2_SEL_TGT_COMPOSE:
-> >> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-> >> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-> >> +		/*
-> >> +		 * COMPOSE target is only valid for capture buffer type,
-> for
-> >> +		 * output buffer type, assign existing crop parameters to
-> the
-> >> +		 * selection rectangle
-> >> +		 */
-> >> +		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-> >> +			break;
-> >> +		} else {
-> >
-> > No need for the 'else' keywork here.
-> >
-> >> +			s->r = q_data->c_rect;
-> >> +			return 0;
-> >> +		}
-> >> +
-> >> +	case V4L2_SEL_TGT_CROP:
-> >> +	case V4L2_SEL_TGT_CROP_DEFAULT:
-> >> +	case V4L2_SEL_TGT_CROP_BOUNDS:
-> >> +		/*
-> >> +		 * CROP target is only valid for output buffer type, for
-> capture
-> >> +		 * buffer type, assign existing compose parameters to the
-> >> +		 * selection rectangle
-> >> +		 */
-> >> +		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> >> +			break;
-> >> +		} else {
-> >
-> > Ditto.
-> 
-> 
-> Thanks. I'll fix these.
-> 
-> I had a minor question about the selection API:
-> 
-> Are the V4L2_SET_TGT_CROP/COMPOSE_DEFAULT and the corresponding
-> 'BOUNDS'
-> targets supposed to be used with VIDIOC_S_SELECTION? If so, what's the
-> expect behaviour?
-> 
-> Thanks,
-> Archit
-
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+-Kishon
