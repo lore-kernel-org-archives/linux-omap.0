@@ -1,317 +1,96 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 05/14] CLK: TI: APLL: add support for omap2 aplls
-Date: Tue, 4 Mar 2014 11:18:11 +0200
-Message-ID: <1393924700-6510-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 06/14] CLK: TI: gate: fixed DT binding documentation bugs
+Date: Tue, 4 Mar 2014 11:18:12 +0200
+Message-ID: <1393924700-6510-7-git-send-email-t-kristo@ti.com>
 References: <1393924700-6510-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44021 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756698AbaCDJT1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Mar 2014 04:19:27 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:57675 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756742AbaCDJTe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Mar 2014 04:19:34 -0500
 In-Reply-To: <1393924700-6510-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, mturquette@linaro.org, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-This patch adds support for omap2 type aplls, which have gating and
-autoidle functionality.
+ti,composite-gate-clock documentation was missing, also the register
+offset examples were wrong.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../devicetree/bindings/clock/ti/apll.txt          |   24 ++-
- arch/arm/mach-omap2/clock.h                        |   11 --
- drivers/clk/ti/apll.c                              |  181 ++++++++++++++++++++
- include/linux/clk/ti.h                             |   21 ++-
- 4 files changed, 220 insertions(+), 17 deletions(-)
+ .../devicetree/bindings/clock/ti/gate.txt          |   29 +++++++++++++++++---
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/apll.txt b/Documentation/devicetree/bindings/clock/ti/apll.txt
-index 7faf5a6..ade4dd4 100644
---- a/Documentation/devicetree/bindings/clock/ti/apll.txt
-+++ b/Documentation/devicetree/bindings/clock/ti/apll.txt
-@@ -14,18 +14,32 @@ a subtype of a DPLL [2], although a simplified one at that.
- [2] Documentation/devicetree/bindings/clock/ti/dpll.txt
- 
- Required properties:
--- compatible : shall be "ti,dra7-apll-clock"
-+- compatible : shall be "ti,dra7-apll-clock" or "ti,omap2-apll-clock"
- - #clock-cells : from common clock binding; shall be set to 0.
- - clocks : link phandles of parent clocks (clk-ref and clk-bypass)
- - reg : address and length of the register set for controlling the APLL.
-   It contains the information of registers in the following order:
--	"control" - contains the control register base address
--	"idlest" - contains the idlest register base address
-+	"control" - contains the control register offset
-+	"idlest" - contains the idlest register offset
-+	"autoidle" - contains the autoidle register offset (OMAP2 only)
-+- ti,clock-frequency : static clock frequency for the clock (OMAP2 only)
-+- ti,idlest-shift : bit-shift for the idlest field (OMAP2 only)
-+- ti,bit-shift : bit-shift for enable and autoidle fields (OMAP2 only)
- 
- Examples:
--	apll_pcie_ck: apll_pcie_ck@4a008200 {
-+	apll_pcie_ck: apll_pcie_ck {
+diff --git a/Documentation/devicetree/bindings/clock/ti/gate.txt b/Documentation/devicetree/bindings/clock/ti/gate.txt
+index 125281a..03f8fde 100644
+--- a/Documentation/devicetree/bindings/clock/ti/gate.txt
++++ b/Documentation/devicetree/bindings/clock/ti/gate.txt
+@@ -25,6 +25,11 @@ Required properties:
+ 			  to map clockdomains properly
+   "ti,hsdiv-gate-clock" - gate clock with OMAP36xx specific hardware handling,
+ 			  required for a hardware errata
++  "ti,composite-gate-clock" - composite gate clock, to be part of composite
++			      clock
++  "ti,composite-no-wait-gate-clock" - composite gate clock that does not wait
++				      for clock to be active before returning
++				      from clk_enable()
+ - #clock-cells : from common clock binding; shall be set to 0
+ - clocks : link to phandle of parent clock
+ - reg : offset for register controlling adjustable gate, not needed for
+@@ -41,7 +46,7 @@ Examples:
  		#clock-cells = <0>;
- 		clocks = <&apll_pcie_in_clk_mux>, <&dpll_pcie_ref_ck>;
--		reg = <0x4a00821c 0x4>, <0x4a008220 0x4>;
-+		reg = <0x021c>, <0x0220>;
- 		compatible = "ti,dra7-apll-clock";
+ 		compatible = "ti,gate-clock";
+ 		clocks = <&core_96m_fck>;
+-		reg = <0x48004a00 0x4>;
++		reg = <0x0a00>;
+ 		ti,bit-shift = <25>;
+ 	};
+ 
+@@ -57,7 +62,7 @@ Examples:
+ 		#clock-cells = <0>;
+ 		compatible = "ti,dss-gate-clock";
+ 		clocks = <&dpll4_m4x2_ck>;
+-		reg = <0x48004e00 0x4>;
++		reg = <0x0e00>;
+ 		ti,bit-shift = <0>;
+ 	};
+ 
+@@ -65,7 +70,7 @@ Examples:
+ 		#clock-cells = <0>;
+ 		compatible = "ti,am35xx-gate-clock";
+ 		clocks = <&ipss_ick>;
+-		reg = <0x4800259c 0x4>;
++		reg = <0x059c>;
+ 		ti,bit-shift = <1>;
+ 	};
+ 
+@@ -80,6 +85,22 @@ Examples:
+ 		compatible = "ti,hsdiv-gate-clock";
+ 		clocks = <&dpll4_m2x2_mul_ck>;
+ 		ti,bit-shift = <0x1b>;
+-		reg = <0x48004d00 0x4>;
++		reg = <0x0d00>;
+ 		ti,set-bit-to-disable;
  	};
 +
-+	apll96_ck: apll96_ck {
++	vlynq_gate_fck: vlynq_gate_fck {
 +		#clock-cells = <0>;
-+		compatible = "ti,omap2-apll-clock";
-+		clocks = <&sys_ck>;
-+		ti,bit-shift = <2>;
-+		ti,idlest-shift = <8>;
-+		ti,clock-frequency = <96000000>;
-+		reg = <0x0500>, <0x0530>, <0x0520>;
++		compatible = "ti,composite-gate-clock";
++		clocks = <&core_ck>;
++		ti,bit-shift = <3>;
++		reg = <0x0200>;
 +	};
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 7057f37..7b7a03c 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -178,17 +178,6 @@ struct clksel {
- 	const struct clksel_rate *rates;
- };
- 
--struct clk_hw_omap_ops {
--	void			(*find_idlest)(struct clk_hw_omap *oclk,
--					void __iomem **idlest_reg,
--					u8 *idlest_bit, u8 *idlest_val);
--	void			(*find_companion)(struct clk_hw_omap *oclk,
--					void __iomem **other_reg,
--					u8 *other_bit);
--	void			(*allow_idle)(struct clk_hw_omap *oclk);
--	void			(*deny_idle)(struct clk_hw_omap *oclk);
--};
--
- /* CM_CLKSEL2_PLL.CORE_CLK_SRC bits (2XXX) */
- #define CORE_CLK_SRC_32K		0x0
- #define CORE_CLK_SRC_DPLL		0x1
-diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
-index b986f61..5428c9c 100644
---- a/drivers/clk/ti/apll.c
-+++ b/drivers/clk/ti/apll.c
-@@ -221,3 +221,184 @@ cleanup:
- 	kfree(init);
- }
- CLK_OF_DECLARE(dra7_apll_clock, "ti,dra7-apll-clock", of_dra7_apll_setup);
 +
-+#define OMAP2_EN_APLL_LOCKED	0x3
-+#define OMAP2_EN_APLL_STOPPED	0x0
-+
-+static int omap2_apll_is_enabled(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct dpll_data *ad = clk->dpll_data;
-+	u32 v;
-+
-+	v = ti_clk_ll_ops->clk_readl(ad->control_reg);
-+	v &= ad->enable_mask;
-+
-+	v >>= __ffs(ad->enable_mask);
-+
-+	return v == OMAP2_EN_APLL_LOCKED ? 1 : 0;
-+}
-+
-+static unsigned long omap2_apll_recalc(struct clk_hw *hw,
-+				       unsigned long parent_rate)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+
-+	if (omap2_apll_is_enabled(hw))
-+		return clk->fixed_rate;
-+
-+	return 0;
-+}
-+
-+static int omap2_apll_enable(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct dpll_data *ad = clk->dpll_data;
-+	u32 v;
-+	int i = 0;
-+
-+	v = ti_clk_ll_ops->clk_readl(ad->control_reg);
-+	v &= ~ad->enable_mask;
-+	v |= OMAP2_EN_APLL_LOCKED << __ffs(ad->enable_mask);
-+	ti_clk_ll_ops->clk_writel(v, ad->control_reg);
-+
-+	while (1) {
-+		v = ti_clk_ll_ops->clk_readl(ad->idlest_reg);
-+		if (v & ad->idlest_mask)
-+			break;
-+		if (i > MAX_APLL_WAIT_TRIES)
-+			break;
-+		i++;
-+		udelay(1);
-+	}
-+
-+	if (i == MAX_APLL_WAIT_TRIES) {
-+		pr_warn("%s failed to transition to locked\n",
-+			__clk_get_name(clk->hw.clk));
-+		return -EBUSY;
-+	}
-+
-+	return 0;
-+}
-+
-+static void omap2_apll_disable(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct dpll_data *ad = clk->dpll_data;
-+	u32 v;
-+
-+	v = ti_clk_ll_ops->clk_readl(ad->control_reg);
-+	v &= ~ad->enable_mask;
-+	v |= OMAP2_EN_APLL_STOPPED << __ffs(ad->enable_mask);
-+	ti_clk_ll_ops->clk_writel(v, ad->control_reg);
-+}
-+
-+static struct clk_ops omap2_apll_ops = {
-+	.enable		= &omap2_apll_enable,
-+	.disable	= &omap2_apll_disable,
-+	.is_enabled	= &omap2_apll_is_enabled,
-+	.recalc_rate	= &omap2_apll_recalc,
-+};
-+
-+static void omap2_apll_set_autoidle(struct clk_hw_omap *clk, u32 val)
-+{
-+	struct dpll_data *ad = clk->dpll_data;
-+	u32 v;
-+
-+	v = ti_clk_ll_ops->clk_readl(ad->autoidle_reg);
-+	v &= ~ad->autoidle_mask;
-+	v |= val << __ffs(ad->autoidle_mask);
-+	ti_clk_ll_ops->clk_writel(v, ad->control_reg);
-+}
-+
-+#define OMAP2_APLL_AUTOIDLE_LOW_POWER_STOP	0x3
-+#define OMAP2_APLL_AUTOIDLE_DISABLE		0x0
-+
-+static void omap2_apll_allow_idle(struct clk_hw_omap *clk)
-+{
-+	omap2_apll_set_autoidle(clk, OMAP2_APLL_AUTOIDLE_LOW_POWER_STOP);
-+}
-+
-+static void omap2_apll_deny_idle(struct clk_hw_omap *clk)
-+{
-+	omap2_apll_set_autoidle(clk, OMAP2_APLL_AUTOIDLE_DISABLE);
-+}
-+
-+static struct clk_hw_omap_ops omap2_apll_hwops = {
-+	.allow_idle	= &omap2_apll_allow_idle,
-+	.deny_idle	= &omap2_apll_deny_idle,
-+};
-+
-+static void __init of_omap2_apll_setup(struct device_node *node)
-+{
-+	struct dpll_data *ad = NULL;
-+	struct clk_hw_omap *clk_hw = NULL;
-+	struct clk_init_data *init = NULL;
-+	struct clk *clk;
-+	const char *parent_name;
-+	u32 val;
-+
-+	ad = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
-+	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
-+	init = kzalloc(sizeof(*init), GFP_KERNEL);
-+
-+	if (!ad || !clk_hw || !init)
-+		goto cleanup;
-+
-+	clk_hw->dpll_data = ad;
-+	clk_hw->hw.init = init;
-+	init->ops = &omap2_apll_ops;
-+	init->name = node->name;
-+	clk_hw->ops = &omap2_apll_hwops;
-+
-+	init->num_parents = of_clk_get_parent_count(node);
-+	if (init->num_parents != 1) {
-+		pr_err("%s must have one parent\n", node->name);
-+		goto cleanup;
-+	}
-+
-+	parent_name = of_clk_get_parent_name(node, 0);
-+	init->parent_names = &parent_name;
-+
-+	if (of_property_read_u32(node, "ti,clock-frequency", &val)) {
-+		pr_err("%s missing clock-frequency\n", node->name);
-+		goto cleanup;
-+	}
-+	clk_hw->fixed_rate = val;
-+
-+	if (of_property_read_u32(node, "ti,bit-shift", &val)) {
-+		pr_err("%s missing bit-shift\n", node->name);
-+		goto cleanup;
-+	}
-+
-+	clk_hw->enable_bit = val;
-+	ad->enable_mask = 0x3 << val;
-+	ad->autoidle_mask = 0x3 << val;
-+
-+	if (of_property_read_u32(node, "ti,idlest-shift", &val)) {
-+		pr_err("%s missing idlest-shift\n", node->name);
-+		goto cleanup;
-+	}
-+
-+	ad->idlest_mask = 1 << val;
-+
-+	ad->control_reg = ti_clk_get_reg_addr(node, 0);
-+	ad->autoidle_reg = ti_clk_get_reg_addr(node, 1);
-+	ad->idlest_reg = ti_clk_get_reg_addr(node, 2);
-+
-+	if (!ad->control_reg || !ad->autoidle_reg || !ad->idlest_reg)
-+		goto cleanup;
-+
-+	clk = clk_register(NULL, &clk_hw->hw);
-+	if (!IS_ERR(clk)) {
-+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-+		kfree(init);
-+		return;
-+	}
-+cleanup:
-+	kfree(ad);
-+	kfree(clk_hw);
-+	kfree(init);
-+}
-+CLK_OF_DECLARE(omap2_apll_clock, "ti,omap2-apll-clock",
-+	       of_omap2_apll_setup);
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 2310adc..ddac0d0 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -94,7 +94,26 @@ struct dpll_data {
- 	u8			flags;
- };
- 
--struct clk_hw_omap_ops;
-+struct clk_hw_omap;
-+
-+/**
-+ * struct clk_hw_omap_ops - OMAP clk ops
-+ * @find_idlest: find idlest register information for a clock
-+ * @find_companion: find companion clock register information for a clock,
-+ *		    basically converts CM_ICLKEN* <-> CM_FCLKEN*
-+ * @allow_idle: enables autoidle hardware functionality for a clock
-+ * @deny_idle: prevent autoidle hardware functionality for a clock
-+ */
-+struct clk_hw_omap_ops {
-+	void	(*find_idlest)(struct clk_hw_omap *oclk,
-+			void __iomem **idlest_reg,
-+			u8 *idlest_bit, u8 *idlest_val);
-+	void	(*find_companion)(struct clk_hw_omap *oclk,
-+			void __iomem **other_reg,
-+			u8 *other_bit);
-+	void	(*allow_idle)(struct clk_hw_omap *oclk);
-+	void	(*deny_idle)(struct clk_hw_omap *oclk);
-+};
- 
- /**
-  * struct clk_hw_omap - OMAP struct clk
++	sys_clkout2_src_gate: sys_clkout2_src_gate {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&core_ck>;
++		ti,bit-shift = <15>;
++		reg = <0x0070>;
++	};
 -- 
 1.7.9.5
 
