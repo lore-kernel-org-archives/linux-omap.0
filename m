@@ -1,14 +1,11 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 1/5] drivers: bus: omap_l3: Convert to use devm_kzalloc
-Date: Tue, 4 Mar 2014 11:07:52 +0200
-Message-ID: <531597E8.50509@ti.com>
-References: <1393923710-10377-1-git-send-email-peter.ujfalusi@ti.com>
- <1393923710-10377-2-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 0/5] drivers: bus: omap_l3: Conversion to devm_*
+Date: Tue, 4 Mar 2014 11:08:25 +0200
+Message-ID: <1393924110-11132-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1393923710-10377-2-git-send-email-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,16 +19,32 @@ To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.co
 Cc: Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/04/2014 11:01 AM, Peter Ujfalusi wrote:
-> We can remove the kfree() calls from probe and remove.
-> =
+Hi,
 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti>
+Changes since v1:
+- Fixed Santosh's email address in the commit messages.
 
-Where did the ".com" went from Santosh's email address??
-I'll resend it in a minute with a fixed commit message.
+Cleanup of platform probe and remove (removing the remove function at the end)
+with converting the driver to use the devm_* versions kzalloc, ioremap and
+request_irq. 
 
--- =
+This is a resend of an old series which I found when doing some spring cleanup
+on my HDD:
+http://www.spinics.net/lists/linux-omap/msg90531.html
 
-P=E9ter
+Regards,
+Peter
+---
+Peter Ujfalusi (5):
+  drivers: bus: omap_l3: Convert to use devm_kzalloc
+  drivers: bus: omap_l3: Convert to use devm_request_and_ioremap()
+  drivers: bus: omap_l3: Convert to use devm_request_irq()
+  drivers: bus: omap_l3: Remove the platform driver's remove function
+  drivers: bus: omap_l3: Change pr_crit() to dev_err() when IRQ request
+    fails
+
+ drivers/bus/omap_l3_noc.c | 106 +++++++++++-----------------------------------
+ 1 file changed, 24 insertions(+), 82 deletions(-)
+
+-- 
+1.9.0
