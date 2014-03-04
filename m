@@ -1,93 +1,53 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 02/12] phy: omap-control: Update DT binding information
-Date: Tue, 4 Mar 2014 08:28:56 -0800
-Message-ID: <20140304162855.GB3376@atomide.com>
-References: <1393859254-10937-1-git-send-email-rogerq@ti.com>
- <1393859254-10937-3-git-send-email-rogerq@ti.com>
- <20140303190247.GD25804@atomide.com>
- <5315995F.5050206@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCHv3 00/13] OMAP IOMMU DT adaptation for 3.15
+Date: Tue, 4 Mar 2014 10:52:02 -0600
+Message-ID: <531604B2.5080400@ti.com>
+References: <1393620164-14633-1-git-send-email-s-anna@ti.com>
+ <20140228230000.GW13624@atomide.com> <20140304160432.GG2799@8bytes.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5315995F.5050206-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: kishon-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140304160432.GG2799@8bytes.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Joerg Roedel <joro@8bytes.org>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, iommu@lists.linux-foundation.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Florian Vaussard <florian.vaussard@epfl.ch>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140304 01:17]:
-> Hi Tony,
-> 
-> On 03/03/2014 09:02 PM, Tony Lindgren wrote:
-> > * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140303 07:10]:
-> >> Move omap-control binding information to the right location.
-> >>
-> >> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> >> ---
-> >>  Documentation/devicetree/bindings/phy/ti-phy.txt   | 25 ++++++++++++++++++++++
-> >>  Documentation/devicetree/bindings/usb/omap-usb.txt | 24 ---------------------
-> >>  2 files changed, 25 insertions(+), 24 deletions(-)
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-> >> index 207e14c..41dc132 100644
-> >> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
-> >> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-> >> @@ -1,5 +1,30 @@
-> >>  TI PHY: DT DOCUMENTATION FOR PHYs in TI PLATFORMs
-> >>  
-> >> +OMAP CONTROL PHY
-> >> +
-> >> +Required properties:
-> >> + - compatible: Should be one of
-> >> + "ti,control-phy-otghs" - if it has otghs_control mailbox register as on OMAP4.
-> >> + "ti,control-phy-usb2" - if it has Power down bit in control_dev_conf register
-> >> +                        e.g. USB2_PHY on OMAP5.
-> >> + "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
-> >> +                        e.g. USB3 PHY and SATA PHY on OMAP5.
-> >> + "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY on
-> >> +                        DRA7 platform.
-> >> + "ti,control-phy-am437usb2" - if it has power down register like USB2 PHY on
-> >> +                        AM437 platform.
-> > 
-> > To me it seems that you can leave out all the above. You can set these falgs
-> > flags directly in the driver based on the compatible flag. Then just initialize
-> > the .data in the driver based on the compatible flag.
-> 
-> I'm not sure if I got you. A single platform can have different type of phys.
-> 
-> e.g. OMAP5 has both usb2 and pipe3 PHYs,
-> DRA7 has both pipe3 and usb2 PHYs, but this usb2 PHY is not compatible with OMAP5 one
-> so we need a new compatible id for that.
-> 
-> To add to the woes, the designers were creative enough to make another mutation to
-> the USB2 PHY for AM437x, :(
+On 03/04/2014 10:04 AM, Joerg Roedel wrote:
+> On Fri, Feb 28, 2014 at 03:00:00PM -0800, Tony Lindgren wrote:
+>> * Suman Anna <s-anna@ti.com> [140228 12:46]:
+>>> Hi Joerg, Tony,
+>>>
+>>> This is an updated series of the OMAP IOMMU DT adaptation intended
+>>> for 3.15 merge window, addressing the comments from the v2 series.
+>>> This series is rebased onto 3.14-rc4, and the only change to bindings
+>>> is to drop the dma-window property.
+>>>
+>>> The first 7 patches in the series are in drivers/iommu, with the first
+>>> 3 patches performing some cleanup. The DT bindings and adaptation are
+>>> done in patches 4 and 5.
+>>>
+>>> Tony,
+>>> Patches 8 through 13 are in arch/arm/mach-omap2 layer, so I am guessing
+>>> these would have to go through your tree. Of these, patches 8 and 9 are
+>>> cleanup fixes to get OMAP3 IVA MMU working, patches 10 & 11 are fixes
+>>> required with DT-boot for OMAP3/4, patches 12 & 13 add the OMAP5 support.
+>>
+>> Are patches 8 to 13 OK to apply separately from the iommu patches or
+>> do they need to wait for the iommu patches to get merged first?
+>
+> Applied patches 1-7 to my arm/omap branch.
 
-Oh OK, in that case the compatible flag may not be enough for configuring the
-various instances.
- 
-> What do you suggest the compatible ids should look like for these 5 types of PHY control?
-> OTGHS	(OMAP4 & 5)
-> USB2	(OMAP5)
-> PIPE3	(OMAP5 & DRA7)
-> USB2x	(DRA7)
-> USB2y	(AM437)
+Thanks, Joerg.
 
-I think in that case having the various instances fully configurable from
-device tree is OK if you prefer that. But if you wanted to use the
-compatible flag, then you could do something like this:
-
-ti,control-phy-omap4-otghs	(assuming same on omap4 & 5)
-ti,control-phy-omap5-usb2
-ti,control-phy-omap5-pipe3	(assuming same on omap5 & dra7)
-ti,control-phy-dra7-usb2x
-ti,control-phy-am437-usb2y
-...
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards
+Suman
