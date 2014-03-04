@@ -1,95 +1,115 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 07/14] CLK: TI: interface: add support for omap2430 specific interface clock
-Date: Tue, 4 Mar 2014 11:18:13 +0200
-Message-ID: <1393924700-6510-8-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 09/14] ARM: OMAP2: PRM: add support for OMAP2 specific clock providers
+Date: Tue, 4 Mar 2014 11:18:15 +0200
+Message-ID: <1393924700-6510-10-git-send-email-t-kristo@ti.com>
 References: <1393924700-6510-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57674 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756698AbaCDJTe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Mar 2014 04:19:34 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:57519 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756658AbaCDJTo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Mar 2014 04:19:44 -0500
 In-Reply-To: <1393924700-6510-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, mturquette@linaro.org, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-OMAP2430 I2CHS modules require specific hardware ops to be used, so added
-a new compatible string for this.
+This patch adds support for initializing also omap2-prcm and omap2-scrm
+through DT.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../devicetree/bindings/clock/ti/interface.txt     |    2 ++
- arch/arm/mach-omap2/clock.h                        |    1 -
- drivers/clk/ti/interface.c                         |   11 +++++++++++
- include/linux/clk/ti.h                             |    1 +
- 4 files changed, 14 insertions(+), 1 deletion(-)
+ .../devicetree/bindings/arm/omap/prcm.txt          |   65 ++++++++++++++++++++
+ arch/arm/mach-omap2/prm_common.c                   |    2 +
+ 2 files changed, 67 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/prcm.txt
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/interface.txt b/Documentation/devicetree/bindings/clock/ti/interface.txt
-index 064e8ca..3111a40 100644
---- a/Documentation/devicetree/bindings/clock/ti/interface.txt
-+++ b/Documentation/devicetree/bindings/clock/ti/interface.txt
-@@ -21,6 +21,8 @@ Required properties:
-   "ti,omap3-dss-interface-clock" - interface clock with DSS specific HW handling
-   "ti,omap3-ssi-interface-clock" - interface clock with SSI specific HW handling
-   "ti,am35xx-interface-clock" - interface clock with AM35xx specific HW handling
-+  "ti,omap2430-interface-clock" - interface clock with OMAP2430 specific HW
-+				  handling
- - #clock-cells : from common clock binding; shall be set to 0
- - clocks : link to phandle of parent clock
- - reg : base address for the control register
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 7b7a03c..bb67238 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -265,7 +265,6 @@ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_hsotgusb_wait;
- extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
- extern const struct clk_hw_omap_ops clkhwops_apll54;
- extern const struct clk_hw_omap_ops clkhwops_apll96;
--extern const struct clk_hw_omap_ops clkhwops_omap2430_i2chs_wait;
- 
- /* clksel_rate blocks shared between OMAP44xx and AM33xx */
- extern const struct clksel_rate div_1_0_rates[];
-diff --git a/drivers/clk/ti/interface.c b/drivers/clk/ti/interface.c
-index 320a2b1..9c3e8c4 100644
---- a/drivers/clk/ti/interface.c
-+++ b/drivers/clk/ti/interface.c
-@@ -94,6 +94,7 @@ static void __init of_ti_no_wait_interface_clk_setup(struct device_node *node)
- CLK_OF_DECLARE(ti_no_wait_interface_clk, "ti,omap3-no-wait-interface-clock",
- 	       of_ti_no_wait_interface_clk_setup);
- 
-+#ifdef CONFIG_ARCH_OMAP3
- static void __init of_ti_hsotgusb_interface_clk_setup(struct device_node *node)
- {
- 	_of_ti_interface_clk_setup(node,
-@@ -123,3 +124,13 @@ static void __init of_ti_am35xx_interface_clk_setup(struct device_node *node)
- }
- CLK_OF_DECLARE(ti_am35xx_interface_clk, "ti,am35xx-interface-clock",
- 	       of_ti_am35xx_interface_clk_setup);
-+#endif
+diff --git a/Documentation/devicetree/bindings/arm/omap/prcm.txt b/Documentation/devicetree/bindings/arm/omap/prcm.txt
+new file mode 100644
+index 0000000..79074da
+--- /dev/null
++++ b/Documentation/devicetree/bindings/arm/omap/prcm.txt
+@@ -0,0 +1,65 @@
++OMAP PRCM bindings
 +
-+#ifdef CONFIG_SOC_OMAP2430
-+static void __init of_ti_omap2430_interface_clk_setup(struct device_node *node)
-+{
-+	_of_ti_interface_clk_setup(node, &clkhwops_omap2430_i2chs_wait);
++Power Reset and Clock Manager lists the device clocks and clockdomains under
++a DT hierarchy. Each TI SoC can have multiple PRCM entities listed for it,
++each describing one module and the clock hierarchy under it. see [1] for
++documentation about the individual clock/clockdomain nodes.
++
++[1] Documentation/devicetree/bindings/clock/ti/*
++
++Required properties:
++- compatible:	Must be one of:
++		"ti,am3-prcm"
++		"ti,am3-scrm"
++		"ti,am4-prcm"
++		"ti,am4-scrm"
++		"ti,omap2-prcm"
++		"ti,omap2-scrm"
++		"ti,omap3-prm"
++		"ti,omap3-cm"
++		"ti,omap3-scrm"
++		"ti,omap4-cm1"
++		"ti,omap4-prm"
++		"ti,omap4-cm2"
++		"ti,omap4-scrm"
++		"ti,omap5-prm"
++		"ti,omap5-cm-core-aon"
++		"ti,omap5-scrm"
++		"ti,omap5-cm-core"
++		"ti,dra7-prm"
++		"ti,dra7-cm-core-aon"
++		"ti,dra7-cm-core"
++- reg:		Contains PRCM module register address range
++		(base address and length)
++- clocks:	clocks for this module
++- clockdomains:	clockdomains for this module
++
++Example:
++
++cm: cm@48004000 {
++	compatible = "ti,omap3-cm";
++	reg = <0x48004000 0x4000>;
++
++	cm_clocks: clocks {
++		#address-cells = <1>;
++		#size-cells = <0>;
++	};
++
++	cm_clockdomains: clockdomains {
++	};
 +}
-+CLK_OF_DECLARE(ti_omap2430_interface_clk, "ti,omap2430-interface-clock",
-+	       of_ti_omap2430_interface_clk_setup);
-+#endif
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index ddac0d0..4a05d97 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -308,6 +308,7 @@ static inline void of_ti_clk_deny_autoidle_all(void) { }
- #endif
- 
- extern const struct clk_hw_omap_ops clkhwops_omap2xxx_dpll;
-+extern const struct clk_hw_omap_ops clkhwops_omap2430_i2chs_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
- extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
- extern const struct clk_hw_omap_ops clkhwops_wait;
++
++&cm_clocks {
++	omap2_32k_fck: omap_32k_fck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <32768>;
++	};
++};
++
++&cm_clockdomains {
++	core_l3_clkdm: core_l3_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&sdrc_ick>;
++	};
++};
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index b4c4ab9..878ae9f 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -475,6 +475,8 @@ static struct of_device_id omap_prcm_dt_match_table[] = {
+ 	{ .compatible = "ti,am3-scrm" },
+ 	{ .compatible = "ti,am4-prcm" },
+ 	{ .compatible = "ti,am4-scrm" },
++	{ .compatible = "ti,omap2-prcm" },
++	{ .compatible = "ti,omap2-scrm" },
+ 	{ .compatible = "ti,omap3-prm" },
+ 	{ .compatible = "ti,omap3-cm" },
+ 	{ .compatible = "ti,omap3-scrm" },
 -- 
 1.7.9.5
 
