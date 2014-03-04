@@ -1,7 +1,7 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 1/7] v4l: ti-vpe: Make sure in job_ready that we have the needed number of dst_bufs
-Date: Tue, 4 Mar 2014 14:19:19 +0530
-Message-ID: <1393922965-15967-2-git-send-email-archit@ti.com>
+Subject: [PATCH v2 3/7] v4l: ti-vpe: Use video_device_release_empty
+Date: Tue, 4 Mar 2014 14:19:21 +0530
+Message-ID: <1393922965-15967-4-git-send-email-archit@ti.com>
 References: <1393832008-22174-1-git-send-email-archit@ti.com>
  <1393922965-15967-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
@@ -13,40 +13,34 @@ To: k.debski@samsung.com
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, hverkuil@xs4all.nl, Archit Taneja <archit@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-VPE has a ctrl parameter which decides how many mem to mem transactions the
-active job from the job queue can perform.
+The video_device struct is currently embedded in the driver data struct vpe_dev.
+A vpe_dev instance is allocated by the driver, and the memory for the vfd is a
+part of this struct.
 
-The driver's job_ready() made sure that the number of ready source buffers are
-sufficient for the job to execute successfully. But it didn't make sure if
-there are sufficient ready destination buffers in the capture queue for the
-VPE output.
+The v4l2 core, however, manages the removal of the vfd region, through the
+video_device's .release() op, which currently is the helper
+video_device_release. This causes memory corruption, and leads to issues when
+we try to re-insert the vpe module.
 
-If the time taken by VPE to process a single frame is really slow, then it's
-possible that we don't need to imply such a restriction on the dst queue, but
-really fast transactions(small resolution, no de-interlacing) may cause us to
-hit the condition where we don't have any free buffers for the VPE to write on.
-
-Add the extra check in job_ready() to make sure we have the sufficient amount
-of destination buffers.
+Use the video_device_release_empty helper function instead
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/platform/ti-vpe/vpe.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 1296c53..623e59e 100644
+index 4243687..bb275f4 100644
 --- a/drivers/media/platform/ti-vpe/vpe.c
 +++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -887,6 +887,9 @@ static int job_ready(void *priv)
- 	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < needed)
- 		return 0;
- 
-+	if (v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) < needed)
-+		return 0;
-+
- 	return 1;
- }
+@@ -1998,7 +1998,7 @@ static struct video_device vpe_videodev = {
+ 	.fops		= &vpe_fops,
+ 	.ioctl_ops	= &vpe_ioctl_ops,
+ 	.minor		= -1,
+-	.release	= video_device_release,
++	.release	= video_device_release_empty,
+ 	.vfl_dir	= VFL_DIR_M2M,
+ };
  
 -- 
 1.8.3.2
