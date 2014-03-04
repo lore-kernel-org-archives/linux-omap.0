@@ -1,38 +1,104 @@
-From: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
-Subject: =?UTF-8?B?UmU6IFtQQVRDSCAyLzVdIGRyaXZlcnM6IGJ1czogb21hcF9sMzogQ29udmVy?=
- =?UTF-8?B?dCB0byB1c2UgZGV2bV9yZXF1ZXN0X2FuZF9pb3JlbWFwKCk=?=
-Date: Tue, 04 Mar 2014 13:12:39 +0400
-Message-ID: <1393924359.866301359@f148.i.mail.ru>
-References: <1393923710-10377-1-git-send-email-peter.ujfalusi@ti.com>
- <1393923710-10377-3-git-send-email-peter.ujfalusi@ti.com>
-Reply-To: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 02/12] phy: omap-control: Update DT binding information
+Date: Tue, 4 Mar 2014 11:14:07 +0200
+Message-ID: <5315995F.5050206@ti.com>
+References: <1393859254-10937-1-git-send-email-rogerq@ti.com>
+ <1393859254-10937-3-git-send-email-rogerq@ti.com>
+ <20140303190247.GD25804@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1393923710-10377-3-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?B?UGV0ZXIgVWpmYWx1c2k=?= <peter.ujfalusi@ti.com>
-Cc: =?UTF-8?B?U2FudG9zaCBTaGlsaW1rYXI=?= <santosh.shilimkar@ti.com>, =?UTF-8?B?VG9ueSBMaW5kZ3Jlbg==?= <tony@atomide.com>, =?UTF-8?B?T2xvZiBKb2hhbnNzb24=?= <olof@lixom.net>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?B?QXJuZCBCZXJnbWFubg==?= <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140303190247.GD25804@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, balajitk@ti.com, linux-ide@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kishon@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-0JLRgtC+0YDQvdC40LosICA0INC80LDRgNGC0LAgMjAxNCwgMTE6MDEgKzAyOjAwINC+0YIgUGV0
-ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT46Cj4gV2UgY2FuIHRoZW4gcmVtb3Zl
-IHRoZSBpb3VubWFwKCkgY2FsbHMgZnJvbSBwcm9iZSBhbmQgcmVtb3ZlLgo+IFNpbmNlIHRoZSBk
-cml2ZXIgcmVxdWVzdHMgdGhlIHJlc291cmNlcyB2aWEgaW5kZXggd2UgY2FuIGRvIHRoZSBtZW0g
-cmVzb3VyY2UKPiByZXF1ZXN0IHdpdGhpbiBhIGZvciBsb29wLgo+IAo+IFNpZ25lZC1vZmYtYnk6
-IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZhbHVzaUB0aS5jb20+Cj4gUmV2aWV3ZWQtYnk6IFNh
-bnRvc2ggU2hpbGlta2FyIDxzYW50b3NoLnNoaWxpbWthckB0aT4KPiAtLS0KCj4gKwkvKiBHZXQg
-bWVtIHJlc291cmNlcyAqLwo+ICsJZm9yIChpID0gMDsgaSA8IDM7IGkrKykgewo+ICsJCXN0cnVj
-dCByZXNvdXJjZQkqcmVzID0gcGxhdGZvcm1fZ2V0X3Jlc291cmNlKHBkZXYsCj4gKwkJCQkJCQkg
-ICAgIElPUkVTT1VSQ0VfTUVNLCBpKTsKPiArCQlpZiAoIXJlcykgewo+ICsJCQlkZXZfZXJyKCZw
-ZGV2LT5kZXYsICJjb3VsZG4ndCBmaW5kIHJlc291cmNlICVkXG4iLCBpKTsKPiArCQkJcmV0dXJu
-IC1FTk9ERVY7Cj4gKwkJfQoKTm8gbmVlZCB0byBjaGVjayAicmVzIi4gZGV2bV9yZXF1ZXN0X2Fu
-ZF9pb3JlbWFwKCkgZG8gYWxsIGZvciB1cy4KCj4gLQlsMy0+bDNfYmFzZVsyXSA9IGlvcmVtYXAo
-cmVzLT5zdGFydCwgcmVzb3VyY2Vfc2l6ZShyZXMpKTsKPiAtCWlmICghbDMtPmwzX2Jhc2VbMl0p
-IHsKPiAtCQlkZXZfZXJyKCZwZGV2LT5kZXYsICJpb3JlbWFwIGZhaWxlZFxuIik7Cj4gLQkJcmV0
-ID0gLUVOT01FTTsKPiAtCQlnb3RvIGVycjI7Cj4gKwkJbDMtPmwzX2Jhc2VbaV0gPSBkZXZtX3Jl
-cXVlc3RfYW5kX2lvcmVtYXAoJnBkZXYtPmRldiwgcmVzKTsKPiArCQlpZiAoIWwzLT5sM19iYXNl
-W2ldKSB7CgppZiAoSVNfRVJSKGwzLT5sM19iYXNlW2ldKSkKCj4gKwkJCWRldl9lcnIoJnBkZXYt
-PmRldiwgImlvcmVtYXAgJWQgZmFpbGVkXG4iLCBpKTsKClVubmVjZXNzYXJ5LgoKPiArCQkJcmV0
-dXJuIC1FTk9NRU07CgpyZXR1cm4gUFRSX0VSUihsMy0+bDNfYmFzZVtpXSk7CgotLS0K
+Hi Tony,
+
+On 03/03/2014 09:02 PM, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [140303 07:10]:
+>> Move omap-control binding information to the right location.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/phy/ti-phy.txt   | 25 ++++++++++++++++++++++
+>>  Documentation/devicetree/bindings/usb/omap-usb.txt | 24 ---------------------
+>>  2 files changed, 25 insertions(+), 24 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>> index 207e14c..41dc132 100644
+>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>> @@ -1,5 +1,30 @@
+>>  TI PHY: DT DOCUMENTATION FOR PHYs in TI PLATFORMs
+>>  
+>> +OMAP CONTROL PHY
+>> +
+>> +Required properties:
+>> + - compatible: Should be one of
+>> + "ti,control-phy-otghs" - if it has otghs_control mailbox register as on OMAP4.
+>> + "ti,control-phy-usb2" - if it has Power down bit in control_dev_conf register
+>> +                        e.g. USB2_PHY on OMAP5.
+>> + "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
+>> +                        e.g. USB3 PHY and SATA PHY on OMAP5.
+>> + "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY on
+>> +                        DRA7 platform.
+>> + "ti,control-phy-am437usb2" - if it has power down register like USB2 PHY on
+>> +                        AM437 platform.
+> 
+> To me it seems that you can leave out all the above. You can set these falgs
+> flags directly in the driver based on the compatible flag. Then just initialize
+> the .data in the driver based on the compatible flag.
+
+I'm not sure if I got you. A single platform can have different type of phys.
+
+e.g. OMAP5 has both usb2 and pipe3 PHYs,
+DRA7 has both pipe3 and usb2 PHYs, but this usb2 PHY is not compatible with OMAP5 one
+so we need a new compatible id for that.
+
+To add to the woes, the designers were creative enough to make another mutation to
+the USB2 PHY for AM437x, :(
+
+What do you suggest the compatible ids should look like for these 5 types of PHY control?
+OTGHS	(OMAP4 & 5)
+USB2	(OMAP5)
+PIPE3	(OMAP5 & DRA7)
+USB2x	(DRA7)
+USB2y	(AM437)
+
+cheers,
+-roger
+
+> 
+>> + - reg : Address and length of the register set for the device. It contains
+>> +   the address of "otghs_control" for control-phy-otghs or "power" register
+>> +   for other types.
+>> + - reg-names: should be "otghs_control" control-phy-otghs and "power" for
+>> +   other types.
+>> +
+>> +omap_control_usb: omap-control-usb@4a002300 {
+>> +        compatible = "ti,control-phy-otghs";
+>> +        reg = <0x4a00233c 0x4>;
+>> +        reg-names = "otghs_control";
+>> +};
+> 
+> Then you would instead have something like this:
+> 
+> 	compatible = "ti,am347-control-phy-otghs";
+> 
+> That way you can initialize things without a need for custom bindings.
+> 
+> Regards,
+> 
+> Tony
+> 
