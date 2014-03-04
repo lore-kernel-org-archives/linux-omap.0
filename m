@@ -1,103 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RESEND] mmc: omap_hsmmc: support more DT properties
-Date: Tue, 4 Mar 2014 09:37:17 -0800
-Message-ID: <20140304173716.GC17470@atomide.com>
-References: <1393881376-10751-1-git-send-email-zonque@gmail.com>
- <5315FD28.4020800@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv4 4/7] hwspinlock/core: add common OF helpers
+Date: Tue, 4 Mar 2014 11:38:23 -0600
+Message-ID: <53160F8F.9060405@ti.com>
+References: <1389658764-39199-1-git-send-email-s-anna@ti.com>	<1389658764-39199-5-git-send-email-s-anna@ti.com>	<CAJAp7Oi7wD+VsMAd37gT04yZ4TH4ygXFmheDhvmWuanUjpBmVQ@mail.gmail.com>	<52F92524.3080402@ti.com>	<CAK=WgbY0wDtGCm71E8VXi2g5+VcGogHEy8jdekTRg8xtp6-3rQ@mail.gmail.com> <CAJAp7Ohf43hbKatCwS5Y1+OfEkJYWOkuhZhW-E_=t_9mfM+UaA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5315FD28.4020800@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@TI.COM>
-Cc: chris@printf.net, linux-mmc@vger.kernel.org, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJAp7Ohf43hbKatCwS5Y1+OfEkJYWOkuhZhW-E_=t_9mfM+UaA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Balaji T K <balajitk@TI.COM> [140304 08:22]:
-> On Tuesday 04 March 2014 02:46 AM, Daniel Mack wrote:
-> >This should probably be done implicitly through mmc_of_parse(), but that
-> >doesn't play well along with the multi-slot model the hsmmc driver
-> >features. Hence, for now, do it manually. The properties are already
-> >documented in Documentation/devicetree/bindings/mmc/mmc.txt.
-> >
-> >Signed-off-by: Daniel Mack <zonque@gmail.com>
-> >Acked-by: Balaji T K <balajitk@ti.com>
-> >---
-> >This is a resend of a patch that was already acked by Balaji T K:
-> >
-> >   http://www.spinics.net/lists/linux-mmc/msg25029.html
-> 
-> Hi Chris,
-> 
-> To make it easier for you, I have collected omap_hsmmc patches [1]
-> and pushed a branch omap_hsmmc-for-3.15 based on 3.14rc2.
+Hi Ohad,
 
-You should probably send this as a proper pull request to Chris
-with [GIT PULL] in the Subject line as it can otherwise get
-easily lost.
+On 03/02/2014 02:19 PM, Bjorn Andersson wrote:
+> On Sat, Mar 1, 2014 at 9:14 PM, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> wrote:
+>> On Mon, Feb 10, 2014 at 9:14 PM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
+>>> On 02/07/2014 04:49 PM, Bjorn Andersson wrote:
+>>>> It seems to be standard practice to pass the error value back to the
+>>>> consumer, so you should
+>>>> return ERR_PTR(ret); here instead of the NULL...
+>>>
+>>>
+>>> I have modelled the return values in this function based on the return
+>>> values in the existing hwspin_lock_request interfaces. I would need to
+>>> change those functions as well.
+>>>
+>>> Ohad,
+>>> Do you have any objections to the return code convention change?
+>>
+>> Unless strictly needed, I prefer we don't switch to the ERR_PTR code
+>> convention, as it reduces code readability and increases chances of
+>> user bugs.
+>>
+>> In our case, switching to ERR_PTR and friends seems only to optimize a
+>> few error paths, and I'm not sure it's a big win over simplicity.
+>
+> When introducing the ability to reference a hwspin lock via a phandle
+> in device tree it makes a big difference to be able to differ between
+> the case of "initialization failed" or "device not yet probed"; so
+> that the client knows if it should fail or retry later.
+>
 
-Regards,
+Can you confirm the changes you want me to make, so that I can refresh 
+and post a v5 for 3.15?
 
-Tony
- 
-> Please pull or cherry pick
-> 
-> The following changes since commit b28a960c42fcd9cfc987441fa6d1c1a471f0f9ed:
-> 
->   Linux 3.14-rc2 (2014-02-09 18:15:47 -0800)
-> 
-> are available in the git repository at:
->   git://git.ti.com/~balajitk/ti-linux-kernel/omap-hsmmc.git omap_hsmmc-for-3.15
-> 
-> Balaji T K (14):
->       mmc: omap_hsmmc: use devm_regulator API
->       mmc: omap_hsmmc: handle vcc and vcc_aux independently
->       regulator: add pbias regulator support
->       mmc: omap_hsmmc: adapt hsmmc to use pbias regulator
->       ARM: dts: add pbias dt node
->       ARM: OMAP: enable SYSCON and REGULATOR_PBIAS in omap2plus_defconfig
->       mmc: omap_hsmmc: remove pbias workaround
->       mmc: omap_hsmmc: fix return error code for of_get_hsmmc_pdata
->       mmc: omap_hsmmc: remove redundant reset done
->       mmc: omap_hsmmc: save clock rate to use in interrupt context
->       mmc: omap_hsmmc: fix request done for sbc error case
->       mmc: omap_hsmmc: split dma setup
->       mmc: omap_hsmmc: add cmd23 support
->       mmc: omap_hsmmc: add autocmd23 support
-> 
-> Dan Carpenter (1):
->       mmc: omap_hsmmc: remove a duplicative test
-> 
-> Daniel Mack (1):
->       mmc: omap_hsmmc: support more DT properties
-> 
-> Nishanth Menon (2):
->       mmc: omap_hsmmc: Add support for quirky omap3 hsmmc controller
->       ARM: dts: omap3-ldp: fix mmc configuration
-> 
->  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    1 +
->  .../bindings/regulator/pbias-regulator.txt         |   27 ++
->  arch/arm/boot/dts/dra7.dtsi                        |   17 ++
->  arch/arm/boot/dts/omap2430.dtsi                    |   17 ++
->  arch/arm/boot/dts/omap3-ldp.dts                    |   23 ++
->  arch/arm/boot/dts/omap3.dtsi                       |   17 ++
->  arch/arm/boot/dts/omap4.dtsi                       |   17 ++
->  arch/arm/boot/dts/omap5.dtsi                       |   17 ++
->  arch/arm/configs/omap2plus_defconfig               |    2 +
->  drivers/mmc/host/omap_hsmmc.c                      |  242 +++++++++++++------
->  drivers/regulator/Kconfig                          |    9 +
->  drivers/regulator/Makefile                         |    1 +
->  drivers/regulator/pbias-regulator.c                |  255 ++++++++++++++++++++
->  13 files changed, 569 insertions(+), 76 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/regulator/pbias-regulator.txt
->  create mode 100644 drivers/regulator/pbias-regulator.c
-> 
-> [1]
-> http://www.spinics.net/lists/linux-omap/msg102811.html
-> http://lkml.org/lkml/2014/2/14/13
-> http://www.spinics.net/lists/linux-mmc/msg25029.html
-> http://www.spinics.net/lists/linux-omap/msg103488.html
-> http://www.spinics.net/lists/linux-omap/msg103608.html
-> http://comments.gmane.org/gmane.linux.kernel.mmc/24777
-> 
+regards
+Suman
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
