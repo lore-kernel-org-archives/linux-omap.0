@@ -1,228 +1,93 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 13/18] ARM: OMAP3: PRM: move PRM init code from PM core to the driver
-Date: Tue, 4 Mar 2014 18:19:13 +0200
-Message-ID: <1393949958-816-14-git-send-email-t-kristo@ti.com>
-References: <1393949958-816-1-git-send-email-t-kristo@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 02/12] phy: omap-control: Update DT binding information
+Date: Tue, 4 Mar 2014 08:28:56 -0800
+Message-ID: <20140304162855.GB3376@atomide.com>
+References: <1393859254-10937-1-git-send-email-rogerq@ti.com>
+ <1393859254-10937-3-git-send-email-rogerq@ti.com>
+ <20140303190247.GD25804@atomide.com>
+ <5315995F.5050206@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45125 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754628AbaCDQUn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Mar 2014 11:20:43 -0500
-In-Reply-To: <1393949958-816-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5315995F.5050206-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: kishon-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, khilman@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org
 
-Helps to isolate the PRM driver.
+* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140304 01:17]:
+> Hi Tony,
+> 
+> On 03/03/2014 09:02 PM, Tony Lindgren wrote:
+> > * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140303 07:10]:
+> >> Move omap-control binding information to the right location.
+> >>
+> >> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> >> ---
+> >>  Documentation/devicetree/bindings/phy/ti-phy.txt   | 25 ++++++++++++++++++++++
+> >>  Documentation/devicetree/bindings/usb/omap-usb.txt | 24 ---------------------
+> >>  2 files changed, 25 insertions(+), 24 deletions(-)
+> >>
+> >> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+> >> index 207e14c..41dc132 100644
+> >> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+> >> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+> >> @@ -1,5 +1,30 @@
+> >>  TI PHY: DT DOCUMENTATION FOR PHYs in TI PLATFORMs
+> >>  
+> >> +OMAP CONTROL PHY
+> >> +
+> >> +Required properties:
+> >> + - compatible: Should be one of
+> >> + "ti,control-phy-otghs" - if it has otghs_control mailbox register as on OMAP4.
+> >> + "ti,control-phy-usb2" - if it has Power down bit in control_dev_conf register
+> >> +                        e.g. USB2_PHY on OMAP5.
+> >> + "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
+> >> +                        e.g. USB3 PHY and SATA PHY on OMAP5.
+> >> + "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY on
+> >> +                        DRA7 platform.
+> >> + "ti,control-phy-am437usb2" - if it has power down register like USB2 PHY on
+> >> +                        AM437 platform.
+> > 
+> > To me it seems that you can leave out all the above. You can set these falgs
+> > flags directly in the driver based on the compatible flag. Then just initialize
+> > the .data in the driver based on the compatible flag.
+> 
+> I'm not sure if I got you. A single platform can have different type of phys.
+> 
+> e.g. OMAP5 has both usb2 and pipe3 PHYs,
+> DRA7 has both pipe3 and usb2 PHYs, but this usb2 PHY is not compatible with OMAP5 one
+> so we need a new compatible id for that.
+> 
+> To add to the woes, the designers were creative enough to make another mutation to
+> the USB2 PHY for AM437x, :(
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c  |   71 +-------------------------------
- arch/arm/mach-omap2/prm3xxx.c |   90 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prm3xxx.h |    1 +
- 3 files changed, 92 insertions(+), 70 deletions(-)
+Oh OK, in that case the compatible flag may not be enough for configuring the
+various instances.
+ 
+> What do you suggest the compatible ids should look like for these 5 types of PHY control?
+> OTGHS	(OMAP4 & 5)
+> USB2	(OMAP5)
+> PIPE3	(OMAP5 & DRA7)
+> USB2x	(DRA7)
+> USB2y	(AM437)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 2fa9478..0b9a298 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -369,79 +369,10 @@ static void __init omap3_d2d_idle(void)
- 
- static void __init prcm_setup_regs(void)
- {
--	u32 omap3630_en_uart4_mask = cpu_is_omap3630() ?
--					OMAP3630_EN_UART4_MASK : 0;
--	u32 omap3630_grpsel_uart4_mask = cpu_is_omap3630() ?
--					OMAP3630_GRPSEL_UART4_MASK : 0;
--
- 	/* XXX This should be handled by hwmod code or SCM init code */
- 	omap_ctrl_writel(OMAP3430_AUTOIDLE_MASK, OMAP2_CONTROL_SYSCONFIG);
- 
--	/*
--	 * Enable control of expternal oscillator through
--	 * sys_clkreq. In the long run clock framework should
--	 * take care of this.
--	 */
--	omap2_prm_rmw_mod_reg_bits(OMAP_AUTOEXTCLKMODE_MASK,
--			     1 << OMAP_AUTOEXTCLKMODE_SHIFT,
--			     OMAP3430_GR_MOD,
--			     OMAP3_PRM_CLKSRC_CTRL_OFFSET);
--
--	/* setup wakup source */
--	omap2_prm_write_mod_reg(OMAP3430_EN_IO_MASK | OMAP3430_EN_GPIO1_MASK |
--			  OMAP3430_EN_GPT1_MASK | OMAP3430_EN_GPT12_MASK,
--			  WKUP_MOD, PM_WKEN);
--	/* No need to write EN_IO, that is always enabled */
--	omap2_prm_write_mod_reg(OMAP3430_GRPSEL_GPIO1_MASK |
--			  OMAP3430_GRPSEL_GPT1_MASK |
--			  OMAP3430_GRPSEL_GPT12_MASK,
--			  WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
--
--	/* Enable PM_WKEN to support DSS LPR */
--	omap2_prm_write_mod_reg(OMAP3430_PM_WKEN_DSS_EN_DSS_MASK,
--				OMAP3430_DSS_MOD, PM_WKEN);
--
--	/* Enable wakeups in PER */
--	omap2_prm_write_mod_reg(omap3630_en_uart4_mask |
--			  OMAP3430_EN_GPIO2_MASK | OMAP3430_EN_GPIO3_MASK |
--			  OMAP3430_EN_GPIO4_MASK | OMAP3430_EN_GPIO5_MASK |
--			  OMAP3430_EN_GPIO6_MASK | OMAP3430_EN_UART3_MASK |
--			  OMAP3430_EN_MCBSP2_MASK | OMAP3430_EN_MCBSP3_MASK |
--			  OMAP3430_EN_MCBSP4_MASK,
--			  OMAP3430_PER_MOD, PM_WKEN);
--	/* and allow them to wake up MPU */
--	omap2_prm_write_mod_reg(omap3630_grpsel_uart4_mask |
--			  OMAP3430_GRPSEL_GPIO2_MASK |
--			  OMAP3430_GRPSEL_GPIO3_MASK |
--			  OMAP3430_GRPSEL_GPIO4_MASK |
--			  OMAP3430_GRPSEL_GPIO5_MASK |
--			  OMAP3430_GRPSEL_GPIO6_MASK |
--			  OMAP3430_GRPSEL_UART3_MASK |
--			  OMAP3430_GRPSEL_MCBSP2_MASK |
--			  OMAP3430_GRPSEL_MCBSP3_MASK |
--			  OMAP3430_GRPSEL_MCBSP4_MASK,
--			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
--
--	/* Don't attach IVA interrupts */
--	if (omap3_has_iva()) {
--		omap2_prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
--		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
--		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
--		omap2_prm_write_mod_reg(0, OMAP3430_PER_MOD,
--					OMAP3430_PM_IVAGRPSEL);
--	}
--
--	/* Clear any pending 'reset' flags */
--	omap2_prm_write_mod_reg(0xffffffff, MPU_MOD, OMAP2_RM_RSTST);
--	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP2_RM_RSTST);
--	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_PER_MOD, OMAP2_RM_RSTST);
--	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_EMU_MOD, OMAP2_RM_RSTST);
--	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_NEON_MOD, OMAP2_RM_RSTST);
--	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_DSS_MOD, OMAP2_RM_RSTST);
--	omap2_prm_write_mod_reg(0xffffffff, OMAP3430ES2_USBHOST_MOD, OMAP2_RM_RSTST);
--
--	/* Clear any pending PRCM interrupts */
--	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-+	omap3_prm_init_pm(cpu_is_omap3630(), omap3_has_iva());
- 
- 	/*
- 	 * We need to idle iva2_pwrdm even on am3703 with no iva2.
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index 9ebc22c..09e50d2 100644
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -274,6 +274,96 @@ void __init omap3_prm_reset_modem(void)
- }
- 
- /**
-+ * omap3_prm_init_pm - initialize PM related registers for PRM
-+ * @has_uart4: SoC has UART4
-+ * @has_iva: SoC has IVA
-+ *
-+ * Initializes PRM registers for PM use. Called from PM init.
-+ */
-+void __init omap3_prm_init_pm(bool has_uart4, bool has_iva)
-+{
-+	u32 en_uart4_mask;
-+	u32 grpsel_uart4_mask;
-+
-+	/*
-+	 * Enable control of expternal oscillator through
-+	 * sys_clkreq. In the long run clock framework should
-+	 * take care of this.
-+	 */
-+	omap2_prm_rmw_mod_reg_bits(OMAP_AUTOEXTCLKMODE_MASK,
-+				   1 << OMAP_AUTOEXTCLKMODE_SHIFT,
-+				   OMAP3430_GR_MOD,
-+				   OMAP3_PRM_CLKSRC_CTRL_OFFSET);
-+
-+	/* setup wakup source */
-+	omap2_prm_write_mod_reg(OMAP3430_EN_IO_MASK | OMAP3430_EN_GPIO1_MASK |
-+				OMAP3430_EN_GPT1_MASK | OMAP3430_EN_GPT12_MASK,
-+				WKUP_MOD, PM_WKEN);
-+	/* No need to write EN_IO, that is always enabled */
-+	omap2_prm_write_mod_reg(OMAP3430_GRPSEL_GPIO1_MASK |
-+				OMAP3430_GRPSEL_GPT1_MASK |
-+				OMAP3430_GRPSEL_GPT12_MASK,
-+				WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
-+
-+	/* Enable PM_WKEN to support DSS LPR */
-+	omap2_prm_write_mod_reg(OMAP3430_PM_WKEN_DSS_EN_DSS_MASK,
-+				OMAP3430_DSS_MOD, PM_WKEN);
-+
-+	if (has_uart4) {
-+		en_uart4_mask = OMAP3630_EN_UART4_MASK;
-+		grpsel_uart4_mask = OMAP3630_GRPSEL_UART4_MASK;
-+	}
-+
-+	/* Enable wakeups in PER */
-+	omap2_prm_write_mod_reg(en_uart4_mask |
-+				OMAP3430_EN_GPIO2_MASK |
-+				OMAP3430_EN_GPIO3_MASK |
-+				OMAP3430_EN_GPIO4_MASK |
-+				OMAP3430_EN_GPIO5_MASK |
-+				OMAP3430_EN_GPIO6_MASK |
-+				OMAP3430_EN_UART3_MASK |
-+				OMAP3430_EN_MCBSP2_MASK |
-+				OMAP3430_EN_MCBSP3_MASK |
-+				OMAP3430_EN_MCBSP4_MASK,
-+				OMAP3430_PER_MOD, PM_WKEN);
-+
-+	/* and allow them to wake up MPU */
-+	omap2_prm_write_mod_reg(grpsel_uart4_mask |
-+				OMAP3430_GRPSEL_GPIO2_MASK |
-+				OMAP3430_GRPSEL_GPIO3_MASK |
-+				OMAP3430_GRPSEL_GPIO4_MASK |
-+				OMAP3430_GRPSEL_GPIO5_MASK |
-+				OMAP3430_GRPSEL_GPIO6_MASK |
-+				OMAP3430_GRPSEL_UART3_MASK |
-+				OMAP3430_GRPSEL_MCBSP2_MASK |
-+				OMAP3430_GRPSEL_MCBSP3_MASK |
-+				OMAP3430_GRPSEL_MCBSP4_MASK,
-+				OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
-+
-+	/* Don't attach IVA interrupts */
-+	if (has_iva) {
-+		omap2_prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
-+		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
-+		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
-+		omap2_prm_write_mod_reg(0, OMAP3430_PER_MOD,
-+					OMAP3430_PM_IVAGRPSEL);
-+	}
-+
-+	/* Clear any pending 'reset' flags */
-+	omap2_prm_write_mod_reg(0xffffffff, MPU_MOD, OMAP2_RM_RSTST);
-+	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP2_RM_RSTST);
-+	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_PER_MOD, OMAP2_RM_RSTST);
-+	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_EMU_MOD, OMAP2_RM_RSTST);
-+	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_NEON_MOD, OMAP2_RM_RSTST);
-+	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_DSS_MOD, OMAP2_RM_RSTST);
-+	omap2_prm_write_mod_reg(0xffffffff, OMAP3430ES2_USBHOST_MOD,
-+				OMAP2_RM_RSTST);
-+
-+	/* Clear any pending PRCM interrupts */
-+	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-+}
-+
-+/**
-  * omap3xxx_prm_reconfigure_io_chain - clear latches and reconfigure I/O chain
-  *
-  * Clear any previously-latched I/O wakeup events and ensure that the
-diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
-index 829cdc3..7120af9 100644
---- a/arch/arm/mach-omap2/prm3xxx.h
-+++ b/arch/arm/mach-omap2/prm3xxx.h
-@@ -167,6 +167,7 @@ void omap3xxx_prm_iva_idle(void);
- void omap3_prm_reset_modem(void);
- int omap3xxx_prm_clear_global_cold_reset(void);
- void omap3_prm_save_scratchpad_contents(u32 *ptr);
-+void omap3_prm_init_pm(bool has_uart4, bool has_iva);
- 
- #endif /* __ASSEMBLER */
- 
--- 
-1.7.9.5
+I think in that case having the various instances fully configurable from
+device tree is OK if you prefer that. But if you wanted to use the
+compatible flag, then you could do something like this:
 
+ti,control-phy-omap4-otghs	(assuming same on omap4 & 5)
+ti,control-phy-omap5-usb2
+ti,control-phy-omap5-pipe3	(assuming same on omap5 & dra7)
+ti,control-phy-dra7-usb2x
+ti,control-phy-am437-usb2y
+...
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
