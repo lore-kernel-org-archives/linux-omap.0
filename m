@@ -1,149 +1,129 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 11/18] ARM: OMAP24xx: PRM: move PRM init code within PRM driver from PM core
-Date: Tue, 4 Mar 2014 18:19:11 +0200
-Message-ID: <1393949958-816-12-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 10/18] ARM: OMAP24xx: PRM: add API for clearing wakeup status bits
+Date: Tue, 4 Mar 2014 18:19:10 +0200
+Message-ID: <1393949958-816-11-git-send-email-t-kristo@ti.com>
 References: <1393949958-816-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48484 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35158 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754468AbaCDQUa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Mar 2014 11:20:30 -0500
+	id S1754527AbaCDQUb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Mar 2014 11:20:31 -0500
 In-Reply-To: <1393949958-816-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, khilman@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Done to isolate the PRM as its own driver.
+This helps to isolate the PRM into its own driver.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/pm24xx.c  |   34 +--------------------------------
- arch/arm/mach-omap2/prm2xxx.c |   42 +++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm24xx.c  |   31 +++++++++++++------------------
+ arch/arm/mach-omap2/prm2xxx.c |   18 ++++++++++++++++++
  arch/arm/mach-omap2/prm2xxx.h |    1 +
- 3 files changed, 44 insertions(+), 33 deletions(-)
+ 3 files changed, 32 insertions(+), 18 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 21fc935..97b3831 100644
+index 2dbc30c..21fc935 100644
 --- a/arch/arm/mach-omap2/pm24xx.c
 +++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -194,13 +194,6 @@ static void __init prcm_setup_regs(void)
- 	struct powerdomain *pwrdm;
+@@ -75,9 +75,9 @@ static int omap2_enter_full_retention(void)
  
- 	/*
--	 * Enable autoidle
--	 * XXX This should be handled by hwmod code or PRCM init code
--	 */
--	omap2_prm_write_mod_reg(OMAP24XX_AUTOIDLE_MASK, OCP_MOD,
--			  OMAP2_PRCM_SYSCONFIG_OFFSET);
--
--	/*
- 	 * Set CORE powerdomain memory banks to retain their contents
- 	 * during RETENTION
- 	 */
-@@ -228,37 +221,12 @@ static void __init prcm_setup_regs(void)
- 	omap_pm_suspend = omap2_enter_full_retention;
- #endif
+ 	/* Clear old wake-up events */
+ 	/* REVISIT: These write to reserved bits? */
+-	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
+-	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
+-	omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
++	omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
++	omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
++	omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
  
--	/* REVISIT: Configure number of 32 kHz clock cycles for sys_clk
--	 * stabilisation */
--	omap2_prm_write_mod_reg(15 << OMAP_SETUP_TIME_SHIFT, OMAP24XX_GR_MOD,
--				OMAP2_PRCM_CLKSSETUP_OFFSET);
--
--	/* Configure automatic voltage transition */
--	omap2_prm_write_mod_reg(2 << OMAP_SETUP_TIME_SHIFT, OMAP24XX_GR_MOD,
--				OMAP2_PRCM_VOLTSETUP_OFFSET);
--	omap2_prm_write_mod_reg(OMAP24XX_AUTO_EXTVOLT_MASK |
--				(0x1 << OMAP24XX_SETOFF_LEVEL_SHIFT) |
--				OMAP24XX_MEMRETCTRL_MASK |
--				(0x1 << OMAP24XX_SETRET_LEVEL_SHIFT) |
--				(0x0 << OMAP24XX_VOLT_LEVEL_SHIFT),
--				OMAP24XX_GR_MOD, OMAP2_PRCM_VOLTCTRL_OFFSET);
--
--	/* Enable wake-up events */
--	omap2_prm_write_mod_reg(OMAP24XX_EN_GPIOS_MASK | OMAP24XX_EN_GPT1_MASK,
--				WKUP_MOD, PM_WKEN);
--
--	/* Enable SYS_CLKEN control when all domains idle */
--	omap2_prm_set_mod_reg_bits(OMAP_AUTOEXTCLKMODE_MASK, OMAP24XX_GR_MOD,
--				   OMAP2_PRCM_CLKSRC_CTRL_OFFSET);
-+	omap2xxx_prm_init_pm();
- }
+ 	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
+ 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
+@@ -104,23 +104,18 @@ no_sleep:
+ 	clk_enable(osc_ck);
  
- int __init omap2_pm_init(void)
- {
--	u32 l;
--
- 	printk(KERN_INFO "Power Management for OMAP2 initializing\n");
--	l = omap2_prm_read_mod_reg(OCP_MOD, OMAP2_PRCM_REVISION_OFFSET);
--	printk(KERN_INFO "PRCM revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
+ 	/* clear CORE wake-up events */
+-	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
+-	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
++	omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
++	omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
  
- 	/* Look up important powerdomains */
+ 	/* wakeup domain events - bit 1: GPT1, bit5 GPIO */
+-	omap2_prm_clear_mod_reg_bits(0x4 | 0x1, WKUP_MOD, PM_WKST);
++	omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, 0x4 | 0x1);
  
+ 	/* MPU domain wake events */
+-	l = omap2_prm_read_mod_reg(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
+-	if (l & 0x01)
+-		omap2_prm_write_mod_reg(0x01, OCP_MOD,
+-				  OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
+-	if (l & 0x20)
+-		omap2_prm_write_mod_reg(0x20, OCP_MOD,
+-				  OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
++	omap2xxx_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET,
++				    0x1);
+ 
+-	/* Mask future PRCM-to-MPU interrupts */
+-	omap2_prm_write_mod_reg(0x0, OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
++	omap2xxx_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET,
++				    0x20);
+ 
+ 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+ 	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
+@@ -148,9 +143,9 @@ static void omap2_enter_mpu_retention(void)
+ 	 * it is in retention mode. */
+ 	if (omap2_allow_mpu_retention()) {
+ 		/* REVISIT: These write to reserved bits? */
+-		omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
+-		omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
+-		omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
++		omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
++		omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
++		omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
+ 
+ 		/* Try to enter MPU retention */
+ 		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
 diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
-index 12cf053..8d4db6f 100644
+index 418de9c..12cf053 100644
 --- a/arch/arm/mach-omap2/prm2xxx.c
 +++ b/arch/arm/mach-omap2/prm2xxx.c
-@@ -135,6 +135,48 @@ void omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
- 	omap2_prm_write_mod_reg(wkst, module, regs);
+@@ -117,6 +117,24 @@ void omap2xxx_prm_dpll_reset(void)
+ 	omap2_prm_read_mod_reg(WKUP_MOD, OMAP2_RM_RSTCTRL);
  }
  
 +/**
-+ * omap2xxx_prm_init_pm - initialize PM related registers for PRM
++ * omap2xxx_prm_clear_mod_irqs - clear wakeup status bits for a module
++ * @module: PRM module to clear wakeups from
++ * @regs: register offset to clear
++ * @wkst_mask: wakeup status mask to clear
 + *
-+ * Initializes PRM regiters for PM use. Called from PM init.
++ * Clears wakeup status bits for a given module, so that the device can
++ * re-enter idle.
 + */
-+void __init omap2xxx_prm_init_pm(void)
++void omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
 +{
-+	u32 l;
++	u32 wkst;
 +
-+	l = omap2_prm_read_mod_reg(OCP_MOD, OMAP2_PRCM_REVISION_OFFSET);
-+	pr_info("PRCM revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
-+
-+	/* Enable autoidle */
-+	omap2_prm_write_mod_reg(OMAP24XX_AUTOIDLE_MASK, OCP_MOD,
-+				OMAP2_PRCM_SYSCONFIG_OFFSET);
-+
-+	/*
-+	 * REVISIT: Configure number of 32 kHz clock cycles for sys_clk
-+	 * stabilisation
-+	 */
-+	omap2_prm_write_mod_reg(15 << OMAP_SETUP_TIME_SHIFT, OMAP24XX_GR_MOD,
-+				OMAP2_PRCM_CLKSSETUP_OFFSET);
-+
-+	/* Configure automatic voltage transition */
-+	omap2_prm_write_mod_reg(2 << OMAP_SETUP_TIME_SHIFT, OMAP24XX_GR_MOD,
-+				OMAP2_PRCM_VOLTSETUP_OFFSET);
-+	omap2_prm_write_mod_reg(OMAP24XX_AUTO_EXTVOLT_MASK |
-+				(0x1 << OMAP24XX_SETOFF_LEVEL_SHIFT) |
-+				OMAP24XX_MEMRETCTRL_MASK |
-+				(0x1 << OMAP24XX_SETRET_LEVEL_SHIFT) |
-+				(0x0 << OMAP24XX_VOLT_LEVEL_SHIFT),
-+				OMAP24XX_GR_MOD, OMAP2_PRCM_VOLTCTRL_OFFSET);
-+
-+	/* Enable wake-up events */
-+	omap2_prm_write_mod_reg(OMAP24XX_EN_GPIOS_MASK | OMAP24XX_EN_GPT1_MASK,
-+				WKUP_MOD, PM_WKEN);
-+
-+	/* Enable SYS_CLKEN control when all domains idle */
-+	omap2_prm_set_mod_reg_bits(OMAP_AUTOEXTCLKMODE_MASK, OMAP24XX_GR_MOD,
-+				   OMAP2_PRCM_CLKSRC_CTRL_OFFSET);
++	wkst = omap2_prm_read_mod_reg(module, regs);
++	wkst &= wkst_mask;
++	omap2_prm_write_mod_reg(wkst, module, regs);
 +}
 +
  int omap2xxx_clkdm_sleep(struct clockdomain *clkdm)
  {
  	omap2_prm_set_mod_reg_bits(OMAP24XX_FORCESTATE_MASK,
 diff --git a/arch/arm/mach-omap2/prm2xxx.h b/arch/arm/mach-omap2/prm2xxx.h
-index e0e17b8..071bb6d 100644
+index 3194dd8..e0e17b8 100644
 --- a/arch/arm/mach-omap2/prm2xxx.h
 +++ b/arch/arm/mach-omap2/prm2xxx.h
-@@ -126,6 +126,7 @@ extern int omap2xxx_clkdm_wakeup(struct clockdomain *clkdm);
+@@ -125,6 +125,7 @@ extern int omap2xxx_clkdm_sleep(struct clockdomain *clkdm);
+ extern int omap2xxx_clkdm_wakeup(struct clockdomain *clkdm);
  
  extern void omap2xxx_prm_dpll_reset(void);
- void omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
-+void omap2xxx_prm_init_pm(void);
++void omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
  
  extern int __init omap2xxx_prm_init(void);
  
