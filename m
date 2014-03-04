@@ -1,116 +1,68 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 11/14] ARM: OMAP2: clock: add DT boot support for cpufreq_ck
-Date: Tue, 4 Mar 2014 11:18:17 +0200
-Message-ID: <1393924700-6510-12-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 12/14] ARM: OMAP2: clock: use DT clock boot if available
+Date: Tue, 4 Mar 2014 11:18:18 +0200
+Message-ID: <1393924700-6510-13-git-send-email-t-kristo@ti.com>
 References: <1393924700-6510-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44036 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44040 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756658AbaCDJTs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Mar 2014 04:19:48 -0500
+	id S1756697AbaCDJTt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Mar 2014 04:19:49 -0500
 In-Reply-To: <1393924700-6510-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, mturquette@linaro.org, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-The clock and clkdev for this are added manually.
+Otherwise legacy boot clock data is used.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   53 ++++++++++++++++++++++++++
- drivers/clk/ti/clk-2xxx.c                    |    2 +
- include/linux/clk/ti.h                       |    1 +
- 3 files changed, 56 insertions(+)
+ arch/arm/mach-omap2/io.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-index b935ed2..85e0b0c0 100644
---- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-@@ -208,3 +208,56 @@ void omap2xxx_clkt_vps_late_init(void)
- 		clk_put(c);
- 	}
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index af432b1..e57088d 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -53,6 +53,7 @@
+ #include "prm2xxx.h"
+ #include "prm3xxx.h"
+ #include "prm44xx.h"
++#include "opp2xxx.h"
+ 
+ /*
+  * omap_clk_soc_init: points to a function that does the SoC-specific
+@@ -410,7 +411,12 @@ void __init omap2420_init_early(void)
+ 	omap242x_clockdomains_init();
+ 	omap2420_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap_clk_soc_init = omap2420_clk_init;
++	if (of_have_populated_dt()) {
++		omap_clk_soc_init = omap2420_dt_clk_init;
++		rate_table = omap2420_rate_table;
++	} else {
++		omap_clk_soc_init = omap2420_clk_init;
++	}
  }
-+
-+#ifdef CONFIG_OF
-+#include <linux/clk-provider.h>
-+#include <linux/clkdev.h>
-+
-+static const struct clk_ops virt_prcm_set_ops = {
-+	.recalc_rate	= &omap2_table_mpu_recalc,
-+	.set_rate	= &omap2_select_table_rate,
-+	.round_rate	= &omap2_round_to_table_rate,
-+};
-+
-+/**
-+ * omap2xxx_clkt_vps_init - initialize virt_prcm_set clock
-+ *
-+ * Does a manual init for the virtual prcm DVFS clock for OMAP2. This
-+ * function is called only from omap2 DT clock init, as the virtual
-+ * node is not modelled in the DT clock data.
-+ */
-+void omap2xxx_clkt_vps_init(void)
-+{
-+	struct clk_init_data init = { NULL };
-+	struct clk_hw_omap *hw = NULL;
-+	struct clk *clk;
-+	const char *parent_name = "mpu_ck";
-+	struct clk_lookup *lookup = NULL;
-+
-+	omap2xxx_clkt_vps_late_init();
-+	omap2xxx_clkt_vps_check_bootloader_rates();
-+
-+	hw = kzalloc(sizeof(*hw), GFP_KERNEL);
-+	lookup = kzalloc(sizeof(*lookup), GFP_KERNEL);
-+	if (!hw || !lookup)
-+		goto cleanup;
-+	init.name = "virt_prcm_set";
-+	init.ops = &virt_prcm_set_ops;
-+	init.parent_names = &parent_name;
-+	init.num_parents = 1;
-+
-+	hw->hw.init = &init;
-+
-+	clk = clk_register(NULL, &hw->hw);
-+
-+	lookup->dev_id = NULL;
-+	lookup->con_id = "cpufreq_ck";
-+	lookup->clk = clk;
-+
-+	clkdev_add(lookup);
-+	return;
-+cleanup:
-+	kfree(hw);
-+	kfree(lookup);
-+}
-+#endif
-diff --git a/drivers/clk/ti/clk-2xxx.c b/drivers/clk/ti/clk-2xxx.c
-index f6400fb..c808ab3 100644
---- a/drivers/clk/ti/clk-2xxx.c
-+++ b/drivers/clk/ti/clk-2xxx.c
-@@ -229,6 +229,8 @@ static int __init omap2xxx_dt_clk_init(int soc_type)
- 	else
- 		ti_dt_clocks_register(omap2430_clks);
  
-+	omap2xxx_clkt_vps_init();
-+
- 	omap2_clk_disable_autoidle_all();
+ void __init omap2420_init_late(void)
+@@ -439,7 +445,12 @@ void __init omap2430_init_early(void)
+ 	omap243x_clockdomains_init();
+ 	omap2430_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap_clk_soc_init = omap2430_clk_init;
++	if (of_have_populated_dt()) {
++		omap_clk_soc_init = omap2430_dt_clk_init;
++		rate_table = omap2430_rate_table;
++	} else {
++		omap_clk_soc_init = omap2430_clk_init;
++	}
+ }
  
- 	omap2_clk_enable_init_clocks(enable_init_clks,
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index a5aec68..03decc2 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -279,6 +279,7 @@ unsigned long omap2_dpllcore_recalc(struct clk_hw *hw,
- int omap2_reprogram_dpllcore(struct clk_hw *clk, unsigned long rate,
- 			     unsigned long parent_rate);
- void omap2xxx_clkt_dpllcore_init(struct clk_hw *hw);
-+void omap2xxx_clkt_vps_init(void);
- 
- void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
- void ti_dt_clocks_register(struct ti_dt_clk *oclks);
+ void __init omap2430_init_late(void)
 -- 
 1.7.9.5
 
