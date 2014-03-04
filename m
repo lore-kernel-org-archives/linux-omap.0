@@ -1,50 +1,73 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 0/5] drivers: bus: omap_l3: Conversion to devm_*
-Date: Tue, 4 Mar 2014 11:08:25 +0200
-Message-ID: <1393924110-11132-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 3/5] drivers: bus: omap_l3: Convert to use devm_request_irq()
+Date: Tue, 4 Mar 2014 11:08:28 +0200
+Message-ID: <1393924110-11132-4-git-send-email-peter.ujfalusi@ti.com>
+References: <1393924110-11132-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1393924110-11132-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+With this we can remove the free_irq() calls from probe and remove.
 
-Changes since v1:
-- Fixed Santosh's email address in the commit messages.
-
-Cleanup of platform probe and remove (removing the remove function at the end)
-with converting the driver to use the devm_* versions kzalloc, ioremap and
-request_irq. 
-
-This is a resend of an old series which I found when doing some spring cleanup
-on my HDD:
-http://www.spinics.net/lists/linux-omap/msg90531.html
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
-Peter Ujfalusi (5):
-  drivers: bus: omap_l3: Convert to use devm_kzalloc
-  drivers: bus: omap_l3: Convert to use devm_request_and_ioremap()
-  drivers: bus: omap_l3: Convert to use devm_request_irq()
-  drivers: bus: omap_l3: Remove the platform driver's remove function
-  drivers: bus: omap_l3: Change pr_crit() to dev_err() when IRQ request
-    fails
+ drivers/bus/omap_l3_noc.c | 23 +++++------------------
+ 1 file changed, 5 insertions(+), 18 deletions(-)
 
- drivers/bus/omap_l3_noc.c | 106 +++++++++++-----------------------------------
- 1 file changed, 24 insertions(+), 82 deletions(-)
-
+diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
+index ca95d3db5055..2bbc87bdea2b 100644
+--- a/drivers/bus/omap_l3_noc.c
++++ b/drivers/bus/omap_l3_noc.c
+@@ -159,9 +159,8 @@ static int omap4_l3_probe(struct platform_device *pdev)
+ 	 * Setup interrupt Handlers
+ 	 */
+ 	l3->debug_irq = platform_get_irq(pdev, 0);
+-	ret = request_irq(l3->debug_irq,
+-			l3_interrupt_handler,
+-			IRQF_DISABLED, "l3-dbg-irq", l3);
++	ret = devm_request_irq(&pdev->dev, l3->debug_irq, l3_interrupt_handler,
++			       IRQF_DISABLED, "l3-dbg-irq", l3);
+ 	if (ret) {
+ 		pr_crit("L3: request_irq failed to register for 0x%x\n",
+ 						l3->debug_irq);
+@@ -169,29 +168,17 @@ static int omap4_l3_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	l3->app_irq = platform_get_irq(pdev, 1);
+-	ret = request_irq(l3->app_irq,
+-			l3_interrupt_handler,
+-			IRQF_DISABLED, "l3-app-irq", l3);
+-	if (ret) {
++	ret = devm_request_irq(&pdev->dev, l3->app_irq, l3_interrupt_handler,
++			       IRQF_DISABLED, "l3-app-irq", l3);
++	if (ret)
+ 		pr_crit("L3: request_irq failed to register for 0x%x\n",
+ 						l3->app_irq);
+-		goto err4;
+-	}
+-
+-	return 0;
+ 
+-err4:
+-	free_irq(l3->debug_irq, l3);
+ 	return ret;
+ }
+ 
+ static int omap4_l3_remove(struct platform_device *pdev)
+ {
+-	struct omap4_l3 *l3 = platform_get_drvdata(pdev);
+-
+-	free_irq(l3->app_irq, l3);
+-	free_irq(l3->debug_irq, l3);
+-
+ 	return 0;
+ }
+ 
 -- 
 1.9.0
