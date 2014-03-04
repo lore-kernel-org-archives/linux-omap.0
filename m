@@ -1,197 +1,210 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 04/18] ARM: OMAP3: PRM: move prcm wakeup helper to prm driver
-Date: Tue, 4 Mar 2014 18:19:04 +0200
-Message-ID: <1393949958-816-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 07/18] ARM: OMAP2/3: CM: remove direct register access macros from common header
+Date: Tue, 4 Mar 2014 18:19:07 +0200
+Message-ID: <1393949958-816-8-git-send-email-t-kristo@ti.com>
 References: <1393949958-816-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48423 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754394AbaCDQUW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Mar 2014 11:20:22 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:48473 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754422AbaCDQUW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Mar 2014 11:20:22 -0500
 In-Reply-To: <1393949958-816-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, khilman@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Done in preparation to make the prm an individual driver.
+Done in preparation to move CM to be a driver of its own. This patch causes
+currently a build breakage which will be addressed in next patches.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c  |   60 +++++------------------------------------
- arch/arm/mach-omap2/prm3xxx.c |   53 ++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prm3xxx.h |    1 +
- 3 files changed, 60 insertions(+), 54 deletions(-)
+ arch/arm/mach-omap2/cm2xxx.c              |    1 +
+ arch/arm/mach-omap2/cm2xxx_3xxx.h         |   48 -------------------
+ arch/arm/mach-omap2/cm2xxx_3xxx_private.h |   74 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cm3xxx.c              |    1 +
+ arch/arm/mach-omap2/prm3xxx.c             |    2 +-
+ 5 files changed, 77 insertions(+), 49 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cm2xxx_3xxx_private.h
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 1f3770a..bba96c1 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -132,59 +132,11 @@ static void omap3_save_secure_ram_context(void)
- 	}
- }
+diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
+index 8be6ea5..4c29f63 100644
+--- a/arch/arm/mach-omap2/cm2xxx.c
++++ b/arch/arm/mach-omap2/cm2xxx.c
+@@ -20,6 +20,7 @@
  
--/*
-- * PRCM Interrupt Handler Helper Function
-- *
-- * The purpose of this function is to clear any wake-up events latched
-- * in the PRCM PM_WKST_x registers. It is possible that a wake-up event
-- * may occur whilst attempting to clear a PM_WKST_x register and thus
-- * set another bit in this register. A while loop is used to ensure
-- * that any peripheral wake-up events occurring while attempting to
-- * clear the PM_WKST_x are detected and cleared.
-- */
--static int prcm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
+ #include "prm2xxx.h"
+ #include "cm.h"
++#include "cm2xxx_3xxx_private.h"
+ #include "cm2xxx.h"
+ #include "cm-regbits-24xx.h"
+ #include "clockdomain.h"
+diff --git a/arch/arm/mach-omap2/cm2xxx_3xxx.h b/arch/arm/mach-omap2/cm2xxx_3xxx.h
+index bfbd16f..b40b5bd 100644
+--- a/arch/arm/mach-omap2/cm2xxx_3xxx.h
++++ b/arch/arm/mach-omap2/cm2xxx_3xxx.h
+@@ -48,54 +48,6 @@
+ 
+ #ifndef __ASSEMBLER__
+ 
+-#include <linux/io.h>
+-
+-static inline u32 omap2_cm_read_mod_reg(s16 module, u16 idx)
 -{
--	u32 wkst, fclk, iclk, clken;
--	u16 wkst_off = (regs == 3) ? OMAP3430ES2_PM_WKST3 : PM_WKST1;
--	u16 fclk_off = (regs == 3) ? OMAP3430ES2_CM_FCLKEN3 : CM_FCLKEN1;
--	u16 iclk_off = (regs == 3) ? CM_ICLKEN3 : CM_ICLKEN1;
--	u16 grpsel_off = (regs == 3) ?
--		OMAP3430ES2_PM_MPUGRPSEL3 : OMAP3430_PM_MPUGRPSEL;
--	int c = 0;
--
--	wkst = omap2_prm_read_mod_reg(module, wkst_off);
--	wkst &= omap2_prm_read_mod_reg(module, grpsel_off);
--	wkst &= ~ignore_bits;
--	if (wkst) {
--		iclk = omap2_cm_read_mod_reg(module, iclk_off);
--		fclk = omap2_cm_read_mod_reg(module, fclk_off);
--		while (wkst) {
--			clken = wkst;
--			omap2_cm_set_mod_reg_bits(clken, module, iclk_off);
--			/*
--			 * For USBHOST, we don't know whether HOST1 or
--			 * HOST2 woke us up, so enable both f-clocks
--			 */
--			if (module == OMAP3430ES2_USBHOST_MOD)
--				clken |= 1 << OMAP3430ES2_EN_USBHOST2_SHIFT;
--			omap2_cm_set_mod_reg_bits(clken, module, fclk_off);
--			omap2_prm_write_mod_reg(wkst, module, wkst_off);
--			wkst = omap2_prm_read_mod_reg(module, wkst_off);
--			wkst &= ~ignore_bits;
--			c++;
--		}
--		omap2_cm_write_mod_reg(iclk, module, iclk_off);
--		omap2_cm_write_mod_reg(fclk, module, fclk_off);
--	}
--
--	return c;
+-	return __raw_readl(cm_base + module + idx);
 -}
 -
- static irqreturn_t _prcm_int_handle_io(int irq, void *unused)
- {
- 	int c;
- 
--	c = prcm_clear_mod_irqs(WKUP_MOD, 1,
-+	c = omap3xxx_prm_clear_mod_irqs(WKUP_MOD, 1,
- 		~(OMAP3430_ST_IO_MASK | OMAP3430_ST_IO_CHAIN_MASK));
- 
- 	return c ? IRQ_HANDLED : IRQ_NONE;
-@@ -199,13 +151,13 @@ static irqreturn_t _prcm_int_handle_wakeup(int irq, void *unused)
- 	 * these are handled in a separate handler to avoid acking
- 	 * IO events before parsing in mux code
- 	 */
--	c = prcm_clear_mod_irqs(WKUP_MOD, 1,
-+	c = omap3xxx_prm_clear_mod_irqs(WKUP_MOD, 1,
- 		OMAP3430_ST_IO_MASK | OMAP3430_ST_IO_CHAIN_MASK);
--	c += prcm_clear_mod_irqs(CORE_MOD, 1, 0);
--	c += prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1, 0);
-+	c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 1, 0);
-+	c += omap3xxx_prm_clear_mod_irqs(OMAP3430_PER_MOD, 1, 0);
- 	if (omap_rev() > OMAP3430_REV_ES1_0) {
--		c += prcm_clear_mod_irqs(CORE_MOD, 3, 0);
--		c += prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1, 0);
-+		c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 3, 0);
-+		c += omap3xxx_prm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1, 0);
- 	}
- 
- 	return c ? IRQ_HANDLED : IRQ_NONE;
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index 7721990..7d17edc 100644
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -26,6 +26,8 @@
- #include "prm2xxx_3xxx.h"
- #include "cm2xxx_3xxx.h"
- #include "prm-regbits-34xx.h"
-+#include "cm3xxx.h"
-+#include "cm-regbits-34xx.h"
- 
- static const struct omap_prcm_irq omap3_prcm_irqs[] = {
- 	OMAP_PRCM_IRQ("wkup",	0,	0),
-@@ -205,6 +207,57 @@ void omap3xxx_prm_restore_irqen(u32 *saved_mask)
- }
- 
- /**
-+ * omap3xxx_prm_clear_mod_irqs - clear wake-up events from PRCM interrupt
-+ * @module: PRM module to clear wakeups from
-+ * @regs: register set to clear, 1 or 3
-+ * @ignore_bits: wakeup status bits to ignore
+-static inline void omap2_cm_write_mod_reg(u32 val, s16 module, u16 idx)
+-{
+-	__raw_writel(val, cm_base + module + idx);
+-}
+-
+-/* Read-modify-write a register in a CM module. Caller must lock */
+-static inline u32 omap2_cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module,
+-					    s16 idx)
+-{
+-	u32 v;
+-
+-	v = omap2_cm_read_mod_reg(module, idx);
+-	v &= ~mask;
+-	v |= bits;
+-	omap2_cm_write_mod_reg(v, module, idx);
+-
+-	return v;
+-}
+-
+-/* Read a CM register, AND it, and shift the result down to bit 0 */
+-static inline u32 omap2_cm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask)
+-{
+-	u32 v;
+-
+-	v = omap2_cm_read_mod_reg(domain, idx);
+-	v &= mask;
+-	v >>= __ffs(mask);
+-
+-	return v;
+-}
+-
+-static inline u32 omap2_cm_set_mod_reg_bits(u32 bits, s16 module, s16 idx)
+-{
+-	return omap2_cm_rmw_mod_reg_bits(bits, bits, module, idx);
+-}
+-
+-static inline u32 omap2_cm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
+-{
+-	return omap2_cm_rmw_mod_reg_bits(bits, 0x0, module, idx);
+-}
+-
+ extern int omap2xxx_cm_apll54_enable(void);
+ extern void omap2xxx_cm_apll54_disable(void);
+ extern int omap2xxx_cm_apll96_enable(void);
+diff --git a/arch/arm/mach-omap2/cm2xxx_3xxx_private.h b/arch/arm/mach-omap2/cm2xxx_3xxx_private.h
+new file mode 100644
+index 0000000..9131829
+--- /dev/null
++++ b/arch/arm/mach-omap2/cm2xxx_3xxx_private.h
+@@ -0,0 +1,74 @@
++/*
++ * OMAP2/3 Clock Management (CM) register definitions
 + *
-+ * The purpose of this function is to clear any wake-up events latched
-+ * in the PRCM PM_WKST_x registers. It is possible that a wake-up event
-+ * may occur whilst attempting to clear a PM_WKST_x register and thus
-+ * set another bit in this register. A while loop is used to ensure
-+ * that any peripheral wake-up events occurring while attempting to
-+ * clear the PM_WKST_x are detected and cleared.
++ * Copyright (C) 2007-2009 Texas Instruments, Inc.
++ * Copyright (C) 2007-2010 Nokia Corporation
++ * Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * The CM hardware modules on the OMAP2/3 are quite similar to each
++ * other.  The CM modules/instances on OMAP4 are quite different, so
++ * they are handled in a separate file.
 + */
-+int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
++#ifndef __ARCH_ARM_MACH_OMAP2_CM2XXX_3XXX_PRIVATE_H
++#define __ARCH_ARM_MACH_OMAP2_CM2XXX_3XXX_PRIVATE_H
++
++#include "cm.h"
++#include "cm2xxx_3xxx.h"
++
++#ifndef __ASSEMBLER__
++
++#include <linux/io.h>
++
++static inline u32 omap2_cm_read_mod_reg(s16 module, u16 idx)
 +{
-+	u32 wkst, fclk, iclk, clken;
-+	u16 wkst_off = (regs == 3) ? OMAP3430ES2_PM_WKST3 : PM_WKST1;
-+	u16 fclk_off = (regs == 3) ? OMAP3430ES2_CM_FCLKEN3 : CM_FCLKEN1;
-+	u16 iclk_off = (regs == 3) ? CM_ICLKEN3 : CM_ICLKEN1;
-+	u16 grpsel_off = (regs == 3) ?
-+		OMAP3430ES2_PM_MPUGRPSEL3 : OMAP3430_PM_MPUGRPSEL;
-+	int c = 0;
-+
-+	wkst = omap2_prm_read_mod_reg(module, wkst_off);
-+	wkst &= omap2_prm_read_mod_reg(module, grpsel_off);
-+	wkst &= ~ignore_bits;
-+	if (wkst) {
-+		iclk = omap2_cm_read_mod_reg(module, iclk_off);
-+		fclk = omap2_cm_read_mod_reg(module, fclk_off);
-+		while (wkst) {
-+			clken = wkst;
-+			omap2_cm_set_mod_reg_bits(clken, module, iclk_off);
-+			/*
-+			 * For USBHOST, we don't know whether HOST1 or
-+			 * HOST2 woke us up, so enable both f-clocks
-+			 */
-+			if (module == OMAP3430ES2_USBHOST_MOD)
-+				clken |= 1 << OMAP3430ES2_EN_USBHOST2_SHIFT;
-+			omap2_cm_set_mod_reg_bits(clken, module, fclk_off);
-+			omap2_prm_write_mod_reg(wkst, module, wkst_off);
-+			wkst = omap2_prm_read_mod_reg(module, wkst_off);
-+			wkst &= ~ignore_bits;
-+			c++;
-+		}
-+		omap2_cm_write_mod_reg(iclk, module, iclk_off);
-+		omap2_cm_write_mod_reg(fclk, module, fclk_off);
-+	}
-+
-+	return c;
++	return __raw_readl(cm_base + module + idx);
 +}
 +
-+/**
-  * omap3xxx_prm_reconfigure_io_chain - clear latches and reconfigure I/O chain
-  *
-  * Clear any previously-latched I/O wakeup events and ensure that the
-diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
-index f8eb833..ba602f5 100644
---- a/arch/arm/mach-omap2/prm3xxx.h
-+++ b/arch/arm/mach-omap2/prm3xxx.h
-@@ -162,6 +162,7 @@ extern void omap3xxx_prm_dpll3_reset(void);
++static inline void omap2_cm_write_mod_reg(u32 val, s16 module, u16 idx)
++{
++	__raw_writel(val, cm_base + module + idx);
++}
++
++/* Read-modify-write a register in a CM module. Caller must lock */
++static inline u32 omap2_cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module,
++					    s16 idx)
++{
++	u32 v;
++
++	v = omap2_cm_read_mod_reg(module, idx);
++	v &= ~mask;
++	v |= bits;
++	omap2_cm_write_mod_reg(v, module, idx);
++
++	return v;
++}
++
++/* Read a CM register, AND it, and shift the result down to bit 0 */
++static inline u32 omap2_cm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask)
++{
++	u32 v;
++
++	v = omap2_cm_read_mod_reg(domain, idx);
++	v &= mask;
++	v >>= __ffs(mask);
++
++	return v;
++}
++
++static inline u32 omap2_cm_set_mod_reg_bits(u32 bits, s16 module, s16 idx)
++{
++	return omap2_cm_rmw_mod_reg_bits(bits, bits, module, idx);
++}
++
++static inline u32 omap2_cm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
++{
++	return omap2_cm_rmw_mod_reg_bits(bits, 0x0, module, idx);
++}
++
++#endif
++
++#endif
+diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
+index 129a4e7..989590e 100644
+--- a/arch/arm/mach-omap2/cm3xxx.c
++++ b/arch/arm/mach-omap2/cm3xxx.c
+@@ -20,6 +20,7 @@
  
- extern int __init omap3xxx_prm_init(void);
- extern u32 omap3xxx_prm_get_reset_sources(void);
-+int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits);
- 
- #endif /* __ASSEMBLER */
- 
+ #include "prm2xxx_3xxx.h"
+ #include "cm.h"
++#include "cm2xxx_3xxx_private.h"
+ #include "cm3xxx.h"
+ #include "cm-regbits-34xx.h"
+ #include "clockdomain.h"
+diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
+index 92ab46a..6dfa95c 100644
+--- a/arch/arm/mach-omap2/prm3xxx.c
++++ b/arch/arm/mach-omap2/prm3xxx.c
+@@ -24,7 +24,7 @@
+ #include "powerdomain.h"
+ #include "prm3xxx.h"
+ #include "prm2xxx_3xxx.h"
+-#include "cm2xxx_3xxx.h"
++#include "cm2xxx_3xxx_private.h"
+ #include "prm-regbits-34xx.h"
+ #include "cm3xxx.h"
+ #include "cm-regbits-34xx.h"
 -- 
 1.7.9.5
 
