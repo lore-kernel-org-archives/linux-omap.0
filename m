@@ -1,80 +1,53 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3 5/5] drivers: bus: omap_l3: Change pr_crit() to dev_err()
- when IRQ request fails
-Date: Wed, 5 Mar 2014 09:11:19 +0200
-Message-ID: <5316CE17.6010201@ti.com>
-References: <1393937293-6036-1-git-send-email-peter.ujfalusi@ti.com> <1393937293-6036-6-git-send-email-peter.ujfalusi@ti.com> <5315E522.9090606@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5315E522.9090606@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: yegorslists@googlemail.com
+Subject: [PATCH] ARM: dts: am335x-evmsk: enable dual_emac mode
+Date: Wed,  5 Mar 2014 08:29:19 +0100
+Message-ID: <1394004559-17862-1-git-send-email-yegorslists@googlemail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns.visionsystems.de ([62.145.30.242]:54413 "EHLO
+	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751381AbaCEH3o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Mar 2014 02:29:44 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, devicetree@vger.kernel.org, Yegor Yefremov <yegorslists@googlemail.com>
 
-On 03/04/2014 04:37 PM, Santosh Shilimkar wrote:
-> On Tuesday 04 March 2014 08:48 PM, Peter Ujfalusi wrote:
->> Use dev_err() which will going to print the driver's name as well an=
-d the
->> KERN_ERR level is sufficient in this case (we also print via dev_err=
- when
->> there is an error with the mem resources)
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> ---
->>  drivers/bus/omap_l3_noc.c | 7 +++----
->>  1 file changed, 3 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
->> index 0eff48585ae3..972691a668a3 100644
->> --- a/drivers/bus/omap_l3_noc.c
->> +++ b/drivers/bus/omap_l3_noc.c
->> @@ -158,8 +158,8 @@ static int omap4_l3_probe(struct platform_device=
- *pdev)
->>  	ret =3D devm_request_irq(&pdev->dev, l3->debug_irq, l3_interrupt_h=
-andler,
->>  			       IRQF_DISABLED, "l3-dbg-irq", l3);
->>  	if (ret) {
->> -		pr_crit("L3: request_irq failed to register for 0x%x\n",
->> -						l3->debug_irq);
->> +		dev_err(&pdev->dev, "request_irq failed for %d\n",
->> +			l3->debug_irq);
->>  		return ret;
->>  	}
->> =20
->> @@ -167,8 +167,7 @@ static int omap4_l3_probe(struct platform_device=
- *pdev)
->>  	ret =3D devm_request_irq(&pdev->dev, l3->app_irq, l3_interrupt_han=
-dler,
->>  			       IRQF_DISABLED, "l3-app-irq", l3);
->>  	if (ret)
->> -		pr_crit("L3: request_irq failed to register for 0x%x\n",
->> -						l3->app_irq);
->> +		dev_err(&pdev->dev, "request_irq failed for %d\n", l3->app_irq);
->> =20
->>  	return ret;
->>  }
->>
-> So this one change in the log level. If I look at now, may be dev_err
-> is fine but the change is not same.
+From: Yegor Yefremov <yegorslists@googlemail.com>
 
-Not sure what you mean by 'the change is not same'?
-I just picked the old series and rebased it on linux-next, the patch is=
- the
-same as it was back in May 2013:
-https://lkml.org/lkml/2013/5/2/205
+EVM board provides two Ethernet ports, this patch sets them into
+dual_emac mode to provide two independent network interfaces.
 
-And yes, I have shortened the texts in the print, but the meaning of th=
-e
-prints have not changed.
+Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+---
+ arch/arm/boot/dts/am335x-evmsk.dts |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-> Apart from above comment, rest of the series looks fine to me.
-> Feel free to add my ack...
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 40a66bd..144ed07 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -449,6 +449,7 @@
+ 	pinctrl-names = "default", "sleep";
+ 	pinctrl-0 = <&cpsw_default>;
+ 	pinctrl-1 = <&cpsw_sleep>;
++	dual_emac = <1>;
+ };
+ 
+ &davinci_mdio {
+@@ -460,11 +461,13 @@
+ &cpsw_emac0 {
+ 	phy_id = <&davinci_mdio>, <0>;
+ 	phy-mode = "rgmii-txid";
++	dual_emac_res_vlan = <1>;
+ };
+ 
+ &cpsw_emac1 {
+ 	phy_id = <&davinci_mdio>, <1>;
+ 	phy-mode = "rgmii-txid";
++	dual_emac_res_vlan = <2>;
+ };
+ 
+ &mmc1 {
+-- 
+1.7.7
 
-Thanks.
-
---=20
-P=E9ter
