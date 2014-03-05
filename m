@@ -1,82 +1,62 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 13/14] ARM: OMAP24xx: clock: remove legacy clock data
-Date: Wed, 5 Mar 2014 10:14:46 +0200
-Message-ID: <5316DCF6.6070808@ti.com>
-References: <1393924700-6510-1-git-send-email-t-kristo@ti.com>
- <1393924700-6510-14-git-send-email-t-kristo@ti.com>
- <20140304173200.GA17470@atomide.com> <5316217C.2070906@ti.com>
- <20140304212811.GA8705@atomide.com>
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: Re: [PATCH v7 1/4] mmc: omap_hsmmc: Enable SDIO IRQ.
+Date: Wed, 5 Mar 2014 09:27:42 +0100
+Message-ID: <CALtMJEArwH4g1o+_v8daoxiYZtpHvPMbxM4CZjTxnyGgxTS+aQ@mail.gmail.com>
+References: <1393331866-28307-1-git-send-email-afenkart@gmail.com>
+	<1393331866-28307-2-git-send-email-afenkart@gmail.com>
+	<20140227213335.GJ11654@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140304212811.GA8705@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: nm@ti.com, devicetree@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qc0-f175.google.com ([209.85.216.175]:35577 "EHLO
+	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751544AbaCEI1n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Mar 2014 03:27:43 -0500
+In-Reply-To: <20140227213335.GJ11654@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 
-On 03/04/2014 11:28 PM, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [140304 10:58]:
->> On 03/04/2014 07:32 PM, Tony Lindgren wrote:
->>> * Tero Kristo <t-kristo@ti.com> [140304 01:22]:
->>>> This is no longer needed as clock data is provided through DT.
->>>
->>> Looks like there's a new error even before applying this patch in
->>> the series as I'm now getting the following oops on n8x0. So cannot
->>> test this patch yet.
->>
->> Is this with OMAP2 only boot?
+Hi,
+
+2014-02-27 22:33 GMT+01:00 Tony Lindgren <tony@atomide.com>:
 >
-> Yeah that's with omap2 only.
+> Thanks for updating this, I finally got around to spend some
+> time with it again. I've folded in your fixes and quirk support
+> into my earlier patch from [0] as that had a better changelog
+> describing the earlier work.
+thanks, always struggled with that
 
-That explains it, as previous series was never boot tested in omap2 only 
-config (due to build issues.)
+> And I've also now made the SDIO support to depend on properly
+> configured wake-up irq from device tree as otherwise wake from
+> idle states won't work properly. I've also cleaned up the the
+> wake-up irq initialization a bit.
+Looks much better now.
 
-I just force pushed the branch with the below additional patch, can you 
-check if it works now?
+Mind that the sdio irq is level triggered. So we have to disable the
+IRQ in the handler otherwise we enter an infinite loop.
 
--Tero
 
-------------------------------------
 
- From b8be115c8bba8088f7b25922ed81c1d5867af974 Mon Sep 17 00:00:00 2001
-From: Tero Kristo <t-kristo@ti.com>
-Date: Wed, 5 Mar 2014 10:03:38 +0200
-Subject: [PATCH 12/15] CLK: TI: gate: add composite interface clock to OMAP2
-  only build
+> The wake-irq is needed for omaps with wake-up path and also
+> when doing GPIO remuxing. So the wake-up handling is pretty
+> much the same for both cases.
+I added this comment to the patch, since I was puzzled that you need
+a wake_irq even whithout remuxing.
 
-Composite interface clock is needed by OMAP2, but it was only built
-in for OMAP3. Fixed the conditional build flag checks for this.
+>
+> I've kept your Signed-off-by, can you please check if the patch
+> below works for you with the second patch I'll post shortly?
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
-  drivers/clk/ti/gate.c |    2 +-
-  1 file changed, 1 insertion(+), 1 deletion(-)
+Will send out another patch soon. Left your Signed-off as well, not
+in the sense of your agreement, but didn't dare to remove it because
+of your contributions.
 
-diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
-index 3e2999d..474c171 100644
---- a/drivers/clk/ti/gate.c
-+++ b/drivers/clk/ti/gate.c
-@@ -185,7 +185,7 @@ of_ti_composite_no_wait_gate_clk_setup(struct 
-device_node *node)
-  CLK_OF_DECLARE(ti_composite_no_wait_gate_clk, 
-"ti,composite-no-wait-gate-clock",
-  	       of_ti_composite_no_wait_gate_clk_setup);
-
--#ifdef CONFIG_ARCH_OMAP3
-+#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-  static void __init of_ti_composite_interface_clk_setup(struct 
-device_node *node)
-  {
-  	_of_ti_composite_gate_clk_setup(node, &clkhwops_iclk_wait);
--- 
-1.7.9.5
+>
+> Regards,
+>
+> Tony
+>
+> [0] https://www.mail-archive.com/linux-mmc@vger.kernel.org/msg22290.html
+>
