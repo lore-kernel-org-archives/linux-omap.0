@@ -1,99 +1,74 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 02/12] phy: omap-control: Update DT binding information
-Date: Wed, 5 Mar 2014 14:23:06 +0200
-Message-ID: <5317172A.1050803@ti.com>
-References: <1393859254-10937-1-git-send-email-rogerq@ti.com> <1393859254-10937-3-git-send-email-rogerq@ti.com> <20140303190247.GD25804@atomide.com> <5315995F.5050206@ti.com> <20140304162855.GB3376@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v5 6/6] arm/dts: added dt properties to adapt to the new
+ phy framwork
+Date: Wed, 5 Mar 2014 18:12:49 +0530
+Message-ID: <53171BC9.8050808@ti.com>
+References: <1393846695-14644-1-git-send-email-kishon@ti.com>
+ <1393846695-14644-7-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20140304162855.GB3376@atomide.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: kishon@ti.com, balbi@ti.com, george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1393846695-14644-7-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: bcousson@baylibre.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, george.cherian@ti.com, heikki.krogerus@linux.intel.com, rogerq@ti.com, tony@atomide.com
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, s.nawrocki@samsung.com, pawel.moll@arm.com, swarren@wwwdotorg.org, gregkh@linuxfoundation.org, ijc+devicetree@hellion.org.uk, rob.herring@calxeda.com, balbi@ti.com, rob@landley.net, galak@codeaurora.org, grant.likely@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-+ George
+Tony/Benoit,
 
-Tony,
+On Monday 03 March 2014 05:08 PM, Kishon Vijay Abraham I wrote:
+> Added device tree bindings for dwc3, usb2 and usb3 PHYs. The documentation
+> of these can be found at Documentation/devicetree/bindings/phy/phy-bindings.txt
+> and Documentation/devicetree/bindings/phy/ti-phy.txt.
 
-On 03/04/2014 06:28 PM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [140304 01:17]:
->> Hi Tony,
->>
->> On 03/03/2014 09:02 PM, Tony Lindgren wrote:
->>> * Roger Quadros <rogerq@ti.com> [140303 07:10]:
->>>> Move omap-control binding information to the right location.
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>  Documentation/devicetree/bindings/phy/ti-phy.txt   | 25 ++++++++++++++++++++++
->>>>  Documentation/devicetree/bindings/usb/omap-usb.txt | 24 ---------------------
->>>>  2 files changed, 25 insertions(+), 24 deletions(-)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>> index 207e14c..41dc132 100644
->>>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>> @@ -1,5 +1,30 @@
->>>>  TI PHY: DT DOCUMENTATION FOR PHYs in TI PLATFORMs
->>>>  
->>>> +OMAP CONTROL PHY
->>>> +
->>>> +Required properties:
->>>> + - compatible: Should be one of
->>>> + "ti,control-phy-otghs" - if it has otghs_control mailbox register as on OMAP4.
->>>> + "ti,control-phy-usb2" - if it has Power down bit in control_dev_conf register
->>>> +                        e.g. USB2_PHY on OMAP5.
->>>> + "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
->>>> +                        e.g. USB3 PHY and SATA PHY on OMAP5.
->>>> + "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY on
->>>> +                        DRA7 platform.
->>>> + "ti,control-phy-am437usb2" - if it has power down register like USB2 PHY on
->>>> +                        AM437 platform.
->>>
->>> To me it seems that you can leave out all the above. You can set these falgs
->>> flags directly in the driver based on the compatible flag. Then just initialize
->>> the .data in the driver based on the compatible flag.
->>
->> I'm not sure if I got you. A single platform can have different type of phys.
->>
->> e.g. OMAP5 has both usb2 and pipe3 PHYs,
->> DRA7 has both pipe3 and usb2 PHYs, but this usb2 PHY is not compatible with OMAP5 one
->> so we need a new compatible id for that.
->>
->> To add to the woes, the designers were creative enough to make another mutation to
->> the USB2 PHY for AM437x, :(
-> 
-> Oh OK, in that case the compatible flag may not be enough for configuring the
-> various instances.
->  
->> What do you suggest the compatible ids should look like for these 5 types of PHY control?
->> OTGHS	(OMAP4 & 5)
->> USB2	(OMAP5)
->> PIPE3	(OMAP5 & DRA7)
->> USB2x	(DRA7)
->> USB2y	(AM437)
-> 
-> I think in that case having the various instances fully configurable from
-> device tree is OK if you prefer that. But if you wanted to use the
-> compatible flag, then you could do something like this:
-> 
-> ti,control-phy-omap4-otghs	(assuming same on omap4 & 5)
-> ti,control-phy-omap5-usb2
-> ti,control-phy-omap5-pipe3	(assuming same on omap5 & dra7)
-> ti,control-phy-dra7-usb2x
-> ti,control-phy-am437-usb2y
-> ...
-> 
+Can this patch be queued for 3.15 merge window?
 
-Please note that the original bindings were added in v3.13 and I'm just moving the documentation
-to the right location. So I don't think we should change the bindings now.
+Thanks
+Kishon
 
-"ti,control-phy-dra7usb2" and "ti,control-phy-am437usb2" have no users still so we could probably
-change those to "ti,control-phy-dra7-usb2" and "ti,control-phy-am437-usb2".
-
-What do you say?
-
-cheers,
--roger
+>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>   arch/arm/boot/dts/omap5.dtsi |    5 ++++-
+>   1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index a72813a..1c68558 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -732,7 +732,8 @@
+>   				compatible = "snps,dwc3";
+>   				reg = <0x4a030000 0x10000>;
+>   				interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>;
+> -				usb-phy = <&usb2_phy>, <&usb3_phy>;
+> +				phys = <&usb2_phy>, <&usb3_phy>;
+> +				phy-names = "usb2-phy", "usb3-phy";
+>   				dr_mode = "peripheral";
+>   				tx-fifo-resize;
+>   			};
+> @@ -749,6 +750,7 @@
+>   				compatible = "ti,omap-usb2";
+>   				reg = <0x4a084000 0x7c>;
+>   				ctrl-module = <&omap_control_usb2phy>;
+> +				#phy-cells = <0>;
+>   			};
+>
+>   			usb3_phy: usb3phy@4a084400 {
+> @@ -758,6 +760,7 @@
+>   				      <0x4a084c00 0x40>;
+>   				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+>   				ctrl-module = <&omap_control_usb3phy>;
+> +				#phy-cells = <0>;
+>   			};
+>   		};
+>
+>
