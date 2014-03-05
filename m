@@ -1,35 +1,48 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v5 6/6] arm/dts: added dt properties to adapt to the new
- phy framwork
-Date: Wed, 5 Mar 2014 11:40:36 -0800
-Message-ID: <20140305194036.GC7599@atomide.com>
-References: <1393846695-14644-1-git-send-email-kishon@ti.com>
- <1393846695-14644-7-git-send-email-kishon@ti.com>
- <53171BC9.8050808@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/5] Add USB nodes for am43xx epos and gp evm
+Date: Wed, 5 Mar 2014 11:42:19 -0800
+Message-ID: <20140305194219.GD7599@atomide.com>
+References: <1393854834-23810-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <53171BC9.8050808-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
+In-Reply-To: <1393854834-23810-1-git-send-email-george.cherian@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, anatol.pomozov@gmail.com, gregkh@linuxfoundation.org, balbi@ti.com, rogerq@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [140305 04:46]:
-> Tony/Benoit,
+* George Cherian <george.cherian@ti.com> [140303 05:58]:
+> The patch series adds USB dt nodes for am43xx epos and gp evm
 > 
-> On Monday 03 March 2014 05:08 PM, Kishon Vijay Abraham I wrote:
-> >Added device tree bindings for dwc3, usb2 and usb3 PHYs. The documentation
-> >of these can be found at Documentation/devicetree/bindings/phy/phy-bindings.txt
-> >and Documentation/devicetree/bindings/phy/ti-phy.txt.
+> Boot tested with  Benoit's for_3.15 + following patches
 > 
-> Can this patch be queued for 3.15 merge window?
+> https://patchwork.kernel.org/patch/3600821/
+> https://patchwork.kernel.org/patch/3600831/
+> https://patchwork.kernel.org/patch/3600851/
+> https://patchwork.kernel.org/patch/3600841/
 
-Thanks applying this patch into omap-for-v3.15/dt.
+Roger, care to look through these and ack if OK?
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> George Cherian (5):
+>   ARM: dts: am43xx clock data
+>   ARM: dts: AM4372: Add USB nodes
+>   ARM: dts: am437x-gp-evm: Enable USB
+>   ARM: dts: am43x-epos-evm: Enable USB
+>   doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue
+> 
+>  Documentation/devicetree/bindings/usb/omap-usb.txt |  4 +-
+>  arch/arm/boot/dts/am4372.dtsi                      | 99 ++++++++++++++++++++++
+>  arch/arm/boot/dts/am437x-gp-evm.dts                | 44 ++++++++++
+>  arch/arm/boot/dts/am43x-epos-evm.dts               | 44 ++++++++++
+>  arch/arm/boot/dts/am43xx-clocks.dtsi               | 17 ++++
+>  5 files changed, 207 insertions(+), 1 deletion(-)
+> 
+> -- 
+> 1.8.3.1
+> 
