@@ -1,65 +1,80 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH v2] crypto: omap-sham: kmap SG pages before appending
-Date: Wed, 5 Mar 2014 15:11:09 +0800
-Message-ID: <20140305071109.GA22178@gondor.apana.org.au>
-References: <1393957854-10961-1-git-send-email-joelf@ti.com>
- <20140305015953.GA20702@gondor.apana.org.au>
- <39412163-4B61-4490-ABC8-5BA633CC6618@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 5/5] drivers: bus: omap_l3: Change pr_crit() to dev_err()
+ when IRQ request fails
+Date: Wed, 5 Mar 2014 09:11:19 +0200
+Message-ID: <5316CE17.6010201@ti.com>
+References: <1393937293-6036-1-git-send-email-peter.ujfalusi@ti.com> <1393937293-6036-6-git-send-email-peter.ujfalusi@ti.com> <5315E522.9090606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ringil.hengli.com.au ([178.18.16.133]:37142 "EHLO
-	ringil.hengli.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750747AbaCEHLM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Mar 2014 02:11:12 -0500
-Content-Disposition: inline
-In-Reply-To: <39412163-4B61-4490-ABC8-5BA633CC6618@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5315E522.9090606@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Fernandes, Joel" <joelf@ti.com>
-Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Vutla, Lokesh" <lokeshvutla@ti.com>
 
-On Wed, Mar 05, 2014 at 04:18:12AM +0000, Fernandes, Joel wrote:
-> 
-> 
-> > On Mar 4, 2014, at 8:00 PM, "Herbert Xu" <herbert@gondor.apana.org.au> wrote:
-> > 
-> >> On Tue, Mar 04, 2014 at 12:30:54PM -0600, Joel Fernandes wrote:
-> >> HIGHMEM pages may not be mapped so we must kmap them before accessing.
-> >> This resolves a random OOPs error that was showing up during OpenSSL SHA tests.
-> >> 
-> >> Signed-off-by: Joel Fernandes <joelf@ti.com>
-> >> Cc: Herbert Xu <herbert@gondor.apana.org.au>
-> >> ---
-> >> v2 changes:
-> >>    - don't check for HIGHMEM, kmap/kunmap do them anyway (Thanks Herbert).
-> >> 
-> >> drivers/crypto/omap-sham.c |    8 +++++++-
-> >> 1 file changed, 7 insertions(+), 1 deletion(-)
-> >> 
-> >> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-> >> index e45aaaf..207eac1 100644
-> >> --- a/drivers/crypto/omap-sham.c
-> >> +++ b/drivers/crypto/omap-sham.c
-> >> @@ -636,11 +636,17 @@ static size_t omap_sham_append_buffer(struct omap_sham_reqctx *ctx,
-> >> static size_t omap_sham_append_sg(struct omap_sham_reqctx *ctx)
-> >> {
-> >>    size_t count;
-> >> +    const u8 *vaddr;
-> >> 
-> >>    while (ctx->sg) {
-> >> +        vaddr = kmap(sg_page(ctx->sg));
-> > 
-> > Are you sure you can safely use kmap here as opposed to kmap_atomic?
-> 
-> Yes I made sure it is not called in interrupt context and also tested the patch.
+On 03/04/2014 04:37 PM, Santosh Shilimkar wrote:
+> On Tuesday 04 March 2014 08:48 PM, Peter Ujfalusi wrote:
+>> Use dev_err() which will going to print the driver's name as well an=
+d the
+>> KERN_ERR level is sufficient in this case (we also print via dev_err=
+ when
+>> there is an error with the mem resources)
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>>  drivers/bus/omap_l3_noc.c | 7 +++----
+>>  1 file changed, 3 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
+>> index 0eff48585ae3..972691a668a3 100644
+>> --- a/drivers/bus/omap_l3_noc.c
+>> +++ b/drivers/bus/omap_l3_noc.c
+>> @@ -158,8 +158,8 @@ static int omap4_l3_probe(struct platform_device=
+ *pdev)
+>>  	ret =3D devm_request_irq(&pdev->dev, l3->debug_irq, l3_interrupt_h=
+andler,
+>>  			       IRQF_DISABLED, "l3-dbg-irq", l3);
+>>  	if (ret) {
+>> -		pr_crit("L3: request_irq failed to register for 0x%x\n",
+>> -						l3->debug_irq);
+>> +		dev_err(&pdev->dev, "request_irq failed for %d\n",
+>> +			l3->debug_irq);
+>>  		return ret;
+>>  	}
+>> =20
+>> @@ -167,8 +167,7 @@ static int omap4_l3_probe(struct platform_device=
+ *pdev)
+>>  	ret =3D devm_request_irq(&pdev->dev, l3->app_irq, l3_interrupt_han=
+dler,
+>>  			       IRQF_DISABLED, "l3-app-irq", l3);
+>>  	if (ret)
+>> -		pr_crit("L3: request_irq failed to register for 0x%x\n",
+>> -						l3->app_irq);
+>> +		dev_err(&pdev->dev, "request_irq failed for %d\n", l3->app_irq);
+>> =20
+>>  	return ret;
+>>  }
+>>
+> So this one change in the log level. If I look at now, may be dev_err
+> is fine but the change is not same.
 
-What about omap_sham_update => omap_sham_append_sg? As the former
-can be called in softirq context what is preventing it from calling
-kmap?
+Not sure what you mean by 'the change is not same'?
+I just picked the old series and rebased it on linux-next, the patch is=
+ the
+same as it was back in May 2013:
+https://lkml.org/lkml/2013/5/2/205
 
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+And yes, I have shortened the texts in the print, but the meaning of th=
+e
+prints have not changed.
+
+> Apart from above comment, rest of the series looks fine to me.
+> Feel free to add my ack...
+
+Thanks.
+
+--=20
+P=E9ter
