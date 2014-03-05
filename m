@@ -1,70 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v7 1/4] mmc: omap_hsmmc: Enable SDIO IRQ.
-Date: Wed, 5 Mar 2014 08:33:32 -0800
-Message-ID: <20140305163331.GC4983@atomide.com>
-References: <1393331866-28307-1-git-send-email-afenkart@gmail.com>
- <1393331866-28307-2-git-send-email-afenkart@gmail.com>
- <20140227213335.GJ11654@atomide.com>
- <CALtMJEArwH4g1o+_v8daoxiYZtpHvPMbxM4CZjTxnyGgxTS+aQ@mail.gmail.com>
+Subject: Re: [PATCHv2 13/14] ARM: OMAP24xx: clock: remove legacy clock data
+Date: Wed, 5 Mar 2014 09:08:57 -0800
+Message-ID: <20140305170857.GD4983@atomide.com>
+References: <1393924700-6510-1-git-send-email-t-kristo@ti.com>
+ <1393924700-6510-14-git-send-email-t-kristo@ti.com>
+ <20140304173200.GA17470@atomide.com>
+ <5316217C.2070906@ti.com>
+ <20140304212811.GA8705@atomide.com>
+ <5316DCF6.6070808@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20511 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753355AbaCEQdm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Mar 2014 11:33:42 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46772 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750850AbaCERJE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Mar 2014 12:09:04 -0500
 Content-Disposition: inline
-In-Reply-To: <CALtMJEArwH4g1o+_v8daoxiYZtpHvPMbxM4CZjTxnyGgxTS+aQ@mail.gmail.com>
+In-Reply-To: <5316DCF6.6070808@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, nm@ti.com, mturquette@linaro.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-* Andreas Fenkart <afenkart@gmail.com> [140305 00:30]:
-> Hi,
-> 
-> 2014-02-27 22:33 GMT+01:00 Tony Lindgren <tony@atomide.com>:
+* Tero Kristo <t-kristo@ti.com> [140305 00:17]:
+> On 03/04/2014 11:28 PM, Tony Lindgren wrote:
+> >* Tero Kristo <t-kristo@ti.com> [140304 10:58]:
+> >>On 03/04/2014 07:32 PM, Tony Lindgren wrote:
+> >>>* Tero Kristo <t-kristo@ti.com> [140304 01:22]:
+> >>>>This is no longer needed as clock data is provided through DT.
+> >>>
+> >>>Looks like there's a new error even before applying this patch in
+> >>>the series as I'm now getting the following oops on n8x0. So cannot
+> >>>test this patch yet.
+> >>
+> >>Is this with OMAP2 only boot?
 > >
-> > Thanks for updating this, I finally got around to spend some
-> > time with it again. I've folded in your fixes and quirk support
-> > into my earlier patch from [0] as that had a better changelog
-> > describing the earlier work.
-> thanks, always struggled with that
+> >Yeah that's with omap2 only.
 > 
-> > And I've also now made the SDIO support to depend on properly
-> > configured wake-up irq from device tree as otherwise wake from
-> > idle states won't work properly. I've also cleaned up the the
-> > wake-up irq initialization a bit.
-> Looks much better now.
+> That explains it, as previous series was never boot tested in omap2
+> only config (due to build issues.)
 > 
-> Mind that the sdio irq is level triggered. So we have to disable the
-> IRQ in the handler otherwise we enter an infinite loop.
- 
-Oh OK, I was trying to get rid of all the extra flags. But it
-seem we may still need the wake_irq enabled status bit then.
- 
-> > The wake-irq is needed for omaps with wake-up path and also
-> > when doing GPIO remuxing. So the wake-up handling is pretty
-> > much the same for both cases.
-> I added this comment to the patch, since I was puzzled that you need
-> a wake_irq even whithout remuxing.
+> I just force pushed the branch with the below additional patch, can
+> you check if it works now?
 
-Yeah we need it because omap_hsmmc is already doing runtime PM,
-so there's nothing stopping from shutting it down. And there's
-really no need to block runtime PM for it as it's working. 
+Yes seems to work with that thanks. And with the omap2 legacy clock
+data removed too, it boots fine on n8x0 and 2430sdp.
 
-> > I've kept your Signed-off-by, can you please check if the patch
-> > below works for you with the second patch I'll post shortly?
-> 
-> Will send out another patch soon. Left your Signed-off as well, not
-> in the sense of your agreement, but didn't dare to remove it because
-> of your contributions.
+I suggest you drop the omap3 legacy data patch from this branch
+as it's not omap2 related and cannot be done yet. Then try to get
+acks from Paul. And if there are no issues, it seems Mike could take
+the whole branch as it seems to merge just fine with what I have
+queued. So for all the patches except for the omap3 legacy data
+removal, feel free to add:
 
-Yeah thanks will try to test it today :)
-
-Regards,
-
-Tony
-
- 
-> > [0] https://www.mail-archive.com/linux-mmc@vger.kernel.org/msg22290.html
+Acked-by: Tony Lindgren <tony@atomide.com>
