@@ -1,98 +1,91 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v5 2/6] usb: dwc3: adapt dwc3 core to use Generic PHY
- Framework
-Date: Wed, 5 Mar 2014 17:24:54 +0200
-Message-ID: <531741C6.1040006@ti.com>
-References: <1393846695-14644-1-git-send-email-kishon@ti.com> <1393846695-14644-3-git-send-email-kishon@ti.com> <53173809.2060303@ti.com> <531738FF.5050902@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH v2] crypto: omap-sham: kmap SG pages before appending
+Date: Wed, 5 Mar 2014 09:42:38 -0600
+Message-ID: <531745EE.2060804@ti.com>
+References: <1393957854-10961-1-git-send-email-joelf@ti.com> <20140305015953.GA20702@gondor.apana.org.au> <39412163-4B61-4490-ABC8-5BA633CC6618@ti.com> <20140305071109.GA22178@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45463 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54596 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756816AbaCEPZt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Mar 2014 10:25:49 -0500
-In-Reply-To: <531738FF.5050902@ti.com>
+	id S1755606AbaCEPmo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Mar 2014 10:42:44 -0500
+In-Reply-To: <20140305071109.GA22178@gondor.apana.org.au>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, bcousson@baylibre.com, balbi@ti.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, george.cherian@ti.com, heikki.krogerus@linux.intel.com
-Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Vutla, Lokesh" <lokeshvutla@ti.com>
 
-On 03/05/2014 04:47 PM, Kishon Vijay Abraham I wrote:
-> Roger,
-> 
-> On Wednesday 05 March 2014 08:13 PM, Roger Quadros wrote:
->> Hi Kishon,
+On 03/05/2014 01:11 AM, Herbert Xu wrote:
+> On Wed, Mar 05, 2014 at 04:18:12AM +0000, Fernandes, Joel wrote:
 >>
->> On 03/03/2014 01:38 PM, Kishon Vijay Abraham I wrote:
->>> Adapted dwc3 core to use the Generic PHY Framework. So for init, exit,
->>> power_on and power_off the following APIs are used phy_init(), phy_exit(),
->>> phy_power_on() and phy_power_off().
->>>
->>> However using the old USB phy library wont be removed till the PHYs of all
->>> other SoC's using dwc3 core is adapted to the Generic PHY Framework.
->>>
->>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>> ---
->>>   Documentation/devicetree/bindings/usb/dwc3.txt |    6 +-
->>>   drivers/usb/dwc3/core.c                        |   86 +++++++++++++++++++++---
->>>   drivers/usb/dwc3/core.h                        |    7 ++
->>>   3 files changed, 89 insertions(+), 10 deletions(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
->>> index e807635..471366d 100644
->>> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
->>> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
->>> @@ -6,11 +6,13 @@ Required properties:
->>>    - compatible: must be "snps,dwc3"
->>>    - reg : Address and length of the register set for the device
->>>    - interrupts: Interrupts used by the dwc3 controller.
->>> +
->>> +Optional properties:
->>>    - usb-phy : array of phandle for the PHY device.  The first element
->>>      in the array is expected to be a handle to the USB2/HS PHY and
->>>      the second element is expected to be a handle to the USB3/SS PHY
->>> -
->>> -Optional properties:
->>> + - phys: from the *Generic PHY* bindings
->>> + - phy-names: from the *Generic PHY* bindings
->>>    - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
->>>
->>>   This is usually a subnode to DWC3 glue to which it is connected.
->>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->>> index 225a4d6..497234a 100644
->>> --- a/drivers/usb/dwc3/core.c
->>> +++ b/drivers/usb/dwc3/core.c
->>> @@ -61,9 +61,10 @@ void dwc3_set_mode(struct dwc3 *dwc, u32 mode)
->>>    * dwc3_core_soft_reset - Issues core soft reset and PHY reset
->>>    * @dwc: pointer to our context structure
->>>    */
->>> -static void dwc3_core_soft_reset(struct dwc3 *dwc)
->>> +static int dwc3_core_soft_reset(struct dwc3 *dwc)
->>>   {
->>>       u32        reg;
->>> +    int        ret;
->>>
->>>       /* Before Resetting PHY, put Core in Reset */
->>>       reg = dwc3_readl(dwc->regs, DWC3_GCTL);
->>> @@ -82,6 +83,15 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
->>>
->>>       usb_phy_init(dwc->usb2_phy);
->>>       usb_phy_init(dwc->usb3_phy);
->>> +    ret = phy_init(dwc->usb2_generic_phy);
 >>
->> you need to check if dwc->usb?_generic_phy is not NULL before using any of the PHY APIs
->> throughout this patch.
+>>> On Mar 4, 2014, at 8:00 PM, "Herbert Xu" <herbert@gondor.apana.org.au> wrote:
+>>>
+>>>> On Tue, Mar 04, 2014 at 12:30:54PM -0600, Joel Fernandes wrote:
+>>>> HIGHMEM pages may not be mapped so we must kmap them before accessing.
+>>>> This resolves a random OOPs error that was showing up during OpenSSL SHA tests.
+>>>>
+>>>> Signed-off-by: Joel Fernandes <joelf@ti.com>
+>>>> Cc: Herbert Xu <herbert@gondor.apana.org.au>
+>>>> ---
+>>>> v2 changes:
+>>>>    - don't check for HIGHMEM, kmap/kunmap do them anyway (Thanks Herbert).
+>>>>
+>>>> drivers/crypto/omap-sham.c |    8 +++++++-
+>>>> 1 file changed, 7 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+>>>> index e45aaaf..207eac1 100644
+>>>> --- a/drivers/crypto/omap-sham.c
+>>>> +++ b/drivers/crypto/omap-sham.c
+>>>> @@ -636,11 +636,17 @@ static size_t omap_sham_append_buffer(struct omap_sham_reqctx *ctx,
+>>>> static size_t omap_sham_append_sg(struct omap_sham_reqctx *ctx)
+>>>> {
+>>>>    size_t count;
+>>>> +    const u8 *vaddr;
+>>>>
+>>>>    while (ctx->sg) {
+>>>> +        vaddr = kmap(sg_page(ctx->sg));
+>>>
+>>> Are you sure you can safely use kmap here as opposed to kmap_atomic?
+>>
+>> Yes I made sure it is not called in interrupt context and also tested the patch.
 > 
-> Recently a patch to allow NULL in phy APIs was added to support optional PHYs.
-> 
-> commit 04c2facad8fee66c981a51852806d8923336f362
-> Author: Andrew Lunn <andrew@lunn.ch>
-> Date:   Tue Feb 4 18:33:11 2014 +0100
-> 
->     drivers: phy: Make NULL a valid phy reference
+> What about omap_sham_update => omap_sham_append_sg? As the former
+> can be called in softirq context what is preventing it from calling
+> kmap?
 
-Oh OK, then it is fine. Thanks for the clarification.
+In my testing it wasn't called from softirq, I'm using cryptodev which is
+called from openssl through ioctl, here is a traceback (sorry about wrap):
 
-cheers,
--roger
+[<bf8010bb>] (cryptodev_ioctl+0x282/0x59c [cryptodev])
+[  220.015390] [<bf8010bb>] (cryptodev_ioctl+0x282/0x59c [cryptodev]) from
+[<c00cdaa5>] (do_vfs_ioctl+0x61/0x41c)
+[  220.025909] [<c00cdaa5>] (do_vfs_ioctl+0x61/0x41c) from [<c00cdeab>]
+(SyS_ioctl+0x4b/0x50)
+[  220.034602] [<c00cdeab>] (SyS_ioctl+0x4b/0x50) from [<c000cf01>]
+(ret_fast_syscall+0x1/0x46)
+[  220.045254] CPU: 0 PID: 1798 Comm: openssl Tainted: G           O
+3.12.9-00581-g5fa084c-dirty #32
+[  220.054636] [<c0012d05>] (unwind_backtrace+0x1/0x9c) from [<c000fa6d>]
+(show_stack+0x11/0x14)
+[  220.063619] [<c000fa6d>] (show_stack+0x11/0x14) from [<c0342edb>]
+(dump_stack+0x4b/0x60)
+[  220.072144] [<c0342edb>] (dump_stack+0x4b/0x60) from [<c02a1b3f>]
+(omap_sham_update+0x1f/0xa4)
+[  220.081214] [<c02a1b3f>] (omap_sham_update+0x1f/0xa4) from [<bf801f67>]
+(cryptodev_hash_update+0x26/0x80 [cryptodev])
+
+
+Could you suggest, what other place is update() called in softirq context?
+I may be missing something.
+
+Thanks,
+-Joel
+
+> 
+> Cheers,
+> 
+
