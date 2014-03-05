@@ -1,48 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] Add USB nodes for am43xx epos and gp evm
-Date: Wed, 5 Mar 2014 11:42:19 -0800
-Message-ID: <20140305194219.GD7599@atomide.com>
-References: <1393854834-23810-1-git-send-email-george.cherian@ti.com>
+Subject: Re: [PATCH 0/4] ARM: dts: OMAP3630+: Add ABB device nodes
+Date: Wed, 5 Mar 2014 11:47:46 -0800
+Message-ID: <20140305194745.GE7599@atomide.com>
+References: <1391039177-25284-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11786 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757128AbaCETrv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Mar 2014 14:47:51 -0500
 Content-Disposition: inline
-In-Reply-To: <1393854834-23810-1-git-send-email-george.cherian@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, anatol.pomozov@gmail.com, gregkh@linuxfoundation.org, balbi@ti.com, rogerq@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, bcousson@baylibre.com
+In-Reply-To: <1391039177-25284-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-* George Cherian <george.cherian@ti.com> [140303 05:58]:
-> The patch series adds USB dt nodes for am43xx epos and gp evm
-> 
-> Boot tested with  Benoit's for_3.15 + following patches
-> 
-> https://patchwork.kernel.org/patch/3600821/
-> https://patchwork.kernel.org/patch/3600831/
-> https://patchwork.kernel.org/patch/3600851/
-> https://patchwork.kernel.org/patch/3600841/
+* Nishanth Menon <nm@ti.com> [140129 15:48]:
+> Now that clock nodes have been merged to master,
+> refresh of the series meant for all TI platforms using ABB.
+> Originally posted [1], I will restart with v1.
 
-Roger, care to look through these and ack if OK?
+Thanks applying all except for the crossbar ones into
+omap-for-v3.15/dt.
+
+Please resend the last three patches once the dependencies
+are merged to mainline kernel as otherwise the interrupt
+nubers are all wrong without the crossbar driver related
+code.
 
 Regards,
 
 Tony
-
-> George Cherian (5):
->   ARM: dts: am43xx clock data
->   ARM: dts: AM4372: Add USB nodes
->   ARM: dts: am437x-gp-evm: Enable USB
->   ARM: dts: am43x-epos-evm: Enable USB
->   doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue
-> 
->  Documentation/devicetree/bindings/usb/omap-usb.txt |  4 +-
->  arch/arm/boot/dts/am4372.dtsi                      | 99 ++++++++++++++++++++++
->  arch/arm/boot/dts/am437x-gp-evm.dts                | 44 ++++++++++
->  arch/arm/boot/dts/am43x-epos-evm.dts               | 44 ++++++++++
->  arch/arm/boot/dts/am43xx-clocks.dtsi               | 17 ++++
->  5 files changed, 207 insertions(+), 1 deletion(-)
-> 
-> -- 
-> 1.8.3.1
-> 
