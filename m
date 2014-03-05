@@ -1,91 +1,114 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH v2] crypto: omap-sham: kmap SG pages before appending
-Date: Wed, 5 Mar 2014 09:42:38 -0600
-Message-ID: <531745EE.2060804@ti.com>
-References: <1393957854-10961-1-git-send-email-joelf@ti.com> <20140305015953.GA20702@gondor.apana.org.au> <39412163-4B61-4490-ABC8-5BA633CC6618@ti.com> <20140305071109.GA22178@gondor.apana.org.au>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 02/12] phy: omap-control: Update DT binding information
+Date: Wed, 5 Mar 2014 08:26:42 -0800
+Message-ID: <20140305162642.GA4983@atomide.com>
+References: <1393859254-10937-1-git-send-email-rogerq@ti.com>
+ <1393859254-10937-3-git-send-email-rogerq@ti.com>
+ <20140303190247.GD25804@atomide.com>
+ <5315995F.5050206@ti.com>
+ <20140304162855.GB3376@atomide.com>
+ <5317172A.1050803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54596 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755606AbaCEPmo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Mar 2014 10:42:44 -0500
-In-Reply-To: <20140305071109.GA22178@gondor.apana.org.au>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5317172A.1050803-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, kishon-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Vutla, Lokesh" <lokeshvutla@ti.com>
 
-On 03/05/2014 01:11 AM, Herbert Xu wrote:
-> On Wed, Mar 05, 2014 at 04:18:12AM +0000, Fernandes, Joel wrote:
->>
->>
->>> On Mar 4, 2014, at 8:00 PM, "Herbert Xu" <herbert@gondor.apana.org.au> wrote:
->>>
->>>> On Tue, Mar 04, 2014 at 12:30:54PM -0600, Joel Fernandes wrote:
->>>> HIGHMEM pages may not be mapped so we must kmap them before accessing.
->>>> This resolves a random OOPs error that was showing up during OpenSSL SHA tests.
->>>>
->>>> Signed-off-by: Joel Fernandes <joelf@ti.com>
->>>> Cc: Herbert Xu <herbert@gondor.apana.org.au>
->>>> ---
->>>> v2 changes:
->>>>    - don't check for HIGHMEM, kmap/kunmap do them anyway (Thanks Herbert).
->>>>
->>>> drivers/crypto/omap-sham.c |    8 +++++++-
->>>> 1 file changed, 7 insertions(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
->>>> index e45aaaf..207eac1 100644
->>>> --- a/drivers/crypto/omap-sham.c
->>>> +++ b/drivers/crypto/omap-sham.c
->>>> @@ -636,11 +636,17 @@ static size_t omap_sham_append_buffer(struct omap_sham_reqctx *ctx,
->>>> static size_t omap_sham_append_sg(struct omap_sham_reqctx *ctx)
->>>> {
->>>>    size_t count;
->>>> +    const u8 *vaddr;
->>>>
->>>>    while (ctx->sg) {
->>>> +        vaddr = kmap(sg_page(ctx->sg));
->>>
->>> Are you sure you can safely use kmap here as opposed to kmap_atomic?
->>
->> Yes I made sure it is not called in interrupt context and also tested the patch.
+* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140305 04:26]:
+> + George
 > 
-> What about omap_sham_update => omap_sham_append_sg? As the former
-> can be called in softirq context what is preventing it from calling
-> kmap?
-
-In my testing it wasn't called from softirq, I'm using cryptodev which is
-called from openssl through ioctl, here is a traceback (sorry about wrap):
-
-[<bf8010bb>] (cryptodev_ioctl+0x282/0x59c [cryptodev])
-[  220.015390] [<bf8010bb>] (cryptodev_ioctl+0x282/0x59c [cryptodev]) from
-[<c00cdaa5>] (do_vfs_ioctl+0x61/0x41c)
-[  220.025909] [<c00cdaa5>] (do_vfs_ioctl+0x61/0x41c) from [<c00cdeab>]
-(SyS_ioctl+0x4b/0x50)
-[  220.034602] [<c00cdeab>] (SyS_ioctl+0x4b/0x50) from [<c000cf01>]
-(ret_fast_syscall+0x1/0x46)
-[  220.045254] CPU: 0 PID: 1798 Comm: openssl Tainted: G           O
-3.12.9-00581-g5fa084c-dirty #32
-[  220.054636] [<c0012d05>] (unwind_backtrace+0x1/0x9c) from [<c000fa6d>]
-(show_stack+0x11/0x14)
-[  220.063619] [<c000fa6d>] (show_stack+0x11/0x14) from [<c0342edb>]
-(dump_stack+0x4b/0x60)
-[  220.072144] [<c0342edb>] (dump_stack+0x4b/0x60) from [<c02a1b3f>]
-(omap_sham_update+0x1f/0xa4)
-[  220.081214] [<c02a1b3f>] (omap_sham_update+0x1f/0xa4) from [<bf801f67>]
-(cryptodev_hash_update+0x26/0x80 [cryptodev])
-
-
-Could you suggest, what other place is update() called in softirq context?
-I may be missing something.
-
-Thanks,
--Joel
-
+> Tony,
 > 
-> Cheers,
+> On 03/04/2014 06:28 PM, Tony Lindgren wrote:
+> > * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140304 01:17]:
+> >> Hi Tony,
+> >>
+> >> On 03/03/2014 09:02 PM, Tony Lindgren wrote:
+> >>> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140303 07:10]:
+> >>>> Move omap-control binding information to the right location.
+> >>>>
+> >>>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> >>>> ---
+> >>>>  Documentation/devicetree/bindings/phy/ti-phy.txt   | 25 ++++++++++++++++++++++
+> >>>>  Documentation/devicetree/bindings/usb/omap-usb.txt | 24 ---------------------
+> >>>>  2 files changed, 25 insertions(+), 24 deletions(-)
+> >>>>
+> >>>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+> >>>> index 207e14c..41dc132 100644
+> >>>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+> >>>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+> >>>> @@ -1,5 +1,30 @@
+> >>>>  TI PHY: DT DOCUMENTATION FOR PHYs in TI PLATFORMs
+> >>>>  
+> >>>> +OMAP CONTROL PHY
+> >>>> +
+> >>>> +Required properties:
+> >>>> + - compatible: Should be one of
+> >>>> + "ti,control-phy-otghs" - if it has otghs_control mailbox register as on OMAP4.
+> >>>> + "ti,control-phy-usb2" - if it has Power down bit in control_dev_conf register
+> >>>> +                        e.g. USB2_PHY on OMAP5.
+> >>>> + "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
+> >>>> +                        e.g. USB3 PHY and SATA PHY on OMAP5.
+> >>>> + "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY on
+> >>>> +                        DRA7 platform.
+> >>>> + "ti,control-phy-am437usb2" - if it has power down register like USB2 PHY on
+> >>>> +                        AM437 platform.
+> >>>
+> >>> To me it seems that you can leave out all the above. You can set these falgs
+> >>> flags directly in the driver based on the compatible flag. Then just initialize
+> >>> the .data in the driver based on the compatible flag.
+> >>
+> >> I'm not sure if I got you. A single platform can have different type of phys.
+> >>
+> >> e.g. OMAP5 has both usb2 and pipe3 PHYs,
+> >> DRA7 has both pipe3 and usb2 PHYs, but this usb2 PHY is not compatible with OMAP5 one
+> >> so we need a new compatible id for that.
+> >>
+> >> To add to the woes, the designers were creative enough to make another mutation to
+> >> the USB2 PHY for AM437x, :(
+> > 
+> > Oh OK, in that case the compatible flag may not be enough for configuring the
+> > various instances.
+> >  
+> >> What do you suggest the compatible ids should look like for these 5 types of PHY control?
+> >> OTGHS	(OMAP4 & 5)
+> >> USB2	(OMAP5)
+> >> PIPE3	(OMAP5 & DRA7)
+> >> USB2x	(DRA7)
+> >> USB2y	(AM437)
+> > 
+> > I think in that case having the various instances fully configurable from
+> > device tree is OK if you prefer that. But if you wanted to use the
+> > compatible flag, then you could do something like this:
+> > 
+> > ti,control-phy-omap4-otghs	(assuming same on omap4 & 5)
+> > ti,control-phy-omap5-usb2
+> > ti,control-phy-omap5-pipe3	(assuming same on omap5 & dra7)
+> > ti,control-phy-dra7-usb2x
+> > ti,control-phy-am437-usb2y
+> > ...
+> > 
 > 
+> Please note that the original bindings were added in v3.13 and I'm just moving the documentation
+> to the right location. So I don't think we should change the bindings now.
 
+OK yeah if the bindings are established you should keep them around.
+ 
+> "ti,control-phy-dra7usb2" and "ti,control-phy-am437usb2" have no users still so we could probably
+> change those to "ti,control-phy-dra7-usb2" and "ti,control-phy-am437-usb2".
+> 
+> What do you say?
+
+Makes sense to me.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
