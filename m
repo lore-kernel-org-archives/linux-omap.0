@@ -1,67 +1,103 @@
-From: Andreas Fenkart <afenkart@gmail.com>
-Subject: [PATCH v8 3/3] mmc: omap_hsmmc: Extend debugfs for SDIO IRQ, GPIO and pinmux.
-Date: Wed,  5 Mar 2014 09:27:50 +0100
-Message-ID: <1394008070-30138-4-git-send-email-afenkart@gmail.com>
-References: <1394008070-30138-1-git-send-email-afenkart@gmail.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1394008070-30138-1-git-send-email-afenkart@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Andreas Fenkart <afenkart@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/8] OMAP: OMAP3 DSS related clock patches
+Date: Wed, 5 Mar 2014 10:35:02 +0200
+Message-ID: <5316E1B6.4060007@ti.com>
+References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="V2N8PiaOdgtsV0WQi41rOfw03FMcSD4Ke"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36870 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753975AbaCEIf2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Mar 2014 03:35:28 -0500
+In-Reply-To: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Add SDIO IRQ entries to debugfs entry. Note that PSTATE shows current
-state of data lines, incl. SDIO IRQ pending
+--V2N8PiaOdgtsV0WQi41rOfw03FMcSD4Ke
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Hi Tero,
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 16985da..94b2e81 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -82,6 +82,7 @@ static void apply_clk_hack(struct device *dev)
- #define OMAP_HSMMC_RSP54	0x0118
- #define OMAP_HSMMC_RSP76	0x011C
- #define OMAP_HSMMC_DATA		0x0120
-+#define OMAP_HSMMC_PSTATE	0x0124
- #define OMAP_HSMMC_HCTL		0x0128
- #define OMAP_HSMMC_SYSCTL	0x012C
- #define OMAP_HSMMC_STAT		0x0130
-@@ -1852,14 +1853,30 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
- {
- 	struct mmc_host *mmc = s->private;
- 	struct omap_hsmmc_host *host = mmc_priv(mmc);
-+	const char *cirq_state;
-+	bool suspended;
- 
--	seq_printf(s, "mmc%d:\n ctx_loss:\t%d\n\nregs:\n",
--			mmc->index, host->context_loss);
-+	seq_printf(s, "mmc%d:\n", mmc->index);
-+	if (mmc->caps & MMC_CAP_SDIO_IRQ)
-+		cirq_state = (host->flags & HSMMC_SDIO_IRQ_ENABLED) ?
-+			"enabled" : "disabled";
-+	else
-+		cirq_state = "polling";
-+	seq_printf(s, "sdio irq\t%s\n", cirq_state);
- 
--	pm_runtime_get_sync(host->dev);
-+	if (host->flags & HSMMC_SWAKEUP_QUIRK) {
-+		suspended = host->dev->power.runtime_status != RPM_ACTIVE;
-+		seq_printf(s, "pinmux config\t%s\n", (suspended ?
-+						      "gpio" : "sdio"));
-+	}
-+	seq_printf(s, "ctx_loss:\t%d\n", host->context_loss);
- 
-+	pm_runtime_get_sync(host->dev);
-+	seq_puts(s, "\nregs:\n");
- 	seq_printf(s, "CON:\t\t0x%08x\n",
- 			OMAP_HSMMC_READ(host->base, CON));
-+	seq_printf(s, "PSTATE:\t\t0x%08x\n",
-+		   OMAP_HSMMC_READ(host->base, PSTATE));
- 	seq_printf(s, "HCTL:\t\t0x%08x\n",
- 			OMAP_HSMMC_READ(host->base, HCTL));
- 	seq_printf(s, "SYSCTL:\t\t0x%08x\n",
--- 
-1.7.10.4
+What about the dts fixes in this series? DSS DT depends on those fixes.
+I'd like the dts fixes to be either merged for v3.14, or I can add them
+to my DSS DT series (with acks).
 
+ Tomi
+
+On 13/02/14 12:03, Tomi Valkeinen wrote:
+> Hi,
+>=20
+> I've been debugging OMAP3 related issues with DSS clocks, and I hopeful=
+ly have
+> them all fixed with this series. This fixes the problems for both non-D=
+T boot,
+> but also for DT boot with DSS DT support (which is not merged yet).
+>=20
+> The non-DT boot related fixes should be merged for 3.14, but I'd like t=
+he DT
+> boot related fixes to be merged for 3.14 also, as that'll make handling=
+ the DSS
+> DT support easier.
+>=20
+> This is based on v3.14-rc2.
+>=20
+>  Tomi
+>=20
+> Tomi Valkeinen (8):
+>   clk: divider: fix rate calculation for fractional rates
+>   clk: ti/divider: fix rate calculation for fractional rates
+>   ARM: OMAP2+: clock: fix clkoutx2 with CLK_SET_RATE_PARENT
+>   ARM: dts: fix omap3 dss clock handle names
+>   ARM: dts: fix DPLL4 x2 clkouts on 3630
+>   ARM: dts: use ti,fixed-factor-clock for dpll4_m4x2_mul_ck
+>   ARM: dts: set 'ti,set-rate-parent' for dpll4_m4 path
+>   OMAPDSS: fix rounding when calculating fclk rate
+>=20
+>  arch/arm/boot/dts/omap3430es1-clocks.dtsi          |  6 +--
+>  .../omap36xx-am35xx-omap3430es2plus-clocks.dtsi    |  6 +--
+>  arch/arm/boot/dts/omap36xx-clocks.dtsi             | 20 +++++++
+>  arch/arm/boot/dts/omap36xx.dtsi                    |  2 +-
+>  arch/arm/boot/dts/omap3xxx-clocks.dtsi             |  8 +--
+>  arch/arm/mach-omap2/cclock3xxx_data.c              |  2 +
+>  arch/arm/mach-omap2/dpll3xxx.c                     | 62 ++++++++++++++=
+++++++++
+>  drivers/clk/clk-divider.c                          | 10 ++--
+>  drivers/clk/ti/divider.c                           |  8 +--
+>  drivers/video/omap2/dss/dss.c                      |  4 +-
+>  include/linux/clk/ti.h                             |  4 ++
+>  11 files changed, 111 insertions(+), 21 deletions(-)
+>=20
+
+
+
+--V2N8PiaOdgtsV0WQi41rOfw03FMcSD4Ke
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTFuG2AAoJEPo9qoy8lh71N6cP/A01n3kW4LEZFxMBL02GHOxG
+IPfKRLl1/ltUDxIoUhPv36eh3RDO5mLG8Pm8j87kpN7pdsL5Yq0yaxDHJVxK2Xnx
+qtSD3ZC/leBjI1RqJ15p1vBMmFN/sk+60M4kVSbGnHqskiBeFZNMFO4eZueXUROQ
+jLYojJA7CZk3NlfHTVTJy+tl+4Bo8ZlKJbbLZ8+2ST68ZOhXIyKJO98txt21eN0V
+zXaVXxR48ydnIh/5ghO+jXtDXuJUVxErp/l5spYyjJ4YTukTWBiZX0eujA5NCrRT
+oe5w1FcPVFSsQ35WoW7rTCciV2ImtW2g2SUiSxUQ0xqBHtx1GQb65ZSNuLlwXJ5y
+gL4gbCwlpL6QOT8fJ3b9WjuD21cUmVO+k4wD2nTdxaVqHE7roVr/sae32gd+5gFH
+yez64+MJp6l061y4tT7WXp7Bo6N5g0YAbxQJoC8jjaojPMF6SeKwBQ7OKywi5n7f
+fNWvEqnBInTjp2M+vlX/y9YWmSEWDeBsPTIUvL2P6VwQAPHM1AfSE0YRtqrG85RM
+YdBXWvqukqmj0Ecv+RBsCIhdMEJ+yJRze/32iZw04NVNB2QSNzy4DjBDq1PgcY92
+FkmxtVwCWEO/r4owJZd5Qk8lH+AHLopRKxDH9YkQ1t2cyQPG70PxfPPorp5KwvyS
+fKpypvpT8C0Mn08rWJ5v
+=Xu1n
+-----END PGP SIGNATURE-----
+
+--V2N8PiaOdgtsV0WQi41rOfw03FMcSD4Ke--
