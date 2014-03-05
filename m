@@ -1,63 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 4/7] ARM: dts: omap3-overo: Add HSUSB PHY
-Date: Wed, 5 Mar 2014 11:39:03 -0800
-Message-ID: <20140305193903.GB7599@atomide.com>
-References: <1393839247-6516-1-git-send-email-florian.vaussard@epfl.ch>
- <1393839247-6516-5-git-send-email-florian.vaussard@epfl.ch>
- <53146166.4050906@ti.com>
- <53147A19.5070009@epfl.ch>
- <53147E82.6030300@ti.com>
- <5316D9D7.9070100@epfl.ch>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v5 6/6] arm/dts: added dt properties to adapt to the new
+ phy framwork
+Date: Wed, 5 Mar 2014 11:40:36 -0800
+Message-ID: <20140305194036.GC7599@atomide.com>
+References: <1393846695-14644-1-git-send-email-kishon@ti.com>
+ <1393846695-14644-7-git-send-email-kishon@ti.com>
+ <53171BC9.8050808@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48453 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754326AbaCETjM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Mar 2014 14:39:12 -0500
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5316D9D7.9070100@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <53171BC9.8050808-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Roger Quadros <rogerq@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Florian Vaussard <florian.vaussard@epfl.ch> [140305 00:04]:
-> On 03/03/2014 02:07 PM, Roger Quadros wrote:
-> > 
-> > Putting usb host pins in omap3-overo.dtsi implies that all Overo expansion boards will use it
-> > but that is not always the case. Any expansion board vendor can decide not to use USB host feature.
-> > 
+* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [140305 04:46]:
+> Tony/Benoit,
 > 
-> I do agree that this can be the case. So it makes sense to push the
-> USB host down to expansion boards.
+> On Monday 03 March 2014 05:08 PM, Kishon Vijay Abraham I wrote:
+> >Added device tree bindings for dwc3, usb2 and usb3 PHYs. The documentation
+> >of these can be found at Documentation/devicetree/bindings/phy/phy-bindings.txt
+> >and Documentation/devicetree/bindings/phy/ti-phy.txt.
 > 
-> Now how to do it? The omap3_pmx_core part can be put in
-> omap3-overo-tobi-common.dtsi. But unfortunately, the omap3_pmx_core2
-> part cannot
-> be factorized between the two variants, as one has to use a different
-> macro for each case (OMAP3430_CORE2_IOPAD vs. OMAP3630_CORE2_IOPAD).
-> Including the right .dtsi file is not enough.
+> Can this patch be queued for 3.15 merge window?
 
-FYI, it's best to have the mux registers board specific and separate
-because the mux settings can depend on the SoC revision or even
-packaging.
- 
-> As it can be seen from include/dt-bindings/pinctrl/omap.h, even if the
-> padconf register physical address is identical for both SoCs, the offset
-> inside omap3_pmx_core2 will be different (as the start of
-> omap3_pmx_core2 is 0x480025d8 for omap34xx and 0x480025a0 for omap36xx).
-> 
-> Thus the pins belonging to omap3_pmx_core2 must be in a SoC-dependent
-> .dtsi file.
-
-It seems we need a top level .dts file incuding the right SoC and
-pinconf settings.
- 
-> I will post a v4 with a new proposition. Thanks for your inputs.
-
-OK as that might change the other patches too let's wait for that.
-
-Regards,
+Thanks applying this patch into omap-for-v3.15/dt.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
