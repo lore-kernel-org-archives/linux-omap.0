@@ -1,47 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v8 0/3] mmc: omap_hsmmc: Enable SDIO IRQ.
-Date: Wed, 5 Mar 2014 10:55:45 -0800
-Message-ID: <20140305185544.GI4983@atomide.com>
-References: <1394008070-30138-1-git-send-email-afenkart@gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv3 00/13] OMAP IOMMU DT adaptation for 3.15
+Date: Wed, 5 Mar 2014 11:33:26 -0800
+Message-ID: <20140305193326.GA7599@atomide.com>
+References: <1393620164-14633-1-git-send-email-s-anna@ti.com>
+	<20140228230000.GW13624@atomide.com>
+	<20140304160432.GG2799@8bytes.org> <5316068F.3020003@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1394008070-30138-1-git-send-email-afenkart@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <5316068F.3020003-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Andreas Fenkart <afenkart@gmail.com> [140305 00:39]:
-> Hi Tony,
-> 
-> I had an infinite loop in hsmmc_disable_wake_irq. Since the SDIO
-> irq is level triggered, I have to disable the IRQ in the handler
-> otherwise it is called infinitely. 
-> 
-> Did some other minor changes see below.
-> 
-> v8
-> - rebased on top of Tony Lindgren<tony@atomide.com> changes
->   - improved changelog describing the earlier work
->   - improved wakeup irq setup
->   - works on am3730 es platform now
-> - my changes on top:
->   - compile tested with #undef CONFIG_OF
->   - disable wake_irq in handler to prevent infinite loop  
->   - fixed typo and added comment about wake-irq
+* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [140304 09:03]:
+> On 03/04/2014 10:04 AM, Joerg Roedel wrote:
+> >
+> >Applied patches 1-7 to my arm/omap branch.
+> >
+> >Tony, you can pull that branch into your tree if needed (when I pushed
+> >it, which will happen today or tomorrow).
 
-Great, tested here and things work for me for waking omap3
-from off-idle based on the SDIO interrupt.
+OK thanks, looks like remaining patches compile just fine even without
+it which is nice.
 
-Maybe leave out the trailing period from the Subject line
-for the last patch? If you look at git log --pretty=oneline
-the trailing period is rarely used :)
+> Tony,
+> Can you also pull in the corresponding DTS node patches as well that
+> go along with this series.
+> http://marc.info/?l=linux-omap&m=139362062805816&w=2
 
-Balaji, care to queue or ack these for Chris? Looks like
-Chris has a wrong email address (corrected in this mail),
-so maybe one more repost of the series is needed.
+They look OK to me, but looks like Benoit and Paul are not Cc:ed
+on the hwmod changes. I suggest you resend just patches 8 - 13 and
+the .dts changes as a new series with Benoit and Paul on Cc for
+them so they have a chance to review and ack them.
 
 Regards,
 
