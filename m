@@ -1,41 +1,176 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [RFC] CPSW: dual standalone emac mode / bonding
-Date: Thu, 6 Mar 2014 13:52:41 +0530
-Message-ID: <53183051.7080801@ti.com>
-References: <20140305183318.16f5dafa@frequentis.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/5] ARM: dts: AM4372: Add USB nodes
+Date: Thu, 6 Mar 2014 10:49:29 +0200
+Message-ID: <53183699.8070106@ti.com>
+References: <1393854834-23810-1-git-send-email-george.cherian@ti.com> <1393854834-23810-3-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20140305183318.16f5dafa@frequentis.com>
-Sender: netdev-owner@vger.kernel.org
-To: Christian Engelmayer <christian.engelmayer@frequentis.com>, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1393854834-23810-3-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org
+Cc: anatol.pomozov@gmail.com, gregkh@linuxfoundation.org, balbi@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 05 March 2014 11:03 PM, Christian Engelmayer wrote:
-> Has anybody successfuly setup ethernet bonding on a TI AM335x based system using
-> the CPSW in dual standalone emac mode?
->
-> I am running an active-backup test setup - momentarily still running Linux 3.2 -
-> and experience repeated loss of ethernet connectivity. That happens eg. after
-> the board is idle and receives an own ARP request on the backup slave interface.
-> It seems that the corresponding reply does not reach the CPU and I can see via
-> SysFs that the host's address entry got associated with the external backup port.
->
->    index 2, raw: 00000000 10000018 31e00669, type: addr(1), addr: 00:18:31:e0:06:69,
->       uctype: persistant(0), port: 0 --> uctype: persistant(0), port: 2
->
-> As expected, triggering a unicast from the board or bypassing the ALE recovers
+Hi George,
 
-It seems that some other system in the network is using the same mac in
-your EVM or there is a loop detected in your network which leads that
-ALE is learning that there is  system with your MAC and updating the ALE
-table that the mac is there and which leads your own packet will be
-forwarded to that port and not to host port.
+On 03/03/2014 03:53 PM, George Cherian wrote:
+> Add nodes for 2 instances each of
+> 	- ocp2scp
+> 	- USB PHY control module
+> 	- USB PHY
+> 	- dwc3_omap
+> 	- USB
+> 
+> for AM43xx.
+> 
+> Signed-off-by: George Cherian <george.cherian@ti.com>
+> ---
+>  arch/arm/boot/dts/am4372.dtsi | 99 +++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 99 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> index 5a7cc38..90408b3 100644
+> --- a/arch/arm/boot/dts/am4372.dtsi
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -698,6 +698,105 @@
+>  			       <&edma 11>;
+>  			dma-names = "tx", "rx";
+>  		};
+> +
+> +		am43xx_control_usb2phy1: control-phy@44e10620 {
+> +			compatible = "ti,control-phy-am437usb2";
 
-When ever you start a transmission the ALE learns the host port MAC is x
-and updates ALE table with that port number and so there in your network
-is working.
+Since this is the first usage of this compatible ID, we still have room to
+change it to be better. Tony's suggestion was to use "ti,control-phy-am437-usb2"
 
-Regards
-Mugunthan V N
+Please see
+http://article.gmane.org/gmane.linux.drivers.devicetree/64833
+
+> +			reg = <0x44e10620 0x4>;
+> +			reg-names = "power";
+> +			status = "disabled";
+
+Why disable something that is within the SoC and does not affect board configurations? 
+
+Question applies for all the nodes in this patch except the ones that come out on the
+SoC pins. e.g. PHY.
+
+> +		};
+> +
+> +		am43xx_control_usb2phy2: control-phy@0x44e10628 {
+> +			compatible = "ti,control-phy-am437usb2";
+> +			reg = <0x44e10628 0x4>;
+> +			reg-names = "power";
+> +			status = "disabled";
+> +		};
+> +
+> +		ocp2scp0: ocp2scp@483a8000 {
+> +			compatible = "ti,omap-ocp2scp";
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			ranges;
+> +			ti,hwmods = "ocp2scp0";
+> +			status = "disabled";
+> +
+> +			usb2_phy1: usb2phy1@483a8000 {
+
+should be
+			usb2_phy1: phy@483a8000 {
+
+> +				compatible = "ti,am437x-usb2";
+> +				reg = <0x483a8000 0x8000>;
+> +				ctrl-module = <&am43xx_control_usb2phy1>;
+> +				clocks = <&clk_32768_ck>,
+> +					 <&usb_otg_ss0_refclk960m>;
+> +				clock-names = "usb_phy_cm_clk32k",
+> +					      "usb_otg_ss_refclk960m";
+
+clock-names should be platform independent. Better option would be to
+modify the usb2 driver to use names like "wkupclk" and "refclk"
+
+> +				#phy-cells = <0>;
+> +				status = "disabled";
+> +			};
+> +		};
+> +
+> +		ocp2scp1: ocp2scp@483e8000 {
+> +			compatible = "ti,omap-ocp2scp";
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			ranges;
+> +			ti,hwmods = "ocp2scp1";
+> +			status = "disabled";
+> +
+> +			usb2_phy2: usb2phy2@483e8000 {
+> +				compatible = "ti,am437x-usb2";
+> +				reg = <0x483e8000 0x8000>;
+> +				ctrl-module = <&am43xx_control_usb2phy2>;
+> +				clocks = <&clk_32768_ck>,
+> +					 <&usb_otg_ss1_refclk960m>;
+> +				clock-names = "usb_phy_cm_clk32k",
+> +					      "usb_otg_ss_refclk960m";
+> +				#phy-cells = <0>;
+> +				status = "disabled";
+> +			};
+> +		};
+> +
+> +		dwc3_1: omap_dwc3_1@48380000 {
+> +			compatible = "ti,am437x-dwc3";
+> +			ti,hwmods = "usb_otg_ss0";
+> +			reg = <0x48380000 0x10000>;
+> +			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			utmi-mode = <1>;
+> +			ranges;
+> +			status = "disabled";
+> +
+> +			usb1: usb@48390000 {
+> +				compatible = "synopsys,dwc3";
+> +				reg = <0x48390000 0x17000>;
+> +				interrupts = <GIC_SPI 168 IRQ_TYPE_LEVEL_HIGH>;
+> +				usb-phy = <&usb2_phy1>;
+
+shouldn't this be		phys = <&usb2_phy1>;	?
+
+> +				phy-names = "usb2-phy";
+
+what about
+	maximum-speed = "high-speed";
+and
+	dr_mode = "otg"; ?
+
+> +				status = "disabled";
+> +			};
+> +		};
+> +
+> +		dwc3_2: omap_dwc3_2@483c0000 {
+> +			compatible = "ti,am437x-dwc3";
+> +			ti,hwmods = "usb_otg_ss1";
+> +			reg = <0x483c0000 0x10000>;
+> +			interrupts = <GIC_SPI 178 IRQ_TYPE_LEVEL_HIGH>;
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			utmi-mode = <1>;
+> +			ranges;
+> +			status = "disabled";
+> +
+> +			usb2: usb@483d0000 {
+> +				compatible = "synopsys,dwc3";
+> +				reg = <0x483d0000 0x17000>;
+> +				interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
+> +				usb-phy = <&usb2_phy2>;
+> +				phy-names = "usb2-phy";
+> +				status = "disabled";
+> +			};
+> +		};
+> +
+>  	};
+>  };
+>  
+> 
+
+cheers,
+-roger
