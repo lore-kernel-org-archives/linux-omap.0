@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 08/10] ARM: dts: OMAP3: Add IVA IOMMU node
-Date: Wed, 5 Mar 2014 18:24:17 -0600
-Message-ID: <1394065459-16409-9-git-send-email-s-anna@ti.com>
+Subject: [PATCH 07/10] ARM: dts: OMAP3: Update ISP IOMMU node
+Date: Wed, 5 Mar 2014 18:24:16 -0600
+Message-ID: <1394065459-16409-8-git-send-email-s-anna@ti.com>
 References: <1394065459-16409-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,35 +23,34 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 
-Add the DT node for the IOMMU within the DSP subsystem. The entry
-is disabled to keep in line with the hwmod usage as intended by
-the deprecated CONFIG_OMAP_IOMMU_IVA2 flag.
+Update the IOMMU node for the camera subsystem as per the
+OMAP IOMMU bindings.
 
 Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-[s-anna-l0cyMroinI0@public.gmane.org: split the entry and disable the node]
+[s-anna-l0cyMroinI0@public.gmane.org: corrected interrupt number]
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/arm/boot/dts/omap3.dtsi | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index f7a47e3..9574a9e 100644
+index a5fc83b..f7a47e3 100644
 --- a/arch/arm/boot/dts/omap3.dtsi
 +++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -418,6 +418,14 @@
- 			ti,#tlb-entries = <8>;
+@@ -411,10 +411,11 @@
  		};
  
-+		mmu_iva: mmu@5d000000 {
+ 		mmu_isp: mmu@480bd400 {
+-			compatible = "ti,omap3-mmu-isp";
+-			ti,hwmods = "mmu_isp";
 +			compatible = "ti,omap2-iommu";
-+			reg = <0x5d000000 0x80>;
-+			interrupts = <28>;
-+			ti,hwmods = "mmu_iva";
-+			status = "disabled";
-+		};
-+
+ 			reg = <0x480bd400 0x80>;
+-			interrupts = <8>;
++			interrupts = <24>;
++			ti,hwmods = "mmu_isp";
++			ti,#tlb-entries = <8>;
+ 		};
+ 
  		wdt2: wdt@48314000 {
- 			compatible = "ti,omap3-wdt";
- 			reg = <0x48314000 0x80>;
 -- 
 1.9.0
