@@ -1,97 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: INTC: Acknowledge stuck active interrupts
-Date: Thu, 6 Mar 2014 10:32:35 -0800
-Message-ID: <20140306183235.GB1381@atomide.com>
-References: <1394119635-24194-1-git-send-email-stefan.sorensen@spectralink.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/5] ARM: dts: AM4372: Add USB nodes
+Date: Thu, 6 Mar 2014 10:37:30 -0800
+Message-ID: <20140306183729.GC1381@atomide.com>
+References: <1393854834-23810-1-git-send-email-george.cherian@ti.com>
+ <1393854834-23810-3-git-send-email-george.cherian@ti.com>
+ <53183699.8070106@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37464 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752947AbaCFSck (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Mar 2014 13:32:40 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1394119635-24194-1-git-send-email-stefan.sorensen@spectralink.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <53183699.8070106-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, anatol.pomozov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Stefan =?utf-8?B?U8O4cmVuc2Vu?= <stefan.sorensen@spectralink.com>
-Cc: linux-omap@vger.kernel.org
 
-* Stefan S=C3=B8rensen <stefan.sorensen@spectralink.com> [140306 07:30]=
-:
-> When an interrupt has become active on the INTC it will stay active
-> until it is acked, even if masked or de-asserted. The
-> INTC_PENDING_IRQn registers are however updated and since these are
-> used by omap_intc_handle_irq to determine which interrupt to handle,
-> it will never see the active interrupt. This will result in a storm o=
-f
-> useless interrupts that is only stopped when another higher priority
-> interrupt is asserted.
->=20
-> Fix by sending the INTC an acknowledge if we find no interrupts to
-> handle.
+* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140306 00:52]:
+> On 03/03/2014 03:53 PM, George Cherian wrote:
+> > --- a/arch/arm/boot/dts/am4372.dtsi
+> > +++ b/arch/arm/boot/dts/am4372.dtsi
+> > @@ -698,6 +698,105 @@
+> >  			       <&edma 11>;
+> >  			dma-names = "tx", "rx";
+> >  		};
+> > +
+> > +		am43xx_control_usb2phy1: control-phy@44e10620 {
+> > +			compatible = "ti,control-phy-am437usb2";
+> 
+> Since this is the first usage of this compatible ID, we still have room to
+> change it to be better. Tony's suggestion was to use "ti,control-phy-am437-usb2"
 
-OK this makes more sense to me.
-
-While playing with this, you may want to also do one more test and
-forward port these two patches adding checks for spurious interrupts:
-
-6ccc4c0d ARM: OMAP3: Warn about spurious interrupts
-846c29f1 ARM: OMAP3: Clean up spurious interrupt check logic
-
-Those got removed in commit:
-
-667a11fa arm: omap2/3: Use generic irq chip
-
-If you get warnings with those checks about spurious interrupts there's
-also something else wrong or we're not understanding the problem fully.
-So it might be good to check before we apply this patch.
+Or from grepping point of view ti,control-phy-usb2-am437 might be better?
 
 Regards,
 
-Tony
-=20
-> Signed-off-by: Stefan S=C3=B8rensen <stefan.sorensen@spectralink.com>
-> ---
->  arch/arm/mach-omap2/irq.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
->=20
-> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-> index e022a86..6037a9a 100644
-> --- a/arch/arm/mach-omap2/irq.c
-> +++ b/arch/arm/mach-omap2/irq.c
-> @@ -222,6 +222,7 @@ void __init ti81xx_init_irq(void)
->  static inline void omap_intc_handle_irq(void __iomem *base_addr, str=
-uct pt_regs *regs)
->  {
->  	u32 irqnr;
-> +	int handled_irq =3D 0;
-> =20
->  	do {
->  		irqnr =3D readl_relaxed(base_addr + 0x98);
-> @@ -249,8 +250,15 @@ out:
->  		if (irqnr) {
->  			irqnr =3D irq_find_mapping(domain, irqnr);
->  			handle_IRQ(irqnr, regs);
-> +			handled_irq =3D 1;
->  		}
->  	} while (irqnr);
-> +
-> +	/* If an irq is masked or deasserted while active, we will
-> +	 * keep ending up here with no irq handled. So remove it from
-> +	 * the INTC with an ack.*/
-> +	if (!handled_irq)
-> +		omap_ack_irq(NULL);
->  }
-> =20
->  asmlinkage void __exception_irq_entry omap2_intc_handle_irq(struct p=
-t_regs *regs)
-> --=20
-> 1.8.5.3
->=20
+Tony 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
