@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 06/10] ARM: OMAP2+: extend iommu pdata-quirks to OMAP5
-Date: Wed, 5 Mar 2014 18:24:15 -0600
-Message-ID: <1394065459-16409-7-git-send-email-s-anna@ti.com>
+Subject: [PATCH 01/10] ARM: OMAP3: remove deprecated CONFIG_OMAP_IOMMU_IVA2
+Date: Wed, 5 Mar 2014 18:24:10 -0600
+Message-ID: <1394065459-16409-2-git-send-email-s-anna@ti.com>
 References: <1394065459-16409-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,36 +21,80 @@ To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson
 Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP5 has the same iommus as OMAP4, so extend the OMAP4
-iommu pdata quirks for OMAP5 as well.
+From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 
+CONFIG_OMAP_IOMMU_IVA2 was defined originally to avoid conflicting
+usage by tidspbridge and other iommu users. The same can be achieved
+by marking the DT node disabled, so remove this obsolete flag and
+the corresponding hwmod data can be enabled.
+
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+[s-anna-l0cyMroinI0@public.gmane.org: revise commit log]
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Acked-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Acked-by: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 ---
- arch/arm/mach-omap2/pdata-quirks.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 8 --------
+ arch/arm/plat-omap/Kconfig                 | 3 ---
+ 2 files changed, 11 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 74e094a..551877f 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -193,7 +193,9 @@ static void __init omap4_panda_legacy_init(void)
- 	legacy_init_ehci_clk("auxclk3_ck");
- 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
- }
-+#endif
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 4c3b1e6..81dd071 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3029,8 +3029,6 @@ static struct omap_hwmod omap3xxx_mmu_isp_hwmod = {
+ 	.flags		= HWMOD_NO_IDLEST,
+ };
  
-+#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
- static struct iommu_platform_data omap4_iommu_pdata = {
- 	.reset_name = "mmu_cache",
- 	.assert_reset = omap_device_assert_hardreset,
-@@ -264,6 +266,8 @@ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
- #ifdef CONFIG_ARCH_OMAP4
- 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a100040, "4a100040.pinmux", &pcs_pdata),
- 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a31e040, "4a31e040.pinmux", &pcs_pdata),
-+#endif
-+#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
- 	OF_DEV_AUXDATA("ti,omap4-iommu", 0x4a066000, "4a066000.mmu",
- 		       &omap4_iommu_pdata),
- 	OF_DEV_AUXDATA("ti,omap4-iommu", 0x55082000, "55082000.mmu",
+-#ifdef CONFIG_OMAP_IOMMU_IVA2
+-
+ /* mmu iva */
+ 
+ static struct omap_mmu_dev_attr mmu_iva_dev_attr = {
+@@ -3082,8 +3080,6 @@ static struct omap_hwmod omap3xxx_mmu_iva_hwmod = {
+ 	.flags		= HWMOD_NO_IDLEST,
+ };
+ 
+-#endif
+-
+ /* l4_per -> gpio4 */
+ static struct omap_hwmod_addr_space omap3xxx_gpio4_addrs[] = {
+ 	{
+@@ -3855,9 +3851,7 @@ static struct omap_hwmod_ocp_if *omap34xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap3xxx_l4_core__hdq1w,
+ 	&omap3xxx_sad2d__l3,
+ 	&omap3xxx_l4_core__mmu_isp,
+-#ifdef CONFIG_OMAP_IOMMU_IVA2
+ 	&omap3xxx_l3_main__mmu_iva,
+-#endif
+ 	&omap34xx_l4_core__ssi,
+ 	NULL
+ };
+@@ -3881,9 +3875,7 @@ static struct omap_hwmod_ocp_if *omap36xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap3xxx_l4_core__hdq1w,
+ 	&omap3xxx_sad2d__l3,
+ 	&omap3xxx_l4_core__mmu_isp,
+-#ifdef CONFIG_OMAP_IOMMU_IVA2
+ 	&omap3xxx_l3_main__mmu_iva,
+-#endif
+ 	NULL
+ };
+ 
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 436ea97..02fc10d 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -86,9 +86,6 @@ config OMAP_MUX_WARNINGS
+ 	  to change the pin multiplexing setup.	 When there are no warnings
+ 	  printed, it's safe to deselect OMAP_MUX for your product.
+ 
+-config OMAP_IOMMU_IVA2
+-	bool
+-
+ config OMAP_MPU_TIMER
+ 	bool "Use mpu timer"
+ 	depends on ARCH_OMAP1
 -- 
 1.9.0
