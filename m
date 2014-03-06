@@ -1,69 +1,92 @@
-From: =?utf-8?B?U8O4cmVuc2VuLCBTdGVmYW4=?=
-	<Stefan.Sorensen@spectralink.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Use handle_fasteoi_irq for INTC interrupt
- handling
-Date: Thu, 6 Mar 2014 14:32:46 +0000
-Message-ID: <1394116365.2785.11.camel@e37108.spectralink.com>
-References: <1393236556-12361-1-git-send-email-stefan.sorensen@spectralink.com>
-	 <20140228171111.GA15399@atomide.com>
-	 <1393667952.21887.15.camel@e37108.spectralink.com>
-	 <20140302173727.GB18496@atomide.com>
-	 <1393844735.2507.21.camel@e37108.spectralink.com>
-	 <20140303174903.GA25804@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 00/13][RESEND] ARM: OMAP: SATA support for OMAP5 & DRA7
+Date: Thu, 6 Mar 2014 16:38:36 +0200
+Message-ID: <1394116729-28811-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bl2lp0208.outbound.protection.outlook.com ([207.46.163.208]:13993
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751210AbaCFOdL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Mar 2014 09:33:11 -0500
-In-Reply-To: <20140303174903.GA25804@atomide.com>
-Content-Language: en-US
-Content-ID: <33A51EAEDBA7C441A80493FA5073235D@namprd07.prod.outlook.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: kishon@ti.com, tony@atomide.com, balbi@ti.com
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, balajitk@ti.com, linux-ide@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-T24gTW9uLCAyMDE0LTAzLTAzIGF0IDA5OjQ5IC0wODAwLCBUb255IExpbmRncmVuIHdyb3RlOg0K
-PiA+IAkxLiBDUFNXIGRldmljZSBhc3NlcnRzIFRYIElSUQ0KPiA+IAkyLiBDUFNXIGRldmljZSBh
-c3NlcnRzIFJYIElSUQ0KPiA+IAkzLiBJTlRDIGludGVycnVwdHMgQ1BVLCBUWCBJUlEgbWFya2Vk
-IGFzIGFjdGl2ZQ0KPiA+IAk0LiBvbWFwX2ludGNfaGFuZGxlX2lycSBBQ0tzIFRYIElSUSBvbiB0
-aGUgSU5UQw0KPiA+IAk1LiBJTlRDIG1hcmtzIFJYIElSUSBhcyBhY3RpdmUNCj4gPiAJNi4gb21h
-cF9pbnRjX2hhbmRsZV9pcnEgY2FsbHMgY3Bzd19pbnRlcnJ1cHQNCj4gPiAJNy4gY3Bzd19pbnRl
-cnJ1cHQgZGlzYWJsZXMgUlgrVFggSVJRIGluIENQU1cgZGV2aWNlDQo+ID4gCTguIGNwc3dfaW50
-ZXJydXB0IGRpc2FibGVzIFJYK1RYIElSUSBpbiBJTlRDICh0aGUgSVJRcyBhcmUgbWFza2VkKQ0K
-PiA+IAk5Li4gb21hcF9pbnRjX2hhbmRsZV9pcnEgc2VlcyBubyB1bm1hc2tlZCBJUlFzIGFyZSBw
-ZW5kaW5nIGFuZCByZXR1cm5zDQo+ID4gCTEwLiBJTlRDIGludGVycnVwdHMgQ1BVLCBSWCBJUlEg
-bWFya2VkIGFzIHBlbmRpbmcNCj4gPiAJMTEuIG9tYXBfaW50Y19oYW5kbGVfaXJxIHNlZXMgbm8g
-dW5tYXNrZWQgSVJRcyBhcmUgcGVuZGluZyBhbmQgcmV0dXJucw0KPiA+IAkxMi4gR28gdG8gc3Rl
-cCAxMA0KPiA+IA0KPiA+IFRoZSBwcm9ibGVtIGFyaXNlcyBpbiBzdGVwIDggd2hlcmUgYW4gYWN0
-aXZlIElSUSBpcyBtYXNrZWQuIFRoaXMgd2lsbA0KPiA+IG5vdCBtYWtlIGl0IGluYWN0aXZlIGlu
-IHRoZSBJTlRDIGJ1dCBpdCB3aWxsIGJlIGNsZWFyZWQgZnJvbSB0aGUNCj4gPiBwZW5kaW5nIElS
-USByZWdpc3RlcnMgLSB0aGlzIGlzIHRoZSByZWdpc3RlciB0aGF0IG9tYXBfaW50Y19oYW5kbGVf
-aXJxDQo+ID4gdXNlcyB0byBkZWNpZGUgd2hpY2ggSVJRIGlzIGFjdGl2ZS4NCj4gDQo+IE9LIHRo
-YW5rcyBmb3IgdGhlIGluZm8uIExvb2tpbmcgYXQgeW91ciB0cmFjZSBhYm92ZSBpdCBzZWVtcyBs
-aWtlIHRoZQ0KPiB0d28gc2VwYXJhdGUgVFggYW5kIFJYIElOVEMgaW50ZXJydXB0cyBhcmUgbm90
-IHJlYWxseSB0cmVhdGVkIGFzIHNlcGFyYXRlDQo+IGludGVycnVwdHMgaW4gdGhlIGNwc3cgZHJp
-dmVyLiBJdCBzZWVtcyB0aGUgcmVhbCBmaXggaXMgdG8gZml4IHVwIHRoZQ0KPiBjcHN3IGludGVy
-cnVwdCBoYW5kbGVyIHNvIGl0J3Mgbm90IHJhY3kuIEl0IHNlZW1zIHRoYXQgYXQgbGVhc3Qgc3Rl
-cCA3DQo+IGFuZCA4IGFib3ZlIHNob3VsZCBiZSBoYW5kbGVkIHNlcGFyYXRlbHkgZm9yIFRYIGFu
-ZCBSWCBiYXNlZCBvbiB0aGUgSU5UQw0KPiBpbnRlcnJ1cHRzLg0KDQpMb29raW5nIGluIGRyaXZl
-cnMvbmV0L2V0aGVybmV0LCBpdCBsb29rcyBsaWtlIGEgcXVpdGUgY29tbW9uIHBhdHRlcm4NCmlz
-IHRvIGhhbmRsZSBib3RoIFJYeCBhbmQgVFggaW50ZXJydXB0cyB3aXRoIHRoZSBzYW1lIGhhbmRs
-ZXIsIHdoaWNoDQp3aWxsIGRpc2FibGUgYm90aCBpbnRlcnJ1cHRzIGFuZCB0aGVuIGhhbmQgb2Zm
-IHRvIG5hcGkuIFRoZSBjcHN3IGRyaXZlcg0Kd29ya3MgdGhlIHNhbWUgd2F5LCBzbyBzaG91bGRu
-J3QgdGhpcyB3b3JrIG9uIG9tYXA/DQoNCj4gRnJvbSB0aGUgSU5UQyBwb2ludCBvZiB2aWV3IHdl
-IHNob3VsZCBqdXN0IGhhdmUgc3RhbmRhcmQgbGV2ZWwgSVJRDQo+IGhhbmRsaW5nIGZvciBlYWNo
-IGludGVycnVwdCwgcmlnaHQ/IElOVEMgZG9lcyBub3QgbmVlZCB0byBrbm93IGFib3V0DQo+IGRy
-aXZlciBzcGVjaWZpYyBjb29yZGluYXRpb24gYmV0d2VlbiB0d28gc2VwYXJhdGUgaW50ZXJydXB0
-cy4NCg0KVGhlIHByb2JsZW0gaXMgdGhhdCB0aGUgSU5UQyBpcyBub3QgZG9pbmcgMTAwJSBsZXZl
-bCBJUlEgaGFuZGxpbmcNCmNvbWJpbmVkIHdpdGggdGhlIHdheSB3ZSBoYW5kbGUgdGhlIElOVEMg
-ZHVyaW5nIGludGVycnVwdHMuIFdoZW4gYSBJUlENCmhhcyBiZWNvbWUgYWN0aXZlIG9uIHRoZSBJ
-TlRDIGl0IHdpbGwgc3RheSBhY3RpdmUgdW50aWwgd2UgYWNrbm93bGVkZ2UNCml0LCBldmVuIGlm
-IGl0IGlzIG1hc2tlZCBvciBkZS1hc3NlcnRlZC4NCg0KTXkgcGF0Y2ggZG9lcyBub3QgZml4IHRo
-ZSBwcm9ibGVtIHdoZW4gdGhlIGFjdGl2ZSBpbnRlcnJ1cHQgd2FzDQpkZS1hc3NlcnRlZCwgc28g
-SSBhbSBsb29raW5nIGludG8gb3RoZXIgd2F5cyBvZiBkZWFsaW5nIHdpdGggaXQuDQoNClN0ZWZh
-bg0KDQo=
+Hi,
+
+[Resending cause I messed up Kishon's email ID in the original v2.]
+
+This series adds SATA support for OMAP5 uevm and DRA7-evm boards.
+
+- Cleans up the ti-pipe3 PHY driver
+- Adds SATA DPLL support to ti-pipe3 PHY driver
+- Adds SATA nodes to hwmod and SoC DT data
+
+Patches are based on 3.14-rc4 with balbi/next, linux-phy/next and
+omap-for-v3.15/dt merged on top..
+
+To test SATA you will also need [1].
+
+[1] - http://article.gmane.org/gmane.comp.hardware.netbook.arm.sunxi/7285
+
+Changelog:
+
+v2
+- use 'depends on' instead of 'select' OCP2SCP bus driver.
+- Changed DT bindings for dra7-usb2 and am437-usb2 phy.
+
+cheers,
+-roger
+
+---
+Balaji T K (2):
+  ARM: dts: omap5: add sata node
+  ARM: dts: dra7: add OCP2SCP3 and SATA nodes
+
+Keshava Munegowda (1):
+  ARM: OMAP5: hwmod: Add ocp2scp3 and sata hwmods
+
+Kishon Vijay Abraham I (1):
+  phy: rename struct omap_control_usb to struct omap_control_phy
+
+Nikhil Devshatwar (1):
+  ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
+
+Roger Quadros (8):
+  phy: omap-control: Update DT binding information
+  phy: omap-control: update dra7 and am437 usb2 bindings
+  phy: ti-pipe3: cleanup clock handling
+  phy: ti-pipe3: Add SATA DPLL support
+  phy: ti-pipe3: Don't get 'wkupclk' and 'refclk' for SATA PHY
+  phy: ti-pipe3: streamline PHY operations
+  phy: ti-pipe3: Fix suspend/resume and module reload
+  phy: omap: Depend on OMAP_OCP2SCP bus driver
+
+ Documentation/devicetree/bindings/phy/ti-phy.txt   |  40 ++-
+ Documentation/devicetree/bindings/usb/omap-usb.txt |  24 --
+ arch/arm/boot/dts/dra7.dtsi                        |  39 +++
+ arch/arm/boot/dts/omap5.dtsi                       |  47 +++-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  73 ++++++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  31 ++-
+ drivers/phy/Kconfig                                |  16 +-
+ drivers/phy/Makefile                               |   1 +
+ drivers/{usb => }/phy/phy-omap-control.c           | 169 ++++++-------
+ drivers/phy/phy-omap-usb2.c                        |   8 +-
+ drivers/phy/phy-ti-pipe3.c                         | 269 +++++++++++++--------
+ drivers/usb/musb/omap2430.c                        |   2 +-
+ drivers/usb/phy/Kconfig                            |  10 -
+ drivers/usb/phy/Makefile                           |   1 -
+ .../omap_control_usb.h => phy/omap_control_phy.h}  |  36 +--
+ 15 files changed, 509 insertions(+), 257 deletions(-)
+ rename drivers/{usb => }/phy/phy-omap-control.c (53%)
+ rename include/linux/{usb/omap_control_usb.h => phy/omap_control_phy.h} (68%)
+
+-- 
+1.8.3.2
