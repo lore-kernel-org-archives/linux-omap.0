@@ -1,211 +1,121 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 07/13] phy: ti-pipe3: streamline PHY operations
-Date: Thu, 6 Mar 2014 16:22:59 +0200
-Message-ID: <1394115785-28301-8-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v2 00/13] ARM: OMAP: SATA support for OMAP5 & DRA7
+Date: Thu, 6 Mar 2014 16:27:56 +0200
+Message-ID: <531885EC.50706@ti.com>
 References: <1394115785-28301-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1394115785-28301-1-git-send-email-rogerq@ti.com>
-Sender: linux-ide-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: kishon@ti.comg, tony@atomide.com, balbi@ti.com
-Cc: george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-ide@vger.kernel.org, rogerq@ti.com
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, balajitk@ti.com, linux-ide@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Limit .power_on() and .power_off() to just control the
-PHY power and not the DPLL. The DPLL will be enabled
-in .init() and idled in .exit().
+On 03/06/2014 04:22 PM, Roger Quadros wrote:
+> Hi,
+> 
+> This series adds SATA support for OMAP5 uevm and DRA7-evm boards.
+> 
+> - Cleans up the ti-pipe3 PHY driver
+> - Adds SATA DPLL support to ti-pipe3 PHY driver
+> - Adds SATA nodes to hwmod and SoC DT data
+> 
+> Patches are based on 3.14-rc4 with balbi/next, linux-phy/next and
+> omap-for-v3.15/dt merged on top..
+> 
+> To test SATA you will also need [1].
+> 
+> [1] - http://article.gmane.org/gmane.comp.hardware.netbook.arm.sunxi/7285
+> 
+> Changelog:
+> 
+> v2
+> - use 'depends on' instead of 'select' OCP2SCP bus driver.
+> - Changed DT bindings for dra7-usb2 and am437-usb2 phy.
+> 
+> cheers,
+> -roger
+> 
+> ---
+> Balaji T K (2):
+>   ARM: dts: omap5: add sata node
+>   ARM: dts: dra7: add OCP2SCP3 and SATA nodes
+> 
+> Keshava Munegowda (1):
+>   ARM: OMAP5: hwmod: Add ocp2scp3 and sata hwmods
+> 
+> Kishon Vijay Abraham I (1):
+>   phy: rename struct omap_control_usb to struct omap_control_phy
+> 
+> Nikhil Devshatwar (1):
+>   ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
+> 
+> Roger Quadros (8):
+>   phy: omap-control: Update DT binding information
+>   phy: omap-control: update dra7 and am437 usb2 bindings
+>   phy: ti-pipe3: cleanup clock handling
+>   phy: ti-pipe3: Add SATA DPLL support
+>   phy: ti-pipe3: Don't get 'wkupclk' and 'refclk' for SATA PHY
+>   phy: ti-pipe3: streamline PHY operations
+>   phy: ti-pipe3: Fix suspend/resume and module reload
+>   phy: omap: Depend on OMAP_OCP2SCP bus driver
+> 
+>  Documentation/devicetree/bindings/phy/ti-phy.txt   |  40 ++-
+>  Documentation/devicetree/bindings/usb/omap-usb.txt |  24 --
+>  arch/arm/boot/dts/dra7.dtsi                        |  39 +++
+>  arch/arm/boot/dts/omap5.dtsi                       |  47 ++-
+>  arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  73 +++++
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  31 +-
+>  drivers/phy/Kconfig                                |  16 +-
+>  drivers/phy/Makefile                               |   1 +
+>  drivers/phy/phy-omap-control.c                     | 320 +++++++++++++++++++++
+>  drivers/phy/phy-omap-usb2.c                        |   8 +-
+>  drivers/phy/phy-ti-pipe3.c                         | 269 ++++++++++-------
+>  drivers/usb/musb/omap2430.c                        |   2 +-
+>  drivers/usb/phy/Kconfig                            |  10 -
+>  drivers/usb/phy/Makefile                           |   1 -
+>  drivers/usb/phy/phy-omap-control.c                 | 319 --------------------
+>  include/linux/phy/omap_control_phy.h               |  89 ++++++
+>  include/linux/usb/omap_control_usb.h               |  89 ------
+>  17 files changed, 815 insertions(+), 563 deletions(-)
+>  create mode 100644 drivers/phy/phy-omap-control.c
+>  delete mode 100644 drivers/usb/phy/phy-omap-control.c
+>  create mode 100644 include/linux/phy/omap_control_phy.h
+>  delete mode 100644 include/linux/usb/omap_control_usb.h
+> 
+oops. forgot to add -M :(.
 
-Don't reprogram the DPLL if it has been already locked
-by the bootloader. This fixes a problem with SATA, where
-it fails if SATA was used by the bootloader.
+I'll resend just the 1st patch since it contains the file rename.
+updated diffstat is below.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/phy/phy-ti-pipe3.c | 114 +++++++++++++++++++++++++--------------------
- 1 file changed, 63 insertions(+), 51 deletions(-)
+ Documentation/devicetree/bindings/phy/ti-phy.txt   |  40 ++-
+ Documentation/devicetree/bindings/usb/omap-usb.txt |  24 --
+ arch/arm/boot/dts/dra7.dtsi                        |  39 +++
+ arch/arm/boot/dts/omap5.dtsi                       |  47 +++-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  73 ++++++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  31 ++-
+ drivers/phy/Kconfig                                |  16 +-
+ drivers/phy/Makefile                               |   1 +
+ drivers/{usb => }/phy/phy-omap-control.c           | 169 ++++++-------
+ drivers/phy/phy-omap-usb2.c                        |   8 +-
+ drivers/phy/phy-ti-pipe3.c                         | 269 +++++++++++++--------
+ drivers/usb/musb/omap2430.c                        |   2 +-
+ drivers/usb/phy/Kconfig                            |  10 -
+ drivers/usb/phy/Makefile                           |   1 -
+ .../omap_control_usb.h => phy/omap_control_phy.h}  |  36 +--
+ 15 files changed, 509 insertions(+), 257 deletions(-)
+ rename drivers/{usb => }/phy/phy-omap-control.c (53%)
+ rename include/linux/{usb/omap_control_usb.h => phy/omap_control_phy.h} (68%)
 
-diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-index baa3f78d..12cc900 100644
---- a/drivers/phy/phy-ti-pipe3.c
-+++ b/drivers/phy/phy-ti-pipe3.c
-@@ -47,7 +47,8 @@
- #define	PLL_SD_MASK		0x0003FC00
- #define	PLL_SD_SHIFT		10
- #define	SET_PLL_GO		0x1
--#define	PLL_TICOPWDN		0x10000
-+#define PLL_LDOPWDN		BIT(15)
-+#define PLL_TICOPWDN		BIT(16)
- #define	PLL_LOCK		0x2
- #define	PLL_IDLE		0x1
- 
-@@ -56,7 +57,8 @@
-  * value required for the PIPE3PHY_PLL_CONFIGURATION2.PLL_IDLE status
-  * to be correctly reflected in the PIPE3PHY_PLL_STATUS register.
-  */
--# define PLL_IDLE_TIME  100;
-+#define PLL_IDLE_TIME	100	/* in milliseconds */
-+#define PLL_LOCK_TIME	100	/* in milliseconds */
- 
- struct pipe3_dpll_params {
- 	u16	m;
-@@ -132,24 +134,6 @@ static struct pipe3_dpll_params *ti_pipe3_get_dpll_params(struct ti_pipe3 *phy)
- static int ti_pipe3_power_off(struct phy *x)
- {
- 	struct ti_pipe3 *phy = phy_get_drvdata(x);
--	int val;
--	int timeout = PLL_IDLE_TIME;
--
--	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
--	val |= PLL_IDLE;
--	ti_pipe3_writel(phy->pll_ctrl_base, PLL_CONFIGURATION2, val);
--
--	do {
--		val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_STATUS);
--		if (val & PLL_TICOPWDN)
--			break;
--		udelay(5);
--	} while (--timeout);
--
--	if (!timeout) {
--		dev_err(phy->dev, "power off failed\n");
--		return -EBUSY;
--	}
- 
- 	omap_control_phy_power(phy->control_dev, 0);
- 
-@@ -159,44 +143,34 @@ static int ti_pipe3_power_off(struct phy *x)
- static int ti_pipe3_power_on(struct phy *x)
- {
- 	struct ti_pipe3 *phy = phy_get_drvdata(x);
--	int val;
--	int timeout = PLL_IDLE_TIME;
--
--	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
--	val &= ~PLL_IDLE;
--	ti_pipe3_writel(phy->pll_ctrl_base, PLL_CONFIGURATION2, val);
- 
--	do {
--		val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_STATUS);
--		if (!(val & PLL_TICOPWDN))
--			break;
--		udelay(5);
--	} while (--timeout);
--
--	if (!timeout) {
--		dev_err(phy->dev, "power on failed\n");
--		return -EBUSY;
--	}
-+	omap_control_phy_power(phy->control_dev, 1);
- 
- 	return 0;
- }
- 
--static void ti_pipe3_dpll_relock(struct ti_pipe3 *phy)
-+static int ti_pipe3_dpll_wait_lock(struct ti_pipe3 *phy)
- {
- 	u32		val;
- 	unsigned long	timeout;
- 
--	ti_pipe3_writel(phy->pll_ctrl_base, PLL_GO, SET_PLL_GO);
--
--	timeout = jiffies + msecs_to_jiffies(20);
-+	timeout = jiffies + msecs_to_jiffies(PLL_LOCK_TIME);
- 	do {
-+		cpu_relax();
- 		val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_STATUS);
- 		if (val & PLL_LOCK)
- 			break;
--	} while (!WARN_ON(time_after(jiffies, timeout)));
-+	} while (!time_after(jiffies, timeout));
-+
-+	if (!(val & PLL_LOCK)) {
-+		dev_err(phy->dev, "DPLL failed to lock\n");
-+		return -EBUSY;
-+	}
-+
-+	return 0;
- }
- 
--static int ti_pipe3_dpll_lock(struct ti_pipe3 *phy)
-+static int ti_pipe3_dpll_program(struct ti_pipe3 *phy)
- {
- 	u32			val;
- 	struct pipe3_dpll_params *dpll_params;
-@@ -230,27 +204,65 @@ static int ti_pipe3_dpll_lock(struct ti_pipe3 *phy)
- 	val |= dpll_params->sd << PLL_SD_SHIFT;
- 	ti_pipe3_writel(phy->pll_ctrl_base, PLL_CONFIGURATION3, val);
- 
--	ti_pipe3_dpll_relock(phy);
-+	ti_pipe3_writel(phy->pll_ctrl_base, PLL_GO, SET_PLL_GO);
- 
--	return 0;
-+	return ti_pipe3_dpll_wait_lock(phy);
- }
- 
- static int ti_pipe3_init(struct phy *x)
- {
- 	struct ti_pipe3 *phy = phy_get_drvdata(x);
--	int ret;
-+	u32 val;
-+	int ret = 0;
- 
--	ret = ti_pipe3_dpll_lock(phy);
--	if (ret)
--		return ret;
-+	/* Bring it out of IDLE if it is IDLE */
-+	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
-+	if (val & PLL_IDLE) {
-+		val &= ~PLL_IDLE;
-+		ti_pipe3_writel(phy->pll_ctrl_base, PLL_CONFIGURATION2, val);
-+		ret = ti_pipe3_dpll_wait_lock(phy);
-+	}
- 
--	omap_control_phy_power(phy->control_dev, 1);
-+	/* Program the DPLL only if not locked */
-+	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_STATUS);
-+	if (!(val & PLL_LOCK))
-+		if (ti_pipe3_dpll_program(phy))
-+			return -EINVAL;
- 
--	return 0;
-+	return ret;
- }
- 
-+static int ti_pipe3_exit(struct phy *x)
-+{
-+	struct ti_pipe3 *phy = phy_get_drvdata(x);
-+	u32 val;
-+	unsigned long timeout;
-+
-+	/* Put DPLL in IDLE mode */
-+	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
-+	val |= PLL_IDLE;
-+	ti_pipe3_writel(phy->pll_ctrl_base, PLL_CONFIGURATION2, val);
-+
-+	/* wait for LDO and Oscillator to power down */
-+	timeout = jiffies + msecs_to_jiffies(PLL_IDLE_TIME);
-+	do {
-+		cpu_relax();
-+		val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_STATUS);
-+		if ((val & PLL_TICOPWDN) && (val & PLL_LDOPWDN))
-+			break;
-+	} while (!time_after(jiffies, timeout));
-+
-+	if (!(val & PLL_TICOPWDN) || !(val & PLL_LDOPWDN)) {
-+		dev_err(phy->dev, "Failed to power down: PLL_STATUS 0x%x\n",
-+			val);
-+		return -EBUSY;
-+	}
-+
-+	return 0;
-+}
- static struct phy_ops ops = {
- 	.init		= ti_pipe3_init,
-+	.exit		= ti_pipe3_exit,
- 	.power_on	= ti_pipe3_power_on,
- 	.power_off	= ti_pipe3_power_off,
- 	.owner		= THIS_MODULE,
--- 
-1.8.3.2
-
+cheers,
+-roger
