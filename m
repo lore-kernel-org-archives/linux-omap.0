@@ -1,124 +1,53 @@
-From: Marc Murphy <marcmltd@marcm.co.uk>
-Subject: RE: Help needed USB hub disconnected at resume
-Date: Wed, 5 Mar 2014 23:29:24 +0000
-Message-ID: <F690310232FDDF4AB457E8B3EF90DDE0AA8612DC@MARCM-SBS2011.marcmltd.local>
-References: <F690310232FDDF4AB457E8B3EF90DDE0AA85E10B@MARCM-SBS2011.marcmltd.local>
- <F690310232FDDF4AB457E8B3EF90DDE0AA85E1E7@MARCM-SBS2011.marcmltd.local>
- <F690310232FDDF4AB457E8B3EF90DDE0AA85E21F@MARCM-SBS2011.marcmltd.local>
- <53146225.8040403@ti.com> <531472B3.1060104@compulab.co.il>
- <F690310232FDDF4AB457E8B3EF90DDE0AA85E7F2@MARCM-SBS2011.marcmltd.local>
- <5315761D.8080103@compulab.co.il>
- <F690310232FDDF4AB457E8B3EF90DDE0AA85FF56@MARCM-SBS2011.marcmltd.local>
- <20140304224427.GA31462@saruman.home>
- <F690310232FDDF4AB457E8B3EF90DDE0AA86001B@MARCM-SBS2011.marcmltd.local>
- <20140304234240.GB2521@saruman.home>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH v2] crypto: omap-sham: kmap SG pages before appending
+Date: Thu, 6 Mar 2014 08:21:15 +0800
+Message-ID: <20140306002115.GA30768@gondor.apana.org.au>
+References: <1393957854-10961-1-git-send-email-joelf@ti.com>
+ <20140305015953.GA20702@gondor.apana.org.au>
+ <39412163-4B61-4490-ABC8-5BA633CC6618@ti.com>
+ <20140305071109.GA22178@gondor.apana.org.au>
+ <531745EE.2060804@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtpout15.bt.lon5.cpcloud.co.uk ([65.20.0.135]:23835 "EHLO
-	smtpout15.bt.lon5.cpcloud.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753448AbaCEX3q convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Mar 2014 18:29:46 -0500
-In-Reply-To: <20140304234240.GB2521@saruman.home>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <531745EE.2060804@ti.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Vutla, Lokesh" <lokeshvutla@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "'balbi@ti.com'" <balbi@ti.com>
-Cc: 'Igor Grinberg' <grinberg@compulab.co.il>, Roger Quadros <rogerq@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:balbi@ti.com]
-> Sent: 04 March 2014 23:43
-> To: Marc Murphy
-> Cc: 'balbi@ti.com'; 'Igor Grinberg'; Roger Quadros; linux-
-> omap@vger.kernel.org
-> Subject: Re: Help needed USB hub disconnected at resume
+On Wed, Mar 05, 2014 at 09:42:38AM -0600, Joel Fernandes wrote:
+>
+> In my testing it wasn't called from softirq, I'm using cryptodev which is
+> called from openssl through ioctl, here is a traceback (sorry about wrap):
 > 
-> On Tue, Mar 04, 2014 at 11:05:58PM +0000, Marc Murphy wrote:
-> > > -----Original Message-----
-> > > From: Felipe Balbi [mailto:balbi@ti.com]
-> > > Sent: 04 March 2014 22:44
-> > > To: Marc Murphy
-> > > Cc: 'Igor Grinberg'; Roger Quadros; linux-omap@vger.kernel.org
-> > > Subject: Re: Help needed USB hub disconnected at resume
-> > >
-> > > Hi,
-> > >
-> > > On Tue, Mar 04, 2014 at 10:34:56PM +0000, Marc Murphy wrote:
-> > > > static __init void tam3517_ehci_init(void) {
-> > > >     /* Configure GPIO for EHCI port */
-> > > >     omap_mux_init_gpio(TAM3517_EHCI_RESET, OMAP_PIN_OUTPUT);
-> > > >
-> > > >     gpio_request(TAM3517_EHCI_RESET, "USB_RESET");
-> > > >     gpio_direction_output(TAM3517_EHCI_RESET, 1);
-> > > >     gpio_export(TAM3517_EHCI_RESET, 0);
-> > >
-> > > why are you exporting this gpio ?
-> >
-> >
-> > It makes no difference whether I configure the GPIO or not.
+> [<bf8010bb>] (cryptodev_ioctl+0x282/0x59c [cryptodev])
+> [  220.015390] [<bf8010bb>] (cryptodev_ioctl+0x282/0x59c [cryptodev]) from
+> [<c00cdaa5>] (do_vfs_ioctl+0x61/0x41c)
+> [  220.025909] [<c00cdaa5>] (do_vfs_ioctl+0x61/0x41c) from [<c00cdeab>]
+> (SyS_ioctl+0x4b/0x50)
+> [  220.034602] [<c00cdeab>] (SyS_ioctl+0x4b/0x50) from [<c000cf01>]
+> (ret_fast_syscall+0x1/0x46)
+> [  220.045254] CPU: 0 PID: 1798 Comm: openssl Tainted: G           O
+> 3.12.9-00581-g5fa084c-dirty #32
+> [  220.054636] [<c0012d05>] (unwind_backtrace+0x1/0x9c) from [<c000fa6d>]
+> (show_stack+0x11/0x14)
+> [  220.063619] [<c000fa6d>] (show_stack+0x11/0x14) from [<c0342edb>]
+> (dump_stack+0x4b/0x60)
+> [  220.072144] [<c0342edb>] (dump_stack+0x4b/0x60) from [<c02a1b3f>]
+> (omap_sham_update+0x1f/0xa4)
+> [  220.081214] [<c02a1b3f>] (omap_sham_update+0x1f/0xa4) from [<bf801f67>]
+> (cryptodev_hash_update+0x26/0x80 [cryptodev])
 > 
-> gpio_export() is only to expose the gpio to sysfs. Check if that pin is active
-> high or active low. Then what you need, most likely, is something like below:
 > 
-> gpio_direction_output(RESET, HIGH);
-> usleep_range(50000, 2000000);
-> gpio_set_value(RESET, LOW);
-> 
-> (assuming active high here)
+> Could you suggest, what other place is update() called in softirq context?
+> I may be missing something.
 
-Thanks, the export was for sysfs so that I could toggle the state myself to debug.  The reference has now been removed and the toggling left to the driver (ehci)
+IPsec may call this from softirq context.
 
-Igor, I have been looking at the ehci driver and the reset pin of the 3320 is toggled at initialisation but there is no resetting when resuming from sleep.  I have created a resume function;
-
-static void ehci_hcd_omap_resume(struct platform_device *pdev)
-{
-    struct device *dev              = &pdev->dev;
-    struct usb_hcd *hcd             = dev_get_drvdata(dev);
-    struct ehci_hcd_omap_platform_data *pdata   = dev->platform_data;
-
-
-    if (pdata->phy_reset) {
-        if (gpio_is_valid(pdata->reset_gpio_port[0]))
-            gpio_set_value(pdata->reset_gpio_port[0], 0);
-
-        if (gpio_is_valid(pdata->reset_gpio_port[1]))
-            gpio_set_value(pdata->reset_gpio_port[1], 0);
-
-        /* Hold the PHY in RESET for enough time till DIR is high */
-        udelay(100);
-    }
-
-    if (pdata->phy_reset) {
-        /* Hold the PHY in RESET for enough time till
-         * PHY is settled and ready
-         */
-        udelay(10);
-
-        if (gpio_is_valid(pdata->reset_gpio_port[0]))
-            gpio_set_value(pdata->reset_gpio_port[0], 1);
-
-        if (gpio_is_valid(pdata->reset_gpio_port[1]))
-            gpio_set_value(pdata->reset_gpio_port[1], 1);
-    }
-}
-
-And linked in the static struct platform_driver ehci_hcd_omap_driver = {
-	.resume		= ehci_hcd_omap_resume,
-
-It calls the function at resume and I can see the line toggle on the scope but still the same response from the driver of disconnecting the hub.
-
-I have even stepped through ehci_bus_resume (struct usb_hcd *hcd) and it all seems to be OK with the bringup.
-
-Is there any way to enable more debug so that I can see the path through the pm and hci code ?
-
-I have enabled dynamic debug in the kernel but when I pass the dyndbg modules on the command line I don't seem to get any additional output... e.g.
-rootfstype=nfs ip=dhcp nohlt no_console_suspend=1 dyndbg=" module ehci_hcd +p ; module uhci_hcd +p ; module ohci_hcd +p" rw
-
-
-Marc
-> 
-> --
-> balbi
+Cheers,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
