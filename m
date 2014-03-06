@@ -1,35 +1,189 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: [PATCH v4 0/8] wilink: add device tree support
-Date: Thu, 6 Mar 2014 11:51:54 +0100
-Message-ID: <CAGm1_kv_byZMme0amziQt57Wng+b342hPf5MKrJn2iFRvdyR5Q@mail.gmail.com>
-References: <1375189476-21557-1-git-send-email-coelho@ti.com>
- <CAGm1_kvdzkvzEEymQ+H0XiKugifHF27KDz3jwX5Frg_U=S7KgA@mail.gmail.com> <20140228092203.GA2974@piout.net>
+From: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/5] ARM: dts: AM4372: Add USB nodes
+Date: Thu, 6 Mar 2014 17:57:46 +0530
+Message-ID: <531869C2.3070905@ti.com>
+References: <1393854834-23810-1-git-send-email-george.cherian@ti.com> <1393854834-23810-3-git-send-email-george.cherian@ti.com> <53183699.8070106@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140228092203.GA2974@piout.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: mark.rutland@arm.com, nm@ti.com, Mike Turquette <mturquette@linaro.org>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org, "Nori, Sekhar" <nsekhar@ti.com>, kernel list <linux-kernel@vger.kernel.org>, balbi@ti.com, Javier Martinez Canillas <martinez.javier@gmail.com>, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, luca@coelho.fi, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53183699.8070106-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: anatol.pomozov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Feb 28, 2014 at 10:22 AM, Alexandre Belloni
-<alexandre.belloni@free-electrons.com> wrote:
-> On 28/02/2014 at 08:26:46 +0100, Yegor Yefremov wrote :
->>
->> What is the state of the series? Who is now responsible for the
->> patches? What issues were still not handled?
->>
+Hi Roger,
+
+On 3/6/2014 2:19 PM, Roger Quadros wrote:
+> Hi George,
 >
-> We probably want to end that discussion before taking those bindings in:
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2014-February/232185.html
+> On 03/03/2014 03:53 PM, George Cherian wrote:
+>> Add nodes for 2 instances each of
+>> 	- ocp2scp
+>> 	- USB PHY control module
+>> 	- USB PHY
+>> 	- dwc3_omap
+>> 	- USB
+>>
+>> for AM43xx.
+>>
+>> Signed-off-by: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   arch/arm/boot/dts/am4372.dtsi | 99 +++++++++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 99 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+>> index 5a7cc38..90408b3 100644
+>> --- a/arch/arm/boot/dts/am4372.dtsi
+>> +++ b/arch/arm/boot/dts/am4372.dtsi
+>> @@ -698,6 +698,105 @@
+>>   			       <&edma 11>;
+>>   			dma-names = "tx", "rx";
+>>   		};
+>> +
+>> +		am43xx_control_usb2phy1: control-phy@44e10620 {
+>> +			compatible = "ti,control-phy-am437usb2";
+> Since this is the first usage of this compatible ID, we still have room to
+> change it to be better. Tony's suggestion was to use "ti,control-phy-am437-usb2"
 >
-> I've hit the issue, precisely using those bindings.
+> Please see
+> http://article.gmane.org/gmane.linux.drivers.devicetree/64833
 
-The discussion seems to flow down. The last message was about "Mon Feb
-17 18:25:11 EST 2014".
+Okay.
+>> +			reg = <0x44e10620 0x4>;
+>> +			reg-names = "power";
+>> +			status = "disabled";
+> Why disable something that is within the SoC and does not affect board configurations?
+>
+> Question applies for all the nodes in this patch except the ones that come out on the
+> SoC pins. e.g. PHY.
+Okay
+>> +		};
+>> +
+>> +		am43xx_control_usb2phy2: control-phy@0x44e10628 {
+>> +			compatible = "ti,control-phy-am437usb2";
+>> +			reg = <0x44e10628 0x4>;
+>> +			reg-names = "power";
+>> +			status = "disabled";
+>> +		};
+>> +
+>> +		ocp2scp0: ocp2scp@483a8000 {
+>> +			compatible = "ti,omap-ocp2scp";
+>> +			#address-cells = <1>;
+>> +			#size-cells = <1>;
+>> +			ranges;
+>> +			ti,hwmods = "ocp2scp0";
+>> +			status = "disabled";
+>> +
+>> +			usb2_phy1: usb2phy1@483a8000 {
+> should be
+okay
+> 			usb2_phy1: phy@483a8000 {
+>
+>> +				compatible = "ti,am437x-usb2";
+>> +				reg = <0x483a8000 0x8000>;
+>> +				ctrl-module = <&am43xx_control_usb2phy1>;
+>> +				clocks = <&clk_32768_ck>,
+>> +					 <&usb_otg_ss0_refclk960m>;
+>> +				clock-names = "usb_phy_cm_clk32k",
+>> +					      "usb_otg_ss_refclk960m";
+> clock-names should be platform independent. Better option would be to
+> modify the usb2 driver to use names like "wkupclk" and "refclk"
+The phy driver still does devm_get_clk using above clock names and not 
+"wkupclk" and "refclk".
 
-Btw is TI going to assign a new maintainer for Wilink stuff? As Luca
-has left TI, the driver is marked as "Orphan".
+>> +				#phy-cells = <0>;
+>> +				status = "disabled";
+>> +			};
+>> +		};
+>> +
+>> +		ocp2scp1: ocp2scp@483e8000 {
+>> +			compatible = "ti,omap-ocp2scp";
+>> +			#address-cells = <1>;
+>> +			#size-cells = <1>;
+>> +			ranges;
+>> +			ti,hwmods = "ocp2scp1";
+>> +			status = "disabled";
+>> +
+>> +			usb2_phy2: usb2phy2@483e8000 {
+>> +				compatible = "ti,am437x-usb2";
+>> +				reg = <0x483e8000 0x8000>;
+>> +				ctrl-module = <&am43xx_control_usb2phy2>;
+>> +				clocks = <&clk_32768_ck>,
+>> +					 <&usb_otg_ss1_refclk960m>;
+>> +				clock-names = "usb_phy_cm_clk32k",
+>> +					      "usb_otg_ss_refclk960m";
+>> +				#phy-cells = <0>;
+>> +				status = "disabled";
+>> +			};
+>> +		};
+>> +
+>> +		dwc3_1: omap_dwc3_1@48380000 {
+>> +			compatible = "ti,am437x-dwc3";
+>> +			ti,hwmods = "usb_otg_ss0";
+>> +			reg = <0x48380000 0x10000>;
+>> +			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
+>> +			#address-cells = <1>;
+>> +			#size-cells = <1>;
+>> +			utmi-mode = <1>;
+>> +			ranges;
+>> +			status = "disabled";
+>> +
+>> +			usb1: usb@48390000 {
+>> +				compatible = "synopsys,dwc3";
+>> +				reg = <0x48390000 0x17000>;
+>> +				interrupts = <GIC_SPI 168 IRQ_TYPE_LEVEL_HIGH>;
+>> +				usb-phy = <&usb2_phy1>;
+> shouldn't this be		phys = <&usb2_phy1>;	?
 
-Yegor
+At the time of writing this patch phys property is still not in.
+Also generic-phy conversion for dwc3 was recently posted by kishon.
+>> +				phy-names = "usb2-phy";
+> what about
+> 	maximum-speed = "high-speed";
+> and
+> 	dr_mode = "otg"; ?
+
+Done from board file. Actually maximum-speed I can set here.
+dr_mode is a board property.
+>> +				status = "disabled";
+>> +			};
+>> +		};
+>> +
+>> +		dwc3_2: omap_dwc3_2@483c0000 {
+>> +			compatible = "ti,am437x-dwc3";
+>> +			ti,hwmods = "usb_otg_ss1";
+>> +			reg = <0x483c0000 0x10000>;
+>> +			interrupts = <GIC_SPI 178 IRQ_TYPE_LEVEL_HIGH>;
+>> +			#address-cells = <1>;
+>> +			#size-cells = <1>;
+>> +			utmi-mode = <1>;
+>> +			ranges;
+>> +			status = "disabled";
+>> +
+>> +			usb2: usb@483d0000 {
+>> +				compatible = "synopsys,dwc3";
+>> +				reg = <0x483d0000 0x17000>;
+>> +				interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
+>> +				usb-phy = <&usb2_phy2>;
+>> +				phy-names = "usb2-phy";
+>> +				status = "disabled";
+>> +			};
+>> +		};
+>> +
+>>   	};
+>>   };
+>>   
+>>
+> cheers,
+> -roger
+
+
+-- 
+-George
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
