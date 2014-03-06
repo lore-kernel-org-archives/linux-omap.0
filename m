@@ -1,110 +1,105 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 03/13] phy: omap-control: update dra7 and am437 usb2
- bindings
-Date: Thu, 6 Mar 2014 10:00:58 -0600
-Message-ID: <20140306160058.GF25648@saruman.home>
-References: <1394116729-28811-1-git-send-email-rogerq@ti.com>
- <1394116729-28811-4-git-send-email-rogerq@ti.com>
-Reply-To: <balbi@ti.com>
+From: Christian Engelmayer <christian.engelmayer@frequentis.com>
+Subject: Re: [RFC] CPSW: dual standalone emac mode / bonding
+Date: Thu, 6 Mar 2014 18:15:27 +0100
+Message-ID: <20140306181527.3b436153@frequentis.com>
+References: <20140305183318.16f5dafa@frequentis.com>
+	<53183051.7080801@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gneEPciiIl/aKvOT"
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1394116729-28811-4-git-send-email-rogerq@ti.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: kishon@ti.com, tony@atomide.com, balbi@ti.com, george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-ide@vger.kernel.org
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <53183051.7080801@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---gneEPciiIl/aKvOT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, 6 Mar 2014 13:52:41 +0530, Mugunthan V N <mugunthanvnm@ti.com> wrote:
+> It seems that some other system in the network is using the same mac in
+> your EVM or there is a loop detected in your network which leads that
+> ALE is learning that there is  system with your MAC and updating the ALE
+> table that the mac is there and which leads your own packet will be
+> forwarded to that port and not to host port.
+> 
+> When ever you start a transmission the ALE learns the host port MAC is x
+> and updates ALE table with that port number and so there in your network
+> is working.
 
-On Thu, Mar 06, 2014 at 04:38:39PM +0200, Roger Quadros wrote:
-> The dra7-usb2 and am437-usb2 bindings have not yet been used.
-> Change them to be more elegant.
->=20
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  Documentation/devicetree/bindings/phy/ti-phy.txt | 4 ++--
->  drivers/phy/phy-omap-control.c                   | 4 ++--
->  2 files changed, 4 insertions(+), 4 deletions(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documenta=
-tion/devicetree/bindings/phy/ti-phy.txt
-> index 5c5b1b0..28e674b 100644
-> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
-> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-> @@ -9,9 +9,9 @@ Required properties:
->                          e.g. USB2_PHY on OMAP5.
->   "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power co=
-ntrol
->                          e.g. USB3 PHY and SATA PHY on OMAP5.
-> - "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY=
- on
-> + "ti,control-phy-dra7-usb2" - if it has power down register like USB2 PH=
-Y on
->                          DRA7 platform.
-> - "ti,control-phy-am437usb2" - if it has power down register like USB2 PH=
-Y on
-> + "ti,control-phy-am437-usb2" - if it has power down register like USB2 P=
-HY on
->                          AM437 platform.
->   - reg : Address and length of the register set for the device. It conta=
-ins
->     the address of "otghs_control" for control-phy-otghs or "power" regis=
-ter
+Regarding the duplicate mac address please consider the following scenario:
+2 switches are interconnected via a single crosslink. There is no loop
+in the system. The EVM is configured for dual emac mode and each external
+port is connected to one of the 2 switches.
 
-I can take the Documentation part (which I've just done) but...
+The 2 ethernet interfaces are enslaved by the bonding driver and setup in
+active-backup mode - from Documentation/networking/bonding.txt:
 
-> diff --git a/drivers/phy/phy-omap-control.c b/drivers/phy/phy-omap-contro=
-l.c
-> index 17fc200..a7e2d7f 100644
-> --- a/drivers/phy/phy-omap-control.c
-> +++ b/drivers/phy/phy-omap-control.c
-> @@ -228,11 +228,11 @@ static const struct of_device_id omap_control_phy_i=
-d_table[] =3D {
->  		.data =3D &pipe3_data,
->  	},
->  	{
-> -		.compatible =3D "ti,control-phy-dra7usb2",
-> +		.compatible =3D "ti,control-phy-dra7-usb2",
->  		.data =3D &dra7usb2_data,
->  	},
->  	{
-> -		.compatible =3D "ti,control-phy-am437usb2",
-> +		.compatible =3D "ti,control-phy-am437-usb2",
->  		.data =3D &am437usb2_data,
->  	},
->  	{},
+    "Active-backup policy: Only one slave in the bond is
+    active.  A different slave becomes active if, and only
+    if, the active slave fails.  The bond's MAC address is
+    externally visible on only one port (network adapter)
+    to avoid confusing the switch."
 
-I don't have this file in my tree ;-)
+The default mac failover is used - all slave interfaces are set to the
+same mac address, so in case of a failure of the active slave the switches
+have to relearn ports due to issued gratuitous arp, but device caches are
+not affected.
 
---=20
-balbi
+In case the EVM generates an arp request from the active interface the
+frame is also propagated through the system and received by the backup
+interfaces as it is a broadcast. Where an actual NIC would not be affected
+and the stack drops frames received on backup interfaces, I understood
+from You that the CPSW in dual emac mode is still a switch and relearns.
 
---gneEPciiIl/aKvOT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+>From some of the TI wikis one might assume that that is not the case
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+    http://processors.wiki.ti.com/index.php/SK_ETH
 
-iQIcBAEBAgAGBQJTGJu6AAoJEIaOsuA1yqREJHsQAIdE6lepQy3cPj9YxxRzLHb+
-e21dBEuVFMspabt0VWWvb0bSdQqHUAa1VpPNAXlun/ybgauo0VnXDoxCFI3GM2nc
-0kwhgGflXwMO3mgklh+W/OeAGrNEsRTTTPecuPhST8OsYRgARODpODljKvx+YumF
-rB0vh5t0XlOBwzb6Wl0blyMb78W6fkFr0VsFTlh3pVxitnkf+YIB1xWAaoVb4bT9
-qs4S26rtiEW3r+0gltYtsKiZOUIRmApIOW/N+7cobJMWhKwdlWHCqaCZ4bgM0ukc
-5dhfNTovDSB1Upkw/2zDFvQ/I0tcOYAD8mGEt0WFB+FpQA7oU/rEWju0rd8Fq9uZ
-mCdrwrG8zAM0YV74EEHPTy2pNSz22a2JRkCMetF+GJ5Xz74TVbEvU4brska5KNys
-WKv8JSCP75vlzqxXwW/60mF/nVp5Oq06W7eV6OP5g5KEuPPCdgf1N02d0MCPlHtA
-HynhtZ/j5FvReUvqbEb415nsjdDcpAwX87hOJmry5T3118Gnrh1ISNyeBsir1UHx
-21o6L8T95WB3zMtEydLsV2Fa+ZUQS0NP4CurQMwTY19Xr/6aCUPI2ghgQfMYmQIA
-B9q/1Z2Sc3+pxkAcw1KISiBMeI1mFOzLxz6SoidQdLAdRqHbMoI7GR39/h32XVNp
-S/LVx2EpnlUfItTx+vQ5
-=a5A3
------END PGP SIGNATURE-----
+    "MAC mode disables the ALE in the AM335x and each of the external
+     Ethernet ports communicates using different MAC addresses."
 
---gneEPciiIl/aKvOT--
+However, the following seems to be more correct and resemble the implementation:
+
+    http://processors.wiki.ti.com/index.php/AM335x_CPSW_(Ethernet)_Driver's_Guide
+    http://processors.wiki.ti.com/index.php/Linux_Core_CPSW_User's_Guide
+
+    "Both the interfaces should not be connected to the same subnet
+     unless only configuring bridging, and not doing IP routing, then
+     you can configure the two interfaces on the same subnet."
+
+Whereas from the observed behaviour I would assume that both interfaces
+should not only be in different subnets, but also connected to different
+broadcast domains.
+
+It is not obvious to me why the CPSW learns per vlan, but got the persistant
+addresses configured differently - eg. snippet from /sys/class/net/eth0/ale_table
+
+    type: vlan+addr(3), vlan: 3, addr: 00:12:3f:5d:96:17, uctype: touched(3), port: 2
+    type: vlan+addr(3), vlan: 2, addr: 00:12:3f:5d:96:17, uctype: touched(3), port: 1
+    type: vlan+addr(3), vlan: 3, addr: 34:db:fd:76:7f:be, uctype: untouched(1), port: 2
+    type: vlan+addr(3), vlan: 2, addr: 34:db:fd:76:7f:be, uctype: untouched(1), port: 1
+
+    type: addr(1), addr: 00:18:31:e0:06:69, uctype: persistant(0), port: 0
+    type: addr(1), addr: 00:18:31:e0:06:6a, uctype: persistant(0), port: 0
+
+Due to this I currently see no change in the behaviour in case I configure the
+bond to use the interface assigned mac addresses without change or swap the
+macs just in case of a failover.
+
+It might be a solution to this setup if the CPSW would not be able to
+relearn it's own host macs, or if the learning would be completly separated
+per port/vlan.
+
+I admit that the affected EVM is still on the TI 3.2 Kernel and I have
+to upgrade the scenario, but as both pieces of code are from You: I
+saw that the setup of mac addresses has been changed in the current
+mainline version. cpsw_ale_add_ucast() seems to be merged with the
+previously split functionality of cpsw_ale_vlan_add_ucast() and in case
+of priv->data.dual_emac I see vid handling eg. in function
+cpsw_ndo_set_mac_address() and others.
+
+Could this result in a different setup of the ALE that allows relearning of
+the mac address set on both interfaces on the VLAN used for external backup
+port 2 without affecting the communication on external active port 1?
+
+Regards,
+Christian
