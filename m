@@ -1,15 +1,15 @@
 From: Nils Holger Ellekilde <NHE@KM.DK>
 Subject: VIGTIGE MEDDELELSER
-Date: Thu, 6 Mar 2014 09:00:56 +0000
-Message-ID: <28AEF4FEF80AA047A9C8559BEA990F7F4AA5AA25@KMS-EXCH-01.km.dk>
+Date: Thu, 6 Mar 2014 09:03:07 +0000
+Message-ID: <28AEF4FEF80AA047A9C8559BEA990F7F4AA5AA8F@KMS-EXCH-01.km.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kmsv-epostav2.km.dk ([91.195.58.210]:53620 "HELO
+Received: from kmsv-epostav2.km.dk ([91.195.58.210]:35109 "HELO
 	kmsv-epostav2.km.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750972AbaCFJLL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Mar 2014 04:11:11 -0500
+	with SMTP id S1751571AbaCFJPi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Mar 2014 04:15:38 -0500
 Content-Language: en-GB
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
