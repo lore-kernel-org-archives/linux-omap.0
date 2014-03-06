@@ -1,105 +1,101 @@
-From: Christian Engelmayer <christian.engelmayer@frequentis.com>
-Subject: Re: [RFC] CPSW: dual standalone emac mode / bonding
-Date: Thu, 6 Mar 2014 18:15:27 +0100
-Message-ID: <20140306181527.3b436153@frequentis.com>
-References: <20140305183318.16f5dafa@frequentis.com>
-	<53183051.7080801@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Use handle_fasteoi_irq for INTC interrupt
+ handling
+Date: Thu, 6 Mar 2014 10:15:58 -0800
+Message-ID: <20140306181557.GA1381@atomide.com>
+References: <1393236556-12361-1-git-send-email-stefan.sorensen@spectralink.com>
+ <20140228171111.GA15399@atomide.com>
+ <1393667952.21887.15.camel@e37108.spectralink.com>
+ <20140302173727.GB18496@atomide.com>
+ <1393844735.2507.21.camel@e37108.spectralink.com>
+ <20140303174903.GA25804@atomide.com>
+ <1394116365.2785.11.camel@e37108.spectralink.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <53183051.7080801@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55697 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972AbaCFSQD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Mar 2014 13:16:03 -0500
+Content-Disposition: inline
+In-Reply-To: <1394116365.2785.11.camel@e37108.spectralink.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?utf-8?Q?S=C3=B8rensen=2C?= Stefan <Stefan.Sorensen@spectralink.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 6 Mar 2014 13:52:41 +0530, Mugunthan V N <mugunthanvnm@ti.com> wrote:
-> It seems that some other system in the network is using the same mac in
-> your EVM or there is a loop detected in your network which leads that
-> ALE is learning that there is  system with your MAC and updating the ALE
-> table that the mac is there and which leads your own packet will be
-> forwarded to that port and not to host port.
-> 
-> When ever you start a transmission the ALE learns the host port MAC is x
-> and updates ALE table with that port number and so there in your network
-> is working.
+* S=C3=B8rensen, Stefan <Stefan.Sorensen@spectralink.com> [140306 06:36=
+]:
+> On Mon, 2014-03-03 at 09:49 -0800, Tony Lindgren wrote:
+> > > 	1. CPSW device asserts TX IRQ
+> > > 	2. CPSW device asserts RX IRQ
+> > > 	3. INTC interrupts CPU, TX IRQ marked as active
+> > > 	4. omap_intc_handle_irq ACKs TX IRQ on the INTC
+> > > 	5. INTC marks RX IRQ as active
+> > > 	6. omap_intc_handle_irq calls cpsw_interrupt
+> > > 	7. cpsw_interrupt disables RX+TX IRQ in CPSW device
+> > > 	8. cpsw_interrupt disables RX+TX IRQ in INTC (the IRQs are maske=
+d)
+> > > 	9.. omap_intc_handle_irq sees no unmasked IRQs are pending and r=
+eturns
+> > > 	10. INTC interrupts CPU, RX IRQ marked as pending
+> > > 	11. omap_intc_handle_irq sees no unmasked IRQs are pending and r=
+eturns
+> > > 	12. Go to step 10
+> > >=20
+> > > The problem arises in step 8 where an active IRQ is masked. This =
+will
+> > > not make it inactive in the INTC but it will be cleared from the
+> > > pending IRQ registers - this is the register that omap_intc_handl=
+e_irq
+> > > uses to decide which IRQ is active.
+> >=20
+> > OK thanks for the info. Looking at your trace above it seems like t=
+he
+> > two separate TX and RX INTC interrupts are not really treated as se=
+parate
+> > interrupts in the cpsw driver. It seems the real fix is to fix up t=
+he
+> > cpsw interrupt handler so it's not racy. It seems that at least ste=
+p 7
+> > and 8 above should be handled separately for TX and RX based on the=
+ INTC
+> > interrupts.
+>=20
+> Looking in drivers/net/ethernet, it looks like a quite common pattern
+> is to handle both RXx and TX interrupts with the same handler, which
+> will disable both interrupts and then hand off to napi. The cpsw driv=
+er
+> works the same way, so shouldn't this work on omap?
 
-Regarding the duplicate mac address please consider the following scenario:
-2 switches are interconnected via a single crosslink. There is no loop
-in the system. The EVM is configured for dual emac mode and each external
-port is connected to one of the 2 switches.
+Hmm yes at least disable_irq should work no matter when it's called.
+=20
+> > From the INTC point of view we should just have standard level IRQ
+> > handling for each interrupt, right? INTC does not need to know abou=
+t
+> > driver specific coordination between two separate interrupts.
+>=20
+> The problem is that the INTC is not doing 100% level IRQ handling
+> combined with the way we handle the INTC during interrupts. When a IR=
+Q
+> has become active on the INTC it will stay active until we acknowledg=
+e
+> it, even if it is masked or de-asserted.
 
-The 2 ethernet interfaces are enslaved by the bonding driver and setup in
-active-backup mode - from Documentation/networking/bonding.txt:
+Yes it's starting to sound that INTC has an issuerecovering from the
+spurious interrupts.
+=20
+> My patch does not fix the problem when the active interrupt was
+> de-asserted, so I am looking into other ways of dealing with it.
 
-    "Active-backup policy: Only one slave in the bond is
-    active.  A different slave becomes active if, and only
-    if, the active slave fails.  The bond's MAC address is
-    externally visible on only one port (network adapter)
-    to avoid confusing the switch."
-
-The default mac failover is used - all slave interfaces are set to the
-same mac address, so in case of a failure of the active slave the switches
-have to relearn ports due to issued gratuitous arp, but device caches are
-not affected.
-
-In case the EVM generates an arp request from the active interface the
-frame is also propagated through the system and received by the backup
-interfaces as it is a broadcast. Where an actual NIC would not be affected
-and the stack drops frames received on backup interfaces, I understood
-from You that the CPSW in dual emac mode is still a switch and relearns.
-
->From some of the TI wikis one might assume that that is not the case
-
-    http://processors.wiki.ti.com/index.php/SK_ETH
-
-    "MAC mode disables the ALE in the AM335x and each of the external
-     Ethernet ports communicates using different MAC addresses."
-
-However, the following seems to be more correct and resemble the implementation:
-
-    http://processors.wiki.ti.com/index.php/AM335x_CPSW_(Ethernet)_Driver's_Guide
-    http://processors.wiki.ti.com/index.php/Linux_Core_CPSW_User's_Guide
-
-    "Both the interfaces should not be connected to the same subnet
-     unless only configuring bridging, and not doing IP routing, then
-     you can configure the two interfaces on the same subnet."
-
-Whereas from the observed behaviour I would assume that both interfaces
-should not only be in different subnets, but also connected to different
-broadcast domains.
-
-It is not obvious to me why the CPSW learns per vlan, but got the persistant
-addresses configured differently - eg. snippet from /sys/class/net/eth0/ale_table
-
-    type: vlan+addr(3), vlan: 3, addr: 00:12:3f:5d:96:17, uctype: touched(3), port: 2
-    type: vlan+addr(3), vlan: 2, addr: 00:12:3f:5d:96:17, uctype: touched(3), port: 1
-    type: vlan+addr(3), vlan: 3, addr: 34:db:fd:76:7f:be, uctype: untouched(1), port: 2
-    type: vlan+addr(3), vlan: 2, addr: 34:db:fd:76:7f:be, uctype: untouched(1), port: 1
-
-    type: addr(1), addr: 00:18:31:e0:06:69, uctype: persistant(0), port: 0
-    type: addr(1), addr: 00:18:31:e0:06:6a, uctype: persistant(0), port: 0
-
-Due to this I currently see no change in the behaviour in case I configure the
-bond to use the interface assigned mac addresses without change or swap the
-macs just in case of a failover.
-
-It might be a solution to this setup if the CPSW would not be able to
-relearn it's own host macs, or if the learning would be completly separated
-per port/vlan.
-
-I admit that the affected EVM is still on the TI 3.2 Kernel and I have
-to upgrade the scenario, but as both pieces of code are from You: I
-saw that the setup of mac addresses has been changed in the current
-mainline version. cpsw_ale_add_ucast() seems to be merged with the
-previously split functionality of cpsw_ale_vlan_add_ucast() and in case
-of priv->data.dual_emac I see vid handling eg. in function
-cpsw_ndo_set_mac_address() and others.
-
-Could this result in a different setup of the ALE that allows relearning of
-the mac address set on both interfaces on the VLAN used for external backup
-port 2 without affecting the communication on external active port 1?
+OK.
 
 Regards,
-Christian
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
