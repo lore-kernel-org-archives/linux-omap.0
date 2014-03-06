@@ -1,64 +1,100 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 03/13] phy: omap-control: update dra7 and am437 usb2 bindings
-Date: Thu, 6 Mar 2014 16:22:55 +0200
-Message-ID: <1394115785-28301-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 02/13] phy: omap-control: Update DT binding information
+Date: Thu, 6 Mar 2014 16:22:54 +0200
+Message-ID: <1394115785-28301-3-git-send-email-rogerq@ti.com>
 References: <1394115785-28301-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45604 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751065AbaCFOXs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Mar 2014 09:23:48 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1394115785-28301-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: kishon@ti.comg, tony@atomide.com, balbi@ti.com
-Cc: george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-ide@vger.kernel.org, rogerq@ti.com
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, balajitk@ti.com, linux-ide@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
+List-Id: linux-omap@vger.kernel.org
 
-The dra7-usb2 and am437-usb2 bindings have not yet been used.
-Change them to be more elegant.
+Move omap-control binding information to the right location.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- Documentation/devicetree/bindings/phy/ti-phy.txt | 4 ++--
- drivers/phy/phy-omap-control.c                   | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ Documentation/devicetree/bindings/phy/ti-phy.txt   | 25 ++++++++++++++++++++++
+ Documentation/devicetree/bindings/usb/omap-usb.txt | 24 ---------------------
+ 2 files changed, 25 insertions(+), 24 deletions(-)
 
 diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-index 5c5b1b0..28e674b 100644
+index f671163..5c5b1b0 100644
 --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
 +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-@@ -9,9 +9,9 @@ Required properties:
-                         e.g. USB2_PHY on OMAP5.
-  "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
-                         e.g. USB3 PHY and SATA PHY on OMAP5.
+@@ -1,5 +1,30 @@
+ TI PHY: DT DOCUMENTATION FOR PHYs in TI PLATFORMs
+ 
++OMAP CONTROL PHY
++
++Required properties:
++ - compatible: Should be one of
++ "ti,control-phy-otghs" - if it has otghs_control mailbox register as on OMAP4.
++ "ti,control-phy-usb2" - if it has Power down bit in control_dev_conf register
++                        e.g. USB2_PHY on OMAP5.
++ "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
++                        e.g. USB3 PHY and SATA PHY on OMAP5.
++ "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY on
++                        DRA7 platform.
++ "ti,control-phy-am437usb2" - if it has power down register like USB2 PHY on
++                        AM437 platform.
++ - reg : Address and length of the register set for the device. It contains
++   the address of "otghs_control" for control-phy-otghs or "power" register
++   for other types.
++ - reg-names: should be "otghs_control" control-phy-otghs and "power" for
++   other types.
++
++omap_control_usb: omap-control-usb@4a002300 {
++        compatible = "ti,control-phy-otghs";
++        reg = <0x4a00233c 0x4>;
++        reg-names = "otghs_control";
++};
++
+ OMAP USB2 PHY
+ 
+ Required properties:
+diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
+index c495135..38b2fae 100644
+--- a/Documentation/devicetree/bindings/usb/omap-usb.txt
++++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+@@ -76,27 +76,3 @@ omap_dwc3 {
+ 	ranges;
+ };
+ 
+-OMAP CONTROL USB
+-
+-Required properties:
+- - compatible: Should be one of
+- "ti,control-phy-otghs" - if it has otghs_control mailbox register as on OMAP4.
+- "ti,control-phy-usb2" - if it has Power down bit in control_dev_conf register
+-			e.g. USB2_PHY on OMAP5.
+- "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
+-			e.g. USB3 PHY and SATA PHY on OMAP5.
 - "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY on
-+ "ti,control-phy-dra7-usb2" - if it has power down register like USB2 PHY on
-                         DRA7 platform.
+-			DRA7 platform.
 - "ti,control-phy-am437usb2" - if it has power down register like USB2 PHY on
-+ "ti,control-phy-am437-usb2" - if it has power down register like USB2 PHY on
-                         AM437 platform.
-  - reg : Address and length of the register set for the device. It contains
-    the address of "otghs_control" for control-phy-otghs or "power" register
-diff --git a/drivers/phy/phy-omap-control.c b/drivers/phy/phy-omap-control.c
-index 17fc200..a7e2d7f 100644
---- a/drivers/phy/phy-omap-control.c
-+++ b/drivers/phy/phy-omap-control.c
-@@ -228,11 +228,11 @@ static const struct of_device_id omap_control_phy_id_table[] = {
- 		.data = &pipe3_data,
- 	},
- 	{
--		.compatible = "ti,control-phy-dra7usb2",
-+		.compatible = "ti,control-phy-dra7-usb2",
- 		.data = &dra7usb2_data,
- 	},
- 	{
--		.compatible = "ti,control-phy-am437usb2",
-+		.compatible = "ti,control-phy-am437-usb2",
- 		.data = &am437usb2_data,
- 	},
- 	{},
+-			AM437 platform.
+- - reg : Address and length of the register set for the device. It contains
+-   the address of "otghs_control" for control-phy-otghs or "power" register
+-   for other types.
+- - reg-names: should be "otghs_control" control-phy-otghs and "power" for
+-   other types.
+-
+-omap_control_usb: omap-control-usb@4a002300 {
+-	compatible = "ti,control-phy-otghs";
+-	reg = <0x4a00233c 0x4>;
+-	reg-names = "otghs_control";
+-};
 -- 
 1.8.3.2
-
