@@ -1,206 +1,194 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 04/13] phy: ti-pipe3: cleanup clock handling
-Date: Thu, 6 Mar 2014 16:22:56 +0200
-Message-ID: <1394115785-28301-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 05/13] phy: ti-pipe3: Add SATA DPLL support
+Date: Thu, 6 Mar 2014 16:22:57 +0200
+Message-ID: <1394115785-28301-6-git-send-email-rogerq@ti.com>
 References: <1394115785-28301-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1394115785-28301-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: kishon@ti.comg, tony@atomide.com, balbi@ti.com
-Cc: george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-ide@vger.kernel.org, rogerq@ti.com, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-ide@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-As this driver is no longer USB specific, use generic clock names.
-- Use 'wkupclk', 'sysclk' and 'refclk' clock-names. Update DT binding i=
-nfo.
-- Fix PLL_SD_SHIFT from 9 to 10
-- Don't separate prepare/unprepare clock from enable/disable. This
-ensures optimal power savings.
+USB and SATA DPLLs need different settings. Provide
+the SATA DPLL settings and use the proper DPLL settings
+based on device tree node's compatible_id.
 
-Update omap5 usb3_phy device tree node.
+Update the DT binding information.
 
-CC: Beno=C3=AEt Cousson <bcousson@baylibre.com>
-CC: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- Documentation/devicetree/bindings/phy/ti-phy.txt | 12 ++++++
- arch/arm/boot/dts/omap5.dtsi                     |  7 ++-
- drivers/phy/phy-ti-pipe3.c                       | 55 ++++++++++++----=
---------
- 3 files changed, 46 insertions(+), 28 deletions(-)
+ Documentation/devicetree/bindings/phy/ti-phy.txt |  3 +-
+ drivers/phy/phy-ti-pipe3.c                       | 76 +++++++++++++++++-------
+ 2 files changed, 57 insertions(+), 22 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documen=
-tation/devicetree/bindings/phy/ti-phy.txt
-index 28e674b..8d13349 100644
+diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+index 8d13349..2c2d66a 100644
 --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
 +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-@@ -59,6 +59,12 @@ Required properties:
+@@ -53,7 +53,8 @@ usb2phy@4a0ad080 {
+ TI PIPE3 PHY
+ 
+ Required properties:
+- - compatible: Should be "ti,phy-usb3". "ti,omap-usb3" is deprecated.
++ - compatible: Should be "ti,phy-usb3" or "ti,phy-pipe3-sata".
++   "ti,omap-usb3" is deprecated.
+  - reg : Address and length of the register set for the device.
+  - reg-names: The names of the register addresses corresponding to the registers
     filled in "reg".
-  - #phy-cells: determine the number of cells that should be given in t=
-he
-    phandle while referencing this phy.
-+ - clocks: a list of phandles and clock-specifier pairs, one for each =
-entry in
-+   clock-names.
-+ - clock-names: should include:
-+   * "wkupclk" - wakup clock.
-+   * "sysclk" - system clock.
-+   * "refclk" - reference clock.
-=20
- Optional properties:
-  - ctrl-module : phandle of the control module used by PHY driver to p=
-ower on
-@@ -74,4 +80,10 @@ usb3phy@4a084400 {
- 	reg-names =3D "phy_rx", "phy_tx", "pll_ctrl";
- 	ctrl-module =3D <&omap_control_usb>;
- 	#phy-cells =3D <0>;
-+	clocks =3D <&usb_phy_cm_clk32k>,
-+		 <&sys_clkin>,
-+		 <&usb_otg_ss_refclk960m>;
-+	clock-names =3D	"wkupclk",
-+			"sysclk",
-+			"refclk";
- };
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dts=
-i
-index 859a800..e47601a 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -778,7 +778,12 @@
- 				      <0x4a084800 0x64>,
- 				      <0x4a084c00 0x40>;
- 				reg-names =3D "phy_rx", "phy_tx", "pll_ctrl";
--				ctrl-module =3D <&omap_control_usb3phy>;
-+				clocks =3D <&usb_phy_cm_clk32k>,
-+					 <&sys_clkin>,
-+					 <&usb_otg_ss_refclk960m>;
-+				clock-names =3D	"wkupclk",
-+						"sysclk",
-+						"refclk";
- 				#phy-cells =3D <0>;
- 			};
- 		};
 diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-index fd029b1..211703c 100644
+index 211703c..f141237 100644
 --- a/drivers/phy/phy-ti-pipe3.c
 +++ b/drivers/phy/phy-ti-pipe3.c
-@@ -45,7 +45,7 @@
- #define	PLL_SELFREQDCO_MASK	0x0000000E
- #define	PLL_SELFREQDCO_SHIFT	0x1
- #define	PLL_SD_MASK		0x0003FC00
--#define	PLL_SD_SHIFT		0x9
-+#define	PLL_SD_SHIFT		10
- #define	SET_PLL_GO		0x1
- #define	PLL_TICOPWDN		0x10000
- #define	PLL_LOCK		0x2
-@@ -72,7 +72,7 @@ struct ti_pipe3 {
- 	struct device		*control_dev;
+@@ -66,6 +66,11 @@ struct pipe3_dpll_params {
+ 	u32	mf;
+ };
+ 
++struct pipe3_dpll_map {
++	unsigned long rate;
++	struct pipe3_dpll_params params;
++};
++
+ struct ti_pipe3 {
+ 	void __iomem		*pll_ctrl_base;
+ 	struct device		*dev;
+@@ -73,20 +78,27 @@ struct ti_pipe3 {
  	struct clk		*wkupclk;
  	struct clk		*sys_clk;
--	struct clk		*optclk;
-+	struct clk		*refclk;
+ 	struct clk		*refclk;
++	struct pipe3_dpll_map	*dpll_map;
  };
-=20
- struct pipe3_dpll_map {
-@@ -270,23 +270,21 @@ static int ti_pipe3_probe(struct platform_device =
-*pdev)
-=20
- 	phy->dev		=3D &pdev->dev;
-=20
--	phy->wkupclk =3D devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
-+	phy->wkupclk =3D devm_clk_get(phy->dev, "wkupclk");
- 	if (IS_ERR(phy->wkupclk)) {
--		dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
-+		dev_err(&pdev->dev, "unable to get wkupclk\n");
- 		return PTR_ERR(phy->wkupclk);
- 	}
--	clk_prepare(phy->wkupclk);
-=20
--	phy->optclk =3D devm_clk_get(phy->dev, "usb_otg_ss_refclk960m");
--	if (IS_ERR(phy->optclk)) {
--		dev_err(&pdev->dev, "unable to get usb_otg_ss_refclk960m\n");
--		return PTR_ERR(phy->optclk);
-+	phy->refclk =3D devm_clk_get(phy->dev, "refclk");
-+	if (IS_ERR(phy->refclk)) {
-+		dev_err(&pdev->dev, "unable to get refclk\n");
-+		return PTR_ERR(phy->refclk);
- 	}
--	clk_prepare(phy->optclk);
-=20
--	phy->sys_clk =3D devm_clk_get(phy->dev, "sys_clkin");
-+	phy->sys_clk =3D devm_clk_get(phy->dev, "sysclk");
- 	if (IS_ERR(phy->sys_clk)) {
--		pr_err("%s: unable to get sys_clkin\n", __func__);
-+		dev_err(&pdev->dev, "unable to get sysclk\n");
- 		return -EINVAL;
- 	}
-=20
-@@ -326,10 +324,6 @@ static int ti_pipe3_probe(struct platform_device *=
-pdev)
-=20
- static int ti_pipe3_remove(struct platform_device *pdev)
- {
--	struct ti_pipe3 *phy =3D platform_get_drvdata(pdev);
+ 
+-struct pipe3_dpll_map {
+-	unsigned long rate;
+-	struct pipe3_dpll_params params;
+-};
 -
--	clk_unprepare(phy->wkupclk);
--	clk_unprepare(phy->optclk);
- 	if (!pm_runtime_suspended(&pdev->dev))
- 		pm_runtime_put(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
-@@ -343,8 +337,10 @@ static int ti_pipe3_runtime_suspend(struct device =
-*dev)
- {
- 	struct ti_pipe3	*phy =3D dev_get_drvdata(dev);
-=20
--	clk_disable(phy->wkupclk);
--	clk_disable(phy->optclk);
-+	if (!IS_ERR(phy->wkupclk))
-+		clk_disable_unprepare(phy->wkupclk);
-+	if (!IS_ERR(phy->refclk))
-+		clk_disable_unprepare(phy->refclk);
-=20
- 	return 0;
+-static struct pipe3_dpll_map dpll_map[] = {
++static struct pipe3_dpll_map dpll_map_usb[] = {
+ 	{12000000, {1250, 5, 4, 20, 0} },	/* 12 MHz */
+ 	{16800000, {3125, 20, 4, 20, 0} },	/* 16.8 MHz */
+ 	{19200000, {1172, 8, 4, 20, 65537} },	/* 19.2 MHz */
+ 	{20000000, {1000, 7, 4, 10, 0} },	/* 20 MHz */
+ 	{26000000, {1250, 12, 4, 20, 0} },	/* 26 MHz */
+ 	{38400000, {3125, 47, 4, 20, 92843} },	/* 38.4 MHz */
++	{ },					/* Terminator */
++};
++
++static struct pipe3_dpll_map dpll_map_sata[] = {
++	{12000000, {1000, 7, 4, 6, 0} },	/* 12 MHz */
++	{16800000, {714, 7, 4, 6, 0} },		/* 16.8 MHz */
++	{19200000, {625, 7, 4, 6, 0} },		/* 19.2 MHz */
++	{20000000, {600, 7, 4, 6, 0} },		/* 20 MHz */
++	{26000000, {461, 7, 4, 6, 0} },		/* 26 MHz */
++	{38400000, {312, 7, 4, 6, 0} },		/* 38.4 MHz */
++	{ },					/* Terminator */
+ };
+ 
+ static inline u32 ti_pipe3_readl(void __iomem *addr, unsigned offset)
+@@ -100,15 +112,20 @@ static inline void ti_pipe3_writel(void __iomem *addr, unsigned offset,
+ 	__raw_writel(data, addr + offset);
  }
-@@ -354,22 +350,27 @@ static int ti_pipe3_runtime_resume(struct device =
-*dev)
- 	u32 ret =3D 0;
- 	struct ti_pipe3	*phy =3D dev_get_drvdata(dev);
-=20
--	ret =3D clk_enable(phy->optclk);
--	if (ret) {
--		dev_err(phy->dev, "Failed to enable optclk %d\n", ret);
--		goto err1;
-+	if (!IS_ERR(phy->refclk)) {
-+		ret =3D clk_prepare_enable(phy->refclk);
-+		if (ret) {
-+			dev_err(phy->dev, "Failed to enable refclk %d\n", ret);
-+			goto err1;
-+		}
+ 
+-static struct pipe3_dpll_params *ti_pipe3_get_dpll_params(unsigned long rate)
++static struct pipe3_dpll_params *ti_pipe3_get_dpll_params(struct ti_pipe3 *phy)
+ {
+-	int i;
++	unsigned long rate;
++	struct pipe3_dpll_map *dpll_map = phy->dpll_map;
+ 
+-	for (i = 0; i < ARRAY_SIZE(dpll_map); i++) {
+-		if (rate == dpll_map[i].rate)
+-			return &dpll_map[i].params;
++	rate = clk_get_rate(phy->sys_clk);
++
++	for (; dpll_map->rate; dpll_map++) {
++		if (rate == dpll_map->rate)
++			return &dpll_map->params;
  	}
-=20
--	ret =3D clk_enable(phy->wkupclk);
--	if (ret) {
--		dev_err(phy->dev, "Failed to enable wkupclk %d\n", ret);
--		goto err2;
-+	if (!IS_ERR(phy->wkupclk)) {
-+		ret =3D clk_prepare_enable(phy->wkupclk);
-+		if (ret) {
-+			dev_err(phy->dev, "Failed to enable wkupclk %d\n", ret);
-+			goto err2;
-+		}
+ 
++	dev_err(phy->dev, "No DPLL configuration for %lu Hz SYS CLK\n", rate);
++
+ 	return NULL;
+ }
+ 
+@@ -182,16 +199,11 @@ static void ti_pipe3_dpll_relock(struct ti_pipe3 *phy)
+ static int ti_pipe3_dpll_lock(struct ti_pipe3 *phy)
+ {
+ 	u32			val;
+-	unsigned long		rate;
+ 	struct pipe3_dpll_params *dpll_params;
+ 
+-	rate = clk_get_rate(phy->sys_clk);
+-	dpll_params = ti_pipe3_get_dpll_params(rate);
+-	if (!dpll_params) {
+-		dev_err(phy->dev,
+-			  "No DPLL configuration for %lu Hz SYS CLK\n", rate);
++	dpll_params = ti_pipe3_get_dpll_params(phy);
++	if (!dpll_params)
+ 		return -EINVAL;
+-	}
+ 
+ 	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION1);
+ 	val &= ~PLL_REGN_MASK;
+@@ -244,6 +256,10 @@ static struct phy_ops ops = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id ti_pipe3_id_table[];
++#endif
++
+ static int ti_pipe3_probe(struct platform_device *pdev)
+ {
+ 	struct ti_pipe3 *phy;
+@@ -253,8 +269,10 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+ 	struct device_node *node = pdev->dev.of_node;
+ 	struct device_node *control_node;
+ 	struct platform_device *control_pdev;
++	const struct of_device_id *match;
+ 
+-	if (!node)
++	match = of_match_device(of_match_ptr(ti_pipe3_id_table), &pdev->dev);
++	if (!match)
+ 		return -EINVAL;
+ 
+ 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+@@ -263,6 +281,12 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
  	}
-=20
- 	return 0;
-=20
- err2:
--	clk_disable(phy->optclk);
-+	if (!IS_ERR(phy->refclk))
-+		clk_disable_unprepare(phy->refclk);
-=20
- err1:
- 	return ret;
---=20
+ 
++	phy->dpll_map = (struct pipe3_dpll_map *)match->data;
++	if (!phy->dpll_map) {
++		dev_err(&pdev->dev, "no DPLL data\n");
++		return -EINVAL;
++	}
++
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pll_ctrl");
+ 	phy->pll_ctrl_base = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(phy->pll_ctrl_base))
+@@ -388,8 +412,18 @@ static const struct dev_pm_ops ti_pipe3_pm_ops = {
+ 
+ #ifdef CONFIG_OF
+ static const struct of_device_id ti_pipe3_id_table[] = {
+-	{ .compatible = "ti,phy-usb3" },
+-	{ .compatible = "ti,omap-usb3" },
++	{
++		.compatible = "ti,phy-usb3",
++		.data = dpll_map_usb,
++	},
++	{
++		.compatible = "ti,omap-usb3",
++		.data = dpll_map_usb,
++	},
++	{
++		.compatible = "ti,phy-pipe3-sata",
++		.data = dpll_map_sata,
++	},
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(of, ti_pipe3_id_table);
+-- 
 1.8.3.2
