@@ -1,68 +1,72 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 00/10] arch/arm OMAP IOMMU patches for 3.15
-Date: Wed, 5 Mar 2014 18:24:09 -0600
-Message-ID: <1394065459-16409-1-git-send-email-s-anna@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [RESEND Patch 0/9] dts pending patches for TI omap
+Date: Thu, 6 Mar 2014 10:03:39 +0530
+Message-ID: <5317FAA3.9020409@ti.com>
+References: <1393858226-32595-1-git-send-email-mugunthanvnm@ti.com> <20140305195053.GG7599@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:34455 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752185AbaCFEem (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Mar 2014 23:34:42 -0500
+In-Reply-To: <20140305195053.GG7599@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, bcousson@baylibre.com, linux@arm.linux.org.uk, akpm@linux-foundation.orgnm@ti.com, balajitk@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Paul, Benoit,
+On Thursday 06 March 2014 01:20 AM, Tony Lindgren wrote:
+> * Mugunthan V N <mugunthanvnm@ti.com> [140303 06:53]:
+>> Benoit/Tony
+>>
+>> Here I am send all the pending dt patches that can go into 3.15 merge window,
+>> all the patches were already posted to mailing list and has beed reviewed.
+>>
+>> I have rebased the patches on top of
+>> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git omap-for-v3.15/dt
+>> and fixed all the merge conflicts.
+>>
+>> Pasting the mail archive for the patches series
+>>
+>> * Add ABB device nodes
+>> http://linux-kernel.2935.n7.nabble.com/PATCH-0-4-ARM-dts-OMAP3630-Add-ABB-device-nodes-td794852.html
+>>
+>> * MMC hot plug support
+>> http://mail.blameitonlove.com/lists/linux-omap/msg101933.html
+>> Dropped [PATCH 2/3] ARM: dts: am335x-evmsk: add SD card hotplug support as this
+>> is already merged with commit id 29ea5efb0bb612d352aa360de26e2095cb230e4a
+>>
+>> * DRA7 Cross bar DTS patches
+>> Cross bar driver has been pulled for next merge, so the dts patches can also
+>> be pulled for next merge window.
+>>
+>> Here is the pull request for the same patch series.
+>>
+>> The following changes since commit f777ba1780584b100ab9664cc06d04f3bb273a84:
+>>
+>>   Merge tag 'for_3.15/dts_signed' of git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt into omap-for-v3.15/dt (2014-03-02 14:22:03 -0800)
+>>
+>> are available in the git repository at:
+>>
+>>
+>>   git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git omapdt-for-3.15
+>>
+>> for you to fetch changes up to 5f78b45aa45c5b2c4de895c3b0740fda4684dae4:
+>>
+>>   ARM: DTS: DRA7: Add routable-irqs property for gic node (2014-03-03 19:53:25 +0530)
+> 
+> Thanks applying all except for the crossbar ones into
+> omap-for-v3.15/dt.
+> 
+> Please resend the last three patches once the dependencies
+> are merged to mainline kernel as otherwise the interrupt
+> nubers are all wrong without the crossbar driver related
+> code.
+ 
+   Ok, i will resend when the dependencies are merged
 
-This is a repost as per Tony's request [3] of all the OMAP IOMMU DT support
-patches that are under arch/arm. The series just assimilates patches 8
-through 13 from the v3 OMAP IOMMU DT adaptation for 3.15 series [1], and
-all the v2 patches from the OMAP IOMMU DTS nodes [2].
+Regards,
+ Sricharan
 
-The only change made with respect to the patches above is in the OMAP4
-and OMAP5 DTS nodes - I have adjusted the reg sizes from 0xff to 0x100.
-
-Can you please provide your acks on the hwmod patches and DTS
-patches?
-
-regards
-Suman
-
-[1] http://marc.info/?l=linux-omap&m=139362022805667&w=2
-[2] http://marc.info/?l=linux-omap&m=139362062805816&w=2
-[3] http://marc.info/?l=linux-omap&m=139404802021252&w=2
-
-Florian Vaussard (4):
-  ARM: OMAP3: remove deprecated CONFIG_OMAP_IOMMU_IVA2
-  ARM: dts: OMAP3: Update ISP IOMMU node
-  ARM: dts: OMAP3: Add IVA IOMMU node
-  ARM: dts: OMAP4: Add IOMMU nodes
-
-Suman Anna (6):
-  ARM: OMAP3: fix iva mmu programming issues
-  ARM: OMAP2+: change the ISP device archdata MMU name for DT
-  ARM: OMAP2+: use pdata quirks for iommu reset lines
-  ARM: OMAP5: hwmod data: add mmu data for ipu & dsp
-  ARM: OMAP2+: extend iommu pdata-quirks to OMAP5
-  ARM: dts: OMAP5: Add IOMMU nodes
-
- arch/arm/boot/dts/omap3.dtsi                | 15 ++++--
- arch/arm/boot/dts/omap4.dtsi                | 15 ++++++
- arch/arm/boot/dts/omap5.dtsi                | 15 ++++++
- arch/arm/mach-omap2/clockdomains3xxx_data.c |  2 +-
- arch/arm/mach-omap2/devices.c               |  3 ++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c  | 12 ++---
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c  | 83 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pdata-quirks.c          | 24 +++++++++
- arch/arm/plat-omap/Kconfig                  |  3 --
- 9 files changed, 157 insertions(+), 15 deletions(-)
-
--- 
-1.9.0
