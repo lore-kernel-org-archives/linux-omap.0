@@ -1,136 +1,201 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 04/13] phy: ti-pipe3: cleanup clock handling
-Date: Thu, 6 Mar 2014 21:15:20 +0530
-Message-ID: <53189810.8010904@ti.com>
-References: <1394116729-28811-1-git-send-email-rogerq@ti.com>
- <1394116729-28811-5-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v2 05/13] phy: ti-pipe3: Add SATA DPLL support
+Date: Thu, 6 Mar 2014 21:15:57 +0530
+Message-ID: <53189835.5070905@ti.com>
+References: <1394116729-28811-1-git-send-email-rogerq@ti.com> <1394116729-28811-6-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1394116729-28811-5-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1394116729-28811-6-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>, tony@atomide.com, balbi@ti.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, balajitk@ti.com, linux-ide@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, hdegoede@redhat.com, =?UTF-8?B?QmVub8Ou?= =?UTF-8?B?dCBDb3Vzc29u?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-ide@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Um9nZXIsCgpPbiBUaHVyc2RheSAwNiBNYXJjaCAyMDE0IDA4OjA4IFBNLCBSb2dlciBRdWFkcm9z
-IHdyb3RlOgo+IEFzIHRoaXMgZHJpdmVyIGlzIG5vIGxvbmdlciBVU0Igc3BlY2lmaWMsIHVzZSBn
-ZW5lcmljIGNsb2NrIG5hbWVzLgo+IC0gVXNlICd3a3VwY2xrJywgJ3N5c2NsaycgYW5kICdyZWZj
-bGsnIGNsb2NrLW5hbWVzLiBVcGRhdGUgRFQgYmluZGluZyBpbmZvLgo+IC0gRml4IFBMTF9TRF9T
-SElGVCBmcm9tIDkgdG8gMTAKPiAtIERvbid0IHNlcGFyYXRlIHByZXBhcmUvdW5wcmVwYXJlIGNs
-b2NrIGZyb20gZW5hYmxlL2Rpc2FibGUuIFRoaXMKPiBlbnN1cmVzIG9wdGltYWwgcG93ZXIgc2F2
-aW5ncy4KPgo+IFVwZGF0ZSBvbWFwNSB1c2IzX3BoeSBkZXZpY2UgdHJlZSBub2RlLgo+Cj4gQ0M6
-IEJlbm/DrnQgQ291c3NvbiA8YmNvdXNzb25AYmF5bGlicmUuY29tPgo+IENDOiBUb255IExpbmRn
-cmVuIDx0b255QGF0b21pZGUuY29tPgo+IFNpZ25lZC1vZmYtYnk6IFJvZ2VyIFF1YWRyb3MgPHJv
-Z2VycUB0aS5jb20+Cj4gLS0tCj4gICBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3Mv
-cGh5L3RpLXBoeS50eHQgfCAxMiArKysrKysKPiAgIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0
-c2kgICAgICAgICAgICAgICAgICAgICB8ICA3ICsrLQo+ICAgZHJpdmVycy9waHkvcGh5LXRpLXBp
-cGUzLmMgICAgICAgICAgICAgICAgICAgICAgIHwgNTUgKysrKysrKysrKysrLS0tLS0tLS0tLS0t
-CgpIZXJlIHlvdSBoYXZlIHRvIHNwbGl0IHRoZSBwYXRjaC4gb21hcDUuZHRzaSBzaG91bGQgYmUg
-YSBzZXBhcmF0ZSBwYXRjaCAKdG8gVG9ueS4gSSBjb3VsZCB0YWtlIG9ubHkgcGh5LXRpLXBpcGUz
-LmMgYWdhaW4gc2luY2UgdGktcGh5LnR4dCBpcyBvbmx5IAppbiBGZWxpcGUncyBicmFuY2guCgpS
-ZWdhcmRzCktpc2hvbgoKPiAgIDMgZmlsZXMgY2hhbmdlZCwgNDYgaW5zZXJ0aW9ucygrKSwgMjgg
-ZGVsZXRpb25zKC0pCj4KPiBkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2Jp
-bmRpbmdzL3BoeS90aS1waHkudHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdz
-L3BoeS90aS1waHkudHh0Cj4gaW5kZXggMjhlNjc0Yi4uOGQxMzM0OSAxMDA2NDQKPiAtLS0gYS9E
-b2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvcGh5L3RpLXBoeS50eHQKPiArKysgYi9E
-b2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvcGh5L3RpLXBoeS50eHQKPiBAQCAtNTks
-NiArNTksMTIgQEAgUmVxdWlyZWQgcHJvcGVydGllczoKPiAgICAgIGZpbGxlZCBpbiAicmVnIi4K
-PiAgICAtICNwaHktY2VsbHM6IGRldGVybWluZSB0aGUgbnVtYmVyIG9mIGNlbGxzIHRoYXQgc2hv
-dWxkIGJlIGdpdmVuIGluIHRoZQo+ICAgICAgcGhhbmRsZSB3aGlsZSByZWZlcmVuY2luZyB0aGlz
-IHBoeS4KPiArIC0gY2xvY2tzOiBhIGxpc3Qgb2YgcGhhbmRsZXMgYW5kIGNsb2NrLXNwZWNpZmll
-ciBwYWlycywgb25lIGZvciBlYWNoIGVudHJ5IGluCj4gKyAgIGNsb2NrLW5hbWVzLgo+ICsgLSBj
-bG9jay1uYW1lczogc2hvdWxkIGluY2x1ZGU6Cj4gKyAgICogIndrdXBjbGsiIC0gd2FrdXAgY2xv
-Y2suCj4gKyAgICogInN5c2NsayIgLSBzeXN0ZW0gY2xvY2suCj4gKyAgICogInJlZmNsayIgLSBy
-ZWZlcmVuY2UgY2xvY2suCj4KPiAgIE9wdGlvbmFsIHByb3BlcnRpZXM6Cj4gICAgLSBjdHJsLW1v
-ZHVsZSA6IHBoYW5kbGUgb2YgdGhlIGNvbnRyb2wgbW9kdWxlIHVzZWQgYnkgUEhZIGRyaXZlciB0
-byBwb3dlciBvbgo+IEBAIC03NCw0ICs4MCwxMCBAQCB1c2IzcGh5QDRhMDg0NDAwIHsKPiAgIAly
-ZWctbmFtZXMgPSAicGh5X3J4IiwgInBoeV90eCIsICJwbGxfY3RybCI7Cj4gICAJY3RybC1tb2R1
-bGUgPSA8Jm9tYXBfY29udHJvbF91c2I+Owo+ICAgCSNwaHktY2VsbHMgPSA8MD47Cj4gKwljbG9j
-a3MgPSA8JnVzYl9waHlfY21fY2xrMzJrPiwKPiArCQkgPCZzeXNfY2xraW4+LAo+ICsJCSA8JnVz
-Yl9vdGdfc3NfcmVmY2xrOTYwbT47Cj4gKwljbG9jay1uYW1lcyA9CSJ3a3VwY2xrIiwKPiArCQkJ
-InN5c2NsayIsCj4gKwkJCSJyZWZjbGsiOwo+ICAgfTsKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0v
-Ym9vdC9kdHMvb21hcDUuZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kKPiBpbmRl
-eCA4NTlhODAwLi5lNDc2MDFhIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1
-LmR0c2kKPiArKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpCj4gQEAgLTc3OCw3ICs3
-NzgsMTIgQEAKPiAgIAkJCQkgICAgICA8MHg0YTA4NDgwMCAweDY0PiwKPiAgIAkJCQkgICAgICA8
-MHg0YTA4NGMwMCAweDQwPjsKPiAgIAkJCQlyZWctbmFtZXMgPSAicGh5X3J4IiwgInBoeV90eCIs
-ICJwbGxfY3RybCI7Cj4gLQkJCQljdHJsLW1vZHVsZSA9IDwmb21hcF9jb250cm9sX3VzYjNwaHk+
-Owo+ICsJCQkJY2xvY2tzID0gPCZ1c2JfcGh5X2NtX2NsazMyaz4sCj4gKwkJCQkJIDwmc3lzX2Ns
-a2luPiwKPiArCQkJCQkgPCZ1c2Jfb3RnX3NzX3JlZmNsazk2MG0+Owo+ICsJCQkJY2xvY2stbmFt
-ZXMgPQkid2t1cGNsayIsCj4gKwkJCQkJCSJzeXNjbGsiLAo+ICsJCQkJCQkicmVmY2xrIjsKPiAg
-IAkJCQkjcGh5LWNlbGxzID0gPDA+Owo+ICAgCQkJfTsKPiAgIAkJfTsKPiBkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9waHkvcGh5LXRpLXBpcGUzLmMgYi9kcml2ZXJzL3BoeS9waHktdGktcGlwZTMuYwo+
-IGluZGV4IGZkMDI5YjEuLjIxMTcwM2MgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9waHkvcGh5LXRp
-LXBpcGUzLmMKPiArKysgYi9kcml2ZXJzL3BoeS9waHktdGktcGlwZTMuYwo+IEBAIC00NSw3ICs0
-NSw3IEBACj4gICAjZGVmaW5lCVBMTF9TRUxGUkVRRENPX01BU0sJMHgwMDAwMDAwRQo+ICAgI2Rl
-ZmluZQlQTExfU0VMRlJFUURDT19TSElGVAkweDEKPiAgICNkZWZpbmUJUExMX1NEX01BU0sJCTB4
-MDAwM0ZDMDAKPiAtI2RlZmluZQlQTExfU0RfU0hJRlQJCTB4OQo+ICsjZGVmaW5lCVBMTF9TRF9T
-SElGVAkJMTAKPiAgICNkZWZpbmUJU0VUX1BMTF9HTwkJMHgxCj4gICAjZGVmaW5lCVBMTF9USUNP
-UFdETgkJMHgxMDAwMAo+ICAgI2RlZmluZQlQTExfTE9DSwkJMHgyCj4gQEAgLTcyLDcgKzcyLDcg
-QEAgc3RydWN0IHRpX3BpcGUzIHsKPiAgIAlzdHJ1Y3QgZGV2aWNlCQkqY29udHJvbF9kZXY7Cj4g
-ICAJc3RydWN0IGNsawkJKndrdXBjbGs7Cj4gICAJc3RydWN0IGNsawkJKnN5c19jbGs7Cj4gLQlz
-dHJ1Y3QgY2xrCQkqb3B0Y2xrOwo+ICsJc3RydWN0IGNsawkJKnJlZmNsazsKPiAgIH07Cj4KPiAg
-IHN0cnVjdCBwaXBlM19kcGxsX21hcCB7Cj4gQEAgLTI3MCwyMyArMjcwLDIxIEBAIHN0YXRpYyBp
-bnQgdGlfcGlwZTNfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPgo+ICAgCXBo
-eS0+ZGV2CQk9ICZwZGV2LT5kZXY7Cj4KPiAtCXBoeS0+d2t1cGNsayA9IGRldm1fY2xrX2dldChw
-aHktPmRldiwgInVzYl9waHlfY21fY2xrMzJrIik7Cj4gKwlwaHktPndrdXBjbGsgPSBkZXZtX2Ns
-a19nZXQocGh5LT5kZXYsICJ3a3VwY2xrIik7Cj4gICAJaWYgKElTX0VSUihwaHktPndrdXBjbGsp
-KSB7Cj4gLQkJZGV2X2VycigmcGRldi0+ZGV2LCAidW5hYmxlIHRvIGdldCB1c2JfcGh5X2NtX2Ns
-azMya1xuIik7Cj4gKwkJZGV2X2VycigmcGRldi0+ZGV2LCAidW5hYmxlIHRvIGdldCB3a3VwY2xr
-XG4iKTsKPiAgIAkJcmV0dXJuIFBUUl9FUlIocGh5LT53a3VwY2xrKTsKPiAgIAl9Cj4gLQljbGtf
-cHJlcGFyZShwaHktPndrdXBjbGspOwo+Cj4gLQlwaHktPm9wdGNsayA9IGRldm1fY2xrX2dldChw
-aHktPmRldiwgInVzYl9vdGdfc3NfcmVmY2xrOTYwbSIpOwo+IC0JaWYgKElTX0VSUihwaHktPm9w
-dGNsaykpIHsKPiAtCQlkZXZfZXJyKCZwZGV2LT5kZXYsICJ1bmFibGUgdG8gZ2V0IHVzYl9vdGdf
-c3NfcmVmY2xrOTYwbVxuIik7Cj4gLQkJcmV0dXJuIFBUUl9FUlIocGh5LT5vcHRjbGspOwo+ICsJ
-cGh5LT5yZWZjbGsgPSBkZXZtX2Nsa19nZXQocGh5LT5kZXYsICJyZWZjbGsiKTsKPiArCWlmIChJ
-U19FUlIocGh5LT5yZWZjbGspKSB7Cj4gKwkJZGV2X2VycigmcGRldi0+ZGV2LCAidW5hYmxlIHRv
-IGdldCByZWZjbGtcbiIpOwo+ICsJCXJldHVybiBQVFJfRVJSKHBoeS0+cmVmY2xrKTsKPiAgIAl9
-Cj4gLQljbGtfcHJlcGFyZShwaHktPm9wdGNsayk7Cj4KPiAtCXBoeS0+c3lzX2NsayA9IGRldm1f
-Y2xrX2dldChwaHktPmRldiwgInN5c19jbGtpbiIpOwo+ICsJcGh5LT5zeXNfY2xrID0gZGV2bV9j
-bGtfZ2V0KHBoeS0+ZGV2LCAic3lzY2xrIik7Cj4gICAJaWYgKElTX0VSUihwaHktPnN5c19jbGsp
-KSB7Cj4gLQkJcHJfZXJyKCIlczogdW5hYmxlIHRvIGdldCBzeXNfY2xraW5cbiIsIF9fZnVuY19f
-KTsKPiArCQlkZXZfZXJyKCZwZGV2LT5kZXYsICJ1bmFibGUgdG8gZ2V0IHN5c2Nsa1xuIik7Cj4g
-ICAJCXJldHVybiAtRUlOVkFMOwo+ICAgCX0KPgo+IEBAIC0zMjYsMTAgKzMyNCw2IEBAIHN0YXRp
-YyBpbnQgdGlfcGlwZTNfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPgo+ICAg
-c3RhdGljIGludCB0aV9waXBlM19yZW1vdmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikK
-PiAgIHsKPiAtCXN0cnVjdCB0aV9waXBlMyAqcGh5ID0gcGxhdGZvcm1fZ2V0X2RydmRhdGEocGRl
-dik7Cj4gLQo+IC0JY2xrX3VucHJlcGFyZShwaHktPndrdXBjbGspOwo+IC0JY2xrX3VucHJlcGFy
-ZShwaHktPm9wdGNsayk7Cj4gICAJaWYgKCFwbV9ydW50aW1lX3N1c3BlbmRlZCgmcGRldi0+ZGV2
-KSkKPiAgIAkJcG1fcnVudGltZV9wdXQoJnBkZXYtPmRldik7Cj4gICAJcG1fcnVudGltZV9kaXNh
-YmxlKCZwZGV2LT5kZXYpOwo+IEBAIC0zNDMsOCArMzM3LDEwIEBAIHN0YXRpYyBpbnQgdGlfcGlw
-ZTNfcnVudGltZV9zdXNwZW5kKHN0cnVjdCBkZXZpY2UgKmRldikKPiAgIHsKPiAgIAlzdHJ1Y3Qg
-dGlfcGlwZTMJKnBoeSA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOwo+Cj4gLQljbGtfZGlzYWJsZShw
-aHktPndrdXBjbGspOwo+IC0JY2xrX2Rpc2FibGUocGh5LT5vcHRjbGspOwo+ICsJaWYgKCFJU19F
-UlIocGh5LT53a3VwY2xrKSkKPiArCQljbGtfZGlzYWJsZV91bnByZXBhcmUocGh5LT53a3VwY2xr
-KTsKPiArCWlmICghSVNfRVJSKHBoeS0+cmVmY2xrKSkKPiArCQljbGtfZGlzYWJsZV91bnByZXBh
-cmUocGh5LT5yZWZjbGspOwo+Cj4gICAJcmV0dXJuIDA7Cj4gICB9Cj4gQEAgLTM1NCwyMiArMzUw
-LDI3IEBAIHN0YXRpYyBpbnQgdGlfcGlwZTNfcnVudGltZV9yZXN1bWUoc3RydWN0IGRldmljZSAq
-ZGV2KQo+ICAgCXUzMiByZXQgPSAwOwo+ICAgCXN0cnVjdCB0aV9waXBlMwkqcGh5ID0gZGV2X2dl
-dF9kcnZkYXRhKGRldik7Cj4KPiAtCXJldCA9IGNsa19lbmFibGUocGh5LT5vcHRjbGspOwo+IC0J
-aWYgKHJldCkgewo+IC0JCWRldl9lcnIocGh5LT5kZXYsICJGYWlsZWQgdG8gZW5hYmxlIG9wdGNs
-ayAlZFxuIiwgcmV0KTsKPiAtCQlnb3RvIGVycjE7Cj4gKwlpZiAoIUlTX0VSUihwaHktPnJlZmNs
-aykpIHsKPiArCQlyZXQgPSBjbGtfcHJlcGFyZV9lbmFibGUocGh5LT5yZWZjbGspOwo+ICsJCWlm
-IChyZXQpIHsKPiArCQkJZGV2X2VycihwaHktPmRldiwgIkZhaWxlZCB0byBlbmFibGUgcmVmY2xr
-ICVkXG4iLCByZXQpOwo+ICsJCQlnb3RvIGVycjE7Cj4gKwkJfQo+ICAgCX0KPgo+IC0JcmV0ID0g
-Y2xrX2VuYWJsZShwaHktPndrdXBjbGspOwo+IC0JaWYgKHJldCkgewo+IC0JCWRldl9lcnIocGh5
-LT5kZXYsICJGYWlsZWQgdG8gZW5hYmxlIHdrdXBjbGsgJWRcbiIsIHJldCk7Cj4gLQkJZ290byBl
-cnIyOwo+ICsJaWYgKCFJU19FUlIocGh5LT53a3VwY2xrKSkgewo+ICsJCXJldCA9IGNsa19wcmVw
-YXJlX2VuYWJsZShwaHktPndrdXBjbGspOwo+ICsJCWlmIChyZXQpIHsKPiArCQkJZGV2X2Vycihw
-aHktPmRldiwgIkZhaWxlZCB0byBlbmFibGUgd2t1cGNsayAlZFxuIiwgcmV0KTsKPiArCQkJZ290
-byBlcnIyOwo+ICsJCX0KPiAgIAl9Cj4KPiAgIAlyZXR1cm4gMDsKPgo+ICAgZXJyMjoKPiAtCWNs
-a19kaXNhYmxlKHBoeS0+b3B0Y2xrKTsKPiArCWlmICghSVNfRVJSKHBoeS0+cmVmY2xrKSkKPiAr
-CQljbGtfZGlzYWJsZV91bnByZXBhcmUocGh5LT5yZWZjbGspOwo+Cj4gICBlcnIxOgo+ICAgCXJl
-dHVybiByZXQ7Cj4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMu
-aW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xpbnV4LWFybS1rZXJuZWwK
+
+
+On Thursday 06 March 2014 08:08 PM, Roger Quadros wrote:
+> USB and SATA DPLLs need different settings. Provide
+> the SATA DPLL settings and use the proper DPLL settings
+> based on device tree node's compatible_id.
+>
+> Update the DT binding information.
+>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>   Documentation/devicetree/bindings/phy/ti-phy.txt |  3 +-
+>   drivers/phy/phy-ti-pipe3.c                       | 76 +++++++++++++++++-------
+
+same here..
+
+-Kishon
+>   2 files changed, 57 insertions(+), 22 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+> index 8d13349..2c2d66a 100644
+> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+> @@ -53,7 +53,8 @@ usb2phy@4a0ad080 {
+>   TI PIPE3 PHY
+>
+>   Required properties:
+> - - compatible: Should be "ti,phy-usb3". "ti,omap-usb3" is deprecated.
+> + - compatible: Should be "ti,phy-usb3" or "ti,phy-pipe3-sata".
+> +   "ti,omap-usb3" is deprecated.
+>    - reg : Address and length of the register set for the device.
+>    - reg-names: The names of the register addresses corresponding to the registers
+>      filled in "reg".
+> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+> index 211703c..f141237 100644
+> --- a/drivers/phy/phy-ti-pipe3.c
+> +++ b/drivers/phy/phy-ti-pipe3.c
+> @@ -66,6 +66,11 @@ struct pipe3_dpll_params {
+>   	u32	mf;
+>   };
+>
+> +struct pipe3_dpll_map {
+> +	unsigned long rate;
+> +	struct pipe3_dpll_params params;
+> +};
+> +
+>   struct ti_pipe3 {
+>   	void __iomem		*pll_ctrl_base;
+>   	struct device		*dev;
+> @@ -73,20 +78,27 @@ struct ti_pipe3 {
+>   	struct clk		*wkupclk;
+>   	struct clk		*sys_clk;
+>   	struct clk		*refclk;
+> +	struct pipe3_dpll_map	*dpll_map;
+>   };
+>
+> -struct pipe3_dpll_map {
+> -	unsigned long rate;
+> -	struct pipe3_dpll_params params;
+> -};
+> -
+> -static struct pipe3_dpll_map dpll_map[] = {
+> +static struct pipe3_dpll_map dpll_map_usb[] = {
+>   	{12000000, {1250, 5, 4, 20, 0} },	/* 12 MHz */
+>   	{16800000, {3125, 20, 4, 20, 0} },	/* 16.8 MHz */
+>   	{19200000, {1172, 8, 4, 20, 65537} },	/* 19.2 MHz */
+>   	{20000000, {1000, 7, 4, 10, 0} },	/* 20 MHz */
+>   	{26000000, {1250, 12, 4, 20, 0} },	/* 26 MHz */
+>   	{38400000, {3125, 47, 4, 20, 92843} },	/* 38.4 MHz */
+> +	{ },					/* Terminator */
+> +};
+> +
+> +static struct pipe3_dpll_map dpll_map_sata[] = {
+> +	{12000000, {1000, 7, 4, 6, 0} },	/* 12 MHz */
+> +	{16800000, {714, 7, 4, 6, 0} },		/* 16.8 MHz */
+> +	{19200000, {625, 7, 4, 6, 0} },		/* 19.2 MHz */
+> +	{20000000, {600, 7, 4, 6, 0} },		/* 20 MHz */
+> +	{26000000, {461, 7, 4, 6, 0} },		/* 26 MHz */
+> +	{38400000, {312, 7, 4, 6, 0} },		/* 38.4 MHz */
+> +	{ },					/* Terminator */
+>   };
+>
+>   static inline u32 ti_pipe3_readl(void __iomem *addr, unsigned offset)
+> @@ -100,15 +112,20 @@ static inline void ti_pipe3_writel(void __iomem *addr, unsigned offset,
+>   	__raw_writel(data, addr + offset);
+>   }
+>
+> -static struct pipe3_dpll_params *ti_pipe3_get_dpll_params(unsigned long rate)
+> +static struct pipe3_dpll_params *ti_pipe3_get_dpll_params(struct ti_pipe3 *phy)
+>   {
+> -	int i;
+> +	unsigned long rate;
+> +	struct pipe3_dpll_map *dpll_map = phy->dpll_map;
+>
+> -	for (i = 0; i < ARRAY_SIZE(dpll_map); i++) {
+> -		if (rate == dpll_map[i].rate)
+> -			return &dpll_map[i].params;
+> +	rate = clk_get_rate(phy->sys_clk);
+> +
+> +	for (; dpll_map->rate; dpll_map++) {
+> +		if (rate == dpll_map->rate)
+> +			return &dpll_map->params;
+>   	}
+>
+> +	dev_err(phy->dev, "No DPLL configuration for %lu Hz SYS CLK\n", rate);
+> +
+>   	return NULL;
+>   }
+>
+> @@ -182,16 +199,11 @@ static void ti_pipe3_dpll_relock(struct ti_pipe3 *phy)
+>   static int ti_pipe3_dpll_lock(struct ti_pipe3 *phy)
+>   {
+>   	u32			val;
+> -	unsigned long		rate;
+>   	struct pipe3_dpll_params *dpll_params;
+>
+> -	rate = clk_get_rate(phy->sys_clk);
+> -	dpll_params = ti_pipe3_get_dpll_params(rate);
+> -	if (!dpll_params) {
+> -		dev_err(phy->dev,
+> -			  "No DPLL configuration for %lu Hz SYS CLK\n", rate);
+> +	dpll_params = ti_pipe3_get_dpll_params(phy);
+> +	if (!dpll_params)
+>   		return -EINVAL;
+> -	}
+>
+>   	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION1);
+>   	val &= ~PLL_REGN_MASK;
+> @@ -244,6 +256,10 @@ static struct phy_ops ops = {
+>   	.owner		= THIS_MODULE,
+>   };
+>
+> +#ifdef CONFIG_OF
+> +static const struct of_device_id ti_pipe3_id_table[];
+> +#endif
+> +
+>   static int ti_pipe3_probe(struct platform_device *pdev)
+>   {
+>   	struct ti_pipe3 *phy;
+> @@ -253,8 +269,10 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+>   	struct device_node *node = pdev->dev.of_node;
+>   	struct device_node *control_node;
+>   	struct platform_device *control_pdev;
+> +	const struct of_device_id *match;
+>
+> -	if (!node)
+> +	match = of_match_device(of_match_ptr(ti_pipe3_id_table), &pdev->dev);
+> +	if (!match)
+>   		return -EINVAL;
+>
+>   	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+> @@ -263,6 +281,12 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+>   		return -ENOMEM;
+>   	}
+>
+> +	phy->dpll_map = (struct pipe3_dpll_map *)match->data;
+> +	if (!phy->dpll_map) {
+> +		dev_err(&pdev->dev, "no DPLL data\n");
+> +		return -EINVAL;
+> +	}
+> +
+>   	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pll_ctrl");
+>   	phy->pll_ctrl_base = devm_ioremap_resource(&pdev->dev, res);
+>   	if (IS_ERR(phy->pll_ctrl_base))
+> @@ -388,8 +412,18 @@ static const struct dev_pm_ops ti_pipe3_pm_ops = {
+>
+>   #ifdef CONFIG_OF
+>   static const struct of_device_id ti_pipe3_id_table[] = {
+> -	{ .compatible = "ti,phy-usb3" },
+> -	{ .compatible = "ti,omap-usb3" },
+> +	{
+> +		.compatible = "ti,phy-usb3",
+> +		.data = dpll_map_usb,
+> +	},
+> +	{
+> +		.compatible = "ti,omap-usb3",
+> +		.data = dpll_map_usb,
+> +	},
+> +	{
+> +		.compatible = "ti,phy-pipe3-sata",
+> +		.data = dpll_map_sata,
+> +	},
+>   	{}
+>   };
+>   MODULE_DEVICE_TABLE(of, ti_pipe3_id_table);
+>
