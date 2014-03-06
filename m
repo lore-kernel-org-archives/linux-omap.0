@@ -1,53 +1,57 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH v2] crypto: omap-sham: kmap SG pages before appending
-Date: Thu, 6 Mar 2014 08:21:15 +0800
-Message-ID: <20140306002115.GA30768@gondor.apana.org.au>
-References: <1393957854-10961-1-git-send-email-joelf@ti.com>
- <20140305015953.GA20702@gondor.apana.org.au>
- <39412163-4B61-4490-ABC8-5BA633CC6618@ti.com>
- <20140305071109.GA22178@gondor.apana.org.au>
- <531745EE.2060804@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 08/10] ARM: dts: OMAP3: Add IVA IOMMU node
+Date: Wed, 5 Mar 2014 18:24:17 -0600
+Message-ID: <1394065459-16409-9-git-send-email-s-anna@ti.com>
+References: <1394065459-16409-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <531745EE.2060804@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Vutla, Lokesh" <lokeshvutla@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1394065459-16409-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Mar 05, 2014 at 09:42:38AM -0600, Joel Fernandes wrote:
->
-> In my testing it wasn't called from softirq, I'm using cryptodev which is
-> called from openssl through ioctl, here is a traceback (sorry about wrap):
-> 
-> [<bf8010bb>] (cryptodev_ioctl+0x282/0x59c [cryptodev])
-> [  220.015390] [<bf8010bb>] (cryptodev_ioctl+0x282/0x59c [cryptodev]) from
-> [<c00cdaa5>] (do_vfs_ioctl+0x61/0x41c)
-> [  220.025909] [<c00cdaa5>] (do_vfs_ioctl+0x61/0x41c) from [<c00cdeab>]
-> (SyS_ioctl+0x4b/0x50)
-> [  220.034602] [<c00cdeab>] (SyS_ioctl+0x4b/0x50) from [<c000cf01>]
-> (ret_fast_syscall+0x1/0x46)
-> [  220.045254] CPU: 0 PID: 1798 Comm: openssl Tainted: G           O
-> 3.12.9-00581-g5fa084c-dirty #32
-> [  220.054636] [<c0012d05>] (unwind_backtrace+0x1/0x9c) from [<c000fa6d>]
-> (show_stack+0x11/0x14)
-> [  220.063619] [<c000fa6d>] (show_stack+0x11/0x14) from [<c0342edb>]
-> (dump_stack+0x4b/0x60)
-> [  220.072144] [<c0342edb>] (dump_stack+0x4b/0x60) from [<c02a1b3f>]
-> (omap_sham_update+0x1f/0xa4)
-> [  220.081214] [<c02a1b3f>] (omap_sham_update+0x1f/0xa4) from [<bf801f67>]
-> (cryptodev_hash_update+0x26/0x80 [cryptodev])
-> 
-> 
-> Could you suggest, what other place is update() called in softirq context?
-> I may be missing something.
+From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 
-IPsec may call this from softirq context.
+Add the DT node for the IOMMU within the DSP subsystem. The entry
+is disabled to keep in line with the hwmod usage as intended by
+the deprecated CONFIG_OMAP_IOMMU_IVA2 flag.
 
-Cheers,
+Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+[s-anna-l0cyMroinI0@public.gmane.org: split the entry and disable the node]
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/omap3.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index f7a47e3..9574a9e 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -418,6 +418,14 @@
+ 			ti,#tlb-entries = <8>;
+ 		};
+ 
++		mmu_iva: mmu@5d000000 {
++			compatible = "ti,omap2-iommu";
++			reg = <0x5d000000 0x80>;
++			interrupts = <28>;
++			ti,hwmods = "mmu_iva";
++			status = "disabled";
++		};
++
+ 		wdt2: wdt@48314000 {
+ 			compatible = "ti,omap3-wdt";
+ 			reg = <0x48314000 0x80>;
 -- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+1.9.0
