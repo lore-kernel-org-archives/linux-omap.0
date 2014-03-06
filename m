@@ -1,72 +1,123 @@
-From: =?UTF-8?q?Stefan=20S=C3=B8rensen?=
-	<stefan.sorensen@spectralink.com>
-Subject: [PATCH] ARM: OMAP2+: INTC: Acknowledge stuck active interrupts
-Date: Thu,  6 Mar 2014 16:27:15 +0100
-Message-ID: <1394119635-24194-1-git-send-email-stefan.sorensen@spectralink.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RESEND PATCH 1/1] arm: dts: am33xx: correcting dt node unit
+ address for usb
+Date: Thu, 6 Mar 2014 09:26:37 -0600
+Message-ID: <20140306152637.GB25648@saruman.home>
+References: <1394109094-19205-1-git-send-email-mugunthanvnm@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 213083164162.static.sonofon.dk ([213.83.164.162]:57771 "EHLO
-	HORWDSPRD01.spectralink.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751082AbaCFP1Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Mar 2014 10:27:24 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============5362118876725491750=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1394109094-19205-1-git-send-email-mugunthanvnm@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: devicetree@vger.kernel.org, tony@atomide.com, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
-Cc: =?UTF-8?q?Stefan=20S=C3=B8rensen?= <stefan.sorensen@spectralink.com>
 
-When an interrupt has become active on the INTC it will stay active
-until it is acked, even if masked or de-asserted. The
-INTC_PENDING_IRQn registers are however updated and since these are
-used by omap_intc_handle_irq to determine which interrupt to handle,
-it will never see the active interrupt. This will result in a storm of
-useless interrupts that is only stopped when another higher priority
-interrupt is asserted.
+--===============5362118876725491750==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="WhfpMioaduB5tiZL"
+Content-Disposition: inline
 
-=46ix by sending the INTC an acknowledge if we find no interrupts to
-handle.
+--WhfpMioaduB5tiZL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Stefan S=C3=B8rensen <stefan.sorensen@spectralink.com>
----
- arch/arm/mach-omap2/irq.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+On Thu, Mar 06, 2014 at 06:01:34PM +0530, Mugunthan V N wrote:
+> DT node's unit address should be its own register offset address to make =
+it a
+> unique across the system. This patch corrects the incorrect USB entries w=
+ith
+> correct register offset for unit address.
+>=20
+> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index e022a86..6037a9a 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -222,6 +222,7 @@ void __init ti81xx_init_irq(void)
- static inline void omap_intc_handle_irq(void __iomem *base_addr, struc=
-t pt_regs *regs)
- {
- 	u32 irqnr;
-+	int handled_irq =3D 0;
-=20
- 	do {
- 		irqnr =3D readl_relaxed(base_addr + 0x98);
-@@ -249,8 +250,15 @@ out:
- 		if (irqnr) {
- 			irqnr =3D irq_find_mapping(domain, irqnr);
- 			handle_IRQ(irqnr, regs);
-+			handled_irq =3D 1;
- 		}
- 	} while (irqnr);
-+
-+	/* If an irq is masked or deasserted while active, we will
-+	 * keep ending up here with no irq handled. So remove it from
-+	 * the INTC with an ack.*/
-+	if (!handled_irq)
-+		omap_ack_irq(NULL);
- }
-=20
- asmlinkage void __exception_irq_entry omap2_intc_handle_irq(struct pt_=
-regs *regs)
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+> ---
+> This patch was posted long back (Aug. 30, 2013), below is the archive of =
+the
+> orginal patch.
+> https://patchwork.kernel.org/patch/2852163/
+>=20
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 7073429..9770e35 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -453,7 +453,7 @@
+>  			ti,hwmods =3D "usb_otg_hs";
+>  			status =3D "disabled";
+> =20
+> -			usb_ctrl_mod: control@44e10000 {
+> +			usb_ctrl_mod: control@44e10620 {
+>  				compatible =3D "ti,am335x-usb-ctrl-module";
+>  				reg =3D <0x44e10620 0x10
+>  					0x44e10648 0x4>;
+> @@ -556,7 +556,7 @@
+>  					"tx14", "tx15";
+>  			};
+> =20
+> -			cppi41dma: dma-controller@07402000 {
+> +			cppi41dma: dma-controller@47402000 {
+>  				compatible =3D "ti,am3359-cppi41";
+>  				reg =3D  <0x47400000 0x1000
+>  					0x47402000 0x1000
+> --=20
+> 1.9.0
+>=20
+
 --=20
-1.8.5.3
+balbi
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--WhfpMioaduB5tiZL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTGJOtAAoJEIaOsuA1yqRErGAP/0c2Z08DjRTUQutZiuYgvp54
+Oas99qOL07xHgZSXnjXNNQGe0mJaa1lKb5EO7iIU/2aVFJYPktmX43bdk7DSsD/b
+U1rplrDdsaHR7RooprBY1JD9/ufs9mtjotvV5gonwpmwb/Bf8WdUgIlRHYTS+ipr
+BDFtLrecyicZuu1AmnDWR1sJrp4SrboOcpO1vjZ49lTDIZfnL+3vj7YjAk+JDbHZ
+DpRRBDJ+MR30/CZfmrxbKwfFf67VcW5pc1dLaIUdWJHQKCSjxStXVwXg+n3mUQ/I
+ipLGmcoa4sgmSASt2vvxjDkONH+i07CZJD02UTIFHrO+06AScTzN6lzFaEeI82Vl
+AIBKK0zD8x0WvvAOOiA0Lwci1MWRtJQ2Q/yeeGvfdvomQi53C/v4KLnLzJhmnpVF
+BhWonKRUgD0F7zTQv+ckqDhuBEdsg7AKRX0/bqYvIR9J/DnKeExJc8++NPdZa1ha
+nW6wXBsC4LJyhv7RavBY8iHXZng1QbOG8q/Ing9tlGn0MlKbtsU6LQPVXSIsulHZ
+keFm+1bSfDWk475XWhFi/VutOzxYM3dkuAx9FdK1A6cvHyOtm+ayJ2eyV41KUli2
+CFr9ohdDO2qfb79SwVsjafeFYUB2BMkmxR2sw1D3KCGta+/ETIRsJmf/tDk5l2xu
++9UweRgVg4ulgqNAQ7K5
+=AYoB
+-----END PGP SIGNATURE-----
+
+--WhfpMioaduB5tiZL--
+
+
+--===============5362118876725491750==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============5362118876725491750==--
