@@ -1,57 +1,52 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 0/8] USB support for DRA7-evm
-Date: Fri, 7 Mar 2014 15:09:03 +0200
-Message-ID: <1394197751-28984-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH 6/8] ARM: dts: omap4+: Add clocks to USB2 PHY node
+Date: Fri, 7 Mar 2014 15:09:09 +0200
+Message-ID: <1394197751-28984-7-git-send-email-rogerq@ti.com>
+References: <1394197751-28984-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1394197751-28984-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
+Cc: kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The USB2 PHY driver expects named clocks for wakeup clock
+and reference clock. Provide this information for USB2 PHY
+nodes in OMAP4 and OMAP5 SoC DTS.
 
-This series enables the 2 USB ports on the DRA7-evm.
-
-Patches are based on on 3.14-rc4 with balbi/next, linux-phy/next,
-omap-for-v3.15/dt merged and [1] applied.
-
-[1] - http://article.gmane.org/gmane.linux.drivers.devicetree/65223.
-
-cheers,
--roger
-
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
-Roger Quadros (8):
-  CLK: ti: dra7: Initialize USB_DPLL
-  ARM: dts: dra7-clock: Add "l3init_960m_gfclk" clock gate
-  ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
-  phy: omap-usb2: Use generic clock names "wkupclk" and "refclk"
-  phy: omap-usb2: Add clock names to Documentation binding
-  ARM: dts: omap4+: Add clocks to USB2 PHY node
-  ARM: dts: dra7: Add USB related nodes
-  dts: dra7-evm: add USB support
+ arch/arm/boot/dts/omap4.dtsi | 2 ++
+ arch/arm/boot/dts/omap5.dtsi | 2 ++
+ 2 files changed, 4 insertions(+)
 
- Documentation/devicetree/bindings/phy/ti-phy.txt |   7 ++
- arch/arm/boot/dts/dra7-evm.dts                   |  24 +++++
- arch/arm/boot/dts/dra7.dtsi                      | 110 +++++++++++++++++++++++
- arch/arm/boot/dts/dra7xx-clocks.dtsi             |  12 ++-
- arch/arm/boot/dts/omap4.dtsi                     |   2 +
- arch/arm/boot/dts/omap5.dtsi                     |   2 +
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c        |  22 ++---
- drivers/clk/ti/clk-7xx.c                         |  11 +++
- drivers/phy/phy-omap-usb2.c                      |   8 +-
- 9 files changed, 182 insertions(+), 16 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 4e15be5..2f6cfa6 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -608,6 +608,8 @@
+ 				compatible = "ti,omap-usb2";
+ 				reg = <0x4a0ad080 0x58>;
+ 				ctrl-module = <&omap_control_usb2phy>;
++				clocks = <&usb_phy_cm_clk32k>;
++				clock-names = "wkupclk";
+ 				#phy-cells = <0>;
+ 			};
+ 		};
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 521caab..bf629bb 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -769,6 +769,8 @@
+ 				compatible = "ti,omap-usb2";
+ 				reg = <0x4a084000 0x7c>;
+ 				ctrl-module = <&omap_control_usb2phy>;
++				clocks = <&usb_phy_cm_clk32k>, <&usb_otg_ss_refclk960m>;
++				clock-names = "wkupclk", "refclk";
+ 				#phy-cells = <0>;
+ 			};
+ 
 -- 
 1.8.3.2
