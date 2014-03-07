@@ -1,62 +1,101 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 2/8] phy: ti-pipe3: Add clocks to PIPE3 PHY Documentation
- binding
-Date: Fri, 7 Mar 2014 12:15:02 +0200
-Message-ID: <1394187308-19622-3-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 7/8] ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
+Date: Fri, 7 Mar 2014 12:15:07 +0200
+Message-ID: <1394187308-19622-8-git-send-email-rogerq@ti.com>
 References: <1394187308-19622-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1394187308-19622-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
+Cc: kishon@ti.com, george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, rogerq@ti.com, Benoit Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Nikhil Devshatwar <nikhil.nd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add wakeup, system and reference clocks to DT binding documentation.
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
 
-Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+Add hwmods for ocp2scp3 and sata modules.
+
+[Roger Q] Clean up.
+
+CC: Benoit Cousson <bcousson@baylibre.com>
+CC: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Balaji T K <balajitk@ti.com>
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- Documentation/devicetree/bindings/phy/ti-phy.txt | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 31 ++++++++++++++++++++++++++-----
+ 1 file changed, 26 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-index 073a623..96ba29e 100644
---- a/Documentation/devicetree/bindings/phy/ti-phy.txt
-+++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-@@ -59,6 +59,12 @@ Required properties:
-    filled in "reg".
-  - #phy-cells: determine the number of cells that should be given in the
-    phandle while referencing this phy.
-+ - clocks: a list of phandles and clock-specifier pairs, one for each entry in
-+   clock-names.
-+ - clock-names: should include:
-+   * "wkupclk" - wakeup clock.
-+   * "sysclk" - system clock.
-+   * "refclk" - reference clock.
- 
- Optional properties:
-  - ctrl-module : phandle of the control module used by PHY driver to power on
-@@ -74,4 +80,10 @@ usb3phy@4a084400 {
- 	reg-names = "phy_rx", "phy_tx", "pll_ctrl";
- 	ctrl-module = <&omap_control_usb>;
- 	#phy-cells = <0>;
-+	clocks = <&usb_phy_cm_clk32k>,
-+		 <&sys_clkin>,
-+		 <&usb_otg_ss_refclk960m>;
-+	clock-names =	"wkupclk",
-+			"sysclk",
-+			"refclk";
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 18f333c..3c9a430 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1215,6 +1215,30 @@ static struct omap_hwmod dra7xx_ocp2scp1_hwmod = {
+ 	},
  };
+ 
++/* ocp2scp3 */
++static struct omap_hwmod dra7xx_ocp2scp3_hwmod;
++
++/* l4_cfg -> ocp2scp3 */
++static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
++	.master		= &dra7xx_l4_cfg_hwmod,
++	.slave		= &dra7xx_ocp2scp3_hwmod,
++	.clk		= "l4_root_clk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
++	.name		= "ocp2scp3",
++	.class		= &dra7xx_ocp2scp_hwmod_class,
++	.clkdm_name	= "l3init_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_HWCTRL,
++		},
++	},
++};
++
+ /*
+  * 'qspi' class
+  *
+@@ -1268,9 +1292,6 @@ static struct omap_hwmod_class dra7xx_sata_hwmod_class = {
+ };
+ 
+ /* sata */
+-static struct omap_hwmod_opt_clk sata_opt_clks[] = {
+-	{ .role = "ref_clk", .clk = "sata_ref_clk" },
+-};
+ 
+ static struct omap_hwmod dra7xx_sata_hwmod = {
+ 	.name		= "sata",
+@@ -1278,6 +1299,7 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
+ 	.clkdm_name	= "l3init_clkdm",
+ 	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+ 	.main_clk	= "func_48m_fclk",
++	.mpu_rt_idx	= 1,
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = DRA7XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
+@@ -1285,8 +1307,6 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
+ 			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+-	.opt_clks	= sata_opt_clks,
+-	.opt_clks_cnt	= ARRAY_SIZE(sata_opt_clks),
+ };
+ 
+ /*
+@@ -2683,6 +2703,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_per1__mmc4,
+ 	&dra7xx_l4_cfg__mpu,
+ 	&dra7xx_l4_cfg__ocp2scp1,
++	&dra7xx_l4_cfg__ocp2scp3,
+ 	&dra7xx_l3_main_1__qspi,
+ 	&dra7xx_l4_cfg__sata,
+ 	&dra7xx_l4_cfg__smartreflex_core,
 -- 
 1.8.3.2
