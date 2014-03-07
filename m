@@ -1,50 +1,44 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4] phy: omap-control: update dra7 and am437 usb2 bindings
-Date: Fri, 7 Mar 2014 14:02:55 +0530
-Message-ID: <1394181175-16112-1-git-send-email-kishon@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH v2 0/5] Add USB nodes for am43xx epos and gp evm
+Date: Fri, 7 Mar 2014 14:45:53 +0530
+Message-ID: <1394183758-3821-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, rogerq@ti.com, balbi@ti.com
-Cc: kishon@ti.com
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: balbi@ti.com, rogerq@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, anatol.pomozov@gmail.com, bcousson@baylibre.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Roger Quadros <rogerq@ti.com>
+The patch series adds USB dt nodes for am43xx epos and gp evm
 
-The dra7-usb2 and am437-usb2 bindings have not yet been used.
-Change them to be more elegant.
+Boot tested with  Benoit's for_3.15 + following patches
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
-Changes from v3:
-Changed the compatible value to that suggested by Tony.
-ti,control-phy-usb2-dra7 and ti,control-phy-usb2-am437.
+https://patchwork.kernel.org/patch/3600821/
+https://patchwork.kernel.org/patch/3600831/
+https://patchwork.kernel.org/patch/3600851/
+https://patchwork.kernel.org/patch/3600841/
 
-Changes from v2:
-Kept only the drivers/phy part in this patch
 
- drivers/phy/phy-omap-control.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Changes from v1 -> v2
+	* Reorder "doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue"
+	* Address v1 coments on "ARM: dts: AM4372: Add USB nodes"  
 
-diff --git a/drivers/phy/phy-omap-control.c b/drivers/phy/phy-omap-control.c
-index 17fc200..a7e2d7f 100644
---- a/drivers/phy/phy-omap-control.c
-+++ b/drivers/phy/phy-omap-control.c
-@@ -228,11 +228,11 @@ static const struct of_device_id omap_control_phy_id_table[] = {
- 		.data = &pipe3_data,
- 	},
- 	{
--		.compatible = "ti,control-phy-dra7usb2",
-+		.compatible = "ti,control-phy-usb2-dra7",
- 		.data = &dra7usb2_data,
- 	},
- 	{
--		.compatible = "ti,control-phy-am437usb2",
-+		.compatible = "ti,control-phy-usb2-am437",
- 		.data = &am437usb2_data,
- 	},
- 	{},
+
+George Cherian (5):
+  doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue
+  ARM: dts: am43xx clock data
+  ARM: dts: AM4372: Add USB nodes
+  ARM: dts: am437x-gp-evm: Enable USB
+  ARM: dts: am43x-epos-evm: Enable USB
+
+ Documentation/devicetree/bindings/usb/omap-usb.txt |  4 +-
+ arch/arm/boot/dts/am4372.dtsi                      | 95 ++++++++++++++++++++++
+ arch/arm/boot/dts/am437x-gp-evm.dts                | 28 +++++++
+ arch/arm/boot/dts/am43x-epos-evm.dts               | 27 ++++++
+ arch/arm/boot/dts/am43xx-clocks.dtsi               | 17 ++++
+ 5 files changed, 170 insertions(+), 1 deletion(-)
+
 -- 
-1.7.9.5
+1.8.3.1
+
