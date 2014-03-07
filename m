@@ -1,53 +1,80 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH v3] crypto: omap-sham: Map SG pages if they are HIGHMEM before accessing
-Date: Fri, 7 Mar 2014 10:28:46 -0600
-Message-ID: <1394209726-6746-1-git-send-email-joelf@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v6] phy: omap-usb2: move omap_usb.h from linux/usb/ to linux/phy/
+Date: Fri, 7 Mar 2014 22:18:08 +0530
+Message-ID: <1394210888-1587-1-git-send-email-kishon@ti.com>
+References: <1393846695-14644-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40556 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751568AbaCGQ3J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Mar 2014 11:29:09 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1393846695-14644-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: kishon@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: herbert@gondor.apana.org.au, lokeshvutla@ti.com, Joel Fernandes <joelf@ti.com>
 
-HIGHMEM pages may not be mapped so we must kmap them before accessing.
-This resolves a random OOPs error that was showing up during OpenSSL SHA tests.
+No functional change. Moved omap_usb.h from linux/usb/ to linux/phy/.
+Also removed the unused members of struct omap_usb (after phy-omap-pipe3
+started using it's own header file)
 
-Signed-off-by: Joel Fernandes <joelf@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
-v2: Don't check for HIGHMEM, already done by kmap/unmap
-v3: Use atomic as call can happen in irq context.
+Changes from v5:
+fixes the following compilation error
+drivers/usb/phy/phy-twl6030-usb.c:30:32:
+fatal error: linux/usb/omap_usb.h: No such file or directory
 
- drivers/crypto/omap-sham.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/phy/phy-omap-usb2.c           |    2 +-
+ drivers/usb/phy/phy-twl6030-usb.c     |    2 +-
+ include/linux/{usb => phy}/omap_usb.h |    3 ---
+ 3 files changed, 2 insertions(+), 5 deletions(-)
+ rename include/linux/{usb => phy}/omap_usb.h (95%)
 
-diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index 8bdde57..54b3ed1 100644
---- a/drivers/crypto/omap-sham.c
-+++ b/drivers/crypto/omap-sham.c
-@@ -636,11 +636,17 @@ static size_t omap_sham_append_buffer(struct omap_sham_reqctx *ctx,
- static size_t omap_sham_append_sg(struct omap_sham_reqctx *ctx)
- {
- 	size_t count;
-+	const u8 *vaddr;
+diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
+index 705af5a..9c3f056 100644
+--- a/drivers/phy/phy-omap-usb2.c
++++ b/drivers/phy/phy-omap-usb2.c
+@@ -21,7 +21,7 @@
+ #include <linux/slab.h>
+ #include <linux/of.h>
+ #include <linux/io.h>
+-#include <linux/usb/omap_usb.h>
++#include <linux/phy/omap_usb.h>
+ #include <linux/usb/phy_companion.h>
+ #include <linux/clk.h>
+ #include <linux/err.h>
+diff --git a/drivers/usb/phy/phy-twl6030-usb.c b/drivers/usb/phy/phy-twl6030-usb.c
+index 214172b..04778cf 100644
+--- a/drivers/usb/phy/phy-twl6030-usb.c
++++ b/drivers/usb/phy/phy-twl6030-usb.c
+@@ -27,7 +27,7 @@
+ #include <linux/io.h>
+ #include <linux/usb/musb-omap.h>
+ #include <linux/usb/phy_companion.h>
+-#include <linux/usb/omap_usb.h>
++#include <linux/phy/omap_usb.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/err.h>
+diff --git a/include/linux/usb/omap_usb.h b/include/linux/phy/omap_usb.h
+similarity index 95%
+rename from include/linux/usb/omap_usb.h
+rename to include/linux/phy/omap_usb.h
+index 6ae2936..19d343c3 100644
+--- a/include/linux/usb/omap_usb.h
++++ b/include/linux/phy/omap_usb.h
+@@ -33,13 +33,10 @@ struct usb_dpll_params {
+ struct omap_usb {
+ 	struct usb_phy		phy;
+ 	struct phy_companion	*comparator;
+-	void __iomem		*pll_ctrl_base;
+ 	struct device		*dev;
+ 	struct device		*control_dev;
+ 	struct clk		*wkupclk;
+-	struct clk		*sys_clk;
+ 	struct clk		*optclk;
+-	u8			is_suspended:1;
+ };
  
- 	while (ctx->sg) {
-+		vaddr = kmap_atomic(sg_page(ctx->sg));
-+
- 		count = omap_sham_append_buffer(ctx,
--				sg_virt(ctx->sg) + ctx->offset,
-+				vaddr + ctx->offset,
- 				ctx->sg->length - ctx->offset);
-+
-+		kunmap_atomic((void *)vaddr);
-+
- 		if (!count)
- 			break;
- 		ctx->offset += count;
+ #define	phy_to_omapusb(x)	container_of((x), struct omap_usb, phy)
 -- 
 1.7.9.5
-
