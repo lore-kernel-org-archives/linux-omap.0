@@ -1,79 +1,62 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 8/8] ARM: dts: dra7: add OCP2SCP3 and SATA nodes
-Date: Fri, 7 Mar 2014 12:15:08 +0200
-Message-ID: <1394187308-19622-9-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 2/8] phy: ti-pipe3: Add clocks to PIPE3 PHY Documentation
+ binding
+Date: Fri, 7 Mar 2014 12:15:02 +0200
+Message-ID: <1394187308-19622-3-git-send-email-rogerq@ti.com>
 References: <1394187308-19622-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1394187308-19622-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: balbi@ti.com, tony@atomide.com
-Cc: kishon@ti.com, george.cherian@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, rogerq@ti.com, Benoit Cousson <bcousson@baylibre.com>
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Balaji T K <balajitk@ti.com>
+Add wakeup, system and reference clocks to DT binding documentation.
 
-Add nodes for OCP2SCP3 bus, SATA controller and SATA PHY.
-
-[Roger Q] Clean up.
-
-CC: Benoit Cousson <bcousson@baylibre.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ Documentation/devicetree/bindings/phy/ti-phy.txt | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 9e3caf3..597979b 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -772,6 +772,45 @@
- 			dma-names = "tx0", "rx0";
- 			status = "disabled";
- 		};
-+
-+		omap_control_sata: control-phy@4a002374 {
-+			compatible = "ti,control-phy-pipe3";
-+			reg = <0x4a002374 0x4>;
-+			reg-names = "power";
-+			clocks = <&sys_clkin1>;
-+			clock-names = "sysclk";
-+		};
-+
-+		/* OCP2SCP3 */
-+		ocp2scp@4a090000 {
-+			compatible = "ti,omap-ocp2scp";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			reg = <0x4a090000 0x20>;
-+			ti,hwmods = "ocp2scp3";
-+			sata_phy: phy@4A096000 {
-+				compatible = "ti,phy-pipe3-sata";
-+				reg = <0x4A096000 0x80>, /* phy_rx */
-+				      <0x4A096400 0x64>, /* phy_tx */
-+				      <0x4A096800 0x40>; /* pll_ctrl */
-+				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
-+				ctrl-module = <&omap_control_sata>;
-+				clocks = <&sys_clkin1>;
-+				clock-names = "sysclk";
-+				#phy-cells = <0>;
-+			};
-+		};
-+
-+		sata: sata@4a141100 {
-+			compatible = "snps,dwc-ahci";
-+			reg = <0x4a140000 0x1100>, <0x4a141100 0x7>;
-+			interrupts = <GIC_SPI 54 IRQ_TYPE_LEVEL_HIGH>;
-+			phys = <&sata_phy>;
-+			phy-names = "sata-phy";
-+			clocks = <&sata_ref_clk>;
-+			ti,hwmods = "sata";
-+		};
- 	};
- };
+diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+index 073a623..96ba29e 100644
+--- a/Documentation/devicetree/bindings/phy/ti-phy.txt
++++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+@@ -59,6 +59,12 @@ Required properties:
+    filled in "reg".
+  - #phy-cells: determine the number of cells that should be given in the
+    phandle while referencing this phy.
++ - clocks: a list of phandles and clock-specifier pairs, one for each entry in
++   clock-names.
++ - clock-names: should include:
++   * "wkupclk" - wakeup clock.
++   * "sysclk" - system clock.
++   * "refclk" - reference clock.
  
+ Optional properties:
+  - ctrl-module : phandle of the control module used by PHY driver to power on
+@@ -74,4 +80,10 @@ usb3phy@4a084400 {
+ 	reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+ 	ctrl-module = <&omap_control_usb>;
+ 	#phy-cells = <0>;
++	clocks = <&usb_phy_cm_clk32k>,
++		 <&sys_clkin>,
++		 <&usb_otg_ss_refclk960m>;
++	clock-names =	"wkupclk",
++			"sysclk",
++			"refclk";
+ };
 -- 
 1.8.3.2
