@@ -1,48 +1,42 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2/4] power_supply: Introduce generic psy charging driver
-Date: Fri, 7 Mar 2014 21:10:39 +0100
-Message-ID: <20140307201039.GB27645@amd.pavel.ucw.cz>
-References: <1392875640-29230-1-git-send-email-jenny.tc@intel.com>
- <1392875640-29230-3-git-send-email-jenny.tc@intel.com>
- <CACRpkdaU44iinj2iDNdYm62J+4jQbg+XJ=Zq4GmJryPeu7GfTQ@mail.gmail.com>
- <20140228100114.GA13189@amd.pavel.ucw.cz>
- <CACRpkdaZ2moqGWx2BpfEeKoW6doXg67TkJKY+mbg4hrFHDr16Q@mail.gmail.com>
+Subject: Re: [PATCHv8 1/4] power_supply: Add inlmt,iterm, min/max temp props
+Date: Fri, 7 Mar 2014 21:12:40 +0100
+Message-ID: <20140307201240.GC27645@amd.pavel.ucw.cz>
+References: <1394170174-21959-1-git-send-email-jenny.tc@intel.com>
+ <1394170174-21959-2-git-send-email-jenny.tc@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49420 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754032AbaCGUMm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Mar 2014 15:12:42 -0500
 Content-Disposition: inline
-In-Reply-To: <CACRpkdaZ2moqGWx2BpfEeKoW6doXg67TkJKY+mbg4hrFHDr16Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Jenny TC <jenny.tc@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordo>
+In-Reply-To: <1394170174-21959-2-git-send-email-jenny.tc@intel.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jenny TC <jenny.tc@intel.com>
+Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org
 
-On Fri 2014-03-07 11:04:59, Linus Walleij wrote:
-> On Fri, Feb 28, 2014 at 6:01 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> > On Thu 2014-02-27 21:08:01, Linus Walleij wrote:
-> >> On Thu, Feb 20, 2014 at 6:53 AM, Jenny TC <jenny.tc@intel.com> wrote:
-> >>
-> >> > +++ b/include/linux/power/power_supply_charger.h
-> >>
-> >> > +#define MAX_CUR_VOLT_SAMPLES 3
-> >> > +#define DEF_CUR_VOLT_SAMPLE_JIFF (30*HZ)
-> >>
-> >> Why are things defined in Jiffies like this insead of seconds, milliseconds
-> >> etc? This will vary with the current operating frequency of the system,
-> >> why should physical measurements do that?
-> >
-> > It is actually ok. The define is relative to jiffies, and that's what
-> > interface expects.
+On Fri 2014-03-07 10:59:31, Jenny TC wrote:
+> Add new power supply properties for input current, charge termination
+> current, min and max temperature
 > 
-> So consider the option that the interface is wrong.
+> POWER_SUPPLY_PROP_TEMP_MIN - minimum operatable temperature
+> POWER_SUPPLY_PROP_TEMP_MAX - maximum operatable temperature
 > 
-> Stating something like a sample period in system-specific jiffies
-> instead of period time T is just weird. What control systems
-> guy would understand this?
+> POWER_SUPPLY_PROP_INLMT - input current limit programmed by charger. Indicates
+> the input current for a charging source.
+> 
+> POWER_SUPPLY_PROP_CHARGE_TERM_CUR - Charge termination current used to detect
+> the end of charge condition
+> 
+> Signed-off-by: Jenny TC <jenny.tc@intel.com>
 
-30*HZ means 30 seconds in the kernel... what is hard to understand
-about it?
-									Pavel
+The patch no longer matches the description, otherwise it looks good.
+
+Reviewed-by: Pavel Machek <pavel@ucw.cz>
+
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
