@@ -1,84 +1,73 @@
-From: Jenny Tc <jenny.tc@intel.com>
-Subject: Re: [PATCH 2/4] power_supply: Introduce generic psy charging driver
-Date: Fri, 7 Mar 2014 09:19:04 +0530
-Message-ID: <20140307034904.GB19526@jenny-desktop>
-References: <1392875640-29230-1-git-send-email-jenny.tc@intel.com>
- <1392875640-29230-3-git-send-email-jenny.tc@intel.com>
- <CACRpkdaU44iinj2iDNdYm62J+4jQbg+XJ=Zq4GmJryPeu7GfTQ@mail.gmail.com>
- <20140228042753.GC27921@jenny-desktop>
- <CACRpkdbuCC=-aYmyeaGW0GfkhRU8SEc=1+2f6k3tA7TygiZRJA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jenny TC <jenny.tc@intel.com>
+Subject: [PATCHv8 0/4] power_supply: Introduce power supply charging driver
+Date: Fri,  7 Mar 2014 10:59:30 +0530
+Message-ID: <1394170174-21959-1-git-send-email-jenny.tc@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdbuCC=-aYmyeaGW0GfkhRU8SEc=1+2f6k3tA7TygiZRJA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@a>
+To: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Jenny TC <jenny.tc@intel.com>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 07, 2014 at 11:03:02AM +0800, Linus Walleij wrote:
-> On Fri, Feb 28, 2014 at 12:27 PM, Jenny Tc <jenny.tc@intel.com> wrote:
-> > On Thu, Feb 27, 2014 at 09:08:01PM +0100, Linus Walleij wrote:
-> >> On Thu, Feb 20, 2014 at 6:53 AM, Jenny TC <jenny.tc@intel.com> wrote:
-> >>
-> >> > +++ b/include/linux/power/power_supply_charger.h
-> >>
-> >> > +#define MAX_CUR_VOLT_SAMPLES 3
-> >> > +#define DEF_CUR_VOLT_SAMPLE_JIFF (30*HZ)
-> >>
-> >> Why are things defined in Jiffies like this insead of seconds, milliseconds
-> >> etc? This will vary with the current operating frequency of the system,
-> >> why should physical measurements do that?
-> >
-> > Is it fine if I use msecs_to_jiffies(30000)?
-> 
-> Keep the
-> #define DEF_CUR_VOLT_SAMPLE_PERIOD 30000
-> 
-> Then use msecs_to_jiffies(DEF_CUR_VOLT_SAMPLE_PERIOD)
-> in the call site.
-> 
+v1: introduced feature as a framework within power supply class driver with
+	separate files for battid framework and charging framework
+v2: fixed review comments, moved macros and inline functions to power_supply.h
+v3: moved the feature as a separate driver, combined battid framework and
+	charging framework inside the power supply charging driver. Moved
+	charger specific properties to power_supply_charger.h and plugged the
+	driver with power supply subsystem using power_supply_notifier
+	introduced in my previous patch. Also a sample charger chip driver
+	(bq24261) patch added to give more idea on the psy charging driver
+	usage
+v4: Fixed review comments, no major design changes.
+v5: Fixed makefile inconsistencies, removed unused pdata callbacks
+v6: Fixed nested loops, commenting style
+v7: added kerneldocs for structs and minor fixes
+v8: used msecs_to_jiffies instead of HZ directly, modified Kconfig help text
+    for POWER_SUPPLY_CHARGING_ALGO_PSE
 
-Ok..fine will fix it in next patch set
-> >> > +enum psy_charger_cable_event {
-> >> > +       PSY_CHARGER_CABLE_EVENT_DISCONNECT = 0,
-> >> > +       PSY_CHARGER_CABLE_EVENT_CONNECT,
-> >> > +       PSY_CHARGER_CABLE_EVENT_UPDATE,
-> >> > +       PSY_CHARGER_CABLE_EVENT_RESUME,
-> >> > +       PSY_CHARGER_CABLE_EVENT_SUSPEND,
-> >> > +};
-> >> > +
-> >> > +enum psy_charger_cable_type {
-> >> > +       PSY_CHARGER_CABLE_TYPE_NONE = 0,
-> >> > +       PSY_CHARGER_CABLE_TYPE_USB_SDP = 1 << 0,
-> >> > +       PSY_CHARGER_CABLE_TYPE_USB_DCP = 1 << 1,
-> >> > +       PSY_CHARGER_CABLE_TYPE_USB_CDP = 1 << 2,
-> >> > +       PSY_CHARGER_CABLE_TYPE_USB_ACA = 1 << 3,
-> >> > +       PSY_CHARGER_CABLE_TYPE_AC = 1 << 4,
-> >> > +       PSY_CHARGER_CABLE_TYPE_ACA_DOCK = 1 << 5,
-> >> > +       PSY_CHARGER_CABLE_TYPE_ACA_A = 1 << 6,
-> >> > +       PSY_CHARGER_CABLE_TYPE_ACA_B = 1 << 7,
-> >> > +       PSY_CHARGER_CABLE_TYPE_ACA_C = 1 << 8,
-> >> > +       PSY_CHARGER_CABLE_TYPE_SE1 = 1 << 9,
-> >> > +       PSY_CHARGER_CABLE_TYPE_MHL = 1 << 10,
-> >> > +       PSY_CHARGER_CABLE_TYPE_B_DEVICE = 1 << 11,
-> >> > +};
-> >>
-> >> Why is this even an enum? It is clearly bitfields. I would just:
-> >>
-> >> #include <linux/bitops.h>
-> >>
-> >> #define PSY_CHARGER_CABLE_TYPE_NONE 0x0
-> >> #define PSY_CHARGER_CABLE_TYPE_USB_SDP BIT(0)
-> >> #define PSY_CHARGER_CABLE_TYPE_USB_DCP BIT(1)
-> >> (etc)
-> >
-> > This is to ensure type checks when the cable types are handled, #defines will
-> > not help in type checks.
-> 
-> Type checks with static code check tools? But misrepresenting
-> a bitfield as an enum just to satisfy a static code checker is not
-> OK IMO.
+The Power Supply charging driver connects multiple subsystems
+to do charging in a generic way. The subsystems involves power_supply,
+thermal and battery communication subsystems (1wire).With this the charging is
+handled in a generic way.
 
-not just for tools, compile time type checks also.
+The driver makes use of different new features - Battery Identification
+interfaces, pluggable charging algorithms, charger cable arbitrations etc.
+The patch also introduces generic interface for charger cable notifications.
+Charger cable events and capabilities can be notified using the generic
+power_supply_notifier chain.
+
+Overall this driver removes the charging logic out of the charger chip driver
+and the charger chip driver can just listen to the request from the power
+supply charging driver to set the charger properties. This can be implemented
+by exposing get_property and set property callbacks.
+
+Jenny TC (4):
+  power_supply: Add inlmt,iterm, min/max temp props
+  power_supply: Introduce generic psy charging driver
+  power_supply: Introduce PSE compliant algorithm
+  power_supply: bq24261 charger driver
+
+ Documentation/power/power_supply_charger.txt |  353 +++++++
+ Documentation/power/power_supply_class.txt   |    6 +
+ drivers/power/Kconfig                        |   31 +
+ drivers/power/Makefile                       |    3 +
+ drivers/power/bq24261-charger.c              | 1350 ++++++++++++++++++++++++++
+ drivers/power/charging_algo_pse.c            |  204 ++++
+ drivers/power/power_supply_charger.c         | 1186 ++++++++++++++++++++++
+ drivers/power/power_supply_charger.h         |  218 +++++
+ drivers/power/power_supply_core.c            |    3 +
+ drivers/power/power_supply_sysfs.c           |    4 +
+ include/linux/power/bq24261-charger.h        |   25 +
+ include/linux/power/power_supply_charger.h   |  341 +++++++
+ include/linux/power_supply.h                 |  164 ++++
+ 13 files changed, 3888 insertions(+)
+ create mode 100644 Documentation/power/power_supply_charger.txt
+ create mode 100644 drivers/power/bq24261-charger.c
+ create mode 100644 drivers/power/charging_algo_pse.c
+ create mode 100644 drivers/power/power_supply_charger.c
+ create mode 100644 drivers/power/power_supply_charger.h
+ create mode 100644 include/linux/power/bq24261-charger.h
+ create mode 100644 include/linux/power/power_supply_charger.h
+
+-- 
+1.7.9.5
