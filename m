@@ -1,42 +1,69 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH 5/8] phy: omap-usb2: Add clock names to Documentation
  binding
-Date: Fri, 7 Mar 2014 21:53:03 +0530
-Message-ID: <5319F267.3080309@ti.com>
+Date: Fri, 7 Mar 2014 10:24:06 -0600
+Message-ID: <20140307162406.GB23885@saruman.home>
 References: <1394197751-28984-1-git-send-email-rogerq@ti.com>
  <1394197751-28984-6-git-send-email-rogerq@ti.com>
  <20140307160422.GA23885@saruman.home>
+ <5319F267.3080309@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140307160422.GA23885@saruman.home>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@ti.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mojUlQ0s9EVzWg2t"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5319F267.3080309@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, Roger Quadros <rogerq@ti.com>, tony@atomide.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Felipe,
+--mojUlQ0s9EVzWg2t
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Friday 07 March 2014 09:34 PM, Felipe Balbi wrote:
-> On Fri, Mar 07, 2014 at 03:09:08PM +0200, Roger Quadros wrote:
->> Add "wkupclk" and "refclk" information to DT binding information.
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->
-> so, should I take this one ?
+On Fri, Mar 07, 2014 at 09:53:03PM +0530, Kishon Vijay Abraham I wrote:
+> Felipe,
+>=20
+> On Friday 07 March 2014 09:34 PM, Felipe Balbi wrote:
+> >On Fri, Mar 07, 2014 at 03:09:08PM +0200, Roger Quadros wrote:
+> >>Add "wkupclk" and "refclk" information to DT binding information.
+> >>
+> >>Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >>---
+> >
+> >so, should I take this one ?
+>=20
+> yes.. the ti-phy.txt is only in your tree.
 
-yes.. the ti-phy.txt is only in your tree.
+yeah, I know that, but I need to know if this is safe to be applied as
+in "it won't change anymore".
 
-Thanks
-Kishon
->
+--=20
+balbi
+
+--mojUlQ0s9EVzWg2t
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTGfKmAAoJEIaOsuA1yqREmxEQALYnC3r4FzQsBjhHagyMOx/L
+xAE/K/glxOmA73sBtp8tRnse0xo9v++XBEQxhICTpw08KFmEsopPtMwU5RMKRJ+v
+OzCQLtCTphZ2PB+mnW+yw4BmrHorN8mQPCR1vIaYTpIITiXz/1lUpNT7dqBFu5Ob
+Ps9CVi6ZwH3o/sUZFLCUQKUM1lDC8EjGFeA/Qv3XaH/Xe3Z6tZ25swVmp1qxNWbr
+sfoZ67r7tUd693ZXM1N/tlg/527sqFRF8+DvD1xO6Ug03hfxJimXKzt9Gx9Sc9Rz
+L8OlFlozwGlPlOdXlQsnnbCRYL70z4hiEoCg51IfZLWR5sS+QSv15s4FbMic5EwM
+PMVQwg3EdMT8phXvaaDeWTYPuLJ+r/0ifSsTPL+KxCjNvPd7y7maoHcSagnowIkc
+fYCP0fBzlvIfLjhBFhs8JHoYhiQzsCQZOYjXXwZIJ5K20/4NSAr+k3yeh3NGqa+0
+i/cSrvG++rdi/vrNAtDlKJ4Q58g/kfHpJTBTE72a8RZmuITz9nV0B0SQyFfxJ/9F
+Wqb5NBMhzwil+aM+YDgp1XzxCgJo0br3aSwMoyOsSWPnaH7bkc7h1T9XUmUSK6iV
+s5icimkPU+YFpx3JPW/JnA0W9YDOkzBYP7soO6S8tOqP/qgJj+lCZ60eRh+P6XfA
+aAde7QbA6cjBbBqrSidl
+=m959
+-----END PGP SIGNATURE-----
+
+--mojUlQ0s9EVzWg2t--
