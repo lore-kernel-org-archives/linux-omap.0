@@ -1,76 +1,105 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 1/8] CLK: ti: dra7: Initialize USB_DPLL
-Date: Fri, 7 Mar 2014 15:43:14 +0200
-Message-ID: <5319CCF2.8090902@ti.com>
-References: <1394197751-28984-1-git-send-email-rogerq@ti.com>
- <1394197751-28984-2-git-send-email-rogerq@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
+Date: Fri, 7 Mar 2014 19:17:29 +0530
+Message-ID: <5319CDF1.4030405@ti.com>
+References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl> <5315B822.7010005@ti.com> <5315BA83.5080500@xs4all.nl> <5319B26B.8050900@ti.com> <5319C2A7.6090805@xs4all.nl> <5319C813.5030508@ti.com> <5319CA53.9020101@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1394197751-28984-2-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>, balbi@ti.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, Mike Turquette <mturquette@linaro.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60722 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752331AbaCGNsG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Mar 2014 08:48:06 -0500
+In-Reply-To: <5319CA53.9020101@xs4all.nl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: k.debski@samsung.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 03/07/2014 03:09 PM, Roger Quadros wrote:
-> USB_DPLL must be initialized and locked at boot so that
-> USB modules can work.
+On Friday 07 March 2014 07:02 PM, Hans Verkuil wrote:
+> On 03/07/2014 02:22 PM, Archit Taneja wrote:
+>> Hi,
+>>
+>> On Friday 07 March 2014 06:29 PM, Hans Verkuil wrote:
+>>>>
+>>>> Do you think I can go ahead with posting the v3 patch set for 3.15, and
+>>>> work on fixing the compliance issue for the -rc fixes?
+>>>
+>>> It's fine to upstream this in staging, but while not all compliance errors
+>>> are fixed it can't go to drivers/media. I'm tightening the screws on that
+>>> since v4l2-compliance is getting to be such a powerful tool for ensuring
+>>> the driver complies.
+>>>
+>>
+>> But the vpe driver is already in drivers/media. How do I push these
+>> patches if the vpe drivers is not in staging?
 >
-> Also program USB_DLL_M2 output to half rate.
+> Oops, sorry. I got confused with Benoit's AM437x ti-vpfe patch :-)
 >
-> CC: Mike Turquette <mturquette@linaro.org>
-> CC: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->   drivers/clk/ti/clk-7xx.c | 11 +++++++++++
->   1 file changed, 11 insertions(+)
->
-> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-> index 9977653..f89f3c2 100644
-> --- a/drivers/clk/ti/clk-7xx.c
-> +++ b/drivers/clk/ti/clk-7xx.c
-> @@ -18,6 +18,7 @@
->
->   #define DRA7_DPLL_ABE_DEFFREQ				361267200
->   #define DRA7_DPLL_GMAC_DEFFREQ				1000000000
-> +#define DRA7_DPLL_USB_DEFFREQ				960000000
->
->
->   static struct ti_dt_clk dra7xx_clks[] = {
-> @@ -328,5 +329,15 @@ int __init dra7xx_dt_clk_init(void)
->   	if (rc)
->   		pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
->
-> +	dpll_ck = clk_get_sys(NULL, "dpll_usb_ck");
-> +	rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ);
-> +	if (rc)
-> +		pr_err("%s: failed to configure USB DPLL!\n", __func__);
-> +
-> +	dpll_ck = clk_get_sys(NULL, "dpll_usb_m2_ck");
-> +	rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ/2);
-> +	if (rc)
-> +		pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
-> +
+> Disregard what I said, it's OK to upstream it. But if you could just spend
+> some hours fixing the problems, that would really be best.
 
-I would rather see this done using the default-rate mechanism provided here:
+Sure, I'll try to fix these issues and then post a v3.
 
-https://www.mail-archive.com/linux-omap@vger.kernel.org/msg101300.html
-
-However, this remains to be commented by Mike whether the patch is okay 
-or not.
-
--Tero
-
->   	return rc;
->   }
 >
+>>
+>> <snip>
+>>
+>>>> Multiplanar: TRY_FMT(G_FMT) != G_FMT
+>>>>            test VIDIOC_TRY_FMT: FAIL
+>>>>                    warn: v4l2-test-formats.cpp(834): S_FMT cannot handle
+>>>> an invalid pixelformat.
+>>>>                    warn: v4l2-test-formats.cpp(835): This may or may not
+>>>> be a problem. For more information see:
+>>>>                    warn: v4l2-test-formats.cpp(836):
+>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+>>>>                    fail: v4l2-test-formats.cpp(420): pix_mp.reserved not
+>>>> zeroed
+>>>
+>>> This is easy enough to fix.
+>>>
+>>>>                    fail: v4l2-test-formats.cpp(851): Video Capture
+>>>> Multiplanar is valid, but no S_FMT was implemented
+>>>
+>>> For the FMT things: run with -T: that gives nice traces. You can also
+>>> set the debug flag: echo 2 >/sys/class/video4linux/video0/debug to see all
+>>> ioctls in more detail.
+>>
+>> Thanks for the tip, will try this.
+>>
+>>>
+>>>>            test VIDIOC_S_FMT: FAIL
+>>>>            test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>>>>
+>>>> Codec ioctls:
+>>>>            test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>>>>            test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>>>>            test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>>>>
+>>>> Buffer ioctls:
+>>>>                    info: test buftype Video Capture Multiplanar
+>>>>                    warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
+>>>> not supported
+>>>>                    info: test buftype Video Output Multiplanar
+>>>>                    warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
+>>>> not supported
+>>>>            test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>>>            test VIDIOC_EXPBUF: OK (Not Supported)
+>>>>            test read/write: OK (Not Supported)
+>>>>                Video Capture Multiplanar (polling):
+>>>>                    Buffer: 0 Sequence: 0 Field: Top Timestamp: 113.178208s
+>>>>                    fail: v4l2-test-buffers.cpp(222): buf.field !=
+>>>> cur_fmt.fmt.pix.field
+>>>
+>>> Definitely needs to be fixed, you probably just don't set the field at all.
+>>
+>> The VPE output is always progressive. But yes, I should still set the
+>> field parameter to something.
+>
+> V4L2_FIELD_NONE is the correct field setting for that.
+
+I checked the driver, it isn't setting it to V4L2_FIELD_NONE. Will fix this.
+
+Archit
+
