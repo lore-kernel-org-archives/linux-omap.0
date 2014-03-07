@@ -1,48 +1,86 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 5/8] phy: omap-usb2: Add clock names to Documentation binding
-Date: Fri, 7 Mar 2014 15:09:08 +0200
-Message-ID: <1394197751-28984-6-git-send-email-rogerq@ti.com>
-References: <1394197751-28984-1-git-send-email-rogerq@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
+Date: Fri, 7 Mar 2014 18:52:27 +0530
+Message-ID: <5319C813.5030508@ti.com>
+References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl> <5315B822.7010005@ti.com> <5315BA83.5080500@xs4all.nl> <5319B26B.8050900@ti.com> <5319C2A7.6090805@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1394197751-28984-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, tony@atomide.com
-Cc: kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, rogerq@ti.com
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <5319C2A7.6090805@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: k.debski@samsung.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add "wkupclk" and "refclk" information to DT binding information.
+Hi,
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- Documentation/devicetree/bindings/phy/ti-phy.txt | 7 +++++++
- 1 file changed, 7 insertions(+)
+On Friday 07 March 2014 06:29 PM, Hans Verkuil wrote:
+>>
+>> Do you think I can go ahead with posting the v3 patch set for 3.15, and
+>> work on fixing the compliance issue for the -rc fixes?
+>
+> It's fine to upstream this in staging, but while not all compliance errors
+> are fixed it can't go to drivers/media. I'm tightening the screws on that
+> since v4l2-compliance is getting to be such a powerful tool for ensuring
+> the driver complies.
+>
 
-diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-index 4ab9cb1..49c381c 100644
---- a/Documentation/devicetree/bindings/phy/ti-phy.txt
-+++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-@@ -36,6 +36,11 @@ Required properties:
-  - reg : Address and length of the register set for the device.
-  - #phy-cells: determine the number of cells that should be given in the
-    phandle while referencing this phy.
-+ - clocks: a list of phandles and clock-specifier pairs, one for each entry in
-+   clock-names.
-+ - clock-names: should include:
-+   * "wkupclk" - wakeup clock.
-+   * "refclk" - reference clock (optional).
- 
- Optional properties:
-  - ctrl-module : phandle of the control module used by PHY driver to power on
-@@ -48,6 +53,8 @@ usb2phy@4a0ad080 {
- 	reg = <0x4a0ad080 0x58>;
- 	ctrl-module = <&omap_control_usb>;
- 	#phy-cells = <0>;
-+	clocks = <&usb_phy_cm_clk32k>, <&usb_otg_ss_refclk960m>;
-+	clock-names = "wkupclk", "refclk";
- };
- 
- TI PIPE3 PHY
--- 
-1.8.3.2
+But the vpe driver is already in drivers/media. How do I push these 
+patches if the vpe drivers is not in staging?
+
+<snip>
+
+>> Multiplanar: TRY_FMT(G_FMT) != G_FMT
+>>           test VIDIOC_TRY_FMT: FAIL
+>>                   warn: v4l2-test-formats.cpp(834): S_FMT cannot handle
+>> an invalid pixelformat.
+>>                   warn: v4l2-test-formats.cpp(835): This may or may not
+>> be a problem. For more information see:
+>>                   warn: v4l2-test-formats.cpp(836):
+>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+>>                   fail: v4l2-test-formats.cpp(420): pix_mp.reserved not
+>> zeroed
+>
+> This is easy enough to fix.
+>
+>>                   fail: v4l2-test-formats.cpp(851): Video Capture
+>> Multiplanar is valid, but no S_FMT was implemented
+>
+> For the FMT things: run with -T: that gives nice traces. You can also
+> set the debug flag: echo 2 >/sys/class/video4linux/video0/debug to see all
+> ioctls in more detail.
+
+Thanks for the tip, will try this.
+
+>
+>>           test VIDIOC_S_FMT: FAIL
+>>           test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>>
+>> Codec ioctls:
+>>           test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>>           test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>>           test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>>
+>> Buffer ioctls:
+>>                   info: test buftype Video Capture Multiplanar
+>>                   warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
+>> not supported
+>>                   info: test buftype Video Output Multiplanar
+>>                   warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
+>> not supported
+>>           test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>           test VIDIOC_EXPBUF: OK (Not Supported)
+>>           test read/write: OK (Not Supported)
+>>               Video Capture Multiplanar (polling):
+>>                   Buffer: 0 Sequence: 0 Field: Top Timestamp: 113.178208s
+>>                   fail: v4l2-test-buffers.cpp(222): buf.field !=
+>> cur_fmt.fmt.pix.field
+>
+> Definitely needs to be fixed, you probably just don't set the field at all.
+
+The VPE output is always progressive. But yes, I should still set the 
+field parameter to something.
+
+Thanks,
+Archit
