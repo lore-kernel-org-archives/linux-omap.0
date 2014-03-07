@@ -1,88 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap device tree changes for v3.15, part 2
-Date: Fri, 7 Mar 2014 09:58:36 -0800
-Message-ID: <20140307175835.GA23749@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v6] phy: omap-usb2: move omap_usb.h from linux/usb/ to
+ linux/phy/
+Date: Fri, 7 Mar 2014 12:08:29 -0600
+Message-ID: <20140307180828.GE23885@saruman.home>
+References: <1393846695-14644-1-git-send-email-kishon@ti.com>
+ <1394210888-1587-1-git-send-email-kishon@ti.com>
+ <20140307165043.GC23885@saruman.home>
+ <531A0436.3080201@ti.com>
+ <20140307174059.GD23885@saruman.home>
+ <531A05E2.8080706@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36244 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752232AbaCGR6q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Mar 2014 12:58:46 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tVmo9FyGdCe4F4YN"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <531A05E2.8080706@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The following changes since commit f777ba1780584b100ab9664cc06d04f3bb273a84:
+--tVmo9FyGdCe4F4YN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-  Merge tag 'for_3.15/dts_signed' of git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt into omap-for-v3.15/dt (2014-03-02 14:22:03 -0800)
+On Fri, Mar 07, 2014 at 11:16:10PM +0530, Kishon Vijay Abraham I wrote:
+> On Friday 07 March 2014 11:10 PM, Felipe Balbi wrote:
+> >On Fri, Mar 07, 2014 at 11:09:02PM +0530, Kishon Vijay Abraham I wrote:
+> >>On Friday 07 March 2014 10:20 PM, Felipe Balbi wrote:
+> >>>On Fri, Mar 07, 2014 at 10:18:08PM +0530, Kishon Vijay Abraham I wrote:
+> >>>>No functional change. Moved omap_usb.h from linux/usb/ to linux/phy/.
+> >>>>Also removed the unused members of struct omap_usb (after phy-omap-pi=
+pe3
+> >>>>started using it's own header file)
+> >>>
+> >>>does this depend in any other patch ? I get the following when applying
+> >>>*only* this patch on top of v3.14-rc5:
+> >>
+> >>yeah.. this is for linux-phy tree. I'll take this patch.
+> >
+> >looks like you're doing two things at once (renaming the header and
+> >removing some unnecessary fields). At least mention the second thing.
+>=20
+> The second line of the commit message mentions just that ;-)
 
-are available in the git repository at:
+hmmm, my parser didn't read that, nevermind ;-)
 
+--=20
+balbi
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/dt-part2
+--tVmo9FyGdCe4F4YN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-for you to fetch changes up to 18c49af3ee9e32a535413a949672bea726699f04:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-  ARM: dts: am335x-evmsk: enable dual_emac mode (2014-03-05 11:53:36 -0800)
+iQIcBAEBAgAGBQJTGgscAAoJEIaOsuA1yqRED08QAKdEZtQXH6Y7Zv1v2XUiTyh7
+dDsq6Gu7kVrvwwP940ATXLQ6WcxeDPsK0tVRrhfr6SXAy/FByzZx1Lr2NcqciB4B
+SsZSAsv0DQT8auJgUr7f/w1TXa1dgWgW1fEo00vT3Byz758Whadr3ltXVvQfgmvP
+w6LrBdx4w1YmBxJF3qSFcZPiWnCLjaxpz0bgYVhpPqyUWI5MMdZKVS+XXW9KuBBN
+7JRWCmnZYcbDqtPLV/+zD2JVguUJpKy0f+TLgSDgPzzvrgch464lKiJ3+W2QZ92V
+ITS2kzh8kn2tAPmXU6B9sbcByD7bL5oPDhrmBWJPhhU5Jl9jZh5yvu4o6AO2DyTe
+0oRM2GzS0gokh7LWW1J7sb16tXuq0t3y+q7R5xk0oN3+fXOzXFj2Jl52Z0ZgoYPX
+uoPNrEr32BzaP4FG1PkZMKKwjlmqajk/JYyO6VDZkwaHYux2C0mbaYcTPdeT7rWy
+44AzzyrHfjyvovWfWG6Sgbkh7MR7VrbAoVdFMHCUGeRMdEyKQaqivBQjKYTDnsq8
+HW+924KWc7hcM+dFFHSpt/JPISEshJj4er6KvpB31EWxyxmiljo5dKo6T47+2coQ
+W2PP5F4I2qPD494jzOHCzXOiEyJiu7aA7t8tTyWUamlNOS23Av1wZkWeWnLfy2DQ
+OGOd+z/0ZkOeGXsiKtFM
+=zQ3L
+-----END PGP SIGNATURE-----
 
-----------------------------------------------------------------
-Part two of omap device tree changes enabling driver features
-in the dts files.
-
-----------------------------------------------------------------
-Andrii.Tseglytskyi (2):
-      ARM: dts: OMAP36xx: Add device node for ABB
-      ARM: dts: OMAP4: Add device nodes for ABB
-
-Balaji T K (3):
-      ARM: dts: am437x gp-evm: add sd card dt nodes
-      ARM: dts: am335x-evm: add SD card hotplug support
-      ARM: dts: am43x-epos-evm: add SD card hotplug support
-
-Florian Vaussard (1):
-      ARM: dts: Add support for OMAP4 Gumstix DuoVero/Parlor
-
-Imre Kaloz (1):
-      ARM: OMAP2+: Use pdata quirks for wl12xx on the AM335x EV-MSK
-
-Kishon Vijay Abraham I (1):
-      ARM: dts: omap5: added dt properties to adapt to the new phy framwork
-
-Nishanth Menon (1):
-      ARM: dts: DRA7: Add device nodes for ABB
-
-Roger Quadros (3):
-      ARM: OMAP2+: Remove legacy_init_ehci_clk()
-      ARM: dts: Get rid of incompatible ids for hci-omap USB host nodes
-      ARM: dts: Update echi-omap DT binding example usage
-
-Yegor Yefremov (1):
-      ARM: dts: am335x-evmsk: enable dual_emac mode
-
- .../devicetree/bindings/arm/omap/omap.txt          |   3 +
- .../devicetree/bindings/usb/ehci-omap.txt          |   2 +-
- .../devicetree/bindings/usb/ohci-omap3.txt         |   2 +-
- arch/arm/boot/dts/Makefile                         |   1 +
- arch/arm/boot/dts/am335x-evm.dts                   |   9 +
- arch/arm/boot/dts/am335x-evmsk.dts                 |  43 ++++
- arch/arm/boot/dts/am4372.dtsi                      |   1 +
- arch/arm/boot/dts/am437x-gp-evm.dts                |  27 +++
- arch/arm/boot/dts/am43x-epos-evm.dts               |   9 +
- arch/arm/boot/dts/dra7.dtsi                        | 132 +++++++++++
- arch/arm/boot/dts/omap3.dtsi                       |   4 +-
- arch/arm/boot/dts/omap36xx.dtsi                    |  20 ++
- arch/arm/boot/dts/omap4-duovero-parlor.dts         | 146 ++++++++++++
- arch/arm/boot/dts/omap4-duovero.dtsi               | 252 +++++++++++++++++++++
- arch/arm/boot/dts/omap4-panda-common.dtsi          |   8 +-
- arch/arm/boot/dts/omap4.dtsi                       |  30 ++-
- arch/arm/boot/dts/omap443x.dtsi                    |  26 +++
- arch/arm/boot/dts/omap4460.dtsi                    |  37 +++
- arch/arm/boot/dts/omap5-uevm.dts                   |   8 +-
- arch/arm/boot/dts/omap5.dtsi                       |   9 +-
- arch/arm/mach-omap2/pdata-quirks.c                 |  26 +--
- 21 files changed, 758 insertions(+), 37 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap4-duovero-parlor.dts
- create mode 100644 arch/arm/boot/dts/omap4-duovero.dtsi
+--tVmo9FyGdCe4F4YN--
