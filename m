@@ -1,7 +1,7 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [RFC PATCH 8/9] arm: dra: Enable dma crossbar support on dra7xx
-Date: Fri, 7 Mar 2014 17:46:15 +0530
-Message-ID: <1394194576-23741-9-git-send-email-r.sricharan@ti.com>
+Subject: [RFC PATCH 6/9] arm: dts: dra: Add dma crossbar node
+Date: Fri, 7 Mar 2014 17:46:13 +0530
+Message-ID: <1394194576-23741-7-git-send-email-r.sricharan@ti.com>
 References: <1394194576-23741-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,21 +12,30 @@ To: r.sricharan@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: santosh.shilimkar@ti.com, rnayak@ti.com, nsekhar@ti.com, tony@atomide.com, linux@arm.linux.org.uk, vinod.koul@intel.com, dan.j.williams@intel.com, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Enable dma crossbar support on dra7xx
+Adding the crossbar node.
 
 Signed-off-by: Sricharan R <r.sricharan@ti.com>
 ---
- arch/arm/configs/omap2plus_defconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/dra7.dtsi |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 3a0b53d..1cf8277 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -295,3 +295,4 @@ CONFIG_LIBCRC32C=y
- CONFIG_FONTS=y
- CONFIG_FONT_8x8=y
- CONFIG_FONT_8x16=y
-+CONFIG_OMAP_DMA_CROSSBAR=y
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 1fd75aa..f84991b 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -170,6 +170,13 @@
+ 			#dma-requests = <127>;
+ 		};
+ 
++		dmacb: crossbar@4a020000 {
++			compatible = "ti,dma-crossbar";
++			reg = <0x4a002b78 0x100>;
++			ti,dma-reqs = <160>;
++			ti,reg-size = <2>;
++		};
++
+ 		gpio1: gpio@4ae10000 {
+ 			compatible = "ti,omap4-gpio";
+ 			reg = <0x4ae10000 0x200>;
 -- 
 1.7.9.5
