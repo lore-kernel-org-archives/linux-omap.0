@@ -1,50 +1,143 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 4/8] ARM: dts: omap5: Add clocks to USB3 PHY node
-Date: Fri, 7 Mar 2014 12:15:04 +0200
-Message-ID: <1394187308-19622-5-git-send-email-rogerq@ti.com>
-References: <1394187308-19622-1-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v2 3/5] ARM: dts: AM4372: Add USB nodes
+Date: Fri, 7 Mar 2014 12:21:40 +0200
+Message-ID: <53199DB4.6010200@ti.com>
+References: <1394183758-3821-1-git-send-email-george.cherian@ti.com> <1394183758-3821-4-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1394187308-19622-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@ti.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1394183758-3821-4-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: balbi@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, anatol.pomozov@gmail.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-The USB3 PHY driver now expects named clocks. Add the
-relevant clocks to the USB3 PHY node.
+On 03/07/2014 11:15 AM, George Cherian wrote:
+> Add nodes for 2 instances each of
+> 	- ocp2scp
+> 	- USB PHY control module
+> 	- USB PHY
+> 	- dwc3_omap
+> 	- USB
+> 
+> for AM43xx.
+> 
+> Signed-off-by: George Cherian <george.cherian@ti.com>
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/omap5.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+Acked-by: Roger Quadros <rogerq@ti.com>
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 859a800..88bd327 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -779,6 +779,12 @@
- 				      <0x4a084c00 0x40>;
- 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
- 				ctrl-module = <&omap_control_usb3phy>;
-+				clocks = <&usb_phy_cm_clk32k>,
-+					 <&sys_clkin>,
-+					 <&usb_otg_ss_refclk960m>;
-+				clock-names =	"wkupclk",
-+						"sysclk",
-+						"refclk";
- 				#phy-cells = <0>;
- 			};
- 		};
--- 
-1.8.3.2
+cheers,
+-roger
+
+> ---
+>  arch/arm/boot/dts/am4372.dtsi | 95 +++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 95 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> index 5a7cc38..fdcdf1b 100644
+> --- a/arch/arm/boot/dts/am4372.dtsi
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -698,6 +698,101 @@
+>  			       <&edma 11>;
+>  			dma-names = "tx", "rx";
+>  		};
+> +
+> +		am43xx_control_usb2phy1: control-phy@44e10620 {
+> +			compatible = "ti,control-phy-usb2-am437";
+> +			reg = <0x44e10620 0x4>;
+> +			reg-names = "power";
+> +		};
+> +
+> +		am43xx_control_usb2phy2: control-phy@0x44e10628 {
+> +			compatible = "ti,control-phy-usb2-am437";
+> +			reg = <0x44e10628 0x4>;
+> +			reg-names = "power";
+> +		};
+> +
+> +		ocp2scp0: ocp2scp@483a8000 {
+> +			compatible = "ti,omap-ocp2scp";
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			ranges;
+> +			ti,hwmods = "ocp2scp0";
+> +
+> +			usb2_phy1: phy@483a8000 {
+> +				compatible = "ti,am437x-usb2";
+> +				reg = <0x483a8000 0x8000>;
+> +				ctrl-module = <&am43xx_control_usb2phy1>;
+> +				clocks = <&clk_32768_ck>,
+> +					 <&usb_otg_ss0_refclk960m>;
+> +				clock-names = "wkupclk", "refclk";
+> +				#phy-cells = <0>;
+> +				status = "disabled";
+> +			};
+> +		};
+> +
+> +		ocp2scp1: ocp2scp@483e8000 {
+> +			compatible = "ti,omap-ocp2scp";
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			ranges;
+> +			ti,hwmods = "ocp2scp1";
+> +
+> +			usb2_phy2: phy@483e8000 {
+> +				compatible = "ti,am437x-usb2";
+> +				reg = <0x483e8000 0x8000>;
+> +				ctrl-module = <&am43xx_control_usb2phy2>;
+> +				clocks = <&clk_32768_ck>,
+> +					 <&usb_otg_ss1_refclk960m>;
+> +				clock-names = "wkupclk", "refclk";
+> +				#phy-cells = <0>;
+> +				status = "disabled";
+> +			};
+> +		};
+> +
+> +		dwc3_1: omap_dwc3@48380000 {
+> +			compatible = "ti,am437x-dwc3";
+> +			ti,hwmods = "usb_otg_ss0";
+> +			reg = <0x48380000 0x10000>;
+> +			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			utmi-mode = <1>;
+> +			ranges;
+> +
+> +			usb1: usb@48390000 {
+> +				compatible = "synopsys,dwc3";
+> +				reg = <0x48390000 0x17000>;
+> +				interrupts = <GIC_SPI 168 IRQ_TYPE_LEVEL_HIGH>;
+> +				phys = <&usb2_phy1>;
+> +				phy-names = "usb2-phy";
+> +				maximum-speed = "high-speed";
+> +				dr_mode = "otg";
+> +				status = "disabled";
+> +			};
+> +		};
+> +
+> +		dwc3_2: omap_dwc3@483c0000 {
+> +			compatible = "ti,am437x-dwc3";
+> +			ti,hwmods = "usb_otg_ss1";
+> +			reg = <0x483c0000 0x10000>;
+> +			interrupts = <GIC_SPI 178 IRQ_TYPE_LEVEL_HIGH>;
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			utmi-mode = <1>;
+> +			ranges;
+> +
+> +			usb2: usb@483d0000 {
+> +				compatible = "synopsys,dwc3";
+> +				reg = <0x483d0000 0x17000>;
+> +				interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
+> +				phys = <&usb2_phy2>;
+> +				phy-names = "usb2-phy";
+> +				maximum-speed = "high-speed";
+> +				dr_mode = "otg";
+> +				status = "disabled";
+> +			};
+> +		};
+> +
+>  	};
+>  };
+>  
+> 
