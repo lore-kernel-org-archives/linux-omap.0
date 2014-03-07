@@ -1,93 +1,44 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH v4 7/9] ARM: dts: omap3-tobi: Use include file omap-gpmc-smsc9221
-Date: Fri,  7 Mar 2014 20:22:17 +0100
-Message-ID: <1394220139-1760-8-git-send-email-florian.vaussard@epfl.ch>
+Subject: [PATCH v4 8/9] ARM: dts: omap3-tobi: Add AT24C01 EEPROM
+Date: Fri,  7 Mar 2014 20:22:18 +0100
+Message-ID: <1394220139-1760-9-git-send-email-florian.vaussard@epfl.ch>
 References: <1394220139-1760-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:45194 "EHLO smtp0.epfl.ch"
+Received: from smtp0.epfl.ch ([128.178.224.218]:45201 "EHLO smtp0.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752387AbaCGTWf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Mar 2014 14:22:35 -0500
+	id S1753112AbaCGTWg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Mar 2014 14:22:36 -0500
 In-Reply-To: <1394220139-1760-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
 Cc: Roger Quadros <rogerq@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Use the timings provided by omap-gpmc-smsc9221. This does not change
-the timings, but it avoids code duplication.
+Add the AT24C01 EEPROM node populated on most Gumstix expansion board.
 
 Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 ---
- arch/arm/boot/dts/omap3-overo-tobi-common.dtsi | 42 ++------------------------
- 1 file changed, 3 insertions(+), 39 deletions(-)
+ arch/arm/boot/dts/omap3-overo-tobi-common.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-index 7375cda..e7f2ac7 100644
+index e7f2ac7..0312d22 100644
 --- a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
 +++ b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-@@ -19,18 +19,6 @@
- 			linux,default-trigger = "heartbeat";
- 		};
- 	};
--
--	vddvario: regulator-vddvario {
--		  compatible = "regulator-fixed";
--		  regulator-name = "vddvario";
--		  regulator-always-on;
--	};
--
--	vdd33a: regulator-vdd33a {
--		compatible = "regulator-fixed";
--		regulator-name = "vdd33a";
--		regulator-always-on;
--	};
- };
- 
- &omap3_pmx_core {
-@@ -42,39 +30,15 @@
- 	};
- };
- 
-+#include "omap-gpmc-smsc9221.dtsi"
+@@ -46,6 +46,13 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c3_pins>;
+ 	clock-frequency = <100000>;
 +
- &gpmc {
- 	ranges = <5 0 0x2c000000 0x1000000>;	/* CS5 */
- 
--	ethernet@5,0 {
--		compatible = "smsc,lan9221", "smsc,lan9115";
-+	ethernet@gpmc {
- 		reg = <5 0 0xff>;
--		bank-width = <2>;
--
--		gpmc,mux-add-data;
--		gpmc,cs-on-ns = <0>;
--		gpmc,cs-rd-off-ns = <42>;
--		gpmc,cs-wr-off-ns = <36>;
--		gpmc,adv-on-ns = <6>;
--		gpmc,adv-rd-off-ns = <12>;
--		gpmc,adv-wr-off-ns = <12>;
--		gpmc,oe-on-ns = <0>;
--		gpmc,oe-off-ns = <42>;
--		gpmc,we-on-ns = <0>;
--		gpmc,we-off-ns = <36>;
--		gpmc,rd-cycle-ns = <60>;
--		gpmc,wr-cycle-ns = <54>;
--		gpmc,access-ns = <36>;
--		gpmc,page-burst-access-ns = <0>;
--		gpmc,bus-turnaround-ns = <0>;
--		gpmc,cycle2cycle-delay-ns = <0>;
--		gpmc,wr-data-mux-bus-ns = <18>;
--		gpmc,wr-access-ns = <42>;
--		gpmc,cycle2cycle-samecsen;
--		gpmc,cycle2cycle-diffcsen;
--
- 		interrupt-parent = <&gpio6>;
- 		interrupts = <16 IRQ_TYPE_LEVEL_LOW>;	/* GPIO 176 */
--		reg-io-width = <4>;
- 	};
++	/* optional 1K EEPROM with revision information */
++	eeprom@51 {
++		compatible = "atmel,24c01";
++		reg = <0x51>;
++		pagesize = <8>;
++	};
  };
  
+ &mmc3 {
 -- 
 1.8.3.2
 
