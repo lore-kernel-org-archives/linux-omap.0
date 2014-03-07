@@ -1,86 +1,70 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
-Date: Fri, 7 Mar 2014 18:52:27 +0530
-Message-ID: <5319C813.5030508@ti.com>
-References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl> <5315B822.7010005@ti.com> <5315BA83.5080500@xs4all.nl> <5319B26B.8050900@ti.com> <5319C2A7.6090805@xs4all.nl>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v2 0/4] mtd: nand: omap: add support for BCH16_ECC
+Date: Fri, 7 Mar 2014 18:54:49 +0530
+Message-ID: <1394198693-8003-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <5319C2A7.6090805@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: k.debski@samsung.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40967 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752523AbaCGN0W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Mar 2014 08:26:22 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-mtd <linux-mtd@lists.infradead.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Jon Cormier <jcormier@criticallink.com>, Daniel Mack <zonque@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>
 
-Hi,
+*changes v1 -> v2*
+ Rebased and Cleaned on following versions of pending patches
+  (1) [PATCH v8 0/6] mtd: nand: omap: optimized chip->ecc.correct() for H/W ECC schemes
+  http://lists.infradead.org/pipermail/linux-mtd/2014-February/052092.html
 
-On Friday 07 March 2014 06:29 PM, Hans Verkuil wrote:
->>
->> Do you think I can go ahead with posting the v3 patch set for 3.15, and
->> work on fixing the compliance issue for the -rc fixes?
->
-> It's fine to upstream this in staging, but while not all compliance errors
-> are fixed it can't go to drivers/media. I'm tightening the screws on that
-> since v4l2-compliance is getting to be such a powerful tool for ensuring
-> the driver complies.
->
+  (2) [PATCH v6 0/4] mtd: nand: omap: optimize chip->ecc.calculate() for H/W ECC schemes
+  http://lists.infradead.org/pipermail/linux-mtd/2014-February/052272.html
 
-But the vpe driver is already in drivers/media. How do I push these 
-patches if the vpe drivers is not in staging?
+  (3) [PATCH v5 0/4] mtd: nand: omap: optimize chip->ecc.hwctl() for H/W ECC schemes
+  http://lists.infradead.org/pipermail/linux-mtd/2014-March/052327.html
 
-<snip>
+  (4) [PATCH v6 0/4] mtd: devices: elm: add checks ELM H/W constrains, driver code cleanup
+  http://lists.infradead.org/pipermail/linux-mtd/2014-March/052455.html
+ 
+ Tested on Beaglebone-LT(white) NAND cape having NAND Device with
+       bus-width=16, block-size=256k, page-size=4k, oob-size=224
 
->> Multiplanar: TRY_FMT(G_FMT) != G_FMT
->>           test VIDIOC_TRY_FMT: FAIL
->>                   warn: v4l2-test-formats.cpp(834): S_FMT cannot handle
->> an invalid pixelformat.
->>                   warn: v4l2-test-formats.cpp(835): This may or may not
->> be a problem. For more information see:
->>                   warn: v4l2-test-formats.cpp(836):
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
->>                   fail: v4l2-test-formats.cpp(420): pix_mp.reserved not
->> zeroed
->
-> This is easy enough to fix.
->
->>                   fail: v4l2-test-formats.cpp(851): Video Capture
->> Multiplanar is valid, but no S_FMT was implemented
->
-> For the FMT things: run with -T: that gives nice traces. You can also
-> set the debug flag: echo 2 >/sys/class/video4linux/video0/debug to see all
-> ioctls in more detail.
 
-Thanks for the tip, will try this.
+*original v1*
+http://lists.infradead.org/pipermail/linux-mtd/2013-July/047562.html
 
->
->>           test VIDIOC_S_FMT: FAIL
->>           test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->>
->> Codec ioctls:
->>           test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->>           test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->>           test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
->>
->> Buffer ioctls:
->>                   info: test buftype Video Capture Multiplanar
->>                   warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
->> not supported
->>                   info: test buftype Video Output Multiplanar
->>                   warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
->> not supported
->>           test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->>           test VIDIOC_EXPBUF: OK (Not Supported)
->>           test read/write: OK (Not Supported)
->>               Video Capture Multiplanar (polling):
->>                   Buffer: 0 Sequence: 0 Field: Top Timestamp: 113.178208s
->>                   fail: v4l2-test-buffers.cpp(222): buf.field !=
->> cur_fmt.fmt.pix.field
->
-> Definitely needs to be fixed, you probably just don't set the field at all.
+With increase in NAND flash densities and shrinking of technology
+NAND flash has become more suspectible to multiple bit-flips.
+Thus stronger ECC schemes are required for detecting and correcting multiple
+simultaneous bit-flips in same NAND page. But stronger ECC schemes have large
+ECC syndrome which require more space in OOB/Spare.
 
-The VPE output is always progressive. But yes, I should still set the 
-field parameter to something.
+This patch add support for BCH16 ecc-scheme on OMAP NAND driver:
+(a) BCH16 ecc-scheme can correct 16 bit-flips per 512Bytes of data.
+(b) BCH16 ecc-scheme generates 26-bytes of ECC syndrome / 512B.
 
-Thanks,
-Archit
+Due to (b) this scheme can only be used with NAND devices which have enough
+OOB to satisfy following equation:
+OOBsize per page >= 26 * (page-size / 512)
+
+
+Pekon Gupta (4):
+  mtd: nand: omap: add support for BCH16_ECC - GPMC driver updates
+  mtd: nand: omap: add support for BCH16_ECC - ELM driver updates
+  mtd: nand: omap: add support for BCH16_ECC - NAND driver updates
+  mtd: nand: omap: Documentation: How to select correct ECC scheme for
+    your device ?
+
+ .../devicetree/bindings/mtd/gpmc-nand.txt          | 39 ++++++++++
+ arch/arm/mach-omap2/gpmc.c                         | 15 ++++
+ drivers/mtd/devices/elm.c                          | 42 ++++++++++
+ drivers/mtd/nand/omap2.c                           | 89 ++++++++++++++++++++++
+ include/linux/platform_data/elm.h                  |  3 +-
+ include/linux/platform_data/mtd-nand-omap2.h       |  5 ++
+ 6 files changed, 192 insertions(+), 1 deletion(-)
+
+-- 
+1.8.5.1.163.gd7aced9
+
