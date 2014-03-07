@@ -1,82 +1,202 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v7 1/4] mmc: omap_hsmmc: Enable SDIO IRQ.
-Date: Fri, 7 Mar 2014 20:42:01 +0530
-Message-ID: <5319E1C1.9000107@ti.com>
-References: <1393331866-28307-1-git-send-email-afenkart@gmail.com> <1393331866-28307-2-git-send-email-afenkart@gmail.com> <5310C1AC.5060301@ti.com> <CALtMJEA9opDbEb1HRbA3CdOc3UigrpeD1bhaNAgyEKehsBDvgg@mail.gmail.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH v3 4/7] ARM: dts: omap3-overo: Add HSUSB PHY
+Date: Fri, 07 Mar 2014 16:31:18 +0100
+Message-ID: <5319E646.9010402@epfl.ch>
+References: <1393839247-6516-1-git-send-email-florian.vaussard@epfl.ch> <1393839247-6516-5-git-send-email-florian.vaussard@epfl.ch> <53146166.4050906@ti.com> <53147A19.5070009@epfl.ch> <53147E82.6030300@ti.com> <5316D9D7.9070100@epfl.ch>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CALtMJEA9opDbEb1HRbA3CdOc3UigrpeD1bhaNAgyEKehsBDvgg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp0.epfl.ch ([128.178.224.218]:55179 "EHLO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751013AbaCGPbW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Mar 2014 10:31:22 -0500
+In-Reply-To: <5316D9D7.9070100@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 05 March 2014 02:00 PM, Andreas Fenkart wrote:
-> Hi,
->
-> 2014-02-28 18:04 GMT+01:00 Balaji T K <balajitk@ti.com>:
->> On Tuesday 25 February 2014 06:07 PM, Andreas Fenkart wrote:
+
+
+On 03/05/2014 09:01 AM, Florian Vaussard wrote:
+> 
+> On 03/03/2014 02:07 PM, Roger Quadros wrote:
+>>
+>> On 03/03/2014 02:48 PM, Florian Vaussard wrote:
+>>> Hi Roger,
 >>>
->>> For now, only support SDIO interrupt if we are booted with
->>> DT. This is because some platforms need special quirks. And
->>> we don't want to add new legacy mux platform init code
->>> callbacks any longer as we are moving to DT based booting
->>> anyways.
+>>> On 03/03/2014 12:03 PM, Roger Quadros wrote:
+>>>> Hi Florian,
+>>>>
+>>>>
+>>>> On 03/03/2014 11:34 AM, Florian Vaussard wrote:
+>>>>> Add the High-Speed USB PHY.
+>>>>>
+>>>>> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+>>>>> ---
+>>>>>  arch/arm/boot/dts/omap3-overo-storm-tobi.dts | 16 ++++++++++
+>>>>>  arch/arm/boot/dts/omap3-overo-tobi.dts       | 16 ++++++++++
+>>>>>  arch/arm/boot/dts/omap3-overo.dtsi           | 44 ++++++++++++++++++++++++++++
+>>>>>  3 files changed, 76 insertions(+)
+>>>>>
+>>>>> diff --git a/arch/arm/boot/dts/omap3-overo-storm-tobi.dts b/arch/arm/boot/dts/omap3-overo-storm-tobi.dts
+>>>>> index 2033b52..eb93e3a 100644
+>>>>> --- a/arch/arm/boot/dts/omap3-overo-storm-tobi.dts
+>>>>> +++ b/arch/arm/boot/dts/omap3-overo-storm-tobi.dts
+>>>>> @@ -21,6 +21,22 @@
+>>>>>  };
+>>>>>  
+>>>>>  &omap3_pmx_core2 {
+>>>>> +	pinctrl-names = "default";
+>>>>> +	pinctrl-0 = <
+>>>>> +			&hsusb2_2_pins
+>>>>> +	>;
+>>>>> +
+>>>>> +	hsusb2_2_pins: pinmux_hsusb2_2_pins {
+>>>>> +		pinctrl-single,pins = <
+>>>>> +			OMAP3630_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
+>>>>> +			OMAP3630_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
+>>>>> +			OMAP3630_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
+>>>>> +			OMAP3630_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
+>>>>> +			OMAP3630_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
+>>>>> +			OMAP3630_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
+>>>>> +		>;
+>>>>> +	};
+>>>>> +
+>>>>>  	w3cbw003c_2_pins: pinmux_w3cbw003c_2_pins {
+>>>>>  		pinctrl-single,pins = <
+>>>>>  			OMAP3630_CORE2_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE4)		/* etk_d2.gpio_16 */
+>>>>> diff --git a/arch/arm/boot/dts/omap3-overo-tobi.dts b/arch/arm/boot/dts/omap3-overo-tobi.dts
+>>>>> index 21de31d..e77be26 100644
+>>>>> --- a/arch/arm/boot/dts/omap3-overo-tobi.dts
+>>>>> +++ b/arch/arm/boot/dts/omap3-overo-tobi.dts
+>>>>> @@ -21,6 +21,22 @@
+>>>>>  };
+>>>>>  
+>>>>>  &omap3_pmx_core2 {
+>>>>> +	pinctrl-names = "default";
+>>>>> +	pinctrl-0 = <
+>>>>> +			&hsusb2_2_pins
+>>>>> +	>;
+>>>>> +
+>>>>> +	hsusb2_2_pins: pinmux_hsusb2_2_pins {
+>>>>> +		pinctrl-single,pins = <
+>>>>> +			OMAP3430_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
+>>>>> +			OMAP3430_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
+>>>>> +			OMAP3430_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
+>>>>> +			OMAP3430_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
+>>>>> +			OMAP3430_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
+>>>>> +			OMAP3430_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
+>>>>> +		>;
+>>>>> +	};
+>>>>> +
+>>>>>  	w3cbw003c_2_pins: pinmux_w3cbw003c_2_pins {
+>>>>>  		pinctrl-single,pins = <
+>>>>>  			OMAP3430_CORE2_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE4)		/* etk_d2.gpio_16 */
+>>>>> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
+>>>>> index 07467cc..8f810db 100644
+>>>>> --- a/arch/arm/boot/dts/omap3-overo.dtsi
+>>>>> +++ b/arch/arm/boot/dts/omap3-overo.dtsi
+>>>>> @@ -30,6 +30,24 @@
+>>>>>  		ti,codec = <&twl_audio>;
+>>>>>  	};
+>>>>>  
+>>>>> +	/* HS USB Port 2 Power */
+>>>>> +	hsusb2_power: hsusb2_power_reg {
+>>>>> +		compatible = "regulator-fixed";
+>>>>> +		regulator-name = "hsusb2_vbus";
+>>>>> +		regulator-min-microvolt = <5000000>;
+>>>>> +		regulator-max-microvolt = <5000000>;
+>>>>> +		gpio = <&gpio6 8 0>;				/* gpio_168: vbus enable */
+>>>>> +		startup-delay-us = <70000>;
+>>>>> +		enable-active-high;
+>>>>> +	};
+>>>>> +
+>>>>> +	/* HS USB Host PHY on PORT 2 */
+>>>>> +	hsusb2_phy: hsusb2_phy {
+>>>>> +		compatible = "usb-nop-xceiv";
+>>>>> +		reset-gpios = <&gpio6 23 GPIO_ACTIVE_LOW>;	/* gpio_183 */
+>>>>> +		vcc-supply = <&hsusb2_power>;
+>>>>> +	};
+>>>>> +
+>>>>>  	/* Regulator to trigger the nPoweron signal of the Wifi module */
+>>>>>  	w3cbw003c_npoweron: regulator-w3cbw003c-npoweron {
+>>>>>  		compatible = "regulator-fixed";
+>>>>> @@ -64,6 +82,11 @@
+>>>>>  };
+>>>>>  
+>>>>>  &omap3_pmx_core {
+>>>>> +	pinctrl-names = "default";
+>>>>> +	pinctrl-0 = <
+>>>>> +			&hsusb2_pins
+>>>>> +	>;
+>>>>> +
+>>>>>  	uart3_pins: pinmux_uart3_pins {
+>>>>>  		pinctrl-single,pins = <
+>>>>>  			OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0)	/* uart3_rx_irrx.uart3_rx_irrx */
+>>>>> @@ -107,6 +130,19 @@
+>>>>>  			OMAP3_CORE1_IOPAD(0x219c, PIN_OUTPUT | MUX_MODE4)		/* uart3_rts_sd.gpio_164 */
+>>>>>  		>;
+>>>>>  	};
+>>>>> +
+>>>>> +	hsusb2_pins: pinmux_hsusb2_pins {
+>>>>> +		pinctrl-single,pins = <
+>>>>> +			OMAP3_CORE1_IOPAD(0x21d4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
+>>>>> +			OMAP3_CORE1_IOPAD(0x21d6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
+>>>>> +			OMAP3_CORE1_IOPAD(0x21d8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
+>>>>> +			OMAP3_CORE1_IOPAD(0x21da, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
+>>>>> +			OMAP3_CORE1_IOPAD(0x21dc, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
+>>>>> +			OMAP3_CORE1_IOPAD(0x21de, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
+>>>>> +			OMAP3_CORE1_IOPAD(0x21be, PIN_OUTPUT | MUX_MODE4)		/* i2c2_scl.gpio_168 */
+>>>>> +			OMAP3_CORE1_IOPAD(0x21c0, PIN_OUTPUT | MUX_MODE4)		/* i2c2_sda.gpio_183 */
+>>>>> +		>;
+>>>>> +	};
+>>>>
+>>>> Does this mean all overo variants use the USB host feature on hsusb2 pins? If not then this can't be here.
+>>>>
 >>>
->>> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
+>>> Yes, they all does have USB host on hsusb2.
 >>>
->>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->>> index a5a38cc..bd3bb0c 100644
->>> --- a/drivers/mmc/host/omap_hsmmc.c
->>> +++ b/drivers/mmc/host/omap_hsmmc.c
->>
->>
->> <snip>
->>
->>
->>> @@ -1705,7 +1757,18 @@ static void omap_hsmmc_debugfs(struct mmc_host
->>> *mmc)
->>>    #endif
+>>>> If yes then I didn't understand why the hsusb2 pinmux is split up half here and half in "omap3-overo-tobi.dts"
+>>>> and "omap3-overo-storm-tobi.dts"
+>>>>
 >>>
->>>    #ifdef CONFIG_OF
->>> -static u16 omap4_reg_offset = 0x100;
->>> +struct of_data {
->>> +       u16 offset;
->>> +       int flags;
->>> +};
->>> +
+>>> Some of the pads are in the omap3_pmx_core2 domain. The exact offset of
+>>> the pin inside the pinctrl domain depends on the OMAP3 version, hence
+>>> the use of OMAP3430_CORE2_IOPAD and OMAP3630_CORE2_IOPAD macros.
+>>>
+>>> Now some Overo depends on omap34xx (regular overo), others on omap36xx
+>>> (overo-storm). Commit f03ef09 "ARM: dts: Add support for both OMAP35xx
+>>> and OMAP36xx Overo/Tobi" made omap3-overo.dtsi independent from the
+>>> OMAP3 revision, and pushed these details down to the Tobi board files.
+>>> This is why the pinmux related to the omap3_pmx_core2 domain is there.
+>>>
 >>
->> Hi Andreas,
+>> But we can still have the omap3_pmx_core2 part along with the omap3_pmx_core part
+>> for hsusb pins in the omap3-overo-tobi-common.dtsi, right? That way we limit
+>> usb host feature for TOBI variants only.
 >>
->> struct of_data declaration needs to be moved out of #ifdef CONFIG_OF
->> for !CONFIG_OF build.
-> should be fixed with new version
->
+>> The tobi variant's dts file seems to include the right OMAP3430 vs 3630 SoC dtsi before the
+>> omap3-overo-tobi-common.dtsi, so the pinctrl address will be taken care of there.
 >>
->> I tried testing this patch series on am335x, I see throughput in the
->> range of KBs. Will give another try with Tony's version.
-> KB sounds really bad, even with polling I have > 5MBytes/s.
->
-> Could you pls paste
-> # cat /sys/kernel/debug/mmc0/regs
->
-Hi,
+>>> As long as we have only one expansion board, I think that this is ok. I
+>>> wanted to avoid an excessive fragmentation of the DTSI files. But when
+>>> adding new expansion boards, it will be necessary to create yet another
+>>> indirection layer to address this issue and avoid duplicated DT data.
+>>
+>> Putting usb host pins in omap3-overo.dtsi implies that all Overo expansion boards will use it
+>> but that is not always the case. Any expansion board vendor can decide not to use USB host feature.
+>>
+> 
+> I do agree that this can be the case. So it makes sense to push the
+> USB host down to expansion boards.
+> 
 
-Find below debug reg dump
+In fact, I was wrong here, since the USB controller is embedded on the
+processor board. The ULPI pins are not available to the expansion
+boards, so disabling the host USB will make no difference on the
+expansion connector.
 
-mmc0:
-sdio irq        enabled
-pinmux config   sdio
-ctx_loss:       1
-
-regs:
-CON:            0x00000600
-PSTATE:         0x01f70000
-HCTL:           0x00000d06
-SYSCTL:         0x000d0087
-IE:             0x00000100
-ISE:            0x00000100
-CAPA:           0x06e10080
-
+Anyway, I have to reorganize a bit the pinmux definitions.
