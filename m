@@ -1,129 +1,106 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v2 2/4] mtd: nand: omap: add support for BCH16_ECC - ELM
- driver updates
-Date: Fri, 7 Mar 2014 18:54:51 +0530
-Message-ID: <1394198693-8003-3-git-send-email-pekon@ti.com>
-References: <1394198693-8003-1-git-send-email-pekon@ti.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
+Date: Fri, 07 Mar 2014 14:32:03 +0100
+Message-ID: <5319CA53.9020101@xs4all.nl>
+References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl> <5315B822.7010005@ti.com> <5315BA83.5080500@xs4all.nl> <5319B26B.8050900@ti.com> <5319C2A7.6090805@xs4all.nl> <5319C813.5030508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <1394198693-8003-1-git-send-email-pekon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: Jon Cormier <jcormier@criticallink.com>, linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Daniel Mack <zonque@gmail.com>, linux-mtd <linux-mtd@lists.infradead.org>, Pekon Gupta <pekon@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <5319C813.5030508@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: k.debski@samsung.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-ELM hardware engine is used to detect ECC errors for BCHx ecc-schemes
-(like BCH4/BCH8/BCH16). This patch extends configuration of ELM registers
-for loading of BCH16 ECC syndrome.
+On 03/07/2014 02:22 PM, Archit Taneja wrote:
+> Hi,
+> 
+> On Friday 07 March 2014 06:29 PM, Hans Verkuil wrote:
+>>>
+>>> Do you think I can go ahead with posting the v3 patch set for 3.15, and
+>>> work on fixing the compliance issue for the -rc fixes?
+>>
+>> It's fine to upstream this in staging, but while not all compliance errors
+>> are fixed it can't go to drivers/media. I'm tightening the screws on that
+>> since v4l2-compliance is getting to be such a powerful tool for ensuring
+>> the driver complies.
+>>
+> 
+> But the vpe driver is already in drivers/media. How do I push these 
+> patches if the vpe drivers is not in staging?
 
-Signed-off-by: Pekon Gupta <pekon@ti.com>
----
- drivers/mtd/devices/elm.c         | 42 +++++++++++++++++++++++++++++++++++++++
- include/linux/platform_data/elm.h |  3 ++-
- 2 files changed, 44 insertions(+), 1 deletion(-)
+Oops, sorry. I got confused with Benoit's AM437x ti-vpfe patch :-)
 
-diff --git a/drivers/mtd/devices/elm.c b/drivers/mtd/devices/elm.c
-index 16e62ae..c6465d6 100644
---- a/drivers/mtd/devices/elm.c
-+++ b/drivers/mtd/devices/elm.c
-@@ -216,6 +216,34 @@ static void elm_load_syndrome(struct elm_info *info,
- 				val = cpu_to_be32(*(u32 *) &ecc[0]) >> 12;
- 				elm_write_reg(info, offset, val);
- 				break;
-+			case BCH16_ECC:
-+				val =	ecc[25] << 0  | ecc[24] <<  8 |
-+					ecc[23] << 16 | ecc[22] << 24;
-+				elm_write_reg(info, offset, val);
-+				offset += 4;
-+				val =	ecc[21] <<  0 | ecc[20] <<  8 |
-+					ecc[19] << 16 | ecc[18] << 24;
-+				elm_write_reg(info, offset, val);
-+				offset += 4;
-+				val =	ecc[17] <<  0 | ecc[16] <<  8 |
-+					ecc[15] << 16 | ecc[14] << 24;
-+				elm_write_reg(info, offset, val);
-+				offset += 4;
-+				val =	ecc[13] <<  0 | ecc[12] <<  8 |
-+					ecc[11] << 16 | ecc[10] << 24;
-+				elm_write_reg(info, offset, val);
-+				offset += 4;
-+				val =	ecc[9]  <<  0 | ecc[8]  <<  8 |
-+					ecc[7]  << 16 | ecc[6]  << 24;
-+				elm_write_reg(info, offset, val);
-+				offset += 4;
-+				val =	ecc[5]  <<  0 | ecc[4]  <<  8 |
-+					ecc[3]  << 16 | ecc[2]  << 24;
-+				elm_write_reg(info, offset, val);
-+				offset += 4;
-+				val =	ecc[1]  <<  0 | ecc[0]  <<  8;
-+				elm_write_reg(info, offset, val);
-+				break;
- 			default:
- 				pr_err("invalid config bch_type\n");
- 			}
-@@ -438,6 +466,13 @@ static int elm_context_save(struct elm_info *info)
- 	for (i = 0; i < ERROR_VECTOR_MAX; i++) {
- 		offset = i * SYNDROME_FRAGMENT_REG_SIZE;
- 		switch (bch_type) {
-+		case BCH16_ECC:
-+			regs->elm_syndrome_fragment_6[i] = elm_read_reg(info,
-+					ELM_SYNDROME_FRAGMENT_6 + offset);
-+			regs->elm_syndrome_fragment_5[i] = elm_read_reg(info,
-+					ELM_SYNDROME_FRAGMENT_5 + offset);
-+			regs->elm_syndrome_fragment_4[i] = elm_read_reg(info,
-+					ELM_SYNDROME_FRAGMENT_4 + offset);
- 		case BCH8_ECC:
- 			regs->elm_syndrome_fragment_3[i] = elm_read_reg(info,
- 					ELM_SYNDROME_FRAGMENT_3 + offset);
-@@ -476,6 +511,13 @@ static int elm_context_restore(struct elm_info *info)
- 	for (i = 0; i < ERROR_VECTOR_MAX; i++) {
- 		offset = i * SYNDROME_FRAGMENT_REG_SIZE;
- 		switch (bch_type) {
-+		case BCH16_ECC:
-+			elm_write_reg(info, ELM_SYNDROME_FRAGMENT_6 + offset,
-+					regs->elm_syndrome_fragment_6[i]);
-+			elm_write_reg(info, ELM_SYNDROME_FRAGMENT_5 + offset,
-+					regs->elm_syndrome_fragment_5[i]);
-+			elm_write_reg(info, ELM_SYNDROME_FRAGMENT_4 + offset,
-+					regs->elm_syndrome_fragment_4[i]);
- 		case BCH8_ECC:
- 			elm_write_reg(info, ELM_SYNDROME_FRAGMENT_3 + offset,
- 					regs->elm_syndrome_fragment_3[i]);
-diff --git a/include/linux/platform_data/elm.h b/include/linux/platform_data/elm.h
-index dc0218d..51312f0 100644
---- a/include/linux/platform_data/elm.h
-+++ b/include/linux/platform_data/elm.h
-@@ -21,6 +21,7 @@
- enum bch_ecc {
- 	BCH4_ECC = 0,
- 	BCH8_ECC,
-+	BCH16_ECC
- };
- 
- /* ELM support 8 error syndrome process */
-@@ -38,7 +39,7 @@ struct elm_errorvec {
- 	bool error_reported;
- 	bool error_uncorrectable;
- 	int error_count;
--	int error_loc[ERROR_VECTOR_MAX];
-+	int error_loc[16];
- };
- 
- void elm_decode_bch_error_page(struct device *dev, u8 *ecc_calc,
--- 
-1.8.5.1.163.gd7aced9
+Disregard what I said, it's OK to upstream it. But if you could just spend
+some hours fixing the problems, that would really be best.
 
+> 
+> <snip>
+> 
+>>> Multiplanar: TRY_FMT(G_FMT) != G_FMT
+>>>           test VIDIOC_TRY_FMT: FAIL
+>>>                   warn: v4l2-test-formats.cpp(834): S_FMT cannot handle
+>>> an invalid pixelformat.
+>>>                   warn: v4l2-test-formats.cpp(835): This may or may not
+>>> be a problem. For more information see:
+>>>                   warn: v4l2-test-formats.cpp(836):
+>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+>>>                   fail: v4l2-test-formats.cpp(420): pix_mp.reserved not
+>>> zeroed
+>>
+>> This is easy enough to fix.
+>>
+>>>                   fail: v4l2-test-formats.cpp(851): Video Capture
+>>> Multiplanar is valid, but no S_FMT was implemented
+>>
+>> For the FMT things: run with -T: that gives nice traces. You can also
+>> set the debug flag: echo 2 >/sys/class/video4linux/video0/debug to see all
+>> ioctls in more detail.
+> 
+> Thanks for the tip, will try this.
+> 
+>>
+>>>           test VIDIOC_S_FMT: FAIL
+>>>           test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>>>
+>>> Codec ioctls:
+>>>           test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>>>           test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>>>           test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>>>
+>>> Buffer ioctls:
+>>>                   info: test buftype Video Capture Multiplanar
+>>>                   warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
+>>> not supported
+>>>                   info: test buftype Video Output Multiplanar
+>>>                   warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
+>>> not supported
+>>>           test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>>           test VIDIOC_EXPBUF: OK (Not Supported)
+>>>           test read/write: OK (Not Supported)
+>>>               Video Capture Multiplanar (polling):
+>>>                   Buffer: 0 Sequence: 0 Field: Top Timestamp: 113.178208s
+>>>                   fail: v4l2-test-buffers.cpp(222): buf.field !=
+>>> cur_fmt.fmt.pix.field
+>>
+>> Definitely needs to be fixed, you probably just don't set the field at all.
+> 
+> The VPE output is always progressive. But yes, I should still set the 
+> field parameter to something.
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+V4L2_FIELD_NONE is the correct field setting for that.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks,
+> Archit
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
