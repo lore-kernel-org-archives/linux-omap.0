@@ -1,7 +1,7 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v2 5/5] ARM: dts: am43x-epos-evm: Enable USB
-Date: Fri, 7 Mar 2014 14:45:58 +0530
-Message-ID: <1394183758-3821-6-git-send-email-george.cherian@ti.com>
+Subject: [PATCH v2 4/5] ARM: dts: am437x-gp-evm: Enable USB
+Date: Fri, 7 Mar 2014 14:45:57 +0530
+Message-ID: <1394183758-3821-5-git-send-email-george.cherian@ti.com>
 References: <1394183758-3821-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -18,20 +18,19 @@ Enable
 	- USB PHY
 	- dwc3_omap
 	- USB
-
-for am43x-epos-evm
+for am437x-gp-evm
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- arch/arm/boot/dts/am43x-epos-evm.dts | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ arch/arm/boot/dts/am437x-gp-evm.dts | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index a7d0db1..d2a5831 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -251,3 +251,30 @@
- 	pinctrl-0 = <&spi1_pins>;
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 4eb72b8..1d516a7 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -98,3 +98,31 @@
+ &gpio4 {
  	status = "okay";
  };
 +
@@ -48,6 +47,7 @@ index a7d0db1..d2a5831 100644
 +	dr_mode = "peripheral";
 +	status = "okay";
 +};
++
 +
 +&usb2_phy2 {
 +	status = "okay";
