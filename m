@@ -1,80 +1,74 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v6] phy: omap-usb2: move omap_usb.h from linux/usb/ to linux/phy/
-Date: Fri, 7 Mar 2014 22:18:08 +0530
-Message-ID: <1394210888-1587-1-git-send-email-kishon@ti.com>
-References: <1393846695-14644-1-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 00/41] OMAPDSS: DT support v3
+Date: Fri, 7 Mar 2014 08:49:29 -0800
+Message-ID: <20140307164929.GC3789@atomide.com>
+References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
+ <531823C5.1020008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1393846695-14644-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38639 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752191AbaCGQtk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Mar 2014 11:49:40 -0500
+Content-Disposition: inline
+In-Reply-To: <531823C5.1020008@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-No functional change. Moved omap_usb.h from linux/usb/ to linux/phy/.
-Also removed the unused members of struct omap_usb (after phy-omap-pipe3
-started using it's own header file)
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140305 23:32]:
+> Hi Tony,
+> 
+> On 21/01/14 12:56, Tomi Valkeinen wrote:
+> > Hi,
+> > 
+> > Here's version 3 of the DSS DT series.
+> 
+> Can you have a look at the arch/arm/ parts in the series and ack if
+> they're ok, i.e, patches 1, 2, 32.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
-Changes from v5:
-fixes the following compilation error
-drivers/usb/phy/phy-twl6030-usb.c:30:32:
-fatal error: linux/usb/omap_usb.h: No such file or directory
+Patches 1, 2 & 32 look OK to me, so for those please feel free to add:
 
- drivers/phy/phy-omap-usb2.c           |    2 +-
- drivers/usb/phy/phy-twl6030-usb.c     |    2 +-
- include/linux/{usb => phy}/omap_usb.h |    3 ---
- 3 files changed, 2 insertions(+), 5 deletions(-)
- rename include/linux/{usb => phy}/omap_usb.h (95%)
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-index 705af5a..9c3f056 100644
---- a/drivers/phy/phy-omap-usb2.c
-+++ b/drivers/phy/phy-omap-usb2.c
-@@ -21,7 +21,7 @@
- #include <linux/slab.h>
- #include <linux/of.h>
- #include <linux/io.h>
--#include <linux/usb/omap_usb.h>
-+#include <linux/phy/omap_usb.h>
- #include <linux/usb/phy_companion.h>
- #include <linux/clk.h>
- #include <linux/err.h>
-diff --git a/drivers/usb/phy/phy-twl6030-usb.c b/drivers/usb/phy/phy-twl6030-usb.c
-index 214172b..04778cf 100644
---- a/drivers/usb/phy/phy-twl6030-usb.c
-+++ b/drivers/usb/phy/phy-twl6030-usb.c
-@@ -27,7 +27,7 @@
- #include <linux/io.h>
- #include <linux/usb/musb-omap.h>
- #include <linux/usb/phy_companion.h>
--#include <linux/usb/omap_usb.h>
-+#include <linux/phy/omap_usb.h>
- #include <linux/i2c/twl.h>
- #include <linux/regulator/consumer.h>
- #include <linux/err.h>
-diff --git a/include/linux/usb/omap_usb.h b/include/linux/phy/omap_usb.h
-similarity index 95%
-rename from include/linux/usb/omap_usb.h
-rename to include/linux/phy/omap_usb.h
-index 6ae2936..19d343c3 100644
---- a/include/linux/usb/omap_usb.h
-+++ b/include/linux/phy/omap_usb.h
-@@ -33,13 +33,10 @@ struct usb_dpll_params {
- struct omap_usb {
- 	struct usb_phy		phy;
- 	struct phy_companion	*comparator;
--	void __iomem		*pll_ctrl_base;
- 	struct device		*dev;
- 	struct device		*control_dev;
- 	struct clk		*wkupclk;
--	struct clk		*sys_clk;
- 	struct clk		*optclk;
--	u8			is_suspended:1;
- };
- 
- #define	phy_to_omapusb(x)	container_of((x), struct omap_usb, phy)
--- 
-1.7.9.5
+There's a minor merge conflict in pdata-quirks.c, but that's trivial
+so it should be OK for you to queue those along with the DSS patches.
+
+> Then there are the .dts patches, 22-30, for which I haven't been able to
+> get any acks. I'm not sure who I should get acks from for those, but I
+> don't mind adding yours if you want to give it.
+> 
+> The .dts patches have had minor changes compared to the ones posted
+> here, according to the DT bindings review comments, but nothing much has
+> changed.
+
+These will cause unnecessary merge conflicts all over the place:
+
+Auto-merging arch/arm/boot/dts/omap4.dtsi
+CONFLICT (content): Merge conflict in arch/arm/boot/dts/omap4.dtsi
+Auto-merging arch/arm/boot/dts/omap4-sdp.dts
+CONFLICT (content): Merge conflict in arch/arm/boot/dts/omap4-sdp.dts
+Auto-merging arch/arm/boot/dts/omap4-panda-common.dtsi
+CONFLICT (content): Merge conflict in arch/arm/boot/dts/omap4-panda-common.dtsi
+Auto-merging arch/arm/boot/dts/omap3.dtsi
+Auto-merging arch/arm/boot/dts/omap3-n900.dts
+CONFLICT (content): Merge conflict in arch/arm/boot/dts/omap3-n900.dts
+Auto-merging arch/arm/boot/dts/omap3-igep0020.dts
+CONFLICT (content): Merge conflict in arch/arm/boot/dts/omap3-igep0020.dts
+Auto-merging arch/arm/boot/dts/omap3-beagle.dts
+CONFLICT (content): Merge conflict in arch/arm/boot/dts/omap3-beagle.dts
+Auto-merging arch/arm/boot/dts/omap3-beagle-xm.dts
+CONFLICT (content): Merge conflict in arch/arm/boot/dts/omap3-beagle-xm.dts
+
+How about do a pull request for just the .dts changes against current
+omap-for-v3.15/dt branch ASAP for me so I can pull it in? That is assuming
+that just the .dts changes alone won't break anything.
+
+Then make sure your series works both ways and maybe do a follow up
+patch that flips things over after the dependencies are merged.
+
+Regards,
+
+Tony
