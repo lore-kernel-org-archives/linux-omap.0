@@ -1,82 +1,82 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 2/8] ARM: dts: dra7-clock: Add "l3init_960m_gfclk" clock
- gate
-Date: Fri, 7 Mar 2014 15:59:17 +0200
-Message-ID: <5319D0B5.6060300@ti.com>
-References: <1394197751-28984-1-git-send-email-rogerq@ti.com>
- <1394197751-28984-3-git-send-email-rogerq@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v7 1/4] mmc: omap_hsmmc: Enable SDIO IRQ.
+Date: Fri, 7 Mar 2014 20:42:01 +0530
+Message-ID: <5319E1C1.9000107@ti.com>
+References: <1393331866-28307-1-git-send-email-afenkart@gmail.com> <1393331866-28307-2-git-send-email-afenkart@gmail.com> <5310C1AC.5060301@ti.com> <CALtMJEA9opDbEb1HRbA3CdOc3UigrpeD1bhaNAgyEKehsBDvgg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1394197751-28984-3-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>, balbi@ti.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CALtMJEA9opDbEb1HRbA3CdOc3UigrpeD1bhaNAgyEKehsBDvgg@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Andreas Fenkart <afenkart@gmail.com>
+Cc: Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/07/2014 03:09 PM, Roger Quadros wrote:
-> This clock gate description was missing in older Reference manuals.
-> It is present on the SoC to provide 960MHz reference clock to the
-> internal USB PHYs.
+On Wednesday 05 March 2014 02:00 PM, Andreas Fenkart wrote:
+> Hi,
+>
+> 2014-02-28 18:04 GMT+01:00 Balaji T K <balajitk@ti.com>:
+>> On Tuesday 25 February 2014 06:07 PM, Andreas Fenkart wrote:
+>>>
+>>> For now, only support SDIO interrupt if we are booted with
+>>> DT. This is because some platforms need special quirks. And
+>>> we don't want to add new legacy mux platform init code
+>>> callbacks any longer as we are moving to DT based booting
+>>> anyways.
+>>>
+>>> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
+>>>
+>>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>>> index a5a38cc..bd3bb0c 100644
+>>> --- a/drivers/mmc/host/omap_hsmmc.c
+>>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>>
+>>
+>> <snip>
+>>
+>>
+>>> @@ -1705,7 +1757,18 @@ static void omap_hsmmc_debugfs(struct mmc_host
+>>> *mmc)
+>>>    #endif
+>>>
+>>>    #ifdef CONFIG_OF
+>>> -static u16 omap4_reg_offset = 0x100;
+>>> +struct of_data {
+>>> +       u16 offset;
+>>> +       int flags;
+>>> +};
+>>> +
+>>
+>> Hi Andreas,
+>>
+>> struct of_data declaration needs to be moved out of #ifdef CONFIG_OF
+>> for !CONFIG_OF build.
+> should be fixed with new version
+>
+>>
+>> I tried testing this patch series on am335x, I see throughput in the
+>> range of KBs. Will give another try with Tony's version.
+> KB sounds really bad, even with polling I have > 5MBytes/s.
+>
+> Could you pls paste
+> # cat /sys/kernel/debug/mmc0/regs
+>
+Hi,
 
-Can you provide a document reference here?
+Find below debug reg dump
 
--Tero
+mmc0:
+sdio irq        enabled
+pinmux config   sdio
+ctx_loss:       1
 
->
-> Use l3init_960m_gfclk as parent of usb_otg_ss1_refclk960m and
-> usb_otg_ss2_refclk960m.
->
-> CC: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->   arch/arm/boot/dts/dra7xx-clocks.dtsi | 12 ++++++++++--
->   1 file changed, 10 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> index e96da9a..b8d3a9d 100644
-> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> @@ -1386,6 +1386,14 @@
->   		ti,dividers = <1>, <8>;
->   	};
->
-> +	l3init_960m_gfclk: l3init_960m_gfclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,gate-clock";
-> +		clocks = <&dpll_usb_clkdcoldo>;
-> +		ti,bit-shift = <8>;
-> +		reg = <0x06c0>;
-> +	};
-> +
->   	dss_32khz_clk: dss_32khz_clk {
->   		#clock-cells = <0>;
->   		compatible = "ti,gate-clock";
-> @@ -1533,7 +1541,7 @@
->   	usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m {
->   		#clock-cells = <0>;
->   		compatible = "ti,gate-clock";
-> -		clocks = <&dpll_usb_clkdcoldo>;
-> +		clocks = <&l3init_960m_gfclk>;
->   		ti,bit-shift = <8>;
->   		reg = <0x13f0>;
->   	};
-> @@ -1541,7 +1549,7 @@
->   	usb_otg_ss2_refclk960m: usb_otg_ss2_refclk960m {
->   		#clock-cells = <0>;
->   		compatible = "ti,gate-clock";
-> -		clocks = <&dpll_usb_clkdcoldo>;
-> +		clocks = <&l3init_960m_gfclk>;
->   		ti,bit-shift = <8>;
->   		reg = <0x1340>;
->   	};
->
+regs:
+CON:            0x00000600
+PSTATE:         0x01f70000
+HCTL:           0x00000d06
+SYSCTL:         0x000d0087
+IE:             0x00000100
+ISE:            0x00000100
+CAPA:           0x06e10080
+
