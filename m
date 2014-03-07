@@ -1,65 +1,175 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 1/8] CLK: ti: dra7: Initialize USB_DPLL
-Date: Fri, 7 Mar 2014 15:09:04 +0200
-Message-ID: <1394197751-28984-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH 7/8] ARM: dts: dra7: Add USB related nodes
+Date: Fri, 7 Mar 2014 15:09:10 +0200
+Message-ID: <1394197751-28984-8-git-send-email-rogerq@ti.com>
 References: <1394197751-28984-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1394197751-28984-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, Mike Turquette <mturquette@linaro.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
+Cc: kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-USB_DPLL must be initialized and locked at boot so that
-USB modules can work.
+Add nodes for the Super Speed USB controllers, omap-control-usb,
+USB2 PHY and USB3 PHY devices.
 
-Also program USB_DLL_M2 output to half rate.
+Remove ocp2scp1 address space from hwmod data as it is
+now provided via device tree.
 
-CC: Mike Turquette <mturquette@linaro.org>
-CC: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/clk/ti/clk-7xx.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi               | 110 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  10 ---
+ 2 files changed, 110 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index 9977653..f89f3c2 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -18,6 +18,7 @@
- 
- #define DRA7_DPLL_ABE_DEFFREQ				361267200
- #define DRA7_DPLL_GMAC_DEFFREQ				1000000000
-+#define DRA7_DPLL_USB_DEFFREQ				960000000
- 
- 
- static struct ti_dt_clk dra7xx_clks[] = {
-@@ -328,5 +329,15 @@ int __init dra7xx_dt_clk_init(void)
- 	if (rc)
- 		pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
- 
-+	dpll_ck = clk_get_sys(NULL, "dpll_usb_ck");
-+	rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ);
-+	if (rc)
-+		pr_err("%s: failed to configure USB DPLL!\n", __func__);
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 597979b..1e73900 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -811,6 +811,116 @@
+ 			clocks = <&sata_ref_clk>;
+ 			ti,hwmods = "sata";
+ 		};
 +
-+	dpll_ck = clk_get_sys(NULL, "dpll_usb_m2_ck");
-+	rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ/2);
-+	if (rc)
-+		pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
++		omap_control_usb2phy1: control-phy@4a002300 {
++			compatible = "ti,control-phy-usb2";
++			reg = <0x4a002300 0x4>;
++			reg-names = "power";
++		};
 +
- 	return rc;
- }
++		omap_control_usb3phy1: control-phy@4a002370 {
++			compatible = "ti,control-phy-pipe3";
++			reg = <0x4a002370 0x4>;
++			reg-names = "power";
++		};
++
++		omap_control_usb2phy2: control-phy@0x4a002e74 {
++			compatible = "ti,control-phy-usb2-dra7";
++			reg = <0x4a002e74 0x4>;
++			reg-names = "power";
++		};
++
++		/* OCP2SCP1 */
++		ocp2scp@4a080000 {
++			compatible = "ti,omap-ocp2scp";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
++			reg = <0x4a080000 0x20>;
++			ti,hwmods = "ocp2scp1";
++
++			usb2_phy1: phy@4a084000 {
++				compatible = "ti,omap-usb2";
++				reg = <0x4a084000 0x400>;
++				ctrl-module = <&omap_control_usb2phy1>;
++				clocks = <&usb_phy1_always_on_clk32k>,
++					 <&usb_otg_ss1_refclk960m>;
++				clock-names =	"wkupclk",
++						"refclk";
++				#phy-cells = <0>;
++			};
++
++			usb2_phy2: phy@4a085000 {
++				compatible = "ti,omap-usb2";
++				reg = <0x4a085000 0x400>;
++				ctrl-module = <&omap_control_usb2phy2>;
++				clocks = <&usb_phy2_always_on_clk32k>,
++					 <&usb_otg_ss2_refclk960m>;
++				clock-names =	"wkupclk",
++						"refclk";
++				#phy-cells = <0>;
++			};
++
++			usb3_phy1: phy@4a084400 {
++				compatible = "ti,omap-usb3";
++				reg = <0x4a084400 0x80>,
++				      <0x4a084800 0x64>,
++				      <0x4a084c00 0x40>;
++				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
++				ctrl-module = <&omap_control_usb3phy1>;
++				clocks = <&usb_phy3_always_on_clk32k>,
++					 <&sys_clkin1>,
++					 <&usb_otg_ss1_refclk960m>,
++					 <&dpll_core_h13x2_ck>;
++				clock-names =	"wkupclk",
++						"sysclk",
++						"refclk",
++						"optclk";
++				#phy-cells = <0>;
++			};
++		};
++
++		omap_dwc3_1@48880000 {
++			compatible = "ti,dwc3";
++			ti,hwmods = "usb_otg_ss1";
++			reg = <0x48880000 0x10000>;
++			interrupts = <0 77 4>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			utmi-mode = <2>;
++			ranges;
++			usb1: usb@48890000 {
++				compatible = "snps,dwc3";
++				reg = <0x48890000 0x17000>;
++				interrupts = <0 76 4>;
++				phys = <&usb2_phy1>, <&usb3_phy1>;
++				phy-names = "usb2-phy", "usb3-phy";
++				tx-fifo-resize;
++				maximum-speed = "super-speed";
++				dr_mode = "otg";
++			};
++		};
++
++		omap_dwc3_2@488c0000 {
++			compatible = "ti,dwc3";
++			ti,hwmods = "usb_otg_ss2";
++			reg = <0x488c0000 0x10000>;
++			interrupts = <0 92 4>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			utmi-mode = <2>;
++			ranges;
++			usb2: usb@488d0000 {
++				compatible = "snps,dwc3";
++				reg = <0x488d0000 0x17000>;
++				interrupts = <0 78 4>;
++				phys = <&usb2_phy2>;
++				phy-names = "usb2-phy";
++				tx-fifo-resize;
++				maximum-speed = "high-speed";
++				dr_mode = "otg";
++			};
++		};
+ 	};
+ };
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index cca24ad..403ba02 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -2351,21 +2351,11 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__mpu = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-static struct omap_hwmod_addr_space dra7xx_ocp2scp1_addrs[] = {
+-	{
+-		.pa_start	= 0x4a080000,
+-		.pa_end		= 0x4a08001f,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ /* l4_cfg -> ocp2scp1 */
+ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 = {
+ 	.master		= &dra7xx_l4_cfg_hwmod,
+ 	.slave		= &dra7xx_ocp2scp1_hwmod,
+ 	.clk		= "l4_root_clk_div",
+-	.addr		= dra7xx_ocp2scp1_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
 -- 
 1.8.3.2
