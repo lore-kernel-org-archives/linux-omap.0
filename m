@@ -1,47 +1,52 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 2/4] power_supply: Introduce generic psy charging driver
-Date: Fri, 7 Mar 2014 11:04:59 +0800
-Message-ID: <CACRpkdaZ2moqGWx2BpfEeKoW6doXg67TkJKY+mbg4hrFHDr16Q@mail.gmail.com>
-References: <1392875640-29230-1-git-send-email-jenny.tc@intel.com>
-	<1392875640-29230-3-git-send-email-jenny.tc@intel.com>
-	<CACRpkdaU44iinj2iDNdYm62J+4jQbg+XJ=Zq4GmJryPeu7GfTQ@mail.gmail.com>
-	<20140228100114.GA13189@amd.pavel.ucw.cz>
+Subject: Re: [PATCH 3/4] power_supply: Introduce PSE compliant algorithm
+Date: Fri, 7 Mar 2014 11:34:14 +0800
+Message-ID: <CACRpkdanZ2NiwAkd2nTXQ1=bqqmatbGXxK8t9TGSYfjG8cvJZQ@mail.gmail.com>
+References: <1391490780-6141-1-git-send-email-jenny.tc@intel.com>
+	<1391490780-6141-4-git-send-email-jenny.tc@intel.com>
+	<CACRpkdbppewuSSJu=Y=1T7oOCxz_ynhNspyPT=S894KoUB6H6g@mail.gmail.com>
+	<20140228030727.GB27921@jenny-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:46789 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752721AbaCGDFA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Mar 2014 22:05:00 -0500
-Received: by mail-ob0-f170.google.com with SMTP id uz6so3543815obc.1
-        for <linux-omap@vger.kernel.org>; Thu, 06 Mar 2014 19:04:59 -0800 (PST)
-In-Reply-To: <20140228100114.GA13189@amd.pavel.ucw.cz>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:51073 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751266AbaCGDeP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Mar 2014 22:34:15 -0500
+Received: by mail-ob0-f179.google.com with SMTP id va2so3625986obc.10
+        for <linux-omap@vger.kernel.org>; Thu, 06 Mar 2014 19:34:15 -0800 (PST)
+In-Reply-To: <20140228030727.GB27921@jenny-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jenny TC <jenny.tc@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, =?ISO-8859-1?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, =?windows-1251?B?yOLg6evuIMTo7Ojy8O7i?= <freemangordon@abv.bg>Lin
+To: Jenny Tc <jenny.tc@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, =?ISO-8859-1?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, =?windows-1251?B?yOLg6evuIMTo7Ojy8O7i?= <freemangordon@abv.bg>, Linux-
 
-On Fri, Feb 28, 2014 at 6:01 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> On Thu 2014-02-27 21:08:01, Linus Walleij wrote:
->> On Thu, Feb 20, 2014 at 6:53 AM, Jenny TC <jenny.tc@intel.com> wrote:
+On Fri, Feb 28, 2014 at 11:07 AM, Jenny Tc <jenny.tc@intel.com> wrote:
+> On Thu, Feb 27, 2014 at 09:18:57PM +0100, Linus Walleij wrote:
+>> On Tue, Feb 4, 2014 at 6:12 AM, Jenny TC <jenny.tc@intel.com> wrote:
 >>
->> > +++ b/include/linux/power/power_supply_charger.h
+>> > +static inline bool __is_battery_full
+>> > +       (long volt, long cur, long iterm, unsigned long cv)
 >>
->> > +#define MAX_CUR_VOLT_SAMPLES 3
->> > +#define DEF_CUR_VOLT_SAMPLE_JIFF (30*HZ)
->>
->> Why are things defined in Jiffies like this insead of seconds, milliseconds
->> etc? This will vary with the current operating frequency of the system,
->> why should physical measurements do that?
+>> Overall I wonder if you've run checkpatch on these patches, but why
+>> are you naming this one function with a double __underscore?
+>> Just is_battery_full_check() or something would work fine I guess?
 >
-> It is actually ok. The define is relative to jiffies, and that's what
-> interface expects.
+> Just to convey that is_battery_full is a local function and not generic. You
+> can find similar usage in power_supply_core.c (__power_supply_changed_work)
+> and in other drivers. Isn't it advised to have __ prefixes?
 
-So consider the option that the interface is wrong.
+The preference is different, usually __ is for compiler things, but
+while I dislike it (disturbs my perception) I can sure live with it.
 
-Stating something like a sample period in system-specific jiffies
-instead of period time T is just weird. What control systems
-guy would understand this?
+>> Why are you packing these structs? If no real reason, remove it.
+>> The compiler will pack what it thinks is appropriate anyway.
+>
+> The structure is part of the  battery charging profile which can be read directly
+> from an EEPROM or from secondary storage (emmc). So it should be packed to keep
+> it align with the stored format.
+
+OK I buy that. Make sure this is noted somewhere (or maybe I missed it).
 
 Yours,
 Linus Walleij
