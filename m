@@ -1,76 +1,65 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v6] phy: omap-usb2: move omap_usb.h from linux/usb/ to
- linux/phy/
-Date: Fri, 7 Mar 2014 12:08:29 -0600
-Message-ID: <20140307180828.GE23885@saruman.home>
-References: <1393846695-14644-1-git-send-email-kishon@ti.com>
- <1394210888-1587-1-git-send-email-kishon@ti.com>
- <20140307165043.GC23885@saruman.home>
- <531A0436.3080201@ti.com>
- <20140307174059.GD23885@saruman.home>
- <531A05E2.8080706@ti.com>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tVmo9FyGdCe4F4YN"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <531A05E2.8080706@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: [PATCH v4 0/9] ARM: dts: Better support for Gumstix Overo (for 3.15?)
+Date: Fri,  7 Mar 2014 20:22:10 +0100
+Message-ID: <1394220139-1760-1-git-send-email-florian.vaussard@epfl.ch>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp0.epfl.ch ([128.178.224.218]:45124 "EHLO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752387AbaCGTW2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Mar 2014 14:22:28 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: Roger Quadros <rogerq@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---tVmo9FyGdCe4F4YN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello Tony, Benoit,
 
-On Fri, Mar 07, 2014 at 11:16:10PM +0530, Kishon Vijay Abraham I wrote:
-> On Friday 07 March 2014 11:10 PM, Felipe Balbi wrote:
-> >On Fri, Mar 07, 2014 at 11:09:02PM +0530, Kishon Vijay Abraham I wrote:
-> >>On Friday 07 March 2014 10:20 PM, Felipe Balbi wrote:
-> >>>On Fri, Mar 07, 2014 at 10:18:08PM +0530, Kishon Vijay Abraham I wrote:
-> >>>>No functional change. Moved omap_usb.h from linux/usb/ to linux/phy/.
-> >>>>Also removed the unused members of struct omap_usb (after phy-omap-pi=
-pe3
-> >>>>started using it's own header file)
-> >>>
-> >>>does this depend in any other patch ? I get the following when applying
-> >>>*only* this patch on top of v3.14-rc5:
-> >>
-> >>yeah.. this is for linux-phy tree. I'll take this patch.
-> >
-> >looks like you're doing two things at once (renaming the header and
-> >removing some unnecessary fields). At least mention the second thing.
->=20
-> The second line of the commit message mentions just that ;-)
+This is the fourth version of my Overo series. Compared to v3, I reorganized
+a bit the include files (omap3-overo.dtsi -> omap3-overo-base.dtsi and created
+SoC-specific omap3-overo.dtsi and omap3-overo-storm.dtsi). This was necessary
+to correctly define the pinmux for the processor board's pins belonging to the
+omap3_pmx_core2 pinctrl. For details, see the discussion on the v3 [1].
 
-hmmm, my parser didn't read that, nevermind ;-)
+Most patches are pretty obvious. Patch 6 adds some specific timings for
+LAN9221 into a generic file. By using shorter timing, it is possible to
+double the Ethernet bandwidth. Thus is may interest people using a similar
+chip.
 
---=20
-balbi
+I tested this series with both the OMAP35xx Overo and the OMAP36xx Overo.
+Wifi and Bluetooth are functional, HSUSB works.
 
---tVmo9FyGdCe4F4YN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Note: I hope that this can go into 3.15, since the patches were first
+posted before the 3.14 merge window. They add a number of useful peripherals,
+so this would be much appreciated.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Regards,
+Florian
 
-iQIcBAEBAgAGBQJTGgscAAoJEIaOsuA1yqRED08QAKdEZtQXH6Y7Zv1v2XUiTyh7
-dDsq6Gu7kVrvwwP940ATXLQ6WcxeDPsK0tVRrhfr6SXAy/FByzZx1Lr2NcqciB4B
-SsZSAsv0DQT8auJgUr7f/w1TXa1dgWgW1fEo00vT3Byz758Whadr3ltXVvQfgmvP
-w6LrBdx4w1YmBxJF3qSFcZPiWnCLjaxpz0bgYVhpPqyUWI5MMdZKVS+XXW9KuBBN
-7JRWCmnZYcbDqtPLV/+zD2JVguUJpKy0f+TLgSDgPzzvrgch464lKiJ3+W2QZ92V
-ITS2kzh8kn2tAPmXU6B9sbcByD7bL5oPDhrmBWJPhhU5Jl9jZh5yvu4o6AO2DyTe
-0oRM2GzS0gokh7LWW1J7sb16tXuq0t3y+q7R5xk0oN3+fXOzXFj2Jl52Z0ZgoYPX
-uoPNrEr32BzaP4FG1PkZMKKwjlmqajk/JYyO6VDZkwaHYux2C0mbaYcTPdeT7rWy
-44AzzyrHfjyvovWfWG6Sgbkh7MR7VrbAoVdFMHCUGeRMdEyKQaqivBQjKYTDnsq8
-HW+924KWc7hcM+dFFHSpt/JPISEshJj4er6KvpB31EWxyxmiljo5dKo6T47+2coQ
-W2PP5F4I2qPD494jzOHCzXOiEyJiu7aA7t8tTyWUamlNOS23Av1wZkWeWnLfy2DQ
-OGOd+z/0ZkOeGXsiKtFM
-=zQ3L
------END PGP SIGNATURE-----
+[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/111143
 
---tVmo9FyGdCe4F4YN--
+Florian Vaussard (9):
+  ARM: dts: overo: reorganize include files
+  ARM: dts: omap3-tobi: Add missing pinctrl
+  ARM: dts: omap3-overo: Add missing pinctrl
+  ARM: dts: omap3-overo: Enable WiFi/BT combo
+  ARM: dts: omap3-overo: Add HSUSB PHY
+  ARM: dts: omap: Add common file for SMSC9221
+  ARM: dts: omap3-tobi: Use include file omap-gpmc-smsc9221
+  ARM: dts: omap3-tobi: Add AT24C01 EEPROM
+  ARM: dts: overo: Push uart3 pinmux down to expansion board
+
+ arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi      |  58 +++++++
+ arch/arm/boot/dts/omap3-overo-base.dtsi        | 221 +++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-overo-storm-tobi.dts   |   2 +-
+ arch/arm/boot/dts/omap3-overo-storm.dtsi       |  35 ++++
+ arch/arm/boot/dts/omap3-overo-tobi-common.dtsi |  67 ++++----
+ arch/arm/boot/dts/omap3-overo-tobi.dts         |   2 +-
+ arch/arm/boot/dts/omap3-overo.dtsi             |  97 +++--------
+ 7 files changed, 365 insertions(+), 117 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-base.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-storm.dtsi
+
+-- 
+1.8.3.2
+
