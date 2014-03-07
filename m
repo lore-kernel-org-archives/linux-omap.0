@@ -1,67 +1,50 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v4] phy: omap-control: update dra7 and am437 usb2
- Documentation bindings
-Date: Fri, 7 Mar 2014 13:56:55 +0530
-Message-ID: <531982CF.3040004@ti.com>
-References: <53189742.3060705@ti.com>
- <1394121786-28193-1-git-send-email-balbi@ti.com>
+Subject: [PATCH v4] phy: omap-control: update dra7 and am437 usb2 bindings
+Date: Fri, 7 Mar 2014 14:02:55 +0530
+Message-ID: <1394181175-16112-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1394121786-28193-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, rogerq@ti.com, balbi@ti.com
+Cc: kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+From: Roger Quadros <rogerq@ti.com>
 
+The dra7-usb2 and am437-usb2 bindings have not yet been used.
+Change them to be more elegant.
 
-On Friday 07 March 2014 01:55 PM, Kishon Vijay Abraham I wrote:
-> From: Felipe Balbi <balbi@ti.com>
->
-> From: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+Changes from v3:
+Changed the compatible value to that suggested by Tony.
+ti,control-phy-usb2-dra7 and ti,control-phy-usb2-am437.
 
-There seems to be some problem with this patch. Pls ignore this.
+Changes from v2:
+Kept only the drivers/phy part in this patch
 
-Thanks
-Kishon
->
-> The dra7-usb2 and am437-usb2 bindings have not yet been used.
-> Change them to be more elegant.
->
-> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
-> Changes from v3:
-> * changed the compatible name to 'ti,control-phy-usb2-dra7' and
->    'ti,control-phy-usb2-am437'
->
->   Documentation/devicetree/bindings/phy/ti-phy.txt | 4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-> index 41dc132..8694aae 100644
-> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
-> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-> @@ -9,9 +9,9 @@ Required properties:
->                           e.g. USB2_PHY on OMAP5.
->    "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
->                           e.g. USB3 PHY and SATA PHY on OMAP5.
-> - "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY on
-> + "ti,control-phy-usb2-dra7" - if it has power down register like USB2 PHY on
->                           DRA7 platform.
-> - "ti,control-phy-am437usb2" - if it has power down register like USB2 PHY on
-> + "ti,control-phy-usb2-am437" - if it has power down register like USB2 PHY on
->                           AM437 platform.
->    - reg : Address and length of the register set for the device. It contains
->      the address of "otghs_control" for control-phy-otghs or "power" register
->
+ drivers/phy/phy-omap-control.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/phy/phy-omap-control.c b/drivers/phy/phy-omap-control.c
+index 17fc200..a7e2d7f 100644
+--- a/drivers/phy/phy-omap-control.c
++++ b/drivers/phy/phy-omap-control.c
+@@ -228,11 +228,11 @@ static const struct of_device_id omap_control_phy_id_table[] = {
+ 		.data = &pipe3_data,
+ 	},
+ 	{
+-		.compatible = "ti,control-phy-dra7usb2",
++		.compatible = "ti,control-phy-usb2-dra7",
+ 		.data = &dra7usb2_data,
+ 	},
+ 	{
+-		.compatible = "ti,control-phy-am437usb2",
++		.compatible = "ti,control-phy-usb2-am437",
+ 		.data = &am437usb2_data,
+ 	},
+ 	{},
+-- 
+1.7.9.5
