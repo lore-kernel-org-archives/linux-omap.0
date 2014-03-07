@@ -1,49 +1,71 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v2 2/5] ARM: dts: am43xx clock data
-Date: Fri, 7 Mar 2014 14:45:55 +0530
-Message-ID: <1394183758-3821-3-git-send-email-george.cherian@ti.com>
-References: <1394183758-3821-1-git-send-email-george.cherian@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 0/8] ARM: OMAP: SATA support for OMAP5 & DRA7
+Date: Fri, 7 Mar 2014 12:15:00 +0200
+Message-ID: <1394187308-19622-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1394183758-3821-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com, rogerq@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, anatol.pomozov@gmail.com, bcousson@baylibre.com, George Cherian <george.cherian@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: kishon-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add USB reference clock data
+Hi Tony & Felipe,
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
+Kishon has pulled in the relevant PHY patches into his tree.
+These are the remaining patches from the series.
+
+Patches 1 to 3 need to go through Felipe's USB tree.
+Patches 4 to 8 need to go through Tony's OMAP tree.
+
+Thanks.
+
+Patches are based on 3.14-rc4 with balbi/next, linux-phy/next and
+omap-for-v3.15/dt merged on top.
+
+To test SATA you will also need [1].
+
+[1] - http://article.gmane.org/gmane.comp.hardware.netbook.arm.sunxi/7285
+
+Changelog:
+v3
+- Removed PHY patches and rebased.
+
+v2
+- use 'depends on' instead of 'select' OCP2SCP bus driver.
+- Changed DT bindings for dra7-usb2 and am437-usb2 phy.
+
+cheers,
+-roger
+
 ---
- arch/arm/boot/dts/am43xx-clocks.dtsi | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+Balaji T K (2):
+  ARM: dts: omap5: add sata node
+  ARM: dts: dra7: add OCP2SCP3 and SATA nodes
 
-diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
-index 142009c..506d036 100644
---- a/arch/arm/boot/dts/am43xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
-@@ -653,4 +653,21 @@
- 		clocks = <&clk_32768_ck>, <&clk_32k_tpm_ck>;
- 		reg = <0x4260>;
- 	};
-+
-+	usb_otg_ss0_refclk960m: usb_otg_ss0_refclk960m {
-+		#clock-cells = <0>;
-+	        compatible = "ti,gate-clock";
-+		clocks = <&dpll_per_clkdcoldo>;
-+	        ti,bit-shift = <8>;
-+	        reg = <0x8a60>;
-+	};
-+
-+	usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m {
-+		#clock-cells = <0>;
-+	        compatible = "ti,gate-clock";
-+		clocks = <&dpll_per_clkdcoldo>;
-+	        ti,bit-shift = <8>;
-+		reg = <0x8a68>;
-+	};
-+
- };
+Keshava Munegowda (1):
+  ARM: OMAP5: hwmod: Add ocp2scp3 and sata hwmods
+
+Nikhil Devshatwar (1):
+  ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
+
+Roger Quadros (4):
+  phy: omap-control: update dra7 and am437 usb2 Documentation bindings
+  phy: ti-pipe3: Add clocks to PIPE3 PHY Documentation binding
+  phy: ti-pipe3: Add SATA compatible to Documentation binding
+  ARM: dts: omap5: Add clocks to USB3 PHY node
+
+ Documentation/devicetree/bindings/phy/ti-phy.txt | 19 +++++-
+ arch/arm/boot/dts/dra7.dtsi                      | 39 +++++++++++++
+ arch/arm/boot/dts/omap5.dtsi                     | 46 +++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c       | 73 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c        | 31 ++++++++--
+ 5 files changed, 200 insertions(+), 8 deletions(-)
+
 -- 
-1.8.3.1
+1.8.3.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
