@@ -1,83 +1,47 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH v4 9/9] ARM: dts: overo: Push uart3 pinmux down to expansion board
-Date: Fri,  7 Mar 2014 20:22:19 +0100
-Message-ID: <1394220139-1760-10-git-send-email-florian.vaussard@epfl.ch>
-References: <1394220139-1760-1-git-send-email-florian.vaussard@epfl.ch>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:45208 "EHLO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753068AbaCGTWh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Mar 2014 14:22:37 -0500
-In-Reply-To: <1394220139-1760-1-git-send-email-florian.vaussard@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 2/4] power_supply: Introduce generic psy charging driver
+Date: Fri, 7 Mar 2014 21:09:50 +0100
+Message-ID: <20140307200949.GA27645@amd.pavel.ucw.cz>
+References: <1392875640-29230-1-git-send-email-jenny.tc@intel.com>
+ <1392875640-29230-3-git-send-email-jenny.tc@intel.com>
+ <CACRpkdaU44iinj2iDNdYm62J+4jQbg+XJ=Zq4GmJryPeu7GfTQ@mail.gmail.com>
+ <20140228042753.GC27921@jenny-desktop>
+ <CACRpkdbuCC=-aYmyeaGW0GfkhRU8SEc=1+2f6k3tA7TygiZRJA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdbuCC=-aYmyeaGW0GfkhRU8SEc=1+2f6k3tA7TygiZRJA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Jenny Tc <jenny.tc@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordo>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: Roger Quadros <rogerq@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-UART3 is used by expansion boards to get a tty console. Thus, the
-pinmux should be defined by expansion boards, instead of being
-imposed by the processor board.
+Hi!
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
----
- arch/arm/boot/dts/omap3-overo-base.dtsi        | 11 -----------
- arch/arm/boot/dts/omap3-overo-tobi-common.dtsi | 13 +++++++++++++
- 2 files changed, 13 insertions(+), 11 deletions(-)
+> >> > +++ b/include/linux/power/power_supply_charger.h
+> >>
+> >> > +#define MAX_CUR_VOLT_SAMPLES 3
+> >> > +#define DEF_CUR_VOLT_SAMPLE_JIFF (30*HZ)
+> >>
+> >> Why are things defined in Jiffies like this insead of seconds, milliseconds
+> >> etc? This will vary with the current operating frequency of the system,
+> >> why should physical measurements do that?
+> >
+> > Is it fine if I use msecs_to_jiffies(30000)?
+> 
+> Keep the
+> #define DEF_CUR_VOLT_SAMPLE_PERIOD 30000
+> 
+> Then use msecs_to_jiffies(DEF_CUR_VOLT_SAMPLE_PERIOD)
+> in the call site.
 
-diff --git a/arch/arm/boot/dts/omap3-overo-base.dtsi b/arch/arm/boot/dts/omap3-overo-base.dtsi
-index 13d1ad2..d36bf02 100644
---- a/arch/arm/boot/dts/omap3-overo-base.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-base.dtsi
-@@ -96,13 +96,6 @@
- 		>;
- 	};
- 
--	uart3_pins: pinmux_uart3_pins {
--		pinctrl-single,pins = <
--			OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0)	/* uart3_rx_irrx.uart3_rx_irrx */
--			OMAP3_CORE1_IOPAD(0x21a0, PIN_OUTPUT | MUX_MODE0)		/* uart3_tx_irtx.uart3_tx_irtx */
--		>;
--	};
--
- 	i2c1_pins: pinmux_i2c1_pins {
- 		pinctrl-single,pins = <
- 			OMAP3_CORE1_IOPAD(0x21ba, PIN_INPUT | MUX_MODE0)		/* i2c1_scl.i2c1_scl */
-@@ -226,7 +219,3 @@
- 	pinctrl-0 = <&uart2_pins>;
- };
- 
--&uart3 {
--	pinctrl-names = "default";
--	pinctrl-0 = <&uart3_pins>;
--};
-diff --git a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-index 0312d22..384e87d 100644
---- a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-@@ -28,6 +28,13 @@
- 			OMAP3_CORE1_IOPAD(0x21c4, PIN_INPUT | MUX_MODE0)	/* i2c3_sda.i2c3_sda */
- 		>;
- 	};
-+
-+	uart3_pins: pinmux_uart3_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0)	/* uart3_rx_irrx.uart3_rx_irrx */
-+			OMAP3_CORE1_IOPAD(0x21a0, PIN_OUTPUT | MUX_MODE0)		/* uart3_tx_irtx.uart3_tx_irtx */
-+		>;
-+	};
- };
- 
- #include "omap-gpmc-smsc9221.dtsi"
-@@ -58,3 +65,9 @@
- &mmc3 {
- 	status = "disabled";
- };
-+
-+&uart3 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart3_pins>;
-+};
-+
+Actually, I do not think this is good suggestion. 30*HZ -- is pretty
+clearly 30 seconds. 30000 may be 30sec or 30msec ... hard to tell.
+
+If the constant is used in just one place, maybe you don't need the
+define?
+									Pavel
 -- 
-1.8.3.2
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
