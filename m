@@ -1,94 +1,70 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v6] phy: omap-usb2: move omap_usb.h from linux/usb/ to
- linux/phy/
-Date: Fri, 7 Mar 2014 10:50:43 -0600
-Message-ID: <20140307165043.GC23885@saruman.home>
-References: <1393846695-14644-1-git-send-email-kishon@ti.com>
- <1394210888-1587-1-git-send-email-kishon@ti.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/8] CLK: ti: dra7: Initialize USB_DPLL
+Date: Fri, 7 Mar 2014 08:55:14 -0800
+Message-ID: <20140307165513.GD3789@atomide.com>
+References: <1394197751-28984-1-git-send-email-rogerq@ti.com>
+ <1394197751-28984-2-git-send-email-rogerq@ti.com>
+ <5319CCF2.8090902@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eHhjakXzOLJAF9wJ"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1394210888-1587-1-git-send-email-kishon@ti.com>
+In-Reply-To: <5319CCF2.8090902@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
---eHhjakXzOLJAF9wJ
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Tero Kristo <t-kristo@ti.com> [140307 05:46]:
+> On 03/07/2014 03:09 PM, Roger Quadros wrote:
+> >USB_DPLL must be initialized and locked at boot so that
+> >USB modules can work.
+> >
+> >Also program USB_DLL_M2 output to half rate.
+> >
+> >CC: Mike Turquette <mturquette@linaro.org>
+> >CC: Tero Kristo <t-kristo@ti.com>
+> >Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >---
+> >  drivers/clk/ti/clk-7xx.c | 11 +++++++++++
+> >  1 file changed, 11 insertions(+)
+> >
+> >diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+> >index 9977653..f89f3c2 100644
+> >--- a/drivers/clk/ti/clk-7xx.c
+> >+++ b/drivers/clk/ti/clk-7xx.c
+> >@@ -18,6 +18,7 @@
+> >
+> >  #define DRA7_DPLL_ABE_DEFFREQ				361267200
+> >  #define DRA7_DPLL_GMAC_DEFFREQ				1000000000
+> >+#define DRA7_DPLL_USB_DEFFREQ				960000000
+> >
+> >
+> >  static struct ti_dt_clk dra7xx_clks[] = {
+> >@@ -328,5 +329,15 @@ int __init dra7xx_dt_clk_init(void)
+> >  	if (rc)
+> >  		pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
+> >
+> >+	dpll_ck = clk_get_sys(NULL, "dpll_usb_ck");
+> >+	rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ);
+> >+	if (rc)
+> >+		pr_err("%s: failed to configure USB DPLL!\n", __func__);
+> >+
+> >+	dpll_ck = clk_get_sys(NULL, "dpll_usb_m2_ck");
+> >+	rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ/2);
+> >+	if (rc)
+> >+		pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
+> >+
+> 
+> I would rather see this done using the default-rate mechanism provided here:
+> 
+> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg101300.html
+> 
+> However, this remains to be commented by Mike whether the patch is
+> okay or not.
 
-On Fri, Mar 07, 2014 at 10:18:08PM +0530, Kishon Vijay Abraham I wrote:
-> No functional change. Moved omap_usb.h from linux/usb/ to linux/phy/.
-> Also removed the unused members of struct omap_usb (after phy-omap-pipe3
-> started using it's own header file)
+Yes let's wait for that and not add hacks for new features.
 
-does this depend in any other patch ? I get the following when applying
-*only* this patch on top of v3.14-rc5:
+Regards,
 
-drivers/phy/phy-omap-usb2.c: In function =E2=80=98omap_usb2_suspend=E2=80=
-=99:
-drivers/phy/phy-omap-usb2.c:106:21: error: =E2=80=98struct omap_usb=E2=80=
-=99 has no member named =E2=80=98is_suspended=E2=80=99
-  if (suspend && !phy->is_suspended) {
-                     ^
-drivers/phy/phy-omap-usb2.c:109:6: error: =E2=80=98struct omap_usb=E2=80=99=
- has no member named =E2=80=98is_suspended=E2=80=99
-   phy->is_suspended =3D 1;
-      ^
-drivers/phy/phy-omap-usb2.c:110:28: error: =E2=80=98struct omap_usb=E2=80=
-=99 has no member named =E2=80=98is_suspended=E2=80=99
-  } else if (!suspend && phy->is_suspended) {
-                            ^
-drivers/phy/phy-omap-usb2.c:117:6: error: =E2=80=98struct omap_usb=E2=80=99=
- has no member named =E2=80=98is_suspended=E2=80=99
-   phy->is_suspended =3D 0;
-      ^
-drivers/phy/phy-omap-usb2.c: In function =E2=80=98omap_usb2_probe=E2=80=99:
-drivers/phy/phy-omap-usb2.c:194:5: error: =E2=80=98struct omap_usb=E2=80=99=
- has no member named =E2=80=98is_suspended=E2=80=99
-  phy->is_suspended =3D 1;
-     ^
-make[1]: *** [drivers/phy/phy-omap-usb2.o] Error 1
-make: *** [drivers/phy/] Error 2
-make: *** Waiting for unfinished jobs....
-  CC [M]  drivers/usb/phy/phy-mxs-usb.o
-drivers/usb/phy/phy-omap-usb3.c:22:32: fatal error: linux/usb/omap_usb.h: N=
-o such file or directory
- #include <linux/usb/omap_usb.h>
-                                ^
-compilation terminated.
-make[1]: *** [drivers/usb/phy/phy-omap-usb3.o] Error 1
-make[1]: *** Waiting for unfinished jobs....
-make: *** [drivers/usb/phy/] Error 2
-
---=20
-balbi
-
---eHhjakXzOLJAF9wJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTGfjjAAoJEIaOsuA1yqREtakP/i5Xq1WCREC6V+xV1Nn0m5yZ
-2SkYdYLPqgmnvlCiQHOv3ejZeC60YVCYw9/QyXoAdzbB0LyHZNOw3In3UfE4E1PJ
-Fz1AvgStQCT3T0amDQYp8j9QigLilQ9PKFmDTm2ijHSzMy4V93I8m95ZCUBsNb1q
-cA1IVzAkkRcAqR3w2I5gT9VQNwptzlQQ9CswRJAG/njbw6QSU9/e3K6PlYbIer6A
-hqr7FeUuqkevoHtUNxwofmBH+Vr8LXwMt1w5kQVf2g5iYRFbsjNR/orPiPIxtqif
-n/ua2QDdf8jcReB0uCxLua+PAbN7owknoZsgodkBytBKFdxCk5fj/3CjKTjObA9S
-MbiJHmVI81Ta1e7xYLGUbH5SGuwoOzWChILDOEjIEaRV0VleXRZVc85Pb/NlU3BV
-tbEfjJgrFSUB5bqydVTWKOlKQgZsZ7BWnOXMs1LXMvviGqTHmt1hdZnkUNRSVjZ+
-mzmdW9QYYYrsqt6JZhGLoRaty6PzhZXXFRfzQouRoM00znYq1MVuYcr+uIu9MOk3
-4ApHbp9gSQGTsNSFGvWr+5ZUe6YBanUZuTbdA8oor0Rn3aM19KvYHRF0719mGEcA
-QX6ffDPYcvxt0o0OnDfuTQudjCA9xZA4H78cdmHapiwUmhhyStBDwadGSHP0P9Xx
-01Pwzl1kYAtR8VYpmbyB
-=20qx
------END PGP SIGNATURE-----
-
---eHhjakXzOLJAF9wJ--
+Tony
