@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 6/8] ARM: dts: omap4+: Add clocks to USB2 PHY node
-Date: Fri, 7 Mar 2014 15:09:09 +0200
-Message-ID: <1394197751-28984-7-git-send-email-rogerq@ti.com>
+Subject: [PATCH 4/8] phy: omap-usb2: Use generic clock names "wkupclk" and "refclk"
+Date: Fri, 7 Mar 2014 15:09:07 +0200
+Message-ID: <1394197751-28984-5-git-send-email-rogerq@ti.com>
 References: <1394197751-28984-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,41 +12,39 @@ To: balbi@ti.com, tony@atomide.com
 Cc: kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The USB2 PHY driver expects named clocks for wakeup clock
-and reference clock. Provide this information for USB2 PHY
-nodes in OMAP4 and OMAP5 SoC DTS.
+As clocks might be named differently on multiple platforms, use a generic
+name in the driver and allow device tree node to specify the platform
+specific clock name.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi | 2 ++
- arch/arm/boot/dts/omap5.dtsi | 2 ++
- 2 files changed, 4 insertions(+)
+ drivers/phy/phy-omap-usb2.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 4e15be5..2f6cfa6 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -608,6 +608,8 @@
- 				compatible = "ti,omap-usb2";
- 				reg = <0x4a0ad080 0x58>;
- 				ctrl-module = <&omap_control_usb2phy>;
-+				clocks = <&usb_phy_cm_clk32k>;
-+				clock-names = "wkupclk";
- 				#phy-cells = <0>;
- 			};
- 		};
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 521caab..bf629bb 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -769,6 +769,8 @@
- 				compatible = "ti,omap-usb2";
- 				reg = <0x4a084000 0x7c>;
- 				ctrl-module = <&omap_control_usb2phy>;
-+				clocks = <&usb_phy_cm_clk32k>, <&usb_otg_ss_refclk960m>;
-+				clock-names = "wkupclk", "refclk";
- 				#phy-cells = <0>;
- 			};
+diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
+index a2205a8..fb5e515 100644
+--- a/drivers/phy/phy-omap-usb2.c
++++ b/drivers/phy/phy-omap-usb2.c
+@@ -275,16 +275,16 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 	if (IS_ERR(phy_provider))
+ 		return PTR_ERR(phy_provider);
+ 
+-	phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
++	phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
+ 	if (IS_ERR(phy->wkupclk)) {
+-		dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
++		dev_err(&pdev->dev, "unable to get wkupclk\n");
+ 		return PTR_ERR(phy->wkupclk);
+ 	}
+ 	clk_prepare(phy->wkupclk);
+ 
+-	phy->optclk = devm_clk_get(phy->dev, "usb_otg_ss_refclk960m");
++	phy->optclk = devm_clk_get(phy->dev, "refclk");
+ 	if (IS_ERR(phy->optclk))
+-		dev_vdbg(&pdev->dev, "unable to get refclk960m\n");
++		dev_dbg(&pdev->dev, "unable to get refclk\n");
+ 	else
+ 		clk_prepare(phy->optclk);
  
 -- 
 1.8.3.2
