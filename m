@@ -1,98 +1,93 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH v4 6/9] ARM: dts: omap: Add common file for SMSC9221
-Date: Fri,  7 Mar 2014 20:22:16 +0100
-Message-ID: <1394220139-1760-7-git-send-email-florian.vaussard@epfl.ch>
+Subject: [PATCH v4 7/9] ARM: dts: omap3-tobi: Use include file omap-gpmc-smsc9221
+Date: Fri,  7 Mar 2014 20:22:17 +0100
+Message-ID: <1394220139-1760-8-git-send-email-florian.vaussard@epfl.ch>
 References: <1394220139-1760-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:45184 "EHLO smtp0.epfl.ch"
+Received: from smtp0.epfl.ch ([128.178.224.218]:45194 "EHLO smtp0.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752961AbaCGTWe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Mar 2014 14:22:34 -0500
+	id S1752387AbaCGTWf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Mar 2014 14:22:35 -0500
 In-Reply-To: <1394220139-1760-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
 Cc: Roger Quadros <rogerq@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Some devices (SMSC9217, SMSC9218 and SMSC9221 at least) have better
-timings, allowing a higher transfer speed. Create a common file
-with these timings.
-
-Performance results with iperf:
-
-- omap-gpmc-smsc911x.dtsi => 54.9 Mbps
-- omap-gpmc-smsc9221.dtsi => 92.7 Mbps
+Use the timings provided by omap-gpmc-smsc9221. This does not change
+the timings, but it avoids code duplication.
 
 Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 ---
- arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi | 58 +++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
+ arch/arm/boot/dts/omap3-overo-tobi-common.dtsi | 42 ++------------------------
+ 1 file changed, 3 insertions(+), 39 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi b/arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
-new file mode 100644
-index 0000000..73e272f
---- /dev/null
-+++ b/arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
-@@ -0,0 +1,58 @@
-+/*
-+ * Common file for GPMC connected smsc9221 on omaps
-+ *
-+ * Compared to smsc911x, smsc9221 (and others like smsc9217
-+ * or smsc 9218) has faster timings, leading to higher
-+ * bandwidth.
-+ *
-+ * Note that the board specifc DTS file needs to specify
-+ * ranges, pinctrl, reg, interrupt parent and interrupts.
-+ */
+diff --git a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
+index 7375cda..e7f2ac7 100644
+--- a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
++++ b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
+@@ -19,18 +19,6 @@
+ 			linux,default-trigger = "heartbeat";
+ 		};
+ 	};
+-
+-	vddvario: regulator-vddvario {
+-		  compatible = "regulator-fixed";
+-		  regulator-name = "vddvario";
+-		  regulator-always-on;
+-	};
+-
+-	vdd33a: regulator-vdd33a {
+-		compatible = "regulator-fixed";
+-		regulator-name = "vdd33a";
+-		regulator-always-on;
+-	};
+ };
+ 
+ &omap3_pmx_core {
+@@ -42,39 +30,15 @@
+ 	};
+ };
+ 
++#include "omap-gpmc-smsc9221.dtsi"
 +
-+/ {
-+	vddvario: regulator-vddvario {
-+		  compatible = "regulator-fixed";
-+		  regulator-name = "vddvario";
-+		  regulator-always-on;
-+	};
-+
-+	vdd33a: regulator-vdd33a {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vdd33a";
-+		regulator-always-on;
-+	};
-+};
-+
-+&gpmc {
+ &gpmc {
+ 	ranges = <5 0 0x2c000000 0x1000000>;	/* CS5 */
+ 
+-	ethernet@5,0 {
+-		compatible = "smsc,lan9221", "smsc,lan9115";
 +	ethernet@gpmc {
-+		compatible = "smsc,lan9221","smsc,lan9115";
-+		bank-width = <2>;
-+
-+		gpmc,mux-add-data;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <42>;
-+		gpmc,cs-wr-off-ns = <36>;
-+		gpmc,adv-on-ns = <6>;
-+		gpmc,adv-rd-off-ns = <12>;
-+		gpmc,adv-wr-off-ns = <12>;
-+		gpmc,oe-on-ns = <0>;
-+		gpmc,oe-off-ns = <42>;
-+		gpmc,we-on-ns = <0>;
-+		gpmc,we-off-ns = <36>;
-+		gpmc,rd-cycle-ns = <60>;
-+		gpmc,wr-cycle-ns = <54>;
-+		gpmc,access-ns = <36>;
-+		gpmc,page-burst-access-ns = <0>;
-+		gpmc,bus-turnaround-ns = <0>;
-+		gpmc,cycle2cycle-delay-ns = <0>;
-+		gpmc,wr-data-mux-bus-ns = <18>;
-+		gpmc,wr-access-ns = <42>;
-+		gpmc,cycle2cycle-samecsen;
-+		gpmc,cycle2cycle-diffcsen;
-+
-+		vddvario-supply = <&vddvario>;
-+		vdd33a-supply = <&vdd33a>;
-+		reg-io-width = <4>;
-+		smsc,save-mac-address;
-+	};
-+};
+ 		reg = <5 0 0xff>;
+-		bank-width = <2>;
+-
+-		gpmc,mux-add-data;
+-		gpmc,cs-on-ns = <0>;
+-		gpmc,cs-rd-off-ns = <42>;
+-		gpmc,cs-wr-off-ns = <36>;
+-		gpmc,adv-on-ns = <6>;
+-		gpmc,adv-rd-off-ns = <12>;
+-		gpmc,adv-wr-off-ns = <12>;
+-		gpmc,oe-on-ns = <0>;
+-		gpmc,oe-off-ns = <42>;
+-		gpmc,we-on-ns = <0>;
+-		gpmc,we-off-ns = <36>;
+-		gpmc,rd-cycle-ns = <60>;
+-		gpmc,wr-cycle-ns = <54>;
+-		gpmc,access-ns = <36>;
+-		gpmc,page-burst-access-ns = <0>;
+-		gpmc,bus-turnaround-ns = <0>;
+-		gpmc,cycle2cycle-delay-ns = <0>;
+-		gpmc,wr-data-mux-bus-ns = <18>;
+-		gpmc,wr-access-ns = <42>;
+-		gpmc,cycle2cycle-samecsen;
+-		gpmc,cycle2cycle-diffcsen;
+-
+ 		interrupt-parent = <&gpio6>;
+ 		interrupts = <16 IRQ_TYPE_LEVEL_LOW>;	/* GPIO 176 */
+-		reg-io-width = <4>;
+ 	};
+ };
+ 
 -- 
 1.8.3.2
 
