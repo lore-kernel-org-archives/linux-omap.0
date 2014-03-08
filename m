@@ -1,55 +1,45 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: [PATCH 3/5] iommu/omap: Flush the TLB only after updating translation
-	table entries
-Date: Sat,  8 Mar 2014 01:46:12 +0100
-Message-ID: <1394239574-2389-4-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 0/5] OMAP IOMMU fixes and IOMMU architecture questions
+Date: Sat, 08 Mar 2014 13:04:52 +0200
+Message-ID: <531AF954.5040509@iki.fi>
 References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1394239574-2389-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sakari.ailus-X3B1VOXEql0@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46508 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751156AbaCHLEz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Mar 2014 06:04:55 -0500
+In-Reply-To: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Cc: iommu@lists.linux-foundation.org, Suman Anna <s-anna@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Flushing the TLB before updating translation entries creates a race
-condition and can lead to stale TLB entries if a translation request
-arrives between flushing the TLB and updating the translation entries.
-As there's no requirement to flush the TLB before updating the entries,
-flush it after only.
+Hi Laurent,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
----
- drivers/iommu/omap-iommu.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Laurent Pinchart wrote:
+> along with a patch series that ports the OMAP3 ISP driver to the DMA API. I
+> will submit that one for review once the IOMMU patches get accepted and after
+> fixing a couple of remaining bugs (I'm aware that I have broken userspace
+> PFNMAP buffers).
+>
+> Laurent Pinchart (5):
+>    iommu/omap: Use the cache cleaning API
+>    iommu/omap: Fix 'no page for' debug message in flush_iotlb_page()
+>    iommu/omap: Flush the TLB only after updating translation table
+>      entries
+>    iommu/omap: Remove comment about supporting single page mappings only
+>    iommu/omap: Fix map protection value handling
+>
+>   drivers/iommu/omap-iommu.c | 68 ++++++++++++++++------------------------------
+>   1 file changed, 23 insertions(+), 45 deletions(-)
 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index cb1e1de..fedd303 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -662,10 +662,11 @@ int omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e)
- {
- 	int err;
- 
--	flush_iotlb_page(obj, e->da);
- 	err = iopgtable_store_entry_core(obj, e);
--	if (!err)
-+	if (!err) {
-+		flush_iotlb_page(obj, e->da);
- 		prefetch_iotlb_entry(obj, e);
-+	}
- 	return err;
- }
- EXPORT_SYMBOL_GPL(omap_iopgtable_store_entry);
+Until I have time to read and think about the rest, for the series,
+
+Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
+
 -- 
-1.8.3.2
+Sakari Ailus
+sakari.ailus@iki.fi
