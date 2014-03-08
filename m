@@ -1,143 +1,62 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 1/5] iommu/omap: Use the cache cleaning API
-Date: Sat,  8 Mar 2014 01:46:10 +0100
-Message-ID: <1394239574-2389-2-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: [PATCH 2/5] iommu/omap: Fix 'no page for' debug message in
+	flush_iotlb_page()
+Date: Sat,  8 Mar 2014 01:46:11 +0100
+Message-ID: <1394239574-2389-3-git-send-email-laurent.pinchart@ideasonboard.com>
 References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56189 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753735AbaCHAor (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Mar 2014 19:44:47 -0500
-In-Reply-To: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1394239574-2389-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sakari.ailus-X3B1VOXEql0@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: iommu@lists.linux-foundation.org, Suman Anna <s-anna@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, sakari.ailus@iki.fi
 
-The page table entries must be cleaned from the cache before being
-accessed by the IOMMU. Instead of implementing cache management manually
-(and ignoring L2 cache), use clean_dcache_area() to make sure the
-entries are visible to the device.
+The flush_iotlb_page() function prints a debug message when no
+corresponding page was found in the TLB. That condition is incorrectly
+checked and always resolves to true, given that the for_each_iotlb_cr()
+loop is never interrupted and always reaches obj->nr_tlb_entries.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.c | 41 ++++++++++-------------------------------
- 1 file changed, 10 insertions(+), 31 deletions(-)
+ drivers/iommu/omap-iommu.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index a893eca..bb605c9 100644
+index bb605c9..cb1e1de 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -500,24 +500,9 @@ EXPORT_SYMBOL_GPL(omap_foreach_iommu_device);
- /*
-  *	H/W pagetable operations
-  */
--static void flush_iopgd_range(u32 *first, u32 *last)
-+static void flush_pgtable(void *addr, size_t size)
+@@ -376,6 +376,7 @@ static void flush_iotlb_page(struct omap_iommu *obj, u32 da)
  {
--	/* FIXME: L2 cache should be taken care of if it exists */
--	do {
--		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pgd"
--		    : : "r" (first));
--		first += L1_CACHE_BYTES / sizeof(*first);
--	} while (first <= last);
--}
--
--static void flush_iopte_range(u32 *first, u32 *last)
--{
--	/* FIXME: L2 cache should be taken care of if it exists */
--	do {
--		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pte"
--		    : : "r" (first));
--		first += L1_CACHE_BYTES / sizeof(*first);
--	} while (first <= last);
-+	clean_dcache_area(addr, size);
- }
- 
- static void iopte_free(u32 *iopte)
-@@ -546,7 +531,7 @@ static u32 *iopte_alloc(struct omap_iommu *obj, u32 *iopgd, u32 da)
- 			return ERR_PTR(-ENOMEM);
- 
- 		*iopgd = virt_to_phys(iopte) | IOPGD_TABLE;
--		flush_iopgd_range(iopgd, iopgd);
-+		flush_pgtable(iopgd, sizeof(*iopgd));
- 
- 		dev_vdbg(obj->dev, "%s: a new pte:%p\n", __func__, iopte);
- 	} else {
-@@ -575,7 +560,7 @@ static int iopgd_alloc_section(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
- 	}
- 
- 	*iopgd = (pa & IOSECTION_MASK) | prot | IOPGD_SECTION;
--	flush_iopgd_range(iopgd, iopgd);
-+	flush_pgtable(iopgd, sizeof(*iopgd));
- 	return 0;
- }
- 
-@@ -592,7 +577,7 @@ static int iopgd_alloc_super(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
- 
- 	for (i = 0; i < 16; i++)
- 		*(iopgd + i) = (pa & IOSUPER_MASK) | prot | IOPGD_SUPER;
--	flush_iopgd_range(iopgd, iopgd + 15);
-+	flush_pgtable(iopgd, sizeof(*iopgd) * 16);
- 	return 0;
- }
- 
-@@ -605,7 +590,7 @@ static int iopte_alloc_page(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
- 		return PTR_ERR(iopte);
- 
- 	*iopte = (pa & IOPAGE_MASK) | prot | IOPTE_SMALL;
--	flush_iopte_range(iopte, iopte);
-+	flush_pgtable(iopte, sizeof(*iopte));
- 
- 	dev_vdbg(obj->dev, "%s: da:%08x pa:%08x pte:%p *pte:%08x\n",
- 		 __func__, da, pa, iopte, *iopte);
-@@ -619,18 +604,12 @@ static int iopte_alloc_large(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
- 	u32 *iopte = iopte_alloc(obj, iopgd, da);
  	int i;
+ 	struct cr_regs cr;
++	bool found = false;
  
--	if ((da | pa) & ~IOLARGE_MASK) {
--		dev_err(obj->dev, "%s: %08x:%08x should aligned on %08lx\n",
--			__func__, da, pa, IOLARGE_SIZE);
--		return -EINVAL;
--	}
--
- 	if (IS_ERR(iopte))
- 		return PTR_ERR(iopte);
+ 	pm_runtime_get_sync(obj->dev);
  
- 	for (i = 0; i < 16; i++)
- 		*(iopte + i) = (pa & IOLARGE_MASK) | prot | IOPTE_LARGE;
--	flush_iopte_range(iopte, iopte + 15);
-+	flush_pgtable(iopte, sizeof(*iopte) * 16);
- 	return 0;
- }
- 
-@@ -733,7 +712,7 @@ static size_t iopgtable_clear_entry_core(struct omap_iommu *obj, u32 da)
+@@ -394,11 +395,12 @@ static void flush_iotlb_page(struct omap_iommu *obj, u32 da)
+ 				__func__, start, da, bytes);
+ 			iotlb_load_cr(obj, &cr);
+ 			iommu_write_reg(obj, 1, MMU_FLUSH_ENTRY);
++			found = true;
  		}
- 		bytes *= nent;
- 		memset(iopte, 0, nent * sizeof(*iopte));
--		flush_iopte_range(iopte, iopte + (nent - 1) * sizeof(*iopte));
-+		flush_pgtable(iopte, sizeof(*iopte) * nent);
- 
- 		/*
- 		 * do table walk to check if this table is necessary or not
-@@ -755,7 +734,7 @@ static size_t iopgtable_clear_entry_core(struct omap_iommu *obj, u32 da)
- 		bytes *= nent;
  	}
- 	memset(iopgd, 0, nent * sizeof(*iopgd));
--	flush_iopgd_range(iopgd, iopgd + (nent - 1) * sizeof(*iopgd));
-+	flush_pgtable(iopgd, sizeof(*iopgd) * nent);
- out:
- 	return bytes;
+ 	pm_runtime_put_sync(obj->dev);
+ 
+-	if (i == obj->nr_tlb_entries)
++	if (!found)
+ 		dev_dbg(obj->dev, "%s: no page for %08x\n", __func__, da);
  }
-@@ -799,7 +778,7 @@ static void iopgtable_clear_entry_all(struct omap_iommu *obj)
- 			iopte_free(iopte_offset(iopgd, 0));
  
- 		*iopgd = 0;
--		flush_iopgd_range(iopgd, iopgd);
-+		flush_pgtable(iopgd, sizeof(*iopgd));
- 	}
- 
- 	flush_iotlb_all(obj);
 -- 
 1.8.3.2
-
