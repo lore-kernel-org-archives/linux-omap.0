@@ -1,62 +1,39 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: [PATCH 2/5] iommu/omap: Fix 'no page for' debug message in
-	flush_iotlb_page()
-Date: Sat,  8 Mar 2014 01:46:11 +0100
-Message-ID: <1394239574-2389-3-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 4/5] iommu/omap: Remove comment about supporting single page mappings only
+Date: Sat,  8 Mar 2014 01:46:13 +0100
+Message-ID: <1394239574-2389-5-git-send-email-laurent.pinchart@ideasonboard.com>
 References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1394239574-2389-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sakari.ailus-X3B1VOXEql0@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56194 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753754AbaCHAot (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Mar 2014 19:44:49 -0500
+In-Reply-To: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: iommu@lists.linux-foundation.org, Suman Anna <s-anna@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, sakari.ailus@iki.fi
 
-The flush_iotlb_page() function prints a debug message when no
-corresponding page was found in the TLB. That condition is incorrectly
-checked and always resolves to true, given that the for_each_iotlb_cr()
-loop is never interrupted and always reaches obj->nr_tlb_entries.
+The IOMMU core breaks out mappings into pages already, there's no
+need to support mapping multiple pages in one go.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/iommu/omap-iommu.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/iommu/omap-iommu.c | 1 -
+ 1 file changed, 1 deletion(-)
 
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index bb605c9..cb1e1de 100644
+index fedd303..59de3fc 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -376,6 +376,7 @@ static void flush_iotlb_page(struct omap_iommu *obj, u32 da)
- {
- 	int i;
- 	struct cr_regs cr;
-+	bool found = false;
+@@ -1043,7 +1043,6 @@ static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
+ 	int omap_pgsz;
+ 	u32 ret, flags;
  
- 	pm_runtime_get_sync(obj->dev);
- 
-@@ -394,11 +395,12 @@ static void flush_iotlb_page(struct omap_iommu *obj, u32 da)
- 				__func__, start, da, bytes);
- 			iotlb_load_cr(obj, &cr);
- 			iommu_write_reg(obj, 1, MMU_FLUSH_ENTRY);
-+			found = true;
- 		}
- 	}
- 	pm_runtime_put_sync(obj->dev);
- 
--	if (i == obj->nr_tlb_entries)
-+	if (!found)
- 		dev_dbg(obj->dev, "%s: no page for %08x\n", __func__, da);
- }
- 
+-	/* we only support mapping a single iommu page for now */
+ 	omap_pgsz = bytes_to_iopgsz(bytes);
+ 	if (omap_pgsz < 0) {
+ 		dev_err(dev, "invalid size to map: %d\n", bytes);
 -- 
 1.8.3.2
+
