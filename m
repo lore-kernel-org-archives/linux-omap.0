@@ -1,58 +1,55 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 2/2] ASoC: tlv320aic31xx: Add basic codec driver
- implementation
-Date: Sun, 9 Mar 2014 08:13:10 +0000
-Message-ID: <20140309081310.GN28112@sirena.org.uk>
+Subject: Re: [PATCH v3 1/2] ASoC: tlv320aic32x4: Sort Makefile in alphabetic
+ order
+Date: Sun, 9 Mar 2014 08:44:55 +0000
+Message-ID: <20140309084455.GU28112@sirena.org.uk>
 References: <cover.1394195429.git.jsarha@ti.com>
- <3bd49217f42db2ac889ae61632c3e9b91bb71dd2.1394195429.git.jsarha@ti.com>
+ <63050ed5e0a7f696bb1719457301ca3601da18e7.1394195429.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="C7wSVvjdhopu+7bZ"
+	protocol="application/pgp-signature"; boundary="NDK13HdMpWlXqknW"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:55907 "EHLO
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:55954 "EHLO
 	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752439AbaCIINP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Mar 2014 04:13:15 -0400
+	with ESMTP id S1751938AbaCIIpB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Mar 2014 04:45:01 -0400
 Content-Disposition: inline
-In-Reply-To: <3bd49217f42db2ac889ae61632c3e9b91bb71dd2.1394195429.git.jsarha@ti.com>
+In-Reply-To: <63050ed5e0a7f696bb1719457301ca3601da18e7.1394195429.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jyri Sarha <jsarha@ti.com>
 Cc: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com
 
 
---C7wSVvjdhopu+7bZ
+--NDK13HdMpWlXqknW
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Mar 07, 2014 at 02:58:33PM +0200, Jyri Sarha wrote:
-> This commit adds a bare bones driver support for TLV320AIC31XX family
-> audio codecs. The driver adds basic stereo playback trough headphone
-> and speaker outputs and mono capture trough microphone inputs.
+On Fri, Mar 07, 2014 at 02:58:32PM +0200, Jyri Sarha wrote:
+> The tlv320aic32x4 related lines were wrongly placed after tlv320aic3x lines.
 
-I've not looked at this since at least the issue with the mic bias
-naming still applies.
+Applied, thanks.
 
---C7wSVvjdhopu+7bZ
+--NDK13HdMpWlXqknW
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJTHCKTAAoJELSic+t+oim97ioP/11bsIPvxLAZIMYaOGPJGWar
-S+Xv7vbFPBmUdWIteJuRhA2o1diF53JPf5Cf30gIkSrBGZsCUtkLlF9Bql1kau8t
-dOuQFhT4jEaajgZjpQjpTdcJJpdeKIvZu4ar8reCi8YHxbus/5g8LHwfB4iY/vql
-1tFJGb+apycs4JqM5GM2NaKujTqgbmfcOZxkjIsI4GwkPxoKCpWzIQi1FTRBxiK2
-XtYqM6WCz+/LZzXePKlckvWtko0GDAF6k2VqhdRx12vm6eNaSfkZT4M3wbSjMM52
-VmBN+jbWiCBQoU7ww0DWlIVGJdrMBI+81YvvxLGClXvDT3mEhvtRcRCyPzhwHhqH
-6OvvqcUvAt1ITRnEkNa1AihlF3aVmtaYGAqyRtrjW0RomQfEYezstpQIKrdRWevK
-dLUucaeP3F6SlYzjK5iyo160E0hVBK1TKsApr2pxdWltRqL3uyBYcgQsrMyeqyEN
-dLS7+ikhjHVCbN8GV30kO9f104HBn4J8s6lx2z/ptTE6xSrg6esQr+YnkcXw16JJ
-1dF+pGS3SVG0wxDH8DOU6IkKFZ65jrGZsq2+ofDJOLhUkzFEKh+Tm3Mz8Pm0stoy
-FC4samMxBd6xKLu8w+DJVPOLp3V/sj0Y9LrN6InqexljQYtI0TWuHz48IH5uPlL/
-Po9u98oeyVkpm4aIcKIa
-=JJ5i
+iQIcBAEBAgAGBQJTHCoDAAoJELSic+t+oim9IzsQAIF2kipI/Za8FEV1TjpIb9Zc
+prpWxFhqwJ6HOVCOBb7G9AgDSv7nBIpCuTerc+If7pzQk6sanasNxH1ypAJ2MGd/
+pbWMl+ROcs990ThMSPBt29XsPy8j3BVhP2PxO9kB9yLPPAQNGI0Y06laruwC1OVF
+IIoYNpuW60pqJq9N6crK6+0/ppouIhKWPyxlWG+HOaVsaiDAf6gW4GWfRLF7+JER
+IhT7p0bqqY52F0KTSI881s32WBlcrZ5eR3b6cDaeTEzJp080sKY2zJZ8LLesttHf
+nlV6NxMBkqhz8wKbqQUD+cFcbQ5CP2IT6N7BlVU8PeKUtjYgirxhm6zBZDfG9an0
+715gQ0FIS+cGnMz2ny7tColA/l6tBsM1tkjY9OXGeUnBW4QEuu3GbKlvFOk+Erul
+iyowvUrYSuue+hQgSDAxoinusHTDNEn3KFoRfV2nVw+aOUgrbGcXUGtolHp5XIbi
+rnEpPz0FYr6V5xTI6e/xCIfne2/niBxiQ+P3ImoFxTer3cMqEm+T9j7haSMmUzIB
+qxgMksyRLSvXGSBJTp+z6IW+c2f9NIvDT0tf7PnHuyi94QOE595caNDimM/k0AbB
+xOsfrclBSrbZQeMe9tPP7zji2MednttGTqLyy1i6AILALwb7TqK8WfVNkvYmiXr3
+iOHimY4mJ6jgFih4l171
+=DBSP
 -----END PGP SIGNATURE-----
 
---C7wSVvjdhopu+7bZ--
+--NDK13HdMpWlXqknW--
