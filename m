@@ -1,47 +1,39 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [RFC PATCH 0/9] drivers: dma: Add support for dma-channel router
-Date: Sat, 8 Mar 2014 13:53:45 -0600
-Message-ID: <CAL_JsqLF6Ey1t1BV4tnFcFK-KmOU9H2nQE+ZHoZRq2r_nRTxNw@mail.gmail.com>
-References: <1394194576-23741-1-git-send-email-r.sricharan@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] two omap dt regression fixes for v3.14-rc4
+Date: Sat, 8 Mar 2014 22:57:16 -0800
+Message-ID: <20140309065716.GF16310@quad.lixom.net>
+References: <20140302230448.GB5000@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1394194576-23741-1-git-send-email-r.sricharan@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, rnayak@ti.com, Sekhar Nori <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, dmaengine@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:54967 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751816AbaCIG5K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Mar 2014 01:57:10 -0500
+Received: by mail-pb0-f51.google.com with SMTP id uo5so5945353pbc.38
+        for <linux-omap@vger.kernel.org>; Sat, 08 Mar 2014 22:57:10 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20140302230448.GB5000@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, Mar 7, 2014 at 6:16 AM, Sricharan R <r.sricharan@ti.com> wrote:
-> In some SoCs the dma request lines from the peripherals are
-> routed to the dma-controller through a crossbar. With this the
-> dma controller's available request lines are shared between the
-> peripherals.
->
-> This adds support to register the crossbar router associated with
-> a dma-channel and let the dma-controller driver map/unmap
-> the peripheral dma crossbar line to dma-controller's request
-> line.
+On Sun, Mar 02, 2014 at 03:04:48PM -0800, Tony Lindgren wrote:
+> The following changes since commit 4b41636878ee32d4c45a49de7749abca9721bd6a:
+> 
+>   ARM: OMAP3: Fix pinctrl interrupts for core2 (2014-02-27 15:35:48 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.14/fixes-dt-rc4
+> 
+> for you to fetch changes up to ae41a3030ce8901853b3cfd5e118a4b0288aa068:
+> 
+>   ARM: dts: omap3-gta04: Add ti,omap36xx to compatible property to avoid problems with booting (2014-03-02 09:44:45 -0800)
 
-This is not a unique concept and should follow some existing pattern.
-Perhaps something like interrupt-map. For the dmas property, the
-parent should be the crossbar and then the crossbar block has to
-translate that into the DMA controller request. All the DMA ctrlr
-request connections should be described in the crossbar node. In
-theory, you could have chained crossbars. This should be documented as
-part of the generic DMA binding.
 
-There are also other similar IP like CoreSight CTI which are just
-signal routers. So there is probably some possibility of common code
-here.
+Pulled into fixes.
 
-Rob
+
+-Olof
