@@ -1,56 +1,58 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 4/4] omap crossbar support for v3.15
-Date: Sat, 8 Mar 2014 23:33:47 -0800
-Message-ID: <20140309073347.GL16310@quad.lixom.net>
-References: <pull-1393802089-910509>
- <5313bcc5.a8fc440a.467f.7ba2SMTPIN_ADDED_MISSING@mx.google.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 2/2] ASoC: tlv320aic31xx: Add basic codec driver
+ implementation
+Date: Sun, 9 Mar 2014 08:13:10 +0000
+Message-ID: <20140309081310.GN28112@sirena.org.uk>
+References: <cover.1394195429.git.jsarha@ti.com>
+ <3bd49217f42db2ac889ae61632c3e9b91bb71dd2.1394195429.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="C7wSVvjdhopu+7bZ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:53207 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752278AbaCIHdl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Mar 2014 03:33:41 -0400
-Received: by mail-pb0-f51.google.com with SMTP id uo5so5926155pbc.24
-        for <linux-omap@vger.kernel.org>; Sat, 08 Mar 2014 23:33:40 -0800 (PST)
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:55907 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752439AbaCIINP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Mar 2014 04:13:15 -0400
 Content-Disposition: inline
-In-Reply-To: <5313bcc5.a8fc440a.467f.7ba2SMTPIN_ADDED_MISSING@mx.google.com>
+In-Reply-To: <3bd49217f42db2ac889ae61632c3e9b91bb71dd2.1394195429.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-
-On Sun, Mar 02, 2014 at 03:14:49PM -0800, Tony Lindgren wrote:
-> The following changes since commit 38dbfb59d1175ef458d006556061adeaa8751b72:
-> 
->   Linus 3.14-rc1 (2014-02-02 16:42:13 -0800)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/crossbar-signed
-> 
-> for you to fetch changes up to 9594274201ac3c67d5c569aae63792e58bcd33e6:
-> 
->   Merge branch 'crossbar_3.14_rc1' of git://github.com/Sricharanti/sricharan into omap-for-v3.15/crossbar (2014-02-28 13:35:02 -0800)
-> 
-> ----------------------------------------------------------------
-> 
-> Add support for GIC crossbar that routes interrupts on newer omaps.
-> 
-> Looks like people wanted these merged via the omap tree as it's
-> the only user for the GIC crossbar.
-> 
-> ----------------------------------------------------------------
-> Sricharan R (4):
->       DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
->       DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
->       ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
->       ARM: DRA: Enable Crossbar IP support for DRA7XX
-
-Whoa, lots of caps on those driver subjects. I don't think we need those
-in the future, lower case is just fine (and DRIVERS: usually isn't used).
-
-Branch has been merged into next/drivers.
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com
 
 
--Olof
+--C7wSVvjdhopu+7bZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Mar 07, 2014 at 02:58:33PM +0200, Jyri Sarha wrote:
+> This commit adds a bare bones driver support for TLV320AIC31XX family
+> audio codecs. The driver adds basic stereo playback trough headphone
+> and speaker outputs and mono capture trough microphone inputs.
+
+I've not looked at this since at least the issue with the mic bias
+naming still applies.
+
+--C7wSVvjdhopu+7bZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTHCKTAAoJELSic+t+oim97ioP/11bsIPvxLAZIMYaOGPJGWar
+S+Xv7vbFPBmUdWIteJuRhA2o1diF53JPf5Cf30gIkSrBGZsCUtkLlF9Bql1kau8t
+dOuQFhT4jEaajgZjpQjpTdcJJpdeKIvZu4ar8reCi8YHxbus/5g8LHwfB4iY/vql
+1tFJGb+apycs4JqM5GM2NaKujTqgbmfcOZxkjIsI4GwkPxoKCpWzIQi1FTRBxiK2
+XtYqM6WCz+/LZzXePKlckvWtko0GDAF6k2VqhdRx12vm6eNaSfkZT4M3wbSjMM52
+VmBN+jbWiCBQoU7ww0DWlIVGJdrMBI+81YvvxLGClXvDT3mEhvtRcRCyPzhwHhqH
+6OvvqcUvAt1ITRnEkNa1AihlF3aVmtaYGAqyRtrjW0RomQfEYezstpQIKrdRWevK
+dLUucaeP3F6SlYzjK5iyo160E0hVBK1TKsApr2pxdWltRqL3uyBYcgQsrMyeqyEN
+dLS7+ikhjHVCbN8GV30kO9f104HBn4J8s6lx2z/ptTE6xSrg6esQr+YnkcXw16JJ
+1dF+pGS3SVG0wxDH8DOU6IkKFZ65jrGZsq2+ofDJOLhUkzFEKh+Tm3Mz8Pm0stoy
+FC4samMxBd6xKLu8w+DJVPOLp3V/sj0Y9LrN6InqexljQYtI0TWuHz48IH5uPlL/
+Po9u98oeyVkpm4aIcKIa
+=JJ5i
+-----END PGP SIGNATURE-----
+
+--C7wSVvjdhopu+7bZ--
