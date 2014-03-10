@@ -1,40 +1,62 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4] ASoC: tlv320aic31xx: Add basic codec driver implementation
-Date: Mon, 10 Mar 2014 15:25:41 +0200
-Message-ID: <531DBD55.6030008@ti.com>
-References: <cover.1394440470.git.jsarha@ti.com> <dc68ce35a3f44b5c8a55be928e06f72f463338fa.1394440470.git.jsarha@ti.com> <20140310125848.GI28112@sirena.org.uk>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 1/8] ARM: dts: dra7: Initialize USB_DPLL
+Date: Mon, 10 Mar 2014 15:28:35 +0200
+Message-ID: <531DBE03.2070603@ti.com>
+References: <1394197751-28984-2-git-send-email-rogerq@ti.com> <1394455761-19226-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140310125848.GI28112-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1394455761-19226-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/10/2014 02:58 PM, Mark Brown wrote:
-> On Mon, Mar 10, 2014 at 10:52:21AM +0200, Jyri Sarha wrote:
+On 03/10/2014 02:49 PM, Roger Quadros wrote:
+> USB_DPLL must be initialized and locked at boot so that
+> USB modules can work.
 >
->> >+- ai31xx-micbias-vg - MicBias Voltage setting
->> >+        0 or MICBIAS_OFF - MICBIAS output it not powered
-> So, on every other version of this patch set I've suggested removing
-> this as there's no reason why the bias would be wired up but disabled.
-> Each time you seem to agree that the option should be removed yet here
-> it is again...
+> Program USB_DLL_M2 output to half rate as well.
+>
+> Patch depends on
+> https://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg101300.html
+>
+> CC: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> CC: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>   arch/arm/boot/dts/dra7.dtsi | 8 ++++++++
+>   1 file changed, 8 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index 597979b..f376923 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -815,3 +815,11 @@
+>   };
+>
+>   /include/ "dra7xx-clocks.dtsi"
+> +
+> +&dpll_usb_ck {
+> +        default-rate = <960000000>;
+> +};
+> +
+> +&dpll_usb_m2_ck {
+> +	default-rate = <480000000>;
+> +};
 >
 
-I agreed on not to have it as the default. I can still imagine couple of 
-reason to have this option around. For instance, if the board designer 
-decides to pull the bias voltage from outside of the chip completely, or 
-like in my test setup when I feed the mic input from a headset output of 
-another device, because I do not have a microphone around ATM.
+You can add these directly under the dra7xx-clocks.dtsi file as well, as 
+I don't think anybody needs to modify these. And the properties can be 
+added directly under the nodes themselves.
 
-But if you want it removed, I'll do it.
+However, this patch can't be acked yet as we have no feedback from Mike 
+for the default-rate proposal.
 
-Best regards,
-Jyri
+-Tero
+
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
