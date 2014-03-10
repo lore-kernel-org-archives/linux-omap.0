@@ -1,53 +1,60 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [RFC PATCH 0/9] drivers: dma: Add support for dma-channel router
-Date: Mon, 10 Mar 2014 19:28:55 +0530
-Message-ID: <531DC51F.50309@ti.com>
-References: <1394194576-23741-1-git-send-email-r.sricharan@ti.com> <CAL_JsqLF6Ey1t1BV4tnFcFK-KmOU9H2nQE+ZHoZRq2r_nRTxNw@mail.gmail.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v9 1/9] mfd: omap-usb-host: Get clocks based on hardware
+ revision
+Date: Mon, 10 Mar 2014 14:14:39 +0000
+Message-ID: <20140310141439.GB15558@lee--X1>
+References: <1393510711-4697-1-git-send-email-rogerq@ti.com>
+ <1393510711-4697-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53522 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752651AbaCJN76 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Mar 2014 09:59:58 -0400
-In-Reply-To: <CAL_JsqLF6Ey1t1BV4tnFcFK-KmOU9H2nQE+ZHoZRq2r_nRTxNw@mail.gmail.com>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:41161 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753475AbaCJOOo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Mar 2014 10:14:44 -0400
+Received: by mail-wi0-f176.google.com with SMTP id hr14so88433wib.3
+        for <linux-omap@vger.kernel.org>; Mon, 10 Mar 2014 07:14:43 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1393510711-4697-2-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, dmaengine@vger.kernel.org, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, rnayak@ti.com, Sekhar Nori <nsekhar@ti.com>, Vinod Koul <vinod.koul@intel.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Dan Williams <dan.j.williams@intel.com>
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, bcousson@baylibre.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Tero Kristo <t-kristo@ti.com>
 
-Hi Rob,
+> Not all revisions have all the clocks so get the necessary clocks
+> based on hardware revision.
+>=20
+> This should avoid un-necessary clk_get failure messages that were
+> observed earlier.
+>=20
+> Also remove the dummy USB host clocks from the OMAP3 clock data.
+> These are no longer expected by the driver.
+>=20
+> CC: Lee Jones <lee.jones@linaro.org>
+> CC: Samuel Ortiz <sameo@linux.intel.com>
+> CC: Tero Kristo <t-kristo@ti.com>
+> Acked-by: Mike Turquette <mturquette@linaro.org> [OMAP3 CLK data]
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  arch/arm/mach-omap2/cclock3xxx_data.c |  4 ----
+>  drivers/clk/ti/clk-3xxx.c             |  4 ----
+>  drivers/mfd/omap-usb-host.c           | 43 +++++++++++++++++++++++++=
++---------
+>  3 files changed, 32 insertions(+), 19 deletions(-)
 
-On Sunday 09 March 2014 01:23 AM, Rob Herring wrote:
-> On Fri, Mar 7, 2014 at 6:16 AM, Sricharan R <r.sricharan@ti.com> wrote:
->> In some SoCs the dma request lines from the peripherals are
->> routed to the dma-controller through a crossbar. With this the
->> dma controller's available request lines are shared between the
->> peripherals.
->>
->> This adds support to register the crossbar router associated with
->> a dma-channel and let the dma-controller driver map/unmap
->> the peripheral dma crossbar line to dma-controller's request
->> line.
-> This is not a unique concept and should follow some existing pattern.
-> Perhaps something like interrupt-map. For the dmas property, the
-> parent should be the crossbar and then the crossbar block has to
-> translate that into the DMA controller request. All the DMA ctrlr
-> request connections should be described in the crossbar node. In
-> theory, you could have chained crossbars. This should be documented as
-> part of the generic DMA binding.
-  The idea here was to do the map/unmap crossbar<->dma-request
- from the  dma-controller at runtime just like any other resource, unlike
-  interrupt-map fixed in DTS. I did not think about the chained
-  crossbars case. I will add this here. And as you have suggested will
-  make it work like irq_parse_and_map.
+Patches starting to take shape. I know that I've reviewed this patch
+before, so if you've fixed-up all my previous comments you can have my
+Ack for the MFD changes:
+  Acked-by: Lee Jones <lee.jones@linaro.org>
 
-Regards,
- Sricharan
-> There are also other similar IP like CoreSight CTI which are just
-> signal routers. So there is probably some possibility of common code
-> here.
->
-> Rob
-
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
