@@ -1,88 +1,50 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 2/8] ARM: dts: dra7-clock: Add "l3init_960m_gfclk" clock
- gate
-Date: Mon, 10 Mar 2014 13:05:08 +0200
-Message-ID: <531D9C64.50809@ti.com>
-References: <1394197751-28984-1-git-send-email-rogerq@ti.com> <1394197751-28984-3-git-send-email-rogerq@ti.com> <5319D0B5.6060300@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH RFC 0/2] Fix simple-card *-master DT parameter
+	handling
+Date: Mon, 10 Mar 2014 13:28:36 +0200
+Message-ID: <cover.1394450178.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42993 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752190AbaCJLFo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Mar 2014 07:05:44 -0400
-In-Reply-To: <5319D0B5.6060300@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: liam.r.girdwood@linux.intel.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>, peter.ujfalusi@ti.com, broonie@kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, balbi@ti.com, tony@atomide.com
-Cc: kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
 
-On 03/07/2014 03:59 PM, Tero Kristo wrote:
-> On 03/07/2014 03:09 PM, Roger Quadros wrote:
->> This clock gate description was missing in older Reference manuals.
->> It is present on the SoC to provide 960MHz reference clock to the
->> internal USB PHYs.
-> 
-> Can you provide a document reference here?
-> 
+The schematics of bitclock-master and frame-master DT parameters
+should depend on whether they are found from a cpu-dai or codec
+sub-node.
 
-Unfortunately it hasn't yet been included in the TRM.
-I have the internal defect ID but I don't think it makes any sense here.
+- bitclock-master in cpu-dai node means Codec-Bitclock-Slave
+- frame-master in cpu-dai node means Codec-Frame-Slave
+- bitclock-master in codec node means Codec-Bitclock-Master
+- frame-master in codec node means Codec-Frame-Master
 
-DRA7xx-TRMINC00203
+For example in a cpu-dai mode bitclock-master parameter should produce
+SND_SOC_DAIFMT_CBS_* daifmt flags and a codec node
+SND_SOC_DAIFMT_CBM_* flags.
 
-cheers,
--roger
+Best regards,
+Jyri
 
-> 
->>
->> Use l3init_960m_gfclk as parent of usb_otg_ss1_refclk960m and
->> usb_otg_ss2_refclk960m.
->>
->> CC: Tero Kristo <t-kristo@ti.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>   arch/arm/boot/dts/dra7xx-clocks.dtsi | 12 ++++++++++--
->>   1 file changed, 10 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> index e96da9a..b8d3a9d 100644
->> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> @@ -1386,6 +1386,14 @@
->>           ti,dividers = <1>, <8>;
->>       };
->>
->> +    l3init_960m_gfclk: l3init_960m_gfclk {
->> +        #clock-cells = <0>;
->> +        compatible = "ti,gate-clock";
->> +        clocks = <&dpll_usb_clkdcoldo>;
->> +        ti,bit-shift = <8>;
->> +        reg = <0x06c0>;
->> +    };
->> +
->>       dss_32khz_clk: dss_32khz_clk {
->>           #clock-cells = <0>;
->>           compatible = "ti,gate-clock";
->> @@ -1533,7 +1541,7 @@
->>       usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m {
->>           #clock-cells = <0>;
->>           compatible = "ti,gate-clock";
->> -        clocks = <&dpll_usb_clkdcoldo>;
->> +        clocks = <&l3init_960m_gfclk>;
->>           ti,bit-shift = <8>;
->>           reg = <0x13f0>;
->>       };
->> @@ -1541,7 +1549,7 @@
->>       usb_otg_ss2_refclk960m: usb_otg_ss2_refclk960m {
->>           #clock-cells = <0>;
->>           compatible = "ti,gate-clock";
->> -        clocks = <&dpll_usb_clkdcoldo>;
->> +        clocks = <&l3init_960m_gfclk>;
->>           ti,bit-shift = <8>;
->>           reg = <0x1340>;
->>       };
->>
-> 
+Jyri Sarha (2):
+  ASoC: core: Add is_cpu_dai_node-parameter to
+    snd_soc_of_parse_daifmt()
+  ASoC: simple-card: Take snd_soc_of_parse_daifmt() change in to
+    account
 
+ sound/soc/generic/simple-card.c |   13 ++++++++-----
+ sound/soc/soc-core.c            |    8 +++++++-
+ 2 files changed, 15 insertions(+), 6 deletions(-)
+
+-- 
+1.7.9.5
