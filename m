@@ -1,115 +1,68 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v4] ASoC: tlv320aic31xx: Add basic codec
- driver implementation
-Date: Mon, 10 Mar 2014 13:31:24 +0000
-Message-ID: <20140310133124.GK14999@e106331-lin.cambridge.arm.com>
-References: <cover.1394440470.git.jsarha@ti.com>
- <dc68ce35a3f44b5c8a55be928e06f72f463338fa.1394440470.git.jsarha@ti.com>
- <20140310120938.GJ14999@e106331-lin.cambridge.arm.com>
- <531DBB0C.4020205@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 1/8] ARM: dts: dra7: Initialize USB_DPLL
+Date: Mon, 10 Mar 2014 15:32:13 +0200
+Message-ID: <531DBEDD.9050400@ti.com>
+References: <1394197751-28984-2-git-send-email-rogerq@ti.com>
+ <1394455761-19226-1-git-send-email-rogerq@ti.com> <531DBE03.2070603@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <531DBB0C.4020205@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "detheridge@ti.com" <detheridge@ti.com>, "broonie@kernel.org" <broonie@kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <531DBE03.2070603@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, tony@atomide.com
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, Mike Turquette <mturquette@linaro.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 10, 2014 at 01:15:56PM +0000, Jyri Sarha wrote:
-> On 03/10/2014 02:09 PM, Mark Rutland wrote:
-> > On Mon, Mar 10, 2014 at 08:52:21AM +0000, Jyri Sarha wrote:
-> >> This commit adds a bare bones driver support for TLV320AIC31XX family
-> >> audio codecs. The driver adds basic stereo playback trough headphone
-> >> and speaker outputs and mono capture trough microphone inputs.
-> >>
-> >> The driver is currently missing support at least for mini DSP features
-> >> and jack detection. I have tested the driver only on TLV320AIC3111,
-> >> but based on the data sheets TLV320AIC3100, TLV320AIC3110, and
-> >> TLV320AIC3120 should work Ok too.
-> >>
-> >> The base for the implementation was taken from:
-> >> git@gitorious.org:ti-codecs/ti-codecs.git ajitk/topics/k3.10.1-aic31xx
-> >> -branch at commit 77504eba0294764e9e63b4a0c696b44db187cd13.
-> >>
-> >> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> >> ---
-> >>   .../devicetree/bindings/sound/tlv320aic31xx.txt    |   61 +
-> >>   include/dt-bindings/sound/tlv320aic31xx-micbias.h  |    9 +
-> >>   sound/soc/codecs/Kconfig                           |    4 +
-> >>   sound/soc/codecs/Makefile                          |    2 +
-> >>   sound/soc/codecs/tlv320aic31xx.c                   | 1343 ++++++++++++++++++++
-> >>   sound/soc/codecs/tlv320aic31xx.h                   |  258 ++++
-> >>   6 files changed, 1677 insertions(+)
-> >>   create mode 100644 Documentation/devicetree/bindings/sound/tlv320aic31xx.txt
-> >>   create mode 100644 include/dt-bindings/sound/tlv320aic31xx-micbias.h
-> >>   create mode 100644 sound/soc/codecs/tlv320aic31xx.c
-> >>   create mode 100644 sound/soc/codecs/tlv320aic31xx.h
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/sound/tlv320aic31xx.txt b/Documentation/devicetree/bindings/sound/tlv320aic31xx.txt
-> >> new file mode 100644
-> >> index 0000000..0109df1
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/sound/tlv320aic31xx.txt
-> >> @@ -0,0 +1,61 @@
-> >> +Texas Instruments - tlv320aic31xx Codec module
-> >> +
-> >> +The tlv320aic31xx serial control bus communicates through I2C protocols
-> >> +
-> >> +Required properties:
-> >> +
-> >> +- compatible - "string" - One of:
-> >> +    "ti,tlv320aic310x" - Generic TLV320AIC31xx with mono speaker amp
-> >> +    "ti,tlv320aic311x" - Generic TLV320AIC31xx with stereo speaker amp
-> >> +    "ti,tlv320aic3100" - TLV320AIC3100 (mono speaker amp, no MiniDSP)
-> >> +    "ti,tlv320aic3110" - TLV320AIC3110 (stereo speaker amp, no MiniDSP)
-> >> +    "ti,tlv320aic3120" - TLV320AIC3120 (mono speaker amp, MiniDSP)
-> >> +    "ti,tlv320aic3111" - TLV320AIC3111 (stereo speaker amp, MiniDSP)
-> >> +
-> >> +- reg - <int> -  I2C slave address
-> >> +
-> >> +
-> >> +Optional properties:
-> >> +
-> >> +- gpio-reset - gpio pin number used for codec reset
-> >
-> > I believe calling this reset-gpio would be more in keeping with the gpio
-> > bindings.
-> >
-> > I'd get rid of "pin number" from the description. GPIOs are referred to
-> > with phandle + gpio-specifier pairs, and this makes it sound like a
-> > single integer value.
-> >
-> >> +- ai31xx-micbias-vg - MicBias Voltage setting
-> >
-> > This name is a bit terse. Perhaps s/vg/voltage/ ?
-> >
+On 03/10/2014 03:28 PM, Tero Kristo wrote:
+> On 03/10/2014 02:49 PM, Roger Quadros wrote:
+>> USB_DPLL must be initialized and locked at boot so that
+>> USB modules can work.
+>>
+>> Program USB_DLL_M2 output to half rate as well.
+>>
+>> Patch depends on
+>> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg101300.html
+>>
+>> CC: Mike Turquette <mturquette@linaro.org>
+>> CC: Tero Kristo <t-kristo@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   arch/arm/boot/dts/dra7.dtsi | 8 ++++++++
+>>   1 file changed, 8 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>> index 597979b..f376923 100644
+>> --- a/arch/arm/boot/dts/dra7.dtsi
+>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>> @@ -815,3 +815,11 @@
+>>   };
+>>
+>>   /include/ "dra7xx-clocks.dtsi"
+>> +
+>> +&dpll_usb_ck {
+>> +        default-rate = <960000000>;
+>> +};
+>> +
+>> +&dpll_usb_m2_ck {
+>> +    default-rate = <480000000>;
+>> +};
+>>
 > 
-> This parameter name is symmetric to already existing "ai3x-micbias-vg" 
-> in tlv320aic3x driver. Well... that is not a very good reason for not to 
-> change it. I'll change that to the next version of the patch.
-
-If we already have ai3x-micbias-vg then there's no reason to do
-differently here -- that'll just make things more confusing.
-
+> You can add these directly under the dra7xx-clocks.dtsi file as well, as I don't think anybody needs to modify these. And the properties can be added directly under the nodes themselves.
 > 
-> >> +        0 or MICBIAS_OFF - MICBIAS output it not powered
-> >
-> > s/it/is/
-> >
-> 
-> To be fixed.
+> However, this patch can't be acked yet as we have no feedback from Mike for the default-rate proposal.
 
-Cheers.
+OK. I'll wait for the "default-rate" patch to be approved first and then revise this patch based on your
+suggestion. Thanks for the review.
 
-Mark.
+cheers,
+-roger
