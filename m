@@ -1,103 +1,66 @@
-From: Mark Rutland <mark.rutland@arm.com>
+From: Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCH v4] ASoC: tlv320aic31xx: Add basic codec driver
  implementation
-Date: Mon, 10 Mar 2014 12:09:38 +0000
-Message-ID: <20140310120938.GJ14999@e106331-lin.cambridge.arm.com>
+Date: Mon, 10 Mar 2014 12:11:49 +0000
+Message-ID: <20140310121149.GF28112@sirena.org.uk>
 References: <cover.1394440470.git.jsarha@ti.com>
  <dc68ce35a3f44b5c8a55be928e06f72f463338fa.1394440470.git.jsarha@ti.com>
+ <20140310120938.GJ14999@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="7+J38Rf7xqVaSgUf"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:64732 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752694AbaCJMJu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Mar 2014 08:09:50 -0400
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:40600 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753032AbaCJML6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Mar 2014 08:11:58 -0400
 Content-Disposition: inline
-In-Reply-To: <dc68ce35a3f44b5c8a55be928e06f72f463338fa.1394440470.git.jsarha@ti.com>
+In-Reply-To: <20140310120938.GJ14999@e106331-lin.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "broonie@kernel.org" <broonie@kernel.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "detheridge@ti.com" <detheridge@ti.com>
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Jyri Sarha <jsarha@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "detheridge@ti.com" <detheridge@ti.com>
 
-On Mon, Mar 10, 2014 at 08:52:21AM +0000, Jyri Sarha wrote:
-> This commit adds a bare bones driver support for TLV320AIC31XX family
-> audio codecs. The driver adds basic stereo playback trough headphone
-> and speaker outputs and mono capture trough microphone inputs.
-> 
-> The driver is currently missing support at least for mini DSP features
-> and jack detection. I have tested the driver only on TLV320AIC3111,
-> but based on the data sheets TLV320AIC3100, TLV320AIC3110, and
-> TLV320AIC3120 should work Ok too.
-> 
-> The base for the implementation was taken from:
-> git@gitorious.org:ti-codecs/ti-codecs.git ajitk/topics/k3.10.1-aic31xx
-> -branch at commit 77504eba0294764e9e63b4a0c696b44db187cd13.
-> 
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  .../devicetree/bindings/sound/tlv320aic31xx.txt    |   61 +
->  include/dt-bindings/sound/tlv320aic31xx-micbias.h  |    9 +
->  sound/soc/codecs/Kconfig                           |    4 +
->  sound/soc/codecs/Makefile                          |    2 +
->  sound/soc/codecs/tlv320aic31xx.c                   | 1343 ++++++++++++++++++++
->  sound/soc/codecs/tlv320aic31xx.h                   |  258 ++++
->  6 files changed, 1677 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/sound/tlv320aic31xx.txt
->  create mode 100644 include/dt-bindings/sound/tlv320aic31xx-micbias.h
->  create mode 100644 sound/soc/codecs/tlv320aic31xx.c
->  create mode 100644 sound/soc/codecs/tlv320aic31xx.h
-> 
-> diff --git a/Documentation/devicetree/bindings/sound/tlv320aic31xx.txt b/Documentation/devicetree/bindings/sound/tlv320aic31xx.txt
-> new file mode 100644
-> index 0000000..0109df1
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/sound/tlv320aic31xx.txt
-> @@ -0,0 +1,61 @@
-> +Texas Instruments - tlv320aic31xx Codec module
-> +
-> +The tlv320aic31xx serial control bus communicates through I2C protocols
-> +
-> +Required properties:
-> +
-> +- compatible - "string" - One of:
-> +    "ti,tlv320aic310x" - Generic TLV320AIC31xx with mono speaker amp
-> +    "ti,tlv320aic311x" - Generic TLV320AIC31xx with stereo speaker amp
-> +    "ti,tlv320aic3100" - TLV320AIC3100 (mono speaker amp, no MiniDSP)
-> +    "ti,tlv320aic3110" - TLV320AIC3110 (stereo speaker amp, no MiniDSP)
-> +    "ti,tlv320aic3120" - TLV320AIC3120 (mono speaker amp, MiniDSP)
-> +    "ti,tlv320aic3111" - TLV320AIC3111 (stereo speaker amp, MiniDSP)
-> +
-> +- reg - <int> -  I2C slave address
-> +
-> +
-> +Optional properties:
-> +
-> +- gpio-reset - gpio pin number used for codec reset
 
-I believe calling this reset-gpio would be more in keeping with the gpio
-bindings.
+--7+J38Rf7xqVaSgUf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I'd get rid of "pin number" from the description. GPIOs are referred to
-with phandle + gpio-specifier pairs, and this makes it sound like a
-single integer value.
+On Mon, Mar 10, 2014 at 12:09:38PM +0000, Mark Rutland wrote:
+> On Mon, Mar 10, 2014 at 08:52:21AM +0000, Jyri Sarha wrote:
 
-> +- ai31xx-micbias-vg - MicBias Voltage setting
+> > +        1 or MICBIAS_2_0V - MICBIAS output is powered to 2.0V
+> > +        2 or MICBIAS_2_5V - MICBIAS output is powered to 2.5V
+> > +        3 or MICBIAS_AVDD - MICBIAS output is connected to AVDD
+> > +       If this node is not mentioned or if the value is unknown, then
+> > +       micbias is set to 2.0V.
 
-This name is a bit terse. Perhaps s/vg/voltage/ ?
+> Why does the dts write need to select these -- what prevents this
+> getting selected dynamically?
 
-> +        0 or MICBIAS_OFF - MICBIAS output it not powered
+It's a property of the system integration - the board will be designed
+to bias the microphone at some voltage.
 
-s/it/is/
+--7+J38Rf7xqVaSgUf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +        1 or MICBIAS_2_0V - MICBIAS output is powered to 2.0V
-> +        2 or MICBIAS_2_5V - MICBIAS output is powered to 2.5V
-> +        3 or MICBIAS_AVDD - MICBIAS output is connected to AVDD
-> +       If this node is not mentioned or if the value is unknown, then
-> +       micbias is set to 2.0V.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-Why does the dts write need to select these -- what prevents this
-getting selected dynamically?
+iQIcBAEBAgAGBQJTHawCAAoJELSic+t+oim9uoEP/iOpX1L8a/ZT0Il6IzHtmk43
+sRRUcTsv5Z/w8mjtNgHbXJz9g27oeYHtk5qqkQQ+gSiVG85E6yj+Qw8RwtCC1CrE
+0obNDXvLsa8moS/h7TCbX/8q4aZBddQ3RvBxv+CX/cF5u0eNqgQCAIzYra5fMh8I
+RgBIFduJViPDsuJbUJ8dktO3V7xGRrb0Dz8aTWKk3IXOUZWMW0/9RdfLz2jU/zpx
+KqMLvWxRVhXMPXTbAOREqWNSxncM1cbef5jHJ9jbgF6Z3ZISjtHymrdshNupmVue
+l5ui9HMQUuqbljz4yvR8cTbLD8i1YNp6sSgzDsebo3x3wgEI+AbwaDb/HxAp/9Py
+ImT2CuMbSPBBnXZL6w9ST4O5aSAYeV/DItSxIK9YFaLnEO57WTODtQXboMR8OeVj
+eAGGKZJsGyeobC7yclkd6EYmbgyScxfpb6t2x/ZIo551kVRiI7uNEISLPF4phVvp
+GC6WFd/+Yr8+9SBasuWZ1PmNgY2SPy6XSnmDGCKzjQsHUW26MfDztWj70MPYKW7Z
+VyaYR7VprhAmJU1NgaAkVwFh7F3HKlzC2Ux3xT4MJMdyMGO69Zls5cGmG7dmJUXJ
+3zRmE1rqe0zrjt/KdxH5wTSsCrevqyNkIedONj4or8lLzxsqObur2wjTHzXgZgBA
+8R16mnO9SxUfqdMuKfdO
+=tl+G
+-----END PGP SIGNATURE-----
 
-Cheers,
-Mark.
+--7+J38Rf7xqVaSgUf--
