@@ -1,55 +1,80 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC 1/2] ASoC: core: Add is_cpu_dai_node-parameter to snd_soc_of_parse_daifmt()
-Date: Mon, 10 Mar 2014 13:28:37 +0200
-Message-ID: <8e870602aecf36e8217bb9d0b37c50b060dc1a5b.1394450178.git.jsarha@ti.com>
+Subject: [PATCH RFC 2/2] ASoC: simple-card: Take snd_soc_of_parse_daifmt() change in to account
+Date: Mon, 10 Mar 2014 13:28:38 +0200
+Message-ID: <17e88098b67762008c06709afa5933212d94715d.1394450178.git.jsarha@ti.com>
 References: <cover.1394450178.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38112 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43844 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752556AbaCJL2w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Mar 2014 07:28:52 -0400
+	id S1752564AbaCJL3C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Mar 2014 07:29:02 -0400
 In-Reply-To: <cover.1394450178.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-The schematics of bitclock-master and frame-master DT parameters
-should be inversed when parsing a cpu-dai node.
+snd_soc_of_parse_daifmt() needs to know if it is parsing a cpu-dai node.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- sound/soc/soc-core.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ sound/soc/generic/simple-card.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
-index 8ddb15c..dfff75f 100644
---- a/sound/soc/soc-core.c
-+++ b/sound/soc/soc-core.c
-@@ -4613,7 +4613,8 @@ int snd_soc_of_parse_audio_routing(struct snd_soc_card *card,
- EXPORT_SYMBOL_GPL(snd_soc_of_parse_audio_routing);
- 
- unsigned int snd_soc_of_parse_daifmt(struct device_node *np,
--				     const char *prefix)
-+				     const char *prefix,
-+				     bool is_cpu_dai_node)
+diff --git a/sound/soc/generic/simple-card.c b/sound/soc/generic/simple-card.c
+index 7cabcc5..7cbbf44 100644
+--- a/sound/soc/generic/simple-card.c
++++ b/sound/soc/generic/simple-card.c
+@@ -87,7 +87,8 @@ asoc_simple_card_sub_parse_of(struct device_node *np,
+ 			      unsigned int daifmt,
+ 			      struct asoc_simple_dai *dai,
+ 			      const struct device_node **p_node,
+-			      const char **name)
++			      const char **name,
++			      bool is_cpu_dai_node)
  {
- 	int ret, i;
- 	char prop[128];
-@@ -4700,6 +4701,11 @@ unsigned int snd_soc_of_parse_daifmt(struct device_node *np,
- 	snprintf(prop, sizeof(prop), "%sframe-master", prefix);
- 	frame = !!of_get_property(np, prop, NULL);
+ 	struct device_node *node;
+ 	struct clk *clk;
+@@ -117,7 +118,7 @@ asoc_simple_card_sub_parse_of(struct device_node *np,
+ 	 * bitclock-master,    frame-master
+ 	 * and specific "format" if it has
+ 	 */
+-	dai->fmt = snd_soc_of_parse_daifmt(np, NULL);
++	dai->fmt = snd_soc_of_parse_daifmt(np, NULL, is_cpu_dai_node);
+ 	dai->fmt |= daifmt;
  
-+	if (is_cpu_dai_node) {
-+		bit = !bit;
-+		frame = !frame;
-+	}
-+
- 	switch ((bit << 4) + frame) {
- 	case 0x11:
- 		format |= SND_SOC_DAIFMT_CBM_CFM;
+ 	/*
+@@ -165,7 +166,7 @@ static int asoc_simple_card_parse_of(struct device_node *node,
+ 	snd_soc_of_parse_card_name(&priv->snd_card, "simple-audio-card,name");
+ 
+ 	/* get CPU/CODEC common format via simple-audio-card,format */
+-	priv->daifmt = snd_soc_of_parse_daifmt(node, "simple-audio-card,") &
++	priv->daifmt = snd_soc_of_parse_daifmt(node, "simple-audio-card,", 0) &
+ 		(SND_SOC_DAIFMT_FORMAT_MASK | SND_SOC_DAIFMT_INV_MASK);
+ 
+ 	/* off-codec widgets */
+@@ -191,7 +192,8 @@ static int asoc_simple_card_parse_of(struct device_node *node,
+ 		ret = asoc_simple_card_sub_parse_of(np, priv->daifmt,
+ 						  &priv->cpu_dai,
+ 						  &dai_link->cpu_of_node,
+-						  &dai_link->cpu_dai_name);
++						  &dai_link->cpu_dai_name,
++						  true);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -202,7 +204,8 @@ static int asoc_simple_card_parse_of(struct device_node *node,
+ 		ret = asoc_simple_card_sub_parse_of(np, priv->daifmt,
+ 						  &priv->codec_dai,
+ 						  &dai_link->codec_of_node,
+-						  &dai_link->codec_dai_name);
++						  &dai_link->codec_dai_name,
++						  false);
+ 	if (ret < 0)
+ 		return ret;
+ 
 -- 
 1.7.9.5
 
