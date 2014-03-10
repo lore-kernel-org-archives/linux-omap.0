@@ -1,100 +1,109 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH v4] ASoC: tlv320aic31xx: Add basic codec driver implementation
-Date: Mon, 10 Mar 2014 15:15:56 +0200
-Message-ID: <531DBB0C.4020205@ti.com>
-References: <cover.1394440470.git.jsarha@ti.com> <dc68ce35a3f44b5c8a55be928e06f72f463338fa.1394440470.git.jsarha@ti.com> <20140310120938.GJ14999@e106331-lin.cambridge.arm.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv3 00/41] OMAPDSS: DT support v3
+Date: Mon, 10 Mar 2014 15:22:48 +0200
+Message-ID: <531DBCA8.80507@ti.com>
+References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
+ <531823C5.1020008@ti.com> <20140307164929.GC3789@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51312 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752105AbaCJNQI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Mar 2014 09:16:08 -0400
-In-Reply-To: <20140310120938.GJ14999@e106331-lin.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============6364485765324715740=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140307164929.GC3789@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-fbdev@vger.kernel.org, Enric Balletbo Serra <eballetbo@gmail.com>, Sebastian Reichel <sre@debian.org>, Javier Martinez Canillas <javier@dowhile0.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Darren Etheridge <detheridge@ti.com>, Sebastian Reichel <sre@ring0.de>, Archit Taneja <archit@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Stefan Roese <stefan.roese@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "broonie@kernel.org" <broonie@kernel.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "detheridge@ti.com" <detheridge@ti.com>
 
-On 03/10/2014 02:09 PM, Mark Rutland wrote:
-> On Mon, Mar 10, 2014 at 08:52:21AM +0000, Jyri Sarha wrote:
->> This commit adds a bare bones driver support for TLV320AIC31XX family
->> audio codecs. The driver adds basic stereo playback trough headphone
->> and speaker outputs and mono capture trough microphone inputs.
+--===============6364485765324715740==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="afr6f1SGcBTWJSX9cwlt8HDNQfmPvF2Vp"
+
+--afr6f1SGcBTWJSX9cwlt8HDNQfmPvF2Vp
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 07/03/14 18:49, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140305 23:32]:
+>> Hi Tony,
 >>
->> The driver is currently missing support at least for mini DSP features
->> and jack detection. I have tested the driver only on TLV320AIC3111,
->> but based on the data sheets TLV320AIC3100, TLV320AIC3110, and
->> TLV320AIC3120 should work Ok too.
+>> On 21/01/14 12:56, Tomi Valkeinen wrote:
+>>> Hi,
+>>>
+>>> Here's version 3 of the DSS DT series.
 >>
->> The base for the implementation was taken from:
->> git@gitorious.org:ti-codecs/ti-codecs.git ajitk/topics/k3.10.1-aic31xx
->> -branch at commit 77504eba0294764e9e63b4a0c696b44db187cd13.
->>
->> Signed-off-by: Jyri Sarha <jsarha@ti.com>
->> ---
->>   .../devicetree/bindings/sound/tlv320aic31xx.txt    |   61 +
->>   include/dt-bindings/sound/tlv320aic31xx-micbias.h  |    9 +
->>   sound/soc/codecs/Kconfig                           |    4 +
->>   sound/soc/codecs/Makefile                          |    2 +
->>   sound/soc/codecs/tlv320aic31xx.c                   | 1343 ++++++++++++++++++++
->>   sound/soc/codecs/tlv320aic31xx.h                   |  258 ++++
->>   6 files changed, 1677 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/sound/tlv320aic31xx.txt
->>   create mode 100644 include/dt-bindings/sound/tlv320aic31xx-micbias.h
->>   create mode 100644 sound/soc/codecs/tlv320aic31xx.c
->>   create mode 100644 sound/soc/codecs/tlv320aic31xx.h
->>
->> diff --git a/Documentation/devicetree/bindings/sound/tlv320aic31xx.txt b/Documentation/devicetree/bindings/sound/tlv320aic31xx.txt
->> new file mode 100644
->> index 0000000..0109df1
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/sound/tlv320aic31xx.txt
->> @@ -0,0 +1,61 @@
->> +Texas Instruments - tlv320aic31xx Codec module
->> +
->> +The tlv320aic31xx serial control bus communicates through I2C protocols
->> +
->> +Required properties:
->> +
->> +- compatible - "string" - One of:
->> +    "ti,tlv320aic310x" - Generic TLV320AIC31xx with mono speaker amp
->> +    "ti,tlv320aic311x" - Generic TLV320AIC31xx with stereo speaker amp
->> +    "ti,tlv320aic3100" - TLV320AIC3100 (mono speaker amp, no MiniDSP)
->> +    "ti,tlv320aic3110" - TLV320AIC3110 (stereo speaker amp, no MiniDSP)
->> +    "ti,tlv320aic3120" - TLV320AIC3120 (mono speaker amp, MiniDSP)
->> +    "ti,tlv320aic3111" - TLV320AIC3111 (stereo speaker amp, MiniDSP)
->> +
->> +- reg - <int> -  I2C slave address
->> +
->> +
->> +Optional properties:
->> +
->> +- gpio-reset - gpio pin number used for codec reset
->
-> I believe calling this reset-gpio would be more in keeping with the gpio
-> bindings.
->
-> I'd get rid of "pin number" from the description. GPIOs are referred to
-> with phandle + gpio-specifier pairs, and this makes it sound like a
-> single integer value.
->
->> +- ai31xx-micbias-vg - MicBias Voltage setting
->
-> This name is a bit terse. Perhaps s/vg/voltage/ ?
->
+>> Can you have a look at the arch/arm/ parts in the series and ack if
+>> they're ok, i.e, patches 1, 2, 32.
+>=20
+> Patches 1, 2 & 32 look OK to me, so for those please feel free to add:
+>=20
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-This parameter name is symmetric to already existing "ai3x-micbias-vg" 
-in tlv320aic3x driver. Well... that is not a very good reason for not to 
-change it. I'll change that to the next version of the patch.
+Thanks.
 
->> +        0 or MICBIAS_OFF - MICBIAS output it not powered
->
-> s/it/is/
->
+> How about do a pull request for just the .dts changes against current
+> omap-for-v3.15/dt branch ASAP for me so I can pull it in? That is assum=
+ing
+> that just the .dts changes alone won't break anything.
 
-To be fixed.
+Unfortunately they do break. At least pinmuxing is moved from the global
+definitions to be handled by the respective display drivers, and there
+are some regulator_name hacks that the DT patches remove.
 
-Best regards,
-Jyri
+I think those changes could be removed from my patches, and then added
+back later when everything else has been merged.
+
+The bigger issue is that suddenly there's lots of discussion about the
+display DT bindings. If those are not resolved very soon, I guess I have
+no choice but to again skip the merge window for the DSS DT changes.
+
+ Tomi
+
+
+
+--afr6f1SGcBTWJSX9cwlt8HDNQfmPvF2Vp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTHbyoAAoJEPo9qoy8lh71VLQP/2z8H92z1o1BnIA2roTyljxA
+eVcatLA4UaZhfPHojbjzlN5Ap6lwAT5E5RtlNZfrdo41cGErxCk4mXmgO5IOa8EQ
+i8NXlBaPWYJKuyUWdtuPP70p7rHBSM83a5GBWpCkVu70+qnoUXTA+ZbNYSG3PVqu
+OSnwUFwLoBPjNiadK5PP0MvuFjwLHRYDb2GuB3smJu50DAe6g8Xh7OVDKZipyZbY
+5B15zLp+64FEbRsfA6PiIrwiILQSPkmPNhsnijjfjM2lAM2CUxDRVQSgofOfxk6Y
+nbyB4g2Yoe1hyo/RgsatQMhIzp6k+btO2LoKiKQxMay8r1+Tm9+VQZDCdMdK7Yrf
+3kdYFaDv9YUO3MxIRQrwGH+TqiK1H83Z106nKKBp9G9mV1sufJQMs8S4+q/5C2Co
+eXGAF0BByBIBKdrTMUUMVV0qew6AWCRTos5qmtkDdL2EBGVnxDirexD8L1i3EQFv
+gpqJf9BzhXSRpGnQKFect8J+cZfklmhztDA18UOsUwMAzhSobrlQG1klxAFzTmGv
+0c/7BjMzncj0a0f/JnOPRZcPRzbNtdwTdEIg8jIK2jyNDU9mWGmVe+QtlQTXPGCB
+sFyT62bQP3GQTVr1encH+3xiw61HPnHyRQX0/pGLIy1o67kSUhuND0DPQOgY8gFX
+2o0UnNug+ewRE4pE0w7H
+=q7+W
+-----END PGP SIGNATURE-----
+
+--afr6f1SGcBTWJSX9cwlt8HDNQfmPvF2Vp--
+
+
+--===============6364485765324715740==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============6364485765324715740==--
