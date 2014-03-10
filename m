@@ -1,63 +1,77 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 4/4] omap crossbar support for v3.15
-Date: Mon, 10 Mar 2014 09:36:20 -0700
-Message-ID: <20140310163620.GB4882@atomide.com>
-References: <pull-1393802089-910509>
- <5313bcc5.a8fc440a.467f.7ba2SMTPIN_ADDED_MISSING@mx.google.com>
- <20140309073347.GL16310@quad.lixom.net>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC PATCH 3/6] PM / Voltagedomain: introduce voltage domain
+ driver support
+Date: Mon, 10 Mar 2014 12:11:44 -0500
+Message-ID: <531DF250.5060100@ti.com>
+References: <1392755543-28335-1-git-send-email-nm@ti.com>
+ <1392755543-28335-4-git-send-email-nm@ti.com>
+ <20140224015826.GU25940@sirena.org.uk> <530B594F.2030500@ti.com>
+ <20140303035426.GC2411@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:60064 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753452AbaCJQg3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Mar 2014 12:36:29 -0400
-Content-Disposition: inline
-In-Reply-To: <20140309073347.GL16310@quad.lixom.net>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140303035426.GC2411@sirena.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Brown <broonie@kernel.org>
+Cc: devicetree@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, linux-doc@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, MyungJoo Ham <myungjoo.ham@samsung.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Sricharan R <r.sricharan@ti.com>
 
-* Olof Johansson <olof@lixom.net> [140308 23:36]:
-> On Sun, Mar 02, 2014 at 03:14:49PM -0800, Tony Lindgren wrote:
-> > The following changes since commit 38dbfb59d1175ef458d006556061adeaa8751b72:
-> > 
-> >   Linus 3.14-rc1 (2014-02-02 16:42:13 -0800)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/crossbar-signed
-> > 
-> > for you to fetch changes up to 9594274201ac3c67d5c569aae63792e58bcd33e6:
-> > 
-> >   Merge branch 'crossbar_3.14_rc1' of git://github.com/Sricharanti/sricharan into omap-for-v3.15/crossbar (2014-02-28 13:35:02 -0800)
-> > 
-> > ----------------------------------------------------------------
-> > 
-> > Add support for GIC crossbar that routes interrupts on newer omaps.
-> > 
-> > Looks like people wanted these merged via the omap tree as it's
-> > the only user for the GIC crossbar.
-> > 
-> > ----------------------------------------------------------------
-> > Sricharan R (4):
-> >       DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
-> >       DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
-> >       ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
-> >       ARM: DRA: Enable Crossbar IP support for DRA7XX
+On 03/02/2014 09:54 PM, Mark Brown wrote:
+> On Mon, Feb 24, 2014 at 08:38:07AM -0600, Nishanth Menon wrote:
 > 
-> Whoa, lots of caps on those driver subjects. I don't think we need those
-> in the future, lower case is just fine (and DRIVERS: usually isn't used).
+>> Intent here is to allow drivers such as cpufreq-cpu0 to be reused on
+>> platforms such as TI's OMAP derivatives, and other SoCs which differ
+>> only by the sequence involved in voltage scale operations. So, this
+>> patch provides a framework for registering the underlying
+>> implementation of the SoC specific voltage change methodology.
+> 
+> That bit is clear, what's very opaque from the code is how this is going
+> to be accomplished.
+The SoC specific voltage domain drivers register with
+devm_voltdm_register. the fops provide the abstraction needed for the
+SoC (example in patch #5 - which introduces OMAP specific voltage
+domain which handles ABB and VDD regulators).
 
-Oops yeah I had them as "irqchip: crossbar" and "irqchip: irq-gic" in
-my earlier branch for v3.14 that did not get merged, but this time I
-pulled from Sricharan.
+What would you suggest that we do to clarify the usage here?
 
-Scricharan, maybe use less yelling naming for any follow-up patches?
- 
-> Branch has been merged into next/drivers.
+>> Overall the sequence takes place after this patch is as follows:
+>> a) voltage domain drivers such as those of TI or others register with
+>> voltage domain with devm_voltdm_register.
+>> b) cpufreq-cpu0/devfreq drivers:
+>> of_pm_voltdm_notifier_register(introduced as part of patch #1) to
+>> register notifiers around clk of interest. This request is linked to
+>> the specific voltage domain using phandle in device tree.
+>> c) when cpufreq-cpu0/devfreq does a clk_set_rate, the common clock
+>> framework triggers notifiers in voltage domain core which in turn,
+>> invokes the corresponding handlers for the voltage domain driver
+>> ensuring the right dvfs sequence specific to the SoC is triggered.
+> 
+> So the first question I have here is what happens if multiple clocks
+> need to be updated in lock step - if we're only triggering off clock
+> notifiers that seems tricky.  The other thing here is that the fact that
+Yes, that is true, however, there are ways to implement them, for
+example: We could implement an higher level clock that takes care of
+the multiple clock node control to handle this kind of scenario.
 
-OK thanks!
+I can elaborate that in the commit message, if that is desirable.
 
-Tony
+> your API is "of_" suggests that it is in fact linked very srongly to DT
+> - it'd be good to split out the layers to make sure things make sense
+> standalone, the DT helpers are obviously good but the API should be able
+> to stand separately.
+
+You are correct, I had intended the RFC as purely "OF only". I will
+make it independent of of in the next revision.
+
+-- 
+Regards,
+Nishanth Menon
