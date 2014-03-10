@@ -1,76 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 00/41] OMAPDSS: DT support v3
-Date: Mon, 10 Mar 2014 08:41:06 -0700
-Message-ID: <20140310154105.GA4882@atomide.com>
-References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
- <531823C5.1020008@ti.com>
- <20140307164929.GC3789@atomide.com>
- <531DBCA8.80507@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v4] ASoC: tlv320aic31xx: Add basic codec driver
+ implementation
+Date: Mon, 10 Mar 2014 15:47:44 +0000
+Message-ID: <20140310154744.GJ28112@sirena.org.uk>
+References: <cover.1394440470.git.jsarha@ti.com>
+ <dc68ce35a3f44b5c8a55be928e06f72f463338fa.1394440470.git.jsarha@ti.com>
+ <20140310125848.GI28112@sirena.org.uk>
+ <531DBD55.6030008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YKGyq5YQxDjF8U6+"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35479 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754398AbaCJPlP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Mar 2014 11:41:15 -0400
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:37828 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752880AbaCJPrv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Mar 2014 11:47:51 -0400
 Content-Disposition: inline
-In-Reply-To: <531DBCA8.80507@ti.com>
+In-Reply-To: <531DBD55.6030008@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140310 06:26]:
-> On 07/03/14 18:49, Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [140305 23:32]:
-> >> Hi Tony,
-> >>
-> >> On 21/01/14 12:56, Tomi Valkeinen wrote:
-> >>> Hi,
-> >>>
-> >>> Here's version 3 of the DSS DT series.
-> >>
-> >> Can you have a look at the arch/arm/ parts in the series and ack if
-> >> they're ok, i.e, patches 1, 2, 32.
-> > 
-> > Patches 1, 2 & 32 look OK to me, so for those please feel free to add:
-> > 
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> Thanks.
-> 
-> > How about do a pull request for just the .dts changes against current
-> > omap-for-v3.15/dt branch ASAP for me so I can pull it in? That is assuming
-> > that just the .dts changes alone won't break anything.
-> 
-> Unfortunately they do break. At least pinmuxing is moved from the global
-> definitions to be handled by the respective display drivers, and there
-> are some regulator_name hacks that the DT patches remove.
 
-OK. Will that cause regressions for omap3 as that's still also booting
-in legacy mode?
- 
-> I think those changes could be removed from my patches, and then added
-> back later when everything else has been merged.
+--YKGyq5YQxDjF8U6+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Or you could have a second branch that also merges in omap-for-v3.15/dt
-branch that you can send later towards the merge window after the arm-soc
-changes have been merged. If you want to do that, then feel free to add
-my ack also for the .dts changes:
+On Mon, Mar 10, 2014 at 03:25:41PM +0200, Jyri Sarha wrote:
+> On 03/10/2014 02:58 PM, Mark Brown wrote:
+> >On Mon, Mar 10, 2014 at 10:52:21AM +0200, Jyri Sarha wrote:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+> >>>+- ai31xx-micbias-vg - MicBias Voltage setting
+> >>>+        0 or MICBIAS_OFF - MICBIAS output it not powered
 
-If however those changes get postponed to v3.16, it's best that you'll
-redo the branch as I'm sure we'll have other merge issues for v3.16.
- 
-> The bigger issue is that suddenly there's lots of discussion about the
-> display DT bindings. If those are not resolved very soon, I guess I have
-> no choice but to again skip the merge window for the DSS DT changes.
+> >So, on every other version of this patch set I've suggested removing
+> >this as there's no reason why the bias would be wired up but disabled.
+> >Each time you seem to agree that the option should be removed yet here
+> >it is again...
 
-OK, some of these more bindings can take easily six months to reach
-some kind of resolution. You may be able to use TI specific unstable
-bindings meanwhile if that makese sense.
+> I agreed on not to have it as the default. I can still imagine
+> couple of reason to have this option around. For instance, if the
+> board designer decides to pull the bias voltage from outside of the
+> chip completely, or like in my test setup when I feed the mic input
+> from a headset output of another device, because I do not have a
+> microphone around ATM.
 
-Regards,
+To repeat what I said first time around in those cases the pin wouldn't
+be connected at all so why would it ever be enabled?  You're not
+specifying that it's going to be always enabled at a given voltage.
 
-Tony
+--YKGyq5YQxDjF8U6+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTHd6cAAoJELSic+t+oim9trQP/3U2wxnnI8EB/Ivyu57yxfbH
+KzqT0hcQfFKpGcYkrh/LFcAqCdV4DR3zDwrVcpJ+5Q9g1l5E7rmHL/cVSTpOFzb2
+Xw5AMjOpDsZo+R52JMVDhaBI+Di9f/J334VWOLIUcV+9fm6s5jX2HhX/RPrxxznd
+z2X509a7rPs/CuiaH2+sAWHc4DVIPwB24EkkTjH8Ayfqogx8l3PLMhwDE4eCbMcL
+NxhseMHC3lIs9SgduxW1ynU49PCpEe2Ul4LX609AOwnfT0UwfbxriPx6HvwUpwla
+EYYtRn6HDHuIRPJiGZoM5HGJ88tOADLSgGPmrUUiBP0HtxAKf/pCFkRtLnjYcYqp
+cWYOjM6xll8pO0GFb70sSsZ2noef0L1y2idFM+ZCEk0v7OI/MUNB3iSp/EVMxUk8
+qBp5mBv+2FiGUrM89n9oVw915NKeiY9AH3vU5ZDIiiCGgw0YMiTnUY1EXoY0mv4p
+GBQ+M99i4vcikxBbOeBncrDQdDv8IY0NeC1NGV3+IsCKXVDyG2GXQ/AoqmGhaXb/
+vld2yX8XbddMlEMGwNL4OQIxGNBTq/vTIHhX4rCF4E194vHcXfwX3OG4euJkwyaH
+wcHoaS07x1ROWuVj5BNNzJ68hH46T88Agt3z1NpvN0n2o55YMm0tCxQ91ebQ4lFD
+u4+eLwlPp3uBHQoxuF6A
+=NU/C
+-----END PGP SIGNATURE-----
+
+--YKGyq5YQxDjF8U6+--
