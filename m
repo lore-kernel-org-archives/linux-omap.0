@@ -1,180 +1,88 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 5/9] ARM: dts: omap3-overo: Add HSUSB PHY
-Date: Mon, 10 Mar 2014 12:30:42 +0200
-Message-ID: <531D9452.6040501@ti.com>
-References: <1394220139-1760-1-git-send-email-florian.vaussard@epfl.ch> <1394220139-1760-6-git-send-email-florian.vaussard@epfl.ch>
+Subject: Re: [PATCH 2/8] ARM: dts: dra7-clock: Add "l3init_960m_gfclk" clock
+ gate
+Date: Mon, 10 Mar 2014 13:05:08 +0200
+Message-ID: <531D9C64.50809@ti.com>
+References: <1394197751-28984-1-git-send-email-rogerq@ti.com> <1394197751-28984-3-git-send-email-rogerq@ti.com> <5319D0B5.6060300@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43463 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42993 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751985AbaCJKbQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Mar 2014 06:31:16 -0400
-In-Reply-To: <1394220139-1760-6-git-send-email-florian.vaussard@epfl.ch>
+	id S1752190AbaCJLFo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Mar 2014 07:05:44 -0400
+In-Reply-To: <5319D0B5.6060300@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, balbi@ti.com, tony@atomide.com
+Cc: kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
 
-Hi Florian,
-
-On 03/07/2014 09:22 PM, Florian Vaussard wrote:
-> Add the High-Speed USB PHY.
+On 03/07/2014 03:59 PM, Tero Kristo wrote:
+> On 03/07/2014 03:09 PM, Roger Quadros wrote:
+>> This clock gate description was missing in older Reference manuals.
+>> It is present on the SoC to provide 960MHz reference clock to the
+>> internal USB PHYs.
 > 
-> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> ---
->  arch/arm/boot/dts/omap3-overo-base.dtsi  | 44 ++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap3-overo-storm.dtsi | 16 ++++++++++++
->  arch/arm/boot/dts/omap3-overo.dtsi       | 16 ++++++++++++
->  3 files changed, 76 insertions(+)
+> Can you provide a document reference here?
 > 
-> diff --git a/arch/arm/boot/dts/omap3-overo-base.dtsi b/arch/arm/boot/dts/omap3-overo-base.dtsi
-> index edac70e..13d1ad2 100644
-> --- a/arch/arm/boot/dts/omap3-overo-base.dtsi
-> +++ b/arch/arm/boot/dts/omap3-overo-base.dtsi
-> @@ -30,6 +30,24 @@
->  		ti,codec = <&twl_audio>;
->  	};
->  
-> +	/* HS USB Port 2 Power */
-> +	hsusb2_power: hsusb2_power_reg {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "hsusb2_vbus";
-> +		regulator-min-microvolt = <5000000>;
-> +		regulator-max-microvolt = <5000000>;
-> +		gpio = <&gpio6 8 0>;				/* gpio_168: vbus enable */
-> +		startup-delay-us = <70000>;
-> +		enable-active-high;
-> +	};
-> +
-> +	/* HS USB Host PHY on PORT 2 */
-> +	hsusb2_phy: hsusb2_phy {
-> +		compatible = "usb-nop-xceiv";
-> +		reset-gpios = <&gpio6 23 GPIO_ACTIVE_LOW>;	/* gpio_183 */
-> +		vcc-supply = <&hsusb2_power>;
-> +	};
-> +
->  	/* Regulator to trigger the nPoweron signal of the Wifi module */
->  	w3cbw003c_npoweron: regulator-w3cbw003c-npoweron {
->  		compatible = "regulator-fixed";
-> @@ -64,6 +82,11 @@
->  };
->  
->  &omap3_pmx_core {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <
-> +			&hsusb2_pins
-> +	>;
-> +
->  	uart2_pins: pinmux_uart2_pins {
->  		pinctrl-single,pins = <
->  			OMAP3_CORE1_IOPAD(0x216c, PIN_INPUT | MUX_MODE1)	/* mcbsp3_dx.uart2_cts */
-> @@ -116,6 +139,19 @@
->  			OMAP3_CORE1_IOPAD(0x219c, PIN_OUTPUT | MUX_MODE4)		/* uart3_rts_sd.gpio_164 */
->  		>;
->  	};
-> +
-> +	hsusb2_pins: pinmux_hsusb2_pins {
-> +		pinctrl-single,pins = <
-> +			OMAP3_CORE1_IOPAD(0x21d4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
-> +			OMAP3_CORE1_IOPAD(0x21d6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
-> +			OMAP3_CORE1_IOPAD(0x21d8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
-> +			OMAP3_CORE1_IOPAD(0x21da, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
-> +			OMAP3_CORE1_IOPAD(0x21dc, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
-> +			OMAP3_CORE1_IOPAD(0x21de, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
-> +			OMAP3_CORE1_IOPAD(0x21be, PIN_OUTPUT | MUX_MODE4)		/* i2c2_scl.gpio_168 */
-> +			OMAP3_CORE1_IOPAD(0x21c0, PIN_OUTPUT | MUX_MODE4)		/* i2c2_sda.gpio_183 */
-> +		>;
-> +	};
->  };
->  
->  &i2c1 {
-> @@ -177,6 +213,14 @@
->  	power = <50>;
->  };
->  
-> +&usbhshost {
-> +	port2-mode = "ehci-phy";
-> +};
-> +
-> +&usbhsehci {
-> +	phys = <0 &hsusb2_phy>;
-> +};
-> +
->  &uart2 {
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&uart2_pins>;
-> diff --git a/arch/arm/boot/dts/omap3-overo-storm.dtsi b/arch/arm/boot/dts/omap3-overo-storm.dtsi
-> index c235ae8..6cb418b 100644
-> --- a/arch/arm/boot/dts/omap3-overo-storm.dtsi
-> +++ b/arch/arm/boot/dts/omap3-overo-storm.dtsi
-> @@ -10,6 +10,22 @@
->  #include "omap3-overo-base.dtsi"
->  
->  &omap3_pmx_core2 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <
-> +			&hsusb2_2_pins
-> +	>;
-> +
-> +	hsusb2_2_pins: pinmux_hsusb2_2_pins {
-> +		pinctrl-single,pins = <
-> +			OMAP3630_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
-> +			OMAP3630_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
-> +			OMAP3630_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
-> +			OMAP3630_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
-> +			OMAP3630_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
-> +			OMAP3630_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
 
-If you don't use the OMAP3x30_CORE2_IOPAD() macro then these definitions can fit in omap3-overo-base.dtsi.
-The offsets will be taken care of if you place them within &omap3_pmx_core2 {} . e.g.
+Unfortunately it hasn't yet been included in the TRM.
+I have the internal defect ID but I don't think it makes any sense here.
 
-+                       0x50 (PIN_OUTPUT | MUX_MODE3)           /* etk_d10.hsusb2_clk */
-+                       0x52 (PIN_OUTPUT | MUX_MODE3)           /* etk_d11.hsusb2_stp */
-+                       0x54 (PIN_INPUT_PULLDOWN | MUX_MODE3)   /* etk_d12.hsusb2_dir */
-+                       0x56 (PIN_INPUT_PULLDOWN | MUX_MODE3)   /* etk_d13.hsusb2_nxt */
-+                       0x58 (PIN_INPUT_PULLDOWN | MUX_MODE3)   /* etk_d14.hsusb2_data0 */
-+                       0x5a (PIN_INPUT_PULLDOWN | MUX_MODE3)   /* etk_d15.hsusb2_data1 */
-
-Do you think this is better?
+DRA7xx-TRMINC00203
 
 cheers,
 -roger
 
-
-> +		>;
-> +	};
-> +
->  	w3cbw003c_2_pins: pinmux_w3cbw003c_2_pins {
->  		pinctrl-single,pins = <
->  			OMAP3630_CORE2_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE4)		/* etk_d2.gpio_16 */
-> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
-> index 95c59b2..c37b130 100644
-> --- a/arch/arm/boot/dts/omap3-overo.dtsi
-> +++ b/arch/arm/boot/dts/omap3-overo.dtsi
-> @@ -10,6 +10,22 @@
->  #include "omap3-overo-base.dtsi"
->  
->  &omap3_pmx_core2 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <
-> +			&hsusb2_2_pins
-> +	>;
-> +
-> +	hsusb2_2_pins: pinmux_hsusb2_2_pins {
-> +		pinctrl-single,pins = <
-> +			OMAP3430_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
-> +			OMAP3430_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
-> +			OMAP3430_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
-> +			OMAP3430_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
-> +			OMAP3430_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
-> +			OMAP3430_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
-> +		>;
-> +	};
-> +
->  	w3cbw003c_2_pins: pinmux_w3cbw003c_2_pins {
->  		pinctrl-single,pins = <
->  			OMAP3430_CORE2_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE4)		/* etk_d2.gpio_16 */
+> 
+>>
+>> Use l3init_960m_gfclk as parent of usb_otg_ss1_refclk960m and
+>> usb_otg_ss2_refclk960m.
+>>
+>> CC: Tero Kristo <t-kristo@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   arch/arm/boot/dts/dra7xx-clocks.dtsi | 12 ++++++++++--
+>>   1 file changed, 10 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>> index e96da9a..b8d3a9d 100644
+>> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>> @@ -1386,6 +1386,14 @@
+>>           ti,dividers = <1>, <8>;
+>>       };
+>>
+>> +    l3init_960m_gfclk: l3init_960m_gfclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,gate-clock";
+>> +        clocks = <&dpll_usb_clkdcoldo>;
+>> +        ti,bit-shift = <8>;
+>> +        reg = <0x06c0>;
+>> +    };
+>> +
+>>       dss_32khz_clk: dss_32khz_clk {
+>>           #clock-cells = <0>;
+>>           compatible = "ti,gate-clock";
+>> @@ -1533,7 +1541,7 @@
+>>       usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m {
+>>           #clock-cells = <0>;
+>>           compatible = "ti,gate-clock";
+>> -        clocks = <&dpll_usb_clkdcoldo>;
+>> +        clocks = <&l3init_960m_gfclk>;
+>>           ti,bit-shift = <8>;
+>>           reg = <0x13f0>;
+>>       };
+>> @@ -1541,7 +1549,7 @@
+>>       usb_otg_ss2_refclk960m: usb_otg_ss2_refclk960m {
+>>           #clock-cells = <0>;
+>>           compatible = "ti,gate-clock";
+>> -        clocks = <&dpll_usb_clkdcoldo>;
+>> +        clocks = <&l3init_960m_gfclk>;
+>>           ti,bit-shift = <8>;
+>>           reg = <0x1340>;
+>>       };
+>>
 > 
 
