@@ -1,257 +1,117 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 06/14] v4l: ti-vpe: Fix some params in VPE data descriptors
-Date: Tue, 11 Mar 2014 14:03:45 +0530
-Message-ID: <1394526833-24805-7-git-send-email-archit@ti.com>
-References: <1393922965-15967-1-git-send-email-archit@ti.com>
- <1394526833-24805-1-git-send-email-archit@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv8 2/4] power_supply: Introduce generic psy charging
+ driver
+Date: Tue, 11 Mar 2014 09:47:18 +0100
+Message-ID: <20140311084718.GA10586@amd.pavel.ucw.cz>
+References: <1394170174-21959-1-git-send-email-jenny.tc@intel.com>
+ <1394170174-21959-3-git-send-email-jenny.tc@intel.com>
+ <20140307202520.GD27645@amd.pavel.ucw.cz>
+ <20140310043328.GB27798@jenny-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43486 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753956AbaCKIfE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Mar 2014 04:35:04 -0400
-In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140310043328.GB27798@jenny-desktop>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jenny Tc <jenny.tc@intel.com>
+Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: k.debski@samsung.com, hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Some parameters of the VPE descriptors were understood incorrectly. They are now
-fixed. The fixes are explained as follows:
+Hi!
 
-- When adding an inbound data descriptor to the VPDMA descriptor list, we intend
-  to use c_rect as the cropped region fetched by VPDMA. Therefore, c_rect->width
-  shouldn't be used to calculate the line stride, the original image width
-  should be used for that. We add a 'width' argument which gives the buffer
-  width in memory.
 
-- frame_width and frame_height describe the complete width and height of the
-  client to which the channel is connected. If there are multiple channels
-  fetching data and providing to the same client, the above 2 arguments should
-  be the width and height of the region covered by all the channels. In the case
-  where there is only one channel providing pixel data to the client
-  (like in VPE), frame_width and frame_height should be the cropped width and
-  cropped height respectively. The calculation of these params is done in the
-  vpe driver now.
+> > You still miss some wovels here. Sometimes it imakes it unlear: 
+> > chrg is charge? charger?
+> 
+> chrgr means charger, chrg means charge. Isn't it used consistently?. Can fix it if
+> it's really annoying. Please suggest.
 
-- start_h and start_v is also used in the case of multiple channels to describe
-  where each channel should start filling pixel data. We don't use this in VPE,
-  and pass 0s to the vpdma_add_in_dtd() helper.
+Well... with all the missing letters, it is not clear if letter is
+missing because you just made it short, or it is real difference.
 
-- Some minor changes are made to the vpdma_add_out_dtd() helper. The c_rect
-  param is used for specifying the 'composition' target, and 'width'  is added
-  to calculate the line stride.
+Please just use full words. ... but read below.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/platform/ti-vpe/vpdma.c | 60 +++++++++++++++++++++++++++--------
- drivers/media/platform/ti-vpe/vpdma.h | 10 +++---
- drivers/media/platform/ti-vpe/vpe.c   | 18 +++++++----
- 3 files changed, 64 insertions(+), 24 deletions(-)
+> > > +	list_for_each_entry(bat_cache, &psy_chrgr.batt_cache_lst, node) {
+> > > +		if (!strcmp(bat_cache->name, bat_prop_new->name))
+> > > +			goto update_props;
+> > > +	}
+> > > +
+> > > +	bat_cache = kzalloc(sizeof(*bat_cache), GFP_KERNEL);
+> > 
+> > What is it with all the caching? Is it good idea to have caches
+> > indexed by strings? Can't you go without caching, or attach caches to
+> > some structure? Interesting goto again.
+> 
+> Cache is to store previous battery properties. On receiving a new event
+> compare the properties with cached value to decide charging state
+> (charging/not charging/full etc.) and to control charging. There is added
+> saving with caching. If the previous and current battery properties  doesn't
+> differ much, ignore the event instead of continuing (as implemented in
+> is_trigger_charging_algo) with invoking charging algorithms. Also caching helps
+> to take few critical charging decisions - like charge termination which need
+> charge current and voltage over a period of time.
+> 
+> Since a power_supply object (driver) is identified by name, it's the only index
+> available.
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index 73dd38e..a51a013 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -614,8 +614,17 @@ static void dump_dtd(struct vpdma_dtd *dtd)
- /*
-  * append an outbound data transfer descriptor to the given descriptor list,
-  * this sets up a 'client to memory' VPDMA transfer for the given VPDMA channel
-+ *
-+ * @list: vpdma desc list to which we add this decriptor
-+ * @width: width of the image in pixels in memory
-+ * @c_rect: compose params of output image
-+ * @fmt: vpdma data format of the buffer
-+ * dma_addr: dma address as seen by VPDMA
-+ * chan: VPDMA channel
-+ * flags: VPDMA flags to configure some descriptor fileds
-  */
--void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
-+void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
-+		const struct v4l2_rect *c_rect,
- 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
- 		enum vpdma_channel chan, u32 flags)
- {
-@@ -623,6 +632,7 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
- 	int field = 0;
- 	int notify = 1;
- 	int channel, next_chan;
-+	struct v4l2_rect rect = *c_rect;
- 	int depth = fmt->depth;
- 	int stride;
- 	struct vpdma_dtd *dtd;
-@@ -630,11 +640,15 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
- 	channel = next_chan = chan_info[chan].num;
- 
- 	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
--			fmt->data_type == DATA_TYPE_C420)
-+			fmt->data_type == DATA_TYPE_C420) {
-+		rect.height >>= 1;
-+		rect.top >>= 1;
- 		depth = 8;
-+	}
- 
--	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
--	dma_addr += (c_rect->left * depth) >> 3;
-+	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
-+
-+	dma_addr += rect.top * stride + (rect.left * depth >> 3);
- 
- 	dtd = list->next;
- 	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
-@@ -664,31 +678,48 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
- /*
-  * append an inbound data transfer descriptor to the given descriptor list,
-  * this sets up a 'memory to client' VPDMA transfer for the given VPDMA channel
-+ *
-+ * @list: vpdma desc list to which we add this decriptor
-+ * @width: width of the image in pixels in memory(not the cropped width)
-+ * @c_rect: crop params of input image
-+ * @fmt: vpdma data format of the buffer
-+ * dma_addr: dma address as seen by VPDMA
-+ * chan: VPDMA channel
-+ * field: top or bottom field info of the input image
-+ * flags: VPDMA flags to configure some descriptor fileds
-+ * frame_width/height: the complete width/height of the image presented to the
-+ *			client (this makes sense when multiple channels are
-+ *			connected to the same client, forming a larger frame)
-+ * start_h, start_v: position where the given channel starts providing pixel
-+ *			data to the client (makes sense when multiple channels
-+ *			contribute to the client)
-  */
--void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
--		int frame_height, struct v4l2_rect *c_rect,
-+void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
-+		const struct v4l2_rect *c_rect,
- 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
--		enum vpdma_channel chan, int field, u32 flags)
-+		enum vpdma_channel chan, int field, u32 flags, int frame_width,
-+		int frame_height, int start_h, int start_v)
- {
- 	int priority = 0;
- 	int notify = 1;
- 	int depth = fmt->depth;
- 	int channel, next_chan;
-+	struct v4l2_rect rect = *c_rect;
- 	int stride;
--	int height = c_rect->height;
- 	struct vpdma_dtd *dtd;
- 
- 	channel = next_chan = chan_info[chan].num;
- 
- 	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
- 			fmt->data_type == DATA_TYPE_C420) {
--		height >>= 1;
--		frame_height >>= 1;
-+		rect.height >>= 1;
-+		rect.top >>= 1;
- 		depth = 8;
- 	}
- 
--	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
--	dma_addr += (c_rect->left * depth) >> 3;
-+	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
-+
-+	dma_addr += rect.top * stride + (rect.left * depth >> 3);
- 
- 	dtd = list->next;
- 	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
-@@ -701,13 +732,14 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
- 					!!(flags & VPDMA_DATA_ODD_LINE_SKIP),
- 					stride);
- 
--	dtd->xfer_length_height = dtd_xfer_length_height(c_rect->width, height);
-+	dtd->xfer_length_height = dtd_xfer_length_height(rect.width,
-+					rect.height);
- 	dtd->start_addr = (u32) dma_addr;
- 	dtd->pkt_ctl = dtd_pkt_ctl(!!(flags & VPDMA_DATA_MODE_TILED),
- 				DTD_DIR_IN, channel, priority, next_chan);
- 	dtd->frame_width_height = dtd_frame_width_height(frame_width,
- 					frame_height);
--	dtd->start_h_v = dtd_start_h_v(c_rect->left, c_rect->top);
-+	dtd->start_h_v = dtd_start_h_v(start_h, start_v);
- 	dtd->client_attr0 = 0;
- 	dtd->client_attr1 = 0;
- 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index bf5f8bb..2bd8fb0 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -186,13 +186,15 @@ void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
- 		struct vpdma_buf *adb);
- void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
- 		enum vpdma_channel chan);
--void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
-+void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
-+		const struct v4l2_rect *c_rect,
- 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
- 		enum vpdma_channel chan, u32 flags);
--void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
--		int frame_height, struct v4l2_rect *c_rect,
-+void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
-+		const struct v4l2_rect *c_rect,
- 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
--		enum vpdma_channel chan, int field, u32 flags);
-+		enum vpdma_channel chan, int field, u32 flags, int frame_width,
-+		int frame_height, int start_h, int start_v);
- 
- /* vpdma list interrupt management */
- void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index dbdc338..ece9b96 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -986,7 +986,6 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
- 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_DST];
- 	const struct vpe_port_data *p_data = &port_data[port];
- 	struct vb2_buffer *vb = ctx->dst_vb;
--	struct v4l2_rect *c_rect = &q_data->c_rect;
- 	struct vpe_fmt *fmt = q_data->fmt;
- 	const struct vpdma_data_format *vpdma_fmt;
- 	int mv_buf_selector = !ctx->src_mv_buf_selector;
-@@ -1015,8 +1014,8 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
- 	if (q_data->flags & Q_DATA_MODE_TILED)
- 		flags |= VPDMA_DATA_MODE_TILED;
- 
--	vpdma_add_out_dtd(&ctx->desc_list, c_rect, vpdma_fmt, dma_addr,
--		p_data->channel, flags);
-+	vpdma_add_out_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
-+		vpdma_fmt, dma_addr, p_data->channel, flags);
- }
- 
- static void add_in_dtd(struct vpe_ctx *ctx, int port)
-@@ -1024,11 +1023,11 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
- 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_SRC];
- 	const struct vpe_port_data *p_data = &port_data[port];
- 	struct vb2_buffer *vb = ctx->src_vbs[p_data->vb_index];
--	struct v4l2_rect *c_rect = &q_data->c_rect;
- 	struct vpe_fmt *fmt = q_data->fmt;
- 	const struct vpdma_data_format *vpdma_fmt;
- 	int mv_buf_selector = ctx->src_mv_buf_selector;
- 	int field = vb->v4l2_buf.field == V4L2_FIELD_BOTTOM;
-+	int frame_width, frame_height;
- 	dma_addr_t dma_addr;
- 	u32 flags = 0;
- 
-@@ -1055,8 +1054,15 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
- 	if (q_data->flags & Q_DATA_MODE_TILED)
- 		flags |= VPDMA_DATA_MODE_TILED;
- 
--	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, q_data->height,
--		c_rect, vpdma_fmt, dma_addr, p_data->channel, field, flags);
-+	frame_width = q_data->c_rect.width;
-+	frame_height = q_data->c_rect.height;
-+
-+	if (p_data->vb_part && fmt->fourcc == V4L2_PIX_FMT_NV12)
-+		frame_height /= 2;
-+
-+	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
-+		vpdma_fmt, dma_addr, p_data->channel, field, flags, frame_width,
-+		frame_height, 0, 0);
- }
- 
- /*
+Why can't you just use address of struct power_supply? There should be
+no need to work with names.
+
+Feel free to extend struct power_supply, wrap it in another struct,
+anything.
+
+> > > +		if (psb && !psb->external_power_changed)
+> > > +			is_pwr_changed_defined &= false;
+> > 
+> > WTF?
+> 
+> The is_supplied_to_has_ext_pwr_changed() return true if any of the power_supply
+> objects in supplied_to list has the external_power_changed() call back defined.
+> This to  optimize the notifications and to reduce charging algo invocations.
+> This is used in is_trigger_charging_algo() to decide charging algorithms should
+> be invoked or not.
+
+No, I mean... using "&=" operator in case where plain assignment
+should work is evil.
+
+> > > +	/* Identify chargers which are supplying power to the battery */
+> > > +	class_dev_iter_init(&iter, power_supply_class, NULL, NULL);
+> > > +	while ((dev = class_dev_iter_next(&iter))) {
+> > > +		pst = (struct power_supply *)dev_get_drvdata(dev);
+> > > +		if (!psy_is_charger(pst))
+> > > +			continue;
+> > > +		for (i = 0; i < pst->num_supplicants; i++) {
+> > > +			if (!strcmp(pst->supplied_to[i], psy->name))
+> > > +				psy_lst[cnt++] = pst;
+> > > +		}
+> > 
+> > Awful lot of string compares around.
+> 
+> In reality this would be one/two, just because the number of chargers supplying
+> power to a battery would be limited.
+
+This whole file is nothing but string compares, bubble sorts, and
+weird caches.
+
+Please find a way to simplify a design. Rafael works for same company,
+can he help?
+
+
+> > Does it really be so complex? Dynamically allocated caches, name
+> > compares everywhere?
+> 
+> It's really not so complex. The caches are allocated dynamically only when
+> a new charger/battery power supply object gets registered - basically when a
+> charger/battery driver gets loaded. At runtime no dynamic allocation is needed.
+> There is not too many string comparisons just because the number of power
+> supply objects are limited. Power supply subsystem has only name as unique
+> identifier (psy->name). I couldn't find a better way without string comparisons
+> to identify a power supply object.
+
+(void *) psy is also an unique identifier. Plus, you can add new
+fields to psy.
+
+									Pavel
 -- 
-1.8.3.2
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
