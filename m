@@ -1,50 +1,55 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 14/14] v4l: ti-vpe: retain v4l2_buffer flags for captured buffers
-Date: Tue, 11 Mar 2014 14:03:53 +0530
-Message-ID: <1394526833-24805-15-git-send-email-archit@ti.com>
+Subject: [PATCH v3 12/14] v4l: ti-vpe: zero out reserved fields in try_fmt
+Date: Tue, 11 Mar 2014 14:03:51 +0530
+Message-ID: <1394526833-24805-13-git-send-email-archit@ti.com>
 References: <1393922965-15967-1-git-send-email-archit@ti.com>
  <1394526833-24805-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45769 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754125AbaCKIfY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Mar 2014 04:35:24 -0400
 In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: k.debski@samsung.com, hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-The dequed CAPTURE_MPLANE type buffers don't contain the flags that the
-originally queued OUTPUT_MPLANE type buffers have. This breaks compliance.
+Zero out the reserved formats in v4l2_pix_format_mplane and
+v4l2_plane_pix_format members of the returned v4l2_format pointer when passed
+through TRY_FMT ioctl.
 
-Copy the source v4l2_buffer flags to the destination v4l2_buffer flags before
-they are dequed.
+This ensures that the user doesn't interpret the non-zero fields as some data
+passed by the driver, and ensures compliance.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/media/platform/ti-vpe/vpe.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index c884910..f7759e8 100644
+index 85d1122..970408a 100644
 --- a/drivers/media/platform/ti-vpe/vpe.c
 +++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1288,13 +1288,12 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 	s_buf = &s_vb->v4l2_buf;
- 	d_buf = &d_vb->v4l2_buf;
+@@ -1488,6 +1488,7 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
+ 		}
+ 	}
  
-+	d_buf->flags = s_buf->flags;
-+
- 	d_buf->timestamp = s_buf->timestamp;
--	d_buf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	d_buf->flags |= s_buf->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	if (s_buf->flags & V4L2_BUF_FLAG_TIMECODE) {
--		d_buf->flags |= V4L2_BUF_FLAG_TIMECODE;
-+	if (s_buf->flags & V4L2_BUF_FLAG_TIMECODE)
- 		d_buf->timecode = s_buf->timecode;
--	}
-+
- 	d_buf->sequence = ctx->sequence;
++	memset(pix->reserved, 0, sizeof(pix->reserved));
+ 	for (i = 0; i < pix->num_planes; i++) {
+ 		plane_fmt = &pix->plane_fmt[i];
+ 		depth = fmt->vpdma_fmt[i]->depth;
+@@ -1499,6 +1500,8 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
  
- 	d_q_data = &ctx->q_data[Q_DATA_DST];
+ 		plane_fmt->sizeimage =
+ 				(pix->height * pix->width * depth) >> 3;
++
++		memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
+ 	}
+ 
+ 	return 0;
 -- 
 1.8.3.2
+
