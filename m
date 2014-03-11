@@ -1,48 +1,45 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v3 05/14] v4l: ti-vpe: Allow usage of smaller images
-Date: Tue, 11 Mar 2014 13:03:39 +0100
-Message-ID: <531EFB9B.1050902@xs4all.nl>
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-6-git-send-email-archit@ti.com>
+From: Tomas Novotny <tomas@novotny.cz>
+Subject: Re: [PATCH] mfd: twl-core: Fix accessibility of some twl4030 audio
+ registers
+Date: Tue, 11 Mar 2014 13:16:15 +0100
+Message-ID: <20140311131615.45aa4a96@tomas.local.tbs-biometrics.cz>
+References: <20140310191250.34f1410e@tomas.local.tbs-biometrics.cz>
+	<20140311065217.GE2839@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1394526833-24805-6-git-send-email-archit@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: k.debski@samsung.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from kazi.fit.vutbr.cz ([147.229.8.12]:26491 "EHLO kazi.fit.vutbr.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754892AbaCKMQ1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Mar 2014 08:16:27 -0400
+In-Reply-To: <20140311065217.GE2839@lee--X1>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-omap@vger.kernel.org, peter.ujfalusi@ti.com
 
-On 03/11/14 09:33, Archit Taneja wrote:
-> The minimum width and height for VPE input/output was kept as 128 pixels. VPE
-> doesn't have a constraint on the image height, it requires the image width to
-> be at least 16 bytes.
-> 
-> Change the minimum supported dimensions to 32x32. This allows us to de-interlace
-> qcif content. A smaller image size than 32x32 didn't make much sense, so stopped
-> at this.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+On Tue, 11 Mar 2014 06:52:17 +0000
+Lee Jones <lee.jones@linaro.org> wrote:
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > There are some unused registers in twl4030 at I2C address 0x49 and function
+> > twl4030_49_nop_reg() is used to check accessibility of that registers. These
+> > registers are written in decimal format but the values are correct in
+> > hexadecimal format. (It can be checked few lines above the patched code -
+> > these registers are marked as unused there.)
+> > 
+> > As a consequence three registers of audio submodule are treated as
+> > inaccessible (preamplifier carkit right and both handsfree registers).
+> > 
+> > CC: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> > Signed-off-by: Tomas Novotny <tomas@novotny.cz>
+> > ---
+> >  drivers/mfd/twl-core.c | 10 +++++-----
+> >  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> In future, please don't forget to CC LKML.
+> 
 
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 0e7573a..dbdc338 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -49,8 +49,8 @@
->  #define VPE_MODULE_NAME "vpe"
->  
->  /* minimum and maximum frame sizes */
-> -#define MIN_W		128
-> -#define MIN_H		128
-> +#define MIN_W		32
-> +#define MIN_H		32
->  #define MAX_W		1920
->  #define MAX_H		1080
->  
-> 
+Ok and thanks for applying.
+
+Tomas
