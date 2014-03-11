@@ -1,55 +1,44 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 12/14] v4l: ti-vpe: zero out reserved fields in try_fmt
-Date: Tue, 11 Mar 2014 14:03:51 +0530
-Message-ID: <1394526833-24805-13-git-send-email-archit@ti.com>
+Subject: [PATCH v3 08/14] v4l: ti-vpe: Rename csc memory resource name
+Date: Tue, 11 Mar 2014 14:03:47 +0530
+Message-ID: <1394526833-24805-9-git-send-email-archit@ti.com>
 References: <1393922965-15967-1-git-send-email-archit@ti.com>
  <1394526833-24805-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45769 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754125AbaCKIfY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Mar 2014 04:35:24 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:48739 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753937AbaCKIfK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2014 04:35:10 -0400
 In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: k.debski@samsung.com, hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Zero out the reserved formats in v4l2_pix_format_mplane and
-v4l2_plane_pix_format members of the returned v4l2_format pointer when passed
-through TRY_FMT ioctl.
-
-This ensures that the user doesn't interpret the non-zero fields as some data
-passed by the driver, and ensures compliance.
+Rename the memory block resource "vpe_csc" to "csc" since it also exists within
+the VIP IP block. This would make the name more generic, and both VPE and VIP DT
+nodes in the future can use it.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/platform/ti-vpe/csc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 85d1122..970408a 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1488,6 +1488,7 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
- 		}
- 	}
+diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
+index acfea50..0333339 100644
+--- a/drivers/media/platform/ti-vpe/csc.c
++++ b/drivers/media/platform/ti-vpe/csc.c
+@@ -180,7 +180,7 @@ struct csc_data *csc_create(struct platform_device *pdev)
+ 	csc->pdev = pdev;
  
-+	memset(pix->reserved, 0, sizeof(pix->reserved));
- 	for (i = 0; i < pix->num_planes; i++) {
- 		plane_fmt = &pix->plane_fmt[i];
- 		depth = fmt->vpdma_fmt[i]->depth;
-@@ -1499,6 +1500,8 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
- 
- 		plane_fmt->sizeimage =
- 				(pix->height * pix->width * depth) >> 3;
-+
-+		memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
- 	}
- 
- 	return 0;
+ 	csc->res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+-			"vpe_csc");
++			"csc");
+ 	if (csc->res == NULL) {
+ 		dev_err(&pdev->dev, "missing platform resources data\n");
+ 		return ERR_PTR(-ENODEV);
 -- 
 1.8.3.2
 
