@@ -1,99 +1,105 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH 0/7] ARM: dts: overo: Add new expansion boards
-Date: Tue, 11 Mar 2014 13:20:28 +0100
-Message-ID: <1394540435-25401-1-git-send-email-florian.vaussard@epfl.ch>
+Subject: [PATCH 2/7] ARM: dts: overo: Add LIS33DE accelerometer
+Date: Tue, 11 Mar 2014 13:20:30 +0100
+Message-ID: <1394540435-25401-3-git-send-email-florian.vaussard@epfl.ch>
+References: <1394540435-25401-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:54219 "EHLO smtp0.epfl.ch"
+Received: from smtp0.epfl.ch ([128.178.224.218]:54240 "EHLO smtp0.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754832AbaCKMUy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Mar 2014 08:20:54 -0400
+	id S1754832AbaCKMU4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Mar 2014 08:20:56 -0400
+In-Reply-To: <1394540435-25401-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
 Cc: Roger Quadros <rogerq@ti.com>, Nishanth Menon <nm@ti.com>, Ash Charles <ash@gumstix.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+The LIS33DE accelerometer is used on several Gumstix expansion boards,
+thus add the DT node to omap3-overo-common-peripherals.dtsi.
 
-This series adds the support for 5 new expansion boards from Gumstix:
-- Palo43
-- Gallop43
-- Chestnut43
-- Alto35
-- Summit
+For the boards that do not have the accelerometer (like Tobi), mark the
+status as disabled.
 
-The 1st patch is a preparatory work, in order to factorize some
-peripherals that are common to most Gumstix expansion boards. Patch 2
-adds the support for an accelerometer that is present on most boards.
+Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+---
+ .../boot/dts/omap3-overo-common-peripherals.dtsi   | 44 ++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-overo-tobi-common.dtsi     |  4 ++
+ 2 files changed, 48 insertions(+)
 
-Palo43, Gallop43 and Chestnut43 are all pretty similar. I tested
-on a Gallop43 (with both OMAP35xx and OMAP36xx Overo).
-
-Alto35 is slightly different. Again, I tested with both OMAP35xx and
-OMAP36xx Overo.
-
-Summit is pretty similar to Tobi. I do not have a Summit at hand,
-but given the similarity with Tobi, it should work fine.
-
-To avoid unnecessary duplications, I put all the common stuff for each
-board inside an omap3-overo-xxx-common.dsti include file. By doing so,
-I can have minimal SoC-specific omap3-overo-xxx.dts (omap34xx based)
-and omap3-overo-storm-xxx.dts (omap36xx based) device trees.
-
-This series depends on my previous Overo series [1]. A complete testing
-tree (including the graphics support, soon to be posted) is available
-at [2].
-
-Regards,
-Florian
-
-[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/111558
-[2] https://github.com/vaussard/linux.git (overo/for-3.15/review1)
-
-Florian Vaussard (7):
-  ARM: dts: overo: Create a file for common Gumstix peripherals
-  ARM: dts: overo: Add LIS33DE accelerometer
-  ARM: dts: Add support for the Overo Palo43
-  ARM: dts: Add support for the Overo Gallop43
-  ARM: dts: Add support for the Overo Alto35
-  ARM: dts: Add support for the Overo Chestnut43
-  ARM: dts: Add support for the Overo Summit
-
- arch/arm/boot/dts/Makefile                         | 10 +++
- arch/arm/boot/dts/omap3-overo-alto35-common.dtsi   | 77 ++++++++++++++++++
- arch/arm/boot/dts/omap3-overo-alto35.dts           | 22 +++++
- .../boot/dts/omap3-overo-chestnut43-common.dtsi    | 69 ++++++++++++++++
- arch/arm/boot/dts/omap3-overo-chestnut43.dts       | 38 +++++++++
- .../boot/dts/omap3-overo-common-peripherals.dtsi   | 94 ++++++++++++++++++++++
- arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi | 57 +++++++++++++
- arch/arm/boot/dts/omap3-overo-gallop43.dts         | 38 +++++++++
- arch/arm/boot/dts/omap3-overo-palo43-common.dtsi   | 53 ++++++++++++
- arch/arm/boot/dts/omap3-overo-palo43.dts           | 38 +++++++++
- arch/arm/boot/dts/omap3-overo-storm-alto35.dts     | 21 +++++
- arch/arm/boot/dts/omap3-overo-storm-chestnut43.dts | 38 +++++++++
- arch/arm/boot/dts/omap3-overo-storm-gallop43.dts   | 38 +++++++++
- arch/arm/boot/dts/omap3-overo-storm-palo43.dts     | 38 +++++++++
- arch/arm/boot/dts/omap3-overo-storm-summit.dts     | 30 +++++++
- arch/arm/boot/dts/omap3-overo-summit-common.dtsi   | 31 +++++++
- arch/arm/boot/dts/omap3-overo-summit.dts           | 30 +++++++
- arch/arm/boot/dts/omap3-overo-tobi-common.dtsi     | 38 +--------
- 18 files changed, 725 insertions(+), 35 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-overo-alto35-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-alto35.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-chestnut43.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-gallop43.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-palo43-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-palo43.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm-alto35.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm-chestnut43.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm-gallop43.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm-palo43.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm-summit.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-summit-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-summit.dts
-
+diff --git a/arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi b/arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi
+index bca81ae..5831bcc 100644
+--- a/arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi
++++ b/arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi
+@@ -10,6 +10,22 @@
+  * Peripherals common to all Gumstix Overo boards (Tobi, Summit, Palo43,...)
+  */
+ 
++/ {
++	lis33_3v3: lis33-3v3-reg {
++		compatible = "regulator-fixed";
++		regulator-name = "lis33-3v3-reg";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
++
++	lis33_1v8: lis33-1v8-reg {
++		compatible = "regulator-fixed";
++		regulator-name = "lis33-1v8-reg";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++	};
++};
++
+ &omap3_pmx_core {
+ 	i2c3_pins: pinmux_i2c3_pins {
+ 		pinctrl-single,pins = <
+@@ -37,6 +53,34 @@
+ 		reg = <0x51>;
+ 		pagesize = <8>;
+ 	};
++
++	lis33de: lis33de@1d {
++		compatible = "st,lis33de", "st,lis3lv02d";
++		reg = <0x1d>;
++		Vdd-supply = <&lis33_1v8>;
++		Vdd_IO-supply = <&lis33_3v3>;
++
++		st,click-single-x;
++		st,click-single-y;
++		st,click-single-z;
++		st,click-thresh-x = <10>;
++		st,click-thresh-y = <10>;
++		st,click-thresh-z = <10>;
++		st,irq1-click;
++		st,irq2-click;
++		st,wakeup-x-lo;
++		st,wakeup-x-hi;
++		st,wakeup-y-lo;
++		st,wakeup-y-hi;
++		st,wakeup-z-lo;
++		st,wakeup-z-hi;
++		st,min-limit-x = <120>;
++		st,min-limit-y = <120>;
++		st,min-limit-z = <140>;
++		st,max-limit-x = <550>;
++		st,max-limit-y = <550>;
++		st,max-limit-z = <750>;
++	};
+ };
+ 
+ &mmc3 {
+diff --git a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
+index 060eb77..13df50b 100644
+--- a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
++++ b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
+@@ -35,3 +35,7 @@
+ 	};
+ };
+ 
++&lis33de {
++	status = "disabled";
++};
++
 -- 
 1.8.3.2
 
