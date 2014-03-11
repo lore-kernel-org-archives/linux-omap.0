@@ -1,71 +1,173 @@
-From: Andreas Fenkart <afenkart@gmail.com>
-Subject: [PATCH v9 3/3] mmc: omap_hsmmc: Extend debugfs for SDIO IRQ, GPIO and pinmux
-Date: Tue, 11 Mar 2014 10:42:45 +0100
-Message-ID: <1394530965-6022-4-git-send-email-afenkart@gmail.com>
-References: <1394530965-6022-1-git-send-email-afenkart@gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v4 5/9] ARM: dts: omap3-overo: Add HSUSB PHY
+Date: Tue, 11 Mar 2014 11:43:08 +0200
+Message-ID: <531EDAAC.8030509@ti.com>
+References: <1394220139-1760-1-git-send-email-florian.vaussard@epfl.ch> <1394220139-1760-6-git-send-email-florian.vaussard@epfl.ch> <531D9452.6040501@ti.com> <531DD6A8.7010406@epfl.ch>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:45520 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753084AbaCKJnS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2014 05:43:18 -0400
-In-Reply-To: <1394530965-6022-1-git-send-email-afenkart@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:46360 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751688AbaCKJnj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Mar 2014 05:43:39 -0400
+In-Reply-To: <531DD6A8.7010406@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Andreas Fenkart <afenkart@gmail.com>
+To: florian.vaussard@epfl.ch, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Add SDIO IRQ entries to debugfs entry. Note that PSTATE shows current
-state of data lines, incl. SDIO IRQ pending
+On 03/10/2014 05:13 PM, Florian Vaussard wrote:
+> Hi Roger,
+> 
+> On 03/10/2014 11:30 AM, Roger Quadros wrote:
+>> Hi Florian,
+>>
+>> On 03/07/2014 09:22 PM, Florian Vaussard wrote:
+>>> Add the High-Speed USB PHY.
+>>>
+>>> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+>>> ---
+>>>  arch/arm/boot/dts/omap3-overo-base.dtsi  | 44 ++++++++++++++++++++++++++++++++
+>>>  arch/arm/boot/dts/omap3-overo-storm.dtsi | 16 ++++++++++++
+>>>  arch/arm/boot/dts/omap3-overo.dtsi       | 16 ++++++++++++
+>>>  3 files changed, 76 insertions(+)
+>>>
+>>> diff --git a/arch/arm/boot/dts/omap3-overo-base.dtsi b/arch/arm/boot/dts/omap3-overo-base.dtsi
+>>> index edac70e..13d1ad2 100644
+>>> --- a/arch/arm/boot/dts/omap3-overo-base.dtsi
+>>> +++ b/arch/arm/boot/dts/omap3-overo-base.dtsi
+>>> @@ -30,6 +30,24 @@
+>>>  		ti,codec = <&twl_audio>;
+>>>  	};
+>>>  
+>>> +	/* HS USB Port 2 Power */
+>>> +	hsusb2_power: hsusb2_power_reg {
+>>> +		compatible = "regulator-fixed";
+>>> +		regulator-name = "hsusb2_vbus";
+>>> +		regulator-min-microvolt = <5000000>;
+>>> +		regulator-max-microvolt = <5000000>;
+>>> +		gpio = <&gpio6 8 0>;				/* gpio_168: vbus enable */
+>>> +		startup-delay-us = <70000>;
+>>> +		enable-active-high;
+>>> +	};
+>>> +
+>>> +	/* HS USB Host PHY on PORT 2 */
+>>> +	hsusb2_phy: hsusb2_phy {
+>>> +		compatible = "usb-nop-xceiv";
+>>> +		reset-gpios = <&gpio6 23 GPIO_ACTIVE_LOW>;	/* gpio_183 */
+>>> +		vcc-supply = <&hsusb2_power>;
+>>> +	};
+>>> +
+>>>  	/* Regulator to trigger the nPoweron signal of the Wifi module */
+>>>  	w3cbw003c_npoweron: regulator-w3cbw003c-npoweron {
+>>>  		compatible = "regulator-fixed";
+>>> @@ -64,6 +82,11 @@
+>>>  };
+>>>  
+>>>  &omap3_pmx_core {
+>>> +	pinctrl-names = "default";
+>>> +	pinctrl-0 = <
+>>> +			&hsusb2_pins
+>>> +	>;
+>>> +
+>>>  	uart2_pins: pinmux_uart2_pins {
+>>>  		pinctrl-single,pins = <
+>>>  			OMAP3_CORE1_IOPAD(0x216c, PIN_INPUT | MUX_MODE1)	/* mcbsp3_dx.uart2_cts */
+>>> @@ -116,6 +139,19 @@
+>>>  			OMAP3_CORE1_IOPAD(0x219c, PIN_OUTPUT | MUX_MODE4)		/* uart3_rts_sd.gpio_164 */
+>>>  		>;
+>>>  	};
+>>> +
+>>> +	hsusb2_pins: pinmux_hsusb2_pins {
+>>> +		pinctrl-single,pins = <
+>>> +			OMAP3_CORE1_IOPAD(0x21d4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
+>>> +			OMAP3_CORE1_IOPAD(0x21d6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
+>>> +			OMAP3_CORE1_IOPAD(0x21d8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
+>>> +			OMAP3_CORE1_IOPAD(0x21da, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
+>>> +			OMAP3_CORE1_IOPAD(0x21dc, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
+>>> +			OMAP3_CORE1_IOPAD(0x21de, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
+>>> +			OMAP3_CORE1_IOPAD(0x21be, PIN_OUTPUT | MUX_MODE4)		/* i2c2_scl.gpio_168 */
+>>> +			OMAP3_CORE1_IOPAD(0x21c0, PIN_OUTPUT | MUX_MODE4)		/* i2c2_sda.gpio_183 */
+>>> +		>;
+>>> +	};
+>>>  };
+>>>  
+>>>  &i2c1 {
+>>> @@ -177,6 +213,14 @@
+>>>  	power = <50>;
+>>>  };
+>>>  
+>>> +&usbhshost {
+>>> +	port2-mode = "ehci-phy";
+>>> +};
+>>> +
+>>> +&usbhsehci {
+>>> +	phys = <0 &hsusb2_phy>;
+>>> +};
+>>> +
+>>>  &uart2 {
+>>>  	pinctrl-names = "default";
+>>>  	pinctrl-0 = <&uart2_pins>;
+>>> diff --git a/arch/arm/boot/dts/omap3-overo-storm.dtsi b/arch/arm/boot/dts/omap3-overo-storm.dtsi
+>>> index c235ae8..6cb418b 100644
+>>> --- a/arch/arm/boot/dts/omap3-overo-storm.dtsi
+>>> +++ b/arch/arm/boot/dts/omap3-overo-storm.dtsi
+>>> @@ -10,6 +10,22 @@
+>>>  #include "omap3-overo-base.dtsi"
+>>>  
+>>>  &omap3_pmx_core2 {
+>>> +	pinctrl-names = "default";
+>>> +	pinctrl-0 = <
+>>> +			&hsusb2_2_pins
+>>> +	>;
+>>> +
+>>> +	hsusb2_2_pins: pinmux_hsusb2_2_pins {
+>>> +		pinctrl-single,pins = <
+>>> +			OMAP3630_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
+>>> +			OMAP3630_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
+>>> +			OMAP3630_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
+>>> +			OMAP3630_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
+>>> +			OMAP3630_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
+>>> +			OMAP3630_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
+>>
+>> If you don't use the OMAP3x30_CORE2_IOPAD() macro then these definitions can fit in omap3-overo-base.dtsi.
+>> The offsets will be taken care of if you place them within &omap3_pmx_core2 {} . e.g.
+>>
+>> +                       0x50 (PIN_OUTPUT | MUX_MODE3)           /* etk_d10.hsusb2_clk */
+>> +                       0x52 (PIN_OUTPUT | MUX_MODE3)           /* etk_d11.hsusb2_stp */
+>> +                       0x54 (PIN_INPUT_PULLDOWN | MUX_MODE3)   /* etk_d12.hsusb2_dir */
+>> +                       0x56 (PIN_INPUT_PULLDOWN | MUX_MODE3)   /* etk_d13.hsusb2_nxt */
+>> +                       0x58 (PIN_INPUT_PULLDOWN | MUX_MODE3)   /* etk_d14.hsusb2_data0 */
+>> +                       0x5a (PIN_INPUT_PULLDOWN | MUX_MODE3)   /* etk_d15.hsusb2_data1 */
+>>
+>> Do you think this is better?
+>>
+> 
+> I do not think that this could work. Let's take for example hsusb2_clk
+> et let's do the math. Here, 0x50 is the offset inside omap3_pmx_core2
+> pinctrl, so:
+> 
+>         hsusb2_clk  omap3_pmx_core2      hsusb2_clk
+>          offset        base addr.       PADCONF addr.
+>           ----        ----------         ----------
+> OMAP34xx: 0x50        0x480025d8         0x48002628  *NO*
+> OMAP36xx: 0x50        0x480025a0         0x480025F0  *ok*
+> 
+> Looking at the TRM, the PADCONF address for hsusb2_clk is 0x480025F0 in
+> both cases. Thus we will be wrong on OMAP34xx (offset should be 0x18
+> instead of 0x50). Thus so far, I do not see any magical solution apart
+> putting the omap3_pmx_core2 pins in a SoC-dependant .dtsi file.
+> 
+> I already expressed my concerns [1] about having a different base
+> address for omap3_pmx_core2 depending on the SoC (although I do
+> understand the rational behind). This makes cross-SoC platforms more
+> difficult to maintain.
 
-Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Any sane design would maintain register offsets but it doesn't seem so with
+omap34xx vs omap36xx. So my assumption was wrong.
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 36052f4e..2fdb2a8 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -82,6 +82,7 @@ static void apply_clk_hack(struct device *dev)
- #define OMAP_HSMMC_RSP54	0x0118
- #define OMAP_HSMMC_RSP76	0x011C
- #define OMAP_HSMMC_DATA		0x0120
-+#define OMAP_HSMMC_PSTATE	0x0124
- #define OMAP_HSMMC_HCTL		0x0128
- #define OMAP_HSMMC_SYSCTL	0x012C
- #define OMAP_HSMMC_STAT		0x0130
-@@ -1854,14 +1855,30 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
- {
- 	struct mmc_host *mmc = s->private;
- 	struct omap_hsmmc_host *host = mmc_priv(mmc);
-+	const char *cirq_state;
-+	bool suspended;
- 
--	seq_printf(s, "mmc%d:\n ctx_loss:\t%d\n\nregs:\n",
--			mmc->index, host->context_loss);
-+	seq_printf(s, "mmc%d:\n", mmc->index);
-+	if (mmc->caps & MMC_CAP_SDIO_IRQ)
-+		cirq_state = (host->flags & HSMMC_SDIO_IRQ_ENABLED) ?
-+			"enabled" : "disabled";
-+	else
-+		cirq_state = "polling";
-+	seq_printf(s, "sdio irq\t%s\n", cirq_state);
- 
--	pm_runtime_get_sync(host->dev);
-+	if (host->flags & HSMMC_SWAKEUP_QUIRK) {
-+		suspended = host->dev->power.runtime_status != RPM_ACTIVE;
-+		seq_printf(s, "pinmux config\t%s\n", (suspended ?
-+						      "gpio" : "sdio"));
-+	}
-+	seq_printf(s, "ctx_loss:\t%d\n", host->context_loss);
- 
-+	pm_runtime_get_sync(host->dev);
-+	seq_puts(s, "\nregs:\n");
- 	seq_printf(s, "CON:\t\t0x%08x\n",
- 			OMAP_HSMMC_READ(host->base, CON));
-+	seq_printf(s, "PSTATE:\t\t0x%08x\n",
-+		   OMAP_HSMMC_READ(host->base, PSTATE));
- 	seq_printf(s, "HCTL:\t\t0x%08x\n",
- 			OMAP_HSMMC_READ(host->base, HCTL));
- 	seq_printf(s, "SYSCTL:\t\t0x%08x\n",
--- 
-1.7.10.4
+I'll ack this patch.
 
+cheers,
+-roger
