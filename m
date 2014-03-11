@@ -1,26 +1,26 @@
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v3 04/14] v4l: ti-vpe: Allow DMABUF buffer type support
-Date: Tue, 11 Mar 2014 13:03:18 +0100
-Message-ID: <531EFB86.6070603@xs4all.nl>
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-5-git-send-email-archit@ti.com>
+Subject: Re: [PATCH v3 05/14] v4l: ti-vpe: Allow usage of smaller images
+Date: Tue, 11 Mar 2014 13:03:39 +0100
+Message-ID: <531EFB9B.1050902@xs4all.nl>
+References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-6-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1394526833-24805-5-git-send-email-archit@ti.com>
+In-Reply-To: <1394526833-24805-6-git-send-email-archit@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 To: Archit Taneja <archit@ti.com>
 Cc: k.debski@samsung.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 On 03/11/14 09:33, Archit Taneja wrote:
-> For OMAP and DRA7x, we generally allocate video and graphics buffers through
-> omapdrm since the corresponding omap-gem driver provides DMM-Tiler backed
-> contiguous buffers. omapdrm is a dma-buf exporter. These buffers are used by
-> other drivers in the video pipeline.
+> The minimum width and height for VPE input/output was kept as 128 pixels. VPE
+> doesn't have a constraint on the image height, it requires the image width to
+> be at least 16 bytes.
 > 
-> Add VB2_DMABUF flag to the io_modes of the vb2 output and capture queues. This
-> allows the driver to import dma shared buffers.
+> Change the minimum supported dimensions to 32x32. This allows us to de-interlace
+> qcif content. A smaller image size than 32x32 didn't make much sense, so stopped
+> at this.
 > 
 > Signed-off-by: Archit Taneja <archit@ti.com>
 
@@ -31,25 +31,18 @@ Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 >  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
 > diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 0363df6..0e7573a 100644
+> index 0e7573a..dbdc338 100644
 > --- a/drivers/media/platform/ti-vpe/vpe.c
 > +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -1770,7 +1770,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+> @@ -49,8 +49,8 @@
+>  #define VPE_MODULE_NAME "vpe"
 >  
->  	memset(src_vq, 0, sizeof(*src_vq));
->  	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-> -	src_vq->io_modes = VB2_MMAP;
-> +	src_vq->io_modes = VB2_MMAP | VB2_DMABUF;
->  	src_vq->drv_priv = ctx;
->  	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
->  	src_vq->ops = &vpe_qops;
-> @@ -1783,7 +1783,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+>  /* minimum and maximum frame sizes */
+> -#define MIN_W		128
+> -#define MIN_H		128
+> +#define MIN_W		32
+> +#define MIN_H		32
+>  #define MAX_W		1920
+>  #define MAX_H		1080
 >  
->  	memset(dst_vq, 0, sizeof(*dst_vq));
->  	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-> -	dst_vq->io_modes = VB2_MMAP;
-> +	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
->  	dst_vq->drv_priv = ctx;
->  	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
->  	dst_vq->ops = &vpe_qops;
 > 
