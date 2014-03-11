@@ -1,150 +1,221 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH 1/7] ARM: dts: overo: Create a file for common Gumstix peripherals
-Date: Tue, 11 Mar 2014 13:20:29 +0100
-Message-ID: <1394540435-25401-2-git-send-email-florian.vaussard@epfl.ch>
-References: <1394540435-25401-1-git-send-email-florian.vaussard@epfl.ch>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v3 07/14] v4l: ti-vpe: Add selection API in VPE driver
+Date: Tue, 11 Mar 2014 13:21:25 +0100
+Message-ID: <531EFFC5.6040007@xs4all.nl>
+References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-8-git-send-email-archit@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:54227 "EHLO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754970AbaCKMUz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Mar 2014 08:20:55 -0400
-In-Reply-To: <1394540435-25401-1-git-send-email-florian.vaussard@epfl.ch>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1590 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754892AbaCKMWc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2014 08:22:32 -0400
+In-Reply-To: <1394526833-24805-8-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: Roger Quadros <rogerq@ti.com>, Nishanth Menon <nm@ti.com>, Ash Charles <ash@gumstix.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Archit Taneja <archit@ti.com>
+Cc: k.debski@samsung.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-Gumstix expansion boards share a couple of peripherals:
-- uart3 is used for the console
-- AT24C01 EEPROM on i2c3
+Hi Archit,
 
-Use this file for overo-tobi.
+A few small comments below...
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
----
- .../boot/dts/omap3-overo-common-peripherals.dtsi   | 50 ++++++++++++++++++++++
- arch/arm/boot/dts/omap3-overo-tobi-common.dtsi     | 40 +----------------
- 2 files changed, 52 insertions(+), 38 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi
+On 03/11/14 09:33, Archit Taneja wrote:
+> Add selection ioctl ops. For VPE, cropping makes sense only for the input to
+> VPE(or V4L2_BUF_TYPE_VIDEO_OUTPUT/MPLANE buffers) and composing makes sense
+> only for the output of VPE(or V4L2_BUF_TYPE_VIDEO_CAPTURE/MPLANE buffers).
+> 
+> For the CAPTURE type, V4L2_SEL_TGT_COMPOSE results in VPE writing the output
+> in a rectangle within the capture buffer. For the OUTPUT type, V4L2_SEL_TGT_CROP
+> results in selecting a rectangle region within the source buffer.
+> 
+> Setting the crop/compose rectangles should successfully result in
+> re-configuration of registers which are affected when either source or
+> destination dimensions change, set_srcdst_params() is called for this purpose.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/media/platform/ti-vpe/vpe.c | 141 ++++++++++++++++++++++++++++++++++++
+>  1 file changed, 141 insertions(+)
+> 
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+> index ece9b96..4abb85c 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -410,8 +410,10 @@ static struct vpe_q_data *get_q_data(struct vpe_ctx *ctx,
+>  {
+>  	switch (type) {
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+>  		return &ctx->q_data[Q_DATA_SRC];
+>  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+>  		return &ctx->q_data[Q_DATA_DST];
+>  	default:
+>  		BUG();
+> @@ -1587,6 +1589,142 @@ static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  	return set_srcdst_params(ctx);
+>  }
+>  
+> +static int __vpe_try_selection(struct vpe_ctx *ctx, struct v4l2_selection *s)
+> +{
+> +	struct vpe_q_data *q_data;
+> +
+> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
+> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
+> +		return -EINVAL;
+> +
+> +	q_data = get_q_data(ctx, s->type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +		/*
+> +		 * COMPOSE target is only valid for capture buffer type, for
+> +		 * output buffer type, assign existing crop parameters to the
+> +		 * selection rectangle
+> +		 */
+> +		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +			break;
 
-diff --git a/arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi b/arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi
-new file mode 100644
-index 0000000..bca81ae
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi
-@@ -0,0 +1,50 @@
-+/*
-+ * Copyright (C) 2014 Florian Vaussard, EPFL Mobots group
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * Peripherals common to all Gumstix Overo boards (Tobi, Summit, Palo43,...)
-+ */
-+
-+&omap3_pmx_core {
-+	i2c3_pins: pinmux_i2c3_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x21c2, PIN_INPUT | MUX_MODE0)	/* i2c3_scl.i2c3_scl */
-+			OMAP3_CORE1_IOPAD(0x21c4, PIN_INPUT | MUX_MODE0)	/* i2c3_sda.i2c3_sda */
-+		>;
-+	};
-+
-+	uart3_pins: pinmux_uart3_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0)	/* uart3_rx_irrx.uart3_rx_irrx */
-+			OMAP3_CORE1_IOPAD(0x21a0, PIN_OUTPUT | MUX_MODE0)		/* uart3_tx_irtx.uart3_tx_irtx */
-+		>;
-+	};
-+};
-+
-+&i2c3 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c3_pins>;
-+	clock-frequency = <100000>;
-+
-+	/* optional 1K EEPROM with revision information */
-+	eeprom@51 {
-+		compatible = "atmel,24c01";
-+		reg = <0x51>;
-+		pagesize = <8>;
-+	};
-+};
-+
-+&mmc3 {
-+	status = "disabled";
-+};
-+
-+&uart3 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart3_pins>;
-+};
-+
-diff --git a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-index 384e87d..060eb77 100644
---- a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-@@ -10,6 +10,8 @@
-  * Tobi expansion board is manufactured by Gumstix Inc.
-  */
- 
-+#include "omap3-overo-common-peripherals.dtsi"
-+
- / {
- 	leds {
- 		compatible = "gpio-leds";
-@@ -21,22 +23,6 @@
- 	};
- };
- 
--&omap3_pmx_core {
--	i2c3_pins: pinmux_i2c3_pins {
--		pinctrl-single,pins = <
--			OMAP3_CORE1_IOPAD(0x21c2, PIN_INPUT | MUX_MODE0)	/* i2c3_scl.i2c3_scl */
--			OMAP3_CORE1_IOPAD(0x21c4, PIN_INPUT | MUX_MODE0)	/* i2c3_sda.i2c3_sda */
--		>;
--	};
--
--	uart3_pins: pinmux_uart3_pins {
--		pinctrl-single,pins = <
--			OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0)	/* uart3_rx_irrx.uart3_rx_irrx */
--			OMAP3_CORE1_IOPAD(0x21a0, PIN_OUTPUT | MUX_MODE0)		/* uart3_tx_irtx.uart3_tx_irtx */
--		>;
--	};
--};
--
- #include "omap-gpmc-smsc9221.dtsi"
- 
- &gpmc {
-@@ -49,25 +35,3 @@
- 	};
- };
- 
--&i2c3 {
--	pinctrl-names = "default";
--	pinctrl-0 = <&i2c3_pins>;
--	clock-frequency = <100000>;
--
--	/* optional 1K EEPROM with revision information */
--	eeprom@51 {
--		compatible = "atmel,24c01";
--		reg = <0x51>;
--		pagesize = <8>;
--	};
--};
--
--&mmc3 {
--	status = "disabled";
--};
--
--&uart3 {
--	pinctrl-names = "default";
--	pinctrl-0 = <&uart3_pins>;
--};
--
--- 
-1.8.3.2
+Shouldn't this return -EINVAL?
+
+> +
+> +		s->r = q_data->c_rect;
+> +		return 0;
+> +
+> +	case V4L2_SEL_TGT_CROP:
+> +		/*
+> +		 * CROP target is only valid for output buffer type, for capture
+> +		 * buffer type, assign existing compose parameters to the
+> +		 * selection rectangle
+> +		 */
+> +		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +			break;
+
+Ditto.
+
+> +
+> +		s->r = q_data->c_rect;
+> +		return 0;
+> +
+> +	/*
+> +	 * bound and default crop/compose targets are invalid targets to
+> +	 * try/set
+> +	 */
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (s->r.top < 0 || s->r.left < 0) {
+> +		vpe_err(ctx->dev, "negative values for top and left\n");
+> +		s->r.top = s->r.left = 0;
+> +	}
+> +
+> +	v4l_bound_align_image(&s->r.width, MIN_W, q_data->width, 1,
+> +		&s->r.height, MIN_H, q_data->height, H_ALIGN, S_ALIGN);
+> +
+> +	/* adjust left/top if cropping rectangle is out of bounds */
+> +	if (s->r.left + s->r.width > q_data->width)
+> +		s->r.left = q_data->width - s->r.width;
+> +	if (s->r.top + s->r.height > q_data->height)
+> +		s->r.top = q_data->height - s->r.height;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vpe_g_selection(struct file *file, void *fh,
+> +		struct v4l2_selection *s)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +	struct vpe_q_data *q_data;
+> +
+> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
+> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
+> +		return -EINVAL;
+> +
+> +	q_data = get_q_data(ctx, s->type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	switch (s->target) {
+> +	/* return width and height from S_FMT of the respective buffer type */
+> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +		s->r.left = 0;
+> +		s->r.top = 0;
+> +		s->r.width = q_data->width;
+> +		s->r.height = q_data->height;
+
+The crop targets only make sense for type OUTPUT and the compose only for
+type CAPTURE. Add some checks for that.
+
+> +		return 0;
+> +
+> +	/*
+> +	 * CROP target holds for the output buffer type, and COMPOSE target
+> +	 * holds for the capture buffer type. We still return the c_rect params
+> +	 * for both the target types.
+> +	 */
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +	case V4L2_SEL_TGT_CROP:
+> +		s->r.left = q_data->c_rect.left;
+> +		s->r.top = q_data->c_rect.top;
+> +		s->r.width = q_data->c_rect.width;
+> +		s->r.height = q_data->c_rect.height;
+> +		return 0;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +
+> +static int vpe_s_selection(struct file *file, void *fh,
+> +		struct v4l2_selection *s)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +	struct vpe_q_data *q_data;
+> +	struct v4l2_selection sel = *s;
+> +	int ret;
+> +
+> +	ret = __vpe_try_selection(ctx, &sel);
+> +	if (ret)
+> +		return ret;
+> +
+> +	q_data = get_q_data(ctx, sel.type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	if ((q_data->c_rect.left == sel.r.left) &&
+> +			(q_data->c_rect.top == sel.r.top) &&
+> +			(q_data->c_rect.width == sel.r.width) &&
+> +			(q_data->c_rect.height == sel.r.height)) {
+> +		vpe_dbg(ctx->dev,
+> +			"requested crop/compose values are already set\n");
+> +		return 0;
+> +	}
+> +
+> +	q_data->c_rect = sel.r;
+> +
+> +	return set_srcdst_params(ctx);
+> +}
+> +
+>  static int vpe_reqbufs(struct file *file, void *priv,
+>  		       struct v4l2_requestbuffers *reqbufs)
+>  {
+> @@ -1674,6 +1812,9 @@ static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
+>  	.vidioc_try_fmt_vid_out_mplane	= vpe_try_fmt,
+>  	.vidioc_s_fmt_vid_out_mplane	= vpe_s_fmt,
+>  
+> +	.vidioc_g_selection		= vpe_g_selection,
+> +	.vidioc_s_selection		= vpe_s_selection,
+> +
+>  	.vidioc_reqbufs		= vpe_reqbufs,
+>  	.vidioc_querybuf	= vpe_querybuf,
+>  
+> 
 
