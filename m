@@ -1,61 +1,79 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] mfd: twl-core: Fix accessibility of some twl4030 audio
- registers
-Date: Tue, 11 Mar 2014 10:29:53 +0200
-Message-ID: <531EC981.8090806@ti.com>
-References: <20140310191250.34f1410e@tomas.local.tbs-biometrics.cz>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v3 00/14] v4l: ti-vpe: Some VPE fixes and enhancements
+Date: Tue, 11 Mar 2014 14:03:39 +0530
+Message-ID: <1394526833-24805-1-git-send-email-archit@ti.com>
+References: <1393922965-15967-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48535 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:48707 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753087AbaCKIa2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2014 04:30:28 -0400
-In-Reply-To: <20140310191250.34f1410e@tomas.local.tbs-biometrics.cz>
+	with ESMTP id S1750713AbaCKIen (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2014 04:34:43 -0400
+In-Reply-To: <1393922965-15967-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomas Novotny <tomas@novotny.cz>, linux-omap@vger.kernel.org
+To: k.debski@samsung.com, hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On 03/10/2014 08:12 PM, Tomas Novotny wrote:
-> There are some unused registers in twl4030 at I2C address 0x49 and function
-> twl4030_49_nop_reg() is used to check accessibility of that registers. These
-> registers are written in decimal format but the values are correct in
-> hexadecimal format. (It can be checked few lines above the patched code -
-> these registers are marked as unused there.)
-> 
-> As a consequence three registers of audio submodule are treated as
-> inaccessible (preamplifier carkit right and both handsfree registers).
-> 
-> CC: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Signed-off-by: Tomas Novotny <tomas@novotny.cz>
-> ---
->  drivers/mfd/twl-core.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index ed71832..e87140b 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -282,11 +282,11 @@ static struct reg_default twl4030_49_defaults[] = {
->  static bool twl4030_49_nop_reg(struct device *dev, unsigned int reg)
->  {
->  	switch (reg) {
-> -	case 0:
-> -	case 3:
-> -	case 40:
-> -	case 41:
-> -	case 42:
-> +	case 0x00:
-> +	case 0x03:
-> +	case 0x40:
-> +	case 0x41:
-> +	case 0x42:
+This patch set mainly consists of minor fixes for the VPE driver. These fixes
+ensure the following:
 
-Uhm, I can not be that @#$%^& that I did this... I have no idea how I left out
-the "0x"
+- The VPE module can be inserted and removed successively.
+- Make sure that smaller resolutions like qcif work correctly.
+- Prevent race condition between firmware loading and an open call to the v4l2
+  device.
+- Prevent the possibility of output m2m queue not having sufficient 'ready'
+  buffers.
+- Some VPDMA data descriptor fields weren't understood correctly before. They
+  are now used correctly.
 
-Thanks for spotting it!
+The rest of the patches add some minor features like DMA buf support and
+cropping/composing.
 
-Acked-by Peter Ujfalusi <peter.ujfalusi@ti.com>
+Reference branch:
+
+git@github.com:boddob/linux.git vpe_for_315
+
+Changes in v3:
+
+- improvements in selection API patch.
+- querycap fixes for v4l2 compliance.
+- v4l2_buffer 'field' and flags' fixes for compliance.
+- fixes in try_fmt vpe_open for compliance.
+- rename a IOMEM resource for better DT compatibility.
+
+Changes in v2:
+
+- selection API used instead of older cropping API.
+- Typo fix.
+- Some changes in patch 6/7 to support composing on the capture side of VPE.
+
+
+Archit Taneja (14):
+  v4l: ti-vpe: Make sure in job_ready that we have the needed number of
+    dst_bufs
+  v4l: ti-vpe: register video device only when firmware is loaded
+  v4l: ti-vpe: Use video_device_release_empty
+  v4l: ti-vpe: Allow DMABUF buffer type support
+  v4l: ti-vpe: Allow usage of smaller images
+  v4l: ti-vpe: Fix some params in VPE data descriptors
+  v4l: ti-vpe: Add selection API in VPE driver
+  v4l: ti-vpe: Rename csc memory resource name
+  v4l: ti-vpe: report correct capabilities in querycap
+  v4l: ti-vpe: Use correct bus_info name for the device in querycap
+  v4l: ti-vpe: Fix initial configuration queue data
+  v4l: ti-vpe: zero out reserved fields in try_fmt
+  v4l: ti-vpe: Set correct field parameter for output and capture
+    buffers
+  v4l: ti-vpe: retain v4l2_buffer flags for captured buffers
+
+ drivers/media/platform/ti-vpe/csc.c   |   2 +-
+ drivers/media/platform/ti-vpe/vpdma.c |  68 ++++++---
+ drivers/media/platform/ti-vpe/vpdma.h |  17 ++-
+ drivers/media/platform/ti-vpe/vpe.c   | 263 ++++++++++++++++++++++++++++------
+ 4 files changed, 281 insertions(+), 69 deletions(-)
+
+-- 
+1.8.3.2
 
