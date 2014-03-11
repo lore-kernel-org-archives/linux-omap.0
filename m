@@ -1,123 +1,46 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v9 0/9] USB Host support for OMAP5 uEVM
-Date: Tue, 11 Mar 2014 10:48:11 +0200
-Message-ID: <531ECDCB.4060700@ti.com>
-References: <1393510711-4697-1-git-send-email-rogerq@ti.com>
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: Re: [PATCH v7 1/4] mmc: omap_hsmmc: Enable SDIO IRQ.
+Date: Tue, 11 Mar 2014 10:42:11 +0100
+Message-ID: <CALtMJEAv36qubJbNKZnnQPktP5UYYcxKc4e_K51AhQw6qePqjQ@mail.gmail.com>
+References: <1393331866-28307-1-git-send-email-afenkart@gmail.com>
+	<1393331866-28307-2-git-send-email-afenkart@gmail.com>
+	<20140227213335.GJ11654@atomide.com>
+	<CALtMJEArwH4g1o+_v8daoxiYZtpHvPMbxM4CZjTxnyGgxTS+aQ@mail.gmail.com>
+	<20140305163331.GC4983@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1393510711-4697-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20140305163331.GC4983@atomide.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Lee,
+Hi,
 
-On 02/27/2014 04:18 PM, Roger Quadros wrote:
-> Hi,
-> 
-> This patchset brings up USB Host ports and Ethernet port on
-> the OMAP5 uEVM board.
-> 
-> It also does some cleanup with respect to DT clock binding
-> for the mfd/omap-usb-host driver.
-> 
-> Please queue these for -next.
-> 
-> Lee,
-> 
-> I've folded some platform data dependent patches with mfd patches
-> so that they don't break functionality when applied individually.
-> You can safely pull in all MFD patches (1 to 6).
-> 
-> Tony & Benoit,
-> 
-> Can you please accept patches 7, 8 and 9?
+2014-03-05 17:33 GMT+01:00 Tony Lindgren <tony@atomide.com>:
+> * Andreas Fenkart <afenkart@gmail.com> [140305 00:30]:
+>> Hi,
+>>
+>> 2014-02-27 22:33 GMT+01:00 Tony Lindgren <tony@atomide.com>:
+>> >
+>> > The wake-irq is needed for omaps with wake-up path and also
+>> > when doing GPIO remuxing. So the wake-up handling is pretty
+>> > much the same for both cases.
+>> I added this comment to the patch, since I was puzzled that you need
+>> a wake_irq even whithout remuxing.
+>
+> Yeah we need it because omap_hsmmc is already doing runtime PM,
+> so there's nothing stopping from shutting it down. And there's
+> really no need to block runtime PM for it as it's working.
+>
+Also added this comment, since it really clarifies the issue.
 
-Tony has already picked up 7,8 and 9 through omap-soc tree.
+FYI, just tried the patch without pin remuxing on am335x and
+it actually works. Read: I'm always using the sdio pinmux never
+reconfiguring the pin as a GPIO, but still get GPIO interrupts.
+Yes, it fails if I comment out the pm_runtime_resume.
 
-Since you acked most patches except 5 and 6, are you fine if Tony takes
-all the patches 1 to 4 in this series via omap-soc tree?
-
-What about patches 5 and 6?
-
-cheers,
--roger
-
-> 
-> Thanks.
-> 
-> Tested on:
->  - OMAP5 uEVM
->  - Pandaboard ES Rev. B1
->  - Beagleboard-XM Rev C2 (DT + Legacy)
->  - Beagleboard Rev C4 (DT + Legacy)
-> 
-> Changelog:
-> 
-> v9:
-> - Folded dependent platform data patches into MFD patches.
-> 
-> v8:
-> - Addressed review comments and split patch
->   "mfd: omap-usb-host: Get clocks based on hardware revision"
-> - Removed unnecessary usb host dummy clocks on OMAP3
-> - Removed unnecessary clock alias "ehci_logic_fck" for OMAP3
-> - Rebased on 3.14-rc3
-> 
-> v7:
-> - Rebased on 3.14-rc2
-> - Removed incompatible ids from DT files and examples
-> 
-> v6:
-> - Initialized clocks to -ENODEV and split patch 3.
-> 
-> v5:
-> - Expose all clocks in the DT binding document for mfd:omap-usb-host
-> and mfd:omap-usb-tll
-> 
-> v4:
-> - Updated DT binding document for clock binding
-> 
-> v3:
-> - Rebased on top of 3.13-rc7
-> 
-> cheers,
-> -roger
-> 
-> ---
-> Roger Quadros (9):
->   mfd: omap-usb-host: Get clocks based on hardware revision
->   mfd: omap-usb-host: Always fail on clk_get() error
->   mfd: omap-usb-host: Use proper clock name instead of alias
->   mfd: omap-usb-host: Use clock names as per function for reference
->     clocks
->   mfd: omap-usb-host: Update DT clock binding information
->   mfd: omap-usb-tll: Update DT clock binding information
->   ARM: OMAP2+: Remove legacy_init_ehci_clk()
->   ARM: dts: OMAP2+: Get rid of incompatible ids for USB host nodes
->   usb: omap: dts: Update DT binding example usage
-> 
->  .../devicetree/bindings/mfd/omap-usb-host.txt      |  23 ++++
->  .../devicetree/bindings/mfd/omap-usb-tll.txt       |  10 ++
->  .../devicetree/bindings/usb/ehci-omap.txt          |   2 +-
->  .../devicetree/bindings/usb/ohci-omap3.txt         |   2 +-
->  arch/arm/boot/dts/omap3.dtsi                       |   4 +-
->  arch/arm/boot/dts/omap4-panda-common.dtsi          |   8 +-
->  arch/arm/boot/dts/omap4.dtsi                       |  10 +-
->  arch/arm/boot/dts/omap5-uevm.dts                   |   8 +-
->  arch/arm/boot/dts/omap5.dtsi                       |  10 +-
->  arch/arm/mach-omap2/cclock3xxx_data.c              |   4 -
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   6 --
->  arch/arm/mach-omap2/pdata-quirks.c                 |  16 ---
->  drivers/clk/ti/clk-3xxx.c                          |   4 -
->  drivers/mfd/omap-usb-host.c                        | 116 ++++++++++++++-------
->  14 files changed, 135 insertions(+), 88 deletions(-)
-> 
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So it's not that the am335x suddenly has a swakeup line,
+but looks like an implementation detail of the am335x GPIO
+block.
