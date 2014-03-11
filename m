@@ -1,46 +1,57 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 03/14] v4l: ti-vpe: Use video_device_release_empty
-Date: Tue, 11 Mar 2014 14:03:42 +0530
-Message-ID: <1394526833-24805-4-git-send-email-archit@ti.com>
+Subject: [PATCH v3 04/14] v4l: ti-vpe: Allow DMABUF buffer type support
+Date: Tue, 11 Mar 2014 14:03:43 +0530
+Message-ID: <1394526833-24805-5-git-send-email-archit@ti.com>
 References: <1393922965-15967-1-git-send-email-archit@ti.com>
  <1394526833-24805-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39682 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753866AbaCKIe6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Mar 2014 04:34:58 -0400
 In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: k.debski@samsung.com, hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-The video_device struct is currently embedded in the driver data struct vpe_dev.
-A vpe_dev instance is allocated by the driver, and the memory for the vfd is a
-part of this struct.
+For OMAP and DRA7x, we generally allocate video and graphics buffers through
+omapdrm since the corresponding omap-gem driver provides DMM-Tiler backed
+contiguous buffers. omapdrm is a dma-buf exporter. These buffers are used by
+other drivers in the video pipeline.
 
-The v4l2 core, however, manages the removal of the vfd region, through the
-video_device's .release() op, which currently is the helper
-video_device_release. This causes memory corruption, and leads to issues when
-we try to re-insert the vpe module.
-
-Use the video_device_release_empty helper function instead
+Add VB2_DMABUF flag to the io_modes of the vb2 output and capture queues. This
+allows the driver to import dma shared buffers.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/ti-vpe/vpe.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index f1eae67..0363df6 100644
+index 0363df6..0e7573a 100644
 --- a/drivers/media/platform/ti-vpe/vpe.c
 +++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -2000,7 +2000,7 @@ static struct video_device vpe_videodev = {
- 	.fops		= &vpe_fops,
- 	.ioctl_ops	= &vpe_ioctl_ops,
- 	.minor		= -1,
--	.release	= video_device_release,
-+	.release	= video_device_release_empty,
- 	.vfl_dir	= VFL_DIR_M2M,
- };
+@@ -1770,7 +1770,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
  
+ 	memset(src_vq, 0, sizeof(*src_vq));
+ 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+-	src_vq->io_modes = VB2_MMAP;
++	src_vq->io_modes = VB2_MMAP | VB2_DMABUF;
+ 	src_vq->drv_priv = ctx;
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->ops = &vpe_qops;
+@@ -1783,7 +1783,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 
+ 	memset(dst_vq, 0, sizeof(*dst_vq));
+ 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+-	dst_vq->io_modes = VB2_MMAP;
++	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
+ 	dst_vq->drv_priv = ctx;
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->ops = &vpe_qops;
 -- 
 1.8.3.2
+
