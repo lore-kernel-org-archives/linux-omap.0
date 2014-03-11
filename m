@@ -1,60 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v7 1/4] mmc: omap_hsmmc: Enable SDIO IRQ.
-Date: Tue, 11 Mar 2014 09:37:54 -0700
-Message-ID: <20140311163753.GC7177@atomide.com>
-References: <1393331866-28307-1-git-send-email-afenkart@gmail.com>
- <1393331866-28307-2-git-send-email-afenkart@gmail.com>
- <20140227213335.GJ11654@atomide.com>
- <CALtMJEArwH4g1o+_v8daoxiYZtpHvPMbxM4CZjTxnyGgxTS+aQ@mail.gmail.com>
- <20140305163331.GC4983@atomide.com>
- <CALtMJEAv36qubJbNKZnnQPktP5UYYcxKc4e_K51AhQw6qePqjQ@mail.gmail.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap device tree changes for v3.15, part 2
+Date: Tue, 11 Mar 2014 13:35:38 -0700
+Message-ID: <20140311203314.GL31877@quad.lixom.net>
+References: <20140307175835.GA23749@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:45410 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753644AbaCKUfc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2014 16:35:32 -0400
+Received: by mail-pb0-f45.google.com with SMTP id uo5so59152pbc.32
+        for <linux-omap@vger.kernel.org>; Tue, 11 Mar 2014 13:35:32 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <CALtMJEAv36qubJbNKZnnQPktP5UYYcxKc4e_K51AhQw6qePqjQ@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+In-Reply-To: <20140307175835.GA23749@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Andreas Fenkart <afenkart@gmail.com> [140311 02:45]:
-> Hi,
+On Fri, Mar 07, 2014 at 09:58:36AM -0800, Tony Lindgren wrote:
+> The following changes since commit f777ba1780584b100ab9664cc06d04f3bb273a84:
 > 
-> 2014-03-05 17:33 GMT+01:00 Tony Lindgren <tony@atomide.com>:
-> > * Andreas Fenkart <afenkart@gmail.com> [140305 00:30]:
-> >> Hi,
-> >>
-> >> 2014-02-27 22:33 GMT+01:00 Tony Lindgren <tony@atomide.com>:
-> >> >
-> >> > The wake-irq is needed for omaps with wake-up path and also
-> >> > when doing GPIO remuxing. So the wake-up handling is pretty
-> >> > much the same for both cases.
-> >> I added this comment to the patch, since I was puzzled that you need
-> >> a wake_irq even whithout remuxing.
-> >
-> > Yeah we need it because omap_hsmmc is already doing runtime PM,
-> > so there's nothing stopping from shutting it down. And there's
-> > really no need to block runtime PM for it as it's working.
-> >
-> Also added this comment, since it really clarifies the issue.
-
-OK thanks.
- 
-> FYI, just tried the patch without pin remuxing on am335x and
-> it actually works. Read: I'm always using the sdio pinmux never
-> reconfiguring the pin as a GPIO, but still get GPIO interrupts.
-> Yes, it fails if I comment out the pm_runtime_resume.
+>   Merge tag 'for_3.15/dts_signed' of git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt into omap-for-v3.15/dt (2014-03-02 14:22:03 -0800)
 > 
-> So it's not that the am335x suddenly has a swakeup line,
-> but looks like an implementation detail of the am335x GPIO
-> block.
+> are available in the git repository at:
+> 
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/dt-part2
+> 
+> for you to fetch changes up to 18c49af3ee9e32a535413a949672bea726699f04:
+> 
+>   ARM: dts: am335x-evmsk: enable dual_emac mode (2014-03-05 11:53:36 -0800)
+> 
+> ----------------------------------------------------------------
+> Part two of omap device tree changes enabling driver features
+> in the dts files.
 
-Oh OK, that's good to know. I think 2420 behaved that way too
-for the serial wake-up. What also may affect things is if that
-GPIO line is in the first GPIO bank, for the other banks
-remuxing may still be needed for deeper idle states.
 
-Regards,
+Merged, thanks.
 
-Tony
+-Olof
