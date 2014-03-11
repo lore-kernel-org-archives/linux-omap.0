@@ -1,19 +1,19 @@
 From: Lee Jones <lee.jones@linaro.org>
 Subject: Re: [PATCH] mfd: twl-core: Fix accessibility of some twl4030 audio
  registers
-Date: Tue, 11 Mar 2014 06:51:33 +0000
-Message-ID: <20140311065133.GD2839@lee--X1>
+Date: Tue, 11 Mar 2014 06:52:17 +0000
+Message-ID: <20140311065217.GE2839@lee--X1>
 References: <20140310191250.34f1410e@tomas.local.tbs-biometrics.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:64982 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753432AbaCKGvi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2014 02:51:38 -0400
-Received: by mail-we0-f180.google.com with SMTP id p61so9662985wes.11
-        for <linux-omap@vger.kernel.org>; Mon, 10 Mar 2014 23:51:37 -0700 (PDT)
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:43255 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753429AbaCKGwV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2014 02:52:21 -0400
+Received: by mail-wi0-f179.google.com with SMTP id f8so400654wiw.0
+        for <linux-omap@vger.kernel.org>; Mon, 10 Mar 2014 23:52:20 -0700 (PDT)
 Content-Disposition: inline
 In-Reply-To: <20140310191250.34f1410e@tomas.local.tbs-biometrics.cz>
 Sender: linux-omap-owner@vger.kernel.org
@@ -40,7 +40,7 @@ de -
 >  drivers/mfd/twl-core.c | 10 +++++-----
 >  1 file changed, 5 insertions(+), 5 deletions(-)
 
-Applied, thanks.
+In future, please don't forget to CC LKML.
 
 --=20
 Lee Jones
