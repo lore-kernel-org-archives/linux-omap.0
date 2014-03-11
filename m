@@ -1,55 +1,79 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 11/14] v4l: ti-vpe: Fix initial configuration queue data
-Date: Tue, 11 Mar 2014 14:03:50 +0530
-Message-ID: <1394526833-24805-12-git-send-email-archit@ti.com>
+Subject: [PATCH v3 13/14] v4l: ti-vpe: Set correct field parameter for output and capture buffers
+Date: Tue, 11 Mar 2014 14:03:52 +0530
+Message-ID: <1394526833-24805-14-git-send-email-archit@ti.com>
 References: <1393922965-15967-1-git-send-email-archit@ti.com>
  <1394526833-24805-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45766 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754118AbaCKIfT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Mar 2014 04:35:19 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
 To: k.debski@samsung.com, hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-The vpe output and capture queues are initially configured to default values in
-vpe_open(). A G_FMT before any S_FMTs will result in these values being
-populated.
+The vpe driver wasn't setting the correct field parameter for dequed CAPTURE
+type buffers for the case where the captured output is progressive.
 
-The colorspace and bytesperline parameter of this initial configuration are
-incorrect. This breaks compliance when as we get 'TRY_FMT(G_FMT) != G_FMT'.
+Set the field to V4L2_FIELD_NONE for the completed destination buffers when
+the captured output is progressive.
 
-Fix the initial queue configuration such that it wouldn't need to be fixed by
-try_fmt.
+For OUTPUT type buffers, a queued buffer's field is forced to V4L2_FIELD_NONE
+if the pixel format(configured through s_fmt for the buffer type
+V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE specifies) the field type isn't interlaced.
+If the pixel format specified was V4L2_FIELD_ALTERNATE, and the queued buffer's
+field isn't V4L2_FIELD_TOP or V4L2_FIELD_BOTTOM, the vb2 buf_prepare op returns
+an error.
+
+This ensures compliance, and that the dequeued output and captured buffers
+contain the field type that the driver used internally.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/platform/ti-vpe/vpe.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 5591d04..85d1122 100644
+index 970408a..c884910 100644
 --- a/drivers/media/platform/ti-vpe/vpe.c
 +++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -2012,9 +2012,11 @@ static int vpe_open(struct file *file)
- 	s_q_data->fmt = &vpe_formats[2];
- 	s_q_data->width = 1920;
- 	s_q_data->height = 1080;
--	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
-+	s_q_data->bytesperline[VPE_LUMA] = (s_q_data->width *
- 			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
--	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->bytesperline[VPE_LUMA] *
-+			s_q_data->height);
-+	s_q_data->colorspace = V4L2_COLORSPACE_REC709;
- 	s_q_data->field = V4L2_FIELD_NONE;
- 	s_q_data->c_rect.left = 0;
- 	s_q_data->c_rect.top = 0;
+@@ -1296,10 +1296,10 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ 		d_buf->timecode = s_buf->timecode;
+ 	}
+ 	d_buf->sequence = ctx->sequence;
+-	d_buf->field = ctx->field;
+ 
+ 	d_q_data = &ctx->q_data[Q_DATA_DST];
+ 	if (d_q_data->flags & Q_DATA_INTERLACED) {
++		d_buf->field = ctx->field;
+ 		if (ctx->field == V4L2_FIELD_BOTTOM) {
+ 			ctx->sequence++;
+ 			ctx->field = V4L2_FIELD_TOP;
+@@ -1308,6 +1308,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ 			ctx->field = V4L2_FIELD_BOTTOM;
+ 		}
+ 	} else {
++		d_buf->field = V4L2_FIELD_NONE;
+ 		ctx->sequence++;
+ 	}
+ 
+@@ -1871,6 +1872,16 @@ static int vpe_buf_prepare(struct vb2_buffer *vb)
+ 	q_data = get_q_data(ctx, vb->vb2_queue->type);
+ 	num_planes = q_data->fmt->coplanar ? 2 : 1;
+ 
++	if (vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		if (!(q_data->flags & Q_DATA_INTERLACED)) {
++			vb->v4l2_buf.field = V4L2_FIELD_NONE;
++		} else {
++			if (vb->v4l2_buf.field != V4L2_FIELD_TOP ||
++					vb->v4l2_buf.field != V4L2_FIELD_BOTTOM)
++				return -EINVAL;
++		}
++	}
++
+ 	for (i = 0; i < num_planes; i++) {
+ 		if (vb2_plane_size(vb, i) < q_data->sizeimage[i]) {
+ 			vpe_err(ctx->dev,
 -- 
 1.8.3.2
-
