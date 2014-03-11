@@ -1,103 +1,194 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH 2/7] ARM: dts: overo: Add LIS33DE accelerometer
-Date: Tue, 11 Mar 2014 13:20:30 +0100
-Message-ID: <1394540435-25401-3-git-send-email-florian.vaussard@epfl.ch>
+Subject: [PATCH 4/7] ARM: dts: Add support for the Overo Gallop43
+Date: Tue, 11 Mar 2014 13:20:32 +0100
+Message-ID: <1394540435-25401-5-git-send-email-florian.vaussard@epfl.ch>
 References: <1394540435-25401-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:54240 "EHLO smtp0.epfl.ch"
+Received: from smtp0.epfl.ch ([128.178.224.218]:54280 "EHLO smtp0.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754832AbaCKMU4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Mar 2014 08:20:56 -0400
+	id S1754832AbaCKMU6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Mar 2014 08:20:58 -0400
 In-Reply-To: <1394540435-25401-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
 Cc: Roger Quadros <rogerq@ti.com>, Nishanth Menon <nm@ti.com>, Ash Charles <ash@gumstix.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The LIS33DE accelerometer is used on several Gumstix expansion boards,
-thus add the DT node to omap3-overo-common-peripherals.dtsi.
-
-For the boards that do not have the accelerometer (like Tobi), mark the
-status as disabled.
+Gallop43 is an expansion board for Gumstix Overo products.
 
 Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 ---
- .../boot/dts/omap3-overo-common-peripherals.dtsi   | 44 ++++++++++++++++++++++
- arch/arm/boot/dts/omap3-overo-tobi-common.dtsi     |  4 ++
- 2 files changed, 48 insertions(+)
+ arch/arm/boot/dts/Makefile                         |  2 +
+ arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi | 57 ++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-overo-gallop43.dts         | 38 +++++++++++++++
+ arch/arm/boot/dts/omap3-overo-storm-gallop43.dts   | 38 +++++++++++++++
+ 4 files changed, 135 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-gallop43.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-storm-gallop43.dts
 
-diff --git a/arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi b/arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi
-index bca81ae..5831bcc 100644
---- a/arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi
-@@ -10,6 +10,22 @@
-  * Peripherals common to all Gumstix Overo boards (Tobi, Summit, Palo43,...)
-  */
- 
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 98d508d..bd7821b 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -209,6 +209,8 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	omap3-n900.dtb \
+ 	omap3-n9.dtb \
+ 	omap3-n950.dtb \
++	omap3-overo-gallop43.dtb \
++	omap3-overo-storm-gallop43.dtb \
+ 	omap3-overo-palo43.dtb \
+ 	omap3-overo-storm-palo43.dtb \
+ 	omap3-overo-tobi.dtb \
+diff --git a/arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi b/arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi
+new file mode 100644
+index 0000000..5e848c2
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi
+@@ -0,0 +1,57 @@
++/*
++ * Copyright (C) 2014 Florian Vaussard, EPFL Mobots group
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * Gallop43 expansion board is manufactured by Gumstix Inc.
++ */
++
++#include "omap3-overo-common-peripherals.dtsi"
++
++#include <dt-bindings/input/input.h>
++
 +/ {
-+	lis33_3v3: lis33-3v3-reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "lis33-3v3-reg";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
++	leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&led_pins>;
++		heartbeat {
++			label = "overo:red:gpio21";
++			gpios = <&gpio1 21 GPIO_ACTIVE_LOW>;		/* gpio_21 */
++			linux,default-trigger = "heartbeat";
++		};
++		gpio22 {
++			label = "overo:blue:gpio22";
++			gpios = <&gpio1 22 GPIO_ACTIVE_LOW>;		/* gpio_22 */
++		};
 +	};
 +
-+	lis33_1v8: lis33-1v8-reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "lis33-1v8-reg";
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
++	gpio_keys {
++		compatible = "gpio-keys";
++		pinctrl-names = "default";
++		pinctrl-0 = <&button_pins>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		button0@23 {
++			label = "button0";
++			linux,code = <BTN_0>;
++			gpios = <&gpio1 23 GPIO_ACTIVE_LOW>;		/* gpio_23 */
++			gpio-key,wakeup;
++		};
++		button1@14 {
++			label = "button1";
++			linux,code = <BTN_1>;
++			gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;		/* gpio_14 */
++			gpio-key,wakeup;
++		};
 +	};
 +};
 +
- &omap3_pmx_core {
- 	i2c3_pins: pinmux_i2c3_pins {
- 		pinctrl-single,pins = <
-@@ -37,6 +53,34 @@
- 		reg = <0x51>;
- 		pagesize = <8>;
- 	};
-+
-+	lis33de: lis33de@1d {
-+		compatible = "st,lis33de", "st,lis3lv02d";
-+		reg = <0x1d>;
-+		Vdd-supply = <&lis33_1v8>;
-+		Vdd_IO-supply = <&lis33_3v3>;
-+
-+		st,click-single-x;
-+		st,click-single-y;
-+		st,click-single-z;
-+		st,click-thresh-x = <10>;
-+		st,click-thresh-y = <10>;
-+		st,click-thresh-z = <10>;
-+		st,irq1-click;
-+		st,irq2-click;
-+		st,wakeup-x-lo;
-+		st,wakeup-x-hi;
-+		st,wakeup-y-lo;
-+		st,wakeup-y-hi;
-+		st,wakeup-z-lo;
-+		st,wakeup-z-hi;
-+		st,min-limit-x = <120>;
-+		st,min-limit-y = <120>;
-+		st,min-limit-z = <140>;
-+		st,max-limit-x = <550>;
-+		st,max-limit-y = <550>;
-+		st,max-limit-z = <750>;
-+	};
- };
- 
- &mmc3 {
-diff --git a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-index 060eb77..13df50b 100644
---- a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-@@ -35,3 +35,7 @@
- 	};
- };
- 
-+&lis33de {
++&usbhshost {
 +	status = "disabled";
++};
++
+diff --git a/arch/arm/boot/dts/omap3-overo-gallop43.dts b/arch/arm/boot/dts/omap3-overo-gallop43.dts
+new file mode 100644
+index 0000000..241f5c1
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-overo-gallop43.dts
+@@ -0,0 +1,38 @@
++/*
++ * Copyright (C) 2014 Florian Vaussard, EPFL Mobots group
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * Gallop43 expansion board is manufactured by Gumstix Inc.
++ */
++
++/dts-v1/;
++
++#include "omap3-overo.dtsi"
++#include "omap3-overo-gallop43-common.dtsi"
++
++/ {
++	model = "OMAP35xx Gumstix Overo on Gallop43";
++	compatible = "gumstix,omap3-overo-gallop43", "gumstix,omap3-overo", "ti,omap3430", "ti,omap3";
++};
++
++&omap3_pmx_core2 {
++	led_pins: pinmux_led_pins {
++		pinctrl-single,pins = <
++			OMAP3430_CORE2_IOPAD(0x25ea, PIN_OUTPUT | MUX_MODE4)	/* etk_d7.gpio_21 */
++			OMAP3430_CORE2_IOPAD(0x25ec, PIN_OUTPUT | MUX_MODE4)	/* etk_d8.gpio_22 */
++		>;
++	};
++
++	button_pins: pinmux_button_pins {
++		pinctrl-single,pins = <
++			OMAP3430_CORE2_IOPAD(0x25ee, PIN_INPUT | MUX_MODE4)	/* etk_d9.gpio_23 */
++			OMAP3430_CORE2_IOPAD(0x25dc, PIN_INPUT | MUX_MODE4)	/* etk_d0.gpio_14 */
++		>;
++	};
++};
++
+diff --git a/arch/arm/boot/dts/omap3-overo-storm-gallop43.dts b/arch/arm/boot/dts/omap3-overo-storm-gallop43.dts
+new file mode 100644
+index 0000000..a1b57e0
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-overo-storm-gallop43.dts
+@@ -0,0 +1,38 @@
++/*
++ * Copyright (C) 2014 Florian Vaussard, EPFL Mobots group
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * Gallop43 expansion board is manufactured by Gumstix Inc.
++ */
++
++/dts-v1/;
++
++#include "omap3-overo-storm.dtsi"
++#include "omap3-overo-gallop43-common.dtsi"
++
++/ {
++	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on Gallop43";
++	compatible = "gumstix,omap3-overo-gallop43", "gumstix,omap3-overo", "ti,omap36xx", "ti,omap3";
++};
++
++&omap3_pmx_core2 {
++	led_pins: pinmux_led_pins {
++		pinctrl-single,pins = <
++			OMAP3630_CORE2_IOPAD(0x25ea, PIN_OUTPUT | MUX_MODE4)	/* etk_d7.gpio_21 */
++			OMAP3630_CORE2_IOPAD(0x25ec, PIN_OUTPUT | MUX_MODE4)	/* etk_d8.gpio_22 */
++		>;
++	};
++
++	button_pins: pinmux_button_pins {
++		pinctrl-single,pins = <
++			OMAP3630_CORE2_IOPAD(0x25ee, PIN_INPUT | MUX_MODE4)	/* etk_d9.gpio_23 */
++			OMAP3630_CORE2_IOPAD(0x25dc, PIN_INPUT | MUX_MODE4)	/* etk_d0.gpio_14 */
++		>;
++	};
 +};
 +
 -- 
