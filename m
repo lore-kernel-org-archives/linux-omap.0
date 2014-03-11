@@ -1,45 +1,55 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 10/14] v4l: ti-vpe: Use correct bus_info name for the device in querycap
-Date: Tue, 11 Mar 2014 14:03:49 +0530
-Message-ID: <1394526833-24805-11-git-send-email-archit@ti.com>
+Subject: [PATCH v3 11/14] v4l: ti-vpe: Fix initial configuration queue data
+Date: Tue, 11 Mar 2014 14:03:50 +0530
+Message-ID: <1394526833-24805-12-git-send-email-archit@ti.com>
 References: <1393922965-15967-1-git-send-email-archit@ti.com>
  <1394526833-24805-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45762 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45766 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753866AbaCKIfQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Mar 2014 04:35:16 -0400
+	id S1754118AbaCKIfT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Mar 2014 04:35:19 -0400
 In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: k.debski@samsung.com, hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The bus_info parameter in v4l2_capabilities expects a 'platform_' prefix. This
-wasn't done in the driver and hence was breaking compliance. Update the bus_info
-parameter accordingly.
+The vpe output and capture queues are initially configured to default values in
+vpe_open(). A G_FMT before any S_FMTs will result in these values being
+populated.
+
+The colorspace and bytesperline parameter of this initial configuration are
+incorrect. This breaks compliance when as we get 'TRY_FMT(G_FMT) != G_FMT'.
+
+Fix the initial queue configuration such that it wouldn't need to be fixed by
+try_fmt.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/platform/ti-vpe/vpe.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 46b9d44..5591d04 100644
+index 5591d04..85d1122 100644
 --- a/drivers/media/platform/ti-vpe/vpe.c
 +++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1346,7 +1346,8 @@ static int vpe_querycap(struct file *file, void *priv,
- {
- 	strncpy(cap->driver, VPE_MODULE_NAME, sizeof(cap->driver) - 1);
- 	strncpy(cap->card, VPE_MODULE_NAME, sizeof(cap->card) - 1);
--	strlcpy(cap->bus_info, VPE_MODULE_NAME, sizeof(cap->bus_info));
-+	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-+		VPE_MODULE_NAME);
- 	cap->device_caps  = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
+@@ -2012,9 +2012,11 @@ static int vpe_open(struct file *file)
+ 	s_q_data->fmt = &vpe_formats[2];
+ 	s_q_data->width = 1920;
+ 	s_q_data->height = 1080;
+-	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
++	s_q_data->bytesperline[VPE_LUMA] = (s_q_data->width *
+ 			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
+-	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->bytesperline[VPE_LUMA] *
++			s_q_data->height);
++	s_q_data->colorspace = V4L2_COLORSPACE_REC709;
+ 	s_q_data->field = V4L2_FIELD_NONE;
+ 	s_q_data->c_rect.left = 0;
+ 	s_q_data->c_rect.top = 0;
 -- 
 1.8.3.2
 
