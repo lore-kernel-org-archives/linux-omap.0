@@ -1,61 +1,61 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 00/10] arch/arm OMAP IOMMU patches for 3.15
-Date: Wed, 12 Mar 2014 12:22:26 -0500
-Message-ID: <532097D2.4000002@ti.com>
-References: <1394065459-16409-1-git-send-email-s-anna@ti.com>
-	<531F84D6.8070101@ti.com> <20140312170424.GA30897@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/7] ARM: dts: overo: Add new expansion boards
+Date: Wed, 12 Mar 2014 10:22:48 -0700
+Message-ID: <20140312172247.GC30897@atomide.com>
+References: <1394540435-25401-1-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20140312170424.GA30897-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50405 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756103AbaCLRW4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2014 13:22:56 -0400
+Content-Disposition: inline
+In-Reply-To: <1394540435-25401-1-git-send-email-florian.vaussard@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Roger Quadros <rogerq@ti.com>, Nishanth Menon <nm@ti.com>, Ash Charles <ash@gumstix.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 03/12/2014 12:04 PM, Tony Lindgren wrote:
-> * Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [140311 14:52]:
->> Hi Paul,
->>
->> On 03/05/2014 06:24 PM, Suman Anna wrote:
->>> Hi Paul, Benoit,
->>>
->>> This is a repost as per Tony's request [3] of all the OMAP IOMMU DT support
->>> patches that are under arch/arm. The series just assimilates patches 8
->>> through 13 from the v3 OMAP IOMMU DT adaptation for 3.15 series [1], and
->>> all the v2 patches from the OMAP IOMMU DTS nodes [2].
->>>
->>> The only change made with respect to the patches above is in the OMAP4
->>> and OMAP5 DTS nodes - I have adjusted the reg sizes from 0xff to 0x100.
->>>
->>> Can you please provide your acks on the hwmod patches and DTS
->>> patches?
->>
->> Ping. Can you review and provide your acks for Patches 2 and 5 (the
->> hwmod patches) for Tony to pick up all the patches in the series?
->
-> Applied all with Paul's acks into omap-for-v3.15/dt. As it's getting
-> so late to the merge window, no guarantees it will actually get
-> pulled.
+* Florian Vaussard <florian.vaussard@epfl.ch> [140311 05:24]:
+> Hi,
+> 
+> This series adds the support for 5 new expansion boards from Gumstix:
+> - Palo43
+> - Gallop43
+> - Chestnut43
+> - Alto35
+> - Summit
+> 
+> The 1st patch is a preparatory work, in order to factorize some
+> peripherals that are common to most Gumstix expansion boards. Patch 2
+> adds the support for an accelerometer that is present on most boards.
+> 
+> Palo43, Gallop43 and Chestnut43 are all pretty similar. I tested
+> on a Gallop43 (with both OMAP35xx and OMAP36xx Overo).
+> 
+> Alto35 is slightly different. Again, I tested with both OMAP35xx and
+> OMAP36xx Overo.
+> 
+> Summit is pretty similar to Tobi. I do not have a Summit at hand,
+> but given the similarity with Tobi, it should work fine.
+> 
+> To avoid unnecessary duplications, I put all the common stuff for each
+> board inside an omap3-overo-xxx-common.dsti include file. By doing so,
+> I can have minimal SoC-specific omap3-overo-xxx.dts (omap34xx based)
+> and omap3-overo-storm-xxx.dts (omap36xx based) device trees.
+> 
+> This series depends on my previous Overo series [1]. A complete testing
+> tree (including the graphics support, soon to be posted) is available
+> at [2].
 
-Thanks Tony.
+Thanks, applying the whole series into omap-for-v3.15/dt-overo.
+As it's this close to the merge window, no guarantees anything
+will get pulled in though.
 
->
-> For the pdata-quirks.c changes, I assume you are working on
-> implementing the reset driver mentioned in the related patch?
->
+Regards,
 
-Dan Murphy is currently working on this, and there is still some work to 
-be done before it can be posted to the lists.
-
-regards
-Suman
+Tony
+ 
+> [1] http://thread.gmane.org/gmane.linux.ports.arm.omap/111558
+> [2] https://github.com/vaussard/linux.git (overo/for-3.15/review1)
