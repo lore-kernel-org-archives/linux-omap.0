@@ -1,161 +1,75 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v1 3/3] ARM: dts: am437x-gp-evm: add support for parallel NAND flash
-Date: Wed, 12 Mar 2014 16:19:20 +0530
-Message-ID: <1394621360-2457-4-git-send-email-pekon@ti.com>
-References: <1394621360-2457-1-git-send-email-pekon@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [alsa-devel] [PATCH RFC v2 0/2] Fix simple-card *-master DT
+ parameter handling
+Date: Wed, 12 Mar 2014 12:30:23 +0000
+Message-ID: <20140312123023.GP28112@sirena.org.uk>
+References: <cover.1394451329.git.jsarha@ti.com>
+ <877g80rzgg.wl%kuninori.morimoto.gx@gmail.com>
+ <CAHPCO9FmL__LmUyMRhsy2mnPNAV0h--aMY=GBJjL9TBrAqWSFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="X5d84+NUkZX3FbP/"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53245 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753980AbaCLKuW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Mar 2014 06:50:22 -0400
-In-Reply-To: <1394621360-2457-1-git-send-email-pekon@ti.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:45342 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751804AbaCLMaf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2014 08:30:35 -0400
+Content-Disposition: inline
+In-Reply-To: <CAHPCO9FmL__LmUyMRhsy2mnPNAV0h--aMY=GBJjL9TBrAqWSFw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Pekon Gupta <pekon@ti.com>
+To: Richard Lee <superlibj8301@gmail.com>
+Cc: Kuninori Morimoto <kuninori.morimoto.gx@gmail.com>, Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com, peter.ujfalusi@ti.com, bcousson@baylibre.com
 
-Adds pinmux and DT node for Micron (MT29F4G08AB) x8 NAND device present on
-am437x-gp-evm board.
-(1) As NAND Flash data lines are muxed with eMMC, Thus at a given time either
-    eMMC or NAND can be enabled. Selection between eMMC and NAND is controlled:
-    (a) By dynamically driving following GPIO pin from software
-        SPI2_CS0(GPIO) == 0 NAND is selected (default)
-        SPI2_CS0(GPIO) == 1 eMMC is selected
-    (b) By statically using Jumper (J89) on the board
 
-(2) As NAND device connnected to this board has page-size=4K and oob-size=224,
-    So ROM code expects boot-loaders to be flashed in BCH16 ECC scheme for
-    NAND boot.
+--X5d84+NUkZX3FbP/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Pekon Gupta <pekon@ti.com>
----
- arch/arm/boot/dts/am437x-gp-evm.dts | 107 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 107 insertions(+)
+On Wed, Mar 12, 2014 at 01:00:02PM +0800, Richard Lee wrote:
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index df8798e..0027ea7 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -81,6 +81,27 @@
- 			0x164 MUX_MODE0       /* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
- 		>;
- 	};
-+
-+	nand_flash_x8: nand_flash_x8 {
-+		pinctrl-single,pins = <
-+			0x26C(PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* spi2_cs0.gpio/eMMCorNANDsel */
-+			0x0  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
-+			0x4  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
-+			0x8  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
-+			0xc  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
-+			0x10 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
-+			0x14 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
-+			0x18 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
-+			0x1c (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
-+			0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
-+			0x74 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_wpn.gpmc_wpn */
-+			0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0  */
-+			0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
-+			0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
-+			0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
-+			0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
-+		>;
-+	};
- };
- 
- &i2c0 {
-@@ -125,3 +146,89 @@
- 	pinctrl-0 = <&mmc1_pins>;
- 	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
- };
-+
-+&elm {
-+	status = "okay";
-+};
-+
-+&gpmc {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&nand_flash_x8>;
-+	ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
-+	nand@0,0 {
-+		reg = <0 0 0>; /* CS0, offset 0 */
-+		ti,nand-ecc-opt = "bch8";
-+		ti,elm-id = <&elm>;
-+		nand-bus-width = <8>;
-+		gpmc,device-width = <1>;
-+		gpmc,sync-clk-ps = <0>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <40>;
-+		gpmc,cs-wr-off-ns = <40>;
-+		gpmc,adv-on-ns = <0>;
-+		gpmc,adv-rd-off-ns = <25>;
-+		gpmc,adv-wr-off-ns = <25>;
-+		gpmc,we-on-ns = <0>;
-+		gpmc,we-off-ns = <20>;
-+		gpmc,oe-on-ns = <3>;
-+		gpmc,oe-off-ns = <30>;
-+		gpmc,access-ns = <30>;
-+		gpmc,rd-cycle-ns = <40>;
-+		gpmc,wr-cycle-ns = <40>;
-+		gpmc,wait-on-read = "true";
-+		gpmc,wait-on-write = "true";
-+		gpmc,bus-turnaround-ns = <0>;
-+		gpmc,cycle2cycle-delay-ns = <0>;
-+		gpmc,clk-activation-ns = <0>;
-+		gpmc,wait-monitoring-ns = <0>;
-+		gpmc,wr-access-ns = <40>;
-+		gpmc,wr-data-mux-bus-ns = <0>;
-+		/* MTD partition table */
-+		/* All SPL-* partitions are sized to minimal length
-+		 * which can be independently programmable. For
-+		 * NAND flash this is equal to size of erase-block */
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		partition@0 {
-+			label = "NAND.SPL";
-+			reg = <0x00000000 0x00040000>;
-+		};
-+		partition@1 {
-+			label = "NAND.SPL.backup1";
-+			reg = <0x00040000 0x00040000>;
-+		};
-+		partition@2 {
-+			label = "NAND.SPL.backup2";
-+			reg = <0x00080000 0x00040000>;
-+		};
-+		partition@3 {
-+			label = "NAND.SPL.backup3";
-+			reg = <0x000C0000 0x00040000>;
-+		};
-+		partition@4 {
-+			label = "NAND.u-boot-spl-os";
-+			reg = <0x00100000 0x00080000>;
-+		};
-+		partition@5 {
-+			label = "NAND.u-boot";
-+			reg = <0x00180000 0x00100000>;
-+		};
-+		partition@6 {
-+			label = "NAND.u-boot-env";
-+			reg = <0x00280000 0x00040000>;
-+		};
-+		partition@7 {
-+			label = "NAND.u-boot-env.backup1";
-+			reg = <0x002C0000 0x00040000>;
-+		};
-+		partition@8 {
-+			label = "NAND.kernel";
-+			reg = <0x00300000 0x00700000>;
-+		};
-+		partition@9 {
-+			label = "NAND.file-system";
-+			reg = <0x00A00000 0x1F600000>;
-+		};
-+	};
-+};
--- 
-1.8.5.1.163.gd7aced9
+> But, IMO, if you want the CPU DAI be CBS_CFS and CODEC be CBM_CFM,
+> you could just do it like this:
+>          simple-audio-card,cpu {
+>                  ...
+>          };
+>=20
+>          simple-audio-card,codec {
+>                  ...
+>                  bitclock-master;
+>                  frame-master;
+>          };
 
+> and vice versa.
+
+> Thanks,
+
+> (I could find this mails in my Freescale acount, so I will reply it here.)
+
+Yes, that'd been what I'd thought the binding did (and it's what Jyri's
+patch makes it do).
+
+--X5d84+NUkZX3FbP/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTIFNbAAoJELSic+t+oim9xXQP/30AiyGMsrU6iIKlmF+x56xd
+BDcmTNdecYO2SrcY8MkFAZnHqR26gtE0H9QwVCrPXryFy/uICga3P645kvYcvaF6
+c9PPvXX8+U+XOYht8fv3EKt1VBXydCMSQfCTvqJPYFWpS4A7AKzI0PCWX8jT20pf
+4dDFl+YZ3XOqhuXGf1GvnFdm/se6CaJfJBAKvRXNmAI94Grl2XwChqsAkFydxvzc
+Al803SwJMz4oNm1fmCiqniZdLWpPHVgkaKGZu0qshMbxwJgWPBndkQOtFPX9wbpC
+NTURHfaXLlTXx04Abi7lgRREPk/qkPINkVdYN62vXBXSoacacGBjK0H7wF46jvHE
+SoS+7RByiOSxTpb/Ua+Cej77eFe1CCdSJreH4jzFZQ45C8Ld+yAmmcnjJdURFg2A
+HoVsTMIo6vdv9K+8Kc3pvZTDv45pJkwJcROw0pHsHzVU44bjv+iWnCxp9shW8Re+
+EI9GEGxsephhvC82AIRivZ34AlVCQyUd4D7+n14GTb4N+ElgKD1ynDM7mUZ4xGrk
+Up5xCsd6y6RfInCBbRP9+XOqx0hJHYkEYEsvzUf5CKW2oHJQ2gcGccm4S51vbobd
+Br3Pa/XKcea4MNMBWAElgR2BAulClU9nXBFUkEL8dlbA+klCLHeuErUV8ncH0GlL
+3WD4PAhcm0dxDsDgXKGu
+=Dqwd
+-----END PGP SIGNATURE-----
+
+--X5d84+NUkZX3FbP/--
