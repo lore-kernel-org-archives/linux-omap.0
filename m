@@ -1,41 +1,43 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v2 2/2] ARM: dts: am43xx: fix starting offset of NAND.filesystem MTD partition
-Date: Wed, 12 Mar 2014 15:15:47 +0530
-Message-ID: <1394617547-25240-3-git-send-email-pekon@ti.com>
-References: <1394617547-25240-1-git-send-email-pekon@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH] ARM: OMAP5: DSS hwmod data
+Date: Wed, 12 Mar 2014 12:26:35 +0200
+Message-ID: <1394619996-3525-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52405 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753129AbaCLJqE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Mar 2014 05:46:04 -0400
-In-Reply-To: <1394617547-25240-1-git-send-email-pekon@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59106 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753579AbaCLK11 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2014 06:27:27 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com
-Cc: linux-omap <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-MTD NAND partition for file-system should start at offset=0xA00000
+Hi,
 
-Signed-off-by: Pekon Gupta <pekon@ti.com>
----
- arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This patch adds hwmod data for omap5 display subsystem. I have tested this on
+omap5-uevm with a DSI panel. I cannot test omap5-uevm's hdmi output yet, as the
+mainline is missing omap5 HDMI driver.
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 167dbc8..d09e6fb 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -341,7 +341,7 @@
- 		};
- 		partition@9 {
- 			label = "NAND.file-system";
--			reg = <0x00800000 0x1F600000>;
-+			reg = <0x00A00000 0x1F600000>;
- 		};
- 	};
- };
+I do see this when booting:
+
+  omap_hwmod: dss_dispc: cannot be enabled for reset (3)
+  omap_hwmod: dss_dsi1: cannot be enabled for reset (3)
+  omap_hwmod: dss_dsi2: cannot be enabled for reset (3)
+  omap_hwmod: dss_hdmi: cannot be enabled for reset (3)
+  omap_hwmod: dss_rfbi: cannot be enabled for reset (3)
+
+But at least DSI works just fine.
+
+ Tomi
+
+Archit Taneja (1):
+  ARM: OMAP5: Add omap5 DSS related hwmod data
+
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 283 +++++++++++++++++++++++++++++
+ 1 file changed, 283 insertions(+)
+
 -- 
-1.8.5.1.163.gd7aced9
+1.8.3.2
 
