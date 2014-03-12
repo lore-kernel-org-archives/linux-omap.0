@@ -1,61 +1,102 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/7] ARM: dts: overo: Add new expansion boards
-Date: Wed, 12 Mar 2014 10:22:48 -0700
-Message-ID: <20140312172247.GC30897@atomide.com>
-References: <1394540435-25401-1-git-send-email-florian.vaussard@epfl.ch>
+Subject: Re: [PATCH v3 5/5] drivers: bus: omap_l3: Change pr_crit() to
+ dev_err() when IRQ request fails
+Date: Wed, 12 Mar 2014 10:28:55 -0700
+Message-ID: <20140312172854.GD30897@atomide.com>
+References: <1393937293-6036-1-git-send-email-peter.ujfalusi@ti.com>
+ <1393937293-6036-6-git-send-email-peter.ujfalusi@ti.com>
+ <5315E522.9090606@ti.com>
+ <5316CE17.6010201@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50405 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756103AbaCLRW4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2014 13:22:56 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19342 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751304AbaCLR3C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2014 13:29:02 -0400
 Content-Disposition: inline
-In-Reply-To: <1394540435-25401-1-git-send-email-florian.vaussard@epfl.ch>
+In-Reply-To: <5316CE17.6010201@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Roger Quadros <rogerq@ti.com>, Nishanth Menon <nm@ti.com>, Ash Charles <ash@gumstix.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Florian Vaussard <florian.vaussard@epfl.ch> [140311 05:24]:
-> Hi,
-> 
-> This series adds the support for 5 new expansion boards from Gumstix:
-> - Palo43
-> - Gallop43
-> - Chestnut43
-> - Alto35
-> - Summit
-> 
-> The 1st patch is a preparatory work, in order to factorize some
-> peripherals that are common to most Gumstix expansion boards. Patch 2
-> adds the support for an accelerometer that is present on most boards.
-> 
-> Palo43, Gallop43 and Chestnut43 are all pretty similar. I tested
-> on a Gallop43 (with both OMAP35xx and OMAP36xx Overo).
-> 
-> Alto35 is slightly different. Again, I tested with both OMAP35xx and
-> OMAP36xx Overo.
-> 
-> Summit is pretty similar to Tobi. I do not have a Summit at hand,
-> but given the similarity with Tobi, it should work fine.
-> 
-> To avoid unnecessary duplications, I put all the common stuff for each
-> board inside an omap3-overo-xxx-common.dsti include file. By doing so,
-> I can have minimal SoC-specific omap3-overo-xxx.dts (omap34xx based)
-> and omap3-overo-storm-xxx.dts (omap36xx based) device trees.
-> 
-> This series depends on my previous Overo series [1]. A complete testing
-> tree (including the graphics support, soon to be posted) is available
-> at [2].
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [140304 23:14]:
+> On 03/04/2014 04:37 PM, Santosh Shilimkar wrote:
+> > On Tuesday 04 March 2014 08:48 PM, Peter Ujfalusi wrote:
+> >> Use dev_err() which will going to print the driver's name as well =
+and the
+> >> KERN_ERR level is sufficient in this case (we also print via dev_e=
+rr when
+> >> there is an error with the mem resources)
+> >>
+> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> >> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >> ---
+> >>  drivers/bus/omap_l3_noc.c | 7 +++----
+> >>  1 file changed, 3 insertions(+), 4 deletions(-)
+> >>
+> >> diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
+> >> index 0eff48585ae3..972691a668a3 100644
+> >> --- a/drivers/bus/omap_l3_noc.c
+> >> +++ b/drivers/bus/omap_l3_noc.c
+> >> @@ -158,8 +158,8 @@ static int omap4_l3_probe(struct platform_devi=
+ce *pdev)
+> >>  	ret =3D devm_request_irq(&pdev->dev, l3->debug_irq, l3_interrupt=
+_handler,
+> >>  			       IRQF_DISABLED, "l3-dbg-irq", l3);
+> >>  	if (ret) {
+> >> -		pr_crit("L3: request_irq failed to register for 0x%x\n",
+> >> -						l3->debug_irq);
+> >> +		dev_err(&pdev->dev, "request_irq failed for %d\n",
+> >> +			l3->debug_irq);
+> >>  		return ret;
+> >>  	}
+> >> =20
+> >> @@ -167,8 +167,7 @@ static int omap4_l3_probe(struct platform_devi=
+ce *pdev)
+> >>  	ret =3D devm_request_irq(&pdev->dev, l3->app_irq, l3_interrupt_h=
+andler,
+> >>  			       IRQF_DISABLED, "l3-app-irq", l3);
+> >>  	if (ret)
+> >> -		pr_crit("L3: request_irq failed to register for 0x%x\n",
+> >> -						l3->app_irq);
+> >> +		dev_err(&pdev->dev, "request_irq failed for %d\n", l3->app_irq)=
+;
+> >> =20
+> >>  	return ret;
+> >>  }
+> >>
+> > So this one change in the log level. If I look at now, may be dev_e=
+rr
+> > is fine but the change is not same.
+>=20
+> Not sure what you mean by 'the change is not same'?
+> I just picked the old series and rebased it on linux-next, the patch =
+is the
+> same as it was back in May 2013:
+> https://lkml.org/lkml/2013/5/2/205
+>=20
+> And yes, I have shortened the texts in the print, but the meaning of =
+the
+> prints have not changed.
 
-Thanks, applying the whole series into omap-for-v3.15/dt-overo.
-As it's this close to the merge window, no guarantees anything
-will get pulled in though.
+Santosh, got any more comments on this series?
 
 Regards,
 
 Tony
- 
-> [1] http://thread.gmane.org/gmane.linux.ports.arm.omap/111558
-> [2] https://github.com/vaussard/linux.git (overo/for-3.15/review1)
+=20
+> > Apart from above comment, rest of the series looks fine to me.
+> > Feel free to add my ack...
+>=20
+> Thanks.
+>=20
+> --=20
+> P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
