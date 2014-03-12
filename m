@@ -1,56 +1,120 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH v3 0/5] Add USB nodes for am43xx epos and gp evm
-Date: Wed, 12 Mar 2014 10:29:25 +0530
-Message-ID: <531FE9AD.7050703@ti.com>
-References: <1394193422-18242-1-git-send-email-george.cherian@ti.com>
+From: Richard Lee <superlibj8301@gmail.com>
+Subject: Re: [alsa-devel] [PATCH RFC v2 0/2] Fix simple-card *-master DT
+ parameter handling
+Date: Wed, 12 Mar 2014 13:00:02 +0800
+Message-ID: <CAHPCO9FmL__LmUyMRhsy2mnPNAV0h--aMY=GBJjL9TBrAqWSFw@mail.gmail.com>
+References: <cover.1394451329.git.jsarha@ti.com>
+	<877g80rzgg.wl%kuninori.morimoto.gx@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1394193422-18242-1-git-send-email-george.cherian@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com, rogerq@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, anatol.pomozov@gmail.com, bcousson@baylibre.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ve0-f177.google.com ([209.85.128.177]:54129 "EHLO
+	mail-ve0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882AbaCLFAE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2014 01:00:04 -0400
+In-Reply-To: <877g80rzgg.wl%kuninori.morimoto.gx@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kuninori Morimoto <kuninori.morimoto.gx@gmail.com>
+Cc: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com, peter.ujfalusi@ti.com, broonie@kernel.org, bcousson@baylibre.com
 
-Hi Tony,
+ On Wed, Mar 12, 2014 at 9:13 AM, Kuninori Morimoto
+<kuninori.morimoto.gx@gmail.com> wrote:
+>
+> Hi Jyri
+>
+>> Since RFC:
+>> - fixed commit msg typo
+>> - added include/sound/soc.h changes too
+>>
+>> The sematics of bitclock-master and frame-master DT parameters
+>> should depend on whether they are found from a cpu-dai or codec
+>> sub-node.
+>>
+>> - bitclock-master in cpu-dai node means Codec-Bitclock-Slave
+>> - frame-master in cpu-dai node means Codec-Frame-Slave
+>> - bitclock-master in codec node means Codec-Bitclock-Master
+>> - frame-master in codec node means Codec-Frame-Master
+>>
+>> For example in a cpu-dai mode bitclock-master parameter should produce
+>> SND_SOC_DAIFMT_CBS_* daifmt flags and a codec node
+>> SND_SOC_DAIFMT_CBM_* flags.
+>
+> SND_SOC_DAIFMT_xxx comment indicates "codec clk/FRM" indeed.
+> but does this "codec" means "codec chip" ??
+> I'm not sure.
+>
+> but anyway, if my understanding is correct,
+>
+>         simple-audio-card,cpu {
+>                 ...
+>                 bitclock-master;
+>                 frame-master;
+>         };
+>
+>         simple-audio-card,codec {
+>                 ...
+>                 bitclock-master;
+>                 frame-master;
+>         };
+>
+> This will be
+> cpu   : SND_SOC_DAIFMT_CBS_CFS
+> codec : SND_SOC_DAIFMT_CBM_CFM
+>
 
-On 3/7/2014 5:26 PM, George Cherian wrote:
-> The patch series adds USB dt nodes for am43xx epos and gp evm
->
-> Boot tested with  Benoit's for_3.15 + following patches
->
-> https://patchwork.kernel.org/patch/3600821/
-> https://patchwork.kernel.org/patch/3600831/
-> https://patchwork.kernel.org/patch/3600851/
-> https://patchwork.kernel.org/patch/3600841/
->
->
-> Changes from v1 -> v2
-> 	* Reorder "doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue"
-> 	* Address v1 coments on "ARM: dts: AM4372: Add USB nodes"
->
-> Changes from v2 -> v3
-> 	* Removed unwanted dwc3_1 and dwc3_2 nodes from am437x-gp-evm.dts
-> 	  and am43x-epos-evm.dts
->
-> George Cherian (5):
->    doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue
->    ARM: dts: am43xx clock data
->    ARM: dts: AM4372: Add USB nodes
->    ARM: dts: am437x-gp-evm: Enable USB
->    ARM: dts: am43x-epos-evm: Enable USB
->
->   Documentation/devicetree/bindings/usb/omap-usb.txt |  4 +-
->   arch/arm/boot/dts/am4372.dtsi                      | 95 ++++++++++++++++++++++
->   arch/arm/boot/dts/am437x-gp-evm.dts                | 18 ++++
->   arch/arm/boot/dts/am43x-epos-evm.dts               | 18 ++++
->   arch/arm/boot/dts/am43xx-clocks.dtsi               | 17 ++++
->   5 files changed, 151 insertions(+), 1 deletion(-)
-Can you please take this series.
-The whole series Reviewed-by: Roger Quadros <rogerq@ti.com>
+Yes, That's also what my understanding of this patches.
+
+But, IMO, if you want the CPU DAI be CBS_CFS and CODEC be CBM_CFM,
+you could just do it like this:
+         simple-audio-card,cpu {
+                 ...
+         };
+
+         simple-audio-card,codec {
+                 ...
+                 bitclock-master;
+                 frame-master;
+         };
+
+and vice versa.
+
+Thanks,
+
+(I could find this mails in my Freescale acount, so I will reply it here.)
+
+--
+Best Regards,
+Xiubo
 
 
--- 
--George
-
+> but, it is un-understandable/confusable for me,
+> and it breaks our sound card.
+>
+>         ${LINUX}/arch/arm/boot/dts/sh73a0-kzm9g-reference.dts
+>         ${LINUX}/arch/arm/boot/dts/r8a7740-armadillo800eva-reference.dts
+>
+> I guess you want like this ?
+>
+>         codec-bitclock-master;
+>         codec-frame-master;
+>
+>         simple-audio-card,cpu {
+>                 ...
+>         };
+>
+>         simple-audio-card,codec {
+>                 ...
+>         };
+>
+> # And I guess [1/2] and [2/2] should be 1 patch.
+> # otherwise, it breaks git-bisect :P
+>
+>
+> Best regards
+> ---
+> Kuninori Morimoto
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
