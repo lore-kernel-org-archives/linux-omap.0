@@ -1,60 +1,61 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/3] ARM: dts: overo: Add support for DVI output
-Date: Wed, 12 Mar 2014 09:11:16 +0200
-Message-ID: <53200894.5020602@ti.com>
-References: <1394541257-25605-1-git-send-email-florian.vaussard@epfl.ch> <1394541257-25605-2-git-send-email-florian.vaussard@epfl.ch>
+Subject: Re: [PATCH 0/3] ARM: dts: overo: Add graphics output
+Date: Wed, 12 Mar 2014 09:14:05 +0200
+Message-ID: <5320093D.2010600@ti.com>
+References: <1394541257-25605-1-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="3CIeT7QnUUEEgdgR6VcIpIFbd91mO3lVk"
+	boundary="hLEoaVrjlaFXr4CfCfOSlE6sggbxqxVMl"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44471 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46405 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756427AbaCLHMG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Mar 2014 03:12:06 -0400
-In-Reply-To: <1394541257-25605-2-git-send-email-florian.vaussard@epfl.ch>
+	id S1756469AbaCLHOf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Mar 2014 03:14:35 -0400
+In-Reply-To: <1394541257-25605-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
 Cc: Ash Charles <ash@gumstix.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---3CIeT7QnUUEEgdgR6VcIpIFbd91mO3lVk
+--hLEoaVrjlaFXr4CfCfOSlE6sggbxqxVMl
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
 On 11/03/14 14:34, Florian Vaussard wrote:
-> Summit and Tobi expansion boards have a HDMI connector with a TFP410
-> encoder. Add a common include file for this configuration, and then
-> use it for Summit and Tobi.
+> Hi,
 >=20
-> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> ---
->  arch/arm/boot/dts/omap3-overo-common-dvi.dtsi    | 109 +++++++++++++++=
-++++++++
->  arch/arm/boot/dts/omap3-overo-summit-common.dtsi |   1 +
->  arch/arm/boot/dts/omap3-overo-tobi-common.dtsi   |   1 +
->  3 files changed, 111 insertions(+)
->  create mode 100644 arch/arm/boot/dts/omap3-overo-common-dvi.dtsi
+> This series enables the DVI / LCD graphics present on some of
+> the Overo expansion boards.
+>=20
+> DVI output:
+> - Tobi
+> - Summit
+>=20
+> LCD (3.5''):
+> - Alto35
+>=20
+> LCD (4.3''):
+> - Chestnut43
+> - Palo43
+> - Gallop43
+>=20
+> I tested on Tobi, Alto35 and Gallop43 using both OMAP35xx and OMAP36xx
+> Overo boards.
+>=20
+> This series depends on Tomi's DSS patches [1] that are not yet merged.
+> It also depends on previous Overo series [2] and [3] that are under
+> review. A complete testing tree is available [4].
 
-<snip>
-
-> +&dss {
-> +	status =3D "ok";
-> +
-> +	pinctrl-names =3D "default";
-> +	pinctrl-0 =3D <&dss_dpi_pins
-> +		     &i2c3_pins>;
-
-The i2c3 pins don't belong here, they are not related to dss. The
-dvi-connector uses i2c3, but I don't think they belong there either, as
-the i2c3 bus can be used by multiple devices. So I guess they should be
-set in &i2c3 node.
+Looks good to me. Unfortunately the video bindings are still being
+discussed (mainly the ports/endpoints), so there might be changes needed
+when some kind of conclusion is reached.
 
  Tomi
 
 
 
---3CIeT7QnUUEEgdgR6VcIpIFbd91mO3lVk
+--hLEoaVrjlaFXr4CfCfOSlE6sggbxqxVMl
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -63,19 +64,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.14 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJTIAiXAAoJEPo9qoy8lh71JFgP/3y2bhnnN+6T6lsPhHEswv5l
-oKNTh/PUPnNUrWAMOMe36qmHxOAoowgtUDBlkVahdekAdujPinDY05iL7UQk8kEm
-nN65bX9Wk3raLk0ih2dyLYcryS6PuMi07L+jpncOP2wD+6KMHq54PACbb/CNKLKK
-+WQtHnRPl5pLe2Mj+XgTWB+gHtFXS/+S9IMKYNvVV94FI168idhze2e6sVcF+Kgb
-iLUb8lgs8RHxZWwYALKG99JFHoswMpGAYbzEWzFXlSgT36R4fdTrIelPecbEtGOa
-ypQgo3mn8k4tFBK1nn1e21lwKDtI2YZTjTFG+SB4T3MduTCtcadNu9py9V6KiYRp
-A9J52TJVYZw9hGPP644fJFStgrpDOuhL5QA6peGHOTe1eaaKSlwlKl+wYTSor0lW
-XdGzNsXgwdaj7GY5Lo1BrOnY48TNWNLiayAVZRiRsOOiEdvKqARu/la2Qsf0Jj4K
-d+2+d3L2CLnYyaTnJC1MtWPdGcO/5NqZCvQxbH181EQXOb4bxshbDiPWSOacpRqS
-cV0XM0ZXrlQpYDrpou97VIDYic+DKgCu9la1V38//a588demxqeVQ64LKfgA8hVK
-1FyrNmMwFC2o+AuYqITPHYh4v17Y5UuVkkrbVgHqVaW5XrPPHlJ6EINAGL9/yeQW
-35m3zGn6oPqmuP81tDt8
-=JITv
+iQIcBAEBAgAGBQJTIAk9AAoJEPo9qoy8lh71hFIP/jxEwm58HBn9gDwLzMh1456L
+y5oex8NAlm2NbEBUv7OclhAFAWXbQEg+dLovgvgrp60zvY3VXZROG5C9TeTmi9se
+9Fpidq6QYK+deifUxIwSDocuWkywEPlbFoCIXxIAG5jpEbEH9gZ3kGaKoa/tpgK1
+xVOvB2CnWgjdj5KIjUtgrFZyzKofczLAsGjI4bt+20xqeNCmDUxbhUboRxPLge33
+gtI5VGciMfCo+mpIo6l6cFg/6XM97YqR/MUfT2xwN8/YgeRtfWZXmd/PbdVnMWs1
+IaL702pa4nR0MHMe1kc4f73ZgG55skJpUd3XotS103seYLQwPyAq7E3ZRRx6cmZn
+byBZpF6U1QLWJjxCMrFNJnfGJSw+r6TWfoZrlEOitSHAhe9Jwm7db/qzi/mEH+pV
+mrxnEbAmPPx9iQadQNx3JFQsjWAed0DuK3Sf0Wqz1UHqcFIHk72Tch7g5iL78EsC
+iEqUECb0k5HrbFPhvnaCfk1aOJu/eCW48jz36sBY18kBGltQBvkvBVkJF8ZIicDT
+81XtKh/BjGjGVEsjq9n9DufIqV+BeLSKMV3yk4yEksrS7g58CgwZM4Klkzz5dnh4
+x1Vg4GjD8YGdYD5qW2sEM4ria0iQJ5Ly3QA6Pz4qCHP17AAQoZ/4aM+drrNtl8jr
+t4ja0YGUuQPElwzrWUZK
+=mjng
 -----END PGP SIGNATURE-----
 
---3CIeT7QnUUEEgdgR6VcIpIFbd91mO3lVk--
+--hLEoaVrjlaFXr4CfCfOSlE6sggbxqxVMl--
