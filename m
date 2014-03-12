@@ -1,80 +1,82 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] ARM: OMAP5: DSS hwmod data
-Date: Wed, 12 Mar 2014 12:33:04 +0200
-Message-ID: <532037E0.1080309@ti.com>
-References: <1394619996-3525-1-git-send-email-tomi.valkeinen@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="N7G4pfgKmNrMRSpVss0rXbSU1RUc4aDUG"
+From: Stefan Roese <sr@denx.de>
+Subject: [PATCH] arm: omap: cm-t3530: Add MMC2/SDIO/WLAN support
+Date: Wed, 12 Mar 2014 11:49:12 +0100
+Message-ID: <1394621352-32438-1-git-send-email-sr@denx.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51057 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753664AbaCLKdc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Mar 2014 06:33:32 -0400
-In-Reply-To: <1394619996-3525-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from mo4-p05-ob.smtp.rzone.de ([81.169.146.181]:23562 "EHLO
+	mo4-p05-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753132AbaCLKtO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2014 06:49:14 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>
-Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Dmitry Lifshitz <lifshitz@compulab.co.il>, Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>
 
---N7G4pfgKmNrMRSpVss0rXbSU1RUc4aDUG
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Add support for the MMC2/SDIO WiFi Libertas (Marvell) module available
+on the CM-T3530 SOM.
 
-On 12/03/14 12:26, Tomi Valkeinen wrote:
-> Hi,
->=20
-> This patch adds hwmod data for omap5 display subsystem. I have tested t=
-his on
-> omap5-uevm with a DSI panel. I cannot test omap5-uevm's hdmi output yet=
-, as the
-> mainline is missing omap5 HDMI driver.
->=20
-> I do see this when booting:
->=20
->   omap_hwmod: dss_dispc: cannot be enabled for reset (3)
->   omap_hwmod: dss_dsi1: cannot be enabled for reset (3)
->   omap_hwmod: dss_dsi2: cannot be enabled for reset (3)
->   omap_hwmod: dss_hdmi: cannot be enabled for reset (3)
->   omap_hwmod: dss_rfbi: cannot be enabled for reset (3)
->=20
-> But at least DSI works just fine.
+Signed-off-by: Stefan Roese <sr@denx.de>
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>
+Cc: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+This patch is based on current mainline (v3.14-rc6) plus this compulab patch
+series from Dmitry:
 
-Oh, I forgot to say that I tested this on top of the DSS DT branch, and
-unpublished omap5 and omap5-uevm display patches. So if applied to the
-current mainline, the hwmods are not used at all (except the reset at
-boot time, I think).
+[PATCH 00/11] ARM: dts: sbc-t3x: add support for more boards
+http://www.spinics.net/lists/arm-kernel/msg300078.html
 
-But if this gets merged for 3.15, it'll make adding omap5 DSS support
-easier for 3.16 as the HWMOD data is already there.
+Thanks,
+Stefan
 
- Tomi
+ arch/arm/boot/dts/omap3-cm-t3530.dts | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
+diff --git a/arch/arm/boot/dts/omap3-cm-t3530.dts b/arch/arm/boot/dts/omap3-cm-t3530.dts
+index 9faf1cd..d145849 100644
+--- a/arch/arm/boot/dts/omap3-cm-t3530.dts
++++ b/arch/arm/boot/dts/omap3-cm-t3530.dts
+@@ -9,4 +9,40 @@
+ / {
+ 	model = "CompuLab CM-T3530";
+ 	compatible = "compulab,omap3-cm-t3530", "ti,omap34xx", "ti,omap3";
++
++	/* Regulator to trigger the reset signal of the Wifi module */
++	mmc2_sdio_reset: regulator-mmc2-sdio-reset {
++		compatible = "regulator-fixed";
++		regulator-name = "regulator-mmc2-sdio-reset";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		gpio = <&twl_gpio 2 GPIO_ACTIVE_HIGH>;
++		enable-active-high;
++	};
++};
++
++&omap3_pmx_core {
++	mmc2_pins: pinmux_mmc2_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_clk.sdmmc2_clk */
++			OMAP3_CORE1_IOPAD(0x215a, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_cmd.sdmmc2_cmd */
++			OMAP3_CORE1_IOPAD(0x215c, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat0.sdmmc2_dat0 */
++			OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat1.sdmmc2_dat1 */
++			OMAP3_CORE1_IOPAD(0x2160, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat2.sdmmc2_dat2 */
++			OMAP3_CORE1_IOPAD(0x2162, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat3.sdmmc2_dat3 */
++			OMAP3_CORE1_IOPAD(0x2164, PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat4.sdmmc2_dir_dat0 */
++			OMAP3_CORE1_IOPAD(0x2166, PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat5.sdmmc2_dir_dat1 */
++			OMAP3_CORE1_IOPAD(0x2168, PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat6.sdmmc2_dir_cmd */
++			OMAP3_CORE1_IOPAD(0x216a, PIN_INPUT | MUX_MODE1)		/* sdmmc2_dat7.sdmmc2_clkin */
++		>;
++	};
++};
++
++&mmc2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc2_pins>;
++	vmmc-supply = <&mmc2_sdio_reset>;
++	non-removable;
++	bus-width = <4>;
++	cap-power-off-card;
+ };
+-- 
+1.8.5.5
 
-
---N7G4pfgKmNrMRSpVss0rXbSU1RUc4aDUG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTIDfgAAoJEPo9qoy8lh71VakP/ArMU738Aeh/ErsfOm+Yv2L1
-OTSMTdAur9yO3AfgrbhgYSOmhKwq+c3zEFKBgUKrQVo/ZTkyfgMoq/0B9RbAPo/t
-C/8InQwqvVca775vIWvoQKydLsWT3On5ASNL71m1Ql57MMJ4Ns5ORnUCBtZ7AvCB
-7QJ9UzL1250pfDttTOGS/d33bZH0o11uYqJgsi99YB7Ml/RZwEqRf+up09rweGyJ
-J265K8LX1IuOWyqKc5N4JzCPkekFfEl8cm9Hn8TYFSTjOoHZKr3SDDU+Dg8WcAUN
-eSfDITqj4iNoRnFHuYxVnv1VhIsE+LO3aYuJ3q/F1PzarmEdgu0JVQ5xDDjQiJiD
-Nd/dj10N4jHs1wep5kLw9YPFuFOCgkv+HdWWRNXkrgPIcisrdQ0Kw3JEA2fR1mhi
-8AZyjgsH8WJM+3HdeRaL+QG0+wC6FEGOPrxfi4uFP9qH8EwtLaq1SoB8QXAKpUTj
-tUwtamFU9P1R4CrOMjuQsPaVnv0O3wb9UtjGSGaww94/uo10yhzSP1EqE3zAz9N5
-wu5/hBxtuji1DuFGDTq5uXO6ga5GbaQpmE8eU5l8GXDb0H4dT8Q9mYFwjLoVkDTk
-GsCsdq620TtbiLPi247QXH0+yh16l2Ql5QuflveVMCtgVHS+Ug3cb3hRHihdR8L+
-OxexiVqOndcDYRZ+jRjc
-=IxE+
------END PGP SIGNATURE-----
-
---N7G4pfgKmNrMRSpVss0rXbSU1RUc4aDUG--
