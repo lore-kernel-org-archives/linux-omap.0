@@ -1,136 +1,59 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v3 5/8] ARM: OMAP5: hwmod: Add ocp2scp3 and sata hwmods
-Date: Wed, 12 Mar 2014 10:47:04 -0700
-Message-ID: <20140312174703.GD1996@atomide.com>
-References: <1394187308-19622-1-git-send-email-rogerq@ti.com>
- <1394187308-19622-6-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 0/5] Add USB nodes for am43xx epos and gp evm
+Date: Wed, 12 Mar 2014 10:50:58 -0700
+Message-ID: <20140312175057.GE1996@atomide.com>
+References: <1394193422-18242-1-git-send-email-george.cherian@ti.com>
+ <531FE9AD.7050703@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1394187308-19622-6-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <531FE9AD.7050703@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, rogerq@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, anatol.pomozov@gmail.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140307 02:18]:
-> From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+* George Cherian <george.cherian@ti.com> [140311 22:02]:
+> Hi Tony,
 > 
-> Create hwmods for ocp2scp3 and sata modules.
+> On 3/7/2014 5:26 PM, George Cherian wrote:
+> >The patch series adds USB dt nodes for am43xx epos and gp evm
+> >
+> >Boot tested with  Benoit's for_3.15 + following patches
+> >
+> >https://patchwork.kernel.org/patch/3600821/
+> >https://patchwork.kernel.org/patch/3600831/
+> >https://patchwork.kernel.org/patch/3600851/
+> >https://patchwork.kernel.org/patch/3600841/
+> >
+> >
+> >Changes from v1 -> v2
+> >	* Reorder "doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue"
+> >	* Address v1 coments on "ARM: dts: AM4372: Add USB nodes"
+> >
+> >Changes from v2 -> v3
+> >	* Removed unwanted dwc3_1 and dwc3_2 nodes from am437x-gp-evm.dts
+> >	  and am43x-epos-evm.dts
+> >
+> >George Cherian (5):
+> >   doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue
+> >   ARM: dts: am43xx clock data
+> >   ARM: dts: AM4372: Add USB nodes
+> >   ARM: dts: am437x-gp-evm: Enable USB
+> >   ARM: dts: am43x-epos-evm: Enable USB
+> >
+> >  Documentation/devicetree/bindings/usb/omap-usb.txt |  4 +-
+> >  arch/arm/boot/dts/am4372.dtsi                      | 95 ++++++++++++++++++++++
+> >  arch/arm/boot/dts/am437x-gp-evm.dts                | 18 ++++
+> >  arch/arm/boot/dts/am43x-epos-evm.dts               | 18 ++++
+> >  arch/arm/boot/dts/am43xx-clocks.dtsi               | 17 ++++
+> >  5 files changed, 151 insertions(+), 1 deletion(-)
+> Can you please take this series.
+> The whole series Reviewed-by: Roger Quadros <rogerq@ti.com>
 
-Paul, does this look OK to you?
+Hmm I only see ack from Roger on patch 3? 
 
 Regards,
 
 Tony
- 
-> [Roger Q] Clean up.
-> 
-> CC: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> CC: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-> CC: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 73 ++++++++++++++++++++++++++++++
->  1 file changed, 73 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> index e297d62..227a69f 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> @@ -1726,6 +1726,77 @@ static struct omap_hwmod omap54xx_wd_timer2_hwmod = {
->  	},
->  };
->  
-> +/*
-> + * 'ocp2scp' class
-> + * bridge to transform ocp interface protocol to scp (serial control port)
-> + * protocol
-> + */
-> +/* ocp2scp3 */
-> +static struct omap_hwmod omap54xx_ocp2scp3_hwmod;
-> +/* l4_cfg -> ocp2scp3 */
-> +static struct omap_hwmod_ocp_if omap54xx_l4_cfg__ocp2scp3 = {
-> +	.master		= &omap54xx_l4_cfg_hwmod,
-> +	.slave		= &omap54xx_ocp2scp3_hwmod,
-> +	.clk		= "l4_root_clk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod omap54xx_ocp2scp3_hwmod = {
-> +	.name		= "ocp2scp3",
-> +	.class		= &omap54xx_ocp2scp_hwmod_class,
-> +	.clkdm_name	= "l3init_clkdm",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = OMAP54XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
-> +			.context_offs = OMAP54XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_HWCTRL,
-> +		},
-> +	},
-> +};
-> +
-> +/*
-> + * 'sata' class
-> + * sata:  serial ata interface  gen2 compliant   ( 1 rx/ 1 tx)
-> + */
-> +
-> +static struct omap_hwmod_class_sysconfig omap54xx_sata_sysc = {
-> +	.sysc_offs	= 0x0000,
-> +	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
-> +			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
-> +	.sysc_fields	= &omap_hwmod_sysc_type2,
-> +};
-> +
-> +static struct omap_hwmod_class omap54xx_sata_hwmod_class = {
-> +	.name	= "sata",
-> +	.sysc	= &omap54xx_sata_sysc,
-> +};
-> +
-> +/* sata */
-> +static struct omap_hwmod omap54xx_sata_hwmod = {
-> +	.name		= "sata",
-> +	.class		= &omap54xx_sata_hwmod_class,
-> +	.clkdm_name	= "l3init_clkdm",
-> +	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
-> +	.main_clk	= "func_48m_fclk",
-> +	.mpu_rt_idx	= 1,
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = OMAP54XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
-> +			.context_offs = OMAP54XX_RM_L3INIT_SATA_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +};
-> +
-> +/* l4_cfg -> sata */
-> +static struct omap_hwmod_ocp_if omap54xx_l4_cfg__sata = {
-> +	.master		= &omap54xx_l4_cfg_hwmod,
-> +	.slave		= &omap54xx_sata_hwmod,
-> +	.clk		= "l3_iclk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
->  
->  /*
->   * Interfaces
-> @@ -2399,6 +2470,8 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
->  	&omap54xx_l4_cfg__usb_tll_hs,
->  	&omap54xx_l4_cfg__usb_otg_ss,
->  	&omap54xx_l4_wkup__wd_timer2,
-> +	&omap54xx_l4_cfg__ocp2scp3,
-> +	&omap54xx_l4_cfg__sata,
->  	NULL,
->  };
->  
-> -- 
-> 1.8.3.2
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
