@@ -1,101 +1,88 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] arm: omap: cm-t3530: Add MMC2/SDIO/WLAN support
-Date: Thu, 13 Mar 2014 11:13:53 +0200
-Message-ID: <532176D1.2070000@compulab.co.il>
-References: <1394621352-32438-1-git-send-email-sr@denx.de> <20140312174423.GC1996@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 00/18] edma/ASoC: dmaengine PCM for AM335x and
+	AM447x
+Date: Thu, 13 Mar 2014 11:18:22 +0200
+Message-ID: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:45660 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753213AbaCMJOP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Mar 2014 05:14:15 -0400
-In-Reply-To: <20140312174423.GC1996@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com, joelf@ti.com, nsekhar@ti.com, Liam Girdwood <lgirdwood@gmail.com>, Jyri Sarha <jsarha@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, mporter@linaro.org, dan.j.williams@intel.com, vinod.koul@intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Stefan Roese <sr@denx.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-On 03/12/14 19:44, Tony Lindgren wrote:
-> * Stefan Roese <sr@denx.de> [140312 03:52]:
->> Add support for the MMC2/SDIO WiFi Libertas (Marvell) module available
->> on the CM-T3530 SOM.
->>
->> Signed-off-by: Stefan Roese <sr@denx.de>
->> Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>
->> Cc: Igor Grinberg <grinberg@compulab.co.il>
->> Cc: Tony Lindgren <tony@atomide.com>
+Hi,
 
-Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+With this series AM335x and AM447x will use the dmaengine PCM for audio. The
+daVinci devices will keep using the davinci-pcm for now since I do not have
+means to test them but the code is written in a way that they can be switched
+to use the edma-pcm easily (DA850/OMAP-L138 has been tested and audio was
+working fine).
 
->> ---
->> This patch is based on current mainline (v3.14-rc6) plus this compulab patch
->> series from Dmitry:
->>
->> [PATCH 00/11] ARM: dts: sbc-t3x: add support for more boards
->> http://www.spinics.net/lists/arm-kernel/msg300078.html
-> 
-> Thanks applying into omap-for-v3.15/dt, no guarantees it gets merged though
-> as it's getting so close to the merge window.
-> 
-> Regards,
-> 
-> Tony
-> 
->>  arch/arm/boot/dts/omap3-cm-t3530.dts | 36 ++++++++++++++++++++++++++++++++++++
->>  1 file changed, 36 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/omap3-cm-t3530.dts b/arch/arm/boot/dts/omap3-cm-t3530.dts
->> index 9faf1cd..d145849 100644
->> --- a/arch/arm/boot/dts/omap3-cm-t3530.dts
->> +++ b/arch/arm/boot/dts/omap3-cm-t3530.dts
->> @@ -9,4 +9,40 @@
->>  / {
->>  	model = "CompuLab CM-T3530";
->>  	compatible = "compulab,omap3-cm-t3530", "ti,omap34xx", "ti,omap3";
->> +
->> +	/* Regulator to trigger the reset signal of the Wifi module */
->> +	mmc2_sdio_reset: regulator-mmc2-sdio-reset {
->> +		compatible = "regulator-fixed";
->> +		regulator-name = "regulator-mmc2-sdio-reset";
->> +		regulator-min-microvolt = <3300000>;
->> +		regulator-max-microvolt = <3300000>;
->> +		gpio = <&twl_gpio 2 GPIO_ACTIVE_HIGH>;
->> +		enable-active-high;
->> +	};
->> +};
->> +
->> +&omap3_pmx_core {
->> +	mmc2_pins: pinmux_mmc2_pins {
->> +		pinctrl-single,pins = <
->> +			OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_clk.sdmmc2_clk */
->> +			OMAP3_CORE1_IOPAD(0x215a, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_cmd.sdmmc2_cmd */
->> +			OMAP3_CORE1_IOPAD(0x215c, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat0.sdmmc2_dat0 */
->> +			OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat1.sdmmc2_dat1 */
->> +			OMAP3_CORE1_IOPAD(0x2160, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat2.sdmmc2_dat2 */
->> +			OMAP3_CORE1_IOPAD(0x2162, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat3.sdmmc2_dat3 */
->> +			OMAP3_CORE1_IOPAD(0x2164, PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat4.sdmmc2_dir_dat0 */
->> +			OMAP3_CORE1_IOPAD(0x2166, PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat5.sdmmc2_dir_dat1 */
->> +			OMAP3_CORE1_IOPAD(0x2168, PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat6.sdmmc2_dir_cmd */
->> +			OMAP3_CORE1_IOPAD(0x216a, PIN_INPUT | MUX_MODE1)		/* sdmmc2_dat7.sdmmc2_clkin */
->> +		>;
->> +	};
->> +};
->> +
->> +&mmc2 {
->> +	pinctrl-names = "default";
->> +	pinctrl-0 = <&mmc2_pins>;
->> +	vmmc-supply = <&mmc2_sdio_reset>;
->> +	non-removable;
->> +	bus-width = <4>;
->> +	cap-power-off-card;
->>  };
->> -- 
->> 1.8.5.5
->>
-> 
+To be able to use the dmaengine PCM I needed to make changes to the edma code in
+arch/arm/common/ and in drivers/dma/ :
+Adding support for DMA pause/resume
+Possibility to select non default event queue/TC for cyclic (audio) dma
+channels: all devices using the eDMA via dmaengine was assigned to the default
+EQ/TC (mmc, i2c, spi, etc, and audio). This is not optimal from system
+performance point of view since sharing the same EQ/TC can cause latency spikes
+for cyclic channels (long DMA transfers for MMC for example).
+
+While debugging the edma to get things sorted out I noticed that the debug was
+too verbose and the important information was hidden even when the we did not
+asked for verbose dmaengine debug.
+I have included some debug cleanups for the edma dmaengine driver also.
+
+On the ASoC side: the series has been tested on AM335x and AM447x. I have report
+that DA850/OMAP-L138 works with this series (which boots w/o DT).
+
+Regards,
+Peter
+---
+Peter Ujfalusi (18):
+  platform_data: edma: Be precise with the paRAM struct
+  dma: edma: Add support for DMA_PAUSE/RESUME operation
+  dma: edma: Set DMA_CYCLIC capability flag
+  arm: common: edma: Select event queue 1 as default when booted with DT
+  arm: common: edma: Save the number of event queues/TCs
+  arm: common: edma: API to request non default queue for a channel
+  DMA: edma: Use different eventq for cyclic channels
+  dma: edma: Implement device_slave_caps callback
+  dma: edma: Simplify direction configuration in edma_config_pset()
+  dma: edma: Reduce debug print verbosity for non verbose debugging
+  dma: edma: Prefix debug prints where the text were identical in prep
+    callbacks
+  dma: edma: Add channel number to debug prints
+  dma: edma: Print the direction value as well when it is not supported
+  ASoC: davinci: Add edma dmaengine platform driver
+  ASoC: davinci-mcasp: Use dmaengine based platform driver for
+    AM335x/447x
+  ASoC: davinci-mcasp: Provide correct filter_data for dmaengine for
+    non-DT boot
+  ASoC: davinci-mcasp: Assign the dma_data earlier in dai_probe callback
+  ASoC: davinci-mcasp: Place constraint on the period size based on FIFO
+    config
+
+ arch/arm/common/edma.c             |  34 ++++++++++++-
+ drivers/dma/edma.c                 |  92 ++++++++++++++++++++++++++--------
+ include/linux/platform_data/edma.h |  20 ++++----
+ sound/soc/davinci/Kconfig          |   1 +
+ sound/soc/davinci/Makefile         |   2 +-
+ sound/soc/davinci/davinci-mcasp.c  | 100 ++++++++++++++++++++++++++++++-------
+ sound/soc/davinci/edma-pcm.c       |  77 ++++++++++++++++++++++++++++
+ sound/soc/davinci/edma-pcm.h       |  26 ++++++++++
+ 8 files changed, 303 insertions(+), 49 deletions(-)
+ create mode 100644 sound/soc/davinci/edma-pcm.c
+ create mode 100644 sound/soc/davinci/edma-pcm.h
 
 -- 
-Regards,
-Igor.
+1.9.0
