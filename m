@@ -1,7 +1,7 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v4 5/5] ARM: dts: am43x-epos-evm: Enable USB
-Date: Thu, 13 Mar 2014 20:41:16 +0530
-Message-ID: <1394723476-8580-6-git-send-email-george.cherian@ti.com>
+Subject: [PATCH v4 4/5] ARM: dts: am437x-gp-evm: Enable USB
+Date: Thu, 13 Mar 2014 20:41:15 +0530
+Message-ID: <1394723476-8580-5-git-send-email-george.cherian@ti.com>
 References: <1394723476-8580-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -15,22 +15,21 @@ List-Id: linux-omap@vger.kernel.org
 Enable
 	- USB PHY
 	- USB
-
-for am43x-epos-evm
+for am437x-gp-evm
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 Acked-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/am43x-epos-evm.dts | 18 ++++++++++++++++++
+ arch/arm/boot/dts/am437x-gp-evm.dts | 18 ++++++++++++++++++
  1 file changed, 18 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 167dbc8..1a4946a 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -367,3 +367,21 @@
- 	pinctrl-0 = <&spi1_pins>;
- 	status = "okay";
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index df8798e..9e57538 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -125,3 +125,21 @@
+ 	pinctrl-0 = <&mmc1_pins>;
+ 	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
  };
 +
 +&usb2_phy1 {
