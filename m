@@ -1,58 +1,75 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 14/18] ASoC: davinci: Add edma dmaengine
- platform driver
-Date: Thu, 13 Mar 2014 14:38:37 +0100
-Message-ID: <5321B4DD.5040306@metafoo.de>
-References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
- <1394702320-21743-15-git-send-email-peter.ujfalusi@ti.com>
- <53218835.3080909@metafoo.de> <5321AC84.7080004@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 10/18] dma: edma: Reduce debug print verbosity for non
+	verbose debugging
+Date: Thu, 13 Mar 2014 15:37:56 +0200
+Message-ID: <5321B4B4.30602@ti.com>
+References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>	
+	<1394702320-21743-11-git-send-email-peter.ujfalusi@ti.com>
+	<1394715211.28803.239.camel@smile.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <5321AC84.7080004@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: davinci-linux-open-source@linux.davincidsp.com, alsa-devel@alsa-project.org, joelf@ti.com, vinod.koul@intel.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, mporter@linaro.org, dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1394715211.28803.239.camel-XvqNBM/wLWRrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: "Shevchenko, Andriy" <andriy.shevchenko-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org" <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, "joelf-l0cyMroinI0@public.gmane.org" <joelf-l0cyMroinI0@public.gmane.org>, "Koul, Vinod" <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/13/2014 02:03 PM, Peter Ujfalusi wrote:
-> On 03/13/2014 12:28 PM, Lars-Peter Clausen wrote:
->>> +int edma_pcm_platform_register(struct device *dev)
->>> +{
->>> +    if (dev->of_node)
->>> +        return snd_dmaengine_pcm_register(dev,
->>> +                    &edma_dmaengine_pcm_config,
->>> +                    SND_DMAENGINE_PCM_FLAG_NO_RESIDUE);
->>
->> Since the edma dmaengine driver implements the slave cap API there is no need
->> to manually specify SND_DMAENGINE_PCM_FLAG_NO_RESIDUE manually. But since the
->> edma driver sets the granularity to DMA_RESIDUE_GRANULARITY_DESCRIPTOR in this
->> case the generic dmaengine will not set SND_DMAENGINE_PCM_FLAG_NO_RESIDUE
->> automatically since it assumes that the dmaengine driver is capable of
->> properly reporting the DMA position.
->
-> Hrm, I see. For eDMA I think we can support DMA_RESIDUE_GRANULARITY_SEGMENT
-> granularity. Since according to the documentation the _SEGMENT means that the
-> DMA position will be updated per periods, which is basically the same thing
-> what we are doing at the moment when the granularity is
-> DMA_RESIDUE_GRANULARITY_DESCRIPTOR.
->  From ALSA point of view at least they are the same: neither of them can report
-> exact position, the DMA pointer jumps from period to period.
->
-> IMHO in the generic dmaengine PCM we should set the SNDRV_PCM_INFO_BATCH for
-> both cases.
->
-
-Ups, sorry mixed up DMA_RESIDUE_GRANULARITY_SEGMENT and 
-DMA_RESIDUE_GRANULARITY_DESCRIPTOR. You can just remove the 
-SND_DMAENGINE_PCM_FLAG_NO_RESIDUE when registering the dmaengine PCM driver 
-and everything will still work as expected.
+T24gMDMvMTMvMjAxNCAwMjo1MyBQTSwgU2hldmNoZW5rbywgQW5kcml5IHdyb3RlOgo+IE9uIFRo
+dSwgMjAxNC0wMy0xMyBhdCAxMToxOCArMDIwMCwgUGV0ZXIgVWpmYWx1c2kgd3JvdGU6Cj4+IERv
+IG5vdCBwcmludCB0aGUgcGFSQU0gaW5mb3JtYXRpb24gd2hlbiB2ZXJib3NlIGRlYnVnZ2luZyBp
+cyBub3QgYXNrZWQgYW5kCj4+IGFsc28gcmVkdWNlIHRoZSBudW1iZXIgb2YgbGluZXMgcHJpbnRl
+ZCBpbiBlZG1hX3ByZXBfZG1hX2N5Y2xpYygpCj4+Cj4+IFNpZ25lZC1vZmYtYnk6IFBldGVyIFVq
+ZmFsdXNpIDxwZXRlci51amZhbHVzaUB0aS5jb20+Cj4+IC0tLQo+PiAgZHJpdmVycy9kbWEvZWRt
+YS5jIHwgMTEgKysrKystLS0tLS0KPj4gIDEgZmlsZSBjaGFuZ2VkLCA1IGluc2VydGlvbnMoKyks
+IDYgZGVsZXRpb25zKC0pCj4+Cj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2RtYS9lZG1hLmMgYi9k
+cml2ZXJzL2RtYS9lZG1hLmMKPj4gaW5kZXggZTRmNGEwY2VmNThjLi5lMmFhNDJiODM0MmYgMTAw
+NjQ0Cj4+IC0tLSBhL2RyaXZlcnMvZG1hL2VkbWEuYwo+PiArKysgYi9kcml2ZXJzL2RtYS9lZG1h
+LmMKPj4gQEAgLTE0MSw3ICsxNDEsNyBAQCBzdGF0aWMgdm9pZCBlZG1hX2V4ZWN1dGUoc3RydWN0
+IGVkbWFfY2hhbiAqZWNoYW4pCj4+ICAJZm9yIChpID0gMDsgaSA8IG5zbG90czsgaSsrKSB7Cj4+
+ICAJCWogPSBpICsgZWRlc2MtPnByb2Nlc3NlZDsKPj4gIAkJZWRtYV93cml0ZV9zbG90KGVjaGFu
+LT5zbG90W2ldLCAmZWRlc2MtPnBzZXRbal0pOwo+PiAtCQlkZXZfZGJnKGVjaGFuLT52Y2hhbi5j
+aGFuLmRldmljZS0+ZGV2LAo+PiArCQlkZXZfdmRiZyhlY2hhbi0+dmNoYW4uY2hhbi5kZXZpY2Ut
+PmRldiwKPj4gIAkJCSJcbiBwc2V0WyVkXTpcbiIKPj4gIAkJCSIgIGNobnVtXHQlZFxuIgo+PiAg
+CQkJIiAgc2xvdFx0JWRcbiIKPiAKPiBJIGJlbGlldmUgeW91IG1heSBtb3ZlIHRoaXMgY29kZSB0
+byBzZXBhcmF0ZSBmdW5jdGlvbiBhbmQgcmV1c2UgaXQKPiBsYXRlci4KCkFzIHRoZSBwZXIgcGF0
+Y2ggZGVzY3JpcHRpb24sIEkgb25seSBjaGFuZ2VkIHRoZSBkZWJ1ZyBsZXZlbCBpbiB0aGlzIHBh
+dGNoLgoKPiBNb3Jlb3ZlciAlZCBpcyBub3QgZ29vZCBzcGVjaWZpZXIgZm9yIHVuc2lnbmVkIHR5
+cGVzLCBtYXliZSAldT8KCllvdSBhcmUgcmlnaHQgZm9yIHVuc2lnbmVkIHR5cGUgJXUgaXMgdGhl
+IGNvcnJlY3QuIFRoaXMgaXMgd2h5IHdlIGhhdmUgJWQKc2luY2UgaiwgZWNoYW4tPmNoX251bSBh
+bmQgZWNoYW4tPnNsb3RbaV0gYXJlIGludGVnZXIuCgo+IAo+PiBAQCAtNTU0LDkgKzU1NCw4IEBA
+IHN0YXRpYyBzdHJ1Y3QgZG1hX2FzeW5jX3R4X2Rlc2NyaXB0b3IgKmVkbWFfcHJlcF9kbWFfY3lj
+bGljKAo+PiAgCWVkZXNjLT5jeWNsaWMgPSAxOwo+PiAgCWVkZXNjLT5wc2V0X25yID0gbnNsb3Rz
+Owo+PiAgCj4+IC0JZGV2X2RiZyhkZXYsICIlczogbnNsb3RzPSVkXG4iLCBfX2Z1bmNfXywgbnNs
+b3RzKTsKPj4gLQlkZXZfZGJnKGRldiwgIiVzOiBwZXJpb2RfbGVuPSVkXG4iLCBfX2Z1bmNfXywg
+cGVyaW9kX2xlbik7Cj4+IC0JZGV2X2RiZyhkZXYsICIlczogYnVmX2xlbj0lZFxuIiwgX19mdW5j
+X18sIGJ1Zl9sZW4pOwo+PiArCWRldl9kYmcoZGV2LCAiJXM6IGNoYW5uZWw9JWQgbnNsb3RzPSVk
+IHBlcmlvZF9sZW49JWQgYnVmX2xlbj0lZFxuIiwKPj4gKwkJX19mdW5jX18sIGVjaGFuLT5jaF9u
+dW0sIG5zbG90cywgcGVyaW9kX2xlbiwgYnVmX2xlbik7Cj4gCj4gQ29uc2lkZXIgdG8gdXNlIHBy
+b3BlciBzcGVjaWZpZXJzIGZvciBzaXplX3QgdHlwZXMsIG5hbWVseSAlemQuCgpJIGp1c3QgY29s
+bGFwc2VkIHRoZSB0aHJlZSBsaW5lIG9mIGRldl9kYmcgaW50byBvbmUgYW5kIGhhdmUgbm90IHJl
+YWxseQpjaGVja2VkIHRoZSBmb3JtYXRzLgpGb3Igc2l6ZV90IHRoZSBjb3JyZWN0IGZvcm1hdCBz
+aG91bGQgYmUgJXp1LgpJJ2xsIGZpeCB0aGlzIHVwIGZvciB0aGUgbmV4dCB2ZXJzaW9uLgoKPj4g
+IAo+PiAgCWZvciAoaSA9IDA7IGkgPCBuc2xvdHM7IGkrKykgewo+PiAgCQkvKiBBbGxvY2F0ZSBh
+IFBhUkFNIHNsb3QsIGlmIG5lZWRlZCAqLwo+PiBAQCAtNTkwLDggKzU4OSw4IEBAIHN0YXRpYyBz
+dHJ1Y3QgZG1hX2FzeW5jX3R4X2Rlc2NyaXB0b3IgKmVkbWFfcHJlcF9kbWFfY3ljbGljKAo+PiAg
+CQllbHNlCj4+ICAJCQlzcmNfYWRkciArPSBwZXJpb2RfbGVuOwo+PiAgCj4+IC0JCWRldl9kYmco
+ZGV2LCAiJXM6IENvbmZpZ3VyZSBwZXJpb2QgJWQgb2YgYnVmOlxuIiwgX19mdW5jX18sIGkpOwo+
+PiAtCQlkZXZfZGJnKGRldiwKPj4gKwkJZGV2X3ZkYmcoZGV2LCAiJXM6IENvbmZpZ3VyZSBwZXJp
+b2QgJWQgb2YgYnVmOlxuIiwgX19mdW5jX18sIGkpOwo+PiArCQlkZXZfdmRiZyhkZXYsCj4gCj4g
+U2VlIHRoZSBmaXJzdCBjb21tZW50LgoKQXMgdGhlIHBlciBwYXRjaCBkZXNjcmlwdGlvbiwgSSBv
+bmx5IGNoYW5nZWQgdGhlIGRlYnVnIGxldmVsIGluIHRoaXMgcGF0Y2guClRoaXMgY2FuIGJlIGRv
+bmUgYXMgYSBzZXBhcmF0ZSBwYXRjaCBsYXRlciBJTU8gYXMgcGFydCBvZiBhIGJpZ2dlciBkZWJ1
+ZyBjbGVhbnVwLgoKLS0gClDDqXRlcgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwpEYXZpbmNpLWxpbnV4LW9wZW4tc291cmNlIG1haWxpbmcgbGlzdApEYXZp
+bmNpLWxpbnV4LW9wZW4tc291cmNlQGxpbnV4LmRhdmluY2lkc3AuY29tCmh0dHA6Ly9saW51eC5k
+YXZpbmNpZHNwLmNvbS9tYWlsbWFuL2xpc3RpbmZvL2RhdmluY2ktbGludXgtb3Blbi1zb3VyY2UK
