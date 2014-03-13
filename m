@@ -1,64 +1,80 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 1/5] doc: Add "ti,am437x-dwc3" comaptible for dwc3
- glue
-Date: Thu, 13 Mar 2014 14:17:09 +0200
-Message-ID: <5321A1C5.8020501@ti.com>
-References: <1394193422-18242-1-git-send-email-george.cherian@ti.com> <1394193422-18242-2-git-send-email-george.cherian@ti.com> <53218944.7000102@ti.com> <53219970.6060002@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v5] ASoC: tlv320aic31xx: Add basic codec driver
+ implementation
+Date: Thu, 13 Mar 2014 12:20:07 +0000
+Message-ID: <20140313122007.GQ366@sirena.org.uk>
+References: <1394535452-17865-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53219970.6060002-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, anatol.pomozov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cnBsrynPgIOyCJkL"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:46671 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753655AbaCMMUP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 08:20:15 -0400
+Content-Disposition: inline
+In-Reply-To: <1394535452-17865-1-git-send-email-jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com
 
-On 03/13/2014 01:41 PM, George Cherian wrote:
-> On 3/13/2014 4:02 PM, Roger Quadros wrote:
->> Hi George,
->>
->> On 03/07/2014 01:56 PM, George Cherian wrote:
->>> Add the compatible "ti,am437x-dwc3" for dwc3 glue driver.
->>>
->>> Signed-off-by: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
->>> ---
->>>   Documentation/devicetree/bindings/usb/omap-usb.txt | 4 +++-
->>>   1 file changed, 3 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
->>> index 38b2fae..38d9bb8 100644
->>> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
->>> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
->>> @@ -44,7 +44,9 @@ Board specific device node entry
->>>   };
->>>     OMAP DWC3 GLUE
->>> - - compatible : Should be "ti,dwc3"
->>> + - compatible : Should be
->>> +    * "ti,dwc3" for OMAP5 and DRA7
->>> +    * "ti,am437x-dwc3" for AM437x
->> Why do you need a new compatible for am437x? Isn't "ti,dwc3" sufficient?
-> 
-> There is change in register offsets for AM437x as comapred to Omap5 and dra7x.
-> The compatible is already added in dwc3-omap.c  This patch just updates the Documentation.
 
-Oh ok. Then it is fine. You can add my.
+--cnBsrynPgIOyCJkL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+On Tue, Mar 11, 2014 at 12:57:32PM +0200, Jyri Sarha wrote:
+> This commit adds a bare bones driver support for TLV320AIC31XX family
+> audio codecs. The driver adds basic stereo playback trough headphone
+> and speaker outputs and mono capture trough microphone inputs.
 
-cheers,
--roger
->>
->>>    - ti,hwmods : Should be "usb_otg_ss"
->>>    - reg : Address and length of the register set for the device.
->>>    - interrupts : The irq number of this device that is used to interrupt the
->>>
->> cheers,
->> -roger
-> 
-> 
+Applied, thanks.  One thing it'd be good to fix:
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +Optional properties:
+> +
+> +- gpio-reset - gpio pin number used for codec reset
+> +- ai31xx-micbias-vg - MicBias Voltage setting
+
+This is optional but...
+
+> +	of_property_read_u32(np, "ai31xx-micbias-vg", &value);
+> +	switch (value) {
+> +	case MICBIAS_2_0V:
+> +	case MICBIAS_2_5V:
+> +	case MICBIAS_AVDDV:
+> +		aic31xx->pdata.micbias_vg = value;
+> +		break;
+> +	default:
+> +		dev_err(aic31xx->dev,
+> +			"Bad ai31xx-micbias-vg value %d DT\n",
+> +			value);
+> +		aic31xx->pdata.micbias_vg = MICBIAS_2_0V;
+> +	}
+
+...you'll get an error if it's missing (and an uninitialised memory
+read).
+
+--cnBsrynPgIOyCJkL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTIaJ0AAoJELSic+t+oim9zFIQAJi/CDeMM6X/riLxySVGLPa8
+gKhESbL6Ka4j9cfI54fdfeDS3KWEB7kW9DhcZoE892Zu9/PyY3RyB13ryQh8YEuX
+B2r4xAVuLdoPn0YMDBNAlATWCJjDJFSFlo6nglCM8jgvoZKVPMPql3mMmxZPP6Mo
+LSOVuj1GyKKa0mfEZEIazuqWaknv183L7nCbKoV+O0Szts/gauWfg/8pE7NhZkYS
+X051Nsn1iYSxgfD3fsABKGR+j7jljxJ04H7QXV77h23prthKmQ7dFGAvJWSACIiD
+zVTjAVd9EeWYl7XAl60tpxBO9FZy04oGnxe4bOUyDsPX4jMQO0Md/dbBAg7iGmm4
+2IdlQR60LzEL6SqkrgMKMU6gh4B7jpDVmh2LztmaN+0w6w5v9Q31UM45DfAoaXze
+Sqd2CAxft8z0HmB6V2rD0HbOBycIDZTaG4PMPCH+kNXvfBYu51Fal48GeB6CvPYa
+6VKEZS/aqSVf7FEe4mQ7qfvF5GjcicwzHmI71gXZ/T9QjOS1zOnnJD1Ifk0pV9oH
+ns+GWnyYBpJOi21nKLGJbmH/iWZQn9llLpg2qHcHF0bH/EqsE2HPkOV8nNXT3w83
+0ycM6VoJbKqaxH15SRTbVv45n/zfsPwIccPL1QqB/g8NAfcbQAsMctc4OfxtyZCC
+oFAon0a8Un3v6drjpo9C
+=ZKc6
+-----END PGP SIGNATURE-----
+
+--cnBsrynPgIOyCJkL--
