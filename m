@@ -1,50 +1,87 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: [RFC 1/5] ARM: dts: am33xx: Add clock nodes for timer1 and timer2
-Date: Thu, 13 Mar 2014 15:35:15 -0500
-Message-ID: <1394742919-32163-2-git-send-email-joelf@ti.com>
+Subject: [RFC 3/5] ARM: OMAP2+: timer: Add clocksource initialization and powerup support
+Date: Thu, 13 Mar 2014 15:35:17 -0500
+Message-ID: <1394742919-32163-4-git-send-email-joelf@ti.com>
 References: <1394742919-32163-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1394742919-32163-1-git-send-email-joelf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Felipe Balbi <balbi@ti.com>
-Cc: Joel Fernandes <joelf@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
+
+Introduce a generic omap timer initialization function that can
+be used by all SoCs for which support is available in the clocksource
+driver introduced in the series.
+
+The function will also be responsible for calling clock initialization
+required for everything else to work.
 
 Signed-off-by: Joel Fernandes <joelf@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/mach-omap2/common.h |    1 +
+ arch/arm/mach-omap2/timer.c  |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 29 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 6d95d3d..4e6c959 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -347,6 +347,7 @@
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index a6aae30..e58d9a4 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -92,6 +92,7 @@ extern void omap3_secure_sync32k_timer_init(void);
+ extern void omap3_gptimer_timer_init(void);
+ extern void omap4_local_timer_init(void);
+ extern void omap5_realtime_timer_init(void);
++void omap_generic_timer_init(void);
  
- 		timer1: timer@44e31000 {
- 			compatible = "ti,am335x-timer-1ms";
-+			clocks = <&timer1_fck>;
- 			reg = <0x44e31000 0x400>;
- 			interrupts = <67>;
- 			ti,hwmods = "timer1";
-@@ -355,6 +356,7 @@
+ void omap2420_init_early(void);
+ void omap2430_init_early(void);
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 74044aa..08c73a0 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -324,6 +324,25 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 	return r;
+ }
  
- 		timer2: timer@48040000 {
- 			compatible = "ti,am335x-timer";
-+			clocks = <&timer2_fck>;
- 			reg = <0x48040000 0x400>;
- 			interrupts = <68>;
- 			ti,hwmods = "timer2";
++int __init omap_dmtimer_powerup(struct omap_dm_timer *timer,
++					struct device_node *np) {
++	struct omap_hwmod *oh;
++	const char *oh_name = NULL;
++
++	of_property_read_string_index(np, "ti,hwmods", 0, &oh_name);
++	if (!oh_name)
++		return -ENODEV;
++
++	oh = omap_hwmod_lookup(oh_name);
++	if (!oh)
++		return -ENODEV;
++
++	omap_hwmod_setup_one(oh_name);
++
++	omap_hwmod_enable(oh);
++	return 0;
++}
++
+ static void __init omap2_gp_clockevent_init(int gptimer_id,
+ 						const char *fck_source,
+ 						const char *property)
+@@ -615,6 +634,15 @@ static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
+ 			       2, "sys_clkin_ck", NULL);
+ #endif
+ 
++void omap_generic_timer_init(void)
++{
++	if (!of_have_populated_dt())
++		BUG_ON("Generic timer init should only be used for DT boot\n");
++
++	omap_clk_init();
++	clocksource_of_init();
++}
++
+ #ifdef CONFIG_ARCH_OMAP4
+ #ifdef CONFIG_HAVE_ARM_TWD
+ static DEFINE_TWD_LOCAL_TIMER(twd_local_timer, OMAP44XX_LOCAL_TWD_BASE, 29);
 -- 
 1.7.9.5
