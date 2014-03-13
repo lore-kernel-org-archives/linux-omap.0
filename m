@@ -1,43 +1,84 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [alsa-devel] [PATCH 14/18] ASoC: davinci: Add edma dmaengine
- platform driver
-Date: Thu, 13 Mar 2014 13:09:30 +0100
-Message-ID: <53219FFA.3030204@metafoo.de>
-References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com> <1394702320-21743-15-git-send-email-peter.ujfalusi@ti.com> <53218835.3080909@metafoo.de> <53219D08.9070308@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v3 02/14] v4l: ti-vpe: register video device only when
+ firmware is loaded
+Date: Thu, 13 Mar 2014 17:39:04 +0530
+Message-ID: <53219FE0.8010604@ti.com>
+References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-3-git-send-email-archit@ti.com> <000001cf3eb2$39817540$ac845fc0$%debski@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53219D08.9070308@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: davinci-linux-open-source@linux.davincidsp.com, alsa-devel@alsa-project.org, joelf@ti.com, vinod.koul@intel.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, mporter@linaro.org, dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:40096 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753815AbaCMMJo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Mar 2014 08:09:44 -0400
+In-Reply-To: <000001cf3eb2$39817540$ac845fc0$%debski@samsung.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kamil Debski <k.debski@samsung.com>, hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 03/13/2014 12:56 PM, Peter Ujfalusi wrote:
-> On 03/13/2014 12:28 PM, Lars-Peter Clausen wrote:
->> On 03/13/2014 10:18 AM, Peter Ujfalusi wrote: [...]
->>> +static const struct snd_pcm_hardware edma_pcm_hardware = { +    .info
->>> = SNDRV_PCM_INFO_MMAP | +                  SNDRV_PCM_INFO_MMAP_VALID | +
->>> SNDRV_PCM_INFO_BATCH | +                  SNDRV_PCM_INFO_PAUSE |
->>> SNDRV_PCM_INFO_RESUME | +                  SNDRV_PCM_INFO_INTERLEAVED, +
->>> .buffer_bytes_max    = 128 * 1024, +    .period_bytes_min    = 32, +
->>> .period_bytes_max    = 64 * 1024, +    .periods_min        = 2, +
->>> .periods_max        = 19, /* Limit by edma dmaengine driver */ +};
->>
->> The idea is that we can auto-discover all the things using the
->> dma_slave_caps API. Too bad we removed the possibility to specify the
->> maximum number of segments from the API. Maybe we need to add it back. Is
->> the 19 a hard-limit or could it be worked around by software in the
->> dmaengine driver?
+Hi Kamil,
+
+On Thursday 13 March 2014 05:18 PM, Kamil Debski wrote:
+> Hi Archit,
 >
-> The edma dmaengine driver will refuse to configure more than 20 paRAM slots (1
-> for the channel + 19 for the periods). Depending on the SoC we might have
-> different number of paRAM entries available. The intention with the limit was
-> to prevent cases when we run out of paRAM entires for other devices because
-> audio took most of them.
+>> From: Archit Taneja [mailto:archit@ti.com]
+>> Sent: Tuesday, March 11, 2014 9:34 AM
+>>
+>> vpe fops(vpe_open in particular) should be called only when VPDMA
+>> firmware is loaded. File operations on the video device are possible
+>> the moment it is registered.
+>>
+>> Currently, we register the video device for VPE at driver probe, after
+>> calling a vpdma helper to initialize VPDMA and load firmware. This
+>> function is non-blocking(it calls request_firmware_nowait()), and
+>> doesn't ensure that the firmware is actually loaded when it returns.
+>>
+>> We remove the device registration from vpe probe, and move it to a
+>> callback provided by the vpe driver to the vpdma library, through
+>> vpdma_create().
+>>
+>> The ready field in vpdma_data is no longer needed since we always have
+>> firmware loaded before the device is registered.
+>>
+>> A minor problem with this approach is that if the video_register_device
+>> fails(which doesn't really happen), the vpe platform device would be
+>> registered.
+>> however, there won't be any v4l2 device corresponding to it.
+>
+> Could you explain to me one thing. request_firmware cannot be used in
+> probe, thus you are using request_firmware_nowait. Why cannot the firmware
+> be
+> loaded on open with a regular request_firmware that is waiting?
 
-The reason why we removed the max_segments field from the slave_caps struct 
-was because we though it should be possible to, even when the hardware only 
-supports a fixed amount of segments, emulate support for more in software. 
-If this is not the case with the edma, we need to bring this field back.
+I totally agree with you here. Placing the firmware in open() would 
+probably make more sense.
+
+The reason I didn't place it in open() is because I didn't want to 
+release firmware in a corresponding close(), and be in a situation where 
+the firmware is loaded multiple times in the driver's lifetime.
+
+There are some reasons for doing this. First, it will require more 
+testing with respect to whether the firmware is loaded correctly 
+successive times :), the second is that loading firmware might probably 
+take a bit of time, and we don't want to make applications too slow(I 
+haven't measured the time taken, so I don't have a strong case for this 
+either)
+
+>
+> This patch seems to swap one problem for another. The possibility that open
+> fails (because firmware is not yet loaded) is swapped for a vague
+> possibility
+> that video_register_device.
+
+The driver will work fine in most cases even without this patch(apart 
+from the possibility mentioned as above).
+
+We could discard this patch from this series, and I can work on a patch 
+which moves firmware loading to the vpe_open() call, and hence solving 
+the issue in the right manner. Does that sound fine?
+
+Thanks,
+Archit
+
