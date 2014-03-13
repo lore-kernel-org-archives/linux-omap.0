@@ -1,84 +1,51 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 13/14] v4l: ti-vpe: Set correct field parameter for output and capture buffers
-Date: Thu, 13 Mar 2014 17:14:15 +0530
-Message-ID: <1394711056-10878-14-git-send-email-archit@ti.com>
+Subject: [PATCH v4 12/14] v4l: ti-vpe: zero out reserved fields in try_fmt
+Date: Thu, 13 Mar 2014 17:14:14 +0530
+Message-ID: <1394711056-10878-13-git-send-email-archit@ti.com>
 References: <1394526833-24805-1-git-send-email-archit@ti.com>
  <1394711056-10878-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42501 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754133AbaCMLpq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 07:45:46 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
 To: k.debski@samsung.com, hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-The vpe driver wasn't setting the correct field parameter for dequed CAPTURE
-type buffers for the case where the captured output is progressive.
+Zero out the reserved formats in v4l2_pix_format_mplane and
+v4l2_plane_pix_format members of the returned v4l2_format pointer when passed
+through TRY_FMT ioctl.
 
-Set the field to V4L2_FIELD_NONE for the completed destination buffers when
-the captured output is progressive.
+This ensures that the user doesn't interpret the non-zero fields as some data
+passed by the driver, and ensures compliance.
 
-For OUTPUT type buffers, a queued buffer's field is forced to V4L2_FIELD_NONE
-if the pixel format(configured through s_fmt for the buffer type
-V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE specifies) the field type isn't interlaced.
-If the pixel format specified was V4L2_FIELD_ALTERNATE, and the queued buffer's
-field isn't V4L2_FIELD_TOP or V4L2_FIELD_BOTTOM, the vb2 buf_prepare op returns
-an error.
-
-This ensures compliance, and that the dequeued output and captured buffers
-contain the field type that the driver used internally.
-
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ drivers/media/platform/ti-vpe/vpe.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index c0ae847..362d5be 100644
+index d7befb9..c0ae847 100644
 --- a/drivers/media/platform/ti-vpe/vpe.c
 +++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1296,10 +1296,10 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 		d_buf->timecode = s_buf->timecode;
- 	}
- 	d_buf->sequence = ctx->sequence;
--	d_buf->field = ctx->field;
- 
- 	d_q_data = &ctx->q_data[Q_DATA_DST];
- 	if (d_q_data->flags & Q_DATA_INTERLACED) {
-+		d_buf->field = ctx->field;
- 		if (ctx->field == V4L2_FIELD_BOTTOM) {
- 			ctx->sequence++;
- 			ctx->field = V4L2_FIELD_TOP;
-@@ -1308,6 +1308,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 			ctx->field = V4L2_FIELD_BOTTOM;
+@@ -1488,6 +1488,7 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
  		}
- 	} else {
-+		d_buf->field = V4L2_FIELD_NONE;
- 		ctx->sequence++;
  	}
  
-@@ -1880,6 +1881,16 @@ static int vpe_buf_prepare(struct vb2_buffer *vb)
- 	q_data = get_q_data(ctx, vb->vb2_queue->type);
- 	num_planes = q_data->fmt->coplanar ? 2 : 1;
++	memset(pix->reserved, 0, sizeof(pix->reserved));
+ 	for (i = 0; i < pix->num_planes; i++) {
+ 		plane_fmt = &pix->plane_fmt[i];
+ 		depth = fmt->vpdma_fmt[i]->depth;
+@@ -1499,6 +1500,8 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
  
-+	if (vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		if (!(q_data->flags & Q_DATA_INTERLACED)) {
-+			vb->v4l2_buf.field = V4L2_FIELD_NONE;
-+		} else {
-+			if (vb->v4l2_buf.field != V4L2_FIELD_TOP &&
-+					vb->v4l2_buf.field != V4L2_FIELD_BOTTOM)
-+				return -EINVAL;
-+		}
-+	}
+ 		plane_fmt->sizeimage =
+ 				(pix->height * pix->width * depth) >> 3;
 +
- 	for (i = 0; i < num_planes; i++) {
- 		if (vb2_plane_size(vb, i) < q_data->sizeimage[i]) {
- 			vpe_err(ctx->dev,
++		memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
+ 	}
+ 
+ 	return 0;
 -- 
 1.8.3.2
-
