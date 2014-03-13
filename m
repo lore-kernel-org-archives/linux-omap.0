@@ -1,233 +1,127 @@
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [PATCH v3 02/14] v4l: ti-vpe: register video device only when
- firmware is loaded
-Date: Thu, 13 Mar 2014 12:48:59 +0100
-Message-ID: <000001cf3eb2$39817540$ac845fc0$%debski@samsung.com>
-References: <1393922965-15967-1-git-send-email-archit@ti.com>
- <1394526833-24805-1-git-send-email-archit@ti.com>
- <1394526833-24805-3-git-send-email-archit@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [alsa-devel] [PATCH 14/18] ASoC: davinci: Add edma dmaengine
+	platform driver
+Date: Thu, 13 Mar 2014 13:56:56 +0200
+Message-ID: <53219D08.9070308@ti.com>
+References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
+	<1394702320-21743-15-git-send-email-peter.ujfalusi@ti.com>
+	<53218835.3080909@metafoo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:46305 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753385AbaCMLtE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 07:49:04 -0400
-In-reply-to: <1394526833-24805-3-git-send-email-archit@ti.com>
-Content-language: pl
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <53218835.3080909-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Archit Taneja' <archit@ti.com>, hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Archit,
+On 03/13/2014 12:28 PM, Lars-Peter Clausen wrote:
+> On 03/13/2014 10:18 AM, Peter Ujfalusi wrote: [...]
+>> +static const struct snd_pcm_hardware edma_pcm_hardware =3D { +    .info
+>> =3D SNDRV_PCM_INFO_MMAP | +                  SNDRV_PCM_INFO_MMAP_VALID |=
+ +
+>> SNDRV_PCM_INFO_BATCH | +                  SNDRV_PCM_INFO_PAUSE |
+>> SNDRV_PCM_INFO_RESUME | +                  SNDRV_PCM_INFO_INTERLEAVED, +
+>> .buffer_bytes_max    =3D 128 * 1024, +    .period_bytes_min    =3D 32, +
+>> .period_bytes_max    =3D 64 * 1024, +    .periods_min        =3D 2, +
+>> .periods_max        =3D 19, /* Limit by edma dmaengine driver */ +};
+> =
 
-> From: Archit Taneja [mailto:archit@ti.com]
-> Sent: Tuesday, March 11, 2014 9:34 AM
-> 
-> vpe fops(vpe_open in particular) should be called only when VPDMA
-> firmware is loaded. File operations on the video device are possible
-> the moment it is registered.
-> 
-> Currently, we register the video device for VPE at driver probe, after
-> calling a vpdma helper to initialize VPDMA and load firmware. This
-> function is non-blocking(it calls request_firmware_nowait()), and
-> doesn't ensure that the firmware is actually loaded when it returns.
-> 
-> We remove the device registration from vpe probe, and move it to a
-> callback provided by the vpe driver to the vpdma library, through
-> vpdma_create().
-> 
-> The ready field in vpdma_data is no longer needed since we always have
-> firmware loaded before the device is registered.
-> 
-> A minor problem with this approach is that if the video_register_device
-> fails(which doesn't really happen), the vpe platform device would be
-> registered.
-> however, there won't be any v4l2 device corresponding to it.
+> The idea is that we can auto-discover all the things using the
+> dma_slave_caps API. Too bad we removed the possibility to specify the
+> maximum number of segments from the API. Maybe we need to add it back. Is
+> the 19 a hard-limit or could it be worked around by software in the
+> dmaengine driver?
 
-Could you explain to me one thing. request_firmware cannot be used in
-probe, thus you are using request_firmware_nowait. Why cannot the firmware
-be
-loaded on open with a regular request_firmware that is waiting?
+The edma dmaengine driver will refuse to configure more than 20 paRAM slots=
+ (1
+for the channel + 19 for the periods). Depending on the SoC we might have
+different number of paRAM entries available. The intention with the limit w=
+as
+to prevent cases when we run out of paRAM entires for other devices because
+audio took most of them.
 
-This patch seems to swap one problem for another. The possibility that open
-fails (because firmware is not yet loaded) is swapped for a vague
-possibility
-that video_register_device.
+>> + +static const struct snd_dmaengine_pcm_config edma_dmaengine_pcm_config
+>> =3D { +    .pcm_hardware =3D &edma_pcm_hardware, +    .prepare_slave_con=
+fig =3D
+>> snd_dmaengine_pcm_prepare_slave_config, +    .prealloc_buffer_size =3D 1=
+28
+>> * 1024,
+> =
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+> Unless there is a very good reason for exactly this size, just leave it 0
+> and let the generic dmaengine driver use the default.
 
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/platform/ti-vpe/vpdma.c |  8 +++--
-> drivers/media/platform/ti-vpe/vpdma.h |  7 +++--
->  drivers/media/platform/ti-vpe/vpe.c   | 55 ++++++++++++++++++++-------
-> --------
->  3 files changed, 41 insertions(+), 29 deletions(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpdma.c
-> b/drivers/media/platform/ti-vpe/vpdma.c
-> index e8175e7..73dd38e 100644
-> --- a/drivers/media/platform/ti-vpe/vpdma.c
-> +++ b/drivers/media/platform/ti-vpe/vpdma.c
-> @@ -781,7 +781,7 @@ static void vpdma_firmware_cb(const struct firmware
-> *f, void *context)
->  	/* already initialized */
->  	if (read_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
->  			VPDMA_LIST_RDY_SHFT)) {
-> -		vpdma->ready = true;
-> +		vpdma->cb(vpdma->pdev);
->  		return;
->  	}
-> 
-> @@ -811,7 +811,7 @@ static void vpdma_firmware_cb(const struct firmware
-> *f, void *context)
->  		goto free_buf;
->  	}
-> 
-> -	vpdma->ready = true;
-> +	vpdma->cb(vpdma->pdev);
-> 
->  free_buf:
->  	vpdma_unmap_desc_buf(vpdma, &fw_dma_buf); @@ -839,7 +839,8 @@
-> static int vpdma_load_firmware(struct vpdma_data *vpdma)
->  	return 0;
->  }
-> 
-> -struct vpdma_data *vpdma_create(struct platform_device *pdev)
-> +struct vpdma_data *vpdma_create(struct platform_device *pdev,
-> +		void (*cb)(struct platform_device *pdev))
->  {
->  	struct resource *res;
->  	struct vpdma_data *vpdma;
-> @@ -854,6 +855,7 @@ struct vpdma_data *vpdma_create(struct
-> platform_device *pdev)
->  	}
-> 
->  	vpdma->pdev = pdev;
-> +	vpdma->cb = cb;
-> 
->  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vpdma");
->  	if (res == NULL) {
-> diff --git a/drivers/media/platform/ti-vpe/vpdma.h
-> b/drivers/media/platform/ti-vpe/vpdma.h
-> index cf40f11..bf5f8bb 100644
-> --- a/drivers/media/platform/ti-vpe/vpdma.h
-> +++ b/drivers/media/platform/ti-vpe/vpdma.h
-> @@ -35,8 +35,8 @@ struct vpdma_data {
-> 
->  	struct platform_device	*pdev;
-> 
-> -	/* tells whether vpdma firmware is loaded or not */
-> -	bool ready;
-> +	/* callback to VPE driver when the firmware is loaded */
-> +	void (*cb)(struct platform_device *pdev);
->  };
-> 
->  enum vpdma_data_format_type {
-> @@ -208,6 +208,7 @@ void vpdma_set_frame_start_event(struct vpdma_data
-> *vpdma,  void vpdma_dump_regs(struct vpdma_data *vpdma);
-> 
->  /* initialize vpdma, passed with VPE's platform device pointer */ -
-> struct vpdma_data *vpdma_create(struct platform_device *pdev);
-> +struct vpdma_data *vpdma_create(struct platform_device *pdev,
-> +		void (*cb)(struct platform_device *pdev));
-> 
->  #endif
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c
-> b/drivers/media/platform/ti-vpe/vpe.c
-> index f3143ac..f1eae67 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -1817,11 +1817,6 @@ static int vpe_open(struct file *file)
-> 
->  	vpe_dbg(dev, "vpe_open\n");
-> 
-> -	if (!dev->vpdma->ready) {
-> -		vpe_err(dev, "vpdma firmware not loaded\n");
-> -		return -ENODEV;
-> -	}
-> -
->  	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
->  	if (!ctx)
->  		return -ENOMEM;
-> @@ -2039,10 +2034,40 @@ static void vpe_runtime_put(struct
-> platform_device *pdev)
->  	WARN_ON(r < 0 && r != -ENOSYS);
->  }
-> 
-> +static void vpe_fw_cb(struct platform_device *pdev) {
-> +	struct vpe_dev *dev = platform_get_drvdata(pdev);
-> +	struct video_device *vfd;
-> +	int ret;
-> +
-> +	vfd = &dev->vfd;
-> +	*vfd = vpe_videodev;
-> +	vfd->lock = &dev->dev_mutex;
-> +	vfd->v4l2_dev = &dev->v4l2_dev;
-> +
-> +	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-> +	if (ret) {
-> +		vpe_err(dev, "Failed to register video device\n");
-> +
-> +		vpe_set_clock_enable(dev, 0);
-> +		vpe_runtime_put(pdev);
-> +		pm_runtime_disable(&pdev->dev);
-> +		v4l2_m2m_release(dev->m2m_dev);
-> +		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
-> +		v4l2_device_unregister(&dev->v4l2_dev);
-> +
-> +		return;
-> +	}
-> +
-> +	video_set_drvdata(vfd, dev);
-> +	snprintf(vfd->name, sizeof(vfd->name), "%s", vpe_videodev.name);
-> +	dev_info(dev->v4l2_dev.dev, "Device registered as /dev/video%d\n",
-> +		vfd->num);
-> +}
-> +
->  static int vpe_probe(struct platform_device *pdev)  {
->  	struct vpe_dev *dev;
-> -	struct video_device *vfd;
->  	int ret, irq, func;
-> 
->  	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL); @@ -
-> 2123,28 +2148,12 @@ static int vpe_probe(struct platform_device *pdev)
->  		goto runtime_put;
->  	}
-> 
-> -	dev->vpdma = vpdma_create(pdev);
-> +	dev->vpdma = vpdma_create(pdev, vpe_fw_cb);
->  	if (IS_ERR(dev->vpdma)) {
->  		ret = PTR_ERR(dev->vpdma);
->  		goto runtime_put;
->  	}
-> 
-> -	vfd = &dev->vfd;
-> -	*vfd = vpe_videodev;
-> -	vfd->lock = &dev->dev_mutex;
-> -	vfd->v4l2_dev = &dev->v4l2_dev;
-> -
-> -	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-> -	if (ret) {
-> -		vpe_err(dev, "Failed to register video device\n");
-> -		goto runtime_put;
-> -	}
-> -
-> -	video_set_drvdata(vfd, dev);
-> -	snprintf(vfd->name, sizeof(vfd->name), "%s", vpe_videodev.name);
-> -	dev_info(dev->v4l2_dev.dev, "Device registered as /dev/video%d\n",
-> -		vfd->num);
-> -
->  	return 0;
-> 
->  runtime_put:
-> --
-> 1.8.3.2
+I'd rather keep this here. Since I have the .pcm_hardware the core will ign=
+ore
+the snd_pcm_hardware.buffer_bytes_max when preallocating and it is in fact
+going to go for:
+	prealloc_buffer_size =3D 512 * 1024;
+	max_buffer_size =3D SIZE_MAX;
 
+While I have 128 * 1024 for the snd_pcm_hardware.buffer_bytes_max.
+
+I think as long as I have the .pcm_hardware provided from the edma-pcm driv=
+er
+I will have the .prealloc_buffer_size as well.
+
+>> +}; + +static const struct snd_dmaengine_pcm_config =
+
+>> edma_compat_dmaengine_pcm_config =3D { +    .pcm_hardware =3D
+>> &edma_pcm_hardware, +    .prepare_slave_config =3D
+>> snd_dmaengine_pcm_prepare_slave_config, +    .compat_filter_fn =3D
+>> edma_filter_fn, +    .prealloc_buffer_size =3D 128 * 1024, +};
+> =
+
+> There is no need for different configs for DT and non-DT.
+> =
+
+>> + +int edma_pcm_platform_register(struct device *dev) +{ +    if
+>> (dev->of_node) +        return snd_dmaengine_pcm_register(dev, +
+>> &edma_dmaengine_pcm_config, +
+>> SND_DMAENGINE_PCM_FLAG_NO_RESIDUE);
+> =
+
+> Since the edma dmaengine driver implements the slave cap API there is no
+> need to manually specify SND_DMAENGINE_PCM_FLAG_NO_RESIDUE manually. But
+> since the edma driver sets the granularity to
+> DMA_RESIDUE_GRANULARITY_DESCRIPTOR in this case the generic dmaengine will
+> not set SND_DMAENGINE_PCM_FLAG_NO_RESIDUE automatically since it assumes
+> that the dmaengine driver is capable of properly reporting the DMA
+> position.
+> =
+
+>> +    else +        return snd_dmaengine_pcm_register(dev, +
+>> &edma_compat_dmaengine_pcm_config, +
+>> SND_DMAENGINE_PCM_FLAG_NO_RESIDUE | +
+>> SND_DMAENGINE_PCM_FLAG_NO_DT | +
+>> SND_DMAENGINE_PCM_FLAG_COMPAT);
+> =
+
+> =
+
+> If you set the flags to just SND_DMAENGINE_PCM_FLAG_COMPAT it will do the =
+
+> right thing in the generic dmaengine driver depending on whether
+> dev->of_node is set or not.
+
+I have missed these in the core. Makes the code simpler for sure.
+
+> There is also a devm_ version of snd_dmaengine_pcm_register() it probably =
+
+> makes sense to use it here.
+
+I forgot about the devm_ version. True, I'll use that instead.
+
+-- =
+
+P=E9ter
