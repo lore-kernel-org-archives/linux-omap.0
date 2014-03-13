@@ -1,90 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] dma: omap-dma: Implement device_slave_caps callback
-Date: Thu, 13 Mar 2014 09:25:53 -0700
-Message-ID: <20140313162553.GA5576@atomide.com>
-References: <1394199404-7870-1-git-send-email-peter.ujfalusi@ti.com>
- <20140312173700.GA1996@atomide.com>
- <532162E1.8090608@ti.com>
+From: Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCHv4 4/7] hwspinlock/core: add common OF helpers
+Date: Thu, 13 Mar 2014 11:43:15 -0500
+Message-ID: <20140313164315.GQ18529@joshc.qualcomm.com>
+References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
+ <1389658764-39199-5-git-send-email-s-anna@ti.com>
+ <CAJAp7Oi7wD+VsMAd37gT04yZ4TH4ygXFmheDhvmWuanUjpBmVQ@mail.gmail.com>
+ <52F92524.3080402@ti.com>
+ <CAK=WgbY0wDtGCm71E8VXi2g5+VcGogHEy8jdekTRg8xtp6-3rQ@mail.gmail.com>
+ <CAJAp7Ohf43hbKatCwS5Y1+OfEkJYWOkuhZhW-E_=t_9mfM+UaA@mail.gmail.com>
+ <53160F8F.9060405@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29218 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751833AbaCMQZ7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 12:25:59 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <532162E1.8090608@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <53160F8F.9060405-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: vinod.koul@intel.com, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [140313 00:52]:
-> Hi Tony,
+On Tue, Mar 04, 2014 at 11:38:23AM -0600, Suman Anna wrote:
+> Hi Ohad,
 > 
-> On 03/12/2014 07:37 PM, Tony Lindgren wrote:
-> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [140307 05:39]:
-> >> With the callback implemented omap-dma can provide information to client
-> >> drivers regarding to supported address widths, directions, residue
-> >> granularity, etc.
-> > 
-> > This may need some testing against linux next with Russell's
-> > omap-dma.c clean-up series merged there. Peter, care to check
-> > if this patch is still valid against linux next?
-> 
-> The patch applies cleanly on top of linux-next fetched yesterday and I see
-> Russell's patches underneath.
-
-OK thanks for testing:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> > Regards,
-> > 
-> > Tony
-> >  
-> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> >> ---
-> >>  drivers/dma/omap-dma.c | 18 ++++++++++++++++++
-> >>  1 file changed, 18 insertions(+)
+> On 03/02/2014 02:19 PM, Bjorn Andersson wrote:
+> >On Sat, Mar 1, 2014 at 9:14 PM, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> wrote:
+> >>On Mon, Feb 10, 2014 at 9:14 PM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
+> >>>On 02/07/2014 04:49 PM, Bjorn Andersson wrote:
+> >>>Ohad,
+> >>>Do you have any objections to the return code convention change?
 > >>
-> >> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-> >> index 64ceca2920b8..b19f04f4390b 100644
-> >> --- a/drivers/dma/omap-dma.c
-> >> +++ b/drivers/dma/omap-dma.c
-> >> @@ -1088,6 +1088,23 @@ static void omap_dma_free(struct omap_dmadev *od)
-> >>  	}
-> >>  }
-> >>  
-> >> +#define OMAP_DMA_BUSWIDTHS	(BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) | \
-> >> +				 BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) | \
-> >> +				 BIT(DMA_SLAVE_BUSWIDTH_4_BYTES))
-> >> +
-> >> +static int omap_dma_device_slave_caps(struct dma_chan *dchan,
-> >> +				      struct dma_slave_caps *caps)
-> >> +{
-> >> +	caps->src_addr_widths = OMAP_DMA_BUSWIDTHS;
-> >> +	caps->dstn_addr_widths = OMAP_DMA_BUSWIDTHS;
-> >> +	caps->directions = BIT(DMA_DEV_TO_MEM) | BIT(DMA_MEM_TO_DEV);
-> >> +	caps->cmd_pause = true;
-> >> +	caps->cmd_terminate = true;
-> >> +	caps->residue_granularity = DMA_RESIDUE_GRANULARITY_BURST;
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >>  static int omap_dma_probe(struct platform_device *pdev)
-> >>  {
-> >>  	struct omap_dmadev *od;
-> >> @@ -1118,6 +1135,7 @@ static int omap_dma_probe(struct platform_device *pdev)
-> >>  	od->ddev.device_prep_slave_sg = omap_dma_prep_slave_sg;
-> >>  	od->ddev.device_prep_dma_cyclic = omap_dma_prep_dma_cyclic;
-> >>  	od->ddev.device_control = omap_dma_control;
-> >> +	od->ddev.device_slave_caps = omap_dma_device_slave_caps;
-> >>  	od->ddev.dev = &pdev->dev;
-> >>  	INIT_LIST_HEAD(&od->ddev.channels);
-> >>  	INIT_LIST_HEAD(&od->pending);
-> >> -- 
-> >> 1.9.0
+> >>Unless strictly needed, I prefer we don't switch to the ERR_PTR code
+> >>convention, as it reduces code readability and increases chances of
+> >>user bugs.
 > >>
+> >>In our case, switching to ERR_PTR and friends seems only to optimize a
+> >>few error paths, and I'm not sure it's a big win over simplicity.
+> >
+> >When introducing the ability to reference a hwspin lock via a phandle
+> >in device tree it makes a big difference to be able to differ between
+> >the case of "initialization failed" or "device not yet probed"; so
+> >that the client knows if it should fail or retry later.
+> >
 > 
+> Can you confirm the changes you want me to make, so that I can refresh and
+> post a v5 for 3.15?
+
+What's the status on this?  I'm assuming this is going to miss 3.15?
+Having DT support in the core will be useful to move the Qualcomm
+hwspinlock driver forward as well.
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+hosted by The Linux Foundation
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
