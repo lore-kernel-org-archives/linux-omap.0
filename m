@@ -1,73 +1,101 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/2] omap device tree changes for v3.15, part 3
-Date: Thu, 13 Mar 2014 13:01:35 -0700
-Message-ID: <20140313200135.GA5981@atomide.com>
+Subject: [GIT PULL 2/2] omap overo related device tree changes for v3.15
+Date: Thu, 13 Mar 2014 13:02:54 -0700
+Message-ID: <20140313200253.GB5981@atomide.com>
+References: <20140313200135.GA5981@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42202 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755383AbaCMUBl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 16:01:41 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41578 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755111AbaCMUDC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 16:03:02 -0400
 Content-Disposition: inline
+In-Reply-To: <20140313200135.GA5981@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: arm@kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi,
+The following changes since commit cfbf8d4857c26a8a307fb7cd258074c9dcd8c691:
 
-Resending these two, looks like my updated scripts have some issues hitting
-the mailing lists..
-
-The following changes since commit 18c49af3ee9e32a535413a949672bea726699f04:
-
-  ARM: dts: am335x-evmsk: enable dual_emac mode (2014-03-05 11:53:36 -0800)
+  Linux 3.14-rc4 (2014-02-23 17:40:03 -0800)
 
 are available in the git repository at:
-  
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/dt-part3
 
-for you to fetch changes up to e1902bbe44844597a38c8cbae30ca895f6e126ee:
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/dt-overo-signed
 
-  ARM: dts: Add MMC2/SDIO/WLAN support for cm-t3530 (2014-03-12 10:40:37 -0700)
+for you to fetch changes up to 28b191118c11719bb27db621425a70be28a40e08:
 
-----------------------------------------------------------------
-Device tree related changes to the omap iommu driver as that
-is finally getting updated. Also few trivial board related
-.dts updates to add more devices.
+  ARM: dts: Add support for the Overo Summit (2014-03-12 10:21:16 -0700)
 
 ----------------------------------------------------------------
-Florian Vaussard (4):
-      ARM: OMAP3: remove deprecated CONFIG_OMAP_IOMMU_IVA2
-      ARM: dts: OMAP3: Update ISP IOMMU node
-      ARM: dts: OMAP3: Add IVA IOMMU node
-      ARM: dts: OMAP4: Add IOMMU nodes
+Updates to the .dts files to support more Gumstix boards.
 
-Stefan Roese (1):
-      ARM: dts: Add MMC2/SDIO/WLAN support for cm-t3530
+These are sent separately from the rest of the .dts changes
+as these depend on the fixes merged into v3.14-rc4, and
+needed a bit more time to get updated on the fixes.
 
-Suman Anna (6):
-      ARM: OMAP3: fix iva mmu programming issues
-      ARM: OMAP2+: change the ISP device archdata MMU name for DT
-      ARM: OMAP2+: use pdata quirks for iommu reset lines
-      ARM: OMAP5: hwmod data: add mmu data for ipu & dsp
-      ARM: OMAP2+: extend iommu pdata-quirks to OMAP5
-      ARM: dts: OMAP5: Add IOMMU nodes
+----------------------------------------------------------------
+Florian Vaussard (16):
+      ARM: dts: overo: reorganize include files
+      ARM: dts: omap3-tobi: Add missing pinctrl
+      ARM: dts: omap3-overo: Add missing pinctrl
+      ARM: dts: omap3-overo: Enable WiFi/BT combo
+      ARM: dts: omap3-overo: Add HSUSB PHY
+      ARM: dts: omap: Add common file for SMSC9221
+      ARM: dts: omap3-tobi: Use include file omap-gpmc-smsc9221
+      ARM: dts: omap3-tobi: Add AT24C01 EEPROM
+      ARM: dts: overo: Push uart3 pinmux down to expansion board
+      ARM: dts: overo: Create a file for common Gumstix peripherals
+      ARM: dts: overo: Add LIS33DE accelerometer
+      ARM: dts: Add support for the Overo Palo43
+      ARM: dts: Add support for the Overo Gallop43
+      ARM: dts: Add support for the Overo Alto35
+      ARM: dts: Add support for the Overo Chestnut43
+      ARM: dts: Add support for the Overo Summit
 
-Yegor Yefremov (1):
-      ARM: dts: am335x-evmsk: enable DMA controller for USB
-
- arch/arm/boot/dts/am335x-evmsk.dts          |  4 ++
- arch/arm/boot/dts/omap3-cm-t3530.dts        | 36 +++++++++++++
- arch/arm/boot/dts/omap3.dtsi                | 15 ++++--
- arch/arm/boot/dts/omap4.dtsi                | 15 ++++++
- arch/arm/boot/dts/omap5.dtsi                | 15 ++++++
- arch/arm/mach-omap2/clockdomains3xxx_data.c |  2 +-
- arch/arm/mach-omap2/devices.c               |  3 ++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c  | 12 ++---
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c  | 83 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pdata-quirks.c          | 24 +++++++++
- arch/arm/plat-omap/Kconfig                  |  3 --
- 11 files changed, 197 insertions(+), 15 deletions(-)
-
+ arch/arm/boot/dts/Makefile                         |  10 +
+ arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi          |  58 ++++++
+ arch/arm/boot/dts/omap3-overo-alto35-common.dtsi   |  77 +++++++
+ arch/arm/boot/dts/omap3-overo-alto35.dts           |  22 ++
+ arch/arm/boot/dts/omap3-overo-base.dtsi            | 221 +++++++++++++++++++++
+ .../boot/dts/omap3-overo-chestnut43-common.dtsi    |  69 +++++++
+ arch/arm/boot/dts/omap3-overo-chestnut43.dts       |  38 ++++
+ .../boot/dts/omap3-overo-common-peripherals.dtsi   |  94 +++++++++
+ arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi |  57 ++++++
+ arch/arm/boot/dts/omap3-overo-gallop43.dts         |  38 ++++
+ arch/arm/boot/dts/omap3-overo-palo43-common.dtsi   |  53 +++++
+ arch/arm/boot/dts/omap3-overo-palo43.dts           |  38 ++++
+ arch/arm/boot/dts/omap3-overo-storm-alto35.dts     |  21 ++
+ arch/arm/boot/dts/omap3-overo-storm-chestnut43.dts |  38 ++++
+ arch/arm/boot/dts/omap3-overo-storm-gallop43.dts   |  38 ++++
+ arch/arm/boot/dts/omap3-overo-storm-palo43.dts     |  38 ++++
+ arch/arm/boot/dts/omap3-overo-storm-summit.dts     |  30 +++
+ arch/arm/boot/dts/omap3-overo-storm-tobi.dts       |   2 +-
+ arch/arm/boot/dts/omap3-overo-storm.dtsi           |  35 ++++
+ arch/arm/boot/dts/omap3-overo-summit-common.dtsi   |  31 +++
+ arch/arm/boot/dts/omap3-overo-summit.dts           |  30 +++
+ arch/arm/boot/dts/omap3-overo-tobi-common.dtsi     |  51 +----
+ arch/arm/boot/dts/omap3-overo-tobi.dts             |   2 +-
+ arch/arm/boot/dts/omap3-overo.dtsi                 |  97 ++-------
+ 24 files changed, 1063 insertions(+), 125 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-alto35-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-alto35.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-base.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-chestnut43.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-gallop43.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-palo43-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-palo43.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-storm-alto35.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-storm-chestnut43.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-storm-gallop43.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-storm-palo43.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-storm-summit.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-storm.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-summit-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-summit.dts
