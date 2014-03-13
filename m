@@ -1,81 +1,52 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 00/14] v4l: ti-vpe: Some VPE fixes and enhancements
-Date: Thu, 13 Mar 2014 17:14:02 +0530
-Message-ID: <1394711056-10878-1-git-send-email-archit@ti.com>
+Subject: [PATCH v4 01/14] v4l: ti-vpe: Make sure in job_ready that we have the needed number of dst_bufs
+Date: Thu, 13 Mar 2014 17:14:03 +0530
+Message-ID: <1394711056-10878-2-git-send-email-archit@ti.com>
 References: <1394526833-24805-1-git-send-email-archit@ti.com>
+ <1394711056-10878-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
+In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 To: k.debski@samsung.com, hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch set mainly consists of minor fixes for the VPE driver. These fixes
-ensure the following:
+VPE has a ctrl parameter which decides how many mem to mem transactions the
+active job from the job queue can perform.
 
-- The VPE module can be inserted and removed successively.
-- Make sure that smaller resolutions like qcif work correctly.
-- Prevent race condition between firmware loading and an open call to the v4l2
-  device.
-- Prevent the possibility of output m2m queue not having sufficient 'ready'
-  buffers.
-- Some VPDMA data descriptor fields weren't understood correctly before. They
-  are now used correctly.
+The driver's job_ready() made sure that the number of ready source buffers are
+sufficient for the job to execute successfully. But it didn't make sure if
+there are sufficient ready destination buffers in the capture queue for the
+VPE output.
 
-The rest of the patches add some minor features like DMA buf support and
-cropping/composing.
+If the time taken by VPE to process a single frame is really slow, then it's
+possible that we don't need to imply such a restriction on the dst queue, but
+really fast transactions(small resolution, no de-interlacing) may cause us to
+hit the condition where we don't have any free buffers for the VPE to write on.
 
-Reference branch:
+Add the extra check in job_ready() to make sure we have the sufficient amount
+of destination buffers.
 
-git@github.com:boddob/linux.git vpe_for_315
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Changes in v4:
-
-- More legible code for selection API
-- Stricter checking for target type vs crop type in g_selection
-- Minor fix in patch 13/14, there was a logical bug in buf_prepare when
-  checking validity of top and bottom fields.
-
-Changes in v3:
-
-- improvements in selection API patch.
-- querycap fixes for v4l2 compliance.
-- v4l2_buffer 'field' and flags' fixes for compliance.
-- fixes in try_fmt vpe_open for compliance.
-- rename a IOMEM resource for better DT compatibility.
-
-Changes in v2:
-
-- selection API used instead of older cropping API.
-- Typo fix.
-- Some changes in patch 6/7 to support composing on the capture side of VPE.
-
-
-Archit Taneja (14):
-  v4l: ti-vpe: Make sure in job_ready that we have the needed number of
-    dst_bufs
-  v4l: ti-vpe: register video device only when firmware is loaded
-  v4l: ti-vpe: Use video_device_release_empty
-  v4l: ti-vpe: Allow DMABUF buffer type support
-  v4l: ti-vpe: Allow usage of smaller images
-  v4l: ti-vpe: Fix some params in VPE data descriptors
-  v4l: ti-vpe: Add selection API in VPE driver
-  v4l: ti-vpe: Rename csc memory resource name
-  v4l: ti-vpe: report correct capabilities in querycap
-  v4l: ti-vpe: Use correct bus_info name for the device in querycap
-  v4l: ti-vpe: Fix initial configuration queue data
-  v4l: ti-vpe: zero out reserved fields in try_fmt
-  v4l: ti-vpe: Set correct field parameter for output and capture
-    buffers
-  v4l: ti-vpe: retain v4l2_buffer flags for captured buffers
-
- drivers/media/platform/ti-vpe/csc.c   |   2 +-
- drivers/media/platform/ti-vpe/vpdma.c |  68 ++++++---
- drivers/media/platform/ti-vpe/vpdma.h |  17 ++-
- drivers/media/platform/ti-vpe/vpe.c   | 272 ++++++++++++++++++++++++++++------
- 4 files changed, 290 insertions(+), 69 deletions(-)
-
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 7a77a5b..f3143ac 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -887,6 +887,9 @@ static int job_ready(void *priv)
+ 	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < needed)
+ 		return 0;
+ 
++	if (v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) < needed)
++		return 0;
++
+ 	return 1;
+ }
+ 
 -- 
 1.8.3.2
