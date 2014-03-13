@@ -1,101 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/2] omap overo related device tree changes for v3.15
-Date: Thu, 13 Mar 2014 13:02:54 -0700
-Message-ID: <20140313200253.GB5981@atomide.com>
-References: <20140313200135.GA5981@atomide.com>
+Subject: Re: [PATCH v3 0/2] ARM: OMAP4+: Fix gpmc_fck clock
+Date: Thu, 13 Mar 2014 13:24:25 -0700
+Message-ID: <20140313202425.GC5981@atomide.com>
+References: <1393411089-9550-1-git-send-email-florian.vaussard@epfl.ch>
+ <53216D58.2040304@epfl.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41578 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33774 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755111AbaCMUDC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 16:03:02 -0400
+	with ESMTP id S1755060AbaCMUYc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 16:24:32 -0400
 Content-Disposition: inline
-In-Reply-To: <20140313200135.GA5981@atomide.com>
+In-Reply-To: <53216D58.2040304@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The following changes since commit cfbf8d4857c26a8a307fb7cd258074c9dcd8c691:
+* Florian Vaussard <florian.vaussard@epfl.ch> [140313 01:36]:
+> Hi,
+> 
+> On 02/26/2014 11:38 AM, Florian Vaussard wrote:
+> > Hello,
+> > 
+> > Trying to get my SMSC9221 working on OMAP4 with DT,
+> > I faced a misconfigured gpmc_fck (dummy clock set to 0)
+> > resulting in serveral division-by-zero, misconfigured
+> > timings and driver lost in the La La Land.
+> > 
+> > To solve this, patch 1 removes gpmc_fck from the dummy
+> > clocks, and patch 2 adds the gpmc_fck DT node and
+> > reference it from the gpmc node.
+> > 
+> > *Note*: For DRA7, there is no DTS node for the GPMC, so I
+> > was unable to set the corresponding clock. And without
+> > a public TRM, I cannot do much more.
+> > 
+> > Tested on DuoVero/Parlor (OMAP4430) with SMSC9221 (DTS
+> > was posted on the OMAP ML [1]).
+> > 
+> > Regards,
+> > Florian
+> > 
+> > [1] http://thread.gmane.org/gmane.linux.ports.arm.omap/110801
+> > ---
+> > Since v2:
+> > - Added OMAP5 and DRA7
+> > Since v1:
+> > - Removed the gpmc_fck clock node, and reference directly l3_ick
+> > 
+> > Florian Vaussard (2):
+> >   CLK: TI: OMAP4/5/DRA7: Remove gpmc_fck from dummy clocks
+> >   ARM: DTS: OMAP4/5: Use l3_ick for the gpmc node
+> > 
+> 
+> Any other comments on these two patches? If it is not going into 3.15
+> before the merge window, it will have to go through the -rc cycle as the
+> Duovero/Parlor .dts will be upstream.
 
-  Linux 3.14-rc4 (2014-02-23 17:40:03 -0800)
+Applying both into omap-for-v3.15/fixes with Cc: stable v3.14+.
 
-are available in the git repository at:
+Regards,
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/dt-overo-signed
-
-for you to fetch changes up to 28b191118c11719bb27db621425a70be28a40e08:
-
-  ARM: dts: Add support for the Overo Summit (2014-03-12 10:21:16 -0700)
-
-----------------------------------------------------------------
-Updates to the .dts files to support more Gumstix boards.
-
-These are sent separately from the rest of the .dts changes
-as these depend on the fixes merged into v3.14-rc4, and
-needed a bit more time to get updated on the fixes.
-
-----------------------------------------------------------------
-Florian Vaussard (16):
-      ARM: dts: overo: reorganize include files
-      ARM: dts: omap3-tobi: Add missing pinctrl
-      ARM: dts: omap3-overo: Add missing pinctrl
-      ARM: dts: omap3-overo: Enable WiFi/BT combo
-      ARM: dts: omap3-overo: Add HSUSB PHY
-      ARM: dts: omap: Add common file for SMSC9221
-      ARM: dts: omap3-tobi: Use include file omap-gpmc-smsc9221
-      ARM: dts: omap3-tobi: Add AT24C01 EEPROM
-      ARM: dts: overo: Push uart3 pinmux down to expansion board
-      ARM: dts: overo: Create a file for common Gumstix peripherals
-      ARM: dts: overo: Add LIS33DE accelerometer
-      ARM: dts: Add support for the Overo Palo43
-      ARM: dts: Add support for the Overo Gallop43
-      ARM: dts: Add support for the Overo Alto35
-      ARM: dts: Add support for the Overo Chestnut43
-      ARM: dts: Add support for the Overo Summit
-
- arch/arm/boot/dts/Makefile                         |  10 +
- arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi          |  58 ++++++
- arch/arm/boot/dts/omap3-overo-alto35-common.dtsi   |  77 +++++++
- arch/arm/boot/dts/omap3-overo-alto35.dts           |  22 ++
- arch/arm/boot/dts/omap3-overo-base.dtsi            | 221 +++++++++++++++++++++
- .../boot/dts/omap3-overo-chestnut43-common.dtsi    |  69 +++++++
- arch/arm/boot/dts/omap3-overo-chestnut43.dts       |  38 ++++
- .../boot/dts/omap3-overo-common-peripherals.dtsi   |  94 +++++++++
- arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi |  57 ++++++
- arch/arm/boot/dts/omap3-overo-gallop43.dts         |  38 ++++
- arch/arm/boot/dts/omap3-overo-palo43-common.dtsi   |  53 +++++
- arch/arm/boot/dts/omap3-overo-palo43.dts           |  38 ++++
- arch/arm/boot/dts/omap3-overo-storm-alto35.dts     |  21 ++
- arch/arm/boot/dts/omap3-overo-storm-chestnut43.dts |  38 ++++
- arch/arm/boot/dts/omap3-overo-storm-gallop43.dts   |  38 ++++
- arch/arm/boot/dts/omap3-overo-storm-palo43.dts     |  38 ++++
- arch/arm/boot/dts/omap3-overo-storm-summit.dts     |  30 +++
- arch/arm/boot/dts/omap3-overo-storm-tobi.dts       |   2 +-
- arch/arm/boot/dts/omap3-overo-storm.dtsi           |  35 ++++
- arch/arm/boot/dts/omap3-overo-summit-common.dtsi   |  31 +++
- arch/arm/boot/dts/omap3-overo-summit.dts           |  30 +++
- arch/arm/boot/dts/omap3-overo-tobi-common.dtsi     |  51 +----
- arch/arm/boot/dts/omap3-overo-tobi.dts             |   2 +-
- arch/arm/boot/dts/omap3-overo.dtsi                 |  97 ++-------
- 24 files changed, 1063 insertions(+), 125 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-alto35-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-alto35.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-base.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-chestnut43.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-common-peripherals.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-gallop43.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-palo43-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-palo43.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm-alto35.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm-chestnut43.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm-gallop43.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm-palo43.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm-summit.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-summit-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-summit.dts
+Tony
+ 
+> >  arch/arm/boot/dts/omap4.dtsi | 2 ++
+> >  arch/arm/boot/dts/omap5.dtsi | 2 ++
+> >  drivers/clk/ti/clk-44xx.c    | 1 -
+> >  drivers/clk/ti/clk-54xx.c    | 1 -
+> >  drivers/clk/ti/clk-7xx.c     | 1 -
+> >  5 files changed, 4 insertions(+), 3 deletions(-)
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
