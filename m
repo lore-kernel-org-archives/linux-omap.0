@@ -1,46 +1,84 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 10/14] v4l: ti-vpe: Use correct bus_info name for the device in querycap
-Date: Thu, 13 Mar 2014 17:14:12 +0530
-Message-ID: <1394711056-10878-11-git-send-email-archit@ti.com>
+Subject: [PATCH v4 13/14] v4l: ti-vpe: Set correct field parameter for output and capture buffers
+Date: Thu, 13 Mar 2014 17:14:15 +0530
+Message-ID: <1394711056-10878-14-git-send-email-archit@ti.com>
 References: <1394526833-24805-1-git-send-email-archit@ti.com>
  <1394711056-10878-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60483 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754184AbaCMLpg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Mar 2014 07:45:36 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:42501 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754133AbaCMLpq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 07:45:46 -0400
 In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: k.debski@samsung.com, hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The bus_info parameter in v4l2_capabilities expects a 'platform_' prefix. This
-wasn't done in the driver and hence was breaking compliance. Update the bus_info
-parameter accordingly.
+The vpe driver wasn't setting the correct field parameter for dequed CAPTURE
+type buffers for the case where the captured output is progressive.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Set the field to V4L2_FIELD_NONE for the completed destination buffers when
+the captured output is progressive.
+
+For OUTPUT type buffers, a queued buffer's field is forced to V4L2_FIELD_NONE
+if the pixel format(configured through s_fmt for the buffer type
+V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE specifies) the field type isn't interlaced.
+If the pixel format specified was V4L2_FIELD_ALTERNATE, and the queued buffer's
+field isn't V4L2_FIELD_TOP or V4L2_FIELD_BOTTOM, the vb2 buf_prepare op returns
+an error.
+
+This ensures compliance, and that the dequeued output and captured buffers
+contain the field type that the driver used internally.
+
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/platform/ti-vpe/vpe.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index c066eb8..3a312ea 100644
+index c0ae847..362d5be 100644
 --- a/drivers/media/platform/ti-vpe/vpe.c
 +++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1346,7 +1346,8 @@ static int vpe_querycap(struct file *file, void *priv,
- {
- 	strncpy(cap->driver, VPE_MODULE_NAME, sizeof(cap->driver) - 1);
- 	strncpy(cap->card, VPE_MODULE_NAME, sizeof(cap->card) - 1);
--	strlcpy(cap->bus_info, VPE_MODULE_NAME, sizeof(cap->bus_info));
-+	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-+		VPE_MODULE_NAME);
- 	cap->device_caps  = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
+@@ -1296,10 +1296,10 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ 		d_buf->timecode = s_buf->timecode;
+ 	}
+ 	d_buf->sequence = ctx->sequence;
+-	d_buf->field = ctx->field;
+ 
+ 	d_q_data = &ctx->q_data[Q_DATA_DST];
+ 	if (d_q_data->flags & Q_DATA_INTERLACED) {
++		d_buf->field = ctx->field;
+ 		if (ctx->field == V4L2_FIELD_BOTTOM) {
+ 			ctx->sequence++;
+ 			ctx->field = V4L2_FIELD_TOP;
+@@ -1308,6 +1308,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ 			ctx->field = V4L2_FIELD_BOTTOM;
+ 		}
+ 	} else {
++		d_buf->field = V4L2_FIELD_NONE;
+ 		ctx->sequence++;
+ 	}
+ 
+@@ -1880,6 +1881,16 @@ static int vpe_buf_prepare(struct vb2_buffer *vb)
+ 	q_data = get_q_data(ctx, vb->vb2_queue->type);
+ 	num_planes = q_data->fmt->coplanar ? 2 : 1;
+ 
++	if (vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		if (!(q_data->flags & Q_DATA_INTERLACED)) {
++			vb->v4l2_buf.field = V4L2_FIELD_NONE;
++		} else {
++			if (vb->v4l2_buf.field != V4L2_FIELD_TOP &&
++					vb->v4l2_buf.field != V4L2_FIELD_BOTTOM)
++				return -EINVAL;
++		}
++	}
++
+ 	for (i = 0; i < num_planes; i++) {
+ 		if (vb2_plane_size(vb, i) < q_data->sizeimage[i]) {
+ 			vpe_err(ctx->dev,
 -- 
 1.8.3.2
 
