@@ -1,61 +1,61 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 14/18] ASoC: davinci: Add edma dmaengine
- platform driver
-Date: Thu, 13 Mar 2014 15:03:00 +0200
-Message-ID: <5321AC84.7080004@ti.com>
-References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
- <1394702320-21743-15-git-send-email-peter.ujfalusi@ti.com>
- <53218835.3080909@metafoo.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v1 1/3] ARM: dts: am335x-bone: add support for beaglebone
+ NAND cape
+Date: Thu, 13 Mar 2014 08:03:14 -0500
+Message-ID: <5321AC92.2090307@ti.com>
+References: <1394621360-2457-1-git-send-email-pekon@ti.com> <1394621360-2457-2-git-send-email-pekon@ti.com> <532070C8.1030903@ti.com> <20980858CB6D3A4BAE95CA194937D5E73EAB2CF1@DBDE04.ent.ti.com> <CAGo_u6rvUqa-7afTFzBahDJuyVkXAj5J2LL8tQRjZuf8_xWXWA@mail.gmail.com> <CAOCHtYhqZoCF13e1YjBiWPufDEmVotL3chO9ZUtivWbVTWVfiQ@mail.gmail.com> <20140312192850.GF1996@atomide.com> <5320C8B5.601@ti.com> <20980858CB6D3A4BAE95CA194937D5E73EAB2E95@DBDE04.ent.ti.com> <20140312215337.GA5735@kahuna> <20980858CB6D3A4BAE95CA194937D5E73EAB2F96@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <53218835.3080909@metafoo.de>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: davinci-linux-open-source@linux.davincidsp.com, alsa-devel@alsa-project.org, joelf@ti.com, vinod.koul@intel.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, mporter@linaro.org, dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:40459 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752499AbaCMNDl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Mar 2014 09:03:41 -0400
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EAB2F96@DBDE04.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gupta, Pekon" <pekon@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Robert Nelson <robertcnelson@gmail.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>
 
-On 03/13/2014 12:28 PM, Lars-Peter Clausen wrote:
->> +int edma_pcm_platform_register(struct device *dev)
->> +{
->> +    if (dev->of_node)
->> +        return snd_dmaengine_pcm_register(dev,
->> +                    &edma_dmaengine_pcm_config,
->> +                    SND_DMAENGINE_PCM_FLAG_NO_RESIDUE);
-> =
+On 03/13/2014 01:19 AM, Gupta, Pekon wrote:
+[..]
+>> diff --git a/arch/arm/boot/dts/am335x-bone-memory-cape.dts b/arch/arm/boot/dts/am335x-bone-memory-cape.dts
+>> new file mode 100644
+>> index 0000000..7ab088d
+>> --- /dev/null
+>> +++ b/arch/arm/boot/dts/am335x-bone-memory-cape.dts
+>>
+> From discussions, option I could think are..
+> 
+> (a) NAND cape node added in both 'am335x-bone.dts' and
+>    'am335x-boneblack.dts' but "disabled" by default.
+> 
+> (b) NAND cape node in new '.dts' file (as mentioned above), and generate
+>    a separate blob individual for cape.
+> 
+> (c) NAND cape node in existing 'am335x-bone-common.dtsi', "disabled"
+>    by default. But there is no guarantee that future boards remain
+>    compatible and same 'common_xx.dtsi' can be reused later.
+> 
+> I'll wait for Tony/Benoit-C. to decide on what suits them, as they are the
+> ones who have to maintain all these. Tony ?
+> 
 
-> Since the edma dmaengine driver implements the slave cap API there is no =
-need
-> to manually specify SND_DMAENGINE_PCM_FLAG_NO_RESIDUE manually. But since=
- the
-> edma driver sets the granularity to DMA_RESIDUE_GRANULARITY_DESCRIPTOR in=
- this
-> case the generic dmaengine will not set SND_DMAENGINE_PCM_FLAG_NO_RESIDUE
-> automatically since it assumes that the dmaengine driver is capable of
-> properly reporting the DMA position.
+Key for us is that we'd have to live with what ever we introduce in
+the interest of backward dtb compatibility. both (a) and (c) requires
+hand modification by user of nand cape - considering this might be the
+strategy for "most common capes", we might end up with confusing
+entries that in many cases will require additional documentation
+example: option a, c: consider both audio cape (which needs hdmi
+disabled) and nand cape (which needs mmc2 disabled) - how'd the user
+know which entries to enable/disable for the user of the cape -
+documentation needed and potentially user error prone implementation
+as well.
 
-Hrm, I see. For eDMA I think we can support DMA_RESIDUE_GRANULARITY_SEGMENT
-granularity. Since according to the documentation the _SEGMENT means that t=
-he
-DMA position will be updated per periods, which is basically the same thing
-what we are doing at the moment when the granularity is
-DMA_RESIDUE_GRANULARITY_DESCRIPTOR.
->From ALSA point of view at least they are the same: neither of them can rep=
-ort
-exact position, the DMA pointer jumps from period to period.
+There is as well a option (d) where we wait for FDT overlay to mature,
+write up a resource manager and support all level capes.
 
-IMHO in the generic dmaengine PCM we should set the SNDRV_PCM_INFO_BATCH for
-both cases.
-
--- =
-
-P=E9ter
+-- 
+Regards,
+Nishanth Menon
