@@ -1,56 +1,65 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH 1/3] ARM: dts: overo: Add support for DVI output
-Date: Thu, 13 Mar 2014 09:25:43 +0100
-Message-ID: <53216B87.9070007@epfl.ch>
-References: <1394541257-25605-1-git-send-email-florian.vaussard@epfl.ch> <1394541257-25605-2-git-send-email-florian.vaussard@epfl.ch> <53200894.5020602@ti.com>
+Subject: Re: [PATCH 0/7] ARM: dts: overo: Add new expansion boards
+Date: Thu, 13 Mar 2014 09:29:34 +0100
+Message-ID: <53216C6E.9050706@epfl.ch>
+References: <1394540435-25401-1-git-send-email-florian.vaussard@epfl.ch> <20140312172247.GC30897@atomide.com>
 Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:52314 "EHLO smtp4.epfl.ch"
+Received: from smtp4.epfl.ch ([128.178.224.219]:34614 "EHLO smtp4.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753196AbaCMIZr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Mar 2014 04:25:47 -0400
-In-Reply-To: <53200894.5020602@ti.com>
+	id S1751286AbaCMI3h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Mar 2014 04:29:37 -0400
+In-Reply-To: <20140312172247.GC30897@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: Ash Charles <ash@gumstix.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Roger Quadros <rogerq@ti.com>, Nishanth Menon <nm@ti.com>, Ash Charles <ash@gumstix.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 Hi,
 
-On 03/12/2014 08:11 AM, Tomi Valkeinen wrote:
-> On 11/03/14 14:34, Florian Vaussard wrote:
->> Summit and Tobi expansion boards have a HDMI connector with a TFP410
->> encoder. Add a common include file for this configuration, and then
->> use it for Summit and Tobi.
+On 03/12/2014 06:22 PM, Tony Lindgren wrote:
+> * Florian Vaussard <florian.vaussard@epfl.ch> [140311 05:24]:
+>> Hi,
 >>
->> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
->> ---
->>  arch/arm/boot/dts/omap3-overo-common-dvi.dtsi    | 109 +++++++++++++++++++++++
->>  arch/arm/boot/dts/omap3-overo-summit-common.dtsi |   1 +
->>  arch/arm/boot/dts/omap3-overo-tobi-common.dtsi   |   1 +
->>  3 files changed, 111 insertions(+)
->>  create mode 100644 arch/arm/boot/dts/omap3-overo-common-dvi.dtsi
+>> This series adds the support for 5 new expansion boards from Gumstix:
+>> - Palo43
+>> - Gallop43
+>> - Chestnut43
+>> - Alto35
+>> - Summit
+>>
+>> The 1st patch is a preparatory work, in order to factorize some
+>> peripherals that are common to most Gumstix expansion boards. Patch 2
+>> adds the support for an accelerometer that is present on most boards.
+>>
+>> Palo43, Gallop43 and Chestnut43 are all pretty similar. I tested
+>> on a Gallop43 (with both OMAP35xx and OMAP36xx Overo).
+>>
+>> Alto35 is slightly different. Again, I tested with both OMAP35xx and
+>> OMAP36xx Overo.
+>>
+>> Summit is pretty similar to Tobi. I do not have a Summit at hand,
+>> but given the similarity with Tobi, it should work fine.
+>>
+>> To avoid unnecessary duplications, I put all the common stuff for each
+>> board inside an omap3-overo-xxx-common.dsti include file. By doing so,
+>> I can have minimal SoC-specific omap3-overo-xxx.dts (omap34xx based)
+>> and omap3-overo-storm-xxx.dts (omap36xx based) device trees.
+>>
+>> This series depends on my previous Overo series [1]. A complete testing
+>> tree (including the graphics support, soon to be posted) is available
+>> at [2].
 > 
-> <snip>
-> 
->> +&dss {
->> +	status = "ok";
->> +
->> +	pinctrl-names = "default";
->> +	pinctrl-0 = <&dss_dpi_pins
->> +		     &i2c3_pins>;
-> 
-> The i2c3 pins don't belong here, they are not related to dss. The
-> dvi-connector uses i2c3, but I don't think they belong there either, as
-> the i2c3 bus can be used by multiple devices. So I guess they should be
-> set in &i2c3 node.
+> Thanks, applying the whole series into omap-for-v3.15/dt-overo.
+> As it's this close to the merge window, no guarantees anything
+> will get pulled in though.
 > 
 
-You are right. And as I am already using i2c3 for other things, this
-duplicates the pinctrl. I will drop it.
+Thanks! Let's see. Anyway, this will not kill baby bears if it can't
+make it into 3.15 :)
 
 Regards,
 Florian
