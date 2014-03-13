@@ -1,61 +1,81 @@
-From: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 1/5] doc: Add "ti,am437x-dwc3" comaptible for dwc3
- glue
-Date: Thu, 13 Mar 2014 17:11:36 +0530
-Message-ID: <53219970.6060002@ti.com>
-References: <1394193422-18242-1-git-send-email-george.cherian@ti.com> <1394193422-18242-2-git-send-email-george.cherian@ti.com> <53218944.7000102@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v4 00/14] v4l: ti-vpe: Some VPE fixes and enhancements
+Date: Thu, 13 Mar 2014 17:14:02 +0530
+Message-ID: <1394711056-10878-1-git-send-email-archit@ti.com>
+References: <1394526833-24805-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53218944.7000102-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, anatol.pomozov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: k.debski@samsung.com, hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 3/13/2014 4:02 PM, Roger Quadros wrote:
-> Hi George,
->
-> On 03/07/2014 01:56 PM, George Cherian wrote:
->> Add the compatible "ti,am437x-dwc3" for dwc3 glue driver.
->>
->> Signed-off-by: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
->> ---
->>   Documentation/devicetree/bindings/usb/omap-usb.txt | 4 +++-
->>   1 file changed, 3 insertions(+), 1 deletion(-)
->>
->> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
->> index 38b2fae..38d9bb8 100644
->> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
->> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
->> @@ -44,7 +44,9 @@ Board specific device node entry
->>   };
->>   
->>   OMAP DWC3 GLUE
->> - - compatible : Should be "ti,dwc3"
->> + - compatible : Should be
->> +	* "ti,dwc3" for OMAP5 and DRA7
->> +	* "ti,am437x-dwc3" for AM437x
-> Why do you need a new compatible for am437x? Isn't "ti,dwc3" sufficient?
+This patch set mainly consists of minor fixes for the VPE driver. These fixes
+ensure the following:
 
-There is change in register offsets for AM437x as comapred to Omap5 and 
-dra7x.
-The compatible is already added in dwc3-omap.c  This patch just updates 
-the Documentation.
->
->>    - ti,hwmods : Should be "usb_otg_ss"
->>    - reg : Address and length of the register set for the device.
->>    - interrupts : The irq number of this device that is used to interrupt the
->>
-> cheers,
-> -roger
+- The VPE module can be inserted and removed successively.
+- Make sure that smaller resolutions like qcif work correctly.
+- Prevent race condition between firmware loading and an open call to the v4l2
+  device.
+- Prevent the possibility of output m2m queue not having sufficient 'ready'
+  buffers.
+- Some VPDMA data descriptor fields weren't understood correctly before. They
+  are now used correctly.
 
+The rest of the patches add some minor features like DMA buf support and
+cropping/composing.
+
+Reference branch:
+
+git@github.com:boddob/linux.git vpe_for_315
+
+Changes in v4:
+
+- More legible code for selection API
+- Stricter checking for target type vs crop type in g_selection
+- Minor fix in patch 13/14, there was a logical bug in buf_prepare when
+  checking validity of top and bottom fields.
+
+Changes in v3:
+
+- improvements in selection API patch.
+- querycap fixes for v4l2 compliance.
+- v4l2_buffer 'field' and flags' fixes for compliance.
+- fixes in try_fmt vpe_open for compliance.
+- rename a IOMEM resource for better DT compatibility.
+
+Changes in v2:
+
+- selection API used instead of older cropping API.
+- Typo fix.
+- Some changes in patch 6/7 to support composing on the capture side of VPE.
+
+
+Archit Taneja (14):
+  v4l: ti-vpe: Make sure in job_ready that we have the needed number of
+    dst_bufs
+  v4l: ti-vpe: register video device only when firmware is loaded
+  v4l: ti-vpe: Use video_device_release_empty
+  v4l: ti-vpe: Allow DMABUF buffer type support
+  v4l: ti-vpe: Allow usage of smaller images
+  v4l: ti-vpe: Fix some params in VPE data descriptors
+  v4l: ti-vpe: Add selection API in VPE driver
+  v4l: ti-vpe: Rename csc memory resource name
+  v4l: ti-vpe: report correct capabilities in querycap
+  v4l: ti-vpe: Use correct bus_info name for the device in querycap
+  v4l: ti-vpe: Fix initial configuration queue data
+  v4l: ti-vpe: zero out reserved fields in try_fmt
+  v4l: ti-vpe: Set correct field parameter for output and capture
+    buffers
+  v4l: ti-vpe: retain v4l2_buffer flags for captured buffers
+
+ drivers/media/platform/ti-vpe/csc.c   |   2 +-
+ drivers/media/platform/ti-vpe/vpdma.c |  68 ++++++---
+ drivers/media/platform/ti-vpe/vpdma.h |  17 ++-
+ drivers/media/platform/ti-vpe/vpe.c   | 272 ++++++++++++++++++++++++++++------
+ 4 files changed, 290 insertions(+), 69 deletions(-)
 
 -- 
--George
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.8.3.2
