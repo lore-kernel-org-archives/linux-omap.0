@@ -1,14 +1,13 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 1/5] doc: Add "ti,am437x-dwc3" comaptible for dwc3
- glue
-Date: Thu, 13 Mar 2014 12:32:36 +0200
-Message-ID: <53218944.7000102@ti.com>
-References: <1394193422-18242-1-git-send-email-george.cherian@ti.com> <1394193422-18242-2-git-send-email-george.cherian@ti.com>
+Subject: Re: [PATCH v3 2/5] ARM: dts: am43xx clock data
+Date: Thu, 13 Mar 2014 12:35:07 +0200
+Message-ID: <532189DB.9080807@ti.com>
+References: <1394193422-18242-1-git-send-email-george.cherian@ti.com> <1394193422-18242-3-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1394193422-18242-2-git-send-email-george.cherian@ti.com>
+In-Reply-To: <1394193422-18242-3-git-send-email-george.cherian@ti.com>
 Sender: linux-doc-owner@vger.kernel.org
 To: George Cherian <george.cherian@ti.com>, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: balbi@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, anatol.pomozov@gmail.com, bcousson@baylibre.com
@@ -17,32 +16,45 @@ List-Id: linux-omap@vger.kernel.org
 Hi George,
 
 On 03/07/2014 01:56 PM, George Cherian wrote:
-> Add the compatible "ti,am437x-dwc3" for dwc3 glue driver.
+> Add USB reference clock data
 > 
 > Signed-off-by: George Cherian <george.cherian@ti.com>
 > ---
->  Documentation/devicetree/bindings/usb/omap-usb.txt | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+>  arch/arm/boot/dts/am43xx-clocks.dtsi | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
 > 
-> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> index 38b2fae..38d9bb8 100644
-> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> @@ -44,7 +44,9 @@ Board specific device node entry
+> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+> index 142009c..506d036 100644
+> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+> @@ -653,4 +653,21 @@
+>  		clocks = <&clk_32768_ck>, <&clk_32k_tpm_ck>;
+>  		reg = <0x4260>;
+>  	};
+> +
+> +	usb_otg_ss0_refclk960m: usb_otg_ss0_refclk960m {
+> +		#clock-cells = <0>;
+> +	        compatible = "ti,gate-clock";
+> +		clocks = <&dpll_per_clkdcoldo>;
+> +	        ti,bit-shift = <8>;
+> +	        reg = <0x8a60>;
+> +	};
+> +
+> +	usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m {
+> +		#clock-cells = <0>;
+> +	        compatible = "ti,gate-clock";
+> +		clocks = <&dpll_per_clkdcoldo>;
+> +	        ti,bit-shift = <8>;
+> +		reg = <0x8a68>;
+> +	};
+> +
 >  };
->  
->  OMAP DWC3 GLUE
-> - - compatible : Should be "ti,dwc3"
-> + - compatible : Should be
-> +	* "ti,dwc3" for OMAP5 and DRA7
-> +	* "ti,am437x-dwc3" for AM437x
-
-Why do you need a new compatible for am437x? Isn't "ti,dwc3" sufficient?
-
->   - ti,hwmods : Should be "usb_otg_ss"
->   - reg : Address and length of the register set for the device.
->   - interrupts : The irq number of this device that is used to interrupt the
 > 
+
+I was reviewing am43xx usb clock information recently and found out that
+PHY clock is missing here. e.g. usb_phy0_always_on_clk32k and usb_phy1_always_on_clk32k.
+
+Can you please add these clocks?
 
 cheers,
 -roger
