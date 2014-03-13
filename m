@@ -1,64 +1,89 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: hwmod data: correct the idlemodes for
- spinlock
-Date: Thu, 13 Mar 2014 13:25:48 -0700
-Message-ID: <20140313202547.GD5981@atomide.com>
-References: <1387838928-57745-1-git-send-email-s-anna@ti.com>
- <alpine.DEB.2.02.1312260447320.15949@utopia.booyaka.com>
+Subject: Re: [RESEND PATCH 1/1] arm: dts: am33xx: correcting dt node unit
+ address for usb
+Date: Thu, 13 Mar 2014 13:30:09 -0700
+Message-ID: <20140313203009.GE5981@atomide.com>
+References: <1394109094-19205-1-git-send-email-mugunthanvnm@ti.com>
+ <20140306152637.GB25648@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36481 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754197AbaCMUZw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 16:25:52 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1312260447320.15949@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20140306152637.GB25648@saruman.home>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, devicetree@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Suman Anna <s-anna@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [131225 20:51]:
-> (cc Beno=C3=AEt)
->=20
-> On Mon, 23 Dec 2013, Suman Anna wrote:
->=20
-> > The spinlock module's SYSCONFIG register does not support
-> > smart wakeup, so remove this flag from the idle modes in
-> > the spinlock hwmod definition.
-> >=20
-> > Signed-off-by: Suman Anna <s-anna@ti.com>
->=20
-> Beno=C3=AEt Cousson is the primary maintainer of this file that you'r=
-e=20
-> changing:
->=20
-> $ scripts/get_maintainer.pl -f arch/arm/mach-omap2/omap_hwmod_44xx_da=
-ta.c
-> "Beno=C3=AEt Cousson" <bcousson@baylibre.com> (maintainer:OMAP HWMOD =
-DATA F...)
-> Tony Lindgren <tony@atomide.com> (maintainer:OMAP SUPPORT)
-> Russell King <linux@arm.linux.org.uk> (maintainer:ARM PORT)
-> linux-omap@vger.kernel.org (open list:OMAP HWMOD DATA F...)
-> linux-arm-kernel@lists.infradead.org (moderated list:ARM SUB-ARCHITEC=
-T...)
-> linux-kernel@vger.kernel.org (open list)
-> $
->=20
-> Please make sure that he's part of the address list when patches are =
-sent=20
-> that apply against this file. =20
+* Felipe Balbi <balbi@ti.com> [140306 07:33]:
+> On Thu, Mar 06, 2014 at 06:01:34PM +0530, Mugunthan V N wrote:
+> > DT node's unit address should be its own register offset address to make it a
+> > unique across the system. This patch corrects the incorrect USB entries with
+> > correct register offset for unit address.
+> > 
+> > Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> > Cc: Felipe Balbi <balbi@ti.com>
+> > Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> 
+> Acked-by: Felipe Balbi <balbi@ti.com>
 
-=46YI untagging this in my inbox assuming it's being resent or queued b=
-y Paul.
+Applying into omap-for-v3.15/fixes with cc stable v3.12+. If somebody
+wants it in earlier kernels it needs to be updated and posted
+to the lists.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> > This patch was posted long back (Aug. 30, 2013), below is the archive of the
+> > orginal patch.
+> > https://patchwork.kernel.org/patch/2852163/
+> > 
+> > ---
+> >  arch/arm/boot/dts/am33xx.dtsi | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> > index 7073429..9770e35 100644
+> > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > @@ -453,7 +453,7 @@
+> >  			ti,hwmods = "usb_otg_hs";
+> >  			status = "disabled";
+> >  
+> > -			usb_ctrl_mod: control@44e10000 {
+> > +			usb_ctrl_mod: control@44e10620 {
+> >  				compatible = "ti,am335x-usb-ctrl-module";
+> >  				reg = <0x44e10620 0x10
+> >  					0x44e10648 0x4>;
+> > @@ -556,7 +556,7 @@
+> >  					"tx14", "tx15";
+> >  			};
+> >  
+> > -			cppi41dma: dma-controller@07402000 {
+> > +			cppi41dma: dma-controller@47402000 {
+> >  				compatible = "ti,am3359-cppi41";
+> >  				reg =  <0x47400000 0x1000
+> >  					0x47402000 0x1000
+> > -- 
+> > 1.9.0
+> > 
+> 
+> -- 
+> balbi
+
+
+
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
