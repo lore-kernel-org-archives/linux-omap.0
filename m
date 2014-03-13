@@ -1,58 +1,107 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 00/18] edma/ASoC: dmaengine PCM for AM335x and AM447x
-Date: Thu, 13 Mar 2014 13:46:01 +0000
-Message-ID: <20140313134601.GU366@sirena.org.uk>
-References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [PATCH v3 02/14] v4l: ti-vpe: register video device only when
+ firmware is loaded
+Date: Thu, 13 Mar 2014 15:29:44 +0100
+Message-ID: <000901cf3ec8$aea34270$0be9c750$%debski@samsung.com>
+References: <1393922965-15967-1-git-send-email-archit@ti.com>
+ <1394526833-24805-1-git-send-email-archit@ti.com>
+ <1394526833-24805-3-git-send-email-archit@ti.com>
+ <000001cf3eb2$39817540$ac845fc0$%debski@samsung.com> <53219FE0.8010604@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="L2YZAWjVjAQ1Un1Q"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, joelf@ti.com, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, Jyri Sarha <jsarha@ti.com>, mporter@linaro.org, vinod.koul@intel.com, dan.j.williams@intel.com
-List-Id: linux-omap@vger.kernel.org
-
-
---L2YZAWjVjAQ1Un1Q
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:55518 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751260AbaCMO3s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 10:29:48 -0400
+In-reply-to: <53219FE0.8010604@ti.com>
+Content-language: pl
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: 'Archit Taneja' <archit@ti.com>, hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Thu, Mar 13, 2014 at 11:18:22AM +0200, Peter Ujfalusi wrote:
+Hi,
 
-> With this series AM335x and AM447x will use the dmaengine PCM for audio. The
-> daVinci devices will keep using the davinci-pcm for now since I do not have
-> means to test them but the code is written in a way that they can be switched
-> to use the edma-pcm easily (DA850/OMAP-L138 has been tested and audio was
-> working fine).
+> From: Archit Taneja [mailto:archit@ti.com]
+> Sent: Thursday, March 13, 2014 1:09 PM
+> 
+> Hi Kamil,
+> 
+> On Thursday 13 March 2014 05:18 PM, Kamil Debski wrote:
+> > Hi Archit,
+> >
+> >> From: Archit Taneja [mailto:archit@ti.com]
+> >> Sent: Tuesday, March 11, 2014 9:34 AM
+> >>
+> >> vpe fops(vpe_open in particular) should be called only when VPDMA
+> >> firmware is loaded. File operations on the video device are possible
+> >> the moment it is registered.
+> >>
+> >> Currently, we register the video device for VPE at driver probe,
+> >> after calling a vpdma helper to initialize VPDMA and load firmware.
+> >> This function is non-blocking(it calls request_firmware_nowait()),
+> >> and doesn't ensure that the firmware is actually loaded when it
+> returns.
+> >>
+> >> We remove the device registration from vpe probe, and move it to a
+> >> callback provided by the vpe driver to the vpdma library, through
+> >> vpdma_create().
+> >>
+> >> The ready field in vpdma_data is no longer needed since we always
+> >> have firmware loaded before the device is registered.
+> >>
+> >> A minor problem with this approach is that if the
+> >> video_register_device fails(which doesn't really happen), the vpe
+> >> platform device would be registered.
+> >> however, there won't be any v4l2 device corresponding to it.
+> >
+> > Could you explain to me one thing. request_firmware cannot be used in
+> > probe, thus you are using request_firmware_nowait. Why cannot the
+> > firmware be loaded on open with a regular request_firmware that is
+> > waiting?
+> 
+> I totally agree with you here. Placing the firmware in open() would
+> probably make more sense.
+> 
+> The reason I didn't place it in open() is because I didn't want to
+> release firmware in a corresponding close(), and be in a situation
+> where the firmware is loaded multiple times in the driver's lifetime.
 
-Can you please not resend the ASoC portions of this series until the
-EDMA portion is stable (and ideally committed)?  I'm not quite sure why
-but every EDMA patch series seems to go through lots of iterations which
-gets rather noisy - my initial reaction to seeing EDMA in a subject is
-to just delete the thread.
+Would it be possible to load firmware in open and release it in remove?
+I know that this would disturb the symmetry between open-release and
+probe-remove. But this could work.
+ 
+> There are some reasons for doing this. First, it will require more
+> testing with respect to whether the firmware is loaded correctly
+> successive times :), the second is that loading firmware might probably
+> take a bit of time, and we don't want to make applications too slow(I
+> haven't measured the time taken, so I don't have a strong case for this
+> either)
+> 
+> >
+> > This patch seems to swap one problem for another. The possibility
+> that
+> > open fails (because firmware is not yet loaded) is swapped for a
+> vague
+> > possibility that video_register_device.
+> 
+> The driver will work fine in most cases even without this patch(apart
+> from the possibility mentioned as above).
+> 
+> We could discard this patch from this series, and I can work on a patch
+> which moves firmware loading to the vpe_open() call, and hence solving
+> the issue in the right manner. Does that sound fine?
 
---L2YZAWjVjAQ1Un1Q
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I agree, this should be a good solution.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+> 
+> Thanks,
+> Archit
 
-iQIcBAEBAgAGBQJTIbaWAAoJELSic+t+oim9nV0P/jZm8E1g0rPBCTOkKqf9ombY
-Hdqm9g6GzkSN8Pga8f5Q1UN3lVpIReLCiwsYxoRTT//Ovtmy8y2mOZ4FlwmlOyaU
-hWw0QENFV6Tk/SsAliX2gSgIrqbnLUF/RsEaubA2DWPx3kpATEI+5+YijjAxJHfs
-0fIApxzB/x94EC/wcCPJIpSBP+bwW9UCRjN1iF7yX60nO3A7iXBbBUx2UnJPK4Oi
-Z8Hto5G78cQIMpowTukO74cUqTvqrrdQXgIKhcPBfRl0aL9qWpMVPxuDlnE/ofne
-37zZeq4I0DwvDRSRSAqwhEJXVz89hc565Zh7PwdE2NAK3fCJQjH8/L5s3S/eTVPP
-kpVkKZzwNEJ4WtPQs2aFocfJFnnTMhF4TVTbl/XCUTn1sM+VHkwiFZb2MzfgVX/c
-opPJT5uW5ovp/4XvCHmRZrhr4bnXNgX5+ri+AbOXlvLywsHSHxYoTHypVM+op6ad
-U4RYE5dx6fANKcq8efrxj0Kiqjgb5opd/YPsgL/u5fQ7Sk7nuWJvVEXhmPwN3QZv
-6konQYpMlAZVNHBltxxfpY1rbXAJ9Q03/hIAAm0vdfzYoui7bNGFBFHI6/ZZ9mQl
-UEooOae6mAemGS6WQYh35TBLgoSMy1FssrDCzVQcvCpBX5xikCG4wlcYHxtnBi+c
-UIV7ENhW3HZkfw2jFD6g
-=bZlj
------END PGP SIGNATURE-----
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
 
---L2YZAWjVjAQ1Un1Q--
