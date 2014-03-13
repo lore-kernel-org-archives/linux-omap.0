@@ -1,51 +1,51 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 11/14] v4l: ti-vpe: Fix initial configuration queue data
-Date: Thu, 13 Mar 2014 17:14:13 +0530
-Message-ID: <1394711056-10878-12-git-send-email-archit@ti.com>
+Subject: [PATCH v4 05/14] v4l: ti-vpe: Allow usage of smaller images
+Date: Thu, 13 Mar 2014 17:14:07 +0530
+Message-ID: <1394711056-10878-6-git-send-email-archit@ti.com>
 References: <1394526833-24805-1-git-send-email-archit@ti.com>
  <1394711056-10878-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38687 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754152AbaCMLpU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Mar 2014 07:45:20 -0400
 In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: k.debski@samsung.com, hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-The vpe output and capture queues are initially configured to default values in
-vpe_open(). A G_FMT before any S_FMTs will result in these values being
-populated.
+The minimum width and height for VPE input/output was kept as 128 pixels. VPE
+doesn't have a constraint on the image height, it requires the image width to
+be at least 16 bytes.
 
-The colorspace and bytesperline parameter of this initial configuration are
-incorrect. This breaks compliance when as we get 'TRY_FMT(G_FMT) != G_FMT'.
-
-Fix the initial queue configuration such that it wouldn't need to be fixed by
-try_fmt.
+Change the minimum supported dimensions to 32x32. This allows us to de-interlace
+qcif content. A smaller image size than 32x32 didn't make much sense, so stopped
+at this.
 
 Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/platform/ti-vpe/vpe.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 3a312ea..d7befb9 100644
+index 0e7573a..dbdc338 100644
 --- a/drivers/media/platform/ti-vpe/vpe.c
 +++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -2021,9 +2021,11 @@ static int vpe_open(struct file *file)
- 	s_q_data->fmt = &vpe_formats[2];
- 	s_q_data->width = 1920;
- 	s_q_data->height = 1080;
--	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
-+	s_q_data->bytesperline[VPE_LUMA] = (s_q_data->width *
- 			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
--	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->bytesperline[VPE_LUMA] *
-+			s_q_data->height);
-+	s_q_data->colorspace = V4L2_COLORSPACE_REC709;
- 	s_q_data->field = V4L2_FIELD_NONE;
- 	s_q_data->c_rect.left = 0;
- 	s_q_data->c_rect.top = 0;
+@@ -49,8 +49,8 @@
+ #define VPE_MODULE_NAME "vpe"
+ 
+ /* minimum and maximum frame sizes */
+-#define MIN_W		128
+-#define MIN_H		128
++#define MIN_W		32
++#define MIN_H		32
+ #define MAX_W		1920
+ #define MAX_H		1080
+ 
 -- 
 1.8.3.2
+
