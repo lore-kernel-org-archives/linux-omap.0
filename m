@@ -1,67 +1,64 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH v3 2/5] ARM: dts: am43xx clock data
-Date: Thu, 13 Mar 2014 17:44:40 +0530
-Message-ID: <5321A130.2060709@ti.com>
-References: <1394193422-18242-1-git-send-email-george.cherian@ti.com> <1394193422-18242-3-git-send-email-george.cherian@ti.com> <532189DB.9080807@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 1/5] doc: Add "ti,am437x-dwc3" comaptible for dwc3
+ glue
+Date: Thu, 13 Mar 2014 14:17:09 +0200
+Message-ID: <5321A1C5.8020501@ti.com>
+References: <1394193422-18242-1-git-send-email-george.cherian@ti.com> <1394193422-18242-2-git-send-email-george.cherian@ti.com> <53218944.7000102@ti.com> <53219970.6060002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <532189DB.9080807@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, anatol.pomozov@gmail.com, bcousson@baylibre.com
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53219970.6060002-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, anatol.pomozov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 3/13/2014 4:05 PM, Roger Quadros wrote:
-> Hi George,
->
-> On 03/07/2014 01:56 PM, George Cherian wrote:
->> Add USB reference clock data
+On 03/13/2014 01:41 PM, George Cherian wrote:
+> On 3/13/2014 4:02 PM, Roger Quadros wrote:
+>> Hi George,
 >>
->> Signed-off-by: George Cherian <george.cherian@ti.com>
->> ---
->>   arch/arm/boot/dts/am43xx-clocks.dtsi | 17 +++++++++++++++++
->>   1 file changed, 17 insertions(+)
+>> On 03/07/2014 01:56 PM, George Cherian wrote:
+>>> Add the compatible "ti,am437x-dwc3" for dwc3 glue driver.
+>>>
+>>> Signed-off-by: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+>>> ---
+>>>   Documentation/devicetree/bindings/usb/omap-usb.txt | 4 +++-
+>>>   1 file changed, 3 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
+>>> index 38b2fae..38d9bb8 100644
+>>> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
+>>> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+>>> @@ -44,7 +44,9 @@ Board specific device node entry
+>>>   };
+>>>     OMAP DWC3 GLUE
+>>> - - compatible : Should be "ti,dwc3"
+>>> + - compatible : Should be
+>>> +    * "ti,dwc3" for OMAP5 and DRA7
+>>> +    * "ti,am437x-dwc3" for AM437x
+>> Why do you need a new compatible for am437x? Isn't "ti,dwc3" sufficient?
+> 
+> There is change in register offsets for AM437x as comapred to Omap5 and dra7x.
+> The compatible is already added in dwc3-omap.c  This patch just updates the Documentation.
+
+Oh ok. Then it is fine. You can add my.
+
+Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+
+cheers,
+-roger
 >>
->> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
->> index 142009c..506d036 100644
->> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
->> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
->> @@ -653,4 +653,21 @@
->>   		clocks = <&clk_32768_ck>, <&clk_32k_tpm_ck>;
->>   		reg = <0x4260>;
->>   	};
->> +
->> +	usb_otg_ss0_refclk960m: usb_otg_ss0_refclk960m {
->> +		#clock-cells = <0>;
->> +	        compatible = "ti,gate-clock";
->> +		clocks = <&dpll_per_clkdcoldo>;
->> +	        ti,bit-shift = <8>;
->> +	        reg = <0x8a60>;
->> +	};
->> +
->> +	usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m {
->> +		#clock-cells = <0>;
->> +	        compatible = "ti,gate-clock";
->> +		clocks = <&dpll_per_clkdcoldo>;
->> +	        ti,bit-shift = <8>;
->> +		reg = <0x8a68>;
->> +	};
->> +
->>   };
->>
-> I was reviewing am43xx usb clock information recently and found out that
-> PHY clock is missing here. e.g. usb_phy0_always_on_clk32k and usb_phy1_always_on_clk32k.
->
-> Can you please add these clocks?
+>>>    - ti,hwmods : Should be "usb_otg_ss"
+>>>    - reg : Address and length of the register set for the device.
+>>>    - interrupts : The irq number of this device that is used to interrupt the
+>>>
+>> cheers,
+>> -roger
+> 
+> 
 
-okay I will add those and resend the series.
->
-> cheers,
-> -roger
-
-
--- 
--George
-
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
