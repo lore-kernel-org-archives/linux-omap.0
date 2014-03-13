@@ -1,87 +1,85 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [alsa-devel] [PATCH 14/18] ASoC: davinci: Add edma dmaengine
- platform driver
-Date: Thu, 13 Mar 2014 11:28:05 +0100
-Message-ID: <53218835.3080909@metafoo.de>
-References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com> <1394702320-21743-15-git-send-email-peter.ujfalusi@ti.com>
+From: Sathya Prakash <a0393677@ti.com>
+Subject: Re: [PATCH v2 4/4] ARM: DTS: AM43x: Add DSS node
+Date: Thu, 13 Mar 2014 16:00:52 +0530
+Message-ID: <532188DC.2010000@ti.com>
+References: <1394701109-6721-1-git-send-email-sathyap@ti.com> <1394701109-6721-5-git-send-email-sathyap@ti.com> <532186B6.3090902@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1394702320-21743-15-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, joelf@ti.com, nsekhar@ti.com, Liam Girdwood <lgirdwood@gmail.com>, Jyri Sarha <jsarha@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, mporter@linaro.org, dan.j.williams@intel.com, vinod.koul@intel.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39146 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753470AbaCMKbN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 06:31:13 -0400
+In-Reply-To: <532186B6.3090902@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Sathya Prakash M R <sathyap@ti.com>, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, paul@pwsan.com
 
-On 03/13/2014 10:18 AM, Peter Ujfalusi wrote:
-[...]
-> +static const struct snd_pcm_hardware edma_pcm_hardware = {
-> +	.info			= SNDRV_PCM_INFO_MMAP |
-> +				  SNDRV_PCM_INFO_MMAP_VALID |
-> +				  SNDRV_PCM_INFO_BATCH |
-> +				  SNDRV_PCM_INFO_PAUSE | SNDRV_PCM_INFO_RESUME |
-> +				  SNDRV_PCM_INFO_INTERLEAVED,
-> +	.buffer_bytes_max	= 128 * 1024,
-> +	.period_bytes_min	= 32,
-> +	.period_bytes_max	= 64 * 1024,
-> +	.periods_min		= 2,
-> +	.periods_max		= 19, /* Limit by edma dmaengine driver */
-> +};
+On Thursday 13 March 2014 03:51 PM, Tomi Valkeinen wrote:
+> On 13/03/14 10:58, Sathya Prakash M R wrote:
+>> Add device node for DSS module for AM4372. Both the
+>> AM437x-Gp evm and Am43x-Epos evm use the same LCD panel.
+>> The lcd timings are added in respective dts files.
+>> Adds display pinctrl and enables required gpio.
+>> Also set the right parent clock to the DSS clock.
+>>
+>> Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+>> ---
+>>   arch/arm/boot/dts/am4372.dtsi        |   28 +++++++++++++
+>>   arch/arm/boot/dts/am437x-gp-evm.dts  |   77 ++++++++++++++++++++++++++++++++++
+>>   arch/arm/boot/dts/am43x-epos-evm.dts |   73 ++++++++++++++++++++++++++++++++
+>>   arch/arm/boot/dts/am43xx-clocks.dtsi |    2 +
+>>   4 files changed, 180 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+>> index ea55a4e..b72a7df 100644
+>> --- a/arch/arm/boot/dts/am4372.dtsi
+>> +++ b/arch/arm/boot/dts/am4372.dtsi
+>> @@ -684,6 +684,34 @@
+>>   			num-cs = <4>;
+>>                           status = "disabled";
+>>                   };
+>> +
+>> +		dss: dss@4832A000 {
+>> +			compatible = "ti,omap3-dss", "simple-bus";
+>> +			reg = <0x4832A000 0x200>;
+>> +			ti,hwmods = "dss_core";
+>> +			#address-cells = <1>;
+>> +			#size-cells = <1>;
+>> +			ranges;
+>> +
+>> +			dispc@4832A400 {
+>> +				compatible = "ti,omap3-dispc";
+>> +				reg = <0x4832A400 0x400>;
+>> +				interrupts = <GIC_SPI 127 IRQ_TYPE_LEVEL_HIGH>;
+>> +				ti,hwmods = "dss_dispc";
+>> +			};
+>> +
+>> +			dpi: encoder@0 {
+>> +				compatible = "ti,omap3-dpi";
+>> +			};
+>> +
+>> +			rfbi: rfbi@4832A800 {
+>> +				compatible = "ti,omap3-rfbi";
+>> +			reg = <0x4832A800 0x100>;
+>> +				ti,hwmods = "dss_rfbi";
+>> +			};
+>> +
+>> +		};
+>> +
+> This seems to be based on old version of the DSS DT. Please rebase this
+> on top of the latest one:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt
+Thanks. maybe i missed couple of changes. Will do that.
+>
+> You also need to split this into smaller pieces: the dts clock fix, the
+> am4372.dtsi, and the board changes.
+ok sure.
+>
+>   Tomi
+>
+>
 
-The idea is that we can auto-discover all the things using the 
-dma_slave_caps API. Too bad we removed the possibility to specify the 
-maximum number of segments from the API. Maybe we need to add it back. Is 
-the 19 a hard-limit or could it be worked around by software in the 
-dmaengine driver?
-
-> +
-> +static const struct snd_dmaengine_pcm_config edma_dmaengine_pcm_config = {
-> +	.pcm_hardware = &edma_pcm_hardware,
-> +	.prepare_slave_config = snd_dmaengine_pcm_prepare_slave_config,
-> +	.prealloc_buffer_size = 128 * 1024,
-
-Unless there is a very good reason for exactly this size, just leave it 0 
-and let the generic dmaengine driver use the default.
-
-> +};
-> +
-> +static const struct snd_dmaengine_pcm_config edma_compat_dmaengine_pcm_config = {
-> +	.pcm_hardware = &edma_pcm_hardware,
-> +	.prepare_slave_config = snd_dmaengine_pcm_prepare_slave_config,
-> +	.compat_filter_fn = edma_filter_fn,
-> +	.prealloc_buffer_size = 128 * 1024,
-> +};
-
-There is no need for different configs for DT and non-DT.
-
-> +
-> +int edma_pcm_platform_register(struct device *dev)
-> +{
-> +	if (dev->of_node)
-> +		return snd_dmaengine_pcm_register(dev,
-> +					&edma_dmaengine_pcm_config,
-> +					SND_DMAENGINE_PCM_FLAG_NO_RESIDUE);
-
-Since the edma dmaengine driver implements the slave cap API there is no 
-need to manually specify SND_DMAENGINE_PCM_FLAG_NO_RESIDUE manually. But 
-since the edma driver sets the granularity to 
-DMA_RESIDUE_GRANULARITY_DESCRIPTOR in this case the generic dmaengine will 
-not set SND_DMAENGINE_PCM_FLAG_NO_RESIDUE automatically since it assumes 
-that the dmaengine driver is capable of properly reporting the DMA position.
-
-> +	else
-> +		return snd_dmaengine_pcm_register(dev,
-> +					&edma_compat_dmaengine_pcm_config,
-> +					SND_DMAENGINE_PCM_FLAG_NO_RESIDUE |
-> +					SND_DMAENGINE_PCM_FLAG_NO_DT |
-> +					SND_DMAENGINE_PCM_FLAG_COMPAT);
-
-
-If you set the flags to just SND_DMAENGINE_PCM_FLAG_COMPAT it will do the 
-right thing in the generic dmaengine driver depending on whether 
-dev->of_node is set or not.
-
-
-There is also a devm_ version of snd_dmaengine_pcm_register() it probably 
-makes sense to use it here.
