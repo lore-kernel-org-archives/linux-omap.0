@@ -1,42 +1,84 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCH] wl1251 device tree support
-Date: Thu, 13 Mar 2014 22:59:54 +0100
-Message-ID: <1394747995-25090-1-git-send-email-sre@debian.org>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/5] iommu/omap: Fix 'no page for' debug message in
+	flush_iotlb_page()
+Date: Thu, 13 Mar 2014 17:16:07 -0500
+Message-ID: <53222E27.6070700@ti.com>
+References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<1394239574-2389-3-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.105.125]:49683 "EHLO ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753350AbaCMWAE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Mar 2014 18:00:04 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1394239574-2389-3-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sakari.ailus-X3B1VOXEql0@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, "John W. Linville" <linville@tuxdriver.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Sebastian Reichel <sre@debian.org>
 
-Hi Tony/Beno=C3=AEt,
+Hi Laurent,
 
-The DT support for wl1251 has been merged to wireless-next [0],
-so I guess it's safe to merge the following DTS addition for 3.15.
+On 03/07/2014 06:46 PM, Laurent Pinchart wrote:
+> The flush_iotlb_page() function prints a debug message when no
+> corresponding page was found in the TLB. That condition is incorrectly
+> checked and always resolves to true, given that the for_each_iotlb_cr()
+> loop is never interrupted and always reaches obj->nr_tlb_entries.
 
-[0] https://git.kernel.org/cgit/linux/kernel/git/linville/wireless-next=
-=2Egit/commit/?id=3D07bbca6f142d02b4b09d66ed3c2cde36c77057ad
+Nice catch.
 
--- Sebastian
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> ---
+>   drivers/iommu/omap-iommu.c | 4 +++-
+>   1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> index bb605c9..cb1e1de 100644
+> --- a/drivers/iommu/omap-iommu.c
+> +++ b/drivers/iommu/omap-iommu.c
+> @@ -376,6 +376,7 @@ static void flush_iotlb_page(struct omap_iommu *obj, u32 da)
+>   {
+>   	int i;
+>   	struct cr_regs cr;
+> +	bool found = false;
+>
+>   	pm_runtime_get_sync(obj->dev);
+>
+> @@ -394,11 +395,12 @@ static void flush_iotlb_page(struct omap_iommu *obj, u32 da)
+>   				__func__, start, da, bytes);
+>   			iotlb_load_cr(obj, &cr);
+>   			iommu_write_reg(obj, 1, MMU_FLUSH_ENTRY);
+> +			found = true;
 
-Sebastian Reichel (1):
-  DTS: ARM: OMAP3-N900: Add WL1251 support
+The patch is fine as it is, but I think the loop can be breaked when an 
+entry is found for simplification. I do not expect that we will have 
+multiple entries with the same da in the TLBs (it is a multi-hit fault 
+scenario) to continue looping through all entries. The only means for 
+the multi-hit scenario to happen is user error with programming TLBs 
+directly. This function call seems to be added in general to take care 
+of any prefetching. I don't have the complete history on the 
+PREFETCH_IOTLB on why it was added, it doesn't seem to be enabled but 
+this should ideally be left to the h/w unless you are locking a TLB 
+entry. DSP/Bridge is the only one that uses locked TLB entries at the 
+moment, but it is not using the OMAP IOMMU driver yet.
 
- arch/arm/boot/dts/omap3-n900.dts | 40 ++++++++++++++++++++++++++++++++=
-++++++++
- 1 file changed, 40 insertions(+)
+regards
+Suman
 
---=20
-1.9.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   		}
+>   	}
+>   	pm_runtime_put_sync(obj->dev);
+>
+> -	if (i == obj->nr_tlb_entries)
+> +	if (!found)
+>   		dev_dbg(obj->dev, "%s: no page for %08x\n", __func__, da);
+>   }
+>
+>
