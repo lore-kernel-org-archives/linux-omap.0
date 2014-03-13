@@ -1,56 +1,44 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 14/14] v4l: ti-vpe: retain v4l2_buffer flags for captured buffers
-Date: Thu, 13 Mar 2014 17:14:16 +0530
-Message-ID: <1394711056-10878-15-git-send-email-archit@ti.com>
+Subject: [PATCH v4 08/14] v4l: ti-vpe: Rename csc memory resource name
+Date: Thu, 13 Mar 2014 17:14:10 +0530
+Message-ID: <1394711056-10878-9-git-send-email-archit@ti.com>
 References: <1394526833-24805-1-git-send-email-archit@ti.com>
  <1394711056-10878-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42506 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754196AbaCMLpt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 07:45:49 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:36455 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753506AbaCMLpa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Mar 2014 07:45:30 -0400
 In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: k.debski@samsung.com, hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The dequed CAPTURE_MPLANE type buffers don't contain the flags that the
-originally queued OUTPUT_MPLANE type buffers have. This breaks compliance.
+Rename the memory block resource "vpe_csc" to "csc" since it also exists within
+the VIP IP block. This would make the name more generic, and both VPE and VIP DT
+nodes in the future can use it.
 
-Copy the source v4l2_buffer flags to the destination v4l2_buffer flags before
-they are dequed.
-
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/media/platform/ti-vpe/csc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 362d5be..972f43f 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1288,13 +1288,12 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 	s_buf = &s_vb->v4l2_buf;
- 	d_buf = &d_vb->v4l2_buf;
+diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
+index acfea50..0333339 100644
+--- a/drivers/media/platform/ti-vpe/csc.c
++++ b/drivers/media/platform/ti-vpe/csc.c
+@@ -180,7 +180,7 @@ struct csc_data *csc_create(struct platform_device *pdev)
+ 	csc->pdev = pdev;
  
-+	d_buf->flags = s_buf->flags;
-+
- 	d_buf->timestamp = s_buf->timestamp;
--	d_buf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	d_buf->flags |= s_buf->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	if (s_buf->flags & V4L2_BUF_FLAG_TIMECODE) {
--		d_buf->flags |= V4L2_BUF_FLAG_TIMECODE;
-+	if (s_buf->flags & V4L2_BUF_FLAG_TIMECODE)
- 		d_buf->timecode = s_buf->timecode;
--	}
-+
- 	d_buf->sequence = ctx->sequence;
- 
- 	d_q_data = &ctx->q_data[Q_DATA_DST];
+ 	csc->res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+-			"vpe_csc");
++			"csc");
+ 	if (csc->res == NULL) {
+ 		dev_err(&pdev->dev, "missing platform resources data\n");
+ 		return ERR_PTR(-ENODEV);
 -- 
 1.8.3.2
 
