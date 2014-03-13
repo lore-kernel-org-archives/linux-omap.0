@@ -1,26 +1,28 @@
 From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [PATCH v3 01/14] v4l: ti-vpe: Make sure in job_ready that we have
+Subject: RE: [PATCH v4 01/14] v4l: ti-vpe: Make sure in job_ready that we have
  the needed number of dst_bufs
-Date: Thu, 13 Mar 2014 15:36:09 +0100
-Message-ID: <000d01cf3ec9$93b51320$bb1f3960$%debski@samsung.com>
-References: <1393922965-15967-1-git-send-email-archit@ti.com>
- <1394526833-24805-1-git-send-email-archit@ti.com>
- <1394526833-24805-2-git-send-email-archit@ti.com>
+Date: Thu, 13 Mar 2014 15:38:10 +0100
+Message-ID: <000e01cf3ec9$dc01d550$94057ff0$%debski@samsung.com>
+References: <1394526833-24805-1-git-send-email-archit@ti.com>
+ <1394711056-10878-1-git-send-email-archit@ti.com>
+ <1394711056-10878-2-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-reply-to: <1394526833-24805-2-git-send-email-archit@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:55964 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752474AbaCMOiN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 10:38:13 -0400
+In-reply-to: <1394711056-10878-2-git-send-email-archit@ti.com>
 Content-language: pl
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: 'Archit Taneja' <archit@ti.com>, hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
-Hi,
 
 > From: Archit Taneja [mailto:archit@ti.com]
-> Sent: Tuesday, March 11, 2014 9:34 AM
+> Sent: Thursday, March 13, 2014 12:44 PM
 > 
 > VPE has a ctrl parameter which decides how many mem to mem transactions
 > the active job from the job queue can perform.
@@ -43,11 +45,6 @@ Hi,
 
 Acked-by: Kamil Debski <k.debski@samsung.com>
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
-
 > ---
 >  drivers/media/platform/ti-vpe/vpe.c | 3 +++
 >  1 file changed, 3 insertions(+)
@@ -69,3 +66,4 @@ Samsung R&D Institute Poland
 > 
 > --
 > 1.8.3.2
+
