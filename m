@@ -1,37 +1,38 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [RFC 5/5] ARM: AM33xx: Move to using omap_generic_timer_init for init_time
-Date: Thu, 13 Mar 2014 15:35:19 -0500
-Message-ID: <1394742919-32163-6-git-send-email-joelf@ti.com>
-References: <1394742919-32163-1-git-send-email-joelf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP4: Fix definition of IS_PM44XX_ERRATUM
+Date: Thu, 13 Mar 2014 13:36:38 -0700
+Message-ID: <20140313203637.GF5981@atomide.com>
+References: <1394660600-3771-1-git-send-email-nm@ti.com>
+ <7hy50ekl8g.fsf@paris.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1394742919-32163-1-git-send-email-joelf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Joel Fernandes <joelf@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62370 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755034AbaCMUgn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 16:36:43 -0400
+Content-Disposition: inline
+In-Reply-To: <7hy50ekl8g.fsf@paris.lan>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Santosh <santosh.shilimkar@ti.com>
 
-Earlier patch in this series introduced a function omap_generic_timer_init
-for all DT platforms. Use it for AM33xx SoC.
+* Kevin Hilman <khilman@linaro.org> [140313 11:30]:
+> Nishanth Menon <nm@ti.com> writes:
+> 
+> > Just like IS_PM34XX_ERRATUM, IS_PM44XX_ERRATUM is valid only if
+> > CONFIG_PM is enabled, else, disabling CONFIG_PM results in build
+> > failure complaining about the following:
+> > arch/arm/mach-omap2/built-in.o: In function `omap4_boot_secondary':
+> > :(.text+0x8a70): undefined reference to `pm44xx_errata'
+> >
+> > Fixes: c962184 (ARM: OMAP4: PM: add errata support)
+> > Reported-by: Tony Lindgren <tony@atomide.com>
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
+> 
+> Acked-by: Kevin Hilman <khilman@linaro.org>
 
-Signed-off-by: Joel Fernandes <joelf@ti.com>
----
- arch/arm/mach-omap2/board-generic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Applying this into omap-for-v3.15/fixes thanks.
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 8e3daa1..2182865 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -166,7 +166,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap_generic_init,
- 	.init_late	= am33xx_init_late,
--	.init_time	= omap3_gptimer_timer_init,
-+	.init_time	= omap_generic_timer_init,
- 	.dt_compat	= am33xx_boards_compat,
- 	.restart	= am33xx_restart,
- MACHINE_END
--- 
-1.7.9.5
+Tony
