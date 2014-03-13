@@ -1,53 +1,90 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH] ASoC: tlv320aic31xx: Remove snd_soc_codec_set_cache_io() call
-Date: Thu, 13 Mar 2014 18:22:35 +0200
-Message-ID: <1394727755-7091-1-git-send-email-jsarha@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] dma: omap-dma: Implement device_slave_caps callback
+Date: Thu, 13 Mar 2014 09:25:53 -0700
+Message-ID: <20140313162553.GA5576@atomide.com>
+References: <1394199404-7870-1-git-send-email-peter.ujfalusi@ti.com>
+ <20140312173700.GA1996@atomide.com>
+ <532162E1.8090608@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55320 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754766AbaCMQWu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Mar 2014 12:22:50 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29218 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751833AbaCMQZ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 12:25:59 -0400
+Content-Disposition: inline
+In-Reply-To: <532162E1.8090608@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: broonie@kernel.org, lgirdwood@gmail.com, lars@metafoo.de, tiwai@suse.de, Jyri Sarha <jsarha@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: vinod.koul@intel.com, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Remove snd_soc_codec_set_cache_io(codec, 8, 8, SND_SOC_REGMAP) call
-and codec->control_data = aic31xx->regmap assignment since that
-already done by core.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [140313 00:52]:
+> Hi Tony,
+> 
+> On 03/12/2014 07:37 PM, Tony Lindgren wrote:
+> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [140307 05:39]:
+> >> With the callback implemented omap-dma can provide information to client
+> >> drivers regarding to supported address widths, directions, residue
+> >> granularity, etc.
+> > 
+> > This may need some testing against linux next with Russell's
+> > omap-dma.c clean-up series merged there. Peter, care to check
+> > if this patch is still valid against linux next?
+> 
+> The patch applies cleanly on top of linux-next fetched yesterday and I see
+> Russell's patches underneath.
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
-This patch should fix the last minute breakkage of v3.15 ASoC updates build.
+OK thanks for testing:
 
- sound/soc/codecs/tlv320aic31xx.c |    9 ---------
- 1 file changed, 9 deletions(-)
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/sound/soc/codecs/tlv320aic31xx.c b/sound/soc/codecs/tlv320aic31xx.c
-index c9f6989..625b184 100644
---- a/sound/soc/codecs/tlv320aic31xx.c
-+++ b/sound/soc/codecs/tlv320aic31xx.c
-@@ -1051,18 +1051,9 @@ static int aic31xx_codec_probe(struct snd_soc_codec *codec)
- 	dev_dbg(aic31xx->dev, "## %s\n", __func__);
- 
- 	aic31xx = snd_soc_codec_get_drvdata(codec);
--	codec->control_data = aic31xx->regmap;
- 
- 	aic31xx->codec = codec;
- 
--	ret = snd_soc_codec_set_cache_io(codec, 8, 8, SND_SOC_REGMAP);
--
--	if (ret != 0) {
--		dev_err(codec->dev, "snd_soc_codec_set_cache_io failed %d\n",
--			ret);
--		return ret;
--	}
--
- 	for (i = 0; i < ARRAY_SIZE(aic31xx->supplies); i++) {
- 		aic31xx->disable_nb[i].nb.notifier_call =
- 			aic31xx_regulator_event;
--- 
-1.7.9.5
-
+> > Regards,
+> > 
+> > Tony
+> >  
+> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> >> ---
+> >>  drivers/dma/omap-dma.c | 18 ++++++++++++++++++
+> >>  1 file changed, 18 insertions(+)
+> >>
+> >> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+> >> index 64ceca2920b8..b19f04f4390b 100644
+> >> --- a/drivers/dma/omap-dma.c
+> >> +++ b/drivers/dma/omap-dma.c
+> >> @@ -1088,6 +1088,23 @@ static void omap_dma_free(struct omap_dmadev *od)
+> >>  	}
+> >>  }
+> >>  
+> >> +#define OMAP_DMA_BUSWIDTHS	(BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) | \
+> >> +				 BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) | \
+> >> +				 BIT(DMA_SLAVE_BUSWIDTH_4_BYTES))
+> >> +
+> >> +static int omap_dma_device_slave_caps(struct dma_chan *dchan,
+> >> +				      struct dma_slave_caps *caps)
+> >> +{
+> >> +	caps->src_addr_widths = OMAP_DMA_BUSWIDTHS;
+> >> +	caps->dstn_addr_widths = OMAP_DMA_BUSWIDTHS;
+> >> +	caps->directions = BIT(DMA_DEV_TO_MEM) | BIT(DMA_MEM_TO_DEV);
+> >> +	caps->cmd_pause = true;
+> >> +	caps->cmd_terminate = true;
+> >> +	caps->residue_granularity = DMA_RESIDUE_GRANULARITY_BURST;
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >>  static int omap_dma_probe(struct platform_device *pdev)
+> >>  {
+> >>  	struct omap_dmadev *od;
+> >> @@ -1118,6 +1135,7 @@ static int omap_dma_probe(struct platform_device *pdev)
+> >>  	od->ddev.device_prep_slave_sg = omap_dma_prep_slave_sg;
+> >>  	od->ddev.device_prep_dma_cyclic = omap_dma_prep_dma_cyclic;
+> >>  	od->ddev.device_control = omap_dma_control;
+> >> +	od->ddev.device_slave_caps = omap_dma_device_slave_caps;
+> >>  	od->ddev.dev = &pdev->dev;
+> >>  	INIT_LIST_HEAD(&od->ddev.channels);
+> >>  	INIT_LIST_HEAD(&od->pending);
+> >> -- 
+> >> 1.9.0
+> >>
+> 
