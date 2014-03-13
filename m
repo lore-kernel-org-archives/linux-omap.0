@@ -1,51 +1,93 @@
-From: "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
-Subject: Re: [PATCH 13/18] dma: edma: Print the direction value as well when
- it is not supported
-Date: Thu, 13 Mar 2014 13:03:14 +0000
-Message-ID: <1394715793.28803.240.camel@smile.fi.intel.com>
-References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
-	 <1394702320-21743-14-git-send-email-peter.ujfalusi@ti.com>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: [PATCH v1 1/3] ARM: dts: am335x-bone: add support for beaglebone
+ NAND cape
+Date: Thu, 13 Mar 2014 08:30:19 -0500
+Message-ID: <CAOCHtYhcJZ711XaJhBAPNSoHH-dK_tH8ZgB-AHZ86POXas1OfQ@mail.gmail.com>
+References: <1394621360-2457-1-git-send-email-pekon@ti.com>
+	<1394621360-2457-2-git-send-email-pekon@ti.com>
+	<532070C8.1030903@ti.com>
+	<20980858CB6D3A4BAE95CA194937D5E73EAB2CF1@DBDE04.ent.ti.com>
+	<CAGo_u6rvUqa-7afTFzBahDJuyVkXAj5J2LL8tQRjZuf8_xWXWA@mail.gmail.com>
+	<CAOCHtYhqZoCF13e1YjBiWPufDEmVotL3chO9ZUtivWbVTWVfiQ@mail.gmail.com>
+	<20140312192850.GF1996@atomide.com>
+	<5320C8B5.601@ti.com>
+	<20980858CB6D3A4BAE95CA194937D5E73EAB2E95@DBDE04.ent.ti.com>
+	<20140312215337.GA5735@kahuna>
+	<20980858CB6D3A4BAE95CA194937D5E73EAB2F96@DBDE04.ent.ti.com>
+	<5321AC92.2090307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1394702320-21743-14-git-send-email-peter.ujfalusi@ti.com>
-Content-Language: en-US
-Content-ID: <41A220705C2C6041A5907B14F67B3C4B@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "joelf@ti.com" <joelf@ti.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, "nsekhar@ti.com" <nsekhar@ti.com>, Jyri Sarha <jsarha@ti.com>, "mporter@linaro.org" <mporter@linaro.org>, "Koul, Vinod" <vinod.koul@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yh0-f54.google.com ([209.85.213.54]:35396 "EHLO
+	mail-yh0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750960AbaCMNaU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 09:30:20 -0400
+Received: by mail-yh0-f54.google.com with SMTP id f73so972922yha.13
+        for <linux-omap@vger.kernel.org>; Thu, 13 Mar 2014 06:30:20 -0700 (PDT)
+In-Reply-To: <5321AC92.2090307@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: "Gupta, Pekon" <pekon@ti.com>, Tony Lindgren <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>
 
-T24gVGh1LCAyMDE0LTAzLTEzIGF0IDExOjE4ICswMjAwLCBQZXRlciBVamZhbHVzaSB3cm90ZToN
-Cj4gSW4gY2FzZSBvZiBub3Qgc3VwcG9ydGVkIGRpcmVjdGlvbiBpdCBpcyBiZXR0ZXIgdG8gcHJp
-bnQgdGhlIGRpcmVjdGlvbiBhbHNvLg0KPiBJdCBpcyB1bmxpa2VseSwgYnV0IGluIHN1Y2ggYW4g
-ZXZlbnQgaXQgaGVscHMgd2l0aCB0aGUgZGVidWdnaW5nLg0KPiANCj4gU2lnbmVkLW9mZi1ieTog
-UGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJz
-L2RtYS9lZG1hLmMgfCA0ICsrLS0NCj4gIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyks
-IDIgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9kbWEvZWRtYS5jIGIv
-ZHJpdmVycy9kbWEvZWRtYS5jDQo+IGluZGV4IDQ3YWJhYWM3ZWIxOC4uNjlkZDRlM2RlNjdlIDEw
-MDY0NA0KPiAtLS0gYS9kcml2ZXJzL2RtYS9lZG1hLmMNCj4gKysrIGIvZHJpdmVycy9kbWEvZWRt
-YS5jDQo+IEBAIC00MjYsNyArNDI2LDcgQEAgc3RhdGljIHN0cnVjdCBkbWFfYXN5bmNfdHhfZGVz
-Y3JpcHRvciAqZWRtYV9wcmVwX3NsYXZlX3NnKA0KPiAgCQlkZXZfd2lkdGggPSBlY2hhbi0+Y2Zn
-LmRzdF9hZGRyX3dpZHRoOw0KPiAgCQlidXJzdCA9IGVjaGFuLT5jZmcuZHN0X21heGJ1cnN0Ow0K
-PiAgCX0gZWxzZSB7DQo+IC0JCWRldl9lcnIoZGV2LCAiJXM6IGJhZCBkaXJlY3Rpb24/XG4iLCBf
-X2Z1bmNfXyk7DQo+ICsJCWRldl9lcnIoZGV2LCAiJXM6IGJhZCBkaXJlY3Rpb246ICVkXG4iLCBf
-X2Z1bmNfXywgZGlyZWN0aW9uKTsNCg0KSXMgaXQgcG9zc2libGUgdG8gaGF2ZSBkaXJlY3Rpb24g
-bGVzcyB0aGFuIHplcm8/IE1heWJlICV1Pw0KDQo+ICAJCXJldHVybiBOVUxMOw0KPiAgCX0NCj4g
-IA0KPiBAQCAtNTE5LDcgKzUxOSw3IEBAIHN0YXRpYyBzdHJ1Y3QgZG1hX2FzeW5jX3R4X2Rlc2Ny
-aXB0b3IgKmVkbWFfcHJlcF9kbWFfY3ljbGljKA0KPiAgCQlkZXZfd2lkdGggPSBlY2hhbi0+Y2Zn
-LmRzdF9hZGRyX3dpZHRoOw0KPiAgCQlidXJzdCA9IGVjaGFuLT5jZmcuZHN0X21heGJ1cnN0Ow0K
-PiAgCX0gZWxzZSB7DQo+IC0JCWRldl9lcnIoZGV2LCAiJXM6IGJhZCBkaXJlY3Rpb24/XG4iLCBf
-X2Z1bmNfXyk7DQo+ICsJCWRldl9lcnIoZGV2LCAiJXM6IGJhZCBkaXJlY3Rpb246ICVkXG4iLCBf
-X2Z1bmNfXywgZGlyZWN0aW9uKTsNCg0KRGl0dG8uDQoNCj4gIAkJcmV0dXJuIE5VTEw7DQo+ICAJ
-fQ0KPiAgDQoNCg0KLS0gDQpBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGludGVs
-LmNvbT4NCkludGVsIEZpbmxhbmQgT3kNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpJbnRlbCBGaW5sYW5kIE95ClJl
-Z2lzdGVyZWQgQWRkcmVzczogUEwgMjgxLCAwMDE4MSBIZWxzaW5raSAKQnVzaW5lc3MgSWRlbnRp
-dHkgQ29kZTogMDM1NzYwNiAtIDQgCkRvbWljaWxlZCBpbiBIZWxzaW5raSAKClRoaXMgZS1tYWls
-IGFuZCBhbnkgYXR0YWNobWVudHMgbWF5IGNvbnRhaW4gY29uZmlkZW50aWFsIG1hdGVyaWFsIGZv
-cgp0aGUgc29sZSB1c2Ugb2YgdGhlIGludGVuZGVkIHJlY2lwaWVudChzKS4gQW55IHJldmlldyBv
-ciBkaXN0cmlidXRpb24KYnkgb3RoZXJzIGlzIHN0cmljdGx5IHByb2hpYml0ZWQuIElmIHlvdSBh
-cmUgbm90IHRoZSBpbnRlbmRlZApyZWNpcGllbnQsIHBsZWFzZSBjb250YWN0IHRoZSBzZW5kZXIg
-YW5kIGRlbGV0ZSBhbGwgY29waWVzLgo=
+On Thu, Mar 13, 2014 at 8:03 AM, Nishanth Menon <nm@ti.com> wrote:
+> On 03/13/2014 01:19 AM, Gupta, Pekon wrote:
+> [..]
+>>> diff --git a/arch/arm/boot/dts/am335x-bone-memory-cape.dts b/arch/arm/boot/dts/am335x-bone-memory-cape.dts
+>>> new file mode 100644
+>>> index 0000000..7ab088d
+>>> --- /dev/null
+>>> +++ b/arch/arm/boot/dts/am335x-bone-memory-cape.dts
+>>>
+>> From discussions, option I could think are..
+>>
+>> (a) NAND cape node added in both 'am335x-bone.dts' and
+>>    'am335x-boneblack.dts' but "disabled" by default.
+>>
+>> (b) NAND cape node in new '.dts' file (as mentioned above), and generate
+>>    a separate blob individual for cape.
+>>
+>> (c) NAND cape node in existing 'am335x-bone-common.dtsi', "disabled"
+>>    by default. But there is no guarantee that future boards remain
+>>    compatible and same 'common_xx.dtsi' can be reused later.
+>>
+>> I'll wait for Tony/Benoit-C. to decide on what suits them, as they are the
+>> ones who have to maintain all these. Tony ?
+>>
+>
+> Key for us is that we'd have to live with what ever we introduce in
+> the interest of backward dtb compatibility. both (a) and (c) requires
+> hand modification by user of nand cape - considering this might be the
+> strategy for "most common capes", we might end up with confusing
+> entries that in many cases will require additional documentation
+> example: option a, c: consider both audio cape (which needs hdmi
+> disabled) and nand cape (which needs mmc2 disabled) - how'd the user
+> know which entries to enable/disable for the user of the cape -
+> documentation needed and potentially user error prone implementation
+> as well.
+>
+> There is as well a option (d) where we wait for FDT overlay to mature,
+> write up a resource manager and support all level capes.
+
+(b) is the direction i'm currently trying to transition the
+beagleboard.org community till (d) actually shows any life/hope again.
+
+example:
+https://github.com/RobertCNelson/linux-dev/tree/am33x-v3.13/patches/static-capes
+
+I really like Nishanth's simpler version he posted, so I'll be
+converting mine to that style later today.
+
+Also with u-boot v2014.04-rcX we now have "test -e" (exist support) so
+we can actively check for the presence of <board>-<cape>.dtb and
+safely fall back to <board>.dtb if it didn't actually exist.  The only
+requirement is the end user specify the <cape> as a variable in
+uEnv.txt
+
+https://github.com/RobertCNelson/Bootloader-Builder/blob/master/patches/v2014.04-rc2/0001-am335x_evm-uEnv.txt-bootz-n-fixes.patch#L76
+
+Regards,
+
+-- 
+Robert Nelson
+http://www.rcn-ee.com/
