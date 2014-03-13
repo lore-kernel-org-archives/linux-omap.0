@@ -1,61 +1,61 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [RFC 0/5] Clocksource driver for OMAP SoCs
-Date: Thu, 13 Mar 2014 15:35:14 -0500
-Message-ID: <1394742919-32163-1-git-send-email-joelf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: INTC: Acknowledge stuck active interrupts
+Date: Thu, 13 Mar 2014 13:38:54 -0700
+Message-ID: <20140313203854.GA23432@atomide.com>
+References: <1394119635-24194-1-git-send-email-stefan.sorensen@spectralink.com>
+ <20140306183235.GB1381@atomide.com>
+ <1394196081.2692.2.camel@e37108.spectralink.com>
+ <20140307160600.GB3789@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10844 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755333AbaCMUi5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 16:38:57 -0400
+Content-Disposition: inline
+In-Reply-To: <20140307160600.GB3789@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?utf-8?Q?S=C3=B8rensen=2C?= Stefan <Stefan.Sorensen@spectralink.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Here's an RFC series for clocksource migration of OMAP timers.
-This attempt is going to step-by-step attempt to migrate platforms
-such that everything is kept working smoothly during migration. Currently
-the series introduces a clocksource driver and migrates AM335x platform
-to discuss the general idea.
+* Tony Lindgren <tony@atomide.com> [140307 08:09]:
+> * S=C3=B8rensen, Stefan <Stefan.Sorensen@spectralink.com> [140307 04:=
+44]:
+> > On Thu, 2014-03-06 at 10:32 -0800, Tony Lindgren wrote:
+> > > While playing with this, you may want to also do one more test an=
+d
+> > > forward port these two patches adding checks for spurious interru=
+pts:
+> > >=20
+> > > 6ccc4c0d ARM: OMAP3: Warn about spurious interrupts
+> > > 846c29f1 ARM: OMAP3: Clean up spurious interrupt check logic
+> > >=20
+> > > Those got removed in commit:
+> > >=20
+> > > 667a11fa arm: omap2/3: Use generic irq chip
+> > >=20
+> > > If you get warnings with those checks about spurious interrupts t=
+here's
+> > > also something else wrong or we're not understanding the problem =
+fully.
+> > > So it might be good to check before we apply this patch.
+> >=20
+> > No warnings with those patches. I also tried watching the spuriousi=
+rq
+> > field in various places - nothing showed up.
+>=20
+> OK thanks for testing, that's good to hear.
 
-The plan is to move dmtimer to clocksource (infact make a copy for now
-so that platforms not migrated still work). Then we add a per-SoC clocksource
-registration and select a timer as each of them are initialized by clocksource
-(suggested in [1]).
+Applying your patch into omap-for-v3.15/fixes with cc: stable.
 
-We also add support for a generic timer init function which is called for
-every SoC for which support in clocksource driver is available. And, we
-call a generic OMAP power up function which is introduced in the mach-omap
-layer in this series.
+Regards,
 
-Lastly, we add clock nodes for the system timers, and setup a default-parent
-so that the parent clocks are setup correctly. Due to this, the series depends
-on Tero's series [2].
-
-Please note- this effort is for system timer support. This is the first basic
-step. Converting dmtimer to use any other generic framework is a completely
-different topic and should not be discussed in this thread. It is something
-that can be done only _after_ the work done in this series is completed, thanks.
-
-[1] https://lkml.org/lkml/2013/11/23/88
-[2] http://www.spinics.net/lists/linux-omap/msg103069.html
-
-Joel Fernandes (5):
-  ARM: dts: am33xx: Add clock nodes for timer1 and timer2
-  ARM: dts: am33xx: Set parent clock for timer through DT
-  ARM: OMAP2+: timer: Add clocksource initialization and powerup
-    support
-  clocksource: omap-timer: Introduce clocksource driver for OMAP SoCs
-  ARM: AM33xx: Move to using omap_generic_timer_init for init_time
-
- arch/arm/boot/dts/am33xx.dtsi       |    4 +
- arch/arm/mach-omap2/board-generic.c |    2 +-
- arch/arm/mach-omap2/common.h        |    1 +
- arch/arm/mach-omap2/timer.c         |   28 +
- drivers/clocksource/Makefile        |    1 +
- drivers/clocksource/omap-timer.c    | 1157 +++++++++++++++++++++++++++++++++++
- drivers/clocksource/omap-timer.h    |  422 +++++++++++++
- 7 files changed, 1614 insertions(+), 1 deletion(-)
- create mode 100644 drivers/clocksource/omap-timer.c
- create mode 100644 drivers/clocksource/omap-timer.h
-
--- 
-1.7.9.5
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
