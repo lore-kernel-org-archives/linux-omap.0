@@ -1,38 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: Fix definition of IS_PM44XX_ERRATUM
-Date: Thu, 13 Mar 2014 13:36:38 -0700
-Message-ID: <20140313203637.GF5981@atomide.com>
-References: <1394660600-3771-1-git-send-email-nm@ti.com>
- <7hy50ekl8g.fsf@paris.lan>
+From: Joel Fernandes <joelf@ti.com>
+Subject: [RFC 0/5] Clocksource driver for OMAP SoCs
+Date: Thu, 13 Mar 2014 15:35:14 -0500
+Message-ID: <1394742919-32163-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62370 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755034AbaCMUgn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 16:36:43 -0400
-Content-Disposition: inline
-In-Reply-To: <7hy50ekl8g.fsf@paris.lan>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Santosh <santosh.shilimkar@ti.com>
 
-* Kevin Hilman <khilman@linaro.org> [140313 11:30]:
-> Nishanth Menon <nm@ti.com> writes:
-> 
-> > Just like IS_PM34XX_ERRATUM, IS_PM44XX_ERRATUM is valid only if
-> > CONFIG_PM is enabled, else, disabling CONFIG_PM results in build
-> > failure complaining about the following:
-> > arch/arm/mach-omap2/built-in.o: In function `omap4_boot_secondary':
-> > :(.text+0x8a70): undefined reference to `pm44xx_errata'
-> >
-> > Fixes: c962184 (ARM: OMAP4: PM: add errata support)
-> > Reported-by: Tony Lindgren <tony@atomide.com>
-> > Signed-off-by: Nishanth Menon <nm@ti.com>
-> 
-> Acked-by: Kevin Hilman <khilman@linaro.org>
+Here's an RFC series for clocksource migration of OMAP timers.
+This attempt is going to step-by-step attempt to migrate platforms
+such that everything is kept working smoothly during migration. Currently
+the series introduces a clocksource driver and migrates AM335x platform
+to discuss the general idea.
 
-Applying this into omap-for-v3.15/fixes thanks.
+The plan is to move dmtimer to clocksource (infact make a copy for now
+so that platforms not migrated still work). Then we add a per-SoC clocksource
+registration and select a timer as each of them are initialized by clocksource
+(suggested in [1]).
 
-Tony
+We also add support for a generic timer init function which is called for
+every SoC for which support in clocksource driver is available. And, we
+call a generic OMAP power up function which is introduced in the mach-omap
+layer in this series.
+
+Lastly, we add clock nodes for the system timers, and setup a default-parent
+so that the parent clocks are setup correctly. Due to this, the series depends
+on Tero's series [2].
+
+Please note- this effort is for system timer support. This is the first basic
+step. Converting dmtimer to use any other generic framework is a completely
+different topic and should not be discussed in this thread. It is something
+that can be done only _after_ the work done in this series is completed, thanks.
+
+[1] https://lkml.org/lkml/2013/11/23/88
+[2] http://www.spinics.net/lists/linux-omap/msg103069.html
+
+Joel Fernandes (5):
+  ARM: dts: am33xx: Add clock nodes for timer1 and timer2
+  ARM: dts: am33xx: Set parent clock for timer through DT
+  ARM: OMAP2+: timer: Add clocksource initialization and powerup
+    support
+  clocksource: omap-timer: Introduce clocksource driver for OMAP SoCs
+  ARM: AM33xx: Move to using omap_generic_timer_init for init_time
+
+ arch/arm/boot/dts/am33xx.dtsi       |    4 +
+ arch/arm/mach-omap2/board-generic.c |    2 +-
+ arch/arm/mach-omap2/common.h        |    1 +
+ arch/arm/mach-omap2/timer.c         |   28 +
+ drivers/clocksource/Makefile        |    1 +
+ drivers/clocksource/omap-timer.c    | 1157 +++++++++++++++++++++++++++++++++++
+ drivers/clocksource/omap-timer.h    |  422 +++++++++++++
+ 7 files changed, 1614 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/clocksource/omap-timer.c
+ create mode 100644 drivers/clocksource/omap-timer.h
+
+-- 
+1.7.9.5
