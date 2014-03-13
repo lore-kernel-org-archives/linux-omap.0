@@ -1,87 +1,58 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 13/18] dma: edma: Print the direction value
- as well when it is not supported
-Date: Thu, 13 Mar 2014 15:40:05 +0200
-Message-ID: <5321B535.5040802@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 00/18] edma/ASoC: dmaengine PCM for AM335x and AM447x
+Date: Thu, 13 Mar 2014 13:46:01 +0000
+Message-ID: <20140313134601.GU366@sirena.org.uk>
 References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
- <1394702320-21743-14-git-send-email-peter.ujfalusi@ti.com>
- <1394715793.28803.240.camel@smile.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1394715793.28803.240.camel@smile.fi.intel.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
-Cc: "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, Liam Girdwood <lgirdwood@gmail.com>, "joelf@ti.com" <joelf@ti.com>, "nsekhar@ti.com" <nsekhar@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Jyri Sarha <jsarha@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Koul,
- Vinod" <vinod.koul@intel.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, "mporter@linaro.org" <mporter@linaro.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "Williams,
- Dan J" <dan.j.williams@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="L2YZAWjVjAQ1Un1Q"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, joelf@ti.com, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, Jyri Sarha <jsarha@ti.com>, mporter@linaro.org, vinod.koul@intel.com, dan.j.williams@intel.com
 List-Id: linux-omap@vger.kernel.org
 
-On 03/13/2014 03:03 PM, Shevchenko, Andriy wrote:
-> On Thu, 2014-03-13 at 11:18 +0200, Peter Ujfalusi wrote:
->> In case of not supported direction it is better to print the direction a=
-lso.
->> It is unlikely, but in such an event it helps with the debugging.
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> ---
->>  drivers/dma/edma.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
->> index 47abaac7eb18..69dd4e3de67e 100644
->> --- a/drivers/dma/edma.c
->> +++ b/drivers/dma/edma.c
->> @@ -426,7 +426,7 @@ static struct dma_async_tx_descriptor *edma_prep_sla=
-ve_sg(
->>  		dev_width =3D echan->cfg.dst_addr_width;
->>  		burst =3D echan->cfg.dst_maxburst;
->>  	} else {
->> -		dev_err(dev, "%s: bad direction?\n", __func__);
->> +		dev_err(dev, "%s: bad direction: %d\n", __func__, direction);
-> =
 
-> Is it possible to have direction less than zero? Maybe %u?
+--L2YZAWjVjAQ1Un1Q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-It is 'enum dma_transfer_direction direction'. %d should be fine.
+On Thu, Mar 13, 2014 at 11:18:22AM +0200, Peter Ujfalusi wrote:
 
-> =
+> With this series AM335x and AM447x will use the dmaengine PCM for audio. The
+> daVinci devices will keep using the davinci-pcm for now since I do not have
+> means to test them but the code is written in a way that they can be switched
+> to use the edma-pcm easily (DA850/OMAP-L138 has been tested and audio was
+> working fine).
 
->>  		return NULL;
->>  	}
->>  =
+Can you please not resend the ASoC portions of this series until the
+EDMA portion is stable (and ideally committed)?  I'm not quite sure why
+but every EDMA patch series seems to go through lots of iterations which
+gets rather noisy - my initial reaction to seeing EDMA in a subject is
+to just delete the thread.
 
->> @@ -519,7 +519,7 @@ static struct dma_async_tx_descriptor *edma_prep_dma=
-_cyclic(
->>  		dev_width =3D echan->cfg.dst_addr_width;
->>  		burst =3D echan->cfg.dst_maxburst;
->>  	} else {
->> -		dev_err(dev, "%s: bad direction?\n", __func__);
->> +		dev_err(dev, "%s: bad direction: %d\n", __func__, direction);
-> =
+--L2YZAWjVjAQ1Un1Q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> Ditto.
-> =
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
->>  		return NULL;
->>  	}
->>  =
+iQIcBAEBAgAGBQJTIbaWAAoJELSic+t+oim9nV0P/jZm8E1g0rPBCTOkKqf9ombY
+Hdqm9g6GzkSN8Pga8f5Q1UN3lVpIReLCiwsYxoRTT//Ovtmy8y2mOZ4FlwmlOyaU
+hWw0QENFV6Tk/SsAliX2gSgIrqbnLUF/RsEaubA2DWPx3kpATEI+5+YijjAxJHfs
+0fIApxzB/x94EC/wcCPJIpSBP+bwW9UCRjN1iF7yX60nO3A7iXBbBUx2UnJPK4Oi
+Z8Hto5G78cQIMpowTukO74cUqTvqrrdQXgIKhcPBfRl0aL9qWpMVPxuDlnE/ofne
+37zZeq4I0DwvDRSRSAqwhEJXVz89hc565Zh7PwdE2NAK3fCJQjH8/L5s3S/eTVPP
+kpVkKZzwNEJ4WtPQs2aFocfJFnnTMhF4TVTbl/XCUTn1sM+VHkwiFZb2MzfgVX/c
+opPJT5uW5ovp/4XvCHmRZrhr4bnXNgX5+ri+AbOXlvLywsHSHxYoTHypVM+op6ad
+U4RYE5dx6fANKcq8efrxj0Kiqjgb5opd/YPsgL/u5fQ7Sk7nuWJvVEXhmPwN3QZv
+6konQYpMlAZVNHBltxxfpY1rbXAJ9Q03/hIAAm0vdfzYoui7bNGFBFHI6/ZZ9mQl
+UEooOae6mAemGS6WQYh35TBLgoSMy1FssrDCzVQcvCpBX5xikCG4wlcYHxtnBi+c
+UIV7ENhW3HZkfw2jFD6g
+=bZlj
+-----END PGP SIGNATURE-----
 
-> =
-
-> =
-
-
-
--- =
-
-P=E9ter
+--L2YZAWjVjAQ1Un1Q--
