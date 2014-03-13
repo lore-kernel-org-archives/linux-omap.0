@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 15/18] ASoC: davinci-mcasp: Use dmaengine based platform driver for AM335x/447x
-Date: Thu, 13 Mar 2014 11:18:37 +0200
-Message-ID: <1394702320-21743-16-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 13/18] dma: edma: Print the direction value as well when it is not supported
+Date: Thu, 13 Mar 2014 11:18:35 +0200
+Message-ID: <1394702320-21743-14-git-send-email-peter.ujfalusi@ti.com>
 References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,97 +12,35 @@ To: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.k
 Cc: davinci-linux-open-source@linux.davincidsp.com, joelf@ti.com, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, Jyri Sarha <jsarha@ti.com>, mporter@linaro.org, vinod.koul@intel.com, dan.j.williams@intel.com
 List-Id: linux-omap@vger.kernel.org
 
-Use the edma-pcm with AM335x and AM447x SoCs.
-Keep using the davinci-pcm for DaVinci devices, they can be switched to use
-the dmaengine based driver later when they are verified to work correctly.
+In case of not supported direction it is better to print the direction also.
+It is unlikely, but in such an event it helps with the debugging.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/davinci/davinci-mcasp.c | 46 +++++++++++++++++++++++++++++++++------
- 1 file changed, 39 insertions(+), 7 deletions(-)
+ drivers/dma/edma.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index b0ae0677f023..604aa982f5c4 100644
---- a/sound/soc/davinci/davinci-mcasp.c
-+++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -36,6 +36,7 @@
- 
- #include "davinci-pcm.h"
- #include "davinci-mcasp.h"
-+#include "edma-pcm.h"
- 
- struct davinci_mcasp_context {
- 	u32	txfmtctl;
-@@ -721,10 +722,12 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
- {
- 	struct davinci_mcasp *mcasp = snd_soc_dai_get_drvdata(dai);
- 
--	if (mcasp->version == MCASP_VERSION_4)
-+	if (mcasp->version >= MCASP_VERSION_3)
-+		/* Using dmaengine PCM */
- 		snd_soc_dai_set_dma_data(dai, substream,
- 					&mcasp->dma_data[substream->stream]);
- 	else
-+		/* Using davinci-pcm */
- 		snd_soc_dai_set_dma_data(dai, substream, mcasp->dma_params);
- 
- 	return 0;
-@@ -1154,12 +1157,28 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 	if (ret != 0)
- 		goto err_release_clk;
- 
--	if (mcasp->version != MCASP_VERSION_4) {
-+	/* Based on the McASP version use different platform driver */
-+	switch (mcasp->version) {
-+	case MCASP_VERSION_1:
-+	case MCASP_VERSION_2:
- 		ret = davinci_soc_platform_register(&pdev->dev);
--		if (ret) {
--			dev_err(&pdev->dev, "register PCM failed: %d\n", ret);
--			goto err_unregister_component;
--		}
-+		break;
-+	case MCASP_VERSION_3:
-+		ret = edma_pcm_platform_register(&pdev->dev);
-+		break;
-+	case MCASP_VERSION_4:
-+		/* Using omap-pcm as platform driver */
-+		break;
-+	default:
-+		dev_err(&pdev->dev, "Invalid McASP version: %d\n",
-+			mcasp->version);
-+		ret = -EINVAL;
-+		break;
-+	}
-+
-+	if (ret) {
-+		dev_err(&pdev->dev, "register PCM failed: %d\n", ret);
-+		goto err_unregister_component;
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 47abaac7eb18..69dd4e3de67e 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -426,7 +426,7 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
+ 		dev_width = echan->cfg.dst_addr_width;
+ 		burst = echan->cfg.dst_maxburst;
+ 	} else {
+-		dev_err(dev, "%s: bad direction?\n", __func__);
++		dev_err(dev, "%s: bad direction: %d\n", __func__, direction);
+ 		return NULL;
  	}
  
- 	return 0;
-@@ -1177,8 +1196,21 @@ static int davinci_mcasp_remove(struct platform_device *pdev)
- 	struct davinci_mcasp *mcasp = dev_get_drvdata(&pdev->dev);
+@@ -519,7 +519,7 @@ static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
+ 		dev_width = echan->cfg.dst_addr_width;
+ 		burst = echan->cfg.dst_maxburst;
+ 	} else {
+-		dev_err(dev, "%s: bad direction?\n", __func__);
++		dev_err(dev, "%s: bad direction: %d\n", __func__, direction);
+ 		return NULL;
+ 	}
  
- 	snd_soc_unregister_component(&pdev->dev);
--	if (mcasp->version != MCASP_VERSION_4)
-+
-+	switch (mcasp->version) {
-+	case MCASP_VERSION_1:
-+	case MCASP_VERSION_2:
- 		davinci_soc_platform_unregister(&pdev->dev);
-+		break;
-+	case MCASP_VERSION_3:
-+		edma_pcm_platform_unregister(&pdev->dev);
-+		break;
-+	case MCASP_VERSION_4:
-+		/* Using omap-pcm as platform driver */
-+		break;
-+	default:
-+		break;
-+	}
- 
- 	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
 -- 
 1.9.0
