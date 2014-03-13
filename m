@@ -1,55 +1,101 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2/4] power_supply: Introduce generic psy charging driver
-Date: Thu, 13 Mar 2014 10:12:35 +0100
-Message-ID: <20140313091234.GC9494@amd.pavel.ucw.cz>
-References: <1392875640-29230-1-git-send-email-jenny.tc@intel.com>
- <1392875640-29230-3-git-send-email-jenny.tc@intel.com>
- <CACRpkdaU44iinj2iDNdYm62J+4jQbg+XJ=Zq4GmJryPeu7GfTQ@mail.gmail.com>
- <20140228100114.GA13189@amd.pavel.ucw.cz>
- <CACRpkdaZ2moqGWx2BpfEeKoW6doXg67TkJKY+mbg4hrFHDr16Q@mail.gmail.com>
- <20140307201039.GB27645@amd.pavel.ucw.cz>
- <CACRpkda_9UG70G-b3eGTccr22WC4eoAbj0g2QgX0DRSYVgvrxA@mail.gmail.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] arm: omap: cm-t3530: Add MMC2/SDIO/WLAN support
+Date: Thu, 13 Mar 2014 11:13:53 +0200
+Message-ID: <532176D1.2070000@compulab.co.il>
+References: <1394621352-32438-1-git-send-email-sr@denx.de> <20140312174423.GC1996@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55333 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753213AbaCMJMh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 05:12:37 -0400
-Content-Disposition: inline
-In-Reply-To: <CACRpkda_9UG70G-b3eGTccr22WC4eoAbj0g2QgX0DRSYVgvrxA@mail.gmail.com>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:45660 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753213AbaCMJOP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Mar 2014 05:14:15 -0400
+In-Reply-To: <20140312174423.GC1996@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Jenny TC <jenny.tc@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordo>
+To: Tony Lindgren <tony@atomide.com>, Stefan Roese <sr@denx.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-Hi!
+On 03/12/14 19:44, Tony Lindgren wrote:
+> * Stefan Roese <sr@denx.de> [140312 03:52]:
+>> Add support for the MMC2/SDIO WiFi Libertas (Marvell) module available
+>> on the CM-T3530 SOM.
+>>
+>> Signed-off-by: Stefan Roese <sr@denx.de>
+>> Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>
+>> Cc: Igor Grinberg <grinberg@compulab.co.il>
+>> Cc: Tony Lindgren <tony@atomide.com>
 
-> > 30*HZ means 30 seconds in the kernel... what is hard to understand
-> > about it?
->=20
-> Well I might be picky, but since it is a charging algorithm dealing w=
-ith
-> amp=E8res, volts, constant-current/constant-voltage, watchdogs and
-> timeouts, all stated in SI units, it would be nice if all such consta=
-nts
-> were specified in simple units instead of kernel-specific terms.
+Acked-by: Igor Grinberg <grinberg@compulab.co.il>
 
-I agree HZ is badly named, but hopefully anyone working on kernel is
-already familiar with it.
+>> ---
+>> This patch is based on current mainline (v3.14-rc6) plus this compulab patch
+>> series from Dmitry:
+>>
+>> [PATCH 00/11] ARM: dts: sbc-t3x: add support for more boards
+>> http://www.spinics.net/lists/arm-kernel/msg300078.html
+> 
+> Thanks applying into omap-for-v3.15/dt, no guarantees it gets merged though
+> as it's getting so close to the merge window.
+> 
+> Regards,
+> 
+> Tony
+> 
+>>  arch/arm/boot/dts/omap3-cm-t3530.dts | 36 ++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 36 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-cm-t3530.dts b/arch/arm/boot/dts/omap3-cm-t3530.dts
+>> index 9faf1cd..d145849 100644
+>> --- a/arch/arm/boot/dts/omap3-cm-t3530.dts
+>> +++ b/arch/arm/boot/dts/omap3-cm-t3530.dts
+>> @@ -9,4 +9,40 @@
+>>  / {
+>>  	model = "CompuLab CM-T3530";
+>>  	compatible = "compulab,omap3-cm-t3530", "ti,omap34xx", "ti,omap3";
+>> +
+>> +	/* Regulator to trigger the reset signal of the Wifi module */
+>> +	mmc2_sdio_reset: regulator-mmc2-sdio-reset {
+>> +		compatible = "regulator-fixed";
+>> +		regulator-name = "regulator-mmc2-sdio-reset";
+>> +		regulator-min-microvolt = <3300000>;
+>> +		regulator-max-microvolt = <3300000>;
+>> +		gpio = <&twl_gpio 2 GPIO_ACTIVE_HIGH>;
+>> +		enable-active-high;
+>> +	};
+>> +};
+>> +
+>> +&omap3_pmx_core {
+>> +	mmc2_pins: pinmux_mmc2_pins {
+>> +		pinctrl-single,pins = <
+>> +			OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_clk.sdmmc2_clk */
+>> +			OMAP3_CORE1_IOPAD(0x215a, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_cmd.sdmmc2_cmd */
+>> +			OMAP3_CORE1_IOPAD(0x215c, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat0.sdmmc2_dat0 */
+>> +			OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat1.sdmmc2_dat1 */
+>> +			OMAP3_CORE1_IOPAD(0x2160, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat2.sdmmc2_dat2 */
+>> +			OMAP3_CORE1_IOPAD(0x2162, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat3.sdmmc2_dat3 */
+>> +			OMAP3_CORE1_IOPAD(0x2164, PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat4.sdmmc2_dir_dat0 */
+>> +			OMAP3_CORE1_IOPAD(0x2166, PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat5.sdmmc2_dir_dat1 */
+>> +			OMAP3_CORE1_IOPAD(0x2168, PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat6.sdmmc2_dir_cmd */
+>> +			OMAP3_CORE1_IOPAD(0x216a, PIN_INPUT | MUX_MODE1)		/* sdmmc2_dat7.sdmmc2_clkin */
+>> +		>;
+>> +	};
+>> +};
+>> +
+>> +&mmc2 {
+>> +	pinctrl-names = "default";
+>> +	pinctrl-0 = <&mmc2_pins>;
+>> +	vmmc-supply = <&mmc2_sdio_reset>;
+>> +	non-removable;
+>> +	bus-width = <4>;
+>> +	cap-power-off-card;
+>>  };
+>> -- 
+>> 1.8.5.5
+>>
+> 
 
-But... what would actually help: I believe we should introduce
-milivolt_t, miliamp_t, milisec_t etc... types. Storing milivolts in
-int, then having comment saying "milivolts" is just wrong.
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Igor.
