@@ -1,257 +1,211 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 06/14] v4l: ti-vpe: Fix some params in VPE data descriptors
-Date: Thu, 13 Mar 2014 17:14:08 +0530
-Message-ID: <1394711056-10878-7-git-send-email-archit@ti.com>
+Subject: [PATCH v4 07/14] v4l: ti-vpe: Add selection API in VPE driver
+Date: Thu, 13 Mar 2014 17:14:09 +0530
+Message-ID: <1394711056-10878-8-git-send-email-archit@ti.com>
 References: <1394526833-24805-1-git-send-email-archit@ti.com>
  <1394711056-10878-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42480 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753821AbaCMLpY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 07:45:24 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
 To: k.debski@samsung.com, hverkuil@xs4all.nl
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Some parameters of the VPE descriptors were understood incorrectly. They are now
-fixed. The fixes are explained as follows:
+Add selection ioctl ops. For VPE, cropping makes sense only for the input to
+VPE(or V4L2_BUF_TYPE_VIDEO_OUTPUT/MPLANE buffers) and composing makes sense
+only for the output of VPE(or V4L2_BUF_TYPE_VIDEO_CAPTURE/MPLANE buffers).
 
-- When adding an inbound data descriptor to the VPDMA descriptor list, we intend
-  to use c_rect as the cropped region fetched by VPDMA. Therefore, c_rect->width
-  shouldn't be used to calculate the line stride, the original image width
-  should be used for that. We add a 'width' argument which gives the buffer
-  width in memory.
+For the CAPTURE type, V4L2_SEL_TGT_COMPOSE results in VPE writing the output
+in a rectangle within the capture buffer. For the OUTPUT type, V4L2_SEL_TGT_CROP
+results in selecting a rectangle region within the source buffer.
 
-- frame_width and frame_height describe the complete width and height of the
-  client to which the channel is connected. If there are multiple channels
-  fetching data and providing to the same client, the above 2 arguments should
-  be the width and height of the region covered by all the channels. In the case
-  where there is only one channel providing pixel data to the client
-  (like in VPE), frame_width and frame_height should be the cropped width and
-  cropped height respectively. The calculation of these params is done in the
-  vpe driver now.
-
-- start_h and start_v is also used in the case of multiple channels to describe
-  where each channel should start filling pixel data. We don't use this in VPE,
-  and pass 0s to the vpdma_add_in_dtd() helper.
-
-- Some minor changes are made to the vpdma_add_out_dtd() helper. The c_rect
-  param is used for specifying the 'composition' target, and 'width'  is added
-  to calculate the line stride.
+Setting the crop/compose rectangles should successfully result in
+re-configuration of registers which are affected when either source or
+destination dimensions change, set_srcdst_params() is called for this purpose.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpdma.c | 60 +++++++++++++++++++++++++++--------
- drivers/media/platform/ti-vpe/vpdma.h | 10 +++---
- drivers/media/platform/ti-vpe/vpe.c   | 18 +++++++----
- 3 files changed, 64 insertions(+), 24 deletions(-)
+ drivers/media/platform/ti-vpe/vpe.c | 150 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 150 insertions(+)
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index 73dd38e..a51a013 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -614,8 +614,17 @@ static void dump_dtd(struct vpdma_dtd *dtd)
- /*
-  * append an outbound data transfer descriptor to the given descriptor list,
-  * this sets up a 'client to memory' VPDMA transfer for the given VPDMA channel
-+ *
-+ * @list: vpdma desc list to which we add this decriptor
-+ * @width: width of the image in pixels in memory
-+ * @c_rect: compose params of output image
-+ * @fmt: vpdma data format of the buffer
-+ * dma_addr: dma address as seen by VPDMA
-+ * chan: VPDMA channel
-+ * flags: VPDMA flags to configure some descriptor fileds
-  */
--void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
-+void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
-+		const struct v4l2_rect *c_rect,
- 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
- 		enum vpdma_channel chan, u32 flags)
- {
-@@ -623,6 +632,7 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
- 	int field = 0;
- 	int notify = 1;
- 	int channel, next_chan;
-+	struct v4l2_rect rect = *c_rect;
- 	int depth = fmt->depth;
- 	int stride;
- 	struct vpdma_dtd *dtd;
-@@ -630,11 +640,15 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
- 	channel = next_chan = chan_info[chan].num;
- 
- 	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
--			fmt->data_type == DATA_TYPE_C420)
-+			fmt->data_type == DATA_TYPE_C420) {
-+		rect.height >>= 1;
-+		rect.top >>= 1;
- 		depth = 8;
-+	}
- 
--	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
--	dma_addr += (c_rect->left * depth) >> 3;
-+	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
-+
-+	dma_addr += rect.top * stride + (rect.left * depth >> 3);
- 
- 	dtd = list->next;
- 	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
-@@ -664,31 +678,48 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
- /*
-  * append an inbound data transfer descriptor to the given descriptor list,
-  * this sets up a 'memory to client' VPDMA transfer for the given VPDMA channel
-+ *
-+ * @list: vpdma desc list to which we add this decriptor
-+ * @width: width of the image in pixels in memory(not the cropped width)
-+ * @c_rect: crop params of input image
-+ * @fmt: vpdma data format of the buffer
-+ * dma_addr: dma address as seen by VPDMA
-+ * chan: VPDMA channel
-+ * field: top or bottom field info of the input image
-+ * flags: VPDMA flags to configure some descriptor fileds
-+ * frame_width/height: the complete width/height of the image presented to the
-+ *			client (this makes sense when multiple channels are
-+ *			connected to the same client, forming a larger frame)
-+ * start_h, start_v: position where the given channel starts providing pixel
-+ *			data to the client (makes sense when multiple channels
-+ *			contribute to the client)
-  */
--void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
--		int frame_height, struct v4l2_rect *c_rect,
-+void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
-+		const struct v4l2_rect *c_rect,
- 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
--		enum vpdma_channel chan, int field, u32 flags)
-+		enum vpdma_channel chan, int field, u32 flags, int frame_width,
-+		int frame_height, int start_h, int start_v)
- {
- 	int priority = 0;
- 	int notify = 1;
- 	int depth = fmt->depth;
- 	int channel, next_chan;
-+	struct v4l2_rect rect = *c_rect;
- 	int stride;
--	int height = c_rect->height;
- 	struct vpdma_dtd *dtd;
- 
- 	channel = next_chan = chan_info[chan].num;
- 
- 	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
- 			fmt->data_type == DATA_TYPE_C420) {
--		height >>= 1;
--		frame_height >>= 1;
-+		rect.height >>= 1;
-+		rect.top >>= 1;
- 		depth = 8;
- 	}
- 
--	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
--	dma_addr += (c_rect->left * depth) >> 3;
-+	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
-+
-+	dma_addr += rect.top * stride + (rect.left * depth >> 3);
- 
- 	dtd = list->next;
- 	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
-@@ -701,13 +732,14 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
- 					!!(flags & VPDMA_DATA_ODD_LINE_SKIP),
- 					stride);
- 
--	dtd->xfer_length_height = dtd_xfer_length_height(c_rect->width, height);
-+	dtd->xfer_length_height = dtd_xfer_length_height(rect.width,
-+					rect.height);
- 	dtd->start_addr = (u32) dma_addr;
- 	dtd->pkt_ctl = dtd_pkt_ctl(!!(flags & VPDMA_DATA_MODE_TILED),
- 				DTD_DIR_IN, channel, priority, next_chan);
- 	dtd->frame_width_height = dtd_frame_width_height(frame_width,
- 					frame_height);
--	dtd->start_h_v = dtd_start_h_v(c_rect->left, c_rect->top);
-+	dtd->start_h_v = dtd_start_h_v(start_h, start_v);
- 	dtd->client_attr0 = 0;
- 	dtd->client_attr1 = 0;
- 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index bf5f8bb..2bd8fb0 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -186,13 +186,15 @@ void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
- 		struct vpdma_buf *adb);
- void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
- 		enum vpdma_channel chan);
--void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
-+void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
-+		const struct v4l2_rect *c_rect,
- 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
- 		enum vpdma_channel chan, u32 flags);
--void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
--		int frame_height, struct v4l2_rect *c_rect,
-+void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
-+		const struct v4l2_rect *c_rect,
- 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
--		enum vpdma_channel chan, int field, u32 flags);
-+		enum vpdma_channel chan, int field, u32 flags, int frame_width,
-+		int frame_height, int start_h, int start_v);
- 
- /* vpdma list interrupt management */
- void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
 diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index dbdc338..ece9b96 100644
+index ece9b96..f3f1c10 100644
 --- a/drivers/media/platform/ti-vpe/vpe.c
 +++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -986,7 +986,6 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
- 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_DST];
- 	const struct vpe_port_data *p_data = &port_data[port];
- 	struct vb2_buffer *vb = ctx->dst_vb;
--	struct v4l2_rect *c_rect = &q_data->c_rect;
- 	struct vpe_fmt *fmt = q_data->fmt;
- 	const struct vpdma_data_format *vpdma_fmt;
- 	int mv_buf_selector = !ctx->src_mv_buf_selector;
-@@ -1015,8 +1014,8 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
- 	if (q_data->flags & Q_DATA_MODE_TILED)
- 		flags |= VPDMA_DATA_MODE_TILED;
- 
--	vpdma_add_out_dtd(&ctx->desc_list, c_rect, vpdma_fmt, dma_addr,
--		p_data->channel, flags);
-+	vpdma_add_out_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
-+		vpdma_fmt, dma_addr, p_data->channel, flags);
+@@ -410,8 +410,10 @@ static struct vpe_q_data *get_q_data(struct vpe_ctx *ctx,
+ {
+ 	switch (type) {
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+ 		return &ctx->q_data[Q_DATA_SRC];
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 		return &ctx->q_data[Q_DATA_DST];
+ 	default:
+ 		BUG();
+@@ -1587,6 +1589,151 @@ static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	return set_srcdst_params(ctx);
  }
  
- static void add_in_dtd(struct vpe_ctx *ctx, int port)
-@@ -1024,11 +1023,11 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
- 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_SRC];
- 	const struct vpe_port_data *p_data = &port_data[port];
- 	struct vb2_buffer *vb = ctx->src_vbs[p_data->vb_index];
--	struct v4l2_rect *c_rect = &q_data->c_rect;
- 	struct vpe_fmt *fmt = q_data->fmt;
- 	const struct vpdma_data_format *vpdma_fmt;
- 	int mv_buf_selector = ctx->src_mv_buf_selector;
- 	int field = vb->v4l2_buf.field == V4L2_FIELD_BOTTOM;
-+	int frame_width, frame_height;
- 	dma_addr_t dma_addr;
- 	u32 flags = 0;
- 
-@@ -1055,8 +1054,15 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
- 	if (q_data->flags & Q_DATA_MODE_TILED)
- 		flags |= VPDMA_DATA_MODE_TILED;
- 
--	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, q_data->height,
--		c_rect, vpdma_fmt, dma_addr, p_data->channel, field, flags);
-+	frame_width = q_data->c_rect.width;
-+	frame_height = q_data->c_rect.height;
++static int __vpe_try_selection(struct vpe_ctx *ctx, struct v4l2_selection *s)
++{
++	struct vpe_q_data *q_data;
 +
-+	if (p_data->vb_part && fmt->fourcc == V4L2_PIX_FMT_NV12)
-+		frame_height /= 2;
++	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
++	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
++		return -EINVAL;
 +
-+	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
-+		vpdma_fmt, dma_addr, p_data->channel, field, flags, frame_width,
-+		frame_height, 0, 0);
- }
++	q_data = get_q_data(ctx, s->type);
++	if (!q_data)
++		return -EINVAL;
++
++	switch (s->target) {
++	case V4L2_SEL_TGT_COMPOSE:
++		/*
++		 * COMPOSE target is only valid for capture buffer type, return
++		 * error for output buffer type
++		 */
++		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++			return -EINVAL;
++		break;
++	case V4L2_SEL_TGT_CROP:
++		/*
++		 * CROP target is only valid for output buffer type, return
++		 * error for capture buffer type
++		 */
++		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++			return -EINVAL;
++		break;
++	/*
++	 * bound and default crop/compose targets are invalid targets to
++	 * try/set
++	 */
++	default:
++		return -EINVAL;
++	}
++
++	if (s->r.top < 0 || s->r.left < 0) {
++		vpe_err(ctx->dev, "negative values for top and left\n");
++		s->r.top = s->r.left = 0;
++	}
++
++	v4l_bound_align_image(&s->r.width, MIN_W, q_data->width, 1,
++		&s->r.height, MIN_H, q_data->height, H_ALIGN, S_ALIGN);
++
++	/* adjust left/top if cropping rectangle is out of bounds */
++	if (s->r.left + s->r.width > q_data->width)
++		s->r.left = q_data->width - s->r.width;
++	if (s->r.top + s->r.height > q_data->height)
++		s->r.top = q_data->height - s->r.height;
++
++	return 0;
++}
++
++static int vpe_g_selection(struct file *file, void *fh,
++		struct v4l2_selection *s)
++{
++	struct vpe_ctx *ctx = file2ctx(file);
++	struct vpe_q_data *q_data;
++	bool use_c_rect = false;
++
++	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
++	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
++		return -EINVAL;
++
++	q_data = get_q_data(ctx, s->type);
++	if (!q_data)
++		return -EINVAL;
++
++	switch (s->target) {
++	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++			return -EINVAL;
++		break;
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++			return -EINVAL;
++		break;
++	case V4L2_SEL_TGT_COMPOSE:
++		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++			return -EINVAL;
++		use_c_rect = true;
++		break;
++	case V4L2_SEL_TGT_CROP:
++		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++			return -EINVAL;
++		use_c_rect = true;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	if (use_c_rect) {
++		/*
++		 * for CROP/COMPOSE target type, return c_rect params from the
++		 * respective buffer type
++		 */
++		s->r = q_data->c_rect;
++	} else {
++		/*
++		 * for DEFAULT/BOUNDS target type, return width and height from
++		 * S_FMT of the respective buffer type
++		 */
++		s->r.left = 0;
++		s->r.top = 0;
++		s->r.width = q_data->width;
++		s->r.height = q_data->height;
++	}
++
++	return 0;
++}
++
++
++static int vpe_s_selection(struct file *file, void *fh,
++		struct v4l2_selection *s)
++{
++	struct vpe_ctx *ctx = file2ctx(file);
++	struct vpe_q_data *q_data;
++	struct v4l2_selection sel = *s;
++	int ret;
++
++	ret = __vpe_try_selection(ctx, &sel);
++	if (ret)
++		return ret;
++
++	q_data = get_q_data(ctx, sel.type);
++	if (!q_data)
++		return -EINVAL;
++
++	if ((q_data->c_rect.left == sel.r.left) &&
++			(q_data->c_rect.top == sel.r.top) &&
++			(q_data->c_rect.width == sel.r.width) &&
++			(q_data->c_rect.height == sel.r.height)) {
++		vpe_dbg(ctx->dev,
++			"requested crop/compose values are already set\n");
++		return 0;
++	}
++
++	q_data->c_rect = sel.r;
++
++	return set_srcdst_params(ctx);
++}
++
+ static int vpe_reqbufs(struct file *file, void *priv,
+ 		       struct v4l2_requestbuffers *reqbufs)
+ {
+@@ -1674,6 +1821,9 @@ static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
+ 	.vidioc_try_fmt_vid_out_mplane	= vpe_try_fmt,
+ 	.vidioc_s_fmt_vid_out_mplane	= vpe_s_fmt,
  
- /*
++	.vidioc_g_selection		= vpe_g_selection,
++	.vidioc_s_selection		= vpe_s_selection,
++
+ 	.vidioc_reqbufs		= vpe_reqbufs,
+ 	.vidioc_querybuf	= vpe_querybuf,
+ 
 -- 
 1.8.3.2
-
