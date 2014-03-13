@@ -1,57 +1,63 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 03/18] dma: edma: Set DMA_CYCLIC capability flag
-Date: Thu, 13 Mar 2014 11:18:25 +0200
-Message-ID: <1394702320-21743-4-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 18/18] ASoC: davinci-mcasp: Place constraint on the period size based on FIFO config
+Date: Thu, 13 Mar 2014 11:18:40 +0200
+Message-ID: <1394702320-21743-19-git-send-email-peter.ujfalusi@ti.com>
 References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1394702320-21743-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33208 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753899AbaCMJUW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2014 05:20:22 -0400
+In-Reply-To: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com, joelf@ti.com, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, Jyri Sarha <jsarha@ti.com>, mporter@linaro.org, vinod.koul@intel.com, dan.j.williams@intel.com
 
-Indicate that the edma dmaengine driver has support for cyclic mode.
+We need to place constraint on the period size (and indirectly to buffer
+size) if the read or write AFIFO is enabled and it is configured for more
+than one word otherwise the DMA will fail in buffer configuration where
+the sizes are not aligned with the requested FIFO configuration.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/common/edma.c | 1 +
- drivers/dma/edma.c     | 1 +
- 2 files changed, 2 insertions(+)
+ sound/soc/davinci/davinci-mcasp.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index 41bca32409fc..86a8b263278f 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -1574,6 +1574,7 @@ static struct edma_soc_info *edma_setup_info_from_dt(struct device *dev,
- 		return ERR_PTR(ret);
+diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
+index 958933614ca4..17d1112bce24 100644
+--- a/sound/soc/davinci/davinci-mcasp.c
++++ b/sound/soc/davinci/davinci-mcasp.c
+@@ -717,7 +717,27 @@ static int davinci_mcasp_trigger(struct snd_pcm_substream *substream,
+ 	return ret;
+ }
  
- 	dma_cap_set(DMA_SLAVE, edma_filter_info.dma_cap);
-+	dma_cap_set(DMA_CYCLIC, edma_filter_info.dma_cap);
- 	of_dma_controller_register(dev->of_node, of_dma_simple_xlate,
- 				   &edma_filter_info);
- 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index b54cd2dedde0..86d6a3fb0d92 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -887,6 +887,7 @@ static int edma_probe(struct platform_device *pdev)
- 
- 	dma_cap_zero(ecc->dma_slave.cap_mask);
- 	dma_cap_set(DMA_SLAVE, ecc->dma_slave.cap_mask);
-+	dma_cap_set(DMA_CYCLIC, ecc->dma_slave.cap_mask);
- 
- 	edma_dma_init(ecc, &ecc->dma_slave, &pdev->dev);
- 
++static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
++				 struct snd_soc_dai *cpu_dai)
++{
++	struct davinci_mcasp *mcasp = snd_soc_dai_get_drvdata(cpu_dai);
++	int afifo_numevt;
++
++	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
++		afifo_numevt = mcasp->txnumevt;
++	else
++		afifo_numevt = mcasp->rxnumevt;
++
++	if (afifo_numevt > 1)
++		snd_pcm_hw_constraint_step(substream->runtime, 0,
++					   SNDRV_PCM_HW_PARAM_PERIOD_SIZE,
++					   afifo_numevt);
++
++	return 0;
++}
++
+ static const struct snd_soc_dai_ops davinci_mcasp_dai_ops = {
++	.startup	= davinci_mcasp_startup,
+ 	.trigger	= davinci_mcasp_trigger,
+ 	.hw_params	= davinci_mcasp_hw_params,
+ 	.set_fmt	= davinci_mcasp_set_dai_fmt,
 -- 
 1.9.0
+
