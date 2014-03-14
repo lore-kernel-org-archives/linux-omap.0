@@ -1,50 +1,134 @@
-From: Josh Cartwright <joshc@codeaurora.org>
-Subject: Re: [PATCHv4 4/7] hwspinlock/core: add common OF helpers
-Date: Fri, 14 Mar 2014 10:23:04 -0500
-Message-ID: <20140314152304.GS18529@joshc.qualcomm.com>
-References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
- <1389658764-39199-5-git-send-email-s-anna@ti.com>
- <CAJAp7Oi7wD+VsMAd37gT04yZ4TH4ygXFmheDhvmWuanUjpBmVQ@mail.gmail.com>
- <52F92524.3080402@ti.com>
- <CAK=WgbY0wDtGCm71E8VXi2g5+VcGogHEy8jdekTRg8xtp6-3rQ@mail.gmail.com>
- <CAJAp7Ohf43hbKatCwS5Y1+OfEkJYWOkuhZhW-E_=t_9mfM+UaA@mail.gmail.com>
- <CAK=WgbYS+eJSTBXF=OeWjuL6iSbH+Y1RYewARKh9yAXHKKZ_cA@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 7/8] ARM: dts: dra7: Add USB related nodes
+Date: Fri, 14 Mar 2014 17:34:29 +0200
+Message-ID: <53232185.6090305@ti.com>
+References: <1394197751-28984-1-git-send-email-rogerq@ti.com>
+ <1394197751-28984-8-git-send-email-rogerq@ti.com> <5322DC0E.1020600@ti.com>
+ <5322F20C.50600@ti.com> <53231829.3060602@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.11.231]:59005 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754727AbaCNP0G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Mar 2014 11:26:06 -0400
-Content-Disposition: inline
-In-Reply-To: <CAK=WgbYS+eJSTBXF=OeWjuL6iSbH+Y1RYewARKh9yAXHKKZ_cA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <53231829.3060602@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, balbi@ti.com, tony@atomide.com
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Bjorn Andersson <bjorn@kryo.se>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, Kumar Gala <galak@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Mar 14, 2014 at 03:12:26PM +0200, Ohad Ben-Cohen wrote:
-> On Sun, Mar 2, 2014 at 10:19 PM, Bjorn Andersson <bjorn@kryo.se> wrote:
-> > When introducing the ability to reference a hwspin lock via a phandle
-> > in device tree it makes a big difference to be able to differ between
-> > the case of "initialization failed" or "device not yet probed"; so
-> > that the client knows if it should fail or retry later.
+On 03/14/2014 04:54 PM, Kishon Vijay Abraham I wrote:
 > 
-> I'm not convinced.
 > 
-> The only advantage this brings is to avoid retrying in case a fatal
-> error has occurred. Such fatal errors are extremely rare, and when
-> they show up - extremely painful, and I suspect that optimizing them
-> wouldn't be a big win.
+> On Friday 14 March 2014 05:41 PM, Roger Quadros wrote:
+>> On 03/14/2014 12:38 PM, Kishon Vijay Abraham I wrote:
+>>> Hi Roger,
+>>>
+>>> On Friday 07 March 2014 06:39 PM, Roger Quadros wrote:
+>>>> Add nodes for the Super Speed USB controllers, omap-control-usb,
+>>>> USB2 PHY and USB3 PHY devices.
+>>>>
+>>>> Remove ocp2scp1 address space from hwmod data as it is
+>>>> now provided via device tree.
+>>>>
+>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>> ---
+>>>>    arch/arm/boot/dts/dra7.dtsi               | 110 ++++++++++++++++++++++++++++++
+>>>>    arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  10 ---
+>>>>    2 files changed, 110 insertions(+), 10 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>>>> index 597979b..1e73900 100644
+>>>> --- a/arch/arm/boot/dts/dra7.dtsi
+>>>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>>>> @@ -811,6 +811,116 @@
+>>>>                clocks = <&sata_ref_clk>;
+>>>>                ti,hwmods = "sata";
+>>>>            };
+>>>> +
+>>>> +        omap_control_usb2phy1: control-phy@4a002300 {
+>>>> +            compatible = "ti,control-phy-usb2";
+>>>> +            reg = <0x4a002300 0x4>;
+>>>> +            reg-names = "power";
+>>>> +        };
+>>>> +
+>>>> +        omap_control_usb3phy1: control-phy@4a002370 {
+>>>> +            compatible = "ti,control-phy-pipe3";
+>>>> +            reg = <0x4a002370 0x4>;
+>>>> +            reg-names = "power";
+>>>> +        };
+>>>> +
+>>>> +        omap_control_usb2phy2: control-phy@0x4a002e74 {
+>>>> +            compatible = "ti,control-phy-usb2-dra7";
+>>>> +            reg = <0x4a002e74 0x4>;
+>>>> +            reg-names = "power";
+>>>> +        };
+>>>> +
+>>>> +        /* OCP2SCP1 */
+>>>> +        ocp2scp@4a080000 {
+>>>> +            compatible = "ti,omap-ocp2scp";
+>>>> +            #address-cells = <1>;
+>>>> +            #size-cells = <1>;
+>>>> +            ranges;
+>>>> +            reg = <0x4a080000 0x20>;
+>>>> +            ti,hwmods = "ocp2scp1";
+>>>> +
+>>>> +            usb2_phy1: phy@4a084000 {
+>>>> +                compatible = "ti,omap-usb2";
+>>>> +                reg = <0x4a084000 0x400>;
+>>>> +                ctrl-module = <&omap_control_usb2phy1>;
+>>>> +                clocks = <&usb_phy1_always_on_clk32k>,
+>>>> +                     <&usb_otg_ss1_refclk960m>;
+>>>> +                clock-names =    "wkupclk",
+>>>> +                        "refclk";
+>>>> +                #phy-cells = <0>;
+>>>> +            };
+>>>> +
+>>>> +            usb2_phy2: phy@4a085000 {
+>>>> +                compatible = "ti,omap-usb2";
+>>>> +                reg = <0x4a085000 0x400>;
+>>>> +                ctrl-module = <&omap_control_usb2phy2>;
+>>>> +                clocks = <&usb_phy2_always_on_clk32k>,
+>>>> +                     <&usb_otg_ss2_refclk960m>;
+>>>> +                clock-names =    "wkupclk",
+>>>> +                        "refclk";
+>>>> +                #phy-cells = <0>;
+>>>> +            };
+>>>> +
+>>>> +            usb3_phy1: phy@4a084400 {
+>>>> +                compatible = "ti,omap-usb3";
+>>>> +                reg = <0x4a084400 0x80>,
+>>>> +                      <0x4a084800 0x64>,
+>>>> +                      <0x4a084c00 0x40>;
+>>>> +                reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+>>>> +                ctrl-module = <&omap_control_usb3phy1>;
+>>>> +                clocks = <&usb_phy3_always_on_clk32k>,
+>>>> +                     <&sys_clkin1>,
+>>>> +                     <&usb_otg_ss1_refclk960m>,
+>>>> +                     <&dpll_core_h13x2_ck>;
+>>>> +                clock-names =    "wkupclk",
+>>>> +                        "sysclk",
+>>>> +                        "refclk",
+>>>> +                        "optclk";
+>>>
+>>> Do we use this 'optclk' in driver?
+>>
+>> No we don't. Still the device seems to work without it.
+>> This is supposed to be USB_LFPS_TX_GFCLK or USB3PHY_REF_CLK.
+> 
+> I think it should be enabled. Did you check the status of this clock in CM_L3INIT_CLKSTCTRL? Moreover USB_LFPS_TX_GFCLK is an interface clock, so IIUC setting the module mode will enable it.
+> 
+> Btw how did you tell dpll_core_h13x2_ck enables USB_LFPS_TX_GFCLK?
+> 
 
-So, are you suggesting that because fatal errors should be "extremely
-rare", a consuming driver should just assume that if NULL is returned
-from a hwspin_lock_request*() function that it was the "device not yet
-probed" case that was hit?
+>From the clock tree tool. It looks like the clock is gated automatically with the module mode
+as you suggested. I'll get rid of this clock reference then.
 
-Note that having the consumer/hwspinlock device relationship modeled in
-devicetree introduces more potential failure cases...
-
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-hosted by The Linux Foundation
+cheers,
+-roger
