@@ -1,134 +1,86 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 7/8] ARM: dts: dra7: Add USB related nodes
-Date: Fri, 14 Mar 2014 17:34:29 +0200
-Message-ID: <53232185.6090305@ti.com>
-References: <1394197751-28984-1-git-send-email-rogerq@ti.com>
- <1394197751-28984-8-git-send-email-rogerq@ti.com> <5322DC0E.1020600@ti.com>
- <5322F20C.50600@ti.com> <53231829.3060602@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 4/5] clocksource: omap-timer: Introduce clocksource driver
+ for OMAP SoCs
+Date: Fri, 14 Mar 2014 08:52:03 -0700
+Message-ID: <20140314155202.GA27560@atomide.com>
+References: <1394742919-32163-1-git-send-email-joelf@ti.com>
+ <1394742919-32163-5-git-send-email-joelf@ti.com>
+ <20140313204851.GB23432@atomide.com>
+ <532243F5.4040609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <53231829.3060602@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, balbi@ti.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <532243F5.4040609@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Rob Herring <robh@kernel.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/14/2014 04:54 PM, Kishon Vijay Abraham I wrote:
+* Joel Fernandes <joelf@ti.com> [140313 16:52]:
+> On 03/13/2014 03:48 PM, Tony Lindgren wrote:
+> > * Joel Fernandes <joelf@TI.com> [140313 13:43]:
+> >> We introduce functions to initialize clocksource and clockevent, use
+> >> CLOCKSOURCE_OF_DECLARE to declare the clocksource, and handle the clocksource
+> >> selection on a per-SoC basis (Currently only AM335x is supported). Powering up
+> >> of the timer will be done with the help of the mach-omap layer function that's
+> >> introduced earlier in the series.
+> >>
+> >> We make a local copy of dmtimer API for use by clocksource, the original
+> >> dmtimer API in plat-omap is kept as-is till the migration of all SoCs is
+> >> completed after which it can't be deleted.
+> >>
+> >> Signed-off-by: Joel Fernandes <joelf@ti.com>
+> >> ---
+> >>  drivers/clocksource/Makefile     |    1 +
+> >>  drivers/clocksource/omap-timer.c | 1157 ++++++++++++++++++++++++++++++++++++++
+> >>  drivers/clocksource/omap-timer.h |  422 ++++++++++++++
+> >>  3 files changed, 1580 insertions(+)
+> >>  create mode 100644 drivers/clocksource/omap-timer.c
+> >>  create mode 100644 drivers/clocksource/omap-timer.h
+> > 
+> > Hmm this leaves duplicate arch/arm/plat-omap/dmtimer.c code, please
 > 
-> 
-> On Friday 14 March 2014 05:41 PM, Roger Quadros wrote:
->> On 03/14/2014 12:38 PM, Kishon Vijay Abraham I wrote:
->>> Hi Roger,
->>>
->>> On Friday 07 March 2014 06:39 PM, Roger Quadros wrote:
->>>> Add nodes for the Super Speed USB controllers, omap-control-usb,
->>>> USB2 PHY and USB3 PHY devices.
->>>>
->>>> Remove ocp2scp1 address space from hwmod data as it is
->>>> now provided via device tree.
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>    arch/arm/boot/dts/dra7.dtsi               | 110 ++++++++++++++++++++++++++++++
->>>>    arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  10 ---
->>>>    2 files changed, 110 insertions(+), 10 deletions(-)
->>>>
->>>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->>>> index 597979b..1e73900 100644
->>>> --- a/arch/arm/boot/dts/dra7.dtsi
->>>> +++ b/arch/arm/boot/dts/dra7.dtsi
->>>> @@ -811,6 +811,116 @@
->>>>                clocks = <&sata_ref_clk>;
->>>>                ti,hwmods = "sata";
->>>>            };
->>>> +
->>>> +        omap_control_usb2phy1: control-phy@4a002300 {
->>>> +            compatible = "ti,control-phy-usb2";
->>>> +            reg = <0x4a002300 0x4>;
->>>> +            reg-names = "power";
->>>> +        };
->>>> +
->>>> +        omap_control_usb3phy1: control-phy@4a002370 {
->>>> +            compatible = "ti,control-phy-pipe3";
->>>> +            reg = <0x4a002370 0x4>;
->>>> +            reg-names = "power";
->>>> +        };
->>>> +
->>>> +        omap_control_usb2phy2: control-phy@0x4a002e74 {
->>>> +            compatible = "ti,control-phy-usb2-dra7";
->>>> +            reg = <0x4a002e74 0x4>;
->>>> +            reg-names = "power";
->>>> +        };
->>>> +
->>>> +        /* OCP2SCP1 */
->>>> +        ocp2scp@4a080000 {
->>>> +            compatible = "ti,omap-ocp2scp";
->>>> +            #address-cells = <1>;
->>>> +            #size-cells = <1>;
->>>> +            ranges;
->>>> +            reg = <0x4a080000 0x20>;
->>>> +            ti,hwmods = "ocp2scp1";
->>>> +
->>>> +            usb2_phy1: phy@4a084000 {
->>>> +                compatible = "ti,omap-usb2";
->>>> +                reg = <0x4a084000 0x400>;
->>>> +                ctrl-module = <&omap_control_usb2phy1>;
->>>> +                clocks = <&usb_phy1_always_on_clk32k>,
->>>> +                     <&usb_otg_ss1_refclk960m>;
->>>> +                clock-names =    "wkupclk",
->>>> +                        "refclk";
->>>> +                #phy-cells = <0>;
->>>> +            };
->>>> +
->>>> +            usb2_phy2: phy@4a085000 {
->>>> +                compatible = "ti,omap-usb2";
->>>> +                reg = <0x4a085000 0x400>;
->>>> +                ctrl-module = <&omap_control_usb2phy2>;
->>>> +                clocks = <&usb_phy2_always_on_clk32k>,
->>>> +                     <&usb_otg_ss2_refclk960m>;
->>>> +                clock-names =    "wkupclk",
->>>> +                        "refclk";
->>>> +                #phy-cells = <0>;
->>>> +            };
->>>> +
->>>> +            usb3_phy1: phy@4a084400 {
->>>> +                compatible = "ti,omap-usb3";
->>>> +                reg = <0x4a084400 0x80>,
->>>> +                      <0x4a084800 0x64>,
->>>> +                      <0x4a084c00 0x40>;
->>>> +                reg-names = "phy_rx", "phy_tx", "pll_ctrl";
->>>> +                ctrl-module = <&omap_control_usb3phy1>;
->>>> +                clocks = <&usb_phy3_always_on_clk32k>,
->>>> +                     <&sys_clkin1>,
->>>> +                     <&usb_otg_ss1_refclk960m>,
->>>> +                     <&dpll_core_h13x2_ck>;
->>>> +                clock-names =    "wkupclk",
->>>> +                        "sysclk",
->>>> +                        "refclk",
->>>> +                        "optclk";
->>>
->>> Do we use this 'optclk' in driver?
->>
->> No we don't. Still the device seems to work without it.
->> This is supposed to be USB_LFPS_TX_GFCLK or USB3PHY_REF_CLK.
-> 
-> I think it should be enabled. Did you check the status of this clock in CM_L3INIT_CLKSTCTRL? Moreover USB_LFPS_TX_GFCLK is an interface clock, so IIUC setting the module mode will enable it.
-> 
-> Btw how did you tell dpll_core_h13x2_ck enables USB_LFPS_TX_GFCLK?
-> 
+> Sure, ofcourse- but how else can we make sure everything works while we do
+> the migration in steps. We can get rid of the duplicate once everything is
+> migrated.
 
->From the clock tree tool. It looks like the clock is gated automatically with the module mode
-as you suggested. I'll get rid of this clock reference then.
+That's not doing incremental changes then. You're not even modifying
+the existing omap_dm_timer functions, so please do the changes in incremental
+steps where things keep working throughout the series.
+ 
+> > sort out that issue too by allowing omap1 and omap3 still to use
+> > the legacy timer init functions but with timer code under
+> > drivers/clocksource/omap-timer.c.
+> 
+> Sorry, I didn't follow. I didn't see OMAP3 using legacy timer stuff. To me
+> it looks like OMAP3 migration should be straight forward along the same
+> lines as this RFC patchset. Could you elaborate a bit more what the legacy
+> functions you mentioned for OMAP1 are? I will just like to keep everything
+> in drivers/clocksource/ private for now till we're done migrating most
+> platforms. IMO once we get system timers working for omap2+, then we can
+> look into omap1 :)
 
-cheers,
--roger
+Well omap3 is still also booting in legacy mode too.
+ 
+> > And not the that drivers/clocksource/omap-timer.h won't be needed at
+> > all, those defines can stay private to the drivers/clocksource/omap-timer.c.
+> 
+> Actually- I wanted it separate because omap-timer.c is already huge at 1157
+> lines. Infact the largest among the clocksource drivers. Is that fair?
+
+No need for it. We want to keep these functions private to the driver.
+ 
+> > So this patch really should just be moving of the code to the new
+> > location.
+> 
+> To be honest, its not just a simple moving of code, there are new things
+> such as selecting correct timer, new functions for clockevent and
+> clocksource init, different handling of clocks etc.
+
+Those changes should then be separate patches to prepare things so
+people can see what changes in arch/arm/plat-omap/dmtimer.c code.
+
+Regards,
+
+Tony
