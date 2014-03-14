@@ -1,119 +1,35 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 7/8] ARM: dts: dra7: Add USB related nodes
-Date: Fri, 14 Mar 2014 14:11:56 +0200
-Message-ID: <5322F20C.50600@ti.com>
-References: <1394197751-28984-1-git-send-email-rogerq@ti.com> <1394197751-28984-8-git-send-email-rogerq@ti.com> <5322DC0E.1020600@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv4 4/7] hwspinlock/core: add common OF helpers
+Date: Fri, 14 Mar 2014 15:12:26 +0200
+Message-ID: <CAK=WgbYS+eJSTBXF=OeWjuL6iSbH+Y1RYewARKh9yAXHKKZ_cA@mail.gmail.com>
+References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
+ <1389658764-39199-5-git-send-email-s-anna@ti.com> <CAJAp7Oi7wD+VsMAd37gT04yZ4TH4ygXFmheDhvmWuanUjpBmVQ@mail.gmail.com>
+ <52F92524.3080402@ti.com> <CAK=WgbY0wDtGCm71E8VXi2g5+VcGogHEy8jdekTRg8xtp6-3rQ@mail.gmail.com>
+ <CAJAp7Ohf43hbKatCwS5Y1+OfEkJYWOkuhZhW-E_=t_9mfM+UaA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5322DC0E.1020600-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: george.cherian-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJAp7Ohf43hbKatCwS5Y1+OfEkJYWOkuhZhW-E_=t_9mfM+UaA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Andersson <bjorn@kryo.se>
+Cc: Suman Anna <s-anna@ti.com>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/14/2014 12:38 PM, Kishon Vijay Abraham I wrote:
-> Hi Roger,
-> 
-> On Friday 07 March 2014 06:39 PM, Roger Quadros wrote:
->> Add nodes for the Super Speed USB controllers, omap-control-usb,
->> USB2 PHY and USB3 PHY devices.
->>
->> Remove ocp2scp1 address space from hwmod data as it is
->> now provided via device tree.
->>
->> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->> ---
->>   arch/arm/boot/dts/dra7.dtsi               | 110 ++++++++++++++++++++++++++++++
->>   arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  10 ---
->>   2 files changed, 110 insertions(+), 10 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->> index 597979b..1e73900 100644
->> --- a/arch/arm/boot/dts/dra7.dtsi
->> +++ b/arch/arm/boot/dts/dra7.dtsi
->> @@ -811,6 +811,116 @@
->>               clocks = <&sata_ref_clk>;
->>               ti,hwmods = "sata";
->>           };
->> +
->> +        omap_control_usb2phy1: control-phy@4a002300 {
->> +            compatible = "ti,control-phy-usb2";
->> +            reg = <0x4a002300 0x4>;
->> +            reg-names = "power";
->> +        };
->> +
->> +        omap_control_usb3phy1: control-phy@4a002370 {
->> +            compatible = "ti,control-phy-pipe3";
->> +            reg = <0x4a002370 0x4>;
->> +            reg-names = "power";
->> +        };
->> +
->> +        omap_control_usb2phy2: control-phy@0x4a002e74 {
->> +            compatible = "ti,control-phy-usb2-dra7";
->> +            reg = <0x4a002e74 0x4>;
->> +            reg-names = "power";
->> +        };
->> +
->> +        /* OCP2SCP1 */
->> +        ocp2scp@4a080000 {
->> +            compatible = "ti,omap-ocp2scp";
->> +            #address-cells = <1>;
->> +            #size-cells = <1>;
->> +            ranges;
->> +            reg = <0x4a080000 0x20>;
->> +            ti,hwmods = "ocp2scp1";
->> +
->> +            usb2_phy1: phy@4a084000 {
->> +                compatible = "ti,omap-usb2";
->> +                reg = <0x4a084000 0x400>;
->> +                ctrl-module = <&omap_control_usb2phy1>;
->> +                clocks = <&usb_phy1_always_on_clk32k>,
->> +                     <&usb_otg_ss1_refclk960m>;
->> +                clock-names =    "wkupclk",
->> +                        "refclk";
->> +                #phy-cells = <0>;
->> +            };
->> +
->> +            usb2_phy2: phy@4a085000 {
->> +                compatible = "ti,omap-usb2";
->> +                reg = <0x4a085000 0x400>;
->> +                ctrl-module = <&omap_control_usb2phy2>;
->> +                clocks = <&usb_phy2_always_on_clk32k>,
->> +                     <&usb_otg_ss2_refclk960m>;
->> +                clock-names =    "wkupclk",
->> +                        "refclk";
->> +                #phy-cells = <0>;
->> +            };
->> +
->> +            usb3_phy1: phy@4a084400 {
->> +                compatible = "ti,omap-usb3";
->> +                reg = <0x4a084400 0x80>,
->> +                      <0x4a084800 0x64>,
->> +                      <0x4a084c00 0x40>;
->> +                reg-names = "phy_rx", "phy_tx", "pll_ctrl";
->> +                ctrl-module = <&omap_control_usb3phy1>;
->> +                clocks = <&usb_phy3_always_on_clk32k>,
->> +                     <&sys_clkin1>,
->> +                     <&usb_otg_ss1_refclk960m>,
->> +                     <&dpll_core_h13x2_ck>;
->> +                clock-names =    "wkupclk",
->> +                        "sysclk",
->> +                        "refclk",
->> +                        "optclk";
-> 
-> Do we use this 'optclk' in driver?
+On Sun, Mar 2, 2014 at 10:19 PM, Bjorn Andersson <bjorn@kryo.se> wrote:
+> When introducing the ability to reference a hwspin lock via a phandle
+> in device tree it makes a big difference to be able to differ between
+> the case of "initialization failed" or "device not yet probed"; so
+> that the client knows if it should fail or retry later.
 
-No we don't. Still the device seems to work without it.
-This is supposed to be USB_LFPS_TX_GFCLK or USB3PHY_REF_CLK.
+I'm not convinced.
 
-Any idea why it works without that on OMAP5 as well?
+The only advantage this brings is to avoid retrying in case a fatal
+error has occurred. Such fatal errors are extremely rare, and when
+they show up - extremely painful, and I suspect that optimizing them
+wouldn't be a big win.
 
-cheers,
--roger
+OTOH, keeping the code easier to read and less error prone is a big
+win. I prefer we keep it simple for now.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Ohad.
