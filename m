@@ -1,55 +1,60 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 00/18] edma/ASoC: dmaengine PCM for AM335x and AM447x
-Date: Fri, 14 Mar 2014 10:13:38 +0000
-Message-ID: <20140314101338.GP366@sirena.org.uk>
-References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
- <20140313134601.GU366@sirena.org.uk>
- <5322CE32.2000102@ti.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v2 4/4] ARM: DTS: AM43x: Add DSS node
+Date: Fri, 14 Mar 2014 10:14:06 +0000
+Message-ID: <20140314101405.GI25870@e106331-lin.cambridge.arm.com>
+References: <1394701109-6721-1-git-send-email-sathyap@ti.com>
+ <1394701109-6721-5-git-send-email-sathyap@ti.com>
+ <20140313174623.GD25870@e106331-lin.cambridge.arm.com>
+ <5321F77E.9000302@ti.com>
+ <20140314091002.GG25870@e106331-lin.cambridge.arm.com>
+ <5322CF02.4060705@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zpKbRLlnGgG674Bt"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5322CE32.2000102@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, joelf@ti.com, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, Jyri Sarha <jsarha@ti.com>, mporter@linaro.org, vinod.koul@intel.com, dan.j.williams@intel.com
-List-Id: linux-omap@vger.kernel.org
-
-
---zpKbRLlnGgG674Bt
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:46488 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753150AbaCNKOR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Mar 2014 06:14:17 -0400
 Content-Disposition: inline
+In-Reply-To: <5322CF02.4060705@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Sathya Prakash M R <sathyap@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "paul@pwsan.com" <paul@pwsan.com>
 
-On Fri, Mar 14, 2014 at 11:38:58AM +0200, Peter Ujfalusi wrote:
+On Fri, Mar 14, 2014 at 09:42:26AM +0000, Tomi Valkeinen wrote:
+> On 14/03/14 11:10, Mark Rutland wrote:
+> 
+> > The "simple-bus" compatible string is intended for busses which are
+> > transparent (bar some address remapping expressed via ranges), and is
+> > not intended as an annotation to get Linux to probe child nodes.
+> > 
+> > Any node with a "simple-bus" entry in the compatible list should either
+> > be handled as a transparent bus, or optionally as the more specific bus
+> > it claims to be (where some hardware configuration may be required
+> > before children can be probed). Unfortunately Linux probes chidlren
+> > regardless, which is arguable a Linux bug.
+> > 
+> > There's no reason to leak this issue into dts files. Please remove the
+> > "simple-bus" string, and get the dss driver to probe children as
+> > required -- as described above the dss node never makes sense as a
+> > simple-bus.
+> 
+> Ok. I'll remove the simple-bus, and make the dss_core register the
+> devices. I presume of_platform_populate() is fine for this? Seems to
+> work fine for registration, but I haven't figured out yet how to
+> unregister the devices (I get a crash in platform_device_del() if I just
+> call platform_device_unregister for the submodules).
 
-> The only thing I'm afraid off is that it is going to take two release cycle to
-> get this in: first cycle edma part, next cycle for the ASoC to switch to use
-> the edma-pcm.
+I think of_platform_populate should be ok. It's not fantastic -- all
+child nodes will be probed, regardless of whether you expect them to
+exist, but it's not as broken as using "simple-bus".
 
-We can do a cross tree merge, or the EDMA code can be applied to ASoC
-directly if that's what people want.
+I'm unfortunately not familiar with how unregistration works.
 
---zpKbRLlnGgG674Bt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I can't see anything obviously wrong in platform_device_del. Do you have
+a backtrace?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTItZPAAoJELSic+t+oim9p3sP/RND7EuvcSdbk1Ak3hsE3IP7
-YjoMVcIc3vEs9r8xoY5VVWKAonl2lQ7ltW8bOCGQu2zWQox49MURpk0W2vnw9lp6
-T6i+3yqIoIVvEkgQYFmL+vZUSst00lzyqKzt8vnm/PSZ8FHHQ10AYvF/uZifRx1E
-a6gGwEQ+EIEGVplebczWfpHs40DBOhvWF/3cJaz21fxLsRhEg1SDcODAoZJYRSY7
-fcdKAAVHHNX0EOA5sz9dreq/rV5qzaljvkHEVTrfkl8LrdP54fgZvjp1wy/P9nSD
-LpJ8WBVmzUIbmGoqFJJi2QsoGVbcyv5gTNMNjPre35Go4V62t68W4EmspcRCiMW2
-zawOh66rXcNJ0GhuTHGNEmahR8azubvGG+Z+ik0Ej98WsGxmKicxVLHaJeW2LgKE
-JpT2GVIbyjPQ8ky/zgsLtx+RHBgRK8UkXwrK2kyaNldwXl05VF+eqioikmdRxFtf
-tbCHpwUEbbnWMT/VuyhGn7oWiiz+wohtRU2B6NqvmRLbXG7zPxfLODxw/GNILpj8
-GgQAFuiD3QJeXVpaR9aScJZoc8RmH88oyeYFQ5mCjP8akgWzgctqSBEqOyt/GkIM
-IGne9KxEkrigX21F51W+7x6F3DjJXxNJ2USYma1i0nAQ6v2nelx+c1mkwBuwTNLn
-IK8T+iAZfpasvr50NlEW
-=e4Zm
------END PGP SIGNATURE-----
-
---zpKbRLlnGgG674Bt--
+Thanks,
+Mark.
