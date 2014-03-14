@@ -1,78 +1,99 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 4/4] ARM: DTS: AM43x: Add DSS node
-Date: Fri, 14 Mar 2014 11:42:26 +0200
-Message-ID: <5322CF02.4060705@ti.com>
-References: <1394701109-6721-1-git-send-email-sathyap@ti.com> <1394701109-6721-5-git-send-email-sathyap@ti.com> <20140313174623.GD25870@e106331-lin.cambridge.arm.com> <5321F77E.9000302@ti.com> <20140314091002.GG25870@e106331-lin.cambridge.arm.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 5/5] iommu/omap: Fix map protection value handling
+Date: Fri, 14 Mar 2014 10:46:48 +0100
+Message-ID: <13414141.7HHPA8i3Vs@avalon>
+References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com> <1394239574-2389-6-git-send-email-laurent.pinchart@ideasonboard.com> <53224845.1050901@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="94oWdbDhAN9UXid7fHXh4PWhiLLUktFiG"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60270 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755740AbaCNJmn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Mar 2014 05:42:43 -0400
-In-Reply-To: <20140314091002.GG25870@e106331-lin.cambridge.arm.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45620 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755739AbaCNJpJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Mar 2014 05:45:09 -0400
+In-Reply-To: <53224845.1050901@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Sathya Prakash M R <sathyap@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "paul@pwsan.com" <paul@pwsan.com>
+To: Suman Anna <s-anna@ti.com>
+Cc: linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org, Florian Vaussard <florian.vaussard@epfl.ch>, sakari.ailus@iki.fi
 
---94oWdbDhAN9UXid7fHXh4PWhiLLUktFiG
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Suman,
 
-On 14/03/14 11:10, Mark Rutland wrote:
+Thank you for the review.
 
-> The "simple-bus" compatible string is intended for busses which are
-> transparent (bar some address remapping expressed via ranges), and is
-> not intended as an annotation to get Linux to probe child nodes.
->=20
-> Any node with a "simple-bus" entry in the compatible list should either=
+On Thursday 13 March 2014 19:07:33 Suman Anna wrote:
+> On 03/07/2014 06:46 PM, Laurent Pinchart wrote:
+> > The prot flags passed to the IOMMU map handler are defined in
+> > include/linux/iommu.h as IOMMU_(READ|WRITE|CACHE|EXEC). However, the
+> > driver expects to receive MMU_RAM_* OMAP-specific flags. This causes
+> > IOMMU flags being interpreted as page sizes, leading to failures.
+> > 
+> > Hardcode the OMAP mapping parameters to little-endian, 8-bits and
+> > non-mixed page attributes. Furthermore, as the OMAP IOMMU doesn't
+> > support read-only or write-only mappings, ignore the prot value.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >   drivers/iommu/omap-iommu.c | 17 +++++++----------
+> >   1 file changed, 7 insertions(+), 10 deletions(-)
+> > 
+> > diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> > index 59de3fc..9f7f1d4 100644
+> > --- a/drivers/iommu/omap-iommu.c
+> > +++ b/drivers/iommu/omap-iommu.c
+> > @@ -1016,8 +1016,7 @@ static void iopte_cachep_ctor(void *iopte)
+> >   	clean_dcache_area(iopte, IOPTE_TABLE_SIZE);
+> >   }
+> > 
+> > -static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa,
+> > -				   u32 flags)
+> > +static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa, int
+> > pgsz)
+> >   {
+> >   	memset(e, 0, sizeof(*e));
+> > 
+> > @@ -1025,10 +1024,10 @@ static u32 iotlb_init_entry(struct iotlb_entry *e,
+> > u32 da, u32 pa,
+> >   	e->pa		= pa;
+> >   	e->valid	= 1;
+> 
+> As I was looking through this, I found a small bug here. This is unrelated
+> to this patch, but you can fix it in the same patch. The e->valid value is
+> directly used in omap2_alloc_cr, so it should be initialized to MMU_CAM_V.
+> It is not a problem currently as PREFETCH_IOTLB is not used, if used, this
+> is overriding the size bit-fields when it prefetches the entry, which may
+> lead to an MMU fault.
 
-> be handled as a transparent bus, or optionally as the more specific bus=
+Good catch. As it's a separate issue, do you mind if I fix that in a separate 
+patch in v2 ?
 
-> it claims to be (where some hardware configuration may be required
-> before children can be probed). Unfortunately Linux probes chidlren
-> regardless, which is arguable a Linux bug.
->=20
-> There's no reason to leak this issue into dts files. Please remove the
-> "simple-bus" string, and get the dss driver to probe children as
-> required -- as described above the dss node never makes sense as a
-> simple-bus.
+> >   	/* FIXME: add OMAP1 support */
+> > 
+> > -	e->pgsz		= flags & MMU_CAM_PGSZ_MASK;
+> > -	e->endian	= flags & MMU_RAM_ENDIAN_MASK;
+> > -	e->elsz		= flags & MMU_RAM_ELSZ_MASK;
+> > -	e->mixed	= flags & MMU_RAM_MIXED_MASK;
+> > +	e->pgsz		= pgsz;
+> > +	e->endian	= MMU_RAM_ENDIAN_LITTLE;
+> > +	e->elsz		= MMU_RAM_ELSZ_8;
+> > +	e->mixed	= 0;
+> 
+> Thanks, the change of these settings looks good overall. The only ones for
+> which it may apply anyway is just the Camera in OMAP2/OMAP3 (as per TRM,
+> endianness conversion supported only on writes anyway, so I am assuming that
+> we never use the combination), and OMAP2420 DSP, for which there is no
+> driver currently nor is the MMU being instantiated. All other processors are
+> pure little endian, and they even ignore the values written in these fields.
+> 
+> Please recheck the Camera subsystem once, and see if the e->elsz should be
+> set as MMU_RAM_ELSZ_NONE (I am not too familiar with the Camera usage, so
+> you are probably in a better place than me).
 
-Ok. I'll remove the simple-bus, and make the dss_core register the
-devices. I presume of_platform_populate() is fine for this? Seems to
-work fine for registration, but I haven't figured out yet how to
-unregister the devices (I get a crash in platform_device_del() if I just
-call platform_device_unregister for the submodules).
+I've tested MMU_RAM_ELSZ_NONE and it works fine. I'll update the patch in v2.
 
- Tomi
+-- 
+Regards,
 
+Laurent Pinchart
 
-
---94oWdbDhAN9UXid7fHXh4PWhiLLUktFiG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTIs8FAAoJEPo9qoy8lh71HK8P+gI5LTBKtvGrxIndW4lE1WNr
-qw1qgkyBxPsjx6pLW5BaFrIaw7qZXWmCb9VAt8wG/FLuwrrk0dF7QsJ0azrgjSKs
-gjhigWnfHyxob/62DASfpZ+8+8a1L1fM3w4t/v4A3V2DbVzzxVcELhrAAthIaR1g
-mY4KyVyMAQN8yvWhO0nzjvI3H+xc4xRUvUgSF2juHHowingMvPFSbJzOiHmD88zm
-VoT3EkjYWdN4IrwwyKJuJ4HOBAqjgtjnsEk64E+HLLKzzu8ae0SvLmg5E3JGDBQ2
-fBr+fQs+Py1SWmk4c5lXIyQAx4Y4mabFeqBeqie8czTPiijczEcWrbxeNLiman1m
-0RiWKhGzXCRwp1VVTF6YY9pE/4hdf7HuAmD8QwapUMXiJLZo+35KhMfiiXL97FLH
-1vKVRTEQzKwA1DK9XaQ9/KIf/zx9PKlRXPZKqVIZt6U++VN/ZuW0BurZML5usc2O
-gk1hxWNjzM6+9Nrq8/58VfAEnFEHwAssehr3GyZazx3pGu0gu8LVrrFCEKYb7QBf
-PkFXER0Dtxiq6vEctYG8R9fzSseZuJASDr1EzEs5zQmTAC73olEHHQgJZIsstwpq
-pAxHD9ZtqDnmTtE52gYW6AwrI5BNwV1HoLIsT7ThlpT1e6gR3TLDEDdvsp54jlPu
-wLtrCoV2BsquXX45iV/f
-=kgfZ
------END PGP SIGNATURE-----
-
---94oWdbDhAN9UXid7fHXh4PWhiLLUktFiG--
