@@ -1,164 +1,41 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/5] iommu/omap: Use the cache cleaning API
-Date: Thu, 13 Mar 2014 21:47:49 -0500
-Message-ID: <53226DD5.6070208@ti.com>
-References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<1394239574-2389-2-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v4 08/14] v4l: ti-vpe: Rename csc memory resource name
+Date: Fri, 14 Mar 2014 11:48:16 +0530
+Message-ID: <53229F28.8060900@ti.com>
+References: <1394526833-24805-1-git-send-email-archit@ti.com> <1394711056-10878-1-git-send-email-archit@ti.com> <1394711056-10878-9-git-send-email-archit@ti.com> <000f01cf3eca$b947cc80$2bd76580$%debski@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1394239574-2389-2-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sakari.ailus-X3B1VOXEql0@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <000f01cf3eca$b947cc80$2bd76580$%debski@samsung.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Kamil Debski <k.debski@samsung.com>, hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Laurent,
+Hi Kamil,
 
-On 03/07/2014 06:46 PM, Laurent Pinchart wrote:
-> The page table entries must be cleaned from the cache before being
-> accessed by the IOMMU. Instead of implementing cache management manually
-> (and ignoring L2 cache), use clean_dcache_area() to make sure the
-> entries are visible to the device.
+On Thursday 13 March 2014 08:14 PM, Kamil Debski wrote:
+> Hi,
+>
+>> From: Archit Taneja [mailto:archit@ti.com]
+>> Sent: Thursday, March 13, 2014 12:44 PM
+>>
+>> Rename the memory block resource "vpe_csc" to "csc" since it also
+>> exists within the VIP IP block. This would make the name more generic,
+>> and both VPE and VIP DT nodes in the future can use it.
+>
+> I understand that this is not yet used in any public dts files. Right?
+>
+> Best wishes,
+>
 
-Thanks for fixing this, this has been long pending. There have been some 
-previous attempts at this as well by Ramesh Gupta, with the last thread 
-(a long time now) being
-http://marc.info/?t=134752035400001&r=1&w=2
+Yes, a VPE DT node doesn't exist in any public dts files yet. So it's 
+safe to change the name.
 
-Santosh,
-Can you please take a look at this patch and provide your comments?
+It should eventually come in dra7.dtsi. There is a dependency on a 
+crossbar IP module, which provides us with an IRQ line for VPE going to 
+the GIC. Once that is merged, I can add the VPE DT node.
 
-regards
-Suman
-
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> ---
->   drivers/iommu/omap-iommu.c | 41 ++++++++++-------------------------------
->   1 file changed, 10 insertions(+), 31 deletions(-)
->
-> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> index a893eca..bb605c9 100644
-> --- a/drivers/iommu/omap-iommu.c
-> +++ b/drivers/iommu/omap-iommu.c
-> @@ -500,24 +500,9 @@ EXPORT_SYMBOL_GPL(omap_foreach_iommu_device);
->   /*
->    *	H/W pagetable operations
->    */
-> -static void flush_iopgd_range(u32 *first, u32 *last)
-> +static void flush_pgtable(void *addr, size_t size)
->   {
-> -	/* FIXME: L2 cache should be taken care of if it exists */
-> -	do {
-> -		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pgd"
-> -		    : : "r" (first));
-> -		first += L1_CACHE_BYTES / sizeof(*first);
-> -	} while (first <= last);
-> -}
-> -
-> -static void flush_iopte_range(u32 *first, u32 *last)
-> -{
-> -	/* FIXME: L2 cache should be taken care of if it exists */
-> -	do {
-> -		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pte"
-> -		    : : "r" (first));
-> -		first += L1_CACHE_BYTES / sizeof(*first);
-> -	} while (first <= last);
-> +	clean_dcache_area(addr, size);
->   }
->
->   static void iopte_free(u32 *iopte)
-> @@ -546,7 +531,7 @@ static u32 *iopte_alloc(struct omap_iommu *obj, u32 *iopgd, u32 da)
->   			return ERR_PTR(-ENOMEM);
->
->   		*iopgd = virt_to_phys(iopte) | IOPGD_TABLE;
-> -		flush_iopgd_range(iopgd, iopgd);
-> +		flush_pgtable(iopgd, sizeof(*iopgd));
->
->   		dev_vdbg(obj->dev, "%s: a new pte:%p\n", __func__, iopte);
->   	} else {
-> @@ -575,7 +560,7 @@ static int iopgd_alloc_section(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
->   	}
->
->   	*iopgd = (pa & IOSECTION_MASK) | prot | IOPGD_SECTION;
-> -	flush_iopgd_range(iopgd, iopgd);
-> +	flush_pgtable(iopgd, sizeof(*iopgd));
->   	return 0;
->   }
->
-> @@ -592,7 +577,7 @@ static int iopgd_alloc_super(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
->
->   	for (i = 0; i < 16; i++)
->   		*(iopgd + i) = (pa & IOSUPER_MASK) | prot | IOPGD_SUPER;
-> -	flush_iopgd_range(iopgd, iopgd + 15);
-> +	flush_pgtable(iopgd, sizeof(*iopgd) * 16);
->   	return 0;
->   }
->
-> @@ -605,7 +590,7 @@ static int iopte_alloc_page(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
->   		return PTR_ERR(iopte);
->
->   	*iopte = (pa & IOPAGE_MASK) | prot | IOPTE_SMALL;
-> -	flush_iopte_range(iopte, iopte);
-> +	flush_pgtable(iopte, sizeof(*iopte));
->
->   	dev_vdbg(obj->dev, "%s: da:%08x pa:%08x pte:%p *pte:%08x\n",
->   		 __func__, da, pa, iopte, *iopte);
-> @@ -619,18 +604,12 @@ static int iopte_alloc_large(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
->   	u32 *iopte = iopte_alloc(obj, iopgd, da);
->   	int i;
->
-> -	if ((da | pa) & ~IOLARGE_MASK) {
-> -		dev_err(obj->dev, "%s: %08x:%08x should aligned on %08lx\n",
-> -			__func__, da, pa, IOLARGE_SIZE);
-> -		return -EINVAL;
-> -	}
-> -
->   	if (IS_ERR(iopte))
->   		return PTR_ERR(iopte);
->
->   	for (i = 0; i < 16; i++)
->   		*(iopte + i) = (pa & IOLARGE_MASK) | prot | IOPTE_LARGE;
-> -	flush_iopte_range(iopte, iopte + 15);
-> +	flush_pgtable(iopte, sizeof(*iopte) * 16);
->   	return 0;
->   }
->
-> @@ -733,7 +712,7 @@ static size_t iopgtable_clear_entry_core(struct omap_iommu *obj, u32 da)
->   		}
->   		bytes *= nent;
->   		memset(iopte, 0, nent * sizeof(*iopte));
-> -		flush_iopte_range(iopte, iopte + (nent - 1) * sizeof(*iopte));
-> +		flush_pgtable(iopte, sizeof(*iopte) * nent);
->
->   		/*
->   		 * do table walk to check if this table is necessary or not
-> @@ -755,7 +734,7 @@ static size_t iopgtable_clear_entry_core(struct omap_iommu *obj, u32 da)
->   		bytes *= nent;
->   	}
->   	memset(iopgd, 0, nent * sizeof(*iopgd));
-> -	flush_iopgd_range(iopgd, iopgd + (nent - 1) * sizeof(*iopgd));
-> +	flush_pgtable(iopgd, sizeof(*iopgd) * nent);
->   out:
->   	return bytes;
->   }
-> @@ -799,7 +778,7 @@ static void iopgtable_clear_entry_all(struct omap_iommu *obj)
->   			iopte_free(iopte_offset(iopgd, 0));
->
->   		*iopgd = 0;
-> -		flush_iopgd_range(iopgd, iopgd);
-> +		flush_pgtable(iopgd, sizeof(*iopgd));
->   	}
->
->   	flush_iotlb_all(obj);
->
+Thanks,
+Archit
