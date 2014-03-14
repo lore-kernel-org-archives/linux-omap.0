@@ -1,105 +1,72 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [RFC 5/9] ARM: dts: AM4372: Add opp-modifier device entry and add higher OPPs
-Date: Fri, 14 Mar 2014 14:25:31 -0500
-Message-ID: <1394825135-60110-6-git-send-email-d-gerlach@ti.com>
-References: <1394825135-60110-1-git-send-email-d-gerlach@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 2/4] power_supply: Introduce generic psy charging driver
+Date: Fri, 14 Mar 2014 19:25:24 +0000
+Message-ID: <20140314192524.GB366@sirena.org.uk>
+References: <1392875640-29230-1-git-send-email-jenny.tc@intel.com>
+ <1392875640-29230-3-git-send-email-jenny.tc@intel.com>
+ <CACRpkdaU44iinj2iDNdYm62J+4jQbg+XJ=Zq4GmJryPeu7GfTQ@mail.gmail.com>
+ <20140228100114.GA13189@amd.pavel.ucw.cz>
+ <CACRpkdaZ2moqGWx2BpfEeKoW6doXg67TkJKY+mbg4hrFHDr16Q@mail.gmail.com>
+ <20140307201039.GB27645@amd.pavel.ucw.cz>
+ <CACRpkda_9UG70G-b3eGTccr22WC4eoAbj0g2QgX0DRSYVgvrxA@mail.gmail.com>
+ <20140313091234.GC9494@amd.pavel.ucw.cz>
+ <CACRpkda6VOStrazzMXXUFOQZsr1P0amVdyzLQ_wTHXmshsV2=A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45297 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754170AbaCNT06 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Mar 2014 15:26:58 -0400
-In-Reply-To: <1394825135-60110-1-git-send-email-d-gerlach@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="iNbuUyhyM/niA6/9"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkda6VOStrazzMXXUFOQZsr1P0amVdyzLQ_wTHXmshsV2=A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Liam Girdwood <lgirdwood@gmail.com>, Jenny TC <jenny.tc@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pallala Ramakrishna <ramakrishna.pallala@intel.com>=
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: cpufreq@vger.kernel.org, devicetree@vger.kernel.org, kernel@pengutronix.de, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jisheng Zhang <jszhang@marvell.com>, Anson Huang <Anson.Huang@freescale.com>, Shawn Guo <shawn.guo@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 
-Add an entry for opp_modifier which configures OPPs on AM4372. Within
-this, nodes are defined with the opp-modifier propety that are defined as
-a list of frequency, offset from base register, and efuse value.
-The CPU node passes a phandle to the appropriate child node to get the
-correct table.
 
-This patch also adds higher eFused OPPs for AM4372.
+--iNbuUyhyM/niA6/9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- arch/arm/boot/dts/am4372.dtsi | 30 ++++++++++++++++++++++++++++++
- include/dt-bindings/opp/ti.h  |  6 ++++++
- 2 files changed, 36 insertions(+)
+On Fri, Mar 14, 2014 at 11:36:40AM +0100, Linus Walleij wrote:
+> On Thu, Mar 13, 2014 at 10:12 AM, Pavel Machek <pavel@ucw.cz> wrote:
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index c6bd4d9..dbaa2e3 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -9,6 +9,7 @@
-  */
- 
- #include <dt-bindings/interrupt-controller/arm-gic.h>
-+#include <dt-bindings/opp/ti.h>
- 
- #include "skeleton.dtsi"
- 
-@@ -33,6 +34,17 @@
- 			compatible = "arm,cortex-a9";
- 			device_type = "cpu";
- 			reg = <0>;
-+
-+			operating-points = <
-+				/* kHz    uV */
-+				300000	950000
-+				600000	1100000
-+				720000	1200000
-+				800000	1260000
-+				1000000 1325000
-+			>;
-+
-+			platform-opp-modifier = <&mpu_opp_modifier>;
- 		};
- 	};
- 
-@@ -662,6 +674,24 @@
- 			dma-names = "tx", "rx";
- 		};
- 
-+		opp_modifier: opp_modifier@0x44e10610 {
-+			compatible = "opp-modifier-reg-bit";
-+			reg = <0x44e10610 0x04>;
-+
-+			opp,reg-bit-enable-low;
-+
-+			mpu_opp_modifier: mpu_opp_modifier {
-+				opp-modifier = <
-+				/* kHz	offset	value */
-+				1000000	0	AM43XX_EFUSE_SMA_OPP_NITRO_1GHZ_BIT
-+				800000	0	AM43XX_EFUSE_SMA_OPP_TURBO_800MHZ_BIT
-+				720000	0	AM43XX_EFUSE_SMA_OPP_120_720MHZ_BIT
-+				600000	0	AM43XX_EFUSE_SMA_OPP_100_600MHZ_BIT
-+				300000	0	AM43XX_EFUSE_SMA_OPP_50_300MHZ_BIT
-+				>;
-+			};
-+		};
-+
- 		mcasp0: mcasp@48038000 {
- 			compatible = "ti,am33xx-mcasp-audio";
- 			ti,hwmods = "mcasp0";
-diff --git a/include/dt-bindings/opp/ti.h b/include/dt-bindings/opp/ti.h
-index 58436c1..d3717be 100644
---- a/include/dt-bindings/opp/ti.h
-+++ b/include/dt-bindings/opp/ti.h
-@@ -19,4 +19,10 @@
- #define AM33XX_EFUSE_SMA_OPP_TURBO_800MHZ_BIT		(1 << 8)
- #define AM33XX_EFUSE_SMA_OPP_NITRO_1GHZ_BIT             (1 << 9)
- 
-+#define AM43XX_EFUSE_SMA_OPP_50_300MHZ_BIT              (1 << 0)
-+#define AM43XX_EFUSE_SMA_OPP_100_600MHZ_BIT             (1 << 2)
-+#define AM43XX_EFUSE_SMA_OPP_120_720MHZ_BIT             (1 << 3)
-+#define AM43XX_EFUSE_SMA_OPP_TURBO_800MHZ_BIT		(1 << 4)
-+#define AM43XX_EFUSE_SMA_OPP_NITRO_1GHZ_BIT             (1 << 5)
-+
- #endif		/* __DT_BINDINGS_OPP_TI_H__ */
--- 
-1.9.0
+> > But... what would actually help: I believe we should introduce
+> > milivolt_t, miliamp_t, milisec_t etc... types. Storing milivolts in
+> > int, then having comment saying "milivolts" is just wrong.
 
+> Hm! I bet the regulator subsystem maintainers have opinions
+> on that.
+
+The regulator subsystem is quite happily using unsigned ints here,
+usually we're using hungarian style names to clarify the type where
+that's useful (it tends to be closer to the usual naming conventions
+when representing these things mathematically).  I'm not sure that
+having a typedef is going to buy us terribly much unless we convert the
+kernel to C++ where we can do more exciting stuff.
+
+I would say that we are using microvolts rather than milivolts since it
+does occasionally matter.
+
+--iNbuUyhyM/niA6/9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTI1ehAAoJELSic+t+oim9qmoP/Ripi+BBz/3FzmqwZJUwMuBs
+8OrQ2Yr9Yez0ZtV73nzfVnKK5q53InLjSUkfVdoA7xB1XJokWFAGel+cWNLCyZNs
+vxW180APi1XhKKz7EmULfewe7hC7t8C3/tyzrfqZ5au0ngC7dCR9dZY+0dEKrT/0
+TSarW5jk2Z4O2ETVhhq2TJ3mZHh/6fV1A0M1jzwEBtMHdzGMQnJIwXTy2QFUf0OD
+fXkAqtspPG2eRGAbwGANbNZS8V8tgnAAwYutRVdjNSclS01vAJMgT6QxKcCVvLRB
+PkqRHnQDLELaxSV88F95lURmQjFCuuU8COzK4xnNntrjHmbcUlBspKXRkNj+hAg4
+0AoNH+FSx2JxWjKW0fO8ifzYGxMHfdBgMHlq+5zKfHDz9S9y7DpP9xVG6ieAxzrh
+AvDqmvDBh4qvXenu5eVEQMn/JDtcKaIkQ1f6HXCU80lVjc8dco8oeybcvvauO3L2
+XW3AhLDn1bXLFqbT2h5iUPIzo3mO5PFmTs01EgLQE3Qs/zb8SeIhttyl8p+ETlqw
+dxpmYNAjEa0xl7NXpiXkTM53TLWE9tEu1fXu1CSAl9ZXz1FxO7A8RU/WsfZJs2L6
+j+XAbYzVD9d1oiYA0Q5Q534RWyFeUOtgIBMe+9qinPklsCkWO5VAklsBts8EKAz5
+IcRkV5+OeFigcoCs5pnk
+=LQJB
+-----END PGP SIGNATURE-----
+
+--iNbuUyhyM/niA6/9--
