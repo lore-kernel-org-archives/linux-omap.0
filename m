@@ -1,55 +1,69 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 3/3] ARM: OMAP2+: Add machine entry for dra72x devices
-Date: Fri, 14 Mar 2014 14:50:41 +0530
-Message-ID: <1394788841-15112-4-git-send-email-rnayak@ti.com>
-References: <1394788841-15112-1-git-send-email-rnayak@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 00/18] edma/ASoC: dmaengine PCM for AM335x and AM447x
+Date: Fri, 14 Mar 2014 11:38:58 +0200
+Message-ID: <5322CE32.2000102@ti.com>
+References: <1394702320-21743-1-git-send-email-peter.ujfalusi@ti.com>
+ <20140313134601.GU366@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59022 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755893AbaCNJWH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Mar 2014 05:22:07 -0400
-In-Reply-To: <1394788841-15112-1-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140313134601.GU366@sirena.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Brown <broonie@kernel.org>
+Cc: davinci-linux-open-source@linux.davincidsp.com, alsa-devel@alsa-project.org, joelf@ti.com, vinod.koul@intel.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, mporter@linaro.org, dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
-Cc: tony@atomide.com, bcousson@baylibre.com, Rajendra Nayak <rnayak@ti.com>
 
-The only difference from the dra75x devices is the missing .smp entry.
+On 03/13/2014 03:46 PM, Mark Brown wrote:
+> On Thu, Mar 13, 2014 at 11:18:22AM +0200, Peter Ujfalusi wrote:
+> =
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/board-generic.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+>> With this series AM335x and AM447x will use the dmaengine PCM for audio.=
+ The
+>> daVinci devices will keep using the davinci-pcm for now since I do not h=
+ave
+>> means to test them but the code is written in a way that they can be swi=
+tched
+>> to use the edma-pcm easily (DA850/OMAP-L138 has been tested and audio was
+>> working fine).
+> =
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 8e3daa1..d803d99 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -253,4 +253,22 @@ DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
- 	.dt_compat	= dra7xx_boards_compat,
- 	.restart	= omap44xx_restart,
- MACHINE_END
-+
-+static const char *dra72_boards_compat[] __initdata = {
-+	"ti,dra72x",
-+	"ti,dra7",
-+	NULL,
-+};
-+
-+DT_MACHINE_START(DRA72_DT, "Generic DRA72 (Flattened Device Tree)")
-+	.reserve	= omap_reserve,
-+	.map_io		= omap5_map_io,
-+	.init_early	= dra7xx_init_early,
-+	.init_late	= dra7xx_init_late,
-+	.init_irq	= omap_gic_of_init,
-+	.init_machine	= omap_generic_init,
-+	.init_time	= omap5_realtime_timer_init,
-+	.dt_compat	= dra72_boards_compat,
-+	.restart	= omap44xx_restart,
-+MACHINE_END
- #endif
--- 
-1.7.9.5
+> Can you please not resend the ASoC portions of this series until the
+> EDMA portion is stable (and ideally committed)?  I'm not quite sure why
+> but every EDMA patch series seems to go through lots of iterations which
+> gets rather noisy - my initial reaction to seeing EDMA in a subject is
+> to just delete the thread.
 
+Sure, I'm not planning to spam alsa-devel however the switch to dmaengine P=
+CM
+for AM335x/AM447x needs the edma patches, otherwise it is not going to work.
+AFAIK I have not sent patch to edma as of now so I have no idea how long it
+takes to get stuff in (the good thing is that the edma part does not touch =
+DT,
+which is alone can reduce the number of iterations).
+Anyway, what I can - and already did is:
+Reorder the ASoC patches and I can leave out the switch to dmaengine PCM pa=
+tch
+for davinci-mcasp for now. The edma-pcm and the other patches for McASP can=
+ go
+in right away (I will not add the edma-pcm to the Makefile/Kconfig to avoid
+issues).
+
+I will detach the edma stuff and follow it up outside of alsa-devel.
+
+The only thing I'm afraid off is that it is going to take two release cycle=
+ to
+get this in: first cycle edma part, next cycle for the ASoC to switch to use
+the edma-pcm.
+
+-- =
+
+P=E9ter
