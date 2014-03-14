@@ -1,13 +1,14 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/5] OMAP IOMMU fixes and IOMMU architecture questions
-Date: Thu, 13 Mar 2014 21:33:37 -0500
-Message-ID: <53226A81.3090501@ti.com>
+Subject: Re: [PATCH 1/5] iommu/omap: Use the cache cleaning API
+Date: Thu, 13 Mar 2014 21:47:49 -0500
+Message-ID: <53226DD5.6070208@ti.com>
 References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<1394239574-2389-2-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1394239574-2389-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+In-Reply-To: <1394239574-2389-2-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -17,115 +18,147 @@ List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
 Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sakari.ailus-X3B1VOXEql0@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 Hi Laurent,
 
 On 03/07/2014 06:46 PM, Laurent Pinchart wrote:
-> Hello,
->
-> This patch set fixes miscellaneous issues with the OMAP IOMMU driver, found
-> when trying to port the OMAP3 ISP away from omap-iovmm to the ARM DMA API. The
-> biggest issue is fixed by patch 5/5, while the other patches fix smaller
-> problems that I've noticed when reading the code, without experiencing them at
-> runtime.
->
-> I'd like to take this as an opportunity to discuss OMAP IOMMU integration with
-> the ARM DMA mapping implementation. The idea is to hide the IOMMU completely
-> behind the DMA mapping API, making it completely transparent to drivers.
+> The page table entries must be cleaned from the cache before being
+> accessed by the IOMMU. Instead of implementing cache management manually
+> (and ignoring L2 cache), use clean_dcache_area() to make sure the
+> entries are visible to the device.
 
-Thanks for starting the discussion.
+Thanks for fixing this, this has been long pending. There have been some 
+previous attempts at this as well by Ramesh Gupta, with the last thread 
+(a long time now) being
+http://marc.info/?t=134752035400001&r=1&w=2
 
->
-> A drivers will only need to allocate memory with dma_alloc_*, and behind the
-> scene the ARM DMA mapping implementation will find out that the device is
-> behind an IOMMU and will map the buffers through the IOMMU, returning an I/O
-> VA address to the driver. No direct call to the OMAP IOMMU driver or to the
-> IOMMU core should be necessary anymore.
->
-> To use the IOMMU the ARM DMA implementation requires a VA mapping to be
-> created with a call to arm_iommu_create_mapping() and to then be attached to
-> the device with arm_iommu_attach_device(). This is currently not performed by
-> the OMAP IOMMU driver, I have thus added that code to the OMAP3 ISP driver for
-> now. I believe this to still be an improvement compared to the current
-> situation, as it allows getting rid of custom memory allocation code in the
-> OMAP3 ISP driver and custom I/O VA space management in omap-iovmm. However,
-> that code should ideally be removed from the driver. The question is, where
-> should it be moved to ?
->
-> One possible solution would be to add the code to the OMAP IOMMU driver.
-> However, this would require all OMAP IOMMU users to be converted to the ARM
-> DMA API. I assume there would be issues that I don't foresee though.
-
-Yeah, I think this will pose some problems for the other main user of 
-IOMMUs - the remoteproc devices (DSP, Dual-Cortex M3/M4 processors in 
-OMAP4 and beyond). A remoteproc device also needs to map memory at 
-specific addresses for its code and data sections, and not rely on a I/O 
-VA address being given to it. The firmware sections are already linked 
-at specific addresses, and so remoteproc needs to allocate memory, load 
-the firmware and map into appropriate device addresses. We are doing 
-this currently usage a combination of CMA memory to get contiguous 
-memory (there are some restrictions for certain sections) and 
-iommu_map/unmap API to program the MMU with these pages. This usage is 
-different from what is expected from exchanging buffers, which can be 
-allocated from a predefined mapping range. Even that one is tricky if we 
-need to support different cache properties/attributes as the cache 
-configuration is in general local to these processors.
-
->
-> I'm not even sure whether the OMAP IOMMU driver would be the best place to put
-> that code. Ideally VA spaces should be created by the platform somehow, and
-> mapping of devices to IOMMUs should be handled by the IOMMU core instead of
-> the IOMMU drivers. We're not there yet, and the path might not be
-> straightforward, hence this attempt to start a constructive discussion.
->
-> A second completely unrelated problem that I'd like to get feedback on is the
-> suspend/resume support in the OMAP IOMMU driver, or rather the lack thereof.
-> The driver exports omap_iommu_save_ctx() and omap_iommu_restore_ctx()
-> functions and expects the IOMMU users to call them directly. This is really
-> hackish to say the least. A proper suspend/resume implementation shouldn't be
-> difficult to implement, and I'm wondering whether the lack of proper power
-> management support comes from historical reasons only, or if there are
-> problems I might not have considered.
-
-Agreed, the current code definitely needs a cleanup and better 
-organization (like folding into runtime suspend ops). The main thing is 
-that we need the IOMMU to be activated as long as its parent device is 
-active (like the omap3isp or a remoteproc device). And this behaviour 
-needs separation from configuring it and programming for the first time. 
-Only a user can dictate when an IOMMU is not needed. So we either need 
-an API to activate or have access to the iommu's dev object somehow so 
-that we can use the pm_runtime_get/put API to hold a usage counter and 
-let the runtime suspend ops take care of save/restore without tearing 
-down the domain or detaching the device.
-
->
-> Last but not least, the patches are available at
->
-> 	git://linuxtv.org/pinchartl/media.git omap3isp/dma
->
-> along with a patch series that ports the OMAP3 ISP driver to the DMA API. I
-> will submit that one for review once the IOMMU patches get accepted and after
-> fixing a couple of remaining bugs (I'm aware that I have broken userspace
-> PFNMAP buffers).
-
-I have looked at your tree, and as you already stated, it seems to be 
-right intermediate solution for now to get rid of omap-iovmm.
+Santosh,
+Can you please take a look at this patch and provide your comments?
 
 regards
 Suman
 
 >
-> Laurent Pinchart (5):
->    iommu/omap: Use the cache cleaning API
->    iommu/omap: Fix 'no page for' debug message in flush_iotlb_page()
->    iommu/omap: Flush the TLB only after updating translation table
->      entries
->    iommu/omap: Remove comment about supporting single page mappings only
->    iommu/omap: Fix map protection value handling
+> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> ---
+>   drivers/iommu/omap-iommu.c | 41 ++++++++++-------------------------------
+>   1 file changed, 10 insertions(+), 31 deletions(-)
 >
->   drivers/iommu/omap-iommu.c | 68 ++++++++++++++++------------------------------
->   1 file changed, 23 insertions(+), 45 deletions(-)
+> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> index a893eca..bb605c9 100644
+> --- a/drivers/iommu/omap-iommu.c
+> +++ b/drivers/iommu/omap-iommu.c
+> @@ -500,24 +500,9 @@ EXPORT_SYMBOL_GPL(omap_foreach_iommu_device);
+>   /*
+>    *	H/W pagetable operations
+>    */
+> -static void flush_iopgd_range(u32 *first, u32 *last)
+> +static void flush_pgtable(void *addr, size_t size)
+>   {
+> -	/* FIXME: L2 cache should be taken care of if it exists */
+> -	do {
+> -		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pgd"
+> -		    : : "r" (first));
+> -		first += L1_CACHE_BYTES / sizeof(*first);
+> -	} while (first <= last);
+> -}
+> -
+> -static void flush_iopte_range(u32 *first, u32 *last)
+> -{
+> -	/* FIXME: L2 cache should be taken care of if it exists */
+> -	do {
+> -		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pte"
+> -		    : : "r" (first));
+> -		first += L1_CACHE_BYTES / sizeof(*first);
+> -	} while (first <= last);
+> +	clean_dcache_area(addr, size);
+>   }
+>
+>   static void iopte_free(u32 *iopte)
+> @@ -546,7 +531,7 @@ static u32 *iopte_alloc(struct omap_iommu *obj, u32 *iopgd, u32 da)
+>   			return ERR_PTR(-ENOMEM);
+>
+>   		*iopgd = virt_to_phys(iopte) | IOPGD_TABLE;
+> -		flush_iopgd_range(iopgd, iopgd);
+> +		flush_pgtable(iopgd, sizeof(*iopgd));
+>
+>   		dev_vdbg(obj->dev, "%s: a new pte:%p\n", __func__, iopte);
+>   	} else {
+> @@ -575,7 +560,7 @@ static int iopgd_alloc_section(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
+>   	}
+>
+>   	*iopgd = (pa & IOSECTION_MASK) | prot | IOPGD_SECTION;
+> -	flush_iopgd_range(iopgd, iopgd);
+> +	flush_pgtable(iopgd, sizeof(*iopgd));
+>   	return 0;
+>   }
+>
+> @@ -592,7 +577,7 @@ static int iopgd_alloc_super(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
+>
+>   	for (i = 0; i < 16; i++)
+>   		*(iopgd + i) = (pa & IOSUPER_MASK) | prot | IOPGD_SUPER;
+> -	flush_iopgd_range(iopgd, iopgd + 15);
+> +	flush_pgtable(iopgd, sizeof(*iopgd) * 16);
+>   	return 0;
+>   }
+>
+> @@ -605,7 +590,7 @@ static int iopte_alloc_page(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
+>   		return PTR_ERR(iopte);
+>
+>   	*iopte = (pa & IOPAGE_MASK) | prot | IOPTE_SMALL;
+> -	flush_iopte_range(iopte, iopte);
+> +	flush_pgtable(iopte, sizeof(*iopte));
+>
+>   	dev_vdbg(obj->dev, "%s: da:%08x pa:%08x pte:%p *pte:%08x\n",
+>   		 __func__, da, pa, iopte, *iopte);
+> @@ -619,18 +604,12 @@ static int iopte_alloc_large(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
+>   	u32 *iopte = iopte_alloc(obj, iopgd, da);
+>   	int i;
+>
+> -	if ((da | pa) & ~IOLARGE_MASK) {
+> -		dev_err(obj->dev, "%s: %08x:%08x should aligned on %08lx\n",
+> -			__func__, da, pa, IOLARGE_SIZE);
+> -		return -EINVAL;
+> -	}
+> -
+>   	if (IS_ERR(iopte))
+>   		return PTR_ERR(iopte);
+>
+>   	for (i = 0; i < 16; i++)
+>   		*(iopte + i) = (pa & IOLARGE_MASK) | prot | IOPTE_LARGE;
+> -	flush_iopte_range(iopte, iopte + 15);
+> +	flush_pgtable(iopte, sizeof(*iopte) * 16);
+>   	return 0;
+>   }
+>
+> @@ -733,7 +712,7 @@ static size_t iopgtable_clear_entry_core(struct omap_iommu *obj, u32 da)
+>   		}
+>   		bytes *= nent;
+>   		memset(iopte, 0, nent * sizeof(*iopte));
+> -		flush_iopte_range(iopte, iopte + (nent - 1) * sizeof(*iopte));
+> +		flush_pgtable(iopte, sizeof(*iopte) * nent);
+>
+>   		/*
+>   		 * do table walk to check if this table is necessary or not
+> @@ -755,7 +734,7 @@ static size_t iopgtable_clear_entry_core(struct omap_iommu *obj, u32 da)
+>   		bytes *= nent;
+>   	}
+>   	memset(iopgd, 0, nent * sizeof(*iopgd));
+> -	flush_iopgd_range(iopgd, iopgd + (nent - 1) * sizeof(*iopgd));
+> +	flush_pgtable(iopgd, sizeof(*iopgd) * nent);
+>   out:
+>   	return bytes;
+>   }
+> @@ -799,7 +778,7 @@ static void iopgtable_clear_entry_all(struct omap_iommu *obj)
+>   			iopte_free(iopte_offset(iopgd, 0));
+>
+>   		*iopgd = 0;
+> -		flush_iopgd_range(iopgd, iopgd);
+> +		flush_pgtable(iopgd, sizeof(*iopgd));
+>   	}
+>
+>   	flush_iotlb_all(obj);
 >
