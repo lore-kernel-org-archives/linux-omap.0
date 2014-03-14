@@ -1,99 +1,98 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v2 4/4] ARM: DTS: AM43x: Add DSS node
-Date: Fri, 14 Mar 2014 18:00:53 +0000
-Message-ID: <20140314180052.GO25870@e106331-lin.cambridge.arm.com>
-References: <20140313174623.GD25870@e106331-lin.cambridge.arm.com>
- <5321F77E.9000302@ti.com>
- <20140314091002.GG25870@e106331-lin.cambridge.arm.com>
- <5322CF02.4060705@ti.com>
- <20140314101405.GI25870@e106331-lin.cambridge.arm.com>
- <5322D7A4.4090602@ti.com>
- <5322E2D9.5000509@ti.com>
- <20140314140745.GL25870@e106331-lin.cambridge.arm.com>
- <20140314160404.GC21379@saruman.home>
- <53232F8B.5020708@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [RFC 0/9] Introduce OPP modifier for ARM SoCs
+Date: Fri, 14 Mar 2014 14:25:26 -0500
+Message-ID: <1394825135-60110-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:60926 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754090AbaCNSBD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Mar 2014 14:01:03 -0400
-Content-Disposition: inline
-In-Reply-To: <53232F8B.5020708@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: Jisheng Zhang <jszhang@marvell.com>, devicetree@vger.kernel.org, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Viresh Kumar <viresh.kumar@linaro.org>, Anson Huang <Anson.Huang@freescale.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, cpufreq@vger.kernel.org, kernel@pengutronix.de, Shawn Guo <shawn.guo@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "balbi@ti.com" <balbi@ti.com>, "av.tikhomirov@samsung.com" <av.tikhomirov@samsung.com>, Sathya Prakash M R <sathyap@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pawel Moll <Pawel.Moll@arm.com>, "paul@pwsan.com" <paul@pwsan.com>
 
-On Fri, Mar 14, 2014 at 04:34:19PM +0000, Tomi Valkeinen wrote:
-> On 14/03/14 18:04, Felipe Balbi wrote:
-> > On Fri, Mar 14, 2014 at 02:07:45PM +0000, Mark Rutland wrote:
-> >> On Fri, Mar 14, 2014 at 11:07:05AM +0000, Tomi Valkeinen wrote:
-> >>> On 14/03/14 12:19, Tomi Valkeinen wrote:
-> >>>> On 14/03/14 12:14, Mark Rutland wrote:
-> >>>>
-> >>>>> I can't see anything obviously wrong in platform_device_del. Do you have
-> >>>>> a backtrace?
-> >>>>
-> >>>> Yes, below.
-> >>>>
-> >>>> I can see at least drivers/usb/dwc3/dwc3-exynos.c doing the exact same thing
-> >>>> I do, so maybe I've got something wrong with the omapdss driver.
-> >>>
-> >>> Looks to me that the devices created by of_platform_populate() are not
-> >>> unregisterable in all cases. The address resource created via
-> >>> of_platform_populate() had NULL res->parent, which causes
-> >>> release_resource to crash.
-> >>
-> >> Hmm. I can't see that unregistering such devices ever works as you say,
-> >> given that __release_resource expects a non-NULL parent pointer. Either
-> >> we should be setting the parent pointer when initialising devices from
-> >> dt or we should teach __release_resource to not care. I'll have a go at
-> >> fixing that.
-> >>
-> >> It looks like drivers/usb/dwc3/dwc3-exynos.c only unregisters the
-> >> top-level device, not children. This top-level device has no
-> >> IORESOURCE_{IO,MEM} resources judging by
-> >> arch/arm/boot/dts/exynos5250.dtsi, which would explain why that driver
-> >> isn't exploding: __release_resource will never get called.
-> >>
-> >> Anton, Felipe: 
-> >>
-> >> Does unregistering the parent ensure the children get cleaned up, or
-> >> does it leave them dangling in the dwc3-exynos driver?
-> > 
-> > you should platform_device_unregister() for each children and
-> > dwc3-exynos does that just fine:
-> 
-> Yes, that's what I do also, and it crashes. What Mark said above about
-> unregistering never working for such devices is correct, but I don't
-> know why he said dwc3-exynos only unregisters the top level device.
+There are many SoCs that can have different operating points supported
+depending on different conditions even for otherwise identical parts. 
+It does not make sense to define many different iterations of a device tree
+file for each possible permutation of the same device especially when this data
+may exist within the part. 
 
-Because I'd failed to read the code correctly. It does indeed unregister
-each of the children via platform_device_unregister.
+This proposal introduces a framework and example driver to help in enabling
+or disabling appropriate OPPs based on a register value. The information needed
+for deciding which OPPs are to be enabled is defined in the device tree in a
+table so that one device tree file is able to support any version of the part.
+This series is mostly untested besides 335x and only is intended to demonstrate
+the approach for dynamically changing available OPPs.
 
-Apologies for the confusion there.
+The framework allows other drivers to register themselves and
+then through a single function call modify which OPPs are available for a device.
 
-> "such devices" above meaning devices with a 'reg' defined in the DT
-> data, if I'm not mistaken.
+The included opp-modifier-reg driver can already support many different SoCs
+that have a manufacturer modifiable register defining which OPPs are possible
+on the SoC. This series includes example entries for am335x, am437x, omap4,
+dra7, and imx6q. 
 
-Yes. As far as I can see, IORESOURCE_MEM resources instantiated from reg
-entries in dt do not have their parent pointer initialised, and will
-cause __release_resource to blow up. A quick inspection of resources on
-my TC2 shows this to be the case -- the parent, sibling, and child
-pointers are all NULL.
+The opp-modifier-reg driver expects all possible OPPs to be loaded for the
+device already and then is able to modify the table based on the details
+passed compared to the defined register.
 
-I'm at a loss to explain how the dwc3-exynos driver can call
-platform_device_unregister on devices with such resource and not blow
-up. Is anyone able to test dwc3_exynos_remove?
+This RFC only applies to MPU OPPs and only supports modifying the OPP list to
+contain supported OPPs during boot but this driver could easily be extended
+to support modifying the OPPs of other IPs that have them easily by placing
+the hook (in patch 3 here) elsewhere. The hook for opp-modifier was placed
+in its current only as a proof of concept; if there is a better location it
+should be moved.
 
-> So at the moment, I think of_platform_populate() and
-> platform_device_unregister() combination in a driver is a bit risky.
-> Work fine for certain cases, not for some other.
+This series is tested on am33xx but must be used with 2.x+ silicon as the
+earlier revision does not support the same OPPs. Also for the additional OPPs
+the maximum voltage supplied by the regulator for the MPU rail on both am335
+and am437x would need to be extended but those patches were left out of this
+series to focus on opp-modifier.
 
-It certainly looks to be broken at the moment, but it should be fixable.
+Comments? Is this a reasonable direction to take?
 
-Thanks,
-Mark.
+Dave Gerlach (9):
+  opp-modifier: Introduce OPP Modifier Framework
+  opp-modifier: Add opp-modifier-reg driver
+  PM / OPP: Add hook to modify OPPs after they are loaded.
+  ARM: dts: AM33XX: Add opp-modifier device entry and add higher OPPs
+  ARM: dts: AM4372: Add opp-modifier device entry and add higher OPPs
+  ARM: dts: omap443x: Add opp-modifier entry and add higher OPPs
+  ARM: dts: omap4460: Add opp-modifier entry and add higher OPPs
+  ARM: dts: dra7: Add opp-modifier device entry and add higher OPPs
+  ARM: dts: imx6q: Add opp-modifier device entry
+
+ .../devicetree/bindings/power/opp-modifier.txt     | 111 +++++++++
+ arch/arm/boot/dts/am33xx.dtsi                      |  27 ++-
+ arch/arm/boot/dts/am4372.dtsi                      |  30 +++
+ arch/arm/boot/dts/dra7.dtsi                        |  18 ++
+ arch/arm/boot/dts/imx6q.dtsi                       |  18 ++
+ arch/arm/boot/dts/omap443x.dtsi                    |  16 ++
+ arch/arm/boot/dts/omap4460.dtsi                    |  17 ++
+ drivers/base/power/opp.c                           |   8 +
+ drivers/power/Makefile                             |   2 +
+ drivers/power/opp/Makefile                         |   2 +
+ drivers/power/opp/core.c                           | 126 ++++++++++
+ drivers/power/opp/opp-modifier-reg.c               | 259 +++++++++++++++++++++
+ include/dt-bindings/opp/imx.h                      |  17 ++
+ include/dt-bindings/opp/ti.h                       |  33 +++
+ include/linux/opp-modifier.h                       |  35 +++
+ 15 files changed, 717 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/power/opp-modifier.txt
+ create mode 100644 drivers/power/opp/Makefile
+ create mode 100644 drivers/power/opp/core.c
+ create mode 100644 drivers/power/opp/opp-modifier-reg.c
+ create mode 100644 include/dt-bindings/opp/imx.h
+ create mode 100644 include/dt-bindings/opp/ti.h
+ create mode 100644 include/linux/opp-modifier.h
+
+-- 
+1.9.0
