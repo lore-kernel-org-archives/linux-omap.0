@@ -1,14 +1,13 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 5/5] iommu/omap: Fix map protection value handling
-Date: Thu, 13 Mar 2014 19:07:33 -0500
-Message-ID: <53224845.1050901@ti.com>
+Subject: Re: [PATCH 0/5] OMAP IOMMU fixes and IOMMU architecture questions
+Date: Thu, 13 Mar 2014 21:33:37 -0500
+Message-ID: <53226A81.3090501@ti.com>
 References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<1394239574-2389-6-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1394239574-2389-6-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+In-Reply-To: <1394239574-2389-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -25,94 +24,108 @@ List-Id: linux-omap@vger.kernel.org
 Hi Laurent,
 
 On 03/07/2014 06:46 PM, Laurent Pinchart wrote:
-> The prot flags passed to the IOMMU map handler are defined in
-> include/linux/iommu.h as IOMMU_(READ|WRITE|CACHE|EXEC). However, the
-> driver expects to receive MMU_RAM_* OMAP-specific flags. This causes
-> IOMMU flags being interpreted as page sizes, leading to failures.
+> Hello,
 >
-> Hardcode the OMAP mapping parameters to little-endian, 8-bits and
-> non-mixed page attributes. Furthermore, as the OMAP IOMMU doesn't
-> support read-only or write-only mappings, ignore the prot value.
+> This patch set fixes miscellaneous issues with the OMAP IOMMU driver, found
+> when trying to port the OMAP3 ISP away from omap-iovmm to the ARM DMA API. The
+> biggest issue is fixed by patch 5/5, while the other patches fix smaller
+> problems that I've noticed when reading the code, without experiencing them at
+> runtime.
 >
-> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> ---
->   drivers/iommu/omap-iommu.c | 17 +++++++----------
->   1 file changed, 7 insertions(+), 10 deletions(-)
+> I'd like to take this as an opportunity to discuss OMAP IOMMU integration with
+> the ARM DMA mapping implementation. The idea is to hide the IOMMU completely
+> behind the DMA mapping API, making it completely transparent to drivers.
+
+Thanks for starting the discussion.
+
 >
-> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> index 59de3fc..9f7f1d4 100644
-> --- a/drivers/iommu/omap-iommu.c
-> +++ b/drivers/iommu/omap-iommu.c
-> @@ -1016,8 +1016,7 @@ static void iopte_cachep_ctor(void *iopte)
->   	clean_dcache_area(iopte, IOPTE_TABLE_SIZE);
->   }
+> A drivers will only need to allocate memory with dma_alloc_*, and behind the
+> scene the ARM DMA mapping implementation will find out that the device is
+> behind an IOMMU and will map the buffers through the IOMMU, returning an I/O
+> VA address to the driver. No direct call to the OMAP IOMMU driver or to the
+> IOMMU core should be necessary anymore.
 >
-> -static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa,
-> -				   u32 flags)
-> +static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa, int pgsz)
->   {
->   	memset(e, 0, sizeof(*e));
+> To use the IOMMU the ARM DMA implementation requires a VA mapping to be
+> created with a call to arm_iommu_create_mapping() and to then be attached to
+> the device with arm_iommu_attach_device(). This is currently not performed by
+> the OMAP IOMMU driver, I have thus added that code to the OMAP3 ISP driver for
+> now. I believe this to still be an improvement compared to the current
+> situation, as it allows getting rid of custom memory allocation code in the
+> OMAP3 ISP driver and custom I/O VA space management in omap-iovmm. However,
+> that code should ideally be removed from the driver. The question is, where
+> should it be moved to ?
 >
-> @@ -1025,10 +1024,10 @@ static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa,
->   	e->pa		= pa;
->   	e->valid	= 1;
-As I was looking through this, I found a small bug here. This is 
-unrelated to this patch, but you can fix it in the same patch. The 
-e->valid value is directly used in omap2_alloc_cr, so it should be 
-initialized to MMU_CAM_V. It is not a problem currently as 
-PREFETCH_IOTLB is not used, if used, this is overriding the size 
-bit-fields when it prefetches the entry, which may lead to an MMU fault.
+> One possible solution would be to add the code to the OMAP IOMMU driver.
+> However, this would require all OMAP IOMMU users to be converted to the ARM
+> DMA API. I assume there would be issues that I don't foresee though.
 
+Yeah, I think this will pose some problems for the other main user of 
+IOMMUs - the remoteproc devices (DSP, Dual-Cortex M3/M4 processors in 
+OMAP4 and beyond). A remoteproc device also needs to map memory at 
+specific addresses for its code and data sections, and not rely on a I/O 
+VA address being given to it. The firmware sections are already linked 
+at specific addresses, and so remoteproc needs to allocate memory, load 
+the firmware and map into appropriate device addresses. We are doing 
+this currently usage a combination of CMA memory to get contiguous 
+memory (there are some restrictions for certain sections) and 
+iommu_map/unmap API to program the MMU with these pages. This usage is 
+different from what is expected from exchanging buffers, which can be 
+allocated from a predefined mapping range. Even that one is tricky if we 
+need to support different cache properties/attributes as the cache 
+configuration is in general local to these processors.
 
->   	/* FIXME: add OMAP1 support */
-> -	e->pgsz		= flags & MMU_CAM_PGSZ_MASK;
-> -	e->endian	= flags & MMU_RAM_ENDIAN_MASK;
-> -	e->elsz		= flags & MMU_RAM_ELSZ_MASK;
-> -	e->mixed	= flags & MMU_RAM_MIXED_MASK;
-> +	e->pgsz		= pgsz;
-> +	e->endian	= MMU_RAM_ENDIAN_LITTLE;
-> +	e->elsz		= MMU_RAM_ELSZ_8;
-> +	e->mixed	= 0;
+>
+> I'm not even sure whether the OMAP IOMMU driver would be the best place to put
+> that code. Ideally VA spaces should be created by the platform somehow, and
+> mapping of devices to IOMMUs should be handled by the IOMMU core instead of
+> the IOMMU drivers. We're not there yet, and the path might not be
+> straightforward, hence this attempt to start a constructive discussion.
+>
+> A second completely unrelated problem that I'd like to get feedback on is the
+> suspend/resume support in the OMAP IOMMU driver, or rather the lack thereof.
+> The driver exports omap_iommu_save_ctx() and omap_iommu_restore_ctx()
+> functions and expects the IOMMU users to call them directly. This is really
+> hackish to say the least. A proper suspend/resume implementation shouldn't be
+> difficult to implement, and I'm wondering whether the lack of proper power
+> management support comes from historical reasons only, or if there are
+> problems I might not have considered.
 
-Thanks, the change of these settings looks good overall. The only ones 
-for which it may apply anyway is just the Camera in OMAP2/OMAP3 (as per 
-TRM, endianness conversion supported only on writes anyway, so I am 
-assuming that we never use the combination), and OMAP2420 DSP, for which 
-there is no driver currently nor is the MMU being instantiated. All 
-other processors are pure little endian, and they even ignore the values 
-written in these fields.
+Agreed, the current code definitely needs a cleanup and better 
+organization (like folding into runtime suspend ops). The main thing is 
+that we need the IOMMU to be activated as long as its parent device is 
+active (like the omap3isp or a remoteproc device). And this behaviour 
+needs separation from configuring it and programming for the first time. 
+Only a user can dictate when an IOMMU is not needed. So we either need 
+an API to activate or have access to the iommu's dev object somehow so 
+that we can use the pm_runtime_get/put API to hold a usage counter and 
+let the runtime suspend ops take care of save/restore without tearing 
+down the domain or detaching the device.
 
-Please recheck the Camera subsystem once, and see if the e->elsz should 
-be set as MMU_RAM_ELSZ_NONE (I am not too familiar with the Camera 
-usage, so you are probably in a better place than me).
+>
+> Last but not least, the patches are available at
+>
+> 	git://linuxtv.org/pinchartl/media.git omap3isp/dma
+>
+> along with a patch series that ports the OMAP3 ISP driver to the DMA API. I
+> will submit that one for review once the IOMMU patches get accepted and after
+> fixing a couple of remaining bugs (I'm aware that I have broken userspace
+> PFNMAP buffers).
 
-If you are good, then with the e->valid change,
-Acked-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+I have looked at your tree, and as you already stated, it seems to be 
+right intermediate solution for now to get rid of omap-iovmm.
 
 regards
 Suman
 
 >
->   	return iopgsz_to_bytes(e->pgsz);
->   }
-> @@ -1041,7 +1040,7 @@ static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
->   	struct device *dev = oiommu->dev;
->   	struct iotlb_entry e;
->   	int omap_pgsz;
-> -	u32 ret, flags;
-> +	u32 ret;
+> Laurent Pinchart (5):
+>    iommu/omap: Use the cache cleaning API
+>    iommu/omap: Fix 'no page for' debug message in flush_iotlb_page()
+>    iommu/omap: Flush the TLB only after updating translation table
+>      entries
+>    iommu/omap: Remove comment about supporting single page mappings only
+>    iommu/omap: Fix map protection value handling
 >
->   	omap_pgsz = bytes_to_iopgsz(bytes);
->   	if (omap_pgsz < 0) {
-> @@ -1051,9 +1050,7 @@ static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
->
->   	dev_dbg(dev, "mapping da 0x%lx to pa 0x%x size 0x%x\n", da, pa, bytes);
->
-> -	flags = omap_pgsz | prot;
-> -
-> -	iotlb_init_entry(&e, da, pa, flags);
-> +	iotlb_init_entry(&e, da, pa, omap_pgsz);
->
->   	ret = omap_iopgtable_store_entry(oiommu, &e);
->   	if (ret)
+>   drivers/iommu/omap-iommu.c | 68 ++++++++++++++++------------------------------
+>   1 file changed, 23 insertions(+), 45 deletions(-)
 >
