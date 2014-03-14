@@ -1,83 +1,82 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v3 02/14] v4l: ti-vpe: register video device only when
- firmware is loaded
-Date: Fri, 14 Mar 2014 15:21:19 +0530
-Message-ID: <5322D117.9060008@ti.com>
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-3-git-send-email-archit@ti.com> <000001cf3eb2$39817540$ac845fc0$%debski@samsung.com> <53219FE0.8010604@ti.com> <000901cf3ec8$aea34270$0be9c750$%debski@samsung.com>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH 3/5] iommu/omap: Flush the TLB only after updating
+	translation table entries
+Date: Fri, 14 Mar 2014 10:58:40 +0100
+Message-ID: <7972929.biQkBVMjd1@avalon>
+References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<1394239574-2389-4-git-send-email-laurent.pinchart@ideasonboard.com>
+	<532230DA.30302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41799 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755739AbaCNJv7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Mar 2014 05:51:59 -0400
-In-Reply-To: <000901cf3ec8$aea34270$0be9c750$%debski@samsung.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <532230DA.30302-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sakari.ailus-X3B1VOXEql0@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kamil Debski <k.debski@samsung.com>, hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi,
+Hi Suman,
 
-On Thursday 13 March 2014 07:59 PM, Kamil Debski wrote:
-> Hi,
->
->> From: Archit Taneja [mailto:archit@ti.com]
->> Sent: Thursday, March 13, 2014 1:09 PM
->>
->> Hi Kamil,
->>
->> On Thursday 13 March 2014 05:18 PM, Kamil Debski wrote:
->>> Hi Archit,
->>>
->>>> From: Archit Taneja [mailto:archit@ti.com]
->>>> Sent: Tuesday, March 11, 2014 9:34 AM
->>>>
->>>> vpe fops(vpe_open in particular) should be called only when VPDMA
->>>> firmware is loaded. File operations on the video device are possible
->>>> the moment it is registered.
->>>>
->>>> Currently, we register the video device for VPE at driver probe,
->>>> after calling a vpdma helper to initialize VPDMA and load firmware.
->>>> This function is non-blocking(it calls request_firmware_nowait()),
->>>> and doesn't ensure that the firmware is actually loaded when it
->> returns.
->>>>
->>>> We remove the device registration from vpe probe, and move it to a
->>>> callback provided by the vpe driver to the vpdma library, through
->>>> vpdma_create().
->>>>
->>>> The ready field in vpdma_data is no longer needed since we always
->>>> have firmware loaded before the device is registered.
->>>>
->>>> A minor problem with this approach is that if the
->>>> video_register_device fails(which doesn't really happen), the vpe
->>>> platform device would be registered.
->>>> however, there won't be any v4l2 device corresponding to it.
->>>
->>> Could you explain to me one thing. request_firmware cannot be used in
->>> probe, thus you are using request_firmware_nowait. Why cannot the
->>> firmware be loaded on open with a regular request_firmware that is
->>> waiting?
->>
->> I totally agree with you here. Placing the firmware in open() would
->> probably make more sense.
->>
->> The reason I didn't place it in open() is because I didn't want to
->> release firmware in a corresponding close(), and be in a situation
->> where the firmware is loaded multiple times in the driver's lifetime.
->
-> Would it be possible to load firmware in open and release it in remove?
-> I know that this would disturb the symmetry between open-release and
-> probe-remove. But this could work.
+On Thursday 13 March 2014 17:27:38 Suman Anna wrote:
+> Hi Laurent,
+> 
+> On 03/07/2014 06:46 PM, Laurent Pinchart wrote:
+> > Flushing the TLB before updating translation entries creates a race
+> > condition and can lead to stale TLB entries if a translation request
+> > arrives between flushing the TLB and updating the translation entries.
+> > As there's no requirement to flush the TLB before updating the entries,
+> > flush it after only.
+> 
+> I do not expect a device to be actively using a region if we are about
+> to change its mapping, we expect the access from the device to be only
+> between a map and an unmap. The race condition (if any in such
+> scenarios) would exist even after this patch, like after you programmed
+> the entry, and the translation request comes before you flush the page.
+> Then it is still operating on an older address, while you have already
+> programmed a new one. An unmap currently clears the entry and flushes
+> any TLB as well, so I don't think this patch makes a big difference.
 
-That might work.
+I agree that the patch won't make a difference in practice. Should I drop it 
+from v2 ? 
 
-Currently, the driver doesn't do any clock management, it just enables 
-the clocks in probe, and disables them in remove. I need to check how 
-the firmware is dependent on clocks. We could make a better decision 
-about where to release the firmware with that information.
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> > ---
+> > 
+> >   drivers/iommu/omap-iommu.c | 5 +++--
+> >   1 file changed, 3 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> > index cb1e1de..fedd303 100644
+> > --- a/drivers/iommu/omap-iommu.c
+> > +++ b/drivers/iommu/omap-iommu.c
+> > @@ -662,10 +662,11 @@ int omap_iopgtable_store_entry(struct omap_iommu
+> > *obj, struct iotlb_entry *e)> 
+> >   {
+> >   	int err;
+> > 
+> > -	flush_iotlb_page(obj, e->da);
+> > 
+> >   	err = iopgtable_store_entry_core(obj, e);
+> > -	if (!err)
+> > +	if (!err) {
+> > +		flush_iotlb_page(obj, e->da);
+> >   		prefetch_iotlb_entry(obj, e);
+> > +	}
+> > 
+> >   	return err;
+> >   }
+> >   EXPORT_SYMBOL_GPL(omap_iopgtable_store_entry);
 
-Archit
+-- 
+Regards,
 
+Laurent Pinchart
