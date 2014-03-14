@@ -1,86 +1,131 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 4/5] clocksource: omap-timer: Introduce clocksource driver
- for OMAP SoCs
-Date: Fri, 14 Mar 2014 08:52:03 -0700
-Message-ID: <20140314155202.GA27560@atomide.com>
-References: <1394742919-32163-1-git-send-email-joelf@ti.com>
- <1394742919-32163-5-git-send-email-joelf@ti.com>
- <20140313204851.GB23432@atomide.com>
- <532243F5.4040609@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 4/4] ARM: DTS: AM43x: Add DSS node
+Date: Fri, 14 Mar 2014 11:04:04 -0500
+Message-ID: <20140314160404.GC21379@saruman.home>
+References: <1394701109-6721-1-git-send-email-sathyap@ti.com>
+ <1394701109-6721-5-git-send-email-sathyap@ti.com>
+ <20140313174623.GD25870@e106331-lin.cambridge.arm.com>
+ <5321F77E.9000302@ti.com>
+ <20140314091002.GG25870@e106331-lin.cambridge.arm.com>
+ <5322CF02.4060705@ti.com>
+ <20140314101405.GI25870@e106331-lin.cambridge.arm.com>
+ <5322D7A4.4090602@ti.com>
+ <5322E2D9.5000509@ti.com>
+ <20140314140745.GL25870@e106331-lin.cambridge.arm.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Izn7cH1Com+I3R9J"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36301 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754727AbaCNQF7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Mar 2014 12:05:59 -0400
 Content-Disposition: inline
-In-Reply-To: <532243F5.4040609@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Rob Herring <robh@kernel.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20140314140745.GL25870@e106331-lin.cambridge.arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, "balbi@ti.com" <balbi@ti.com>, "av.tikhomirov@samsung.com" <av.tikhomirov@samsung.com>, Sathya Prakash M R <sathyap@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pawel Moll <Pawel.Moll@arm.com>, "paul@pwsan.com" <paul@pwsan.com>
 
-* Joel Fernandes <joelf@ti.com> [140313 16:52]:
-> On 03/13/2014 03:48 PM, Tony Lindgren wrote:
-> > * Joel Fernandes <joelf@TI.com> [140313 13:43]:
-> >> We introduce functions to initialize clocksource and clockevent, use
-> >> CLOCKSOURCE_OF_DECLARE to declare the clocksource, and handle the clocksource
-> >> selection on a per-SoC basis (Currently only AM335x is supported). Powering up
-> >> of the timer will be done with the help of the mach-omap layer function that's
-> >> introduced earlier in the series.
-> >>
-> >> We make a local copy of dmtimer API for use by clocksource, the original
-> >> dmtimer API in plat-omap is kept as-is till the migration of all SoCs is
-> >> completed after which it can't be deleted.
-> >>
-> >> Signed-off-by: Joel Fernandes <joelf@ti.com>
-> >> ---
-> >>  drivers/clocksource/Makefile     |    1 +
-> >>  drivers/clocksource/omap-timer.c | 1157 ++++++++++++++++++++++++++++++++++++++
-> >>  drivers/clocksource/omap-timer.h |  422 ++++++++++++++
-> >>  3 files changed, 1580 insertions(+)
-> >>  create mode 100644 drivers/clocksource/omap-timer.c
-> >>  create mode 100644 drivers/clocksource/omap-timer.h
-> > 
-> > Hmm this leaves duplicate arch/arm/plat-omap/dmtimer.c code, please
-> 
-> Sure, ofcourse- but how else can we make sure everything works while we do
-> the migration in steps. We can get rid of the duplicate once everything is
-> migrated.
+--Izn7cH1Com+I3R9J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-That's not doing incremental changes then. You're not even modifying
-the existing omap_dm_timer functions, so please do the changes in incremental
-steps where things keep working throughout the series.
- 
-> > sort out that issue too by allowing omap1 and omap3 still to use
-> > the legacy timer init functions but with timer code under
-> > drivers/clocksource/omap-timer.c.
-> 
-> Sorry, I didn't follow. I didn't see OMAP3 using legacy timer stuff. To me
-> it looks like OMAP3 migration should be straight forward along the same
-> lines as this RFC patchset. Could you elaborate a bit more what the legacy
-> functions you mentioned for OMAP1 are? I will just like to keep everything
-> in drivers/clocksource/ private for now till we're done migrating most
-> platforms. IMO once we get system timers working for omap2+, then we can
-> look into omap1 :)
+On Fri, Mar 14, 2014 at 02:07:45PM +0000, Mark Rutland wrote:
+> On Fri, Mar 14, 2014 at 11:07:05AM +0000, Tomi Valkeinen wrote:
+> > On 14/03/14 12:19, Tomi Valkeinen wrote:
+> > > On 14/03/14 12:14, Mark Rutland wrote:
+> > >=20
+> > >> I can't see anything obviously wrong in platform_device_del. Do you =
+have
+> > >> a backtrace?
+> > >=20
+> > > Yes, below.
+> > >=20
+> > > I can see at least drivers/usb/dwc3/dwc3-exynos.c doing the exact sam=
+e thing
+> > > I do, so maybe I've got something wrong with the omapdss driver.
+> >=20
+> > Looks to me that the devices created by of_platform_populate() are not
+> > unregisterable in all cases. The address resource created via
+> > of_platform_populate() had NULL res->parent, which causes
+> > release_resource to crash.
+>=20
+> Hmm. I can't see that unregistering such devices ever works as you say,
+> given that __release_resource expects a non-NULL parent pointer. Either
+> we should be setting the parent pointer when initialising devices from
+> dt or we should teach __release_resource to not care. I'll have a go at
+> fixing that.
+>=20
+> It looks like drivers/usb/dwc3/dwc3-exynos.c only unregisters the
+> top-level device, not children. This top-level device has no
+> IORESOURCE_{IO,MEM} resources judging by
+> arch/arm/boot/dts/exynos5250.dtsi, which would explain why that driver
+> isn't exploding: __release_resource will never get called.
+>=20
+> Anton, Felipe:=20
+>=20
+> Does unregistering the parent ensure the children get cleaned up, or
+> does it leave them dangling in the dwc3-exynos driver?
 
-Well omap3 is still also booting in legacy mode too.
- 
-> > And not the that drivers/clocksource/omap-timer.h won't be needed at
-> > all, those defines can stay private to the drivers/clocksource/omap-timer.c.
-> 
-> Actually- I wanted it separate because omap-timer.c is already huge at 1157
-> lines. Infact the largest among the clocksource drivers. Is that fair?
+you should platform_device_unregister() for each children and
+dwc3-exynos does that just fine:
 
-No need for it. We want to keep these functions private to the driver.
- 
-> > So this patch really should just be moving of the code to the new
-> > location.
-> 
-> To be honest, its not just a simple moving of code, there are new things
-> such as selecting correct timer, new functions for clockevent and
-> clocksource init, different handling of clocks etc.
+167 static int dwc3_exynos_remove(struct platform_device *pdev)
+168 {
+169         struct dwc3_exynos      *exynos =3D platform_get_drvdata(pdev);
+170=20
+171         device_for_each_child(&pdev->dev, NULL, dwc3_exynos_remove_chil=
+d);
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^=
+^^^
 
-Those changes should then be separate patches to prepare things so
-people can see what changes in arch/arm/plat-omap/dmtimer.c code.
+172         platform_device_unregister(exynos->usb2_phy);
+173         platform_device_unregister(exynos->usb3_phy);
+174=20
+175         clk_disable_unprepare(exynos->clk);
+176=20
+177         return 0;
+178 }
 
-Regards,
+for each child of this device, we call dwc3_exynos_remove_child(), which
+will:
 
-Tony
+
+94 static int dwc3_exynos_remove_child(struct device *dev, void *unused)
+95 {
+96         struct platform_device *pdev =3D to_platform_device(dev);
+97=20
+98         platform_device_unregister(pdev);
+99=20
+100        return 0;
+101 }
+
+--=20
+balbi
+
+--Izn7cH1Com+I3R9J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTIyhzAAoJEIaOsuA1yqREosIP/RwYpjlVMGgpdQWKU54b+ARZ
+ON37J9TL97/gjImKa7otV+whGvPA7nvcV5sCu4rA4SH4oi+O+8vihu5bgeR/r2Zy
+VmgSVuHYFsIDr4zp7ZZLSnLpiG0SIdgRkpskCVfk1oYczlKQ8ZkVDb9CPqVhqQXs
+7wb490S8H8WLvW/hosojIZ3ptAyl1PqqLGQ154sccqrToqM8auzCo/oTvAXWRmbP
+RU1W1l8aA2tBy5UED9INb8GD+YZefJqu4XLabmRO50wRiiTKEFHzcm96lHlJQIOQ
+fDxYrJuhJfOMULF5BYO/XuiFFhPxDynFytTwZlpCgbtID4faqmitE9UJMRqM1dHe
+4/oQhco+WyTWqzIy8neSKhpe43JOTqfCKFCAlSlfx2y2RRMnkicFrbnz1aEumQ3L
+pAsxBG3dCHHE8JcBqDLo6PVrRMXNhrE//HaAqAMQeKc5qMS3kNVSE4RLiTQRiK2g
+qDavJaPF9SFhXL5/f2+hhYdIMtGGduTk/MqDyhWVpXLUtp5rA0gNAE5q1QzEfWwF
+Z7kWRjdC52n8is3Vn+y0lSRhhdoKdolYdL4JKTNiOsU/K8cnbQuC6VWErmOdjJCF
+jnucZlhZbGuGAd6P5/iGBwtP7hT0ZjTl/IKR94Q6ksdo8blGOMTLxY7EK6F24P2g
+YuK6KQKAhT9H2wtGQebn
+=NZR3
+-----END PGP SIGNATURE-----
+
+--Izn7cH1Com+I3R9J--
