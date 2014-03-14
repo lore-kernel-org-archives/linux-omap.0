@@ -1,86 +1,83 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 2/5] iommu/omap: Fix 'no page for' debug message in flush_iotlb_page()
-Date: Fri, 14 Mar 2014 10:50:37 +0100
-Message-ID: <1515483.KreZoUndsQ@avalon>
-References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com> <1394239574-2389-3-git-send-email-laurent.pinchart@ideasonboard.com> <53222E27.6070700@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v3 02/14] v4l: ti-vpe: register video device only when
+ firmware is loaded
+Date: Fri, 14 Mar 2014 15:21:19 +0530
+Message-ID: <5322D117.9060008@ti.com>
+References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-3-git-send-email-archit@ti.com> <000001cf3eb2$39817540$ac845fc0$%debski@samsung.com> <53219FE0.8010604@ti.com> <000901cf3ec8$aea34270$0be9c750$%debski@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45645 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755541AbaCNJs5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Mar 2014 05:48:57 -0400
-In-Reply-To: <53222E27.6070700@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:41799 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755739AbaCNJv7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Mar 2014 05:51:59 -0400
+In-Reply-To: <000901cf3ec8$aea34270$0be9c750$%debski@samsung.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org, Florian Vaussard <florian.vaussard@epfl.ch>, sakari.ailus@iki.fi
+To: Kamil Debski <k.debski@samsung.com>, hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Suman,
+Hi,
 
-On Thursday 13 March 2014 17:16:07 Suman Anna wrote:
-> On 03/07/2014 06:46 PM, Laurent Pinchart wrote:
-> > The flush_iotlb_page() function prints a debug message when no
-> > corresponding page was found in the TLB. That condition is incorrectly
-> > checked and always resolves to true, given that the for_each_iotlb_cr()
-> > loop is never interrupted and always reaches obj->nr_tlb_entries.
-> 
-> Nice catch.
-> 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >   drivers/iommu/omap-iommu.c | 4 +++-
-> >   1 file changed, 3 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> > index bb605c9..cb1e1de 100644
-> > --- a/drivers/iommu/omap-iommu.c
-> > +++ b/drivers/iommu/omap-iommu.c
-> > @@ -376,6 +376,7 @@ static void flush_iotlb_page(struct omap_iommu *obj,
-> > u32 da)
-> >   {
-> >   	int i;
-> >   	struct cr_regs cr;
-> > +	bool found = false;
-> > 
-> >   	pm_runtime_get_sync(obj->dev);
-> > 
-> > @@ -394,11 +395,12 @@ static void flush_iotlb_page(struct omap_iommu *obj,
-> > u32 da)
-> >   				__func__, start, da, bytes);
-> >   			iotlb_load_cr(obj, &cr);
-> >   			iommu_write_reg(obj, 1, MMU_FLUSH_ENTRY);
-> > +			found = true;
-> 
-> The patch is fine as it is, but I think the loop can be breaked when an
-> entry is found for simplification. I do not expect that we will have
-> multiple entries with the same da in the TLBs (it is a multi-hit fault
-> scenario) to continue looping through all entries. The only means for the
-> multi-hit scenario to happen is user error with programming TLBs directly.
-
-OK. I wasn't sure whether we could have two TLB entries for the same VA. I'll 
-update the patch accordingly.
-
-> This function call seems to be added in general to take care of any
-> prefetching. I don't have the complete history on the PREFETCH_IOTLB on why
-> it was added, it doesn't seem to be enabled but this should ideally be left
-> to the h/w unless you are locking a TLB entry. DSP/Bridge is the only one
-> that uses locked TLB entries at the moment, but it is not using the OMAP
-> IOMMU driver yet.
+On Thursday 13 March 2014 07:59 PM, Kamil Debski wrote:
+> Hi,
 >
-> >   		}
-> >   	}
-> >   	pm_runtime_put_sync(obj->dev);
-> > 
-> > -	if (i == obj->nr_tlb_entries)
-> > +	if (!found)
-> >   		dev_dbg(obj->dev, "%s: no page for %08x\n", __func__, da);
-> >   }
+>> From: Archit Taneja [mailto:archit@ti.com]
+>> Sent: Thursday, March 13, 2014 1:09 PM
+>>
+>> Hi Kamil,
+>>
+>> On Thursday 13 March 2014 05:18 PM, Kamil Debski wrote:
+>>> Hi Archit,
+>>>
+>>>> From: Archit Taneja [mailto:archit@ti.com]
+>>>> Sent: Tuesday, March 11, 2014 9:34 AM
+>>>>
+>>>> vpe fops(vpe_open in particular) should be called only when VPDMA
+>>>> firmware is loaded. File operations on the video device are possible
+>>>> the moment it is registered.
+>>>>
+>>>> Currently, we register the video device for VPE at driver probe,
+>>>> after calling a vpdma helper to initialize VPDMA and load firmware.
+>>>> This function is non-blocking(it calls request_firmware_nowait()),
+>>>> and doesn't ensure that the firmware is actually loaded when it
+>> returns.
+>>>>
+>>>> We remove the device registration from vpe probe, and move it to a
+>>>> callback provided by the vpe driver to the vpdma library, through
+>>>> vpdma_create().
+>>>>
+>>>> The ready field in vpdma_data is no longer needed since we always
+>>>> have firmware loaded before the device is registered.
+>>>>
+>>>> A minor problem with this approach is that if the
+>>>> video_register_device fails(which doesn't really happen), the vpe
+>>>> platform device would be registered.
+>>>> however, there won't be any v4l2 device corresponding to it.
+>>>
+>>> Could you explain to me one thing. request_firmware cannot be used in
+>>> probe, thus you are using request_firmware_nowait. Why cannot the
+>>> firmware be loaded on open with a regular request_firmware that is
+>>> waiting?
+>>
+>> I totally agree with you here. Placing the firmware in open() would
+>> probably make more sense.
+>>
+>> The reason I didn't place it in open() is because I didn't want to
+>> release firmware in a corresponding close(), and be in a situation
+>> where the firmware is loaded multiple times in the driver's lifetime.
+>
+> Would it be possible to load firmware in open and release it in remove?
+> I know that this would disturb the symmetry between open-release and
+> probe-remove. But this could work.
 
--- 
-Regards,
+That might work.
 
-Laurent Pinchart
+Currently, the driver doesn't do any clock management, it just enables 
+the clocks in probe, and disables them in remove. I need to check how 
+the firmware is dependent on clocks. We could make a better decision 
+about where to release the firmware with that information.
+
+Archit
 
