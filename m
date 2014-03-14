@@ -1,72 +1,100 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [RFC 2/9] opp-modifier: Add opp-modifier-reg driver
-Date: Fri, 14 Mar 2014 16:00:06 -0500
-Message-ID: <CAL_Jsq+BzJeaiPwJsH5bFmtsxCPOspEjnmMLdAVyLAriQTF+kw@mail.gmail.com>
-References: <1394825135-60110-1-git-send-email-d-gerlach@ti.com>
-	<1394825135-60110-3-git-send-email-d-gerlach@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [RFC 3/5] ARM: OMAP2+: timer: Add clocksource initialization and powerup support
+Date: Fri, 14 Mar 2014 14:09:50 -0700
+Message-ID: <7h38ikij1d.fsf@paris.lan>
+References: <1394742919-32163-1-git-send-email-joelf@ti.com>
+	<1394742919-32163-4-git-send-email-joelf@ti.com>
+	<CAL_JsqJVPVybd90WUv_nCqUJMUgR+Ep3yxrX2+psNYqic-WQ1Q@mail.gmail.com>
+	<532240F0.1030403@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ve0-f179.google.com ([209.85.128.179]:59865 "EHLO
-	mail-ve0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755312AbaCNVAH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Mar 2014 17:00:07 -0400
-In-Reply-To: <1394825135-60110-3-git-send-email-d-gerlach@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <532240F0.1030403@ti.com> (Joel Fernandes's message of "Thu, 13
+	Mar 2014 18:36:16 -0500")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Rob Herring <robh@kernel.org>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Suman Anna <s-anna@ti.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jisheng Zhang <jszhang@marvell.com>, Anson Huang <Anson.Huang@freescale.com>, Shawn Guo <shawn.guo@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, Nishanth Menon <nm@ti.com>
 
-On Fri, Mar 14, 2014 at 2:25 PM, Dave Gerlach <d-gerlach@ti.com> wrote:
-> Driver to read from a register and depending on either set bits or
-> a specific known selectively enable or disable OPPs based on DT node.
->
-> Can support opp-modifier-reg-bit where single bits within the register
-> determine the availability of an OPP or opp-modifier-reg-val where a
-> certain value inside the register or a portion of it determine what the
-> maximum allowed OPP is.
->
-> The driver expects a device that has already has its OPPs loaded
-> and then will disable the OPPs not matching the criteria specified in
-> the opp-modifier table.
->
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> ---
->  .../devicetree/bindings/power/opp-modifier.txt     | 111 +++++++++
->  drivers/power/opp/Makefile                         |   1 +
->  drivers/power/opp/opp-modifier-reg.c               | 259 +++++++++++++++++++++
->  3 files changed, 371 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/power/opp-modifier.txt
->  create mode 100644 drivers/power/opp/opp-modifier-reg.c
->
-> diff --git a/Documentation/devicetree/bindings/power/opp-modifier.txt b/Documentation/devicetree/bindings/power/opp-modifier.txt
-> new file mode 100644
-> index 0000000..af8a2e9
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/power/opp-modifier.txt
-> @@ -0,0 +1,111 @@
-> +* OPP-Modifier - opp modifier to selectively enable operating points
-> +
-> +Many SoCs that have selectively modifiable OPPs can specify
-> +all available OPPs in their operating-points listing and then define
-> +opp_modifiers to enable or disable the OPPs that are actually available
-> +on the specific hardware.
-> +
-> +* OPP Modifier Provider
+Joel Fernandes <joelf@ti.com> writes:
 
-Uggg. Please stop designing around the current OPP binding which has
-the problem that the OPP table is not extensible to add more data.
-Define a new OPP binding that solves these problems. This is at least
-the 3rd OPP related binding addition I've seen recently. But I
-wouldn't spend a lot of effort on a new OPP binding just to add the
-functionality you are adding here because I don't like the whole
-concept in general. This might be a common way to determine valid OPPs
-on TI chips, but I think it is too low level and I don't want to see
-bindings for every different possible way. Just add platform code to
-do the OPP setup you need.
+> On 03/13/2014 04:52 PM, Rob Herring wrote:
+>> On Thu, Mar 13, 2014 at 3:35 PM, Joel Fernandes <joelf@ti.com> wrote:
+>>> Introduce a generic omap timer initialization function that can
+>>> be used by all SoCs for which support is available in the clocksource
+>>> driver introduced in the series.
+>>>
+>>> The function will also be responsible for calling clock initialization
+>>> required for everything else to work.
+>>>
+>>> Signed-off-by: Joel Fernandes <joelf@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/common.h |    1 +
+>>>  arch/arm/mach-omap2/timer.c  |   28 ++++++++++++++++++++++++++++
+>>>  2 files changed, 29 insertions(+)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+>>> index a6aae30..e58d9a4 100644
+>>> --- a/arch/arm/mach-omap2/common.h
+>>> +++ b/arch/arm/mach-omap2/common.h
+>>> @@ -92,6 +92,7 @@ extern void omap3_secure_sync32k_timer_init(void);
+>>>  extern void omap3_gptimer_timer_init(void);
+>>>  extern void omap4_local_timer_init(void);
+>>>  extern void omap5_realtime_timer_init(void);
+>>> +void omap_generic_timer_init(void);
+>>>
+>>>  void omap2420_init_early(void);
+>>>  void omap2430_init_early(void);
+>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+>>> index 74044aa..08c73a0 100644
+>>> --- a/arch/arm/mach-omap2/timer.c
+>>> +++ b/arch/arm/mach-omap2/timer.c
+>>> @@ -324,6 +324,25 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>>>         return r;
+>>>  }
+>>>
+>>> +int __init omap_dmtimer_powerup(struct omap_dm_timer *timer,
+>>> +                                       struct device_node *np) {
+>> 
+>> This function seems unrelated to the commit message.
+>
+> Ok, I'll add it in the message.
+>
+>> 
+>>> +       struct omap_hwmod *oh;
+>>> +       const char *oh_name = NULL;
+>>> +
+>>> +       of_property_read_string_index(np, "ti,hwmods", 0, &oh_name);
+>>> +       if (!oh_name)
+>>> +               return -ENODEV;
+>>> +
+>>> +       oh = omap_hwmod_lookup(oh_name);
+>>> +       if (!oh)
+>>> +               return -ENODEV;
+>>> +
+>>> +       omap_hwmod_setup_one(oh_name);
+>>> +
+>>> +       omap_hwmod_enable(oh);
+>>> +       return 0;
+>>> +}
+>>> +
+>>>  static void __init omap2_gp_clockevent_init(int gptimer_id,
+>>>                                                 const char *fck_source,
+>>>                                                 const char *property)
+>>> @@ -615,6 +634,15 @@ static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
+>>>                                2, "sys_clkin_ck", NULL);
+>>>  #endif
+>>>
+>>> +void omap_generic_timer_init(void)
+>>> +{
+>>> +       if (!of_have_populated_dt())
+>>> +               BUG_ON("Generic timer init should only be used for DT boot\n");
+>> 
+>> I thought omap2 is always DT boot now.
+>
+> That's right, sorry- I'll get rid of the check.
 
-Frankly, I prefer the bootloader/firmware fixup the OPP table approach
-mentioned in the cpufreq-cpu0 thread. Somewhat less desirable, but the
-kernel could do the fixups as well (via of_update_property).
+Actually, mainline still supports legacy boot and has board files for
+OMAP3 platforms, and we shouldn't break legacy boot on purpose IMO.
 
-Rob
+Kevin
