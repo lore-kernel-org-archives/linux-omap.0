@@ -1,43 +1,51 @@
-From: Markus Pargmann <mpa@pengutronix.de>
-Subject: [PATCH v2 1/5] net: cpsw: document mac-address being optional
-Date: Sat, 15 Mar 2014 14:07:40 +0100
-Message-ID: <1394888864-11007-2-git-send-email-mpa@pengutronix.de>
-References: <1394888864-11007-1-git-send-email-mpa@pengutronix.de>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv4 4/7] hwspinlock/core: add common OF helpers
+Date: Sat, 15 Mar 2014 19:32:05 +0200
+Message-ID: <CAK=WgbZWqih3R36wYzo2uaw1-C3S_RHx7mrtFTnQxLhww0AWnw@mail.gmail.com>
+References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
+ <1389658764-39199-5-git-send-email-s-anna@ti.com> <CAJAp7Oi7wD+VsMAd37gT04yZ4TH4ygXFmheDhvmWuanUjpBmVQ@mail.gmail.com>
+ <52F92524.3080402@ti.com> <CAK=WgbY0wDtGCm71E8VXi2g5+VcGogHEy8jdekTRg8xtp6-3rQ@mail.gmail.com>
+ <CAJAp7Ohf43hbKatCwS5Y1+OfEkJYWOkuhZhW-E_=t_9mfM+UaA@mail.gmail.com>
+ <CAK=WgbYS+eJSTBXF=OeWjuL6iSbH+Y1RYewARKh9yAXHKKZ_cA@mail.gmail.com> <20140314152304.GS18529@joshc.qualcomm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44298 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756579AbaCONJS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Mar 2014 09:09:18 -0400
-In-Reply-To: <1394888864-11007-1-git-send-email-mpa@pengutronix.de>
+Received: from mail-la0-f44.google.com ([209.85.215.44]:37674 "EHLO
+	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755543AbaCORc1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Mar 2014 13:32:27 -0400
+Received: by mail-la0-f44.google.com with SMTP id hr13so2687754lab.3
+        for <linux-omap@vger.kernel.org>; Sat, 15 Mar 2014 10:32:26 -0700 (PDT)
+In-Reply-To: <20140314152304.GS18529@joshc.qualcomm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
+To: Josh Cartwright <joshc@codeaurora.org>
+Cc: Bjorn Andersson <bjorn@kryo.se>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, Kumar Gala <galak@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-mac-address is an optional property. If no mac-address is set, a random
-mac-address will be generated.
+On Fri, Mar 14, 2014 at 5:23 PM, Josh Cartwright <joshc@codeaurora.org> wrote:
+> So, are you suggesting that because fatal errors should be "extremely
+> rare", a consuming driver should just assume that if NULL is returned
+> from a hwspin_lock_request*() function that it was the "device not yet
+> probed" case that was hit?
 
-Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
----
- Documentation/devicetree/bindings/net/cpsw.txt | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+No - it's not the scarcity, it's the severity.
 
-diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-index 05d660e..c39f077 100644
---- a/Documentation/devicetree/bindings/net/cpsw.txt
-+++ b/Documentation/devicetree/bindings/net/cpsw.txt
-@@ -30,10 +30,10 @@ Required properties:
- - phy_id		: Specifies slave phy id
- - phy-mode		: The interface between the SoC and the PHY (a string
- 			  that of_get_phy_mode() can understand)
--- mac-address		: Specifies slave MAC address
- 
- Optional properties:
- - dual_emac_res_vlan	: Specifies VID to be used to segregate the ports
-+- mac-address		: Specifies slave MAC address
- 
- Note: "ti,hwmods" field is used to fetch the base address and irq
- resources from TI, omap hwmod data base during device registration.
--- 
-1.9.0
+The error path that will be optimized here is an invalid id. If this
+happens, the consumer will crash and burn, and I'm not sure that
+slightly optimizing his death is very interesting?
 
+BTW the hwspinlock core once did use ERR_PTR and friends, and it was
+changed due to convincing arguments against that methodology on this
+mailing list. We can change it back but we need a strong(er) case.
+
+> Note that having the consumer/hwspinlock device relationship modeled in
+> devicetree introduces more potential failure cases...
+
+Yeah. Even the error above, presumed to be EPROBE_DEFER, may be a
+symptom of some other fatal error that occurred, and we can't be sure
+that a future request will surely be satisfied. So before we bloat our
+code, I suggest that we wait for consumers to show up and see if
+there's real benefit.
+
+Thanks,
+Ohad.
