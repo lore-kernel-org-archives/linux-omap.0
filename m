@@ -1,154 +1,111 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [RFC 4/5] clocksource: omap-timer: Introduce clocksource driver
- for OMAP SoCs
-Date: Fri, 14 Mar 2014 19:13:19 -0500
-Message-ID: <53239B1F.705@ti.com>
-References: <1394742919-32163-1-git-send-email-joelf@ti.com>
- <1394742919-32163-5-git-send-email-joelf@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 5/5] iommu/omap: Fix map protection value handling
+Date: Fri, 14 Mar 2014 19:16:53 -0500
+Message-ID: <53239BF5.1000006@ti.com>
+References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<1394239574-2389-6-git-send-email-laurent.pinchart@ideasonboard.com>
+	<53224845.1050901@ti.com> <13414141.7HHPA8i3Vs@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1394742919-32163-5-git-send-email-joelf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Joel Fernandes <joelf@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <13414141.7HHPA8i3Vs@avalon>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sakari.ailus-X3B1VOXEql0@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Joel,
+Hi Laurent,
 
-On 03/13/2014 03:35 PM, Joel Fernandes wrote:
-> We introduce functions to initialize clocksource and clockevent, use
-> CLOCKSOURCE_OF_DECLARE to declare the clocksource, and handle the clocksource
-> selection on a per-SoC basis (Currently only AM335x is supported). Powering up
-> of the timer will be done with the help of the mach-omap layer function that's
-> introduced earlier in the series.
+On 03/14/2014 04:46 AM, Laurent Pinchart wrote:
+> Hi Suman,
 >
-> We make a local copy of dmtimer API for use by clocksource, the original
-> dmtimer API in plat-omap is kept as-is till the migration of all SoCs is
-> completed after which it can't be deleted.
+> Thank you for the review.
 >
-> Signed-off-by: Joel Fernandes <joelf@ti.com>
-> ---
->   drivers/clocksource/Makefile     |    1 +
->   drivers/clocksource/omap-timer.c | 1157 ++++++++++++++++++++++++++++++++++++++
->   drivers/clocksource/omap-timer.h |  422 ++++++++++++++
->   3 files changed, 1580 insertions(+)
->   create mode 100644 drivers/clocksource/omap-timer.c
->   create mode 100644 drivers/clocksource/omap-timer.h
+> On Thursday 13 March 2014 19:07:33 Suman Anna wrote:
+>> On 03/07/2014 06:46 PM, Laurent Pinchart wrote:
+>>> The prot flags passed to the IOMMU map handler are defined in
+>>> include/linux/iommu.h as IOMMU_(READ|WRITE|CACHE|EXEC). However, the
+>>> driver expects to receive MMU_RAM_* OMAP-specific flags. This causes
+>>> IOMMU flags being interpreted as page sizes, leading to failures.
+>>>
+>>> Hardcode the OMAP mapping parameters to little-endian, 8-bits and
+>>> non-mixed page attributes. Furthermore, as the OMAP IOMMU doesn't
+>>> support read-only or write-only mappings, ignore the prot value.
+>>>
+>>> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+>>> ---
+>>>
+>>>    drivers/iommu/omap-iommu.c | 17 +++++++----------
+>>>    1 file changed, 7 insertions(+), 10 deletions(-)
+>>>
+>>> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+>>> index 59de3fc..9f7f1d4 100644
+>>> --- a/drivers/iommu/omap-iommu.c
+>>> +++ b/drivers/iommu/omap-iommu.c
+>>> @@ -1016,8 +1016,7 @@ static void iopte_cachep_ctor(void *iopte)
+>>>    	clean_dcache_area(iopte, IOPTE_TABLE_SIZE);
+>>>    }
+>>>
+>>> -static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa,
+>>> -				   u32 flags)
+>>> +static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa, int
+>>> pgsz)
+>>>    {
+>>>    	memset(e, 0, sizeof(*e));
+>>>
+>>> @@ -1025,10 +1024,10 @@ static u32 iotlb_init_entry(struct iotlb_entry *e,
+>>> u32 da, u32 pa,
+>>>    	e->pa		= pa;
+>>>    	e->valid	= 1;
+>>
+>> As I was looking through this, I found a small bug here. This is unrelated
+>> to this patch, but you can fix it in the same patch. The e->valid value is
+>> directly used in omap2_alloc_cr, so it should be initialized to MMU_CAM_V.
+>> It is not a problem currently as PREFETCH_IOTLB is not used, if used, this
+>> is overriding the size bit-fields when it prefetches the entry, which may
+>> lead to an MMU fault.
 >
-> diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
-> index c7ca50a..2ffe698 100644
-> --- a/drivers/clocksource/Makefile
-> +++ b/drivers/clocksource/Makefile
-> @@ -37,3 +37,4 @@ obj-$(CONFIG_ARM_ARCH_TIMER)		+= arm_arch_timer.o
->   obj-$(CONFIG_ARM_GLOBAL_TIMER)		+= arm_global_timer.o
->   obj-$(CONFIG_CLKSRC_METAG_GENERIC)	+= metag_generic.o
->   obj-$(CONFIG_ARCH_HAS_TICK_BROADCAST)	+= dummy_timer.o
-> +obj-y					+= omap-timer.o
-> diff --git a/drivers/clocksource/omap-timer.c b/drivers/clocksource/omap-timer.c
-> new file mode 100644
-> index 0000000..91593d8
-> --- /dev/null
-> +++ b/drivers/clocksource/omap-timer.c
-> @@ -0,0 +1,1157 @@
-> +/*
-> + * drivers/clocksource/omap-timer.c
-> + *
-> + * OMAP Dual-Mode Timers
-> + *
-> + * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
-> + * Joel Fernandes <joelf@ti.com>
-> + * Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> + * Thara Gopinath <thara@ti.com>
-> + *
-> + * dmtimer adaptation to platform_driver.
-> + *
-> + * Copyright (C) 2005 Nokia Corporation
-> + * OMAP2 support by Juha Yrjola
-> + * API improvements and OMAP2 clock framework support by Timo Teras
-> + *
-> + * Copyright (C) 2014 Texas Instruments
-> + * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License as published by the
-> + * Free Software Foundation; either version 2 of the License, or (at your
-> + * option) any later version.
-> + *
-> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-> + *
-> + * You should have received a copy of the  GNU General Public License along
-> + * with this program; if not, write  to the Free Software Foundation, Inc.,
-> + * 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +#include <linux/init.h>
-> +#include <linux/time.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/err.h>
-> +#include <linux/clk.h>
-> +#include <linux/delay.h>
-> +#include <linux/irq.h>
-> +#include <linux/clocksource.h>
-> +#include <linux/clockchips.h>
-> +#include <linux/slab.h>
-> +#include <linux/sched_clock.h>
-> +
-> +#include <linux/clk.h>
-> +#include <linux/module.h>
-> +#include <linux/io.h>
-> +#include <linux/device.h>
-> +#include <linux/err.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/of.h>
-> +#include <linux/of_irq.h>
-> +#include <linux/of_address.h>
-> +
-> +#include <linux/of_device.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/platform_data/dmtimer-omap.h>
-> +#include "omap-timer.h"
-> +/*
-> + *  TODO: OMAP1 support removed due to need for header mach/hardware.h
-> + *        OMAP2 support may be broken due to lack of cpu_is stuff, see omap_dm_timer_get_errata
-> + */
-> +
-> +/**
-> + * omap_dm_timer_get_errata - get errata flags for a timer
-> + *
-> + * Get the timer errata flags that are specific to the OMAP device being used.
-> + */
-> +static u32 __init omap_dm_timer_get_errata(void)
-> +{
-> +	/* ifdef'd out due to lack of availaibility of soc.h */
-> +#if 0
-> +	if (cpu_is_omap24xx())
-> +		return 0;
+> Good catch. As it's a separate issue, do you mind if I fix that in a separate
+> patch in v2 ?
 
-You should be able to fix this using some compatible checks.
+I actually have couple of minor cleanup patches as well. I will send 
+them out and you can include them with your series when you post v2.
+
+>
+>>>    	/* FIXME: add OMAP1 support */
+>>>
+>>> -	e->pgsz		= flags & MMU_CAM_PGSZ_MASK;
+>>> -	e->endian	= flags & MMU_RAM_ENDIAN_MASK;
+>>> -	e->elsz		= flags & MMU_RAM_ELSZ_MASK;
+>>> -	e->mixed	= flags & MMU_RAM_MIXED_MASK;
+>>> +	e->pgsz		= pgsz;
+>>> +	e->endian	= MMU_RAM_ENDIAN_LITTLE;
+>>> +	e->elsz		= MMU_RAM_ELSZ_8;
+>>> +	e->mixed	= 0;
+>>
+>> Thanks, the change of these settings looks good overall. The only ones for
+>> which it may apply anyway is just the Camera in OMAP2/OMAP3 (as per TRM,
+>> endianness conversion supported only on writes anyway, so I am assuming that
+>> we never use the combination), and OMAP2420 DSP, for which there is no
+>> driver currently nor is the MMU being instantiated. All other processors are
+>> pure little endian, and they even ignore the values written in these fields.
+>>
+>> Please recheck the Camera subsystem once, and see if the e->elsz should be
+>> set as MMU_RAM_ELSZ_NONE (I am not too familiar with the Camera usage, so
+>> you are probably in a better place than me).
+>
+> I've tested MMU_RAM_ELSZ_NONE and it works fine. I'll update the patch in v2.
+>
+Thanks for checking and confirming this.
 
 regards
 Suman
-
-> +#endif
-> +	return OMAP_TIMER_ERRATA_I103_I767;
-> +}
-> +
-> +
-
--snip-
