@@ -1,53 +1,60 @@
 From: Markus Pargmann <mpa@pengutronix.de>
-Subject: [PATCH v2 0/5] net: cpsw: Support for am335x chip MACIDs
-Date: Sat, 15 Mar 2014 14:07:39 +0100
-Message-ID: <1394888864-11007-1-git-send-email-mpa@pengutronix.de>
+Subject: [PATCH v2 5/5] arm: dts: am33xx, Add device node for cpsw-ctrl-macid
+Date: Sat, 15 Mar 2014 14:07:44 +0100
+Message-ID: <1394888864-11007-6-git-send-email-mpa@pengutronix.de>
+References: <1394888864-11007-1-git-send-email-mpa@pengutronix.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44263 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44265 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756076AbaCONJB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Mar 2014 09:09:01 -0400
+	with ESMTP id S1756560AbaCONJC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Mar 2014 09:09:02 -0400
+In-Reply-To: <1394888864-11007-1-git-send-email-mpa@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>
 Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
 
-Hi,
+Add cpsw-ctrl-macid to the am33xx dtsi file. It does not change the
+behaviour of boards with a provided mac-address, so it is safe to add it
+for all boards with this CPU.
 
-This series introduces a driver to read and use the MACIDs stored in the am335x
-control module. These are read-only registers for a unique MACID. At the moment
-the MACIDs are generated randomly when the mac-address property is not a valid
-mac address.
+Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-In v2 I changed the precedence of mac-address and this driver. This driver is
-only used when no mac-address was set by the bootloader. This way we can avoid
-using random MAC addresses.  There are other minor style and documentation
-fixes in v2.
-
-Best regards,
-
-Markus
-
-
-Markus Pargmann (5):
-  net: cpsw: document mac-address being optional
-  net: cpsw: make cpsw.h self-contained
-  net: cpsw: Add control-module macid driver
-  net: cpsw: Use cpsw-ctrl-macid driver
-  arm: dts: am33xx, Add device node for cpsw-ctrl-macid
-
- .../devicetree/bindings/net/cpsw-ctrl-macid.txt    |  32 +++++
- Documentation/devicetree/bindings/net/cpsw.txt     |   8 +-
- arch/arm/boot/dts/am33xx.dtsi                      |   9 ++
- drivers/net/ethernet/ti/Kconfig                    |   1 +
- drivers/net/ethernet/ti/Makefile                   |   2 +-
- drivers/net/ethernet/ti/cpsw-ctrl-macid.c          | 138 +++++++++++++++++++++
- drivers/net/ethernet/ti/cpsw.c                     |  16 ++-
- drivers/net/ethernet/ti/cpsw.h                     |   3 +
- 8 files changed, 204 insertions(+), 5 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/net/cpsw-ctrl-macid.txt
- create mode 100644 drivers/net/ethernet/ti/cpsw-ctrl-macid.c
-
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 6d95d3d..5aff257 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -690,11 +690,13 @@
+ 			cpsw_emac0: slave@4a100200 {
+ 				/* Filled in by U-Boot */
+ 				mac-address = [ 00 00 00 00 00 00 ];
++				ti,mac-address-ctrl = <&cpsw_ctrl_macid 0>;
+ 			};
+ 
+ 			cpsw_emac1: slave@4a100300 {
+ 				/* Filled in by U-Boot */
+ 				mac-address = [ 00 00 00 00 00 00 ];
++				ti,mac-address-ctrl = <&cpsw_ctrl_macid 1>;
+ 			};
+ 
+ 			phy_sel: cpsw-phy-sel@44e10650 {
+@@ -702,6 +704,13 @@
+ 				reg= <0x44e10650 0x4>;
+ 				reg-names = "gmii-sel";
+ 			};
++
++			cpsw_ctrl_macid: cpsw-ctrl-macid@44e10630 {
++				compatible = "ti,am3352-cpsw-ctrl-macid";
++				#ti,mac-address-ctrl-cells = <1>;
++				reg = <0x44e10630 0x10>;
++				reg-names = "ctrl-macid";
++			};
+ 		};
+ 
+ 		ocmcram: ocmcram@40300000 {
 -- 
 1.9.0
 
