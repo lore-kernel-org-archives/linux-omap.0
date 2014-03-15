@@ -1,127 +1,154 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv4 0/7] omap hwspinlock dt support
-Date: Fri, 14 Mar 2014 18:58:01 -0500
-Message-ID: <53239789.40600@ti.com>
-References: <1389658764-39199-1-git-send-email-s-anna@ti.com> <52F9282B.5000702@ti.com> <530B8C00.8020001@ti.com> <CAK=WgbZp_RQPCeZJyMRkNTQxaJsnGZ3DnjhSkYYR_-PAE_Kp4g@mail.gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [RFC 4/5] clocksource: omap-timer: Introduce clocksource driver
+ for OMAP SoCs
+Date: Fri, 14 Mar 2014 19:13:19 -0500
+Message-ID: <53239B1F.705@ti.com>
+References: <1394742919-32163-1-git-send-email-joelf@ti.com>
+ <1394742919-32163-5-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAK=WgbZp_RQPCeZJyMRkNTQxaJsnGZ3DnjhSkYYR_-PAE_Kp4g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1394742919-32163-5-git-send-email-joelf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Joel Fernandes <joelf@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ohad,
+Hi Joel,
 
-On 03/14/2014 03:10 PM, Ohad Ben-Cohen wrote:
-> Hi Suman, Mark,
+On 03/13/2014 03:35 PM, Joel Fernandes wrote:
+> We introduce functions to initialize clocksource and clockevent, use
+> CLOCKSOURCE_OF_DECLARE to declare the clocksource, and handle the clocksource
+> selection on a per-SoC basis (Currently only AM335x is supported). Powering up
+> of the timer will be done with the help of the mach-omap layer function that's
+> introduced earlier in the series.
 >
-> On Mon, Feb 24, 2014 at 8:14 PM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
->> Mark, Ohad,
-> ...
->> Gentle reminder, can you provide your acks/comments?
+> We make a local copy of dmtimer API for use by clocksource, the original
+> dmtimer API in plat-omap is kept as-is till the migration of all SoCs is
+> completed after which it can't be deleted.
 >
-> Sorry for the late jump in.
+> Signed-off-by: Joel Fernandes <joelf@ti.com>
+> ---
+>   drivers/clocksource/Makefile     |    1 +
+>   drivers/clocksource/omap-timer.c | 1157 ++++++++++++++++++++++++++++++++++++++
+>   drivers/clocksource/omap-timer.h |  422 ++++++++++++++
+>   3 files changed, 1580 insertions(+)
+>   create mode 100644 drivers/clocksource/omap-timer.c
+>   create mode 100644 drivers/clocksource/omap-timer.h
 >
-> I have a few comments:
+> diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
+> index c7ca50a..2ffe698 100644
+> --- a/drivers/clocksource/Makefile
+> +++ b/drivers/clocksource/Makefile
+> @@ -37,3 +37,4 @@ obj-$(CONFIG_ARM_ARCH_TIMER)		+= arm_arch_timer.o
+>   obj-$(CONFIG_ARM_GLOBAL_TIMER)		+= arm_global_timer.o
+>   obj-$(CONFIG_CLKSRC_METAG_GENERIC)	+= metag_generic.o
+>   obj-$(CONFIG_ARCH_HAS_TICK_BROADCAST)	+= dummy_timer.o
+> +obj-y					+= omap-timer.o
+> diff --git a/drivers/clocksource/omap-timer.c b/drivers/clocksource/omap-timer.c
+> new file mode 100644
+> index 0000000..91593d8
+> --- /dev/null
+> +++ b/drivers/clocksource/omap-timer.c
+> @@ -0,0 +1,1157 @@
+> +/*
+> + * drivers/clocksource/omap-timer.c
+> + *
+> + * OMAP Dual-Mode Timers
+> + *
+> + * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
+> + * Joel Fernandes <joelf@ti.com>
+> + * Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> + * Thara Gopinath <thara@ti.com>
+> + *
+> + * dmtimer adaptation to platform_driver.
+> + *
+> + * Copyright (C) 2005 Nokia Corporation
+> + * OMAP2 support by Juha Yrjola
+> + * API improvements and OMAP2 clock framework support by Timo Teras
+> + *
+> + * Copyright (C) 2014 Texas Instruments
+> + * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; either version 2 of the License, or (at your
+> + * option) any later version.
+> + *
+> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * You should have received a copy of the  GNU General Public License along
+> + * with this program; if not, write  to the Free Software Foundation, Inc.,
+> + * 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +#include <linux/init.h>
+> +#include <linux/time.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/err.h>
+> +#include <linux/clk.h>
+> +#include <linux/delay.h>
+> +#include <linux/irq.h>
+> +#include <linux/clocksource.h>
+> +#include <linux/clockchips.h>
+> +#include <linux/slab.h>
+> +#include <linux/sched_clock.h>
+> +
+> +#include <linux/clk.h>
+> +#include <linux/module.h>
+> +#include <linux/io.h>
+> +#include <linux/device.h>
+> +#include <linux/err.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/of.h>
+> +#include <linux/of_irq.h>
+> +#include <linux/of_address.h>
+> +
+> +#include <linux/of_device.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/platform_data/dmtimer-omap.h>
+> +#include "omap-timer.h"
+> +/*
+> + *  TODO: OMAP1 support removed due to need for header mach/hardware.h
+> + *        OMAP2 support may be broken due to lack of cpu_is stuff, see omap_dm_timer_get_errata
+> + */
+> +
+> +/**
+> + * omap_dm_timer_get_errata - get errata flags for a timer
+> + *
+> + * Get the timer errata flags that are specific to the OMAP device being used.
+> + */
+> +static u32 __init omap_dm_timer_get_errata(void)
+> +{
+> +	/* ifdef'd out due to lack of availaibility of soc.h */
+> +#if 0
+> +	if (cpu_is_omap24xx())
+> +		return 0;
 
-Thanks for the comments. It probably covers few topics that are slightly 
-beyond the scope of the series, but nevertheless are good discussion 
-points for finalizing the series.
-
-> - Hardware spinlocks must have global and system-wide id numbers;
-> these numbers cannot be maintained internally by the Linux Kernel.
-> Think of an SoC with several asynchronous heterogeneous processors,
-> each of which is running a different OS, and they all need to use a
-> specific hardware spinlock in order to share some resource. For that
-> to happen, every hwlock must have a predefined and deterministic id
-> number which is global in the system. We can't have those id numbers
-> be relative to an hwlock "controller", and we can't have two hwlock
-> "controllers" share the same id numbers.
-
-The series doesn't change the semantics of hwspinlock registration or 
-adds a new OF controller registration function. Implementations would 
-still need to register a controller using a base_id and number of locks. 
-The series rather adds a DT-friendly function _ONLY_ for requesting a 
-specific hwlock, and there are no restrictions on the args specifier 
-being relative id numbers. Though this is what the simple default xlate 
-helper does (most common usage), the added xlate ops and #hwlock-cells 
-should allow individual implementation drivers to adjust any variations, 
-and return a relative lock w.r.t its registered base_id, as this is how 
-a lock gets registered in the first place.
-
->
-> - I suspect the simplest and most straight forward way to achieve this
-> is by (a) bringing back the concept of the base_id property, and
-
-I actually started out this series with the base_id property, and 
-dropped it in v3 based on comments looking at it from the 
-request-specific-lock semantics with DT. That said, the drivers still 
-need to manage a 'base_id' needed for registration when they get probed 
-for multiple controllers. Getting the base_id from DT _may_ be useful 
-just for registration purposes, but for requesting a hwlock, a 
-controller phandle and an implementation defined args-specifier should 
-suffice IMHO.
-
-
-(b)
-> letting the global hwlock id be the DT identifier (plus the base_id)
-> and then providing it directly to the drivers when needed.The latter
-> is required in order to support dynamically allocation of hwlocks, in
-> which case Linux must know the global system-wide id number, and then
-> share it with the other asynchronous OSes via some IPC.
-
-Each lock still retains a global lock id value, and you can retrieve it 
-using the existing hwspin_lock_get_id(). Why is the latter required for 
-dynamic allocation, isn't it the other way around, allocate a lock, and 
-you will be able to get the lock id. If wanting to request a specific 
-lock received across, the regular hwspin_lock_request_specific should be 
-used.
-
->
-> - If we feel there's no way any system is going to have more than a
-> single hwlock controller, then we can live without a base_id property,
-> but then this needs to be clearly documented and prohibited. Today
-> both the hwlock DT representation, and the coupled kernel code,
-> implicitly allow this anomaly to exist.
-
-I haven't removed the concept of base_id, it is just not defined in the 
-DT-bindings, and am currently expecting the drivers to manage it and use 
-it for registration.
-
->
-> - Hwlock controller nodes should have a list of reserved locks (those
-> locks for which other nodes have a phandle+identifier pointing at) to
-> prevent those locks from being dynamically allocated by eager drivers.
-
-The exact notion of informing the hwspinlock core about a list of 
-reserved locks is missing at the moment (even in the non-DT case). I am 
-not sure if this got lost during the conversion of the registration from 
-per lock to registering a bank of locks together, or if it is implied by 
-the base_id + num_locks combination. The core today supports requesting 
-only those locks that were actually registered, whether allocating a 
-free one dynamically or giving a specific one.
-
-There were some slightly similar comments from Kumar earlier on the v2 
-series, please see the thread in [1].
-
->
-> Most of these issues were discussed Arnd, Benoit and myself back then,
-> please see below:
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2011-September/064265.html
-
-Thanks for the pointer to the previous discussion, I wasn't aware of an 
-earlier attempt. The primary approach on requesting locks is actually no 
-different from what Arnd suggested originally.
+You should be able to fix this using some compatible checks.
 
 regards
 Suman
 
-[1] http://marc.info/?l=linux-omap&m=138031002012191&w=2
+> +#endif
+> +	return OMAP_TIMER_ERRATA_I103_I767;
+> +}
+> +
+> +
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-snip-
