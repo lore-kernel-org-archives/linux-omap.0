@@ -1,146 +1,133 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [RFC 4/5] clocksource: omap-timer: Introduce clocksource driver
- for OMAP SoCs
-Date: Fri, 14 Mar 2014 20:11:21 -0500
-Message-ID: <5323A8B9.4030700@ti.com>
-References: <1394742919-32163-1-git-send-email-joelf@ti.com> <1394742919-32163-5-git-send-email-joelf@ti.com> <53239B1F.705@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/5] iommu/omap: Use the cache cleaning API
+Date: Fri, 14 Mar 2014 20:49:56 -0500
+Message-ID: <5323B1C4.4090904@ti.com>
+References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<53226DD5.6070208@ti.com> <53232B0F.6090701@ti.com>
+	<1802456.J2x6TOUvAS@avalon> <5323418B.90805@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53239B1F.705@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <5323418B.90805-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "sakari.ailus-X3B1VOXEql0@public.gmane.org" <sakari.ailus-X3B1VOXEql0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/14/2014 07:13 PM, Suman Anna wrote:
-> Hi Joel,
-> 
-> On 03/13/2014 03:35 PM, Joel Fernandes wrote:
->> We introduce functions to initialize clocksource and clockevent, use
->> CLOCKSOURCE_OF_DECLARE to declare the clocksource, and handle the
->> clocksource
->> selection on a per-SoC basis (Currently only AM335x is supported).
->> Powering up
->> of the timer will be done with the help of the mach-omap layer function
->> that's
->> introduced earlier in the series.
->>
->> We make a local copy of dmtimer API for use by clocksource, the original
->> dmtimer API in plat-omap is kept as-is till the migration of all SoCs is
->> completed after which it can't be deleted.
->>
->> Signed-off-by: Joel Fernandes <joelf@ti.com>
->> ---
->>   drivers/clocksource/Makefile     |    1 +
->>   drivers/clocksource/omap-timer.c | 1157
->> ++++++++++++++++++++++++++++++++++++++
->>   drivers/clocksource/omap-timer.h |  422 ++++++++++++++
->>   3 files changed, 1580 insertions(+)
->>   create mode 100644 drivers/clocksource/omap-timer.c
->>   create mode 100644 drivers/clocksource/omap-timer.h
->>
->> diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
->> index c7ca50a..2ffe698 100644
->> --- a/drivers/clocksource/Makefile
->> +++ b/drivers/clocksource/Makefile
->> @@ -37,3 +37,4 @@ obj-$(CONFIG_ARM_ARCH_TIMER)        += arm_arch_timer.o
->>   obj-$(CONFIG_ARM_GLOBAL_TIMER)        += arm_global_timer.o
->>   obj-$(CONFIG_CLKSRC_METAG_GENERIC)    += metag_generic.o
->>   obj-$(CONFIG_ARCH_HAS_TICK_BROADCAST)    += dummy_timer.o
->> +obj-y                    += omap-timer.o
->> diff --git a/drivers/clocksource/omap-timer.c
->> b/drivers/clocksource/omap-timer.c
->> new file mode 100644
->> index 0000000..91593d8
->> --- /dev/null
->> +++ b/drivers/clocksource/omap-timer.c
->> @@ -0,0 +1,1157 @@
->> +/*
->> + * drivers/clocksource/omap-timer.c
->> + *
->> + * OMAP Dual-Mode Timers
->> + *
->> + * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
->> + * Joel Fernandes <joelf@ti.com>
->> + * Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> + * Thara Gopinath <thara@ti.com>
->> + *
->> + * dmtimer adaptation to platform_driver.
->> + *
->> + * Copyright (C) 2005 Nokia Corporation
->> + * OMAP2 support by Juha Yrjola
->> + * API improvements and OMAP2 clock framework support by Timo Teras
->> + *
->> + * Copyright (C) 2014 Texas Instruments
->> + * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify it
->> + * under the terms of the GNU General Public License as published by the
->> + * Free Software Foundation; either version 2 of the License, or (at your
->> + * option) any later version.
->> + *
->> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
->> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
->> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
->> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
->> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
->> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
->> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
->> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
->> + *
->> + * You should have received a copy of the  GNU General Public License along
->> + * with this program; if not, write  to the Free Software Foundation, Inc.,
->> + * 675 Mass Ave, Cambridge, MA 02139, USA.
->> + */
->> +#include <linux/init.h>
->> +#include <linux/time.h>
->> +#include <linux/interrupt.h>
->> +#include <linux/err.h>
->> +#include <linux/clk.h>
->> +#include <linux/delay.h>
->> +#include <linux/irq.h>
->> +#include <linux/clocksource.h>
->> +#include <linux/clockchips.h>
->> +#include <linux/slab.h>
->> +#include <linux/sched_clock.h>
->> +
->> +#include <linux/clk.h>
->> +#include <linux/module.h>
->> +#include <linux/io.h>
->> +#include <linux/device.h>
->> +#include <linux/err.h>
->> +#include <linux/pm_runtime.h>
->> +#include <linux/of.h>
->> +#include <linux/of_irq.h>
->> +#include <linux/of_address.h>
->> +
->> +#include <linux/of_device.h>
->> +#include <linux/platform_device.h>
->> +#include <linux/platform_data/dmtimer-omap.h>
->> +#include "omap-timer.h"
->> +/*
->> + *  TODO: OMAP1 support removed due to need for header mach/hardware.h
->> + *        OMAP2 support may be broken due to lack of cpu_is stuff, see
->> omap_dm_timer_get_errata
->> + */
->> +
->> +/**
->> + * omap_dm_timer_get_errata - get errata flags for a timer
->> + *
->> + * Get the timer errata flags that are specific to the OMAP device being
->> used.
->> + */
->> +static u32 __init omap_dm_timer_get_errata(void)
->> +{
->> +    /* ifdef'd out due to lack of availaibility of soc.h */
->> +#if 0
->> +    if (cpu_is_omap24xx())
->> +        return 0;
-> 
-> You should be able to fix this using some compatible checks.
+Hi Santosh, Laurent, Russell, Arnd,
 
-Thanks. I'll use of_device_is_compatible to check for that.
+On 03/14/2014 12:51 PM, Santosh Shilimkar wrote:
+> On Friday 14 March 2014 12:38 PM, Laurent Pinchart wrote:
+>> Hi Santosh,
+>>
+>> On Friday 14 March 2014 12:15:11 Santosh Shilimkar wrote:
+>>> + Russell, Arnd
+>>>
+>>> On Thursday 13 March 2014 10:47 PM, Anna, Suman wrote:
+>>>> On 03/07/2014 06:46 PM, Laurent Pinchart wrote:
+>>>>> The page table entries must be cleaned from the cache before being
+>>>>> accessed by the IOMMU. Instead of implementing cache management manually
+>>>>> (and ignoring L2 cache), use clean_dcache_area() to make sure the
+>>>>> entries are visible to the device.
+>>>>
+>>>> Thanks for fixing this, this has been long pending. There have been some
+>>>> previous attempts at this as well by Ramesh Gupta, with the last thread
+>>>> (a long time now) being
+>>>> http://marc.info/?t=134752035400001&r=1&w=2
+>>>>
+>>>> Santosh,
+>>>> Can you please take a look at this patch and provide your comments?
+>>>>
+>>>> regards
+>>>> Suman
+>>>>
+>>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+>>>>> ---
+>>>>>
+>>>>>    drivers/iommu/omap-iommu.c | 41 ++++++++++-----------------------------
+>>>>>    1 file changed, 10 insertions(+), 31 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+>>>>> index a893eca..bb605c9 100644
+>>>>> --- a/drivers/iommu/omap-iommu.c
+>>>>> +++ b/drivers/iommu/omap-iommu.c
+>>>>> @@ -500,24 +500,9 @@ EXPORT_SYMBOL_GPL(omap_foreach_iommu_device);
+>>>>>    /*
+>>>>>     *	H/W pagetable operations
+>>>>>     */
+>>>>> -static void flush_iopgd_range(u32 *first, u32 *last)
+>>>>> +static void flush_pgtable(void *addr, size_t size)
+>>>>>    {
+>>>>> -	/* FIXME: L2 cache should be taken care of if it exists */
+>>>>> -	do {
+>>>>> -		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pgd"
+>>>>> -		    : : "r" (first));
+>>>>> -		first += L1_CACHE_BYTES / sizeof(*first);
+>>>>> -	} while (first <= last);
+>>>>> -}
+>>>>> -
+>>>>> -static void flush_iopte_range(u32 *first, u32 *last)
+>>>>> -{
+>>>>> -	/* FIXME: L2 cache should be taken care of if it exists */
+>>>>> -	do {
+>>>>> -		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pte"
+>>>>> -		    : : "r" (first));
+>>>>> -		first += L1_CACHE_BYTES / sizeof(*first);
+>>>>> -	} while (first <= last);
+>>>>> +	clean_dcache_area(addr, size);
+>>>
+>>> I remember NAKing this approach in past and my stand remains same.
+>>> The cache APIs which you are trying to use here are not suppose
+>>> to be used outside.
 
--Joel
+So this particular change has a long history (have to dig through to 
+educate myself). I have not seen clean_dcache_area attempted before, and 
+I wasn't sure myself it it can be used here. Ramesh and Fernando 
+definitely did start out with dmac_flush_range and outer_flush_range 
+which was definitely nacked [1].
+
+>>
+>> Please note that the omap-iommu driver already uses clean_dcache_area().
+>> That's where I got the idea :-)
+>>
+> So that fall through the cracks then ;-)
+>
+>>> I think the right way to fix this is to make use of streaming APIs.
+>>> If needed, IOMMU can have its own dma_ops for special case
+>>> handling if any.
+>>
+>> I can replace clean_dcache_area() with dma_map_page() as done by the arm-smmu
+>> driver. If that's fine I'll modify this patch accordingly in v2.
+>>
+
+Ramesh had also attempted to use dma_page_single() previously [2], and 
+Russell has instead suggested to extend the cpu cache operations [3].
+Ramesh had worked based on this suggestion and the series reached v6 [4] 
+(same as link I mentioned above) and this is the last attempt on this, 
+but the thread went silent.
+
+I am wondering if that is still valid and is the right way to go, as 
+this seems to be a common problem. I do see dmac_flush_range being used 
+for similar purposes in msm_iommu.c and exynos-iommu.c, so looks like 
+they also fell through the cracks.
+
+Laurent,
+Can you drop this patch out from v2 so that it is not clubbed with the 
+small cleanup patches, and we can track this separately?
+
+regards
+Suman
+
+[1] http://marc.info/?l=linux-omap&m=129907009019355&w=2
+[2] http://marc.info/?t=130281804900005&r=1&w=2
+[3] http://marc.info/?l=linux-omap&m=131310179423214&w=2
+[4] http://marc.info/?t=134752035400001&r=1&w=2
