@@ -1,59 +1,45 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH 1/5] iommu/omap: Use the cache cleaning API
-Date: Tue, 18 Mar 2014 00:12:37 +0100
-Message-ID: <11532438.LiO4XssOJh@avalon>
-References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<53232B0F.6090701@ti.com> <201403141757.48824.arnd@arndb.de>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: OMAP4 SDP regression...
+Date: Mon, 17 Mar 2014 23:32:30 +0000
+Message-ID: <20140317233229.GP21483@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <201403141757.48824.arnd-r2nGTMty4D4@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "sakari.ailus-X3B1VOXEql0@public.gmane.org" <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:56283 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750733AbaCQXcj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Mar 2014 19:32:39 -0400
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Arnd,
+There's been a couple of regressions on OMAP4430 SDP I've only recently
+noticed:
 
-On Friday 14 March 2014 17:57:48 Arnd Bergmann wrote:
-> On Friday 14 March 2014, Santosh Shilimkar wrote:
-> > I remember NAKing this approach in past and my stand remains same. The
-> > cache APIs which you are trying to use here are not suppose to be used
-> > outside.
-> > 
-> > I think the right way to fix this is to make use of streaming APIs.
-> > If needed, IOMMU can have its own dma_ops for special case handling if
-> > any.
-> > 
-> > Russell, Arnd might have more ideas.
-> 
-> I have a bad feeling about using the dma-mapping API within the IOMMU code,
-> because that driver is also used to implement the dma-mapping API for
-> devices attached to the IOMMU. It's possible that it just works.
+http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=1597
 
-Right, but I hope the memory port used by the IOMMU to fetch page table 
-entries will not go through itself the same IOMMU :-)
+Configuring network interfaces... udhcpc (v1.9.1) started
+Sending discover...
+Sending discover...
+Sending discover...
+No lease, failing
+done.
 
-> Is the IOMMU actually designed to have page tables in noncoherent memory? I
-> would have expected that the iopt accesses must all be done on
-> dma_alloc_coherent() provided memory to guarantee proper accesses.
+No link lights come up either.  The hardware is fine because uboot manages
+to successfully tftp the kernel.
 
-I'm not knowledgeable enough about the OMAP IOMMU, but at least the Renesas 
-IOMMU doesn't need coherent memory as long as the driver makes sure that 
-changes to the page tables are made visible to the device. That IOMMU can also 
-use the DVM hardware coherency protocols on a cache coherent interconnect, but 
-I haven't investigated that yet.
+It looks like it was working in -rc4+armsoc and -rc5+armsoc, but not
+-rc6+armsoc.
+
+>From what I can see, nothing has changed in drivers/net/ethernet/micrel/
+since rc5.
+
+I've been through the delta from 3.14-rc5, and I don't see anything
+obvious.  Any ideas?  Known problem?
 
 -- 
-Regards,
-
-Laurent Pinchart
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
