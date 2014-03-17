@@ -1,62 +1,82 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 2/2] omap overo related device tree changes for v3.15
-Date: Mon, 17 Mar 2014 15:18:43 +0100
-Message-ID: <201403171518.43389.arnd@arndb.de>
-References: <20140313200135.GA5981@atomide.com> <20140313200253.GB5981@atomide.com>
+From: Dmitry Lifshitz <lifshitz@compulab.co.il>
+Subject: Re: [PATCH] ARM: OMAP5: DSS hwmod data
+Date: Mon, 17 Mar 2014 16:22:08 +0200
+Message-ID: <53270510.1030301@compulab.co.il>
+References: <1394619996-3525-1-git-send-email-tomi.valkeinen@ti.com> <532037E0.1080309@ti.com> <53258DDA.50005@compulab.co.il> <532692A7.7000509@ti.com> <5326F71C.1060602@compulab.co.il> <5326F893.3080607@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:49714 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933099AbaCQOSw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2014 10:18:52 -0400
-In-Reply-To: <20140313200253.GB5981@atomide.com>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:52559 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932692AbaCQOWi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Mar 2014 10:22:38 -0400
+In-Reply-To: <5326F893.3080607@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday 13 March 2014, Tony Lindgren wrote:
-> The following changes since commit cfbf8d4857c26a8a307fb7cd258074c9dcd8c691:
-> 
->   Linux 3.14-rc4 (2014-02-23 17:40:03 -0800)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/dt-overo-signed
-> 
-> for you to fetch changes up to 28b191118c11719bb27db621425a70be28a40e08:
-> 
->   ARM: dts: Add support for the Overo Summit (2014-03-12 10:21:16 -0700)
-> 
-> ----------------------------------------------------------------
-> Updates to the .dts files to support more Gumstix boards.
-> 
-> These are sent separately from the rest of the .dts changes
-> as these depend on the fixes merged into v3.14-rc4, and
-> needed a bit more time to get updated on the fixes.
+Hi Tomi,
 
-Pulled into next/dt, thanks!
+Unfortunately, I have a lack of experience with DT DSS stuff.
 
-I had a trivial merge conflict in omap3-overo.dtsi that I resolved as below.
+How should I define the endpoints and the connector in my case?
+Please, could you provide some reference.
 
-	Arnd
+Regarding omapfb, is it sufficient to turn it on in the Kernel config?
 
-diff --cc arch/arm/boot/dts/omap3-overo.dtsi
-index b08142f,c37b130..69ca7c4
---- a/arch/arm/boot/dts/omap3-overo.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo.dtsi
-@@@ -91,11 -33,3 +33,6 @@@
-        };
-  };
-  
-- &uart3 {
--       pinctrl-names = "default";
--       pinctrl-0 = <&uart3_pins>;
-- };
-- 
- +&mcbsp2 {
- +      status = "okay";
- +};
+Thanks,
+
+Dmitry
+
+On 03/17/2014 03:28 PM, Tomi Valkeinen wrote:
+> On 17/03/14 15:22, Dmitry Lifshitz wrote:
+>> Hi Tomi,
+>>
+>> Thank you for the feedback.
+>>
+>> We have OMAP5 based board with no ESD & Level Translator chip.
+>> So, I made a quick hack in tpd12s015 driver to skip using un-relevant
+>> GPIOs.
+> If you don't have tpd12s015 on your board, don't modify it. Remove it
+> from your board's dts file totally.
+>
+>> I've copied DSS DT structure from uEmv board *.dts.
+>> However the HDMI output is not activate yet.
+>>
+>> Here is some debug output:
+>>
+>> root@cm-debian:~# dmesg | grep -i dss
+>> [    0.040554] omap_hwmod: dss_dispc: cannot be enabled for reset (3)
+>> [    0.043135] omap_hwmod: dss_dsi1: cannot be enabled for reset (3)
+>> [    0.045725] omap_hwmod: dss_dsi2: cannot be enabled for reset (3)
+>> [    0.048311] omap_hwmod: dss_hdmi: cannot be enabled for reset (3)
+>> [    0.050888] omap_hwmod: dss_rfbi: cannot be enabled for reset (3)
+>> [    0.325392] DSS: set fck to 192000000
+>> [    0.325400] DSS: dss_runtime_get
+>> [    0.325427] DSS: dss_restore_context
+>> [    0.325445] OMAP DSS rev 6.1
+>> [    0.325450] DSS: dss_runtime_put
+>> [    0.325456] DSS: dss_save_context
+>> [    0.325461] DSS: context saved
+>> [    0.325707] DSS: dss_restore_context
+>> [    0.325711] DSS: context restored
+>> [    0.325746] omapdss_dispc 58001000.dispc: OMAP DISPC rev 5.1
+>> [    0.325838] DSS: dss_save_context
+>> [    0.325843] DSS: context saved
+>>
+>>
+>> I do not use uEvm BSP u-Boot. I'm forking from this source:
+>> git://git.denx.de/u-boot-ti.git
+>>
+>> Perhaps I'm missing some clocks initialization?
+>> What are the correct bootargs for activating HDMI video output?
+> HDMI is the only output on the uevm, and if your board is similar, no
+> boot args are needed. But, of course, you need omapfb or omapdrm to
+> manage the display.
+>
+>   Tomi
+>
+>
+
