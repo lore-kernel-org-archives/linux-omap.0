@@ -1,92 +1,179 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] usb: dwc3: core: Fix gadget for system suspend/resume
-Date: Mon, 17 Mar 2014 13:11:50 +0200
-Message-ID: <1395054710-21183-1-git-send-email-rogerq@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/8] clk: divider: fix rate calculation for fractional
+ rates
+Date: Mon, 17 Mar 2014 14:53:03 +0200
+Message-ID: <5326F02F.2030604@ti.com>
+References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com> <1392285846-13199-2-git-send-email-tomi.valkeinen@ti.com> <52FE1DF2.2040707@ti.com> <20140227022524.12081.32368@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="ekdfFKVcD8dkMS1BFm4PLhLbUIkQbGQGp"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:46697 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932906AbaCQMxa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2014 08:53:30 -0400
+In-Reply-To: <20140227022524.12081.32368@quantum>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-During system resume, if the event buffers are not setup before
-the gadget controller starts then we start with invalid context
-and this can lead to bus access errors. This is especially true for
-platforms that loose the controller context during system suspend.
-e.g. AM437x.
+--ekdfFKVcD8dkMS1BFm4PLhLbUIkQbGQGp
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-The following backtrace was found when the system is suspended
-and resumed with g_zero loaded on AM437x-evm (USB cable connected
-to host all the while).
+On 27/02/14 04:25, Mike Turquette wrote:
+> Quoting Tero Kristo (2014-02-14 05:45:22)
+>> On 02/13/2014 12:03 PM, Tomi Valkeinen wrote:
+>>> clk-divider.c does not calculate the rates consistently at the moment=
+=2E
+>>>
+>>> As an example, on OMAP3 we have a clock divider with a source clock o=
+f
+>>> 864000000 Hz. With dividers 6, 7 and 8 the theoretical rates are:
+>>>
+>>> 6: 144000000
+>>> 7: 123428571.428571...
+>>> 8: 108000000
+>>>
+>>> Calling clk_round_rate() with the rate in the first column will give =
+the
+>>> rate in the second column:
+>>>
+>>> 144000000 -> 144000000
+>>> 143999999 -> 123428571
+>>> 123428572 -> 123428571
+>>> 123428571 -> 108000000
+>>>
+>>> Note how clk_round_rate() returns 123428571 for rates from 123428572 =
+to
+>>> 143999999, which is mathematically correct, but when clk_round_rate()=
+ is
+>>> called with 123428571, the returned value is surprisingly 108000000.
+>>>
+>>> This means that the following code works a bit oddly:
+>>>
+>>> rate =3D clk_round_rate(clk, 123428572);
+>>> clk_set_rate(clk, rate);
+>>>
+>>> As clk_set_rate() also does clock rate rounding, the result is that t=
+he
+>>> clock is set to the rate of 108000000, not 123428571 returned by the
+>>> clk_round_rate.
+>>>
+>>> This patch changes the clk-divider.c to use DIV_ROUND_UP when
+>>> calculating the rate. This gives the following behavior which fixes t=
+he
+>>> inconsistency:
+>>>
+>>> 144000000 -> 144000000
+>>> 143999999 -> 123428572
+>>> 123428572 -> 123428572
+>>> 123428571 -> 108000000
+>>>
+>>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>>> Cc: Mike Turquette <mturquette@linaro.org>
+>>> ---
+>>>   drivers/clk/clk-divider.c | 10 +++++-----
+>>>   1 file changed, 5 insertions(+), 5 deletions(-)
+>>>
+>>> diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
+>>> index 5543b7df8e16..ec22112e569f 100644
+>>> --- a/drivers/clk/clk-divider.c
+>>> +++ b/drivers/clk/clk-divider.c
+>>> @@ -24,7 +24,7 @@
+>>>    * Traits of this clock:
+>>>    * prepare - clk_prepare only ensures that parents are prepared
+>>>    * enable - clk_enable only ensures that parents are enabled
+>>> - * rate - rate is adjustable.  clk->rate =3D parent->rate / divisor
+>>> + * rate - rate is adjustable.  clk->rate =3D DIV_ROUND_UP(parent->ra=
+te / divisor)
+>>>    * parent - fixed parent.  No clk_set_parent support
+>>>    */
+>>>
+>>> @@ -115,7 +115,7 @@ static unsigned long clk_divider_recalc_rate(stru=
+ct clk_hw *hw,
+>>>               return parent_rate;
+>>>       }
+>>>
+>>> -     return parent_rate / div;
+>>> +     return DIV_ROUND_UP(parent_rate, div);
+>>>   }
+>>>
+>>>   /*
+>>> @@ -185,7 +185,7 @@ static int clk_divider_bestdiv(struct clk_hw *hw,=
+ unsigned long rate,
+>>>               }
+>>>               parent_rate =3D __clk_round_rate(__clk_get_parent(hw->c=
+lk),
+>>>                               MULT_ROUND_UP(rate, i));
+>>> -             now =3D parent_rate / i;
+>>> +             now =3D DIV_ROUND_UP(parent_rate, i);
+>>>               if (now <=3D rate && now > best) {
+>>>                       bestdiv =3D i;
+>>>                       best =3D now;
+>>> @@ -207,7 +207,7 @@ static long clk_divider_round_rate(struct clk_hw =
+*hw, unsigned long rate,
+>>>       int div;
+>>>       div =3D clk_divider_bestdiv(hw, rate, prate);
+>>>
+>>> -     return *prate / div;
+>>> +     return DIV_ROUND_UP(*prate, div);
+>>>   }
+>>>
+>>>   static int clk_divider_set_rate(struct clk_hw *hw, unsigned long ra=
+te,
+>>> @@ -218,7 +218,7 @@ static int clk_divider_set_rate(struct clk_hw *hw=
+, unsigned long rate,
+>>>       unsigned long flags =3D 0;
+>>>       u32 val;
+>>>
+>>> -     div =3D parent_rate / rate;
+>>> +     div =3D DIV_ROUND_UP(parent_rate, rate);
+>>>       value =3D _get_val(divider, div);
+>>>
+>>>       if (value > div_mask(divider))
+>>>
+>>
+>> Basically the patch looks good to me, but it might be good to have a=20
+>> testing round of sort with this. It can potentially cause regressions =
+on=20
+>> multiple boards if the drivers happen to rely on the "broken" clock=20
+>> rates. Same for patch #2 which is a copy paste of this one, but only=20
+>> impacts TI boards.
+>=20
+> Agreed. I've taken patches #1 & #2 into clk-next. Let's let them stew i=
+n
+> -next for a while and see if anyone's board catches on fire.
 
-[  120.981506] WARNING: CPU: 0 PID: 1656 at drivers/bus/omap_l3_noc.c:137 l3_interrupt_handler+0x198/0x28c()
-[  120.981514] L3 custom error: MASTER:USB0 WR TARGET:GPMC
-[  120.981638] Modules linked in: g_mass_storage usb_f_mass_storage libcomposite configfs bufferclass_ti(O) omaplfb(O) cryptodev(O) dwc3 snd_soc_evm snd_soc_omap snd_pe
-[  120.981659] CPU: 0 PID: 1656 Comm: sh Tainted: G           O 3.12.10-gc559824 #1
-[  120.981669] Backtrace:
-[  120.981705] [<c0017880>] (dump_backtrace+0x0/0x10c) from [<c0017a1c>] (show_stack+0x18/0x1c)
-[  120.981730]  r6:c02819ac r5:00000009 r4:ec137cb8 r3:00000000
-[  120.981767] [<c0017a04>] (show_stack+0x0/0x1c) from [<c056c0b0>] (dump_stack+0x20/0x28)
-[  120.981802] [<c056c090>] (dump_stack+0x0/0x28) from [<c0046d08>] (warn_slowpath_common+0x70/0x90)
-[  120.981830] [<c0046c98>] (warn_slowpath_common+0x0/0x90) from [<c0046dcc>] (warn_slowpath_fmt+0x38/0x40)
-[  120.981856]  r8:c0855eb0 r7:00000002 r6:f1000700 r5:00000007 r4:80080003
-[  120.981886] [<c0046d94>] (warn_slowpath_fmt+0x0/0x40) from [<c02819ac>] (l3_interrupt_handler+0x198/0x28c)
-[  120.981900]  r3:c0801ab8 r2:c06cb354
-[  120.981936] [<c0281814>] (l3_interrupt_handler+0x0/0x28c) from [<c007162c>] (handle_irq_event_percpu+0x54/0x1b8)
-[  120.981962] [<c00715d8>] (handle_irq_event_percpu+0x0/0x1b8) from [<c00717c0>] (handle_irq_event+0x30/0x40)
-[  120.981993] [<c0071790>] (handle_irq_event+0x0/0x40) from [<c0074058>] (handle_fasteoi_irq+0x74/0x128)
-[  120.982006]  r4:ed0056c0 r3:00000000
-[  120.982033] [<c0073fe4>] (handle_fasteoi_irq+0x0/0x128) from [<c0070f34>] (generic_handle_irq+0x28/0x38)
-[  120.982046]  r4:0000002a r3:c0073fe4
-[  120.982085] [<c0070f0c>] (generic_handle_irq+0x0/0x38) from [<c0015560>] (handle_IRQ+0x38/0x8c)
-[  120.982098]  r4:c080137c r3:00000182
-[  120.982124] [<c0015528>] (handle_IRQ+0x0/0x8c) from [<c00087e0>] (gic_handle_irq+0x30/0x5c)
-[  120.982145]  r6:ec137dd0 r5:c07ac480 r4:fa24010c r3:00000100
-[  120.982169] [<c00087b0>] (gic_handle_irq+0x0/0x5c) from [<c056fcc0>] (__irq_svc+0x40/0x54)
-[  120.982179] Exception stack(0xec137dd0 to 0xec137e18)
-[  120.982195] 7dc0:                                     00000000 a00001d3 00000000 00000004
-[  120.982216] 7de0: a0000153 ec1d9010 c080de90 ec137e30 c080debc 00000000 ed756e44 ec137e2c
-[  120.982232] 7e00: ec137de0 ec137e18 bf1150e4 bf115474 60000153 ffffffff
-[  120.982253]  r7:ec137e04 r6:ffffffff r5:60000153 r4:bf115474
-[  120.982327] [<bf115438>] (dwc3_complete+0x0/0x40 [dwc3]) from [<c0338f50>] (dpm_complete+0xd4/0x19c)
-[  120.982341]  r5:ed756e10 r4:ed756e64
-[  120.982370] [<c0338e7c>] (dpm_complete+0x0/0x19c) from [<c0339034>] (dpm_resume_end+0x1c/0x20)
-[  120.982400] [<c0339018>] (dpm_resume_end+0x0/0x20) from [<c006d4ec>] (suspend_devices_and_enter+0x118/0x33c)
-[  120.982412]  r4:c0833da4 r3:00000000
-[  120.982436] [<c006d3d4>] (suspend_devices_and_enter+0x0/0x33c) from [<c006d928>] (pm_suspend+0x218/0x254)
-[  120.982458] [<c006d710>] (pm_suspend+0x0/0x254) from [<c006c594>] (state_store+0x70/0xc0)
-[  120.982478]  r6:c057a6cc r5:c06a8320 r4:00000003 r3:0000006d
-[  120.982515] [<c006c524>] (state_store+0x0/0xc0) from [<c0264cc0>] (kobj_attr_store+0x1c/0x28)
-[  120.982546] [<c0264ca4>] (kobj_attr_store+0x0/0x28) from [<c012ccb8>] (sysfs_write_file+0x170/0x1a4)
-[  120.982583] [<c012cb48>] (sysfs_write_file+0x0/0x1a4) from [<c00d17e4>] (vfs_write+0xb8/0x190)
-[  120.982611] [<c00d172c>] (vfs_write+0x0/0x190) from [<c00d1bf8>] (SyS_write+0x44/0x78)
-[  120.982641] [<c00d1bb4>] (SyS_write+0x0/0x78) from [<c0014660>] (ret_fast_syscall+0x0/0x30)
+Are these on the way to 3.15?
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/dwc3/core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Tomi
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index d001417..0b99e3a 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -824,8 +824,9 @@ static void dwc3_complete(struct device *dev)
- 	switch (dwc->dr_mode) {
- 	case USB_DR_MODE_PERIPHERAL:
- 	case USB_DR_MODE_OTG:
-+		dwc3_event_buffers_setup(dwc);
- 		dwc3_gadget_complete(dwc);
--		/* FALLTHROUGH */
-+		break;
- 	case USB_DR_MODE_HOST:
- 	default:
- 		dwc3_event_buffers_setup(dwc);
--- 
-1.8.3.2
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--ekdfFKVcD8dkMS1BFm4PLhLbUIkQbGQGp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTJvAvAAoJEPo9qoy8lh71AbsP/i6t0Q7GSiZC/mo3Xm59xBC4
+L28UNoOZVus36S+EIGiyQwYPJNj/qxOfB3Frqua90g8h6XDZL7JX8lXwUrbwD/Fh
+R2BC/jUtBMN16ngftEjCH1zwll/SwdUMbfb8njeM8foM7eGy6UxhacF/dSBe61si
+QzbDfvUN5ZtAb2zcBhipBaw9l5ERGOysCXyMk1Zpa3a/FdDWixpier98l3HhUb/R
+R0yzaFvz8Oo7lih2vD0zHG7sIkcYYTK0xangdAZKqk/yAGe0K4EH71CZazMgrr+X
+qk6Fo0X88xx9ZNdXjcaJhAlkIw0e3AkXSc6miqme+xHNzVznC1Lzr5YbzMYMoxJZ
+fFvoh7RNSlEjm4tGRMZqD/SqdaFipnOgKQAbLFjbo0xpZvQT0zXlfINONpUfpQCL
+3imYKHbZhcYOH6WOV3nb/61GpUfjRzyKqtFhGyjV3iAklxh1TGqd/u0iOFZy318G
+e/xs7qrJz3iXon7Vz7j/5W4UYw3T5kmjb3/yzy61CWDJ5ucfOo1NgHyqm+iWuirn
+K4AB9rYIG6/+8+YodFKcCNVREX23rP8hNQlB4cQd8deYOaQmFqU1qc3Yd/FzCbU0
+NUtxqpyF984P0FD/fnEGltA8bXQzG1mm26WxdLfKMzz6TftTc9afGHv3/pbbl+00
+IhoasrIFR8xbB6cNkiyO
+=r7Ii
+-----END PGP SIGNATURE-----
+
+--ekdfFKVcD8dkMS1BFm4PLhLbUIkQbGQGp--
