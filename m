@@ -1,222 +1,116 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/5] OMAP IOMMU fixes and IOMMU architecture questions
-Date: Mon, 17 Mar 2014 14:58:24 -0500
-Message-ID: <532753E0.10605@ti.com>
-References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<53226A81.3090501@ti.com> <1523736.5PrLY3OqT5@avalon>
-	<20140316215455.GA2108@valkosipuli.retiisi.org.uk>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [GIT PULL 1/2] omap device tree changes for v3.15, part 3
+Date: Mon, 17 Mar 2014 15:55:52 -0500
+Message-ID: <53276158.2020101@ti.com>
+References: <20140313200135.GA5981@atomide.com> <201403171514.07194.arnd@arndb.de> <20140317164509.GA30471@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20140316215455.GA2108-S+BSfZ9RZZmRSg0ZkenSGLdO1Tsj/99ntUK59QYPAWc@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44856 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752253AbaCQU4W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Mar 2014 16:56:22 -0400
+In-Reply-To: <20140317164509.GA30471@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Laurent, Sakari,
+Hi Arnd, Tony,
 
-On 03/16/2014 04:54 PM, Sakari Ailus wrote:
-> Hi Laurent and Suman,
->
-> On Fri, Mar 14, 2014 at 12:00:16PM +0100, Laurent Pinchart wrote:
->> Hi Suman,
->>
->> (CC'ing Joerg Roedel and Marek Szyprowski for the core IOMMU discussion)
->>
->> On Thursday 13 March 2014 21:33:37 Suman Anna wrote:
->>> On 03/07/2014 06:46 PM, Laurent Pinchart wrote:
->>>> Hello,
->>>>
->>>> This patch set fixes miscellaneous issues with the OMAP IOMMU driver,
->>>> found when trying to port the OMAP3 ISP away from omap-iovmm to the ARM
->>>> DMA API. The biggest issue is fixed by patch 5/5, while the other patches
->>>> fix smaller problems that I've noticed when reading the code, without
->>>> experiencing them at runtime.
->>>>
->>>> I'd like to take this as an opportunity to discuss OMAP IOMMU integration
->>>> with the ARM DMA mapping implementation. The idea is to hide the IOMMU
->>>> completely behind the DMA mapping API, making it completely transparent
->>>> to drivers.
+On 03/17/2014 11:45 AM, Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [140317 07:18]:
+>> On Thursday 13 March 2014, Tony Lindgren wrote:
+>>> Hi,
 >>>
->>> Thanks for starting the discussion.
+>>> Resending these two, looks like my updated scripts have some issues hitting
+>>> the mailing lists..
 >>>
->>>> A drivers will only need to allocate memory with dma_alloc_*, and behind
->>>> the scene the ARM DMA mapping implementation will find out that the
->>>> device is behind an IOMMU and will map the buffers through the IOMMU,
->>>> returning an I/O VA address to the driver. No direct call to the OMAP
->>>> IOMMU driver or to the IOMMU core should be necessary anymore.
->>>>
->>>> To use the IOMMU the ARM DMA implementation requires a VA mapping to be
->>>> created with a call to arm_iommu_create_mapping() and to then be attached
->>>> to the device with arm_iommu_attach_device(). This is currently not
->>>> performed by the OMAP IOMMU driver, I have thus added that code to the
->>>> OMAP3 ISP driver for now. I believe this to still be an improvement
->>>> compared to the current situation, as it allows getting rid of custom
->>>> memory allocation code in the OMAP3 ISP driver and custom I/O VA space
->>>> management in omap-iovmm. However, that code should ideally be removed
->>>> from the driver. The question is, where should it be moved to ?
->>>>
->>>> One possible solution would be to add the code to the OMAP IOMMU driver.
->>>> However, this would require all OMAP IOMMU users to be converted to the
->>>> ARM DMA API. I assume there would be issues that I don't foresee though.
+>>> The following changes since commit 18c49af3ee9e32a535413a949672bea726699f04:
 >>>
->>> Yeah, I think this will pose some problems for the other main user of IOMMUs
->>> - the remoteproc devices (DSP, Dual-Cortex M3/M4 processors in OMAP4 and
->>> beyond). A remoteproc device also needs to map memory at specific addresses
->>> for its code and data sections, and not rely on a I/O VA address being given
->>> to it. The firmware sections are already linked at specific addresses, and
->>> so remoteproc needs to allocate memory, load the firmware and map into
->>> appropriate device addresses. We are doing this currently usage a
->>> combination of CMA memory to get contiguous memory (there are some
->>> restrictions for certain sections) and iommu_map/unmap API to program the
->>> MMU with these pages. This usage is different from what is expected from
->>> exchanging buffers, which can be allocated from a predefined mapping range.
->>> Even that one is tricky if we need to support different cache
->>> properties/attributes as the cache configuration is in general local to
->>> these processors.
->>
->> Right, we indeed need two levels of API, one for drivers such as remoteproc
->> that need direct control of the IOMMU, and one for drivers that only need to
->> map buffers without any additional requirement. In the second case the drivers
->> should ideally use the DMA mapping API not even be aware that an IOMMU is
->> present. This would require moving the ARM mapping allocation out of the
->> client driver.
-
-Actually, I think there is one another use case, even with remoteprocs 
-which is to runtime map buffers. This is different from the firmware 
-management. The memory for buffers could have been allocated from other 
-subsystems, but remoteproc would need just to manage the VA space and map.
-
->>
->> The IOMMU core or the IOMMU driver will need to know whether the driver
->> expects to control the IOMMU directly or to have it managed transparently. As
->> this is a software configuration I don't think the information belongs to DT.
->> The question is, how should this information be conveyed?
-
-Can this be done through iommu_domain_set_attr? But that means the 
-client driver has to dictate this. The iommu driver can be configured 
-appropriately based on this.
-
->
-> The driver would need to know that, I think.
->
-> Currently the DMA mapping API doesn't allow explicit addressing to IOVA
-> address space AFAIK. The IOMMU API does. It's a good question how to do this
-> as I don't think there's even a way for the driver to explicitly obtain
-> access to the IOMMU.
->
-> The virtual address space allocation would need to take into account that
-> some of the address space is actually mapped outside it. The iova library
-> can do this already.
->
->>>> I'm not even sure whether the OMAP IOMMU driver would be the best place to
->>>> put that code. Ideally VA spaces should be created by the platform
->>>> somehow, and mapping of devices to IOMMUs should be handled by the IOMMU
->>>> core instead of the IOMMU drivers. We're not there yet, and the path
->>>> might not be straightforward, hence this attempt to start a constructive
->>>> discussion.
->>>>
->>>> A second completely unrelated problem that I'd like to get feedback on is
->>>> the suspend/resume support in the OMAP IOMMU driver, or rather the lack
->>>> thereof. The driver exports omap_iommu_save_ctx() and
->>>> omap_iommu_restore_ctx() functions and expects the IOMMU users to call
->>>> them directly. This is really hackish to say the least. A proper
->>>> suspend/resume implementation shouldn't be difficult to implement, and
->>>> I'm wondering whether the lack of proper power management support comes
->>>> from historical reasons only, or if there are problems I might not have
->>>> considered.
+>>>    ARM: dts: am335x-evmsk: enable dual_emac mode (2014-03-05 11:53:36 -0800)
 >>>
->>> Agreed, the current code definitely needs a cleanup and better organization
->>> (like folding into runtime suspend ops). The main thing is that we need the
->>> IOMMU to be activated as long as its parent device is active (like the
->>> omap3isp or a remoteproc device). And this behaviour needs separation from
->>> configuring it and programming for the first time. Only a user can dictate
->>> when an IOMMU is not needed. So we either need an API to activate or have
->>> access to the iommu's dev object somehow so that we can use the
->>> pm_runtime_get/put API to hold a usage counter and let the runtime suspend
->>> ops take care of save/restore without tearing down the domain or detaching
->>> the device.
+>>> are available in the git repository at:
+>>>
+>>>    git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/dt-part3
+>>>
+>>> for you to fetch changes up to e1902bbe44844597a38c8cbae30ca895f6e126ee:
+>>>
+>>>    ARM: dts: Add MMC2/SDIO/WLAN support for cm-t3530 (2014-03-12 10:40:37 -0700)
+>>>
+>>> ----------------------------------------------------------------
+>>> Device tree related changes to the omap iommu driver as that
+>>> is finally getting updated. Also few trivial board related
+>>> .dts updates to add more devices.
 >>
->> The OMAP IOMMU driver calls pm_runtime_get_sync() in iommu_enable(), and
->> pm_runtime_put_sync() in iommu_disable(). The enable/disable functions are
->> called in the attach and detach handlers (as well as in the fault handler for
->> the disable function). As long as a device is attached the IOMMU will thus not
->> be suspended by runtime PM, but could be suspended by system PM.
-
-This would all need some rearranging of course. It is also not about 
-just disabling the clocks, we may have to assert the resets as well, due 
-to couple of issues on OMAP4 and beyond.
-
->>
->> This leads to two separate issues. The first one is that the IOMMU will be
->> powered on as long as a device is attached, even if the device isn't in use.
->> This consumes power needlessly. It would probably be better to more the
->> enable/disable calls to the map/unmap handlers, as the IOMMU should be powered
->> off when no mapping exists (or am I missing something ?).
+>> Pulled into next/dt, thanks!
 >
-> In general, I wouldn't make the assumption that no mappings can exist if the
-> IOMMU is powered off. This would mean that just keeping buffers around for
-> later use would keep hardware powered. Memory allocation can be a very
-> time-consuming task which often is done when the entire system is booted up
-> (depending on the user space naturally), not when a particular device node
-> is opened.
-
-Yeah, agreed. remoteproc firmware memory will stay mapped in even when 
-we power off IOMMU, we just preserve the required IOMMU context. I 
-expect the suspend/resume code to preserve any locked TLBs and the TTB 
-address. The page table entries would be auto-preserved as long as we 
-don't free the table.
-
+> Thanks, looks like the merge ddf071148934047b1e87bf89e823e74f267f0b84
+> introduces a build failure though:
 >
-> That said, I don't have a good, obviously acceptable solution to propose to
-> this problem right now. I think the IOMMU power state should be rather bound
-> to the device's power state, but DMA mapping API doesn't know anything about
-> IOMMUs as such. I wonder what kind of a reception would such an addition to
-> the DMA mapping would receive. There are two things I could think of: either
-> make the potential IOMMU visible to the driver so the driver can use runtime
-> PM as usual, or add a function to the DMA mapping API to allow whatever
-> hardware used in the DMA accesses to power down (and up again when needed).
+> @@@ -22,8 -23,7 +23,7 @@@
+>    #include "common-board-devices.h"
+>    #include "dss-common.h"
+>    #include "control.h"
+> - #include "omap-secure.h"
+>   -#include "omap_device.h"
+>   +#include "soc.h"
 >
-> The latter is hackish in my opinion but the former would also change the DMA
-> mapping API to a direction which not everyone would probably agree on.
+>    struct pdata_init {
+>          const char *compatible;
 >
-> I'm personally fine with the above limitation on OMAP3 but in general it'd
-> be better to get around it.
+> Those need to be added back to keep things building.
+>
+>> I haven't really been following the iommu discussions, so I have to trust
+>> you are doing the right thing here. What is the status on iommu
+>> support through DT? Do we have or require a generic binding for iommus?
+>
+> There are certainly various things that could be improved in the
+> drivers/iommu, just doing grep EXPORT_SYMBOL drivers/iommu shows quite
+> a few things that should probably be implemented in a generic way.
 
-Once we add the iommus property to the client DT nodes, I think the 
-drivers should be able to retrieve the iommu dev object. So that should 
-allow both the IOMMU to be visible, as well as give access to invoke 
-runtime_pm functions on the iommu device.
+Yes, Laurent is working towards removing omap-iovmm.c completely and 
+started a discussion/cleanup series towards thats[1]. I expect some of 
+the other export symbols for OMAP to also vanish slowly once iovmm is 
+removed.
 
 >
->> The second issue is that the IOMMU and IOMMU users system PM suspend/resume
->> callbacks are not synchronized. We need a guarantee that the IOMMU will be
->> suspended after its users, and resumed before them. One option to fix this
->> could be to use the suspend_late and resume_early PM operations (although I
->> haven't checked whether that would work), but it's probably a bit hackish.
->
-> I agree.
->
-> The IOMMUs would indeed need to be resumed first. Hiroshi had a aptchset to
-> initialise and associate IOMMUs to devices using DT but it seems it's not
-> exactly going somewhere right now. I just mention this since basically the
-> same problem exists there.
->
-> <URL:http://lists.linuxfoundation.org/pipermail/iommu/2013-November/index.html>
+> Currently the bindings don't do much, but could probably be simplified
+> further. Things like ti,#tlb-entries and ti,iommu-bus-err-back may not
+> even be needed and could be set by the driver match .data based on the
+> compatible flag alone.
 
-Yeah, we haven't converted the current OMAP iommu users to DT yet, and I 
-would expect some changes in the OMAP IOMMU code once that series is 
-finalized.
+Yeah, I was in fact looking for feedback on exactly these properties 
+[2]. I haven't removed this as the only feedback I got was positive for 
+the changes [3].
+
+>
+> This set contains the independent SoC related changes related to get
+> things moving for the drivers/iommu changes as discussed here:
+>
+> http://www.spinics.net/lists/arm-kernel/msg312144.html
+>
+> Some things like reset are still being done using platform_data with
+> a promise of future patches:
+>
+> http://www.spinics.net/lists/linux-omap/msg104328.html
+>
+>> Are you following that, or will you have to do incompatible changes to
+>> do that?
+>
+> I'm not following too closely on the drivers/iommu parts, mostly
+> following just the moving away from platform data part at this point.
+> Suman can probably describe what needs to be done more accurately.
+
+I am not expecting any changes to bindings as this series is mainly 
+adding the OMAP iommu DT nodes and having the OMAP IOMMU driver 
+functional with the DT-based IOMMU devices. We are yet to add any DTS 
+client devices use IOMMU.
 
 regards
 Suman
+
+[1] http://marc.info/?l=linux-omap&m=139423949120188&w=2
+[2] http://marc.info/?l=linux-omap&m=139231544416973&w=2
+[3] http://marc.info/?l=linux-omap&m=139338074931831&w=2
