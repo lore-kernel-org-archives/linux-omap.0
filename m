@@ -1,82 +1,64 @@
-From: Dmitry Lifshitz <lifshitz@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP5: DSS hwmod data
-Date: Mon, 17 Mar 2014 16:22:08 +0200
-Message-ID: <53270510.1030301@compulab.co.il>
-References: <1394619996-3525-1-git-send-email-tomi.valkeinen@ti.com> <532037E0.1080309@ti.com> <53258DDA.50005@compulab.co.il> <532692A7.7000509@ti.com> <5326F71C.1060602@compulab.co.il> <5326F893.3080607@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv4 0/7] omap hwspinlock dt support
+Date: Mon, 17 Mar 2014 16:23:34 +0200
+Message-ID: <CAK=WgbZCzA7JovSxnysHCQRZZWc3Z2j3AS8ekpM9fOZ160rmCA@mail.gmail.com>
+References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
+ <52F9282B.5000702@ti.com> <530B8C00.8020001@ti.com> <CAK=WgbZp_RQPCeZJyMRkNTQxaJsnGZ3DnjhSkYYR_-PAE_Kp4g@mail.gmail.com>
+ <53239789.40600@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:52559 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932692AbaCQOWi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Mar 2014 10:22:38 -0400
-In-Reply-To: <5326F893.3080607@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53239789.40600@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tomi,
+Hi Suman,
 
-Unfortunately, I have a lack of experience with DT DSS stuff.
+On Sat, Mar 15, 2014 at 1:58 AM, Suman Anna <s-anna@ti.com> wrote:
+> The series doesn't change the semantics of hwspinlock registration or adds a
+> new OF controller registration function. Implementations would still need to
+> register a controller using a base_id and number of locks. The series rather
+> adds a DT-friendly function _ONLY_ for requesting a specific hwlock, and
+> there are no restrictions on the args specifier being relative id numbers.
+> Though this is what the simple default xlate helper does (most common
+> usage), the added xlate ops and #hwlock-cells should allow individual
+> implementation drivers to adjust any variations, and return a relative lock
+> w.r.t its registered base_id, as this is how a lock gets registered in the
+> first place.
 
-How should I define the endpoints and the connector in my case?
-Please, could you provide some reference.
+I might be missing something, but why can't we have the
+specifier+base_id be the hwlock id and then we can entirely drop most
+of the core changes in this patch-set? I realize we couldn't easily
+support sparse id numbers, but not sure this is relevant to
+hwspinlocks? do we have a use case that couldn't be supported in this
+case?
 
-Regarding omapfb, is it sufficient to turn it on in the Kernel config?
+> I actually started out this series with the base_id property, and dropped it
+> in v3 based on comments looking at it from the request-specific-lock
+> semantics with DT. That said, the drivers still need to manage a 'base_id'
+> needed for registration when they get probed for multiple controllers.
+> Getting the base_id from DT _may_ be useful just for registration purposes,
+> but for requesting a hwlock, a controller phandle and an implementation
+> defined args-specifier should suffice IMHO.
+
+How could drivers know what the base_id is if DT doesn't provide it?
+please note that we can't depend on order of controller probing; the
+hwlock id numbers cannot depend on implementation details.
+
+> The exact notion of informing the hwspinlock core about a list of reserved
+> locks is missing at the moment (even in the non-DT case). I am not sure if
+> this got lost during the conversion of the registration from per lock to
+> registering a bank of locks together, or if it is implied by the base_id +
+> num_locks combination. The core today supports requesting only those locks
+> that were actually registered, whether allocating a free one dynamically or
+> giving a specific one.
+
+Before DT came along, early board code could have reserved specific
+hwspinlocks if needed. Now with DT, we should add the list of reserved
+locks to the controller node, in order to prevent them from being
+dynamically allocated by others.
 
 Thanks,
-
-Dmitry
-
-On 03/17/2014 03:28 PM, Tomi Valkeinen wrote:
-> On 17/03/14 15:22, Dmitry Lifshitz wrote:
->> Hi Tomi,
->>
->> Thank you for the feedback.
->>
->> We have OMAP5 based board with no ESD & Level Translator chip.
->> So, I made a quick hack in tpd12s015 driver to skip using un-relevant
->> GPIOs.
-> If you don't have tpd12s015 on your board, don't modify it. Remove it
-> from your board's dts file totally.
->
->> I've copied DSS DT structure from uEmv board *.dts.
->> However the HDMI output is not activate yet.
->>
->> Here is some debug output:
->>
->> root@cm-debian:~# dmesg | grep -i dss
->> [    0.040554] omap_hwmod: dss_dispc: cannot be enabled for reset (3)
->> [    0.043135] omap_hwmod: dss_dsi1: cannot be enabled for reset (3)
->> [    0.045725] omap_hwmod: dss_dsi2: cannot be enabled for reset (3)
->> [    0.048311] omap_hwmod: dss_hdmi: cannot be enabled for reset (3)
->> [    0.050888] omap_hwmod: dss_rfbi: cannot be enabled for reset (3)
->> [    0.325392] DSS: set fck to 192000000
->> [    0.325400] DSS: dss_runtime_get
->> [    0.325427] DSS: dss_restore_context
->> [    0.325445] OMAP DSS rev 6.1
->> [    0.325450] DSS: dss_runtime_put
->> [    0.325456] DSS: dss_save_context
->> [    0.325461] DSS: context saved
->> [    0.325707] DSS: dss_restore_context
->> [    0.325711] DSS: context restored
->> [    0.325746] omapdss_dispc 58001000.dispc: OMAP DISPC rev 5.1
->> [    0.325838] DSS: dss_save_context
->> [    0.325843] DSS: context saved
->>
->>
->> I do not use uEvm BSP u-Boot. I'm forking from this source:
->> git://git.denx.de/u-boot-ti.git
->>
->> Perhaps I'm missing some clocks initialization?
->> What are the correct bootargs for activating HDMI video output?
-> HDMI is the only output on the uevm, and if your board is similar, no
-> boot args are needed. But, of course, you need omapfb or omapdrm to
-> manage the display.
->
->   Tomi
->
->
-
+Ohad.
