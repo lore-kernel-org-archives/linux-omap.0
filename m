@@ -1,56 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP4 SDP regression...
-Date: Mon, 17 Mar 2014 18:35:07 -0700
-Message-ID: <20140318013507.GD30471@atomide.com>
-References: <20140317233229.GP21483@n2100.arm.linux.org.uk>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: Add machine entry for dra72x devices
+Date: Tue, 18 Mar 2014 10:13:28 +0530
+Message-ID: <5327CEF0.3070301@ti.com>
+References: <1394788841-15112-1-git-send-email-rnayak@ti.com> <1394788841-15112-4-git-send-email-rnayak@ti.com> <5323B90C.80803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65417 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752147AbaCRBfM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2014 21:35:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20140317233229.GP21483@n2100.arm.linux.org.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:37562 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750820AbaCREoy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Mar 2014 00:44:54 -0400
+In-Reply-To: <5323B90C.80803@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Markus Pargmann <mpa@pengutronix.de>, Mark Brown <broonie@linaro.org>
+To: Suman Anna <s-anna@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [140317 16:35]:
-> There's been a couple of regressions on OMAP4430 SDP I've only recently
-> noticed:
+On Saturday 15 March 2014 07:51 AM, Suman Anna wrote:
+> Hi Rajendra,
 > 
-> http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=1597
+> On 03/14/2014 04:20 AM, Nayak, Rajendra wrote:
+>> The only difference from the dra75x devices is the missing .smp entry.
+>>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/board-generic.c |   18 ++++++++++++++++++
+>>   1 file changed, 18 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+>> index 8e3daa1..d803d99 100644
+>> --- a/arch/arm/mach-omap2/board-generic.c
+>> +++ b/arch/arm/mach-omap2/board-generic.c
+>> @@ -253,4 +253,22 @@ DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
+>>       .dt_compat    = dra7xx_boards_compat,
+>>       .restart    = omap44xx_restart,
+>>   MACHINE_END
+>> +
+>> +static const char *dra72_boards_compat[] __initdata = {
 > 
-> Configuring network interfaces... udhcpc (v1.9.1) started
-> Sending discover...
-> Sending discover...
-> Sending discover...
-> No lease, failing
-> done.
+> How about using dra72x_ instead of dra72_ and keeping it consistent
+> at the other places as well?
+
+Sure, I can do that. Thanks.
+
 > 
-> No link lights come up either.  The hardware is fine because uboot manages
-> to successfully tftp the kernel.
+> regards
+> Suman
 > 
-> It looks like it was working in -rc4+armsoc and -rc5+armsoc, but not
-> -rc6+armsoc.
+>> +    "ti,dra72x",
+>> +    "ti,dra7",
+>> +    NULL,
+>> +};
+>> +
+>> +DT_MACHINE_START(DRA72_DT, "Generic DRA72 (Flattened Device Tree)")
+>> +    .reserve    = omap_reserve,
+>> +    .map_io        = omap5_map_io,
+>> +    .init_early    = dra7xx_init_early,
+>> +    .init_late    = dra7xx_init_late,
+>> +    .init_irq    = omap_gic_of_init,
+>> +    .init_machine    = omap_generic_init,
+>> +    .init_time    = omap5_realtime_timer_init,
+>> +    .dt_compat    = dra72_boards_compat,
+>> +    .restart    = omap44xx_restart,
+>> +MACHINE_END
+>>   #endif
+>>
 > 
-> From what I can see, nothing has changed in drivers/net/ethernet/micrel/
-> since rc5.
-> 
-> I've been through the delta from 3.14-rc5, and I don't see anything
-> obvious.  Any ideas?  Known problem?
 
-Seems like plain v3.14-rc6 fails for me while -rc5 works. Bisecting
-points to:
-
-66fda75f regulator: core: Replace direct ops->disable usage
-
-Also verified that v3.14-rc6 with 66fda75f reverted also works.
-
-Markus & Mark, any ideas?
-
-Regards,
-
-Tony
