@@ -1,91 +1,97 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] dma: edma: fix incorrect SG list handling
-Date: Tue, 18 Mar 2014 13:46:04 -0500
-Message-ID: <5328946C.3010508@ti.com>
-References: <1395057448-22904-1-git-send-email-nsekhar@ti.com>
-	<alpine.DEB.2.02.1403170854570.9730@jringle-ubuntu>
-	<5326F2BF.6040702@ti.com>
-	<alpine.DEB.2.02.1403170913110.9730@jringle-ubuntu>
-	<20140318152840.GD1976@intel.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: twl-core: Fix accessibility of some twl4030 audio
+ registers
+Date: Tue, 18 Mar 2014 20:19:47 +0000
+Message-ID: <20140318201947.GT25478@lee--X1>
+References: <20140310191250.34f1410e@tomas.local.tbs-biometrics.cz>
+ <531EC981.8090806@ti.com>
+ <20140318172650.GA307@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20140318152840.GD1976-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jon Ringle <jon-7zJyie9iPacdnm+yROfE0A@public.gmane.org>
-Cc: Linux DaVinci Mailing List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "Ringle,  Jonathan" <Jonathan.Ringle-gkqdKIIuv0Hby3iVrkZq2A@public.gmane.org>, DMA Engine Mailing List <dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:54556 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933063AbaCRUTx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Mar 2014 16:19:53 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hi5so4217166wib.11
+        for <linux-omap@vger.kernel.org>; Tue, 18 Mar 2014 13:19:52 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140318172650.GA307@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tomas Novotny <tomas@novotny.cz>, linux-omap@vger.kernel.org
 
-On 03/18/2014 10:28 AM, Vinod Koul wrote:
-> On Mon, Mar 17, 2014 at 09:14:14AM -0400, Jon Ringle wrote:
->> On Mon, 17 Mar 2014, Sekhar Nori wrote:
->>
->>> Hi Jon,
->>>
->>> On Monday 17 March 2014 06:28 PM, Jon Ringle wrote:
->>>>
->>>> On Mon, 17 Mar 2014, Sekhar Nori wrote:
->>>>
->>>>> The code to handle any length SG lists calls edma_resume()
->>>>> even before edma_start() is called. This is incorrect
->>>>> because edma_resume() enables edma events on the channel
->>>>> after which CPU (in edma_start) cannot clear posted
->>>>> events by writing to ECR (per the EDMA user's guide).
->>>>>
->>>>> Because of this EDMA transfers fail to start if due
->>>>> to some reason there is a pending EDMA event registered
->>>>> even before EDMA transfers are started. This can happen if
->>>>> an EDMA event is a byproduct of device initialization.
->>>>>
->>>>> Fix this by calling edma_resume() only if it is not the
->>>>> first batch of MAX_NR_SG elements.
->>>>>
->>>>> Without this patch, MMC/SD fails to function on DA850 EVM
->>>>> with DMA. The behaviour is triggered by specific IP and
->>>>> this can explain why the issue was not reported before
->>>>> (example with MMC/SD on AM335x).
->>>>>
->>>>> Tested on DA850 EVM and AM335x EVM-SK using MMC/SD card.
->>>>>
->>>>> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v3.12.x+
->>>>> Cc: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
->>>>> Reported-by: Jon Ringle <jringle-gkqdKIIuv0Hby3iVrkZq2A@public.gmane.org>
->>>>> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
->>>>> ---
->>>>> Jon, can you please confirm this fixes the issue you
->>>>> reported?
->>>>
->>>> The patch does not apply on linux-3.12 due to changes to the 3 context 
->>>> lines at the start of the hunk.
->>>>
->>>> But, I manually fixed up the code and it does fix the issue  on our AM1808 
->>>> board.
->>>
->>> Thanks for the testing. The patch is meant for latest mainline but based
->>> on what you said, a manual backport to v3.12-stable will be required.
->>>
->>> Can you please reply with a formal Tested-by: ?
->>
->> Tested-by: Jon Ringle <jringle-gkqdKIIuv0Hby3iVrkZq2A@public.gmane.org>
-> where is this patch, somehow am not able to find in my inbox or archives...
-> 
+> > > There are some unused registers in twl4030 at I2C address 0x49 an=
+d function
+> > > twl4030_49_nop_reg() is used to check accessibility of that regis=
+ters. These
+> > > registers are written in decimal format but the values are correc=
+t in
+> > > hexadecimal format. (It can be checked few lines above the patche=
+d code -
+> > > these registers are marked as unused there.)
+> > >=20
+> > > As a consequence three registers of audio submodule are treated a=
+s
+> > > inaccessible (preamplifier carkit right and both handsfree regist=
+ers).
+> > >=20
+> > > CC: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> > > Signed-off-by: Tomas Novotny <tomas@novotny.cz>
+> > > ---
+> > >  drivers/mfd/twl-core.c | 10 +++++-----
+> > >  1 file changed, 5 insertions(+), 5 deletions(-)
+> > >=20
+> > > diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> > > index ed71832..e87140b 100644
+> > > --- a/drivers/mfd/twl-core.c
+> > > +++ b/drivers/mfd/twl-core.c
+> > > @@ -282,11 +282,11 @@ static struct reg_default twl4030_49_defaul=
+ts[] =3D {
+> > >  static bool twl4030_49_nop_reg(struct device *dev, unsigned int =
+reg)
+> > >  {
+> > >  	switch (reg) {
+> > > -	case 0:
+> > > -	case 3:
+> > > -	case 40:
+> > > -	case 41:
+> > > -	case 42:
+> > > +	case 0x00:
+> > > +	case 0x03:
+> > > +	case 0x40:
+> > > +	case 0x41:
+> > > +	case 0x42:
+> >=20
+> > Uhm, I can not be that @#$%^& that I did this... I have no idea how=
+ I left out
+> > the "0x"
+> >=20
+> > Thanks for spotting it!
+> >=20
+> > Acked-by Peter Ujfalusi <peter.ujfalusi@ti.com>
+>=20
+> Peter, if this does not make it to the -rc series, care to send this =
+to
+> the stable for inclusion after it hits mainline?
+>=20
+> This fixes twl4030 audio regression at least on boards using Handsfre=
+eL
+> for audio.
 
-I found it archived here:
-http://comments.gmane.org/gmane.linux.davinci/28569
+I think it's a little late in the cycle to send this to the -rcs.
 
-Patch doesn't breaking anything for > MAX_NR_SG list size on AM335x, so
-it looks good.
+Stable will be Cc'ed however.
 
-Acked-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-
-Regards,
--Joel
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
