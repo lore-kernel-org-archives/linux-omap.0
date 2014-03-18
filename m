@@ -1,263 +1,150 @@
-From: Dmitry Lifshitz <lifshitz@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP5: DSS hwmod data
-Date: Tue, 18 Mar 2014 10:19:51 +0200
-Message-ID: <532801A7.6060702@compulab.co.il>
-References: <1394619996-3525-1-git-send-email-tomi.valkeinen@ti.com> <532037E0.1080309@ti.com> <53258DDA.50005@compulab.co.il> <532692A7.7000509@ti.com> <5326F71C.1060602@compulab.co.il> <5326F893.3080607@ti.com> <53270510.1030301@compulab.co.il> <5327D9BE.80503@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: pandaboard boot crash with linux-next
+Date: Tue, 18 Mar 2014 10:32:09 +0200
+Message-ID: <53280489.4010108@ti.com>
+References: <53270218.9050109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:45475 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751901AbaCRIUW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Mar 2014 04:20:22 -0400
-In-Reply-To: <5327D9BE.80503@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:50004 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753580AbaCRIcN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Mar 2014 04:32:13 -0400
+In-Reply-To: <53270218.9050109@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>
 
-Hi Tomi,
+On 03/17/2014 04:09 PM, Tomi Valkeinen wrote:
+> Hi,
+>=20
+> I noticed that my omap4 panda does not boot with today's linux-next
+> (8808b950581f71e3ee4cf8e6cae479f4c7106405). I didn't have much time t=
+o study
+> it, but I didn't find any posts about the issue with a quick look. Be=
+low is
+> the crash.
 
-Thank you a lot for your assistance.
+I did not taken crash log but the same linux-next fails to boot on
+am335x-evmsk as well.
 
-Here are my relevant DT nodes:
-
-/ {
-         aliases {
-                 display0 = &hdmi0;
-         };
-
-         hdmi0: connector@0 {
-                 compatible = "hdmi-connector";
-                 label = "hdmi";
-
-                 type = "b";
-
-                 hdmi_connector_in: endpoint {
-                         remote-endpoint = <&hdmi_out>;
-                 };
-         };
-};
-
-&dss {
-         status = "ok";
-};
-
-&hdmi {
-         status = "ok";
-         vdda-supply = <&ldo4_reg>;
-
-         pinctrl-names = "default";
-         pinctrl-0 = <&dss_hdmi_pins>;
-
-         hdmi_out: endpoint {
-                 remote-endpoint = <&hdmi_connector_in>;
-         };
-};
-
-I have the following kernel crash (caused by missing .detect callback):
-
-[   10.885320] Unable to handle kernel NULL pointer dereference at 
-virtual address 00000000
-[   10.893825] pgd = ed787240
-[   10.896670] [00000000] *pgd=00000000
-[   10.900427] Internal error: Oops: 80000205 [#1] SMP ARM
-[   10.905883] Modules linked in: phy_omap_usb2 omapdrm(+) 
-drm_kms_helper connector_hdmi omap4_keypad matrix_keymap omapdss 
-fb_sys_fops omap_ocp2scp rtc_palmas spi_omap2_mcspi
-[   10.922032] CPU: 1 PID: 333 Comm: modprobe Tainted: G W    
-3.14.0-rc4-cm-t54-test-suit+ #111
-[   10.931486] task: ece1e040 ti: ecea2000 task.ti: ecea2000
-[   10.937122] PC is at 0x0
-[   10.939771] LR is at hdmic_detect+0x14/0x18 [connector_hdmi]
-[   10.945681] pc : [<00000000>]    lr : [<bf1531c4>]    psr: a0000013
-[   10.945681] sp : ecea3d50  ip : bf173158  fp : 00000000
-[   10.957664] r10: 00000800  r9 : 00000800  r8 : 00000004
-[   10.963118] r7 : bf17317c  r6 : ecdf0400  r5 : ed6d4000  r4 : ed6d402c
-[   10.969932] r3 : 00000000  r2 : bf15c7cc  r1 : bf0437d0  r0 : bf059470
-[   10.976754] Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  
-Segment user
-[   10.984207] Control: 30c5387d  Table: ad787240  DAC: 55555555
-[   10.990209] Process modprobe (pid: 333, stack limit = 0xecea2248)
-[   10.996574] Stack: (0xecea3d50 to 0xecea4000)
-[   11.001123] 3d40:                                     bf1531b0 
-bf16a134 bf16a118 bf158abc
-[   11.009664] 3d60: 00000004 c0b5ae60 00000000 00000001 ece4ae00 
-00000000 00000800 00000800
-[   11.018203] 3d80: bf17a000 00000020 00000000 bf15b7b8 00000020 
-ece4ae00 ece4ae00 ecdf0400
-[   11.026751] 3da0: ed69b940 bf175978 00000000 bf16bfa4 0000081f 
-ecdf0400 ed69b940 00000000
-[   11.035288] 3dc0: 00000000 bf167bbc 00000000 00000000 00000000 
-ecdf0400 00000000 00000000
-[   11.043828] 3de0: 00000000 c03afef8 c0a876a0 bf17586c ecdf0400 
-c03b179c c08dffd4 c01d641c
-[   11.052365] 3e00: c03b1818 c0978eac c0a876b0 bf175978 c0a876b0 
-c03cc6c4 c03cc6ac c0b5af2c
-[   11.060902] 3e20: bf175978 c03ca8cc c0a876b0 bf175978 c0a876e4 
-00000000 c0020f04 c03cab64
-[   11.069442] 3e40: 00000000 c0a876b0 bf175978 c03cac08 bf175978 
-00000000 c03cab7c c03c92dc
-[   11.077983] 3e60: edcd45dc eddcb234 bf175978 ece13480 c0ab8d48 
-c03ca1b8 bf1740d4 c0020f04
-[   11.086524] 3e80: bf175978 bf175978 00000000 ecea2000 00000000 
-c03cb264 c03cbd54 c0a7e510
-[   11.095067] 3ea0: ecea2000 c0008788 000000d0 f02aefff 00000000 
-c0158bc0 c0003020 f02af000
-[   11.103608] 3ec0: 00000000 bf175b24 c0a93b14 00000000 00000001 
-bf175b24 00000000 00000000
-[   11.112156] 3ee0: 00000001 c00dc9ec c00dcdbc fffffffb 00000000 
-c072932c c0a92348 00000000
-[   11.120702] 3f00: c0a92348 00000000 bf175b24 c0072830 00000000 
-bd94362e 00000000 bf175b24
-[   11.129244] 3f20: 00400100 ecea2000 00000080 c0020f04 ecea2000 
-00000000 00000000 c07137b4
-[   11.137785] 3f40: 0001dfea b6d5b000 b6fa7114 0001dfea b6d5b000 
-c00bad0c f0290000 0001dfea
-[   11.146323] 3f60: f02a29bc f02a2821 f02ab674 0000ecf0 00010510 
-00000000 00000000 00000000
-[   11.154860] 3f80: 00000027 00000028 0000001c 00000020 00000012 
-00000000 b87d23f8 00060000
-[   11.163409] 3fa0: b87d2280 c0020d80 b87d23f8 00060000 b6d5b000 
-0001dfea b6fa7114 b6d5b000
-[   11.171954] 3fc0: b87d23f8 00060000 b87d2280 00000080 b87d4c60 
-0001dfea b6fa7114 00000000
-[   11.180494] 3fe0: 00000000 bee169cc b6f9e190 b6f02e04 60000010 
-b6d5b000 00000000 00000000
-[   11.189071] [<bf1531c4>] (hdmic_detect [connector_hdmi]) from 
-[<bf16a134>] (omap_connector_detect+0x1c/0x58 [omapdrm])
-[   11.200274] [<bf16a134>] (omap_connector_detect [omapdrm]) from 
-[<bf158abc>] (drm_helper_probe_single_connector_modes+0x2b0/0x33c 
-[drm_kms_helper])
-[   11.214089] [<bf158abc>] (drm_helper_probe_single_connector_modes 
-[drm_kms_helper]) from [<bf15b7b8>] 
-(drm_fb_helper_initial_config+0x5c/0xac [drm_kms_helper])
-[   11.229011] [<bf15b7b8>] (drm_fb_helper_initial_config 
-[drm_kms_helper]) from [<bf16bfa4>] (omap_fbdev_init+0x90/0xc4 [omapdrm])
-[   11.241126] [<bf16bfa4>] (omap_fbdev_init [omapdrm]) from 
-[<bf167bbc>] (dev_load+0xcc/0x148 [omapdrm])
-[   11.250861] [<bf167bbc>] (dev_load [omapdrm]) from [<c03afef8>] 
-(drm_dev_register+0x78/0x138)
-[   11.259776] [<c03afef8>] (drm_dev_register) from [<c03b179c>] 
-(drm_get_platform_dev+0x50/0xa4)
-[   11.268785] [<c03b179c>] (drm_get_platform_dev) from [<c03cc6c4>] 
-(platform_drv_probe+0x18/0x48)
-[   11.277968] [<c03cc6c4>] (platform_drv_probe) from [<c03ca8cc>] 
-(really_probe+0x80/0x208)
-[   11.286516] [<c03ca8cc>] (really_probe) from [<c03cab64>] 
-(driver_probe_device+0x30/0x48)
-[   11.295071] [<c03cab64>] (driver_probe_device) from [<c03cac08>] 
-(__driver_attach+0x8c/0x90)
-[   11.303881] [<c03cac08>] (__driver_attach) from [<c03c92dc>] 
-(bus_for_each_dev+0x54/0x88)
-[   11.312422] [<c03c92dc>] (bus_for_each_dev) from [<c03ca1b8>] 
-(bus_add_driver+0xe4/0x1d8)
-[   11.320957] [<c03ca1b8>] (bus_add_driver) from [<c03cb264>] 
-(driver_register+0x78/0xf4)
-[   11.329323] [<c03cb264>] (driver_register) from [<c0008788>] 
-(do_one_initcall+0x44/0x174)
-[   11.337876] [<c0008788>] (do_one_initcall) from [<c07137b4>] 
-(do_init_module+0x48/0x17c)
-[   11.346331] [<c07137b4>] (do_init_module) from [<c00bad0c>] 
-(SyS_init_module+0x64/0x6c)
-[   11.354690] [<c00bad0c>] (SyS_init_module) from [<c0020d80>] 
-(ret_fast_syscall+0x0/0x30)
-
-While using FBDEV I have the following issue:
-
-root@cm-debian:~# modprobe omapfb
-[   27.524419] ------------[ cut here ]------------
-[   27.529256] WARNING: CPU: 1 PID: 2087 at 
-/home/lifshitz/workroot/OMAP5-eewiki/omap5-kernel/mm/page_alloc.c:2492 
-__alloc_pages_nodemask+0x268/0x83c()
-[   27.543164] Modules linked in: omapfb(+) cfbcopyarea cfbimgblt 
-cfbfillrect bnep rfcomm bluetooth 6lowpan_iphc phy_omap_usb2 
-connector_hdmi omapdss omap4_keypad matrix_keymap omap_ocp2scp 
-rtc_palmas spi_omap2_mcspi
-[   27.563113] CPU: 1 PID: 2087 Comm: modprobe Tainted: G W    
-3.14.0-rc4-cm-t54-test-suit+ #108
-[   27.572677] [<c00280ac>] (unwind_backtrace) from [<c0024eb0>] 
-(show_stack+0x10/0x14)
-[   27.580786] [<c0024eb0>] (show_stack) from [<c06fc434>] 
-(dump_stack+0x70/0x88)
-[   27.588341] [<c06fc434>] (dump_stack) from [<c004d8e8>] 
-(warn_slowpath_common+0x70/0x88)
-[   27.596815] [<c004d8e8>] (warn_slowpath_common) from [<c004d91c>] 
-(warn_slowpath_null+0x1c/0x24)
-[   27.606004] [<c004d91c>] (warn_slowpath_null) from [<c01135ec>] 
-(__alloc_pages_nodemask+0x268/0x83c)
-[   27.615562] [<c01135ec>] (__alloc_pages_nodemask) from [<c002cd78>] 
-(__dma_alloc_buffer.isra.16+0x2c/0xdc)
-[   27.625661] [<c002cd78>] (__dma_alloc_buffer.isra.16) from 
-[<c002ce40>] (__alloc_remap_buffer.isra.19+0x18/0xcc)
-[   27.636300] [<c002ce40>] (__alloc_remap_buffer.isra.19) from 
-[<c002d248>] (__dma_alloc+0x110/0x138)
-[   27.645757] [<c002d248>] (__dma_alloc) from [<c002d3fc>] 
-(arm_dma_alloc+0xb0/0xd8)
-[   27.653686] [<c002d3fc>] (arm_dma_alloc) from [<bf1b1f74>] 
-(omapfb_alloc_fbmem.isra.24+0xc8/0x158 [omapfb])
-[   27.663911] [<bf1b1f74>] (omapfb_alloc_fbmem.isra.24 [omapfb]) from 
-[<bf1b7078>] (omapfb_alloc_fbmem_display.isra.25+0xec/0xfc [omapfb])
-[   27.676759] [<bf1b7078>] (omapfb_alloc_fbmem_display.isra.25 
-[omapfb]) from [<bf1b21fc>] (omapfb_allocate_all_fbs+0xf4/0x174 [omapfb])
-[   27.689419] [<bf1b21fc>] (omapfb_allocate_all_fbs [omapfb]) from 
-[<bf1b30f8>] (omapfb_create_framebuffers+0x1fc/0x524 [omapfb])
-[   27.701432] [<bf1b30f8>] (omapfb_create_framebuffers [omapfb]) from 
-[<bf1b3fdc>] (omapfb_probe+0x28c/0x41c [omapfb])
-[   27.712446] [<bf1b3fdc>] (omapfb_probe [omapfb]) from [<c03ab844>] 
-(platform_drv_probe+0x18/0x48)
-[   27.721728] [<c03ab844>] (platform_drv_probe) from [<c03a9a4c>] 
-(really_probe+0x80/0x208)
-[   27.730284] [<c03a9a4c>] (really_probe) from [<c03a9ce4>] 
-(driver_probe_device+0x30/0x48)
-[   27.738834] [<c03a9ce4>] (driver_probe_device) from [<c03a9d88>] 
-(__driver_attach+0x8c/0x90)
-[   27.747661] [<c03a9d88>] (__driver_attach) from [<c03a845c>] 
-(bus_for_each_dev+0x54/0x88)
-[   27.756220] [<c03a845c>] (bus_for_each_dev) from [<c03a9338>] 
-(bus_add_driver+0xe4/0x1d8)
-[   27.764778] [<c03a9338>] (bus_add_driver) from [<c03aa3e4>] 
-(driver_register+0x78/0xf4)
-[   27.773148] [<c03aa3e4>] (driver_register) from [<c0008788>] 
-(do_one_initcall+0x44/0x174)
-[   27.781703] [<c0008788>] (do_one_initcall) from [<c06f2934>] 
-(do_init_module+0x48/0x17c)
-[   27.790172] [<c06f2934>] (do_init_module) from [<c00bad0c>] 
-(SyS_init_module+0x64/0x6c)
-[   27.798546] [<c00bad0c>] (SyS_init_module) from [<c0020d80>] 
-(ret_fast_syscall+0x0/0x30)
-[   27.807015] ---[ end trace 842d286115ab739d ]---
-[   27.811849] omapfb omapfb: failed to allocate framebuffer
-[   27.817490] omapfb omapfb: failed to allocate fbmem
-[   27.822746] omapfb omapfb: failed to setup omapfb
-[   27.827710] omapfb: probe of omapfb failed with error -12
+>=20
+>  Tomi
+>=20
+> [    0.000000] ti_dt_clocks_register: failed to lookup clock node div=
+_ts_ck
+> [    0.000000] ti_dt_clocks_register: failed to lookup clock node ban=
+dgap_ts_fclk
+> [    0.000000] Unable to handle kernel NULL pointer dereference at vi=
+rtual address 0000004c
+> [    0.000000] pgd =3D c0004000
+> [    0.000000] [0000004c] *pgd=3D00000000
+> [    0.000000] Internal error: Oops: 5 [#1] SMP ARM
+> [    0.000000] Modules linked in:
+> [    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.14.0-rc6-n=
+ext-20140317-09382-g8808b950581f #104
+> [    0.000000] task: c088ddf8 ti: c0882000 task.ti: c0882000
+> [    0.000000] PC is at kernfs_find_ns+0x14/0x13c
+> [    0.000000] LR is at kernfs_find_and_get_ns+0x38/0x54
+> [    0.000000] pc : [<c019607c>]    lr : [<c019628c>]    psr: 600001d=
+3
+> [    0.000000] sp : c0883e00  ip : c0883e30  fp : c0883e2c
+> [    0.000000] r10: c0891114  r9 : ebfa11c0  r8 : ebfcd464
+> [    0.000000] r7 : 00000000  r6 : 00000000  r5 : c07c1814  r4 : c08e=
+9ad8
+> [    0.000000] r3 : c08f568c  r2 : 00000000  r1 : c07c1814  r0 : 0000=
+0000
+> [    0.000000] Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM =
+ Segment kernel
+> [    0.000000] Control: 10c5387d  Table: 8000404a  DAC: 00000015
+> [    0.000000] Process swapper/0 (pid: 0, stack limit =3D 0xc0882248)
+> [    0.000000] Stack: (0xc0883e00 to 0xc0884000)
+> [    0.000000] 3e00: 00000000 c08e9ad8 c07c1814 c08e9ad8 c07c1814 000=
+00000 00000000 ebfcd464
+> [    0.000000] 3e20: c0883e4c c0883e30 c019628c c0196074 c07c1814 000=
+00000 c07c1814 ebfcd490
+> [    0.000000] 3e40: c0883e6c c0883e50 c04c6180 c0196260 c0891140 c07=
+c1814 ebfcd490 00000001
+> [    0.000000] 3e60: c0883e9c c0883e70 c04c7308 c04c6160 c008a208 c00=
+8a130 c0883e9c 00000000
+> [    0.000000] 3e80: c07c1814 c0891140 ebfcd464 a00001d3 c0883ec4 c08=
+83ea0 c04c7c9c c04c72cc
+> [    0.000000] 3ea0: c0882000 ebfcd464 c074dcc8 c086bf64 00000001 c07=
+4de24 c0883ee4 c0883ec8
+> [    0.000000] 3ec0: c0824b70 c04c7c14 c0891114 c0938af8 00000000 c07=
+4dcc8 c0883f54 c0883ee8
+> [    0.000000] 3ee0: c0824c58 c0824b18 00000000 c0e8bf6c c0882000 fff=
+fffff c0883f14 c0883f08
+> [    0.000000] 3f00: c05bc6b4 c05bc44c c0883f34 c0883f18 c04cca04 c05=
+bc6b0 00000000 00000000
+> [    0.000000] 3f20: eb016b80 c0882000 c0883f4c c0883f38 c0938af8 c08=
+910c0 c074dcc8 c074de24
+> [    0.000000] 3f40: c086ad60 c088a880 c0883f7c c0883f58 c0824f5c c08=
+24c20 00000001 c0883f68
+> [    0.000000] 3f60: 00000001 c09380c0 c0882000 ffffffff c0883f8c c08=
+83f80 c0825250 c0824f1c
+> [    0.000000] 3f80: c0883f9c c0883f90 c0825400 c0825238 c0883fac c08=
+83fa0 c081d67c c08253fc
+> [    0.000000] 3fa0: c0883ff4 c0883fb0 c0819a30 c081d664 ffffffff fff=
+fffff c08195d0 00000000
+> [    0.000000] 3fc0: 00000000 c086ad60 00000000 10c5387d c088a92c c08=
+6ad5c c088f684 8000406a
+> [    0.000000] 3fe0: 412fc09a 00000000 00000000 c0883ff8 80008074 c08=
+19840 00000000 00000000
+> [    0.000000] Backtrace:=20
+> [    0.000000] [<c0196068>] (kernfs_find_ns) from [<c019628c>] (kernf=
+s_find_and_get_ns+0x38/0x54)
+> [    0.000000]  r8:ebfcd464 r7:00000000 r6:00000000 r5:c07c1814 r4:c0=
+8e9ad8
+> [    0.000000] [<c0196254>] (kernfs_find_and_get_ns) from [<c04c6180>=
+] (safe_name+0x2c/0x98)
+> [    0.000000]  r7:ebfcd490 r6:c07c1814 r5:00000000 r4:c07c1814
+> [    0.000000] [<c04c6154>] (safe_name) from [<c04c7308>] (__of_add_p=
+roperty_sysfs+0x48/0xc4)
+> [    0.000000]  r7:00000001 r6:ebfcd490 r5:c07c1814 r4:c0891140
+> [    0.000000] [<c04c72c0>] (__of_add_property_sysfs) from [<c04c7c9c=
+>] (of_add_property+0x94/0xa0)
+> [    0.000000]  r8:a00001d3 r7:ebfcd464 r6:c0891140 r5:c07c1814 r4:00=
+000000
+> [    0.000000] [<c04c7c08>] (of_add_property) from [<c0824b70>] (omap=
+_get_timer_dt+0x64/0x108)
+> [    0.000000]  r8:c074de24 r7:00000001 r6:c086bf64 r5:c074dcc8 r4:eb=
+fcd464 r3:c0882000
+> [    0.000000] [<c0824b0c>] (omap_get_timer_dt) from [<c0824c58>] (om=
+ap_dm_timer_init_one+0x44/0x2fc)
+> [    0.000000]  r6:c074dcc8 r5:00000000 r4:c0938af8 r3:c0891114
+> [    0.000000] [<c0824c14>] (omap_dm_timer_init_one) from [<c0824f5c>=
+] (omap2_gp_clockevent_init+0x4c/0xd0)
+> [    0.000000]  r10:c088a880 r8:c086ad60 r7:c074de24 r6:c074dcc8 r5:c=
+08910c0 r4:c0938af8
+> [    0.000000] [<c0824f10>] (omap2_gp_clockevent_init) from [<c082525=
+0>] (omap4_sync32k_timer_init+0x24/0x60)
+> [    0.000000]  r7:ffffffff r6:c0882000 r5:c09380c0 r4:00000001
+> [    0.000000] [<c082522c>] (omap4_sync32k_timer_init) from [<c082540=
+0>] (omap4_local_timer_init+0x10/0x68)
+> [    0.000000] [<c08253f0>] (omap4_local_timer_init) from [<c081d67c>=
+] (time_init+0x24/0x38)
+> [    0.000000] [<c081d658>] (time_init) from [<c0819a30>] (start_kern=
+el+0x1fc/0x390)
+> [    0.000000] [<c0819834>] (start_kernel) from [<80008074>] (0x80008=
+074)
+> [    0.000000]  r10:00000000 r9:412fc09a r8:8000406a r7:c088f684 r6:c=
+086ad5c r5:c088a92c
+> [    0.000000]  r4:10c5387d
+> [    0.000000] Code: e92dd9f0 e24cb004 e24dd00c e59f3104 (e1d084bc)=20
+> [    0.000000] ---[ end trace 3406ff24bd97382e ]---
+> [    0.000000] Kernel panic - not syncing: Attempted to kill the idle=
+ task!
+> [    0.000000] ---[ end Kernel panic - not syncing: Attempted to kill=
+ the idle task!
+>=20
 
 
-Regards,
-
-Dmitry
-
-
-On 03/18/2014 07:29 AM, Tomi Valkeinen wrote:
-> On 17/03/14 16:22, Dmitry Lifshitz wrote:
->> Hi Tomi,
->>
->> Unfortunately, I have a lack of experience with DT DSS stuff.
->>
->> How should I define the endpoints and the connector in my case?
->> Please, could you provide some reference.
-> See Documentation/devicetree/bindings/media/video-interfaces.txt for a
-> description of the ports and endpoints.
->
-> If your board is similar to uevm except you don't have the tpd12s015,
-> then you just need to remove the tpd12s015 from the .dts file, and
-> connect the OMAP's HDMI output directly to the connector.
->
->> Regarding omapfb, is it sufficient to turn it on in the Kernel config?
-> Yes.
->
->   Tomi
->
->
-
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
