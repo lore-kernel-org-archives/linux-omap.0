@@ -1,106 +1,930 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: pandaboard boot crash with linux-next
-Date: Tue, 18 Mar 2014 11:47:09 +0200
-Message-ID: <5328161D.5020901@ti.com>
-References: <53270218.9050109@ti.com> <53280489.4010108@ti.com>
+From: Sathya Prakash M R <sathyap@ti.com>
+Subject: [PATCH 1/2] OMAPDSS: Add Sil9022 DPI-HDMI Encoder Driver
+Date: Tue, 18 Mar 2014 15:37:56 +0530
+Message-ID: <1395137278-5065-2-git-send-email-sathyap@ti.com>
+References: <1395137278-5065-1-git-send-email-sathyap@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54052 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56825 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752849AbaCRJrM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Mar 2014 05:47:12 -0400
-In-Reply-To: <53280489.4010108@ti.com>
+	id S1753987AbaCRKIT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Mar 2014 06:08:19 -0400
+In-Reply-To: <1395137278-5065-1-git-send-email-sathyap@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>
+To: tony@atomide.com, tomi.valkeinen@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, pawel.moll@arm.com, paul@pwsan.com
+Cc: Sathya Prakash M R <sathyap@ti.com>
 
-On 03/18/2014 10:32 AM, Peter Ujfalusi wrote:
-> On 03/17/2014 04:09 PM, Tomi Valkeinen wrote:
->> Hi,
->>
->> I noticed that my omap4 panda does not boot with today's linux-next
->> (8808b950581f71e3ee4cf8e6cae479f4c7106405). I didn't have much time to study
->> it, but I didn't find any posts about the issue with a quick look. Below is
->> the crash.
->
-> I did not taken crash log but the same linux-next fails to boot on
-> am335x-evmsk as well.
+Sil9022 DPI to HDMI Encoder driver is part of
+AM43xx SOC. Adding the basic Sil9022 driver
+HPD and Audio support is not present yet.
 
-Looks like someone broke gptimer or alternatively some of the DT support 
-routines. a call to of_add_property() is causing the crash.
+Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+---
+ drivers/video/omap2/displays-new/Kconfig           |    8 +
+ drivers/video/omap2/displays-new/Makefile          |    1 +
+ drivers/video/omap2/displays-new/encoder-sil9022.c |  748 ++++++++++++++++++++
+ drivers/video/omap2/displays-new/encoder-sil9022.h |  105 +++
+ 4 files changed, 862 insertions(+)
+ create mode 100644 drivers/video/omap2/displays-new/encoder-sil9022.c
+ create mode 100644 drivers/video/omap2/displays-new/encoder-sil9022.h
 
--Tero
-
->
->>
->>   Tomi
->>
->> [    0.000000] ti_dt_clocks_register: failed to lookup clock node div_ts_ck
->> [    0.000000] ti_dt_clocks_register: failed to lookup clock node bandgap_ts_fclk
->> [    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 0000004c
->> [    0.000000] pgd = c0004000
->> [    0.000000] [0000004c] *pgd=00000000
->> [    0.000000] Internal error: Oops: 5 [#1] SMP ARM
->> [    0.000000] Modules linked in:
->> [    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.14.0-rc6-next-20140317-09382-g8808b950581f #104
->> [    0.000000] task: c088ddf8 ti: c0882000 task.ti: c0882000
->> [    0.000000] PC is at kernfs_find_ns+0x14/0x13c
->> [    0.000000] LR is at kernfs_find_and_get_ns+0x38/0x54
->> [    0.000000] pc : [<c019607c>]    lr : [<c019628c>]    psr: 600001d3
->> [    0.000000] sp : c0883e00  ip : c0883e30  fp : c0883e2c
->> [    0.000000] r10: c0891114  r9 : ebfa11c0  r8 : ebfcd464
->> [    0.000000] r7 : 00000000  r6 : 00000000  r5 : c07c1814  r4 : c08e9ad8
->> [    0.000000] r3 : c08f568c  r2 : 00000000  r1 : c07c1814  r0 : 00000000
->> [    0.000000] Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
->> [    0.000000] Control: 10c5387d  Table: 8000404a  DAC: 00000015
->> [    0.000000] Process swapper/0 (pid: 0, stack limit = 0xc0882248)
->> [    0.000000] Stack: (0xc0883e00 to 0xc0884000)
->> [    0.000000] 3e00: 00000000 c08e9ad8 c07c1814 c08e9ad8 c07c1814 00000000 00000000 ebfcd464
->> [    0.000000] 3e20: c0883e4c c0883e30 c019628c c0196074 c07c1814 00000000 c07c1814 ebfcd490
->> [    0.000000] 3e40: c0883e6c c0883e50 c04c6180 c0196260 c0891140 c07c1814 ebfcd490 00000001
->> [    0.000000] 3e60: c0883e9c c0883e70 c04c7308 c04c6160 c008a208 c008a130 c0883e9c 00000000
->> [    0.000000] 3e80: c07c1814 c0891140 ebfcd464 a00001d3 c0883ec4 c0883ea0 c04c7c9c c04c72cc
->> [    0.000000] 3ea0: c0882000 ebfcd464 c074dcc8 c086bf64 00000001 c074de24 c0883ee4 c0883ec8
->> [    0.000000] 3ec0: c0824b70 c04c7c14 c0891114 c0938af8 00000000 c074dcc8 c0883f54 c0883ee8
->> [    0.000000] 3ee0: c0824c58 c0824b18 00000000 c0e8bf6c c0882000 ffffffff c0883f14 c0883f08
->> [    0.000000] 3f00: c05bc6b4 c05bc44c c0883f34 c0883f18 c04cca04 c05bc6b0 00000000 00000000
->> [    0.000000] 3f20: eb016b80 c0882000 c0883f4c c0883f38 c0938af8 c08910c0 c074dcc8 c074de24
->> [    0.000000] 3f40: c086ad60 c088a880 c0883f7c c0883f58 c0824f5c c0824c20 00000001 c0883f68
->> [    0.000000] 3f60: 00000001 c09380c0 c0882000 ffffffff c0883f8c c0883f80 c0825250 c0824f1c
->> [    0.000000] 3f80: c0883f9c c0883f90 c0825400 c0825238 c0883fac c0883fa0 c081d67c c08253fc
->> [    0.000000] 3fa0: c0883ff4 c0883fb0 c0819a30 c081d664 ffffffff ffffffff c08195d0 00000000
->> [    0.000000] 3fc0: 00000000 c086ad60 00000000 10c5387d c088a92c c086ad5c c088f684 8000406a
->> [    0.000000] 3fe0: 412fc09a 00000000 00000000 c0883ff8 80008074 c0819840 00000000 00000000
->> [    0.000000] Backtrace:
->> [    0.000000] [<c0196068>] (kernfs_find_ns) from [<c019628c>] (kernfs_find_and_get_ns+0x38/0x54)
->> [    0.000000]  r8:ebfcd464 r7:00000000 r6:00000000 r5:c07c1814 r4:c08e9ad8
->> [    0.000000] [<c0196254>] (kernfs_find_and_get_ns) from [<c04c6180>] (safe_name+0x2c/0x98)
->> [    0.000000]  r7:ebfcd490 r6:c07c1814 r5:00000000 r4:c07c1814
->> [    0.000000] [<c04c6154>] (safe_name) from [<c04c7308>] (__of_add_property_sysfs+0x48/0xc4)
->> [    0.000000]  r7:00000001 r6:ebfcd490 r5:c07c1814 r4:c0891140
->> [    0.000000] [<c04c72c0>] (__of_add_property_sysfs) from [<c04c7c9c>] (of_add_property+0x94/0xa0)
->> [    0.000000]  r8:a00001d3 r7:ebfcd464 r6:c0891140 r5:c07c1814 r4:00000000
->> [    0.000000] [<c04c7c08>] (of_add_property) from [<c0824b70>] (omap_get_timer_dt+0x64/0x108)
->> [    0.000000]  r8:c074de24 r7:00000001 r6:c086bf64 r5:c074dcc8 r4:ebfcd464 r3:c0882000
->> [    0.000000] [<c0824b0c>] (omap_get_timer_dt) from [<c0824c58>] (omap_dm_timer_init_one+0x44/0x2fc)
->> [    0.000000]  r6:c074dcc8 r5:00000000 r4:c0938af8 r3:c0891114
->> [    0.000000] [<c0824c14>] (omap_dm_timer_init_one) from [<c0824f5c>] (omap2_gp_clockevent_init+0x4c/0xd0)
->> [    0.000000]  r10:c088a880 r8:c086ad60 r7:c074de24 r6:c074dcc8 r5:c08910c0 r4:c0938af8
->> [    0.000000] [<c0824f10>] (omap2_gp_clockevent_init) from [<c0825250>] (omap4_sync32k_timer_init+0x24/0x60)
->> [    0.000000]  r7:ffffffff r6:c0882000 r5:c09380c0 r4:00000001
->> [    0.000000] [<c082522c>] (omap4_sync32k_timer_init) from [<c0825400>] (omap4_local_timer_init+0x10/0x68)
->> [    0.000000] [<c08253f0>] (omap4_local_timer_init) from [<c081d67c>] (time_init+0x24/0x38)
->> [    0.000000] [<c081d658>] (time_init) from [<c0819a30>] (start_kernel+0x1fc/0x390)
->> [    0.000000] [<c0819834>] (start_kernel) from [<80008074>] (0x80008074)
->> [    0.000000]  r10:00000000 r9:412fc09a r8:8000406a r7:c088f684 r6:c086ad5c r5:c088a92c
->> [    0.000000]  r4:10c5387d
->> [    0.000000] Code: e92dd9f0 e24cb004 e24dd00c e59f3104 (e1d084bc)
->> [    0.000000] ---[ end trace 3406ff24bd97382e ]---
->> [    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
->> [    0.000000] ---[ end Kernel panic - not syncing: Attempted to kill the idle task!
->>
->
->
+diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/omap2/displays-new/Kconfig
+index e6cfc38..9243dd7 100644
+--- a/drivers/video/omap2/displays-new/Kconfig
++++ b/drivers/video/omap2/displays-new/Kconfig
+@@ -12,6 +12,14 @@ config DISPLAY_ENCODER_TPD12S015
+ 	  Driver for TPD12S015, which offers HDMI ESD protection and level
+ 	  shifting.
+ 
++config DISPLAY_ENCODER_SIL9022
++        tristate "Sil9022 DPI to HDMI Encoder"
++	depends on I2C
++	help
++	  Driver for Silicon Image Sil9022 DPI to HDMI encoder and
++	  a brief about Sil9022 can be found here:
++	  http://www.semiconductorstore.com/pdf/newsite/siliconimage/SiI9022a_pb.pdf
++
+ config DISPLAY_CONNECTOR_DVI
+         tristate "DVI Connector"
+ 	depends on I2C
+diff --git a/drivers/video/omap2/displays-new/Makefile b/drivers/video/omap2/displays-new/Makefile
+index 0323a8a..f3c8997 100644
+--- a/drivers/video/omap2/displays-new/Makefile
++++ b/drivers/video/omap2/displays-new/Makefile
+@@ -1,5 +1,6 @@
+ obj-$(CONFIG_DISPLAY_ENCODER_TFP410) += encoder-tfp410.o
+ obj-$(CONFIG_DISPLAY_ENCODER_TPD12S015) += encoder-tpd12s015.o
++obj-$(CONFIG_DISPLAY_ENCODER_SIL9022) += encoder-sil9022.o
+ obj-$(CONFIG_DISPLAY_CONNECTOR_DVI) += connector-dvi.o
+ obj-$(CONFIG_DISPLAY_CONNECTOR_HDMI) += connector-hdmi.o
+ obj-$(CONFIG_DISPLAY_CONNECTOR_ANALOG_TV) += connector-analog-tv.o
+diff --git a/drivers/video/omap2/displays-new/encoder-sil9022.c b/drivers/video/omap2/displays-new/encoder-sil9022.c
+new file mode 100644
+index 0000000..411867b
+--- /dev/null
++++ b/drivers/video/omap2/displays-new/encoder-sil9022.c
+@@ -0,0 +1,748 @@
++/*
++ * Silicon image Sil9022 DPI-to-HDMI encoder driver
++ *
++ * Copyright (C) 2013 Texas Instruments
++ * Author: Sathya Prakash M R <sathyap@ti.com>
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/string.h>
++#include <linux/types.h>
++#include <linux/slab.h>
++#include <linux/io.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/i2c.h>
++#include <linux/device.h>
++#include <linux/delay.h>
++#include <linux/gpio.h>
++#include <linux/platform_device.h>
++#include <linux/regmap.h>
++#include <linux/of_gpio.h>
++
++#include <video/omapdss.h>
++#include <video/omap-panel-data.h>
++#include "encoder-sil9022.h"
++
++struct panel_drv_data {
++	struct omap_dss_device dssdev;
++	struct omap_dss_device *in;
++	struct i2c_client *i2c_client;
++	int reset_gpio;
++	int data_lines;
++	struct regmap *regmap;
++	struct omap_video_timings timings;
++};
++
++static struct regmap_config sil9022_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++};
++
++
++#define to_panel_data(x) container_of(x, struct panel_drv_data, dssdev)
++
++static int sil9022_ddc_read(struct i2c_client *client,
++		unsigned char *buf, u16 count, u8 offset)
++{
++	int r, retries;
++
++	for (retries = 3; retries > 0; retries--) {
++		struct i2c_msg msgs[] = {
++			{
++				.addr   = 0x50,
++				.flags  = 0,
++				.len    = 1,
++				.buf    = &offset,
++			}, {
++				.addr   = 0x50,
++				.flags  = I2C_M_RD,
++				.len    = count,
++				.buf    = buf,
++			}
++		};
++
++		r = i2c_transfer(client->adapter, msgs, 2);
++		if (r == 2)
++			return 0;
++
++		if (r != -EAGAIN)
++			break;
++	}
++
++	return r < 0 ? r : -EIO;
++}
++
++static int sil9022_hw_enable(struct omap_dss_device *dssdev)
++{
++	int		r = 0;
++	u8		vals[8];
++	unsigned int val;
++	u16		xres;
++	u16		yres;
++	u16		pclk;
++
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_video_timings *hdmi_timings = &ddata->timings;
++	struct i2c_client *sil9022_client = ddata->i2c_client;
++	struct regmap *map = ddata->regmap;
++
++	xres = hdmi_timings->x_res;
++	yres = hdmi_timings->y_res;
++	pclk = hdmi_timings->pixel_clock;
++
++	dev_info(dssdev->dev,
++			 "sii9022_ENABLE -> Timings\n"
++			 "pixel_clk			= %d\n"
++			 "horizontal res		= %d\n"
++			 "vertical res			= %d\n",
++			 pclk, xres, yres);
++
++	/*  Fill the TPI Video Mode Data structure */
++	vals[0] = (pclk & 0xFF);                  /* Pixel clock */
++	vals[1] = ((pclk & 0xFF00) >> 8);
++	vals[2] = VERTICAL_FREQ;                    /* Vertical freq */
++	/* register programming information on how vertical freq is to be
++	programmed to Sil9022 not clear. Hence setting to 60 for now */
++	vals[3] = 0x00;
++	vals[4] = (xres & 0xFF);         /* Horizontal pixels*/
++	vals[5] = ((xres & 0xFF00) >> 8);
++	vals[6] = (yres & 0xFF);           /* Vertical pixels */
++	vals[7] = ((yres & 0xFF00) >> 8);
++
++	/*  Write out the TPI Video Mode Data */
++	r = regmap_raw_write(map, HDMI_TPI_VIDEO_DATA_BASE_REG, vals, 8);
++
++	if (r < 0) {
++		dev_err(dssdev->dev,
++			"ERROR: writing TPI video mode data\n");
++		return r;
++	}
++
++	/* Write out the TPI Input bus and pixel repetition Data:
++	(24 bit wide bus, falling edge, no pixel replication, 1:1 CLK ratio) */
++	r = regmap_write(map,
++			HDMI_TPI_PIXEL_REPETITION_REG,
++			TPI_AVI_PIXEL_REP_BUS_24BIT |
++			TPI_AVI_PIXEL_REP_FALLING_EDGE |
++			TPI_AVI_PIXEL_REP_NONE |
++			TPI_CLK_RATIO_1X);
++
++	if (r < 0) {
++		dev_err(dssdev->dev,
++			"ERROR: writing TPI pixel repetition data\n");
++		return r;
++	}
++
++	 /*  Write out the TPI AVI Input Format */
++	r = regmap_write(map,
++			HDMI_TPI_AVI_IN_FORMAT_REG,
++			TPI_AVI_INPUT_BITMODE_8BIT |
++			TPI_AVI_INPUT_RANGE_AUTO |
++			TPI_AVI_INPUT_COLORSPACE_RGB);
++
++	if (r < 0) {
++		dev_err(dssdev->dev,
++			"ERROR: writing TPI AVI Input format\n");
++		return r;
++	}
++
++	/*  Write out the TPI AVI Output Format */
++	r = regmap_write(map,
++			HDMI_TPI_AVI_OUT_FORMAT_REG,
++			TPI_AVI_OUTPUT_CONV_BT709 |
++			TPI_AVI_OUTPUT_RANGE_AUTO |
++			TPI_AVI_OUTPUT_COLORSPACE_RGBHDMI);
++
++	if (r < 0) {
++		dev_err(dssdev->dev,
++			"ERROR: writing TPI AVI output format\n");
++		return r;
++	}
++
++	/* Write out the TPI System Control Data to power down */
++	r = regmap_write(map,
++			HDMI_SYS_CTRL_DATA_REG,
++			TPI_SYS_CTRL_POWER_DOWN);
++
++	if (r < 0) {
++		dev_err(dssdev->dev,
++			"ERROR: writing TPI power down control data\n");
++		return r;
++	}
++
++	/* Move from ENABLED -> FULLY ENABLED Power State  */
++	r = regmap_write(map,
++			HDMI_TPI_POWER_STATE_CTRL_REG,
++			TPI_AVI_POWER_STATE_D0);
++
++	if (r < 0) {
++		dev_err(&sil9022_client->dev,
++			"<%s> ERROR: Setting device power state to D0\n",
++			__func__);
++		return r;
++	}
++
++	/* Write out the TPI System Control Data to power up and
++	 * select output mode
++	 */
++
++	r = regmap_write(map,
++			HDMI_SYS_CTRL_DATA_REG,
++			TPI_SYS_CTRL_POWER_ACTIVE |
++			TPI_SYS_CTRL_OUTPUT_MODE_HDMI);
++
++	if (r < 0) {
++		dev_err(&sil9022_client->dev,
++			"<%s> ERROR: Writing system control data\n", __func__);
++		return r;
++	}
++
++	/*  Read back TPI System Control Data to latch settings */
++	r = regmap_read(map, HDMI_SYS_CTRL_DATA_REG, &val);
++
++	if (r < 0) {
++		dev_err(&sil9022_client->dev,
++			"<%s> ERROR: Reading back system control data\n",
++			__func__);
++		return r;
++	}
++
++	/* HDCP */
++	r = regmap_write(map,
++				HDMI_TPI_HDCP_CONTROLDATA_REG,
++				HDCP_DISABLE);
++
++	if (r < 0) {
++		dev_err(&sil9022_client->dev,
++			"<%s> ERROR: Writing HDCP information",
++			__func__);
++		return r;
++	}
++
++	dev_info(&sil9022_client->dev,
++		"<%s> hdmi over sil9022 is now enabled\n", __func__);
++	return 0;
++
++}
++
++static int sil9022_hw_disable(struct omap_dss_device *dssdev)
++{
++	unsigned int val = 0;
++	int r = 0;
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct regmap *map = ddata->regmap;
++
++	/*  Write out the TPI System Control Data to power down  */
++	r = regmap_write(map,
++			HDMI_SYS_CTRL_DATA_REG,
++			TPI_SYS_CTRL_POWER_DOWN);
++
++	if (r < 0) {
++		dev_err(dssdev->dev,
++			"ERROR: writing control data - power down\n");
++		return r;
++	}
++
++	/*  Move from FULLY ENABLED -> ENABLED Power state */
++	r = regmap_write(map,
++			HDMI_TPI_POWER_STATE_CTRL_REG,
++			TPI_AVI_POWER_STATE_D2);
++
++	if (r < 0) {
++		dev_err(dssdev->dev,
++			"ERROR: Setting device power state to D2\n");
++		return r;
++	}
++
++	/*  Read back TPI System Control Data to latch settings */
++	r = regmap_read(map, HDMI_SYS_CTRL_DATA_REG, &val);
++	if (r < 0) {
++		dev_err(dssdev->dev,
++			"ERROR:  Reading System control data "
++			"- latch settings\n");
++		return r;
++	}
++
++	dev_info(dssdev->dev, "hdmi disabled\n");
++	return 0;
++
++}
++
++static int sil9022_probe_chip_version(struct omap_dss_device *dssdev)
++{
++	int r = 0;
++	unsigned int ver;
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct regmap *map = ddata->regmap;
++
++	/* probe for sil9022 chip version*/
++	r = regmap_write(map, SIL9022_REG_TPI_RQB, 0x00);
++	if (r < 0) {
++		dev_err(dssdev->dev,
++			"ERROR: Writing HDMI configuration to "
++			"reg - SI9022_REG_TPI_RQB\n");
++		return r;
++	}
++
++	r = regmap_read(map, SIL9022_REG_CHIPID0, &ver);
++	if (r < 0) {
++		dev_err(dssdev->dev,
++			"ERROR: Reading HDMI version Id\n");
++	} else if (ver != SIL9022_CHIPID_902x) {
++		dev_err(dssdev->dev,
++			"Not a valid verId: 0x%x\n", ver);
++	} else {
++		dev_info(dssdev->dev,
++			 "sil9022 HDMI Chip version = %x\n", ver);
++	}
++	return r;
++}
++
++/* Hdmi ops */
++
++static int sil9022_connect(struct omap_dss_device *dssdev,
++		struct omap_dss_device *dst)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
++	struct regmap *map = ddata->regmap;
++	int r = 0;
++
++	if (omapdss_device_is_connected(dssdev))
++		return -EBUSY;
++
++	r = in->ops.dpi->connect(in, dssdev);
++	if (r)
++		return r;
++
++	dst->src = dssdev;
++	dssdev->dst = dst;
++
++	/* Move from LOW -> ENABLED Power state */
++	r = regmap_write(map, HDMI_TPI_POWER_STATE_CTRL_REG,
++			TPI_AVI_POWER_STATE_D2);
++	if (r < 0) {
++		dev_err(dssdev->dev, "ERROR: Setting device power state to D2\n");
++		goto err_pwr;
++	}
++
++	return 0;
++err_pwr:
++		dst->src = NULL;
++		dssdev->dst = NULL;
++		in->ops.dpi->disconnect(in, dssdev);
++		return r;
++
++}
++
++static void sil9022_disconnect(struct omap_dss_device *dssdev,
++		struct omap_dss_device *dst)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
++
++	WARN_ON(!omapdss_device_is_connected(dssdev));
++	if (!omapdss_device_is_connected(dssdev))
++		return;
++
++	WARN_ON(dst != dssdev->dst);
++	if (dst != dssdev->dst)
++		return;
++
++	/* we don't control the RESET pin, so we can't wake up from D3 */
++	/* Hence we dont move to D3 state when disconnect is done */
++
++	dst->src = NULL;
++	dssdev->dst = NULL;
++	in->ops.dpi->disconnect(in, &ddata->dssdev);
++}
++
++static int sil9022_enable(struct omap_dss_device *dssdev)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
++	int r;
++
++	if (!omapdss_device_is_connected(dssdev))
++		return -ENODEV;
++
++	if (omapdss_device_is_enabled(dssdev))
++		return 0;
++
++	in->ops.dpi->set_timings(in, &ddata->timings);
++	in->ops.dpi->set_data_lines(in, ddata->data_lines);
++
++	r = in->ops.dpi->enable(in);
++	if (r)
++		return r;
++
++	if (gpio_is_valid(ddata->reset_gpio))
++		gpio_set_value_cansleep(ddata->reset_gpio, 0);
++
++	r = sil9022_hw_enable(dssdev);
++	if (r)
++		goto err_hw_en;
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	return 0;
++
++err_hw_en:
++		if (gpio_is_valid(ddata->reset_gpio))
++			gpio_set_value_cansleep(ddata->reset_gpio, 1);
++
++		in->ops.dpi->disable(in);
++		return r;
++}
++
++static void sil9022_disable(struct omap_dss_device *dssdev)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
++
++	if (!omapdss_device_is_enabled(dssdev))
++		return;
++
++	sil9022_hw_disable(dssdev);
++
++	if (gpio_is_valid(ddata->reset_gpio))
++		gpio_set_value_cansleep(ddata->reset_gpio, 1);
++
++	in->ops.dpi->disable(in);
++
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++}
++
++static void sil9022_set_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
++	struct omap_video_timings *sil9022_timings = timings;
++
++       /* update DPI specific timing info */
++	sil9022_timings->data_pclk_edge  = OMAPDSS_DRIVE_SIG_RISING_EDGE;
++	sil9022_timings->de_level		  = OMAPDSS_SIG_ACTIVE_HIGH;
++	sil9022_timings->sync_pclk_edge = OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES;
++	ddata->timings = *sil9022_timings;
++	dssdev->panel.timings = *sil9022_timings;
++
++	in->ops.dpi->set_timings(in, sil9022_timings);
++}
++
++static void sil9022_get_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	*timings = ddata->timings;
++}
++
++static int sil9022_check_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
++	struct omap_video_timings *sil9022_timings = timings;
++
++	/* update DPI specific timing info */
++	sil9022_timings->data_pclk_edge  = OMAPDSS_DRIVE_SIG_RISING_EDGE;
++	sil9022_timings->de_level		  = OMAPDSS_SIG_ACTIVE_HIGH;
++	sil9022_timings->sync_pclk_edge = OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES;
++
++	return in->ops.dpi->check_timings(in, sil9022_timings);
++}
++
++static int sil9022_read_edid(struct omap_dss_device *dssdev,
++	       u8 *edid, int len)
++{
++
++	int r =  0;
++	unsigned int val = 0;
++	int retries = 0;
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct i2c_client *client = ddata->i2c_client;
++	struct regmap *map = ddata->regmap;
++
++	len = (len < HDMI_EDID_MAX_LENGTH) ? len : HDMI_EDID_MAX_LENGTH;
++
++	/* Request DDC bus access to read EDID info */
++
++	/* Disable TMDS clock */
++
++	r = regmap_write(map, HDMI_SYS_CTRL_DATA_REG, 0x11);
++	if (r < 0) {
++		dev_err(&client->dev,
++			"ERROR: Failed to disable TMDS clock\n");
++		return r;
++	}
++
++	val = 0;
++
++	/* Read TPI system control register*/
++	r = regmap_read(map, HDMI_SYS_CTRL_DATA_REG, &val);
++	if (r < 0) {
++		dev_err(&client->dev,
++			"ERROR: Reading DDC BUS REQUEST\n");
++		return r;
++	}
++
++	/* The host writes 0x1A[2]=1 to request the
++	 * DDC(Display Data Channel) bus
++	 */
++	r = regmap_write(map, HDMI_SYS_CTRL_DATA_REG,
++				val | TPI_SYS_CTRL_DDC_BUS_REQUEST);
++	if (r < 0) {
++		dev_err(&client->dev,
++			"ERROR: Writing DDC BUS REQUEST\n");
++		return r;
++	}
++
++	/*  Poll for bus DDC Bus control to be granted */
++	val = 0;
++
++	/* Through trial and error, to get DDC BUS we need around 3 tries */
++	/* Hence keeping it rounded at 5 tries - a max of 4 retries allowed */
++	do {
++		r = regmap_read(map, HDMI_SYS_CTRL_DATA_REG, &val);
++		if (retries++ > 5) {
++			dev_err(&client->dev, "ERROR: Acquiring DDC Bus\n");
++			return r;
++		}
++	} while ((val & TPI_SYS_CTRL_DDC_BUS_GRANTED) == 0);
++
++	/*  Close the switch to the DDC */
++	r = regmap_write(map, HDMI_SYS_CTRL_DATA_REG,
++		val | TPI_SYS_CTRL_DDC_BUS_REQUEST |
++		TPI_SYS_CTRL_DDC_BUS_GRANTED);
++
++	if (r < 0) {
++		dev_err(&client->dev,
++			"<%s> ERROR: Close switch to DDC BUS REQUEST\n",
++			__func__);
++		return r;
++	}
++
++	r = sil9022_ddc_read(client, edid, len, 0);
++	if (r < 0) {
++		dev_err(&client->dev, "ERROR: Reading EDID\n");
++		return r;
++	}
++
++	/* Release DDC bus access */
++	val &= ~(TPI_SYS_CTRL_DDC_BUS_REQUEST | TPI_SYS_CTRL_DDC_BUS_GRANTED);
++
++	/*Through trial and error, seen that releasing BUS needed 3 tries */
++	/* Hence keeping it rounded at 5 tries - a max of 4 retries allowed */
++	retries = 0;
++	do {
++		r = regmap_write(map, HDMI_SYS_CTRL_DATA_REG, val);
++		if (r >= 0)
++			break;
++		retries++;
++	} while (retries < 5);
++	if (r < 0) {
++		dev_err(&client->dev, "ERROR: Releasing DDC Bus Access\n");
++		return r;
++		}
++	return 0;
++}
++
++static bool sil9022_detect(struct omap_dss_device *dssdev)
++{
++	/* Hot plug detection is not implemented */
++	/* Hence we assume monitor connected */
++	/* This will be fixed once HPD / polling is implemented */
++	return true;
++}
++
++static bool sil9022_audio_supported(struct omap_dss_device *dssdev)
++{
++	/* Audio configuration not present, hence returning false */
++	return false;
++}
++
++static const struct omapdss_hdmi_ops sil9022_hdmi_ops = {
++	.connect			= sil9022_connect,
++	.disconnect		= sil9022_disconnect,
++
++	.enable			= sil9022_enable,
++	.disable			= sil9022_disable,
++
++	.check_timings	= sil9022_check_timings,
++	.set_timings		= sil9022_set_timings,
++	.get_timings		= sil9022_get_timings,
++
++	.read_edid		= sil9022_read_edid,
++	.detect			= sil9022_detect,
++
++	.audio_supported	= sil9022_audio_supported,
++	/* Yet to implement audio ops */
++	/* For now audio_supported ops to return false */
++};
++
++
++static int sil9022_probe_of(struct i2c_client *client)
++{
++	struct panel_drv_data *ddata = dev_get_drvdata(&client->dev);
++	struct device_node *node = client->dev.of_node;
++	struct device_node *src_node;
++	struct omap_dss_device *dssdev, *in;
++
++	int r, reset_gpio, datalines;
++
++	src_node = of_parse_phandle(node, "video-source", 0);
++	if (!src_node) {
++		dev_err(&client->dev, "failed to parse video source\n");
++		return -ENODEV;
++	}
++
++	in = omap_dss_find_output_by_node(src_node);
++	if (in == NULL) {
++		dev_err(&client->dev, "failed to find video source\n");
++		return -EPROBE_DEFER;
++	}
++	ddata->in = in;
++
++	reset_gpio = of_get_named_gpio(node, "reset-gpio", 0);
++
++	if (gpio_is_valid(reset_gpio) || reset_gpio == -ENOENT) {
++		ddata->reset_gpio = reset_gpio;
++	} else {
++		dev_err(&client->dev, "failed to parse lcdorhdmi gpio\n");
++		return reset_gpio;
++	}
++
++	r = of_property_read_u32(node, "data-lines", &datalines);
++	if (r) {
++		dev_err(&client->dev, "failed to parse datalines\n");
++		return r;
++	}
++
++	ddata->data_lines = datalines;
++	ddata->reset_gpio = reset_gpio;
++	dssdev = &ddata->dssdev;
++
++	return 0;
++
++}
++
++static int sil9022_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	struct panel_drv_data *ddata;
++	struct omap_dss_device *dssdev;
++	struct regmap *regmap;
++	int r = 0;
++
++	regmap = devm_regmap_init_i2c(client, &sil9022_regmap_config);
++	if (IS_ERR(regmap)) {
++		r = PTR_ERR(regmap);
++		dev_err(&client->dev, "Failed to init regmap: %d\n", r);
++		return r;
++	}
++
++	ddata = devm_kzalloc(&client->dev, sizeof(*ddata), GFP_KERNEL);
++	if (ddata == NULL)
++		return -ENOMEM;
++
++	dev_set_drvdata(&client->dev, ddata);
++
++	if (client->dev.of_node) {
++		r = sil9022_probe_of(client);
++		if (r)
++			return r;
++	} else {
++		return -ENODEV;
++	}
++
++	if (gpio_is_valid(ddata->reset_gpio)) {
++		r = devm_gpio_request_one(&client->dev, ddata->reset_gpio,
++				GPIOF_OUT_INIT_HIGH, "Sil9022-Encoder");
++		if (r)
++			goto err_gpio;
++	}
++
++	ddata->regmap = regmap;
++	ddata->i2c_client = client;
++	dssdev = &ddata->dssdev;
++	dssdev->dev = &client->dev;
++	dssdev->ops.hdmi = &sil9022_hdmi_ops;
++	dssdev->type = OMAP_DISPLAY_TYPE_DPI;
++	dssdev->output_type = OMAP_DISPLAY_TYPE_HDMI;
++	dssdev->owner = THIS_MODULE;
++	dssdev->phy.dpi.data_lines = ddata->data_lines;
++
++	/* Read sil9022 chip version */
++	r = sil9022_probe_chip_version(dssdev);
++	if (r) {
++		dev_err(&client->dev, "Failed to read CHIP VERSION\n");
++		goto err_i2c;
++	}
++
++	r = omapdss_register_output(dssdev);
++	if (r) {
++		dev_err(&client->dev, "Failed to register output\n");
++		goto err_reg;
++	}
++
++	return 0;
++
++err_reg:
++err_i2c:
++err_gpio:
++
++	omap_dss_put_device(ddata->in);
++	return r;
++}
++
++
++static int sil9022_remove(struct i2c_client *client)
++{
++	struct panel_drv_data *ddata = dev_get_drvdata(&client->dev);
++	struct omap_dss_device *dssdev = &ddata->dssdev;
++
++	omapdss_unregister_output(dssdev);
++
++	WARN_ON(omapdss_device_is_enabled(dssdev));
++	if (omapdss_device_is_enabled(dssdev))
++		sil9022_disable(dssdev);
++
++	WARN_ON(omapdss_device_is_connected(dssdev));
++	if (omapdss_device_is_connected(dssdev))
++		sil9022_disconnect(dssdev, dssdev->dst);
++
++	omap_dss_put_device(ddata->in);
++
++	return 0;
++}
++
++static const struct i2c_device_id sil9022_id[] = {
++	{ SIL9022_DRV_NAME, 0 },
++	{ },
++};
++
++MODULE_DEVICE_TABLE(i2c, sil9022_id);
++
++static struct i2c_driver sil9022_driver = {
++	.driver = {
++		.name  = SIL9022_DRV_NAME,
++		.owner = THIS_MODULE,
++		},
++	.probe		= sil9022_probe,
++	.remove		= sil9022_remove,
++	.id_table	= sil9022_id,
++};
++
++module_i2c_driver(sil9022_driver);
++
++MODULE_AUTHOR("Sathya Prakash M R <sathyap@ti.com>");
++MODULE_DESCRIPTION("Sil9022 DPI to HDMI encoder Driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/video/omap2/displays-new/encoder-sil9022.h b/drivers/video/omap2/displays-new/encoder-sil9022.h
+new file mode 100644
+index 0000000..2922662
+--- /dev/null
++++ b/drivers/video/omap2/displays-new/encoder-sil9022.h
+@@ -0,0 +1,105 @@
++/*
++ * drivers/video/omap2/displays-new/encoder-sil9022.c
++ *
++ * Copyright (C) 2013 Texas Instruments
++ * Author : Sathya Prakash M R <sathyap@ti.com>
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ *
++ */
++
++#ifndef _SI9022_H_
++#define _SI9022_H_
++
++#define SIL9022_DRV_NAME	"sii9022"
++
++#define SIL9022_REG_CHIPID0		0x1B
++#define SIL9022_CHIPID_902x		0xB0
++#define SIL9022_REG_TPI_RQB		0xC7
++
++
++#define HDMI_EDID_MAX_LENGTH	256
++
++#define VERTICAL_FREQ			0x3C /* 60 Hz */
++
++/* Sil9022 TPI mode Programming Register set  */
++#define HDMI_TPI_VIDEO_DATA_BASE_REG		0x00
++#define HDMI_TPI_PIXEL_REPETITION_REG		0x08
++#define HDMI_TPI_AVI_IN_FORMAT_REG			0x09
++#define HDMI_TPI_AVI_OUT_FORMAT_REG		0x0A
++#define HDMI_SYS_CTRL_DATA_REG			0x1A
++#define HDMI_TPI_POWER_STATE_CTRL_REG	0x1E
++#define HDMI_TPI_HDCP_QUERYDATA_REG		0x29
++#define HDMI_TPI_HDCP_CONTROLDATA_REG	0x2A
++
++
++/* Programming HDMI_SYS_CTRL_DATA_REG  power state and mode of operation*/
++#define TPI_SYS_CTRL_POWER_DOWN             (1 << 4)
++#define TPI_SYS_CTRL_POWER_ACTIVE           (0 << 4)
++
++#define TPI_SYS_CTRL_AV_MUTE                (1 << 3)
++
++#define TPI_SYS_CTRL_DDC_BUS_REQUEST        (1 << 2)
++#define TPI_SYS_CTRL_DDC_BUS_GRANTED        (1 << 1)
++
++#define TPI_SYS_CTRL_OUTPUT_MODE_HDMI       (1 << 0)
++#define TPI_SYS_CTRL_OUTPUT_MODE_DVI        (0 << 0)
++
++/* Programming HDMI_TPI_PIXEL_REPETITION_REG  - clock and pixel properties*/
++#define TPI_AVI_PIXEL_REP_BUS_24BIT         (1 << 5)
++#define TPI_AVI_PIXEL_REP_BUS_12BIT         (0 << 5)
++
++#define TPI_AVI_PIXEL_REP_RISING_EDGE       (1 << 4)
++#define TPI_AVI_PIXEL_REP_FALLING_EDGE      (0 << 4)
++
++#define TPI_AVI_PIXEL_REP_4X                (3 << 0)
++#define TPI_AVI_PIXEL_REP_2X                (1 << 0)
++#define TPI_AVI_PIXEL_REP_NONE              (0 << 0)
++
++#define TPI_CLK_RATIO_HALF		(0 << 6)
++#define TPI_CLK_RATIO_1X		(1 << 6)
++#define TPI_CLK_RATIO_2X		(2 << 6)
++#define TPI_CLK_RATIO_4X		(3 << 6)
++
++
++/* Programming HDMI_TPI_AVI_IN_FORMAT_REG - input properties*/
++#define TPI_AVI_INPUT_BITMODE_12BIT         (1 << 7)
++#define TPI_AVI_INPUT_BITMODE_8BIT          (0 << 7)
++
++#define TPI_AVI_INPUT_DITHER                (1 << 6)
++
++#define TPI_AVI_INPUT_RANGE_LIMITED         (2 << 2)
++#define TPI_AVI_INPUT_RANGE_FULL            (1 << 2)
++#define TPI_AVI_INPUT_RANGE_AUTO            (0 << 2)
++
++#define TPI_AVI_INPUT_COLORSPACE_BLACK      (3 << 0)
++#define TPI_AVI_INPUT_COLORSPACE_YUV422     (2 << 0)
++#define TPI_AVI_INPUT_COLORSPACE_YUV444     (1 << 0)
++#define TPI_AVI_INPUT_COLORSPACE_RGB        (0 << 0)
++
++
++/* Programming HDMI_TPI_AVI_OUT_FORMAT_REG  - output properties */
++#define TPI_AVI_OUTPUT_CONV_BT709           (1 << 4)
++#define TPI_AVI_OUTPUT_CONV_BT601           (0 << 4)
++
++#define TPI_AVI_OUTPUT_RANGE_LIMITED        (2 << 2)
++#define TPI_AVI_OUTPUT_RANGE_FULL           (1 << 2)
++#define TPI_AVI_OUTPUT_RANGE_AUTO           (0 << 2)
++
++#define TPI_AVI_OUTPUT_COLORSPACE_RGBDVI    (3 << 0)
++#define TPI_AVI_OUTPUT_COLORSPACE_YUV422    (2 << 0)
++#define TPI_AVI_OUTPUT_COLORSPACE_YUV444    (1 << 0)
++#define TPI_AVI_OUTPUT_COLORSPACE_RGBHDMI   (0 << 0)
++
++/* Programming HDMI_TPI_POWER_STATE_CTRL_REG  */
++#define TPI_AVI_POWER_STATE_D3			(3 << 0)
++#define TPI_AVI_POWER_STATE_D2			(2 << 0)
++#define TPI_AVI_POWER_STATE_D0			(0 << 0)
++
++/* Programming HDMI_TPI_HDCP_CONTROLDATA_REG */
++#define HDCP_DISABLE	0
++#define HDCP_ENABLE		1
++
++#endif
+-- 
+1.7.9.5
 
