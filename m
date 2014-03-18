@@ -1,72 +1,109 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] ARM: OMAP5: DSS hwmod data
-Date: Tue, 18 Mar 2014 07:29:34 +0200
-Message-ID: <5327D9BE.80503@ti.com>
-References: <1394619996-3525-1-git-send-email-tomi.valkeinen@ti.com> <532037E0.1080309@ti.com> <53258DDA.50005@compulab.co.il> <532692A7.7000509@ti.com> <5326F71C.1060602@compulab.co.il> <5326F893.3080607@ti.com> <53270510.1030301@compulab.co.il>
+From: Markus Pargmann <mpa@pengutronix.de>
+Subject: Re: OMAP4 SDP regression...
+Date: Tue, 18 Mar 2014 08:59:35 +0100
+Message-ID: <20140318075935.GG11360@pengutronix.de>
+References: <20140317233229.GP21483@n2100.arm.linux.org.uk>
+ <20140318013507.GD30471@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="EWjiCmDsQPg9KxTk3NS27cKa0FTHxkjgu"
+	protocol="application/pgp-signature"; boundary="DqhR8hV3EnoxUkKN"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40739 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750923AbaCRFaK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Mar 2014 01:30:10 -0400
-In-Reply-To: <53270510.1030301@compulab.co.il>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49790 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751447AbaCRH7m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Mar 2014 03:59:42 -0400
+Content-Disposition: inline
+In-Reply-To: <20140318013507.GD30471@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Lifshitz <lifshitz@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Mark Brown <broonie@linaro.org>
 
---EWjiCmDsQPg9KxTk3NS27cKa0FTHxkjgu
-Content-Type: text/plain; charset=ISO-8859-1
+
+--DqhR8hV3EnoxUkKN
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 17/03/14 16:22, Dmitry Lifshitz wrote:
-> Hi Tomi,
+Hi,
+
+On Mon, Mar 17, 2014 at 06:35:07PM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [140317 16:35]:
+> > There's been a couple of regressions on OMAP4430 SDP I've only recently
+> > noticed:
+> >=20
+> > http://www.arm.linux.org.uk/developer/build/result.php?type=3Dboot&idx=
+=3D1597
+> >=20
+> > Configuring network interfaces... udhcpc (v1.9.1) started
+> > Sending discover...
+> > Sending discover...
+> > Sending discover...
+> > No lease, failing
+> > done.
+> >=20
+> > No link lights come up either.  The hardware is fine because uboot mana=
+ges
+> > to successfully tftp the kernel.
+> >=20
+> > It looks like it was working in -rc4+armsoc and -rc5+armsoc, but not
+> > -rc6+armsoc.
+> >=20
+> > From what I can see, nothing has changed in drivers/net/ethernet/micrel/
+> > since rc5.
+> >=20
+> > I've been through the delta from 3.14-rc5, and I don't see anything
+> > obvious.  Any ideas?  Known problem?
 >=20
-> Unfortunately, I have a lack of experience with DT DSS stuff.
+> Seems like plain v3.14-rc6 fails for me while -rc5 works. Bisecting
+> points to:
 >=20
-> How should I define the endpoints and the connector in my case?
-> Please, could you provide some reference.
+> 66fda75f regulator: core: Replace direct ops->disable usage
+>=20
+> Also verified that v3.14-rc6 with 66fda75f reverted also works.
+>=20
+> Markus & Mark, any ideas?
 
-See Documentation/devicetree/bindings/media/video-interfaces.txt for a
-description of the ports and endpoints.
+I just had a look into the specific dts 'omap4-sdp.dts'. It defines a
+'vdd_eth' at the top of the file, which is a fixed regulator using gpios
+with 'regulator-boot-on'. This regulator is also passed to the ks8851
+driver as vdd-supply. But this supply is not used in the driver.
 
-If your board is similar to uevm except you don't have the tpd12s015,
-then you just need to remove the tpd12s015 from the .dts file, and
-connect the OMAP's HDMI output directly to the connector.
+The problem may be that the fixed regulator was never enabled/disabled
+before my patch. As the network driver does not enable the regulator
+manually, it will be disabled by the regulator framework. A
+'regulator-always-on' may help here.
 
-> Regarding omapfb, is it sufficient to turn it on in the Kernel config?
+Regards,
 
-Yes.
+Markus
 
- Tomi
+--=20
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
 
-
-
---EWjiCmDsQPg9KxTk3NS27cKa0FTHxkjgu
+--DqhR8hV3EnoxUkKN
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJTJ9nCAAoJEPo9qoy8lh71UQ0QAIem9Hkj9lF0tQDZBY5RKboW
-vtPimjyrUQHTHDZuY7HLe9e83ZLbtr16+cjNHSESGXRd1+Qf2t3MO8F2zA25sqLo
-9z2aTLNYeABKH4KAKLWXcCLEANtHq4Uki+FzzCDWkQnQmIbedyxp+0tfGxGiv5YT
-Jhgkk/XBUrpUjCgOaGUE0j/Fxriv/sZLiC8OQ0uWMccOGN/NZrzpZ0VMKltOkiaR
-8r07fvSyQ0GN79L5ksQfiul9xejB+pJC49AxLEKzKdVw8xZ4p8URHF7UXztb6ejr
-zqkDktX7MCfIQLVvUM/sQPzFh/nQxT2JWJAv38Mv+yG+zwscyktJlsJrTBTqXSnF
-HhOWfi/9+A+KFBS3SKGbZtebyWVgCzjDmJDTZozp0uOWVOjgavTBPW6MHf5gi/O+
-e2yiOjUhxARiEURG82olFa4oS0BGTzHvbjqIokimSQAEqCEd9bv8XPA64+GCuMjK
-cBGJIWkGc6J+YXbErphRf31sAEEWSj/8z8HAKvkmwPolalIs07pIh8lmOwiM3Adp
-anDKkiV5MTJVzhN99+6VyJ9j0ZFVgG2xDUUWlLJA/r6yQy/pFBcu3muHRY7i4cVQ
-0Ly6j09ChuAGD+CYMaouLdTkDSJWOtt23KhQX5uHpc9/vpMJphZc5UR4Y9nyl0YJ
-05gKE02mATdg4/m8n5Dj
-=eyOs
+iQIcBAEBAgAGBQJTJ/znAAoJEEpcgKtcEGQQZdAQAIMujsq7OO43oUpaQC87kx2u
+tP6sLjncK/hpmBS/GhM2K9G0l5KbNFDqU6Xzq4BEZQZ/rW3vjjwDueKVfg8wngDe
+WXrb2o5ZRpYefDt9nT/tBAablozjRqLLQhxUrthoCY/RIi6R7GKwAwbGQyVm1NUn
+mV/aeer21T0Lbmm5DsEJvglyouwPq27yfJtrBatVS3W1159yd0EmDsMlZEHZX+0g
+S8Ku6+fxHa9jBH9cLX+/ancfaJ3iqE2r8go4zkTkbXRKf+K1k4hqhRgm3i3yW3Qb
+/7oTUhWIn4rs1l72t3b3+/dCrC/uLMu+SF+TlDhP/kQbMVA2Fkx/z+Fx1Vbuf1hu
+Bn09ev35ZGtMVIS+x+h5X+DjesNG5CSKafIwFH7Uw4yZ51pePxlGBp0QhrokW3Za
+NTVZmWe82vQJmYG3siBIFIZ2DtWNZYR5VfBgQKoskFAj+3PIwV1f5XEdoN6pdYxx
+RPCAhalwJWa+RhCGmexmKaocosbEYkVXU5vbVQ//bOwxXfeN6K/SB74N6gjotXeN
+yB1Hu9xAQ3Y06rEPtm4YRxxOTR71Opi+EaWJbF8xWQiN/FyRlZLOrP99x48wsT/J
+8vGpJq2SA7GsWVhJiG4eckuNIjMK7bQ1MxtyRExhiadVlYR+TUuP4dWtDHwg300B
+5bAgF4PmBqI0516Ru3Oq
+=K81W
 -----END PGP SIGNATURE-----
 
---EWjiCmDsQPg9KxTk3NS27cKa0FTHxkjgu--
+--DqhR8hV3EnoxUkKN--
