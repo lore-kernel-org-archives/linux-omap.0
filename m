@@ -1,95 +1,73 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: rts-gpio DT binding
-Date: Wed, 19 Mar 2014 14:04:38 -0500
-Message-ID: <20140319190349.GB2194@saruman.home>
-References: <20140318165536.GH14373@saruman.home>
- <53287CAF.9040708@newflow.co.uk>
- <20140318171110.GI14373@saruman.home>
- <53296017.3090104@newflow.co.uk>
- <20140319145957.GB27752@saruman.home>
- <5329CDC0.6010705@newflow.co.uk>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="k4f25fnPtRuIRUb3"
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 23/62] ARM: omap1: fix building without 32K_TIMER
+Date: Wed, 19 Mar 2014 20:29:20 +0100
+Message-ID: <1395257399-359545-24-git-send-email-arnd@arndb.de>
+References: <1395257399-359545-1-git-send-email-arnd@arndb.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38108 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750835AbaCSTG1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Mar 2014 15:06:27 -0400
-Content-Disposition: inline
-In-Reply-To: <5329CDC0.6010705@newflow.co.uk>
+Received: from moutng.kundenserver.de ([212.227.17.10]:57424 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751168AbaCSTal (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 15:30:41 -0400
+In-Reply-To: <1395257399-359545-1-git-send-email-arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@newflow.co.uk>
-Cc: balbi@ti.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
---k4f25fnPtRuIRUb3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+If we enable CONFIG_OMAP_MPU_TIMER and CONFIG_OMAP_DM_TIMER but
+not CONFIG_OMAP_32K_TIMER on OMAP1, we currently get this build error:
 
-Hi,
+mach-omap1/pm.c: In function 'omap1_pm_idle':
+mach-omap1/pm.c:123:9: error: 'enable_dyn_sleep' undeclared (first use in this function)
+  while (enable_dyn_sleep) {
+         ^
+mach-omap1/pm.c:123:9: note: each undeclared identifier is reported only once for each function it appears in
 
-On Wed, Mar 19, 2014 at 05:02:56PM +0000, Mark Jackson wrote:
-> >> Okay ... it comes back to me now.
-> >>
-> >> When using RS485 drivers, we're not actually using RTS as a "Ready
-> >> To Send", we're really using it as an "enable RS485 driver".
-> >>
-> >> I just used the "RTS" mnemonic as "we're now wanting to send some
-> >> data so please now enable the RS485 driver", rather than the normal
-> >> "I'm ready for your to send me some data".
-> >>
-> >> So it's the opposite function.
-> >>
-> >> Maybe it was a poor choice of abbreviation ?
-> >>
-> >> As I said before, RS485 drivers might have active or active low
-> >> enables, so we might need to invert the "RTS" polarity.  This is
-> >> not handled by the hardware RTS signal.
-> >>
-> >> Is that a good enough explanation ?
-> >=20
-> > fair, but considering you can toggle RTS by hand with writes to MCR
-> > register, I still don't see the need for remuxing the lines as GPIOs.
-> >=20
-> > Just don't use auto-RTS and toggle the line by hand with MCR, no ?
->=20
-> TBH I hadn't realised you could do that, so I guess you could.
->=20
-> But my solution seems more flexible as it would allow you to add an RTS
-> signal to UART0 and UART5 which don't have any hardware handshaking lines.
+This attempts to fix the #ifdef logic to deal with all combinations
+of timers.
 
-fair, but at least turn into helper functions part of serial core so
-that other serial drivers have a chance of reusing this.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap1/pm.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-IMHO, it's a pretty ugly hack, but then again, a bunch of current
-in-kernel GPIO usage is, anyway.
+diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
+index 40a1ae3..7dff68e 100644
+--- a/arch/arm/mach-omap1/pm.c
++++ b/arch/arm/mach-omap1/pm.c
+@@ -71,10 +71,10 @@ static unsigned int mpui7xx_sleep_save[MPUI7XX_SLEEP_SAVE_SIZE];
+ static unsigned int mpui1510_sleep_save[MPUI1510_SLEEP_SAVE_SIZE];
+ static unsigned int mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_SIZE];
+ 
+-#ifdef CONFIG_OMAP_32K_TIMER
+-
+ static unsigned short enable_dyn_sleep = 1;
+ 
++#if defined(CONFIG_OMAP_32K_TIMER) || defined(CONFIG_OMAP_MPU_TIMER)
++
+ static ssize_t idle_show(struct kobject *kobj, struct kobj_attribute *attr,
+ 			 char *buf)
+ {
+@@ -643,7 +643,7 @@ static const struct platform_suspend_ops omap_pm_ops = {
+ static int __init omap_pm_init(void)
+ {
+ 
+-#ifdef CONFIG_OMAP_32K_TIMER
++#if defined(CONFIG_OMAP_32K_TIMER) || defined(CONFIG_OMAP_MPU_TIMER)
+ 	int error;
+ #endif
+ 
+@@ -700,7 +700,7 @@ static int __init omap_pm_init(void)
+ 	omap_pm_init_debugfs();
+ #endif
+ 
+-#ifdef CONFIG_OMAP_32K_TIMER
++#if defined(CONFIG_OMAP_32K_TIMER) || defined(CONFIG_OMAP_MPU_TIMER)
+ 	error = sysfs_create_file(power_kobj, &sleep_while_idle_attr.attr);
+ 	if (error)
+ 		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
+-- 
+1.8.3.2
 
---=20
-balbi
-
---k4f25fnPtRuIRUb3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTKepGAAoJEIaOsuA1yqREy8oQAIiVgNKxloVMW5aVbONTJkgG
-W4aPRzJXGKpb28NnaSoMyNymSpUdSuht+Xl+5FlGrVWMBGwvipcTuQOZmKQMrFCV
-wiQp9MxJ5ofxOJWubZ4RmsMB17AY66yVEBShjc1TiMZxQa06KDqEdkmmDtKW2hA4
-0Ax5GjmRE3qO5qC2Y/1u4onqsh1GZrE339j3SdPCOlkzzxRbo0dNNDPbwB0ZQt9j
-chpXQmUFnSApdQzG/WhfDn4ZFzURA2pcg3g2S5Fda3MMhl3vnxQxe1q9hhzzgxp3
-s5qp4wDIa39/sNxDb2u7rsZYmYW+r9DB2Z5K1yn7OJz/onY5gwe1UBRcmbVw2YXk
-Hq1BuM+cx9dlsNLMmqhtkmX79LZ8zd5EdCRHB6aQDWvLvP6lT0qZBZ5mF+0C5g5z
-VXTiUPCIzVLGSBGbAFetvCz8T/mzHCdfQ503WH1vLd63HyW3c1Rtbmz86WYf2ZTP
-l+14EXvVDctxH40f1EDdfTVz4LrYRNNADhSQvJX3/bdVZ3dwybB6OUQzKO/spdbt
-Gt9RP+SFqrnAGVh2DRdeE+5j6siGYuSbbbEZPwYfCb/ZllwKKzfM5ZuNVwKHgxeN
-4CXs0aBeZ6Yw5huRR8/XpNtuPligFMv2gJ2vK4H5/qSS2QdZUeAVuRDRtOnUJ2TQ
-j3GBt3Wda1tnw4NG4dn+
-=oEhw
------END PGP SIGNATURE-----
-
---k4f25fnPtRuIRUb3--
