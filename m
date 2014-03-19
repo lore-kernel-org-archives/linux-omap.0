@@ -1,78 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 24/62] ARM: omap1: select I2C where needed for PMIC
-Date: Wed, 19 Mar 2014 14:04:42 -0700
-Message-ID: <20140319210441.GC8333@atomide.com>
-References: <1395257399-359545-1-git-send-email-arnd@arndb.de>
- <1395257399-359545-25-git-send-email-arnd@arndb.de>
- <20140319204619.GB8333@atomide.com>
- <19769201.1MOf3JVGbC@wuerfel>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [RFC PATCH 3/6] PM / Voltagedomain: introduce voltage domain driver
+ support
+Date: Wed, 19 Mar 2014 15:35:36 -0700
+Message-ID: <20140319223536.31449.32103@quantum>
+References: <1392755543-28335-1-git-send-email-nm@ti.com>
+ <1392755543-28335-4-git-send-email-nm@ti.com>
+ <20140224015826.GU25940@sirena.org.uk> <530B594F.2030500@ti.com>
+ <20140303035426.GC2411@sirena.org.uk> <531DF250.5060100@ti.com>
+ <20140310172221.GT28112@sirena.org.uk> <531DF931.1060108@ti.com>
+ <20140310180131.GZ28112@sirena.org.uk> <531E11B7.6080109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:25872 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755574AbaCSVEv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 17:04:51 -0400
-Content-Disposition: inline
-In-Reply-To: <19769201.1MOf3JVGbC@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <531E11B7.6080109@ti.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Mark Brown <broonie@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [140319 14:01]:
-> On Wednesday 19 March 2014 13:46:19 Tony Lindgren wrote:
-> > * Arnd Bergmann <arnd@arndb.de> [140319 12:33]:
-> > > The OMAP H2, OSK and OSIRIS machines cannot build without
-> > > I2C and TPS65010 both enabled unconditionally.
-> > > 
-> > > In each case, failing to enable CONFIG_I2C results in a
-> > > build or link error, so most consistent solution is to
-> > > ensure that it is impossible to disable those options.
-> > > 
-> > > It would be nice to leave CONFIG_I2C as user-selectable,
-> > > but doing that properly would require more work.
+Quoting Nishanth Menon (2014-03-10 12:25:43)
+> On 03/10/2014 01:01 PM, Mark Brown wrote:
+> > On Mon, Mar 10, 2014 at 12:41:05PM -0500, Nishanth Menon wrote:
 > > 
-> > We should not select drivers. How about let's just have
-> > the tps65010 stuff behind an ifdef CONFIG_TPS65010 for
-> > those boards?
-> 
-> Good idea. Like this?
+> >> The only other options are:
+> >> a) Abstract it at a higher level at "user drivers", since they are
+> >> aware of the sequencing needs - but this partially defeats the
+> >> purpose, unless ofcourse, we do a tricky implementation such as:
+> >> clk a, b, c -> prenotifiers in a, postnotifiers in c (which as you
+> >> mentioned is a little trickier to get right).
+> >> b) introduce a higher level generic dvfs function[1] which does not
+> >> seem very attractive either.
 
-Looks good to me :)
+I disagree that a higher level DVFS interface is unattractive. I think
+it has taken a while to get there but people are finally interested in
+this. A small amount of discussion about this took place at Linaro
+Connect earlier this month (just hallway talk) but we shouldn't rule out
+the idea of a general framework for managing DVFS, which frankly is
+complex enough to merit not being shoved into the clock layer.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
-> diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-> index fd90caf..65d2acb 100644
-> --- a/arch/arm/mach-omap1/board-h2.c
-> +++ b/arch/arm/mach-omap1/board-h2.c
-> @@ -318,6 +318,9 @@ static void __init h2_init_smc91x(void)
->  
->  static int tps_setup(struct i2c_client *client, void *context)
->  {
-> +	if (!IS_BUILTIN(CONFIG_TPS65010))
-> +		return -ENOSYS;
-> +	
->  	tps65010_config_vregs1(TPS_LDO2_ENABLE | TPS_VLDO2_3_0V |
->  				TPS_LDO1_ENABLE | TPS_VLDO1_3_0V);
->  
-> diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-> index d68909b..3a02621 100644
-> --- a/arch/arm/mach-omap1/board-osk.c
-> +++ b/arch/arm/mach-omap1/board-osk.c
-> @@ -191,6 +191,9 @@ static struct platform_device osk5912_tps_leds = {
->  
->  static int osk_tps_setup(struct i2c_client *client, void *context)
->  {
-> +	if (!IS_BUILTIN(CONFIG_TPS65010))
-> +		return -ENOSYS;
-> +
->  	/* Set GPIO 1 HIGH to disable VBUS power supply;
->  	 * OHCI driver powers it up/down as needed.
->  	 */
+> > 
+> >> Any other suggestions other than limiting the usage(and documenting it
+> >> so) and hoping for a future evolution to take this into consideration?
+> > 
+> > Something might be doable with telling the clock API about maintianing
+> > ratios between clocks?  I do think we should have an idea where we'd go
+> > with such requirements, even if we don't currently handle it, so that we
+> > can hopefully avoid another round of refactoring everything but it
+> > doesn't seem 100% essential, just very nice to have.
+
+This sounds reasonable but I must point out that the clock framework
+today (based on the existing clk.h api) does not have a single instance
+of constraint-based logic. For instance there is no clk_set_min_rate or
+clk_set_max_rate or clk_set_rate_range. These have been discussed before
+but I feel that pushing something before now would have been premature
+given that the level of discussion around those features never hit
+critical mass.
+
+So the ratio thing is sensible, but it would be the first
+constraint-like mechanism in the clock framework so what that looks like
+bares careful consideration.
+
+> > 
+> Mike,
+> Any suggestions about the above? could we use composite clocks in some
+> manner here(even though I think the original intent of the same was
+> not the same)?
+
+NACK. Let's just model the hardware in the clock framework, please. If
+you need to invent fake clocks to represent other constructs then it
+means the framework is missing something (or we're missing an entire
+framework, e.g. DVFS).
+
+Regards,
+Mike
+
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -- 
+> Regards,
+> Nishanth Menon
