@@ -1,47 +1,50 @@
-From: Nathan Lynch <nathan_lynch@mentor.com>
-Subject: [PATCH v2] ARM: dts: OMAP5: add pmu node
-Date: Wed, 19 Mar 2014 10:45:53 -0500
-Message-ID: <1395243953-11856-1-git-send-email-nathan_lynch@mentor.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND PATCH 0/3] ARM: OMAP2+: Remove remaining unused legacy
+ code
+Date: Wed, 19 Mar 2014 09:05:13 -0700
+Message-ID: <20140319160513.GC12934@atomide.com>
+References: <1395209295-24399-1-git-send-email-javier.martinez@collabora.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:59903 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965297AbaCSPqV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 11:46:21 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55000 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965600AbaCSQF0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 12:05:26 -0400
+Content-Disposition: inline
+In-Reply-To: <1395209295-24399-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, bcousson@baylibre.com
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Russell King <linux@arm.linux.org.uk>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Expose the PMU on OMAP5.
+* Javier Martinez Canillas <javier.martinez@collabora.co.uk> [140318 23:12]:
+> Once OMAP2+ board files are removed, there is unused code that was only used
+> by legacy platform code and can be removed.
+> 
+> This patch-set depends on the series:
+> 
+> [PATCH 00/12] Drop omap3 board files and make mach-omap2 boot in DT only mode [0]
+> 
+> and is composed of the following patches:
+> 
+> [RESEND PATCH 1/3] ARM: OMAP2+: Remove legacy smsc911x and smc91x
+> [RESEND PATCH 2/3] ARM: OMAP2+: Remove unnecesary include in GPMC
+> [RESEND PATCH 3/3] ARM: OMAP2+: Remove legacy board-flash.c
+> 
+> Tony,
+> 
+> I don't know what is your new schedule for board files removal but in case it is
+> 3.16, I forward ported this patch-set on top of 3.14-rc7 and fixed some conflicts.
 
-Tested with perf on OMAP5 uEVM.
+Thanks, I'll also rebase my changes in omap-for-v3.14/omap3-board-removal
+at some point. Probably a good target is v3.16 if the DSS changes go
+in. Then we just need displays enabled for omap3 and pandora supported
+to drop the legacy data AFAIK.
 
-Signed-off-by: Nathan Lynch <nathan_lynch@mentor.com>
----
+Regards,
 
-Changes since v1:
-- Use symbolic constants.
-
- arch/arm/boot/dts/omap5.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index a72813a9663e..ccb38944c85a 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -76,6 +76,12 @@
- 			     <GIC_PPI 10 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>;
- 	};
+Tony
  
-+	pmu {
-+		compatible = "arm,cortex-a15-pmu";
-+		interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>,
-+			     <GIC_SPI 132 IRQ_TYPE_LEVEL_HIGH>;
-+	};
-+
- 	gic: interrupt-controller@48211000 {
- 		compatible = "arm,cortex-a15-gic";
- 		interrupt-controller;
--- 
-1.8.3.1
-
+> [0]: http://marc.info/?t=138542504600001&r=1&w=2
+> 
