@@ -1,78 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: twl-core: Fix accessibility of some twl4030 audio
- registers
-Date: Wed, 19 Mar 2014 08:31:41 -0700
-Message-ID: <20140319153140.GB12934@atomide.com>
-References: <20140310191250.34f1410e@tomas.local.tbs-biometrics.cz>
- <531EC981.8090806@ti.com>
- <20140318172650.GA307@atomide.com>
- <20140318201947.GT25478@lee--X1>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nathan Lynch <nathan_lynch@mentor.com>
+Subject: [PATCH v2] ARM: dts: OMAP5: add pmu node
+Date: Wed, 19 Mar 2014 10:45:53 -0500
+Message-ID: <1395243953-11856-1-git-send-email-nathan_lynch@mentor.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:22404 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S965001AbaCSPbs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 11:31:48 -0400
-Content-Disposition: inline
-In-Reply-To: <20140318201947.GT25478@lee--X1>
+Received: from relay1.mentorg.com ([192.94.38.131]:59903 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965297AbaCSPqV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 11:46:21 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tomas Novotny <tomas@novotny.cz>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, bcousson@baylibre.com
 
-* Lee Jones <lee.jones@linaro.org> [140318 13:23]:
-> > > > There are some unused registers in twl4030 at I2C address 0x49 and function
-> > > > twl4030_49_nop_reg() is used to check accessibility of that registers. These
-> > > > registers are written in decimal format but the values are correct in
-> > > > hexadecimal format. (It can be checked few lines above the patched code -
-> > > > these registers are marked as unused there.)
-> > > > 
-> > > > As a consequence three registers of audio submodule are treated as
-> > > > inaccessible (preamplifier carkit right and both handsfree registers).
-> > > > 
-> > > > CC: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > > > Signed-off-by: Tomas Novotny <tomas@novotny.cz>
-> > > > ---
-> > > >  drivers/mfd/twl-core.c | 10 +++++-----
-> > > >  1 file changed, 5 insertions(+), 5 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> > > > index ed71832..e87140b 100644
-> > > > --- a/drivers/mfd/twl-core.c
-> > > > +++ b/drivers/mfd/twl-core.c
-> > > > @@ -282,11 +282,11 @@ static struct reg_default twl4030_49_defaults[] = {
-> > > >  static bool twl4030_49_nop_reg(struct device *dev, unsigned int reg)
-> > > >  {
-> > > >  	switch (reg) {
-> > > > -	case 0:
-> > > > -	case 3:
-> > > > -	case 40:
-> > > > -	case 41:
-> > > > -	case 42:
-> > > > +	case 0x00:
-> > > > +	case 0x03:
-> > > > +	case 0x40:
-> > > > +	case 0x41:
-> > > > +	case 0x42:
-> > > 
-> > > Uhm, I can not be that @#$%^& that I did this... I have no idea how I left out
-> > > the "0x"
-> > > 
-> > > Thanks for spotting it!
-> > > 
-> > > Acked-by Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > 
-> > Peter, if this does not make it to the -rc series, care to send this to
-> > the stable for inclusion after it hits mainline?
-> > 
-> > This fixes twl4030 audio regression at least on boards using HandsfreeL
-> > for audio.
-> 
-> I think it's a little late in the cycle to send this to the -rcs.
-> 
-> Stable will be Cc'ed however.
+Expose the PMU on OMAP5.
 
-That's fine with me thanks.
+Tested with perf on OMAP5 uEVM.
 
-Tony
+Signed-off-by: Nathan Lynch <nathan_lynch@mentor.com>
+---
+
+Changes since v1:
+- Use symbolic constants.
+
+ arch/arm/boot/dts/omap5.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index a72813a9663e..ccb38944c85a 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -76,6 +76,12 @@
+ 			     <GIC_PPI 10 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>;
+ 	};
+ 
++	pmu {
++		compatible = "arm,cortex-a15-pmu";
++		interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>,
++			     <GIC_SPI 132 IRQ_TYPE_LEVEL_HIGH>;
++	};
++
+ 	gic: interrupt-controller@48211000 {
+ 		compatible = "arm,cortex-a15-gic";
+ 		interrupt-controller;
+-- 
+1.8.3.1
+
