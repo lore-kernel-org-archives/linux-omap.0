@@ -1,75 +1,45 @@
-From: Mark Jackson <mpfj-list@newflow.co.uk>
-Subject: Re: rts-gpio DT binding
-Date: Wed, 19 Mar 2014 09:15:03 +0000
-Message-ID: <53296017.3090104@newflow.co.uk>
-References: <20140318165536.GH14373@saruman.home> <53287CAF.9040708@newflow.co.uk> <20140318171110.GI14373@saruman.home>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v2 0/2] add parallel NAND support for TI's new OMAPx and
+ AMxx platforms
+Date: Wed, 19 Mar 2014 09:17:35 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAB43F8@DBDE04.ent.ti.com>
+References: <1394617547-25240-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 217-155-41-104.dsl.in-addr.zen.co.uk ([217.155.41.104]:43959
-	"EHLO centos1.newflow.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758259AbaCSJPZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Mar 2014 05:15:25 -0400
-In-Reply-To: <20140318171110.GI14373@saruman.home>
+Received: from devils.ext.ti.com ([198.47.26.153]:36255 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757883AbaCSJRn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 05:17:43 -0400
+In-Reply-To: <1394617547-25240-1-git-send-email-pekon@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On 18/03/14 17:11, Felipe Balbi wrote:
-> On Tue, Mar 18, 2014 at 05:04:47PM +0000, Mark Jackson wrote:
->> On 18/03/14 16:55, Felipe Balbi wrote:
->>> Hi Mark,
->>>
->>> I'm looking at the omap-serial driver and saw that you added rts-gpio
->>> binding in commit 4a0ac0f55b18dc297a87a85417fcf068658bf103 (OMAP: add
->>> RS485 support) but, as it turns out, gpio0_13 and gpio2_15 are both
->>> actual RTS signals.
->>>
->>> Instead of adding that extra GPIO handling, why didn't you just mux
->>> those signals as RTS and enable auto-RTS/auto-CTS feature ?
->>>
->>> It looks to me like that's highly unnecessary binding.
->>
->> I agree !!
->>
->> I think it was to allow delays pre- and post- sending the comms data.
->>
->> Several RS485 drivers require a "warm up" time before they will
->> transmit data correctly, and also need a "cool down" time to prevent
->> clipping of the last few bits of data.
->>
->> IIRC the built-in RTS handling did not allow for this.
-> 
-> you might be right here. I can't find anywhere to write rts delays.
-> Weird... digging TRM.
-> 
->> It also allows the RTS signal to be "inverted", again required for
->> some RS485 driver chips.
->>
->> However, I'll dig into why I did this and report back.
-> 
-> cool, thanks
+Hi Tony,
 
-Okay ... it comes back to me now.
+>From: Gupta, Pekon
+>*changes v1 -> v2*
+> - AM335x (am335x-evm): <already accepted, so dropping in v2>
+> - DRA7xx (dra7-evm): resending
+> - AM43xx (am43X-epos-evm): fix MTD NAND.filesystem partition offset
+>
+I see following patches in your tree/branch  "omap-for-v3.15/dt"
+But probably they were omitted in the pull request. Is there something, I need to do for these ?
 
-When using RS485 drivers, we're not actually using RTS as a "Ready
-To Send", we're really using it as an "enable RS485 driver".
+	f68e355  2014-03-02  ARM: dts: am43xx: add support for parallel NAND flash
+	c06c527  2014-03-02  ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
+	91994fa  2014-03-02  ARM: dts: am335x-evm: NAND: update MTD partition table
+	0611c41  2014-03-02  ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms and ECC schemes
 
-I just used the "RTS" mnemonic as "we're now wanting to send some
-data so please now enable the RS485 driver", rather than the normal
-"I'm ready for your to send me some data".
 
-So it's the opposite function.
+Also, I had sent a [v2] for one of the patches, dropped by you. Please see if that can be picked
+	[Patch v2 1/2] ARM: dts: dra7: add support for parallel NAND flash
+	[Patch v2 1/2] ARM: dts: am43xx: fix starting offset of NAND.filesystem MTD partition
 
-Maybe it was a poor choice of abbreviation ?
 
-As I said before, RS485 drivers might have active or active low
-enables, so we might need to invert the "RTS" polarity.  This is
-not handled by the hardware RTS signal.
+with regards, pekon
 
-Is that a good enough explanation ?
-
-Mark J.
