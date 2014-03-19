@@ -1,53 +1,47 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v5 4/5] ARM: dts: am437x-gp-evm: Enable USB
-Date: Wed, 19 Mar 2014 15:40:02 +0530
-Message-ID: <1395223803-4714-5-git-send-email-george.cherian@ti.com>
-References: <1395223803-4714-1-git-send-email-george.cherian@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] dma: edma: fix incorrect SG list handling
+Date: Wed, 19 Mar 2014 15:50:20 +0530
+Message-ID: <53296F64.10308@ti.com>
+References: <1395057448-22904-1-git-send-email-nsekhar@ti.com>	<alpine.DEB.2.02.1403170854570.9730@jringle-ubuntu>	<5326F2BF.6040702@ti.com>	<alpine.DEB.2.02.1403170913110.9730@jringle-ubuntu>	<20140318152840.GD1976@intel.com> <5328946C.3010508@ti.com> <53291F72.9060504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1395223803-4714-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com, rogerq@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, anatol.pomozov@gmail.com, bcousson@baylibre.com, George Cherian <george.cherian@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38664 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759166AbaCSKUb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 06:20:31 -0400
+In-Reply-To: <53291F72.9060504@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>, Vinod Koul <vinod.koul@intel.com>, Jon Ringle <jon@ringle.org>
+Cc: DMA Engine Mailing List <dmaengine@vger.kernel.org>, "Ringle, Jonathan" <Jonathan.Ringle@gridpoint.com>, Dan Williams <dan.j.williams@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux DaVinci Mailing List <davinci-linux-open-source@linux.davincidsp.com>
 
-Enable
-	- USB PHY
-	- USB
-for am437x-gp-evm
+On Wednesday 19 March 2014 10:09 AM, Sekhar Nori wrote:
+> On Wednesday 19 March 2014 12:16 AM, Joel Fernandes wrote:
+>> On 03/18/2014 10:28 AM, Vinod Koul wrote:
+>>> where is this patch, somehow am not able to find in my inbox or archives...
+>>>
+>>
+>> I found it archived here:
+>> http://comments.gmane.org/gmane.linux.davinci/28569
+>>
+>> Patch doesn't breaking anything for > MAX_NR_SG list size on AM335x, so
+>> it looks good.
+>>
+>> Acked-by: Joel Fernandes <joelf@ti.com>
+> 
+> Joel, thanks for the ack.
+> 
+> Vinod, Looks like the vger and Intel spam filters dropped the patch. I
+> will try again.
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
-Acked-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/am437x-gp-evm.dts | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+Okay, I see see the patch in dmaengine list archives now and hopefully
+it has reached Vinod too.
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index df8798e..9e57538 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -125,3 +125,21 @@
- 	pinctrl-0 = <&mmc1_pins>;
- 	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
- };
-+
-+&usb2_phy1 {
-+	status = "okay";
-+};
-+
-+&usb1 {
-+	dr_mode = "peripheral";
-+	status = "okay";
-+};
-+
-+&usb2_phy2 {
-+	status = "okay";
-+};
-+
-+&usb2 {
-+	dr_mode = "host";
-+	status = "okay";
-+};
--- 
-1.8.3.1
+I think the issue last time around was that From: and Return-Path:
+headers ended up having different addresses.
+
+Thanks,
+Sekhar
+
