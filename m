@@ -1,75 +1,40 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: [PATCH 1/1] dma: edma: fix incorrect SG list handling
-Date: Wed, 19 Mar 2014 11:25:50 +0530
-Message-ID: <1395208550-1603-1-git-send-email-nsekhar@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [RESEND PATCH 2/3] ARM: OMAP2+: Remove unnecesary include in GPMC driver
+Date: Wed, 19 Mar 2014 07:08:14 +0100
+Message-ID: <1395209295-24399-3-git-send-email-javier.martinez@collabora.co.uk>
+References: <1395209295-24399-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57239 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751122AbaCSF4M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Mar 2014 01:56:12 -0400
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:58616 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755265AbaCSGIs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 02:08:48 -0400
+In-Reply-To: <1395209295-24399-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>
-Cc: DMA Engine Mailing List <dmaengine@vger.kernel.org>, Linux DaVinci Mailing List <davinci-linux-open-source@linux.davincidsp.com>, Jon Ringle <jringle@gridpoint.com>, Alexander Holler <holler@ahsoftware.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Joel Fernandes <joelf@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-The code to handle any length SG lists calls edma_resume()
-even before edma_start() is called. This is incorrect
-because edma_resume() enables edma events on the channel
-after which CPU (in edma_start) cannot clear posted
-events by writing to ECR (per the EDMA user's guide).
+The GPMC driver includes arch/arm/mach-omap2/common.h but
+does not use anything on that header so it can be removed.
 
-Because of this EDMA transfers fail to start if due
-to some reason there is a pending EDMA event registered
-even before EDMA transfers are started. This can happen if
-an EDMA event is a byproduct of device initialization.
-
-Fix this by calling edma_resume() only if it is not the
-first batch of MAX_NR_SG elements.
-
-Without this patch, MMC/SD fails to function on DA850 EVM
-with DMA. The behaviour is triggered by specific IP and
-this can explain why the issue was not reported before
-(example with MMC/SD on AM335x).
-
-Tested on DA850 EVM and AM335x EVM-SK using MMC/SD card.
-
-Cc: stable@vger.kernel.org # v3.12.x+
-Cc: Joel Fernandes <joelf@ti.com>
-Acked-by: Joel Fernandes <joelf@ti.com>
-Tested-by: Jon Ringle <jringle@gridpoint.com>
-Tested-by: Alexander Holler <holler@ahsoftware.de>
-Reported-by: Jon Ringle <jringle@gridpoint.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
-Same as the version send previously (which did not make
-into all mailing lists). Commit message updates with
-tested-by and acks received.
+ arch/arm/mach-omap2/gpmc.c | 1 -
+ 1 file changed, 1 deletion(-)
 
- drivers/dma/edma.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index cd8da45..bf5ad0f 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -182,11 +182,13 @@ static void edma_execute(struct edma_chan *echan)
- 				  echan->ecc->dummy_slot);
- 	}
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index ab43755..b637c96 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -37,7 +37,6 @@
+ #include <asm/mach-types.h>
  
--	edma_resume(echan->ch_num);
--
- 	if (edesc->processed <= MAX_NR_SG) {
- 		dev_dbg(dev, "first transfer starting %d\n", echan->ch_num);
- 		edma_start(echan->ch_num);
-+	} else {
-+		dev_dbg(dev, "chan: %d: completed %d elements, resuming\n",
-+			echan->ch_num, edesc->processed);
-+		edma_resume(echan->ch_num);
- 	}
- 
- 	/*
+ #include "soc.h"
+-#include "common.h"
+ #include "omap_device.h"
+ #include "gpmc.h"
+ #include "gpmc-nand.h"
 -- 
-1.7.10.1
+1.9.0
 
