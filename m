@@ -1,45 +1,49 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v2 0/2] add parallel NAND support for TI's new OMAPx and
- AMxx platforms
-Date: Wed, 19 Mar 2014 09:17:35 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAB43F8@DBDE04.ent.ti.com>
-References: <1394617547-25240-1-git-send-email-pekon@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH v5 0/5] Add USB nodes for am43xx epos and gp evm
+Date: Wed, 19 Mar 2014 15:39:58 +0530
+Message-ID: <1395223803-4714-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36255 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757883AbaCSJRn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 05:17:43 -0400
-In-Reply-To: <1394617547-25240-1-git-send-email-pekon@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: balbi@ti.com, rogerq@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, anatol.pomozov@gmail.com, bcousson@baylibre.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi Tony,
+The patch series adds USB dt nodes for am43xx epos and gp evm
+Boot tested with linux-next + Tony's omap-for-v3.15/dt
 
->From: Gupta, Pekon
->*changes v1 -> v2*
-> - AM335x (am335x-evm): <already accepted, so dropping in v2>
-> - DRA7xx (dra7-evm): resending
-> - AM43xx (am43X-epos-evm): fix MTD NAND.filesystem partition offset
->
-I see following patches in your tree/branch  "omap-for-v3.15/dt"
-But probably they were omitted in the pull request. Is there something, I need to do for these ?
+Changes from v1 -> v2
+	* Reorder "doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue"
+	* Address v1 coments on "ARM: dts: AM4372: Add USB nodes"  
 
-	f68e355  2014-03-02  ARM: dts: am43xx: add support for parallel NAND flash
-	c06c527  2014-03-02  ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
-	91994fa  2014-03-02  ARM: dts: am335x-evm: NAND: update MTD partition table
-	0611c41  2014-03-02  ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms and ECC schemes
+Changes from v2 -> v3
+	* Removed unwanted dwc3_1 and dwc3_2 nodes from am437x-gp-evm.dts 
+	  and am43x-epos-evm.dts 
 
+Changes from v3 -> v4
+	* Refreshed on top of Tony's omap-for-v3.15/dt tree
+	* Added usb_phy0_always_on_clk32k and usb_phy1_always_on_clk32k Patch 2
+	* Used the above clocks in Patch 3 
+	* Patch 4 and 5 edited the unwanted portions of commit log
 
-Also, I had sent a [v2] for one of the patches, dropped by you. Please see if that can be picked
-	[Patch v2 1/2] ARM: dts: dra7: add support for parallel NAND flash
-	[Patch v2 1/2] ARM: dts: am43xx: fix starting offset of NAND.filesystem MTD partition
+Changes from v4 -> v5
+	* Address Roger's comment for the clock data
 
+George Cherian (5):
+  doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue
+  ARM: dts: am43xx clock data
+  ARM: dts: AM4372: Add USB nodes
+  ARM: dts: am437x-gp-evm: Enable USB
+  ARM: dts: am43x-epos-evm: Enable USB
 
-with regards, pekon
+ Documentation/devicetree/bindings/usb/omap-usb.txt |  4 +-
+ arch/arm/boot/dts/am4372.dtsi                      | 94 ++++++++++++++++++++++
+ arch/arm/boot/dts/am437x-gp-evm.dts                | 18 +++++
+ arch/arm/boot/dts/am43x-epos-evm.dts               | 18 +++++
+ arch/arm/boot/dts/am43xx-clocks.dtsi               | 32 ++++++++
+ 5 files changed, 165 insertions(+), 1 deletion(-)
+
+-- 
+1.8.3.1
 
