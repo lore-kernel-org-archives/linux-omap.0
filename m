@@ -1,73 +1,58 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 23/62] ARM: omap1: fix building without 32K_TIMER
-Date: Wed, 19 Mar 2014 20:29:20 +0100
-Message-ID: <1395257399-359545-24-git-send-email-arnd@arndb.de>
+Subject: [PATCH 24/62] ARM: omap1: select I2C where needed for PMIC
+Date: Wed, 19 Mar 2014 20:29:21 +0100
+Message-ID: <1395257399-359545-25-git-send-email-arnd@arndb.de>
 References: <1395257399-359545-1-git-send-email-arnd@arndb.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:57424 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.24]:65331 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751168AbaCSTal (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 15:30:41 -0400
+	with ESMTP id S1751168AbaCSTbK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 15:31:10 -0400
 In-Reply-To: <1395257399-359545-1-git-send-email-arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-If we enable CONFIG_OMAP_MPU_TIMER and CONFIG_OMAP_DM_TIMER but
-not CONFIG_OMAP_32K_TIMER on OMAP1, we currently get this build error:
+The OMAP H2, OSK and OSIRIS machines cannot build without
+I2C and TPS65010 both enabled unconditionally.
 
-mach-omap1/pm.c: In function 'omap1_pm_idle':
-mach-omap1/pm.c:123:9: error: 'enable_dyn_sleep' undeclared (first use in this function)
-  while (enable_dyn_sleep) {
-         ^
-mach-omap1/pm.c:123:9: note: each undeclared identifier is reported only once for each function it appears in
+In each case, failing to enable CONFIG_I2C results in a
+build or link error, so most consistent solution is to
+ensure that it is impossible to disable those options.
 
-This attempts to fix the #ifdef logic to deal with all combinations
-of timers.
+It would be nice to leave CONFIG_I2C as user-selectable,
+but doing that properly would require more work.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 ---
- arch/arm/mach-omap1/pm.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap1/Kconfig | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-index 40a1ae3..7dff68e 100644
---- a/arch/arm/mach-omap1/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -71,10 +71,10 @@ static unsigned int mpui7xx_sleep_save[MPUI7XX_SLEEP_SAVE_SIZE];
- static unsigned int mpui1510_sleep_save[MPUI1510_SLEEP_SAVE_SIZE];
- static unsigned int mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_SIZE];
- 
--#ifdef CONFIG_OMAP_32K_TIMER
--
- static unsigned short enable_dyn_sleep = 1;
- 
-+#if defined(CONFIG_OMAP_32K_TIMER) || defined(CONFIG_OMAP_MPU_TIMER)
-+
- static ssize_t idle_show(struct kobject *kobj, struct kobj_attribute *attr,
- 			 char *buf)
- {
-@@ -643,7 +643,7 @@ static const struct platform_suspend_ops omap_pm_ops = {
- static int __init omap_pm_init(void)
- {
- 
--#ifdef CONFIG_OMAP_32K_TIMER
-+#if defined(CONFIG_OMAP_32K_TIMER) || defined(CONFIG_OMAP_MPU_TIMER)
- 	int error;
- #endif
- 
-@@ -700,7 +700,7 @@ static int __init omap_pm_init(void)
- 	omap_pm_init_debugfs();
- #endif
- 
--#ifdef CONFIG_OMAP_32K_TIMER
-+#if defined(CONFIG_OMAP_32K_TIMER) || defined(CONFIG_OMAP_MPU_TIMER)
- 	error = sysfs_create_file(power_kobj, &sleep_while_idle_attr.attr);
- 	if (error)
- 		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
+diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
+index cdd05f2..23ab1d5 100644
+--- a/arch/arm/mach-omap1/Kconfig
++++ b/arch/arm/mach-omap1/Kconfig
+@@ -44,6 +44,8 @@ config MACH_OMAP_INNOVATOR
+ config MACH_OMAP_H2
+ 	bool "TI H2 Support"
+ 	depends on ARCH_OMAP1 && ARCH_OMAP16XX
++	select TPS65010
++	select I2C
+     	help
+ 	  TI OMAP 1610/1611B H2 board support. Say Y here if you have such
+ 	  a board.
+@@ -64,6 +66,8 @@ config MACH_HERALD
+ config MACH_OMAP_OSK
+ 	bool "TI OSK Support"
+ 	depends on ARCH_OMAP1 && ARCH_OMAP16XX
++	select TPS65010
++	select I2C
+     	help
+ 	  TI OMAP 5912 OSK (OMAP Starter Kit) board support. Say Y here
+           if you have such a board.
 -- 
 1.8.3.2
 
