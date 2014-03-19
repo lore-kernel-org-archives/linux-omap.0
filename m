@@ -1,180 +1,82 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: pandaboard boot crash with linux-next
-Date: Wed, 19 Mar 2014 16:25:45 +0200
-Message-ID: <5329A8E9.1010000@ti.com>
-References: <53270218.9050109@ti.com>
+Date: Wed, 19 Mar 2014 16:33:47 +0200
+Message-ID: <5329AACB.7080208@ti.com>
+References: <53270218.9050109@ti.com> <5329A8E9.1010000@ti.com> <AA9ED470-ADDB-4855-A016-5E36F983CF7D@antoniou-consulting.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="xv56ioFjxwVFKPtLd2N7wNnwpjhsMp1d7"
+	boundary="F11dBmKehOfKCxAT3uUHBO40oxAxVm0bL"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50822 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965271AbaCSOZv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Mar 2014 10:25:51 -0400
-In-Reply-To: <53270218.9050109@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49202 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933739AbaCSOdx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 10:33:53 -0400
+In-Reply-To: <AA9ED470-ADDB-4855-A016-5E36F983CF7D@antoniou-consulting.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Pantelis Antoniou <panto@antoniou-consulting.com>, Grant Likely <grant.likely@linaro.org>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>
 
---xv56ioFjxwVFKPtLd2N7wNnwpjhsMp1d7
+--F11dBmKehOfKCxAT3uUHBO40oxAxVm0bL
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 17/03/14 16:09, Tomi Valkeinen wrote:
-> Hi,
+On 19/03/14 16:29, Pantelis Antoniou wrote:
+> Hi Tomi,
 >=20
-> I noticed that my omap4 panda does not boot with today's linux-next
-> (8808b950581f71e3ee4cf8e6cae479f4c7106405). I didn't have much time to =
-study
-> it, but I didn't find any posts about the issue with a quick look. Belo=
-w is
-> the crash.
-
-I bisected this to the commit:
-
-commit ad2c12e9bc250b3387bcb4ab9ab114f43ff6122f
-Author: Pantelis Antoniou <panto@antoniou-consulting.com>
-Date:   Fri Dec 13 20:08:59 2013 +0200
-
-    of: device_node kobject lifecycle fixes
-
-    After the move to having device nodes be proper kobjects the lifecycl=
-e
-    of the node needs to be controlled better.
-
-    At first convert of_add_node() in the unflattened functions to
-    of_init_node() which initializes the kobject so that of_node_get/put
-    work correctly even before of_init is called.
-
-    Afterwards introduce of_node_is_initialized & of_node_is_attached tha=
+> On Mar 19, 2014, at 4:25 PM, Tomi Valkeinen wrote:
+>=20
+>> On 17/03/14 16:09, Tomi Valkeinen wrote:
+>>> Hi,
+>>>
+>>> I noticed that my omap4 panda does not boot with today's linux-next
+>>> (8808b950581f71e3ee4cf8e6cae479f4c7106405). I didn't have much time t=
+o study
+>>> it, but I didn't find any posts about the issue with a quick look. Be=
+low is
+>>> the crash.
+>>
+>> I bisected this to the commit:
+>>
+>> commit ad2c12e9bc250b3387bcb4ab9ab114f43ff6122f
+>> Author: Pantelis Antoniou <panto@antoniou-consulting.com>
+>> Date:   Fri Dec 13 20:08:59 2013 +0200
+>>
+>>    of: device_node kobject lifecycle fixes
+>>
+>>    After the move to having device nodes be proper kobjects the lifecy=
+cle
+>>    of the node needs to be controlled better.
+>>
+>>    At first convert of_add_node() in the unflattened functions to
+>>    of_init_node() which initializes the kobject so that of_node_get/pu=
 t
-    query the underlying kobject about the state (attached means kobj
-    is visible in sysfs)
-
-    Using that make sure the lifecycle of the tree is correct at all
-    times.
-
-    Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-    [grant.likely: moved of_node_init() calls, fixed up locking, and
-                   dropped __of_populate() hunks]
-    Signed-off-by: Grant Likely <grant.likely@linaro.org>
-
-
+>>    work correctly even before of_init is called.
+>>
+>>    Afterwards introduce of_node_is_initialized & of_node_is_attached t=
+hat
+>>    query the underlying kobject about the state (attached means kobj
+>>    is visible in sysfs)
+>>
+>>    Using that make sure the lifecycle of the tree is correct at all
+>>    times.
+>>
+>>    Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+>>    [grant.likely: moved of_node_init() calls, fixed up locking, and
+>>                   dropped __of_populate() hunks]
+>>    Signed-off-by: Grant Likely <grant.likely@linaro.org>
+>>
 >=20
->  Tomi
->=20
-> [    0.000000] ti_dt_clocks_register: failed to lookup clock node div_t=
-s_ck
-> [    0.000000] ti_dt_clocks_register: failed to lookup clock node bandg=
-ap_ts_fclk
-> [    0.000000] Unable to handle kernel NULL pointer dereference at virt=
-ual address 0000004c
-> [    0.000000] pgd =3D c0004000
-> [    0.000000] [0000004c] *pgd=3D00000000
-> [    0.000000] Internal error: Oops: 5 [#1] SMP ARM
-> [    0.000000] Modules linked in:
-> [    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.14.0-rc6-nex=
-t-20140317-09382-g8808b950581f #104
-> [    0.000000] task: c088ddf8 ti: c0882000 task.ti: c0882000
-> [    0.000000] PC is at kernfs_find_ns+0x14/0x13c
-> [    0.000000] LR is at kernfs_find_and_get_ns+0x38/0x54
-> [    0.000000] pc : [<c019607c>]    lr : [<c019628c>]    psr: 600001d3
-> [    0.000000] sp : c0883e00  ip : c0883e30  fp : c0883e2c
-> [    0.000000] r10: c0891114  r9 : ebfa11c0  r8 : ebfcd464
-> [    0.000000] r7 : 00000000  r6 : 00000000  r5 : c07c1814  r4 : c08e9a=
-d8
-> [    0.000000] r3 : c08f568c  r2 : 00000000  r1 : c07c1814  r0 : 000000=
-00
-> [    0.000000] Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  S=
-egment kernel
-> [    0.000000] Control: 10c5387d  Table: 8000404a  DAC: 00000015
-> [    0.000000] Process swapper/0 (pid: 0, stack limit =3D 0xc0882248)
-> [    0.000000] Stack: (0xc0883e00 to 0xc0884000)
-> [    0.000000] 3e00: 00000000 c08e9ad8 c07c1814 c08e9ad8 c07c1814 00000=
-000 00000000 ebfcd464
-> [    0.000000] 3e20: c0883e4c c0883e30 c019628c c0196074 c07c1814 00000=
-000 c07c1814 ebfcd490
-> [    0.000000] 3e40: c0883e6c c0883e50 c04c6180 c0196260 c0891140 c07c1=
-814 ebfcd490 00000001
-> [    0.000000] 3e60: c0883e9c c0883e70 c04c7308 c04c6160 c008a208 c008a=
-130 c0883e9c 00000000
-> [    0.000000] 3e80: c07c1814 c0891140 ebfcd464 a00001d3 c0883ec4 c0883=
-ea0 c04c7c9c c04c72cc
-> [    0.000000] 3ea0: c0882000 ebfcd464 c074dcc8 c086bf64 00000001 c074d=
-e24 c0883ee4 c0883ec8
-> [    0.000000] 3ec0: c0824b70 c04c7c14 c0891114 c0938af8 00000000 c074d=
-cc8 c0883f54 c0883ee8
-> [    0.000000] 3ee0: c0824c58 c0824b18 00000000 c0e8bf6c c0882000 fffff=
-fff c0883f14 c0883f08
-> [    0.000000] 3f00: c05bc6b4 c05bc44c c0883f34 c0883f18 c04cca04 c05bc=
-6b0 00000000 00000000
-> [    0.000000] 3f20: eb016b80 c0882000 c0883f4c c0883f38 c0938af8 c0891=
-0c0 c074dcc8 c074de24
-> [    0.000000] 3f40: c086ad60 c088a880 c0883f7c c0883f58 c0824f5c c0824=
-c20 00000001 c0883f68
-> [    0.000000] 3f60: 00000001 c09380c0 c0882000 ffffffff c0883f8c c0883=
-f80 c0825250 c0824f1c
-> [    0.000000] 3f80: c0883f9c c0883f90 c0825400 c0825238 c0883fac c0883=
-fa0 c081d67c c08253fc
-> [    0.000000] 3fa0: c0883ff4 c0883fb0 c0819a30 c081d664 ffffffff fffff=
-fff c08195d0 00000000
-> [    0.000000] 3fc0: 00000000 c086ad60 00000000 10c5387d c088a92c c086a=
-d5c c088f684 8000406a
-> [    0.000000] 3fe0: 412fc09a 00000000 00000000 c0883ff8 80008074 c0819=
-840 00000000 00000000
-> [    0.000000] Backtrace:=20
-> [    0.000000] [<c0196068>] (kernfs_find_ns) from [<c019628c>] (kernfs_=
-find_and_get_ns+0x38/0x54)
-> [    0.000000]  r8:ebfcd464 r7:00000000 r6:00000000 r5:c07c1814 r4:c08e=
-9ad8
-> [    0.000000] [<c0196254>] (kernfs_find_and_get_ns) from [<c04c6180>] =
-(safe_name+0x2c/0x98)
-> [    0.000000]  r7:ebfcd490 r6:c07c1814 r5:00000000 r4:c07c1814
-> [    0.000000] [<c04c6154>] (safe_name) from [<c04c7308>] (__of_add_pro=
-perty_sysfs+0x48/0xc4)
-> [    0.000000]  r7:00000001 r6:ebfcd490 r5:c07c1814 r4:c0891140
-> [    0.000000] [<c04c72c0>] (__of_add_property_sysfs) from [<c04c7c9c>]=
- (of_add_property+0x94/0xa0)
-> [    0.000000]  r8:a00001d3 r7:ebfcd464 r6:c0891140 r5:c07c1814 r4:0000=
-0000
-> [    0.000000] [<c04c7c08>] (of_add_property) from [<c0824b70>] (omap_g=
-et_timer_dt+0x64/0x108)
-> [    0.000000]  r8:c074de24 r7:00000001 r6:c086bf64 r5:c074dcc8 r4:ebfc=
-d464 r3:c0882000
-> [    0.000000] [<c0824b0c>] (omap_get_timer_dt) from [<c0824c58>] (omap=
-_dm_timer_init_one+0x44/0x2fc)
-> [    0.000000]  r6:c074dcc8 r5:00000000 r4:c0938af8 r3:c0891114
-> [    0.000000] [<c0824c14>] (omap_dm_timer_init_one) from [<c0824f5c>] =
-(omap2_gp_clockevent_init+0x4c/0xd0)
-> [    0.000000]  r10:c088a880 r8:c086ad60 r7:c074de24 r6:c074dcc8 r5:c08=
-910c0 r4:c0938af8
-> [    0.000000] [<c0824f10>] (omap2_gp_clockevent_init) from [<c0825250>=
-] (omap4_sync32k_timer_init+0x24/0x60)
-> [    0.000000]  r7:ffffffff r6:c0882000 r5:c09380c0 r4:00000001
-> [    0.000000] [<c082522c>] (omap4_sync32k_timer_init) from [<c0825400>=
-] (omap4_local_timer_init+0x10/0x68)
-> [    0.000000] [<c08253f0>] (omap4_local_timer_init) from [<c081d67c>] =
-(time_init+0x24/0x38)
-> [    0.000000] [<c081d658>] (time_init) from [<c0819a30>] (start_kernel=
-+0x1fc/0x390)
-> [    0.000000] [<c0819834>] (start_kernel) from [<80008074>] (0x8000807=
-4)
-> [    0.000000]  r10:00000000 r9:412fc09a r8:8000406a r7:c088f684 r6:c08=
-6ad5c r5:c088a92c
-> [    0.000000]  r4:10c5387d
-> [    0.000000] Code: e92dd9f0 e24cb004 e24dd00c e59f3104 (e1d084bc)=20
-> [    0.000000] ---[ end trace 3406ff24bd97382e ]---
-> [    0.000000] Kernel panic - not syncing: Attempted to kill the idle t=
-ask!
-> [    0.000000] ---[ end Kernel panic - not syncing: Attempted to kill t=
-he idle task!
->=20
+> Can you try this? It should fix it (plus it should be in -next soon)
+
+Thanks, that fixes the issue (tested on omap4 panda).
+
+ Tomi
 
 
 
---xv56ioFjxwVFKPtLd2N7wNnwpjhsMp1d7
+--F11dBmKehOfKCxAT3uUHBO40oxAxVm0bL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -183,19 +85,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.14 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJTKajpAAoJEPo9qoy8lh71jwQP/AuMzFcQaeJvsTGFakSU82uP
-ZpILxeC0/7EUvfOEoIwDwm8kfVWBHAOhzwrkOjEgB5ln5IJZgqgi9t3w3Ja6GC11
-9qiPdBlal0Vj8eHQl+1b88Q1zwFmJmXY58gb9rJCbvO+hTpVZmuXbVwzNSFdju3R
-S5MTF/1OQaZnGB1Vmu9Y8571Dpd2RehKijb8UXi9BbcLLfCcYixqNxt4yMVoyJv1
-i3W0oGDRVt8pMw+b0xRuVnDYm8FENXm9HZQjK5EVsFmklxOrO+C04Wuiqf9FZLEl
-CzHargnORKOJqsIb4wQhkhonk/T32ebbgkK3NVtO7AFLEncZaWJ0S0GRJ7zyL+gZ
-VrGQKwqE7cpC6QI9TlLfu043wRwKeeEpAo0yVhCZGI6tG1G9r+u7HUz7fNjRuWrB
-6Cti3MLcgsP+O/YjVuYLTQIG5B52A1csCQrS7vF510zDvtyIaRhBQ72MOoNFTj2Z
-r8c80GQH7Wn59DyzbZg7WoOI31p5pqADoi56Fvek+2ggiAwSzYeUqaK6dEhZwF2N
-V6eFttYifVgNouuCJLPMY8+5XqxM5KEM97oNGsVzxkh1eGi7uKilqP5Ju9MYuXmD
-FxOEXNNZ90xcNSMO10Egv2Ao49OCxZVnnJj5E4TaZB7QHd8TmJjfcbaEqohsXPlM
-pMcLM71jtvaNC35ZsfbY
-=VrT4
+iQIcBAEBAgAGBQJTKarLAAoJEPo9qoy8lh71SjUP/2gD+AsiNRea1x8Uc99Rx+4A
+2DFptNLknwPO8loHQuGFcSrShbkTl9WUjVBlZ35eZIqUdrJ2QvaAZDsT38+OEgxx
+20yCDDf3EGGUGxbZgDzyHyTASRbj8lG006NbAIKoD46jYZ+XHTD3zwmFGV5Vyd+m
++bpBhIL8trKtyOptIN87yktsg/p/wENfH0Pq/Cq9urBt9RczhiwY80bVOovIyTf0
+iwhZeLh3K1igeocZNJs/86NtZ8XNu5N56nlQKleMv7J+XpIkugqlJFalmaObZftq
+Yblh7X52s3OjehhkLpSMFpAUG/GfkS8AaqF8LTixIt0oK10KB3Sqp7563Uee7Iu1
+c2xdJuI9GjN6MnmsFCpisip1FvXNjsY+tQb52UJWhPQzb1TP8S+ug/1PwinIyM1A
+GfgaR3WyEbpqBwgUU/l41S4TGkS341f8e85GphUD77YbLJ6bMCZcC1vZf1ITI+1l
+u8Rsfu711TUyZuZOZb0A8hY4VAxN2//AWmwwOMGoczvhFqdQHxR8QiIbQlJZFEsN
+HfZqqL2+ZkUickkpi+lVjcNwBPpJ/YmcNNczHGCCgGj1d2chyRndl/Bhxtgq4Nqi
+pLqRTo440ZAl9SzgBf6TjeQ0C8DVQgq/kPgEqqmCqbDLoiKE8SgvtE23zENQRZe8
++rb6JFm5LYFRGJBdbJ3d
+=bi2d
 -----END PGP SIGNATURE-----
 
---xv56ioFjxwVFKPtLd2N7wNnwpjhsMp1d7--
+--F11dBmKehOfKCxAT3uUHBO40oxAxVm0bL--
