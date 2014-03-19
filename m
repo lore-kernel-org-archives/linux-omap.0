@@ -1,143 +1,39 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH 1/8] clk: divider: fix rate calculation for fractional rates
-Date: Tue, 18 Mar 2014 21:26:53 -0700
-Message-ID: <20140319042653.30995.3101@quantum>
-References: <1392285846-13199-1-git-send-email-tomi.valkeinen@ti.com>
- <1392285846-13199-2-git-send-email-tomi.valkeinen@ti.com>
- <52FE1DF2.2040707@ti.com> <20140227022524.12081.32368@quantum>
- <5326F02F.2030604@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] dma: edma: fix incorrect SG list handling
+Date: Wed, 19 Mar 2014 10:09:14 +0530
+Message-ID: <53291F72.9060504@ti.com>
+References: <1395057448-22904-1-git-send-email-nsekhar@ti.com> <alpine.DEB.2.02.1403170854570.9730@jringle-ubuntu> <5326F2BF.6040702@ti.com> <alpine.DEB.2.02.1403170913110.9730@jringle-ubuntu> <20140318152840.GD1976@intel.com> <5328946C.3010508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:45538 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750853AbaCSE07 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 00:26:59 -0400
-Received: by mail-pa0-f44.google.com with SMTP id bj1so8342850pad.17
-        for <linux-omap@vger.kernel.org>; Tue, 18 Mar 2014 21:26:59 -0700 (PDT)
-In-Reply-To: <5326F02F.2030604@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:53469 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751590AbaCSEj0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Mar 2014 00:39:26 -0400
+In-Reply-To: <5328946C.3010508@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>, Vinod Koul <vinod.koul@intel.com>, Jon Ringle <jon@ringle.org>
+Cc: Dan Williams <dan.j.williams@intel.com>, DMA Engine Mailing List <dmaengine@vger.kernel.org>, Linux DaVinci Mailing List <davinci-linux-open-source@linux.davincidsp.com>, "Ringle, Jonathan" <Jonathan.Ringle@gridpoint.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Quoting Tomi Valkeinen (2014-03-17 05:53:03)
-> On 27/02/14 04:25, Mike Turquette wrote:
-> > Quoting Tero Kristo (2014-02-14 05:45:22)
-> >> On 02/13/2014 12:03 PM, Tomi Valkeinen wrote:
-> >>> clk-divider.c does not calculate the rates consistently at the moment.
-> >>>
-> >>> As an example, on OMAP3 we have a clock divider with a source clock of
-> >>> 864000000 Hz. With dividers 6, 7 and 8 the theoretical rates are:
-> >>>
-> >>> 6: 144000000
-> >>> 7: 123428571.428571...
-> >>> 8: 108000000
-> >>>
-> >>> Calling clk_round_rate() with the rate in the first column will give the
-> >>> rate in the second column:
-> >>>
-> >>> 144000000 -> 144000000
-> >>> 143999999 -> 123428571
-> >>> 123428572 -> 123428571
-> >>> 123428571 -> 108000000
-> >>>
-> >>> Note how clk_round_rate() returns 123428571 for rates from 123428572 to
-> >>> 143999999, which is mathematically correct, but when clk_round_rate() is
-> >>> called with 123428571, the returned value is surprisingly 108000000.
-> >>>
-> >>> This means that the following code works a bit oddly:
-> >>>
-> >>> rate = clk_round_rate(clk, 123428572);
-> >>> clk_set_rate(clk, rate);
-> >>>
-> >>> As clk_set_rate() also does clock rate rounding, the result is that the
-> >>> clock is set to the rate of 108000000, not 123428571 returned by the
-> >>> clk_round_rate.
-> >>>
-> >>> This patch changes the clk-divider.c to use DIV_ROUND_UP when
-> >>> calculating the rate. This gives the following behavior which fixes the
-> >>> inconsistency:
-> >>>
-> >>> 144000000 -> 144000000
-> >>> 143999999 -> 123428572
-> >>> 123428572 -> 123428572
-> >>> 123428571 -> 108000000
-> >>>
-> >>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> >>> Cc: Mike Turquette <mturquette@linaro.org>
-> >>> ---
-> >>>   drivers/clk/clk-divider.c | 10 +++++-----
-> >>>   1 file changed, 5 insertions(+), 5 deletions(-)
-> >>>
-> >>> diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
-> >>> index 5543b7df8e16..ec22112e569f 100644
-> >>> --- a/drivers/clk/clk-divider.c
-> >>> +++ b/drivers/clk/clk-divider.c
-> >>> @@ -24,7 +24,7 @@
-> >>>    * Traits of this clock:
-> >>>    * prepare - clk_prepare only ensures that parents are prepared
-> >>>    * enable - clk_enable only ensures that parents are enabled
-> >>> - * rate - rate is adjustable.  clk->rate = parent->rate / divisor
-> >>> + * rate - rate is adjustable.  clk->rate = DIV_ROUND_UP(parent->rate / divisor)
-> >>>    * parent - fixed parent.  No clk_set_parent support
-> >>>    */
-> >>>
-> >>> @@ -115,7 +115,7 @@ static unsigned long clk_divider_recalc_rate(struct clk_hw *hw,
-> >>>               return parent_rate;
-> >>>       }
-> >>>
-> >>> -     return parent_rate / div;
-> >>> +     return DIV_ROUND_UP(parent_rate, div);
-> >>>   }
-> >>>
-> >>>   /*
-> >>> @@ -185,7 +185,7 @@ static int clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
-> >>>               }
-> >>>               parent_rate = __clk_round_rate(__clk_get_parent(hw->clk),
-> >>>                               MULT_ROUND_UP(rate, i));
-> >>> -             now = parent_rate / i;
-> >>> +             now = DIV_ROUND_UP(parent_rate, i);
-> >>>               if (now <= rate && now > best) {
-> >>>                       bestdiv = i;
-> >>>                       best = now;
-> >>> @@ -207,7 +207,7 @@ static long clk_divider_round_rate(struct clk_hw *hw, unsigned long rate,
-> >>>       int div;
-> >>>       div = clk_divider_bestdiv(hw, rate, prate);
-> >>>
-> >>> -     return *prate / div;
-> >>> +     return DIV_ROUND_UP(*prate, div);
-> >>>   }
-> >>>
-> >>>   static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
-> >>> @@ -218,7 +218,7 @@ static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
-> >>>       unsigned long flags = 0;
-> >>>       u32 val;
-> >>>
-> >>> -     div = parent_rate / rate;
-> >>> +     div = DIV_ROUND_UP(parent_rate, rate);
-> >>>       value = _get_val(divider, div);
-> >>>
-> >>>       if (value > div_mask(divider))
-> >>>
-> >>
-> >> Basically the patch looks good to me, but it might be good to have a 
-> >> testing round of sort with this. It can potentially cause regressions on 
-> >> multiple boards if the drivers happen to rely on the "broken" clock 
-> >> rates. Same for patch #2 which is a copy paste of this one, but only 
-> >> impacts TI boards.
-> > 
-> > Agreed. I've taken patches #1 & #2 into clk-next. Let's let them stew in
-> > -next for a while and see if anyone's board catches on fire.
+On Wednesday 19 March 2014 12:16 AM, Joel Fernandes wrote:
+> On 03/18/2014 10:28 AM, Vinod Koul wrote:
+>> where is this patch, somehow am not able to find in my inbox or archives...
+>>
 > 
-> Are these on the way to 3.15?
+> I found it archived here:
+> http://comments.gmane.org/gmane.linux.davinci/28569
+> 
+> Patch doesn't breaking anything for > MAX_NR_SG list size on AM335x, so
+> it looks good.
+> 
+> Acked-by: Joel Fernandes <joelf@ti.com>
 
-Yes, they've been in -next for a couple of weeks.
+Joel, thanks for the ack.
 
-Regards,
-Mike
+Vinod, Looks like the vger and Intel spam filters dropped the patch. I
+will try again.
 
-> 
->  Tomi
-> 
-> 
+Thanks,
+Sekhar
