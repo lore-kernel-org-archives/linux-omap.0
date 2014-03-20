@@ -1,45 +1,51 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [patch 08/26] arm: Replace various irq_desc accesses
-Date: Thu, 20 Mar 2014 16:22:27 +0100
-Message-ID: <201403201622.27725.arnd@arndb.de>
-References: <20140223212703.511977310@linutronix.de>
- <20140223212737.099151500@linutronix.de>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 01/11] tty: serial: add missing braces
+Date: Thu, 20 Mar 2014 14:29:57 -0500
+Message-ID: <1395343807-21618-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140223212737.099151500@linutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Shawn Guo <shawn.guo@linaro.org>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, omap <linux-omap@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53489 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757067AbaCTTb7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Mar 2014 15:31:59 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-serial@vger.kernel.org, linux-bluetooth@vger.kernel.org, peter@hurleysoftware.com, m-karicheri2@ti.com, b32955@freescale.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-On Sunday 23 February 2014, Thomas Gleixner wrote:
-> --- tip.orig/arch/arm/mach-omap1/ams-delta-fiq.c
-> +++ tip/arch/arm/mach-omap1/ams-delta-fiq.c
-> @@ -44,13 +44,10 @@ static unsigned int irq_counter[16];
->  
->  static irqreturn_t deferred_fiq(int irq, void *dev_id)
->  {
-> -       struct irq_desc *irq_desc;
-> -       struct irq_chip *irq_chip = NULL;
->         int gpio, irq_num, fiq_count;
-> +       struct irq_chip *irq_chip;
->  
-> -       irq_desc = irq_to_desc(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
-> -       if (irq_desc)
-> -               irq_chip = irq_desc->irq_data.chip;
-> +       irq_chip = irq_get_irq_chip(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
+per CodingStyle we should have those braces, no
+functional changes.
 
-I got a compile error because irq_get_irq_chip() doesn't exist. I suppose
-you meant irq_get_chip.
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/tty/serial/omap-serial.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-	Arnd
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 77f0351..73abba8 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1677,8 +1677,10 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	    omap_up_info->DTR_present) {
+ 		up->DTR_gpio = omap_up_info->DTR_gpio;
+ 		up->DTR_inverted = omap_up_info->DTR_inverted;
+-	} else
++	} else {
+ 		up->DTR_gpio = -EINVAL;
++	}
++
+ 	up->DTR_active = 0;
+ 
+ 	up->dev = &pdev->dev;
+@@ -1740,6 +1742,7 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, up);
+ 	if (omap_up_info->autosuspend_timeout == 0)
+ 		omap_up_info->autosuspend_timeout = -1;
++
+ 	device_init_wakeup(up->dev, true);
+ 	pm_runtime_use_autosuspend(&pdev->dev);
+ 	pm_runtime_set_autosuspend_delay(&pdev->dev,
+-- 
+1.9.1.286.g5172cb3
+
