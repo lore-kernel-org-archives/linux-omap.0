@@ -1,225 +1,152 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v2 1/2] ARM: dts: am335x-bone: add support for beaglebone NAND cape
-Date: Thu, 20 Mar 2014 13:04:45 +0530
-Message-ID: <1395300886-383-2-git-send-email-pekon@ti.com>
-References: <1395300886-383-1-git-send-email-pekon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 1/2] extcon: of: Remove unnecessary function call by using
+ the name of device_node
+Date: Thu, 20 Mar 2014 14:12:29 +0530
+Message-ID: <532AA9F5.7010508@ti.com>
+References: <1395144280-23240-1-git-send-email-cw00.choi@samsung.com> <1395144280-23240-2-git-send-email-cw00.choi@samsung.com> <532988DA.8030002@ti.com> <532A50CD.7030601@samsung.com> <532A7AB3.8000706@ti.com> <532A9116.7090603@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44493 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750917AbaCTHfB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Mar 2014 03:35:01 -0400
-In-Reply-To: <1395300886-383-1-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <532A9116.7090603@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, myungjoo.ham@samsung.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com
-Cc: linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Pekon Gupta <pekon@ti.com>
 
-Beaglebone Board can be connected to expansion boards to add devices to them.
-These expansion boards are called 'capes'. This patch adds support for
-following versions of Beaglebone(AM335x) NAND capes
-(a) NAND Device with bus-width=16, block-size=128k, page-size=2k, oob-size=64
-(b) NAND Device with bus-width=16, block-size=256k, page-size=4k, oob-size=224
-Further information and datasheets can be found at [1] and [2]
+Hi,
 
-* How to boot from NAND using Memory Expander + NAND Cape ? *
- - Important: As BOOTSEL values are sampled only at POR, so after changing any
-   setting on SW2 (DIP switch), disconnect and reconnect all board power supply
-   (including mini-USB console port) to POR the beaglebone.
+On Thursday 20 March 2014 12:26 PM, Chanwoo Choi wrote:
+> Hi,
+> 
+> On 03/20/2014 02:20 PM, Kishon Vijay Abraham I wrote:
+>> Hi,
+>>
+>> On Thursday 20 March 2014 07:52 AM, Chanwoo Choi wrote:
+>>> Hi,
+>>>
+>>> On 03/19/2014 09:08 PM, Kishon Vijay Abraham I wrote:
+>>>> Hi,
+>>>>
+>>>> On Tuesday 18 March 2014 05:34 PM, Chanwoo Choi wrote:
+>>>>> This patch remove unnecessary function call in of_extcon_get_extcon_dev()
+>>>>> by using the name of device_node structure.
+>>>>>
+>>>>> Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
+>>>>> ---
+>>>>>  drivers/extcon/of_extcon.c | 12 ++----------
+>>>>>  1 file changed, 2 insertions(+), 10 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/extcon/of_extcon.c b/drivers/extcon/of_extcon.c
+>>>>> index 72173ec..0a29f82 100644
+>>>>> --- a/drivers/extcon/of_extcon.c
+>>>>> +++ b/drivers/extcon/of_extcon.c
+>>>>> @@ -32,7 +32,6 @@ struct extcon_dev *of_extcon_get_extcon_dev(struct device *dev, int index)
+>>>>>  {
+>>>>>  	struct device_node *node;
+>>>>>  	struct extcon_dev *edev;
+>>>>> -	struct platform_device *extcon_parent_dev;
+>>>>>  
+>>>>>  	if (!dev->of_node) {
+>>>>>  		dev_dbg(dev, "device does not have a device node entry\n");
+>>>>> @@ -46,16 +45,9 @@ struct extcon_dev *of_extcon_get_extcon_dev(struct device *dev, int index)
+>>>>>  		return ERR_PTR(-ENODEV);
+>>>>>  	}
+>>>>>  
+>>>>> -	extcon_parent_dev = of_find_device_by_node(node);
+>>>>> -	if (!extcon_parent_dev) {
+>>>>> -		dev_dbg(dev, "unable to find device by node\n");
+>>>>> -		return ERR_PTR(-EPROBE_DEFER);
+>>>>> -	}
+>>>>> -
+>>>>> -	edev = extcon_get_extcon_dev(dev_name(&extcon_parent_dev->dev));
+>>>>> +	edev = extcon_get_extcon_dev(node->name);
+>>>>
+>>>> Since you no longer want to use device names I think you should add this too to
+>>>> warn users if they rely on using the device name.
+>>>
+>>> Previous of_extcon_get_extcon_dev() support only platform device using of_find_device_by_node.
+>>>
+>>> If extcon device is based on i2c/spi/pci and so on, of_extcon_get_extcon_dev() can't
+>>> find device instance for device name. So, I change device name from the name of platform device
+>>> to the name of dt node.
+>>
+>> That's fine. But we have to fix extcon_dev_register() too, to not use device
+>> names right? We have to warn extcon users not to use device names right?
+> 
+> I don't think so. extcon_get_edev_by_phandle() shows wrong node->name as following:
 
- - Selection of ECC scheme
-  for NAND cape(a), ROM code expects BCH8_HW ecc-scheme
-  for NAND cape(b), ROM code expects BCH16_HW ecc-scheme
+The wrong node->name was given by the extcon provider but the error is being
+reported in the consumer.
+> The consumer could detect the cause of problem which can't get extcon device after
+> checking error log message.
+> 
+> 	edev = extcon_get_extcon_dev(node->name);
+> 	if (!edev) {
+> 		dev_err(dev, "unable to get extcon device : %s\n", node->name);
+> 		return ERR_PTR(-ENODEV);
+> 	}
+> 
+> I don't want to add more log message.
 
- - Selection of boot modes can be controlled via  DIP switch(SW2) present on
-   Memory Expander cape, so first boot via MMC or other sources to flash NAND
-   device and then switch to SW2[SWITCH_BOOT]=ON to boot from NAND Cape.
-   SW2[SWITCH_BOOT] == OFF  follow default boot order  MMC-> SPI -> UART -> USB
-   SW2[SWITCH_BOOT] == ON   boot mode selected via DIP switch(SW2)
+I'm not sure if that log message is helpful in anyway to identify the problem
+was because of the wrong node->name.
+> 
+>>>
+>>>
+>>>> diff --git a/drivers/extcon/extcon-class.c b/drivers/extcon/extcon-class.c
+>>>> index bc4c789..025eb39 100644
+>>>> --- a/drivers/extcon/extcon-class.c
+>>>> +++ b/drivers/extcon/extcon-class.c
+>>>> @@ -601,7 +601,6 @@ int extcon_dev_register(struct extcon_dev *edev)
+>>>>         edev->dev.class = extcon_class;
+>>>>         edev->dev.release = extcon_dev_release;
+>>>>
+>>>> -       edev->name = edev->name ? edev->name : dev_name(edev->dev.parent);
+>>>> //The user should always pass the 'name' as we no longer use device name while
+>>>> getting extcon device. And this name should also be the 'node' name?
+>>>>         if (IS_ERR_OR_NULL(edev->name)) {
+>>>>                 dev_err(&edev->dev,
+>>>>                         "extcon device name is null\n");
+>>>>
+>>>> Btw changing to node name from device name breaks dwc3 in OMAP5 and you would
+>>>> need this too..
+>>>>
+>>>> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
+>>>> index 2aea4bc..cea8cd3 100644
+>>>> --- a/drivers/extcon/extcon-palmas.c
+>>>> +++ b/drivers/extcon/extcon-palmas.c
+>>>> @@ -188,6 +188,7 @@ static int palmas_usb_probe(struct platform_device *pdev)
+>>>>
+>>>>         palmas_usb->edev.supported_cable = palmas_extcon_cable;
+>>>>         palmas_usb->edev.dev.parent = palmas_usb->dev;
+>>>> +       palmas_usb->edev.name = "palmas_usb";
+>>>>         palmas_usb->edev.mutually_exclusive = mutually_exclusive;
+>>>>
+>>>>         status = extcon_dev_register(&palmas_usb->edev);
+>>>>
+>>>> Cheers
+>>>> Kishon
+>>>>
+>>>
+>>> If node name is same as extcon device name, don't need some modification.
+>>> Also, you can modify node name in some OMAP dts file insead of modification of extcon-palmas.c
+>>
+>> node name in OMAP dts is already 'palmas_usb'. But since we were not setting
+>> 'edev.name' in extcon-palmas.c, extcon_dev_register used device name of palmas
+>> (palmas_usb.7 in my case). So extcon-palmas.c needs the fix.
+> 
+> For example,
+> I used extcon provider/consumer driver in dts as following:
+> extcon-max14577.c set device name as edev->name and then dt node name of max14577
+> set "max14577-muic" which is same as device name(dev_name(&pdev->dev)).
+> 
+> I don't need to modify extcon-max14577.c
+> 
+> In drivers/extcon/extcon-max14577.c
+> 	...
+> 	info->edev->name = dev_name(&pdev->dev);
 
- - For NAND boot following switch settings need to be followed
-   SW2[ 0] = ON   (SYSBOOT[ 0]==0: NAND boot mode selected )
-   SW2[ 1] = ON   (SYSBOOT[ 1]==0:       -- do --          )
-   SW2[ 2] = OFF  (SYSBOOT[ 2]==1:       -- do --          )
-   SW2[ 3] = OFF  (SYSBOOT[ 3]==1:       -- do --          )
-   SW2[ 4] = ON   (SYSBOOT[ 4]==0:       -- do --          )
-   SW2[ 8] = OFF  (SYSBOOT[ 8]==1: 0:x8 device, 1:x16 device )
-   SW2[ 9] = ON   (SYSBOOT[ 9]==0: ECC done by ROM  )
-   SW2[10] = ON   (SYSBOOT[10]==0: Non Muxed device )
-   SW2[11] = ON   (SYSBOOT[11]==0:    -- do --      )
+dev_name need not be same as node name in all cases.
 
-[1] http://beagleboardtoys.info/index.php?title=BeagleBone_Memory_Expansion
-[2] http://beagleboardtoys.info/index.php?title=BeagleBone_4Gb_16-Bit_NAND_Module
-
-Signed-off-by: Pekon Gupta <pekon@ti.com>
----
- arch/arm/boot/dts/am335x-bone-memory-cape.dts | 130 ++++++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts             |   1 +
- arch/arm/boot/dts/am335x-boneblack.dts        |   1 +
- 3 files changed, 132 insertions(+)
- create mode 100644 arch/arm/boot/dts/am335x-bone-memory-cape.dts
-
-diff --git a/arch/arm/boot/dts/am335x-bone-memory-cape.dts b/arch/arm/boot/dts/am335x-bone-memory-cape.dts
-new file mode 100644
-index 0000000..9c9f6a6
---- /dev/null
-+++ b/arch/arm/boot/dts/am335x-bone-memory-cape.dts
-@@ -0,0 +1,130 @@
-+/*
-+ * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This DTS adds supports for capes using GPMC interface to connect external
-+ * memory like NAND, NOR Flash to Beaglebone-LT (white) and Beaglebone-Black.
-+ */
-+
-+
-+&am33xx_pinmux {
-+	nand_flash_x16: nand_flash_x16 {
-+		pinctrl-single,pins = <
-+			0x00 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad0.gpmc_ad0 */
-+			0x04 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad1.gpmc_ad1 */
-+			0x08 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad2.gpmc_ad2 */
-+			0x0c (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad3.gpmc_ad3 */
-+			0x10 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad4.gpmc_ad4 */
-+			0x14 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad5.gpmc_ad5 */
-+			0x18 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad6.gpmc_ad6 */
-+			0x1c (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad7.gpmc_ad7 */
-+			0x20 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad8.gpmc_ad8 */
-+			0x24 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad9.gpmc_ad9 */
-+			0x28 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad10.gpmc_ad10 */
-+			0x2c (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad11.gpmc_ad11 */
-+			0x30 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad12.gpmc_ad12 */
-+			0x34 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad13.gpmc_ad13 */
-+			0x38 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad14.gpmc_ad14 */
-+			0x3c (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad15.gpmc_ad15 */
-+			0x70 (MUX_MODE0 | PIN_INPUT_PULLUP )	/* gpmc_wait0.gpmc_wait0 */
-+			0x74 (MUX_MODE7 | PIN_OUTPUT_PULLUP)	/* gpmc_wpn.gpio0_30 */
-+			0x7c (MUX_MODE0 | PIN_OUTPUT_PULLUP)	/* gpmc_csn0.gpmc_csn0  */
-+			0x90 (MUX_MODE0 | PIN_OUTPUT)		/* gpmc_advn_ale.gpmc_advn_ale */
-+			0x94 (MUX_MODE0 | PIN_OUTPUT)		/* gpmc_oen_ren.gpmc_oen_ren */
-+			0x98 (MUX_MODE0 | PIN_OUTPUT)		/* gpmc_wen.gpmc_wen */
-+			0x9c (MUX_MODE0 | PIN_OUTPUT)		/* gpmc_be0n_cle.gpmc_be0n_cle */
-+		>;
-+	};
-+};
-+
-+&elm {
-+     status = "disabled";
-+};
-+
-+&gpmc {
-+     status = "disabled";
-+};
-+
-+&gpmc {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&nand_flash_x16>;
-+	ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
-+	nand@0,0 {
-+		reg = <0 0 0>; /* CS0, offset 0 */
-+		ti,nand-ecc-opt = "bch8";
-+		ti,elm-id = <&elm>;
-+		nand-bus-width = <16>;
-+		gpmc,device-width = <2>;
-+		gpmc,sync-clk-ps = <0>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <80>;
-+		gpmc,cs-wr-off-ns = <80>;
-+		gpmc,adv-on-ns = <0>;
-+		gpmc,adv-rd-off-ns = <80>;
-+		gpmc,adv-wr-off-ns = <80>;
-+		gpmc,we-on-ns = <20>;
-+		gpmc,we-off-ns = <60>;
-+		gpmc,oe-on-ns = <20>;
-+		gpmc,oe-off-ns = <60>;
-+		gpmc,access-ns = <40>;
-+		gpmc,rd-cycle-ns = <80>;
-+		gpmc,wr-cycle-ns = <80>;
-+		gpmc,wait-on-read = "true";
-+		gpmc,wait-on-write = "true";
-+		gpmc,bus-turnaround-ns = <0>;
-+		gpmc,cycle2cycle-delay-ns = <0>;
-+		gpmc,clk-activation-ns = <0>;
-+		gpmc,wait-monitoring-ns = <0>;
-+		gpmc,wr-access-ns = <40>;
-+		gpmc,wr-data-mux-bus-ns = <0>;
-+		/* MTD partition table */
-+		/* All SPL-* partitions are sized to minimal length
-+		 * which can be independently programmable. For
-+		 * NAND flash this is equal to size of erase-block */
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		partition@0 {
-+			label = "NAND.SPL";
-+			reg = <0x00000000 0x00040000>;
-+		};
-+		partition@1 {
-+			label = "NAND.SPL.backup1";
-+			reg = <0x00040000 0x00040000>;
-+		};
-+		partition@2 {
-+			label = "NAND.SPL.backup2";
-+			reg = <0x00080000 0x00040000>;
-+		};
-+		partition@3 {
-+			label = "NAND.SPL.backup3";
-+			reg = <0x000C0000 0x00040000>;
-+		};
-+		partition@4 {
-+			label = "NAND.u-boot-spl-os";
-+			reg = <0x00100000 0x00080000>;
-+		};
-+		partition@5 {
-+			label = "NAND.u-boot";
-+			reg = <0x00180000 0x00100000>;
-+		};
-+		partition@6 {
-+			label = "NAND.u-boot-env";
-+			reg = <0x00280000 0x00040000>;
-+		};
-+		partition@7 {
-+			label = "NAND.u-boot-env.backup1";
-+			reg = <0x002C0000 0x00040000>;
-+		};
-+		partition@8 {
-+			label = "NAND.kernel";
-+			reg = <0x00300000 0x00700000>;
-+		};
-+		partition@9 {
-+			label = "NAND.file-system";
-+			reg = <0x00A00000 0x1F600000>;
-+		};
-+	};
-+};
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 94ee427..f16bfcf 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -9,6 +9,7 @@
- 
- #include "am33xx.dtsi"
- #include "am335x-bone-common.dtsi"
-+#include "am335x-bone-memory-cape.dts"
- 
- &ldo3_reg {
- 	regulator-min-microvolt = <1800000>;
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index 6b71ad9..c030b24 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -9,6 +9,7 @@
- 
- #include "am33xx.dtsi"
- #include "am335x-bone-common.dtsi"
-+#include "am335x-bone-memory-cape.dts"
- 
- &ldo3_reg {
- 	regulator-min-microvolt = <1800000>;
--- 
-1.8.5.1.163.gd7aced9
-
+-Kishon
