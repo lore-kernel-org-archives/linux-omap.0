@@ -1,167 +1,45 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH 1/2] extcon: of: Remove unnecessary function call by using
- the name of device_node
-Date: Thu, 20 Mar 2014 15:56:22 +0900
-Message-ID: <532A9116.7090603@samsung.com>
-References: <1395144280-23240-1-git-send-email-cw00.choi@samsung.com>
- <1395144280-23240-2-git-send-email-cw00.choi@samsung.com>
- <532988DA.8030002@ti.com> <532A50CD.7030601@samsung.com>
- <532A7AB3.8000706@ti.com>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v2 0/2] add parallel NAND support for TI's new OMAPx and AMxx platforms (Part-2)
+Date: Thu, 20 Mar 2014 13:04:44 +0530
+Message-ID: <1395300886-383-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:63146 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750788AbaCTG4X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Mar 2014 02:56:23 -0400
-In-reply-to: <532A7AB3.8000706@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39220 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750917AbaCTHe6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Mar 2014 03:34:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: gregkh@linuxfoundation.org, balbi@ti.com, myungjoo.ham@samsung.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com
+Cc: linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Pekon Gupta <pekon@ti.com>
 
-Hi,
+Series is rebased on following tree for OMAP DT
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap :omap-for-v3.15/dt
 
-On 03/20/2014 02:20 PM, Kishon Vijay Abraham I wrote:
-> Hi,
-> 
-> On Thursday 20 March 2014 07:52 AM, Chanwoo Choi wrote:
->> Hi,
->>
->> On 03/19/2014 09:08 PM, Kishon Vijay Abraham I wrote:
->>> Hi,
->>>
->>> On Tuesday 18 March 2014 05:34 PM, Chanwoo Choi wrote:
->>>> This patch remove unnecessary function call in of_extcon_get_extcon_dev()
->>>> by using the name of device_node structure.
->>>>
->>>> Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
->>>> ---
->>>>  drivers/extcon/of_extcon.c | 12 ++----------
->>>>  1 file changed, 2 insertions(+), 10 deletions(-)
->>>>
->>>> diff --git a/drivers/extcon/of_extcon.c b/drivers/extcon/of_extcon.c
->>>> index 72173ec..0a29f82 100644
->>>> --- a/drivers/extcon/of_extcon.c
->>>> +++ b/drivers/extcon/of_extcon.c
->>>> @@ -32,7 +32,6 @@ struct extcon_dev *of_extcon_get_extcon_dev(struct device *dev, int index)
->>>>  {
->>>>  	struct device_node *node;
->>>>  	struct extcon_dev *edev;
->>>> -	struct platform_device *extcon_parent_dev;
->>>>  
->>>>  	if (!dev->of_node) {
->>>>  		dev_dbg(dev, "device does not have a device node entry\n");
->>>> @@ -46,16 +45,9 @@ struct extcon_dev *of_extcon_get_extcon_dev(struct device *dev, int index)
->>>>  		return ERR_PTR(-ENODEV);
->>>>  	}
->>>>  
->>>> -	extcon_parent_dev = of_find_device_by_node(node);
->>>> -	if (!extcon_parent_dev) {
->>>> -		dev_dbg(dev, "unable to find device by node\n");
->>>> -		return ERR_PTR(-EPROBE_DEFER);
->>>> -	}
->>>> -
->>>> -	edev = extcon_get_extcon_dev(dev_name(&extcon_parent_dev->dev));
->>>> +	edev = extcon_get_extcon_dev(node->name);
->>>
->>> Since you no longer want to use device names I think you should add this too to
->>> warn users if they rely on using the device name.
->>
->> Previous of_extcon_get_extcon_dev() support only platform device using of_find_device_by_node.
->>
->> If extcon device is based on i2c/spi/pci and so on, of_extcon_get_extcon_dev() can't
->> find device instance for device name. So, I change device name from the name of platform device
->> to the name of dt node.
-> 
-> That's fine. But we have to fix extcon_dev_register() too, to not use device
-> names right? We have to warn extcon users not to use device names right?
-
-I don't think so. extcon_get_edev_by_phandle() shows wrong node->name as following:
-The consumer could detect the cause of problem which can't get extcon device after
-checking error log message.
-
-	edev = extcon_get_extcon_dev(node->name);
-	if (!edev) {
-		dev_err(dev, "unable to get extcon device : %s\n", node->name);
-		return ERR_PTR(-ENODEV);
-	}
-
-I don't want to add more log message.
-
->>
->>
->>> diff --git a/drivers/extcon/extcon-class.c b/drivers/extcon/extcon-class.c
->>> index bc4c789..025eb39 100644
->>> --- a/drivers/extcon/extcon-class.c
->>> +++ b/drivers/extcon/extcon-class.c
->>> @@ -601,7 +601,6 @@ int extcon_dev_register(struct extcon_dev *edev)
->>>         edev->dev.class = extcon_class;
->>>         edev->dev.release = extcon_dev_release;
->>>
->>> -       edev->name = edev->name ? edev->name : dev_name(edev->dev.parent);
->>> //The user should always pass the 'name' as we no longer use device name while
->>> getting extcon device. And this name should also be the 'node' name?
->>>         if (IS_ERR_OR_NULL(edev->name)) {
->>>                 dev_err(&edev->dev,
->>>                         "extcon device name is null\n");
->>>
->>> Btw changing to node name from device name breaks dwc3 in OMAP5 and you would
->>> need this too..
->>>
->>> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
->>> index 2aea4bc..cea8cd3 100644
->>> --- a/drivers/extcon/extcon-palmas.c
->>> +++ b/drivers/extcon/extcon-palmas.c
->>> @@ -188,6 +188,7 @@ static int palmas_usb_probe(struct platform_device *pdev)
->>>
->>>         palmas_usb->edev.supported_cable = palmas_extcon_cable;
->>>         palmas_usb->edev.dev.parent = palmas_usb->dev;
->>> +       palmas_usb->edev.name = "palmas_usb";
->>>         palmas_usb->edev.mutually_exclusive = mutually_exclusive;
->>>
->>>         status = extcon_dev_register(&palmas_usb->edev);
->>>
->>> Cheers
->>> Kishon
->>>
->>
->> If node name is same as extcon device name, don't need some modification.
->> Also, you can modify node name in some OMAP dts file insead of modification of extcon-palmas.c
-> 
-> node name in OMAP dts is already 'palmas_usb'. But since we were not setting
-> 'edev.name' in extcon-palmas.c, extcon_dev_register used device name of palmas
-> (palmas_usb.7 in my case). So extcon-palmas.c needs the fix.
-
-For example,
-I used extcon provider/consumer driver in dts as following:
-extcon-max14577.c set device name as edev->name and then dt node name of max14577
-set "max14577-muic" which is same as device name(dev_name(&pdev->dev)).
-
-I don't need to modify extcon-max14577.c
-
-In drivers/extcon/extcon-max14577.c
-	...
-	info->edev->name = dev_name(&pdev->dev);
-	...
-In dts.
-	i2c@13880000 {
-		.....
-		max14577@25 {
-			.....
-			muic: max14577-muic {
-				compatible = "maxim,max14577-muic";
-			};
-			....
-		};
-	};
-
-	hsotg@12480000 {
-		.....
-		extcon = <&muic>;
-	};
+*changes v1 -> v2*
+[PATCH v2 1/2] created new DTS for memory-capes based on following feedbacks
+  http://www.spinics.net/lists/linux-omap/msg104348.html from 'Nishanth Menon <nm@ti.com>'
+  http://www.spinics.net/lists/linux-omap/msg104447.html from 'Tony Lindgren <tony@atomide.com>'
+[PATCH v2 2/2] <same as [PATCH v1 1/3]>
 
 
-Thanks,
-Chanwoo Choi
+*original v1*
+This patch-set adds parallel NAND support on following TI platforms
+ - AM335x (am335x-bone LT, am335x-boneblack): <disabled by default>
+ - AM43xx (am437x-gp-evm)
+
+Pekon Gupta (2):
+  ARM: dts: am335x-bone: add support for beaglebone NAND cape
+  ARM: dts: am437x-gp-evm: add support for parallel NAND flash
+
+ arch/arm/boot/dts/am335x-bone-memory-cape.dts | 130 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts             |   1 +
+ arch/arm/boot/dts/am335x-boneblack.dts        |   1 +
+ arch/arm/boot/dts/am437x-gp-evm.dts           | 107 +++++++++++++++++++++
+ 4 files changed, 239 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-bone-memory-cape.dts
+
+-- 
+1.8.5.1.163.gd7aced9
+
