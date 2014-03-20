@@ -1,30 +1,45 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v8 0/4] mtd: devices: elm: add checks ELM H/W
- constrains, driver code cleanup
-Date: Thu, 20 Mar 2014 13:17:13 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAB4A60@DBDE04.ent.ti.com>
-References: <1395321188-4123-1-git-send-email-pekon@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [patch 08/26] arm: Replace various irq_desc accesses
+Date: Thu, 20 Mar 2014 16:22:27 +0100
+Message-ID: <201403201622.27725.arnd@arndb.de>
+References: <20140223212703.511977310@linutronix.de>
+ <20140223212737.099151500@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34400 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751883AbaCTNRY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Mar 2014 09:17:24 -0400
-In-Reply-To: <1395321188-4123-1-git-send-email-pekon@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140223212737.099151500@linutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Shawn Guo <shawn.guo@linaro.org>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, omap <linux-omap@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>
 
->From: Gupta, Pekon
->Subject: [PATCH v8 0/4] mtd: devices: elm: add checks ELM H/W constrains, driver code cleanup
->
+On Sunday 23 February 2014, Thomas Gleixner wrote:
+> --- tip.orig/arch/arm/mach-omap1/ams-delta-fiq.c
+> +++ tip/arch/arm/mach-omap1/ams-delta-fiq.c
+> @@ -44,13 +44,10 @@ static unsigned int irq_counter[16];
+>  
+>  static irqreturn_t deferred_fiq(int irq, void *dev_id)
+>  {
+> -       struct irq_desc *irq_desc;
+> -       struct irq_chip *irq_chip = NULL;
+>         int gpio, irq_num, fiq_count;
+> +       struct irq_chip *irq_chip;
+>  
+> -       irq_desc = irq_to_desc(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
+> -       if (irq_desc)
+> -               irq_chip = irq_desc->irq_data.chip;
+> +       irq_chip = irq_get_irq_chip(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
 
-Sorry, sent to the wrong list.. was intended for linux-mtd list
-Please ignore the whole series.
+I got a compile error because irq_get_irq_chip() doesn't exist. I suppose
+you meant irq_get_chip.
 
-
-with regards, pekon
+	Arnd
