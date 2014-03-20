@@ -1,81 +1,113 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [RFC PATCH 3/6] PM / Voltagedomain: introduce voltage domain driver
- support
-Date: Wed, 19 Mar 2014 15:35:36 -0700
-Message-ID: <20140319223536.31449.32103@quantum>
-References: <1392755543-28335-1-git-send-email-nm@ti.com>
- <1392755543-28335-4-git-send-email-nm@ti.com>
- <20140224015826.GU25940@sirena.org.uk> <530B594F.2030500@ti.com>
- <20140303035426.GC2411@sirena.org.uk> <531DF250.5060100@ti.com>
- <20140310172221.GT28112@sirena.org.uk> <531DF931.1060108@ti.com>
- <20140310180131.GZ28112@sirena.org.uk> <531E11B7.6080109@ti.com>
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH 1/2] extcon: of: Remove unnecessary function call by using
+ the name of device_node
+Date: Thu, 20 Mar 2014 11:22:05 +0900
+Message-ID: <532A50CD.7030601@samsung.com>
+References: <1395144280-23240-1-git-send-email-cw00.choi@samsung.com>
+ <1395144280-23240-2-git-send-email-cw00.choi@samsung.com>
+ <532988DA.8030002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <531E11B7.6080109@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Mark Brown <broonie@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout3.samsung.com ([203.254.224.33]:18439 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751377AbaCTCWI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2014 22:22:08 -0400
+In-reply-to: <532988DA.8030002@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, myungjoo.ham@samsung.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Quoting Nishanth Menon (2014-03-10 12:25:43)
-> On 03/10/2014 01:01 PM, Mark Brown wrote:
-> > On Mon, Mar 10, 2014 at 12:41:05PM -0500, Nishanth Menon wrote:
-> > 
-> >> The only other options are:
-> >> a) Abstract it at a higher level at "user drivers", since they are
-> >> aware of the sequencing needs - but this partially defeats the
-> >> purpose, unless ofcourse, we do a tricky implementation such as:
-> >> clk a, b, c -> prenotifiers in a, postnotifiers in c (which as you
-> >> mentioned is a little trickier to get right).
-> >> b) introduce a higher level generic dvfs function[1] which does not
-> >> seem very attractive either.
+Hi,
 
-I disagree that a higher level DVFS interface is unattractive. I think
-it has taken a while to get there but people are finally interested in
-this. A small amount of discussion about this took place at Linaro
-Connect earlier this month (just hallway talk) but we shouldn't rule out
-the idea of a general framework for managing DVFS, which frankly is
-complex enough to merit not being shoved into the clock layer.
-
-> > 
-> >> Any other suggestions other than limiting the usage(and documenting it
-> >> so) and hoping for a future evolution to take this into consideration?
-> > 
-> > Something might be doable with telling the clock API about maintianing
-> > ratios between clocks?  I do think we should have an idea where we'd go
-> > with such requirements, even if we don't currently handle it, so that we
-> > can hopefully avoid another round of refactoring everything but it
-> > doesn't seem 100% essential, just very nice to have.
-
-This sounds reasonable but I must point out that the clock framework
-today (based on the existing clk.h api) does not have a single instance
-of constraint-based logic. For instance there is no clk_set_min_rate or
-clk_set_max_rate or clk_set_rate_range. These have been discussed before
-but I feel that pushing something before now would have been premature
-given that the level of discussion around those features never hit
-critical mass.
-
-So the ratio thing is sensible, but it would be the first
-constraint-like mechanism in the clock framework so what that looks like
-bares careful consideration.
-
-> > 
-> Mike,
-> Any suggestions about the above? could we use composite clocks in some
-> manner here(even though I think the original intent of the same was
-> not the same)?
-
-NACK. Let's just model the hardware in the clock framework, please. If
-you need to invent fake clocks to represent other constructs then it
-means the framework is missing something (or we're missing an entire
-framework, e.g. DVFS).
-
-Regards,
-Mike
-
+On 03/19/2014 09:08 PM, Kishon Vijay Abraham I wrote:
+> Hi,
 > 
-> -- 
-> Regards,
-> Nishanth Menon
+> On Tuesday 18 March 2014 05:34 PM, Chanwoo Choi wrote:
+>> This patch remove unnecessary function call in of_extcon_get_extcon_dev()
+>> by using the name of device_node structure.
+>>
+>> Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
+>> ---
+>>  drivers/extcon/of_extcon.c | 12 ++----------
+>>  1 file changed, 2 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/extcon/of_extcon.c b/drivers/extcon/of_extcon.c
+>> index 72173ec..0a29f82 100644
+>> --- a/drivers/extcon/of_extcon.c
+>> +++ b/drivers/extcon/of_extcon.c
+>> @@ -32,7 +32,6 @@ struct extcon_dev *of_extcon_get_extcon_dev(struct device *dev, int index)
+>>  {
+>>  	struct device_node *node;
+>>  	struct extcon_dev *edev;
+>> -	struct platform_device *extcon_parent_dev;
+>>  
+>>  	if (!dev->of_node) {
+>>  		dev_dbg(dev, "device does not have a device node entry\n");
+>> @@ -46,16 +45,9 @@ struct extcon_dev *of_extcon_get_extcon_dev(struct device *dev, int index)
+>>  		return ERR_PTR(-ENODEV);
+>>  	}
+>>  
+>> -	extcon_parent_dev = of_find_device_by_node(node);
+>> -	if (!extcon_parent_dev) {
+>> -		dev_dbg(dev, "unable to find device by node\n");
+>> -		return ERR_PTR(-EPROBE_DEFER);
+>> -	}
+>> -
+>> -	edev = extcon_get_extcon_dev(dev_name(&extcon_parent_dev->dev));
+>> +	edev = extcon_get_extcon_dev(node->name);
+> 
+> Since you no longer want to use device names I think you should add this too to
+> warn users if they rely on using the device name.
+
+Previous of_extcon_get_extcon_dev() support only platform device using of_find_device_by_node.
+
+If extcon device is based on i2c/spi/pci and so on, of_extcon_get_extcon_dev() can't
+find device instance for device name. So, I change device name from the name of platform device
+to the name of dt node.
+
+
+> diff --git a/drivers/extcon/extcon-class.c b/drivers/extcon/extcon-class.c
+> index bc4c789..025eb39 100644
+> --- a/drivers/extcon/extcon-class.c
+> +++ b/drivers/extcon/extcon-class.c
+> @@ -601,7 +601,6 @@ int extcon_dev_register(struct extcon_dev *edev)
+>         edev->dev.class = extcon_class;
+>         edev->dev.release = extcon_dev_release;
+> 
+> -       edev->name = edev->name ? edev->name : dev_name(edev->dev.parent);
+> //The user should always pass the 'name' as we no longer use device name while
+> getting extcon device. And this name should also be the 'node' name?
+>         if (IS_ERR_OR_NULL(edev->name)) {
+>                 dev_err(&edev->dev,
+>                         "extcon device name is null\n");
+> 
+> Btw changing to node name from device name breaks dwc3 in OMAP5 and you would
+> need this too..
+> 
+> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
+> index 2aea4bc..cea8cd3 100644
+> --- a/drivers/extcon/extcon-palmas.c
+> +++ b/drivers/extcon/extcon-palmas.c
+> @@ -188,6 +188,7 @@ static int palmas_usb_probe(struct platform_device *pdev)
+> 
+>         palmas_usb->edev.supported_cable = palmas_extcon_cable;
+>         palmas_usb->edev.dev.parent = palmas_usb->dev;
+> +       palmas_usb->edev.name = "palmas_usb";
+>         palmas_usb->edev.mutually_exclusive = mutually_exclusive;
+> 
+>         status = extcon_dev_register(&palmas_usb->edev);
+> 
+> Cheers
+> Kishon
+> 
+
+If node name is same as extcon device name, don't need some modification.
+Also, you can modify node name in some OMAP dts file insead of modification of extcon-palmas.c
+
+Thanks,
+Chanwoo Choi
+
+
