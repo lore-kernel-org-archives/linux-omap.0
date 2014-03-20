@@ -1,78 +1,69 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH 0/4] clk: dt: add support for default rate/parent
-Date: Thu, 20 Mar 2014 14:23:08 -0700
-Message-ID: <20140320212308.21989.36094@quantum>
-References: <1392282048-6284-1-git-send-email-t-kristo@ti.com>
- <53172239.3030705@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFC] possible removal of omap-serial
+Date: Thu, 20 Mar 2014 18:52:10 -0500
+Message-ID: <20140320235210.GB26964@saruman.home>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <53172239.3030705@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wzJLGUyc3ArbnUjN"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38175 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759695AbaCTXyW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Mar 2014 19:54:22 -0400
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@linuxfoundation.org>, Alan Cox <alan@linux.intel.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Quoting Tero Kristo (2014-03-05 05:10:17)
-> Ping.
-> 
-> Mike, any feedback on this?
+--wzJLGUyc3ArbnUjN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi Tero,
+Hi folks,
 
-Have you seen Sylwester's approach[1]? I prefer it since it is more
-device-oriented and less "centralized". The clock consumer enumerates
-the default parent or rate of a consumed clock. This can be made to work
-like your approach by having the clock driver consume these clocks and
-set them up with default rates or parents. What do you think?
+I've been toying with the idea of removing
+drivers/tty/serial/omap-serial.c since that's, to put it bluntly, an
+ungly copy of 8250 driver.
 
-Regards,
-Mike
+The original concern was wrt suspend/resume but I think it'd be a far
+better approach to implement runtime PM in 8250 and write a rather small
+8250-omap.c glue (much like 8250-acorn.c or 8250-dw.c) just to get the
+OMAP-specific details out of the way.
 
-[1] https://lkml.org/lkml/2014/3/3/324
+The question I have is: omap-serial.c calls the serial devnodes ttyO\d,
+instead of ttyS\d so removing omap-serial.c would have a direct impact
+in userland. I wonder if it's an acceptable "regression" considering
+we'd be able to reuse 8250 gaining proper Flow Control support, proper
+DMA support, years and years of bug-fixes, etc.
 
-> 
-> -Tero
-> 
-> On 02/13/2014 11:00 AM, Tero Kristo wrote:
-> > Hi,
-> >
-> > This set is a mix-match of new DT properties for generic and TI specific
-> > clock drivers. Basically provided for commenting purposes. The patches
-> > provide a way to configure clock parents / rates during boot through DT.
-> >
-> > "default-rate" : sets rate of a clock during boot, supported for any DT
-> >                clock type (through generic clock driver)
-> > "ti,default-parent" : selects a default parent for a multiplexer clock,
-> >                     only supported for TI specific mux clock for now,
-> >                     as generic mux clock does not support DT clocks
-> >
-> > Patch #4 provided as a reference how to move the default rates / parents
-> > from kernel code to DT.
-> >
-> > Default-rate logic in patch #2 looks somewhat complicated, as the clocks
-> > need to be sorted based on their parents to avoid cases where a child clock
-> > would set its rate first, just to be overridden by its parent changing
-> > rate later and resulting in incorrect rate for the child clock.
-> >
-> > If the default-rate generic property is not going to fly, it can be moved
-> > to TI only drivers also.
-> >
-> > -Tero
-> >
-> >
-> > _______________________________________________
-> > linux-arm-kernel mailing list
-> > linux-arm-kernel@lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> >
-> 
+What do you guys say ?
+
+--=20
+balbi
+
+--wzJLGUyc3ArbnUjN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTK38qAAoJEIaOsuA1yqREM5EP/imgzFE0tq1ilxQ7qDO4W+Lw
+jJnRVXBbLzMTKxDy1MCKXQF68ABbux7lIPfkx9PmXCPBH0B4fCnBzKzRr3E81WCe
+oI+HEv/cdmP5IxE4/qor90Zr6BlaEsHE8CUP+rehkv72YdFyYBL7lOIC9zyLjoqv
+FwukpZFwbiiqFcarmspHZKTWXEbwDEaZGds14PgF3c0BR7PbLNkO7nHLujS7oi6i
+eLDxJKkwv23AwSYPtQ7WRpj4Hi0l4eX4pb/Q58PCTg6kaTFTa1A7ZoTx5OXSrNPp
+hamnbTlivloOqdLz+uKdedbxJxzC3eoB/ZKstvVtUnoncZ6Q0bmCxpYaBu0riUlh
+hvUv3yt4CNh8Vda05vy7l34k3n//j9rEfXgQhgVP3I+dOHfoz//ua+Atjac7C+qd
+Rnpvk5OVz20hwGbJdE/UrlS5Gtc8HlMWLtawiroWgrSxfqpoXsmO7reTSVQvzJdd
+1OuQT/phIvbWpKvVtwCdbsbyiWme1k0wQIoVU6lMMCP6XwI8xsas2NQVyfK/xend
+YWJmRTS/5UMRm1kptsq0Y+FWwa/G+9STOBw1UzNLflPTVULdPP24UGqoX47khpgG
+nA98IO9EqJLx2QsQIAy3jsXrDyOqtcYROQMCCUKMxonuYR09UhQbNH6WfbI38zgW
+ddQzQjLbtioFCkhcIzt5
+=dGik
+-----END PGP SIGNATURE-----
+
+--wzJLGUyc3ArbnUjN--
