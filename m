@@ -1,79 +1,50 @@
 From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v8 3/4] mtd: devices: elm: configure parallel channels based on ecc_steps
-Date: Thu, 20 Mar 2014 18:43:07 +0530
-Message-ID: <1395321188-4123-4-git-send-email-pekon@ti.com>
+Subject: [PATCH v8 4/4] mtd: devices: elm: update DRIVER_NAME as "omap-elm"
+Date: Thu, 20 Mar 2014 18:43:08 +0530
+Message-ID: <1395321188-4123-5-git-send-email-pekon@ti.com>
 References: <1395321188-4123-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34206 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56712 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756393AbaCTNN1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Mar 2014 09:13:27 -0400
+	id S1757532AbaCTNNi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Mar 2014 09:13:38 -0400
 In-Reply-To: <1395321188-4123-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Pekon Gupta <pekon@ti.com>
 
-ELM hardware can process up to maximum of 8 hannels in parallel for
-ECC error detection. Currently the number of channels getting configured for
-processing is static determined by macro ERROR_VECTOR_MAX. However, the actual
-number of channels that need to be processed is the ECC step number.
-This patch just avoids configuring extra unused channels.
+use "omap-elm" as DRIVER_NAME
 
 Signed-off-by: Pekon Gupta <pekon@ti.com>
 ---
- drivers/mtd/devices/elm.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/mtd/devices/elm.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/mtd/devices/elm.c b/drivers/mtd/devices/elm.c
-index 4fbfaf6..26df41f 100644
+index 26df41f..1fd4a0f 100644
 --- a/drivers/mtd/devices/elm.c
 +++ b/drivers/mtd/devices/elm.c
-@@ -84,6 +84,7 @@ struct elm_info {
- 	struct list_head list;
- 	enum bch_ecc bch_type;
- 	struct elm_registers elm_regs;
-+	int ecc_steps;
- 	int ecc_syndrome_size;
- };
+@@ -15,6 +15,8 @@
+  *
+  */
  
-@@ -128,6 +129,7 @@ int elm_config(struct device *dev, enum bch_ecc bch_type,
- 	reg_val = (bch_type & ECC_BCH_LEVEL_MASK) | (ELM_ECC_SIZE << 16);
- 	elm_write_reg(info, ELM_LOCATION_CONFIG, reg_val);
- 	info->bch_type		= bch_type;
-+	info->ecc_steps		= ecc_steps;
- 	info->ecc_syndrome_size	= ecc_syndrome_size;
++#define DRIVER_NAME	"omap-elm"
++
+ #include <linux/platform_device.h>
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
+@@ -520,7 +522,7 @@ MODULE_DEVICE_TABLE(of, elm_of_match);
  
- 	return 0;
-@@ -170,7 +172,7 @@ static void elm_load_syndrome(struct elm_info *info,
- 	int i, offset;
- 	u32 val;
- 
--	for (i = 0; i < ERROR_VECTOR_MAX; i++) {
-+	for (i = 0; i < info->ecc_steps; i++) {
- 
- 		/* Check error reported */
- 		if (err_vec[i].error_reported) {
-@@ -238,7 +240,7 @@ static void elm_start_processing(struct elm_info *info,
- 	 * Set syndrome vector valid, so that ELM module
- 	 * will process it for vectors error is reported
- 	 */
--	for (i = 0; i < ERROR_VECTOR_MAX; i++) {
-+	for (i = 0; i < info->ecc_steps; i++) {
- 		if (err_vec[i].error_reported) {
- 			offset = ELM_SYNDROME_FRAGMENT_6 +
- 				SYNDROME_FRAGMENT_REG_SIZE * i;
-@@ -267,7 +269,7 @@ static void elm_error_correction(struct elm_info *info,
- 	int offset;
- 	u32 reg_val;
- 
--	for (i = 0; i < ERROR_VECTOR_MAX; i++) {
-+	for (i = 0; i < info->ecc_steps; i++) {
- 
- 		/* Check error reported */
- 		if (err_vec[i].error_reported) {
+ static struct platform_driver elm_driver = {
+ 	.driver	= {
+-		.name	= "elm",
++		.name	= DRIVER_NAME,
+ 		.owner	= THIS_MODULE,
+ 		.of_match_table = of_match_ptr(elm_of_match),
+ 		.pm	= &elm_pm_ops,
 -- 
 1.8.5.1.163.gd7aced9
 
