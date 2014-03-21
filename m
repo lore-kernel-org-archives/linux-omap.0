@@ -1,127 +1,92 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [RESEND PATCH V2] net: micrel : ks8851-ml: add vdd-supply support
-Date: Fri, 21 Mar 2014 04:41:33 -0500
-Message-ID: <1395394893-32139-1-git-send-email-nm@ti.com>
-References: <20140321085158.GB30910@pengutronix.de>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: DSS DT changes
+Date: Fri, 21 Mar 2014 12:52:38 +0200
+Message-ID: <532C19F6.6060703@ti.com>
+References: <53297EC4.30304@ti.com> <20140319153046.GA12934@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140321085158.GB30910@pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, netdev@vger.kernel.org, Markus Pargmann <mpa@pengutronix.de>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="lakn14Djp6gadljfC4m0poKIiPMCqqfGW"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:33643 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760384AbaCUKwp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Mar 2014 06:52:45 -0400
+In-Reply-To: <20140319153046.GA12934@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Few platforms use external regulator to keep the ethernet MAC supplied.
-So, request and enable the regulator for driver functionality.
+--lakn14Djp6gadljfC4m0poKIiPMCqqfGW
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Fixes: 66fda75f47dc (regulator: core: Replace direct ops->disable usage)
-Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Suggested-by: Markus Pargmann <mpa@pengutronix.de>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-This fixes a regression in SDP4430 platform as reported by Russell here:
-http://marc.info/?t=139509918200014&r=1&w=2
+On 19/03/14 17:30, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140319 04:29]:
+>> Hi Tony,
+>>
+>> Is it too late to get the DSS dts changes via arm tree?
+>=20
+> Yes too late..
+> =20
+>> I now got everything working fine so that the dts changes and the
+>> omapdss driver changes can be merged independently. It would be cleane=
+r
+>> if dts changes can go through the proper channel.
+>>
+>> If you can still take them, I've attached the patches, based on your
+>> omap-for-v3.15/dt branch.
+>>
+>> I also attached the bindings docs. Those I can take via my tree, but I=
+'m
+>> not sure if they are supposed to go with the dts changes or with the
+>> driver changes, so I have them here also.
+>>
+>> And I've pushed the changes to my tree:
+>>
+>> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git
+>>
+>> The branches are:
+>>
+>> 3.15/dss-dt-dts - contains the .dts changes
+>> 3.15/dss-dt - contains the driver changes + binding docs
+>=20
+> These look OK to me and would be good to get in so we can move
+> on with dropping more legacy platform data.
+>=20
+> As you have my acks there, so please feel free to send
+> your 3.15/dss-dt-dts along with the DSS patches after the
+> arm-soc branches have been merged.
 
-Patch is based on [v3.14-rc7] tag, if it is too late to submit, I can repost
-rebased to git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git
+Ok. All this is now in linux-next.
 
-Changes in v2(resend): based on Marcus's comment, switched to managed regulator
-	get, however retained the enable/disable as balanced.
-v1:  https://patchwork.kernel.org/patch/3871401/
+ Tomi
 
- .../devicetree/bindings/net/micrel-ks8851.txt      |    1 +
- drivers/net/ethernet/micrel/ks8851.c               |   24 +++++++++++++++++++-
- 2 files changed, 24 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/net/micrel-ks8851.txt b/Documentation/devicetree/bindings/net/micrel-ks8851.txt
-index 11ace3c..4fc3927 100644
---- a/Documentation/devicetree/bindings/net/micrel-ks8851.txt
-+++ b/Documentation/devicetree/bindings/net/micrel-ks8851.txt
-@@ -7,3 +7,4 @@ Required properties:
- 
- Optional properties:
- - local-mac-address : Ethernet mac address to use
-+- vdd-supply:	supply for Ethernet mac
-diff --git a/drivers/net/ethernet/micrel/ks8851.c b/drivers/net/ethernet/micrel/ks8851.c
-index 727b546a..674a58a 100644
---- a/drivers/net/ethernet/micrel/ks8851.c
-+++ b/drivers/net/ethernet/micrel/ks8851.c
-@@ -23,6 +23,7 @@
- #include <linux/crc32.h>
- #include <linux/mii.h>
- #include <linux/eeprom_93cx6.h>
-+#include <linux/regulator/consumer.h>
- 
- #include <linux/spi/spi.h>
- 
-@@ -83,6 +84,7 @@ union ks8851_tx_hdr {
-  * @rc_rxqcr: Cached copy of KS_RXQCR.
-  * @eeprom_size: Companion eeprom size in Bytes, 0 if no eeprom
-  * @eeprom: 93CX6 EEPROM state for accessing on-board EEPROM.
-+ * @vdd_reg:	Optional regulator supplying the chip
-  *
-  * The @lock ensures that the chip is protected when certain operations are
-  * in progress. When the read or write packet transfer is in progress, most
-@@ -130,6 +132,7 @@ struct ks8851_net {
- 	struct spi_transfer	spi_xfer2[2];
- 
- 	struct eeprom_93cx6	eeprom;
-+	struct regulator	*vdd_reg;
- };
- 
- static int msg_enable;
-@@ -1414,6 +1417,20 @@ static int ks8851_probe(struct spi_device *spi)
- 	ks->spidev = spi;
- 	ks->tx_space = 6144;
- 
-+	ks->vdd_reg = devm_regulator_get_optional(&spi->dev, "vdd");
-+	if (IS_ERR(ks->vdd_reg)) {
-+		ret = PTR_ERR(ks->vdd_reg);
-+		if (ret == -EPROBE_DEFER)
-+			goto err_reg;
-+	} else {
-+		ret = regulator_enable(ks->vdd_reg);
-+		if (ret) {
-+			dev_err(&spi->dev, "regulator enable fail: %d\n",
-+				ret);
-+			goto err_reg;
-+		}
-+	}
-+
- 	mutex_init(&ks->lock);
- 	spin_lock_init(&ks->statelock);
- 
-@@ -1508,8 +1525,11 @@ static int ks8851_probe(struct spi_device *spi)
- err_netdev:
- 	free_irq(ndev->irq, ks);
- 
--err_id:
- err_irq:
-+err_id:
-+	if (!IS_ERR(ks->vdd_reg))
-+		regulator_disable(ks->vdd_reg);
-+err_reg:
- 	free_netdev(ndev);
- 	return ret;
- }
-@@ -1523,6 +1543,8 @@ static int ks8851_remove(struct spi_device *spi)
- 
- 	unregister_netdev(priv->netdev);
- 	free_irq(spi->irq, priv);
-+	if (!IS_ERR(priv->vdd_reg))
-+		regulator_disable(priv->vdd_reg);
- 	free_netdev(priv->netdev);
- 
- 	return 0;
--- 
-1.7.9.5
+
+--lakn14Djp6gadljfC4m0poKIiPMCqqfGW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTLBn2AAoJEPo9qoy8lh71nA4P/0TKyVnfgu7BxOswJF7MmGEv
+HRfAnncMF/YtzCPSLstJXn6RnphkvPbw022bq5/tnG2S/UOJpkxm0CzY+xBOKV3s
+5I6lgJQ2dOaub2Zxm4Ze9wXRFO/jyENPW6+snqOJA04C2lB/x2QuxXm5z10M7WGP
+R7BSseWfT0cHO+2urMxfbWEI07D/4RUqKYikWly9QnOS5FlOTy0SzojdbITvLstL
+gAfka96vtK02l4cbARFwtaCMSEPPtxzCTq7yYvMpg+EsjRmTX/8qR88fmWDGzokZ
+9ITjzpM2Ve+D/P2cjBbNfyTO9qdtdo9KwCOfS5D/d0LQAyohvWMQ6qHlsPcyEPRo
+jaLXEMInccugpqfIM6wrLsIZz2CCd26rKNv94nikddVMVulV0KOqnbuizTEwZSxl
+N6mu0jkT7L5WThvO93uMhc3wsaHAJXygqEN4thIF8fxadF5GVDtoeSGkQQBxNrVk
+kKuVq5UetjqO4rcMGuWJf/GpGEvtARwcNr+unbq2P8iVsZztGbqqWxO8AQVEha50
+ma1PatGLhSC+2dDDBp9RvvkmeUcA4j+GQ23vE4cUOWcxunXquuhV5QdH8DCvenzZ
+2IxPylxKmzTHQ+RkAAjutw8hhrGRVXqCDecIPI2OUkLNQe8Af8rKj/OYaZe0vgae
+nLMOnpZLTqFOIfqjZX+z
+=9CRN
+-----END PGP SIGNATURE-----
+
+--lakn14Djp6gadljfC4m0poKIiPMCqqfGW--
