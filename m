@@ -1,86 +1,41 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/9] mmc: omap_hsmmc: use devm_request_mem_region
-Date: Fri, 21 Mar 2014 11:30:27 -0500
-Message-ID: <20140321163027.GN12310@saruman.home>
-References: <1395404448-30030-2-git-send-email-afenkart@gmail.com>
- <1395418658-2375-1-git-send-email-balajitk@ti.com>
- <1395418658-2375-5-git-send-email-balajitk@ti.com>
- <20140321161844.GK12310@saruman.home>
- <532C6888.5090904@ti.com>
-Reply-To: <balbi@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH RFC 0/2] Move dai-link level properties away from dai subnodes
+Date: Fri, 21 Mar 2014 18:47:21 +0200
+Message-ID: <cover.1395419906.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+W7ryvxEk4RRyt+P"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <532C6888.5090904@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: balbi@ti.com, linux-mmc@vger.kernel.org, chris@printf.net, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:52301 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754472AbaCUQri (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Mar 2014 12:47:38 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com, moinejf@free.fr, Li.Xiubo@freescale.com, kuninori.morimoto.gx@renesas.com, Jyri Sarha <jsarha@ti.com>
 
---+W7ryvxEk4RRyt+P
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch is implemented on top of late patches from Jean-Francois
+Moine [1]. 
 
-On Fri, Mar 21, 2014 at 09:57:52PM +0530, Balaji T K wrote:
-> On Friday 21 March 2014 09:48 PM, Felipe Balbi wrote:
-> >On Fri, Mar 21, 2014 at 09:47:33PM +0530, Balaji T K wrote:
-> >>With devm_request_mem_region conversion release_mem_region can be
-> >>removed in clean up path
-> >>
-> >>Signed-off-by: Balaji T K <balajitk@ti.com>
-> >>---
-> >>  drivers/mmc/host/omap_hsmmc.c |   11 ++---------
-> >>  1 files changed, 2 insertions(+), 9 deletions(-)
-> >>
-> >>diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmm=
-c.c
-> >>index 8e35a6e..9952673 100644
-> >>--- a/drivers/mmc/host/omap_hsmmc.c
-> >>+++ b/drivers/mmc/host/omap_hsmmc.c
-> >>@@ -1881,7 +1881,8 @@ static int omap_hsmmc_probe(struct platform_devic=
-e *pdev)
-> >>  	if (res =3D=3D NULL || irq < 0)
-> >>  		return -ENXIO;
-> >>
-> >>-	res =3D request_mem_region(res->start, resource_size(res), pdev->name=
-);
-> >>+	res =3D devm_request_mem_region(&pdev->dev, res->start,
-> >>+					resource_size(res), pdev->name);
-> >
-> >while at that, why don't you switch over to devm_ioremap_resource()
-> >already ?
->=20
-> I can't do that because of 0x100 reg_offset on OMAP4+ and am335x+
+The patches implement the main part of the simple-card changes
+discussed in alsa-devel mailing list.
 
-split the resource into two parts, one is OMAP-specific and the other is
-the generic SDHCI start.
+[1] http://mailman.alsa-project.org/pipermail/alsa-devel/2014-March/074592.html
 
---=20
-balbi
+Best regards,
+Jyri
 
---+W7ryvxEk4RRyt+P
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Jyri Sarha (2):
+  ASoC: core: Update snd_soc_of_parse_daifmt() interface
+  ASoC: simple-card: Move dai-link level properties away from dai
+    subnodes
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+ .../devicetree/bindings/sound/simple-card.txt      |   91 ++++----
+ include/sound/soc.h                                |    4 +-
+ sound/soc/generic/simple-card.c                    |  237 ++++++++++++--------
+ sound/soc/soc-core.c                               |    8 +-
+ 4 files changed, 201 insertions(+), 139 deletions(-)
 
-iQIcBAEBAgAGBQJTLGkjAAoJEIaOsuA1yqRExRYP/RW4w96jtI+8xfXsDd14FpnK
-4wByNcJdHtOkEbj+o5J6dXI4HqrDZp+6YKME2r9h48MchHxlnQ9fr+ffvINyvseW
-G7a2neNMzYCm/uIA2gaDVQOA/xZ8fmCH2BCaXchfs9OfMy8uQ53yIt/1MIONxV5e
-uTuG+UoUzFD/wR5HNufs+QxwgXjjb5t42WltaiXm6gxO6Y839exygoSIoI2RNoJt
-dkK5HkcO8EI42d2ELxHFd5nrEI8dX8E8FPu13ox26PstJqy2nO6ZPRrE3MGINeJk
-K1OGqRLvdJcR8wZN+YYAJo69iGEq/fxWsqE6AirUgQ8rVXX46V0icq2NfD/Vl154
-XQD/MvTUgvtvCevM36G6e92CZ7Q3amdtyonEPpKc2Guo5PIZ6AMwa/eoj8ileMLl
-Mzf0ZcnMNFoP9Yj4sT7RbFtDoR1Wgpu62s1U7iGMSNSkgHIzwfqqe2m6NIK3DAQ6
-ixlSv/qgBYnnZnuSsq5wnDSylXYdbDCvYwkjBrC5YqiBIesC5qGV9HHEj3t+6/Vv
-USyRruaknjDT0BKWFEMbDh/mMtxnsAGIUGa5VHpGBHBqMXOG4Bkw9mWJmOx76HkT
-Dg+HGVrQkxlnumlM40GEKn0+CeTj9pgb1iDJ7kX+Lb0TutkmRe1n00022cnohXBl
-4mceLKxMMY9+Fbos1xxH
-=ZB/o
------END PGP SIGNATURE-----
+-- 
+1.7.9.5
 
---+W7ryvxEk4RRyt+P--
