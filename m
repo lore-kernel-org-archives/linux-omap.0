@@ -1,577 +1,276 @@
-From: Matt Ranostay <mranostay@gmail.com>
-Subject: Re: [PATCH v3 2/6] iio: pulse: add TI ECAP driver
-Date: Fri, 21 Mar 2014 20:35:21 -0700
-Message-ID: <CAKzfze8t7ywJ6HtjNjLLNmBoinfmrE_3s4r2Bamh_DHxLdEHyQ@mail.gmail.com>
-References: <1391626901-31684-1-git-send-email-mporter@linaro.org>
-	<1391626901-31684-3-git-send-email-mporter@linaro.org>
+From: Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [PATCH RFC 2/2] ASoC: simple-card: Move dai-link
+ level properties away from dai subnodes
+Date: Sun, 23 Mar 2014 10:54:12 +0100
+Message-ID: <20140323105412.4f312449@armhf>
+References: <cover.1395419906.git.jsarha@ti.com>
+ <0b1c0e2e6766c3a63f598c3b9435d4744b0e2835.1395419906.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <1391626901-31684-3-git-send-email-mporter@linaro.org>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Matt Porter <mporter@linaro.org>
-Cc: Jonathan Cameron <jic23@kernel.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <robh+dt@kernel.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Thierry Reding <thierry.reding@gmail.com>, Linux IIO List <linux-iio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Devicetree List <devicetree@vger.kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <0b1c0e2e6766c3a63f598c3b9435d4744b0e2835.1395419906.git.jsarha@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kuninori.morimoto.gx@renesas.com, liam.r.girdwood@linux.intel.com, Li.Xiubo@freescale.com, peter.ujfalusi@ti.com, detheridge@ti.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 5, 2014 at 11:01 AM, Matt Porter <mporter@linaro.org> wrote:
-> Adds support for capturing PWM signals using the TI ECAP peripheral.
-> This driver supports triggered buffer capture of pulses on multiple
-> ECAP instances. In addition, the driver supports configurable polarity
-> of the signal to be captured.
->
-> Signed-off-by: Matt Porter <mporter@linaro.org>
-
-Tested-by: Matt Ranostay <mranostay@gmail.com>
-
-> ---
->  drivers/iio/pulse/Kconfig  |  20 ++
->  drivers/iio/pulse/Makefile |   6 +
->  drivers/iio/pulse/tiecap.c | 491 +++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 517 insertions(+)
->  create mode 100644 drivers/iio/pulse/Kconfig
->  create mode 100644 drivers/iio/pulse/Makefile
->  create mode 100644 drivers/iio/pulse/tiecap.c
->
-> diff --git a/drivers/iio/pulse/Kconfig b/drivers/iio/pulse/Kconfig
-> new file mode 100644
-> index 0000000..9864d4b
-> --- /dev/null
-> +++ b/drivers/iio/pulse/Kconfig
-> @@ -0,0 +1,20 @@
-> +#
-> +# Pulse Capture Devices
-> +#
-> +# When adding new entries keep the list in alphabetical order
-> +
-> +menu "Pulse Capture Devices"
-> +
-> +config IIO_TIECAP
-> +       tristate "TI ECAP Pulse Capture"
-> +       depends on SOC_AM33XX
-> +       select IIO_BUFFER
-> +       select IIO_TRIGGERED_BUFFER
-> +       help
-> +        If you say yes here you get support for the TI ECAP peripheral
-> +        in pulse capture mode.
-> +
-> +        This driver can also be built as a module.  If so, the module
-> +        will be called tiecap
-> +
-> +endmenu
-> diff --git a/drivers/iio/pulse/Makefile b/drivers/iio/pulse/Makefile
-> new file mode 100644
-> index 0000000..94d4b00
-> --- /dev/null
-> +++ b/drivers/iio/pulse/Makefile
-> @@ -0,0 +1,6 @@
-> +#
-> +# Makefile for IIO PWM Capture Devices
-> +#
-> +
-> +# When adding new entries keep the list in alphabetical order
-> +obj-$(CONFIG_IIO_TIECAP)       += tiecap.o
-> diff --git a/drivers/iio/pulse/tiecap.c b/drivers/iio/pulse/tiecap.c
-> new file mode 100644
-> index 0000000..fd96745
-> --- /dev/null
-> +++ b/drivers/iio/pulse/tiecap.c
-> @@ -0,0 +1,491 @@
-> +/*
-> + * ECAP IIO pulse capture driver
-> + *
-> + * Copyright (C) 2014 Linaro Limited
-> + * Author: Matt Porter <mporter@linaro.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +
-> +#include <linux/clk.h>
-> +#include <linux/err.h>
-> +#include <linux/iio/buffer.h>
-> +#include <linux/iio/iio.h>
-> +#include <linux/iio/sysfs.h>
-> +#include <linux/iio/trigger.h>
-> +#include <linux/iio/trigger_consumer.h>
-> +#include <linux/iio/triggered_buffer.h>
-> +#include <linux/io.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/irq.h>
-> +#include <linux/module.h>
-> +#include <linux/of_device.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/pm_runtime.h>
-> +
-> +#include "../../pwm/pwm-tipwmss.h"
-> +
-> +/* ECAP regs and bits */
-> +#define CAP1                   0x08
-> +#define CAP2                   0x0c
-> +#define ECCTL1                 0x28
-> +#define ECCTL1_RUN_FREE                BIT(15)
-> +#define ECCTL1_CAPLDEN         BIT(8)
-> +#define ECCTL1_CAP2POL         BIT(2)
-> +#define ECCTL1_CTRRST1         BIT(1)
-> +#define ECCTL1_CAP1POL         BIT(0)
-> +#define ECCTL2                 0x2a
-> +#define ECCTL2_SYNCO_SEL_DIS   BIT(7)
-> +#define ECCTL2_TSCTR_FREERUN   BIT(4)
-> +#define ECCTL2_REARM           BIT(3)
-> +#define ECCTL2_STOP_WRAP_2     BIT(1)
-> +#define ECEINT                 0x2c
-> +#define ECFLG                  0x2e
-> +#define ECCLR                  0x30
-> +#define ECINT_CTRCMP           BIT(7)
-> +#define ECINT_CTRPRD           BIT(6)
-> +#define ECINT_CTROVF           BIT(5)
-> +#define ECINT_CEVT4            BIT(4)
-> +#define ECINT_CEVT3            BIT(3)
-> +#define ECINT_CEVT2            BIT(2)
-> +#define ECINT_CEVT1            BIT(1)
-> +#define ECINT_ALL              (ECINT_CTRCMP | \
-> +                               ECINT_CTRPRD |  \
-> +                               ECINT_CTROVF |  \
-> +                               ECINT_CEVT4 |   \
-> +                               ECINT_CEVT3 |   \
-> +                               ECINT_CEVT2 |   \
-> +                               ECINT_CEVT1)
-> +
-> +/* ECAP driver flags */
-> +#define ECAP_POLARITY_HIGH     BIT(1)
-> +#define ECAP_ENABLED           BIT(0)
-> +
-> +struct ecap_context {
-> +       u32     cap1;
-> +       u32     cap2;
-> +       u16     ecctl1;
-> +       u16     ecctl2;
-> +       u16     eceint;
-> +};
-> +
-> +struct ecap_state {
-> +       unsigned long           flags;
-> +       unsigned int            clk_rate;
-> +       void __iomem            *regs;
-> +       u32                     *buf;
-> +       struct ecap_context     ctx;
-> +};
-> +
-> +#define dev_to_ecap_state(d)   iio_priv(dev_to_iio_dev(d))
-> +
-> +static const struct iio_chan_spec ecap_channels[] = {
-> +       {
-> +               .type           = IIO_PULSE,
-> +               .info_mask_separate =
-> +                       BIT(IIO_CHAN_INFO_RAW) | BIT(IIO_CHAN_INFO_SCALE),
-> +               .scan_index     = 0,
-> +               .scan_type = {
-> +                       .sign           = 'u',
-> +                       .realbits       = 32,
-> +                       .storagebits    = 32,
-> +                       .endianness     = IIO_LE,
-> +               },
-> +       },
-> +       IIO_CHAN_SOFT_TIMESTAMP(1)
-> +};
-> +
-> +static ssize_t ecap_attr_show(struct device *dev,
-> +                             struct device_attribute *attr, char *buf)
-> +{
-> +       struct ecap_state *state = dev_to_ecap_state(dev);
-> +
-> +       return sprintf(buf, "%d\n",
-> +                      test_bit(ECAP_POLARITY_HIGH, &state->flags));
-> +}
-> +
-> +static ssize_t ecap_attr_store(struct device *dev,
-> +                              struct device_attribute *attr,
-> +                              const char *buf,
-> +                              size_t len)
-> +{
-> +       int ret;
-> +       bool val;
-> +       struct ecap_state *state = dev_to_ecap_state(dev);
-> +
-> +       if (test_bit(ECAP_ENABLED, &state->flags))
-> +               return -EINVAL;
-> +
-> +       ret = strtobool(buf, &val);
-> +       if (ret)
-> +               return ret;
-> +
-> +       if (val)
-> +               set_bit(ECAP_POLARITY_HIGH, &state->flags);
-> +       else
-> +               clear_bit(ECAP_POLARITY_HIGH, &state->flags);
-> +
-> +       return len;
-> +}
-> +
-> +static IIO_DEVICE_ATTR(pulse_polarity, S_IRUGO | S_IWUSR,
-> +       ecap_attr_show, ecap_attr_store, 0);
-> +
-> +static struct attribute *ecap_attributes[] = {
-> +       &iio_dev_attr_pulse_polarity.dev_attr.attr,
-> +       NULL,
-> +};
-> +
-> +static struct attribute_group ecap_attribute_group = {
-> +       .attrs = ecap_attributes,
-> +};
-> +
-> +static int ecap_read_raw(struct iio_dev *idev,
-> +                       struct iio_chan_spec const *ch, int *val,
-> +                       int *val2, long mask)
-> +{
-> +       struct ecap_state *state = iio_priv(idev);
-> +
-> +       switch (mask) {
-> +       case IIO_CHAN_INFO_RAW:
-> +               /*
-> +                * Always return 0 as a pulse width sample
-> +                * is only valid in a triggered condition
-> +                */
-> +               *val = 0;
-> +               return IIO_VAL_INT;
-> +       case IIO_CHAN_INFO_SCALE:
-> +               *val = 0;
-> +               *val2 = NSEC_PER_SEC / state->clk_rate;
-> +               return IIO_VAL_INT_PLUS_NANO;
-> +       default:
-> +               return -EINVAL;
-> +       }
-> +}
-> +
-> +static const struct iio_info ecap_info = {
-> +       .driver_module = THIS_MODULE,
-> +       .attrs = &ecap_attribute_group,
-> +       .read_raw = &ecap_read_raw,
-> +};
-> +
-> +static irqreturn_t ecap_trigger_handler(int irq, void *private)
-> +{
-> +       struct iio_poll_func *pf = private;
-> +       struct iio_dev *idev = pf->indio_dev;
-> +       struct ecap_state *state = iio_priv(idev);
-> +
-> +       /* Read pulse counter value */
-> +       *state->buf = readl(state->regs + CAP2);
-> +
-> +       iio_push_to_buffers_with_timestamp(idev, state->buf, iio_get_time_ns());
-> +
-> +       iio_trigger_notify_done(idev->trig);
-> +
-> +       return IRQ_HANDLED;
-> +};
-> +
-> +
-> +static const struct iio_trigger_ops iio_interrupt_trigger_ops = {
-> +       .owner = THIS_MODULE,
-> +};
-> +
-> +static irqreturn_t ecap_interrupt_handler(int irq, void *private)
-> +{
-> +       struct iio_dev *idev = private;
-> +       struct ecap_state *state = iio_priv(idev);
-> +       u16 ints;
-> +
-> +       iio_trigger_poll(idev->trig, 0);
-> +
-> +       /* Clear CAP2 interrupt */
-> +       ints = readw(state->regs + ECFLG);
-> +       if (ints & ECINT_CEVT2)
-> +               writew(ECINT_CEVT2, state->regs + ECCLR);
-> +       else
-> +               dev_warn(&idev->dev, "unhandled interrupt flagged: %04x\n",
-> +                        ints);
-> +
-> +       return IRQ_HANDLED;
-> +}
-> +
-> +static int ecap_buffer_predisable(struct iio_dev *idev)
-> +{
-> +       struct ecap_state *state = iio_priv(idev);
-> +       int ret = 0;
-> +       u16 ecctl2;
-> +
-> +       /* Stop capture */
-> +       clear_bit(ECAP_ENABLED, &state->flags);
-> +       ecctl2 = readw(state->regs + ECCTL2) & ~ECCTL2_TSCTR_FREERUN;
-> +       writew(ecctl2, state->regs + ECCTL2);
-> +
-> +       /* Disable and clear all interrupts */
-> +       writew(0, state->regs + ECEINT);
-> +       writew(ECINT_ALL, state->regs + ECCLR);
-> +
-> +       ret = iio_triggered_buffer_predisable(idev);
-> +
-> +       pm_runtime_put_sync(idev->dev.parent);
-> +
-> +       return ret;
-> +}
-> +
-> +static int ecap_buffer_postenable(struct iio_dev *idev)
-> +{
-> +       struct ecap_state *state = iio_priv(idev);
-> +       int ret = 0;
-> +       u16 ecctl1, ecctl2;
-> +
-> +       pm_runtime_get_sync(idev->dev.parent);
-> +
-> +       /* Configure pulse polarity */
-> +       ecctl1 = readw(state->regs + ECCTL1);
-> +       if (test_bit(ECAP_POLARITY_HIGH, &state->flags)) {
-> +               /* CAP1 rising, CAP2 falling */
-> +               ecctl1 |= ECCTL1_CAP2POL;
-> +               ecctl1 &= ~ECCTL1_CAP1POL;
-> +       } else {
-> +               /* CAP1 falling, CAP2 rising */
-> +               ecctl1 &= ~ECCTL1_CAP2POL;
-> +               ecctl1 |= ECCTL1_CAP1POL;
-> +       }
-> +       writew(ecctl1, state->regs + ECCTL1);
-> +
-> +       /* Enable CAP2 interrupt */
-> +       writew(ECINT_CEVT2, state->regs + ECEINT);
-> +
-> +       /* Enable capture */
-> +       ecctl2 = readw(state->regs + ECCTL2);
-> +       ecctl2 |= ECCTL2_TSCTR_FREERUN | ECCTL2_REARM;
-> +       writew(ecctl2, state->regs + ECCTL2);
-> +       set_bit(ECAP_ENABLED, &state->flags);
-> +
-> +       ret = iio_triggered_buffer_postenable(idev);
-> +
-> +       return ret;
-> +}
-> +
-> +static const struct iio_buffer_setup_ops ecap_buffer_setup_ops = {
-> +       .postenable = &ecap_buffer_postenable,
-> +       .predisable = &ecap_buffer_predisable,
-> +};
-> +
-> +static void ecap_init_hw(struct iio_dev *idev)
-> +{
-> +       struct ecap_state *state = iio_priv(idev);
-> +
-> +       clear_bit(ECAP_ENABLED, &state->flags);
-> +       set_bit(ECAP_POLARITY_HIGH, &state->flags);
-> +
-> +       writew(ECCTL1_RUN_FREE | ECCTL1_CAPLDEN |
-> +              ECCTL1_CAP2POL | ECCTL1_CTRRST1,
-> +              state->regs + ECCTL1);
-> +
-> +       writew(ECCTL2_SYNCO_SEL_DIS | ECCTL2_STOP_WRAP_2,
-> +              state->regs + ECCTL2);
-> +}
-> +
-> +static const struct of_device_id ecap_of_ids[] = {
-> +       { .compatible   = "ti,am33xx-ecap" },
-> +       { /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(of, ecap_of_ids);
-> +
-> +static int ecap_probe(struct platform_device *pdev)
-> +{
-> +       int irq, ret;
-> +       struct iio_dev *idev;
-> +       struct ecap_state *state;
-> +       struct resource *r;
-> +       struct clk *clk;
-> +       struct iio_trigger *trig;
-> +       u16 status;
-> +
-> +       idev = devm_iio_device_alloc(&pdev->dev, sizeof(struct ecap_state));
-> +       if (!idev)
-> +               return -ENOMEM;
-> +
-> +       state = iio_priv(idev);
-> +
-> +       clk = devm_clk_get(&pdev->dev, "fck");
-> +       if (IS_ERR(clk)) {
-> +               dev_err(&pdev->dev, "failed to get clock\n");
-> +               return PTR_ERR(clk);
-> +       }
-> +
-> +       state->clk_rate = clk_get_rate(clk);
-> +       if (!state->clk_rate) {
-> +               dev_err(&pdev->dev, "failed to get clock rate\n");
-> +               return -EINVAL;
-> +       }
-> +
-> +       platform_set_drvdata(pdev, idev);
-> +
-> +       idev->dev.parent = &pdev->dev;
-> +       idev->name = dev_name(&pdev->dev);
-> +       idev->modes = INDIO_DIRECT_MODE;
-> +       idev->info = &ecap_info;
-> +       idev->channels = ecap_channels;
-> +       /* One h/w capture and one s/w timestamp channel per instance */
-> +       idev->num_channels = ARRAY_SIZE(ecap_channels);
-> +
-> +       trig = devm_iio_trigger_alloc(&pdev->dev, "%s-dev%d",
-> +                                     idev->name, idev->id);
-> +       if (!trig)
-> +               return -ENOMEM;
-> +       trig->dev.parent = idev->dev.parent;
-> +       iio_trigger_set_drvdata(trig, idev);
-> +       trig->ops = &iio_interrupt_trigger_ops;
-> +
-> +       ret = iio_trigger_register(trig);
-> +       if (ret) {
-> +               dev_err(&pdev->dev, "failed to register trigger\n");
-> +               return ret;
-> +       }
-> +
-> +       ret = iio_triggered_buffer_setup(idev, NULL,
-> +                                        &ecap_trigger_handler,
-> +                                        &ecap_buffer_setup_ops);
-> +       if (ret)
-> +               return ret;
-> +
-> +       irq = platform_get_irq(pdev, 0);
-> +       if (irq < 0) {
-> +               dev_err(&pdev->dev, "no irq is specified\n");
-> +               return irq;
-> +       }
-> +       ret = devm_request_irq(&pdev->dev, irq,
-> +                               &ecap_interrupt_handler,
-> +                               0, dev_name(&pdev->dev), idev);
-> +       if (ret) {
-> +               dev_err(&pdev->dev, "unable to request irq\n");
-> +               goto uninit_buffer;
-> +       }
-> +
-> +       r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +       state->regs = devm_ioremap_resource(&pdev->dev, r);
-> +       if (IS_ERR(state->regs)) {
-> +               dev_err(&pdev->dev, "unable to remap registers\n");
-> +               ret = PTR_ERR(state->regs);
-> +               goto uninit_buffer;
-> +       };
-> +
-> +       ret = iio_device_register(idev);
-> +       if (ret < 0) {
-> +               dev_err(&pdev->dev, "unable to register device\n");
-> +               goto uninit_buffer;
-> +       }
-> +
-> +       state->buf = devm_kzalloc(&idev->dev, idev->scan_bytes, GFP_KERNEL);
-> +       if (!state->buf) {
-> +               ret = -ENOMEM;
-> +               goto uninit_buffer;
-> +       }
-> +
-> +       pm_runtime_enable(&pdev->dev);
-> +       pm_runtime_get_sync(&pdev->dev);
-> +
-> +       status = pwmss_submodule_state_change(pdev->dev.parent,
-> +                       PWMSS_ECAPCLK_EN);
-> +       if (!(status & PWMSS_ECAPCLK_EN_ACK)) {
-> +               dev_err(&pdev->dev, "failed to enable PWMSS config space clock\n");
-> +               ret = -EINVAL;
-> +               goto pwmss_clk_failure;
-> +       }
-> +
-> +       ecap_init_hw(idev);
-> +
-> +       pm_runtime_put_sync(&pdev->dev);
-> +
-> +       return 0;
-> +
-> +pwmss_clk_failure:
-> +       pm_runtime_put_sync(&pdev->dev);
-> +       pm_runtime_disable(&pdev->dev);
-> +       iio_device_unregister(idev);
-> +
-> +uninit_buffer:
-> +       iio_triggered_buffer_cleanup(idev);
-> +
-> +       return ret;
-> +}
-> +
-> +static int ecap_remove(struct platform_device *pdev)
-> +{
-> +       struct iio_dev *idev = platform_get_drvdata(pdev);
-> +
-> +       pm_runtime_get_sync(&pdev->dev);
-> +
-> +       pwmss_submodule_state_change(pdev->dev.parent, PWMSS_ECAPCLK_STOP_REQ);
-> +
-> +       pm_runtime_put_sync(&pdev->dev);
-> +       pm_runtime_disable(&pdev->dev);
-> +
-> +       iio_device_unregister(idev);
-> +       iio_triggered_buffer_cleanup(idev);
-> +
-> +       return 0;
-> +}
-> +
-> +#ifdef CONFIG_PM_SLEEP
-> +static int ecap_suspend(struct device *dev)
-> +{
-> +       struct ecap_state *state = dev_to_ecap_state(dev);
-> +
-> +       pm_runtime_get_sync(dev);
-> +       state->ctx.cap1 = readl(state->regs + CAP1);
-> +       state->ctx.cap2 = readl(state->regs + CAP2);
-> +       state->ctx.eceint = readw(state->regs + ECEINT);
-> +       state->ctx.ecctl1 = readw(state->regs + ECCTL1);
-> +       state->ctx.ecctl2 = readw(state->regs + ECCTL2);
-> +       pm_runtime_put_sync(dev);
-> +
-> +       /* If capture was active, disable ECAP */
-> +       if (test_bit(ECAP_ENABLED, &state->flags))
-> +               pm_runtime_put_sync(dev);
-> +
-> +       return 0;
-> +}
-> +
-> +static int ecap_resume(struct device *dev)
-> +{
-> +       struct ecap_state *state = dev_to_ecap_state(dev);
-> +
-> +       /* If capture was active, enable ECAP */
-> +       if (test_bit(ECAP_ENABLED, &state->flags))
-> +               pm_runtime_get_sync(dev);
-> +
-> +       pm_runtime_get_sync(dev);
-> +       writel(state->ctx.cap1, state->regs + CAP1);
-> +       writel(state->ctx.cap2, state->regs + CAP2);
-> +       writew(state->ctx.eceint, state->regs + ECEINT);
-> +       writew(state->ctx.ecctl1, state->regs + ECCTL1);
-> +       writew(state->ctx.ecctl2, state->regs + ECCTL2);
-> +       pm_runtime_put_sync(dev);
-> +
-> +       return 0;
-> +}
-> +#endif
-> +
-> +static SIMPLE_DEV_PM_OPS(ecap_pm_ops, ecap_suspend, ecap_resume);
-> +
-> +static struct platform_driver ecap_iio_driver = {
-> +       .driver = {
-> +               .name           = "ecap",
-> +               .owner          = THIS_MODULE,
-> +               .of_match_table = of_match_ptr(ecap_of_ids),
-> +               .pm             = &ecap_pm_ops,
-> +       },
-> +       .probe = ecap_probe,
-> +       .remove = ecap_remove,
-> +};
-> +
-> +module_platform_driver(ecap_iio_driver);
-> +
-> +MODULE_DESCRIPTION("ECAP IIO pulse capture driver");
-> +MODULE_AUTHOR("Matt Porter <mporter@linaro.org>");
-> +MODULE_LICENSE("GPL");
-> --
-> 1.8.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+T24gRnJpLCAyMSBNYXIgMjAxNCAxODo0NzoyMyArMDIwMApKeXJpIFNhcmhhIDxqc2FyaGFAdGku
+Y29tPiB3cm90ZToKCj4gVGhlIHByb3BlcnRpZXMgbGlrZSBmb3JtYXQsIGJpdGNsb2NrLW1hc3Rl
+ciwgZnJhbWUtbWFzdGVyLAo+IGJpdGNsb2NrLWludmVyc2lvbiwgYW5kIGZyYW1lLWludmVyc2lv
+biBzaG91bGQgYmUgY29tbW9uIHRvIHRoZSBkYWlzCj4gY29ubmVjdGVkIHdpdGggYSBkYWktbGlu
+ay4gRm9yIGJpdGNsb2NrLW1hc3RlciBhbmQgZnJhbWUtbWFzdGVyCj4gcHJvcGVydGllcyB0byBi
+ZSB1bmFtYmlndW91cyB0aGV5IG5lZWQgdG8gaW5kaWNhdGUgdGhlIG1hc3RlcmluZyBkYWkKPiBu
+b2RlIHdpdGggYSBwaGFuZGxlLgo+IAo+IFNpZ25lZC1vZmYtYnk6IEp5cmkgU2FyaGEgPGpzYXJo
+YUB0aS5jb20+Cj4gLS0tCj4gIC4uLi9kZXZpY2V0cmVlL2JpbmRpbmdzL3NvdW5kL3NpbXBsZS1j
+YXJkLnR4dCAgICAgIHwgICA5MSArKysrLS0tLQo+ICBzb3VuZC9zb2MvZ2VuZXJpYy9zaW1wbGUt
+Y2FyZC5jICAgICAgICAgICAgICAgICAgICB8ICAyMzcgKysrKysrKysrKysrLS0tLS0tLS0KPiAg
+MiBmaWxlcyBjaGFuZ2VkLCAxOTEgaW5zZXJ0aW9ucygrKSwgMTM3IGRlbGV0aW9ucygtKQo+IAo+
+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3Mvc291bmQvc2lt
+cGxlLWNhcmQudHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL3NvdW5kL3Np
+bXBsZS1jYXJkLnR4dAo+IGluZGV4IDEzMWFhMmEuLjNjYWZhOWUgMTAwNjQ0Cj4gLS0tIGEvRG9j
+dW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL3NvdW5kL3NpbXBsZS1jYXJkLnR4dAo+ICsr
+KyBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9zb3VuZC9zaW1wbGUtY2FyZC50
+eHQKPiBAQCAtMSw2ICsxLDYgQEAKPiAgU2ltcGxlLUNhcmQ6Cj4gIAo+IC1TaW1wbGUtQ2FyZCBz
+cGVjaWZpZXMgYXVkaW8gREFJIGNvbm5lY3Rpb24gb2YgU29DIDwtPiBjb2RlYy4KPiArU2ltcGxl
+LUNhcmQgc3BlY2lmaWVzIGF1ZGlvIERBSSBjb25uZWN0aW9ucyBvZiBTb0MgPC0+IGNvZGVjLgo+
+ICAKPiAgUmVxdWlyZWQgcHJvcGVydGllczoKPiAgCj4gQEAgLTgsMjggKzgsNTQgQEAgUmVxdWly
+ZWQgcHJvcGVydGllczoKPiAgCj4gIE9wdGlvbmFsIHByb3BlcnRpZXM6Cj4gIAo+IC0tIHNpbXBs
+ZS1hdWRpby1jYXJkLG5hbWUJCTogVXNlciBzcGVjaWZpZWQgYXVkaW8gc291bmQgY2FyZCBuYW1l
+LCBvbmUgc3RyaW5nCj4gKy0gc2ltcGxlLWF1ZGlvLWNhcmQsbmFtZQkJOiBVc2VyIHNwZWNpZmll
+ZCBhdWRpbyBzb3VuZCBjYXJkIG5hbWUsCj4gK29uZSBzdHJpbmcKPiAgCQkJCQkgIHByb3BlcnR5
+Lgo+IC0tIHNpbXBsZS1hdWRpby1jYXJkLGZvcm1hdAkJOiBDUFUvQ09ERUMgY29tbW9uIGF1ZGlv
+IGZvcm1hdC4KPiAtCQkJCQkgICJpMnMiLCAicmlnaHRfaiIsICJsZWZ0X2oiICwgImRzcF9hIgo+
+IC0JCQkJCSAgImRzcF9iIiwgImFjOTciLCAicGRtIiwgIm1zYiIsICJsc2IiCj4gIC0gc2ltcGxl
+LWF1ZGlvLWNhcmQsd2lkZ2V0cwkJOiBQbGVhc2UgcmVmZXIgdG8gd2lkZ2V0cy50eHQuCj4gIC0g
+c2ltcGxlLWF1ZGlvLWNhcmQscm91dGluZwkJOiBBIGxpc3Qgb2YgdGhlIGNvbm5lY3Rpb25zIGJl
+dHdlZW4gYXVkaW8gY29tcG9uZW50cy4KPiAgCQkJCQkgIEVhY2ggZW50cnkgaXMgYSBwYWlyIG9m
+IHN0cmluZ3MsIHRoZSBmaXJzdCBiZWluZyB0aGUKPiAgCQkJCQkgIGNvbm5lY3Rpb24ncyBzaW5r
+LCB0aGUgc2Vjb25kIGJlaW5nIHRoZSBjb25uZWN0aW9uJ3MKPiAgCQkJCQkgIHNvdXJjZS4KPiAt
+LSBkYWktdGRtLXNsb3QtbnVtCQkJOiBQbGVhc2UgcmVmZXIgdG8gdGRtLXNsb3QudHh0Lgo+IC0t
+IGRhaS10ZG0tc2xvdC13aWR0aAkJCTogUGxlYXNlIHJlZmVyIHRvIHRkbS1zbG90LnR4dC4KPiAr
+T3B0aW9uYWwgc3Vibm9kZXM6Cj4gKwo+ICstIHNpbXBsZS1hdWRpby1jYXJkLGRhaS1saW5rCQk6
+IENvbnRhaW5lciBmb3IgZGFpLWxpbmsgbGV2ZWwKPiArCQkJCQkgIHByb3BlcnRpZXMgYW5kIHRo
+ZSBDUFUgYW5kIENPREVDCj4gKwkJCQkJICBzdWItbm9kZXMuIFRoaXMgY29udGFpbmVyIG1heSBi
+ZQo+ICsJCQkJCSAgb21pdHRlZCB3aGVuIHRoZSBjYXJkIGhhcyBvbmx5IG9uZQo+ICsJCQkJCSAg
+REFJIGxpbmsuIFNlZSB0aGUgZXhhbXBsZXMgYW5kIHRoZQo+ICsJCQkJCSAgc2VjdGlvbiBiZWxs
+b3cuCj4gKwo+ICtEYWktbGluayBzdWJub2RlIHByb3BlcnRpZXMgYW5kIHN1Ym5vZGVzOgo+ICsK
+PiArSWYgZGFpLWxpbmsgc3Vibm9kZSBpcyBvbWl0dGVkIGFuZCB0aGUgc3Vibm9kZSBwcm9wZXJ0
+aWVzIGFyZSBkaXJlY3RseQo+ICt1bmRlciAic291bmQiLW5vZGUgdGhlIHN1Ym5vZGUgcHJvcGVy
+dHkgYW5kIHN1Ym5vZGUgbmFtZXMgaGF2ZSB0byBiZQo+ICtwcmVmaXhlZCB3aXRoICJzaW1wbGUt
+YXVkaW8tY2FyZCwiLXByZWZpeC4KPiAgCj4gLVJlcXVpcmVkIHN1Ym5vZGVzOgo+ICtSZXF1cmVk
+IGRhaS1saW5rIHN1Ym5vZGVzOgoKVHlwbzogJ1JlcXVpcmVkJwoKPiAgCj4gLS0gc2ltcGxlLWF1
+ZGlvLWNhcmQsZGFpLWxpbmsJCTogY29udGFpbmVyIGZvciB0aGUgQ1BVIGFuZCBDT0RFQyBzdWIt
+bm9kZXMKPiAtCQkJCQkgIFRoaXMgY29udGFpbmVyIG1heSBiZSBvbWl0dGVkIHdoZW4gdGhlCj4g
+LQkJCQkJICBjYXJkIGhhcyBvbmx5IG9uZSBEQUkgbGluay4KPiAtCQkJCQkgIFNlZSB0aGUgZXhh
+bXBsZXMuCj4gKy0gY3B1CQkJCQk6IENQVSAgIHN1Yi1ub2RlCj4gKy0gY29kZWMJCQkJCTogQ09E
+RUMgc3ViLW5vZGUKPiAgCj4gLS0gc2ltcGxlLWF1ZGlvLWNhcmQsY3B1CQkJOiBDUFUgICBzdWIt
+bm9kZQo+IC0tIHNpbXBsZS1hdWRpby1jYXJkLGNvZGVjCQk6IENPREVDIHN1Yi1ub2RlCj4gK09w
+dGlvbmFsIGRhaS1saW5rIHN1Ym5vZGUgcHJvcGVydGllczoKPiArCj4gKy0gZm9ybWF0CQkJCTog
+Q1BVL0NPREVDIGNvbW1vbiBhdWRpbyBmb3JtYXQuCj4gKwkJCQkJICAiaTJzIiwgInJpZ2h0X2oi
+LCAibGVmdF9qIiAsICJkc3BfYSIKPiArCQkJCQkgICJkc3BfYiIsICJhYzk3IiwgInBkbSIsICJt
+c2IiLCAibHNiIgo+ICstIGZyYW1lLW1hc3RlcgkJCQk6IEluZGljYXRlcyBkYWktbGluayBmcmFt
+ZSBtYXN0ZXIuCj4gKwkJCQkJICBwaGFuZGxlIHRvIGEgY3B1IG9yIGNvZGVjIHN1Ym5vZGUuCj4g
+Ky0gYml0Y2xvY2stbWFzdGVyCQkJOiBJbmRpY2F0ZXMgZGFpLWxpbmsgYml0IGNsb2NrIG1hc3Rl
+ci4KPiArCQkJCQkgIHBoYW5kbGUgdG8gYSBjcHUgb3IgY29kZWMgc3Vibm9kZS4KPiArLSBiaXRj
+bG9jay1pbnZlcnNpb24JCQk6IGJvb2wgcHJvcGVydHkuIEFkZCB0aGlzIGlmIHRoZQo+ICsJCQkJ
+CSAgZGFpLWxpbmsgdXNlcyBiaXQgY2xvY2sgaW52ZXJzaW9uLgo+ICstIGZyYW1lLWludmVyc2lv
+bgkJCTogYm9vbCBwcm9wZXJ0eS4gQWRkIHRoaXMgaWYgdGhlCj4gKwkJCQkJICBkYWktbGluayB1
+c2VzIGZyYW1lIGNsb2NrIGludmVyc2lvbi4KPiArCj4gK0ZvciBiYWNrd2FyZCBjb21wYXRpYmls
+aXR5IHRoZSBmcmFtZS1tYXN0ZXIgYW5kIGJpdGNsb2NrLW1hc3Rlcgo+ICtwcm9wZXJ0aWVzIGNh
+biBiZSB1c2VkIGFzIGJvb2xlYW5zIGluIGNvZGVjIHN1Ym5vZGUgdG8gaW5kaWNhdGUgaWYgdGhl
+Cj4gK2NvZGVjIGlzIHRoZSBkYWktbGluayBmcmFtZSBvciBiaXQgY2xvY2sgbWFzdGVyLiBJbiB0
+aGlzIGNhc2UgdGhlIHNhbWUKPiArcHJvcGVydGllcyBzaG91bGQgbm90IGJlIHByZXNlbnQgYXQg
+ZGFpLWxpbmsgbGV2ZWwgYW5kIHRoZQo+ICtiaXRjbG9jay1pbnZlcnNpb24gYW5kIGZyYW1lLWlu
+dmVyc2lvbiBwcm9wZXJ0aWVzIHNob3VsZCBhbHNvIGJlIHBsYWNlZAo+ICtpbiB0aGUgY29kZWMg
+bm9kZSBpZiBuZWVkZWQuCj4gIAo+ICBSZXF1aXJlZCBDUFUvQ09ERUMgc3Vibm9kZXMgcHJvcGVy
+dGllczoKPiAgCglbc25pcF0KPiBkaWZmIC0tZ2l0IGEvc291bmQvc29jL2dlbmVyaWMvc2ltcGxl
+LWNhcmQuYyBiL3NvdW5kL3NvYy9nZW5lcmljL3NpbXBsZS1jYXJkLmMKPiBpbmRleCAyMWYxY2Ni
+Li5mNDY2M2QwIDEwMDY0NAo+IC0tLSBhL3NvdW5kL3NvYy9nZW5lcmljL3NpbXBsZS1jYXJkLmMK
+PiArKysgYi9zb3VuZC9zb2MvZ2VuZXJpYy9zaW1wbGUtY2FyZC5jCj4gQEAgLTgsNiArOCw3IEBA
+Cj4gICAqIGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vu
+c2UgdmVyc2lvbiAyIGFzCj4gICAqIHB1Ymxpc2hlZCBieSB0aGUgRnJlZSBTb2Z0d2FyZSBGb3Vu
+ZGF0aW9uLgo+ICAgKi8KPiArI2RlZmluZSBERUJVRwoKU2hvdWxkIGJlIHJlbW92ZWQuCgo+ICAj
+aW5jbHVkZSA8bGludXgvY2xrLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9kZXZpY2UuaD4KPiAgI2lu
+Y2x1ZGUgPGxpbnV4L21vZHVsZS5oPgo+IEBAIC04OCw3ICs4OSw2IEBAIHN0YXRpYyBpbnQgYXNv
+Y19zaW1wbGVfY2FyZF9kYWlfaW5pdChzdHJ1Y3Qgc25kX3NvY19wY21fcnVudGltZSAqcnRkKQo+
+ICAKPiAgc3RhdGljIGludAo+ICBhc29jX3NpbXBsZV9jYXJkX3N1Yl9wYXJzZV9vZihzdHJ1Y3Qg
+ZGV2aWNlX25vZGUgKm5wLAo+IC0JCQkgICAgICB1bnNpZ25lZCBpbnQgZGFpZm10LAo+ICAJCQkg
+ICAgICBzdHJ1Y3QgYXNvY19zaW1wbGVfZGFpICpkYWksCj4gIAkJCSAgICAgIGNvbnN0IHN0cnVj
+dCBkZXZpY2Vfbm9kZSAqKnBfbm9kZSwKPiAgCQkJICAgICAgY29uc3QgY2hhciAqKm5hbWUpCj4g
+QEAgLTExNywxNCArMTE3LDYgQEAgYXNvY19zaW1wbGVfY2FyZF9zdWJfcGFyc2Vfb2Yoc3RydWN0
+IGRldmljZV9ub2RlICpucCwKPiAgCQlyZXR1cm4gcmV0Owo+ICAKPiAgCS8qCj4gLQkgKiBiaXRj
+bG9jay1pbnZlcnNpb24sIGZyYW1lLWludmVyc2lvbgo+IC0JICogYml0Y2xvY2stbWFzdGVyLCAg
+ICBmcmFtZS1tYXN0ZXIKPiAtCSAqIGFuZCBzcGVjaWZpYyAiZm9ybWF0IiBpZiBpdCBoYXMKPiAt
+CSAqLwo+IC0JZGFpLT5mbXQgPSBzbmRfc29jX29mX3BhcnNlX2RhaWZtdChucCwgTlVMTCk7Cj4g
+LQlkYWktPmZtdCB8PSBkYWlmbXQ7Cj4gLQo+IC0JLyoKPiAgCSAqIGRhaS0+c3lzY2xrIGNvbWUg
+ZnJvbQo+ICAJICogICJjbG9ja3MgPSA8Jnh4eD4iIChpZiBzeXN0ZW0gaGFzIGNvbW1vbiBjbG9j
+aykKPiAgCSAqICBvciAic3lzdGVtLWNsb2NrLWZyZXF1ZW5jeSA9IDx4eHg+Igo+IEBAIC0xNTEs
+MzcgKzE0MywxMzQgQEAgYXNvY19zaW1wbGVfY2FyZF9zdWJfcGFyc2Vfb2Yoc3RydWN0IGRldmlj
+ZV9ub2RlICpucCwKPiAgCXJldHVybiAwOwo+ICB9Cj4gIAo+IC1zdGF0aWMgaW50IHNpbXBsZV9j
+YXJkX2NwdV9jb2RlY19vZihzdHJ1Y3QgZGV2aWNlX25vZGUgKm5vZGUsCj4gLQkJCQlpbnQgZGFp
+Zm10LAo+IC0JCQkJc3RydWN0IHNuZF9zb2NfZGFpX2xpbmsgKmRhaV9saW5rLAo+IC0JCQkJc3Ry
+dWN0IHNpbXBsZV9kYWlfcHJvcHMgKmRhaV9wcm9wcykKPiArc3RhdGljIGludCBzaW1wbGVfY2Fy
+ZF9kYWlfbGlua19vZihzdHJ1Y3QgZGV2aWNlX25vZGUgKm5vZGUsCj4gKwkJCQkgICBzdHJ1Y3Qg
+ZGV2aWNlICpkZXYsCj4gKwkJCQkgICBzdHJ1Y3Qgc25kX3NvY19kYWlfbGluayAqZGFpX2xpbmss
+Cj4gKwkJCQkgICBzdHJ1Y3Qgc2ltcGxlX2RhaV9wcm9wcyAqZGFpX3Byb3BzKQo+ICB7Cj4gLQlz
+dHJ1Y3QgZGV2aWNlX25vZGUgKm5wOwo+ICsJc3RydWN0IGRldmljZV9ub2RlICpucCA9IE5VTEw7
+Cj4gKwlzdHJ1Y3QgZGV2aWNlX25vZGUgKmJpdGNsa21hc3RlciA9IE5VTEw7Cj4gKwlzdHJ1Y3Qg
+ZGV2aWNlX25vZGUgKmZyYW1lbWFzdGVyID0gTlVMTDsKPiArCXVuc2lnbmVkIGludCBkYWlmbXQ7
+Cj4gKwljaGFyICpuYW1lOwo+ICsJY2hhciBwcm9wWzEyOF07Cj4gKwljaGFyICpwcmVmaXggPSAi
+IjsKPiAgCWludCByZXQ7Cj4gIAo+IC0JLyogQ1BVIHN1Yi1ub2RlICovCj4gLQlyZXQgPSAtRUlO
+VkFMOwo+IC0JbnAgPSBvZl9nZXRfY2hpbGRfYnlfbmFtZShub2RlLCAic2ltcGxlLWF1ZGlvLWNh
+cmQsY3B1Iik7Cj4gLQlpZiAobnApIHsKPiAtCQlyZXQgPSBhc29jX3NpbXBsZV9jYXJkX3N1Yl9w
+YXJzZV9vZihucCwgZGFpZm10LAo+IC0JCQkJCQkmZGFpX3Byb3BzLT5jcHVfZGFpLAo+IC0JCQkJ
+CQkmZGFpX2xpbmstPmNwdV9vZl9ub2RlLAo+IC0JCQkJCQkmZGFpX2xpbmstPmNwdV9kYWlfbmFt
+ZSk7Cj4gLQkJb2Zfbm9kZV9wdXQobnApOwo+ICsJaWYgKCFzdHJjbXAoInNvdW5kIiwgbm9kZS0+
+bmFtZSkpCj4gKwkJcHJlZml4ID0gInNpbXBsZS1hdWRpby1jYXJkLCI7Cj4gKwo+ICsJZGFpZm10
+ID0gc25kX3NvY19vZl9wYXJzZV9kYWlmbXQobm9kZSwgcHJlZml4LAo+ICsJCQkJCSAmYml0Y2xr
+bWFzdGVyLCAmZnJhbWVtYXN0ZXIpOwo+ICsJZGFpZm10ICY9IH5TTkRfU09DX0RBSUZNVF9NQVNU
+RVJfTUFTSzsKPiArCj4gKwlzbnByaW50Zihwcm9wLCBzaXplb2YocHJvcCksICIlc2NwdSIsIHBy
+ZWZpeCk7Cj4gKwlucCA9IG9mX2dldF9jaGlsZF9ieV9uYW1lKG5vZGUsIHByb3ApOwo+ICsJaWYg
+KCFucCkgewo+ICsJCXJldCA9IC1FSU5WQUw7Cj4gKwkJZGV2X2VycihkZXYsICIlczogQ2FuJ3Qg
+ZmluZCBzaW1wbGUtYXVkaW8tY2FyZCxjcHUgRFQgbm9kZVxuIiwKPiArCQkJX19mdW5jX18pOwo+
+ICsJCWdvdG8gZGFpX2xpbmtfb2ZfZXJyOwo+ICAJfQo+ICsKPiArCXJldCA9IGFzb2Nfc2ltcGxl
+X2NhcmRfc3ViX3BhcnNlX29mKG5wLCAmZGFpX3Byb3BzLT5jcHVfZGFpLAo+ICsJCQkJCSAgICAm
+ZGFpX2xpbmstPmNwdV9vZl9ub2RlLAo+ICsJCQkJCSAgICAmZGFpX2xpbmstPmNwdV9kYWlfbmFt
+ZSk7Cj4gIAlpZiAocmV0IDwgMCkKPiAtCQlyZXR1cm4gcmV0Owo+ICsJCWdvdG8gZGFpX2xpbmtf
+b2ZfZXJyOwo+ICsKPiArCWRhaV9wcm9wcy0+Y3B1X2RhaS5mbXQgPSBkYWlmbXQ7Cj4gKwlzd2l0
+Y2ggKCgobnAgPT0gYml0Y2xrbWFzdGVyKTw8NCl8KG5wID09IGZyYW1lbWFzdGVyKSkgewo+ICsJ
+Y2FzZSAweDExOgo+ICsJCWRhaV9wcm9wcy0+Y3B1X2RhaS5mbXQgfD0gU05EX1NPQ19EQUlGTVRf
+Q0JTX0NGUzsKPiArCQlicmVhazsKPiArCWNhc2UgMHgxMDoKPiArCQlkYWlfcHJvcHMtPmNwdV9k
+YWkuZm10IHw9IFNORF9TT0NfREFJRk1UX0NCU19DRk07Cj4gKwkJYnJlYWs7Cj4gKwljYXNlIDB4
+MDE6Cj4gKwkJZGFpX3Byb3BzLT5jcHVfZGFpLmZtdCB8PSBTTkRfU09DX0RBSUZNVF9DQk1fQ0ZT
+Owo+ICsJCWJyZWFrOwo+ICsJZGVmYXVsdDoKPiArCQlkYWlfcHJvcHMtPmNwdV9kYWkuZm10IHw9
+IFNORF9TT0NfREFJRk1UX0NCTV9DRk07Cj4gKwkJYnJlYWs7Cj4gKwl9Cj4gIAo+IC0JLyogQ09E
+RUMgc3ViLW5vZGUgKi8KPiAtCXJldCA9IC1FSU5WQUw7Cj4gLQlucCA9IG9mX2dldF9jaGlsZF9i
+eV9uYW1lKG5vZGUsICJzaW1wbGUtYXVkaW8tY2FyZCxjb2RlYyIpOwo+IC0JaWYgKG5wKSB7Cj4g
+LQkJcmV0ID0gYXNvY19zaW1wbGVfY2FyZF9zdWJfcGFyc2Vfb2YobnAsIGRhaWZtdCwKPiAtCQkJ
+CQkJJmRhaV9wcm9wcy0+Y29kZWNfZGFpLAo+IC0JCQkJCQkmZGFpX2xpbmstPmNvZGVjX29mX25v
+ZGUsCj4gLQkJCQkJCSZkYWlfbGluay0+Y29kZWNfZGFpX25hbWUpOwo+IC0JCW9mX25vZGVfcHV0
+KG5wKTsKPiArCW9mX25vZGVfcHV0KG5wKTsKPiArCXNucHJpbnRmKHByb3AsIHNpemVvZihwcm9w
+KSwgIiVzY29kZWMiLCBwcmVmaXgpOwo+ICsJbnAgPSBvZl9nZXRfY2hpbGRfYnlfbmFtZShub2Rl
+LCBwcm9wKTsKPiArCWlmICghbnApIHsKPiArCQlyZXQgPSAtRUlOVkFMOwo+ICsJCWRldl9lcnIo
+ZGV2LCAiJXM6IENhbid0IGZpbmQgc2ltcGxlLWF1ZGlvLWNhcmQsY29kZWMgRFQgbm9kZVxuIiwK
+PiArCQkJX19mdW5jX18pOwo+ICsJCWdvdG8gZGFpX2xpbmtfb2ZfZXJyOwo+ICAJfQo+ICsKPiAr
+CXJldCA9IGFzb2Nfc2ltcGxlX2NhcmRfc3ViX3BhcnNlX29mKG5wLCAmZGFpX3Byb3BzLT5jb2Rl
+Y19kYWksCj4gKwkJCQkJICAgICZkYWlfbGluay0+Y29kZWNfb2Zfbm9kZSwKPiArCQkJCQkgICAg
+JmRhaV9saW5rLT5jb2RlY19kYWlfbmFtZSk7Cj4gKwlpZiAocmV0IDwgMCkKPiArCQlnb3RvIGRh
+aV9saW5rX29mX2VycjsKPiArCj4gKwlpZiAoIWJpdGNsa21hc3RlciAmJiAhZnJhbWVtYXN0ZXIp
+IHsKPiArCQkvKiBNYXN0ZXIgc2V0dGluZyBub3QgZm91bmQgZnJvbSBkYWlfbGluayBsZXZlbCwg
+cmV2ZXJ0IGJhY2sKPiArCQkgICB0byBsZWdhY3kgRFQgcGFyc2luZyBhbmQgdGFrZSBzZXR0aW5n
+cyBmcm9tIGNvZGVjIG5vZGUuICovCj4gKwkJZGV2X2RiZyhkZXYsICIlczogUmV2ZXJ0IHRvIGxl
+Z2FjeSBkYWlmbXQgcGFyc2luZ1xuIiwKPiArCQkJX19mdW5jX18pOwo+ICsJCWRhaV9wcm9wcy0+
+Y3B1X2RhaS5mbXQgPSBkYWlfcHJvcHMtPmNvZGVjX2RhaS5mbXQgPQo+ICsJCQlzbmRfc29jX29m
+X3BhcnNlX2RhaWZtdChucCwgTlVMTCwgTlVMTCwgTlVMTCkgfAo+ICsJCQkoZGFpZm10ICYgflNO
+RF9TT0NfREFJRk1UX0NMT0NLX01BU0spOwoKV2UgYXJlIGhlcmUgZWFjaCB0aW1lIHRoZXJlIGlz
+IG5vIGJpdGNsb2NrLW1hc3RlciBhbmQgbm8gZnJhbWUtbWFzdGVyLAppLmUuIGVhY2ggdGltZSBm
+b3IgbWUuIEl0IGNvdWxkIGJlIHNpbXBsZXIgdG8ga2VlcCB0aGUgZmlyc3QgJ2RhaWZtdCcKaW5z
+dGVhZCBvZiBwYXJzaW5nIGFnYWluLgoKPiArCX0gZWxzZSB7Cj4gKwkJZGFpX3Byb3BzLT5jb2Rl
+Y19kYWkuZm10ID0gZGFpZm10Owo+ICsJCXN3aXRjaCAoKChucCA9PSBiaXRjbGttYXN0ZXIpPDw0
+KXwobnAgPT0gZnJhbWVtYXN0ZXIpKSB7Cj4gKwkJY2FzZSAweDExOgo+ICsJCQlkYWlfcHJvcHMt
+PmNvZGVjX2RhaS5mbXQgfD0gU05EX1NPQ19EQUlGTVRfQ0JNX0NGTTsKPiArCQkJYnJlYWs7Cj4g
+KwkJY2FzZSAweDEwOgo+ICsJCQlkYWlfcHJvcHMtPmNvZGVjX2RhaS5mbXQgfD0gU05EX1NPQ19E
+QUlGTVRfQ0JNX0NGUzsKPiArCQkJYnJlYWs7Cj4gKwkJY2FzZSAweDAxOgo+ICsJCQlkYWlfcHJv
+cHMtPmNvZGVjX2RhaS5mbXQgfD0gU05EX1NPQ19EQUlGTVRfQ0JTX0NGTTsKPiArCQkJYnJlYWs7
+Cj4gKwkJZGVmYXVsdDoKPiArCQkJZGFpX3Byb3BzLT5jb2RlY19kYWkuZm10IHw9IFNORF9TT0Nf
+REFJRk1UX0NCU19DRlM7Cj4gKwkJCWJyZWFrOwo+ICsJCX0KPiArCX0KPiArCj4gKwlpZiAoIWRh
+aV9saW5rLT5jcHVfZGFpX25hbWUgfHwgIWRhaV9saW5rLT5jb2RlY19kYWlfbmFtZSkgewo+ICsJ
+CQlyZXQgPSAtRUlOVkFMOwo+ICsJCQlnb3RvIGRhaV9saW5rX29mX2VycjsKPiArCX0KPiArCj4g
+KwkvKiBzaW1wbGUtY2FyZCBhc3N1bWVzIHBsYXRmb3JtID09IGNwdSAqLwo+ICsJZGFpX2xpbmst
+PnBsYXRmb3JtX29mX25vZGUgPSBkYWlfbGluay0+Y3B1X29mX25vZGU7Cj4gKwo+ICsJLyogTGlu
+ayBuYW1lIGlzIGNyZWF0ZWQgZnJvbSBDUFUvQ09ERUMgZGFpIG5hbWUgKi8KPiArCW5hbWUgPSBk
+ZXZtX2t6YWxsb2MoZGV2LAo+ICsJCQkgICAgc3RybGVuKGRhaV9saW5rLT5jcHVfZGFpX25hbWUp
+ICAgKwo+ICsJCQkgICAgc3RybGVuKGRhaV9saW5rLT5jb2RlY19kYWlfbmFtZSkgKyAyLAo+ICsJ
+CQkgICAgR0ZQX0tFUk5FTCk7Cj4gKwlzcHJpbnRmKG5hbWUsICIlcy0lcyIsIGRhaV9saW5rLT5j
+cHVfZGFpX25hbWUsCj4gKwkJCQlkYWlfbGluay0+Y29kZWNfZGFpX25hbWUpOwo+ICsJZGFpX2xp
+bmstPm5hbWUgPSBkYWlfbGluay0+c3RyZWFtX25hbWUgPSBuYW1lOwo+ICsKPiArCWRldl9kYmco
+ZGV2LCAiXHRuYW1lIDogJXNcbiIsIGRhaV9saW5rLT5zdHJlYW1fbmFtZSk7Cj4gKwlkZXZfZGJn
+KGRldiwgIlx0Y3B1IDogJXMgLyAlMDR4IC8gJWRcbiIsCj4gKwkJZGFpX2xpbmstPmNwdV9kYWlf
+bmFtZSwKPiArCQlkYWlfcHJvcHMtPmNwdV9kYWkuZm10LAo+ICsJCWRhaV9wcm9wcy0+Y3B1X2Rh
+aS5zeXNjbGspOwo+ICsJZGV2X2RiZyhkZXYsICJcdGNvZGVjIDogJXMgLyAlMDR4IC8gJWRcbiIs
+Cj4gKwkJZGFpX2xpbmstPmNvZGVjX2RhaV9uYW1lLAo+ICsJCWRhaV9wcm9wcy0+Y29kZWNfZGFp
+LmZtdCwKPiArCQlkYWlfcHJvcHMtPmNvZGVjX2RhaS5zeXNjbGspOwo+ICsKPiArZGFpX2xpbmtf
+b2ZfZXJyOgo+ICsJaWYgKG5wKQo+ICsJCW9mX25vZGVfcHV0KG5wKTsKPiArCWlmIChiaXRjbGtt
+YXN0ZXIpCj4gKwkJb2Zfbm9kZV9wdXQoYml0Y2xrbWFzdGVyKTsKPiArCWlmIChmcmFtZW1hc3Rl
+cikKPiArCQlvZl9ub2RlX3B1dChmcmFtZW1hc3Rlcik7Cj4gIAlyZXR1cm4gcmV0Owo+ICB9Cj4g
+IAo+IEBAIC0xOTIsMTggKzI4MSwxMSBAQCBzdGF0aWMgaW50IGFzb2Nfc2ltcGxlX2NhcmRfcGFy
+c2Vfb2Yoc3RydWN0IGRldmljZV9ub2RlICpub2RlLAo+ICB7Cj4gIAlzdHJ1Y3Qgc25kX3NvY19k
+YWlfbGluayAqZGFpX2xpbmsgPSBwcml2LT5zbmRfY2FyZC5kYWlfbGluazsKPiAgCXN0cnVjdCBz
+aW1wbGVfZGFpX3Byb3BzICpkYWlfcHJvcHMgPSBwcml2LT5kYWlfcHJvcHM7Cj4gLQlzdHJ1Y3Qg
+ZGV2aWNlX25vZGUgKm5wOwo+IC0JY2hhciAqbmFtZTsKPiAtCXVuc2lnbmVkIGludCBkYWlmbXQ7
+Cj4gIAlpbnQgcmV0Owo+ICAKPiAgCS8qIHBhcnNpbmcgdGhlIGNhcmQgbmFtZSBmcm9tIERUICov
+Cj4gIAlzbmRfc29jX29mX3BhcnNlX2NhcmRfbmFtZSgmcHJpdi0+c25kX2NhcmQsICJzaW1wbGUt
+YXVkaW8tY2FyZCxuYW1lIik7Cj4gIAo+IC0JLyogZ2V0IENQVS9DT0RFQyBjb21tb24gZm9ybWF0
+IHZpYSBzaW1wbGUtYXVkaW8tY2FyZCxmb3JtYXQgKi8KPiAtCWRhaWZtdCA9IHNuZF9zb2Nfb2Zf
+cGFyc2VfZGFpZm10KG5vZGUsICJzaW1wbGUtYXVkaW8tY2FyZCwiKSAmCj4gLQkJKFNORF9TT0Nf
+REFJRk1UX0ZPUk1BVF9NQVNLIHwgU05EX1NPQ19EQUlGTVRfSU5WX01BU0spOwo+IC0KPiAgCS8q
+IG9mZi1jb2RlYyB3aWRnZXRzICovCj4gIAlpZiAob2ZfcHJvcGVydHlfcmVhZF9ib29sKG5vZGUs
+ICJzaW1wbGUtYXVkaW8tY2FyZCx3aWRnZXRzIikpIHsKPiAgCQlyZXQgPSBzbmRfc29jX29mX3Bh
+cnNlX2F1ZGlvX3NpbXBsZV93aWRnZXRzKCZwcml2LT5zbmRfY2FyZCwKPiBAQCAtMjIwLDcxICsz
+MDIsMzAgQEAgc3RhdGljIGludCBhc29jX3NpbXBsZV9jYXJkX3BhcnNlX29mKHN0cnVjdCBkZXZp
+Y2Vfbm9kZSAqbm9kZSwKPiAgCQkJcmV0dXJuIHJldDsKPiAgCX0KPiAgCj4gLQkvKiBsb29wIG9u
+IHRoZSBEQUkgbGlua3MgKi8KPiAtCW5wID0gTlVMTDsKPiAtCWZvciAoOzspIHsKPiAtCQlpZiAo
+bXVsdGkpIHsKPiAtCQkJbnAgPSBvZl9nZXRfbmV4dF9jaGlsZChub2RlLCBucCk7Cj4gLQkJCWlm
+ICghbnApCj4gLQkJCQlicmVhazsKPiAtCQl9Cj4gLQo+IC0JCXJldCA9IHNpbXBsZV9jYXJkX2Nw
+dV9jb2RlY19vZihtdWx0aSA/IG5wIDogbm9kZSwKPiAtCQkJCQlkYWlmbXQsIGRhaV9saW5rLCBk
+YWlfcHJvcHMpOwo+IC0JCWlmIChyZXQgPCAwKQo+IC0JCQlnb3RvIGVycjsKPiAtCj4gLQkJLyoK
+PiAtCQkgKiBvdmVyd3JpdGUgY3B1X2RhaS0+Zm10IGFzIGl0cyBEQUlGTVRfTUFTVEVSIGJpdCBp
+cyBiYXNlZCBvbiBDT0RFQwo+IC0JCSAqIHdoaWxlIHRoZSBvdGhlciBiaXRzIHNob3VsZCBiZSBp
+ZGVudGljYWwgdW5sZXNzIGJ1Z2d5IFNXL0hXIGRlc2lnbi4KPiAtCQkgKi8KPiAtCQlkYWlfcHJv
+cHMtPmNwdV9kYWkuZm10ID0gZGFpX3Byb3BzLT5jb2RlY19kYWkuZm10Owo+ICsJZGV2X2RiZyhk
+ZXYsICJOZXcgc2ltcGxlLWNhcmQ6ICVzXG4iLCBwcml2LT5zbmRfY2FyZC5uYW1lID8KPiArCQlw
+cml2LT5zbmRfY2FyZC5uYW1lIDogIiIpOwo+ICAKPiAtCQlpZiAoIWRhaV9saW5rLT5jcHVfZGFp
+X25hbWUgfHwgIWRhaV9saW5rLT5jb2RlY19kYWlfbmFtZSkgewo+IC0JCQlyZXQgPSAtRUlOVkFM
+Owo+IC0JCQlnb3RvIGVycjsKPiArCWlmIChtdWx0aSkgewo+ICsJCXN0cnVjdCBkZXZpY2Vfbm9k
+ZSAqbnAgPSBOVUxMOwo+ICsJCWludCBpOwo+ICsJCWZvciAoaSA9IDA7IChucCA9IG9mX2dldF9u
+ZXh0X2NoaWxkKG5vZGUsIG5wKSk7IGkrKykgewo+ICsJCQlkZXZfZGJnKGRldiwgIlx0bGluayAl
+ZDpcbiIsIGkpOwo+ICsJCQlyZXQgPSBzaW1wbGVfY2FyZF9kYWlfbGlua19vZihucCwgZGV2LCBk
+YWlfbGluayArIGksCj4gKwkJCQkJCSAgICAgIGRhaV9wcm9wcyArIGkpOwoKSSBmZWVsIHRoYXQg
+bXkgbG9vcCB3YXMgcXVpY2tlcjoKCgkJc3RydWN0IGRldmljZV9ub2RlICpucCA9IE5VTEw7CgoJ
+CWZvciAoOzspIHsKCQkJbnAgPSBvZl9nZXRfbmV4dF9jaGlsZChub2RlLCBucCk7CgkJCWlmICgh
+bnApCgkJCQlicmVhazsKCQkJZGV2X2RiZyhkZXYsICJcdGxpbmsgJWQ6XG4iLCBkYWlfbGluayAt
+IHByaXYtPnNuZF9jYXJkLmRhaV9saW5rKTsKCQkJcmV0ID0gc2ltcGxlX2NhcmRfZGFpX2xpbmtf
+b2YobnAsIGRldiwgZGFpX2xpbmsrKywKCQkJCQkJICAgICAgZGFpX3Byb3BzKyspOwoKCj4gKwkJ
+CW9mX25vZGVfcHV0KG5wKTsKPiArCQkJaWYgKHJldCA8IDApCj4gKwkJCQlyZXR1cm4gcmV0OwoK
+VGhlIG5wIHJlZmVyZW5jZSBjb3VudCBpcyB1cGRhdGVkIGluIG9mX2dldF9uZXh0X2NoaWxkKCks
+IHNvOgoKCQkJaWYgKHJldCA8IDApIHsKCQkJCW9mX25vZGVfcHV0KG5wKTsKCQkJCXJldHVybiBy
+ZXQ7CgkJCX0KCk90aGVyd2lzZSwgaXQgd29ya3MgZm9yIG1lLgoKVGVzdGVkLWJ5OiBKZWFuLUZy
+YW5jb2lzIE1vaW5lIDxtb2luZWpmQGZyZWUuZnI+Cgo+ICAJCX0KPiAtCj4gLQkJLyogc2ltcGxl
+LWNhcmQgYXNzdW1lcyBwbGF0Zm9ybSA9PSBjcHUgKi8KPiAtCQlkYWlfbGluay0+cGxhdGZvcm1f
+b2Zfbm9kZSA9IGRhaV9saW5rLT5jcHVfb2Zfbm9kZTsKPiAtCj4gLQkJbmFtZSA9IGRldm1fa3ph
+bGxvYyhkZXYsCj4gLQkJCQkgICAgc3RybGVuKGRhaV9saW5rLT5jcHVfZGFpX25hbWUpICAgKwo+
+IC0JCQkJICAgIHN0cmxlbihkYWlfbGluay0+Y29kZWNfZGFpX25hbWUpICsgMiwKPiAtCQkJCSAg
+ICBHRlBfS0VSTkVMKTsKPiAtCQlzcHJpbnRmKG5hbWUsICIlcy0lcyIsIGRhaV9saW5rLT5jcHVf
+ZGFpX25hbWUsCj4gLQkJCQkJZGFpX2xpbmstPmNvZGVjX2RhaV9uYW1lKTsKPiAtCQlkYWlfbGlu
+ay0+bmFtZSA9IGRhaV9saW5rLT5zdHJlYW1fbmFtZSA9IG5hbWU7Cj4gLQo+IC0JCWlmICghbXVs
+dGkpCj4gLQkJCWJyZWFrOwo+IC0KPiAtCQlkYWlfbGluaysrOwo+IC0JCWRhaV9wcm9wcysrOwo+
+ICsJfSBlbHNlIHsKPiArCQlyZXQgPSBzaW1wbGVfY2FyZF9kYWlfbGlua19vZihub2RlLCBkZXYs
+IGRhaV9saW5rLCBkYWlfcHJvcHMpOwo+ICsJCWlmIChyZXQgPCAwKQo+ICsJCQlyZXR1cm4gcmV0
+Owo+ICAJfQo+ICAKPiAtCS8qIGNhcmQgbmFtZSBpcyBjcmVhdGVkIGZyb20gQ1BVL0NPREVDIGRh
+aSBuYW1lICovCj4gLQlkYWlfbGluayA9IHByaXYtPnNuZF9jYXJkLmRhaV9saW5rOwo+ICAJaWYg
+KCFwcml2LT5zbmRfY2FyZC5uYW1lKQo+IC0JCXByaXYtPnNuZF9jYXJkLm5hbWUgPSBkYWlfbGlu
+ay0+bmFtZTsKPiAtCj4gLQlkZXZfZGJnKGRldiwgImNhcmQtbmFtZSA6ICVzXG4iLCBwcml2LT5z
+bmRfY2FyZC5uYW1lKTsKPiAtCWRldl9kYmcoZGV2LCAicGxhdGZvcm0gOiAlMDR4XG4iLCBkYWlm
+bXQpOwo+IC0JZGFpX3Byb3BzID0gcHJpdi0+ZGFpX3Byb3BzOwo+IC0JZGV2X2RiZyhkZXYsICJj
+cHUgOiAlcyAvICUwNHggLyAlZFxuIiwKPiAtCQlkYWlfbGluay0+Y3B1X2RhaV9uYW1lLAo+IC0J
+CWRhaV9wcm9wcy0+Y3B1X2RhaS5mbXQsCj4gLQkJZGFpX3Byb3BzLT5jcHVfZGFpLnN5c2Nsayk7
+Cj4gLQlkZXZfZGJnKGRldiwgImNvZGVjIDogJXMgLyAlMDR4IC8gJWRcbiIsCj4gLQkJZGFpX2xp
+bmstPmNvZGVjX2RhaV9uYW1lLAo+IC0JCWRhaV9wcm9wcy0+Y29kZWNfZGFpLmZtdCwKPiAtCQlk
+YWlfcHJvcHMtPmNvZGVjX2RhaS5zeXNjbGspOwo+ICsJCXByaXYtPnNuZF9jYXJkLm5hbWUgPSBw
+cml2LT5zbmRfY2FyZC5kYWlfbGluay0+bmFtZTsKPiAgCj4gIAlyZXR1cm4gMDsKPiAtCj4gLWVy
+cjoKPiAtCW9mX25vZGVfcHV0KG5wKTsKPiAtCXJldHVybiByZXQ7Cj4gIH0KPiAgCj4gIC8qIHVw
+ZGF0ZSB0aGUgcmVmZXJlbmNlIGNvdW50IG9mIHRoZSBkZXZpY2VzIG5vZGVzIGF0IGVuZCBvZiBw
+cm9iZSAqLwoKLS0gCktlbiBhciBjJ2hlbnRhw7EJfAkgICAgICAqKiBCcmVpemggaGEgTGludXgg
+YXRhdiEgKioKSmVmCQl8CQlodHRwOi8vbW9pbmVqZi5mcmVlLmZyLwpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApB
+bHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
