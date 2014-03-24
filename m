@@ -1,81 +1,65 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [alsa-devel] [PATCH RFC 2/2] ASoC: simple-card: Move dai-link
- level	properties away from dai subnodes
-Date: Mon, 24 Mar 2014 11:45:11 +0200
-Message-ID: <532FFEA7.9060406@ti.com>
-References: <cover.1395419906.git.jsarha@ti.com>	<0b1c0e2e6766c3a63f598c3b9435d4744b0e2835.1395419906.git.jsarha@ti.com> <87lhw08nqk.wl%kuninori.morimoto.gx@gmail.com>
+Subject: [PATCH RFC v3 0/2] Move dai-link level properties away
+	from dai subnodes
+Date: Mon, 24 Mar 2014 12:15:23 +0200
+Message-ID: <cover.1395655868.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34353 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752265AbaCXJpX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Mar 2014 05:45:23 -0400
-In-Reply-To: <87lhw08nqk.wl%kuninori.morimoto.gx@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: liam.r.girdwood@linux.intel.com, detheridge@ti.com, kuninori.morimoto.gx@renesas.com, moinejf@free.fr, Li.Xiubo@freescale.com, Jyri Sarha <jsarha@ti.com>, peter.ujfalusi@ti.com, broonie@kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: Kuninori Morimoto <kuninori.morimoto.gx@gmail.com>
-Cc: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com, kuninori.morimoto.gx@renesas.com, moinejf@free.fr, Li.Xiubo@freescale.com, peter.ujfalusi@ti.com, broonie@kernel.org, bcousson@baylibre.com
 
-On 03/24/2014 02:05 AM, Kuninori Morimoto wrote:
->
-> Hi Jyri
->
->> The properties like format, bitclock-master, frame-master,
->> bitclock-inversion, and frame-inversion should be common to the dais
->> connected with a dai-link. For bitclock-master and frame-master
->> properties to be unambiguous they need to indicate the mastering dai
->> node with a phandle.
->>
->> Signed-off-by: Jyri Sarha <jsarha@ti.com>
->> ---
-> (snip)
->>   	/*
->> -	 * bitclock-inversion, frame-inversion
->> -	 * bitclock-master,    frame-master
->> -	 * and specific "format" if it has
->> -	 */
->> -	dai->fmt = snd_soc_of_parse_daifmt(np, NULL);
->> -	dai->fmt |= daifmt;
->> -
->> -	/*
->>   	 * dai->sysclk come from
->>   	 *  "clocks = <&xxx>" (if system has common clock)
->>   	 *  or "system-clock-frequency = <xxx>"
->
-> [1/2] patch exchanged snd_soc_of_parse_daifmt() parameter,
-> but, user code exchanged in [2/2].
-> It breaks git-bisect.
->
+This patch is implemented on top of late patches from Jean-Francois
+Moine [1].
 
-Fixed that. Thanks!
+These patches implement the main part of the simple-card changes
+discussed in alsa-devel mailing list [2].
 
->> +	dai_props->cpu_dai.fmt = daifmt;
->> +	switch (((np == bitclkmaster)<<4)|(np == framemaster)) {
->> +	case 0x11:
->> +		dai_props->cpu_dai.fmt |= SND_SOC_DAIFMT_CBS_CFS;
->> +		break;
->> +	case 0x10:
->> +		dai_props->cpu_dai.fmt |= SND_SOC_DAIFMT_CBS_CFM;
->> +		break;
->> +	case 0x01:
->> +		dai_props->cpu_dai.fmt |= SND_SOC_DAIFMT_CBM_CFS;
->> +		break;
->> +	default:
->> +		dai_props->cpu_dai.fmt |= SND_SOC_DAIFMT_CBM_CFM;
->> +		break;
->> +	}
->
-> The user of snd_soc_of_parse_daifmt() is only simple-card (?)
-> I think SND_SOC_DAIFMT_CBxx_CFx cared by snd_soc_of_parse_daifmt() somehow
-> is very reasonable.
->
+Since RFC v2 version of the patches, address remaining comments from
+Jean-Francois Moine [4]:
+- ASoC: simple-card: Move dai-link level properties away from dai subnodes
+  - Only allow legacy parsing if there is no dai-link node.
+  - Fix double unref in of_card parsing loop.
 
-Yes, that is what git grep tells me. snd_soc_of_parse_daifmt() can still 
-take care of SND_SOC_DAIFMT_CB?_CF? parsing in simple cases. I just felt 
-that adding the full phandle parsing to the function would break its 
-genericity and make the function parameters hard to understand.
+Since RFC version of the patches:
+- ASoC: core: Update snd_soc_of_parse_daifmt() interface
+  - Make minimal changes to simple-card for it to work with the updated
+    snd_soc_of_parse_daifmt(). (Kuninori Morimoto's comment [3]).
+- ASoC: simple-card: Move dai-link level properties away from dai subnodes
+  - Fix typo in DT binding document (Jean-Francois Moine's comment [4]).
+  - Remove #define DEBUG
+  - Remove accidental line wrap at simple-audio-card,name property descripition
+    in the DT binding document
+
+[1] http://mailman.alsa-project.org/pipermail/alsa-devel/2014-March/074592.html
+[2] http://mailman.alsa-project.org/pipermail/alsa-devel/2014-March/074388.html
+[3] http://mailman.alsa-project.org/pipermail/alsa-devel/2014-March/074699.html
+[4] http://mailman.alsa-project.org/pipermail/alsa-devel/2014-March/074697.html
 
 Best regards,
 Jyri
+
+Jyri Sarha (2):
+  ASoC: core: Update snd_soc_of_parse_daifmt() interface
+  ASoC: simple-card: Move dai-link level properties away from dai
+    subnodes
+
+ .../devicetree/bindings/sound/simple-card.txt      |   88 ++++----
+ include/sound/soc.h                                |    4 +-
+ sound/soc/generic/simple-card.c                    |  238 ++++++++++++--------
+ sound/soc/soc-core.c                               |    8 +-
+ 4 files changed, 200 insertions(+), 138 deletions(-)
+
+-- 
+1.7.9.5
