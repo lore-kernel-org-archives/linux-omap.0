@@ -1,65 +1,102 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v3 0/2] Move dai-link level properties away
-	from dai subnodes
-Date: Mon, 24 Mar 2014 12:15:23 +0200
-Message-ID: <cover.1395655868.git.jsarha@ti.com>
+Subject: [PATCH RFC v3 1/2] ASoC: core: Update snd_soc_of_parse_daifmt() interface
+Date: Mon, 24 Mar 2014 12:15:24 +0200
+Message-ID: <ea6e68518bd5f9df07dbd146f41cb02a8f290bc5.1395655868.git.jsarha@ti.com>
+References: <cover.1395655868.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: liam.r.girdwood@linux.intel.com, detheridge@ti.com, kuninori.morimoto.gx@renesas.com, moinejf@free.fr, Li.Xiubo@freescale.com, Jyri Sarha <jsarha@ti.com>, peter.ujfalusi@ti.com, broonie@kernel.org, bcousson@baylibre.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57783 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750998AbaCXKPk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Mar 2014 06:15:40 -0400
+In-Reply-To: <cover.1395655868.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com, moinejf@free.fr, Li.Xiubo@freescale.com, kuninori.morimoto.gx@renesas.com, Jyri Sarha <jsarha@ti.com>
 
-This patch is implemented on top of late patches from Jean-Francois
-Moine [1].
+Adds struct device_node **bitclkmaster and struct device_node **framemaster
+function parameters. With the new syntax bitclock-master and frame-master
+properties can explicitly indicate the dai-link bit-clock and frame masters
+with a phandle. This patch also makes the minimal changes to simple-card
+for it to work with the updated snd_soc_of_parse_daifmt(). Simple-card appears
+to be the only user of snd_soc_of_parse_daifmt() for now.
 
-These patches implement the main part of the simple-card changes
-discussed in alsa-devel mailing list [2].
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+---
+ include/sound/soc.h             |    4 +++-
+ sound/soc/generic/simple-card.c |    5 +++--
+ sound/soc/soc-core.c            |    8 +++++++-
+ 3 files changed, 13 insertions(+), 4 deletions(-)
 
-Since RFC v2 version of the patches, address remaining comments from
-Jean-Francois Moine [4]:
-- ASoC: simple-card: Move dai-link level properties away from dai subnodes
-  - Only allow legacy parsing if there is no dai-link node.
-  - Fix double unref in of_card parsing loop.
-
-Since RFC version of the patches:
-- ASoC: core: Update snd_soc_of_parse_daifmt() interface
-  - Make minimal changes to simple-card for it to work with the updated
-    snd_soc_of_parse_daifmt(). (Kuninori Morimoto's comment [3]).
-- ASoC: simple-card: Move dai-link level properties away from dai subnodes
-  - Fix typo in DT binding document (Jean-Francois Moine's comment [4]).
-  - Remove #define DEBUG
-  - Remove accidental line wrap at simple-audio-card,name property descripition
-    in the DT binding document
-
-[1] http://mailman.alsa-project.org/pipermail/alsa-devel/2014-March/074592.html
-[2] http://mailman.alsa-project.org/pipermail/alsa-devel/2014-March/074388.html
-[3] http://mailman.alsa-project.org/pipermail/alsa-devel/2014-March/074699.html
-[4] http://mailman.alsa-project.org/pipermail/alsa-devel/2014-March/074697.html
-
-Best regards,
-Jyri
-
-Jyri Sarha (2):
-  ASoC: core: Update snd_soc_of_parse_daifmt() interface
-  ASoC: simple-card: Move dai-link level properties away from dai
-    subnodes
-
- .../devicetree/bindings/sound/simple-card.txt      |   88 ++++----
- include/sound/soc.h                                |    4 +-
- sound/soc/generic/simple-card.c                    |  238 ++++++++++++--------
- sound/soc/soc-core.c                               |    8 +-
- 4 files changed, 200 insertions(+), 138 deletions(-)
-
+diff --git a/include/sound/soc.h b/include/sound/soc.h
+index f7de629..e40713a 100644
+--- a/include/sound/soc.h
++++ b/include/sound/soc.h
+@@ -1228,7 +1228,9 @@ int snd_soc_of_parse_tdm_slot(struct device_node *np,
+ int snd_soc_of_parse_audio_routing(struct snd_soc_card *card,
+ 				   const char *propname);
+ unsigned int snd_soc_of_parse_daifmt(struct device_node *np,
+-				     const char *prefix);
++				     const char *prefix,
++				     struct device_node **bitclkmaster,
++				     struct device_node **framemaster);
+ int snd_soc_of_get_dai_name(struct device_node *of_node,
+ 			    const char **dai_name);
+ 
+diff --git a/sound/soc/generic/simple-card.c b/sound/soc/generic/simple-card.c
+index 21f1ccb..835fd02 100644
+--- a/sound/soc/generic/simple-card.c
++++ b/sound/soc/generic/simple-card.c
+@@ -121,7 +121,7 @@ asoc_simple_card_sub_parse_of(struct device_node *np,
+ 	 * bitclock-master,    frame-master
+ 	 * and specific "format" if it has
+ 	 */
+-	dai->fmt = snd_soc_of_parse_daifmt(np, NULL);
++	dai->fmt = snd_soc_of_parse_daifmt(np, NULL, NULL, NULL);
+ 	dai->fmt |= daifmt;
+ 
+ 	/*
+@@ -201,7 +201,8 @@ static int asoc_simple_card_parse_of(struct device_node *node,
+ 	snd_soc_of_parse_card_name(&priv->snd_card, "simple-audio-card,name");
+ 
+ 	/* get CPU/CODEC common format via simple-audio-card,format */
+-	daifmt = snd_soc_of_parse_daifmt(node, "simple-audio-card,") &
++	daifmt = snd_soc_of_parse_daifmt(node, "simple-audio-card,", NULL,
++					 NULL) &
+ 		(SND_SOC_DAIFMT_FORMAT_MASK | SND_SOC_DAIFMT_INV_MASK);
+ 
+ 	/* off-codec widgets */
+diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+index b322cf2..7979dcc 100644
+--- a/sound/soc/soc-core.c
++++ b/sound/soc/soc-core.c
+@@ -4560,7 +4560,9 @@ int snd_soc_of_parse_audio_routing(struct snd_soc_card *card,
+ EXPORT_SYMBOL_GPL(snd_soc_of_parse_audio_routing);
+ 
+ unsigned int snd_soc_of_parse_daifmt(struct device_node *np,
+-				     const char *prefix)
++				     const char *prefix,
++				     struct device_node **bitclkmaster,
++				     struct device_node **framemaster)
+ {
+ 	int ret, i;
+ 	char prop[128];
+@@ -4643,9 +4645,13 @@ unsigned int snd_soc_of_parse_daifmt(struct device_node *np,
+ 	 */
+ 	snprintf(prop, sizeof(prop), "%sbitclock-master", prefix);
+ 	bit = !!of_get_property(np, prop, NULL);
++	if (bit && bitclkmaster)
++		*bitclkmaster = of_parse_phandle(np, prop, 0);
+ 
+ 	snprintf(prop, sizeof(prop), "%sframe-master", prefix);
+ 	frame = !!of_get_property(np, prop, NULL);
++	if (frame && framemaster)
++		*framemaster = of_parse_phandle(np, prop, 0);
+ 
+ 	switch ((bit << 4) + frame) {
+ 	case 0x11:
 -- 
 1.7.9.5
+
