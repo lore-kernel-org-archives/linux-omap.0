@@ -1,498 +1,252 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v3 2/2] ASoC: simple-card: Move dai-link level properties away from dai subnodes
-Date: Mon, 24 Mar 2014 12:15:25 +0200
-Message-ID: <895e907e9c47da2b4a358a1a2c24435003dea48f.1395655868.git.jsarha@ti.com>
-References: <cover.1395655868.git.jsarha@ti.com>
+From: Sathya Prakash M R <sathyap@ti.com>
+Subject: [PATCH V3 1/6] OMAPDSS: Add DSS features for AM43xx
+Date: Mon, 24 Mar 2014 16:31:51 +0530
+Message-ID: <1395658916-9032-2-git-send-email-sathyap@ti.com>
+References: <1395658916-9032-1-git-send-email-sathyap@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35447 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37121 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998AbaCXKPp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Mar 2014 06:15:45 -0400
-In-Reply-To: <cover.1395655868.git.jsarha@ti.com>
+	id S1752976AbaCXLCD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Mar 2014 07:02:03 -0400
+In-Reply-To: <1395658916-9032-1-git-send-email-sathyap@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com, moinejf@free.fr, Li.Xiubo@freescale.com, kuninori.morimoto.gx@renesas.com, Jyri Sarha <jsarha@ti.com>
+To: tomi.valkeinen@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Sathya Prakash M R <sathyap@ti.com>
 
-The properties like format, bitclock-master, frame-master,
-bitclock-inversion, and frame-inversion should be common to the dais
-connected with a dai-link. For bitclock-master and frame-master
-properties to be unambiguous they need to indicate the mastering dai
-node with a phandle.
+Add DSS features for AM43xx.
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
+Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
 ---
- .../devicetree/bindings/sound/simple-card.txt      |   88 +++----
- sound/soc/generic/simple-card.c                    |  239 ++++++++++++--------
- 2 files changed, 190 insertions(+), 137 deletions(-)
+ arch/arm/mach-omap2/display.c          |    2 +
+ drivers/video/omap2/dss/dispc.c        |    1 +
+ drivers/video/omap2/dss/dpi.c          |    2 +
+ drivers/video/omap2/dss/dsi.c          |    1 +
+ drivers/video/omap2/dss/dss.c          |   11 ++++++
+ drivers/video/omap2/dss/dss_features.c |   67 ++++++++++++++++++++++++++++++++
+ include/video/omapdss.h                |    1 +
+ 7 files changed, 85 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/sound/simple-card.txt b/Documentation/devicetree/bindings/sound/simple-card.txt
-index 131aa2a..9b9df14 100644
---- a/Documentation/devicetree/bindings/sound/simple-card.txt
-+++ b/Documentation/devicetree/bindings/sound/simple-card.txt
-@@ -1,6 +1,6 @@
- Simple-Card:
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index a4e536b..d1cac1c 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -316,6 +316,8 @@ static enum omapdss_version __init omap_display_get_version(void)
+ 		return OMAPDSS_VER_OMAP4;
+ 	else if (soc_is_omap54xx())
+ 		return OMAPDSS_VER_OMAP5;
++	else if (soc_is_am43xx())
++		return OMAPDSS_VER_AM43xx;
+ 	else
+ 		return OMAPDSS_VER_UNKNOWN;
+ }
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 4ec59ca..1b4aed5 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -3622,6 +3622,7 @@ static int __init dispc_init_features(struct platform_device *pdev)
+ 	case OMAPDSS_VER_OMAP34xx_ES3:
+ 	case OMAPDSS_VER_OMAP3630:
+ 	case OMAPDSS_VER_AM35xx:
++	case OMAPDSS_VER_AM43xx:
+ 		src = &omap34xx_rev3_0_dispc_feats;
+ 		break;
  
--Simple-Card specifies audio DAI connection of SoC <-> codec.
-+Simple-Card specifies audio DAI connections of SoC <-> codec.
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index bd48cde..7ee7f86 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -64,6 +64,7 @@ static struct platform_device *dpi_get_dsidev(enum omap_channel channel)
+ 	case OMAPDSS_VER_OMAP34xx_ES3:
+ 	case OMAPDSS_VER_OMAP3630:
+ 	case OMAPDSS_VER_AM35xx:
++	case OMAPDSS_VER_AM43xx:
+ 		return NULL;
  
- Required properties:
+ 	case OMAPDSS_VER_OMAP4430_ES1:
+@@ -593,6 +594,7 @@ static enum omap_channel dpi_get_channel(void)
+ 	case OMAPDSS_VER_OMAP34xx_ES3:
+ 	case OMAPDSS_VER_OMAP3630:
+ 	case OMAPDSS_VER_AM35xx:
++	case OMAPDSS_VER_AM43xx:
+ 		return OMAP_DSS_CHANNEL_LCD;
  
-@@ -10,26 +10,51 @@ Optional properties:
+ 	case OMAPDSS_VER_OMAP4430_ES1:
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 6056b27..d68b49b 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -5082,6 +5082,7 @@ static enum omap_channel dsi_get_channel(int module_id)
+ {
+ 	switch (omapdss_get_version()) {
+ 	case OMAPDSS_VER_OMAP24xx:
++	case OMAPDSS_VER_AM43xx:
+ 		DSSWARN("DSI not supported\n");
+ 		return OMAP_DSS_CHANNEL_LCD;
  
- - simple-audio-card,name		: User specified audio sound card name, one string
- 					  property.
--- simple-audio-card,format		: CPU/CODEC common audio format.
--					  "i2s", "right_j", "left_j" , "dsp_a"
--					  "dsp_b", "ac97", "pdm", "msb", "lsb"
- - simple-audio-card,widgets		: Please refer to widgets.txt.
- - simple-audio-card,routing		: A list of the connections between audio components.
- 					  Each entry is a pair of strings, the first being the
- 					  connection's sink, the second being the connection's
- 					  source.
--- dai-tdm-slot-num			: Please refer to tdm-slot.txt.
--- dai-tdm-slot-width			: Please refer to tdm-slot.txt.
-+Optional subnodes:
-+
-+- simple-audio-card,dai-link		: Container for dai-link level
-+					  properties and the CPU and CODEC
-+					  sub-nodes. This container may be
-+					  omitted when the card has only one
-+					  DAI link. See the examples and the
-+					  section bellow.
-+
-+Dai-link subnode properties and subnodes:
-+
-+If dai-link subnode is omitted and the subnode properties are directly
-+under "sound"-node the subnode property and subnode names have to be
-+prefixed with "simple-audio-card,"-prefix.
- 
--Required subnodes:
-+Required dai-link subnodes:
- 
--- simple-audio-card,dai-link		: container for the CPU and CODEC sub-nodes
--					  This container may be omitted when the
--					  card has only one DAI link.
--					  See the examples.
-+- cpu					: CPU   sub-node
-+- codec					: CODEC sub-node
- 
--- simple-audio-card,cpu			: CPU   sub-node
--- simple-audio-card,codec		: CODEC sub-node
-+Optional dai-link subnode properties:
-+
-+- format				: CPU/CODEC common audio format.
-+					  "i2s", "right_j", "left_j" , "dsp_a"
-+					  "dsp_b", "ac97", "pdm", "msb", "lsb"
-+- frame-master				: Indicates dai-link frame master.
-+					  phandle to a cpu or codec subnode.
-+- bitclock-master			: Indicates dai-link bit clock master.
-+					  phandle to a cpu or codec subnode.
-+- bitclock-inversion			: bool property. Add this if the
-+					  dai-link uses bit clock inversion.
-+- frame-inversion			: bool property. Add this if the
-+					  dai-link uses frame clock inversion.
-+
-+For backward compatibility the frame-master and bitclock-master
-+properties can be used as booleans in codec subnode to indicate if the
-+codec is the dai-link frame or bit clock master. In this case there
-+should be no dai-link node, the same properties should not be present
-+at sound-node level, and the bitclock-inversion and frame-inversion
-+properties should also be placed in the codec node if needed.
- 
- Required CPU/CODEC subnodes properties:
- 
-@@ -37,29 +62,21 @@ Required CPU/CODEC subnodes properties:
- 
- Optional CPU/CODEC subnodes properties:
- 
--- format				: CPU/CODEC specific audio format if needed.
--					  see simple-audio-card,format
--- frame-master				: bool property. add this if subnode is frame master
--- bitclock-master			: bool property. add this if subnode is bitclock master
--- bitclock-inversion			: bool property. add this if subnode has clock inversion
--- frame-inversion			: bool property. add this if subnode has frame inversion
-+- dai-tdm-slot-num			: Please refer to tdm-slot.txt.
-+- dai-tdm-slot-width			: Please refer to tdm-slot.txt.
- - clocks / system-clock-frequency	: specify subnode's clock if needed.
- 					  it can be specified via "clocks" if system has
- 					  clock node (= common clock), or "system-clock-frequency"
- 					  (if system doens't support common clock)
- 
--Note:
-- * For 'format', 'frame-master', 'bitclock-master', 'bitclock-inversion' and
--   'frame-inversion', the simple card will use the settings of CODEC for both
--   CPU and CODEC sides as we need to keep the settings identical for both ends
--   of the link.
--
- Example 1 - single DAI link:
- 
- sound {
- 	compatible = "simple-audio-card";
- 	simple-audio-card,name = "VF610-Tower-Sound-Card";
- 	simple-audio-card,format = "left_j";
-+	simple-audio-card,bitclock-master = <&dailink0_master>;
-+	simple-audio-card,frame-master = <&dailink0_master>;
- 	simple-audio-card,widgets =
- 		"Microphone", "Microphone Jack",
- 		"Headphone", "Headphone Jack",
-@@ -69,17 +86,12 @@ sound {
- 		"Headphone Jack", "HP_OUT",
- 		"External Speaker", "LINE_OUT";
- 
--	dai-tdm-slot-num = <2>;
--	dai-tdm-slot-width = <8>;
--
- 	simple-audio-card,cpu {
- 		sound-dai = <&sh_fsi2 0>;
- 	};
- 
--	simple-audio-card,codec {
-+	dailink0_master: simple-audio-card,codec {
- 		sound-dai = <&ak4648>;
--		bitclock-master;
--		frame-master;
- 		clocks = <&osc>;
- 	};
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index bd01608..0b60746 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -795,6 +795,13 @@ static const struct dss_features omap54xx_dss_feats __initconst = {
+ 	.dpi_select_source	=	&dss_dpi_select_source_omap5,
  };
-@@ -105,31 +117,31 @@ Example 2 - many DAI links:
- sound {
- 	compatible = "simple-audio-card";
- 	simple-audio-card,name = "Cubox Audio";
--	simple-audio-card,format = "i2s";
  
- 	simple-audio-card,dai-link@0 {		/* I2S - HDMI */
--		simple-audio-card,cpu {
-+		format = "i2s";
-+		cpu {
- 			sound-dai = <&audio1 0>;
- 		};
--		simple-audio-card,codec {
-+		codec {
- 			sound-dai = <&tda998x 0>;
- 		};
- 	};
- 
- 	simple-audio-card,dai-link@1 {		/* S/PDIF - HDMI */
--		simple-audio-card,cpu {
-+		cpu {
- 			sound-dai = <&audio1 1>;
- 		};
--		simple-audio-card,codec {
-+		codec {
- 			sound-dai = <&tda998x 1>;
- 		};
- 	};
- 
- 	simple-audio-card,dai-link@2 {		/* S/PDIF - S/PDIF */
--		simple-audio-card,cpu {
-+		cpu {
- 			sound-dai = <&audio1 1>;
- 		};
--		simple-audio-card,codec {
-+		codec {
- 			sound-dai = <&spdif_codec>;
- 		};
- 	};
-diff --git a/sound/soc/generic/simple-card.c b/sound/soc/generic/simple-card.c
-index 835fd02..3f2e580 100644
---- a/sound/soc/generic/simple-card.c
-+++ b/sound/soc/generic/simple-card.c
-@@ -88,7 +88,6 @@ static int asoc_simple_card_dai_init(struct snd_soc_pcm_runtime *rtd)
- 
- static int
- asoc_simple_card_sub_parse_of(struct device_node *np,
--			      unsigned int daifmt,
- 			      struct asoc_simple_dai *dai,
- 			      const struct device_node **p_node,
- 			      const char **name)
-@@ -117,14 +116,6 @@ asoc_simple_card_sub_parse_of(struct device_node *np,
- 		return ret;
- 
- 	/*
--	 * bitclock-inversion, frame-inversion
--	 * bitclock-master,    frame-master
--	 * and specific "format" if it has
--	 */
--	dai->fmt = snd_soc_of_parse_daifmt(np, NULL, NULL, NULL);
--	dai->fmt |= daifmt;
--
--	/*
- 	 * dai->sysclk come from
- 	 *  "clocks = <&xxx>" (if system has common clock)
- 	 *  or "system-clock-frequency = <xxx>"
-@@ -151,37 +142,135 @@ asoc_simple_card_sub_parse_of(struct device_node *np,
- 	return 0;
- }
- 
--static int simple_card_cpu_codec_of(struct device_node *node,
--				int daifmt,
--				struct snd_soc_dai_link *dai_link,
--				struct simple_dai_props *dai_props)
-+static int simple_card_dai_link_of(struct device_node *node,
-+				   struct device *dev,
-+				   struct snd_soc_dai_link *dai_link,
-+				   struct simple_dai_props *dai_props)
++static const struct dss_features am43xx_dss_feats __initconst = {
++	.fck_div_max		=	0,
++	.dss_fck_multiplier	=	0,
++	.parent_clk_name	=	NULL,
++	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
++};
++
+ static int __init dss_init_features(struct platform_device *pdev)
  {
--	struct device_node *np;
-+	struct device_node *np = NULL;
-+	struct device_node *bitclkmaster = NULL;
-+	struct device_node *framemaster = NULL;
-+	unsigned int daifmt;
-+	char *name;
-+	char prop[128];
-+	char *prefix = "";
- 	int ret;
+ 	const struct dss_features *src;
+@@ -831,6 +838,10 @@ static int __init dss_init_features(struct platform_device *pdev)
+ 		src = &omap54xx_dss_feats;
+ 		break;
  
--	/* CPU sub-node */
--	ret = -EINVAL;
--	np = of_get_child_by_name(node, "simple-audio-card,cpu");
--	if (np) {
--		ret = asoc_simple_card_sub_parse_of(np, daifmt,
--						&dai_props->cpu_dai,
--						&dai_link->cpu_of_node,
--						&dai_link->cpu_dai_name);
--		of_node_put(np);
-+	if (!strcmp("sound", node->name))
-+		prefix = "simple-audio-card,";
-+
-+	daifmt = snd_soc_of_parse_daifmt(node, prefix,
-+					 &bitclkmaster, &framemaster);
-+	daifmt &= ~SND_SOC_DAIFMT_MASTER_MASK;
-+
-+	snprintf(prop, sizeof(prop), "%scpu", prefix);
-+	np = of_get_child_by_name(node, prop);
-+	if (!np) {
-+		ret = -EINVAL;
-+		dev_err(dev, "%s: Can't find simple-audio-card,cpu DT node\n",
-+			__func__);
-+		goto dai_link_of_err;
- 	}
-+
-+	ret = asoc_simple_card_sub_parse_of(np, &dai_props->cpu_dai,
-+					    &dai_link->cpu_of_node,
-+					    &dai_link->cpu_dai_name);
- 	if (ret < 0)
--		return ret;
-+		goto dai_link_of_err;
-+
-+	dai_props->cpu_dai.fmt = daifmt;
-+	switch (((np == bitclkmaster)<<4)|(np == framemaster)) {
-+	case 0x11:
-+		dai_props->cpu_dai.fmt |= SND_SOC_DAIFMT_CBS_CFS;
++	case OMAPDSS_VER_AM43xx:
++		src = &am43xx_dss_feats;
 +		break;
-+	case 0x10:
-+		dai_props->cpu_dai.fmt |= SND_SOC_DAIFMT_CBS_CFM;
-+		break;
-+	case 0x01:
-+		dai_props->cpu_dai.fmt |= SND_SOC_DAIFMT_CBM_CFS;
-+		break;
-+	default:
-+		dai_props->cpu_dai.fmt |= SND_SOC_DAIFMT_CBM_CFM;
-+		break;
-+	}
- 
--	/* CODEC sub-node */
--	ret = -EINVAL;
--	np = of_get_child_by_name(node, "simple-audio-card,codec");
--	if (np) {
--		ret = asoc_simple_card_sub_parse_of(np, daifmt,
--						&dai_props->codec_dai,
--						&dai_link->codec_of_node,
--						&dai_link->codec_dai_name);
--		of_node_put(np);
-+	of_node_put(np);
-+	snprintf(prop, sizeof(prop), "%scodec", prefix);
-+	np = of_get_child_by_name(node, prop);
-+	if (!np) {
-+		ret = -EINVAL;
-+		dev_err(dev, "%s: Can't find simple-audio-card,codec DT node\n",
-+			__func__);
-+		goto dai_link_of_err;
-+	}
 +
-+	ret = asoc_simple_card_sub_parse_of(np, &dai_props->codec_dai,
-+					    &dai_link->codec_of_node,
-+					    &dai_link->codec_dai_name);
-+	if (ret < 0)
-+		goto dai_link_of_err;
-+
-+	if (strlen(prefix) && !bitclkmaster && !framemaster) {
-+		/* No dai-link level and master setting was not found from
-+		   sound node level, revert back to legacy DT parsing and
-+		   take the settings from codec node. */
-+		dev_dbg(dev, "%s: Revert to legacy daifmt parsing\n",
-+			__func__);
-+		dai_props->cpu_dai.fmt = dai_props->codec_dai.fmt =
-+			snd_soc_of_parse_daifmt(np, NULL, NULL, NULL) |
-+			(daifmt & ~SND_SOC_DAIFMT_CLOCK_MASK);
-+	} else {
-+		dai_props->codec_dai.fmt = daifmt;
-+		switch (((np == bitclkmaster)<<4)|(np == framemaster)) {
-+		case 0x11:
-+			dai_props->codec_dai.fmt |= SND_SOC_DAIFMT_CBM_CFM;
-+			break;
-+		case 0x10:
-+			dai_props->codec_dai.fmt |= SND_SOC_DAIFMT_CBM_CFS;
-+			break;
-+		case 0x01:
-+			dai_props->codec_dai.fmt |= SND_SOC_DAIFMT_CBS_CFM;
-+			break;
-+		default:
-+			dai_props->codec_dai.fmt |= SND_SOC_DAIFMT_CBS_CFS;
-+			break;
-+		}
-+	}
-+
-+	if (!dai_link->cpu_dai_name || !dai_link->codec_dai_name) {
-+			ret = -EINVAL;
-+			goto dai_link_of_err;
+ 	default:
+ 		return -ENODEV;
  	}
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index f8fd6db..79df1a2 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -93,6 +93,17 @@ static const struct dss_reg_field omap3_dss_reg_fields[] = {
+ 	[FEAT_REG_DSIPLL_REGM_DSI]		= { 26, 23 },
+ };
+ 
++static const struct dss_reg_field am43xx_dss_reg_fields[] = {
++	[FEAT_REG_FIRHINC]			= { 12, 0 },
++	[FEAT_REG_FIRVINC]			= { 28, 16 },
++	[FEAT_REG_FIFOLOWTHRESHOLD]	= { 11, 0 },
++	[FEAT_REG_FIFOHIGHTHRESHOLD]		= { 27, 16 },
++	[FEAT_REG_FIFOSIZE]		= { 10, 0 },
++	[FEAT_REG_HORIZONTALACCU]		= { 9, 0 },
++	[FEAT_REG_VERTICALACCU]			= { 25, 16 },
++	[FEAT_REG_DISPC_CLK_SWITCH]		= { 0, 0 },
++};
 +
-+	/* simple-card assumes platform == cpu */
-+	dai_link->platform_of_node = dai_link->cpu_of_node;
+ static const struct dss_reg_field omap4_dss_reg_fields[] = {
+ 	[FEAT_REG_FIRHINC]			= { 12, 0 },
+ 	[FEAT_REG_FIRVINC]			= { 28, 16 },
+@@ -149,6 +160,11 @@ static const enum omap_display_type omap3630_dss_supported_displays[] = {
+ 	OMAP_DISPLAY_TYPE_VENC,
+ };
+ 
++static const enum omap_display_type am43xx_dss_supported_displays[] = {
++	/* OMAP_DSS_CHANNEL_LCD */
++	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI,
++};
 +
-+	/* Link name is created from CPU/CODEC dai name */
-+	name = devm_kzalloc(dev,
-+			    strlen(dai_link->cpu_dai_name)   +
-+			    strlen(dai_link->codec_dai_name) + 2,
-+			    GFP_KERNEL);
-+	sprintf(name, "%s-%s", dai_link->cpu_dai_name,
-+				dai_link->codec_dai_name);
-+	dai_link->name = dai_link->stream_name = name;
+ static const enum omap_display_type omap4_dss_supported_displays[] = {
+ 	/* OMAP_DSS_CHANNEL_LCD */
+ 	OMAP_DISPLAY_TYPE_DBI | OMAP_DISPLAY_TYPE_DSI,
+@@ -200,6 +216,11 @@ static const enum omap_dss_output_id omap3630_dss_supported_outputs[] = {
+ 	OMAP_DSS_OUTPUT_VENC,
+ };
+ 
++static const enum omap_dss_output_id am43xx_dss_supported_outputs[] = {
++	/* OMAP_DSS_CHANNEL_LCD */
++	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI,
++};
 +
-+	dev_dbg(dev, "\tname : %s\n", dai_link->stream_name);
-+	dev_dbg(dev, "\tcpu : %s / %04x / %d\n",
-+		dai_link->cpu_dai_name,
-+		dai_props->cpu_dai.fmt,
-+		dai_props->cpu_dai.sysclk);
-+	dev_dbg(dev, "\tcodec : %s / %04x / %d\n",
-+		dai_link->codec_dai_name,
-+		dai_props->codec_dai.fmt,
-+		dai_props->codec_dai.sysclk);
+ static const enum omap_dss_output_id omap4_dss_supported_outputs[] = {
+ 	/* OMAP_DSS_CHANNEL_LCD */
+ 	OMAP_DSS_OUTPUT_DBI | OMAP_DSS_OUTPUT_DSI1,
+@@ -444,6 +465,13 @@ static const struct dss_param_range omap3_dss_param_range[] = {
+ 	[FEAT_PARAM_LINEWIDTH]			= { 1, 1024 },
+ };
+ 
++static const struct dss_param_range am43xx_dss_param_range[] = {
++	[FEAT_PARAM_DSS_FCK]			= { 0, 200000000 },
++	[FEAT_PARAM_DSS_PCD]			= { 2, 255 },
++	[FEAT_PARAM_DOWNSCALE]			= { 1, 4 },
++	[FEAT_PARAM_LINEWIDTH]			= { 1, 1024 },
++};
 +
-+dai_link_of_err:
-+	if (np)
-+		of_node_put(np);
-+	if (bitclkmaster)
-+		of_node_put(bitclkmaster);
-+	if (framemaster)
-+		of_node_put(framemaster);
- 	return ret;
- }
+ static const struct dss_param_range omap4_dss_param_range[] = {
+ 	[FEAT_PARAM_DSS_FCK]			= { 0, 186000000 },
+ 	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
+@@ -520,6 +548,21 @@ static const enum dss_feat_id am35xx_dss_feat_list[] = {
+ 	FEAT_OMAP3_DSI_FIFO_BUG,
+ };
  
-@@ -192,19 +281,11 @@ static int asoc_simple_card_parse_of(struct device_node *node,
- {
- 	struct snd_soc_dai_link *dai_link = priv->snd_card.dai_link;
- 	struct simple_dai_props *dai_props = priv->dai_props;
--	struct device_node *np;
--	char *name;
--	unsigned int daifmt;
- 	int ret;
- 
- 	/* parsing the card name from DT */
- 	snd_soc_of_parse_card_name(&priv->snd_card, "simple-audio-card,name");
- 
--	/* get CPU/CODEC common format via simple-audio-card,format */
--	daifmt = snd_soc_of_parse_daifmt(node, "simple-audio-card,", NULL,
--					 NULL) &
--		(SND_SOC_DAIFMT_FORMAT_MASK | SND_SOC_DAIFMT_INV_MASK);
--
- 	/* off-codec widgets */
- 	if (of_property_read_bool(node, "simple-audio-card,widgets")) {
- 		ret = snd_soc_of_parse_audio_simple_widgets(&priv->snd_card,
-@@ -221,71 +302,31 @@ static int asoc_simple_card_parse_of(struct device_node *node,
- 			return ret;
- 	}
- 
--	/* loop on the DAI links */
--	np = NULL;
--	for (;;) {
--		if (multi) {
--			np = of_get_next_child(node, np);
--			if (!np)
--				break;
-+	dev_dbg(dev, "New simple-card: %s\n", priv->snd_card.name ?
-+		priv->snd_card.name : "");
++static const enum dss_feat_id am43xx_dss_feat_list[] = {
++	FEAT_LCDENABLEPOL,
++	FEAT_LCDENABLESIGNAL,
++	FEAT_PCKFREEENABLE,
++	FEAT_FUNCGATED,
++	FEAT_LINEBUFFERSPLIT,
++	FEAT_ROWREPEATENABLE,
++	FEAT_RESIZECONF,
++	FEAT_CPR,
++	FEAT_PRELOAD,
++	FEAT_FIR_COEF_V,
++	FEAT_ALPHA_FIXED_ZORDER,
++	FEAT_FIFO_MERGE,
++};
 +
-+	if (multi) {
-+		struct device_node *np = NULL;
-+		int i;
-+		for (i = 0; (np = of_get_next_child(node, np)); i++) {
-+			dev_dbg(dev, "\tlink %d:\n", i);
-+			ret = simple_card_dai_link_of(np, dev, dai_link + i,
-+						      dai_props + i);
-+			if (ret < 0) {
-+				of_node_put(np);
-+				return ret;
-+			}
- 		}
--
--		ret = simple_card_cpu_codec_of(multi ? np : node,
--					daifmt, dai_link, dai_props);
-+	} else {
-+		ret = simple_card_dai_link_of(node, dev, dai_link, dai_props);
- 		if (ret < 0)
--			goto err;
--
--		/*
--		 * overwrite cpu_dai->fmt as its DAIFMT_MASTER bit is based on CODEC
--		 * while the other bits should be identical unless buggy SW/HW design.
--		 */
--		dai_props->cpu_dai.fmt = dai_props->codec_dai.fmt;
--
--		if (!dai_link->cpu_dai_name || !dai_link->codec_dai_name) {
--			ret = -EINVAL;
--			goto err;
--		}
--
--		/* simple-card assumes platform == cpu */
--		dai_link->platform_of_node = dai_link->cpu_of_node;
--
--		name = devm_kzalloc(dev,
--				    strlen(dai_link->cpu_dai_name)   +
--				    strlen(dai_link->codec_dai_name) + 2,
--				    GFP_KERNEL);
--		sprintf(name, "%s-%s", dai_link->cpu_dai_name,
--					dai_link->codec_dai_name);
--		dai_link->name = dai_link->stream_name = name;
--
--		if (!multi)
--			break;
--
--		dai_link++;
--		dai_props++;
-+			return ret;
- 	}
+ static const enum dss_feat_id omap3630_dss_feat_list[] = {
+ 	FEAT_LCDENABLEPOL,
+ 	FEAT_LCDENABLESIGNAL,
+@@ -681,6 +724,26 @@ static const struct omap_dss_features am35xx_dss_features = {
+ 	.burst_size_unit = 8,
+ };
  
--	/* card name is created from CPU/CODEC dai name */
--	dai_link = priv->snd_card.dai_link;
- 	if (!priv->snd_card.name)
--		priv->snd_card.name = dai_link->name;
--
--	dev_dbg(dev, "card-name : %s\n", priv->snd_card.name);
--	dev_dbg(dev, "platform : %04x\n", daifmt);
--	dai_props = priv->dai_props;
--	dev_dbg(dev, "cpu : %s / %04x / %d\n",
--		dai_link->cpu_dai_name,
--		dai_props->cpu_dai.fmt,
--		dai_props->cpu_dai.sysclk);
--	dev_dbg(dev, "codec : %s / %04x / %d\n",
--		dai_link->codec_dai_name,
--		dai_props->codec_dai.fmt,
--		dai_props->codec_dai.sysclk);
-+		priv->snd_card.name = priv->snd_card.dai_link->name;
++static const struct omap_dss_features am43xx_dss_features = {
++	.reg_fields = am43xx_dss_reg_fields,
++	.num_reg_fields = ARRAY_SIZE(am43xx_dss_reg_fields),
++
++	.features = am43xx_dss_feat_list,
++	.num_features = ARRAY_SIZE(am43xx_dss_feat_list),
++
++	.num_mgrs = 1,
++	.num_ovls = 3,
++	.supported_displays = am43xx_dss_supported_displays,
++	.supported_outputs = am43xx_dss_supported_outputs,
++	.supported_color_modes = omap3_dss_supported_color_modes,
++	.overlay_caps = omap3430_dss_overlay_caps,
++	.clksrc_names = omap2_dss_clk_source_names,
++	.dss_params = am43xx_dss_param_range,
++	.supported_rotation_types = OMAP_DSS_ROT_DMA,
++	.buffer_size_unit = 1,
++	.burst_size_unit = 8,
++};
++
+ static const struct omap_dss_features omap3630_dss_features = {
+ 	.reg_fields = omap3_dss_reg_fields,
+ 	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
+@@ -927,6 +990,10 @@ void dss_features_init(enum omapdss_version version)
+ 		omap_current_dss_features = &am35xx_dss_features;
+ 		break;
  
- 	return 0;
--
--err:
--	of_node_put(np);
--	return ret;
- }
++	case OMAPDSS_VER_AM43xx:
++		omap_current_dss_features = &am43xx_dss_features;
++		break;
++
+ 	default:
+ 		DSSWARN("Unsupported OMAP version");
+ 		break;
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 3d7c51a..7513146 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -319,6 +319,7 @@ enum omapdss_version {
+ 	OMAPDSS_VER_OMAP4430_ES2,	/* OMAP4430 ES2.0, 2.1, 2.2 */
+ 	OMAPDSS_VER_OMAP4,		/* All other OMAP4s */
+ 	OMAPDSS_VER_OMAP5,
++	OMAPDSS_VER_AM43xx,
+ };
  
- /* update the reference count of the devices nodes at end of probe */
+ /* Board specific data */
 -- 
 1.7.9.5
 
