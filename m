@@ -1,495 +1,148 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v2 2/2] ASoC: simple-card: Move dai-link level properties away from dai subnodes
-Date: Mon, 24 Mar 2014 11:16:07 +0200
-Message-ID: <a2384055d0924eee2faf4d9d5cb51747899b68ca.1395651862.git.jsarha@ti.com>
-References: <cover.1395651862.git.jsarha@ti.com>
+From: Dmitry Lifshitz <lifshitz@compulab.co.il>
+Subject: Re: [PATCH v9 resend 1/3] mmc: omap_hsmmc: Enable SDIO interrupt
+Date: Mon, 24 Mar 2014 11:30:43 +0200
+Message-ID: <532FFB43.5020408@compulab.co.il>
+References: <1395404448-30030-1-git-send-email-afenkart@gmail.com> <1395404448-30030-2-git-send-email-afenkart@gmail.com> <532C6489.4050307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55140 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752090AbaCXJQ0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Mar 2014 05:16:26 -0400
-In-Reply-To: <cover.1395651862.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <532C6489.4050307@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com, moinejf@free.fr, Li.Xiubo@freescale.com, kuninori.morimoto.gx@renesas.com, Jyri Sarha <jsarha@ti.com>
 
-The properties like format, bitclock-master, frame-master,
-bitclock-inversion, and frame-inversion should be common to the dais
-connected with a dai-link. For bitclock-master and frame-master
-properties to be unambiguous they need to indicate the mastering dai
-node with a phandle.
+Hi,
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- .../devicetree/bindings/sound/simple-card.txt      |   88 ++++----
- sound/soc/generic/simple-card.c                    |  236 ++++++++++++--------
- 2 files changed, 188 insertions(+), 136 deletions(-)
+I've tested the branch omap_hsmmc_sdio_irq_devm_cleanup on custom OMAP5 
+based board.
+We have mwifiex connected to MMC3.
 
-diff --git a/Documentation/devicetree/bindings/sound/simple-card.txt b/Documentation/devicetree/bindings/sound/simple-card.txt
-index 131aa2a..59b842b 100644
---- a/Documentation/devicetree/bindings/sound/simple-card.txt
-+++ b/Documentation/devicetree/bindings/sound/simple-card.txt
-@@ -1,6 +1,6 @@
- Simple-Card:
- 
--Simple-Card specifies audio DAI connection of SoC <-> codec.
-+Simple-Card specifies audio DAI connections of SoC <-> codec.
- 
- Required properties:
- 
-@@ -10,26 +10,51 @@ Optional properties:
- 
- - simple-audio-card,name		: User specified audio sound card name, one string
- 					  property.
--- simple-audio-card,format		: CPU/CODEC common audio format.
--					  "i2s", "right_j", "left_j" , "dsp_a"
--					  "dsp_b", "ac97", "pdm", "msb", "lsb"
- - simple-audio-card,widgets		: Please refer to widgets.txt.
- - simple-audio-card,routing		: A list of the connections between audio components.
- 					  Each entry is a pair of strings, the first being the
- 					  connection's sink, the second being the connection's
- 					  source.
--- dai-tdm-slot-num			: Please refer to tdm-slot.txt.
--- dai-tdm-slot-width			: Please refer to tdm-slot.txt.
-+Optional subnodes:
-+
-+- simple-audio-card,dai-link		: Container for dai-link level
-+					  properties and the CPU and CODEC
-+					  sub-nodes. This container may be
-+					  omitted when the card has only one
-+					  DAI link. See the examples and the
-+					  section bellow.
-+
-+Dai-link subnode properties and subnodes:
-+
-+If dai-link subnode is omitted and the subnode properties are directly
-+under "sound"-node the subnode property and subnode names have to be
-+prefixed with "simple-audio-card,"-prefix.
- 
--Required subnodes:
-+Required dai-link subnodes:
- 
--- simple-audio-card,dai-link		: container for the CPU and CODEC sub-nodes
--					  This container may be omitted when the
--					  card has only one DAI link.
--					  See the examples.
-+- cpu					: CPU   sub-node
-+- codec					: CODEC sub-node
- 
--- simple-audio-card,cpu			: CPU   sub-node
--- simple-audio-card,codec		: CODEC sub-node
-+Optional dai-link subnode properties:
-+
-+- format				: CPU/CODEC common audio format.
-+					  "i2s", "right_j", "left_j" , "dsp_a"
-+					  "dsp_b", "ac97", "pdm", "msb", "lsb"
-+- frame-master				: Indicates dai-link frame master.
-+					  phandle to a cpu or codec subnode.
-+- bitclock-master			: Indicates dai-link bit clock master.
-+					  phandle to a cpu or codec subnode.
-+- bitclock-inversion			: bool property. Add this if the
-+					  dai-link uses bit clock inversion.
-+- frame-inversion			: bool property. Add this if the
-+					  dai-link uses frame clock inversion.
-+
-+For backward compatibility the frame-master and bitclock-master
-+properties can be used as booleans in codec subnode to indicate if the
-+codec is the dai-link frame or bit clock master. In this case the same
-+properties should not be present at dai-link level and the
-+bitclock-inversion and frame-inversion properties should also be placed
-+in the codec node if needed.
- 
- Required CPU/CODEC subnodes properties:
- 
-@@ -37,29 +62,21 @@ Required CPU/CODEC subnodes properties:
- 
- Optional CPU/CODEC subnodes properties:
- 
--- format				: CPU/CODEC specific audio format if needed.
--					  see simple-audio-card,format
--- frame-master				: bool property. add this if subnode is frame master
--- bitclock-master			: bool property. add this if subnode is bitclock master
--- bitclock-inversion			: bool property. add this if subnode has clock inversion
--- frame-inversion			: bool property. add this if subnode has frame inversion
-+- dai-tdm-slot-num			: Please refer to tdm-slot.txt.
-+- dai-tdm-slot-width			: Please refer to tdm-slot.txt.
- - clocks / system-clock-frequency	: specify subnode's clock if needed.
- 					  it can be specified via "clocks" if system has
- 					  clock node (= common clock), or "system-clock-frequency"
- 					  (if system doens't support common clock)
- 
--Note:
-- * For 'format', 'frame-master', 'bitclock-master', 'bitclock-inversion' and
--   'frame-inversion', the simple card will use the settings of CODEC for both
--   CPU and CODEC sides as we need to keep the settings identical for both ends
--   of the link.
--
- Example 1 - single DAI link:
- 
- sound {
- 	compatible = "simple-audio-card";
- 	simple-audio-card,name = "VF610-Tower-Sound-Card";
- 	simple-audio-card,format = "left_j";
-+	simple-audio-card,bitclock-master = <&dailink0_master>;
-+	simple-audio-card,frame-master = <&dailink0_master>;
- 	simple-audio-card,widgets =
- 		"Microphone", "Microphone Jack",
- 		"Headphone", "Headphone Jack",
-@@ -69,17 +86,12 @@ sound {
- 		"Headphone Jack", "HP_OUT",
- 		"External Speaker", "LINE_OUT";
- 
--	dai-tdm-slot-num = <2>;
--	dai-tdm-slot-width = <8>;
--
- 	simple-audio-card,cpu {
- 		sound-dai = <&sh_fsi2 0>;
- 	};
- 
--	simple-audio-card,codec {
-+	dailink0_master: simple-audio-card,codec {
- 		sound-dai = <&ak4648>;
--		bitclock-master;
--		frame-master;
- 		clocks = <&osc>;
- 	};
- };
-@@ -105,31 +117,31 @@ Example 2 - many DAI links:
- sound {
- 	compatible = "simple-audio-card";
- 	simple-audio-card,name = "Cubox Audio";
--	simple-audio-card,format = "i2s";
- 
- 	simple-audio-card,dai-link@0 {		/* I2S - HDMI */
--		simple-audio-card,cpu {
-+		format = "i2s";
-+		cpu {
- 			sound-dai = <&audio1 0>;
- 		};
--		simple-audio-card,codec {
-+		codec {
- 			sound-dai = <&tda998x 0>;
- 		};
- 	};
- 
- 	simple-audio-card,dai-link@1 {		/* S/PDIF - HDMI */
--		simple-audio-card,cpu {
-+		cpu {
- 			sound-dai = <&audio1 1>;
- 		};
--		simple-audio-card,codec {
-+		codec {
- 			sound-dai = <&tda998x 1>;
- 		};
- 	};
- 
- 	simple-audio-card,dai-link@2 {		/* S/PDIF - S/PDIF */
--		simple-audio-card,cpu {
-+		cpu {
- 			sound-dai = <&audio1 1>;
- 		};
--		simple-audio-card,codec {
-+		codec {
- 			sound-dai = <&spdif_codec>;
- 		};
- 	};
-diff --git a/sound/soc/generic/simple-card.c b/sound/soc/generic/simple-card.c
-index e0cc53b..1164366 100644
---- a/sound/soc/generic/simple-card.c
-+++ b/sound/soc/generic/simple-card.c
-@@ -88,7 +88,6 @@ static int asoc_simple_card_dai_init(struct snd_soc_pcm_runtime *rtd)
- 
- static int
- asoc_simple_card_sub_parse_of(struct device_node *np,
--			      unsigned int daifmt,
- 			      struct asoc_simple_dai *dai,
- 			      const struct device_node **p_node,
- 			      const char **name)
-@@ -117,14 +116,6 @@ asoc_simple_card_sub_parse_of(struct device_node *np,
- 		return ret;
- 
- 	/*
--	 * bitclock-inversion, frame-inversion
--	 * bitclock-master,    frame-master
--	 * and specific "format" if it has
--	 */
--	dai->fmt = snd_soc_of_parse_daifmt(np, NULL, NULL, NULL);
--	dai->fmt |= daifmt;
--
--	/*
- 	 * dai->sysclk come from
- 	 *  "clocks = <&xxx>" (if system has common clock)
- 	 *  or "system-clock-frequency = <xxx>"
-@@ -151,37 +142,134 @@ asoc_simple_card_sub_parse_of(struct device_node *np,
- 	return 0;
- }
- 
--static int simple_card_cpu_codec_of(struct device_node *node,
--				int daifmt,
--				struct snd_soc_dai_link *dai_link,
--				struct simple_dai_props *dai_props)
-+static int simple_card_dai_link_of(struct device_node *node,
-+				   struct device *dev,
-+				   struct snd_soc_dai_link *dai_link,
-+				   struct simple_dai_props *dai_props)
- {
--	struct device_node *np;
-+	struct device_node *np = NULL;
-+	struct device_node *bitclkmaster = NULL;
-+	struct device_node *framemaster = NULL;
-+	unsigned int daifmt;
-+	char *name;
-+	char prop[128];
-+	char *prefix = "";
- 	int ret;
- 
--	/* CPU sub-node */
--	ret = -EINVAL;
--	np = of_get_child_by_name(node, "simple-audio-card,cpu");
--	if (np) {
--		ret = asoc_simple_card_sub_parse_of(np, daifmt,
--						&dai_props->cpu_dai,
--						&dai_link->cpu_of_node,
--						&dai_link->cpu_dai_name);
--		of_node_put(np);
-+	if (!strcmp("sound", node->name))
-+		prefix = "simple-audio-card,";
-+
-+	daifmt = snd_soc_of_parse_daifmt(node, prefix,
-+					 &bitclkmaster, &framemaster);
-+	daifmt &= ~SND_SOC_DAIFMT_MASTER_MASK;
-+
-+	snprintf(prop, sizeof(prop), "%scpu", prefix);
-+	np = of_get_child_by_name(node, prop);
-+	if (!np) {
-+		ret = -EINVAL;
-+		dev_err(dev, "%s: Can't find simple-audio-card,cpu DT node\n",
-+			__func__);
-+		goto dai_link_of_err;
- 	}
-+
-+	ret = asoc_simple_card_sub_parse_of(np, &dai_props->cpu_dai,
-+					    &dai_link->cpu_of_node,
-+					    &dai_link->cpu_dai_name);
- 	if (ret < 0)
--		return ret;
-+		goto dai_link_of_err;
-+
-+	dai_props->cpu_dai.fmt = daifmt;
-+	switch (((np == bitclkmaster)<<4)|(np == framemaster)) {
-+	case 0x11:
-+		dai_props->cpu_dai.fmt |= SND_SOC_DAIFMT_CBS_CFS;
-+		break;
-+	case 0x10:
-+		dai_props->cpu_dai.fmt |= SND_SOC_DAIFMT_CBS_CFM;
-+		break;
-+	case 0x01:
-+		dai_props->cpu_dai.fmt |= SND_SOC_DAIFMT_CBM_CFS;
-+		break;
-+	default:
-+		dai_props->cpu_dai.fmt |= SND_SOC_DAIFMT_CBM_CFM;
-+		break;
-+	}
- 
--	/* CODEC sub-node */
--	ret = -EINVAL;
--	np = of_get_child_by_name(node, "simple-audio-card,codec");
--	if (np) {
--		ret = asoc_simple_card_sub_parse_of(np, daifmt,
--						&dai_props->codec_dai,
--						&dai_link->codec_of_node,
--						&dai_link->codec_dai_name);
--		of_node_put(np);
-+	of_node_put(np);
-+	snprintf(prop, sizeof(prop), "%scodec", prefix);
-+	np = of_get_child_by_name(node, prop);
-+	if (!np) {
-+		ret = -EINVAL;
-+		dev_err(dev, "%s: Can't find simple-audio-card,codec DT node\n",
-+			__func__);
-+		goto dai_link_of_err;
- 	}
-+
-+	ret = asoc_simple_card_sub_parse_of(np, &dai_props->codec_dai,
-+					    &dai_link->codec_of_node,
-+					    &dai_link->codec_dai_name);
-+	if (ret < 0)
-+		goto dai_link_of_err;
-+
-+	if (!bitclkmaster && !framemaster) {
-+		/* Master setting not found from dai_link level, revert back
-+		   to legacy DT parsing and take settings from codec node. */
-+		dev_dbg(dev, "%s: Revert to legacy daifmt parsing\n",
-+			__func__);
-+		dai_props->cpu_dai.fmt = dai_props->codec_dai.fmt =
-+			snd_soc_of_parse_daifmt(np, NULL, NULL, NULL) |
-+			(daifmt & ~SND_SOC_DAIFMT_CLOCK_MASK);
-+	} else {
-+		dai_props->codec_dai.fmt = daifmt;
-+		switch (((np == bitclkmaster)<<4)|(np == framemaster)) {
-+		case 0x11:
-+			dai_props->codec_dai.fmt |= SND_SOC_DAIFMT_CBM_CFM;
-+			break;
-+		case 0x10:
-+			dai_props->codec_dai.fmt |= SND_SOC_DAIFMT_CBM_CFS;
-+			break;
-+		case 0x01:
-+			dai_props->codec_dai.fmt |= SND_SOC_DAIFMT_CBS_CFM;
-+			break;
-+		default:
-+			dai_props->codec_dai.fmt |= SND_SOC_DAIFMT_CBS_CFS;
-+			break;
-+		}
-+	}
-+
-+	if (!dai_link->cpu_dai_name || !dai_link->codec_dai_name) {
-+			ret = -EINVAL;
-+			goto dai_link_of_err;
-+	}
-+
-+	/* simple-card assumes platform == cpu */
-+	dai_link->platform_of_node = dai_link->cpu_of_node;
-+
-+	/* Link name is created from CPU/CODEC dai name */
-+	name = devm_kzalloc(dev,
-+			    strlen(dai_link->cpu_dai_name)   +
-+			    strlen(dai_link->codec_dai_name) + 2,
-+			    GFP_KERNEL);
-+	sprintf(name, "%s-%s", dai_link->cpu_dai_name,
-+				dai_link->codec_dai_name);
-+	dai_link->name = dai_link->stream_name = name;
-+
-+	dev_dbg(dev, "\tname : %s\n", dai_link->stream_name);
-+	dev_dbg(dev, "\tcpu : %s / %04x / %d\n",
-+		dai_link->cpu_dai_name,
-+		dai_props->cpu_dai.fmt,
-+		dai_props->cpu_dai.sysclk);
-+	dev_dbg(dev, "\tcodec : %s / %04x / %d\n",
-+		dai_link->codec_dai_name,
-+		dai_props->codec_dai.fmt,
-+		dai_props->codec_dai.sysclk);
-+
-+dai_link_of_err:
-+	if (np)
-+		of_node_put(np);
-+	if (bitclkmaster)
-+		of_node_put(bitclkmaster);
-+	if (framemaster)
-+		of_node_put(framemaster);
- 	return ret;
- }
- 
-@@ -192,18 +280,11 @@ static int asoc_simple_card_parse_of(struct device_node *node,
- {
- 	struct snd_soc_dai_link *dai_link = priv->snd_card.dai_link;
- 	struct simple_dai_props *dai_props = priv->dai_props;
--	struct device_node *np;
--	char *name;
--	unsigned int daifmt;
- 	int ret;
- 
- 	/* parsing the card name from DT */
- 	snd_soc_of_parse_card_name(&priv->snd_card, "simple-audio-card,name");
- 
--	/* get CPU/CODEC common format via simple-audio-card,format */
--	daifmt = snd_soc_of_parse_daifmt(node, "simple-audio-card,", NULL, NULL)&
--		(SND_SOC_DAIFMT_FORMAT_MASK | SND_SOC_DAIFMT_INV_MASK);
--
- 	/* off-codec widgets */
- 	if (of_property_read_bool(node, "simple-audio-card,widgets")) {
- 		ret = snd_soc_of_parse_audio_simple_widgets(&priv->snd_card,
-@@ -220,71 +301,30 @@ static int asoc_simple_card_parse_of(struct device_node *node,
- 			return ret;
- 	}
- 
--	/* loop on the DAI links */
--	np = NULL;
--	for (;;) {
--		if (multi) {
--			np = of_get_next_child(node, np);
--			if (!np)
--				break;
--		}
--
--		ret = simple_card_cpu_codec_of(multi ? np : node,
--					daifmt, dai_link, dai_props);
--		if (ret < 0)
--			goto err;
--
--		/*
--		 * overwrite cpu_dai->fmt as its DAIFMT_MASTER bit is based on CODEC
--		 * while the other bits should be identical unless buggy SW/HW design.
--		 */
--		dai_props->cpu_dai.fmt = dai_props->codec_dai.fmt;
-+	dev_dbg(dev, "New simple-card: %s\n", priv->snd_card.name ?
-+		priv->snd_card.name : "");
- 
--		if (!dai_link->cpu_dai_name || !dai_link->codec_dai_name) {
--			ret = -EINVAL;
--			goto err;
-+	if (multi) {
-+		struct device_node *np = NULL;
-+		int i;
-+		for (i = 0; (np = of_get_next_child(node, np)); i++) {
-+			dev_dbg(dev, "\tlink %d:\n", i);
-+			ret = simple_card_dai_link_of(np, dev, dai_link + i,
-+						      dai_props + i);
-+			of_node_put(np);
-+			if (ret < 0)
-+				return ret;
- 		}
--
--		/* simple-card assumes platform == cpu */
--		dai_link->platform_of_node = dai_link->cpu_of_node;
--
--		name = devm_kzalloc(dev,
--				    strlen(dai_link->cpu_dai_name)   +
--				    strlen(dai_link->codec_dai_name) + 2,
--				    GFP_KERNEL);
--		sprintf(name, "%s-%s", dai_link->cpu_dai_name,
--					dai_link->codec_dai_name);
--		dai_link->name = dai_link->stream_name = name;
--
--		if (!multi)
--			break;
--
--		dai_link++;
--		dai_props++;
-+	} else {
-+		ret = simple_card_dai_link_of(node, dev, dai_link, dai_props);
-+		if (ret < 0)
-+			return ret;
- 	}
- 
--	/* card name is created from CPU/CODEC dai name */
--	dai_link = priv->snd_card.dai_link;
- 	if (!priv->snd_card.name)
--		priv->snd_card.name = dai_link->name;
--
--	dev_dbg(dev, "card-name : %s\n", priv->snd_card.name);
--	dev_dbg(dev, "platform : %04x\n", daifmt);
--	dai_props = priv->dai_props;
--	dev_dbg(dev, "cpu : %s / %04x / %d\n",
--		dai_link->cpu_dai_name,
--		dai_props->cpu_dai.fmt,
--		dai_props->cpu_dai.sysclk);
--	dev_dbg(dev, "codec : %s / %04x / %d\n",
--		dai_link->codec_dai_name,
--		dai_props->codec_dai.fmt,
--		dai_props->codec_dai.sysclk);
-+		priv->snd_card.name = priv->snd_card.dai_link->name;
- 
- 	return 0;
--
--err:
--	of_node_put(np);
--	return ret;
- }
- 
- /* update the reference count of the devices nodes at end of probe */
--- 
-1.7.9.5
+I used two approaches:
+
+* Using dat1 line as GPIO with dynamic remuxing
+* Using separate GPIO connected to dat1 with static mux settings
+
+Both works just fine. Thanks Andreas for a great solution.
+
+I have just one issue - how to define GPIO IRQ using DT in OMAP5 case.
+As a temporary hack for testing I used a fixed GPIO number and 
+gpio_to_irq() call in omap_hsmmc_configure_wake_irq().
+
+OMAP5 MMC3 has the following DT entry (omap5.dtsi):
+
+                 mmc3: mmc@480ad000 {
+                         compatible = "ti,omap4-hsmmc";
+                         reg = <0x480ad000 0x400>;
+                         interrupts = <GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH>;
+                         ti,hwmods = "mmc3";
+                         ti,needs-special-reset;
+                         dmas = <&sdma 77>, <&sdma 78>;
+                         dma-names = "tx", "rx";
+                 };
+
+What should be by board MMC3 setup?
+
+Something like this?
+
+&mmc3 {
+         pinctrl-names = "default", "active", "idle";
+         pinctrl-0 = <&mmc3_pins>;
+         pinctrl-1 = <&mmc3_pins>;
+         pinctrl-2 = <&mmc3_cirq_pin>;
+
+         interrupts = <GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH>,
+                             <????????>;
+
+         vmmc-supply = <&ldo2_reg>;
+         bus-width = <4>;
+         ti,non-removable;
+};
+
+I tried to specify the second interrupt as (wlsdio_data1 / gpio5_131):
+
+<&gpio5 3 IRQ_TYPE_NONE>
+
+but it fails:
+
+[    2.275777] ------------[ cut here ]------------
+[    2.280604] WARNING: CPU: 1 PID: 6 at 
+/home/lifshitz/workroot/OMAP5-eewiki/omap5-kernel/kernel/irq/manage.c:1418 
+request_threaded_irq+0x11c/0x12c()
+[    2.294414] Modules linked in:
+[    2.297611] CPU: 1 PID: 6 Comm: kworker/u4:0 Tainted: G W    
+3.14.0-rc4-cm-t54-test-suit+ #30
+[    2.307165] Workqueue: deferwq deferred_probe_work_func
+[    2.312629] [<c001597c>] (unwind_backtrace) from [<c001283c>] 
+(show_stack+0x10/0x14)
+[    2.320739] [<c001283c>] (show_stack) from [<c06494dc>] 
+(dump_stack+0x70/0x88)
+[    2.328294] [<c06494dc>] (dump_stack) from [<c003a520>] 
+(warn_slowpath_common+0x70/0x88)
+[    2.336761] [<c003a520>] (warn_slowpath_common) from [<c003a554>] 
+(warn_slowpath_null+0x1c/0x24)
+[    2.345940] [<c003a554>] (warn_slowpath_null) from [<c0083ce4>] 
+(request_threaded_irq+0x11c/0x12c)
+[    2.355312] [<c0083ce4>] (request_threaded_irq) from [<c0085964>] 
+(devm_request_threaded_irq+0x5c/0x90)
+[    2.361973] mmc1: host does not support reading read-only switch. 
+assuming write-enable.
+[    2.362020] mmc1: new SDHC card at address e624
+[    2.362331] mmcblk1: mmc1:e624 SU08G 7.40 GiB
+[    2.368152]  mmcblk1: p1 p2
+[    2.385850] [<c0085964>] (devm_request_threaded_irq) from 
+[<c047d958>] (omap_hsmmc_configure_wake_irq+0x7c/0xfc)
+[    2.393150] usb 1-2: New USB device found, idVendor=0424, idProduct=3503
+[    2.393156] usb 1-2: New USB device strings: Mfr=0, Product=0, 
+SerialNumber=0
+[    2.393674] hub 1-2:1.0: USB hub found
+[    2.393769] hub 1-2:1.0: 3 ports detected
+[    2.419038] [<c047d958>] (omap_hsmmc_configure_wake_irq) from 
+[<c047ea28>] (omap_hsmmc_probe+0x5b4/0x854)
+[    2.429052] [<c047ea28>] (omap_hsmmc_probe) from [<c0359ec0>] 
+(platform_drv_probe+0x18/0x48)
+[    2.437879] [<c0359ec0>] (platform_drv_probe) from [<c03580c8>] 
+(really_probe+0x80/0x208)
+[    2.446427] [<c03580c8>] (really_probe) from [<c0358360>] 
+(driver_probe_device+0x30/0x48)
+[    2.454976] [<c0358360>] (driver_probe_device) from [<c0356a58>] 
+(bus_for_each_drv+0x5c/0x88)
+[    2.463891] [<c0356a58>] (bus_for_each_drv) from [<c03582f4>] 
+(device_attach+0x80/0xa0)
+[    2.472247] [<c03582f4>] (device_attach) from [<c03577b4>] 
+(bus_probe_device+0x84/0xa8)
+[    2.480617] [<c03577b4>] (bus_probe_device) from [<c0357bb8>] 
+(deferred_probe_work_func+0x68/0x98)
+[    2.489987] [<c0357bb8>] (deferred_probe_work_func) from [<c00533c0>] 
+(process_one_work+0x150/0x41c)
+[    2.499542] [<c00533c0>] (process_one_work) from [<c0053d10>] 
+(worker_thread+0xf4/0x31c)
+[    2.508011] [<c0053d10>] (worker_thread) from [<c0059994>] 
+(kthread+0xd4/0xe8)
+[    2.512785] usb 1-3: new high-speed USB device number 3 using ehci-omap
+[    2.522474] [<c0059994>] (kthread) from [<c000e878>] 
+(ret_from_fork+0x14/0x3c)
+[    2.530023] ---[ end trace 8d60f1d3adba88d7 ]---
+
+
+Regards,
+
+Dmitry
+
+On 03/21/2014 06:10 PM, Balaji T K wrote:
+> On Friday 21 March 2014 05:50 PM, Andreas Fenkart wrote:
+>
+> Thanks Andreas for the patch series
+>
+> I rebased against latest mmc-next, made few changes to your patch.
+> I have hosted your series along with devm cleanups on a branch[1] for 
+> testing
+> [1]
+> git://git.ti.com/~balajitk/ti-linux-kernel/omap-hsmmc.git 
+> omap_hsmmc_sdio_irq_devm_cleanup
+>
+> Can you please test on your platform and provide feedback.
+>
+> Details about the changes below.
 
