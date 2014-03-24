@@ -1,148 +1,130 @@
-From: Dmitry Lifshitz <lifshitz@compulab.co.il>
-Subject: Re: [PATCH v9 resend 1/3] mmc: omap_hsmmc: Enable SDIO interrupt
-Date: Mon, 24 Mar 2014 11:30:43 +0200
-Message-ID: <532FFB43.5020408@compulab.co.il>
-References: <1395404448-30030-1-git-send-email-afenkart@gmail.com> <1395404448-30030-2-git-send-email-afenkart@gmail.com> <532C6489.4050307@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH RFC 2/2] ASoC: simple-card: Move dai-link
+ level properties away from dai subnodes
+Date: Mon, 24 Mar 2014 11:38:59 +0200
+Message-ID: <532FFD33.6040506@ti.com>
+References: <cover.1395419906.git.jsarha@ti.com>	<0b1c0e2e6766c3a63f598c3b9435d4744b0e2835.1395419906.git.jsarha@ti.com>
+ <20140323105412.4f312449@armhf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <532C6489.4050307@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: Andreas Fenkart <afenkart@gmail.com>, Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20140323105412.4f312449@armhf>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, kuninori.morimoto.gx@renesas.com, liam.r.girdwood@linux.intel.com, Li.Xiubo@freescale.com, peter.ujfalusi@ti.com, detheridge@ti.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-I've tested the branch omap_hsmmc_sdio_irq_devm_cleanup on custom OMAP5 
-based board.
-We have mwifiex connected to MMC3.
-
-I used two approaches:
-
-* Using dat1 line as GPIO with dynamic remuxing
-* Using separate GPIO connected to dat1 with static mux settings
-
-Both works just fine. Thanks Andreas for a great solution.
-
-I have just one issue - how to define GPIO IRQ using DT in OMAP5 case.
-As a temporary hack for testing I used a fixed GPIO number and 
-gpio_to_irq() call in omap_hsmmc_configure_wake_irq().
-
-OMAP5 MMC3 has the following DT entry (omap5.dtsi):
-
-                 mmc3: mmc@480ad000 {
-                         compatible = "ti,omap4-hsmmc";
-                         reg = <0x480ad000 0x400>;
-                         interrupts = <GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH>;
-                         ti,hwmods = "mmc3";
-                         ti,needs-special-reset;
-                         dmas = <&sdma 77>, <&sdma 78>;
-                         dma-names = "tx", "rx";
-                 };
-
-What should be by board MMC3 setup?
-
-Something like this?
-
-&mmc3 {
-         pinctrl-names = "default", "active", "idle";
-         pinctrl-0 = <&mmc3_pins>;
-         pinctrl-1 = <&mmc3_pins>;
-         pinctrl-2 = <&mmc3_cirq_pin>;
-
-         interrupts = <GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH>,
-                             <????????>;
-
-         vmmc-supply = <&ldo2_reg>;
-         bus-width = <4>;
-         ti,non-removable;
-};
-
-I tried to specify the second interrupt as (wlsdio_data1 / gpio5_131):
-
-<&gpio5 3 IRQ_TYPE_NONE>
-
-but it fails:
-
-[    2.275777] ------------[ cut here ]------------
-[    2.280604] WARNING: CPU: 1 PID: 6 at 
-/home/lifshitz/workroot/OMAP5-eewiki/omap5-kernel/kernel/irq/manage.c:1418 
-request_threaded_irq+0x11c/0x12c()
-[    2.294414] Modules linked in:
-[    2.297611] CPU: 1 PID: 6 Comm: kworker/u4:0 Tainted: G W    
-3.14.0-rc4-cm-t54-test-suit+ #30
-[    2.307165] Workqueue: deferwq deferred_probe_work_func
-[    2.312629] [<c001597c>] (unwind_backtrace) from [<c001283c>] 
-(show_stack+0x10/0x14)
-[    2.320739] [<c001283c>] (show_stack) from [<c06494dc>] 
-(dump_stack+0x70/0x88)
-[    2.328294] [<c06494dc>] (dump_stack) from [<c003a520>] 
-(warn_slowpath_common+0x70/0x88)
-[    2.336761] [<c003a520>] (warn_slowpath_common) from [<c003a554>] 
-(warn_slowpath_null+0x1c/0x24)
-[    2.345940] [<c003a554>] (warn_slowpath_null) from [<c0083ce4>] 
-(request_threaded_irq+0x11c/0x12c)
-[    2.355312] [<c0083ce4>] (request_threaded_irq) from [<c0085964>] 
-(devm_request_threaded_irq+0x5c/0x90)
-[    2.361973] mmc1: host does not support reading read-only switch. 
-assuming write-enable.
-[    2.362020] mmc1: new SDHC card at address e624
-[    2.362331] mmcblk1: mmc1:e624 SU08G 7.40 GiB
-[    2.368152]  mmcblk1: p1 p2
-[    2.385850] [<c0085964>] (devm_request_threaded_irq) from 
-[<c047d958>] (omap_hsmmc_configure_wake_irq+0x7c/0xfc)
-[    2.393150] usb 1-2: New USB device found, idVendor=0424, idProduct=3503
-[    2.393156] usb 1-2: New USB device strings: Mfr=0, Product=0, 
-SerialNumber=0
-[    2.393674] hub 1-2:1.0: USB hub found
-[    2.393769] hub 1-2:1.0: 3 ports detected
-[    2.419038] [<c047d958>] (omap_hsmmc_configure_wake_irq) from 
-[<c047ea28>] (omap_hsmmc_probe+0x5b4/0x854)
-[    2.429052] [<c047ea28>] (omap_hsmmc_probe) from [<c0359ec0>] 
-(platform_drv_probe+0x18/0x48)
-[    2.437879] [<c0359ec0>] (platform_drv_probe) from [<c03580c8>] 
-(really_probe+0x80/0x208)
-[    2.446427] [<c03580c8>] (really_probe) from [<c0358360>] 
-(driver_probe_device+0x30/0x48)
-[    2.454976] [<c0358360>] (driver_probe_device) from [<c0356a58>] 
-(bus_for_each_drv+0x5c/0x88)
-[    2.463891] [<c0356a58>] (bus_for_each_drv) from [<c03582f4>] 
-(device_attach+0x80/0xa0)
-[    2.472247] [<c03582f4>] (device_attach) from [<c03577b4>] 
-(bus_probe_device+0x84/0xa8)
-[    2.480617] [<c03577b4>] (bus_probe_device) from [<c0357bb8>] 
-(deferred_probe_work_func+0x68/0x98)
-[    2.489987] [<c0357bb8>] (deferred_probe_work_func) from [<c00533c0>] 
-(process_one_work+0x150/0x41c)
-[    2.499542] [<c00533c0>] (process_one_work) from [<c0053d10>] 
-(worker_thread+0xf4/0x31c)
-[    2.508011] [<c0053d10>] (worker_thread) from [<c0059994>] 
-(kthread+0xd4/0xe8)
-[    2.512785] usb 1-3: new high-speed USB device number 3 using ehci-omap
-[    2.522474] [<c0059994>] (kthread) from [<c000e878>] 
-(ret_from_fork+0x14/0x3c)
-[    2.530023] ---[ end trace 8d60f1d3adba88d7 ]---
-
-
-Regards,
-
-Dmitry
-
-On 03/21/2014 06:10 PM, Balaji T K wrote:
-> On Friday 21 March 2014 05:50 PM, Andreas Fenkart wrote:
+On 03/23/2014 11:54 AM, Jean-Francois Moine wrote:
+> On Fri, 21 Mar 2014 18:47:23 +0200
+> Jyri Sarha <jsarha@ti.com> wrote:
 >
-> Thanks Andreas for the patch series
+>> The properties like format, bitclock-master, frame-master,
+>> bitclock-inversion, and frame-inversion should be common to the dais
+>> connected with a dai-link. For bitclock-master and frame-master
+>> properties to be unambiguous they need to indicate the mastering dai
+>> node with a phandle.
+>>
+>> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+>> ---
+[...]
+>> -Required subnodes:
+>> +Requred dai-link subnodes:
 >
-> I rebased against latest mmc-next, made few changes to your patch.
-> I have hosted your series along with devm cleanups on a branch[1] for 
-> testing
-> [1]
-> git://git.ti.com/~balajitk/ti-linux-kernel/omap-hsmmc.git 
-> omap_hsmmc_sdio_irq_devm_cleanup
+> Typo: 'Required'
 >
-> Can you please test on your platform and provide feedback.
->
-> Details about the changes below.
 
+Fixed. Thanks!
+
+[...]
+>> --- a/sound/soc/generic/simple-card.c
+>> +++ b/sound/soc/generic/simple-card.c
+>> @@ -8,6 +8,7 @@
+>>    * it under the terms of the GNU General Public License version 2 as
+>>    * published by the Free Software Foundation.
+>>    */
+>> +#define DEBUG
+>
+> Should be removed.
+>
+
+Removed. Thanks!
+
+[...]
+>> +	if (!bitclkmaster && !framemaster) {
+>> +		/* Master setting not found from dai_link level, revert back
+>> +		   to legacy DT parsing and take settings from codec node. */
+>> +		dev_dbg(dev, "%s: Revert to legacy daifmt parsing\n",
+>> +			__func__);
+>> +		dai_props->cpu_dai.fmt = dai_props->codec_dai.fmt =
+>> +			snd_soc_of_parse_daifmt(np, NULL, NULL, NULL) |
+>> +			(daifmt & ~SND_SOC_DAIFMT_CLOCK_MASK);
+>
+> We are here each time there is no bitclock-master and no frame-master,
+> i.e. each time for me. It could be simpler to keep the first 'daifmt'
+> instead of parsing again.
+>
+
+Sorry, I missed this and comments bellow first time around. I'll make 
+another patch set shortly.
+
+Adding another check to test if we are parsing top level sound node 
+would save you from the legacy mode parsing. I'll do that and update the
+DT binding document accordingly.
+
+[...]
+>> +	if (multi) {
+>> +		struct device_node *np = NULL;
+>> +		int i;
+>> +		for (i = 0; (np = of_get_next_child(node, np)); i++) {
+>> +			dev_dbg(dev, "\tlink %d:\n", i);
+>> +			ret = simple_card_dai_link_of(np, dev, dai_link + i,
+>> +						      dai_props + i);
+>
+> I feel that my loop was quicker:
+>
+
+I was targeting for readability rather than speed. I doubt the 
+difference is significant since most string processing is anyway taking 
+most of the time anyway.
+
+> 		struct device_node *np = NULL;
+>
+> 		for (;;) {
+> 			np = of_get_next_child(node, np);
+> 			if (!np)
+> 				break;
+> 			dev_dbg(dev, "\tlink %d:\n", dai_link - priv->snd_card.dai_link);
+> 			ret = simple_card_dai_link_of(np, dev, dai_link++,
+> 						      dai_props++);
+>
+>
+>> +			of_node_put(np);
+>> +			if (ret < 0)
+>> +				return ret;
+>
+> The np reference count is updated in of_get_next_child(), so:
+>
+> 			if (ret < 0) {
+> 				of_node_put(np);
+> 				return ret;
+> 			}
+>
+
+Oops, need to fix that. Thanks !
+
+> Otherwise, it works for me.
+>
+> Tested-by: Jean-Francois Moine <moinejf@free.fr>
+>
+
+Best regards,
+Jyri
