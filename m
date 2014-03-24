@@ -1,69 +1,60 @@
 From: Sathya Prakash M R <sathyap@ti.com>
-Subject: [PATCH V3 0/6] Add Display support for AM43xx
-Date: Mon, 24 Mar 2014 16:31:50 +0530
-Message-ID: <1395658916-9032-1-git-send-email-sathyap@ti.com>
+Subject: [PATCH V3 2/6] ARM: AM43xx: fix dpll init in bypass mode
+Date: Mon, 24 Mar 2014 16:31:52 +0530
+Message-ID: <1395658916-9032-3-git-send-email-sathyap@ti.com>
+References: <1395658916-9032-1-git-send-email-sathyap@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48670 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752846AbaCXLCC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Mar 2014 07:02:02 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:59618 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752980AbaCXLCF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Mar 2014 07:02:05 -0400
+In-Reply-To: <1395658916-9032-1-git-send-email-sathyap@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Sathya Prakash M R <sathyap@ti.com>
 
-This patch series adds DSS support to the AM43x. The DPI LCD
-panel is supported on both am43x-epos-evm and am437x-gp-evm.
-The LCD panel is from OSD model: OSD057T0559-34TS
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Version 1 of this series can be found below[1]:
-[1]: https://patchwork.kernel.org/patch/3274421/
+On AM43xx, if a PLL is in bypass at kernel init, the code in
+omap2_get_dpll_rate() will not realize this and will try to calculate
+the clock rate using the multiplier and the divider, resulting in
+errors.
 
-Tested on am43x-epos-evm and am437x-gp-evm.
+omap2_init_dpll_parent() has similar issue.
 
-Dependent patches :
-Sourav patches adding device nodes for epos [2] and gp [3] evm
-[2]: https://patchwork.kernel.org/patch/3246701/
-[3]: https://patchwork.kernel.org/patch/3246751/
+Add the missing soc_is_am43xx() check to make the code work on AM43xx.
 
-AM43xx has a dedicated display pll. Hence tomi patch improving
-func clock handling is needed [4]
-[4]: https://patchwork.kernel.org/patch/3196221/
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+---
+ arch/arm/mach-omap2/clkt_dpll.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Tomi patch adding DT support to DSS [5]
-[5]: https://patchwork.kernel.org/patch/3516341/
-
-Changes from V2:
-fixed minor comments on dt changes and added missing signoff
-
-Sathya Prakash M R (5):
-  OMAPDSS: Add DSS features for AM43xx
-  ARM: OMAP2+: AM43xx DSS Hwmod
-  ARM: am43xx-clocks.dtsi: Set parent for disp_clk
-  ARM: am4372.dtsi: add omapdss information
-  ARM: DTS: AM43xx: Add DSS nodes
-
-Tomi Valkeinen (1):
-  ARM: AM43xx: fix dpll init in bypass mode
-
- arch/arm/boot/dts/am4372.dtsi              |   35 ++++++++++
- arch/arm/boot/dts/am437x-gp-evm.dts        |   77 ++++++++++++++++++++
- arch/arm/boot/dts/am43x-epos-evm.dts       |   73 +++++++++++++++++++
- arch/arm/boot/dts/am43xx-clocks.dtsi       |    2 +
- arch/arm/mach-omap2/clkt_dpll.c            |    4 +-
- arch/arm/mach-omap2/display.c              |    2 +
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c |  104 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prcm43xx.h             |    1 +
- drivers/video/omap2/dss/dispc.c            |    1 +
- drivers/video/omap2/dss/dpi.c              |    2 +
- drivers/video/omap2/dss/dsi.c              |    1 +
- drivers/video/omap2/dss/dss.c              |   11 +++
- drivers/video/omap2/dss/dss_features.c     |   67 ++++++++++++++++++
- include/video/omapdss.h                    |    1 +
- 14 files changed, 379 insertions(+), 2 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
+index 924c230..14e9e45 100644
+--- a/arch/arm/mach-omap2/clkt_dpll.c
++++ b/arch/arm/mach-omap2/clkt_dpll.c
+@@ -209,7 +209,7 @@ u8 omap2_init_dpll_parent(struct clk_hw *hw)
+ 		if (v == OMAP3XXX_EN_DPLL_LPBYPASS ||
+ 		    v == OMAP3XXX_EN_DPLL_FRBYPASS)
+ 			return 1;
+-	} else if (soc_is_am33xx() || cpu_is_omap44xx()) {
++	} else if (soc_is_am33xx() || cpu_is_omap44xx() || soc_is_am43xx()) {
+ 		if (v == OMAP4XXX_EN_DPLL_LPBYPASS ||
+ 		    v == OMAP4XXX_EN_DPLL_FRBYPASS ||
+ 		    v == OMAP4XXX_EN_DPLL_MNBYPASS)
+@@ -255,7 +255,7 @@ unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk)
+ 		if (v == OMAP3XXX_EN_DPLL_LPBYPASS ||
+ 		    v == OMAP3XXX_EN_DPLL_FRBYPASS)
+ 			return __clk_get_rate(dd->clk_bypass);
+-	} else if (soc_is_am33xx() || cpu_is_omap44xx()) {
++	} else if (soc_is_am33xx() || cpu_is_omap44xx() || soc_is_am43xx()) {
+ 		if (v == OMAP4XXX_EN_DPLL_LPBYPASS ||
+ 		    v == OMAP4XXX_EN_DPLL_FRBYPASS ||
+ 		    v == OMAP4XXX_EN_DPLL_MNBYPASS)
 -- 
 1.7.9.5
 
