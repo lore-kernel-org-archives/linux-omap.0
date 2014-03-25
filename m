@@ -1,85 +1,48 @@
-From: Alex Shi <alex.shi@linaro.org>
-Subject: [PATCH 13/19] arm: dts: add omap5 CORE thermal data
-Date: Tue, 25 Mar 2014 18:49:26 +0800
-Message-ID: <1395744572-20014-14-git-send-email-alex.shi@linaro.org>
-References: <1395744572-20014-1-git-send-email-alex.shi@linaro.org>
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+Subject: Help to run latest kernel on DART-4460
+Date: Tue, 25 Mar 2014 17:00:09 +0200
+Message-ID: <CANZNk81_oYgpX4k0T28NrJ21NktSgZcjMJ=jY4ng5CqV6B3JoQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1395744572-20014-1-git-send-email-alex.shi@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mark.hambleton@broadcom.com, mark.brown@linaro.org, eduardo.valentin@ti.com, mporter@linaro.org, lsk-interest@linaro.org, linaro-kernel@linaro.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ian.campbell@citrix.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Alex Shi <alex.shi@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:53019 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752070AbaCYPAK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Mar 2014 11:00:10 -0400
+Received: by mail-pa0-f50.google.com with SMTP id kq14so559994pab.9
+        for <linux-omap@vger.kernel.org>; Tue, 25 Mar 2014 08:00:10 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-=46rom: Eduardo Valentin <eduardo.valentin@ti.com>
+Hi! We have a DART-4460 board which is based on TI OMAP4460.
+It is shipped by Variscite with linux kernel v3.4.27 (as
+/proc/config.gz states; uname -a shows "Linux localhost.localdomain
+3.4.0-1489-omap4 #28 SMP PREEMPT Wed Oct 30 10:58:36 IST 2013 armv7l
+armv7l armv7l GNU/Linux").
+We try to make it work with latest kernel, because we want to get
+video4linux interface to the cameras which are attached to the board
+by CSI interface. So we need drivers/staging/media/omap4iss/ stuff, if
+i understand it correct. This stuff is currently included in
+linux-stable master branch (but not in any tag) and in
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
 
-This patch changes a dtsi file to contain the thermal data
-for CORE domain on OMAP5 and later SoCs. This data will
-enable a thermal shutdown at 125C.
+The problem is that the kernel uImage we have prepared doesn't boot.
 
-This thermal data can be reused across TI SoC devices.
+The config of latest linux-stable kernel i have tried last time:
+https://gist.github.com/krieger-od/9a2c6bce5a69d22ca2dd
+The serial console output with it:
+https://gist.github.com/krieger-od/0fa0f6f6f597b10f95a4
 
-Cc: "Beno=C3=AEt Cousson" <bcousson@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Ian Campbell <ian.campbell@citrix.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org
-Cc: devicetree@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
-(cherry picked from commit dcb5004fceeb15f0fdfc4a2b8cd68c6ad515a80b)
+The shipped kernel's config:
+https://gist.github.com/krieger-od/55b34ebe3571ae4dd875
+The serial console output with kernel shipped by vendor:
+https://gist.github.com/krieger-od/32481d718e0519dd0bd9
 
-Signed-off-by: Alex Shi <alex.shi@linaro.org>
----
- arch/arm/boot/dts/omap5-core-thermal.dtsi | 28 +++++++++++++++++++++++=
-+++++
- 1 file changed, 28 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap5-core-thermal.dtsi
+Could anybody share a working config for recent enough kernel for this
+or similar hardware?
+Any comments?
+We appreciate any help. Thanks in advance.
 
-diff --git a/arch/arm/boot/dts/omap5-core-thermal.dtsi b/arch/arm/boot/=
-dts/omap5-core-thermal.dtsi
-new file mode 100644
-index 0000000..19212ac
---- /dev/null
-+++ b/arch/arm/boot/dts/omap5-core-thermal.dtsi
-@@ -0,0 +1,28 @@
-+/*
-+ * Device Tree Source for OMAP543x SoC CORE thermal
-+ *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.c=
-om/
-+ * Contact: Eduardo Valentin <eduardo.valentin@ti.com>
-+ *
-+ * This file is licensed under the terms of the GNU General Public Lic=
-ense
-+ * version 2.  This program is licensed "as is" without any warranty o=
-f any
-+ * kind, whether express or implied.
-+ */
-+
-+#include <dt-bindings/thermal/thermal.h>
-+
-+core_thermal: core_thermal {
-+	polling-delay-passive =3D <250>; /* milliseconds */
-+	polling-delay =3D <1000>; /* milliseconds */
-+
-+			/* sensor       ID */
-+	thermal-sensors =3D <&bandgap     2>;
-+
-+	trips {
-+		core_crit: core_crit {
-+			temperature =3D <125000>; /* milliCelsius */
-+			hysteresis =3D <2000>; /* milliCelsius */
-+			type =3D "critical";
-+		};
-+	};
-+};
---=20
-1.8.1.2
+-- 
+Andrey Utkin
