@@ -1,239 +1,57 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [RFC 2/9] opp-modifier: Add opp-modifier-reg driver
-Date: Mon, 24 Mar 2014 22:24:15 -0500
-Message-ID: <5330F6DF.3020809@ti.com>
-References: <1394825135-60110-1-git-send-email-d-gerlach@ti.com>	<1394825135-60110-3-git-send-email-d-gerlach@ti.com>	<CAL_Jsq+BzJeaiPwJsH5bFmtsxCPOspEjnmMLdAVyLAriQTF+kw@mail.gmail.com>	<53270710.4060206@ti.com>
- <CAL_JsqLSq+ZhwgOoH7uvh-Otod6iECWTkDMyEvO6MjmdnJ-3Kw@mail.gmail.com>
- <5328680D.9050103@ti.com>
+From: Peter De Schrijver <pdeschrijver@nvidia.com>
+Subject: Re: [PATCH 0/4] clk: dt: add support for default rate/parent
+Date: Tue, 25 Mar 2014 09:28:01 +0200
+Message-ID: <20140325072801.GH6922@tbergstrom-lnx.Nvidia.com>
+References: <1392282048-6284-1-git-send-email-t-kristo@ti.com>
+ <53172239.3030705@ti.com> <20140320212308.21989.36094@quantum>
+ <20140321081217.GD26674@tbergstrom-lnx.Nvidia.com>
+ <20140325003847.32624.58084@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5328680D.9050103@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Jisheng Zhang <jszhang@marvell.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Shawn Guo <shawn.guo@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Anson Huang <Anson.Huang@freescale.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "kernel@pengutronix.de" <kernel@pengutronix.de>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from hqemgate15.nvidia.com ([216.228.121.64]:14627 "EHLO
+	hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750845AbaCYH2F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Mar 2014 03:28:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20140325003847.32624.58084@quantum>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Tero Kristo <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 03/18/2014 10:36 AM, Nishanth Menon wrote:
-> On 03/17/2014 01:37 PM, Rob Herring wrote:
->> On Mon, Mar 17, 2014 at 9:30 AM, Nishanth Menon <nm@ti.com> wrote:
->>> On 03/14/2014 04:00 PM, Rob Herring wrote:
->>>> On Fri, Mar 14, 2014 at 2:25 PM, Dave Gerlach <d-gerlach@ti.com> wrote:
->>>>> Driver to read from a register and depending on either set bits or
->>>>> a specific known selectively enable or disable OPPs based on DT node.
->>>>>
->>>>> Can support opp-modifier-reg-bit where single bits within the register
->>>>> determine the availability of an OPP or opp-modifier-reg-val where a
->>>>> certain value inside the register or a portion of it determine what the
->>>>> maximum allowed OPP is.
->>>>>
->>>>> The driver expects a device that has already has its OPPs loaded
->>>>> and then will disable the OPPs not matching the criteria specified in
->>>>> the opp-modifier table.
->>>>>
->>>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->>>>> ---
->>>>>   .../devicetree/bindings/power/opp-modifier.txt     | 111 +++++++++
->>>>>   drivers/power/opp/Makefile                         |   1 +
->>>>>   drivers/power/opp/opp-modifier-reg.c               | 259 +++++++++++++++++++++
->>>>>   3 files changed, 371 insertions(+)
->>>>>   create mode 100644 Documentation/devicetree/bindings/power/opp-modifier.txt
->>>>>   create mode 100644 drivers/power/opp/opp-modifier-reg.c
->>>>>
->>>>> diff --git a/Documentation/devicetree/bindings/power/opp-modifier.txt b/Documentation/devicetree/bindings/power/opp-modifier.txt
->>>>> new file mode 100644
->>>>> index 0000000..af8a2e9
->>>>> --- /dev/null
->>>>> +++ b/Documentation/devicetree/bindings/power/opp-modifier.txt
->>>>> @@ -0,0 +1,111 @@
->>>>> +* OPP-Modifier - opp modifier to selectively enable operating points
->>>>> +
->>>>> +Many SoCs that have selectively modifiable OPPs can specify
->>>>> +all available OPPs in their operating-points listing and then define
->>>>> +opp_modifiers to enable or disable the OPPs that are actually available
->>>>> +on the specific hardware.
->>>>> +
->>>>> +* OPP Modifier Provider
->>>>
->>>> Uggg. Please stop designing around the current OPP binding which has
->>>> the problem that the OPP table is not extensible to add more data.
->>>> Define a new OPP binding that solves these problems. This is at least
->>> Generically, there are three different issues with current OPP bindings:
->>> a) ability to enable disable certain OPPs depending on SoC OTP/Efuse
->>> settings.
->>
->> More generically: ...depending on variety of factors.
->
-> Agreed.
+On Tue, Mar 25, 2014 at 01:38:47AM +0100, Mike Turquette wrote:
+> Quoting Peter De Schrijver (2014-03-21 01:12:17)
+> > On Thu, Mar 20, 2014 at 10:23:08PM +0100, Mike Turquette wrote:
+> > > Quoting Tero Kristo (2014-03-05 05:10:17)
+> > > > Ping.
+> > > > 
+> > > > Mike, any feedback on this?
+> > > 
+> > > Hi Tero,
+> > > 
+> > > Have you seen Sylwester's approach[1]? I prefer it since it is more
+> > > device-oriented and less "centralized". The clock consumer enumerates
+> > > the default parent or rate of a consumed clock. This can be made to work
+> > 
+> > That assumes driver writers are aware of the clock tree topology. IME that's
+> > seldomly the case.
+> 
+> It assumes no such thing.
+> 
+> The point of Sylwester's patch is that if a driver consumes a clock and
+> needs to do the very typical setup regarding that clock's rate or
+> parent, then we now have a sensible way to express that in DT.
+> 
+> One of the strengths of DT is that the C code does not have to know all
+> of the details about topology or how things are hooked up. We can hide
+> some of those cute embedded nonsense hacks in DTS and the device
+> integrator can manage it there.
 
-The idea here was not to touch the existing OPP bindings, hence the opp 
-"modifier" name. As Nishanth stated, this is not extending the binding; 
-the opp-modifier just uses the frequency values as an identifier but the 
-driver does not necessarily care where the OPPs already in the table 
-came from, just that they correspond to the same frequencies it 
-describes. And again, just to reiterate, nothing is binding the user to 
-use the opp-modifier-reg child driver, any driver could be written to 
-decide which OPPs to enable or disable.
+It would be much better to specify this as part of the clock provider binding
+though, as the person writing those, generally knows what topology needs to be
+setup. The driver writer writing the consumer node often doesn't.
 
-With that said, I do understand that this is far from a perfect solution 
-to the issue of defining which OPPs are available, I meant it as a 
-suggestion for a possible way forward. This could be used as a starting 
-point for something even more generic. It's a common problem on many 
-SoCs even if it is defined in completely different ways so this 
-framework or one like it could give a common point to branch out from.
+Cheers,
 
-If we don't want to move forward with a generic layer to handle OPP 
-availability, what is the best option? Does anybody else have opinions 
-on this? Regardless of what is decided if everyone can agree on a 
-direction we can all move forward.
-
-Regards,
-Dave
-
->
->>
->>> b) ability to reuse OPPs defined for one device node for another (cpu1
->>> to reuse OPP definitions of cpu0)
->>> c) ability to add additional information per OPP. we can argue this is
->>> a superset of (a), but really, the problems are different.
->>
->> It is all additional data per OPP. Additional different information is
->> of course for different problems. That doesn't mean we need different
->> solutions.
->>
->>> Previous proposals include making each OPP as a phandle, but there
->>> does not seem much traction in that direction either. - proposal here
->>> has nothing to do with (b) or (c).
->>
->> They may have nothing to do with each other, but they all have to do
->> with the OPP binding. If we're going to change/extend the binding,
->> then all issues need to be taken into account.
->
-> We aren't extending the existing binding in this series. We are just
-> defining how hardware description of which OPPs are valid here.
->
->>>> the 3rd OPP related binding addition I've seen recently. But I
->>>> wouldn't spend a lot of effort on a new OPP binding just to add the
->>>> functionality you are adding here because I don't like the whole
->>>> concept in general. This might be a common way to determine valid OPPs
->>>> on TI chips, but I think it is too low level and I don't want to see
->>>
->>> Not just TI chips, but iMX, now, Marvell, Xilinx as well. potentially
->>> more as well. doing OTP/Efuse based decision on which OPPs are valid
->>> on a chip is not a TI specific thing. This was the reason for us to
->>> try to define something generic enough to be reused by more SoCs than
->>> just TI.
->>
->> Agreed, but I'm not convinced how different SOCs determine valid OPPs
->> is common enough. Certainly how to mark an entry disabled is common
->> though.
->
-> Fair enough, without procuring NDA documents for all the SoCs, I
-> cannot comment much either, all we can do is see threads such as
-> http://marc.info/?t=139470791100003&r=1&w=2 and propose.
->
-> This series does include iMx as well which seems to have equivalent
-> challenges.
->
-> I have given examples here on how the current driver at least tries to
-> make generic the instances of SoCs that we have today, further, the
-> driver in no way constraints us from using opp_modifier_register with
-> proper ops in case we do something weirdly different (example: use non
-> memory mapped operations) - it is just a simple framework.
->
->>
->>>> bindings for every different possible way. Just add platform code to
->>>> do the OPP setup you need.
->>> Errr.. adding platform code means the hardware description goes back
->>> to kernel. is'nt that giving up on device tree binding for describing
->>> hardware?
->>
->> We're always going to have some platform code. I'm not saying you have
->> to in this case. I'm saying either come up with an OPP binding
->> addressing all these issues or live with the existing one and fix it
->> up in the kernel or bootloader.
->
-> bootloader is out of the picture considering most of the platforms
-> need to deal with legacy bootloaders.
->
-> then tying part of the data in kernel and part in dts!
->>
->>>> Frankly, I prefer the bootloader/firmware fixup the OPP table approach
->>>> mentioned in the cpufreq-cpu0 thread. Somewhat less desirable, but the
->>>> kernel could do the fixups as well (via of_update_property).
->>>
->>> a) Trying to move the hardware definition away from device tree seems
->>> to me a major step backwards.
->>> b) Allowing for definitions in platform code is a step backwards again
->>> for a generic solution that works for more than 1 vendor.
->>> c) moving the logic away to bootloader when it can easily be done in
->>> kernel again is adding burden to bootloader for data it does need to
->>> handle.
->>
->> The burden has to be somewhere. Maintaining a binding forever in the
->> kernel is a burden as well if it is poorly designed.
->
->>
->> Valid OPPs are not going to just be random. There's probably on a few
->> combinations and they'll be based on part# or speed grade or something
->> (which in turn defines the efuses in your case). While a dev board may
->> have random parts on it, an actual product would not. I could argue
->> that your DTB just needs to be correct to begin with for a given
->> part/design. Obviously, managing minor differences in a DTB like this
->> can be a pain. This is why firmware or bootloaders do adjustments to
->> the DTB at runtime and it is quite common.
-> Bootloaders may not always be capable of doing things or may just be
-> legacy bootloader that were created in a world where kernel was self
-> sustaining (opp data was in the kernel previously in OMAP as an
-> example). asking bootloader to change to ensure dtbs are proper is
-> just opening up another can of worms here.
->
->>
->>> OPP is a hardware behavior, which OPPs are enabled are described in
->>> hardware on certain SoCs. the current proposal is to provide a generic
->>> solution for those devices that allow for dynamic definition of OPPs
->>> based on SoC efuse definition.
->>
->> What if the decision is not based on a single register bit? Perhaps
->> efuses are not directly memory mapped. Maybe it is based on Si
->> revision. Or you need to limit frequency because a certain board can't
->> supply adequate current. You call this generic, but it is not. It
->> doesn't even solve the part that is generic which is marking some OPPs
->> disabled.
->
-> Are we saying that having a generic layer which may decide on which
-> OPPs are valid and which are not is a no-no? the RFC has a few issues,
-> I agree, but that is part of our review process to help improve if we
-> think the over all concept is good enough to carry forward for next
-> patch iteration. You dont seem convinced enough to think that makes
-> sense here.
->
-> As I mentioned, patch #1 is the framework, patch #2 is a specific
-> implementation(and there are improvements possible)-> if we need to
-> add sil revision based logic OR have current supply based
-> implementation OR have non memory mapped based decision making,
-> there'd be specific drivers for them.
->
-> The key question is this: do we have an conceptual agreement that
-> making the decision on which OPPs are valid is a decision for the
-> kernel? if yes, lets make that as the standard, if kernel should not
-> do it, then we enforce discipline that bootloaders will mandatorily
-> implement dtb modification for OPP entries for all SoCs. If I
-> understand your thought, I think your push is for dtbs containing the
-> right OPP entries always.
->
-> If we agree that kernel should be standalone capable of handling valid
-> OPPs (which happens to be my view), then lets debate if a generic
-> layer such as the one proposed should be created helping all SoCs to
-> operate generically. So far, none of the arguments you have presented
-> seems to indicate such a generic layer is impossible to do.
->
+Peter.
