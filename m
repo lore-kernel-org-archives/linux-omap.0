@@ -1,77 +1,73 @@
-From: Markus Pargmann <mpa@pengutronix.de>
-Subject: Re: [PATCH] net: micrel : ks8851-ml: add vdd-supply support
-Date: Tue, 25 Mar 2014 11:06:32 +0100
-Message-ID: <20140325100632.GB14810@pengutronix.de>
-References: <1395384768-8461-1-git-send-email-nm@ti.com>
- <20140324.003758.1244022408748408267.davem@davemloft.net>
+From: Alex Shi <alex.shi@linaro.org>
+Subject: [PATCH 09/19] arm: dts: add omap4 CPU thermal data
+Date: Tue, 25 Mar 2014 18:49:22 +0800
+Message-ID: <1395744572-20014-10-git-send-email-alex.shi@linaro.org>
+References: <1395744572-20014-1-git-send-email-alex.shi@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oLBj+sq0vYjzfsbl"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140324.003758.1244022408748408267.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: nm@ti.com, rmk+kernel@arm.linux.org.uk, tony@atomide.com, devicetree@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1395744572-20014-1-git-send-email-alex.shi@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: mark.hambleton@broadcom.com, mark.brown@linaro.org, eduardo.valentin@ti.com, mporter@linaro.org, lsk-interest@linaro.org, linaro-kernel@linaro.org
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Ian Campbell <ian.campbell@citrix.com>, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Alex Shi <alex.shi@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
---oLBj+sq0vYjzfsbl
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, Mar 24, 2014 at 12:37:58AM -0400, David Miller wrote:
-> From: Nishanth Menon <nm@ti.com>
-> Date: Fri, 21 Mar 2014 01:52:48 -0500
->=20
-> > Few platforms use external regulator to keep the ethernet MAC supplied.
-> > So, request and enable the regulator for driver functionality.
-> >=20
-> > Fixes: 66fda75f47dc (regulator: core: Replace direct ops->disable usage)
-> > Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > Suggested-by: Markus Pargmann <mpa@pengutronix.de>
-> > Signed-off-by: Nishanth Menon <nm@ti.com>
->=20
-> Applied, thanks.
->=20
-
-The two regulator patches for enable and disable are going into the
-stable trees so this should also be submitted to stable for 3.10 to
-3.13.
-
-Regards,
-
-Markus
-
---=20
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
-
---oLBj+sq0vYjzfsbl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTMVUoAAoJEEpcgKtcEGQQu7wP/jIk0DjopMZx9a08M3howGoy
-qvIvJ6acs8og+jtbWC9LNCm9e3/vS88Ai52H1L3GZTvVQhCbssGkDXSzHclyvIDV
-DvJw/pRDNhUe7ByUOhObQzixtZ9ACPbyxWTSoyOz3y/YBQi752uut3KBjCFMXiRV
-t2Y3RdtcWDyEXupqSXWAjZ8SjlAD/0lzvOKXPxWVuGtlu+Wz0O2WwN7Oq5aldMt2
-QyLDyCt4uPKXtuHgCGfzlK9fDizfDlvZRHauPWkxLoPTNbJQz8QEubviW3bh0YbH
-EwOFlUcMbKxYhjAnVbv+hUAFckaByFZZy8WMBJD/oZzFpBpwagqJNkOC4LBcUvLN
-VMfFGsHeHMK0QDPWpcf9TMTfMXuTN3PT9OP0Gtjqy2BCpURI1yWQtzck0CYM4nD7
-Sq2YxUKevBAFZp23fLfNkqz5O+AxuNWmHigA3gtCGrGf4+V8Ml+bh4LxO15mfI/k
-kKJQrDlVqsmIbeX0e9waOD08Dv8/ZsZRiB9nlDXXr7RmrqauUGEQrjKniY/QvAtc
-RmAdZC4EC6gIjHBk2hfs/Ky/B2f1/wnhpCDQtVPQQYOR4Jfztw5t6zmmP0MaCIbM
-rbBLdEY+wPmptCM5mPGOr1JbQSz+P5kCspP3clYBQEhi1FJyCJoYo7pXcC2PIhs5
-4r2F5BHdt43vZLCClh01
-=1zLw
------END PGP SIGNATURE-----
-
---oLBj+sq0vYjzfsbl--
+RnJvbTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+CgpUaGlzIHBh
+dGNoIGNoYW5nZXMgYSBkdHNpIGZpbGUgdG8gY29udGFpbiB0aGUgdGhlcm1hbCBkYXRhCmZvciBN
+UFUgZG9tYWluIG9uIE9NQVA0IGFuZCBsYXRlciBTb0NzLiBUaGlzIGRhdGEgd2lsbAplbmFibGUg
+dGhlIHBhc3NpdmUgY29vbGluZyB3aXRoIENQVWZyZXEgY29vbGluZyBkZXZpY2UKYXQgMTAwQyBh
+bmQgdGhlIHN5c3RlbSB3aWxsIGRvIGEgdGhlcm1hbCBzaHV0ZG93biBhdCAxMjVDLgoKVGhpcyB0
+aGVybWFsIGRhdGEgY2FuIGJlIHJldXNlZCBhY3Jvc3MgVEkgU29DIGRldmljZXMuCgpDYzogIkJl
+bm/DrnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4g
+PHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5j
+b20+CkNjOiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQg
+PG1hcmsucnV0bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90
+b3JnLm9yZz4KQ2M6IElhbiBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBS
+dXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIu
+a2VybmVsLm9yZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1r
+ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9y
+ZwpTaWduZWQtb2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNv
+bT4KKGNoZXJyeSBwaWNrZWQgZnJvbSBjb21taXQgMGJiZjZjNTRkMTAwODM2ZGI0MGJhMDIwYjdj
+OTc5M2VhM2U2YmUwYikKClNpZ25lZC1vZmYtYnk6IEFsZXggU2hpIDxhbGV4LnNoaUBsaW5hcm8u
+b3JnPgotLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LWNwdS10aGVybWFsLmR0c2kgfCA0MSAr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKwogMSBmaWxlIGNoYW5nZWQsIDQxIGluc2Vy
+dGlvbnMoKykKIGNyZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9vbWFwNC1jcHUt
+dGhlcm1hbC5kdHNpCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRo
+ZXJtYWwuZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LWNwdS10aGVybWFsLmR0c2kKbmV3
+IGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggMDAwMDAwMC4uY2I5NDU4ZgotLS0gL2Rldi9udWxsCisr
+KyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LWNwdS10aGVybWFsLmR0c2kKQEAgLTAsMCArMSw0
+MSBAQAorLyoKKyAqIERldmljZSBUcmVlIFNvdXJjZSBmb3IgT01BUDQvNSBTb0MgQ1BVIHRoZXJt
+YWwKKyAqCisgKiBDb3B5cmlnaHQgKEMpIDIwMTMgVGV4YXMgSW5zdHJ1bWVudHMgSW5jb3Jwb3Jh
+dGVkIC0gaHR0cDovL3d3dy50aS5jb20vCisgKiBDb250YWN0OiBFZHVhcmRvIFZhbGVudGluIDxl
+ZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KKyAqCisgKiBUaGlzIGZpbGUgaXMgbGljZW5zZWQgdW5k
+ZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZQorICogdmVyc2lv
+biAyLiAgVGhpcyBwcm9ncmFtIGlzIGxpY2Vuc2VkICJhcyBpcyIgd2l0aG91dCBhbnkgd2FycmFu
+dHkgb2YgYW55CisgKiBraW5kLCB3aGV0aGVyIGV4cHJlc3Mgb3IgaW1wbGllZC4KKyAqLworCisj
+aW5jbHVkZSA8ZHQtYmluZGluZ3MvdGhlcm1hbC90aGVybWFsLmg+CisKK2NwdV90aGVybWFsOiBj
+cHVfdGhlcm1hbCB7CisJcG9sbGluZy1kZWxheS1wYXNzaXZlID0gPDI1MD47IC8qIG1pbGxpc2Vj
+b25kcyAqLworCXBvbGxpbmctZGVsYXkgPSA8MTAwMD47IC8qIG1pbGxpc2Vjb25kcyAqLworCisJ
+CQkvKiBzZW5zb3IgICAgICAgSUQgKi8KKyAgICAgICAgdGhlcm1hbC1zZW5zb3JzID0gPCZiYW5k
+Z2FwICAgICAwPjsKKworICAgICAgICB0cmlwcyB7CisgICAgICAgICAgICAgICAgY3B1X2FsZXJ0
+MDogY3B1X2FsZXJ0IHsKKyAgICAgICAgICAgICAgICAgICAgICAgIHRlbXBlcmF0dXJlID0gPDEw
+MDAwMD47IC8qIG1pbGxpY2Vsc2l1cyAqLworICAgICAgICAgICAgICAgICAgICAgICAgaHlzdGVy
+ZXNpcyA9IDwyMDAwPjsgLyogbWlsbGljZWxzaXVzICovCisgICAgICAgICAgICAgICAgICAgICAg
+ICB0eXBlID0gInBhc3NpdmUiOworICAgICAgICAgICAgICAgIH07CisgICAgICAgICAgICAgICAg
+Y3B1X2NyaXQ6IGNwdV9jcml0IHsKKyAgICAgICAgICAgICAgICAgICAgICAgIHRlbXBlcmF0dXJl
+ID0gPDEyNTAwMD47IC8qIG1pbGxpY2Vsc2l1cyAqLworICAgICAgICAgICAgICAgICAgICAgICAg
+aHlzdGVyZXNpcyA9IDwyMDAwPjsgLyogbWlsbGljZWxzaXVzICovCisgICAgICAgICAgICAgICAg
+ICAgICAgICB0eXBlID0gImNyaXRpY2FsIjsKKyAgICAgICAgICAgICAgICB9OworICAgICAgICB9
+OworCisJY29vbGluZy1tYXBzIHsKKwkJbWFwMCB7CisJCQl0cmlwID0gPCZjcHVfYWxlcnQwPjsK
+KwkJCWNvb2xpbmctZGV2aWNlID0KKwkJCQk8JmNwdTAgVEhFUk1BTF9OT19MSU1JVCBUSEVSTUFM
+X05PX0xJTUlUPjsKKwkJfTsKKwl9OworfTsKLS0gCjEuOC4xLjIKCgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcg
+bGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmlu
+ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
