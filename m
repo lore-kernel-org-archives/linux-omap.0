@@ -1,73 +1,62 @@
 From: Alex Shi <alex.shi@linaro.org>
-Subject: [PATCH 09/19] arm: dts: add omap4 CPU thermal data
-Date: Tue, 25 Mar 2014 18:49:22 +0800
-Message-ID: <1395744572-20014-10-git-send-email-alex.shi@linaro.org>
+Subject: [PATCH 11/19] arm: dts: add cooling properties on omap4460 cpu node
+Date: Tue, 25 Mar 2014 18:49:24 +0800
+Message-ID: <1395744572-20014-12-git-send-email-alex.shi@linaro.org>
 References: <1395744572-20014-1-git-send-email-alex.shi@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1395744572-20014-1-git-send-email-alex.shi@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: mark.hambleton@broadcom.com, mark.brown@linaro.org, eduardo.valentin@ti.com, mporter@linaro.org, lsk-interest@linaro.org, linaro-kernel@linaro.org
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Ian Campbell <ian.campbell@citrix.com>, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Alex Shi <alex.shi@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ian.campbell@citrix.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Alex Shi <alex.shi@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-RnJvbTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+CgpUaGlzIHBh
-dGNoIGNoYW5nZXMgYSBkdHNpIGZpbGUgdG8gY29udGFpbiB0aGUgdGhlcm1hbCBkYXRhCmZvciBN
-UFUgZG9tYWluIG9uIE9NQVA0IGFuZCBsYXRlciBTb0NzLiBUaGlzIGRhdGEgd2lsbAplbmFibGUg
-dGhlIHBhc3NpdmUgY29vbGluZyB3aXRoIENQVWZyZXEgY29vbGluZyBkZXZpY2UKYXQgMTAwQyBh
-bmQgdGhlIHN5c3RlbSB3aWxsIGRvIGEgdGhlcm1hbCBzaHV0ZG93biBhdCAxMjVDLgoKVGhpcyB0
-aGVybWFsIGRhdGEgY2FuIGJlIHJldXNlZCBhY3Jvc3MgVEkgU29DIGRldmljZXMuCgpDYzogIkJl
-bm/DrnQgQ291c3NvbiIgPGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4g
-PHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5j
-b20+CkNjOiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQg
-PG1hcmsucnV0bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90
-b3JnLm9yZz4KQ2M6IElhbiBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBS
-dXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIu
-a2VybmVsLm9yZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1r
-ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9y
-ZwpTaWduZWQtb2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNv
-bT4KKGNoZXJyeSBwaWNrZWQgZnJvbSBjb21taXQgMGJiZjZjNTRkMTAwODM2ZGI0MGJhMDIwYjdj
-OTc5M2VhM2U2YmUwYikKClNpZ25lZC1vZmYtYnk6IEFsZXggU2hpIDxhbGV4LnNoaUBsaW5hcm8u
-b3JnPgotLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LWNwdS10aGVybWFsLmR0c2kgfCA0MSAr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKwogMSBmaWxlIGNoYW5nZWQsIDQxIGluc2Vy
-dGlvbnMoKykKIGNyZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9vbWFwNC1jcHUt
-dGhlcm1hbC5kdHNpCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRo
-ZXJtYWwuZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LWNwdS10aGVybWFsLmR0c2kKbmV3
-IGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggMDAwMDAwMC4uY2I5NDU4ZgotLS0gL2Rldi9udWxsCisr
-KyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LWNwdS10aGVybWFsLmR0c2kKQEAgLTAsMCArMSw0
-MSBAQAorLyoKKyAqIERldmljZSBUcmVlIFNvdXJjZSBmb3IgT01BUDQvNSBTb0MgQ1BVIHRoZXJt
-YWwKKyAqCisgKiBDb3B5cmlnaHQgKEMpIDIwMTMgVGV4YXMgSW5zdHJ1bWVudHMgSW5jb3Jwb3Jh
-dGVkIC0gaHR0cDovL3d3dy50aS5jb20vCisgKiBDb250YWN0OiBFZHVhcmRvIFZhbGVudGluIDxl
-ZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KKyAqCisgKiBUaGlzIGZpbGUgaXMgbGljZW5zZWQgdW5k
-ZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZQorICogdmVyc2lv
-biAyLiAgVGhpcyBwcm9ncmFtIGlzIGxpY2Vuc2VkICJhcyBpcyIgd2l0aG91dCBhbnkgd2FycmFu
-dHkgb2YgYW55CisgKiBraW5kLCB3aGV0aGVyIGV4cHJlc3Mgb3IgaW1wbGllZC4KKyAqLworCisj
-aW5jbHVkZSA8ZHQtYmluZGluZ3MvdGhlcm1hbC90aGVybWFsLmg+CisKK2NwdV90aGVybWFsOiBj
-cHVfdGhlcm1hbCB7CisJcG9sbGluZy1kZWxheS1wYXNzaXZlID0gPDI1MD47IC8qIG1pbGxpc2Vj
-b25kcyAqLworCXBvbGxpbmctZGVsYXkgPSA8MTAwMD47IC8qIG1pbGxpc2Vjb25kcyAqLworCisJ
-CQkvKiBzZW5zb3IgICAgICAgSUQgKi8KKyAgICAgICAgdGhlcm1hbC1zZW5zb3JzID0gPCZiYW5k
-Z2FwICAgICAwPjsKKworICAgICAgICB0cmlwcyB7CisgICAgICAgICAgICAgICAgY3B1X2FsZXJ0
-MDogY3B1X2FsZXJ0IHsKKyAgICAgICAgICAgICAgICAgICAgICAgIHRlbXBlcmF0dXJlID0gPDEw
-MDAwMD47IC8qIG1pbGxpY2Vsc2l1cyAqLworICAgICAgICAgICAgICAgICAgICAgICAgaHlzdGVy
-ZXNpcyA9IDwyMDAwPjsgLyogbWlsbGljZWxzaXVzICovCisgICAgICAgICAgICAgICAgICAgICAg
-ICB0eXBlID0gInBhc3NpdmUiOworICAgICAgICAgICAgICAgIH07CisgICAgICAgICAgICAgICAg
-Y3B1X2NyaXQ6IGNwdV9jcml0IHsKKyAgICAgICAgICAgICAgICAgICAgICAgIHRlbXBlcmF0dXJl
-ID0gPDEyNTAwMD47IC8qIG1pbGxpY2Vsc2l1cyAqLworICAgICAgICAgICAgICAgICAgICAgICAg
-aHlzdGVyZXNpcyA9IDwyMDAwPjsgLyogbWlsbGljZWxzaXVzICovCisgICAgICAgICAgICAgICAg
-ICAgICAgICB0eXBlID0gImNyaXRpY2FsIjsKKyAgICAgICAgICAgICAgICB9OworICAgICAgICB9
-OworCisJY29vbGluZy1tYXBzIHsKKwkJbWFwMCB7CisJCQl0cmlwID0gPCZjcHVfYWxlcnQwPjsK
-KwkJCWNvb2xpbmctZGV2aWNlID0KKwkJCQk8JmNwdTAgVEhFUk1BTF9OT19MSU1JVCBUSEVSTUFM
-X05PX0xJTUlUPjsKKwkJfTsKKwl9OworfTsKLS0gCjEuOC4xLjIKCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcg
-bGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmlu
-ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+=46rom: Eduardo Valentin <eduardo.valentin@ti.com>
+
+OMAP4460 devices can reach high temperatures and thus
+needs to have cpufreq-cooling on systems running on it.
+
+This patch adds the required cooling device properties
+so that cpufreq-cpu0 driver loads the cooling device.
+
+Cc: "Beno=C3=AEt Cousson" <bcousson@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Ian Campbell <ian.campbell@citrix.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+(cherry picked from commit 616a66351d6cd4a9bdb20fe49ee2505d9cc8a0db)
+
+Signed-off-by: Alex Shi <alex.shi@linaro.org>
+---
+ arch/arm/boot/dts/omap4460.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap44=
+60.dtsi
+index 2cf227c..e21fc05 100644
+--- a/arch/arm/boot/dts/omap4460.dtsi
++++ b/arch/arm/boot/dts/omap4460.dtsi
+@@ -20,6 +20,11 @@
+ 				920000  1313000
+ 			>;
+ 			clock-latency =3D <300000>; /* From legacy driver */
++
++			/* cooling options */
++			cooling-min-level =3D <0>;
++			cooling-max-level =3D <2>;
++			#cooling-cells =3D <2>; /* min followed by max */
+ 		};
+ 	};
+=20
+--=20
+1.8.1.2
