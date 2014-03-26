@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 11/12] ARM: dts: dra7: Add dt data for PCIe controller
-Date: Wed, 26 Mar 2014 19:27:51 +0530
-Message-ID: <1395842272-15267-12-git-send-email-kishon@ti.com>
+Subject: [RFC PATCH 10/12] ARM: dts: dra7: Add dt data for PCIe PHY
+Date: Wed, 26 Mar 2014 19:27:50 +0530
+Message-ID: <1395842272-15267-11-git-send-email-kishon@ti.com>
 References: <1395842272-15267-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,49 +12,40 @@ To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.ker
 Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, paul@pwsan.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Added dt data for PCIe controller. This node contains dt data for
-both the DRA7 part of designware controller and for the designware core.
-The documention for this node can be found @ ../bindings/pci/ti-pci.txt.
+Added dt data for PCIe PHY as a child node of ocp2scp3.
+The documention for this node can be found @ ../bindings/phy/ti-phy.txt.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 7ac372b..10def39 100644
+index 73c61d0..7ac372b 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -701,6 +701,30 @@
+@@ -683,6 +683,22 @@
+ 				clock-names = "sysclk";
+ 				#phy-cells = <0>;
  			};
++
++			pcie1_phy: pciephy@4a094000 {
++				compatible = "ti,phy-pipe3-pcie";
++				ctrl-module = <&omap_control_pcie1phy>;
++				clocks = <&dpll_pcie_ref_ck>,
++					 <&dpll_pcie_ref_m2ldo_ck>,
++					 <&optfclk_pciephy_32khz>,
++					 <&optfclk_pciephy_clk>,
++					 <&optfclk_pciephy_div_clk>,
++					 <&optfclk_pciephy_div>;
++				clock-names = "dpll_ref", "dpll_ref_m2",
++					      "wkupclk", "refclk",
++					      "div-clk", "phy-div";
++				#phy-cells = <0>;
++				ti,hwmods = "pcie1-phy";
++			};
  		};
  
-+		pcie@51000000 {
-+			compatible = "ti,dra7xx-pcie";
-+			reg = <0x51002000 0x14c>, <0x51000000 0x2000>, <0x4A002540 0x1f>;
-+			reg-names = "ti_conf", "rc_dbics", "mmr_unlock";
-+			interrupts = <0 232 0x4>, <0 233 0x4>;
-+			#address-cells = <3>;
-+			#size-cells = <2>;
-+			device_type = "pci";
-+			ti,device_type = <3>;
-+			ranges = <0x00000800 0 0x20001000 0x20001000 0 0x00002000
-+				  0x81000000 0 0          0x20003000 0 0x00010000
-+				  0x82000000 0 0x20013000 0x20013000 0 0xffed000>;
-+			#interrupt-cells = <1>;
-+			base-mask = <0x00000000 0x0fffffff>;
-+			num-lanes = <1>;
-+			interrupt-map-mask = <0 0 0 0>;
-+			interrupt-map = <0x0 0 &gic 233>;
-+			ti,hwmods = "pcie1";
-+			phys = <&pcie1_phy>;
-+			phy-names = "pcie-phy";
-+			resets = <&prm_resets &device_reset>;
-+			reset-names = "reset";
-+		};
-+
  		sata: sata@4a141100 {
- 			compatible = "snps,dwc-ahci";
- 			reg = <0x4a140000 0x1100>, <0x4a141100 0x7>;
 -- 
 1.7.9.5
