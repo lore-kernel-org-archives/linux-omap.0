@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 07/12] arm: dra7xx: Add hwmod data for pcie1 and pcie2 subsystems
-Date: Wed, 26 Mar 2014 19:27:47 +0530
-Message-ID: <1395842272-15267-8-git-send-email-kishon@ti.com>
+Subject: [RFC PATCH 04/12] ARM: dts: DRA7: Add divider table to optfclk_pciephy_div clock
+Date: Wed, 26 Mar 2014 19:27:44 +0530
+Message-ID: <1395842272-15267-5-git-send-email-kishon@ti.com>
 References: <1395842272-15267-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,95 +9,30 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1395842272-15267-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com, mohit.kumar@st.com, jg1.han@samsung.com
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, paul@pwsan.com, kishon@ti.com
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, paul@pwsan.com, kishon@ti.com, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Added hwmod data for pcie1 and pcie2 subsystem present in DRA7xx SOC.
+From: Keerthy <j-keerthy@ti.com>
 
+Add divider table to optfclk_pciephy_div clock.
+
+Signed-off-by: Keerthy <j-keerthy@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   55 +++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ arch/arm/boot/dts/dra7xx-clocks.dtsi |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 9397265..c789b00 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1290,6 +1290,43 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
- };
- 
- /*
-+ * 'PCIE' class
-+ *
-+ */
-+
-+static struct omap_hwmod_class dra7xx_pcie_hwmod_class = {
-+	.name	= "pcie",
-+};
-+
-+/* pcie1 */
-+static struct omap_hwmod dra7xx_pcie1_hwmod = {
-+	.name		= "pcie1",
-+	.class		= &dra7xx_pcie_hwmod_class,
-+	.clkdm_name	= "l3init_clkdm",
-+	.main_clk	= "l4_root_clk_div",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs	= DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
-+/* pcie2 */
-+static struct omap_hwmod dra7xx_pcie2_hwmod = {
-+	.name		= "pcie2",
-+	.class		= &dra7xx_pcie_hwmod_class,
-+	.clkdm_name	= "l3init_clkdm",
-+	.main_clk	= "l4_root_clk_div",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
-+/*
-  * 'PCIE PHY' class
-  *
-  */
-@@ -2459,6 +2496,22 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_cfg -> pcie1 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1 = {
-+	.master		= &dra7xx_l4_cfg_hwmod,
-+	.slave		= &dra7xx_pcie1_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_cfg -> pcie2 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2 = {
-+	.master		= &dra7xx_l4_cfg_hwmod,
-+	.slave		= &dra7xx_pcie2_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_cfg -> pcie1 phy */
- static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1_phy = {
- 	.master		= &dra7xx_l4_cfg_hwmod,
-@@ -2824,6 +2877,8 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_cfg__mpu,
- 	&dra7xx_l4_cfg__ocp2scp1,
- 	&dra7xx_l4_cfg__ocp2scp3,
-+	&dra7xx_l4_cfg__pcie1,
-+	&dra7xx_l4_cfg__pcie2,
- 	&dra7xx_l4_cfg__pcie1_phy,
- 	&dra7xx_l4_cfg__pcie2_phy,
- 	&dra7xx_l3_main_1__qspi,
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index e96da9a..d909484 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -1170,6 +1170,7 @@
+ 		clocks = <&apll_pcie_ck>;
+ 		#clock-cells = <0>;
+ 		reg = <0x021c>;
++		ti,dividers = <2>, <1>;
+ 		ti,bit-shift = <8>;
+ 		ti,max-div = <2>;
+ 	};
 -- 
 1.7.9.5
