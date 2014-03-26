@@ -1,37 +1,60 @@
-From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: Re: [PATCH 0/4] ARM: OMAP: raw read and write endian fix
-Date: Wed, 26 Mar 2014 12:35:53 +0200
-Message-ID: <5332AD89.8030802@linaro.org>
-References: <1387822234-11167-1-git-send-email-taras.kondratiuk@linaro.org> <CAArO44vC4WKGHSqHX3+Mo5+jcNuyJLkh94+SPd4H+aZYAroYzw@mail.gmail.com> <20140108003927.GJ5074@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [RFC PATCH 00/12] PCIe support for DRA7xx
+Date: Wed, 26 Mar 2014 19:27:40 +0530
+Message-ID: <1395842272-15267-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140108003927.GJ5074@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Patch Tracking <patches@linaro.org>, Linaro Networking <linaro-networking@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>, Victor Kamensky <victor.kamensky@linaro.org>
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com, mohit.kumar@st.com, jg1.han@samsung.com
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, paul@pwsan.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 01/08/2014 02:39 AM, Tony Lindgren wrote:
-> * Taras Kondratiuk <taras.kondratiuk@linaro.org> [131223 10:20]:
->> On 23 December 2013 20:10, Taras Kondratiuk <taras.kondratiuk@linaro.org> wrote:
->>> This series does trivial replacement of __raw_xxx functions with xxx_relaxed
->>> endian-neutral variants in 'mach-omap2' and 'plat-omap' directories.
->>> Some code here most probably won't be used in BE mode (like debug-leds for
->>> OMAP1 boards), but changes are made anyway to remove __raw_xxx() functions
->>> completely and simplify future grep'ing for new __raw_xxx() entries.
-> 
-> Sorry for the delay on these, applying into omap-for-v3.14/be.
-> These are trivial, and it's actually nice that you left out the
-> assembly related changes as those should be acked by the PM
-> people in case there are some issues dealing with the ROM code
-> etc.
+This patch series adds support for PCIe in DRA7xx including drivers and dt
+data. PCIe in DRA7xx uses desingware IP and hence this re-uses the
+pcie desingware driver (pcie-designware.c) by Jingoo.
 
-Hi Tony,
+This patch series depends on a few patches that is already in -next.
 
-It seems omap-for-v3.14/be didn't get into 3.14-rc8.
-Is there any issue with them?
+Tested broadcom PCIe card and XIO2000 bridge along with DGE530T ethernet
+card.
+
+Keerthy (2):
+  ARM: dts: DRA7: Add divider table to optfclk_pciephy_div clock
+  ARM: dts: DRA7: Change the parent of apll_pcie_in_clk_mux to
+    dpll_pcie_ref_m2ldo_ck
+
+Kishon Vijay Abraham I (10):
+  phy: phy-omap-pipe3: Add support for PCIe PHY
+  pci: host: pcie-dra7xx: add support for pcie-dra7xx controller
+  pci: host: pcie-designware: Use *base-mask* for configuring the iATU
+  arm: dra7xx: Add hwmod data for pcie1 phy and pcie2 phy
+  arm: dra7xx: Add hwmod data for pcie1 and pcie2 subsystems
+  ARM: dts: dra7xx-clocks: Add missing 32khz clocks used for PHY
+  ARM: dts: dra7: Add dt data for PCIe PHY control module
+  ARM: dts: dra7: Add dt data for PCIe PHY
+  ARM: dts: dra7: Add dt data for PCIe controller
+  ARM: OMAP: Enable PCI for DRA7
+
+ .../devicetree/bindings/pci/designware-pcie.txt    |    1 +
+ Documentation/devicetree/bindings/pci/ti-pci.txt   |   35 ++
+ Documentation/devicetree/bindings/phy/ti-phy.txt   |    8 +-
+ arch/arm/boot/dts/dra7.dtsi                        |   48 +++
+ arch/arm/boot/dts/dra7xx-clocks.dtsi               |   11 +-
+ arch/arm/mach-omap2/Kconfig                        |    2 +
+ arch/arm/mach-omap2/cm2_7xx.h                      |    4 +
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  112 ++++++
+ arch/arm/mach-omap2/prm7xx.h                       |    4 +
+ drivers/pci/host/Kconfig                           |   10 +
+ drivers/pci/host/Makefile                          |    1 +
+ drivers/pci/host/pcie-designware.c                 |   39 +-
+ drivers/pci/host/pcie-designware.h                 |    1 +
+ drivers/pci/host/pcie-dra7xx.c                     |  411 ++++++++++++++++++++
+ drivers/phy/phy-ti-pipe3.c                         |   99 ++++-
+ 15 files changed, 750 insertions(+), 36 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/pci/ti-pci.txt
+ create mode 100644 drivers/pci/host/pcie-dra7xx.c
 
 -- 
-Taras Kondratiuk
+1.7.9.5
+
