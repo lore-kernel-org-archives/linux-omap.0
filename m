@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 09/12] ARM: dts: dra7: Add dt data for PCIe PHY control module
-Date: Wed, 26 Mar 2014 19:27:49 +0530
-Message-ID: <1395842272-15267-10-git-send-email-kishon@ti.com>
+Subject: [RFC PATCH 12/12] ARM: OMAP: Enable PCI for DRA7
+Date: Wed, 26 Mar 2014 19:27:52 +0530
+Message-ID: <1395842272-15267-13-git-send-email-kishon@ti.com>
 References: <1395842272-15267-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,32 +12,26 @@ To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.ker
 Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, paul@pwsan.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Added dt data for PCIe PHY control module used by PCIe PHY.
-The documention for this node can be found @ ../bindings/phy/ti-phy.txt
+Now that we have added PCIe driver for DRA7 SOCs, enable PCI on
+DRA7 SOCs.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/arm/mach-omap2/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index f3565ac..73c61d0 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -656,6 +656,14 @@
- 			clock-names = "sysclk";
- 		};
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 46f8c53..352f252 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -86,6 +86,8 @@ config SOC_DRA7XX
+ 	select HAVE_SMP
+ 	select HAVE_ARM_ARCH_TIMER
+ 	select IRQ_CROSSBAR
++	select MIGHT_HAVE_PCI
++	select ARCH_SUPPORTS_MSI
  
-+		omap_control_pcie1phy: omap-control-pciephy@0x4a003c40 {
-+			compatible = "ti,control-phy-pipe3";
-+			reg = <0x4a003c40 0x4>;
-+			reg-names = "power";
-+			clocks = <&sys_clkin1>;
-+			clock-names = "sysclk";
-+		};
-+
- 		/* OCP2SCP3 */
- 		ocp2scp@4a090000 {
- 			compatible = "ti,omap-ocp2scp";
+ config ARCH_OMAP2PLUS
+ 	bool
 -- 
 1.7.9.5
