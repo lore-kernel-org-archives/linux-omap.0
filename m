@@ -1,49 +1,172 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v2 0/2] add parallel NAND support for TI's new OMAPx and
- AMxx platforms
-Date: Thu, 27 Mar 2014 07:19:10 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAB5FA6@DBDE04.ent.ti.com>
-References: <1394617547-25240-1-git-send-email-pekon@ti.com>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: Re: [RFC PATCH 03/12] pci: host: pcie-designware: Use *base-mask* for
+ configuring the iATU
+Date: Thu, 27 Mar 2014 20:45:01 +0900
+Message-ID: <000001cf49b1$fcd8a810$f689f830$%han@samsung.com>
+References: <1395842272-15267-1-git-send-email-kishon@ti.com>
+ <1395842272-15267-4-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44550 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751524AbaC0HTS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Mar 2014 03:19:18 -0400
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-reply-to: <1395842272-15267-4-git-send-email-kishon@ti.com>
+Content-language: ko
+Sender: linux-doc-owner@vger.kernel.org
+To: 'Kishon Vijay Abraham I' <kishon@ti.com>, 'Mohit Kumar' <mohit.kumar@st.com>, 'Pratyush Anand' <pratyush.anand@st.com>
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, paul@pwsan.com, 'Marek Vasut' <marex@denx.de>, 'Richard Zhu' <r65037@freescale.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>
 
-HI Tony,
+On Wednesday, March 26, 2014 10:58 PM, Kishon Vijay Abraham I wrote:
+> 
+> In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
+> address. So whenever the cpu issues a read/write request, the 4 most
+> significant bits are used by L3 to determine the target controller.
+> For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
+> the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
+> the outbound translation window the *base* should be programmed as 0x000_0000.
+> Whenever we try to write to say 0x2000_0000, it will be translated to whatever
+> we have programmed in the translation window with base as 0x000_0000.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
->From: Gupta, Pekon
-[...]
->I see following patches in your tree/branch  "omap-for-v3.15/dt"
->But probably they were omitted in the pull request. Is there something, I need to do for these ?
->
->	f68e355  2014-03-02  ARM: dts: am43xx: add support for parallel NAND flash
->	c06c527  2014-03-02  ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
->	91994fa  2014-03-02  ARM: dts: am335x-evm: NAND: update MTD partition table
->	0611c41  2014-03-02  ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms and ECC schemes
->
->
->Also, I had sent a [v2] for one of the patches, dropped by you. Please see if that can be picked
->	[Patch v2 1/2] ARM: dts: dra7: add support for parallel NAND flash
->	[Patch v2 1/2] ARM: dts: am43xx: fix starting offset of NAND.filesystem MTD partition
->
->
-Please let me know, if I need to rebase any of the patches in follow series
-against your for_3.15/dt  or any other branch.
+(+cc Pratyush Anand, Marek Vasut, Richard Zhu)
 
-(1) [Partly Merged] "add parallel NAND support for TI's new OMAPx and AMxx platforms"
-http://www.spinics.net/lists/linux-omap/msg104305.html
+Acked-by: Jingoo Han <jg1.han@samsung.com>
 
-(2) [New Patches] "add parallel NAND support for TI's new OMAPx and AMxx platforms (part-2)"
-http://www.spinics.net/lists/linux-omap/msg104668.html
+Mohit Kumar, Pratyush Anand,
+If you have other opinions, please let us know. :-)
+Thank you.
 
+Best regards,
+Jingoo Han
 
-with regards, pekon
+> ---
+>  .../devicetree/bindings/pci/designware-pcie.txt    |    1 +
+>  drivers/pci/host/pcie-designware.c                 |   39 ++++++++++++++------
+>  drivers/pci/host/pcie-designware.h                 |    1 +
+>  3 files changed, 29 insertions(+), 12 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/pci/designware-pcie.txt
+> b/Documentation/devicetree/bindings/pci/designware-pcie.txt
+> index d6fae13..c574dd3 100644
+> --- a/Documentation/devicetree/bindings/pci/designware-pcie.txt
+> +++ b/Documentation/devicetree/bindings/pci/designware-pcie.txt
+> @@ -27,6 +27,7 @@ Optional properties for fsl,imx6q-pcie
+>  - power-on-gpio: gpio pin number of power-enable signal
+>  - wake-up-gpio: gpio pin number of incoming wakeup signal
+>  - disable-gpio: gpio pin number of outgoing rfkill/endpoint disable signal
+> +- base-mask: address mask for the PCIe controller target port
+> 
+>  Example:
+> 
+> diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+> index 17ce88f..98b661c 100644
+> --- a/drivers/pci/host/pcie-designware.c
+> +++ b/drivers/pci/host/pcie-designware.c
+> @@ -464,6 +464,9 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
+>  		return -EINVAL;
+>  	}
+> 
+> +	if (of_property_read_u64(np, "base-mask", &pp->base_mask))
+> +		pp->base_mask = ~(0x0ULL);
+> +
+>  	if (IS_ENABLED(CONFIG_PCI_MSI)) {
+>  		pp->irq_domain = irq_domain_add_linear(pp->dev->of_node,
+>  					MAX_MSI_IRQS, &msi_domain_ops,
+> @@ -503,12 +506,15 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
+> 
+>  static void dw_pcie_prog_viewport_cfg0(struct pcie_port *pp, u32 busdev)
+>  {
+> +	u64 cfg0_base;
+> +
+> +	cfg0_base = pp->cfg0_base & pp->base_mask;
+>  	/* Program viewport 0 : OUTBOUND : CFG0 */
+>  	dw_pcie_writel_rc(pp, PCIE_ATU_REGION_OUTBOUND | PCIE_ATU_REGION_INDEX0,
+>  			  PCIE_ATU_VIEWPORT);
+> -	dw_pcie_writel_rc(pp, pp->cfg0_base, PCIE_ATU_LOWER_BASE);
+> -	dw_pcie_writel_rc(pp, (pp->cfg0_base >> 32), PCIE_ATU_UPPER_BASE);
+> -	dw_pcie_writel_rc(pp, pp->cfg0_base + pp->config.cfg0_size - 1,
+> +	dw_pcie_writel_rc(pp, cfg0_base, PCIE_ATU_LOWER_BASE);
+> +	dw_pcie_writel_rc(pp, (cfg0_base >> 32), PCIE_ATU_UPPER_BASE);
+> +	dw_pcie_writel_rc(pp, cfg0_base + pp->config.cfg0_size - 1,
+>  			  PCIE_ATU_LIMIT);
+>  	dw_pcie_writel_rc(pp, busdev, PCIE_ATU_LOWER_TARGET);
+>  	dw_pcie_writel_rc(pp, 0, PCIE_ATU_UPPER_TARGET);
+> @@ -518,14 +524,17 @@ static void dw_pcie_prog_viewport_cfg0(struct pcie_port *pp, u32 busdev)
+> 
+>  static void dw_pcie_prog_viewport_cfg1(struct pcie_port *pp, u32 busdev)
+>  {
+> +	u64 cfg1_base;
+> +
+> +	cfg1_base = pp->cfg1_base & pp->base_mask;
+>  	/* Program viewport 1 : OUTBOUND : CFG1 */
+>  	dw_pcie_writel_rc(pp, PCIE_ATU_REGION_OUTBOUND | PCIE_ATU_REGION_INDEX1,
+>  			  PCIE_ATU_VIEWPORT);
+>  	dw_pcie_writel_rc(pp, PCIE_ATU_TYPE_CFG1, PCIE_ATU_CR1);
+>  	dw_pcie_writel_rc(pp, PCIE_ATU_ENABLE, PCIE_ATU_CR2);
+> -	dw_pcie_writel_rc(pp, pp->cfg1_base, PCIE_ATU_LOWER_BASE);
+> -	dw_pcie_writel_rc(pp, (pp->cfg1_base >> 32), PCIE_ATU_UPPER_BASE);
+> -	dw_pcie_writel_rc(pp, pp->cfg1_base + pp->config.cfg1_size - 1,
+> +	dw_pcie_writel_rc(pp, cfg1_base, PCIE_ATU_LOWER_BASE);
+> +	dw_pcie_writel_rc(pp, (cfg1_base >> 32), PCIE_ATU_UPPER_BASE);
+> +	dw_pcie_writel_rc(pp, cfg1_base + pp->config.cfg1_size - 1,
+>  			  PCIE_ATU_LIMIT);
+>  	dw_pcie_writel_rc(pp, busdev, PCIE_ATU_LOWER_TARGET);
+>  	dw_pcie_writel_rc(pp, 0, PCIE_ATU_UPPER_TARGET);
+> @@ -533,14 +542,17 @@ static void dw_pcie_prog_viewport_cfg1(struct pcie_port *pp, u32 busdev)
+> 
+>  static void dw_pcie_prog_viewport_mem_outbound(struct pcie_port *pp)
+>  {
+> +	u64 mem_base;
+> +
+> +	mem_base = pp->mem_base & pp->base_mask;
+>  	/* Program viewport 0 : OUTBOUND : MEM */
+>  	dw_pcie_writel_rc(pp, PCIE_ATU_REGION_OUTBOUND | PCIE_ATU_REGION_INDEX0,
+>  			  PCIE_ATU_VIEWPORT);
+>  	dw_pcie_writel_rc(pp, PCIE_ATU_TYPE_MEM, PCIE_ATU_CR1);
+>  	dw_pcie_writel_rc(pp, PCIE_ATU_ENABLE, PCIE_ATU_CR2);
+> -	dw_pcie_writel_rc(pp, pp->mem_base, PCIE_ATU_LOWER_BASE);
+> -	dw_pcie_writel_rc(pp, (pp->mem_base >> 32), PCIE_ATU_UPPER_BASE);
+> -	dw_pcie_writel_rc(pp, pp->mem_base + pp->config.mem_size - 1,
+> +	dw_pcie_writel_rc(pp, mem_base, PCIE_ATU_LOWER_BASE);
+> +	dw_pcie_writel_rc(pp, (mem_base >> 32), PCIE_ATU_UPPER_BASE);
+> +	dw_pcie_writel_rc(pp, mem_base + pp->config.mem_size - 1,
+>  			  PCIE_ATU_LIMIT);
+>  	dw_pcie_writel_rc(pp, pp->config.mem_bus_addr, PCIE_ATU_LOWER_TARGET);
+>  	dw_pcie_writel_rc(pp, upper_32_bits(pp->config.mem_bus_addr),
+> @@ -549,14 +561,17 @@ static void dw_pcie_prog_viewport_mem_outbound(struct pcie_port *pp)
+> 
+>  static void dw_pcie_prog_viewport_io_outbound(struct pcie_port *pp)
+>  {
+> +	u64 io_base;
+> +
+> +	io_base = pp->io_base & pp->base_mask;
+>  	/* Program viewport 1 : OUTBOUND : IO */
+>  	dw_pcie_writel_rc(pp, PCIE_ATU_REGION_OUTBOUND | PCIE_ATU_REGION_INDEX1,
+>  			  PCIE_ATU_VIEWPORT);
+>  	dw_pcie_writel_rc(pp, PCIE_ATU_TYPE_IO, PCIE_ATU_CR1);
+>  	dw_pcie_writel_rc(pp, PCIE_ATU_ENABLE, PCIE_ATU_CR2);
+> -	dw_pcie_writel_rc(pp, pp->io_base, PCIE_ATU_LOWER_BASE);
+> -	dw_pcie_writel_rc(pp, (pp->io_base >> 32), PCIE_ATU_UPPER_BASE);
+> -	dw_pcie_writel_rc(pp, pp->io_base + pp->config.io_size - 1,
+> +	dw_pcie_writel_rc(pp, io_base, PCIE_ATU_LOWER_BASE);
+> +	dw_pcie_writel_rc(pp, (io_base >> 32), PCIE_ATU_UPPER_BASE);
+> +	dw_pcie_writel_rc(pp, io_base + pp->config.io_size - 1,
+>  			  PCIE_ATU_LIMIT);
+>  	dw_pcie_writel_rc(pp, pp->config.io_bus_addr, PCIE_ATU_LOWER_TARGET);
+>  	dw_pcie_writel_rc(pp, upper_32_bits(pp->config.io_bus_addr),
+> diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
+> index 3063b35..3fa12a6 100644
+> --- a/drivers/pci/host/pcie-designware.h
+> +++ b/drivers/pci/host/pcie-designware.h
+> @@ -35,6 +35,7 @@ struct pcie_port {
+>  	struct device		*dev;
+>  	u8			root_bus_nr;
+>  	void __iomem		*dbi_base;
+> +	u64			base_mask;
+>  	u64			cfg0_base;
+>  	void __iomem		*va_cfg0_base;
+>  	u64			cfg1_base;
+> --
+> 1.7.9.5
+
