@@ -1,54 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 12/18] ARM: OMAP3: PM: remove access to PRM_VOLTCTRL
- register
-Date: Wed, 26 Mar 2014 11:40:00 -0700
-Message-ID: <20140326183959.GA30631@atomide.com>
-References: <1393949958-816-1-git-send-email-t-kristo@ti.com>
- <1393949958-816-13-git-send-email-t-kristo@ti.com>
- <20140325223612.GA26395@atomide.com>
- <5332891F.9070002@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 0/5] mmc: host: omap_hsmmc: a few improvements
+Date: Wed, 26 Mar 2014 19:04:45 -0500
+Message-ID: <1395878690-9650-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35679 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753897AbaCZSkI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Mar 2014 14:40:08 -0400
-Content-Disposition: inline
-In-Reply-To: <5332891F.9070002@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: chris@printf.net, ulf.hansson@linaro.org, linux-mmc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-* Tero Kristo <t-kristo@ti.com> [140326 01:04]:
-> On 03/26/2014 12:36 AM, Tony Lindgren wrote:
-> >* Tero Kristo <t-kristo@ti.com> [140304 08:23]:
-> >>There is a solitary write to this register every wakeup from off-mode,
-> >>which isn't doing anything, so remove it.
-> >
-> >Argh, this chunk of code is for sure the the thing that's blocking all
-> >the voltage scaling for idle modes that twl4030 is supposed to do!
-> >
-> >AFAIK we must have AUTO_SLEEP, AUTO_RET and AUTO_OFF bits set in
-> >PRM_VOLTCTRL for twl4030 to scale anything. They must be set if we're
-> >scaling over I2C4 or using the pins as triggers. Unless these bits
-> >are set, VC won't send any SLEEP, RET or OFF commands.
-> >
-> >Looks like we're not even set these bits anywhere like we should?
-> >
-> >I think we should enabled these bits in vc.c init, and never clear?
-> 
-> The bits should be set according to the target sleep mode I believe,
-> e.g. for retention we should set only AUTO_RET, and for off-mode
-> AUTO_OFF. You can't have AUTO_OFF enabled if you are going to
-> retention only as far as I recall, this potentially caused some
-> problems.
+Hi,
 
-OK. So it seems that the idle code needs to constantly modify this
-register based on the idle mode. Any ideas how the idle code is going
-to update this register? Register a callback using platform_data?
+this series lets us access the newer registers introduced
+back in OMAP4 which give us some valid information about
+the OMAP HSMMC IP like max block size, support for ADMA,
+support for Retention.
 
-Regards,
+Right now, only setting max_blk_size correctly as supporting
+ADMA and Retention will take a lot of work.
 
-Tony
+Tested on OMAP5 uEVM.
+
+Felipe Balbi (5):
+  mmc: host: omap_hsmmc: pass host as an argument
+  mmc: host: omap_hsmmc: add reg_offset field
+  mmc: host: omap_hsmmc: introduce new accessor functions
+  mmc: host: omap_hsmmc: switch over to new accessors
+  mmc: host: omap_hsmmc: set max_blk_size correctly
+
+ drivers/mmc/host/omap_hsmmc.c | 291 ++++++++++++++++++++++++++----------------
+ 1 file changed, 182 insertions(+), 109 deletions(-)
+
+-- 
+1.9.1.286.g5172cb3
+
