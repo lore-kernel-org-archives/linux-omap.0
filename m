@@ -1,55 +1,84 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH RFC v3 0/2] Move dai-link level properties away from dai
- subnodes
-Date: Thu, 27 Mar 2014 01:31:31 +0000
-Message-ID: <20140327013131.GD30768@sirena.org.uk>
-References: <cover.1395655868.git.jsarha@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 09/11] bluetooth: hci_ldisc: fix deadlock condition
+Date: Wed, 26 Mar 2014 21:09:09 -0500
+Message-ID: <20140327020909.GA11651@saruman.home>
+References: <1395343807-21618-1-git-send-email-balbi@ti.com>
+ <1395343807-21618-9-git-send-email-balbi@ti.com>
+ <53337513.1010708@hurleysoftware.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="48TaNjbzBVislYPb"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:51142 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751369AbaC0BcM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Mar 2014 21:32:12 -0400
+	protocol="application/pgp-signature"; boundary="+HP7ph2BbKc20aGI"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <cover.1395655868.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <53337513.1010708@hurleysoftware.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Hurley <peter@hurleysoftware.com>
+Cc: Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, Marcel Holtmann <marcel@holtmann.org>, linux-serial@vger.kernel.org, linux-bluetooth@vger.kernel.org, m-karicheri2@ti.com, b32955@freescale.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com, moinejf@free.fr, Li.Xiubo@freescale.com, kuninori.morimoto.gx@renesas.com
 
-
---48TaNjbzBVislYPb
+--+HP7ph2BbKc20aGI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Mar 24, 2014 at 12:15:23PM +0200, Jyri Sarha wrote:
-> This patch is implemented on top of late patches from Jean-Francois
-> Moine [1].
+Hi,
 
-Applied both, thanks.
+On Wed, Mar 26, 2014 at 08:47:15PM -0400, Peter Hurley wrote:
+> [ +to Marcel Holtmann ]
+>=20
+> On 03/20/2014 03:30 PM, Felipe Balbi wrote:
+> >LDISCs shouldn't call tty->ops->write() from within
+> >->write_wakeup().
+> >
+> >->write_wakeup() is called with port lock taken and
+> >IRQs disabled, tty->ops->write() will try to acquire
+> >the same port lock and we will deadlock.
+> >
+> >Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
+> >Reported-by: Huang Shijie <b32955@freescale.com>
+> >Signed-off-by: Felipe Balbi <balbi@ti.com>
+>=20
+> I just noticed this patch wasn't addressed to Marcel;
+> seems like this should go through the bluetooth tree (but not
+> through bluetooth-next because it fixes an oops).
 
---48TaNjbzBVislYPb
+read the archives:
+
+http://marc.info/?l=3Dlinux-bluetooth&m=3D139534449409583&w=3D2
+
+> Marcel,
+>=20
+> You may want to build on top of this patch split handling;
+> I noticed some of the protocol drivers are calling
+> hci_uart_tx_wakeup() from work functions already (so don't
+> need to schedule another work...)
+
+I don't think that should be part of $subject, though.
+
+--=20
+balbi
+
+--+HP7ph2BbKc20aGI
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTM39wAAoJELSic+t+oim952EP/jh4IejEW2N8xRZZ/QgDuDA9
-DJT22QiU9PbpjuadW7bxH+rQ4uZ6UBozfrw8XINoV1dpnVCCPMfd4aSL4xekcjRA
-GxySaCVPLbhDI/gWXiYzMVYo6LrcujOQaDlexBERIK4p8cWckeGybNRFjlpT0rWb
-aARyN1oS6KstAymJLmKB3hQW7Pu7Wfq9BPJgda0LrWtxlbwEXwR3sfSQ7JoHGsn2
-QQQlwmlSx2erRNNM+274Hw3GArg4/XLhI/2m/athyE5+gwuVGboMzarF+Z3BIFQR
-D8T6hloL11PtcoI+vXk5Y4fnlAEtnOZtTj4IhdTG3EBLUVgPa27u2fc1TmXq4ybJ
-mLftLZsUOlH3OTp8yASJWkXoAShAIJg0+Hw0VCZOkbvywPndbWLxDjr8OEiwp3UM
-d51InI4xr5ZXcGM6aHWSAZfLXVy2q1OkkGna2aUo+I1j/ADCpylKnw8f5btdn2GY
-Nv34YiPMIXZnCsti/f1zrrjnbqJozrC0iZ+gE385YgfzdFbH7FlkIW9vU4Tku/RJ
-s8GcssjFUOjYBpPCsVf5N8j+LzyE7ow6pAG/yosjrAQv4nTTfc40TWWZSW1z9Pmj
-g4xwRVLXMA1Mhu7/1tLLp9h/Y4p3XJfdVrGzMPbeVufSO6YLPn8CWFDSnd5IDmCi
-osW4QoFyGCNEmRqJJZPG
-=rF06
+iQIcBAEBAgAGBQJTM4hFAAoJEIaOsuA1yqREwyIP/3XEL4u03XTpxbTA6+F/gBxx
+6H2b5EFxQqsgJGUm1mDwMQP8R+pR18nxgdEVq4xvyStHO3rWtJmNVDXKHFrn1akF
+lDI0iboVake1GqOEZnNUygYQ37zawnZLoEMQp4SzMpz2P6e8Gx0D9cw7zw6MJrdW
+NQQe/n1Z/+CItv6wKz/CkkNggPzT9jg8sWUAEdRbDB9uNYidS7zexP6WKUh1EWgr
+dV6vYaaG6hrioayIj+znPR8E6D3CJDiKUxYjUYyltEEpG7aKoqE9jZYakvwnq8jv
+qeAadfw2IE45bVWQL6CPYGZKRg4PJJQtclT9pGuA9U1MY82BM4Jq37Didttn+K11
+3zOuICgZFka1IOFuHmg4FnBfptf8zdOloqVnznDOGcxdz7Rx+Rxk8j0pF9ySt1JY
+WvluP6EhJayhtHn0hz2GKvm8uVDhX7jyB8dlugqRuSM6vum+K/09tntUvyBhuq8g
+jWp5C9+hrKaPdHNghEPmLAJB6NePbzGG0286mh2J6GlJlzI3k5a1mZ4X1V/+6mN8
+hvnZEg8K9zfacNoiCorHQcatZPtmCWI1FJFPMriasb9wAlHbQvAKy1hbAeMzum8P
+U5upoj2gsYnp1qTz0N8Bxg/yUpnrfXjUHvCZefL4iIN7K2Vj1F3UOe/C+lemszVz
+GTE4mIkmBDfQ1z/3UZDQ
+=9+YE
 -----END PGP SIGNATURE-----
 
---48TaNjbzBVislYPb--
+--+HP7ph2BbKc20aGI--
