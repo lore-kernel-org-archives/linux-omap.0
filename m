@@ -1,79 +1,41 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 10/11] Revert "serial: omap: unlock the port lock"
-Date: Wed, 26 Mar 2014 21:10:43 -0500
-Message-ID: <20140327021043.GB11651@saruman.home>
-References: <1395343807-21618-1-git-send-email-balbi@ti.com>
- <1395343807-21618-10-git-send-email-balbi@ti.com>
- <20140325182856.GA31906@atomide.com>
- <5333732F.6040803@hurleysoftware.com>
-Reply-To: <balbi@ti.com>
+From: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH 09/11] bluetooth: hci_ldisc: fix deadlock condition
+Date: Wed, 26 Mar 2014 22:20:15 -0400
+Message-ID: <53338ADF.3060803@hurleysoftware.com>
+References: <1395343807-21618-1-git-send-email-balbi@ti.com> <1395343807-21618-9-git-send-email-balbi@ti.com> <53337513.1010708@hurleysoftware.com> <20140327020909.GA11651@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0ntfKIWw70PvrIHh"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5333732F.6040803@hurleysoftware.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-bluetooth@vger.kernel.org, m-karicheri2@ti.com, b32955@freescale.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140327020909.GA11651-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m-karicheri2-l0cyMroinI0@public.gmane.org, b32955-KZfg59tc24xl57MIdRCFDg@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---0ntfKIWw70PvrIHh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 03/26/2014 10:09 PM, Felipe Balbi wrote:
+>> I just noticed this patch wasn't addressed to Marcel;
+>> seems like this should go through the bluetooth tree (but not
+>> through bluetooth-next because it fixes an oops).
+>
+> read the archives:
+>
+> http://marc.info/?l=linux-bluetooth&m=139534449409583&w=2
 
-Hi,
+Sorry. I did actually get Marcel's reply but Thunderbird
+didn't parent the reply properly in my inbox and I forgot about it.
 
-On Wed, Mar 26, 2014 at 08:39:11PM -0400, Peter Hurley wrote:
-> On 03/25/2014 02:28 PM, Tony Lindgren wrote:
-> >* Felipe Balbi <balbi@ti.com> [140320 12:39]:
-> >>This reverts commit 0324a821029e1f54e7a7f8fed48693cfce42dc0e.
-> >>
-> >>That commit tried to fix a deadlock problem when using
-> >>hci_ldisc, but it turns out the bug was in hci_ldsic
-> >>all along where it was calling ->write() from within
-> >>->write_wakeup() callback.
-> >>
-> >>The problem is that ->write_wakeup() was called with
-> >>port lock held and ->write() tried to grab the same
-> >>port lock.
-> >
-> >Should this and the next patch be earlier in the series
-> >as a fix for the v3.15-rc cycle? Should they be cc: stable
-> >as well?
->=20
-> Well, right now the other fix has had _zero_ testing
-> so not really a -stable candidate just yet.
 
-how can you even say that ? Unless you work for some 3 letter acronym
-organizations, you have no clue about the fact that this was tested on a
-keystone 2 platform. How else would we have found the issue to start
-with ?
+>> Marcel,
+>>
+>> You may want to build on top of this patch split handling;
+>> I noticed some of the protocol drivers are calling
+>> hci_uart_tx_wakeup() from work functions already (so don't
+>> need to schedule another work...)
+>
+> I don't think that should be part of $subject, though.
 
---=20
-balbi
+I don't understand what you mean here.
 
---0ntfKIWw70PvrIHh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTM4ijAAoJEIaOsuA1yqREul4QAKHq2HAm+dn7ySPmkYJaCYEt
-VoZ1MH1tZvn5hXqeAdYRKkJcyCWY6qbHAVPGpwQbLl+06I3e+NZFbx9QFcDbLA0s
-ON5Sh7xaye6+AQeFoy43G94dg0VE87xbJuE/w5t93uDkSEWW79zSeZ3VsjkzZiBO
-E3n4h84nLP+Ksl8+PRueEErPs7+GV7zqj6a/NBBvJ/Wxda3/8kyHdO6IKpdfgXlU
-Pg34Iggenm/4y5ZDDW+HRKAhrJh+n96R9JDiYvu9Bq84vYYT+Ft/vG5uv1OWAEXs
-Ap77qKyPuOq+NjCd/MkOvYH3jO+9RXQXJzNme0XpaqdZj0vZcUw/KQcEARvmLPPN
-viT6v2IWR4FAT44zDhHbYjj0C4K0HtBKVzmrUsRCCPvsTxyWqKhJt3NDljG8xRst
-pWju7FAVhBUDHl4xLKM2iZmRMQDEQCj/uldVQ544DwRWtd58vik+xntRM8SekYSs
-vXUb+LWDwWlzHL38RxnCnxSF7d+yfF+mQsTfBIrCXvIfILDUpiYRwr9K3KPXappD
-z4pJaJY5DYabg5SxvYVgSxNylWVl5ZqyeuATAd9YZml42odv1yPjiArO5QtOuUS/
-AGrh5OImRICYPwD/VE+EtaikqVMlPSDdvyKALl+apx9cfU8H/pushQuBeSEaZKqQ
-Riw7R1n70klzISorplNq
-=YHH1
------END PGP SIGNATURE-----
-
---0ntfKIWw70PvrIHh--
+Regards,
+Peter Hurley
