@@ -1,99 +1,96 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 10/11] Revert "serial: omap: unlock the port lock"
-Date: Wed, 26 Mar 2014 22:37:24 -0500
-Message-ID: <20140327033724.GB13038@saruman.home>
-References: <1395343807-21618-1-git-send-email-balbi@ti.com>
- <1395343807-21618-10-git-send-email-balbi@ti.com>
- <20140325182856.GA31906@atomide.com>
- <5333732F.6040803@hurleysoftware.com>
- <20140327021043.GB11651@saruman.home>
- <53338C81.3060600@hurleysoftware.com>
-Reply-To: <balbi@ti.com>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: Re: [RFC PATCH 02/12] pci: host: pcie-dra7xx: add support for
+ pcie-dra7xx controller
+Date: Thu, 27 Mar 2014 12:43:41 +0900
+Message-ID: <000c01cf496e$bf2c85b0$3d859110$%han@samsung.com>
+References: <1395842272-15267-1-git-send-email-kishon@ti.com>
+ <1395842272-15267-3-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oC1+HKm2/end4ao3"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <53338C81.3060600@hurleysoftware.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-bluetooth@vger.kernel.org, m-karicheri2@ti.com, b32955@freescale.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-reply-to: <1395842272-15267-3-git-send-email-kishon@ti.com>
+Content-language: ko
+Sender: linux-pci-owner@vger.kernel.org
+To: 'Kishon Vijay Abraham I' <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com, mohit.kumar@st.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, paul@pwsan.com, 'Jingoo Han' <jg1.han@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
---oC1+HKm2/end4ao3
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wednesday, March 26, 2014 10:58 PM, Kishon Vijay Abraham I wrote:
+> 
+> Added support for pcie controller in dra7xx. This driver re-uses
+> the designware core code that is already present in kernel.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
-Hi,
+Hi Kishon,
+Long time no see! I added trivial comments.
 
-On Wed, Mar 26, 2014 at 10:27:13PM -0400, Peter Hurley wrote:
-> On 03/26/2014 10:10 PM, Felipe Balbi wrote:
-> >Hi,
-> >
-> >On Wed, Mar 26, 2014 at 08:39:11PM -0400, Peter Hurley wrote:
-> >>On 03/25/2014 02:28 PM, Tony Lindgren wrote:
-> >>>* Felipe Balbi <balbi@ti.com> [140320 12:39]:
-> >>>>This reverts commit 0324a821029e1f54e7a7f8fed48693cfce42dc0e.
-> >>>>
-> >>>>That commit tried to fix a deadlock problem when using
-> >>>>hci_ldisc, but it turns out the bug was in hci_ldsic
-> >>>>all along where it was calling ->write() from within
-> >>>>->write_wakeup() callback.
-> >>>>
-> >>>>The problem is that ->write_wakeup() was called with
-> >>>>port lock held and ->write() tried to grab the same
-> >>>>port lock.
-> >>>
-> >>>Should this and the next patch be earlier in the series
-> >>>as a fix for the v3.15-rc cycle? Should they be cc: stable
-> >>>as well?
-> >>
-> >>Well, right now the other fix has had _zero_ testing
-> >>so not really a -stable candidate just yet.
-> >
-> >how can you even say that ?
->=20
-> I misunderstood when you wrote:
->=20
-> On 03/20/2014 02:11 PM, Felipe Balbi wrote:
-> > here's a build-tested only patch which is waiting for testing from other
-> > colleagues who've got a platform to reproduce the problem:
->=20
-> and then the version I reviewed had no Tested-by: tags.
+> ---
+>  Documentation/devicetree/bindings/pci/ti-pci.txt |   35 ++
+>  drivers/pci/host/Kconfig                         |   10 +
+>  drivers/pci/host/Makefile                        |    1 +
+>  drivers/pci/host/pcie-dra7xx.c                   |  411 ++++++++++++++++++++++
 
-I wouldn't add that tag myself, but Murali (in Cc) did help testing
-together with other colleagues.
+How about using 'pci-' prefix?
+As it was discussed earlier, 'pci-' prefix is more proper.
 
-> >How else would we have found the issue to start with ?
->=20
-> Bug report?
+>  4 files changed, 457 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/pci/ti-pci.txt
+>  create mode 100644 drivers/pci/host/pcie-dra7xx.c
 
-touch=E8 :-)
+[.....]
 
---=20
-balbi
+> --- /dev/null
+> +++ b/drivers/pci/host/pcie-dra7xx.c
 
---oC1+HKm2/end4ao3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+[.....]
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> +#define	PCIECTRL_TI_CONF_IRQSTATUS_MAIN		0x0024
+> +#define	PCIECTRL_TI_CONF_IRQENABLE_SET_MAIN	0x0028
 
-iQIcBAEBAgAGBQJTM5z0AAoJEIaOsuA1yqRE0bsP/iCy3V/lwOh3OUogVRSs6ydK
-G6/20Me4nY/LQSanabXL7doAVY3QS7u/A8foiyeDvYplqyXy17F+hddxolenlvaD
-5azuIcAiamm4D4T78D7nWZMB6bZ0nhNcEsPcN3u0VHDtyXZwGG40aR4M6dBED+bb
-QnpF8w3alnnWGHOfp87dbDAYXbJVBqdozAbhTXs8teFGbfPxfvHuXF+0upt2cPux
-yS/PlO1T54H9BE2Wyitx4od28va+9MFre5xAs9ENzPrhzbyYwMtuY55zRahfobID
-qrNQvpKTsMhsPc7nHtTrpbNjZoguHVctKDDibsFhSco7Vr3Uct3/vLgUnqWf5pSH
-BeDe3bnPf3mQDctXidvzJ531wB6qn5gzRVnm61OagVAYl9hsqqvl2x+W1HtmdBat
-atChme2C+g38zizPNc3NW2TUVyHfu1g/soLi6oBu9gMWHOBk5VN7bdJznee2S5Zs
-r13UN7mGyYsak0piDDVBEAGCldIqx5PnbIJQN5RHqdwc74Se8Pfw+FsYEYKyctI3
-uomzTcQ4NANKOWB13agtz7EprZhicezMx1m7fRNxD6DJ18ic33nCj/0Imw750KqR
-ckg17OW+jzrKdISJ/9utvTL8yxdUa1N+4lRBn4rEPtIrnkZCvBqlKHG6UNWwq9y1
-vXBBRCzY/IO8zBLsjIVu
-=IGOa
------END PGP SIGNATURE-----
+I don't think that it's good to add vendor names such as TI
+to SFR names.
 
---oC1+HKm2/end4ao3--
+How about adding 'DRA7XX' or just removing 'TI'?
+
+1. PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN
+
+2. PCIECTRL_CONF_IRQSTATUS_MAIN
+
+[.....]
+
+> +enum dra7xx_pcie_device_type {
+> +	DRA7XX_PCIE_UNKNOWN_TYPE,
+> +	DRA7XX_PCIE_EP_TYPE,
+> +	DRA7XX_PCIE_LEG_EP_TYPE,
+> +	DRA7XX_PCIE_RC_TYPE,
+> +};
+
+This driver can support only RC mode, so, these enum can be removed.
+
+[.....]
+
+> +	of_property_read_u32(node, "ti,device-type", &device_type);
+> +	switch (device_type) {
+> +	case DRA7XX_PCIE_RC_TYPE:
+> +		dra7xx_pcie_writel(dra7xx->base,
+> +			PCIECTRL_TI_CONF_DEVICE_TYPE, DEVICE_TYPE_RC);
+> +		break;
+> +	case DRA7XX_PCIE_EP_TYPE:
+> +		dra7xx_pcie_writel(dra7xx->base,
+> +			PCIECTRL_TI_CONF_DEVICE_TYPE, DEVICE_TYPE_EP);
+> +		break;
+> +	case DRA7XX_PCIE_LEG_EP_TYPE:
+> +		dra7xx_pcie_writel(dra7xx->base,
+> +			PCIECTRL_TI_CONF_DEVICE_TYPE, DEVICE_TYPE_LEG_EP);
+> +		break;
+> +	default:
+> +		dev_dbg(dev, "UNKNOWN device type %d\n", device_type);
+> +	}
+
+Thus, this switch can be removed.
+Others look good.
+
+Best regards,
+Jingoo Han
