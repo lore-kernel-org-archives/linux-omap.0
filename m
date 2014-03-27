@@ -1,84 +1,79 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 09/11] bluetooth: hci_ldisc: fix deadlock condition
-Date: Wed, 26 Mar 2014 21:09:09 -0500
-Message-ID: <20140327020909.GA11651@saruman.home>
+Subject: Re: [PATCH 10/11] Revert "serial: omap: unlock the port lock"
+Date: Wed, 26 Mar 2014 21:10:43 -0500
+Message-ID: <20140327021043.GB11651@saruman.home>
 References: <1395343807-21618-1-git-send-email-balbi@ti.com>
- <1395343807-21618-9-git-send-email-balbi@ti.com>
- <53337513.1010708@hurleysoftware.com>
+ <1395343807-21618-10-git-send-email-balbi@ti.com>
+ <20140325182856.GA31906@atomide.com>
+ <5333732F.6040803@hurleysoftware.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+HP7ph2BbKc20aGI"
+	protocol="application/pgp-signature"; boundary="0ntfKIWw70PvrIHh"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <53337513.1010708@hurleysoftware.com>
+In-Reply-To: <5333732F.6040803@hurleysoftware.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Hurley <peter@hurleysoftware.com>
-Cc: Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, Marcel Holtmann <marcel@holtmann.org>, linux-serial@vger.kernel.org, linux-bluetooth@vger.kernel.org, m-karicheri2@ti.com, b32955@freescale.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-bluetooth@vger.kernel.org, m-karicheri2@ti.com, b32955@freescale.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---+HP7ph2BbKc20aGI
+--0ntfKIWw70PvrIHh
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, Mar 26, 2014 at 08:47:15PM -0400, Peter Hurley wrote:
-> [ +to Marcel Holtmann ]
->=20
-> On 03/20/2014 03:30 PM, Felipe Balbi wrote:
-> >LDISCs shouldn't call tty->ops->write() from within
-> >->write_wakeup().
+On Wed, Mar 26, 2014 at 08:39:11PM -0400, Peter Hurley wrote:
+> On 03/25/2014 02:28 PM, Tony Lindgren wrote:
+> >* Felipe Balbi <balbi@ti.com> [140320 12:39]:
+> >>This reverts commit 0324a821029e1f54e7a7f8fed48693cfce42dc0e.
+> >>
+> >>That commit tried to fix a deadlock problem when using
+> >>hci_ldisc, but it turns out the bug was in hci_ldsic
+> >>all along where it was calling ->write() from within
+> >>->write_wakeup() callback.
+> >>
+> >>The problem is that ->write_wakeup() was called with
+> >>port lock held and ->write() tried to grab the same
+> >>port lock.
 > >
-> >->write_wakeup() is called with port lock taken and
-> >IRQs disabled, tty->ops->write() will try to acquire
-> >the same port lock and we will deadlock.
-> >
-> >Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
-> >Reported-by: Huang Shijie <b32955@freescale.com>
-> >Signed-off-by: Felipe Balbi <balbi@ti.com>
+> >Should this and the next patch be earlier in the series
+> >as a fix for the v3.15-rc cycle? Should they be cc: stable
+> >as well?
 >=20
-> I just noticed this patch wasn't addressed to Marcel;
-> seems like this should go through the bluetooth tree (but not
-> through bluetooth-next because it fixes an oops).
+> Well, right now the other fix has had _zero_ testing
+> so not really a -stable candidate just yet.
 
-read the archives:
-
-http://marc.info/?l=3Dlinux-bluetooth&m=3D139534449409583&w=3D2
-
-> Marcel,
->=20
-> You may want to build on top of this patch split handling;
-> I noticed some of the protocol drivers are calling
-> hci_uart_tx_wakeup() from work functions already (so don't
-> need to schedule another work...)
-
-I don't think that should be part of $subject, though.
+how can you even say that ? Unless you work for some 3 letter acronym
+organizations, you have no clue about the fact that this was tested on a
+keystone 2 platform. How else would we have found the issue to start
+with ?
 
 --=20
 balbi
 
---+HP7ph2BbKc20aGI
+--0ntfKIWw70PvrIHh
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTM4hFAAoJEIaOsuA1yqREwyIP/3XEL4u03XTpxbTA6+F/gBxx
-6H2b5EFxQqsgJGUm1mDwMQP8R+pR18nxgdEVq4xvyStHO3rWtJmNVDXKHFrn1akF
-lDI0iboVake1GqOEZnNUygYQ37zawnZLoEMQp4SzMpz2P6e8Gx0D9cw7zw6MJrdW
-NQQe/n1Z/+CItv6wKz/CkkNggPzT9jg8sWUAEdRbDB9uNYidS7zexP6WKUh1EWgr
-dV6vYaaG6hrioayIj+znPR8E6D3CJDiKUxYjUYyltEEpG7aKoqE9jZYakvwnq8jv
-qeAadfw2IE45bVWQL6CPYGZKRg4PJJQtclT9pGuA9U1MY82BM4Jq37Didttn+K11
-3zOuICgZFka1IOFuHmg4FnBfptf8zdOloqVnznDOGcxdz7Rx+Rxk8j0pF9ySt1JY
-WvluP6EhJayhtHn0hz2GKvm8uVDhX7jyB8dlugqRuSM6vum+K/09tntUvyBhuq8g
-jWp5C9+hrKaPdHNghEPmLAJB6NePbzGG0286mh2J6GlJlzI3k5a1mZ4X1V/+6mN8
-hvnZEg8K9zfacNoiCorHQcatZPtmCWI1FJFPMriasb9wAlHbQvAKy1hbAeMzum8P
-U5upoj2gsYnp1qTz0N8Bxg/yUpnrfXjUHvCZefL4iIN7K2Vj1F3UOe/C+lemszVz
-GTE4mIkmBDfQ1z/3UZDQ
-=9+YE
+iQIcBAEBAgAGBQJTM4ijAAoJEIaOsuA1yqREul4QAKHq2HAm+dn7ySPmkYJaCYEt
+VoZ1MH1tZvn5hXqeAdYRKkJcyCWY6qbHAVPGpwQbLl+06I3e+NZFbx9QFcDbLA0s
+ON5Sh7xaye6+AQeFoy43G94dg0VE87xbJuE/w5t93uDkSEWW79zSeZ3VsjkzZiBO
+E3n4h84nLP+Ksl8+PRueEErPs7+GV7zqj6a/NBBvJ/Wxda3/8kyHdO6IKpdfgXlU
+Pg34Iggenm/4y5ZDDW+HRKAhrJh+n96R9JDiYvu9Bq84vYYT+Ft/vG5uv1OWAEXs
+Ap77qKyPuOq+NjCd/MkOvYH3jO+9RXQXJzNme0XpaqdZj0vZcUw/KQcEARvmLPPN
+viT6v2IWR4FAT44zDhHbYjj0C4K0HtBKVzmrUsRCCPvsTxyWqKhJt3NDljG8xRst
+pWju7FAVhBUDHl4xLKM2iZmRMQDEQCj/uldVQ544DwRWtd58vik+xntRM8SekYSs
+vXUb+LWDwWlzHL38RxnCnxSF7d+yfF+mQsTfBIrCXvIfILDUpiYRwr9K3KPXappD
+z4pJaJY5DYabg5SxvYVgSxNylWVl5ZqyeuATAd9YZml42odv1yPjiArO5QtOuUS/
+AGrh5OImRICYPwD/VE+EtaikqVMlPSDdvyKALl+apx9cfU8H/pushQuBeSEaZKqQ
+Riw7R1n70klzISorplNq
+=YHH1
 -----END PGP SIGNATURE-----
 
---+HP7ph2BbKc20aGI--
+--0ntfKIWw70PvrIHh--
