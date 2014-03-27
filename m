@@ -1,102 +1,49 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [RFC PATCH 02/12] pci: host: pcie-dra7xx: add support for pcie-dra7xx
- controller
-Date: Thu, 27 Mar 2014 10:56:02 +0530
-Message-ID: <5333B66A.8020804@ti.com>
-References: <1395842272-15267-1-git-send-email-kishon@ti.com> <1395842272-15267-3-git-send-email-kishon@ti.com> <000c01cf496e$bf2c85b0$3d859110$%han@samsung.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v2 0/2] add parallel NAND support for TI's new OMAPx and
+ AMxx platforms
+Date: Thu, 27 Mar 2014 07:19:10 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAB5FA6@DBDE04.ent.ti.com>
+References: <1394617547-25240-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <000c01cf496e$bf2c85b0$3d859110$%han@samsung.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Jingoo Han <jg1.han@samsung.com>
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com, mohit.kumar@st.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, paul@pwsan.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44550 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751524AbaC0HTS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Mar 2014 03:19:18 -0400
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>
+
+HI Tony,
+
+>From: Gupta, Pekon
+[...]
+>I see following patches in your tree/branch  "omap-for-v3.15/dt"
+>But probably they were omitted in the pull request. Is there something, I need to do for these ?
+>
+>	f68e355  2014-03-02  ARM: dts: am43xx: add support for parallel NAND flash
+>	c06c527  2014-03-02  ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
+>	91994fa  2014-03-02  ARM: dts: am335x-evm: NAND: update MTD partition table
+>	0611c41  2014-03-02  ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms and ECC schemes
+>
+>
+>Also, I had sent a [v2] for one of the patches, dropped by you. Please see if that can be picked
+>	[Patch v2 1/2] ARM: dts: dra7: add support for parallel NAND flash
+>	[Patch v2 1/2] ARM: dts: am43xx: fix starting offset of NAND.filesystem MTD partition
+>
+>
+Please let me know, if I need to rebase any of the patches in follow series
+against your for_3.15/dt  or any other branch.
+
+(1) [Partly Merged] "add parallel NAND support for TI's new OMAPx and AMxx platforms"
+http://www.spinics.net/lists/linux-omap/msg104305.html
+
+(2) [New Patches] "add parallel NAND support for TI's new OMAPx and AMxx platforms (part-2)"
+http://www.spinics.net/lists/linux-omap/msg104668.html
 
 
-
-On Thursday 27 March 2014 09:13 AM, Jingoo Han wrote:
-> On Wednesday, March 26, 2014 10:58 PM, Kishon Vijay Abraham I wrote:
->>
->> Added support for pcie controller in dra7xx. This driver re-uses
->> the designware core code that is already present in kernel.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> 
-> Hi Kishon,
-> Long time no see! I added trivial comments.
-
-yeah, these were in my TODO for a long time. Sorry for it though.
-> 
->> ---
->>  Documentation/devicetree/bindings/pci/ti-pci.txt |   35 ++
->>  drivers/pci/host/Kconfig                         |   10 +
->>  drivers/pci/host/Makefile                        |    1 +
->>  drivers/pci/host/pcie-dra7xx.c                   |  411 ++++++++++++++++++++++
-> 
-> How about using 'pci-' prefix?
-> As it was discussed earlier, 'pci-' prefix is more proper.
-> 
->>  4 files changed, 457 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/pci/ti-pci.txt
->>  create mode 100644 drivers/pci/host/pcie-dra7xx.c
-> 
-> [.....]
-> 
->> --- /dev/null
->> +++ b/drivers/pci/host/pcie-dra7xx.c
-> 
-> [.....]
-> 
->> +#define	PCIECTRL_TI_CONF_IRQSTATUS_MAIN		0x0024
->> +#define	PCIECTRL_TI_CONF_IRQENABLE_SET_MAIN	0x0028
-> 
-> I don't think that it's good to add vendor names such as TI
-> to SFR names.
-> 
-> How about adding 'DRA7XX' or just removing 'TI'?
-> 
-> 1. PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN
-
-ok.
-> 
-> 2. PCIECTRL_CONF_IRQSTATUS_MAIN
-> 
-> [.....]
-> 
->> +enum dra7xx_pcie_device_type {
->> +	DRA7XX_PCIE_UNKNOWN_TYPE,
->> +	DRA7XX_PCIE_EP_TYPE,
->> +	DRA7XX_PCIE_LEG_EP_TYPE,
->> +	DRA7XX_PCIE_RC_TYPE,
->> +};
-> 
-> This driver can support only RC mode, so, these enum can be removed.
-> 
-> [.....]
-> 
->> +	of_property_read_u32(node, "ti,device-type", &device_type);
->> +	switch (device_type) {
->> +	case DRA7XX_PCIE_RC_TYPE:
->> +		dra7xx_pcie_writel(dra7xx->base,
->> +			PCIECTRL_TI_CONF_DEVICE_TYPE, DEVICE_TYPE_RC);
->> +		break;
->> +	case DRA7XX_PCIE_EP_TYPE:
->> +		dra7xx_pcie_writel(dra7xx->base,
->> +			PCIECTRL_TI_CONF_DEVICE_TYPE, DEVICE_TYPE_EP);
->> +		break;
->> +	case DRA7XX_PCIE_LEG_EP_TYPE:
->> +		dra7xx_pcie_writel(dra7xx->base,
->> +			PCIECTRL_TI_CONF_DEVICE_TYPE, DEVICE_TYPE_LEG_EP);
->> +		break;
->> +	default:
->> +		dev_dbg(dev, "UNKNOWN device type %d\n", device_type);
->> +	}
-> 
-> Thus, this switch can be removed.
-
-sure.
-
-Thanks
-Kishon
+with regards, pekon
