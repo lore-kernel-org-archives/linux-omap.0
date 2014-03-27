@@ -1,67 +1,48 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: fix usage of IS_ERR_VALUE with
- pm_runtime_get_sync
-Date: Thu, 27 Mar 2014 18:52:31 +0100
-Message-ID: <20140327175231.GC11379@katana>
-References: <1395937113-10222-1-git-send-email-nm@ti.com>
+From: Paolo Pisati <p.pisati@gmail.com>
+Subject: 3.1[34]: omap4: panda: hang on reboot?
+Date: Thu, 27 Mar 2014 18:54:14 +0100
+Message-ID: <20140327175414.GA5795@luxor.wired.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zCKi3GIZzVBPywwA"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1395937113-10222-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: linux-omap@vger.kernel.org
-
-
---zCKi3GIZzVBPywwA
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:55486 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754922AbaC0RyS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Mar 2014 13:54:18 -0400
+Received: by mail-ee0-f45.google.com with SMTP id d17so3169043eek.18
+        for <linux-omap@vger.kernel.org>; Thu, 27 Mar 2014 10:54:17 -0700 (PDT)
+Received: from gmail.com (2-230-238-136.ip204.fastwebnet.it. [2.230.238.136])
+        by mx.google.com with ESMTPSA id x45sm5840803eef.15.2014.03.27.10.54.16
+        for <linux-omap@vger.kernel.org>
+        (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
+        Thu, 27 Mar 2014 10:54:17 -0700 (PDT)
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
 
-On Thu, Mar 27, 2014 at 11:18:33AM -0500, Nishanth Menon wrote:
-> we use IS_ERR_VALUE to check for error values of pm_runtime_get_sync,
-> when the value can only be < 0 in the case of err. Replace the
-> check with a simpler < 0 check.
->=20
-> This fixes the coccicheck warnings:
-> linux-2.6/drivers/i2c/busses/i2c-omap.c:1157:5-24:
-> pm_runtime_get_sync returns < 0 as error. Unecessary IS_ERR_VALUE at
-> line 1158
-> linux-2.6/drivers/i2c/busses/i2c-omap.c:1278:7-26:
-> pm_runtime_get_sync returns < 0 as error. Unecessary IS_ERR_VALUE at
-> line 1279
-> drivers/i2c/busses/i2c-omap.c:638:5-24:
-> pm_runtime_get_sync returns < 0 as error. Unecessary IS_ERR_VALUE at
-> line 639
->=20
-> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+I've been experiencing hangs on reboot on two different panda boards (es rev1
+and vanilla rev a1) with v3.14-rc8 (but reproducible in 3.13 too):
 
-Applied to for-next, thanks!
+toolchanin: gcc version 4.8.1 (Ubuntu/Linaro 4.8.1-10ubuntu7)
 
+the config is a multi_v7_defconfig plus a couple of codepages:
 
---zCKi3GIZzVBPywwA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+http://people.canonical.com/~ppisati/omap4_reboot_hangs/config
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+a prebuilt zImage is available here:
 
-iQIcBAEBAgAGBQJTNGVfAAoJEBQN5MwUoCm2RsIP/3mwwJgWLpQUFnEkgPuGZdus
-53YlHaBF1hBT2ziO+TYQg44/j3oU4uzBN64ImJYKTRZqGwsnT4m9Yj+bkOJFXwKr
-DSqXMMAmojApJr2bXt3iSMUl8vD0AEGKoLWvEY9QClVo+Mb5bHnkoUlBQZSRRquN
-QAH36aLCsJtFz/1iHGzQCY/UAQyESK9x62KghgKFVoRegYNqOcr6HK/ed8OJs4J/
-F7iXe8EVXIcinS250/nqEtpzBbfAcZE8TKd3EOLpFI2785KzK7Q+N+DGp8tsmQJC
-odXXcUPZ4Fk2ZNeQ+lZxl8LCo67wNvGS5LuLrp2SGDJgrEWEWcvMvsfKByZSGqLX
-hc2q//ioYneapURLvBSdYExCstBtlZs2ozsAI94Nsdr8evUgU4ixKlNr9AmyWjhY
-FFHzdGL49MvY/JOSte1HyTH+QgJIEJgxtXPZ1kyEM1YTIMvfBtVX1Q3ecoarkG0v
-OwOUYDV7OJsJgIq1MKl2dKmItjzVzoyJ12K7X82Mze+58m7XQnbssrPllctBlKc0
-9YuxzB8kOBHZWWfxkLtFCAhCkRmw0+Ff9S3QYF2xZCagU/7XfpS6T0wZkY3oT+GR
-0oYu2fpsJZFczxXwnxZJO9jVxkBY+BJ9FLd/B7GEJAaiEtPtx7hAXaBL4MonJcEn
-EuMLcHNripvta3mVE8bb
-=ARtt
------END PGP SIGNATURE-----
+http://people.canonical.com/~ppisati/omap4_reboot_hangs/zImage
 
---zCKi3GIZzVBPywwA--
+sometimes i can hit this two times in a row, others it's a bit less
+frequent - put this into your crontab and let it go:
+
+*/5 * * * *       /bin/date >> /reboot.log && /sbin/reboot
+
+it never passed 2hrs of reboot cycles.
+
+I already tried different u-boots but that doesn't make any difference,
+am i the only one experiencing this issue?
+-- 
+bye,
+p.
