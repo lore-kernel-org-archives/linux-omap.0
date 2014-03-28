@@ -1,87 +1,38 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH trivial 1/3] ARM: dts: Grammar /is uses/ is used/
-Date: Fri, 28 Mar 2014 11:11:37 +0100
-Message-ID: <1396001499-17638-1-git-send-email-geert@linux-m68k.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: L2 cache: use macro instead of const
+	number
+Date: Fri, 28 Mar 2014 10:49:54 +0000
+Message-ID: <20140328104954.GC27282@n2100.arm.linux.org.uk>
+References: <5ea7277c21215c7b4aa776d5379dc2d6263228c6.1395994759.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jiri Kosina <trivial@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:41160 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751721AbaC1KuQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Mar 2014 06:50:16 -0400
+Content-Disposition: inline
+In-Reply-To: <5ea7277c21215c7b4aa776d5379dc2d6263228c6.1395994759.git.nsekhar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 
-From: Geert Uytterhoeven <geert+renesas@glider.be>
+On Fri, Mar 28, 2014 at 02:05:28PM +0530, Sekhar Nori wrote:
+> From: Afzal Mohammed <afzal@ti.com>
+> 
+> Its better to use the available macro than 0x1.
+> No functional change.
+> 
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> ---
+> This series applies to latest of linux-next/master
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
----
- arch/arm/boot/dts/am33xx.dtsi |    2 +-
- arch/arm/boot/dts/dra7.dtsi   |    2 +-
- arch/arm/boot/dts/omap4.dtsi  |    2 +-
- arch/arm/boot/dts/omap5.dtsi  |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+NAK.  See my L2 cache series posted on LAKML which completely removes
+this code.
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 6d95d3df33c7..70f7f3eb5fb4 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -68,7 +68,7 @@
- 	};
- 
- 	/*
--	 * The soc node represents the soc top level view. It is uses for IPs
-+	 * The soc node represents the soc top level view. It is used for IPs
- 	 * that are not memory mapped in the MPU view or for the MPU itself.
- 	 */
- 	soc {
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 1fd75aa4639d..c19e90ecf95e 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -75,7 +75,7 @@
- 	};
- 
- 	/*
--	 * The soc node represents the soc top level view. It is uses for IPs
-+	 * The soc node represents the soc top level view. It is used for IPs
- 	 * that are not memory mapped in the MPU view or for the MPU itself.
- 	 */
- 	soc {
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index d3f8a6e8ca20..a07ea359ae20 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -67,7 +67,7 @@
- 	};
- 
- 	/*
--	 * The soc node represents the soc top level view. It is uses for IPs
-+	 * The soc node represents the soc top level view. It is used for IPs
- 	 * that are not memory mapped in the MPU view or for the MPU itself.
- 	 */
- 	soc {
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index a72813a9663e..aa9878c0aaad 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -87,7 +87,7 @@
- 	};
- 
- 	/*
--	 * The soc node represents the soc top level view. It is uses for IPs
-+	 * The soc node represents the soc top level view. It is used for IPs
- 	 * that are not memory mapped in the MPU view or for the MPU itself.
- 	 */
- 	soc {
 -- 
-1.7.9.5
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
