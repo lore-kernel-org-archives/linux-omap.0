@@ -1,49 +1,52 @@
 From: Sekhar Nori <nsekhar@ti.com>
-Subject: [PATCH 1/2] ARM: OMAP2+: L2 cache: use macro instead of const number
-Date: Fri, 28 Mar 2014 14:05:28 +0530
-Message-ID: <5ea7277c21215c7b4aa776d5379dc2d6263228c6.1395994759.git.nsekhar@ti.com>
+Subject: Re: [PATCH V3 0/6] Add Display support for AM43xx
+Date: Fri, 28 Mar 2014 15:08:26 +0530
+Message-ID: <53354312.3020901@ti.com>
+References: <1395658916-9032-1-git-send-email-sathyap@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39954 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751720AbaC1Jib (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Mar 2014 05:38:31 -0400
+In-Reply-To: <1395658916-9032-1-git-send-email-sathyap@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sathya Prakash M R <sathyap@ti.com>, tomi.valkeinen@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-From: Afzal Mohammed <afzal@ti.com>
+On Monday 24 March 2014 04:31 PM, Sathya Prakash M R wrote:
+> This patch series adds DSS support to the AM43x. The DPI LCD
+> panel is supported on both am43x-epos-evm and am437x-gp-evm.
+> The LCD panel is from OSD model: OSD057T0559-34TS
+> 
+> Version 1 of this series can be found below[1]:
+> [1]: https://patchwork.kernel.org/patch/3274421/
+> 
+> Tested on am43x-epos-evm and am437x-gp-evm.
+> 
+> Dependent patches :
+> Sourav patches adding device nodes for epos [2] and gp [3] evm
+> [2]: https://patchwork.kernel.org/patch/3246701/
+> [3]: https://patchwork.kernel.org/patch/3246751/
+> 
+> AM43xx has a dedicated display pll. Hence tomi patch improving
+> func clock handling is needed [4]
+> [4]: https://patchwork.kernel.org/patch/3196221/
+> 
+> Tomi patch adding DT support to DSS [5]
+> [5]: https://patchwork.kernel.org/patch/3516341/
 
-Its better to use the available macro than 0x1.
-No functional change.
+I think it will help to rebase the series to latest linux-next or Tomi's
+-next branch since he has already committed a change to move fbdev
+drivers to drivers/video/fbdev.
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
-This series applies to latest of linux-next/master
+I tried giving this series a spin, but could not do so because of this.
 
- arch/arm/mach-omap2/omap4-common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Rest of the dependencies seem to be already present in linux-next so
+there is good progress there.
 
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 95e171a..8f18460 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -219,7 +219,7 @@ static int __init omap_l2_cache_init(void)
- 		omap_smc1(0x109, aux_ctrl);
- 
- 	/* Enable PL310 L2 Cache controller */
--	omap_smc1(0x102, 0x1);
-+	omap_smc1(0x102, L2X0_CTRL_EN);
- 
- 	if (of_have_populated_dt())
- 		l2x0_of_init(aux_ctrl, L2X0_AUX_CTRL_MASK);
--- 
-1.7.10.1
+Thanks,
+Sekhar
+
