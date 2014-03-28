@@ -1,144 +1,79 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH] base: platform: add generic clock handling for
- platform-bus
-Date: Fri, 28 Mar 2014 09:42:45 -0500
-Message-ID: <20140328144245.GD17820@saruman.home>
-References: <1391191965-31102-1-git-send-email-balbi@ti.com>
- <2775124.TXohNNxBKa@avalon>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4zI0WCX1RcnW9Hbu"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2775124.TXohNNxBKa@avalon>
-Sender: linux-pm-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-pm@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, Geert Uytterhoeven <geert@linux-m68k.org>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+Subject: [PATCH 04/75] ARM: l2c: omap2: remove ES1.0 support
+Date: Fri, 28 Mar 2014 15:14:39 +0000
+Message-ID: <E1WTYUR-0004W9-RD@rmk-PC.arm.linux.org.uk>
+References: <20140328151249.GJ7528@n2100.arm.linux.org.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:41366 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751427AbaC1POo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Mar 2014 11:14:44 -0400
+In-Reply-To: <20140328151249.GJ7528@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
---4zI0WCX1RcnW9Hbu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Santosh says:
+> But we should kill all of that since we long back decided to remove
+> ES1.0 related code. The mach-omap code alreasy has removed the ES1.0
+> compatibility so feel free to remove any specific ES1.0
+> related stuff. That silicon is long dead.
 
-Hi,
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/mach-omap2/omap4-common.c | 25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
-On Wed, Mar 12, 2014 at 04:37:19PM +0100, Laurent Pinchart wrote:
-> Hi Felipe,
->=20
-> (CC'ing Geert Uytterhoeven as we happen to discuss runtime PM and clock=
-=20
-> handling for the Renesas SoCs at the moment)
->=20
-> Thank you for the patch. This is a bit of a late reply, but that's better=
- than=20
-> no reply I suppose. Please see below for a small comment.
->=20
-> On Friday 31 January 2014 12:12:45 Felipe Balbi wrote:
-> > Still TODO a commit log. Not for merging!!!!!
-> >=20
-> > NYET-Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >=20
-> > This patch is an idea I've had recently in order to combine several
-> > different PM implementations into the platform-bus.
-> >=20
-> > This patch is bare minimum for platforms which need to handle functiona=
-l and
-> > interface clocks but the whole thing is made optional.
-> >=20
-> > Note that this patch makes sure that by the time a platform_driver's pr=
-obe
-> > is called, we already have clocks enabled and pm_runtime_set_active() h=
-as
-> > been called, thus making sure that a device driver's pm_runtime_get_syn=
-c()
-> > will solely increase the pm usage counter.
-> >=20
-> > I have *NOT* tested this anywhere *YET*, but I suppose it shouldn't cau=
-se
-> > any issues since the clock API has ref counting too.
-> >=20
-> > Would really like to get some review from several folks involved with A=
-RM
-> > SoC PM so that's the reason for the wide audience. If I have missed
-> > anybody, please add them to Cc.
-> >=20
-> > As mentioned above, this is *NOT* meant for merging, but serves as a
-> > starting point for discussing some convergence of several PM domain
-> > implementations on different arch/arm/mach-* directories.
-> >=20
-> > For OMAP, this has the added benefit of removing clock handling from
-> > omap_device/omap_hwmod and, thus, dropping the need for so many DT_CLK()
-> > tables under drivers/clk/ti/
-> >=20
-> >  drivers/base/platform.c         | 169 ++++++++++++++++++++++++++++++++=
-+++--
-> >  include/linux/platform_device.h |   9 +++
-> >  2 files changed, 173 insertions(+), 5 deletions(-)
-> >=20
-> > diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> > index 3a94b79..86aeb5b 100644
-> > --- a/drivers/base/platform.c
-> > +++ b/drivers/base/platform.c
-> > @@ -484,6 +484,21 @@ static int platform_drv_probe(struct device *_dev)
-> >  	if (ACPI_HANDLE(_dev))
-> >  		acpi_dev_pm_attach(_dev, true);
-> >=20
-> > +	dev->fck =3D devm_clk_get(_dev, "fck");
-> > +	dev->ick =3D devm_clk_get(_dev, "ick");
->=20
-> My concern with this that some devices might want to handle their functio=
-nal=20
-> and interface clocks manually if they have exotic requirements. They woul=
-d=20
-> thus need a way to signal that the platform bus core should not try to pe=
-rform=20
-> clock management on its own.
->=20
-> One possible way would be to name the clocks differently for those device=
-s,=20
-> but we might then have a backward compatibility issue with DT.
->=20
-> Another concern is how to handle the DT backward compatibility for device=
-s=20
-> that would benefit from core management of their functional and interface=
-=20
-> clocks, but that currently don't name those clocks "fck" and "ick". Renam=
-ing=20
-> those clocks in DT wouldn't be a problem for the future, but backward=20
-> compatibility needs to be handled. Maybe platforms could provide aliases =
-in=20
-> that case.
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 6cd3f3772ecf..9f8d506f511d 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -181,7 +181,7 @@ static void omap4_l2x0_set_debug(unsigned long val)
+ 
+ static int __init omap_l2_cache_init(void)
+ {
+-	u32 aux_ctrl = 0;
++	u32 aux_ctrl;
+ 
+ 	/*
+ 	 * To avoid code running on other OMAPs in
+@@ -195,27 +195,18 @@ static int __init omap_l2_cache_init(void)
+ 	if (WARN_ON(!l2cache_base))
+ 		return -ENOMEM;
+ 
+-	/*
+-	 * 16-way associativity, parity disabled
+-	 * Way size - 32KB (es1.0)
+-	 * Way size - 64KB (es2.0 +)
+-	 */
+-	aux_ctrl = ((1 << L2X0_AUX_CTRL_ASSOCIATIVITY_SHIFT) |
++	/* 16-way associativity, parity disabled, way size - 64KB (es2.0 +) */
++	aux_ctrl = (1 << L2X0_AUX_CTRL_ASSOCIATIVITY_SHIFT) |
+ 			(0x1 << 25) |
+ 			(0x1 << L2X0_AUX_CTRL_NS_LOCKDOWN_SHIFT) |
+-			(0x1 << L2X0_AUX_CTRL_NS_INT_CTRL_SHIFT));
+-
+-	if (omap_rev() == OMAP4430_REV_ES1_0) {
+-		aux_ctrl |= 0x2 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT;
+-	} else {
+-		aux_ctrl |= ((0x3 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT) |
++			(0x1 << L2X0_AUX_CTRL_NS_INT_CTRL_SHIFT)) |
++			(0x3 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT) |
+ 			(1 << L2X0_AUX_CTRL_SHARE_OVERRIDE_SHIFT) |
+ 			(1 << L2X0_AUX_CTRL_DATA_PREFETCH_SHIFT) |
+ 			(1 << L2X0_AUX_CTRL_INSTR_PREFETCH_SHIFT) |
+-			(1 << L2X0_AUX_CTRL_EARLY_BRESP_SHIFT));
+-	}
+-	if (omap_rev() != OMAP4430_REV_ES1_0)
+-		omap_smc1(0x109, aux_ctrl);
++			(1 << L2X0_AUX_CTRL_EARLY_BRESP_SHIFT);
++
++	omap_smc1(0x109, aux_ctrl);
+ 
+ 	/* Enable PL310 L2 Cache controller */
+ 	omap_smc1(0x102, 0x1);
+-- 
+1.8.3.1
 
-yeah, I guess alias would be the way to go. Another possible way would
-be grab the clocks by phandle if of_node is a valid pointer. At the end
-of the day, the name of the clock shouldn't matter.
-
---=20
-balbi
-
---4zI0WCX1RcnW9Hbu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTNYplAAoJEIaOsuA1yqRE+18P/1poTi3azvbrCIUT3hgqdS7b
-S6aBvIkLPOWBn7nDQH59NCnphd9zs6aR2WtwlPhf8yyCGfOfnQYcohiDNzyVBCe1
-nThRi8oyprgjNqLGVSczR5Rf3vzfbk3jnWEWCaeGEXCujbma7+IXTfo2BXcSPM+7
-lb8iN1PyG815ZtHhYpizNhNzuR8jb/qTcqoMEwj0KGwGbpm4FHzKFRDn7kXfQcHs
-OnL1vetQ6uysAj7MWLoELAfBbG83c0owFOoAW6eT8GKlJGOHhwZg07qzFBHV8BOC
-2y6y2pdwFMpMualBy9e7lczKR5JeZLaVqzdUJaifb13V4bq6B31Io7rhTHQnBLm1
-riZCmCaxhs8aeWrTPbfJQZEqnMdJmhqcbotDGFp5vQb8fdMSmAr3jz2xH+M+1sO4
-IPLURYnTKfMCfUORiaJzMIaUHoS8Eagjxl+a66TDWIx0YDosATyUbsrX50ejhI0+
-5dt1OfLgo+7orUNmZVIEVMowIQdtLRKDdC3bpnPibw2wsW2bl7YqbWyzmhPyVOTq
-MKhqopASsUKu/vcFM0P3Zm6ENIX+eJov78T1TbCI9G3E389UDp+RH6tiTkEI48B9
-QyDxInuW7iVWa9dRblZh+CEFZAhUUtWY1thb3c5MC0q/Ne7GRB0bUK9c8rEjisAz
-wyiUVlARS30KdEBRffI2
-=HaQi
------END PGP SIGNATURE-----
-
---4zI0WCX1RcnW9Hbu--
