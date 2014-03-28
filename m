@@ -1,78 +1,49 @@
 From: Sekhar Nori <nsekhar@ti.com>
-Subject: [PATCH 2/2] ARM: OMAP2+: AM43x: L2 cache support
-Date: Fri, 28 Mar 2014 14:05:29 +0530
-Message-ID: <013dda556020e852a1bc5b875427e68ab9fdf69a.1395994759.git.nsekhar@ti.com>
-References: <5ea7277c21215c7b4aa776d5379dc2d6263228c6.1395994759.git.nsekhar@ti.com>
+Subject: [PATCH 1/2] ARM: OMAP2+: L2 cache: use macro instead of const number
+Date: Fri, 28 Mar 2014 14:05:28 +0530
+Message-ID: <5ea7277c21215c7b4aa776d5379dc2d6263228c6.1395994759.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46980 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751164AbaC1IgB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Mar 2014 04:36:01 -0400
-In-Reply-To: <5ea7277c21215c7b4aa776d5379dc2d6263228c6.1395994759.git.nsekhar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Sekhar Nori <nsekhar@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-omap@vger.kernel.org
 
 From: Afzal Mohammed <afzal@ti.com>
 
-Add support for L2 cache controller (PL310) on
-AM437x SoC.
+Its better to use the available macro than 0x1.
+No functional change.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig        |    1 +
- arch/arm/mach-omap2/omap4-common.c |    8 +++++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+This series applies to latest of linux-next/master
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 1124155..1fd34d2 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -65,6 +65,7 @@ config SOC_AM43XX
- 	select ARCH_HAS_OPP
- 	select ARM_GIC
- 	select MACH_OMAP_GENERIC
-+	select MIGHT_HAVE_CACHE_L2X0
- 
- config SOC_DRA7XX
- 	bool "TI DRA7XX"
+ arch/arm/mach-omap2/omap4-common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 8f18460..763a169 100644
+index 95e171a..8f18460 100644
 --- a/arch/arm/mach-omap2/omap4-common.c
 +++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -188,7 +188,7 @@ static int __init omap_l2_cache_init(void)
- 	 * To avoid code running on other OMAPs in
- 	 * multi-omap builds
- 	 */
--	if (!cpu_is_omap44xx())
-+	if (!cpu_is_omap44xx() && !soc_is_am43xx())
- 		return -ENODEV;
+@@ -219,7 +219,7 @@ static int __init omap_l2_cache_init(void)
+ 		omap_smc1(0x109, aux_ctrl);
  
- 	/* Static mapping, never released */
-@@ -200,6 +200,7 @@ static int __init omap_l2_cache_init(void)
- 	 * 16-way associativity, parity disabled
- 	 * Way size - 32KB (es1.0)
- 	 * Way size - 64KB (es2.0 +)
-+	 * Way size - 16KB (am43xx)
- 	 */
- 	aux_ctrl = ((1 << L2X0_AUX_CTRL_ASSOCIATIVITY_SHIFT) |
- 			(0x1 << 25) |
-@@ -208,6 +209,11 @@ static int __init omap_l2_cache_init(void)
+ 	/* Enable PL310 L2 Cache controller */
+-	omap_smc1(0x102, 0x1);
++	omap_smc1(0x102, L2X0_CTRL_EN);
  
- 	if (omap_rev() == OMAP4430_REV_ES1_0) {
- 		aux_ctrl |= 0x2 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT;
-+	} else if (soc_is_am43xx()) {
-+		aux_ctrl |= ((0x1 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT) |
-+			(1 << L2X0_AUX_CTRL_DATA_PREFETCH_SHIFT) |
-+			(1 << L2X0_AUX_CTRL_INSTR_PREFETCH_SHIFT) |
-+			(1 << L2X0_AUX_CTRL_EARLY_BRESP_SHIFT));
- 	} else {
- 		aux_ctrl |= ((0x3 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT) |
- 			(1 << L2X0_AUX_CTRL_SHARE_OVERRIDE_SHIFT) |
+ 	if (of_have_populated_dt())
+ 		l2x0_of_init(aux_ctrl, L2X0_AUX_CTRL_MASK);
 -- 
 1.7.10.1
-
