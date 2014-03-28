@@ -1,57 +1,30 @@
-From: Maxime Coquelin <maxime.coquelin@st.com>
-Subject: Re: [STLinux Kernel] [PATCH 49/75] ARM: l2c: fix register naming
-Date: Fri, 28 Mar 2014 19:51:19 +0100
-Message-ID: <5335C4A7.60904@st.com>
+From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 49/75] ARM: l2c: fix register naming
+Date: Fri, 28 Mar 2014 20:01:33 +0100
+Message-ID: <CACRpkdY99t-zd2C5yz9gjbucze99pZj6zOfKyL9jwDgk-FfoUw@mail.gmail.com>
 References: <20140328151249.GJ7528@n2100.arm.linux.org.uk>
- <E1WTYYH-0007GB-3M@rmk-PC.arm.linux.org.uk>
+	<E1WTYYH-0007GB-3M@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <E1WTYYH-0007GB-3M@rmk-PC.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
-Cc: Barry Song <baohua@kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, Anton Vorontsov <anton@enomsg.org>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Srinivas Kandagatla <srinivas.kandagatla@st.com>, spear-devel@list.st.com, Shawn Guo <shawn.guo@linaro.org>, Shiraz Hashim <shiraz.hashim@st.com>, Thierry Reding <thierry.reding@gmail.com>, Viresh Kumar <viresh.linux@gmail.com>, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>, linux-samsung-soc@vger.kernel.org, kernel@stlinux.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <E1WTYYH-0007GB-3M-eh5Bv4kxaXIANfyc6IWni62ZND6+EDdj@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Anton Vorontsov <anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org>, Shawn Guo <shawn.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Barry Song <baohua-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Viresh Kumar <viresh.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shiraz Hashim <shiraz.hashim-qxv4g6HH51o@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-qxv4g6HH51o@public.gmane.org>, Stuart Menefy <stuart.menefy-qxv4g6HH51o@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, spear-devel <spear-devel-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org>, kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-samsung-soc <linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Thanks Russel,
+On Fri, Mar 28, 2014 at 4:18 PM, Russell King
+<rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
 
-On 03/28/2014 04:18 PM, Russell King wrote:
 > We have a mixture of different devices with different register layouts,
 > but we group all the bits together in an opaque mess.  Split them out
 > into those which are L2C-310 specific and ones which refer to earlier
 > devices.  Provide full auxiliary control register definitions.
 >
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->   arch/arm/include/asm/hardware/cache-l2x0.h | 73 ++++++++++++++++++++----------
->   arch/arm/mach-cns3xxx/core.c               |  8 ++--
->   arch/arm/mach-imx/system.c                 |  8 ++--
->   arch/arm/mach-omap2/omap-mpuss-lowpower.c  |  2 +-
->   arch/arm/mach-omap2/omap4-common.c         | 18 ++++----
->   arch/arm/mach-prima2/l2x0.c                |  5 +-
->   arch/arm/mach-realview/realview_pbx.c      |  4 +-
->   arch/arm/mach-spear/spear13xx.c            |  6 +--
->   arch/arm/mach-sti/board-dt.c               |  8 ++--
->   arch/arm/mach-tegra/sleep.h                |  8 ++--
->   arch/arm/mach-ux500/cache-l2x0.c           |  4 +-
->   arch/arm/mach-vexpress/ct-ca9x4.c          |  4 +-
->   arch/arm/mm/cache-l2x0.c                   | 57 +++++++++++------------
->   arch/arm/plat-samsung/s5p-sleep.S          |  8 ++--
->   14 files changed, 118 insertions(+), 95 deletions(-)
->
+> Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
 
-For the mach-sti part:
+Acked-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+For ux500.
 
-Acked-by: Maxime Coquelin <maxime.coquelin@st.com>
-
-Thanks,
-Maxime
+Yours,
+Linus Walleij
