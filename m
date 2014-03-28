@@ -1,60 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 58/75] ARM: l2c: omap2: remove cache size override
-Date: Fri, 28 Mar 2014 09:03:59 -0700
-Message-ID: <20140328160358.GG24308@atomide.com>
-References: <20140328151249.GJ7528@n2100.arm.linux.org.uk>
- <E1WTYZ1-0007Gn-3J@rmk-PC.arm.linux.org.uk>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 00/44] outer cache changes
+Date: Fri, 28 Mar 2014 13:50:00 -0500
+Message-ID: <5335C458.8070202@ti.com>
+References: <20140317001302.GY21483@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:58210 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752014AbaC1QEG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Mar 2014 12:04:06 -0400
-Content-Disposition: inline
-In-Reply-To: <E1WTYZ1-0007Gn-3J@rmk-PC.arm.linux.org.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:37335 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752189AbaC1Sub (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Mar 2014 14:50:31 -0400
+In-Reply-To: <20140317001302.GY21483@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-* Russell King <rmk+kernel@arm.linux.org.uk> [140328 08:22]:
+On 03/16/2014 07:13 PM, Russell King - ARM Linux wrote:
+> This patch series is where I'm currently at with the total mess which
+> is L2 cache support.  That's putting it mildly.  This isn't intended
+> for anyone to pick up - this is still mostly in development.
 
-Missing description?
+Quick boot test against v3.14-rc8 showed no regressions for the
+platforms I ran through - ofcourse, the tests are basic boot, and
+unfortunately not any comprehensive cache performance tests.
 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  arch/arm/mach-omap2/omap4-common.c | 8 +++-----
->  1 file changed, 3 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-> index ce2fad84a43c..c0f9a81a2d32 100644
-> --- a/arch/arm/mach-omap2/omap4-common.c
-> +++ b/arch/arm/mach-omap2/omap4-common.c
-> @@ -212,20 +212,18 @@ static int __init omap_l2_cache_init(void)
->  		return -ENOMEM;
->  
->  	/* 16-way associativity, parity disabled, way size - 64KB (es2.0 +) */
-> -	aux_ctrl = L310_AUX_CTRL_ASSOCIATIVITY_16 |
-> -		   L310_AUX_CTRL_CACHE_REPLACE_RR |
-> +	aux_ctrl = L310_AUX_CTRL_CACHE_REPLACE_RR |
->  		   L310_AUX_CTRL_NS_LOCKDOWN |
->  		   L310_AUX_CTRL_NS_INT_CTRL |
-> -		   L2C_AUX_CTRL_WAY_SIZE(3) |
->  		   L2C_AUX_CTRL_SHARED_OVERRIDE |
->  		   L310_AUX_CTRL_DATA_PREFETCH |
->  		   L310_AUX_CTRL_INSTR_PREFETCH;
->  
->  	outer_cache.write_sec = omap4_l2c310_write_sec;
->  	if (of_have_populated_dt())
-> -		l2x0_of_init(aux_ctrl, L2X0_AUX_CTRL_MASK);
-> +		l2x0_of_init(aux_ctrl, 0xc19fffff);
->  	else
-> -		l2x0_init(l2cache_base, aux_ctrl, L2X0_AUX_CTRL_MASK);
-> +		l2x0_init(l2cache_base, aux_ctrl, 0xc19fffff);
->  
->  	return 0;
->  }
-> -- 
-> 1.8.3.1
-> 
+
+russell-l2c-fc0adeb-v3.14-rc8-test-omap2plus_defconfig
+ 1: am335x-evm:  Boot PASS: http://slexy.org/raw/s20BepYQRE
+ 2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s2UN5rONP3
+ 3: am3517-evm:  Boot PASS: http://slexy.org/raw/s24AcPGSZL
+ 4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s2IArYgC7S
+ 5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s20JBi80c7
+ 6: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s21KDOKenY
+ 7: beaglebone-black:  Boot PASS: http://slexy.org/raw/s2lXBwgynB
+ 8: beaglebone:  Boot PASS: http://slexy.org/raw/s2KzNGNIBt
+ 9: OMAP3430-Labrador(LDP):  Boot FAIL: http://slexy.org/raw/s21ekHLEY5
+(legacy problem - fix in linux-next)
+10: pandaboard-es:  Boot PASS: http://slexy.org/raw/s20dKIf8sa
+11:    sdp2430:  Boot PASS: http://slexy.org/raw/s20jxn1zA5
+12:    sdp3430:  Boot PASS: http://slexy.org/raw/s21m0nx262
+13:    sdp4430:  Boot PASS: http://slexy.org/raw/s21IxkfYTm
+14: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s20AKR1hRy
+TOTAL = 14 boards, Booted Boards = 13, No Boot boards = 1
+
+Vs:
+
+v3.14-rc8-omap2plus_defconfig
+ 1: am335x-evm:  Boot PASS: http://slexy.org/raw/s21CKn6A7h
+ 2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s20eC7gQ9T
+ 3: am3517-evm:  Boot PASS: http://slexy.org/raw/s20amKvVx5
+ 4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s2yVk3doef
+ 5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s22SsOWHaY
+ 6: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s21TDD4jhW
+ 7: beaglebone-black:  Boot PASS: http://slexy.org/raw/s20ltoXaiZ
+ 8: beaglebone:  Boot PASS: http://slexy.org/raw/s2DkrTbwG3
+ 9: OMAP3430-Labrador(LDP):  Boot FAIL: http://slexy.org/raw/s2JDOKtx9U
+(legacy problem - fix in linux-next)
+10: pandaboard-es:  Boot PASS: http://slexy.org/raw/s21WGaaGut
+11:    sdp2430:  Boot PASS: http://slexy.org/raw/s2Nr9p1Zyf
+12:    sdp3430:  Boot PASS: http://slexy.org/raw/s2kh0cfpGC
+13:    sdp4430:  Boot PASS: http://slexy.org/raw/s2Q6VyjmyW
+14: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s216EEpDwU
+TOTAL = 14 boards, Booted Boards = 13, No Boot boards = 1
+
+
+Please feel to add:
+Tested-by: Nishanth Menon <nm@ti.com>
+
+-- 
+Regards,
+Nishanth Menon
