@@ -1,74 +1,57 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 00/44] outer cache changes
-Date: Fri, 28 Mar 2014 13:50:00 -0500
-Message-ID: <5335C458.8070202@ti.com>
-References: <20140317001302.GY21483@n2100.arm.linux.org.uk>
+From: Maxime Coquelin <maxime.coquelin@st.com>
+Subject: Re: [STLinux Kernel] [PATCH 49/75] ARM: l2c: fix register naming
+Date: Fri, 28 Mar 2014 19:51:19 +0100
+Message-ID: <5335C4A7.60904@st.com>
+References: <20140328151249.GJ7528@n2100.arm.linux.org.uk>
+ <E1WTYYH-0007GB-3M@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37335 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752189AbaC1Sub (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Mar 2014 14:50:31 -0400
-In-Reply-To: <20140317001302.GY21483@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <E1WTYYH-0007GB-3M@rmk-PC.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+Cc: Barry Song <baohua@kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, Anton Vorontsov <anton@enomsg.org>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Srinivas Kandagatla <srinivas.kandagatla@st.com>, spear-devel@list.st.com, Shawn Guo <shawn.guo@linaro.org>, Shiraz Hashim <shiraz.hashim@st.com>, Thierry Reding <thierry.reding@gmail.com>, Viresh Kumar <viresh.linux@gmail.com>, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>, linux-samsung-soc@vger.kernel.org, kernel@stlinux.com
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On 03/16/2014 07:13 PM, Russell King - ARM Linux wrote:
-> This patch series is where I'm currently at with the total mess which
-> is L2 cache support.  That's putting it mildly.  This isn't intended
-> for anyone to pick up - this is still mostly in development.
+Thanks Russel,
 
-Quick boot test against v3.14-rc8 showed no regressions for the
-platforms I ran through - ofcourse, the tests are basic boot, and
-unfortunately not any comprehensive cache performance tests.
+On 03/28/2014 04:18 PM, Russell King wrote:
+> We have a mixture of different devices with different register layouts,
+> but we group all the bits together in an opaque mess.  Split them out
+> into those which are L2C-310 specific and ones which refer to earlier
+> devices.  Provide full auxiliary control register definitions.
+>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>   arch/arm/include/asm/hardware/cache-l2x0.h | 73 ++++++++++++++++++++----------
+>   arch/arm/mach-cns3xxx/core.c               |  8 ++--
+>   arch/arm/mach-imx/system.c                 |  8 ++--
+>   arch/arm/mach-omap2/omap-mpuss-lowpower.c  |  2 +-
+>   arch/arm/mach-omap2/omap4-common.c         | 18 ++++----
+>   arch/arm/mach-prima2/l2x0.c                |  5 +-
+>   arch/arm/mach-realview/realview_pbx.c      |  4 +-
+>   arch/arm/mach-spear/spear13xx.c            |  6 +--
+>   arch/arm/mach-sti/board-dt.c               |  8 ++--
+>   arch/arm/mach-tegra/sleep.h                |  8 ++--
+>   arch/arm/mach-ux500/cache-l2x0.c           |  4 +-
+>   arch/arm/mach-vexpress/ct-ca9x4.c          |  4 +-
+>   arch/arm/mm/cache-l2x0.c                   | 57 +++++++++++------------
+>   arch/arm/plat-samsung/s5p-sleep.S          |  8 ++--
+>   14 files changed, 118 insertions(+), 95 deletions(-)
+>
 
+For the mach-sti part:
 
-russell-l2c-fc0adeb-v3.14-rc8-test-omap2plus_defconfig
- 1: am335x-evm:  Boot PASS: http://slexy.org/raw/s20BepYQRE
- 2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s2UN5rONP3
- 3: am3517-evm:  Boot PASS: http://slexy.org/raw/s24AcPGSZL
- 4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s2IArYgC7S
- 5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s20JBi80c7
- 6: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s21KDOKenY
- 7: beaglebone-black:  Boot PASS: http://slexy.org/raw/s2lXBwgynB
- 8: beaglebone:  Boot PASS: http://slexy.org/raw/s2KzNGNIBt
- 9: OMAP3430-Labrador(LDP):  Boot FAIL: http://slexy.org/raw/s21ekHLEY5
-(legacy problem - fix in linux-next)
-10: pandaboard-es:  Boot PASS: http://slexy.org/raw/s20dKIf8sa
-11:    sdp2430:  Boot PASS: http://slexy.org/raw/s20jxn1zA5
-12:    sdp3430:  Boot PASS: http://slexy.org/raw/s21m0nx262
-13:    sdp4430:  Boot PASS: http://slexy.org/raw/s21IxkfYTm
-14: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s20AKR1hRy
-TOTAL = 14 boards, Booted Boards = 13, No Boot boards = 1
+Acked-by: Maxime Coquelin <maxime.coquelin@st.com>
 
-Vs:
-
-v3.14-rc8-omap2plus_defconfig
- 1: am335x-evm:  Boot PASS: http://slexy.org/raw/s21CKn6A7h
- 2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s20eC7gQ9T
- 3: am3517-evm:  Boot PASS: http://slexy.org/raw/s20amKvVx5
- 4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s2yVk3doef
- 5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s22SsOWHaY
- 6: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s21TDD4jhW
- 7: beaglebone-black:  Boot PASS: http://slexy.org/raw/s20ltoXaiZ
- 8: beaglebone:  Boot PASS: http://slexy.org/raw/s2DkrTbwG3
- 9: OMAP3430-Labrador(LDP):  Boot FAIL: http://slexy.org/raw/s2JDOKtx9U
-(legacy problem - fix in linux-next)
-10: pandaboard-es:  Boot PASS: http://slexy.org/raw/s21WGaaGut
-11:    sdp2430:  Boot PASS: http://slexy.org/raw/s2Nr9p1Zyf
-12:    sdp3430:  Boot PASS: http://slexy.org/raw/s2kh0cfpGC
-13:    sdp4430:  Boot PASS: http://slexy.org/raw/s2Q6VyjmyW
-14: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s216EEpDwU
-TOTAL = 14 boards, Booted Boards = 13, No Boot boards = 1
-
-
-Please feel to add:
-Tested-by: Nishanth Menon <nm@ti.com>
-
--- 
-Regards,
-Nishanth Menon
+Thanks,
+Maxime
