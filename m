@@ -1,56 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 43/75] ARM: l2c: omap2: remove explicit SMI calls to
- enable L2 cache
-Date: Fri, 28 Mar 2014 08:56:32 -0700
-Message-ID: <20140328155631.GC24308@atomide.com>
+Subject: Re: [PATCH 49/75] ARM: l2c: fix register naming
+Date: Fri, 28 Mar 2014 09:00:48 -0700
+Message-ID: <20140328160047.GD24308@atomide.com>
 References: <20140328151249.GJ7528@n2100.arm.linux.org.uk>
- <E1WTYXm-0007Fl-Ec@rmk-PC.arm.linux.org.uk>
+ <E1WTYYH-0007GB-3M@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:36992 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751173AbaC1P4h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Mar 2014 11:56:37 -0400
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <E1WTYXm-0007Fl-Ec@rmk-PC.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <E1WTYYH-0007GB-3M@rmk-PC.arm.linux.org.uk>
+Sender: linux-samsung-soc-owner@vger.kernel.org
 To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Anton Vorontsov <anton@enomsg.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Barry Song <baohua@kernel.org>, Viresh Kumar <viresh.linux@gmail.com>, Shiraz Hashim <shiraz.hashim@st.com>, Srinivas Kandagatla <srinivas.kandagatla@st.com>, Stuart Menefy <stuart.menefy@st.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-omap@vger.kernel.org, spear-devel@list.st.com, kernel@stlinux.com, linux-tegra@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-* Russell King <rmk+kernel@arm.linux.org.uk> [140328 08:21]:
-> Now that OMAP2 uses the write_sec method, we don't need to enable the L2
-> cache in OMAP2 specific code; this can be done via the normal mechanisms
-> in the L2C code.  Remove the OMAP2 specific code.
+* Russell King <rmk+kernel@arm.linux.org.uk> [140328 08:22]:
+> We have a mixture of different devices with different register layouts,
+> but we group all the bits together in an opaque mess.  Split them out
+> into those which are L2C-310 specific and ones which refer to earlier
+> devices.  Provide full auxiliary control register definitions.
 > 
 > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
 Acked-by: Tony Lindgren <tony@atomide.com>
 
->  arch/arm/mach-omap2/omap4-common.c | 5 -----
->  1 file changed, 5 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-> index 7abc1eb15bf9..343c354ae6f5 100644
 > --- a/arch/arm/mach-omap2/omap4-common.c
 > +++ b/arch/arm/mach-omap2/omap4-common.c
-> @@ -222,11 +222,6 @@ static int __init omap_l2_cache_init(void)
->  			(1 << L2X0_AUX_CTRL_INSTR_PREFETCH_SHIFT) |
->  			(1 << L2X0_AUX_CTRL_EARLY_BRESP_SHIFT);
+> @@ -212,15 +212,15 @@ static int __init omap_l2_cache_init(void)
+>  		return -ENOMEM;
 >  
-> -	omap_smc1(0x109, aux_ctrl);
-> -
-> -	/* Enable PL310 L2 Cache controller */
-> -	omap_smc1(0x102, 0x1);
-> -
->  	outer_cache.write_sec = omap4_l2c310_write_sec;
->  	if (of_have_populated_dt())
->  		l2x0_of_init(aux_ctrl, L2X0_AUX_CTRL_MASK);
-> -- 
-> 1.8.3.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  	/* 16-way associativity, parity disabled, way size - 64KB (es2.0 +) */
+> -	aux_ctrl = (1 << L2X0_AUX_CTRL_ASSOCIATIVITY_SHIFT) |
+> -			(0x1 << 25) |
+> -			(0x1 << L2X0_AUX_CTRL_NS_LOCKDOWN_SHIFT) |
+> -			(0x1 << L2X0_AUX_CTRL_NS_INT_CTRL_SHIFT)) |
+> -			(0x3 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT) |
+> -			(1 << L2X0_AUX_CTRL_SHARE_OVERRIDE_SHIFT) |
+> -			(1 << L2X0_AUX_CTRL_DATA_PREFETCH_SHIFT) |
+> -			(1 << L2X0_AUX_CTRL_INSTR_PREFETCH_SHIFT) |
+> -			(1 << L2X0_AUX_CTRL_EARLY_BRESP_SHIFT);
+> +	aux_ctrl = L310_AUX_CTRL_ASSOCIATIVITY_16 |
+> +		   L310_AUX_CTRL_CACHE_REPLACE_RR |
+> +		   L310_AUX_CTRL_NS_LOCKDOWN |
+> +		   L310_AUX_CTRL_NS_INT_CTRL |
+> +		   L2C_AUX_CTRL_WAY_SIZE(3) |
+> +		   L2C_AUX_CTRL_SHARED_OVERRIDE |
+> +		   L310_AUX_CTRL_DATA_PREFETCH |
+> +		   L310_AUX_CTRL_INSTR_PREFETCH |
+> +		   L310_AUX_CTRL_EARLY_BRESP;
+
+I guess eventually we can set up some common configuration mask
+define for these kind of things?
+
+Regards,
+
+Tony
