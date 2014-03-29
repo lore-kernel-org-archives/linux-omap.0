@@ -1,109 +1,80 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv3 12/14] ARM: dts: omap3 clocks: simplify ssi aliases
-Date: Sat, 29 Mar 2014 01:31:48 +0100
-Message-ID: <1396053110-21639-13-git-send-email-sre@kernel.org>
+Subject: [PATCHv3 14/14] DTS: ARM: OMAP3-N900: Add modem support
+Date: Sat, 29 Mar 2014 01:31:50 +0100
+Message-ID: <1396053110-21639-15-git-send-email-sre@kernel.org>
 References: <1396053110-21639-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1396053110-21639-1-git-send-email-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, =?UTF-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE=20=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@debian.org>
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, =?UTF-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE=20=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Sebastian Reichel <sre@debian.org>
+Add modem device tree data to Nokia N900's DTS file.
 
-update aliases for the ssi clocks ssi_ssr_fck, ssi_sst_fck and ssi_ick
-to make them consistent for omap34xx and omap36xx. This makes it
-possible to reference the clocks from generic omap3 dts files.
-
-Signed-off-by: Sebastian Reichel <sre@debian.org>
-Acked-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- arch/arm/boot/dts/omap3430es1-clocks.dtsi              | 10 +++++-----
- arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi | 10 +++++-----
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ arch/arm/boot/dts/omap3-n900.dts | 41 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3430es1-clocks.dtsi b/arch/arm/boot/dts/omap3430es1-clocks.dtsi
-index 02f6c7f..6f31954 100644
---- a/arch/arm/boot/dts/omap3430es1-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap3430es1-clocks.dtsi
-@@ -82,16 +82,16 @@
- 		ti,dividers = <0>, <1>, <2>, <3>, <4>, <0>, <6>, <0>, <8>;
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 5bccd8c..6655790 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -158,6 +158,17 @@
+ 			0x15a (PIN_OUTPUT | MUX_MODE1)		/* ssi1_wake */
+ 		>;
  	};
- 
--	ssi_ssr_fck_3430es1: ssi_ssr_fck_3430es1 {
-+	ssi_ssr_fck: ssi_ssr_fck_3430es1 {
- 		#clock-cells = <0>;
- 		compatible = "ti,composite-clock";
- 		clocks = <&ssi_ssr_gate_fck_3430es1>, <&ssi_ssr_div_fck_3430es1>;
- 	};
- 
--	ssi_sst_fck_3430es1: ssi_sst_fck_3430es1 {
-+	ssi_sst_fck: ssi_sst_fck_3430es1 {
- 		#clock-cells = <0>;
- 		compatible = "fixed-factor-clock";
--		clocks = <&ssi_ssr_fck_3430es1>;
-+		clocks = <&ssi_ssr_fck>;
- 		clock-mult = <1>;
- 		clock-div = <2>;
- 	};
-@@ -120,7 +120,7 @@
- 		clock-div = <1>;
- 	};
- 
--	ssi_ick_3430es1: ssi_ick_3430es1 {
-+	ssi_ick: ssi_ick_3430es1 {
- 		#clock-cells = <0>;
- 		compatible = "ti,omap3-no-wait-interface-clock";
- 		clocks = <&ssi_l4_ick>;
-@@ -203,6 +203,6 @@
- 			 <&i2c1_ick>, <&uart2_ick>, <&uart1_ick>, <&gpt11_ick>,
- 			 <&gpt10_ick>, <&mcbsp5_ick>, <&mcbsp1_ick>,
- 			 <&omapctrl_ick>, <&aes2_ick>, <&sha12_ick>,
--			 <&fshostusb_fck>, <&fac_ick>, <&ssi_ick_3430es1>;
-+			 <&fshostusb_fck>, <&fac_ick>, <&ssi_ick>;
- 	};
++
++	modem_pins: pinmux_modem {
++		pinctrl-single,pins = <
++			0x0ac (PIN_OUTPUT | MUX_MODE4)		/* gpio 70 => cmt_apeslpx */
++			0x0b0 (PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* gpio 72 => ape_rst_rq */
++			0x0b2 (PIN_OUTPUT | MUX_MODE4)		/* gpio 73 => cmt_rst_rq */
++			0x0b4 (PIN_OUTPUT | MUX_MODE4)		/* gpio 74 => cmt_en */
++			0x0b6 (PIN_OUTPUT | MUX_MODE4)		/* gpio 75 => cmt_rst */
++			0x15e (PIN_OUTPUT | MUX_MODE4)		/* gpio 157 => cmt_bsi */
++		>;
++	};
  };
-diff --git a/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi b/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi
-index 8ed475d..877318c 100644
---- a/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi
-@@ -25,16 +25,16 @@
- 		ti,dividers = <0>, <1>, <2>, <3>, <4>, <0>, <6>, <0>, <8>;
- 	};
  
--	ssi_ssr_fck_3430es2: ssi_ssr_fck_3430es2 {
-+	ssi_ssr_fck: ssi_ssr_fck_3430es2 {
- 		#clock-cells = <0>;
- 		compatible = "ti,composite-clock";
- 		clocks = <&ssi_ssr_gate_fck_3430es2>, <&ssi_ssr_div_fck_3430es2>;
- 	};
+ &i2c1 {
+@@ -508,6 +519,36 @@
+ 	pinctrl-0 = <&ssi_pins>;
  
--	ssi_sst_fck_3430es2: ssi_sst_fck_3430es2 {
-+	ssi_sst_fck: ssi_sst_fck_3430es2 {
- 		#clock-cells = <0>;
- 		compatible = "fixed-factor-clock";
--		clocks = <&ssi_ssr_fck_3430es2>;
-+		clocks = <&ssi_ssr_fck>;
- 		clock-mult = <1>;
- 		clock-div = <2>;
- 	};
-@@ -55,7 +55,7 @@
- 		clock-div = <1>;
- 	};
- 
--	ssi_ick_3430es2: ssi_ick_3430es2 {
-+	ssi_ick: ssi_ick_3430es2 {
- 		#clock-cells = <0>;
- 		compatible = "ti,omap3-ssi-interface-clock";
- 		clocks = <&ssi_l4_ick>;
-@@ -193,6 +193,6 @@
- 			 <&i2c1_ick>, <&uart2_ick>, <&uart1_ick>, <&gpt11_ick>,
- 			 <&gpt10_ick>, <&mcbsp5_ick>, <&mcbsp1_ick>,
- 			 <&omapctrl_ick>, <&aes2_ick>, <&sha12_ick>,
--			 <&ssi_ick_3430es2>;
-+			 <&ssi_ick>;
- 	};
+ 	ti,ssi-cawake-gpio = <&gpio5 23 GPIO_ACTIVE_HIGH>; /* 151 */
++
++	modem: hsi-client {
++		compatible = "nokia,n900-modem";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&modem_pins>;
++
++		reg = <0>, <1>, <2>, <3>;
++		reg-names = "mcsaab-control",
++			    "speech-control",
++			    "speech-data",
++			    "mcsaab-data";
++		hsi-speed-kbps = <55000>;
++		hsi-mode = "frame";
++		hsi-flow = "synchronized";
++		hsi-arb-mode = "round-robin";
++
++		interrupts-extended = <&gpio3 8 IRQ_TYPE_EDGE_FALLING>; /* 72 */
++
++		gpios = <&gpio3  6 GPIO_ACTIVE_HIGH>, /* 70 */
++			<&gpio3  9 GPIO_ACTIVE_HIGH>, /* 73 */
++			<&gpio3 10 GPIO_ACTIVE_HIGH>, /* 74 */
++			<&gpio3 11 GPIO_ACTIVE_HIGH>, /* 75 */
++			<&gpio5 29 GPIO_ACTIVE_HIGH>; /* 157 */
++		gpio-names = "cmt_apeslpx",
++			     "cmt_rst_rq",
++			     "cmt_en",
++			     "cmt_rst",
++			     "cmt_bsi";
++	};
  };
+ 
+ &ssi_port2 {
 -- 
 1.9.0
