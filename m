@@ -1,211 +1,357 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 41/55] ARM: DRA7: PRM: remove direct register declaration macros
-Date: Mon, 31 Mar 2014 18:16:20 +0300
-Message-ID: <1396278994-12624-42-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 49/55] ARM: OMAP4: move prcm44xx.h header to public location
+Date: Mon, 31 Mar 2014 18:16:28 +0300
+Message-ID: <1396278994-12624-50-git-send-email-t-kristo@ti.com>
 References: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49936 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54797 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753657AbaCaPTL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Mar 2014 11:19:11 -0400
+	id S1753657AbaCaPTN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Mar 2014 11:19:13 -0400
 In-Reply-To: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-None of these are currently used, so cleanup.
+This file needs to be accessible from the PRCM core and mach-omap2 board
+support code.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/prm7xx.h |   77 ------------------------------------------
- 1 file changed, 77 deletions(-)
+ arch/arm/mach-omap2/clockdomains43xx_data.c   |    1 -
+ arch/arm/mach-omap2/clockdomains44xx_data.c   |    2 +-
+ arch/arm/mach-omap2/clockdomains54xx_data.c   |    2 +-
+ arch/arm/mach-omap2/clockdomains7xx_data.c    |    2 +-
+ arch/arm/mach-omap2/cminst44xx.c              |    2 +-
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c     |    2 +-
+ arch/arm/mach-omap2/powerdomain.c             |    2 +-
+ arch/arm/mach-omap2/powerdomains43xx_data.c   |    1 -
+ arch/arm/mach-omap2/powerdomains44xx_data.c   |    2 +-
+ arch/arm/mach-omap2/powerdomains54xx_data.c   |    2 +-
+ arch/arm/mach-omap2/powerdomains7xx_data.c    |    2 +-
+ arch/arm/mach-omap2/prcm44xx.h                |   53 -------------------------
+ arch/arm/mach-omap2/prm44xx.c                 |    2 +-
+ arch/arm/mach-omap2/prminst44xx.c             |    2 +-
+ arch/arm/mach-omap2/voltage.c                 |    2 +-
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |    1 -
+ include/linux/power/omap/prcm44xx.h           |   53 +++++++++++++++++++++++++
+ 17 files changed, 65 insertions(+), 68 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/prcm44xx.h
+ create mode 100644 include/linux/power/omap/prcm44xx.h
 
-diff --git a/arch/arm/mach-omap2/prm7xx.h b/arch/arm/mach-omap2/prm7xx.h
-index d92a840..b971af5 100644
---- a/arch/arm/mach-omap2/prm7xx.h
-+++ b/arch/arm/mach-omap2/prm7xx.h
-@@ -78,7 +78,6 @@
- #define DRA7XX_PRM_IRQSTATUS_DSP1_OFFSET			0x0030
- #define DRA7XX_PRM_IRQENABLE_DSP1_OFFSET			0x0038
- #define DRA7XX_CM_PRM_PROFILING_CLKCTRL_OFFSET			0x0040
--#define DRA7XX_CM_PRM_PROFILING_CLKCTRL				DRA7XX_PRM_REGADDR(DRA7XX_PRM_OCP_SOCKET_INST, 0x0040)
- #define DRA7XX_PRM_IRQENABLE_DSP2_OFFSET			0x0044
- #define DRA7XX_PRM_IRQENABLE_EVE1_OFFSET			0x0048
- #define DRA7XX_PRM_IRQENABLE_EVE2_OFFSET			0x004c
-@@ -98,113 +97,59 @@
+diff --git a/arch/arm/mach-omap2/clockdomains43xx_data.c b/arch/arm/mach-omap2/clockdomains43xx_data.c
+index 6d71c60..11a319b 100644
+--- a/arch/arm/mach-omap2/clockdomains43xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains43xx_data.c
+@@ -12,7 +12,6 @@
+ #include <linux/io.h>
  
- /* PRM.CKGEN_PRM register offsets */
- #define DRA7XX_CM_CLKSEL_SYSCLK1_OFFSET				0x0000
--#define DRA7XX_CM_CLKSEL_SYSCLK1				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0000)
- #define DRA7XX_CM_CLKSEL_WKUPAON_OFFSET				0x0008
--#define DRA7XX_CM_CLKSEL_WKUPAON				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0008)
- #define DRA7XX_CM_CLKSEL_ABE_PLL_REF_OFFSET			0x000c
--#define DRA7XX_CM_CLKSEL_ABE_PLL_REF				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x000c)
- #define DRA7XX_CM_CLKSEL_SYS_OFFSET				0x0010
--#define DRA7XX_CM_CLKSEL_SYS					DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0010)
- #define DRA7XX_CM_CLKSEL_ABE_PLL_BYPAS_OFFSET			0x0014
--#define DRA7XX_CM_CLKSEL_ABE_PLL_BYPAS				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0014)
- #define DRA7XX_CM_CLKSEL_ABE_PLL_SYS_OFFSET			0x0018
--#define DRA7XX_CM_CLKSEL_ABE_PLL_SYS				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0018)
- #define DRA7XX_CM_CLKSEL_ABE_24M_OFFSET				0x001c
--#define DRA7XX_CM_CLKSEL_ABE_24M				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x001c)
- #define DRA7XX_CM_CLKSEL_ABE_SYS_OFFSET				0x0020
--#define DRA7XX_CM_CLKSEL_ABE_SYS				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0020)
- #define DRA7XX_CM_CLKSEL_HDMI_MCASP_AUX_OFFSET			0x0024
--#define DRA7XX_CM_CLKSEL_HDMI_MCASP_AUX				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0024)
- #define DRA7XX_CM_CLKSEL_HDMI_TIMER_OFFSET			0x0028
--#define DRA7XX_CM_CLKSEL_HDMI_TIMER				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0028)
- #define DRA7XX_CM_CLKSEL_MCASP_SYS_OFFSET			0x002c
--#define DRA7XX_CM_CLKSEL_MCASP_SYS				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x002c)
- #define DRA7XX_CM_CLKSEL_MLBP_MCASP_OFFSET			0x0030
--#define DRA7XX_CM_CLKSEL_MLBP_MCASP				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0030)
- #define DRA7XX_CM_CLKSEL_MLB_MCASP_OFFSET			0x0034
--#define DRA7XX_CM_CLKSEL_MLB_MCASP				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0034)
- #define DRA7XX_CM_CLKSEL_PER_ABE_X1_GFCLK_MCASP_AUX_OFFSET	0x0038
--#define DRA7XX_CM_CLKSEL_PER_ABE_X1_GFCLK_MCASP_AUX		DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0038)
- #define DRA7XX_CM_CLKSEL_SYS_CLK1_32K_OFFSET			0x0040
--#define DRA7XX_CM_CLKSEL_SYS_CLK1_32K				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0040)
- #define DRA7XX_CM_CLKSEL_TIMER_SYS_OFFSET			0x0044
--#define DRA7XX_CM_CLKSEL_TIMER_SYS				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0044)
- #define DRA7XX_CM_CLKSEL_VIDEO1_MCASP_AUX_OFFSET		0x0048
--#define DRA7XX_CM_CLKSEL_VIDEO1_MCASP_AUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0048)
- #define DRA7XX_CM_CLKSEL_VIDEO1_TIMER_OFFSET			0x004c
--#define DRA7XX_CM_CLKSEL_VIDEO1_TIMER				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x004c)
- #define DRA7XX_CM_CLKSEL_VIDEO2_MCASP_AUX_OFFSET		0x0050
--#define DRA7XX_CM_CLKSEL_VIDEO2_MCASP_AUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0050)
- #define DRA7XX_CM_CLKSEL_VIDEO2_TIMER_OFFSET			0x0054
--#define DRA7XX_CM_CLKSEL_VIDEO2_TIMER				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0054)
- #define DRA7XX_CM_CLKSEL_CLKOUTMUX0_OFFSET			0x0058
--#define DRA7XX_CM_CLKSEL_CLKOUTMUX0				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0058)
- #define DRA7XX_CM_CLKSEL_CLKOUTMUX1_OFFSET			0x005c
--#define DRA7XX_CM_CLKSEL_CLKOUTMUX1				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x005c)
- #define DRA7XX_CM_CLKSEL_CLKOUTMUX2_OFFSET			0x0060
--#define DRA7XX_CM_CLKSEL_CLKOUTMUX2				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0060)
- #define DRA7XX_CM_CLKSEL_HDMI_PLL_SYS_OFFSET			0x0064
--#define DRA7XX_CM_CLKSEL_HDMI_PLL_SYS				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0064)
- #define DRA7XX_CM_CLKSEL_VIDEO1_PLL_SYS_OFFSET			0x0068
--#define DRA7XX_CM_CLKSEL_VIDEO1_PLL_SYS				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0068)
- #define DRA7XX_CM_CLKSEL_VIDEO2_PLL_SYS_OFFSET			0x006c
--#define DRA7XX_CM_CLKSEL_VIDEO2_PLL_SYS				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x006c)
- #define DRA7XX_CM_CLKSEL_ABE_CLK_DIV_OFFSET			0x0070
--#define DRA7XX_CM_CLKSEL_ABE_CLK_DIV				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0070)
- #define DRA7XX_CM_CLKSEL_ABE_GICLK_DIV_OFFSET			0x0074
--#define DRA7XX_CM_CLKSEL_ABE_GICLK_DIV				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0074)
- #define DRA7XX_CM_CLKSEL_AESS_FCLK_DIV_OFFSET			0x0078
--#define DRA7XX_CM_CLKSEL_AESS_FCLK_DIV				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0078)
- #define DRA7XX_CM_CLKSEL_EVE_CLK_OFFSET				0x0080
--#define DRA7XX_CM_CLKSEL_EVE_CLK				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0080)
- #define DRA7XX_CM_CLKSEL_USB_OTG_CLK_CLKOUTMUX_OFFSET		0x0084
--#define DRA7XX_CM_CLKSEL_USB_OTG_CLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0084)
- #define DRA7XX_CM_CLKSEL_CORE_DPLL_OUT_CLK_CLKOUTMUX_OFFSET	0x0088
--#define DRA7XX_CM_CLKSEL_CORE_DPLL_OUT_CLK_CLKOUTMUX		DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0088)
- #define DRA7XX_CM_CLKSEL_DSP_GFCLK_CLKOUTMUX_OFFSET		0x008c
--#define DRA7XX_CM_CLKSEL_DSP_GFCLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x008c)
- #define DRA7XX_CM_CLKSEL_EMIF_PHY_GCLK_CLKOUTMUX_OFFSET		0x0090
--#define DRA7XX_CM_CLKSEL_EMIF_PHY_GCLK_CLKOUTMUX		DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0090)
- #define DRA7XX_CM_CLKSEL_EMU_CLK_CLKOUTMUX_OFFSET		0x0094
--#define DRA7XX_CM_CLKSEL_EMU_CLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0094)
- #define DRA7XX_CM_CLKSEL_FUNC_96M_AON_CLK_CLKOUTMUX_OFFSET	0x0098
--#define DRA7XX_CM_CLKSEL_FUNC_96M_AON_CLK_CLKOUTMUX		DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x0098)
- #define DRA7XX_CM_CLKSEL_GMAC_250M_CLK_CLKOUTMUX_OFFSET		0x009c
--#define DRA7XX_CM_CLKSEL_GMAC_250M_CLK_CLKOUTMUX		DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x009c)
- #define DRA7XX_CM_CLKSEL_GPU_GCLK_CLKOUTMUX_OFFSET		0x00a0
--#define DRA7XX_CM_CLKSEL_GPU_GCLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00a0)
- #define DRA7XX_CM_CLKSEL_HDMI_CLK_CLKOUTMUX_OFFSET		0x00a4
--#define DRA7XX_CM_CLKSEL_HDMI_CLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00a4)
- #define DRA7XX_CM_CLKSEL_IVA_GCLK_CLKOUTMUX_OFFSET		0x00a8
--#define DRA7XX_CM_CLKSEL_IVA_GCLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00a8)
- #define DRA7XX_CM_CLKSEL_L3INIT_480M_GFCLK_CLKOUTMUX_OFFSET	0x00ac
--#define DRA7XX_CM_CLKSEL_L3INIT_480M_GFCLK_CLKOUTMUX		DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00ac)
- #define DRA7XX_CM_CLKSEL_MPU_GCLK_CLKOUTMUX_OFFSET		0x00b0
--#define DRA7XX_CM_CLKSEL_MPU_GCLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00b0)
- #define DRA7XX_CM_CLKSEL_PCIE1_CLK_CLKOUTMUX_OFFSET		0x00b4
--#define DRA7XX_CM_CLKSEL_PCIE1_CLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00b4)
- #define DRA7XX_CM_CLKSEL_PCIE2_CLK_CLKOUTMUX_OFFSET		0x00b8
--#define DRA7XX_CM_CLKSEL_PCIE2_CLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00b8)
- #define DRA7XX_CM_CLKSEL_PER_ABE_X1_CLK_CLKOUTMUX_OFFSET	0x00bc
--#define DRA7XX_CM_CLKSEL_PER_ABE_X1_CLK_CLKOUTMUX		DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00bc)
- #define DRA7XX_CM_CLKSEL_SATA_CLK_CLKOUTMUX_OFFSET		0x00c0
--#define DRA7XX_CM_CLKSEL_SATA_CLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00c0)
- #define DRA7XX_CM_CLKSEL_SECURE_32K_CLK_CLKOUTMUX_OFFSET	0x00c4
--#define DRA7XX_CM_CLKSEL_SECURE_32K_CLK_CLKOUTMUX		DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00c4)
- #define DRA7XX_CM_CLKSEL_SYS_CLK1_CLKOUTMUX_OFFSET		0x00c8
--#define DRA7XX_CM_CLKSEL_SYS_CLK1_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00c8)
- #define DRA7XX_CM_CLKSEL_SYS_CLK2_CLKOUTMUX_OFFSET		0x00cc
--#define DRA7XX_CM_CLKSEL_SYS_CLK2_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00cc)
- #define DRA7XX_CM_CLKSEL_VIDEO1_CLK_CLKOUTMUX_OFFSET		0x00d0
--#define DRA7XX_CM_CLKSEL_VIDEO1_CLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00d0)
- #define DRA7XX_CM_CLKSEL_VIDEO2_CLK_CLKOUTMUX_OFFSET		0x00d4
--#define DRA7XX_CM_CLKSEL_VIDEO2_CLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00d4)
- #define DRA7XX_CM_CLKSEL_ABE_LP_CLK_OFFSET			0x00d8
--#define DRA7XX_CM_CLKSEL_ABE_LP_CLK				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00d8)
- #define DRA7XX_CM_CLKSEL_ADC_GFCLK_OFFSET			0x00dc
--#define DRA7XX_CM_CLKSEL_ADC_GFCLK				DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00dc)
- #define DRA7XX_CM_CLKSEL_EVE_GFCLK_CLKOUTMUX_OFFSET		0x00e0
--#define DRA7XX_CM_CLKSEL_EVE_GFCLK_CLKOUTMUX			DRA7XX_PRM_REGADDR(DRA7XX_PRM_CKGEN_INST, 0x00e0)
+ #include "clockdomain.h"
+-#include "prcm44xx.h"
+ #include "prcm43xx.h"
  
- /* PRM.MPU_PRM register offsets */
- #define DRA7XX_PM_MPU_PWRSTCTRL_OFFSET				0x0000
-@@ -527,45 +472,25 @@
- /* PRM.WKUPAON_CM register offsets */
- #define DRA7XX_CM_WKUPAON_CLKSTCTRL_OFFSET			0x0000
- #define DRA7XX_CM_WKUPAON_L4_WKUP_CLKCTRL_OFFSET		0x0020
--#define DRA7XX_CM_WKUPAON_L4_WKUP_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0020)
- #define DRA7XX_CM_WKUPAON_WD_TIMER1_CLKCTRL_OFFSET		0x0028
--#define DRA7XX_CM_WKUPAON_WD_TIMER1_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0028)
- #define DRA7XX_CM_WKUPAON_WD_TIMER2_CLKCTRL_OFFSET		0x0030
--#define DRA7XX_CM_WKUPAON_WD_TIMER2_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0030)
- #define DRA7XX_CM_WKUPAON_GPIO1_CLKCTRL_OFFSET			0x0038
--#define DRA7XX_CM_WKUPAON_GPIO1_CLKCTRL				DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0038)
- #define DRA7XX_CM_WKUPAON_TIMER1_CLKCTRL_OFFSET			0x0040
--#define DRA7XX_CM_WKUPAON_TIMER1_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0040)
- #define DRA7XX_CM_WKUPAON_TIMER12_CLKCTRL_OFFSET		0x0048
--#define DRA7XX_CM_WKUPAON_TIMER12_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0048)
- #define DRA7XX_CM_WKUPAON_COUNTER_32K_CLKCTRL_OFFSET		0x0050
--#define DRA7XX_CM_WKUPAON_COUNTER_32K_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0050)
- #define DRA7XX_CM_WKUPAON_SAR_RAM_CLKCTRL_OFFSET		0x0060
--#define DRA7XX_CM_WKUPAON_SAR_RAM_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0060)
- #define DRA7XX_CM_WKUPAON_KBD_CLKCTRL_OFFSET			0x0078
--#define DRA7XX_CM_WKUPAON_KBD_CLKCTRL				DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0078)
- #define DRA7XX_CM_WKUPAON_UART10_CLKCTRL_OFFSET			0x0080
--#define DRA7XX_CM_WKUPAON_UART10_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0080)
- #define DRA7XX_CM_WKUPAON_DCAN1_CLKCTRL_OFFSET			0x0088
--#define DRA7XX_CM_WKUPAON_DCAN1_CLKCTRL				DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0088)
- #define DRA7XX_CM_WKUPAON_SCRM_CLKCTRL_OFFSET			0x0090
--#define DRA7XX_CM_WKUPAON_SCRM_CLKCTRL				DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0090)
- #define DRA7XX_CM_WKUPAON_IO_SRCOMP_CLKCTRL_OFFSET		0x0098
--#define DRA7XX_CM_WKUPAON_IO_SRCOMP_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x0098)
- #define DRA7XX_CM_WKUPAON_ADC_CLKCTRL_OFFSET			0x00a0
--#define DRA7XX_CM_WKUPAON_ADC_CLKCTRL				DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x00a0)
- #define DRA7XX_CM_WKUPAON_SPARE_SAFETY1_CLKCTRL_OFFSET		0x00b0
--#define DRA7XX_CM_WKUPAON_SPARE_SAFETY1_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x00b0)
- #define DRA7XX_CM_WKUPAON_SPARE_SAFETY2_CLKCTRL_OFFSET		0x00b8
--#define DRA7XX_CM_WKUPAON_SPARE_SAFETY2_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x00b8)
- #define DRA7XX_CM_WKUPAON_SPARE_SAFETY3_CLKCTRL_OFFSET		0x00c0
--#define DRA7XX_CM_WKUPAON_SPARE_SAFETY3_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x00c0)
- #define DRA7XX_CM_WKUPAON_SPARE_SAFETY4_CLKCTRL_OFFSET		0x00c8
--#define DRA7XX_CM_WKUPAON_SPARE_SAFETY4_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x00c8)
- #define DRA7XX_CM_WKUPAON_SPARE_UNKNOWN2_CLKCTRL_OFFSET		0x00d0
--#define DRA7XX_CM_WKUPAON_SPARE_UNKNOWN2_CLKCTRL		DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x00d0)
- #define DRA7XX_CM_WKUPAON_SPARE_UNKNOWN3_CLKCTRL_OFFSET		0x00d8
--#define DRA7XX_CM_WKUPAON_SPARE_UNKNOWN3_CLKCTRL		DRA7XX_PRM_REGADDR(DRA7XX_PRM_WKUPAON_CM_INST, 0x00d8)
+ static struct clockdomain l4_cefuse_43xx_clkdm = {
+diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mach-omap2/clockdomains44xx_data.c
+index 95192a0..a335303 100644
+--- a/arch/arm/mach-omap2/clockdomains44xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
+@@ -28,7 +28,7 @@
  
- /* PRM.EMU_PRM register offsets */
- #define DRA7XX_PM_EMU_PWRSTCTRL_OFFSET				0x0000
-@@ -575,10 +500,8 @@
- /* PRM.EMU_CM register offsets */
- #define DRA7XX_CM_EMU_CLKSTCTRL_OFFSET				0x0000
- #define DRA7XX_CM_EMU_DEBUGSS_CLKCTRL_OFFSET			0x0004
--#define DRA7XX_CM_EMU_DEBUGSS_CLKCTRL				DRA7XX_PRM_REGADDR(DRA7XX_PRM_EMU_CM_INST, 0x0004)
- #define DRA7XX_CM_EMU_DYNAMICDEP_OFFSET				0x0008
- #define DRA7XX_CM_EMU_MPU_EMU_DBG_CLKCTRL_OFFSET		0x000c
--#define DRA7XX_CM_EMU_MPU_EMU_DBG_CLKCTRL			DRA7XX_PRM_REGADDR(DRA7XX_PRM_EMU_CM_INST, 0x000c)
+ #include "cm-regbits-44xx.h"
+ #include "prm44xx.h"
+-#include "prcm44xx.h"
++#include <linux/power/omap/prcm44xx.h>
+ #include "prcm_mpu44xx.h"
  
- /* PRM.DSP2_PRM register offsets */
- #define DRA7XX_PM_DSP2_PWRSTCTRL_OFFSET				0x0000
+ /* Static Dependencies for OMAP4 Clock Domains */
+diff --git a/arch/arm/mach-omap2/clockdomains54xx_data.c b/arch/arm/mach-omap2/clockdomains54xx_data.c
+index 1a3c69d..59ea31e 100644
+--- a/arch/arm/mach-omap2/clockdomains54xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains54xx_data.c
+@@ -27,7 +27,7 @@
+ 
+ #include "cm-regbits-54xx.h"
+ #include "prm54xx.h"
+-#include "prcm44xx.h"
++#include <linux/power/omap/prcm44xx.h>
+ #include "prcm_mpu54xx.h"
+ 
+ /* Static Dependencies for OMAP4 Clock Domains */
+diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
+index 57d5df0..b169667 100644
+--- a/arch/arm/mach-omap2/clockdomains7xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
+@@ -29,7 +29,7 @@
+ 
+ #include "cm-regbits-7xx.h"
+ #include "prm7xx.h"
+-#include "prcm44xx.h"
++#include <linux/power/omap/prcm44xx.h>
+ #include "prcm_mpu7xx.h"
+ 
+ /* Static Dependencies for DRA7xx Clock Domains */
+diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+index 0fd50d7..3b95fc6 100644
+--- a/arch/arm/mach-omap2/cminst44xx.c
++++ b/arch/arm/mach-omap2/cminst44xx.c
+@@ -27,7 +27,7 @@
+ #include "cm1_44xx.h"
+ #include "cm2_44xx.h"
+ #include <linux/power/omap/cm44xx.h>
+-#include "prcm44xx.h"
++#include <linux/power/omap/prcm44xx.h>
+ #include <linux/power/omap/prm44xx.h>
+ #include "prcm_mpu44xx.h"
+ #include <linux/power/omap/prcm-common.h>
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index 50127e1..33f5774 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -57,7 +57,7 @@
+ #include "omap4-sar-layout.h"
+ #include "pm.h"
+ #include "prcm_mpu44xx.h"
+-#include "prcm44xx.h"
++#include <linux/power/omap/prcm44xx.h>
+ #include "prm44xx.h"
+ #include "prm-regbits-44xx.h"
+ 
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 7262b3d..86ef5f6 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -23,7 +23,7 @@
+ #include <trace/events/power.h>
+ 
+ #include <linux/power/omap/cm2xxx_3xxx.h>
+-#include "prcm44xx.h"
++#include <linux/power/omap/prcm44xx.h>
+ #include <linux/power/omap/prm2xxx_3xxx.h>
+ #include <linux/power/omap/prm44xx.h>
+ 
+diff --git a/arch/arm/mach-omap2/powerdomains43xx_data.c b/arch/arm/mach-omap2/powerdomains43xx_data.c
+index b99eac7..91802f1 100644
+--- a/arch/arm/mach-omap2/powerdomains43xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains43xx_data.c
+@@ -14,7 +14,6 @@
+ #include "powerdomain.h"
+ 
+ #include <linux/power/omap/prcm-common.h>
+-#include "prcm44xx.h"
+ #include "prcm43xx.h"
+ 
+ static struct powerdomain gfx_43xx_pwrdm = {
+diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
+index ea1ffc1..793c611 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+@@ -25,7 +25,7 @@
+ #include "powerdomain.h"
+ 
+ #include <linux/power/omap/prcm-common.h>
+-#include "prcm44xx.h"
++#include <linux/power/omap/prcm44xx.h>
+ #include "prm-regbits-44xx.h"
+ #include "prm44xx.h"
+ #include "prcm_mpu44xx.h"
+diff --git a/arch/arm/mach-omap2/powerdomains54xx_data.c b/arch/arm/mach-omap2/powerdomains54xx_data.c
+index b4a815b..37017f2 100644
+--- a/arch/arm/mach-omap2/powerdomains54xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains54xx_data.c
+@@ -24,7 +24,7 @@
+ #include "powerdomain.h"
+ 
+ #include <linux/power/omap/prcm-common.h>
+-#include "prcm44xx.h"
++#include <linux/power/omap/prcm44xx.h>
+ #include "prm54xx.h"
+ #include "prcm_mpu54xx.h"
+ 
+diff --git a/arch/arm/mach-omap2/powerdomains7xx_data.c b/arch/arm/mach-omap2/powerdomains7xx_data.c
+index cf33ef6..cedc84b 100644
+--- a/arch/arm/mach-omap2/powerdomains7xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains7xx_data.c
+@@ -26,7 +26,7 @@
+ #include "powerdomain.h"
+ 
+ #include <linux/power/omap/prcm-common.h>
+-#include "prcm44xx.h"
++#include <linux/power/omap/prcm44xx.h>
+ #include "prm7xx.h"
+ #include "prcm_mpu7xx.h"
+ 
+diff --git a/arch/arm/mach-omap2/prcm44xx.h b/arch/arm/mach-omap2/prcm44xx.h
+deleted file mode 100644
+index 4fea2cf..0000000
+--- a/arch/arm/mach-omap2/prcm44xx.h
++++ /dev/null
+@@ -1,53 +0,0 @@
+-/*
+- * OMAP4 PRCM definitions
+- *
+- * Copyright (C) 2010 Texas Instruments, Inc.
+- * Copyright (C) 2010 Nokia Corporation
+- *
+- * Paul Walmsley
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * This file contains macros and functions that are common to all of
+- * the PRM/CM/PRCM blocks on the OMAP4 devices: PRM, CM1, CM2,
+- * PRCM_MPU, SCRM
+- */
+-
+-#ifndef __ARCH_ARM_MACH_OMAP2_PRCM44XX_H
+-#define __ARCH_ARM_MACH_OMAP2_PRCM44XX_H
+-
+-/*
+- * OMAP4 PRCM partition IDs
+- *
+- * The numbers and order are arbitrary, but 0 is reserved for the
+- * 'invalid' partition in case someone forgets to add a
+- * .prcm_partition field.
+- */
+-#define OMAP4430_INVALID_PRCM_PARTITION		0
+-#define OMAP4430_PRM_PARTITION			1
+-#define OMAP4430_CM1_PARTITION			2
+-#define OMAP4430_CM2_PARTITION			3
+-#define OMAP4430_SCRM_PARTITION			4
+-#define OMAP4430_PRCM_MPU_PARTITION		5
+-
+-#define OMAP54XX_PRM_PARTITION			1
+-#define OMAP54XX_CM_CORE_AON_PARTITION		2
+-#define OMAP54XX_CM_CORE_PARTITION		3
+-#define OMAP54XX_SCRM_PARTITION			4
+-#define OMAP54XX_PRCM_MPU_PARTITION		5
+-
+-#define DRA7XX_PRM_PARTITION                   1
+-#define DRA7XX_CM_CORE_AON_PARTITION           2
+-#define DRA7XX_CM_CORE_PARTITION               3
+-#define DRA7XX_MPU_PRCM_PARTITION              5
+-
+-/*
+- * OMAP4_MAX_PRCM_PARTITIONS: set to the highest value of the PRCM partition
+- * IDs, plus one
+- */
+-#define OMAP4_MAX_PRCM_PARTITIONS		6
+-
+-
+-#endif
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index cf312a8..69a974b 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -22,7 +22,7 @@
+ #include <linux/power/omap/prm44xx.h>
+ #include <linux/power/omap/prm54xx.h>
+ #include <linux/power/omap/prm7xx.h>
+-#include "prcm44xx.h"
++#include <linux/power/omap/prcm44xx.h>
+ #include "prminst44xx_private.h"
+ #include "powerdomain.h"
+ #include <linux/power/omap/prm.h>
+diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+index 30015d1..5b7c17e 100644
+--- a/arch/arm/mach-omap2/prminst44xx.c
++++ b/arch/arm/mach-omap2/prminst44xx.c
+@@ -21,7 +21,7 @@
+ #include <linux/power/omap/prm44xx.h>
+ #include <linux/power/omap/prm54xx.h>
+ #include <linux/power/omap/prm7xx.h>
+-#include "prcm44xx.h"
++#include <linux/power/omap/prcm44xx.h>
+ #include "prcm_mpu44xx.h"
+ 
+ #define OMAP4430_RST_GLOBAL_WARM_SW_MASK		(1 << 0)
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 78f5a68..b707328 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -32,7 +32,7 @@
+ #include "prm-regbits-34xx.h"
+ #include "prm-regbits-44xx.h"
+ #include "prm44xx.h"
+-#include "prcm44xx.h"
++#include <linux/power/omap/prcm44xx.h>
+ #include "control.h"
+ 
+ #include "voltage.h"
+diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+index 479b412..f452ab8 100644
+--- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+@@ -25,7 +25,6 @@
+ #include "soc.h"
+ #include "prm-regbits-44xx.h"
+ #include "prm44xx.h"
+-#include "prcm44xx.h"
+ #include "voltage.h"
+ #include "omap_opp_data.h"
+ #include "vc.h"
+diff --git a/include/linux/power/omap/prcm44xx.h b/include/linux/power/omap/prcm44xx.h
+new file mode 100644
+index 0000000..4f58ed1
+--- /dev/null
++++ b/include/linux/power/omap/prcm44xx.h
+@@ -0,0 +1,53 @@
++/*
++ * OMAP4 PRCM definitions
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ * Copyright (C) 2010 Nokia Corporation
++ *
++ * Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This file contains macros and functions that are common to all of
++ * the PRM/CM/PRCM blocks on the OMAP4 devices: PRM, CM1, CM2,
++ * PRCM_MPU, SCRM
++ */
++
++#ifndef __LINUX_POWER_OMAP_PRCM44XX_H
++#define __LINUX_POWER_OMAP_PRCM44XX_H
++
++/*
++ * OMAP4 PRCM partition IDs
++ *
++ * The numbers and order are arbitrary, but 0 is reserved for the
++ * 'invalid' partition in case someone forgets to add a
++ * .prcm_partition field.
++ */
++#define OMAP4430_INVALID_PRCM_PARTITION		0
++#define OMAP4430_PRM_PARTITION			1
++#define OMAP4430_CM1_PARTITION			2
++#define OMAP4430_CM2_PARTITION			3
++#define OMAP4430_SCRM_PARTITION			4
++#define OMAP4430_PRCM_MPU_PARTITION		5
++
++#define OMAP54XX_PRM_PARTITION			1
++#define OMAP54XX_CM_CORE_AON_PARTITION		2
++#define OMAP54XX_CM_CORE_PARTITION		3
++#define OMAP54XX_SCRM_PARTITION			4
++#define OMAP54XX_PRCM_MPU_PARTITION		5
++
++#define DRA7XX_PRM_PARTITION                   1
++#define DRA7XX_CM_CORE_AON_PARTITION           2
++#define DRA7XX_CM_CORE_PARTITION               3
++#define DRA7XX_MPU_PRCM_PARTITION              5
++
++/*
++ * OMAP4_MAX_PRCM_PARTITIONS: set to the highest value of the PRCM partition
++ * IDs, plus one
++ */
++#define OMAP4_MAX_PRCM_PARTITIONS		6
++
++
++#endif
 -- 
 1.7.9.5
 
