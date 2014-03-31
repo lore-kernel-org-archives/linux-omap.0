@@ -1,1243 +1,1047 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 42/55] ARM: DRA7: PRM: move parts of prm7xx.h header file to public location
-Date: Mon, 31 Mar 2014 18:16:21 +0300
-Message-ID: <1396278994-12624-43-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 51/55] ARM: OMAP2+: powerdomain: move powerdomain.h header to public location
+Date: Mon, 31 Mar 2014 18:16:30 +0300
+Message-ID: <1396278994-12624-52-git-send-email-t-kristo@ti.com>
 References: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39314 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752911AbaCaPTz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Mar 2014 11:19:55 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:59007 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752442AbaCaPUU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Mar 2014 11:20:20 -0400
 In-Reply-To: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Parts of this file are needed by both the driver and mach-omap2 board
-code.
+This file needs to be accessible from the PRCM core and mach-omap2 board
+support code.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/prm44xx.c     |    5 +-
- arch/arm/mach-omap2/prm7xx.h      |  568 +----------------------------------
- arch/arm/mach-omap2/prminst44xx.c |    2 +-
- include/linux/power/omap/prm7xx.h |  591 +++++++++++++++++++++++++++++++++++++
- 4 files changed, 597 insertions(+), 569 deletions(-)
- create mode 100644 include/linux/power/omap/prm7xx.h
+ arch/arm/mach-omap2/clockdomain.c                |    2 +-
+ arch/arm/mach-omap2/cm2xxx.c                     |    2 +-
+ arch/arm/mach-omap2/cm3xxx.c                     |    2 +-
+ arch/arm/mach-omap2/cpuidle34xx.c                |    2 +-
+ arch/arm/mach-omap2/gpio.c                       |    2 +-
+ arch/arm/mach-omap2/io.c                         |    2 +-
+ arch/arm/mach-omap2/omap-hotplug.c               |    2 +-
+ arch/arm/mach-omap2/omap_hwmod.c                 |    2 +-
+ arch/arm/mach-omap2/pm-debug.c                   |    2 +-
+ arch/arm/mach-omap2/pm.c                         |    2 +-
+ arch/arm/mach-omap2/pm.h                         |    2 +-
+ arch/arm/mach-omap2/pm24xx.c                     |    2 +-
+ arch/arm/mach-omap2/pm34xx.c                     |    2 +-
+ arch/arm/mach-omap2/pm44xx.c                     |    2 +-
+ arch/arm/mach-omap2/powerdomain.c                |    2 +-
+ arch/arm/mach-omap2/powerdomain.h                |  277 ---------------------
+ arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c |    2 +-
+ arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h |    2 +-
+ arch/arm/mach-omap2/powerdomains2xxx_data.c      |    2 +-
+ arch/arm/mach-omap2/powerdomains33xx_data.c      |    2 +-
+ arch/arm/mach-omap2/powerdomains3xxx_data.c      |    2 +-
+ arch/arm/mach-omap2/powerdomains43xx_data.c      |    2 +-
+ arch/arm/mach-omap2/powerdomains44xx_data.c      |    2 +-
+ arch/arm/mach-omap2/powerdomains54xx_data.c      |    2 +-
+ arch/arm/mach-omap2/powerdomains7xx_data.c       |    2 +-
+ arch/arm/mach-omap2/prm2xxx.c                    |    2 +-
+ arch/arm/mach-omap2/prm2xxx_3xxx.c               |    2 +-
+ arch/arm/mach-omap2/prm2xxx_3xxx_private.h       |    2 +-
+ arch/arm/mach-omap2/prm33xx.c                    |    2 +-
+ arch/arm/mach-omap2/prm3xxx.c                    |    2 +-
+ arch/arm/mach-omap2/prm44xx.c                    |    2 +-
+ arch/arm/mach-omap2/timer.c                      |    2 +-
+ arch/arm/mach-omap2/voltage.c                    |    2 +-
+ include/linux/power/omap/powerdomain.h           |  280 ++++++++++++++++++++++
+ 34 files changed, 312 insertions(+), 309 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/powerdomain.h
+ create mode 100644 include/linux/power/omap/powerdomain.h
 
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 298fb05..26d28c7 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -30,7 +30,7 @@
+ 
+ #include "soc.h"
+ #include <linux/power/omap/clockdomain.h>
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ /* clkdm_list contains all registered struct clockdomains */
+ static LIST_HEAD(clkdm_list);
+diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
+index 93efae1..c0aec2c 100644
+--- a/arch/arm/mach-omap2/cm2xxx.c
++++ b/arch/arm/mach-omap2/cm2xxx.c
+@@ -25,7 +25,7 @@
+ #include <linux/power/omap/clockdomain.h>
+ #include <linux/power/omap/prcm-common.h>
+ #include <linux/power/omap/prm2xxx_3xxx.h>
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ /* CM_AUTOIDLE_PLL.AUTO_* bit values for DPLLs */
+ #define DPLL_AUTOIDLE_DISABLE				0x0
+diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
+index 47d0e49..d1b65ab 100644
+--- a/arch/arm/mach-omap2/cm3xxx.c
++++ b/arch/arm/mach-omap2/cm3xxx.c
+@@ -24,7 +24,7 @@
+ #include <linux/power/omap/cm3xxx.h>
+ #include <linux/power/omap/clockdomain.h>
+ #include <linux/power/omap/prcm-common.h>
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ #define OMAP34XX_CLKSTCTRL_DISABLE_AUTO		0x0
+ #define OMAP34XX_CLKSTCTRL_FORCE_SLEEP		0x1
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 858a28a..cb4f96a 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -28,7 +28,7 @@
+ #include <linux/cpu_pm.h>
+ #include <asm/cpuidle.h>
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include <linux/power/omap/clockdomain.h>
+ 
+ #include "pm.h"
+diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+index 7a57714..7d37e50 100644
+--- a/arch/arm/mach-omap2/gpio.c
++++ b/arch/arm/mach-omap2/gpio.c
+@@ -28,7 +28,7 @@
+ #include "omap_device.h"
+ #include "omap-pm.h"
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ static int __init omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
+ {
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index b12ca79..08dd6de 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -31,7 +31,7 @@
+ #include "soc.h"
+ #include "iomap.h"
+ #include "voltage.h"
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include <linux/power/omap/clockdomain.h>
+ #include "common.h"
+ #include "clock.h"
+diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
+index 458f72f..5360d37 100644
+--- a/arch/arm/mach-omap2/omap-hotplug.c
++++ b/arch/arm/mach-omap2/omap-hotplug.c
+@@ -21,7 +21,7 @@
+ 
+ #include "omap-wakeupgen.h"
+ #include "common.h"
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ /*
+  * platform-specific code to shutdown a CPU
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index bfd3c19..d152ddc 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -150,7 +150,7 @@
+ #include "soc.h"
+ #include "common.h"
+ #include <linux/power/omap/clockdomain.h>
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include "cm2xxx.h"
+ #include "cm3xxx.h"
+ #include <linux/power/omap/cm44xx.h>
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 766012e..5ef4c7d 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -28,7 +28,7 @@
+ #include <linux/slab.h>
+ 
+ #include "clock.h"
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include <linux/power/omap/clockdomain.h>
+ #include "omap-pm.h"
+ 
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 8ee7b14..ea6b5ad 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -27,7 +27,7 @@
+ #include "soc.h"
+ #include <linux/power/omap/prcm-common.h>
+ #include "voltage.h"
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include <linux/power/omap/clockdomain.h>
+ #include "pm.h"
+ #include "twl-common.h"
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 7bdd22a..b63bd1f 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -13,7 +13,7 @@
+ 
+ #include <linux/err.h>
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ #ifdef CONFIG_CPU_IDLE
+ extern int __init omap3_idle_init(void);
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index 6c1b8d6..788ec5e 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -51,7 +51,7 @@
+ #include "sram.h"
+ #include "pm.h"
+ #include "control.h"
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include <linux/power/omap/clockdomain.h>
+ 
+ static void (*omap2_sram_suspend)(u32 dllctrl, void __iomem *sdrc_dlla_ctrl,
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 119b9ff..ca3724c 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -38,7 +38,7 @@
+ #include <asm/system_misc.h>
+ 
+ #include <linux/power/omap/clockdomain.h>
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include "soc.h"
+ #include "common.h"
+ #include "cm3xxx.h"
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 47f664f..d7b8d33 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -21,7 +21,7 @@
+ #include "soc.h"
+ #include "common.h"
+ #include <linux/power/omap/clockdomain.h>
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include "pm.h"
+ 
+ u16 pm44xx_errata;
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 63fd500..11a5359 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -30,7 +30,7 @@
+ #include <asm/cpu.h>
+ 
+ #include <linux/power/omap/prm.h>
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include <linux/power/omap/clockdomain.h>
+ #include "voltage.h"
+ 
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+deleted file mode 100644
+index f472711..0000000
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ /dev/null
+@@ -1,277 +0,0 @@
+-/*
+- * OMAP2/3/4 powerdomain control
+- *
+- * Copyright (C) 2007-2008, 2010 Texas Instruments, Inc.
+- * Copyright (C) 2007-2011 Nokia Corporation
+- *
+- * Paul Walmsley
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * XXX This should be moved to the mach-omap2/ directory at the earliest
+- * opportunity.
+- */
+-
+-#ifndef __ARCH_ARM_MACH_OMAP2_POWERDOMAIN_H
+-#define __ARCH_ARM_MACH_OMAP2_POWERDOMAIN_H
+-
+-#include <linux/types.h>
+-#include <linux/list.h>
+-#include <linux/spinlock.h>
+-
+-/* Powerdomain basic power states */
+-#define PWRDM_POWER_OFF		0x0
+-#define PWRDM_POWER_RET		0x1
+-#define PWRDM_POWER_INACTIVE	0x2
+-#define PWRDM_POWER_ON		0x3
+-
+-#define PWRDM_MAX_PWRSTS	4
+-
+-/* Powerdomain allowable state bitfields */
+-#define PWRSTS_ON		(1 << PWRDM_POWER_ON)
+-#define PWRSTS_INACTIVE		(1 << PWRDM_POWER_INACTIVE)
+-#define PWRSTS_RET		(1 << PWRDM_POWER_RET)
+-#define PWRSTS_OFF		(1 << PWRDM_POWER_OFF)
+-
+-#define PWRSTS_OFF_ON		(PWRSTS_OFF | PWRSTS_ON)
+-#define PWRSTS_OFF_RET		(PWRSTS_OFF | PWRSTS_RET)
+-#define PWRSTS_RET_ON		(PWRSTS_RET | PWRSTS_ON)
+-#define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | PWRSTS_ON)
+-
+-
+-/*
+- * Powerdomain flags (struct powerdomain.flags)
+- *
+- * PWRDM_HAS_HDWR_SAR - powerdomain has hardware save-and-restore support
+- *
+- * PWRDM_HAS_MPU_QUIRK - MPU pwr domain has MEM bank 0 bits in MEM
+- * bank 1 position. This is true for OMAP3430
+- *
+- * PWRDM_HAS_LOWPOWERSTATECHANGE - can transition from a sleep state
+- * to a lower sleep state without waking up the powerdomain
+- */
+-#define PWRDM_HAS_HDWR_SAR		BIT(0)
+-#define PWRDM_HAS_MPU_QUIRK		BIT(1)
+-#define PWRDM_HAS_LOWPOWERSTATECHANGE	BIT(2)
+-
+-/*
+- * Number of memory banks that are power-controllable.	On OMAP4430, the
+- * maximum is 5.
+- */
+-#define PWRDM_MAX_MEM_BANKS	5
+-
+-/*
+- * Maximum number of clockdomains that can be associated with a powerdomain.
+- * PER powerdomain on AM33XX is the worst case
+- */
+-#define PWRDM_MAX_CLKDMS	11
+-
+-/* XXX A completely arbitrary number. What is reasonable here? */
+-#define PWRDM_TRANSITION_BAILOUT 100000
+-
+-struct clockdomain;
+-struct powerdomain;
+-struct voltagedomain;
+-
+-/**
+- * struct powerdomain - OMAP powerdomain
+- * @name: Powerdomain name
+- * @voltdm: voltagedomain containing this powerdomain
+- * @prcm_offs: the address offset from CM_BASE/PRM_BASE
+- * @prcm_partition: (OMAP4 only) the PRCM partition ID containing @prcm_offs
+- * @pwrsts: Possible powerdomain power states
+- * @pwrsts_logic_ret: Possible logic power states when pwrdm in RETENTION
+- * @flags: Powerdomain flags
+- * @banks: Number of software-controllable memory banks in this powerdomain
+- * @pwrsts_mem_ret: Possible memory bank pwrstates when pwrdm in RETENTION
+- * @pwrsts_mem_on: Possible memory bank pwrstates when pwrdm in ON
+- * @pwrdm_clkdms: Clockdomains in this powerdomain
+- * @node: list_head linking all powerdomains
+- * @voltdm_node: list_head linking all powerdomains in a voltagedomain
+- * @pwrstctrl_offs: (AM33XX only) XXX_PWRSTCTRL reg offset from prcm_offs
+- * @pwrstst_offs: (AM33XX only) XXX_PWRSTST reg offset from prcm_offs
+- * @logicretstate_mask: (AM33XX only) mask for logic retention bitfield
+- *	in @pwrstctrl_offs
+- * @mem_on_mask: (AM33XX only) mask for mem on bitfield in @pwrstctrl_offs
+- * @mem_ret_mask: (AM33XX only) mask for mem ret bitfield in @pwrstctrl_offs
+- * @mem_pwrst_mask: (AM33XX only) mask for mem state bitfield in @pwrstst_offs
+- * @mem_retst_mask: (AM33XX only) mask for mem retention state bitfield
+- *	in @pwrstctrl_offs
+- * @state:
+- * @state_counter:
+- * @timer:
+- * @state_timer:
+- * @_lock: spinlock used to serialize powerdomain and some clockdomain ops
+- * @_lock_flags: stored flags when @_lock is taken
+- *
+- * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
+- */
+-struct powerdomain {
+-	const char *name;
+-	union {
+-		const char *name;
+-		struct voltagedomain *ptr;
+-	} voltdm;
+-	const s16 prcm_offs;
+-	const u8 pwrsts;
+-	const u8 pwrsts_logic_ret;
+-	const u8 flags;
+-	const u8 banks;
+-	const u8 pwrsts_mem_ret[PWRDM_MAX_MEM_BANKS];
+-	const u8 pwrsts_mem_on[PWRDM_MAX_MEM_BANKS];
+-	const u8 prcm_partition;
+-	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
+-	struct list_head node;
+-	struct list_head voltdm_node;
+-	int state;
+-	unsigned state_counter[PWRDM_MAX_PWRSTS];
+-	unsigned ret_logic_off_counter;
+-	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
+-	spinlock_t _lock;
+-	unsigned long _lock_flags;
+-	const u8 pwrstctrl_offs;
+-	const u8 pwrstst_offs;
+-	const u32 logicretstate_mask;
+-	const u32 mem_on_mask[PWRDM_MAX_MEM_BANKS];
+-	const u32 mem_ret_mask[PWRDM_MAX_MEM_BANKS];
+-	const u32 mem_pwrst_mask[PWRDM_MAX_MEM_BANKS];
+-	const u32 mem_retst_mask[PWRDM_MAX_MEM_BANKS];
+-
+-#ifdef CONFIG_PM_DEBUG
+-	s64 timer;
+-	s64 state_timer[PWRDM_MAX_PWRSTS];
+-#endif
+-};
+-
+-/**
+- * struct pwrdm_ops - Arch specific function implementations
+- * @pwrdm_set_next_pwrst: Set the target power state for a pd
+- * @pwrdm_read_next_pwrst: Read the target power state set for a pd
+- * @pwrdm_read_pwrst: Read the current power state of a pd
+- * @pwrdm_read_prev_pwrst: Read the prev power state entered by the pd
+- * @pwrdm_set_logic_retst: Set the logic state in RET for a pd
+- * @pwrdm_set_mem_onst: Set the Memory state in ON for a pd
+- * @pwrdm_set_mem_retst: Set the Memory state in RET for a pd
+- * @pwrdm_read_logic_pwrst: Read the current logic state of a pd
+- * @pwrdm_read_prev_logic_pwrst: Read the previous logic state entered by a pd
+- * @pwrdm_read_logic_retst: Read the logic state in RET for a pd
+- * @pwrdm_read_mem_pwrst: Read the current memory state of a pd
+- * @pwrdm_read_prev_mem_pwrst: Read the previous memory state entered by a pd
+- * @pwrdm_read_mem_retst: Read the memory state in RET for a pd
+- * @pwrdm_clear_all_prev_pwrst: Clear all previous power states logged for a pd
+- * @pwrdm_enable_hdwr_sar: Enable Hardware Save-Restore feature for the pd
+- * @pwrdm_disable_hdwr_sar: Disable Hardware Save-Restore feature for a pd
+- * @pwrdm_set_lowpwrstchange: Enable pd transitions from a shallow to deep sleep
+- * @pwrdm_wait_transition: Wait for a pd state transition to complete
+- * @pwrdm_has_voltdm: Check if a voltdm association is needed
+- *
+- * Regarding @pwrdm_set_lowpwrstchange: On the OMAP2 and 3-family
+- * chips, a powerdomain's power state is not allowed to directly
+- * transition from one low-power state (e.g., CSWR) to another
+- * low-power state (e.g., OFF) without first waking up the
+- * powerdomain.  This wastes energy.  So OMAP4 chips support the
+- * ability to transition a powerdomain power state directly from one
+- * low-power state to another.  The function pointed to by
+- * @pwrdm_set_lowpwrstchange is intended to configure the OMAP4
+- * hardware powerdomain state machine to enable this feature.
+- */
+-struct pwrdm_ops {
+-	int	(*pwrdm_set_next_pwrst)(struct powerdomain *pwrdm, u8 pwrst);
+-	int	(*pwrdm_read_next_pwrst)(struct powerdomain *pwrdm);
+-	int	(*pwrdm_read_pwrst)(struct powerdomain *pwrdm);
+-	int	(*pwrdm_read_prev_pwrst)(struct powerdomain *pwrdm);
+-	int	(*pwrdm_set_logic_retst)(struct powerdomain *pwrdm, u8 pwrst);
+-	int	(*pwrdm_set_mem_onst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
+-	int	(*pwrdm_set_mem_retst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
+-	int	(*pwrdm_read_logic_pwrst)(struct powerdomain *pwrdm);
+-	int	(*pwrdm_read_prev_logic_pwrst)(struct powerdomain *pwrdm);
+-	int	(*pwrdm_read_logic_retst)(struct powerdomain *pwrdm);
+-	int	(*pwrdm_read_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
+-	int	(*pwrdm_read_prev_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
+-	int	(*pwrdm_read_mem_retst)(struct powerdomain *pwrdm, u8 bank);
+-	int	(*pwrdm_clear_all_prev_pwrst)(struct powerdomain *pwrdm);
+-	int	(*pwrdm_enable_hdwr_sar)(struct powerdomain *pwrdm);
+-	int	(*pwrdm_disable_hdwr_sar)(struct powerdomain *pwrdm);
+-	int	(*pwrdm_set_lowpwrstchange)(struct powerdomain *pwrdm);
+-	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
+-	int	(*pwrdm_has_voltdm)(void);
+-};
+-
+-int pwrdm_register_platform_funcs(struct pwrdm_ops *custom_funcs);
+-int pwrdm_register_pwrdms(struct powerdomain **pwrdm_list);
+-int pwrdm_complete_init(void);
+-
+-struct powerdomain *pwrdm_lookup(const char *name);
+-
+-int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
+-			void *user);
+-int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
+-			void *user);
+-
+-int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
+-int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
+-int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
+-			 int (*fn)(struct powerdomain *pwrdm,
+-				   struct clockdomain *clkdm));
+-struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm);
+-
+-int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
+-
+-int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
+-int pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
+-int pwrdm_read_pwrst(struct powerdomain *pwrdm);
+-int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm);
+-int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm);
+-
+-int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst);
+-int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
+-int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
+-
+-int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm);
+-int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm);
+-int pwrdm_read_logic_retst(struct powerdomain *pwrdm);
+-int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
+-int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
+-int pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank);
+-
+-int pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm);
+-int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm);
+-bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
+-
+-int pwrdm_state_switch_nolock(struct powerdomain *pwrdm);
+-int pwrdm_state_switch(struct powerdomain *pwrdm);
+-int pwrdm_pre_transition(struct powerdomain *pwrdm);
+-int pwrdm_post_transition(struct powerdomain *pwrdm);
+-int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+-bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
+-
+-extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 state);
+-
+-extern void omap242x_powerdomains_init(void);
+-extern void omap243x_powerdomains_init(void);
+-extern void omap3xxx_powerdomains_init(void);
+-extern void am33xx_powerdomains_init(void);
+-extern void omap44xx_powerdomains_init(void);
+-extern void omap54xx_powerdomains_init(void);
+-extern void dra7xx_powerdomains_init(void);
+-void am43xx_powerdomains_init(void);
+-
+-extern struct pwrdm_ops omap2_pwrdm_operations;
+-extern struct pwrdm_ops omap3_pwrdm_operations;
+-extern struct pwrdm_ops am33xx_pwrdm_operations;
+-extern struct pwrdm_ops omap4_pwrdm_operations;
+-
+-/* Common Internal functions used across OMAP rev's */
+-extern u32 omap2_pwrdm_get_mem_bank_onstate_mask(u8 bank);
+-extern u32 omap2_pwrdm_get_mem_bank_retst_mask(u8 bank);
+-extern u32 omap2_pwrdm_get_mem_bank_stst_mask(u8 bank);
+-
+-extern struct powerdomain wkup_omap2_pwrdm;
+-extern struct powerdomain gfx_omap2_pwrdm;
+-
+-extern void pwrdm_lock(struct powerdomain *pwrdm);
+-extern void pwrdm_unlock(struct powerdomain *pwrdm);
+-
+-#endif
+diff --git a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
+index 823bc4d..c3d2e8a 100644
+--- a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
+@@ -31,7 +31,7 @@
+  * address offset is different between the C55 and C64 DSPs.
+  */
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ #include <linux/power/omap/prcm-common.h>
+ #include <linux/power/omap/prm.h>
+diff --git a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h
+index fa31166..b22c174 100644
+--- a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h
++++ b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h
+@@ -14,7 +14,7 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_POWERDOMAINS2XXX_3XXX_DATA_H
+ #define __ARCH_ARM_MACH_OMAP2_POWERDOMAINS2XXX_3XXX_DATA_H
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ extern struct powerdomain gfx_omap2_pwrdm;
+ extern struct powerdomain wkup_omap2_pwrdm;
+diff --git a/arch/arm/mach-omap2/powerdomains2xxx_data.c b/arch/arm/mach-omap2/powerdomains2xxx_data.c
+index 9506c0e..7fced02 100644
+--- a/arch/arm/mach-omap2/powerdomains2xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains2xxx_data.c
+@@ -15,7 +15,7 @@
+ #include <linux/init.h>
+ 
+ #include "soc.h"
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include "powerdomains2xxx_3xxx_data.h"
+ 
+ #include <linux/power/omap/prcm-common.h>
+diff --git a/arch/arm/mach-omap2/powerdomains33xx_data.c b/arch/arm/mach-omap2/powerdomains33xx_data.c
+index 0a7a5ca..719c541 100644
+--- a/arch/arm/mach-omap2/powerdomains33xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains33xx_data.c
+@@ -16,7 +16,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include <linux/power/omap/prcm-common.h>
+ #include "prm-regbits-33xx.h"
+ #include "prm33xx.h"
+diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+index be12876..01c43d4 100644
+--- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+@@ -16,7 +16,7 @@
+ #include <linux/bug.h>
+ 
+ #include "soc.h"
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include "powerdomains2xxx_3xxx_data.h"
+ #include <linux/power/omap/prcm-common.h>
+ #include <linux/power/omap/prm2xxx_3xxx.h>
+diff --git a/arch/arm/mach-omap2/powerdomains43xx_data.c b/arch/arm/mach-omap2/powerdomains43xx_data.c
+index 91802f1..922d6ea 100644
+--- a/arch/arm/mach-omap2/powerdomains43xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains43xx_data.c
+@@ -11,7 +11,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ #include <linux/power/omap/prcm-common.h>
+ #include "prcm43xx.h"
+diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
+index 793c611..290d68d 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+@@ -22,7 +22,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ #include <linux/power/omap/prcm-common.h>
+ #include <linux/power/omap/prcm44xx.h>
+diff --git a/arch/arm/mach-omap2/powerdomains54xx_data.c b/arch/arm/mach-omap2/powerdomains54xx_data.c
+index 37017f2..c24a991 100644
+--- a/arch/arm/mach-omap2/powerdomains54xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains54xx_data.c
+@@ -21,7 +21,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ #include <linux/power/omap/prcm-common.h>
+ #include <linux/power/omap/prcm44xx.h>
+diff --git a/arch/arm/mach-omap2/powerdomains7xx_data.c b/arch/arm/mach-omap2/powerdomains7xx_data.c
+index cedc84b..35f6ca1 100644
+--- a/arch/arm/mach-omap2/powerdomains7xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains7xx_data.c
+@@ -23,7 +23,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ #include <linux/power/omap/prcm-common.h>
+ #include <linux/power/omap/prcm44xx.h>
+diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
+index 7969cb9..735ee33 100644
+--- a/arch/arm/mach-omap2/prm2xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx.c
+@@ -18,7 +18,7 @@
+ #include <linux/io.h>
+ #include <linux/irq.h>
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include <linux/power/omap/clockdomain.h>
+ #include <linux/power/omap/prm2xxx.h>
+ #include "prm2xxx_3xxx_private.h"
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+index a25d1d0..27828d0 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+@@ -16,7 +16,7 @@
+ #include <linux/err.h>
+ #include <linux/io.h>
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include "prm2xxx_3xxx_private.h"
+ #include <linux/power/omap/clockdomain.h>
+ 
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx_private.h b/arch/arm/mach-omap2/prm2xxx_3xxx_private.h
+index 5d6861a..52537fd 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx_private.h
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx_private.h
+@@ -23,7 +23,7 @@
+ #ifndef __ASSEMBLER__
+ 
+ #include <linux/io.h>
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ 
+ /* Power/reset management domain register get/set */
+ static inline u32 omap2_prm_read_mod_reg(s16 module, u16 idx)
+diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
+index b5864c9..05356a3 100644
+--- a/arch/arm/mach-omap2/prm33xx.c
++++ b/arch/arm/mach-omap2/prm33xx.c
+@@ -20,7 +20,7 @@
+ #include <linux/io.h>
+ #include <linux/power/omap/prm33xx.h>
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include <linux/power/omap/prm.h>
+ 
+ #define AM33XX_LASTPOWERSTATEENTERED_SHIFT	24
+diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
+index e7d409c..be4c3ef 100644
+--- a/arch/arm/mach-omap2/prm3xxx.c
++++ b/arch/arm/mach-omap2/prm3xxx.c
+@@ -18,7 +18,7 @@
+ #include <linux/io.h>
+ #include <linux/irq.h>
+ 
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include <linux/power/omap/prm3xxx.h>
+ #include "prm2xxx_3xxx_private.h"
+ #include "cm2xxx_3xxx_private.h"
 diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 97b7ab2..a80e8b5 100644
+index 69a974b..ab04ce8 100644
 --- a/arch/arm/mach-omap2/prm44xx.c
 +++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -22,10 +22,13 @@
- #include "vp.h"
- #include <linux/power/omap/prm44xx.h>
- #include <linux/power/omap/prm54xx.h>
--#include "prm7xx.h"
-+#include <linux/power/omap/prm7xx.h>
- #include "prcm44xx.h"
+@@ -24,7 +24,7 @@
+ #include <linux/power/omap/prm7xx.h>
+ #include <linux/power/omap/prcm44xx.h>
  #include "prminst44xx_private.h"
- #include "powerdomain.h"
-+#include "prm.h"
-+#include "prcm-common.h"
-+#include "prm44xx_54xx.h"
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include <linux/power/omap/prm.h>
+ #include <linux/power/omap/prcm-common.h>
+ #include <linux/power/omap/prm44xx_54xx.h>
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 74044aa..f10ca44 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -54,7 +54,7 @@
  
- #define OMAP4430_GLOBAL_COLD_RST_SHIFT			0
- #define OMAP4430_GLOBAL_WARM_SW_RST_SHIFT		1
-diff --git a/arch/arm/mach-omap2/prm7xx.h b/arch/arm/mach-omap2/prm7xx.h
-index b971af5..c6dc341 100644
---- a/arch/arm/mach-omap2/prm7xx.h
-+++ b/arch/arm/mach-omap2/prm7xx.h
-@@ -25,577 +25,11 @@
- #include "prm44xx_54xx.h"
- #include "prcm-common.h"
- #include "prm.h"
-+#include <linux/power/omap/prm7xx.h>
+ #include "soc.h"
+ #include "common.h"
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
+ #include "omap-secure.h"
  
- #define DRA7XX_PRM_BASE		0x4ae06000
+ #define REALTIME_COUNTER_BASE				0x48243200
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index b707328..17df5e7 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -36,7 +36,7 @@
+ #include "control.h"
  
- #define DRA7XX_PRM_REGADDR(inst, reg)				\
- 	OMAP2_L4_IO_ADDRESS(DRA7XX_PRM_BASE + (inst) + (reg))
+ #include "voltage.h"
+-#include "powerdomain.h"
++#include <linux/power/omap/powerdomain.h>
  
--
--/* PRM instances */
--#define DRA7XX_PRM_OCP_SOCKET_INST	0x0000
--#define DRA7XX_PRM_CKGEN_INST		0x0100
--#define DRA7XX_PRM_MPU_INST		0x0300
--#define DRA7XX_PRM_DSP1_INST		0x0400
--#define DRA7XX_PRM_IPU_INST		0x0500
--#define DRA7XX_PRM_COREAON_INST		0x0628
--#define DRA7XX_PRM_CORE_INST		0x0700
--#define DRA7XX_PRM_IVA_INST		0x0f00
--#define DRA7XX_PRM_CAM_INST		0x1000
--#define DRA7XX_PRM_DSS_INST		0x1100
--#define DRA7XX_PRM_GPU_INST		0x1200
--#define DRA7XX_PRM_L3INIT_INST		0x1300
--#define DRA7XX_PRM_L4PER_INST		0x1400
--#define DRA7XX_PRM_CUSTEFUSE_INST	0x1600
--#define DRA7XX_PRM_WKUPAON_INST		0x1724
--#define DRA7XX_PRM_WKUPAON_CM_INST	0x1800
--#define DRA7XX_PRM_EMU_INST		0x1900
--#define DRA7XX_PRM_EMU_CM_INST		0x1a00
--#define DRA7XX_PRM_DSP2_INST		0x1b00
--#define DRA7XX_PRM_EVE1_INST		0x1b40
--#define DRA7XX_PRM_EVE2_INST		0x1b80
--#define DRA7XX_PRM_EVE3_INST		0x1bc0
--#define DRA7XX_PRM_EVE4_INST		0x1c00
--#define DRA7XX_PRM_RTC_INST		0x1c60
--#define DRA7XX_PRM_VPE_INST		0x1c80
--#define DRA7XX_PRM_DEVICE_INST		0x1d00
--#define DRA7XX_PRM_INSTR_INST		0x1f00
--
--/* PRM clockdomain register offsets (from instance start) */
--#define DRA7XX_PRM_WKUPAON_CM_WKUPAON_CDOFFS	0x0000
--#define DRA7XX_PRM_EMU_CM_EMU_CDOFFS		0x0000
--
--/* PRM */
--
--/* PRM.OCP_SOCKET_PRM register offsets */
--#define DRA7XX_REVISION_PRM_OFFSET				0x0000
--#define DRA7XX_PRM_IRQSTATUS_MPU_OFFSET				0x0010
--#define DRA7XX_PRM_IRQSTATUS_MPU_2_OFFSET			0x0014
--#define DRA7XX_PRM_IRQENABLE_MPU_OFFSET				0x0018
--#define DRA7XX_PRM_IRQENABLE_MPU_2_OFFSET			0x001c
--#define DRA7XX_PRM_IRQSTATUS_IPU2_OFFSET			0x0020
--#define DRA7XX_PRM_IRQENABLE_IPU2_OFFSET			0x0028
--#define DRA7XX_PRM_IRQSTATUS_DSP1_OFFSET			0x0030
--#define DRA7XX_PRM_IRQENABLE_DSP1_OFFSET			0x0038
--#define DRA7XX_CM_PRM_PROFILING_CLKCTRL_OFFSET			0x0040
--#define DRA7XX_PRM_IRQENABLE_DSP2_OFFSET			0x0044
--#define DRA7XX_PRM_IRQENABLE_EVE1_OFFSET			0x0048
--#define DRA7XX_PRM_IRQENABLE_EVE2_OFFSET			0x004c
--#define DRA7XX_PRM_IRQENABLE_EVE3_OFFSET			0x0050
--#define DRA7XX_PRM_IRQENABLE_EVE4_OFFSET			0x0054
--#define DRA7XX_PRM_IRQENABLE_IPU1_OFFSET			0x0058
--#define DRA7XX_PRM_IRQSTATUS_DSP2_OFFSET			0x005c
--#define DRA7XX_PRM_IRQSTATUS_EVE1_OFFSET			0x0060
--#define DRA7XX_PRM_IRQSTATUS_EVE2_OFFSET			0x0064
--#define DRA7XX_PRM_IRQSTATUS_EVE3_OFFSET			0x0068
--#define DRA7XX_PRM_IRQSTATUS_EVE4_OFFSET			0x006c
--#define DRA7XX_PRM_IRQSTATUS_IPU1_OFFSET			0x0070
--#define DRA7XX_PRM_DEBUG_CFG1_OFFSET				0x00e4
--#define DRA7XX_PRM_DEBUG_CFG2_OFFSET				0x00e8
--#define DRA7XX_PRM_DEBUG_CFG3_OFFSET				0x00ec
--#define DRA7XX_PRM_DEBUG_OUT_OFFSET				0x00f4
--
--/* PRM.CKGEN_PRM register offsets */
--#define DRA7XX_CM_CLKSEL_SYSCLK1_OFFSET				0x0000
--#define DRA7XX_CM_CLKSEL_WKUPAON_OFFSET				0x0008
--#define DRA7XX_CM_CLKSEL_ABE_PLL_REF_OFFSET			0x000c
--#define DRA7XX_CM_CLKSEL_SYS_OFFSET				0x0010
--#define DRA7XX_CM_CLKSEL_ABE_PLL_BYPAS_OFFSET			0x0014
--#define DRA7XX_CM_CLKSEL_ABE_PLL_SYS_OFFSET			0x0018
--#define DRA7XX_CM_CLKSEL_ABE_24M_OFFSET				0x001c
--#define DRA7XX_CM_CLKSEL_ABE_SYS_OFFSET				0x0020
--#define DRA7XX_CM_CLKSEL_HDMI_MCASP_AUX_OFFSET			0x0024
--#define DRA7XX_CM_CLKSEL_HDMI_TIMER_OFFSET			0x0028
--#define DRA7XX_CM_CLKSEL_MCASP_SYS_OFFSET			0x002c
--#define DRA7XX_CM_CLKSEL_MLBP_MCASP_OFFSET			0x0030
--#define DRA7XX_CM_CLKSEL_MLB_MCASP_OFFSET			0x0034
--#define DRA7XX_CM_CLKSEL_PER_ABE_X1_GFCLK_MCASP_AUX_OFFSET	0x0038
--#define DRA7XX_CM_CLKSEL_SYS_CLK1_32K_OFFSET			0x0040
--#define DRA7XX_CM_CLKSEL_TIMER_SYS_OFFSET			0x0044
--#define DRA7XX_CM_CLKSEL_VIDEO1_MCASP_AUX_OFFSET		0x0048
--#define DRA7XX_CM_CLKSEL_VIDEO1_TIMER_OFFSET			0x004c
--#define DRA7XX_CM_CLKSEL_VIDEO2_MCASP_AUX_OFFSET		0x0050
--#define DRA7XX_CM_CLKSEL_VIDEO2_TIMER_OFFSET			0x0054
--#define DRA7XX_CM_CLKSEL_CLKOUTMUX0_OFFSET			0x0058
--#define DRA7XX_CM_CLKSEL_CLKOUTMUX1_OFFSET			0x005c
--#define DRA7XX_CM_CLKSEL_CLKOUTMUX2_OFFSET			0x0060
--#define DRA7XX_CM_CLKSEL_HDMI_PLL_SYS_OFFSET			0x0064
--#define DRA7XX_CM_CLKSEL_VIDEO1_PLL_SYS_OFFSET			0x0068
--#define DRA7XX_CM_CLKSEL_VIDEO2_PLL_SYS_OFFSET			0x006c
--#define DRA7XX_CM_CLKSEL_ABE_CLK_DIV_OFFSET			0x0070
--#define DRA7XX_CM_CLKSEL_ABE_GICLK_DIV_OFFSET			0x0074
--#define DRA7XX_CM_CLKSEL_AESS_FCLK_DIV_OFFSET			0x0078
--#define DRA7XX_CM_CLKSEL_EVE_CLK_OFFSET				0x0080
--#define DRA7XX_CM_CLKSEL_USB_OTG_CLK_CLKOUTMUX_OFFSET		0x0084
--#define DRA7XX_CM_CLKSEL_CORE_DPLL_OUT_CLK_CLKOUTMUX_OFFSET	0x0088
--#define DRA7XX_CM_CLKSEL_DSP_GFCLK_CLKOUTMUX_OFFSET		0x008c
--#define DRA7XX_CM_CLKSEL_EMIF_PHY_GCLK_CLKOUTMUX_OFFSET		0x0090
--#define DRA7XX_CM_CLKSEL_EMU_CLK_CLKOUTMUX_OFFSET		0x0094
--#define DRA7XX_CM_CLKSEL_FUNC_96M_AON_CLK_CLKOUTMUX_OFFSET	0x0098
--#define DRA7XX_CM_CLKSEL_GMAC_250M_CLK_CLKOUTMUX_OFFSET		0x009c
--#define DRA7XX_CM_CLKSEL_GPU_GCLK_CLKOUTMUX_OFFSET		0x00a0
--#define DRA7XX_CM_CLKSEL_HDMI_CLK_CLKOUTMUX_OFFSET		0x00a4
--#define DRA7XX_CM_CLKSEL_IVA_GCLK_CLKOUTMUX_OFFSET		0x00a8
--#define DRA7XX_CM_CLKSEL_L3INIT_480M_GFCLK_CLKOUTMUX_OFFSET	0x00ac
--#define DRA7XX_CM_CLKSEL_MPU_GCLK_CLKOUTMUX_OFFSET		0x00b0
--#define DRA7XX_CM_CLKSEL_PCIE1_CLK_CLKOUTMUX_OFFSET		0x00b4
--#define DRA7XX_CM_CLKSEL_PCIE2_CLK_CLKOUTMUX_OFFSET		0x00b8
--#define DRA7XX_CM_CLKSEL_PER_ABE_X1_CLK_CLKOUTMUX_OFFSET	0x00bc
--#define DRA7XX_CM_CLKSEL_SATA_CLK_CLKOUTMUX_OFFSET		0x00c0
--#define DRA7XX_CM_CLKSEL_SECURE_32K_CLK_CLKOUTMUX_OFFSET	0x00c4
--#define DRA7XX_CM_CLKSEL_SYS_CLK1_CLKOUTMUX_OFFSET		0x00c8
--#define DRA7XX_CM_CLKSEL_SYS_CLK2_CLKOUTMUX_OFFSET		0x00cc
--#define DRA7XX_CM_CLKSEL_VIDEO1_CLK_CLKOUTMUX_OFFSET		0x00d0
--#define DRA7XX_CM_CLKSEL_VIDEO2_CLK_CLKOUTMUX_OFFSET		0x00d4
--#define DRA7XX_CM_CLKSEL_ABE_LP_CLK_OFFSET			0x00d8
--#define DRA7XX_CM_CLKSEL_ADC_GFCLK_OFFSET			0x00dc
--#define DRA7XX_CM_CLKSEL_EVE_GFCLK_CLKOUTMUX_OFFSET		0x00e0
--
--/* PRM.MPU_PRM register offsets */
--#define DRA7XX_PM_MPU_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_MPU_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_MPU_MPU_CONTEXT_OFFSET			0x0024
--
--/* PRM.DSP1_PRM register offsets */
--#define DRA7XX_PM_DSP1_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_DSP1_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_DSP1_RSTCTRL_OFFSET				0x0010
--#define DRA7XX_RM_DSP1_RSTST_OFFSET				0x0014
--#define DRA7XX_RM_DSP1_DSP1_CONTEXT_OFFSET			0x0024
--
--/* PRM.IPU_PRM register offsets */
--#define DRA7XX_PM_IPU_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_IPU_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_IPU1_RSTCTRL_OFFSET				0x0010
--#define DRA7XX_RM_IPU1_RSTST_OFFSET				0x0014
--#define DRA7XX_RM_IPU1_IPU1_CONTEXT_OFFSET			0x0024
--#define DRA7XX_PM_IPU_MCASP1_WKDEP_OFFSET			0x0050
--#define DRA7XX_RM_IPU_MCASP1_CONTEXT_OFFSET			0x0054
--#define DRA7XX_PM_IPU_TIMER5_WKDEP_OFFSET			0x0058
--#define DRA7XX_RM_IPU_TIMER5_CONTEXT_OFFSET			0x005c
--#define DRA7XX_PM_IPU_TIMER6_WKDEP_OFFSET			0x0060
--#define DRA7XX_RM_IPU_TIMER6_CONTEXT_OFFSET			0x0064
--#define DRA7XX_PM_IPU_TIMER7_WKDEP_OFFSET			0x0068
--#define DRA7XX_RM_IPU_TIMER7_CONTEXT_OFFSET			0x006c
--#define DRA7XX_PM_IPU_TIMER8_WKDEP_OFFSET			0x0070
--#define DRA7XX_RM_IPU_TIMER8_CONTEXT_OFFSET			0x0074
--#define DRA7XX_PM_IPU_I2C5_WKDEP_OFFSET				0x0078
--#define DRA7XX_RM_IPU_I2C5_CONTEXT_OFFSET			0x007c
--#define DRA7XX_PM_IPU_UART6_WKDEP_OFFSET			0x0080
--#define DRA7XX_RM_IPU_UART6_CONTEXT_OFFSET			0x0084
--
--/* PRM.COREAON_PRM register offsets */
--#define DRA7XX_PM_COREAON_SMARTREFLEX_MPU_WKDEP_OFFSET		0x0000
--#define DRA7XX_RM_COREAON_SMARTREFLEX_MPU_CONTEXT_OFFSET	0x0004
--#define DRA7XX_PM_COREAON_SMARTREFLEX_CORE_WKDEP_OFFSET		0x0010
--#define DRA7XX_RM_COREAON_SMARTREFLEX_CORE_CONTEXT_OFFSET	0x0014
--#define DRA7XX_PM_COREAON_SMARTREFLEX_GPU_WKDEP_OFFSET		0x0030
--#define DRA7XX_RM_COREAON_SMARTREFLEX_GPU_CONTEXT_OFFSET	0x0034
--#define DRA7XX_PM_COREAON_SMARTREFLEX_DSPEVE_WKDEP_OFFSET	0x0040
--#define DRA7XX_RM_COREAON_SMARTREFLEX_DSPEVE_CONTEXT_OFFSET	0x0044
--#define DRA7XX_PM_COREAON_SMARTREFLEX_IVAHD_WKDEP_OFFSET	0x0050
--#define DRA7XX_RM_COREAON_SMARTREFLEX_IVAHD_CONTEXT_OFFSET	0x0054
--#define DRA7XX_RM_COREAON_DUMMY_MODULE1_CONTEXT_OFFSET		0x0084
--#define DRA7XX_RM_COREAON_DUMMY_MODULE2_CONTEXT_OFFSET		0x0094
--#define DRA7XX_RM_COREAON_DUMMY_MODULE3_CONTEXT_OFFSET		0x00a4
--#define DRA7XX_RM_COREAON_DUMMY_MODULE4_CONTEXT_OFFSET		0x00b4
--
--/* PRM.CORE_PRM register offsets */
--#define DRA7XX_PM_CORE_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_CORE_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_L3MAIN1_L3_MAIN_1_CONTEXT_OFFSET		0x0024
--#define DRA7XX_RM_L3MAIN1_GPMC_CONTEXT_OFFSET			0x002c
--#define DRA7XX_RM_L3MAIN1_MMU_EDMA_CONTEXT_OFFSET		0x0034
--#define DRA7XX_PM_L3MAIN1_OCMC_RAM1_WKDEP_OFFSET		0x0050
--#define DRA7XX_RM_L3MAIN1_OCMC_RAM1_CONTEXT_OFFSET		0x0054
--#define DRA7XX_PM_L3MAIN1_OCMC_RAM2_WKDEP_OFFSET		0x0058
--#define DRA7XX_RM_L3MAIN1_OCMC_RAM2_CONTEXT_OFFSET		0x005c
--#define DRA7XX_PM_L3MAIN1_OCMC_RAM3_WKDEP_OFFSET		0x0060
--#define DRA7XX_RM_L3MAIN1_OCMC_RAM3_CONTEXT_OFFSET		0x0064
--#define DRA7XX_RM_L3MAIN1_OCMC_ROM_CONTEXT_OFFSET		0x006c
--#define DRA7XX_PM_L3MAIN1_TPCC_WKDEP_OFFSET			0x0070
--#define DRA7XX_RM_L3MAIN1_TPCC_CONTEXT_OFFSET			0x0074
--#define DRA7XX_PM_L3MAIN1_TPTC1_WKDEP_OFFSET			0x0078
--#define DRA7XX_RM_L3MAIN1_TPTC1_CONTEXT_OFFSET			0x007c
--#define DRA7XX_PM_L3MAIN1_TPTC2_WKDEP_OFFSET			0x0080
--#define DRA7XX_RM_L3MAIN1_TPTC2_CONTEXT_OFFSET			0x0084
--#define DRA7XX_RM_L3MAIN1_VCP1_CONTEXT_OFFSET			0x008c
--#define DRA7XX_RM_L3MAIN1_VCP2_CONTEXT_OFFSET			0x0094
--#define DRA7XX_RM_L3MAIN1_SPARE_CME_CONTEXT_OFFSET		0x009c
--#define DRA7XX_RM_L3MAIN1_SPARE_HDMI_CONTEXT_OFFSET		0x00a4
--#define DRA7XX_RM_L3MAIN1_SPARE_ICM_CONTEXT_OFFSET		0x00ac
--#define DRA7XX_RM_L3MAIN1_SPARE_IVA2_CONTEXT_OFFSET		0x00b4
--#define DRA7XX_RM_L3MAIN1_SPARE_SATA2_CONTEXT_OFFSET		0x00bc
--#define DRA7XX_RM_L3MAIN1_SPARE_UNKNOWN4_CONTEXT_OFFSET		0x00c4
--#define DRA7XX_RM_L3MAIN1_SPARE_UNKNOWN5_CONTEXT_OFFSET		0x00cc
--#define DRA7XX_RM_L3MAIN1_SPARE_UNKNOWN6_CONTEXT_OFFSET		0x00d4
--#define DRA7XX_RM_L3MAIN1_SPARE_VIDEOPLL1_CONTEXT_OFFSET	0x00dc
--#define DRA7XX_RM_L3MAIN1_SPARE_VIDEOPLL2_CONTEXT_OFFSET	0x00f4
--#define DRA7XX_RM_L3MAIN1_SPARE_VIDEOPLL3_CONTEXT_OFFSET	0x00fc
--#define DRA7XX_RM_IPU2_RSTCTRL_OFFSET				0x0210
--#define DRA7XX_RM_IPU2_RSTST_OFFSET				0x0214
--#define DRA7XX_RM_IPU2_IPU2_CONTEXT_OFFSET			0x0224
--#define DRA7XX_RM_DMA_DMA_SYSTEM_CONTEXT_OFFSET			0x0324
--#define DRA7XX_RM_EMIF_DMM_CONTEXT_OFFSET			0x0424
--#define DRA7XX_RM_EMIF_EMIF_OCP_FW_CONTEXT_OFFSET		0x042c
--#define DRA7XX_RM_EMIF_EMIF1_CONTEXT_OFFSET			0x0434
--#define DRA7XX_RM_EMIF_EMIF2_CONTEXT_OFFSET			0x043c
--#define DRA7XX_RM_EMIF_EMIF_DLL_CONTEXT_OFFSET			0x0444
--#define DRA7XX_RM_ATL_ATL_CONTEXT_OFFSET			0x0524
--#define DRA7XX_RM_L4CFG_L4_CFG_CONTEXT_OFFSET			0x0624
--#define DRA7XX_RM_L4CFG_SPINLOCK_CONTEXT_OFFSET			0x062c
--#define DRA7XX_RM_L4CFG_MAILBOX1_CONTEXT_OFFSET			0x0634
--#define DRA7XX_RM_L4CFG_SAR_ROM_CONTEXT_OFFSET			0x063c
--#define DRA7XX_RM_L4CFG_OCP2SCP2_CONTEXT_OFFSET			0x0644
--#define DRA7XX_RM_L4CFG_MAILBOX2_CONTEXT_OFFSET			0x064c
--#define DRA7XX_RM_L4CFG_MAILBOX3_CONTEXT_OFFSET			0x0654
--#define DRA7XX_RM_L4CFG_MAILBOX4_CONTEXT_OFFSET			0x065c
--#define DRA7XX_RM_L4CFG_MAILBOX5_CONTEXT_OFFSET			0x0664
--#define DRA7XX_RM_L4CFG_MAILBOX6_CONTEXT_OFFSET			0x066c
--#define DRA7XX_RM_L4CFG_MAILBOX7_CONTEXT_OFFSET			0x0674
--#define DRA7XX_RM_L4CFG_MAILBOX8_CONTEXT_OFFSET			0x067c
--#define DRA7XX_RM_L4CFG_MAILBOX9_CONTEXT_OFFSET			0x0684
--#define DRA7XX_RM_L4CFG_MAILBOX10_CONTEXT_OFFSET		0x068c
--#define DRA7XX_RM_L4CFG_MAILBOX11_CONTEXT_OFFSET		0x0694
--#define DRA7XX_RM_L4CFG_MAILBOX12_CONTEXT_OFFSET		0x069c
--#define DRA7XX_RM_L4CFG_MAILBOX13_CONTEXT_OFFSET		0x06a4
--#define DRA7XX_RM_L4CFG_SPARE_SMARTREFLEX_RTC_CONTEXT_OFFSET	0x06ac
--#define DRA7XX_RM_L4CFG_SPARE_SMARTREFLEX_SDRAM_CONTEXT_OFFSET	0x06b4
--#define DRA7XX_RM_L4CFG_SPARE_SMARTREFLEX_WKUP_CONTEXT_OFFSET	0x06bc
--#define DRA7XX_RM_L4CFG_IO_DELAY_BLOCK_CONTEXT_OFFSET		0x06c4
--#define DRA7XX_RM_L3INSTR_L3_MAIN_2_CONTEXT_OFFSET		0x0724
--#define DRA7XX_RM_L3INSTR_L3_INSTR_CONTEXT_OFFSET		0x072c
--#define DRA7XX_RM_L3INSTR_OCP_WP_NOC_CONTEXT_OFFSET		0x0744
--
--/* PRM.IVA_PRM register offsets */
--#define DRA7XX_PM_IVA_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_IVA_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_IVA_RSTCTRL_OFFSET				0x0010
--#define DRA7XX_RM_IVA_RSTST_OFFSET				0x0014
--#define DRA7XX_RM_IVA_IVA_CONTEXT_OFFSET			0x0024
--#define DRA7XX_RM_IVA_SL2_CONTEXT_OFFSET			0x002c
--
--/* PRM.CAM_PRM register offsets */
--#define DRA7XX_PM_CAM_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_CAM_PWRSTST_OFFSET				0x0004
--#define DRA7XX_PM_CAM_VIP1_WKDEP_OFFSET				0x0020
--#define DRA7XX_RM_CAM_VIP1_CONTEXT_OFFSET			0x0024
--#define DRA7XX_PM_CAM_VIP2_WKDEP_OFFSET				0x0028
--#define DRA7XX_RM_CAM_VIP2_CONTEXT_OFFSET			0x002c
--#define DRA7XX_PM_CAM_VIP3_WKDEP_OFFSET				0x0030
--#define DRA7XX_RM_CAM_VIP3_CONTEXT_OFFSET			0x0034
--#define DRA7XX_RM_CAM_LVDSRX_CONTEXT_OFFSET			0x003c
--#define DRA7XX_RM_CAM_CSI1_CONTEXT_OFFSET			0x0044
--#define DRA7XX_RM_CAM_CSI2_CONTEXT_OFFSET			0x004c
--
--/* PRM.DSS_PRM register offsets */
--#define DRA7XX_PM_DSS_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_DSS_PWRSTST_OFFSET				0x0004
--#define DRA7XX_PM_DSS_DSS_WKDEP_OFFSET				0x0020
--#define DRA7XX_RM_DSS_DSS_CONTEXT_OFFSET			0x0024
--#define DRA7XX_PM_DSS_DSS2_WKDEP_OFFSET				0x0028
--#define DRA7XX_RM_DSS_BB2D_CONTEXT_OFFSET			0x0034
--#define DRA7XX_RM_DSS_SDVENC_CONTEXT_OFFSET			0x003c
--
--/* PRM.GPU_PRM register offsets */
--#define DRA7XX_PM_GPU_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_GPU_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_GPU_GPU_CONTEXT_OFFSET			0x0024
--
--/* PRM.L3INIT_PRM register offsets */
--#define DRA7XX_PM_L3INIT_PWRSTCTRL_OFFSET			0x0000
--#define DRA7XX_PM_L3INIT_PWRSTST_OFFSET				0x0004
--#define DRA7XX_PM_L3INIT_MMC1_WKDEP_OFFSET			0x0028
--#define DRA7XX_RM_L3INIT_MMC1_CONTEXT_OFFSET			0x002c
--#define DRA7XX_PM_L3INIT_MMC2_WKDEP_OFFSET			0x0030
--#define DRA7XX_RM_L3INIT_MMC2_CONTEXT_OFFSET			0x0034
--#define DRA7XX_PM_L3INIT_USB_OTG_SS2_WKDEP_OFFSET		0x0040
--#define DRA7XX_RM_L3INIT_USB_OTG_SS2_CONTEXT_OFFSET		0x0044
--#define DRA7XX_PM_L3INIT_USB_OTG_SS3_WKDEP_OFFSET		0x0048
--#define DRA7XX_RM_L3INIT_USB_OTG_SS3_CONTEXT_OFFSET		0x004c
--#define DRA7XX_PM_L3INIT_USB_OTG_SS4_WKDEP_OFFSET		0x0050
--#define DRA7XX_RM_L3INIT_USB_OTG_SS4_CONTEXT_OFFSET		0x0054
--#define DRA7XX_RM_L3INIT_MLB_SS_CONTEXT_OFFSET			0x005c
--#define DRA7XX_RM_L3INIT_IEEE1500_2_OCP_CONTEXT_OFFSET		0x007c
--#define DRA7XX_PM_L3INIT_SATA_WKDEP_OFFSET			0x0088
--#define DRA7XX_RM_L3INIT_SATA_CONTEXT_OFFSET			0x008c
--#define DRA7XX_RM_GMAC_GMAC_CONTEXT_OFFSET			0x00d4
--#define DRA7XX_RM_L3INIT_OCP2SCP1_CONTEXT_OFFSET		0x00e4
--#define DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET		0x00ec
--#define DRA7XX_PM_L3INIT_USB_OTG_SS1_WKDEP_OFFSET		0x00f0
--#define DRA7XX_RM_L3INIT_USB_OTG_SS1_CONTEXT_OFFSET		0x00f4
--
--/* PRM.L4PER_PRM register offsets */
--#define DRA7XX_PM_L4PER_PWRSTCTRL_OFFSET			0x0000
--#define DRA7XX_PM_L4PER_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_L4PER2_L4PER2_CONTEXT_OFFSET			0x000c
--#define DRA7XX_RM_L4PER3_L4PER3_CONTEXT_OFFSET			0x0014
--#define DRA7XX_RM_L4PER2_PRUSS1_CONTEXT_OFFSET			0x001c
--#define DRA7XX_RM_L4PER2_PRUSS2_CONTEXT_OFFSET			0x0024
--#define DRA7XX_PM_L4PER_TIMER10_WKDEP_OFFSET			0x0028
--#define DRA7XX_RM_L4PER_TIMER10_CONTEXT_OFFSET			0x002c
--#define DRA7XX_PM_L4PER_TIMER11_WKDEP_OFFSET			0x0030
--#define DRA7XX_RM_L4PER_TIMER11_CONTEXT_OFFSET			0x0034
--#define DRA7XX_PM_L4PER_TIMER2_WKDEP_OFFSET			0x0038
--#define DRA7XX_RM_L4PER_TIMER2_CONTEXT_OFFSET			0x003c
--#define DRA7XX_PM_L4PER_TIMER3_WKDEP_OFFSET			0x0040
--#define DRA7XX_RM_L4PER_TIMER3_CONTEXT_OFFSET			0x0044
--#define DRA7XX_PM_L4PER_TIMER4_WKDEP_OFFSET			0x0048
--#define DRA7XX_RM_L4PER_TIMER4_CONTEXT_OFFSET			0x004c
--#define DRA7XX_PM_L4PER_TIMER9_WKDEP_OFFSET			0x0050
--#define DRA7XX_RM_L4PER_TIMER9_CONTEXT_OFFSET			0x0054
--#define DRA7XX_RM_L4PER_ELM_CONTEXT_OFFSET			0x005c
--#define DRA7XX_PM_L4PER_GPIO2_WKDEP_OFFSET			0x0060
--#define DRA7XX_RM_L4PER_GPIO2_CONTEXT_OFFSET			0x0064
--#define DRA7XX_PM_L4PER_GPIO3_WKDEP_OFFSET			0x0068
--#define DRA7XX_RM_L4PER_GPIO3_CONTEXT_OFFSET			0x006c
--#define DRA7XX_PM_L4PER_GPIO4_WKDEP_OFFSET			0x0070
--#define DRA7XX_RM_L4PER_GPIO4_CONTEXT_OFFSET			0x0074
--#define DRA7XX_PM_L4PER_GPIO5_WKDEP_OFFSET			0x0078
--#define DRA7XX_RM_L4PER_GPIO5_CONTEXT_OFFSET			0x007c
--#define DRA7XX_PM_L4PER_GPIO6_WKDEP_OFFSET			0x0080
--#define DRA7XX_RM_L4PER_GPIO6_CONTEXT_OFFSET			0x0084
--#define DRA7XX_RM_L4PER_HDQ1W_CONTEXT_OFFSET			0x008c
--#define DRA7XX_RM_L4PER2_PWMSS2_CONTEXT_OFFSET			0x0094
--#define DRA7XX_RM_L4PER2_PWMSS3_CONTEXT_OFFSET			0x009c
--#define DRA7XX_PM_L4PER_I2C1_WKDEP_OFFSET			0x00a0
--#define DRA7XX_RM_L4PER_I2C1_CONTEXT_OFFSET			0x00a4
--#define DRA7XX_PM_L4PER_I2C2_WKDEP_OFFSET			0x00a8
--#define DRA7XX_RM_L4PER_I2C2_CONTEXT_OFFSET			0x00ac
--#define DRA7XX_PM_L4PER_I2C3_WKDEP_OFFSET			0x00b0
--#define DRA7XX_RM_L4PER_I2C3_CONTEXT_OFFSET			0x00b4
--#define DRA7XX_PM_L4PER_I2C4_WKDEP_OFFSET			0x00b8
--#define DRA7XX_RM_L4PER_I2C4_CONTEXT_OFFSET			0x00bc
--#define DRA7XX_RM_L4PER_L4PER1_CONTEXT_OFFSET			0x00c0
--#define DRA7XX_RM_L4PER2_PWMSS1_CONTEXT_OFFSET			0x00c4
--#define DRA7XX_PM_L4PER_TIMER13_WKDEP_OFFSET			0x00c8
--#define DRA7XX_RM_L4PER3_TIMER13_CONTEXT_OFFSET			0x00cc
--#define DRA7XX_PM_L4PER_TIMER14_WKDEP_OFFSET			0x00d0
--#define DRA7XX_RM_L4PER3_TIMER14_CONTEXT_OFFSET			0x00d4
--#define DRA7XX_PM_L4PER_TIMER15_WKDEP_OFFSET			0x00d8
--#define DRA7XX_RM_L4PER3_TIMER15_CONTEXT_OFFSET			0x00dc
--#define DRA7XX_PM_L4PER_MCSPI1_WKDEP_OFFSET			0x00f0
--#define DRA7XX_RM_L4PER_MCSPI1_CONTEXT_OFFSET			0x00f4
--#define DRA7XX_PM_L4PER_MCSPI2_WKDEP_OFFSET			0x00f8
--#define DRA7XX_RM_L4PER_MCSPI2_CONTEXT_OFFSET			0x00fc
--#define DRA7XX_PM_L4PER_MCSPI3_WKDEP_OFFSET			0x0100
--#define DRA7XX_RM_L4PER_MCSPI3_CONTEXT_OFFSET			0x0104
--#define DRA7XX_PM_L4PER_MCSPI4_WKDEP_OFFSET			0x0108
--#define DRA7XX_RM_L4PER_MCSPI4_CONTEXT_OFFSET			0x010c
--#define DRA7XX_PM_L4PER_GPIO7_WKDEP_OFFSET			0x0110
--#define DRA7XX_RM_L4PER_GPIO7_CONTEXT_OFFSET			0x0114
--#define DRA7XX_PM_L4PER_GPIO8_WKDEP_OFFSET			0x0118
--#define DRA7XX_RM_L4PER_GPIO8_CONTEXT_OFFSET			0x011c
--#define DRA7XX_PM_L4PER_MMC3_WKDEP_OFFSET			0x0120
--#define DRA7XX_RM_L4PER_MMC3_CONTEXT_OFFSET			0x0124
--#define DRA7XX_PM_L4PER_MMC4_WKDEP_OFFSET			0x0128
--#define DRA7XX_RM_L4PER_MMC4_CONTEXT_OFFSET			0x012c
--#define DRA7XX_PM_L4PER_TIMER16_WKDEP_OFFSET			0x0130
--#define DRA7XX_RM_L4PER3_TIMER16_CONTEXT_OFFSET			0x0134
--#define DRA7XX_PM_L4PER2_QSPI_WKDEP_OFFSET			0x0138
--#define DRA7XX_RM_L4PER2_QSPI_CONTEXT_OFFSET			0x013c
--#define DRA7XX_PM_L4PER_UART1_WKDEP_OFFSET			0x0140
--#define DRA7XX_RM_L4PER_UART1_CONTEXT_OFFSET			0x0144
--#define DRA7XX_PM_L4PER_UART2_WKDEP_OFFSET			0x0148
--#define DRA7XX_RM_L4PER_UART2_CONTEXT_OFFSET			0x014c
--#define DRA7XX_PM_L4PER_UART3_WKDEP_OFFSET			0x0150
--#define DRA7XX_RM_L4PER_UART3_CONTEXT_OFFSET			0x0154
--#define DRA7XX_PM_L4PER_UART4_WKDEP_OFFSET			0x0158
--#define DRA7XX_RM_L4PER_UART4_CONTEXT_OFFSET			0x015c
--#define DRA7XX_PM_L4PER2_MCASP2_WKDEP_OFFSET			0x0160
--#define DRA7XX_RM_L4PER2_MCASP2_CONTEXT_OFFSET			0x0164
--#define DRA7XX_PM_L4PER2_MCASP3_WKDEP_OFFSET			0x0168
--#define DRA7XX_RM_L4PER2_MCASP3_CONTEXT_OFFSET			0x016c
--#define DRA7XX_PM_L4PER_UART5_WKDEP_OFFSET			0x0170
--#define DRA7XX_RM_L4PER_UART5_CONTEXT_OFFSET			0x0174
--#define DRA7XX_PM_L4PER2_MCASP5_WKDEP_OFFSET			0x0178
--#define DRA7XX_RM_L4PER2_MCASP5_CONTEXT_OFFSET			0x017c
--#define DRA7XX_PM_L4PER2_MCASP6_WKDEP_OFFSET			0x0180
--#define DRA7XX_RM_L4PER2_MCASP6_CONTEXT_OFFSET			0x0184
--#define DRA7XX_PM_L4PER2_MCASP7_WKDEP_OFFSET			0x0188
--#define DRA7XX_RM_L4PER2_MCASP7_CONTEXT_OFFSET			0x018c
--#define DRA7XX_PM_L4PER2_MCASP8_WKDEP_OFFSET			0x0190
--#define DRA7XX_RM_L4PER2_MCASP8_CONTEXT_OFFSET			0x0194
--#define DRA7XX_PM_L4PER2_MCASP4_WKDEP_OFFSET			0x0198
--#define DRA7XX_RM_L4PER2_MCASP4_CONTEXT_OFFSET			0x019c
--#define DRA7XX_RM_L4SEC_AES1_CONTEXT_OFFSET			0x01a4
--#define DRA7XX_RM_L4SEC_AES2_CONTEXT_OFFSET			0x01ac
--#define DRA7XX_RM_L4SEC_DES3DES_CONTEXT_OFFSET			0x01b4
--#define DRA7XX_RM_L4SEC_FPKA_CONTEXT_OFFSET			0x01bc
--#define DRA7XX_RM_L4SEC_RNG_CONTEXT_OFFSET			0x01c4
--#define DRA7XX_RM_L4SEC_SHA2MD51_CONTEXT_OFFSET			0x01cc
--#define DRA7XX_PM_L4PER2_UART7_WKDEP_OFFSET			0x01d0
--#define DRA7XX_RM_L4PER2_UART7_CONTEXT_OFFSET			0x01d4
--#define DRA7XX_RM_L4SEC_DMA_CRYPTO_CONTEXT_OFFSET		0x01dc
--#define DRA7XX_PM_L4PER2_UART8_WKDEP_OFFSET			0x01e0
--#define DRA7XX_RM_L4PER2_UART8_CONTEXT_OFFSET			0x01e4
--#define DRA7XX_PM_L4PER2_UART9_WKDEP_OFFSET			0x01e8
--#define DRA7XX_RM_L4PER2_UART9_CONTEXT_OFFSET			0x01ec
--#define DRA7XX_PM_L4PER2_DCAN2_WKDEP_OFFSET			0x01f0
--#define DRA7XX_RM_L4PER2_DCAN2_CONTEXT_OFFSET			0x01f4
--#define DRA7XX_RM_L4SEC_SHA2MD52_CONTEXT_OFFSET			0x01fc
--
--/* PRM.CUSTEFUSE_PRM register offsets */
--#define DRA7XX_PM_CUSTEFUSE_PWRSTCTRL_OFFSET			0x0000
--#define DRA7XX_PM_CUSTEFUSE_PWRSTST_OFFSET			0x0004
--#define DRA7XX_RM_CUSTEFUSE_EFUSE_CTRL_CUST_CONTEXT_OFFSET	0x0024
--
--/* PRM.WKUPAON_PRM register offsets */
--#define DRA7XX_RM_WKUPAON_L4_WKUP_CONTEXT_OFFSET		0x0000
--#define DRA7XX_PM_WKUPAON_WD_TIMER1_WKDEP_OFFSET		0x0004
--#define DRA7XX_RM_WKUPAON_WD_TIMER1_CONTEXT_OFFSET		0x0008
--#define DRA7XX_PM_WKUPAON_WD_TIMER2_WKDEP_OFFSET		0x000c
--#define DRA7XX_RM_WKUPAON_WD_TIMER2_CONTEXT_OFFSET		0x0010
--#define DRA7XX_PM_WKUPAON_GPIO1_WKDEP_OFFSET			0x0014
--#define DRA7XX_RM_WKUPAON_GPIO1_CONTEXT_OFFSET			0x0018
--#define DRA7XX_PM_WKUPAON_TIMER1_WKDEP_OFFSET			0x001c
--#define DRA7XX_RM_WKUPAON_TIMER1_CONTEXT_OFFSET			0x0020
--#define DRA7XX_PM_WKUPAON_TIMER12_WKDEP_OFFSET			0x0024
--#define DRA7XX_RM_WKUPAON_TIMER12_CONTEXT_OFFSET		0x0028
--#define DRA7XX_RM_WKUPAON_COUNTER_32K_CONTEXT_OFFSET		0x0030
--#define DRA7XX_RM_WKUPAON_SAR_RAM_CONTEXT_OFFSET		0x0040
--#define DRA7XX_PM_WKUPAON_KBD_WKDEP_OFFSET			0x0054
--#define DRA7XX_RM_WKUPAON_KBD_CONTEXT_OFFSET			0x0058
--#define DRA7XX_PM_WKUPAON_UART10_WKDEP_OFFSET			0x005c
--#define DRA7XX_RM_WKUPAON_UART10_CONTEXT_OFFSET			0x0060
--#define DRA7XX_PM_WKUPAON_DCAN1_WKDEP_OFFSET			0x0064
--#define DRA7XX_RM_WKUPAON_DCAN1_CONTEXT_OFFSET			0x0068
--#define DRA7XX_PM_WKUPAON_ADC_WKDEP_OFFSET				0x007c
--#define DRA7XX_RM_WKUPAON_ADC_CONTEXT_OFFSET			0x0080
--#define DRA7XX_RM_WKUPAON_SPARE_SAFETY1_CONTEXT_OFFSET		0x0090
--#define DRA7XX_RM_WKUPAON_SPARE_SAFETY2_CONTEXT_OFFSET		0x0098
--#define DRA7XX_RM_WKUPAON_SPARE_SAFETY3_CONTEXT_OFFSET		0x00a0
--#define DRA7XX_RM_WKUPAON_SPARE_SAFETY4_CONTEXT_OFFSET		0x00a8
--#define DRA7XX_RM_WKUPAON_SPARE_UNKNOWN2_CONTEXT_OFFSET		0x00b0
--#define DRA7XX_RM_WKUPAON_SPARE_UNKNOWN3_CONTEXT_OFFSET		0x00b8
--
--/* PRM.WKUPAON_CM register offsets */
--#define DRA7XX_CM_WKUPAON_CLKSTCTRL_OFFSET			0x0000
--#define DRA7XX_CM_WKUPAON_L4_WKUP_CLKCTRL_OFFSET		0x0020
--#define DRA7XX_CM_WKUPAON_WD_TIMER1_CLKCTRL_OFFSET		0x0028
--#define DRA7XX_CM_WKUPAON_WD_TIMER2_CLKCTRL_OFFSET		0x0030
--#define DRA7XX_CM_WKUPAON_GPIO1_CLKCTRL_OFFSET			0x0038
--#define DRA7XX_CM_WKUPAON_TIMER1_CLKCTRL_OFFSET			0x0040
--#define DRA7XX_CM_WKUPAON_TIMER12_CLKCTRL_OFFSET		0x0048
--#define DRA7XX_CM_WKUPAON_COUNTER_32K_CLKCTRL_OFFSET		0x0050
--#define DRA7XX_CM_WKUPAON_SAR_RAM_CLKCTRL_OFFSET		0x0060
--#define DRA7XX_CM_WKUPAON_KBD_CLKCTRL_OFFSET			0x0078
--#define DRA7XX_CM_WKUPAON_UART10_CLKCTRL_OFFSET			0x0080
--#define DRA7XX_CM_WKUPAON_DCAN1_CLKCTRL_OFFSET			0x0088
--#define DRA7XX_CM_WKUPAON_SCRM_CLKCTRL_OFFSET			0x0090
--#define DRA7XX_CM_WKUPAON_IO_SRCOMP_CLKCTRL_OFFSET		0x0098
--#define DRA7XX_CM_WKUPAON_ADC_CLKCTRL_OFFSET			0x00a0
--#define DRA7XX_CM_WKUPAON_SPARE_SAFETY1_CLKCTRL_OFFSET		0x00b0
--#define DRA7XX_CM_WKUPAON_SPARE_SAFETY2_CLKCTRL_OFFSET		0x00b8
--#define DRA7XX_CM_WKUPAON_SPARE_SAFETY3_CLKCTRL_OFFSET		0x00c0
--#define DRA7XX_CM_WKUPAON_SPARE_SAFETY4_CLKCTRL_OFFSET		0x00c8
--#define DRA7XX_CM_WKUPAON_SPARE_UNKNOWN2_CLKCTRL_OFFSET		0x00d0
--#define DRA7XX_CM_WKUPAON_SPARE_UNKNOWN3_CLKCTRL_OFFSET		0x00d8
--
--/* PRM.EMU_PRM register offsets */
--#define DRA7XX_PM_EMU_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_EMU_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_EMU_DEBUGSS_CONTEXT_OFFSET			0x0024
--
--/* PRM.EMU_CM register offsets */
--#define DRA7XX_CM_EMU_CLKSTCTRL_OFFSET				0x0000
--#define DRA7XX_CM_EMU_DEBUGSS_CLKCTRL_OFFSET			0x0004
--#define DRA7XX_CM_EMU_DYNAMICDEP_OFFSET				0x0008
--#define DRA7XX_CM_EMU_MPU_EMU_DBG_CLKCTRL_OFFSET		0x000c
--
--/* PRM.DSP2_PRM register offsets */
--#define DRA7XX_PM_DSP2_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_DSP2_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_DSP2_RSTCTRL_OFFSET				0x0010
--#define DRA7XX_RM_DSP2_RSTST_OFFSET				0x0014
--#define DRA7XX_RM_DSP2_DSP2_CONTEXT_OFFSET			0x0024
--
--/* PRM.EVE1_PRM register offsets */
--#define DRA7XX_PM_EVE1_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_EVE1_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_EVE1_RSTCTRL_OFFSET				0x0010
--#define DRA7XX_RM_EVE1_RSTST_OFFSET				0x0014
--#define DRA7XX_PM_EVE1_EVE1_WKDEP_OFFSET			0x0020
--#define DRA7XX_RM_EVE1_EVE1_CONTEXT_OFFSET			0x0024
--
--/* PRM.EVE2_PRM register offsets */
--#define DRA7XX_PM_EVE2_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_EVE2_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_EVE2_RSTCTRL_OFFSET				0x0010
--#define DRA7XX_RM_EVE2_RSTST_OFFSET				0x0014
--#define DRA7XX_PM_EVE2_EVE2_WKDEP_OFFSET			0x0020
--#define DRA7XX_RM_EVE2_EVE2_CONTEXT_OFFSET			0x0024
--
--/* PRM.EVE3_PRM register offsets */
--#define DRA7XX_PM_EVE3_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_EVE3_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_EVE3_RSTCTRL_OFFSET				0x0010
--#define DRA7XX_RM_EVE3_RSTST_OFFSET				0x0014
--#define DRA7XX_PM_EVE3_EVE3_WKDEP_OFFSET			0x0020
--#define DRA7XX_RM_EVE3_EVE3_CONTEXT_OFFSET			0x0024
--
--/* PRM.EVE4_PRM register offsets */
--#define DRA7XX_PM_EVE4_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_EVE4_PWRSTST_OFFSET				0x0004
--#define DRA7XX_RM_EVE4_RSTCTRL_OFFSET				0x0010
--#define DRA7XX_RM_EVE4_RSTST_OFFSET				0x0014
--#define DRA7XX_PM_EVE4_EVE4_WKDEP_OFFSET			0x0020
--#define DRA7XX_RM_EVE4_EVE4_CONTEXT_OFFSET			0x0024
--
--/* PRM.RTC_PRM register offsets */
--#define DRA7XX_PM_RTC_RTCSS_WKDEP_OFFSET			0x0000
--#define DRA7XX_RM_RTC_RTCSS_CONTEXT_OFFSET			0x0004
--
--/* PRM.VPE_PRM register offsets */
--#define DRA7XX_PM_VPE_PWRSTCTRL_OFFSET				0x0000
--#define DRA7XX_PM_VPE_PWRSTST_OFFSET				0x0004
--#define DRA7XX_PM_VPE_VPE_WKDEP_OFFSET				0x0020
--#define DRA7XX_RM_VPE_VPE_CONTEXT_OFFSET			0x0024
--
--/* PRM.DEVICE_PRM register offsets */
--#define DRA7XX_PRM_RSTCTRL_OFFSET				0x0000
--#define DRA7XX_PRM_RSTST_OFFSET					0x0004
--#define DRA7XX_PRM_RSTTIME_OFFSET				0x0008
--#define DRA7XX_PRM_CLKREQCTRL_OFFSET				0x000c
--#define DRA7XX_PRM_VOLTCTRL_OFFSET				0x0010
--#define DRA7XX_PRM_PWRREQCTRL_OFFSET				0x0014
--#define DRA7XX_PRM_PSCON_COUNT_OFFSET				0x0018
--#define DRA7XX_PRM_IO_COUNT_OFFSET				0x001c
--#define DRA7XX_PRM_IO_PMCTRL_OFFSET				0x0020
--#define DRA7XX_PRM_VOLTSETUP_WARMRESET_OFFSET			0x0024
--#define DRA7XX_PRM_VOLTSETUP_CORE_OFF_OFFSET			0x0028
--#define DRA7XX_PRM_VOLTSETUP_MPU_OFF_OFFSET			0x002c
--#define DRA7XX_PRM_VOLTSETUP_MM_OFF_OFFSET			0x0030
--#define DRA7XX_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSET		0x0034
--#define DRA7XX_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET		0x0038
--#define DRA7XX_PRM_VOLTSETUP_MM_RET_SLEEP_OFFSET		0x003c
--#define DRA7XX_PRM_SRAM_COUNT_OFFSET				0x00bc
--#define DRA7XX_PRM_SRAM_WKUP_SETUP_OFFSET			0x00c0
--#define DRA7XX_PRM_SLDO_CORE_SETUP_OFFSET			0x00c4
--#define DRA7XX_PRM_SLDO_CORE_CTRL_OFFSET			0x00c8
--#define DRA7XX_PRM_SLDO_MPU_SETUP_OFFSET			0x00cc
--#define DRA7XX_PRM_SLDO_MPU_CTRL_OFFSET				0x00d0
--#define DRA7XX_PRM_SLDO_GPU_SETUP_OFFSET			0x00d4
--#define DRA7XX_PRM_SLDO_GPU_CTRL_OFFSET				0x00d8
--#define DRA7XX_PRM_ABBLDO_MPU_SETUP_OFFSET			0x00dc
--#define DRA7XX_PRM_ABBLDO_MPU_CTRL_OFFSET			0x00e0
--#define DRA7XX_PRM_ABBLDO_GPU_SETUP_OFFSET			0x00e4
--#define DRA7XX_PRM_ABBLDO_GPU_CTRL_OFFSET			0x00e8
--#define DRA7XX_PRM_BANDGAP_SETUP_OFFSET				0x00ec
--#define DRA7XX_PRM_DEVICE_OFF_CTRL_OFFSET			0x00f0
--#define DRA7XX_PRM_PHASE1_CNDP_OFFSET				0x00f4
--#define DRA7XX_PRM_PHASE2A_CNDP_OFFSET				0x00f8
--#define DRA7XX_PRM_PHASE2B_CNDP_OFFSET				0x00fc
--#define DRA7XX_PRM_MODEM_IF_CTRL_OFFSET				0x0100
--#define DRA7XX_PRM_VOLTST_MPU_OFFSET				0x0110
--#define DRA7XX_PRM_VOLTST_MM_OFFSET				0x0114
--#define DRA7XX_PRM_SLDO_DSPEVE_SETUP_OFFSET			0x0118
--#define DRA7XX_PRM_SLDO_IVA_SETUP_OFFSET			0x011c
--#define DRA7XX_PRM_ABBLDO_DSPEVE_CTRL_OFFSET			0x0120
--#define DRA7XX_PRM_ABBLDO_IVA_CTRL_OFFSET			0x0124
--#define DRA7XX_PRM_SLDO_DSPEVE_CTRL_OFFSET			0x0128
--#define DRA7XX_PRM_SLDO_IVA_CTRL_OFFSET				0x012c
--#define DRA7XX_PRM_ABBLDO_DSPEVE_SETUP_OFFSET			0x0130
--#define DRA7XX_PRM_ABBLDO_IVA_SETUP_OFFSET			0x0134
--
- #endif
-diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
-index f330766..feb508f 100644
---- a/arch/arm/mach-omap2/prminst44xx.c
-+++ b/arch/arm/mach-omap2/prminst44xx.c
-@@ -20,7 +20,7 @@
- #include "prcm-common.h"
- #include <linux/power/omap/prm44xx.h>
- #include <linux/power/omap/prm54xx.h>
--#include "prm7xx.h"
-+#include <linux/power/omap/prm7xx.h>
- #include "prminst44xx.h"
- #include "prcm44xx.h"
- #include "prcm_mpu44xx.h"
-diff --git a/include/linux/power/omap/prm7xx.h b/include/linux/power/omap/prm7xx.h
+ #include "vc.h"
+ #include "vp.h"
+diff --git a/include/linux/power/omap/powerdomain.h b/include/linux/power/omap/powerdomain.h
 new file mode 100644
-index 0000000..a2d49ba
+index 0000000..27f2750
 --- /dev/null
-+++ b/include/linux/power/omap/prm7xx.h
-@@ -0,0 +1,591 @@
++++ b/include/linux/power/omap/powerdomain.h
+@@ -0,0 +1,280 @@
 +/*
-+ * DRA7xx PRM instance offset macros
++ * OMAP2/3/4 powerdomain control
 + *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2007-2008, 2010 Texas Instruments, Inc.
++ * Copyright (C) 2007-2011 Nokia Corporation
 + *
-+ * Generated by code originally written by:
-+ * Paul Walmsley (paul@pwsan.com)
-+ * Rajendra Nayak (rnayak@ti.com)
-+ * Benoit Cousson (b-cousson@ti.com)
-+ *
-+ * This file is automatically generated from the OMAP hardware databases.
-+ * We respectfully ask that any modifications to this file be coordinated
-+ * with the public linux-omap@vger.kernel.org mailing list and the
-+ * authors above to ensure that the autogeneration scripts are kept
-+ * up-to-date with the file contents.
++ * Paul Walmsley
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
++ *
++ * XXX This should be moved to the mach-omap2/ directory at the earliest
++ * opportunity.
 + */
 +
-+#ifndef __LINUX_POWER_OMAP_PRM7XX_H
-+#define __LINUX_POWER_OMAP_PRM7XX_H
++#ifndef __LINUX_POWER_OMAP_POWERDOMAIN_H
++#define __LINUX_POWER_OMAP_POWERDOMAIN_H
 +
-+/* PRM instances */
-+#define DRA7XX_PRM_OCP_SOCKET_INST	0x0000
-+#define DRA7XX_PRM_CKGEN_INST		0x0100
-+#define DRA7XX_PRM_MPU_INST		0x0300
-+#define DRA7XX_PRM_DSP1_INST		0x0400
-+#define DRA7XX_PRM_IPU_INST		0x0500
-+#define DRA7XX_PRM_COREAON_INST		0x0628
-+#define DRA7XX_PRM_CORE_INST		0x0700
-+#define DRA7XX_PRM_IVA_INST		0x0f00
-+#define DRA7XX_PRM_CAM_INST		0x1000
-+#define DRA7XX_PRM_DSS_INST		0x1100
-+#define DRA7XX_PRM_GPU_INST		0x1200
-+#define DRA7XX_PRM_L3INIT_INST		0x1300
-+#define DRA7XX_PRM_L4PER_INST		0x1400
-+#define DRA7XX_PRM_CUSTEFUSE_INST	0x1600
-+#define DRA7XX_PRM_WKUPAON_INST		0x1724
-+#define DRA7XX_PRM_WKUPAON_CM_INST	0x1800
-+#define DRA7XX_PRM_EMU_INST		0x1900
-+#define DRA7XX_PRM_EMU_CM_INST		0x1a00
-+#define DRA7XX_PRM_DSP2_INST		0x1b00
-+#define DRA7XX_PRM_EVE1_INST		0x1b40
-+#define DRA7XX_PRM_EVE2_INST		0x1b80
-+#define DRA7XX_PRM_EVE3_INST		0x1bc0
-+#define DRA7XX_PRM_EVE4_INST		0x1c00
-+#define DRA7XX_PRM_RTC_INST		0x1c60
-+#define DRA7XX_PRM_VPE_INST		0x1c80
-+#define DRA7XX_PRM_DEVICE_INST		0x1d00
-+#define DRA7XX_PRM_INSTR_INST		0x1f00
++#include <linux/types.h>
++#include <linux/list.h>
++#include <linux/spinlock.h>
 +
-+/* PRM clockdomain register offsets (from instance start) */
-+#define DRA7XX_PRM_WKUPAON_CM_WKUPAON_CDOFFS	0x0000
-+#define DRA7XX_PRM_EMU_CM_EMU_CDOFFS		0x0000
++/* Powerdomain basic power states */
++#define PWRDM_POWER_OFF		0x0
++#define PWRDM_POWER_RET		0x1
++#define PWRDM_POWER_INACTIVE	0x2
++#define PWRDM_POWER_ON		0x3
 +
-+/* PRM */
++#define PWRDM_MAX_PWRSTS	4
 +
-+/* PRM.OCP_SOCKET_PRM register offsets */
-+#define DRA7XX_REVISION_PRM_OFFSET				0x0000
-+#define DRA7XX_PRM_IRQSTATUS_MPU_OFFSET				0x0010
-+#define DRA7XX_PRM_IRQSTATUS_MPU_2_OFFSET			0x0014
-+#define DRA7XX_PRM_IRQENABLE_MPU_OFFSET				0x0018
-+#define DRA7XX_PRM_IRQENABLE_MPU_2_OFFSET			0x001c
-+#define DRA7XX_PRM_IRQSTATUS_IPU2_OFFSET			0x0020
-+#define DRA7XX_PRM_IRQENABLE_IPU2_OFFSET			0x0028
-+#define DRA7XX_PRM_IRQSTATUS_DSP1_OFFSET			0x0030
-+#define DRA7XX_PRM_IRQENABLE_DSP1_OFFSET			0x0038
-+#define DRA7XX_CM_PRM_PROFILING_CLKCTRL_OFFSET			0x0040
-+#define DRA7XX_PRM_IRQENABLE_DSP2_OFFSET			0x0044
-+#define DRA7XX_PRM_IRQENABLE_EVE1_OFFSET			0x0048
-+#define DRA7XX_PRM_IRQENABLE_EVE2_OFFSET			0x004c
-+#define DRA7XX_PRM_IRQENABLE_EVE3_OFFSET			0x0050
-+#define DRA7XX_PRM_IRQENABLE_EVE4_OFFSET			0x0054
-+#define DRA7XX_PRM_IRQENABLE_IPU1_OFFSET			0x0058
-+#define DRA7XX_PRM_IRQSTATUS_DSP2_OFFSET			0x005c
-+#define DRA7XX_PRM_IRQSTATUS_EVE1_OFFSET			0x0060
-+#define DRA7XX_PRM_IRQSTATUS_EVE2_OFFSET			0x0064
-+#define DRA7XX_PRM_IRQSTATUS_EVE3_OFFSET			0x0068
-+#define DRA7XX_PRM_IRQSTATUS_EVE4_OFFSET			0x006c
-+#define DRA7XX_PRM_IRQSTATUS_IPU1_OFFSET			0x0070
-+#define DRA7XX_PRM_DEBUG_CFG1_OFFSET				0x00e4
-+#define DRA7XX_PRM_DEBUG_CFG2_OFFSET				0x00e8
-+#define DRA7XX_PRM_DEBUG_CFG3_OFFSET				0x00ec
-+#define DRA7XX_PRM_DEBUG_OUT_OFFSET				0x00f4
++/* Powerdomain allowable state bitfields */
++#define PWRSTS_ON		(1 << PWRDM_POWER_ON)
++#define PWRSTS_INACTIVE		(1 << PWRDM_POWER_INACTIVE)
++#define PWRSTS_RET		(1 << PWRDM_POWER_RET)
++#define PWRSTS_OFF		(1 << PWRDM_POWER_OFF)
 +
-+/* PRM.CKGEN_PRM register offsets */
-+#define DRA7XX_CM_CLKSEL_SYSCLK1_OFFSET				0x0000
-+#define DRA7XX_CM_CLKSEL_WKUPAON_OFFSET				0x0008
-+#define DRA7XX_CM_CLKSEL_ABE_PLL_REF_OFFSET			0x000c
-+#define DRA7XX_CM_CLKSEL_SYS_OFFSET				0x0010
-+#define DRA7XX_CM_CLKSEL_ABE_PLL_BYPAS_OFFSET			0x0014
-+#define DRA7XX_CM_CLKSEL_ABE_PLL_SYS_OFFSET			0x0018
-+#define DRA7XX_CM_CLKSEL_ABE_24M_OFFSET				0x001c
-+#define DRA7XX_CM_CLKSEL_ABE_SYS_OFFSET				0x0020
-+#define DRA7XX_CM_CLKSEL_HDMI_MCASP_AUX_OFFSET			0x0024
-+#define DRA7XX_CM_CLKSEL_HDMI_TIMER_OFFSET			0x0028
-+#define DRA7XX_CM_CLKSEL_MCASP_SYS_OFFSET			0x002c
-+#define DRA7XX_CM_CLKSEL_MLBP_MCASP_OFFSET			0x0030
-+#define DRA7XX_CM_CLKSEL_MLB_MCASP_OFFSET			0x0034
-+#define DRA7XX_CM_CLKSEL_PER_ABE_X1_GFCLK_MCASP_AUX_OFFSET	0x0038
-+#define DRA7XX_CM_CLKSEL_SYS_CLK1_32K_OFFSET			0x0040
-+#define DRA7XX_CM_CLKSEL_TIMER_SYS_OFFSET			0x0044
-+#define DRA7XX_CM_CLKSEL_VIDEO1_MCASP_AUX_OFFSET		0x0048
-+#define DRA7XX_CM_CLKSEL_VIDEO1_TIMER_OFFSET			0x004c
-+#define DRA7XX_CM_CLKSEL_VIDEO2_MCASP_AUX_OFFSET		0x0050
-+#define DRA7XX_CM_CLKSEL_VIDEO2_TIMER_OFFSET			0x0054
-+#define DRA7XX_CM_CLKSEL_CLKOUTMUX0_OFFSET			0x0058
-+#define DRA7XX_CM_CLKSEL_CLKOUTMUX1_OFFSET			0x005c
-+#define DRA7XX_CM_CLKSEL_CLKOUTMUX2_OFFSET			0x0060
-+#define DRA7XX_CM_CLKSEL_HDMI_PLL_SYS_OFFSET			0x0064
-+#define DRA7XX_CM_CLKSEL_VIDEO1_PLL_SYS_OFFSET			0x0068
-+#define DRA7XX_CM_CLKSEL_VIDEO2_PLL_SYS_OFFSET			0x006c
-+#define DRA7XX_CM_CLKSEL_ABE_CLK_DIV_OFFSET			0x0070
-+#define DRA7XX_CM_CLKSEL_ABE_GICLK_DIV_OFFSET			0x0074
-+#define DRA7XX_CM_CLKSEL_AESS_FCLK_DIV_OFFSET			0x0078
-+#define DRA7XX_CM_CLKSEL_EVE_CLK_OFFSET				0x0080
-+#define DRA7XX_CM_CLKSEL_USB_OTG_CLK_CLKOUTMUX_OFFSET		0x0084
-+#define DRA7XX_CM_CLKSEL_CORE_DPLL_OUT_CLK_CLKOUTMUX_OFFSET	0x0088
-+#define DRA7XX_CM_CLKSEL_DSP_GFCLK_CLKOUTMUX_OFFSET		0x008c
-+#define DRA7XX_CM_CLKSEL_EMIF_PHY_GCLK_CLKOUTMUX_OFFSET		0x0090
-+#define DRA7XX_CM_CLKSEL_EMU_CLK_CLKOUTMUX_OFFSET		0x0094
-+#define DRA7XX_CM_CLKSEL_FUNC_96M_AON_CLK_CLKOUTMUX_OFFSET	0x0098
-+#define DRA7XX_CM_CLKSEL_GMAC_250M_CLK_CLKOUTMUX_OFFSET		0x009c
-+#define DRA7XX_CM_CLKSEL_GPU_GCLK_CLKOUTMUX_OFFSET		0x00a0
-+#define DRA7XX_CM_CLKSEL_HDMI_CLK_CLKOUTMUX_OFFSET		0x00a4
-+#define DRA7XX_CM_CLKSEL_IVA_GCLK_CLKOUTMUX_OFFSET		0x00a8
-+#define DRA7XX_CM_CLKSEL_L3INIT_480M_GFCLK_CLKOUTMUX_OFFSET	0x00ac
-+#define DRA7XX_CM_CLKSEL_MPU_GCLK_CLKOUTMUX_OFFSET		0x00b0
-+#define DRA7XX_CM_CLKSEL_PCIE1_CLK_CLKOUTMUX_OFFSET		0x00b4
-+#define DRA7XX_CM_CLKSEL_PCIE2_CLK_CLKOUTMUX_OFFSET		0x00b8
-+#define DRA7XX_CM_CLKSEL_PER_ABE_X1_CLK_CLKOUTMUX_OFFSET	0x00bc
-+#define DRA7XX_CM_CLKSEL_SATA_CLK_CLKOUTMUX_OFFSET		0x00c0
-+#define DRA7XX_CM_CLKSEL_SECURE_32K_CLK_CLKOUTMUX_OFFSET	0x00c4
-+#define DRA7XX_CM_CLKSEL_SYS_CLK1_CLKOUTMUX_OFFSET		0x00c8
-+#define DRA7XX_CM_CLKSEL_SYS_CLK2_CLKOUTMUX_OFFSET		0x00cc
-+#define DRA7XX_CM_CLKSEL_VIDEO1_CLK_CLKOUTMUX_OFFSET		0x00d0
-+#define DRA7XX_CM_CLKSEL_VIDEO2_CLK_CLKOUTMUX_OFFSET		0x00d4
-+#define DRA7XX_CM_CLKSEL_ABE_LP_CLK_OFFSET			0x00d8
-+#define DRA7XX_CM_CLKSEL_ADC_GFCLK_OFFSET			0x00dc
-+#define DRA7XX_CM_CLKSEL_EVE_GFCLK_CLKOUTMUX_OFFSET		0x00e0
++#define PWRSTS_OFF_ON		(PWRSTS_OFF | PWRSTS_ON)
++#define PWRSTS_OFF_RET		(PWRSTS_OFF | PWRSTS_RET)
++#define PWRSTS_RET_ON		(PWRSTS_RET | PWRSTS_ON)
++#define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | PWRSTS_ON)
 +
-+/* PRM.MPU_PRM register offsets */
-+#define DRA7XX_PM_MPU_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_MPU_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_MPU_MPU_CONTEXT_OFFSET			0x0024
 +
-+/* PRM.DSP1_PRM register offsets */
-+#define DRA7XX_PM_DSP1_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_DSP1_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_DSP1_RSTCTRL_OFFSET				0x0010
-+#define DRA7XX_RM_DSP1_RSTST_OFFSET				0x0014
-+#define DRA7XX_RM_DSP1_DSP1_CONTEXT_OFFSET			0x0024
++/*
++ * Powerdomain flags (struct powerdomain.flags)
++ *
++ * PWRDM_HAS_HDWR_SAR - powerdomain has hardware save-and-restore support
++ *
++ * PWRDM_HAS_MPU_QUIRK - MPU pwr domain has MEM bank 0 bits in MEM
++ * bank 1 position. This is true for OMAP3430
++ *
++ * PWRDM_HAS_LOWPOWERSTATECHANGE - can transition from a sleep state
++ * to a lower sleep state without waking up the powerdomain
++ */
++#define PWRDM_HAS_HDWR_SAR		BIT(0)
++#define PWRDM_HAS_MPU_QUIRK		BIT(1)
++#define PWRDM_HAS_LOWPOWERSTATECHANGE	BIT(2)
 +
-+/* PRM.IPU_PRM register offsets */
-+#define DRA7XX_PM_IPU_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_IPU_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_IPU1_RSTCTRL_OFFSET				0x0010
-+#define DRA7XX_RM_IPU1_RSTST_OFFSET				0x0014
-+#define DRA7XX_RM_IPU1_IPU1_CONTEXT_OFFSET			0x0024
-+#define DRA7XX_PM_IPU_MCASP1_WKDEP_OFFSET			0x0050
-+#define DRA7XX_RM_IPU_MCASP1_CONTEXT_OFFSET			0x0054
-+#define DRA7XX_PM_IPU_TIMER5_WKDEP_OFFSET			0x0058
-+#define DRA7XX_RM_IPU_TIMER5_CONTEXT_OFFSET			0x005c
-+#define DRA7XX_PM_IPU_TIMER6_WKDEP_OFFSET			0x0060
-+#define DRA7XX_RM_IPU_TIMER6_CONTEXT_OFFSET			0x0064
-+#define DRA7XX_PM_IPU_TIMER7_WKDEP_OFFSET			0x0068
-+#define DRA7XX_RM_IPU_TIMER7_CONTEXT_OFFSET			0x006c
-+#define DRA7XX_PM_IPU_TIMER8_WKDEP_OFFSET			0x0070
-+#define DRA7XX_RM_IPU_TIMER8_CONTEXT_OFFSET			0x0074
-+#define DRA7XX_PM_IPU_I2C5_WKDEP_OFFSET				0x0078
-+#define DRA7XX_RM_IPU_I2C5_CONTEXT_OFFSET			0x007c
-+#define DRA7XX_PM_IPU_UART6_WKDEP_OFFSET			0x0080
-+#define DRA7XX_RM_IPU_UART6_CONTEXT_OFFSET			0x0084
++/*
++ * Number of memory banks that are power-controllable.	On OMAP4430, the
++ * maximum is 5.
++ */
++#define PWRDM_MAX_MEM_BANKS	5
 +
-+/* PRM.COREAON_PRM register offsets */
-+#define DRA7XX_PM_COREAON_SMARTREFLEX_MPU_WKDEP_OFFSET		0x0000
-+#define DRA7XX_RM_COREAON_SMARTREFLEX_MPU_CONTEXT_OFFSET	0x0004
-+#define DRA7XX_PM_COREAON_SMARTREFLEX_CORE_WKDEP_OFFSET		0x0010
-+#define DRA7XX_RM_COREAON_SMARTREFLEX_CORE_CONTEXT_OFFSET	0x0014
-+#define DRA7XX_PM_COREAON_SMARTREFLEX_GPU_WKDEP_OFFSET		0x0030
-+#define DRA7XX_RM_COREAON_SMARTREFLEX_GPU_CONTEXT_OFFSET	0x0034
-+#define DRA7XX_PM_COREAON_SMARTREFLEX_DSPEVE_WKDEP_OFFSET	0x0040
-+#define DRA7XX_RM_COREAON_SMARTREFLEX_DSPEVE_CONTEXT_OFFSET	0x0044
-+#define DRA7XX_PM_COREAON_SMARTREFLEX_IVAHD_WKDEP_OFFSET	0x0050
-+#define DRA7XX_RM_COREAON_SMARTREFLEX_IVAHD_CONTEXT_OFFSET	0x0054
-+#define DRA7XX_RM_COREAON_DUMMY_MODULE1_CONTEXT_OFFSET		0x0084
-+#define DRA7XX_RM_COREAON_DUMMY_MODULE2_CONTEXT_OFFSET		0x0094
-+#define DRA7XX_RM_COREAON_DUMMY_MODULE3_CONTEXT_OFFSET		0x00a4
-+#define DRA7XX_RM_COREAON_DUMMY_MODULE4_CONTEXT_OFFSET		0x00b4
++/*
++ * Maximum number of clockdomains that can be associated with a powerdomain.
++ * PER powerdomain on AM33XX is the worst case
++ */
++#define PWRDM_MAX_CLKDMS	11
 +
-+/* PRM.CORE_PRM register offsets */
-+#define DRA7XX_PM_CORE_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_CORE_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_L3MAIN1_L3_MAIN_1_CONTEXT_OFFSET		0x0024
-+#define DRA7XX_RM_L3MAIN1_GPMC_CONTEXT_OFFSET			0x002c
-+#define DRA7XX_RM_L3MAIN1_MMU_EDMA_CONTEXT_OFFSET		0x0034
-+#define DRA7XX_PM_L3MAIN1_OCMC_RAM1_WKDEP_OFFSET		0x0050
-+#define DRA7XX_RM_L3MAIN1_OCMC_RAM1_CONTEXT_OFFSET		0x0054
-+#define DRA7XX_PM_L3MAIN1_OCMC_RAM2_WKDEP_OFFSET		0x0058
-+#define DRA7XX_RM_L3MAIN1_OCMC_RAM2_CONTEXT_OFFSET		0x005c
-+#define DRA7XX_PM_L3MAIN1_OCMC_RAM3_WKDEP_OFFSET		0x0060
-+#define DRA7XX_RM_L3MAIN1_OCMC_RAM3_CONTEXT_OFFSET		0x0064
-+#define DRA7XX_RM_L3MAIN1_OCMC_ROM_CONTEXT_OFFSET		0x006c
-+#define DRA7XX_PM_L3MAIN1_TPCC_WKDEP_OFFSET			0x0070
-+#define DRA7XX_RM_L3MAIN1_TPCC_CONTEXT_OFFSET			0x0074
-+#define DRA7XX_PM_L3MAIN1_TPTC1_WKDEP_OFFSET			0x0078
-+#define DRA7XX_RM_L3MAIN1_TPTC1_CONTEXT_OFFSET			0x007c
-+#define DRA7XX_PM_L3MAIN1_TPTC2_WKDEP_OFFSET			0x0080
-+#define DRA7XX_RM_L3MAIN1_TPTC2_CONTEXT_OFFSET			0x0084
-+#define DRA7XX_RM_L3MAIN1_VCP1_CONTEXT_OFFSET			0x008c
-+#define DRA7XX_RM_L3MAIN1_VCP2_CONTEXT_OFFSET			0x0094
-+#define DRA7XX_RM_L3MAIN1_SPARE_CME_CONTEXT_OFFSET		0x009c
-+#define DRA7XX_RM_L3MAIN1_SPARE_HDMI_CONTEXT_OFFSET		0x00a4
-+#define DRA7XX_RM_L3MAIN1_SPARE_ICM_CONTEXT_OFFSET		0x00ac
-+#define DRA7XX_RM_L3MAIN1_SPARE_IVA2_CONTEXT_OFFSET		0x00b4
-+#define DRA7XX_RM_L3MAIN1_SPARE_SATA2_CONTEXT_OFFSET		0x00bc
-+#define DRA7XX_RM_L3MAIN1_SPARE_UNKNOWN4_CONTEXT_OFFSET		0x00c4
-+#define DRA7XX_RM_L3MAIN1_SPARE_UNKNOWN5_CONTEXT_OFFSET		0x00cc
-+#define DRA7XX_RM_L3MAIN1_SPARE_UNKNOWN6_CONTEXT_OFFSET		0x00d4
-+#define DRA7XX_RM_L3MAIN1_SPARE_VIDEOPLL1_CONTEXT_OFFSET	0x00dc
-+#define DRA7XX_RM_L3MAIN1_SPARE_VIDEOPLL2_CONTEXT_OFFSET	0x00f4
-+#define DRA7XX_RM_L3MAIN1_SPARE_VIDEOPLL3_CONTEXT_OFFSET	0x00fc
-+#define DRA7XX_RM_IPU2_RSTCTRL_OFFSET				0x0210
-+#define DRA7XX_RM_IPU2_RSTST_OFFSET				0x0214
-+#define DRA7XX_RM_IPU2_IPU2_CONTEXT_OFFSET			0x0224
-+#define DRA7XX_RM_DMA_DMA_SYSTEM_CONTEXT_OFFSET			0x0324
-+#define DRA7XX_RM_EMIF_DMM_CONTEXT_OFFSET			0x0424
-+#define DRA7XX_RM_EMIF_EMIF_OCP_FW_CONTEXT_OFFSET		0x042c
-+#define DRA7XX_RM_EMIF_EMIF1_CONTEXT_OFFSET			0x0434
-+#define DRA7XX_RM_EMIF_EMIF2_CONTEXT_OFFSET			0x043c
-+#define DRA7XX_RM_EMIF_EMIF_DLL_CONTEXT_OFFSET			0x0444
-+#define DRA7XX_RM_ATL_ATL_CONTEXT_OFFSET			0x0524
-+#define DRA7XX_RM_L4CFG_L4_CFG_CONTEXT_OFFSET			0x0624
-+#define DRA7XX_RM_L4CFG_SPINLOCK_CONTEXT_OFFSET			0x062c
-+#define DRA7XX_RM_L4CFG_MAILBOX1_CONTEXT_OFFSET			0x0634
-+#define DRA7XX_RM_L4CFG_SAR_ROM_CONTEXT_OFFSET			0x063c
-+#define DRA7XX_RM_L4CFG_OCP2SCP2_CONTEXT_OFFSET			0x0644
-+#define DRA7XX_RM_L4CFG_MAILBOX2_CONTEXT_OFFSET			0x064c
-+#define DRA7XX_RM_L4CFG_MAILBOX3_CONTEXT_OFFSET			0x0654
-+#define DRA7XX_RM_L4CFG_MAILBOX4_CONTEXT_OFFSET			0x065c
-+#define DRA7XX_RM_L4CFG_MAILBOX5_CONTEXT_OFFSET			0x0664
-+#define DRA7XX_RM_L4CFG_MAILBOX6_CONTEXT_OFFSET			0x066c
-+#define DRA7XX_RM_L4CFG_MAILBOX7_CONTEXT_OFFSET			0x0674
-+#define DRA7XX_RM_L4CFG_MAILBOX8_CONTEXT_OFFSET			0x067c
-+#define DRA7XX_RM_L4CFG_MAILBOX9_CONTEXT_OFFSET			0x0684
-+#define DRA7XX_RM_L4CFG_MAILBOX10_CONTEXT_OFFSET		0x068c
-+#define DRA7XX_RM_L4CFG_MAILBOX11_CONTEXT_OFFSET		0x0694
-+#define DRA7XX_RM_L4CFG_MAILBOX12_CONTEXT_OFFSET		0x069c
-+#define DRA7XX_RM_L4CFG_MAILBOX13_CONTEXT_OFFSET		0x06a4
-+#define DRA7XX_RM_L4CFG_SPARE_SMARTREFLEX_RTC_CONTEXT_OFFSET	0x06ac
-+#define DRA7XX_RM_L4CFG_SPARE_SMARTREFLEX_SDRAM_CONTEXT_OFFSET	0x06b4
-+#define DRA7XX_RM_L4CFG_SPARE_SMARTREFLEX_WKUP_CONTEXT_OFFSET	0x06bc
-+#define DRA7XX_RM_L4CFG_IO_DELAY_BLOCK_CONTEXT_OFFSET		0x06c4
-+#define DRA7XX_RM_L3INSTR_L3_MAIN_2_CONTEXT_OFFSET		0x0724
-+#define DRA7XX_RM_L3INSTR_L3_INSTR_CONTEXT_OFFSET		0x072c
-+#define DRA7XX_RM_L3INSTR_OCP_WP_NOC_CONTEXT_OFFSET		0x0744
++/* XXX A completely arbitrary number. What is reasonable here? */
++#define PWRDM_TRANSITION_BAILOUT 100000
 +
-+/* PRM.IVA_PRM register offsets */
-+#define DRA7XX_PM_IVA_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_IVA_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_IVA_RSTCTRL_OFFSET				0x0010
-+#define DRA7XX_RM_IVA_RSTST_OFFSET				0x0014
-+#define DRA7XX_RM_IVA_IVA_CONTEXT_OFFSET			0x0024
-+#define DRA7XX_RM_IVA_SL2_CONTEXT_OFFSET			0x002c
++struct clockdomain;
++struct powerdomain;
++struct voltagedomain;
 +
-+/* PRM.CAM_PRM register offsets */
-+#define DRA7XX_PM_CAM_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_CAM_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_PM_CAM_VIP1_WKDEP_OFFSET				0x0020
-+#define DRA7XX_RM_CAM_VIP1_CONTEXT_OFFSET			0x0024
-+#define DRA7XX_PM_CAM_VIP2_WKDEP_OFFSET				0x0028
-+#define DRA7XX_RM_CAM_VIP2_CONTEXT_OFFSET			0x002c
-+#define DRA7XX_PM_CAM_VIP3_WKDEP_OFFSET				0x0030
-+#define DRA7XX_RM_CAM_VIP3_CONTEXT_OFFSET			0x0034
-+#define DRA7XX_RM_CAM_LVDSRX_CONTEXT_OFFSET			0x003c
-+#define DRA7XX_RM_CAM_CSI1_CONTEXT_OFFSET			0x0044
-+#define DRA7XX_RM_CAM_CSI2_CONTEXT_OFFSET			0x004c
++/**
++ * struct powerdomain - OMAP powerdomain
++ * @name: Powerdomain name
++ * @voltdm: voltagedomain containing this powerdomain
++ * @prcm_offs: the address offset from CM_BASE/PRM_BASE
++ * @prcm_partition: (OMAP4 only) the PRCM partition ID containing @prcm_offs
++ * @pwrsts: Possible powerdomain power states
++ * @pwrsts_logic_ret: Possible logic power states when pwrdm in RETENTION
++ * @flags: Powerdomain flags
++ * @banks: Number of software-controllable memory banks in this powerdomain
++ * @pwrsts_mem_ret: Possible memory bank pwrstates when pwrdm in RETENTION
++ * @pwrsts_mem_on: Possible memory bank pwrstates when pwrdm in ON
++ * @pwrdm_clkdms: Clockdomains in this powerdomain
++ * @node: list_head linking all powerdomains
++ * @voltdm_node: list_head linking all powerdomains in a voltagedomain
++ * @pwrstctrl_offs: (AM33XX only) XXX_PWRSTCTRL reg offset from prcm_offs
++ * @pwrstst_offs: (AM33XX only) XXX_PWRSTST reg offset from prcm_offs
++ * @logicretstate_mask: (AM33XX only) mask for logic retention bitfield
++ *	in @pwrstctrl_offs
++ * @mem_on_mask: (AM33XX only) mask for mem on bitfield in @pwrstctrl_offs
++ * @mem_ret_mask: (AM33XX only) mask for mem ret bitfield in @pwrstctrl_offs
++ * @mem_pwrst_mask: (AM33XX only) mask for mem state bitfield in @pwrstst_offs
++ * @mem_retst_mask: (AM33XX only) mask for mem retention state bitfield
++ *	in @pwrstctrl_offs
++ * @state:
++ * @state_counter:
++ * @timer:
++ * @state_timer:
++ * @_lock: spinlock used to serialize powerdomain and some clockdomain ops
++ * @_lock_flags: stored flags when @_lock is taken
++ *
++ * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
++ */
++struct powerdomain {
++	const char *name;
++	union {
++		const char *name;
++		struct voltagedomain *ptr;
++	} voltdm;
++	const s16 prcm_offs;
++	const u8 pwrsts;
++	const u8 pwrsts_logic_ret;
++	const u8 flags;
++	const u8 banks;
++	const u8 pwrsts_mem_ret[PWRDM_MAX_MEM_BANKS];
++	const u8 pwrsts_mem_on[PWRDM_MAX_MEM_BANKS];
++	const u8 prcm_partition;
++	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
++	struct list_head node;
++	struct list_head voltdm_node;
++	int state;
++	unsigned state_counter[PWRDM_MAX_PWRSTS];
++	unsigned ret_logic_off_counter;
++	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
++	spinlock_t _lock;
++	unsigned long _lock_flags;
++	const u8 pwrstctrl_offs;
++	const u8 pwrstst_offs;
++	const u32 logicretstate_mask;
++	const u32 mem_on_mask[PWRDM_MAX_MEM_BANKS];
++	const u32 mem_ret_mask[PWRDM_MAX_MEM_BANKS];
++	const u32 mem_pwrst_mask[PWRDM_MAX_MEM_BANKS];
++	const u32 mem_retst_mask[PWRDM_MAX_MEM_BANKS];
 +
-+/* PRM.DSS_PRM register offsets */
-+#define DRA7XX_PM_DSS_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_DSS_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_PM_DSS_DSS_WKDEP_OFFSET				0x0020
-+#define DRA7XX_RM_DSS_DSS_CONTEXT_OFFSET			0x0024
-+#define DRA7XX_PM_DSS_DSS2_WKDEP_OFFSET				0x0028
-+#define DRA7XX_RM_DSS_BB2D_CONTEXT_OFFSET			0x0034
-+#define DRA7XX_RM_DSS_SDVENC_CONTEXT_OFFSET			0x003c
++#ifdef CONFIG_PM_DEBUG
++	s64 timer;
++	s64 state_timer[PWRDM_MAX_PWRSTS];
++#endif
++};
 +
-+/* PRM.GPU_PRM register offsets */
-+#define DRA7XX_PM_GPU_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_GPU_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_GPU_GPU_CONTEXT_OFFSET			0x0024
++/**
++ * struct pwrdm_ops - Arch specific function implementations
++ * @pwrdm_set_next_pwrst: Set the target power state for a pd
++ * @pwrdm_read_next_pwrst: Read the target power state set for a pd
++ * @pwrdm_read_pwrst: Read the current power state of a pd
++ * @pwrdm_read_prev_pwrst: Read the prev power state entered by the pd
++ * @pwrdm_set_logic_retst: Set the logic state in RET for a pd
++ * @pwrdm_set_mem_onst: Set the Memory state in ON for a pd
++ * @pwrdm_set_mem_retst: Set the Memory state in RET for a pd
++ * @pwrdm_read_logic_pwrst: Read the current logic state of a pd
++ * @pwrdm_read_prev_logic_pwrst: Read the previous logic state entered by a pd
++ * @pwrdm_read_logic_retst: Read the logic state in RET for a pd
++ * @pwrdm_read_mem_pwrst: Read the current memory state of a pd
++ * @pwrdm_read_prev_mem_pwrst: Read the previous memory state entered by a pd
++ * @pwrdm_read_mem_retst: Read the memory state in RET for a pd
++ * @pwrdm_clear_all_prev_pwrst: Clear all previous power states logged for a pd
++ * @pwrdm_enable_hdwr_sar: Enable Hardware Save-Restore feature for the pd
++ * @pwrdm_disable_hdwr_sar: Disable Hardware Save-Restore feature for a pd
++ * @pwrdm_set_lowpwrstchange: Enable pd transitions from a shallow to deep sleep
++ * @pwrdm_wait_transition: Wait for a pd state transition to complete
++ * @pwrdm_has_voltdm: Check if a voltdm association is needed
++ *
++ * Regarding @pwrdm_set_lowpwrstchange: On the OMAP2 and 3-family
++ * chips, a powerdomain's power state is not allowed to directly
++ * transition from one low-power state (e.g., CSWR) to another
++ * low-power state (e.g., OFF) without first waking up the
++ * powerdomain.  This wastes energy.  So OMAP4 chips support the
++ * ability to transition a powerdomain power state directly from one
++ * low-power state to another.  The function pointed to by
++ * @pwrdm_set_lowpwrstchange is intended to configure the OMAP4
++ * hardware powerdomain state machine to enable this feature.
++ */
++struct pwrdm_ops {
++	int	(*pwrdm_set_next_pwrst)(struct powerdomain *pwrdm, u8 pwrst);
++	int	(*pwrdm_read_next_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_prev_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_set_logic_retst)(struct powerdomain *pwrdm, u8 pwrst);
++	int	(*pwrdm_set_mem_onst)(struct powerdomain *pwrdm, u8 bank,
++				      u8 pwrst);
++	int	(*pwrdm_set_mem_retst)(struct powerdomain *pwrdm, u8 bank,
++				       u8 pwrst);
++	int	(*pwrdm_read_logic_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_prev_logic_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_logic_retst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
++	int	(*pwrdm_read_prev_mem_pwrst)(struct powerdomain *pwrdm,
++					     u8 bank);
++	int	(*pwrdm_read_mem_retst)(struct powerdomain *pwrdm, u8 bank);
++	int	(*pwrdm_clear_all_prev_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_enable_hdwr_sar)(struct powerdomain *pwrdm);
++	int	(*pwrdm_disable_hdwr_sar)(struct powerdomain *pwrdm);
++	int	(*pwrdm_set_lowpwrstchange)(struct powerdomain *pwrdm);
++	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
++	int	(*pwrdm_has_voltdm)(void);
++};
 +
-+/* PRM.L3INIT_PRM register offsets */
-+#define DRA7XX_PM_L3INIT_PWRSTCTRL_OFFSET			0x0000
-+#define DRA7XX_PM_L3INIT_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_PM_L3INIT_MMC1_WKDEP_OFFSET			0x0028
-+#define DRA7XX_RM_L3INIT_MMC1_CONTEXT_OFFSET			0x002c
-+#define DRA7XX_PM_L3INIT_MMC2_WKDEP_OFFSET			0x0030
-+#define DRA7XX_RM_L3INIT_MMC2_CONTEXT_OFFSET			0x0034
-+#define DRA7XX_PM_L3INIT_USB_OTG_SS2_WKDEP_OFFSET		0x0040
-+#define DRA7XX_RM_L3INIT_USB_OTG_SS2_CONTEXT_OFFSET		0x0044
-+#define DRA7XX_PM_L3INIT_USB_OTG_SS3_WKDEP_OFFSET		0x0048
-+#define DRA7XX_RM_L3INIT_USB_OTG_SS3_CONTEXT_OFFSET		0x004c
-+#define DRA7XX_PM_L3INIT_USB_OTG_SS4_WKDEP_OFFSET		0x0050
-+#define DRA7XX_RM_L3INIT_USB_OTG_SS4_CONTEXT_OFFSET		0x0054
-+#define DRA7XX_RM_L3INIT_MLB_SS_CONTEXT_OFFSET			0x005c
-+#define DRA7XX_RM_L3INIT_IEEE1500_2_OCP_CONTEXT_OFFSET		0x007c
-+#define DRA7XX_PM_L3INIT_SATA_WKDEP_OFFSET			0x0088
-+#define DRA7XX_RM_L3INIT_SATA_CONTEXT_OFFSET			0x008c
-+#define DRA7XX_RM_GMAC_GMAC_CONTEXT_OFFSET			0x00d4
-+#define DRA7XX_RM_L3INIT_OCP2SCP1_CONTEXT_OFFSET		0x00e4
-+#define DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET		0x00ec
-+#define DRA7XX_PM_L3INIT_USB_OTG_SS1_WKDEP_OFFSET		0x00f0
-+#define DRA7XX_RM_L3INIT_USB_OTG_SS1_CONTEXT_OFFSET		0x00f4
++int pwrdm_register_platform_funcs(struct pwrdm_ops *custom_funcs);
++int pwrdm_register_pwrdms(struct powerdomain **pwrdm_list);
++int pwrdm_complete_init(void);
 +
-+/* PRM.L4PER_PRM register offsets */
-+#define DRA7XX_PM_L4PER_PWRSTCTRL_OFFSET			0x0000
-+#define DRA7XX_PM_L4PER_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_L4PER2_L4PER2_CONTEXT_OFFSET			0x000c
-+#define DRA7XX_RM_L4PER3_L4PER3_CONTEXT_OFFSET			0x0014
-+#define DRA7XX_RM_L4PER2_PRUSS1_CONTEXT_OFFSET			0x001c
-+#define DRA7XX_RM_L4PER2_PRUSS2_CONTEXT_OFFSET			0x0024
-+#define DRA7XX_PM_L4PER_TIMER10_WKDEP_OFFSET			0x0028
-+#define DRA7XX_RM_L4PER_TIMER10_CONTEXT_OFFSET			0x002c
-+#define DRA7XX_PM_L4PER_TIMER11_WKDEP_OFFSET			0x0030
-+#define DRA7XX_RM_L4PER_TIMER11_CONTEXT_OFFSET			0x0034
-+#define DRA7XX_PM_L4PER_TIMER2_WKDEP_OFFSET			0x0038
-+#define DRA7XX_RM_L4PER_TIMER2_CONTEXT_OFFSET			0x003c
-+#define DRA7XX_PM_L4PER_TIMER3_WKDEP_OFFSET			0x0040
-+#define DRA7XX_RM_L4PER_TIMER3_CONTEXT_OFFSET			0x0044
-+#define DRA7XX_PM_L4PER_TIMER4_WKDEP_OFFSET			0x0048
-+#define DRA7XX_RM_L4PER_TIMER4_CONTEXT_OFFSET			0x004c
-+#define DRA7XX_PM_L4PER_TIMER9_WKDEP_OFFSET			0x0050
-+#define DRA7XX_RM_L4PER_TIMER9_CONTEXT_OFFSET			0x0054
-+#define DRA7XX_RM_L4PER_ELM_CONTEXT_OFFSET			0x005c
-+#define DRA7XX_PM_L4PER_GPIO2_WKDEP_OFFSET			0x0060
-+#define DRA7XX_RM_L4PER_GPIO2_CONTEXT_OFFSET			0x0064
-+#define DRA7XX_PM_L4PER_GPIO3_WKDEP_OFFSET			0x0068
-+#define DRA7XX_RM_L4PER_GPIO3_CONTEXT_OFFSET			0x006c
-+#define DRA7XX_PM_L4PER_GPIO4_WKDEP_OFFSET			0x0070
-+#define DRA7XX_RM_L4PER_GPIO4_CONTEXT_OFFSET			0x0074
-+#define DRA7XX_PM_L4PER_GPIO5_WKDEP_OFFSET			0x0078
-+#define DRA7XX_RM_L4PER_GPIO5_CONTEXT_OFFSET			0x007c
-+#define DRA7XX_PM_L4PER_GPIO6_WKDEP_OFFSET			0x0080
-+#define DRA7XX_RM_L4PER_GPIO6_CONTEXT_OFFSET			0x0084
-+#define DRA7XX_RM_L4PER_HDQ1W_CONTEXT_OFFSET			0x008c
-+#define DRA7XX_RM_L4PER2_PWMSS2_CONTEXT_OFFSET			0x0094
-+#define DRA7XX_RM_L4PER2_PWMSS3_CONTEXT_OFFSET			0x009c
-+#define DRA7XX_PM_L4PER_I2C1_WKDEP_OFFSET			0x00a0
-+#define DRA7XX_RM_L4PER_I2C1_CONTEXT_OFFSET			0x00a4
-+#define DRA7XX_PM_L4PER_I2C2_WKDEP_OFFSET			0x00a8
-+#define DRA7XX_RM_L4PER_I2C2_CONTEXT_OFFSET			0x00ac
-+#define DRA7XX_PM_L4PER_I2C3_WKDEP_OFFSET			0x00b0
-+#define DRA7XX_RM_L4PER_I2C3_CONTEXT_OFFSET			0x00b4
-+#define DRA7XX_PM_L4PER_I2C4_WKDEP_OFFSET			0x00b8
-+#define DRA7XX_RM_L4PER_I2C4_CONTEXT_OFFSET			0x00bc
-+#define DRA7XX_RM_L4PER_L4PER1_CONTEXT_OFFSET			0x00c0
-+#define DRA7XX_RM_L4PER2_PWMSS1_CONTEXT_OFFSET			0x00c4
-+#define DRA7XX_PM_L4PER_TIMER13_WKDEP_OFFSET			0x00c8
-+#define DRA7XX_RM_L4PER3_TIMER13_CONTEXT_OFFSET			0x00cc
-+#define DRA7XX_PM_L4PER_TIMER14_WKDEP_OFFSET			0x00d0
-+#define DRA7XX_RM_L4PER3_TIMER14_CONTEXT_OFFSET			0x00d4
-+#define DRA7XX_PM_L4PER_TIMER15_WKDEP_OFFSET			0x00d8
-+#define DRA7XX_RM_L4PER3_TIMER15_CONTEXT_OFFSET			0x00dc
-+#define DRA7XX_PM_L4PER_MCSPI1_WKDEP_OFFSET			0x00f0
-+#define DRA7XX_RM_L4PER_MCSPI1_CONTEXT_OFFSET			0x00f4
-+#define DRA7XX_PM_L4PER_MCSPI2_WKDEP_OFFSET			0x00f8
-+#define DRA7XX_RM_L4PER_MCSPI2_CONTEXT_OFFSET			0x00fc
-+#define DRA7XX_PM_L4PER_MCSPI3_WKDEP_OFFSET			0x0100
-+#define DRA7XX_RM_L4PER_MCSPI3_CONTEXT_OFFSET			0x0104
-+#define DRA7XX_PM_L4PER_MCSPI4_WKDEP_OFFSET			0x0108
-+#define DRA7XX_RM_L4PER_MCSPI4_CONTEXT_OFFSET			0x010c
-+#define DRA7XX_PM_L4PER_GPIO7_WKDEP_OFFSET			0x0110
-+#define DRA7XX_RM_L4PER_GPIO7_CONTEXT_OFFSET			0x0114
-+#define DRA7XX_PM_L4PER_GPIO8_WKDEP_OFFSET			0x0118
-+#define DRA7XX_RM_L4PER_GPIO8_CONTEXT_OFFSET			0x011c
-+#define DRA7XX_PM_L4PER_MMC3_WKDEP_OFFSET			0x0120
-+#define DRA7XX_RM_L4PER_MMC3_CONTEXT_OFFSET			0x0124
-+#define DRA7XX_PM_L4PER_MMC4_WKDEP_OFFSET			0x0128
-+#define DRA7XX_RM_L4PER_MMC4_CONTEXT_OFFSET			0x012c
-+#define DRA7XX_PM_L4PER_TIMER16_WKDEP_OFFSET			0x0130
-+#define DRA7XX_RM_L4PER3_TIMER16_CONTEXT_OFFSET			0x0134
-+#define DRA7XX_PM_L4PER2_QSPI_WKDEP_OFFSET			0x0138
-+#define DRA7XX_RM_L4PER2_QSPI_CONTEXT_OFFSET			0x013c
-+#define DRA7XX_PM_L4PER_UART1_WKDEP_OFFSET			0x0140
-+#define DRA7XX_RM_L4PER_UART1_CONTEXT_OFFSET			0x0144
-+#define DRA7XX_PM_L4PER_UART2_WKDEP_OFFSET			0x0148
-+#define DRA7XX_RM_L4PER_UART2_CONTEXT_OFFSET			0x014c
-+#define DRA7XX_PM_L4PER_UART3_WKDEP_OFFSET			0x0150
-+#define DRA7XX_RM_L4PER_UART3_CONTEXT_OFFSET			0x0154
-+#define DRA7XX_PM_L4PER_UART4_WKDEP_OFFSET			0x0158
-+#define DRA7XX_RM_L4PER_UART4_CONTEXT_OFFSET			0x015c
-+#define DRA7XX_PM_L4PER2_MCASP2_WKDEP_OFFSET			0x0160
-+#define DRA7XX_RM_L4PER2_MCASP2_CONTEXT_OFFSET			0x0164
-+#define DRA7XX_PM_L4PER2_MCASP3_WKDEP_OFFSET			0x0168
-+#define DRA7XX_RM_L4PER2_MCASP3_CONTEXT_OFFSET			0x016c
-+#define DRA7XX_PM_L4PER_UART5_WKDEP_OFFSET			0x0170
-+#define DRA7XX_RM_L4PER_UART5_CONTEXT_OFFSET			0x0174
-+#define DRA7XX_PM_L4PER2_MCASP5_WKDEP_OFFSET			0x0178
-+#define DRA7XX_RM_L4PER2_MCASP5_CONTEXT_OFFSET			0x017c
-+#define DRA7XX_PM_L4PER2_MCASP6_WKDEP_OFFSET			0x0180
-+#define DRA7XX_RM_L4PER2_MCASP6_CONTEXT_OFFSET			0x0184
-+#define DRA7XX_PM_L4PER2_MCASP7_WKDEP_OFFSET			0x0188
-+#define DRA7XX_RM_L4PER2_MCASP7_CONTEXT_OFFSET			0x018c
-+#define DRA7XX_PM_L4PER2_MCASP8_WKDEP_OFFSET			0x0190
-+#define DRA7XX_RM_L4PER2_MCASP8_CONTEXT_OFFSET			0x0194
-+#define DRA7XX_PM_L4PER2_MCASP4_WKDEP_OFFSET			0x0198
-+#define DRA7XX_RM_L4PER2_MCASP4_CONTEXT_OFFSET			0x019c
-+#define DRA7XX_RM_L4SEC_AES1_CONTEXT_OFFSET			0x01a4
-+#define DRA7XX_RM_L4SEC_AES2_CONTEXT_OFFSET			0x01ac
-+#define DRA7XX_RM_L4SEC_DES3DES_CONTEXT_OFFSET			0x01b4
-+#define DRA7XX_RM_L4SEC_FPKA_CONTEXT_OFFSET			0x01bc
-+#define DRA7XX_RM_L4SEC_RNG_CONTEXT_OFFSET			0x01c4
-+#define DRA7XX_RM_L4SEC_SHA2MD51_CONTEXT_OFFSET			0x01cc
-+#define DRA7XX_PM_L4PER2_UART7_WKDEP_OFFSET			0x01d0
-+#define DRA7XX_RM_L4PER2_UART7_CONTEXT_OFFSET			0x01d4
-+#define DRA7XX_RM_L4SEC_DMA_CRYPTO_CONTEXT_OFFSET		0x01dc
-+#define DRA7XX_PM_L4PER2_UART8_WKDEP_OFFSET			0x01e0
-+#define DRA7XX_RM_L4PER2_UART8_CONTEXT_OFFSET			0x01e4
-+#define DRA7XX_PM_L4PER2_UART9_WKDEP_OFFSET			0x01e8
-+#define DRA7XX_RM_L4PER2_UART9_CONTEXT_OFFSET			0x01ec
-+#define DRA7XX_PM_L4PER2_DCAN2_WKDEP_OFFSET			0x01f0
-+#define DRA7XX_RM_L4PER2_DCAN2_CONTEXT_OFFSET			0x01f4
-+#define DRA7XX_RM_L4SEC_SHA2MD52_CONTEXT_OFFSET			0x01fc
++struct powerdomain *pwrdm_lookup(const char *name);
 +
-+/* PRM.CUSTEFUSE_PRM register offsets */
-+#define DRA7XX_PM_CUSTEFUSE_PWRSTCTRL_OFFSET			0x0000
-+#define DRA7XX_PM_CUSTEFUSE_PWRSTST_OFFSET			0x0004
-+#define DRA7XX_RM_CUSTEFUSE_EFUSE_CTRL_CUST_CONTEXT_OFFSET	0x0024
++int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
++			void *user);
++int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
++			void *user);
 +
-+/* PRM.WKUPAON_PRM register offsets */
-+#define DRA7XX_RM_WKUPAON_L4_WKUP_CONTEXT_OFFSET		0x0000
-+#define DRA7XX_PM_WKUPAON_WD_TIMER1_WKDEP_OFFSET		0x0004
-+#define DRA7XX_RM_WKUPAON_WD_TIMER1_CONTEXT_OFFSET		0x0008
-+#define DRA7XX_PM_WKUPAON_WD_TIMER2_WKDEP_OFFSET		0x000c
-+#define DRA7XX_RM_WKUPAON_WD_TIMER2_CONTEXT_OFFSET		0x0010
-+#define DRA7XX_PM_WKUPAON_GPIO1_WKDEP_OFFSET			0x0014
-+#define DRA7XX_RM_WKUPAON_GPIO1_CONTEXT_OFFSET			0x0018
-+#define DRA7XX_PM_WKUPAON_TIMER1_WKDEP_OFFSET			0x001c
-+#define DRA7XX_RM_WKUPAON_TIMER1_CONTEXT_OFFSET			0x0020
-+#define DRA7XX_PM_WKUPAON_TIMER12_WKDEP_OFFSET			0x0024
-+#define DRA7XX_RM_WKUPAON_TIMER12_CONTEXT_OFFSET		0x0028
-+#define DRA7XX_RM_WKUPAON_COUNTER_32K_CONTEXT_OFFSET		0x0030
-+#define DRA7XX_RM_WKUPAON_SAR_RAM_CONTEXT_OFFSET		0x0040
-+#define DRA7XX_PM_WKUPAON_KBD_WKDEP_OFFSET			0x0054
-+#define DRA7XX_RM_WKUPAON_KBD_CONTEXT_OFFSET			0x0058
-+#define DRA7XX_PM_WKUPAON_UART10_WKDEP_OFFSET			0x005c
-+#define DRA7XX_RM_WKUPAON_UART10_CONTEXT_OFFSET			0x0060
-+#define DRA7XX_PM_WKUPAON_DCAN1_WKDEP_OFFSET			0x0064
-+#define DRA7XX_RM_WKUPAON_DCAN1_CONTEXT_OFFSET			0x0068
-+#define DRA7XX_PM_WKUPAON_ADC_WKDEP_OFFSET				0x007c
-+#define DRA7XX_RM_WKUPAON_ADC_CONTEXT_OFFSET			0x0080
-+#define DRA7XX_RM_WKUPAON_SPARE_SAFETY1_CONTEXT_OFFSET		0x0090
-+#define DRA7XX_RM_WKUPAON_SPARE_SAFETY2_CONTEXT_OFFSET		0x0098
-+#define DRA7XX_RM_WKUPAON_SPARE_SAFETY3_CONTEXT_OFFSET		0x00a0
-+#define DRA7XX_RM_WKUPAON_SPARE_SAFETY4_CONTEXT_OFFSET		0x00a8
-+#define DRA7XX_RM_WKUPAON_SPARE_UNKNOWN2_CONTEXT_OFFSET		0x00b0
-+#define DRA7XX_RM_WKUPAON_SPARE_UNKNOWN3_CONTEXT_OFFSET		0x00b8
++int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
++int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
++int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
++			 int (*fn)(struct powerdomain *pwrdm,
++				   struct clockdomain *clkdm));
++struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm);
 +
-+/* PRM.WKUPAON_CM register offsets */
-+#define DRA7XX_CM_WKUPAON_CLKSTCTRL_OFFSET			0x0000
-+#define DRA7XX_CM_WKUPAON_L4_WKUP_CLKCTRL_OFFSET		0x0020
-+#define DRA7XX_CM_WKUPAON_WD_TIMER1_CLKCTRL_OFFSET		0x0028
-+#define DRA7XX_CM_WKUPAON_WD_TIMER2_CLKCTRL_OFFSET		0x0030
-+#define DRA7XX_CM_WKUPAON_GPIO1_CLKCTRL_OFFSET			0x0038
-+#define DRA7XX_CM_WKUPAON_TIMER1_CLKCTRL_OFFSET			0x0040
-+#define DRA7XX_CM_WKUPAON_TIMER12_CLKCTRL_OFFSET		0x0048
-+#define DRA7XX_CM_WKUPAON_COUNTER_32K_CLKCTRL_OFFSET		0x0050
-+#define DRA7XX_CM_WKUPAON_SAR_RAM_CLKCTRL_OFFSET		0x0060
-+#define DRA7XX_CM_WKUPAON_KBD_CLKCTRL_OFFSET			0x0078
-+#define DRA7XX_CM_WKUPAON_UART10_CLKCTRL_OFFSET			0x0080
-+#define DRA7XX_CM_WKUPAON_DCAN1_CLKCTRL_OFFSET			0x0088
-+#define DRA7XX_CM_WKUPAON_SCRM_CLKCTRL_OFFSET			0x0090
-+#define DRA7XX_CM_WKUPAON_IO_SRCOMP_CLKCTRL_OFFSET		0x0098
-+#define DRA7XX_CM_WKUPAON_ADC_CLKCTRL_OFFSET			0x00a0
-+#define DRA7XX_CM_WKUPAON_SPARE_SAFETY1_CLKCTRL_OFFSET		0x00b0
-+#define DRA7XX_CM_WKUPAON_SPARE_SAFETY2_CLKCTRL_OFFSET		0x00b8
-+#define DRA7XX_CM_WKUPAON_SPARE_SAFETY3_CLKCTRL_OFFSET		0x00c0
-+#define DRA7XX_CM_WKUPAON_SPARE_SAFETY4_CLKCTRL_OFFSET		0x00c8
-+#define DRA7XX_CM_WKUPAON_SPARE_UNKNOWN2_CLKCTRL_OFFSET		0x00d0
-+#define DRA7XX_CM_WKUPAON_SPARE_UNKNOWN3_CLKCTRL_OFFSET		0x00d8
++int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
 +
-+/* PRM.EMU_PRM register offsets */
-+#define DRA7XX_PM_EMU_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_EMU_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_EMU_DEBUGSS_CONTEXT_OFFSET			0x0024
++int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
++int pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
++int pwrdm_read_pwrst(struct powerdomain *pwrdm);
++int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm);
++int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm);
 +
-+/* PRM.EMU_CM register offsets */
-+#define DRA7XX_CM_EMU_CLKSTCTRL_OFFSET				0x0000
-+#define DRA7XX_CM_EMU_DEBUGSS_CLKCTRL_OFFSET			0x0004
-+#define DRA7XX_CM_EMU_DYNAMICDEP_OFFSET				0x0008
-+#define DRA7XX_CM_EMU_MPU_EMU_DBG_CLKCTRL_OFFSET		0x000c
++int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst);
++int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
++int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
 +
-+/* PRM.DSP2_PRM register offsets */
-+#define DRA7XX_PM_DSP2_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_DSP2_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_DSP2_RSTCTRL_OFFSET				0x0010
-+#define DRA7XX_RM_DSP2_RSTST_OFFSET				0x0014
-+#define DRA7XX_RM_DSP2_DSP2_CONTEXT_OFFSET			0x0024
++int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm);
++int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm);
++int pwrdm_read_logic_retst(struct powerdomain *pwrdm);
++int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
++int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
++int pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank);
 +
-+/* PRM.EVE1_PRM register offsets */
-+#define DRA7XX_PM_EVE1_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_EVE1_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_EVE1_RSTCTRL_OFFSET				0x0010
-+#define DRA7XX_RM_EVE1_RSTST_OFFSET				0x0014
-+#define DRA7XX_PM_EVE1_EVE1_WKDEP_OFFSET			0x0020
-+#define DRA7XX_RM_EVE1_EVE1_CONTEXT_OFFSET			0x0024
++int pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm);
++int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm);
++bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
 +
-+/* PRM.EVE2_PRM register offsets */
-+#define DRA7XX_PM_EVE2_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_EVE2_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_EVE2_RSTCTRL_OFFSET				0x0010
-+#define DRA7XX_RM_EVE2_RSTST_OFFSET				0x0014
-+#define DRA7XX_PM_EVE2_EVE2_WKDEP_OFFSET			0x0020
-+#define DRA7XX_RM_EVE2_EVE2_CONTEXT_OFFSET			0x0024
++int pwrdm_state_switch_nolock(struct powerdomain *pwrdm);
++int pwrdm_state_switch(struct powerdomain *pwrdm);
++int pwrdm_pre_transition(struct powerdomain *pwrdm);
++int pwrdm_post_transition(struct powerdomain *pwrdm);
++int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
++bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
 +
-+/* PRM.EVE3_PRM register offsets */
-+#define DRA7XX_PM_EVE3_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_EVE3_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_EVE3_RSTCTRL_OFFSET				0x0010
-+#define DRA7XX_RM_EVE3_RSTST_OFFSET				0x0014
-+#define DRA7XX_PM_EVE3_EVE3_WKDEP_OFFSET			0x0020
-+#define DRA7XX_RM_EVE3_EVE3_CONTEXT_OFFSET			0x0024
++int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 state);
 +
-+/* PRM.EVE4_PRM register offsets */
-+#define DRA7XX_PM_EVE4_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_EVE4_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_EVE4_RSTCTRL_OFFSET				0x0010
-+#define DRA7XX_RM_EVE4_RSTST_OFFSET				0x0014
-+#define DRA7XX_PM_EVE4_EVE4_WKDEP_OFFSET			0x0020
-+#define DRA7XX_RM_EVE4_EVE4_CONTEXT_OFFSET			0x0024
++void omap242x_powerdomains_init(void);
++void omap243x_powerdomains_init(void);
++void omap3xxx_powerdomains_init(void);
++void am33xx_powerdomains_init(void);
++void omap44xx_powerdomains_init(void);
++void omap54xx_powerdomains_init(void);
++void dra7xx_powerdomains_init(void);
++void am43xx_powerdomains_init(void);
 +
-+/* PRM.RTC_PRM register offsets */
-+#define DRA7XX_PM_RTC_RTCSS_WKDEP_OFFSET			0x0000
-+#define DRA7XX_RM_RTC_RTCSS_CONTEXT_OFFSET			0x0004
++extern struct pwrdm_ops omap2_pwrdm_operations;
++extern struct pwrdm_ops omap3_pwrdm_operations;
++extern struct pwrdm_ops am33xx_pwrdm_operations;
++extern struct pwrdm_ops omap4_pwrdm_operations;
 +
-+/* PRM.VPE_PRM register offsets */
-+#define DRA7XX_PM_VPE_PWRSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PM_VPE_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_PM_VPE_VPE_WKDEP_OFFSET				0x0020
-+#define DRA7XX_RM_VPE_VPE_CONTEXT_OFFSET			0x0024
++/* Common Internal functions used across OMAP rev's */
++u32 omap2_pwrdm_get_mem_bank_onstate_mask(u8 bank);
++u32 omap2_pwrdm_get_mem_bank_retst_mask(u8 bank);
++u32 omap2_pwrdm_get_mem_bank_stst_mask(u8 bank);
 +
-+/* PRM.DEVICE_PRM register offsets */
-+#define DRA7XX_PRM_RSTCTRL_OFFSET				0x0000
-+#define DRA7XX_PRM_RSTST_OFFSET					0x0004
-+#define DRA7XX_PRM_RSTTIME_OFFSET				0x0008
-+#define DRA7XX_PRM_CLKREQCTRL_OFFSET				0x000c
-+#define DRA7XX_PRM_VOLTCTRL_OFFSET				0x0010
-+#define DRA7XX_PRM_PWRREQCTRL_OFFSET				0x0014
-+#define DRA7XX_PRM_PSCON_COUNT_OFFSET				0x0018
-+#define DRA7XX_PRM_IO_COUNT_OFFSET				0x001c
-+#define DRA7XX_PRM_IO_PMCTRL_OFFSET				0x0020
-+#define DRA7XX_PRM_VOLTSETUP_WARMRESET_OFFSET			0x0024
-+#define DRA7XX_PRM_VOLTSETUP_CORE_OFF_OFFSET			0x0028
-+#define DRA7XX_PRM_VOLTSETUP_MPU_OFF_OFFSET			0x002c
-+#define DRA7XX_PRM_VOLTSETUP_MM_OFF_OFFSET			0x0030
-+#define DRA7XX_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSET		0x0034
-+#define DRA7XX_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET		0x0038
-+#define DRA7XX_PRM_VOLTSETUP_MM_RET_SLEEP_OFFSET		0x003c
-+#define DRA7XX_PRM_SRAM_COUNT_OFFSET				0x00bc
-+#define DRA7XX_PRM_SRAM_WKUP_SETUP_OFFSET			0x00c0
-+#define DRA7XX_PRM_SLDO_CORE_SETUP_OFFSET			0x00c4
-+#define DRA7XX_PRM_SLDO_CORE_CTRL_OFFSET			0x00c8
-+#define DRA7XX_PRM_SLDO_MPU_SETUP_OFFSET			0x00cc
-+#define DRA7XX_PRM_SLDO_MPU_CTRL_OFFSET				0x00d0
-+#define DRA7XX_PRM_SLDO_GPU_SETUP_OFFSET			0x00d4
-+#define DRA7XX_PRM_SLDO_GPU_CTRL_OFFSET				0x00d8
-+#define DRA7XX_PRM_ABBLDO_MPU_SETUP_OFFSET			0x00dc
-+#define DRA7XX_PRM_ABBLDO_MPU_CTRL_OFFSET			0x00e0
-+#define DRA7XX_PRM_ABBLDO_GPU_SETUP_OFFSET			0x00e4
-+#define DRA7XX_PRM_ABBLDO_GPU_CTRL_OFFSET			0x00e8
-+#define DRA7XX_PRM_BANDGAP_SETUP_OFFSET				0x00ec
-+#define DRA7XX_PRM_DEVICE_OFF_CTRL_OFFSET			0x00f0
-+#define DRA7XX_PRM_PHASE1_CNDP_OFFSET				0x00f4
-+#define DRA7XX_PRM_PHASE2A_CNDP_OFFSET				0x00f8
-+#define DRA7XX_PRM_PHASE2B_CNDP_OFFSET				0x00fc
-+#define DRA7XX_PRM_MODEM_IF_CTRL_OFFSET				0x0100
-+#define DRA7XX_PRM_VOLTST_MPU_OFFSET				0x0110
-+#define DRA7XX_PRM_VOLTST_MM_OFFSET				0x0114
-+#define DRA7XX_PRM_SLDO_DSPEVE_SETUP_OFFSET			0x0118
-+#define DRA7XX_PRM_SLDO_IVA_SETUP_OFFSET			0x011c
-+#define DRA7XX_PRM_ABBLDO_DSPEVE_CTRL_OFFSET			0x0120
-+#define DRA7XX_PRM_ABBLDO_IVA_CTRL_OFFSET			0x0124
-+#define DRA7XX_PRM_SLDO_DSPEVE_CTRL_OFFSET			0x0128
-+#define DRA7XX_PRM_SLDO_IVA_CTRL_OFFSET				0x012c
-+#define DRA7XX_PRM_ABBLDO_DSPEVE_SETUP_OFFSET			0x0130
-+#define DRA7XX_PRM_ABBLDO_IVA_SETUP_OFFSET			0x0134
++extern struct powerdomain wkup_omap2_pwrdm;
++extern struct powerdomain gfx_omap2_pwrdm;
++
++void pwrdm_lock(struct powerdomain *pwrdm);
++void pwrdm_unlock(struct powerdomain *pwrdm);
 +
 +#endif
 -- 
