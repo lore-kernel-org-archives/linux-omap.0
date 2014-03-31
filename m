@@ -1,952 +1,204 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 38/55] ARM: OMAP4: PRM: move parts of prm44xx.h header file to public location
-Date: Mon, 31 Mar 2014 18:16:17 +0300
-Message-ID: <1396278994-12624-39-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 43/55] ARM: OMAP4: PRM: get rid of prminst44xx.h header file
+Date: Mon, 31 Mar 2014 18:16:22 +0300
+Message-ID: <1396278994-12624-44-git-send-email-t-kristo@ti.com>
 References: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39234 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49952 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752703AbaCaPTS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Mar 2014 11:19:18 -0400
+	id S1754026AbaCaPTX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Mar 2014 11:19:23 -0400
 In-Reply-To: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Parts of this file are needed from both the driver and mach-omap2 board
-code.
+Only contains a few function prototypes, so move these to the public
+prm44xx.h header and remove the now unnecessary prminst44xx.h.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/cminst44xx.c   |    3 +-
- arch/arm/mach-omap2/powerdomain.c  |    3 +-
- arch/arm/mach-omap2/prm44xx.c      |    2 +-
- arch/arm/mach-omap2/prm44xx.h      |  394 +--------------------------------
- arch/arm/mach-omap2/prm_common.c   |    5 +-
- arch/arm/mach-omap2/prminst44xx.c  |    3 +-
- include/linux/power/omap/prm44xx.h |  420 ++++++++++++++++++++++++++++++++++++
- 7 files changed, 432 insertions(+), 398 deletions(-)
- create mode 100644 include/linux/power/omap/prm44xx.h
+ arch/arm/mach-omap2/io.c                      |    1 -
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c     |    1 -
+ arch/arm/mach-omap2/omap4-common.c            |    1 -
+ arch/arm/mach-omap2/omap4-restart.c           |    2 +-
+ arch/arm/mach-omap2/omap_hwmod.c              |    1 -
+ arch/arm/mach-omap2/prminst44xx.c             |    1 -
+ arch/arm/mach-omap2/prminst44xx.h             |   27 -------------------------
+ arch/arm/mach-omap2/prminst44xx_private.h     |    2 +-
+ arch/arm/mach-omap2/voltage.c                 |    1 -
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |    1 -
+ include/linux/power/omap/prm44xx.h            |   12 +++++++++++
+ 11 files changed, 14 insertions(+), 36 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/prminst44xx.h
 
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index b577a8e..084e5ce 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -21,13 +21,14 @@
- #include <linux/err.h>
- #include <linux/io.h>
- 
-+#include "prm.h"
- #include "clockdomain.h"
- #include <linux/power/omap/cm.h>
- #include "cm1_44xx.h"
- #include "cm2_44xx.h"
- #include <linux/power/omap/cm44xx.h>
- #include "prcm44xx.h"
--#include "prm44xx.h"
-+#include <linux/power/omap/prm44xx.h>
- #include "prcm_mpu44xx.h"
- #include "prcm-common.h"
- 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index fdb6172..a29d50c 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -25,10 +25,11 @@
- #include <linux/power/omap/cm2xxx_3xxx.h>
- #include "prcm44xx.h"
- #include <linux/power/omap/prm2xxx_3xxx.h>
--#include "prm44xx.h"
-+#include <linux/power/omap/prm44xx.h>
- 
- #include <asm/cpu.h>
- 
-+#include "prm.h"
- #include "powerdomain.h"
- #include "clockdomain.h"
- #include "voltage.h"
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 5033cd3..dff2ffa 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -20,7 +20,7 @@
- 
- 
- #include "vp.h"
--#include "prm44xx.h"
-+#include <linux/power/omap/prm44xx.h>
- #include "prm54xx.h"
- #include "prm7xx.h"
- #include "prcm44xx.h"
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index 7fc277b..1f7a3a6 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -28,403 +28,11 @@
- #include "prm44xx_54xx.h"
- #include "prcm-common.h"
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index ed677bb..96d498f 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -48,7 +48,6 @@
  #include "prm.h"
+ #include <linux/power/omap/cm.h>
+ #include "prcm_mpu44xx.h"
+-#include "prminst44xx.h"
+ #include <linux/power/omap/cm44xx.h>
+ #include "prm2xxx.h"
+ #include "prm3xxx.h"
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index 4b1b059..50127e1 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -57,7 +57,6 @@
+ #include "omap4-sar-layout.h"
+ #include "pm.h"
+ #include "prcm_mpu44xx.h"
+-#include "prminst44xx.h"
+ #include "prcm44xx.h"
+ #include "prm44xx.h"
+ #include "prm-regbits-44xx.h"
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 6cd3f37..54e054a 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -35,7 +35,6 @@
+ #include "iomap.h"
+ #include "common.h"
+ #include "mmc.h"
+-#include "prminst44xx.h"
+ #include "prcm_mpu44xx.h"
+ #include "omap4-sar-layout.h"
+ #include "omap-secure.h"
+diff --git a/arch/arm/mach-omap2/omap4-restart.c b/arch/arm/mach-omap2/omap4-restart.c
+index 41dfd7d..f0102d1 100644
+--- a/arch/arm/mach-omap2/omap4-restart.c
++++ b/arch/arm/mach-omap2/omap4-restart.c
+@@ -9,7 +9,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/reboot.h>
+-#include "prminst44xx.h"
 +#include <linux/power/omap/prm44xx.h>
  
- #define OMAP4430_PRM_BASE		0x4a306000
+ /**
+  * omap44xx_restart - trigger a software restart of the SoC
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 4576f0b..096c43d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -159,7 +159,6 @@
+ #include "prm3xxx.h"
+ #include "prm44xx.h"
+ #include "prm33xx.h"
+-#include "prminst44xx.h"
+ #include "mux.h"
+ #include "pm.h"
  
- #define OMAP44XX_PRM_REGADDR(inst, reg)				\
- 	OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE + (inst) + (reg))
- 
--
--/* PRM instances */
--#define OMAP4430_PRM_OCP_SOCKET_INST	0x0000
--#define OMAP4430_PRM_CKGEN_INST		0x0100
--#define OMAP4430_PRM_MPU_INST		0x0300
--#define OMAP4430_PRM_TESLA_INST		0x0400
--#define OMAP4430_PRM_ABE_INST		0x0500
--#define OMAP4430_PRM_ALWAYS_ON_INST	0x0600
--#define OMAP4430_PRM_CORE_INST		0x0700
--#define OMAP4430_PRM_IVAHD_INST		0x0f00
--#define OMAP4430_PRM_CAM_INST		0x1000
--#define OMAP4430_PRM_DSS_INST		0x1100
--#define OMAP4430_PRM_GFX_INST		0x1200
--#define OMAP4430_PRM_L3INIT_INST	0x1300
--#define OMAP4430_PRM_L4PER_INST		0x1400
--#define OMAP4430_PRM_CEFUSE_INST	0x1600
--#define OMAP4430_PRM_WKUP_INST		0x1700
--#define OMAP4430_PRM_WKUP_CM_INST	0x1800
--#define OMAP4430_PRM_EMU_INST		0x1900
--#define OMAP4430_PRM_EMU_CM_INST	0x1a00
--#define OMAP4430_PRM_DEVICE_INST	0x1b00
--#define OMAP4430_PRM_INSTR_INST		0x1f00
--
--/* PRM clockdomain register offsets (from instance start) */
--#define OMAP4430_PRM_WKUP_CM_WKUP_CDOFFS	0x0000
--#define OMAP4430_PRM_EMU_CM_EMU_CDOFFS		0x0000
--
--/* OMAP4 specific register offsets */
--#define OMAP4_RM_RSTCTRL				0x0000
--#define OMAP4_RM_RSTST					0x0004
--#define OMAP4_RM_RSTTIME				0x0008
--#define OMAP4_PM_PWSTCTRL				0x0000
--#define OMAP4_PM_PWSTST					0x0004
--
--
--/* PRM */
--
--/* PRM.OCP_SOCKET_PRM register offsets */
--#define OMAP4_REVISION_PRM_OFFSET			0x0000
--#define OMAP4_PRM_IRQSTATUS_MPU_OFFSET			0x0010
--#define OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET		0x0014
--#define OMAP4_PRM_IRQENABLE_MPU_OFFSET			0x0018
--#define OMAP4_PRM_IRQENABLE_MPU_2_OFFSET		0x001c
--#define OMAP4_PRM_IRQSTATUS_DUCATI_OFFSET		0x0020
--#define OMAP4_PRM_IRQENABLE_DUCATI_OFFSET		0x0028
--#define OMAP4_PRM_IRQSTATUS_TESLA_OFFSET		0x0030
--#define OMAP4_PRM_IRQENABLE_TESLA_OFFSET		0x0038
--#define OMAP4_CM_PRM_PROFILING_CLKCTRL_OFFSET		0x0040
--
--/* PRM.CKGEN_PRM register offsets */
--#define OMAP4_CM_ABE_DSS_SYS_CLKSEL_OFFSET		0x0000
--#define OMAP4_CM_L4_WKUP_CLKSEL_OFFSET			0x0008
--#define OMAP4_CM_ABE_PLL_REF_CLKSEL_OFFSET		0x000c
--#define OMAP4_CM_SYS_CLKSEL_OFFSET			0x0010
--
--/* PRM.MPU_PRM register offsets */
--#define OMAP4_PM_MPU_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4_PM_MPU_PWRSTST_OFFSET			0x0004
--#define OMAP4_RM_MPU_RSTST_OFFSET			0x0014
--#define OMAP4_RM_MPU_MPU_CONTEXT_OFFSET			0x0024
--
--/* PRM.TESLA_PRM register offsets */
--#define OMAP4_PM_TESLA_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4_PM_TESLA_PWRSTST_OFFSET			0x0004
--#define OMAP4_RM_TESLA_RSTCTRL_OFFSET			0x0010
--#define OMAP4_RM_TESLA_RSTST_OFFSET			0x0014
--#define OMAP4_RM_TESLA_TESLA_CONTEXT_OFFSET		0x0024
--
--/* PRM.ABE_PRM register offsets */
--#define OMAP4_PM_ABE_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4_PM_ABE_PWRSTST_OFFSET			0x0004
--#define OMAP4_RM_ABE_AESS_CONTEXT_OFFSET		0x002c
--#define OMAP4_PM_ABE_PDM_WKDEP_OFFSET			0x0030
--#define OMAP4_RM_ABE_PDM_CONTEXT_OFFSET			0x0034
--#define OMAP4_PM_ABE_DMIC_WKDEP_OFFSET			0x0038
--#define OMAP4_RM_ABE_DMIC_CONTEXT_OFFSET		0x003c
--#define OMAP4_PM_ABE_MCASP_WKDEP_OFFSET			0x0040
--#define OMAP4_RM_ABE_MCASP_CONTEXT_OFFSET		0x0044
--#define OMAP4_PM_ABE_MCBSP1_WKDEP_OFFSET		0x0048
--#define OMAP4_RM_ABE_MCBSP1_CONTEXT_OFFSET		0x004c
--#define OMAP4_PM_ABE_MCBSP2_WKDEP_OFFSET		0x0050
--#define OMAP4_RM_ABE_MCBSP2_CONTEXT_OFFSET		0x0054
--#define OMAP4_PM_ABE_MCBSP3_WKDEP_OFFSET		0x0058
--#define OMAP4_RM_ABE_MCBSP3_CONTEXT_OFFSET		0x005c
--#define OMAP4_PM_ABE_SLIMBUS_WKDEP_OFFSET		0x0060
--#define OMAP4_RM_ABE_SLIMBUS_CONTEXT_OFFSET		0x0064
--#define OMAP4_PM_ABE_TIMER5_WKDEP_OFFSET		0x0068
--#define OMAP4_RM_ABE_TIMER5_CONTEXT_OFFSET		0x006c
--#define OMAP4_PM_ABE_TIMER6_WKDEP_OFFSET		0x0070
--#define OMAP4_RM_ABE_TIMER6_CONTEXT_OFFSET		0x0074
--#define OMAP4_PM_ABE_TIMER7_WKDEP_OFFSET		0x0078
--#define OMAP4_RM_ABE_TIMER7_CONTEXT_OFFSET		0x007c
--#define OMAP4_PM_ABE_TIMER8_WKDEP_OFFSET		0x0080
--#define OMAP4_RM_ABE_TIMER8_CONTEXT_OFFSET		0x0084
--#define OMAP4_PM_ABE_WDT3_WKDEP_OFFSET			0x0088
--#define OMAP4_RM_ABE_WDT3_CONTEXT_OFFSET		0x008c
--
--/* PRM.ALWAYS_ON_PRM register offsets */
--#define OMAP4_RM_ALWON_MDMINTC_CONTEXT_OFFSET		0x0024
--#define OMAP4_PM_ALWON_SR_MPU_WKDEP_OFFSET		0x0028
--#define OMAP4_RM_ALWON_SR_MPU_CONTEXT_OFFSET		0x002c
--#define OMAP4_PM_ALWON_SR_IVA_WKDEP_OFFSET		0x0030
--#define OMAP4_RM_ALWON_SR_IVA_CONTEXT_OFFSET		0x0034
--#define OMAP4_PM_ALWON_SR_CORE_WKDEP_OFFSET		0x0038
--#define OMAP4_RM_ALWON_SR_CORE_CONTEXT_OFFSET		0x003c
--
--/* PRM.CORE_PRM register offsets */
--#define OMAP4_PM_CORE_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4_PM_CORE_PWRSTST_OFFSET			0x0004
--#define OMAP4_RM_L3_1_L3_1_CONTEXT_OFFSET		0x0024
--#define OMAP4_RM_L3_2_L3_2_CONTEXT_OFFSET		0x0124
--#define OMAP4_RM_L3_2_GPMC_CONTEXT_OFFSET		0x012c
--#define OMAP4_RM_L3_2_OCMC_RAM_CONTEXT_OFFSET		0x0134
--#define OMAP4_RM_DUCATI_RSTCTRL_OFFSET			0x0210
--#define OMAP4_RM_DUCATI_RSTST_OFFSET			0x0214
--#define OMAP4_RM_DUCATI_DUCATI_CONTEXT_OFFSET		0x0224
--#define OMAP4_RM_SDMA_SDMA_CONTEXT_OFFSET		0x0324
--#define OMAP4_RM_MEMIF_DMM_CONTEXT_OFFSET		0x0424
--#define OMAP4_RM_MEMIF_EMIF_FW_CONTEXT_OFFSET		0x042c
--#define OMAP4_RM_MEMIF_EMIF_1_CONTEXT_OFFSET		0x0434
--#define OMAP4_RM_MEMIF_EMIF_2_CONTEXT_OFFSET		0x043c
--#define OMAP4_RM_MEMIF_DLL_CONTEXT_OFFSET		0x0444
--#define OMAP4_RM_MEMIF_EMIF_H1_CONTEXT_OFFSET		0x0454
--#define OMAP4_RM_MEMIF_EMIF_H2_CONTEXT_OFFSET		0x045c
--#define OMAP4_RM_MEMIF_DLL_H_CONTEXT_OFFSET		0x0464
--#define OMAP4_RM_D2D_SAD2D_CONTEXT_OFFSET		0x0524
--#define OMAP4_RM_D2D_MODEM_ICR_CONTEXT_OFFSET		0x052c
--#define OMAP4_RM_D2D_SAD2D_FW_CONTEXT_OFFSET		0x0534
--#define OMAP4_RM_L4CFG_L4_CFG_CONTEXT_OFFSET		0x0624
--#define OMAP4_RM_L4CFG_HW_SEM_CONTEXT_OFFSET		0x062c
--#define OMAP4_RM_L4CFG_MAILBOX_CONTEXT_OFFSET		0x0634
--#define OMAP4_RM_L4CFG_SAR_ROM_CONTEXT_OFFSET		0x063c
--#define OMAP4_RM_L3INSTR_L3_3_CONTEXT_OFFSET		0x0724
--#define OMAP4_RM_L3INSTR_L3_INSTR_CONTEXT_OFFSET	0x072c
--#define OMAP4_RM_L3INSTR_OCP_WP1_CONTEXT_OFFSET		0x0744
--
--/* PRM.IVAHD_PRM register offsets */
--#define OMAP4_PM_IVAHD_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4_PM_IVAHD_PWRSTST_OFFSET			0x0004
--#define OMAP4_RM_IVAHD_RSTCTRL_OFFSET			0x0010
--#define OMAP4_RM_IVAHD_RSTST_OFFSET			0x0014
--#define OMAP4_RM_IVAHD_IVAHD_CONTEXT_OFFSET		0x0024
--#define OMAP4_RM_IVAHD_SL2_CONTEXT_OFFSET		0x002c
--
--/* PRM.CAM_PRM register offsets */
--#define OMAP4_PM_CAM_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4_PM_CAM_PWRSTST_OFFSET			0x0004
--#define OMAP4_RM_CAM_ISS_CONTEXT_OFFSET			0x0024
--#define OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET		0x002c
--
--/* PRM.DSS_PRM register offsets */
--#define OMAP4_PM_DSS_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4_PM_DSS_PWRSTST_OFFSET			0x0004
--#define OMAP4_PM_DSS_DSS_WKDEP_OFFSET			0x0020
--#define OMAP4_RM_DSS_DSS_CONTEXT_OFFSET			0x0024
--#define OMAP4_RM_DSS_DEISS_CONTEXT_OFFSET		0x002c
--
--/* PRM.GFX_PRM register offsets */
--#define OMAP4_PM_GFX_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4_PM_GFX_PWRSTST_OFFSET			0x0004
--#define OMAP4_RM_GFX_GFX_CONTEXT_OFFSET			0x0024
--
--/* PRM.L3INIT_PRM register offsets */
--#define OMAP4_PM_L3INIT_PWRSTCTRL_OFFSET		0x0000
--#define OMAP4_PM_L3INIT_PWRSTST_OFFSET			0x0004
--#define OMAP4_PM_L3INIT_MMC1_WKDEP_OFFSET		0x0028
--#define OMAP4_RM_L3INIT_MMC1_CONTEXT_OFFSET		0x002c
--#define OMAP4_PM_L3INIT_MMC2_WKDEP_OFFSET		0x0030
--#define OMAP4_RM_L3INIT_MMC2_CONTEXT_OFFSET		0x0034
--#define OMAP4_PM_L3INIT_HSI_WKDEP_OFFSET		0x0038
--#define OMAP4_RM_L3INIT_HSI_CONTEXT_OFFSET		0x003c
--#define OMAP4_PM_L3INIT_UNIPRO1_WKDEP_OFFSET		0x0040
--#define OMAP4_RM_L3INIT_UNIPRO1_CONTEXT_OFFSET		0x0044
--#define OMAP4_PM_L3INIT_USB_HOST_WKDEP_OFFSET		0x0058
--#define OMAP4_RM_L3INIT_USB_HOST_CONTEXT_OFFSET		0x005c
--#define OMAP4_PM_L3INIT_USB_OTG_WKDEP_OFFSET		0x0060
--#define OMAP4_RM_L3INIT_USB_OTG_CONTEXT_OFFSET		0x0064
--#define OMAP4_PM_L3INIT_USB_TLL_WKDEP_OFFSET		0x0068
--#define OMAP4_RM_L3INIT_USB_TLL_CONTEXT_OFFSET		0x006c
--#define OMAP4_RM_L3INIT_P1500_CONTEXT_OFFSET		0x007c
--#define OMAP4_RM_L3INIT_EMAC_CONTEXT_OFFSET		0x0084
--#define OMAP4_PM_L3INIT_SATA_WKDEP_OFFSET		0x0088
--#define OMAP4_RM_L3INIT_SATA_CONTEXT_OFFSET		0x008c
--#define OMAP4_RM_L3INIT_TPPSS_CONTEXT_OFFSET		0x0094
--#define OMAP4_PM_L3INIT_PCIESS_WKDEP_OFFSET		0x0098
--#define OMAP4_RM_L3INIT_PCIESS_CONTEXT_OFFSET		0x009c
--#define OMAP4_RM_L3INIT_CCPTX_CONTEXT_OFFSET		0x00ac
--#define OMAP4_PM_L3INIT_XHPI_WKDEP_OFFSET		0x00c0
--#define OMAP4_RM_L3INIT_XHPI_CONTEXT_OFFSET		0x00c4
--#define OMAP4_PM_L3INIT_MMC6_WKDEP_OFFSET		0x00c8
--#define OMAP4_RM_L3INIT_MMC6_CONTEXT_OFFSET		0x00cc
--#define OMAP4_PM_L3INIT_USB_HOST_FS_WKDEP_OFFSET	0x00d0
--#define OMAP4_RM_L3INIT_USB_HOST_FS_CONTEXT_OFFSET	0x00d4
--#define OMAP4_RM_L3INIT_USBPHYOCP2SCP_CONTEXT_OFFSET	0x00e4
--
--/* PRM.L4PER_PRM register offsets */
--#define OMAP4_PM_L4PER_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4_PM_L4PER_PWRSTST_OFFSET			0x0004
--#define OMAP4_RM_L4PER_ADC_CONTEXT_OFFSET		0x0024
--#define OMAP4_PM_L4PER_DMTIMER10_WKDEP_OFFSET		0x0028
--#define OMAP4_RM_L4PER_DMTIMER10_CONTEXT_OFFSET		0x002c
--#define OMAP4_PM_L4PER_DMTIMER11_WKDEP_OFFSET		0x0030
--#define OMAP4_RM_L4PER_DMTIMER11_CONTEXT_OFFSET		0x0034
--#define OMAP4_PM_L4PER_DMTIMER2_WKDEP_OFFSET		0x0038
--#define OMAP4_RM_L4PER_DMTIMER2_CONTEXT_OFFSET		0x003c
--#define OMAP4_PM_L4PER_DMTIMER3_WKDEP_OFFSET		0x0040
--#define OMAP4_RM_L4PER_DMTIMER3_CONTEXT_OFFSET		0x0044
--#define OMAP4_PM_L4PER_DMTIMER4_WKDEP_OFFSET		0x0048
--#define OMAP4_RM_L4PER_DMTIMER4_CONTEXT_OFFSET		0x004c
--#define OMAP4_PM_L4PER_DMTIMER9_WKDEP_OFFSET		0x0050
--#define OMAP4_RM_L4PER_DMTIMER9_CONTEXT_OFFSET		0x0054
--#define OMAP4_RM_L4PER_ELM_CONTEXT_OFFSET		0x005c
--#define OMAP4_PM_L4PER_GPIO2_WKDEP_OFFSET		0x0060
--#define OMAP4_RM_L4PER_GPIO2_CONTEXT_OFFSET		0x0064
--#define OMAP4_PM_L4PER_GPIO3_WKDEP_OFFSET		0x0068
--#define OMAP4_RM_L4PER_GPIO3_CONTEXT_OFFSET		0x006c
--#define OMAP4_PM_L4PER_GPIO4_WKDEP_OFFSET		0x0070
--#define OMAP4_RM_L4PER_GPIO4_CONTEXT_OFFSET		0x0074
--#define OMAP4_PM_L4PER_GPIO5_WKDEP_OFFSET		0x0078
--#define OMAP4_RM_L4PER_GPIO5_CONTEXT_OFFSET		0x007c
--#define OMAP4_PM_L4PER_GPIO6_WKDEP_OFFSET		0x0080
--#define OMAP4_RM_L4PER_GPIO6_CONTEXT_OFFSET		0x0084
--#define OMAP4_RM_L4PER_HDQ1W_CONTEXT_OFFSET		0x008c
--#define OMAP4_PM_L4PER_HECC1_WKDEP_OFFSET		0x0090
--#define OMAP4_RM_L4PER_HECC1_CONTEXT_OFFSET		0x0094
--#define OMAP4_PM_L4PER_HECC2_WKDEP_OFFSET		0x0098
--#define OMAP4_RM_L4PER_HECC2_CONTEXT_OFFSET		0x009c
--#define OMAP4_PM_L4PER_I2C1_WKDEP_OFFSET		0x00a0
--#define OMAP4_RM_L4PER_I2C1_CONTEXT_OFFSET		0x00a4
--#define OMAP4_PM_L4PER_I2C2_WKDEP_OFFSET		0x00a8
--#define OMAP4_RM_L4PER_I2C2_CONTEXT_OFFSET		0x00ac
--#define OMAP4_PM_L4PER_I2C3_WKDEP_OFFSET		0x00b0
--#define OMAP4_RM_L4PER_I2C3_CONTEXT_OFFSET		0x00b4
--#define OMAP4_PM_L4PER_I2C4_WKDEP_OFFSET		0x00b8
--#define OMAP4_RM_L4PER_I2C4_CONTEXT_OFFSET		0x00bc
--#define OMAP4_RM_L4PER_L4_PER_CONTEXT_OFFSET		0x00c0
--#define OMAP4_PM_L4PER_MCASP2_WKDEP_OFFSET		0x00d0
--#define OMAP4_RM_L4PER_MCASP2_CONTEXT_OFFSET		0x00d4
--#define OMAP4_PM_L4PER_MCASP3_WKDEP_OFFSET		0x00d8
--#define OMAP4_RM_L4PER_MCASP3_CONTEXT_OFFSET		0x00dc
--#define OMAP4_PM_L4PER_MCBSP4_WKDEP_OFFSET		0x00e0
--#define OMAP4_RM_L4PER_MCBSP4_CONTEXT_OFFSET		0x00e4
--#define OMAP4_RM_L4PER_MGATE_CONTEXT_OFFSET		0x00ec
--#define OMAP4_PM_L4PER_MCSPI1_WKDEP_OFFSET		0x00f0
--#define OMAP4_RM_L4PER_MCSPI1_CONTEXT_OFFSET		0x00f4
--#define OMAP4_PM_L4PER_MCSPI2_WKDEP_OFFSET		0x00f8
--#define OMAP4_RM_L4PER_MCSPI2_CONTEXT_OFFSET		0x00fc
--#define OMAP4_PM_L4PER_MCSPI3_WKDEP_OFFSET		0x0100
--#define OMAP4_RM_L4PER_MCSPI3_CONTEXT_OFFSET		0x0104
--#define OMAP4_PM_L4PER_MCSPI4_WKDEP_OFFSET		0x0108
--#define OMAP4_RM_L4PER_MCSPI4_CONTEXT_OFFSET		0x010c
--#define OMAP4_PM_L4PER_MMCSD3_WKDEP_OFFSET		0x0120
--#define OMAP4_RM_L4PER_MMCSD3_CONTEXT_OFFSET		0x0124
--#define OMAP4_PM_L4PER_MMCSD4_WKDEP_OFFSET		0x0128
--#define OMAP4_RM_L4PER_MMCSD4_CONTEXT_OFFSET		0x012c
--#define OMAP4_RM_L4PER_MSPROHG_CONTEXT_OFFSET		0x0134
--#define OMAP4_PM_L4PER_SLIMBUS2_WKDEP_OFFSET		0x0138
--#define OMAP4_RM_L4PER_SLIMBUS2_CONTEXT_OFFSET		0x013c
--#define OMAP4_PM_L4PER_UART1_WKDEP_OFFSET		0x0140
--#define OMAP4_RM_L4PER_UART1_CONTEXT_OFFSET		0x0144
--#define OMAP4_PM_L4PER_UART2_WKDEP_OFFSET		0x0148
--#define OMAP4_RM_L4PER_UART2_CONTEXT_OFFSET		0x014c
--#define OMAP4_PM_L4PER_UART3_WKDEP_OFFSET		0x0150
--#define OMAP4_RM_L4PER_UART3_CONTEXT_OFFSET		0x0154
--#define OMAP4_PM_L4PER_UART4_WKDEP_OFFSET		0x0158
--#define OMAP4_RM_L4PER_UART4_CONTEXT_OFFSET		0x015c
--#define OMAP4_PM_L4PER_MMCSD5_WKDEP_OFFSET		0x0160
--#define OMAP4_RM_L4PER_MMCSD5_CONTEXT_OFFSET		0x0164
--#define OMAP4_PM_L4PER_I2C5_WKDEP_OFFSET		0x0168
--#define OMAP4_RM_L4PER_I2C5_CONTEXT_OFFSET		0x016c
--#define OMAP4_RM_L4SEC_AES1_CONTEXT_OFFSET		0x01a4
--#define OMAP4_RM_L4SEC_AES2_CONTEXT_OFFSET		0x01ac
--#define OMAP4_RM_L4SEC_DES3DES_CONTEXT_OFFSET		0x01b4
--#define OMAP4_RM_L4SEC_PKAEIP29_CONTEXT_OFFSET		0x01bc
--#define OMAP4_RM_L4SEC_RNG_CONTEXT_OFFSET		0x01c4
--#define OMAP4_RM_L4SEC_SHA2MD51_CONTEXT_OFFSET		0x01cc
--#define OMAP4_RM_L4SEC_CRYPTODMA_CONTEXT_OFFSET		0x01dc
--
--/* PRM.CEFUSE_PRM register offsets */
--#define OMAP4_PM_CEFUSE_PWRSTCTRL_OFFSET		0x0000
--#define OMAP4_PM_CEFUSE_PWRSTST_OFFSET			0x0004
--#define OMAP4_RM_CEFUSE_CEFUSE_CONTEXT_OFFSET		0x0024
--
--/* PRM.WKUP_PRM register offsets */
--#define OMAP4_RM_WKUP_L4WKUP_CONTEXT_OFFSET		0x0024
--#define OMAP4_RM_WKUP_WDT1_CONTEXT_OFFSET		0x002c
--#define OMAP4_PM_WKUP_WDT2_WKDEP_OFFSET			0x0030
--#define OMAP4_RM_WKUP_WDT2_CONTEXT_OFFSET		0x0034
--#define OMAP4_PM_WKUP_GPIO1_WKDEP_OFFSET		0x0038
--#define OMAP4_RM_WKUP_GPIO1_CONTEXT_OFFSET		0x003c
--#define OMAP4_PM_WKUP_TIMER1_WKDEP_OFFSET		0x0040
--#define OMAP4_RM_WKUP_TIMER1_CONTEXT_OFFSET		0x0044
--#define OMAP4_PM_WKUP_TIMER12_WKDEP_OFFSET		0x0048
--#define OMAP4_RM_WKUP_TIMER12_CONTEXT_OFFSET		0x004c
--#define OMAP4_RM_WKUP_SYNCTIMER_CONTEXT_OFFSET		0x0054
--#define OMAP4_PM_WKUP_USIM_WKDEP_OFFSET			0x0058
--#define OMAP4_RM_WKUP_USIM_CONTEXT_OFFSET		0x005c
--#define OMAP4_RM_WKUP_SARRAM_CONTEXT_OFFSET		0x0064
--#define OMAP4_PM_WKUP_KEYBOARD_WKDEP_OFFSET		0x0078
--#define OMAP4_RM_WKUP_KEYBOARD_CONTEXT_OFFSET		0x007c
--#define OMAP4_PM_WKUP_RTC_WKDEP_OFFSET			0x0080
--#define OMAP4_RM_WKUP_RTC_CONTEXT_OFFSET		0x0084
--
--/* PRM.WKUP_CM register offsets */
--#define OMAP4_CM_WKUP_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4_CM_WKUP_L4WKUP_CLKCTRL_OFFSET		0x0020
--#define OMAP4_CM_WKUP_WDT1_CLKCTRL_OFFSET		0x0028
--#define OMAP4_CM_WKUP_WDT2_CLKCTRL_OFFSET		0x0030
--#define OMAP4_CM_WKUP_GPIO1_CLKCTRL_OFFSET		0x0038
--#define OMAP4_CM_WKUP_TIMER1_CLKCTRL_OFFSET		0x0040
--#define OMAP4_CM_WKUP_TIMER12_CLKCTRL_OFFSET		0x0048
--#define OMAP4_CM_WKUP_SYNCTIMER_CLKCTRL_OFFSET		0x0050
--#define OMAP4_CM_WKUP_USIM_CLKCTRL_OFFSET		0x0058
--#define OMAP4_CM_WKUP_SARRAM_CLKCTRL_OFFSET		0x0060
--#define OMAP4_CM_WKUP_KEYBOARD_CLKCTRL_OFFSET		0x0078
--#define OMAP4_CM_WKUP_RTC_CLKCTRL_OFFSET		0x0080
--#define OMAP4_CM_WKUP_BANDGAP_CLKCTRL_OFFSET		0x0088
--
--/* PRM.EMU_PRM register offsets */
--#define OMAP4_PM_EMU_PWRSTCTRL_OFFSET			0x0000
--#define OMAP4_PM_EMU_PWRSTST_OFFSET			0x0004
--#define OMAP4_RM_EMU_DEBUGSS_CONTEXT_OFFSET		0x0024
--
--/* PRM.EMU_CM register offsets */
--#define OMAP4_CM_EMU_CLKSTCTRL_OFFSET			0x0000
--#define OMAP4_CM_EMU_DYNAMICDEP_OFFSET			0x0008
--#define OMAP4_CM_EMU_DEBUGSS_CLKCTRL_OFFSET		0x0020
--
--/* PRM.DEVICE_PRM register offsets */
--#define OMAP4_PRM_RSTCTRL_OFFSET			0x0000
--#define OMAP4_PRM_RSTST_OFFSET				0x0004
--#define OMAP4_PRM_RSTTIME_OFFSET			0x0008
--#define OMAP4_PRM_CLKREQCTRL_OFFSET			0x000c
--#define OMAP4_PRM_VOLTCTRL_OFFSET			0x0010
--#define OMAP4_PRM_PWRREQCTRL_OFFSET			0x0014
--#define OMAP4_PRM_PSCON_COUNT_OFFSET			0x0018
--#define OMAP4_PRM_IO_COUNT_OFFSET			0x001c
--#define OMAP4_PRM_IO_PMCTRL_OFFSET			0x0020
--#define OMAP4_PRM_VOLTSETUP_WARMRESET_OFFSET		0x0024
--#define OMAP4_PRM_VOLTSETUP_CORE_OFF_OFFSET		0x0028
--#define OMAP4_PRM_VOLTSETUP_MPU_OFF_OFFSET		0x002c
--#define OMAP4_PRM_VOLTSETUP_IVA_OFF_OFFSET		0x0030
--#define OMAP4_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSET	0x0034
--#define OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET	0x0038
--#define OMAP4_PRM_VOLTSETUP_IVA_RET_SLEEP_OFFSET	0x003c
--#define OMAP4_PRM_VP_CORE_CONFIG_OFFSET			0x0040
--#define OMAP4_PRM_VP_CORE_STATUS_OFFSET			0x0044
--#define OMAP4_PRM_VP_CORE_VLIMITTO_OFFSET		0x0048
--#define OMAP4_PRM_VP_CORE_VOLTAGE_OFFSET		0x004c
--#define OMAP4_PRM_VP_CORE_VSTEPMAX_OFFSET		0x0050
--#define OMAP4_PRM_VP_CORE_VSTEPMIN_OFFSET		0x0054
--#define OMAP4_PRM_VP_MPU_CONFIG_OFFSET			0x0058
--#define OMAP4_PRM_VP_MPU_STATUS_OFFSET			0x005c
--#define OMAP4_PRM_VP_MPU_VLIMITTO_OFFSET		0x0060
--#define OMAP4_PRM_VP_MPU_VOLTAGE_OFFSET			0x0064
--#define OMAP4_PRM_VP_MPU_VSTEPMAX_OFFSET		0x0068
--#define OMAP4_PRM_VP_MPU_VSTEPMIN_OFFSET		0x006c
--#define OMAP4_PRM_VP_IVA_CONFIG_OFFSET			0x0070
--#define OMAP4_PRM_VP_IVA_STATUS_OFFSET			0x0074
--#define OMAP4_PRM_VP_IVA_VLIMITTO_OFFSET		0x0078
--#define OMAP4_PRM_VP_IVA_VOLTAGE_OFFSET			0x007c
--#define OMAP4_PRM_VP_IVA_VSTEPMAX_OFFSET		0x0080
--#define OMAP4_PRM_VP_IVA_VSTEPMIN_OFFSET		0x0084
--#define OMAP4_PRM_VC_SMPS_SA_OFFSET			0x0088
--#define OMAP4_PRM_VC_VAL_SMPS_RA_VOL_OFFSET		0x008c
--#define OMAP4_PRM_VC_VAL_SMPS_RA_CMD_OFFSET		0x0090
--#define OMAP4_PRM_VC_VAL_CMD_VDD_CORE_L_OFFSET		0x0094
--#define OMAP4_PRM_VC_VAL_CMD_VDD_MPU_L_OFFSET		0x0098
--#define OMAP4_PRM_VC_VAL_CMD_VDD_IVA_L_OFFSET		0x009c
--#define OMAP4_PRM_VC_VAL_BYPASS_OFFSET			0x00a0
--#define OMAP4_PRM_VC_CFG_CHANNEL_OFFSET			0x00a4
--#define OMAP4_PRM_VC_CFG_I2C_MODE_OFFSET		0x00a8
--#define OMAP4_PRM_VC_CFG_I2C_CLK_OFFSET			0x00ac
--#define OMAP4_PRM_SRAM_COUNT_OFFSET			0x00b0
--#define OMAP4_PRM_SRAM_WKUP_SETUP_OFFSET		0x00b4
--#define OMAP4_PRM_LDO_SRAM_CORE_SETUP_OFFSET		0x00b8
--#define OMAP4_PRM_LDO_SRAM_CORE_CTRL_OFFSET		0x00bc
--#define OMAP4_PRM_LDO_SRAM_MPU_SETUP_OFFSET		0x00c0
--#define OMAP4_PRM_LDO_SRAM_MPU_CTRL_OFFSET		0x00c4
--#define OMAP4_PRM_LDO_SRAM_IVA_SETUP_OFFSET		0x00c8
--#define OMAP4_PRM_LDO_SRAM_IVA_CTRL_OFFSET		0x00cc
--#define OMAP4_PRM_LDO_ABB_MPU_SETUP_OFFSET		0x00d0
--#define OMAP4_PRM_LDO_ABB_MPU_CTRL_OFFSET		0x00d4
--#define OMAP4_PRM_LDO_ABB_IVA_SETUP_OFFSET		0x00d8
--#define OMAP4_PRM_LDO_ABB_IVA_CTRL_OFFSET		0x00dc
--#define OMAP4_PRM_LDO_BANDGAP_SETUP_OFFSET		0x00e0
--#define OMAP4_PRM_DEVICE_OFF_CTRL_OFFSET		0x00e4
--#define OMAP4_PRM_PHASE1_CNDP_OFFSET			0x00e8
--#define OMAP4_PRM_PHASE2A_CNDP_OFFSET			0x00ec
--#define OMAP4_PRM_PHASE2B_CNDP_OFFSET			0x00f0
--#define OMAP4_PRM_MODEM_IF_CTRL_OFFSET			0x00f4
--#define OMAP4_PRM_VC_ERRST_OFFSET			0x00f8
--
- #endif
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 40e94e7..653862b 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -31,7 +31,10 @@
- #include <linux/power/omap/prm2xxx_3xxx.h>
- #include <linux/power/omap/prm2xxx.h>
- #include <linux/power/omap/prm3xxx.h>
--#include "prm44xx.h"
-+#include <linux/power/omap/prm44xx.h>
-+
-+#include "prm.h"
-+#include "prcm-common.h"
- 
- /*
-  * OMAP_PRCM_MAX_NR_PENDING_REG: maximum number of PRM_IRQ*_MPU regs
 diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
-index 74349e1..f029cb1 100644
+index feb508f..01f6b15 100644
 --- a/arch/arm/mach-omap2/prminst44xx.c
 +++ b/arch/arm/mach-omap2/prminst44xx.c
-@@ -16,8 +16,9 @@
- #include <linux/err.h>
- #include <linux/io.h>
+@@ -21,7 +21,6 @@
+ #include <linux/power/omap/prm44xx.h>
+ #include <linux/power/omap/prm54xx.h>
+ #include <linux/power/omap/prm7xx.h>
+-#include "prminst44xx.h"
+ #include "prcm44xx.h"
+ #include "prcm_mpu44xx.h"
  
-+#include "prm.h"
- #include "prcm-common.h"
--#include "prm44xx.h"
+diff --git a/arch/arm/mach-omap2/prminst44xx.h b/arch/arm/mach-omap2/prminst44xx.h
+deleted file mode 100644
+index fec8f18..0000000
+--- a/arch/arm/mach-omap2/prminst44xx.h
++++ /dev/null
+@@ -1,27 +0,0 @@
+-/*
+- * OMAP4 Power/Reset Management (PRM) function prototypes
+- *
+- * Copyright (C) 2010 Nokia Corporation
+- * Copyright (C) 2011 Texas Instruments, Inc.
+- * Paul Walmsley
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-#ifndef __ARCH_ASM_MACH_OMAP2_PRMINST44XX_H
+-#define __ARCH_ASM_MACH_OMAP2_PRMINST44XX_H
+-
+-extern void omap4_prminst_global_warm_sw_reset(void);
+-
+-extern int omap4_prminst_is_hardreset_asserted(u8 shift, u8 part, s16 inst,
+-					       u16 rstctrl_offs);
+-extern int omap4_prminst_assert_hardreset(u8 shift, u8 part, s16 inst,
+-					  u16 rstctrl_offs);
+-extern int omap4_prminst_deassert_hardreset(u8 shift, u8 part, s16 inst,
+-					    u16 rstctrl_offs);
+-void omap4_prminst_mpuss_clear_prev_logic_pwrst(void);
+-
+-extern void omap_prm_base_init(void);
+-
+-#endif
+diff --git a/arch/arm/mach-omap2/prminst44xx_private.h b/arch/arm/mach-omap2/prminst44xx_private.h
+index 59a6e55..5db33b7 100644
+--- a/arch/arm/mach-omap2/prminst44xx_private.h
++++ b/arch/arm/mach-omap2/prminst44xx_private.h
+@@ -12,7 +12,7 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_PRMINST44XX_PRIVATE_H
+ #define __ARCH_ARM_MACH_OMAP2_PRMINST44XX_PRIVATE_H
+ 
+-#include "prminst44xx.h"
 +#include <linux/power/omap/prm44xx.h>
- #include "prm54xx.h"
- #include "prm7xx.h"
- #include "prminst44xx.h"
+ 
+ /*
+  * In an ideal world, we would not export these low-level functions,
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 3ac8fe1..78f5a68 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -33,7 +33,6 @@
+ #include "prm-regbits-44xx.h"
+ #include "prm44xx.h"
+ #include "prcm44xx.h"
+-#include "prminst44xx.h"
+ #include "control.h"
+ 
+ #include "voltage.h"
+diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+index 48b22a0..479b412 100644
+--- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+@@ -26,7 +26,6 @@
+ #include "prm-regbits-44xx.h"
+ #include "prm44xx.h"
+ #include "prcm44xx.h"
+-#include "prminst44xx.h"
+ #include "voltage.h"
+ #include "omap_opp_data.h"
+ #include "vc.h"
 diff --git a/include/linux/power/omap/prm44xx.h b/include/linux/power/omap/prm44xx.h
-new file mode 100644
-index 0000000..e5cd9f3
---- /dev/null
+index e5cd9f3..3c5852e 100644
+--- a/include/linux/power/omap/prm44xx.h
 +++ b/include/linux/power/omap/prm44xx.h
-@@ -0,0 +1,420 @@
-+/*
-+ * OMAP44xx PRM instance offset macros
-+ *
-+ * Copyright (C) 2009-2011 Texas Instruments, Inc.
-+ * Copyright (C) 2009-2010 Nokia Corporation
-+ *
-+ * Paul Walmsley (paul@pwsan.com)
-+ * Rajendra Nayak (rnayak@ti.com)
-+ * Benoit Cousson (b-cousson@ti.com)
-+ *
-+ * This file is automatically generated from the OMAP hardware databases.
-+ * We respectfully ask that any modifications to this file be coordinated
-+ * with the public linux-omap@vger.kernel.org mailing list and the
-+ * authors above to ensure that the autogeneration scripts are kept
-+ * up-to-date with the file contents.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * XXX This file needs to be updated to align on one of "OMAP4", "OMAP44XX",
-+ *     or "OMAP4430".
-+ */
-+
-+#ifndef __LINUX_POWER_OMAP_PRM44XX_H
-+#define __LINUX_POWER_OMAP_PRM44XX_H
-+
-+/* PRM instances */
-+#define OMAP4430_PRM_OCP_SOCKET_INST	0x0000
-+#define OMAP4430_PRM_CKGEN_INST		0x0100
-+#define OMAP4430_PRM_MPU_INST		0x0300
-+#define OMAP4430_PRM_TESLA_INST		0x0400
-+#define OMAP4430_PRM_ABE_INST		0x0500
-+#define OMAP4430_PRM_ALWAYS_ON_INST	0x0600
-+#define OMAP4430_PRM_CORE_INST		0x0700
-+#define OMAP4430_PRM_IVAHD_INST		0x0f00
-+#define OMAP4430_PRM_CAM_INST		0x1000
-+#define OMAP4430_PRM_DSS_INST		0x1100
-+#define OMAP4430_PRM_GFX_INST		0x1200
-+#define OMAP4430_PRM_L3INIT_INST	0x1300
-+#define OMAP4430_PRM_L4PER_INST		0x1400
-+#define OMAP4430_PRM_CEFUSE_INST	0x1600
-+#define OMAP4430_PRM_WKUP_INST		0x1700
-+#define OMAP4430_PRM_WKUP_CM_INST	0x1800
-+#define OMAP4430_PRM_EMU_INST		0x1900
-+#define OMAP4430_PRM_EMU_CM_INST	0x1a00
-+#define OMAP4430_PRM_DEVICE_INST	0x1b00
-+#define OMAP4430_PRM_INSTR_INST		0x1f00
-+
-+/* PRM clockdomain register offsets (from instance start) */
-+#define OMAP4430_PRM_WKUP_CM_WKUP_CDOFFS	0x0000
-+#define OMAP4430_PRM_EMU_CM_EMU_CDOFFS		0x0000
-+
-+/* OMAP4 specific register offsets */
-+#define OMAP4_RM_RSTCTRL				0x0000
-+#define OMAP4_RM_RSTST					0x0004
-+#define OMAP4_RM_RSTTIME				0x0008
-+#define OMAP4_PM_PWSTCTRL				0x0000
-+#define OMAP4_PM_PWSTST					0x0004
-+
-+
-+/* PRM */
-+
-+/* PRM.OCP_SOCKET_PRM register offsets */
-+#define OMAP4_REVISION_PRM_OFFSET			0x0000
-+#define OMAP4_PRM_IRQSTATUS_MPU_OFFSET			0x0010
-+#define OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET		0x0014
-+#define OMAP4_PRM_IRQENABLE_MPU_OFFSET			0x0018
-+#define OMAP4_PRM_IRQENABLE_MPU_2_OFFSET		0x001c
-+#define OMAP4_PRM_IRQSTATUS_DUCATI_OFFSET		0x0020
-+#define OMAP4_PRM_IRQENABLE_DUCATI_OFFSET		0x0028
-+#define OMAP4_PRM_IRQSTATUS_TESLA_OFFSET		0x0030
-+#define OMAP4_PRM_IRQENABLE_TESLA_OFFSET		0x0038
-+#define OMAP4_CM_PRM_PROFILING_CLKCTRL_OFFSET		0x0040
-+
-+/* PRM.CKGEN_PRM register offsets */
-+#define OMAP4_CM_ABE_DSS_SYS_CLKSEL_OFFSET		0x0000
-+#define OMAP4_CM_L4_WKUP_CLKSEL_OFFSET			0x0008
-+#define OMAP4_CM_ABE_PLL_REF_CLKSEL_OFFSET		0x000c
-+#define OMAP4_CM_SYS_CLKSEL_OFFSET			0x0010
-+
-+/* PRM.MPU_PRM register offsets */
-+#define OMAP4_PM_MPU_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP4_PM_MPU_PWRSTST_OFFSET			0x0004
-+#define OMAP4_RM_MPU_RSTST_OFFSET			0x0014
-+#define OMAP4_RM_MPU_MPU_CONTEXT_OFFSET			0x0024
-+
-+/* PRM.TESLA_PRM register offsets */
-+#define OMAP4_PM_TESLA_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP4_PM_TESLA_PWRSTST_OFFSET			0x0004
-+#define OMAP4_RM_TESLA_RSTCTRL_OFFSET			0x0010
-+#define OMAP4_RM_TESLA_RSTST_OFFSET			0x0014
-+#define OMAP4_RM_TESLA_TESLA_CONTEXT_OFFSET		0x0024
-+
-+/* PRM.ABE_PRM register offsets */
-+#define OMAP4_PM_ABE_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP4_PM_ABE_PWRSTST_OFFSET			0x0004
-+#define OMAP4_RM_ABE_AESS_CONTEXT_OFFSET		0x002c
-+#define OMAP4_PM_ABE_PDM_WKDEP_OFFSET			0x0030
-+#define OMAP4_RM_ABE_PDM_CONTEXT_OFFSET			0x0034
-+#define OMAP4_PM_ABE_DMIC_WKDEP_OFFSET			0x0038
-+#define OMAP4_RM_ABE_DMIC_CONTEXT_OFFSET		0x003c
-+#define OMAP4_PM_ABE_MCASP_WKDEP_OFFSET			0x0040
-+#define OMAP4_RM_ABE_MCASP_CONTEXT_OFFSET		0x0044
-+#define OMAP4_PM_ABE_MCBSP1_WKDEP_OFFSET		0x0048
-+#define OMAP4_RM_ABE_MCBSP1_CONTEXT_OFFSET		0x004c
-+#define OMAP4_PM_ABE_MCBSP2_WKDEP_OFFSET		0x0050
-+#define OMAP4_RM_ABE_MCBSP2_CONTEXT_OFFSET		0x0054
-+#define OMAP4_PM_ABE_MCBSP3_WKDEP_OFFSET		0x0058
-+#define OMAP4_RM_ABE_MCBSP3_CONTEXT_OFFSET		0x005c
-+#define OMAP4_PM_ABE_SLIMBUS_WKDEP_OFFSET		0x0060
-+#define OMAP4_RM_ABE_SLIMBUS_CONTEXT_OFFSET		0x0064
-+#define OMAP4_PM_ABE_TIMER5_WKDEP_OFFSET		0x0068
-+#define OMAP4_RM_ABE_TIMER5_CONTEXT_OFFSET		0x006c
-+#define OMAP4_PM_ABE_TIMER6_WKDEP_OFFSET		0x0070
-+#define OMAP4_RM_ABE_TIMER6_CONTEXT_OFFSET		0x0074
-+#define OMAP4_PM_ABE_TIMER7_WKDEP_OFFSET		0x0078
-+#define OMAP4_RM_ABE_TIMER7_CONTEXT_OFFSET		0x007c
-+#define OMAP4_PM_ABE_TIMER8_WKDEP_OFFSET		0x0080
-+#define OMAP4_RM_ABE_TIMER8_CONTEXT_OFFSET		0x0084
-+#define OMAP4_PM_ABE_WDT3_WKDEP_OFFSET			0x0088
-+#define OMAP4_RM_ABE_WDT3_CONTEXT_OFFSET		0x008c
-+
-+/* PRM.ALWAYS_ON_PRM register offsets */
-+#define OMAP4_RM_ALWON_MDMINTC_CONTEXT_OFFSET		0x0024
-+#define OMAP4_PM_ALWON_SR_MPU_WKDEP_OFFSET		0x0028
-+#define OMAP4_RM_ALWON_SR_MPU_CONTEXT_OFFSET		0x002c
-+#define OMAP4_PM_ALWON_SR_IVA_WKDEP_OFFSET		0x0030
-+#define OMAP4_RM_ALWON_SR_IVA_CONTEXT_OFFSET		0x0034
-+#define OMAP4_PM_ALWON_SR_CORE_WKDEP_OFFSET		0x0038
-+#define OMAP4_RM_ALWON_SR_CORE_CONTEXT_OFFSET		0x003c
-+
-+/* PRM.CORE_PRM register offsets */
-+#define OMAP4_PM_CORE_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP4_PM_CORE_PWRSTST_OFFSET			0x0004
-+#define OMAP4_RM_L3_1_L3_1_CONTEXT_OFFSET		0x0024
-+#define OMAP4_RM_L3_2_L3_2_CONTEXT_OFFSET		0x0124
-+#define OMAP4_RM_L3_2_GPMC_CONTEXT_OFFSET		0x012c
-+#define OMAP4_RM_L3_2_OCMC_RAM_CONTEXT_OFFSET		0x0134
-+#define OMAP4_RM_DUCATI_RSTCTRL_OFFSET			0x0210
-+#define OMAP4_RM_DUCATI_RSTST_OFFSET			0x0214
-+#define OMAP4_RM_DUCATI_DUCATI_CONTEXT_OFFSET		0x0224
-+#define OMAP4_RM_SDMA_SDMA_CONTEXT_OFFSET		0x0324
-+#define OMAP4_RM_MEMIF_DMM_CONTEXT_OFFSET		0x0424
-+#define OMAP4_RM_MEMIF_EMIF_FW_CONTEXT_OFFSET		0x042c
-+#define OMAP4_RM_MEMIF_EMIF_1_CONTEXT_OFFSET		0x0434
-+#define OMAP4_RM_MEMIF_EMIF_2_CONTEXT_OFFSET		0x043c
-+#define OMAP4_RM_MEMIF_DLL_CONTEXT_OFFSET		0x0444
-+#define OMAP4_RM_MEMIF_EMIF_H1_CONTEXT_OFFSET		0x0454
-+#define OMAP4_RM_MEMIF_EMIF_H2_CONTEXT_OFFSET		0x045c
-+#define OMAP4_RM_MEMIF_DLL_H_CONTEXT_OFFSET		0x0464
-+#define OMAP4_RM_D2D_SAD2D_CONTEXT_OFFSET		0x0524
-+#define OMAP4_RM_D2D_MODEM_ICR_CONTEXT_OFFSET		0x052c
-+#define OMAP4_RM_D2D_SAD2D_FW_CONTEXT_OFFSET		0x0534
-+#define OMAP4_RM_L4CFG_L4_CFG_CONTEXT_OFFSET		0x0624
-+#define OMAP4_RM_L4CFG_HW_SEM_CONTEXT_OFFSET		0x062c
-+#define OMAP4_RM_L4CFG_MAILBOX_CONTEXT_OFFSET		0x0634
-+#define OMAP4_RM_L4CFG_SAR_ROM_CONTEXT_OFFSET		0x063c
-+#define OMAP4_RM_L3INSTR_L3_3_CONTEXT_OFFSET		0x0724
-+#define OMAP4_RM_L3INSTR_L3_INSTR_CONTEXT_OFFSET	0x072c
-+#define OMAP4_RM_L3INSTR_OCP_WP1_CONTEXT_OFFSET		0x0744
-+
-+/* PRM.IVAHD_PRM register offsets */
-+#define OMAP4_PM_IVAHD_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP4_PM_IVAHD_PWRSTST_OFFSET			0x0004
-+#define OMAP4_RM_IVAHD_RSTCTRL_OFFSET			0x0010
-+#define OMAP4_RM_IVAHD_RSTST_OFFSET			0x0014
-+#define OMAP4_RM_IVAHD_IVAHD_CONTEXT_OFFSET		0x0024
-+#define OMAP4_RM_IVAHD_SL2_CONTEXT_OFFSET		0x002c
-+
-+/* PRM.CAM_PRM register offsets */
-+#define OMAP4_PM_CAM_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP4_PM_CAM_PWRSTST_OFFSET			0x0004
-+#define OMAP4_RM_CAM_ISS_CONTEXT_OFFSET			0x0024
-+#define OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET		0x002c
-+
-+/* PRM.DSS_PRM register offsets */
-+#define OMAP4_PM_DSS_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP4_PM_DSS_PWRSTST_OFFSET			0x0004
-+#define OMAP4_PM_DSS_DSS_WKDEP_OFFSET			0x0020
-+#define OMAP4_RM_DSS_DSS_CONTEXT_OFFSET			0x0024
-+#define OMAP4_RM_DSS_DEISS_CONTEXT_OFFSET		0x002c
-+
-+/* PRM.GFX_PRM register offsets */
-+#define OMAP4_PM_GFX_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP4_PM_GFX_PWRSTST_OFFSET			0x0004
-+#define OMAP4_RM_GFX_GFX_CONTEXT_OFFSET			0x0024
-+
-+/* PRM.L3INIT_PRM register offsets */
-+#define OMAP4_PM_L3INIT_PWRSTCTRL_OFFSET		0x0000
-+#define OMAP4_PM_L3INIT_PWRSTST_OFFSET			0x0004
-+#define OMAP4_PM_L3INIT_MMC1_WKDEP_OFFSET		0x0028
-+#define OMAP4_RM_L3INIT_MMC1_CONTEXT_OFFSET		0x002c
-+#define OMAP4_PM_L3INIT_MMC2_WKDEP_OFFSET		0x0030
-+#define OMAP4_RM_L3INIT_MMC2_CONTEXT_OFFSET		0x0034
-+#define OMAP4_PM_L3INIT_HSI_WKDEP_OFFSET		0x0038
-+#define OMAP4_RM_L3INIT_HSI_CONTEXT_OFFSET		0x003c
-+#define OMAP4_PM_L3INIT_UNIPRO1_WKDEP_OFFSET		0x0040
-+#define OMAP4_RM_L3INIT_UNIPRO1_CONTEXT_OFFSET		0x0044
-+#define OMAP4_PM_L3INIT_USB_HOST_WKDEP_OFFSET		0x0058
-+#define OMAP4_RM_L3INIT_USB_HOST_CONTEXT_OFFSET		0x005c
-+#define OMAP4_PM_L3INIT_USB_OTG_WKDEP_OFFSET		0x0060
-+#define OMAP4_RM_L3INIT_USB_OTG_CONTEXT_OFFSET		0x0064
-+#define OMAP4_PM_L3INIT_USB_TLL_WKDEP_OFFSET		0x0068
-+#define OMAP4_RM_L3INIT_USB_TLL_CONTEXT_OFFSET		0x006c
-+#define OMAP4_RM_L3INIT_P1500_CONTEXT_OFFSET		0x007c
-+#define OMAP4_RM_L3INIT_EMAC_CONTEXT_OFFSET		0x0084
-+#define OMAP4_PM_L3INIT_SATA_WKDEP_OFFSET		0x0088
-+#define OMAP4_RM_L3INIT_SATA_CONTEXT_OFFSET		0x008c
-+#define OMAP4_RM_L3INIT_TPPSS_CONTEXT_OFFSET		0x0094
-+#define OMAP4_PM_L3INIT_PCIESS_WKDEP_OFFSET		0x0098
-+#define OMAP4_RM_L3INIT_PCIESS_CONTEXT_OFFSET		0x009c
-+#define OMAP4_RM_L3INIT_CCPTX_CONTEXT_OFFSET		0x00ac
-+#define OMAP4_PM_L3INIT_XHPI_WKDEP_OFFSET		0x00c0
-+#define OMAP4_RM_L3INIT_XHPI_CONTEXT_OFFSET		0x00c4
-+#define OMAP4_PM_L3INIT_MMC6_WKDEP_OFFSET		0x00c8
-+#define OMAP4_RM_L3INIT_MMC6_CONTEXT_OFFSET		0x00cc
-+#define OMAP4_PM_L3INIT_USB_HOST_FS_WKDEP_OFFSET	0x00d0
-+#define OMAP4_RM_L3INIT_USB_HOST_FS_CONTEXT_OFFSET	0x00d4
-+#define OMAP4_RM_L3INIT_USBPHYOCP2SCP_CONTEXT_OFFSET	0x00e4
-+
-+/* PRM.L4PER_PRM register offsets */
-+#define OMAP4_PM_L4PER_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP4_PM_L4PER_PWRSTST_OFFSET			0x0004
-+#define OMAP4_RM_L4PER_ADC_CONTEXT_OFFSET		0x0024
-+#define OMAP4_PM_L4PER_DMTIMER10_WKDEP_OFFSET		0x0028
-+#define OMAP4_RM_L4PER_DMTIMER10_CONTEXT_OFFSET		0x002c
-+#define OMAP4_PM_L4PER_DMTIMER11_WKDEP_OFFSET		0x0030
-+#define OMAP4_RM_L4PER_DMTIMER11_CONTEXT_OFFSET		0x0034
-+#define OMAP4_PM_L4PER_DMTIMER2_WKDEP_OFFSET		0x0038
-+#define OMAP4_RM_L4PER_DMTIMER2_CONTEXT_OFFSET		0x003c
-+#define OMAP4_PM_L4PER_DMTIMER3_WKDEP_OFFSET		0x0040
-+#define OMAP4_RM_L4PER_DMTIMER3_CONTEXT_OFFSET		0x0044
-+#define OMAP4_PM_L4PER_DMTIMER4_WKDEP_OFFSET		0x0048
-+#define OMAP4_RM_L4PER_DMTIMER4_CONTEXT_OFFSET		0x004c
-+#define OMAP4_PM_L4PER_DMTIMER9_WKDEP_OFFSET		0x0050
-+#define OMAP4_RM_L4PER_DMTIMER9_CONTEXT_OFFSET		0x0054
-+#define OMAP4_RM_L4PER_ELM_CONTEXT_OFFSET		0x005c
-+#define OMAP4_PM_L4PER_GPIO2_WKDEP_OFFSET		0x0060
-+#define OMAP4_RM_L4PER_GPIO2_CONTEXT_OFFSET		0x0064
-+#define OMAP4_PM_L4PER_GPIO3_WKDEP_OFFSET		0x0068
-+#define OMAP4_RM_L4PER_GPIO3_CONTEXT_OFFSET		0x006c
-+#define OMAP4_PM_L4PER_GPIO4_WKDEP_OFFSET		0x0070
-+#define OMAP4_RM_L4PER_GPIO4_CONTEXT_OFFSET		0x0074
-+#define OMAP4_PM_L4PER_GPIO5_WKDEP_OFFSET		0x0078
-+#define OMAP4_RM_L4PER_GPIO5_CONTEXT_OFFSET		0x007c
-+#define OMAP4_PM_L4PER_GPIO6_WKDEP_OFFSET		0x0080
-+#define OMAP4_RM_L4PER_GPIO6_CONTEXT_OFFSET		0x0084
-+#define OMAP4_RM_L4PER_HDQ1W_CONTEXT_OFFSET		0x008c
-+#define OMAP4_PM_L4PER_HECC1_WKDEP_OFFSET		0x0090
-+#define OMAP4_RM_L4PER_HECC1_CONTEXT_OFFSET		0x0094
-+#define OMAP4_PM_L4PER_HECC2_WKDEP_OFFSET		0x0098
-+#define OMAP4_RM_L4PER_HECC2_CONTEXT_OFFSET		0x009c
-+#define OMAP4_PM_L4PER_I2C1_WKDEP_OFFSET		0x00a0
-+#define OMAP4_RM_L4PER_I2C1_CONTEXT_OFFSET		0x00a4
-+#define OMAP4_PM_L4PER_I2C2_WKDEP_OFFSET		0x00a8
-+#define OMAP4_RM_L4PER_I2C2_CONTEXT_OFFSET		0x00ac
-+#define OMAP4_PM_L4PER_I2C3_WKDEP_OFFSET		0x00b0
-+#define OMAP4_RM_L4PER_I2C3_CONTEXT_OFFSET		0x00b4
-+#define OMAP4_PM_L4PER_I2C4_WKDEP_OFFSET		0x00b8
-+#define OMAP4_RM_L4PER_I2C4_CONTEXT_OFFSET		0x00bc
-+#define OMAP4_RM_L4PER_L4_PER_CONTEXT_OFFSET		0x00c0
-+#define OMAP4_PM_L4PER_MCASP2_WKDEP_OFFSET		0x00d0
-+#define OMAP4_RM_L4PER_MCASP2_CONTEXT_OFFSET		0x00d4
-+#define OMAP4_PM_L4PER_MCASP3_WKDEP_OFFSET		0x00d8
-+#define OMAP4_RM_L4PER_MCASP3_CONTEXT_OFFSET		0x00dc
-+#define OMAP4_PM_L4PER_MCBSP4_WKDEP_OFFSET		0x00e0
-+#define OMAP4_RM_L4PER_MCBSP4_CONTEXT_OFFSET		0x00e4
-+#define OMAP4_RM_L4PER_MGATE_CONTEXT_OFFSET		0x00ec
-+#define OMAP4_PM_L4PER_MCSPI1_WKDEP_OFFSET		0x00f0
-+#define OMAP4_RM_L4PER_MCSPI1_CONTEXT_OFFSET		0x00f4
-+#define OMAP4_PM_L4PER_MCSPI2_WKDEP_OFFSET		0x00f8
-+#define OMAP4_RM_L4PER_MCSPI2_CONTEXT_OFFSET		0x00fc
-+#define OMAP4_PM_L4PER_MCSPI3_WKDEP_OFFSET		0x0100
-+#define OMAP4_RM_L4PER_MCSPI3_CONTEXT_OFFSET		0x0104
-+#define OMAP4_PM_L4PER_MCSPI4_WKDEP_OFFSET		0x0108
-+#define OMAP4_RM_L4PER_MCSPI4_CONTEXT_OFFSET		0x010c
-+#define OMAP4_PM_L4PER_MMCSD3_WKDEP_OFFSET		0x0120
-+#define OMAP4_RM_L4PER_MMCSD3_CONTEXT_OFFSET		0x0124
-+#define OMAP4_PM_L4PER_MMCSD4_WKDEP_OFFSET		0x0128
-+#define OMAP4_RM_L4PER_MMCSD4_CONTEXT_OFFSET		0x012c
-+#define OMAP4_RM_L4PER_MSPROHG_CONTEXT_OFFSET		0x0134
-+#define OMAP4_PM_L4PER_SLIMBUS2_WKDEP_OFFSET		0x0138
-+#define OMAP4_RM_L4PER_SLIMBUS2_CONTEXT_OFFSET		0x013c
-+#define OMAP4_PM_L4PER_UART1_WKDEP_OFFSET		0x0140
-+#define OMAP4_RM_L4PER_UART1_CONTEXT_OFFSET		0x0144
-+#define OMAP4_PM_L4PER_UART2_WKDEP_OFFSET		0x0148
-+#define OMAP4_RM_L4PER_UART2_CONTEXT_OFFSET		0x014c
-+#define OMAP4_PM_L4PER_UART3_WKDEP_OFFSET		0x0150
-+#define OMAP4_RM_L4PER_UART3_CONTEXT_OFFSET		0x0154
-+#define OMAP4_PM_L4PER_UART4_WKDEP_OFFSET		0x0158
-+#define OMAP4_RM_L4PER_UART4_CONTEXT_OFFSET		0x015c
-+#define OMAP4_PM_L4PER_MMCSD5_WKDEP_OFFSET		0x0160
-+#define OMAP4_RM_L4PER_MMCSD5_CONTEXT_OFFSET		0x0164
-+#define OMAP4_PM_L4PER_I2C5_WKDEP_OFFSET		0x0168
-+#define OMAP4_RM_L4PER_I2C5_CONTEXT_OFFSET		0x016c
-+#define OMAP4_RM_L4SEC_AES1_CONTEXT_OFFSET		0x01a4
-+#define OMAP4_RM_L4SEC_AES2_CONTEXT_OFFSET		0x01ac
-+#define OMAP4_RM_L4SEC_DES3DES_CONTEXT_OFFSET		0x01b4
-+#define OMAP4_RM_L4SEC_PKAEIP29_CONTEXT_OFFSET		0x01bc
-+#define OMAP4_RM_L4SEC_RNG_CONTEXT_OFFSET		0x01c4
-+#define OMAP4_RM_L4SEC_SHA2MD51_CONTEXT_OFFSET		0x01cc
-+#define OMAP4_RM_L4SEC_CRYPTODMA_CONTEXT_OFFSET		0x01dc
-+
-+/* PRM.CEFUSE_PRM register offsets */
-+#define OMAP4_PM_CEFUSE_PWRSTCTRL_OFFSET		0x0000
-+#define OMAP4_PM_CEFUSE_PWRSTST_OFFSET			0x0004
-+#define OMAP4_RM_CEFUSE_CEFUSE_CONTEXT_OFFSET		0x0024
-+
-+/* PRM.WKUP_PRM register offsets */
-+#define OMAP4_RM_WKUP_L4WKUP_CONTEXT_OFFSET		0x0024
-+#define OMAP4_RM_WKUP_WDT1_CONTEXT_OFFSET		0x002c
-+#define OMAP4_PM_WKUP_WDT2_WKDEP_OFFSET			0x0030
-+#define OMAP4_RM_WKUP_WDT2_CONTEXT_OFFSET		0x0034
-+#define OMAP4_PM_WKUP_GPIO1_WKDEP_OFFSET		0x0038
-+#define OMAP4_RM_WKUP_GPIO1_CONTEXT_OFFSET		0x003c
-+#define OMAP4_PM_WKUP_TIMER1_WKDEP_OFFSET		0x0040
-+#define OMAP4_RM_WKUP_TIMER1_CONTEXT_OFFSET		0x0044
-+#define OMAP4_PM_WKUP_TIMER12_WKDEP_OFFSET		0x0048
-+#define OMAP4_RM_WKUP_TIMER12_CONTEXT_OFFSET		0x004c
-+#define OMAP4_RM_WKUP_SYNCTIMER_CONTEXT_OFFSET		0x0054
-+#define OMAP4_PM_WKUP_USIM_WKDEP_OFFSET			0x0058
-+#define OMAP4_RM_WKUP_USIM_CONTEXT_OFFSET		0x005c
-+#define OMAP4_RM_WKUP_SARRAM_CONTEXT_OFFSET		0x0064
-+#define OMAP4_PM_WKUP_KEYBOARD_WKDEP_OFFSET		0x0078
-+#define OMAP4_RM_WKUP_KEYBOARD_CONTEXT_OFFSET		0x007c
-+#define OMAP4_PM_WKUP_RTC_WKDEP_OFFSET			0x0080
-+#define OMAP4_RM_WKUP_RTC_CONTEXT_OFFSET		0x0084
-+
-+/* PRM.WKUP_CM register offsets */
-+#define OMAP4_CM_WKUP_CLKSTCTRL_OFFSET			0x0000
-+#define OMAP4_CM_WKUP_L4WKUP_CLKCTRL_OFFSET		0x0020
-+#define OMAP4_CM_WKUP_WDT1_CLKCTRL_OFFSET		0x0028
-+#define OMAP4_CM_WKUP_WDT2_CLKCTRL_OFFSET		0x0030
-+#define OMAP4_CM_WKUP_GPIO1_CLKCTRL_OFFSET		0x0038
-+#define OMAP4_CM_WKUP_TIMER1_CLKCTRL_OFFSET		0x0040
-+#define OMAP4_CM_WKUP_TIMER12_CLKCTRL_OFFSET		0x0048
-+#define OMAP4_CM_WKUP_SYNCTIMER_CLKCTRL_OFFSET		0x0050
-+#define OMAP4_CM_WKUP_USIM_CLKCTRL_OFFSET		0x0058
-+#define OMAP4_CM_WKUP_SARRAM_CLKCTRL_OFFSET		0x0060
-+#define OMAP4_CM_WKUP_KEYBOARD_CLKCTRL_OFFSET		0x0078
-+#define OMAP4_CM_WKUP_RTC_CLKCTRL_OFFSET		0x0080
-+#define OMAP4_CM_WKUP_BANDGAP_CLKCTRL_OFFSET		0x0088
-+
-+/* PRM.EMU_PRM register offsets */
-+#define OMAP4_PM_EMU_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP4_PM_EMU_PWRSTST_OFFSET			0x0004
-+#define OMAP4_RM_EMU_DEBUGSS_CONTEXT_OFFSET		0x0024
-+
-+/* PRM.EMU_CM register offsets */
-+#define OMAP4_CM_EMU_CLKSTCTRL_OFFSET			0x0000
-+#define OMAP4_CM_EMU_DYNAMICDEP_OFFSET			0x0008
-+#define OMAP4_CM_EMU_DEBUGSS_CLKCTRL_OFFSET		0x0020
-+
-+/* PRM.DEVICE_PRM register offsets */
-+#define OMAP4_PRM_RSTCTRL_OFFSET			0x0000
-+#define OMAP4_PRM_RSTST_OFFSET				0x0004
-+#define OMAP4_PRM_RSTTIME_OFFSET			0x0008
-+#define OMAP4_PRM_CLKREQCTRL_OFFSET			0x000c
-+#define OMAP4_PRM_VOLTCTRL_OFFSET			0x0010
-+#define OMAP4_PRM_PWRREQCTRL_OFFSET			0x0014
-+#define OMAP4_PRM_PSCON_COUNT_OFFSET			0x0018
-+#define OMAP4_PRM_IO_COUNT_OFFSET			0x001c
-+#define OMAP4_PRM_IO_PMCTRL_OFFSET			0x0020
-+#define OMAP4_PRM_VOLTSETUP_WARMRESET_OFFSET		0x0024
-+#define OMAP4_PRM_VOLTSETUP_CORE_OFF_OFFSET		0x0028
-+#define OMAP4_PRM_VOLTSETUP_MPU_OFF_OFFSET		0x002c
-+#define OMAP4_PRM_VOLTSETUP_IVA_OFF_OFFSET		0x0030
-+#define OMAP4_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSET	0x0034
-+#define OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET	0x0038
-+#define OMAP4_PRM_VOLTSETUP_IVA_RET_SLEEP_OFFSET	0x003c
-+#define OMAP4_PRM_VP_CORE_CONFIG_OFFSET			0x0040
-+#define OMAP4_PRM_VP_CORE_STATUS_OFFSET			0x0044
-+#define OMAP4_PRM_VP_CORE_VLIMITTO_OFFSET		0x0048
-+#define OMAP4_PRM_VP_CORE_VOLTAGE_OFFSET		0x004c
-+#define OMAP4_PRM_VP_CORE_VSTEPMAX_OFFSET		0x0050
-+#define OMAP4_PRM_VP_CORE_VSTEPMIN_OFFSET		0x0054
-+#define OMAP4_PRM_VP_MPU_CONFIG_OFFSET			0x0058
-+#define OMAP4_PRM_VP_MPU_STATUS_OFFSET			0x005c
-+#define OMAP4_PRM_VP_MPU_VLIMITTO_OFFSET		0x0060
-+#define OMAP4_PRM_VP_MPU_VOLTAGE_OFFSET			0x0064
-+#define OMAP4_PRM_VP_MPU_VSTEPMAX_OFFSET		0x0068
-+#define OMAP4_PRM_VP_MPU_VSTEPMIN_OFFSET		0x006c
-+#define OMAP4_PRM_VP_IVA_CONFIG_OFFSET			0x0070
-+#define OMAP4_PRM_VP_IVA_STATUS_OFFSET			0x0074
-+#define OMAP4_PRM_VP_IVA_VLIMITTO_OFFSET		0x0078
-+#define OMAP4_PRM_VP_IVA_VOLTAGE_OFFSET			0x007c
-+#define OMAP4_PRM_VP_IVA_VSTEPMAX_OFFSET		0x0080
-+#define OMAP4_PRM_VP_IVA_VSTEPMIN_OFFSET		0x0084
-+#define OMAP4_PRM_VC_SMPS_SA_OFFSET			0x0088
-+#define OMAP4_PRM_VC_VAL_SMPS_RA_VOL_OFFSET		0x008c
-+#define OMAP4_PRM_VC_VAL_SMPS_RA_CMD_OFFSET		0x0090
-+#define OMAP4_PRM_VC_VAL_CMD_VDD_CORE_L_OFFSET		0x0094
-+#define OMAP4_PRM_VC_VAL_CMD_VDD_MPU_L_OFFSET		0x0098
-+#define OMAP4_PRM_VC_VAL_CMD_VDD_IVA_L_OFFSET		0x009c
-+#define OMAP4_PRM_VC_VAL_BYPASS_OFFSET			0x00a0
-+#define OMAP4_PRM_VC_CFG_CHANNEL_OFFSET			0x00a4
-+#define OMAP4_PRM_VC_CFG_I2C_MODE_OFFSET		0x00a8
-+#define OMAP4_PRM_VC_CFG_I2C_CLK_OFFSET			0x00ac
-+#define OMAP4_PRM_SRAM_COUNT_OFFSET			0x00b0
-+#define OMAP4_PRM_SRAM_WKUP_SETUP_OFFSET		0x00b4
-+#define OMAP4_PRM_LDO_SRAM_CORE_SETUP_OFFSET		0x00b8
-+#define OMAP4_PRM_LDO_SRAM_CORE_CTRL_OFFSET		0x00bc
-+#define OMAP4_PRM_LDO_SRAM_MPU_SETUP_OFFSET		0x00c0
-+#define OMAP4_PRM_LDO_SRAM_MPU_CTRL_OFFSET		0x00c4
-+#define OMAP4_PRM_LDO_SRAM_IVA_SETUP_OFFSET		0x00c8
-+#define OMAP4_PRM_LDO_SRAM_IVA_CTRL_OFFSET		0x00cc
-+#define OMAP4_PRM_LDO_ABB_MPU_SETUP_OFFSET		0x00d0
-+#define OMAP4_PRM_LDO_ABB_MPU_CTRL_OFFSET		0x00d4
-+#define OMAP4_PRM_LDO_ABB_IVA_SETUP_OFFSET		0x00d8
-+#define OMAP4_PRM_LDO_ABB_IVA_CTRL_OFFSET		0x00dc
-+#define OMAP4_PRM_LDO_BANDGAP_SETUP_OFFSET		0x00e0
-+#define OMAP4_PRM_DEVICE_OFF_CTRL_OFFSET		0x00e4
-+#define OMAP4_PRM_PHASE1_CNDP_OFFSET			0x00e8
-+#define OMAP4_PRM_PHASE2A_CNDP_OFFSET			0x00ec
-+#define OMAP4_PRM_PHASE2B_CNDP_OFFSET			0x00f0
-+#define OMAP4_PRM_MODEM_IF_CTRL_OFFSET			0x00f4
-+#define OMAP4_PRM_VC_ERRST_OFFSET			0x00f8
-+
+@@ -417,4 +417,16 @@
+ #define OMAP4_PRM_MODEM_IF_CTRL_OFFSET			0x00f4
+ #define OMAP4_PRM_VC_ERRST_OFFSET			0x00f8
+ 
++#ifndef __ASSEMBLER__
++void omap4_prminst_global_warm_sw_reset(void);
++int omap4_prminst_is_hardreset_asserted(u8 shift, u8 part, s16 inst,
++					u16 rstctrl_offs);
++int omap4_prminst_assert_hardreset(u8 shift, u8 part, s16 inst,
++				   u16 rstctrl_offs);
++int omap4_prminst_deassert_hardreset(u8 shift, u8 part, s16 inst,
++				     u16 rstctrl_offs);
++void omap4_prminst_mpuss_clear_prev_logic_pwrst(void);
++void omap_prm_base_init(void);
 +#endif
++
+ #endif
 -- 
 1.7.9.5
 
