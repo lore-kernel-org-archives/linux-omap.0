@@ -1,164 +1,131 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 34/55] ARM: AM33XX: PRM: move parts of the prm33xx.h header file to public location
-Date: Mon, 31 Mar 2014 18:16:13 +0300
-Message-ID: <1396278994-12624-35-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 03/55] ARM: OMAP2+: PRM: remove unnecessary cpu_is_XXX calls
+ from prm_init / exit
+Date: Mon, 31 Mar 2014 18:15:42 +0300
+Message-ID: <1396278994-12624-4-git-send-email-t-kristo@ti.com>
 References: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39168 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752932AbaCaPSb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Mar 2014 11:18:31 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-Parts of this file are needed from both the driver and mach-omap2 board
-code.
+Done in preparation to make PRM its own driver, as the cpu_is_XXX calls are
+not available outside mach-omap2 folder.
+
+The init functions are called only from cpu specific init chain, and thus
+don't need to double check against cpu type.
+
+The exit calls check against the data provided during init-time registration
+and thus don't need cpu check either.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/am33xx-restart.c |    2 +-
- arch/arm/mach-omap2/cm33xx.c         |    3 ++-
- arch/arm/mach-omap2/prm33xx.c        |    3 ++-
- arch/arm/mach-omap2/prm33xx.h        |   23 +---------------------
- include/linux/power/omap/prm33xx.h   |   36 ++++++++++++++++++++++++++++++++++
- 5 files changed, 42 insertions(+), 25 deletions(-)
- create mode 100644 include/linux/power/omap/prm33xx.h
+ arch/arm/mach-omap2/prm2xxx.c |   13 +------------
+ arch/arm/mach-omap2/prm3xxx.c |   10 +---------
+ arch/arm/mach-omap2/prm44xx.c |   10 +---------
+ 3 files changed, 3 insertions(+), 30 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/am33xx-restart.c b/arch/arm/mach-omap2/am33xx-restart.c
-index 7286389..9ae249c 100644
---- a/arch/arm/mach-omap2/am33xx-restart.c
-+++ b/arch/arm/mach-omap2/am33xx-restart.c
-@@ -10,7 +10,7 @@
- 
- #include "common.h"
- #include "prm-regbits-33xx.h"
--#include "prm33xx.h"
-+#include <linux/power/omap/prm33xx.h>
- 
- /**
-  * am3xx_restart - trigger a software restart of the SoC
-diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
-index 7717eeb..43e4f26 100644
---- a/arch/arm/mach-omap2/cm33xx.c
-+++ b/arch/arm/mach-omap2/cm33xx.c
-@@ -25,7 +25,8 @@
- #include "clockdomain.h"
- #include <linux/power/omap/cm.h>
- #include <linux/power/omap/cm33xx.h>
--#include "prm33xx.h"
-+#include <linux/power/omap/prm33xx.h>
-+#include "prcm-common.h"
- 
- #define AM33XX_MODULEMODE_SHIFT			0
- #define AM33XX_MODULEMODE_MASK			(0x3 << 0)
-diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
-index a08b1da..436cd12 100644
---- a/arch/arm/mach-omap2/prm33xx.c
-+++ b/arch/arm/mach-omap2/prm33xx.c
-@@ -18,9 +18,10 @@
- #include <linux/errno.h>
- #include <linux/err.h>
+diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
+index 45f83dd..a7f1cac 100644
+--- a/arch/arm/mach-omap2/prm2xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx.c
+@@ -18,9 +18,6 @@
  #include <linux/io.h>
-+#include <linux/power/omap/prm33xx.h>
+ #include <linux/irq.h>
  
+-#include "soc.h"
+-#include "common.h"
+-#include "vp.h"
  #include "powerdomain.h"
--#include "prm33xx.h"
-+#include "prm.h"
+ #include "clockdomain.h"
+ #include "prm2xxx_3xxx_private.h"
+@@ -261,19 +258,11 @@ static struct prm_ll_data omap2xxx_prm_ll_data = {
  
- #define AM33XX_LASTPOWERSTATEENTERED_SHIFT	24
- #define AM33XX_LASTPOWERSTATEENTERED_MASK	(0x3 << 24)
-diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
-index 9b9918d..7825b1c 100644
---- a/arch/arm/mach-omap2/prm33xx.h
-+++ b/arch/arm/mach-omap2/prm33xx.h
-@@ -18,23 +18,13 @@
- 
- #include "prcm-common.h"
- #include "prm.h"
-+#include <linux/power/omap/prm33xx.h>
- 
- #define AM33XX_PRM_BASE               0x44E00000
- 
- #define AM33XX_PRM_REGADDR(inst, reg)                         \
- 	AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRM_BASE + (inst) + (reg))
- 
+ int __init omap2xxx_prm_init(void)
+ {
+-	if (!cpu_is_omap24xx())
+-		return 0;
 -
--/* PRM instances */
--#define AM33XX_PRM_OCP_SOCKET_MOD	0x0B00
--#define AM33XX_PRM_PER_MOD		0x0C00
--#define AM33XX_PRM_WKUP_MOD		0x0D00
--#define AM33XX_PRM_MPU_MOD		0x0E00
--#define AM33XX_PRM_DEVICE_MOD		0x0F00
--#define AM33XX_PRM_RTC_MOD		0x1000
--#define AM33XX_PRM_GFX_MOD		0x1100
--#define AM33XX_PRM_CEFUSE_MOD		0x1200
+ 	return prm_register(&omap2xxx_prm_ll_data);
+ }
+ 
+ static void __exit omap2xxx_prm_exit(void)
+ {
+-	if (!cpu_is_omap24xx())
+-		return;
 -
- /* PRM */
+-	/* Should never happen */
+-	WARN(prm_unregister(&omap2xxx_prm_ll_data),
+-	     "%s: prm_ll_data function pointer mismatch\n", __func__);
++	prm_unregister(&omap2xxx_prm_ll_data);
+ }
+ __exitcall(omap2xxx_prm_exit);
+diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
+index 6d3e9c2..1a39954 100644
+--- a/arch/arm/mach-omap2/prm3xxx.c
++++ b/arch/arm/mach-omap2/prm3xxx.c
+@@ -639,9 +639,6 @@ static struct prm_ll_data omap3xxx_prm_ll_data = {
  
- /* PRM.OCP_SOCKET_PRM register offsets */
-@@ -117,15 +107,4 @@
- #define AM33XX_PM_CEFUSE_PWRSTST_OFFSET		0x0004
- #define AM33XX_PM_CEFUSE_PWRSTST		AM33XX_PRM_REGADDR(AM33XX_PRM_CEFUSE_MOD, 0x0004)
+ int __init omap3xxx_prm_init(void)
+ {
+-	if (!cpu_is_omap34xx())
+-		return 0;
+-
+ 	return prm_register(&omap3xxx_prm_ll_data);
+ }
  
--#ifndef __ASSEMBLER__
--extern u32 am33xx_prm_read_reg(s16 inst, u16 idx);
--extern void am33xx_prm_write_reg(u32 val, s16 inst, u16 idx);
--extern u32 am33xx_prm_rmw_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
--extern void am33xx_prm_global_warm_sw_reset(void);
--extern int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst,
--		u16 rstctrl_offs);
--extern int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs);
--extern int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, s16 inst,
--		u16 rstctrl_offs, u16 rstst_offs);
--#endif /* ASSEMBLER */
- #endif
-diff --git a/include/linux/power/omap/prm33xx.h b/include/linux/power/omap/prm33xx.h
-new file mode 100644
-index 0000000..ea72bf0
---- /dev/null
-+++ b/include/linux/power/omap/prm33xx.h
-@@ -0,0 +1,36 @@
-+/*
-+ * AM33XX PRM instance offset macros
-+ *
-+ * Copyright (C) 2011-2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef __LINUX_POWER_OMAP_PRM33XX_H
-+#define __LINUX_POWER_OMAP_PRM33XX_H
-+
-+/* PRM instances */
-+#define AM33XX_PRM_OCP_SOCKET_MOD	0x0B00
-+#define AM33XX_PRM_PER_MOD		0x0C00
-+#define AM33XX_PRM_WKUP_MOD		0x0D00
-+#define AM33XX_PRM_MPU_MOD		0x0E00
-+#define AM33XX_PRM_DEVICE_MOD		0x0F00
-+#define AM33XX_PRM_RTC_MOD		0x1000
-+#define AM33XX_PRM_GFX_MOD		0x1100
-+#define AM33XX_PRM_CEFUSE_MOD		0x1200
-+
-+#ifndef __ASSEMBLER__
-+void am33xx_prm_global_warm_sw_reset(void);
-+int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst, u16 rstctrl_offs);
-+int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs);
-+int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, s16 inst,
-+				  u16 rstctrl_offs, u16 rstst_offs);
-+#endif /* ASSEMBLER */
-+#endif
+@@ -664,11 +661,6 @@ omap_subsys_initcall(omap3xxx_prm_late_init);
+ 
+ static void __exit omap3xxx_prm_exit(void)
+ {
+-	if (!cpu_is_omap34xx())
+-		return;
+-
+-	/* Should never happen */
+-	WARN(prm_unregister(&omap3xxx_prm_ll_data),
+-	     "%s: prm_ll_data function pointer mismatch\n", __func__);
++	prm_unregister(&omap3xxx_prm_ll_data);
+ }
+ __exitcall(omap3xxx_prm_exit);
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index 3655e16..be96881 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -660,9 +660,6 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
+ 
+ int __init omap44xx_prm_init(void)
+ {
+-	if (!cpu_is_omap44xx() && !soc_is_omap54xx() && !soc_is_dra7xx())
+-		return 0;
+-
+ 	return prm_register(&omap44xx_prm_ll_data);
+ }
+ 
+@@ -679,11 +676,6 @@ omap_subsys_initcall(omap44xx_prm_late_init);
+ 
+ static void __exit omap44xx_prm_exit(void)
+ {
+-	if (!cpu_is_omap44xx())
+-		return;
+-
+-	/* Should never happen */
+-	WARN(prm_unregister(&omap44xx_prm_ll_data),
+-	     "%s: prm_ll_data function pointer mismatch\n", __func__);
++	prm_unregister(&omap44xx_prm_ll_data);
+ }
+ __exitcall(omap44xx_prm_exit);
 -- 
 1.7.9.5
-
