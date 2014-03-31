@@ -1,70 +1,65 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 16/55] ARM: OMAP2: PRM: remove references to prm-regbits-24xx.h from PRM core code
-Date: Mon, 31 Mar 2014 18:15:55 +0300
-Message-ID: <1396278994-12624-17-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 14/55] ARM: OMAP2: CM: remove references to cm-regbits-24xx.h from CM core code
+Date: Mon, 31 Mar 2014 18:15:53 +0300
+Message-ID: <1396278994-12624-15-git-send-email-t-kristo@ti.com>
 References: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39098 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49803 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753625AbaCaPRk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Mar 2014 11:17:40 -0400
+	id S1753424AbaCaPRh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Mar 2014 11:17:37 -0400
 In-Reply-To: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Done in preparation to make PRM a standalone driver.
+Done in preparation to make CM a standalone driver.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/prm2xxx.c      |   16 +++++++++++++++-
- arch/arm/mach-omap2/prm2xxx_3xxx.c |    1 -
- 2 files changed, 15 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/cm2xxx.c |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
-index a7f1cac..7264ae6 100644
---- a/arch/arm/mach-omap2/prm2xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx.c
-@@ -20,9 +20,23 @@
- 
- #include "powerdomain.h"
- #include "clockdomain.h"
-+#include "prm2xxx.h"
- #include "prm2xxx_3xxx_private.h"
- #include "cm2xxx_3xxx.h"
--#include "prm-regbits-24xx.h"
-+
-+#define OMAP24XX_FORCESTATE_MASK		(1 << 18)
-+#define OMAP24XX_AUTOIDLE_MASK			(1 << 0)
-+#define OMAP24XX_AUTO_EXTVOLT_MASK		(1 << 15)
-+
-+#define OMAP24XX_SETOFF_LEVEL_SHIFT		12
-+#define OMAP24XX_MEMRETCTRL_MASK		(1 << 8)
-+#define OMAP24XX_SETRET_LEVEL_SHIFT		6
-+#define OMAP24XX_VOLT_LEVEL_SHIFT		0
-+
-+#define OMAP24XX_EXTWMPU_RST_SHIFT		6
-+#define OMAP24XX_SECU_WD_RST_SHIFT		5
-+#define OMAP24XX_MPU_WD_RST_SHIFT		4
-+#define OMAP24XX_SECU_VIOL_RST_SHIFT		3
- 
- /*
-  * OMAP24xx PM_PWSTCTRL_*.POWERSTATE and PM_PWSTST_*.LASTSTATEENTERED bits -
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-index d891499..d8044f9 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-@@ -18,7 +18,6 @@
- 
- #include "powerdomain.h"
- #include "prm2xxx_3xxx_private.h"
--#include "prm-regbits-24xx.h"
+diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
+index 4c29f63..e74484a 100644
+--- a/arch/arm/mach-omap2/cm2xxx.c
++++ b/arch/arm/mach-omap2/cm2xxx.c
+@@ -22,7 +22,6 @@
+ #include "cm.h"
+ #include "cm2xxx_3xxx_private.h"
+ #include "cm2xxx.h"
+-#include "cm-regbits-24xx.h"
  #include "clockdomain.h"
  
- /**
+ /* CM_AUTOIDLE_PLL.AUTO_* bit values for DPLLs */
+@@ -36,6 +35,24 @@
+ /* CM_IDLEST_PLL bit value offset for APLLs (OMAP2xxx only) */
+ #define EN_APLL_LOCKED					3
+ 
++#define OMAP24XX_CLKSTCTRL_DISABLE_AUTO			0x0
++#define OMAP24XX_CLKSTCTRL_ENABLE_AUTO			0x1
++
++#define OMAP24XX_CORE_CLK_SRC_MASK			(0x3 << 0)
++
++#define OMAP24XX_EN_54M_PLL_SHIFT			6
++#define OMAP24XX_EN_96M_PLL_SHIFT			2
++#define OMAP24XX_ST_54M_APLL_SHIFT			9
++#define OMAP24XX_ST_96M_APLL_SHIFT			8
++#define OMAP24XX_AUTO_54M_MASK				(0x3 << 6)
++#define OMAP24XX_AUTO_96M_MASK				(0x3 << 2)
++#define OMAP24XX_AUTO_DPLL_SHIFT			0
++#define OMAP24XX_AUTO_DPLL_MASK				(0x3 << 0)
++
++#define OMAP24XX_EN_DSS1_MASK				(1 << 0)
++
++#define OMAP24XX_CLKSEL_DSS2_MASK			(0x1 << 13)
++
+ static const u8 omap2xxx_cm_idlest_offs[] = {
+ 	CM_IDLEST1, CM_IDLEST2, OMAP2430_CM_IDLEST3, OMAP24XX_CM_IDLEST4
+ };
 -- 
 1.7.9.5
 
