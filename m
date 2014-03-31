@@ -1,15 +1,15 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 51/55] ARM: OMAP2+: powerdomain: move powerdomain.h header to public location
-Date: Mon, 31 Mar 2014 18:16:30 +0300
-Message-ID: <1396278994-12624-52-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 47/55] ARM: OMAP2+: PRM: move prcm-common.h header to public location
+Date: Mon, 31 Mar 2014 18:16:26 +0300
+Message-ID: <1396278994-12624-48-git-send-email-t-kristo@ti.com>
 References: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59007 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752442AbaCaPUU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Mar 2014 11:20:20 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39366 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753012AbaCaPUV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Mar 2014 11:20:21 -0400
 In-Reply-To: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,24 +21,15 @@ support code.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clockdomain.c                |    2 +-
  arch/arm/mach-omap2/cm2xxx.c                     |    2 +-
+ arch/arm/mach-omap2/cm2xxx.h                     |    2 +-
+ arch/arm/mach-omap2/cm33xx.c                     |    2 +-
  arch/arm/mach-omap2/cm3xxx.c                     |    2 +-
- arch/arm/mach-omap2/cpuidle34xx.c                |    2 +-
- arch/arm/mach-omap2/gpio.c                       |    2 +-
- arch/arm/mach-omap2/io.c                         |    2 +-
- arch/arm/mach-omap2/omap-hotplug.c               |    2 +-
- arch/arm/mach-omap2/omap_hwmod.c                 |    2 +-
- arch/arm/mach-omap2/pm-debug.c                   |    2 +-
+ arch/arm/mach-omap2/cm3xxx.h                     |    2 +-
+ arch/arm/mach-omap2/cm_common.c                  |    2 +-
+ arch/arm/mach-omap2/cminst44xx.c                 |    2 +-
  arch/arm/mach-omap2/pm.c                         |    2 +-
- arch/arm/mach-omap2/pm.h                         |    2 +-
- arch/arm/mach-omap2/pm24xx.c                     |    2 +-
- arch/arm/mach-omap2/pm34xx.c                     |    2 +-
- arch/arm/mach-omap2/pm44xx.c                     |    2 +-
- arch/arm/mach-omap2/powerdomain.c                |    2 +-
- arch/arm/mach-omap2/powerdomain.h                |  277 ---------------------
  arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c |    2 +-
- arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h |    2 +-
  arch/arm/mach-omap2/powerdomains2xxx_data.c      |    2 +-
  arch/arm/mach-omap2/powerdomains33xx_data.c      |    2 +-
  arch/arm/mach-omap2/powerdomains3xxx_data.c      |    2 +-
@@ -46,1002 +37,1456 @@ Signed-off-by: Tero Kristo <t-kristo@ti.com>
  arch/arm/mach-omap2/powerdomains44xx_data.c      |    2 +-
  arch/arm/mach-omap2/powerdomains54xx_data.c      |    2 +-
  arch/arm/mach-omap2/powerdomains7xx_data.c       |    2 +-
- arch/arm/mach-omap2/prm2xxx.c                    |    2 +-
- arch/arm/mach-omap2/prm2xxx_3xxx.c               |    2 +-
+ arch/arm/mach-omap2/prcm-common.h                |  537 ----------------------
+ arch/arm/mach-omap2/prm.h                        |    2 +-
+ arch/arm/mach-omap2/prm2xxx.h                    |    2 +-
  arch/arm/mach-omap2/prm2xxx_3xxx_private.h       |    2 +-
- arch/arm/mach-omap2/prm33xx.c                    |    2 +-
- arch/arm/mach-omap2/prm3xxx.c                    |    2 +-
+ arch/arm/mach-omap2/prm33xx.h                    |    2 +-
+ arch/arm/mach-omap2/prm3xxx.h                    |    2 +-
  arch/arm/mach-omap2/prm44xx.c                    |    2 +-
- arch/arm/mach-omap2/timer.c                      |    2 +-
- arch/arm/mach-omap2/voltage.c                    |    2 +-
- include/linux/power/omap/powerdomain.h           |  280 ++++++++++++++++++++++
- 34 files changed, 312 insertions(+), 309 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/powerdomain.h
- create mode 100644 include/linux/power/omap/powerdomain.h
+ arch/arm/mach-omap2/prm44xx.h                    |    2 +-
+ arch/arm/mach-omap2/prm54xx.h                    |    2 +-
+ arch/arm/mach-omap2/prm7xx.h                     |    2 +-
+ arch/arm/mach-omap2/prm_common.c                 |    2 +-
+ arch/arm/mach-omap2/prminst44xx.c                |    2 +-
+ include/linux/power/omap/prcm-common.h           |  536 +++++++++++++++++++++
+ 29 files changed, 563 insertions(+), 564 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/prcm-common.h
+ create mode 100644 include/linux/power/omap/prcm-common.h
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 298fb05..26d28c7 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -30,7 +30,7 @@
- 
- #include "soc.h"
- #include <linux/power/omap/clockdomain.h>
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- 
- /* clkdm_list contains all registered struct clockdomains */
- static LIST_HEAD(clkdm_list);
 diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
-index 93efae1..c0aec2c 100644
+index 2385498..f7365c7 100644
 --- a/arch/arm/mach-omap2/cm2xxx.c
 +++ b/arch/arm/mach-omap2/cm2xxx.c
-@@ -25,7 +25,7 @@
- #include <linux/power/omap/clockdomain.h>
- #include <linux/power/omap/prcm-common.h>
+@@ -23,7 +23,7 @@
+ #include "cm2xxx_3xxx_private.h"
+ #include <linux/power/omap/cm2xxx.h>
+ #include "clockdomain.h"
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
  #include <linux/power/omap/prm2xxx_3xxx.h>
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
  
  /* CM_AUTOIDLE_PLL.AUTO_* bit values for DPLLs */
- #define DPLL_AUTOIDLE_DISABLE				0x0
+diff --git a/arch/arm/mach-omap2/cm2xxx.h b/arch/arm/mach-omap2/cm2xxx.h
+index 80e9892..169541e 100644
+--- a/arch/arm/mach-omap2/cm2xxx.h
++++ b/arch/arm/mach-omap2/cm2xxx.h
+@@ -16,7 +16,7 @@
+ #ifndef __ARCH_ASM_MACH_OMAP2_CM2XXX_H
+ #define __ARCH_ASM_MACH_OMAP2_CM2XXX_H
+ 
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include <linux/power/omap/cm2xxx_3xxx.h>
+ #include <linux/power/omap/cm2xxx.h>
+ 
+diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
+index 43e4f26..1f68cde 100644
+--- a/arch/arm/mach-omap2/cm33xx.c
++++ b/arch/arm/mach-omap2/cm33xx.c
+@@ -26,7 +26,7 @@
+ #include <linux/power/omap/cm.h>
+ #include <linux/power/omap/cm33xx.h>
+ #include <linux/power/omap/prm33xx.h>
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ 
+ #define AM33XX_MODULEMODE_SHIFT			0
+ #define AM33XX_MODULEMODE_MASK			(0x3 << 0)
 diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
-index 47d0e49..d1b65ab 100644
+index a80cd3e..01c69f2 100644
 --- a/arch/arm/mach-omap2/cm3xxx.c
 +++ b/arch/arm/mach-omap2/cm3xxx.c
-@@ -24,7 +24,7 @@
+@@ -23,7 +23,7 @@
+ #include "cm2xxx_3xxx_private.h"
  #include <linux/power/omap/cm3xxx.h>
- #include <linux/power/omap/clockdomain.h>
- #include <linux/power/omap/prcm-common.h>
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
+ #include "clockdomain.h"
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
  
  #define OMAP34XX_CLKSTCTRL_DISABLE_AUTO		0x0
  #define OMAP34XX_CLKSTCTRL_FORCE_SLEEP		0x1
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 858a28a..cb4f96a 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -28,7 +28,7 @@
- #include <linux/cpu_pm.h>
- #include <asm/cpuidle.h>
+diff --git a/arch/arm/mach-omap2/cm3xxx.h b/arch/arm/mach-omap2/cm3xxx.h
+index 5fdc14c..23846ff 100644
+--- a/arch/arm/mach-omap2/cm3xxx.h
++++ b/arch/arm/mach-omap2/cm3xxx.h
+@@ -16,7 +16,7 @@
+ #ifndef __ARCH_ASM_MACH_OMAP2_CM3XXX_H
+ #define __ARCH_ASM_MACH_OMAP2_CM3XXX_H
  
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include <linux/power/omap/clockdomain.h>
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include <linux/power/omap/cm2xxx_3xxx.h>
+ #include <linux/power/omap/cm3xxx.h>
  
- #include "pm.h"
-diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-index 7a57714..7d37e50 100644
---- a/arch/arm/mach-omap2/gpio.c
-+++ b/arch/arm/mach-omap2/gpio.c
-@@ -28,7 +28,7 @@
- #include "omap_device.h"
- #include "omap-pm.h"
- 
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- 
- static int __init omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- {
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index b12ca79..08dd6de 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -31,7 +31,7 @@
- #include "soc.h"
- #include "iomap.h"
- #include "voltage.h"
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include <linux/power/omap/clockdomain.h>
- #include "common.h"
- #include "clock.h"
-diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
-index 458f72f..5360d37 100644
---- a/arch/arm/mach-omap2/omap-hotplug.c
-+++ b/arch/arm/mach-omap2/omap-hotplug.c
-@@ -21,7 +21,7 @@
- 
- #include "omap-wakeupgen.h"
- #include "common.h"
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
+diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm_common.c
+index 3843f1f..0a21fa9 100644
+--- a/arch/arm/mach-omap2/cm_common.c
++++ b/arch/arm/mach-omap2/cm_common.c
+@@ -19,7 +19,7 @@
+ #include <linux/power/omap/cm2xxx.h>
+ #include <linux/power/omap/cm3xxx.h>
+ #include <linux/power/omap/cm.h>
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
  
  /*
-  * platform-specific code to shutdown a CPU
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index bfd3c19..d152ddc 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -150,7 +150,7 @@
- #include "soc.h"
- #include "common.h"
- #include <linux/power/omap/clockdomain.h>
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include "cm2xxx.h"
- #include "cm3xxx.h"
- #include <linux/power/omap/cm44xx.h>
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 766012e..5ef4c7d 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -28,7 +28,7 @@
- #include <linux/slab.h>
+  * cm_ll_data: function pointers to SoC-specific implementations of
+diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+index 084e5ce..5ebd8e3 100644
+--- a/arch/arm/mach-omap2/cminst44xx.c
++++ b/arch/arm/mach-omap2/cminst44xx.c
+@@ -30,7 +30,7 @@
+ #include "prcm44xx.h"
+ #include <linux/power/omap/prm44xx.h>
+ #include "prcm_mpu44xx.h"
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
  
- #include "clock.h"
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include <linux/power/omap/clockdomain.h>
- #include "omap-pm.h"
- 
+ #define OMAP4430_IDLEST_SHIFT		16
+ #define OMAP4430_IDLEST_MASK		(0x3 << 16)
 diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 8ee7b14..ea6b5ad 100644
+index e1b4141..f464aed 100644
 --- a/arch/arm/mach-omap2/pm.c
 +++ b/arch/arm/mach-omap2/pm.c
-@@ -27,7 +27,7 @@
+@@ -25,7 +25,7 @@
+ #include "common.h"
+ 
  #include "soc.h"
- #include <linux/power/omap/prcm-common.h>
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
  #include "voltage.h"
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include <linux/power/omap/clockdomain.h>
- #include "pm.h"
- #include "twl-common.h"
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 7bdd22a..b63bd1f 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+diff --git a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
+index 7b946f1..57abec8 100644
+--- a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
+@@ -33,7 +33,7 @@
+ 
+ #include "powerdomain.h"
+ 
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prm.h"
+ 
+ /* OMAP2/3-common powerdomains */
+diff --git a/arch/arm/mach-omap2/powerdomains2xxx_data.c b/arch/arm/mach-omap2/powerdomains2xxx_data.c
+index 266bd96..9506c0e 100644
+--- a/arch/arm/mach-omap2/powerdomains2xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains2xxx_data.c
+@@ -18,7 +18,7 @@
+ #include "powerdomain.h"
+ #include "powerdomains2xxx_3xxx_data.h"
+ 
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include <linux/power/omap/prm2xxx_3xxx.h>
+ #include "prm-regbits-24xx.h"
+ 
+diff --git a/arch/arm/mach-omap2/powerdomains33xx_data.c b/arch/arm/mach-omap2/powerdomains33xx_data.c
+index 869adb8..0a7a5ca 100644
+--- a/arch/arm/mach-omap2/powerdomains33xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains33xx_data.c
+@@ -17,7 +17,7 @@
+ #include <linux/init.h>
+ 
+ #include "powerdomain.h"
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prm-regbits-33xx.h"
+ #include "prm33xx.h"
+ 
+diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+index 7ba44db..be12876 100644
+--- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+@@ -18,7 +18,7 @@
+ #include "soc.h"
+ #include "powerdomain.h"
+ #include "powerdomains2xxx_3xxx_data.h"
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include <linux/power/omap/prm2xxx_3xxx.h>
+ #include "prm-regbits-34xx.h"
+ #include <linux/power/omap/cm2xxx_3xxx.h>
+diff --git a/arch/arm/mach-omap2/powerdomains43xx_data.c b/arch/arm/mach-omap2/powerdomains43xx_data.c
+index 95fee54..b99eac7 100644
+--- a/arch/arm/mach-omap2/powerdomains43xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains43xx_data.c
 @@ -13,7 +13,7 @@
  
- #include <linux/err.h>
+ #include "powerdomain.h"
  
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prcm44xx.h"
+ #include "prcm43xx.h"
  
- #ifdef CONFIG_CPU_IDLE
- extern int __init omap3_idle_init(void);
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 6c1b8d6..788ec5e 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -51,7 +51,7 @@
- #include "sram.h"
- #include "pm.h"
- #include "control.h"
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include <linux/power/omap/clockdomain.h>
+diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
+index 704664c..ea1ffc1 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+@@ -24,7 +24,7 @@
  
- static void (*omap2_sram_suspend)(u32 dllctrl, void __iomem *sdrc_dlla_ctrl,
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 119b9ff..ca3724c 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -38,7 +38,7 @@
- #include <asm/system_misc.h>
+ #include "powerdomain.h"
  
- #include <linux/power/omap/clockdomain.h>
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include "soc.h"
- #include "common.h"
- #include "cm3xxx.h"
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 47f664f..d7b8d33 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -21,7 +21,7 @@
- #include "soc.h"
- #include "common.h"
- #include <linux/power/omap/clockdomain.h>
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include "pm.h"
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prcm44xx.h"
+ #include "prm-regbits-44xx.h"
+ #include "prm44xx.h"
+diff --git a/arch/arm/mach-omap2/powerdomains54xx_data.c b/arch/arm/mach-omap2/powerdomains54xx_data.c
+index ce1d752..b4a815b 100644
+--- a/arch/arm/mach-omap2/powerdomains54xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains54xx_data.c
+@@ -23,7 +23,7 @@
  
- u16 pm44xx_errata;
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 63fd500..11a5359 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -30,7 +30,7 @@
- #include <asm/cpu.h>
+ #include "powerdomain.h"
  
- #include <linux/power/omap/prm.h>
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include <linux/power/omap/clockdomain.h>
- #include "voltage.h"
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prcm44xx.h"
+ #include "prm54xx.h"
+ #include "prcm_mpu54xx.h"
+diff --git a/arch/arm/mach-omap2/powerdomains7xx_data.c b/arch/arm/mach-omap2/powerdomains7xx_data.c
+index 48151d1..cf33ef6 100644
+--- a/arch/arm/mach-omap2/powerdomains7xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains7xx_data.c
+@@ -25,7 +25,7 @@
  
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+ #include "powerdomain.h"
+ 
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prcm44xx.h"
+ #include "prm7xx.h"
+ #include "prcm_mpu7xx.h"
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
 deleted file mode 100644
-index f472711..0000000
---- a/arch/arm/mach-omap2/powerdomain.h
+index 1a05d04..0000000
+--- a/arch/arm/mach-omap2/prcm-common.h
 +++ /dev/null
-@@ -1,277 +0,0 @@
+@@ -1,537 +0,0 @@
+-#ifndef __ARCH_ASM_MACH_OMAP2_PRCM_COMMON_H
+-#define __ARCH_ASM_MACH_OMAP2_PRCM_COMMON_H
+-
 -/*
-- * OMAP2/3/4 powerdomain control
+- * OMAP2/3 PRCM base and module definitions
 - *
-- * Copyright (C) 2007-2008, 2010 Texas Instruments, Inc.
-- * Copyright (C) 2007-2011 Nokia Corporation
+- * Copyright (C) 2007-2009, 2011 Texas Instruments, Inc.
+- * Copyright (C) 2007-2009 Nokia Corporation
 - *
-- * Paul Walmsley
+- * Written by Paul Walmsley
 - *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
 - * published by the Free Software Foundation.
-- *
-- * XXX This should be moved to the mach-omap2/ directory at the earliest
-- * opportunity.
 - */
 -
--#ifndef __ARCH_ARM_MACH_OMAP2_POWERDOMAIN_H
--#define __ARCH_ARM_MACH_OMAP2_POWERDOMAIN_H
+-/* Module offsets from both CM_BASE & PRM_BASE */
 -
--#include <linux/types.h>
--#include <linux/list.h>
--#include <linux/spinlock.h>
+-/*
+- * Offsets that are the same on 24xx and 34xx
+- *
+- * Technically, in terms of the TRM, OCP_MOD is 34xx only; PLL_MOD is
+- * CCR_MOD on 3430; and GFX_MOD only exists < 3430ES2.
+- */
+-#define OCP_MOD						0x000
+-#define MPU_MOD						0x100
+-#define CORE_MOD					0x200
+-#define GFX_MOD						0x300
+-#define WKUP_MOD					0x400
+-#define PLL_MOD						0x500
 -
--/* Powerdomain basic power states */
--#define PWRDM_POWER_OFF		0x0
--#define PWRDM_POWER_RET		0x1
--#define PWRDM_POWER_INACTIVE	0x2
--#define PWRDM_POWER_ON		0x3
 -
--#define PWRDM_MAX_PWRSTS	4
+-/* Chip-specific module offsets */
+-#define OMAP24XX_GR_MOD					OCP_MOD
+-#define OMAP24XX_DSP_MOD				0x800
 -
--/* Powerdomain allowable state bitfields */
--#define PWRSTS_ON		(1 << PWRDM_POWER_ON)
--#define PWRSTS_INACTIVE		(1 << PWRDM_POWER_INACTIVE)
--#define PWRSTS_RET		(1 << PWRDM_POWER_RET)
--#define PWRSTS_OFF		(1 << PWRDM_POWER_OFF)
+-#define OMAP2430_MDM_MOD				0xc00
 -
--#define PWRSTS_OFF_ON		(PWRSTS_OFF | PWRSTS_ON)
--#define PWRSTS_OFF_RET		(PWRSTS_OFF | PWRSTS_RET)
--#define PWRSTS_RET_ON		(PWRSTS_RET | PWRSTS_ON)
--#define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | PWRSTS_ON)
+-/* IVA2 module is < base on 3430 */
+-#define OMAP3430_IVA2_MOD				-0x800
+-#define OMAP3430ES2_SGX_MOD				GFX_MOD
+-#define OMAP3430_CCR_MOD				PLL_MOD
+-#define OMAP3430_DSS_MOD				0x600
+-#define OMAP3430_CAM_MOD				0x700
+-#define OMAP3430_PER_MOD				0x800
+-#define OMAP3430_EMU_MOD				0x900
+-#define OMAP3430_GR_MOD					0xa00
+-#define OMAP3430_NEON_MOD				0xb00
+-#define OMAP3430ES2_USBHOST_MOD				0xc00
+-
+-/*
+- * TI81XX PRM module offsets
+- */
+-#define TI81XX_PRM_DEVICE_MOD			0x0000
+-#define TI816X_PRM_ACTIVE_MOD			0x0a00
+-#define TI81XX_PRM_DEFAULT_MOD			0x0b00
+-#define TI816X_PRM_IVAHD0_MOD			0x0c00
+-#define TI816X_PRM_IVAHD1_MOD			0x0d00
+-#define TI816X_PRM_IVAHD2_MOD			0x0e00
+-#define TI816X_PRM_SGX_MOD				0x0f00
+-#define TI81XX_PRM_ALWON_MOD			0x1800
+-
+-/* 24XX register bits shared between CM & PRM registers */
+-
+-/* CM_FCLKEN1_CORE, CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
+-#define OMAP2420_EN_MMC_SHIFT				26
+-#define OMAP2420_EN_MMC_MASK				(1 << 26)
+-#define OMAP24XX_EN_UART2_SHIFT				22
+-#define OMAP24XX_EN_UART2_MASK				(1 << 22)
+-#define OMAP24XX_EN_UART1_SHIFT				21
+-#define OMAP24XX_EN_UART1_MASK				(1 << 21)
+-#define OMAP24XX_EN_MCSPI2_SHIFT			18
+-#define OMAP24XX_EN_MCSPI2_MASK				(1 << 18)
+-#define OMAP24XX_EN_MCSPI1_SHIFT			17
+-#define OMAP24XX_EN_MCSPI1_MASK				(1 << 17)
+-#define OMAP24XX_EN_MCBSP2_SHIFT			16
+-#define OMAP24XX_EN_MCBSP2_MASK				(1 << 16)
+-#define OMAP24XX_EN_MCBSP1_SHIFT			15
+-#define OMAP24XX_EN_MCBSP1_MASK				(1 << 15)
+-#define OMAP24XX_EN_GPT12_SHIFT				14
+-#define OMAP24XX_EN_GPT12_MASK				(1 << 14)
+-#define OMAP24XX_EN_GPT11_SHIFT				13
+-#define OMAP24XX_EN_GPT11_MASK				(1 << 13)
+-#define OMAP24XX_EN_GPT10_SHIFT				12
+-#define OMAP24XX_EN_GPT10_MASK				(1 << 12)
+-#define OMAP24XX_EN_GPT9_SHIFT				11
+-#define OMAP24XX_EN_GPT9_MASK				(1 << 11)
+-#define OMAP24XX_EN_GPT8_SHIFT				10
+-#define OMAP24XX_EN_GPT8_MASK				(1 << 10)
+-#define OMAP24XX_EN_GPT7_SHIFT				9
+-#define OMAP24XX_EN_GPT7_MASK				(1 << 9)
+-#define OMAP24XX_EN_GPT6_SHIFT				8
+-#define OMAP24XX_EN_GPT6_MASK				(1 << 8)
+-#define OMAP24XX_EN_GPT5_SHIFT				7
+-#define OMAP24XX_EN_GPT5_MASK				(1 << 7)
+-#define OMAP24XX_EN_GPT4_SHIFT				6
+-#define OMAP24XX_EN_GPT4_MASK				(1 << 6)
+-#define OMAP24XX_EN_GPT3_SHIFT				5
+-#define OMAP24XX_EN_GPT3_MASK				(1 << 5)
+-#define OMAP24XX_EN_GPT2_SHIFT				4
+-#define OMAP24XX_EN_GPT2_MASK				(1 << 4)
+-#define OMAP2420_EN_VLYNQ_SHIFT				3
+-#define OMAP2420_EN_VLYNQ_MASK				(1 << 3)
+-
+-/* CM_FCLKEN2_CORE, CM_ICLKEN2_CORE, PM_WKEN2_CORE shared bits */
+-#define OMAP2430_EN_GPIO5_SHIFT				10
+-#define OMAP2430_EN_GPIO5_MASK				(1 << 10)
+-#define OMAP2430_EN_MCSPI3_SHIFT			9
+-#define OMAP2430_EN_MCSPI3_MASK				(1 << 9)
+-#define OMAP2430_EN_MMCHS2_SHIFT			8
+-#define OMAP2430_EN_MMCHS2_MASK				(1 << 8)
+-#define OMAP2430_EN_MMCHS1_SHIFT			7
+-#define OMAP2430_EN_MMCHS1_MASK				(1 << 7)
+-#define OMAP24XX_EN_UART3_SHIFT				2
+-#define OMAP24XX_EN_UART3_MASK				(1 << 2)
+-#define OMAP24XX_EN_USB_SHIFT				0
+-#define OMAP24XX_EN_USB_MASK				(1 << 0)
+-
+-/* CM_ICLKEN2_CORE, PM_WKEN2_CORE shared bits */
+-#define OMAP2430_EN_MDM_INTC_SHIFT			11
+-#define OMAP2430_EN_MDM_INTC_MASK			(1 << 11)
+-#define OMAP2430_EN_USBHS_SHIFT				6
+-#define OMAP2430_EN_USBHS_MASK				(1 << 6)
+-#define OMAP24XX_EN_GPMC_SHIFT				1
+-#define OMAP24XX_EN_GPMC_MASK				(1 << 1)
+-
+-/* CM_IDLEST1_CORE, PM_WKST1_CORE shared bits */
+-#define OMAP2420_ST_MMC_SHIFT				26
+-#define OMAP2420_ST_MMC_MASK				(1 << 26)
+-#define OMAP24XX_ST_UART2_SHIFT				22
+-#define OMAP24XX_ST_UART2_MASK				(1 << 22)
+-#define OMAP24XX_ST_UART1_SHIFT				21
+-#define OMAP24XX_ST_UART1_MASK				(1 << 21)
+-#define OMAP24XX_ST_MCSPI2_SHIFT			18
+-#define OMAP24XX_ST_MCSPI2_MASK				(1 << 18)
+-#define OMAP24XX_ST_MCSPI1_SHIFT			17
+-#define OMAP24XX_ST_MCSPI1_MASK				(1 << 17)
+-#define OMAP24XX_ST_MCBSP2_SHIFT			16
+-#define OMAP24XX_ST_MCBSP2_MASK				(1 << 16)
+-#define OMAP24XX_ST_MCBSP1_SHIFT			15
+-#define OMAP24XX_ST_MCBSP1_MASK				(1 << 15)
+-#define OMAP24XX_ST_GPT12_SHIFT				14
+-#define OMAP24XX_ST_GPT12_MASK				(1 << 14)
+-#define OMAP24XX_ST_GPT11_SHIFT				13
+-#define OMAP24XX_ST_GPT11_MASK				(1 << 13)
+-#define OMAP24XX_ST_GPT10_SHIFT				12
+-#define OMAP24XX_ST_GPT10_MASK				(1 << 12)
+-#define OMAP24XX_ST_GPT9_SHIFT				11
+-#define OMAP24XX_ST_GPT9_MASK				(1 << 11)
+-#define OMAP24XX_ST_GPT8_SHIFT				10
+-#define OMAP24XX_ST_GPT8_MASK				(1 << 10)
+-#define OMAP24XX_ST_GPT7_SHIFT				9
+-#define OMAP24XX_ST_GPT7_MASK				(1 << 9)
+-#define OMAP24XX_ST_GPT6_SHIFT				8
+-#define OMAP24XX_ST_GPT6_MASK				(1 << 8)
+-#define OMAP24XX_ST_GPT5_SHIFT				7
+-#define OMAP24XX_ST_GPT5_MASK				(1 << 7)
+-#define OMAP24XX_ST_GPT4_SHIFT				6
+-#define OMAP24XX_ST_GPT4_MASK				(1 << 6)
+-#define OMAP24XX_ST_GPT3_SHIFT				5
+-#define OMAP24XX_ST_GPT3_MASK				(1 << 5)
+-#define OMAP24XX_ST_GPT2_SHIFT				4
+-#define OMAP24XX_ST_GPT2_MASK				(1 << 4)
+-#define OMAP2420_ST_VLYNQ_SHIFT				3
+-#define OMAP2420_ST_VLYNQ_MASK				(1 << 3)
+-
+-/* CM_IDLEST2_CORE, PM_WKST2_CORE shared bits */
+-#define OMAP2430_ST_MDM_INTC_SHIFT			11
+-#define OMAP2430_ST_MDM_INTC_MASK			(1 << 11)
+-#define OMAP2430_ST_GPIO5_SHIFT				10
+-#define OMAP2430_ST_GPIO5_MASK				(1 << 10)
+-#define OMAP2430_ST_MCSPI3_SHIFT			9
+-#define OMAP2430_ST_MCSPI3_MASK				(1 << 9)
+-#define OMAP2430_ST_MMCHS2_SHIFT			8
+-#define OMAP2430_ST_MMCHS2_MASK				(1 << 8)
+-#define OMAP2430_ST_MMCHS1_SHIFT			7
+-#define OMAP2430_ST_MMCHS1_MASK				(1 << 7)
+-#define OMAP2430_ST_USBHS_SHIFT				6
+-#define OMAP2430_ST_USBHS_MASK				(1 << 6)
+-#define OMAP24XX_ST_UART3_SHIFT				2
+-#define OMAP24XX_ST_UART3_MASK				(1 << 2)
+-#define OMAP24XX_ST_USB_SHIFT				0
+-#define OMAP24XX_ST_USB_MASK				(1 << 0)
+-
+-/* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
+-#define OMAP24XX_EN_GPIOS_SHIFT				2
+-#define OMAP24XX_EN_GPIOS_MASK				(1 << 2)
+-#define OMAP24XX_EN_GPT1_SHIFT				0
+-#define OMAP24XX_EN_GPT1_MASK				(1 << 0)
+-
+-/* PM_WKST_WKUP, CM_IDLEST_WKUP shared bits */
+-#define OMAP24XX_ST_GPIOS_SHIFT				2
+-#define OMAP24XX_ST_GPIOS_MASK				(1 << 2)
+-#define OMAP24XX_ST_32KSYNC_SHIFT			1
+-#define OMAP24XX_ST_32KSYNC_MASK			(1 << 1)
+-#define OMAP24XX_ST_GPT1_SHIFT				0
+-#define OMAP24XX_ST_GPT1_MASK				(1 << 0)
+-
+-/* CM_IDLEST_MDM and PM_WKST_MDM shared bits */
+-#define OMAP2430_ST_MDM_SHIFT				0
+-#define OMAP2430_ST_MDM_MASK				(1 << 0)
+-
+-
+-/* 3430 register bits shared between CM & PRM registers */
+-
+-/* CM_REVISION, PRM_REVISION shared bits */
+-#define OMAP3430_REV_SHIFT				0
+-#define OMAP3430_REV_MASK				(0xff << 0)
+-
+-/* CM_SYSCONFIG, PRM_SYSCONFIG shared bits */
+-#define OMAP3430_AUTOIDLE_MASK				(1 << 0)
+-
+-/* CM_FCLKEN1_CORE, CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
+-#define OMAP3430_EN_MMC3_MASK				(1 << 30)
+-#define OMAP3430_EN_MMC3_SHIFT				30
+-#define OMAP3430_EN_MMC2_MASK				(1 << 25)
+-#define OMAP3430_EN_MMC2_SHIFT				25
+-#define OMAP3430_EN_MMC1_MASK				(1 << 24)
+-#define OMAP3430_EN_MMC1_SHIFT				24
+-#define AM35XX_EN_UART4_MASK				(1 << 23)
+-#define AM35XX_EN_UART4_SHIFT				23
+-#define OMAP3430_EN_MCSPI4_MASK				(1 << 21)
+-#define OMAP3430_EN_MCSPI4_SHIFT			21
+-#define OMAP3430_EN_MCSPI3_MASK				(1 << 20)
+-#define OMAP3430_EN_MCSPI3_SHIFT			20
+-#define OMAP3430_EN_MCSPI2_MASK				(1 << 19)
+-#define OMAP3430_EN_MCSPI2_SHIFT			19
+-#define OMAP3430_EN_MCSPI1_MASK				(1 << 18)
+-#define OMAP3430_EN_MCSPI1_SHIFT			18
+-#define OMAP3430_EN_I2C3_MASK				(1 << 17)
+-#define OMAP3430_EN_I2C3_SHIFT				17
+-#define OMAP3430_EN_I2C2_MASK				(1 << 16)
+-#define OMAP3430_EN_I2C2_SHIFT				16
+-#define OMAP3430_EN_I2C1_MASK				(1 << 15)
+-#define OMAP3430_EN_I2C1_SHIFT				15
+-#define OMAP3430_EN_UART2_MASK				(1 << 14)
+-#define OMAP3430_EN_UART2_SHIFT				14
+-#define OMAP3430_EN_UART1_MASK				(1 << 13)
+-#define OMAP3430_EN_UART1_SHIFT				13
+-#define OMAP3430_EN_GPT11_MASK				(1 << 12)
+-#define OMAP3430_EN_GPT11_SHIFT				12
+-#define OMAP3430_EN_GPT10_MASK				(1 << 11)
+-#define OMAP3430_EN_GPT10_SHIFT				11
+-#define OMAP3430_EN_MCBSP5_MASK				(1 << 10)
+-#define OMAP3430_EN_MCBSP5_SHIFT			10
+-#define OMAP3430_EN_MCBSP1_MASK				(1 << 9)
+-#define OMAP3430_EN_MCBSP1_SHIFT			9
+-#define OMAP3430_EN_FSHOSTUSB_MASK			(1 << 5)
+-#define OMAP3430_EN_FSHOSTUSB_SHIFT			5
+-#define OMAP3430_EN_D2D_MASK				(1 << 3)
+-#define OMAP3430_EN_D2D_SHIFT				3
+-
+-/* CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
+-#define OMAP3430_EN_HSOTGUSB_MASK			(1 << 4)
+-#define OMAP3430_EN_HSOTGUSB_SHIFT			4
+-
+-/* PM_WKST1_CORE, CM_IDLEST1_CORE shared bits */
+-#define OMAP3430_ST_MMC3_SHIFT				30
+-#define OMAP3430_ST_MMC3_MASK				(1 << 30)
+-#define OMAP3430_ST_MMC2_SHIFT				25
+-#define OMAP3430_ST_MMC2_MASK				(1 << 25)
+-#define OMAP3430_ST_MMC1_SHIFT				24
+-#define OMAP3430_ST_MMC1_MASK				(1 << 24)
+-#define OMAP3430_ST_MCSPI4_SHIFT			21
+-#define OMAP3430_ST_MCSPI4_MASK				(1 << 21)
+-#define OMAP3430_ST_MCSPI3_SHIFT			20
+-#define OMAP3430_ST_MCSPI3_MASK				(1 << 20)
+-#define OMAP3430_ST_MCSPI2_SHIFT			19
+-#define OMAP3430_ST_MCSPI2_MASK				(1 << 19)
+-#define OMAP3430_ST_MCSPI1_SHIFT			18
+-#define OMAP3430_ST_MCSPI1_MASK				(1 << 18)
+-#define OMAP3430_ST_I2C3_SHIFT				17
+-#define OMAP3430_ST_I2C3_MASK				(1 << 17)
+-#define OMAP3430_ST_I2C2_SHIFT				16
+-#define OMAP3430_ST_I2C2_MASK				(1 << 16)
+-#define OMAP3430_ST_I2C1_SHIFT				15
+-#define OMAP3430_ST_I2C1_MASK				(1 << 15)
+-#define OMAP3430_ST_UART2_SHIFT				14
+-#define OMAP3430_ST_UART2_MASK				(1 << 14)
+-#define OMAP3430_ST_UART1_SHIFT				13
+-#define OMAP3430_ST_UART1_MASK				(1 << 13)
+-#define OMAP3430_ST_GPT11_SHIFT				12
+-#define OMAP3430_ST_GPT11_MASK				(1 << 12)
+-#define OMAP3430_ST_GPT10_SHIFT				11
+-#define OMAP3430_ST_GPT10_MASK				(1 << 11)
+-#define OMAP3430_ST_MCBSP5_SHIFT			10
+-#define OMAP3430_ST_MCBSP5_MASK				(1 << 10)
+-#define OMAP3430_ST_MCBSP1_SHIFT			9
+-#define OMAP3430_ST_MCBSP1_MASK				(1 << 9)
+-#define OMAP3430ES1_ST_FSHOSTUSB_SHIFT			5
+-#define OMAP3430ES1_ST_FSHOSTUSB_MASK			(1 << 5)
+-#define OMAP3430ES1_ST_HSOTGUSB_SHIFT			4
+-#define OMAP3430ES1_ST_HSOTGUSB_MASK			(1 << 4)
+-#define OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT		5
+-#define OMAP3430ES2_ST_HSOTGUSB_IDLE_MASK		(1 << 5)
+-#define OMAP3430ES2_ST_HSOTGUSB_STDBY_SHIFT		4
+-#define OMAP3430ES2_ST_HSOTGUSB_STDBY_MASK		(1 << 4)
+-#define OMAP3430_ST_D2D_SHIFT				3
+-#define OMAP3430_ST_D2D_MASK				(1 << 3)
+-
+-/* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
+-#define OMAP3430_EN_GPIO1_MASK				(1 << 3)
+-#define OMAP3430_EN_GPIO1_SHIFT				3
+-#define OMAP3430_EN_GPT12_MASK				(1 << 1)
+-#define OMAP3430_EN_GPT12_SHIFT				1
+-#define OMAP3430_EN_GPT1_MASK				(1 << 0)
+-#define OMAP3430_EN_GPT1_SHIFT				0
+-
+-/* CM_FCLKEN_WKUP, PM_WKEN_WKUP shared bits */
+-#define OMAP3430_EN_SR2_MASK				(1 << 7)
+-#define OMAP3430_EN_SR2_SHIFT				7
+-#define OMAP3430_EN_SR1_MASK				(1 << 6)
+-#define OMAP3430_EN_SR1_SHIFT				6
+-
+-/* CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
+-#define OMAP3430_EN_GPT12_MASK				(1 << 1)
+-#define OMAP3430_EN_GPT12_SHIFT				1
+-
+-/* CM_IDLEST_WKUP, PM_WKST_WKUP shared bits */
+-#define OMAP3430_ST_SR2_SHIFT				7
+-#define OMAP3430_ST_SR2_MASK				(1 << 7)
+-#define OMAP3430_ST_SR1_SHIFT				6
+-#define OMAP3430_ST_SR1_MASK				(1 << 6)
+-#define OMAP3430_ST_GPIO1_SHIFT				3
+-#define OMAP3430_ST_GPIO1_MASK				(1 << 3)
+-#define OMAP3430_ST_32KSYNC_SHIFT			2
+-#define OMAP3430_ST_32KSYNC_MASK			(1 << 2)
+-#define OMAP3430_ST_GPT12_SHIFT				1
+-#define OMAP3430_ST_GPT12_MASK				(1 << 1)
+-#define OMAP3430_ST_GPT1_SHIFT				0
+-#define OMAP3430_ST_GPT1_MASK				(1 << 0)
+-
+-/*
+- * CM_SLEEPDEP_GFX, CM_SLEEPDEP_DSS, CM_SLEEPDEP_CAM,
+- * CM_SLEEPDEP_PER, PM_WKDEP_IVA2, PM_WKDEP_GFX,
+- * PM_WKDEP_DSS, PM_WKDEP_CAM, PM_WKDEP_PER, PM_WKDEP_NEON shared bits
+- */
+-#define OMAP3430_EN_MPU_MASK				(1 << 1)
+-#define OMAP3430_EN_MPU_SHIFT				1
+-
+-/* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER shared bits */
+-
+-#define OMAP3630_EN_UART4_MASK				(1 << 18)
+-#define OMAP3630_EN_UART4_SHIFT				18
+-#define OMAP3430_EN_GPIO6_MASK				(1 << 17)
+-#define OMAP3430_EN_GPIO6_SHIFT				17
+-#define OMAP3430_EN_GPIO5_MASK				(1 << 16)
+-#define OMAP3430_EN_GPIO5_SHIFT				16
+-#define OMAP3430_EN_GPIO4_MASK				(1 << 15)
+-#define OMAP3430_EN_GPIO4_SHIFT				15
+-#define OMAP3430_EN_GPIO3_MASK				(1 << 14)
+-#define OMAP3430_EN_GPIO3_SHIFT				14
+-#define OMAP3430_EN_GPIO2_MASK				(1 << 13)
+-#define OMAP3430_EN_GPIO2_SHIFT				13
+-#define OMAP3430_EN_UART3_MASK				(1 << 11)
+-#define OMAP3430_EN_UART3_SHIFT				11
+-#define OMAP3430_EN_GPT9_MASK				(1 << 10)
+-#define OMAP3430_EN_GPT9_SHIFT				10
+-#define OMAP3430_EN_GPT8_MASK				(1 << 9)
+-#define OMAP3430_EN_GPT8_SHIFT				9
+-#define OMAP3430_EN_GPT7_MASK				(1 << 8)
+-#define OMAP3430_EN_GPT7_SHIFT				8
+-#define OMAP3430_EN_GPT6_MASK				(1 << 7)
+-#define OMAP3430_EN_GPT6_SHIFT				7
+-#define OMAP3430_EN_GPT5_MASK				(1 << 6)
+-#define OMAP3430_EN_GPT5_SHIFT				6
+-#define OMAP3430_EN_GPT4_MASK				(1 << 5)
+-#define OMAP3430_EN_GPT4_SHIFT				5
+-#define OMAP3430_EN_GPT3_MASK				(1 << 4)
+-#define OMAP3430_EN_GPT3_SHIFT				4
+-#define OMAP3430_EN_GPT2_MASK				(1 << 3)
+-#define OMAP3430_EN_GPT2_SHIFT				3
+-
+-/* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER, PM_WKST_PER shared bits */
+-/* XXX Possible TI documentation bug: should the PM_WKST_PER EN_* bits
+- * be ST_* bits instead? */
+-#define OMAP3430_EN_MCBSP4_MASK				(1 << 2)
+-#define OMAP3430_EN_MCBSP4_SHIFT			2
+-#define OMAP3430_EN_MCBSP3_MASK				(1 << 1)
+-#define OMAP3430_EN_MCBSP3_SHIFT			1
+-#define OMAP3430_EN_MCBSP2_MASK				(1 << 0)
+-#define OMAP3430_EN_MCBSP2_SHIFT			0
+-
+-/* CM_IDLEST_PER, PM_WKST_PER shared bits */
+-#define OMAP3630_ST_UART4_SHIFT				18
+-#define OMAP3630_ST_UART4_MASK				(1 << 18)
+-#define OMAP3430_ST_GPIO6_SHIFT				17
+-#define OMAP3430_ST_GPIO6_MASK				(1 << 17)
+-#define OMAP3430_ST_GPIO5_SHIFT				16
+-#define OMAP3430_ST_GPIO5_MASK				(1 << 16)
+-#define OMAP3430_ST_GPIO4_SHIFT				15
+-#define OMAP3430_ST_GPIO4_MASK				(1 << 15)
+-#define OMAP3430_ST_GPIO3_SHIFT				14
+-#define OMAP3430_ST_GPIO3_MASK				(1 << 14)
+-#define OMAP3430_ST_GPIO2_SHIFT				13
+-#define OMAP3430_ST_GPIO2_MASK				(1 << 13)
+-#define OMAP3430_ST_UART3_SHIFT				11
+-#define OMAP3430_ST_UART3_MASK				(1 << 11)
+-#define OMAP3430_ST_GPT9_SHIFT				10
+-#define OMAP3430_ST_GPT9_MASK				(1 << 10)
+-#define OMAP3430_ST_GPT8_SHIFT				9
+-#define OMAP3430_ST_GPT8_MASK				(1 << 9)
+-#define OMAP3430_ST_GPT7_SHIFT				8
+-#define OMAP3430_ST_GPT7_MASK				(1 << 8)
+-#define OMAP3430_ST_GPT6_SHIFT				7
+-#define OMAP3430_ST_GPT6_MASK				(1 << 7)
+-#define OMAP3430_ST_GPT5_SHIFT				6
+-#define OMAP3430_ST_GPT5_MASK				(1 << 6)
+-#define OMAP3430_ST_GPT4_SHIFT				5
+-#define OMAP3430_ST_GPT4_MASK				(1 << 5)
+-#define OMAP3430_ST_GPT3_SHIFT				4
+-#define OMAP3430_ST_GPT3_MASK				(1 << 4)
+-#define OMAP3430_ST_GPT2_SHIFT				3
+-#define OMAP3430_ST_GPT2_MASK				(1 << 3)
+-
+-/* CM_SLEEPDEP_PER, PM_WKDEP_IVA2, PM_WKDEP_MPU, PM_WKDEP_PER shared bits */
+-#define OMAP3430_EN_CORE_SHIFT				0
+-#define OMAP3430_EN_CORE_MASK				(1 << 0)
+-
 -
 -
 -/*
-- * Powerdomain flags (struct powerdomain.flags)
-- *
-- * PWRDM_HAS_HDWR_SAR - powerdomain has hardware save-and-restore support
-- *
-- * PWRDM_HAS_MPU_QUIRK - MPU pwr domain has MEM bank 0 bits in MEM
-- * bank 1 position. This is true for OMAP3430
-- *
-- * PWRDM_HAS_LOWPOWERSTATECHANGE - can transition from a sleep state
-- * to a lower sleep state without waking up the powerdomain
+- * Maximum time(us) it takes to output the signal WUCLKOUT of the last
+- * pad of the I/O ring after asserting WUCLKIN high.  Tero measured
+- * the actual time at 7 to 8 microseconds on OMAP3 and 2 to 4
+- * microseconds on OMAP4, so this timeout may be too high.
 - */
--#define PWRDM_HAS_HDWR_SAR		BIT(0)
--#define PWRDM_HAS_MPU_QUIRK		BIT(1)
--#define PWRDM_HAS_LOWPOWERSTATECHANGE	BIT(2)
+-#define MAX_IOPAD_LATCH_TIME			100
+-# ifndef __ASSEMBLER__
 -
--/*
-- * Number of memory banks that are power-controllable.	On OMAP4430, the
-- * maximum is 5.
-- */
--#define PWRDM_MAX_MEM_BANKS	5
--
--/*
-- * Maximum number of clockdomains that can be associated with a powerdomain.
-- * PER powerdomain on AM33XX is the worst case
-- */
--#define PWRDM_MAX_CLKDMS	11
--
--/* XXX A completely arbitrary number. What is reasonable here? */
--#define PWRDM_TRANSITION_BAILOUT 100000
--
--struct clockdomain;
--struct powerdomain;
--struct voltagedomain;
+-#include <linux/delay.h>
 -
 -/**
-- * struct powerdomain - OMAP powerdomain
-- * @name: Powerdomain name
-- * @voltdm: voltagedomain containing this powerdomain
-- * @prcm_offs: the address offset from CM_BASE/PRM_BASE
-- * @prcm_partition: (OMAP4 only) the PRCM partition ID containing @prcm_offs
-- * @pwrsts: Possible powerdomain power states
-- * @pwrsts_logic_ret: Possible logic power states when pwrdm in RETENTION
-- * @flags: Powerdomain flags
-- * @banks: Number of software-controllable memory banks in this powerdomain
-- * @pwrsts_mem_ret: Possible memory bank pwrstates when pwrdm in RETENTION
-- * @pwrsts_mem_on: Possible memory bank pwrstates when pwrdm in ON
-- * @pwrdm_clkdms: Clockdomains in this powerdomain
-- * @node: list_head linking all powerdomains
-- * @voltdm_node: list_head linking all powerdomains in a voltagedomain
-- * @pwrstctrl_offs: (AM33XX only) XXX_PWRSTCTRL reg offset from prcm_offs
-- * @pwrstst_offs: (AM33XX only) XXX_PWRSTST reg offset from prcm_offs
-- * @logicretstate_mask: (AM33XX only) mask for logic retention bitfield
-- *	in @pwrstctrl_offs
-- * @mem_on_mask: (AM33XX only) mask for mem on bitfield in @pwrstctrl_offs
-- * @mem_ret_mask: (AM33XX only) mask for mem ret bitfield in @pwrstctrl_offs
-- * @mem_pwrst_mask: (AM33XX only) mask for mem state bitfield in @pwrstst_offs
-- * @mem_retst_mask: (AM33XX only) mask for mem retention state bitfield
-- *	in @pwrstctrl_offs
-- * @state:
-- * @state_counter:
-- * @timer:
-- * @state_timer:
-- * @_lock: spinlock used to serialize powerdomain and some clockdomain ops
-- * @_lock_flags: stored flags when @_lock is taken
+- * omap_test_timeout - busy-loop, testing a condition
+- * @cond: condition to test until it evaluates to true
+- * @timeout: maximum number of microseconds in the timeout
+- * @index: loop index (integer)
 - *
-- * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
+- * Loop waiting for @cond to become true or until at least @timeout
+- * microseconds have passed.  To use, define some integer @index in the
+- * calling code.  After running, if @index == @timeout, then the loop has
+- * timed out.
 - */
--struct powerdomain {
+-#define omap_test_timeout(cond, timeout, index)			\
+-({								\
+-	for (index = 0; index < timeout; index++) {		\
+-		if (cond)					\
+-			break;					\
+-		udelay(1);					\
+-	}							\
+-})
+-
+-/**
+- * struct omap_prcm_irq - describes a PRCM interrupt bit
+- * @name: a short name describing the interrupt type, e.g. "wkup" or "io"
+- * @offset: the bit shift of the interrupt inside the IRQ{ENABLE,STATUS} regs
+- * @priority: should this interrupt be handled before @priority=false IRQs?
+- *
+- * Describes interrupt bits inside the PRM_IRQ{ENABLE,STATUS}_MPU* registers.
+- * On systems with multiple PRM MPU IRQ registers, the bitfields read from
+- * the registers are concatenated, so @offset could be > 31 on these systems -
+- * see omap_prm_irq_handler() for more details.  I/O ring interrupts should
+- * have @priority set to true.
+- */
+-struct omap_prcm_irq {
 -	const char *name;
--	union {
--		const char *name;
--		struct voltagedomain *ptr;
--	} voltdm;
--	const s16 prcm_offs;
--	const u8 pwrsts;
--	const u8 pwrsts_logic_ret;
--	const u8 flags;
--	const u8 banks;
--	const u8 pwrsts_mem_ret[PWRDM_MAX_MEM_BANKS];
--	const u8 pwrsts_mem_on[PWRDM_MAX_MEM_BANKS];
--	const u8 prcm_partition;
--	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
--	struct list_head node;
--	struct list_head voltdm_node;
--	int state;
--	unsigned state_counter[PWRDM_MAX_PWRSTS];
--	unsigned ret_logic_off_counter;
--	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
--	spinlock_t _lock;
--	unsigned long _lock_flags;
--	const u8 pwrstctrl_offs;
--	const u8 pwrstst_offs;
--	const u32 logicretstate_mask;
--	const u32 mem_on_mask[PWRDM_MAX_MEM_BANKS];
--	const u32 mem_ret_mask[PWRDM_MAX_MEM_BANKS];
--	const u32 mem_pwrst_mask[PWRDM_MAX_MEM_BANKS];
--	const u32 mem_retst_mask[PWRDM_MAX_MEM_BANKS];
--
--#ifdef CONFIG_PM_DEBUG
--	s64 timer;
--	s64 state_timer[PWRDM_MAX_PWRSTS];
--#endif
+-	unsigned int offset;
+-	bool priority;
 -};
 -
 -/**
-- * struct pwrdm_ops - Arch specific function implementations
-- * @pwrdm_set_next_pwrst: Set the target power state for a pd
-- * @pwrdm_read_next_pwrst: Read the target power state set for a pd
-- * @pwrdm_read_pwrst: Read the current power state of a pd
-- * @pwrdm_read_prev_pwrst: Read the prev power state entered by the pd
-- * @pwrdm_set_logic_retst: Set the logic state in RET for a pd
-- * @pwrdm_set_mem_onst: Set the Memory state in ON for a pd
-- * @pwrdm_set_mem_retst: Set the Memory state in RET for a pd
-- * @pwrdm_read_logic_pwrst: Read the current logic state of a pd
-- * @pwrdm_read_prev_logic_pwrst: Read the previous logic state entered by a pd
-- * @pwrdm_read_logic_retst: Read the logic state in RET for a pd
-- * @pwrdm_read_mem_pwrst: Read the current memory state of a pd
-- * @pwrdm_read_prev_mem_pwrst: Read the previous memory state entered by a pd
-- * @pwrdm_read_mem_retst: Read the memory state in RET for a pd
-- * @pwrdm_clear_all_prev_pwrst: Clear all previous power states logged for a pd
-- * @pwrdm_enable_hdwr_sar: Enable Hardware Save-Restore feature for the pd
-- * @pwrdm_disable_hdwr_sar: Disable Hardware Save-Restore feature for a pd
-- * @pwrdm_set_lowpwrstchange: Enable pd transitions from a shallow to deep sleep
-- * @pwrdm_wait_transition: Wait for a pd state transition to complete
-- * @pwrdm_has_voltdm: Check if a voltdm association is needed
+- * struct omap_prcm_irq_setup - PRCM interrupt controller details
+- * @ack: PRM register offset for the first PRM_IRQSTATUS_MPU register
+- * @mask: PRM register offset for the first PRM_IRQENABLE_MPU register
+- * @nr_regs: number of PRM_IRQ{STATUS,ENABLE}_MPU* registers
+- * @nr_irqs: number of entries in the @irqs array
+- * @irqs: ptr to an array of PRCM interrupt bits (see @nr_irqs)
+- * @irq: MPU IRQ asserted when a PRCM interrupt arrives
+- * @read_pending_irqs: fn ptr to determine if any PRCM IRQs are pending
+- * @ocp_barrier: fn ptr to force buffered PRM writes to complete
+- * @save_and_clear_irqen: fn ptr to save and clear IRQENABLE regs
+- * @restore_irqen: fn ptr to save and clear IRQENABLE regs
+- * @reconfigure_io_chain: fn ptr to reconfigure IO chain
+- * @saved_mask: IRQENABLE regs are saved here during suspend
+- * @priority_mask: 1 bit per IRQ, set to 1 if omap_prcm_irq.priority = true
+- * @base_irq: base dynamic IRQ number, returned from irq_alloc_descs() in init
+- * @suspended: set to true after Linux suspend code has called our ->prepare()
+- * @suspend_save_flag: set to true after IRQ masks have been saved and disabled
 - *
-- * Regarding @pwrdm_set_lowpwrstchange: On the OMAP2 and 3-family
-- * chips, a powerdomain's power state is not allowed to directly
-- * transition from one low-power state (e.g., CSWR) to another
-- * low-power state (e.g., OFF) without first waking up the
-- * powerdomain.  This wastes energy.  So OMAP4 chips support the
-- * ability to transition a powerdomain power state directly from one
-- * low-power state to another.  The function pointed to by
-- * @pwrdm_set_lowpwrstchange is intended to configure the OMAP4
-- * hardware powerdomain state machine to enable this feature.
+- * @saved_mask, @priority_mask, @base_irq, @suspended, and
+- * @suspend_save_flag are populated dynamically, and are not to be
+- * specified in static initializers.
 - */
--struct pwrdm_ops {
--	int	(*pwrdm_set_next_pwrst)(struct powerdomain *pwrdm, u8 pwrst);
--	int	(*pwrdm_read_next_pwrst)(struct powerdomain *pwrdm);
--	int	(*pwrdm_read_pwrst)(struct powerdomain *pwrdm);
--	int	(*pwrdm_read_prev_pwrst)(struct powerdomain *pwrdm);
--	int	(*pwrdm_set_logic_retst)(struct powerdomain *pwrdm, u8 pwrst);
--	int	(*pwrdm_set_mem_onst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
--	int	(*pwrdm_set_mem_retst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
--	int	(*pwrdm_read_logic_pwrst)(struct powerdomain *pwrdm);
--	int	(*pwrdm_read_prev_logic_pwrst)(struct powerdomain *pwrdm);
--	int	(*pwrdm_read_logic_retst)(struct powerdomain *pwrdm);
--	int	(*pwrdm_read_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
--	int	(*pwrdm_read_prev_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
--	int	(*pwrdm_read_mem_retst)(struct powerdomain *pwrdm, u8 bank);
--	int	(*pwrdm_clear_all_prev_pwrst)(struct powerdomain *pwrdm);
--	int	(*pwrdm_enable_hdwr_sar)(struct powerdomain *pwrdm);
--	int	(*pwrdm_disable_hdwr_sar)(struct powerdomain *pwrdm);
--	int	(*pwrdm_set_lowpwrstchange)(struct powerdomain *pwrdm);
--	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
--	int	(*pwrdm_has_voltdm)(void);
+-struct omap_prcm_irq_setup {
+-	u16 ack;
+-	u16 mask;
+-	u8 nr_regs;
+-	u8 nr_irqs;
+-	const struct omap_prcm_irq *irqs;
+-	int irq;
+-	void (*read_pending_irqs)(unsigned long *events);
+-	void (*ocp_barrier)(void);
+-	void (*save_and_clear_irqen)(u32 *saved_mask);
+-	void (*restore_irqen)(u32 *saved_mask);
+-	void (*reconfigure_io_chain)(void);
+-	u32 *saved_mask;
+-	u32 *priority_mask;
+-	int base_irq;
+-	bool suspended;
+-	bool suspend_save_flag;
 -};
 -
--int pwrdm_register_platform_funcs(struct pwrdm_ops *custom_funcs);
--int pwrdm_register_pwrdms(struct powerdomain **pwrdm_list);
--int pwrdm_complete_init(void);
+-/* OMAP_PRCM_IRQ: convenience macro for creating struct omap_prcm_irq records */
+-#define OMAP_PRCM_IRQ(_name, _offset, _priority) {	\
+-	.name = _name,					\
+-	.offset = _offset,				\
+-	.priority = _priority				\
+-	}
 -
--struct powerdomain *pwrdm_lookup(const char *name);
+-struct of_device_id;
 -
--int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
--			void *user);
--int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
--			void *user);
+-extern void __iomem *clk_memmaps[];
 -
--int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
--int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
--int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
--			 int (*fn)(struct powerdomain *pwrdm,
--				   struct clockdomain *clkdm));
--struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm);
+-extern void omap_prcm_irq_cleanup(void);
+-extern int omap_prcm_register_chain_handler(
+-	struct omap_prcm_irq_setup *irq_setup);
+-extern int omap_prcm_event_to_irq(const char *event);
+-extern void omap_prcm_irq_prepare(void);
+-extern void omap_prcm_irq_complete(void);
+-void omap_pcs_legacy_init(int irq, void (*rearm)(void));
+-int of_prcm_module_init(struct of_device_id *match_table);
+-int of_cm_init(void);
 -
--int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
--
--int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
--int pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
--int pwrdm_read_pwrst(struct powerdomain *pwrdm);
--int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm);
--int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm);
--
--int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst);
--int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
--int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
--
--int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm);
--int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm);
--int pwrdm_read_logic_retst(struct powerdomain *pwrdm);
--int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
--int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
--int pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank);
--
--int pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm);
--int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm);
--bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
--
--int pwrdm_state_switch_nolock(struct powerdomain *pwrdm);
--int pwrdm_state_switch(struct powerdomain *pwrdm);
--int pwrdm_pre_transition(struct powerdomain *pwrdm);
--int pwrdm_post_transition(struct powerdomain *pwrdm);
--int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
--bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
--
--extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 state);
--
--extern void omap242x_powerdomains_init(void);
--extern void omap243x_powerdomains_init(void);
--extern void omap3xxx_powerdomains_init(void);
--extern void am33xx_powerdomains_init(void);
--extern void omap44xx_powerdomains_init(void);
--extern void omap54xx_powerdomains_init(void);
--extern void dra7xx_powerdomains_init(void);
--void am43xx_powerdomains_init(void);
--
--extern struct pwrdm_ops omap2_pwrdm_operations;
--extern struct pwrdm_ops omap3_pwrdm_operations;
--extern struct pwrdm_ops am33xx_pwrdm_operations;
--extern struct pwrdm_ops omap4_pwrdm_operations;
--
--/* Common Internal functions used across OMAP rev's */
--extern u32 omap2_pwrdm_get_mem_bank_onstate_mask(u8 bank);
--extern u32 omap2_pwrdm_get_mem_bank_retst_mask(u8 bank);
--extern u32 omap2_pwrdm_get_mem_bank_stst_mask(u8 bank);
--
--extern struct powerdomain wkup_omap2_pwrdm;
--extern struct powerdomain gfx_omap2_pwrdm;
--
--extern void pwrdm_lock(struct powerdomain *pwrdm);
--extern void pwrdm_unlock(struct powerdomain *pwrdm);
+-# endif
 -
 -#endif
-diff --git a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
-index 823bc4d..c3d2e8a 100644
---- a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
-@@ -31,7 +31,7 @@
-  * address offset is different between the C55 and C64 DSPs.
-  */
+-
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 8caa7af..6a02cf3 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -13,7 +13,7 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_PRM_H
+ #define __ARCH_ARM_MACH_OMAP2_PRM_H
  
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
  
- #include <linux/power/omap/prcm-common.h>
- #include <linux/power/omap/prm.h>
-diff --git a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h
-index fa31166..b22c174 100644
---- a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h
-+++ b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.h
-@@ -14,7 +14,7 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_POWERDOMAINS2XXX_3XXX_DATA_H
- #define __ARCH_ARM_MACH_OMAP2_POWERDOMAINS2XXX_3XXX_DATA_H
- 
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- 
- extern struct powerdomain gfx_omap2_pwrdm;
- extern struct powerdomain wkup_omap2_pwrdm;
-diff --git a/arch/arm/mach-omap2/powerdomains2xxx_data.c b/arch/arm/mach-omap2/powerdomains2xxx_data.c
-index 9506c0e..7fced02 100644
---- a/arch/arm/mach-omap2/powerdomains2xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains2xxx_data.c
-@@ -15,7 +15,7 @@
- #include <linux/init.h>
- 
- #include "soc.h"
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include "powerdomains2xxx_3xxx_data.h"
- 
- #include <linux/power/omap/prcm-common.h>
-diff --git a/arch/arm/mach-omap2/powerdomains33xx_data.c b/arch/arm/mach-omap2/powerdomains33xx_data.c
-index 0a7a5ca..719c541 100644
---- a/arch/arm/mach-omap2/powerdomains33xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains33xx_data.c
+ # ifndef __ASSEMBLER__
+ extern void __iomem *prm_base;
+diff --git a/arch/arm/mach-omap2/prm2xxx.h b/arch/arm/mach-omap2/prm2xxx.h
+index feeaf00..b86486b 100644
+--- a/arch/arm/mach-omap2/prm2xxx.h
++++ b/arch/arm/mach-omap2/prm2xxx.h
 @@ -16,7 +16,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
+ #ifndef __ARCH_ARM_MACH_OMAP2_PRM2XXX_H
+ #define __ARCH_ARM_MACH_OMAP2_PRM2XXX_H
  
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include <linux/power/omap/prcm-common.h>
- #include "prm-regbits-33xx.h"
- #include "prm33xx.h"
-diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-index be12876..01c43d4 100644
---- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-@@ -16,7 +16,7 @@
- #include <linux/bug.h>
- 
- #include "soc.h"
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include "powerdomains2xxx_3xxx_data.h"
- #include <linux/power/omap/prcm-common.h>
- #include <linux/power/omap/prm2xxx_3xxx.h>
-diff --git a/arch/arm/mach-omap2/powerdomains43xx_data.c b/arch/arm/mach-omap2/powerdomains43xx_data.c
-index 91802f1..922d6ea 100644
---- a/arch/arm/mach-omap2/powerdomains43xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains43xx_data.c
-@@ -11,7 +11,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- 
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- 
- #include <linux/power/omap/prcm-common.h>
- #include "prcm43xx.h"
-diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
-index 793c611..290d68d 100644
---- a/arch/arm/mach-omap2/powerdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
-@@ -22,7 +22,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- 
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- 
- #include <linux/power/omap/prcm-common.h>
- #include <linux/power/omap/prcm44xx.h>
-diff --git a/arch/arm/mach-omap2/powerdomains54xx_data.c b/arch/arm/mach-omap2/powerdomains54xx_data.c
-index 37017f2..c24a991 100644
---- a/arch/arm/mach-omap2/powerdomains54xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains54xx_data.c
-@@ -21,7 +21,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- 
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- 
- #include <linux/power/omap/prcm-common.h>
- #include <linux/power/omap/prcm44xx.h>
-diff --git a/arch/arm/mach-omap2/powerdomains7xx_data.c b/arch/arm/mach-omap2/powerdomains7xx_data.c
-index cedc84b..35f6ca1 100644
---- a/arch/arm/mach-omap2/powerdomains7xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains7xx_data.c
-@@ -23,7 +23,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- 
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- 
- #include <linux/power/omap/prcm-common.h>
- #include <linux/power/omap/prcm44xx.h>
-diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
-index 7969cb9..735ee33 100644
---- a/arch/arm/mach-omap2/prm2xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx.c
-@@ -18,7 +18,7 @@
- #include <linux/io.h>
- #include <linux/irq.h>
- 
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include <linux/power/omap/clockdomain.h>
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prm.h"
  #include <linux/power/omap/prm2xxx.h>
- #include "prm2xxx_3xxx_private.h"
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-index a25d1d0..27828d0 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-@@ -16,7 +16,7 @@
- #include <linux/err.h>
- #include <linux/io.h>
- 
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include "prm2xxx_3xxx_private.h"
- #include <linux/power/omap/clockdomain.h>
- 
+ #include <linux/power/omap/prm2xxx_3xxx.h>
 diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx_private.h b/arch/arm/mach-omap2/prm2xxx_3xxx_private.h
-index 5d6861a..52537fd 100644
+index ebd6a09..c02a267 100644
 --- a/arch/arm/mach-omap2/prm2xxx_3xxx_private.h
 +++ b/arch/arm/mach-omap2/prm2xxx_3xxx_private.h
-@@ -23,7 +23,7 @@
- #ifndef __ASSEMBLER__
+@@ -16,7 +16,7 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_PRM2XXX_3XXX_PRIVATE_H
+ #define __ARCH_ARM_MACH_OMAP2_PRM2XXX_3XXX_PRIVATE_H
  
- #include <linux/io.h>
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prm.h"
+ #include <linux/power/omap/prm2xxx_3xxx.h>
  
- /* Power/reset management domain register get/set */
- static inline u32 omap2_prm_read_mod_reg(s16 module, u16 idx)
-diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
-index b5864c9..05356a3 100644
---- a/arch/arm/mach-omap2/prm33xx.c
-+++ b/arch/arm/mach-omap2/prm33xx.c
-@@ -20,7 +20,7 @@
- #include <linux/io.h>
+diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
+index 7825b1c..598ba48 100644
+--- a/arch/arm/mach-omap2/prm33xx.h
++++ b/arch/arm/mach-omap2/prm33xx.h
+@@ -16,7 +16,7 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_PRM33XX_H
+ #define __ARCH_ARM_MACH_OMAP2_PRM33XX_H
+ 
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prm.h"
  #include <linux/power/omap/prm33xx.h>
  
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include <linux/power/omap/prm.h>
+diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
+index 6c06fce..693b5ad 100644
+--- a/arch/arm/mach-omap2/prm3xxx.h
++++ b/arch/arm/mach-omap2/prm3xxx.h
+@@ -16,7 +16,7 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_PRM3XXX_H
+ #define __ARCH_ARM_MACH_OMAP2_PRM3XXX_H
  
- #define AM33XX_LASTPOWERSTATEENTERED_SHIFT	24
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index e7d409c..be4c3ef 100644
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -18,7 +18,7 @@
- #include <linux/io.h>
- #include <linux/irq.h>
- 
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prm.h"
+ #include <linux/power/omap/prm2xxx_3xxx.h>
  #include <linux/power/omap/prm3xxx.h>
- #include "prm2xxx_3xxx_private.h"
- #include "cm2xxx_3xxx_private.h"
 diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 69a974b..ab04ce8 100644
+index 2b25710..705509a 100644
 --- a/arch/arm/mach-omap2/prm44xx.c
 +++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -24,7 +24,7 @@
- #include <linux/power/omap/prm7xx.h>
- #include <linux/power/omap/prcm44xx.h>
+@@ -26,7 +26,7 @@
  #include "prminst44xx_private.h"
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include <linux/power/omap/prm.h>
- #include <linux/power/omap/prcm-common.h>
+ #include "powerdomain.h"
+ #include "prm.h"
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
  #include <linux/power/omap/prm44xx_54xx.h>
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 74044aa..f10ca44 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -54,7 +54,7 @@
  
- #include "soc.h"
- #include "common.h"
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
- #include "omap-secure.h"
+ #define OMAP4430_GLOBAL_COLD_RST_SHIFT			0
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
+index 52585e1..b7066fd 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -26,7 +26,7 @@
+ #define __ARCH_ARM_MACH_OMAP2_PRM44XX_H
  
- #define REALTIME_COUNTER_BASE				0x48243200
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index b707328..17df5e7 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -36,7 +36,7 @@
- #include "control.h"
+ #include <linux/power/omap/prm44xx_54xx.h>
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prm.h"
+ #include <linux/power/omap/prm44xx.h>
  
- #include "voltage.h"
--#include "powerdomain.h"
-+#include <linux/power/omap/powerdomain.h>
+diff --git a/arch/arm/mach-omap2/prm54xx.h b/arch/arm/mach-omap2/prm54xx.h
+index 34a0835..250c2d5 100644
+--- a/arch/arm/mach-omap2/prm54xx.h
++++ b/arch/arm/mach-omap2/prm54xx.h
+@@ -22,7 +22,7 @@
+ #define __ARCH_ARM_MACH_OMAP2_PRM54XX_H
  
- #include "vc.h"
- #include "vp.h"
-diff --git a/include/linux/power/omap/powerdomain.h b/include/linux/power/omap/powerdomain.h
+ #include <linux/power/omap/prm44xx_54xx.h>
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prm.h"
+ #include <linux/power/omap/prm54xx.h>
+ 
+diff --git a/arch/arm/mach-omap2/prm7xx.h b/arch/arm/mach-omap2/prm7xx.h
+index 2637d62..6e84906 100644
+--- a/arch/arm/mach-omap2/prm7xx.h
++++ b/arch/arm/mach-omap2/prm7xx.h
+@@ -23,7 +23,7 @@
+ #define __ARCH_ARM_MACH_OMAP2_PRM7XX_H
+ 
+ #include <linux/power/omap/prm44xx_54xx.h>
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include "prm.h"
+ #include <linux/power/omap/prm7xx.h>
+ 
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 653862b..acdd0f1 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -34,7 +34,7 @@
+ #include <linux/power/omap/prm44xx.h>
+ 
+ #include "prm.h"
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ 
+ /*
+  * OMAP_PRCM_MAX_NR_PENDING_REG: maximum number of PRM_IRQ*_MPU regs
+diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+index 01f6b15..50c660d 100644
+--- a/arch/arm/mach-omap2/prminst44xx.c
++++ b/arch/arm/mach-omap2/prminst44xx.c
+@@ -17,7 +17,7 @@
+ #include <linux/io.h>
+ 
+ #include "prm.h"
+-#include "prcm-common.h"
++#include <linux/power/omap/prcm-common.h>
+ #include <linux/power/omap/prm44xx.h>
+ #include <linux/power/omap/prm54xx.h>
+ #include <linux/power/omap/prm7xx.h>
+diff --git a/include/linux/power/omap/prcm-common.h b/include/linux/power/omap/prcm-common.h
 new file mode 100644
-index 0000000..27f2750
+index 0000000..67143a2
 --- /dev/null
-+++ b/include/linux/power/omap/powerdomain.h
-@@ -0,0 +1,280 @@
++++ b/include/linux/power/omap/prcm-common.h
+@@ -0,0 +1,535 @@
 +/*
-+ * OMAP2/3/4 powerdomain control
++ * OMAP2/3 PRCM base and module definitions
 + *
-+ * Copyright (C) 2007-2008, 2010 Texas Instruments, Inc.
-+ * Copyright (C) 2007-2011 Nokia Corporation
++ * Copyright (C) 2007-2009, 2011 Texas Instruments, Inc.
++ * Copyright (C) 2007-2009 Nokia Corporation
 + *
-+ * Paul Walmsley
++ * Written by Paul Walmsley
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
-+ *
-+ * XXX This should be moved to the mach-omap2/ directory at the earliest
-+ * opportunity.
 + */
 +
-+#ifndef __LINUX_POWER_OMAP_POWERDOMAIN_H
-+#define __LINUX_POWER_OMAP_POWERDOMAIN_H
++#ifndef __LINUX_POWER_OMAP_PRCM_COMMON_H
++#define __LINUX_POWER_OMAP_PRCM_COMMON_H
 +
-+#include <linux/types.h>
-+#include <linux/list.h>
-+#include <linux/spinlock.h>
++/* Module offsets from both CM_BASE & PRM_BASE */
 +
-+/* Powerdomain basic power states */
-+#define PWRDM_POWER_OFF		0x0
-+#define PWRDM_POWER_RET		0x1
-+#define PWRDM_POWER_INACTIVE	0x2
-+#define PWRDM_POWER_ON		0x3
++/*
++ * Offsets that are the same on 24xx and 34xx
++ *
++ * Technically, in terms of the TRM, OCP_MOD is 34xx only; PLL_MOD is
++ * CCR_MOD on 3430; and GFX_MOD only exists < 3430ES2.
++ */
++#define OCP_MOD						0x000
++#define MPU_MOD						0x100
++#define CORE_MOD					0x200
++#define GFX_MOD						0x300
++#define WKUP_MOD					0x400
++#define PLL_MOD						0x500
 +
-+#define PWRDM_MAX_PWRSTS	4
 +
-+/* Powerdomain allowable state bitfields */
-+#define PWRSTS_ON		(1 << PWRDM_POWER_ON)
-+#define PWRSTS_INACTIVE		(1 << PWRDM_POWER_INACTIVE)
-+#define PWRSTS_RET		(1 << PWRDM_POWER_RET)
-+#define PWRSTS_OFF		(1 << PWRDM_POWER_OFF)
++/* Chip-specific module offsets */
++#define OMAP24XX_GR_MOD					OCP_MOD
++#define OMAP24XX_DSP_MOD				0x800
 +
-+#define PWRSTS_OFF_ON		(PWRSTS_OFF | PWRSTS_ON)
-+#define PWRSTS_OFF_RET		(PWRSTS_OFF | PWRSTS_RET)
-+#define PWRSTS_RET_ON		(PWRSTS_RET | PWRSTS_ON)
-+#define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | PWRSTS_ON)
++#define OMAP2430_MDM_MOD				0xc00
++
++/* IVA2 module is < base on 3430 */
++#define OMAP3430_IVA2_MOD				-0x800
++#define OMAP3430ES2_SGX_MOD				GFX_MOD
++#define OMAP3430_CCR_MOD				PLL_MOD
++#define OMAP3430_DSS_MOD				0x600
++#define OMAP3430_CAM_MOD				0x700
++#define OMAP3430_PER_MOD				0x800
++#define OMAP3430_EMU_MOD				0x900
++#define OMAP3430_GR_MOD					0xa00
++#define OMAP3430_NEON_MOD				0xb00
++#define OMAP3430ES2_USBHOST_MOD				0xc00
++
++/*
++ * TI81XX PRM module offsets
++ */
++#define TI81XX_PRM_DEVICE_MOD			0x0000
++#define TI816X_PRM_ACTIVE_MOD			0x0a00
++#define TI81XX_PRM_DEFAULT_MOD			0x0b00
++#define TI816X_PRM_IVAHD0_MOD			0x0c00
++#define TI816X_PRM_IVAHD1_MOD			0x0d00
++#define TI816X_PRM_IVAHD2_MOD			0x0e00
++#define TI816X_PRM_SGX_MOD				0x0f00
++#define TI81XX_PRM_ALWON_MOD			0x1800
++
++/* 24XX register bits shared between CM & PRM registers */
++
++/* CM_FCLKEN1_CORE, CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
++#define OMAP2420_EN_MMC_SHIFT				26
++#define OMAP2420_EN_MMC_MASK				(1 << 26)
++#define OMAP24XX_EN_UART2_SHIFT				22
++#define OMAP24XX_EN_UART2_MASK				(1 << 22)
++#define OMAP24XX_EN_UART1_SHIFT				21
++#define OMAP24XX_EN_UART1_MASK				(1 << 21)
++#define OMAP24XX_EN_MCSPI2_SHIFT			18
++#define OMAP24XX_EN_MCSPI2_MASK				(1 << 18)
++#define OMAP24XX_EN_MCSPI1_SHIFT			17
++#define OMAP24XX_EN_MCSPI1_MASK				(1 << 17)
++#define OMAP24XX_EN_MCBSP2_SHIFT			16
++#define OMAP24XX_EN_MCBSP2_MASK				(1 << 16)
++#define OMAP24XX_EN_MCBSP1_SHIFT			15
++#define OMAP24XX_EN_MCBSP1_MASK				(1 << 15)
++#define OMAP24XX_EN_GPT12_SHIFT				14
++#define OMAP24XX_EN_GPT12_MASK				(1 << 14)
++#define OMAP24XX_EN_GPT11_SHIFT				13
++#define OMAP24XX_EN_GPT11_MASK				(1 << 13)
++#define OMAP24XX_EN_GPT10_SHIFT				12
++#define OMAP24XX_EN_GPT10_MASK				(1 << 12)
++#define OMAP24XX_EN_GPT9_SHIFT				11
++#define OMAP24XX_EN_GPT9_MASK				(1 << 11)
++#define OMAP24XX_EN_GPT8_SHIFT				10
++#define OMAP24XX_EN_GPT8_MASK				(1 << 10)
++#define OMAP24XX_EN_GPT7_SHIFT				9
++#define OMAP24XX_EN_GPT7_MASK				(1 << 9)
++#define OMAP24XX_EN_GPT6_SHIFT				8
++#define OMAP24XX_EN_GPT6_MASK				(1 << 8)
++#define OMAP24XX_EN_GPT5_SHIFT				7
++#define OMAP24XX_EN_GPT5_MASK				(1 << 7)
++#define OMAP24XX_EN_GPT4_SHIFT				6
++#define OMAP24XX_EN_GPT4_MASK				(1 << 6)
++#define OMAP24XX_EN_GPT3_SHIFT				5
++#define OMAP24XX_EN_GPT3_MASK				(1 << 5)
++#define OMAP24XX_EN_GPT2_SHIFT				4
++#define OMAP24XX_EN_GPT2_MASK				(1 << 4)
++#define OMAP2420_EN_VLYNQ_SHIFT				3
++#define OMAP2420_EN_VLYNQ_MASK				(1 << 3)
++
++/* CM_FCLKEN2_CORE, CM_ICLKEN2_CORE, PM_WKEN2_CORE shared bits */
++#define OMAP2430_EN_GPIO5_SHIFT				10
++#define OMAP2430_EN_GPIO5_MASK				(1 << 10)
++#define OMAP2430_EN_MCSPI3_SHIFT			9
++#define OMAP2430_EN_MCSPI3_MASK				(1 << 9)
++#define OMAP2430_EN_MMCHS2_SHIFT			8
++#define OMAP2430_EN_MMCHS2_MASK				(1 << 8)
++#define OMAP2430_EN_MMCHS1_SHIFT			7
++#define OMAP2430_EN_MMCHS1_MASK				(1 << 7)
++#define OMAP24XX_EN_UART3_SHIFT				2
++#define OMAP24XX_EN_UART3_MASK				(1 << 2)
++#define OMAP24XX_EN_USB_SHIFT				0
++#define OMAP24XX_EN_USB_MASK				(1 << 0)
++
++/* CM_ICLKEN2_CORE, PM_WKEN2_CORE shared bits */
++#define OMAP2430_EN_MDM_INTC_SHIFT			11
++#define OMAP2430_EN_MDM_INTC_MASK			(1 << 11)
++#define OMAP2430_EN_USBHS_SHIFT				6
++#define OMAP2430_EN_USBHS_MASK				(1 << 6)
++#define OMAP24XX_EN_GPMC_SHIFT				1
++#define OMAP24XX_EN_GPMC_MASK				(1 << 1)
++
++/* CM_IDLEST1_CORE, PM_WKST1_CORE shared bits */
++#define OMAP2420_ST_MMC_SHIFT				26
++#define OMAP2420_ST_MMC_MASK				(1 << 26)
++#define OMAP24XX_ST_UART2_SHIFT				22
++#define OMAP24XX_ST_UART2_MASK				(1 << 22)
++#define OMAP24XX_ST_UART1_SHIFT				21
++#define OMAP24XX_ST_UART1_MASK				(1 << 21)
++#define OMAP24XX_ST_MCSPI2_SHIFT			18
++#define OMAP24XX_ST_MCSPI2_MASK				(1 << 18)
++#define OMAP24XX_ST_MCSPI1_SHIFT			17
++#define OMAP24XX_ST_MCSPI1_MASK				(1 << 17)
++#define OMAP24XX_ST_MCBSP2_SHIFT			16
++#define OMAP24XX_ST_MCBSP2_MASK				(1 << 16)
++#define OMAP24XX_ST_MCBSP1_SHIFT			15
++#define OMAP24XX_ST_MCBSP1_MASK				(1 << 15)
++#define OMAP24XX_ST_GPT12_SHIFT				14
++#define OMAP24XX_ST_GPT12_MASK				(1 << 14)
++#define OMAP24XX_ST_GPT11_SHIFT				13
++#define OMAP24XX_ST_GPT11_MASK				(1 << 13)
++#define OMAP24XX_ST_GPT10_SHIFT				12
++#define OMAP24XX_ST_GPT10_MASK				(1 << 12)
++#define OMAP24XX_ST_GPT9_SHIFT				11
++#define OMAP24XX_ST_GPT9_MASK				(1 << 11)
++#define OMAP24XX_ST_GPT8_SHIFT				10
++#define OMAP24XX_ST_GPT8_MASK				(1 << 10)
++#define OMAP24XX_ST_GPT7_SHIFT				9
++#define OMAP24XX_ST_GPT7_MASK				(1 << 9)
++#define OMAP24XX_ST_GPT6_SHIFT				8
++#define OMAP24XX_ST_GPT6_MASK				(1 << 8)
++#define OMAP24XX_ST_GPT5_SHIFT				7
++#define OMAP24XX_ST_GPT5_MASK				(1 << 7)
++#define OMAP24XX_ST_GPT4_SHIFT				6
++#define OMAP24XX_ST_GPT4_MASK				(1 << 6)
++#define OMAP24XX_ST_GPT3_SHIFT				5
++#define OMAP24XX_ST_GPT3_MASK				(1 << 5)
++#define OMAP24XX_ST_GPT2_SHIFT				4
++#define OMAP24XX_ST_GPT2_MASK				(1 << 4)
++#define OMAP2420_ST_VLYNQ_SHIFT				3
++#define OMAP2420_ST_VLYNQ_MASK				(1 << 3)
++
++/* CM_IDLEST2_CORE, PM_WKST2_CORE shared bits */
++#define OMAP2430_ST_MDM_INTC_SHIFT			11
++#define OMAP2430_ST_MDM_INTC_MASK			(1 << 11)
++#define OMAP2430_ST_GPIO5_SHIFT				10
++#define OMAP2430_ST_GPIO5_MASK				(1 << 10)
++#define OMAP2430_ST_MCSPI3_SHIFT			9
++#define OMAP2430_ST_MCSPI3_MASK				(1 << 9)
++#define OMAP2430_ST_MMCHS2_SHIFT			8
++#define OMAP2430_ST_MMCHS2_MASK				(1 << 8)
++#define OMAP2430_ST_MMCHS1_SHIFT			7
++#define OMAP2430_ST_MMCHS1_MASK				(1 << 7)
++#define OMAP2430_ST_USBHS_SHIFT				6
++#define OMAP2430_ST_USBHS_MASK				(1 << 6)
++#define OMAP24XX_ST_UART3_SHIFT				2
++#define OMAP24XX_ST_UART3_MASK				(1 << 2)
++#define OMAP24XX_ST_USB_SHIFT				0
++#define OMAP24XX_ST_USB_MASK				(1 << 0)
++
++/* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
++#define OMAP24XX_EN_GPIOS_SHIFT				2
++#define OMAP24XX_EN_GPIOS_MASK				(1 << 2)
++#define OMAP24XX_EN_GPT1_SHIFT				0
++#define OMAP24XX_EN_GPT1_MASK				(1 << 0)
++
++/* PM_WKST_WKUP, CM_IDLEST_WKUP shared bits */
++#define OMAP24XX_ST_GPIOS_SHIFT				2
++#define OMAP24XX_ST_GPIOS_MASK				(1 << 2)
++#define OMAP24XX_ST_32KSYNC_SHIFT			1
++#define OMAP24XX_ST_32KSYNC_MASK			(1 << 1)
++#define OMAP24XX_ST_GPT1_SHIFT				0
++#define OMAP24XX_ST_GPT1_MASK				(1 << 0)
++
++/* CM_IDLEST_MDM and PM_WKST_MDM shared bits */
++#define OMAP2430_ST_MDM_SHIFT				0
++#define OMAP2430_ST_MDM_MASK				(1 << 0)
++
++
++/* 3430 register bits shared between CM & PRM registers */
++
++/* CM_REVISION, PRM_REVISION shared bits */
++#define OMAP3430_REV_SHIFT				0
++#define OMAP3430_REV_MASK				(0xff << 0)
++
++/* CM_SYSCONFIG, PRM_SYSCONFIG shared bits */
++#define OMAP3430_AUTOIDLE_MASK				(1 << 0)
++
++/* CM_FCLKEN1_CORE, CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
++#define OMAP3430_EN_MMC3_MASK				(1 << 30)
++#define OMAP3430_EN_MMC3_SHIFT				30
++#define OMAP3430_EN_MMC2_MASK				(1 << 25)
++#define OMAP3430_EN_MMC2_SHIFT				25
++#define OMAP3430_EN_MMC1_MASK				(1 << 24)
++#define OMAP3430_EN_MMC1_SHIFT				24
++#define AM35XX_EN_UART4_MASK				(1 << 23)
++#define AM35XX_EN_UART4_SHIFT				23
++#define OMAP3430_EN_MCSPI4_MASK				(1 << 21)
++#define OMAP3430_EN_MCSPI4_SHIFT			21
++#define OMAP3430_EN_MCSPI3_MASK				(1 << 20)
++#define OMAP3430_EN_MCSPI3_SHIFT			20
++#define OMAP3430_EN_MCSPI2_MASK				(1 << 19)
++#define OMAP3430_EN_MCSPI2_SHIFT			19
++#define OMAP3430_EN_MCSPI1_MASK				(1 << 18)
++#define OMAP3430_EN_MCSPI1_SHIFT			18
++#define OMAP3430_EN_I2C3_MASK				(1 << 17)
++#define OMAP3430_EN_I2C3_SHIFT				17
++#define OMAP3430_EN_I2C2_MASK				(1 << 16)
++#define OMAP3430_EN_I2C2_SHIFT				16
++#define OMAP3430_EN_I2C1_MASK				(1 << 15)
++#define OMAP3430_EN_I2C1_SHIFT				15
++#define OMAP3430_EN_UART2_MASK				(1 << 14)
++#define OMAP3430_EN_UART2_SHIFT				14
++#define OMAP3430_EN_UART1_MASK				(1 << 13)
++#define OMAP3430_EN_UART1_SHIFT				13
++#define OMAP3430_EN_GPT11_MASK				(1 << 12)
++#define OMAP3430_EN_GPT11_SHIFT				12
++#define OMAP3430_EN_GPT10_MASK				(1 << 11)
++#define OMAP3430_EN_GPT10_SHIFT				11
++#define OMAP3430_EN_MCBSP5_MASK				(1 << 10)
++#define OMAP3430_EN_MCBSP5_SHIFT			10
++#define OMAP3430_EN_MCBSP1_MASK				(1 << 9)
++#define OMAP3430_EN_MCBSP1_SHIFT			9
++#define OMAP3430_EN_FSHOSTUSB_MASK			(1 << 5)
++#define OMAP3430_EN_FSHOSTUSB_SHIFT			5
++#define OMAP3430_EN_D2D_MASK				(1 << 3)
++#define OMAP3430_EN_D2D_SHIFT				3
++
++/* CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
++#define OMAP3430_EN_HSOTGUSB_MASK			(1 << 4)
++#define OMAP3430_EN_HSOTGUSB_SHIFT			4
++
++/* PM_WKST1_CORE, CM_IDLEST1_CORE shared bits */
++#define OMAP3430_ST_MMC3_SHIFT				30
++#define OMAP3430_ST_MMC3_MASK				(1 << 30)
++#define OMAP3430_ST_MMC2_SHIFT				25
++#define OMAP3430_ST_MMC2_MASK				(1 << 25)
++#define OMAP3430_ST_MMC1_SHIFT				24
++#define OMAP3430_ST_MMC1_MASK				(1 << 24)
++#define OMAP3430_ST_MCSPI4_SHIFT			21
++#define OMAP3430_ST_MCSPI4_MASK				(1 << 21)
++#define OMAP3430_ST_MCSPI3_SHIFT			20
++#define OMAP3430_ST_MCSPI3_MASK				(1 << 20)
++#define OMAP3430_ST_MCSPI2_SHIFT			19
++#define OMAP3430_ST_MCSPI2_MASK				(1 << 19)
++#define OMAP3430_ST_MCSPI1_SHIFT			18
++#define OMAP3430_ST_MCSPI1_MASK				(1 << 18)
++#define OMAP3430_ST_I2C3_SHIFT				17
++#define OMAP3430_ST_I2C3_MASK				(1 << 17)
++#define OMAP3430_ST_I2C2_SHIFT				16
++#define OMAP3430_ST_I2C2_MASK				(1 << 16)
++#define OMAP3430_ST_I2C1_SHIFT				15
++#define OMAP3430_ST_I2C1_MASK				(1 << 15)
++#define OMAP3430_ST_UART2_SHIFT				14
++#define OMAP3430_ST_UART2_MASK				(1 << 14)
++#define OMAP3430_ST_UART1_SHIFT				13
++#define OMAP3430_ST_UART1_MASK				(1 << 13)
++#define OMAP3430_ST_GPT11_SHIFT				12
++#define OMAP3430_ST_GPT11_MASK				(1 << 12)
++#define OMAP3430_ST_GPT10_SHIFT				11
++#define OMAP3430_ST_GPT10_MASK				(1 << 11)
++#define OMAP3430_ST_MCBSP5_SHIFT			10
++#define OMAP3430_ST_MCBSP5_MASK				(1 << 10)
++#define OMAP3430_ST_MCBSP1_SHIFT			9
++#define OMAP3430_ST_MCBSP1_MASK				(1 << 9)
++#define OMAP3430ES1_ST_FSHOSTUSB_SHIFT			5
++#define OMAP3430ES1_ST_FSHOSTUSB_MASK			(1 << 5)
++#define OMAP3430ES1_ST_HSOTGUSB_SHIFT			4
++#define OMAP3430ES1_ST_HSOTGUSB_MASK			(1 << 4)
++#define OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT		5
++#define OMAP3430ES2_ST_HSOTGUSB_IDLE_MASK		(1 << 5)
++#define OMAP3430ES2_ST_HSOTGUSB_STDBY_SHIFT		4
++#define OMAP3430ES2_ST_HSOTGUSB_STDBY_MASK		(1 << 4)
++#define OMAP3430_ST_D2D_SHIFT				3
++#define OMAP3430_ST_D2D_MASK				(1 << 3)
++
++/* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
++#define OMAP3430_EN_GPIO1_MASK				(1 << 3)
++#define OMAP3430_EN_GPIO1_SHIFT				3
++#define OMAP3430_EN_GPT12_MASK				(1 << 1)
++#define OMAP3430_EN_GPT12_SHIFT				1
++#define OMAP3430_EN_GPT1_MASK				(1 << 0)
++#define OMAP3430_EN_GPT1_SHIFT				0
++
++/* CM_FCLKEN_WKUP, PM_WKEN_WKUP shared bits */
++#define OMAP3430_EN_SR2_MASK				(1 << 7)
++#define OMAP3430_EN_SR2_SHIFT				7
++#define OMAP3430_EN_SR1_MASK				(1 << 6)
++#define OMAP3430_EN_SR1_SHIFT				6
++
++/* CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
++#define OMAP3430_EN_GPT12_MASK				(1 << 1)
++#define OMAP3430_EN_GPT12_SHIFT				1
++
++/* CM_IDLEST_WKUP, PM_WKST_WKUP shared bits */
++#define OMAP3430_ST_SR2_SHIFT				7
++#define OMAP3430_ST_SR2_MASK				(1 << 7)
++#define OMAP3430_ST_SR1_SHIFT				6
++#define OMAP3430_ST_SR1_MASK				(1 << 6)
++#define OMAP3430_ST_GPIO1_SHIFT				3
++#define OMAP3430_ST_GPIO1_MASK				(1 << 3)
++#define OMAP3430_ST_32KSYNC_SHIFT			2
++#define OMAP3430_ST_32KSYNC_MASK			(1 << 2)
++#define OMAP3430_ST_GPT12_SHIFT				1
++#define OMAP3430_ST_GPT12_MASK				(1 << 1)
++#define OMAP3430_ST_GPT1_SHIFT				0
++#define OMAP3430_ST_GPT1_MASK				(1 << 0)
++
++/*
++ * CM_SLEEPDEP_GFX, CM_SLEEPDEP_DSS, CM_SLEEPDEP_CAM,
++ * CM_SLEEPDEP_PER, PM_WKDEP_IVA2, PM_WKDEP_GFX,
++ * PM_WKDEP_DSS, PM_WKDEP_CAM, PM_WKDEP_PER, PM_WKDEP_NEON shared bits
++ */
++#define OMAP3430_EN_MPU_MASK				(1 << 1)
++#define OMAP3430_EN_MPU_SHIFT				1
++
++/* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER shared bits */
++
++#define OMAP3630_EN_UART4_MASK				(1 << 18)
++#define OMAP3630_EN_UART4_SHIFT				18
++#define OMAP3430_EN_GPIO6_MASK				(1 << 17)
++#define OMAP3430_EN_GPIO6_SHIFT				17
++#define OMAP3430_EN_GPIO5_MASK				(1 << 16)
++#define OMAP3430_EN_GPIO5_SHIFT				16
++#define OMAP3430_EN_GPIO4_MASK				(1 << 15)
++#define OMAP3430_EN_GPIO4_SHIFT				15
++#define OMAP3430_EN_GPIO3_MASK				(1 << 14)
++#define OMAP3430_EN_GPIO3_SHIFT				14
++#define OMAP3430_EN_GPIO2_MASK				(1 << 13)
++#define OMAP3430_EN_GPIO2_SHIFT				13
++#define OMAP3430_EN_UART3_MASK				(1 << 11)
++#define OMAP3430_EN_UART3_SHIFT				11
++#define OMAP3430_EN_GPT9_MASK				(1 << 10)
++#define OMAP3430_EN_GPT9_SHIFT				10
++#define OMAP3430_EN_GPT8_MASK				(1 << 9)
++#define OMAP3430_EN_GPT8_SHIFT				9
++#define OMAP3430_EN_GPT7_MASK				(1 << 8)
++#define OMAP3430_EN_GPT7_SHIFT				8
++#define OMAP3430_EN_GPT6_MASK				(1 << 7)
++#define OMAP3430_EN_GPT6_SHIFT				7
++#define OMAP3430_EN_GPT5_MASK				(1 << 6)
++#define OMAP3430_EN_GPT5_SHIFT				6
++#define OMAP3430_EN_GPT4_MASK				(1 << 5)
++#define OMAP3430_EN_GPT4_SHIFT				5
++#define OMAP3430_EN_GPT3_MASK				(1 << 4)
++#define OMAP3430_EN_GPT3_SHIFT				4
++#define OMAP3430_EN_GPT2_MASK				(1 << 3)
++#define OMAP3430_EN_GPT2_SHIFT				3
++
++/* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER, PM_WKST_PER shared bits */
++/* XXX Possible TI documentation bug: should the PM_WKST_PER EN_* bits
++ * be ST_* bits instead? */
++#define OMAP3430_EN_MCBSP4_MASK				(1 << 2)
++#define OMAP3430_EN_MCBSP4_SHIFT			2
++#define OMAP3430_EN_MCBSP3_MASK				(1 << 1)
++#define OMAP3430_EN_MCBSP3_SHIFT			1
++#define OMAP3430_EN_MCBSP2_MASK				(1 << 0)
++#define OMAP3430_EN_MCBSP2_SHIFT			0
++
++/* CM_IDLEST_PER, PM_WKST_PER shared bits */
++#define OMAP3630_ST_UART4_SHIFT				18
++#define OMAP3630_ST_UART4_MASK				(1 << 18)
++#define OMAP3430_ST_GPIO6_SHIFT				17
++#define OMAP3430_ST_GPIO6_MASK				(1 << 17)
++#define OMAP3430_ST_GPIO5_SHIFT				16
++#define OMAP3430_ST_GPIO5_MASK				(1 << 16)
++#define OMAP3430_ST_GPIO4_SHIFT				15
++#define OMAP3430_ST_GPIO4_MASK				(1 << 15)
++#define OMAP3430_ST_GPIO3_SHIFT				14
++#define OMAP3430_ST_GPIO3_MASK				(1 << 14)
++#define OMAP3430_ST_GPIO2_SHIFT				13
++#define OMAP3430_ST_GPIO2_MASK				(1 << 13)
++#define OMAP3430_ST_UART3_SHIFT				11
++#define OMAP3430_ST_UART3_MASK				(1 << 11)
++#define OMAP3430_ST_GPT9_SHIFT				10
++#define OMAP3430_ST_GPT9_MASK				(1 << 10)
++#define OMAP3430_ST_GPT8_SHIFT				9
++#define OMAP3430_ST_GPT8_MASK				(1 << 9)
++#define OMAP3430_ST_GPT7_SHIFT				8
++#define OMAP3430_ST_GPT7_MASK				(1 << 8)
++#define OMAP3430_ST_GPT6_SHIFT				7
++#define OMAP3430_ST_GPT6_MASK				(1 << 7)
++#define OMAP3430_ST_GPT5_SHIFT				6
++#define OMAP3430_ST_GPT5_MASK				(1 << 6)
++#define OMAP3430_ST_GPT4_SHIFT				5
++#define OMAP3430_ST_GPT4_MASK				(1 << 5)
++#define OMAP3430_ST_GPT3_SHIFT				4
++#define OMAP3430_ST_GPT3_MASK				(1 << 4)
++#define OMAP3430_ST_GPT2_SHIFT				3
++#define OMAP3430_ST_GPT2_MASK				(1 << 3)
++
++/* CM_SLEEPDEP_PER, PM_WKDEP_IVA2, PM_WKDEP_MPU, PM_WKDEP_PER shared bits */
++#define OMAP3430_EN_CORE_SHIFT				0
++#define OMAP3430_EN_CORE_MASK				(1 << 0)
++
 +
 +
 +/*
-+ * Powerdomain flags (struct powerdomain.flags)
-+ *
-+ * PWRDM_HAS_HDWR_SAR - powerdomain has hardware save-and-restore support
-+ *
-+ * PWRDM_HAS_MPU_QUIRK - MPU pwr domain has MEM bank 0 bits in MEM
-+ * bank 1 position. This is true for OMAP3430
-+ *
-+ * PWRDM_HAS_LOWPOWERSTATECHANGE - can transition from a sleep state
-+ * to a lower sleep state without waking up the powerdomain
++ * Maximum time(us) it takes to output the signal WUCLKOUT of the last
++ * pad of the I/O ring after asserting WUCLKIN high.  Tero measured
++ * the actual time at 7 to 8 microseconds on OMAP3 and 2 to 4
++ * microseconds on OMAP4, so this timeout may be too high.
 + */
-+#define PWRDM_HAS_HDWR_SAR		BIT(0)
-+#define PWRDM_HAS_MPU_QUIRK		BIT(1)
-+#define PWRDM_HAS_LOWPOWERSTATECHANGE	BIT(2)
++#define MAX_IOPAD_LATCH_TIME			100
++# ifndef __ASSEMBLER__
 +
-+/*
-+ * Number of memory banks that are power-controllable.	On OMAP4430, the
-+ * maximum is 5.
-+ */
-+#define PWRDM_MAX_MEM_BANKS	5
-+
-+/*
-+ * Maximum number of clockdomains that can be associated with a powerdomain.
-+ * PER powerdomain on AM33XX is the worst case
-+ */
-+#define PWRDM_MAX_CLKDMS	11
-+
-+/* XXX A completely arbitrary number. What is reasonable here? */
-+#define PWRDM_TRANSITION_BAILOUT 100000
-+
-+struct clockdomain;
-+struct powerdomain;
-+struct voltagedomain;
++#include <linux/delay.h>
 +
 +/**
-+ * struct powerdomain - OMAP powerdomain
-+ * @name: Powerdomain name
-+ * @voltdm: voltagedomain containing this powerdomain
-+ * @prcm_offs: the address offset from CM_BASE/PRM_BASE
-+ * @prcm_partition: (OMAP4 only) the PRCM partition ID containing @prcm_offs
-+ * @pwrsts: Possible powerdomain power states
-+ * @pwrsts_logic_ret: Possible logic power states when pwrdm in RETENTION
-+ * @flags: Powerdomain flags
-+ * @banks: Number of software-controllable memory banks in this powerdomain
-+ * @pwrsts_mem_ret: Possible memory bank pwrstates when pwrdm in RETENTION
-+ * @pwrsts_mem_on: Possible memory bank pwrstates when pwrdm in ON
-+ * @pwrdm_clkdms: Clockdomains in this powerdomain
-+ * @node: list_head linking all powerdomains
-+ * @voltdm_node: list_head linking all powerdomains in a voltagedomain
-+ * @pwrstctrl_offs: (AM33XX only) XXX_PWRSTCTRL reg offset from prcm_offs
-+ * @pwrstst_offs: (AM33XX only) XXX_PWRSTST reg offset from prcm_offs
-+ * @logicretstate_mask: (AM33XX only) mask for logic retention bitfield
-+ *	in @pwrstctrl_offs
-+ * @mem_on_mask: (AM33XX only) mask for mem on bitfield in @pwrstctrl_offs
-+ * @mem_ret_mask: (AM33XX only) mask for mem ret bitfield in @pwrstctrl_offs
-+ * @mem_pwrst_mask: (AM33XX only) mask for mem state bitfield in @pwrstst_offs
-+ * @mem_retst_mask: (AM33XX only) mask for mem retention state bitfield
-+ *	in @pwrstctrl_offs
-+ * @state:
-+ * @state_counter:
-+ * @timer:
-+ * @state_timer:
-+ * @_lock: spinlock used to serialize powerdomain and some clockdomain ops
-+ * @_lock_flags: stored flags when @_lock is taken
++ * omap_test_timeout - busy-loop, testing a condition
++ * @cond: condition to test until it evaluates to true
++ * @timeout: maximum number of microseconds in the timeout
++ * @index: loop index (integer)
 + *
-+ * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
++ * Loop waiting for @cond to become true or until at least @timeout
++ * microseconds have passed.  To use, define some integer @index in the
++ * calling code.  After running, if @index == @timeout, then the loop has
++ * timed out.
 + */
-+struct powerdomain {
++#define omap_test_timeout(cond, timeout, index)			\
++({								\
++	for (index = 0; index < timeout; index++) {		\
++		if (cond)					\
++			break;					\
++		udelay(1);					\
++	}							\
++})
++
++/**
++ * struct omap_prcm_irq - describes a PRCM interrupt bit
++ * @name: a short name describing the interrupt type, e.g. "wkup" or "io"
++ * @offset: the bit shift of the interrupt inside the IRQ{ENABLE,STATUS} regs
++ * @priority: should this interrupt be handled before @priority=false IRQs?
++ *
++ * Describes interrupt bits inside the PRM_IRQ{ENABLE,STATUS}_MPU* registers.
++ * On systems with multiple PRM MPU IRQ registers, the bitfields read from
++ * the registers are concatenated, so @offset could be > 31 on these systems -
++ * see omap_prm_irq_handler() for more details.  I/O ring interrupts should
++ * have @priority set to true.
++ */
++struct omap_prcm_irq {
 +	const char *name;
-+	union {
-+		const char *name;
-+		struct voltagedomain *ptr;
-+	} voltdm;
-+	const s16 prcm_offs;
-+	const u8 pwrsts;
-+	const u8 pwrsts_logic_ret;
-+	const u8 flags;
-+	const u8 banks;
-+	const u8 pwrsts_mem_ret[PWRDM_MAX_MEM_BANKS];
-+	const u8 pwrsts_mem_on[PWRDM_MAX_MEM_BANKS];
-+	const u8 prcm_partition;
-+	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
-+	struct list_head node;
-+	struct list_head voltdm_node;
-+	int state;
-+	unsigned state_counter[PWRDM_MAX_PWRSTS];
-+	unsigned ret_logic_off_counter;
-+	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
-+	spinlock_t _lock;
-+	unsigned long _lock_flags;
-+	const u8 pwrstctrl_offs;
-+	const u8 pwrstst_offs;
-+	const u32 logicretstate_mask;
-+	const u32 mem_on_mask[PWRDM_MAX_MEM_BANKS];
-+	const u32 mem_ret_mask[PWRDM_MAX_MEM_BANKS];
-+	const u32 mem_pwrst_mask[PWRDM_MAX_MEM_BANKS];
-+	const u32 mem_retst_mask[PWRDM_MAX_MEM_BANKS];
-+
-+#ifdef CONFIG_PM_DEBUG
-+	s64 timer;
-+	s64 state_timer[PWRDM_MAX_PWRSTS];
-+#endif
++	unsigned int offset;
++	bool priority;
 +};
 +
 +/**
-+ * struct pwrdm_ops - Arch specific function implementations
-+ * @pwrdm_set_next_pwrst: Set the target power state for a pd
-+ * @pwrdm_read_next_pwrst: Read the target power state set for a pd
-+ * @pwrdm_read_pwrst: Read the current power state of a pd
-+ * @pwrdm_read_prev_pwrst: Read the prev power state entered by the pd
-+ * @pwrdm_set_logic_retst: Set the logic state in RET for a pd
-+ * @pwrdm_set_mem_onst: Set the Memory state in ON for a pd
-+ * @pwrdm_set_mem_retst: Set the Memory state in RET for a pd
-+ * @pwrdm_read_logic_pwrst: Read the current logic state of a pd
-+ * @pwrdm_read_prev_logic_pwrst: Read the previous logic state entered by a pd
-+ * @pwrdm_read_logic_retst: Read the logic state in RET for a pd
-+ * @pwrdm_read_mem_pwrst: Read the current memory state of a pd
-+ * @pwrdm_read_prev_mem_pwrst: Read the previous memory state entered by a pd
-+ * @pwrdm_read_mem_retst: Read the memory state in RET for a pd
-+ * @pwrdm_clear_all_prev_pwrst: Clear all previous power states logged for a pd
-+ * @pwrdm_enable_hdwr_sar: Enable Hardware Save-Restore feature for the pd
-+ * @pwrdm_disable_hdwr_sar: Disable Hardware Save-Restore feature for a pd
-+ * @pwrdm_set_lowpwrstchange: Enable pd transitions from a shallow to deep sleep
-+ * @pwrdm_wait_transition: Wait for a pd state transition to complete
-+ * @pwrdm_has_voltdm: Check if a voltdm association is needed
++ * struct omap_prcm_irq_setup - PRCM interrupt controller details
++ * @ack: PRM register offset for the first PRM_IRQSTATUS_MPU register
++ * @mask: PRM register offset for the first PRM_IRQENABLE_MPU register
++ * @nr_regs: number of PRM_IRQ{STATUS,ENABLE}_MPU* registers
++ * @nr_irqs: number of entries in the @irqs array
++ * @irqs: ptr to an array of PRCM interrupt bits (see @nr_irqs)
++ * @irq: MPU IRQ asserted when a PRCM interrupt arrives
++ * @read_pending_irqs: fn ptr to determine if any PRCM IRQs are pending
++ * @ocp_barrier: fn ptr to force buffered PRM writes to complete
++ * @save_and_clear_irqen: fn ptr to save and clear IRQENABLE regs
++ * @restore_irqen: fn ptr to save and clear IRQENABLE regs
++ * @reconfigure_io_chain: fn ptr to reconfigure IO chain
++ * @saved_mask: IRQENABLE regs are saved here during suspend
++ * @priority_mask: 1 bit per IRQ, set to 1 if omap_prcm_irq.priority = true
++ * @base_irq: base dynamic IRQ number, returned from irq_alloc_descs() in init
++ * @suspended: set to true after Linux suspend code has called our ->prepare()
++ * @suspend_save_flag: set to true after IRQ masks have been saved and disabled
 + *
-+ * Regarding @pwrdm_set_lowpwrstchange: On the OMAP2 and 3-family
-+ * chips, a powerdomain's power state is not allowed to directly
-+ * transition from one low-power state (e.g., CSWR) to another
-+ * low-power state (e.g., OFF) without first waking up the
-+ * powerdomain.  This wastes energy.  So OMAP4 chips support the
-+ * ability to transition a powerdomain power state directly from one
-+ * low-power state to another.  The function pointed to by
-+ * @pwrdm_set_lowpwrstchange is intended to configure the OMAP4
-+ * hardware powerdomain state machine to enable this feature.
++ * @saved_mask, @priority_mask, @base_irq, @suspended, and
++ * @suspend_save_flag are populated dynamically, and are not to be
++ * specified in static initializers.
 + */
-+struct pwrdm_ops {
-+	int	(*pwrdm_set_next_pwrst)(struct powerdomain *pwrdm, u8 pwrst);
-+	int	(*pwrdm_read_next_pwrst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_read_pwrst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_read_prev_pwrst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_set_logic_retst)(struct powerdomain *pwrdm, u8 pwrst);
-+	int	(*pwrdm_set_mem_onst)(struct powerdomain *pwrdm, u8 bank,
-+				      u8 pwrst);
-+	int	(*pwrdm_set_mem_retst)(struct powerdomain *pwrdm, u8 bank,
-+				       u8 pwrst);
-+	int	(*pwrdm_read_logic_pwrst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_read_prev_logic_pwrst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_read_logic_retst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_read_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
-+	int	(*pwrdm_read_prev_mem_pwrst)(struct powerdomain *pwrdm,
-+					     u8 bank);
-+	int	(*pwrdm_read_mem_retst)(struct powerdomain *pwrdm, u8 bank);
-+	int	(*pwrdm_clear_all_prev_pwrst)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_enable_hdwr_sar)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_disable_hdwr_sar)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_set_lowpwrstchange)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_has_voltdm)(void);
++struct omap_prcm_irq_setup {
++	u16 ack;
++	u16 mask;
++	u8 nr_regs;
++	u8 nr_irqs;
++	const struct omap_prcm_irq *irqs;
++	int irq;
++	void (*read_pending_irqs)(unsigned long *events);
++	void (*ocp_barrier)(void);
++	void (*save_and_clear_irqen)(u32 *saved_mask);
++	void (*restore_irqen)(u32 *saved_mask);
++	void (*reconfigure_io_chain)(void);
++	u32 *saved_mask;
++	u32 *priority_mask;
++	int base_irq;
++	bool suspended;
++	bool suspend_save_flag;
 +};
 +
-+int pwrdm_register_platform_funcs(struct pwrdm_ops *custom_funcs);
-+int pwrdm_register_pwrdms(struct powerdomain **pwrdm_list);
-+int pwrdm_complete_init(void);
++/* OMAP_PRCM_IRQ: convenience macro for creating struct omap_prcm_irq records */
++#define OMAP_PRCM_IRQ(_name, _offset, _priority) {	\
++	.name = _name,					\
++	.offset = _offset,				\
++	.priority = _priority				\
++	}
 +
-+struct powerdomain *pwrdm_lookup(const char *name);
++struct of_device_id;
 +
-+int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
-+			void *user);
-+int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
-+			void *user);
++extern void __iomem *clk_memmaps[];
 +
-+int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
-+int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
-+int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
-+			 int (*fn)(struct powerdomain *pwrdm,
-+				   struct clockdomain *clkdm));
-+struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm);
++void omap_prcm_irq_cleanup(void);
++int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup);
++int omap_prcm_event_to_irq(const char *event);
++void omap_prcm_irq_prepare(void);
++void omap_prcm_irq_complete(void);
++void omap_pcs_legacy_init(int irq, void (*rearm)(void));
++int of_prcm_module_init(struct of_device_id *match_table);
++int of_cm_init(void);
 +
-+int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
-+
-+int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
-+int pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
-+int pwrdm_read_pwrst(struct powerdomain *pwrdm);
-+int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm);
-+int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm);
-+
-+int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst);
-+int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
-+int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
-+
-+int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm);
-+int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm);
-+int pwrdm_read_logic_retst(struct powerdomain *pwrdm);
-+int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
-+int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
-+int pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank);
-+
-+int pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm);
-+int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm);
-+bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
-+
-+int pwrdm_state_switch_nolock(struct powerdomain *pwrdm);
-+int pwrdm_state_switch(struct powerdomain *pwrdm);
-+int pwrdm_pre_transition(struct powerdomain *pwrdm);
-+int pwrdm_post_transition(struct powerdomain *pwrdm);
-+int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
-+bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
-+
-+int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 state);
-+
-+void omap242x_powerdomains_init(void);
-+void omap243x_powerdomains_init(void);
-+void omap3xxx_powerdomains_init(void);
-+void am33xx_powerdomains_init(void);
-+void omap44xx_powerdomains_init(void);
-+void omap54xx_powerdomains_init(void);
-+void dra7xx_powerdomains_init(void);
-+void am43xx_powerdomains_init(void);
-+
-+extern struct pwrdm_ops omap2_pwrdm_operations;
-+extern struct pwrdm_ops omap3_pwrdm_operations;
-+extern struct pwrdm_ops am33xx_pwrdm_operations;
-+extern struct pwrdm_ops omap4_pwrdm_operations;
-+
-+/* Common Internal functions used across OMAP rev's */
-+u32 omap2_pwrdm_get_mem_bank_onstate_mask(u8 bank);
-+u32 omap2_pwrdm_get_mem_bank_retst_mask(u8 bank);
-+u32 omap2_pwrdm_get_mem_bank_stst_mask(u8 bank);
-+
-+extern struct powerdomain wkup_omap2_pwrdm;
-+extern struct powerdomain gfx_omap2_pwrdm;
-+
-+void pwrdm_lock(struct powerdomain *pwrdm);
-+void pwrdm_unlock(struct powerdomain *pwrdm);
++# endif
 +
 +#endif
 -- 
