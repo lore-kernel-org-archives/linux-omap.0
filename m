@@ -1,131 +1,323 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 03/55] ARM: OMAP2+: PRM: remove unnecessary cpu_is_XXX calls
- from prm_init / exit
-Date: Mon, 31 Mar 2014 18:15:42 +0300
-Message-ID: <1396278994-12624-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 36/55] ARM: OMAP3: PRM: move prm3xxx.h header to public location
+Date: Mon, 31 Mar 2014 18:16:15 +0300
+Message-ID: <1396278994-12624-37-git-send-email-t-kristo@ti.com>
 References: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39187 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753561AbaCaPSj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Mar 2014 11:18:39 -0400
 In-Reply-To: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
 
-Done in preparation to make PRM its own driver, as the cpu_is_XXX calls are
-not available outside mach-omap2 folder.
-
-The init functions are called only from cpu specific init chain, and thus
-don't need to double check against cpu type.
-
-The exit calls check against the data provided during init-time registration
-and thus don't need cpu check either.
+This file needs to be accessible from the PRCM core and mach-omap2 board
+support code.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/prm2xxx.c |   13 +------------
- arch/arm/mach-omap2/prm3xxx.c |   10 +---------
- arch/arm/mach-omap2/prm44xx.c |   10 +---------
- 3 files changed, 3 insertions(+), 30 deletions(-)
+ arch/arm/mach-omap2/prm3xxx.c      |    2 +-
+ arch/arm/mach-omap2/prm3xxx.h      |  113 +-----------------------------
+ arch/arm/mach-omap2/prm_common.c   |    2 +-
+ include/linux/power/omap/prm3xxx.h |  132 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 135 insertions(+), 114 deletions(-)
+ create mode 100644 include/linux/power/omap/prm3xxx.h
 
-diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
-index 45f83dd..a7f1cac 100644
---- a/arch/arm/mach-omap2/prm2xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx.c
-@@ -18,9 +18,6 @@
- #include <linux/io.h>
- #include <linux/irq.h>
- 
--#include "soc.h"
--#include "common.h"
--#include "vp.h"
- #include "powerdomain.h"
- #include "clockdomain.h"
- #include "prm2xxx_3xxx_private.h"
-@@ -261,19 +258,11 @@ static struct prm_ll_data omap2xxx_prm_ll_data = {
- 
- int __init omap2xxx_prm_init(void)
- {
--	if (!cpu_is_omap24xx())
--		return 0;
--
- 	return prm_register(&omap2xxx_prm_ll_data);
- }
- 
- static void __exit omap2xxx_prm_exit(void)
- {
--	if (!cpu_is_omap24xx())
--		return;
--
--	/* Should never happen */
--	WARN(prm_unregister(&omap2xxx_prm_ll_data),
--	     "%s: prm_ll_data function pointer mismatch\n", __func__);
-+	prm_unregister(&omap2xxx_prm_ll_data);
- }
- __exitcall(omap2xxx_prm_exit);
 diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index 6d3e9c2..1a39954 100644
+index 4700605..93f87e1 100644
 --- a/arch/arm/mach-omap2/prm3xxx.c
 +++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -639,9 +639,6 @@ static struct prm_ll_data omap3xxx_prm_ll_data = {
+@@ -20,7 +20,7 @@
  
- int __init omap3xxx_prm_init(void)
- {
--	if (!cpu_is_omap34xx())
--		return 0;
+ #include "vp.h"
+ #include "powerdomain.h"
+-#include "prm3xxx.h"
++#include <linux/power/omap/prm3xxx.h>
+ #include "prm2xxx_3xxx_private.h"
+ #include "cm2xxx_3xxx_private.h"
+ #include <linux/power/omap/cm3xxx.h>
+diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
+index ffc8177..6c06fce 100644
+--- a/arch/arm/mach-omap2/prm3xxx.h
++++ b/arch/arm/mach-omap2/prm3xxx.h
+@@ -19,120 +19,9 @@
+ #include "prcm-common.h"
+ #include "prm.h"
+ #include <linux/power/omap/prm2xxx_3xxx.h>
++#include <linux/power/omap/prm3xxx.h>
+ 
+ #define OMAP34XX_PRM_REGADDR(module, reg)				\
+ 		OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE + (module) + (reg))
+ 
 -
- 	return prm_register(&omap3xxx_prm_ll_data);
- }
- 
-@@ -664,11 +661,6 @@ omap_subsys_initcall(omap3xxx_prm_late_init);
- 
- static void __exit omap3xxx_prm_exit(void)
- {
--	if (!cpu_is_omap34xx())
--		return;
+-/*
+- * OMAP3-specific global PRM registers
+- * Use __raw_{read,write}l() with these registers.
+- *
+- * With a few exceptions, these are the register names beginning with
+- * PRM_* on 34xx.  (The exceptions are the IRQSTATUS and IRQENABLE
+- * bits.)
+- */
 -
--	/* Should never happen */
--	WARN(prm_unregister(&omap3xxx_prm_ll_data),
--	     "%s: prm_ll_data function pointer mismatch\n", __func__);
-+	prm_unregister(&omap3xxx_prm_ll_data);
- }
- __exitcall(omap3xxx_prm_exit);
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 3655e16..be96881 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -660,9 +660,6 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
- 
- int __init omap44xx_prm_init(void)
- {
--	if (!cpu_is_omap44xx() && !soc_is_omap54xx() && !soc_is_dra7xx())
--		return 0;
+-#define OMAP3_PRM_REVISION_OFFSET	0x0004
+-#define OMAP3_PRM_SYSCONFIG_OFFSET	0x0014
 -
- 	return prm_register(&omap44xx_prm_ll_data);
- }
- 
-@@ -679,11 +676,6 @@ omap_subsys_initcall(omap44xx_prm_late_init);
- 
- static void __exit omap44xx_prm_exit(void)
- {
--	if (!cpu_is_omap44xx())
--		return;
+-#define OMAP3_PRM_IRQSTATUS_MPU_OFFSET	0x0018
+-#define OMAP3_PRM_IRQENABLE_MPU_OFFSET	0x001c
 -
--	/* Should never happen */
--	WARN(prm_unregister(&omap44xx_prm_ll_data),
--	     "%s: prm_ll_data function pointer mismatch\n", __func__);
-+	prm_unregister(&omap44xx_prm_ll_data);
- }
- __exitcall(omap44xx_prm_exit);
+-
+-#define OMAP3_PRM_VC_SMPS_SA_OFFSET	0x0020
+-#define OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET	0x0024
+-#define OMAP3_PRM_VC_SMPS_CMD_RA_OFFSET	0x0028
+-#define OMAP3_PRM_VC_CMD_VAL_0_OFFSET	0x002c
+-#define OMAP3_PRM_VC_CMD_VAL_1_OFFSET	0x0030
+-#define OMAP3_PRM_VC_CH_CONF_OFFSET	0x0034
+-#define OMAP3_PRM_VC_I2C_CFG_OFFSET	0x0038
+-#define OMAP3_PRM_VC_BYPASS_VAL_OFFSET	0x003c
+-#define OMAP3_PRM_RSTCTRL_OFFSET	0x0050
+-#define OMAP3_PRM_RSTTIME_OFFSET	0x0054
+-#define OMAP3_PRM_RSTST_OFFSET	0x0058
+-#define OMAP3_PRM_VOLTCTRL_OFFSET	0x0060
+-#define OMAP3_PRM_SRAM_PCHARGE_OFFSET	0x0064
+-#define OMAP3_PRM_CLKSRC_CTRL_OFFSET	0x0070
+-#define OMAP3_PRM_VOLTSETUP1_OFFSET	0x0090
+-#define OMAP3_PRM_VOLTOFFSET_OFFSET	0x0094
+-#define OMAP3_PRM_CLKSETUP_OFFSET	0x0098
+-#define OMAP3_PRM_POLCTRL_OFFSET	0x009c
+-#define OMAP3_PRM_VOLTSETUP2_OFFSET	0x00a0
+-#define OMAP3_PRM_VP1_CONFIG_OFFSET	0x00b0
+-#define OMAP3_PRM_VP1_VSTEPMIN_OFFSET	0x00b4
+-#define OMAP3_PRM_VP1_VSTEPMAX_OFFSET	0x00b8
+-#define OMAP3_PRM_VP1_VLIMITTO_OFFSET	0x00bc
+-#define OMAP3_PRM_VP1_VOLTAGE_OFFSET	0x00c0
+-#define OMAP3_PRM_VP1_STATUS_OFFSET	0x00c4
+-#define OMAP3_PRM_VP2_CONFIG_OFFSET	0x00d0
+-#define OMAP3_PRM_VP2_VSTEPMIN_OFFSET	0x00d4
+-#define OMAP3_PRM_VP2_VSTEPMAX_OFFSET	0x00d8
+-#define OMAP3_PRM_VP2_VLIMITTO_OFFSET	0x00dc
+-#define OMAP3_PRM_VP2_VOLTAGE_OFFSET	0x00e0
+-#define OMAP3_PRM_VP2_STATUS_OFFSET	0x00e4
+-
+-#define OMAP3_PRM_CLKSEL_OFFSET	0x0040
+-#define OMAP3_PRM_CLKOUT_CTRL_OFFSET	0x0070
+-
+-/* OMAP3 specific register offsets */
+-#define OMAP3430ES2_PM_WKEN3				0x00f0
+-#define OMAP3430ES2_PM_WKST3				0x00b8
+-
+-#define OMAP3430_PM_MPUGRPSEL				0x00a4
+-#define OMAP3430_PM_MPUGRPSEL1				OMAP3430_PM_MPUGRPSEL
+-#define OMAP3430ES2_PM_MPUGRPSEL3			0x00f8
+-
+-#define OMAP3430_PM_IVAGRPSEL				0x00a8
+-#define OMAP3430_PM_IVAGRPSEL1				OMAP3430_PM_IVAGRPSEL
+-#define OMAP3430ES2_PM_IVAGRPSEL3			0x00f4
+-
+-#define OMAP3430_PM_PREPWSTST				0x00e8
+-
+-#define OMAP3430_PRM_IRQSTATUS_IVA2			0x00f8
+-#define OMAP3430_PRM_IRQENABLE_IVA2			0x00fc
+-
+-
+-#ifndef __ASSEMBLER__
+-
+-/* OMAP3-specific VP functions */
+-u32 omap3_prm_vp_check_txdone(u8 vp_id);
+-void omap3_prm_vp_clear_txdone(u8 vp_id);
+-
+-/*
+- * OMAP3 access functions for voltage controller (VC) and
+- * voltage proccessor (VP) in the PRM.
+- */
+-extern u32 omap3_prm_vcvp_read(u8 offset);
+-extern void omap3_prm_vcvp_write(u32 val, u8 offset);
+-extern u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
+-
+-#ifdef CONFIG_ARCH_OMAP3
+-void omap3xxx_prm_reconfigure_io_chain(void);
+-#else
+-static inline void omap3xxx_prm_reconfigure_io_chain(void)
+-{
+-}
+-#endif
+-
+-/* PRM interrupt-related functions */
+-extern void omap3xxx_prm_read_pending_irqs(unsigned long *events);
+-extern void omap3xxx_prm_ocp_barrier(void);
+-extern void omap3xxx_prm_save_and_clear_irqen(u32 *saved_mask);
+-extern void omap3xxx_prm_restore_irqen(u32 *saved_mask);
+-
+-extern void omap3xxx_prm_dpll3_reset(void);
+-
+-int __init omap3xxx_prm_init(u16 cpu_type);
+-extern u32 omap3xxx_prm_get_reset_sources(void);
+-int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits);
+-void omap3xxx_prm_iva_idle(void);
+-void omap3_prm_reset_modem(void);
+-int omap3xxx_prm_clear_global_cold_reset(void);
+-void omap3_prm_save_scratchpad_contents(u32 *ptr);
+-void omap3_prm_init_pm(bool has_uart4, bool has_iva);
+-
+-#endif /* __ASSEMBLER */
+-
+-
+ #endif
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index c3eef62..40e94e7 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -30,7 +30,7 @@
+ 
+ #include <linux/power/omap/prm2xxx_3xxx.h>
+ #include <linux/power/omap/prm2xxx.h>
+-#include "prm3xxx.h"
++#include <linux/power/omap/prm3xxx.h>
+ #include "prm44xx.h"
+ 
+ /*
+diff --git a/include/linux/power/omap/prm3xxx.h b/include/linux/power/omap/prm3xxx.h
+new file mode 100644
+index 0000000..3bdc372
+--- /dev/null
++++ b/include/linux/power/omap/prm3xxx.h
+@@ -0,0 +1,132 @@
++/*
++ * OMAP3xxx Power/Reset Management (PRM) register definitions
++ *
++ * Copyright (C) 2007-2009, 2011-2012 Texas Instruments, Inc.
++ * Copyright (C) 2008-2010 Nokia Corporation
++ * Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * The PRM hardware modules on the OMAP2/3 are quite similar to each
++ * other.  The PRM on OMAP4 has a new register layout, and is handled
++ * in a separate file.
++ */
++#ifndef __LINUX_POWER_OMAP_PRM3XXX_H
++#define __LINUX_POWER_OMAP_PRM3XXX_H
++
++#include <linux/power/omap/prm2xxx_3xxx.h>
++
++/*
++ * OMAP3-specific global PRM registers
++ * Use __raw_{read,write}l() with these registers.
++ *
++ * With a few exceptions, these are the register names beginning with
++ * PRM_* on 34xx.  (The exceptions are the IRQSTATUS and IRQENABLE
++ * bits.)
++ */
++
++#define OMAP3_PRM_REVISION_OFFSET	0x0004
++#define OMAP3_PRM_SYSCONFIG_OFFSET	0x0014
++
++#define OMAP3_PRM_IRQSTATUS_MPU_OFFSET	0x0018
++#define OMAP3_PRM_IRQENABLE_MPU_OFFSET	0x001c
++
++
++#define OMAP3_PRM_VC_SMPS_SA_OFFSET	0x0020
++#define OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET	0x0024
++#define OMAP3_PRM_VC_SMPS_CMD_RA_OFFSET	0x0028
++#define OMAP3_PRM_VC_CMD_VAL_0_OFFSET	0x002c
++#define OMAP3_PRM_VC_CMD_VAL_1_OFFSET	0x0030
++#define OMAP3_PRM_VC_CH_CONF_OFFSET	0x0034
++#define OMAP3_PRM_VC_I2C_CFG_OFFSET	0x0038
++#define OMAP3_PRM_VC_BYPASS_VAL_OFFSET	0x003c
++#define OMAP3_PRM_RSTCTRL_OFFSET	0x0050
++#define OMAP3_PRM_RSTTIME_OFFSET	0x0054
++#define OMAP3_PRM_RSTST_OFFSET	0x0058
++#define OMAP3_PRM_VOLTCTRL_OFFSET	0x0060
++#define OMAP3_PRM_SRAM_PCHARGE_OFFSET	0x0064
++#define OMAP3_PRM_CLKSRC_CTRL_OFFSET	0x0070
++#define OMAP3_PRM_VOLTSETUP1_OFFSET	0x0090
++#define OMAP3_PRM_VOLTOFFSET_OFFSET	0x0094
++#define OMAP3_PRM_CLKSETUP_OFFSET	0x0098
++#define OMAP3_PRM_POLCTRL_OFFSET	0x009c
++#define OMAP3_PRM_VOLTSETUP2_OFFSET	0x00a0
++#define OMAP3_PRM_VP1_CONFIG_OFFSET	0x00b0
++#define OMAP3_PRM_VP1_VSTEPMIN_OFFSET	0x00b4
++#define OMAP3_PRM_VP1_VSTEPMAX_OFFSET	0x00b8
++#define OMAP3_PRM_VP1_VLIMITTO_OFFSET	0x00bc
++#define OMAP3_PRM_VP1_VOLTAGE_OFFSET	0x00c0
++#define OMAP3_PRM_VP1_STATUS_OFFSET	0x00c4
++#define OMAP3_PRM_VP2_CONFIG_OFFSET	0x00d0
++#define OMAP3_PRM_VP2_VSTEPMIN_OFFSET	0x00d4
++#define OMAP3_PRM_VP2_VSTEPMAX_OFFSET	0x00d8
++#define OMAP3_PRM_VP2_VLIMITTO_OFFSET	0x00dc
++#define OMAP3_PRM_VP2_VOLTAGE_OFFSET	0x00e0
++#define OMAP3_PRM_VP2_STATUS_OFFSET	0x00e4
++
++#define OMAP3_PRM_CLKSEL_OFFSET	0x0040
++#define OMAP3_PRM_CLKOUT_CTRL_OFFSET	0x0070
++
++/* OMAP3 specific register offsets */
++#define OMAP3430ES2_PM_WKEN3				0x00f0
++#define OMAP3430ES2_PM_WKST3				0x00b8
++
++#define OMAP3430_PM_MPUGRPSEL				0x00a4
++#define OMAP3430_PM_MPUGRPSEL1				OMAP3430_PM_MPUGRPSEL
++#define OMAP3430ES2_PM_MPUGRPSEL3			0x00f8
++
++#define OMAP3430_PM_IVAGRPSEL				0x00a8
++#define OMAP3430_PM_IVAGRPSEL1				OMAP3430_PM_IVAGRPSEL
++#define OMAP3430ES2_PM_IVAGRPSEL3			0x00f4
++
++#define OMAP3430_PM_PREPWSTST				0x00e8
++
++#define OMAP3430_PRM_IRQSTATUS_IVA2			0x00f8
++#define OMAP3430_PRM_IRQENABLE_IVA2			0x00fc
++
++
++#ifndef __ASSEMBLER__
++
++/* OMAP3-specific VP functions */
++u32 omap3_prm_vp_check_txdone(u8 vp_id);
++void omap3_prm_vp_clear_txdone(u8 vp_id);
++
++/*
++ * OMAP3 access functions for voltage controller (VC) and
++ * voltage proccessor (VP) in the PRM.
++ */
++u32 omap3_prm_vcvp_read(u8 offset);
++void omap3_prm_vcvp_write(u32 val, u8 offset);
++u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
++
++#ifdef CONFIG_ARCH_OMAP3
++void omap3xxx_prm_reconfigure_io_chain(void);
++#else
++static inline void omap3xxx_prm_reconfigure_io_chain(void)
++{
++}
++#endif
++
++/* PRM interrupt-related functions */
++void omap3xxx_prm_read_pending_irqs(unsigned long *events);
++void omap3xxx_prm_ocp_barrier(void);
++void omap3xxx_prm_save_and_clear_irqen(u32 *saved_mask);
++void omap3xxx_prm_restore_irqen(u32 *saved_mask);
++
++void omap3xxx_prm_dpll3_reset(void);
++
++int __init omap3xxx_prm_init(u16 cpu_type);
++u32 omap3xxx_prm_get_reset_sources(void);
++int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits);
++void omap3xxx_prm_iva_idle(void);
++void omap3_prm_reset_modem(void);
++int omap3xxx_prm_clear_global_cold_reset(void);
++void omap3_prm_save_scratchpad_contents(u32 *ptr);
++void omap3_prm_init_pm(bool has_uart4, bool has_iva);
++
++#endif /* __ASSEMBLER */
++
++
++#endif
 -- 
 1.7.9.5
+
