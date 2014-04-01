@@ -1,63 +1,50 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 01/14] platform_data: edma: Be precise with the paRAM struct
-Date: Tue, 1 Apr 2014 16:06:02 +0300
-Message-ID: <1396357575-30585-2-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 02/14] dma: edma: Correct the handling of src/dst_maxburst
+ == 0
+Date: Tue, 1 Apr 2014 16:06:03 +0300
+Message-ID: <1396357575-30585-3-git-send-email-peter.ujfalusi@ti.com>
 References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1396357575-30585-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: dan.j.williams@intel.com, vinod.koul@intel.com, nsekhar@ti.com
+Cc: davinci-linux-open-source@linux.davincidsp.com, joelf@ti.com, linux-kernel@vger.kernel.org, mporter@linaro.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The edmacc_param struct should follow the layout of the paRAM area in the
-HW. Be explicit on the size of the fields (u32) and also mark the struct
-as packed to avoid any padding on non 32bit architectures.
+When clients asks for maxburst = 0 it is basically the same case as if they
+were asking for maxburst = 1 since in both case ASYNC need to be used and
+the eDMA is expected to write/read one word per DMA request.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- include/linux/platform_data/edma.h | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/dma/edma.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/include/linux/platform_data/edma.h b/include/linux/platform_data/edma.h
-index f50821cb64be..923f8a3e4ce0 100644
---- a/include/linux/platform_data/edma.h
-+++ b/include/linux/platform_data/edma.h
-@@ -43,15 +43,15 @@
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index cd04eb7b182e..2742867fd1e6 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -285,6 +285,10 @@ static int edma_config_pset(struct dma_chan *chan, struct edmacc_param *pset,
+ 	int absync;
  
- /* PaRAM slots are laid out like this */
- struct edmacc_param {
--	unsigned int opt;
--	unsigned int src;
--	unsigned int a_b_cnt;
--	unsigned int dst;
--	unsigned int src_dst_bidx;
--	unsigned int link_bcntrld;
--	unsigned int src_dst_cidx;
--	unsigned int ccnt;
--};
-+	u32 opt;
-+	u32 src;
-+	u32 a_b_cnt;
-+	u32 dst;
-+	u32 src_dst_bidx;
-+	u32 link_bcntrld;
-+	u32 src_dst_cidx;
-+	u32 ccnt;
-+} __packed;
- 
- /* fields in edmacc_param.opt */
- #define SAM		BIT(0)
+ 	acnt = dev_width;
++
++	/* src/dst_maxburst == 0 is the same case as src/dst_maxburst == 1 */
++	if (!burst)
++		burst = 1;
+ 	/*
+ 	 * If the maxburst is equal to the fifo width, use
+ 	 * A-synced transfers. This allows for large contiguous
 -- 
 1.9.1
