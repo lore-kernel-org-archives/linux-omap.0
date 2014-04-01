@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 1/5] drivers: bus: omap_l3: Convert to use devm_kzalloc
-Date: Tue, 1 Apr 2014 16:23:46 +0300
-Message-ID: <1396358630-32340-2-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 3/5] drivers: bus: omap_l3: Convert to use devm_request_irq()
+Date: Tue, 1 Apr 2014 16:23:48 +0300
+Message-ID: <1396358630-32340-4-git-send-email-peter.ujfalusi@ti.com>
 References: <1396358630-32340-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,62 +12,63 @@ To: tony@atomide.com, santosh.shilimkar@ti.com, arnd@arndb.de, olof@lixom.net
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We can remove the kfree() calls from probe and remove.
+With this we can remove the free_irq() calls from probe and remove.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/bus/omap_l3_noc.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/bus/omap_l3_noc.c | 23 +++++------------------
+ 1 file changed, 5 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-index feeecae623f6..d25d727e7cfb 100644
+index 6f58be3c2f76..25bcb60be880 100644
 --- a/drivers/bus/omap_l3_noc.c
 +++ b/drivers/bus/omap_l3_noc.c
-@@ -134,7 +134,7 @@ static int omap4_l3_probe(struct platform_device *pdev)
- 	struct resource	*res;
- 	int ret;
- 
--	l3 = kzalloc(sizeof(*l3), GFP_KERNEL);
-+	l3 = devm_kzalloc(&pdev->dev, sizeof(*l3), GFP_KERNEL);
- 	if (!l3)
- 		return -ENOMEM;
- 
-@@ -142,15 +142,13 @@ static int omap4_l3_probe(struct platform_device *pdev)
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
- 		dev_err(&pdev->dev, "couldn't find resource 0\n");
--		ret = -ENODEV;
--		goto err0;
-+		return -ENODEV;
+@@ -155,9 +155,8 @@ static int omap4_l3_probe(struct platform_device *pdev)
+ 	 * Setup interrupt Handlers
+ 	 */
+ 	l3->debug_irq = platform_get_irq(pdev, 0);
+-	ret = request_irq(l3->debug_irq,
+-			l3_interrupt_handler,
+-			IRQF_DISABLED, "l3-dbg-irq", l3);
++	ret = devm_request_irq(&pdev->dev, l3->debug_irq, l3_interrupt_handler,
++			       IRQF_DISABLED, "l3-dbg-irq", l3);
+ 	if (ret) {
+ 		pr_crit("L3: request_irq failed to register for 0x%x\n",
+ 						l3->debug_irq);
+@@ -165,29 +164,17 @@ static int omap4_l3_probe(struct platform_device *pdev)
  	}
  
- 	l3->l3_base[0] = ioremap(res->start, resource_size(res));
- 	if (!l3->l3_base[0]) {
- 		dev_err(&pdev->dev, "ioremap failed\n");
--		ret = -ENOMEM;
--		goto err0;
-+		return -ENOMEM;
- 	}
+ 	l3->app_irq = platform_get_irq(pdev, 1);
+-	ret = request_irq(l3->app_irq,
+-			l3_interrupt_handler,
+-			IRQF_DISABLED, "l3-app-irq", l3);
+-	if (ret) {
++	ret = devm_request_irq(&pdev->dev, l3->app_irq, l3_interrupt_handler,
++			       IRQF_DISABLED, "l3-app-irq", l3);
++	if (ret)
+ 		pr_crit("L3: request_irq failed to register for 0x%x\n",
+ 						l3->app_irq);
+-		goto err4;
+-	}
+-
+-	return 0;
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-@@ -214,8 +212,6 @@ err2:
- 	iounmap(l3->l3_base[1]);
- err1:
- 	iounmap(l3->l3_base[0]);
--err0:
--	kfree(l3);
+-err4:
+-	free_irq(l3->debug_irq, l3);
  	return ret;
  }
  
-@@ -228,7 +224,6 @@ static int omap4_l3_remove(struct platform_device *pdev)
- 	iounmap(l3->l3_base[0]);
- 	iounmap(l3->l3_base[1]);
- 	iounmap(l3->l3_base[2]);
--	kfree(l3);
- 
+ static int omap4_l3_remove(struct platform_device *pdev)
+ {
+-	struct omap4_l3 *l3 = platform_get_drvdata(pdev);
+-
+-	free_irq(l3->app_irq, l3);
+-	free_irq(l3->debug_irq, l3);
+-
  	return 0;
  }
+ 
 -- 
 1.9.1
