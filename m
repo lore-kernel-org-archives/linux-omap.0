@@ -1,7 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 03/14] dma: edma: Add support for DMA_PAUSE/RESUME operation
-Date: Tue, 1 Apr 2014 16:06:04 +0300
-Message-ID: <1396357575-30585-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 06/14] arm: common: edma: Save the number of event
+	queues/TCs
+Date: Tue, 1 Apr 2014 16:06:07 +0300
+Message-ID: <1396357575-30585-7-git-send-email-peter.ujfalusi@ti.com>
 References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,60 +22,26 @@ To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vinod.koul-ral2JQCrh
 Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Pause/Resume can be used by the audio stack when the stream is paused/resumed
-The edma platform code has support for this and the legacy audio stack used
-this.
+For later use save the number of queues available for the CC.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/dma/edma.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ arch/arm/common/edma.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 2742867fd1e6..7891378a03f0 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -240,6 +240,26 @@ static int edma_slave_config(struct edma_chan *echan,
- 	return 0;
- }
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 19520e2519d9..be267b2080be 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -1770,6 +1770,9 @@ static int edma_probe(struct platform_device *pdev)
+ 			map_queue_tc(j, queue_tc_mapping[i][0],
+ 					queue_tc_mapping[i][1]);
  
-+static int edma_dma_pause(struct edma_chan *echan)
-+{
-+	/* Pause/Resume only allowed with cyclic mode */
-+	if (!echan->edesc->cyclic)
-+		return -EINVAL;
++		/* Save the number of TCs */
++		edma_cc[j]->num_tc = i;
 +
-+	edma_pause(echan->ch_num);
-+	return 0;
-+}
-+
-+static int edma_dma_resume(struct edma_chan *echan)
-+{
-+	/* Pause/Resume only allowed with cyclic mode */
-+	if (!echan->edesc->cyclic)
-+		return -EINVAL;
-+
-+	edma_resume(echan->ch_num);
-+	return 0;
-+}
-+
- static int edma_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
- 			unsigned long arg)
- {
-@@ -255,6 +275,14 @@ static int edma_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
- 		config = (struct dma_slave_config *)arg;
- 		ret = edma_slave_config(echan, config);
- 		break;
-+	case DMA_PAUSE:
-+		ret = edma_dma_pause(echan);
-+		break;
-+
-+	case DMA_RESUME:
-+		ret = edma_dma_resume(echan);
-+		break;
-+
- 	default:
- 		ret = -ENOSYS;
- 	}
+ 		/* Event queue priority mapping */
+ 		for (i = 0; queue_priority_mapping[i][0] != -1; i++)
+ 			assign_priority_to_queue(j,
 -- 
 1.9.1
