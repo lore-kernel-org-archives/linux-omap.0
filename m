@@ -1,85 +1,115 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/55]: ARM: OMAP2+: PRCM move to drivers
-Date: Tue, 1 Apr 2014 10:13:25 -0700
-Message-ID: <20140401171325.GA28041@atomide.com>
-References: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
- <20140331220903.GA11328@atomide.com>
- <533A7A23.8020606@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] irq: crossbar: improve allocate_free_irq() complexity
+Date: Tue, 1 Apr 2014 17:46:54 -0500
+Message-ID: <20140401224654.GA23786@saruman.home>
+References: <1396392259-27437-1-git-send-email-balbi@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="fUYQa+Pmc3FrFX/N"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34074 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751322AbaDARNc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Apr 2014 13:13:32 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:56700 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751598AbaDAWt0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Apr 2014 18:49:26 -0400
 Content-Disposition: inline
-In-Reply-To: <533A7A23.8020606@ti.com>
+In-Reply-To: <1396392259-27437-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: r.sricharan@ti.com, tglx@linutronix.de, galak@codeaurora.org, santosh.shilimkar@ti.com, Darren Etheridge <detheridge@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-* Tero Kristo <t-kristo@ti.com> [140401 01:38]:
-> On 04/01/2014 01:09 AM, Tony Lindgren wrote:
-> >
-> >We don't want to make access to these registers available without
-> >proper frameworks as that will lead into misuse by various drivers.
-> >And cleaning up that mess later in is a huge pain.
-> 
-> Currently, only thing that requires access to the register offsets
-> is basically all the legacy clock data still in the kernel (when can
-> we get rid of this, I have posted patches for it already?) and also
-> the clockdomain / powerdomain data. I can work on getting
-> clockdomain + powerdomain data to DT format if this would be
-> preferred, then we can remove these data files also. Alternatively I
-> can just move all these defines to the C files which actually use
-> them.
+--fUYQa+Pmc3FrFX/N
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-With display support getting merged hopefully we can retry
-dropping omap3 legacy booting as long as we get the missing
-boards working.
+On Tue, Apr 01, 2014 at 05:44:19PM -0500, Felipe Balbi wrote:
+> current algorithm in allocate_free_irq() is O(n),
+> by just keeping track of last allocated IRQ with a
+> simple unsigned integer, we can find a free IRQ
+> in O(1).
+>=20
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>=20
+> compile-tested only as J6 DTS is currently missing crossbar
+> altogether :-(
+>=20
+> There's a drawback with this patch which I'm not sure if we
+> should care a lot because I couldn't entirely grasp when is
+> domain->xlate() called and if we will map/unmap IRQs in runtime
+> or will this *always* be done only during boot.
+>=20
+> If we're talking about runtime IRQ remapping, then this, clearly,
+> won't work. But if this will be done only during boot up, then we
+> avoid iterating over the irq_map array each time we try to translate
+> a new IRQ prior to mapping it.
+>=20
+> Comments are highly welcome as I'll probably learn something new
+> about the IRQ subsystem ;-)
+>=20
+>  drivers/irqchip/irq-crossbar.c | 16 ++++++++--------
+>  1 file changed, 8 insertions(+), 8 deletions(-)
+>=20
+> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossba=
+r.c
+> index fc817d2..1c4da5a 100644
+> --- a/drivers/irqchip/irq-crossbar.c
+> +++ b/drivers/irqchip/irq-crossbar.c
+> @@ -31,6 +31,7 @@ struct crossbar_device {
+>  	void __iomem *crossbar_base;
+>  	int *register_offsets;
+>  	void (*write) (int, int);
+> +	unsigned int current_irq;
+>  };
+> =20
+>  static struct crossbar_device *cb;
+> @@ -52,16 +53,15 @@ static inline void crossbar_writeb(int irq_no, int cb=
+_no)
+> =20
+>  static inline int allocate_free_irq(int cb_no)
+>  {
+> -	int i;
+> +	int current_irq;
+> =20
+> -	for (i =3D 0; i < cb->int_max; i++) {
+> -		if (cb->irq_map[i] =3D=3D IRQ_FREE) {
+> -			cb->irq_map[i] =3D cb_no;
+> -			return i;
+> -		}
+> -	}
+> +	if (cb->current_irq =3D=3D cb->int_max)
+> +		return -ENODEV;
+> +
+> +	current_irq =3D cb->current_irq++;
+> +	cb->irq_map[current_irq++] =3D cb_no;
 
-I don't know how urgent of an issue the clock and power domains
-are for the data compared to clocks and muxes. But if it allows us
-to easily add support for new SoC variants, then yes it makes sense.
+this increment is bogus, thought I had committed already, please ignore.
 
-But in any case the defines should be private to the code claiming
-the PRCM register area.
+--=20
+balbi
 
-> So, basically you are proposing to add a regmap or regmap like API
-> for the PRCM, which would provide access to a subset of registers
-> only outside the PRCM driver? Some functions provided by PRCM spawn
-> to multiple registers (like clocks), and the ranges have holes, and
-> would require finetuning a register / bit level access map (some
-> registers may contain functions for several drivers.)
+--fUYQa+Pmc3FrFX/N
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Yeah something like that as that allows implementing the Linux
-generic frameworks where the code really should be. And does not
-require exporting tons of custom functions.
- 
-> >2. Have the core PRCM driver(s) claim some of the regmap ranges
-> >
-> >Some PRCM features can potentially be implemented using existing
-> >Linux generic frameworks where possible for clocks, regulators, reset
-> >drivers etc. That way you can keep the register defines for these
-> >ranges private to the core PRCM driver(s). Ideally with no need
-> >to add _any_ custom exported functions here.
-> 
-> There is separate work ongoing for reset driver, and for VC/VP,
-> there has been some regulator related work. But yes, mostly this
-> approach should be fine.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-OK cool.
- 
-> >3. Have the other drivers claim some regmap ranges
-> >
-> >The register ranges that are clearly owned by some driver should
-> >be claimed by those drivers. Then the defines for those registers
-> >can stay private to that driver. Some drivers that can probably
-> >own some PRCM ranges are clock drivers and voltage related drivers.
-> 
-> Yeah, this sounds reasonable.
+iQIcBAEBAgAGBQJTO0HeAAoJEIaOsuA1yqREkUsP/RfrAURpcHy8fYrJF1yDB/Sc
+IYt8C4admWWOdanDWh/3t7Xud5iV0fOFo//n/juAS7AfnoBJ8jY1X0ucAOny+Yts
+6JV74YfW4KBMNqpSwqxD4nN2/sxqBcDxjESw8eeOU03m2ayERKqXU7N/Nd++UUJA
+Tz5n2KVE4ibXoVT/CsNCGnSp9yJpFaOpRGfJ05WLedo3f7GP6b+j35GITz+s8FoY
+/+CAqjrojG9RTGhKJGXoADK+vtOr8l5PZ7uGG48Q7BeIa5+bQMwiITORUsqUpE14
+rQtz2G+VLLsENjdhfWYNsImpHc73mlvtgtoAisRgv+diK0gWAvFiRJuO/BLVfKpN
+5nfQxDZ4k/WqS7pYIBtGwCbegz2F38LaLkd3tQqgAfRYljupg9bhvZR8zJ/ow+G7
+zvPFvLV/76nowhU+Zda9H14hlOHPuhzIVl3a68M++EqdIQRDzKnSlIcRcPsMW78C
+armu8C1oRrCWxb/4BXB2cXmb9iWDepi4QGfeMI3c8mVOnde/YlBDC5JjvOBveBts
+GdTv9uEFuFktkotu5JNbjZf4Ben5jUsqWn1nT91YlsMka7uFT785722yTFc+smiT
+r9NEh7BEUWtDsZ7VNxtqQqsOtiwPZHJu71QNu7Mflb1IC0SulmgsXfn9p5JLILGp
+A1eoaGkmA7NigoczHJBn
+=l4UO
+-----END PGP SIGNATURE-----
 
-OK
-
-Tony
+--fUYQa+Pmc3FrFX/N--
