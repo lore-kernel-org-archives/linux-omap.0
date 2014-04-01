@@ -1,56 +1,85 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: OMAP baseline test results for v3.14-rc4 (SDP2430 fail to boot
- - mmc fs)
-Date: Tue, 1 Apr 2014 11:40:03 -0500
-Message-ID: <533AEBE3.40109@ti.com>
-References: <alpine.DEB.2.02.1402241832001.23725@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/55]: ARM: OMAP2+: PRCM move to drivers
+Date: Tue, 1 Apr 2014 10:13:25 -0700
+Message-ID: <20140401171325.GA28041@atomide.com>
+References: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
+ <20140331220903.GA11328@atomide.com>
+ <533A7A23.8020606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48478 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752695AbaDAQke (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Apr 2014 12:40:34 -0400
-In-Reply-To: <alpine.DEB.2.02.1402241832001.23725@utopia.booyaka.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34074 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751322AbaDARNc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Apr 2014 13:13:32 -0400
+Content-Disposition: inline
+In-Reply-To: <533A7A23.8020606@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org, Balaji T K <balajitk@ti.com>, "Balbi, Felipe" <balbi@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On 02/24/2014 12:35 PM, Paul Walmsley wrote:
+* Tero Kristo <t-kristo@ti.com> [140401 01:38]:
+> On 04/01/2014 01:09 AM, Tony Lindgren wrote:
+> >
+> >We don't want to make access to these registers available without
+> >proper frameworks as that will lead into misuse by various drivers.
+> >And cleaning up that mess later in is a huge pain.
+> 
+> Currently, only thing that requires access to the register offsets
+> is basically all the legacy clock data still in the kernel (when can
+> we get rid of this, I have posted patches for it already?) and also
+> the clockdomain / powerdomain data. I can work on getting
+> clockdomain + powerdomain data to DT format if this would be
+> preferred, then we can remove these data files also. Alternatively I
+> can just move all these defines to the C files which actually use
+> them.
 
-> Boot to userspace:
->     FAIL ( 1/12): 2430sdp
-> http://www.pwsan.com/omap/testlogs/test_v3.14-rc4/20140224102552/boot/2430sdp/
+With display support getting merged hopefully we can retry
+dropping omap3 legacy booting as long as we get the missing
+boards working.
 
-Figured out why 2430sdp does not boot with MMC filesystem.
-DEVCONTROL0,1 needs to be modelled in DT-only boot as well.
+I don't know how urgent of an issue the clock and power domains
+are for the data compared to clocks and muxes. But if it allows us
+to easily add support for new SoC variants, then yes it makes sense.
 
-OMAP243X SDP # md.l 0x490022e8 1
-490022e8: 002fff80    ../.
-OMAP243X SDP # md.l 0x49002274 1
-49002274: 04000000    ....
-OMAP243X SDP # mw.l 0x490022e8 802fff80
-^^ bit 31 is step (a) below
-OMAP243X SDP # mw.l 0x49002274 05000000
-^^ bit 24 is step (b) below
-OMAP243X SDP # md.l 0x49002274 1
-49002274: 05000000    ....
-OMAP243X SDP # md.l 0x490022e8 1
-490022e8: 802fff80    ../.
-OMAP243X SDP # boot
+But in any case the defines should be private to the code claiming
+the PRCM register area.
 
-happily detects the mmc partitions. http://slexy.org/view/s21QaCLMWQ
+> So, basically you are proposing to add a regmap or regmap like API
+> for the PRCM, which would provide access to a subset of registers
+> only outside the PRCM driver? Some functions provided by PRCM spawn
+> to multiple registers (like clocks), and the ranges have holes, and
+> would require finetuning a register / bit level access map (some
+> registers may contain functions for several drivers.)
 
-we modelled pbias in dt so far - this is necessary, but two other
-steps are needed as well (based on arch/arm/mach-omap2/hsmmc.c used in
-non-dt boot):
-a) OMAP243X_CONTROL_DEVCONF1:: OMAP243X_MMC1_ACTIVE_OVERWRITE should
-be tweaked based on vdd
-b) OMAP2_CONTROL_DEVCONF0::OMAP2_MMCSDIO1ADPCLKISEL should be set for
-internal_clk (sdp2430).
+Yeah something like that as that allows implementing the Linux
+generic frameworks where the code really should be. And does not
+require exporting tons of custom functions.
+ 
+> >2. Have the core PRCM driver(s) claim some of the regmap ranges
+> >
+> >Some PRCM features can potentially be implemented using existing
+> >Linux generic frameworks where possible for clocks, regulators, reset
+> >drivers etc. That way you can keep the register defines for these
+> >ranges private to the core PRCM driver(s). Ideally with no need
+> >to add _any_ custom exported functions here.
+> 
+> There is separate work ongoing for reset driver, and for VC/VP,
+> there has been some regulator related work. But yes, mostly this
+> approach should be fine.
 
--- 
-Regards,
-Nishanth Menon
+OK cool.
+ 
+> >3. Have the other drivers claim some regmap ranges
+> >
+> >The register ranges that are clearly owned by some driver should
+> >be claimed by those drivers. Then the defines for those registers
+> >can stay private to that driver. Some drivers that can probably
+> >own some PRCM ranges are clock drivers and voltage related drivers.
+> 
+> Yeah, this sounds reasonable.
+
+OK
+
+Tony
