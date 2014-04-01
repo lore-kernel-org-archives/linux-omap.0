@@ -1,93 +1,65 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 07/14] arm: common: edma: API to request non default queue
-	for a channel
-Date: Tue, 1 Apr 2014 16:06:08 +0300
-Message-ID: <1396357575-30585-8-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 11/14] dma: edma: Reduce debug print verbosity for non verbose debugging
+Date: Tue, 1 Apr 2014 16:06:12 +0300
+Message-ID: <1396357575-30585-12-git-send-email-peter.ujfalusi@ti.com>
 References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1396357575-30585-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:52562 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751903AbaDANHM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Apr 2014 09:07:12 -0400
+In-Reply-To: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dan.j.williams@intel.com, vinod.koul@intel.com, nsekhar@ti.com
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, joelf@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, mporter@linaro.org
 
-When using eDMA3 via dmaengine all dma channels will use the default queue.
-Since during request time we do not have means to change this it need to be done
-later, before the DMA has been started.
-With the added function it is possible to move the channel to a non default
-queue if it is possible, otherwise (when only one EQ/TC is available for the CC)
-the default queue is going to be used.
-For example: For optimal system performance the audio (cyclic) DMA should
-be placed to a separate queue which is different than what the rest of the
-system is using.
+Do not print the paRAM information when verbose debugging is not asked and
+also reduce the number of lines printed in edma_prep_dma_cyclic()
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/common/edma.c             | 27 +++++++++++++++++++++++++++
- include/linux/platform_data/edma.h |  2 ++
- 2 files changed, 29 insertions(+)
+ drivers/dma/edma.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index be267b2080be..eaf6dd19f082 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -712,6 +712,33 @@ int edma_alloc_channel(int channel,
- }
- EXPORT_SYMBOL(edma_alloc_channel);
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index d954099650ae..e8de2e84a60a 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -141,7 +141,7 @@ static void edma_execute(struct edma_chan *echan)
+ 	for (i = 0; i < nslots; i++) {
+ 		j = i + edesc->processed;
+ 		edma_write_slot(echan->slot[i], &edesc->pset[j]);
+-		dev_dbg(echan->vchan.chan.device->dev,
++		dev_vdbg(echan->vchan.chan.device->dev,
+ 			"\n pset[%d]:\n"
+ 			"  chnum\t%d\n"
+ 			"  slot\t%d\n"
+@@ -558,9 +558,8 @@ static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
+ 	edesc->cyclic = 1;
+ 	edesc->pset_nr = nslots;
  
-+/**
-+ * edma_request_non_default_queue - try to map the channel to non default queue
-+ * @channel: dma channel returned from edma_alloc_channel()
-+ *
-+ * For certain type of applications like audio it is preferred to not use the
-+ * default event queue/tc to avoid eDMA caused latency.
-+ *
-+ * This function will iterate through the event queues available for the CC and
-+ * picks the first EQ/TC which is not set as the default for the CC
-+ */
-+void edma_request_non_default_queue(int channel)
-+{
-+	unsigned ctlr = EDMA_CTLR(channel);
-+	enum dma_event_q eventq_no = EVENTQ_DEFAULT;
-+	int i;
-+
-+	for (i = 0; i < edma_cc[ctlr]->num_tc; i++) {
-+		if (i != edma_cc[ctlr]->default_queue) {
-+			eventq_no = i;
-+			break;
-+		}
-+	}
-+
-+	channel = EDMA_CHAN_SLOT(channel);
-+	map_dmach_queue(ctlr, channel, eventq_no);
-+}
-+EXPORT_SYMBOL(edma_request_non_default_queue);
+-	dev_dbg(dev, "%s: nslots=%d\n", __func__, nslots);
+-	dev_dbg(dev, "%s: period_len=%d\n", __func__, period_len);
+-	dev_dbg(dev, "%s: buf_len=%d\n", __func__, buf_len);
++	dev_dbg(dev, "%s: channel=%d nslots=%d period_len=%zu buf_len=%zu\n",
++		__func__, echan->ch_num, nslots, period_len, buf_len);
  
- /**
-  * edma_free_channel - deallocate DMA channel
-diff --git a/include/linux/platform_data/edma.h b/include/linux/platform_data/edma.h
-index 923f8a3e4ce0..5d0a1b98f205 100644
---- a/include/linux/platform_data/edma.h
-+++ b/include/linux/platform_data/edma.h
-@@ -117,6 +117,8 @@ int edma_alloc_channel(int channel,
- 	void *data, enum dma_event_q);
- void edma_free_channel(unsigned channel);
+ 	for (i = 0; i < nslots; i++) {
+ 		/* Allocate a PaRAM slot, if needed */
+@@ -594,8 +593,8 @@ static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
+ 		else
+ 			src_addr += period_len;
  
-+void edma_request_non_default_queue(int channel);
-+
- /* alloc/free parameter RAM slots */
- int edma_alloc_slot(unsigned ctlr, int slot);
- void edma_free_slot(unsigned slot);
+-		dev_dbg(dev, "%s: Configure period %d of buf:\n", __func__, i);
+-		dev_dbg(dev,
++		dev_vdbg(dev, "%s: Configure period %d of buf:\n", __func__, i);
++		dev_vdbg(dev,
+ 			"\n pset[%d]:\n"
+ 			"  chnum\t%d\n"
+ 			"  slot\t%d\n"
 -- 
 1.9.1
+
