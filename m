@@ -1,32 +1,40 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: am3517-craneboard: regression?
-Date: Tue, 1 Apr 2014 09:15:30 -0500
-Message-ID: <CAGo_u6rEuq0GN28p59bE2r_vfkpJTi2yUG4d-VfZros2mwww1w@mail.gmail.com>
-References: <533AC5BF.4080502@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: [PATCH] ARM: AM335X: EVM: fix pinmux documentation in devicetree
+Date: Tue,  1 Apr 2014 18:38:13 +0200
+Message-ID: <1396370358-778-1-git-send-email-wsa@the-dreams.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:53131 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240AbaDAOPc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Apr 2014 10:15:32 -0400
-Received: by mail-wg0-f42.google.com with SMTP id y10so7359824wgg.25
-        for <linux-omap@vger.kernel.org>; Tue, 01 Apr 2014 07:15:31 -0700 (PDT)
-In-Reply-To: <533AC5BF.4080502@ti.com>
+Received: from sauhun.de ([89.238.76.85]:58348 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753149AbaDAQju (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Apr 2014 12:39:50 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Tue, Apr 1, 2014 at 8:57 AM, Nishanth Menon <nm@ti.com> wrote:
-> next-20140401-omap2plus_defconfig
-> craneboard:  Boot FAIL: http://slexy.org/raw/s2QxOJkvil
+Wrong documentation in pinmux description can be especially confusing.
+Keep it proper.
 
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+---
+ arch/arm/boot/dts/am335x-evm.dts | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Looks like a false alarm.. Apologies..
-http://slexy.org/raw/s21jnBobtP -> i did rerun multiple times and i
-see it working consistently - could be something to do with remote
-test setup or something.
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 7e6c64ed966d..fb5dc92692cf 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -295,8 +295,8 @@
+ 
+ 	am335x_evm_audio_pins: am335x_evm_audio_pins {
+ 		pinctrl-single,pins = <
+-			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rx_dv.mcasp1_aclkx */
+-			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_txd3.mcasp1_fsx */
++			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_crs.mcasp1_aclkx */
++			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rxerr.mcasp1_fsx */
+ 			0x108 (PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* mii1_col.mcasp1_axr2 */
+ 			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
+ 		>;
+-- 
+1.9.0
 
-Regards,
-Nishanth Menon
