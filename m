@@ -1,39 +1,43 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 0/1] OMAP5: USB3 fix for 3.15
-Date: Tue, 1 Apr 2014 13:37:26 +0300
-Message-ID: <1396348647-11545-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH 1/1] ARM: dts: omap5: Add clocks to USB3 PHY node
+Date: Tue, 1 Apr 2014 13:37:27 +0300
+Message-ID: <1396348647-11545-2-git-send-email-rogerq@ti.com>
+References: <1396348647-11545-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47589 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751089AbaDAKhe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Apr 2014 06:37:34 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1396348647-11545-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com
 Cc: kishon@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+The USB3 PHY driver (ti-pipe3) was updated so that the relevant
+clock phandles are expected in the DT node.
+Provide the necessary clocks.
 
-The following patch fixes USB3 on OMAP5 on linux-next.
-There was a patch [1] that added named clocks to the USB3 phy driver
-but somehow the dts part got missed out.
-
-Due to that USB3 on OMAP5 is currently broken on linux-next and
-this patch should fix it.
-
-cheers,
--roger
-
-[1] - http://patchwork.ozlabs.org/patch/327481/
-
-Roger Quadros (1):
-  ARM: dts: omap5: Add clocks to USB3 PHY node
-
+Reported-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
  arch/arm/boot/dts/omap5.dtsi | 6 ++++++
  1 file changed, 6 insertions(+)
 
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 757f0b9..4df1e7a 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -794,6 +794,12 @@
+ 				      <0x4a084c00 0x40>;
+ 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+ 				ctrl-module = <&omap_control_usb3phy>;
++				clocks = <&usb_phy_cm_clk32k>,
++					 <&sys_clkin>,
++					 <&usb_otg_ss_refclk960m>;
++				clock-names =	"wkupclk",
++						"sysclk",
++						"refclk";
+ 				#phy-cells = <0>;
+ 			};
+ 		};
 -- 
 1.8.3.2
-
