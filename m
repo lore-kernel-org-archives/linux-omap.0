@@ -1,40 +1,56 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: [PATCH] ARM: AM335X: EVM: fix pinmux documentation in devicetree
-Date: Tue,  1 Apr 2014 18:38:13 +0200
-Message-ID: <1396370358-778-1-git-send-email-wsa@the-dreams.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: OMAP baseline test results for v3.14-rc4 (SDP2430 fail to boot
+ - mmc fs)
+Date: Tue, 1 Apr 2014 11:40:03 -0500
+Message-ID: <533AEBE3.40109@ti.com>
+References: <alpine.DEB.2.02.1402241832001.23725@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:58348 "EHLO pokefinder.org"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48478 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753149AbaDAQju (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Apr 2014 12:39:50 -0400
+	id S1752695AbaDAQke (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Apr 2014 12:40:34 -0400
+In-Reply-To: <alpine.DEB.2.02.1402241832001.23725@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Wolfram Sang <wsa@the-dreams.de>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org, Balaji T K <balajitk@ti.com>, "Balbi, Felipe" <balbi@ti.com>
 
-Wrong documentation in pinmux description can be especially confusing.
-Keep it proper.
+On 02/24/2014 12:35 PM, Paul Walmsley wrote:
 
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
----
- arch/arm/boot/dts/am335x-evm.dts | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> Boot to userspace:
+>     FAIL ( 1/12): 2430sdp
+> http://www.pwsan.com/omap/testlogs/test_v3.14-rc4/20140224102552/boot/2430sdp/
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 7e6c64ed966d..fb5dc92692cf 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -295,8 +295,8 @@
- 
- 	am335x_evm_audio_pins: am335x_evm_audio_pins {
- 		pinctrl-single,pins = <
--			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rx_dv.mcasp1_aclkx */
--			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_txd3.mcasp1_fsx */
-+			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_crs.mcasp1_aclkx */
-+			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rxerr.mcasp1_fsx */
- 			0x108 (PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* mii1_col.mcasp1_axr2 */
- 			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
- 		>;
+Figured out why 2430sdp does not boot with MMC filesystem.
+DEVCONTROL0,1 needs to be modelled in DT-only boot as well.
+
+OMAP243X SDP # md.l 0x490022e8 1
+490022e8: 002fff80    ../.
+OMAP243X SDP # md.l 0x49002274 1
+49002274: 04000000    ....
+OMAP243X SDP # mw.l 0x490022e8 802fff80
+^^ bit 31 is step (a) below
+OMAP243X SDP # mw.l 0x49002274 05000000
+^^ bit 24 is step (b) below
+OMAP243X SDP # md.l 0x49002274 1
+49002274: 05000000    ....
+OMAP243X SDP # md.l 0x490022e8 1
+490022e8: 802fff80    ../.
+OMAP243X SDP # boot
+
+happily detects the mmc partitions. http://slexy.org/view/s21QaCLMWQ
+
+we modelled pbias in dt so far - this is necessary, but two other
+steps are needed as well (based on arch/arm/mach-omap2/hsmmc.c used in
+non-dt boot):
+a) OMAP243X_CONTROL_DEVCONF1:: OMAP243X_MMC1_ACTIVE_OVERWRITE should
+be tweaked based on vdd
+b) OMAP2_CONTROL_DEVCONF0::OMAP2_MMCSDIO1ADPCLKISEL should be set for
+internal_clk (sdp2430).
+
 -- 
-1.9.0
-
+Regards,
+Nishanth Menon
