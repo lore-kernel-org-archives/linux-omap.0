@@ -1,50 +1,48 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 02/14] dma: edma: Correct the handling of src/dst_maxburst
- == 0
-Date: Tue, 1 Apr 2014 16:06:03 +0300
-Message-ID: <1396357575-30585-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 04/14] dma: edma: Set DMA_CYCLIC capability flag
+Date: Tue, 1 Apr 2014 16:06:05 +0300
+Message-ID: <1396357575-30585-5-git-send-email-peter.ujfalusi@ti.com>
 References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: dan.j.williams@intel.com, vinod.koul@intel.com, nsekhar@ti.com
-Cc: davinci-linux-open-source@linux.davincidsp.com, joelf@ti.com, linux-kernel@vger.kernel.org, mporter@linaro.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, joelf@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, mporter@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-When clients asks for maxburst = 0 it is basically the same case as if they
-were asking for maxburst = 1 since in both case ASYNC need to be used and
-the eDMA is expected to write/read one word per DMA request.
+Indicate that the edma dmaengine driver has support for cyclic mode.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/common/edma.c | 1 +
+ drivers/dma/edma.c     | 1 +
+ 2 files changed, 2 insertions(+)
 
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 41bca32409fc..86a8b263278f 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -1574,6 +1574,7 @@ static struct edma_soc_info *edma_setup_info_from_dt(struct device *dev,
+ 		return ERR_PTR(ret);
+ 
+ 	dma_cap_set(DMA_SLAVE, edma_filter_info.dma_cap);
++	dma_cap_set(DMA_CYCLIC, edma_filter_info.dma_cap);
+ 	of_dma_controller_register(dev->of_node, of_dma_simple_xlate,
+ 				   &edma_filter_info);
+ 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index cd04eb7b182e..2742867fd1e6 100644
+index 7891378a03f0..1dd9e8806975 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -285,6 +285,10 @@ static int edma_config_pset(struct dma_chan *chan, struct edmacc_param *pset,
- 	int absync;
+@@ -891,6 +891,7 @@ static int edma_probe(struct platform_device *pdev)
  
- 	acnt = dev_width;
-+
-+	/* src/dst_maxburst == 0 is the same case as src/dst_maxburst == 1 */
-+	if (!burst)
-+		burst = 1;
- 	/*
- 	 * If the maxburst is equal to the fifo width, use
- 	 * A-synced transfers. This allows for large contiguous
+ 	dma_cap_zero(ecc->dma_slave.cap_mask);
+ 	dma_cap_set(DMA_SLAVE, ecc->dma_slave.cap_mask);
++	dma_cap_set(DMA_CYCLIC, ecc->dma_slave.cap_mask);
+ 
+ 	edma_dma_init(ecc, &ecc->dma_slave, &pdev->dev);
+ 
 -- 
 1.9.1
