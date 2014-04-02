@@ -1,49 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP baseline test results for v3.14
-Date: Wed, 2 Apr 2014 09:35:21 -0700
-Message-ID: <20140402163521.GD12234@atomide.com>
-References: <alpine.DEB.2.02.1404021600320.15928@utopia.booyaka.com>
- <20140402162102.GB12234@atomide.com>
- <alpine.DEB.2.02.1404021631040.15928@utopia.booyaka.com>
+From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+Subject: Re: [PATCH 0/4] ARM: OMAP: raw read and write endian fix
+Date: Wed, 02 Apr 2014 13:14:41 +0300
+Message-ID: <533BE311.7050900@linaro.org>
+References: <1387822234-11167-1-git-send-email-taras.kondratiuk@linaro.org> <CAArO44vC4WKGHSqHX3+Mo5+jcNuyJLkh94+SPd4H+aZYAroYzw@mail.gmail.com> <20140108003927.GJ5074@atomide.com> <5332AD89.8030802@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43922 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932282AbaDBQfZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Apr 2014 12:35:25 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1404021631040.15928@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5332AD89.8030802@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Patch Tracking <patches@linaro.org>, Linaro Networking <linaro-networking@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>, Victor Kamensky <victor.kamensky@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-* Paul Walmsley <paul@pwsan.com> [140402 09:36]:
-> On Wed, 2 Apr 2014, Tony Lindgren wrote:
+On 03/26/2014 12:35 PM, Taras Kondratiuk wrote:
+> On 01/08/2014 02:39 AM, Tony Lindgren wrote:
+>> * Taras Kondratiuk <taras.kondratiuk@linaro.org> [131223 10:20]:
+>>> On 23 December 2013 20:10, Taras Kondratiuk <taras.kondratiuk@linaro.org> wrote:
+>>>> This series does trivial replacement of __raw_xxx functions with xxx_relaxed
+>>>> endian-neutral variants in 'mach-omap2' and 'plat-omap' directories.
+>>>> Some code here most probably won't be used in BE mode (like debug-leds for
+>>>> OMAP1 boards), but changes are made anyway to remove __raw_xxx() functions
+>>>> completely and simplify future grep'ing for new __raw_xxx() entries.
+>>
+>> Sorry for the delay on these, applying into omap-for-v3.14/be.
+>> These are trivial, and it's actually nice that you left out the
+>> assembly related changes as those should be acked by the PM
+>> people in case there are some issues dealing with the ROM code
+>> etc.
 > 
-> > * Paul Walmsley <paul@pwsan.com> [140402 09:07]:
-> > > 
-> > > Here are some basic OMAP test results for Linux v3.14.
-> > > Logs and other details at:
-> > > 
-> > >     http://www.pwsan.com/omap/testlogs/test_v3.14/20140402004448/
-> > > 
-> > > Boot to userspace:
-> > >     FAIL ( 1/12): 2430sdp
-> > 
-> > Is this a new regression with MMC? Looks like your boot log for this
-> > ends with "Waiting for root device /dev/mmcblk0p1...".
+> Hi Tony,
 > 
-> It's new since v3.14-rc1:
-> 
-> http://www.spinics.net/lists/arm-kernel/msg306448.html
-> 
-> http://www.spinics.net/lists/arm-kernel/msg306454.html
-> 
-> http://www.spinics.net/lists/arm-kernel/msg306455.html
+> It seems omap-for-v3.14/be didn't get into 3.14-rc8.
+> Is there any issue with them?
 
-OK looks like I never noticed that one before. Probably
-because of NFSroot.
+This series conflicts now with clock changes which got into 3.14.
+Resolution is trivial - just skip conflicting changes.
+omap2_clk_{real,writel} already uses {readl,writel}_relaxed inside.
+Do I need to push an updated series?
 
-Tony
+-- 
+Taras Kondratiuk
