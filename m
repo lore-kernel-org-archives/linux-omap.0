@@ -1,77 +1,60 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] irq: crossbar: improve allocate_free_irq() complexity
-Date: Tue, 1 Apr 2014 17:44:19 -0500
-Message-ID: <1396392259-27437-1-git-send-email-balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/4] ARM: OMAP: raw read and write endian fix
+Date: Wed, 2 Apr 2014 08:31:04 -0700
+Message-ID: <20140402153104.GA12234@atomide.com>
+References: <1387822234-11167-1-git-send-email-taras.kondratiuk@linaro.org>
+ <CAArO44vC4WKGHSqHX3+Mo5+jcNuyJLkh94+SPd4H+aZYAroYzw@mail.gmail.com>
+ <20140108003927.GJ5074@atomide.com>
+ <5332AD89.8030802@linaro.org>
+ <533BE311.7050900@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: r.sricharan@ti.com, tglx@linutronix.de
-Cc: galak@codeaurora.org, santosh.shilimkar@ti.com, Darren Etheridge <detheridge@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:39395 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932247AbaDBPbM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Apr 2014 11:31:12 -0400
+Content-Disposition: inline
+In-Reply-To: <533BE311.7050900@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+Cc: Patch Tracking <patches@linaro.org>, Linaro Networking <linaro-networking@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>, Victor Kamensky <victor.kamensky@linaro.org>
 
-current algorithm in allocate_free_irq() is O(n),
-by just keeping track of last allocated IRQ with a
-simple unsigned integer, we can find a free IRQ
-in O(1).
+* Taras Kondratiuk <taras.kondratiuk@linaro.org> [140402 03:18]:
+> On 03/26/2014 12:35 PM, Taras Kondratiuk wrote:
+> > On 01/08/2014 02:39 AM, Tony Lindgren wrote:
+> >> * Taras Kondratiuk <taras.kondratiuk@linaro.org> [131223 10:20]:
+> >>> On 23 December 2013 20:10, Taras Kondratiuk <taras.kondratiuk@linaro.org> wrote:
+> >>>> This series does trivial replacement of __raw_xxx functions with xxx_relaxed
+> >>>> endian-neutral variants in 'mach-omap2' and 'plat-omap' directories.
+> >>>> Some code here most probably won't be used in BE mode (like debug-leds for
+> >>>> OMAP1 boards), but changes are made anyway to remove __raw_xxx() functions
+> >>>> completely and simplify future grep'ing for new __raw_xxx() entries.
+> >>
+> >> Sorry for the delay on these, applying into omap-for-v3.14/be.
+> >> These are trivial, and it's actually nice that you left out the
+> >> assembly related changes as those should be acked by the PM
+> >> people in case there are some issues dealing with the ROM code
+> >> etc.
+> > 
+> > Hi Tony,
+> > 
+> > It seems omap-for-v3.14/be didn't get into 3.14-rc8.
+> > Is there any issue with them?
+> 
+> This series conflicts now with clock changes which got into 3.14.
+> Resolution is trivial - just skip conflicting changes.
+> omap2_clk_{real,writel} already uses {readl,writel}_relaxed inside.
+> Do I need to push an updated series?
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
+Sorry looks like I forgot to merge this branch. I think my plan
+was to wait for the clock changes to get merged first..
 
-compile-tested only as J6 DTS is currently missing crossbar
-altogether :-(
+So yeah, it's probably best that you repost the series after -rc1
+is out so we have the conflicting parts cleared. That way the
+changes are tested to work for your BE series :)
 
-There's a drawback with this patch which I'm not sure if we
-should care a lot because I couldn't entirely grasp when is
-domain->xlate() called and if we will map/unmap IRQs in runtime
-or will this *always* be done only during boot.
+Regards,
 
-If we're talking about runtime IRQ remapping, then this, clearly,
-won't work. But if this will be done only during boot up, then we
-avoid iterating over the irq_map array each time we try to translate
-a new IRQ prior to mapping it.
-
-Comments are highly welcome as I'll probably learn something new
-about the IRQ subsystem ;-)
-
- drivers/irqchip/irq-crossbar.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index fc817d2..1c4da5a 100644
---- a/drivers/irqchip/irq-crossbar.c
-+++ b/drivers/irqchip/irq-crossbar.c
-@@ -31,6 +31,7 @@ struct crossbar_device {
- 	void __iomem *crossbar_base;
- 	int *register_offsets;
- 	void (*write) (int, int);
-+	unsigned int current_irq;
- };
- 
- static struct crossbar_device *cb;
-@@ -52,16 +53,15 @@ static inline void crossbar_writeb(int irq_no, int cb_no)
- 
- static inline int allocate_free_irq(int cb_no)
- {
--	int i;
-+	int current_irq;
- 
--	for (i = 0; i < cb->int_max; i++) {
--		if (cb->irq_map[i] == IRQ_FREE) {
--			cb->irq_map[i] = cb_no;
--			return i;
--		}
--	}
-+	if (cb->current_irq == cb->int_max)
-+		return -ENODEV;
-+
-+	current_irq = cb->current_irq++;
-+	cb->irq_map[current_irq++] = cb_no;
- 
--	return -ENODEV;
-+	return current_irq;
- }
- 
- static int crossbar_domain_map(struct irq_domain *d, unsigned int irq,
--- 
-1.9.1.286.g5172cb3
+Tony
