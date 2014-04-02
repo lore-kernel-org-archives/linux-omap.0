@@ -1,50 +1,63 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH 00/26] OMAP dma engine rework
-Date: Wed, 2 Apr 2014 22:02:01 +0530
-Message-ID: <20140402163201.GT1976@intel.com>
-References: <20140210155531.GB26684@n2100.arm.linux.org.uk>
- <20140318154845.GE1976@intel.com>
- <20140329181306.GE27282@n2100.arm.linux.org.uk>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] clk: ti: clk-7xx: Correct ABE DPLL configuration
+Date: Wed, 2 Apr 2014 17:12:18 +0300
+Message-ID: <533C1AC2.1000307@ti.com>
+References: <1396446525-20302-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:14580 "EHLO mga02.intel.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38096 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932700AbaDBRGH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Apr 2014 13:06:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20140329181306.GE27282@n2100.arm.linux.org.uk>
+	id S932140AbaDBOMX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Apr 2014 10:12:23 -0400
+In-Reply-To: <1396446525-20302-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Williams, Dan J" <dan.j.williams@intel.com>, Tony Lindgren <tony@atomide.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Mar 29, 2014 at 06:13:06PM +0000, Russell King - ARM Linux wrote:
-> On Tue, Mar 18, 2014 at 09:18:45PM +0530, Vinod Koul wrote:
-> > On Mon, Feb 10, 2014 at 09:25:31PM +0530, Russell King - ARM Linux wrote:
-> > > This is the current set of patches for the OMAP DMA engine rework,
-> > > which should now work correctly on OMAP1 platforms thanks to Tony's
-> > > testing.
-> > > 
-> > > It would be good to get this validated by others across a range of
-> > > OMAP platforms, and queued up for the next merge window, so it can
-> > > be built upon.
-> > > 
-> > > Acks appreciated, and once sufficient have been added, I'll send a
-> > > pull request for this to Vinod.
-> > So is this series finalized. I havent seen the pull request for this or did i
-> > miss it!
-> 
-> Gah, missed this.
-> 
-> As nothing has changed with it since 18th February, which was to add
-> Tony's ack to the set.  I think it's as good as it's going to get for
-> the time being.  It's also been in linux-next all this time, and no
-> one has reported any problems.  I'll need to sort out a proper pull
-> request for it ASAP... or something.  An alternate solution would be
-> your blessing for this set.
-Okay in that case pls send with my ACK.
+On 04/02/2014 04:48 PM, Peter Ujfalusi wrote:
+> ABE DPLL frequency need to be lowered from 361267200
+> to 180633600 to facilitate the ATL requironments.
+> The dpll_abe_m2x2_ck clock need to be set to double
+> of ABE DPLL rate in order to have correct clocks
+> for audio.
 
-Thanks
--- 
-~Vinod
+Do you have some sort of TRM reference for this?
+
+-Tero
+
+>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>   drivers/clk/ti/clk-7xx.c | 7 ++++++-
+>   1 file changed, 6 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+> index f7e40734c819..19a55bf407dd 100644
+> --- a/drivers/clk/ti/clk-7xx.c
+> +++ b/drivers/clk/ti/clk-7xx.c
+> @@ -16,7 +16,7 @@
+>   #include <linux/clkdev.h>
+>   #include <linux/clk/ti.h>
+>
+> -#define DRA7_DPLL_ABE_DEFFREQ				361267200
+> +#define DRA7_DPLL_ABE_DEFFREQ				180633600
+>   #define DRA7_DPLL_GMAC_DEFFREQ				1000000000
+>
+>
+> @@ -322,6 +322,11 @@ int __init dra7xx_dt_clk_init(void)
+>   	if (rc)
+>   		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+>
+> +	dpll_ck = clk_get_sys(NULL, "dpll_abe_m2x2_ck");
+> +	rc = clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ * 2);
+> +	if (rc)
+> +		pr_err("%s: failed to configure ABE DPLL m2x2!\n", __func__);
+> +
+>   	dpll_ck = clk_get_sys(NULL, "dpll_gmac_ck");
+>   	rc = clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
+>   	if (rc)
+>
+
