@@ -1,146 +1,47 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 1/3] ARM: dts: dra7xx-clocks: Correct name for atl clkin3 clock
-Date: Wed, 2 Apr 2014 16:55:05 +0300
-Message-ID: <1396446907-20383-2-git-send-email-peter.ujfalusi@ti.com>
-References: <1396446907-20383-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: DTS: dra7xx-clocks: Correct mcasp2_ahclkx_mux bit-shift
+Date: Wed, 2 Apr 2014 17:10:54 +0300
+Message-ID: <533C1A6E.4030100@ti.com>
+References: <1396446385-20258-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37206 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758733AbaDBNzq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Apr 2014 09:55:46 -0400
-In-Reply-To: <1396446907-20383-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1396446385-20258-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-To allign the name with the other atl clock names:
-atlclkin3_ck -> atl_clkin3_ck
+On 04/02/2014 04:46 PM, Peter Ujfalusi wrote:
+> The correct bit is 24 for AHCLKX.
+>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 22 +++++++++++-----------
- drivers/clk/ti/clk-7xx.c             |  2 +-
- 2 files changed, 12 insertions(+), 12 deletions(-)
+Yes, thats a clear bug in the data.
 
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index cfb8fc753f50..30160348934c 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -26,7 +26,7 @@
- 		clock-frequency = <0>;
- 	};
- 
--	atlclkin3_ck: atlclkin3_ck {
-+	atl_clkin3_ck: atl_clkin3_ck {
- 		#clock-cells = <0>;
- 		compatible = "fixed-clock";
- 		clock-frequency = <0>;
-@@ -730,7 +730,7 @@
- 	mcasp1_ahclkr_mux: mcasp1_ahclkr_mux {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
-+		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
- 		ti,bit-shift = <28>;
- 		reg = <0x0550>;
- 	};
-@@ -738,7 +738,7 @@
- 	mcasp1_ahclkx_mux: mcasp1_ahclkx_mux {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
-+		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
- 		ti,bit-shift = <24>;
- 		reg = <0x0550>;
- 	};
-@@ -1631,7 +1631,7 @@
- 	mcasp2_ahclkr_mux: mcasp2_ahclkr_mux {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
-+		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
- 		ti,bit-shift = <28>;
- 		reg = <0x1860>;
- 	};
-@@ -1639,7 +1639,7 @@
- 	mcasp2_ahclkx_mux: mcasp2_ahclkx_mux {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
-+		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
- 		ti,bit-shift = <24>;
- 		reg = <0x1860>;
- 	};
-@@ -1655,7 +1655,7 @@
- 	mcasp3_ahclkx_mux: mcasp3_ahclkx_mux {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
-+		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
- 		ti,bit-shift = <24>;
- 		reg = <0x1868>;
- 	};
-@@ -1671,7 +1671,7 @@
- 	mcasp4_ahclkx_mux: mcasp4_ahclkx_mux {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
-+		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
- 		ti,bit-shift = <24>;
- 		reg = <0x1898>;
- 	};
-@@ -1687,7 +1687,7 @@
- 	mcasp5_ahclkx_mux: mcasp5_ahclkx_mux {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
-+		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
- 		ti,bit-shift = <24>;
- 		reg = <0x1878>;
- 	};
-@@ -1703,7 +1703,7 @@
- 	mcasp6_ahclkx_mux: mcasp6_ahclkx_mux {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
-+		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
- 		ti,bit-shift = <24>;
- 		reg = <0x1904>;
- 	};
-@@ -1719,7 +1719,7 @@
- 	mcasp7_ahclkx_mux: mcasp7_ahclkx_mux {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
-+		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
- 		ti,bit-shift = <24>;
- 		reg = <0x1908>;
- 	};
-@@ -1735,7 +1735,7 @@
- 	mcasp8_ahclk_mux: mcasp8_ahclk_mux {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
--		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
-+		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
- 		ti,bit-shift = <22>;
- 		reg = <0x1890>;
- 	};
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index 19a55bf407dd..cb8e6f14e880 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -24,7 +24,7 @@ static struct ti_dt_clk dra7xx_clks[] = {
- 	DT_CLK(NULL, "atl_clkin0_ck", "atl_clkin0_ck"),
- 	DT_CLK(NULL, "atl_clkin1_ck", "atl_clkin1_ck"),
- 	DT_CLK(NULL, "atl_clkin2_ck", "atl_clkin2_ck"),
--	DT_CLK(NULL, "atlclkin3_ck", "atlclkin3_ck"),
-+	DT_CLK(NULL, "atl_clkin3_ck", "atl_clkin3_ck"),
- 	DT_CLK(NULL, "hdmi_clkin_ck", "hdmi_clkin_ck"),
- 	DT_CLK(NULL, "mlb_clkin_ck", "mlb_clkin_ck"),
- 	DT_CLK(NULL, "mlbp_clkin_ck", "mlbp_clkin_ck"),
--- 
-1.9.1
+Acked-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 
+> ---
+>   arch/arm/boot/dts/dra7xx-clocks.dtsi | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> index e96da9a898ad..cfb8fc753f50 100644
+> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> @@ -1640,7 +1640,7 @@
+>   		#clock-cells = <0>;
+>   		compatible = "ti,mux-clock";
+>   		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+> -		ti,bit-shift = <28>;
+> +		ti,bit-shift = <24>;
+>   		reg = <0x1860>;
+>   	};
+>
+>
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
