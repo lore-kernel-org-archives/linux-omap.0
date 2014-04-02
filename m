@@ -1,47 +1,43 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: DTS: dra7xx-clocks: Correct mcasp2_ahclkx_mux bit-shift
-Date: Wed, 2 Apr 2014 17:10:54 +0300
-Message-ID: <533C1A6E.4030100@ti.com>
-References: <1396446385-20258-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP baseline test results for v3.14
+Date: Wed, 2 Apr 2014 09:33:31 -0700
+Message-ID: <20140402163331.GC12234@atomide.com>
+References: <alpine.DEB.2.02.1404021600320.15928@utopia.booyaka.com>
+ <20140402162102.GB12234@atomide.com>
+ <20140402162154.GJ8504@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1396446385-20258-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:39252 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932317AbaDBQdh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Apr 2014 12:33:37 -0400
+Content-Disposition: inline
+In-Reply-To: <20140402162154.GJ8504@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org, Nishanth Menon <nm@ti.com>
 
-On 04/02/2014 04:46 PM, Peter Ujfalusi wrote:
-> The correct bit is 24 for AHCLKX.
->
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+* Felipe Balbi <balbi@ti.com> [140402 09:27]:
+> On Wed, Apr 02, 2014 at 09:21:03AM -0700, Tony Lindgren wrote:
+> > * Paul Walmsley <paul@pwsan.com> [140402 09:07]:
+> > > 
+> > > Here are some basic OMAP test results for Linux v3.14.
+> > > Logs and other details at:
+> > > 
+> > >     http://www.pwsan.com/omap/testlogs/test_v3.14/20140402004448/
+> > > 
+> > > Boot to userspace:
+> > >     FAIL ( 1/12): 2430sdp
+> > 
+> > Is this a new regression with MMC? Looks like your boot log for this
+> > ends with "Waiting for root device /dev/mmcblk0p1...".
+> 
+> Nishanth already posted about this a few days ago, see [1]
+> 
+> [1] http://marc.info/?l=linux-omap&m=139637044425644&w=2
 
-Yes, thats a clear bug in the data.
+OK thanks.
 
-Acked-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-
-> ---
->   arch/arm/boot/dts/dra7xx-clocks.dtsi | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> index e96da9a898ad..cfb8fc753f50 100644
-> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> @@ -1640,7 +1640,7 @@
->   		#clock-cells = <0>;
->   		compatible = "ti,mux-clock";
->   		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
-> -		ti,bit-shift = <28>;
-> +		ti,bit-shift = <24>;
->   		reg = <0x1860>;
->   	};
->
->
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
