@@ -1,60 +1,146 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] ARM: OMAP: raw read and write endian fix
-Date: Wed, 2 Apr 2014 08:31:04 -0700
-Message-ID: <20140402153104.GA12234@atomide.com>
-References: <1387822234-11167-1-git-send-email-taras.kondratiuk@linaro.org>
- <CAArO44vC4WKGHSqHX3+Mo5+jcNuyJLkh94+SPd4H+aZYAroYzw@mail.gmail.com>
- <20140108003927.GJ5074@atomide.com>
- <5332AD89.8030802@linaro.org>
- <533BE311.7050900@linaro.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 1/3] ARM: dts: dra7xx-clocks: Correct name for atl clkin3 clock
+Date: Wed, 2 Apr 2014 16:55:05 +0300
+Message-ID: <1396446907-20383-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1396446907-20383-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:39395 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932247AbaDBPbM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Apr 2014 11:31:12 -0400
-Content-Disposition: inline
-In-Reply-To: <533BE311.7050900@linaro.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37206 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758733AbaDBNzq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Apr 2014 09:55:46 -0400
+In-Reply-To: <1396446907-20383-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Cc: Patch Tracking <patches@linaro.org>, Linaro Networking <linaro-networking@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>, Victor Kamensky <victor.kamensky@linaro.org>
+To: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Taras Kondratiuk <taras.kondratiuk@linaro.org> [140402 03:18]:
-> On 03/26/2014 12:35 PM, Taras Kondratiuk wrote:
-> > On 01/08/2014 02:39 AM, Tony Lindgren wrote:
-> >> * Taras Kondratiuk <taras.kondratiuk@linaro.org> [131223 10:20]:
-> >>> On 23 December 2013 20:10, Taras Kondratiuk <taras.kondratiuk@linaro.org> wrote:
-> >>>> This series does trivial replacement of __raw_xxx functions with xxx_relaxed
-> >>>> endian-neutral variants in 'mach-omap2' and 'plat-omap' directories.
-> >>>> Some code here most probably won't be used in BE mode (like debug-leds for
-> >>>> OMAP1 boards), but changes are made anyway to remove __raw_xxx() functions
-> >>>> completely and simplify future grep'ing for new __raw_xxx() entries.
-> >>
-> >> Sorry for the delay on these, applying into omap-for-v3.14/be.
-> >> These are trivial, and it's actually nice that you left out the
-> >> assembly related changes as those should be acked by the PM
-> >> people in case there are some issues dealing with the ROM code
-> >> etc.
-> > 
-> > Hi Tony,
-> > 
-> > It seems omap-for-v3.14/be didn't get into 3.14-rc8.
-> > Is there any issue with them?
-> 
-> This series conflicts now with clock changes which got into 3.14.
-> Resolution is trivial - just skip conflicting changes.
-> omap2_clk_{real,writel} already uses {readl,writel}_relaxed inside.
-> Do I need to push an updated series?
+To allign the name with the other atl clock names:
+atlclkin3_ck -> atl_clkin3_ck
 
-Sorry looks like I forgot to merge this branch. I think my plan
-was to wait for the clock changes to get merged first..
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 22 +++++++++++-----------
+ drivers/clk/ti/clk-7xx.c             |  2 +-
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-So yeah, it's probably best that you repost the series after -rc1
-is out so we have the conflicting parts cleared. That way the
-changes are tested to work for your BE series :)
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index cfb8fc753f50..30160348934c 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -26,7 +26,7 @@
+ 		clock-frequency = <0>;
+ 	};
+ 
+-	atlclkin3_ck: atlclkin3_ck {
++	atl_clkin3_ck: atl_clkin3_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "fixed-clock";
+ 		clock-frequency = <0>;
+@@ -730,7 +730,7 @@
+ 	mcasp1_ahclkr_mux: mcasp1_ahclkr_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <28>;
+ 		reg = <0x0550>;
+ 	};
+@@ -738,7 +738,7 @@
+ 	mcasp1_ahclkx_mux: mcasp1_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x0550>;
+ 	};
+@@ -1631,7 +1631,7 @@
+ 	mcasp2_ahclkr_mux: mcasp2_ahclkr_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <28>;
+ 		reg = <0x1860>;
+ 	};
+@@ -1639,7 +1639,7 @@
+ 	mcasp2_ahclkx_mux: mcasp2_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1860>;
+ 	};
+@@ -1655,7 +1655,7 @@
+ 	mcasp3_ahclkx_mux: mcasp3_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1868>;
+ 	};
+@@ -1671,7 +1671,7 @@
+ 	mcasp4_ahclkx_mux: mcasp4_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1898>;
+ 	};
+@@ -1687,7 +1687,7 @@
+ 	mcasp5_ahclkx_mux: mcasp5_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1878>;
+ 	};
+@@ -1703,7 +1703,7 @@
+ 	mcasp6_ahclkx_mux: mcasp6_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1904>;
+ 	};
+@@ -1719,7 +1719,7 @@
+ 	mcasp7_ahclkx_mux: mcasp7_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1908>;
+ 	};
+@@ -1735,7 +1735,7 @@
+ 	mcasp8_ahclk_mux: mcasp8_ahclk_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <22>;
+ 		reg = <0x1890>;
+ 	};
+diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+index 19a55bf407dd..cb8e6f14e880 100644
+--- a/drivers/clk/ti/clk-7xx.c
++++ b/drivers/clk/ti/clk-7xx.c
+@@ -24,7 +24,7 @@ static struct ti_dt_clk dra7xx_clks[] = {
+ 	DT_CLK(NULL, "atl_clkin0_ck", "atl_clkin0_ck"),
+ 	DT_CLK(NULL, "atl_clkin1_ck", "atl_clkin1_ck"),
+ 	DT_CLK(NULL, "atl_clkin2_ck", "atl_clkin2_ck"),
+-	DT_CLK(NULL, "atlclkin3_ck", "atlclkin3_ck"),
++	DT_CLK(NULL, "atl_clkin3_ck", "atl_clkin3_ck"),
+ 	DT_CLK(NULL, "hdmi_clkin_ck", "hdmi_clkin_ck"),
+ 	DT_CLK(NULL, "mlb_clkin_ck", "mlb_clkin_ck"),
+ 	DT_CLK(NULL, "mlbp_clkin_ck", "mlbp_clkin_ck"),
+-- 
+1.9.1
 
-Regards,
-
-Tony
