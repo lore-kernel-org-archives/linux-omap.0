@@ -1,64 +1,84 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: [PATCH v2 3/6] iommu/omap: Move to_iommu definition from
-	omap-iopgtable.h
-Date: Thu,  3 Apr 2014 22:01:35 +0200
-Message-ID: <1396555298-25246-4-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 6/6] iommu/omap: Fix map protection value handling
+Date: Thu,  3 Apr 2014 22:01:38 +0200
+Message-ID: <1396555298-25246-7-git-send-email-laurent.pinchart@ideasonboard.com>
 References: <1396555298-25246-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1396555298-25246-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51607 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753529AbaDCT7o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2014 15:59:44 -0400
+In-Reply-To: <1396555298-25246-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: iommu@lists.linux-foundation.org, Suman Anna <s-anna@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Sakari Ailus <sakari.ailus@iki.fi>
 
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+The prot flags passed to the IOMMU map handler are defined in
+include/linux/iommu.h as IOMMU_(READ|WRITE|CACHE|EXEC). However, the
+driver expects to receive MMU_RAM_* OMAP-specific flags. This causes
+IOMMU flags being interpreted as page sizes, leading to failures.
 
-The to_iommu definition is used only locally to the omap-iommu.c
-source file, and it has nothing to do with the page attributes
-defined in omap-iopgtable.h. So, move the definition out of
-omap-iopgtable.h header file.
+Hardcode the OMAP mapping parameters to little-endian, 8-bits and
+non-mixed page attributes. Furthermore, as the OMAP IOMMU doesn't
+support read-only or write-only mappings, ignore the prot value.
 
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/iommu/omap-iommu.c     | 3 +++
- drivers/iommu/omap-iopgtable.h | 3 ---
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/iommu/omap-iommu.c | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index d987edb..fdf3dd0 100644
+index a47dbdc..6923217 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -34,6 +34,9 @@
- #include "omap-iopgtable.h"
- #include "omap-iommu.h"
+@@ -1040,8 +1040,7 @@ static void iopte_cachep_ctor(void *iopte)
+ 	clean_dcache_area(iopte, IOPTE_TABLE_SIZE);
+ }
  
-+#define to_iommu(dev)							\
-+	((struct omap_iommu *)platform_get_drvdata(to_platform_device(dev)))
-+
- #define for_each_iotlb_cr(obj, n, __i, cr)				\
- 	for (__i = 0;							\
- 	     (__i < (n)) && (cr = __iotlb_read_cr((obj), __i), true);	\
-diff --git a/drivers/iommu/omap-iopgtable.h b/drivers/iommu/omap-iopgtable.h
-index b6f9a51..f891683 100644
---- a/drivers/iommu/omap-iopgtable.h
-+++ b/drivers/iommu/omap-iopgtable.h
-@@ -93,6 +93,3 @@ static inline phys_addr_t omap_iommu_translate(u32 d, u32 va, u32 mask)
- /* to find an entry in the second-level page table. */
- #define iopte_index(da)		(((da) >> IOPTE_SHIFT) & (PTRS_PER_IOPTE - 1))
- #define iopte_offset(iopgd, da)	(iopgd_page_vaddr(iopgd) + iopte_index(da))
+-static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa,
+-				   u32 flags)
++static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa, int pgsz)
+ {
+ 	memset(e, 0, sizeof(*e));
+ 
+@@ -1049,10 +1048,10 @@ static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa,
+ 	e->pa		= pa;
+ 	e->valid	= MMU_CAM_V;
+ 	/* FIXME: add OMAP1 support */
+-	e->pgsz		= flags & MMU_CAM_PGSZ_MASK;
+-	e->endian	= flags & MMU_RAM_ENDIAN_MASK;
+-	e->elsz		= flags & MMU_RAM_ELSZ_MASK;
+-	e->mixed	= flags & MMU_RAM_MIXED_MASK;
++	e->pgsz		= pgsz;
++	e->endian	= MMU_RAM_ENDIAN_LITTLE;
++	e->elsz		= MMU_RAM_ELSZ_8;
++	e->mixed	= 0;
+ 
+ 	return iopgsz_to_bytes(e->pgsz);
+ }
+@@ -1065,7 +1064,7 @@ static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
+ 	struct device *dev = oiommu->dev;
+ 	struct iotlb_entry e;
+ 	int omap_pgsz;
+-	u32 ret, flags;
++	u32 ret;
+ 
+ 	omap_pgsz = bytes_to_iopgsz(bytes);
+ 	if (omap_pgsz < 0) {
+@@ -1075,9 +1074,7 @@ static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
+ 
+ 	dev_dbg(dev, "mapping da 0x%lx to pa 0x%x size 0x%x\n", da, pa, bytes);
+ 
+-	flags = omap_pgsz | prot;
 -
--#define to_iommu(dev)							\
--	(platform_get_drvdata(to_platform_device(dev)))
+-	iotlb_init_entry(&e, da, pa, flags);
++	iotlb_init_entry(&e, da, pa, omap_pgsz);
+ 
+ 	ret = omap_iopgtable_store_entry(oiommu, &e);
+ 	if (ret)
 -- 
 1.8.3.2
+
