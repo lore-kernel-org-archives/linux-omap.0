@@ -1,76 +1,53 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: OMAP baseline test results for v3.14
-Date: Thu, 3 Apr 2014 19:14:15 +0530
-Message-ID: <533D65AF.1060303@ti.com>
-References: <alpine.DEB.2.02.1404021600320.15928@utopia.booyaka.com>
- <20140402162102.GB12234@atomide.com>
- <alpine.DEB.2.02.1404021631040.15928@utopia.booyaka.com>
- <20140402163521.GD12234@atomide.com>
- <CAGo_u6qJt5BRQHDvRjWe7Gjt+AfEBxaOPxCnq66QxMUdZew3Vg@mail.gmail.com>
- <20140402171513.GE12234@atomide.com> <20140403133237.GA6019@luxor.wired.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140403133237.GA6019@luxor.wired.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paolo Pisati <p.pisati@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>, kernel-build-reports@lists.linaro.org, Tony Lindgren <tony@atomide.com>, "menon.nishanth@gmail.com" <menon.nishanth@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 0/6] OMAP IOMMU fixes
+Date: Thu,  3 Apr 2014 22:01:32 +0200
+Message-ID: <1396555298-25246-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51597 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753316AbaDCT7l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2014 15:59:41 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: iommu@lists.linux-foundation.org, Suman Anna <s-anna@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Sakari Ailus <sakari.ailus@iki.fi>
 
-On Thursday 03 April 2014 07:02 PM, Paolo Pisati wrote:
-> On Wed, Apr 02, 2014 at 10:15:13AM -0700, Tony Lindgren wrote:
->>> Paul uses MMC filesystem, I use NFS. As Felipe Pointed out as well, I
->>> did rootcause MMC filesystem mount issue here:
->>> http://marc.info/?l=linux-omap&m=139637044425644&w=2
->>
->> Balaji, care to take a look at the issue for MMC? It may
->> be already fixed in next with the PBIAS handling?
-> 
-> it may be related (or not), but i'm experiencing reboot issues with 3.13/.14 on
-> omap4 (panda), and after a bisection i found out that reverting
-> 
+Hello,
 
-Do you have any logs for it ?
+This patch set fixes miscellaneous issues with the OMAP IOMMU driver, found
+when trying to port the OMAP3 ISP away from omap-iovmm to the ARM DMA API. The
+biggest issue is fixed by patch 6/6, while the other patches fix smaller
+problems that I've noticed when reading the code, without experiencing them at
+runtime.
 
-> commit e002264f7e45d7661b237045577052fd0b40f89c
-> Author: Balaji T K <balajitk <at> ti.com>
-> Date:   Mon Oct 21 00:25:18 2013 +0530
-> 
->      mmc: omap_hsmmc: Fix pbias_disable for omap4
-> 
->      pbias_disable is set to protect the mmc pbias i/o cells in DT boot
->      by preventing voltage switch. Currently pbias_disable is enabled only
->      for omap3 and not for omap4 due to reg_offset difference of 0x100.
->      Enable pbias_disable for omap4+ too by using res->start
->      which does not include the reg_offset.
-> 
->      Signed-off-by: Balaji T K <balajitk <at> ti.com>
->      Signed-off-by: Chris Ball <cjb <at> laptop.org>
-> 
-> made it go away: can you point me to those pbias handling patches (i guess
-> something about dt-booting handling pbias correctly now)?
+I believe I've addressed all comments received for v1. Suman, could you please
+have a quick look at ack the patches you haven't acked yet ? I'll then send a
+pull request.
 
-It is avaliable in linux-next /mmc-next [1]
+Changes since v1:
 
-[1]
-http://git.kernel.org/cgit/linux/kernel/git/cjb/mmc.git/log/?id=refs/heads/mmc-next
+- Dropped the "iommu/omap: Use the cache cleaning API" and "iommu/omap: Flush
+  the TLB only after updating translation table entries" patches
+- Reworked "iommu/omap: Fix 'no page for' debug message in flush_iotlb_page()"
+  to just break out of the loop
+- Added patches 1/6 to 3/6
 
-mmc: omap_hsmmc: remove pbias workaround
-ARM: OMAP: enable SYSCON and REGULATOR_PBIAS in omap2plus_defconfig
-ARM: dts: add pbias dt node
-mmc: omap_hsmmc: adapt hsmmc to use pbias regulator
-regulator: add pbias regulator support
-mmc: omap_hsmmc: handle vcc and vcc_aux independently
-mmc: omap_hsmmc: use devm_regulator API
+Laurent Pinchart (3):
+  iommu/omap: Fix 'no page for' debug message in flush_iotlb_page()
+  iommu/omap: Remove comment about supporting single page mappings only
+  iommu/omap: Fix map protection value handling
 
-Thanks and Regards,
-Balaji T K
+Suman Anna (3):
+  iommu/omap: Correct init value of iotlb_entry valid field
+  iommu/omap: Remove omap_iommu_domain_has_cap() function
+  iommu/omap: Move to_iommu definition from omap-iopgtable.h
+
+ drivers/iommu/omap-iommu.c     | 31 ++++++++++++-------------------
+ drivers/iommu/omap-iopgtable.h |  3 ---
+ 2 files changed, 12 insertions(+), 22 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
