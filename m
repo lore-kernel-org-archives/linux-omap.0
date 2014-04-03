@@ -1,56 +1,58 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v2 2/6] iommu/omap: Remove omap_iommu_domain_has_cap() function
-Date: Thu,  3 Apr 2014 22:01:34 +0200
-Message-ID: <1396555298-25246-3-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: [PATCH v2 1/6] iommu/omap: Correct init value of iotlb_entry valid
+	field
+Date: Thu,  3 Apr 2014 22:01:33 +0200
+Message-ID: <1396555298-25246-2-git-send-email-laurent.pinchart@ideasonboard.com>
 References: <1396555298-25246-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51607 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753499AbaDCT7m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2014 15:59:42 -0400
-In-Reply-To: <1396555298-25246-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1396555298-25246-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: iommu@lists.linux-foundation.org, Suman Anna <s-anna@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Sakari Ailus <sakari.ailus@iki.fi>
 
-From: Suman Anna <s-anna@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 
-The current OMAP IOMMU ops for .domain_has_cap is a stub,
-and the iommu core already returns a value of 0 if the
-domain doesn't have a .domain_has_cap ops plugged in. So,
-clean up this stub function.
+The iotlb_entry field values are used directly in omap2_alloc_cr,
+a function used in preparing the MMU_CAM and MMU_RAM registers.
+The iotlb_entry.valid value is being set incorrectly to 1 at the
+moment, and this would result in overriding the PAGESIZE bit field
+of the MMU_CAM register if prefetching of the entries were to be
+supported.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
+The bug has not caused any MMU faults due to incorrect size
+programming so far as the prefetching is disabled by default. Fix
+this by using the correct init value for the iotlb_entry.valid
+field.
+
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/iommu/omap-iommu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 4716af1..d987edb 100644
+index 8acea87..4716af1 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -1247,12 +1247,6 @@ static phys_addr_t omap_iommu_iova_to_phys(struct iommu_domain *domain,
- 	return ret;
- }
+@@ -1043,7 +1043,7 @@ static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa,
  
--static int omap_iommu_domain_has_cap(struct iommu_domain *domain,
--				    unsigned long cap)
--{
--	return 0;
--}
--
- static int omap_iommu_add_device(struct device *dev)
- {
- 	struct omap_iommu_arch_data *arch_data;
-@@ -1304,7 +1298,6 @@ static struct iommu_ops omap_iommu_ops = {
- 	.map		= omap_iommu_map,
- 	.unmap		= omap_iommu_unmap,
- 	.iova_to_phys	= omap_iommu_iova_to_phys,
--	.domain_has_cap	= omap_iommu_domain_has_cap,
- 	.add_device	= omap_iommu_add_device,
- 	.remove_device	= omap_iommu_remove_device,
- 	.pgsize_bitmap	= OMAP_IOMMU_PGSIZES,
+ 	e->da		= da;
+ 	e->pa		= pa;
+-	e->valid	= 1;
++	e->valid	= MMU_CAM_V;
+ 	/* FIXME: add OMAP1 support */
+ 	e->pgsz		= flags & MMU_CAM_PGSZ_MASK;
+ 	e->endian	= flags & MMU_RAM_ENDIAN_MASK;
 -- 
 1.8.3.2
-
