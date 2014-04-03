@@ -1,14 +1,15 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: [PATCH v2 5/6] iommu/omap: Remove comment about supporting single
-	page mappings only
-Date: Thu,  3 Apr 2014 22:01:37 +0200
-Message-ID: <1396555298-25246-6-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 4/6] iommu/omap: Fix 'no page for' debug message in
+	flush_iotlb_page()
+Date: Thu, 3 Apr 2014 15:56:02 -0500
+Message-ID: <533DCAE2.3030900@ti.com>
 References: <1396555298-25246-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<1396555298-25246-5-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1396555298-25246-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+In-Reply-To: <1396555298-25246-5-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -18,30 +19,41 @@ List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
 Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The IOMMU core breaks out mappings into pages already, there's no
-need to support mapping multiple pages in one go.
+Hi Laurent,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Reviewed-by: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
----
- drivers/iommu/omap-iommu.c | 1 -
- 1 file changed, 1 deletion(-)
+On 04/03/2014 03:01 PM, Laurent Pinchart wrote:
+> The flush_iotlb_page() function prints a debug message when no
+> corresponding page was found in the TLB. That condition is incorrectly
+> checked and always resolves to true, given that the for_each_iotlb_cr()
+> loop is never interrupted and always reaches obj->nr_tlb_entries.
+> 
+> Given that we can't have two TLB entries for the same VA, break from the
+> loop when a match is found.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 428b47a..a47dbdc 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -1067,7 +1067,6 @@ static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
- 	int omap_pgsz;
- 	u32 ret, flags;
- 
--	/* we only support mapping a single iommu page for now */
- 	omap_pgsz = bytes_to_iopgsz(bytes);
- 	if (omap_pgsz < 0) {
- 		dev_err(dev, "invalid size to map: %d\n", bytes);
--- 
-1.8.3.2
+Thanks for the reworked and simplified patch.
+
+Acked-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+
+> ---
+>  drivers/iommu/omap-iommu.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> index fdf3dd0..428b47a 100644
+> --- a/drivers/iommu/omap-iommu.c
+> +++ b/drivers/iommu/omap-iommu.c
+> @@ -394,6 +394,7 @@ static void flush_iotlb_page(struct omap_iommu *obj, u32 da)
+>  				__func__, start, da, bytes);
+>  			iotlb_load_cr(obj, &cr);
+>  			iommu_write_reg(obj, 1, MMU_FLUSH_ENTRY);
+> +			break;
+>  		}
+>  	}
+>  	pm_runtime_put_sync(obj->dev);
+> 
