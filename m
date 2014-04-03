@@ -1,63 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP baseline test results for v3.14
-Date: Wed, 2 Apr 2014 10:15:13 -0700
-Message-ID: <20140402171513.GE12234@atomide.com>
-References: <alpine.DEB.2.02.1404021600320.15928@utopia.booyaka.com>
- <20140402162102.GB12234@atomide.com>
- <alpine.DEB.2.02.1404021631040.15928@utopia.booyaka.com>
- <20140402163521.GD12234@atomide.com>
- <CAGo_u6qJt5BRQHDvRjWe7Gjt+AfEBxaOPxCnq66QxMUdZew3Vg@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] clk: ti: clk-7xx: Correct ABE DPLL configuration
+Date: Thu, 3 Apr 2014 09:29:07 +0300
+Message-ID: <533CFFB3.9070201@ti.com>
+References: <1396446525-20302-1-git-send-email-peter.ujfalusi@ti.com> <533C1AC2.1000307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31657 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932383AbaDBRPd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Apr 2014 13:15:33 -0400
-Content-Disposition: inline
-In-Reply-To: <CAGo_u6qJt5BRQHDvRjWe7Gjt+AfEBxaOPxCnq66QxMUdZew3Vg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <533C1AC2.1000307@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "menon.nishanth@gmail.com" <menon.nishanth@gmail.com>, Balaji T K <balajitk@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, kernel-build-reports@lists.linaro.org
 
-* menon.nishanth@gmail.com <menon.nishanth@gmail.com> [140402 10:03]:
-> On Wed, Apr 2, 2014 at 11:35 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Paul Walmsley <paul@pwsan.com> [140402 09:36]:
-> >> On Wed, 2 Apr 2014, Tony Lindgren wrote:
-> >>
-> >> > * Paul Walmsley <paul@pwsan.com> [140402 09:07]:
-> >> > >
-> >> > > Here are some basic OMAP test results for Linux v3.14.
-> >> > > Logs and other details at:
-> >> > >
-> >> > >     http://www.pwsan.com/omap/testlogs/test_v3.14/20140402004448/
-> >> > >
-> >> > > Boot to userspace:
-> >> > >     FAIL ( 1/12): 2430sdp
-> >> >
-> >> > Is this a new regression with MMC? Looks like your boot log for this
-> >> > ends with "Waiting for root device /dev/mmcblk0p1...".
-> >>
-> >> It's new since v3.14-rc1:
-> >>
-> >> http://www.spinics.net/lists/arm-kernel/msg306448.html
-> >>
-> >> http://www.spinics.net/lists/arm-kernel/msg306454.html
-> >>
-> >> http://www.spinics.net/lists/arm-kernel/msg306455.html
-> >
-> > OK looks like I never noticed that one before. Probably
-> > because of NFSroot.
-> Paul uses MMC filesystem, I use NFS. As Felipe Pointed out as well, I
-> did rootcause MMC filesystem mount issue here:
-> http://marc.info/?l=linux-omap&m=139637044425644&w=2
+On 04/02/2014 05:12 PM, Tero Kristo wrote:
+> On 04/02/2014 04:48 PM, Peter Ujfalusi wrote:
+>> ABE DPLL frequency need to be lowered from 361267200
+>> to 180633600 to facilitate the ATL requironments.
+>> The dpll_abe_m2x2_ck clock need to be set to double
+>> of ABE DPLL rate in order to have correct clocks
+>> for audio.
+>=20
+> Do you have some sort of TRM reference for this?
 
-Balaji, care to take a look at the issue for MMC? It may
-be already fixed in next with the PBIAS handling?
- 
-> NFS does work for me on 3.14 tag  http://slexy.org/raw/s20plaLoaT (on SDP2430)
+The ATL's max divider is 32.
+=46or audio purpose the clock coming out from the ATL instance should b=
+e
+128 * fs. It is only possible to have 44.1KHz sampling rate with ABE DP=
+LL set
+to 361267200 or 180633600. Which means:
+The atl generated clock should be 128 * 44100 =3D 5644800
+=46rom ABE_DPLL 361267200 we would need to have 64 as divider (ATL can'=
+t do this).
+=46rom the suggested ABE_DPLL of 180633600 we can use ATL divider of 32=
+, which
+is the maximum it can do.
 
-Yes that's good.
+So the reason for the change is to have ATLPCLK clock which can be used=
+ for
+audio in the future, the 361267200 is just too high.
 
-Tony
+>=20
+> -Tero
+>=20
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>> ---
+>>   drivers/clk/ti/clk-7xx.c | 7 ++++++-
+>>   1 file changed, 6 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+>> index f7e40734c819..19a55bf407dd 100644
+>> --- a/drivers/clk/ti/clk-7xx.c
+>> +++ b/drivers/clk/ti/clk-7xx.c
+>> @@ -16,7 +16,7 @@
+>>   #include <linux/clkdev.h>
+>>   #include <linux/clk/ti.h>
+>>
+>> -#define DRA7_DPLL_ABE_DEFFREQ                361267200
+>> +#define DRA7_DPLL_ABE_DEFFREQ                180633600
+>>   #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
+>>
+>>
+>> @@ -322,6 +322,11 @@ int __init dra7xx_dt_clk_init(void)
+>>       if (rc)
+>>           pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+>>
+>> +    dpll_ck =3D clk_get_sys(NULL, "dpll_abe_m2x2_ck");
+>> +    rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ * 2);
+>> +    if (rc)
+>> +        pr_err("%s: failed to configure ABE DPLL m2x2!\n", __func__=
+);
+>> +
+>>       dpll_ck =3D clk_get_sys(NULL, "dpll_gmac_ck");
+>>       rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
+>>       if (rc)
+>>
+>=20
+
+
+--=20
+P=E9ter
