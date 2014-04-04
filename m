@@ -1,57 +1,51 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [GIT PULL FOR v3.16] OMAP IOMMU fixes
-Date: Fri, 04 Apr 2014 00:11:52 +0200
-Message-ID: <2312051.xNuD1CfeZH@avalon>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] clk: Add driver for Palmas clk32kg and clk32kgaudio clocks
+Date: Fri, 4 Apr 2014 09:53:11 +0300
+Message-ID: <533E56D7.3060102@ti.com>
+References: <1396522348-31989-1-git-send-email-peter.ujfalusi@ti.com> <533D66F2.7050600@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52304 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751577AbaDCWJu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2014 18:09:50 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <533D66F2.7050600@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, mturquette@linaro.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ldewangan@nvidia.com, linux-doc@vger.kernel.org, grant.likely@linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-Hi Joerg,
+On 04/03/2014 04:49 PM, Nishanth Menon wrote:
+> On 04/03/2014 05:52 AM, Peter Ujfalusi wrote:
+> [...]
+>>  .../devicetree/bindings/clock/clk-palmas.txt       |  35 +++
+>>  drivers/clk/Kconfig                                |   7 +
+>>  drivers/clk/Makefile                               |   1 +
+>>  drivers/clk/clk-palmas.c                           | 307 ++++++++++=
++++++++++++
+>>  include/dt-bindings/mfd/palmas.h                   |  18 ++
+>>  5 files changed, 368 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/clock/clk-palm=
+as.txt
+>>  create mode 100644 drivers/clk/clk-palmas.c
+>>  create mode 100644 include/dt-bindings/mfd/palmas.h
+>=20
+>=20
+> Only complaint i have is based on :
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit=
+/?id=3D2a9330010bea5982a5c6593824bc036bf62d67b7
 
-The following changes since commit 8944b7d495a00ae44d19ce945b5032a86dcdf7f0:
+Oh, I see.
+I'll wait for comments and resend as a series. Probably it is going to =
+be
+better if I rename the documentation file as well to
+bindings/clock/ti,palmas-clk.txt
+I think having two separate document for the two clock is overkill.
 
-  Merge branch 'next' (2014-03-04 23:41:51 +0100)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git iommu/omap
-
-for you to fetch changes up to f42ed2dcc15e39a189458cfab69d7f2b902cc3e6:
-
-  iommu/omap: Fix map protection value handling (2014-04-03 23:35:39 +0200)
-
-I will need to base an OMAP3 ISP patch set on top of this, and I would like to 
-get it merged in v3.16 as well. In order to avoid bisection breakages, could 
-you merge this right on top of v3.15-rc1 when it will be out and provide a 
-stable branch that can then be merged in the Linux media tree ?
+> you may want to split the new binding off to a separate patch.
+> Otherwise, personally, I think it is an good evolution, thanks for
+> doing it.
+>=20
+>=20
 
 
-----------------------------------------------------------------
-Laurent Pinchart (3):
-      iommu/omap: Fix 'no page for' debug message in flush_iotlb_page()
-      iommu/omap: Remove comment about supporting single page mappings only
-      iommu/omap: Fix map protection value handling
-
-Suman Anna (3):
-      iommu/omap: Correct init value of iotlb_entry valid field
-      iommu/omap: Remove omap_iommu_domain_has_cap() function
-      iommu/omap: Move to_iommu definition from omap-iopgtable.h
-
- drivers/iommu/omap-iommu.c     | 31 ++++++++++++-------------------
- drivers/iommu/omap-iopgtable.h |  3 ---
- 2 files changed, 12 insertions(+), 22 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+--=20
+P=E9ter
