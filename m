@@ -1,91 +1,49 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: [PATCH v2 1/3] ARM: OMAP2+: L2 cache: allow different aux ctrl settings
-Date: Fri, 4 Apr 2014 15:40:27 +0530
-Message-ID: <26e5bedd5fa33981e2ef3a8e3e498405bf854765.1396605300.git.nsekhar@ti.com>
-References: <cover.1396605300.git.nsekhar@ti.com>
+From: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/5] OMAP IOMMU fixes and IOMMU architecture questions
+Date: Fri, 4 Apr 2014 12:18:11 +0200
+Message-ID: <20140404101811.GR13491@8bytes.org>
+References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<53226A81.3090501@ti.com> <1523736.5PrLY3OqT5@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36561 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752284AbaDDKLP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Apr 2014 06:11:15 -0400
-In-Reply-To: <cover.1396605300.git.nsekhar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1523736.5PrLY3OqT5@avalon>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sakari.ailus-X3B1VOXEql0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Sekhar Nori <nsekhar@ti.com>
 
-Different SoCs likely need different L2 cache aux ctrl
-settings based on use cases and optimizations required.
+On Fri, Mar 14, 2014 at 12:00:16PM +0100, Laurent Pinchart wrote:
+> Right, we indeed need two levels of API, one for drivers such as remoteproc 
+> that need direct control of the IOMMU, and one for drivers that only need to 
+> map buffers without any additional requirement. In the second case the drivers 
+> should ideally use the DMA mapping API not even be aware that an IOMMU is 
+> present. This would require moving the ARM mapping allocation out of the 
+> client driver.
 
-For example, if CMA is always used for coherent memory allocations,
-there is no need for sharable attribute override bit to be set.
+These two levels exist in the form of the DMA-API and the IOMMU-API. In
+fact, the IOMMU-API was created to provide a way to drivers to specifiy
+the IOVA->PHYS mappings on its own.
 
-Pass aux control settings as argument to the L2 cache initialization
-function to allow for this.
+> The IOMMU core or the IOMMU driver will need to know whether the driver 
+> expects to control the IOMMU directly or to have it managed transparently. As 
+> this is a software configuration I don't think the information belongs to DT. 
+> The question is, how should this information be conveyed ?
 
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
- arch/arm/mach-omap2/omap4-common.c |   31 +++++++++++++++++--------------
- 1 file changed, 17 insertions(+), 14 deletions(-)
+The way this works on x86 is that a device driver can use the DMA-API
+per default. If it wants to use the IOMMU-API it has to allocate a
+domain and add the device it handles to this domain (it can't use
+DMA-API anymore then).
 
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 06c6a18..0a2e4f0 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -196,10 +196,8 @@ static void omap4_l2c310_write_sec(unsigned long val, unsigned reg)
- 	omap_smc1(smc_op, val);
- }
- 
--static int __init omap_l2_cache_init(void)
-+static int __init omap_l2_cache_init(u32 aux_ctrl, u32 aux_flags)
- {
--	u32 aux_ctrl;
--
- 	/*
- 	 * To avoid code running on other OMAPs in
- 	 * multi-omap builds
-@@ -212,23 +210,28 @@ static int __init omap_l2_cache_init(void)
- 	if (WARN_ON(!l2cache_base))
- 		return -ENOMEM;
- 
--	/* 16-way associativity, parity disabled, way size - 64KB (es2.0 +) */
--	aux_ctrl = L310_AUX_CTRL_CACHE_REPLACE_RR |
--		   L310_AUX_CTRL_NS_LOCKDOWN |
--		   L310_AUX_CTRL_NS_INT_CTRL |
--		   L2C_AUX_CTRL_SHARED_OVERRIDE |
--		   L310_AUX_CTRL_DATA_PREFETCH |
--		   L310_AUX_CTRL_INSTR_PREFETCH;
--
- 	outer_cache.write_sec = omap4_l2c310_write_sec;
- 	if (of_have_populated_dt())
--		l2x0_of_init(aux_ctrl, 0xc19fffff);
-+		l2x0_of_init(aux_ctrl, aux_flags);
- 	else
--		l2x0_init(l2cache_base, aux_ctrl, 0xc19fffff);
-+		l2x0_init(l2cache_base, aux_ctrl, aux_flags);
- 
- 	return 0;
- }
--omap_early_initcall(omap_l2_cache_init);
-+
-+static int __init omap4_l2_cache_init(void)
-+{
-+	/* 16-way associativity, parity disabled, way size - 64KB (es2.0 +) */
-+	u32 aux_ctrl = L310_AUX_CTRL_CACHE_REPLACE_RR |
-+		       L310_AUX_CTRL_NS_LOCKDOWN |
-+		       L310_AUX_CTRL_NS_INT_CTRL |
-+		       L2C_AUX_CTRL_SHARED_OVERRIDE |
-+		       L310_AUX_CTRL_DATA_PREFETCH |
-+		       L310_AUX_CTRL_INSTR_PREFETCH;
-+
-+	return omap_l2_cache_init(aux_ctrl, 0xc19fffff);
-+}
-+omap_early_initcall(omap4_l2_cache_init);
- #endif
- 
- void __iomem *omap4_get_sar_ram_base(void)
--- 
-1.7.10.1
 
+	Joerg
