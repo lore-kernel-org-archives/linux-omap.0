@@ -1,75 +1,67 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 2/5] gpio: omap: check gpiochip_add() return value
-Date: Sun,  6 Apr 2014 16:58:14 +0200
-Message-ID: <1396796297-13002-3-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH 3/5] gpio: omap: add a GPIO_OMAP option instead of using ARCH_OMAP
+Date: Sun,  6 Apr 2014 16:58:15 +0200
+Message-ID: <1396796297-13002-4-git-send-email-javier.martinez@collabora.co.uk>
 References: <1396796297-13002-1-git-send-email-javier.martinez@collabora.co.uk>
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:40483 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753986AbaDFO65 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Apr 2014 10:58:57 -0400
 In-Reply-To: <1396796297-13002-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-gpio-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Linus Walleij <linus.walleij@linaro.org>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-List-Id: linux-omap@vger.kernel.org
 
-The gpiochip_add() function can fail if the chip cannot
-be registered so the return value has to be checked and
-the error propagated in case it happens.
+The ARCH_OMAP config option was used to built the GPIO OMAP
+driver but this is not consistent with the rest of the GPIO
+drivers that have their own Kconfig option.
+
+Also, this make it harder to add dependencies or reverse
+dependencies (i.e: select) since that would mean touching the
+sub-arch config option.
+
+So is better to add a boolean Kconfig option for this driver
+that defaults to true if ARCH_OMAP is enabled.
 
 Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 ---
- drivers/gpio/gpio-omap.c | 16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ drivers/gpio/Kconfig  | 7 +++++++
+ drivers/gpio/Makefile | 2 +-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 3ee9b8d..e717888 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1081,10 +1081,11 @@ omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
- 			       IRQ_NOREQUEST | IRQ_NOPROBE, 0);
- }
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index 92d8e9a..bfe5cf0 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -243,6 +243,13 @@ config GPIO_OCTEON
+ 	  Say yes here to support the on-chip GPIO lines on the OCTEON
+ 	  family of SOCs.
  
--static void omap_gpio_chip_init(struct gpio_bank *bank)
-+static int omap_gpio_chip_init(struct gpio_bank *bank)
- {
- 	int j;
- 	static int gpio;
-+	int ret;
- 
- 	/*
- 	 * REVISIT eventually switch from OMAP-specific gpio structs
-@@ -1110,7 +1111,11 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
- 	}
- 	bank->chip.ngpio = bank->width;
- 
--	gpiochip_add(&bank->chip);
-+	ret = gpiochip_add(&bank->chip);
-+	if (ret) {
-+		dev_err(bank->dev, "Could not register gpio chip\n", ret);
-+		return ret;
-+	}
- 
- 	for (j = 0; j < bank->width; j++) {
- 		int irq = irq_create_mapping(bank->domain, j);
-@@ -1139,6 +1144,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	struct gpio_bank *bank;
- 	int irq_base = 0;
-+	int ret;
- 
- 	match = of_match_device(of_match_ptr(omap_gpio_match), dev);
- 
-@@ -1223,7 +1229,11 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 		mpuio_init(bank);
- 
- 	omap_gpio_mod_init(bank);
--	omap_gpio_chip_init(bank);
++config GPIO_OMAP
++	bool "TI OMAP GPIO support"
++	default y if ARCH_OMAP
++	depends on ARM && ARCH_OMAP
++	help
++	  Say yes here to enable GPIO support for TI OMAP SoCs.
 +
-+	ret = omap_gpio_chip_init(bank);
-+	if (ret)
-+		return ret;
-+
- 	omap_gpio_show_rev(bank);
- 
- 	pm_runtime_put(bank->dev);
+ config GPIO_PL061
+ 	bool "PrimeCell PL061 GPIO support"
+ 	depends on ARM_AMBA
+diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+index 6309aff..d10f6a9 100644
+--- a/drivers/gpio/Makefile
++++ b/drivers/gpio/Makefile
+@@ -58,7 +58,7 @@ obj-$(CONFIG_GPIO_MVEBU)        += gpio-mvebu.o
+ obj-$(CONFIG_GPIO_MXC)		+= gpio-mxc.o
+ obj-$(CONFIG_GPIO_MXS)		+= gpio-mxs.o
+ obj-$(CONFIG_GPIO_OCTEON)	+= gpio-octeon.o
+-obj-$(CONFIG_ARCH_OMAP)		+= gpio-omap.o
++obj-$(CONFIG_GPIO_OMAP)		+= gpio-omap.o
+ obj-$(CONFIG_GPIO_PCA953X)	+= gpio-pca953x.o
+ obj-$(CONFIG_GPIO_PCF857X)	+= gpio-pcf857x.o
+ obj-$(CONFIG_GPIO_PCH)		+= gpio-pch.o
 -- 
 1.9.0
 
