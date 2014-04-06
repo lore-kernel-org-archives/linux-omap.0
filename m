@@ -1,59 +1,58 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [RFC 2/2] [media] Ad DT binding documentation for si4713
-Date: Sun,  6 Apr 2014 13:52:05 +0200
-Message-ID: <1396785125-8759-3-git-send-email-sre@kernel.org>
-References: <1396785125-8759-1-git-send-email-sre@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1396785125-8759-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Eduardo Valentin <edubezval@gmail.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Hans Verkuil <hans.verkuil@cisco.com>, Dinesh Ram <Dinesh.Ram@cern.ch>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 0/5] GPIO OMAP driver changes for v3.16
+Date: Sun,  6 Apr 2014 16:58:12 +0200
+Message-ID: <1396796297-13002-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds the DT bindings documentation for Silicon Labs Si4713 FM
-radio transmitter.
+Hi Linus,
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- Documentation/devicetree/bindings/media/si4713.txt | 30 ++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
+Now that you have sent your changes for v3.15 to Torvalds, here are some
+changes for the OMAP GPIO driver targeted to v3.16. Mostly improvements
+so nothing here is -rc material.
 
-diff --git a/Documentation/devicetree/bindings/media/si4713.txt b/Documentation/devicetree/bindings/media/si4713.txt
-new file mode 100644
-index 0000000..5ee5552
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/si4713.txt
-@@ -0,0 +1,30 @@
-+* Silicon Labs FM Radio transmitter
-+
-+The Silicon Labs Si4713 is an FM radio transmitter with receive power scan
-+supporting 76-108 MHz. It includes an RDS encoder and has both, a stereo-analog
-+and a digital interface, which supports I2S, left-justified and a custom
-+DSP-mode format. It is programmable through an I2C interface.
-+
-+Required Properties:
-+- compatible: Should contain "silabs,si4713"
-+- reg: the I2C address of the device
-+
-+Optional Properties:
-+- interrupts-extended: Interrupt specifier for the chips interrupt
-+- reset-gpios: GPIO specifier for the chips reset line
-+- vdd-supply: phandle for Vdd regulator
-+- vio-supply: phandle for Vio regulator
-+
-+Example:
-+
-+&i2c2 {
-+        fmtx: si4713@63 {
-+                compatible = "silabs,si4713";
-+                reg = <0x63>;
-+
-+                interrupts-extended = <&gpio2 21 IRQ_TYPE_EDGE_FALLING>; /* 53 */
-+                reset-gpios = <&gpio6 3 GPIO_ACTIVE_HIGH>; /* 163 */
-+                vio-supply = <&vio>;
-+                vdd-supply = <&vaux1>;
-+        };
-+};
+The biggest change is Patch 4 that converts the driver to use the newly
+introduced generic irqchip helpers in the gpiolib core which allows to
+remove some driver specific logic that should really be generic.
+
+Aaro and Paul,
+
+I've just build tested using omap1_defconfig since I don't have any OMAP1
+board to test. It would be nice if you could test using any of your boards
+to see if this patch-set does not introduce a regression. Specially on those
+using MPUIO interrupt generation since I'm not familiar with it and I could
+get something wrong while studying the code.
+
+I prefer this set to not be merged until we have some testing on OMAP1 SoCs.
+
+Santosh and Kevin,
+
+If you agree I would like to be added to the list of maintainers for this
+driver since that is what I've been doing lately anyways and that way tools
+like get_maintainer.pl will hint people posting patches that I'm interested
+in being cc'ed for this driver.
+
+The patch-set is composed of the following patches: 
+
+Javier Martinez Canillas (5):
+  gpio: omap: convert to use irq_domain_add_simple()
+  gpio: omap: check gpiochip_add() return value
+  gpio: omap: add a GPIO_OMAP option instead of using ARCH_OMAP
+  gpio: omap: convert driver to use gpiolib irqchip
+  MAINTAINERS: update GPIO OMAP driver entry
+
+ MAINTAINERS              |   1 +
+ drivers/gpio/Kconfig     |   8 +++
+ drivers/gpio/Makefile    |   2 +-
+ drivers/gpio/gpio-omap.c | 128 +++++++++++++++++++++++------------------------
+ 4 files changed, 73 insertions(+), 66 deletions(-)
+
+Thanks a lot and best regards,
+Javier
+
 -- 
-1.9.1
+1.9.0
+
