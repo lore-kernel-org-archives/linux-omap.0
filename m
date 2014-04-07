@@ -1,2250 +1,1187 @@
-From: Jenny TC <jenny.tc@intel.com>
-Subject: [RFC] power_supply: Introduce generic psy charging driver
-Date: Mon,  7 Apr 2014 09:40:10 +0530
-Message-ID: <1396843810-16743-1-git-send-email-jenny.tc@intel.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:33911 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750726AbaDGEK1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Apr 2014 00:10:27 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [GIT PULL] fbdev changes for 3.15 (OMAP related)
+Date: Mon, 7 Apr 2014 12:35:45 +0300
+Message-ID: <53427171.5080602@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="4wd9LfIt31vlnhKehEp1KkhsUOlTVD2Bf"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-fbdev <linux-fbdev@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Jenny TC <jenny.tc@intel.com>, Kim Milo <Milo.Kim@ti.com>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
 
-RFC: Fixed comments for patch v8, removed sorting and string comparisons
+--4wd9LfIt31vlnhKehEp1KkhsUOlTVD2Bf
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-The Power Supply charging driver connects multiple subsystems
-to do charging in a generic way. The subsystems involves power_supply,
-thermal and battery communication subsystems (1wire).With this the charging is
-handled in a generic way.
+Hi Linus,
 
-The driver makes use of different new features - Battery Identification
-interfaces, pluggable charging algorithms, charger cable arbitrations etc.
-The patch also introduces generic interface for charger cable notifications.
-Charger cable events and capabilities can be notified using the generic
-power_supply_notifier chain.
+Please pull OMAP related fbdev changes for 3.15.
 
-Overall this driver removes the charging logic out of the charger chip driver
-and the charger chip driver can just listen to the request from the power
-supply charging driver to set the charger properties. This can be implemented
-by exposing get_property and set property callbacks.
+This is based on the already pulled fbdev-main changes, and this also mer=
+ges
+=2Edts branch from Tony Lindgren (which has also been pulled), so that I =
+was able
+to add the display related .dts changes.
 
-Signed-off-by: Jenny TC <jenny.tc@intel.com>
----
- Documentation/power/power_supply_charger.txt |  350 +++++++++
- drivers/power/Kconfig                        |    8 +
- drivers/power/Makefile                       |    1 +
- drivers/power/power_supply_charger.c         | 1066 ++++++++++++++++++++++++++
- drivers/power/power_supply_charger.h         |  226 ++++++
- drivers/power/power_supply_core.c            |    3 +
- include/linux/power/power_supply_charger.h   |  304 ++++++++
- include/linux/power_supply.h                 |  161 ++++
- 8 files changed, 2119 insertions(+)
- create mode 100644 Documentation/power/power_supply_charger.txt
- create mode 100644 drivers/power/power_supply_charger.c
- create mode 100644 drivers/power/power_supply_charger.h
- create mode 100644 include/linux/power/power_supply_charger.h
+The shortlog generated below by git-request-pull is ok, but the diff stat=
+ is
+not. I guess the branch I have is not something that git diff can handle.=
 
-diff --git a/Documentation/power/power_supply_charger.txt b/Documentation/power/power_supply_charger.txt
-new file mode 100644
-index 0000000..1bb8cb4
---- /dev/null
-+++ b/Documentation/power/power_supply_charger.txt
-@@ -0,0 +1,350 @@
-+1. Introduction
-+===============
-+
-+The Power Supply charging driver connects multiple subsystems
-+to do charging in a generic way. The subsystems involves power_supply,
-+thermal and battery communication subsystems (1wire).With this the charging is
-+handled in a generic way by plugging the driver to power supply subsystem.
-+
-+The driver introduces different new features - Battery Identification
-+interfaces, pluggable charging algorithms, charger cable arbitrations etc.
-+
-+In existing driver implementations the charging is done based on the static
-+battery characteristics. This is done at the boot time by passing the battery
-+properties (max_voltage, capacity) etc. as a platform data to the
-+charger/battery driver. But new generation high volt batteries needs to be
-+identified dynamically to do charging in a safe manner. The batteries are
-+coming with different communication protocols. It become necessary to
-+communicate with battery and identify it's charging profiles before setup
-+charging.
-+
-+Also the charging algorithms can vary based on the battery characteristics
-+and the platform characteristics. To handle charging in a generic way it's
-+necessary to support pluggable charging algorithms. Power Supply Charging
-+driver selects algorithms based on the type of battery charging profile.
-+This is a simple binding and can be improved later. This may be improved to
-+select the algorithms based on the platform requirements. Also we can extend
-+this driver to plug algorithms from the user space.
-+
-+The driver also introduces the charger cable arbitration. A charger may
-+supports multiple cables, but it may not be able to charge with multiple
-+cables at a time (USB/AC/Wireless etc.). The arbitration logic inside the
-+driver selects the cable based on it's capabilities and the maximum
-+charge current the platform can support.
-+
-+Also the driver exposes features to control charging on different platform
-+states. One such feature is thermal. The driver handles the thermal
-+throttling requests for charging and control charging based on the thermal
-+subsystem requirements.
-+
-+Overall this driver removes the charging logic out of the charger chip driver
-+and the charger chip driver can just listen to the request from the power
-+supply charging driver to set the charger properties. This can be implemented
-+by exposing get_property and set property callbacks.
-+
-+2. Reading Battery charging profile
-+===================================
-+
-+Power Supply charging driver expose APIs to retrieve battery profile of a
-+battery. The battery profile can be read by battery identification driver which
-+may be 1wire/I2C/SFI driver. Battery identification driver can register the
-+battery profile with the power supply charging driver using the API
-+psy_battery_prop_changed(). The driver also exposes API
-+psy_get_battery_prop() to retrieve the battery profile which can be
-+used by power supply drivers to setup the charging. Also drivers
-+can register for battery removal/insertion notifications using
-+power_supply_reg_notifier()
-+
-+3. Use Charging Driver to setup charging
-+===========================================
-+
-+* Register the driver with the power_supply class
-+* Register the driver with the power supply charging driver
-+* Expose set_property and get_property functions so that charging
-+  framework can control the charging
-+
-+3.1  Registering charger chip driver with power supply charging driver
-+================================================================
-+
-+struct power_supply_class psy_usb;
-+struct power_supply_charger psyc_usb;
-+
-+/* register with power supply subsystem */
-+psy_usb.name = DEV_NAME;
-+psy_usb.type = POWER_SUPPLY_TYPE_USB;
-+
-+/* pointer to power supply property structure */
-+psy_usb.properties =  &psy_usb_props;
-+psy_usb.num_properties = ARRAY_SIZE(psy_usb_props);
-+
-+/* pointer to power supply get property function */
-+psy_usb.get_property = psy_usb_get_property;
-+
-+/* pointer to power supply set property function */
-+psy_usb.set_property = psy_usb_set_property;
-+
-+/* pointer to the supplied_to argument to indicate the batteries
-+   to which this charger is supplying power  */
-+psy_usb.supplied_to = supplied_to;
-+psy_usb.num_supplicants = num_supplicants;
-+
-+/* register with power_supply subsystem */
-+power_supply_register(device, &psy_usb);
-+
-+/* Register with power supply charging driver */
-+
-+/* define supported cable types for this driver */
-+psyc_usb.supported_cables = POWER_SUPPLY_CHARGER_TYPE_USB;
-+
-+/* pointer to power supply charger get property function */
-+psyc_usb.get_property = bq24261_usb_psyc_get_property;
-+
-+/* pointer to power supply charger set property function */
-+psyc_usb.set_property = bq24261_usb_psyc_set_property;
-+
-+/* pointer to throttle states */
-+psyc_usb.throttle_states = chip->pdata->throttle_states;
-+
-+/* Number of throttle states */
-+psyc_usb.num_throttle_states = chip->pdata->num_throttle_states;
-+
-+/*register with power supply charging */
-+power_supply_register_charger(&chip->psy_usb, &chip->psyc_usb);
-+
-+3.2 Properties exposed to power supply class driver
-+==================================================
-+* POWER_SUPPLY_PROP_ONLINE
-+	* Read access using get_property_function
-+		* Returns the online property set using the set_property
-+		  function
-+	* Write access using set_property function
-+		* Expose the value through get_property_function.
-+* POWER_SUPPLY_PROP_PRESENT
-+	* Read access using get_property_function
-+		* Returns the present property set using the set_property
-+		  function
-+	* Write access using set_property function
-+		* Expose the value through get_property_function.
-+* POWER_SUPPLY_PROP_HEALTH
-+	* Read access using get_property_function
-+		* Returns charger health
-+* POWER_SUPPLY_PROP_TYPE
-+	* Read access using power_supply structure
-+		* Returns charger type
-+* POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT
-+	* Read access using get property
-+		* Returns the present charge control limit
-+	* Write access using set property
-+		* Set charge control limit.
-+		* Action: Driver is not expected to take any actions on this.
-+			  Instead need to expose this on the read interface.
-+			  Charging framework process this and notifies the
-+			  charging parameters accordingly.
-+* POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT_MAX
-+	* Read access using get property
-+		* Returns the maximum charge control limit
-+* POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT
-+	* Read access using get property
-+		* Returns the input current limit passed by set_property
-+		  function
-+		* Default value : 0
-+	* Write access using set property
-+		* Set input current limit
-+		* Action : Write h/w register to set the input current limit
-+			   based on the value
-+* POWER_SUPPLY_PROP_CHARGE_CURRENT
-+	* Read access using get property
-+		* Returns charge current passed by set_property function
-+		* Default value : 0
-+	* Write access using set property
-+		* Set charge current
-+		* Action : Write h/w register to set the charge current based
-+			   on the value
-+* POWER_SUPPLY_PROP_CHARGE_VOLTAGE
-+	* Read access using get property
-+		* Returns charge voltage passed by set_property function
-+		* Default value: 0
-+	* Write access using set property
-+		* Set charge voltage
-+		* Action : Write h/w register to set the charge voltage based
-+			   on the value
-+* POWER_SUPPLY_PROP_CHARGE_TERM_CURRENT
-+	* Read access using get property
-+		* Returns charge termination current passed by set_property
-+		  function
-+		* Default value : 0
-+	* Write access using set property
-+		* Set charge termination current
-+		* Action : Write h/w register to set the charge termination
-+			   current
-+			   based on the value
-+* POWER_SUPPLY_PROP_TEMP_MIN
-+	* Read access using get property
-+		* Returns minimum charging  temperature passed by set_property
-+		* Default value : Platform dependant
-+	* Write access using set_property
-+		* Set Minimum charging temperature
-+		* Action : Write h/w register to set the minimum charging
-+			   temperature based on the value
-+* POWER_SUPPLY_PROP_TEMP_MAX
-+	* Write access using set_property
-+		* Set Maximum charging temperature
-+		* Action : Write h/w register to set the maximum charging
-+			   temperature based on the value
-+	* Read access using get property
-+		* Returns maximum charging  temperature passed by set_property
-+		* Default value : Platform dependent
-+* POWER_SUPPLY_PROP_MAX_CHARGE_CURRENT
-+	* Read access using get property
-+		* Returns maximum charging  current passed by set_property
-+		* Default value : Platform dependent
-+	* Write access using set_property
-+		* Set Maximum charging current
-+		* Action: Configure safety charging registers if any. If no h/w
-+			  actions expected, report the value on the
-+			  get_property interface.
-+* POWER_SUPPLY_PROP_MAX_CHARGE_VOLTAGE
-+	* Read access using get property
-+		* Returns maximum charging  current passed by set_property
-+		* Default value : Platform dependent
-+	* Write access using set_property
-+		* Set Maximum charging voltage
-+		* Action: Configure safety charging registers if any. If not,
-+			  no actions expected for this.
-+
-+3.3 Properties exposed to power supply charging driver
-+=====================================================
-+
-+* POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGING
-+	* Write access using set_property
-+		* Enable/Disable charging. Charger supplies power to platform,
-+		  but charging is disabled
-+		* Action: Configure charger chip registers to enable/disable
-+		  charging. Writing 0, disables charging, writing 1 enables
-+		  charging
-+* POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGER
-+	* Write access using set_property
-+		* Enable/Disable charger. Charger doesn't supply power to
-+		  platform or battery and battery start to discharge.
-+		* Action: Configure charger chip registers to enable/disable
-+		  charger. Writing 0 disables charger, writing 1 enables
-+		  charger
-+* POWER_SUPPLY_CHARGER_PROP_CABLE_TYPE
-+	* Write access using set_property
-+		* Set charger cable type.
-+		* Action: Report power supply type based on cable type
-+* POWER_SUPPLY_CHARGER_PROP_RESET_WDT
-+	* Write access using set_property
-+		* Reset charger Watch Dog Timer
-+		* Action: Reset charger Watch Dog Timer.
-+* POWER_SUPPLY_CHARGER_PROP_PRIORITY
-+	* Read access using get property
-+		* Expose charger driver/chips priority if platform has multiple
-+		  charger chip/drivers.
-+
-+3.4 Throttling data configuration
-+=============================
-+Power supply charging driver can take actions for Thermal throttling requests.
-+Power supply core sends event PSY_EVENT_THROTTLE  on power_supply_notifier
-+chain. Power supply charging driver handle this event and takes throttling
-+actions as in the throttling configuration structure. The throttling
-+configuration structure has the following format:
-+
-+struct psy_throttle_state {
-+	enum psy_throttle_action throttle_action;
-+	unsigned throttle_val;
-+};
-+
-+enum psy_throttle_action {
-+	/* Disable charger, charger doesn't supply VSYS */
-+	PSY_THROTTLE_DISABLE_CHARGER = 0,
-+
-+	/* Disable charging, charger would supply VSYS */
-+	PSY_THROTTLE_DISABLE_CHARGING,
-+
-+	/* Throttle charge current */
-+	PSY_THROTTLE_CC_LIMIT,
-+
-+	/* Throttle input current limit */
-+	PSY_THROTTLE_INPUT_LIMIT,
-+};
-+
-+Throttling configuration example:
-+
-+struct psy_throttle_state my_throttle_states[] = {
-+
-+	/* Level 0:  Limit charge current to 1500mA. Normal Level */
-+	{
-+		.throttle_action = PSY_THROTTLE_CC_LIMIT,
-+		.throttle_val = 1500,
-+	},
-+
-+	/* Level 1: Limit charge current to 500mA */
-+	{
-+		.throttle_action = PSY_THROTTLE_CC_LIMIT,
-+		.throttle_val = 500,
-+	},
-+
-+	/*
-+	* Level 2: Disable charging: Stop charging, charger supply power to
-+	* platform.
-+	*/
-+	{
-+		.throttle_action = PSY_THROTTLE_DISABLE_CHARGING,
-+	},
-+
-+	/* Level 3: Disable charger: Battery start discharging */
-+	{
-+		.throttle_action = PSY_THROTTLE_DISABLE_CHARGER,
-+	},
-+
-+};
-+
-+4. Charger Cable notifications
-+==============================
-+
-+Charger cables can have different charging capabilities (current) depending on
-+platform and cable type. The cable provider drivers detect and identify the
-+cable types and notifies the power supply subsystem by posting an event
-+PSY_EVENT_CABLE on the power_supply_notifier chain. The event notification
-+should have a property structure pointer which indicates the cable type, event
-+and capability.
-+
-+struct psy_cable_props cable;
-+cable.chrg_evt = PSY_CHARGER_CABLE_EVENT_CONNECT;
-+cable.chrg_type = PSY_CHARGER_CABLE_TYPE_USB_DCP;
-+cable.ma = 1500;
-+
-+atomic_notifier_call_chain(&power_supply_notifier,
-+				PSY_EVENT_CABLE, &cable);
-+
-+Power supply charging driver process this event and takes actions to setup
-+charging.
-+
-+5. Registering new charging algorithm
-+===================================
-+Power supply charging driver supports pluggable charging algorithms. Charging
-+algorithms processes charging profile and/or applies different logic (pulse
-+charging/fast charging/relaxed charging) to decide the charging parameters (CC
-+and CV).
-+
-+* Populate algorithm structure
-+	struct psy_charging_algo new_algo;
-+	/* populate the type charging profile the algorithm handles */
-+	pse_algo.chrg_prof_type = PSY_CHRG_PROF_PSE;
-+	pse_algo.name = "my_algo";
-+	/* callback function to retrieve CC and CV */
-+	pse_algo.get_next_cc_cv = my_algo_get_next_cc_cv;
-+	/* callback function to retreive battery thresholds */
-+	pse_algo.get_batt_thresholds = my_algo_get_bat_thresholds;
-+	/* register charging algorithm */
-+	power_supply_register_charging_algo(&pse_algo);
-+
-+When the type of charging profile reported by battery and algorithm matches,
-+the algorithm will be invoked to get the charging parameters.
-+
-+6. TODO
-+=======
-+* Replace static cable array with dynamic list
-+* Implement safety timer and watch dog timer features with more monitoring
-+* Move charge full detection logic to psy charging driver from algorithm driver
-diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
-index 0196acf..f679f82 100644
---- a/drivers/power/Kconfig
-+++ b/drivers/power/Kconfig
-@@ -14,6 +14,14 @@ config POWER_SUPPLY_DEBUG
- 	  Say Y here to enable debugging messages for power supply class
- 	  and drivers.
- 
-+config POWER_SUPPLY_CHARGER
-+	bool "Power Supply Charger"
-+	help
-+	  Say Y here to enable the power supply charging control driver. Charging
-+	  control supports charging in a generic way. This allows the charger
-+	  drivers to keep the charging logic outside and the charger driver
-+	  just need to abstract the charger hardware.
-+
- config PDA_POWER
- 	tristate "Generic PDA/phone power driver"
- 	depends on !S390
-diff --git a/drivers/power/Makefile b/drivers/power/Makefile
-index ee54a3e..405f0f4 100644
---- a/drivers/power/Makefile
-+++ b/drivers/power/Makefile
-@@ -7,6 +7,7 @@ power_supply-$(CONFIG_LEDS_TRIGGERS)	+= power_supply_leds.o
- obj-$(CONFIG_POWER_SUPPLY)	+= power_supply.o
- obj-$(CONFIG_GENERIC_ADC_BATTERY)	+= generic-adc-battery.o
- 
-+obj-$(CONFIG_POWER_SUPPLY_CHARGER) += power_supply_charger.o
- obj-$(CONFIG_PDA_POWER)		+= pda_power.o
- obj-$(CONFIG_APM_POWER)		+= apm_power.o
- obj-$(CONFIG_MAX8925_POWER)	+= max8925_power.o
-diff --git a/drivers/power/power_supply_charger.c b/drivers/power/power_supply_charger.c
-new file mode 100644
-index 0000000..f141d7f
---- /dev/null
-+++ b/drivers/power/power_supply_charger.c
-@@ -0,0 +1,1066 @@
-+/*
-+ * Copyright (C) 2012 Intel Corporation
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the GNU
-+ * General Public License for more details.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ * Author: Jenny TC <jenny.tc@intel.com>
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/notifier.h>
-+#include <linux/power_supply.h>
-+#include <linux/power/power_supply_charger.h>
-+#include <linux/slab.h>
-+#include <linux/thermal.h>
-+#include <linux/types.h>
-+#include <linux/usb/otg.h>
-+#include "power_supply_charger.h"
-+
-+
-+#define MAX_CHARGER_COUNT 5
-+
-+static LIST_HEAD(algo_list);
-+
-+struct psy_event_node {
-+	struct list_head node;
-+	unsigned long event;
-+	struct psy_cable_props cap;
-+	struct power_supply *psy;
-+	struct psy_batt_chrg_prof batt_property;
-+};
-+
-+struct psy_charger_drv_context {
-+	bool is_usb_cable_evt_reg;
-+	int psyc_cnt;
-+	int batt_status;
-+	/* cache battery and charger properties */
-+	struct mutex event_lock;
-+	struct list_head event_queue;
-+	struct psy_batt_chrg_prof batt_property;
-+	struct work_struct event_work;
-+	wait_queue_head_t wait_chrg_enable;
-+	spinlock_t battid_spinlock;
-+	spinlock_t event_queue_lock;
-+};
-+
-+struct charger_cable {
-+	struct psy_cable_props cable_props;
-+	unsigned long psy_cable_type;
-+};
-+
-+static struct psy_charger_drv_context psy_chrgr;
-+
-+static struct charger_cable cable_list[] = {
-+	{
-+	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_USB_SDP,
-+	 },
-+	{
-+	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_USB_CDP,
-+	 },
-+	{
-+	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_USB_DCP,
-+	 },
-+	{
-+	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_USB_ACA,
-+	 },
-+	{
-+	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_ACA_DOCK,
-+	 },
-+	{
-+	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_SE1,
-+	 },
-+	{
-+	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_AC,
-+	 },
-+};
-+
-+struct usb_phy *otg_xceiver;
-+static int handle_event_notification(struct notifier_block *nb,
-+				   unsigned long event, void *data);
-+struct notifier_block nb = {
-+		   .notifier_call = handle_event_notification,
-+		};
-+static void configure_chrgr_source(struct charger_cable *cable_lst);
-+struct psy_charging_algo *power_supply_get_charging_algo
-+		(struct power_supply *, struct psy_batt_chrg_prof *);
-+static void __power_supply_trigger_charging_handler(struct power_supply *psy);
-+static void power_supply_trigger_charging_handler(struct power_supply *psy);
-+static void trigger_algo_psy_class(void);
-+static int psy_charger_throttle_charger(struct power_supply *psy,
-+					unsigned long state);
-+
-+static inline bool psy_is_battery_prop_changed(struct psy_batt_props *bat_prop,
-+		struct psy_batt_props *bat_cache)
-+{
-+	if (bat_cache == NULL)
-+		return true;
-+
-+	/* return true if temperature, health or throttling state changed */
-+	if ((bat_cache->temperature != bat_prop->temperature) ||
-+		(bat_cache->health != bat_prop->health) ||
-+		(bat_cache->throttle_state != bat_prop->throttle_state))
-+		return true;
-+
-+	/* return true if voltage or current changed not within TTL limit */
-+	if (time_after64(bat_prop->tstamp, bat_cache->tstamp + PROP_TTL) &&
-+		(bat_cache->current_now != bat_prop->current_now ||
-+		bat_cache->voltage_now != bat_prop->voltage_now))
-+		return true;
-+
-+	return false;
-+}
-+
-+static inline bool psy_is_charger_prop_changed(struct psy_charger_props *prop,
-+		struct psy_charger_props *cache_prop)
-+{
-+	/* if online/prsent/health/is_charging is changed, then return true */
-+	if (cache_prop == NULL)
-+		return true;
-+
-+	if (cache_prop->online != prop->online ||
-+		cache_prop->present != prop->present ||
-+		cache_prop->is_charging != prop->is_charging ||
-+		cache_prop->health != prop->health)
-+		return true;
-+	else
-+		return false;
-+
-+}
-+
-+static inline void get_cur_chrgr_prop(struct power_supply *psy,
-+				      struct psy_charger_props *chrgr_prop)
-+{
-+	chrgr_prop->is_charging = psy_is_charging_enabled(psy);
-+	chrgr_prop->online = psy_is_online(psy);
-+	chrgr_prop->present = psy_is_present(psy);
-+	chrgr_prop->cable = psy_cable_type(psy);
-+	chrgr_prop->health = PSY_HEALTH(psy);
-+	chrgr_prop->tstamp = get_jiffies_64();
-+}
-+
-+static void dump_charger_props(struct psy_charger_props *props)
-+{
-+	pr_devel("%s: present=%d is_charging=%d health=%d online=%d cable=%ld tstamp=%ld\n",
-+		__func__, props->present, props->is_charging,
-+		props->health, props->online, props->cable,
-+		props->tstamp);
-+}
-+
-+static void dump_battery_props(struct psy_batt_props *props)
-+{
-+	if (props == NULL)
-+		return;
-+	pr_devel("%s voltage_now=%ld current_now=%ld temperature=%d status=%ld health=%d tstamp=%lld",
-+		__func__, props->voltage_now, props->current_now,
-+		props->temperature, props->status, props->health,
-+		props->tstamp);
-+}
-+
-+static void update_supplied_to_psy(struct power_supply *psy)
-+{
-+	struct psy_charger_context *charger_context;
-+	int cnt = 0, i;
-+
-+	if (!psy_is_charger(psy))
-+		return;
-+
-+	charger_context =  (struct psy_charger_context *)psy->data;
-+	WARN_ON(charger_context == NULL);
-+
-+	for (i = 0; i < psy->num_supplicants; i++) {
-+		charger_context->supplied_to_psy[cnt++] =
-+			power_supply_get_by_name(psy->supplied_to[i]);
-+		charger_context->supplied_to_psy[cnt] = NULL;
-+	}
-+}
-+
-+static void update_supplied_by_psy(struct power_supply *psy)
-+{
-+	struct psy_batt_context *batt_context;
-+	struct power_supply *pst, *psb;
-+	struct class_dev_iter iter;
-+	struct device *dev;
-+	int cnt = 0, i;
-+
-+	if (psy->data == NULL)
-+		psy->data = devm_kzalloc(psy->dev,
-+			sizeof(struct psy_batt_context), GFP_KERNEL);
-+
-+	batt_context = (struct psy_batt_context *)psy->data;
-+
-+	class_dev_iter_init(&iter, power_supply_class, NULL, NULL);
-+	while ((dev = class_dev_iter_next(&iter))) {
-+		pst = (struct power_supply *)dev_get_drvdata(dev);
-+		if (!psy_is_charger(pst))
-+			continue;
-+
-+		for (i = 0; i < pst->num_supplicants; i++) {
-+			psb = power_supply_get_by_name(pst->supplied_to[i]);
-+			if (psb == psy) {
-+				batt_context->supplied_by_psy[cnt++] = pst;
-+				batt_context->supplied_by_psy[cnt] = NULL;
-+				break;
-+			}
-+		}
-+	}
-+	class_dev_iter_exit(&iter);
-+}
-+
-+static inline bool is_chrgr_prop_changed(struct power_supply *psy)
-+{
-+	struct psy_charger_context *charger_context;
-+	struct psy_charger_props new_charger_props;
-+
-+	WARN_ON(psy->data == NULL);
-+
-+	charger_context = (struct psy_charger_context *)psy->data;
-+
-+	get_cur_chrgr_prop(psy, &new_charger_props);
-+
-+	pr_devel("%s\n", __func__);
-+	dump_charger_props(&charger_context->charger_props);
-+	dump_charger_props(&new_charger_props);
-+
-+	if (!psy_is_charger_prop_changed(&new_charger_props,
-+				&charger_context->charger_props))
-+		return false;
-+
-+	charger_context->charger_props =  new_charger_props;
-+
-+	return true;
-+}
-+
-+static void cache_successive_samples(long *sample_array, long new_sample)
-+{
-+	int i;
-+
-+	for (i = 0; i < MAX_CUR_VOLT_SAMPLES - 1; ++i)
-+		*(sample_array + i) = *(sample_array + i + 1);
-+
-+	*(sample_array + i) = new_sample;
-+}
-+
-+
-+static void psy_update_batt_context(struct psy_batt_context *batt_context,
-+	struct psy_batt_props *new_bat_props)
-+{
-+	if (time_after64(new_bat_props->tstamp,
-+		(batt_context->batt_props.tstamp + DEF_CUR_VOLT_SAMPLE_JIFF))) {
-+
-+		cache_successive_samples(batt_context->voltage_now_cache,
-+						new_bat_props->voltage_now);
-+		cache_successive_samples(batt_context->current_now_cache,
-+						new_bat_props->current_now);
-+	}
-+
-+	batt_context->batt_props = *new_bat_props;
-+}
-+
-+static inline void get_cur_bat_prop(struct power_supply *psy,
-+				    struct psy_batt_props *bat_prop)
-+{
-+	bat_prop->voltage_now = PSY_VOLTAGE_OCV(psy) / 1000;
-+	bat_prop->current_now = PSY_CURRENT_NOW(psy) / 1000;
-+	bat_prop->temperature = PSY_TEMPERATURE(psy) / 10;
-+	bat_prop->status = PSY_STATUS(psy);
-+	bat_prop->health = PSY_HEALTH(psy);
-+	bat_prop->throttle_state = psy_current_throttle_state(psy);
-+	bat_prop->tstamp = get_jiffies_64();
-+}
-+
-+static inline bool is_batt_prop_changed(struct power_supply *psy)
-+{
-+	struct psy_batt_context *batt_context;
-+	struct psy_batt_props new_batt_props;
-+
-+	if (psy->data == NULL) {
-+		psy->data = devm_kzalloc(psy->dev,
-+			sizeof(struct psy_batt_context), GFP_KERNEL);
-+		update_supplied_by_psy(psy);
-+	}
-+
-+	batt_context = (struct psy_batt_context *) psy->data;
-+	get_cur_bat_prop(psy, &new_batt_props);
-+	pr_devel("%s\n", __func__);
-+	dump_battery_props(&batt_context->batt_props);
-+	dump_battery_props(&new_batt_props);
-+
-+	if (!psy_is_battery_prop_changed(&new_batt_props,
-+					&batt_context->batt_props))
-+		return false;
-+
-+	psy_update_batt_context(batt_context, &new_batt_props);
-+
-+	return true;
-+}
-+
-+static inline bool is_supplied_to_has_ext_pwr_changed(struct power_supply *psy)
-+{
-+	int i;
-+	struct power_supply *psb;
-+	bool is_pwr_changed_defined = true;
-+
-+	for (i = 0; i < psy->num_supplicants; i++) {
-+		psb =
-+		    power_supply_get_by_name(psy->
-+					     supplied_to[i]);
-+		if (psb && !psb->external_power_changed)
-+			is_pwr_changed_defined &= false;
-+	}
-+
-+	return is_pwr_changed_defined;
-+}
-+
-+static inline bool is_supplied_by_changed(struct power_supply *psy)
-+{
-+	int cnt = 0;
-+	struct power_supply *psc;
-+	struct psy_batt_context *batt_context;
-+
-+	batt_context = (struct psy_batt_context *)psy->data;
-+
-+	while ((psc = batt_context->supplied_by_psy[cnt++]) != NULL) {
-+		if ((psy_is_charger(psc)) &&
-+			is_chrgr_prop_changed(psc))
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
-+struct charger_cable *get_cable(unsigned long chrgr_type)
-+{
-+	switch (chrgr_type) {
-+	case PSY_CHARGER_CABLE_TYPE_USB_SDP:
-+		return &cable_list[0];
-+	case PSY_CHARGER_CABLE_TYPE_USB_CDP:
-+		return &cable_list[1];
-+	case PSY_CHARGER_CABLE_TYPE_USB_DCP:
-+		return &cable_list[2];
-+	case PSY_CHARGER_CABLE_TYPE_USB_ACA:
-+		return &cable_list[3];
-+	case PSY_CHARGER_CABLE_TYPE_ACA_DOCK:
-+		return &cable_list[4];
-+	case PSY_CHARGER_CABLE_TYPE_AC:
-+		return &cable_list[6];
-+	case PSY_CHARGER_CABLE_TYPE_SE1:
-+		return &cable_list[5];
-+	}
-+
-+	return NULL;
-+}
-+
-+
-+static int process_cable_props(struct psy_cable_props *cap)
-+{
-+	struct charger_cable *cable = NULL;
-+
-+	pr_info("%s: event:%d, type:%lu, current_mA:%d\n",
-+		__func__, cap->chrg_evt, cap->chrg_type, cap->current_mA);
-+
-+	cable = get_cable(cap->chrg_type);
-+	if (!cable) {
-+		pr_err("%s:%d Error in getting charger cable from get_cable\n",
-+				__FILE__, __LINE__);
-+		return -EINVAL;
-+	}
-+	memcpy((void *)&cable->cable_props, (void *)cap,
-+			sizeof(cable->cable_props));
-+
-+	configure_chrgr_source(cable_list);
-+
-+	return 0;
-+}
-+
-+static void event_worker(struct work_struct *work)
-+{
-+	int state;
-+	struct psy_event_node *evt, *tmp;
-+
-+	spin_lock(&psy_chrgr.event_queue_lock);
-+	list_for_each_entry_safe(evt, tmp, &psy_chrgr.event_queue, node) {
-+		list_del(&evt->node);
-+		spin_unlock(&psy_chrgr.event_queue_lock);
-+
-+		mutex_lock(&psy_chrgr.event_lock);
-+
-+		switch (evt->event) {
-+		case PSY_EVENT_CABLE:
-+			process_cable_props(&evt->cap);
-+			break;
-+		case PSY_EVENT_PROP_CHANGED:
-+			power_supply_trigger_charging_handler(evt->psy);
-+			break;
-+		case PSY_EVENT_THROTTLE:
-+			state = psy_current_throttle_state(evt->psy);
-+			psy_charger_throttle_charger(evt->psy, state);
-+			break;
-+		case PSY_EVENT_BATTERY:
-+			power_supply_trigger_charging_handler(NULL);
-+			/* TODO: Cache battery profile */
-+			break;
-+		default:
-+			pr_err("%s: Invalid event\n", __func__);
-+			break;
-+		}
-+
-+		mutex_unlock(&psy_chrgr.event_lock);
-+
-+		spin_lock(&psy_chrgr.event_queue_lock);
-+		kfree(evt);
-+	}
-+
-+	spin_unlock(&psy_chrgr.event_queue_lock);
-+}
-+
-+static int handle_event_notification(struct notifier_block *nb,
-+				   unsigned long event, void *data)
-+{
-+	struct psy_event_node *evt;
-+
-+	evt = kzalloc(sizeof(*evt), GFP_ATOMIC);
-+	if (!evt) {
-+		pr_err("%s: failed to allocate memory for event\n", __func__);
-+		return NOTIFY_DONE;
-+	}
-+
-+	evt->event = event;
-+
-+	switch (event) {
-+	case PSY_EVENT_CABLE:
-+		memcpy(&evt->cap, data, sizeof(struct psy_cable_props));
-+		break;
-+	case PSY_EVENT_PROP_CHANGED:
-+	case PSY_EVENT_THROTTLE:
-+		evt->psy = data;
-+		break;
-+	case PSY_EVENT_BATTERY:
-+		memcpy(&evt->batt_property, data,
-+			sizeof(struct psy_batt_chrg_prof));
-+		break;
-+	default:
-+		return NOTIFY_DONE;
-+	}
-+
-+	INIT_LIST_HEAD(&evt->node);
-+	spin_lock(&psy_chrgr.event_queue_lock);
-+	list_add_tail(&evt->node, &psy_chrgr.event_queue);
-+	spin_unlock(&psy_chrgr.event_queue_lock);
-+	queue_work(system_wq, &psy_chrgr.event_work);
-+	return NOTIFY_OK;
-+}
-+
-+static int register_usb_notifier(void)
-+{
-+	int retval = 0;
-+
-+	otg_xceiver = usb_get_phy(USB_PHY_TYPE_USB2);
-+	if (!otg_xceiver) {
-+		pr_err("failure to get otg transceiver\n");
-+		retval = -EIO;
-+		goto notifier_reg_failed;
-+	}
-+	retval = usb_register_notifier(otg_xceiver, &nb);
-+	if (retval) {
-+		pr_err("failure to register otg notifier\n");
-+		goto notifier_reg_failed;
-+	}
-+
-+notifier_reg_failed:
-+	return retval;
-+}
-+
-+static inline bool is_trigger_charging_algo(struct power_supply *psy)
-+{
-+	/*
-+	* trigger charging algorithm if battery or
-+	* charger properties are changed. Also no need to
-+	* invoke algorithm for power_supply_changed from
-+	* charger, if all supplied_to has the ext_port_changed defined.
-+	* On invoking the ext_port_changed the supplied to can send
-+	* power_supplied_changed event.
-+	*/
-+
-+	if ((psy_is_charger(psy) && !is_supplied_to_has_ext_pwr_changed(psy)) &&
-+			is_chrgr_prop_changed(psy))
-+		return true;
-+
-+	if ((psy_is_battery(psy)) && (is_batt_prop_changed(psy) ||
-+				is_supplied_by_changed(psy)))
-+		return true;
-+
-+	return false;
-+}
-+
-+static int get_battery_status(struct power_supply *psy)
-+{
-+	int status;
-+	struct power_supply *psc;
-+	struct psy_batt_context *batt_context;
-+	int i = 0;
-+
-+	if (!psy_is_battery(psy) || (psy->data == NULL))
-+		return POWER_SUPPLY_STATUS_UNKNOWN;
-+
-+	batt_context = (struct psy_batt_context *)psy->data;
-+
-+	status = POWER_SUPPLY_STATUS_DISCHARGING;
-+
-+	while ((psc = batt_context->supplied_by_psy[i++]) != NULL) {
-+
-+		if (psy_is_present(psc))
-+			status = POWER_SUPPLY_STATUS_NOT_CHARGING;
-+
-+		if (!(psy_is_charging_can_be_enabled(psc)) ||
-+			(!psy_is_health_good(psy)) ||
-+				(!psy_is_health_good(psc)))
-+			continue;
-+
-+		if ((batt_context->algo_stat == PSY_ALGO_STAT_FULL) ||
-+			(batt_context->algo_stat == PSY_ALGO_STAT_MAINT))
-+				status = POWER_SUPPLY_STATUS_FULL;
-+		else if (psy_is_charging_enabled(psc))
-+				status = POWER_SUPPLY_STATUS_CHARGING;
-+	}
-+
-+	pr_devel("%s: Set status=%d for %s\n", __func__, status, psy->name);
-+
-+	return status;
-+}
-+
-+static void update_charger_online(struct power_supply *psy)
-+{
-+	int online;
-+	struct psy_charger_context *charger_context;
-+
-+	online = psy_is_charger_enabled(psy) ? 1 : 0;
-+	psy_set_charger_online(psy, online);
-+	charger_context = (struct psy_charger_context *)psy->data;
-+	charger_context->charger_props.online = online;
-+}
-+
-+static void update_battery_status(struct power_supply *psy)
-+{
-+	int status;
-+	struct psy_batt_context *batt_context;
-+
-+	status = get_battery_status(psy);
-+	psy_set_battery_status(psy, status);
-+
-+	batt_context = (struct psy_batt_context *)psy->data;
-+	batt_context->batt_props.status = status;
-+}
-+
-+static void update_sysfs(struct power_supply *psy)
-+{
-+	int cnt = 0;
-+	struct power_supply *psb;
-+	struct power_supply *psc;
-+	struct psy_batt_context *batt_context;
-+	struct psy_charger_context *charger_context;
-+
-+	if (psy_is_battery(psy)) {
-+
-+		update_battery_status(psy);
-+
-+		batt_context = (struct psy_batt_context *)psy->data;
-+		while ((psc = batt_context->supplied_by_psy[cnt++]) != NULL)
-+			update_charger_online(psc);
-+		return;
-+	}
-+
-+	charger_context =  (struct psy_charger_context *)psy->data;
-+
-+	while ((psb = charger_context->supplied_to_psy[cnt++]) != NULL) {
-+		if (psb && psy_is_battery(psb) && psy_is_present(psb))
-+			update_battery_status(psb);
-+	}
-+
-+	update_charger_online(psy);
-+
-+}
-+
-+static int trigger_algo(struct power_supply *psy)
-+{
-+	unsigned long cc = 0, cv = 0, cc_min;
-+	struct psy_batt_context *batt_context;
-+	struct psy_charging_algo *algo;
-+	struct psy_batt_chrg_prof chrg_profile;
-+	struct power_supply *psc;
-+	int cnt = 0;
-+
-+	if (psy->type != POWER_SUPPLY_TYPE_BATTERY)
-+		return 0;
-+
-+	if (psy_get_battery_prop(&chrg_profile)) {
-+		pr_err("Error in getting charge profile:%s:%d\n", __FILE__,
-+		       __LINE__);
-+		return -EINVAL;
-+	}
-+
-+	batt_context = (struct psy_batt_context *)psy->data;
-+
-+	algo = power_supply_get_charging_algo(psy, &chrg_profile);
-+	if (!algo) {
-+		pr_err("%s:Error in getting charging algo!!\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	batt_context->algo_stat = algo->get_next_cc_cv
-+		(&batt_context->batt_props, chrg_profile, &cc, &cv);
-+
-+	pr_info("%s:Algo_status:%d\n", __func__, batt_context->algo_stat);
-+
-+	if (!cc || !cv)
-+		return -ENODATA;
-+
-+	/*
-+	* CC needs to be updated for all chargers which are supplying
-+	* power to this battery to ensure that the sum of CCs of all
-+	* chargers are never more than the CC selected by the algo.
-+	* The CC is set based on the charger priority.
-+	*/
-+
-+	while ((psc = batt_context->supplied_by_psy[cnt++]) != NULL) {
-+		if (!psy_is_present(psc))
-+			continue;
-+
-+		cc_min = min_t(unsigned long, PSY_MAX_CC(psc), cc);
-+		if (cc_min < 0)
-+			cc_min = 0;
-+		cc -= cc_min;
-+		psy_set_cc(psc, cc_min);
-+		psy_set_cv(psc, cv);
-+	}
-+
-+	return 0;
-+}
-+
-+static inline void wait_for_charging_enabled(struct power_supply *psy)
-+{
-+	wait_event_timeout(psy_chrgr.wait_chrg_enable,
-+			(psy_is_charging_enabled(psy)), HZ);
-+}
-+
-+static inline void enable_supplied_by_charging
-+		(struct power_supply *psy, bool is_enable)
-+{
-+	struct power_supply *psc;
-+	struct psy_batt_context *batt_context;
-+	int cnt = 0;
-+
-+	if (psy->type != POWER_SUPPLY_TYPE_BATTERY)
-+		return;
-+	/*
-+	* Get list of chargers supplying power to this battery and
-+	* disable charging for all chargers
-+	*/
-+	batt_context  = (struct psy_batt_context *)psy->data;
-+
-+	while ((psc = batt_context->supplied_by_psy[cnt++]) != NULL) {
-+		if (!psy_is_present(psc))
-+			continue;
-+		if (is_enable &&
-+			psy_is_charging_can_be_enabled(psc)) {
-+			psy_enable_charging(psc);
-+			wait_for_charging_enabled(psc);
-+
-+		} else
-+			psy_disable_charging(psc);
-+	}
-+}
-+
-+static void __power_supply_trigger_charging_handler(struct power_supply *psy)
-+{
-+	int i;
-+	struct power_supply *psb = NULL;
-+
-+	if (!is_trigger_charging_algo(psy))
-+		return;
-+
-+	if (psy_is_battery(psy)) {
-+		if (trigger_algo(psy))
-+			enable_supplied_by_charging(psy, false);
-+		else
-+			enable_supplied_by_charging(psy, true);
-+
-+		goto update_sysfs;
-+	}
-+
-+	for (i = 0; i < psy->num_supplicants; i++) {
-+		psb = power_supply_get_by_name(psy->supplied_to[i]);
-+
-+		if (psb && psy_is_battery(psb) && psy_is_present(psb)) {
-+			if (trigger_algo(psb)) {
-+				psy_disable_charging(psy);
-+				break;
-+			} else if (psy_is_charging_can_be_enabled(psy)) {
-+				psy_enable_charging(psy);
-+				wait_for_charging_enabled(psy);
-+			}
-+		}
-+	}
-+
-+update_sysfs:
-+	update_sysfs(psy);
-+	power_supply_changed(psy);
-+
-+}
-+
-+static int __trigger_charging_handler(struct device *dev, void *data)
-+{
-+	struct power_supply *psy = dev_get_drvdata(dev);
-+
-+	__power_supply_trigger_charging_handler(psy);
-+
-+	return 0;
-+}
-+
-+static void trigger_algo_psy_class(void)
-+{
-+	class_for_each_device(power_supply_class, NULL, NULL,
-+			__trigger_charging_handler);
-+}
-+
-+static void power_supply_trigger_charging_handler(struct power_supply *psy)
-+{
-+	if (!psy_chrgr.psyc_cnt)
-+		return;
-+
-+	wake_up(&psy_chrgr.wait_chrg_enable);
-+
-+	if (psy)
-+		__power_supply_trigger_charging_handler(psy);
-+	else
-+		trigger_algo_psy_class();
-+
-+}
-+
-+static inline int get_battery_thresholds(struct power_supply *psy,
-+	struct psy_batt_thresholds *bat_thresh)
-+{
-+	struct psy_charging_algo *algo;
-+	struct psy_batt_chrg_prof chrg_profile;
-+
-+	/* FIXME: Get iterm only for supplied_to arguments*/
-+	if (psy_get_battery_prop(&chrg_profile)) {
-+		pr_err("%s:Error in getting charge profile\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	algo = power_supply_get_charging_algo(psy, &chrg_profile);
-+	if (!algo) {
-+		pr_err("%s:Error in getting charging algo!!\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	if (algo->get_batt_thresholds) {
-+		algo->get_batt_thresholds(chrg_profile, bat_thresh);
-+	} else {
-+		pr_err("%s:Error in getting battery thresholds from: %s\n",
-+			__func__, algo->name);
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int select_chrgr_cable(struct device *dev, void *data)
-+{
-+	struct power_supply *psy = dev_get_drvdata(dev);
-+	struct charger_cable *cable, *max_mA_cable = NULL;
-+	struct charger_cable *cable_lst = (struct charger_cable *)data;
-+	struct psy_batt_thresholds bat_thresh;
-+	unsigned int max_mA = 0;
-+	int i;
-+
-+	if (!psy_is_charger(psy))
-+		return 0;
-+
-+	/* get cable with maximum capability */
-+	for (i = 0; i < ARRAY_SIZE(cable_list); ++i) {
-+		cable = cable_lst + i;
-+		if ((!psy_is_cable_active(cable->cable_props.chrg_evt)) ||
-+		    (!psy_is_supported_cable(psy, cable->psy_cable_type)))
-+			continue;
-+
-+		if (cable->cable_props.current_mA > max_mA) {
-+			max_mA_cable = cable;
-+			max_mA = cable->cable_props.current_mA;
-+		}
-+	}
-+
-+	/* no cable connected. disable charging */
-+	if (!max_mA_cable) {
-+
-+		if ((psy_is_charger_enabled(psy) ||
-+				psy_is_charging_enabled(psy))) {
-+			psy_disable_charging(psy);
-+			psy_disable_charger(psy);
-+		}
-+		psy_set_cc(psy, 0);
-+		psy_set_cv(psy, 0);
-+		psy_set_inlmt(psy, 0);
-+
-+		/* set present and online as 0 */
-+		psy_set_present(psy, 0);
-+		update_charger_online(psy);
-+
-+		psy_switch_cable(psy, PSY_CHARGER_CABLE_TYPE_NONE);
-+
-+		power_supply_changed(psy);
-+		return 0;
-+	}
-+
-+	/*
-+	* cable type changed.New cable connected or existing cable
-+	* capabilities changed.switch cable and enable charger and charging
-+	*/
-+	psy_set_present(psy, 1);
-+
-+	if (psy_cable_type(psy) != max_mA_cable->psy_cable_type)
-+		psy_switch_cable(psy, max_mA_cable->psy_cable_type);
-+
-+	if (psy_is_charger_can_be_enabled(psy)) {
-+		memset(&bat_thresh, 0, sizeof(bat_thresh));
-+		psy_enable_charger(psy);
-+
-+		update_charger_online(psy);
-+
-+		psy_set_inlmt(psy, max_mA_cable->cable_props.current_mA);
-+		if (!get_battery_thresholds(psy, &bat_thresh)) {
-+			psy_set_iterm(psy, bat_thresh.iterm);
-+			psy_set_min_temp(psy, bat_thresh.temp_min);
-+			psy_set_max_temp(psy, bat_thresh.temp_max);
-+		}
-+
-+	} else {
-+		psy_disable_charger(psy);
-+		update_charger_online(psy);
-+	}
-+
-+	power_supply_trigger_charging_handler(NULL);
-+	/* Cable status is same as previous. No action to be taken */
-+	return 0;
-+}
-+
-+static void configure_chrgr_source(struct charger_cable *cable_lst)
-+{
-+	class_for_each_device(power_supply_class, NULL,
-+			      cable_lst, select_chrgr_cable);
-+}
-+
-+static int psy_charger_throttle_charger(struct power_supply *psy,
-+					unsigned long state)
-+{
-+	if (state < 0 || state > psy_max_throttle_state(psy))
-+		return -EINVAL;
-+
-+
-+	switch (psy_throttle_action(psy, state)) {
-+	case PSY_THROTTLE_DISABLE_CHARGER:
-+		psy_set_max_cc(psy, 0);
-+		psy_disable_charger(psy);
-+		break;
-+	case PSY_THROTTLE_DISABLE_CHARGING:
-+		psy_set_max_cc(psy, 0);
-+		psy_disable_charging(psy);
-+		break;
-+	case PSY_THROTTLE_CC_LIMIT:
-+		psy_set_max_cc(psy, psy_throttle_cc_value(psy, state));
-+		break;
-+	case PSY_THROTTLE_INPUT_LIMIT:
-+		psy_set_inlmt(psy, psy_throttle_cc_value(psy, state));
-+		break;
-+	default:
-+		pr_err("Invalid throttle action for %s\n", psy->name);
-+		return -EINVAL;
-+	}
-+
-+	configure_chrgr_source(cable_list);
-+	return 0;
-+}
-+
-+int power_supply_register_charging_algo(struct psy_charging_algo *algo)
-+{
-+	WARN_ON(algo == NULL);
-+	list_add_tail(&algo->node, &algo_list);
-+	return 0;
-+}
-+EXPORT_SYMBOL(power_supply_register_charging_algo);
-+
-+int power_supply_unregister_charging_algo(struct psy_charging_algo *algo)
-+{
-+	struct psy_charging_algo *algo_l, *tmp;
-+
-+	list_for_each_entry_safe(algo_l, tmp, &algo_list, node) {
-+		if (algo_l == algo) {
-+			list_del(&algo_l->node);
-+			kfree(algo_l);
-+		}
-+	}
-+	return 0;
-+
-+}
-+EXPORT_SYMBOL(power_supply_unregister_charging_algo);
-+
-+
-+static struct psy_charging_algo *get_charging_algo_by_type
-+		(enum psy_batt_chrg_prof_type chrg_prof_type)
-+{
-+	struct psy_charging_algo *algo;
-+
-+	list_for_each_entry(algo, &algo_list, node) {
-+		if (algo->chrg_prof_type == chrg_prof_type)
-+			return algo;
-+	}
-+
-+	return NULL;
-+}
-+
-+struct psy_charging_algo *power_supply_get_charging_algo
-+	(struct power_supply *psy, struct psy_batt_chrg_prof *batt_prof)
-+{
-+
-+	return get_charging_algo_by_type(batt_prof->chrg_prof_type);
-+
-+}
-+EXPORT_SYMBOL_GPL(power_supply_get_charging_algo);
-+
-+/**
-+ * psy_battery_prop_changed - Update properties when  battery connection status
-+ *                        changes
-+ * @battery_conn_stat : The current connection status of battery
-+ * @batt_prop : Address of the psy_batt_chrg_prof structure with the updated
-+ *              values passed from the calling function
-+ *
-+ * Whenever the battery connection status changes this function will be called
-+ * to indicate a change in the status and to update the status and value of
-+ * properties
-+ */
-+void psy_battery_prop_changed(int battery_conn_stat,
-+			struct psy_batt_chrg_prof *batt_prop)
-+{
-+
-+	spin_lock(&psy_chrgr.battid_spinlock);
-+	if (psy_chrgr.batt_status != battery_conn_stat) {
-+		if (battery_conn_stat == POWER_SUPPLY_BATTERY_INSERTED)
-+			memcpy(&psy_chrgr.batt_property, batt_prop,
-+				sizeof(psy_chrgr.batt_property));
-+		psy_chrgr.batt_status = battery_conn_stat;
-+	}
-+	spin_unlock(&psy_chrgr.battid_spinlock);
-+
-+	atomic_notifier_call_chain(&power_supply_notifier,
-+			PSY_EVENT_BATTERY, &psy_chrgr.batt_property);
-+}
-+EXPORT_SYMBOL_GPL(psy_battery_prop_changed);
-+
-+/**
-+ * psy_get_battery_prop - Get the battery connection status and updated properties
-+ * @batt_prop : battery properties structure copied to this address
-+ */
-+int psy_get_battery_prop(struct psy_batt_chrg_prof *batt_prop)
-+{
-+	int ret = 0;
-+
-+	spin_lock(&psy_chrgr.battid_spinlock);
-+
-+	if (psy_chrgr.batt_status != POWER_SUPPLY_BATTERY_INSERTED)
-+		ret = -ENODATA;
-+	else
-+		memcpy(batt_prop, &psy_chrgr.batt_property,
-+			sizeof(*batt_prop));
-+
-+	spin_unlock(&psy_chrgr.battid_spinlock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(psy_get_battery_prop);
-+
-+
-+int power_supply_register_charger(struct power_supply *psy,
-+		struct power_supply_charger *psyc)
-+{
-+	int i;
-+	struct psy_charger_context *charger_context;
-+	struct power_supply *psb;
-+
-+
-+	if (!psy || !psyc->get_property || !psyc->set_property || psy->data) {
-+		pr_err("%s:Failed to register power_supply_charger\n",
-+					__func__);
-+		return -EINVAL;
-+	}
-+
-+	mutex_lock(&psy_chrgr.event_lock);
-+
-+	if (!psy_chrgr.is_usb_cable_evt_reg && !register_usb_notifier())
-+		psy_chrgr.is_usb_cable_evt_reg = true;
-+
-+	if (psy->data == NULL)
-+		psy->data = devm_kzalloc(psy->dev,
-+			sizeof(struct psy_charger_context), GFP_KERNEL);
-+
-+	charger_context = (struct psy_charger_context *) psy->data;
-+	charger_context->psyc = psyc;
-+	psyc->psy = psy;
-+	psy_chrgr.psyc_cnt++;
-+
-+	update_supplied_to_psy(psy);
-+
-+	for (i = 0; i < psy->num_supplicants; ++i) {
-+		psb = power_supply_get_by_name(psy->supplied_to[i]);
-+		if (psb)
-+			update_supplied_by_psy(psb);
-+	}
-+
-+	mutex_unlock(&psy_chrgr.event_lock);
-+	power_supply_trigger_charging_handler(psy);
-+	return 0;
-+}
-+EXPORT_SYMBOL(power_supply_register_charger);
-+
-+int power_supply_unregister_charger(struct power_supply_charger *psyc)
-+{
-+	mutex_lock(&psy_chrgr.event_lock);
-+	psyc->psy->data = NULL;
-+	psy_chrgr.psyc_cnt--;
-+	mutex_unlock(&psy_chrgr.event_lock);
-+	return 0;
-+}
-+EXPORT_SYMBOL(power_supply_unregister_charger);
-+
-+static int __init power_supply_charger_init(void)
-+{
-+	mutex_init(&psy_chrgr.event_lock);
-+	init_waitqueue_head(&psy_chrgr.wait_chrg_enable);
-+	INIT_LIST_HEAD(&psy_chrgr.event_queue);
-+	spin_lock_init(&psy_chrgr.battid_spinlock);
-+	spin_lock_init(&psy_chrgr.event_queue_lock);
-+	INIT_WORK(&psy_chrgr.event_work, event_worker);
-+
-+	if (power_supply_reg_notifier(&nb))
-+		pr_err("%s:Failed to register power_supply notifier\n",
-+				__func__);
-+
-+	return 0;
-+}
-+
-+/*
-+*  init before charger and cable drivers, but after power_supply_core
-+*/
-+
-+fs_initcall(power_supply_charger_init);
-diff --git a/drivers/power/power_supply_charger.h b/drivers/power/power_supply_charger.h
-new file mode 100644
-index 0000000..b54daa1
---- /dev/null
-+++ b/drivers/power/power_supply_charger.h
-@@ -0,0 +1,226 @@
-+/*
-+ * Copyright (C) 2012 Intel Corporation
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the GNU
-+ * General Public License for more details.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ * Author: Jenny TC <jenny.tc@intel.com>
-+ */
-+#include <linux/power_supply.h>
-+#include <linux/power/power_supply_charger.h>
-+
-+static inline struct power_supply_charger
-+		*psy_to_psyc(struct power_supply *psy)
-+{
-+	struct psy_charger_context *charger_context;
-+
-+	if (!psy_is_charger(psy))
-+		return NULL;
-+	charger_context = (struct psy_charger_context *) psy->data;
-+	return charger_context->psyc;
-+}
-+
-+static inline int psyc_set_ps_int_property(struct power_supply_charger *psyc,
-+				      enum power_supply_charger_property psp,
-+				      int prop_val)
-+{
-+	union power_supply_propval val;
-+
-+	val.intval = prop_val;
-+	if (psyc)
-+		return psyc->set_property(psyc, psp, &val);
-+	else
-+		return -EINVAL;
-+}
-+
-+static inline int psyc_get_ps_int_property(struct power_supply_charger *psyc,
-+				      enum power_supply_charger_property psp)
-+{
-+	union power_supply_propval val;
-+
-+	val.intval = 0;
-+	if (psyc)
-+		psyc->get_property(psyc, psp, &val);
-+
-+	return val.intval;
-+}
-+
-+
-+static inline int psy_prioirty(struct power_supply *psy)
-+{
-+
-+	return psyc_get_ps_int_property(psy_to_psyc(psy),
-+				POWER_SUPPLY_CHARGER_PROP_PRIORITY);
-+}
-+
-+static inline int psy_cable_type(struct power_supply *psy)
-+{
-+	return psyc_get_ps_int_property(psy_to_psyc(psy),
-+				POWER_SUPPLY_CHARGER_PROP_CABLE_TYPE);
-+}
-+
-+static inline int psy_throttle_action
-+		(struct power_supply *psy, unsigned int state)
-+{
-+	struct power_supply_charger *psyc;
-+
-+	psyc = psy_to_psyc(psy);
-+
-+	if (psyc)
-+		return ((psyc->throttle_states)+state)->throttle_action;
-+
-+	/* If undetermined state, better disable charger for safety reasons */
-+
-+	return PSY_THROTTLE_DISABLE_CHARGER;
-+}
-+
-+static inline int psy_max_throttle_state(struct power_supply *psy)
-+{
-+	struct power_supply_charger *psyc;
-+
-+	psyc = psy_to_psyc(psy);
-+
-+	if (psyc)
-+		return psyc->num_throttle_states;
-+
-+	return -EINVAL;
-+}
-+
-+static inline int psy_current_throttle_state(struct power_supply *psy)
-+{
-+	return psy_get_ps_int_property(psy,
-+				POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT);
-+}
-+
-+static inline int psy_current_throttle_action(struct power_supply *psy)
-+{
-+	return psy_throttle_action(psy, psy_current_throttle_state(psy));
-+
-+}
-+
-+static inline int psy_throttle_cc_value
-+		(struct power_supply *psy, unsigned int state)
-+{
-+	struct power_supply_charger *psyc;
-+
-+	psyc = psy_to_psyc(psy);
-+
-+	if (psyc)
-+		return ((psyc->throttle_states)+state)->throttle_val;
-+
-+	/* If undetermined state, better set CC as 0 */
-+	return 0;
-+}
-+
-+static inline int psy_is_charging_enabled(struct power_supply *psy)
-+{
-+	return	psyc_get_ps_int_property(psy_to_psyc(psy),
-+			POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGING);
-+}
-+
-+static inline int psy_is_charger_enabled(struct power_supply *psy)
-+{
-+	return	psyc_get_ps_int_property(psy_to_psyc(psy),
-+			POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGER);
-+}
-+
-+static inline bool psy_is_supported_cable(struct power_supply *psy,
-+		unsigned long cable_type)
-+{
-+	struct power_supply_charger *psyc;
-+
-+	psyc = psy_to_psyc(psy);
-+
-+	/*
-+	*  if unable to determine the state, better return cable not supported
-+	*/
-+
-+	if (!psyc)
-+		return false;
-+
-+	return psy_to_psyc(psy)->supported_cables &&
-+		(psy_to_psyc(psy)->supported_cables & cable_type);
-+}
-+
-+static inline int psy_reset_charger_wdt(struct power_supply *psy)
-+{
-+	return psyc_set_ps_int_property(psy_to_psyc(psy),
-+			POWER_SUPPLY_CHARGER_PROP_RESET_WDT, true);
-+}
-+
-+static inline int psy_enable_charger(struct power_supply *psy)
-+{
-+	return psyc_set_ps_int_property(psy_to_psyc(psy),
-+			POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGER, true);
-+}
-+
-+static inline int psy_enable_charging(struct power_supply *psy)
-+{
-+	int ret;
-+
-+	if ((psy_cable_type(psy) != PSY_CHARGER_CABLE_TYPE_NONE) &&
-+			!psy_is_charging_enabled(psy)) {
-+
-+		ret = psy_enable_charger(psy);
-+		if (ret)
-+			return ret;
-+		ret = psyc_set_ps_int_property(psy_to_psyc(psy),
-+			POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGING, true);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return psy_reset_charger_wdt(psy);
-+}
-+
-+static inline int psy_disable_charging(struct power_supply *psy)
-+{
-+	return psyc_set_ps_int_property(psy_to_psyc(psy),
-+			POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGING, false);
-+}
-+
-+static inline int psy_disable_charger(struct power_supply *psy)
-+{
-+	psy_disable_charging(psy);
-+	return psyc_set_ps_int_property(psy_to_psyc(psy),
-+			POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGER, false);
-+}
-+
-+static inline int psy_switch_cable(struct power_supply *psy,
-+		unsigned long cable)
-+{
-+	return	psyc_set_ps_int_property(psy_to_psyc(psy),
-+		POWER_SUPPLY_CHARGER_PROP_CABLE_TYPE, cable);
-+}
-+
-+static inline bool psy_is_charging_can_be_enabled(struct power_supply *psy)
-+{
-+	return (psy_current_throttle_action(psy) !=
-+					PSY_THROTTLE_DISABLE_CHARGER) &&
-+		(psy_current_throttle_action(psy) !=
-+				PSY_THROTTLE_DISABLE_CHARGING);
-+}
-+
-+static inline bool psy_is_charger_can_be_enabled(struct power_supply *psy)
-+{
-+	return psy_current_throttle_action(psy) !=
-+			PSY_THROTTLE_DISABLE_CHARGER;
-+}
-+
-+static inline bool psy_is_cable_active(unsigned long status)
-+{
-+	if (status == PSY_CHARGER_CABLE_EVENT_DISCONNECT ||
-+			status == PSY_CHARGER_CABLE_EVENT_SUSPEND)
-+		return false;
-+	else
-+		return true;
-+}
-diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
-index 2660664..1daa5c2 100644
---- a/drivers/power/power_supply_core.c
-+++ b/drivers/power/power_supply_core.c
-@@ -483,6 +483,9 @@ static int ps_set_cur_charge_cntl_limit(struct thermal_cooling_device *tcd,
- 	ret = psy->set_property(psy,
- 		POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT, &val);
- 
-+	atomic_notifier_call_chain(&power_supply_notifier,
-+		PSY_EVENT_THROTTLE, psy);
-+
- 	return ret;
- }
- 
-diff --git a/include/linux/power/power_supply_charger.h b/include/linux/power/power_supply_charger.h
-new file mode 100644
-index 0000000..a98745e
---- /dev/null
-+++ b/include/linux/power/power_supply_charger.h
-@@ -0,0 +1,304 @@
-+
-+#ifndef __LINUX_POWER_SUPPLY_CHARGER_H__
-+#define __LINUX_POWER_SUPPLY_CHARGER_H__
-+
-+#include <linux/power_supply.h>
-+
-+#define MAX_CUR_VOLT_SAMPLES 3
-+#define DEF_CUR_VOLT_SAMPLE_PERIOD 30000
-+#define DEF_CUR_VOLT_SAMPLE_JIFF msecs_to_jiffies(DEF_CUR_VOLT_SAMPLE_PERIOD)
-+
-+/*
-+* Define a TTL for some properties to optimize the frequency of
-+* algorithm calls. This can be used by properties which will be changed
-+* very frequently (e.g. Current, Voltage..)
-+*/
-+#define PROP_TTL_PERIOD 10000
-+#define PROP_TTL msecs_to_jiffies(PROP_TTL_PERIOD)
-+
-+/* Support maximum 2 charger drivers and 2 battery drivers simultaneously */
-+#define MAX_BATTERY_NUMBER 2
-+#define MAX_CHARGER_NUMBER 2
-+#define PSY_CHRGR_MAX_SUPPLIED_TO MAX_BATTERY_NUMBER
-+#define PSY_CHRGR_MAX_SUPPLIED_BY MAX_CHARGER_NUMBER
-+
-+enum psy_charger_cable_event {
-+	PSY_CHARGER_CABLE_EVENT_DISCONNECT = 0,
-+	PSY_CHARGER_CABLE_EVENT_CONNECT,
-+	PSY_CHARGER_CABLE_EVENT_UPDATE,
-+	PSY_CHARGER_CABLE_EVENT_RESUME,
-+	PSY_CHARGER_CABLE_EVENT_SUSPEND,
-+};
-+
-+#define PSY_CHARGER_CABLE_TYPE_NONE 0
-+#define	PSY_CHARGER_CABLE_TYPE_USB_SDP BIT(0)
-+#define	PSY_CHARGER_CABLE_TYPE_USB_DCP BIT(1)
-+#define	PSY_CHARGER_CABLE_TYPE_USB_CDP BIT(2)
-+#define	PSY_CHARGER_CABLE_TYPE_USB_ACA BIT(3)
-+#define	PSY_CHARGER_CABLE_TYPE_AC BIT(4)
-+#define	PSY_CHARGER_CABLE_TYPE_ACA_DOCK BIT(5)
-+#define	PSY_CHARGER_CABLE_TYPE_ACA_A BIT(6)
-+#define	PSY_CHARGER_CABLE_TYPE_ACA_B BIT(7)
-+#define	PSY_CHARGER_CABLE_TYPE_ACA_C BIT(8)
-+#define	PSY_CHARGER_CABLE_TYPE_SE1 BIT(9)
-+#define	PSY_CHARGER_CABLE_TYPE_MHL BIT(10)
-+#define	PSY_CHARGER_CABLE_TYPE_B_DEVICE BIT(11)
-+
-+/**
-+ * struct osy_cable_props: charger cable properties structure
-+ * @chrg_evt: charger cable event
-+ * @chrg_type: charger cable type
-+ * @current_mA: current supplied by the cable in mA
-+ *
-+ * cable properties structure is populated by the cable provider drivers after
-+ * detecting the cable type and capabilities. The structure is then passed to
-+ * power supply class using the power_supply_notifier chain
-+*/
-+
-+struct psy_cable_props {
-+	enum psy_charger_cable_event	chrg_evt;
-+	unsigned long			chrg_type;
-+	unsigned int			current_mA;
-+};
-+
-+#define PSY_CHARGER_CABLE_TYPE_USB \
-+	(PSY_CHARGER_CABLE_TYPE_USB_SDP | \
-+	PSY_CHARGER_CABLE_TYPE_USB_DCP | \
-+	PSY_CHARGER_CABLE_TYPE_USB_CDP | \
-+	PSY_CHARGER_CABLE_TYPE_USB_ACA | \
-+	PSY_CHARGER_CABLE_TYPE_ACA_DOCK)
-+
-+enum psy_throttle_action {
-+	PSY_THROTTLE_DISABLE_CHARGER = 0,
-+	PSY_THROTTLE_DISABLE_CHARGING,
-+	PSY_THROTTLE_CC_LIMIT,
-+	PSY_THROTTLE_INPUT_LIMIT,
-+};
-+
-+struct psy_throttle_state {
-+	enum psy_throttle_action throttle_action;
-+	unsigned throttle_val;
-+};
-+
-+enum psy_algo_stat {
-+	PSY_ALGO_STAT_UNKNOWN,
-+	PSY_ALGO_STAT_NOT_CHARGE,
-+	PSY_ALGO_STAT_CHARGE,
-+	PSY_ALGO_STAT_FULL,
-+	PSY_ALGO_STAT_MAINT,
-+};
-+
-+enum battery_events {
-+	POWER_SUPPLY_BATTERY_REMOVED = 0,
-+	POWER_SUPPLY_BATTERY_INSERTED,
-+};
-+
-+enum psy_batt_chrg_prof_type {
-+	PSY_CHRG_PROF_NONE = 0,
-+};
-+
-+/**
-+ * struct psy_batt_chrg_prof - power supply charging profile structure
-+ * @chrg_prof_type: charging profile type
-+ * @batt_prof: pointer to battery charging profile structure
-+ *
-+ * This structure is populated by the battery identification driver
-+ */
-+
-+struct psy_batt_chrg_prof {
-+	enum psy_batt_chrg_prof_type chrg_prof_type;
-+	void *batt_prof;
-+};
-+
-+/**
-+ * struct psy_batt_props - battery properties
-+ * @voltage_now: voltage read from psy get_property and stored in in mV
-+ * @current_now: current read from psy get_property and stored in in mA
-+ * @temperature: battery temperature in degree Celsius
-+ * @status: battery status as defined by POWER_SUPPLY_STATUS_*
-+ * @health: battery health, as defined by POWER_SUPPLY_HEALTH_*
-+ * @throttle_state: throttle state
-+ * @tstamp: time stamp at which the properties are read
-+ *
-+ * battery properties structure is used to store important battery properties
-+ * to decide on charging parameters
-+ */
-+
-+struct psy_batt_props {
-+	long voltage_now;
-+	long current_now;
-+	int temperature;
-+	long status;
-+	int health;
-+	int throttle_state;
-+	unsigned long long tstamp;
-+};
-+
-+/**
-+ * struct psy_batt_props - battery properties
-+ * @batt_props: battery properties
-+ * @voltage_now_cache: successive samples of voltage_now, used to determine end
-+ *	of charge condition
-+ * @current_now_cache: successive samples of current_now, used to determine end
-+ *	of charge condition
-+ * @algo_stat: algorithm status, returned by the charging algorithm
-+ * @supplied_by_psy: psy pointer for all supplied by objects.
-+ *
-+ * battery context structure is used to store the battery context
-+ * to decide on charging parameters
-+ */
-+
-+struct psy_batt_context {
-+	struct psy_batt_props batt_props;
-+	long voltage_now_cache[MAX_CUR_VOLT_SAMPLES];
-+	long current_now_cache[MAX_CUR_VOLT_SAMPLES];
-+	enum psy_algo_stat algo_stat;
-+	struct power_supply *supplied_by_psy[PSY_CHRGR_MAX_SUPPLIED_BY];
-+};
-+
-+/**
-+ * struct psy_charger_props - charger properties
-+ * @psyc: pointer to power_supply_charger structure
-+ * @name: charger psy name
-+ * @present: indicates charger source is present/not
-+ * @is_charging: indicates charging is enabled or not
-+ * @health: charger health, as defined in POWER_SUPPLY_HEALTH_*
-+ * @online: charger online/not
-+ * @cable: cable type
-+ * @tstamp: time stamp at which the properties are read
-+ *
-+ * charger properties structure is used to store important charger properties
-+ * to decide on charging parameters
-+ */
-+
-+struct psy_charger_props {
-+	bool present;
-+	bool is_charging;
-+	int health;
-+	bool online;
-+	unsigned long cable;
-+	unsigned long tstamp;
-+};
-+
-+/**
-+ * struct psy_charger_props - charger properties
-+ * @charger_props: charger properties
-+ * @psyc: pointer to power_supply_charger structure
-+ * @supplied_to_psy: psy pointers for all supplied to objects.
-+ */
-+
-+struct psy_charger_context {
-+	struct psy_charger_props charger_props;
-+	struct power_supply_charger *psyc;
-+	struct power_supply *supplied_to_psy[PSY_CHRGR_MAX_SUPPLIED_TO];
-+};
-+
-+/**
-+ * struct psy_batt_thresholds - battery thresholds structure
-+ * @temp_min: minimum charging temperature in Degree Celsius
-+ * @temp_max: maximum charging temperature in Degree Celsius
-+ * @iterm: charge termination current
-+ *
-+ * battery thresholds structure to limit charging in different scenario
-+ */
-+
-+struct psy_batt_thresholds {
-+	int temp_min;
-+	int temp_max;
-+	unsigned int iterm;
-+};
-+
-+enum power_supply_charger_property {
-+	POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGING = 0,
-+	POWER_SUPPLY_CHARGER_PROP_ENABLE_CHARGER,
-+	POWER_SUPPLY_CHARGER_PROP_CABLE_TYPE,
-+	POWER_SUPPLY_CHARGER_PROP_PRIORITY,
-+	POWER_SUPPLY_CHARGER_PROP_RESET_WDT,
-+};
-+
-+/**
-+ * struct power_supply_charger - power supply charger driver
-+ * @psy: psy driver handle
-+ * @throttle_states: pointer to throttle states array
-+ * @num_throttle_states: number of throttling states
-+ * @supported_cables: supported cable bitmask
-+ * @get_property: get property function to retrieve charger properties defined
-+ *	in enum power_supply_charger_property
-+ * @set_property: get property function to retrieve charger properties defined
-+ *	in enum power_supply_charger_property
-+ *
-+ * This structure is used by charger drivers to register with power supply
-+ * charging driver
-+ */
-+
-+struct power_supply_charger {
-+	struct power_supply *psy;
-+	struct psy_throttle_state *throttle_states;
-+	size_t num_throttle_states;
-+	unsigned long supported_cables;
-+	int (*get_property)(struct power_supply_charger *psyc,
-+			    enum power_supply_charger_property psp,
-+			    union power_supply_propval *val);
-+	int (*set_property)(struct power_supply_charger *psyc,
-+			    enum power_supply_charger_property psp,
-+			    const union power_supply_propval *val);
-+};
-+
-+/**
-+ * struct psy_charging_algo - charging algo structure
-+ * @node: list head, not used by algo drivers.
-+ * @chrg_prof_type: charging profile type which can be handled by the algorithm.
-+ * @name: charging algorithm name
-+ * @get_next_cc_cv: function pointer which returns CC and CV
-+ * @get_batt_thresholds: function pointer to retrieve the battery thresholds
-+ *	from battery charging profile
-+ *
-+ * This structure is used by charging algorithm drivers to register with power
-+ * supply charging driver
-+ */
-+
-+struct psy_charging_algo {
-+	struct list_head node;
-+	unsigned int chrg_prof_type;
-+	char *name;
-+	enum psy_algo_stat (*get_next_cc_cv)(struct psy_batt_props *,
-+			struct psy_batt_chrg_prof, unsigned long *cc,
-+			unsigned long *cv);
-+	int (*get_batt_thresholds)(struct psy_batt_chrg_prof,
-+			struct psy_batt_thresholds *bat_thr);
-+};
-+
-+
-+/* power_supply_charger functions */
-+
-+#ifdef CONFIG_POWER_SUPPLY_CHARGER
-+
-+extern int power_supply_register_charger(struct power_supply *psy,
-+		struct power_supply_charger *psyc);
-+extern int power_supply_unregister_charger(struct power_supply_charger *psyc);
-+extern int power_supply_register_charging_algo(struct psy_charging_algo *);
-+extern int power_supply_unregister_charging_algo(struct psy_charging_algo *);
-+extern int psy_get_battery_prop(struct psy_batt_chrg_prof *batt_prop);
-+extern void psy_battery_prop_changed(int battery_conn_stat,
-+				struct psy_batt_chrg_prof *batt_prop);
-+
-+#else
-+
-+static int power_supply_register_charger(struct power_supply_charger *psyc)
-+{ return -EINVAL; }
-+static  int power_supply_unregister_charger(struct power_supply_charger *psyc)
-+{ return -EINVAL; }
-+static int power_supply_register_charging_algo(struct psy_charging_algo *algo)
-+{ return -EINVAL; }
-+static int power_supply_unregister_charging_algo(struct psy_charging_algo *algo)
-+{ return -EINVAL; }
-+static inline int psy_get_battery_prop(struct psy_batt_chrg_prof *batt_prop)
-+{
-+	return -ENOMEM;
-+}
-+static void psy_battery_prop_changed(int battery_conn_stat,
-+				struct psy_batt_chrg_prof *batt_prop) { }
-+#endif
-+
-+
-+#endif
-diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
-index 0278600..87af1e4 100644
---- a/include/linux/power_supply.h
-+++ b/include/linux/power_supply.h
-@@ -165,6 +165,9 @@ enum power_supply_type {
- 
- enum power_supply_notifier_events {
- 	PSY_EVENT_PROP_CHANGED,
-+	PSY_EVENT_BATTERY,
-+	PSY_EVENT_THROTTLE,
-+	PSY_EVENT_CABLE,
- };
- 
- union power_supply_propval {
-@@ -206,6 +209,7 @@ struct power_supply {
- 	struct work_struct changed_work;
- 	spinlock_t changed_lock;
- 	bool changed;
-+	void *data;
- #ifdef CONFIG_THERMAL
- 	struct thermal_zone_device *tzd;
- 	struct thermal_cooling_device *tcd;
-@@ -324,4 +328,161 @@ static inline bool power_supply_is_watt_property(enum power_supply_property psp)
- 	return 0;
- }
- 
-+static inline int psy_set_ps_int_property(struct power_supply *psy,
-+				      enum power_supply_property psp,
-+				      int prop_val)
-+{
-+	union power_supply_propval val;
-+
-+	val.intval = prop_val;
-+	return psy->set_property(psy, psp, &val);
-+}
-+
-+static inline int psy_get_ps_int_property(struct power_supply *psy,
-+				      enum power_supply_property psp)
-+{
-+	union power_supply_propval val;
-+
-+	val.intval = 0;
-+	psy->get_property(psy, psp, &val);
-+	return val.intval;
-+}
-+
-+
-+#define PSY_HEALTH(psy) \
-+		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_HEALTH)
-+#define PSY_CV(psy) \
-+		psy_get_ps_int_property(psy,\
-+			POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE)
-+#define PSY_CC(psy) \
-+		psy_get_ps_int_property(psy,\
-+			POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT)
-+#define PSY_INLMT(psy) \
-+		psy_get_ps_int_property(psy,\
-+i			POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT)
-+#define PSY_MAX_CC(psy) \
-+		psy_get_ps_int_property(psy,\
-+			POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX)
-+#define PSY_MAX_CV(psy) \
-+		psy_get_ps_int_property(psy,\
-+			POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX)
-+#define PSY_VOLTAGE_NOW(psy) \
-+		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_VOLTAGE_NOW)
-+#define PSY_VOLTAGE_OCV(psy) \
-+		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_VOLTAGE_OCV)
-+#define PSY_CURRENT_NOW(psy) \
-+		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_CURRENT_NOW)
-+#define PSY_STATUS(psy) \
-+		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_STATUS)
-+#define PSY_TEMPERATURE(psy) \
-+		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_TEMP)
-+#define PSY_BATTERY_TYPE(psy) \
-+		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_TECHNOLOGY)
-+#define PSY_ONLINE(psy) \
-+		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_ONLINE)
-+
-+
-+static inline int psy_set_present(struct power_supply *psy, int present)
-+{
-+	return	psy_set_ps_int_property(psy,
-+			POWER_SUPPLY_PROP_PRESENT, present);
-+}
-+
-+static inline int psy_set_iterm(struct power_supply *psy, int iterm)
-+{
-+	return	psy_set_ps_int_property(psy,
-+			POWER_SUPPLY_PROP_CHARGE_TERM_CURRENT, iterm);
-+}
-+
-+static inline int psy_set_max_temp(struct power_supply *psy, int temp)
-+{
-+	return	psy_set_ps_int_property(psy, POWER_SUPPLY_PROP_TEMP_MAX, temp);
-+}
-+
-+static inline int psy_set_min_temp(struct power_supply *psy, int temp)
-+{
-+	return	psy_set_ps_int_property(psy, POWER_SUPPLY_PROP_TEMP_MIN, temp);
-+}
-+
-+static inline int psy_is_online(struct power_supply *psy)
-+{
-+	return	psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_ONLINE);
-+}
-+
-+static inline int psy_is_present(struct power_supply *psy)
-+{
-+	return	psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_PRESENT);
-+}
-+
-+static inline bool psy_is_health_good(struct power_supply *psy)
-+{
-+	return PSY_HEALTH(psy) == POWER_SUPPLY_HEALTH_GOOD;
-+}
-+
-+static inline int psy_set_cc(struct power_supply *psy, int cc)
-+{
-+	return	psy_set_ps_int_property(psy,
-+			POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT, cc);
-+}
-+
-+static inline int psy_set_cv(struct power_supply *psy, int cc)
-+{
-+	return	psy_set_ps_int_property(psy,
-+			POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE, cc);
-+}
-+
-+static inline int psy_set_inlmt(struct power_supply *psy, int inlmt)
-+{
-+	return	psy_set_ps_int_property(psy,
-+			POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT, inlmt);
-+}
-+
-+static inline int psy_set_max_cc(struct power_supply *psy, int max_cc)
-+{
-+	return psy_set_ps_int_property(psy,
-+			POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX, max_cc);
-+}
-+
-+static inline int psy_set_max_cv(struct power_supply *psy, int max_cv)
-+{
-+	return psy_set_ps_int_property(psy,
-+			POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX, max_cv);
-+}
-+
-+static inline bool psy_is_battery(struct power_supply *psy)
-+{
-+	return psy->type == POWER_SUPPLY_TYPE_BATTERY;
-+}
-+
-+static inline bool psy_is_charger(struct power_supply *psy)
-+{
-+	return psy->type == POWER_SUPPLY_TYPE_USB ||
-+			psy->type == POWER_SUPPLY_TYPE_USB_CDP ||
-+			psy->type == POWER_SUPPLY_TYPE_USB_DCP ||
-+			psy->type == POWER_SUPPLY_TYPE_USB_ACA;
-+}
-+
-+static inline bool is_online(struct power_supply *psy)
-+{
-+	return psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_ONLINE) == 1;
-+}
-+
-+static inline bool is_present(struct power_supply *psy)
-+{
-+	return psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_PRESENT) == 1;
-+}
-+
-+
-+static inline void psy_set_battery_status(struct power_supply *psy, int status)
-+{
-+	if (PSY_STATUS(psy) != status)
-+		psy_set_ps_int_property(psy, POWER_SUPPLY_PROP_STATUS, status);
-+}
-+
-+static inline void psy_set_charger_online(struct power_supply *psy, int online)
-+{
-+	if (PSY_ONLINE(psy) != online)
-+		psy_set_ps_int_property(psy, POWER_SUPPLY_PROP_ONLINE, online);
-+}
-+
- #endif /* __LINUX_POWER_SUPPLY_H__ */
--- 
-1.7.9.5
 
+Maybe I could've sent the OMAP driver changes (the '3.15/dss-dt' branch) =
+and
+the .dts changes (the '3.15/dss-dt-dts' branch) in a separate pull reques=
+ts,
+but I wanted to merge them both, as I have patches on top of those that a=
+re
+only valid after both branches are merged.
+
+ Tomi
+
+The following changes since commit b7e4ab50418d5b34ab0dae95193dd71190e1fb=
+50:
+
+  Video: atmel: avoid the id of fix screen info is overwritten (2014-03-1=
+9 13:03:53 +0200)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git tags/fbde=
+v-omap-3.15
+
+for you to fetch changes up to 0f5d9d2e7d234acb26bc98dd820cc8dd178774d6:
+
+  OMAPDSS: HDMI: fix interlace output (2014-04-04 09:56:19 +0300)
+
+----------------------------------------------------------------
+fbdev changes for 3.15 (OMAP)
+
+This contains OMAP related fbdev changes for 3.15. The bulk of the patche=
+s are
+for adding Device Tree support for OMAP Display Subsystem:
+
+* SoCs: OMAP2/3/4
+
+* Boards: OMAP4 Panda, OMAP4 SDP, OMAP3 Beagle, OMAP3 Beagle-xM, OMAP3
+  IGEP0020, OMAP3 N900
+
+* Devices: TFP410 Encoder, tpd12s015 HDMI companion chip, Sony acx565akm =
+panel,
+  MIPI DSI Command mode panel and HDMI, DVI and Analog TV connectors
+
+----------------------------------------------------------------
+Javier Martinez Canillas (1):
+      ARM: omap3-igep0020.dts: add display information
+
+Sebastian Reichel (1):
+      OMAPDSS: acx565akm: Add DT support
+
+Tomi Valkeinen (45):
+      ARM: dts: fix omap3 dss clock handle names
+      ARM: dts: fix DPLL4 x2 clkouts on 3630
+      ARM: dts: use ti,fixed-factor-clock for dpll4_m4x2_mul_ck
+      ARM: dts: set 'ti,set-rate-parent' for dpll4_m4 path
+      ARM: omap2.dtsi: add omapdss information
+      ARM: omap3.dtsi: add omapdss information
+      ARM: omap4.dtsi: add omapdss information
+      ARM: omap4-panda.dts: add display information
+      ARM: OMAP2+: add omapdss_init_of()
+      ARM: OMAP2+: DT 'compatible' tweak for displays
+      OMAPDSS: add 'label' support for DT
+      OMAPDSS: get dssdev->alias from DT alias
+      OMAPFB: clean up default display search
+      OMAPFB: search for default display with DT alias
+      OMAPDSS: add of helpers
+      OMAPDSS: Improve regulator names for DT
+      OMAPDSS: Add DT support to DSS
+      OMAPDSS: Add DT support to DISPC
+      OMAPDSS: Add DT support to HDMI
+      OMAPDSS: Add DT support to VENC
+      OMAPDSS: Add DT support to DSI
+      OMAPDSS: panel-dsi-cm: Add DT support
+      OMAPDSS: encoder-tfp410: Add DT support
+      OMAPDSS: connector-dvi: Add DT support
+      OMAPDSS: encoder-tpd12s015: Add DT support
+      OMAPDSS: hdmi-connector: Add DT support
+      OMAPDSS: connector-analog-tv: Add DT support
+      Doc/DT: Add DT binding documentation for OMAP DSS
+      ARM: omap4-sdp.dts: add display information
+      ARM: omap3-beagle.dts: add display information
+      ARM: omap3-beagle-xm.dts: add display information
+      ARM: omap3-n900.dts: add display information
+      Doc/DT: Add DT binding documentation for Analog TV Connector
+      Doc/DT: Add DT binding documentation for DVI Connector
+      Doc/DT: Add DT binding documentation for HDMI Connector
+      Doc/DT: Add DT binding documentation for MIPI DSI CM Panel
+      Doc/DT: Add DT binding documentation for Sony acx565akm panel
+      Doc/DT: Add DT binding documentation for TFP410 encoder
+      Doc/DT: Add DT binding documentation for tpd12s015 encoder
+      Merge branch '3.15/dss-dt' into 3.15/fbdev
+      Merge branch '3.15/dss-dt-dts' into 3.15/fbdev
+      OMAPDSS: remove DT hacks for regulators
+      ARM: OMAP2+: remove pdata quirks for displays
+      OMAPDSS: add missing __init for dss_init_ports
+      OMAPDSS: HDMI: fix interlace output
+
+ .gitignore                                         |   3 +
+ Documentation/00-INDEX                             |  24 +-
+ Documentation/PCI/MSI-HOWTO.txt                    | 119 ++-
+ Documentation/RCU/00-INDEX                         |   2 +
+ Documentation/arm/00-INDEX                         |  14 +
+ Documentation/blackfin/00-INDEX                    |   6 +-
+ Documentation/block/00-INDEX                       |   2 +
+ Documentation/devicetree/00-INDEX                  |   2 +
+ Documentation/devicetree/bindings/arm/omap/dmm.txt |  22 +
+ .../devicetree/bindings/arm/omap/omap.txt          |   8 +-
+ .../devicetree/bindings/mmc/atmel-hsmci.txt        |   5 +
+ .../bindings/net/allwinner,sun4i-emac.txt          |   5 +-
+ .../bindings/net/allwinner,sun4i-mdio.txt          |   5 +-
+ .../devicetree/bindings/net/sti-dwmac.txt          |  58 ++
+ .../devicetree/bindings/power/bq2415x.txt          |  47 ++
+ .../devicetree/bindings/spi/spi_atmel.txt          |   5 +
+ .../devicetree/bindings/usb/ehci-omap.txt          |   2 +-
+ .../devicetree/bindings/usb/ohci-omap3.txt         |   2 +-
+ .../devicetree/bindings/vendor-prefixes.txt        |   6 +-
+ .../bindings/video/analog-tv-connector.txt         |  25 +
+ .../devicetree/bindings/video/dvi-connector.txt    |  35 +
+ .../devicetree/bindings/video/hdmi-connector.txt   |  28 +
+ .../devicetree/bindings/video/panel-dsi-cm.txt     |  29 +
+ .../devicetree/bindings/video/sony,acx565akm.txt   |  30 +
+ .../devicetree/bindings/video/ti,omap-dss.txt      | 211 +++++
+ .../devicetree/bindings/video/ti,omap2-dss.txt     |  54 ++
+ .../devicetree/bindings/video/ti,omap3-dss.txt     |  83 ++
+ .../devicetree/bindings/video/ti,omap4-dss.txt     | 111 +++
+ .../devicetree/bindings/video/ti,tfp410.txt        |  41 +
+ .../devicetree/bindings/video/ti,tpd12s015.txt     |  44 +
+ Documentation/fb/00-INDEX                          |   6 +
+ Documentation/filesystems/00-INDEX                 |   2 +
+ Documentation/filesystems/nfs/00-INDEX             |   4 +-
+ Documentation/i2c/instantiating-devices            |  41 +-
+ Documentation/ide/00-INDEX                         |   2 +
+ Documentation/laptops/00-INDEX                     |   6 +-
+ Documentation/leds/00-INDEX                        |   8 +
+ Documentation/m68k/00-INDEX                        |   2 +
+ Documentation/networking/00-INDEX                  |  30 +-
+ Documentation/networking/3c505.txt                 |  45 --
+ Documentation/phy.txt                              |  26 +-
+ Documentation/power/00-INDEX                       |   6 +-
+ Documentation/ptp/testptp.c                        |  11 +-
+ Documentation/s390/00-INDEX                        |   8 +-
+ Documentation/scheduler/00-INDEX                   |   2 +
+ Documentation/scsi/00-INDEX                        |  16 +
+ Documentation/serial/00-INDEX                      |   6 +-
+ Documentation/spi/00-INDEX                         |  22 +
+ Documentation/spi/spi-summary                      |  17 +-
+ Documentation/timers/00-INDEX                      |   2 +
+ Documentation/virtual/kvm/00-INDEX                 |   2 +
+ Documentation/vm/00-INDEX                          |   4 +-
+ Documentation/w1/masters/00-INDEX                  |   4 +-
+ Documentation/w1/slaves/00-INDEX                   |   2 +
+ Documentation/x86/00-INDEX                         |  18 +-
+ Documentation/zh_CN/arm64/booting.txt              |  65 +-
+ Documentation/zh_CN/arm64/memory.txt               |  46 +-
+ Documentation/zh_CN/arm64/tagged-pointers.txt      |  52 ++
+ MAINTAINERS                                        |  21 +-
+ Makefile                                           |   2 +-
+ arch/arm/boot/dts/Makefile                         |  12 +-
+ arch/arm/boot/dts/am335x-evm.dts                   |  60 +-
+ arch/arm/boot/dts/am335x-evmsk.dts                 |  67 +-
+ arch/arm/boot/dts/am33xx.dtsi                      |  13 +-
+ arch/arm/boot/dts/am3517-craneboard.dts            | 174 ++++
+ arch/arm/boot/dts/am4372.dtsi                      |  46 ++
+ arch/arm/boot/dts/am437x-gp-evm.dts                | 127 +++
+ arch/arm/boot/dts/am43x-epos-evm.dts               | 183 +++++
+ arch/arm/boot/dts/armada-xp-mv78260.dtsi           |   3 +-
+ arch/arm/boot/dts/at91-sama5d3_xplained.dts        | 229 ++++++
+ arch/arm/boot/dts/at91sam9263.dtsi                 |   2 +-
+ arch/arm/boot/dts/at91sam9n12ek.dts                |   4 +
+ arch/arm/boot/dts/dove.dtsi                        |  11 -
+ arch/arm/boot/dts/dra7.dtsi                        | 151 ++++
+ arch/arm/boot/dts/imx6dl-hummingboard.dts          |  10 +-
+ arch/arm/boot/dts/imx6qdl-cubox-i.dtsi             |  10 +-
+ arch/arm/boot/dts/omap2.dtsi                       |  31 +
+ arch/arm/boot/dts/omap2420.dtsi                    |   2 +
+ arch/arm/boot/dts/omap2430.dtsi                    |   5 +
+ arch/arm/boot/dts/omap3-beagle-xm.dts              | 142 +++-
+ arch/arm/boot/dts/omap3-beagle.dts                 | 139 ++++
+ arch/arm/boot/dts/omap3-cm-t3517.dts               | 136 ++++
+ arch/arm/boot/dts/omap3-cm-t3530.dts               |  48 ++
+ arch/arm/boot/dts/omap3-cm-t3730.dts               |  57 +-
+ arch/arm/boot/dts/omap3-cm-t3x.dtsi                | 110 +++
+ arch/arm/boot/dts/omap3-cm-t3x30.dtsi              |  74 +-
+ arch/arm/boot/dts/omap3-devkit8000.dts             |  16 +-
+ arch/arm/boot/dts/omap3-gta04.dts                  |  57 +-
+ arch/arm/boot/dts/omap3-igep.dtsi                  |   1 +
+ arch/arm/boot/dts/omap3-igep0020.dts               |  58 +-
+ arch/arm/boot/dts/omap3-lilly-a83x.dtsi            | 459 +++++++++++
+ arch/arm/boot/dts/omap3-lilly-dbb056.dts           | 170 ++++
+ arch/arm/boot/dts/omap3-n9.dts                     |   2 +-
+ arch/arm/boot/dts/omap3-n900.dts                   | 171 +++-
+ arch/arm/boot/dts/omap3-n950.dts                   |   2 +-
+ arch/arm/boot/dts/omap3-overo-storm-tobi.dts       |  22 +
+ ...omap3-tobi.dts =3D> omap3-overo-tobi-common.dtsi} |   3 -
+ arch/arm/boot/dts/omap3-overo-tobi.dts             |  22 +
+ arch/arm/boot/dts/omap3-overo.dtsi                 |   7 +-
+ arch/arm/boot/dts/omap3-sb-t35.dtsi                |  29 +-
+ arch/arm/boot/dts/omap3-sbc-t3517.dts              |  43 +
+ arch/arm/boot/dts/omap3-sbc-t3530.dts              |  36 +
+ arch/arm/boot/dts/omap3-sbc-t3730.dts              |  23 +-
+ arch/arm/boot/dts/omap3.dtsi                       |  81 +-
+ arch/arm/boot/dts/omap3430-sdp.dts                 |   7 +-
+ arch/arm/boot/dts/omap3430es1-clocks.dtsi          |  16 +-
+ .../omap36xx-am35xx-omap3430es2plus-clocks.dtsi    |   6 +-
+ arch/arm/boot/dts/omap36xx-clocks.dtsi             |  20 +
+ .../boot/dts/omap36xx-omap3430es2plus-clocks.dtsi  |  10 +-
+ arch/arm/boot/dts/omap36xx.dtsi                    |  28 +-
+ arch/arm/boot/dts/omap3xxx-clocks.dtsi             |   8 +-
+ arch/arm/boot/dts/omap4-duovero-parlor.dts         | 146 ++++
+ arch/arm/boot/dts/omap4-duovero.dtsi               | 252 ++++++
+ arch/arm/boot/dts/omap4-panda-common.dtsi          | 146 +++-
+ arch/arm/boot/dts/omap4-sdp.dts                    | 146 +++-
+ arch/arm/boot/dts/omap4.dtsi                       | 143 +++-
+ arch/arm/boot/dts/omap443x.dtsi                    |  26 +
+ arch/arm/boot/dts/omap4460.dtsi                    |  37 +
+ arch/arm/boot/dts/omap5-uevm.dts                   |   8 +-
+ arch/arm/boot/dts/omap5.dtsi                       |  43 +-
+ arch/arm/boot/dts/sama5d3.dtsi                     |   2 +-
+ arch/arm/boot/dts/ste-href.dtsi                    |   1 -
+ arch/arm/boot/dts/sun4i-a10.dtsi                   |   4 +-
+ arch/arm/boot/dts/sun5i-a10s.dtsi                  |   4 +-
+ arch/arm/boot/dts/sun7i-a20.dtsi                   |   4 +-
+ arch/arm/boot/dts/tegra114.dtsi                    |   4 +
+ arch/arm/boot/dts/tegra20.dtsi                     |   4 +
+ arch/arm/boot/dts/tegra30-cardhu.dtsi              |   2 +-
+ arch/arm/boot/dts/tegra30.dtsi                     |   4 +
+ arch/arm/boot/dts/testcases/tests.dtsi             |   2 -
+ arch/arm/boot/dts/tps65910.dtsi                    |   5 +
+ arch/arm/boot/dts/twl4030.dtsi                     |   7 +
+ arch/arm/boot/dts/versatile-pb.dts                 |   4 +-
+ arch/arm/configs/multi_v7_defconfig                |   1 +
+ arch/arm/include/asm/cacheflush.h                  |   1 +
+ arch/arm/include/asm/pgtable-3level.h              |  15 +-
+ arch/arm/include/asm/spinlock.h                    |  15 +-
+ arch/arm/kernel/setup.c                            |   2 +-
+ arch/arm/mach-hisi/Kconfig                         |   2 +-
+ arch/arm/mach-imx/Makefile                         |   2 -
+ arch/arm/mach-imx/clk-imx6q.c                      |   3 +
+ arch/arm/mach-imx/clk-imx6sl.c                     |   3 +
+ arch/arm/mach-imx/common.h                         |   4 +-
+ arch/arm/mach-imx/pm-imx6q.c                       |   2 -
+ arch/arm/mach-moxart/Kconfig                       |   1 -
+ arch/arm/mach-omap1/board-nokia770.c               |   1 +
+ arch/arm/mach-omap2/Kconfig                        |  10 +-
+ arch/arm/mach-omap2/board-generic.c                |   4 +
+ arch/arm/mach-omap2/clockdomains3xxx_data.c        |   2 +-
+ arch/arm/mach-omap2/common.h                       |   3 +
+ arch/arm/mach-omap2/devices.c                      |   3 +
+ arch/arm/mach-omap2/display.c                      | 166 ++++
+ arch/arm/mach-omap2/display.h                      |   3 +
+ arch/arm/mach-omap2/dss-common.c                   | 224 +-----
+ arch/arm/mach-omap2/gpmc-nand.c                    |  31 +-
+ arch/arm/mach-omap2/gpmc.c                         |   4 +-
+ arch/arm/mach-omap2/io.c                           |   9 -
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  12 +-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  83 ++
+ arch/arm/mach-omap2/pdata-quirks.c                 | 120 ++-
+ arch/arm/mach-pxa/am300epd.c                       |   1 +
+ arch/arm/mach-pxa/include/mach/balloon3.h          |   2 +
+ arch/arm/mach-pxa/include/mach/corgi.h             |   1 +
+ arch/arm/mach-pxa/include/mach/csb726.h            |   2 +
+ arch/arm/mach-pxa/include/mach/gumstix.h           |   1 +
+ arch/arm/mach-pxa/include/mach/idp.h               |   1 +
+ arch/arm/mach-pxa/include/mach/palmld.h            |   2 +
+ arch/arm/mach-pxa/include/mach/palmt5.h            |   2 +
+ arch/arm/mach-pxa/include/mach/palmtc.h            |   2 +
+ arch/arm/mach-pxa/include/mach/palmtx.h            |   2 +
+ arch/arm/mach-pxa/include/mach/pcm027.h            |   2 +
+ arch/arm/mach-pxa/include/mach/pcm990_baseboard.h  |   1 +
+ arch/arm/mach-pxa/include/mach/poodle.h            |   2 +
+ arch/arm/mach-pxa/include/mach/spitz.h             |   2 +-
+ arch/arm/mach-pxa/include/mach/tosa.h              |   2 +
+ arch/arm/mach-pxa/include/mach/trizeps4.h          |   2 +
+ arch/arm/mach-pxa/mioa701.c                        |   9 +
+ arch/arm/mach-shmobile/Kconfig                     |   2 +-
+ arch/arm/mach-tegra/pm.c                           |   1 +
+ arch/arm/mach-tegra/tegra.c                        |  10 +
+ arch/arm/mach-zynq/common.c                        |  14 +
+ arch/arm/mm/dma-mapping.c                          |   2 +-
+ arch/arm/mm/mm.h                                   |   1 +
+ arch/arm/mm/mmu.c                                  |   7 +-
+ arch/arm/mm/proc-v6.S                              |   3 +-
+ arch/arm/mm/proc-v7.S                              |   2 +-
+ arch/arm/plat-omap/Kconfig                         |   3 -
+ arch/arm64/include/uapi/asm/kvm.h                  |   9 +
+ arch/avr32/Makefile                                |   2 +-
+ arch/avr32/boards/mimc200/fram.c                   |   1 +
+ arch/avr32/include/asm/Kbuild                      |   1 +
+ arch/avr32/include/asm/io.h                        |   2 +
+ arch/microblaze/include/asm/delay.h                |   2 +
+ arch/microblaze/include/asm/io.h                   |   6 +
+ arch/microblaze/kernel/head.S                      |   2 +-
+ arch/powerpc/include/asm/dma-mapping.h             |   1 +
+ arch/powerpc/include/asm/eeh.h                     |  21 +-
+ arch/powerpc/include/asm/hugetlb.h                 |   2 +-
+ arch/powerpc/include/asm/iommu.h                   |   1 +
+ arch/powerpc/include/asm/pgtable-ppc64.h           |  26 +-
+ arch/powerpc/include/asm/pgtable.h                 |  22 +
+ arch/powerpc/include/asm/sections.h                |  12 +
+ arch/powerpc/include/asm/vdso.h                    |   6 +-
+ arch/powerpc/kernel/dma.c                          |  10 +-
+ arch/powerpc/kernel/eeh.c                          |  32 +-
+ arch/powerpc/kernel/eeh_driver.c                   |   8 +-
+ arch/powerpc/kernel/iommu.c                        |  12 +
+ arch/powerpc/kernel/irq.c                          |   5 +
+ arch/powerpc/kernel/machine_kexec.c                |  14 +-
+ arch/powerpc/kernel/machine_kexec_64.c             |   6 +-
+ arch/powerpc/kernel/misc_32.S                      |   5 +-
+ arch/powerpc/kernel/reloc_64.S                     |   4 +-
+ arch/powerpc/kernel/setup_32.c                     |   5 +
+ arch/powerpc/kernel/vdso32/vdso32_wrapper.S        |   2 +-
+ arch/powerpc/kernel/vdso64/vdso64_wrapper.S        |   2 +-
+ arch/powerpc/mm/hash_utils_64.c                    |  14 +
+ arch/powerpc/mm/pgtable_64.c                       |  12 +-
+ arch/powerpc/mm/subpage-prot.c                     |   2 +-
+ arch/powerpc/perf/core-book3s.c                    |   5 +-
+ arch/powerpc/perf/power8-pmu.c                     | 144 ++++
+ arch/powerpc/platforms/powernv/eeh-ioda.c          |  32 +-
+ arch/powerpc/platforms/powernv/eeh-powernv.c       |   2 +-
+ arch/powerpc/platforms/powernv/pci-ioda.c          |  84 ++
+ arch/powerpc/platforms/powernv/pci.c               |  10 +
+ arch/powerpc/platforms/powernv/pci.h               |   6 +-
+ arch/powerpc/platforms/powernv/powernv.h           |   8 +
+ arch/powerpc/platforms/powernv/setup.c             |   9 +
+ arch/powerpc/platforms/pseries/Kconfig             |   1 +
+ arch/powerpc/platforms/pseries/eeh_pseries.c       |   2 +-
+ arch/powerpc/platforms/pseries/pci.c               |  22 +-
+ arch/powerpc/platforms/pseries/setup.c             |   3 +-
+ arch/powerpc/sysdev/mpic.c                         |  38 +-
+ arch/powerpc/xmon/xmon.c                           |  24 +-
+ arch/s390/appldata/appldata_base.c                 |   1 +
+ arch/s390/kernel/head64.S                          |   7 +-
+ arch/s390/mm/page-states.c                         |  10 +
+ arch/sparc/Kconfig                                 |   2 +-
+ arch/sparc/mm/srmmu.c                              |   2 +
+ arch/x86/include/asm/efi.h                         |   2 +
+ arch/x86/include/asm/pgtable.h                     |  14 +-
+ arch/x86/include/asm/tsc.h                         |   2 +-
+ arch/x86/kernel/cpu/common.c                       |   7 +-
+ arch/x86/kernel/cpu/perf_event.c                   |   8 +-
+ arch/x86/kernel/cpu/perf_event.h                   |   1 +
+ arch/x86/kernel/cpu/perf_event_intel.c             |  11 +-
+ arch/x86/kernel/cpu/perf_event_intel_uncore.c      |  10 +-
+ arch/x86/kernel/cpu/perf_event_p6.c                |  48 +-
+ arch/x86/kernel/ftrace.c                           |  83 +-
+ arch/x86/kernel/pci-dma.c                          |   4 +-
+ arch/x86/kernel/tsc.c                              |  11 +-
+ arch/x86/kernel/tsc_msr.c                          |  30 +-
+ arch/x86/mm/fault.c                                |  14 +-
+ arch/x86/platform/efi/efi-bgrt.c                   |   2 +-
+ arch/x86/platform/efi/efi.c                        |   5 +-
+ arch/x86/platform/efi/efi_32.c                     |   6 +
+ arch/x86/platform/efi/efi_64.c                     |   9 +
+ arch/x86/xen/mmu.c                                 |   4 +-
+ block/blk-core.c                                   |  20 +-
+ block/blk-exec.c                                   |   2 +-
+ block/blk-flush.c                                  | 101 +--
+ block/blk-lib.c                                    |   8 +
+ block/blk-merge.c                                  |  91 ++-
+ block/blk-mq-tag.c                                 |   2 +-
+ block/blk-mq.c                                     | 143 ++--
+ block/blk-mq.h                                     |   4 +-
+ block/blk-sysfs.c                                  |   2 +
+ block/blk-timeout.c                                |   2 +-
+ block/blk.h                                        |   2 +-
+ drivers/acpi/ac.c                                  |   2 +
+ drivers/acpi/battery.c                             |   2 +
+ drivers/acpi/blacklist.c                           |  58 --
+ drivers/acpi/button.c                              |   2 +
+ drivers/acpi/container.c                           |   5 +-
+ drivers/acpi/dock.c                                |  13 +-
+ drivers/acpi/fan.c                                 |   3 +
+ drivers/acpi/pci_irq.c                             |   1 +
+ drivers/acpi/sbs.c                                 |   4 +-
+ drivers/acpi/thermal.c                             |   2 +
+ drivers/acpi/video.c                               | 147 +++-
+ drivers/acpi/video_detect.c                        |  16 -
+ drivers/ata/Kconfig                                |   1 +
+ drivers/ata/ahci.c                                 |  18 +-
+ drivers/ata/libata-pmp.c                           |   7 +-
+ drivers/ata/pata_imx.c                             |   8 +-
+ drivers/ata/sata_mv.c                              |  16 +-
+ drivers/ata/sata_sil.c                             |   1 +
+ drivers/base/component.c                           |   8 +
+ drivers/base/dma-buf.c                             |  25 +-
+ drivers/block/null_blk.c                           |  97 +--
+ drivers/block/virtio_blk.c                         |   7 +-
+ drivers/block/xen-blkback/blkback.c                |  66 +-
+ drivers/block/xen-blkback/common.h                 |   5 +-
+ drivers/block/xen-blkback/xenbus.c                 |  14 +
+ drivers/block/xen-blkfront.c                       |  11 +-
+ drivers/char/Kconfig                               |   1 +
+ drivers/char/raw.c                                 |   2 +-
+ drivers/clocksource/bcm_kona_timer.c               |  54 +-
+ drivers/cpufreq/cpufreq.c                          |   3 +-
+ drivers/cpufreq/intel_pstate.c                     |  26 +-
+ drivers/cpufreq/powernow-k8.c                      |  10 +-
+ drivers/crypto/nx/nx-842.c                         |  29 +-
+ drivers/dma/Kconfig                                |   1 +
+ drivers/dma/mv_xor.c                               |  24 +-
+ drivers/edac/edac_mc.c                             |  13 +-
+ drivers/edac/edac_mc_sysfs.c                       |  10 +-
+ drivers/edac/edac_module.h                         |   2 +-
+ drivers/gpio/Kconfig                               |   1 +
+ drivers/gpio/gpio-bcm-kona.c                       |   4 +-
+ drivers/gpio/gpio-clps711x.c                       |   1 +
+ drivers/gpio/gpio-intel-mid.c                      |   4 +-
+ drivers/gpio/gpio-xtensa.c                         |  16 +
+ drivers/gpu/drm/drm_ioctl.c                        |  12 +
+ drivers/gpu/drm/exynos/Kconfig                     |   4 +-
+ drivers/gpu/drm/exynos/exynos_drm_drv.c            |  14 +-
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c            |   2 +-
+ drivers/gpu/drm/exynos/exynos_drm_ipp.c            |   3 +-
+ drivers/gpu/drm/exynos/exynos_hdmi.c               |  66 +-
+ drivers/gpu/drm/i2c/tda998x_drv.c                  |  19 +-
+ drivers/gpu/drm/i915/i915_drv.h                    |   8 +
+ drivers/gpu/drm/i915/i915_gpu_error.c              |   5 +-
+ drivers/gpu/drm/i915/i915_irq.c                    |   3 +-
+ drivers/gpu/drm/i915/intel_display.c               |  14 +
+ drivers/gpu/drm/i915/intel_dp.c                    |  31 +-
+ drivers/gpu/drm/i915/intel_i2c.c                   |   7 -
+ drivers/gpu/drm/i915/intel_opregion.c              |   9 +-
+ drivers/gpu/drm/i915/intel_ringbuffer.c            |  21 +
+ drivers/gpu/drm/i915/intel_ringbuffer.h            |   1 +
+ drivers/gpu/drm/msm/mdp/mdp4/mdp4_crtc.c           | 179 +++--
+ drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c          |   4 +-
+ drivers/gpu/drm/msm/mdp/mdp5/mdp5_crtc.c           |   7 +-
+ drivers/gpu/drm/msm/msm_gem.c                      |   2 +-
+ drivers/gpu/drm/msm/msm_gem_submit.c               |   9 +-
+ drivers/gpu/drm/msm/msm_gpu.c                      |   3 -
+ drivers/gpu/drm/nouveau/Makefile                   |   1 +
+ drivers/gpu/drm/nouveau/core/engine/device/nv40.c  |  10 +-
+ drivers/gpu/drm/nouveau/core/engine/disp/nv50.c    |   2 +-
+ drivers/gpu/drm/nouveau/core/engine/fifo/nve0.c    |   2 +-
+ drivers/gpu/drm/nouveau/core/engine/graph/nv50.c   |   2 +-
+ drivers/gpu/drm/nouveau/core/include/subdev/mc.h   |   1 +
+ drivers/gpu/drm/nouveau/core/subdev/bios/base.c    |   4 +
+ drivers/gpu/drm/nouveau/core/subdev/fb/nv1a.c      |   2 +-
+ drivers/gpu/drm/nouveau/core/subdev/mc/nv04.h      |   1 +
+ drivers/gpu/drm/nouveau/core/subdev/mc/nv44.c      |   2 +-
+ drivers/gpu/drm/nouveau/core/subdev/mc/nv4c.c      |  45 ++
+ drivers/gpu/drm/nouveau/nouveau_acpi.c             |  26 +-
+ drivers/gpu/drm/nouveau/nouveau_bo.c               |   2 +-
+ drivers/gpu/drm/nouveau/nouveau_drm.c              |   3 +
+ drivers/gpu/drm/nouveau/nouveau_vga.c              |   4 +-
+ drivers/gpu/drm/radeon/atombios_crtc.c             |  15 +-
+ drivers/gpu/drm/radeon/atombios_encoders.c         |   7 +-
+ drivers/gpu/drm/radeon/btc_dpm.c                   |  32 +
+ drivers/gpu/drm/radeon/btcd.h                      |   4 +
+ drivers/gpu/drm/radeon/evergreen.c                 |   2 +-
+ drivers/gpu/drm/radeon/kv_dpm.c                    |   2 +-
+ drivers/gpu/drm/radeon/ni_dpm.c                    |  10 +-
+ drivers/gpu/drm/radeon/r600.c                      |   4 +
+ drivers/gpu/drm/radeon/radeon.h                    |   4 +-
+ drivers/gpu/drm/radeon/radeon_asic.c               |   2 +-
+ drivers/gpu/drm/radeon/radeon_asic.h               |   2 +
+ drivers/gpu/drm/radeon/radeon_display.c            |   2 +
+ drivers/gpu/drm/radeon/radeon_ring.c               |   2 +-
+ drivers/gpu/drm/radeon/radeon_semaphore.c          |  19 +-
+ drivers/gpu/drm/radeon/rv770_dpm.c                 |  14 +-
+ drivers/gpu/drm/radeon/si.c                        |   4 +
+ drivers/gpu/drm/radeon/si_dpm.c                    |   5 +-
+ drivers/gpu/drm/radeon/sumo_dpm.c                  |   2 +-
+ drivers/gpu/drm/radeon/trinity_dpm.c               |   3 +-
+ drivers/gpu/drm/radeon/uvd_v2_2.c                  |   1 -
+ drivers/gpu/drm/ttm/ttm_agp_backend.c              |   1 +
+ drivers/gpu/drm/vmwgfx/svga3d_reg.h                | 122 +--
+ drivers/gpu/drm/vmwgfx/svga3d_surfacedefs.h        |  11 +-
+ drivers/gpu/drm/vmwgfx/svga_reg.h                  |   9 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_context.c            |   9 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_drv.c                |   3 +
+ drivers/gpu/drm/vmwgfx/vmwgfx_drv.h                |   1 +
+ drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c            |   9 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_ioctl.c              |   3 +
+ drivers/gpu/drm/vmwgfx/vmwgfx_shader.c             |  16 +-
+ drivers/hid/hid-apple.c                            |   3 +
+ drivers/hid/hid-core.c                             |   3 +
+ drivers/hid/hid-hyperv.c                           |  11 +-
+ drivers/hid/hid-ids.h                              |   8 +
+ drivers/hid/hid-input.c                            |   2 +-
+ drivers/hid/hid-microsoft.c                        |   4 +
+ drivers/hid/hid-multitouch.c                       |   5 +
+ drivers/hid/hid-sensor-hub.c                       |   3 +
+ drivers/hid/i2c-hid/i2c-hid.c                      |   2 +-
+ drivers/hid/usbhid/hid-quirks.c                    |   1 +
+ drivers/hv/connection.c                            |  13 +-
+ drivers/hwmon/max1668.c                            |   2 +-
+ drivers/hwmon/ntc_thermistor.c                     |   6 +-
+ drivers/i2c/busses/i2c-mv64xxx.c                   |  33 +-
+ drivers/iio/accel/bma180.c                         |  16 +-
+ drivers/iio/adc/max1363.c                          |   2 +-
+ drivers/iio/imu/adis16400.h                        |   1 +
+ drivers/iio/imu/adis16400_core.c                   |  10 +-
+ drivers/iio/light/tsl2563.c                        |  16 +-
+ drivers/iio/magnetometer/ak8975.c                  |  16 +-
+ drivers/iio/magnetometer/mag3110.c                 |   8 +-
+ drivers/infiniband/hw/amso1100/c2.c                |   4 +-
+ drivers/infiniband/hw/amso1100/c2_rnic.c           |   3 +-
+ drivers/infiniband/hw/cxgb4/cm.c                   |   1 +
+ drivers/infiniband/hw/mlx4/main.c                  | 185 +++--
+ drivers/infiniband/hw/mlx5/Kconfig                 |   2 +-
+ drivers/infiniband/hw/mlx5/main.c                  |  22 +-
+ drivers/infiniband/hw/mlx5/qp.c                    |  18 +-
+ drivers/infiniband/hw/mlx5/user.h                  |   7 +
+ drivers/infiniband/hw/nes/nes.c                    |   5 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c         |   2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c        |   4 +-
+ drivers/infiniband/hw/qib/qib_iba7322.c            |   5 +
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c      |   9 +-
+ drivers/infiniband/ulp/iser/iser_initiator.c       |   3 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c           |  10 +-
+ drivers/infiniband/ulp/isert/ib_isert.c            |   1 +
+ drivers/infiniband/ulp/srpt/ib_srpt.c              |  14 +-
+ drivers/iommu/arm-smmu.c                           | 105 ++-
+ drivers/irqchip/irq-orion.c                        |  22 +-
+ drivers/isdn/hisax/q931.c                          |   2 +-
+ drivers/md/bcache/bcache.h                         |   4 +-
+ drivers/md/bcache/bset.c                           |   7 +-
+ drivers/md/bcache/btree.c                          |   4 +-
+ drivers/md/bcache/extents.c                        |   2 +-
+ drivers/md/bcache/request.c                        |   6 +-
+ drivers/md/bcache/sysfs.c                          |   2 +-
+ drivers/md/raid1.c                                 |  13 +-
+ drivers/md/raid5.c                                 |  90 +--
+ drivers/message/i2o/i2o_config.c                   |   4 +-
+ drivers/mfd/da9055-i2c.c                           |  12 +-
+ drivers/mfd/max14577.c                             |   2 +
+ drivers/mfd/max8997.c                              |   6 +-
+ drivers/mfd/max8998.c                              |   6 +-
+ drivers/mfd/sec-core.c                             |   2 +
+ drivers/mfd/tps65217.c                             |   4 +-
+ drivers/mfd/wm8994-core.c                          |   2 +-
+ drivers/misc/genwqe/card_dev.c                     |   1 +
+ drivers/misc/mei/client.c                          |  15 +-
+ drivers/misc/mic/host/mic_virtio.c                 |   3 +-
+ drivers/misc/sgi-gru/grukdump.c                    |  11 +-
+ drivers/mmc/card/queue.c                           |   2 +-
+ drivers/net/Kconfig                                |   2 +-
+ drivers/net/bonding/bond_3ad.c                     |   6 +-
+ drivers/net/bonding/bond_3ad.h                     |   1 +
+ drivers/net/bonding/bond_main.c                    |  35 +-
+ drivers/net/bonding/bond_options.c                 |   2 +-
+ drivers/net/can/Kconfig                            |   2 +-
+ drivers/net/can/dev.c                              |  15 +-
+ drivers/net/can/flexcan.c                          |   7 +-
+ drivers/net/can/janz-ican3.c                       |  20 +-
+ drivers/net/can/usb/kvaser_usb.c                   |   2 +
+ drivers/net/can/vcan.c                             |   9 +-
+ drivers/net/ethernet/3com/3c59x.c                  |   2 -
+ drivers/net/ethernet/allwinner/sun4i-emac.c        |   3 +
+ drivers/net/ethernet/atheros/alx/main.c            |   1 +
+ drivers/net/ethernet/broadcom/bnx2.c               |   2 +-
+ drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c    |   4 +-
+ drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.h    |   4 +-
+ drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c   |  12 +-
+ drivers/net/ethernet/broadcom/bnx2x/bnx2x_sriov.c  |   6 +-
+ drivers/net/ethernet/broadcom/tg3.c                |  17 +-
+ drivers/net/ethernet/dec/tulip/tulip_core.c        |   1 +
+ drivers/net/ethernet/ethoc.c                       | 138 +++-
+ drivers/net/ethernet/freescale/fec_main.c          |   4 +-
+ drivers/net/ethernet/intel/e100.c                  |   2 +-
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c      |   6 +-
+ drivers/net/ethernet/lantiq_etop.c                 |   2 +-
+ drivers/net/ethernet/marvell/Kconfig               |   6 +-
+ drivers/net/ethernet/mellanox/mlx4/en_tx.c         |   4 +-
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h       |   2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/Kconfig    |   2 +-
+ drivers/net/ethernet/neterion/vxge/vxge-main.c     |   6 -
+ drivers/net/ethernet/sfc/tx.c                      |   2 +
+ drivers/net/ethernet/stmicro/stmmac/Kconfig        |  11 +
+ drivers/net/ethernet/stmicro/stmmac/Makefile       |   1 +
+ drivers/net/ethernet/stmicro/stmmac/dwmac-sti.c    | 330 ++++++++
+ drivers/net/ethernet/stmicro/stmmac/stmmac.h       |   3 +
+ .../net/ethernet/stmicro/stmmac/stmmac_platform.c  |   5 +
+ drivers/net/ethernet/ti/cpsw.c                     |  25 +-
+ drivers/net/ethernet/tile/tilegx.c                 |   2 +-
+ drivers/net/ethernet/xilinx/xilinx_axienet_main.c  |  13 +-
+ drivers/net/hyperv/netvsc_drv.c                    |  53 +-
+ drivers/net/irda/Kconfig                           |   7 -
+ drivers/net/irda/Makefile                          |   1 -
+ drivers/net/irda/ep7211-sir.c                      |  70 --
+ drivers/net/irda/irtty-sir.c                       |   1 -
+ drivers/net/macvlan.c                              |   5 +-
+ drivers/net/phy/dp83640.c                          |  32 +-
+ drivers/net/phy/mdio-sun4i.c                       |   3 +
+ drivers/net/phy/phy_device.c                       |  38 +-
+ drivers/net/team/team.c                            |   2 +-
+ drivers/net/tun.c                                  |   2 +-
+ drivers/net/usb/Kconfig                            |  15 +
+ drivers/net/usb/Makefile                           |   1 +
+ drivers/net/usb/asix_devices.c                     |   3 +-
+ drivers/net/usb/ax88179_178a.c                     |   4 +
+ drivers/net/usb/gl620a.c                           |   4 +
+ drivers/net/usb/hso.c                              |  32 +-
+ drivers/net/usb/mcs7830.c                          |   5 +-
+ drivers/net/usb/net1080.c                          |   4 +
+ drivers/net/usb/qmi_wwan.c                         |  11 +-
+ drivers/net/usb/r8152.c                            |  17 +-
+ drivers/net/usb/rndis_host.c                       |   4 +
+ drivers/net/usb/smsc75xx.c                         |   4 +
+ drivers/net/usb/smsc95xx.c                         |   4 +
+ drivers/net/usb/sr9800.c                           | 874 +++++++++++++++=
++++++
+ drivers/net/usb/sr9800.h                           | 202 +++++
+ drivers/net/usb/usbnet.c                           |  25 +-
+ drivers/net/vxlan.c                                |   3 -
+ drivers/net/wan/dlci.c                             |   5 -
+ drivers/net/wireless/ath/ar5523/ar5523.c           |   2 +-
+ drivers/net/wireless/ath/ath5k/phy.c               |   2 +-
+ drivers/net/wireless/ath/ath9k/ar9003_eeprom.c     |   4 +
+ drivers/net/wireless/ath/ath9k/htc.h               |   2 +
+ drivers/net/wireless/ath/ath9k/htc_drv_init.c      |   8 +-
+ drivers/net/wireless/ath/ath9k/htc_drv_main.c      |  63 +-
+ drivers/net/wireless/ath/ath9k/hw.c                |   5 +-
+ drivers/net/wireless/ath/ath9k/init.c              |   8 +-
+ drivers/net/wireless/hostap/hostap_proc.c          |   2 +-
+ drivers/net/wireless/iwlwifi/dvm/mac80211.c        |  22 +-
+ drivers/net/wireless/iwlwifi/iwl-drv.c             |   2 +-
+ drivers/net/wireless/iwlwifi/iwl-modparams.h       |  11 +-
+ drivers/net/wireless/iwlwifi/iwl-nvm-parse.c       |   5 +
+ drivers/net/wireless/iwlwifi/mvm/fw-api-scan.h     |   4 +-
+ drivers/net/wireless/iwlwifi/mvm/mac80211.c        |  24 +-
+ drivers/net/wireless/iwlwifi/mvm/scan.c            |   5 +-
+ drivers/net/wireless/iwlwifi/mvm/sta.c             |   2 +-
+ drivers/net/wireless/iwlwifi/mvm/tx.c              |  73 +-
+ drivers/net/wireless/iwlwifi/mvm/utils.c           |   2 +
+ drivers/net/wireless/iwlwifi/pcie/drv.c            |   7 +-
+ drivers/net/wireless/mwifiex/main.c                |   2 +-
+ drivers/net/wireless/rt2x00/rt2500pci.c            |   5 +
+ drivers/net/wireless/rt2x00/rt2500usb.c            |   5 +
+ drivers/net/wireless/rt2x00/rt2800lib.c            |   5 +-
+ drivers/net/wireless/rtl818x/rtl8180/dev.c         |  23 +-
+ drivers/net/wireless/rtl818x/rtl8187/rtl8187.h     |  10 +-
+ drivers/net/wireless/rtlwifi/ps.c                  |   2 +-
+ drivers/net/wireless/rtlwifi/rtl8192ce/hw.c        |  18 +-
+ drivers/net/xen-netback/common.h                   |   6 +-
+ drivers/net/xen-netback/interface.c                |   1 -
+ drivers/net/xen-netback/netback.c                  |  16 +-
+ drivers/net/xen-netfront.c                         |   5 +-
+ drivers/of/address.c                               |   5 +-
+ drivers/of/base.c                                  | 128 +--
+ drivers/of/of_mdio.c                               |  22 +-
+ drivers/of/selftest.c                              |  67 ++
+ drivers/of/testcase-data/testcases.dtsi            |   3 +
+ .../of/testcase-data}/tests-interrupts.dtsi        |   0
+ drivers/of/testcase-data/tests-match.dtsi          |  19 +
+ .../of/testcase-data}/tests-phandle.dtsi           |   0
+ drivers/pci/host/pci-mvebu.c                       |  11 +-
+ drivers/pci/hotplug/acpiphp_glue.c                 |  15 +-
+ drivers/pci/msi.c                                  |  10 +-
+ drivers/pci/pci.c                                  |  10 +
+ drivers/phy/Kconfig                                |   3 +-
+ drivers/phy/phy-core.c                             |  76 +-
+ drivers/phy/phy-exynos-dp-video.c                  |   8 +-
+ drivers/phy/phy-exynos-mipi-video.c                |  10 +-
+ drivers/phy/phy-mvebu-sata.c                       |  10 +-
+ drivers/phy/phy-omap-usb2.c                        |  10 +-
+ drivers/phy/phy-twl4030-usb.c                      |  10 +-
+ drivers/power/ds2782_battery.c                     |   2 +-
+ drivers/power/isp1704_charger.c                    |   2 -
+ drivers/power/max17040_battery.c                   |   5 +-
+ drivers/regulator/core.c                           |   2 +-
+ drivers/regulator/da9055-regulator.c               |   4 +-
+ drivers/regulator/da9063-regulator.c               |   4 +-
+ drivers/regulator/max14577.c                       |  10 +-
+ drivers/regulator/s5m8767.c                        |   4 +-
+ drivers/s390/cio/cio.c                             |  40 +-
+ drivers/s390/cio/qdio.h                            |  14 +-
+ drivers/s390/cio/qdio_main.c                       |   2 +-
+ drivers/sbus/char/jsflash.c                        |   1 -
+ drivers/scsi/qla2xxx/qla_target.c                  |   2 -
+ drivers/scsi/qla2xxx/qla_target.h                  |   1 -
+ drivers/scsi/scsi_lib.c                            |   2 +-
+ drivers/spi/Kconfig                                |   4 +-
+ drivers/spi/spi-nuc900.c                           |   2 +
+ drivers/spi/spi.c                                  |   4 +-
+ drivers/staging/android/ashmem.c                   |  45 +-
+ drivers/staging/android/binder.c                   |   3 +-
+ drivers/staging/android/ion/compat_ion.c           |  26 +-
+ drivers/staging/android/ion/ion_dummy_driver.c     |  12 +-
+ drivers/staging/android/ion/ion_heap.c             |   2 +-
+ drivers/staging/android/ion/ion_priv.h             |   1 +
+ drivers/staging/android/ion/ion_system_heap.c      |   6 +-
+ drivers/staging/android/sw_sync.h                  |  17 +
+ drivers/staging/android/sync.c                     |  14 +-
+ drivers/staging/bcm/Bcmnet.c                       |   2 +-
+ drivers/staging/comedi/drivers.c                   |   2 -
+ drivers/staging/comedi/drivers/adv_pci1710.c       |  17 +-
+ drivers/staging/comedi/drivers/usbduxsigma.c       |   6 +-
+ drivers/staging/dgrp/dgrp_net_ops.c                | 330 ++++----
+ drivers/staging/gdm72xx/gdm_usb.c                  |   3 +
+ drivers/staging/iio/Documentation/iio_utils.h      |   6 +-
+ drivers/staging/iio/adc/ad799x_core.c              |  13 +-
+ drivers/staging/iio/adc/mxs-lradc.c                |   6 +-
+ drivers/staging/iio/impedance-analyzer/ad5933.c    |   2 +-
+ drivers/staging/imx-drm/imx-drm-core.c             |  55 +-
+ drivers/staging/imx-drm/imx-hdmi.c                 |  22 +-
+ drivers/staging/lustre/TODO                        |   5 +-
+ .../include/linux/libcfs/libcfs_kernelcomm.h       |   2 +
+ .../lustre/include/linux/libcfs/libcfs_private.h   |   2 +-
+ .../staging/lustre/lnet/klnds/o2iblnd/o2iblnd_cb.c |   2 +-
+ .../staging/lustre/lnet/klnds/socklnd/socklnd_cb.c |   5 +-
+ .../lustre/lustre/include/lustre/lustre_user.h     |   3 +-
+ drivers/staging/lustre/lustre/llite/dir.c          |   2 +-
+ drivers/staging/lustre/lustre/mdc/mdc_request.c    |   6 +-
+ drivers/staging/netlogic/xlr_net.c                 |   7 +-
+ drivers/staging/octeon-usb/octeon-hcd.c            | 273 +++----
+ drivers/staging/ozwpan/ozproto.c                   |   3 +-
+ drivers/staging/rtl8188eu/core/rtw_wlan_util.c     |  22 +-
+ drivers/staging/rtl8188eu/os_dep/ioctl_linux.c     |  12 +-
+ drivers/staging/rtl8188eu/os_dep/os_intfs.c        |   2 +-
+ drivers/staging/rtl8188eu/os_dep/usb_intf.c        |   2 +-
+ drivers/staging/rtl8821ae/Kconfig                  |   2 +-
+ drivers/staging/rtl8821ae/wifi.h                   |   2 +-
+ drivers/staging/usbip/userspace/libsrc/names.c     |   8 +-
+ drivers/staging/usbip/vhci_sysfs.c                 |   3 +-
+ drivers/staging/wlags49_h2/wl_wext.c               |   2 +-
+ drivers/target/iscsi/iscsi_target_erl1.c           |   4 +-
+ drivers/target/target_core_alua.c                  |   2 +-
+ drivers/target/target_core_pr.c                    |  11 +-
+ drivers/target/target_core_sbc.c                   |   8 +
+ drivers/target/target_core_spc.c                   |   4 +-
+ drivers/target/target_core_transport.c             |   5 +-
+ drivers/tty/hvc/hvc_opal.c                         |   8 +-
+ drivers/tty/hvc/hvc_rtas.c                         |  12 +-
+ drivers/tty/hvc/hvc_udbg.c                         |   9 +-
+ drivers/tty/hvc/hvc_xen.c                          |  17 +-
+ drivers/tty/n_gsm.c                                |  11 +
+ drivers/tty/n_tty.c                                |  14 +-
+ drivers/tty/serial/8250/8250_core.c                |  18 +
+ drivers/tty/serial/8250/8250_dw.c                  |   4 +-
+ drivers/tty/serial/8250/8250_pci.c                 |   3 +-
+ drivers/tty/serial/omap-serial.c                   |  11 +-
+ drivers/tty/serial/sirfsoc_uart.c                  |   4 +-
+ drivers/tty/vt/vt.c                                |   2 +
+ drivers/usb/chipidea/udc.c                         |   4 +-
+ drivers/usb/core/driver.c                          |  24 +-
+ drivers/usb/core/hcd.c                             |   1 -
+ drivers/usb/core/hub.c                             |   7 +-
+ drivers/usb/core/usb.h                             |   1 -
+ drivers/usb/dwc2/core.c                            |   2 +-
+ drivers/usb/dwc2/hcd.c                             |  11 -
+ drivers/usb/dwc2/platform.c                        |   3 +
+ drivers/usb/gadget/bcm63xx_udc.c                   |  58 +-
+ drivers/usb/gadget/f_fs.c                          |   7 +-
+ drivers/usb/gadget/printer.c                       |   2 +-
+ drivers/usb/gadget/s3c2410_udc.c                   |   2 +-
+ drivers/usb/host/ehci-hub.c                        |  26 +-
+ drivers/usb/host/xhci-dbg.c                        |   6 +-
+ drivers/usb/host/xhci-mem.c                        |  14 +-
+ drivers/usb/host/xhci-pci.c                        |   5 +
+ drivers/usb/host/xhci-ring.c                       |  68 +-
+ drivers/usb/host/xhci.c                            |  38 +-
+ drivers/usb/host/xhci.h                            |  41 +-
+ drivers/usb/musb/musb_core.c                       |  15 +-
+ drivers/usb/musb/musb_host.c                       |   3 +
+ drivers/usb/musb/musb_virthub.c                    |  26 +-
+ drivers/usb/musb/omap2430.c                        |   2 -
+ drivers/usb/phy/phy-msm-usb.c                      |  57 +-
+ drivers/usb/phy/phy.c                              |   8 +-
+ drivers/usb/serial/ftdi_sio.c                      |   3 +
+ drivers/usb/serial/ftdi_sio_ids.h                  |   7 +
+ drivers/usb/serial/option.c                        |   6 +-
+ drivers/usb/serial/qcserial.c                      |   3 +
+ drivers/usb/serial/usb-serial-simple.c             |   3 +-
+ drivers/usb/storage/Kconfig                        |   4 +-
+ drivers/usb/storage/scsiglue.c                     |   6 +
+ drivers/usb/storage/unusual_cypress.h              |   2 +-
+ drivers/usb/storage/unusual_devs.h                 |   7 +
+ drivers/vhost/net.c                                |  47 +-
+ drivers/video/Kconfig                              |   2 +-
+ drivers/video/exynos/Kconfig                       |   3 +-
+ .../video/omap2/displays-new/connector-analog-tv.c |  43 +-
+ drivers/video/omap2/displays-new/connector-dvi.c   |  43 +
+ drivers/video/omap2/displays-new/connector-hdmi.c  |  30 +
+ drivers/video/omap2/displays-new/encoder-tfp410.c  |  43 +-
+ .../video/omap2/displays-new/encoder-tpd12s015.c   |  56 ++
+ drivers/video/omap2/displays-new/panel-dsi-cm.c    |  60 +-
+ .../omap2/displays-new/panel-sony-acx565akm.c      |  33 +-
+ drivers/video/omap2/dss/Makefile                   |   2 +-
+ drivers/video/omap2/dss/dispc.c                    |  24 +-
+ drivers/video/omap2/dss/display.c                  |  28 +-
+ drivers/video/omap2/dss/dpi.c                      |  49 +-
+ drivers/video/omap2/dss/dsi.c                      | 147 +++-
+ drivers/video/omap2/dss/dss-of.c                   | 159 ++++
+ drivers/video/omap2/dss/dss.c                      |  66 ++
+ drivers/video/omap2/dss/dss.h                      |   6 +
+ drivers/video/omap2/dss/hdmi4.c                    |  14 +-
+ drivers/video/omap2/dss/hdmi_wp.c                  |   2 +
+ drivers/video/omap2/dss/sdi.c                      |  47 +-
+ drivers/video/omap2/dss/venc.c                     |  66 +-
+ drivers/video/omap2/omapfb/omapfb-main.c           |  67 +-
+ drivers/vme/bridges/vme_ca91cx42.c                 |   4 +-
+ drivers/vme/bridges/vme_tsi148.c                   |   4 +-
+ drivers/watchdog/w83697hf_wdt.c                    |   2 +-
+ drivers/xen/Makefile                               |   1 -
+ drivers/xen/events/events_base.c                   |   2 +
+ drivers/xen/xencomm.c                              | 219 -----
+ fs/bio-integrity.c                                 |  13 +-
+ fs/bio.c                                           |  15 +-
+ fs/btrfs/disk-io.c                                 |   1 -
+ fs/btrfs/inode.c                                   |   2 +-
+ fs/btrfs/ioctl.c                                   |  16 -
+ fs/btrfs/send.c                                    |  10 +
+ fs/btrfs/super.c                                   |  11 +-
+ fs/btrfs/sysfs.c                                   |  10 +-
+ fs/ceph/acl.c                                      |  11 +-
+ fs/ceph/dir.c                                      |  23 +-
+ fs/ceph/file.c                                     |   1 +
+ fs/ceph/super.c                                    |  32 +-
+ fs/ceph/super.h                                    |   7 +-
+ fs/ceph/xattr.c                                    |  54 +-
+ fs/cifs/cifsacl.c                                  |  61 +-
+ fs/cifs/cifsglob.h                                 |  11 +-
+ fs/cifs/cifsproto.h                                |   9 +-
+ fs/cifs/cifssmb.c                                  |  15 +-
+ fs/cifs/dir.c                                      |   2 +-
+ fs/cifs/file.c                                     |  70 +-
+ fs/cifs/inode.c                                    |  15 +-
+ fs/cifs/smb1ops.c                                  |   9 +
+ fs/cifs/smb2glob.h                                 |   3 +
+ fs/cifs/smb2ops.c                                  |  14 +-
+ fs/cifs/smb2pdu.c                                  |   9 +-
+ fs/cifs/smb2proto.h                                |   3 +-
+ fs/cifs/xattr.c                                    |  15 +-
+ fs/ext4/ext4.h                                     |   2 +
+ fs/ext4/extents.c                                  |   1 +
+ fs/ext4/ioctl.c                                    |   3 +-
+ fs/ext4/resize.c                                   |  34 +-
+ fs/ext4/super.c                                    |  20 +-
+ fs/file.c                                          |   2 +-
+ fs/fscache/object-list.c                           |   5 +
+ fs/fscache/object.c                                |   3 +
+ fs/jbd2/transaction.c                              |   6 +-
+ fs/jfs/acl.c                                       |   2 +
+ fs/lockd/svclock.c                                 |   8 +
+ fs/nfs/dir.c                                       |   5 +
+ fs/nfs/inode.c                                     |  14 +-
+ fs/nfs/internal.h                                  |  12 +-
+ fs/nfs/nfs3proc.c                                  |   1 +
+ fs/nfs/nfs4client.c                                |   7 +-
+ fs/nfs/nfs4namespace.c                             |  12 +-
+ fs/nfs/nfs4state.c                                 |   5 +-
+ fs/nfsd/nfs4acl.c                                  |   9 +-
+ fs/ocfs2/alloc.c                                   |   2 +-
+ fs/ocfs2/file.c                                    |  52 +-
+ fs/ocfs2/namei.c                                   |  17 +
+ fs/proc/vmcore.c                                   |  26 +-
+ fs/reiserfs/do_balan.c                             | 895 +++++----------=
+------
+ fs/xfs/xfs_iops.c                                  |  16 +-
+ fs/xfs/xfs_log_cil.c                               |  19 +-
+ fs/xfs/xfs_mount.c                                 |  24 +-
+ fs/xfs/xfs_sb.c                                    |  10 +-
+ include/asm-generic/pgtable.h                      |  39 +
+ include/drm/drmP.h                                 |   3 +
+ include/drm/drm_crtc.h                             |   3 +
+ include/drm/ttm/ttm_page_alloc.h                   |   2 +
+ include/dt-bindings/pinctrl/am43xx.h               |   1 +
+ include/linux/bio.h                                |  12 +
+ include/linux/blk-mq.h                             |   9 +-
+ include/linux/blkdev.h                             |  11 +-
+ include/linux/can/skb.h                            |  38 +
+ include/linux/ceph/ceph_fs.h                       |   5 +-
+ include/linux/cgroup.h                             |   2 +
+ include/linux/compiler-gcc4.h                      |   6 +-
+ include/linux/dma-buf.h                            |   2 +-
+ include/linux/gpio/consumer.h                      |   4 +-
+ include/linux/hyperv.h                             |   2 +-
+ include/linux/interrupt.h                          |   5 +
+ include/linux/mfd/max8997-private.h                |   2 +-
+ include/linux/mfd/max8998-private.h                |   2 +-
+ include/linux/mfd/tps65217.h                       |   4 +-
+ include/linux/mlx5/driver.h                        |   3 +
+ include/linux/netdevice.h                          |  36 +-
+ include/linux/of.h                                 | 153 ++--
+ include/linux/of_device.h                          |   4 +-
+ include/linux/pci.h                                |  20 +
+ include/linux/phy/phy.h                            |  14 +
+ include/linux/skbuff.h                             |  17 +
+ include/linux/smp.h                                |   3 +
+ include/linux/spi/spi.h                            |   7 +-
+ include/linux/syscalls.h                           |   6 +-
+ include/linux/usb.h                                |   2 -
+ include/linux/workqueue.h                          |   5 +-
+ include/net/datalink.h                             |   2 +
+ include/net/dn.h                                   |   2 +
+ include/net/dn_route.h                             |   2 +
+ include/net/ethoc.h                                |   1 +
+ include/net/ipx.h                                  |  11 +
+ include/net/net_namespace.h                        |   8 +
+ include/net/netfilter/nf_conntrack.h               |   2 +
+ include/net/netfilter/nf_tables.h                  |   9 +-
+ include/net/netfilter/nft_reject.h                 |  25 +
+ include/net/sctp/structs.h                         |  14 +-
+ include/rdma/ib_verbs.h                            |   3 +-
+ include/target/target_core_base.h                  |   1 -
+ include/trace/events/power.h                       |   7 +-
+ include/uapi/drm/drm.h                             |   2 +
+ include/uapi/drm/vmwgfx_drm.h                      |   1 +
+ include/uapi/linux/btrfs.h                         |   1 -
+ include/uapi/linux/in6.h                           |  23 +-
+ include/uapi/linux/mic_ioctl.h                     |   2 +-
+ include/uapi/xen/Kbuild                            |   2 +
+ include/{ =3D> uapi}/xen/gntalloc.h                  |   0
+ include/{ =3D> uapi}/xen/gntdev.h                    |   0
+ include/video/omapdss.h                            |  14 +
+ include/xen/interface/io/blkif.h                   |  34 +-
+ include/xen/interface/xencomm.h                    |  41 -
+ include/xen/xencomm.h                              |  77 --
+ kernel/cgroup.c                                    |  60 +-
+ kernel/irq/devres.c                                |  45 ++
+ kernel/irq/irqdesc.c                               |   1 +
+ kernel/power/console.c                             |   1 +
+ kernel/printk/printk.c                             |   2 -
+ kernel/sched/core.c                                |  28 +-
+ kernel/sched/cpudeadline.c                         |   6 +-
+ kernel/sched/deadline.c                            |  10 +-
+ kernel/sched/fair.c                                |   2 +
+ kernel/sched/sched.h                               |   1 -
+ kernel/time/jiffies.c                              |   6 +
+ kernel/time/sched_clock.c                          |  46 +-
+ kernel/time/tick-broadcast.c                       |   1 +
+ kernel/trace/ring_buffer.c                         |   7 +
+ kernel/user_namespace.c                            |   2 +-
+ kernel/workqueue.c                                 |   7 +
+ lib/percpu_ida.c                                   |   7 +-
+ mm/huge_memory.c                                   |   9 +-
+ mm/memory-failure.c                                |   6 +-
+ mm/mprotect.c                                      |  25 +-
+ mm/slub.c                                          |  38 +-
+ mm/vmpressure.c                                    |   1 +
+ net/9p/client.c                                    |   2 +-
+ net/9p/trans_virtio.c                              |   5 +-
+ net/batman-adv/bat_iv_ogm.c                        |  30 +-
+ net/batman-adv/hard-interface.c                    |  22 +-
+ net/batman-adv/originator.c                        |  36 +
+ net/batman-adv/originator.h                        |   4 +
+ net/batman-adv/routing.c                           |   4 +-
+ net/batman-adv/send.c                              |   9 +-
+ net/batman-adv/translation-table.c                 |  23 +-
+ net/bluetooth/hidp/core.c                          |  16 +-
+ net/bluetooth/hidp/hidp.h                          |   4 +
+ net/bridge/br_device.c                             |  54 +-
+ net/bridge/br_fdb.c                                | 137 ++--
+ net/bridge/br_if.c                                 |   6 +-
+ net/bridge/br_input.c                              |   4 +-
+ net/bridge/br_private.h                            |  13 +-
+ net/bridge/br_stp_if.c                             |   2 +
+ net/bridge/br_vlan.c                               |  27 +-
+ net/caif/caif_dev.c                                |   1 +
+ net/caif/cfsrvl.c                                  |   1 +
+ net/can/af_can.c                                   |   3 +-
+ net/can/bcm.c                                      |   4 +-
+ net/can/raw.c                                      |   1 +
+ net/core/dev.c                                     |  28 +-
+ net/core/fib_rules.c                               |   7 +
+ net/core/flow_dissector.c                          |  20 +-
+ net/core/netpoll.c                                 |   4 +-
+ net/core/rtnetlink.c                               |  21 +-
+ net/core/sock.c                                    |   6 +-
+ net/dccp/ccids/lib/tfrc.c                          |   2 +-
+ net/dccp/ccids/lib/tfrc.h                          |   1 +
+ net/decnet/af_decnet.c                             |   5 -
+ net/ieee802154/6lowpan.c                           |  23 +-
+ net/ipv4/devinet.c                                 |   3 +-
+ net/ipv4/ip_forward.c                              |  71 +-
+ net/ipv4/ip_tunnel.c                               |  29 +-
+ net/ipv4/ipconfig.c                                |   2 +-
+ net/ipv4/netfilter/Kconfig                         |   5 +
+ net/ipv4/netfilter/Makefile                        |   1 +
+ net/ipv4/netfilter/nf_nat_h323.c                   |   5 +-
+ net/ipv4/netfilter/nft_reject_ipv4.c               |  75 ++
+ net/ipv4/route.c                                   |  13 +-
+ net/ipv4/tcp.c                                     |   2 +-
+ net/ipv4/tcp_input.c                               |  18 +-
+ net/ipv4/tcp_output.c                              |  15 +-
+ net/ipv4/udp_offload.c                             |  17 +-
+ net/ipv6/addrconf.c                                |   2 +
+ net/ipv6/icmp.c                                    |   2 +-
+ net/ipv6/ip6_output.c                              |  17 +-
+ net/ipv6/netfilter/Kconfig                         |   5 +
+ net/ipv6/netfilter/Makefile                        |   1 +
+ net/ipv6/netfilter/nft_reject_ipv6.c               |  76 ++
+ net/ipx/af_ipx.c                                   |  22 +-
+ net/ipx/ipx_route.c                                |   4 -
+ net/mac80211/cfg.c                                 |  44 +-
+ net/mac80211/ht.c                                  |   4 +-
+ net/mac80211/ibss.c                                |   5 +-
+ net/mac80211/iface.c                               |  33 +-
+ net/mac80211/tx.c                                  |   2 +-
+ net/netfilter/Kconfig                              |   6 +-
+ net/netfilter/Makefile                             |   1 +
+ net/netfilter/ipvs/ip_vs_conn.c                    |   8 +-
+ net/netfilter/nf_conntrack_core.c                  |  55 +-
+ net/netfilter/nf_synproxy_core.c                   |   5 +-
+ net/netfilter/nf_tables_api.c                      |  82 +-
+ net/netfilter/nf_tables_core.c                     |   6 +-
+ net/netfilter/nft_ct.c                             |  16 +-
+ net/netfilter/nft_log.c                            |   5 +-
+ net/netfilter/nft_lookup.c                         |   1 +
+ net/netfilter/nft_queue.c                          |   4 +-
+ net/netfilter/nft_rbtree.c                         |  16 +-
+ net/netfilter/nft_reject.c                         |  89 +-
+ net/netfilter/nft_reject_inet.c                    |  63 ++
+ net/netfilter/xt_CT.c                              |   7 +-
+ net/openvswitch/datapath.c                         |  23 +-
+ net/openvswitch/flow_table.c                       |  88 +-
+ net/openvswitch/flow_table.h                       |   2 +-
+ net/packet/af_packet.c                             |  26 +-
+ net/sched/sch_pie.c                                |  21 +-
+ net/sctp/associola.c                               |  82 +-
+ net/sctp/ipv6.c                                    |   2 +
+ net/sctp/sm_statefuns.c                            |   2 +-
+ net/sctp/socket.c                                  |  47 +-
+ net/sctp/sysctl.c                                  |  18 +-
+ net/sctp/ulpevent.c                                |   8 +-
+ net/sunrpc/auth_gss/auth_gss.c                     |  19 +-
+ net/sunrpc/backchannel_rqst.c                      |   6 +-
+ net/sunrpc/svc_xprt.c                              |   6 +-
+ net/sunrpc/xprtsock.c                              |   6 +-
+ net/tipc/core.h                                    |   1 +
+ net/tipc/link.c                                    |   7 +
+ net/wireless/core.c                                |  17 +-
+ net/wireless/core.h                                |   4 +-
+ net/wireless/nl80211.c                             |  32 +-
+ net/wireless/nl80211.h                             |   8 +-
+ net/wireless/scan.c                                |  40 +-
+ net/wireless/sme.c                                 |   2 +-
+ scripts/Makefile.lib                               |   1 +
+ scripts/checkpatch.pl                              |   4 +-
+ scripts/get_maintainer.pl                          |   2 +-
+ scripts/mod/file2alias.c                           |   4 +-
+ sound/pci/hda/hda_codec.c                          |  34 +-
+ sound/pci/hda/hda_generic.c                        |   8 +-
+ sound/pci/hda/hda_generic.h                        |   1 +
+ sound/pci/hda/hda_intel.c                          |   2 +-
+ sound/pci/hda/patch_ca0132.c                       |  68 +-
+ sound/pci/hda/patch_conexant.c                     |   3 +-
+ sound/pci/hda/patch_realtek.c                      |  16 +-
+ sound/pci/hda/patch_sigmatel.c                     |  40 +-
+ sound/pci/hda/thinkpad_helper.c                    |   1 +
+ sound/soc/blackfin/Kconfig                         |  11 +-
+ sound/soc/codecs/da9055.c                          |  11 +-
+ sound/soc/codecs/max98090.c                        |  21 +-
+ sound/soc/codecs/rt5640.c                          |   1 +
+ sound/soc/codecs/wm8993.c                          |   1 -
+ sound/soc/davinci/davinci-evm.c                    |   1 +
+ sound/soc/davinci/davinci-mcasp.c                  |  83 +-
+ sound/soc/fsl/fsl_esai.c                           |   4 +-
+ sound/soc/fsl/fsl_esai.h                           |   2 +-
+ sound/soc/fsl/imx-mc13783.c                        |   1 -
+ sound/soc/fsl/imx-sgtl5000.c                       |  10 +-
+ sound/soc/fsl/imx-wm8962.c                         |  11 +-
+ sound/soc/samsung/Kconfig                          |   6 +-
+ sound/soc/txx9/txx9aclc-ac97.c                     |   8 +-
+ sound/usb/mixer_maps.c                             |   9 +
+ tools/perf/builtin-trace.c                         |  22 +
+ tools/perf/util/parse-events.c                     |  17 +-
+ tools/perf/util/probe-event.c                      |   2 +-
+ tools/perf/util/session.c                          |   6 +
+ virt/kvm/arm/vgic.c                                |   1 +
+ virt/kvm/coalesced_mmio.c                          |   8 +-
+ 964 files changed, 15201 insertions(+), 5719 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/dmm.txt
+ create mode 100644 Documentation/devicetree/bindings/net/sti-dwmac.txt
+ create mode 100644 Documentation/devicetree/bindings/power/bq2415x.txt
+ create mode 100644 Documentation/devicetree/bindings/video/analog-tv-con=
+nector.txt
+ create mode 100644 Documentation/devicetree/bindings/video/dvi-connector=
+=2Etxt
+ create mode 100644 Documentation/devicetree/bindings/video/hdmi-connecto=
+r.txt
+ create mode 100644 Documentation/devicetree/bindings/video/panel-dsi-cm.=
+txt
+ create mode 100644 Documentation/devicetree/bindings/video/sony,acx565ak=
+m.txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap-dss.t=
+xt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap2-dss.=
+txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap3-dss.=
+txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap4-dss.=
+txt
+ create mode 100644 Documentation/devicetree/bindings/video/ti,tfp410.txt=
+
+ create mode 100644 Documentation/devicetree/bindings/video/ti,tpd12s015.=
+txt
+ delete mode 100644 Documentation/networking/3c505.txt
+ create mode 100644 Documentation/spi/00-INDEX
+ create mode 100644 Documentation/zh_CN/arm64/tagged-pointers.txt
+ create mode 100644 arch/arm/boot/dts/am3517-craneboard.dts
+ create mode 100644 arch/arm/boot/dts/am437x-gp-evm.dts
+ create mode 100644 arch/arm/boot/dts/at91-sama5d3_xplained.dts
+ create mode 100644 arch/arm/boot/dts/omap3-cm-t3517.dts
+ create mode 100644 arch/arm/boot/dts/omap3-cm-t3530.dts
+ create mode 100644 arch/arm/boot/dts/omap3-cm-t3x.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-lilly-a83x.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-lilly-dbb056.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-storm-tobi.dts
+ rename arch/arm/boot/dts/{omap3-tobi.dts =3D> omap3-overo-tobi-common.dt=
+si} (94%)
+ create mode 100644 arch/arm/boot/dts/omap3-overo-tobi.dts
+ create mode 100644 arch/arm/boot/dts/omap3-sbc-t3517.dts
+ create mode 100644 arch/arm/boot/dts/omap3-sbc-t3530.dts
+ create mode 100644 arch/arm/boot/dts/omap4-duovero-parlor.dts
+ create mode 100644 arch/arm/boot/dts/omap4-duovero.dtsi
+ delete mode 100644 arch/arm/boot/dts/testcases/tests.dtsi
+ create mode 100644 drivers/gpu/drm/nouveau/core/subdev/mc/nv4c.c
+ create mode 100644 drivers/net/ethernet/stmicro/stmmac/dwmac-sti.c
+ delete mode 100644 drivers/net/irda/ep7211-sir.c
+ create mode 100644 drivers/net/usb/sr9800.c
+ create mode 100644 drivers/net/usb/sr9800.h
+ create mode 100644 drivers/of/testcase-data/testcases.dtsi
+ rename {arch/arm/boot/dts/testcases =3D> drivers/of/testcase-data}/tests=
+-interrupts.dtsi (100%)
+ create mode 100644 drivers/of/testcase-data/tests-match.dtsi
+ rename {arch/arm/boot/dts/testcases =3D> drivers/of/testcase-data}/tests=
+-phandle.dtsi (100%)
+ create mode 100644 drivers/video/omap2/dss/dss-of.c
+ delete mode 100644 drivers/xen/xencomm.c
+ create mode 100644 include/net/netfilter/nft_reject.h
+ rename include/{ =3D> uapi}/xen/gntalloc.h (100%)
+ rename include/{ =3D> uapi}/xen/gntdev.h (100%)
+ delete mode 100644 include/xen/interface/xencomm.h
+ delete mode 100644 include/xen/xencomm.h
+ create mode 100644 net/ipv4/netfilter/nft_reject_ipv4.c
+ create mode 100644 net/ipv6/netfilter/nft_reject_ipv6.c
+ create mode 100644 net/netfilter/nft_reject_inet.c
+
+
+--4wd9LfIt31vlnhKehEp1KkhsUOlTVD2Bf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTQnFxAAoJEPo9qoy8lh71KcAP/1Znh3+cmuRhyGMsPRIIOt65
+9T5GHJKSI16yFUV3QbKhjUxjTOSO1ohuC1zc+UJWK1J43r8ITbA+wqYKaxIUtvCr
+H1A2pEij69sI0Dk0c1VXKYrcowHJTuoUTNQes2NwhQ3D/8wzf6gs7EfiFAwvw15Z
+t/cYuiWsMLNAbD3TBu5tw8XJdsz2GBm8BXdQSuKOWeORr9WUctypgdmWScA8fK1d
+K70su0ny49imDdPKjb4x3ZtNfNvL/dkfzIWK0ObZCSfJgiYoAwAxVW9fuCrSlTrz
+8cWdsv2hTLsPmsWOfzdA7FcfT5o5lb51beGTeuOB43GFg9at/8Dvtqbwm3jXDKpS
+pTNod6X56Y+LNz7vH/S+Y34s8XsTc1LcHcazwPhLGTDd0s6T5YPZLc91CZUkm3Si
+AeFVO9GhLQN020HwQaIErZy+w69acU4F7tr7N32fsEnURMFRmYecd1MEL8PFXGzY
+RuhJCX+EcYzbDAdcgRtoqokQ5Po5FoWZUIHWY4xeF57gy4ifAN6P3uR+od2TGjXN
+7HHeKgBi3C88KfWBk+n+wncKdS1C55N7f6iHXLlc/inoZClRBjm1VSIJSu7GKLis
+J4MlNl5ZRCYYp7PPpZF9V9TN8ZgEvclHPDECH5kG3FVaJDw4ZqbIXISl3fzfO0Q5
+rK/dWY3Vh+5RiLAg45Ij
+=3+J+
+-----END PGP SIGNATURE-----
+
+--4wd9LfIt31vlnhKehEp1KkhsUOlTVD2Bf--
