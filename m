@@ -1,88 +1,72 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/5] OMAP IOMMU fixes and IOMMU architecture questions
-Date: Tue, 08 Apr 2014 17:02:37 +0200
-Message-ID: <9980327.f1Bry2ysvR@avalon>
-References: <1394239574-2389-1-git-send-email-laurent.pinchart@ideasonboard.com> <1907788.6W1haHecHa@avalon> <20140408134322.GT13491@8bytes.org>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2 3/3] ARM: OMAP2+: AM43x: L2 cache support
+Date: Tue, 8 Apr 2014 11:17:17 -0400
+Message-ID: <534412FD.5030308@ti.com>
+References: <cover.1396605300.git.nsekhar@ti.com> <efa5fda5ae625a43fac14bf173cbd96ad7b44e7a.1396605300.git.nsekhar@ti.com> <20140404101808.GG27282@n2100.arm.linux.org.uk> <53440D73.6060504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57488 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757183AbaDHPA2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2014 11:00:28 -0400
-In-Reply-To: <20140408134322.GT13491@8bytes.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:40477 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757331AbaDHPSF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2014 11:18:05 -0400
+In-Reply-To: <53440D73.6060504@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org, Florian Vaussard <florian.vaussard@epfl.ch>, sakari.ailus@iki.fi, Marek Szyprowski <m.szyprowski@samsung.com>
+To: Sekhar Nori <nsekhar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi Joerg,
-
-On Tuesday 08 April 2014 15:43:22 Joerg Roedel wrote:
-> On Tue, Apr 08, 2014 at 02:50:38PM +0200, Laurent Pinchart wrote:
-> > I agree with you, the two levels are already present, but there's still
-> > rough edges that we need to soften.
-> > 
-> > The ARM DMA API implementation requires someone to create the VA space
-> > mapping by calling arm_iommu_create_mapping() and attach devices to
-> > mappings by calling arm_iommu_attach_device().
+On Tuesday 08 April 2014 10:53 AM, Sekhar Nori wrote:
+> On Friday 04 April 2014 03:48 PM, Russell King - ARM Linux wrote:
+>> On Fri, Apr 04, 2014 at 03:40:29PM +0530, Sekhar Nori wrote:
+>>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+>>> index f8b8dac..6b2a056 100644
+>>> --- a/arch/arm/mach-omap2/omap4-common.c
+>>> +++ b/arch/arm/mach-omap2/omap4-common.c
+>>> @@ -224,6 +224,14 @@ int __init omap4_l2_cache_init(void)
+>>>  
+>>>  	return omap_l2_cache_init(aux_ctrl, 0xc19fffff);
+>>>  }
+>>> +
+>>> +int __init am43xx_l2_cache_init(void)
+>>> +{
+>>> +	u32 aux_ctrl = L310_AUX_CTRL_DATA_PREFETCH |
+>>> +		       L310_AUX_CTRL_INSTR_PREFETCH;
+>>
+>> It would be good to documenting the difference between this and OMAP4,
+>> and why you have chosen different values.
 > 
-> Who is "someone" in this case?
-
-That's exactly the problem :-) The ARM DMA API implementation doesn't care who 
-that "someone" is. Existing implementations call those functions either from 
-the bus masters device drivers (in which case the drivers need to be IOMMU-
-aware, even if they use the DMA API and don't need to handle the IOMMU 
-directly) or from the IOMMU drivers (in which case the bus masters device 
-drivers don't have to care about the IOMMU, but without a way for drivers to 
-handle the IOMMU directly when they need to). Possible other candidates are 
-core IOMMU code or bus code.
-
-> > This must only be performed for devices that use the DMA API, devices
-> > that manage their IOMMU directly will call to the IOMMU API directly.
-> > 
-> > One obvious possibility is to call those functions in the IOMMU bus
-> > masters device drivers. This is pretty easy, but makes the drivers IOMMU-
-> > aware (which I'd like to avoid) and doesn't allow multiple bus masters to
-> > share a VA space mapping. Another possibility is to place the calls in the
-> > IOMMU drivers. This has the advantage of removing any IOMMU knowledge
-> > from bus masters device drivers and allowing multiple bus masters per
-> > IOMMU, but makes IOMMU management by the DMA API unconditional.
+> There are two main differences:
 > 
-> Why does that make IOMMU management by the DMA API unconditional? On x86 it
-> works this way: The IOMMU drivers create DMA-API mappings for the devices by
-> default. So any driver can use the DMA-API just out-of-the-box without being
-> aware of an IOMMU. If the driver wants to deal with the IOMMU directly, it
-> creates its own iommu-domain and attaches the device to it. The device uses
-> the drivers domain then and not the DMA-API domain setup by the IOMMU
-> driver. On iommu-detach the device is assigned back to its DMA-API domain.
-
-If we call arm_iommu_attach_device() from the IOMMU driver to get default 
-transparent IOMMU handling, the function will then attach the device to the 
-default domain with a call to iommu_attach_device(). If a driver needs to 
-handle the IOMMU directly, should it start by detaching the device from the 
-ARM IOMMU domain ? We would need to be very careful with the assumptions made 
-by the different layers, as they might not support a driver attaching a new 
-domain to a device that already has a domain attached. I'd feel more 
-comfortable with avoiding to attach the default domain to the device in the 
-first place, but that might not be easily doable.
-
-> > > The way this works on x86 is that a device driver can use the DMA-API
-> > > per default. If it wants to use the IOMMU-API it has to allocate a
-> > > domain and add the device it handles to this domain (it can't use DMA-
-> > > API anymore then).
-> > 
-> > Are drivers supposed to reimplement the DMA API internally in that case?
+> 1) OMAP4 sets Shared attribute override enable bit. TBH, I think this is
+> not needed even in OMAP4 with latest kernel, but I am not sure if I can
+> do this safely without breaking any usecase currently working with OMAP4.
 > 
-> Usually not, but possible. Device drivers use the IOMMU-API when they want
-> to control the io-addresses themselves. This is the case for VFIO for
-> example, where a given range from a process address space is mapped into a
-> device address space. In those cases the device driver usally does not need
-> to implement its own address allocator.
+Wrong. Shared bit is mandatory for the OMAP4. Its a SMP system
+which needs that.
 
--- 
+> 2) OMAP4 sets NS lockdown and NS interrupt access control bits. I
+> searched through the commit history of L2 cache support on OMAP4 but
+> there is no mention of why this was needed on OMAP4. I am checking
+> internally on the history behind this.
+>
+These have also come from the aligned settings with hardware folks.
+ 
+> 3) OMAP4 sets cache replacement policy to RR which is not a big deal
+> since thats the default anyway. We can probably drop this setting even
+> from OMAP4.
+> 
+Don't change anything on OMAP4 since these settings have come up from
+multiple alignments.
+
+In my view, Aegis can use exact same setting as OMAP4. Things like
+shared bit etc would not make much difference because of UP config,
+keeping that doesn't hurt either.
+
+Why don't you just re-use that as is ? Sorry if I have missed any
+other discussion on the thread.
+
 Regards,
-
-Laurent Pinchart
+Santosh
 
