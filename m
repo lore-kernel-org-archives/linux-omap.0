@@ -1,44 +1,54 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH V3 1/6] OMAPDSS: Add DSS features for AM43xx
-Date: Tue, 8 Apr 2014 13:05:41 +0300
-Message-ID: <5343C9F5.50401@ti.com>
-References: <1395658916-9032-1-git-send-email-sathyap@ti.com> <1395658916-9032-2-git-send-email-sathyap@ti.com>
+Subject: Re: [PATCH V3 2/6] ARM: AM43xx: fix dpll init in bypass mode
+Date: Tue, 8 Apr 2014 13:07:37 +0300
+Message-ID: <5343CA69.1070209@ti.com>
+References: <1395658916-9032-1-git-send-email-sathyap@ti.com> <1395658916-9032-3-git-send-email-sathyap@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="paMqt2JV3SJMrmVhUphMt3VShWPnnAHJw"
+	boundary="5xbo4VmuoGKd4OX58uMOTvHItA1lpQpO9"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39919 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39991 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756224AbaDHKFo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Apr 2014 06:05:44 -0400
-Received: from dflxv15.itg.ti.com ([128.247.5.124])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id s38A5imW003533
-	for <linux-omap@vger.kernel.org>; Tue, 8 Apr 2014 05:05:44 -0500
-Received: from DFLE73.ent.ti.com (dfle73.ent.ti.com [128.247.5.110])
-	by dflxv15.itg.ti.com (8.14.3/8.13.8) with ESMTP id s38A5ipQ012156
-	for <linux-omap@vger.kernel.org>; Tue, 8 Apr 2014 05:05:44 -0500
-In-Reply-To: <1395658916-9032-2-git-send-email-sathyap@ti.com>
+	id S1755169AbaDHKHk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Apr 2014 06:07:40 -0400
+In-Reply-To: <1395658916-9032-3-git-send-email-sathyap@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sathya Prakash M R <sathyap@ti.com>, linux-omap@vger.kernel.org
+To: Sathya Prakash M R <sathyap@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
---paMqt2JV3SJMrmVhUphMt3VShWPnnAHJw
+--5xbo4VmuoGKd4OX58uMOTvHItA1lpQpO9
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 24/03/14 13:01, Sathya Prakash M R wrote:
-> Add DSS features for AM43xx.
->=20
-> Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+Hi Paul,
 
-I can pick this up for 3.16 dss changes.
+On 24/03/14 13:01, Sathya Prakash M R wrote:
+> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>=20
+> On AM43xx, if a PLL is in bypass at kernel init, the code in
+> omap2_get_dpll_rate() will not realize this and will try to calculate
+> the clock rate using the multiplier and the divider, resulting in
+> errors.
+>=20
+> omap2_init_dpll_parent() has similar issue.
+>=20
+> Add the missing soc_is_am43xx() check to make the code work on AM43xx.
+>=20
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+> ---
+>  arch/arm/mach-omap2/clkt_dpll.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+
+Can you queue this for 3.15 fixes?
 
  Tomi
 
 
 
---paMqt2JV3SJMrmVhUphMt3VShWPnnAHJw
+--5xbo4VmuoGKd4OX58uMOTvHItA1lpQpO9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -46,19 +56,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.14 (GNU/Linux)
 
-iQIcBAEBAgAGBQJTQ8n1AAoJEPo9qoy8lh71xsQP/1je6rRS57UzHjcRyu6FLjJO
-XS+UzS0Q2e3zg6Rh66yu95C3EFj4IQzdS39OPly/HLKdmAgZJfbMRFKvnuYMHi04
-ViIYgJoAdtNPsMgtugYxATLDplK0uf9somXUus3OJygvsGU00czphCmU7urHK2t7
-sRj+DXAa4r7c7Q6CC6IAClhjGHP/DKhgXwDKXbPqJ7i2x9p61y8rRfN718oV/C5V
-FkdAPXsEgV6YGQ32aQtuTiCeA1PFPmUkbjUTeFS2Wt6dkom75QjjrO+u0XKnoxpQ
-+1ZZGYIhleitzfwPpKW5sj3pd3Sj5knweMSs9o8N8t7SqQlVf67OnkqBNAKA+cel
-RH6+ViaGHYBmZlTQCsCizvKAwZqZi69EYmTjvKtmjdWbw/j1N56xP9CK2q5IYgxL
-G+VyKR+mjgUGuQt7rcusYAkQ9S9NQYBhlDMfzsHGbLzNL3mjYKHaUNwF4DVVs0Fb
-EztkvRLREs8YCKol31FY4WM7j2EIaF5kJpGs10kLQDiMs4Bp9jxmMGuZRJyQ+Klw
-UqIj8NAG3TWdq6lX3eiWx2izeS6MA06jDBMNjCxca2caAPlDXeRCR2Vig1+fUXw5
-tMmyjR6k9jupXLK0EIk7n2au9idJ4ED35QGGC9GH3kSaR/l6Uobf7abmlgLkamlx
-O3yYfa2o6sKZzGN4bsET
-=bAUh
+iQIcBAEBAgAGBQJTQ8ppAAoJEPo9qoy8lh71vIkP/1Q6NmEuQKCPf8FRC20hcus2
+cL8XohXP1kI0o46f4G8+4/ICSN5aGkPBva0Hd5tLsWfm8acShImK3h6JX0UG4gUG
+N+JlW42OEn0jss3V3R/6cV6fU7WDSmSntVB/wdTdsvmprIOHG5Cy771CPbeutZjd
+o65xPKOZLnpKwFK7a2rCiDSTpRVH/MACEd/mC84tzmrTBmKt7ZshtJuJGUswf/rQ
+z3Q/RlfUYtOyqNRbqm3kPPP+u1qLAWJV4we4qjl/5/i2fbhikCyLzNkBmb2nkYpc
+GDAvcfdbPtyNq3zGxHVNadJz9OG5OmWhb73PO721AvCa1uFH2HraHCPYrjYhMVGv
+3yAh0sxbZTM+pk/dCe+Tbgn+ApmMvbg/kDHBYKK9ET+SG7Z62kiv+pGjxZhACXEr
+In0ri3huV4WgTo9td/WvqW6Ku62jH5q6FWPdYRBTuZWS/fda6zpzHyJ0tDidjUu/
+NNBoCg3p0ZbKaSFHR1rHvGJk9jMfkcldzP6tVcr9HxB/q96oJ4szRgnmH+nn5HvD
+7iorEm973mSdPu3VQzVsLKiVzy3WxlTfN9IJfFZFH7fQWV9o6abUmv0AiLjzcxM3
+SdIvbQkPXv5iiRVorgiPjuFLwZ07xMUR51GwV4ufXUqwm2CQK+BRHs+eHOF/CI0R
+bIsbN42x6tzpb+j2RH9W
+=J3sc
 -----END PGP SIGNATURE-----
 
---paMqt2JV3SJMrmVhUphMt3VShWPnnAHJw--
+--5xbo4VmuoGKd4OX58uMOTvHItA1lpQpO9--
