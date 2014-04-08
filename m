@@ -1,60 +1,64 @@
-From: Jean Delvare <jdelvare@suse.de>
-Subject: [PATCH] usb: dwc3: add glue layer dependencies
-Date: Tue, 8 Apr 2014 10:42:40 +0200
-Message-ID: <20140408104240.30ac287c@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Johan Hovold <jhovold@gmail.com>
+Subject: [PATCH] ARM: dts: OMAP2+: remove uses of obsolete gpmc,device-nand
+Date: Tue,  8 Apr 2014 11:20:17 +0200
+Message-ID: <1396948817-29362-1-git-send-email-jhovold@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:54730 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756037AbaDHImo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Apr 2014 04:42:44 -0400
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:48569 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750789AbaDHJVP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2014 05:21:15 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, WingMan Kwok <w-kwok2@ti.com>
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Johan Hovold <jhovold@gmail.com>
 
-Glue layers for the DWC3 driver only make sense on specific platforms.
-Add dependencies so that they are not built where they aren't needed.
+Remove all remaining uses of gpmc,device-nand that have been added since
+the property was removed by commit f40739faba8e ("ARM: dts: OMAP2+:
+Simplify NAND support").
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: WingMan Kwok <w-kwok2@ti.com>
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
 ---
- drivers/usb/dwc3/Kconfig |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/am335x-igep0033.dtsi  | 1 -
+ arch/arm/boot/dts/omap3-devkit8000.dts  | 1 -
+ arch/arm/boot/dts/omap3-lilly-a83x.dtsi | 1 -
+ 3 files changed, 3 deletions(-)
 
---- linux-3.15-rc0.orig/drivers/usb/dwc3/Kconfig	2014-03-31 05:40:15.000000000 +0200
-+++ linux-3.15-rc0/drivers/usb/dwc3/Kconfig	2014-04-08 10:36:19.218960761 +0200
-@@ -44,7 +44,7 @@ comment "Platform Glue Driver Support"
+diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
+index 7063311a58d9..06c822a48b71 100644
+--- a/arch/arm/boot/dts/am335x-igep0033.dtsi
++++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
+@@ -118,7 +118,6 @@
+ 		reg = <0 0 0>; /* CS0, offset 0 */
+ 		nand-bus-width = <8>;
+ 		ti,nand-ecc-opt = "bch8";
+-		gpmc,device-nand = "true";
+ 		gpmc,device-width = <1>;
+ 		gpmc,sync-clk-ps = <0>;
+ 		gpmc,cs-on-ns = <0>;
+diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
+index bf5a515a3247..da402f0fdab4 100644
+--- a/arch/arm/boot/dts/omap3-devkit8000.dts
++++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+@@ -112,7 +112,6 @@
+ 		reg = <0 0 0>; /* CS0, offset 0 */
+ 		nand-bus-width = <16>;
  
- config USB_DWC3_OMAP
- 	tristate "Texas Instruments OMAP5 and similar Platforms"
--	depends on EXTCON
-+	depends on EXTCON && (ARCH_OMAP2PLUS || COMPILE_TEST)
- 	default USB_DWC3
- 	help
- 	  Some platforms from Texas Instruments like OMAP5, DRA7xxx and
-@@ -54,6 +54,7 @@ config USB_DWC3_OMAP
+-		gpmc,device-nand;
+ 		gpmc,sync-clk-ps = <0>;
+ 		gpmc,cs-on-ns = <0>;
+ 		gpmc,cs-rd-off-ns = <44>;
+diff --git a/arch/arm/boot/dts/omap3-lilly-a83x.dtsi b/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
+index 6369d9f43ca2..cc1dce6978f5 100644
+--- a/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
++++ b/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
+@@ -368,7 +368,6 @@
+ 		/* no elm on omap3 */
  
- config USB_DWC3_EXYNOS
- 	tristate "Samsung Exynos Platform"
-+	depends on ARCH_EXYNOS || COMPILE_TEST
- 	default USB_DWC3
- 	help
- 	  Recent Exynos5 SoCs ship with one DesignWare Core USB3 IP inside,
-@@ -72,6 +73,7 @@ config USB_DWC3_PCI
- 
- config USB_DWC3_KEYSTONE
- 	tristate "Texas Instruments Keystone2 Platforms"
-+	depends on ARCH_KEYSTONE || COMPILE_TEST
- 	default USB_DWC3
- 	help
- 	  Support of USB2/3 functionality in TI Keystone2 platforms.
-
-
+ 		gpmc,mux-add-data = <0>;
+-		gpmc,device-nand;
+ 		gpmc,device-width = <2>;
+ 		gpmc,wait-pin = <0>;
+ 		gpmc,wait-monitoring-ns = <0>;
 -- 
-Jean Delvare
-SUSE L3 Support
+1.8.3.2
+
