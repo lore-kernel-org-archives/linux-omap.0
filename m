@@ -1,59 +1,47 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [RFC PATCH 3/5] gpio: omap: convert driver to use gpio_chip_ops
-Date: Tue,  8 Apr 2014 20:20:13 +0200
-Message-ID: <1396981215-24888-4-git-send-email-javier.martinez@collabora.co.uk>
-References: <1396981215-24888-1-git-send-email-javier.martinez@collabora.co.uk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1396981215-24888-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <acourbot@nvidia.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCH] ARM: OMAP2+: N900: remove omapdss init for DT boot
+Date: Tue,  8 Apr 2014 22:51:18 +0200
+Message-ID: <1396990278-16706-1-git-send-email-sre@kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([5.45.105.125]:50223 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756975AbaDHUvX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Apr 2014 16:51:23 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
 
-The GPIO controller operations has been split to be stored
-on a separate struct gpio_chip_ops virtual function table.
+Do not try to initialize display for DT boot, since omapdss
+is now initialized via Device Tree. Without this patch the
+display subsystem does not properly come up.
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/gpio/gpio-omap.c | 19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+Hi,
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 8cc9e91..50f0938 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1072,6 +1072,16 @@ omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
- 			       IRQ_NOREQUEST | IRQ_NOPROBE, 0);
- }
+This patch should be added to 3.15-rc to make display initialization via DT
+possible. Sorry for not noticing earlier, that this was missing in Tomi's
+patchset.
+
+-- Sebastian
+---
+ arch/arm/mach-omap2/board-rx51-video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
+index 43a90c8..9cfebc5 100644
+--- a/arch/arm/mach-omap2/board-rx51-video.c
++++ b/arch/arm/mach-omap2/board-rx51-video.c
+@@ -48,7 +48,7 @@ static struct omap_dss_board_info rx51_dss_board_info = {
  
-+const struct gpio_chip_ops omap_gpio_ops = {
-+	.request = omap_gpio_request,
-+	.free = omap_gpio_free,
-+	.direction_input = gpio_input,
-+	.get = gpio_get,
-+	.direction_output = gpio_output,
-+	.set_debounce = gpio_debounce,
-+	.set = gpio_set
-+};
-+
- static int omap_gpio_chip_init(struct gpio_bank *bank)
+ static int __init rx51_video_init(void)
  {
- 	int j;
-@@ -1083,13 +1093,8 @@ static int omap_gpio_chip_init(struct gpio_bank *bank)
- 	 * REVISIT eventually switch from OMAP-specific gpio structs
- 	 * over to the generic ones
- 	 */
--	bank->chip.request = omap_gpio_request;
--	bank->chip.free = omap_gpio_free;
--	bank->chip.direction_input = gpio_input;
--	bank->chip.get = gpio_get;
--	bank->chip.direction_output = gpio_output;
--	bank->chip.set_debounce = gpio_debounce;
--	bank->chip.set = gpio_set;
-+	bank->chip.ops = &omap_gpio_ops;
-+
- 	if (bank->is_mpuio) {
- 		bank->chip.label = "mpuio";
- 		if (bank->regs->wkup_en)
+-	if (!machine_is_nokia_rx51() && !of_machine_is_compatible("nokia,omap3-n900"))
++	if (!machine_is_nokia_rx51())
+ 		return 0;
+ 
+ 	if (omap_mux_init_gpio(RX51_LCD_RESET_GPIO, OMAP_PIN_OUTPUT)) {
 -- 
-1.9.0
+1.9.1
+
