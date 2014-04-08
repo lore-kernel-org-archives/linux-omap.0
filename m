@@ -1,77 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 19/41] OMAPDSS: panel-dpi: Add DT support
-Date: Tue, 8 Apr 2014 08:29:15 -0700
-Message-ID: <20140408152914.GA11110@atomide.com>
-References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
- <1390301833-24944-20-git-send-email-tomi.valkeinen@ti.com>
- <20140408001339.GA15842@atomide.com>
- <53438B45.2090209@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:15980 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756369AbaDHP30 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2014 11:29:26 -0400
-Content-Disposition: inline
-In-Reply-To: <53438B45.2090209@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [RFC PATCH 0/5] add gpio_chip_ops to hold GPIO operations
+Date: Tue,  8 Apr 2014 20:20:10 +0200
+Message-ID: <1396981215-24888-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alexandre Courbot <acourbot@nvidia.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140407 22:42]:
-> On 08/04/14 03:13, Tony Lindgren wrote:
-> > Tomi,
-> > 
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [140121 03:01]:
-> >> Add DT support for panel-dpi.
-> > 
-> > Looks like this patch did not get merged or am I missing
-> > something?
-> 
-> Yes, I dropped it. None of the boards that I converted used panel-dpi.
-> There was so much discussions about the display bindings, so I thought
-> it's better to leave out all but the needed patches.
+In the kernel there are basically two patterns to implement object
+oriented code in C. You can either embedded a set of function pointers
+in a struct along with other members or have a separate virtual function
+table (vtable) structure that hold all the functions and only store a
+pointer to that vtable on our particular object.
 
-OK
- 
-> > As you probably are aware, we have at least these boards
-> > needing it before we can remove the omap3 legacy support:
-> > 
-> > board-am3517evm.c
-> > board-cm-t35.c
-> > board-devkit8000.c
-> > board-ldp.c
-> > board-overo.c
-> > 
-> > We could probably set the display timings based on the
-> > compatible flag in the driver if that's an issue?
-> 
-> The timings shouldn't be an issue. But there's the backlight GPIO,
-> currently handled by panel-dpi, which should be removed from the panel.
-> We should use gpio-backlight for that one.
+The struct gpio_chip uses the former approach, but I don't know if that
+is a design decision or is just that this code predates the fact that
+the separate structure pattern is now so popular. Since the having a
+the operations on a different structure has a number of benefits:
 
-Using gpio-backlight makes sense for sure.
+- A clean separation between state (fields) and operations (functions).
+- Size reduction of struct gpio_chip since will only hold one pointer.
+- These functions are not supposed to change at runtime so the const
+  qualifier can be used to prevent pointers modification during execution.
+- Similar drivers for a chip family can reuse their function vtable.
 
-FYI, in the case of the LDP there are four GPIOs to configure to
-get things going:
+There is a drawback though which is that now two memory accesses are
+needed to execute a GPIO operation since an additional level of
+indirection is introduced but that should be minimized due temporal and
+spatial memory locality.
 
-gpio55		LCD RESET		panel-dpi?
-gpio56		LCD QVGA		panel-dpi?
-twl gpio7	LCD power		panel-dpi
-twl gpio15	LCD backlight		gpio-backlight
- 
-> > And then board-omap3pandora.c also needs support for
-> > panel_tpo_td043mtea1_platform_data.
-> 
-> Yep, there's still much to do for DSS DT support. Hopefully it will be
-> easier now that the core support is there. I'll continue working on the
-> remaining boards and panels. However, I don't have any of the remaining
-> boards, so help is of course appreciated.
+So this is an RFC patch-set to add a virtual table to be used by
+GPIO chip controllers and consist of the following patches:
 
-Yeah I can test at least the LDP here.
+Javier Martinez Canillas (5):
+  gpio: add a vtable to abstract GPIO controller operations
+  gpiolib: set gpio_chip operations on add using a gpio_chip_ops
+  gpio: omap: convert driver to use gpio_chip_ops
+  gpio: twl4030: convert driver to use gpio_chip_ops
+  gpio: switch to use struct struct gpio_chip_ops
 
-Regards,
+ drivers/gpio/gpio-omap.c    | 19 ++++++++-----
+ drivers/gpio/gpio-twl4030.c | 10 +++++--
+ drivers/gpio/gpiolib.c      | 64 ++++++++++++++++++++---------------------
+ include/linux/gpio/driver.h | 69 +++++++++++++++++++++++++++------------------
+ 4 files changed, 93 insertions(+), 69 deletions(-)
 
-Tony
+The patch-set is not a complete one though since only the GPIO OMAP
+and GPIO TWL4030 drivers have been converted so I could test it on
+my platform (DM3730 OMAP IGEPv2 board).
+
+But I preferred to send an early RFC than changing every single driver
+before discussing if doing the split is worth it or not.
+
+To not break git bisect-ability, I added some patches that are
+transitional changes. If you have a better suggestion on how to
+handle that please let me know.
+
+Thanks a lot and best regards,
+Javier
+
+-- 
+1.9.0
