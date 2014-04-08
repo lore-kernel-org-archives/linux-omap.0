@@ -1,72 +1,77 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2 3/3] ARM: OMAP2+: AM43x: L2 cache support
-Date: Tue, 8 Apr 2014 11:17:17 -0400
-Message-ID: <534412FD.5030308@ti.com>
-References: <cover.1396605300.git.nsekhar@ti.com> <efa5fda5ae625a43fac14bf173cbd96ad7b44e7a.1396605300.git.nsekhar@ti.com> <20140404101808.GG27282@n2100.arm.linux.org.uk> <53440D73.6060504@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 19/41] OMAPDSS: panel-dpi: Add DT support
+Date: Tue, 8 Apr 2014 08:29:15 -0700
+Message-ID: <20140408152914.GA11110@atomide.com>
+References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
+ <1390301833-24944-20-git-send-email-tomi.valkeinen@ti.com>
+ <20140408001339.GA15842@atomide.com>
+ <53438B45.2090209@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40477 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757331AbaDHPSF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2014 11:18:05 -0400
-In-Reply-To: <53440D73.6060504@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:15980 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756369AbaDHP30 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2014 11:29:26 -0400
+Content-Disposition: inline
+In-Reply-To: <53438B45.2090209@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-On Tuesday 08 April 2014 10:53 AM, Sekhar Nori wrote:
-> On Friday 04 April 2014 03:48 PM, Russell King - ARM Linux wrote:
->> On Fri, Apr 04, 2014 at 03:40:29PM +0530, Sekhar Nori wrote:
->>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
->>> index f8b8dac..6b2a056 100644
->>> --- a/arch/arm/mach-omap2/omap4-common.c
->>> +++ b/arch/arm/mach-omap2/omap4-common.c
->>> @@ -224,6 +224,14 @@ int __init omap4_l2_cache_init(void)
->>>  
->>>  	return omap_l2_cache_init(aux_ctrl, 0xc19fffff);
->>>  }
->>> +
->>> +int __init am43xx_l2_cache_init(void)
->>> +{
->>> +	u32 aux_ctrl = L310_AUX_CTRL_DATA_PREFETCH |
->>> +		       L310_AUX_CTRL_INSTR_PREFETCH;
->>
->> It would be good to documenting the difference between this and OMAP4,
->> and why you have chosen different values.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140407 22:42]:
+> On 08/04/14 03:13, Tony Lindgren wrote:
+> > Tomi,
+> > 
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [140121 03:01]:
+> >> Add DT support for panel-dpi.
+> > 
+> > Looks like this patch did not get merged or am I missing
+> > something?
 > 
-> There are two main differences:
-> 
-> 1) OMAP4 sets Shared attribute override enable bit. TBH, I think this is
-> not needed even in OMAP4 with latest kernel, but I am not sure if I can
-> do this safely without breaking any usecase currently working with OMAP4.
-> 
-Wrong. Shared bit is mandatory for the OMAP4. Its a SMP system
-which needs that.
+> Yes, I dropped it. None of the boards that I converted used panel-dpi.
+> There was so much discussions about the display bindings, so I thought
+> it's better to leave out all but the needed patches.
 
-> 2) OMAP4 sets NS lockdown and NS interrupt access control bits. I
-> searched through the commit history of L2 cache support on OMAP4 but
-> there is no mention of why this was needed on OMAP4. I am checking
-> internally on the history behind this.
->
-These have also come from the aligned settings with hardware folks.
+OK
  
-> 3) OMAP4 sets cache replacement policy to RR which is not a big deal
-> since thats the default anyway. We can probably drop this setting even
-> from OMAP4.
+> > As you probably are aware, we have at least these boards
+> > needing it before we can remove the omap3 legacy support:
+> > 
+> > board-am3517evm.c
+> > board-cm-t35.c
+> > board-devkit8000.c
+> > board-ldp.c
+> > board-overo.c
+> > 
+> > We could probably set the display timings based on the
+> > compatible flag in the driver if that's an issue?
 > 
-Don't change anything on OMAP4 since these settings have come up from
-multiple alignments.
+> The timings shouldn't be an issue. But there's the backlight GPIO,
+> currently handled by panel-dpi, which should be removed from the panel.
+> We should use gpio-backlight for that one.
 
-In my view, Aegis can use exact same setting as OMAP4. Things like
-shared bit etc would not make much difference because of UP config,
-keeping that doesn't hurt either.
+Using gpio-backlight makes sense for sure.
 
-Why don't you just re-use that as is ? Sorry if I have missed any
-other discussion on the thread.
+FYI, in the case of the LDP there are four GPIOs to configure to
+get things going:
+
+gpio55		LCD RESET		panel-dpi?
+gpio56		LCD QVGA		panel-dpi?
+twl gpio7	LCD power		panel-dpi
+twl gpio15	LCD backlight		gpio-backlight
+ 
+> > And then board-omap3pandora.c also needs support for
+> > panel_tpo_td043mtea1_platform_data.
+> 
+> Yep, there's still much to do for DSS DT support. Hopefully it will be
+> easier now that the core support is there. I'll continue working on the
+> remaining boards and panels. However, I don't have any of the remaining
+> boards, so help is of course appreciated.
+
+Yeah I can test at least the LDP here.
 
 Regards,
-Santosh
 
+Tony
