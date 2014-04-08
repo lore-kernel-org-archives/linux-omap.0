@@ -1,100 +1,89 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCHv2 1/5] Input: add common DT binding for touchscreens
-Date: Mon, 7 Apr 2014 21:53:48 -0500
-Message-ID: <CAL_Jsq+K7mJ_=Hv0gH+h0HK7BKeXz9F6vSdi6DFyfayePbohNg@mail.gmail.com>
-References: <1396736821-14395-1-git-send-email-sre@kernel.org>
-	<1396736821-14395-2-git-send-email-sre@kernel.org>
-	<CAL_Jsq+46bPtgnQc5aAN8bcaw=te6MX=cvMMNP6+6xjG8Drkbg@mail.gmail.com>
-	<20140407200022.GA20023@earth.universe>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv3 19/41] OMAPDSS: panel-dpi: Add DT support
+Date: Tue, 8 Apr 2014 08:38:13 +0300
+Message-ID: <53438B45.2090209@ti.com>
+References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com> <1390301833-24944-20-git-send-email-tomi.valkeinen@ti.com> <20140408001339.GA15842@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="d8WsVtOgQBImHRjjGmeMfFuTWOeX7IdQj"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f178.google.com ([209.85.220.178]:38875 "EHLO
-	mail-vc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755242AbaDHCxt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Apr 2014 22:53:49 -0400
-In-Reply-To: <20140407200022.GA20023@earth.universe>
+Received: from devils.ext.ti.com ([198.47.26.153]:45801 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750994AbaDHFjj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2014 01:39:39 -0400
+In-Reply-To: <20140408001339.GA15842@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-On Mon, Apr 7, 2014 at 3:00 PM, Sebastian Reichel <sre@kernel.org> wrote:
-> On Mon, Apr 07, 2014 at 11:38:01AM -0500, Rob Herring wrote:
->> On Sat, Apr 5, 2014 at 5:26 PM, Sebastian Reichel <sre@kernel.org> wrote:
->> > Add common DT binding documentation for touchscreen devices and
->> > implement input_parse_touchscreen_of_params, which parses the common
->> > properties and configures the input device accordingly.
->>
->> Good.
->>
->> [...]
->> > +Optional properties for Touchscreens:
->> > + - touchscreen-size-x          : horizontal resolution of touchscreen
->> > + - touchscreen-size-y          : vertical resolution of touchscreen
->>
->> While I like the consistency, x-size and y-size are already commonly
->> used. Perhaps the common binding should have both and x-size/y-size be
->> marked deprecated.
->
-> So you want me to add something like the following?
->
-> - x-size : deprecated name for touchscreen-size-x
-> - y-size : deprecated name for touchscreen-size-y
+--d8WsVtOgQBImHRjjGmeMfFuTWOeX7IdQj
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Yes.
+On 08/04/14 03:13, Tony Lindgren wrote:
+> Tomi,
+>=20
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140121 03:01]:
+>> Add DT support for panel-dpi.
+>=20
+> Looks like this patch did not get merged or am I missing
+> something?
 
->
->> > + - touchscreen-max-pressure    : maximum reported pressure
->> > + - touchscreen-fuzz-x          : horizontal noise value of the absolute input device
->> > + - touchscreen-fuzz-y          : vertical noise value of the absolute input device
->> > + - touchscreen-fuzz-pressure   : pressure noise value of the absolute input device
->>
->> What are the units or are they just an arbitrary range dependent on
->> the controller? Several existing bindings appear to be in pixels, but
->> that seems wrong to me.
->
-> x/y related properties: pixels
-> pressure related properties: arbitrary range dependent on the controller
+Yes, I dropped it. None of the boards that I converted used panel-dpi.
+There was so much discussions about the display bindings, so I thought
+it's better to leave out all but the needed patches.
 
-Please make this clear in the binding description.
+> As you probably are aware, we have at least these boards
+> needing it before we can remove the omap3 legacy support:
+>=20
+> board-am3517evm.c
+> board-cm-t35.c
+> board-devkit8000.c
+> board-ldp.c
+> board-overo.c
+>=20
+> We could probably set the display timings based on the
+> compatible flag in the driver if that's an issue?
 
->> There's also these various properties that should have common versions created:
->>
->> ti,x-plate-resistance and ti,x-plate-ohms (tsc2007)
->
-> I think this is ti specific. But I should probably name the tsc2005
-> property "ti,x-plate-ohms", so that its in sync with tsc2007.
->
->> - rohm,flip-x             : Flip touch coordinates on the X axis
->> - rohm,flip-y             : Flip touch coordinates on the Y axis
->> - x-invert: invert X axis
->> - y-invert: invert Y axis
->
-> like this?
->
-> - touchscreen-inverted-x: X axis is inverted
-> - touchscreen-inverted-y: Y axis is inverted
-> - x-invert: deprecated name for touchscreen-inverted-x
-> - y-invert: deprecated name for touchscreen-inverted-y
->
-> Inverting is currently not supported by the input system, though. So
-> adding support for it to input_parse_touchscreen_of_params() is not
-> trivial :/
+The timings shouldn't be an issue. But there's the backlight GPIO,
+currently handled by panel-dpi, which should be removed from the panel.
+We should use gpio-backlight for that one.
 
-Does not matter. I'm only asking you to define the property. Linux
-does not have to use it currently.
+> And then board-omap3pandora.c also needs support for
+> panel_tpo_td043mtea1_platform_data.
 
->> - contact-threshold:
->> - moving-threshold:
->
-> I think those are hardware specific. The properties are currently
-> used by one driver, which writes them directly into some registers.
-> The DT binding does not give more information about them.
+Yep, there's still much to do for DSS DT support. Hopefully it will be
+easier now that the core support is there. I'll continue working on the
+remaining boards and panels. However, I don't have any of the remaining
+boards, so help is of course appreciated.
 
-moving-threshold is probably the same as fuzz. contact-threshold is
-sounds like min pressure. I remember having to tune the minimum
-pressure on a touchscreen I worked on long ago. So think think is
-definitely not an uncommon property.
+ Tomi
 
-Rob
+
+
+--d8WsVtOgQBImHRjjGmeMfFuTWOeX7IdQj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTQ4tJAAoJEPo9qoy8lh71drAP/RXIVWMBoFi2dySEsTzaWJ0b
+gIHhGMNypFPv7q73ZQj7ay1PxLvryA72PWJQvIahJZZ4c9HL4f+yKHGm6j4k+4nz
+AKncGVPmvEjfUc/Js6kWg5OxoVEA5nTZw0NTURIQFs2ImxhazCmSMAUy403knuHX
+/S7/JiARVGkgHo7n3a20bTcXUgBJWVEHuT/3aOzzoZl61NSy+sVnJoFeK0GUMO6T
+uS+/cYdKkyv3rNds23XjXuHn/o0dMQC7P/4G7wvDkMqk9fh1vAdvuRqnRepg1CN4
+i2UbvOt+TC6dPoBlUrTZOPru77g7Evy6Alv5u/AhCbbzuSwbqNQPGKeQEzm/mUJr
+U9VOkTaGtYtgy5Why8OGx0zjhZ95zF3xUfldC+i+RH6UBT/agJ13SM4RngTHQGJh
+O2lCk06T1ynT1Bks7ZcdPDWYVPlMzfAsKRr/Wpf0SZSnT/QuTCKb977aF8YVUj/8
+cfLAg7J1veMUyQeGCOIzUW4pvfMzrvfLHJj7IrUCH+bQ9FPMnshGMmUJw2YcRu79
+iP1Q6hfAimyrWQfL4tBLobZOoNdNX/5YjugVhEuwd7VTdCWmSEdwdfF+lyBHuj53
+Eo6Ft+4RV5iQmmT2wudI0U0OJzE2nhAjRhu80Di1eEtVn9ROsE3n8go0POBz4afg
+utlYWnPGDPFWOe5X3lgc
+=1d5G
+-----END PGP SIGNATURE-----
+
+--d8WsVtOgQBImHRjjGmeMfFuTWOeX7IdQj--
