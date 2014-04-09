@@ -1,37 +1,91 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 1/2] usb: rename 'phy' field of 'struct usb_hcd' to 'transceiver'
-Date: Wed, 09 Apr 2014 20:27:39 +0400
-Message-ID: <534574FB.7060901@cogentembedded.com>
-References: <201404091757.16574.sergei.shtylyov@cogentembedded.com> <534567BA.5030208@wwwdotorg.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v2 3/3] ARM: OMAP2+: AM43x: L2 cache support
+Date: Wed, 9 Apr 2014 17:33:30 +0100
+Message-ID: <20140409163330.GI27282@n2100.arm.linux.org.uk>
+References: <cover.1396605300.git.nsekhar@ti.com> <efa5fda5ae625a43fac14bf173cbd96ad7b44e7a.1396605300.git.nsekhar@ti.com> <20140404101808.GG27282@n2100.arm.linux.org.uk> <53440D73.6060504@ti.com> <534412FD.5030308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:52806 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933983AbaDIQ1f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2014 12:27:35 -0400
-Received: by mail-lb0-f170.google.com with SMTP id s7so1369901lbd.29
-        for <linux-omap@vger.kernel.org>; Wed, 09 Apr 2014 09:27:33 -0700 (PDT)
-In-Reply-To: <534567BA.5030208@wwwdotorg.org>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:55726 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S933989AbaDIQeE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2014 12:34:04 -0400
+Content-Disposition: inline
+In-Reply-To: <534412FD.5030308@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org
-Cc: Peter.Chen@freescale.com, stern@rowland.harvard.edu, thierry.reding@gmail.com, balbi@ti.com, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, magnus.damm@gmail.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hello.
+On Tue, Apr 08, 2014 at 11:17:17AM -0400, Santosh Shilimkar wrote:
+> On Tuesday 08 April 2014 10:53 AM, Sekhar Nori wrote:
+> > On Friday 04 April 2014 03:48 PM, Russell King - ARM Linux wrote:
+> >> On Fri, Apr 04, 2014 at 03:40:29PM +0530, Sekhar Nori wrote:
+> >>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+> >>> index f8b8dac..6b2a056 100644
+> >>> --- a/arch/arm/mach-omap2/omap4-common.c
+> >>> +++ b/arch/arm/mach-omap2/omap4-common.c
+> >>> @@ -224,6 +224,14 @@ int __init omap4_l2_cache_init(void)
+> >>>  
+> >>>  	return omap_l2_cache_init(aux_ctrl, 0xc19fffff);
+> >>>  }
+> >>> +
+> >>> +int __init am43xx_l2_cache_init(void)
+> >>> +{
+> >>> +	u32 aux_ctrl = L310_AUX_CTRL_DATA_PREFETCH |
+> >>> +		       L310_AUX_CTRL_INSTR_PREFETCH;
+> >>
+> >> It would be good to documenting the difference between this and OMAP4,
+> >> and why you have chosen different values.
+> > 
+> > There are two main differences:
+> > 
+> > 1) OMAP4 sets Shared attribute override enable bit. TBH, I think this is
+> > not needed even in OMAP4 with latest kernel, but I am not sure if I can
+> > do this safely without breaking any usecase currently working with OMAP4.
+> > 
+> Wrong. Shared bit is mandatory for the OMAP4. Its a SMP system
+> which needs that.
 
-On 04/09/2014 07:31 PM, Stephen Warren wrote:
+Errr.  This bit affects the L2 cache behaviour for Normal memory, outer
+non-cacheable accesses - in other words, those performed to memory mapped
+via dma_alloc_coherent() or dma_alloc_writecombine().  It does not affect
+other types of mappings (other access types ignore the sharable attribute).
 
->> Return to the 'phy' field of 'struct usb_hcd' its historic name 'transceiver'.
->> This is in preparation to adding the generic PHY support.
+When this bit is clear, accesses to such memory are:
 
-> Surely if the correct term is transceiver, we should be adding generic
-> transceiver support not generic PHY support? To be honest, this rename
-> feels like churn, especially since the APIs and DT bindings all still
-> include the work phy so now everything will be inconsistent.
+- read: cacheable, no allocate
+- write: write through, no write allocate
 
-    How about 'usb_phy'?
+what this means is that if there are no cache lines in the L2 cache
+corresponding with the physical address, then none will be allocated.
+However, if there are cache lines present, then they will be hit,
+read or updated as appropriate.
 
-WBR, Sergei
+This may matter before CMA where we had the memory returned by
+dma_alloc_coherent() and friends mapped as normal, cacheable mappings
+which could be speculatively prefetched, and therefore cache lines
+dragged into the L2 cache for these physical addresses.
 
+However, now that we're using CMA, this does not apply as we no longer
+have this aliasing mapping.
+
+So, with CMA enabled, it should be safe not to set this bit.
+
+However, the shared bit in the page tables must be set for SMP systems.
+Are you sure you're not confusing the shared bit in the page tables
+with the shared override bit in the L2 cache controller?
+
+> > 2) OMAP4 sets NS lockdown and NS interrupt access control bits. I
+> > searched through the commit history of L2 cache support on OMAP4 but
+> > there is no mention of why this was needed on OMAP4. I am checking
+> > internally on the history behind this.
+> >
+> These have also come from the aligned settings with hardware folks.
+
+Again, this doesn't have much to do with hardware, it's secure/non-secure
+access rights configuration to the L2 cache controller.
+
+-- 
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
