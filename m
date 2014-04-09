@@ -1,34 +1,55 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 1/2] usb: rename 'phy' field of 'struct usb_hcd' to
- 'transceiver'
-Date: Wed, 9 Apr 2014 13:56:30 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1404091354560.28384-100000@netrider.rowland.org>
-References: <534588F1.2050406@cogentembedded.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <534588F1.2050406@cogentembedded.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, Peter.Chen@freescale.com, thierry.reding@gmail.com, balbi@ti.com, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, magnus.damm@gmail.com
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Subject: [PATCH 1/2] pwm: add period and polarity to struct pwm_lookup
+Date: Wed,  9 Apr 2014 20:04:08 +0200
+Message-ID: <1397066649-3767-2-git-send-email-alexandre.belloni@free-electrons.com>
+References: <1397066649-3767-1-git-send-email-alexandre.belloni@free-electrons.com>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <1397066649-3767-1-git-send-email-alexandre.belloni@free-electrons.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 9 Apr 2014, Sergei Shtylyov wrote:
+Adds a period and a polarity member to struct pwm_lookup so that when performing
+a lookup using the lookup table instead of device tree, we are able to set the
+period and the polarity accordingly like what is done in
+of_pwm_xlate_with_flags.
 
-> > Ok, the existing field is being replaced by something? I didn't get that
-> 
->     No, not replaced. I'm adding the support for generic PHY to the existing 
-> USB PHY support. I thought that was clear from the changelog.
-> 
-> > from the patch description; I thought the new name in this patch was
-> > going to be it. In that case, a temporary name of usb_phy for the
-> > existing field, or adding the new field as gen_phy sound reasonable.
-> 
->     OK, I'll respin the patch #2 with 'gen_phy' and remove the patch #1.
+Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+---
+ drivers/pwm/core.c  | 5 +++++
+ include/linux/pwm.h | 2 ++
+ 2 files changed, 7 insertions(+)
 
-What is the reason for all of this?  That is, can you explain the
-difference between USB PHY support and general PHY support, and why we
-need both?
-
-Alan Stern
+diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
+index a80471399c20..206e5996359c 100644
+--- a/drivers/pwm/core.c
++++ b/drivers/pwm/core.c
+@@ -663,6 +663,11 @@ struct pwm_device *pwm_get(struct device *dev, const char *con_id)
+ 
+ 	if (chip)
+ 		pwm = pwm_request_from_chip(chip, index, con_id ?: dev_id);
++	if (IS_ERR(pwm))
++		return pwm;
++
++	pwm_set_period(pwm, p->period);
++	pwm_set_polarity(pwm, p->polarity);
+ 
+ 	mutex_unlock(&pwm_lookup_lock);
+ 
+diff --git a/include/linux/pwm.h b/include/linux/pwm.h
+index 4717f54051cb..2f45e2fe5b93 100644
+--- a/include/linux/pwm.h
++++ b/include/linux/pwm.h
+@@ -274,6 +274,8 @@ struct pwm_lookup {
+ 	unsigned int index;
+ 	const char *dev_id;
+ 	const char *con_id;
++	unsigned int period;
++	enum pwm_polarity polarity;
+ };
+ 
+ #define PWM_LOOKUP(_provider, _index, _dev_id, _con_id)	\
+-- 
+1.8.3.2
 
