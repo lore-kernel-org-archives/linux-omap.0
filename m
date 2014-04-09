@@ -1,55 +1,54 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 1/2] usb: rename 'phy' field of 'struct usb_hcd' to 'transceiver'
-Date: Wed, 09 Apr 2014 23:06:48 +0400
-Message-ID: <53459A48.1010003@cogentembedded.com>
-References: <Pine.LNX.4.44L0.1404091354560.28384-100000@netrider.rowland.org> <53458E95.4080505@cogentembedded.com> <534598EF.3010102@wwwdotorg.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/2] pwm: add period and polarity to struct pwm_lookup
+Date: Wed, 9 Apr 2014 20:37:06 +0100
+Message-ID: <20140409193705.GJ27282@n2100.arm.linux.org.uk>
+References: <1397066649-3767-1-git-send-email-alexandre.belloni@free-electrons.com> <1397066649-3767-2-git-send-email-alexandre.belloni@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <534598EF.3010102-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter.Chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1397066649-3767-2-git-send-email-alexandre.belloni@free-electrons.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>, linux-pwm@vger.kernel.org, linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Magnus Damm <magnus.damm@gmail.com>, linux-kernel@vger.kernel.org, Simon Horman <horms@verge.net.au>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/09/2014 11:01 PM, Stephen Warren wrote:
+On Wed, Apr 09, 2014 at 08:04:08PM +0200, Alexandre Belloni wrote:
+> Adds a period and a polarity member to struct pwm_lookup so that when performing
+> a lookup using the lookup table instead of device tree, we are able to set the
+> period and the polarity accordingly like what is done in
+> of_pwm_xlate_with_flags.
+> 
+> Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+> ---
+>  drivers/pwm/core.c  | 5 +++++
+>  include/linux/pwm.h | 2 ++
+>  2 files changed, 7 insertions(+)
+> 
+> diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
+> index a80471399c20..206e5996359c 100644
+> --- a/drivers/pwm/core.c
+> +++ b/drivers/pwm/core.c
+> @@ -663,6 +663,11 @@ struct pwm_device *pwm_get(struct device *dev, const char *con_id)
+>  
+>  	if (chip)
+>  		pwm = pwm_request_from_chip(chip, index, con_id ?: dev_id);
+> +	if (IS_ERR(pwm))
+> +		return pwm;
+> +
+> +	pwm_set_period(pwm, p->period);
+> +	pwm_set_polarity(pwm, p->polarity);
+>  
+>  	mutex_unlock(&pwm_lookup_lock);
 
->>>>> Ok, the existing field is being replaced by something? I didn't get
->>>>> that
+Clearly, this is not right.  Returning while leaving the mutex locked?
+No.
 
->>>>       No, not replaced. I'm adding the support for generic PHY to the
->>>> existing
->>>> USB PHY support. I thought that was clear from the changelog.
+The second issue is... with _just_ this patch applied, we end up with
+"period" and "polarity" presumably initialised to zero, which means we
+now end up with the above explicitly setting the period and polarity as
+such.  Isn't that going to change the behaviour of this?
 
->>>>> from the patch description; I thought the new name in this patch was
->>>>> going to be it. In that case, a temporary name of usb_phy for the
->>>>> existing field, or adding the new field as gen_phy sound reasonable.
-
->>>>       OK, I'll respin the patch #2 with 'gen_phy' and remove the patch
->>>> #1.
-
->>> What is the reason for all of this?  That is, can you explain the
->>> difference between USB PHY support and general PHY support, and why we
->>> need both?
-
->>     The generic PHY framework (drivers/phy/phy-core.c) supports
->> multifunction "complex" PHYs (some functions of which may be related to
->> USB). My case is a Renesas R-Car generation 2 PHY that can switch two
->> USB ports between different USB controllers (one PCI and one non-PCI on
->> each port); I just haven't CCed linux-usb on my driver submission.
->> Though there's already drivers/phy/usb/ driver for that hardware, it
->> failed to meet the expectations (dynamic setting of the port
->> multiplexing depending on what USB host/gadget drivers are loaded), so I
->> had to write a new driver. I guess I don't need to describe
->> drivers/phy/usb/ framework in detail, do I? It only provides for
->> single-function "simple" USB PHYs...
-
-> Naively, it sounds like the complex PHY driver should also be a pinctrl
-> driver, since it sounds like the main feature it has beyond a simple PHY
-> is the ability to do pin muxing.
-
-    It doesn't do any pin muxing. It switches SoC internal USB signals between 
-USB controllers. The pins remain the same.
-
-WBR, Sergei
+-- 
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
