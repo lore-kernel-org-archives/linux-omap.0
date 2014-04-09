@@ -1,14 +1,18 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] i2c: omap: Disable default probing of i2c devices for omap i2c.
-Date: Wed, 9 Apr 2014 15:52:24 +0530
-Message-ID: <1397038944-28409-1-git-send-email-sourav.poddar@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCHv2] i2c: omap: Disable default probing of i2c devices for omap i2c.
+Date: Wed, 9 Apr 2014 16:06:48 +0530
+Message-ID: <1397039808-28594-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43354 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932592AbaDIKg5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Apr 2014 06:36:57 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, wsa@the-dreams.de, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
+Cc: Sourav Poddar <sourav.poddar@ti.com>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>
 
 I2c core supports defualt probing functionality for devices not registered through
 dt/board files. If there are any client driver registered, i2c core will try to
@@ -47,10 +51,13 @@ on the following boards using multi_v7_defconfig:
 * am335x-evm
 * AM43xx epos evm
 
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+Reported-by: Nishanth Menon <nm@ti.com>
 ---
+v1->v2:
+ add "Reported-by" attribute
  drivers/i2c/busses/i2c-omap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
@@ -69,3 +76,4 @@ index 85f8eac..4ec29a0 100644
  	adap->dev.parent = &pdev->dev;
 -- 
 1.7.9.5
+
