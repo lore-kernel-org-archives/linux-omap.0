@@ -1,156 +1,209 @@
-From: sourav <sourav.poddar@ti.com>
-Subject: Re: AM437x-epos (next-20140409-omap2plus_defconfig) - boot time warning:
- qspi/otg..
-Date: Wed, 9 Apr 2014 18:25:23 +0530
-Message-ID: <5345433B.3090503@ti.com>
-References: <53453FF1.60803@ti.com> <53454207.4070108@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: omap based boards (next-20140409-omap2plus_defconfig) - boot time
+ warning:
+Date: Wed, 9 Apr 2014 08:15:47 -0500
+Message-ID: <53454803.3090703@ti.com>
+References: <53453FF1.60803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46557 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47321 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932597AbaDIMz1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Apr 2014 08:55:27 -0400
-Received: from dflxv15.itg.ti.com ([128.247.5.124])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id s39CtRlm029195
-	for <linux-omap@vger.kernel.org>; Wed, 9 Apr 2014 07:55:27 -0500
-Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
-	by dflxv15.itg.ti.com (8.14.3/8.13.8) with ESMTP id s39CtQ61010211
-	for <linux-omap@vger.kernel.org>; Wed, 9 Apr 2014 07:55:27 -0500
-In-Reply-To: <53454207.4070108@ti.com>
+	id S932685AbaDINPs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Apr 2014 09:15:48 -0400
+Received: from dlelxv90.itg.ti.com ([172.17.2.17])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id s39DFmjs031284
+	for <linux-omap@vger.kernel.org>; Wed, 9 Apr 2014 08:15:48 -0500
+Received: from DLEE71.ent.ti.com (dlee71.ent.ti.com [157.170.170.114])
+	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id s39DFmoq002039
+	for <linux-omap@vger.kernel.org>; Wed, 9 Apr 2014 08:15:48 -0500
+In-Reply-To: <53453FF1.60803@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, George Cherian <george.cherian@ti.com>
+To: linux-omap <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>, "Balbi, Felipe" <balbi@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
 
-Hi Nishanth,
+On 04/09/2014 07:41 AM, Nishanth Menon wrote:
+> Hi,
+> http://slexy.org/raw/s2pkLsiFBX
+> 
+> I noticed the following sets of warnings with omap2plus_defconfig on
+> next-20140409. As per older logs, next-20140401 had it and v3.14 tag
+> also had it (I have'nt retained older logs).
+> 
 
-The dts date were posted but due to some functional changes going in spi 
-core,
-the dts data were not picked(predictiong some changes in dt parameters). 
-I will
-send a minimal qspi node during rc cycle to get rid of this warning.
+Here is a quick list of 20 odd boards I am testing with:
 
-On Wednesday 09 April 2014 06:20 PM, Roger Quadros wrote:
-> +George
->
-> Hi Nishant,
->
-> I remember George had sent patches to add USB DT nodes for am43xx.
-> Looks like they didn't get through.
->
-> Adding the USB nodes should get rid of the warning.
->
-> George,
->
-> Can you please resend a minimal set to fix this warning for -rc? Thanks.
->
-> cheers,
-> -roger
->
-> On 04/09/2014 03:41 PM, Nishanth Menon wrote:
->> Hi,
->> http://slexy.org/raw/s2pkLsiFBX
->>
->> I noticed the following sets of warnings with omap2plus_defconfig on
->> next-20140409. As per older logs, next-20140401 had it and v3.14 tag
->> also had it (I have'nt retained older logs).
->>
->>   [    0.226189] ------------[ cut here ]------------
->>   [    0.226258] WARNING: CPU: 0 PID: 1 at
->> arch/arm/mach-omap2/omap_hwmod.c:2538 _init+0x1c0/0x3e0()
->>   [    0.226277] omap_hwmod: qspi: doesn't have mpu register target base
->>   [    0.226290] Modules linked in:
->>   [    0.226317] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
->> 3.14.0-next-20140409-00006-g0fbfc2e #1
->>   [    0.226389] [<c0014cd0>] (unwind_backtrace) from [<c001195c>]
->> (show_stack+0x10/0x14)
->>   [    0.226441] [<c001195c>] (show_stack) from [<c053cf68>]
->> (dump_stack+0x78/0x94)
->>   [    0.226478] [<c053cf68>] (dump_stack) from [<c003fc20>]
->> (warn_slowpath_common+0x6c/0x8c)
->>   [    0.226504] [<c003fc20>] (warn_slowpath_common) from [<c003fcd4>]
->> (warn_slowpath_fmt+0x30/0x40)
->>   [    0.226535] [<c003fcd4>] (warn_slowpath_fmt) from [<c07a0b70>]
->> (_init+0x1c0/0x3e0)
->>   [    0.226569] [<c07a0b70>] (_init) from [<c0028068>]
->> (omap_hwmod_for_each+0x34/0x5c)
->>   [    0.226598] [<c0028068>] (omap_hwmod_for_each) from [<c07a12e8>]
->> (__omap_hwmod_setup_all+0x24/0x40)
->>   [    0.226624] [<c07a12e8>] (__omap_hwmod_setup_all) from
->> [<c0008ab8>] (do_one_initcall+0x34/0x15c)
->>   [    0.226659] [<c0008ab8>] (do_one_initcall) from [<c0794bf4>]
->> (kernel_init_freeable+0xfc/0x1cc)
->>   [    0.226687] [<c0794bf4>] (kernel_init_freeable) from [<c05378fc>]
->> (kernel_init+0x8/0xe4)
->>   [    0.226721] [<c05378fc>] (kernel_init) from [<c000e6e8>]
->> (ret_from_fork+0x14/0x2c)
->>   [    0.226930] ---[ end trace 6ef0f5570cfcc358 ]---
->>   [    0.264599] omap_hwmod: tptc0 using broken dt data from edma
->>   [    0.265247] omap_hwmod: tptc1 using broken dt data from edma
->>   [    0.265871] omap_hwmod: tptc2 using broken dt data from edma
->>   [    0.274961] ------------[ cut here ]------------
->>   [    0.275029] WARNING: CPU: 0 PID: 1 at
->> arch/arm/mach-omap2/omap_hwmod.c:2538 _init+0x1c0/0x3e0()
->>   [    0.275048] omap_hwmod: usb_otg_ss0: doesn't have mpu register
->> target base
->>   [    0.275058] Modules linked in:
->>   [    0.275087] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W
->> 3.14.0-next-20140409-00006-g0fbfc2e #1
->>   [    0.275158] [<c0014cd0>] (unwind_backtrace) from [<c001195c>]
->> (show_stack+0x10/0x14)
->>   [    0.275209] [<c001195c>] (show_stack) from [<c053cf68>]
->> (dump_stack+0x78/0x94)
->>   [    0.275248] [<c053cf68>] (dump_stack) from [<c003fc20>]
->> (warn_slowpath_common+0x6c/0x8c)
->>   [    0.275274] [<c003fc20>] (warn_slowpath_common) from [<c003fcd4>]
->> (warn_slowpath_fmt+0x30/0x40)
->>   [    0.275307] [<c003fcd4>] (warn_slowpath_fmt) from [<c07a0b70>]
->> (_init+0x1c0/0x3e0)
->>   [    0.275344] [<c07a0b70>] (_init) from [<c0028068>]
->> (omap_hwmod_for_each+0x34/0x5c)
->>   [    0.275376] [<c0028068>] (omap_hwmod_for_each) from [<c07a12e8>]
->> (__omap_hwmod_setup_all+0x24/0x40)
->>   [    0.275405] [<c07a12e8>] (__omap_hwmod_setup_all) from
->> [<c0008ab8>] (do_one_initcall+0x34/0x15c)
->>   [    0.275440] [<c0008ab8>] (do_one_initcall) from [<c0794bf4>]
->> (kernel_init_freeable+0xfc/0x1cc)
->>   [    0.275468] [<c0794bf4>] (kernel_init_freeable) from [<c05378fc>]
->> (kernel_init+0x8/0xe4)
->>   [    0.275501] [<c05378fc>] (kernel_init) from [<c000e6e8>]
->> (ret_from_fork+0x14/0x2c)
->>   [    0.275517] ---[ end trace 6ef0f5570cfcc359 ]---
->>   [    0.276726] ------------[ cut here ]------------
->>   [    0.276777] WARNING: CPU: 0 PID: 1 at
->> arch/arm/mach-omap2/omap_hwmod.c:2538 _init+0x1c0/0x3e0()
->>   [    0.276791] omap_hwmod: usb_otg_ss1: doesn't have mpu register
->> target base
->>   [    0.276802] Modules linked in:
->>   [    0.276826] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W
->> 3.14.0-next-20140409-00006-g0fbfc2e #1
->>   [    0.276891] [<c0014cd0>] (unwind_backtrace) from [<c001195c>]
->> (show_stack+0x10/0x14)
->>   [    0.276938] [<c001195c>] (show_stack) from [<c053cf68>]
->> (dump_stack+0x78/0x94)
->>   [    0.276974] [<c053cf68>] (dump_stack) from [<c003fc20>]
->> (warn_slowpath_common+0x6c/0x8c)
->>   [    0.276999] [<c003fc20>] (warn_slowpath_common) from [<c003fcd4>]
->> (warn_slowpath_fmt+0x30/0x40)
->>   [    0.277030] [<c003fcd4>] (warn_slowpath_fmt) from [<c07a0b70>]
->> (_init+0x1c0/0x3e0)
->>   [    0.277064] [<c07a0b70>] (_init) from [<c0028068>]
->> (omap_hwmod_for_each+0x34/0x5c)
->>   [    0.277095] [<c0028068>] (omap_hwmod_for_each) from [<c07a12e8>]
->> (__omap_hwmod_setup_all+0x24/0x40)
->>   [    0.277121] [<c07a12e8>] (__omap_hwmod_setup_all) from
->> [<c0008ab8>] (do_one_initcall+0x34/0x15c)
->>   [    0.277158] [<c0008ab8>] (do_one_initcall) from [<c0794bf4>]
->> (kernel_init_freeable+0xfc/0x1cc)
->>   [    0.277186] [<c0794bf4>] (kernel_init_freeable) from [<c05378fc>]
->> (kernel_init+0x8/0xe4)
->>   [    0.277219] [<c05378fc>] (kernel_init) from [<c000e6e8>]
->> (ret_from_fork+0x14/0x2c)
->>   [    0.277234] ---[ end trace 6ef0f5570cfcc35a ]---
->>
+next-20140409-omap2plus_defconfig
 
+ 1: am335x-evm:  Boot PASS: http://slexy.org/raw/s2Ho7WPbaZ
+omap_hwmod: tptc* using broken dt data from edma
+platform 49000000.edma: alias fck already exists
+
+ 2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s2A5ZJjsuZ
+same for tptc, edma
+
+ 3: am3517-evm:  Boot PASS: http://slexy.org/raw/s20q8rTwCJ
+omap_hwmod: mcbsp2_sidetone using broken dt data from mcbsp
+omap_hwmod: usb_host_hs: could not associate to clkdm l3_init_clkdm
+Address Hole seen by USB_OTG  at address dc0f9c0c
+platform iva.2: Cannot lookup hwmod 'iva'
+platform 480c5000.aes: Cannot lookup hwmod 'aes'
+platform 48094000.mailbox: Cannot lookup hwmod 'mailbox'
+platform 480bd400.mmu: Cannot lookup hwmod 'mmu_isp'
+platform 480c3000.sham: Cannot lookup hwmod 'sham'
+platform 480cb000.smartreflex: Cannot lookup hwmod 'smartreflex_core'
+platform 480cb000.smartreflex: Cannot lookup hwmod 'smartreflex_iva'
+edma-dma-engine: probe of edma-dma-engine.0 failed with error -5
+
+ 4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s21kcHKdyf
+nothing interesting.
+
+ 5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s210geZKgS
+platform 53701000.des: Cannot lookup hwmod 'des'
+platform 49000000.edma: alias fck already exists
+the usb and qspi issue reported.
+
+ 6: am43xx-gpevm:  Boot FAIL: http://slexy.org/raw/s20t5JOyI4
+known issue. (gpio reset for DDR)
+
+ 7: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s2TXdBONNI
+ omap_hwmod: mcbsp2_sidetone using broken dt data from mcbsp
+ omap_hwmod: mcbsp3_sidetone using broken dt data from mcbsp
+ omap_hwmod: usb_host_hs: could not associate to clkdm l3_init_clkdm
+ omap_hwmod: usb_tll_hs: could not associate to clkdm l3_init_clkdm
+edma-dma-engine: probe of edma-dma-engine.0 failed with error -5
+
+ 8: beagleboard-vanilla:  Boot PASS: http://slexy.org/raw/s24pDuZ7S7
+omap_hwmod: mcbsp2_sidetone using broken dt data from mcbsp
+omap_hwmod: mcbsp3_sidetone using broken dt data from mcbsp
+omap_hwmod: ssi: doesn't have mpu register target base
+omap_hwmod: usb_host_hs: could not associate to clkdm l3_init_clkdm
+omap_hwmod: usb_tll_hs: could not associate to clkdm l3_init_clkdm
+omap_hwmod: mcbsp2: cannot be enabled for reset (3)
+edma-dma-engine: probe of edma-dma-engine.0 failed with error -5
+
+ 9: beaglebone-black:  Boot PASS: http://slexy.org/raw/s21ztl1meX
+omap_hwmod: tptc0 using broken dt data from edma
+omap_hwmod: tptc1 using broken dt data from edma
+omap_hwmod: tptc2 using broken dt data from edma
+omap_hwmod: debugss: _wait_target_disable failed
+platform 49000000.edma: alias fck already exists
+platform 49000000.edma: alias fck already exists
+platform 49000000.edma: alias fck already exists
+
+10: beaglebone:  Boot PASS: http://slexy.org/raw/s2a2JO9MVd
+omap_hwmod: tptc0 using broken dt data from edma
+omap_hwmod: tptc1 using broken dt data from edma
+omap_hwmod: tptc2 using broken dt data from edma
+omap_hwmod: debugss: _wait_target_disable failed
+platform 49000000.edma: alias fck already exists
+platform 49000000.edma: alias fck already exists
+platform 49000000.edma: alias fck already exists
+
+11: craneboard:  Boot PASS: http://slexy.org/raw/s20xtW58E3
+Address Hole seen by USB_OTG  at address 4de96fbc
+omap_hwmod: mcbsp2_sidetone using broken dt data from mcbsp
+omap_hwmod: mcbsp3_sidetone using broken dt data from mcbsp
+omap_hwmod: usb_host_hs: could not associate to clkdm l3_init_clkdm
+omap_hwmod: usb_tll_hs: could not associate to clkdm l3_init_clkdm
+omap_hwmod: uart4: cannot be enabled for reset (3)
+platform iva.2: Cannot lookup hwmod 'iva'
+platform 480c5000.aes: Cannot lookup hwmod 'aes'
+platform 48094000.mailbox: Cannot lookup hwmod 'mailbox'
+platform 480bd400.mmu: Cannot lookup hwmod 'mmu_isp'
+platform 480c3000.sham: Cannot lookup hwmod 'sham'
+platform 480cb000.smartreflex: Cannot lookup hwmod 'smartreflex_core'
+platform 480c9000.smartreflex: Cannot lookup hwmod 'smartreflex_mpu_iva'
+platform 480ab000.usb_otg_hs: Cannot lookup hwmod 'usb_otg_hs'
+edma-dma-engine: probe of edma-dma-engine.0 failed with error -5
+
+12: DRA7xx-EVM:  Boot PASS: http://slexy.org/raw/s2TR2UyTxS
+omap_hwmod: l3_main_2 using broken dt data from ocp
+omap_hwmod: dss_core: _wait_target_disable failed
+omap_hwmod: dss_core: cannot be enabled for reset (3)
+omap_hwmod: dss_dispc: cannot be enabled for reset (3)
+omap_hwmod: dss_hdmi: cannot be enabled for reset (3)
+platform 4e000000.dmm: Cannot lookup hwmod 'dmm'
+ omap_l3_noc 44000000.ocp: couldn't find resource 2
+edma-dma-engine: probe of edma-dma-engine.0 failed with error -5
+drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
+
+13: OMAP3430-Labrador(LDP):  Boot PASS: http://slexy.org/raw/s21ZRwPGPg
+omap_hwmod: ssi: doesn't have mpu register target base
+omap_hwmod: mcbsp2_sidetone using broken dt data from mcbsp
+omap_hwmod: mcbsp3_sidetone using broken dt data from mcbsp
+omap_hwmod: usb_host_hs: could not associate to clkdm l3_init_clkdm
+omap_hwmod: usb_tll_hs: could not associate to clkdm l3_init_clkdm
+omap_hwmod: mcbsp2: cannot be enabled for reset (3)
+omap-gpmc 6e000000.gpmc: GPMC revision 5.0
+gpmc_probe_nand_child: ti,elm-id property not found
+gpmc_cs_program_settings: invalid width 0!
+edma-dma-engine: probe of edma-dma-engine.0 failed with error -5
+
+14:       n900:  Boot PASS: http://slexy.org/raw/s21oybPlxa
+omap_hwmod: mcbsp2_sidetone using broken dt data from mcbsp
+omap_hwmod: mcbsp3_sidetone using broken dt data from mcbsp
+omap_hwmod: ssi: doesn't have mpu register target base
+ omap_hwmod: usb_host_hs: could not associate to clkdm l3_init_clkdm
+ omap_hwmod: usb_tll_hs: could not associate to clkdm l3_init_clkdm
+ omap_hwmod: mcbsp2: cannot be enabled for reset (3)
+rx51_video_init cannot configure MUX for LCD RESET
+edma-dma-engine: probe of edma-dma-engine.0 failed with error -5
+
+15: pandaboard-es:  Boot PASS: http://slexy.org/raw/s2qoGzHvAL
+ omap_hwmod: l3_main_3 using broken dt data from ocp
+ omap_hwmod: l3_main_2 using broken dt data from ocp
+edma-dma-engine: probe of edma-dma-engine.0 failed with error -5
+platform 4b501000.aes: Cannot lookup hwmod 'aes'
+platform 480a5000.des: Cannot lookup hwmod 'des'
+
+
+16: pandaboard-vanilla:  Boot PASS: http://slexy.org/raw/s21kH0Lsga
+omap_hwmod: l3_main_3 using broken dt data from ocp
+omap_hwmod: l3_main_2 using broken dt data from ocp
+platform 4b501000.aes: Cannot lookup hwmod 'aes'
+platform 480a5000.des: Cannot lookup hwmod 'des'
+edma-dma-engine: probe of edma-dma-engine.0 failed with error -5
+
+17:    sdp2430:  Boot PASS: http://slexy.org/raw/s206Fygl3J
+omap_hwmod: usb_otg_hs: cannot be enabled for reset (3)
+twl4030_keypad: probe of keypad.29 failed with error -2
+
+18:    sdp3430:  Boot PASS: http://slexy.org/raw/s24cAq4vMt
+ omap_hwmod: ssi: doesn't have mpu register target base
+omap_hwmod: mcbsp2_sidetone using broken dt data from mcbsp
+omap_hwmod: mcbsp3_sidetone using broken dt data from mcbsp
+omap_hwmod: usb_host_hs: could not associate to clkdm l3_init_clkdm
+omap_hwmod: usb_tll_hs: could not associate to clkdm l3_init_clkdm
+gpmc_probe_nand_child: ti,elm-id property not found
+gpmc_cs_program_settings: invalid width 0!
+hw-breakpoint: debug architecture 0x4 unsupported.
+edma-dma-engine: probe of edma-dma-engine.0 failed with error -5
+twl4030_keypad: probe of keypad.28 failed with error -2
+of_get_named_gpiod_flags: can't parse gpios property of node
+'/ocp/mmc@4809c000[0]'
+
+19:    sdp4430:  Boot PASS: http://slexy.org/raw/s2VTGsB5Zb
+omap_hwmod: l3_main_3 using broken dt data from ocp
+omap_hwmod: l3_main_2 using broken dt data from ocp
+ platform 4b501000.aes: Cannot lookup hwmod 'aes'
+ platform 480a5000.des: Cannot lookup hwmod 'des'
+edma-dma-engine: probe of edma-dma-engine.0 failed with error -5
+
+20: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s21I4dKlfe
+ omap_hwmod: l3_main_3 using broken dt data from ocp
+ omap_hwmod: l3_main_2 using broken dt data from ocp
+omap_hwmod: mailbox: doesn't have mpu register target base
+platform 50000000.gpmc: Cannot lookup hwmod 'gpmc'
+map-gpmc 50000000.gpmc: _od_fail_runtime_resume: FIXME: missing
+hwmod/omap_dev info
+
+TOTAL = 20 boards, Booted Boards = 19, No Boot boards = 1
+
+
+
+
+-- 
+Regards,
+Nishanth Menon
