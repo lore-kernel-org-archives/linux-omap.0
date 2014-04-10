@@ -1,37 +1,34 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: Re: [PATCH 2/2] pwm: use PWM_LOOKUP to set the period and polarity
-Date: Thu, 10 Apr 2014 09:37:03 +0200
-Message-ID: <20140410073702.GF2879@piout.net>
-References: <1397066649-3767-1-git-send-email-alexandre.belloni@free-electrons.com>
- <1397066649-3767-3-git-send-email-alexandre.belloni@free-electrons.com>
- <20140409231549.GD2187@verge.net.au>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH 1/2] usb: rename 'phy' field of 'struct usb_hcd' to
+ 'transceiver'
+Date: Thu, 10 Apr 2014 09:20:28 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6D0F6F43C3@AcuExch.aculab.com>
+References: <Pine.LNX.4.44L0.1404091354560.28384-100000@netrider.rowland.org>
+ <53458E95.4080505@cogentembedded.com> <534598EF.3010102@wwwdotorg.org>
+ <53459A48.1010003@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140409231549.GD2187@verge.net.au>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
-Cc: Thierry Reding <thierry.reding@gmail.com>, Tony Lindgren <tony@atomide.com>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, Magnus Damm <magnus.damm@gmail.com>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <53459A48.1010003@cogentembedded.com>
+Content-Language: en-US
+Sender: linux-sh-owner@vger.kernel.org
+To: 'Sergei Shtylyov' <sergei.shtylyov@cogentembedded.com>, Stephen Warren <swarren@wwwdotorg.org>, Alan Stern <stern@rowland.harvard.edu>
+Cc: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Peter.Chen@freescale.com" <Peter.Chen@freescale.com>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, "balbi@ti.com" <balbi@ti.com>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "magnus.damm@gmail.com" <magnus.damm@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/04/2014 at 08:15:49 +0900, Simon Horman wrote :
-> On Wed, Apr 09, 2014 at 08:04:09PM +0200, Alexandre Belloni wrote:
-> > Now that the PWM core is able to set the period and polarity based on
-> > the lookup table, add those to PWM_LOOKUP to ease their usage.
-> 
-> I would prefer if this change was made in a non-atomic manner.
-> 
-> 1. Add new infrastructure
-> 2. Update users individually
-> 3. Remove old infrastructure
-> 
+From: Sergei Shtylyov
+>     It doesn't do any pin muxing. It switches SoC internal USB signals between
+> USB controllers. The pins remain the same.
 
-I agree this would be better but I'm not sure how you can modify a macro
-without renaming it or changing it everywhere at once. Like said, I'm
-open to creating a new macro.
+Doesn't something like that already happen for the companion USB1
+controllers for USB2 ports?
 
--- 
-Alexandre Belloni, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+That also doesn't sound like you are changing the PHY.
+I'd have thought that would happen if you had a single controller
+that select between multiply PHY. 
+
+	David
+
+
+
