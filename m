@@ -1,61 +1,88 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 0/5] GPIO OMAP driver changes for v3.16
-Date: Fri, 11 Apr 2014 00:22:02 +0300
-Message-ID: <20140410212202.GF15736@drone.musicnaut.iki.fi>
-References: <1396796297-13002-1-git-send-email-javier.martinez@collabora.co.uk>
- <CACRpkdarYt4tAD9WMDu6Me+dhipVyDHMpgF-AQ8SDNKMmhSjsA@mail.gmail.com>
- <20140410193048.GE15736@drone.musicnaut.iki.fi>
- <CABxcv=miFY3gE6HOU5ovWwCzgC6Un3ANh_Weh_bPCb7OoYQ+pA@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] serial: omap: Fix missing pm_runtime_resume handling by
+ simplifying code
+Date: Thu, 10 Apr 2014 16:47:53 -0500
+Message-ID: <20140410214753.GE27668@saruman.home>
+References: <20140325184846.GB31906@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:34805 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935282AbaDJV0T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2014 17:26:19 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ytoMbUMiTKPMT3hY"
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CABxcv=miFY3gE6HOU5ovWwCzgC6Un3ANh_Weh_bPCb7OoYQ+pA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20140325184846.GB31906@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>, Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+--ytoMbUMiTKPMT3hY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 10, 2014 at 10:17:44PM +0200, Javier Martinez Canillas wrote:
-> > The same happens also on Nokia 770:
-> >
-> > [    0.118896] genirq: Setting trigger mode 0 for irq 128 failed (gpio_irq_type+0x0/0x220)
-> 
-> I don't have those errors when booting on my DM3730 IGEPv2 board but
-> it seems that for some reason on omap1  __irq_set_trigger() complains
-> when IRQ_TYPE_NONE is used as a default flag when calling
-> gpiochip_irqchip_add()
-> 
-> Could you please test the following patch and tell me if your board
-> still works and makes the errors go away?
+On Tue, Mar 25, 2014 at 11:48:47AM -0700, Tony Lindgren wrote:
+> The lack of pm_runtime_resume handling for the device state leads into
+> device wake-up interrupts not working after a while for runtime PM.
+>=20
+> Also, serial-omap is confused about the use of device_may_wakeup.
+> The checks for device_may_wakeup should only be done for suspend and
+> resume, not for pm_runtime_suspend and pm_runtime_resume. The wake-up
+> events for PM runtime should always be enabled.
+>=20
+> The lack of pm_runtime_resume handling leads into device wake-up
+> interrupts not working after a while for runtime PM.
+>=20
+> Rather than try to patch over the issue of adding complex tests to
+> the pm_runtime_resume, let's fix the issues properly:
+>=20
+> 1. Make serial_omap_enable_wakeup deal with all internal PM state
+>    handling so we don't need to test for up->wakeups_enabled elsewhere.
+>=20
+>    Later on once omap3 boots in device tree only mode we can also
+>    remove the up->wakeups_enabled flag and rely on the wake-up
+>    interrupt enable/disable state alone.
+>=20
+> 2. Do the device_may_wakeup checks in suspend and resume only,
+>    for runtime PM the wake-up events need to be always enabled.
+>=20
+> 3. Finally just call serial_omap_enable_wakeup and make sure we
+>    call it also in pm_runtime_resume.
+>=20
+> 4. Note that we also have to use disable_irq_nosync as serial_omap_irq
+>    calls pm_runtime_get_sync.
+>=20
+> Fixes: 2a0b965cfb6e (serial: omap: Add support for optional wake-up)
+> Cc: stable@vger.kernel.org # v3.13+
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Now it complains about mode 8...
+FWIW:
 
-[    0.118835] genirq: Setting trigger mode 8 for irq 128 failed (gpio_irq_type
-+0x0/0x220)
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-A.
+--=20
+balbi
 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 8cc9e91..5bc8aec 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1122,7 +1122,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank)
-> 
->         ret = gpiochip_irqchip_add(&bank->chip, &gpio_irq_chip,
->                                    irq_base, gpio_irq_handler,
-> -                                  IRQ_TYPE_NONE);
-> +                                  IRQ_TYPE_LEVEL_LOW);
-> 
->         if (ret) {
->                 dev_err(bank->dev, "Couldn't add irqchip to gpiochip
-> %d\n", ret);
-> 
-> Best regards,
-> Javier
+--ytoMbUMiTKPMT3hY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTRxGJAAoJEIaOsuA1yqREecEP/15jyTAy0k9m/Gb2nEoGFPqt
+oqvebBw5mlLJZj2RzuWYrjaiQb6fbg1Zx4adKgZ51npo1EcVxHCz2PPVzMtwqv3b
+5KxcCDivHKZmhvB662Nf8IEOBQZua3qTlLlmS88CTakmQig67gWllwEpkv96oG1f
+BRlVexql6YmR/DYZk0EX0/nh5FxeBsA6eMn+UhTqxxeOof4ud+xi8kvVPF7cJOQl
+tfl+Qy+SoT7TKfbsNiH/dJ8duQJGgPvqaxRUUIbRlVSzxmTxwD/wIz8CdE+Z/bLH
+6fcY+mYdS60Q7yzkgSk+qbiPKpHWClRqoRN+nRvC6imSIUt0xGlkNmlgy8xCQHJu
+ozwKRTmmBnKje8LSTYNGM/eZOEmyk7E/zhw4+M8pdOvOqrsO/uQuwSPR6bPC5bJS
+xXIOV+mrtYRk1BiCEdEbRdPPaUGzy0aDnA2UnTOpQi8i/jfXbJMmY9T9xatB1PMy
+WTQmrttFt8qvO73eKJOLb6uTMmXgnS6/eYsn5njdnBEcBjSUPA7hShA9ReMVdBij
+lZh95Jn7tJ8hMQQwOCBvI1Hukq/mYy65b4Cp/tgZJ0lr3rEfTKdUVyRqNCvwYwLU
+Jg42ke4a/R9jEQe+iAJTDj20BlBzYxL5UIZ3W5+uVKAoErX6Bwjf5zRMxDn84GmM
+ryimmypFgaEMB7OY4caL
+=6EzG
+-----END PGP SIGNATURE-----
+
+--ytoMbUMiTKPMT3hY--
