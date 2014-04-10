@@ -1,105 +1,39 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [RFC PATCH 0/5] add gpio_chip_ops to hold GPIO operations
-Date: Thu, 10 Apr 2014 11:34:41 +0200
-Message-ID: <534665B1.9090207@collabora.co.uk>
-References: <1396981215-24888-1-git-send-email-javier.martinez@collabora.co.uk> <CAAVeFu+XV_wy9JzewGs0bcSA-ivQg-kzygMh_kt434rsYRQwHQ@mail.gmail.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 1/2] usb: rename 'phy' field of 'struct usb_hcd' to 'transceiver'
+Date: Thu, 10 Apr 2014 14:49:04 +0400
+Message-ID: <53467720.8000400@cogentembedded.com>
+References: <Pine.LNX.4.44L0.1404091354560.28384-100000@netrider.rowland.org> <53458E95.4080505@cogentembedded.com> <534598EF.3010102@wwwdotorg.org> <53459A48.1010003@cogentembedded.com> <063D6719AE5E284EB5DD2968C1650D6D0F6F43C3@AcuExch.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAAVeFu+XV_wy9JzewGs0bcSA-ivQg-kzygMh_kt434rsYRQwHQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Courbot <gnurou@gmail.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <acourbot@nvidia.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D0F6F43C3@AcuExch.aculab.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: David Laight <David.Laight@ACULAB.COM>, Stephen Warren <swarren@wwwdotorg.org>, Alan Stern <stern@rowland.harvard.edu>
+Cc: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Peter.Chen@freescale.com" <Peter.Chen@freescale.com>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, "balbi@ti.com" <balbi@ti.com>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "magnus.damm@gmail.com" <magnus.damm@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Alexandre,
+On 10-04-2014 13:20, David Laight wrote:
 
-Thanks a lot for your feedback.
+>>      It doesn't do any pin muxing. It switches SoC internal USB signals between
+>> USB controllers. The pins remain the same.
 
-On 04/10/2014 09:36 AM, Alexandre Courbot wrote:
-> On Wed, Apr 9, 2014 at 3:20 AM, Javier Martinez Canillas
-> <javier.martinez@collabora.co.uk> wrote:
->> In the kernel there are basically two patterns to implement object
->> oriented code in C. You can either embedded a set of function pointers
-> 
-> s/embedded/embed
-> 
->> in a struct along with other members or have a separate virtual function
->> table (vtable) structure that hold all the functions and only store a
->> pointer to that vtable on our particular object.
->>
->> The struct gpio_chip uses the former approach, but I don't know if that
->> is a design decision or is just that this code predates the fact that
->> the separate structure pattern is now so popular. Since the having a
->> the operations on a different structure has a number of benefits:
-> 
-> "Since having the operations" maybe?
-> 
+> Doesn't something like that already happen for the companion USB1
+> controllers for USB2 ports?
 
-Yes, since I'm not a native english speaker I sometimes miss some obvious
-grammatical errors. I'll fix those when posting the final version with all the
-drivers converted.
+    Did you mean USB 1.1 and USB 2.0 controllers by USB1 and USB2?
 
->>
->> - A clean separation between state (fields) and operations (functions).
->> - Size reduction of struct gpio_chip since will only hold one pointer.
->> - These functions are not supposed to change at runtime so the const
->>   qualifier can be used to prevent pointers modification during execution.
->> - Similar drivers for a chip family can reuse their function vtable.
->>
->> There is a drawback though which is that now two memory accesses are
->> needed to execute a GPIO operation since an additional level of
->> indirection is introduced but that should be minimized due temporal and
->> spatial memory locality.
-> 
-> I think I really do like this. Having ops in a separate structure is a
-> very common pattern in the kernel and makes things a lot cleaner. On
-> top of the advantages you listed, it also only requires a single
-> assignment in the driver's init function vs. a lot more today.
-> 
-> If no one complains about the additional memory access, I'd like to go
-> forward with this. I did much worse performance-hurting changes when
-> introducing gpiod, so I suppose it will be fine.
-> 
->>
->> So this is an RFC patch-set to add a virtual table to be used by
->> GPIO chip controllers and consist of the following patches:
->>
->> Javier Martinez Canillas (5):
->>   gpio: add a vtable to abstract GPIO controller operations
->>   gpiolib: set gpio_chip operations on add using a gpio_chip_ops
->>   gpio: omap: convert driver to use gpio_chip_ops
->>   gpio: twl4030: convert driver to use gpio_chip_ops
->>   gpio: switch to use struct struct gpio_chip_ops
->>
->>  drivers/gpio/gpio-omap.c    | 19 ++++++++-----
->>  drivers/gpio/gpio-twl4030.c | 10 +++++--
->>  drivers/gpio/gpiolib.c      | 64 ++++++++++++++++++++---------------------
->>  include/linux/gpio/driver.h | 69 +++++++++++++++++++++++++++------------------
->>  4 files changed, 93 insertions(+), 69 deletions(-)
->>
->> The patch-set is not a complete one though since only the GPIO OMAP
->> and GPIO TWL4030 drivers have been converted so I could test it on
->> my platform (DM3730 OMAP IGEPv2 board).
->>
->> But I preferred to send an early RFC than changing every single driver
->> before discussing if doing the split is worth it or not.
->>
->> To not break git bisect-ability, I added some patches that are
->> transitional changes. If you have a better suggestion on how to
->> handle that please let me know.
-> 
-> We will probably need that transition phase. We will also need to
-> switch every single driver to your new scheme, so please wait until we
-> hear from Linus before proceeding. :)
-> 
+> That also doesn't sound like you are changing the PHY.
 
-I'm glad you agree with the idea, let's see what Linus thinks about it.
+    I am changing one of the PHY registers that controls USB port (Renesas 
+calls it channel) multiplexing.
 
-> Thanks,
-> Alex.
-> 
+> I'd have thought that would happen if you had a single controller
+> that select between multiply PHY.
 
-Best regards,
-Javier
+    No, it's not the case.
+
+> 	David
+
+WBR, Sergei
+
