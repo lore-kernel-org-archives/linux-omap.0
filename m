@@ -1,252 +1,199 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 08/11] ARM: dts: Fix omap serial wake-up when booted with device tree
-Date: Thu, 10 Apr 2014 16:47:16 -0700
-Message-ID: <1397173639-29587-9-git-send-email-tony@atomide.com>
+Subject: [PATCH 04/11] ARM: OMAP3: Fix voltage control for deeper idle states
+Date: Thu, 10 Apr 2014 16:47:12 -0700
+Message-ID: <1397173639-29587-5-git-send-email-tony@atomide.com>
 References: <1397173639-29587-1-git-send-email-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49128 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48970 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758901AbaDJXrd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2014 19:47:33 -0400
+	with ESMTP id S1754162AbaDJXr0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2014 19:47:26 -0400
 In-Reply-To: <1397173639-29587-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: devicetree@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-We've had deeper idle states working on omaps for few years now,
-but only in the legacy mode. When booted with device tree, the
-wake-up events did not have a chance to work until commit
-3e6cee1786a1 (pinctrl: single: Add support for wake-up interrupts)
-that recently got merged. In addition to that we also needed commit
-79d9701559a9 (of/irq: create interrupts-extended property) that's
-now also merged.
+Currently we're attempting to use a static value for the
+voltctrl register that only works for controlling the PMIC
+over I2C4. For using sys_off_mode signaling, we need to update
+update clksetup, voltsetup1, voltsetup2 and voltctrl registers
+dynamically depending on the idle state.
 
-So let's fix the wake-up events for some selected omaps so devices
-booted in device tree mode won't just hang if deeper power states
-are enabled, and so systems can wake up from suspend to the serial
-port event.
+So let's fix this by configuring things for I2C4 controlled idle
+and sys_off_mode pin controlled idle, and then write the
+configured register values depending on the idle state. This
+is similar what N900 kernel is doing too.
 
-Note that there's no longer need to specify the wake-up bit in
-the pinctrl settings, the request_irq on the wake-up pin takes
-care of that.
-
-Note that there will be new harmless warnings in dmesg output
-without patch "of/platform: Fix no irq domain found errors when
-populating interrupts":
-
-https://lkml.org/lkml/2014/4/10/620
-
-Cc: devicetree@vger.kernel.org
-Cc: "Beno=C3=AEt Cousson" <bcousson@baylibre.com>
 Cc: Kevin Hilman <khilman@linaro.org>
 Cc: Nishanth Menon <nm@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap3-evm-37xx.dts      |  9 +++++++++
- arch/arm/boot/dts/omap3-n900.dts          |  2 ++
- arch/arm/boot/dts/omap3.dtsi              |  6 +++---
- arch/arm/boot/dts/omap4-panda-common.dtsi | 15 +++++++++++++++
- arch/arm/boot/dts/omap4-sdp.dts           |  6 ++++++
- arch/arm/boot/dts/omap4.dtsi              |  6 +++---
- include/dt-bindings/pinctrl/omap.h        | 12 ++++++++++++
- 7 files changed, 50 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/vc.c | 99 +++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 73 insertions(+), 26 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-evm-37xx.dts b/arch/arm/boot/dts/o=
-map3-evm-37xx.dts
-index 4df68ad..9cba94b 100644
---- a/arch/arm/boot/dts/omap3-evm-37xx.dts
-+++ b/arch/arm/boot/dts/omap3-evm-37xx.dts
-@@ -89,7 +89,16 @@
- 	status =3D "disabled";
- };
-=20
-+&uart1 {
-+	interrupts-extended =3D <&intc 72 &omap3_pmx_core OMAP3_UART1_RX>;
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index dee4cee..63662e1 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -220,8 +220,18 @@ static inline u32 omap_usec_to_32k(u32 usec)
+ 	return DIV_ROUND_UP_ULL(32768ULL * (u64)usec, 1000000ULL);
+ }
+ 
++struct omap3_vc_config {
++	u32 clksetup;
++	u32 voltsetup1;
++	u32 voltsetup2;
++	u32 voltctrl;
 +};
 +
-+&uart2 {
-+	interrupts-extended =3D <&intc 73 &omap3_pmx_core OMAP3_UART2_RX>;
-+};
++static struct omap3_vc_config omap3_vc_timings[2];
 +
- &uart3 {
-+	interrupts-extended =3D <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
- 	pinctrl-names =3D "default";
- 	pinctrl-0 =3D <&uart3_pins>;
- };
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3=
--n900.dts
-index 0d34201..c5db0af 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -512,11 +512,13 @@
- };
-=20
- &uart2 {
-+	interrupts-extended =3D <&intc 73 &omap3_pmx_core OMAP3_UART2_RX>;
- 	pinctrl-names =3D "default";
- 	pinctrl-0 =3D <&uart2_pins>;
- };
-=20
- &uart3 {
-+	interrupts-extended =3D <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
- 	pinctrl-names =3D "default";
- 	pinctrl-0 =3D <&uart3_pins>;
- };
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dts=
-i
-index a5fc83b..f61c76b 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -246,7 +246,7 @@
- 		uart1: serial@4806a000 {
- 			compatible =3D "ti,omap3-uart";
- 			reg =3D <0x4806a000 0x2000>;
--			interrupts =3D <72>;
-+			interrupts-extended =3D <&intc 72>;
- 			dmas =3D <&sdma 49 &sdma 50>;
- 			dma-names =3D "tx", "rx";
- 			ti,hwmods =3D "uart1";
-@@ -256,7 +256,7 @@
- 		uart2: serial@4806c000 {
- 			compatible =3D "ti,omap3-uart";
- 			reg =3D <0x4806c000 0x400>;
--			interrupts =3D <73>;
-+			interrupts-extended =3D <&intc 73>;
- 			dmas =3D <&sdma 51 &sdma 52>;
- 			dma-names =3D "tx", "rx";
- 			ti,hwmods =3D "uart2";
-@@ -266,7 +266,7 @@
- 		uart3: serial@49020000 {
- 			compatible =3D "ti,omap3-uart";
- 			reg =3D <0x49020000 0x400>;
--			interrupts =3D <74>;
-+			interrupts-extended =3D <&intc 74>;
- 			dmas =3D <&sdma 53 &sdma 54>;
- 			dma-names =3D "tx", "rx";
- 			ti,hwmods =3D "uart3";
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/=
-dts/omap4-panda-common.dtsi
-index 88c6a05..47bbc59 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -396,6 +396,21 @@
- 	usb-supply =3D <&vusb>;
- };
-=20
-+&uart2 {
-+	interrupts-extended =3D <&gic GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART2_RX>;
-+};
+ void omap3_vc_set_pmic_signaling(int core_next_state)
+ {
++	struct omap3_vc_config *c = omap3_vc_timings;
+ 	u32 voltctrl;
+ 
+ 	voltctrl = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
+@@ -231,11 +241,20 @@ void omap3_vc_set_pmic_signaling(int core_next_state)
+ 		voltctrl &= ~(OMAP3430_PRM_VOLTCTRL_AUTO_RET |
+ 			      OMAP3430_PRM_VOLTCTRL_AUTO_SLEEP);
+ 		voltctrl |= OMAP3430_PRM_VOLTCTRL_AUTO_OFF;
++		if (voltctrl & OMAP3430_PRM_VOLTCTRL_SEL_OFF)
++			omap2_prm_write_mod_reg(c->voltsetup2, OMAP3430_GR_MOD,
++						OMAP3_PRM_VOLTSETUP2_OFFSET);
++		else
++			omap2_prm_write_mod_reg(c->voltsetup1, OMAP3430_GR_MOD,
++						OMAP3_PRM_VOLTSETUP1_OFFSET);
+ 		break;
+ 	case PWRDM_POWER_RET:
++		c++;
+ 		voltctrl &= ~(OMAP3430_PRM_VOLTCTRL_AUTO_OFF |
+ 			      OMAP3430_PRM_VOLTCTRL_AUTO_SLEEP);
+ 		voltctrl |= OMAP3430_PRM_VOLTCTRL_AUTO_RET;
++		omap2_prm_write_mod_reg(c->voltsetup1, OMAP3430_GR_MOD,
++					OMAP3_PRM_VOLTSETUP1_OFFSET);
+ 		break;
+ 	default:
+ 		voltctrl &= ~(OMAP3430_PRM_VOLTCTRL_AUTO_OFF |
+@@ -292,6 +311,18 @@ static void __init omap3_vc_init_pmic_signaling(void)
+ 	omap3_vc_set_pmic_signaling(PWRDM_POWER_ON);
+ }
+ 
++static void omap3_init_voltsetup1(struct voltagedomain *voltdm,
++				  struct omap3_vc_config *c, u32 idle)
++{
++	unsigned long val;
 +
-+&uart3 {
-+	interrupts-extended =3D <&gic GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART3_RX>;
-+};
++	val = (voltdm->vc_param->on - idle) / voltdm->pmic->slew_rate;
++	val *= voltdm->sys_clk.rate / 8 / 1000000 + 1;
++	val <<= __ffs(voltdm->vfsm->voltsetup_mask);
++	c->voltsetup1 &= ~voltdm->vfsm->voltsetup_mask;
++	c->voltsetup1 |= val;
++}
 +
-+&uart4 {
-+	interrupts-extended =3D <&gic GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART4_RX>;
-+};
+ /**
+  * omap3_set_i2c_timings - sets i2c sleep timings for a channel
+  * @voltdm: channel to configure
+@@ -302,31 +333,21 @@ static void __init omap3_vc_init_pmic_signaling(void)
+  * or retention. Off mode has additionally an option to use sys_off_mode
+  * pad, which uses a global signal to program the whole power IC to
+  * off-mode.
++ *
++ * Note that pmic is not controlling the voltage scaling during
++ * retention signaled over I2C4, so we can keep voltsetup2 as 0.
++ * And the oscillator is not shut off over I2C4, so no need to
++ * set clksetup.
+  */
+-static void omap3_set_i2c_timings(struct voltagedomain *voltdm, bool off_mode)
++static void omap3_set_i2c_timings(struct voltagedomain *voltdm)
+ {
+-	unsigned long voltsetup1;
+-	u32 tgt_volt;
+-
+-	if (off_mode)
+-		tgt_volt = voltdm->vc_param->off;
+-	else
+-		tgt_volt = voltdm->vc_param->ret;
+-
+-	voltsetup1 = (voltdm->vc_param->on - tgt_volt) /
+-			voltdm->pmic->slew_rate;
+-
+-	voltsetup1 = voltsetup1 * voltdm->sys_clk.rate / 8 / 1000000 + 1;
++	struct omap3_vc_config *c = omap3_vc_timings;
+ 
+-	voltdm->rmw(voltdm->vfsm->voltsetup_mask,
+-		voltsetup1 << __ffs(voltdm->vfsm->voltsetup_mask),
+-		voltdm->vfsm->voltsetup_reg);
+-
+-	/*
+-	 * pmic is not controlling the voltage scaling during retention,
+-	 * thus set voltsetup2 to 0
+-	 */
+-	voltdm->write(0, OMAP3_PRM_VOLTSETUP2_OFFSET);
++	/* Configure PRWDM_POWER_OFF over I2C4 */
++	omap3_init_voltsetup1(voltdm, c, voltdm->vc_param->off);
++	c++;
++	/* Configure PRWDM_POWER_RET over I2C4 */
++	omap3_init_voltsetup1(voltdm, c, voltdm->vc_param->ret);
+ }
+ 
+ /**
+@@ -335,22 +356,48 @@ static void omap3_set_i2c_timings(struct voltagedomain *voltdm, bool off_mode)
+  *
+  * Calculates and sets up off-mode timings for a channel. Off-mode
+  * can use either I2C based voltage scaling, or alternatively
+- * sys_off_mode pad can be used to send a global command to power IC.
+- * This function first checks which mode is being used, and calls
+- * omap3_set_i2c_timings() if the system is using I2C control mode.
++ * sys_off_mode pad can be used to send a global command to power IC.n,
+  * sys_off_mode has the additional benefit that voltages can be
+  * scaled to zero volt level with TWL4030 / TWL5030, I2C can only
+  * scale to 600mV.
++ *
++ * Note that omap is not controlling the voltage scaling during
++ * off idle signaled by sys_off_mode, so we can keep voltsetup1
++ * as 0.
+  */
+ static void omap3_set_off_timings(struct voltagedomain *voltdm)
+ {
++	struct omap3_vc_config *c = omap3_vc_timings;
++	u32 tstart, tshut, voltoffset;
 +
- &usb_otg_hs {
- 	interface-type =3D <1>;
- 	mode =3D <3>;
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-=
-sdp.dts
-index dbc81fb..e3f3cfb 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -523,16 +523,22 @@
- };
-=20
- &uart2 {
-+	interrupts-extended =3D <&gic GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART2_RX>;
- 	pinctrl-names =3D "default";
- 	pinctrl-0 =3D <&uart2_pins>;
- };
-=20
- &uart3 {
-+	interrupts-extended =3D <&gic GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART3_RX>;
- 	pinctrl-names =3D "default";
- 	pinctrl-0 =3D <&uart3_pins>;
- };
-=20
- &uart4 {
-+	interrupts-extended =3D <&gic GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART4_RX>;
- 	pinctrl-names =3D "default";
- 	pinctrl-0 =3D <&uart4_pins>;
- };
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dts=
-i
-index d3f8a6e..24ea9b9 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -288,7 +288,7 @@
- 		uart2: serial@4806c000 {
- 			compatible =3D "ti,omap4-uart";
- 			reg =3D <0x4806c000 0x100>;
--			interrupts =3D <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts-extended =3D <&gic GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods =3D "uart2";
- 			clock-frequency =3D <48000000>;
- 		};
-@@ -296,7 +296,7 @@
- 		uart3: serial@48020000 {
- 			compatible =3D "ti,omap4-uart";
- 			reg =3D <0x48020000 0x100>;
--			interrupts =3D <GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts-extended =3D <&gic GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods =3D "uart3";
- 			clock-frequency =3D <48000000>;
- 		};
-@@ -304,7 +304,7 @@
- 		uart4: serial@4806e000 {
- 			compatible =3D "ti,omap4-uart";
- 			reg =3D <0x4806e000 0x100>;
--			interrupts =3D <GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts-extended =3D <&gic GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods =3D "uart4";
- 			clock-frequency =3D <48000000>;
- 		};
-diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/p=
-inctrl/omap.h
-index b04528c..404ba7e 100644
---- a/include/dt-bindings/pinctrl/omap.h
-+++ b/include/dt-bindings/pinctrl/omap.h
-@@ -69,5 +69,17 @@
- #define OMAP5_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0xc840) (val=
-)
- #define DRA7XX_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x3400) (va=
-l)
-=20
-+/*
-+ * Define some commonly used pins configured by the boards.
-+ * Note that some boards use alternative pins, so check
-+ * the schematics before using these.
-+ */
-+#define OMAP3_UART1_RX		0x152
-+#define OMAP3_UART2_RX		0x14a
-+#define OMAP3_UART3_RX		0x16e
-+#define OMAP4_UART2_RX		0xdc
-+#define OMAP4_UART3_RX		0x104
-+#define OMAP4_UART4_RX		0x11c
++	if (c->clksetup)
++		return;
 +
- #endif
-=20
---=20
++	omap_pm_get_oscillator(&tstart, &tshut);
++	if (tstart == ULONG_MAX) {
++		pr_debug("PM: oscillator start-up time not initialized, using 10ms\n");
++		c->clksetup = omap_usec_to_32k(10000);
++	} else {
++		c->clksetup = omap_usec_to_32k(tstart);
++	}
++
++	/*
++	 * For twl4030 errata 27, we need to allow minimum ~488.32 us wait to
++	 * switch from HFCLKIN to internal oscillator. That means timings
++	 * have voltoffset fixed to 0xa in rounded up 32 KiHz cycles. And
++	 * that means we can calculate the value based on the oscillator
++	 * start-up time since voltoffset2 = clksetup - voltoffset.
++	 */
++	voltoffset = omap_usec_to_32k(488);
++	c->voltsetup2 = c->clksetup - voltoffset;
++	voltdm->write(voltoffset, OMAP3_PRM_VOLTOFFSET_OFFSET);
+ }
+ 
+ static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
+ {
+ 	omap3_vc_init_pmic_signaling();
+ 	omap3_set_off_timings(voltdm);
+-	omap3_set_i2c_timings(voltdm, true);
++	omap3_set_i2c_timings(voltdm);
+ }
+ 
+ /**
+-- 
 1.8.1.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
