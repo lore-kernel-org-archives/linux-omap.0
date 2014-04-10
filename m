@@ -1,55 +1,85 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [RFC PATCH 0/5] add gpio_chip_ops to hold GPIO operations
-Date: Thu, 10 Apr 2014 13:46:02 +0200
-Message-ID: <CABxcv=kAk1Gwm6LHq2X5CFxM6Qo97WUZdmSwszuUiesz699Hdg@mail.gmail.com>
-References: <1396981215-24888-1-git-send-email-javier.martinez@collabora.co.uk>
-	<CAAVeFu+XV_wy9JzewGs0bcSA-ivQg-kzygMh_kt434rsYRQwHQ@mail.gmail.com>
-	<534665B1.9090207@collabora.co.uk>
-	<1397127659.11914.94.camel@smile.fi.intel.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v2 3/3] ARM: OMAP2+: AM43x: L2 cache support
+Date: Thu, 10 Apr 2014 17:26:15 +0530
+Message-ID: <534686DF.7070207@ti.com>
+References: <cover.1396605300.git.nsekhar@ti.com> <efa5fda5ae625a43fac14bf173cbd96ad7b44e7a.1396605300.git.nsekhar@ti.com> <20140404101808.GG27282@n2100.arm.linux.org.uk> <53440D73.6060504@ti.com> <20140409162327.GH27282@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:37271 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030202AbaDJLqF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2014 07:46:05 -0400
-Received: by mail-wg0-f43.google.com with SMTP id x13so3790425wgg.26
-        for <linux-omap@vger.kernel.org>; Thu, 10 Apr 2014 04:46:03 -0700 (PDT)
-In-Reply-To: <1397127659.11914.94.camel@smile.fi.intel.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58340 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935524AbaDJL4v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Apr 2014 07:56:51 -0400
+In-Reply-To: <20140409162327.GH27282@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Alexandre Courbot <gnurou@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <acourbot@nvidia.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hello Andy,
-
-On Thu, Apr 10, 2014 at 1:00 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> On Thu, 2014-04-10 at 11:34 +0200, Javier Martinez Canillas wrote:
->> On 04/10/2014 09:36 AM, Alexandre Courbot wrote:
->> >
->> > "Since having the operations" maybe?
->> >
+On Wednesday 09 April 2014 09:53 PM, Russell King - ARM Linux wrote:
+> On Tue, Apr 08, 2014 at 08:23:39PM +0530, Sekhar Nori wrote:
+>> On Friday 04 April 2014 03:48 PM, Russell King - ARM Linux wrote:
+>>> On Fri, Apr 04, 2014 at 03:40:29PM +0530, Sekhar Nori wrote:
+>>>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+>>>> index f8b8dac..6b2a056 100644
+>>>> --- a/arch/arm/mach-omap2/omap4-common.c
+>>>> +++ b/arch/arm/mach-omap2/omap4-common.c
+>>>> @@ -224,6 +224,14 @@ int __init omap4_l2_cache_init(void)
+>>>>  
+>>>>  	return omap_l2_cache_init(aux_ctrl, 0xc19fffff);
+>>>>  }
+>>>> +
+>>>> +int __init am43xx_l2_cache_init(void)
+>>>> +{
+>>>> +	u32 aux_ctrl = L310_AUX_CTRL_DATA_PREFETCH |
+>>>> +		       L310_AUX_CTRL_INSTR_PREFETCH;
+>>>
+>>> It would be good to documenting the difference between this and OMAP4,
+>>> and why you have chosen different values.
 >>
->> Yes, since I'm not a native english speaker I sometimes miss some obvious
->> grammatical errors. I'll fix those when posting the final version with all the
->> drivers converted.
->
-> JFYI: there is nice project called codespell [1].
->
-> [1] git://github.com/lucasdemarchi/codespell.git
+>> There are two main differences:
+>>
+>> 1) OMAP4 sets Shared attribute override enable bit. TBH, I think this is
+>> not needed even in OMAP4 with latest kernel, but I am not sure if I can
+>> do this safely without breaking any usecase currently working with OMAP4.
+>>
+>> 2) OMAP4 sets NS lockdown and NS interrupt access control bits. I
+>> searched through the commit history of L2 cache support on OMAP4 but
+>> there is no mention of why this was needed on OMAP4. I am checking
+>> internally on the history behind this.
+> 
+> That is required because as part of the enable sequence, we write to the
+> lockdown registers to clear out anything that may be there before we
+> enable the L2 cache.  If we didn't set the NS lockdown bit, then we
+> would need the secure monitor to do it for us.
 
-Interesting project, thanks a lot for the pointer.
+And I realized yesterday that the only reason L2C is working on AM437x
+is because AM437x ROM is setting these bits up for us.
 
-Best regards,
-Javier
+> 
+> The NS interrupt access bit is also a good idea to be set, since this
+> allows us to eventually support EDAC with PL310.  As we don't support
+> EDAC at the moment, or touch the interrupt registers, we can probably
+> ignore this difference and just preserve whatever value is there for
+> the time being.
+> 
+> Both of these bits should be managed within the L2C code rather than by
+> platforms.
 
->
-> --
-> Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Intel Finland Oy
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-gpio" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The current L2C code is not managing the NS_LOCKDOWN bit. I can take a
+shot at adding this support unless you are already looking at it.
+
+> 
+>> 3) OMAP4 sets cache replacement policy to RR which is not a big deal
+>> since thats the default anyway. We can probably drop this setting even
+>> from OMAP4.
+> 
+> Yes, since that would just be a case of preserving that bit.
+
+Okay will drop this explicit setting.
+
+Thanks,
+Sekhar
+
+
