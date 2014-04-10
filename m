@@ -1,133 +1,178 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/11] ARM: dts: Enable N900 keybaord sleep leds by default
-Date: Thu, 10 Apr 2014 16:47:15 -0700
-Message-ID: <1397173639-29587-8-git-send-email-tony@atomide.com>
+Subject: [PATCH 10/11] mfd: twl-core: Fix idle mode signaling for omaps when booted with device tree
+Date: Thu, 10 Apr 2014 16:47:18 -0700
+Message-ID: <1397173639-29587-11-git-send-email-tony@atomide.com>
 References: <1397173639-29587-1-git-send-email-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49089 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49207 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758550AbaDJXrb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2014 19:47:31 -0400
+	with ESMTP id S1758938AbaDJXrf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2014 19:47:35 -0400
 In-Reply-To: <1397173639-29587-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Paul Walmsley <paul@pwsan.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Tero Kristo <t-kristo@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Lee Jones <lee.jones@linaro.org>, Nishanth Menon <nm@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-On N900 there are nice LEDs that show the state of the
-sys_clkreq and sys_off_mode pins.
+I noticed a regression where the omap sys_clkreq signal will never
+trigger for omap3 when booted with device tree while it triggers
+when booted in legacy mode. This means voltage scaling does not
+do anything when booted with device tree.
 
-These LEDs go low when the system enters deeper idle
-states. The left LED shows the state of the sys_clkreq
-pin, and goes off during retention idle. The right LED
-shows the state of sys_off_mode pin and both go off
-during off idle.
+Turns out the reason is we fail to initialize the SmartReflex
+enable bit in twl4030 with the following error:
 
-As N900 is a battery operated device, these LEDs should
-be off most of the time. So let's enable them by default
-so we can make sure the system is mostly idle.
+twl: not initialized
 
-This allows the maintainers to also immediately test
-patches for PM regressions by looking at the LEDs,
-which certainly makes my life easier.
+And that happens because we are wrongly tinkering with the twl4030
+registers in arch/arm/mach-omap2/omap_twl.c before the driver is
+initialized. Looking at the the SmartReflex bit enable code in
+omap_twl.c, we need to always set it.
 
-The LED can naturally be disabled during runtime with:
+So let's fix the issue by always enabling the twl4030 SmartReflex
+bit in the drivers/mfd/twl-core.c probe, and drop the related
+code in omap_twl.c.
 
-# echo none > /sys/class/leds/debug::sleep/trigger
+Note that we still have some twl4030 tinkering left in omap_twl.c
+for the twl6030 case, but that's a different patch.
 
-Note that we don't currently have support for omap3
-errata 1.158 that remuxes GPIO pins to INPUT_PULLUP |
-MUX_MODE7 for the duration of idle. This means that the
-GPIO pins set high will go down during off idle. In this
-case it does not matter as the sys_off_mode goes down
-too, but there's still a slim chance of false off idle
-LED signals. If in doubt, false LED signals can be
-verified by the sys_off_mode or vdd_core values.
-
-Also note that to allow the UARTs to autoidle, the
-following needs to be run on N900 to enable off idle:
-
-#!/bin/sh
-uarts=3D$(find /sys/class/tty/ttyO*/device/power/ -type d)
-for uart in $uarts; do
-	echo 3000 > $uart/autosuspend_delay_ms
-done
-
-uarts=3D$(find /sys/class/tty/ttyO*/power/ -type d)
-for uart in $uarts; do
-	echo enabled > $uart/wakeup
-	echo auto > $uart/control
-done
-
-echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
-
-=46or retention idle, change the above to set 0 to
-enable_off_mode.
-
-Also note that without the twl4030 PM scripts the actual
-voltage scaling won't happen for off idle so we only get
-voltage scaling over I2C4 for retention idle. I'll do
-some device tree patches for those also a bit later on.
-
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Lee Jones <lee.jones@linaro.org>
 Cc: Nishanth Menon <nm@ti.com>
-Cc: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sre@kernel.org>
 Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap3-n900.dts | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ arch/arm/mach-omap2/omap_twl.c | 60 ------------------------------------------
+ drivers/mfd/twl-core.c         | 15 +++++++++++
+ 2 files changed, 15 insertions(+), 60 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3=
--n900.dts
-index 0bf40c9..0d34201 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -21,6 +21,17 @@
- 		};
- 	};
-=20
-+        leds {
-+                compatible =3D "gpio-leds";
-+                heartbeat {
-+                        label =3D "debug::sleep";
-+                        gpios =3D <&gpio6 2 GPIO_ACTIVE_HIGH>;  /* gpi=
-o162 */
-+                        linux,default-trigger =3D "default-on";
-+			pinctrl-names =3D "default";
-+			pinctrl-0 =3D <&debug_leds>;
-+                };
-+        };
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index 615e5b1..6bf6267 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -46,15 +46,8 @@
+ 
+ static bool is_offset_valid;
+ static u8 smps_offset;
+-/*
+- * Flag to ensure Smartreflex bit in TWL
+- * being cleared in board file is not overwritten.
+- */
+-static bool __initdata twl_sr_enable_autoinit;
+ 
+-#define TWL4030_DCDC_GLOBAL_CFG        0x06
+ #define REG_SMPS_OFFSET         0xE0
+-#define SMARTREFLEX_ENABLE     BIT(3)
+ 
+ static unsigned long twl4030_vsel_to_uv(const u8 vsel)
+ {
+@@ -251,18 +244,6 @@ int __init omap3_twl_init(void)
+ 	if (!cpu_is_omap34xx())
+ 		return -ENODEV;
+ 
+-	/*
+-	 * The smartreflex bit on twl4030 specifies if the setting of voltage
+-	 * is done over the I2C_SR path. Since this setting is independent of
+-	 * the actual usage of smartreflex AVS module, we enable TWL SR bit
+-	 * by default irrespective of whether smartreflex AVS module is enabled
+-	 * on the OMAP side or not. This is because without this bit enabled,
+-	 * the voltage scaling through vp forceupdate/bypass mechanism of
+-	 * voltage scaling will not function on TWL over I2C_SR.
+-	 */
+-	if (!twl_sr_enable_autoinit)
+-		omap3_twl_set_sr_bit(true);
+-
+ 	voltdm = voltdm_lookup("mpu_iva");
+ 	omap_voltage_register_pmic(voltdm, &omap3_mpu_pmic);
+ 
+@@ -271,44 +252,3 @@ int __init omap3_twl_init(void)
+ 
+ 	return 0;
+ }
+-
+-/**
+- * omap3_twl_set_sr_bit() - Set/Clear SR bit on TWL
+- * @enable: enable SR mode in twl or not
+- *
+- * If 'enable' is true, enables Smartreflex bit on TWL 4030 to make sure
+- * voltage scaling through OMAP SR works. Else, the smartreflex bit
+- * on twl4030 is cleared as there are platforms which use OMAP3 and T2 but
+- * use Synchronized Scaling Hardware Strategy (ENABLE_VMODE=1) and Direct
+- * Strategy Software Scaling Mode (ENABLE_VMODE=0), for setting the voltages,
+- * in those scenarios this bit is to be cleared (enable = false).
+- *
+- * Returns 0 on success, error is returned if I2C read/write fails.
+- */
+-int __init omap3_twl_set_sr_bit(bool enable)
+-{
+-	u8 temp;
+-	int ret;
+-	if (twl_sr_enable_autoinit)
+-		pr_warning("%s: unexpected multiple calls\n", __func__);
+-
+-	ret = twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER, &temp,
+-			      TWL4030_DCDC_GLOBAL_CFG);
+-	if (ret)
+-		goto err;
+-
+-	if (enable)
+-		temp |= SMARTREFLEX_ENABLE;
+-	else
+-		temp &= ~SMARTREFLEX_ENABLE;
+-
+-	ret = twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, temp,
+-			       TWL4030_DCDC_GLOBAL_CFG);
+-	if (!ret) {
+-		twl_sr_enable_autoinit = true;
+-		return 0;
+-	}
+-err:
+-	pr_err("%s: Error access to TWL4030 (%d)\n", __func__, ret);
+-	return ret;
+-}
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index ed71832..ad7d04f 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -98,7 +98,11 @@
+ #define TWL4030_BASEADD_BACKUP		0x0014
+ #define TWL4030_BASEADD_INT		0x002E
+ #define TWL4030_BASEADD_PM_MASTER	0x0036
 +
- 	memory {
- 		device_type =3D "memory";
- 		reg =3D <0x80000000 0x10000000>; /* 256 MB */
-@@ -114,6 +125,12 @@
- 		>;
- 	};
-=20
-+	debug_leds: pinmux_debug_led_pins {
-+		pinctrl-single,pins =3D <
-+			OMAP3_CORE1_IOPAD(0x2198, PIN_OUTPUT | MUX_MODE4)	/* mcbsp1_clkx.gp=
-io_162 */
-+		>;
-+	};
+ #define TWL4030_BASEADD_PM_RECEIVER	0x005B
++#define TWL4030_DCDC_GLOBAL_CFG		0x06
++#define SMARTREFLEX_ENABLE		BIT(3)
 +
- 	mmc1_pins: pinmux_mmc1_pins {
- 		pinctrl-single,pins =3D <
- 			0x114 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk */
---=20
+ #define TWL4030_BASEADD_RTC		0x001C
+ #define TWL4030_BASEADD_SECURED_REG	0x0000
+ 
+@@ -1204,6 +1208,11 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	 * Disable TWL4030/TWL5030 I2C Pull-up on I2C1 and I2C4(SR) interface.
+ 	 * Program I2C_SCL_CTRL_PU(bit 0)=0, I2C_SDA_CTRL_PU (bit 2)=0,
+ 	 * SR_I2C_SCL_CTRL_PU(bit 4)=0 and SR_I2C_SDA_CTRL_PU(bit 6)=0.
++	 *
++	 * Also, always enable SmartReflex bit as that's needed for omaps to
++	 * to do anything over I2C4 for voltage scaling even if SmartReflex
++	 * is disabled. Without the SmartReflex bit omap sys_clkreq idle
++	 * signal will never trigger for retention idle.
+ 	 */
+ 	if (twl_class_is_4030()) {
+ 		u8 temp;
+@@ -1212,6 +1221,12 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		temp &= ~(SR_I2C_SDA_CTRL_PU | SR_I2C_SCL_CTRL_PU | \
+ 			I2C_SDA_CTRL_PU | I2C_SCL_CTRL_PU);
+ 		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
++
++		twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER, &temp,
++				TWL4030_DCDC_GLOBAL_CFG);
++		temp |= SMARTREFLEX_ENABLE;
++		twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, temp,
++				 TWL4030_DCDC_GLOBAL_CFG);
+ 	}
+ 
+ 	if (node) {
+-- 
 1.8.1.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
