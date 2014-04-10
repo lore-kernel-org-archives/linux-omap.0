@@ -1,76 +1,84 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+From: Sekhar Nori <nsekhar@ti.com>
 Subject: Re: [PATCH v2 3/3] ARM: OMAP2+: AM43x: L2 cache support
-Date: Thu, 10 Apr 2014 13:03:48 +0100
-Message-ID: <20140410120348.GK27282@n2100.arm.linux.org.uk>
-References: <cover.1396605300.git.nsekhar@ti.com> <efa5fda5ae625a43fac14bf173cbd96ad7b44e7a.1396605300.git.nsekhar@ti.com> <20140404101808.GG27282@n2100.arm.linux.org.uk> <53440D73.6060504@ti.com> <20140409162327.GH27282@n2100.arm.linux.org.uk> <534686DF.7070207@ti.com>
+Date: Thu, 10 Apr 2014 17:38:46 +0530
+Message-ID: <534689CE.2070904@ti.com>
+References: <cover.1396605300.git.nsekhar@ti.com> <efa5fda5ae625a43fac14bf173cbd96ad7b44e7a.1396605300.git.nsekhar@ti.com> <20140404101808.GG27282@n2100.arm.linux.org.uk> <53440D73.6060504@ti.com> <534412FD.5030308@ti.com> <20140409163330.GI27282@n2100.arm.linux.org.uk> <53457AD4.8090708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:57005 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1030282AbaDJME1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Apr 2014 08:04:27 -0400
-Content-Disposition: inline
-In-Reply-To: <534686DF.7070207@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:55982 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030248AbaDJMJT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2014 08:09:19 -0400
+In-Reply-To: <53457AD4.8090708@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Apr 10, 2014 at 05:26:15PM +0530, Sekhar Nori wrote:
-> On Wednesday 09 April 2014 09:53 PM, Russell King - ARM Linux wrote:
-> > That is required because as part of the enable sequence, we write to the
-> > lockdown registers to clear out anything that may be there before we
-> > enable the L2 cache.  If we didn't set the NS lockdown bit, then we
-> > would need the secure monitor to do it for us.
-> 
-> And I realized yesterday that the only reason L2C is working on AM437x
-> is because AM437x ROM is setting these bits up for us.
-> 
-> > Both of these bits should be managed within the L2C code rather than by
-> > platforms.
-> 
-> The current L2C code is not managing the NS_LOCKDOWN bit. I can take a
-> shot at adding this support unless you are already looking at it.
+On Wednesday 09 April 2014 10:22 PM, Santosh Shilimkar wrote:
+> On Wednesday 09 April 2014 12:33 PM, Russell King - ARM Linux wrote:
+>> On Tue, Apr 08, 2014 at 11:17:17AM -0400, Santosh Shilimkar wrote:
+>>> On Tuesday 08 April 2014 10:53 AM, Sekhar Nori wrote:
+>>>> On Friday 04 April 2014 03:48 PM, Russell King - ARM Linux wrote:
+>>>>> On Fri, Apr 04, 2014 at 03:40:29PM +0530, Sekhar Nori wrote:
+>>>>>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+>>>>>> index f8b8dac..6b2a056 100644
+>>>>>> --- a/arch/arm/mach-omap2/omap4-common.c
+>>>>>> +++ b/arch/arm/mach-omap2/omap4-common.c
+>>>>>> @@ -224,6 +224,14 @@ int __init omap4_l2_cache_init(void)
+>>>>>>  
+>>>>>>  	return omap_l2_cache_init(aux_ctrl, 0xc19fffff);
+>>>>>>  }
+>>>>>> +
+>>>>>> +int __init am43xx_l2_cache_init(void)
+>>>>>> +{
+>>>>>> +	u32 aux_ctrl = L310_AUX_CTRL_DATA_PREFETCH |
+>>>>>> +		       L310_AUX_CTRL_INSTR_PREFETCH;
+>>>>>
+>>>>> It would be good to documenting the difference between this and OMAP4,
+>>>>> and why you have chosen different values.
+>>>>
+>>>> There are two main differences:
+>>>>
+>>>> 1) OMAP4 sets Shared attribute override enable bit. TBH, I think this is
+>>>> not needed even in OMAP4 with latest kernel, but I am not sure if I can
+>>>> do this safely without breaking any usecase currently working with OMAP4.
+>>>>
+>>> Wrong. Shared bit is mandatory for the OMAP4. Its a SMP system
+>>> which needs that.
+>>
+>> Errr.  This bit affects the L2 cache behaviour for Normal memory, outer
+>> non-cacheable accesses - in other words, those performed to memory mapped
+>> via dma_alloc_coherent() or dma_alloc_writecombine().  It does not affect
+>> other types of mappings (other access types ignore the sharable attribute).
+>>
+>> When this bit is clear, accesses to such memory are:
+>>
+>> - read: cacheable, no allocate
+>> - write: write through, no write allocate
+>>
+>> what this means is that if there are no cache lines in the L2 cache
+>> corresponding with the physical address, then none will be allocated.
+>> However, if there are cache lines present, then they will be hit,
+>> read or updated as appropriate.
+>>
+>> This may matter before CMA where we had the memory returned by
+>> dma_alloc_coherent() and friends mapped as normal, cacheable mappings
+>> which could be speculatively prefetched, and therefore cache lines
+>> dragged into the L2 cache for these physical addresses.
+>>
+>> However, now that we're using CMA, this does not apply as we no longer
+>> have this aliasing mapping.
+>>
+>> So, with CMA enabled, it should be safe not to set this bit.
+>>
+> Agree. That should be safe now.
 
-True, and I'm aware that it's missing.  So... how about this on top
-of my series so far.  We can deal with L310_AUX_CTRL_NS_INT_CTRL when
-the need to access those registers arises (if/when the edac driver
-is submitted.)
+Since we cannot guarantee that CONFIG_DMA_CMA will always be enabled in
+kernel config, shall we take the safer route and keep the Shared
+attribute override bit enabled in L2C configuration?
 
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index c0f9a81a2d32..4a494cde8367 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -213,8 +213,6 @@ static int __init omap_l2_cache_init(void)
- 
- 	/* 16-way associativity, parity disabled, way size - 64KB (es2.0 +) */
- 	aux_ctrl = L310_AUX_CTRL_CACHE_REPLACE_RR |
--		   L310_AUX_CTRL_NS_LOCKDOWN |
--		   L310_AUX_CTRL_NS_INT_CTRL |
- 		   L2C_AUX_CTRL_SHARED_OVERRIDE |
- 		   L310_AUX_CTRL_DATA_PREFETCH |
- 		   L310_AUX_CTRL_INSTR_PREFETCH;
-diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-index 98796b789eb9..837f384c1d51 100644
---- a/arch/arm/mm/cache-l2x0.c
-+++ b/arch/arm/mm/cache-l2x0.c
-@@ -776,6 +776,13 @@ static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
- 			power_ctrl & L310_STNDBY_MODE_EN ? "en" : "dis");
- 	}
- 
-+	/*
-+	 * Always enable non-secure access to the lockdown registers -
-+	 * we write to them as part of the L2C enable sequence so they
-+	 * need to be accessible.
-+	 */
-+	aux |= L310_AUX_CTRL_NS_LOCKDOWN;
-+
- 	l2c_enable(base, aux, num_lock);
- 
- 	if (aux & L310_AUX_CTRL_FULL_LINE_ZERO) {
-
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+Thanks,
+Sekhar
