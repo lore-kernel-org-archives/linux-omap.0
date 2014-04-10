@@ -1,73 +1,50 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2 3/3] ARM: OMAP2+: AM43x: L2 cache support
-Date: Thu, 10 Apr 2014 14:40:28 +0100
-Message-ID: <20140410134028.GL27282@n2100.arm.linux.org.uk>
-References: <cover.1396605300.git.nsekhar@ti.com> <efa5fda5ae625a43fac14bf173cbd96ad7b44e7a.1396605300.git.nsekhar@ti.com> <20140404101808.GG27282@n2100.arm.linux.org.uk> <53440D73.6060504@ti.com> <20140409162327.GH27282@n2100.arm.linux.org.uk> <534686DF.7070207@ti.com> <20140410120348.GK27282@n2100.arm.linux.org.uk> <53468B8E.9040604@ti.com> <53469C29.8050906@ti.com>
+From: sourav <sourav.poddar@ti.com>
+Subject: Re: [PATCHv2] i2c: omap: Disable default probing of i2c devices for
+ omap i2c.
+Date: Thu, 10 Apr 2014 19:15:17 +0530
+Message-ID: <5346A06D.1020203@ti.com>
+References: <1397039808-28594-1-git-send-email-sourav.poddar@ti.com> <20140409123702.GA8157@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:57195 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1030915AbaDJNlH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Apr 2014 09:41:07 -0400
-Content-Disposition: inline
-In-Reply-To: <53469C29.8050906@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59968 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030713AbaDJNpZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2014 09:45:25 -0400
+In-Reply-To: <20140409123702.GA8157@katana>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>
 
-On Thu, Apr 10, 2014 at 06:57:05PM +0530, Sekhar Nori wrote:
-> On Thursday 10 April 2014 05:46 PM, Sekhar Nori wrote:
-> > This will work. NS_LOCKDOWN is required for L2C-220 as well and so I was
-> > thinking about adding a new l2c220_enable() which will set the
-> > NS_LOCKDOWN and then call l2c_enable()
-> 
-> Here is a patch for what I was saying above.
-> 
-> diff --git a/arch/arm/include/asm/hardware/cache-l2x0.h b/arch/arm/include/asm/hardware/cache-l2x0.h
-> index c47ac8f..dc9e03b 100644
-> --- a/arch/arm/include/asm/hardware/cache-l2x0.h
-> +++ b/arch/arm/include/asm/hardware/cache-l2x0.h
-> @@ -105,6 +105,8 @@
->  #define L2X0_AUX_CTRL_DIRTY_LATENCY_MASK	(7 << 9)
->  #define L2X0_AUX_CTRL_ASSOC_SHIFT		13
->  #define L2X0_AUX_CTRL_ASSOC_MASK		(15 << 13)
-> +/* L2C-220/310 common bits */
-> +#define L2C_AUX_CTRL_NS_LOCKDOWN		BIT(26)
->  /* L2C-210 specific bits */
->  #define L210_AUX_CTRL_WRAP_DISABLE		BIT(12)
->  #define L210_AUX_CTRL_WA_OVERRIDE		BIT(23)
-> @@ -113,7 +115,6 @@
->  #define L220_AUX_CTRL_EXCLUSIVE_CACHE		BIT(12)
->  #define L220_AUX_CTRL_FWA_SHIFT			23
->  #define L220_AUX_CTRL_FWA_MASK			(3 << 23)
-> -#define L220_AUX_CTRL_NS_LOCKDOWN		BIT(26)
->  #define L220_AUX_CTRL_NS_INT_CTRL		BIT(27)
->  /* L2C-310 specific bits */
->  #define L310_AUX_CTRL_FULL_LINE_ZERO		BIT(0)	/* R2P0+ */
-> @@ -122,7 +123,6 @@
->  #define L310_AUX_CTRL_EXCLUSIVE_CACHE		BIT(12)
->  #define L310_AUX_CTRL_ASSOCIATIVITY_16		BIT(16)
->  #define L310_AUX_CTRL_CACHE_REPLACE_RR		BIT(25)	/* R2P0+ */
-> -#define L310_AUX_CTRL_NS_LOCKDOWN		BIT(26)
+Hi Wolfram,
 
-NAK.  The reason for this split is because the NS lockdown bit is *not*
-on L2C-210, and so it does not deserve to be a "common" bit - because it
-isn't common to all variants.
+On Wednesday 09 April 2014 06:07 PM, Wolfram Sang wrote:
+> On Wed, Apr 09, 2014 at 04:06:48PM +0530, Sourav Poddar wrote:
+>> I2c core supports defualt probing functionality for devices not registered through
+>> dt/board files. If there are any client driver registered, i2c core will try to
+>> check if there is any device present corresponding to the address supplied by
+>> the client driver. If the device is actually present and not registered, core
+>> will register it, else the device default probe will fail and we get a omap i2c controller
+>> specific timeout messages.
+>> For example, Using multi_v7_config on omap5-uevm, CONFIG_SENSORS_LM90 and CONFIG_ICS932S401
+>> is the driver which is enabled and gets registered. I2c core tries to find a valid
+>> corresponding device on each of the address supplied by registered driver,
+>> but could not find anyone. Hence, keep dumping the controller timeout speciic message.
+> This is exactly why I2C_CLASS_DEPRECATED was implemented. So, users
+> which are using classes can migrate away. But this needs time. Given
+> that I2C_CLASS_DEPRECATED is new in 3.15, I'd think setting classes to 0
+> (thus totally disabling them) should not be before 3.17. You don't need
+> to resend, I'll do it for all drivers I added this new class to when I
+> feel it is safe to do.
+OK then, I am dropping this patch, will wait for your patches on it.
+Thanks for the review.
 
-> @@ -764,7 +776,7 @@ static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
->  			power_ctrl & L310_STNDBY_MODE_EN ? "en" : "dis");
->  	}
->  
-> -	l2c_enable(base, aux, num_lock);
-> +	l2c220_enable(base, aux, num_lock);
+~Sourav
+>
+> Thanks,
+>
+>     Wolfram
+>
 
-My first reaction to this is to say NAK again - I don't want to create
-a multi-layered maze of X calls Y calls Z.  Who's to say that The 220
-won't need to do something different from 310 in the future?
-
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
