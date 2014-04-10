@@ -1,26 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 05/11] ARM: dts: Configure omap3 twl4030 I2C4 pins by default
-Date: Thu, 10 Apr 2014 16:47:13 -0700
-Message-ID: <1397173639-29587-6-git-send-email-tony@atomide.com>
+Subject: [PATCH 03/11] ARM: OMAP3: Disable broken omap3_set_off_timings function
+Date: Thu, 10 Apr 2014 16:47:11 -0700
+Message-ID: <1397173639-29587-4-git-send-email-tony@atomide.com>
 References: <1397173639-29587-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49000 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48937 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754205AbaDJXr1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2014 19:47:27 -0400
+	with ESMTP id S1753823AbaDJXrZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2014 19:47:25 -0400
 In-Reply-To: <1397173639-29587-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-Almost certainly any sane board has the twl4030 has the I2C4
-pins connected as those are needed for voltage control during
-idle. If the I2C4 lines are not properly muxed, any voltage
-scaling over I2C4 will fail.
+Commit c589eb3869a8 (ARM: OMAP3: VC: calculate ramp times)
+started using regulator slew rates for calculating the idle
+mode start-up times. This works fine for I2C4 controlled
+regulator scaling as the regulators are never completely
+turned off.
 
-Let's mux those pins by default, the boards that are not using
-them can still configure things separately.
+For sys_off_mode pin controlled PMIC scripts, the slew rate
+based calculations won't work at all as the regulators are
+completely turned off and the start-up time is much longer.
+
+This means currently omap3_set_off_timings currently has
+zero chance of working on any real hardare. The current code
+is broken in at least the following ways:
+
+1. It attempts to use the default ULONG_MAX value for the
+   oscillator start-up value as we're currently never
+   initializing the start-up value.
+
+2. It relies on a magic number potentially set by the
+   bootloader for volsetup2 register.
+
+3. If no magic value is passed, it attempts to calculate
+   voltsetup2 register based on the regulator slew rate.
+   This won't work as there is roughly at least five
+   times the delay needed for turning on vdd1 and vdd2
+   regulators.
+
+4. It does duplicate register write to OMAP3_PRM_VOLTOFFSET
+
+5. It duplicates the code for omap_usec_to_32k unnecessarily
+
+6. It initialized global registers twice, once for each channel
+
+Let's just remove the broken code and call omap3_set_i2c_timings
+directly, we're better off with this function doing nothing until
+it's fixed. And otherwise further fixes to omap3_set_off_timings
+will be unreadable.
+
+And let's get rid of omap3_set_clksetup as that's not needed
+for off-idle controlled by I2C4 as in that case the oscillator
+is never shut down.
 
 Cc: Kevin Hilman <khilman@linaro.org>
 Cc: Nishanth Menon <nm@ti.com>
@@ -28,43 +62,102 @@ Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/twl4030_omap3.dtsi | 19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/vc.c | 62 +-----------------------------------------------
+ 1 file changed, 1 insertion(+), 61 deletions(-)
 
-diff --git a/arch/arm/boot/dts/twl4030_omap3.dtsi b/arch/arm/boot/dts/twl4030_omap3.dtsi
-index c353ef0..3537ae5 100644
---- a/arch/arm/boot/dts/twl4030_omap3.dtsi
-+++ b/arch/arm/boot/dts/twl4030_omap3.dtsi
-@@ -8,7 +8,7 @@
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index 3d5ba5d..dee4cee 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -292,12 +292,6 @@ static void __init omap3_vc_init_pmic_signaling(void)
+ 	omap3_vc_set_pmic_signaling(PWRDM_POWER_ON);
+ }
  
- &twl {
- 	pinctrl-names = "default";
--	pinctrl-0 = <&twl4030_pins>;
-+	pinctrl-0 = <&twl4030_pins &twl4030_vpins>;
- };
+-/* Set oscillator setup time for omap3 */
+-static void omap3_set_clksetup(u32 usec, struct voltagedomain *voltdm)
+-{
+-	voltdm->write(omap_usec_to_32k(usec), OMAP3_PRM_CLKSETUP_OFFSET);
+-}
+-
+ /**
+  * omap3_set_i2c_timings - sets i2c sleep timings for a channel
+  * @voltdm: channel to configure
+@@ -314,12 +308,6 @@ static void omap3_set_i2c_timings(struct voltagedomain *voltdm, bool off_mode)
+ 	unsigned long voltsetup1;
+ 	u32 tgt_volt;
  
- &omap3_pmx_core {
-@@ -23,3 +23,20 @@
- 		>;
- 	};
- };
-+
-+/*
-+ * If your board is not using the I2C4 pins with twl4030, then don't include
-+ * this file. For proper idle mode signaling with sys_clkreq and sys_off_mode
-+ * pins we need to configure I2C4, or else use the legacy sys_nvmode1 and
-+ * sys_nvmode2 signaling.
-+ */
-+&omap3_pmx_wkup {
-+	twl4030_vpins: pinmux_twl4030_vpins {
-+		pinctrl-single,pins = <
-+			OMAP3_WKUP_IOPAD(0x2a00, PIN_INPUT | MUX_MODE0)		/* i2c4_scl.i2c4_scl */
-+			OMAP3_WKUP_IOPAD(0x2a02, PIN_INPUT | MUX_MODE0)		/* i2c4_sda.i2c4_sda */
-+			OMAP3_WKUP_IOPAD(0x2a06, PIN_OUTPUT | MUX_MODE0)	/* sys_clkreq.sys_clkreq */
-+			OMAP3_WKUP_IOPAD(0x2a18, PIN_OUTPUT | MUX_MODE0)	/* sys_off_mode.sys_off_mode */
-+		>;
-+	};
-+};
+-	/*
+-	 * Oscillator is shut down only if we are using sys_off_mode pad,
+-	 * thus we set a minimal setup time here
+-	 */
+-	omap3_set_clksetup(1, voltdm);
+-
+ 	if (off_mode)
+ 		tgt_volt = voltdm->vc_param->off;
+ 	else
+@@ -356,61 +344,13 @@ static void omap3_set_i2c_timings(struct voltagedomain *voltdm, bool off_mode)
+  */
+ static void omap3_set_off_timings(struct voltagedomain *voltdm)
+ {
+-	unsigned long clksetup;
+-	unsigned long voltsetup2;
+-	unsigned long voltsetup2_old;
+-	u32 val;
+-	u32 tstart, tshut;
+-
+-	/* check if sys_off_mode is used to control off-mode voltages */
+-	val = voltdm->read(OMAP3_PRM_VOLTCTRL_OFFSET);
+-	if (!(val & OMAP3430_PRM_VOLTCTRL_SEL_OFF)) {
+-		/* No, omap is controlling them over I2C */
+-		omap3_set_i2c_timings(voltdm, true);
+-		return;
+-	}
+-
+-	omap_pm_get_oscillator(&tstart, &tshut);
+-	omap3_set_clksetup(tstart, voltdm);
+-
+-	clksetup = voltdm->read(OMAP3_PRM_CLKSETUP_OFFSET);
+-
+-	/* voltsetup 2 in us */
+-	voltsetup2 = voltdm->vc_param->on / voltdm->pmic->slew_rate;
+-
+-	/* convert to 32k clk cycles */
+-	voltsetup2 = DIV_ROUND_UP(voltsetup2 * 32768, 1000000);
+-
+-	voltsetup2_old = voltdm->read(OMAP3_PRM_VOLTSETUP2_OFFSET);
+-
+-	/*
+-	 * Update voltsetup2 if higher than current value (needed because
+-	 * we have multiple channels with different ramp times), also
+-	 * update voltoffset always to value recommended by TRM
+-	 */
+-	if (voltsetup2 > voltsetup2_old) {
+-		voltdm->write(voltsetup2, OMAP3_PRM_VOLTSETUP2_OFFSET);
+-		voltdm->write(clksetup - voltsetup2,
+-			OMAP3_PRM_VOLTOFFSET_OFFSET);
+-	} else
+-		voltdm->write(clksetup - voltsetup2_old,
+-			OMAP3_PRM_VOLTOFFSET_OFFSET);
+-
+-	/*
+-	 * omap is not controlling voltage scaling during off-mode,
+-	 * thus set voltsetup1 to 0
+-	 */
+-	voltdm->rmw(voltdm->vfsm->voltsetup_mask, 0,
+-		voltdm->vfsm->voltsetup_reg);
+-
+-	/* voltoffset must be clksetup minus voltsetup2 according to TRM */
+-	voltdm->write(clksetup - voltsetup2, OMAP3_PRM_VOLTOFFSET_OFFSET);
+ }
+ 
+ static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
+ {
+ 	omap3_vc_init_pmic_signaling();
+ 	omap3_set_off_timings(voltdm);
++	omap3_set_i2c_timings(voltdm, true);
+ }
+ 
+ /**
 -- 
 1.8.1.1
 
