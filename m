@@ -1,127 +1,94 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 05/14] arm: common: edma: Select event queue 1 as
-	default when booted with DT
-Date: Fri, 11 Apr 2014 15:16:54 -0500
-Message-ID: <53484DB6.4080806@ti.com>
-References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
-	<1396357575-30585-6-git-send-email-peter.ujfalusi@ti.com>
-	<5347A4FD.1030803@ti.com> <5347ACDE.7040407@ti.com>
-	<5347AE49.5020109@ti.com> <5347B7F8.2000508@ti.com>
-	<20140411094217.GA32284@intel.com>
-Reply-To: <joelf-l0cyMroinI0@public.gmane.org>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCH 00/11] Fixes for omap PM for making omap3 DT only
+Date: Fri, 11 Apr 2014 22:47:33 +0200
+Message-ID: <20140411204732.GA17997@earth.universe>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20140411094217.GA32284-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([5.45.105.125]:57771 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754930AbaDKUrx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Apr 2014 16:47:53 -0400
+Content-Disposition: inline
+In-Reply-To: <1397173639-29587-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 04/11/2014 04:42 AM, Vinod Koul wrote:> On Fri, Apr 11, 2014 at
-12:38:00PM +0300, Peter Ujfalusi wrote:
->> On 04/11/2014 11:56 AM, Sekhar Nori wrote:
->>> On Friday 11 April 2014 02:20 PM, Peter Ujfalusi wrote:
->>>> On 04/11/2014 11:17 AM, Sekhar Nori wrote:
->>>>> On Tuesday 01 April 2014 06:36 PM, Peter Ujfalusi wrote:
->>>>>> Use the EVENTQ_1 for default and leave the EVENTQ_0 to be used by
-high
->>>>>> priority channels, like audio.
->>>>>>
->>>>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
->>>>>
->>>>> Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
->>>>>
->>>>>> ---
->>>>>>  arch/arm/common/edma.c | 3 ++-
->>>>>>  1 file changed, 2 insertions(+), 1 deletion(-)
->>>>>>
->>>>>> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
->>>>>> index 86a8b263278f..19520e2519d9 100644
->>>>>> --- a/arch/arm/common/edma.c
->>>>>> +++ b/arch/arm/common/edma.c
->>>>>> @@ -1546,7 +1546,8 @@ static int edma_of_parse_dt(struct device *dev,
->>>>>>
->>>>>>  	pdata->queue_priority_mapping = queue_priority_map;
->>>>>>
->>>>>> -	pdata->default_queue = 0;
->>>>>> +	/* select queue 1 as default */
->>>>>
->>>>> It will be nice to expand the comment with explanation of why this is
->>>>> being chosen as default (lower priority queue by default for typical
->>>>> bulk data transfer).
->>>>
->>>> Yes, extended comment is a good idea.
->>>>
->>>> For the next version I think I'm going to change the code around
-default
->>>> TC/Queue and the non default queue selection, mostly based on
-Joel's comment:
->>>>
->>>> EVENTQ_1 as default queue.
->>>> Set the EVENTQ_1 priority to 7
->>>> EVENTQ_0 priority is going to stay 0 and EVENTQ_2 as 2
->>>>
->>>> Add new member to struct edma, like high_pri_queue.
->>>> When we set the queue priorities in edma_probe() we look for the
-highest
->>>> priority queue and save the number in high_pri_queue.
->>>>
->>>> I will rename the edma_request_non_default_queue() to
->>>> edma_request_high_pri_queue() and it will assign the channel to the
-high
->>>> priority queue.
->>>>
->>>> I think this way it is going to be more explicit and IMHO a bit
-more safer in
->>>> a sense the we are going to get high priority when we ask for it.
->>>
->>> Sounds much better. I had posted some ideas about adding support for
->>> channel priority in the core code but we can leave that for Vinod and
->>> Dan to say if they really see a need for that.
-> Is it part of this series?
->
->> If we do it via the dmaengine core I think it would be better to have
-a new
->> flag to be passed to dmaengine_prep_dma_*().
->> We could have for example:
->> DMA_PREP_HIGH_PRI as flag to indicate that we need high priority DMA
-if it is
->> possible.
->> We can watch for this flag in the edma driver and act accordingly.
->> ALSA's dmaengine_pcm_prepare_and_submit() could set this flag
-unconditionally
->> since audio should be treated in this way if the DMA IP can do this.
-> Will the priority be different for each descriptor or would be based
-on channel
-> usage. If not then we can add this in dma_slave_config ?
->
-> I can forsee its usage on slave controllers, so yes its useful :)
->
 
-I agree, a better place to do this would be in the config stage, since
-we can set in stone (for EDMA atleast) that the channel has a certain
-priority.
+--h31gzZEtNLTqOjlF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I can see where per-desc priority may help, such as a case where 2 users
-of the same channel want to submit different priority desc. For EDMA
-hardware though, there is no such support and the priority mapping is
-from channel->queue.
+Hi Tony,
 
-One way to add per-desc support would be to change the priority of the
-channel itself for every desc issued, based on the priority stored in
-the desc itself which would be stored in the prep stage. But currently
-we don't have such a usecase of changing priorities based on desc.
+On Thu, Apr 10, 2014 at 04:47:08PM -0700, Tony Lindgren wrote:
+> As we're planning to make omap3 device tree only soon, I was poking
+> around and noticed that PM is not working properly. As we're planning
+> to drop about 20k lines of code, I just had to try to fix this so we
+> know what is going on and don't have to go back. I was pretty bummed
+> out to find that we've had non-working PM code in mainline for
+> really long time.
+>=20
+> Anyways, I got the voltage scaling and N900 debug leds working, so
+> with those we can notice any future regressions immediately :)
 
-thanks,
+cool :)
 
--Joel
+> These are against v3.14, then you might want to also apply the
+> following two patches:
+>=20
+> [PATCH] of/platform: Fix no irq domain found errors when populating inter=
+rupts
+> https://lkml.org/lkml/2014/4/10/620
+>=20
+> [PATCH] serial: omap: Fix missing pm_runtime_resume handling by simplifyi=
+ng code
+> http://www.spinics.net/lists/linux-omap/msg104782.html
+>=20
+> Note that for the actual voltage scaling to happen, the twl4030
+> PMIC scripts are also needed. I have some uncleaned patches to
+> load those based on the compatible flag, will post those
+> separately. This series alone fixes the idle state signaling to
+> the PMIC, so we can monitor sys_clkreq and sys_off_idle pins
+> properly.
+>=20
+> Please review, comment and test,
+
+I'm on vacation from tomorrow until next week's weekend, but I will
+have a look the week after next (if still needed).
+
+I have not yet read much of TWL/OMAP PM documentation, but I wonder
+if it makes sense to move the powerscripting stuff into the DTS file
+somehow. On a first look the added N900 tables in
+drivers/mfd/twl4030-power.c seem like a step back to me.
+
+-- Sebastian
+
+--h31gzZEtNLTqOjlF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJTSFTkAAoJENju1/PIO/qa9egP/RpVKx7DWziwy6DdmslThBdh
+KVXmET6iI66vPPQXCGlXcGhuIN7i5I51NwQRaRyHHYgXJ4xXAVImb11bmjgvhhRV
+gDffoGI6Q0AsB31pdzSnSJxy3KAlMaB+CBSGBj0x/ryMWShbauPfU4bgiou/d+KD
+oUaBfaZ5Riyw+F3n25j9r8ceOR0iWNfAISm40VoU/cZ2D+51DPDCxA62Se89eBST
+5e3vQF7A6ykK6fLmUSAziZF1uBtzAO+AU7Fl13UDbkf/+Z//0VgQCB45OlyPJ8Ea
+cN1YWtriZEon9ewrWtuabUSxPM9fy1+R3Tvyzzuors+f7McGJtgSBHwF3jwtGC8k
+Kl8E4REV9kn4FIo6tzOVOpsUvngI7AdZK4AOC9gyOOPDgAFU3y3hMWoW5dm6VPyH
++3Bz0DHqzNHZGsiWLFt6rojz7C8F5JeQiF3/KkRM37jfjObQjy2nGhRt5/c7+LLG
+YqtRPmHUu/lr9leuy+47bZjkhF9+gQBOqlmv1qWEiL0UkHizskcJ22cG3d5gEwzo
+JqKwf9E18acmOj+LFFPqIDpgMaeRVkwoNTzR2omjFlH1mDPkTEvQFHeCZwRTDJck
+8gHoK9a6paT1VpI2Um3k4dQwNW4kioGL2zB5I7sylZJoOv3e9SJkBGLQgFjaR3th
+Td3LQk1fykB3Yzl68Ifq
+=onEC
+-----END PGP SIGNATURE-----
+
+--h31gzZEtNLTqOjlF--
