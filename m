@@ -1,76 +1,87 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v2 00/14] dma: edma: Fixes for cyclic (audio) operation
-Date: Fri, 11 Apr 2014 22:22:24 +0530
-Message-ID: <20140411165224.GF32284@intel.com>
-References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2] ARM: OMAP3: hwmod_data: Correct clock domains for
+ USB modules
+Date: Fri, 11 Apr 2014 17:58:14 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1404111755450.14347@utopia.booyaka.com>
+References: <1397056615-4503-1-git-send-email-rogerq@ti.com> <1397114297-4013-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: dan.j.williams@intel.com, nsekhar@ti.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, joelf@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, mporter@linaro.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:59956 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751586AbaDKR6P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2014 13:58:15 -0400
+In-Reply-To: <1397114297-4013-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, nm@ti.com
+Cc: tony@atomide.com, Keshava Munegowda <keshava_mgowda@ti.com>, Partha Basak <parthab@india.ti.com>, balbi@ti.com, linux-omap@vger.kernel.org
 
-On Tue, Apr 01, 2014 at 04:06:01PM +0300, Peter Ujfalusi wrote:
-> Hi,
-> 
-> This is basically a resend of the previous series:
-> https://lkml.org/lkml/2014/3/13/119
-> with removed ASoC patches (most of them are applied already).
-> 
-> Changes since v1:
-> - ASoC patches removed
-> - Comments from Andriy Shevchenko addressed
-> - patch added to fix cases when src/dst_maxburst is set to 0
-> 
-> Adding support for DMA pause/resume
-> Possibility to select non default event queue/TC for cyclic (audio) dma
-> channels: all devices using the eDMA via dmaengine was assigned to the default
-> EQ/TC (mmc, i2c, spi, etc, and audio). This is not optimal from system
-> performance point of view since sharing the same EQ/TC can cause latency spikes
-> for cyclic channels (long DMA transfers for MMC for example).
-> 
-> While debugging the edma to get things sorted out I noticed that the debug was
-> too verbose and the important information was hidden even when the we did not
-> asked for verbose dmaengine debug.
-> I have included some debug cleanups for the edma dmaengine driver also.
-> 
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (14):
->   platform_data: edma: Be precise with the paRAM struct
->   dma: edma: Correct the handling of src/dst_maxburst == 0
->   dma: edma: Add support for DMA_PAUSE/RESUME operation
->   dma: edma: Set DMA_CYCLIC capability flag
->   arm: common: edma: Select event queue 1 as default when booted with DT
->   arm: common: edma: Save the number of event queues/TCs
->   arm: common: edma: API to request non default queue for a channel
->   DMA: edma: Use different eventq for cyclic channels
->   dma: edma: Implement device_slave_caps callback
->   dma: edma: Simplify direction configuration in edma_config_pset()
->   dma: edma: Reduce debug print verbosity for non verbose debugging
->   dma: edma: Prefix debug prints where the text were identical in prep
->     callbacks
->   dma: edma: Add channel number to debug prints
->   dma: edma: Print the direction value as well when it is not supported
+On Thu, 10 Apr 2014, Roger Quadros wrote:
 
-Okay I have noticed lots of folks are using dma: which IMO isn't right here,
-would prefer folks to use the right subsystem name, so dmaengine: xxxx would be
-right subject line :)
+> OMAP3 doesn't contain "l3_init_clkdm" clock domain. Use the
+> proper clock domains for USB Host and USB TLL modules.
+> 
+> Gets rid of the following warnings during boot
+>  omap_hwmod: usb_host_hs: could not associate to clkdm l3_init_clkdm
+>  omap_hwmod: usb_tll_hs: could not associate to clkdm l3_init_clkdm
+> 
+> Reported-by: Nishanth Menon <nm@ti.com>
+> CC: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
+Thanks.  Looks like this was added by commit 
+de231388cb80a8ef3e779bbfa0564ba0157b7377 ("ARM: OMAP: USB: EHCI and OHCI 
+hwmod structures for OMAP3").  Have queued the following patch for 
+v3.15-rc.
+
+
+- Paul
+
+From: Roger Quadros <rogerq@ti.com>
+Date: Thu, 10 Apr 2014 10:18:17 +0300
+Subject: [PATCH] ARM: OMAP3: hwmod_data: Correct clock domains for USB modules
+
+OMAP3 doesn't contain "l3_init_clkdm" clock domain. Use the
+proper clock domains for USB Host and USB TLL modules.
+
+Gets rid of the following warnings during boot
+ omap_hwmod: usb_host_hs: could not associate to clkdm l3_init_clkdm
+ omap_hwmod: usb_tll_hs: could not associate to clkdm l3_init_clkdm
+
+Reported-by: Nishanth Menon <nm@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Fixes: de231388cb80a8ef3e779bbfa0564ba0157b7377 ("ARM: OMAP: USB: EHCI and OHCI hwmod structures for OMAP3")
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: Partha Basak <parthab@india.ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index a123ff0070bd..71ac7d5f3385 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -1964,7 +1964,7 @@ static struct omap_hwmod_irq_info omap3xxx_usb_host_hs_irqs[] = {
+ static struct omap_hwmod omap3xxx_usb_host_hs_hwmod = {
+ 	.name		= "usb_host_hs",
+ 	.class		= &omap3xxx_usb_host_hs_hwmod_class,
+-	.clkdm_name	= "l3_init_clkdm",
++	.clkdm_name	= "usbhost_clkdm",
+ 	.mpu_irqs	= omap3xxx_usb_host_hs_irqs,
+ 	.main_clk	= "usbhost_48m_fck",
+ 	.prcm = {
+@@ -2047,7 +2047,7 @@ static struct omap_hwmod_irq_info omap3xxx_usb_tll_hs_irqs[] = {
+ static struct omap_hwmod omap3xxx_usb_tll_hs_hwmod = {
+ 	.name		= "usb_tll_hs",
+ 	.class		= &omap3xxx_usb_tll_hs_hwmod_class,
+-	.clkdm_name	= "l3_init_clkdm",
++	.clkdm_name	= "core_l4_clkdm",
+ 	.mpu_irqs	= omap3xxx_usb_tll_hs_irqs,
+ 	.main_clk	= "usbtll_fck",
+ 	.prcm = {
 -- 
-~Vinod
-> 
->  arch/arm/common/edma.c             | 34 +++++++++++++-
->  drivers/dma/edma.c                 | 96 +++++++++++++++++++++++++++++---------
->  include/linux/platform_data/edma.h | 20 ++++----
->  3 files changed, 119 insertions(+), 31 deletions(-)
-> 
-> -- 
-> 1.9.1
-> 
+1.9.1
 
--- 
