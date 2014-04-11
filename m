@@ -1,117 +1,84 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 04/11] ARM: OMAP3: Fix voltage control for deeper idle
- states
-Date: Fri, 11 Apr 2014 08:14:45 -0700
-Message-ID: <20140411151445.GA5350@atomide.com>
-References: <1397173639-29587-1-git-send-email-tony@atomide.com>
- <1397173639-29587-5-git-send-email-tony@atomide.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v2 03/14] dma: edma: Add support for DMA_PAUSE/RESUME
+ operation
+Date: Fri, 11 Apr 2014 22:13:27 +0530
+Message-ID: <20140411164327.GD32284@intel.com>
+References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
+ <1396357575-30585-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47712 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755524AbaDKPOu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2014 11:14:50 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1397173639-29587-5-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1396357575-30585-4-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: dan.j.williams@intel.com, nsekhar@ti.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, joelf@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, mporter@linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [140410 16:52]:
-> @@ -220,8 +220,18 @@ static inline u32 omap_usec_to_32k(u32 usec)
->  	return DIV_ROUND_UP_ULL(32768ULL * (u64)usec, 1000000ULL);
+On Tue, Apr 01, 2014 at 04:06:04PM +0300, Peter Ujfalusi wrote:
+> Pause/Resume can be used by the audio stack when the stream is paused/resumed
+> The edma platform code has support for this and the legacy audio stack used
+> this.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  drivers/dma/edma.c | 28 ++++++++++++++++++++++++++++
+>  1 file changed, 28 insertions(+)
+> 
+> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+> index 2742867fd1e6..7891378a03f0 100644
+> --- a/drivers/dma/edma.c
+> +++ b/drivers/dma/edma.c
+> @@ -240,6 +240,26 @@ static int edma_slave_config(struct edma_chan *echan,
+>  	return 0;
 >  }
 >  
-> +struct omap3_vc_config {
-> +	u32 clksetup;
-> +	u32 voltsetup1;
-> +	u32 voltsetup2;
-> +	u32 voltctrl;
-> +};
+> +static int edma_dma_pause(struct edma_chan *echan)
+> +{
+> +	/* Pause/Resume only allowed with cyclic mode */
+> +	if (!echan->edesc->cyclic)
+> +		return -EINVAL;
+why this artificial restriction? The driver can do pause even for non cyclic
+cases too? Yes the usage is in cyclic context but why should we limit any future
+work on this?
 
-It seems we can keep just voltsetup1 and voltsetup2 here. The
-others need to be initialized just once it seems.
-
->  static void omap3_set_off_timings(struct voltagedomain *voltdm)
+-- 
+~Vinod
+> +
+> +	edma_pause(echan->ch_num);
+> +	return 0;
+> +}
+> +
+> +static int edma_dma_resume(struct edma_chan *echan)
+> +{
+> +	/* Pause/Resume only allowed with cyclic mode */
+> +	if (!echan->edesc->cyclic)
+> +		return -EINVAL;
+> +
+> +	edma_resume(echan->ch_num);
+> +	return 0;
+> +}
+> +
+>  static int edma_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
+>  			unsigned long arg)
 >  {
-> +	struct omap3_vc_config *c = omap3_vc_timings;
-> +	u32 tstart, tshut, voltoffset;
+> @@ -255,6 +275,14 @@ static int edma_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
+>  		config = (struct dma_slave_config *)arg;
+>  		ret = edma_slave_config(echan, config);
+>  		break;
+> +	case DMA_PAUSE:
+> +		ret = edma_dma_pause(echan);
+> +		break;
 > +
-> +	if (c->clksetup)
-> +		return;
+> +	case DMA_RESUME:
+> +		ret = edma_dma_resume(echan);
+> +		break;
 > +
-> +	omap_pm_get_oscillator(&tstart, &tshut);
-> +	if (tstart == ULONG_MAX) {
-> +		pr_debug("PM: oscillator start-up time not initialized, using 10ms\n");
-> +		c->clksetup = omap_usec_to_32k(10000);
-> +	} else {
-> +		c->clksetup = omap_usec_to_32k(tstart);
-> +	}
-> +
-> +	/*
-> +	 * For twl4030 errata 27, we need to allow minimum ~488.32 us wait to
-> +	 * switch from HFCLKIN to internal oscillator. That means timings
-> +	 * have voltoffset fixed to 0xa in rounded up 32 KiHz cycles. And
-> +	 * that means we can calculate the value based on the oscillator
-> +	 * start-up time since voltoffset2 = clksetup - voltoffset.
-> +	 */
-> +	voltoffset = omap_usec_to_32k(488);
-> +	c->voltsetup2 = c->clksetup - voltoffset;
-> +	voltdm->write(voltoffset, OMAP3_PRM_VOLTOFFSET_OFFSET);
+>  	default:
+>  		ret = -ENOSYS;
+>  	}
+> -- 
+> 1.9.1
+> 
 
-And here we're missing a write to clksetup, without that the off idle
-timings are not correct.. Below is an incremental diff on top of this
-patch.
-
-Regards,
-
-Tony
-
-8< -------------------------------
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -221,10 +221,8 @@ static inline u32 omap_usec_to_32k(u32 usec)
- }
- 
- struct omap3_vc_config {
--	u32 clksetup;
- 	u32 voltsetup1;
- 	u32 voltsetup2;
--	u32 voltctrl;
- };
- 
- static struct omap3_vc_config omap3_vc_timings[2];
-@@ -368,17 +366,17 @@ static void omap3_set_i2c_timings(struct voltagedomain *voltdm)
- static void omap3_set_off_timings(struct voltagedomain *voltdm)
- {
- 	struct omap3_vc_config *c = omap3_vc_timings;
--	u32 tstart, tshut, voltoffset;
-+	u32 tstart, tshut, clksetup, voltoffset;
- 
--	if (c->clksetup)
-+	if (c->voltsetup2)
- 		return;
- 
- 	omap_pm_get_oscillator(&tstart, &tshut);
- 	if (tstart == ULONG_MAX) {
- 		pr_debug("PM: oscillator start-up time not initialized, using 10ms\n");
--		c->clksetup = omap_usec_to_32k(10000);
-+		clksetup = omap_usec_to_32k(10000);
- 	} else {
--		c->clksetup = omap_usec_to_32k(tstart);
-+		clksetup = omap_usec_to_32k(tstart);
- 	}
- 
- 	/*
-@@ -389,7 +387,8 @@ static void omap3_set_off_timings(struct voltagedomain *voltdm)
- 	 * start-up time since voltoffset2 = clksetup - voltoffset.
- 	 */
- 	voltoffset = omap_usec_to_32k(488);
--	c->voltsetup2 = c->clksetup - voltoffset;
-+	c->voltsetup2 = clksetup - voltoffset;
-+	voltdm->write(clksetup, OMAP3_PRM_CLKSETUP_OFFSET);
- 	voltdm->write(voltoffset, OMAP3_PRM_VOLTOFFSET_OFFSET);
- }
- 
+-- 
