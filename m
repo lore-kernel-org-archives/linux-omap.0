@@ -1,84 +1,74 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v2 03/14] dma: edma: Add support for DMA_PAUSE/RESUME
- operation
-Date: Fri, 11 Apr 2014 22:13:27 +0530
-Message-ID: <20140411164327.GD32284@intel.com>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 08/14] DMA: edma: Use different eventq for cyclic
+	channels
+Date: Fri, 11 Apr 2014 22:17:55 +0530
+Message-ID: <20140411164755.GE32284@intel.com>
 References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
- <1396357575-30585-4-git-send-email-peter.ujfalusi@ti.com>
+	<1396357575-30585-9-git-send-email-peter.ujfalusi@ti.com>
+	<5346C88E.8010504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1396357575-30585-4-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: dan.j.williams@intel.com, nsekhar@ti.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, joelf@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, mporter@linaro.org
+In-Reply-To: <5346C88E.8010504-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 01, 2014 at 04:06:04PM +0300, Peter Ujfalusi wrote:
-> Pause/Resume can be used by the audio stack when the stream is paused/resumed
-> The edma platform code has support for this and the legacy audio stack used
-> this.
+On Thu, Apr 10, 2014 at 11:36:30AM -0500, Joel Fernandes wrote:
+> On 04/01/2014 08:06 AM, Peter Ujfalusi wrote:
+> > To improve latency with cyclic DMA operation it is preferred to
+> > use different eventq/tc than the default which is used by all
+> > other drivers (mmc, spi, i2c, etc).
+> > When preparing the cyclic dma ask for non default queue for the
+> > channel which is going to be used with cyclic mode.
+> > 
+> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+> > ---
+> >  drivers/dma/edma.c | 3 +++
+> >  1 file changed, 3 insertions(+)
+> > 
+> > diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+> > index 1dd9e8806975..10048b40fac8 100644
+> > --- a/drivers/dma/edma.c
+> > +++ b/drivers/dma/edma.c
+> > @@ -628,6 +628,9 @@ static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
+> >  		edesc->pset[i].opt |= TCINTEN;
+> >  	}
+> >  
+> > +	/* Use different eventq/tc for cyclic DMA to reduce latency */
+> > +	edma_request_non_default_queue(echan->ch_num);
+> > +
+> >  	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
+> >  }
+> >  
+> > 
 > 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  drivers/dma/edma.c | 28 ++++++++++++++++++++++++++++
->  1 file changed, 28 insertions(+)
-> 
-> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-> index 2742867fd1e6..7891378a03f0 100644
-> --- a/drivers/dma/edma.c
-> +++ b/drivers/dma/edma.c
-> @@ -240,6 +240,26 @@ static int edma_slave_config(struct edma_chan *echan,
->  	return 0;
->  }
->  
-> +static int edma_dma_pause(struct edma_chan *echan)
-> +{
-> +	/* Pause/Resume only allowed with cyclic mode */
-> +	if (!echan->edesc->cyclic)
-> +		return -EINVAL;
-why this artificial restriction? The driver can do pause even for non cyclic
-cases too? Yes the usage is in cyclic context but why should we limit any future
-work on this?
+> Is there any way to guarantee that the non-default queue is of the
+> highest priority, or in other words default queue is of lowest priority.
+well as we are discussing in other thread, it would make sense to pass the
+required priority (i am using audio so pls give me highest one)
 
 -- 
 ~Vinod
-> +
-> +	edma_pause(echan->ch_num);
-> +	return 0;
-> +}
-> +
-> +static int edma_dma_resume(struct edma_chan *echan)
-> +{
-> +	/* Pause/Resume only allowed with cyclic mode */
-> +	if (!echan->edesc->cyclic)
-> +		return -EINVAL;
-> +
-> +	edma_resume(echan->ch_num);
-> +	return 0;
-> +}
-> +
->  static int edma_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
->  			unsigned long arg)
->  {
-> @@ -255,6 +275,14 @@ static int edma_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
->  		config = (struct dma_slave_config *)arg;
->  		ret = edma_slave_config(echan, config);
->  		break;
-> +	case DMA_PAUSE:
-> +		ret = edma_dma_pause(echan);
-> +		break;
-> +
-> +	case DMA_RESUME:
-> +		ret = edma_dma_resume(echan);
-> +		break;
-> +
->  	default:
->  		ret = -ENOSYS;
->  	}
-> -- 
-> 1.9.1
+> I know you set queue 1 as default because by default 0 is higher
+> priority. And then assigning non-default queue.
 > 
+> When assigning default to Queue 1, it would be good to also call
+> assign_priority_to_queue and set QUEPRI to 7 for Queue 1. Since 0, 2 and
+> 4 are all non-defaults.
+> 
+> Thanks,
+> -Joel
 
 -- 
