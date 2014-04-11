@@ -1,47 +1,46 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH V3 2/6] ARM: AM43xx: fix dpll init in bypass mode
-Date: Fri, 11 Apr 2014 18:24:14 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1404111823350.14347@utopia.booyaka.com>
-References: <1395658916-9032-1-git-send-email-sathyap@ti.com> <1395658916-9032-3-git-send-email-sathyap@ti.com> <5343CA69.1070209@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: fix missing braces in _init()
+Date: Fri, 11 Apr 2014 18:27:57 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1404111827410.14347@utopia.booyaka.com>
+References: <1394788517-15014-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:60226 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:60250 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866AbaDKSYP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2014 14:24:15 -0400
-In-Reply-To: <5343CA69.1070209@ti.com>
+	with ESMTP id S1750838AbaDKS16 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2014 14:27:58 -0400
+In-Reply-To: <1394788517-15014-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Sathya Prakash M R <sathyap@ti.com>, linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Suman Anna <s-anna@ti.com>, Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
 
-Hi Tomi.
+On Fri, 14 Mar 2014, Rajendra Nayak wrote:
 
-On Tue, 8 Apr 2014, Tomi Valkeinen wrote:
-
-> On 24/03/14 13:01, Sathya Prakash M R wrote:
-> > From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > 
-> > On AM43xx, if a PLL is in bypass at kernel init, the code in
-> > omap2_get_dpll_rate() will not realize this and will try to calculate
-> > the clock rate using the multiplier and the divider, resulting in
-> > errors.
-> > 
-> > omap2_init_dpll_parent() has similar issue.
-> > 
-> > Add the missing soc_is_am43xx() check to make the code work on AM43xx.
-> > 
-> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/clkt_dpll.c |    4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> From: Suman Anna <s-anna@ti.com>
 > 
-> Can you queue this for 3.15 fixes?
+> Bug was introduced by commit 'f92d959: ARM: OMAP2+: hwmod:
+> Extract no-idle and no-reset info from DT'
+> 
+> There were 2 versions of the patch posted which resulted in the above
+> commit. While v1 [1] had the bug, v2 [2] had it fixed.
+> However v1 apparently seemed to have been pulled in by mistake
+> introducing the bug.
+> 
+> Given of_find_property() does return NULL when the node passed is
+> NULL, it did not introduce any functional issues as such, just the
+> fact that the second if check was executed unnecessarily.
+> 
+> [1] https://www.mail-archive.com/linux-omap@vger.kernel.org/msg94220.html
+> [2] http://www.spinics.net/lists/linux-omap/msg98490.html
+> 
+> Cc: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 
-Done.  Thanks for pointing it out - I had missed the repost due to not 
-being in the Cc:.
+Thanks, queued for v3.15-rc.
 
 
 - Paul
