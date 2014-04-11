@@ -1,16 +1,19 @@
 From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 10/14] dma: edma: Simplify direction configuration
-	in edma_config_pset()
-Date: Fri, 11 Apr 2014 14:57:48 -0500
-Message-ID: <5348493C.8040408@ti.com>
+Subject: Re: [PATCH v2 05/14] arm: common: edma: Select event queue 1 as
+	default when booted with DT
+Date: Fri, 11 Apr 2014 15:16:54 -0500
+Message-ID: <53484DB6.4080806@ti.com>
 References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
-	<1396357575-30585-11-git-send-email-peter.ujfalusi@ti.com>
-	<53471DC5.4090001@ti.com> <53478E0E.8040709@ti.com>
+	<1396357575-30585-6-git-send-email-peter.ujfalusi@ti.com>
+	<5347A4FD.1030803@ti.com> <5347ACDE.7040407@ti.com>
+	<5347AE49.5020109@ti.com> <5347B7F8.2000508@ti.com>
+	<20140411094217.GA32284@intel.com>
+Reply-To: <joelf-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <53478E0E.8040709-l0cyMroinI0@public.gmane.org>
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20140411094217.GA32284-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
 	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
@@ -18,35 +21,107 @@ List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@pu
 List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
 List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
 	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/11/2014 01:39 AM, Peter Ujfalusi wrote:
-> On 04/11/2014 01:40 AM, Joel Fernandes wrote:
->> On 04/01/2014 08:06 AM, Peter Ujfalusi wrote:
->>> We only support DEV_TO_MEM or MEM_TO_DEV directions with edma driver and the
->>> check for the direction has been already done in the function calling
->>> edma_config_pset().
->>> The error reporting is redundant and also the "else if ()" can be removed.
+On 04/11/2014 04:42 AM, Vinod Koul wrote:> On Fri, Apr 11, 2014 at
+12:38:00PM +0300, Peter Ujfalusi wrote:
+>> On 04/11/2014 11:56 AM, Sekhar Nori wrote:
+>>> On Friday 11 April 2014 02:20 PM, Peter Ujfalusi wrote:
+>>>> On 04/11/2014 11:17 AM, Sekhar Nori wrote:
+>>>>> On Tuesday 01 April 2014 06:36 PM, Peter Ujfalusi wrote:
+>>>>>> Use the EVENTQ_1 for default and leave the EVENTQ_0 to be used by
+high
+>>>>>> priority channels, like audio.
+>>>>>>
+>>>>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+>>>>>
+>>>>> Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+>>>>>
+>>>>>> ---
+>>>>>>  arch/arm/common/edma.c | 3 ++-
+>>>>>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>>>>>
+>>>>>> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+>>>>>> index 86a8b263278f..19520e2519d9 100644
+>>>>>> --- a/arch/arm/common/edma.c
+>>>>>> +++ b/arch/arm/common/edma.c
+>>>>>> @@ -1546,7 +1546,8 @@ static int edma_of_parse_dt(struct device *dev,
+>>>>>>
+>>>>>>  	pdata->queue_priority_mapping = queue_priority_map;
+>>>>>>
+>>>>>> -	pdata->default_queue = 0;
+>>>>>> +	/* select queue 1 as default */
+>>>>>
+>>>>> It will be nice to expand the comment with explanation of why this is
+>>>>> being chosen as default (lower priority queue by default for typical
+>>>>> bulk data transfer).
+>>>>
+>>>> Yes, extended comment is a good idea.
+>>>>
+>>>> For the next version I think I'm going to change the code around
+default
+>>>> TC/Queue and the non default queue selection, mostly based on
+Joel's comment:
+>>>>
+>>>> EVENTQ_1 as default queue.
+>>>> Set the EVENTQ_1 priority to 7
+>>>> EVENTQ_0 priority is going to stay 0 and EVENTQ_2 as 2
+>>>>
+>>>> Add new member to struct edma, like high_pri_queue.
+>>>> When we set the queue priorities in edma_probe() we look for the
+highest
+>>>> priority queue and save the number in high_pri_queue.
+>>>>
+>>>> I will rename the edma_request_non_default_queue() to
+>>>> edma_request_high_pri_queue() and it will assign the channel to the
+high
+>>>> priority queue.
+>>>>
+>>>> I think this way it is going to be more explicit and IMHO a bit
+more safer in
+>>>> a sense the we are going to get high priority when we ask for it.
 >>>
->>
->> NAK. Please don't do this. I have been working on MEM_TO_MEM support as
->> well so leave it as it is for future.
-> 
-> Sure. It is still valid to say that the error else {} will never going to
-> happen since you have the same check in the calling function and they already
-> filtered the non implemented direction.
-> 
+>>> Sounds much better. I had posted some ideas about adding support for
+>>> channel priority in the core code but we can leave that for Vinod and
+>>> Dan to say if they really see a need for that.
+> Is it part of this series?
+>
+>> If we do it via the dmaengine core I think it would be better to have
+a new
+>> flag to be passed to dmaengine_prep_dma_*().
+>> We could have for example:
+>> DMA_PREP_HIGH_PRI as flag to indicate that we need high priority DMA
+if it is
+>> possible.
+>> We can watch for this flag in the edma driver and act accordingly.
+>> ALSA's dmaengine_pcm_prepare_and_submit() could set this flag
+unconditionally
+>> since audio should be treated in this way if the DMA IP can do this.
+> Will the priority be different for each descriptor or would be based
+on channel
+> usage. If not then we can add this in dma_slave_config ?
+>
+> I can forsee its usage on slave controllers, so yes its useful :)
+>
 
-That's true. Though the patch removes the else if which would mean more
-work later ;)
+I agree, a better place to do this would be in the config stage, since
+we can set in stone (for EDMA atleast) that the channel has a certain
+priority.
 
-> I'll leave this out from v3.
+I can see where per-desc priority may help, such as a case where 2 users
+of the same channel want to submit different priority desc. For EDMA
+hardware though, there is no such support and the priority mapping is
+from channel->queue.
 
-Thanks.
+One way to add per-desc support would be to change the priority of the
+channel itself for every desc issued, based on the priority stored in
+the desc itself which would be stored in the prep stage. But currently
+we don't have such a usecase of changing priorities based on desc.
 
-Regards,
+thanks,
+
 -Joel
