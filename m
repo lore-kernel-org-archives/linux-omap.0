@@ -1,45 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: don't try to register the main clock
- twice.
-Date: Fri, 11 Apr 2014 18:33:53 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1404111829520.14347@utopia.booyaka.com>
-References: <1396007435-20100-1-git-send-email-wsa@the-dreams.de>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 10/14] dma: edma: Simplify direction configuration
+	in edma_config_pset()
+Date: Fri, 11 Apr 2014 14:57:48 -0500
+Message-ID: <5348493C.8040408@ti.com>
+References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
+	<1396357575-30585-11-git-send-email-peter.ujfalusi@ti.com>
+	<53471DC5.4090001@ti.com> <53478E0E.8040709@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:60452 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754620AbaDKSdy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2014 14:33:54 -0400
-In-Reply-To: <1396007435-20100-1-git-send-email-wsa@the-dreams.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <53478E0E.8040709-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>, NeilBrown <neilb@suse.de>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@sang-engineering.com>
 
-Hi Wolfram, Neil,
-
-On Fri, 28 Mar 2014, Wolfram Sang wrote:
-
-> From: NeilBrown <neilb@suse.de>
+On 04/11/2014 01:39 AM, Peter Ujfalusi wrote:
+> On 04/11/2014 01:40 AM, Joel Fernandes wrote:
+>> On 04/01/2014 08:06 AM, Peter Ujfalusi wrote:
+>>> We only support DEV_TO_MEM or MEM_TO_DEV directions with edma driver and the
+>>> check for the direction has been already done in the function calling
+>>> edma_config_pset().
+>>> The error reporting is redundant and also the "else if ()" can be removed.
+>>>
+>>
+>> NAK. Please don't do this. I have been working on MEM_TO_MEM support as
+>> well so leave it as it is for future.
 > 
-> If omap_device_alloc is given 2 or more "struct omap_hwmod" it will try
-> to register the 'main_clk' of each of them with the same alias - "fck" -
-> against the same device.  This fails. So to avoid a warning, don't even
-> try.
+> Sure. It is still valid to say that the error else {} will never going to
+> happen since you have the same check in the calling function and they already
+> filtered the non implemented direction.
 > 
-> Signed-off-by: NeilBrown <neilb@suse.de>
-> [wsa: ported to top-of-tree]
-> Signed-off-by: Wolfram Sang <wsa@sang-engineering.com>
 
-What devices and hwmods cause this warning on AM335x?   Ideally, there 
-should only be one hwmod per device.  Usually when multiple hwmods are 
-stacked up for a device, it means that something isn't right - either the 
-hwmod data, or the device driver itself. 
+That's true. Though the patch removes the else if which would mean more
+work later ;)
 
-In the specific context of this patch, the problem would be: what if the 
-two hwmods have different main_clk entries?  Which one should be 
-associated with the "fck" alias?
+> I'll leave this out from v3.
 
+Thanks.
 
-- Paul
+Regards,
+-Joel
