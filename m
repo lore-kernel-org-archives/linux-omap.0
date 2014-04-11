@@ -1,123 +1,139 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2 3/3] ARM: OMAP2+: AM43x: L2 cache support
-Date: Fri, 11 Apr 2014 12:25:01 +0100
-Message-ID: <20140411112500.GM27282@n2100.arm.linux.org.uk>
-References: <efa5fda5ae625a43fac14bf173cbd96ad7b44e7a.1396605300.git.nsekhar@ti.com> <20140404101808.GG27282@n2100.arm.linux.org.uk> <53440D73.6060504@ti.com> <20140409162327.GH27282@n2100.arm.linux.org.uk> <534686DF.7070207@ti.com> <20140410120348.GK27282@n2100.arm.linux.org.uk> <53468B8E.9040604@ti.com> <53469C29.8050906@ti.com> <20140410134028.GL27282@n2100.arm.linux.org.uk> <53477EC5.5080400@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 05/14] arm: common: edma: Select event queue 1 as
+	default when booted with DT
+Date: Fri, 11 Apr 2014 14:32:28 +0300
+Message-ID: <5347D2CC.4030407@ti.com>
+References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
+	<1396357575-30585-6-git-send-email-peter.ujfalusi@ti.com>
+	<5347A4FD.1030803@ti.com> <5347ACDE.7040407@ti.com>
+	<5347AE49.5020109@ti.com> <5347B7F8.2000508@ti.com>
+	<20140411094217.GA32284@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:58033 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754076AbaDKLZh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Apr 2014 07:25:37 -0400
-Content-Disposition: inline
-In-Reply-To: <53477EC5.5080400@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20140411094217.GA32284-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, joelf-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Apr 11, 2014 at 11:03:57AM +0530, Sekhar Nori wrote:
-> Here is a revised patch which is just an extension of your patch 
-> with L2C-220 case handled. I dont really have L2C-220 hardware so even 
-> if you want to handle that at a later time, it would be perfectly okay 
-> with me.
+Hi Vinod,
 
-This is what I came up with, which of course is very similar to yours.
-I think the only difference is that I'm allowing the state of the NS
-access bits to be preserved by the OMAP code, getting OMAP closer to
-the target of a ~0 mask.  The only bits which are clear in the mask
-passed into the L2 code by OMAP now are:
+On 04/11/2014 12:42 PM, Vinod Koul wrote:
+> On Fri, Apr 11, 2014 at 12:38:00PM +0300, Peter Ujfalusi wrote:
+>> On 04/11/2014 11:56 AM, Sekhar Nori wrote:
+>>> On Friday 11 April 2014 02:20 PM, Peter Ujfalusi wrote:
+>>>> On 04/11/2014 11:17 AM, Sekhar Nori wrote:
+>>>>> On Tuesday 01 April 2014 06:36 PM, Peter Ujfalusi wrote:
+>>>>>> Use the EVENTQ_1 for default and leave the EVENTQ_0 to be used by hi=
+gh
+>>>>>> priority channels, like audio.
+>>>>>>
+>>>>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+>>>>>
+>>>>> Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+>>>>>
+>>>>>> ---
+>>>>>>  arch/arm/common/edma.c | 3 ++-
+>>>>>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>>>>>
+>>>>>> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+>>>>>> index 86a8b263278f..19520e2519d9 100644
+>>>>>> --- a/arch/arm/common/edma.c
+>>>>>> +++ b/arch/arm/common/edma.c
+>>>>>> @@ -1546,7 +1546,8 @@ static int edma_of_parse_dt(struct device *dev,
+>>>>>>  =
 
-- L310_AUX_CTRL_INSTR_PREFETCH
-- L310_AUX_CTRL_DATA_PREFETCH
-- L310_AUX_CTRL_CACHE_REPLACE_RR
-- L2C_AUX_CTRL_SHARED_OVERRIDE
-- L2C_AUX_CTRL_PARITY_ENABLE
+>>>>>>  	pdata->queue_priority_mapping =3D queue_priority_map;
+>>>>>>  =
 
-It sounds like we can kill L310_AUX_CTRL_CACHE_REPLACE_RR as well since
-that's already set for us (and fwir is the power-on-reset default too.)
+>>>>>> -	pdata->default_queue =3D 0;
+>>>>>> +	/* select queue 1 as default */
+>>>>>
+>>>>> It will be nice to expand the comment with explanation of why this is
+>>>>> being chosen as default (lower priority queue by default for typical
+>>>>> bulk data transfer).
+>>>>
+>>>> Yes, extended comment is a good idea.
+>>>>
+>>>> For the next version I think I'm going to change the code around defau=
+lt
+>>>> TC/Queue and the non default queue selection, mostly based on Joel's c=
+omment:
+>>>>
+>>>> EVENTQ_1 as default queue.
+>>>> Set the EVENTQ_1 priority to 7
+>>>> EVENTQ_0 priority is going to stay 0 and EVENTQ_2 as 2
+>>>>
+>>>> Add new member to struct edma, like high_pri_queue.
+>>>> When we set the queue priorities in edma_probe() we look for the highe=
+st
+>>>> priority queue and save the number in high_pri_queue.
+>>>>
+>>>> I will rename the edma_request_non_default_queue() to
+>>>> edma_request_high_pri_queue() and it will assign the channel to the hi=
+gh
+>>>> priority queue.
+>>>>
+>>>> I think this way it is going to be more explicit and IMHO a bit more s=
+afer in
+>>>> a sense the we are going to get high priority when we ask for it.
+>>>
+>>> Sounds much better. I had posted some ideas about adding support for
+>>> channel priority in the core code but we can leave that for Vinod and
+>>> Dan to say if they really see a need for that.
+> Is it part of this series?
 
- arch/arm/mach-omap2/omap4-common.c |  4 +---
- arch/arm/mm/cache-l2x0.c           | 23 +++++++++++++++++++++--
- 2 files changed, 22 insertions(+), 5 deletions(-)
+No, it is not. The original series tackled the DMA queue selection within t=
+he
+edma driver stack. It was selecting high priority channel for cyclic (audio)
+use only, all other DMA channels were executed on a lower priority queue.
 
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index c0f9a81a2d32..3b01c5223b11 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -213,8 +213,6 @@ static int __init omap_l2_cache_init(void)
- 
- 	/* 16-way associativity, parity disabled, way size - 64KB (es2.0 +) */
- 	aux_ctrl = L310_AUX_CTRL_CACHE_REPLACE_RR |
--		   L310_AUX_CTRL_NS_LOCKDOWN |
--		   L310_AUX_CTRL_NS_INT_CTRL |
- 		   L2C_AUX_CTRL_SHARED_OVERRIDE |
- 		   L310_AUX_CTRL_DATA_PREFETCH |
- 		   L310_AUX_CTRL_INSTR_PREFETCH;
-@@ -223,7 +221,7 @@ static int __init omap_l2_cache_init(void)
- 	if (of_have_populated_dt())
- 		l2x0_of_init(aux_ctrl, 0xc19fffff);
- 	else
--		l2x0_init(l2cache_base, aux_ctrl, 0xc19fffff);
-+		l2x0_init(l2cache_base, aux_ctrl, 0xcd9fffff);
- 
- 	return 0;
- }
-diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-index 98796b789eb9..5ec454d51a9f 100644
---- a/arch/arm/mm/cache-l2x0.c
-+++ b/arch/arm/mm/cache-l2x0.c
-@@ -502,11 +502,23 @@ static void l2c220_sync(void)
- 	raw_spin_unlock_irqrestore(&l2x0_lock, flags);
- }
- 
-+static void l2c220_enable(void __iomem *base, u32 aux, unsigned num_lock)
-+{
-+	/*
-+	 * Always enable non-secure access to the lockdown registers -
-+	 * we write to them as part of the L2C enable sequence so they
-+	 * need to be accessible.
-+	 */
-+	aux |= L220_AUX_CTRL_NS_LOCKDOWN;
-+
-+	l2c_enable(base, aux, num_lock);
-+}
-+
- static const struct l2c_init_data l2c220_data = {
- 	.type = "L2C-220",
- 	.way_size_0 = SZ_8K,
- 	.num_lock = 1,
--	.enable = l2c_enable,
-+	.enable = l2c220_enable,
- 	.save = l2c_save,
- 	.outer_cache = {
- 		.inv_range = l2c220_inv_range,
-@@ -776,6 +788,13 @@ static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
- 			power_ctrl & L310_STNDBY_MODE_EN ? "en" : "dis");
- 	}
- 
-+	/*
-+	 * Always enable non-secure access to the lockdown registers -
-+	 * we write to them as part of the L2C enable sequence so they
-+	 * need to be accessible.
-+	 */
-+	aux |= L310_AUX_CTRL_NS_LOCKDOWN;
-+
- 	l2c_enable(base, aux, num_lock);
- 
- 	if (aux & L310_AUX_CTRL_FULL_LINE_ZERO) {
-@@ -1052,7 +1071,7 @@ static const struct l2c_init_data of_l2c220_data __initconst = {
- 	.way_size_0 = SZ_8K,
- 	.num_lock = 1,
- 	.of_parse = l2x0_of_parse,
--	.enable = l2c_enable,
-+	.enable = l2c220_enable,
- 	.save = l2c_save,
- 	.outer_cache = {
- 		.inv_range   = l2c220_inv_range,
+>> If we do it via the dmaengine core I think it would be better to have a =
+new
+>> flag to be passed to dmaengine_prep_dma_*().
+>> We could have for example:
+>> DMA_PREP_HIGH_PRI as flag to indicate that we need high priority DMA if =
+it is
+>> possible.
+>> We can watch for this flag in the edma driver and act accordingly.
+>> ALSA's dmaengine_pcm_prepare_and_submit() could set this flag unconditio=
+nally
+>> since audio should be treated in this way if the DMA IP can do this.
+>
+> Will the priority be different for each descriptor or would be based on c=
+hannel
+> usage.
 
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+I would say that it is channel based config. I don't see the reason why wou=
+ld
+one mix different priorities on a configured channel between descriptors.
+
+> If not then we can add this in dma_slave_config ?
+
+So adding to the struct for example:
+bool high_priority;
+
+I'm not sure if it helps if we have let's say three priority level like, lo=
+w,
+normal and high.
+I don't think that any client would ask for low priority instead using the
+normal priority.
+
+> I can forsee its usage on slave controllers, so yes its useful :)
+
+True I'm sure it is going to be used as soon as it is available if the HW
+supports priorities.
+
+-- =
+
+P=E9ter
