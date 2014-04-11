@@ -1,94 +1,62 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH 00/11] Fixes for omap PM for making omap3 DT only
-Date: Fri, 11 Apr 2014 22:47:33 +0200
-Message-ID: <20140411204732.GA17997@earth.universe>
-References: <1397173639-29587-1-git-send-email-tony@atomide.com>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 03/14] dma: edma: Add support for DMA_PAUSE/RESUME
+	operation
+Date: Fri, 11 Apr 2014 15:51:43 -0500
+Message-ID: <534855DF.2040309@ti.com>
+References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
+	<1396357575-30585-4-git-send-email-peter.ujfalusi@ti.com>
+	<20140411164327.GD32284@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.105.125]:57771 "EHLO ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754930AbaDKUrx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Apr 2014 16:47:53 -0400
-Content-Disposition: inline
-In-Reply-To: <1397173639-29587-1-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20140411164327.GD32284-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
+On 04/11/2014 11:43 AM, Vinod Koul wrote:
+> On Tue, Apr 01, 2014 at 04:06:04PM +0300, Peter Ujfalusi wrote:
+>> Pause/Resume can be used by the audio stack when the stream is paused/resumed
+>> The edma platform code has support for this and the legacy audio stack used
+>> this.
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/dma/edma.c | 28 ++++++++++++++++++++++++++++
+>>  1 file changed, 28 insertions(+)
+>>
+>> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+>> index 2742867fd1e6..7891378a03f0 100644
+>> --- a/drivers/dma/edma.c
+>> +++ b/drivers/dma/edma.c
+>> @@ -240,6 +240,26 @@ static int edma_slave_config(struct edma_chan *echan,
+>>  	return 0;
+>>  }
+>>  
+>> +static int edma_dma_pause(struct edma_chan *echan)
+>> +{
+>> +	/* Pause/Resume only allowed with cyclic mode */
+>> +	if (!echan->edesc->cyclic)
+>> +		return -EINVAL;
+> why this artificial restriction? The driver can do pause even for non cyclic
+> cases too? Yes the usage is in cyclic context but why should we limit any future
+> work on this?
+> 
 
---h31gzZEtNLTqOjlF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+We struggled with this, and we certainly we don't want pauses in
+non-cyclic EDMA... we tried doing a "pause" and it was a disaster as the
+events keep coming in and those can't be paused, and EDMA hardware wont
+queue them during the pause, it'll just generate an error interrupt storm.
 
-Hi Tony,
-
-On Thu, Apr 10, 2014 at 04:47:08PM -0700, Tony Lindgren wrote:
-> As we're planning to make omap3 device tree only soon, I was poking
-> around and noticed that PM is not working properly. As we're planning
-> to drop about 20k lines of code, I just had to try to fix this so we
-> know what is going on and don't have to go back. I was pretty bummed
-> out to find that we've had non-working PM code in mainline for
-> really long time.
->=20
-> Anyways, I got the voltage scaling and N900 debug leds working, so
-> with those we can notice any future regressions immediately :)
-
-cool :)
-
-> These are against v3.14, then you might want to also apply the
-> following two patches:
->=20
-> [PATCH] of/platform: Fix no irq domain found errors when populating inter=
-rupts
-> https://lkml.org/lkml/2014/4/10/620
->=20
-> [PATCH] serial: omap: Fix missing pm_runtime_resume handling by simplifyi=
-ng code
-> http://www.spinics.net/lists/linux-omap/msg104782.html
->=20
-> Note that for the actual voltage scaling to happen, the twl4030
-> PMIC scripts are also needed. I have some uncleaned patches to
-> load those based on the compatible flag, will post those
-> separately. This series alone fixes the idle state signaling to
-> the PMIC, so we can monitor sys_clkreq and sys_off_idle pins
-> properly.
->=20
-> Please review, comment and test,
-
-I'm on vacation from tomorrow until next week's weekend, but I will
-have a look the week after next (if still needed).
-
-I have not yet read much of TWL/OMAP PM documentation, but I wonder
-if it makes sense to move the powerscripting stuff into the DTS file
-somehow. On a first look the added N900 tables in
-drivers/mfd/twl4030-power.c seem like a step back to me.
-
--- Sebastian
-
---h31gzZEtNLTqOjlF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTSFTkAAoJENju1/PIO/qa9egP/RpVKx7DWziwy6DdmslThBdh
-KVXmET6iI66vPPQXCGlXcGhuIN7i5I51NwQRaRyHHYgXJ4xXAVImb11bmjgvhhRV
-gDffoGI6Q0AsB31pdzSnSJxy3KAlMaB+CBSGBj0x/ryMWShbauPfU4bgiou/d+KD
-oUaBfaZ5Riyw+F3n25j9r8ceOR0iWNfAISm40VoU/cZ2D+51DPDCxA62Se89eBST
-5e3vQF7A6ykK6fLmUSAziZF1uBtzAO+AU7Fl13UDbkf/+Z//0VgQCB45OlyPJ8Ea
-cN1YWtriZEon9ewrWtuabUSxPM9fy1+R3Tvyzzuors+f7McGJtgSBHwF3jwtGC8k
-Kl8E4REV9kn4FIo6tzOVOpsUvngI7AdZK4AOC9gyOOPDgAFU3y3hMWoW5dm6VPyH
-+3Bz0DHqzNHZGsiWLFt6rojz7C8F5JeQiF3/KkRM37jfjObQjy2nGhRt5/c7+LLG
-YqtRPmHUu/lr9leuy+47bZjkhF9+gQBOqlmv1qWEiL0UkHizskcJ22cG3d5gEwzo
-JqKwf9E18acmOj+LFFPqIDpgMaeRVkwoNTzR2omjFlH1mDPkTEvQFHeCZwRTDJck
-8gHoK9a6paT1VpI2Um3k4dQwNW4kioGL2zB5I7sylZJoOv3e9SJkBGLQgFjaR3th
-Td3LQk1fykB3Yzl68Ifq
-=onEC
------END PGP SIGNATURE-----
-
---h31gzZEtNLTqOjlF--
+Thanks,
+-Joel
