@@ -1,76 +1,117 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 0/5] GPIO OMAP driver changes for v3.16
-Date: Fri, 11 Apr 2014 17:03:07 +0200
-Message-ID: <CABxcv=k9fNauvoF6No_GGhfVVgOvyd-Dgw2YLkGGfPoXfMd=FQ@mail.gmail.com>
-References: <1396796297-13002-1-git-send-email-javier.martinez@collabora.co.uk>
-	<CACRpkdarYt4tAD9WMDu6Me+dhipVyDHMpgF-AQ8SDNKMmhSjsA@mail.gmail.com>
-	<20140410193048.GE15736@drone.musicnaut.iki.fi>
-	<CABxcv=miFY3gE6HOU5ovWwCzgC6Un3ANh_Weh_bPCb7OoYQ+pA@mail.gmail.com>
-	<20140410212202.GF15736@drone.musicnaut.iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 04/11] ARM: OMAP3: Fix voltage control for deeper idle
+ states
+Date: Fri, 11 Apr 2014 08:14:45 -0700
+Message-ID: <20140411151445.GA5350@atomide.com>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com>
+ <1397173639-29587-5-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:62097 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754211AbaDKPDJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2014 11:03:09 -0400
-Received: by mail-wi0-f171.google.com with SMTP id q5so1168065wiv.4
-        for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2014 08:03:07 -0700 (PDT)
-In-Reply-To: <20140410212202.GF15736@drone.musicnaut.iki.fi>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47712 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755524AbaDKPOu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2014 11:14:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1397173639-29587-5-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-Hello Aaro,
+* Tony Lindgren <tony@atomide.com> [140410 16:52]:
+> @@ -220,8 +220,18 @@ static inline u32 omap_usec_to_32k(u32 usec)
+>  	return DIV_ROUND_UP_ULL(32768ULL * (u64)usec, 1000000ULL);
+>  }
+>  
+> +struct omap3_vc_config {
+> +	u32 clksetup;
+> +	u32 voltsetup1;
+> +	u32 voltsetup2;
+> +	u32 voltctrl;
+> +};
 
-On Thu, Apr 10, 2014 at 11:22 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> Hi,
->
-> On Thu, Apr 10, 2014 at 10:17:44PM +0200, Javier Martinez Canillas wrote:
->> > The same happens also on Nokia 770:
->> >
->> > [    0.118896] genirq: Setting trigger mode 0 for irq 128 failed (gpio_irq_type+0x0/0x220)
->>
->> I don't have those errors when booting on my DM3730 IGEPv2 board but
->> it seems that for some reason on omap1  __irq_set_trigger() complains
->> when IRQ_TYPE_NONE is used as a default flag when calling
->> gpiochip_irqchip_add()
->>
->> Could you please test the following patch and tell me if your board
->> still works and makes the errors go away?
->
-> Now it complains about mode 8...
->
-> [    0.118835] genirq: Setting trigger mode 8 for irq 128 failed (gpio_irq_type
-> +0x0/0x220)
->
-> A.
->
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index 8cc9e91..5bc8aec 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -1122,7 +1122,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank)
->>
->>         ret = gpiochip_irqchip_add(&bank->chip, &gpio_irq_chip,
->>                                    irq_base, gpio_irq_handler,
->> -                                  IRQ_TYPE_NONE);
->> +                                  IRQ_TYPE_LEVEL_LOW);
->>
->>         if (ret) {
->>                 dev_err(bank->dev, "Couldn't add irqchip to gpiochip
->> %d\n", ret);
->>
->> Best regards,
->> Javier
+It seems we can keep just voltsetup1 and voltsetup2 here. The
+others need to be initialized just once it seems.
 
-Thanks for testing. Unfortunately I'm out of ideas on why that error
-could be shown and I don't have a way to further debug it without an
-omap1 board. I wonder why that pr_err() message is shown or why it is
-still working when an error happens.
+>  static void omap3_set_off_timings(struct voltagedomain *voltdm)
+>  {
+> +	struct omap3_vc_config *c = omap3_vc_timings;
+> +	u32 tstart, tshut, voltoffset;
+> +
+> +	if (c->clksetup)
+> +		return;
+> +
+> +	omap_pm_get_oscillator(&tstart, &tshut);
+> +	if (tstart == ULONG_MAX) {
+> +		pr_debug("PM: oscillator start-up time not initialized, using 10ms\n");
+> +		c->clksetup = omap_usec_to_32k(10000);
+> +	} else {
+> +		c->clksetup = omap_usec_to_32k(tstart);
+> +	}
+> +
+> +	/*
+> +	 * For twl4030 errata 27, we need to allow minimum ~488.32 us wait to
+> +	 * switch from HFCLKIN to internal oscillator. That means timings
+> +	 * have voltoffset fixed to 0xa in rounded up 32 KiHz cycles. And
+> +	 * that means we can calculate the value based on the oscillator
+> +	 * start-up time since voltoffset2 = clksetup - voltoffset.
+> +	 */
+> +	voltoffset = omap_usec_to_32k(488);
+> +	c->voltsetup2 = c->clksetup - voltoffset;
+> +	voltdm->write(voltoffset, OMAP3_PRM_VOLTOFFSET_OFFSET);
 
-Maybe Linus or Santosh could give us a hint on what is happening here.
+And here we're missing a write to clksetup, without that the off idle
+timings are not correct.. Below is an incremental diff on top of this
+patch.
 
-Best regards,
-Javier
+Regards,
+
+Tony
+
+8< -------------------------------
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -221,10 +221,8 @@ static inline u32 omap_usec_to_32k(u32 usec)
+ }
+ 
+ struct omap3_vc_config {
+-	u32 clksetup;
+ 	u32 voltsetup1;
+ 	u32 voltsetup2;
+-	u32 voltctrl;
+ };
+ 
+ static struct omap3_vc_config omap3_vc_timings[2];
+@@ -368,17 +366,17 @@ static void omap3_set_i2c_timings(struct voltagedomain *voltdm)
+ static void omap3_set_off_timings(struct voltagedomain *voltdm)
+ {
+ 	struct omap3_vc_config *c = omap3_vc_timings;
+-	u32 tstart, tshut, voltoffset;
++	u32 tstart, tshut, clksetup, voltoffset;
+ 
+-	if (c->clksetup)
++	if (c->voltsetup2)
+ 		return;
+ 
+ 	omap_pm_get_oscillator(&tstart, &tshut);
+ 	if (tstart == ULONG_MAX) {
+ 		pr_debug("PM: oscillator start-up time not initialized, using 10ms\n");
+-		c->clksetup = omap_usec_to_32k(10000);
++		clksetup = omap_usec_to_32k(10000);
+ 	} else {
+-		c->clksetup = omap_usec_to_32k(tstart);
++		clksetup = omap_usec_to_32k(tstart);
+ 	}
+ 
+ 	/*
+@@ -389,7 +387,8 @@ static void omap3_set_off_timings(struct voltagedomain *voltdm)
+ 	 * start-up time since voltoffset2 = clksetup - voltoffset.
+ 	 */
+ 	voltoffset = omap_usec_to_32k(488);
+-	c->voltsetup2 = c->clksetup - voltoffset;
++	c->voltsetup2 = clksetup - voltoffset;
++	voltdm->write(clksetup, OMAP3_PRM_CLKSETUP_OFFSET);
+ 	voltdm->write(voltoffset, OMAP3_PRM_VOLTOFFSET_OFFSET);
+ }
+ 
