@@ -1,77 +1,76 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v2 05/14] arm: common: edma: Select event queue 1 as
- default when booted with DT
-Date: Fri, 11 Apr 2014 18:16:41 +0530
-Message-ID: <20140411124641.GC32284@intel.com>
-References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
- <1396357575-30585-6-git-send-email-peter.ujfalusi@ti.com>
- <5347A4FD.1030803@ti.com> <5347ACDE.7040407@ti.com>
- <5347AE49.5020109@ti.com> <5347B7F8.2000508@ti.com>
- <20140411094217.GA32284@intel.com> <5347D2CC.4030407@ti.com>
- <20140411113154.GB32284@intel.com> <5347DEDA.2060008@ti.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH 0/5] GPIO OMAP driver changes for v3.16
+Date: Fri, 11 Apr 2014 17:03:07 +0200
+Message-ID: <CABxcv=k9fNauvoF6No_GGhfVVgOvyd-Dgw2YLkGGfPoXfMd=FQ@mail.gmail.com>
+References: <1396796297-13002-1-git-send-email-javier.martinez@collabora.co.uk>
+	<CACRpkdarYt4tAD9WMDu6Me+dhipVyDHMpgF-AQ8SDNKMmhSjsA@mail.gmail.com>
+	<20140410193048.GE15736@drone.musicnaut.iki.fi>
+	<CABxcv=miFY3gE6HOU5ovWwCzgC6Un3ANh_Weh_bPCb7OoYQ+pA@mail.gmail.com>
+	<20140410212202.GF15736@drone.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <5347DEDA.2060008@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: davinci-linux-open-source@linux.davincidsp.com, Lars-Peter Clausen <lars@metafoo.de>, joelf@ti.com, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, mporter@linaro.org, Liam Girdwood <lgirdwood@gmail.com>, Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@kernel.org>, dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:62097 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754211AbaDKPDJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2014 11:03:09 -0400
+Received: by mail-wi0-f171.google.com with SMTP id q5so1168065wiv.4
+        for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2014 08:03:07 -0700 (PDT)
+In-Reply-To: <20140410212202.GF15736@drone.musicnaut.iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Apr 11, 2014 at 03:23:54PM +0300, Peter Ujfalusi wrote:
-> On 04/11/2014 02:31 PM, Vinod Koul wrote:
-> 
-> >> I would say that it is channel based config. I don't see the reason why would
-> >> one mix different priorities on a configured channel between descriptors.
-> >>
-> >>> If not then we can add this in dma_slave_config ?
-> >>
-> >> So adding to the struct for example:
-> >> bool high_priority;
-> > 
-> > In designware controller, we can have channel priorties from 0 to 7 which IIRC 7
-> > being highest. So bool wont work. unsigned int/u8 would be good.
-> 
-> I see. But from a generic code what number should one pass if we want to get
-> the highest priority? With eDMA3 we essentially have three levels (see later)
-> so if we receive 7 as priority what shall we do? Just treat as highest? But if
-> we receive 4, which is somewhere in the middle for designware it is still
-> means highest for us.
-> 
-> I see this too small step partitioning in common code a bit problematic when
-> it comes to how to interpret the 'magic numbers'.
-> Also how all the driver in the system will decide the priority number? I'm
-> sure they will pick something conveniently average for themselves and I
-> imagine audio would try to pick something which is bigger than the numbers
-> others have taken...
-> 
-> > How about your controller, is it binary?
-> 
-> We also have priority from 0 to 7, 0 being the highest priority. We have 3
-> Transfer Controllers/Event Queues and we can set the priority for the TC/EQ
-> and assign the given channel to the desired TC/EQ.
-> So in reality we have 3 priorities to choose from in my view since we only
-> have 3 TC/EQ in eDMA3 (of AM335x/AM447x) on other SoCs we can have different
-> number of TC/EQ.
+Hello Aaro,
 
-I think the number shouldn't be viewed in absolute terms. If we decide that (lets
-say) 0-7, then any controller should map 0 to lowest and 7 to highest.
+On Thu, Apr 10, 2014 at 11:22 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
+> Hi,
+>
+> On Thu, Apr 10, 2014 at 10:17:44PM +0200, Javier Martinez Canillas wrote:
+>> > The same happens also on Nokia 770:
+>> >
+>> > [    0.118896] genirq: Setting trigger mode 0 for irq 128 failed (gpio_irq_type+0x0/0x220)
+>>
+>> I don't have those errors when booting on my DM3730 IGEPv2 board but
+>> it seems that for some reason on omap1  __irq_set_trigger() complains
+>> when IRQ_TYPE_NONE is used as a default flag when calling
+>> gpiochip_irqchip_add()
+>>
+>> Could you please test the following patch and tell me if your board
+>> still works and makes the errors go away?
+>
+> Now it complains about mode 8...
+>
+> [    0.118835] genirq: Setting trigger mode 8 for irq 128 failed (gpio_irq_type
+> +0x0/0x220)
+>
+> A.
+>
+>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> index 8cc9e91..5bc8aec 100644
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -1122,7 +1122,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank)
+>>
+>>         ret = gpiochip_irqchip_add(&bank->chip, &gpio_irq_chip,
+>>                                    irq_base, gpio_irq_handler,
+>> -                                  IRQ_TYPE_NONE);
+>> +                                  IRQ_TYPE_LEVEL_LOW);
+>>
+>>         if (ret) {
+>>                 dev_err(bank->dev, "Couldn't add irqchip to gpiochip
+>> %d\n", ret);
+>>
+>> Best regards,
+>> Javier
 
-For your case you can do this and then intermediate numbers would be medium
-priority. Such a system might work well...
+Thanks for testing. Unfortunately I'm out of ideas on why that error
+could be shown and I don't have a way to further debug it without an
+omap1 board. I wonder why that pr_err() message is shown or why it is
+still working when an error happens.
 
-Also how would a client driver know which priority to use? Would it come from
-DT?
+Maybe Linus or Santosh could give us a hint on what is happening here.
 
--- 
-~Vinod
+Best regards,
+Javier
