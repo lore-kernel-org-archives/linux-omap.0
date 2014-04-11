@@ -1,147 +1,87 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v2 3/3] ARM: OMAP2+: AM43x: L2 cache support
-Date: Fri, 11 Apr 2014 11:03:57 +0530
-Message-ID: <53477EC5.5080400@ti.com>
-References: <cover.1396605300.git.nsekhar@ti.com> <efa5fda5ae625a43fac14bf173cbd96ad7b44e7a.1396605300.git.nsekhar@ti.com> <20140404101808.GG27282@n2100.arm.linux.org.uk> <53440D73.6060504@ti.com> <20140409162327.GH27282@n2100.arm.linux.org.uk> <534686DF.7070207@ti.com> <20140410120348.GK27282@n2100.arm.linux.org.uk> <53468B8E.9040604@ti.com> <53469C29.8050906@ti.com> <20140410134028.GL27282@n2100.arm.linux.org.uk>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 10/14] dma: edma: Simplify direction configuration
+	in edma_config_pset()
+Date: Fri, 11 Apr 2014 09:39:10 +0300
+Message-ID: <53478E0E.8040709@ti.com>
+References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
+	<1396357575-30585-11-git-send-email-peter.ujfalusi@ti.com>
+	<53471DC5.4090001@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38940 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751084AbaDKFea (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Apr 2014 01:34:30 -0400
-In-Reply-To: <20140410134028.GL27282@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <53471DC5.4090001-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Thursday 10 April 2014 07:10 PM, Russell King - ARM Linux wrote:
-> On Thu, Apr 10, 2014 at 06:57:05PM +0530, Sekhar Nori wrote:
->> On Thursday 10 April 2014 05:46 PM, Sekhar Nori wrote:
->>> This will work. NS_LOCKDOWN is required for L2C-220 as well and so I was
->>> thinking about adding a new l2c220_enable() which will set the
->>> NS_LOCKDOWN and then call l2c_enable()
+On 04/11/2014 01:40 AM, Joel Fernandes wrote:
+> On 04/01/2014 08:06 AM, Peter Ujfalusi wrote:
+>> We only support DEV_TO_MEM or MEM_TO_DEV directions with edma driver and=
+ the
+>> check for the direction has been already done in the function calling
+>> edma_config_pset().
+>> The error reporting is redundant and also the "else if ()" can be remove=
+d.
 >>
->> Here is a patch for what I was saying above.
+> =
+
+> NAK. Please don't do this. I have been working on MEM_TO_MEM support as
+> well so leave it as it is for future.
+
+Sure. It is still valid to say that the error else {} will never going to
+happen since you have the same check in the calling function and they alrea=
+dy
+filtered the non implemented direction.
+
+I'll leave this out from v3.
+
+-- =
+
+P=E9ter
+
+> =
+
+> Thanks,
+> -Joel
+> =
+
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/dma/edma.c | 6 ++----
+>>  1 file changed, 2 insertions(+), 4 deletions(-)
 >>
->> diff --git a/arch/arm/include/asm/hardware/cache-l2x0.h b/arch/arm/include/asm/hardware/cache-l2x0.h
->> index c47ac8f..dc9e03b 100644
->> --- a/arch/arm/include/asm/hardware/cache-l2x0.h
->> +++ b/arch/arm/include/asm/hardware/cache-l2x0.h
->> @@ -105,6 +105,8 @@
->>  #define L2X0_AUX_CTRL_DIRTY_LATENCY_MASK	(7 << 9)
->>  #define L2X0_AUX_CTRL_ASSOC_SHIFT		13
->>  #define L2X0_AUX_CTRL_ASSOC_MASK		(15 << 13)
->> +/* L2C-220/310 common bits */
->> +#define L2C_AUX_CTRL_NS_LOCKDOWN		BIT(26)
->>  /* L2C-210 specific bits */
->>  #define L210_AUX_CTRL_WRAP_DISABLE		BIT(12)
->>  #define L210_AUX_CTRL_WA_OVERRIDE		BIT(23)
->> @@ -113,7 +115,6 @@
->>  #define L220_AUX_CTRL_EXCLUSIVE_CACHE		BIT(12)
->>  #define L220_AUX_CTRL_FWA_SHIFT			23
->>  #define L220_AUX_CTRL_FWA_MASK			(3 << 23)
->> -#define L220_AUX_CTRL_NS_LOCKDOWN		BIT(26)
->>  #define L220_AUX_CTRL_NS_INT_CTRL		BIT(27)
->>  /* L2C-310 specific bits */
->>  #define L310_AUX_CTRL_FULL_LINE_ZERO		BIT(0)	/* R2P0+ */
->> @@ -122,7 +123,6 @@
->>  #define L310_AUX_CTRL_EXCLUSIVE_CACHE		BIT(12)
->>  #define L310_AUX_CTRL_ASSOCIATIVITY_16		BIT(16)
->>  #define L310_AUX_CTRL_CACHE_REPLACE_RR		BIT(25)	/* R2P0+ */
->> -#define L310_AUX_CTRL_NS_LOCKDOWN		BIT(26)
-> 
-> NAK.  The reason for this split is because the NS lockdown bit is *not*
-> on L2C-210, and so it does not deserve to be a "common" bit - because it
-> isn't common to all variants.
-
-Okay.
-
-> 
->> @@ -764,7 +776,7 @@ static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
->>  			power_ctrl & L310_STNDBY_MODE_EN ? "en" : "dis");
+>> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+>> index 855766672aa9..d954099650ae 100644
+>> --- a/drivers/dma/edma.c
+>> +++ b/drivers/dma/edma.c
+>> @@ -372,14 +372,12 @@ static int edma_config_pset(struct dma_chan *chan,=
+ struct edmacc_param *pset,
+>>  		src_cidx =3D cidx;
+>>  		dst_bidx =3D 0;
+>>  		dst_cidx =3D 0;
+>> -	} else if (direction =3D=3D DMA_DEV_TO_MEM)  {
+>> +	} else {
+>> +		/* DMA_DEV_TO_MEM */
+>>  		src_bidx =3D 0;
+>>  		src_cidx =3D 0;
+>>  		dst_bidx =3D acnt;
+>>  		dst_cidx =3D cidx;
+>> -	} else {
+>> -		dev_err(dev, "%s: direction not implemented yet\n", __func__);
+>> -		return -EINVAL;
 >>  	}
->>  
->> -	l2c_enable(base, aux, num_lock);
->> +	l2c220_enable(base, aux, num_lock);
-> 
-> My first reaction to this is to say NAK again - I don't want to create
-> a multi-layered maze of X calls Y calls Z.  Who's to say that The 220
-> won't need to do something different from 310 in the future?
+>>  =
 
-Here is a revised patch which is just an extension of your patch 
-with L2C-220 case handled. I dont really have L2C-220 hardware so even 
-if you want to handle that at a later time, it would be perfectly okay 
-with me.
-
-Thanks,
-Sekhar
-
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 6b2a056..34cafe0 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -216,8 +216,6 @@ int __init omap4_l2_cache_init(void)
- {
- 	/* 16-way associativity, parity disabled, way size - 64KB (es2.0 +) */
- 	u32 aux_ctrl = L310_AUX_CTRL_CACHE_REPLACE_RR |
--		       L310_AUX_CTRL_NS_LOCKDOWN |
--		       L310_AUX_CTRL_NS_INT_CTRL |
- 		       L2C_AUX_CTRL_SHARED_OVERRIDE |
- 		       L310_AUX_CTRL_DATA_PREFETCH |
- 		       L310_AUX_CTRL_INSTR_PREFETCH;
-diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-index b1f103d..72f41fa 100644
---- a/arch/arm/mm/cache-l2x0.c
-+++ b/arch/arm/mm/cache-l2x0.c
-@@ -498,11 +498,23 @@ static void l2c220_sync(void)
- 	raw_spin_unlock_irqrestore(&l2x0_lock, flags);
- }
- 
-+static void __init l2c220_enable(void __iomem *base, u32 aux, unsigned num_lock)
-+{
-+	/*
-+	 * Always enable non-secure access to the lockdown registers -
-+	 * we write to them as part of the L2C enable sequence so they
-+	 * need to be accessible.
-+	 */
-+	aux |= L220_AUX_CTRL_NS_LOCKDOWN;
-+
-+	l2c_enable(base, aux, num_lock);
-+}
-+
- static const struct l2c_init_data l2c220_data = {
- 	.type = "L2C-220",
- 	.way_size_0 = SZ_8K,
- 	.num_lock = 1,
--	.enable = l2c_enable,
-+	.enable = l2c220_enable,
- 	.outer_cache = {
- 		.inv_range = l2c220_inv_range,
- 		.clean_range = l2c220_clean_range,
-@@ -764,6 +776,13 @@ static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
- 			power_ctrl & L310_STNDBY_MODE_EN ? "en" : "dis");
- 	}
- 
-+	/*
-+	 * Always enable non-secure access to the lockdown registers -
-+	 * we write to them as part of the L2C enable sequence so they
-+	 * need to be accessible.
-+	 */
-+	aux |= L310_AUX_CTRL_NS_LOCKDOWN;
-+
- 	l2c_enable(base, aux, num_lock);
- 
- 	if (aux & L310_AUX_CTRL_FULL_LINE_ZERO) {
-@@ -1027,7 +1046,7 @@ static const struct l2c_init_data of_l2c220_data __initconst = {
- 	.way_size_0 = SZ_8K,
- 	.num_lock = 1,
- 	.of_parse = l2x0_of_parse,
--	.enable = l2c_enable,
-+	.enable = l2c220_enable,
- 	.outer_cache = {
- 		.inv_range   = l2c220_inv_range,
- 		.clean_range = l2c220_clean_range,
-
+>>  	pset->opt =3D EDMA_TCC(EDMA_CHAN_SLOT(echan->ch_num));
+>>
+> =
