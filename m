@@ -1,90 +1,84 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v2 07/14] arm: common: edma: API to request non default
- queue for a channel
-Date: Fri, 11 Apr 2014 14:13:31 +0530
-Message-ID: <5347AB33.8000606@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 05/14] arm: common: edma: Select event queue 1 as
+	default when booted with DT
+Date: Fri, 11 Apr 2014 11:50:38 +0300
+Message-ID: <5347ACDE.7040407@ti.com>
 References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
- <1396357575-30585-8-git-send-email-peter.ujfalusi@ti.com>
+	<1396357575-30585-6-git-send-email-peter.ujfalusi@ti.com>
+	<5347A4FD.1030803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1396357575-30585-8-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, dan.j.williams@intel.com, vinod.koul@intel.com
-Cc: davinci-linux-open-source@linux.davincidsp.com, joelf@ti.com, linux-kernel@vger.kernel.org, mporter@linaro.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <5347A4FD.1030803-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 01 April 2014 06:36 PM, Peter Ujfalusi wrote:
-> When using eDMA3 via dmaengine all dma channels will use the default queue.
-> Since during request time we do not have means to change this it need to be done
-> later, before the DMA has been started.
-> With the added function it is possible to move the channel to a non default
-> queue if it is possible, otherwise (when only one EQ/TC is available for the CC)
-> the default queue is going to be used.
-> For example: For optimal system performance the audio (cyclic) DMA should
-> be placed to a separate queue which is different than what the rest of the
-> system is using.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  arch/arm/common/edma.c             | 27 +++++++++++++++++++++++++++
->  include/linux/platform_data/edma.h |  2 ++
->  2 files changed, 29 insertions(+)
-> 
-> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-> index be267b2080be..eaf6dd19f082 100644
-> --- a/arch/arm/common/edma.c
-> +++ b/arch/arm/common/edma.c
-> @@ -712,6 +712,33 @@ int edma_alloc_channel(int channel,
->  }
->  EXPORT_SYMBOL(edma_alloc_channel);
->  
-> +/**
-> + * edma_request_non_default_queue - try to map the channel to non default queue
-> + * @channel: dma channel returned from edma_alloc_channel()
-> + *
-> + * For certain type of applications like audio it is preferred to not use the
-> + * default event queue/tc to avoid eDMA caused latency.
-> + *
-> + * This function will iterate through the event queues available for the CC and
-> + * picks the first EQ/TC which is not set as the default for the CC
-> + */
-> +void edma_request_non_default_queue(int channel)
-> +{
-> +	unsigned ctlr = EDMA_CTLR(channel);
-> +	enum dma_event_q eventq_no = EVENTQ_DEFAULT;
-> +	int i;
-> +
-> +	for (i = 0; i < edma_cc[ctlr]->num_tc; i++) {
-> +		if (i != edma_cc[ctlr]->default_queue) {
-> +			eventq_no = i;
-> +			break;
-> +		}
-> +	}
-> +
-> +	channel = EDMA_CHAN_SLOT(channel);
-> +	map_dmach_queue(ctlr, channel, eventq_no);
-> +}
-> +EXPORT_SYMBOL(edma_request_non_default_queue);
+On 04/11/2014 11:17 AM, Sekhar Nori wrote:
+> On Tuesday 01 April 2014 06:36 PM, Peter Ujfalusi wrote:
+>> Use the EVENTQ_1 for default and leave the EVENTQ_0 to be used by high
+>> priority channels, like audio.
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+> =
 
-With this API, the caller cannot be sure of what the final affect on the
-channel will be. It depends a lot on what the default queue setting is.
-And that can change independent of this API.
+> Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+> =
 
-I am not an expert in dmaengine, but it looks like we are trying to
-workaround the fact that dmaengine does not support multiple transfer
-priorities for a dma_chan. If yes, it will be better to add support for
-doing this in dmaengine core itself. A generic priority space could be
-supported which each DMA device can then map to its hardware support.
+>> ---
+>>  arch/arm/common/edma.c | 3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+>> index 86a8b263278f..19520e2519d9 100644
+>> --- a/arch/arm/common/edma.c
+>> +++ b/arch/arm/common/edma.c
+>> @@ -1546,7 +1546,8 @@ static int edma_of_parse_dt(struct device *dev,
+>>  =
 
-Thanks,
-Sekhar
+>>  	pdata->queue_priority_mapping =3D queue_priority_map;
+>>  =
+
+>> -	pdata->default_queue =3D 0;
+>> +	/* select queue 1 as default */
+> =
+
+> It will be nice to expand the comment with explanation of why this is
+> being chosen as default (lower priority queue by default for typical
+> bulk data transfer).
+
+Yes, extended comment is a good idea.
+
+For the next version I think I'm going to change the code around default
+TC/Queue and the non default queue selection, mostly based on Joel's commen=
+t:
+
+EVENTQ_1 as default queue.
+Set the EVENTQ_1 priority to 7
+EVENTQ_0 priority is going to stay 0 and EVENTQ_2 as 2
+
+Add new member to struct edma, like high_pri_queue.
+When we set the queue priorities in edma_probe() we look for the highest
+priority queue and save the number in high_pri_queue.
+
+I will rename the edma_request_non_default_queue() to
+edma_request_high_pri_queue() and it will assign the channel to the high
+priority queue.
+
+I think this way it is going to be more explicit and IMHO a bit more safer =
+in
+a sense the we are going to get high priority when we ask for it.
+
+-- =
+
+P=E9ter
