@@ -1,46 +1,45 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: fix missing braces in _init()
-Date: Fri, 11 Apr 2014 18:27:57 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1404111827410.14347@utopia.booyaka.com>
-References: <1394788517-15014-1-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: don't try to register the main clock
+ twice.
+Date: Fri, 11 Apr 2014 18:33:53 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1404111829520.14347@utopia.booyaka.com>
+References: <1396007435-20100-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:60250 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:60452 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750838AbaDKS16 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2014 14:27:58 -0400
-In-Reply-To: <1394788517-15014-1-git-send-email-rnayak@ti.com>
+	with ESMTP id S1754620AbaDKSdy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2014 14:33:54 -0400
+In-Reply-To: <1396007435-20100-1-git-send-email-wsa@the-dreams.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Suman Anna <s-anna@ti.com>, Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+To: Wolfram Sang <wsa@the-dreams.de>, NeilBrown <neilb@suse.de>
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@sang-engineering.com>
 
-On Fri, 14 Mar 2014, Rajendra Nayak wrote:
+Hi Wolfram, Neil,
 
-> From: Suman Anna <s-anna@ti.com>
-> 
-> Bug was introduced by commit 'f92d959: ARM: OMAP2+: hwmod:
-> Extract no-idle and no-reset info from DT'
-> 
-> There were 2 versions of the patch posted which resulted in the above
-> commit. While v1 [1] had the bug, v2 [2] had it fixed.
-> However v1 apparently seemed to have been pulled in by mistake
-> introducing the bug.
-> 
-> Given of_find_property() does return NULL when the node passed is
-> NULL, it did not introduce any functional issues as such, just the
-> fact that the second if check was executed unnecessarily.
-> 
-> [1] https://www.mail-archive.com/linux-omap@vger.kernel.org/msg94220.html
-> [2] http://www.spinics.net/lists/linux-omap/msg98490.html
-> 
-> Cc: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+On Fri, 28 Mar 2014, Wolfram Sang wrote:
 
-Thanks, queued for v3.15-rc.
+> From: NeilBrown <neilb@suse.de>
+> 
+> If omap_device_alloc is given 2 or more "struct omap_hwmod" it will try
+> to register the 'main_clk' of each of them with the same alias - "fck" -
+> against the same device.  This fails. So to avoid a warning, don't even
+> try.
+> 
+> Signed-off-by: NeilBrown <neilb@suse.de>
+> [wsa: ported to top-of-tree]
+> Signed-off-by: Wolfram Sang <wsa@sang-engineering.com>
+
+What devices and hwmods cause this warning on AM335x?   Ideally, there 
+should only be one hwmod per device.  Usually when multiple hwmods are 
+stacked up for a device, it means that something isn't right - either the 
+hwmod data, or the device driver itself. 
+
+In the specific context of this patch, the problem would be: what if the 
+two hwmods have different main_clk entries?  Which one should be 
+associated with the "fck" alias?
 
 
 - Paul
