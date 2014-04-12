@@ -1,42 +1,238 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 07/11] ARM: dts: Enable N900 keybaord sleep leds by
- default
-Date: Sat, 12 Apr 2014 02:31:09 +0300
-Message-ID: <20140411233109.GG15736@drone.musicnaut.iki.fi>
-References: <1397173639-29587-1-git-send-email-tony@atomide.com>
- <1397173639-29587-8-git-send-email-tony@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 02/11] ARM: OMAP3: Fix idle mode signaling for sys_clkreq
+ and sys_off_mode
+Date: Sat, 12 Apr 2014 11:57:30 +0300
+Message-ID: <5348FFFA.5040207@ti.com>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com> <1397173639-29587-3-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:57820 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752575AbaDKXf1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2014 19:35:27 -0400
-Content-Disposition: inline
-In-Reply-To: <1397173639-29587-8-git-send-email-tony@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46226 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752511AbaDLI6B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Apr 2014 04:58:01 -0400
+In-Reply-To: <1397173639-29587-3-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Paul Walmsley <paul@pwsan.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Tero Kristo <t-kristo@ti.com>
+To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi,
+On 04/11/2014 02:47 AM, Tony Lindgren wrote:> While debugging legacy 
+mode vs device tree booted PM regressions,
+ > I noticed that omap3 is not toggling sys_clkreq and sys_off_mode
+ > pins like it should.
+ >
+ > The sys_clkreq and sys_off_mode pins are not toggling because of
+ > the following issues:
+ >
+ > 1. The default polarity for the sys_off_mode pin is wrong.
+ >     OFFMODE_POL needs to be cleared for sys_off_mode to go down when
+ >     hitting off-idle, while CLKREQ_POL needs to be set so sys_clkreq
+ >     goes down when hitting retention.
+ >
+ > 2. The values for voltctrl register need to be updated dynamically.
+ >     We need to set either the retention idle bits, or off idle bits
+ >     in the voltctrl register depending the idle mode we're targeting
+ >     to hit.
+ >
+ > Let's fix these two issues as otherwise the system will just
+ > hang if any twl4030 PMIC idle scripts are loaded. The only case
+ > where the system does not hang is if only retention idle over I2C4
+ > is configured by the bootloader.
+ >
+ > Note that even without the twl4030 PMIC scripts, these fixes will
+ > do the proper signaling of sys_clkreq and sys_off_mode pins, so
+ > the fixes are needed to fix monitoring of PM states with LEDs or
+ > an oscilloscope.
+ >
+ > Cc: Kevin Hilman <khilman@linaro.org>
+ > Cc: Nishanth Menon <nm@ti.com>
+ > Cc: Paul Walmsley <paul@pwsan.com>
+ > Cc: Tero Kristo <t-kristo@ti.com>
+ > Signed-off-by: Tony Lindgren <tony@atomide.com>
+ > ---
+ >   arch/arm/mach-omap2/pm34xx.c           |  2 +
+ >   arch/arm/mach-omap2/prm-regbits-34xx.h | 11 ++++-
+ >   arch/arm/mach-omap2/vc.c               | 75 
++++++++++++++++++++++++++++++++++-
+ >   arch/arm/mach-omap2/vc.h               |  2 +
+ >   4 files changed, 87 insertions(+), 3 deletions(-)
+ >
+ > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+ > index 87099bb..3119ec2 100644
+ > --- a/arch/arm/mach-omap2/pm34xx.c
+ > +++ b/arch/arm/mach-omap2/pm34xx.c
+ > @@ -50,6 +50,7 @@
+ >   #include "sdrc.h"
+ >   #include "sram.h"
+ >   #include "control.h"
+ > +#include "vc.h"
+ >
+ >   /* pm34xx errata defined in pm.h */
+ >   u16 pm34xx_errata;
+ > @@ -282,6 +283,7 @@ void omap_sram_idle(void)
+ >
+ >   	/* CORE */
+ >   	if (core_next_state < PWRDM_POWER_ON) {
+ > +		omap3_vc_set_pmic_signaling(core_next_state);
+ >   		if (core_next_state == PWRDM_POWER_OFF) {
+ >   			omap3_core_save_context();
+ >   			omap3_cm_save_context();
 
-On Thu, Apr 10, 2014 at 04:47:15PM -0700, Tony Lindgren wrote:
-> +        leds {
-> +                compatible = "gpio-leds";
-> +                heartbeat {
-> +                        label = "debug::sleep";
-> +                        gpios = <&gpio6 2 GPIO_ACTIVE_HIGH>;  /* gpio162 */
-> +                        linux,default-trigger = "default-on";
+I think this implementation is sub-optimal, as it only scales voltages 
+if core is entering idle state. MPU only idle is possible, however you 
+do not scale voltages in this case.
 
-Just some very minor nits, spaces should be converted to TABs here
-for indent, and patch title should say "keyboard" instead of "keybaord".
+ > diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h 
+b/arch/arm/mach-omap2/prm-regbits-34xx.h
+ > index cebad56..106132d 100644
+ > --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
+ > +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+ > @@ -123,8 +123,15 @@
+ >   #define OMAP3430_GLOBAL_SW_RST_SHIFT			1
+ >   #define OMAP3430_GLOBAL_COLD_RST_SHIFT			0
+ >   #define OMAP3430_GLOBAL_COLD_RST_MASK			(1 << 0)
+ > -#define OMAP3430_SEL_OFF_MASK				(1 << 3)
+ > -#define OMAP3430_AUTO_OFF_MASK				(1 << 2)
+ > +#define OMAP3430_PRM_VOLTCTRL_SEL_VMODE			(1 << 4)
+ > +#define OMAP3430_PRM_VOLTCTRL_SEL_OFF			(1 << 3)
+ > +#define OMAP3430_PRM_VOLTCTRL_AUTO_OFF			(1 << 2)
+ > +#define OMAP3430_PRM_VOLTCTRL_AUTO_RET			(1 << 1)
+ > +#define OMAP3430_PRM_VOLTCTRL_AUTO_SLEEP		(1 << 0)
+ >   #define OMAP3430_SETUP_TIME2_MASK			(0xffff << 16)
+ >   #define OMAP3430_SETUP_TIME1_MASK			(0xffff << 0)
+ > +#define OMAP3430_PRM_POLCTRL_OFFMODE_POL		(1 << 3)
+ > +#define OMAP3430_PRM_POLCTRL_CLKOUT_POL			(1 << 2)
+ > +#define OMAP3430_PRM_POLCTRL_CLKREQ_POL			(1 << 1)
+ > +#define OMAP3430_PRM_POLCTRL_EXTVOL_POL			(1 << 0)
+ >   #endif
+ > diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+ > index 49ac797..3d5ba5d 100644
+ > --- a/arch/arm/mach-omap2/vc.c
+ > +++ b/arch/arm/mach-omap2/vc.c
+ > @@ -220,6 +220,78 @@ static inline u32 omap_usec_to_32k(u32 usec)
+ >   	return DIV_ROUND_UP_ULL(32768ULL * (u64)usec, 1000000ULL);
+ >   }
+ >
+ > +void omap3_vc_set_pmic_signaling(int core_next_state)
+ > +{
+ > +	u32 voltctrl;
+ > +
+ > +	voltctrl = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
+ > +					  OMAP3_PRM_VOLTCTRL_OFFSET);
 
-Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Just a note here, I am currently working on trying to get rid of all the 
+direct prm_read/write calls outside PRCM drivers, this and rest should 
+use voltdm->read/write.
 
-> +			pinctrl-names = "default";
-> +			pinctrl-0 = <&debug_leds>;
-> +                };
-> +        };
+ > +	switch (core_next_state) {
+ > +	case PWRDM_POWER_OFF:
+ > +		voltctrl &= ~(OMAP3430_PRM_VOLTCTRL_AUTO_RET |
+ > +			      OMAP3430_PRM_VOLTCTRL_AUTO_SLEEP);
+ > +		voltctrl |= OMAP3430_PRM_VOLTCTRL_AUTO_OFF;
+ > +		break;
+ > +	case PWRDM_POWER_RET:
+ > +		voltctrl &= ~(OMAP3430_PRM_VOLTCTRL_AUTO_OFF |
+ > +			      OMAP3430_PRM_VOLTCTRL_AUTO_SLEEP);
+ > +		voltctrl |= OMAP3430_PRM_VOLTCTRL_AUTO_RET;
+ > +		break;
+ > +	default:
+ > +		voltctrl &= ~(OMAP3430_PRM_VOLTCTRL_AUTO_OFF |
+ > +			      OMAP3430_PRM_VOLTCTRL_AUTO_RET);
+ > +		voltctrl |= OMAP3430_PRM_VOLTCTRL_AUTO_SLEEP;
+ > +		break;
+ > +	}
+ > +	omap2_prm_write_mod_reg(voltctrl, OMAP3430_GR_MOD,
+ > +				OMAP3_PRM_VOLTCTRL_OFFSET);
+ > +}
+ > +
+ > +/*
+ > + * Configure signal polarity for sys_clkreq and sys_off_mode pins
+ > + * as the default values are wrong and can cause the system to hang
+ > + * if any twl4030 sccripts are loaded.
+ > + */
+ > +static void __init omap3_vc_init_pmic_signaling(void)
+ > +{
+ > +	u32 val, old;
+ > +
+ > +	val = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
+ > +				     OMAP3_PRM_POLCTRL_OFFSET);
+ > +	old = val;
+ > +
+ > +	if (old & OMAP3430_PRM_POLCTRL_CLKREQ_POL)
+ > +		val |= OMAP3430_PRM_POLCTRL_CLKREQ_POL;
+ > +	if (old & OMAP3430_PRM_POLCTRL_OFFMODE_POL)
+ > +		val &= ~OMAP3430_PRM_POLCTRL_OFFMODE_POL;
+ > +
+ > +	if (val != old) {
+ > +		pr_debug("PM: fixing sys_clkreq and sys_off_mode polarity 0x%x -> 
+0x%x\n",
+ > +			 old, val);
+ > +	}
+ > +	omap2_prm_write_mod_reg(val, OMAP3430_GR_MOD,
+ > +				OMAP3_PRM_POLCTRL_OFFSET);
+ > +
+ > +	/*
+ > +	 * By default let's use I2C4 signaling for retention idle
+ > +	 * and sys_off_mode pin signaling for off idle. This way we
+ > +	 * have sys_clk_req pin go down for retention and both
+ > +	 * sys_clk_req and sys_off_mode pins will go down for off
+ > +	 * idle. And we can also scale voltages to zero for off-idle.
+ > +	 * Note that no actual voltage scaling will happen unless the
+ > +	 * board specific twl4030 PMIC scripts are loaded.
+ > +	 */
+ > +	val = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
+ > +				     OMAP3_PRM_VOLTCTRL_OFFSET);
 
-A.
+Why not use the I2C4 signalling for off-mode? This way the voltages can 
+be scaled to 0.6V even without any board specific scripts.
+
+-Tero
+
+ > +	old = val;
+ > +	val |= OMAP3430_PRM_VOLTCTRL_SEL_OFF;
+ > +	pr_debug("PM: enabling voltctrl sys_off_mode signaling 0x%x -> 0x%x\n",
+ > +		 old, val);
+ > +	omap2_prm_write_mod_reg(val, OMAP3430_GR_MOD,
+ > +				OMAP3_PRM_VOLTCTRL_OFFSET);
+ > +	omap3_vc_set_pmic_signaling(PWRDM_POWER_ON);
+ > +}
+ > +
+ >   /* Set oscillator setup time for omap3 */
+ >   static void omap3_set_clksetup(u32 usec, struct voltagedomain *voltdm)
+ >   {
+ > @@ -292,7 +364,7 @@ static void omap3_set_off_timings(struct 
+voltagedomain *voltdm)
+ >
+ >   	/* check if sys_off_mode is used to control off-mode voltages */
+ >   	val = voltdm->read(OMAP3_PRM_VOLTCTRL_OFFSET);
+ > -	if (!(val & OMAP3430_SEL_OFF_MASK)) {
+ > +	if (!(val & OMAP3430_PRM_VOLTCTRL_SEL_OFF)) {
+ >   		/* No, omap is controlling them over I2C */
+ >   		omap3_set_i2c_timings(voltdm, true);
+ >   		return;
+ > @@ -337,6 +409,7 @@ static void omap3_set_off_timings(struct 
+voltagedomain *voltdm)
+ >
+ >   static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
+ >   {
+ > +	omap3_vc_init_pmic_signaling();
+ >   	omap3_set_off_timings(voltdm);
+ >   }
+ >
+ > diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
+ > index 91c8d75..6351f62 100644
+ > --- a/arch/arm/mach-omap2/vc.h
+ > +++ b/arch/arm/mach-omap2/vc.h
+ > @@ -117,6 +117,8 @@ extern struct omap_vc_param omap4_mpu_vc_data;
+ >   extern struct omap_vc_param omap4_iva_vc_data;
+ >   extern struct omap_vc_param omap4_core_vc_data;
+ >
+ > +void omap3_vc_set_pmic_signaling(int core_next_state);
+ > +
+ >   void omap_vc_init_channel(struct voltagedomain *voltdm);
+ >   int omap_vc_pre_scale(struct voltagedomain *voltdm,
+ >   		      unsigned long target_volt,
+ >
+
