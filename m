@@ -1,60 +1,45 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 00/18] ARM: OMAP2+: CM/PRM cleanup set
-Date: Sat, 12 Apr 2014 13:22:54 +0300
-Message-ID: <534913FE.1020802@ti.com>
-References: <1393949958-816-1-git-send-email-t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/55]: ARM: OMAP2+: PRCM move to drivers
+Date: Sat, 12 Apr 2014 07:52:51 -0700
+Message-ID: <20140412145251.GA32292@atomide.com>
+References: <1396278994-12624-1-git-send-email-t-kristo@ti.com>
+ <20140331220903.GA11328@atomide.com>
+ <533A7A23.8020606@ti.com>
+ <20140401171325.GA28041@atomide.com>
+ <534913AC.8060402@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45233 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755310AbaDLKXU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 12 Apr 2014 06:23:20 -0400
-In-Reply-To: <1393949958-816-1-git-send-email-t-kristo@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41803 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750838AbaDLOw4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Apr 2014 10:52:56 -0400
+Content-Disposition: inline
+In-Reply-To: <534913AC.8060402@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, khilman@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On 03/04/2014 06:19 PM, Tero Kristo wrote:
-> Hi,
->
-> This set cleans up the CM/PRM codebase a bit, removing the need for direct
-> CM/PRM register access macros outside CM/PRM drivers. This is done in
-> preparation to isolate these drivers into its own driver directory.
-> Currently my plan is to create a single PRCM driver, which will contain
-> both, and as such, CM/PRM inter-access is not removed in this set.
->
-> This set is built on top of the OMAP2 DT clock conversion set, but most
-> of the patches can also be standalone if need be.
->
-> Testing done:
-> - omap2 : none (any feedback welcome)
-> - omap3-beagle : boot, suspend-resume (RET), suspend-resume (OFF)
-> - omap4-panda-es : boot, suspend-resume (RET)
->
-> Branch also available here:
-> tree: https://github.com/t-kristo/linux-pm.git
-> branch: 3.14-rc4-cm-prm-cleanup
->
-> -Tero
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+* Tero Kristo <t-kristo@ti.com> [140412 03:25]:
+> 
+> Just letting you know, that I created a kind of v2 for this set,
+> however I am not going to post it publicly before the pre-reqs for
+> this set are covered, basically the OMAP2 clock DT set. CM/PRM
+> cleanup set is outdated with this series though (I'll post a note on
+> it separately) and its contents are merged to this latest re-work.
+> 
+> The latest wip branch is available publicly if someone is interested:
+> 
+> https://github.com/t-kristo/linux-pm/tree/3.14-rc4-cm-prm-driver-wip
+> 
+> I also added Tony's vc fixes set to this branch and removed the
+> direct prm register accesses added there.
 
-Hi,
+Well let's merge the fixes first. Sounds like the prm register access
+changes for the vc can be merged already so care to post those
+changes against v3.14 or v3.15-rc1 separately?
 
-This work is outdated and is preceded by the stuff here (for the 
-interested parties):
+Regards,
 
-https://github.com/t-kristo/linux-pm/tree/3.14-rc4-cm-prm-driver-wip
-
-I'll be posting small sets of patches out of here once the pre-reqs for 
-the WIP branch are covered.
-
--Tero
-
+Tony
