@@ -1,7 +1,8 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 15/15] bus: omap_l3_noc: Add AM4372 interconnect error data
-Date: Mon, 14 Apr 2014 11:25:26 -0500
-Message-ID: <1397492726-17203-17-git-send-email-nm@ti.com>
+Subject: [PATCH 05/15] bus: omap_l3_noc: convert target information into a
+ structure
+Date: Mon, 14 Apr 2014 11:25:16 -0500
+Message-ID: <1397492726-17203-7-git-send-email-nm@ti.com>
 References: <1397492726-17203-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,148 +22,232 @@ To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.co
 Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Afzal Mohammed <afzal@ti.com>
+Currently the target instance information is organized indexed by bit
+field offset into multiple arrays.
 
-Add AM4372 information to handle L3 error.
+1. We currently have offsets specific to each target associated with each
+clock domains are in seperate arrays:
 
-AM4372 has two clk domains 100f and 200s. Provide flagmux and data
-associated with it.
+l3_targ_inst_clk1
+l3_targ_inst_clk2
+l3_targ_inst_clk3
 
-NOTE: Timeout doesn't have STDERRLOG_MAIN register. And per hardware
-team, L3 timeout error cannot be cleared the normal way (by setting
-bit 31 in STDERRLOG_MAIN), instead it may be required to do system
-reset. L3 error handler can't help in such scenarios.
+2. Then they are organized per master index in l3_targ.
 
-Hence indicate timeout target offset as L3_TARGET_NOT_SUPPORTED as
-done for undocumented bits.
+3. We have names in l3_targ_inst_name as an array to array of strings
+corresponding to the above with offsets.
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Simplify the same by defining a structure for information containing
+both target offset and name. this is then stored in arrays per domain
+and organized into an array indexed off domain.
+
+The array is still indexed based on bit field offset.
+
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- .../devicetree/bindings/arm/omap/l3-noc.txt        |    1 +
- drivers/bus/omap_l3_noc.c                          |    1 +
- drivers/bus/omap_l3_noc.h                          |   85 ++++++++++++++++++++
- 3 files changed, 87 insertions(+)
+ drivers/bus/omap_l3_noc.c |    9 ++--
+ drivers/bus/omap_l3_noc.h |  129 ++++++++++++++++++---------------------------
+ 2 files changed, 54 insertions(+), 84 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
-index 45d0fc2..974624e 100644
---- a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
-@@ -7,6 +7,7 @@ Required properties:
- - compatible : Should be "ti,omap3-l3-smx" for OMAP3 family
-                Should be "ti,omap4-l3-noc" for OMAP4 family
- 	       Should be "ti,dra7-l3-noc" for DRA7 family
-+               Should be "ti,am4372-l3-noc" for AM43 family
- - reg:	Contains L3 register address range for each noc domain.
- - ti,hwmods: "l3_main_1", ... One hwmod for each noc domain.
- 
 diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-index 9b32e53..9853e1d 100644
+index b39ef93..0ef8b75 100644
 --- a/drivers/bus/omap_l3_noc.c
 +++ b/drivers/bus/omap_l3_noc.c
-@@ -177,6 +177,7 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
- static const struct of_device_id l3_noc_match[] = {
- 	{.compatible = "ti,omap4-l3-noc", .data = &omap_l3_data},
- 	{.compatible = "ti,dra7-l3-noc", .data = &dra_l3_data},
-+	{.compatible = "ti,am4372-l3-noc", .data = &am4372_l3_data},
- 	{},
- };
- MODULE_DEVICE_TABLE(of, l3_noc_match);
+@@ -57,6 +57,7 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
+ 	void __iomem *base, *l3_targ_base;
+ 	void __iomem *l3_targ_stderr, *l3_targ_slvofslsb, *l3_targ_mstaddr;
+ 	char *target_name, *master_name = "UN IDENTIFIED";
++	struct l3_target_data *l3_targ_inst;
+ 
+ 	/* Get the Type of interrupt */
+ 	inttype = irq == l3->app_irq ? L3_APPLICATION_ERROR : L3_DEBUG_ERROR;
+@@ -74,9 +75,11 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
+ 		if (err_reg) {
+ 			/* Identify the source from control status register */
+ 			err_src = __ffs(err_reg);
++			l3_targ_inst = &l3_targ[i][err_src];
++			target_name = l3_targ_inst->name;
++			l3_targ_base = base + l3_targ_inst->offset;
+ 
+ 			/* Read the stderrlog_main_source from clk domain */
+-			l3_targ_base = base + l3_targ[i][err_src];
+ 			l3_targ_stderr = l3_targ_base + L3_TARG_STDERRLOG_MAIN;
+ 			l3_targ_slvofslsb = l3_targ_base +
+ 					    L3_TARG_STDERRLOG_SLVOFSLSB;
+@@ -88,8 +91,6 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
+ 
+ 			switch (std_err_main & CUSTOM_ERROR) {
+ 			case STANDARD_ERROR:
+-				target_name =
+-					l3_targ_inst_name[i][err_src];
+ 				WARN(true, "L3 standard error: TARGET:%s at address 0x%x\n",
+ 					target_name,
+ 					readl_relaxed(l3_targ_slvofslsb));
+@@ -99,8 +100,6 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
+ 				break;
+ 
+ 			case CUSTOM_ERROR:
+-				target_name =
+-					l3_targ_inst_name[i][err_src];
+ 				for (k = 0; k < NUM_OF_L3_MASTERS; k++) {
+ 					if (masterid == l3_masters[k].id)
+ 						master_name =
 diff --git a/drivers/bus/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
-index 365a33c..91814e0 100644
+index 26ad279..25ba99c 100644
 --- a/drivers/bus/omap_l3_noc.h
 +++ b/drivers/bus/omap_l3_noc.h
-@@ -339,4 +339,89 @@ static const struct omap_l3 dra_l3_data = {
- 	.num_masters = ARRAY_SIZE(dra_l3_masters),
+@@ -43,51 +43,62 @@ struct l3_masters_data {
+ 	char *name;
  };
  
-+/* AM4372 data */
-+static struct l3_target_data am4372_l3_target_data_200f[] = {
-+	{0xf00,  "EMIF",},
-+	{0x1200, "DES",},
-+	{0x400,  "OCMCRAM",},
-+	{0x700,  "TPTC0",},
-+	{0x800,  "TPTC1",},
-+	{0x900,  "TPTC2"},
-+	{0xb00,  "TPCC",},
-+	{0xd00,  "DEBUGSS",},
-+	{0xdead, L3_TARGET_NOT_SUPPORTED,},
-+	{0x200,  "SHA",},
-+	{0xc00,  "SGX530",},
-+	{0x500,  "AES0",},
-+	{0xa00,  "L4_FAST",},
-+	{0x300,  "MPUSS_L2_RAM",},
-+	{0x100,  "ICSS",},
++/**
++ * struct l3_target_data - L3 Target information
++ * @offset:	Offset from base for L3 Target
++ * @name:	Target name
++ *
++ * Target information is organized indexed by bit field definitions.
++ */
++struct l3_target_data {
++	u32 offset;
++	char *name;
 +};
 +
-+static struct l3_flagmux_data am4372_l3_flagmux_200f = {
-+	.offset = 0x1000,
-+	.l3_targ = am4372_l3_target_data_200f,
-+	.num_targ_data = ARRAY_SIZE(am4372_l3_target_data_200f),
-+};
-+
-+static struct l3_target_data am4372_l3_target_data_100s[] = {
-+	{0x100, "L4_PER_0",},
-+	{0x200, "L4_PER_1",},
-+	{0x300, "L4_PER_2",},
-+	{0x400, "L4_PER_3",},
-+	{0x800, "McASP0",},
-+	{0x900, "McASP1",},
-+	{0xC00, "MMCHS2",},
-+	{0x700, "GPMC",},
-+	{0xD00, "L4_FW",},
-+	{0xdead, L3_TARGET_NOT_SUPPORTED,},
-+	{0x500, "ADCTSC",},
-+	{0xE00, "L4_WKUP",},
-+	{0xA00, "MAG_CARD",},
-+};
-+
-+static struct l3_flagmux_data am4372_l3_flagmux_100s = {
-+	.offset = 0x600,
-+	.l3_targ = am4372_l3_target_data_100s,
-+	.num_targ_data = ARRAY_SIZE(am4372_l3_target_data_100s),
-+};
-+
-+static struct l3_masters_data am4372_l3_masters[] = {
-+	{ 0x0, "M1 (128-bit)"},
-+	{ 0x0, "M2 (64-bit)"},
-+	{ 0x4, "DAP"},
-+	{ 0x5, "P1500"},
-+	{ 0xC, "ICSS0"},
-+	{ 0xD, "ICSS1"},
-+	{ 0x18, "TPTC0 Read"},
-+	{ 0x19, "TPTC0 Write"},
-+	{ 0x1A, "TPTC1 Read"},
-+	{ 0x1B, "TPTC1 Write"},
-+	{ 0x1C, "TPTC2 Read"},
-+	{ 0x1D, "TPTC2 Write"},
-+	{ 0x20, "SGX530"},
-+	{ 0x25, "DSS"},
-+	{ 0x28, "Crypto DMA RD"},
-+	{ 0x29, "Crypto DMA WR"},
-+	{ 0x2C, "VPFE0"},
-+	{ 0x2D, "VPFE1"},
-+	{ 0x30, "GEMAC"},
-+	{ 0x34, "USB0 RD"},
-+	{ 0x35, "USB0 WR"},
-+	{ 0x36, "USB1 RD"},
-+	{ 0x37, "USB1 WR"},
-+};
-+
-+static struct l3_flagmux_data *am4372_l3_flagmux[] = {
-+	&am4372_l3_flagmux_200f,
-+	&am4372_l3_flagmux_100s,
-+};
-+
-+static const struct omap_l3 am4372_l3_data = {
-+	.l3_flagmux = am4372_l3_flagmux,
-+	.num_modules = ARRAY_SIZE(am4372_l3_flagmux),
-+	.l3_masters = am4372_l3_masters,
-+	.num_masters = ARRAY_SIZE(am4372_l3_masters),
-+};
-+
- #endif	/* __OMAP_L3_NOC_H */
+ static u32 l3_flagmux[L3_MODULES] = {
+ 	0x500,
+ 	0x1000,
+ 	0X0200
+ };
+ 
+-/* L3 Target standard Error register offsets */
+-static u32 l3_targ_inst_clk1[] = {
+-	0x100, /* DMM1 */
+-	0x200, /* DMM2 */
+-	0x300, /* ABE */
+-	0x400, /* L4CFG */
+-	0x600,  /* CLK2 PWR DISC */
+-	0x0,	/* Host CLK1 */
+-	0x900	/* L4 Wakeup */
++static struct l3_target_data l3_target_inst_data_clk1[] = {
++	{0x100,	"DMM1",},
++	{0x200,	"DMM2",},
++	{0x300,	"ABE",},
++	{0x400,	"L4CFG",},
++	{0x600,	"CLK2PWRDISC",},
++	{0x0,	"HOSTCLK1",},
++	{0x900,	"L4WAKEUP",},
+ };
+ 
+-static u32 l3_targ_inst_clk2[] = {
+-	0x500, /* CORTEX M3 */
+-	0x300, /* DSS */
+-	0x100, /* GPMC */
+-	0x400, /* ISS */
+-	0x700, /* IVAHD */
+-	0xD00, /* missing in TRM  corresponds to AES1*/
+-	0x900, /* L4 PER0*/
+-	0x200, /* OCMRAM */
+-	0x100, /* missing in TRM corresponds to GPMC sERROR*/
+-	0x600, /* SGX */
+-	0x800, /* SL2 */
+-	0x1600, /* C2C */
+-	0x1100,	/* missing in TRM corresponds PWR DISC CLK1*/
+-	0xF00, /* missing in TRM corrsponds to SHA1*/
+-	0xE00, /* missing in TRM corresponds to AES2*/
+-	0xC00, /* L4 PER3 */
+-	0xA00, /* L4 PER1*/
+-	0xB00, /* L4 PER2*/
+-	0x0, /* HOST CLK2 */
+-	0x1800, /* CAL */
+-	0x1700 /* LLI */
++static struct l3_target_data l3_target_inst_data_clk2[] = {
++	{0x500,	"CORTEXM3",},
++	{0x300,	"DSS",},
++	{0x100,	"GPMC",},
++	{0x400,	"ISS",},
++	{0x700,	"IVAHD",},
++	{0xD00,	"AES1",},
++	{0x900,	"L4PER0",},
++	{0x200,	"OCMRAM",},
++	{0x100,	"GPMCsERROR",},
++	{0x600,	"SGX",},
++	{0x800,	"SL2",},
++	{0x1600, "C2C",},
++	{0x1100, "PWRDISCCLK1",},
++	{0xF00,	"SHA1",},
++	{0xE00,	"AES2",},
++	{0xC00,	"L4PER3",},
++	{0xA00,	"L4PER1",},
++	{0xB00,	"L4PER2",},
++	{0x0,	"HOSTCLK2",},
++	{0x1800, "CAL",},
++	{0x1700, "LLI",},
+ };
+ 
+-static u32 l3_targ_inst_clk3[] = {
+-	0x0100	/* EMUSS */,
+-	0x0300, /* DEBUGSS_CT_TBR */
+-	0x0 /* HOST CLK3 */
++static struct l3_target_data l3_target_inst_data_clk3[] = {
++	{0x0100, "EMUSS",},
++	{0x0300, "DEBUG SOURCE",},
++	{0x0,	"HOST CLK3",},
+ };
+ 
+ static struct l3_masters_data l3_masters[] = {
+@@ -118,50 +129,10 @@ static struct l3_masters_data l3_masters[] = {
+ 	{ 0xC8, "USBHOSTFS"}
+ };
+ 
+-static char *l3_targ_inst_name[L3_MODULES][21] = {
+-	{
+-		"DMM1",
+-		"DMM2",
+-		"ABE",
+-		"L4CFG",
+-		"CLK2 PWR DISC",
+-		"HOST CLK1",
+-		"L4 WAKEUP"
+-	},
+-	{
+-		"CORTEX M3" ,
+-		"DSS ",
+-		"GPMC ",
+-		"ISS ",
+-		"IVAHD ",
+-		"AES1",
+-		"L4 PER0",
+-		"OCMRAM ",
+-		"GPMC sERROR",
+-		"SGX ",
+-		"SL2 ",
+-		"C2C ",
+-		"PWR DISC CLK1",
+-		"SHA1",
+-		"AES2",
+-		"L4 PER3",
+-		"L4 PER1",
+-		"L4 PER2",
+-		"HOST CLK2",
+-		"CAL",
+-		"LLI"
+-	},
+-	{
+-		"EMUSS",
+-		"DEBUG SOURCE",
+-		"HOST CLK3"
+-	},
+-};
+-
+-static u32 *l3_targ[L3_MODULES] = {
+-	l3_targ_inst_clk1,
+-	l3_targ_inst_clk2,
+-	l3_targ_inst_clk3,
++static struct l3_target_data *l3_targ[L3_MODULES] = {
++	l3_target_inst_data_clk1,
++	l3_target_inst_data_clk2,
++	l3_target_inst_data_clk3,
+ };
+ 
+ struct omap4_l3 {
 -- 
 1.7.9.5
