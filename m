@@ -1,87 +1,107 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: L3 custom error on OMAP4460
-Date: Mon, 14 Apr 2014 09:38:25 -0400
-Message-ID: <534BE4D1.4080104@ti.com>
-References: <CAGhQ9Vy-hKBiW0_g3Ht4gqmg0w5WX8H+aqWAkeEhPnHh5AN68A@mail.gmail.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 05/14] arm: common: edma: Select event queue 1 as
+	default when booted with DT
+Date: Mon, 14 Apr 2014 20:02:33 +0530
+Message-ID: <534BF181.6060503@ti.com>
+References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
+	<1396357575-30585-6-git-send-email-peter.ujfalusi@ti.com>
+	<5347A4FD.1030803@ti.com> <5347ACDE.7040407@ti.com>
+	<5347AE49.5020109@ti.com> <5347B7F8.2000508@ti.com>
+	<20140411094217.GA32284@intel.com> <5347D2CC.4030407@ti.com>
+	<20140411113154.GB32284@intel.com> <5347DEDA.2060008@ti.com>
+	<20140411124641.GC32284@intel.com> <534BCCD3.9060805@ti.com>
+	<534BD0B5.5000004@ti.com> <534BD788.3050406@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40218 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751803AbaDNNi1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Apr 2014 09:38:27 -0400
-In-Reply-To: <CAGhQ9Vy-hKBiW0_g3Ht4gqmg0w5WX8H+aqWAkeEhPnHh5AN68A@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <534BD788.3050406-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, joelf-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Joachim Eastwood <manabian@gmail.com>, linux-omap@vger.kernel.org
 
-On Saturday 12 April 2014 05:06 PM, Joachim Eastwood wrote:
-> Hi,
+On Monday 14 April 2014 06:11 PM, Peter Ujfalusi wrote:
+> On 04/14/2014 03:12 PM, Sekhar Nori wrote:
+>> On Monday 14 April 2014 05:26 PM, Peter Ujfalusi wrote:
+>>> Hi Vinod,
+>>>
+>>> On 04/11/2014 03:46 PM, Vinod Koul wrote:
+>>>> I think the number shouldn't be viewed in absolute terms. If we decide that (lets
+>>>> say) 0-7, then any controller should map 0 to lowest and 7 to highest.
+>>>>
+>>>> For your case you can do this and then intermediate numbers would be medium
+>>>> priority. Such a system might work well...
+>>>>
+>>>> Also how would a client driver know which priority to use? Would it come from
+>>>> DT?
+>>>
+>>> I think DT would be the best place.
+>>
+>> In the strict sense of what DT is supposed to represent, DT is not the
+>> best place for this. Priority is usecase driven rather that hardware
+>> description driven.
 > 
-> I getting the following error on Linus master right now.
+> While this is true, the DMA priority - if supported by the DMA engine - is a
+> HW feature as well. If it is supported by the HW it can be used to tune and
+> partition the system for the anticipated load or purpose.
 > 
-> [ 2.166320] WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:113
-> l3_interrupt_handler+0xf4/0x154()
-> [ 2.166320] L3 custom error: MASTER:MPU TARGET:L4 PER2
-> [ 2.166320] Modules linked in:
-> [ 2.166351] CPU: 0 PID: 0 Comm: swapper/0 Not tainted
-> 3.14.0-12542-gfb5ce8367c24 #11
-> [ 2.166381] [<c0014ea8>] (unwind_backtrace) from [<c0011b8c>]
-> (show_stack+0x10/0x14)
-> [ 2.166381] [<c0011b8c>] (show_stack) from [<c05a9580>] (dump_stack+0x84/0x94)
-> [ 2.166412] [<c05a9580>] (dump_stack) from [<c0036b08>]
-> (warn_slowpath_common+0x70/0x8c)
-> [ 2.166412] [<c0036b08>] (warn_slowpath_common) from [<c0036b54>]
-> (warn_slowpath_fmt+0x30/0x40)
-> [ 2.166412] [<c0036b54>] (warn_slowpath_fmt) from [<c02876f0>]
-> (l3_interrupt_handler+0xf4/0x154)
-> [ 2.166442] [<c02876f0>] (l3_interrupt_handler) from [<c0085c7c>]
-> (handle_irq_event_percpu+0x54/0x1cc)
-> [ 2.166473] [<c0085c7c>] (handle_irq_event_percpu) from [<c0085e30>]
-> (handle_irq_event+0x3c/0x5c)
-> [ 2.166473] [<c0085e30>] (handle_irq_event) from [<c0088e30>]
-> (handle_fasteoi_irq+0xac/0x1a0)
-> [ 2.166473] [<c0088e30>] (handle_fasteoi_irq) from [<c008535c>]
-> (generic_handle_irq+0x2c/0x3c)
-> [ 2.166503] [<c008535c>] (generic_handle_irq) from [<c000ea80>]
-> (handle_IRQ+0x40/0x90)
-> [ 2.166503] [<c000ea80>] (handle_IRQ) from [<c0008594>]
-> (gic_handle_irq+0x2c/0x5c)
-> [ 2.166534] [<c0008594>] (gic_handle_irq) from [<c05b0bc4>]
-> (__irq_svc+0x44/0x58)
-> [ 2.166534] Exception stack(0xc087bf58 to 0xc087bfa0)
-> [ 2.166534] bf40: 00000001 00000001
-> [ 2.166534] bf60: 00000000 c08856f8 c087a000 c087a000 c08d9544
-> c0882548 c087a000 ee7ffc40
-> [ 2.166564] bf80: c08824e0 c05b9cec 00000000 c087bfa0 c007a0f0
-> c000eda8 20000113 ffffffff
-> [ 2.166564] [<c05b0bc4>] (__irq_svc) from [<c000eda8>] (arch_cpu_idle+0x24/0x30)
-> [ 2.166595] [<c000eda8>] (arch_cpu_idle) from [<c00718b0>]
-> (cpu_startup_entry+0x138/0x204)
-> [ 2.166595] [<c00718b0>] (cpu_startup_entry) from [<c0814b10>]
-> (start_kernel+0x370/0x37c)
-> [ 2.166625] [<c0814b10>] (start_kernel) from [<80008074>] (0x80008074)
+>> So on a reasonably less loaded system, I am sure you
+>> could run audio even with a lower priority DMA queue.
 > 
-> Not sure what to make of it. Anyone got any idea?
+> Yes, you can. But as soon as you have other devices using the same priority
+> (with eDMA3 at least) and asks for a 'long' transfer it can ruin the audio.
+> During audio playback/capture you execute a long MMC read for example can
+> introduce a glitch.
 > 
-> Right before the L3 custom WARN I also get these messages from the
-> des/aes crypot drivers. Might be unrelated, though.
-> [ 2.134643] omap-aes 4b501000.aes: _od_fail_runtime_resume: FIXME:
-> missing hwmod/omap_dev info
-> [ 2.143737] omap-aes 4b501000.aes: omap_aes_probe: failed to get_sync(-19)
-> [ 2.151000] omap-aes 4b501000.aes: initialization failed.
-> [ 2.157196] omap-des 480a5000.des: _od_fail_runtime_resume: FIXME:
-> missing hwmod/omap_dev info
-> [ 2.166290] omap-des 480a5000.des: OMAP DES hw accel rev: 0.0
+>> Moreover, IMHO, encoding it in DT now will make it an ABI. Without a
+>> wide variety of example use cases, I think it is too early to commit to
+>> an ABI.
 > 
-> The hardware is a VAR-STK-OM44 dev kit. I got one patch on top of
-> Linus master which is the DT support patch which I posted a couple of
-> hours ago.
-> 
-Have you tried removing AES from the build ? Probably worth a
-try.
+> True, but we need to start from somewhere?
 
-Regards,
-Santosh
+Right, and based on our IRC discussion, we are not really fixing up the
+priority value space. That makes me much more comfortable with the idea.
 
+>>> Not sure if we should set the range for this either. What I was thinking is to
+>>> add an optional new property to be set by the client nodes, using DMA:
+>>>
+>>> mcasp0: mcasp@48038000 {
+>>> 	compatible = "ti,am33xx-mcasp-audio";
+>>> 	...
+>>> 	dmas =	<&edma 8>,
+>>> 		<&edma 9>;
+>>> 	dma-names = "tx", "rx";
+>>> 	dma-priorities = <2>, <2>;
+>>> };
+>>>
+
+>>> We could agree that lower number means lower priority, higher is - well -
+>>> higher priority.
+
+Even this does not have to be uniform across, right? The numbers could
+be left to interpretation per-SoC.
+
+>>> If the dma-priority is missing we should assume lowest priority (0).
+>>> The highest priority depends on the platform. For eDMA3 in AM335x it is three
+>>> level. For designware controller you might have the range 0-8 as valid.
+>>>
+>>> The question is how to get this information into use?
+>>> We can take the priority number in the core when the dma channel is requested
+>>> and add field to "struct dma_chan" in order to store it and the DMA drivers
+>>> could have access to it.
+
+How about Vinod's idea of extending dma_slave_config? Priority is
+similar to rest of the runtime setup dmaengine_slave_config() is meant
+to do.
+
+Thanks,
+Sekhar
