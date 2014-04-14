@@ -1,57 +1,51 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 09/10] dmaengine: edma: Add channel number to debug prints
-Date: Mon, 14 Apr 2014 14:42:04 +0300
-Message-ID: <1397475725-5036-10-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 03/10] dmaengine: edma: Correct the handling of
+ src/dst_maxburst == 0
+Date: Mon, 14 Apr 2014 14:41:58 +0300
+Message-ID: <1397475725-5036-4-git-send-email-peter.ujfalusi@ti.com>
 References: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: dan.j.williams@intel.com, vinod.koul@intel.com, nsekhar@ti.com, joelf@ti.com
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
+Cc: dmaengine@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-It helps to identify issues if we have some information regarding to the
-channel which the event is associated.
+When clients asks for maxburst = 0 it is basically the same case as if they
+were asking for maxburst = 1 since in both case ASYNC need to be used and
+the eDMA is expected to write/read one word per DMA request.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Joel Fernandes <joelf@ti.com>
 ---
- drivers/dma/edma.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/dma/edma.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index bc8175c92e0c..4aa5eb005b5c 100644
+index cd04eb7b182e..2742867fd1e6 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -185,7 +185,8 @@ static void edma_execute(struct edma_chan *echan)
- 	edma_resume(echan->ch_num);
+@@ -285,6 +285,10 @@ static int edma_config_pset(struct dma_chan *chan, struct edmacc_param *pset,
+ 	int absync;
  
- 	if (edesc->processed <= MAX_NR_SG) {
--		dev_dbg(dev, "first transfer starting %d\n", echan->ch_num);
-+		dev_dbg(dev, "first transfer starting on channel %d\n",
-+			echan->ch_num);
- 		edma_start(echan->ch_num);
- 	}
- 
-@@ -195,7 +196,7 @@ static void edma_execute(struct edma_chan *echan)
- 	 * MAX_NR_SG
- 	 */
- 	if (echan->missed) {
--		dev_dbg(dev, "missed event in execute detected\n");
-+		dev_dbg(dev, "missed event on channel %d\n", echan->ch_num);
- 		edma_clean_channel(echan->ch_num);
- 		edma_stop(echan->ch_num);
- 		edma_start(echan->ch_num);
-@@ -735,7 +736,7 @@ static int edma_alloc_chan_resources(struct dma_chan *chan)
- 	echan->alloced = true;
- 	echan->slot[0] = echan->ch_num;
- 
--	dev_dbg(dev, "allocated channel for %u:%u\n",
-+	dev_dbg(dev, "allocated channel %d for %u:%u\n", echan->ch_num,
- 		EDMA_CTLR(echan->ch_num), EDMA_CHAN_SLOT(echan->ch_num));
- 
- 	return 0;
+ 	acnt = dev_width;
++
++	/* src/dst_maxburst == 0 is the same case as src/dst_maxburst == 1 */
++	if (!burst)
++		burst = 1;
+ 	/*
+ 	 * If the maxburst is equal to the fifo width, use
+ 	 * A-synced transfers. This allows for large contiguous
 -- 
 1.9.2
