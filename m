@@ -1,7 +1,7 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 04/15] bus: omap_l3_noc: move L3 master data structure out
-Date: Mon, 14 Apr 2014 11:25:15 -0500
-Message-ID: <1397492726-17203-6-git-send-email-nm@ti.com>
+Subject: [PATCH 10/15] bus: omap_l3_noc: remove iclk from omap_l3 struct
+Date: Mon, 14 Apr 2014 11:25:21 -0500
+Message-ID: <1397492726-17203-12-git-send-email-nm@ti.com>
 References: <1397492726-17203-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,46 +21,26 @@ To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.co
 Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Move the L3 master structure out of the static definition to enable
-reuse for other SoCs.
+we do not use iclk directly anymore. And, even if we had to, we
+should be using pm_runtime APIs to do the same to be completely SoC
+independent.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- drivers/bus/omap_l3_noc.h |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/bus/omap_l3_noc.h |    1 -
+ 1 file changed, 1 deletion(-)
 
 diff --git a/drivers/bus/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
-index cc4b1b1..26ad279 100644
+index a1931e8..573e40f 100644
 --- a/drivers/bus/omap_l3_noc.h
 +++ b/drivers/bus/omap_l3_noc.h
-@@ -33,6 +33,16 @@
+@@ -142,7 +142,6 @@ static struct l3_target_data *l3_targ[L3_MODULES] = {
  
- #define NUM_OF_L3_MASTERS	(sizeof(l3_masters)/sizeof(l3_masters[0]))
+ struct omap_l3 {
+ 	struct device *dev;
+-	struct clk *ick;
  
-+/**
-+ * struct l3_masters_data - L3 Master information
-+ * @id:		ID of the L3 Master
-+ * @name:	master name
-+ */
-+struct l3_masters_data {
-+	u32 id;
-+	char *name;
-+};
-+
- static u32 l3_flagmux[L3_MODULES] = {
- 	0x500,
- 	0x1000,
-@@ -80,10 +90,7 @@ static u32 l3_targ_inst_clk3[] = {
- 	0x0 /* HOST CLK3 */
- };
- 
--static struct l3_masters_data {
--	u32 id;
--	char name[10];
--} l3_masters[] = {
-+static struct l3_masters_data l3_masters[] = {
- 	{ 0x0 , "MPU"},
- 	{ 0x10, "CS_ADP"},
- 	{ 0x14, "xxx"},
+ 	/* memory base */
+ 	void __iomem *l3_base[L3_MODULES];
 -- 
 1.7.9.5
