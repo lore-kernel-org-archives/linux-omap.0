@@ -1,69 +1,55 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH] ARM: AM33xx: hwmod: Add INIT_NO_IDLE flag for debugss
- hwmod
-Date: Mon, 14 Apr 2014 13:59:26 +0530
-Message-ID: <534B9C66.9020007@ti.com>
-References: <1397022467-6166-1-git-send-email-lokeshvutla@ti.com> <alpine.DEB.2.02.1404111800430.14347@utopia.booyaka.com> <alpine.DEB.2.02.1404111807210.14347@utopia.booyaka.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH 1/1] dma: edma: fix incorrect SG list handling
+Date: Mon, 14 Apr 2014 14:01:11 +0530
+Message-ID: <534B9CCF.1070904@ti.com>
+References: <1395208550-1603-1-git-send-email-nsekhar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53055 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53114 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751381AbaDNIaD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Apr 2014 04:30:03 -0400
-In-Reply-To: <alpine.DEB.2.02.1404111807210.14347@utopia.booyaka.com>
+	id S1753557AbaDNIbU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Apr 2014 04:31:20 -0400
+In-Reply-To: <1395208550-1603-1-git-send-email-nsekhar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: hvaibhav@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, nsekhar@ti.com, rnayak@ti.com
+To: Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>
+Cc: DMA Engine Mailing List <dmaengine@vger.kernel.org>, Linux DaVinci Mailing List <davinci-linux-open-source@linux.davincidsp.com>, Jon Ringle <jringle@gridpoint.com>, Alexander Holler <holler@ahsoftware.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Joel Fernandes <joelf@ti.com>
 
-Hi Paul,
-On Friday 11 April 2014 11:39 PM, Paul Walmsley wrote:
-> On Fri, 11 Apr 2014, Paul Walmsley wrote:
-> 
->> On Wed, 9 Apr 2014, Lokesh Vutla wrote:
->>
->>> During boot, when hwmod tries to cut clocks for debugss it always
->>> gets stuck in transition state and throws the following warning:
->>>
->>> [    0.139581] omap_hwmod: debugss: _wait_target_disable failed
->>>
->>> As per the information provided by folks, clocks to debugss cannot be cut.
->>> So adding HWMOD_INIT_NO_IDLE flag to debugss hwmod.
->>>
->>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->>
->> Thanks, queued for v3.15-rc.
-> 
-> Hmmm.  On second thought, this doesn't look like the right fix.  Could 
-> you please comment on the issues raised here:
-> 
-> https://patchwork.kernel.org/patch/2212111/
-Yes, I initially created a driver for enabling and disabling clocks for DEBUGSS.
-But I always see that DEBUGSS is always stuck in transition whenever clocks are cut
-to DEBUGSS. 
-During boot also when hwmod tries to cut clocks the following warning comes:
-  [    0.139581] omap_hwmod: debugss: _wait_target_disable failed.
+Vinod,
 
-As confirmed by the hardware team that this is a bug in silicon that clocks cannot
-be cut to DEBUGSS.
-So I am just adding HWMOD_INIT_NO_IDLE flag to debugss hwmod. 
-
-I have also tested suspend-resume with $subject patch with TI internal tree.
-
-Please let me know if I am not clear.
-
-Thanks and regards,
-Lokesh
-
+On Wednesday 19 March 2014 11:25 AM, Sekhar Nori wrote:
+> The code to handle any length SG lists calls edma_resume()
+> even before edma_start() is called. This is incorrect
+> because edma_resume() enables edma events on the channel
+> after which CPU (in edma_start) cannot clear posted
+> events by writing to ECR (per the EDMA user's guide).
 > 
-> Looks to me like there should be at least one device driver, either for 
-> the entire DEBUGSS, or for the individual IP blocks inside the DEBUGSS.
+> Because of this EDMA transfers fail to start if due
+> to some reason there is a pending EDMA event registered
+> even before EDMA transfers are started. This can happen if
+> an EDMA event is a byproduct of device initialization.
 > 
-> Dropping this patch for now.
+> Fix this by calling edma_resume() only if it is not the
+> first batch of MAX_NR_SG elements.
 > 
+> Without this patch, MMC/SD fails to function on DA850 EVM
+> with DMA. The behaviour is triggered by specific IP and
+> this can explain why the issue was not reported before
+> (example with MMC/SD on AM335x).
 > 
-> - Paul
+> Tested on DA850 EVM and AM335x EVM-SK using MMC/SD card.
 > 
+> Cc: stable@vger.kernel.org # v3.12.x+
+> Cc: Joel Fernandes <joelf@ti.com>
+> Acked-by: Joel Fernandes <joelf@ti.com>
+> Tested-by: Jon Ringle <jringle@gridpoint.com>
+> Tested-by: Alexander Holler <holler@ahsoftware.de>
+> Reported-by: Jon Ringle <jringle@gridpoint.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 
+Looks like this patch is not in mainline still?
+
+Thanks,
+Sekhar
