@@ -1,51 +1,47 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 03/10] dmaengine: edma: Correct the handling of
- src/dst_maxburst == 0
-Date: Mon, 14 Apr 2014 14:41:58 +0300
-Message-ID: <1397475725-5036-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 10/10] dmaengine: edma: Print the direction value as well when it is not supported
+Date: Mon, 14 Apr 2014 14:42:05 +0300
+Message-ID: <1397475725-5036-11-git-send-email-peter.ujfalusi@ti.com>
 References: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: dan.j.williams@intel.com, vinod.koul@intel.com, nsekhar@ti.com, joelf@ti.com
-Cc: dmaengine@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
 List-Id: linux-omap@vger.kernel.org
 
-When clients asks for maxburst = 0 it is basically the same case as if they
-were asking for maxburst = 1 since in both case ASYNC need to be used and
-the eDMA is expected to write/read one word per DMA request.
+In case of not supported direction it is better to print the direction also.
+It is unlikely, but in such an event it helps with the debugging.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Joel Fernandes <joelf@ti.com>
 ---
- drivers/dma/edma.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/dma/edma.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index cd04eb7b182e..2742867fd1e6 100644
+index 4aa5eb005b5c..91849aa50de1 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -285,6 +285,10 @@ static int edma_config_pset(struct dma_chan *chan, struct edmacc_param *pset,
- 	int absync;
+@@ -432,7 +432,7 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
+ 		dev_width = echan->cfg.dst_addr_width;
+ 		burst = echan->cfg.dst_maxburst;
+ 	} else {
+-		dev_err(dev, "%s: bad direction?\n", __func__);
++		dev_err(dev, "%s: bad direction: %d\n", __func__, direction);
+ 		return NULL;
+ 	}
  
- 	acnt = dev_width;
-+
-+	/* src/dst_maxburst == 0 is the same case as src/dst_maxburst == 1 */
-+	if (!burst)
-+		burst = 1;
- 	/*
- 	 * If the maxburst is equal to the fifo width, use
- 	 * A-synced transfers. This allows for large contiguous
+@@ -525,7 +525,7 @@ static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
+ 		dev_width = echan->cfg.dst_addr_width;
+ 		burst = echan->cfg.dst_maxburst;
+ 	} else {
+-		dev_err(dev, "%s: bad direction?\n", __func__);
++		dev_err(dev, "%s: bad direction: %d\n", __func__, direction);
+ 		return NULL;
+ 	}
+ 
 -- 
 1.9.2
