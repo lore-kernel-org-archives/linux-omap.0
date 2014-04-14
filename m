@@ -1,47 +1,48 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 10/10] dmaengine: edma: Print the direction value as well when it is not supported
-Date: Mon, 14 Apr 2014 14:42:05 +0300
-Message-ID: <1397475725-5036-11-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 02/10] arm: common: edma: Save the number of event
+ queues/TCs
+Date: Mon, 14 Apr 2014 14:41:57 +0300
+Message-ID: <1397475725-5036-3-git-send-email-peter.ujfalusi@ti.com>
 References: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: dan.j.williams@intel.com, vinod.koul@intel.com, nsekhar@ti.com, joelf@ti.com
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
+Cc: dmaengine@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-In case of not supported direction it is better to print the direction also.
-It is unlikely, but in such an event it helps with the debugging.
+For later use save the number of queues available for the CC.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Joel Fernandes <joelf@ti.com>
 ---
- drivers/dma/edma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/common/edma.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 4aa5eb005b5c..91849aa50de1 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -432,7 +432,7 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
- 		dev_width = echan->cfg.dst_addr_width;
- 		burst = echan->cfg.dst_maxburst;
- 	} else {
--		dev_err(dev, "%s: bad direction?\n", __func__);
-+		dev_err(dev, "%s: bad direction: %d\n", __func__, direction);
- 		return NULL;
- 	}
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 41bca32409fc..999266bf69b9 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -1768,6 +1768,9 @@ static int edma_probe(struct platform_device *pdev)
+ 			map_queue_tc(j, queue_tc_mapping[i][0],
+ 					queue_tc_mapping[i][1]);
  
-@@ -525,7 +525,7 @@ static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
- 		dev_width = echan->cfg.dst_addr_width;
- 		burst = echan->cfg.dst_maxburst;
- 	} else {
--		dev_err(dev, "%s: bad direction?\n", __func__);
-+		dev_err(dev, "%s: bad direction: %d\n", __func__, direction);
- 		return NULL;
- 	}
- 
++		/* Save the number of TCs */
++		edma_cc[j]->num_tc = i;
++
+ 		/* Event queue priority mapping */
+ 		for (i = 0; queue_priority_mapping[i][0] != -1; i++)
+ 			assign_priority_to_queue(j,
 -- 
 1.9.2
