@@ -1,67 +1,57 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 00/10] dma: edma: Fixes for cyclic (audio) operation
-Date: Mon, 14 Apr 2014 14:41:55 +0300
-Message-ID: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 09/10] dmaengine: edma: Add channel number to debug prints
+Date: Mon, 14 Apr 2014 14:42:04 +0300
+Message-ID: <1397475725-5036-10-git-send-email-peter.ujfalusi@ti.com>
+References: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org
-Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dan.j.williams@intel.com, vinod.koul@intel.com, nsekhar@ti.com, joelf@ti.com
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+It helps to identify issues if we have some information regarding to the
+channel which the event is associated.
 
-Changes since v2:
-- Dropped patch 10 from v2 (simplify direction configuration...)
-- Dropped the channel priority related patches since we are going to go via
-  different route for configuring the priority.
-- Added ACK from Joel for the patches since they are not changed since v2
-
-Changes since v1:
-- ASoC patches removed
-- Comments from Andriy Shevchenko addressed
-- patch added to fix cases when src/dst_maxburst is set to 0
-
-The series contains now only:
-Support for DMA pause/resume in cyclic mode
-device_slave_caps callback and DMA_CYCLIC flag correction.
-While debugging the edma to get things sorted out I noticed that the debug was
-too verbose and the important information was hidden even when the we did not
-asked for verbose dmaengine debug.
-I have included some debug cleanups for the edma dmaengine driver also.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Joel Fernandes <joelf@ti.com>
 ---
-Peter Ujfalusi (10):
-  platform_data: edma: Be precise with the paRAM struct
-  arm: common: edma: Save the number of event queues/TCs
-  dmaengine: edma: Correct the handling of src/dst_maxburst == 0
-  dmaengine: edma: Add support for DMA_PAUSE/RESUME operation
-  dmaengine: edma: Set DMA_CYCLIC capability flag
-  dmaengine: edma: Implement device_slave_caps callback
-  dmaengine: edma: Reduce debug print verbosity for non verbose
-    debugging
-  dmaengine: edma: Prefix debug prints where the text were identical in
-    prep callbacks
-  dmaengine: edma: Add channel number to debug prints
-  dmaengine: edma: Print the direction value as well when it is not
-    supported
+ drivers/dma/edma.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
- arch/arm/common/edma.c             |  4 ++
- drivers/dma/edma.c                 | 87 ++++++++++++++++++++++++++++++--------
- include/linux/platform_data/edma.h | 18 ++++----
- 3 files changed, 83 insertions(+), 26 deletions(-)
-
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index bc8175c92e0c..4aa5eb005b5c 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -185,7 +185,8 @@ static void edma_execute(struct edma_chan *echan)
+ 	edma_resume(echan->ch_num);
+ 
+ 	if (edesc->processed <= MAX_NR_SG) {
+-		dev_dbg(dev, "first transfer starting %d\n", echan->ch_num);
++		dev_dbg(dev, "first transfer starting on channel %d\n",
++			echan->ch_num);
+ 		edma_start(echan->ch_num);
+ 	}
+ 
+@@ -195,7 +196,7 @@ static void edma_execute(struct edma_chan *echan)
+ 	 * MAX_NR_SG
+ 	 */
+ 	if (echan->missed) {
+-		dev_dbg(dev, "missed event in execute detected\n");
++		dev_dbg(dev, "missed event on channel %d\n", echan->ch_num);
+ 		edma_clean_channel(echan->ch_num);
+ 		edma_stop(echan->ch_num);
+ 		edma_start(echan->ch_num);
+@@ -735,7 +736,7 @@ static int edma_alloc_chan_resources(struct dma_chan *chan)
+ 	echan->alloced = true;
+ 	echan->slot[0] = echan->ch_num;
+ 
+-	dev_dbg(dev, "allocated channel for %u:%u\n",
++	dev_dbg(dev, "allocated channel %d for %u:%u\n", echan->ch_num,
+ 		EDMA_CTLR(echan->ch_num), EDMA_CHAN_SLOT(echan->ch_num));
+ 
+ 	return 0;
 -- 
 1.9.2
