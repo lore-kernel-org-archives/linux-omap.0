@@ -1,62 +1,43 @@
 From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: [PATCHv2 06/11] pwm: modify PWM_LOOKUP to initialize all struct pwm_lookup members
-Date: Mon, 14 Apr 2014 23:59:48 +0200
-Message-ID: <1397512793-10325-7-git-send-email-alexandre.belloni@free-electrons.com>
+Subject: [PATCHv2 05/11] ARM: pxa: hx4700: initialize all the struct pwm_lookup members
+Date: Mon, 14 Apr 2014 23:59:47 +0200
+Message-ID: <1397512793-10325-6-git-send-email-alexandre.belloni@free-electrons.com>
 References: <1397512793-10325-1-git-send-email-alexandre.belloni@free-electrons.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:35540 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755805AbaDNWAU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2014 18:00:20 -0400
+Return-path: <linux-pwm-owner@vger.kernel.org>
 In-Reply-To: <1397512793-10325-1-git-send-email-alexandre.belloni@free-electrons.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-pwm-owner@vger.kernel.org
 To: Thierry Reding <thierry.reding@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Bryan Wu <cooloney@gmail.com>, Jingoo Han <jg1.han@samsung.com>, Lee Jones <lee.jones@linaro.org>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-leds@vger.kernel.org, linux-fbdev@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>
+List-Id: linux-omap@vger.kernel.org
 
-Now that PWM_LOOKUP is not used anymore, modify it to initialize all the
-members of struct pwm_lookup.
+This will allow to get rid of the .pwm_period_ns member of struct
+platform_pwm_backlight_data as the period will be set by the PWM core.
 
 Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 ---
- Documentation/pwm.txt | 3 ++-
- include/linux/pwm.h   | 4 +++-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ arch/arm/mach-pxa/hx4700.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/pwm.txt b/Documentation/pwm.txt
-index 93cb97974986..f38f99cda64f 100644
---- a/Documentation/pwm.txt
-+++ b/Documentation/pwm.txt
-@@ -19,7 +19,8 @@ should instead register a static mapping that can be used to match PWM
- consumers to providers, as given in the following example:
- 
- 	static struct pwm_lookup board_pwm_lookup[] = {
--		PWM_LOOKUP("tegra-pwm", 0, "pwm-backlight", NULL),
-+		PWM_LOOKUP("tegra-pwm", 0, "pwm-backlight", NULL,
-+			   50000, PWM_POLARITY_NORMAL),
- 	};
- 
- 	static void __init board_init(void)
-diff --git a/include/linux/pwm.h b/include/linux/pwm.h
-index 2f45e2fe5b93..e90628cac8fa 100644
---- a/include/linux/pwm.h
-+++ b/include/linux/pwm.h
-@@ -278,12 +278,14 @@ struct pwm_lookup {
- 	enum pwm_polarity polarity;
+diff --git a/arch/arm/mach-pxa/hx4700.c b/arch/arm/mach-pxa/hx4700.c
+index a7c30eb0c8db..0788a1f171fe 100644
+--- a/arch/arm/mach-pxa/hx4700.c
++++ b/arch/arm/mach-pxa/hx4700.c
+@@ -574,7 +574,14 @@ static struct platform_device backlight = {
  };
  
--#define PWM_LOOKUP(_provider, _index, _dev_id, _con_id)	\
-+#define PWM_LOOKUP(_provider, _index, _dev_id, _con_id, _period, _polarity) \
- 	{						\
- 		.provider = _provider,			\
- 		.index = _index,			\
- 		.dev_id = _dev_id,			\
- 		.con_id = _con_id,			\
-+		.period = _period,			\
-+		.polarity = _polarity			\
- 	}
+ static struct pwm_lookup hx4700_pwm_lookup[] = {
+-	PWM_LOOKUP("pxa27x-pwm.1", 0, "pwm-backlight", NULL),
++	{
++		.provider = "pxa27x-pwm.1",
++		.index = 0,
++		.dev_id = "pwm-backlight",
++		.con_id = NULL,
++		.period = 30923,
++		.polarity = PWM_POLARITY_NORMAL,
++	},
+ };
  
- #if IS_ENABLED(CONFIG_PWM)
+ /*
 -- 
 1.8.3.2
 
