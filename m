@@ -1,107 +1,209 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 05/14] arm: common: edma: Select event queue 1 as
-	default when booted with DT
-Date: Mon, 14 Apr 2014 20:02:33 +0530
-Message-ID: <534BF181.6060503@ti.com>
-References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
-	<1396357575-30585-6-git-send-email-peter.ujfalusi@ti.com>
-	<5347A4FD.1030803@ti.com> <5347ACDE.7040407@ti.com>
-	<5347AE49.5020109@ti.com> <5347B7F8.2000508@ti.com>
-	<20140411094217.GA32284@intel.com> <5347D2CC.4030407@ti.com>
-	<20140411113154.GB32284@intel.com> <5347DEDA.2060008@ti.com>
-	<20140411124641.GC32284@intel.com> <534BCCD3.9060805@ti.com>
-	<534BD0B5.5000004@ti.com> <534BD788.3050406@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 14/15] bus: omap_l3_noc: Add DRA7 interconnect error data
+Date: Mon, 14 Apr 2014 11:25:25 -0500
+Message-ID: <1397492726-17203-16-git-send-email-nm@ti.com>
+References: <1397492726-17203-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <534BD788.3050406-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, joelf-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48068 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754846AbaDNQ0A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2014 12:26:00 -0400
+In-Reply-To: <1397492726-17203-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sricharan R <r.sricharan@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday 14 April 2014 06:11 PM, Peter Ujfalusi wrote:
-> On 04/14/2014 03:12 PM, Sekhar Nori wrote:
->> On Monday 14 April 2014 05:26 PM, Peter Ujfalusi wrote:
->>> Hi Vinod,
->>>
->>> On 04/11/2014 03:46 PM, Vinod Koul wrote:
->>>> I think the number shouldn't be viewed in absolute terms. If we decide that (lets
->>>> say) 0-7, then any controller should map 0 to lowest and 7 to highest.
->>>>
->>>> For your case you can do this and then intermediate numbers would be medium
->>>> priority. Such a system might work well...
->>>>
->>>> Also how would a client driver know which priority to use? Would it come from
->>>> DT?
->>>
->>> I think DT would be the best place.
->>
->> In the strict sense of what DT is supposed to represent, DT is not the
->> best place for this. Priority is usecase driven rather that hardware
->> description driven.
-> 
-> While this is true, the DMA priority - if supported by the DMA engine - is a
-> HW feature as well. If it is supported by the HW it can be used to tune and
-> partition the system for the anticipated load or purpose.
-> 
->> So on a reasonably less loaded system, I am sure you
->> could run audio even with a lower priority DMA queue.
-> 
-> Yes, you can. But as soon as you have other devices using the same priority
-> (with eDMA3 at least) and asks for a 'long' transfer it can ruin the audio.
-> During audio playback/capture you execute a long MMC read for example can
-> introduce a glitch.
-> 
->> Moreover, IMHO, encoding it in DT now will make it an ABI. Without a
->> wide variety of example use cases, I think it is too early to commit to
->> an ABI.
-> 
-> True, but we need to start from somewhere?
+From: Rajendra Nayak <rnayak@ti.com>
 
-Right, and based on our IRC discussion, we are not really fixing up the
-priority value space. That makes me much more comfortable with the idea.
+DRA7 is distinctly different from OMAP4 in terms of masters and clock
+domain organization. There two main clock domains which is divided as
+follows:
+     <0x44000000 0x1000000> is clk1 and clk2 is the sub clock domain
+     <0x45000000 0x1000> is clk3
 
->>> Not sure if we should set the range for this either. What I was thinking is to
->>> add an optional new property to be set by the client nodes, using DMA:
->>>
->>> mcasp0: mcasp@48038000 {
->>> 	compatible = "ti,am33xx-mcasp-audio";
->>> 	...
->>> 	dmas =	<&edma 8>,
->>> 		<&edma 9>;
->>> 	dma-names = "tx", "rx";
->>> 	dma-priorities = <2>, <2>;
->>> };
->>>
+Add all the data needed to handle L3 error handling on DRA7 devices
+and mark clk2 as subdomain and provide a compatible flag for
+functionality. Other than the data difference the hardware blocks
+involved are essentially the same.
 
->>> We could agree that lower number means lower priority, higher is - well -
->>> higher priority.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+[nm@ti.com: bugfixes and generic improvements, documentation]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ .../devicetree/bindings/arm/omap/l3-noc.txt        |    1 +
+ drivers/bus/omap_l3_noc.c                          |    1 +
+ drivers/bus/omap_l3_noc.h                          |  133 ++++++++++++++++++++
+ 3 files changed, 135 insertions(+)
 
-Even this does not have to be uniform across, right? The numbers could
-be left to interpretation per-SoC.
+diff --git a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
+index c0105de..45d0fc2 100644
+--- a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
++++ b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
+@@ -6,6 +6,7 @@ provided by Arteris.
+ Required properties:
+ - compatible : Should be "ti,omap3-l3-smx" for OMAP3 family
+                Should be "ti,omap4-l3-noc" for OMAP4 family
++	       Should be "ti,dra7-l3-noc" for DRA7 family
+ - reg:	Contains L3 register address range for each noc domain.
+ - ti,hwmods: "l3_main_1", ... One hwmod for each noc domain.
+ 
+diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
+index 5e2a89d..9b32e53 100644
+--- a/drivers/bus/omap_l3_noc.c
++++ b/drivers/bus/omap_l3_noc.c
+@@ -176,6 +176,7 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
+ 
+ static const struct of_device_id l3_noc_match[] = {
+ 	{.compatible = "ti,omap4-l3-noc", .data = &omap_l3_data},
++	{.compatible = "ti,dra7-l3-noc", .data = &dra_l3_data},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, l3_noc_match);
+diff --git a/drivers/bus/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
+index 592821f..365a33c 100644
+--- a/drivers/bus/omap_l3_noc.h
++++ b/drivers/bus/omap_l3_noc.h
+@@ -206,4 +206,137 @@ static const struct omap_l3 omap_l3_data = {
+ 	.num_masters = ARRAY_SIZE(omap_l3_masters),
+ };
+ 
++/* DRA7 data */
++static struct l3_target_data dra_l3_target_data_clk1[] = {
++	{0xdead, L3_TARGET_NOT_SUPPORTED,},
++	{0x0200, "DMM_P1",},
++	{0x0600, "DSP2_SDMA",},
++	{0x0b00, "EVE2",},
++	{0x1300, "DMM_P2",},
++	{0xdead, L3_TARGET_NOT_SUPPORTED,},
++	{0x0300, "DSP1_SDMA",},
++	{0x0a00, "EVE1",},
++	{0x0c00, "EVE3",},
++	{0x0d00, "EVE4",},
++	{0x2900, "DSS",},
++	{0x0100, "GPMC",},
++	{0x3700, "PCIE1",},
++	{0x1600, "IVA_CONFIG",},
++	{0x1800, "IVA_SL2IF",},
++	{0x0500, "L4_CFG",},
++	{0x1d00, "L4_WKUP",},
++	{0x3800, "PCIE2",},
++	{0xdead, L3_TARGET_NOT_SUPPORTED,},
++	{0x1200, "GPU",},
++	{0x1000, "IPU1",},
++	{0x1100, "IPU2",},
++	{0x2000, "TPCC_EDMA",},
++	{0x2e00, "TPTC1_EDMA",},
++	{0x2b00, "TPTC2_EDMA",},
++	{0x0700, "VCP1",},
++	{0x2500, "L4_PER2_P3",},
++	{0x0e00, "L4_PER3_P3",},
++	{0x2200, "MMU1",},
++	{0x1400, "PRUSS1",},
++};
++
++static struct l3_flagmux_data dra_l3_flagmux_clk1 = {
++	.offset = 0x803500,
++	.l3_targ = dra_l3_target_data_clk1,
++	.num_targ_data = ARRAY_SIZE(dra_l3_target_data_clk1),
++};
++
++static struct l3_target_data dra_l3_target_data_clk2[] = {
++	{0x0,   "RT_CLK1_1",},
++	{0xdead, L3_TARGET_NOT_SUPPORTED,},
++	{0xdead, L3_TARGET_NOT_SUPPORTED,},
++	{0xdead, L3_TARGET_NOT_SUPPORTED,},
++	{0x0900, "BB2D",},
++	{0xdead, L3_TARGET_NOT_SUPPORTED,},
++	{0x2100, "L4_PER1_P3",},
++	{0x1c00, "L4_PER1_P1",},
++	{0x1f00, "L4_PER1_P2",},
++	{0x2300, "L4_PER2_P1",},
++	{0x2400, "L4_PER2_P2",},
++	{0x2600, "L4_PER3_P1",},
++	{0x2700, "L4_PER3_P2",},
++	{0x2f00, "MCASP1",},
++	{0xdead, L3_TARGET_NOT_SUPPORTED,},
++	{0xdead, L3_TARGET_NOT_SUPPORTED,},
++	{0x2800, "MMU2",},
++	{0x0f00, "OCMC_RAM1",},
++	{0x1700, "OCMC_RAM2",},
++	{0x1900, "OCMC_RAM3",},
++	{0xdead, L3_TARGET_NOT_SUPPORTED,},
++	{0x3900, "QSPI",},
++};
++
++static struct l3_flagmux_data dra_l3_flagmux_clk2 = {
++	.offset = 0x803600,
++	.l3_targ = dra_l3_target_data_clk2,
++	.num_targ_data = ARRAY_SIZE(dra_l3_target_data_clk2),
++};
++
++static struct l3_target_data dra_l3_target_data_clk3[] = {
++	{0x0100, "L3_INSTR"},
++	{0x0300, "DEBUGSS_CT_TBR"},
++	{0x0,    "HOST CLK3"},
++};
++
++static struct l3_flagmux_data dra_l3_flagmux_clk3 = {
++	.offset = 0x200,
++	.l3_targ = dra_l3_target_data_clk3,
++	.num_targ_data = ARRAY_SIZE(dra_l3_target_data_clk3),
++};
++
++static struct l3_masters_data dra_l3_masters[] = {
++	{ 0x0, "MPU" },
++	{ 0x4, "CS_DAP" },
++	{ 0x8, "DSP1_MDMA" },
++	{ 0x9, "DSP1_CFG" },
++	{ 0xA, "DSP1_DMA" },
++	{ 0xB, "DSP2_MDMA" },
++	{ 0xC, "DSP2_CFG" },
++	{ 0xD, "DSP2_DMA" },
++	{ 0xE, "IVA" },
++	{ 0x10, "EVE1_P1" },
++	{ 0x11, "EVE2_P1" },
++	{ 0x12, "EVE3_P1" },
++	{ 0x13, "EVE4_P1" },
++	{ 0x14, "PRU1" },
++	{ 0x15, "PRU2" },
++	{ 0x18, "IPU1" },
++	{ 0x1C, "TC1_EDMA" },
++	{ 0x1D, "TC2_EDMA" },
++	{ 0x20, "DSS" },
++	{ 0x21, "MMU1" },
++	{ 0x22, "PCIE1" },
++	{ 0x23, "MMU2" },
++	{ 0x24, "VIP1" },
++	{ 0x25, "VIP2" },
++	{ 0x26, "VIP3" },
++	{ 0x27, "VPE" },
++	{ 0x28, "GPU_P1" },
++	{ 0x29, "GPU_P2" },
++	{ 0x2B, "GMAC_SW" },
++	{ 0x34, "EVE1_P2" },
++	{ 0x35, "EVE2_P2" },
++	{ 0x36, "EVE3_P2" },
++	{ 0x37, "EVE4_P2" }
++};
++
++static struct l3_flagmux_data *dra_l3_flagmux[] = {
++	&dra_l3_flagmux_clk1,
++	&dra_l3_flagmux_clk2,
++	&dra_l3_flagmux_clk3,
++};
++
++static const struct omap_l3 dra_l3_data = {
++	.l3_base = { [1] = L3_BASE_IS_SUBMODULE },
++	.l3_flagmux = dra_l3_flagmux,
++	.num_modules = ARRAY_SIZE(dra_l3_flagmux),
++	.l3_masters = dra_l3_masters,
++	.num_masters = ARRAY_SIZE(dra_l3_masters),
++};
++
+ #endif	/* __OMAP_L3_NOC_H */
+-- 
+1.7.9.5
 
->>> If the dma-priority is missing we should assume lowest priority (0).
->>> The highest priority depends on the platform. For eDMA3 in AM335x it is three
->>> level. For designware controller you might have the range 0-8 as valid.
->>>
->>> The question is how to get this information into use?
->>> We can take the priority number in the core when the dma channel is requested
->>> and add field to "struct dma_chan" in order to store it and the DMA drivers
->>> could have access to it.
-
-How about Vinod's idea of extending dma_slave_config? Priority is
-similar to rest of the runtime setup dmaengine_slave_config() is meant
-to do.
-
-Thanks,
-Sekhar
