@@ -1,8 +1,8 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 03/13] extcon: extcon-class: remove extcon_set_cable_state()
- function
-Date: Mon, 14 Apr 2014 13:46:14 +0200
-Message-ID: <1397475984-28001-4-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 04/13] extcon: extcon-class: match extcon device by
+ devicetree node
+Date: Mon, 14 Apr 2014 13:46:15 +0200
+Message-ID: <1397475984-28001-5-git-send-email-r.baldyga@samsung.com>
 References: <1397475984-28001-1-git-send-email-r.baldyga@samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-reply-to: <1397475984-28001-1-git-send-email-r.baldyga@samsung.com>
@@ -10,521 +10,170 @@ Sender: linux-kernel-owner@vger.kernel.org
 Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, myungjoo.ham@samsung.com, cw00.choi@samsung.com, dbaryshkov@gmail.com, dwmw2@infradead.org, balbi@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, ldewangan@nvidia.com, kishon@ti.com, gg@slimlogic.co.uk, anton@enomsg.org, jonghwa3.lee@samsung.com, rongjun.ying@csr.com, linux@roeck-us.net, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi, m.szyprowski@samsung.com, t.figa@samsung.com, Robert Baldyga <r.baldyga@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch removes extcon_set_cable_state() and replace all calls of
-this function witch extcon_set_cable_state_(), which is faster version.
-This is first step of changing extcon API to faster and safer.
+This patch modifies extcon_get_edev_by_phandle() function, to match
+extcon device by devicetree node. This modification needed to add
+field 'node' in extcon_dev structure, and fill it in probe function
+of each extcon provider driver.
+
+This patch adds function of_extcon_get_extcon_dev(),
+returning extcon device which contains given devicetree node.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/extcon/extcon-class.c    |   17 --------
- drivers/extcon/extcon-max14577.c |   24 ++++++------
- drivers/extcon/extcon-max77693.c |   79 +++++++++++++++++++++++---------------
- drivers/extcon/extcon-max8997.c  |   32 +++++++++------
- drivers/extcon/extcon-palmas.c   |   27 +++++++++----
- include/linux/extcon.h           |    8 ----
- 6 files changed, 99 insertions(+), 88 deletions(-)
+ drivers/extcon/extcon-adc-jack.c |    1 +
+ drivers/extcon/extcon-arizona.c  |    1 +
+ drivers/extcon/extcon-class.c    |   21 ++++++++++++++++++++-
+ drivers/extcon/extcon-gpio.c     |    1 +
+ drivers/extcon/extcon-max14577.c |    2 ++
+ drivers/extcon/extcon-max77693.c |    1 +
+ drivers/extcon/extcon-max8997.c  |    1 +
+ drivers/extcon/extcon-palmas.c   |    1 +
+ include/linux/extcon.h           |    2 ++
+ 9 files changed, 30 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/extcon/extcon-adc-jack.c b/drivers/extcon/extcon-adc-jack.c
+index e23f1c2..d65915e 100644
+--- a/drivers/extcon/extcon-adc-jack.c
++++ b/drivers/extcon/extcon-adc-jack.c
+@@ -111,6 +111,7 @@ static int adc_jack_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	data->edev.dev.parent = &pdev->dev;
++	data->edev.node = pdev->dev.of_node;
+ 	data->edev.supported_cable = pdata->cable_names;
+ 
+ 	/* Check the length of array and set num_cables */
+diff --git a/drivers/extcon/extcon-arizona.c b/drivers/extcon/extcon-arizona.c
+index 98a14f6..fc69cca 100644
+--- a/drivers/extcon/extcon-arizona.c
++++ b/drivers/extcon/extcon-arizona.c
+@@ -1153,6 +1153,7 @@ static int arizona_extcon_probe(struct platform_device *pdev)
+ 
+ 	info->edev.name = "Headset Jack";
+ 	info->edev.dev.parent = arizona->dev;
++	info->edev.node = pdev->dev.of_node;
+ 	info->edev.supported_cable = arizona_cable;
+ 
+ 	ret = extcon_dev_register(&info->edev);
 diff --git a/drivers/extcon/extcon-class.c b/drivers/extcon/extcon-class.c
-index a45c5e9..1b98c4e 100644
+index 1b98c4e..b0d9c90 100644
 --- a/drivers/extcon/extcon-class.c
 +++ b/drivers/extcon/extcon-class.c
-@@ -358,23 +358,6 @@ int extcon_set_cable_state_(struct extcon_dev *edev,
- EXPORT_SYMBOL_GPL(extcon_set_cable_state_);
+@@ -377,6 +377,25 @@ out:
+ }
+ EXPORT_SYMBOL_GPL(extcon_get_extcon_dev);
  
- /**
-- * extcon_set_cable_state() - Set the status of a specific cable.
-- * @edev:		the extcon device that has the cable.
-- * @cable_name:		cable name.
-- * @cable_state:	the new cable status. The default semantics is
-- *			true: attached / false: detached.
-- *
-- * Note that this is slower than extcon_set_cable_state_.
-- */
--int extcon_set_cable_state(struct extcon_dev *edev,
--			const char *cable_name, bool cable_state)
--{
--	return extcon_set_cable_state_(edev, extcon_find_cable_index
--					(edev, cable_name), cable_state);
--}
--EXPORT_SYMBOL_GPL(extcon_set_cable_state);
--
--/**
-  * extcon_get_extcon_dev() - Get the extcon device instance from the name
-  * @extcon_name:	The extcon name provided with extcon_dev_register()
-  */
++/**
++ * of_extcon_get_extcon_dev() - Get the extcon device instance from the name
++ * @np: The node of extcon device
++ */
++struct extcon_dev *of_extcon_get_extcon_dev(const struct device_node *np)
++{
++	struct extcon_dev *edev;
++
++	mutex_lock(&extcon_dev_list_lock);
++	list_for_each_entry(edev, &extcon_dev_list, entry) {
++		if (edev->node == np)
++			goto out;
++	}
++	edev = NULL;
++out:
++	mutex_unlock(&extcon_dev_list_lock);
++	return edev;
++}
++
+ static int _call_per_cable(struct notifier_block *nb, unsigned long val,
+ 			   void *ptr)
+ {
+@@ -827,7 +846,7 @@ struct extcon_dev *extcon_get_edev_by_phandle(struct device *dev, int index)
+ 		return ERR_PTR(-ENODEV);
+ 	}
+ 
+-	edev = extcon_get_extcon_dev(node->name);
++	edev = of_extcon_get_extcon_dev(node);
+ 	if (!edev) {
+ 		dev_err(dev, "unable to get extcon device : %s\n", node->name);
+ 		return ERR_PTR(-ENODEV);
+diff --git a/drivers/extcon/extcon-gpio.c b/drivers/extcon/extcon-gpio.c
+index 13d5222..fc90b7a 100644
+--- a/drivers/extcon/extcon-gpio.c
++++ b/drivers/extcon/extcon-gpio.c
+@@ -100,6 +100,7 @@ static int gpio_extcon_probe(struct platform_device *pdev)
+ 
+ 	extcon_data->edev.name = pdata->name;
+ 	extcon_data->edev.dev.parent = &pdev->dev;
++	extcon_data->edev.node = pdev->dev.of_node;
+ 	extcon_data->gpio = pdata->gpio;
+ 	extcon_data->gpio_active_low = pdata->gpio_active_low;
+ 	extcon_data->state_on = pdata->state_on;
 diff --git a/drivers/extcon/extcon-max14577.c b/drivers/extcon/extcon-max14577.c
-index 3846941..7a947d3 100644
+index 7a947d3..b017a0d 100644
 --- a/drivers/extcon/extcon-max14577.c
 +++ b/drivers/extcon/extcon-max14577.c
-@@ -333,7 +333,7 @@ static int max14577_muic_get_cable_type(struct max14577_muic_info *info,
- static int max14577_muic_jig_handler(struct max14577_muic_info *info,
- 		int cable_type, bool attached)
- {
--	char cable_name[32];
-+	int cable;
- 	int ret = 0;
- 	u8 path = CTRL1_SW_OPEN;
- 
-@@ -344,17 +344,17 @@ static int max14577_muic_jig_handler(struct max14577_muic_info *info,
- 	switch (cable_type) {
- 	case MAX14577_MUIC_ADC_FACTORY_MODE_USB_OFF:	/* ADC_JIG_USB_OFF */
- 		/* PATH:AP_USB */
--		strcpy(cable_name, "JIG-USB-OFF");
-+		cable = EXTCON_CABLE_JIG_USB_OFF;
- 		path = CTRL1_SW_USB;
- 		break;
- 	case MAX14577_MUIC_ADC_FACTORY_MODE_USB_ON:	/* ADC_JIG_USB_ON */
- 		/* PATH:AP_USB */
--		strcpy(cable_name, "JIG-USB-ON");
-+		cable = EXTCON_CABLE_JIG_USB_ON;
- 		path = CTRL1_SW_USB;
- 		break;
- 	case MAX14577_MUIC_ADC_FACTORY_MODE_UART_OFF:	/* ADC_JIG_UART_OFF */
- 		/* PATH:AP_UART */
--		strcpy(cable_name, "JIG-UART-OFF");
-+		cable = EXTCON_CABLE_JIG_UART_OFF;
- 		path = CTRL1_SW_UART;
- 		break;
- 	default:
-@@ -367,7 +367,7 @@ static int max14577_muic_jig_handler(struct max14577_muic_info *info,
- 	if (ret < 0)
- 		return ret;
- 
--	extcon_set_cable_state(info->edev, cable_name, attached);
-+	extcon_set_cable_state_(info->edev, cable, attached);
- 
- 	return 0;
- }
-@@ -464,20 +464,22 @@ static int max14577_muic_chg_handler(struct max14577_muic_info *info)
- 		if (ret < 0)
- 			return ret;
- 
--		extcon_set_cable_state(info->edev, "USB", attached);
-+		extcon_set_cable_state_(info->edev, EXTCON_CABLE_USB, attached);
- 		break;
- 	case MAX14577_CHARGER_TYPE_DEDICATED_CHG:
--		extcon_set_cable_state(info->edev, "TA", attached);
-+		extcon_set_cable_state_(info->edev, EXTCON_CABLE_TA, attached);
- 		break;
- 	case MAX14577_CHARGER_TYPE_DOWNSTREAM_PORT:
--		extcon_set_cable_state(info->edev,
--				"Charge-downstream", attached);
-+		extcon_set_cable_state_(info->edev,
-+				EXTCON_CABLE_CHARGE_DOWNSTREAM, attached);
- 		break;
- 	case MAX14577_CHARGER_TYPE_SPECIAL_500MA:
--		extcon_set_cable_state(info->edev, "Slow-charger", attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_SLOW_CHARGER, attached);
- 		break;
- 	case MAX14577_CHARGER_TYPE_SPECIAL_1A:
--		extcon_set_cable_state(info->edev, "Fast-charger", attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_FAST_CHARGER, attached);
- 		break;
- 	case MAX14577_CHARGER_TYPE_NONE:
- 	case MAX14577_CHARGER_TYPE_DEAD_BATTERY:
+@@ -676,6 +676,8 @@ static int max14577_muic_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 	info->edev->name = DEV_NAME;
++	info->edev->dev.parent = &pdev->dev;
++	info->edev->node = pdev->dev.of_node;
+ 	info->edev->supported_cable = max14577_extcon_cable;
+ 	ret = extcon_dev_register(info->edev);
+ 	if (ret) {
 diff --git a/drivers/extcon/extcon-max77693.c b/drivers/extcon/extcon-max77693.c
-index 905051d..7a014cd 100644
+index 7a014cd..2cd8892 100644
 --- a/drivers/extcon/extcon-max77693.c
 +++ b/drivers/extcon/extcon-max77693.c
-@@ -216,6 +216,7 @@ enum {
- 	EXTCON_CABLE_DOCK_SMART,
- 	EXTCON_CABLE_DOCK_DESK,
- 	EXTCON_CABLE_DOCK_AUDIO,
-+	EXTCON_CABLE_AV_LOAD,
- 
- 	_EXTCON_CABLE_NUM,
- };
-@@ -236,6 +237,7 @@ static const char *max77693_extcon_cable[] = {
- 	[EXTCON_CABLE_DOCK_SMART]		= "Dock-Smart",
- 	[EXTCON_CABLE_DOCK_DESK]		= "Dock-Desk",
- 	[EXTCON_CABLE_DOCK_AUDIO]		= "Dock-Audio",
-+	[EXTCON_CABLE_AV_LOAD]			= "Audio-video-load",
- 
- 	NULL,
- };
-@@ -480,7 +482,7 @@ static int max77693_muic_dock_handler(struct max77693_muic_info *info,
- 	int ret = 0;
- 	int vbvolt;
- 	bool cable_attached;
--	char dock_name[CABLE_NAME_MAX];
-+	int dock;
- 
- 	dev_info(info->dev,
- 		"external connector is %s (adc:0x%02x)\n",
-@@ -525,19 +527,22 @@ static int max77693_muic_dock_handler(struct max77693_muic_info *info,
- 		if (ret < 0)
- 			return ret;
- 
--		extcon_set_cable_state(info->edev, "Dock-Smart", attached);
--		extcon_set_cable_state(info->edev, "MHL", attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_DOCK_SMART, attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_MHL, attached);
- 		goto out;
- 	case MAX77693_MUIC_ADC_FACTORY_MODE_UART_ON:	/* Dock-Car */
--		strcpy(dock_name, "Dock-Car");
-+		dock = EXTCON_CABLE_JIG_UART_ON;
- 		break;
- 	case MAX77693_MUIC_ADC_AUDIO_MODE_REMOTE:	/* Dock-Desk */
--		strcpy(dock_name, "Dock-Desk");
-+		dock = EXTCON_CABLE_DOCK_DESK;
- 		break;
- 	case MAX77693_MUIC_ADC_AV_CABLE_NOLOAD:		/* Dock-Audio */
--		strcpy(dock_name, "Dock-Audio");
-+		dock = EXTCON_CABLE_DOCK_AUDIO;
- 		if (!attached)
--			extcon_set_cable_state(info->edev, "USB", false);
-+			extcon_set_cable_state_(info->edev,
-+						EXTCON_CABLE_USB, false);
- 		break;
- 	default:
- 		dev_err(info->dev, "failed to detect %s dock device\n",
-@@ -549,7 +554,7 @@ static int max77693_muic_dock_handler(struct max77693_muic_info *info,
- 	ret = max77693_muic_set_path(info, CONTROL1_SW_AUDIO, attached);
- 	if (ret < 0)
- 		return ret;
--	extcon_set_cable_state(info->edev, dock_name, attached);
-+	extcon_set_cable_state_(info->edev, dock, attached);
- 
- out:
- 	return 0;
-@@ -614,20 +619,22 @@ static int max77693_muic_adc_ground_handler(struct max77693_muic_info *info)
- 		ret = max77693_muic_set_path(info, CONTROL1_SW_USB, attached);
- 		if (ret < 0)
- 			return ret;
--		extcon_set_cable_state(info->edev, "USB-Host", attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_USB_HOST, attached);
- 		break;
- 	case MAX77693_MUIC_GND_AV_CABLE_LOAD:
- 		/* Audio Video Cable with load, PATH:AUDIO */
- 		ret = max77693_muic_set_path(info, CONTROL1_SW_AUDIO, attached);
- 		if (ret < 0)
- 			return ret;
--		extcon_set_cable_state(info->edev,
--				"Audio-video-load", attached);
-+		extcon_set_cable_state_(info->edev,
-+				EXTCON_CABLE_AV_LOAD, attached);
- 		break;
- 	case MAX77693_MUIC_GND_MHL:
- 	case MAX77693_MUIC_GND_MHL_VB:
- 		/* MHL or MHL with USB/TA cable */
--		extcon_set_cable_state(info->edev, "MHL", attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_MHL, attached);
- 		break;
- 	default:
- 		dev_err(info->dev, "failed to detect %s cable of gnd type\n",
-@@ -641,7 +648,7 @@ static int max77693_muic_adc_ground_handler(struct max77693_muic_info *info)
- static int max77693_muic_jig_handler(struct max77693_muic_info *info,
- 		int cable_type, bool attached)
- {
--	char cable_name[32];
-+	int cable;
- 	int ret = 0;
- 	u8 path = CONTROL1_SW_OPEN;
- 
-@@ -652,17 +659,17 @@ static int max77693_muic_jig_handler(struct max77693_muic_info *info,
- 	switch (cable_type) {
- 	case MAX77693_MUIC_ADC_FACTORY_MODE_USB_OFF:	/* ADC_JIG_USB_OFF */
- 		/* PATH:AP_USB */
--		strcpy(cable_name, "JIG-USB-OFF");
-+		cable = EXTCON_CABLE_JIG_USB_OFF;
- 		path = CONTROL1_SW_USB;
- 		break;
- 	case MAX77693_MUIC_ADC_FACTORY_MODE_USB_ON:	/* ADC_JIG_USB_ON */
- 		/* PATH:AP_USB */
--		strcpy(cable_name, "JIG-USB-ON");
-+		cable = EXTCON_CABLE_JIG_USB_ON;
- 		path = CONTROL1_SW_USB;
- 		break;
- 	case MAX77693_MUIC_ADC_FACTORY_MODE_UART_OFF:	/* ADC_JIG_UART_OFF */
- 		/* PATH:AP_UART */
--		strcpy(cable_name, "JIG-UART-OFF");
-+		cable = EXTCON_CABLE_JIG_UART_OFF;
- 		path = CONTROL1_SW_UART;
- 		break;
- 	default:
-@@ -675,7 +682,7 @@ static int max77693_muic_jig_handler(struct max77693_muic_info *info,
- 	if (ret < 0)
- 		return ret;
- 
--	extcon_set_cable_state(info->edev, cable_name, attached);
-+	extcon_set_cable_state_(info->edev, cable, attached);
- 
- 	return 0;
- }
-@@ -829,10 +836,11 @@ static int max77693_muic_chg_handler(struct max77693_muic_info *info)
- 			 * - Support charging through micro-usb port without
- 			 *   data connection
- 			 */
--			extcon_set_cable_state(info->edev, "MHL_TA", attached);
-+			extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_MHL_TA, attached);
- 			if (!cable_attached)
--				extcon_set_cable_state(info->edev,
--						      "MHL", cable_attached);
-+				extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_MHL, cable_attached);
- 			break;
- 		}
- 
-@@ -855,11 +863,13 @@ static int max77693_muic_chg_handler(struct max77693_muic_info *info)
- 			 * - Support charging through micro-usb port without
- 			 *   data connection.
- 			 */
--			extcon_set_cable_state(info->edev, "USB", attached);
-+			extcon_set_cable_state_(info->edev,
-+						EXTCON_CABLE_USB, attached);
- 
- 			if (!cable_attached)
--				extcon_set_cable_state(info->edev, "Dock-Audio",
--						      cable_attached);
-+				extcon_set_cable_state_(info->edev,
-+						EXTCON_CABLE_DOCK_AUDIO,
-+						cable_attached);
- 			break;
- 		case MAX77693_MUIC_ADC_RESERVED_ACC_3:		/* Dock-Smart */
- 			/*
-@@ -887,9 +897,10 @@ static int max77693_muic_chg_handler(struct max77693_muic_info *info)
- 			if (ret < 0)
- 				return ret;
- 
--			extcon_set_cable_state(info->edev, "Dock-Smart",
--					      attached);
--			extcon_set_cable_state(info->edev, "MHL", attached);
-+			extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_DOCK_SMART, attached);
-+			extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_MHL, attached);
- 
- 			break;
- 		}
-@@ -923,23 +934,27 @@ static int max77693_muic_chg_handler(struct max77693_muic_info *info)
- 			if (ret < 0)
- 				return ret;
- 
--			extcon_set_cable_state(info->edev, "USB", attached);
-+			extcon_set_cable_state_(info->edev,
-+						EXTCON_CABLE_USB, attached);
- 			break;
- 		case MAX77693_CHARGER_TYPE_DEDICATED_CHG:
- 			/* Only TA cable */
--			extcon_set_cable_state(info->edev, "TA", attached);
-+			extcon_set_cable_state_(info->edev,
-+						EXTCON_CABLE_TA, attached);
- 			break;
- 		}
- 		break;
- 	case MAX77693_CHARGER_TYPE_DOWNSTREAM_PORT:
--		extcon_set_cable_state(info->edev,
--				"Charge-downstream", attached);
-+		extcon_set_cable_state_(info->edev,
-+				EXTCON_CABLE_CHARGE_DOWNSTREAM, attached);
- 		break;
- 	case MAX77693_CHARGER_TYPE_APPLE_500MA:
--		extcon_set_cable_state(info->edev, "Slow-charger", attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_SLOW_CHARGER, attached);
- 		break;
- 	case MAX77693_CHARGER_TYPE_APPLE_1A_2A:
--		extcon_set_cable_state(info->edev, "Fast-charger", attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_FAST_CHARGER, attached);
- 		break;
- 	case MAX77693_CHARGER_TYPE_DEAD_BATTERY:
- 		break;
+@@ -1200,6 +1200,7 @@ static int max77693_muic_probe(struct platform_device *pdev)
+ 	}
+ 	info->edev->name = DEV_NAME;
+ 	info->edev->dev.parent = &pdev->dev;
++	info->edev->node = pdev->dev.of_node;
+ 	info->edev->supported_cable = max77693_extcon_cable;
+ 	ret = extcon_dev_register(info->edev);
+ 	if (ret) {
 diff --git a/drivers/extcon/extcon-max8997.c b/drivers/extcon/extcon-max8997.c
-index f97a38a..a3df70d 100644
+index a3df70d..c071588 100644
 --- a/drivers/extcon/extcon-max8997.c
 +++ b/drivers/extcon/extcon-max8997.c
-@@ -348,10 +348,12 @@ static int max8997_muic_handle_usb(struct max8997_muic_info *info,
- 
- 	switch (usb_type) {
- 	case MAX8997_USB_HOST:
--		extcon_set_cable_state(info->edev, "USB-Host", attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_USB_HOST, attached);
- 		break;
- 	case MAX8997_USB_DEVICE:
--		extcon_set_cable_state(info->edev, "USB", attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_USB, attached);
- 		break;
- 	default:
- 		dev_err(info->dev, "failed to detect %s usb cable\n",
-@@ -375,10 +377,12 @@ static int max8997_muic_handle_dock(struct max8997_muic_info *info,
- 
- 	switch (cable_type) {
- 	case MAX8997_MUIC_ADC_AV_CABLE_NOLOAD:
--		extcon_set_cable_state(info->edev, "Dock-desk", attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_DOCK_DESK, attached);
- 		break;
- 	case MAX8997_MUIC_ADC_FACTORY_MODE_UART_ON:
--		extcon_set_cable_state(info->edev, "Dock-card", attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_DOCK_CARD, attached);
- 		break;
- 	default:
- 		dev_err(info->dev, "failed to detect %s dock device\n",
-@@ -401,7 +405,7 @@ static int max8997_muic_handle_jig_uart(struct max8997_muic_info *info,
- 		return ret;
+@@ -718,6 +718,7 @@ static int max8997_muic_probe(struct platform_device *pdev)
  	}
- 
--	extcon_set_cable_state(info->edev, "JIG", attached);
-+	extcon_set_cable_state_(info->edev, EXTCON_CABLE_JIG, attached);
- 
- 	return 0;
- }
-@@ -423,7 +427,8 @@ static int max8997_muic_adc_handler(struct max8997_muic_info *info)
- 			return ret;
- 		break;
- 	case MAX8997_MUIC_ADC_MHL:
--		extcon_set_cable_state(info->edev, "MHL", attached);
-+		extcon_set_cable_state_(info->edev,
-+					EXTCON_CABLE_MHL, attached);
- 		break;
- 	case MAX8997_MUIC_ADC_FACTORY_MODE_USB_OFF:
- 	case MAX8997_MUIC_ADC_FACTORY_MODE_USB_ON:
-@@ -506,17 +511,20 @@ static int max8997_muic_chg_handler(struct max8997_muic_info *info)
- 		}
- 		break;
- 	case MAX8997_CHARGER_TYPE_DOWNSTREAM_PORT:
--		extcon_set_cable_state(info->edev,
--				      "Charge-downstream", attached);
-+		extcon_set_cable_state_(info->edev,
-+				EXTCON_CABLE_CHARGE_DOWNSTREAM, attached);
- 		break;
- 	case MAX8997_CHARGER_TYPE_DEDICATED_CHG:
--		extcon_set_cable_state(info->edev, "TA", attached);
-+		extcon_set_cable_state_(info->edev,
-+				EXTCON_CABLE_TA, attached);
- 		break;
- 	case MAX8997_CHARGER_TYPE_500MA:
--		extcon_set_cable_state(info->edev, "Slow-charger", attached);
-+		extcon_set_cable_state_(info->edev,
-+				EXTCON_CABLE_SLOW_CHARGER, attached);
- 		break;
- 	case MAX8997_CHARGER_TYPE_1A:
--		extcon_set_cable_state(info->edev, "Fast-charger", attached);
-+		extcon_set_cable_state_(info->edev,
-+				EXTCON_CABLE_FAST_CHARGER, attached);
- 		break;
- 	default:
- 		dev_err(info->dev,
-@@ -758,7 +766,7 @@ static int max8997_muic_probe(struct platform_device *pdev)
- 	}
- 
- 	/* Set initial path for UART */
--	 max8997_muic_set_path(info, info->path_uart, true);
-+	max8997_muic_set_path(info, info->path_usb, true);
- 
- 	/* Set ADC debounce time */
- 	max8997_muic_set_debounce_time(info, ADC_DEBOUNCE_TIME_25MS);
+ 	info->edev->name = DEV_NAME;
+ 	info->edev->dev.parent = &pdev->dev;
++	info->edev->node = pdev->dev.of_node;
+ 	info->edev->supported_cable = max8997_extcon_cable;
+ 	ret = extcon_dev_register(info->edev);
+ 	if (ret) {
 diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
-index ddff2b7..26c0619 100644
+index 26c0619..153a40e 100644
 --- a/drivers/extcon/extcon-palmas.c
 +++ b/drivers/extcon/extcon-palmas.c
-@@ -28,9 +28,14 @@
- #include <linux/of.h>
- #include <linux/of_platform.h>
+@@ -199,6 +199,7 @@ static int palmas_usb_probe(struct platform_device *pdev)
  
-+enum {
-+	EXTCON_CABLE_USB = 0,
-+	EXTCON_CABLE_USB_HOST,
-+};
-+
- static const char *palmas_extcon_cable[] = {
--	[0] = "USB",
--	[1] = "USB-HOST",
-+	[EXTCON_CABLE_USB] = "USB",
-+	[EXTCON_CABLE_USB_HOST] = "USB-HOST",
- 	NULL,
- };
+ 	palmas_usb->edev.supported_cable = palmas_extcon_cable;
+ 	palmas_usb->edev.dev.parent = palmas_usb->dev;
++	palmas_usb->edev.node = pdev->dev.of_node;
+ 	palmas_usb->edev.mutually_exclusive = mutually_exclusive;
  
-@@ -56,7 +61,8 @@ static irqreturn_t palmas_vbus_irq_handler(int irq, void *_palmas_usb)
- 	if (vbus_line_state & PALMAS_INT3_LINE_STATE_VBUS) {
- 		if (palmas_usb->linkstat != PALMAS_USB_STATE_VBUS) {
- 			palmas_usb->linkstat = PALMAS_USB_STATE_VBUS;
--			extcon_set_cable_state(&palmas_usb->edev, "USB", true);
-+			extcon_set_cable_state_(&palmas_usb->edev,
-+						EXTCON_CABLE_USB, true);
- 			dev_info(palmas_usb->dev, "USB cable is attached\n");
- 		} else {
- 			dev_dbg(palmas_usb->dev,
-@@ -65,7 +71,8 @@ static irqreturn_t palmas_vbus_irq_handler(int irq, void *_palmas_usb)
- 	} else if (!(vbus_line_state & PALMAS_INT3_LINE_STATE_VBUS)) {
- 		if (palmas_usb->linkstat == PALMAS_USB_STATE_VBUS) {
- 			palmas_usb->linkstat = PALMAS_USB_STATE_DISCONNECT;
--			extcon_set_cable_state(&palmas_usb->edev, "USB", false);
-+			extcon_set_cable_state_(&palmas_usb->edev,
-+						EXTCON_CABLE_USB, false);
- 			dev_info(palmas_usb->dev, "USB cable is detached\n");
- 		} else {
- 			dev_dbg(palmas_usb->dev,
-@@ -92,7 +99,8 @@ static irqreturn_t palmas_id_irq_handler(int irq, void *_palmas_usb)
- 			PALMAS_USB_ID_INT_LATCH_CLR,
- 			PALMAS_USB_ID_INT_EN_HI_CLR_ID_GND);
- 		palmas_usb->linkstat = PALMAS_USB_STATE_ID;
--		extcon_set_cable_state(&palmas_usb->edev, "USB-HOST", true);
-+		extcon_set_cable_state_(&palmas_usb->edev,
-+					EXTCON_CABLE_USB_HOST, true);
- 		dev_info(palmas_usb->dev, "USB-HOST cable is attached\n");
- 	} else if ((set & PALMAS_USB_ID_INT_SRC_ID_FLOAT) &&
- 				(id_src & PALMAS_USB_ID_INT_SRC_ID_FLOAT)) {
-@@ -100,17 +108,20 @@ static irqreturn_t palmas_id_irq_handler(int irq, void *_palmas_usb)
- 			PALMAS_USB_ID_INT_LATCH_CLR,
- 			PALMAS_USB_ID_INT_EN_HI_CLR_ID_FLOAT);
- 		palmas_usb->linkstat = PALMAS_USB_STATE_DISCONNECT;
--		extcon_set_cable_state(&palmas_usb->edev, "USB-HOST", false);
-+		extcon_set_cable_state_(&palmas_usb->edev,
-+					EXTCON_CABLE_USB_HOST, false);
- 		dev_info(palmas_usb->dev, "USB-HOST cable is detached\n");
- 	} else if ((palmas_usb->linkstat == PALMAS_USB_STATE_ID) &&
- 				(!(set & PALMAS_USB_ID_INT_SRC_ID_GND))) {
- 		palmas_usb->linkstat = PALMAS_USB_STATE_DISCONNECT;
--		extcon_set_cable_state(&palmas_usb->edev, "USB-HOST", false);
-+		extcon_set_cable_state_(&palmas_usb->edev,
-+					EXTCON_CABLE_USB_HOST, false);
- 		dev_info(palmas_usb->dev, "USB-HOST cable is detached\n");
- 	} else if ((palmas_usb->linkstat == PALMAS_USB_STATE_DISCONNECT) &&
- 				(id_src & PALMAS_USB_ID_INT_SRC_ID_GND)) {
- 		palmas_usb->linkstat = PALMAS_USB_STATE_ID;
--		extcon_set_cable_state(&palmas_usb->edev, "USB-HOST", true);
-+		extcon_set_cable_state_(&palmas_usb->edev,
-+					EXTCON_CABLE_USB_HOST, true);
- 		dev_info(palmas_usb->dev, " USB-HOST cable is attached\n");
- 	}
- 
+ 	status = extcon_dev_register(&palmas_usb->edev);
 diff --git a/include/linux/extcon.h b/include/linux/extcon.h
-index f488145..ed4a47b 100644
+index ed4a47b..573dd1f 100644
 --- a/include/linux/extcon.h
 +++ b/include/linux/extcon.h
-@@ -214,8 +214,6 @@ extern int extcon_set_cable_state_(struct extcon_dev *edev, int cable_index,
+@@ -77,6 +77,7 @@ struct extcon_cable;
+ /**
+  * struct extcon_dev - An extcon device represents one external connector.
+  * @name:		The name of this extcon device. Parent device name is
++ * @node:		Devicetree node of parent device.
+  *			used if NULL.
+  * @supported_cable:	Array of supported cable names ending with NULL.
+  *			If supported_cable is NULL, cable name related APIs
+@@ -113,6 +114,7 @@ struct extcon_cable;
+ struct extcon_dev {
+ 	/* Optional user initializing data */
+ 	const char *name;
++	const struct device_node *node;
+ 	const char **supported_cable;
+ 	const u32 *mutually_exclusive;
  
- extern int extcon_get_cable_state(struct extcon_dev *edev,
- 				  const char *cable_name);
--extern int extcon_set_cable_state(struct extcon_dev *edev,
--				  const char *cable_name, bool cable_state);
- 
- /*
-  * Following APIs are for notifiees (those who want to be notified)
-@@ -282,12 +280,6 @@ static inline int extcon_get_cable_state_(struct extcon_dev *edev,
- 	return 0;
- }
- 
--static inline int extcon_set_cable_state_(struct extcon_dev *edev,
--					  int cable_index, bool cable_state)
--{
--	return 0;
--}
--
- static inline int extcon_get_cable_state(struct extcon_dev *edev,
- 			const char *cable_name)
- {
 -- 
 1.7.9.5
