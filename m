@@ -1,14 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 05/10] dmaengine: edma: Set DMA_CYCLIC capability flag
-Date: Mon, 14 Apr 2014 14:42:00 +0300
-Message-ID: <1397475725-5036-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 06/10] dmaengine: edma: Implement device_slave_caps callback
+Date: Mon, 14 Apr 2014 14:42:01 +0300
+Message-ID: <1397475725-5036-7-git-send-email-peter.ujfalusi@ti.com>
 References: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45719 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45718 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754682AbaDNLms (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754672AbaDNLms (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 14 Apr 2014 07:42:48 -0400
 In-Reply-To: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,39 +16,52 @@ List-Id: linux-omap@vger.kernel.org
 To: dan.j.williams@intel.com, vinod.koul@intel.com, nsekhar@ti.com, joelf@ti.com
 Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
 
-Indicate that the edma dmaengine driver has support for cyclic mode.
+With the callback implemented omap-dma can provide information to client
+drivers regarding to supported address widths, directions, residue
+granularity, etc.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Joel Fernandes <joelf@ti.com>
 ---
- arch/arm/common/edma.c | 1 +
- drivers/dma/edma.c     | 1 +
- 2 files changed, 2 insertions(+)
+ drivers/dma/edma.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index 999266bf69b9..0b37f7734d0f 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -1574,6 +1574,7 @@ static struct edma_soc_info *edma_setup_info_from_dt(struct device *dev,
- 		return ERR_PTR(ret);
- 
- 	dma_cap_set(DMA_SLAVE, edma_filter_info.dma_cap);
-+	dma_cap_set(DMA_CYCLIC, edma_filter_info.dma_cap);
- 	of_dma_controller_register(dev->of_node, of_dma_simple_xlate,
- 				   &edma_filter_info);
- 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 7891378a03f0..1dd9e8806975 100644
+index 1dd9e8806975..2f58c04cbcb1 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -891,6 +891,7 @@ static int edma_probe(struct platform_device *pdev)
+@@ -852,6 +852,23 @@ static void __init edma_chan_init(struct edma_cc *ecc,
+ 	}
+ }
  
- 	dma_cap_zero(ecc->dma_slave.cap_mask);
- 	dma_cap_set(DMA_SLAVE, ecc->dma_slave.cap_mask);
-+	dma_cap_set(DMA_CYCLIC, ecc->dma_slave.cap_mask);
++#define EDMA_DMA_BUSWIDTHS	(BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) | \
++				 BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) | \
++				 BIT(DMA_SLAVE_BUSWIDTH_4_BYTES))
++
++static int edma_dma_device_slave_caps(struct dma_chan *dchan,
++				      struct dma_slave_caps *caps)
++{
++	caps->src_addr_widths = EDMA_DMA_BUSWIDTHS;
++	caps->dstn_addr_widths = EDMA_DMA_BUSWIDTHS;
++	caps->directions = BIT(DMA_DEV_TO_MEM) | BIT(DMA_MEM_TO_DEV);
++	caps->cmd_pause = true;
++	caps->cmd_terminate = true;
++	caps->residue_granularity = DMA_RESIDUE_GRANULARITY_DESCRIPTOR;
++
++	return 0;
++}
++
+ static void edma_dma_init(struct edma_cc *ecc, struct dma_device *dma,
+ 			  struct device *dev)
+ {
+@@ -862,6 +879,7 @@ static void edma_dma_init(struct edma_cc *ecc, struct dma_device *dma,
+ 	dma->device_issue_pending = edma_issue_pending;
+ 	dma->device_tx_status = edma_tx_status;
+ 	dma->device_control = edma_control;
++	dma->device_slave_caps = edma_dma_device_slave_caps;
+ 	dma->dev = dev;
  
- 	edma_dma_init(ecc, &ecc->dma_slave, &pdev->dev);
- 
+ 	INIT_LIST_HEAD(&dma->channels);
 -- 
 1.9.2
 
