@@ -1,7 +1,7 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 13/15] bus: omap_l3_noc: introduce concept of submodule
-Date: Mon, 14 Apr 2014 11:25:24 -0500
-Message-ID: <1397492726-17203-15-git-send-email-nm@ti.com>
+Subject: [PATCH 07/15] bus: omap_l3_noc: populate l3->dev and use it
+Date: Mon, 14 Apr 2014 11:25:18 -0500
+Message-ID: <1397492726-17203-9-git-send-email-nm@ti.com>
 References: <1397492726-17203-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,92 +21,68 @@ To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.co
 Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-While OMAP4 and OMAP5 had 3 separate clock domains, DRA7 has only 2
-and the first one then is internally divided into 2 sub clock domains.
-
-To better represent this in the driver, we use the concept of submodule.
-
-The address defintions in the devicetree is as per the high level
-clock domain(module) base, the sub clockdomain/subdomain which shares
-the same register space of a clockdomain is marked in the SoC data as
-L3_BASE_IS_SUBMODULE.
-
-L3_BASE_IS_SUBMODULE is used as an indication that it's base address is
-the same as the parent module and offsets are considered from the same
-base address as they are usually intermingled.
-
-Other than the base address, the submodule is same as a module as it is
-functionally so.
+l3->dev is not populated, so populate it and use it to print information
+relevant to the device instead of using a generic pr_*.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- drivers/bus/omap_l3_noc.c |   17 ++++++++++++-----
- drivers/bus/omap_l3_noc.h |    6 +++++-
- 2 files changed, 17 insertions(+), 6 deletions(-)
+ drivers/bus/omap_l3_noc.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-index 49b19d5..5e2a89d 100644
+index 0f0417a..da4e27c 100644
 --- a/drivers/bus/omap_l3_noc.c
 +++ b/drivers/bus/omap_l3_noc.c
-@@ -184,7 +184,7 @@ static int omap_l3_probe(struct platform_device *pdev)
- {
- 	const struct of_device_id *of_id;
- 	static struct omap_l3 *l3;
--	int ret, i;
-+	int ret, i, res_idx;
+@@ -118,7 +118,8 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
  
- 	of_id = of_match_device(l3_noc_match, &pdev->dev);
- 	if (!of_id) {
-@@ -201,15 +201,22 @@ static int omap_l3_probe(struct platform_device *pdev)
+ 			if (std_err) {
+ 				WARN(true,
+-				     "L3 %s Error: MASTER %s TARGET %s %s\n",
++				     "%s:L3 %s Error: MASTER %s TARGET %s %s\n",
++				     dev_name(l3->dev),
+ 				     err_description,
+ 				     master_name, target_name,
+ 				     err_string);
+@@ -143,6 +144,7 @@ static int omap4_l3_probe(struct platform_device *pdev)
+ 	if (!l3)
+ 		return -ENOMEM;
+ 
++	l3->dev = &pdev->dev;
  	platform_set_drvdata(pdev, l3);
  
  	/* Get mem resources */
--	for (i = 0; i < l3->num_modules; i++) {
--		struct resource	*res = platform_get_resource(pdev,
--							     IORESOURCE_MEM, i);
--
-+	for (i = 0, res_idx = 0; i < l3->num_modules; i++) {
-+		struct resource	*res;
-+
-+		if (l3->l3_base[i] == L3_BASE_IS_SUBMODULE) {
-+			/* First entry cannot be submodule */
-+			BUG_ON(i == 0);
-+			l3->l3_base[i] = l3->l3_base[i - 1];
-+			continue;
-+		}
-+		res = platform_get_resource(pdev, IORESOURCE_MEM, res_idx);
+@@ -152,7 +154,7 @@ static int omap4_l3_probe(struct platform_device *pdev)
+ 
  		l3->l3_base[i] = devm_ioremap_resource(&pdev->dev, res);
  		if (IS_ERR(l3->l3_base[i])) {
- 			dev_err(l3->dev, "ioremap %d failed\n", i);
+-			dev_err(&pdev->dev, "ioremap %d failed\n", i);
++			dev_err(l3->dev, "ioremap %d failed\n", i);
  			return PTR_ERR(l3->l3_base[i]);
  		}
-+		res_idx++;
+ 	}
+@@ -161,19 +163,19 @@ static int omap4_l3_probe(struct platform_device *pdev)
+ 	 * Setup interrupt Handlers
+ 	 */
+ 	l3->debug_irq = platform_get_irq(pdev, 0);
+-	ret = devm_request_irq(&pdev->dev, l3->debug_irq, l3_interrupt_handler,
++	ret = devm_request_irq(l3->dev, l3->debug_irq, l3_interrupt_handler,
+ 			       IRQF_DISABLED, "l3-dbg-irq", l3);
+ 	if (ret) {
+-		dev_err(&pdev->dev, "request_irq failed for %d\n",
++		dev_err(l3->dev, "request_irq failed for %d\n",
+ 			l3->debug_irq);
+ 		return ret;
  	}
  
- 	/*
-diff --git a/drivers/bus/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
-index af33b6e..592821f 100644
---- a/drivers/bus/omap_l3_noc.h
-+++ b/drivers/bus/omap_l3_noc.h
-@@ -36,6 +36,8 @@
+ 	l3->app_irq = platform_get_irq(pdev, 1);
+-	ret = devm_request_irq(&pdev->dev, l3->app_irq, l3_interrupt_handler,
++	ret = devm_request_irq(l3->dev, l3->app_irq, l3_interrupt_handler,
+ 			       IRQF_DISABLED, "l3-app-irq", l3);
+ 	if (ret)
+-		dev_err(&pdev->dev, "request_irq failed for %d\n", l3->app_irq);
++		dev_err(l3->dev, "request_irq failed for %d\n", l3->app_irq);
  
- #define L3_TARGET_NOT_SUPPORTED		NULL
- 
-+#define L3_BASE_IS_SUBMODULE		((void __iomem *)(1 << 0))
-+
- /**
-  * struct l3_masters_data - L3 Master information
-  * @id:		ID of the L3 Master
-@@ -76,7 +78,9 @@ struct l3_flagmux_data {
- /**
-  * struct omap_l3 - Description of data relevant for L3 bus.
-  * @dev:	device representing the bus (populated runtime)
-- * @l3_base:	base addresses of modules (populated runtime)
-+ * @l3_base:	base addresses of modules (populated runtime if 0)
-+ *		if set to L3_BASE_IS_SUBMODULE, then uses previous
-+ *		module index as the base address
-  * @l3_flag_mux: array containing flag mux data per module
-  *		 offset from corresponding module base indexed per
-  *		 module.
+ 	return ret;
+ }
 -- 
 1.7.9.5
