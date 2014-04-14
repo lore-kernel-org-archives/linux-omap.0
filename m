@@ -1,8 +1,7 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 02/15] bus: omap_l3_noc: switch over to relaxed variants of
- readl/writel
-Date: Mon, 14 Apr 2014 11:25:13 -0500
-Message-ID: <1397492726-17203-4-git-send-email-nm@ti.com>
+Subject: [PATCH 04/15] bus: omap_l3_noc: move L3 master data structure out
+Date: Mon, 14 Apr 2014 11:25:15 -0500
+Message-ID: <1397492726-17203-6-git-send-email-nm@ti.com>
 References: <1397492726-17203-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,83 +21,46 @@ To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.co
 Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently we use __raw_readl and writel in this driver, however, there
-is no strict sequencing needs for this driver, hence we should be good
-with the relaxed variants.
-
-While at it, simplify address computation using variables for register.
+Move the L3 master structure out of the static definition to enable
+reuse for other SoCs.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- drivers/bus/omap_l3_noc.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ drivers/bus/omap_l3_noc.h |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-index 1eb6d85..0d346e6 100644
---- a/drivers/bus/omap_l3_noc.c
-+++ b/drivers/bus/omap_l3_noc.c
-@@ -55,6 +55,7 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
- 	int err_src = 0;
- 	u32 std_err_main, err_reg, clear, masterid;
- 	void __iomem *base, *l3_targ_base;
-+	void __iomem *l3_targ_stderr, *l3_targ_slvofslsb, *l3_targ_mstaddr;
- 	char *target_name, *master_name = "UN IDENTIFIED";
+diff --git a/drivers/bus/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
+index cc4b1b1..26ad279 100644
+--- a/drivers/bus/omap_l3_noc.h
++++ b/drivers/bus/omap_l3_noc.h
+@@ -33,6 +33,16 @@
  
- 	/* Get the Type of interrupt */
-@@ -66,8 +67,8 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
- 		 * to determine the source
- 		 */
- 		base = l3->l3_base[i];
--		err_reg = __raw_readl(base + l3_flagmux[i] +
--					+ L3_FLAGMUX_REGERR0 + (inttype << 3));
-+		err_reg = readl_relaxed(base + l3_flagmux[i] +
-+					L3_FLAGMUX_REGERR0 + (inttype << 3));
+ #define NUM_OF_L3_MASTERS	(sizeof(l3_masters)/sizeof(l3_masters[0]))
  
- 		/* Get the corresponding error and analyse */
- 		if (err_reg) {
-@@ -76,10 +77,14 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
- 
- 			/* Read the stderrlog_main_source from clk domain */
- 			l3_targ_base = base + *(l3_targ[i] + err_src);
--			std_err_main =  __raw_readl(l3_targ_base +
--					L3_TARG_STDERRLOG_MAIN);
--			masterid = __raw_readl(l3_targ_base +
--					L3_TARG_STDERRLOG_MSTADDR);
-+			l3_targ_stderr = l3_targ_base + L3_TARG_STDERRLOG_MAIN;
-+			l3_targ_slvofslsb = l3_targ_base +
-+					    L3_TARG_STDERRLOG_SLVOFSLSB;
-+			l3_targ_mstaddr = l3_targ_base +
-+					  L3_TARG_STDERRLOG_MSTADDR;
++/**
++ * struct l3_masters_data - L3 Master information
++ * @id:		ID of the L3 Master
++ * @name:	master name
++ */
++struct l3_masters_data {
++	u32 id;
++	char *name;
++};
 +
-+			std_err_main = readl_relaxed(l3_targ_stderr);
-+			masterid = readl_relaxed(l3_targ_mstaddr);
+ static u32 l3_flagmux[L3_MODULES] = {
+ 	0x500,
+ 	0x1000,
+@@ -80,10 +90,7 @@ static u32 l3_targ_inst_clk3[] = {
+ 	0x0 /* HOST CLK3 */
+ };
  
- 			switch (std_err_main & CUSTOM_ERROR) {
- 			case STANDARD_ERROR:
-@@ -87,12 +92,10 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
- 					l3_targ_inst_name[i][err_src];
- 				WARN(true, "L3 standard error: TARGET:%s at address 0x%x\n",
- 					target_name,
--					__raw_readl(l3_targ_base +
--						L3_TARG_STDERRLOG_SLVOFSLSB));
-+					readl_relaxed(l3_targ_slvofslsb));
- 				/* clear the std error log*/
- 				clear = std_err_main | CLEAR_STDERR_LOG;
--				writel(clear, l3_targ_base +
--					L3_TARG_STDERRLOG_MAIN);
-+				writel_relaxed(clear, l3_targ_stderr);
- 				break;
- 
- 			case CUSTOM_ERROR:
-@@ -107,8 +110,7 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
- 					master_name, target_name);
- 				/* clear the std error log*/
- 				clear = std_err_main | CLEAR_STDERR_LOG;
--				writel(clear, l3_targ_base +
--					L3_TARG_STDERRLOG_MAIN);
-+				writel_relaxed(clear, l3_targ_stderr);
- 				break;
- 
- 			default:
+-static struct l3_masters_data {
+-	u32 id;
+-	char name[10];
+-} l3_masters[] = {
++static struct l3_masters_data l3_masters[] = {
+ 	{ 0x0 , "MPU"},
+ 	{ 0x10, "CS_ADP"},
+ 	{ 0x14, "xxx"},
 -- 
 1.7.9.5
