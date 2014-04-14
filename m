@@ -1,62 +1,41 @@
 From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: [PATCHv2 01/11] pwm: add period and polarity to struct pwm_lookup
-Date: Mon, 14 Apr 2014 23:59:43 +0200
-Message-ID: <1397512793-10325-2-git-send-email-alexandre.belloni@free-electrons.com>
+Subject: [PATCHv2 08/11] ARM: shmobile: Armadillo 800 EVA: use PWM_LOOKUP to initialize struct pwm_lookup
+Date: Mon, 14 Apr 2014 23:59:50 +0200
+Message-ID: <1397512793-10325-9-git-send-email-alexandre.belloni@free-electrons.com>
 References: <1397512793-10325-1-git-send-email-alexandre.belloni@free-electrons.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pwm-owner@vger.kernel.org>
 In-Reply-To: <1397512793-10325-1-git-send-email-alexandre.belloni@free-electrons.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pwm-owner@vger.kernel.org
 To: Thierry Reding <thierry.reding@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Bryan Wu <cooloney@gmail.com>, Jingoo Han <jg1.han@samsung.com>, Lee Jones <lee.jones@linaro.org>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-leds@vger.kernel.org, linux-fbdev@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
-Adds a period and a polarity member to struct pwm_lookup so that when performing
-a lookup using the lookup table instead of device tree, we are able to set the
-period and the polarity accordingly like what is done in
-of_pwm_xlate_with_flags.
-
-The period and polarity can be set unconditionally as the default is 0 anyway.
-
 Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 ---
- drivers/pwm/core.c  | 8 +++++++-
- include/linux/pwm.h | 2 ++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ arch/arm/mach-shmobile/board-armadillo800eva.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
-index a80471399c20..4b66bf09ee55 100644
---- a/drivers/pwm/core.c
-+++ b/drivers/pwm/core.c
-@@ -661,10 +661,16 @@ struct pwm_device *pwm_get(struct device *dev, const char *con_id)
- 		}
- 	}
- 
-+	mutex_unlock(&pwm_lookup_lock);
-+
- 	if (chip)
- 		pwm = pwm_request_from_chip(chip, index, con_id ?: dev_id);
-+	if (IS_ERR(pwm))
-+		return pwm;
-+
-+	pwm_set_period(pwm, p->period);
-+	pwm_set_polarity(pwm, p->polarity);
- 
--	mutex_unlock(&pwm_lookup_lock);
- 
- 	return pwm;
- }
-diff --git a/include/linux/pwm.h b/include/linux/pwm.h
-index 4717f54051cb..2f45e2fe5b93 100644
---- a/include/linux/pwm.h
-+++ b/include/linux/pwm.h
-@@ -274,6 +274,8 @@ struct pwm_lookup {
- 	unsigned int index;
- 	const char *dev_id;
- 	const char *con_id;
-+	unsigned int period;
-+	enum pwm_polarity polarity;
+diff --git a/arch/arm/mach-shmobile/board-armadillo800eva.c b/arch/arm/mach-shmobile/board-armadillo800eva.c
+index 1bf61dad9a35..ca82b1e2ebab 100644
+--- a/arch/arm/mach-shmobile/board-armadillo800eva.c
++++ b/arch/arm/mach-shmobile/board-armadillo800eva.c
+@@ -407,14 +407,8 @@ static struct platform_device pwm_device = {
  };
  
- #define PWM_LOOKUP(_provider, _index, _dev_id, _con_id)	\
+ static struct pwm_lookup pwm_lookup[] = {
+-	{
+-		.provider = "renesas-tpu-pwm",
+-		.index = 2,
+-		.dev_id = "pwm-backlight.0",
+-		.con_id = NULL,
+-		.period = 33333,
+-		.polarity = PWM_POLARITY_INVERSED,
+-	},
++	PWM_LOOKUP("renesas-tpu-pwm", 2, "pwm-backlight.0", NULL,
++		   33333, PWM_POLARITY_INVERSED),
+ };
+ 
+ /* LCDC and backlight */
 -- 
 1.8.3.2
+
