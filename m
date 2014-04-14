@@ -1,122 +1,203 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: [PATCHv2 03/11] pwm: renesas-tpu: remove useless struct
- tpu_pwm_platform_data
-Date: Mon, 14 Apr 2014 23:59:45 +0200
-Message-ID: <1397512793-10325-4-git-send-email-alexandre.belloni@free-electrons.com>
-References: <1397512793-10325-1-git-send-email-alexandre.belloni@free-electrons.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 02/11] ARM: OMAP3: Fix idle mode signaling for sys_clkreq
+ and sys_off_mode
+Date: Tue, 15 Apr 2014 01:51:27 +0300
+Message-ID: <CANOLnOO=O8xkTV9LiH+JTtmEXd9ihu0+ZYoHtrQK2QsFWOWVbg@mail.gmail.com>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com>
+	<1397173639-29587-3-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1397512793-10325-1-git-send-email-alexandre.belloni@free-electrons.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: linux-pwm@vger.kernel.org, linux-fbdev@vger.kernel.org, Jingoo Han <jg1.han@samsung.com>, Eric Miao <eric.y.miao@gmail.com>, linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Bryan Wu <cooloney@gmail.com>, Magnus Damm <magnus.damm@gmail.com>, linux-kernel@vger.kernel.org, Haojian Zhuang <haojian.zhuang@gmail.com>, Simon Horman <horms@verge.net.au>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-leds@vger.kernel.org, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f177.google.com ([209.85.214.177]:41406 "EHLO
+	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754223AbaDNWv2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2014 18:51:28 -0400
+Received: by mail-ob0-f177.google.com with SMTP id vb8so1558042obc.36
+        for <linux-omap@vger.kernel.org>; Mon, 14 Apr 2014 15:51:27 -0700 (PDT)
+In-Reply-To: <1397173639-29587-3-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-The struct tpu_pwm_platform_data is not used anymore and the polarity
-initialization will be taken care of by the PWM core.
+On Fri, Apr 11, 2014 at 2:47 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> While debugging legacy mode vs device tree booted PM regressions,
+> I noticed that omap3 is not toggling sys_clkreq and sys_off_mode
+> pins like it should.
+>
+> The sys_clkreq and sys_off_mode pins are not toggling because of
+> the following issues:
+>
+> 1. The default polarity for the sys_off_mode pin is wrong.
+>    OFFMODE_POL needs to be cleared for sys_off_mode to go down when
+>    hitting off-idle, while CLKREQ_POL needs to be set so sys_clkreq
+>    goes down when hitting retention.
+>
+> 2. The values for voltctrl register need to be updated dynamically.
+>    We need to set either the retention idle bits, or off idle bits
+>    in the voltctrl register depending the idle mode we're targeting
+>    to hit.
+>
+> Let's fix these two issues as otherwise the system will just
+> hang if any twl4030 PMIC idle scripts are loaded. The only case
+> where the system does not hang is if only retention idle over I2C4
+> is configured by the bootloader.
+>
+> Note that even without the twl4030 PMIC scripts, these fixes will
+> do the proper signaling of sys_clkreq and sys_off_mode pins, so
+> the fixes are needed to fix monitoring of PM states with LEDs or
+> an oscilloscope.
+>
+> Cc: Kevin Hilman <khilman@linaro.org>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c           |  2 +
+>  arch/arm/mach-omap2/prm-regbits-34xx.h | 11 ++++-
+>  arch/arm/mach-omap2/vc.c               | 75 ++++++++++++++++++++++++=
++++++++++-
+>  arch/arm/mach-omap2/vc.h               |  2 +
+>  4 files changed, 87 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34x=
+x.c
+> index 87099bb..3119ec2 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -50,6 +50,7 @@
+>  #include "sdrc.h"
+>  #include "sram.h"
+>  #include "control.h"
+> +#include "vc.h"
+>
+>  /* pm34xx errata defined in pm.h */
+>  u16 pm34xx_errata;
+> @@ -282,6 +283,7 @@ void omap_sram_idle(void)
+>
+>         /* CORE */
+>         if (core_next_state < PWRDM_POWER_ON) {
+> +               omap3_vc_set_pmic_signaling(core_next_state);
 
-Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
----
- drivers/pwm/pwm-renesas-tpu.c                 | 19 +++----------------
- include/linux/platform_data/pwm-renesas-tpu.h | 16 ----------------
- 2 files changed, 3 insertions(+), 32 deletions(-)
- delete mode 100644 include/linux/platform_data/pwm-renesas-tpu.h
+I wonder how is it going to affect latencies, adding stuff to suspend
+path hurts things like NAND transfers, which consist of lots of small
+blocks with an interrupt after each..
 
-diff --git a/drivers/pwm/pwm-renesas-tpu.c b/drivers/pwm/pwm-renesas-tpu.c
-index aff6ba9b49e7..9dbcf82b3e6c 100644
---- a/drivers/pwm/pwm-renesas-tpu.c
-+++ b/drivers/pwm/pwm-renesas-tpu.c
-@@ -21,13 +21,14 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/of.h>
--#include <linux/platform_data/pwm-renesas-tpu.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/pwm.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
- 
-+#define TPU_CHANNEL_MAX		4
-+
- #define TPU_TSTR		0x00	/* Timer start register (shared) */
- 
- #define TPU_TCRn		0x00	/* Timer control register */
-@@ -87,7 +88,6 @@ struct tpu_pwm_device {
- 
- struct tpu_device {
- 	struct platform_device *pdev;
--	enum pwm_polarity polarities[TPU_CHANNEL_MAX];
- 	struct pwm_chip chip;
- 	spinlock_t lock;
- 
-@@ -229,7 +229,7 @@ static int tpu_pwm_request(struct pwm_chip *chip, struct pwm_device *_pwm)
- 
- 	pwm->tpu = tpu;
- 	pwm->channel = _pwm->hwpwm;
--	pwm->polarity = tpu->polarities[pwm->channel];
-+	pwm->polarity = PWM_POLARITY_NORMAL;
- 	pwm->prescaler = 0;
- 	pwm->period = 0;
- 	pwm->duty = 0;
-@@ -388,16 +388,6 @@ static const struct pwm_ops tpu_pwm_ops = {
-  * Probe and remove
-  */
- 
--static void tpu_parse_pdata(struct tpu_device *tpu)
--{
--	struct tpu_pwm_platform_data *pdata = tpu->pdev->dev.platform_data;
--	unsigned int i;
--
--	for (i = 0; i < ARRAY_SIZE(tpu->polarities); ++i)
--		tpu->polarities[i] = pdata ? pdata->channels[i].polarity
--				   : PWM_POLARITY_NORMAL;
--}
--
- static int tpu_probe(struct platform_device *pdev)
- {
- 	struct tpu_device *tpu;
-@@ -413,9 +403,6 @@ static int tpu_probe(struct platform_device *pdev)
- 	spin_lock_init(&tpu->lock);
- 	tpu->pdev = pdev;
- 
--	/* Initialize device configuration from platform data. */
--	tpu_parse_pdata(tpu);
--
- 	/* Map memory, get clock and pin control. */
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	tpu->base = devm_ioremap_resource(&pdev->dev, res);
-diff --git a/include/linux/platform_data/pwm-renesas-tpu.h b/include/linux/platform_data/pwm-renesas-tpu.h
-deleted file mode 100644
-index a7220b10ddab..000000000000
---- a/include/linux/platform_data/pwm-renesas-tpu.h
-+++ /dev/null
-@@ -1,16 +0,0 @@
--#ifndef __PWM_RENESAS_TPU_H__
--#define __PWM_RENESAS_TPU_H__
--
--#include <linux/pwm.h>
--
--#define TPU_CHANNEL_MAX		4
--
--struct tpu_pwm_channel_data {
--	enum pwm_polarity polarity;
--};
--
--struct tpu_pwm_platform_data {
--	struct tpu_pwm_channel_data channels[TPU_CHANNEL_MAX];
--};
--
--#endif /* __PWM_RENESAS_TPU_H__ */
--- 
-1.8.3.2
+>                 if (core_next_state =3D=3D PWRDM_POWER_OFF) {
+>                         omap3_core_save_context();
+>                         omap3_cm_save_context();
+> diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-o=
+map2/prm-regbits-34xx.h
+> index cebad56..106132d 100644
+> --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
+> +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+> @@ -123,8 +123,15 @@
+>  #define OMAP3430_GLOBAL_SW_RST_SHIFT                   1
+>  #define OMAP3430_GLOBAL_COLD_RST_SHIFT                 0
+>  #define OMAP3430_GLOBAL_COLD_RST_MASK                  (1 << 0)
+> -#define OMAP3430_SEL_OFF_MASK                          (1 << 3)
+> -#define OMAP3430_AUTO_OFF_MASK                         (1 << 2)
+> +#define OMAP3430_PRM_VOLTCTRL_SEL_VMODE                        (1 <<=
+ 4)
+> +#define OMAP3430_PRM_VOLTCTRL_SEL_OFF                  (1 << 3)
+> +#define OMAP3430_PRM_VOLTCTRL_AUTO_OFF                 (1 << 2)
+> +#define OMAP3430_PRM_VOLTCTRL_AUTO_RET                 (1 << 1)
+> +#define OMAP3430_PRM_VOLTCTRL_AUTO_SLEEP               (1 << 0)
+>  #define OMAP3430_SETUP_TIME2_MASK                      (0xffff << 16=
+)
+>  #define OMAP3430_SETUP_TIME1_MASK                      (0xffff << 0)
+> +#define OMAP3430_PRM_POLCTRL_OFFMODE_POL               (1 << 3)
+> +#define OMAP3430_PRM_POLCTRL_CLKOUT_POL                        (1 <<=
+ 2)
+> +#define OMAP3430_PRM_POLCTRL_CLKREQ_POL                        (1 <<=
+ 1)
+> +#define OMAP3430_PRM_POLCTRL_EXTVOL_POL                        (1 <<=
+ 0)
+>  #endif
+> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+> index 49ac797..3d5ba5d 100644
+> --- a/arch/arm/mach-omap2/vc.c
+> +++ b/arch/arm/mach-omap2/vc.c
+> @@ -220,6 +220,78 @@ static inline u32 omap_usec_to_32k(u32 usec)
+>         return DIV_ROUND_UP_ULL(32768ULL * (u64)usec, 1000000ULL);
+>  }
+>
+> +void omap3_vc_set_pmic_signaling(int core_next_state)
+> +{
+> +       u32 voltctrl;
+> +
+> +       voltctrl =3D omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
+> +                                         OMAP3_PRM_VOLTCTRL_OFFSET);
+> +       switch (core_next_state) {
+> +       case PWRDM_POWER_OFF:
+> +               voltctrl &=3D ~(OMAP3430_PRM_VOLTCTRL_AUTO_RET |
+> +                             OMAP3430_PRM_VOLTCTRL_AUTO_SLEEP);
+> +               voltctrl |=3D OMAP3430_PRM_VOLTCTRL_AUTO_OFF;
+> +               break;
+> +       case PWRDM_POWER_RET:
+> +               voltctrl &=3D ~(OMAP3430_PRM_VOLTCTRL_AUTO_OFF |
+> +                             OMAP3430_PRM_VOLTCTRL_AUTO_SLEEP);
+> +               voltctrl |=3D OMAP3430_PRM_VOLTCTRL_AUTO_RET;
+> +               break;
+> +       default:
+> +               voltctrl &=3D ~(OMAP3430_PRM_VOLTCTRL_AUTO_OFF |
+> +                             OMAP3430_PRM_VOLTCTRL_AUTO_RET);
+> +               voltctrl |=3D OMAP3430_PRM_VOLTCTRL_AUTO_SLEEP;
+> +               break;
+> +       }
+> +       omap2_prm_write_mod_reg(voltctrl, OMAP3430_GR_MOD,
+> +                               OMAP3_PRM_VOLTCTRL_OFFSET);
+
+Could it only write if the value changed? Caching register value would
+be great too to avoid slow register accesses.
+
+> +}
+> +
+> +/*
+> + * Configure signal polarity for sys_clkreq and sys_off_mode pins
+> + * as the default values are wrong and can cause the system to hang
+> + * if any twl4030 sccripts are loaded.
+
+s/sccripts/scripts
+
+> + */
+> +static void __init omap3_vc_init_pmic_signaling(void)
+> +{
+> +       u32 val, old;
+> +
+> +       val =3D omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
+> +                                    OMAP3_PRM_POLCTRL_OFFSET);
+> +       old =3D val;
+> +
+> +       if (old & OMAP3430_PRM_POLCTRL_CLKREQ_POL)
+> +               val |=3D OMAP3430_PRM_POLCTRL_CLKREQ_POL;
+
+Are these 2 lines actually doing anything?
+
+> +       if (old & OMAP3430_PRM_POLCTRL_OFFMODE_POL)
+> +               val &=3D ~OMAP3430_PRM_POLCTRL_OFFMODE_POL;
+
+Why not just clear the bit unconditionally?
+
+> +
+> +       if (val !=3D old) {
+> +               pr_debug("PM: fixing sys_clkreq and sys_off_mode pola=
+rity 0x%x -> 0x%x\n",
+> +                        old, val);
+> +       }
+> +       omap2_prm_write_mod_reg(val, OMAP3430_GR_MOD,
+> +                               OMAP3_PRM_POLCTRL_OFFSET);
+
+Maybe move this write inside the block just above it?
+
+
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
