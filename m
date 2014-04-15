@@ -1,98 +1,111 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH] ARM: dts: Add support for the BeagleBoard xM A/B
-Date: Tue, 15 Apr 2014 10:40:54 -0500
-Message-ID: <CAOCHtYhygGFbUunY9abEkjKfpQ1hh-DfRfhm160NehSYhWJSRw@mail.gmail.com>
-References: <1397574599-29573-1-git-send-email-robertcnelson@gmail.com>
- <CAOCHtYg5_Lvi3SWuWaRTDDNhLJ32jiXsKYQmrsKaShVWpM+xWQ@mail.gmail.com>
- <534D51C1.3010007@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] crypto: omap-des - handle error of pm_runtime_get_sync
+Date: Tue, 15 Apr 2014 10:50:31 -0500
+Message-ID: <20140415155031.GA14623@saruman.home>
+References: <1397575982-24866-1-git-send-email-nm@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <534D51C1.3010007@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1397575982-24866-1-git-send-email-nm@ti.com>
+Sender: linux-crypto-owner@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, devicetree <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <bcousson@baylibre.com>
+Cc: Joel Fernandes <joelf@ti.com>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Joachim Eastwood <manabian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 15, 2014 at 10:35 AM, Nishanth Menon <nm@ti.com> wrote:
-> On 04/15/2014 10:12 AM, Robert Nelson wrote:
->> On Tue, Apr 15, 2014 at 10:09 AM, Robert Nelson <robertcnelson@gmail.com> wrote:
->>> BeagleBoard xM A/B has an inverted usb hub enable line vs the xM C
->>>
->>> Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
->>> ---
->>>  arch/arm/boot/dts/Makefile               |  1 +
->>>  arch/arm/boot/dts/omap3-beagle-xm-ab.dts | 15 +++++++++++++++
->>>  2 files changed, 16 insertions(+)
->>>  create mode 100644 arch/arm/boot/dts/omap3-beagle-xm-ab.dts
->>>
->>> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
->>> index 35c146f..0bdeba3 100644
->>> --- a/arch/arm/boot/dts/Makefile
->>> +++ b/arch/arm/boot/dts/Makefile
->>> @@ -246,6 +246,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
->>>         omap3-sbc-t3730.dtb \
->>>         omap3-devkit8000.dtb \
->>>         omap3-beagle-xm.dtb \
->>> +       omap3-beagle-xm-ab.dtb \
->>>         omap3-evm.dtb \
->>>         omap3-evm-37xx.dtb \
->>>         omap3-ldp.dtb \
->>> diff --git a/arch/arm/boot/dts/omap3-beagle-xm-ab.dts b/arch/arm/boot/dts/omap3-beagle-xm-ab.dts
->>> new file mode 100644
->>> index 0000000..9d81123
->>> --- /dev/null
->>> +++ b/arch/arm/boot/dts/omap3-beagle-xm-ab.dts
->>> @@ -0,0 +1,15 @@
->>> +/*
->>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + */
->>> +
->>> +#include "omap3-beagle-xm.dts"
->>> +
->>> +/ {
->>> +       /* HS USB Port 2 Power enable was inverted with the xM C */
->>> +       hsusb2_power: hsusb2_power_reg {
->>> +               enable-active-high;
->>        };
->>> +};
->>
->> Crap, copy paste bug, there.  I can send a v2, if you guys are happy
->> with the "omap3-beagle-xm-ab.dtb" naming..
->>
->> Regards,
->>
-> Will u-boot adequately handle this as part of find_fdt?
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It will after i submit something like: (this uses a new feature in v2014.04)
+Hi,
 
-https://github.com/eewiki/u-boot-patches/blob/master/v2014.04/0001-am335x_evm-uEnv.txt-bootz-n-fixes.patch#L76
+On Tue, Apr 15, 2014 at 10:33:02AM -0500, Nishanth Menon wrote:
+> pm_runtime_get_sync may not always succeed depending on SoC involved. So
+> handle the error appropriately.
+>=20
+> Reported-by: Joachim Eastwood <manabian@gmail.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>=20
+> based on v3.15-rc1
+>=20
+> Report-thread: http://marc.info/?t=3D139750330400002&r=3D1&w=3D2
+>=20
+> omap2plus_defconfig + CONFIG_CRYPTO_DEV_OMAP_DES=3Dy
+>=20
+> pandaboard-es-before: http://slexy.org/raw/s21rGPFnKl
+> pandaboard-es-after:  http://slexy.org/raw/s2A4UFQVna
+>=20
+>  drivers/crypto/omap-des.c |   18 ++++++++++++++----
+>  1 file changed, 14 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/crypto/omap-des.c b/drivers/crypto/omap-des.c
+> index ec5f131..c2d362f 100644
+> --- a/drivers/crypto/omap-des.c
+> +++ b/drivers/crypto/omap-des.c
+> @@ -223,12 +223,18 @@ static void omap_des_write_n(struct omap_des_dev *d=
+d, u32 offset,
+> =20
+>  static int omap_des_hw_init(struct omap_des_dev *dd)
+>  {
+> +	int err;
+> +
+>  	/*
+>  	 * clocks are enabled when request starts and disabled when finished.
+>  	 * It may be long delays between requests.
+>  	 * Device might go to off mode to save power.
+>  	 */
+> -	pm_runtime_get_sync(dd->dev);
+> +	err =3D pm_runtime_get_sync(dd->dev);
+> +	if (err < 0) {
+> +		dev_err(dd->dev, "failed to get_sync(%d)\n", err);
+> +		return err;
 
-Essentially, test for presence of omap3-beagle-xm-ab.dtb, if not found
-drop to old omap3-beagle-xm.dtb
+even when get() fails, you must put().
 
-Background: i also tried getting this having this fixed in u-boot:
+> +	}
+> =20
+>  	if (!(dd->flags & FLAGS_INIT)) {
+>  		dd->flags |=3D FLAGS_INIT;
+> @@ -1083,7 +1089,11 @@ static int omap_des_probe(struct platform_device *=
+pdev)
+>  	dd->phys_base =3D res->start;
+> =20
+>  	pm_runtime_enable(dev);
+> -	pm_runtime_get_sync(dev);
+> +	err =3D pm_runtime_get_sync(dev);
+> +	if (err < 0) {
+> +		dev_err(dd->dev, "failed to get_sync(%d)\n", err);
+> +		goto err_get;
 
->
-> --
-> Regards,
-> Nishanth Menon
+this leaves usage_count incremented, needs a put() here too.
 
+--=20
+balbi
 
+--tKW2IUtsqtDRztdT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
--- 
-Robert Nelson
-http://www.rcn-ee.com/
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTTVVHAAoJEIaOsuA1yqREmL0P/3a9sO75yi3MROr/hCkuXFT/
+MN43QrSa++nhMScNUMYO+lWNXWFcDrsTBD0qDDOlnlv95rcDJDPn0Inz3dZr9wO6
+P55vlvoZQKBZmY4sfKu2iv5aT9fZTWZN37x4L4H/h92I+PPXx7XDtghd/r++t/Pz
+2/bshxwKy12XtwwoiczRhuBZVQgRQMMn1SOEnewCg6I9SPZVPgYYmmx20owfOrzE
+Ba6i/JHSKi/ZqVJp54TlaQqZzlIMHjdrpjTEEA4cz7qnUtOxlNJXzHdJ6SO5Z1C8
+pL07MkzmzO994PLX8VLXiM69CLjCIFt5g8rZal4RWZmdsYBEw8duaqEdXxreIKRv
+wDdRGUVfacPKt+S1kkVssujPfeexrb4fUuCa+jWgBATgTAoCWR8ZgLpJ49YLb981
+kP49l9uqDZjXpGtJSROvfrAqyUkwRz4ngUKsqhfhjPMON1ybzh5HbZf+uGwArtl+
+fykbJex4RyugOuHH/Mhtw+wkaBXX/rzbngTO0DajdoHAL0o/MIrsnC3w7jEl49U7
+mqgSiP5Oel3jsv58uY7T+DlRenHrUaj5zPDldmIUGWJJWHZw82nLFqjPmTaJ2A2S
+iljfS6dY4EhVLKVdY6DP/tuMSJPqHqvmxXoC18qc9K7J95gQMcz5HE7z6eXfFISF
+4ZEerdCaw2RTOQTgfO2g
+=xXm8
+-----END PGP SIGNATURE-----
+
+--tKW2IUtsqtDRztdT--
