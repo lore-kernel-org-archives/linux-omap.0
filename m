@@ -1,79 +1,79 @@
-From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: Re: [PATCH RFC 3/4] xhci: Tune PHY for the DWC3-Exynos host controller
-Date: Tue, 15 Apr 2014 18:24:11 +0530
-Message-ID: <CAFp+6iGAdDgC=21VjCUjx3u_ZohhCyj2nG8qzvz3CHTZzoXWJQ@mail.gmail.com>
-References: <1386672926-26885-1-git-send-email-gautam.vivek@samsung.com>
-	<1386672926-26885-4-git-send-email-gautam.vivek@samsung.com>
-	<20131210135548.GA28456@xps8300>
+From: Rajeev kumar <rajeev-dlh.kumar@st.com>
+Subject: Re: [PATCH 1/5] ASoC: omap: rx51: Use
+	devm_snd_soc_register_card
+Date: Tue, 15 Apr 2014 19:09:13 +0530
+Message-ID: <534D3681.3010200@st.com>
+References: <1396733753-9820-1-git-send-email-sre@kernel.org>
+ <1396733753-9820-2-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131210135548.GA28456@xps8300>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Kukjin Kim <kgene.kim@samsung.com>, kishon <kishon@ti.com>, Jingoo Han <jg1.han@samsung.com>, Julius Werner <jwerner@chromium.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1396733753-9820-2-git-send-email-sre@kernel.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <rob.herring@calxeda.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sebastian Reichel <sre@ring0.de>, Mark Brown <broonie@kernel.org>, =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Heikki,
-
-
-On Tue, Dec 10, 2013 at 7:25 PM, Heikki Krogerus
-<heikki.krogerus@linux.intel.com> wrote:
-
-Giving life to this thread after long time.
-
-> Hi,
->
-> On Tue, Dec 10, 2013 at 04:25:25PM +0530, Vivek Gautam wrote:
->> @@ -170,6 +189,15 @@ static int xhci_plat_probe(struct platform_device *pdev)
->>       }
->>
->>       /*
->> +      * The parent of the xhci-plat device may pass in a PHY via
->> +      * platform data.  If it exists, store it in our struct usb_hcd
->> +      * so that we can use it later.
->> +      */
->> +     phy_generic = dev_get_platdata(&pdev->dev);
->> +     if (phy_generic)
->> +             xhci->shared_hcd->phy_generic = *phy_generic;
->
-> Getting the handle to the phy from platform data like this is not
-> going to work for long. It should be possible to get it normally with
-> phy_get(). It's not going to be possible to get the handle from the
-> platform data like this if the xhci-hcd platform device is created
-> from ACPI or DT. You are also not considering case where you have two
-> phys.
->
-> Vivek, I have made a patch set for the phy framework allowing
-> associations between the phys and their users to be made in same way
-> gpios and clk make them. With those you should be able to create a
-> lookup entry to the phy framework in drivers/usb/dwc3/host.c. Then we
-> could use phy_get() here already. Please check them. Subject of the
-> thread:
->
-> "phy: remove the need for the phys to know about their users"
-
-I had seen your patches in the mailing list, but i don't see any
-updated version of these patches.
-Are you planning to work on this above mentioned patch-series any time soon ?
-
-Or, should i try to find a different approach for handling the phy
-from the host controller (child of DWC3 in this case, which has the
-phys).
-
->
-> The lookup table can then be added in drivers/usb/dwc3/host.c with
-> something like this:
->
-> int dwc3_host_init(struct dwc3 *dwc)
-> {
->         struct platform_device  *xhci;
->         struct phy_lookup_table *table;
->         ...
->         table->dev_id = dev_name(&xhci->dev);
->         if (dwc->usb2_generic_phy)
->                 table->table[0].phy_name = dev_name(&dwc->usb2_generic_phy->dev);
->         if (dwc->usb3_generic_phy)
->                 table->table[1].phy_name = dev_name(&dwc->usb3_generic_phy->dev);
->         phy_add_lookup_table(table);
->         ...
+T24gNC82LzIwMTQgMzowNSBBTSwgU2ViYXN0aWFuIFJlaWNoZWwgd3JvdGU6Cj4gRnJvbTogUGFs
+aSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPgo+Cj4gVGhpcyBwYXRjaCBjb252ZXJ0cyB0
+aGUgcng1MSBBU29DIG1vZHVsZSB0byB1c2UKPiBkZXZtX3NuZF9zb2NfcmVnaXN0ZXJfY2FyZC4g
+SXQgYWxzbyBhZGRzIG1vZHVsZSBhbGlhcwo+IHRvIHN1cHBvcnQgZHJpdmVyIGF1dG9sb2FkaW5n
+Lgo+Cj4gU2lnbmVkLW9mZi1ieTogUGFsaSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPgo+
+IFNpZ25lZC1vZmYtYnk6IFNlYmFzdGlhbiBSZWljaGVsIDxzcmVAa2VybmVsLm9yZz4KPiAtLS0K
+PiAgIHNvdW5kL3NvYy9vbWFwL3J4NTEuYyB8IDQ4ICsrKysrKysrKysrKysrKysrKysrKysrKysr
+KystLS0tLS0tLS0tLS0tLS0tLS0tLQo+ICAgMSBmaWxlIGNoYW5nZWQsIDI4IGluc2VydGlvbnMo
+KyksIDIwIGRlbGV0aW9ucygtKQo+Cj4gZGlmZiAtLWdpdCBhL3NvdW5kL3NvYy9vbWFwL3J4NTEu
+YyBiL3NvdW5kL3NvYy9vbWFwL3J4NTEuYwo+IGluZGV4IDdmYjNkNGIuLjU4ZjVlMTIgMTAwNjQ0
+Cj4gLS0tIGEvc291bmQvc29jL29tYXAvcng1MS5jCj4gKysrIGIvc291bmQvc29jL29tYXAvcng1
+MS5jCj4gQEAgLTM5NCwxMCArMzk0LDkgQEAgc3RhdGljIHN0cnVjdCBzbmRfc29jX2NhcmQgcng1
+MV9zb3VuZF9jYXJkID0gewo+ICAgCS5udW1fY29uZmlncyA9IEFSUkFZX1NJWkUocng1MV9jb2Rl
+Y19jb25mKSwKPiAgIH07Cj4KPiAtc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnJ4NTFf
+c25kX2RldmljZTsKPiAtCj4gLXN0YXRpYyBpbnQgX19pbml0IHJ4NTFfc29jX2luaXQodm9pZCkK
+PiArc3RhdGljIGludCByeDUxX3NvY19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2
+KQo+ICAgewo+ICsJc3RydWN0IHNuZF9zb2NfY2FyZCAqY2FyZCA9ICZyeDUxX3NvdW5kX2NhcmQ7
+Cj4gICAJaW50IGVycjsKPgo+ICAgCWlmICghbWFjaGluZV9pc19ub2tpYV9yeDUxKCkgJiYgIW9m
+X21hY2hpbmVfaXNfY29tcGF0aWJsZSgibm9raWEsb21hcDMtbjkwMCIpKQo+IEBAIC00MTIsMjIg
+KzQxMSwxNyBAQCBzdGF0aWMgaW50IF9faW5pdCByeDUxX3NvY19pbml0KHZvaWQpCj4gICAJaWYg
+KGVycikKPiAgIAkJZ290byBlcnJfZ3Bpb19lY2lfc3c7Cj4KPiAtCXJ4NTFfc25kX2RldmljZSA9
+IHBsYXRmb3JtX2RldmljZV9hbGxvYygic29jLWF1ZGlvIiwgLTEpOwo+IC0JaWYgKCFyeDUxX3Nu
+ZF9kZXZpY2UpIHsKPiAtCQllcnIgPSAtRU5PTUVNOwo+IC0JCWdvdG8gZXJyMTsKPiAtCX0KPiAt
+Cj4gLQlwbGF0Zm9ybV9zZXRfZHJ2ZGF0YShyeDUxX3NuZF9kZXZpY2UsICZyeDUxX3NvdW5kX2Nh
+cmQpOwo+ICsJY2FyZC0+ZGV2ID0gJnBkZXYtPmRldjsKPgo+IC0JZXJyID0gcGxhdGZvcm1fZGV2
+aWNlX2FkZChyeDUxX3NuZF9kZXZpY2UpOwo+IC0JaWYgKGVycikKPiAtCQlnb3RvIGVycjI7Cj4g
+KwllcnIgPSBkZXZtX3NuZF9zb2NfcmVnaXN0ZXJfY2FyZChjYXJkLT5kZXYsIGNhcmQpOwo+ICsJ
+aWYgKGVycikgewo+ICsJCWRldl9lcnIoJnBkZXYtPmRldiwgInNuZF9zb2NfcmVnaXN0ZXJfY2Fy
+ZCBmYWlsZWQgKCVkKVxuIiwgZXJyKTsKPiArCQlnb3RvIGVycl9zbmQ7Cj4gKwl9Cj4KPiAgIAly
+ZXR1cm4gMDsKPiAtZXJyMjoKPiAtCXBsYXRmb3JtX2RldmljZV9wdXQocng1MV9zbmRfZGV2aWNl
+KTsKPiAtZXJyMToKPiArZXJyX3NuZDoKPiArCWNhcmQtPmRldiA9IE5VTEw7CgpXaHkgdGhpcyBp
+cyByZXF1aXJlZD8/PwoKflJhamVldgoKPiAgIAlncGlvX2ZyZWUoUlg1MV9FQ0lfU1dfR1BJTyk7
+Cj4gICBlcnJfZ3Bpb19lY2lfc3c6Cj4gICAJZ3Bpb19mcmVlKFJYNTFfVFZPVVRfU0VMX0dQSU8p
+Owo+IEBAIC00MzYsMTkgKzQzMCwzMyBAQCBlcnJfZ3Bpb190dm91dF9zZWw6Cj4gICAJcmV0dXJu
+IGVycjsKPiAgIH0KPgo+IC1zdGF0aWMgdm9pZCBfX2V4aXQgcng1MV9zb2NfZXhpdCh2b2lkKQo+
+ICtzdGF0aWMgaW50IHJ4NTFfc29jX3JlbW92ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2
+KQo+ICAgewo+ICsJc3RydWN0IHNuZF9zb2NfY2FyZCAqY2FyZCA9IHBsYXRmb3JtX2dldF9kcnZk
+YXRhKHBkZXYpOwo+ICsKPiAgIAlzbmRfc29jX2phY2tfZnJlZV9ncGlvcygmcng1MV9hdl9qYWNr
+LCBBUlJBWV9TSVpFKHJ4NTFfYXZfamFja19ncGlvcyksCj4gICAJCQkJcng1MV9hdl9qYWNrX2dw
+aW9zKTsKPgo+IC0JcGxhdGZvcm1fZGV2aWNlX3VucmVnaXN0ZXIocng1MV9zbmRfZGV2aWNlKTsK
+PiArCWNhcmQtPmRldiA9IE5VTEw7Cj4gKwo+ICAgCWdwaW9fZnJlZShSWDUxX0VDSV9TV19HUElP
+KTsKPiAgIAlncGlvX2ZyZWUoUlg1MV9UVk9VVF9TRUxfR1BJTyk7Cj4gKwo+ICsJcmV0dXJuIDA7
+Cj4gICB9Cj4KPiAtbW9kdWxlX2luaXQocng1MV9zb2NfaW5pdCk7Cj4gLW1vZHVsZV9leGl0KHJ4
+NTFfc29jX2V4aXQpOwo+ICtzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RyaXZlciByeDUxX3NvY19k
+cml2ZXIgPSB7Cj4gKwkuZHJpdmVyID0gewo+ICsJCS5uYW1lID0gInJ4NTEtYXVkaW8iLAo+ICsJ
+CS5vd25lciA9IFRISVNfTU9EVUxFLAo+ICsJfSwKPiArCS5wcm9iZSA9IHJ4NTFfc29jX3Byb2Jl
+LAo+ICsJLnJlbW92ZSA9IHJ4NTFfc29jX3JlbW92ZSwKPiArfTsKPiArCj4gK21vZHVsZV9wbGF0
+Zm9ybV9kcml2ZXIocng1MV9zb2NfZHJpdmVyKTsKPgo+ICAgTU9EVUxFX0FVVEhPUigiTm9raWEg
+Q29ycG9yYXRpb24iKTsKPiAgIE1PRFVMRV9ERVNDUklQVElPTigiQUxTQSBTb0MgTm9raWEgUlgt
+NTEiKTsKPiAgIE1PRFVMRV9MSUNFTlNFKCJHUEwiKTsKPiArTU9EVUxFX0FMSUFTKCJwbGF0Zm9y
+bTpyeDUxLWF1ZGlvIik7Cj4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCkFsc2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0
+Lm9yZwpodHRwOi8vbWFpbG1hbi5hbHNhLXByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vYWxz
+YS1kZXZlbAo=
