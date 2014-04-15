@@ -1,73 +1,57 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/5] ASoC: omap: rx51: Use devm_snd_soc_register_card
-Date: Tue, 15 Apr 2014 13:20:44 +0100
-Message-ID: <20140415122044.GZ12304@sirena.org.uk>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 4/5] ASoC: RX-51: Convert to table based DAPM setup
+Date: Tue, 15 Apr 2014 13:23:32 +0100
+Message-ID: <20140415122332.GA12304@sirena.org.uk>
 References: <1396733753-9820-1-git-send-email-sre@kernel.org>
- <1396733753-9820-2-git-send-email-sre@kernel.org>
+ <1396733753-9820-5-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8M+BMcg+0CmQ2H7L"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="d6nDKxlhctiV7bVq"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1396733753-9820-2-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1396733753-9820-5-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Sebastian Reichel <sre@ring0.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
 
---8M+BMcg+0CmQ2H7L
-Content-Type: text/plain; charset=iso-8859-1
+--d6nDKxlhctiV7bVq
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, Apr 05, 2014 at 11:35:49PM +0200, Sebastian Reichel wrote:
-> From: Pali Roh=E1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->=20
-> This patch converts the rx51 ASoC module to use
-> devm_snd_soc_register_card. It also adds module alias
-> to support driver autoloading.
+On Sat, Apr 05, 2014 at 11:35:52PM +0200, Sebastian Reichel wrote:
 
-This doesn't apply against current code and since it does multiple
-things it should be multiple patches.
+> Use table based setup to register the DAPM widgets and routes. This on one hand
+> makes the code a bit cleaner and on the other hand the board level DAPM
+> elements get registered in the card's DAPM context rather than in the CODEC's
+> DAPM context. This fixes an issue with double prefixing of routes.
 
-> +static int rx51_soc_remove(struct platform_device *pdev)
->  {
-> +	struct snd_soc_card *card =3D platform_get_drvdata(pdev);
-> +
->  	snd_soc_jack_free_gpios(&rx51_av_jack, ARRAY_SIZE(rx51_av_jack_gpios),
->  				rx51_av_jack_gpios);
-> =20
-> -	platform_device_unregister(rx51_snd_device);
-> +	card->dev =3D NULL;
-> +
+Simple patches like this, especially ones that are bug fixes, should
+come at the start of the series to allow them to be applied first.  This
+cuts down on review if multiple iterations are needed and allows bug
+fixes to be merged as such.
 
-Why is this assignment being done?
-
---8M+BMcg+0CmQ2H7L
+--d6nDKxlhctiV7bVq
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJTTSQZAAoJELSic+t+oim9axwQAJ1bebnpbDkFMA4qfqZKGDA7
-ljaUPSVyscdB5l7cOIiyNLM+DQmYZFVZs2HxqOj4mQNljQ44NQu5+0T2U202zQRl
-hR2MaCatZvroDw8RsPadpNnazyetECHUeL0DMOGvAl7kmodRpx70EKf4CIlCqSfF
-HHc4ZECRUQcpG6v6iZgCBIGJafJrSi4cboQRmlgDl69WMFyBaLtwB0i+T2T30wpM
-Nas4Z5UTg8co9KG/UAW81+63BpJ5U7hXRSb/+37U4W0i602ZZmOM/eZyxQ2cdMm8
-EVdIm4p/H0CQ++LLBlagIEvWSvnBrUea7X+Fbm50M8R9NEBPJrP66u9Aq3K7MuCM
-0FQscvzNHRAU2KD0yyRQebXBE5yr/dZwx535qk49Ws4TaZVo+oCf6G50us0Obt9D
-6iotTBbPFnCoIUAGwXbBpKIGY7W5qbgdg2GIpFkKgCiMY8PacipWwa32Oab2jDLB
-J8Shb6E9H/3o6/FOq0NfuLw48b0Xpc7geFT2iaJ1pn989G/+tf2MgyR8ISC6oyqm
-SVBcp93HshzvpvvjkHNpD6kY5zjvVpI4QifY6xEIx6s/WAlnaiF4tjNMO9ejYd0s
-0jZnxp9ZZ6Y2BveDZirVLErEyS8/kHKLpGbmg2TPXUmE0rlfZ748JVV+IPc2XNah
-+83a88+8UGp9v9BjANtx
-=QCJN
+iQIcBAEBAgAGBQJTTSTBAAoJELSic+t+oim9GtEP/3Gki0Cbu9rO7xov4AJpfUZl
+JvG9ZwW9XlKsd1ThUErY6pcJdNubUAKU/MUL7xFO1sMbhy5ypAb+/qgTklaw3Xjp
+p3fHG6J7swBDRbFrmIablZUBucHG1+oaOHls+jPX5Dpip1OQoeB5bsIESwfjijMq
+/RxcuF7e62ImucMDGxXbZzoYKFrhe/qaFXEIIrXA6hVdExm+SOSf1MAGnb5Q+f0H
+THJ0/N8KyAd1nZtWhPFO7h3Kco9cUULT9UmRfxRR3D5tUnuJbvE20xIJSkP4GktX
+0fdZLAf9Jk+a4y4WXyghbRCIrYU2kOz1D8ec0dRC8ja3HENdkka8zVLuRE+7mSwW
+QFz4iDrKQvv5oVmJdhAgoyoiHTGtNoFFmPfdfQ3mM4rcJYte18npqBwoUwR3rkIU
+/yLmy+8cUI2fhCVgLVkQQ1QJsuMPwuwLe+1jgdpBI+cPQqCtnDRb1F2jXPH8fxP8
+2rtZx3/ja9X2LgKotkDB3CFuiVrNyLrGfTuQisBg8zHTxtHe4O2EmJTAsXjexZvQ
+tOxOe/R47+TWHLaoDabop47pp3Bc+KemMQjZoptydgYjjHsdfujF5B/0xkFOZq8S
+gEQSIiJgvqaMmeYUMLD7ZSYT3Z3E+LFDPviJlc+vqdWIhVCaJq2Jde151MF734gc
+dLPKh9wE0DMi2HQIJW7r
+=+tMV
 -----END PGP SIGNATURE-----
 
---8M+BMcg+0CmQ2H7L--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--d6nDKxlhctiV7bVq--
