@@ -1,15 +1,15 @@
 From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: [RESEND PATCH 3/4] ARM: OMAP: counter-32k: raw read and write endian fix
-Date: Tue, 15 Apr 2014 20:37:48 +0300
-Message-ID: <1397583469-14457-4-git-send-email-taras.kondratiuk@linaro.org>
+Subject: [RESEND PATCH 4/4] ARM: OMAP: debug-leds: raw read and write endian fix
+Date: Tue, 15 Apr 2014 20:37:49 +0300
+Message-ID: <1397583469-14457-5-git-send-email-taras.kondratiuk@linaro.org>
 References: <1397583469-14457-1-git-send-email-taras.kondratiuk@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:39018 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751905AbaDORiF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Apr 2014 13:38:05 -0400
-Received: by mail-ee0-f42.google.com with SMTP id d17so8038217eek.1
-        for <linux-omap@vger.kernel.org>; Tue, 15 Apr 2014 10:38:04 -0700 (PDT)
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:56807 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750990AbaDORiG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Apr 2014 13:38:06 -0400
+Received: by mail-ee0-f43.google.com with SMTP id e53so7984238eek.2
+        for <linux-omap@vger.kernel.org>; Tue, 15 Apr 2014 10:38:05 -0700 (PDT)
 In-Reply-To: <1397583469-14457-1-git-send-email-taras.kondratiuk@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -31,40 +31,65 @@ with xxx_relaxed variant.
 Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
 Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
 ---
- arch/arm/plat-omap/counter_32k.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/plat-omap/debug-leds.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-index 384a776d..61b4d70 100644
---- a/arch/arm/plat-omap/counter_32k.c
-+++ b/arch/arm/plat-omap/counter_32k.c
-@@ -40,7 +40,7 @@ static void __iomem *sync32k_cnt_reg;
+diff --git a/arch/arm/plat-omap/debug-leds.c b/arch/arm/plat-omap/debug-leds.c
+index aa7ebc6..48b69de 100644
+--- a/arch/arm/plat-omap/debug-leds.c
++++ b/arch/arm/plat-omap/debug-leds.c
+@@ -85,12 +85,12 @@ static void dbg_led_set(struct led_classdev *cdev,
+ 	struct dbg_led *led = container_of(cdev, struct dbg_led, cdev);
+ 	u16 reg;
  
- static u64 notrace omap_32k_read_sched_clock(void)
- {
--	return sync32k_cnt_reg ? __raw_readl(sync32k_cnt_reg) : 0;
-+	return sync32k_cnt_reg ? readl_relaxed(sync32k_cnt_reg) : 0;
+-	reg = __raw_readw(&fpga->leds);
++	reg = readw_relaxed(&fpga->leds);
+ 	if (b != LED_OFF)
+ 		reg |= led->mask;
+ 	else
+ 		reg &= ~led->mask;
+-	__raw_writew(reg, &fpga->leds);
++	writew_relaxed(reg, &fpga->leds);
  }
  
- /**
-@@ -64,7 +64,7 @@ static void omap_read_persistent_clock(struct timespec *ts)
- 	spin_lock_irqsave(&read_persistent_clock_lock, flags);
+ static enum led_brightness dbg_led_get(struct led_classdev *cdev)
+@@ -98,7 +98,7 @@ static enum led_brightness dbg_led_get(struct led_classdev *cdev)
+ 	struct dbg_led *led = container_of(cdev, struct dbg_led, cdev);
+ 	u16 reg;
  
- 	last_cycles = cycles;
--	cycles = sync32k_cnt_reg ? __raw_readl(sync32k_cnt_reg) : 0;
-+	cycles = sync32k_cnt_reg ? readl_relaxed(sync32k_cnt_reg) : 0;
+-	reg = __raw_readw(&fpga->leds);
++	reg = readw_relaxed(&fpga->leds);
+ 	return (reg & led->mask) ? LED_FULL : LED_OFF;
+ }
  
- 	nsecs = clocksource_cyc2ns(cycles - last_cycles,
- 					persistent_mult, persistent_shift);
-@@ -95,7 +95,7 @@ int __init omap_init_clocksource_32k(void __iomem *vbase)
- 	 * The 'SCHEME' bits(30-31) of the revision register is used
- 	 * to identify the version.
- 	 */
--	if (__raw_readl(vbase + OMAP2_32KSYNCNT_REV_OFF) &
-+	if (readl_relaxed(vbase + OMAP2_32KSYNCNT_REV_OFF) &
- 						OMAP2_32KSYNCNT_REV_SCHEME)
- 		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_HIGH;
- 	else
+@@ -112,7 +112,7 @@ static int fpga_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 
+ 	fpga = ioremap(iomem->start, resource_size(iomem));
+-	__raw_writew(0xff, &fpga->leds);
++	writew_relaxed(0xff, &fpga->leds);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(dbg_leds); i++) {
+ 		struct dbg_led *led;
+@@ -138,15 +138,15 @@ static int fpga_probe(struct platform_device *pdev)
+ 
+ static int fpga_suspend_noirq(struct device *dev)
+ {
+-	fpga_led_state = __raw_readw(&fpga->leds);
+-	__raw_writew(0xff, &fpga->leds);
++	fpga_led_state = readw_relaxed(&fpga->leds);
++	writew_relaxed(0xff, &fpga->leds);
+ 
+ 	return 0;
+ }
+ 
+ static int fpga_resume_noirq(struct device *dev)
+ {
+-	__raw_writew(~fpga_led_state, &fpga->leds);
++	writew_relaxed(~fpga_led_state, &fpga->leds);
+ 	return 0;
+ }
+ 
 -- 
 1.7.9.5
 
