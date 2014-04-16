@@ -1,69 +1,113 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 05/14] arm: common: edma: Select event queue 1 as
-	default when booted with DT
-Date: Wed, 16 Apr 2014 11:05:29 -0500
-Message-ID: <534EAA49.7030702@ti.com>
-References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
-	<1396357575-30585-6-git-send-email-peter.ujfalusi@ti.com>
-	<5347A4FD.1030803@ti.com> <5347ACDE.7040407@ti.com>
-	<5347AE49.5020109@ti.com> <5347B7F8.2000508@ti.com>
-	<20140411094217.GA32284@intel.com> <5347D2CC.4030407@ti.com>
-	<20140411113154.GB32284@intel.com> <5347DEDA.2060008@ti.com>
-	<20140411124641.GC32284@intel.com> <534BCCD3.9060805@ti.com>
-	<534BD0B5.5000004@ti.com> <534BD788.3050406@ti.com>
-	<534BF181.6060503@ti.com> <534E7EB0.9000601@ti.com>
-Reply-To: <joelf-l0cyMroinI0@public.gmane.org>
+From: Joachim Eastwood <manabian@gmail.com>
+Subject: Re: HDMI on OMAP4460: clk rate mismatch warning
+Date: Wed, 16 Apr 2014 18:11:13 +0200
+Message-ID: <CAGhQ9Vx0RojsC=c8L_Dhg0u3uGRP3boiEtuq9XZPNMmEVtHWBg@mail.gmail.com>
+References: <CAGhQ9Vx-3H3yCzMv-8Mp83FWv94gOHvHP9hMiaPWHthZR_ezTQ@mail.gmail.com>
+	<534E17B3.5050109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <534E7EB0.9000601-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:38976 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422643AbaDPQLP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2014 12:11:15 -0400
+Received: by mail-lb0-f169.google.com with SMTP id q8so8538490lbi.28
+        for <linux-omap@vger.kernel.org>; Wed, 16 Apr 2014 09:11:14 -0700 (PDT)
+In-Reply-To: <534E17B3.5050109@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-On 04/16/2014 07:59 AM, Peter Ujfalusi wrote:
-[..]
->>>>> If the dma-priority is missing we should assume lowest priority (0).
->>>>> The highest priority depends on the platform. For eDMA3 in AM335x it is three
->>>>> level. For designware controller you might have the range 0-8 as valid.
->>>>>
->>>>> The question is how to get this information into use?
->>>>> We can take the priority number in the core when the dma channel is requested
->>>>> and add field to "struct dma_chan" in order to store it and the DMA drivers
->>>>> could have access to it.
+On 16 April 2014 07:40, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 15/04/14 20:36, Joachim Eastwood wrote:
+>> Hello,
 >>
->> How about Vinod's idea of extending dma_slave_config? Priority is
->> similar to rest of the runtime setup dmaengine_slave_config() is meant
->> to do.
-> 
-> The dma_slave_config is prepared by the client drivers, so they would need to
-> be updated to handle the priority for the DMA. This would lead to duplicated
-> code - unless we have a small function in dmaengine core to fetch this
-> information, but still all dmaengine clients would need to call that.
-> IMHO it would be better to let the dmaengine core to take the priority for the
-> channel when it has been asked so client drivers does not need to know about it.
-> 
+>> I am trying to get HDMI work with DT on my VAR-STK-OM44 (4460) board.
+>> But during kernel boot I get the following message:
+>>
+>> [ 0.953796] ------------[ cut here ]------------
+>> [ 0.953826] WARNING: CPU: 0 PID: 1 at
+>> drivers/video/omap2/dss/dss.c:483 dss_set_fck_rate+0x7c/0x8c()
+>> [ 0.953826] clk rate mismatch: 153600000 != 170666666
+>
+> I have a fix (attached) for this in fbdev-fixes, which I'll probably be
+> sending to Linus today. I couldn't send it in the main fbdev pull
+> request, as it depended on clk driver changes. And it's not fatal, most
+> likely things work fine even with the warning.
 
-I still feel it is much cleaner to keep this out of DT and have audio
-driver configure the channel manually for higher priority. Because,
-AFAIK audio is the only device that uses slave DMA and needs higher
-priority. I'd imagine everyone else who needs high priority, have their
-own dedicated DMAC, so from that sense I don't see the priority
-mechanism being used a lot anywhere else but audio, so atleast we can
-rule out things like code duplication in other drivers. Priority can be
-set to a default of low for those drivers that don't configure the
-channel for priority. I'm also OK with EDMA driver configuring channel
-for higher priority manually for the Cyclic case like you did initially.
+The warning disappeared after the patch. Thanks.
+Feel free to add: Tested-By: Joachim Eastwood <manabian@gmail.com>
 
-Thanks,
--Joel
+
+>> [ 0.954345] OMAP DSS rev 4.0
+>> [ 0.956970] connector-hdmi connector.10: failed to find video source
+>> [ 0.957031] connector-hdmi: probe of connector.10 failed with error -22
+>> [ 0.959167] omapfb omapfb: no displays
+>> [ 0.961547] omapfb omapfb: failed to setup omapfb
+>> [ 0.961578] platform omapfb: Driver omapfb requests probe deferral
+>
+> Your DT data is not right. The shorter endpoint format you use is not
+> supported. Have a look at arch/arm/boot/dts/omap4-panda-common.dtsi for
+> an example.
+>
+> Also the HDMI driver does not currently work if the OMAP HDMI is
+> directly connected to the HDMI connector. Panda and 4430 SDP boards use
+> TPD12S015 chip in between. This should be fixed in the future, but at
+> the moment you'll see problems if your board does not have that chip.
+
+This board (VAR-STK-OM44) has a TPD12S521 which has no controllable
+settings so adding a driver for it would be pretty meaningless. I
+think it's the same situation with Gumstix Parlor. That board also
+just have a very simple HDMI transmitter which shouldn't require a
+driver.
+
+But never the less I got HDMI working on my board adding the tpd21s015
+nodes and providing a dummy gpio for "CT CP HPD". This works but it's
+a bit hacky.
+
+During boot I got this warning from the tpd12s015 driver:
+[ 2.955444] WARNING: CPU: 0 PID: 16 at
+drivers/video/omap2/displays-new/encoder-tpd12s015.c:87
+tpd_connect+0xb8/0xc8()
+[ 2.955444] Modules linked in:
+[ 2.955444] CPU: 0 PID: 16 Comm: kworker/u4:1 Not tainted
+3.15.0-rc1-00058-ge6c0e0fdf274-dirty #33
+[ 2.979309] Workqueue: deferwq deferred_probe_work_func
+[ 2.984863] [<c0014f48>] (unwind_backtrace) from [<c0011c2c>]
+(show_stack+0x10/0x14)
+[ 3.000427] [<c0011c2c>] (show_stack) from [<c05cb494>] (dump_stack+0x84/0x94)
+[ 3.008087] [<c05cb494>] (dump_stack) from [<c0036ba8>]
+(warn_slowpath_common+0x70/0x8c)
+[ 3.016632] [<c0036ba8>] (warn_slowpath_common) from [<c0036c60>]
+(warn_slowpath_null+0x1c/0x24)
+[ 3.025878] [<c0036c60>] (warn_slowpath_null) from [<c02c8d30>]
+(tpd_connect+0xb8/0xc8)
+[ 3.034332] [<c02c8d30>] (tpd_connect) from [<c031f640>] (pdev_probe+0x40/0xdc)
+[ 3.042053] [<c031f640>] (pdev_probe) from [<c0330474>]
+(platform_drv_probe+0x18/0x48)
+[ 3.042083] [<c0330474>] (platform_drv_probe) from [<c032ecf8>]
+(driver_probe_device+0x124/0x240)
+[ 3.059722] [<c032ecf8>] (driver_probe_device) from [<c032d370>]
+(bus_for_each_drv+0x58/0x8c)
+[ 3.068695] [<c032d370>] (bus_for_each_drv) from [<c032eba4>]
+(device_attach+0x78/0x8c)
+[ 3.077148] [<c032eba4>] (device_attach) from [<c032e22c>]
+(bus_probe_device+0x88/0xac)
+[ 3.085571] [<c032e22c>] (bus_probe_device) from [<c032e674>]
+(deferred_probe_work_func+0x6c/0xa0)
+[ 3.095031] [<c032e674>] (deferred_probe_work_func) from [<c004edb0>]
+(process_one_work+0x1b0/0x4c4)
+[ 3.095031] [<c004edb0>] (process_one_work) from [<c004fc74>]
+(worker_thread+0x13c/0x3dc)
+[ 3.113220] [<c004fc74>] (worker_thread) from [<c0055844>] (kthread+0xe0/0xf4)
+[ 3.121032] [<c0055844>] (kthread) from [<c000e2c8>] (ret_from_fork+0x14/0x2c)
+[ 3.128631] ---[ end trace 7cb21223a2b91cf6 ]---
+
+One other thing.
+Does HDMI audio work with DT or is that a still TODO?
+I am only getting probe deferral's from omap-hdmi-audio. Haven't look
+to far into it.
+
+regards
+Joachim Eastwood
