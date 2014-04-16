@@ -1,15 +1,15 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [RFC 4/4] CLK: TI: Enable dss_deshdcp clock in dra7xx_clk_init
-Date: Wed, 16 Apr 2014 18:44:23 +0530
-Message-ID: <1397654063-8055-4-git-send-email-archit@ti.com>
+Subject: [RFC 3/4] ARM: dts: Add dss_deshdcp clock node under dra7-ctrl-core
+Date: Wed, 16 Apr 2014 18:44:22 +0530
+Message-ID: <1397654063-8055-3-git-send-email-archit@ti.com>
 References: <1397654063-8055-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54835 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41814 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756273AbaDPNPz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Apr 2014 09:15:55 -0400
+	id S1756260AbaDPNPx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Apr 2014 09:15:53 -0400
 In-Reply-To: <1397654063-8055-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,58 +20,39 @@ The DESHDCP clock is required only by the DES-HDCP block within HDMI in DSS.
 However, if the clock isn't set before DSS clock domian is enabled, the clock
 domain never comes out of idle state.
 
-This is because the DSS IP is designed in such a way that if DES-HDCP block
-can't transition from idle state, the entire DSS clock domain also cannot
-transition from idle to enabled. DES-HDCP block needs the DESHDCP clock
-enabled to transition from idle successfully.
+The DESHDCP clock is enabled/disabled at the DSS boundary by the bit
+DSS_DESHDCP_CLKEN in CTRL_CORE_CONTROL_IO_2.
 
-We enable the deshdcp clock in dra7xx_clk_init() which happens before omap
-hwmods are setup. This clock is effectively a gate clock with the parent as
-DSS_L3_GICLK. The parent is an automatically controlled clock by DSS clock
-domain and hence doesn't have a clock node associated to it. Since
-DSS_L3_GICLK is derived from the OCP clock, we set the dss_deshdcp_clk's
-parent as l3_iclk_div.
-
-Leaving this bit enabled doesn't prevent DSS or the system to suspend, and only
-a very few flops get this clock all the time. So there is negligible impact.
+Add dss_deshdcp gate-clock node under dra7-ctrl-core. There are separate bit
+fields for enabling and disabling the clock. We just map the enable bit since
+this clock doesn't cause any impact if left enabled.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/clk/ti/clk-7xx.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index f7e4073..3f73a02 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -179,6 +179,7 @@ static struct ti_dt_clk dra7xx_clks[] = {
- 	DT_CLK(NULL, "dss_hdmi_clk", "dss_hdmi_clk"),
- 	DT_CLK(NULL, "dss_video1_clk", "dss_video1_clk"),
- 	DT_CLK(NULL, "dss_video2_clk", "dss_video2_clk"),
-+	DT_CLK(NULL, "dss_deshdcp_clk", "dss_deshdcp_clk"),
- 	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
- 	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
- 	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
-@@ -306,7 +307,7 @@ static struct ti_dt_clk dra7xx_clks[] = {
- int __init dra7xx_dt_clk_init(void)
- {
- 	int rc;
--	struct clk *abe_dpll_mux, *sys_clkin2, *dpll_ck;
-+	struct clk *abe_dpll_mux, *sys_clkin2, *dpll_ck, *dss_deshdcp_ck;
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index e96da9a..78d309c 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -2007,6 +2007,16 @@
+ 	};
+ };
  
- 	ti_dt_clocks_register(dra7xx_clks);
- 
-@@ -327,5 +328,10 @@ int __init dra7xx_dt_clk_init(void)
- 	if (rc)
- 		pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
- 
-+	dss_deshdcp_ck = clk_get_sys(NULL, "dss_deshdcp_clk");
-+	rc = clk_prepare_enable(dss_deshdcp_ck);
-+	if (rc)
-+		pr_err("%s: failed to enable DESHDCP clock\n", __func__);
++&ctrl_core_clocks {
++	dss_deshdcp_clk: dss_deshdcp_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&l3_iclk_div>;
++		ti,bit-shift = <0>;
++		reg = <0x0558>;
++	};
++};
 +
- 	return rc;
- }
+ &cm_core_clockdomains {
+ 	coreaon_clkdm: coreaon_clkdm {
+ 		compatible = "ti,clockdomain";
 -- 
 1.8.3.2
 
