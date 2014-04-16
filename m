@@ -1,14 +1,14 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 4/5] arm: dts: am4372: Add hdq device tree data.
-Date: Wed, 16 Apr 2014 18:02:11 +0530
-Message-ID: <1397651532-31456-5-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCH 5/5] arm: hwmod: am437x: Add hwmod data for hdq1w.
+Date: Wed, 16 Apr 2014 18:02:12 +0530
+Message-ID: <1397651532-31456-6-git-send-email-sourav.poddar@ti.com>
 References: <1397651532-31456-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42607 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42608 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756173AbaDPMdM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1755714AbaDPMdM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 16 Apr 2014 08:33:12 -0400
 In-Reply-To: <1397651532-31456-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,63 +16,93 @@ List-Id: linux-omap@vger.kernel.org
 To: zbr@ioremap.net, tony@atomide.com, michael.opdenacker@free-electrons.com, wsa@the-dreams.de, paul@pwsan.com, bcousson@baylibre.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Sourav Poddar <sourav.poddar@ti.com>
 
-Add device tree nodes and pinmux for hdq/1wire on
-am43x epos evm.
+These adds hwmod data for hdq/1w driver.
 
 Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi        |   10 ++++++++++
- arch/arm/boot/dts/am43x-epos-evm.dts |   12 ++++++++++++
- 2 files changed, 22 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c |   36 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm43xx.h             |    1 +
+ 2 files changed, 37 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 36d523a..5f7c167 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -735,6 +735,16 @@
- 			#size-cells = <1>;
- 			status = "disabled";
- 		};
-+
-+		hdq: hdq@48347000 {
-+			compatible = "ti,am43xx-hdq";
-+			reg = <0x48347000 0x1000>;
-+			interrupts = <GIC_SPI 139 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&func_12m_clk>;
-+			clock-names = "fck";
-+			ti,hwmods = "hdq1w";
-+			status = "disabled";
-+		};
- 	};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+index 5c2cc80..3a8ca96 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+@@ -19,6 +19,7 @@
+ #include "omap_hwmod.h"
+ #include "omap_hwmod_33xx_43xx_common_data.h"
+ #include "prcm43xx.h"
++#include "hdq1w.h"
+ 
+ /* IP blocks */
+ static struct omap_hwmod am43xx_l4_hs_hwmod = {
+@@ -415,6 +416,32 @@ static struct omap_hwmod am43xx_qspi_hwmod = {
+ 	},
  };
  
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 167dbc8..e71ef1c 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -138,6 +138,12 @@
- 				0x160 (PIN_INPUT | MUX_MODE7) /* spi0_cs1.gpio0_6 */
- 			>;
- 		};
-+
-+		hdq_pins: pinmux_hdq_pins {
-+			pinctrl-single,pins = <
-+				0x234 (PIN_INPUT_PULLUP | MUX_MODE1)    /* cam1_wen.hdq_gpio */
-+			>;
-+		};
- 	};
- 
- 	matrix_keypad: matrix_keypad@0 {
-@@ -367,3 +373,9 @@
- 	pinctrl-0 = <&spi1_pins>;
- 	status = "okay";
- };
-+
-+&hdq {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&hdq_pins>;
++static struct omap_hwmod_class_sysconfig am43xx_hdq1w_sysc = {
++	.rev_offs       = 0x0000,
++	.sysc_offs      = 0x0014,
++	.syss_offs      = 0x0018,
++	.sysc_flags     = (SYSC_HAS_SOFTRESET),
++	.sysc_fields    = &omap_hwmod_sysc_type1,
 +};
++
++static struct omap_hwmod_class am43xx_hdq1w_hwmod_class = {
++	.name   = "hdq1w",
++	.sysc   = &am43xx_hdq1w_sysc,
++	.reset  = &omap_hdq1w_reset,
++};
++
++static struct omap_hwmod am43xx_hdq1w_hwmod = {
++	.name           = "hdq1w",
++	.class          = &am43xx_hdq1w_hwmod_class,
++	.clkdm_name     = "l4ls_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = AM43XX_CM_PER_HDQ1W_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
+ /* Interfaces */
+ static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
+ 	.master		= &am33xx_l3_main_hwmod,
+@@ -654,6 +681,14 @@ static struct omap_hwmod_ocp_if am43xx_l3_s__qspi = {
+ 	.user           = OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* l4_per -> hdq1w */
++static struct omap_hwmod_ocp_if am43xx_l4_ls__hdq1w = {
++	.master         = &am33xx_l4_ls_hwmod,
++	.slave          = &am43xx_hdq1w_hwmod,
++	.clk            = "l4ls_gclk",
++	.user           = OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l4_wkup__synctimer,
+ 	&am43xx_l4_ls__timer8,
+@@ -748,6 +783,7 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am43xx_l4_ls__ocp2scp1,
+ 	&am43xx_l3_s__usbotgss0,
+ 	&am43xx_l3_s__usbotgss1,
++	&am43xx_l4_ls__hdq1w,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
+index 7785be9..cabff53 100644
+--- a/arch/arm/mach-omap2/prcm43xx.h
++++ b/arch/arm/mach-omap2/prcm43xx.h
+@@ -142,5 +142,6 @@
+ #define AM43XX_CM_PER_USBPHYOCP2SCP0_CLKCTRL_OFFSET	0x05B8
+ #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
+ #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
++#define AM43XX_CM_PER_HDQ1W_CLKCTRL_OFFSET		0x04a0
+ 
+ #endif
 -- 
 1.7.9.5
 
