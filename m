@@ -1,67 +1,61 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [GIT PULL v2 FOR v3.16] OMAP IOMMU fixes
-Date: Wed, 16 Apr 2014 16:57:57 +0200
-Message-ID: <2719857.gpZoyjQAq7@avalon>
-References: <2312051.xNuD1CfeZH@avalon> <6806421.DjEURPCCWM@avalon>
-	<1527771.aIpQeXENtj@avalon>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] power: twl4030_charger: clear IRQs after handling them
+Date: Wed, 16 Apr 2014 10:14:59 -0500
+Message-ID: <1397661299-31342-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1527771.aIpQeXENtj@avalon>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dbaryshkov@gmail.com, dwmw2@infradead.org
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Joerg,
+TRM says we *must* write 1 to each bit we're handling
+in order to clear the IRQ status and bring IRQ line
+low. This patch implements that.
 
-Last but not least, could you please provide a stable branch with those 
-patches, directly on top of v3.15-rc1 ? I'll need to base OMAP3 ISP driver 
-patches on top of it.
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
 
-On Wednesday 16 April 2014 16:51:56 Laurent Pinchart wrote:
-> Hi Joerg,
-> 
-> The following changes since commit c9eaa447e77efe77b7fa4c953bd62de8297fd6c5:
-> 
->   Linux 3.15-rc1 (2014-04-13 14:18:35 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/pinchartl/media.git iommu/omap
-> 
-> for you to fetch changes up to 286f600bc890347f7ec7bd50d33210d53a9095a3:
-> 
->   iommu/omap: Fix map protection value handling (2014-04-16 16:30:18 +0200)
-> 
-> Compared to the v1 pull request, the patches have been rebased directly on
-> top of v3.15-rc1.
-> 
-> ----------------------------------------------------------------
-> Laurent Pinchart (3):
->       iommu/omap: Fix 'no page for' debug message in flush_iotlb_page()
->       iommu/omap: Remove comment about supporting single page mappings only
->       iommu/omap: Fix map protection value handling
-> 
-> Suman Anna (3):
->       iommu/omap: Correct init value of iotlb_entry valid field
->       iommu/omap: Remove omap_iommu_domain_has_cap() function
->       iommu/omap: Move to_iommu definition from omap-iopgtable.h
-> 
->  drivers/iommu/omap-iommu.c     | 31 ++++++++++++-------------------
->  drivers/iommu/omap-iopgtable.h |  3 ---
->  2 files changed, 12 insertions(+), 22 deletions(-)
+Russell, I don't have HW to test, but this should
+solve the problem you saw when not using battery
+with Zoom board. Let me know if it doesn't.
 
+cheers
+
+ drivers/power/twl4030_charger.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
+index f141088..b090842 100644
+--- a/drivers/power/twl4030_charger.c
++++ b/drivers/power/twl4030_charger.c
+@@ -301,12 +301,24 @@ static irqreturn_t twl4030_bci_interrupt(int irq, void *arg)
+ 	ret = twl_i2c_read_u8(TWL4030_MODULE_INTERRUPTS, &irqs1,
+ 			      TWL4030_INTERRUPTS_BCIISR1A);
+ 	if (ret < 0)
+-		return IRQ_HANDLED;
++		return IRQ_NONE;
++
++	/* clear IRQs early */
++	ret = twl_i2c_write_u8(TWL4030_MODULE_INTERRUPTS, irqs1,
++			TWL4030_INTERRUPTS_BCIISR1A);
++	if (ret < 0)
++		return IRQ_NONE;
+ 
+ 	ret = twl_i2c_read_u8(TWL4030_MODULE_INTERRUPTS, &irqs2,
+ 			      TWL4030_INTERRUPTS_BCIISR2A);
+ 	if (ret < 0)
+-		return IRQ_HANDLED;
++		return IRQ_NONE;
++
++	/* clear IRQs early */
++	ret = twl_i2c_write_u8(TWL4030_MODULE_INTERRUPTS, irqs2,
++			      TWL4030_INTERRUPTS_BCIISR2A);
++	if (ret < 0)
++		return IRQ_NONE;
+ 
+ 	dev_dbg(bci->dev, "BCI irq %02x %02x\n", irqs2, irqs1);
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1.286.g5172cb3
