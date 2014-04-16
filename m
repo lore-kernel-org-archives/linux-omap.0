@@ -1,202 +1,44 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 1/5] drivers: w1: omap_hdq: cleanup and bug fixes.
-Date: Wed, 16 Apr 2014 18:02:08 +0530
-Message-ID: <1397651532-31456-2-git-send-email-sourav.poddar@ti.com>
-References: <1397651532-31456-1-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCH 0/5] AM437x: HDQ/1wire protocol
+Date: Wed, 16 Apr 2014 18:02:07 +0530
+Message-ID: <1397651532-31456-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37692 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:37693 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755686AbaDPMcy (ORCPT
+	with ESMTP id S1755714AbaDPMcy (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2014 08:32:54 -0400
-In-Reply-To: <1397651532-31456-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: zbr@ioremap.net, tony@atomide.com, michael.opdenacker@free-electrons.com, wsa@the-dreams.de, paul@pwsan.com, bcousson@baylibre.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Sourav Poddar <sourav.poddar@ti.com>
 
-The patch adds the following to the omap hdq driver.
-1. HDQ Device reset call in probe.
-2. Enabling '1 wire mode' and checking for presence pulse bit.
-3. Proper disabling and enabling of interrupts during read path.
-4. Add re-initialization code during SKIP ROM command execution.
-5. Miscellaneous cleanup(formatting, return error checks).
+This series adds support for HDQ/1w protocol driver for
+am43x epos evm where it can be used for measuring the
+temperature of a slave device connected to a particular header.
 
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
- drivers/w1/masters/omap_hdq.c |   85 ++++++++++++++++++++++++++++++++---------
- 1 file changed, 68 insertions(+), 17 deletions(-)
+Tested the patch series on AM437x, hdq master and slave devices are
+getting registered and interrupts are getting triggered for break and tx
+conditions. 
 
-diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
-index 9900e8e..0a7bf7f 100644
---- a/drivers/w1/masters/omap_hdq.c
-+++ b/drivers/w1/masters/omap_hdq.c
-@@ -27,21 +27,22 @@
- #define OMAP_HDQ_TX_DATA			0x04
- #define OMAP_HDQ_RX_DATA			0x08
- #define OMAP_HDQ_CTRL_STATUS			0x0c
--#define OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK	(1<<6)
--#define OMAP_HDQ_CTRL_STATUS_CLOCKENABLE	(1<<5)
--#define OMAP_HDQ_CTRL_STATUS_GO			(1<<4)
--#define OMAP_HDQ_CTRL_STATUS_INITIALIZATION	(1<<2)
--#define OMAP_HDQ_CTRL_STATUS_DIR		(1<<1)
--#define OMAP_HDQ_CTRL_STATUS_MODE		(1<<0)
-+#define OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK	(1 << 6)
-+#define OMAP_HDQ_CTRL_STATUS_CLOCKENABLE	(1 << 5)
-+#define OMAP_HDQ_CTRL_STATUS_PRESENCE		(1 << 3)
-+#define OMAP_HDQ_CTRL_STATUS_GO                 (1 << 4)
-+#define OMAP_HDQ_CTRL_STATUS_INITIALIZATION	(1 << 2)
-+#define OMAP_HDQ_CTRL_STATUS_DIR		(1 << 1)
-+#define OMAP_HDQ_CTRL_STATUS_MODE		(1 << 0)
- #define OMAP_HDQ_INT_STATUS			0x10
--#define OMAP_HDQ_INT_STATUS_TXCOMPLETE		(1<<2)
--#define OMAP_HDQ_INT_STATUS_RXCOMPLETE		(1<<1)
--#define OMAP_HDQ_INT_STATUS_TIMEOUT		(1<<0)
-+#define OMAP_HDQ_INT_STATUS_TXCOMPLETE		(1 << 2)
-+#define OMAP_HDQ_INT_STATUS_RXCOMPLETE		(1 << 1)
-+#define OMAP_HDQ_INT_STATUS_TIMEOUT		(1 << 0)
- #define OMAP_HDQ_SYSCONFIG			0x14
--#define OMAP_HDQ_SYSCONFIG_SOFTRESET		(1<<1)
--#define OMAP_HDQ_SYSCONFIG_AUTOIDLE		(1<<0)
-+#define OMAP_HDQ_SYSCONFIG_SOFTRESET		(1 << 1)
-+#define OMAP_HDQ_SYSCONFIG_AUTOIDLE		(1 << 0)
- #define OMAP_HDQ_SYSSTATUS			0x18
--#define OMAP_HDQ_SYSSTATUS_RESETDONE		(1<<0)
-+#define OMAP_HDQ_SYSSTATUS_RESETDONE		(1 << 0)
- 
- #define OMAP_HDQ_FLAG_CLEAR			0
- #define OMAP_HDQ_FLAG_SET			1
-@@ -115,6 +116,15 @@ static inline u8 hdq_reg_merge(struct hdq_data *hdq_data, u32 offset,
- 	return new_val;
- }
- 
-+static void hdq_disable_interrupt(struct hdq_data *hdq_data, u32 offset,
-+				  u8 mask)
-+{
-+	u32 ie;
-+
-+	ie = readl(hdq_data->hdq_base + offset);
-+	writel(ie & mask, hdq_data->hdq_base + offset);
-+}
-+
- /*
-  * Wait for one or more bits in flag change.
-  * HDQ_FLAG_SET: wait until any bit in the flag is set.
-@@ -263,8 +273,7 @@ static int _omap_hdq_reset(struct hdq_data *hdq_data)
- 	 * interrupt.
- 	 */
- 	hdq_reg_out(hdq_data, OMAP_HDQ_CTRL_STATUS,
--		OMAP_HDQ_CTRL_STATUS_CLOCKENABLE |
--		OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
-+		OMAP_HDQ_CTRL_STATUS_CLOCKENABLE);
- 
- 	/* wait for reset to complete */
- 	ret = hdq_wait_for_flag(hdq_data, OMAP_HDQ_SYSSTATUS,
-@@ -275,7 +284,8 @@ static int _omap_hdq_reset(struct hdq_data *hdq_data)
- 	else {
- 		hdq_reg_out(hdq_data, OMAP_HDQ_CTRL_STATUS,
- 			OMAP_HDQ_CTRL_STATUS_CLOCKENABLE |
--			OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
-+			OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK |
-+			OMAP_HDQ_CTRL_STATUS_MODE);
- 		hdq_reg_out(hdq_data, OMAP_HDQ_SYSCONFIG,
- 			OMAP_HDQ_SYSCONFIG_AUTOIDLE);
- 	}
-@@ -327,6 +337,18 @@ static int omap_hdq_break(struct hdq_data *hdq_data)
- 		ret = -ETIMEDOUT;
- 		goto out;
- 	}
-+
-+	/*
-+	 * check for the presence detect bit to get
-+	 * set to show that the slave is responding
-+	 */
-+	if (hdq_reg_in(hdq_data, OMAP_HDQ_CTRL_STATUS) &
-+			OMAP_HDQ_CTRL_STATUS_PRESENCE) {
-+		dev_dbg(hdq_data->dev, "Presence bit not set\n");
-+		ret = -ETIMEDOUT;
-+		goto out;
-+	}
-+
- 	/*
- 	 * wait for both INIT and GO bits rerurn to zero.
- 	 * zero wait time expected for interrupt mode.
-@@ -361,6 +383,8 @@ static int hdq_read_byte(struct hdq_data *hdq_data, u8 *val)
- 		goto out;
- 	}
- 
-+	hdq_data->hdq_irqstatus = 0;
-+
- 	if (!(hdq_data->hdq_irqstatus & OMAP_HDQ_INT_STATUS_RXCOMPLETE)) {
- 		hdq_reg_merge(hdq_data, OMAP_HDQ_CTRL_STATUS,
- 			OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO,
-@@ -426,7 +450,8 @@ static int omap_hdq_get(struct hdq_data *hdq_data)
- 				/* select HDQ mode & enable clocks */
- 				hdq_reg_out(hdq_data, OMAP_HDQ_CTRL_STATUS,
- 					OMAP_HDQ_CTRL_STATUS_CLOCKENABLE |
--					OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
-+					OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK |
-+					OMAP_HDQ_CTRL_STATUS_MODE);
- 				hdq_reg_out(hdq_data, OMAP_HDQ_SYSCONFIG,
- 					OMAP_HDQ_SYSCONFIG_AUTOIDLE);
- 				hdq_reg_in(hdq_data, OMAP_HDQ_INT_STATUS);
-@@ -471,6 +496,10 @@ static u8 omap_w1_read_byte(void *_hdq)
- 	u8 val = 0;
- 	int ret;
- 
-+	/* First write to initialize the transfer */
-+	if (hdq_data->init_trans == 0)
-+		omap_hdq_get(hdq_data);
-+
- 	ret = hdq_read_byte(hdq_data, &val);
- 	if (ret) {
- 		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-@@ -484,6 +513,10 @@ static u8 omap_w1_read_byte(void *_hdq)
- 		return -1;
- 	}
- 
-+	hdq_disable_interrupt(hdq_data, OMAP_HDQ_CTRL_STATUS,
-+			      ~OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
-+	hdq_data->hdq_usecount = 0;
-+
- 	/* Write followed by a read, release the module */
- 	if (hdq_data->init_trans) {
- 		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-@@ -510,6 +543,14 @@ static void omap_w1_write_byte(void *_hdq, u8 byte)
- 	if (hdq_data->init_trans == 0)
- 		omap_hdq_get(hdq_data);
- 
-+	/*
-+	 * We need to reset the slave before
-+	 * issuing the SKIP ROM command, else
-+	 * the slave will not work.
-+	 */
-+	if (byte == W1_SKIP_ROM)
-+		omap_hdq_break(hdq_data);
-+
- 	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
- 	if (ret < 0) {
- 		dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-@@ -563,7 +604,17 @@ static int omap_hdq_probe(struct platform_device *pdev)
- 	mutex_init(&hdq_data->hdq_mutex);
- 
- 	pm_runtime_enable(&pdev->dev);
--	pm_runtime_get_sync(&pdev->dev);
-+	ret = pm_runtime_get_sync(&pdev->dev);
-+	if (ret < 0) {
-+		dev_dbg(&pdev->dev, "pm_runtime_get_sync failed\n");
-+		goto err_w1;
-+	}
-+
-+	ret = _omap_hdq_reset(hdq_data);
-+	if (ret) {
-+		dev_dbg(&pdev->dev, "reset failed\n");
-+		return -EINVAL;
-+	}
- 
- 	rev = hdq_reg_in(hdq_data, OMAP_HDQ_REVISION);
- 	dev_info(&pdev->dev, "OMAP HDQ Hardware Rev %c.%c. Driver in %s mode\n",
+Sourav Poddar (5):
+  drivers: w1: omap_hdq: cleanup and bug fixes.
+  w1: omap_hdq: Add compatible property for omap hdq driver.
+  arm: mach-omap2: selective device build from the platform code.
+  arm: dts: am4372: Add hdq device tree data.
+  arm: hwmod: am437x: Add hwmod data for hdq1w.
+
+ .../devicetree/bindings/hdq1w/omap_hdq.txt         |   20 +++++
+ arch/arm/boot/dts/am4372.dtsi                      |   10 +++
+ arch/arm/boot/dts/am43x-epos-evm.dts               |   12 +++
+ arch/arm/mach-omap2/hdq1w.c                        |    2 +
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |   36 ++++++++
+ arch/arm/mach-omap2/prcm43xx.h                     |    1 +
+ drivers/w1/masters/omap_hdq.c                      |   93 ++++++++++++++++----
+ 7 files changed, 157 insertions(+), 17 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/hdq1w/omap_hdq.txt
+
 -- 
 1.7.9.5
 
