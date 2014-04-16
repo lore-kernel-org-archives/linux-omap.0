@@ -1,108 +1,111 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 5/5] arm: hwmod: am437x: Add hwmod data for hdq1w.
-Date: Wed, 16 Apr 2014 18:02:12 +0530
-Message-ID: <1397651532-31456-6-git-send-email-sourav.poddar@ti.com>
-References: <1397651532-31456-1-git-send-email-sourav.poddar@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 05/14] arm: common: edma: Select event queue 1 as
+	default when booted with DT
+Date: Wed, 16 Apr 2014 15:59:28 +0300
+Message-ID: <534E7EB0.9000601@ti.com>
+References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
+	<1396357575-30585-6-git-send-email-peter.ujfalusi@ti.com>
+	<5347A4FD.1030803@ti.com> <5347ACDE.7040407@ti.com>
+	<5347AE49.5020109@ti.com> <5347B7F8.2000508@ti.com>
+	<20140411094217.GA32284@intel.com> <5347D2CC.4030407@ti.com>
+	<20140411113154.GB32284@intel.com> <5347DEDA.2060008@ti.com>
+	<20140411124641.GC32284@intel.com> <534BCCD3.9060805@ti.com>
+	<534BD0B5.5000004@ti.com> <534BD788.3050406@ti.com>
+	<534BF181.6060503@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42608 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755714AbaDPMdM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Apr 2014 08:33:12 -0400
-In-Reply-To: <1397651532-31456-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <534BF181.6060503-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, joelf-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: zbr@ioremap.net, tony@atomide.com, michael.opdenacker@free-electrons.com, wsa@the-dreams.de, paul@pwsan.com, bcousson@baylibre.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Sourav Poddar <sourav.poddar@ti.com>
 
-These adds hwmod data for hdq/1w driver.
+On 04/14/2014 05:32 PM, Sekhar Nori wrote:
+>> Yes, you can. But as soon as you have other devices using the same prior=
+ity
+>> (with eDMA3 at least) and asks for a 'long' transfer it can ruin the aud=
+io.
+>> During audio playback/capture you execute a long MMC read for example can
+>> introduce a glitch.
+>>
+>>> Moreover, IMHO, encoding it in DT now will make it an ABI. Without a
+>>> wide variety of example use cases, I think it is too early to commit to
+>>> an ABI.
+>>
+>> True, but we need to start from somewhere?
+> =
 
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c |   36 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prcm43xx.h             |    1 +
- 2 files changed, 37 insertions(+)
+> Right, and based on our IRC discussion, we are not really fixing up the
+> priority value space. That makes me much more comfortable with the idea.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-index 5c2cc80..3a8ca96 100644
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -19,6 +19,7 @@
- #include "omap_hwmod.h"
- #include "omap_hwmod_33xx_43xx_common_data.h"
- #include "prcm43xx.h"
-+#include "hdq1w.h"
- 
- /* IP blocks */
- static struct omap_hwmod am43xx_l4_hs_hwmod = {
-@@ -415,6 +416,32 @@ static struct omap_hwmod am43xx_qspi_hwmod = {
- 	},
- };
- 
-+static struct omap_hwmod_class_sysconfig am43xx_hdq1w_sysc = {
-+	.rev_offs       = 0x0000,
-+	.sysc_offs      = 0x0014,
-+	.syss_offs      = 0x0018,
-+	.sysc_flags     = (SYSC_HAS_SOFTRESET),
-+	.sysc_fields    = &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class am43xx_hdq1w_hwmod_class = {
-+	.name   = "hdq1w",
-+	.sysc   = &am43xx_hdq1w_sysc,
-+	.reset  = &omap_hdq1w_reset,
-+};
-+
-+static struct omap_hwmod am43xx_hdq1w_hwmod = {
-+	.name           = "hdq1w",
-+	.class          = &am43xx_hdq1w_hwmod_class,
-+	.clkdm_name     = "l4ls_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = AM43XX_CM_PER_HDQ1W_CLKCTRL_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
- /* Interfaces */
- static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
- 	.master		= &am33xx_l3_main_hwmod,
-@@ -654,6 +681,14 @@ static struct omap_hwmod_ocp_if am43xx_l3_s__qspi = {
- 	.user           = OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_per -> hdq1w */
-+static struct omap_hwmod_ocp_if am43xx_l4_ls__hdq1w = {
-+	.master         = &am33xx_l4_ls_hwmod,
-+	.slave          = &am43xx_hdq1w_hwmod,
-+	.clk            = "l4ls_gclk",
-+	.user           = OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l4_wkup__synctimer,
- 	&am43xx_l4_ls__timer8,
-@@ -748,6 +783,7 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am43xx_l4_ls__ocp2scp1,
- 	&am43xx_l3_s__usbotgss0,
- 	&am43xx_l3_s__usbotgss1,
-+	&am43xx_l4_ls__hdq1w,
- 	NULL,
- };
- 
-diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
-index 7785be9..cabff53 100644
---- a/arch/arm/mach-omap2/prcm43xx.h
-+++ b/arch/arm/mach-omap2/prcm43xx.h
-@@ -142,5 +142,6 @@
- #define AM43XX_CM_PER_USBPHYOCP2SCP0_CLKCTRL_OFFSET	0x05B8
- #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
- #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
-+#define AM43XX_CM_PER_HDQ1W_CLKCTRL_OFFSET		0x04a0
- 
- #endif
--- 
-1.7.9.5
+The only thing we should agree on is the 0 means lowest priority. I think t=
+his
+will help in case when a new kernel is fed with an older dt blob where the
+property does not exist.
 
+> =
+
+>>>> Not sure if we should set the range for this either. What I was thinki=
+ng is to
+>>>> add an optional new property to be set by the client nodes, using DMA:
+>>>>
+>>>> mcasp0: mcasp@48038000 {
+>>>> 	compatible =3D "ti,am33xx-mcasp-audio";
+>>>> 	...
+>>>> 	dmas =3D	<&edma 8>,
+>>>> 		<&edma 9>;
+>>>> 	dma-names =3D "tx", "rx";
+>>>> 	dma-priorities =3D <2>, <2>;
+>>>> };
+>>>>
+> =
+
+>>>> We could agree that lower number means lower priority, higher is - wel=
+l -
+>>>> higher priority.
+> =
+
+> Even this does not have to be uniform across, right? The numbers could
+> be left to interpretation per-SoC.
+> =
+
+>>>> If the dma-priority is missing we should assume lowest priority (0).
+>>>> The highest priority depends on the platform. For eDMA3 in AM335x it i=
+s three
+>>>> level. For designware controller you might have the range 0-8 as valid.
+>>>>
+>>>> The question is how to get this information into use?
+>>>> We can take the priority number in the core when the dma channel is re=
+quested
+>>>> and add field to "struct dma_chan" in order to store it and the DMA dr=
+ivers
+>>>> could have access to it.
+> =
+
+> How about Vinod's idea of extending dma_slave_config? Priority is
+> similar to rest of the runtime setup dmaengine_slave_config() is meant
+> to do.
+
+The dma_slave_config is prepared by the client drivers, so they would need =
+to
+be updated to handle the priority for the DMA. This would lead to duplicated
+code - unless we have a small function in dmaengine core to fetch this
+information, but still all dmaengine clients would need to call that.
+IMHO it would be better to let the dmaengine core to take the priority for =
+the
+channel when it has been asked so client drivers does not need to know abou=
+t it.
+
+-- =
+
+P=E9ter
