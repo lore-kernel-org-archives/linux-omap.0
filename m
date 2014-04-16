@@ -1,63 +1,196 @@
-From: Joerg Roedel <joro@8bytes.org>
-Subject: Re: [GIT PULL v2 FOR v3.16] OMAP IOMMU fixes
-Date: Wed, 16 Apr 2014 21:31:58 +0200
-Message-ID: <20140416192923.GA2742@8bytes.org>
-References: <2312051.xNuD1CfeZH@avalon>
- <20140416140107.GA3627@8bytes.org>
- <6806421.DjEURPCCWM@avalon>
- <1527771.aIpQeXENtj@avalon>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 3/8] usb: dwc3: core: refactor mode initialization to its own function
+Date: Wed, 16 Apr 2014 16:26:30 -0500
+Message-ID: <1397683595-3606-4-git-send-email-balbi@ti.com>
+References: <1397683595-3606-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 8bytes.org ([85.214.48.195]:33715 "EHLO mail.8bytes.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751415AbaDPTcD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Apr 2014 15:32:03 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.8bytes.org (Postfix) with SMTP id E8C2012AFA5
-	for <linux-omap@vger.kernel.org>; Wed, 16 Apr 2014 21:32:00 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1527771.aIpQeXENtj@avalon>
+Received: from devils.ext.ti.com ([198.47.26.153]:55901 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755156AbaDPV3P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2014 17:29:15 -0400
+In-Reply-To: <1397683595-3606-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
+To: Linux USB Mailing List <linux-usb@vger.kernel.org>
+Cc: Greg KH <gregkh@linuxfoundation.org>, kgene.kim@samsung.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Roger Quadros <rogerq@ti.com>, George Cherian <george.cherian@ti.com>, bigeasy@linutronix.de, aaro.koskinen@iki.fi, heikki.krogerus@linux.intel.com, zhangwm@marvell.com, David Cohen <david.a.cohen@linux.intel.com>, Felipe Balbi <balbi@ti.com>
 
-On Wed, Apr 16, 2014 at 04:51:56PM +0200, Laurent Pinchart wrote:
-> The following changes since commit c9eaa447e77efe77b7fa4c953bd62de8297fd6c5:
-> 
->   Linux 3.15-rc1 (2014-04-13 14:18:35 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/pinchartl/media.git iommu/omap
-> 
-> for you to fetch changes up to 286f600bc890347f7ec7bd50d33210d53a9095a3:
-> 
->   iommu/omap: Fix map protection value handling (2014-04-16 16:30:18 +0200)
-> 
-> Compared to the v1 pull request, the patches have been rebased directly on top 
-> of v3.15-rc1.
-> 
-> ----------------------------------------------------------------
-> Laurent Pinchart (3):
->       iommu/omap: Fix 'no page for' debug message in flush_iotlb_page()
->       iommu/omap: Remove comment about supporting single page mappings only
->       iommu/omap: Fix map protection value handling
-> 
-> Suman Anna (3):
->       iommu/omap: Correct init value of iotlb_entry valid field
->       iommu/omap: Remove omap_iommu_domain_has_cap() function
->       iommu/omap: Move to_iommu definition from omap-iopgtable.h
-> 
->  drivers/iommu/omap-iommu.c     | 31 ++++++++++++-------------------
->  drivers/iommu/omap-iopgtable.h |  3 ---
->  2 files changed, 12 insertions(+), 22 deletions(-)
+Move mode (Host, Peripheral, OTG) initialization
+to its own function in order to decrease the size
+of our probe() routine.
 
-Pulled, thanks Laurent. You can use the arm/omap branch to base your
-work on (when I pushed it, which will probably happen tomorrow).
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/usb/dwc3/core.c | 133 ++++++++++++++++++++++++------------------------
+ 1 file changed, 67 insertions(+), 66 deletions(-)
 
-
-	Joerg
-
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 38976f3..2a68aea 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -553,6 +553,69 @@ static int dwc3_core_get_phy(struct dwc3 *dwc)
+ 	return 0;
+ }
+ 
++static int dwc3_core_init_mode(struct dwc3 *dwc)
++{
++	struct device *dev = dwc->dev;
++	int ret;
++
++	switch (dwc->dr_mode) {
++	case USB_DR_MODE_PERIPHERAL:
++		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
++		ret = dwc3_gadget_init(dwc);
++		if (ret) {
++			dev_err(dev, "failed to initialize gadget\n");
++			return ret;
++		}
++		break;
++	case USB_DR_MODE_HOST:
++		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
++		ret = dwc3_host_init(dwc);
++		if (ret) {
++			dev_err(dev, "failed to initialize host\n");
++			return ret;
++		}
++		break;
++	case USB_DR_MODE_OTG:
++		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
++		ret = dwc3_host_init(dwc);
++		if (ret) {
++			dev_err(dev, "failed to initialize host\n");
++			return ret;
++		}
++
++		ret = dwc3_gadget_init(dwc);
++		if (ret) {
++			dev_err(dev, "failed to initialize gadget\n");
++			return ret;
++		}
++		break;
++	default:
++		dev_err(dev, "Unsupported mode of operation %d\n", dwc->dr_mode);
++		return ret;
++	}
++
++	return 0;
++}
++
++static void dwc3_core_exit_mode(struct dwc3 *dwc)
++{
++	switch (dwc->dr_mode) {
++	case USB_DR_MODE_PERIPHERAL:
++		dwc3_gadget_exit(dwc);
++		break;
++	case USB_DR_MODE_HOST:
++		dwc3_host_exit(dwc);
++		break;
++	case USB_DR_MODE_OTG:
++		dwc3_host_exit(dwc);
++		dwc3_gadget_exit(dwc);
++		break;
++	default:
++		/* do nothing */
++		break;
++	}
++}
++
+ #define DWC3_ALIGN_MASK		(16 - 1)
+ 
+ static int dwc3_probe(struct platform_device *pdev)
+@@ -682,41 +745,9 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		goto err_usb3phy_power;
+ 	}
+ 
+-	switch (dwc->dr_mode) {
+-	case USB_DR_MODE_PERIPHERAL:
+-		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
+-		ret = dwc3_gadget_init(dwc);
+-		if (ret) {
+-			dev_err(dev, "failed to initialize gadget\n");
+-			goto err2;
+-		}
+-		break;
+-	case USB_DR_MODE_HOST:
+-		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
+-		ret = dwc3_host_init(dwc);
+-		if (ret) {
+-			dev_err(dev, "failed to initialize host\n");
+-			goto err2;
+-		}
+-		break;
+-	case USB_DR_MODE_OTG:
+-		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
+-		ret = dwc3_host_init(dwc);
+-		if (ret) {
+-			dev_err(dev, "failed to initialize host\n");
+-			goto err2;
+-		}
+-
+-		ret = dwc3_gadget_init(dwc);
+-		if (ret) {
+-			dev_err(dev, "failed to initialize gadget\n");
+-			goto err2;
+-		}
+-		break;
+-	default:
+-		dev_err(dev, "Unsupported mode of operation %d\n", dwc->dr_mode);
++	ret = dwc3_core_init_mode(dwc);
++	if (ret)
+ 		goto err2;
+-	}
+ 
+ 	ret = dwc3_debugfs_init(dwc);
+ 	if (ret) {
+@@ -729,21 +760,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err3:
+-	switch (dwc->dr_mode) {
+-	case USB_DR_MODE_PERIPHERAL:
+-		dwc3_gadget_exit(dwc);
+-		break;
+-	case USB_DR_MODE_HOST:
+-		dwc3_host_exit(dwc);
+-		break;
+-	case USB_DR_MODE_OTG:
+-		dwc3_host_exit(dwc);
+-		dwc3_gadget_exit(dwc);
+-		break;
+-	default:
+-		/* do nothing */
+-		break;
+-	}
++	dwc3_core_exit_mode(dwc);
+ 
+ err2:
+ 	dwc3_event_buffers_cleanup(dwc);
+@@ -778,23 +795,7 @@ static int dwc3_remove(struct platform_device *pdev)
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	dwc3_debugfs_exit(dwc);
+-
+-	switch (dwc->dr_mode) {
+-	case USB_DR_MODE_PERIPHERAL:
+-		dwc3_gadget_exit(dwc);
+-		break;
+-	case USB_DR_MODE_HOST:
+-		dwc3_host_exit(dwc);
+-		break;
+-	case USB_DR_MODE_OTG:
+-		dwc3_host_exit(dwc);
+-		dwc3_gadget_exit(dwc);
+-		break;
+-	default:
+-		/* do nothing */
+-		break;
+-	}
+-
++	dwc3_core_exit_mode(dwc);
+ 	dwc3_event_buffers_cleanup(dwc);
+ 	dwc3_free_event_buffers(dwc);
+ 	dwc3_core_exit(dwc);
+-- 
+1.9.2.459.g68773ac
 
