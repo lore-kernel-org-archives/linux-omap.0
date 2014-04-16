@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/8] usb: dwc3: gadget: clear stall when disabling endpoint
-Date: Wed, 16 Apr 2014 16:26:28 -0500
-Message-ID: <1397683595-3606-2-git-send-email-balbi@ti.com>
+Subject: [PATCH 7/8] usb: musb: move usb_phy_generic_{un,}register calls to probe()/remove()
+Date: Wed, 16 Apr 2014 16:26:34 -0500
+Message-ID: <1397683595-3606-8-git-send-email-balbi@ti.com>
 References: <1397683595-3606-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,36 +9,212 @@ Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1397683595-3606-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, zhangwm-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org, David Cohen <david.a.cohen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, zhangwm-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org, David Cohen <david.a.cohen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-so it seems like DWC3 IP doesn't clear stalls
-automatically when we disable an endpoint, because
-of that, we _must_ make sure stalls are cleared
-before clearing the proper bit in DALEPENA register.
+This patch is in preparation to supporting
+calling those functions multiple times.
 
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v3.4+
-Reported-by: Johannes Stezenbach <js-FF7aIK3TAVNeoWH0uzbU5w@public.gmane.org>
 Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/dwc3/gadget.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/usb/musb/am35x.c    | 4 ++--
+ drivers/usb/musb/blackfin.c | 6 +++---
+ drivers/usb/musb/da8xx.c    | 4 ++--
+ drivers/usb/musb/davinci.c  | 4 ++--
+ drivers/usb/musb/tusb6010.c | 5 ++---
+ 5 files changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index a740eac..f0dc0ee 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -608,6 +608,10 @@ static int __dwc3_gadget_ep_disable(struct dwc3_ep *dep)
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index 044cd82..05459b5 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -360,7 +360,6 @@ static int am35x_musb_init(struct musb *musb)
+ 	if (!rev)
+ 		return -ENODEV;
  
- 	dwc3_remove_requests(dwc, dep);
+-	usb_phy_generic_register();
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+ 	if (IS_ERR_OR_NULL(musb->xceiv))
+ 		return -EPROBE_DEFER;
+@@ -402,7 +401,6 @@ static int am35x_musb_exit(struct musb *musb)
+ 		data->set_phy_power(0);
  
-+	/* make sure HW endpoint isn't stalled */
-+	if (dep->flags & DWC3_EP_STALL)
-+		__dwc3_gadget_ep_set_halt(dep, 0);
+ 	usb_put_phy(musb->xceiv);
+-	usb_phy_generic_unregister();
+ 
+ 	return 0;
+ }
+@@ -505,6 +503,7 @@ static int am35x_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &am35x_ops;
+ 
++	usb_phy_generic_register();
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	pinfo = am35x_dev_info;
+@@ -547,6 +546,7 @@ static int am35x_remove(struct platform_device *pdev)
+ 	struct am35x_glue	*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
++	usb_phy_generic_unregister();
+ 	clk_disable(glue->clk);
+ 	clk_disable(glue->phy_clk);
+ 	clk_put(glue->clk);
+diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+index c9992a2..53acffe 100644
+--- a/drivers/usb/musb/blackfin.c
++++ b/drivers/usb/musb/blackfin.c
+@@ -401,7 +401,6 @@ static int bfin_musb_init(struct musb *musb)
+ 	}
+ 	gpio_direction_output(musb->config->gpio_vrsel, 0);
+ 
+-	usb_phy_generic_register();
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+ 	if (IS_ERR_OR_NULL(musb->xceiv)) {
+ 		gpio_free(musb->config->gpio_vrsel);
+@@ -424,9 +423,8 @@ static int bfin_musb_init(struct musb *musb)
+ static int bfin_musb_exit(struct musb *musb)
+ {
+ 	gpio_free(musb->config->gpio_vrsel);
+-
+ 	usb_put_phy(musb->xceiv);
+-	usb_phy_generic_unregister();
 +
- 	reg = dwc3_readl(dwc->regs, DWC3_DALEPENA);
- 	reg &= ~DWC3_DALEPENA_EP(dep->number);
- 	dwc3_writel(dwc->regs, DWC3_DALEPENA, reg);
+ 	return 0;
+ }
+ 
+@@ -477,6 +475,7 @@ static int bfin_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &bfin_ops;
+ 
++	usb_phy_generic_register();
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+@@ -528,6 +527,7 @@ static int bfin_remove(struct platform_device *pdev)
+ 	struct bfin_glue		*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
++	usb_phy_generic_unregister();
+ 	kfree(glue);
+ 
+ 	return 0;
+diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+index a0dabb0..024751f 100644
+--- a/drivers/usb/musb/da8xx.c
++++ b/drivers/usb/musb/da8xx.c
+@@ -418,7 +418,6 @@ static int da8xx_musb_init(struct musb *musb)
+ 	if (!rev)
+ 		goto fail;
+ 
+-	usb_phy_generic_register();
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+ 	if (IS_ERR_OR_NULL(musb->xceiv)) {
+ 		ret = -EPROBE_DEFER;
+@@ -453,7 +452,6 @@ static int da8xx_musb_exit(struct musb *musb)
+ 	phy_off();
+ 
+ 	usb_put_phy(musb->xceiv);
+-	usb_phy_generic_unregister();
+ 
+ 	return 0;
+ }
+@@ -512,6 +510,7 @@ static int da8xx_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &da8xx_ops;
+ 
++	usb_phy_generic_register();
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+@@ -561,6 +560,7 @@ static int da8xx_remove(struct platform_device *pdev)
+ 	struct da8xx_glue		*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
++	usb_phy_generic_unregister();
+ 	clk_disable(glue->clk);
+ 	clk_put(glue->clk);
+ 	kfree(glue);
+diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
+index 7370354..de8492b 100644
+--- a/drivers/usb/musb/davinci.c
++++ b/drivers/usb/musb/davinci.c
+@@ -381,7 +381,6 @@ static int davinci_musb_init(struct musb *musb)
+ 	u32		revision;
+ 	int 		ret = -ENODEV;
+ 
+-	usb_phy_generic_register();
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+ 	if (IS_ERR_OR_NULL(musb->xceiv)) {
+ 		ret = -EPROBE_DEFER;
+@@ -487,7 +486,6 @@ static int davinci_musb_exit(struct musb *musb)
+ 	phy_off();
+ 
+ 	usb_put_phy(musb->xceiv);
+-	usb_phy_generic_unregister();
+ 
+ 	return 0;
+ }
+@@ -545,6 +543,7 @@ static int davinci_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &davinci_ops;
+ 
++	usb_phy_generic_register();
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+@@ -603,6 +602,7 @@ static int davinci_remove(struct platform_device *pdev)
+ 	struct davinci_glue		*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
++	usb_phy_generic_unregister();
+ 	clk_disable(glue->clk);
+ 	clk_put(glue->clk);
+ 	kfree(glue);
+diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+index 8d4a819..e1da199 100644
+--- a/drivers/usb/musb/tusb6010.c
++++ b/drivers/usb/musb/tusb6010.c
+@@ -1065,7 +1065,6 @@ static int tusb_musb_init(struct musb *musb)
+ 	void __iomem		*sync = NULL;
+ 	int			ret;
+ 
+-	usb_phy_generic_register();
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+ 	if (IS_ERR_OR_NULL(musb->xceiv))
+ 		return -EPROBE_DEFER;
+@@ -1117,7 +1116,6 @@ done:
+ 			iounmap(sync);
+ 
+ 		usb_put_phy(musb->xceiv);
+-		usb_phy_generic_unregister();
+ 	}
+ 	return ret;
+ }
+@@ -1133,7 +1131,6 @@ static int tusb_musb_exit(struct musb *musb)
+ 	iounmap(musb->sync_va);
+ 
+ 	usb_put_phy(musb->xceiv);
+-	usb_phy_generic_unregister();
+ 	return 0;
+ }
+ 
+@@ -1176,6 +1173,7 @@ static int tusb_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &tusb_ops;
+ 
++	usb_phy_generic_register();
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+@@ -1224,6 +1222,7 @@ static int tusb_remove(struct platform_device *pdev)
+ 	struct tusb6010_glue		*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
++	usb_phy_generic_unregister();
+ 	kfree(glue);
+ 
+ 	return 0;
 -- 
 1.9.2.459.g68773ac
 
