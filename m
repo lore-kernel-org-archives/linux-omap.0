@@ -1,44 +1,55 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [RFC 1/4] ARM: OMAP2+: Add CTRL_MODULE_CORE as a master clock provider for DRA7
-Date: Wed, 16 Apr 2014 18:44:20 +0530
-Message-ID: <1397654063-8055-1-git-send-email-archit@ti.com>
+Subject: [RFC 2/4] ARM: dts: Add ctrl-core DT node for DRA7
+Date: Wed, 16 Apr 2014 18:44:21 +0530
+Message-ID: <1397654063-8055-2-git-send-email-archit@ti.com>
+References: <1397654063-8055-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39554 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343AbaDPNPs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2014 09:15:48 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54827 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755589AbaDPNPu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Apr 2014 09:15:50 -0400
+In-Reply-To: <1397654063-8055-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: t-kristo@ti.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>
 
-The control module isn't actually a clock management module, but there are a few
-register bits which perform gating and muxing of clocks.
-
-Add CTRL_MODULE_CORE sub block as a clock provider for DRA7. The control module
-has 2 sub modules: CTRL_MODULE_CORE, and CTRL_MODULE_WKUP. Out of these, only
-the CORE sub module has clock related register fields. We ignore the WKUP sub
-module.
+Add DT node for the ctrl-core sub module of the DRA7 control module. We map the
+CTRL_MODULE_CORE address region up to 0x4a002d60, this region contains register
+fields which configure clocks. The remainder of the registers are related to
+pad configurations or cross-bar configurations, and therefore aren't mapped.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- arch/arm/mach-omap2/prm_common.c | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/dra7.dtsi | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index b4c4ab9..f86029a 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -489,6 +489,7 @@ static struct of_device_id omap_prcm_dt_match_table[] = {
- 	{ .compatible = "ti,dra7-prm" },
- 	{ .compatible = "ti,dra7-cm-core-aon" },
- 	{ .compatible = "ti,dra7-cm-core" },
-+	{ .compatible = "ti,dra7-ctrl-core" },
- 	{ }
- };
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 1c0f8e1..58bbdf3 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -148,6 +148,19 @@
+ 			};
+ 		};
  
++		ctrl_core: ctrl_core@4a002000 {
++			compatible = "ti,dra7-ctrl-core";
++			reg = <0x4a002000 0x6d0>;
++
++			ctrl_core_clocks: clocks {
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++
++			ctrl_core_clockdomains: clockdomains {
++			};
++		};
++
+ 		counter32k: counter@4ae04000 {
+ 			compatible = "ti,omap-counter32k";
+ 			reg = <0x4ae04000 0x40>;
 -- 
 1.8.3.2
 
