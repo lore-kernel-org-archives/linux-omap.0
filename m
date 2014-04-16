@@ -1,58 +1,56 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [RFC 3/4] ARM: dts: Add dss_deshdcp clock node under dra7-ctrl-core
-Date: Wed, 16 Apr 2014 18:44:22 +0530
-Message-ID: <1397654063-8055-3-git-send-email-archit@ti.com>
-References: <1397654063-8055-1-git-send-email-archit@ti.com>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH V2] crypto: omap-des - handle error of pm_runtime_get_sync
+Date: Wed, 16 Apr 2014 21:50:40 +0800
+Message-ID: <20140416135039.GJ4684@gondor.apana.org.au>
+References: <534D61DF.9090203@ti.com>
+ <1397581111-21148-1-git-send-email-nm@ti.com>
+ <CAGhQ9Vxv682wD982sNDtc5-Zk4y7H2eULWcm8CJ2SiG=s7V=Pg@mail.gmail.com>
+ <534D69D0.207@ti.com>
+ <534D71AF.2090808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41814 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756260AbaDPNPx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Apr 2014 09:15:53 -0400
-In-Reply-To: <1397654063-8055-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <534D71AF.2090808@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Joachim Eastwood <manabian@gmail.com>, "David S. Miller" <davem@davemloft.net>, linux-crypto@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>
 
-The DESHDCP clock is required only by the DES-HDCP block within HDMI in DSS.
-However, if the clock isn't set before DSS clock domian is enabled, the clock
-domain never comes out of idle state.
+On Tue, Apr 15, 2014 at 12:51:43PM -0500, Joel Fernandes wrote:
+> On 04/15/2014 12:18 PM, Nishanth Menon wrote:
+> > On 04/15/2014 12:06 PM, Joachim Eastwood wrote:
+> >> On 15 April 2014 18:58, Nishanth Menon <nm@ti.com> wrote:
+> >>> pm_runtime_get_sync may not always succeed depending on SoC involved.
+> >>> So handle the error appropriately ensuring usage_count is accurate in
+> >>> case of failure.
+> >>>
+> >>> Signed-off-by: Nishanth Menon <nm@ti.com>
+> >>> ---
+> >>> V2:
+> >>>         - review fixes, print function names in error log as well.
+> >>>
+> >>> V1: https://patchwork.kernel.org/patch/3993861/
+> >>>  drivers/crypto/omap-des.c |   26 +++++++++++++++++++++++---
+> >>>  1 file changed, 23 insertions(+), 3 deletions(-)
+> >>>
+> >>
+> >> Fixes the runtime warning from omap_l3_noc when omap-des is built-in
+> >> on my VAR-SOM-OM44 (OMAP4460) board.
+> >>
+> >> Tested-by: Joachim Eastwood <manabian@gmail.com>
+> > 
+> > Thanks Joachim. Looks like in my hurry, I missed proper
+> > acknowledgement of your report. adding the following for patchworks to
+> > pickup.
+> > 
+> > Reported-by: Joachim Eastwood <manabian@gmail.com>
+> > 
+> 
+> Acked-by: Joel Fernandes <joelf@ti.com>
 
-The DESHDCP clock is enabled/disabled at the DSS boundary by the bit
-DSS_DESHDCP_CLKEN in CTRL_CORE_CONTROL_IO_2.
-
-Add dss_deshdcp gate-clock node under dra7-ctrl-core. There are separate bit
-fields for enabling and disabling the clock. We just map the enable bit since
-this clock doesn't cause any impact if left enabled.
-
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index e96da9a..78d309c 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -2007,6 +2007,16 @@
- 	};
- };
- 
-+&ctrl_core_clocks {
-+	dss_deshdcp_clk: dss_deshdcp_clk {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&l3_iclk_div>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0558>;
-+	};
-+};
-+
- &cm_core_clockdomains {
- 	coreaon_clkdm: coreaon_clkdm {
- 		compatible = "ti,clockdomain";
+Patch applied.  Thanks!
 -- 
-1.8.3.2
-
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
