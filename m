@@ -1,84 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] power: twl4030_charger: clear IRQs after handling them
-Date: Wed, 16 Apr 2014 09:35:27 -0700
-Message-ID: <20140416163526.GA3049@atomide.com>
-References: <1397661299-31342-1-git-send-email-balbi@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH v3 00/10] dma: edma: Fixes for cyclic (audio) operation
+Date: Wed, 16 Apr 2014 13:11:55 -0500
+Message-ID: <534EC7EB.8030602@ti.com>
+References: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1397661299-31342-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, dbaryshkov@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, dwmw2@infradead.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, dan.j.williams@intel.com, vinod.koul@intel.com, nsekhar@ti.com
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [140416 08:18]:
-> TRM says we *must* write 1 to each bit we're handling
-> in order to clear the IRQ status and bring IRQ line
-> low. This patch implements that.
+On 04/14/2014 06:41 AM, Peter Ujfalusi wrote:
+> Hi,
 > 
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> Changes since v2:
+> - Dropped patch 10 from v2 (simplify direction configuration...)
+> - Dropped the channel priority related patches since we are going to go via
+>   different route for configuring the priority.
+> - Added ACK from Joel for the patches since they are not changed since v2
+> 
+> Changes since v1:
+> - ASoC patches removed
+> - Comments from Andriy Shevchenko addressed
+> - patch added to fix cases when src/dst_maxburst is set to 0
+> 
+> The series contains now only:
+> Support for DMA pause/resume in cyclic mode
+> device_slave_caps callback and DMA_CYCLIC flag correction.
+> While debugging the edma to get things sorted out I noticed that the debug was
+> too verbose and the important information was hidden even when the we did not
+> asked for verbose dmaengine debug.
+> I have included some debug cleanups for the edma dmaengine driver also.
+> 
+> Regards,
+> Peter
 > ---
+> Peter Ujfalusi (10):
+>   platform_data: edma: Be precise with the paRAM struct
+>   arm: common: edma: Save the number of event queues/TCs
+>   dmaengine: edma: Correct the handling of src/dst_maxburst == 0
+>   dmaengine: edma: Add support for DMA_PAUSE/RESUME operation
+>   dmaengine: edma: Set DMA_CYCLIC capability flag
+>   dmaengine: edma: Implement device_slave_caps callback
+>   dmaengine: edma: Reduce debug print verbosity for non verbose
+>     debugging
+>   dmaengine: edma: Prefix debug prints where the text were identical in
+>     prep callbacks
+>   dmaengine: edma: Add channel number to debug prints
+>   dmaengine: edma: Print the direction value as well when it is not
+>     supported
 > 
-> Russell, I don't have HW to test, but this should
-> solve the problem you saw when not using battery
-> with Zoom board. Let me know if it doesn't.
+>  arch/arm/common/edma.c             |  4 ++
+>  drivers/dma/edma.c                 | 87 ++++++++++++++++++++++++++++++--------
+>  include/linux/platform_data/edma.h | 18 ++++----
+>  3 files changed, 83 insertions(+), 26 deletions(-)
+> 
 
-BTW, looks like we're enabling BCI automatically in twl4030.dtsi
-while the legacy booting does not have TWL_COMMON_PDATA_BCI
-enabled for LDP. Anyways, for LDP BCI should be enabled for
-sure, that's the only way to power at least the earlier LDP
-revisions.
+I reviewed and tested all the patches in the new series to make sure it
+doesn't break anything with non-cyclic users (MMC and Crypto).
 
->  drivers/power/twl4030_charger.c | 16 ++++++++++++++--
->  1 file changed, 14 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
-> index f141088..b090842 100644
-> --- a/drivers/power/twl4030_charger.c
-> +++ b/drivers/power/twl4030_charger.c
-> @@ -301,12 +301,24 @@ static irqreturn_t twl4030_bci_interrupt(int irq, void *arg)
->  	ret = twl_i2c_read_u8(TWL4030_MODULE_INTERRUPTS, &irqs1,
->  			      TWL4030_INTERRUPTS_BCIISR1A);
->  	if (ret < 0)
-> -		return IRQ_HANDLED;
-> +		return IRQ_NONE;
-> +
-> +	/* clear IRQs early */
-> +	ret = twl_i2c_write_u8(TWL4030_MODULE_INTERRUPTS, irqs1,
-> +			TWL4030_INTERRUPTS_BCIISR1A);
-> +	if (ret < 0)
-> +		return IRQ_NONE;
->  
->  	ret = twl_i2c_read_u8(TWL4030_MODULE_INTERRUPTS, &irqs2,
->  			      TWL4030_INTERRUPTS_BCIISR2A);
->  	if (ret < 0)
-> -		return IRQ_HANDLED;
-> +		return IRQ_NONE;
-> +
-> +	/* clear IRQs early */
-> +	ret = twl_i2c_write_u8(TWL4030_MODULE_INTERRUPTS, irqs2,
-> +			      TWL4030_INTERRUPTS_BCIISR2A);
-> +	if (ret < 0)
-> +		return IRQ_NONE;
->  
->  	dev_dbg(bci->dev, "BCI irq %02x %02x\n", irqs2, irqs1);
->  
-> -- 
-> 1.9.1.286.g5172cb3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Reviewed-and-Tested-by: Joel Fernandes <joelf@ti.com>
+
+
+regards,
+-Joel
