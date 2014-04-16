@@ -1,14 +1,14 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 2/8] usb: dwc3: core: refactor PHY initialization
-Date: Wed, 16 Apr 2014 16:26:29 -0500
-Message-ID: <1397683595-3606-3-git-send-email-balbi@ti.com>
+Subject: [PATCH 8/8] usb: phy: generic: allow multiples calls to usb_phy_generic_register()
+Date: Wed, 16 Apr 2014 16:26:35 -0500
+Message-ID: <1397683595-3606-9-git-send-email-balbi@ti.com>
 References: <1397683595-3606-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57079 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:57080 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756664AbaDPV3S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1756753AbaDPV3S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 16 Apr 2014 17:29:18 -0400
 In-Reply-To: <1397683595-3606-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,171 +16,239 @@ List-Id: linux-omap@vger.kernel.org
 To: Linux USB Mailing List <linux-usb@vger.kernel.org>
 Cc: Greg KH <gregkh@linuxfoundation.org>, kgene.kim@samsung.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Roger Quadros <rogerq@ti.com>, George Cherian <george.cherian@ti.com>, bigeasy@linutronix.de, aaro.koskinen@iki.fi, heikki.krogerus@linux.intel.com, zhangwm@marvell.com, David Cohen <david.a.cohen@linux.intel.com>, Felipe Balbi <balbi@ti.com>
 
-our probe() routine is too large and we can
-easily refactor PHY-related code out to another
-function to make it slightly less painful to read.
+it's now very easy to return a platform_device pointer
+and have the caller pass it as argument when calling
+usb_phy_generic_unregister().
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/dwc3/core.c | 120 ++++++++++++++++++++++++++----------------------
- 1 file changed, 66 insertions(+), 54 deletions(-)
+ drivers/usb/musb/am35x.c            | 12 +++++++++---
+ drivers/usb/musb/blackfin.c         | 10 ++++++++--
+ drivers/usb/musb/da8xx.c            | 14 +++++++++++---
+ drivers/usb/musb/tusb6010.c         |  3 ++-
+ drivers/usb/phy/phy-generic.c       | 19 +++++--------------
+ include/linux/usb/usb_phy_generic.h |  8 ++++----
+ 6 files changed, 39 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index d001417..38976f3 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -486,70 +486,20 @@ static void dwc3_core_exit(struct dwc3 *dwc)
- 	phy_exit(dwc->usb3_generic_phy);
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index 05459b5..0a34dd8 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -85,6 +85,7 @@
+ struct am35x_glue {
+ 	struct device		*dev;
+ 	struct platform_device	*musb;
++	struct platform_device	*phy;
+ 	struct clk		*phy_clk;
+ 	struct clk		*clk;
+ };
+@@ -503,7 +504,9 @@ static int am35x_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &am35x_ops;
+ 
+-	usb_phy_generic_register();
++	glue->phy = usb_phy_generic_register();
++	if (IS_ERR(glue->phy))
++		goto err7;
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	pinfo = am35x_dev_info;
+@@ -517,11 +520,14 @@ static int am35x_probe(struct platform_device *pdev)
+ 	if (IS_ERR(musb)) {
+ 		ret = PTR_ERR(musb);
+ 		dev_err(&pdev->dev, "failed to register musb device: %d\n", ret);
+-		goto err7;
++		goto err8;
+ 	}
+ 
+ 	return 0;
+ 
++err8:
++	usb_phy_generic_unregister(glue->phy);
++
+ err7:
+ 	clk_disable(clk);
+ 
+@@ -546,7 +552,7 @@ static int am35x_remove(struct platform_device *pdev)
+ 	struct am35x_glue	*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
+-	usb_phy_generic_unregister();
++	usb_phy_generic_unregister(glue->phy);
+ 	clk_disable(glue->clk);
+ 	clk_disable(glue->phy_clk);
+ 	clk_put(glue->clk);
+diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+index 53acffe..d40d5f0 100644
+--- a/drivers/usb/musb/blackfin.c
++++ b/drivers/usb/musb/blackfin.c
+@@ -29,6 +29,7 @@
+ struct bfin_glue {
+ 	struct device		*dev;
+ 	struct platform_device	*musb;
++	struct platform_device	*phy;
+ };
+ #define glue_to_musb(g)		platform_get_drvdata(g->musb)
+ 
+@@ -475,7 +476,9 @@ static int bfin_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &bfin_ops;
+ 
+-	usb_phy_generic_register();
++	glue->phy = usb_phy_generic_register();
++	if (IS_ERR(glue->phy))
++		goto err2;
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+@@ -513,6 +516,9 @@ static int bfin_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err3:
++	usb_phy_generic_unregister(glue->phy);
++
++err2:
+ 	platform_device_put(musb);
+ 
+ err1:
+@@ -527,7 +533,7 @@ static int bfin_remove(struct platform_device *pdev)
+ 	struct bfin_glue		*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
+-	usb_phy_generic_unregister();
++	usb_phy_generic_unregister(glue->phy);
+ 	kfree(glue);
+ 
+ 	return 0;
+diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+index 024751f..058775e 100644
+--- a/drivers/usb/musb/da8xx.c
++++ b/drivers/usb/musb/da8xx.c
+@@ -85,6 +85,7 @@
+ struct da8xx_glue {
+ 	struct device		*dev;
+ 	struct platform_device	*musb;
++	struct platform_device	*phy;
+ 	struct clk		*clk;
+ };
+ 
+@@ -510,7 +511,11 @@ static int da8xx_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &da8xx_ops;
+ 
+-	usb_phy_generic_register();
++	glue->phy = usb_phy_generic_register();
++	if (IS_ERR(glue->phy)) {
++		ret = PTR_ERR(glue->phy);
++		goto err5;
++	}
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+@@ -537,11 +542,14 @@ static int da8xx_probe(struct platform_device *pdev)
+ 	if (IS_ERR(musb)) {
+ 		ret = PTR_ERR(musb);
+ 		dev_err(&pdev->dev, "failed to register musb device: %d\n", ret);
+-		goto err5;
++		goto err6;
+ 	}
+ 
+ 	return 0;
+ 
++err6:
++	usb_phy_generic_unregister(glue->phy);
++
+ err5:
+ 	clk_disable(clk);
+ 
+@@ -560,7 +568,7 @@ static int da8xx_remove(struct platform_device *pdev)
+ 	struct da8xx_glue		*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
+-	usb_phy_generic_unregister();
++	usb_phy_generic_unregister(glue->phy);
+ 	clk_disable(glue->clk);
+ 	clk_put(glue->clk);
+ 	kfree(glue);
+diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+index e1da199..f38a8db 100644
+--- a/drivers/usb/musb/tusb6010.c
++++ b/drivers/usb/musb/tusb6010.c
+@@ -31,6 +31,7 @@
+ struct tusb6010_glue {
+ 	struct device		*dev;
+ 	struct platform_device	*musb;
++	struct platform_device	*phy;
+ };
+ 
+ static void tusb_musb_set_vbus(struct musb *musb, int is_on);
+@@ -1222,7 +1223,7 @@ static int tusb_remove(struct platform_device *pdev)
+ 	struct tusb6010_glue		*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
+-	usb_phy_generic_unregister();
++	usb_phy_generic_unregister(glue->phy);
+ 	kfree(glue);
+ 
+ 	return 0;
+diff --git a/drivers/usb/phy/phy-generic.c b/drivers/usb/phy/phy-generic.c
+index 2c49cd8..7594e50 100644
+--- a/drivers/usb/phy/phy-generic.c
++++ b/drivers/usb/phy/phy-generic.c
+@@ -41,25 +41,16 @@
+ 
+ #include "phy-generic.h"
+ 
+-static struct platform_device *pd;
+-
+-void usb_phy_generic_register(void)
++struct platform_device *usb_phy_generic_register(void)
+ {
+-	if (pd)
+-		return;
+-	pd = platform_device_register_simple("usb_phy_generic", -1, NULL, 0);
+-	if (IS_ERR(pd)) {
+-		pr_err("Unable to register generic usb transceiver\n");
+-		pd = NULL;
+-		return;
+-	}
++	return platform_device_register_simple("usb_phy_generic",
++			PLATFORM_DEVID_AUTO, NULL, 0);
+ }
+ EXPORT_SYMBOL_GPL(usb_phy_generic_register);
+ 
+-void usb_phy_generic_unregister(void)
++void usb_phy_generic_unregister(struct platform_device *pdev)
+ {
+-	platform_device_unregister(pd);
+-	pd = NULL;
++	platform_device_unregister(pdev);
+ }
+ EXPORT_SYMBOL_GPL(usb_phy_generic_unregister);
+ 
+diff --git a/include/linux/usb/usb_phy_generic.h b/include/linux/usb/usb_phy_generic.h
+index c00176d..622e7226 100644
+--- a/include/linux/usb/usb_phy_generic.h
++++ b/include/linux/usb/usb_phy_generic.h
+@@ -15,14 +15,14 @@ struct usb_phy_generic_platform_data {
+ 
+ #if defined(CONFIG_NOP_USB_XCEIV) || (defined(CONFIG_NOP_USB_XCEIV_MODULE) && defined(MODULE))
+ /* sometimes transceivers are accessed only through e.g. ULPI */
+-extern void usb_phy_generic_register(void);
+-extern void usb_phy_generic_unregister(void);
++extern struct platform_device *usb_phy_generic_register(void);
++extern void usb_phy_generic_unregister(struct platform_device *);
+ #else
+-static inline void usb_phy_generic_register(void)
++static inline struct platform_device *usb_phy_generic_register(void)
+ {
  }
  
--#define DWC3_ALIGN_MASK		(16 - 1)
--
--static int dwc3_probe(struct platform_device *pdev)
-+static int dwc3_core_get_phy(struct dwc3 *dwc)
+-static inline void usb_phy_generic_unregister(void)
++static inline void usb_phy_generic_unregister(struct platform_device *pdev)
  {
--	struct device		*dev = &pdev->dev;
--	struct dwc3_platform_data *pdata = dev_get_platdata(dev);
-+	struct device		*dev = dwc->dev;
- 	struct device_node	*node = dev->of_node;
--	struct resource		*res;
--	struct dwc3		*dwc;
--
--	int			ret = -ENOMEM;
--
--	void __iomem		*regs;
--	void			*mem;
--
--	mem = devm_kzalloc(dev, sizeof(*dwc) + DWC3_ALIGN_MASK, GFP_KERNEL);
--	if (!mem) {
--		dev_err(dev, "not enough memory\n");
--		return -ENOMEM;
--	}
--	dwc = PTR_ALIGN(mem, DWC3_ALIGN_MASK + 1);
--	dwc->mem = mem;
--
--	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
--	if (!res) {
--		dev_err(dev, "missing IRQ\n");
--		return -ENODEV;
--	}
--	dwc->xhci_resources[1].start = res->start;
--	dwc->xhci_resources[1].end = res->end;
--	dwc->xhci_resources[1].flags = res->flags;
--	dwc->xhci_resources[1].name = res->name;
--
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		dev_err(dev, "missing memory resource\n");
--		return -ENODEV;
--	}
-+	int ret;
- 
- 	if (node) {
--		dwc->maximum_speed = of_usb_get_maximum_speed(node);
--
- 		dwc->usb2_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 0);
- 		dwc->usb3_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 1);
--
--		dwc->needs_fifo_resize = of_property_read_bool(node, "tx-fifo-resize");
--		dwc->dr_mode = of_usb_get_dr_mode(node);
--	} else if (pdata) {
--		dwc->maximum_speed = pdata->maximum_speed;
--
--		dwc->usb2_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
--		dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
--
--		dwc->needs_fifo_resize = pdata->tx_fifo_resize;
--		dwc->dr_mode = pdata->dr_mode;
- 	} else {
- 		dwc->usb2_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
- 		dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
- 	}
- 
--	/* default to superspeed if no maximum_speed passed */
--	if (dwc->maximum_speed == USB_SPEED_UNKNOWN)
--		dwc->maximum_speed = USB_SPEED_SUPER;
--
- 	if (IS_ERR(dwc->usb2_phy)) {
- 		ret = PTR_ERR(dwc->usb2_phy);
- 		if (ret == -ENXIO || ret == -ENODEV) {
-@@ -600,6 +550,69 @@ static int dwc3_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	return 0;
-+}
-+
-+#define DWC3_ALIGN_MASK		(16 - 1)
-+
-+static int dwc3_probe(struct platform_device *pdev)
-+{
-+	struct device		*dev = &pdev->dev;
-+	struct dwc3_platform_data *pdata = dev_get_platdata(dev);
-+	struct device_node	*node = dev->of_node;
-+	struct resource		*res;
-+	struct dwc3		*dwc;
-+
-+	int			ret = -ENOMEM;
-+
-+	void __iomem		*regs;
-+	void			*mem;
-+
-+	mem = devm_kzalloc(dev, sizeof(*dwc) + DWC3_ALIGN_MASK, GFP_KERNEL);
-+	if (!mem) {
-+		dev_err(dev, "not enough memory\n");
-+		return -ENOMEM;
-+	}
-+	dwc = PTR_ALIGN(mem, DWC3_ALIGN_MASK + 1);
-+	dwc->mem = mem;
-+	dwc->dev = dev;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (!res) {
-+		dev_err(dev, "missing IRQ\n");
-+		return -ENODEV;
-+	}
-+	dwc->xhci_resources[1].start = res->start;
-+	dwc->xhci_resources[1].end = res->end;
-+	dwc->xhci_resources[1].flags = res->flags;
-+	dwc->xhci_resources[1].name = res->name;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		dev_err(dev, "missing memory resource\n");
-+		return -ENODEV;
-+	}
-+
-+	if (node) {
-+		dwc->maximum_speed = of_usb_get_maximum_speed(node);
-+
-+		dwc->needs_fifo_resize = of_property_read_bool(node, "tx-fifo-resize");
-+		dwc->dr_mode = of_usb_get_dr_mode(node);
-+	} else if (pdata) {
-+		dwc->maximum_speed = pdata->maximum_speed;
-+
-+		dwc->needs_fifo_resize = pdata->tx_fifo_resize;
-+		dwc->dr_mode = pdata->dr_mode;
-+	}
-+
-+	/* default to superspeed if no maximum_speed passed */
-+	if (dwc->maximum_speed == USB_SPEED_UNKNOWN)
-+		dwc->maximum_speed = USB_SPEED_SUPER;
-+
-+	ret = dwc3_core_get_phy(dwc);
-+	if (ret)
-+		return ret;
-+
- 	dwc->xhci_resources[0].start = res->start;
- 	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
- 					DWC3_XHCI_REGS_END;
-@@ -621,7 +634,6 @@ static int dwc3_probe(struct platform_device *pdev)
- 
- 	dwc->regs	= regs;
- 	dwc->regs_size	= resource_size(res);
--	dwc->dev	= dev;
- 
- 	dev->dma_mask	= dev->parent->dma_mask;
- 	dev->dma_parms	= dev->parent->dma_parms;
+ }
+ #endif
 -- 
 1.9.2.459.g68773ac
 
