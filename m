@@ -1,254 +1,203 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 8/8] usb: phy: generic: allow multiples calls to usb_phy_generic_register()
-Date: Wed, 16 Apr 2014 16:26:35 -0500
-Message-ID: <1397683595-3606-9-git-send-email-balbi@ti.com>
+Subject: [PATCH 6/8] usb: phy: rename <linux/usb/usb_phy_gen_xceiv.h> to <linux/usb/usb_phy_generic.h>
+Date: Wed, 16 Apr 2014 16:26:33 -0500
+Message-ID: <1397683595-3606-7-git-send-email-balbi@ti.com>
 References: <1397683595-3606-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57080 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58467 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756753AbaDPV3S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Apr 2014 17:29:18 -0400
+	id S1754981AbaDPV3U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Apr 2014 17:29:20 -0400
 In-Reply-To: <1397683595-3606-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux USB Mailing List <linux-usb@vger.kernel.org>
 Cc: Greg KH <gregkh@linuxfoundation.org>, kgene.kim@samsung.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Roger Quadros <rogerq@ti.com>, George Cherian <george.cherian@ti.com>, bigeasy@linutronix.de, aaro.koskinen@iki.fi, heikki.krogerus@linux.intel.com, zhangwm@marvell.com, David Cohen <david.a.cohen@linux.intel.com>, Felipe Balbi <balbi@ti.com>
 
-it's now very easy to return a platform_device pointer
-and have the caller pass it as argument when calling
-usb_phy_generic_unregister().
+now that all functions match the driver name,
+the only missing piece is to rename the header
+file itself.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/musb/am35x.c            | 12 +++++++++---
- drivers/usb/musb/blackfin.c         | 10 ++++++++--
- drivers/usb/musb/da8xx.c            | 14 +++++++++++---
- drivers/usb/musb/tusb6010.c         |  3 ++-
- drivers/usb/phy/phy-generic.c       | 19 +++++--------------
- include/linux/usb/usb_phy_generic.h |  8 ++++----
- 6 files changed, 39 insertions(+), 27 deletions(-)
+ drivers/usb/dwc3/dwc3-exynos.c                               | 2 +-
+ drivers/usb/dwc3/dwc3-pci.c                                  | 2 +-
+ drivers/usb/musb/am35x.c                                     | 2 +-
+ drivers/usb/musb/blackfin.c                                  | 2 +-
+ drivers/usb/musb/da8xx.c                                     | 2 +-
+ drivers/usb/musb/davinci.c                                   | 2 +-
+ drivers/usb/musb/musb_dsps.c                                 | 2 +-
+ drivers/usb/musb/tusb6010.c                                  | 2 +-
+ drivers/usb/phy/phy-am335x.c                                 | 2 +-
+ drivers/usb/phy/phy-generic.c                                | 2 +-
+ drivers/usb/phy/phy-generic.h                                | 2 +-
+ drivers/usb/phy/phy-keystone.c                               | 2 +-
+ include/linux/usb/{usb_phy_gen_xceiv.h => usb_phy_generic.h} | 0
+ 13 files changed, 12 insertions(+), 12 deletions(-)
+ rename include/linux/usb/{usb_phy_gen_xceiv.h => usb_phy_generic.h} (100%)
 
+diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
+index 821cc59..ed22d72 100644
+--- a/drivers/usb/dwc3/dwc3-exynos.c
++++ b/drivers/usb/dwc3/dwc3-exynos.c
+@@ -24,7 +24,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/clk.h>
+ #include <linux/usb/otg.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+ 
+diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
+index 8b162f0..1ed95e0 100644
+--- a/drivers/usb/dwc3/dwc3-pci.c
++++ b/drivers/usb/dwc3/dwc3-pci.c
+@@ -23,7 +23,7 @@
+ #include <linux/platform_device.h>
+ 
+ #include <linux/usb/otg.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ 
+ /* FIXME define these in <linux/pci_ids.h> */
+ #define PCI_VENDOR_ID_SYNOPSYS		0x16c3
 diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
-index 05459b5..0a34dd8 100644
+index 77ed664..044cd82 100644
 --- a/drivers/usb/musb/am35x.c
 +++ b/drivers/usb/musb/am35x.c
-@@ -85,6 +85,7 @@
- struct am35x_glue {
- 	struct device		*dev;
- 	struct platform_device	*musb;
-+	struct platform_device	*phy;
- 	struct clk		*phy_clk;
- 	struct clk		*clk;
- };
-@@ -503,7 +504,9 @@ static int am35x_probe(struct platform_device *pdev)
+@@ -32,7 +32,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ #include <linux/platform_data/usb-omap.h>
  
- 	pdata->platform_ops		= &am35x_ops;
- 
--	usb_phy_generic_register();
-+	glue->phy = usb_phy_generic_register();
-+	if (IS_ERR(glue->phy))
-+		goto err7;
- 	platform_set_drvdata(pdev, glue);
- 
- 	pinfo = am35x_dev_info;
-@@ -517,11 +520,14 @@ static int am35x_probe(struct platform_device *pdev)
- 	if (IS_ERR(musb)) {
- 		ret = PTR_ERR(musb);
- 		dev_err(&pdev->dev, "failed to register musb device: %d\n", ret);
--		goto err7;
-+		goto err8;
- 	}
- 
- 	return 0;
- 
-+err8:
-+	usb_phy_generic_unregister(glue->phy);
-+
- err7:
- 	clk_disable(clk);
- 
-@@ -546,7 +552,7 @@ static int am35x_remove(struct platform_device *pdev)
- 	struct am35x_glue	*glue = platform_get_drvdata(pdev);
- 
- 	platform_device_unregister(glue->musb);
--	usb_phy_generic_unregister();
-+	usb_phy_generic_unregister(glue->phy);
- 	clk_disable(glue->clk);
- 	clk_disable(glue->phy_clk);
- 	clk_put(glue->clk);
+ #include "musb_core.h"
 diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
-index 53acffe..d40d5f0 100644
+index 607f3ae..c9992a2 100644
 --- a/drivers/usb/musb/blackfin.c
 +++ b/drivers/usb/musb/blackfin.c
-@@ -29,6 +29,7 @@
- struct bfin_glue {
- 	struct device		*dev;
- 	struct platform_device	*musb;
-+	struct platform_device	*phy;
- };
- #define glue_to_musb(g)		platform_get_drvdata(g->musb)
+@@ -18,7 +18,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/prefetch.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
  
-@@ -475,7 +476,9 @@ static int bfin_probe(struct platform_device *pdev)
+ #include <asm/cacheflush.h>
  
- 	pdata->platform_ops		= &bfin_ops;
- 
--	usb_phy_generic_register();
-+	glue->phy = usb_phy_generic_register();
-+	if (IS_ERR(glue->phy))
-+		goto err2;
- 	platform_set_drvdata(pdev, glue);
- 
- 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
-@@ -513,6 +516,9 @@ static int bfin_probe(struct platform_device *pdev)
- 	return 0;
- 
- err3:
-+	usb_phy_generic_unregister(glue->phy);
-+
-+err2:
- 	platform_device_put(musb);
- 
- err1:
-@@ -527,7 +533,7 @@ static int bfin_remove(struct platform_device *pdev)
- 	struct bfin_glue		*glue = platform_get_drvdata(pdev);
- 
- 	platform_device_unregister(glue->musb);
--	usb_phy_generic_unregister();
-+	usb_phy_generic_unregister(glue->phy);
- 	kfree(glue);
- 
- 	return 0;
 diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
-index 024751f..058775e 100644
+index bcdce8e..a0dabb0 100644
 --- a/drivers/usb/musb/da8xx.c
 +++ b/drivers/usb/musb/da8xx.c
-@@ -85,6 +85,7 @@
- struct da8xx_glue {
- 	struct device		*dev;
- 	struct platform_device	*musb;
-+	struct platform_device	*phy;
- 	struct clk		*clk;
- };
+@@ -32,7 +32,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
  
-@@ -510,7 +511,11 @@ static int da8xx_probe(struct platform_device *pdev)
+ #include <mach/da8xx.h>
+ #include <linux/platform_data/usb-davinci.h>
+diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
+index c0e07ed..7370354 100644
+--- a/drivers/usb/musb/davinci.c
++++ b/drivers/usb/musb/davinci.c
+@@ -32,7 +32,7 @@
+ #include <linux/gpio.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
  
- 	pdata->platform_ops		= &da8xx_ops;
+ #include <mach/cputype.h>
+ #include <mach/hardware.h>
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 3372ded..1888292 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -35,7 +35,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/module.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ #include <linux/platform_data/usb-omap.h>
+ #include <linux/sizes.h>
  
--	usb_phy_generic_register();
-+	glue->phy = usb_phy_generic_register();
-+	if (IS_ERR(glue->phy)) {
-+		ret = PTR_ERR(glue->phy);
-+		goto err5;
-+	}
- 	platform_set_drvdata(pdev, glue);
- 
- 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
-@@ -537,11 +542,14 @@ static int da8xx_probe(struct platform_device *pdev)
- 	if (IS_ERR(musb)) {
- 		ret = PTR_ERR(musb);
- 		dev_err(&pdev->dev, "failed to register musb device: %d\n", ret);
--		goto err5;
-+		goto err6;
- 	}
- 
- 	return 0;
- 
-+err6:
-+	usb_phy_generic_unregister(glue->phy);
-+
- err5:
- 	clk_disable(clk);
- 
-@@ -560,7 +568,7 @@ static int da8xx_remove(struct platform_device *pdev)
- 	struct da8xx_glue		*glue = platform_get_drvdata(pdev);
- 
- 	platform_device_unregister(glue->musb);
--	usb_phy_generic_unregister();
-+	usb_phy_generic_unregister(glue->phy);
- 	clk_disable(glue->clk);
- 	clk_put(glue->clk);
- 	kfree(glue);
 diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
-index e1da199..f38a8db 100644
+index 0c0f5ee..8d4a819 100644
 --- a/drivers/usb/musb/tusb6010.c
 +++ b/drivers/usb/musb/tusb6010.c
-@@ -31,6 +31,7 @@
- struct tusb6010_glue {
- 	struct device		*dev;
- 	struct platform_device	*musb;
-+	struct platform_device	*phy;
- };
+@@ -24,7 +24,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
  
- static void tusb_musb_set_vbus(struct musb *musb, int is_on);
-@@ -1222,7 +1223,7 @@ static int tusb_remove(struct platform_device *pdev)
- 	struct tusb6010_glue		*glue = platform_get_drvdata(pdev);
+ #include "musb_core.h"
  
- 	platform_device_unregister(glue->musb);
--	usb_phy_generic_unregister();
-+	usb_phy_generic_unregister(glue->phy);
- 	kfree(glue);
- 
- 	return 0;
+diff --git a/drivers/usb/phy/phy-am335x.c b/drivers/usb/phy/phy-am335x.c
+index bb866e4..585e50c 100644
+--- a/drivers/usb/phy/phy-am335x.c
++++ b/drivers/usb/phy/phy-am335x.c
+@@ -2,7 +2,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/usb/otg.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ #include <linux/slab.h>
+ #include <linux/clk.h>
+ #include <linux/regulator/consumer.h>
 diff --git a/drivers/usb/phy/phy-generic.c b/drivers/usb/phy/phy-generic.c
-index 2c49cd8..7594e50 100644
+index e76ca4c..2c49cd8 100644
 --- a/drivers/usb/phy/phy-generic.c
 +++ b/drivers/usb/phy/phy-generic.c
-@@ -41,25 +41,16 @@
+@@ -30,7 +30,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/usb/otg.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ #include <linux/slab.h>
+ #include <linux/clk.h>
+ #include <linux/regulator/consumer.h>
+diff --git a/drivers/usb/phy/phy-generic.h b/drivers/usb/phy/phy-generic.h
+index f32450a..d8feacc 100644
+--- a/drivers/usb/phy/phy-generic.h
++++ b/drivers/usb/phy/phy-generic.h
+@@ -1,7 +1,7 @@
+ #ifndef _PHY_GENERIC_H_
+ #define _PHY_GENERIC_H_
  
- #include "phy-generic.h"
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
  
--static struct platform_device *pd;
--
--void usb_phy_generic_register(void)
-+struct platform_device *usb_phy_generic_register(void)
- {
--	if (pd)
--		return;
--	pd = platform_device_register_simple("usb_phy_generic", -1, NULL, 0);
--	if (IS_ERR(pd)) {
--		pr_err("Unable to register generic usb transceiver\n");
--		pd = NULL;
--		return;
--	}
-+	return platform_device_register_simple("usb_phy_generic",
-+			PLATFORM_DEVID_AUTO, NULL, 0);
- }
- EXPORT_SYMBOL_GPL(usb_phy_generic_register);
+ struct usb_phy_generic {
+ 	struct usb_phy phy;
+diff --git a/drivers/usb/phy/phy-keystone.c b/drivers/usb/phy/phy-keystone.c
+index 2404c44..f4d722d 100644
+--- a/drivers/usb/phy/phy-keystone.c
++++ b/drivers/usb/phy/phy-keystone.c
+@@ -18,7 +18,7 @@
  
--void usb_phy_generic_unregister(void)
-+void usb_phy_generic_unregister(struct platform_device *pdev)
- {
--	platform_device_unregister(pd);
--	pd = NULL;
-+	platform_device_unregister(pdev);
- }
- EXPORT_SYMBOL_GPL(usb_phy_generic_unregister);
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ #include <linux/io.h>
+ #include <linux/of.h>
  
-diff --git a/include/linux/usb/usb_phy_generic.h b/include/linux/usb/usb_phy_generic.h
-index c00176d..622e7226 100644
---- a/include/linux/usb/usb_phy_generic.h
-+++ b/include/linux/usb/usb_phy_generic.h
-@@ -15,14 +15,14 @@ struct usb_phy_generic_platform_data {
- 
- #if defined(CONFIG_NOP_USB_XCEIV) || (defined(CONFIG_NOP_USB_XCEIV_MODULE) && defined(MODULE))
- /* sometimes transceivers are accessed only through e.g. ULPI */
--extern void usb_phy_generic_register(void);
--extern void usb_phy_generic_unregister(void);
-+extern struct platform_device *usb_phy_generic_register(void);
-+extern void usb_phy_generic_unregister(struct platform_device *);
- #else
--static inline void usb_phy_generic_register(void)
-+static inline struct platform_device *usb_phy_generic_register(void)
- {
- }
- 
--static inline void usb_phy_generic_unregister(void)
-+static inline void usb_phy_generic_unregister(struct platform_device *pdev)
- {
- }
- #endif
+diff --git a/include/linux/usb/usb_phy_gen_xceiv.h b/include/linux/usb/usb_phy_generic.h
+similarity index 100%
+rename from include/linux/usb/usb_phy_gen_xceiv.h
+rename to include/linux/usb/usb_phy_generic.h
 -- 
 1.9.2.459.g68773ac
 
