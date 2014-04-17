@@ -1,177 +1,79 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 6/9] ARM: OMAP: dmtimer: Add a write_ctrl function to simplify
- bit setting
-Date: Wed, 16 Apr 2014 19:03:16 -0500
-Message-ID: <1397692999-7800-6-git-send-email-joelf@ti.com>
-References: <1397692999-7800-1-git-send-email-joelf@ti.com>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] dmaengine: edma: No need save/restore interrupt flags during
+	spin_lock in IRQ
+Date: Thu, 17 Apr 2014 00:58:33 -0500
+Message-ID: <1397714313-26561-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1397692999-7800-1-git-send-email-joelf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Joel Fernandes <joelf@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Rajendra Nayak <rnayak@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-A common pattern in dmtimer code is to read the control reg, set and reset
-certain bits, and write it back. We abstract this pattern and introduce a
-new function to do so.
+The vchan lock in edma_callback is acquired in hard interrupt context. As
+interrupts are already disabled, there's no point in save/restoring interrupt
+mask bit or cpsr flags.
 
-Signed-off-by: Joel Fernandes <joelf@ti.com>
+Get rid of flags local variable and use spin_lock instead of spin_lock_irqsave.
+
+Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/plat-omap/dmtimer.c |   63 ++++++++++++++++++++++++------------------
- 1 file changed, 36 insertions(+), 27 deletions(-)
+ drivers/dma/edma.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 0e96ad2..782ff10 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -91,6 +91,18 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
- 	__omap_dm_timer_write(timer, reg, value, timer->posted);
- }
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 91849aa..25a75e2 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -638,7 +638,6 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
+ 	struct edma_chan *echan = data;
+ 	struct device *dev = echan->vchan.chan.device->dev;
+ 	struct edma_desc *edesc;
+-	unsigned long flags;
+ 	struct edmacc_param p;
  
-+static u32 omap_dm_timer_write_ctrl(struct omap_dm_timer *timer, u32 mask,
-+		u32 value)
-+{
-+	u32 l;
-+
-+	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-+	l &= mask;
-+	l |= value;
-+	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
-+	return l;
-+}
-+
- static void omap_timer_restore_context(struct omap_dm_timer *timer)
- {
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_WAKEUP_EN_REG,
-@@ -521,23 +533,22 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_set_source);
- int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
- 			    unsigned int load)
- {
--	u32 l;
-+	u32 mask = ~0, val = 0;
+ 	edesc = echan->edesc;
+@@ -649,7 +648,7 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
  
- 	if (unlikely(!timer))
- 		return -EINVAL;
+ 	switch (ch_status) {
+ 	case EDMA_DMA_COMPLETE:
+-		spin_lock_irqsave(&echan->vchan.lock, flags);
++		spin_lock(&echan->vchan.lock);
  
- 	omap_dm_timer_enable(timer);
--	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
- 	if (autoreload)
--		l |= OMAP_TIMER_CTRL_AR;
-+		val |= OMAP_TIMER_CTRL_AR;
- 	else
--		l &= ~OMAP_TIMER_CTRL_AR;
--	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
-+		mask &= ~OMAP_TIMER_CTRL_AR;
-+	val = omap_dm_timer_write_ctrl(timer, mask, val);
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_LOAD_REG, load);
+ 		if (edesc) {
+ 			if (edesc->cyclic) {
+@@ -665,11 +664,11 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
+ 			}
+ 		}
  
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_TRIGGER_REG, 0);
- 	/* Save the context */
--	timer->context.tclr = l;
-+	timer->context.tclr = val;
- 	timer->context.tldr = load;
- 	omap_dm_timer_disable(timer);
- 	return 0;
-@@ -577,22 +588,22 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_set_load_start);
- int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
- 			     unsigned int match)
- {
--	u32 l;
-+	u32 mask = ~0, val = 0;
+-		spin_unlock_irqrestore(&echan->vchan.lock, flags);
++		spin_unlock(&echan->vchan.lock);
  
- 	if (unlikely(!timer))
- 		return -EINVAL;
+ 		break;
+ 	case EDMA_DMA_CC_ERROR:
+-		spin_lock_irqsave(&echan->vchan.lock, flags);
++		spin_lock(&echan->vchan.lock);
  
- 	omap_dm_timer_enable(timer);
--	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
- 	if (enable)
--		l |= OMAP_TIMER_CTRL_CE;
-+		val |= OMAP_TIMER_CTRL_CE;
- 	else
--		l &= ~OMAP_TIMER_CTRL_CE;
-+		mask &= ~OMAP_TIMER_CTRL_CE;
-+
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_MATCH_REG, match);
--	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
-+	val = omap_dm_timer_write_ctrl(timer, mask, val);
+ 		edma_read_slot(EDMA_CHAN_SLOT(echan->slot[0]), &p);
  
- 	/* Save the context */
--	timer->context.tclr = l;
-+	timer->context.tclr = val;
- 	timer->context.tmar = match;
- 	omap_dm_timer_disable(timer);
- 	return 0;
-@@ -602,24 +613,23 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_set_match);
- int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
- 			   int toggle, int trigger)
- {
--	u32 l;
-+	u32 mask = ~0, val = 0;
+@@ -700,7 +699,7 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
+ 			edma_trigger_channel(echan->ch_num);
+ 		}
  
- 	if (unlikely(!timer))
- 		return -EINVAL;
+-		spin_unlock_irqrestore(&echan->vchan.lock, flags);
++		spin_unlock(&echan->vchan.lock);
  
- 	omap_dm_timer_enable(timer);
--	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
--	l &= ~(OMAP_TIMER_CTRL_GPOCFG | OMAP_TIMER_CTRL_SCPWM |
-+	mask &= ~(OMAP_TIMER_CTRL_GPOCFG | OMAP_TIMER_CTRL_SCPWM |
- 	       OMAP_TIMER_CTRL_PT | (0x03 << 10));
- 	if (def_on)
--		l |= OMAP_TIMER_CTRL_SCPWM;
-+		val |= OMAP_TIMER_CTRL_SCPWM;
- 	if (toggle)
--		l |= OMAP_TIMER_CTRL_PT;
--	l |= trigger << 10;
--	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
-+		val |= OMAP_TIMER_CTRL_PT;
-+	val |= trigger << 10;
-+	val = omap_dm_timer_write_ctrl(timer, mask, val);
- 
- 	/* Save the context */
--	timer->context.tclr = l;
-+	timer->context.tclr = val;
- 	omap_dm_timer_disable(timer);
- 	return 0;
- }
-@@ -627,22 +637,21 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_set_pwm);
- 
- int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler)
- {
--	u32 l;
-+	u32 mask = ~0, val = 0;
- 
- 	if (unlikely(!timer))
- 		return -EINVAL;
- 
- 	omap_dm_timer_enable(timer);
--	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
--	l &= ~(OMAP_TIMER_CTRL_PRE | (0x07 << 2));
-+	mask &= ~(OMAP_TIMER_CTRL_PRE | (0x07 << 2));
- 	if (prescaler >= 0x00 && prescaler <= 0x07) {
--		l |= OMAP_TIMER_CTRL_PRE;
--		l |= prescaler << 2;
-+		val |= OMAP_TIMER_CTRL_PRE;
-+		val |= prescaler << 2;
- 	}
--	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
-+	val = omap_dm_timer_write_ctrl(timer, mask, val);
- 
- 	/* Save the context */
--	timer->context.tclr = l;
-+	timer->context.tclr = val;
- 	omap_dm_timer_disable(timer);
- 	return 0;
- }
+ 		break;
+ 	default:
 -- 
 1.7.9.5
