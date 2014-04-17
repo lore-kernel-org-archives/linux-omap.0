@@ -1,76 +1,88 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 10/11] mfd: twl-core: Fix idle mode signaling for omaps
- when booted with device tree
-Date: Thu, 17 Apr 2014 09:00:51 +0100
-Message-ID: <20140417080051.GE28725@lee--X1>
-References: <1397173639-29587-1-git-send-email-tony@atomide.com>
- <1397173639-29587-11-git-send-email-tony@atomide.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] ARM: OMAP2+: don't try to register the main clock twice.
+Date: Thu, 17 Apr 2014 10:55:40 +0200
+Message-ID: <20140417085539.GA7804@katana>
+References: <1396007435-20100-1-git-send-email-wsa@the-dreams.de>
+ <alpine.DEB.2.02.1404111829520.14347@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6TrnltStXW4iwmi0"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:38515 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752629AbaDQIA4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Apr 2014 04:00:56 -0400
-Received: by mail-we0-f177.google.com with SMTP id u57so96800wes.8
-        for <linux-omap@vger.kernel.org>; Thu, 17 Apr 2014 01:00:55 -0700 (PDT)
+Received: from sauhun.de ([89.238.76.85]:60655 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751030AbaDQIzp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Apr 2014 04:55:45 -0400
 Content-Disposition: inline
-In-Reply-To: <1397173639-29587-11-git-send-email-tony@atomide.com>
+In-Reply-To: <alpine.DEB.2.02.1404111829520.14347@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: NeilBrown <neilb@suse.de>, linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@sang-engineering.com>
 
-> I noticed a regression where the omap sys_clkreq signal will never
-> trigger for omap3 when booted with device tree while it triggers
-> when booted in legacy mode. This means voltage scaling does not
-> do anything when booted with device tree.
->=20
-> Turns out the reason is we fail to initialize the SmartReflex
-> enable bit in twl4030 with the following error:
->=20
-> twl: not initialized
->=20
-> And that happens because we are wrongly tinkering with the twl4030
-> registers in arch/arm/mach-omap2/omap_twl.c before the driver is
-> initialized. Looking at the the SmartReflex bit enable code in
-> omap_twl.c, we need to always set it.
->=20
-> So let's fix the issue by always enabling the twl4030 SmartReflex
-> bit in the drivers/mfd/twl-core.c probe, and drop the related
-> code in omap_twl.c.
->=20
-> Note that we still have some twl4030 tinkering left in omap_twl.c
-> for the twl6030 case, but that's a different patch.
->=20
-> Cc: Kevin Hilman <khilman@linaro.org>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/omap_twl.c | 60 --------------------------------=
-----------
->  drivers/mfd/twl-core.c         | 15 +++++++++++
->  2 files changed, 15 insertions(+), 60 deletions(-)
 
-Patch looks okay to me, and removes lots of code which is nice to
-see. How do you want to handle this patch? How about if I set up an
-MFD-OMAP immutable branch for us to use leading up to the v3.16 merge
-window?
+--6TrnltStXW4iwmi0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Lee Jones <lee.jones@linaro.org>
+Hi Paul,
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks for the reply!
+
+> > If omap_device_alloc is given 2 or more "struct omap_hwmod" it will try
+> > to register the 'main_clk' of each of them with the same alias - "fck" -
+> > against the same device.  This fails. So to avoid a warning, don't even
+> > try.
+> >=20
+> > Signed-off-by: NeilBrown <neilb@suse.de>
+> > [wsa: ported to top-of-tree]
+> > Signed-off-by: Wolfram Sang <wsa@sang-engineering.com>
+>=20
+> What devices and hwmods cause this warning on AM335x?   Ideally, there=20
+> should only be one hwmod per device.  Usually when multiple hwmods are=20
+> stacked up for a device, it means that something isn't right - either the=
+=20
+> hwmod data, or the device driver itself.=20
+
+I applied the patch because of the edma driver DT entry for the am335x.
+Check am33xx.dtsi, it has multiple hwmods. I also get this message
+printed for the d_can driver with am335x; they have two entries in
+drivers/clk/ti/clk-33xx.c. Probably as a workaround to match the desired
+clock name for the d_can driver? Didn't really investigate yet.
+
+> In the specific context of this patch, the problem would be: what if the=
+=20
+> two hwmods have different main_clk entries?  Which one should be=20
+> associated with the "fck" alias?
+
+Sadly, I am in a board bringup phase and can't really contribute to the
+discussions. Lots of other issues to tackle at the moment.
+
+All the best,
+
+   Wolfram
+
+
+--6TrnltStXW4iwmi0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTT5cLAAoJEBQN5MwUoCm25YQQAJAogmtkIxNV4RKlcln0RfyL
+i1bAXfqYkKmhJXXyFdPfrvBbutyD+QYLFISXCBqmjTzSj/LHSUjgUHBur4blftnl
+9TFA6Lg3UZIP0XMtvHIy3rlYctjeyCmtGQhvciNJdxm8WhCNsWqXsMPa8ERw4ocX
+mEgEmRCz6eGzrqeim0YV+0QNH+WbSgvC4O5Xv/v/CTFxoUqUWO+0JE5EJm/EcZeb
+Yr0DZHsKD5E9zO27BXN6seGVOa7lBKBIOiyE+HlWz98XcitfnubeBqsuUIpE/X5y
+5fPhtvB3TyDVLCsucPZVjUtyyLqx/gAi+lkW0KVuIqVe8BeeCZ9hg5PyFQUvloOa
+atgmHzKJvhV3KMg3W6TRoXjYY004rMh+7x1aMf9ZkI9vuuj1kiQ5p8FgEaZlHD7v
+9vsMSWuUQQNe4YIOEDKS3C01eW6wzWABmx1KA0gV2HK2T2Ib3B/kOvT6npqcFZOC
+VV0O7FA8d6iFS/ill9NX31qCTf7yo3dRus09kBkbTyM7LbMawrL1W+0lu1v60eib
+Nsc95r8elx+v9AVILmUsZhtd23yzgfglOk1knlgTS1w3lLln1x29SL8C7Peg/qpx
+y+jkOTiU1f9L1Gon3Jd5CsNEpKuRN5b3FvGq224Vn92+InJ8PdsFr8pE/dd+cUww
+pjg0Jh3ni+jnoeDTxlTl
+=cWMG
+-----END PGP SIGNATURE-----
+
+--6TrnltStXW4iwmi0--
