@@ -1,95 +1,88 @@
-From: Joachim Eastwood <manabian@gmail.com>
-Subject: Re: HDMI on OMAP4460: clk rate mismatch warning
-Date: Thu, 17 Apr 2014 11:11:47 +0200
-Message-ID: <CAGhQ9VyQmFwiam05Aghsc0MLTa+XnuWuxLD4v2wqJU+3jnvq+w@mail.gmail.com>
-References: <CAGhQ9Vx-3H3yCzMv-8Mp83FWv94gOHvHP9hMiaPWHthZR_ezTQ@mail.gmail.com>
-	<534E17B3.5050109@ti.com>
-	<CAGhQ9Vx0RojsC=c8L_Dhg0u3uGRP3boiEtuq9XZPNMmEVtHWBg@mail.gmail.com>
-	<534F81AA.8060805@ti.com>
-	<CAGhQ9Vwksj+w_XmHj9_=bpT1egCU4LUFTWp8ZcNsHJeKgeJCAA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 10/11] mfd: twl-core: Fix idle mode signaling for omaps
+ when booted with device tree
+Date: Thu, 17 Apr 2014 08:37:23 -0700
+Message-ID: <20140417153722.GA23385@atomide.com>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com>
+ <1397173639-29587-11-git-send-email-tony@atomide.com>
+ <20140417080051.GE28725@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:37667 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755352AbaDQJLt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Apr 2014 05:11:49 -0400
-Received: by mail-lb0-f182.google.com with SMTP id n15so142505lbi.41
-        for <linux-omap@vger.kernel.org>; Thu, 17 Apr 2014 02:11:47 -0700 (PDT)
-In-Reply-To: <CAGhQ9Vwksj+w_XmHj9_=bpT1egCU4LUFTWp8ZcNsHJeKgeJCAA@mail.gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47049 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751163AbaDQPh3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Apr 2014 11:37:29 -0400
+Content-Disposition: inline
+In-Reply-To: <20140417080051.GE28725@lee--X1>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, "Sarha, Jyri" <jsarha@ti.com>
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-On 17 April 2014 10:56, Joachim  Eastwood <manabian@gmail.com> wrote:
-> On 17 April 2014 09:24, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> On 16/04/14 19:11, Joachim Eastwood wrote:
->>> On 16 April 2014 07:40, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->>>> On 15/04/14 20:36, Joachim Eastwood wrote:
->>>>> Hello,
->>>>>
->>>>> I am trying to get HDMI work with DT on my VAR-STK-OM44 (4460) board.
->>>>> But during kernel boot I get the following message:
->>>>>
->>>>> [ 0.953796] ------------[ cut here ]------------
->>>>> [ 0.953826] WARNING: CPU: 0 PID: 1 at
->>>>> drivers/video/omap2/dss/dss.c:483 dss_set_fck_rate+0x7c/0x8c()
->>>>> [ 0.953826] clk rate mismatch: 153600000 != 170666666
->>>>
->>>> I have a fix (attached) for this in fbdev-fixes, which I'll probably be
->>>> sending to Linus today. I couldn't send it in the main fbdev pull
->>>> request, as it depended on clk driver changes. And it's not fatal, most
->>>> likely things work fine even with the warning.
->>>
->>> The warning disappeared after the patch. Thanks.
->>> Feel free to add: Tested-By: Joachim Eastwood <manabian@gmail.com>
->>
->> Thanks. It should be in -rc2.
->>
->>> This board (VAR-STK-OM44) has a TPD12S521 which has no controllable
->>> settings so adding a driver for it would be pretty meaningless. I
->>> think it's the same situation with Gumstix Parlor. That board also
->>> just have a very simple HDMI transmitter which shouldn't require a
->>> driver.
->>>
->>> But never the less I got HDMI working on my board adding the tpd21s015
->>> nodes and providing a dummy gpio for "CT CP HPD". This works but it's
->>> a bit hacky.
->>
->> Remove the tpd21s015 nodes and try the attached patch. It adds HPD
->> support to the hdmi connector. You also need something like this for the
->> hdmi-connector node:
->>
->>
->> pinctrl-names = "default";
->> pinctrl-0 = <&hdmi_conn_pins>;
->>
->> hpd-gpios = <&gpio7 1 GPIO_ACTIVE_HIGH>; /* GPIO 193, HPD */
->>
->>
->> And the respective pinctrl node:
->>
->> hdmi_conn_pins: pinmux_hdmi_conn_pins {
->>         pinctrl-single,pins = <
->>                 0x0fe (PIN_INPUT_PULLDOWN | MUX_MODE6)
->>         >;
->> };
->>
->> Note that I tested this yesterday on one board, but I couldn't get it
->> working yet, so no promises =). But that may be an issue with the HPD
->> pin on the board.
->
-> Works like a charm here :)
-> Replugging the HDMI monitor and everything.
->
-> But I notice something strange on the monitor. Around the white login
-> text there are small blinking green dots. So maybe there is a timing
-> issue here?
+* Lee Jones <lee.jones@linaro.org> [140417 01:01]:
+> > I noticed a regression where the omap sys_clkreq signal will never
+> > trigger for omap3 when booted with device tree while it triggers
+> > when booted in legacy mode. This means voltage scaling does not
+> > do anything when booted with device tree.
+> >=20
+> > Turns out the reason is we fail to initialize the SmartReflex
+> > enable bit in twl4030 with the following error:
+> >=20
+> > twl: not initialized
+> >=20
+> > And that happens because we are wrongly tinkering with the twl4030
+> > registers in arch/arm/mach-omap2/omap_twl.c before the driver is
+> > initialized. Looking at the the SmartReflex bit enable code in
+> > omap_twl.c, we need to always set it.
+> >=20
+> > So let's fix the issue by always enabling the twl4030 SmartReflex
+> > bit in the drivers/mfd/twl-core.c probe, and drop the related
+> > code in omap_twl.c.
+> >=20
+> > Note that we still have some twl4030 tinkering left in omap_twl.c
+> > for the twl6030 case, but that's a different patch.
+> >=20
+> > Cc: Kevin Hilman <khilman@linaro.org>
+> > Cc: Lee Jones <lee.jones@linaro.org>
+> > Cc: Nishanth Menon <nm@ti.com>
+> > Cc: Samuel Ortiz <sameo@linux.intel.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Tero Kristo <t-kristo@ti.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  arch/arm/mach-omap2/omap_twl.c | 60 ------------------------------=
+------------
+> >  drivers/mfd/twl-core.c         | 15 +++++++++++
+> >  2 files changed, 15 insertions(+), 60 deletions(-)
+>=20
+> Patch looks okay to me, and removes lots of code which is nice to
+> see. How do you want to handle this patch? How about if I set up an
+> MFD-OMAP immutable branch for us to use leading up to the v3.16 merge
+> window?
 
-That turned out to be my HDMI cable...
-Changed to shorter cable and the green dots disappeared. Sorry for the
-false alarm.
+Yes, that would be good thanks. Can you please set up the immutable
+branch against v3.14 for this, that should merge just fine against
+v3.15-rc AFAIK.
 
-regards
-Joachim Eastwood
+I have also DT support coming up for drivers/mfd/twl4030-power.c
+generic configuration that can then go into the same branch when=20
+ready.
+
+Regards,
+
+Tony
+=20
+> Acked-by: Lee Jones <lee.jones@linaro.org>
+>=20
+> --=20
+> Lee Jones
+> Linaro STMicroelectronics Landing Team Lead
+> Linaro.org =E2=94=82 Open source software for ARM SoCs
+> Follow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
