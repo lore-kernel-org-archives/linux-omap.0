@@ -1,64 +1,45 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [GIT PULL v2 FOR v3.16] OMAP IOMMU fixes
-Date: Thu, 17 Apr 2014 01:43:56 +0200
-Message-ID: <698874884.ItkCjuKUDv@avalon>
-References: <2312051.xNuD1CfeZH@avalon> <1527771.aIpQeXENtj@avalon> <20140416192923.GA2742@8bytes.org>
+From: Joel Fernandes <joelf@ti.com>
+Subject: [PATCH 0/9] dmtimer code clean-up first pass
+Date: Wed, 16 Apr 2014 19:00:00 -0500
+Message-ID: <1397692800-7395-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34383 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751503AbaDPXnx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2014 19:43:53 -0400
-In-Reply-To: <20140416192923.GA2742@8bytes.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-Hi Joerg,
+Here are some minor cleanups for dmtimer code in preparation for moving it out
+to drivers.
 
-On Wednesday 16 April 2014 21:31:58 Joerg Roedel wrote:
-> On Wed, Apr 16, 2014 at 04:51:56PM +0200, Laurent Pinchart wrote:
-> > The following changes since commit 
-c9eaa447e77efe77b7fa4c953bd62de8297fd6c5:
-> >   Linux 3.15-rc1 (2014-04-13 14:18:35 -0700)
-> > 
-> > are available in the git repository at:
-> >   git://linuxtv.org/pinchartl/media.git iommu/omap
-> > 
-> > for you to fetch changes up to 286f600bc890347f7ec7bd50d33210d53a9095a3:
-> >   iommu/omap: Fix map protection value handling (2014-04-16 16:30:18
-> >   +0200)
-> > 
-> > Compared to the v1 pull request, the patches have been rebased directly on
-> > top of v3.15-rc1.
-> > 
-> > ----------------------------------------------------------------
-> > 
-> > Laurent Pinchart (3):
-> >       iommu/omap: Fix 'no page for' debug message in flush_iotlb_page()
-> >       iommu/omap: Remove comment about supporting single page mappings
-> >       only
-> >       iommu/omap: Fix map protection value handling
-> > 
-> > Suman Anna (3):
-> >       iommu/omap: Correct init value of iotlb_entry valid field
-> >       iommu/omap: Remove omap_iommu_domain_has_cap() function
-> >       iommu/omap: Move to_iommu definition from omap-iopgtable.h
-> >  
-> >  drivers/iommu/omap-iommu.c     | 31 ++++++++++++-------------------
-> >  drivers/iommu/omap-iopgtable.h |  3 ---
-> >  2 files changed, 12 insertions(+), 22 deletions(-)
-> 
-> Pulled, thanks Laurent. You can use the arm/omap branch to base your
-> work on (when I pushed it, which will probably happen tomorrow).
+There is OMAP1 specific dmtimer code earlier, that are handled in mach-omap1
+directly now.   Other than this, few functions and code has been refactored to
+reduce redundancy and some minor cleanups.
 
-Thank you.
+OMAP1 hasn't been tested so I welcome anyone with HW to test this.
+
+Joel Fernandes (9):
+  ARM: OMAP: dmtimer: Remove setting of clk parent indirectly through
+    platform hook
+  ARM: OMAP: dmtimer: Add comments on OMAP1 clock framework
+  ARM: OMAP: dmtimer: Add note to set parent from DT
+  ARM: OMAP: dmtimer: Add function to check if timer is running
+  ARM: OMAP1: dmtimer: Rewrite modify of IDLECT mask to use new
+    is_running function
+  ARM: OMAP: dmtimer: Add a write_ctrl function to simplify bit setting
+  ARM: OMAP: dmtimer: Have __omap_dm_timer_load_start set ST bit in
+    CTRL instead of caller
+  ARM: OMAP: dmtimer: Add function to check for timer availability
+  ARM: OMAP: dmtimer: Get rid of check for mem resource error
+
+ arch/arm/mach-omap1/include/mach/hardware.h |    2 +
+ arch/arm/mach-omap1/timer.c                 |   34 ++++-
+ arch/arm/mach-omap2/timer.c                 |    6 +-
+ arch/arm/plat-omap/dmtimer.c                |  185 +++++++++++++--------------
+ arch/arm/plat-omap/include/plat/dmtimer.h   |    4 +-
+ include/linux/platform_data/dmtimer-omap.h  |    2 -
+ 6 files changed, 129 insertions(+), 104 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+1.7.9.5
