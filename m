@@ -1,33 +1,57 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH V2 03/19] bus: omap_l3_noc: remove iclk from omap_l3 struct
-Date: Thu, 17 Apr 2014 16:52:44 -0400
-Message-ID: <53503F1C.9040309@ti.com>
-References: <1397492726-17203-1-git-send-email-nm@ti.com>
- <1397767775-10965-1-git-send-email-nm@ti.com>
- <1397767775-10965-4-git-send-email-nm@ti.com>
+From: Joachim Eastwood <manabian@gmail.com>
+Subject: Re: OMAPDSS and panel-dpi
+Date: Thu, 17 Apr 2014 22:51:23 +0200
+Message-ID: <CAGhQ9VwM-rnXcMXNW40jbx6yDGCQwjODDyKhtbZNyCsexX2f3w@mail.gmail.com>
+References: <CAGhQ9VzL5fLHCNZ=y-exBAds03f8Bw_hO+KjYnwO4MgRWOfpuw@mail.gmail.com>
+	<20140417192215.GA24931@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1397767775-10965-4-git-send-email-nm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Sricharan R <r.sricharan@ti.com>
-Cc: devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:60396 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752444AbaDQUv0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Apr 2014 16:51:26 -0400
+Received: by mail-la0-f41.google.com with SMTP id gl10so822125lab.28
+        for <linux-omap@vger.kernel.org>; Thu, 17 Apr 2014 13:51:23 -0700 (PDT)
+In-Reply-To: <20140417192215.GA24931@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 
-On Thursday 17 April 2014 04:49 PM, Nishanth Menon wrote:
-> we do not use iclk directly anymore. And, even if we had to, we
-> should be using pm_runtime APIs to do the same to be completely SoC
-> independent.
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On 17 April 2014 21:22, Tony Lindgren <tony@atomide.com> wrote:
+> * Joachim Eastwood <manabian@gmail.com> [140417 11:05]:
+>> Hi Tomi,
+>>
+>> My VAR-DVK-OM44 (OMAP4460) has both a HDMI and a LCD panel. As HDMI is
+>> now working (thanks) I also taken a look at panel-dpi.
+>>
+>> I found the DT patch for panel-dpi on the mailing list.
+>> OMAPDSS: panel-dpi: Add DT support:
+>> http://marc.info/?l=devicetree&m=139030201815380&w=2
+>>
+>> And I got my display working with DT :)
+>> So you add can my: Tested-by: Joachim Eastwood <manabian@gmail.com>
+>>
+>> Could you upstream the panel-dpi DT support and the HDMI connector
+>> gpio hpd patch in 3.16?
+>> I hope it's easier to upstream the stuff when it gets some users in DT.
+>
+> Good to hear. The DPI panel support should use gpio-backlight
+> driver as discussed in the DPI thread. Did you have to patch
+> anything for the timings etc?
+
+The only driver patches I use are those two from Tomi mentioned above.
+(panel-dpi DT support and HDMI connector gpio-hpd)
+> If you have the board working, care to take a look at making
+> the gpio-backlight change?
+
+I am already using the gpio-backlight driver.
+
+You can take a look at the device tree for VAR-DVK-OM44 here:
+http://slexy.org/raw/s2Pz4BELGe
+
+I'll post the patch set on list tomorrow.
+
+regards
+Joachim Eastwood
