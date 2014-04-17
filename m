@@ -1,73 +1,66 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH V2 05/19] bus: omap_l3_noc: switch over to relaxed
- variants of readl/writel
-Date: Thu, 17 Apr 2014 17:03:29 -0500
-Message-ID: <20140417220329.GF8504@saruman.home>
-References: <1397492726-17203-1-git-send-email-nm@ti.com>
- <1397767775-10965-1-git-send-email-nm@ti.com>
- <1397767775-10965-6-git-send-email-nm@ti.com>
- <20140417215228.GD8504@saruman.home>
- <53504DFF.7090907@ti.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAPDSS and panel-dpi
+Date: Thu, 17 Apr 2014 15:50:26 -0700
+Message-ID: <20140417225025.GA25732@atomide.com>
+References: <CAGhQ9VzL5fLHCNZ=y-exBAds03f8Bw_hO+KjYnwO4MgRWOfpuw@mail.gmail.com>
+ <20140417192215.GA24931@atomide.com>
+ <CAGhQ9VwM-rnXcMXNW40jbx6yDGCQwjODDyKhtbZNyCsexX2f3w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UBnjLfzoMQYIXCvq"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47546 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751358AbaDQWGI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Apr 2014 18:06:08 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26395 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751072AbaDQWub (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Apr 2014 18:50:31 -0400
 Content-Disposition: inline
-In-Reply-To: <53504DFF.7090907@ti.com>
+In-Reply-To: <CAGhQ9VwM-rnXcMXNW40jbx6yDGCQwjODDyKhtbZNyCsexX2f3w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: balbi@ti.com, Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Sricharan R <r.sricharan@ti.com>, Sekhar Nori <nsekhar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Joachim Eastwood <manabian@gmail.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 
---UBnjLfzoMQYIXCvq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Joachim Eastwood <manabian@gmail.com> [140417 13:51]:
+> On 17 April 2014 21:22, Tony Lindgren <tony@atomide.com> wrote:
+> > * Joachim Eastwood <manabian@gmail.com> [140417 11:05]:
+> >> Hi Tomi,
+> >>
+> >> My VAR-DVK-OM44 (OMAP4460) has both a HDMI and a LCD panel. As HDMI is
+> >> now working (thanks) I also taken a look at panel-dpi.
+> >>
+> >> I found the DT patch for panel-dpi on the mailing list.
+> >> OMAPDSS: panel-dpi: Add DT support:
+> >> http://marc.info/?l=devicetree&m=139030201815380&w=2
+> >>
+> >> And I got my display working with DT :)
+> >> So you add can my: Tested-by: Joachim Eastwood <manabian@gmail.com>
+> >>
+> >> Could you upstream the panel-dpi DT support and the HDMI connector
+> >> gpio hpd patch in 3.16?
+> >> I hope it's easier to upstream the stuff when it gets some users in DT.
+> >
+> > Good to hear. The DPI panel support should use gpio-backlight
+> > driver as discussed in the DPI thread. Did you have to patch
+> > anything for the timings etc?
+> 
+> The only driver patches I use are those two from Tomi mentioned above.
+> (panel-dpi DT support and HDMI connector gpio-hpd)
+>
+> > If you have the board working, care to take a look at making
+> > the gpio-backlight change?
+> 
+> I am already using the gpio-backlight driver.
 
-On Thu, Apr 17, 2014 at 05:56:15PM -0400, Santosh Shilimkar wrote:
-> On Thursday 17 April 2014 05:52 PM, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Thu, Apr 17, 2014 at 03:49:21PM -0500, Nishanth Menon wrote:
-> >> Currently we use __raw_readl and writel in this driver, however, there
-> >=20
-> > __raw_* and *_relaxed variants are the same, just have a look <asm/io.h>
-> >=20
-> Except the relaxed version can take care of endian conversion if
-> needed. :-)
+OK great, so then we can just drop that GPIO backlight handling
+from the DPI DT patch I presume.
+ 
+> You can take a look at the device tree for VAR-DVK-OM44 here:
+> http://slexy.org/raw/s2Pz4BELGe
+> 
+> I'll post the patch set on list tomorrow.
 
-right, but according to commit log, this commit is more concerned about
-the memory barriers which writel()/readl() add, not endianness. Just a
-matter of fixing up commit log.
+Thanks for the link, that pretty much clarifies all the parts
+I was wondering about.
 
---=20
-balbi
+Regards,
 
---UBnjLfzoMQYIXCvq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTUE+xAAoJEIaOsuA1yqREzaoQAIImtV2Pt6Al5CViocqxiiTi
-fEO/k96f49ypOuk1lNMC1PWYM02ClnuSwNu02my/LM0Ceyz+kPxhdbQWopWV6uAH
-jSGdvUjIgI0kPIB/n4YiKA9usp5jer9fPufHa8v4YsYepu2FPApHYs6kZEkOhrZs
-C06O9Eeu5RLUQ7AWx4Kfxpz2IYc5GWjZok+A2SHX/b7CmCgZwj8JcTfAVG2y6PD1
-GHyUbOEc6kTWLg2fBAQo2/skBuAOB0e6z03Q/NvvUrBGtcyuIx8ZeJRlHsEki8wu
-dZcjiYgXbpvTSpk4U+yGKtpFQGyjO/dfvwNxNEdxDy82zPLSR9YjbnKfOYa0GNbU
-V4onhvFmgFvSFDJvZMTO5Tg2+8zEd11o/XL1ESmt+dXJ1yAOOR3PQPUXNCGhmGLh
-3uFFApIthEDRw7DGKjnvyuoAA4z+YbIldDMoVBOJXK0gEI0u9zfsgd9aYRR9ZHaV
-YSsk9bE9BaRVcwnBJ07q29hOeXSUd7t6UQ/IDJbCmMHC5L+8OW5bhPabY+Twguav
-pdroFyElFv+P7Iy9l5otgasm6zyezSqP83v6idGRSVfHnk6eUwrymfuvJZE40g2I
-ep9rAaXcR8VK0N3MazuMDgpuMYLhoTQDZNMbCIBKiEXp1Rthmyrwoy5/CohpQ/P2
-rmxTUBm6zI3ldH8MftDq
-=YXB6
------END PGP SIGNATURE-----
-
---UBnjLfzoMQYIXCvq--
+Tony
