@@ -1,171 +1,113 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 19/19] bus: omap_l3_noc: Add AM4372 interconnect error data
-Date: Thu, 17 Apr 2014 15:49:35 -0500
-Message-ID: <1397767775-10965-20-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH V2 17/19] bus: omap_l3_noc: introduce concept of submodule
+Date: Thu, 17 Apr 2014 15:49:33 -0500
+Message-ID: <1397767775-10965-18-git-send-email-nm@ti.com>
 References: <1397492726-17203-1-git-send-email-nm@ti.com>
  <1397767775-10965-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1397767775-10965-1-git-send-email-nm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sricharan R <r.sricharan@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1397767775-10965-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Afzal Mohammed <afzal@ti.com>
+While OMAP4 and OMAP5 had 3 separate clock domains, DRA7 has only 2
+and the first one then is internally divided into 2 sub clock domains.
 
-Add AM4372 information to handle L3 error.
+To better represent this in the driver, we use the concept of submodule.
 
-AM4372 has two clk domains 100f and 200s. Provide flagmux and data
-associated with it.
+The address defintions in the devicetree is as per the high level
+clock domain(module) base, the sub clockdomain/subdomain which shares
+the same register space of a clockdomain is marked in the SoC data as
+L3_BASE_IS_SUBMODULE.
 
-NOTE: Timeout doesn't have STDERRLOG_MAIN register. And per hardware
-team, L3 timeout error cannot be cleared the normal way (by setting
-bit 31 in STDERRLOG_MAIN), instead it may be required to do system
-reset. L3 error handler can't help in such scenarios.
+L3_BASE_IS_SUBMODULE is used as an indication that it's base address is
+the same as the parent module and offsets are considered from the same
+base address as they are usually intermingled.
 
-Hence indicate timeout target offset as L3_TARGET_NOT_SUPPORTED as
-done for undocumented bits.
+Other than the base address, the submodule is same as a module as it is
+functionally so.
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 ---
-V2: no change.
-V1: https://patchwork.kernel.org/patch/3984121/
- .../devicetree/bindings/arm/omap/l3-noc.txt        |    1 +
- drivers/bus/omap_l3_noc.c                          |    1 +
- drivers/bus/omap_l3_noc.h                          |   85 ++++++++++++++++++++
- 3 files changed, 87 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
-index 45d0fc2..974624e 100644
---- a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
-@@ -7,6 +7,7 @@ Required properties:
- - compatible : Should be "ti,omap3-l3-smx" for OMAP3 family
-                Should be "ti,omap4-l3-noc" for OMAP4 family
- 	       Should be "ti,dra7-l3-noc" for DRA7 family
-+               Should be "ti,am4372-l3-noc" for AM43 family
- - reg:	Contains L3 register address range for each noc domain.
- - ti,hwmods: "l3_main_1", ... One hwmod for each noc domain.
- 
+V2: reordering only. no functional change.
+
+V1: https://patchwork.kernel.org/patch/3984351/
+ drivers/bus/omap_l3_noc.c |   17 ++++++++++++-----
+ drivers/bus/omap_l3_noc.h |    6 +++++-
+ 2 files changed, 17 insertions(+), 6 deletions(-)
+
 diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-index aa7a759..440bf22 100644
+index 9e68d6b..cf923f1 100644
 --- a/drivers/bus/omap_l3_noc.c
 +++ b/drivers/bus/omap_l3_noc.c
-@@ -226,6 +226,7 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
- static const struct of_device_id l3_noc_match[] = {
- 	{.compatible = "ti,omap4-l3-noc", .data = &omap_l3_data},
- 	{.compatible = "ti,dra7-l3-noc", .data = &dra_l3_data},
-+	{.compatible = "ti,am4372-l3-noc", .data = &am4372_l3_data},
- 	{},
- };
- MODULE_DEVICE_TABLE(of, l3_noc_match);
+@@ -233,7 +233,7 @@ static int omap_l3_probe(struct platform_device *pdev)
+ {
+ 	const struct of_device_id *of_id;
+ 	static struct omap_l3 *l3;
+-	int ret, i;
++	int ret, i, res_idx;
+ 
+ 	of_id = of_match_device(l3_noc_match, &pdev->dev);
+ 	if (!of_id) {
+@@ -250,15 +250,22 @@ static int omap_l3_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, l3);
+ 
+ 	/* Get mem resources */
+-	for (i = 0; i < l3->num_modules; i++) {
+-		struct resource	*res = platform_get_resource(pdev,
+-							     IORESOURCE_MEM, i);
+-
++	for (i = 0, res_idx = 0; i < l3->num_modules; i++) {
++		struct resource	*res;
++
++		if (l3->l3_base[i] == L3_BASE_IS_SUBMODULE) {
++			/* First entry cannot be submodule */
++			BUG_ON(i == 0);
++			l3->l3_base[i] = l3->l3_base[i - 1];
++			continue;
++		}
++		res = platform_get_resource(pdev, IORESOURCE_MEM, res_idx);
+ 		l3->l3_base[i] = devm_ioremap_resource(&pdev->dev, res);
+ 		if (IS_ERR(l3->l3_base[i])) {
+ 			dev_err(l3->dev, "ioremap %d failed\n", i);
+ 			return PTR_ERR(l3->l3_base[i]);
+ 		}
++		res_idx++;
+ 	}
+ 
+ 	/*
 diff --git a/drivers/bus/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
-index acfeb5e..e0e02a2 100644
+index 49258bb..9df9f25 100644
 --- a/drivers/bus/omap_l3_noc.h
 +++ b/drivers/bus/omap_l3_noc.h
-@@ -371,4 +371,89 @@ static const struct omap_l3 dra_l3_data = {
- 	.num_masters = ARRAY_SIZE(dra_l3_masters),
- };
+@@ -41,6 +41,8 @@
  
-+/* AM4372 data */
-+static struct l3_target_data am4372_l3_target_data_200f[] = {
-+	{0xf00,  "EMIF",},
-+	{0x1200, "DES",},
-+	{0x400,  "OCMCRAM",},
-+	{0x700,  "TPTC0",},
-+	{0x800,  "TPTC1",},
-+	{0x900,  "TPTC2"},
-+	{0xb00,  "TPCC",},
-+	{0xd00,  "DEBUGSS",},
-+	{0xdead, L3_TARGET_NOT_SUPPORTED,},
-+	{0x200,  "SHA",},
-+	{0xc00,  "SGX530",},
-+	{0x500,  "AES0",},
-+	{0xa00,  "L4_FAST",},
-+	{0x300,  "MPUSS_L2_RAM",},
-+	{0x100,  "ICSS",},
-+};
+ #define L3_TARGET_NOT_SUPPORTED		NULL
+ 
++#define L3_BASE_IS_SUBMODULE		((void __iomem *)(1 << 0))
 +
-+static struct l3_flagmux_data am4372_l3_flagmux_200f = {
-+	.offset = 0x1000,
-+	.l3_targ = am4372_l3_target_data_200f,
-+	.num_targ_data = ARRAY_SIZE(am4372_l3_target_data_200f),
-+};
-+
-+static struct l3_target_data am4372_l3_target_data_100s[] = {
-+	{0x100, "L4_PER_0",},
-+	{0x200, "L4_PER_1",},
-+	{0x300, "L4_PER_2",},
-+	{0x400, "L4_PER_3",},
-+	{0x800, "McASP0",},
-+	{0x900, "McASP1",},
-+	{0xC00, "MMCHS2",},
-+	{0x700, "GPMC",},
-+	{0xD00, "L4_FW",},
-+	{0xdead, L3_TARGET_NOT_SUPPORTED,},
-+	{0x500, "ADCTSC",},
-+	{0xE00, "L4_WKUP",},
-+	{0xA00, "MAG_CARD",},
-+};
-+
-+static struct l3_flagmux_data am4372_l3_flagmux_100s = {
-+	.offset = 0x600,
-+	.l3_targ = am4372_l3_target_data_100s,
-+	.num_targ_data = ARRAY_SIZE(am4372_l3_target_data_100s),
-+};
-+
-+static struct l3_masters_data am4372_l3_masters[] = {
-+	{ 0x0, "M1 (128-bit)"},
-+	{ 0x0, "M2 (64-bit)"},
-+	{ 0x4, "DAP"},
-+	{ 0x5, "P1500"},
-+	{ 0xC, "ICSS0"},
-+	{ 0xD, "ICSS1"},
-+	{ 0x18, "TPTC0 Read"},
-+	{ 0x19, "TPTC0 Write"},
-+	{ 0x1A, "TPTC1 Read"},
-+	{ 0x1B, "TPTC1 Write"},
-+	{ 0x1C, "TPTC2 Read"},
-+	{ 0x1D, "TPTC2 Write"},
-+	{ 0x20, "SGX530"},
-+	{ 0x25, "DSS"},
-+	{ 0x28, "Crypto DMA RD"},
-+	{ 0x29, "Crypto DMA WR"},
-+	{ 0x2C, "VPFE0"},
-+	{ 0x2D, "VPFE1"},
-+	{ 0x30, "GEMAC"},
-+	{ 0x34, "USB0 RD"},
-+	{ 0x35, "USB0 WR"},
-+	{ 0x36, "USB1 RD"},
-+	{ 0x37, "USB1 WR"},
-+};
-+
-+static struct l3_flagmux_data *am4372_l3_flagmux[] = {
-+	&am4372_l3_flagmux_200f,
-+	&am4372_l3_flagmux_100s,
-+};
-+
-+static const struct omap_l3 am4372_l3_data = {
-+	.l3_flagmux = am4372_l3_flagmux,
-+	.num_modules = ARRAY_SIZE(am4372_l3_flagmux),
-+	.l3_masters = am4372_l3_masters,
-+	.num_masters = ARRAY_SIZE(am4372_l3_masters),
-+};
-+
- #endif	/* __OMAP_L3_NOC_H */
+ static const char * const l3_transaction_type[] = {
+ 	/* 0 0 0 */ "Idle",
+ 	/* 0 0 1 */ "Write",
+@@ -92,7 +94,9 @@ struct l3_flagmux_data {
+ /**
+  * struct omap_l3 - Description of data relevant for L3 bus.
+  * @dev:	device representing the bus (populated runtime)
+- * @l3_base:	base addresses of modules (populated runtime)
++ * @l3_base:	base addresses of modules (populated runtime if 0)
++ *		if set to L3_BASE_IS_SUBMODULE, then uses previous
++ *		module index as the base address
+  * @l3_flag_mux: array containing flag mux data per module
+  *		 offset from corresponding module base indexed per
+  *		 module.
 -- 
 1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
