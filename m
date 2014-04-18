@@ -1,136 +1,83 @@
-From: Joachim Eastwood <manabian@gmail.com>
-Subject: Re: OMAPDSS and panel-dpi
-Date: Fri, 18 Apr 2014 18:43:34 +0200
-Message-ID: <CAGhQ9Vzy3Rg6Vh73Ar3P6N1O6nzTvMZK-hhAcgQ8g8feca0Kow@mail.gmail.com>
-References: <CAGhQ9VzL5fLHCNZ=y-exBAds03f8Bw_hO+KjYnwO4MgRWOfpuw@mail.gmail.com>
-	<20140417192215.GA24931@atomide.com>
-	<CAGhQ9VwM-rnXcMXNW40jbx6yDGCQwjODDyKhtbZNyCsexX2f3w@mail.gmail.com>
-	<20140417225025.GA25732@atomide.com>
-	<20140418025024.GB25732@atomide.com>
-	<CAGhQ9VwZg6ww1DE=W-DjFM0=QM5WNO3Yp06YxYzB2Jv3C9=F0Q@mail.gmail.com>
-	<20140418154015.GA5354@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v9 resend 1/3] mmc: omap_hsmmc: Enable SDIO interrupt
+Date: Fri, 18 Apr 2014 09:46:30 -0700
+Message-ID: <20140418164630.GE5354@atomide.com>
+References: <1395404448-30030-1-git-send-email-afenkart@gmail.com>
+ <1395404448-30030-2-git-send-email-afenkart@gmail.com>
+ <532C6489.4050307@ti.com>
+ <532FFB43.5020408@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:34259 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751396AbaDRQng (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 12:43:36 -0400
-Received: by mail-la0-f48.google.com with SMTP id gf5so1498021lab.21
-        for <linux-omap@vger.kernel.org>; Fri, 18 Apr 2014 09:43:34 -0700 (PDT)
-In-Reply-To: <20140418154015.GA5354@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38781 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754366AbaDRQqk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 12:46:40 -0400
+Content-Disposition: inline
+In-Reply-To: <532FFB43.5020408@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+To: Dmitry Lifshitz <lifshitz@compulab.co.il>
+Cc: Balaji T K <balajitk@ti.com>, Andreas Fenkart <afenkart@gmail.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 18 April 2014 17:40, Tony Lindgren <tony@atomide.com> wrote:
-> * Joachim Eastwood <manabian@gmail.com> [140418 04:05]:
->> On 18 April 2014 04:50, Tony Lindgren <tony@atomide.com> wrote:
->> > * Tony Lindgren <tony@atomide.com> [140417 15:50]:
->> >> * Joachim Eastwood <manabian@gmail.com> [140417 13:51]:
->> >> > On 17 April 2014 21:22, Tony Lindgren <tony@atomide.com> wrote:
->> >> > > * Joachim Eastwood <manabian@gmail.com> [140417 11:05]:
->> >> > >> Hi Tomi,
->> >> > >>
->> >> > >> My VAR-DVK-OM44 (OMAP4460) has both a HDMI and a LCD panel. As HDMI is
->> >> > >> now working (thanks) I also taken a look at panel-dpi.
->> >> > >>
->> >> > >> I found the DT patch for panel-dpi on the mailing list.
->> >> > >> OMAPDSS: panel-dpi: Add DT support:
->> >> > >> http://marc.info/?l=devicetree&m=139030201815380&w=2
->> >> > >>
->> >> > >> And I got my display working with DT :)
->> >> > >> So you add can my: Tested-by: Joachim Eastwood <manabian@gmail.com>
->> >> > >>
->> >> > >> Could you upstream the panel-dpi DT support and the HDMI connector
->> >> > >> gpio hpd patch in 3.16?
->> >> > >> I hope it's easier to upstream the stuff when it gets some users in DT.
->> >> > >
->> >> > > Good to hear. The DPI panel support should use gpio-backlight
->> >> > > driver as discussed in the DPI thread. Did you have to patch
->> >> > > anything for the timings etc?
->> >> >
->> >> > The only driver patches I use are those two from Tomi mentioned above.
->> >> > (panel-dpi DT support and HDMI connector gpio-hpd)
->> >> >
->> >> > > If you have the board working, care to take a look at making
->> >> > > the gpio-backlight change?
->> >> >
->> >> > I am already using the gpio-backlight driver.
->> >>
->> >> OK great, so then we can just drop that GPIO backlight handling
->> >> from the DPI DT patch I presume.
->> >>
->> >> > You can take a look at the device tree for VAR-DVK-OM44 here:
->> >> > http://slexy.org/raw/s2Pz4BELGe
->> >> >
->> >> > I'll post the patch set on list tomorrow.
->> >>
->> >> Thanks for the link, that pretty much clarifies all the parts
->> >> I was wondering about.
->> >
->> > OK so based on the link above, I got the LDP panel DPI working with
->> > the quirks now shrunk to the two panel specific GPIOs.
->> >
->> > Probably best to set those up based on "omapdss,panel-dpi-ldp"
->> > compatible flag?
->> >
->> > That is after removing the backlight_gpio from panel_dpi_probe_of()
->> > so the panel specific GPIOs can be handled easily based on the
->> > compatible flag. Current work in progress patch below for reference
->> > in case anybody has better ideas for dealing with the remaining
->> > to GPIOs.
->>
->> A reset gpio could be useful on more panels I think.
->> omapdss,panel-dsi-cm already have a reset-gpios property so maybe
->> omapdss,panel-dpi should have one too.
->
-> OK. For handling the GPIOs, looks like gpio_backlight_probe_dt
-> is doing:
->
-> gbl->active = (gpio_flags & OF_GPIO_ACTIVE_LOW) ? 0 : 1
->
-> To handle the polarity. We should probably do the same for the
-> panels as we at least used to have the polarity flags in the
-> platform data earlier.
+Hi,
 
-Yes, that sounds good.
+Sorry for the delay, just noticed this one.
 
->> A lot of panels have mode pins, but usually these are hard coded on
->> the circuit board.
->> If it's just a bunch of static gpio values that need to be set maybe
->> you could have something like this:
->> mode-gpios = <&gpio1 10 0 &gpio1 11 0>;
->> mode-gpios-values = <1 1>;
->>
->> Driver would set these gpios to values at init.
->
-> If mode-gpios can be is Linux generic, then it makes sense to add
-> it. But if it's specific to this panel, I'd like to avoid setting
-> up yet another custom DT *-gpios property..
->
-> In any case, with (gpio_flags & OF_GPIO_ACTIVE_LOW) mode-gpio-values
-> should not be needed.
+* Dmitry Lifshitz <lifshitz@compulab.co.il> [140324 02:34]:
+> Hi,
+> 
+> I've tested the branch omap_hsmmc_sdio_irq_devm_cleanup on custom OMAP5
+> based board.
+> We have mwifiex connected to MMC3.
+> 
+> I used two approaches:
+> 
+> * Using dat1 line as GPIO with dynamic remuxing
+> * Using separate GPIO connected to dat1 with static mux settings
+> 
+> Both works just fine. Thanks Andreas for a great solution.
+> 
+> I have just one issue - how to define GPIO IRQ using DT in OMAP5 case.
+> As a temporary hack for testing I used a fixed GPIO number and gpio_to_irq()
+> call in omap_hsmmc_configure_wake_irq().
+> 
+> OMAP5 MMC3 has the following DT entry (omap5.dtsi):
+> 
+>                 mmc3: mmc@480ad000 {
+>                         compatible = "ti,omap4-hsmmc";
+>                         reg = <0x480ad000 0x400>;
+>                         interrupts = <GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH>;
+>                         ti,hwmods = "mmc3";
+>                         ti,needs-special-reset;
+>                         dmas = <&sdma 77>, <&sdma 78>;
+>                         dma-names = "tx", "rx";
+>                 };
+> 
+> What should be by board MMC3 setup?
 
-Yes, that's a good idea.
+You need to use the interrupts-extended property in omap5.dtsi
+for the MMC interrupt. And if using the wake-up interrupts
+for your board, you need to sepcify interrupts-extended in your
+board file again to add the second wake-up interrupt.
 
-> If it does not make sense to set up a generic mode-gpios for the
-> panels, then panel dpi can parse the first two GPIOs for enable
-> and reset. Then we can allow the rest of the array be parsed if
-> needed based on the compatible flag.
+If using the async wake-up path, the wake-up interrupt is the
+OMAP5_CORE_IOPAD() or OMAP5_WKUP_IOPAD() pinctrl register offset
+for that pin. If remuxing to GPIO for the wake-up, the wake-up
+interrupt is the standard gpio interrupt property.
 
-Looking through the panels in omap2/display-new the most common gpio
-pins are; backlight, reset and enable.
-So it makes sense to have enable and reset as properties.
+Then you also need this patch to avoid warnings during boot:
 
-Gpio is used for mode setting in: nl8048hl11 and ls037v7dw01.
-nl8048hl11 has just a qvga gpio, while the other one has no less than
-3 mode pins (qvga and 2 scanning direction pins). All these mode pins
-are set once and then never touched again.
+http://lkml.org/lkml/2014/4/10/620
 
-Using gpios property for setting up an arbitrary amount of mode pins
-so like a solution to me.
+After the above gets merged, we can apply the serial wake-up
+patch too:
 
-regards
-Joachim Eastwood
+http://lists.infradead.org/pipermail/linux-arm-kernel/2013-November/213873.html
+
+That shows you some examples on how to specify the wake-up
+interrupt.
+
+Regards,
+
+Tony
