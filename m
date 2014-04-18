@@ -1,49 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] ARM: dts: Add support for OMAP4 Variscite OM44 family
-Date: Fri, 18 Apr 2014 15:44:23 -0700
-Message-ID: <20140418224423.GN21823@atomide.com>
-References: <1397833849-22396-1-git-send-email-manabian@gmail.com>
- <1397833849-22396-2-git-send-email-manabian@gmail.com>
- <20140418155721.GC5354@atomide.com>
- <CAGhQ9VysdxGMd99CiVVh8YJt7KDAyy3Pe9YA2VM-G4mzn_6+0g@mail.gmail.com>
- <20140418172907.GK5354@atomide.com>
- <CAGhQ9VyFU0ee3nXmD3Ckpaj1wYfgWXWG1k=L16MYCX05sCtjOA@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: gpmc: fix: replace PTR_RET with
+ PTR_ERR_OR_ZERO
+Date: Fri, 18 Apr 2014 15:49:19 -0700
+Message-ID: <20140418224919.GO21823@atomide.com>
+References: <1397210608-28318-1-git-send-email-duanj.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26718 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35418 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751841AbaDRWo3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 18:44:29 -0400
+	with ESMTP id S1752779AbaDRWt0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 18:49:26 -0400
 Content-Disposition: inline
-In-Reply-To: <CAGhQ9VyFU0ee3nXmD3Ckpaj1wYfgWXWG1k=L16MYCX05sCtjOA@mail.gmail.com>
+In-Reply-To: <1397210608-28318-1-git-send-email-duanj.fnst@cn.fujitsu.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joachim Eastwood <manabian@gmail.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+To: Duan Jiong <duanj.fnst@cn.fujitsu.com>
+Cc: khilman@deeprootsystems.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
 
-* Joachim Eastwood <manabian@gmail.com> [140418 11:04]:
+* Duan Jiong <duanj.fnst@cn.fujitsu.com> [140411 03:10]:
+> PTR_RET is deprecated. Do not recommend its usage anymore.
+> Use PTR_ERR_OR_ZERO instead.
 > 
-> > I did a check script when we split omap3 pinctrl core instance into
-> > two separate instance to deal with the large hole in the register
-> > space. Some parts of that might be usable for a generic conversion
-> > script too. The script I used is below for reference.
+> Signed-off-by: Duan Jiong <duanj.fnst@cn.fujitsu.com>
+> ---
+>  arch/arm/mach-omap2/gpmc.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> I hacked up a short awk-script for the job. So I'll change to IOPAD
-> macro's in the next version.
-> 
-> My script for reference :)
-> #!/bin/gawk -f
-> /omap4_pmx_core/ { pmx = "CORE" }
-> /omap4_pmx_wkup/ { pmx = "WKUP" }
-> /0x[0-9a-f]{1,3} \(PIN/ {
-> offset = sprintf("OMAP4_%s_IOPAD(0x%03x, ", pmx, strtonum($1) + 64)
-> sub(/0x[0-9a-f]{1,3} \(/, offset, $0)
-> print $0
-> next
-> }
-> { print $0 }
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index ab43755..6a11bda 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1772,7 +1772,7 @@ static int __init omap_gpmc_init(void)
+>  	pdev = omap_device_build(DEVICE_NAME, -1, oh, NULL, 0);
+>  	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
+>  
+> -	return PTR_RET(pdev);
+> +	return PTR_ERR_OR_ZERO(pdev);
+>  }
+>  omap_postcore_initcall(omap_gpmc_init);
 
-Cool script :)
+OK looks like we have #define PTR_RET(p) PTR_ERR_OR_ZERO(p).
+But what about the others? How about a single patch to deal
+with them all?
+
+$ git grep PTR_RET arch/arm/*omap*
+arch/arm/mach-omap2/devices.c:  return PTR_RET(pdev);
+arch/arm/mach-omap2/devices.c:  return PTR_RET(pdev);
+arch/arm/mach-omap2/fb.c:       return PTR_RET(pdev);
+arch/arm/mach-omap2/pmu.c:      return PTR_RET(omap_pmu_dev);
+
+Regards,
 
 Tony
