@@ -1,105 +1,94 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH] ARM: dts: Add support for the BeagleBoard xM A/B
-Date: Fri, 18 Apr 2014 18:42:44 -0500
-Message-ID: <CAOCHtYjdC-OGkdaBt74xMqi5eDc1eVbU6O7VyWMEYN-U50-Abw@mail.gmail.com>
-References: <1397574599-29573-1-git-send-email-robertcnelson@gmail.com>
-	<CAOCHtYg5_Lvi3SWuWaRTDDNhLJ32jiXsKYQmrsKaShVWpM+xWQ@mail.gmail.com>
-	<534D51C1.3010007@ti.com>
-	<CAOCHtYhygGFbUunY9abEkjKfpQ1hh-DfRfhm160NehSYhWJSRw@mail.gmail.com>
-	<20140418225111.GP21823@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: OMAP hwmod and clock fixes for v3.15-rc
+Date: Fri, 18 Apr 2014 16:47:48 -0700
+Message-ID: <20140418234747.GR21823@atomide.com>
+References: <alpine.DEB.2.02.1404112109320.5758@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yh0-f48.google.com ([209.85.213.48]:65100 "EHLO
-	mail-yh0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753495AbaDRXmp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 19:42:45 -0400
-In-Reply-To: <20140418225111.GP21823@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:14923 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751691AbaDRXrz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 19:47:55 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1404112109320.5758@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, devicetree <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <bcousson@baylibre.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Apr 18, 2014 at 5:51 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Robert Nelson <robertcnelson@gmail.com> [140415 08:46]:
->> On Tue, Apr 15, 2014 at 10:35 AM, Nishanth Menon <nm@ti.com> wrote:
->> > On 04/15/2014 10:12 AM, Robert Nelson wrote:
->> >> On Tue, Apr 15, 2014 at 10:09 AM, Robert Nelson <robertcnelson@gmail.com> wrote:
->> >>> BeagleBoard xM A/B has an inverted usb hub enable line vs the xM C
->> >>>
->> >>> Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
->> >>> ---
->> >>>  arch/arm/boot/dts/Makefile               |  1 +
->> >>>  arch/arm/boot/dts/omap3-beagle-xm-ab.dts | 15 +++++++++++++++
->> >>>  2 files changed, 16 insertions(+)
->> >>>  create mode 100644 arch/arm/boot/dts/omap3-beagle-xm-ab.dts
->> >>>
->> >>> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
->> >>> index 35c146f..0bdeba3 100644
->> >>> --- a/arch/arm/boot/dts/Makefile
->> >>> +++ b/arch/arm/boot/dts/Makefile
->> >>> @@ -246,6 +246,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
->> >>>         omap3-sbc-t3730.dtb \
->> >>>         omap3-devkit8000.dtb \
->> >>>         omap3-beagle-xm.dtb \
->> >>> +       omap3-beagle-xm-ab.dtb \
->> >>>         omap3-evm.dtb \
->> >>>         omap3-evm-37xx.dtb \
->> >>>         omap3-ldp.dtb \
->> >>> diff --git a/arch/arm/boot/dts/omap3-beagle-xm-ab.dts b/arch/arm/boot/dts/omap3-beagle-xm-ab.dts
->> >>> new file mode 100644
->> >>> index 0000000..9d81123
->> >>> --- /dev/null
->> >>> +++ b/arch/arm/boot/dts/omap3-beagle-xm-ab.dts
->> >>> @@ -0,0 +1,15 @@
->> >>> +/*
->> >>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
->> >>> + *
->> >>> + * This program is free software; you can redistribute it and/or modify
->> >>> + * it under the terms of the GNU General Public License version 2 as
->> >>> + * published by the Free Software Foundation.
->> >>> + */
->> >>> +
->> >>> +#include "omap3-beagle-xm.dts"
->> >>> +
->> >>> +/ {
->> >>> +       /* HS USB Port 2 Power enable was inverted with the xM C */
->> >>> +       hsusb2_power: hsusb2_power_reg {
->> >>> +               enable-active-high;
->> >>        };
->> >>> +};
->> >>
->> >> Crap, copy paste bug, there.  I can send a v2, if you guys are happy
->> >> with the "omap3-beagle-xm-ab.dtb" naming..
->> >>
->> >> Regards,
->> >>
->> > Will u-boot adequately handle this as part of find_fdt?
->>
->> It will after i submit something like: (this uses a new feature in v2014.04)
->>
->> https://github.com/eewiki/u-boot-patches/blob/master/v2014.04/0001-am335x_evm-uEnv.txt-bootz-n-fixes.patch#L76
->>
->> Essentially, test for presence of omap3-beagle-xm-ab.dtb, if not found
->> drop to old omap3-beagle-xm.dtb
->>
->> Background: i also tried getting this having this fixed in u-boot:
->
-> Do we still need to apply this patch then?
+* Paul Walmsley <paul@pwsan.com> [140411 14:14]:
+> Hi Tony,
+> 
+> The following changes since commit 9e897e13bd46fa03485468609741974259a8c573:
+> 
+>   Merge branch 'for-linus' of git://git.open-osd.org/linux-open-osd (2014-04-10 14:33:02 -0700)
+> 
+> are available in the git repository at:
+> 
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.15-rc/omap-fixes-a
+> 
+> for you to fetch changes up to 3d36ad7e7a9be0d130c862727a052ed279046437:
+> 
+>   ARM: OMAP2+: hwmod: fix missing braces in _init() (2014-04-11 12:29:09 -0600)
+> 
+> ----------------------------------------------------------------
+> OMAP hwmod and clock fixes for v3.15-rc
+> 
+> A few OMAP hwmod and clock fixes for v3.15-rc.  Probably the most useful
+> fix is the AM43xx DPLL patch.
+> 
+> Basic build, boot, and PM test results are here:
+> 
+> http://www.pwsan.com/omap/testlogs/prcm-fixes-a-v3.15-rc/20140411130021/
 
-Yeah, Tom want's it done in the kernel:
+Thanks pulling into omap-for-v3.15/fixes.
 
-Here's my proposed u-boot patch:
-http://lists.denx.de/pipermail/u-boot/2014-January/172154.html
-
-and Tom's recommendation:
-http://lists.denx.de/pipermail/u-boot/2014-January/172274.html
-
-Once this hits mainline, i'll submit a patch to u-boot to check for
-the presence of this version and drop to the old dtb if not found.
-
-Regards,
-
--- 
-Robert Nelson
-http://www.rcn-ee.com/
+Tony
+ 
+> ----------------------------------------------------------------
+> Roger Quadros (1):
+>       ARM: OMAP3: hwmod data: Correct clock domains for USB modules
+> 
+> Suman Anna (1):
+>       ARM: OMAP2+: hwmod: fix missing braces in _init()
+> 
+> Tomi Valkeinen (1):
+>       ARM: AM43xx: fix dpll init in bypass mode
+> 
+>  arch/arm/mach-omap2/clkt_dpll.c            | 4 ++--
+>  arch/arm/mach-omap2/omap_hwmod.c           | 3 ++-
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 4 ++--
+>  3 files changed, 6 insertions(+), 5 deletions(-)
+> 
+> vmlinux object size
+> (delta in bytes from prcm-fixes-a-v3.15-rc-base (9e897e13bd46fa03485468609741974259a8c573)):
+>    text     data      bss    total  kernel
+>       0        0        0        0  omap1_defconfig
+>       0        0        0        0  omap1_defconfig_1510innovator_only
+>       0        0        0        0  omap1_defconfig_5912osk_only
+>       0       +8        0       +8  multi_v7_defconfig
+>      -4       +8        0       +4  omap2plus_defconfig
+>       0        0        0        0  omap2plus_defconfig_2430sdp_only
+>       0        0        0        0  omap2plus_defconfig_am33xx_only
+>    +112        0        0     +112  omap2plus_defconfig_am43xx_only
+>      -4       +8        0       +4  omap2plus_defconfig_cpupm
+>      -4        0        0       -4  omap2plus_defconfig_dra7xx_only
+>     +12      +16        0      +28  omap2plus_defconfig_n800_multi_omap2xxx
+>     +12       -8        0       +4  omap2plus_defconfig_n800_only_a
+>      -4       +8        0       +4  omap2plus_defconfig_no_pm
+>      -4        0        0       -4  omap2plus_defconfig_omap2_4_only
+>      -4       +8        0       +4  omap2plus_defconfig_omap3_4_only
+>      -4      -24        0      -28  omap2plus_defconfig_omap5_only
+>     -16        0      +16        0  rmk_omap3430_ldp_allnoconfig
+>     +16      +16        0      +32  rmk_omap3430_ldp_oldconfig
+>      -8        0       +8        0  rmk_omap4430_sdp_allnoconfig
+>     +16      +16        0      +32  rmk_omap4430_sdp_oldconfig
+> 
+> Boot-time memory difference
+> (delta in bytes from prcm-fixes-a-v3.15-rc-base (9e897e13bd46fa03485468609741974259a8c573))
+>   avail  rsrvd   high  freed  board          kconfig
+>   (no differences)
+> 
+> 
