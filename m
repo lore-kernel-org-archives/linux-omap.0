@@ -1,69 +1,50 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/1] ARM: dts: omap5: Add clocks to USB3 PHY node
-Date: Fri, 18 Apr 2014 15:29:54 -0700
-Message-ID: <20140418222954.GH21823@atomide.com>
-References: <1396348647-11545-1-git-send-email-rogerq@ti.com>
- <1396348647-11545-2-git-send-email-rogerq@ti.com>
- <20140401141308.GB4717@saruman.home>
- <534B8CC3.7050008@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: AM335X: EVM: fix pinmux documentation in devicetree
+Date: Fri, 18 Apr 2014 15:31:41 -0700
+Message-ID: <20140418223140.GI21823@atomide.com>
+References: <1396370358-778-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61746 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752007AbaDRWbr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 18:31:47 -0400
 Content-Disposition: inline
-In-Reply-To: <534B8CC3.7050008-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1396370358-778-1-git-send-email-wsa@the-dreams.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-arm-kernel@lists.infradead.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140414 00:23]:
-> Hi Tony,
+* Wolfram Sang <wsa@the-dreams.de> [140401 09:43]:
+> Wrong documentation in pinmux description can be especially confusing.
+> Keep it proper.
 > 
-> On 04/01/2014 05:13 PM, Felipe Balbi wrote:
-> > On Tue, Apr 01, 2014 at 01:37:27PM +0300, Roger Quadros wrote:
-> >> The USB3 PHY driver (ti-pipe3) was updated so that the relevant
-> >> clock phandles are expected in the DT node.
-> >> Provide the necessary clocks.
-> >>
-> >> Reported-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> >> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> > 
-> > Great!!!
-> > 
-> > Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> 
-> Could you please pick this up for 3.15-rc? Thanks.
+> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
 
-Yes applying into omap-for-v3.15/fixes thanks.
+Applying into omap-for-v3.15/fixes thanks.
 
 Tony
- 
-> >>  arch/arm/boot/dts/omap5.dtsi | 6 ++++++
-> >>  1 file changed, 6 insertions(+)
-> >>
-> >> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> >> index 757f0b9..4df1e7a 100644
-> >> --- a/arch/arm/boot/dts/omap5.dtsi
-> >> +++ b/arch/arm/boot/dts/omap5.dtsi
-> >> @@ -794,6 +794,12 @@
-> >>  				      <0x4a084c00 0x40>;
-> >>  				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
-> >>  				ctrl-module = <&omap_control_usb3phy>;
-> >> +				clocks = <&usb_phy_cm_clk32k>,
-> >> +					 <&sys_clkin>,
-> >> +					 <&usb_otg_ss_refclk960m>;
-> >> +				clock-names =	"wkupclk",
-> >> +						"sysclk",
-> >> +						"refclk";
-> >>  				#phy-cells = <0>;
-> >>  			};
-> >>  		};
-> >> -- 
-> >> 1.8.3.2
-> >>
-> > 
+
+>  arch/arm/boot/dts/am335x-evm.dts | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+> index 7e6c64ed966d..fb5dc92692cf 100644
+> --- a/arch/arm/boot/dts/am335x-evm.dts
+> +++ b/arch/arm/boot/dts/am335x-evm.dts
+> @@ -295,8 +295,8 @@
+>  
+>  	am335x_evm_audio_pins: am335x_evm_audio_pins {
+>  		pinctrl-single,pins = <
+> -			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rx_dv.mcasp1_aclkx */
+> -			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_txd3.mcasp1_fsx */
+> +			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_crs.mcasp1_aclkx */
+> +			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rxerr.mcasp1_fsx */
+>  			0x108 (PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* mii1_col.mcasp1_axr2 */
+>  			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
+>  		>;
+> -- 
+> 1.9.0
+> 
