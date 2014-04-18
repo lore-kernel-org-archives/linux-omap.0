@@ -1,72 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 3.1[34]: omap4: panda: hang on reboot?
-Date: Fri, 18 Apr 2014 09:54:22 -0700
-Message-ID: <20140418165421.GH5354@atomide.com>
-References: <20140327175414.GA5795@luxor.wired.org>
- <20140331215659.GA8214@luxor.wired.org>
+Subject: Re: [PATCH 1/2] ARM: dts: sbc-t54: add support for sbc-t54 with
+ cm-t54
+Date: Fri, 18 Apr 2014 10:08:18 -0700
+Message-ID: <20140418170818.GI5354@atomide.com>
+References: <1396962531-27729-1-git-send-email-lifshitz@compulab.co.il>
+ <1396962531-27729-2-git-send-email-lifshitz@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55846 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751139AbaDRQy1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 12:54:27 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27056 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753862AbaDRRIY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 13:08:24 -0400
 Content-Disposition: inline
-In-Reply-To: <20140331215659.GA8214@luxor.wired.org>
+In-Reply-To: <1396962531-27729-2-git-send-email-lifshitz@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paolo Pisati <p.pisati@gmail.com>
-Cc: Balaji T K <balajitk@ti.com>, Chris Ball <cjb@laptop.org>, linux-mmc' <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Dmitry Lifshitz <lifshitz@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il
 
-* Paolo Pisati <p.pisati@gmail.com> [140331 15:00]:
-> On Thu, Mar 27, 2014 at 06:54:14PM +0100, Paolo Pisati wrote:
-> > I've been experiencing hangs on reboot on two different panda boards (es rev1
-> > and vanilla rev a1) with v3.14-rc8 (but reproducible in 3.13 too):
-> > 
-> > toolchanin: gcc version 4.8.1 (Ubuntu/Linaro 4.8.1-10ubuntu7)
-> > 
-> > the config is a multi_v7_defconfig plus a couple of codepages:
-> > 
-> > http://people.canonical.com/~ppisati/omap4_reboot_hangs/config
-> > 
-> > a prebuilt zImage is available here:
-> > 
-> > http://people.canonical.com/~ppisati/omap4_reboot_hangs/zImage
-> > 
-> > sometimes i can hit this two times in a row, others it's a bit less
-> > frequent - put this into your crontab and let it go:
-> > 
-> > */5 * * * *       /bin/date >> /reboot.log && /sbin/reboot
-> > 
-> > it never passed 2hrs of reboot cycles.
-> > 
-> > I already tried different u-boots but that doesn't make any difference,
-> > am i the only one experiencing this issue?
+* Dmitry Lifshitz <lifshitz@compulab.co.il> [140408 06:14]:
+> Add support for CM-T54 CoM and SBC-T54 board:
 > 
-> i bisected it down to this commit:
+> http://compulab.co.il/products/computer-on-modules/cm-t54/
+> http://compulab.co.il/products/sbcs/sbc-t54/
 > 
-> commit e002264f7e45d7661b237045577052fd0b40f89c
-> Author: Balaji T K <balajitk@ti.com>
-> Date:   Mon Oct 21 00:25:18 2013 +0530
+> SBC-T54 is a single board computer based on OMAP5432 CPU.
+> It is implemented with a CM-T54 CoM providing most of the functions,
+> and SB-T54 carrier board providing connectors and several additional
+> functions.
 > 
->     mmc: omap_hsmmc: Fix pbias_disable for omap4
->     
->     pbias_disable is set to protect the mmc pbias i/o cells in DT boot
->     by preventing voltage switch. Currently pbias_disable is enabled only
->     for omap3 and not for omap4 due to reg_offset difference of 0x100.
->     Enable pbias_disable for omap4+ too by using res->start
->     which does not include the reg_offset.
->     
->     Signed-off-by: Balaji T K <balajitk@ti.com>
->     Signed-off-by: Chris Ball <cjb@laptop.org>
+> Added basic support for:
 > 
-> with this commit reverted, i can reboot in a loop for hours without any problem,
-> while if i keep this patch, my pandas don't survive more that two hours (again,
-> it's really random as it could hang a couple of times in a row and then work
-> like a charm for ten reboots straight).
-> 
-> Any idea? does it ring any bell?
+> * PMIC
+> * LED
+> * MMC/SD
+> * eMMC
+> * USB
+> * I2C1/4
+> * SB-T54 and CM-T54 EEPROMs
+> * RTC
 
-Balaji, do you have a fix for this one?
+You probably want to use the OMAP5_CORE_IOPAD and OMAP5_WKUP_IOPAD
+macros for new boards as then you can easily check them against
+the TRM based on the physical offset of the register.
+
+Regards,
 
 Tony
