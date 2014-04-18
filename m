@@ -1,215 +1,303 @@
-From: Joachim Eastwood <manabian@gmail.com>
-Subject: Re: OMAPDSS and panel-dpi
-Date: Fri, 18 Apr 2014 13:05:38 +0200
-Message-ID: <CAGhQ9VwZg6ww1DE=W-DjFM0=QM5WNO3Yp06YxYzB2Jv3C9=F0Q@mail.gmail.com>
-References: <CAGhQ9VzL5fLHCNZ=y-exBAds03f8Bw_hO+KjYnwO4MgRWOfpuw@mail.gmail.com>
-	<20140417192215.GA24931@atomide.com>
-	<CAGhQ9VwM-rnXcMXNW40jbx6yDGCQwjODDyKhtbZNyCsexX2f3w@mail.gmail.com>
-	<20140417225025.GA25732@atomide.com>
-	<20140418025024.GB25732@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 8/8] usb: phy: generic: allow multiples calls to
+ usb_phy_generic_register()
+Date: Fri, 18 Apr 2014 09:45:39 -0500
+Message-ID: <20140418144539.GA25098@saruman.home>
+References: <1397683595-3606-1-git-send-email-balbi@ti.com>
+ <1397683595-3606-9-git-send-email-balbi@ti.com>
+ <fd3b2ebd2ebc9ba0f1930b068d9016d8@doppler.thel33t.co.uk>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="envbJBWh7q8WU6mo"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:48436 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034AbaDRLFk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 07:05:40 -0400
-Received: by mail-la0-f54.google.com with SMTP id mc6so1281260lab.13
-        for <linux-omap@vger.kernel.org>; Fri, 18 Apr 2014 04:05:38 -0700 (PDT)
-In-Reply-To: <20140418025024.GB25732@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35319 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753732AbaDROsV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Apr 2014 10:48:21 -0400
+Content-Disposition: inline
+In-Reply-To: <fd3b2ebd2ebc9ba0f1930b068d9016d8@doppler.thel33t.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+To: Leigh Brown <leigh@solinno.co.uk>
+Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, kgene.kim@samsung.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Roger Quadros <rogerq@ti.com>, George Cherian <george.cherian@ti.com>, bigeasy@linutronix.de, aaro.koskinen@iki.fi, heikki.krogerus@linux.intel.com, zhangwm@marvell.com, David Cohen <david.a.cohen@linux.intel.com>, linux-omap-owner@vger.kernel.org
 
-On 18 April 2014 04:50, Tony Lindgren <tony@atomide.com> wrote:
-> * Tony Lindgren <tony@atomide.com> [140417 15:50]:
->> * Joachim Eastwood <manabian@gmail.com> [140417 13:51]:
->> > On 17 April 2014 21:22, Tony Lindgren <tony@atomide.com> wrote:
->> > > * Joachim Eastwood <manabian@gmail.com> [140417 11:05]:
->> > >> Hi Tomi,
->> > >>
->> > >> My VAR-DVK-OM44 (OMAP4460) has both a HDMI and a LCD panel. As HDMI is
->> > >> now working (thanks) I also taken a look at panel-dpi.
->> > >>
->> > >> I found the DT patch for panel-dpi on the mailing list.
->> > >> OMAPDSS: panel-dpi: Add DT support:
->> > >> http://marc.info/?l=devicetree&m=139030201815380&w=2
->> > >>
->> > >> And I got my display working with DT :)
->> > >> So you add can my: Tested-by: Joachim Eastwood <manabian@gmail.com>
->> > >>
->> > >> Could you upstream the panel-dpi DT support and the HDMI connector
->> > >> gpio hpd patch in 3.16?
->> > >> I hope it's easier to upstream the stuff when it gets some users in DT.
->> > >
->> > > Good to hear. The DPI panel support should use gpio-backlight
->> > > driver as discussed in the DPI thread. Did you have to patch
->> > > anything for the timings etc?
->> >
->> > The only driver patches I use are those two from Tomi mentioned above.
->> > (panel-dpi DT support and HDMI connector gpio-hpd)
->> >
->> > > If you have the board working, care to take a look at making
->> > > the gpio-backlight change?
->> >
->> > I am already using the gpio-backlight driver.
->>
->> OK great, so then we can just drop that GPIO backlight handling
->> from the DPI DT patch I presume.
->>
->> > You can take a look at the device tree for VAR-DVK-OM44 here:
->> > http://slexy.org/raw/s2Pz4BELGe
->> >
->> > I'll post the patch set on list tomorrow.
->>
->> Thanks for the link, that pretty much clarifies all the parts
->> I was wondering about.
->
-> OK so based on the link above, I got the LDP panel DPI working with
-> the quirks now shrunk to the two panel specific GPIOs.
->
-> Probably best to set those up based on "omapdss,panel-dpi-ldp"
-> compatible flag?
->
-> That is after removing the backlight_gpio from panel_dpi_probe_of()
-> so the panel specific GPIOs can be handled easily based on the
-> compatible flag. Current work in progress patch below for reference
-> in case anybody has better ideas for dealing with the remaining
-> to GPIOs.
+--envbJBWh7q8WU6mo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-A reset gpio could be useful on more panels I think.
-omapdss,panel-dsi-cm already have a reset-gpios property so maybe
-omapdss,panel-dpi should have one too.
+On Fri, Apr 18, 2014 at 11:38:07AM +0100, Leigh Brown wrote:
+> On 2014-04-16 22:26, Felipe Balbi wrote:
+> >it's now very easy to return a platform_device pointer
+> >and have the caller pass it as argument when calling
+> >usb_phy_generic_unregister().
+> >
+> >Signed-off-by: Felipe Balbi <balbi@ti.com>
+> >---
+> > drivers/usb/musb/am35x.c            | 12 +++++++++---
+> > drivers/usb/musb/blackfin.c         | 10 ++++++++--
+> > drivers/usb/musb/da8xx.c            | 14 +++++++++++---
+> > drivers/usb/musb/tusb6010.c         |  3 ++-
+> > drivers/usb/phy/phy-generic.c       | 19 +++++--------------
+> > include/linux/usb/usb_phy_generic.h |  8 ++++----
+> > 6 files changed, 39 insertions(+), 27 deletions(-)
+> >
+> >diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+> >index 05459b5..0a34dd8 100644
+> >--- a/drivers/usb/musb/am35x.c
+> >+++ b/drivers/usb/musb/am35x.c
+> >@@ -85,6 +85,7 @@
+> > struct am35x_glue {
+> > 	struct device		*dev;
+> > 	struct platform_device	*musb;
+> >+	struct platform_device	*phy;
+> > 	struct clk		*phy_clk;
+> > 	struct clk		*clk;
+> > };
+> >@@ -503,7 +504,9 @@ static int am35x_probe(struct platform_device *pdev)
+> >
+> > 	pdata->platform_ops		=3D &am35x_ops;
+> >
+> >-	usb_phy_generic_register();
+> >+	glue->phy =3D usb_phy_generic_register();
+> >+	if (IS_ERR(glue->phy))
+> >+		goto err7;
+> > 	platform_set_drvdata(pdev, glue);
+> >
+> > 	pinfo =3D am35x_dev_info;
+> >@@ -517,11 +520,14 @@ static int am35x_probe(struct platform_device *pde=
+v)
+> > 	if (IS_ERR(musb)) {
+> > 		ret =3D PTR_ERR(musb);
+> > 		dev_err(&pdev->dev, "failed to register musb device: %d\n", ret);
+> >-		goto err7;
+> >+		goto err8;
+> > 	}
+> >
+> > 	return 0;
+> >
+> >+err8:
+> >+	usb_phy_generic_unregister(glue->phy);
+> >+
+> > err7:
+> > 	clk_disable(clk);
+> >
+> >@@ -546,7 +552,7 @@ static int am35x_remove(struct platform_device *pdev)
+> > 	struct am35x_glue	*glue =3D platform_get_drvdata(pdev);
+> >
+> > 	platform_device_unregister(glue->musb);
+> >-	usb_phy_generic_unregister();
+> >+	usb_phy_generic_unregister(glue->phy);
+> > 	clk_disable(glue->clk);
+> > 	clk_disable(glue->phy_clk);
+> > 	clk_put(glue->clk);
+> >diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+> >index 53acffe..d40d5f0 100644
+> >--- a/drivers/usb/musb/blackfin.c
+> >+++ b/drivers/usb/musb/blackfin.c
+> >@@ -29,6 +29,7 @@
+> > struct bfin_glue {
+> > 	struct device		*dev;
+> > 	struct platform_device	*musb;
+> >+	struct platform_device	*phy;
+> > };
+> > #define glue_to_musb(g)		platform_get_drvdata(g->musb)
+> >
+> >@@ -475,7 +476,9 @@ static int bfin_probe(struct platform_device *pdev)
+> >
+> > 	pdata->platform_ops		=3D &bfin_ops;
+> >
+> >-	usb_phy_generic_register();
+> >+	glue->phy =3D usb_phy_generic_register();
+> >+	if (IS_ERR(glue->phy))
+> >+		goto err2;
+> > 	platform_set_drvdata(pdev, glue);
+> >
+> > 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+> >@@ -513,6 +516,9 @@ static int bfin_probe(struct platform_device *pdev)
+> > 	return 0;
+> >
+> > err3:
+> >+	usb_phy_generic_unregister(glue->phy);
+> >+
+> >+err2:
+> > 	platform_device_put(musb);
+> >
+> > err1:
+> >@@ -527,7 +533,7 @@ static int bfin_remove(struct platform_device *pdev)
+> > 	struct bfin_glue		*glue =3D platform_get_drvdata(pdev);
+> >
+> > 	platform_device_unregister(glue->musb);
+> >-	usb_phy_generic_unregister();
+> >+	usb_phy_generic_unregister(glue->phy);
+> > 	kfree(glue);
+> >
+> > 	return 0;
+> >diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+> >index 024751f..058775e 100644
+> >--- a/drivers/usb/musb/da8xx.c
+> >+++ b/drivers/usb/musb/da8xx.c
+> >@@ -85,6 +85,7 @@
+> > struct da8xx_glue {
+> > 	struct device		*dev;
+> > 	struct platform_device	*musb;
+> >+	struct platform_device	*phy;
+> > 	struct clk		*clk;
+> > };
+> >
+> >@@ -510,7 +511,11 @@ static int da8xx_probe(struct platform_device *pdev)
+> >
+> > 	pdata->platform_ops		=3D &da8xx_ops;
+> >
+> >-	usb_phy_generic_register();
+> >+	glue->phy =3D usb_phy_generic_register();
+> >+	if (IS_ERR(glue->phy)) {
+> >+		ret =3D PTR_ERR(glue->phy);
+> >+		goto err5;
+> >+	}
+> > 	platform_set_drvdata(pdev, glue);
+> >
+> > 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+> >@@ -537,11 +542,14 @@ static int da8xx_probe(struct platform_device *pde=
+v)
+> > 	if (IS_ERR(musb)) {
+> > 		ret =3D PTR_ERR(musb);
+> > 		dev_err(&pdev->dev, "failed to register musb device: %d\n", ret);
+> >-		goto err5;
+> >+		goto err6;
+> > 	}
+> >
+> > 	return 0;
+> >
+> >+err6:
+> >+	usb_phy_generic_unregister(glue->phy);
+> >+
+> > err5:
+> > 	clk_disable(clk);
+> >
+> >@@ -560,7 +568,7 @@ static int da8xx_remove(struct platform_device *pdev)
+> > 	struct da8xx_glue		*glue =3D platform_get_drvdata(pdev);
+> >
+> > 	platform_device_unregister(glue->musb);
+> >-	usb_phy_generic_unregister();
+> >+	usb_phy_generic_unregister(glue->phy);
+> > 	clk_disable(glue->clk);
+> > 	clk_put(glue->clk);
+> > 	kfree(glue);
+> >diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+> >index e1da199..f38a8db 100644
+> >--- a/drivers/usb/musb/tusb6010.c
+> >+++ b/drivers/usb/musb/tusb6010.c
+> >@@ -31,6 +31,7 @@
+> > struct tusb6010_glue {
+> > 	struct device		*dev;
+> > 	struct platform_device	*musb;
+> >+	struct platform_device	*phy;
+> > };
+> >
+> > static void tusb_musb_set_vbus(struct musb *musb, int is_on);
+> >@@ -1222,7 +1223,7 @@ static int tusb_remove(struct platform_device *pde=
+v)
+> > 	struct tusb6010_glue		*glue =3D platform_get_drvdata(pdev);
+> >
+> > 	platform_device_unregister(glue->musb);
+> >-	usb_phy_generic_unregister();
+> >+	usb_phy_generic_unregister(glue->phy);
+> > 	kfree(glue);
+> >
+> > 	return 0;
+> >diff --git a/drivers/usb/phy/phy-generic.c b/drivers/usb/phy/phy-generic=
+=2Ec
+> >index 2c49cd8..7594e50 100644
+> >--- a/drivers/usb/phy/phy-generic.c
+> >+++ b/drivers/usb/phy/phy-generic.c
+> >@@ -41,25 +41,16 @@
+> >
+> > #include "phy-generic.h"
+> >
+> >-static struct platform_device *pd;
+> >-
+> >-void usb_phy_generic_register(void)
+> >+struct platform_device *usb_phy_generic_register(void)
+> > {
+> >-	if (pd)
+> >-		return;
+> >-	pd =3D platform_device_register_simple("usb_phy_generic", -1, NULL, 0);
+> >-	if (IS_ERR(pd)) {
+> >-		pr_err("Unable to register generic usb transceiver\n");
+> >-		pd =3D NULL;
+> >-		return;
+> >-	}
+> >+	return platform_device_register_simple("usb_phy_generic",
+> >+			PLATFORM_DEVID_AUTO, NULL, 0);
+> > }
+> > EXPORT_SYMBOL_GPL(usb_phy_generic_register);
+> >
+> >-void usb_phy_generic_unregister(void)
+> >+void usb_phy_generic_unregister(struct platform_device *pdev)
+> > {
+> >-	platform_device_unregister(pd);
+> >-	pd =3D NULL;
+> >+	platform_device_unregister(pdev);
+> > }
+> > EXPORT_SYMBOL_GPL(usb_phy_generic_unregister);
+> >
+> >diff --git a/include/linux/usb/usb_phy_generic.h
+> >b/include/linux/usb/usb_phy_generic.h
+> >index c00176d..622e7226 100644
+> >--- a/include/linux/usb/usb_phy_generic.h
+> >+++ b/include/linux/usb/usb_phy_generic.h
+> >@@ -15,14 +15,14 @@ struct usb_phy_generic_platform_data {
+> >
+> > #if defined(CONFIG_NOP_USB_XCEIV) ||
+> >(defined(CONFIG_NOP_USB_XCEIV_MODULE) && defined(MODULE))
+>=20
+> Not related to your patch but `&& defined(MODULE)' appears to be incorrec=
+t -
+> that's how
+> I found out about the next comment...
+>=20
+> > /* sometimes transceivers are accessed only through e.g. ULPI */
+> >-extern void usb_phy_generic_register(void);
+> >-extern void usb_phy_generic_unregister(void);
+> >+extern struct platform_device *usb_phy_generic_register(void);
+> >+extern void usb_phy_generic_unregister(struct platform_device *);
+> > #else
+> >-static inline void usb_phy_generic_register(void)
+> >+static inline struct platform_device *usb_phy_generic_register(void)
+> > {
+> > }
+>=20
+> Should this return NULL now?
 
-A lot of panels have mode pins, but usually these are hard coded on
-the circuit board.
-If it's just a bunch of static gpio values that need to be set maybe
-you could have something like this:
-mode-gpios = <&gpio1 10 0 &gpio1 11 0>;
-mode-gpios-values = <1 1>;
+will fix, it's always good to have another set of eyes ;-)
 
-Driver would set these gpios to values at init.
+thanks
 
-regards
-Joachim Eastwood
+--=20
+balbi
 
-> Regards,
->
-> Tony
->
-> 8< ----------------------
-> --- a/arch/arm/boot/dts/omap3-ldp.dts
-> +++ b/arch/arm/boot/dts/omap3-ldp.dts
-> @@ -25,6 +25,10 @@
->                 };
->         };
->
-> +       aliases {
-> +               display0 = &lcd0;
-> +       };
-> +
->         gpio_keys {
->                 compatible = "gpio-keys";
->                 pinctrl-names = "default";
-> @@ -93,6 +97,50 @@
->                         gpio-key,wakeup;
->                 };
->         };
-> +
-> +       lcd0: display {
-> +               compatible = "panel-dpi";
-> +               label = "lcd";
-> +               gpios = <&twl_gpio 7 GPIO_ACTIVE_LOW>;
-> +
-> +               panel-timing {
-> +                       clock-frequency = <5400000>;
-> +                       hback-porch = <39>;
-> +                       hactive = <240>;
-> +                       hfront-porch = <3>;
-> +                       hsync-len = <3>;
-> +                       vback-porch = <7>;
-> +                       vactive = <320>;
-> +                       vfront-porch = <2>;
-> +                       vsync-len = <1>;
-> +                       hsync-active = <0>;
-> +                       vsync-active = <0>;
-> +                       de-active = <1>;
-> +                       pixelclk-active = <1>;
-> +               };
-> +
-> +               port {
-> +                       lcd_in: endpoint {
-> +                               remote-endpoint = <&dpi_out>;
-> +                       };
-> +               };
-> +       };
-> +
-> +       backlight {
-> +               compatible = "gpio-backlight";
-> +               gpios = <&twl_gpio 15 GPIO_ACTIVE_LOW>;
-> +       };
-> +};
-> +
-> +&dss {
-> +       status = "ok";
-> +
-> +       port {
-> +               dpi_out: endpoint {
-> +                       remote-endpoint = <&lcd_in>;
-> +                       data-lines = <18>;
-> +               };
-> +       };
->  };
->
->  &gpmc {
-> @@ -249,6 +297,6 @@
->  };
->
->  &vpll2 {
-> -       /* Needed for DSS */
-> -       regulator-name = "vdds_dsi";
-> +       /* Needed for DSS */
-> +       regulator-name = "vdds_dsi";
->  };
-> --- a/arch/arm/mach-omap2/pdata-quirks.c
-> +++ b/arch/arm/mach-omap2/pdata-quirks.c
-> @@ -148,6 +148,30 @@ static void __init omap3_evm_legacy_init(void)
->         legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 149);
->  }
->
-> +int __init ldp_twl_gpio_setup(struct device *dev, unsigned gpio, unsigned ngpio)
-> +{
-> +       int r;
-> +
-> +       static struct gpio gpios[] = {
-> +               { 55, GPIOF_OUT_INIT_HIGH, "LCD RESET" },
-> +               { 56, GPIOF_OUT_INIT_HIGH, "LCD QVGA" },
-> +       };
-> +
-> +       r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
-> +       if (r) {
-> +               pr_err("Cannot request LCD GPIOs, error %d\n", r);
-> +               return r;
-> +       }
-> +       omap_ads7846_init(1, 54, 310, NULL);
-> +
-> +       return 0;
-> +}
-> +
-> +static void __init omap3_ldp_legacy_init(void)
-> +{
-> +       twl_gpio_auxdata.setup = ldp_twl_gpio_setup;
-> +}
-> +
->  static void __init omap3_zoom_legacy_init(void)
->  {
->         legacy_init_wl12xx(WL12XX_REFCLOCK_26, 0, 162);
-> @@ -358,6 +382,7 @@ static struct pdata_init pdata_quirks[] __initdata = {
->         { "nokia,omap3-n950", hsmmc2_internal_input_clk, },
->         { "isee,omap3-igep0020", omap3_igep0020_legacy_init, },
->         { "ti,omap3-evm-37xx", omap3_evm_legacy_init, },
-> +       { "ti,omap3-ldp", omap3_ldp_legacy_init, },
->         { "ti,omap3-zoom3", omap3_zoom_legacy_init, },
->         { "ti,am3517-evm", am3517_evm_legacy_init, },
->  #endif
+--envbJBWh7q8WU6mo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTUTqTAAoJEIaOsuA1yqRE9R0P/RDRNmSHrTDy3P62jIbW4XQo
+ghvpkDtAgwuJHB6NBXrzyzW+8JsDsscHGcRE0dfNreVxHm4fBG9TSVz0wGu8X1zg
+xeTo0lPyjrGH6+h0u7WwZ7E2RON67HzuTS2zdccMSdAE0AU04UxaMXdoGJ0xQsku
+Qtac2MFKOneBQP07z1IhFZESWcRzz2+1qiwDfpcjO2eG3+bdmCq7AdZ+gj+6ctyR
+slxHjyntsgFcc1qd+xPft50RqWVc7SLKms1CP3BZxa6MuSsptPzmOxG4WF+YGE3a
+f+z7dlPXqyBUnMqdUAHf2T/Er3s5jIZs86re0C6gxlp2/p32zgRRf23nD/HT4I4U
+u/+G09RolWPzZ5EuoGZ8B5kSFCEAgNxIJmsZl1Wah7R0whHDVUT5Pf7fPGFJaAQQ
+UtgRCabaP9lgSUv6SetBl8YStga8RoZji8evJQx+ctd+wbl7zgXWImmQEEjr13kt
+dXpDVrFJc1Ynwzc/96JYxSWZ939OvBnEtg6V1WXpQnxqj839WugYGEu2dRY8M3uw
+LNm7eL2M6gbzXlU/HDXRYDX5zC9VbfxkLhHfqMKonM50SMsUMlJKILernCGhhN/6
+qHXho30yKZHreHhEhkTmFQiTMzdPYvRL5NWVOQwbbAER3zgBVEVWTKF3xyCeijep
+otzZqgTHXsjE+3S19HHQ
+=qhk8
+-----END PGP SIGNATURE-----
+
+--envbJBWh7q8WU6mo--
