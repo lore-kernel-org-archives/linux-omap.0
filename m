@@ -1,71 +1,72 @@
-From: Joachim Eastwood <manabian@gmail.com>
-Subject: Re: [PATCH 1/4] ARM: dts: Add support for OMAP4 Variscite OM44 family
-Date: Fri, 18 Apr 2014 18:17:57 +0200
-Message-ID: <CAGhQ9VysdxGMd99CiVVh8YJt7KDAyy3Pe9YA2VM-G4mzn_6+0g@mail.gmail.com>
-References: <1397833849-22396-1-git-send-email-manabian@gmail.com>
-	<1397833849-22396-2-git-send-email-manabian@gmail.com>
-	<20140418155721.GC5354@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 0/2] add parallel NAND support for TI's new OMAPx and
+ AMxx platforms
+Date: Fri, 18 Apr 2014 09:33:16 -0700
+Message-ID: <20140418163316.GD5354@atomide.com>
+References: <1394617547-25240-1-git-send-email-pekon@ti.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EAB5FA6@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f44.google.com ([209.85.215.44]:43035 "EHLO
-	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751139AbaDRQR6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 12:17:58 -0400
-Received: by mail-la0-f44.google.com with SMTP id c6so1504424lan.17
-        for <linux-omap@vger.kernel.org>; Fri, 18 Apr 2014 09:17:57 -0700 (PDT)
-In-Reply-To: <20140418155721.GC5354@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11203 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751139AbaDRQdU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 12:33:20 -0400
+Content-Disposition: inline
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EAB5FA6@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>
 
-On 18 April 2014 17:57, Tony Lindgren <tony@atomide.com> wrote:
-> * Joachim Eastwood <manabian@gmail.com> [140418 08:11]:
->> Add support for VAR-SOM-OM44[1] SODIMM system on module from Variscite. SoM
->> features a OMAP4460, 1GB RAM, Gigabit Ethernet (LAN7500) and optional WLAN/BT.
->>
->> Also add support for VAR-STK-OM44 development board from Variscite. This kit
->> features a VAR-SOM-OM44 and the carrier board VAR-OM44CustomBoard[2]. The
->> VAR-STK-OM44 is the same as VAR-DVK-OM44 but without the LCD display.
->>
->> omap4-var-stk-om44.dts replace the old and very limited omap4-var-som.dts.
->>
->> [1] http://www.variscite.com/products/system-on-module-som/cortex-a9/var-som-om44-cpu-ti-omap-4-omap4460
->> [2] http://www.variscite.com/products/single-board-computers/var-om44customboard
->>
->> Signed-off-by: Joachim Eastwood <manabian@gmail.com>
->> ---
->>  .../devicetree/bindings/arm/omap/omap.txt          |   3 +
->>  .../devicetree/bindings/vendor-prefixes.txt        |   1 +
->>  arch/arm/boot/dts/Makefile                         |   2 +-
->>  arch/arm/boot/dts/omap4-var-om44customboard.dtsi   | 235 ++++++++++++++
->>  arch/arm/boot/dts/omap4-var-som-om44.dtsi          | 343 +++++++++++++++++++++
->>  arch/arm/boot/dts/omap4-var-som.dts                |  96 ------
->>  arch/arm/boot/dts/omap4-var-stk-om44.dts           |  16 +
->>  7 files changed, 599 insertions(+), 97 deletions(-)
->>  create mode 100644 arch/arm/boot/dts/omap4-var-om44customboard.dtsi
->>  create mode 100644 arch/arm/boot/dts/omap4-var-som-om44.dtsi
->>  delete mode 100644 arch/arm/boot/dts/omap4-var-som.dts
->>  create mode 100644 arch/arm/boot/dts/omap4-var-stk-om44.dts
->
-> Hmm don't you still need to keep omap4-var-som.dts to build just the
-> core SoC module without any add-on boards?
+* Gupta, Pekon <pekon@ti.com> [140327 00:22]:
+> HI Tony,
+> 
+> >From: Gupta, Pekon
+> [...]
+> >I see following patches in your tree/branch  "omap-for-v3.15/dt"
+> >But probably they were omitted in the pull request. Is there something, I need to do for these ?
+> >
+> >	f68e355  2014-03-02  ARM: dts: am43xx: add support for parallel NAND flash
+> >	c06c527  2014-03-02  ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
+> >	91994fa  2014-03-02  ARM: dts: am335x-evm: NAND: update MTD partition table
+> >	0611c41  2014-03-02  ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms and ECC schemes
+> >
+> >
+> >Also, I had sent a [v2] for one of the patches, dropped by you. Please see if that can be picked
+> >	[Patch v2 1/2] ARM: dts: dra7: add support for parallel NAND flash
+> >	[Patch v2 1/2] ARM: dts: am43xx: fix starting offset of NAND.filesystem MTD partition
+> >
+> >
+> Please let me know, if I need to rebase any of the patches in follow series
+> against your for_3.15/dt  or any other branch.
 
-Since VAR-SOM-OM44 is a SODIMM module it is not possible to use
-without a carrier board. Variscite's carrier board is called
-OM44CustomBoard and I am in process of creating my own application
-specific one so the omap4-var-som-om44 should be a dtsi-file.
+Yes please rebase against v3.15-rc1 and repost, otherwise I'll have hard
+time keeping track of what's still missing.
 
-> Also, you might want to use the OMAP4_CORE_IOPAD and OMAP4_WKUP_IOPAD
-> macros in include/dt-bindings/pinctrl/omap.h to be able to check the
-> registers against the TRM easier as you can use the physical register
-> offset listed in the TRM.
+BTW, I think we have few more GPMC issue to debug before we can drop omap3
+legacy booting support:
 
-I don't see any other OMAP4 using these macros. Is there a plan for a
-mass conversion?
-It's really a job for an automated script. But the macro are indeed
-nice. That offset has bothered me more than once.
+1. At least the gpmc_probe_generic_child fails if the device is initialized
+   by the bootloader, and then initialized by the kernel based on the .dts
+   entries. This works just fine when booted in legacy mode.
 
-regards
-Joachim Eastwood
+2. Also gpmc_cs_remap hangs the system if the bootloader address for the
+   device was different from the address in the .dts file.
+
+3. The gpmc_cs_remap should use the ranges property instead of the child
+   reg property. The child reg property should be the offset from the
+   GPMC ranges property as at least smc91x wants 0x300 as the offset to
+   avoid extra warnings from the driver when it checks the address space.
+
+Regards,
+
+Tony
+
+ 
+> (1) [Partly Merged] "add parallel NAND support for TI's new OMAPx and AMxx platforms"
+> http://www.spinics.net/lists/linux-omap/msg104305.html
+> 
+> (2) [New Patches] "add parallel NAND support for TI's new OMAPx and AMxx platforms (part-2)"
+> http://www.spinics.net/lists/linux-omap/msg104668.html
+
