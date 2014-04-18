@@ -1,110 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH trivial 3/3] ARM: dts: Grammar /that will/it will/
-Date: Fri, 18 Apr 2014 15:26:13 -0700
-Message-ID: <20140418222612.GF21823@atomide.com>
-References: <1396001499-17638-1-git-send-email-geert@linux-m68k.org>
- <1396001499-17638-3-git-send-email-geert@linux-m68k.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/1] ARM: dts: omap5: Add clocks to USB3 PHY node
+Date: Fri, 18 Apr 2014 15:29:54 -0700
+Message-ID: <20140418222954.GH21823@atomide.com>
+References: <1396348647-11545-1-git-send-email-rogerq@ti.com>
+ <1396348647-11545-2-git-send-email-rogerq@ti.com>
+ <20140401141308.GB4717@saruman.home>
+ <534B8CC3.7050008@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1396001499-17638-3-git-send-email-geert@linux-m68k.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jiri Kosina <trivial@kernel.org>, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <534B8CC3.7050008-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Geert Uytterhoeven <geert@linux-m68k.org> [140328 03:16]:
-> From: Geert Uytterhoeven <geert+renesas@glider.be>
+* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140414 00:23]:
+> Hi Tony,
+> 
+> On 04/01/2014 05:13 PM, Felipe Balbi wrote:
+> > On Tue, Apr 01, 2014 at 01:37:27PM +0300, Roger Quadros wrote:
+> >> The USB3 PHY driver (ti-pipe3) was updated so that the relevant
+> >> clock phandles are expected in the DT node.
+> >> Provide the necessary clocks.
+> >>
+> >> Reported-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> >> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> > 
+> > Great!!!
+> > 
+> > Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> 
+> Could you please pick this up for 3.15-rc? Thanks.
 
-Applying this too into omap-for-v3.15/fixes thanks.
+Yes applying into omap-for-v3.15/fixes thanks.
 
 Tony
  
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> ---
->  arch/arm/boot/dts/am33xx.dtsi |    4 ++--
->  arch/arm/boot/dts/dra7.dtsi   |    2 +-
->  arch/arm/boot/dts/omap3.dtsi  |    2 +-
->  arch/arm/boot/dts/omap4.dtsi  |    2 +-
->  arch/arm/boot/dts/omap5.dtsi  |    2 +-
->  5 files changed, 6 insertions(+), 6 deletions(-)
+> >>  arch/arm/boot/dts/omap5.dtsi | 6 ++++++
+> >>  1 file changed, 6 insertions(+)
+> >>
+> >> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> >> index 757f0b9..4df1e7a 100644
+> >> --- a/arch/arm/boot/dts/omap5.dtsi
+> >> +++ b/arch/arm/boot/dts/omap5.dtsi
+> >> @@ -794,6 +794,12 @@
+> >>  				      <0x4a084c00 0x40>;
+> >>  				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+> >>  				ctrl-module = <&omap_control_usb3phy>;
+> >> +				clocks = <&usb_phy_cm_clk32k>,
+> >> +					 <&sys_clkin>,
+> >> +					 <&usb_otg_ss_refclk960m>;
+> >> +				clock-names =	"wkupclk",
+> >> +						"sysclk",
+> >> +						"refclk";
+> >>  				#phy-cells = <0>;
+> >>  			};
+> >>  		};
+> >> -- 
+> >> 1.8.3.2
+> >>
+> > 
 > 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 70f7f3eb5fb4..2a66fd484284 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -90,8 +90,8 @@
->  
->  	/*
->  	 * XXX: Use a flat representation of the AM33XX interconnect.
-> -	 * The real AM33XX interconnect network is quite complex.Since
-> -	 * that will not bring real advantage to represent that in DT
-> +	 * The real AM33XX interconnect network is quite complex. Since
-> +	 * it will not bring real advantage to represent that in DT
->  	 * for the moment, just use a fake OCP bus entry to represent
->  	 * the whole bus hierarchy.
->  	 */
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index c19e90ecf95e..9daab63fe457 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -89,7 +89,7 @@
->  	/*
->  	 * XXX: Use a flat representation of the SOC interconnect.
->  	 * The real OMAP interconnect network is quite complex.
-> -	 * Since that will not bring real advantage to represent that in DT for
-> +	 * Since it will not bring real advantage to represent that in DT for
->  	 * the moment, just use a fake OCP bus entry to represent the whole bus
->  	 * hierarchy.
->  	 */
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index a5fc83b9c835..5ae8141d3713 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -69,7 +69,7 @@
->  	/*
->  	 * XXX: Use a flat representation of the OMAP3 interconnect.
->  	 * The real OMAP interconnect network is quite complex.
-> -	 * Since that will not bring real advantage to represent that in DT for
-> +	 * Since it will not bring real advantage to represent that in DT for
->  	 * the moment, just use a fake OCP bus entry to represent the whole bus
->  	 * hierarchy.
->  	 */
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index a07ea359ae20..c95adadb0bbf 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -91,7 +91,7 @@
->  	/*
->  	 * XXX: Use a flat representation of the OMAP4 interconnect.
->  	 * The real OMAP interconnect network is quite complex.
-> -	 * Since that will not bring real advantage to represent that in DT for
-> +	 * Since it will not bring real advantage to represent that in DT for
->  	 * the moment, just use a fake OCP bus entry to represent the whole bus
->  	 * hierarchy.
->  	 */
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index aa9878c0aaad..0d875ba32fa9 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -101,7 +101,7 @@
->  	/*
->  	 * XXX: Use a flat representation of the OMAP3 interconnect.
->  	 * The real OMAP interconnect network is quite complex.
-> -	 * Since that will not bring real advantage to represent that in DT for
-> +	 * Since it will not bring real advantage to represent that in DT for
->  	 * the moment, just use a fake OCP bus entry to represent the whole bus
->  	 * hierarchy.
->  	 */
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
