@@ -1,62 +1,32 @@
-From: Joachim Eastwood <manabian@gmail.com>
-Subject: Re: [PATCH] ARM: dts: Correct offset in OMAP4_WKUP_IOPAD macro
-Date: Sat, 19 Apr 2014 18:25:11 +0200
-Message-ID: <CAGhQ9VwU_BjrD+c9uJn9FBwo6v_BOMUCKwiOW-7eqOu056a79A@mail.gmail.com>
-References: <1397924056-6462-1-git-send-email-manabian@gmail.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCHv3 01/14] Documentation: HSI: Add some general
+ description for the HSI subsystem
+Date: Sat, 19 Apr 2014 21:05:48 +0200
+Message-ID: <20140419190548.GA5148@amd.pavel.ucw.cz>
+References: <1396053110-21639-1-git-send-email-sre@kernel.org>
+ <1396053110-21639-2-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f175.google.com ([209.85.217.175]:53438 "EHLO
-	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505AbaDSQZM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Apr 2014 12:25:12 -0400
-Received: by mail-lb0-f175.google.com with SMTP id w7so2149960lbi.34
-        for <linux-omap@vger.kernel.org>; Sat, 19 Apr 2014 09:25:11 -0700 (PDT)
-In-Reply-To: <1397924056-6462-1-git-send-email-manabian@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1396053110-21639-2-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Carlos Chinea <cch.devel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon-uiMcrn6V0Vs@public.gmane.org>, Joni Lapilainen <joni.lapilainen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Joachim Eastwood <manabian@gmail.com>
 
-On 19 April 2014 18:14, Joachim Eastwood <manabian@gmail.com> wrote:
-> This was introduced in 43a348ea53eb5fd79 but hasn't caused
-> any harm since it don't have any users yet.
+On Sat 2014-03-29 01:31:37, Sebastian Reichel wrote:
+> Add a document, which gives a rough introduction about what HSI
+> is and how its handled by the Linux kernel.
+> 
+> Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Or maybe I am confused about this macro.
+Reviewed-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 
-Tony which offset from the OMAP4 TRM should be used?
-
-Under section 18.6.8 there are is a column with address offset. Is
-this the number you want in the macro?
-
-regards
-Joachim Eastwood
-
-> Signed-off-by: Joachim Eastwood <manabian@gmail.com>
-> ---
-> Hello,
->
-> This one had me puzzled for a while. Wondering why USB
-> suddenly disappeared and suspecting by convert script.
->
->  -JE
->
->  include/dt-bindings/pinctrl/omap.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/pinctrl/omap.h
-> index b04528cd033c..251d1bd17e35 100644
-> --- a/include/dt-bindings/pinctrl/omap.h
-> +++ b/include/dt-bindings/pinctrl/omap.h
-> @@ -63,7 +63,7 @@
->  #define OMAP3_WKUP_IOPAD(pa, val)      OMAP_IOPAD_OFFSET((pa), 0x2a00) (val)
->  #define AM33XX_IOPAD(pa, val)          OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
->  #define OMAP4_CORE_IOPAD(pa, val)      OMAP_IOPAD_OFFSET((pa), 0x0040) (val)
-> -#define OMAP4_WKUP_IOPAD(pa, val)      OMAP_IOPAD_OFFSET((pa), 0xe040) (val)
-> +#define OMAP4_WKUP_IOPAD(pa, val)      OMAP_IOPAD_OFFSET((pa), 0x0040) (val)
->  #define AM4372_IOPAD(pa, val)          OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
->  #define OMAP5_CORE_IOPAD(pa, val)      OMAP_IOPAD_OFFSET((pa), 0x2840) (val)
->  #define OMAP5_WKUP_IOPAD(pa, val)      OMAP_IOPAD_OFFSET((pa), 0xc840) (val)
-> --
-> 1.8.0
->
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
