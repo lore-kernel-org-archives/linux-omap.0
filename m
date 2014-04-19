@@ -1,46 +1,122 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: Add support for the BeagleBoard xM A/B
-Date: Fri, 18 Apr 2014 16:51:20 -0700
-Message-ID: <20140418235119.GS21823@atomide.com>
-References: <1397574599-29573-1-git-send-email-robertcnelson@gmail.com>
- <CAOCHtYg5_Lvi3SWuWaRTDDNhLJ32jiXsKYQmrsKaShVWpM+xWQ@mail.gmail.com>
- <534D51C1.3010007@ti.com>
- <CAOCHtYhygGFbUunY9abEkjKfpQ1hh-DfRfhm160NehSYhWJSRw@mail.gmail.com>
- <20140418225111.GP21823@atomide.com>
- <CAOCHtYjdC-OGkdaBt74xMqi5eDc1eVbU6O7VyWMEYN-U50-Abw@mail.gmail.com>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] dmaengine: edma: Add DMA memcpy support
+Date: Fri, 18 Apr 2014 21:50:33 -0500
+Message-ID: <1397875833-31345-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34783 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691AbaDRXv0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2014 19:51:26 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOCHtYjdC-OGkdaBt74xMqi5eDc1eVbU6O7VyWMEYN-U50-Abw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, devicetree <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <bcousson@baylibre.com>
 
-* Robert Nelson <robertcnelson@gmail.com> [140418 16:42]:
-> On Fri, Apr 18, 2014 at 5:51 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Robert Nelson <robertcnelson@gmail.com> [140415 08:46]:
-> >>
-> >> Background: i also tried getting this having this fixed in u-boot:
-> >
-> > Do we still need to apply this patch then?
-> 
-> Yeah, Tom want's it done in the kernel:
-> 
-> Here's my proposed u-boot patch:
-> http://lists.denx.de/pipermail/u-boot/2014-January/172154.html
-> 
-> and Tom's recommendation:
-> http://lists.denx.de/pipermail/u-boot/2014-January/172274.html
-> 
-> Once this hits mainline, i'll submit a patch to u-boot to check for
-> the presence of this version and drop to the old dtb if not found.
+We add DMA memcpy support to EDMA driver. Successful tests performed using
+dmatest kernel module. Copy alignment is set to DMA_SLAVE_BUSWIDTH_4_BYTES and
+users must ensure length is aligned so that copy is performed fully.
 
-OK applying into omap-for-v3.15/fixes thanks.
+Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+---
+ drivers/dma/edma.c |   51 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
 
-Tony
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 25a75e2..072f642 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -378,6 +378,11 @@ static int edma_config_pset(struct dma_chan *chan, struct edmacc_param *pset,
+ 		src_cidx = 0;
+ 		dst_bidx = acnt;
+ 		dst_cidx = cidx;
++	} else if (direction == DMA_MEM_TO_MEM)  {
++		src_bidx = acnt;
++		src_cidx = cidx;
++		dst_bidx = acnt;
++		dst_cidx = cidx;
+ 	} else {
+ 		dev_err(dev, "%s: direction not implemented yet\n", __func__);
+ 		return -EINVAL;
+@@ -498,6 +503,44 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
+ 	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
+ }
+ 
++struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
++	struct dma_chan *chan, dma_addr_t dest, dma_addr_t src,
++	size_t len, unsigned long tx_flags)
++{
++	int ret;
++	struct edma_desc *edesc;
++	struct device *dev = chan->device->dev;
++	struct edma_chan *echan = to_edma_chan(chan);
++
++	if (unlikely(!echan || !len))
++		return NULL;
++
++	edesc = kzalloc(sizeof(*edesc) + sizeof(edesc->pset[0]), GFP_ATOMIC);
++	if (!edesc) {
++		dev_dbg(dev, "Failed to allocate a descriptor\n");
++		return NULL;
++	}
++
++	edesc->pset_nr = 1;
++
++	ret = edma_config_pset(chan, &edesc->pset[0], src, dest, 1,
++			       DMA_SLAVE_BUSWIDTH_4_BYTES, len, DMA_MEM_TO_MEM);
++	if (ret < 0)
++		return NULL;
++
++	edesc->absync = ret;
++
++	/*
++	 * Enable intermediate transfer chaining to re-trigger channel
++	 * on completion of every TR, and enable transfer-completion
++	 * interrupt on completion of the whole transfer.
++	 */
++	edesc->pset[0].opt |= ITCCHEN;
++	edesc->pset[0].opt |= TCINTEN;
++
++	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
++}
++
+ static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
+ 	struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+ 	size_t period_len, enum dma_transfer_direction direction,
+@@ -875,6 +918,7 @@ static void edma_dma_init(struct edma_cc *ecc, struct dma_device *dma,
+ {
+ 	dma->device_prep_slave_sg = edma_prep_slave_sg;
+ 	dma->device_prep_dma_cyclic = edma_prep_dma_cyclic;
++	dma->device_prep_dma_memcpy = edma_prep_dma_memcpy;
+ 	dma->device_alloc_chan_resources = edma_alloc_chan_resources;
+ 	dma->device_free_chan_resources = edma_free_chan_resources;
+ 	dma->device_issue_pending = edma_issue_pending;
+@@ -883,6 +927,12 @@ static void edma_dma_init(struct edma_cc *ecc, struct dma_device *dma,
+ 	dma->device_slave_caps = edma_dma_device_slave_caps;
+ 	dma->dev = dev;
+ 
++	/*
++	 * code using dma memcpy must make sure alignment of
++	 * length is at dma->copy_align boundary.
++	 */
++	dma->copy_align = DMA_SLAVE_BUSWIDTH_4_BYTES;
++
+ 	INIT_LIST_HEAD(&dma->channels);
+ }
+ 
+@@ -911,6 +961,7 @@ static int edma_probe(struct platform_device *pdev)
+ 	dma_cap_zero(ecc->dma_slave.cap_mask);
+ 	dma_cap_set(DMA_SLAVE, ecc->dma_slave.cap_mask);
+ 	dma_cap_set(DMA_CYCLIC, ecc->dma_slave.cap_mask);
++	dma_cap_set(DMA_MEMCPY, ecc->dma_slave.cap_mask);
+ 
+ 	edma_dma_init(ecc, &ecc->dma_slave, &pdev->dev);
+ 
+-- 
+1.7.9.5
