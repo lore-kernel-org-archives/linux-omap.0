@@ -1,29 +1,47 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH v2 05/13] extcon: extcon-class: improve extcon client API
-Date: Sat, 19 Apr 2014 13:52:26 +0300
-Message-ID: <20140419105225.GB976@ambient.musicnaut.iki.fi>
-References: <1397475984-28001-1-git-send-email-r.baldyga@samsung.com>
- <1397475984-28001-6-git-send-email-r.baldyga@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1397475984-28001-6-git-send-email-r.baldyga@samsung.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Robert Baldyga <r.baldyga@samsung.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, myungjoo.ham@samsung.com, cw00.choi@samsung.com, dbaryshkov@gmail.com, dwmw2@infradead.org, balbi@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, ldewangan@nvidia.com, kishon@ti.com, gg@slimlogic.co.uk, anton@enomsg.org, jonghwa3.lee@samsung.com, rongjun.ying@csr.com, linux@roeck-us.net, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, m.szyprowski@samsung.com, t.figa@samsung.com
+From: Joachim Eastwood <manabian@gmail.com>
+Subject: [PATCH] ARM: dts: Correct offset in OMAP4_WKUP_IOPAD macro
+Date: Sat, 19 Apr 2014 18:14:16 +0200
+Message-ID: <1397924056-6462-1-git-send-email-manabian@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:33703 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751453AbaDSQO0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Apr 2014 12:14:26 -0400
+Received: by mail-lb0-f174.google.com with SMTP id u14so2113155lbd.19
+        for <linux-omap@vger.kernel.org>; Sat, 19 Apr 2014 09:14:25 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Joachim Eastwood <manabian@gmail.com>
 
-Hi,
+This was introduced in 43a348ea53eb5fd79 but hasn't caused
+any harm since it don't have any users yet.
 
-On Mon, Apr 14, 2014 at 01:46:16PM +0200, Robert Baldyga wrote:
->  	dev_info(&pdev->dev,
-> -		 "OMAP USB OTG controller rev %d.%d (%s, id=%d, vbus=%d)\n",
-> -		 (rev >> 4) & 0xf, rev & 0xf, config->extcon, otg_dev->id,
-> +		 "OMAP USB OTG controller rev %d.%d (id=%d, vbus=%d)\n",
-> +		 (rev >> 4) & 0xf, rev & 0xf, otg_dev->id,
->  		 otg_dev->vbus);
+Signed-off-by: Joachim Eastwood <manabian@gmail.com>
+---
+Hello,
 
-This change is unrelated to the patch and not needed.
+This one had me puzzled for a while. Wondering why USB
+suddenly disappeared and suspecting by convert script.
 
-A.
+ -JE
+
+ include/dt-bindings/pinctrl/omap.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/pinctrl/omap.h
+index b04528cd033c..251d1bd17e35 100644
+--- a/include/dt-bindings/pinctrl/omap.h
++++ b/include/dt-bindings/pinctrl/omap.h
+@@ -63,7 +63,7 @@
+ #define OMAP3_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2a00) (val)
+ #define AM33XX_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+ #define OMAP4_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x0040) (val)
+-#define OMAP4_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0xe040) (val)
++#define OMAP4_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x0040) (val)
+ #define AM4372_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+ #define OMAP5_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2840) (val)
+ #define OMAP5_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0xc840) (val)
+-- 
+1.8.0
+
