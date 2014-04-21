@@ -1,118 +1,70 @@
-From: Joachim Eastwood <manabian@gmail.com>
-Subject: Re: L3 custom error from dmtimer.c
-Date: Mon, 21 Apr 2014 19:04:17 +0200
-Message-ID: <CAGhQ9VwW3PSXZrtap55PDf54naTPjYmVXU8NTO=f0tTWKSN5Gg@mail.gmail.com>
-References: <CAGhQ9VwTqsxYk2f7dhH-M+afHJiFNdeUTK=5EYw-OCN3s88z9Q@mail.gmail.com>
-	<53553BD7.5090907@ti.com>
-	<CAGhQ9VwqmDMJcJbzFA4MHSHdw2nbdNNwdL6SmEH+W4+1VEAe-A@mail.gmail.com>
-	<535548FE.3030808@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 0/5] mmc: host: omap_hsmmc: a few improvements
+Date: Mon, 21 Apr 2014 12:32:04 -0500
+Message-ID: <20140421173203.GH22794@saruman.home>
+References: <1395878690-9650-1-git-send-email-balbi@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:34711 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753131AbaDURET (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2014 13:04:19 -0400
-Received: by mail-la0-f45.google.com with SMTP id hr17so3422143lab.32
-        for <linux-omap@vger.kernel.org>; Mon, 21 Apr 2014 10:04:17 -0700 (PDT)
-In-Reply-To: <535548FE.3030808@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="CEUtFxTsmBsHRLs3"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1395878690-9650-1-git-send-email-balbi@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Balaji T K <balajitk@ti.com>, chris@printf.net, ulf.hansson@linaro.org, linux-mmc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On 21 April 2014 18:36, Joel Fernandes <joelf@ti.com> wrote:
-> On 04/21/2014 10:57 AM, Joachim Eastwood wrote:
->> On 21 April 2014 17:40, Joel Fernandes <joelf@ti.com> wrote:
->>> On 04/19/2014 05:25 PM, Joachim Eastwood wrote:
->>>> Hello,
->>>>
->>>> Playing around with an old OMAP pwm driver from NeilBrown. I get the
->>>> following warning:
->>>> [ 0.979522] omap-pwm omap-pwm.14: omap_dm_timer_set_load
->>>> [ 0.979553] ------------[ cut here ]------------
->>>> [ 0.979583] WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:113
->>>> l3_interrupt_handler+0xf4/0x154()
->>>> [ 0.979583] L3 custom error: MASTER:MPU TARGET:L4 PER2
->>>> [ 0.979614] Modules linked in:
->>>> [ 0.979614] CPU: 0 PID: 0 Comm: swapper/0 Not tainted
->>>> 3.15.0-rc1-00370-gd9d79f4b7b7d-dirty #65
->>>> [ 0.979644] [<c0014f48>] (unwind_backtrace) from [<c0011c2c>]
->>>> (show_stack+0x10/0x14)
->>>> [ 0.979675] [<c0011c2c>] (show_stack) from [<c05ad3bc>] (dump_stack+0x84/0x94)
->>>> [ 0.979705] [<c05ad3bc>] (dump_stack) from [<c0036ba8>]
->>>> (warn_slowpath_common+0x70/0x8c)
->>>> [ 0.979705] omap-pwm omap-pwm.14: omap_dm_timer_set_match
->>>> [ 0.979736] [<c0036ba8>] (warn_slowpath_common) from [<c0036bf4>]
->>>> (warn_slowpath_fmt+0x30/0x40)
->>>> [ 0.979736] [<c0036bf4>] (warn_slowpath_fmt) from [<c0286c90>]
->>>> (l3_interrupt_handler+0xf4/0x154)
->>>> [ 0.979766] [<c0286c90>] (l3_interrupt_handler) from [<c0085d1c>]
->>>> (handle_irq_event_percpu+0x54/0x1cc)
->>>> [ 0.979766] [<c0085d1c>] (handle_irq_event_percpu) from [<c0085ed0>]
->>>> (handle_irq_event+0x3c/0x5c)
->>>> [ 0.979797] [<c0085ed0>] (handle_irq_event) from [<c0088ed0>]
->>>> (handle_fasteoi_irq+0xac/0x1a0)
->>>> [ 0.979797] [<c0088ed0>] (handle_fasteoi_irq) from [<c00853fc>]
->>>> (generic_handle_irq+0x2c/0x3c)
->>>> [ 0.979827] [<c00853fc>] (generic_handle_irq) from [<c000eb20>]
->>>> (handle_IRQ+0x40/0x90)
->>>> [ 0.979827] [<c000eb20>] (handle_IRQ) from [<c0008594>]
->>>> (gic_handle_irq+0x2c/0x5c)
->>>> [ 0.979858] [<c0008594>] (gic_handle_irq) from [<c05b4a44>]
->>>> (__irq_svc+0x44/0x58)
->>>> [ 0.979858] Exception stack(0xc0889f58 to 0xc0889fa0)
->>>> [ 0.979858] 9f40: 00000001 00000001
->>>> [ 0.979888] 9f60: 00000000 c0893678 c0888000 c0888000 c08e75a4
->>>> c0890548 c0888000 ee7ffc00
->>>> [ 0.979888] omap-pwm omap-pwm.14: load value: 0xfffd11fe (-192002),
->>>> match value: 0xfffffffe (-2)
->>>> [ 0.979888] 9f80: c08904e0 c05bdcec 00000000 c0889fa0 c007a190
->>>> c000ee48 20000113 ffffffff
->>>> [ 0.979919] [<c05b4a44>] (__irq_svc) from [<c000ee48>] (arch_cpu_idle+0x24/0x30)
->>>> [ 0.979919] [<c000ee48>] (arch_cpu_idle) from [<c0071950>]
->>>> (cpu_startup_entry+0x138/0x204)
->>>> [ 0.979949] [<c0071950>] (cpu_startup_entry) from [<c0822b10>]
->>>> (start_kernel+0x370/0x37c)
->>>> [ 0.979980] [<c0822b10>] (start_kernel) from [<80008074>] (0x80008074)
->>>> [ 0.979980] omap-pwm omap-pwm.14: omap_dm_timer_set_pwm
->>>> [ 0.980010] omap-pwm omap-pwm.14: omap_pwm_enable
->>>> [ 0.980010] omap-pwm omap-pwm.14: omap_dm_timer_start
->>>> [ 0.980010] omap-pwm omap-pwm.14: omap_dm_timer_write_counter
->>>> [ 0.980041] ---[ end trace 5d002a14ec98c2ad ]---
->>>>
->>>> This seems to be caused by the call into omap_dm_timer_set_load.
->>>>
->>>
->>> Are you talking about this?
->>> https://lkml.org/lkml/2012/12/12/51
->>>
->>> It doesn't seem to be in mainline though.
->>
->> No, it isn't. I am trying to revive it and get it upstream.
->>
->>> I'll add a check for the enable/disable, thanks.
->>
->> Note that the warning I got might be cause by the pwm-omap and it's
->> use of dmtimer api. I will investigate further.
->>
->> But either way add a check to enable/disable is a good idea.
->>
->
-> Sure, I added the check. The patch depends on a few other pending
-> patches so I just zipped all together. It would be great if you could
-> apply them and confirm it fixes the problem, then I can add your
-> tested-by and include it in the next series.
+--CEUtFxTsmBsHRLs3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for zip-file, Joel.
+Hi,
 
-I can confirm that the pwm-omap driver still works with dmtimer after
-applying your patch set.
-So feel free to add: Tested-by: Joachim Eastwood <manabian@gmail.com>
+On Wed, Mar 26, 2014 at 07:04:45PM -0500, Felipe Balbi wrote:
+> this series lets us access the newer registers introduced
+> back in OMAP4 which give us some valid information about
+> the OMAP HSMMC IP like max block size, support for ADMA,
+> support for Retention.
+>=20
+> Right now, only setting max_blk_size correctly as supporting
+> ADMA and Retention will take a lot of work.
+>=20
+> Tested on OMAP5 uEVM.
+>=20
+> Felipe Balbi (5):
+>   mmc: host: omap_hsmmc: pass host as an argument
+>   mmc: host: omap_hsmmc: add reg_offset field
+>   mmc: host: omap_hsmmc: introduce new accessor functions
+>   mmc: host: omap_hsmmc: switch over to new accessors
+>   mmc: host: omap_hsmmc: set max_blk_size correctly
 
-Have just a small comment on the "dmtimer: Check return of
-pm_runtime_get_sync". I see that you use pr_err, but since you have a
-dev pointer available maybe you should use dev_err instead.
+this has been here for almost a month, any comments ?
 
-regards
-Joachim Eastwood
+--=20
+balbi
+
+--CEUtFxTsmBsHRLs3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTVVYTAAoJEIaOsuA1yqREC1QQAKN1hJ+u2Jd13AFvIt09j91T
+LMJz908joUX9yOQk989qRS5JE4jN2lsXcJ9RWoDLYVQ3OKdpgHFEv0DyPDcR62qy
+7eHrEH3UuIlRYazO5dLQVc7zYs4hYhNIsRN9drbHdGVk61aQ/kdye9NMyOr4zA7C
+AfY8afhgi9G6aQc1TVcP2fWtXlhOsi5QaxBC7tlR1glXwGhgxmi3hEf1uXvMi0DJ
+0FIofkR9egFCmB7JuCSACwDklX66GJTm5I/KISXuRidC/ha+ZVIpMZH94H6lw+ab
+aaoa5LSVtrqr7rA4vDMg3i7pLOboGWoMjoxZIQ8lUB1dIvAMANc8PgYrO8lKvANH
+r3SoRXZlHPTeKPbVxIjvDjN0ql5ZWK/EyQ42oEQv7XuwEHwZAgMYHdcMoAH9D13C
+xdA1rqxT8Sj4PUP5FaKeI8TRpxfVeEwACkRf4rJW609FJbg6SuysnZ9Pk6/9D0Oe
+ynrOxipIqbvGOta0R9VlgPwuOEEqEkjpaZO5s6L+wpscwChU56AcAfPmKsBSofT4
+4n1QFqQtCGpMApFJejVK9hl7CRP1b/3blQN8vEDeA/GnwHGUa7HUNEqYGQVX/0F8
+BxTAs1oZh6l3SG6cBXcg+YBg/lDheSUBr/kLeYCec2FmnKNT3pEDKM9ykECgbiBD
+fI8p4MFUdV0TlATUas9J
+=rtoW
+-----END PGP SIGNATURE-----
+
+--CEUtFxTsmBsHRLs3--
