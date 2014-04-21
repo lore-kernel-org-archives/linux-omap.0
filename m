@@ -1,631 +1,230 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 05/10] usb: gadget: only GPL drivers in the gadget and phy framework
-Date: Mon, 21 Apr 2014 10:56:47 -0500
-Message-ID: <1398095812-14222-6-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 07/10] usb: phy: rename <linux/usb/usb_phy_gen_xceiv.h> to <linux/usb/usb_phy_generic.h>
+Date: Mon, 21 Apr 2014 10:56:49 -0500
+Message-ID: <1398095812-14222-8-git-send-email-balbi@ti.com>
 References: <1398095812-14222-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1398095812-14222-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, leigh-0TD6cqJ6btAqdlJmJB21zg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43408 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751646AbaDUP7W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Apr 2014 11:59:22 -0400
+In-Reply-To: <1398095812-14222-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linux USB Mailing List <linux-usb@vger.kernel.org>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, leigh@solinno.co.uk, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 
-We only support GPL drivers in the USB Gadget Framework,
-it sounds correct to make all exported symbols GPL too.
+now that all functions match the driver name,
+the only missing piece is to rename the header
+file itself.
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/gadget/configfs.c       |  2 +-
- drivers/usb/gadget/f_fs.c           |  6 ++---
- drivers/usb/gadget/f_rndis.c        |  2 +-
- drivers/usb/gadget/rndis.c          | 28 ++++++++++----------
- drivers/usb/gadget/storage_common.c | 52 ++++++++++++++++++-------------------
- drivers/usb/gadget/u_ether.c        | 32 +++++++++++------------
- drivers/usb/gadget/u_f.c            |  2 +-
- drivers/usb/phy/phy-generic.c       |  4 +--
- 8 files changed, 64 insertions(+), 64 deletions(-)
+ arch/arm/mach-omap2/board-omap3beagle.c                      | 1 -
+ arch/arm/mach-omap2/usb-host.c                               | 2 +-
+ drivers/usb/dwc3/dwc3-exynos.c                               | 2 +-
+ drivers/usb/dwc3/dwc3-pci.c                                  | 2 +-
+ drivers/usb/musb/am35x.c                                     | 2 +-
+ drivers/usb/musb/blackfin.c                                  | 2 +-
+ drivers/usb/musb/da8xx.c                                     | 2 +-
+ drivers/usb/musb/davinci.c                                   | 2 +-
+ drivers/usb/musb/musb_dsps.c                                 | 2 +-
+ drivers/usb/musb/tusb6010.c                                  | 2 +-
+ drivers/usb/phy/phy-am335x.c                                 | 2 +-
+ drivers/usb/phy/phy-generic.c                                | 2 +-
+ drivers/usb/phy/phy-generic.h                                | 2 +-
+ drivers/usb/phy/phy-keystone.c                               | 2 +-
+ include/linux/usb/{usb_phy_gen_xceiv.h => usb_phy_generic.h} | 0
+ 15 files changed, 13 insertions(+), 14 deletions(-)
+ rename include/linux/usb/{usb_phy_gen_xceiv.h => usb_phy_generic.h} (100%)
 
-diff --git a/drivers/usb/gadget/configfs.c b/drivers/usb/gadget/configfs.c
-index 7d1cc01..dcead55 100644
---- a/drivers/usb/gadget/configfs.c
-+++ b/drivers/usb/gadget/configfs.c
-@@ -1005,7 +1005,7 @@ void unregister_gadget_item(struct config_item *item)
- 
- 	unregister_gadget(gi);
- }
--EXPORT_SYMBOL(unregister_gadget_item);
-+EXPORT_SYMBOL_GPL(unregister_gadget_item);
- 
- static int __init gadget_cfs_init(void)
- {
-diff --git a/drivers/usb/gadget/f_fs.c b/drivers/usb/gadget/f_fs.c
-index 2e164dc..a01b3bd 100644
---- a/drivers/usb/gadget/f_fs.c
-+++ b/drivers/usb/gadget/f_fs.c
-@@ -190,7 +190,7 @@ ffs_sb_create_file(struct super_block *sb, const char *name, void *data,
- /* Devices management *******************************************************/
- 
- DEFINE_MUTEX(ffs_lock);
--EXPORT_SYMBOL(ffs_lock);
-+EXPORT_SYMBOL_GPL(ffs_lock);
- 
- static struct ffs_dev *_ffs_find_dev(const char *name);
- static struct ffs_dev *_ffs_alloc_dev(void);
-@@ -2876,7 +2876,7 @@ int ffs_name_dev(struct ffs_dev *dev, const char *name)
- 
- 	return ret;
- }
--EXPORT_SYMBOL(ffs_name_dev);
-+EXPORT_SYMBOL_GPL(ffs_name_dev);
- 
- int ffs_single_dev(struct ffs_dev *dev)
- {
-@@ -2893,7 +2893,7 @@ int ffs_single_dev(struct ffs_dev *dev)
- 	ffs_dev_unlock();
- 	return ret;
- }
--EXPORT_SYMBOL(ffs_single_dev);
-+EXPORT_SYMBOL_GPL(ffs_single_dev);
- 
- /*
-  * ffs_lock must be taken by the caller of this function
-diff --git a/drivers/usb/gadget/f_rndis.c b/drivers/usb/gadget/f_rndis.c
-index c11761c..139bc9c 100644
---- a/drivers/usb/gadget/f_rndis.c
-+++ b/drivers/usb/gadget/f_rndis.c
-@@ -834,7 +834,7 @@ void rndis_borrow_net(struct usb_function_instance *f, struct net_device *net)
- 	opts->borrowed_net = opts->bound = true;
- 	opts->net = net;
- }
--EXPORT_SYMBOL(rndis_borrow_net);
-+EXPORT_SYMBOL_GPL(rndis_borrow_net);
- 
- static inline struct f_rndis_opts *to_f_rndis_opts(struct config_item *item)
- {
-diff --git a/drivers/usb/gadget/rndis.c b/drivers/usb/gadget/rndis.c
-index d822d82..4c36694 100644
---- a/drivers/usb/gadget/rndis.c
-+++ b/drivers/usb/gadget/rndis.c
-@@ -760,7 +760,7 @@ int rndis_signal_connect(int configNr)
- 	return rndis_indicate_status_msg(configNr,
- 					  RNDIS_STATUS_MEDIA_CONNECT);
- }
--EXPORT_SYMBOL(rndis_signal_connect);
-+EXPORT_SYMBOL_GPL(rndis_signal_connect);
- 
- int rndis_signal_disconnect(int configNr)
- {
-@@ -769,7 +769,7 @@ int rndis_signal_disconnect(int configNr)
- 	return rndis_indicate_status_msg(configNr,
- 					  RNDIS_STATUS_MEDIA_DISCONNECT);
- }
--EXPORT_SYMBOL(rndis_signal_disconnect);
-+EXPORT_SYMBOL_GPL(rndis_signal_disconnect);
- 
- void rndis_uninit(int configNr)
- {
-@@ -784,13 +784,13 @@ void rndis_uninit(int configNr)
- 	while ((buf = rndis_get_next_response(configNr, &length)))
- 		rndis_free_response(configNr, buf);
- }
--EXPORT_SYMBOL(rndis_uninit);
-+EXPORT_SYMBOL_GPL(rndis_uninit);
- 
- void rndis_set_host_mac(int configNr, const u8 *addr)
- {
- 	rndis_per_dev_params[configNr].host_mac = addr;
- }
--EXPORT_SYMBOL(rndis_set_host_mac);
-+EXPORT_SYMBOL_GPL(rndis_set_host_mac);
- 
- /*
-  * Message Parser
-@@ -873,7 +873,7 @@ int rndis_msg_parser(u8 configNr, u8 *buf)
- 
- 	return -ENOTSUPP;
- }
--EXPORT_SYMBOL(rndis_msg_parser);
-+EXPORT_SYMBOL_GPL(rndis_msg_parser);
- 
- int rndis_register(void (*resp_avail)(void *v), void *v)
- {
-@@ -895,7 +895,7 @@ int rndis_register(void (*resp_avail)(void *v), void *v)
- 
- 	return -ENODEV;
- }
--EXPORT_SYMBOL(rndis_register);
-+EXPORT_SYMBOL_GPL(rndis_register);
- 
- void rndis_deregister(int configNr)
- {
-@@ -904,7 +904,7 @@ void rndis_deregister(int configNr)
- 	if (configNr >= RNDIS_MAX_CONFIGS) return;
- 	rndis_per_dev_params[configNr].used = 0;
- }
--EXPORT_SYMBOL(rndis_deregister);
-+EXPORT_SYMBOL_GPL(rndis_deregister);
- 
- int rndis_set_param_dev(u8 configNr, struct net_device *dev, u16 *cdc_filter)
- {
-@@ -918,7 +918,7 @@ int rndis_set_param_dev(u8 configNr, struct net_device *dev, u16 *cdc_filter)
- 
- 	return 0;
- }
--EXPORT_SYMBOL(rndis_set_param_dev);
-+EXPORT_SYMBOL_GPL(rndis_set_param_dev);
- 
- int rndis_set_param_vendor(u8 configNr, u32 vendorID, const char *vendorDescr)
- {
-@@ -931,7 +931,7 @@ int rndis_set_param_vendor(u8 configNr, u32 vendorID, const char *vendorDescr)
- 
- 	return 0;
- }
--EXPORT_SYMBOL(rndis_set_param_vendor);
-+EXPORT_SYMBOL_GPL(rndis_set_param_vendor);
- 
- int rndis_set_param_medium(u8 configNr, u32 medium, u32 speed)
- {
-@@ -943,7 +943,7 @@ int rndis_set_param_medium(u8 configNr, u32 medium, u32 speed)
- 
- 	return 0;
- }
--EXPORT_SYMBOL(rndis_set_param_medium);
-+EXPORT_SYMBOL_GPL(rndis_set_param_medium);
- 
- void rndis_add_hdr(struct sk_buff *skb)
- {
-@@ -958,7 +958,7 @@ void rndis_add_hdr(struct sk_buff *skb)
- 	header->DataOffset = cpu_to_le32(36);
- 	header->DataLength = cpu_to_le32(skb->len - sizeof(*header));
- }
--EXPORT_SYMBOL(rndis_add_hdr);
-+EXPORT_SYMBOL_GPL(rndis_add_hdr);
- 
- void rndis_free_response(int configNr, u8 *buf)
- {
-@@ -975,7 +975,7 @@ void rndis_free_response(int configNr, u8 *buf)
- 		}
- 	}
- }
--EXPORT_SYMBOL(rndis_free_response);
-+EXPORT_SYMBOL_GPL(rndis_free_response);
- 
- u8 *rndis_get_next_response(int configNr, u32 *length)
- {
-@@ -997,7 +997,7 @@ u8 *rndis_get_next_response(int configNr, u32 *length)
- 
- 	return NULL;
- }
--EXPORT_SYMBOL(rndis_get_next_response);
-+EXPORT_SYMBOL_GPL(rndis_get_next_response);
- 
- static rndis_resp_t *rndis_add_response(int configNr, u32 length)
- {
-@@ -1041,7 +1041,7 @@ int rndis_rm_hdr(struct gether *port,
- 	skb_queue_tail(list, skb);
- 	return 0;
- }
--EXPORT_SYMBOL(rndis_rm_hdr);
-+EXPORT_SYMBOL_GPL(rndis_rm_hdr);
- 
- #ifdef CONFIG_USB_GADGET_DEBUG_FILES
- 
-diff --git a/drivers/usb/gadget/storage_common.c b/drivers/usb/gadget/storage_common.c
-index ec20a1f..ff205a7 100644
---- a/drivers/usb/gadget/storage_common.c
-+++ b/drivers/usb/gadget/storage_common.c
-@@ -43,7 +43,7 @@ struct usb_interface_descriptor fsg_intf_desc = {
- 	.bInterfaceProtocol =	USB_PR_BULK,	/* Adjusted during fsg_bind() */
- 	.iInterface =		FSG_STRING_INTERFACE,
- };
--EXPORT_SYMBOL(fsg_intf_desc);
-+EXPORT_SYMBOL_GPL(fsg_intf_desc);
- 
- /*
-  * Three full-speed endpoint descriptors: bulk-in, bulk-out, and
-@@ -58,7 +58,7 @@ struct usb_endpoint_descriptor fsg_fs_bulk_in_desc = {
- 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
- 	/* wMaxPacketSize set by autoconfiguration */
- };
--EXPORT_SYMBOL(fsg_fs_bulk_in_desc);
-+EXPORT_SYMBOL_GPL(fsg_fs_bulk_in_desc);
- 
- struct usb_endpoint_descriptor fsg_fs_bulk_out_desc = {
- 	.bLength =		USB_DT_ENDPOINT_SIZE,
-@@ -68,7 +68,7 @@ struct usb_endpoint_descriptor fsg_fs_bulk_out_desc = {
- 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
- 	/* wMaxPacketSize set by autoconfiguration */
- };
--EXPORT_SYMBOL(fsg_fs_bulk_out_desc);
-+EXPORT_SYMBOL_GPL(fsg_fs_bulk_out_desc);
- 
- struct usb_descriptor_header *fsg_fs_function[] = {
- 	(struct usb_descriptor_header *) &fsg_intf_desc,
-@@ -76,7 +76,7 @@ struct usb_descriptor_header *fsg_fs_function[] = {
- 	(struct usb_descriptor_header *) &fsg_fs_bulk_out_desc,
- 	NULL,
- };
--EXPORT_SYMBOL(fsg_fs_function);
-+EXPORT_SYMBOL_GPL(fsg_fs_function);
- 
- 
- /*
-@@ -95,7 +95,7 @@ struct usb_endpoint_descriptor fsg_hs_bulk_in_desc = {
- 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
- 	.wMaxPacketSize =	cpu_to_le16(512),
- };
--EXPORT_SYMBOL(fsg_hs_bulk_in_desc);
-+EXPORT_SYMBOL_GPL(fsg_hs_bulk_in_desc);
- 
- struct usb_endpoint_descriptor fsg_hs_bulk_out_desc = {
- 	.bLength =		USB_DT_ENDPOINT_SIZE,
-@@ -106,7 +106,7 @@ struct usb_endpoint_descriptor fsg_hs_bulk_out_desc = {
- 	.wMaxPacketSize =	cpu_to_le16(512),
- 	.bInterval =		1,	/* NAK every 1 uframe */
- };
--EXPORT_SYMBOL(fsg_hs_bulk_out_desc);
-+EXPORT_SYMBOL_GPL(fsg_hs_bulk_out_desc);
- 
- 
- struct usb_descriptor_header *fsg_hs_function[] = {
-@@ -115,7 +115,7 @@ struct usb_descriptor_header *fsg_hs_function[] = {
- 	(struct usb_descriptor_header *) &fsg_hs_bulk_out_desc,
- 	NULL,
- };
--EXPORT_SYMBOL(fsg_hs_function);
-+EXPORT_SYMBOL_GPL(fsg_hs_function);
- 
- struct usb_endpoint_descriptor fsg_ss_bulk_in_desc = {
- 	.bLength =		USB_DT_ENDPOINT_SIZE,
-@@ -125,7 +125,7 @@ struct usb_endpoint_descriptor fsg_ss_bulk_in_desc = {
- 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
- 	.wMaxPacketSize =	cpu_to_le16(1024),
- };
--EXPORT_SYMBOL(fsg_ss_bulk_in_desc);
-+EXPORT_SYMBOL_GPL(fsg_ss_bulk_in_desc);
- 
- struct usb_ss_ep_comp_descriptor fsg_ss_bulk_in_comp_desc = {
- 	.bLength =		sizeof(fsg_ss_bulk_in_comp_desc),
-@@ -133,7 +133,7 @@ struct usb_ss_ep_comp_descriptor fsg_ss_bulk_in_comp_desc = {
- 
- 	/*.bMaxBurst =		DYNAMIC, */
- };
--EXPORT_SYMBOL(fsg_ss_bulk_in_comp_desc);
-+EXPORT_SYMBOL_GPL(fsg_ss_bulk_in_comp_desc);
- 
- struct usb_endpoint_descriptor fsg_ss_bulk_out_desc = {
- 	.bLength =		USB_DT_ENDPOINT_SIZE,
-@@ -143,7 +143,7 @@ struct usb_endpoint_descriptor fsg_ss_bulk_out_desc = {
- 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
- 	.wMaxPacketSize =	cpu_to_le16(1024),
- };
--EXPORT_SYMBOL(fsg_ss_bulk_out_desc);
-+EXPORT_SYMBOL_GPL(fsg_ss_bulk_out_desc);
- 
- struct usb_ss_ep_comp_descriptor fsg_ss_bulk_out_comp_desc = {
- 	.bLength =		sizeof(fsg_ss_bulk_in_comp_desc),
-@@ -151,7 +151,7 @@ struct usb_ss_ep_comp_descriptor fsg_ss_bulk_out_comp_desc = {
- 
- 	/*.bMaxBurst =		DYNAMIC, */
- };
--EXPORT_SYMBOL(fsg_ss_bulk_out_comp_desc);
-+EXPORT_SYMBOL_GPL(fsg_ss_bulk_out_comp_desc);
- 
- struct usb_descriptor_header *fsg_ss_function[] = {
- 	(struct usb_descriptor_header *) &fsg_intf_desc,
-@@ -161,7 +161,7 @@ struct usb_descriptor_header *fsg_ss_function[] = {
- 	(struct usb_descriptor_header *) &fsg_ss_bulk_out_comp_desc,
- 	NULL,
- };
--EXPORT_SYMBOL(fsg_ss_function);
-+EXPORT_SYMBOL_GPL(fsg_ss_function);
- 
- 
-  /*-------------------------------------------------------------------------*/
-@@ -179,7 +179,7 @@ void fsg_lun_close(struct fsg_lun *curlun)
- 		curlun->filp = NULL;
- 	}
- }
--EXPORT_SYMBOL(fsg_lun_close);
-+EXPORT_SYMBOL_GPL(fsg_lun_close);
- 
- int fsg_lun_open(struct fsg_lun *curlun, const char *filename)
- {
-@@ -278,7 +278,7 @@ out:
- 	fput(filp);
- 	return rc;
- }
--EXPORT_SYMBOL(fsg_lun_open);
-+EXPORT_SYMBOL_GPL(fsg_lun_open);
- 
- 
- /*-------------------------------------------------------------------------*/
-@@ -295,7 +295,7 @@ int fsg_lun_fsync_sub(struct fsg_lun *curlun)
- 		return 0;
- 	return vfs_fsync(filp, 1);
- }
--EXPORT_SYMBOL(fsg_lun_fsync_sub);
-+EXPORT_SYMBOL_GPL(fsg_lun_fsync_sub);
- 
- void store_cdrom_address(u8 *dest, int msf, u32 addr)
- {
-@@ -314,7 +314,7 @@ void store_cdrom_address(u8 *dest, int msf, u32 addr)
- 		put_unaligned_be32(addr, dest);
- 	}
- }
--EXPORT_SYMBOL(store_cdrom_address);
-+EXPORT_SYMBOL_GPL(store_cdrom_address);
- 
- /*-------------------------------------------------------------------------*/
- 
-@@ -325,13 +325,13 @@ ssize_t fsg_show_ro(struct fsg_lun *curlun, char *buf)
- 				  ? curlun->ro
- 				  : curlun->initially_ro);
- }
--EXPORT_SYMBOL(fsg_show_ro);
-+EXPORT_SYMBOL_GPL(fsg_show_ro);
- 
- ssize_t fsg_show_nofua(struct fsg_lun *curlun, char *buf)
- {
- 	return sprintf(buf, "%u\n", curlun->nofua);
- }
--EXPORT_SYMBOL(fsg_show_nofua);
-+EXPORT_SYMBOL_GPL(fsg_show_nofua);
- 
- ssize_t fsg_show_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
- 		      char *buf)
-@@ -357,19 +357,19 @@ ssize_t fsg_show_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
- 	up_read(filesem);
- 	return rc;
- }
--EXPORT_SYMBOL(fsg_show_file);
-+EXPORT_SYMBOL_GPL(fsg_show_file);
- 
- ssize_t fsg_show_cdrom(struct fsg_lun *curlun, char *buf)
- {
- 	return sprintf(buf, "%u\n", curlun->cdrom);
- }
--EXPORT_SYMBOL(fsg_show_cdrom);
-+EXPORT_SYMBOL_GPL(fsg_show_cdrom);
- 
- ssize_t fsg_show_removable(struct fsg_lun *curlun, char *buf)
- {
- 	return sprintf(buf, "%u\n", curlun->removable);
- }
--EXPORT_SYMBOL(fsg_show_removable);
-+EXPORT_SYMBOL_GPL(fsg_show_removable);
- 
- /*
-  * The caller must hold fsg->filesem for reading when calling this function.
-@@ -410,7 +410,7 @@ ssize_t fsg_store_ro(struct fsg_lun *curlun, struct rw_semaphore *filesem,
- 
- 	return rc;
- }
--EXPORT_SYMBOL(fsg_store_ro);
-+EXPORT_SYMBOL_GPL(fsg_store_ro);
- 
- ssize_t fsg_store_nofua(struct fsg_lun *curlun, const char *buf, size_t count)
- {
-@@ -429,7 +429,7 @@ ssize_t fsg_store_nofua(struct fsg_lun *curlun, const char *buf, size_t count)
- 
- 	return count;
- }
--EXPORT_SYMBOL(fsg_store_nofua);
-+EXPORT_SYMBOL_GPL(fsg_store_nofua);
- 
- ssize_t fsg_store_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
- 		       const char *buf, size_t count)
-@@ -460,7 +460,7 @@ ssize_t fsg_store_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
- 	up_write(filesem);
- 	return (rc < 0 ? rc : count);
- }
--EXPORT_SYMBOL(fsg_store_file);
-+EXPORT_SYMBOL_GPL(fsg_store_file);
- 
- ssize_t fsg_store_cdrom(struct fsg_lun *curlun, struct rw_semaphore *filesem,
- 			const char *buf, size_t count)
-@@ -483,7 +483,7 @@ ssize_t fsg_store_cdrom(struct fsg_lun *curlun, struct rw_semaphore *filesem,
- 
- 	return ret;
- }
--EXPORT_SYMBOL(fsg_store_cdrom);
-+EXPORT_SYMBOL_GPL(fsg_store_cdrom);
- 
- ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
- 			    size_t count)
-@@ -499,6 +499,6 @@ ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
- 
- 	return count;
- }
--EXPORT_SYMBOL(fsg_store_removable);
-+EXPORT_SYMBOL_GPL(fsg_store_removable);
- 
- MODULE_LICENSE("GPL");
-diff --git a/drivers/usb/gadget/u_ether.c b/drivers/usb/gadget/u_ether.c
-index 50d09c2..216bbd1 100644
---- a/drivers/usb/gadget/u_ether.c
-+++ b/drivers/usb/gadget/u_ether.c
-@@ -841,7 +841,7 @@ struct eth_dev *gether_setup_name(struct usb_gadget *g,
- 
- 	return dev;
- }
--EXPORT_SYMBOL(gether_setup_name);
-+EXPORT_SYMBOL_GPL(gether_setup_name);
- 
- struct net_device *gether_setup_name_default(const char *netname)
- {
-@@ -879,7 +879,7 @@ struct net_device *gether_setup_name_default(const char *netname)
- 
- 	return net;
- }
--EXPORT_SYMBOL(gether_setup_name_default);
-+EXPORT_SYMBOL_GPL(gether_setup_name_default);
- 
- int gether_register_netdev(struct net_device *net)
- {
-@@ -917,7 +917,7 @@ int gether_register_netdev(struct net_device *net)
- 
- 	return status;
- }
--EXPORT_SYMBOL(gether_register_netdev);
-+EXPORT_SYMBOL_GPL(gether_register_netdev);
- 
- void gether_set_gadget(struct net_device *net, struct usb_gadget *g)
- {
-@@ -927,7 +927,7 @@ void gether_set_gadget(struct net_device *net, struct usb_gadget *g)
- 	dev->gadget = g;
- 	SET_NETDEV_DEV(net, &g->dev);
- }
--EXPORT_SYMBOL(gether_set_gadget);
-+EXPORT_SYMBOL_GPL(gether_set_gadget);
- 
- int gether_set_dev_addr(struct net_device *net, const char *dev_addr)
- {
-@@ -940,7 +940,7 @@ int gether_set_dev_addr(struct net_device *net, const char *dev_addr)
- 	memcpy(dev->dev_mac, new_addr, ETH_ALEN);
- 	return 0;
- }
--EXPORT_SYMBOL(gether_set_dev_addr);
-+EXPORT_SYMBOL_GPL(gether_set_dev_addr);
- 
- int gether_get_dev_addr(struct net_device *net, char *dev_addr, int len)
- {
-@@ -949,7 +949,7 @@ int gether_get_dev_addr(struct net_device *net, char *dev_addr, int len)
- 	dev = netdev_priv(net);
- 	return get_ether_addr_str(dev->dev_mac, dev_addr, len);
- }
--EXPORT_SYMBOL(gether_get_dev_addr);
-+EXPORT_SYMBOL_GPL(gether_get_dev_addr);
- 
- int gether_set_host_addr(struct net_device *net, const char *host_addr)
- {
-@@ -962,7 +962,7 @@ int gether_set_host_addr(struct net_device *net, const char *host_addr)
- 	memcpy(dev->host_mac, new_addr, ETH_ALEN);
- 	return 0;
- }
--EXPORT_SYMBOL(gether_set_host_addr);
-+EXPORT_SYMBOL_GPL(gether_set_host_addr);
- 
- int gether_get_host_addr(struct net_device *net, char *host_addr, int len)
- {
-@@ -971,7 +971,7 @@ int gether_get_host_addr(struct net_device *net, char *host_addr, int len)
- 	dev = netdev_priv(net);
- 	return get_ether_addr_str(dev->host_mac, host_addr, len);
- }
--EXPORT_SYMBOL(gether_get_host_addr);
-+EXPORT_SYMBOL_GPL(gether_get_host_addr);
- 
- int gether_get_host_addr_cdc(struct net_device *net, char *host_addr, int len)
- {
-@@ -985,7 +985,7 @@ int gether_get_host_addr_cdc(struct net_device *net, char *host_addr, int len)
- 
- 	return strlen(host_addr);
- }
--EXPORT_SYMBOL(gether_get_host_addr_cdc);
-+EXPORT_SYMBOL_GPL(gether_get_host_addr_cdc);
- 
- void gether_get_host_addr_u8(struct net_device *net, u8 host_mac[ETH_ALEN])
- {
-@@ -994,7 +994,7 @@ void gether_get_host_addr_u8(struct net_device *net, u8 host_mac[ETH_ALEN])
- 	dev = netdev_priv(net);
- 	memcpy(host_mac, dev->host_mac, ETH_ALEN);
- }
--EXPORT_SYMBOL(gether_get_host_addr_u8);
-+EXPORT_SYMBOL_GPL(gether_get_host_addr_u8);
- 
- void gether_set_qmult(struct net_device *net, unsigned qmult)
- {
-@@ -1003,7 +1003,7 @@ void gether_set_qmult(struct net_device *net, unsigned qmult)
- 	dev = netdev_priv(net);
- 	dev->qmult = qmult;
- }
--EXPORT_SYMBOL(gether_set_qmult);
-+EXPORT_SYMBOL_GPL(gether_set_qmult);
- 
- unsigned gether_get_qmult(struct net_device *net)
- {
-@@ -1012,7 +1012,7 @@ unsigned gether_get_qmult(struct net_device *net)
- 	dev = netdev_priv(net);
- 	return dev->qmult;
- }
--EXPORT_SYMBOL(gether_get_qmult);
-+EXPORT_SYMBOL_GPL(gether_get_qmult);
- 
- int gether_get_ifname(struct net_device *net, char *name, int len)
- {
-@@ -1021,7 +1021,7 @@ int gether_get_ifname(struct net_device *net, char *name, int len)
- 	rtnl_unlock();
- 	return strlen(name);
- }
--EXPORT_SYMBOL(gether_get_ifname);
-+EXPORT_SYMBOL_GPL(gether_get_ifname);
- 
- /**
-  * gether_cleanup - remove Ethernet-over-USB device
-@@ -1038,7 +1038,7 @@ void gether_cleanup(struct eth_dev *dev)
- 	flush_work(&dev->work);
- 	free_netdev(dev->net);
- }
--EXPORT_SYMBOL(gether_cleanup);
-+EXPORT_SYMBOL_GPL(gether_cleanup);
- 
- /**
-  * gether_connect - notify network layer that USB link is active
-@@ -1119,7 +1119,7 @@ fail0:
- 		return ERR_PTR(result);
- 	return dev->net;
- }
--EXPORT_SYMBOL(gether_connect);
-+EXPORT_SYMBOL_GPL(gether_connect);
- 
- /**
-  * gether_disconnect - notify network layer that USB link is inactive
-@@ -1197,7 +1197,7 @@ void gether_disconnect(struct gether *link)
- 	dev->port_usb = NULL;
- 	spin_unlock(&dev->lock);
- }
--EXPORT_SYMBOL(gether_disconnect);
-+EXPORT_SYMBOL_GPL(gether_disconnect);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("David Brownell");
-diff --git a/drivers/usb/gadget/u_f.c b/drivers/usb/gadget/u_f.c
-index 63b6642..c6276f0 100644
---- a/drivers/usb/gadget/u_f.c
-+++ b/drivers/usb/gadget/u_f.c
-@@ -29,4 +29,4 @@ struct usb_request *alloc_ep_req(struct usb_ep *ep, int len, int default_len)
- 	}
- 	return req;
- }
--EXPORT_SYMBOL(alloc_ep_req);
-+EXPORT_SYMBOL_GPL(alloc_ep_req);
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index d6ed819..660bfc5 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -33,7 +33,6 @@
+ #include <linux/mtd/nand.h>
+ #include <linux/mmc/host.h>
+ #include <linux/usb/phy.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
+ 
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c/twl.h>
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index ab983cd..745367c 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -28,7 +28,7 @@
+ #include <linux/io.h>
+ #include <linux/gpio.h>
+ #include <linux/usb/phy.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ 
+ #include "soc.h"
+ #include "omap_device.h"
+diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
+index 821cc59..ed22d72 100644
+--- a/drivers/usb/dwc3/dwc3-exynos.c
++++ b/drivers/usb/dwc3/dwc3-exynos.c
+@@ -24,7 +24,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/clk.h>
+ #include <linux/usb/otg.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+ 
+diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
+index 8b162f0..1ed95e0 100644
+--- a/drivers/usb/dwc3/dwc3-pci.c
++++ b/drivers/usb/dwc3/dwc3-pci.c
+@@ -23,7 +23,7 @@
+ #include <linux/platform_device.h>
+ 
+ #include <linux/usb/otg.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ 
+ /* FIXME define these in <linux/pci_ids.h> */
+ #define PCI_VENDOR_ID_SYNOPSYS		0x16c3
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index 77ed664..044cd82 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -32,7 +32,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ #include <linux/platform_data/usb-omap.h>
+ 
+ #include "musb_core.h"
+diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+index 607f3ae..c9992a2 100644
+--- a/drivers/usb/musb/blackfin.c
++++ b/drivers/usb/musb/blackfin.c
+@@ -18,7 +18,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/prefetch.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ 
+ #include <asm/cacheflush.h>
+ 
+diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+index bcdce8e..a0dabb0 100644
+--- a/drivers/usb/musb/da8xx.c
++++ b/drivers/usb/musb/da8xx.c
+@@ -32,7 +32,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ 
+ #include <mach/da8xx.h>
+ #include <linux/platform_data/usb-davinci.h>
+diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
+index c0e07ed..7370354 100644
+--- a/drivers/usb/musb/davinci.c
++++ b/drivers/usb/musb/davinci.c
+@@ -32,7 +32,7 @@
+ #include <linux/gpio.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ 
+ #include <mach/cputype.h>
+ #include <mach/hardware.h>
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 3372ded..1888292 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -35,7 +35,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/module.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ #include <linux/platform_data/usb-omap.h>
+ #include <linux/sizes.h>
+ 
+diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+index 0c0f5ee..8d4a819 100644
+--- a/drivers/usb/musb/tusb6010.c
++++ b/drivers/usb/musb/tusb6010.c
+@@ -24,7 +24,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ 
+ #include "musb_core.h"
+ 
+diff --git a/drivers/usb/phy/phy-am335x.c b/drivers/usb/phy/phy-am335x.c
+index bb866e4..585e50c 100644
+--- a/drivers/usb/phy/phy-am335x.c
++++ b/drivers/usb/phy/phy-am335x.c
+@@ -2,7 +2,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/usb/otg.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ #include <linux/slab.h>
+ #include <linux/clk.h>
+ #include <linux/regulator/consumer.h>
 diff --git a/drivers/usb/phy/phy-generic.c b/drivers/usb/phy/phy-generic.c
-index bb39498..95e70bc 100644
+index e76ca4c..2c49cd8 100644
 --- a/drivers/usb/phy/phy-generic.c
 +++ b/drivers/usb/phy/phy-generic.c
-@@ -54,14 +54,14 @@ void usb_nop_xceiv_register(void)
- 		return;
- 	}
- }
--EXPORT_SYMBOL(usb_nop_xceiv_register);
-+EXPORT_SYMBOL_GPL(usb_nop_xceiv_register);
+@@ -30,7 +30,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/usb/otg.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ #include <linux/slab.h>
+ #include <linux/clk.h>
+ #include <linux/regulator/consumer.h>
+diff --git a/drivers/usb/phy/phy-generic.h b/drivers/usb/phy/phy-generic.h
+index f32450a..d8feacc 100644
+--- a/drivers/usb/phy/phy-generic.h
++++ b/drivers/usb/phy/phy-generic.h
+@@ -1,7 +1,7 @@
+ #ifndef _PHY_GENERIC_H_
+ #define _PHY_GENERIC_H_
  
- void usb_nop_xceiv_unregister(void)
- {
- 	platform_device_unregister(pd);
- 	pd = NULL;
- }
--EXPORT_SYMBOL(usb_nop_xceiv_unregister);
-+EXPORT_SYMBOL_GPL(usb_nop_xceiv_unregister);
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
  
- static int nop_set_suspend(struct usb_phy *x, int suspend)
- {
+ struct usb_phy_generic {
+ 	struct usb_phy phy;
+diff --git a/drivers/usb/phy/phy-keystone.c b/drivers/usb/phy/phy-keystone.c
+index 2404c44..f4d722d 100644
+--- a/drivers/usb/phy/phy-keystone.c
++++ b/drivers/usb/phy/phy-keystone.c
+@@ -18,7 +18,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
++#include <linux/usb/usb_phy_generic.h>
+ #include <linux/io.h>
+ #include <linux/of.h>
+ 
+diff --git a/include/linux/usb/usb_phy_gen_xceiv.h b/include/linux/usb/usb_phy_generic.h
+similarity index 100%
+rename from include/linux/usb/usb_phy_gen_xceiv.h
+rename to include/linux/usb/usb_phy_generic.h
 -- 
 1.9.2.459.g68773ac
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
