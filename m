@@ -1,81 +1,57 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCHv3 07/14] HSI: Add common DT binding for HSI client devices
-Date: Mon, 21 Apr 2014 11:52:11 -0500
-Message-ID: <CAL_JsqLMAj7LewzkOk+tSyaZcS8CXyeozY5zMAY=iTWueuVuVA@mail.gmail.com>
-References: <1396053110-21639-1-git-send-email-sre@kernel.org>
-	<1396053110-21639-8-git-send-email-sre@kernel.org>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 00/10] dma: edma: Fixes for cyclic (audio) operation
+Date: Mon, 21 Apr 2014 11:54:55 -0500
+Message-ID: <53554D5F.9020105@ti.com>
+References: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f182.google.com ([209.85.220.182]:50559 "EHLO
-	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238AbaDUQwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2014 12:52:12 -0400
-In-Reply-To: <1396053110-21639-8-git-send-email-sre@kernel.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1397475725-5036-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, =?UTF-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On Fri, Mar 28, 2014 at 7:31 PM, Sebastian Reichel <sre@kernel.org> wrote:
-> Implement and document generic DT bindings for HSI clients.
->
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+Hi Vinod, Dan,
 
-Seems pretty reasonable although I know little about HSI.
+On 04/14/2014 06:41 AM, Peter Ujfalusi wrote:
+> Hi,
+> 
+> Changes since v2:
+> - Dropped patch 10 from v2 (simplify direction configuration...)
+> - Dropped the channel priority related patches since we are going to go via
+>   different route for configuring the priority.
+> - Added ACK from Joel for the patches since they are not changed since v2
+> 
+> Changes since v1:
+> - ASoC patches removed
+> - Comments from Andriy Shevchenko addressed
+> - patch added to fix cases when src/dst_maxburst is set to 0
+> 
+> The series contains now only:
+> Support for DMA pause/resume in cyclic mode
+> device_slave_caps callback and DMA_CYCLIC flag correction.
+> While debugging the edma to get things sorted out I noticed that the debug was
+> too verbose and the important information was hidden even when the we did not
+> asked for verbose dmaengine debug.
+> I have included some debug cleanups for the edma dmaengine driver also.
 
-> ---
->  .../devicetree/bindings/hsi/client-devices.txt     |  44 +++++
->  drivers/hsi/hsi.c                                  | 197 ++++++++++++++++++++-
->  include/linux/hsi/hsi.h                            |   2 +
->  3 files changed, 241 insertions(+), 2 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/hsi/client-devices.txt
->
-> diff --git a/Documentation/devicetree/bindings/hsi/client-devices.txt b/Documentation/devicetree/bindings/hsi/client-devices.txt
-> new file mode 100644
-> index 0000000..7504cb1
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/hsi/client-devices.txt
-> @@ -0,0 +1,44 @@
-> +Each HSI port is supposed to have one child node, which
-> +symbols the remote device connected to the HSI port. The
-> +following properties are standardized for HSI clients:
-> +
-> +Required HSI configuration properties:
-> +
-> +- reg:                 A list of channel ids
-> +
-> +- hsi-rx-mode:         Receiver Bit transmission mode ("stream" or "frame")
-> +- hsi-tx-mode:         Transmitter Bit transmission mode ("stream" or "frame")
-> +- hsi-mode:            May be used instead hsi-rx-mode and hsi-tx-mode if
-> +                       the transmission mode is the same for receiver and
-> +                       transmitter
-> +- hsi-speed-kbps:      Max bit transmission speed in kbit/s
-> +- hsi-flow:            RX flow type ("synchronized" or "pipeline")
-> +- hsi-arb-mode:                Arbitration mode for TX frame ("round-robin", "priority")
-> +
-> +Optional HSI configuration properties:
-> +
-> +- reg-names:           A list with one name per channel specified in the
-> +                       reg property
-> +
-> +
-> +Device Tree node example for an HSI client:
-> +
-> +hsi-controller {
-> +       hsi-port {
-> +               modem: hsi-client {
-> +                       compatible = "nokia,n900-modem";
+I reviewed/tested these patches and they look OK to me. Also the point
+of contention was priority which is now dropped from the series. If the
+patches look OK and there are no further review comments can they be
+queued for -next?
 
-Is there only 1 version of HSI? If not, then perhaps you need to know
-what version a client is.
+I also have a memcpy and another fix patch for edma so I could queue all
+together in my tree and send a consolidated pull request to make it easier.
 
-> +
-> +                       reg = <0>, <1>, <2>, <3>;
-
-Where do these numbers get defined? Are they always 0-N?
-
-I don't see much advantage to using reg. Perhaps something like
-hsi-channel-ids would be better.
-
-Rob
+thanks,
+ -Joel
