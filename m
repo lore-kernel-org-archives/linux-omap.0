@@ -1,83 +1,62 @@
-From: Joachim Eastwood <manabian@gmail.com>
-Subject: L3 custom error from dmtimer.c
-Date: Sun, 20 Apr 2014 00:25:00 +0200
-Message-ID: <CAGhQ9VwTqsxYk2f7dhH-M+afHJiFNdeUTK=5EYw-OCN3s88z9Q@mail.gmail.com>
+From: Vivek Gautam <gautam.vivek@samsung.com>
+Subject: Re: [PATCH RFC 3/4] xhci: Tune PHY for the DWC3-Exynos host controller
+Date: Mon, 21 Apr 2014 09:50:47 +0530
+Message-ID: <CAFp+6iGictwugB2A3ddpW2T7h-eSQ5vkM1RVrWsboGtWE1SkMg@mail.gmail.com>
+References: <1386672926-26885-1-git-send-email-gautam.vivek@samsung.com>
+	<1386672926-26885-4-git-send-email-gautam.vivek@samsung.com>
+	<20131210135548.GA28456@xps8300>
+	<CAFp+6iGAdDgC=21VjCUjx3u_ZohhCyj2nG8qzvz3CHTZzoXWJQ@mail.gmail.com>
+	<20140416141239.GB30528@xps8300>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:37205 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751270AbaDSWZC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Apr 2014 18:25:02 -0400
-Received: by mail-la0-f49.google.com with SMTP id mc6so2252531lab.36
-        for <linux-omap@vger.kernel.org>; Sat, 19 Apr 2014 15:25:00 -0700 (PDT)
+Received: from mail-qa0-f54.google.com ([209.85.216.54]:64180 "EHLO
+	mail-qa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750744AbaDUEUt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2014 00:20:49 -0400
+In-Reply-To: <20140416141239.GB30528@xps8300>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, "Fernandes, Joel" <joelf@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, kishon <kishon@ti.com>, Jingoo Han <jg1.han@samsung.com>, Julius Werner <jwerner@chromium.org>
 
-Hello,
+Hi,
 
-Playing around with an old OMAP pwm driver from NeilBrown. I get the
-following warning:
-[ 0.979522] omap-pwm omap-pwm.14: omap_dm_timer_set_load
-[ 0.979553] ------------[ cut here ]------------
-[ 0.979583] WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:113
-l3_interrupt_handler+0xf4/0x154()
-[ 0.979583] L3 custom error: MASTER:MPU TARGET:L4 PER2
-[ 0.979614] Modules linked in:
-[ 0.979614] CPU: 0 PID: 0 Comm: swapper/0 Not tainted
-3.15.0-rc1-00370-gd9d79f4b7b7d-dirty #65
-[ 0.979644] [<c0014f48>] (unwind_backtrace) from [<c0011c2c>]
-(show_stack+0x10/0x14)
-[ 0.979675] [<c0011c2c>] (show_stack) from [<c05ad3bc>] (dump_stack+0x84/0x94)
-[ 0.979705] [<c05ad3bc>] (dump_stack) from [<c0036ba8>]
-(warn_slowpath_common+0x70/0x8c)
-[ 0.979705] omap-pwm omap-pwm.14: omap_dm_timer_set_match
-[ 0.979736] [<c0036ba8>] (warn_slowpath_common) from [<c0036bf4>]
-(warn_slowpath_fmt+0x30/0x40)
-[ 0.979736] [<c0036bf4>] (warn_slowpath_fmt) from [<c0286c90>]
-(l3_interrupt_handler+0xf4/0x154)
-[ 0.979766] [<c0286c90>] (l3_interrupt_handler) from [<c0085d1c>]
-(handle_irq_event_percpu+0x54/0x1cc)
-[ 0.979766] [<c0085d1c>] (handle_irq_event_percpu) from [<c0085ed0>]
-(handle_irq_event+0x3c/0x5c)
-[ 0.979797] [<c0085ed0>] (handle_irq_event) from [<c0088ed0>]
-(handle_fasteoi_irq+0xac/0x1a0)
-[ 0.979797] [<c0088ed0>] (handle_fasteoi_irq) from [<c00853fc>]
-(generic_handle_irq+0x2c/0x3c)
-[ 0.979827] [<c00853fc>] (generic_handle_irq) from [<c000eb20>]
-(handle_IRQ+0x40/0x90)
-[ 0.979827] [<c000eb20>] (handle_IRQ) from [<c0008594>]
-(gic_handle_irq+0x2c/0x5c)
-[ 0.979858] [<c0008594>] (gic_handle_irq) from [<c05b4a44>]
-(__irq_svc+0x44/0x58)
-[ 0.979858] Exception stack(0xc0889f58 to 0xc0889fa0)
-[ 0.979858] 9f40: 00000001 00000001
-[ 0.979888] 9f60: 00000000 c0893678 c0888000 c0888000 c08e75a4
-c0890548 c0888000 ee7ffc00
-[ 0.979888] omap-pwm omap-pwm.14: load value: 0xfffd11fe (-192002),
-match value: 0xfffffffe (-2)
-[ 0.979888] 9f80: c08904e0 c05bdcec 00000000 c0889fa0 c007a190
-c000ee48 20000113 ffffffff
-[ 0.979919] [<c05b4a44>] (__irq_svc) from [<c000ee48>] (arch_cpu_idle+0x24/0x30)
-[ 0.979919] [<c000ee48>] (arch_cpu_idle) from [<c0071950>]
-(cpu_startup_entry+0x138/0x204)
-[ 0.979949] [<c0071950>] (cpu_startup_entry) from [<c0822b10>]
-(start_kernel+0x370/0x37c)
-[ 0.979980] [<c0822b10>] (start_kernel) from [<80008074>] (0x80008074)
-[ 0.979980] omap-pwm omap-pwm.14: omap_dm_timer_set_pwm
-[ 0.980010] omap-pwm omap-pwm.14: omap_pwm_enable
-[ 0.980010] omap-pwm omap-pwm.14: omap_dm_timer_start
-[ 0.980010] omap-pwm omap-pwm.14: omap_dm_timer_write_counter
-[ 0.980041] ---[ end trace 5d002a14ec98c2ad ]---
 
-This seems to be caused by the call into omap_dm_timer_set_load.
+On Wed, Apr 16, 2014 at 7:42 PM, Heikki Krogerus
+<heikki.krogerus@linux.intel.com> wrote:
+> Hi,
+>
+> On Tue, Apr 15, 2014 at 06:24:11PM +0530, Vivek Gautam wrote:
+>> I had seen your patches in the mailing list, but i don't see any
+>> updated version of these patches.
+>> Are you planning to work on this above mentioned patch-series any time soon ?
+>
+> I'm sorry, I forgot this completely. I have not prepared new version
+> of those patches as the drivers I need them for are not ready yet, but
+> I guess I can also use this case as justification for them.
+>
+>> Or, should i try to find a different approach for handling the phy
+>> from the host controller (child of DWC3 in this case, which has the
+>> phys).
+>
+> Well, there is now an issue with the lookup method I'm suggesting in
+> this case. Since the device ID is now generated automatically for
+> xhci-hcd in dwc3, we don't know the xhci-hcd device name before
+> platform_device_add(), and that is too late.
 
-dmtimer.c has a couple of calls to pm_runtime_get_sync where the
-return value is not checked. I assume it's same problem as with
-omap-des.c which Nishanth fixed some days ago.
-http://marc.info/?l=linux-omap&m=139758112228474&w=2
+True, the xhci-hcd are getting AUTO ID, so it might not be possible to
+get their device
+names in dwc3.
 
-regards
-Joachim Eastwood
+> I don't see why the
+> device could not be named when platform_device_alloc() is called, so I
+> think I'll suggest something like the attached patch to fix this
+> issue
+
+Ok, i had a look at the patch, and it looks promising.
+
+>
+> In any case, I'll send an updated version of the phy patches soon.
+
+Thanks for your efforts.
