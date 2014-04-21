@@ -1,70 +1,34 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/5] mmc: host: omap_hsmmc: a few improvements
-Date: Mon, 21 Apr 2014 12:32:04 -0500
-Message-ID: <20140421173203.GH22794@saruman.home>
-References: <1395878690-9650-1-git-send-email-balbi@ti.com>
-Reply-To: <balbi@ti.com>
+From: Ben Davis <bdavis@swri.org>
+Subject: GPMC fails at clk_get
+Date: Mon, 21 Apr 2014 17:29:01 +0000
+Message-ID: <6646911DE04D7341A1CB05F0FD48887F1259CC@swri16exbe1.electro.swri.edu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CEUtFxTsmBsHRLs3"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1395878690-9650-1-git-send-email-balbi@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Balaji T K <balajitk@ti.com>, chris@printf.net, ulf.hansson@linaro.org, linux-mmc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from esg256-2.itc.swri.edu ([129.162.243.101]:43056 "EHLO
+	esg256-2.itc.swri.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753217AbaDUSW3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2014 14:22:29 -0400
+Received: from exchmail.swri.org (casht256-1.adm.swri.edu [129.162.243.120])
+	by esg256-2.itc.swri.edu (8.14.5/8.14.5) with ESMTP id s3LHVxBE029609
+	(version=TLSv1/SSLv3 cipher=AES128-SHA bits=128 verify=NOT)
+	for <linux-omap@vger.kernel.org>; Mon, 21 Apr 2014 12:31:59 -0500
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---CEUtFxTsmBsHRLs3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+my client has "volun-told" me update my design from my functional 3.12 kernel to the 3.15 kernel.  On doing so, my GPMC kernel modules no longer load due to the following:
 
-Hi,
+omap-gpmc 50000000.gpmc: error: clk_get
+omap-gpmc: probe of 50000000.gpmc failed with error -2
 
-On Wed, Mar 26, 2014 at 07:04:45PM -0500, Felipe Balbi wrote:
-> this series lets us access the newer registers introduced
-> back in OMAP4 which give us some valid information about
-> the OMAP HSMMC IP like max block size, support for ADMA,
-> support for Retention.
->=20
-> Right now, only setting max_blk_size correctly as supporting
-> ADMA and Retention will take a lot of work.
->=20
-> Tested on OMAP5 uEVM.
->=20
-> Felipe Balbi (5):
->   mmc: host: omap_hsmmc: pass host as an argument
->   mmc: host: omap_hsmmc: add reg_offset field
->   mmc: host: omap_hsmmc: introduce new accessor functions
->   mmc: host: omap_hsmmc: switch over to new accessors
->   mmc: host: omap_hsmmc: set max_blk_size correctly
+this is at line 1643 of gpmc.c.
 
-this has been here for almost a month, any comments ?
+I had to hack the kernel to get my GPMC f-clock operational in 3.12 and presume my issue is due to the evolution of the clocks and integration of the DT.  Perhaps I am coming in mid-modification?
 
---=20
-balbi
+I am continuing to investigate but if there is a simple solution I would love to any help you can offer.
 
---CEUtFxTsmBsHRLs3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTVVYTAAoJEIaOsuA1yqREC1QQAKN1hJ+u2Jd13AFvIt09j91T
-LMJz908joUX9yOQk989qRS5JE4jN2lsXcJ9RWoDLYVQ3OKdpgHFEv0DyPDcR62qy
-7eHrEH3UuIlRYazO5dLQVc7zYs4hYhNIsRN9drbHdGVk61aQ/kdye9NMyOr4zA7C
-AfY8afhgi9G6aQc1TVcP2fWtXlhOsi5QaxBC7tlR1glXwGhgxmi3hEf1uXvMi0DJ
-0FIofkR9egFCmB7JuCSACwDklX66GJTm5I/KISXuRidC/ha+ZVIpMZH94H6lw+ab
-aaoa5LSVtrqr7rA4vDMg3i7pLOboGWoMjoxZIQ8lUB1dIvAMANc8PgYrO8lKvANH
-r3SoRXZlHPTeKPbVxIjvDjN0ql5ZWK/EyQ42oEQv7XuwEHwZAgMYHdcMoAH9D13C
-xdA1rqxT8Sj4PUP5FaKeI8TRpxfVeEwACkRf4rJW609FJbg6SuysnZ9Pk6/9D0Oe
-ynrOxipIqbvGOta0R9VlgPwuOEEqEkjpaZO5s6L+wpscwChU56AcAfPmKsBSofT4
-4n1QFqQtCGpMApFJejVK9hl7CRP1b/3blQN8vEDeA/GnwHGUa7HUNEqYGQVX/0F8
-BxTAs1oZh6l3SG6cBXcg+YBg/lDheSUBr/kLeYCec2FmnKNT3pEDKM9ykECgbiBD
-fI8p4MFUdV0TlATUas9J
-=rtoW
------END PGP SIGNATURE-----
-
---CEUtFxTsmBsHRLs3--
+Cheers,
+Benjamin 
