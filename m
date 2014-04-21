@@ -1,99 +1,73 @@
-From: Joachim Eastwood <manabian@gmail.com>
-Subject: Re: L3 custom error from dmtimer.c
-Date: Mon, 21 Apr 2014 17:57:09 +0200
-Message-ID: <CAGhQ9VwqmDMJcJbzFA4MHSHdw2nbdNNwdL6SmEH+W4+1VEAe-A@mail.gmail.com>
-References: <CAGhQ9VwTqsxYk2f7dhH-M+afHJiFNdeUTK=5EYw-OCN3s88z9Q@mail.gmail.com>
-	<53553BD7.5090907@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 00/10] usb: generic cleanup patches
+Date: Mon, 21 Apr 2014 10:56:42 -0500
+Message-ID: <1398095812-14222-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f53.google.com ([209.85.215.53]:63384 "EHLO
-	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751294AbaDUP5K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2014 11:57:10 -0400
-Received: by mail-la0-f53.google.com with SMTP id b8so3336251lan.12
-        for <linux-omap@vger.kernel.org>; Mon, 21 Apr 2014 08:57:09 -0700 (PDT)
-In-Reply-To: <53553BD7.5090907@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, leigh-0TD6cqJ6btAqdlJmJB21zg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On 21 April 2014 17:40, Joel Fernandes <joelf@ti.com> wrote:
-> On 04/19/2014 05:25 PM, Joachim Eastwood wrote:
->> Hello,
->>
->> Playing around with an old OMAP pwm driver from NeilBrown. I get the
->> following warning:
->> [ 0.979522] omap-pwm omap-pwm.14: omap_dm_timer_set_load
->> [ 0.979553] ------------[ cut here ]------------
->> [ 0.979583] WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:113
->> l3_interrupt_handler+0xf4/0x154()
->> [ 0.979583] L3 custom error: MASTER:MPU TARGET:L4 PER2
->> [ 0.979614] Modules linked in:
->> [ 0.979614] CPU: 0 PID: 0 Comm: swapper/0 Not tainted
->> 3.15.0-rc1-00370-gd9d79f4b7b7d-dirty #65
->> [ 0.979644] [<c0014f48>] (unwind_backtrace) from [<c0011c2c>]
->> (show_stack+0x10/0x14)
->> [ 0.979675] [<c0011c2c>] (show_stack) from [<c05ad3bc>] (dump_stack+0x84/0x94)
->> [ 0.979705] [<c05ad3bc>] (dump_stack) from [<c0036ba8>]
->> (warn_slowpath_common+0x70/0x8c)
->> [ 0.979705] omap-pwm omap-pwm.14: omap_dm_timer_set_match
->> [ 0.979736] [<c0036ba8>] (warn_slowpath_common) from [<c0036bf4>]
->> (warn_slowpath_fmt+0x30/0x40)
->> [ 0.979736] [<c0036bf4>] (warn_slowpath_fmt) from [<c0286c90>]
->> (l3_interrupt_handler+0xf4/0x154)
->> [ 0.979766] [<c0286c90>] (l3_interrupt_handler) from [<c0085d1c>]
->> (handle_irq_event_percpu+0x54/0x1cc)
->> [ 0.979766] [<c0085d1c>] (handle_irq_event_percpu) from [<c0085ed0>]
->> (handle_irq_event+0x3c/0x5c)
->> [ 0.979797] [<c0085ed0>] (handle_irq_event) from [<c0088ed0>]
->> (handle_fasteoi_irq+0xac/0x1a0)
->> [ 0.979797] [<c0088ed0>] (handle_fasteoi_irq) from [<c00853fc>]
->> (generic_handle_irq+0x2c/0x3c)
->> [ 0.979827] [<c00853fc>] (generic_handle_irq) from [<c000eb20>]
->> (handle_IRQ+0x40/0x90)
->> [ 0.979827] [<c000eb20>] (handle_IRQ) from [<c0008594>]
->> (gic_handle_irq+0x2c/0x5c)
->> [ 0.979858] [<c0008594>] (gic_handle_irq) from [<c05b4a44>]
->> (__irq_svc+0x44/0x58)
->> [ 0.979858] Exception stack(0xc0889f58 to 0xc0889fa0)
->> [ 0.979858] 9f40: 00000001 00000001
->> [ 0.979888] 9f60: 00000000 c0893678 c0888000 c0888000 c08e75a4
->> c0890548 c0888000 ee7ffc00
->> [ 0.979888] omap-pwm omap-pwm.14: load value: 0xfffd11fe (-192002),
->> match value: 0xfffffffe (-2)
->> [ 0.979888] 9f80: c08904e0 c05bdcec 00000000 c0889fa0 c007a190
->> c000ee48 20000113 ffffffff
->> [ 0.979919] [<c05b4a44>] (__irq_svc) from [<c000ee48>] (arch_cpu_idle+0x24/0x30)
->> [ 0.979919] [<c000ee48>] (arch_cpu_idle) from [<c0071950>]
->> (cpu_startup_entry+0x138/0x204)
->> [ 0.979949] [<c0071950>] (cpu_startup_entry) from [<c0822b10>]
->> (start_kernel+0x370/0x37c)
->> [ 0.979980] [<c0822b10>] (start_kernel) from [<80008074>] (0x80008074)
->> [ 0.979980] omap-pwm omap-pwm.14: omap_dm_timer_set_pwm
->> [ 0.980010] omap-pwm omap-pwm.14: omap_pwm_enable
->> [ 0.980010] omap-pwm omap-pwm.14: omap_dm_timer_start
->> [ 0.980010] omap-pwm omap-pwm.14: omap_dm_timer_write_counter
->> [ 0.980041] ---[ end trace 5d002a14ec98c2ad ]---
->>
->> This seems to be caused by the call into omap_dm_timer_set_load.
->>
->
-> Are you talking about this?
-> https://lkml.org/lkml/2012/12/12/51
->
-> It doesn't seem to be in mainline though.
+Hi folks,
 
-No, it isn't. I am trying to revive it and get it upstream.
+I have been playing with following patches today and
+I think they're ready to be queued up for v3.16 but
+I wanted to get some comments/test results before
+I apply them to my 'next' branch.
 
-> I'll add a check for the enable/disable, thanks.
+Changes since v1:
+	- modify arch/arm/mach-omap2/usb-host.c and
+		board-omap3beagle.c accordingly
+	- added a patch to switch over to IS_ENABLED()
 
-Note that the warning I got might be cause by the pwm-omap and it's
-use of dmtimer api. I will investigate further.
+Felipe Balbi (10):
+  usb: dwc3: gadget: clear stall when disabling endpoint
+  usb: dwc3: core: refactor PHY initialization
+  usb: phy: mv-u3d: switch over to writel/readl
+  usb: dwc3: core: refactor mode initialization to its own function
+  usb: gadget: only GPL drivers in the gadget and phy framework
+  usb: phy: rename usb_nop_xceiv to usb_phy_generic
+  usb: phy: rename <linux/usb/usb_phy_gen_xceiv.h> to
+    <linux/usb/usb_phy_generic.h>
+  usb: musb: move usb_phy_generic_{un,}register calls to
+    probe()/remove()
+  usb: phy: generic: allow multiples calls to usb_phy_generic_register()
+  usb: phy: generic: switch over to IS_ENABLED()
 
-But either way add a check to enable/disable is a good idea.
+ arch/arm/mach-omap2/board-omap3beagle.c            |   1 -
+ arch/arm/mach-omap2/usb-host.c                     |  10 +-
+ drivers/usb/dwc3/core.c                            | 253 +++++++++++----------
+ drivers/usb/dwc3/dwc3-exynos.c                     |   8 +-
+ drivers/usb/dwc3/dwc3-pci.c                        |   8 +-
+ drivers/usb/dwc3/gadget.c                          |   4 +
+ drivers/usb/gadget/configfs.c                      |   2 +-
+ drivers/usb/gadget/f_fs.c                          |   6 +-
+ drivers/usb/gadget/f_rndis.c                       |   2 +-
+ drivers/usb/gadget/rndis.c                         |  28 +--
+ drivers/usb/gadget/storage_common.c                |  52 ++---
+ drivers/usb/gadget/u_ether.c                       |  32 +--
+ drivers/usb/gadget/u_f.c                           |   2 +-
+ drivers/usb/musb/am35x.c                           |  14 +-
+ drivers/usb/musb/blackfin.c                        |  14 +-
+ drivers/usb/musb/da8xx.c                           |  16 +-
+ drivers/usb/musb/davinci.c                         |   8 +-
+ drivers/usb/musb/musb_dsps.c                       |   2 +-
+ drivers/usb/musb/tusb6010.c                        |   8 +-
+ drivers/usb/phy/phy-am335x.c                       |   4 +-
+ drivers/usb/phy/phy-generic.c                      |  65 +++---
+ drivers/usb/phy/phy-generic.h                      |   8 +-
+ drivers/usb/phy/phy-keystone.c                     |   4 +-
+ drivers/usb/phy/phy-mv-u3d-usb.c                   |  20 +-
+ .../usb/{usb_phy_gen_xceiv.h => usb_phy_generic.h} |  13 +-
+ 25 files changed, 306 insertions(+), 278 deletions(-)
+ rename include/linux/usb/{usb_phy_gen_xceiv.h => usb_phy_generic.h} (53%)
 
+-- 
+1.9.2.459.g68773ac
 
-regards
-Joachim Eastwood
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
