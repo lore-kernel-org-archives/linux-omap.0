@@ -1,62 +1,59 @@
-From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: Re: [PATCH RFC 3/4] xhci: Tune PHY for the DWC3-Exynos host controller
-Date: Mon, 21 Apr 2014 09:50:47 +0530
-Message-ID: <CAFp+6iGictwugB2A3ddpW2T7h-eSQ5vkM1RVrWsboGtWE1SkMg@mail.gmail.com>
-References: <1386672926-26885-1-git-send-email-gautam.vivek@samsung.com>
-	<1386672926-26885-4-git-send-email-gautam.vivek@samsung.com>
-	<20131210135548.GA28456@xps8300>
-	<CAFp+6iGAdDgC=21VjCUjx3u_ZohhCyj2nG8qzvz3CHTZzoXWJQ@mail.gmail.com>
-	<20140416141239.GB30528@xps8300>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [RFC 2/4] ARM: dts: Add ctrl-core DT node for DRA7
+Date: Mon, 21 Apr 2014 10:45:28 +0530
+Message-ID: <5354A970.8040605@ti.com>
+References: <1397654063-8055-1-git-send-email-archit@ti.com> <1397654063-8055-2-git-send-email-archit@ti.com> <20140418171854.GJ5354@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f54.google.com ([209.85.216.54]:64180 "EHLO
-	mail-qa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750744AbaDUEUt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2014 00:20:49 -0400
-In-Reply-To: <20140416141239.GB30528@xps8300>
+Received: from bear.ext.ti.com ([192.94.94.41]:41846 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751199AbaDUFQv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Apr 2014 01:16:51 -0400
+In-Reply-To: <20140418171854.GJ5354@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, kishon <kishon@ti.com>, Jingoo Han <jg1.han@samsung.com>, Julius Werner <jwerner@chromium.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 Hi,
 
-
-On Wed, Apr 16, 2014 at 7:42 PM, Heikki Krogerus
-<heikki.krogerus@linux.intel.com> wrote:
-> Hi,
+On Friday 18 April 2014 10:48 PM, Tony Lindgren wrote:
+> * Archit Taneja <archit@ti.com> [140416 06:20]:
+>> Add DT node for the ctrl-core sub module of the DRA7 control module. We map the
+>> CTRL_MODULE_CORE address region up to 0x4a002d60, this region contains register
+>> fields which configure clocks. The remainder of the registers are related to
+>> pad configurations or cross-bar configurations, and therefore aren't mapped.
 >
-> On Tue, Apr 15, 2014 at 06:24:11PM +0530, Vivek Gautam wrote:
->> I had seen your patches in the mailing list, but i don't see any
->> updated version of these patches.
->> Are you planning to work on this above mentioned patch-series any time soon ?
+> Can you please check if this can just use the existing
+> regmap syscon mapping:
 >
-> I'm sorry, I forgot this completely. I have not prepared new version
-> of those patches as the drivers I need them for are not ready yet, but
-> I guess I can also use this case as justification for them.
+> syscon = <&dra7_ctrl_general>;
 >
->> Or, should i try to find a different approach for handling the phy
->> from the host controller (child of DWC3 in this case, which has the
->> phys).
->
-> Well, there is now an issue with the lookup method I'm suggesting in
-> this case. Since the device ID is now generated automatically for
-> xhci-hcd in dwc3, we don't know the xhci-hcd device name before
-> platform_device_add(), and that is too late.
+> See how the drivers/regulator/pbias-regulator.c is using the
+> syscon to initialize a regulator and then omap_hsmmc.c just does
+> the standard regulator calls.
 
-True, the xhci-hcd are getting AUTO ID, so it might not be possible to
-get their device
-names in dwc3.
+The thing is that this bit needs to be set before the the DSS hwmods are 
+reset, and that happens very early. If we don't do this, DSS won't reset 
+properly, and not get back to an idle state.
 
-> I don't see why the
-> device could not be named when platform_device_alloc() is called, so I
-> think I'll suggest something like the attached patch to fix this
-> issue
+I am not sure where I can configure the syscon register early enough 
+that it happens before the hwmods are reset. With a syscon mapping, I 
+guess we would access the register when the DSS driver is probed. But 
+that's too late for us.
 
-Ok, i had a look at the patch, and it looks promising.
+Ideally, it would be much better to have a syscon mapping. Do you have 
+any suggestions how this can be achieved very early in boot?
+
+Archit
 
 >
-> In any case, I'll send an updated version of the phy patches soon.
+> Depending what the range 0x4a002000 0x6d0 contains, you may
+> want to set it up as another syscon area.
+>
+> Regards,
+>
+> Tony
 
-Thanks for your efforts.
