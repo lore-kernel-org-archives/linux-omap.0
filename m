@@ -1,59 +1,34 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [RFC 2/4] ARM: dts: Add ctrl-core DT node for DRA7
-Date: Mon, 21 Apr 2014 10:45:28 +0530
-Message-ID: <5354A970.8040605@ti.com>
-References: <1397654063-8055-1-git-send-email-archit@ti.com> <1397654063-8055-2-git-send-email-archit@ti.com> <20140418171854.GJ5354@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 0/2] ARM: dts: Fix OMAP3 ISP functional clock configuration
+Date: Mon, 21 Apr 2014 12:41:45 +0200
+Message-ID: <1398076907-2901-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41846 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751199AbaDUFQv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Apr 2014 01:16:51 -0400
-In-Reply-To: <20140418171854.GJ5354@atomide.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38057 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750824AbaDUKln (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2014 06:41:43 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+Hello,
 
-On Friday 18 April 2014 10:48 PM, Tony Lindgren wrote:
-> * Archit Taneja <archit@ti.com> [140416 06:20]:
->> Add DT node for the ctrl-core sub module of the DRA7 control module. We map the
->> CTRL_MODULE_CORE address region up to 0x4a002d60, this region contains register
->> fields which configure clocks. The remainder of the registers are related to
->> pad configurations or cross-bar configurations, and therefore aren't mapped.
->
-> Can you please check if this can just use the existing
-> regmap syscon mapping:
->
-> syscon = <&dra7_ctrl_general>;
->
-> See how the drivers/regulator/pbias-regulator.c is using the
-> syscon to initialize a regulator and then omap_hsmmc.c just does
-> the standard regulator calls.
+This patch set enables rate propagation from the OMAP3 ISP functional clock to
+the DPLL4 M5 clock. It copies Tomi Valkeinen's similar patch set for the OMAP
+DSS functional clock from the "OMAP: OMAP3 DSS related clock patches" patch
+series.
 
-The thing is that this bit needs to be set before the the DSS hwmods are 
-reset, and that happens very early. If we don't do this, DSS won't reset 
-properly, and not get back to an idle state.
+Laurent Pinchart (2):
+  ARM: dts: use ti,fixed-factor-clock for dpll4_m5x2_mul_ck
+  ARM: dts: set 'ti,set-rate-parent' for dpll4_m5 path
 
-I am not sure where I can configure the syscon register early enough 
-that it happens before the hwmods are reset. With a syscon mapping, I 
-guess we would access the register when the DSS driver is probed. But 
-that's too late for us.
+ arch/arm/boot/dts/omap36xx-clocks.dtsi | 2 +-
+ arch/arm/boot/dts/omap3xxx-clocks.dtsi | 7 ++++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-Ideally, it would be much better to have a syscon mapping. Do you have 
-any suggestions how this can be achieved very early in boot?
+-- 
+Regards,
 
-Archit
-
->
-> Depending what the range 0x4a002000 0x6d0 contains, you may
-> want to set it up as another syscon area.
->
-> Regards,
->
-> Tony
+Laurent Pinchart
 
