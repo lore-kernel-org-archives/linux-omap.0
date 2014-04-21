@@ -1,45 +1,224 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 10/10] usb: phy: generic: switch over to IS_ENABLED()
-Date: Mon, 21 Apr 2014 10:56:52 -0500
-Message-ID: <1398095812-14222-11-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 08/10] usb: musb: move usb_phy_generic_{un,}register calls to probe()/remove()
+Date: Mon, 21 Apr 2014 10:56:50 -0500
+Message-ID: <1398095812-14222-9-git-send-email-balbi@ti.com>
 References: <1398095812-14222-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43412 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751877AbaDUP70 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Apr 2014 11:59:26 -0400
-In-Reply-To: <1398095812-14222-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1398095812-14222-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, leigh-0TD6cqJ6btAqdlJmJB21zg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Linux USB Mailing List <linux-usb@vger.kernel.org>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, leigh@solinno.co.uk, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 
-when checking if our generic PHY is enabled,
-it's a lot easier to use IS_ENABLED() instead
-of manually checking for it. While at that, also
-remove the bogus defined(MODULE) at the end of
-the line.
+This patch is in preparation to supporting
+calling those functions multiple times.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- include/linux/usb/usb_phy_generic.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/musb/am35x.c    | 4 ++--
+ drivers/usb/musb/blackfin.c | 6 +++---
+ drivers/usb/musb/da8xx.c    | 4 ++--
+ drivers/usb/musb/davinci.c  | 4 ++--
+ drivers/usb/musb/tusb6010.c | 5 ++---
+ 5 files changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/usb/usb_phy_generic.h b/include/linux/usb/usb_phy_generic.h
-index 8346bcc..68adae8 100644
---- a/include/linux/usb/usb_phy_generic.h
-+++ b/include/linux/usb/usb_phy_generic.h
-@@ -13,7 +13,7 @@ struct usb_phy_generic_platform_data {
- 	int gpio_reset;
- };
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index 044cd82..05459b5 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -360,7 +360,6 @@ static int am35x_musb_init(struct musb *musb)
+ 	if (!rev)
+ 		return -ENODEV;
  
--#if defined(CONFIG_NOP_USB_XCEIV) || (defined(CONFIG_NOP_USB_XCEIV_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_NOP_USB_XCEIV)
- /* sometimes transceivers are accessed only through e.g. ULPI */
- extern struct platform_device *usb_phy_generic_register(void);
- extern void usb_phy_generic_unregister(struct platform_device *);
+-	usb_phy_generic_register();
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+ 	if (IS_ERR_OR_NULL(musb->xceiv))
+ 		return -EPROBE_DEFER;
+@@ -402,7 +401,6 @@ static int am35x_musb_exit(struct musb *musb)
+ 		data->set_phy_power(0);
+ 
+ 	usb_put_phy(musb->xceiv);
+-	usb_phy_generic_unregister();
+ 
+ 	return 0;
+ }
+@@ -505,6 +503,7 @@ static int am35x_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &am35x_ops;
+ 
++	usb_phy_generic_register();
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	pinfo = am35x_dev_info;
+@@ -547,6 +546,7 @@ static int am35x_remove(struct platform_device *pdev)
+ 	struct am35x_glue	*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
++	usb_phy_generic_unregister();
+ 	clk_disable(glue->clk);
+ 	clk_disable(glue->phy_clk);
+ 	clk_put(glue->clk);
+diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+index c9992a2..53acffe 100644
+--- a/drivers/usb/musb/blackfin.c
++++ b/drivers/usb/musb/blackfin.c
+@@ -401,7 +401,6 @@ static int bfin_musb_init(struct musb *musb)
+ 	}
+ 	gpio_direction_output(musb->config->gpio_vrsel, 0);
+ 
+-	usb_phy_generic_register();
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+ 	if (IS_ERR_OR_NULL(musb->xceiv)) {
+ 		gpio_free(musb->config->gpio_vrsel);
+@@ -424,9 +423,8 @@ static int bfin_musb_init(struct musb *musb)
+ static int bfin_musb_exit(struct musb *musb)
+ {
+ 	gpio_free(musb->config->gpio_vrsel);
+-
+ 	usb_put_phy(musb->xceiv);
+-	usb_phy_generic_unregister();
++
+ 	return 0;
+ }
+ 
+@@ -477,6 +475,7 @@ static int bfin_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &bfin_ops;
+ 
++	usb_phy_generic_register();
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+@@ -528,6 +527,7 @@ static int bfin_remove(struct platform_device *pdev)
+ 	struct bfin_glue		*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
++	usb_phy_generic_unregister();
+ 	kfree(glue);
+ 
+ 	return 0;
+diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+index a0dabb0..024751f 100644
+--- a/drivers/usb/musb/da8xx.c
++++ b/drivers/usb/musb/da8xx.c
+@@ -418,7 +418,6 @@ static int da8xx_musb_init(struct musb *musb)
+ 	if (!rev)
+ 		goto fail;
+ 
+-	usb_phy_generic_register();
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+ 	if (IS_ERR_OR_NULL(musb->xceiv)) {
+ 		ret = -EPROBE_DEFER;
+@@ -453,7 +452,6 @@ static int da8xx_musb_exit(struct musb *musb)
+ 	phy_off();
+ 
+ 	usb_put_phy(musb->xceiv);
+-	usb_phy_generic_unregister();
+ 
+ 	return 0;
+ }
+@@ -512,6 +510,7 @@ static int da8xx_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &da8xx_ops;
+ 
++	usb_phy_generic_register();
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+@@ -561,6 +560,7 @@ static int da8xx_remove(struct platform_device *pdev)
+ 	struct da8xx_glue		*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
++	usb_phy_generic_unregister();
+ 	clk_disable(glue->clk);
+ 	clk_put(glue->clk);
+ 	kfree(glue);
+diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
+index 7370354..de8492b 100644
+--- a/drivers/usb/musb/davinci.c
++++ b/drivers/usb/musb/davinci.c
+@@ -381,7 +381,6 @@ static int davinci_musb_init(struct musb *musb)
+ 	u32		revision;
+ 	int 		ret = -ENODEV;
+ 
+-	usb_phy_generic_register();
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+ 	if (IS_ERR_OR_NULL(musb->xceiv)) {
+ 		ret = -EPROBE_DEFER;
+@@ -487,7 +486,6 @@ static int davinci_musb_exit(struct musb *musb)
+ 	phy_off();
+ 
+ 	usb_put_phy(musb->xceiv);
+-	usb_phy_generic_unregister();
+ 
+ 	return 0;
+ }
+@@ -545,6 +543,7 @@ static int davinci_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &davinci_ops;
+ 
++	usb_phy_generic_register();
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+@@ -603,6 +602,7 @@ static int davinci_remove(struct platform_device *pdev)
+ 	struct davinci_glue		*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
++	usb_phy_generic_unregister();
+ 	clk_disable(glue->clk);
+ 	clk_put(glue->clk);
+ 	kfree(glue);
+diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+index 8d4a819..e1da199 100644
+--- a/drivers/usb/musb/tusb6010.c
++++ b/drivers/usb/musb/tusb6010.c
+@@ -1065,7 +1065,6 @@ static int tusb_musb_init(struct musb *musb)
+ 	void __iomem		*sync = NULL;
+ 	int			ret;
+ 
+-	usb_phy_generic_register();
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+ 	if (IS_ERR_OR_NULL(musb->xceiv))
+ 		return -EPROBE_DEFER;
+@@ -1117,7 +1116,6 @@ done:
+ 			iounmap(sync);
+ 
+ 		usb_put_phy(musb->xceiv);
+-		usb_phy_generic_unregister();
+ 	}
+ 	return ret;
+ }
+@@ -1133,7 +1131,6 @@ static int tusb_musb_exit(struct musb *musb)
+ 	iounmap(musb->sync_va);
+ 
+ 	usb_put_phy(musb->xceiv);
+-	usb_phy_generic_unregister();
+ 	return 0;
+ }
+ 
+@@ -1176,6 +1173,7 @@ static int tusb_probe(struct platform_device *pdev)
+ 
+ 	pdata->platform_ops		= &tusb_ops;
+ 
++	usb_phy_generic_register();
+ 	platform_set_drvdata(pdev, glue);
+ 
+ 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+@@ -1224,6 +1222,7 @@ static int tusb_remove(struct platform_device *pdev)
+ 	struct tusb6010_glue		*glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
++	usb_phy_generic_unregister();
+ 	kfree(glue);
+ 
+ 	return 0;
 -- 
 1.9.2.459.g68773ac
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
