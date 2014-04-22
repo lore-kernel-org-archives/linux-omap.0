@@ -1,32 +1,50 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC PATCH 0/5] add gpio_chip_ops to hold GPIO operations
-Date: Tue, 22 Apr 2014 13:36:24 +0200
-Message-ID: <CACRpkdYLaGXJ+O0rsL5+rjUsOvxCxK2b9QtH2j4FD0g21vx8_Q@mail.gmail.com>
-References: <1396981215-24888-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH 11/11] pinctrl: single: Clear pin interrupts enabled by bootloader
+Date: Tue, 22 Apr 2014 13:54:52 +0200
+Message-ID: <CACRpkdYu2Obo8kuA2D9a33K_KCF-LPza=+reEpFnq8JFK6jOCg@mail.gmail.com>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com>
+	<1397173639-29587-12-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1396981215-24888-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Alexandre Courbot <acourbot@nvidia.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f42.google.com ([209.85.219.42]:40155 "EHLO
+	mail-oa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932422AbaDVLyx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 07:54:53 -0400
+Received: by mail-oa0-f42.google.com with SMTP id i4so5562897oah.29
+        for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2014 04:54:53 -0700 (PDT)
+In-Reply-To: <1397173639-29587-12-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Haojian Zhuang <haojian.zhuang@linaro.org>
 
-On Tue, Apr 8, 2014 at 8:20 PM, Javier Martinez Canillas
-<javier.martinez@collabora.co.uk> wrote:
+On Fri, Apr 11, 2014 at 1:47 AM, Tony Lindgren <tony@atomide.com> wrote:
 
-> So this is an RFC patch-set to add a virtual table to be used by
-> GPIO chip controllers and consist of the following patches:
+> Since we set up device wake-up interrupts as pinctrl-single
+> interrupts, we now must use the standard request_irq and
+> related functions to manage them.
+>
+> If the pin interrupts are enabled for some pins at boot,
+> the wake-up events can show up as constantly pending
+> at least on omaps and will hang the system unless the related
+> device driver clears the event at the device.
+>
+> To fix this, let's clear the interrupt flags during init,
+> and print out a warning so the board maintainers can update
+> their drivers to do proper request_irq for the driver specific
+> wake-up events.
+>
+> Cc: Haojian Zhuang <haojian.zhuang@linaro.org>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Overall I like this.
+Looks clean.
 
-However I don't want to see any transitional phase. I prefer a BIG
-fat patch converting everyone and its dog to the new vtable and
-removing the old function pointers. This can be based on the HEAD
-of my GPIO devel branch.
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-It may be a good idea to use coccinelle for this refactoring in order
-not to miss any users.
+Shall I apply this patch or will you funnel it through ARM SoC
+due to deps?
 
 Yours,
 Linus Walleij
