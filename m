@@ -1,150 +1,89 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] arm: dts: am43x-clock: add tbclk data for ehrpwm.
-Date: Tue, 22 Apr 2014 15:41:24 +0300
-Message-ID: <53566374.3070609@ti.com>
-References: <1398162345-3163-1-git-send-email-sourav.poddar@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 0/5] GPIO OMAP driver changes for v3.16
+Date: Tue, 22 Apr 2014 15:00:35 +0200
+Message-ID: <CACRpkdYSDe=EfJxhC2Fx3AJZdY66BPr_t6ATcvSW9qaAA=ZJEw@mail.gmail.com>
+References: <1396796297-13002-1-git-send-email-javier.martinez@collabora.co.uk>
+	<CACRpkdarYt4tAD9WMDu6Me+dhipVyDHMpgF-AQ8SDNKMmhSjsA@mail.gmail.com>
+	<20140410193048.GE15736@drone.musicnaut.iki.fi>
+	<CABxcv=miFY3gE6HOU5ovWwCzgC6Un3ANh_Weh_bPCb7OoYQ+pA@mail.gmail.com>
+	<20140410212202.GF15736@drone.musicnaut.iki.fi>
+	<CABxcv=k9fNauvoF6No_GGhfVVgOvyd-Dgw2YLkGGfPoXfMd=FQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50583 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932237AbaDVMlp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Apr 2014 08:41:45 -0400
-In-Reply-To: <1398162345-3163-1-git-send-email-sourav.poddar@ti.com>
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:36826 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751383AbaDVNAg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 09:00:36 -0400
+Received: by mail-ob0-f181.google.com with SMTP id gq1so5705590obb.12
+        for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2014 06:00:35 -0700 (PDT)
+In-Reply-To: <CABxcv=k9fNauvoF6No_GGhfVVgOvyd-Dgw2YLkGGfPoXfMd=FQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>, mturquette@linaro.org, tony@atomide.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, balbi@ti.com
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 04/22/2014 01:25 PM, Sourav Poddar wrote:
-> We need "tblclk" clock data for the functioning of ehrpwm
-> module. Hence, populating the required clock information
-> in clock dts file.
+On Fri, Apr 11, 2014 at 5:03 PM, Javier Martinez Canillas
+<javier@dowhile0.org> wrote:
+> Hello Aaro,
 >
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
->   arch/arm/boot/dts/am43xx-clocks.dtsi |   84 ++++++++++++++++++++++++++++++++++
->   drivers/clk/ti/clk-43xx.c            |    6 +++
->   2 files changed, 90 insertions(+)
+> On Thu, Apr 10, 2014 at 11:22 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
+>> Hi,
+>>
+>> On Thu, Apr 10, 2014 at 10:17:44PM +0200, Javier Martinez Canillas wrote:
+>>> > The same happens also on Nokia 770:
+>>> >
+>>> > [    0.118896] genirq: Setting trigger mode 0 for irq 128 failed (gpio_irq_type+0x0/0x220)
+>>>
+>>> I don't have those errors when booting on my DM3730 IGEPv2 board but
+>>> it seems that for some reason on omap1  __irq_set_trigger() complains
+>>> when IRQ_TYPE_NONE is used as a default flag when calling
+>>> gpiochip_irqchip_add()
+>>>
+>>> Could you please test the following patch and tell me if your board
+>>> still works and makes the errors go away?
+>>
+>> Now it complains about mode 8...
+>>
+>> [    0.118835] genirq: Setting trigger mode 8 for irq 128 failed (gpio_irq_type
+>> +0x0/0x220)
+>>
+>> A.
+>>
+>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>> index 8cc9e91..5bc8aec 100644
+>>> --- a/drivers/gpio/gpio-omap.c
+>>> +++ b/drivers/gpio/gpio-omap.c
+>>> @@ -1122,7 +1122,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank)
+>>>
+>>>         ret = gpiochip_irqchip_add(&bank->chip, &gpio_irq_chip,
+>>>                                    irq_base, gpio_irq_handler,
+>>> -                                  IRQ_TYPE_NONE);
+>>> +                                  IRQ_TYPE_LEVEL_LOW);
+>>>
+>>>         if (ret) {
+>>>                 dev_err(bank->dev, "Couldn't add irqchip to gpiochip
+>>> %d\n", ret);
+>>>
+>>> Best regards,
+>>> Javier
 >
-> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
-> index 142009c..869f9a5 100644
-> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
-> @@ -87,6 +87,90 @@
->   		clock-mult = <1>;
->   		clock-div = <1>;
->   	};
-> +
-> +	ehrpwm0_gate_tbclk: ehrpwm0_gate_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,composite-no-wait-gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		ti,bit-shift = <0>;
-> +		reg = <0x0664>;
-> +	};
-> +
-> +	ehrpwm0_tbclk: ehrpwm0_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,composite-clock";
-> +		clocks = <&ehrpwm0_gate_tbclk>;
-> +	};
-
-Why do you use composite-clock type here? I see only add one sub-clock 
-to the composite, thus the composite part is unused. How about using a 
-gate-clock type only? Same question applies for the rest of the patch also.
-
--Tero
-
-> +
-> +	ehrpwm1_gate_tbclk: ehrpwm1_gate_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,composite-no-wait-gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		ti,bit-shift = <1>;
-> +		reg = <0x0664>;
-> +	};
-> +
-> +	ehrpwm1_tbclk: ehrpwm1_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,composite-clock";
-> +		clocks = <&ehrpwm1_gate_tbclk>;
-> +	};
-> +
-> +	ehrpwm2_gate_tbclk: ehrpwm2_gate_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,composite-no-wait-gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		ti,bit-shift = <2>;
-> +		reg = <0x0664>;
-> +	};
-> +
-> +	ehrpwm2_tbclk: ehrpwm2_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,composite-clock";
-> +		clocks = <&ehrpwm2_gate_tbclk>;
-> +	};
-> +
-> +	ehrpwm3_gate_tbclk: ehrpwm3_gate_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,composite-no-wait-gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		ti,bit-shift = <2>;
-> +		reg = <0x0664>;
-> +	};
-> +
-> +	ehrpwm3_tbclk: ehrpwm3_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,composite-clock";
-> +		clocks = <&ehrpwm3_gate_tbclk>;
-> +	};
-> +
-> +	ehrpwm4_gate_tbclk: ehrpwm4_gate_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,composite-no-wait-gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		ti,bit-shift = <2>;
-> +		reg = <0x0664>;
-> +	};
-> +
-> +	ehrpwm4_tbclk: ehrpwm4_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,composite-clock";
-> +		clocks = <&ehrpwm4_gate_tbclk>;
-> +	};
-> +
-> +	ehrpwm5_gate_tbclk: ehrpwm5_gate_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,composite-no-wait-gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		ti,bit-shift = <2>;
-> +		reg = <0x0664>;
-> +	};
-> +
-> +	ehrpwm5_tbclk: ehrpwm5_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,composite-clock";
-> +		clocks = <&ehrpwm5_gate_tbclk>;
-> +	};
->   };
->   &prcm_clocks {
->   	clk_32768_ck: clk_32768_ck {
-> diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
-> index 67c8de5..5413a6a 100644
-> --- a/drivers/clk/ti/clk-43xx.c
-> +++ b/drivers/clk/ti/clk-43xx.c
-> @@ -105,6 +105,12 @@ static struct ti_dt_clk am43xx_clks[] = {
->   	DT_CLK(NULL, "func_12m_clk", "func_12m_clk"),
->   	DT_CLK(NULL, "vtp_clk_div", "vtp_clk_div"),
->   	DT_CLK(NULL, "usbphy_32khz_clkmux", "usbphy_32khz_clkmux"),
-> +	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
-> +	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
-> +	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
-> +	DT_CLK("48306200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
-> +	DT_CLK("48308200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
-> +	DT_CLK("4830a200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
->   	{ .node_name = NULL },
->   };
+> Thanks for testing. Unfortunately I'm out of ideas on why that error
+> could be shown and I don't have a way to further debug it without an
+> omap1 board. I wonder why that pr_err() message is shown or why it is
+> still working when an error happens.
 >
->
+> Maybe Linus or Santosh could give us a hint on what is happening here.
 
+Isn't an edge IRQ more apropriate as default then?
+
+The code contains this:
+
+    if (!bank->regs->leveldetect0 &&
+        (type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
+        return -EINVAL;
+
+Meaning sometimes the banks don't support level IRQs.
+
+Yours,
+Linus Walleij
