@@ -1,162 +1,60 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH RFC] ARM: dts: am335x: update USB DT references
-Date: Tue, 22 Apr 2014 16:14:36 +0200
-Message-ID: <5356794C.7070707@baylibre.com>
-References: <1397647595-10927-1-git-send-email-leigh@solinno.co.uk>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH 0/5] add gpio_chip_ops to hold GPIO operations
+Date: Tue, 22 Apr 2014 16:17:42 +0200
+Message-ID: <201404221617.43272.arnd@arndb.de>
+References: <1396981215-24888-1-git-send-email-javier.martinez@collabora.co.uk> <CACRpkdYLaGXJ+O0rsL5+rjUsOvxCxK2b9QtH2j4FD0g21vx8_Q@mail.gmail.com> <CABxcv=mb+CXQbrS==hBayMQGsaJCPuLR=xyW_BJpZm2oSNBu-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:64951 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756267AbaDVOOk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 10:14:40 -0400
-Received: by mail-we0-f177.google.com with SMTP id u57so4948025wes.22
-        for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2014 07:14:38 -0700 (PDT)
-In-Reply-To: <1397647595-10927-1-git-send-email-leigh@solinno.co.uk>
+Received: from moutng.kundenserver.de ([212.227.126.130]:60231 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753950AbaDVORz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 10:17:55 -0400
+In-Reply-To: <CABxcv=mb+CXQbrS==hBayMQGsaJCPuLR=xyW_BJpZm2oSNBu-w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Leigh Brown <leigh@solinno.co.uk>, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Alexandre Courbot <acourbot@nvidia.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi Leigh,
+On Tuesday 22 April 2014, Javier Martinez Canillas wrote:
+> Hello Linus,
+> 
+> On Tue, Apr 22, 2014 at 1:36 PM, Linus Walleij <linus.walleij@linaro.org> wrote:
+> > On Tue, Apr 8, 2014 at 8:20 PM, Javier Martinez Canillas
+> > <javier.martinez@collabora.co.uk> wrote:
+> >
+> >> So this is an RFC patch-set to add a virtual table to be used by
+> >> GPIO chip controllers and consist of the following patches:
+> >
+> > Overall I like this.
 
-On 16/04/2014 13:26, Leigh Brown wrote:
-> In "ARM: dts: am33xx: correcting dt node unit address for usb", the
-> usb_ctrl_mod and cppi41dma nodes were updated with the correct regist=
-er
-> addresses.  However, the dts files that reference these nodes were no=
-t
-> updated, and those devices are no longer being enabled.
->
-> This patch corrects the references for the affected dts files.
+Agreed, it's a very good cleanup.
 
-Thanks for the fix. BTW, why is it a RFC? Do you plan to send an update=
-d=20
-version?
+> > However I don't want to see any transitional phase. I prefer a BIG
+> > fat patch converting everyone and its dog to the new vtable and
+> > removing the old function pointers. This can be based on the HEAD
+> > of my GPIO devel branch.
+> >
+> 
+> Ok, I was adding a commit per GPIO driver but the patch-set would have
+> been very big (~200 patches).
+> 
+> > It may be a good idea to use coccinelle for this refactoring in order
+> > not to miss any users.
+> >
+> 
+> Agreed, I was manually searching for users by using grep but I agree
+> that is much safer to use coccinelle for this. I don't have previous
+> experience writing coccinelle semantics patches though so it may take
+> more time than I thought but it is the perfect excuse to finally learn
+> how to do it :-)
 
-=46YI, even with this fix, the BBB still does not have a working MUSB o=
-n=20
-3.15-rc2. Have you observed that as well?
+I'm not a big fan of doing this all at once, but it's not my call here.
+Just one recommendation: if you can't do an obvious coccinelle patch
+to do everything at once, use extra patches in the beginning to clean
+up the code enough to make it work, then have the large patch fully
+automated.
 
-> Signed-off-by: Leigh Brown <leigh@solinno.co.uk>
-
-If this is a final version, I'll apply it for -rc3.
-
-Thanks,
-Benoit
-
-
-> ---
->   arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++--
->   arch/arm/boot/dts/am335x-evm.dts          | 4 ++--
->   arch/arm/boot/dts/am335x-evmsk.dts        | 4 ++--
->   arch/arm/boot/dts/am335x-igep0033.dtsi    | 4 ++--
->   4 files changed, 8 insertions(+), 8 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boo=
-t/dts/am335x-bone-common.dtsi
-> index e3f27ec..2e7d932 100644
-> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> @@ -183,7 +183,7 @@
->   &usb {
->   	status =3D "okay";
->
-> -	control@44e10000 {
-> +	control@44e10620 {
->   		status =3D "okay";
->   	};
->
-> @@ -204,7 +204,7 @@
->   		dr_mode =3D "host";
->   	};
->
-> -	dma-controller@07402000  {
-> +	dma-controller@47402000  {
->   		status =3D "okay";
->   	};
->   };
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am3=
-35x-evm.dts
-> index 28ae040..77df10d 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -331,7 +331,7 @@
->   &usb {
->   	status =3D "okay";
->
-> -	control@44e10000 {
-> +	control@44e10620 {
->   		status =3D "okay";
->   	};
->
-> @@ -352,7 +352,7 @@
->   		dr_mode =3D "host";
->   	};
->
-> -	dma-controller@07402000  {
-> +	dma-controller@47402000  {
->   		status =3D "okay";
->   	};
->   };
-> diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/a=
-m335x-evmsk.dts
-> index ec08f6f..ab23885 100644
-> --- a/arch/arm/boot/dts/am335x-evmsk.dts
-> +++ b/arch/arm/boot/dts/am335x-evmsk.dts
-> @@ -364,7 +364,7 @@
->   &usb {
->   	status =3D "okay";
->
-> -	control@44e10000 {
-> +	control@44e10620 {
->   		status =3D "okay";
->   	};
->
-> @@ -385,7 +385,7 @@
->   		dr_mode =3D "host";
->   	};
->
-> -	dma-controller@07402000  {
-> +	dma-controller@47402000  {
->   		status =3D "okay";
->   	};
->   };
-> diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/d=
-ts/am335x-igep0033.dtsi
-> index 7063311..5942e7d 100644
-> --- a/arch/arm/boot/dts/am335x-igep0033.dtsi
-> +++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-> @@ -202,7 +202,7 @@
->   &usb {
->   	status =3D "okay";
->
-> -	control@44e10000 {
-> +	control@44e10620 {
->   		status =3D "okay";
->   	};
->
-> @@ -223,7 +223,7 @@
->   		dr_mode =3D "host";
->   	};
->
-> -	dma-controller@07402000  {
-> +	dma-controller@47402000  {
->   		status =3D "okay";
->   	};
->   };
->
-
-
---=20
-Beno=EEt Cousson
-BayLibre
-Embedded Linux Technology Lab
-www.baylibre.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
