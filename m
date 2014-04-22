@@ -1,55 +1,45 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v3 0/4] add parallel NAND support for TI's new OMAPx and AMxx platforms (Part-2)
-Date: Tue, 22 Apr 2014 13:03:36 +0530
-Message-ID: <1398152020-19391-1-git-send-email-pekon@ti.com>
+From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
+Subject: Re: [RFC PATCH 00/11] Embeddable Position Independent Executable
+Date: Tue, 22 Apr 2014 10:15:09 +0200
+Message-ID: <1441820.DP5PYDOd2T@phil>
+References: <1379421817-15759-1-git-send-email-Russ.Dill@ti.com> <201310241009.12597.heiko@sntech.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50266 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751901AbaDVHeE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Apr 2014 03:34:04 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201310241009.12597.heiko@sntech.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russ Dill <Russ.Dill@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mans@mansr.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-kbuild@vger.kernel.org, Shawn Guo <shawn.guo@linaro.org>, Dave Martin <Dave.Martin@arm.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com
-Cc: linux-omap <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>
 
-*changes v2 -> v3*
-rebased on git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap :master
-merged leftover patches (dra7-evm and am43x-epos-evm fix) from Part-1 series
+Hi Russ,
+
+Am Donnerstag, 24. Oktober 2013, 10:09:12 schrieb Heiko St=FCbner:
+> Am Dienstag, 17. September 2013, 14:43:26 schrieb Russ Dill:
+> > This patch adds support for and demonstrates the usage of an embedd=
+ed
+> > position independent executable (PIE). The goal is to allow the use=
+ of C
+> > code in situations where carefully written position independent ass=
+embly
+> > was previously required.
+>=20
+> As suggested yesterday evening by Kevin Hilman, just adding my 2ct of
+> support.
+>=20
+> This series looks exactly like the foundation I'll need at some point=
+ in the
+> (probably still distant) future to handle suspend on my Rockchip plat=
+form -
+> where like in your example stuff like putting the ram into selfrefres=
+h has
+> to be done by the os.
+
+just as it came up recently again for me and I couldn't find any newer =
+version,=20
+ist this series still on the table?
 
 
-*changes v1 -> v2*
-[PATCH v2 1/2] created new DTS for memory-capes based on following feedbacks
-  http://www.spinics.net/lists/linux-omap/msg104348.html from 'Nishanth Menon <nm@ti.com>'
-  http://www.spinics.net/lists/linux-omap/msg104447.html from 'Tony Lindgren <tony@atomide.com>'
-[PATCH v2 2/2] <same as [PATCH v1 1/3]>
-
-
-*original v1*
-This patch-set adds parallel NAND support on following TI platforms
- - AM335x (am335x-bone LT, am335x-boneblack): <disabled by default>
- - AM43xx (am437x-gp-evm)
-
-
-Minal Shah (1):
-  ARM: dts: dra7: add support for parallel NAND flash
-
-Pekon Gupta (3):
-  ARM: dts: am335x-bone: add support for beaglebone NAND cape
-  ARM: dts: am437x-gp-evm: add support for parallel NAND flash
-  ARM: dts: am43xx: fix starting offset of NAND.filesystem MTD partition
-
- arch/arm/boot/dts/am335x-bone-memory-cape.dts | 130 ++++++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts             |   1 +
- arch/arm/boot/dts/am335x-boneblack.dts        |   1 +
- arch/arm/boot/dts/am437x-gp-evm.dts           | 107 +++++++++++++++++++++
- arch/arm/boot/dts/am43x-epos-evm.dts          |   2 +-
- arch/arm/boot/dts/dra7-evm.dts                | 117 +++++++++++++++++++++++
- arch/arm/boot/dts/dra7.dtsi                   |  20 ++++
- 7 files changed, 377 insertions(+), 1 deletion(-)
- create mode 100644 arch/arm/boot/dts/am335x-bone-memory-cape.dts
-
--- 
-1.8.5.1.163.gd7aced9
-
+Thanks
+Heiko
