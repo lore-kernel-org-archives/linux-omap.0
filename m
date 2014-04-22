@@ -1,87 +1,76 @@
-From: yegorslists@googlemail.com
-Subject: [PATCH] gpio: omap: implement get_direction
-Date: Tue, 22 Apr 2014 11:23:55 +0200
-Message-ID: <1398158635-18415-1-git-send-email-yegorslists@googlemail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] ARM: AM43xx: clk: Change the wdt1 func clk src to per_32k
+ clk
+Date: Tue, 22 Apr 2014 13:06:37 +0300
+Message-ID: <53563F2D.20906@ti.com>
+References: <1397621648-15691-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-gpio@vger.kernel.org
-Cc: tony@atomide.com, linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Yegor Yefremov <yegorslists@googlemail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57794 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755804AbaDVKHB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Apr 2014 06:07:01 -0400
+In-Reply-To: <1397621648-15691-1-git-send-email-lokeshvutla@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, rnayak@ti.com, nsekhar@ti.com
 
-From: Yegor Yefremov <yegorslists@googlemail.com>
+On 04/16/2014 07:14 AM, Lokesh Vutla wrote:
+> WDT1 module can take one of the below clocks as input functional
+> clock -
+> 	- On-Chip 32K RC Osc [default/reset]
+> 	- 32K from PRCM
+>
+> The On-Chip 32K RC Osc clock is not an accurate clock-source as per
+> the design/spec, so as a result, for example, timer which supposed
+> to get expired @60Sec, but will expire somewhere ~@40Sec, which is
+> not expected by any use-case.
+>
+> The solution here is to switch the input clock-source to PRCM
+> generated 32K clock-source during boot-time itself.
+> This is derived from AM33xx clock file.
 
-This patch implements gpio_chip's get_direction() routine, that
-lets other drivers get particular GPIOs direction using
-struct gpio_desc.
+I guess this patch should wait until we have a proper solution upstream 
+for selecting parents based on DT data, unless you have pressing need to 
+merge this as a temporary hack.
 
-Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
----
- drivers/gpio/gpio-omap.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
+-Tero
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 19b886c..b55bf7b 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -102,6 +102,20 @@ static int omap_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
- 	return irq_find_mapping(bank->domain, offset);
- }
- 
-+static int _get_gpio_direction(struct gpio_bank *bank, int gpio)
-+{
-+	void __iomem *reg = bank->base;
-+	u32 l;
-+	u32 mask = 1 << gpio;
-+
-+	reg += bank->regs->direction;
-+	l = readl_relaxed(reg);
-+	if (l & mask)
-+		return 1;
-+
-+	return 0;
-+}
-+
- static void _set_gpio_direction(struct gpio_bank *bank, int gpio, int is_input)
- {
- 	void __iomem *reg = bank->base;
-@@ -936,6 +950,19 @@ static inline void mpuio_init(struct gpio_bank *bank)
- 
- /*---------------------------------------------------------------------*/
- 
-+static int gpio_get_direction(struct gpio_chip *chip, unsigned offset)
-+{
-+	struct gpio_bank *bank;
-+	unsigned long flags;
-+	int dir;
-+
-+	bank = container_of(chip, struct gpio_bank, chip);
-+	spin_lock_irqsave(&bank->lock, flags);
-+	dir = _get_gpio_direction(bank, offset);
-+	spin_unlock_irqrestore(&bank->lock, flags);
-+	return dir;
-+}
-+
- static int gpio_input(struct gpio_chip *chip, unsigned offset)
- {
- 	struct gpio_bank *bank;
-@@ -1092,6 +1119,7 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
- 	 */
- 	bank->chip.request = omap_gpio_request;
- 	bank->chip.free = omap_gpio_free;
-+	bank->chip.get_direction = gpio_get_direction;
- 	bank->chip.direction_input = gpio_input;
- 	bank->chip.get = gpio_get;
- 	bank->chip.direction_output = gpio_output;
--- 
-1.7.7
+>
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> ---
+>   drivers/clk/ti/clk-43xx.c |   13 +++++++++++++
+>   1 file changed, 13 insertions(+)
+>
+> diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
+> index 67c8de5..ae2524e 100644
+> --- a/drivers/clk/ti/clk-43xx.c
+> +++ b/drivers/clk/ti/clk-43xx.c
+> @@ -110,9 +110,22 @@ static struct ti_dt_clk am43xx_clks[] = {
+>
+>   int __init am43xx_dt_clk_init(void)
+>   {
+> +	struct clk *clk1, *clk2;
+> +
+>   	ti_dt_clocks_register(am43xx_clks);
+>
+>   	omap2_clk_disable_autoidle_all();
+>
+> +	/*
+> +	 * The On-Chip 32K RC Osc clock is not an accurate clock-source as per
+> +	 * the design/spec, so as a result, for example, timer which supposed
+> +	 * to get expired @60Sec, but will expire somewhere ~@40Sec, which is
+> +	 * not expected by any use-case, so change WDT1 clock source to PRCM
+> +	 * 32KHz clock.
+> +	 */
+> +	clk1 = clk_get_sys(NULL, "wdt1_fck");
+> +	clk2 = clk_get_sys(NULL, "clkdiv32k_ick");
+> +	clk_set_parent(clk1, clk2);
+> +
+>   	return 0;
+>   }
+>
+
