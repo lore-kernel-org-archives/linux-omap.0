@@ -1,40 +1,63 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v3 0/3] ARM: OMAP2+: AM437x: L2 cache support
-Date: Tue, 22 Apr 2014 14:20:43 -0400
-Message-ID: <5356B2FB.5090205@ti.com>
-References: <cover.1398149526.git.nsekhar@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: [PATCH] ARM: OMAP5: Switch to THUMB mode if needed on secondary CPU
+Date: Tue, 22 Apr 2014 13:31:46 -0500
+Message-ID: <1398191506-3741-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48308 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57367 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750811AbaDVSVL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Apr 2014 14:21:11 -0400
-In-Reply-To: <cover.1398149526.git.nsekhar@ti.com>
+	id S1751196AbaDVSck (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Apr 2014 14:32:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Joel Fernandes <joelf@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Tuesday 22 April 2014 04:28 AM, Sekhar Nori wrote:
-> This patch series adds L2 cache support for AM437x
-> and does some clean-ups for existing OMAP4 support
-> along the way (no functional changes). On OMAP4 Panda,
-> the Aux control value remains 0x7e470000 before and
-> after the series.
-> 
-> Tested on OMAP4 Panda and AM437x EPOS EVMs.
-> 
-> It is based on RMK's 75 patch series titled "l2c series" +
-> the patch contained in https://www.mail-archive.com/linux-omap@vger.kernel.org/msg103439.html
-> 
-> Sekhar Nori (3):
->   ARM: OMAP2+: L2 cache: get rid of init call
->   ARM: OMAP2+: L2 cache: git rid of redundant cache replacement policy
->     setting
->   ARM: OMAP2+: AM43x: L2 cache support
-> 
-For the whole series,
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On my DRA7 system, when the kernel is built in THUMB mode, the secondary CPU
+(Cortex A15) fails to come up causing SMP boot on second CPU to timeout. This
+seems to be because the CPU is in ARM mode once the ROM hands over control to
+the kernel.  Switch to THUMB mode if required once the kernel is control of
+secondary CPU. On OMAP4 on the other hand, it appears to be in THUMB mode on
+entry so this is not required and SMP boot works as is.
+
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
+ arch/arm/mach-omap2/omap-headsmp.S |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
+index 75e9295..1809dce 100644
+--- a/arch/arm/mach-omap2/omap-headsmp.S
++++ b/arch/arm/mach-omap2/omap-headsmp.S
+@@ -1,7 +1,7 @@
+ /*
+  * Secondary CPU startup routine source file.
+  *
+- * Copyright (C) 2009 Texas Instruments, Inc.
++ * Copyright (C) 2014 Texas Instruments, Inc.
+  *
+  * Author:
+  *      Santosh Shilimkar <santosh.shilimkar@ti.com>
+@@ -28,9 +28,13 @@
+  * code.  This routine also provides a holding flag into which
+  * secondary core is held until we're ready for it to initialise.
+  * The primary core will update this flag using a hardware
+-+ * register AuxCoreBoot0.
++ * register AuxCoreBoot0.
+  */
+ ENTRY(omap5_secondary_startup)
++.arm
++THUMB( adr     r9, BSYM(wait)  )       @ CPU may be entered in ARM mode.
++THUMB( bx      r9              )       @ If this is a Thumb-2 kernel,
++THUMB( .thumb                  )       @ switch to Thumb now.
+ wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
+ 	ldr	r0, [r2]
+ 	mov	r0, r0, lsr #5
+-- 
+1.7.9.5
 
