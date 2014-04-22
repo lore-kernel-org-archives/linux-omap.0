@@ -1,90 +1,141 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH] gpio: omap: implement get_direction
-Date: Tue, 22 Apr 2014 12:24:02 +0200
-Message-ID: <CABxcv=nieJq1NS1s=jtHOH_hK-C=O0Rh2OiZ36+2RK=8uLWh-A@mail.gmail.com>
-References: <1398158635-18415-1-git-send-email-yegorslists@googlemail.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCH] arm: dts: am43x-clock: add tbclk data for ehrpwm.
+Date: Tue, 22 Apr 2014 15:55:45 +0530
+Message-ID: <1398162345-3163-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1398158635-18415-1-git-send-email-yegorslists@googlemail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: yegorslists@googlemail.com
-Cc: Linux GPIO List <linux-gpio@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58650 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755045AbaDVK1F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Apr 2014 06:27:05 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: t-kristo@ti.com, mturquette@linaro.org, tony@atomide.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, balbi@ti.com
+Cc: Sourav Poddar <sourav.poddar@ti.com>
 
-Hello Yegor,
+We need "tblclk" clock data for the functioning of ehrpwm
+module. Hence, populating the required clock information
+in clock dts file.
 
-On Tue, Apr 22, 2014 at 11:23 AM,  <yegorslists@googlemail.com> wrote:
-> From: Yegor Yefremov <yegorslists@googlemail.com>
->
-> This patch implements gpio_chip's get_direction() routine, that
-> lets other drivers get particular GPIOs direction using
-> struct gpio_desc.
->
-> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
-> ---
->  drivers/gpio/gpio-omap.c |   28 ++++++++++++++++++++++++++++
->  1 files changed, 28 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 19b886c..b55bf7b 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -102,6 +102,20 @@ static int omap_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
->         return irq_find_mapping(bank->domain, offset);
->  }
->
-> +static int _get_gpio_direction(struct gpio_bank *bank, int gpio)
-> +{
-> +       void __iomem *reg = bank->base;
-> +       u32 l;
-> +       u32 mask = 1 << gpio;
-> +
-> +       reg += bank->regs->direction;
-> +       l = readl_relaxed(reg);
-> +       if (l & mask)
-> +               return 1;
-> +
-> +       return 0;
-> +}
-> +
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+ arch/arm/boot/dts/am43xx-clocks.dtsi |   84 ++++++++++++++++++++++++++++++++++
+ drivers/clk/ti/clk-43xx.c            |    6 +++
+ 2 files changed, 90 insertions(+)
 
-You can avoid the if condition here by using return !!(l & mask) but
-the above code is more clear indeed so is up to you.
+diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+index 142009c..869f9a5 100644
+--- a/arch/arm/boot/dts/am43xx-clocks.dtsi
++++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+@@ -87,6 +87,90 @@
+ 		clock-mult = <1>;
+ 		clock-div = <1>;
+ 	};
++
++	ehrpwm0_gate_tbclk: ehrpwm0_gate_tbclk {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_per_m2_ck>;
++		ti,bit-shift = <0>;
++		reg = <0x0664>;
++	};
++
++	ehrpwm0_tbclk: ehrpwm0_tbclk {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&ehrpwm0_gate_tbclk>;
++	};
++
++	ehrpwm1_gate_tbclk: ehrpwm1_gate_tbclk {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_per_m2_ck>;
++		ti,bit-shift = <1>;
++		reg = <0x0664>;
++	};
++
++	ehrpwm1_tbclk: ehrpwm1_tbclk {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&ehrpwm1_gate_tbclk>;
++	};
++
++	ehrpwm2_gate_tbclk: ehrpwm2_gate_tbclk {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_per_m2_ck>;
++		ti,bit-shift = <2>;
++		reg = <0x0664>;
++	};
++
++	ehrpwm2_tbclk: ehrpwm2_tbclk {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&ehrpwm2_gate_tbclk>;
++	};
++
++	ehrpwm3_gate_tbclk: ehrpwm3_gate_tbclk {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_per_m2_ck>;
++		ti,bit-shift = <2>;
++		reg = <0x0664>;
++	};
++
++	ehrpwm3_tbclk: ehrpwm3_tbclk {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&ehrpwm3_gate_tbclk>;
++	};
++
++	ehrpwm4_gate_tbclk: ehrpwm4_gate_tbclk {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_per_m2_ck>;
++		ti,bit-shift = <2>;
++		reg = <0x0664>;
++	};
++
++	ehrpwm4_tbclk: ehrpwm4_tbclk {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&ehrpwm4_gate_tbclk>;
++	};
++
++	ehrpwm5_gate_tbclk: ehrpwm5_gate_tbclk {
++		#clock-cells = <0>;
++		compatible = "ti,composite-no-wait-gate-clock";
++		clocks = <&dpll_per_m2_ck>;
++		ti,bit-shift = <2>;
++		reg = <0x0664>;
++	};
++
++	ehrpwm5_tbclk: ehrpwm5_tbclk {
++		#clock-cells = <0>;
++		compatible = "ti,composite-clock";
++		clocks = <&ehrpwm5_gate_tbclk>;
++	};
+ };
+ &prcm_clocks {
+ 	clk_32768_ck: clk_32768_ck {
+diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
+index 67c8de5..5413a6a 100644
+--- a/drivers/clk/ti/clk-43xx.c
++++ b/drivers/clk/ti/clk-43xx.c
+@@ -105,6 +105,12 @@ static struct ti_dt_clk am43xx_clks[] = {
+ 	DT_CLK(NULL, "func_12m_clk", "func_12m_clk"),
+ 	DT_CLK(NULL, "vtp_clk_div", "vtp_clk_div"),
+ 	DT_CLK(NULL, "usbphy_32khz_clkmux", "usbphy_32khz_clkmux"),
++	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
++	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
++	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
++	DT_CLK("48306200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
++	DT_CLK("48308200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
++	DT_CLK("4830a200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
+ 	{ .node_name = NULL },
+ };
+ 
+-- 
+1.7.9.5
 
-Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
-
->  static void _set_gpio_direction(struct gpio_bank *bank, int gpio, int is_input)
->  {
->         void __iomem *reg = bank->base;
-> @@ -936,6 +950,19 @@ static inline void mpuio_init(struct gpio_bank *bank)
->
->  /*---------------------------------------------------------------------*/
->
-> +static int gpio_get_direction(struct gpio_chip *chip, unsigned offset)
-> +{
-> +       struct gpio_bank *bank;
-> +       unsigned long flags;
-> +       int dir;
-> +
-> +       bank = container_of(chip, struct gpio_bank, chip);
-> +       spin_lock_irqsave(&bank->lock, flags);
-> +       dir = _get_gpio_direction(bank, offset);
-> +       spin_unlock_irqrestore(&bank->lock, flags);
-> +       return dir;
-> +}
-> +
->  static int gpio_input(struct gpio_chip *chip, unsigned offset)
->  {
->         struct gpio_bank *bank;
-> @@ -1092,6 +1119,7 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
->          */
->         bank->chip.request = omap_gpio_request;
->         bank->chip.free = omap_gpio_free;
-> +       bank->chip.get_direction = gpio_get_direction;
->         bank->chip.direction_input = gpio_input;
->         bank->chip.get = gpio_get;
->         bank->chip.direction_output = gpio_output;
-> --
-> 1.7.7
->
