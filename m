@@ -1,62 +1,57 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 01/11] tty: serial: add missing braces
-Date: Tue, 22 Apr 2014 09:22:56 -0500
-Message-ID: <20140422142256.GC5524@saruman.home>
-References: <1395343807-21618-1-git-send-email-balbi@ti.com>
+Subject: Re: [PATCH v2] usb: dwc3: core: Fix gadget for system suspend/resume
+Date: Tue, 22 Apr 2014 09:50:33 -0500
+Message-ID: <20140422145033.GG5524@saruman.home>
+References: <1395826989-5405-1-git-send-email-rogerq@ti.com>
+ <53565F8C.4050100@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+B+y8wtTXqdUj1xM"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39078 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751489AbaDVOZU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 10:25:20 -0400
+	protocol="application/pgp-signature"; boundary="zq44+AAfm4giZpo5"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1395343807-21618-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <53565F8C.4050100@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-bluetooth@vger.kernel.org, peter@hurleysoftware.com, m-karicheri2@ti.com, b32955@freescale.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
---+B+y8wtTXqdUj1xM
+--zq44+AAfm4giZpo5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Mar 20, 2014 at 02:29:57PM -0500, Felipe Balbi wrote:
-> per CodingStyle we should have those braces, no
-> functional changes.
->=20
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+On Tue, Apr 22, 2014 at 03:24:44PM +0300, Roger Quadros wrote:
+> Looks like we missed this one. Could you please pick this up for -rc?
 
-Greg, do you want me to refresh and resend this series ?
+see http://marc.info/?l=3Dlinux-usb&m=3D139809466025568&w=3D2 , it's already
+there
 
 --=20
 balbi
 
---+B+y8wtTXqdUj1xM
+--zq44+AAfm4giZpo5
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTVntAAAoJEIaOsuA1yqREYyUP/jA9FzIhfh8oc1uKvY4SuEA+
-MB4tjfDMN9z10dQqwsSnGp3fu9iTdcDfS8Ch5ujFEpQs6ufZ8L8FZCurjI5JW7nC
-Kh0uWeAgRbdAxRQUX2eZ1SQGN0Vs59hO5X5O0Uvi2sYfjLFUyhWSgVPSzccq/rcl
-lMwWYqaF/5NjRpdGMoOT5tUPT2ElC72JLLBzm0AVbyvFwlbl3hgA8420vGfiinNr
-dMV5UQl0YqdQpLdylDiv8RbplJVuEuucZPnMtHn07oO81loMOmk8YKgJV6w7fppP
-sWw7GmTrl+/h40kPKhzMFQbNZ7KTHOo0nsUAzafj/wcdFsh2ehhV3Ah82wT8G7L+
-q+YQN1rd5DjI7bQd0YqDoR7mFzKo9HMlNeXrKJZp4NFkHpbrO5mJr3LvA6s7wp4q
-E7GYIGy6oBJZ+k1UIX51Yot2z+iW/e9tdUXoWNt/3uL18YvBXbpkQlZjoc7vaY/i
-eOsc5cEkiRSYF5l87UBvpsf5JotPUnparWZysAR70bhrvSdZ9K6cVdNNQp1rdQiA
-MH5yhnU7MHuDrWIvs0HFGnilPqFoYB1H8oCrvmsqTGEy8gbElHaOyxjAeASU+mHw
-Uf+hcvD0ezaE+kCHyxxKKAxsxhZVoXy1n7d2zNVCNdijqNgDDJq6ed8m2lZLp6IQ
-NKbYgqTRGmBoOyEFUQRg
-=DQiI
+iQIcBAEBAgAGBQJTVoG5AAoJEIaOsuA1yqREQqwP/iGSve2m5NN8oc/XbNQj750C
+RDC3ct55Cpho//CYL8ZO6GvZNIOnivl/tAp5amAF7ujXYaKHpgx4A/KMFXy/wDkm
+ZRA6mUvXZkh3HCmV0XQKEhnOquD7SJp10Yi5Ad6/w6bS/MH7wKVASYYskdfGmlSk
+l5HtNNHRwGGdYS+gCBV4p+QdcgB8+Wrbh6/Sj8BjiEWG6DyoVt2Q8I0nTD9fqR69
+UEE1oG7gToqyt/U9oh/FYknolZ1wkTa6yycB157X1gxAEILpDUlMm1O5HlcqWNhO
+V4MKdwxhYFZFsyyPZExVOLMJ7nkRnt7HFgdXo9rKkYDY4TpsJPXmCFE+pCRmsOxg
+xiXOORf/dWZxRTr//RCyQVFjVFfJoU7Ux/ym0X1VYdsbZIbEe2KIiQi/XAT7btZw
+BSKlVg0ITTpExD+ci8sO/+a7FjPR/Ktx6ngB+0le0rlS1kmiNInErgshh6y9V+KT
+EW2ASktMeTl5QDxCifuJrmzPbDxq18H0YzkjX/mnIM26a0Qa69cO0mPuD5nniHWc
+Q2KYGLNhzM0bL9UEbZUHKasJD0FCxM+/iZfvfwFAWngrX4VLyf6qSx0P3cKxUw3l
+k5nIcvo4l4+lY32RXTIgBHBVHasrjye1PocuYY2bTNtWpMbZY7dc+23DQkXOLZ4h
+xbLuyOjDq/Pmjqxlq7o+
+=T16J
 -----END PGP SIGNATURE-----
 
---+B+y8wtTXqdUj1xM--
+--zq44+AAfm4giZpo5--
