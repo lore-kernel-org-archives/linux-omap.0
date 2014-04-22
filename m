@@ -1,71 +1,88 @@
 From: Javier Martinez Canillas <javier@dowhile0.org>
 Subject: Re: regressions in linux-next?
-Date: Wed, 23 Apr 2014 01:03:34 +0200
-Message-ID: <CABxcv==aaBKO0Mos1=RuGhF8X6pVAki748vnzH7ADYraTpBxRQ@mail.gmail.com>
+Date: Wed, 23 Apr 2014 01:08:44 +0200
+Message-ID: <CABxcv=kx6zhJqVKcE1cijyOEak+jgXgsFaRAFYcZA4L_zxLRHg@mail.gmail.com>
 References: <53566C20.6000208@ti.com>
-	<53566EBA.808@ti.com>
-	<CABxcv=mu=xvt7cM7Q8vBP2hQH124=CL9Yuox8WWcVGeKJ+NSjA@mail.gmail.com>
-	<CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
+	<53568706.1050204@ti.com>
+	<5356E5E4.1060509@ti.com>
+	<CABxcv=nATX0m8janD=kTZ_Askuy8StNx5r9vJM_Fq+EmQeZ0-g@mail.gmail.com>
+	<5356F2A4.6010106@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:33215 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034AbaDVXDg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 19:03:36 -0400
-Received: by mail-wg0-f41.google.com with SMTP id n12so119868wgh.24
-        for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2014 16:03:35 -0700 (PDT)
-In-Reply-To: <CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:42716 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751034AbaDVXIq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 19:08:46 -0400
+Received: by mail-wg0-f45.google.com with SMTP id l18so124201wgh.16
+        for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2014 16:08:45 -0700 (PDT)
+In-Reply-To: <5356F2A4.6010106@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Hello Linus,
-
-On Wed, Apr 23, 2014 at 12:00 AM, Linus Walleij
-<linus.walleij@linaro.org> wrote:
-> On Tue, Apr 22, 2014 at 5:52 PM, Javier Martinez Canillas
-> <javier@dowhile0.org> wrote:
+On Wed, Apr 23, 2014 at 12:52 AM, Nishanth Menon <nm@ti.com> wrote:
+> On 04/22/2014 05:45 PM, Javier Martinez Canillas wrote:
+> [...]
+>>>> Time for me to verify every platform again.
+>>> ok, boards updated with u-boot fixes etc..
+>>>
+>>> next-20140422-omap2plus_defconfig
+>>>  1:  am335x-sk:  Boot FAIL: http://slexy.org/raw/s2o4V7QFmX
+>>> This one is in discussion in this thread.
 >
->> I've revised the patch again and I couldn't find the reason why
->> certain boards are failing to boot.
+> We just managed to get am335x-evm up and running as well.
+> am335x-evm:  Boot PASS: http://slexy.org/raw/s2WSAKSG2S
+>
+> I checked with DEBUG_LL a few mins back on AM335x-sk:
+> http://slexy.org/raw/s2P8L4FGBY
+>
+>>>
+>>>  2: am3517-evm:  Boot PASS: http://slexy.org/raw/s21U08MZIu
+>>>  3:  am37x-evm:  Boot PASS: http://slexy.org/raw/s2TYm46GgG
+>>>  4: am43xx-epos:  Boot PASS: http://slexy.org/raw/s21wjoqqjl
+>>>  5: am43xx-gpevm:  Boot FAIL: http://slexy.org/raw/s2X8Rh0sSw
+>>> we know of this one.
 >>
->> I can't reproduce this issue since I only have a DM3730 IGEPv2 board
->> which boots fine but I should have access to an AM3354 IGEP Aquila
->> board which is similar to the am335x-evmsk so I may be able to debug
->> it.
+>> The fix for this is [PATCH] ARM: dts: am437x-gp-evm: Do not reset
+>> gpio5 [0] right?
 >
-> It would really REALLY appreciate if some of the people maintaining
-> and using OMAP1 would help Javier out in this refactoring operation.
+> Yep, This is a different issue compared to the AM335x-sk discussion.
+> http://marc.info/?l=linux-omap&m=139819642824190&w=2
+> two patches for this one:
+> https://patchwork.kernel.org/patch/3871201/
+> https://patchwork.kernel.org/patch/4034201/
+>
+> we are still debating about how to go about it.
+>
+>>
+>
+> on AM335x-sk:
+>> So this makes only am335x-sk to fail with the gpiolib irpchip
+>> conversion as reported by Peter and you.
+>>
+>> Do you know what special use of GPIO have this board to behave
+>> differently than the other boards? I've looked at the DTS but didn't
+>> find anything evident.
+>
+> I could not find anything interesting yet. Peter did mention that
+> reverting d04b76626e94 helped make the platform boot fine. I am trying
+> to add a few prints and see which specific line does things go bad..
+> and if so why.. unfortunately, I am using the board remotely as well..
+> Will try to track this down in the next few hours and post back.
 >
 
-The board that is failing to boot with this patch-set is not an OMAP1
-based board but the Sitara AM335x Starter Kit
-(arch/arm/boot/dts/am335x-evmsk.dts).
+Great, thanks a lot for your help and sorry for the inconvenience!
 
-Now, other boards using the same SoC like the Beagle Bone Black are
-booting correctly and also am335x-evm which is very similar to
-am335x-evmsk.dts.
-
-Nishanth has access to this board and his helping now with the debugging.
-
-> I'd really *hate* to have to drop his patches because of a lack of
-> boards. This refactoring is necessary to handle the exploding
-> multitude of GPIO drivers moving forward.
+>>
+>> [0]: http://www.spinics.net/lists/linux-omap/msg104702.html
+>>
 >
-
-Yeah, I'm doing my best to keep this driver up-to-date with the latest
-changes in gpiolib but it seems that is very hard to change the OMAP
-GPIO driver without breaking one of the gazillion TI platforms out
-there...
-
-> We even tried to get an Innovator to boot just to be able to refactor
-> OMAP stuff but fell short on some special JTAG reflash snag so
-> we are dependent on maintainers to help out here :-/
 >
-> Yours,
-> Linus Walleij
+> --
+> Regards,
+> Nishanth Menon
 
-Thanks a lot and best regards,
+Best regards,
 Javier
