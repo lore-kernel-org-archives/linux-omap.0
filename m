@@ -1,80 +1,46 @@
-From: Nishanth Menon <nm@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
 Subject: Re: regressions in linux-next?
-Date: Tue, 22 Apr 2014 16:57:56 -0500
-Message-ID: <5356E5E4.1060509@ti.com>
-References: <53566C20.6000208@ti.com> <53568706.1050204@ti.com>
+Date: Wed, 23 Apr 2014 00:00:13 +0200
+Message-ID: <CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
+References: <53566C20.6000208@ti.com>
+	<53566EBA.808@ti.com>
+	<CABxcv=mu=xvt7cM7Q8vBP2hQH124=CL9Yuox8WWcVGeKJ+NSjA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34873 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752130AbaDVV55 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 17:57:57 -0400
-Received: from dlelxv90.itg.ti.com ([172.17.2.17])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id s3MLvviM001257
-	for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2014 16:57:57 -0500
-Received: from DLEE70.ent.ti.com (dlee70.ent.ti.com [157.170.170.113])
-	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id s3MLvvWH021843
-	for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2014 16:57:57 -0500
-In-Reply-To: <53568706.1050204@ti.com>
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:55850 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751323AbaDVWAO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 18:00:14 -0400
+Received: by mail-ob0-f176.google.com with SMTP id wp4so116328obc.7
+        for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2014 15:00:14 -0700 (PDT)
+In-Reply-To: <CABxcv=mu=xvt7cM7Q8vBP2hQH124=CL9Yuox8WWcVGeKJ+NSjA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-On 04/22/2014 10:13 AM, Nishanth Menon wrote:
-> Logs with with DEBUG_LL and early printk below:
-> Thread: http://marc.info/?t=139817273800014&r=1&w=2
-> 
-> On 04/22/2014 08:18 AM, Nishanth Menon wrote:
->> next-20140422-omap2plus_defconfig
->>  1:  am335x-sk:  Boot FAIL: http://slexy.org/raw/s2gh6XsLve
->>  2: am3517-evm:  Boot PASS: http://slexy.org/raw/s2MTkdzPnb
->>  3:  am37x-evm:  Boot PASS: http://slexy.org/raw/s2SJwrVat8
->>  4: am43xx-epos:  Boot PASS: http://slexy.org/raw/s2184jfKlq
->>  5: am43xx-gpevm:  Boot FAIL: http://slexy.org/raw/s21qIYDHqa
->>> known
->>  6: BeagleBoard-XM:  Boot FAIL: http://slexy.org/raw/s21EyANlGX
-> 
->>  7: beagleboard-vanilla:  Boot FAIL: http://slexy.org/raw/s20lc3icwS
-> 
->>  8: beaglebone-black:  Boot PASS: http://slexy.org/raw/s2ykosQg6C
->>  9: beaglebone:  Boot PASS: http://slexy.org/raw/s2DN9gqlmo
->> 10: craneboard:  Boot FAIL: http://slexy.org/raw/s21bP0auhl
->> 11: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2rBG0C1x6
-> looks like my fdt_high was 0xFFFFFFFF and fdt was at 0x80f80000 :( so
-> got stomped all over...
-> 
-> Time for me to verify every platform again.
-ok, boards updated with u-boot fixes etc..
+On Tue, Apr 22, 2014 at 5:52 PM, Javier Martinez Canillas
+<javier@dowhile0.org> wrote:
 
-next-20140422-omap2plus_defconfig
- 1:  am335x-sk:  Boot FAIL: http://slexy.org/raw/s2o4V7QFmX
-This one is in discussion in this thread.
+> I've revised the patch again and I couldn't find the reason why
+> certain boards are failing to boot.
+>
+> I can't reproduce this issue since I only have a DM3730 IGEPv2 board
+> which boots fine but I should have access to an AM3354 IGEP Aquila
+> board which is similar to the am335x-evmsk so I may be able to debug
+> it.
 
- 2: am3517-evm:  Boot PASS: http://slexy.org/raw/s21U08MZIu
- 3:  am37x-evm:  Boot PASS: http://slexy.org/raw/s2TYm46GgG
- 4: am43xx-epos:  Boot PASS: http://slexy.org/raw/s21wjoqqjl
- 5: am43xx-gpevm:  Boot FAIL: http://slexy.org/raw/s2X8Rh0sSw
-we know of this one.
- 6: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s29BVtv6dR
- 7: beagleboard-vanilla:  Boot PASS: http://slexy.org/raw/s21ThDvDWV
- 8: beaglebone-black:  Boot PASS: http://slexy.org/raw/s20XNhvNId
- 9: beaglebone:  Boot PASS: http://slexy.org/raw/s2SqD9D9X8
-10: craneboard:  Boot PASS: http://slexy.org/raw/s20bcCjsJi
-11: DRA7xx-EVM:  Boot PASS: http://slexy.org/raw/s20K7XSURP
-12: OMAP3430-Labrador(LDP):  Boot PASS: http://slexy.org/raw/s2oDI6XGSV
-13:       n900:  Boot PASS: http://slexy.org/raw/s2F9nMXZJr
-14: pandaboard-es:  Boot PASS: http://slexy.org/raw/s21M66ujw0
-15: pandaboard-vanilla:  Boot PASS: http://slexy.org/raw/s2G7n7kez5
-16:    sdp2430:  Boot PASS: http://slexy.org/raw/s21OIS6Z6H
-17:    sdp3430:  Boot PASS: http://slexy.org/raw/s20pO2iusO
-18:    sdp4430:  Boot PASS: http://slexy.org/raw/s20SVaZoDZ
-19: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s2H8TeWUxt
-TOTAL = 19 boards, Booted Boards = 17, No Boot boards = 2
+It would really REALLY appreciate if some of the people maintaining
+and using OMAP1 would help Javier out in this refactoring operation.
 
-Apologies on the noise.
+I'd really *hate* to have to drop his patches because of a lack of
+boards. This refactoring is necessary to handle the exploding
+multitude of GPIO drivers moving forward.
 
--- 
-Regards,
-Nishanth Menon
+We even tried to get an Innovator to boot just to be able to refactor
+OMAP stuff but fell short on some special JTAG reflash snag so
+we are dependent on maintainers to help out here :-/
+
+Yours,
+Linus Walleij
