@@ -1,59 +1,61 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: [PATCH] gpio: omap: implement get_direction
-Date: Tue, 22 Apr 2014 15:33:42 +0200
-Message-ID: <CAGm1_ksUZ4G-3VNgW=tktEs1t9Gu=exvqVybSvYXhFVp4EU2BQ@mail.gmail.com>
-References: <1398158635-18415-1-git-send-email-yegorslists@googlemail.com> <CABxcv=nieJq1NS1s=jtHOH_hK-C=O0Rh2OiZ36+2RK=8uLWh-A@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: Add support for the BeagleBoard xM A/B
+Date: Tue, 22 Apr 2014 07:03:16 -0700
+Message-ID: <20140422140316.GA19317@atomide.com>
+References: <1397574599-29573-1-git-send-email-robertcnelson@gmail.com>
+ <CAOCHtYg5_Lvi3SWuWaRTDDNhLJ32jiXsKYQmrsKaShVWpM+xWQ@mail.gmail.com>
+ <534D51C1.3010007@ti.com>
+ <CAOCHtYhygGFbUunY9abEkjKfpQ1hh-DfRfhm160NehSYhWJSRw@mail.gmail.com>
+ <20140418225111.GP21823@atomide.com>
+ <CAOCHtYjdC-OGkdaBt74xMqi5eDc1eVbU6O7VyWMEYN-U50-Abw@mail.gmail.com>
+ <20140418235119.GS21823@atomide.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EAC458C@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CABxcv=nieJq1NS1s=jtHOH_hK-C=O0Rh2OiZ36+2RK=8uLWh-A@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Linux GPIO List <linux-gpio@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:18203 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932605AbaDVODX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 10:03:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EAC458C@DBDE04.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: Robert Nelson <robertcnelson@gmail.com>, "Menon, Nishanth" <nm@ti.com>, devicetree <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <bcousson@baylibre.com>
 
-On Tue, Apr 22, 2014 at 12:24 PM, Javier Martinez Canillas
-<javier@dowhile0.org> wrote:
-> Hello Yegor,
->
-> On Tue, Apr 22, 2014 at 11:23 AM,  <yegorslists@googlemail.com> wrote:
->> From: Yegor Yefremov <yegorslists@googlemail.com>
->>
->> This patch implements gpio_chip's get_direction() routine, that
->> lets other drivers get particular GPIOs direction using
->> struct gpio_desc.
->>
->> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
->> ---
->>  drivers/gpio/gpio-omap.c |   28 ++++++++++++++++++++++++++++
->>  1 files changed, 28 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index 19b886c..b55bf7b 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -102,6 +102,20 @@ static int omap_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
->>         return irq_find_mapping(bank->domain, offset);
->>  }
->>
->> +static int _get_gpio_direction(struct gpio_bank *bank, int gpio)
->> +{
->> +       void __iomem *reg = bank->base;
->> +       u32 l;
->> +       u32 mask = 1 << gpio;
->> +
->> +       reg += bank->regs->direction;
->> +       l = readl_relaxed(reg);
->> +       if (l & mask)
->> +               return 1;
->> +
->> +       return 0;
->> +}
->> +
->
-> You can avoid the if condition here by using return !!(l & mask) but
-> the above code is more clear indeed so is up to you.
+* Gupta, Pekon <pekon@ti.com> [140421 23:49]:
+> Tony,
+> 
+> >From: Tony Lindgren
+> >* Robert Nelson <robertcnelson@gmail.com> [140418 16:42]:
+> >> On Fri, Apr 18, 2014 at 5:51 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >> > * Robert Nelson <robertcnelson@gmail.com> [140415 08:46]:
+> >> >>
+> >> >> Background: i also tried getting this having this fixed in u-boot:
+> >> >
+> >> > Do we still need to apply this patch then?
+> >>
+> >> Yeah, Tom want's it done in the kernel:
+> >>
+> >> Here's my proposed u-boot patch:
+> >> http://lists.denx.de/pipermail/u-boot/2014-January/172154.html
+> >>
+> >> and Tom's recommendation:
+> >> http://lists.denx.de/pipermail/u-boot/2014-January/172274.html
+> >>
+> >> Once this hits mainline, i'll submit a patch to u-boot to check for
+> >> the presence of this version and drop to the old dtb if not found.
+> >
+> >OK applying into omap-for-v3.15/fixes thanks.
+> >
+> >Tony
+> 
+> You probably missed fixing below typo before applying this patch.
+> omap3-beagle-xm-ab.dts breaks without this.
 
-Hm, nice trick. I've reworked the calculation in v2.
+Yeah pushed out omap-for-v3.15/fixes-v2 with the missing bracket.
 
-Yegor
+Regards,
+
+Tony
