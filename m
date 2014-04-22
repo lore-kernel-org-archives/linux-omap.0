@@ -1,45 +1,57 @@
-From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
-Subject: Re: [RFC PATCH 00/11] Embeddable Position Independent Executable
-Date: Tue, 22 Apr 2014 10:15:09 +0200
-Message-ID: <1441820.DP5PYDOd2T@phil>
-References: <1379421817-15759-1-git-send-email-Russ.Dill@ti.com> <201310241009.12597.heiko@sntech.de>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: [PATCH v3 2/3] ARM: OMAP2+: L2 cache: git rid of redundant cache replacement policy setting
+Date: Tue, 22 Apr 2014 13:58:02 +0530
+Message-ID: <8bcc6d587cd1f320b59806dbdee9018b76c04e4f.1398149526.git.nsekhar@ti.com>
+References: <cover.1398149526.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201310241009.12597.heiko@sntech.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mans@mansr.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-kbuild@vger.kernel.org, Shawn Guo <shawn.guo@linaro.org>, Dave Martin <Dave.Martin@arm.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:40321 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754040AbaDVI2k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Apr 2014 04:28:40 -0400
+In-Reply-To: <cover.1398149526.git.nsekhar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Sekhar Nori <nsekhar@ti.com>
 
-Hi Russ,
+L2 cache initialization for OMAP4 redundantly sets the
+cache policy to Round-Robin. This is not needed since
+thats the PL310 default anyway.
 
-Am Donnerstag, 24. Oktober 2013, 10:09:12 schrieb Heiko St=FCbner:
-> Am Dienstag, 17. September 2013, 14:43:26 schrieb Russ Dill:
-> > This patch adds support for and demonstrates the usage of an embedd=
-ed
-> > position independent executable (PIE). The goal is to allow the use=
- of C
-> > code in situations where carefully written position independent ass=
-embly
-> > was previously required.
->=20
-> As suggested yesterday evening by Kevin Hilman, just adding my 2ct of
-> support.
->=20
-> This series looks exactly like the foundation I'll need at some point=
- in the
-> (probably still distant) future to handle suspend on my Rockchip plat=
-form -
-> where like in your example stuff like putting the ram into selfrefres=
-h has
-> to be done by the os.
+Removing this reduces the number of platform specific
+aux control settings.
 
-just as it came up recently again for me and I couldn't find any newer =
-version,=20
-ist this series still on the table?
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+ arch/arm/mach-omap2/omap4-common.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 1230975..c41ff8b 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -206,16 +206,15 @@ int __init omap_l2_cache_init(void)
+ 		return -ENOMEM;
+ 
+ 	/* 16-way associativity, parity disabled, way size - 64KB (es2.0 +) */
+-	aux_ctrl = L310_AUX_CTRL_CACHE_REPLACE_RR |
+-		   L2C_AUX_CTRL_SHARED_OVERRIDE |
++	aux_ctrl = L2C_AUX_CTRL_SHARED_OVERRIDE |
+ 		   L310_AUX_CTRL_DATA_PREFETCH |
+ 		   L310_AUX_CTRL_INSTR_PREFETCH;
+ 
+ 	outer_cache.write_sec = omap4_l2c310_write_sec;
+ 	if (of_have_populated_dt())
+-		l2x0_of_init(aux_ctrl, 0xcd9fffff);
++		l2x0_of_init(aux_ctrl, 0xcf9fffff);
+ 	else
+-		l2x0_init(l2cache_base, aux_ctrl, 0xcd9fffff);
++		l2x0_init(l2cache_base, aux_ctrl, 0xcf9fffff);
+ 
+ 	return 0;
+ }
+-- 
+1.7.10.1
 
-Thanks
-Heiko
