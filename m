@@ -1,180 +1,73 @@
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH 3/4] ARM: dts: Typo s/interrupts-names/interrupt-names/g
-Date: Tue, 22 Apr 2014 20:40:24 +0200
-Message-ID: <1398192025-31523-3-git-send-email-geert+renesas@glider.be>
-References: <1398192025-31523-1-git-send-email-geert+renesas@glider.be>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP5: Switch to THUMB mode if needed on secondary CPU
+Date: Tue, 22 Apr 2014 13:47:07 -0500
+Message-ID: <CAGo_u6oyE0-Xnv8WV0Ks-i=jdyotGH5xTcTmNDrgT2fK3GfZFg@mail.gmail.com>
+References: <1398191506-3741-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1398192025-31523-1-git-send-email-geert+renesas@glider.be>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Cc: kernel@stlinux.com, Geert Uytterhoeven <geert+renesas@glider.be>, Srinivas Kandagatla <srinivas.kandagatla@st.com>, linux-kernel@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f182.google.com ([74.125.82.182]:51052 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750890AbaDVSrI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 14:47:08 -0400
+In-Reply-To: <1398191506-3741-1-git-send-email-joelf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Benoit Cousson <bcousson@baylibre.com>
-Cc: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-Cc: linux-omap@vger.kernel.org
-Cc: kernel@stlinux.com
-Cc: linux-arm-kernel@lists.infradead.org
----
- arch/arm/boot/dts/am33xx.dtsi          |    4 ++--
- arch/arm/boot/dts/am4372.dtsi          |    4 ++--
- arch/arm/boot/dts/stih415-pinctrl.dtsi |   10 +++++-----
- arch/arm/boot/dts/stih416-pinctrl.dtsi |   10 +++++-----
- 4 files changed, 14 insertions(+), 14 deletions(-)
+On Tue, Apr 22, 2014 at 1:31 PM, Joel Fernandes <joelf@ti.com> wrote:
+> On my DRA7 system, when the kernel is built in THUMB mode, the secondary CPU
+Did you mean THUMB2? omap2plus_defconfig works today with
+CONFIG_ARM_THUMB enabled..
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 07f283c20eb1..cb6811e5ae5a 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -802,7 +802,7 @@
- 			      <0x46000000 0x400000>;
- 			reg-names = "mpu", "dat";
- 			interrupts = <80>, <81>;
--			interrupts-names = "tx", "rx";
-+			interrupt-names = "tx", "rx";
- 			status = "disabled";
- 			dmas = <&edma 8>,
- 				<&edma 9>;
-@@ -816,7 +816,7 @@
- 			      <0x46400000 0x400000>;
- 			reg-names = "mpu", "dat";
- 			interrupts = <82>, <83>;
--			interrupts-names = "tx", "rx";
-+			interrupt-names = "tx", "rx";
- 			status = "disabled";
- 			dmas = <&edma 10>,
- 				<&edma 11>;
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 36d523a26831..d1f8707ff1df 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -691,7 +691,7 @@
- 			      <0x46000000 0x400000>;
- 			reg-names = "mpu", "dat";
- 			interrupts = <80>, <81>;
--			interrupts-names = "tx", "rx";
-+			interrupt-names = "tx", "rx";
- 			status = "disabled";
- 			dmas = <&edma 8>,
- 			       <&edma 9>;
-@@ -705,7 +705,7 @@
- 			      <0x46400000 0x400000>;
- 			reg-names = "mpu", "dat";
- 			interrupts = <82>, <83>;
--			interrupts-names = "tx", "rx";
-+			interrupt-names = "tx", "rx";
- 			status = "disabled";
- 			dmas = <&edma 10>,
- 			       <&edma 11>;
-diff --git a/arch/arm/boot/dts/stih415-pinctrl.dtsi b/arch/arm/boot/dts/stih415-pinctrl.dtsi
-index f09fb10a3791..81df870e5ee6 100644
---- a/arch/arm/boot/dts/stih415-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/stih415-pinctrl.dtsi
-@@ -49,7 +49,7 @@
- 			reg 		= <0xfe61f080 0x4>;
- 			reg-names	= "irqmux";
- 			interrupts 	= <GIC_SPI 180 IRQ_TYPE_LEVEL_HIGH>;
--			interrupts-names = "irqmux";
-+			interrupt-names	= "irqmux";
- 			ranges 		= <0 0xfe610000 0x5000>;
- 
- 			PIO0: gpio@fe610000 {
-@@ -187,7 +187,7 @@
- 			reg 		= <0xfee0f080 0x4>;
- 			reg-names	= "irqmux";
- 			interrupts 	= <GIC_SPI 181 IRQ_TYPE_LEVEL_HIGH>;
--			interrupts-names = "irqmux";
-+			interrupt-names	= "irqmux";
- 			ranges		= <0 0xfee00000 0x8000>;
- 
- 			PIO5: gpio@fee00000 {
-@@ -282,7 +282,7 @@
- 			reg 		= <0xfe82f080 0x4>;
- 			reg-names	= "irqmux";
- 			interrupts 	= <GIC_SPI 182 IRQ_TYPE_LEVEL_HIGH>;
--			interrupts-names = "irqmux";
-+			interrupt-names	= "irqmux";
- 			ranges		= <0 0xfe820000 0x8000>;
- 
- 			PIO13: gpio@fe820000 {
-@@ -423,7 +423,7 @@
- 			reg 		= <0xfd6bf080 0x4>;
- 			reg-names	= "irqmux";
- 			interrupts 	= <GIC_SPI 113 IRQ_TYPE_LEVEL_HIGH>;
--			interrupts-names = "irqmux";
-+			interrupt-names	= "irqmux";
- 			ranges		= <0 0xfd6b0000 0x3000>;
- 
- 			PIO100: gpio@fd6b0000 {
-@@ -460,7 +460,7 @@
- 			reg 		= <0xfd33f080 0x4>;
- 			reg-names	= "irqmux";
- 			interrupts 	= <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
--			interrupts-names = "irqmux";
-+			interrupt-names	= "irqmux";
- 			ranges		= <0 0xfd330000 0x5000>;
- 
- 			PIO103: gpio@fd330000 {
-diff --git a/arch/arm/boot/dts/stih416-pinctrl.dtsi b/arch/arm/boot/dts/stih416-pinctrl.dtsi
-index aeea304086eb..250d5ecc951e 100644
---- a/arch/arm/boot/dts/stih416-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/stih416-pinctrl.dtsi
-@@ -53,7 +53,7 @@
- 			reg 		= <0xfe61f080 0x4>;
- 			reg-names	= "irqmux";
- 			interrupts 	= <GIC_SPI 182 IRQ_TYPE_LEVEL_HIGH>;
--			interrupts-names = "irqmux";
-+			interrupt-names	= "irqmux";
- 			ranges		= <0 0xfe610000 0x6000>;
- 
- 			PIO0: gpio@fe610000 {
-@@ -201,7 +201,7 @@
- 			reg 		= <0xfee0f080 0x4>;
- 			reg-names	= "irqmux";
- 			interrupts 	= <GIC_SPI 183 IRQ_TYPE_LEVEL_HIGH>;
--			interrupts-names = "irqmux";
-+			interrupt-names	= "irqmux";
- 			ranges		= <0 0xfee00000 0x10000>;
- 
- 			PIO5: gpio@fee00000 {
-@@ -333,7 +333,7 @@
- 			reg 		= <0xfe82f080 0x4>;
- 			reg-names	= "irqmux";
- 			interrupts 	= <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>;
--			interrupts-names = "irqmux";
-+			interrupt-names	= "irqmux";
- 			ranges 		= <0 0xfe820000 0x6000>;
- 
- 			PIO13: gpio@fe820000 {
-@@ -461,7 +461,7 @@
- 			reg 		= <0xfd6bf080 0x4>;
- 			reg-names	= "irqmux";
- 			interrupts 	= <GIC_SPI 113 IRQ_TYPE_LEVEL_HIGH>;
--			interrupts-names = "irqmux";
-+			interrupt-names	= "irqmux";
- 			ranges		= <0 0xfd6b0000 0x3000>;
- 
- 			PIO100: gpio@fd6b0000 {
-@@ -498,7 +498,7 @@
- 			reg 		= <0xfd33f080 0x4>;
- 			reg-names	= "irqmux";
- 			interrupts 	= <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
--			interrupts-names = "irqmux";
-+			interrupt-names	= "irqmux";
- 			ranges			= <0 0xfd330000 0x5000>;
- 
- 			PIO103: gpio@fd330000 {
--- 
-1.7.9.5
+> (Cortex A15) fails to come up causing SMP boot on second CPU to timeout. This
+> seems to be because the CPU is in ARM mode once the ROM hands over control to
+> the kernel.  Switch to THUMB mode if required once the kernel is control of
+> secondary CPU. On OMAP4 on the other hand, it appears to be in THUMB mode on
+> entry so this is not required and SMP boot works as is.
+>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Joel Fernandes <joelf@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap-headsmp.S |    8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
+> index 75e9295..1809dce 100644
+> --- a/arch/arm/mach-omap2/omap-headsmp.S
+> +++ b/arch/arm/mach-omap2/omap-headsmp.S
+> @@ -1,7 +1,7 @@
+>  /*
+>   * Secondary CPU startup routine source file.
+>   *
+> - * Copyright (C) 2009 Texas Instruments, Inc.
+> + * Copyright (C) 2014 Texas Instruments, Inc.
+2009-2014
+
+>   *
+>   * Author:
+>   *      Santosh Shilimkar <santosh.shilimkar@ti.com>
+> @@ -28,9 +28,13 @@
+>   * code.  This routine also provides a holding flag into which
+>   * secondary core is held until we're ready for it to initialise.
+>   * The primary core will update this flag using a hardware
+> -+ * register AuxCoreBoot0.
+> + * register AuxCoreBoot0.
+
+spurious change?
+
+>   */
+>  ENTRY(omap5_secondary_startup)
+> +.arm
+> +THUMB( adr     r9, BSYM(wait)  )       @ CPU may be entered in ARM mode.
+> +THUMB( bx      r9              )       @ If this is a Thumb-2 kernel,
+> +THUMB( .thumb                  )       @ switch to Thumb now.
+>  wait:  ldr     r2, =AUX_CORE_BOOT0_PA  @ read from AuxCoreBoot0
+>         ldr     r0, [r2]
+>         mov     r0, r0, lsr #5
+> --
+> 1.7.9.5
