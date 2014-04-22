@@ -1,92 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/2] ARM: OMAP2+: Fix oops for GPMC free
-Date: Mon, 21 Apr 2014 17:54:39 -0700
-Message-ID: <1398128080-18903-2-git-send-email-tony@atomide.com>
-References: <1398128080-18903-1-git-send-email-tony@atomide.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v2 3/3] ARM: OMAP2+: AM43x: L2 cache support
+Date: Tue, 22 Apr 2014 11:18:02 +0530
+Message-ID: <53560292.2080609@ti.com>
+References: <efa5fda5ae625a43fac14bf173cbd96ad7b44e7a.1396605300.git.nsekhar@ti.com> <20140404101808.GG27282@n2100.arm.linux.org.uk> <53440D73.6060504@ti.com> <20140409162327.GH27282@n2100.arm.linux.org.uk> <534686DF.7070207@ti.com> <20140410120348.GK27282@n2100.arm.linux.org.uk> <53468B8E.9040604@ti.com> <53469C29.8050906@ti.com> <20140410134028.GL27282@n2100.arm.linux.org.uk> <53477EC5.5080400@ti.com> <20140411112500.GM27282@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:12534 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753583AbaDVAyo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2014 20:54:44 -0400
-In-Reply-To: <1398128080-18903-1-git-send-email-tony@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:35752 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750781AbaDVFsh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Apr 2014 01:48:37 -0400
+In-Reply-To: <20140411112500.GM27282@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Pekon Gupta <pekon@ti.com>, tony Lindgren <tony@atomide.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 
-If gpmc_cs_remap() fails we will get an error because we are calling
-release_resource() on an uninitialized resource. Let's fix that by
-checking the resource flags. And while at it, let's also make
-gpmc_cs_delete_mem() use the res pointer that we already have to
-avoid confusion.
+On Friday 11 April 2014 04:55 PM, Russell King - ARM Linux wrote:
+> On Fri, Apr 11, 2014 at 11:03:57AM +0530, Sekhar Nori wrote:
+>> Here is a revised patch which is just an extension of your patch 
+>> with L2C-220 case handled. I dont really have L2C-220 hardware so even 
+>> if you want to handle that at a later time, it would be perfectly okay 
+>> with me.
+> 
+> This is what I came up with, which of course is very similar to yours.
+> I think the only difference is that I'm allowing the state of the NS
+> access bits to be preserved by the OMAP code, getting OMAP closer to
+> the target of a ~0 mask.  The only bits which are clear in the mask
+> passed into the L2 code by OMAP now are:
+> 
+> - L310_AUX_CTRL_INSTR_PREFETCH
+> - L310_AUX_CTRL_DATA_PREFETCH
+> - L310_AUX_CTRL_CACHE_REPLACE_RR
+> - L2C_AUX_CTRL_SHARED_OVERRIDE
+> - L2C_AUX_CTRL_PARITY_ENABLE
+> 
+> It sounds like we can kill L310_AUX_CTRL_CACHE_REPLACE_RR as well since
+> that's already set for us (and fwir is the power-on-reset default too.)
+> 
+>  arch/arm/mach-omap2/omap4-common.c |  4 +---
+>  arch/arm/mm/cache-l2x0.c           | 23 +++++++++++++++++++++--
+>  2 files changed, 22 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+> index c0f9a81a2d32..3b01c5223b11 100644
+> --- a/arch/arm/mach-omap2/omap4-common.c
+> +++ b/arch/arm/mach-omap2/omap4-common.c
+> @@ -213,8 +213,6 @@ static int __init omap_l2_cache_init(void)
+>  
+>  	/* 16-way associativity, parity disabled, way size - 64KB (es2.0 +) */
+>  	aux_ctrl = L310_AUX_CTRL_CACHE_REPLACE_RR |
+> -		   L310_AUX_CTRL_NS_LOCKDOWN |
+> -		   L310_AUX_CTRL_NS_INT_CTRL |
+>  		   L2C_AUX_CTRL_SHARED_OVERRIDE |
+>  		   L310_AUX_CTRL_DATA_PREFETCH |
+>  		   L310_AUX_CTRL_INSTR_PREFETCH;
+> @@ -223,7 +221,7 @@ static int __init omap_l2_cache_init(void)
+>  	if (of_have_populated_dt())
+>  		l2x0_of_init(aux_ctrl, 0xc19fffff);
 
-Without this patch we can get the following error:
+Just noticed that the mask here too should have been changed to
+0xcd9fffff. I will be making this change to the local version I am
+committing to base my AM43x support series on.
 
-omap-gpmc 6e000000.gpmc: cannot remap GPMC CS 1 to 0x01000300
-Unable to handle kernel NULL pointer dereference at virtual address 00000018
-...
-(gpmc_cs_free+0x94/0xc8)
-(gpmc_probe_generic_child+0x178/0x1ec)
-(gpmc_probe_dt+0x1bc/0x2cc)
-(gpmc_probe+0x250/0x44c)
-(platform_drv_probe+0x3c/0x6c)
-(really_probe+0x74/0x208)
-(driver_probe_device+0x34/0x50)
-(bus_for_each_drv+0x60/0x8c)
-(device_attach+0x80/0xa4)
-(bus_probe_device+0x88/0xb0)
-(device_add+0x320/0x450)
-(of_platform_device_create_pdata+0x80/0x9c)
-(of_platform_bus_create+0xd0/0x170)
-(of_platform_bus_create+0x12c/0x170)
-(of_platform_populate+0x60/0x98)
-(pdata_quirks_init+0x30/0x48)
-(customize_machine+0x20/0x48)
-(do_one_initcall+0x2c/0x14c)
-(do_basic_setup+0x98/0xd8)
-(kernel_init_freeable+0x12c/0x1e0)
-(kernel_init+0x8/0xf0)
-(ret_from_fork+0x14/0x2c)
-Code: e1a04000 e59f0070 eb195136 e5942010 (e5923018)
+>  	else
+> -		l2x0_init(l2cache_base, aux_ctrl, 0xc19fffff);
+> +		l2x0_init(l2cache_base, aux_ctrl, 0xcd9fffff);
 
-Cc: Pekon Gupta <pekon@ti.com>
-Signed-off-by: tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/gpmc.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index ab43755..84e57e6 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -501,7 +501,7 @@ static int gpmc_cs_delete_mem(int cs)
- 	int r;
- 
- 	spin_lock(&gpmc_mem_lock);
--	r = release_resource(&gpmc_cs_mem[cs]);
-+	r = release_resource(res);
- 	res->start = 0;
- 	res->end = 0;
- 	spin_unlock(&gpmc_mem_lock);
-@@ -586,6 +586,8 @@ EXPORT_SYMBOL(gpmc_cs_request);
- 
- void gpmc_cs_free(int cs)
- {
-+	struct resource	*res = &gpmc_cs_mem[cs];
-+
- 	spin_lock(&gpmc_mem_lock);
- 	if (cs >= gpmc_cs_num || cs < 0 || !gpmc_cs_reserved(cs)) {
- 		printk(KERN_ERR "Trying to free non-reserved GPMC CS%d\n", cs);
-@@ -594,7 +596,8 @@ void gpmc_cs_free(int cs)
- 		return;
- 	}
- 	gpmc_cs_disable_mem(cs);
--	release_resource(&gpmc_cs_mem[cs]);
-+	if (res->flags)
-+		release_resource(res);
- 	gpmc_cs_set_reserved(cs, 0);
- 	spin_unlock(&gpmc_mem_lock);
- }
--- 
-1.8.1.1
-
+Thanks,
+Sekhar
