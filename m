@@ -1,60 +1,62 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH 0/5] add gpio_chip_ops to hold GPIO operations
-Date: Tue, 22 Apr 2014 16:17:42 +0200
-Message-ID: <201404221617.43272.arnd@arndb.de>
-References: <1396981215-24888-1-git-send-email-javier.martinez@collabora.co.uk> <CACRpkdYLaGXJ+O0rsL5+rjUsOvxCxK2b9QtH2j4FD0g21vx8_Q@mail.gmail.com> <CABxcv=mb+CXQbrS==hBayMQGsaJCPuLR=xyW_BJpZm2oSNBu-w@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 01/11] tty: serial: add missing braces
+Date: Tue, 22 Apr 2014 09:22:56 -0500
+Message-ID: <20140422142256.GC5524@saruman.home>
+References: <1395343807-21618-1-git-send-email-balbi@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+B+y8wtTXqdUj1xM"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.130]:60231 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753950AbaDVORz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 10:17:55 -0400
-In-Reply-To: <CABxcv=mb+CXQbrS==hBayMQGsaJCPuLR=xyW_BJpZm2oSNBu-w@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39078 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751489AbaDVOZU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 10:25:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1395343807-21618-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Alexandre Courbot <acourbot@nvidia.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-bluetooth@vger.kernel.org, peter@hurleysoftware.com, m-karicheri2@ti.com, b32955@freescale.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tuesday 22 April 2014, Javier Martinez Canillas wrote:
-> Hello Linus,
-> 
-> On Tue, Apr 22, 2014 at 1:36 PM, Linus Walleij <linus.walleij@linaro.org> wrote:
-> > On Tue, Apr 8, 2014 at 8:20 PM, Javier Martinez Canillas
-> > <javier.martinez@collabora.co.uk> wrote:
-> >
-> >> So this is an RFC patch-set to add a virtual table to be used by
-> >> GPIO chip controllers and consist of the following patches:
-> >
-> > Overall I like this.
+--+B+y8wtTXqdUj1xM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Agreed, it's a very good cleanup.
+Hi,
 
-> > However I don't want to see any transitional phase. I prefer a BIG
-> > fat patch converting everyone and its dog to the new vtable and
-> > removing the old function pointers. This can be based on the HEAD
-> > of my GPIO devel branch.
-> >
-> 
-> Ok, I was adding a commit per GPIO driver but the patch-set would have
-> been very big (~200 patches).
-> 
-> > It may be a good idea to use coccinelle for this refactoring in order
-> > not to miss any users.
-> >
-> 
-> Agreed, I was manually searching for users by using grep but I agree
-> that is much safer to use coccinelle for this. I don't have previous
-> experience writing coccinelle semantics patches though so it may take
-> more time than I thought but it is the perfect excuse to finally learn
-> how to do it :-)
+On Thu, Mar 20, 2014 at 02:29:57PM -0500, Felipe Balbi wrote:
+> per CodingStyle we should have those braces, no
+> functional changes.
+>=20
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-I'm not a big fan of doing this all at once, but it's not my call here.
-Just one recommendation: if you can't do an obvious coccinelle patch
-to do everything at once, use extra patches in the beginning to clean
-up the code enough to make it work, then have the large patch fully
-automated.
+Greg, do you want me to refresh and resend this series ?
 
-	Arnd
+--=20
+balbi
+
+--+B+y8wtTXqdUj1xM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTVntAAAoJEIaOsuA1yqREYyUP/jA9FzIhfh8oc1uKvY4SuEA+
+MB4tjfDMN9z10dQqwsSnGp3fu9iTdcDfS8Ch5ujFEpQs6ufZ8L8FZCurjI5JW7nC
+Kh0uWeAgRbdAxRQUX2eZ1SQGN0Vs59hO5X5O0Uvi2sYfjLFUyhWSgVPSzccq/rcl
+lMwWYqaF/5NjRpdGMoOT5tUPT2ElC72JLLBzm0AVbyvFwlbl3hgA8420vGfiinNr
+dMV5UQl0YqdQpLdylDiv8RbplJVuEuucZPnMtHn07oO81loMOmk8YKgJV6w7fppP
+sWw7GmTrl+/h40kPKhzMFQbNZ7KTHOo0nsUAzafj/wcdFsh2ehhV3Ah82wT8G7L+
+q+YQN1rd5DjI7bQd0YqDoR7mFzKo9HMlNeXrKJZp4NFkHpbrO5mJr3LvA6s7wp4q
+E7GYIGy6oBJZ+k1UIX51Yot2z+iW/e9tdUXoWNt/3uL18YvBXbpkQlZjoc7vaY/i
+eOsc5cEkiRSYF5l87UBvpsf5JotPUnparWZysAR70bhrvSdZ9K6cVdNNQp1rdQiA
+MH5yhnU7MHuDrWIvs0HFGnilPqFoYB1H8oCrvmsqTGEy8gbElHaOyxjAeASU+mHw
+Uf+hcvD0ezaE+kCHyxxKKAxsxhZVoXy1n7d2zNVCNdijqNgDDJq6ed8m2lZLp6IQ
+NKbYgqTRGmBoOyEFUQRg
+=DQiI
+-----END PGP SIGNATURE-----
+
+--+B+y8wtTXqdUj1xM--
