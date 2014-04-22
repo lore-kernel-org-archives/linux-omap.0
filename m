@@ -1,95 +1,51 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2 01/13] Documentation: add extcon devicetree bindings
-Date: Tue, 22 Apr 2014 20:51:17 +0100
-Message-ID: <20140422195117.GG12304@sirena.org.uk>
-References: <1397475984-28001-2-git-send-email-r.baldyga@samsung.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: Boot fixes
+Date: Tue, 22 Apr 2014 14:53:18 -0500
+Message-ID: <5356C8AE.3090907@ti.com>
+References: <1398192739-8901-1-git-send-email-d-gerlach@ti.com> <20140422190132.GA12204@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jNWcHVWQWvKhiWM/"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1397475984-28001-2-git-send-email-r.baldyga@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, myungjoo.ham@samsung.com, cw00.choi@samsung.com, dbaryshkov@gmail.com, dwmw2@infradead.org, balbi@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, ldewangan@nvidia.com, kishon@ti.com, gg@slimlogic.co.uk, anton@enomsg.org, jonghwa3.lee@samsung.com, rongjun.ying@csr.com, linux@roeck-us.net, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi, m.szyprowski@samsung.com, t.figa@samsung.com, Robert Baldyga <r.baldyga@samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57452 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756639AbaDVTxn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 15:53:43 -0400
+In-Reply-To: <20140422190132.GA12204@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, bcousson@baylibre.com, Sekhar Nori <nsekhar@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
 
+On 04/22/2014 02:01 PM, Tony Lindgren wrote:
+> * Dave Gerlach <d-gerlach@ti.com> [140422 11:52]:
+>> This patch, along with patch here [1], fixes boot for am437x-gp-evm. The
+>> bootloader configures gpio5_7 to control the DDR3 termination regulator,
+>> the linked patch prevents that gpio bank from being reset and losing
+>> the previously configured state, and this patch binds the gpio to a
+>> regulator so the kernel is aware of the state of the gpio.
+>>
+>> [1] https://www.mail-archive.com/linux-omap@vger.kernel.org/msg102941.html
+>
+> Setting up the GPIO regulator makes sense to me. But the hack in the
+> link above is potentially a nasty time bomb for anybody trying to
+> use GPIO bank 5 on that board.
+>
+> What tests have been done that the GPIO bank behaves properly when
+> it's not reset?
 
---jNWcHVWQWvKhiWM/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+We've been using this configuration on this board for a while without 
+any apparent issues. Also, am335x-evmsk already uses the same idea for 
+the VTT regulator on board from commit 
+6046adb6ad701026c10adeac8d6a4138895f12e5 [ARM: dts: am335x-evmsk: Do not 
+reset gpio0] and I am unaware of any issues with that either.
 
-On Mon, Apr 14, 2014 at 01:46:12PM +0200, Robert Baldyga wrote:
+Regards,
+Dave
 
-That's quite some CC list you've got there, and the mail seems a bit
-corrupted too (it confused my MUA).
+>
+> Regards,
+>
+> Tony
+>
 
-> This patch adds extcon devicetree bindings. Documentation describes in ge=
-neral
-> client and provider bindings, and contains detailed desctiprion of bindin=
-gs
-> for each extcon provider.
->=20
-> Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
-> ---
->  .../devicetree/bindings/extcon/extcon-adc-jack.txt |   60 ++++++++++++++=
-+++++
->  .../devicetree/bindings/extcon/extcon-arizona.txt  |   47 +++++++++++++++
->  .../devicetree/bindings/extcon/extcon-bindings.txt |   36 +++++++++++
->  .../devicetree/bindings/extcon/extcon-gpio.txt     |   63 ++++++++++++++=
-++++++
->  .../devicetree/bindings/extcon/extcon-max14577.txt |   49 +++++++++++++++
->  .../devicetree/bindings/extcon/extcon-max77693.txt |   56 ++++++++++++++=
-+++
->  .../devicetree/bindings/extcon/extcon-max8997.txt  |   49 +++++++++++++++
->  .../devicetree/bindings/extcon/extcon-palmas.txt   |   37 ++++++++++--
-
-This is creating device tree bindings for MFD components as devices when
-those MFD components aren't well isolated from the rest of the device.
-If we need to add extcon bindings the device should have the flexibility
-to decide where to add the properties, and really things should be set
-up so there's less duplication in the documentation.
-
-> +The following is the list of cables detected by the controller. Each
-> +cable is assigned an identifier and client nodes use this identifies
-> +to specify the cable which they are interested in.
-> +
-> +  Cable			ID
-> +  ----------------------------
-> +
-> +  Mechanical		0
-> +  Microphone		1
-> +  Headphone		2
-> +  Line-out		3
-> +
-> +Example 1: An example of a extcon controller node is listed below.
-> +
-> +	extcon: arizona-extcon {
-
-The above doesn't entirely reflect what the hardware is capable of doing
-- it reflects the default software configuration for the device but it's
-got a wider feature set.
-
---jNWcHVWQWvKhiWM/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTVsgyAAoJELSic+t+oim9PFMP/Ayd6ZXW/PfYVtfzJTJfLU+7
-mL0MiPgW0BWkOjFRy+kFa6ZUpLZxT8xeQLrrM0MD1BuAjpmnnDp65D99lj0KHjvj
-CTUei4VMQZFj59/fWwY439YDxuQqfMIZbI4rTUsj2QjaFm8NaW88V/hOfEaHDUFy
-po2Ha/ljIF67y1ZZKxjFslOnSexV/lTBEpQz0pMKcDGu9+kI0WIpk/ecbThp/xYC
-Dq5ckFKcPSptoOD4Yn0ennb05P44uS6Kus113kkE9F1QZqK8nqM0isWtCb1n5ca1
-5z60aBHbIc6Yj2pWEavlS09Abnw3j1P6FWvFsQY2gZxwq6h8np6/lsa7UNAkFrEl
-hiugorx2ItvkMSAV/F0FCiXlYDw6CdqSpV2H+jOQzd4VGvxKc0ZwAecbbLPfzmz7
-8bJItJEU3/ws4zf2PcbFOY1FHU0Xxe0NP+rNjMaoBw9FJM++tCDAV1jvn0+1kt+l
-5CLCtNdXyl4BcDp455GJz+YWybb30AgSrymVVeUAaFs6k+vZwHssVw5cl+Pj7e6p
-JUrmUnjQzlXM65JcIVChRoAv5R9KjCI8ubP+VWl8OMYamBD9lr5n2PXmACKiVW/f
-5nhL52gD+ijIUfbIc7w1ACEz+CCp9tbbqjwiP4Lx7SR1Qy/yMJSAc9Kx1FypN5Ko
-Ih6wIoezNxNqZjpRrhjZ
-=h3AL
------END PGP SIGNATURE-----
-
---jNWcHVWQWvKhiWM/--
