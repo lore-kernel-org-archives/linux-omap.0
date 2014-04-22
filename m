@@ -1,46 +1,40 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH] [FIX] dmaengine: virt-dma: Free descriptor after
- callback
-Date: Tue, 22 Apr 2014 21:44:24 +0530
-Message-ID: <20140422161424.GZ32284@intel.com>
-References: <1397782610-7370-1-git-send-email-joelf@ti.com>
- <20140418085019.GN27282@n2100.arm.linux.org.uk>
- <5351542A.5080307@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v3 0/3] ARM: OMAP2+: AM437x: L2 cache support
+Date: Tue, 22 Apr 2014 14:20:43 -0400
+Message-ID: <5356B2FB.5090205@ti.com>
+References: <cover.1398149526.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5351542A.5080307@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:48308 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750811AbaDVSVL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Apr 2014 14:21:11 -0400
+In-Reply-To: <cover.1398149526.git.nsekhar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Apr 18, 2014 at 11:34:50AM -0500, Joel Fernandes wrote:
-> On 04/18/2014 03:50 AM, Russell King - ARM Linux wrote:
-> > On Thu, Apr 17, 2014 at 07:56:50PM -0500, Joel Fernandes wrote:
-> >> Free the vd (virt descriptor) after the callback is called.  In EDMA driver
-> >> atleast which uses virt-dma, we make use of the desc during the callback and if
-> >> its dangerously freed before the callback is called. I also noticed this in
-> >> omap-dma dmaengine driver.
-> > 
-> > You've missed the vital bit of information: why do you make use of the
-> > descriptor afterwards?  You shouldn't.  omap-dma doesn't either.
-> > 
-> > Once clients submit their request to DMA engine, they must not hold any
-> > kind of reference to the descriptor other than the cookie.
-> > 
+On Tuesday 22 April 2014 04:28 AM, Sekhar Nori wrote:
+> This patch series adds L2 cache support for AM437x
+> and does some clean-ups for existing OMAP4 support
+> along the way (no functional changes). On OMAP4 Panda,
+> the Aux control value remains 0x7e470000 before and
+> after the series.
 > 
-> Sorry, I confused edma/omap-dma callbacks for virt dma callbacks.
+> Tested on OMAP4 Panda and AM437x EPOS EVMs.
 > 
-> Anyway, I think there is still a chance in edma that we refer to the
-> echan->edesc pointer later on after virt-dma calls the free (in
-> edma_execute), so I'll just NULL that out to be safe and submit a patch.
+> It is based on RMK's 75 patch series titled "l2c series" +
+> the patch contained in https://www.mail-archive.com/linux-omap@vger.kernel.org/msg103439.html
+> 
+> Sekhar Nori (3):
+>   ARM: OMAP2+: L2 cache: get rid of init call
+>   ARM: OMAP2+: L2 cache: git rid of redundant cache replacement policy
+>     setting
+>   ARM: OMAP2+: AM43x: L2 cache support
+> 
+For the whole series,
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Yes, that would be the right way :)
-
-While looking at this, I see it is not called out specfically in documentation, will update
-that as well
-
--- 
-~Vinod
