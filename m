@@ -1,121 +1,78 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: regressions in linux-next?
-Date: Tue, 22 Apr 2014 16:29:30 +0300
-Message-ID: <53566EBA.808@ti.com>
-References: <53566C20.6000208@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52658 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750906AbaDVN3m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Apr 2014 09:29:42 -0400
-In-Reply-To: <53566C20.6000208@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: yegorslists@googlemail.com
+Subject: [PATCH v2] gpio: omap: implement get_direction
+Date: Tue, 22 Apr 2014 15:31:45 +0200
+Message-ID: <1398173505-28193-1-git-send-email-yegorslists@googlemail.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-gpio@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, linus.walleij@linaro.org, Yegor Yefremov <yegorslists@googlemail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Linus Walleij <linus.walleij@linaro.org>
 
-On 04/22/2014 04:18 PM, Nishanth Menon wrote:
-> next-20140422-omap2plus_defconfig
->  1:  am335x-sk:  Boot FAIL: http://slexy.org/raw/s2gh6XsLve
->  2: am3517-evm:  Boot PASS: http://slexy.org/raw/s2MTkdzPnb
->  3:  am37x-evm:  Boot PASS: http://slexy.org/raw/s2SJwrVat8
->  4: am43xx-epos:  Boot PASS: http://slexy.org/raw/s2184jfKlq
->  5: am43xx-gpevm:  Boot FAIL: http://slexy.org/raw/s21qIYDHqa
->> known
->  6: BeagleBoard-XM:  Boot FAIL: http://slexy.org/raw/s21EyANlGX
->  7: beagleboard-vanilla:  Boot FAIL: http://slexy.org/raw/s20lc3icwS
->  8: beaglebone-black:  Boot PASS: http://slexy.org/raw/s2ykosQg6C
->  9: beaglebone:  Boot PASS: http://slexy.org/raw/s2DN9gqlmo
-> 10: craneboard:  Boot FAIL: http://slexy.org/raw/s21bP0auhl
-> 11: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2rBG0C1x6
-> 12: OMAP3430-Labrador(LDP):  Boot PASS: http://slexy.org/raw/s2N3afw0=
-TI
-> 13:       n900:  Boot PASS: http://slexy.org/raw/s21qmT6XCJ
-> 14: pandaboard-es:  Boot FAIL: http://slexy.org/raw/s28vlMGdeh
-> 15: pandaboard-vanilla:  Boot FAIL: http://slexy.org/raw/s20yHoGHdW
-> 16:    sdp2430:  Boot PASS: http://slexy.org/raw/s20i8Ir3yn
-> 17:    sdp3430:  Boot PASS: http://slexy.org/raw/s20t4VTeEB
-> 18:    sdp4430:  Boot FAIL: http://slexy.org/raw/s21SHcOP01
-> 19: OMAP5432uEVM:  Boot FAIL: http://slexy.org/raw/s2qmlRZped
-> TOTAL =3D 19 boards, Booted Boards =3D 9, No Boot boards =3D 10
->=20
-> next-20140417-omap2plus_defconfig
->  1: am335x-evm:  Boot PASS: http://slexy.org/raw/s2Yvz8RRkn
->  2:  am335x-sk:  Boot FAIL: http://slexy.org/raw/s2JFbaPPVA
->> farm issues. - But peter reports fail as well.
+From: Yegor Yefremov <yegorslists@googlemail.com>
 
-Yes, 20140417 boot fails for me on am335x-evmsk. What I can see with ea=
-rly
-printk is that the boot hangs around/after omap-gpio in all cases witho=
-ut any
-further information.
-I have checked the diff between 20140407, which was fine on evmsk regar=
-ding to
-omap-gpio and if I revert:
-d04b76626e94 gpio: omap: convert driver to use gpiolib irqchip
+This patch implements gpio_chip's get_direction() routine, that
+lets other drivers get particular GPIOs direction using
+struct gpio_desc.
 
-am335x-evmsk boots up fine.
+Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
+---
+Changes:
+	v2: rework return value calculation
 
-With that commit in place PandaBoardES boots fine, but evmsk does not.
+ drivers/gpio/gpio-omap.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 19b886c..fadc45e 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -102,6 +102,17 @@ static int omap_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
+ 	return irq_find_mapping(bank->domain, offset);
+ }
+ 
++static int _get_gpio_direction(struct gpio_bank *bank, int gpio)
++{
++	void __iomem *reg = bank->base;
++	u32 l;
++
++	reg += bank->regs->direction;
++	l = (readl_relaxed(reg) >> gpio);
++
++	return (l & 0x00000001);
++}
++
+ static void _set_gpio_direction(struct gpio_bank *bank, int gpio, int is_input)
+ {
+ 	void __iomem *reg = bank->base;
+@@ -936,6 +947,19 @@ static inline void mpuio_init(struct gpio_bank *bank)
+ 
+ /*---------------------------------------------------------------------*/
+ 
++static int gpio_get_direction(struct gpio_chip *chip, unsigned offset)
++{
++	struct gpio_bank *bank;
++	unsigned long flags;
++	int dir;
++
++	bank = container_of(chip, struct gpio_bank, chip);
++	spin_lock_irqsave(&bank->lock, flags);
++	dir = _get_gpio_direction(bank, offset);
++	spin_unlock_irqrestore(&bank->lock, flags);
++	return dir;
++}
++
+ static int gpio_input(struct gpio_chip *chip, unsigned offset)
+ {
+ 	struct gpio_bank *bank;
+@@ -1092,6 +1116,7 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
+ 	 */
+ 	bank->chip.request = omap_gpio_request;
+ 	bank->chip.free = omap_gpio_free;
++	bank->chip.get_direction = gpio_get_direction;
+ 	bank->chip.direction_input = gpio_input;
+ 	bank->chip.get = gpio_get;
+ 	bank->chip.direction_output = gpio_output;
+-- 
+1.7.7
 
->  3: am3517-evm:  Boot PASS: http://slexy.org/raw/s29h2lXGuw
->  4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s20Whu6Qjr
->  5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s21jBdk51T
->  6: am43xx-gpevm:  Boot FAIL: http://slexy.org/raw/s2118uUlle
->> known.
->  7: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s29I92x0p3
->  8: beagleboard-vanilla:  Boot FAIL: http://slexy.org/raw/s2GqJbMp7C
->> farm issues
->  9: beaglebone-black:  Boot PASS: http://slexy.org/raw/s2fb7JvizO
-> 10: beaglebone:  Boot PASS: http://slexy.org/raw/s2uQNDnOlV
-> 11: craneboard:  Boot PASS: http://slexy.org/raw/s2pTk8AgdX
-> 12: DRA7xx-EVM:  Boot PASS: http://slexy.org/raw/s2r2XdK8XF
-> 13: OMAP3430-Labrador(LDP):  Boot PASS: http://slexy.org/raw/s213f9wx=
-5p
-> 14:       n900:  Boot PASS: http://slexy.org/raw/s2SaNcFG85
-> 15: pandaboard-es:  Boot PASS: http://slexy.org/raw/s2fR7PoakJ
-> 16: pandaboard-vanilla:  Boot PASS: http://slexy.org/raw/s2IMJ75sNc
-> 17:    sdp2430:  Boot PASS: http://slexy.org/raw/s207NAmPbO
-> 18:    sdp3430:  Boot PASS: http://slexy.org/raw/s20Yzlg3lU
-> 19:    sdp4430:  Boot PASS: http://slexy.org/raw/s21eYIZxtI
-> 20: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s2HIEtrDX9
-> TOTAL =3D 20 boards, Booted Boards =3D 17, No Boot boards =3D 3
->=20
-> next-20140416-omap2plus_defconfig
->  1: am335x-evm:  Boot PASS: http://slexy.org/raw/s20LxN1Qn4
->  2:  am335x-sk:  Boot FAIL: http://slexy.org/raw/s202mfovsx
->  3: am3517-evm:  Boot PASS: http://slexy.org/raw/s2IAJlhTFg
->  4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s213AOULx7
->  5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s22NCBg38K
->  6: am43xx-gpevm:  Boot FAIL: http://slexy.org/raw/s2IhClBS3N
->> known
->  7: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s2octtFj30
->  8: beagleboard-vanilla:  Boot PASS: http://slexy.org/raw/s20t9axfIr
->  9: beaglebone-black:  Boot PASS: http://slexy.org/raw/s21FvZM0Gz
-> 10: beaglebone:  Boot PASS: http://slexy.org/raw/s2119uANhW
-> 11: craneboard:  Boot PASS: http://slexy.org/raw/s2FoVFiYaC
-> 12: DRA7xx-EVM:  Boot PASS: http://slexy.org/raw/s2FJjqu4MU
-> 13: OMAP3430-Labrador(LDP):  Boot PASS: http://slexy.org/raw/s29X2FBM=
-hu
-> 14:       n900:  Boot PASS: http://slexy.org/raw/s2AcjThjhw
-> 15: pandaboard-es:  Boot PASS: http://slexy.org/raw/s2LF8KsxJw
-> 16: pandaboard-vanilla:  Boot PASS: http://slexy.org/raw/s2E2KTBSFY
-> 17:    sdp2430:  Boot PASS: http://slexy.org/raw/s20HnXbU9M
-> 18:    sdp3430:  Boot PASS: http://slexy.org/raw/s20OuKg9mw
-> 19:    sdp4430:  Boot PASS: http://slexy.org/raw/s25V9CJgUB
-> 20: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s21WFeZmTd
-> TOTAL =3D 20 boards, Booted Boards =3D 18, No Boot boards =3D 2
->=20
-
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
