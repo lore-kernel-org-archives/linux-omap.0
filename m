@@ -1,67 +1,95 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH v2] ARM: OMAP5: Switch to THUMB mode if needed on secondary CPU
-Date: Tue, 22 Apr 2014 14:40:39 -0500
-Message-ID: <1398195639-29273-1-git-send-email-joelf@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v2 01/13] Documentation: add extcon devicetree bindings
+Date: Tue, 22 Apr 2014 20:51:17 +0100
+Message-ID: <20140422195117.GG12304@sirena.org.uk>
+References: <1397475984-28001-2-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51923 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752580AbaDVTlI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Apr 2014 15:41:08 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jNWcHVWQWvKhiWM/"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1397475984-28001-2-git-send-email-r.baldyga@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, myungjoo.ham@samsung.com, cw00.choi@samsung.com, dbaryshkov@gmail.com, dwmw2@infradead.org, balbi@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, ldewangan@nvidia.com, kishon@ti.com, gg@slimlogic.co.uk, anton@enomsg.org, jonghwa3.lee@samsung.com, rongjun.ying@csr.com, linux@roeck-us.net, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi, m.szyprowski@samsung.com, t.figa@samsung.com, Robert Baldyga <r.baldyga@samsung.com>
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Joel Fernandes <joelf@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On my DRA7 system, when the kernel is built in Thumb-2 mode, the secondary CPU
-(Cortex A15) fails to come up causing SMP boot on second CPU to timeout. This
-seems to be because the CPU is in ARM mode once the ROM hands over control to
-the kernel.  Switch to Thumb-2 mode if required once the kernel is control of
-secondary CPU. On OMAP4 on the other hand, it appears to be in Thumb-2 mode on
-entry so this is not required and SMP boot works as is.
 
-Also corrected a spurious '+' and updated copyright information.
+--jNWcHVWQWvKhiWM/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Tested-by: Nishanth Menon <nm@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Joel Fernandes <joelf@ti.com>
----
- arch/arm/mach-omap2/omap-headsmp.S |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+On Mon, Apr 14, 2014 at 01:46:12PM +0200, Robert Baldyga wrote:
 
-diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
-index 75e9295..40c5d5f 100644
---- a/arch/arm/mach-omap2/omap-headsmp.S
-+++ b/arch/arm/mach-omap2/omap-headsmp.S
-@@ -1,7 +1,7 @@
- /*
-  * Secondary CPU startup routine source file.
-  *
-- * Copyright (C) 2009 Texas Instruments, Inc.
-+ * Copyright (C) 2009-2014 Texas Instruments, Inc.
-  *
-  * Author:
-  *      Santosh Shilimkar <santosh.shilimkar@ti.com>
-@@ -28,9 +28,13 @@
-  * code.  This routine also provides a holding flag into which
-  * secondary core is held until we're ready for it to initialise.
-  * The primary core will update this flag using a hardware
--+ * register AuxCoreBoot0.
-+ * register AuxCoreBoot0.
-  */
- ENTRY(omap5_secondary_startup)
-+.arm
-+THUMB( adr     r9, BSYM(wait)  )       @ CPU may be entered in ARM mode.
-+THUMB( bx      r9              )       @ If this is a Thumb-2 kernel,
-+THUMB( .thumb                  )       @ switch to Thumb now.
- wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
- 	ldr	r0, [r2]
- 	mov	r0, r0, lsr #5
--- 
-1.7.9.5
+That's quite some CC list you've got there, and the mail seems a bit
+corrupted too (it confused my MUA).
 
+> This patch adds extcon devicetree bindings. Documentation describes in ge=
+neral
+> client and provider bindings, and contains detailed desctiprion of bindin=
+gs
+> for each extcon provider.
+>=20
+> Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
+> ---
+>  .../devicetree/bindings/extcon/extcon-adc-jack.txt |   60 ++++++++++++++=
++++++
+>  .../devicetree/bindings/extcon/extcon-arizona.txt  |   47 +++++++++++++++
+>  .../devicetree/bindings/extcon/extcon-bindings.txt |   36 +++++++++++
+>  .../devicetree/bindings/extcon/extcon-gpio.txt     |   63 ++++++++++++++=
+++++++
+>  .../devicetree/bindings/extcon/extcon-max14577.txt |   49 +++++++++++++++
+>  .../devicetree/bindings/extcon/extcon-max77693.txt |   56 ++++++++++++++=
++++
+>  .../devicetree/bindings/extcon/extcon-max8997.txt  |   49 +++++++++++++++
+>  .../devicetree/bindings/extcon/extcon-palmas.txt   |   37 ++++++++++--
+
+This is creating device tree bindings for MFD components as devices when
+those MFD components aren't well isolated from the rest of the device.
+If we need to add extcon bindings the device should have the flexibility
+to decide where to add the properties, and really things should be set
+up so there's less duplication in the documentation.
+
+> +The following is the list of cables detected by the controller. Each
+> +cable is assigned an identifier and client nodes use this identifies
+> +to specify the cable which they are interested in.
+> +
+> +  Cable			ID
+> +  ----------------------------
+> +
+> +  Mechanical		0
+> +  Microphone		1
+> +  Headphone		2
+> +  Line-out		3
+> +
+> +Example 1: An example of a extcon controller node is listed below.
+> +
+> +	extcon: arizona-extcon {
+
+The above doesn't entirely reflect what the hardware is capable of doing
+- it reflects the default software configuration for the device but it's
+got a wider feature set.
+
+--jNWcHVWQWvKhiWM/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTVsgyAAoJELSic+t+oim9PFMP/Ayd6ZXW/PfYVtfzJTJfLU+7
+mL0MiPgW0BWkOjFRy+kFa6ZUpLZxT8xeQLrrM0MD1BuAjpmnnDp65D99lj0KHjvj
+CTUei4VMQZFj59/fWwY439YDxuQqfMIZbI4rTUsj2QjaFm8NaW88V/hOfEaHDUFy
+po2Ha/ljIF67y1ZZKxjFslOnSexV/lTBEpQz0pMKcDGu9+kI0WIpk/ecbThp/xYC
+Dq5ckFKcPSptoOD4Yn0ennb05P44uS6Kus113kkE9F1QZqK8nqM0isWtCb1n5ca1
+5z60aBHbIc6Yj2pWEavlS09Abnw3j1P6FWvFsQY2gZxwq6h8np6/lsa7UNAkFrEl
+hiugorx2ItvkMSAV/F0FCiXlYDw6CdqSpV2H+jOQzd4VGvxKc0ZwAecbbLPfzmz7
+8bJItJEU3/ws4zf2PcbFOY1FHU0Xxe0NP+rNjMaoBw9FJM++tCDAV1jvn0+1kt+l
+5CLCtNdXyl4BcDp455GJz+YWybb30AgSrymVVeUAaFs6k+vZwHssVw5cl+Pj7e6p
+JUrmUnjQzlXM65JcIVChRoAv5R9KjCI8ubP+VWl8OMYamBD9lr5n2PXmACKiVW/f
+5nhL52gD+ijIUfbIc7w1ACEz+CCp9tbbqjwiP4Lx7SR1Qy/yMJSAc9Kx1FypN5Ko
+Ih6wIoezNxNqZjpRrhjZ
+=h3AL
+-----END PGP SIGNATURE-----
+
+--jNWcHVWQWvKhiWM/--
