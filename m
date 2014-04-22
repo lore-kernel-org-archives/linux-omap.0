@@ -1,88 +1,46 @@
 From: Sekhar Nori <nsekhar@ti.com>
-Subject: [PATCH v3 1/3] ARM: OMAP2+: L2 cache: get rid of init call
-Date: Tue, 22 Apr 2014 13:58:01 +0530
-Message-ID: <9e9e4a3cae0b383f35a04aa1c060d4f678471f4d.1398149526.git.nsekhar@ti.com>
-References: <cover.1398149526.git.nsekhar@ti.com>
+Subject: [PATCH v3 0/3] ARM: OMAP2+: AM437x: L2 cache support
+Date: Tue, 22 Apr 2014 13:58:00 +0530
+Message-ID: <cover.1398149526.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40324 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754434AbaDVI2k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Apr 2014 04:28:40 -0400
-In-Reply-To: <cover.1398149526.git.nsekhar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Sekhar Nori <nsekhar@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-omap@vger.kernel.org
 
-Get rid of init call to initialize L2 cache.
-Instead use the init_early machine hook. This
-helps in using the initialization routine across
-SoCs without the need of ugly cpu_is_*() checks.
+This patch series adds L2 cache support for AM437x
+and does some clean-ups for existing OMAP4 support
+along the way (no functional changes). On OMAP4 Panda,
+the Aux control value remains 0x7e470000 before and
+after the series.
 
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
+Tested on OMAP4 Panda and AM437x EPOS EVMs.
+
+It is based on RMK's 75 patch series titled "l2c series" +
+the patch contained in https://www.mail-archive.com/linux-omap@vger.kernel.org/msg103439.html
+
+Sekhar Nori (3):
+  ARM: OMAP2+: L2 cache: get rid of init call
+  ARM: OMAP2+: L2 cache: git rid of redundant cache replacement policy
+    setting
+  ARM: OMAP2+: AM43x: L2 cache support
+
+ arch/arm/mach-omap2/Kconfig        |    1 +
  arch/arm/mach-omap2/common.h       |    1 +
- arch/arm/mach-omap2/io.c           |    1 +
- arch/arm/mach-omap2/omap4-common.c |   10 +---------
- 3 files changed, 3 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/io.c           |    2 ++
+ arch/arm/mach-omap2/omap4-common.c |   17 ++++-------------
+ 4 files changed, 8 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index d88aff7..ff02973 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -91,6 +91,7 @@ extern void omap3_sync32k_timer_init(void);
- extern void omap3_secure_sync32k_timer_init(void);
- extern void omap3_gptimer_timer_init(void);
- extern void omap4_local_timer_init(void);
-+int omap_l2_cache_init(void);
- extern void omap5_realtime_timer_init(void);
- 
- void omap2420_init_early(void);
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index f14f9ac..b28299b 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -640,6 +640,7 @@ void __init omap4430_init_early(void)
- 	omap44xx_clockdomains_init();
- 	omap44xx_hwmod_init();
- 	omap_hwmod_init_postsetup();
-+	omap_l2_cache_init();
- 	omap_clk_soc_init = omap4xxx_dt_clk_init;
- }
- 
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index df3f531..1230975 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -196,17 +196,10 @@ static void omap4_l2c310_write_sec(unsigned long val, unsigned reg)
- 	omap_smc1(smc_op, val);
- }
- 
--static int __init omap_l2_cache_init(void)
-+int __init omap_l2_cache_init(void)
- {
- 	u32 aux_ctrl;
- 
--	/*
--	 * To avoid code running on other OMAPs in
--	 * multi-omap builds
--	 */
--	if (!cpu_is_omap44xx())
--		return -ENODEV;
--
- 	/* Static mapping, never released */
- 	l2cache_base = ioremap(OMAP44XX_L2CACHE_BASE, SZ_4K);
- 	if (WARN_ON(!l2cache_base))
-@@ -226,7 +219,6 @@ static int __init omap_l2_cache_init(void)
- 
- 	return 0;
- }
--omap_early_initcall(omap_l2_cache_init);
- #endif
- 
- void __iomem *omap4_get_sar_ram_base(void)
 -- 
 1.7.10.1
-
