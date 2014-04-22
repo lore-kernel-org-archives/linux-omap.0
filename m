@@ -1,107 +1,64 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: [PATCH v6 1/3] tty/serial: Add GPIOLIB helpers for controlling
- modem lines
-Date: Tue, 22 Apr 2014 15:08:43 +0200
-Message-ID: <535669DB.8010109@visionsystems.de>
-References: <1394469951-21192-1-git-send-email-richard.genoud@gmail.com> <1394469951-21192-2-git-send-email-richard.genoud@gmail.com>
-Reply-To: yegor_sub1@visionsystems.de
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: OMAPDSS and panel-dpi
+Date: Tue, 22 Apr 2014 16:15:19 +0300
+Message-ID: <1398172519.5897.5.camel@deskari>
+References: <CAGhQ9VzL5fLHCNZ=y-exBAds03f8Bw_hO+KjYnwO4MgRWOfpuw@mail.gmail.com>
+	 <20140417192215.GA24931@atomide.com>
+	 <CAGhQ9VwM-rnXcMXNW40jbx6yDGCQwjODDyKhtbZNyCsexX2f3w@mail.gmail.com>
+	 <20140417225025.GA25732@atomide.com> <20140418025024.GB25732@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="=-vmCVU5vYbx1BeSRe4Xgs"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.visionsystems.de ([62.145.30.242]:54002 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754997AbaDVNJI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 09:09:08 -0400
-In-Reply-To: <1394469951-21192-2-git-send-email-richard.genoud@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52052 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756050AbaDVNPb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Apr 2014 09:15:31 -0400
+In-Reply-To: <20140418025024.GB25732@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Richard Genoud <noreply.rgenoud@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Alexander Shiyan <shc_work@mail.ru>, Richard Genoud <richard.genoud@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, linux-serial@vger.kernel.org, =?ISO-8859-1?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, linux-arm-kernel@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, mpfj-list@newflow.co.uk, balbi@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Joachim Eastwood <manabian@gmail.com>, linux-omap@vger.kernel.org
 
-On 10.03.2014 17:45, Richard Genoud wrote:
-> This patch add some helpers to control modem lines (CTS/RTS/DSR...) via
-> GPIO.
-> This will be useful for many boards which have a serial controller that
-> only handle CTS/RTS pins (or even just RX/TX).
-> 
-> Signed-off-by: Richard Genoud <richard.genoud@gmail.com>
+--=-vmCVU5vYbx1BeSRe4Xgs
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-....
+On Thu, 2014-04-17 at 19:50 -0700, Tony Lindgren wrote:
 
-> +
-> +struct mctrl_gpios {
-> +	struct gpio_desc *gpio[UART_GPIO_MAX];
-> +};
-> +
-> +static const struct {
-> +	const char *name;
-> +	unsigned int mctrl;
-> +	bool dir_out;
-> +} mctrl_gpios_desc[UART_GPIO_MAX] = {
-> +	{ "cts", TIOCM_CTS, false, },
-> +	{ "dsr", TIOCM_DSR, false, },
-> +	{ "dcd", TIOCM_CD, false, },
-> +	{ "rng", TIOCM_RNG, false, },
-> +	{ "rts", TIOCM_RTS, true, },
-> +	{ "dtr", TIOCM_DTR, true, },
-> +	{ "out1", TIOCM_OUT1, true, },
-> +	{ "out2", TIOCM_OUT2, true, },
-> +};
-> +
-> +void mctrl_gpio_set(struct mctrl_gpios *gpios, unsigned int mctrl)
-> +{
-> +	enum mctrl_gpio_idx i;
-> +
-> +	if (IS_ERR_OR_NULL(gpios))
-> +		return;
-> +
-> +	for (i = 0; i < UART_GPIO_MAX; i++)
-> +		if (!IS_ERR_OR_NULL(gpios->gpio[i]) &&
-> +		    mctrl_gpios_desc[i].dir_out)
-> +			gpiod_set_value(gpios->gpio[i],
-> +					!!(mctrl & mctrl_gpios_desc[i].mctrl));
-> +}
-> +EXPORT_SYMBOL_GPL(mctrl_gpio_set);
-> +
-> +struct gpio_desc *mctrl_gpio_to_gpiod(struct mctrl_gpios *gpios,
-> +				      enum mctrl_gpio_idx gidx)
-> +{
-> +	if (!IS_ERR_OR_NULL(gpios) && !IS_ERR_OR_NULL(gpios->gpio[gidx]))
-> +		return gpios->gpio[gidx];
-> +	else
-> +		return NULL;
-> +}
-> +EXPORT_SYMBOL_GPL(mctrl_gpio_to_gpiod);
-> +
-> +unsigned int mctrl_gpio_get(struct mctrl_gpios *gpios, unsigned int *mctrl)
-> +{
-> +	enum mctrl_gpio_idx i;
-> +
-> +	/*
-> +	 * return it unchanged if the structure is not allocated
-> +	 */
-> +	if (IS_ERR_OR_NULL(gpios))
-> +		return *mctrl;
-> +
-> +	for (i = 0; i < UART_GPIO_MAX; i++) {
-> +		if (!IS_ERR_OR_NULL(gpios->gpio[i]) &&
-> +		    !mctrl_gpios_desc[i].dir_out) {
-> +			if (gpiod_get_value(gpios->gpio[i]))
-> +				*mctrl |= mctrl_gpios_desc[i].mctrl;
-> +			else
-> +				*mctrl &= ~mctrl_gpios_desc[i].mctrl;
-> +		}
-> +	}
-> +
-> +	return *mctrl;
-> +}
-> +EXPORT_SYMBOL_GPL(mctrl_gpio_get);
+>  &vpll2 {
+> -       /* Needed for DSS */
+> -       regulator-name =3D "vdds_dsi";
+> +	/* Needed for DSS */
+> +	regulator-name =3D "vdds_dsi";
+>  };
 
-Should this routine be renamed to msr_gpio_get() or perhaps better to give all values (inputs and outputs)?
+This vpll2 node shouldn't be needed with full DT solution.
 
-I'm trying to port this approach to omap-serial to implement RS485 switching. I need to know if RTS is already on or not and set it accordingly.
+ Tomi
 
-What would be the best solution for this task using this new API?
 
-Yegor
+--=-vmCVU5vYbx1BeSRe4Xgs
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAABAgAGBQJTVmtnAAoJEPo9qoy8lh71k0UP/3p0LECRPtnR9tiukiiRTauC
+IU0slF0x6i19khfyYa2UErrfkKZfzdkRNSCOvFpHzjXKNbs37ROwRD3rbtChQ88u
+18Jtitpt46mOWZX7fG9KxNwhw+fQHm+yqlhb2WaDEFuTcRl8lEwrp+CkI0Y1JmtJ
+PE06gc7mBgiRbZb46SmlJqA67mzesBa+TBPXW31UE2J1mZwMHjaxlBcI1js39hfQ
+/PZJ851dBzj3UIanQxM4fjlF7HE/K24/8zNvmGCpBUT56Hy5BpyT0HZlAuasCzXy
+xDN1npJvYaCAJ6/FpmGDghaZHgWfO+U4HU2q5C6p75fUtm8ogW9vUpQxf5WapdEX
+tb3Qbg04z6slen8OXB0Shatwr1RRmuT912XhS50dRb3pF2V7YFcnPemmC1FzxzBQ
+o9ZK1uUuysoNAjALGPSyic32viDsaZAMcvBpiont1jlXlxuoS6dVaE7HJX578hgn
+v6NIQrlkPtCNgFvawrOCRkllH8o2Jz/2Xu8RzfhnamwuQ2EXk5i2mW7MtWlcXzcC
+CYzh8l0XfXIYHvVIuZkVJDk4P+m6pG5eWtr116TMT2ICGugk3wlAcUM6C1JbkaH9
+8sJsMOJ0K/e1rYGtr9j64AQFxmLnEPYzBW3phkJxfcpYSRkYfnYuoQom+A70yGaJ
+H7UZ7O9p8IN/gJdain7v
+=yFR8
+-----END PGP SIGNATURE-----
+
+--=-vmCVU5vYbx1BeSRe4Xgs--
