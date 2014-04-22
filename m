@@ -1,14 +1,14 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 3/3] ARM: dts: AM3517: Disable absent IPs inherited from OMAP3
-Date: Tue, 22 Apr 2014 17:23:37 -0500
-Message-ID: <1398205417-1575-4-git-send-email-s-anna@ti.com>
+Subject: [PATCH 2/3] ARM: dts: OMAP2: Fix interrupts for OMAP2420 mailbox
+Date: Tue, 22 Apr 2014 17:23:36 -0500
+Message-ID: <1398205417-1575-3-git-send-email-s-anna@ti.com>
 References: <1398205417-1575-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39058 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52822 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752026AbaDVWYP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754770AbaDVWYP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 22 Apr 2014 18:24:15 -0400
 In-Reply-To: <1398205417-1575-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,58 +16,78 @@ List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
 Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-AM3517 inherits OMAP3 dts file, but does not have all the IPs
-that are present on OMAP3. This patch disables the following
-absent IPs for AM3517: Mailbox, IVA, MMU_ISP, MPU_IVA SmartReflex.
+The mailbox module is capable of generating two interrupts
+to MPU in OMAP2420, compared to one in OMAP2430. The second
+interrupt is to handle interrupts from the additional IVA
+processor present only on OMAP2420.
 
-A label had to be added for IVA node in omap3.dtsi to be able to
-get a reference to the node for disabling.
+Move the current common mailbox DT node into the SoC
+specific files to allow the above differentiation. Also,
+added back the interrupt-names on OMAP2420, that were
+previously defined in hwmod data.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/boot/dts/am3517.dtsi | 16 ++++++++++++++++
- arch/arm/boot/dts/omap3.dtsi  |  2 +-
- 2 files changed, 17 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/omap2.dtsi    | 7 -------
+ arch/arm/boot/dts/omap2420.dtsi | 8 ++++++++
+ arch/arm/boot/dts/omap2430.dtsi | 7 +++++++
+ 3 files changed, 15 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
-index 788391f..5a452fd 100644
---- a/arch/arm/boot/dts/am3517.dtsi
-+++ b/arch/arm/boot/dts/am3517.dtsi
-@@ -62,5 +62,21 @@
- 	};
- };
- 
-+&iva {
-+	status = "disabled";
-+};
-+
-+&mailbox {
-+	status = "disabled";
-+};
-+
-+&mmu_isp {
-+	status = "disabled";
-+};
-+
-+&smartreflex_mpu_iva {
-+	status = "disabled";
-+};
-+
- /include/ "am35xx-clocks.dtsi"
- /include/ "omap36xx-am35xx-omap3430es2plus-clocks.dtsi"
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 5e5790f..f45f77f 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -61,7 +61,7 @@
- 			ti,hwmods = "mpu";
+diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+index 22f35ea..8f8c07d 100644
+--- a/arch/arm/boot/dts/omap2.dtsi
++++ b/arch/arm/boot/dts/omap2.dtsi
+@@ -71,13 +71,6 @@
+ 			interrupts = <58>;
  		};
  
--		iva {
-+		iva: iva {
- 			compatible = "ti,iva2.2";
- 			ti,hwmods = "iva";
+-		mailbox: mailbox@48094000 {
+-			compatible = "ti,omap2-mailbox";
+-			ti,hwmods = "mailbox";
+-			reg = <0x48094000 0x200>;
+-			interrupts = <26>;
+-		};
+-
+ 		intc: interrupt-controller@1 {
+ 			compatible = "ti,omap2-intc";
+ 			interrupt-controller;
+diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
+index 85b1fb0..2d99798 100644
+--- a/arch/arm/boot/dts/omap2420.dtsi
++++ b/arch/arm/boot/dts/omap2420.dtsi
+@@ -125,6 +125,14 @@
+ 			dma-names = "tx", "rx";
+ 		};
  
++		mailbox: mailbox@48094000 {
++			compatible = "ti,omap2-mailbox";
++			reg = <0x48094000 0x200>;
++			interrupts = <26>, <34>;
++			interrupt-names = "dsp", "iva";
++			ti,hwmods = "mailbox";
++		};
++
+ 		timer1: timer@48028000 {
+ 			compatible = "ti,omap2420-timer";
+ 			reg = <0x48028000 0x400>;
+diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+index d09697d..42d2c61 100644
+--- a/arch/arm/boot/dts/omap2430.dtsi
++++ b/arch/arm/boot/dts/omap2430.dtsi
+@@ -216,6 +216,13 @@
+ 			dma-names = "tx", "rx";
+ 		};
+ 
++		mailbox: mailbox@48094000 {
++			compatible = "ti,omap2-mailbox";
++			reg = <0x48094000 0x200>;
++			interrupts = <26>;
++			ti,hwmods = "mailbox";
++		};
++
+ 		timer1: timer@49018000 {
+ 			compatible = "ti,omap2420-timer";
+ 			reg = <0x49018000 0x400>;
 -- 
 1.9.2
 
