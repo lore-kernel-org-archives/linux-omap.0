@@ -1,42 +1,64 @@
-From: Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 05/13] extcon: extcon-class: improve extcon client API
-Date: Tue, 22 Apr 2014 08:21:35 +0200
-Message-ID: <53560A6F.8030909@samsung.com>
-References: <1397475984-28001-1-git-send-email-r.baldyga@samsung.com>
- <1397475984-28001-6-git-send-email-r.baldyga@samsung.com>
- <20140419105225.GB976@ambient.musicnaut.iki.fi>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH] ARM: dts: Add support for the BeagleBoard xM A/B
+Date: Tue, 22 Apr 2014 06:49:34 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAC458C@DBDE04.ent.ti.com>
+References: <1397574599-29573-1-git-send-email-robertcnelson@gmail.com>
+ <CAOCHtYg5_Lvi3SWuWaRTDDNhLJ32jiXsKYQmrsKaShVWpM+xWQ@mail.gmail.com>
+ <534D51C1.3010007@ti.com>
+ <CAOCHtYhygGFbUunY9abEkjKfpQ1hh-DfRfhm160NehSYhWJSRw@mail.gmail.com>
+ <20140418225111.GP21823@atomide.com>
+ <CAOCHtYjdC-OGkdaBt74xMqi5eDc1eVbU6O7VyWMEYN-U50-Abw@mail.gmail.com>
+ <20140418235119.GS21823@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <20140419105225.GB976-xqjnvvOjuzxi8rthE/p55WsfGuYhQEVp@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org, jonghwa3.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, rongjun.ying-kQvG35nSl+M@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, patches-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, t.figa-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33143 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752194AbaDVGuF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 02:50:05 -0400
+In-Reply-To: <20140418235119.GS21823@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Robert Nelson <robertcnelson@gmail.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, devicetree <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <bcousson@baylibre.com>
 
-On 04/19/2014 12:52 PM, Aaro Koskinen wrote:
-> Hi,
-> 
-> On Mon, Apr 14, 2014 at 01:46:16PM +0200, Robert Baldyga wrote:
->>  	dev_info(&pdev->dev,
->> -		 "OMAP USB OTG controller rev %d.%d (%s, id=%d, vbus=%d)\n",
->> -		 (rev >> 4) & 0xf, rev & 0xf, config->extcon, otg_dev->id,
->> +		 "OMAP USB OTG controller rev %d.%d (id=%d, vbus=%d)\n",
->> +		 (rev >> 4) & 0xf, rev & 0xf, otg_dev->id,
->>  		 otg_dev->vbus);
-> 
-> This change is unrelated to the patch and not needed.
+Tony,
+
+>From: Tony Lindgren
+>* Robert Nelson <robertcnelson@gmail.com> [140418 16:42]:
+>> On Fri, Apr 18, 2014 at 5:51 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > * Robert Nelson <robertcnelson@gmail.com> [140415 08:46]:
+>> >>
+>> >> Background: i also tried getting this having this fixed in u-boot:
+>> >
+>> > Do we still need to apply this patch then?
+>>
+>> Yeah, Tom want's it done in the kernel:
+>>
+>> Here's my proposed u-boot patch:
+>> http://lists.denx.de/pipermail/u-boot/2014-January/172154.html
+>>
+>> and Tom's recommendation:
+>> http://lists.denx.de/pipermail/u-boot/2014-January/172274.html
+>>
+>> Once this hits mainline, i'll submit a patch to u-boot to check for
+>> the presence of this version and drop to the old dtb if not found.
 >
+>OK applying into omap-for-v3.15/fixes thanks.
+>
+>Tony
 
-It's related because we no longer use config->extcon since we have
-cable-oriented API. We can keep displaying it, but this value is
-actually meaningless.
+You probably missed fixing below typo before applying this patch.
+omap3-beagle-xm-ab.dts breaks without this.
 
-Best regards
-Robert Baldyga
-Samsung R&D Institute Poland
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +/ {
+> +       /* HS USB Port 2 Power enable was inverted with the xM C */
+> +       hsusb2_power: hsusb2_power_reg {
+> +               enable-active-high;
+       };
+> +};
+
+
+with regards, pekon
