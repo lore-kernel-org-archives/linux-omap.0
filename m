@@ -1,61 +1,92 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] ARM: OMAP2+: Fix GPMC remap for devices using an offset
-Date: Mon, 21 Apr 2014 17:54:40 -0700
-Message-ID: <1398128080-18903-3-git-send-email-tony@atomide.com>
+Subject: [PATCH 1/2] ARM: OMAP2+: Fix oops for GPMC free
+Date: Mon, 21 Apr 2014 17:54:39 -0700
+Message-ID: <1398128080-18903-2-git-send-email-tony@atomide.com>
 References: <1398128080-18903-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:12564 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:12534 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754832AbaDVAyp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2014 20:54:45 -0400
+	with ESMTP id S1753583AbaDVAyo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2014 20:54:44 -0400
 In-Reply-To: <1398128080-18903-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Pekon Gupta <pekon@ti.com>
+Cc: Pekon Gupta <pekon@ti.com>, tony Lindgren <tony@atomide.com>
 
-At least the smc91x driver expects the device to be at 0x300
-offset from bus base address. This does not work currently
-for GPMC when booted in device tree mode as it attempts to
-remap the the allocated GPMC partition to the address
-configured by the device tree plus the device offset.
+If gpmc_cs_remap() fails we will get an error because we are calling
+release_resource() on an uninitialized resource. Let's fix that by
+checking the resource flags. And while at it, let's also make
+gpmc_cs_delete_mem() use the res pointer that we already have to
+avoid confusion.
 
-Note that this works just fine when booted with legacy mode.
-
-Let's fix the issue by just ignoring any device specific
-offset while remapping. And let's make sure the remap
-address confirms to the GPMC 16MB minimum granularity
-as listed in the TRM for GPMC_CONFIG7 BASEADDRESS bits.
-
-Otherwise we can get something like this:
+Without this patch we can get the following error:
 
 omap-gpmc 6e000000.gpmc: cannot remap GPMC CS 1 to 0x01000300
+Unable to handle kernel NULL pointer dereference at virtual address 00000018
+...
+(gpmc_cs_free+0x94/0xc8)
+(gpmc_probe_generic_child+0x178/0x1ec)
+(gpmc_probe_dt+0x1bc/0x2cc)
+(gpmc_probe+0x250/0x44c)
+(platform_drv_probe+0x3c/0x6c)
+(really_probe+0x74/0x208)
+(driver_probe_device+0x34/0x50)
+(bus_for_each_drv+0x60/0x8c)
+(device_attach+0x80/0xa4)
+(bus_probe_device+0x88/0xb0)
+(device_add+0x320/0x450)
+(of_platform_device_create_pdata+0x80/0x9c)
+(of_platform_bus_create+0xd0/0x170)
+(of_platform_bus_create+0x12c/0x170)
+(of_platform_populate+0x60/0x98)
+(pdata_quirks_init+0x30/0x48)
+(customize_machine+0x20/0x48)
+(do_one_initcall+0x2c/0x14c)
+(do_basic_setup+0x98/0xd8)
+(kernel_init_freeable+0x12c/0x1e0)
+(kernel_init+0x8/0xf0)
+(ret_from_fork+0x14/0x2c)
+Code: e1a04000 e59f0070 eb195136 e5942010 (e5923018)
 
 Cc: Pekon Gupta <pekon@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/gpmc.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/arm/mach-omap2/gpmc.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 84e57e6..9fe8c94 100644
+index ab43755..84e57e6 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -527,6 +527,14 @@ static int gpmc_cs_remap(int cs, u32 base)
- 		pr_err("%s: requested chip-select is disabled\n", __func__);
- 		return -ENODEV;
+@@ -501,7 +501,7 @@ static int gpmc_cs_delete_mem(int cs)
+ 	int r;
+ 
+ 	spin_lock(&gpmc_mem_lock);
+-	r = release_resource(&gpmc_cs_mem[cs]);
++	r = release_resource(res);
+ 	res->start = 0;
+ 	res->end = 0;
+ 	spin_unlock(&gpmc_mem_lock);
+@@ -586,6 +586,8 @@ EXPORT_SYMBOL(gpmc_cs_request);
+ 
+ void gpmc_cs_free(int cs)
+ {
++	struct resource	*res = &gpmc_cs_mem[cs];
++
+ 	spin_lock(&gpmc_mem_lock);
+ 	if (cs >= gpmc_cs_num || cs < 0 || !gpmc_cs_reserved(cs)) {
+ 		printk(KERN_ERR "Trying to free non-reserved GPMC CS%d\n", cs);
+@@ -594,7 +596,8 @@ void gpmc_cs_free(int cs)
+ 		return;
  	}
-+
-+	/*
-+	 * Make sure we ignore any device offsets from the GPMC partition
-+	 * allocated for the chip select and that the new base confirms
-+	 * to the GPMC 16MB minimum granularity.
-+	 */ 
-+	base &= ~(SZ_16M - 1);
-+
- 	gpmc_cs_get_memconf(cs, &old_base, &size);
- 	if (base == old_base)
- 		return 0;
+ 	gpmc_cs_disable_mem(cs);
+-	release_resource(&gpmc_cs_mem[cs]);
++	if (res->flags)
++		release_resource(res);
+ 	gpmc_cs_set_reserved(cs, 0);
+ 	spin_unlock(&gpmc_mem_lock);
+ }
 -- 
 1.8.1.1
 
