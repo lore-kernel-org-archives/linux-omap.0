@@ -1,40 +1,52 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH v2 05/13] extcon: extcon-class: improve extcon client API
-Date: Tue, 22 Apr 2014 18:03:36 +0300
-Message-ID: <20140422150336.GA612@drone.musicnaut.iki.fi>
-References: <1397475984-28001-1-git-send-email-r.baldyga@samsung.com>
- <1397475984-28001-6-git-send-email-r.baldyga@samsung.com>
- <20140419105225.GB976@ambient.musicnaut.iki.fi>
- <53560A6F.8030909@samsung.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: regressions in linux-next?
+Date: Tue, 22 Apr 2014 10:13:10 -0500
+Message-ID: <53568706.1050204@ti.com>
+References: <53566C20.6000208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <53560A6F.8030909@samsung.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Robert Baldyga <r.baldyga@samsung.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, myungjoo.ham@samsung.com, cw00.choi@samsung.com, dbaryshkov@gmail.com, dwmw2@infradead.org, balbi@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, ldewangan@nvidia.com, kishon@ti.com, gg@slimlogic.co.uk, anton@enomsg.org, jonghwa3.lee@samsung.com, rongjun.ying@csr.com, linux@roeck-us.net, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, m.szyprowski@samsung.com, t.figa@samsung.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:36401 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756896AbaDVPNL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Apr 2014 11:13:11 -0400
+Received: from dlelxv90.itg.ti.com ([172.17.2.17])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id s3MFDAob030882
+	for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2014 10:13:10 -0500
+Received: from DLEE70.ent.ti.com (dlee70.ent.ti.com [157.170.170.113])
+	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id s3MFDAjr023564
+	for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2014 10:13:10 -0500
+In-Reply-To: <53566C20.6000208@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Hi,
+Logs with with DEBUG_LL and early printk below:
+Thread: http://marc.info/?t=139817273800014&r=1&w=2
 
-On Tue, Apr 22, 2014 at 08:21:35AM +0200, Robert Baldyga wrote:
-> On 04/19/2014 12:52 PM, Aaro Koskinen wrote:
-> > On Mon, Apr 14, 2014 at 01:46:16PM +0200, Robert Baldyga wrote:
-> >>  	dev_info(&pdev->dev,
-> >> -		 "OMAP USB OTG controller rev %d.%d (%s, id=%d, vbus=%d)\n",
-> >> -		 (rev >> 4) & 0xf, rev & 0xf, config->extcon, otg_dev->id,
-> >> +		 "OMAP USB OTG controller rev %d.%d (id=%d, vbus=%d)\n",
-> >> +		 (rev >> 4) & 0xf, rev & 0xf, otg_dev->id,
-> >>  		 otg_dev->vbus);
-> > 
-> > This change is unrelated to the patch and not needed.
-> >
-> 
-> It's related because we no longer use config->extcon since we have
-> cable-oriented API. We can keep displaying it, but this value is
-> actually meaningless.
+On 04/22/2014 08:18 AM, Nishanth Menon wrote:
+> next-20140422-omap2plus_defconfig
+>  1:  am335x-sk:  Boot FAIL: http://slexy.org/raw/s2gh6XsLve
+>  2: am3517-evm:  Boot PASS: http://slexy.org/raw/s2MTkdzPnb
+>  3:  am37x-evm:  Boot PASS: http://slexy.org/raw/s2SJwrVat8
+>  4: am43xx-epos:  Boot PASS: http://slexy.org/raw/s2184jfKlq
+>  5: am43xx-gpevm:  Boot FAIL: http://slexy.org/raw/s21qIYDHqa
+>> known
+>  6: BeagleBoard-XM:  Boot FAIL: http://slexy.org/raw/s21EyANlGX
 
-It's not completely meaningless, as the cable is searched using that name.
+>  7: beagleboard-vanilla:  Boot FAIL: http://slexy.org/raw/s20lc3icwS
 
-A.
+>  8: beaglebone-black:  Boot PASS: http://slexy.org/raw/s2ykosQg6C
+>  9: beaglebone:  Boot PASS: http://slexy.org/raw/s2DN9gqlmo
+> 10: craneboard:  Boot FAIL: http://slexy.org/raw/s21bP0auhl
+> 11: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2rBG0C1x6
+looks like my fdt_high was 0xFFFFFFFF and fdt was at 0x80f80000 :( so
+got stomped all over...
+
+Time for me to verify every platform again.
+
+
+-- 
+Regards,
+Nishanth Menon
