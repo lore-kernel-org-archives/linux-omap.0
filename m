@@ -1,52 +1,220 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: regressions in linux-next?
-Date: Tue, 22 Apr 2014 10:13:10 -0500
-Message-ID: <53568706.1050204@ti.com>
-References: <53566C20.6000208@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] Fix few omap gpmc regressions when booted with
+ device tree
+Date: Tue, 22 Apr 2014 08:23:48 -0700
+Message-ID: <20140422152347.GB19317@atomide.com>
+References: <1398128080-18903-1-git-send-email-tony@atomide.com>
+ <CABxcv=nDAp=iDXxVrajELJzEG=hEV3ceMJkUaiFOpe79za+LKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36401 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756896AbaDVPNL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Apr 2014 11:13:11 -0400
-Received: from dlelxv90.itg.ti.com ([172.17.2.17])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id s3MFDAob030882
-	for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2014 10:13:10 -0500
-Received: from DLEE70.ent.ti.com (dlee70.ent.ti.com [157.170.170.113])
-	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id s3MFDAjr023564
-	for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2014 10:13:10 -0500
-In-Reply-To: <53566C20.6000208@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10382 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756223AbaDVPXz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 11:23:55 -0400
+Content-Disposition: inline
+In-Reply-To: <CABxcv=nDAp=iDXxVrajELJzEG=hEV3ceMJkUaiFOpe79za+LKA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-Logs with with DEBUG_LL and early printk below:
-Thread: http://marc.info/?t=139817273800014&r=1&w=2
+* Javier Martinez Canillas <javier@dowhile0.org> [140421 23:55]:
+> On Tue, Apr 22, 2014 at 2:54 AM, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > 2. There seems to be some timing issues with smc911x where
+> >    rsync of larger files and apt-get dist-upgrade can produce
+> >    strange errors. This seems to work reliably when booted in
+> >    legacy mode.
+> >
+> 
+> In what board are you having this issue? The smsc911x driver supports
+> both SMSC's LAN911x and LAN921x families and I see that we have two
+> .dtsi files with different timings
+> (arm/boot/dts/omap-gpmc-smsc{911x,9221}.dtsi).
+> 
+> This is only a wild guess, but maybe your board has a smsc LAN921x
+> chip but is including omap-gpmc-smsc911x.dtsi on its DTS?
 
-On 04/22/2014 08:18 AM, Nishanth Menon wrote:
-> next-20140422-omap2plus_defconfig
->  1:  am335x-sk:  Boot FAIL: http://slexy.org/raw/s2gh6XsLve
->  2: am3517-evm:  Boot PASS: http://slexy.org/raw/s2MTkdzPnb
->  3:  am37x-evm:  Boot PASS: http://slexy.org/raw/s2SJwrVat8
->  4: am43xx-epos:  Boot PASS: http://slexy.org/raw/s2184jfKlq
->  5: am43xx-gpevm:  Boot FAIL: http://slexy.org/raw/s21qIYDHqa
->> known
->  6: BeagleBoard-XM:  Boot FAIL: http://slexy.org/raw/s21EyANlGX
+Yes it seems to have two LAN9220s, so this could be the reason.
+I don't think we had the omap-gpmc-smsc9221.dtsi when I added the
+timings initially.
 
->  7: beagleboard-vanilla:  Boot FAIL: http://slexy.org/raw/s20lc3icwS
+This is on a sbc-t3730 that I'm using as a gateway that was behaving
+reliably before I upgraded it to DT based booting. It's currently
+at v3.13-rc3 something, but I don't think we've much GPMC changes
+since then.
 
->  8: beaglebone-black:  Boot PASS: http://slexy.org/raw/s2ykosQg6C
->  9: beaglebone:  Boot PASS: http://slexy.org/raw/s2DN9gqlmo
-> 10: craneboard:  Boot FAIL: http://slexy.org/raw/s21bP0auhl
-> 11: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2rBG0C1x6
-looks like my fdt_high was 0xFFFFFFFF and fdt was at 0x80f80000 :( so
-got stomped all over...
+I'll try upgrading the kernel today and running some tests with
+rsync. Looks like we can also remove quite a bit of duplicate
+timing data by using omap-gpmc-smsc9221.dtsi, I'll try something
+like the patch below.
 
-Time for me to verify every platform again.
+In any case, I suggest others run some tests on their GPMC Ethernet
+too.
 
-
--- 
 Regards,
-Nishanth Menon
+
+Tony
+
+8< ----------------------
+--- a/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
++++ b/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
+@@ -10,18 +10,6 @@
+ 			cpu0-supply = <&vcc>;
+ 		};
+ 	};
+-
+-	vddvario: regulator-vddvario {
+-		compatible = "regulator-fixed";
+-		regulator-name = "vddvario";
+-		regulator-always-on;
+-	};
+-
+-	vdd33a: regulator-vdd33a {
+-		compatible = "regulator-fixed";
+-		regulator-name = "vdd33a";
+-		regulator-always-on;
+-	};
+ };
+ 
+ &omap3_pmx_core {
+@@ -51,42 +39,18 @@
+ 	};
+ };
+ 
++#include "omap-gpmc-smsc9221.dtsi"
++
+ &gpmc {
+ 	ranges = <5 0 0x2c000000 0x01000000>;
+ 
+-	smsc1: ethernet@5,0 {
++	smsc1: ethernet@gpmc {
+ 		compatible = "smsc,lan9221", "smsc,lan9115";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&smsc1_pins>;
+ 		interrupt-parent = <&gpio6>;
+ 		interrupts = <3 IRQ_TYPE_LEVEL_LOW>;
+ 		reg = <5 0 0xff>;
+-		bank-width = <2>;
+-		gpmc,mux-add-data;
+-		gpmc,cs-on-ns = <0>;
+-		gpmc,cs-rd-off-ns = <186>;
+-		gpmc,cs-wr-off-ns = <186>;
+-		gpmc,adv-on-ns = <12>;
+-		gpmc,adv-rd-off-ns = <48>;
+-		gpmc,adv-wr-off-ns = <48>;
+-		gpmc,oe-on-ns = <54>;
+-		gpmc,oe-off-ns = <168>;
+-		gpmc,we-on-ns = <54>;
+-		gpmc,we-off-ns = <168>;
+-		gpmc,rd-cycle-ns = <186>;
+-		gpmc,wr-cycle-ns = <186>;
+-		gpmc,access-ns = <114>;
+-		gpmc,page-burst-access-ns = <6>;
+-		gpmc,bus-turnaround-ns = <12>;
+-		gpmc,cycle2cycle-delay-ns = <18>;
+-		gpmc,wr-data-mux-bus-ns = <90>;
+-		gpmc,wr-access-ns = <186>;
+-		gpmc,cycle2cycle-samecsen;
+-		gpmc,cycle2cycle-diffcsen;
+-		vddvario-supply = <&vddvario>;
+-		vdd33a-supply = <&vdd33a>;
+-		reg-io-width = <4>;
+-		smsc,save-mac-address;
+ 	};
+ };
+ 
+--- a/arch/arm/boot/dts/omap3-sb-t35.dtsi
++++ b/arch/arm/boot/dts/omap3-sb-t35.dtsi
+@@ -2,20 +2,6 @@
+  * Common support for CompuLab SB-T35 used on SBC-T3530, SBC-T3517 and SBC-T3730
+  */
+ 
+-/ {
+-	vddvario_sb_t35: regulator-vddvario-sb-t35 {
+-		compatible = "regulator-fixed";
+-		regulator-name = "vddvario";
+-		regulator-always-on;
+-	};
+-
+-	vdd33a_sb_t35: regulator-vdd33a-sb-t35 {
+-		compatible = "regulator-fixed";
+-		regulator-name = "vdd33a";
+-		regulator-always-on;
+-	};
+-};
+-
+ &omap3_pmx_core {
+ 	smsc2_pins: pinmux_smsc2_pins {
+ 		pinctrl-single,pins = <
+@@ -38,27 +24,28 @@
+ 		bank-width = <2>;
+ 		gpmc,mux-add-data;
+ 		gpmc,cs-on-ns = <0>;
+-		gpmc,cs-rd-off-ns = <186>;
+-		gpmc,cs-wr-off-ns = <186>;
+-		gpmc,adv-on-ns = <12>;
+-		gpmc,adv-rd-off-ns = <48>;
+-		gpmc,adv-wr-off-ns = <48>;
+-		gpmc,oe-on-ns = <54>;
+-		gpmc,oe-off-ns = <168>;
+-		gpmc,we-on-ns = <54>;
+-		gpmc,we-off-ns = <168>;
+-		gpmc,rd-cycle-ns = <186>;
+-		gpmc,wr-cycle-ns = <186>;
+-		gpmc,access-ns = <114>;
+-		gpmc,page-burst-access-ns = <6>;
+-		gpmc,bus-turnaround-ns = <12>;
+-		gpmc,cycle2cycle-delay-ns = <18>;
+-		gpmc,wr-data-mux-bus-ns = <90>;
+-		gpmc,wr-access-ns = <186>;
++		gpmc,cs-rd-off-ns = <42>;
++		gpmc,cs-wr-off-ns = <36>;
++		gpmc,adv-on-ns = <6>;
++		gpmc,adv-rd-off-ns = <12>;
++		gpmc,adv-wr-off-ns = <12>;
++		gpmc,oe-on-ns = <0>;
++		gpmc,oe-off-ns = <42>;
++		gpmc,we-on-ns = <0>;
++		gpmc,we-off-ns = <36>;
++		gpmc,rd-cycle-ns = <60>;
++		gpmc,wr-cycle-ns = <54>;
++		gpmc,access-ns = <36>;
++		gpmc,page-burst-access-ns = <0>;
++		gpmc,bus-turnaround-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <0>;
++		gpmc,wr-data-mux-bus-ns = <18>;
++		gpmc,wr-access-ns = <42>;
+ 		gpmc,cycle2cycle-samecsen;
+ 		gpmc,cycle2cycle-diffcsen;
+-		vddvario-supply = <&vddvario_sb_t35>;
+-		vdd33a-supply = <&vdd33a_sb_t35>;
++
++		vddvario-supply = <&vddvario>;
++		vdd33a-supply = <&vdd33a>;
+ 		reg-io-width = <4>;
+ 		smsc,save-mac-address;
+ 	};
+--- a/arch/arm/boot/dts/omap3-sbc-t3517.dts
++++ b/arch/arm/boot/dts/omap3-sbc-t3517.dts
+@@ -8,6 +8,19 @@
+ / {
+ 	model = "CompuLab SBC-T3517 with CM-T3517";
+ 	compatible = "compulab,omap3-sbc-t3517", "compulab,omap3-cm-t3517", "ti,am3517", "ti,omap3";
++
++	/* Only one GPMC smsc9220 on SBC-T3517, CM-T3517 uses am35x Ethernet */
++	vddvario: regulator-vddvario-sb-t35 {
++		compatible = "regulator-fixed";
++		regulator-name = "vddvario";
++		regulator-always-on;
++	};
++
++	vdd33a: regulator-vdd33a-sb-t35 {
++		compatible = "regulator-fixed";
++		regulator-name = "vdd33a";
++		regulator-always-on;
++	};
+ };
+ 
+ &omap3_pmx_core {
