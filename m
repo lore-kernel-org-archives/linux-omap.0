@@ -1,165 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RFC] ARM: dts: am335x: update USB DT references
-Date: Wed, 23 Apr 2014 07:48:22 -0700
-Message-ID: <20140423144822.GA4833@atomide.com>
-References: <1397647595-10927-1-git-send-email-leigh@solinno.co.uk>
- <5356794C.7070707@baylibre.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: [PATCH] gpio: do not set up hardware for IRQ_TYPE_NONE
+Date: Wed, 23 Apr 2014 16:50:10 +0200
+Message-ID: <1398264610-12663-1-git-send-email-linus.walleij@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53488 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751350AbaDWOsb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 10:48:31 -0400
-Content-Disposition: inline
-In-Reply-To: <5356794C.7070707@baylibre.com>
+Received: from mail-we0-f177.google.com ([74.125.82.177]:41208 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752314AbaDWOuQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 10:50:16 -0400
+Received: by mail-we0-f177.google.com with SMTP id u57so954388wes.22
+        for <linux-omap@vger.kernel.org>; Wed, 23 Apr 2014 07:50:15 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Leigh Brown <leigh@solinno.co.uk>, Mugunthan V N <mugunthanvnm@ti.com>, devicetree@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-gpio@vger.kernel.org
+Cc: Alexandre Courbot <acourbot@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-* Benoit Cousson <bcousson@baylibre.com> [140422 07:14]:
-> Hi Leigh,
->=20
-> On 16/04/2014 13:26, Leigh Brown wrote:
-> >In "ARM: dts: am33xx: correcting dt node unit address for usb", the
-> >usb_ctrl_mod and cppi41dma nodes were updated with the correct regis=
-ter
-> >addresses.  However, the dts files that reference these nodes were n=
-ot
-> >updated, and those devices are no longer being enabled.
-> >
-> >This patch corrects the references for the affected dts files.
->=20
-> Thanks for the fix. BTW, why is it a RFC? Do you plan to send an upda=
-ted
-> version?
->=20
-> FYI, even with this fix, the BBB still does not have a working MUSB o=
-n
-> 3.15-rc2. Have you observed that as well?
->=20
-> >Signed-off-by: Leigh Brown <leigh@solinno.co.uk>
->=20
-> If this is a final version, I'll apply it for -rc3.
+Some GPIO irqchip drivers exploit the irqdomain mapping
+function to set up the IRQ default type in the hardware,
+make sure that if we pass IRQ_TYPE_NONE, no hardware setup
+whatsoever takes place (this should be the norm) until
+later when the IRQ gets utilized.
 
-Looks like I already have this in omap-for-v3.15/fixes-v2, sorry
-looks like I never replied to this one.
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+---
+TI folks: can you provide a Tested-by tag if this makes your
+OMAPs work? I am pretty sure the other platforms will be
+unaffected, if they aren't I will switch them over to react
+to IRQ_TYPE_DEFAULT.
+---
+ drivers/gpio/gpiolib.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-Regards,
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index ee1819fdcf35..97d173e9aa2d 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -1409,7 +1409,12 @@ static int gpiochip_irq_map(struct irq_domain *d, unsigned int irq,
+ #else
+ 	irq_set_noprobe(irq);
+ #endif
+-	irq_set_irq_type(irq, chip->irq_default_type);
++	/*
++	 * No set-up of the hardware will happen if IRQ_TYPE_NONE
++	 * is passed as default type.
++	 */
++	if (chip->irq_default_type != IRQ_TYPE_NONE)
++		irq_set_irq_type(irq, chip->irq_default_type);
+ 
+ 	return 0;
+ }
+@@ -1490,7 +1495,8 @@ static void gpiochip_irqchip_remove(struct gpio_chip *gpiochip)
+  * @first_irq: if not dynamically assigned, the base (first) IRQ to
+  * allocate gpiochip irqs from
+  * @handler: the irq handler to use (often a predefined irq core function)
+- * @type: the default type for IRQs on this irqchip
++ * @type: the default type for IRQs on this irqchip, pass IRQ_TYPE_NONE
++ * to have the core avoid setting up any default type in the hardware.
+  *
+  * This function closely associates a certain irqchip with a certain
+  * gpiochip, providing an irq domain to translate the local IRQs to
+-- 
+1.9.0
 
-Tony=20
-=20
-> >---
-> >  arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++--
-> >  arch/arm/boot/dts/am335x-evm.dts          | 4 ++--
-> >  arch/arm/boot/dts/am335x-evmsk.dts        | 4 ++--
-> >  arch/arm/boot/dts/am335x-igep0033.dtsi    | 4 ++--
-> >  4 files changed, 8 insertions(+), 8 deletions(-)
-> >
-> >diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/bo=
-ot/dts/am335x-bone-common.dtsi
-> >index e3f27ec..2e7d932 100644
-> >--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-> >+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> >@@ -183,7 +183,7 @@
-> >  &usb {
-> >  	status =3D "okay";
-> >
-> >-	control@44e10000 {
-> >+	control@44e10620 {
-> >  		status =3D "okay";
-> >  	};
-> >
-> >@@ -204,7 +204,7 @@
-> >  		dr_mode =3D "host";
-> >  	};
-> >
-> >-	dma-controller@07402000  {
-> >+	dma-controller@47402000  {
-> >  		status =3D "okay";
-> >  	};
-> >  };
-> >diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am=
-335x-evm.dts
-> >index 28ae040..77df10d 100644
-> >--- a/arch/arm/boot/dts/am335x-evm.dts
-> >+++ b/arch/arm/boot/dts/am335x-evm.dts
-> >@@ -331,7 +331,7 @@
-> >  &usb {
-> >  	status =3D "okay";
-> >
-> >-	control@44e10000 {
-> >+	control@44e10620 {
-> >  		status =3D "okay";
-> >  	};
-> >
-> >@@ -352,7 +352,7 @@
-> >  		dr_mode =3D "host";
-> >  	};
-> >
-> >-	dma-controller@07402000  {
-> >+	dma-controller@47402000  {
-> >  		status =3D "okay";
-> >  	};
-> >  };
-> >diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/=
-am335x-evmsk.dts
-> >index ec08f6f..ab23885 100644
-> >--- a/arch/arm/boot/dts/am335x-evmsk.dts
-> >+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-> >@@ -364,7 +364,7 @@
-> >  &usb {
-> >  	status =3D "okay";
-> >
-> >-	control@44e10000 {
-> >+	control@44e10620 {
-> >  		status =3D "okay";
-> >  	};
-> >
-> >@@ -385,7 +385,7 @@
-> >  		dr_mode =3D "host";
-> >  	};
-> >
-> >-	dma-controller@07402000  {
-> >+	dma-controller@47402000  {
-> >  		status =3D "okay";
-> >  	};
-> >  };
-> >diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/=
-dts/am335x-igep0033.dtsi
-> >index 7063311..5942e7d 100644
-> >--- a/arch/arm/boot/dts/am335x-igep0033.dtsi
-> >+++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-> >@@ -202,7 +202,7 @@
-> >  &usb {
-> >  	status =3D "okay";
-> >
-> >-	control@44e10000 {
-> >+	control@44e10620 {
-> >  		status =3D "okay";
-> >  	};
-> >
-> >@@ -223,7 +223,7 @@
-> >  		dr_mode =3D "host";
-> >  	};
-> >
-> >-	dma-controller@07402000  {
-> >+	dma-controller@47402000  {
-> >  		status =3D "okay";
-> >  	};
-> >  };
-> >
->=20
->=20
-> --=20
-> Beno=C3=AEt Cousson
-> BayLibre
-> Embedded Linux Technology Lab
-> www.baylibre.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
