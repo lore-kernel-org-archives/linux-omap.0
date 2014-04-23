@@ -1,181 +1,128 @@
-From: Patrice Chotard <patrice.chotard@st.com>
-Subject: Re: [STLinux Kernel] [PATCH 3/4] ARM: dts: Typo s/interrupts-names/interrupt-names/g
-Date: Wed, 23 Apr 2014 09:03:51 +0200
-Message-ID: <535765D7.5070007@st.com>
-References: <1398192025-31523-1-git-send-email-geert+renesas@glider.be> <1398192025-31523-3-git-send-email-geert+renesas@glider.be>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: regressions in linux-next?
+Date: Wed, 23 Apr 2014 09:24:42 +0200
+Message-ID: <CABxcv=m3PhTXi=dRGPm_02-Edt_jOSCeVnTVKo_NiJkCzcKSew@mail.gmail.com>
+References: <53566C20.6000208@ti.com>
+	<53568706.1050204@ti.com>
+	<5356E5E4.1060509@ti.com>
+	<CABxcv=nATX0m8janD=kTZ_Askuy8StNx5r9vJM_Fq+EmQeZ0-g@mail.gmail.com>
+	<5356F2A4.6010106@ti.com>
+	<CABxcv=kx6zhJqVKcE1cijyOEak+jgXgsFaRAFYcZA4L_zxLRHg@mail.gmail.com>
+	<20140423013022.GA18648@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:54304 "EHLO
-	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754161AbaDWHFQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Apr 2014 03:05:16 -0400
-In-Reply-To: <1398192025-31523-3-git-send-email-geert+renesas@glider.be>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:58704 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756728AbaDWHYo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 03:24:44 -0400
+Received: by mail-wg0-f45.google.com with SMTP id l18so446282wgh.28
+        for <linux-omap@vger.kernel.org>; Wed, 23 Apr 2014 00:24:43 -0700 (PDT)
+In-Reply-To: <20140423013022.GA18648@kahuna>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Geert Uytterhoeven <geert+renesas@glider.be>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Cc: kernel@stlinux.com, Srinivas Kandagatla <srinivas.kandagatla@st.com>, linux-kernel@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Acked-by : Patrice Chotard <patrice.chotard@st.com>
+Hello Nishanth and Tony,
 
-Thanks
-
-On 04/22/2014 08:40 PM, Geert Uytterhoeven wrote:
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> Cc: Benoit Cousson <bcousson@baylibre.com>
-> Cc: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: kernel@stlinux.com
-> Cc: linux-arm-kernel@lists.infradead.org
-> ---
->   arch/arm/boot/dts/am33xx.dtsi          |    4 ++--
->   arch/arm/boot/dts/am4372.dtsi          |    4 ++--
->   arch/arm/boot/dts/stih415-pinctrl.dtsi |   10 +++++-----
->   arch/arm/boot/dts/stih416-pinctrl.dtsi |   10 +++++-----
->   4 files changed, 14 insertions(+), 14 deletions(-)
+On Wed, Apr 23, 2014 at 3:30 AM, Nishanth Menon <nm@ti.com> wrote:
+> On 01:08-20140423, Javier Martinez Canillas wrote:
+> [...]
+>> > on AM335x-sk:
+>> >> So this makes only am335x-sk to fail with the gpiolib irpchip
+>> >> conversion as reported by Peter and you.
+>> >>
+>> >> Do you know what special use of GPIO have this board to behave
+>> >> differently than the other boards? I've looked at the DTS but didn't
+>> >> find anything evident.
+>> >
+>> > I could not find anything interesting yet. Peter did mention that
+>> > reverting d04b76626e94 helped make the platform boot fine. I am trying
+>> > to add a few prints and see which specific line does things go bad..
+>> > and if so why.. unfortunately, I am using the board remotely as well..
+>> > Will try to track this down in the next few hours and post back.
+>> >
+>>
+>> Great, thanks a lot for your help and sorry for the inconvenience!
 >
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 07f283c20eb1..cb6811e5ae5a 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -802,7 +802,7 @@
->   			      <0x46000000 0x400000>;
->   			reg-names = "mpu", "dat";
->   			interrupts = <80>, <81>;
-> -			interrupts-names = "tx", "rx";
-> +			interrupt-names = "tx", "rx";
->   			status = "disabled";
->   			dmas = <&edma 8>,
->   				<&edma 9>;
-> @@ -816,7 +816,7 @@
->   			      <0x46400000 0x400000>;
->   			reg-names = "mpu", "dat";
->   			interrupts = <82>, <83>;
-> -			interrupts-names = "tx", "rx";
-> +			interrupt-names = "tx", "rx";
->   			status = "disabled";
->   			dmas = <&edma 10>,
->   				<&edma 11>;
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> index 36d523a26831..d1f8707ff1df 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
-> @@ -691,7 +691,7 @@
->   			      <0x46000000 0x400000>;
->   			reg-names = "mpu", "dat";
->   			interrupts = <80>, <81>;
-> -			interrupts-names = "tx", "rx";
-> +			interrupt-names = "tx", "rx";
->   			status = "disabled";
->   			dmas = <&edma 8>,
->   			       <&edma 9>;
-> @@ -705,7 +705,7 @@
->   			      <0x46400000 0x400000>;
->   			reg-names = "mpu", "dat";
->   			interrupts = <82>, <83>;
-> -			interrupts-names = "tx", "rx";
-> +			interrupt-names = "tx", "rx";
->   			status = "disabled";
->   			dmas = <&edma 10>,
->   			       <&edma 11>;
-> diff --git a/arch/arm/boot/dts/stih415-pinctrl.dtsi b/arch/arm/boot/dts/stih415-pinctrl.dtsi
-> index f09fb10a3791..81df870e5ee6 100644
-> --- a/arch/arm/boot/dts/stih415-pinctrl.dtsi
-> +++ b/arch/arm/boot/dts/stih415-pinctrl.dtsi
-> @@ -49,7 +49,7 @@
->   			reg 		= <0xfe61f080 0x4>;
->   			reg-names	= "irqmux";
->   			interrupts 	= <GIC_SPI 180 IRQ_TYPE_LEVEL_HIGH>;
-> -			interrupts-names = "irqmux";
-> +			interrupt-names	= "irqmux";
->   			ranges 		= <0 0xfe610000 0x5000>;
->   
->   			PIO0: gpio@fe610000 {
-> @@ -187,7 +187,7 @@
->   			reg 		= <0xfee0f080 0x4>;
->   			reg-names	= "irqmux";
->   			interrupts 	= <GIC_SPI 181 IRQ_TYPE_LEVEL_HIGH>;
-> -			interrupts-names = "irqmux";
-> +			interrupt-names	= "irqmux";
->   			ranges		= <0 0xfee00000 0x8000>;
->   
->   			PIO5: gpio@fee00000 {
-> @@ -282,7 +282,7 @@
->   			reg 		= <0xfe82f080 0x4>;
->   			reg-names	= "irqmux";
->   			interrupts 	= <GIC_SPI 182 IRQ_TYPE_LEVEL_HIGH>;
-> -			interrupts-names = "irqmux";
-> +			interrupt-names	= "irqmux";
->   			ranges		= <0 0xfe820000 0x8000>;
->   
->   			PIO13: gpio@fe820000 {
-> @@ -423,7 +423,7 @@
->   			reg 		= <0xfd6bf080 0x4>;
->   			reg-names	= "irqmux";
->   			interrupts 	= <GIC_SPI 113 IRQ_TYPE_LEVEL_HIGH>;
-> -			interrupts-names = "irqmux";
-> +			interrupt-names	= "irqmux";
->   			ranges		= <0 0xfd6b0000 0x3000>;
->   
->   			PIO100: gpio@fd6b0000 {
-> @@ -460,7 +460,7 @@
->   			reg 		= <0xfd33f080 0x4>;
->   			reg-names	= "irqmux";
->   			interrupts 	= <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
-> -			interrupts-names = "irqmux";
-> +			interrupt-names	= "irqmux";
->   			ranges		= <0 0xfd330000 0x5000>;
->   
->   			PIO103: gpio@fd330000 {
-> diff --git a/arch/arm/boot/dts/stih416-pinctrl.dtsi b/arch/arm/boot/dts/stih416-pinctrl.dtsi
-> index aeea304086eb..250d5ecc951e 100644
-> --- a/arch/arm/boot/dts/stih416-pinctrl.dtsi
-> +++ b/arch/arm/boot/dts/stih416-pinctrl.dtsi
-> @@ -53,7 +53,7 @@
->   			reg 		= <0xfe61f080 0x4>;
->   			reg-names	= "irqmux";
->   			interrupts 	= <GIC_SPI 182 IRQ_TYPE_LEVEL_HIGH>;
-> -			interrupts-names = "irqmux";
-> +			interrupt-names	= "irqmux";
->   			ranges		= <0 0xfe610000 0x6000>;
->   
->   			PIO0: gpio@fe610000 {
-> @@ -201,7 +201,7 @@
->   			reg 		= <0xfee0f080 0x4>;
->   			reg-names	= "irqmux";
->   			interrupts 	= <GIC_SPI 183 IRQ_TYPE_LEVEL_HIGH>;
-> -			interrupts-names = "irqmux";
-> +			interrupt-names	= "irqmux";
->   			ranges		= <0 0xfee00000 0x10000>;
->   
->   			PIO5: gpio@fee00000 {
-> @@ -333,7 +333,7 @@
->   			reg 		= <0xfe82f080 0x4>;
->   			reg-names	= "irqmux";
->   			interrupts 	= <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>;
-> -			interrupts-names = "irqmux";
-> +			interrupt-names	= "irqmux";
->   			ranges 		= <0 0xfe820000 0x6000>;
->   
->   			PIO13: gpio@fe820000 {
-> @@ -461,7 +461,7 @@
->   			reg 		= <0xfd6bf080 0x4>;
->   			reg-names	= "irqmux";
->   			interrupts 	= <GIC_SPI 113 IRQ_TYPE_LEVEL_HIGH>;
-> -			interrupts-names = "irqmux";
-> +			interrupt-names	= "irqmux";
->   			ranges		= <0 0xfd6b0000 0x3000>;
->   
->   			PIO100: gpio@fd6b0000 {
-> @@ -498,7 +498,7 @@
->   			reg 		= <0xfd33f080 0x4>;
->   			reg-names	= "irqmux";
->   			interrupts 	= <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
-> -			interrupts-names = "irqmux";
-> +			interrupt-names	= "irqmux";
->   			ranges			= <0 0xfd330000 0x5000>;
->   
->   			PIO103: gpio@fd330000 {
+> Yep - If I am correct, and as we all suspected, GPIO0_7 which controls
+> the VTT regulator for DDR is getting configured as input, instead of
+> output.
+> http://slexy.org/raw/s2gReMRZI6 (with diff:
+> http://slexy.org/view/s20nueCE8H - ignore many of the prints as I was
+> trying to truncate and isolate - had to switch to non-relaxed versions
+> of writes to force sequencing with barriers to trace it down..)
+>
+>
+> Anyways, the key log is [0]:
+> gpiochip_irq_map -> calls
+>                 irq_set_irq_type(irq, chip->irq_default_type);
+>         which inturn triggers: gpio-omap.c's gpio_irq_type
+>         in this, logic:
+>         if (!LINE_USED(bank->mod_usage, offset)) is invoked prior to
+>         setting the input type for the GPIO 0_7 (you can see the logic
+> walks through setting every GPIO to input!).
+>
+> The original usage as far as I could discern was that this function was
+> only called after probe got completed as the gpio requests were
+> triggered.
 
+Thanks a lot for figuring out what was going on here. I think that is
+not correct for gpiochip_irq_map() to call this function. After all
+creating a mapping doesn't mean that  the GPIO is actually used as an
+IRQ.
+
+>
+> There are probably many hacks possible, but a cleaner solution might
+> involve gpio_irqchip knowing when to set the type and knowing which gpios
+> not to mess with.
+>
+> Example hack:
+> Since we call gpiochip_irqchip_add with IRQ_TYPE_NONE,
+>   in gpio-omap's   gpio_irq_type could do:
+>        if (type == IRQ_TYPE_NONE)
+>                 return 0;
+>  boots, http://slexy.org/raw/s24M8lHqZX - but ofcourse, there'd be other
+>  side effects I have'nt thought through..
+
+Linus, what do you think of the following patch?
+
+>From ede333e85e0320d32e8c2d123560808ed7e43ece Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Date: Wed, 23 Apr 2014 09:13:54 +0200
+Subject: [PATCH 1/1] gpio: don't call irq_set_irq_type() on IRQ domain map
+ function
+
+Creating a mapping for a GPIO pin into the Linux virtual IRQ
+space does not necessarily mean that the GPIO is going to be
+used as an interrupt line, it only means that it could be used.
+
+So, calling irq_set_irq_type() is not correct since that is
+already done either when a driver calls request_irq() or when
+the OF core calls of_irq_to_resource() because a device node
+defined a GPIO controller phandle as its "interrupt-parent".
+
+In either case irq_set_irq_type() will be called and the GPIO
+controller driver will take any required action for an IRQ.
+
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
+ drivers/gpio/gpiolib.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index c12fe9d..b493781 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -1402,7 +1402,6 @@ static int gpiochip_irq_map(struct irq_domain
+*d, unsigned int irq,
+ #else
+  irq_set_noprobe(irq);
+ #endif
+- irq_set_irq_type(irq, chip->irq_default_type);
+
+  return 0;
+ }
+-- 
+1.9.1
