@@ -1,95 +1,49 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 10/13] tty: serial: omap: remove some dead code
-Date: Wed, 23 Apr 2014 09:58:34 -0500
-Message-ID: <1398265117-11793-10-git-send-email-balbi@ti.com>
-References: <1398265117-11793-1-git-send-email-balbi@ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH RFC] ARM: dts: am335x: update USB DT references
+Date: Wed, 23 Apr 2014 12:17:34 -0300
+Message-ID: <20140423151734.GA5867@arch.cereza>
+References: <1397647595-10927-1-git-send-email-leigh@solinno.co.uk>
+ <5356794C.7070707@baylibre.com>
+ <20140423144822.GA4833@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1398265117-11793-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com, jslaby@suse.cz, grant.likely@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:58763 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753720AbaDWPSF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 11:18:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20140423144822.GA4833@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Leigh Brown <leigh@solinno.co.uk>, Mugunthan V N <mugunthanvnm@ti.com>, devicetree@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-nobody passes a DTR_gpio to this driver, so
-this code is not necessary.
+On Apr 23, Tony Lindgren wrote:
+> * Benoit Cousson <bcousson@baylibre.com> [140422 07:14]:
+> > Hi Leigh,
+> >=20
+> > On 16/04/2014 13:26, Leigh Brown wrote:
+> > >In "ARM: dts: am33xx: correcting dt node unit address for usb", th=
+e
+> > >usb_ctrl_mod and cppi41dma nodes were updated with the correct reg=
+ister
+> > >addresses.  However, the dts files that reference these nodes were=
+ not
+> > >updated, and those devices are no longer being enabled.
+> > >
+> > >This patch corrects the references for the affected dts files.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/tty/serial/omap-serial.c | 39 ---------------------------------------
- 1 file changed, 39 deletions(-)
+Maybe someone can take care of using phandles instead?
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index b46aaf3..6654682 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -163,10 +163,6 @@ struct uart_omap_port {
- 	u8			wakeups_enabled;
- 	u32			features;
- 
--	int			DTR_gpio;
--	int			DTR_inverted;
--	int			DTR_active;
--
- 	struct serial_rs485	rs485;
- 	int			rts_gpio;
- 
-@@ -694,16 +690,6 @@ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
- 	serial_out(up, UART_MCR, up->mcr);
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
--
--	if (gpio_is_valid(up->DTR_gpio) &&
--	    !!(mctrl & TIOCM_DTR) != up->DTR_active) {
--		up->DTR_active = !up->DTR_active;
--		if (gpio_cansleep(up->DTR_gpio))
--			schedule_work(&up->qos_work);
--		else
--			gpio_set_value(up->DTR_gpio,
--				       up->DTR_active != up->DTR_inverted);
--	}
- }
- 
- static void serial_omap_break_ctl(struct uart_port *port, int break_state)
-@@ -847,9 +833,6 @@ static void serial_omap_uart_qos_work(struct work_struct *work)
- 						qos_work);
- 
- 	pm_qos_update_request(&up->pm_qos_request, up->latency);
--	if (gpio_is_valid(up->DTR_gpio))
--		gpio_set_value_cansleep(up->DTR_gpio,
--					up->DTR_active != up->DTR_inverted);
- }
- 
- static void
-@@ -1672,28 +1655,6 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	if (IS_ERR(base))
- 		return PTR_ERR(base);
- 
--	if (gpio_is_valid(omap_up_info->DTR_gpio) &&
--	    omap_up_info->DTR_present) {
--		ret = devm_gpio_request(&pdev->dev, omap_up_info->DTR_gpio,
--				"omap-serial");
--		if (ret < 0)
--			return ret;
--		ret = gpio_direction_output(omap_up_info->DTR_gpio,
--					    omap_up_info->DTR_inverted);
--		if (ret < 0)
--			return ret;
--	}
--
--	if (gpio_is_valid(omap_up_info->DTR_gpio) &&
--	    omap_up_info->DTR_present) {
--		up->DTR_gpio = omap_up_info->DTR_gpio;
--		up->DTR_inverted = omap_up_info->DTR_inverted;
--	} else {
--		up->DTR_gpio = -EINVAL;
--	}
--
--	up->DTR_active = 0;
--
- 	up->dev = &pdev->dev;
- 	up->port.dev = &pdev->dev;
- 	up->port.type = PORT_OMAP;
--- 
-1.9.2.459.g68773ac
+This way, the board's dts files would be immune to such .dtsi changes.
+--=20
+Ezequiel Garc=EDa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
