@@ -1,44 +1,75 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: regressions in linux-next?
-Date: Wed, 23 Apr 2014 16:52:55 +0200
-Message-ID: <CACRpkdbgLdkHo_hujU1QJBCvEo=tiDTCQL_SDgBFWYMXrkwwDA@mail.gmail.com>
-References: <53566C20.6000208@ti.com>
-	<53568706.1050204@ti.com>
-	<5356E5E4.1060509@ti.com>
-	<CABxcv=nATX0m8janD=kTZ_Askuy8StNx5r9vJM_Fq+EmQeZ0-g@mail.gmail.com>
-	<5356F2A4.6010106@ti.com>
-	<CABxcv=kx6zhJqVKcE1cijyOEak+jgXgsFaRAFYcZA4L_zxLRHg@mail.gmail.com>
-	<20140423013022.GA18648@kahuna>
-	<CABxcv=m3PhTXi=dRGPm_02-Edt_jOSCeVnTVKo_NiJkCzcKSew@mail.gmail.com>
-	<CACRpkdZ1Sv9oWhPWYEemGEnsCojs5amMMkru8DjpPxc=c9MRHA@mail.gmail.com>
-	<5357C04F.3060902@ti.com>
-	<CACRpkdas=MxsvaB=q9rF7GwP+hJv61Ut5yL8Lc9amnTc=_E=pg@mail.gmail.com>
-	<CABxcv=n_B4qDrgunKnyiY9769xPYOssi3ESAysiXU2ek9Zt2Xg@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 01/11] tty: serial: add missing braces
+Date: Wed, 23 Apr 2014 09:53:05 -0500
+Message-ID: <20140423145305.GD9593@saruman.home>
+References: <1395343807-21618-1-git-send-email-balbi@ti.com>
+ <20140422142256.GC5524@saruman.home>
+ <20140423002843.GC24603@kroah.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gE7i1rD7pdK0Ng3j"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f48.google.com ([209.85.219.48]:64368 "EHLO
-	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754724AbaDWOw4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 10:52:56 -0400
-Received: by mail-oa0-f48.google.com with SMTP id m1so1124967oag.35
-        for <linux-omap@vger.kernel.org>; Wed, 23 Apr 2014 07:52:55 -0700 (PDT)
-In-Reply-To: <CABxcv=n_B4qDrgunKnyiY9769xPYOssi3ESAysiXU2ek9Zt2Xg@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60200 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757174AbaDWOza (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 10:55:30 -0400
+Content-Disposition: inline
+In-Reply-To: <20140423002843.GC24603@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Felipe Balbi <balbi@ti.com>, linux-serial@vger.kernel.org, linux-bluetooth@vger.kernel.org, peter@hurleysoftware.com, m-karicheri2@ti.com, b32955@freescale.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, Apr 23, 2014 at 4:50 PM, Javier Martinez Canillas
-<javier@dowhile0.org> wrote:
+--gE7i1rD7pdK0Ng3j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> What do you think about the following patch? Although I agree that if
-> we can use IRQ_TYPE_NONE as you propose then tht is a much better and
-> efficient solution that this patch.
+On Tue, Apr 22, 2014 at 05:28:43PM -0700, Greg KH wrote:
+> On Tue, Apr 22, 2014 at 09:22:56AM -0500, Felipe Balbi wrote:
+> > Hi,
+> >=20
+> > On Thu, Mar 20, 2014 at 02:29:57PM -0500, Felipe Balbi wrote:
+> > > per CodingStyle we should have those braces, no
+> > > functional changes.
+> > >=20
+> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> >=20
+> > Greg, do you want me to refresh and resend this series ?
+>=20
+> If there are conflicts with my current tree, sure, I'd love to have
+> that.  I should be trying to dig out from my patch backlog for 3.16-rc1
+> by the end of this week...
 
-Let's try IRQ_TYPE_NONE first and if that fails we go back to this.
+then I'll resend rebased on -rc2, should make your life a little easier,
+hopefully.
 
-I've pushed the current patch to linux-next.
+cheers
 
-Yours,
-Linus Walleij
+--=20
+balbi
+
+--gE7i1rD7pdK0Ng3j
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTV9PRAAoJEIaOsuA1yqRED6AP+wR8JhJKuLpQHyzWQ/BmV30D
+pO7rzivxYBmb6TVGVZ6DE1zlGlpblcI2p8Qgm3mYyJyk1stRui74YaZW1ZWX+mOT
+nM6LZxP9cfGPT2csc9xMNofmDu4GgJ/cHCjHbxsTnH5GTIeDm1aNs62vl0/eDHv3
+uGxcb6ReCfzjck3VNndqvC3icV3Li89H3bNSTVj2rbKqOfMhfhtFeR6z2o3GsOdD
+bAs8B9cFgISjYB5nETV1m1H2T1gr8nPFZN3Lg7VqmyjDNPniVDiKBQgFCVdhdaat
+1niKC5UroUoE1+cqG8d/zrIxOH1KwAvQRPGht3cd5pijz8PhPHcI9Ib46AXGQK8m
+f+70qBibEwAnuA0uWvUD6FAqsVdLKqdOJrkUXFCnzhVSZL3Uy8mUKNyDaSme+yrl
+Rv/FkMKFZsJ/K9umqb1Os0O4khq1bHy8snjUNuKjcNmPkk5f2ywf/vNfiYI/N74b
+Gc97+hCLRFevVqTP15u2N2AslxPm4p54GLYxCDGHkuVt6KzoUON2CAvAB7E9ZZuI
+KAzQwDPCVIuVGm3ejoEwKf0l5T7BTARQdDcy3xg7rdP7ogzqdGZjEDu6nESyegX8
+kus+TefmtswIuaY5HuXMgStge4vnQaVy1XoS7yqN2ydtDxneOZKem6aK7Yr9Wgzi
+4Ofo6GktXmU8oC1M88qq
+=yBKc
+-----END PGP SIGNATURE-----
+
+--gE7i1rD7pdK0Ng3j--
