@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 03/13] Revert "serial: omap: unlock the port lock"
-Date: Wed, 23 Apr 2014 09:58:27 -0500
-Message-ID: <1398265117-11793-3-git-send-email-balbi@ti.com>
+Subject: [PATCH 12/13] tty: serial: omap: fix Sparse warnings
+Date: Wed, 23 Apr 2014 09:58:36 -0500
+Message-ID: <1398265117-11793-12-git-send-email-balbi@ti.com>
 References: <1398265117-11793-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,38 +12,48 @@ To: Greg KH <gregkh@linuxfoundation.org>
 Cc: marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com, jslaby@suse.cz, grant.likely@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This reverts commit 0324a821029e1f54e7a7f8fed48693cfce42dc0e.
+Fix the following Sparse warnings:
 
-That commit tried to fix a deadlock problem when using
-hci_ldisc, but it turns out the bug was in hci_ldsic
-all along where it was calling ->write() from within
-->write_wakeup() callback.
+drivers/tty/serial/omap-serial.c:1418:49: warning: incorrect \
+	type in argument 2 (different address spaces)
+drivers/tty/serial/omap-serial.c:1418:49:    expected void const \
+	[noderef] <asn:1>*from
+drivers/tty/serial/omap-serial.c:1418:49:    got struct serial_rs485 \
+	*<noident>
+drivers/tty/serial/omap-serial.c:1426:35: warning: incorrect \
+	type in argument 1 (different address spaces)
+drivers/tty/serial/omap-serial.c:1426:35:    expected void [noderef] \
+	<asn:1>*to
+drivers/tty/serial/omap-serial.c:1426:35:    got struct serial_rs485 \
+	*<noident>
 
-The problem is that ->write_wakeup() was called with
-port lock held and ->write() tried to grab the same
-port lock.
-
+Reported-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/tty/serial/omap-serial.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/tty/serial/omap-serial.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 08b6b94..837f6c1 100644
+index ab22dab..d017cec 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -398,11 +398,8 @@ static void transmit_chars(struct uart_omap_port *up, unsigned int lsr)
- 			break;
- 	} while (--count > 0);
+@@ -1398,7 +1398,7 @@ serial_omap_ioctl(struct uart_port *port, unsigned int cmd, unsigned long arg)
  
--	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS) {
--		spin_unlock(&up->port.lock);
-+	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
- 		uart_write_wakeup(&up->port);
--		spin_lock(&up->port.lock);
--	}
+ 	switch (cmd) {
+ 	case TIOCSRS485:
+-		if (copy_from_user(&rs485conf, (struct serial_rs485 *) arg,
++		if (copy_from_user(&rs485conf, (void __user *) arg,
+ 					sizeof(rs485conf)))
+ 			return -EFAULT;
  
- 	if (uart_circ_empty(xmit))
- 		serial_omap_stop_tx(&up->port);
+@@ -1406,7 +1406,7 @@ serial_omap_ioctl(struct uart_port *port, unsigned int cmd, unsigned long arg)
+ 		break;
+ 
+ 	case TIOCGRS485:
+-		if (copy_to_user((struct serial_rs485 *) arg,
++		if (copy_to_user((void __user *) arg,
+ 					&(to_uart_omap_port(port)->rs485),
+ 					sizeof(rs485conf)))
+ 			return -EFAULT;
 -- 
 1.9.2.459.g68773ac
