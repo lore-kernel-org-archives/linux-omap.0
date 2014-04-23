@@ -1,69 +1,163 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: [GIT PULL] arm: omap: Immutable branch between MFD and ARM OMAP due
- for the v3.16 merge-window
-Date: Wed, 23 Apr 2014 15:46:44 +0100
-Message-ID: <20140423144644.GF6264@lee--X1>
-References: <1397173639-29587-1-git-send-email-tony@atomide.com>
- <1397173639-29587-11-git-send-email-tony@atomide.com>
- <20140417080051.GE28725@lee--X1>
- <20140417153722.GA23385@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH RFC] ARM: dts: am335x: update USB DT references
+Date: Wed, 23 Apr 2014 07:48:22 -0700
+Message-ID: <20140423144822.GA4833@atomide.com>
+References: <1397647595-10927-1-git-send-email-leigh@solinno.co.uk>
+ <5356794C.7070707@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:46369 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751620AbaDWOqv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 10:46:51 -0400
-Received: by mail-wi0-f176.google.com with SMTP id r20so5025426wiv.9
-        for <linux-omap@vger.kernel.org>; Wed, 23 Apr 2014 07:46:50 -0700 (PDT)
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53488 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751350AbaDWOsb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 10:48:31 -0400
 Content-Disposition: inline
-In-Reply-To: <20140417153722.GA23385@atomide.com>
+In-Reply-To: <5356794C.7070707@baylibre.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Leigh Brown <leigh@solinno.co.uk>, Mugunthan V N <mugunthanvnm@ti.com>, devicetree@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
+* Benoit Cousson <bcousson@baylibre.com> [140422 07:14]:
+> Hi Leigh,
+>=20
+> On 16/04/2014 13:26, Leigh Brown wrote:
+> >In "ARM: dts: am33xx: correcting dt node unit address for usb", the
+> >usb_ctrl_mod and cppi41dma nodes were updated with the correct regis=
+ter
+> >addresses.  However, the dts files that reference these nodes were n=
+ot
+> >updated, and those devices are no longer being enabled.
+> >
+> >This patch corrects the references for the affected dts files.
+>=20
+> Thanks for the fix. BTW, why is it a RFC? Do you plan to send an upda=
+ted
+> version?
+>=20
+> FYI, even with this fix, the BBB still does not have a working MUSB o=
+n
+> 3.15-rc2. Have you observed that as well?
+>=20
+> >Signed-off-by: Leigh Brown <leigh@solinno.co.uk>
+>=20
+> If this is a final version, I'll apply it for -rc3.
 
-Sorry for the delay - I've been snowed under recently.
+Looks like I already have this in omap-for-v3.15/fixes-v2, sorry
+looks like I never replied to this one.
 
-As requested, you patch based on v3.14 ( for some reason :) ).
+Regards,
 
-The following changes since commit 455c6fdbd219161bd09b1165f11699d6d73d=
-e11c:
-
-  Linux 3.14 (2014-03-30 20:40:15 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git tags/ib-mfd=
--omap-3.16
-
-for you to fetch changes up to a613b739b8c08eab811e677810045cc0522fc3e6=
-:
-
-  mfd: twl-core: Fix idle mode signaling for omaps when booted with dev=
-ice tree (2014-04-23 15:31:05 +0100)
-
-----------------------------------------------------------------
-Immutable branch between MFD and ARM OMAP due for v3.16 merge-window.
-
-----------------------------------------------------------------
-Tony Lindgren (1):
-      mfd: twl-core: Fix idle mode signaling for omaps when booted with=
- device tree
-
- arch/arm/mach-omap2/omap_twl.c | 60 ----------------------------------=
---------------------------
- drivers/mfd/twl-core.c         | 15 +++++++++++++++
- 2 files changed, 15 insertions(+), 60 deletions(-)
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+Tony=20
+=20
+> >---
+> >  arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++--
+> >  arch/arm/boot/dts/am335x-evm.dts          | 4 ++--
+> >  arch/arm/boot/dts/am335x-evmsk.dts        | 4 ++--
+> >  arch/arm/boot/dts/am335x-igep0033.dtsi    | 4 ++--
+> >  4 files changed, 8 insertions(+), 8 deletions(-)
+> >
+> >diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/bo=
+ot/dts/am335x-bone-common.dtsi
+> >index e3f27ec..2e7d932 100644
+> >--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
+> >+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> >@@ -183,7 +183,7 @@
+> >  &usb {
+> >  	status =3D "okay";
+> >
+> >-	control@44e10000 {
+> >+	control@44e10620 {
+> >  		status =3D "okay";
+> >  	};
+> >
+> >@@ -204,7 +204,7 @@
+> >  		dr_mode =3D "host";
+> >  	};
+> >
+> >-	dma-controller@07402000  {
+> >+	dma-controller@47402000  {
+> >  		status =3D "okay";
+> >  	};
+> >  };
+> >diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am=
+335x-evm.dts
+> >index 28ae040..77df10d 100644
+> >--- a/arch/arm/boot/dts/am335x-evm.dts
+> >+++ b/arch/arm/boot/dts/am335x-evm.dts
+> >@@ -331,7 +331,7 @@
+> >  &usb {
+> >  	status =3D "okay";
+> >
+> >-	control@44e10000 {
+> >+	control@44e10620 {
+> >  		status =3D "okay";
+> >  	};
+> >
+> >@@ -352,7 +352,7 @@
+> >  		dr_mode =3D "host";
+> >  	};
+> >
+> >-	dma-controller@07402000  {
+> >+	dma-controller@47402000  {
+> >  		status =3D "okay";
+> >  	};
+> >  };
+> >diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/=
+am335x-evmsk.dts
+> >index ec08f6f..ab23885 100644
+> >--- a/arch/arm/boot/dts/am335x-evmsk.dts
+> >+++ b/arch/arm/boot/dts/am335x-evmsk.dts
+> >@@ -364,7 +364,7 @@
+> >  &usb {
+> >  	status =3D "okay";
+> >
+> >-	control@44e10000 {
+> >+	control@44e10620 {
+> >  		status =3D "okay";
+> >  	};
+> >
+> >@@ -385,7 +385,7 @@
+> >  		dr_mode =3D "host";
+> >  	};
+> >
+> >-	dma-controller@07402000  {
+> >+	dma-controller@47402000  {
+> >  		status =3D "okay";
+> >  	};
+> >  };
+> >diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/=
+dts/am335x-igep0033.dtsi
+> >index 7063311..5942e7d 100644
+> >--- a/arch/arm/boot/dts/am335x-igep0033.dtsi
+> >+++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
+> >@@ -202,7 +202,7 @@
+> >  &usb {
+> >  	status =3D "okay";
+> >
+> >-	control@44e10000 {
+> >+	control@44e10620 {
+> >  		status =3D "okay";
+> >  	};
+> >
+> >@@ -223,7 +223,7 @@
+> >  		dr_mode =3D "host";
+> >  	};
+> >
+> >-	dma-controller@07402000  {
+> >+	dma-controller@47402000  {
+> >  		status =3D "okay";
+> >  	};
+> >  };
+> >
+>=20
+>=20
+> --=20
+> Beno=C3=AEt Cousson
+> BayLibre
+> Embedded Linux Technology Lab
+> www.baylibre.com
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
