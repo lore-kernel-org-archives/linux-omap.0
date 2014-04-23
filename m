@@ -1,49 +1,52 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH RFC] ARM: dts: am335x: update USB DT references
-Date: Wed, 23 Apr 2014 12:17:34 -0300
-Message-ID: <20140423151734.GA5867@arch.cereza>
-References: <1397647595-10927-1-git-send-email-leigh@solinno.co.uk>
- <5356794C.7070707@baylibre.com>
- <20140423144822.GA4833@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 08/13] tty: serial: omap: switch over to platform_get_resource
+Date: Wed, 23 Apr 2014 09:58:32 -0500
+Message-ID: <1398265117-11793-8-git-send-email-balbi@ti.com>
+References: <1398265117-11793-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:58763 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753720AbaDWPSF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 11:18:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20140423144822.GA4833@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1398265117-11793-1-git-send-email-balbi@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com, jslaby@suse.cz, grant.likely@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Leigh Brown <leigh@solinno.co.uk>, Mugunthan V N <mugunthanvnm@ti.com>, devicetree@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Apr 23, Tony Lindgren wrote:
-> * Benoit Cousson <bcousson@baylibre.com> [140422 07:14]:
-> > Hi Leigh,
-> >=20
-> > On 16/04/2014 13:26, Leigh Brown wrote:
-> > >In "ARM: dts: am33xx: correcting dt node unit address for usb", th=
-e
-> > >usb_ctrl_mod and cppi41dma nodes were updated with the correct reg=
-ister
-> > >addresses.  However, the dts files that reference these nodes were=
- not
-> > >updated, and those devices are no longer being enabled.
-> > >
-> > >This patch corrects the references for the affected dts files.
+this way we can remove one pointer declaration.
 
-Maybe someone can take care of using phandles instead?
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/tty/serial/omap-serial.c | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-This way, the board's dts files would be immune to such .dtsi changes.
---=20
-Ezequiel Garc=EDa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 3813740..cb45e88 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1644,7 +1644,6 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	struct omap_uart_port_info *omap_up_info = dev_get_platdata(&pdev->dev);
+ 	struct uart_omap_port *up;
+ 	struct resource *mem;
+-	struct resource *irq;
+ 	int uartirq = 0;
+ 	int wakeirq = 0;
+ 	int ret;
+@@ -1658,12 +1657,9 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 		omap_up_info = of_get_uart_port_info(&pdev->dev);
+ 		pdev->dev.platform_data = omap_up_info;
+ 	} else {
+-		irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+-		if (!irq) {
+-			dev_err(&pdev->dev, "no irq resource?\n");
+-			return -ENODEV;
+-		}
+-		uartirq = irq->start;
++		uartirq = platform_get_irq(pdev, 0);
++		if (uartirq < 0)
++			return -EPROBE_DEFER;
+ 	}
+ 
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-- 
+1.9.2.459.g68773ac
+
