@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 09/13] tty: serial: omap: switch over to devm_ioremap_resource
-Date: Wed, 23 Apr 2014 09:58:33 -0500
-Message-ID: <1398265117-11793-9-git-send-email-balbi@ti.com>
+Subject: [PATCH 11/13] tty: serial: omap: remove unneeded singlethread workqueue
+Date: Wed, 23 Apr 2014 09:58:35 -0500
+Message-ID: <1398265117-11793-11-git-send-email-balbi@ti.com>
 References: <1398265117-11793-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,87 +12,33 @@ To: Greg KH <gregkh@linuxfoundation.org>
 Cc: marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com, jslaby@suse.cz, grant.likely@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-just using helper function to remove some duplicated
-code a bit. While at that, also move allocation of
-struct uart_omap_port higher in the code so that
-we return much earlier in case of no memory.
+it wasn't used by anything, just remove it.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/tty/serial/omap-serial.c | 32 +++++++++-----------------------
- 1 file changed, 9 insertions(+), 23 deletions(-)
+ drivers/tty/serial/omap-serial.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index cb45e88..b46aaf3 100644
+index 6654682..ab22dab 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -1644,6 +1644,7 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	struct omap_uart_port_info *omap_up_info = dev_get_platdata(&pdev->dev);
- 	struct uart_omap_port *up;
- 	struct resource *mem;
-+	void __iomem *base;
- 	int uartirq = 0;
- 	int wakeirq = 0;
- 	int ret;
-@@ -1662,17 +1663,14 @@ static int serial_omap_probe(struct platform_device *pdev)
- 			return -EPROBE_DEFER;
- 	}
+@@ -180,8 +180,6 @@ static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
+ /* Forward declaration of functions */
+ static void serial_omap_mdr1_errataset(struct uart_omap_port *up, u8 mdr1);
  
--	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!mem) {
--		dev_err(&pdev->dev, "no mem resource?\n");
--		return -ENODEV;
--	}
-+	up = devm_kzalloc(&pdev->dev, sizeof(*up), GFP_KERNEL);
-+	if (!up)
-+		return -ENOMEM;
- 
--	if (!devm_request_mem_region(&pdev->dev, mem->start, resource_size(mem),
--				pdev->dev.driver->name)) {
--		dev_err(&pdev->dev, "memory region already claimed\n");
--		return -EBUSY;
--	}
-+	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	base = devm_ioremap_resource(&pdev->dev, mem);
-+	if (IS_ERR(base))
-+		return PTR_ERR(base);
- 
- 	if (gpio_is_valid(omap_up_info->DTR_gpio) &&
- 	    omap_up_info->DTR_present) {
-@@ -1686,10 +1684,6 @@ static int serial_omap_probe(struct platform_device *pdev)
- 			return ret;
- 	}
- 
--	up = devm_kzalloc(&pdev->dev, sizeof(*up), GFP_KERNEL);
--	if (!up)
--		return -ENOMEM;
+-static struct workqueue_struct *serial_omap_uart_wq;
 -
- 	if (gpio_is_valid(omap_up_info->DTR_gpio) &&
- 	    omap_up_info->DTR_present) {
- 		up->DTR_gpio = omap_up_info->DTR_gpio;
-@@ -1732,14 +1726,7 @@ static int serial_omap_probe(struct platform_device *pdev)
+ static inline unsigned int serial_in(struct uart_omap_port *up, int offset)
+ {
+ 	offset <<= up->port.regshift;
+@@ -1701,7 +1699,6 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	up->calc_latency = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
+ 	pm_qos_add_request(&up->pm_qos_request,
+ 		PM_QOS_CPU_DMA_LATENCY, up->latency);
+-	serial_omap_uart_wq = create_singlethread_workqueue(up->name);
+ 	INIT_WORK(&up->qos_work, serial_omap_uart_qos_work);
  
- 	sprintf(up->name, "OMAP UART%d", up->port.line);
- 	up->port.mapbase = mem->start;
--	up->port.membase = devm_ioremap(&pdev->dev, mem->start,
--						resource_size(mem));
--	if (!up->port.membase) {
--		dev_err(&pdev->dev, "can't ioremap UART\n");
--		ret = -ENOMEM;
--		goto err_ioremap;
--	}
--
-+	up->port.membase = base;
- 	up->port.flags = omap_up_info->flags;
- 	up->port.uartclk = omap_up_info->uartclk;
- 	if (!up->port.uartclk) {
-@@ -1786,7 +1773,6 @@ static int serial_omap_probe(struct platform_device *pdev)
- err_add_port:
- 	pm_runtime_put(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
--err_ioremap:
- err_rs485:
- err_port_line:
- 	dev_err(&pdev->dev, "[UART%d]: failure [%s]: %d\n",
+ 	platform_set_drvdata(pdev, up);
 -- 
 1.9.2.459.g68773ac
