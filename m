@@ -1,39 +1,85 @@
-From: Fabian Frederick <fabf@skynet.be>
-Subject: [PATCH 1/1] drivers/video/fbdev/omap2/dss/dss.c: add __exit to
- dss_uninit_ports
-Date: Wed, 23 Apr 2014 18:09:58 +0200
-Message-ID: <20140423180958.8b3cc405c00fbbf7c6c5a947@skynet.be>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 0/5] mmc: host: omap_hsmmc: a few improvements
+Date: Wed, 23 Apr 2014 11:26:10 -0500
+Message-ID: <20140423162610.GN9593@saruman.home>
+References: <1395878690-9650-1-git-send-email-balbi@ti.com>
+ <20140421173203.GH22794@saruman.home>
+ <53568B04.4050703@ti.com>
+ <20140422154858.GN5524@saruman.home>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel <linux-kernel@vger.kernel.org>
-Cc: akpm <akpm@linux-foundation.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8CNmCRe8Sh4keFKJ"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140422154858.GN5524@saruman.home>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Balaji T K <balajitk@ti.com>, chris@printf.net, ulf.hansson@linaro.org, linux-mmc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-dss_uninit_ports is only called by __exit omap_dsshw_remove
+--8CNmCRe8Sh4keFKJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
----
- drivers/video/fbdev/omap2/dss/dss.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Tue, Apr 22, 2014 at 10:48:58AM -0500, Felipe Balbi wrote:
+> Hi,
+>=20
+> On Tue, Apr 22, 2014 at 09:00:12PM +0530, Balaji T K wrote:
+> > On Monday 21 April 2014 11:02 PM, Felipe Balbi wrote:
+> > >Hi,
+> > >
+> > >On Wed, Mar 26, 2014 at 07:04:45PM -0500, Felipe Balbi wrote:
+> > >>this series lets us access the newer registers introduced
+> > >>back in OMAP4 which give us some valid information about
+> > >>the OMAP HSMMC IP like max block size, support for ADMA,
+> > >>support for Retention.
+> > >>
+> > >>Right now, only setting max_blk_size correctly as supporting
+> > >>ADMA and Retention will take a lot of work.
+> > >>
+> > >>Tested on OMAP5 uEVM.
+> > >>
+> > >>Felipe Balbi (5):
+> > >>   mmc: host: omap_hsmmc: pass host as an argument
+> > >>   mmc: host: omap_hsmmc: add reg_offset field
+> > >>   mmc: host: omap_hsmmc: introduce new accessor functions
+> > >>   mmc: host: omap_hsmmc: switch over to new accessors
+> > >>   mmc: host: omap_hsmmc: set max_blk_size correctly
+> >=20
+> > Got mislead by your reply to this series, about the alternative way of
+> > reading memory size from CAPA register
+>=20
+> sure, we can do that if you prefer, I just felt I wouldn't touch
+> platforms I can't really test :-s
 
-diff --git a/drivers/video/fbdev/omap2/dss/dss.c b/drivers/video/fbdev/omap2/dss/dss.c
-index d55266c..a1c1cc2 100644
---- a/drivers/video/fbdev/omap2/dss/dss.c
-+++ b/drivers/video/fbdev/omap2/dss/dss.c
-@@ -813,7 +813,7 @@ static int __init dss_init_ports(struct platform_device *pdev)
- 	return 0;
- }
- 
--static void dss_uninit_ports(void)
-+static void __exit dss_uninit_ports(void)
- {
- #ifdef CONFIG_OMAP2_DSS_DPI
- 	dpi_uninit_port();
--- 
-1.9.1
+any comments ? do you prefer to change max_blk_size to read CAPA for the
+other platforms ?
+
+--=20
+balbi
+
+--8CNmCRe8Sh4keFKJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTV+miAAoJEIaOsuA1yqRET+wP/AmQYScW/zn0HinZ7uF86++Z
+KpC/pwSzyEibPwqx0g9hsfxhUpymgOJmcyDUewsgmn787OUBzjYrpkDpTsuI6OUt
+lbD63c05tXe36peffjLaUPiZeNr0eiXtCLKgVTrywvNNWh1SQ9nuBN1dV5JifZAR
++ORRJWPRvU7qRHhHcsaKxHqFUuqaDfDIAr5cjV7rSzJXfsI07pha7l5HrAxKqVYx
+kg+F4K2uNL1bPYzcC1YwfQ0czFPJKH7/fBaJNiHsE4U9zn4jJUh1o5d6ekHYwDkl
+gKUv0wgBNO703I9Rec/TPL3VQ3c47yaX82hFkZVMIQgL2fkRqxmYWmUaQbrSVQeW
+ONQy4O8MNs7YDlH7Tr0i4Vz/PdHK+SOquOv/WmWmlA4ebENYhJeJv3zDP51lptoc
+ySsdqz54BZ8cGGo5EN5cFjVKVng1tBd8QLGuziZka9PwWKqihDM+KxNpvIJVg/f7
+rWup0K0ImUG517UNRc9KEvoD8Zqz063dd8D4iXSVtZjwM2XlrU6xB9uf+8uFmReU
+VNmAy/cKjaX+1wl8n4q1LUQBv+IPgBKqjBJgbivLVXDQogILLuGlxRKrjXc26SpI
+2rajmx5Xo2cVm3C3CnIUXJt0L8Sno7p/d80ykphLI70M03k5nfUAQd7+04zmajNw
+l1zEo10Bb0M4q42gPS6Y
+=GxRN
+-----END PGP SIGNATURE-----
+
+--8CNmCRe8Sh4keFKJ--
