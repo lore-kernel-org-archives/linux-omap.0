@@ -1,79 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: regressions in linux-next?
-Date: Tue, 22 Apr 2014 16:47:53 -0700
-Message-ID: <20140422234753.GC12204@atomide.com>
-References: <53566C20.6000208@ti.com>
- <53566EBA.808@ti.com>
- <CABxcv=mu=xvt7cM7Q8vBP2hQH124=CL9Yuox8WWcVGeKJ+NSjA@mail.gmail.com>
- <CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
- <CABxcv==aaBKO0Mos1=RuGhF8X6pVAki748vnzH7ADYraTpBxRQ@mail.gmail.com>
+Subject: Re: [PATCH 0/2] Fix few omap gpmc regressions when booted with
+ device tree
+Date: Tue, 22 Apr 2014 17:00:13 -0700
+Message-ID: <20140423000012.GD12204@atomide.com>
+References: <1398128080-18903-1-git-send-email-tony@atomide.com>
+ <CABxcv=nDAp=iDXxVrajELJzEG=hEV3ceMJkUaiFOpe79za+LKA@mail.gmail.com>
+ <20140422152347.GB19317@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28362 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750781AbaDVXr7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 19:47:59 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50905 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752460AbaDWAAU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 20:00:20 -0400
 Content-Disposition: inline
-In-Reply-To: <CABxcv==aaBKO0Mos1=RuGhF8X6pVAki748vnzH7ADYraTpBxRQ@mail.gmail.com>
+In-Reply-To: <20140422152347.GB19317@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-* Javier Martinez Canillas <javier@dowhile0.org> [140422 16:03]:
-> Hello Linus,
+* Tony Lindgren <tony@atomide.com> [140422 08:24]:
+> * Javier Martinez Canillas <javier@dowhile0.org> [140421 23:55]:
+> > On Tue, Apr 22, 2014 at 2:54 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > >
+> > > 2. There seems to be some timing issues with smc911x where
+> > >    rsync of larger files and apt-get dist-upgrade can produce
+> > >    strange errors. This seems to work reliably when booted in
+> > >    legacy mode.
+> > >
+> > 
+> > In what board are you having this issue? The smsc911x driver supports
+> > both SMSC's LAN911x and LAN921x families and I see that we have two
+> > .dtsi files with different timings
+> > (arm/boot/dts/omap-gpmc-smsc{911x,9221}.dtsi).
+> > 
+> > This is only a wild guess, but maybe your board has a smsc LAN921x
+> > chip but is including omap-gpmc-smsc911x.dtsi on its DTS?
 > 
-> On Wed, Apr 23, 2014 at 12:00 AM, Linus Walleij
-> <linus.walleij@linaro.org> wrote:
-> > On Tue, Apr 22, 2014 at 5:52 PM, Javier Martinez Canillas
-> > <javier@dowhile0.org> wrote:
-> >
-> >> I've revised the patch again and I couldn't find the reason why
-> >> certain boards are failing to boot.
-> >>
-> >> I can't reproduce this issue since I only have a DM3730 IGEPv2 board
-> >> which boots fine but I should have access to an AM3354 IGEP Aquila
-> >> board which is similar to the am335x-evmsk so I may be able to debug
-> >> it.
-> >
-> > It would really REALLY appreciate if some of the people maintaining
-> > and using OMAP1 would help Javier out in this refactoring operation.
-> >
+> Yes it seems to have two LAN9220s, so this could be the reason.
+> I don't think we had the omap-gpmc-smsc9221.dtsi when I added the
+> timings initially.
 > 
-> The board that is failing to boot with this patch-set is not an OMAP1
-> based board but the Sitara AM335x Starter Kit
-> (arch/arm/boot/dts/am335x-evmsk.dts).
+> This is on a sbc-t3730 that I'm using as a gateway that was behaving
+> reliably before I upgraded it to DT based booting. It's currently
+> at v3.13-rc3 something, but I don't think we've much GPMC changes
+> since then.
+> 
+> I'll try upgrading the kernel today and running some tests with
+> rsync. Looks like we can also remove quite a bit of duplicate
+> timing data by using omap-gpmc-smsc9221.dtsi, I'll try something
+> like the patch below.
+> 
+> In any case, I suggest others run some tests on their GPMC Ethernet
+> too.
+>  
+> +#include "omap-gpmc-smsc9221.dtsi"
+> +
 
-This does not happen to have anything to do with the ti,no-reset-on-init
-hack for &gpio0 on the am335x-evmsk.dts that's needed to keep DDR
-powered? See the am43x thread for more info.
- 
-> Now, other boards using the same SoC like the Beagle Bone Black are
-> booting correctly and also am335x-evm which is very similar to
-> am335x-evmsk.dts.
+The 9221 timings won't work at all on 9220, it requires a 9221.
+I'll post a better clean-up patch to use the 911x timings.
 
-Except for the gpio0 hack..
- 
-> Nishanth has access to this board and his helping now with the debugging.
-> 
-> > I'd really *hate* to have to drop his patches because of a lack of
-> > boards. This refactoring is necessary to handle the exploding
-> > multitude of GPIO drivers moving forward.
-> >
-> 
-> Yeah, I'm doing my best to keep this driver up-to-date with the latest
-> changes in gpiolib but it seems that is very hard to change the OMAP
-> GPIO driver without breaking one of the gazillion TI platforms out
-> there...
-> 
-> > We even tried to get an Innovator to boot just to be able to refactor
-> > OMAP stuff but fell short on some special JTAG reflash snag so
-> > we are dependent on maintainers to help out here :-/
-
-I got it to the point where some relatively recent u-boot was loading
-fine over JTAG but the first stage did not boot properly from NOR for
-some reason.
+Upgraded the kernel and the occasional corruption is still
+there. I guess I need to test also the same kernel in legacy
+mode to try to narrow it down.
 
 Regards,
 
