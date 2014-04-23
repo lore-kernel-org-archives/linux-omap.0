@@ -1,79 +1,83 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 4/4] ARM: dts: dra7: add OCP2SCP3 and SATA nodes
-Date: Wed, 23 Apr 2014 20:36:15 +0300
-Message-ID: <1398274575-24818-1-git-send-email-rogerq@ti.com>
-References: <1398274237-24510-1-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] Fix few omap gpmc regressions when booted with
+ device tree
+Date: Wed, 23 Apr 2014 11:08:44 -0700
+Message-ID: <20140423180844.GC4833@atomide.com>
+References: <1398128080-18903-1-git-send-email-tony@atomide.com>
+ <CABxcv=nDAp=iDXxVrajELJzEG=hEV3ceMJkUaiFOpe79za+LKA@mail.gmail.com>
+ <20140422152347.GB19317@atomide.com>
+ <20140423000012.GD12204@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1398274237-24510-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31331 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754571AbaDWSIw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 14:08:52 -0400
+Content-Disposition: inline
+In-Reply-To: <20140423000012.GD12204@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-From: Balaji T K <balajitk@ti.com>
+* Tony Lindgren <tony@atomide.com> [140422 17:01]:
+> * Tony Lindgren <tony@atomide.com> [140422 08:24]:
+> > * Javier Martinez Canillas <javier@dowhile0.org> [140421 23:55]:
+> > > On Tue, Apr 22, 2014 at 2:54 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > > >
+> > > > 2. There seems to be some timing issues with smc911x where
+> > > >    rsync of larger files and apt-get dist-upgrade can produce
+> > > >    strange errors. This seems to work reliably when booted in
+> > > >    legacy mode.
+> > > >
+> > > 
+> > > In what board are you having this issue? The smsc911x driver supports
+> > > both SMSC's LAN911x and LAN921x families and I see that we have two
+> > > .dtsi files with different timings
+> > > (arm/boot/dts/omap-gpmc-smsc{911x,9221}.dtsi).
+> > > 
+> > > This is only a wild guess, but maybe your board has a smsc LAN921x
+> > > chip but is including omap-gpmc-smsc911x.dtsi on its DTS?
+> > 
+> > Yes it seems to have two LAN9220s, so this could be the reason.
+> > I don't think we had the omap-gpmc-smsc9221.dtsi when I added the
+> > timings initially.
+> > 
+> > This is on a sbc-t3730 that I'm using as a gateway that was behaving
+> > reliably before I upgraded it to DT based booting. It's currently
+> > at v3.13-rc3 something, but I don't think we've much GPMC changes
+> > since then.
+> > 
+> > I'll try upgrading the kernel today and running some tests with
+> > rsync. Looks like we can also remove quite a bit of duplicate
+> > timing data by using omap-gpmc-smsc9221.dtsi, I'll try something
+> > like the patch below.
+> > 
+> > In any case, I suggest others run some tests on their GPMC Ethernet
+> > too.
+> >  
+> > +#include "omap-gpmc-smsc9221.dtsi"
+> > +
+> 
+> The 9221 timings won't work at all on 9220, it requires a 9221.
+> I'll post a better clean-up patch to use the 911x timings.
+> 
+> Upgraded the kernel and the occasional corruption is still
+> there. I guess I need to test also the same kernel in legacy
+> mode to try to narrow it down.
 
-Add nodes for OCP2SCP3 bus, SATA controller and SATA PHY.
+OK hopefully got it figured out now. For legacy booting we were
+always using just the bootloader timings. With device tree, we
+started using the timings with your commit d72b4415 (ARM: dts:
+omap3-igep0020: Add SMSC911x LAN chip support) that was probably
+actually tested on a LAN9221 instead of LAN9220?
 
-[Roger Q] Clean up.
+In any case, I've patched omap-gpmc-smsc911x.dtsi so the values
+match the u-boot values, and so far that seems to be working just
+fine. Will post few patches shortly.
 
-CC: Benoit Cousson <bcousson@baylibre.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi | 39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+Regards,
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 1c0f8e1..084f42e 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -789,6 +789,45 @@
- 			dma-names = "tx0", "rx0";
- 			status = "disabled";
- 		};
-+
-+		omap_control_sata: control-phy@4a002374 {
-+			compatible = "ti,control-phy-pipe3";
-+			reg = <0x4a002374 0x4>;
-+			reg-names = "power";
-+			clocks = <&sys_clkin1>;
-+			clock-names = "sysclk";
-+		};
-+
-+		/* OCP2SCP3 */
-+		ocp2scp@4a090000 {
-+			compatible = "ti,omap-ocp2scp";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			reg = <0x4a090000 0x20>;
-+			ti,hwmods = "ocp2scp3";
-+			sata_phy: phy@4A096000 {
-+				compatible = "ti,phy-pipe3-sata";
-+				reg = <0x4A096000 0x80>, /* phy_rx */
-+				      <0x4A096400 0x64>, /* phy_tx */
-+				      <0x4A096800 0x40>; /* pll_ctrl */
-+				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
-+				ctrl-module = <&omap_control_sata>;
-+				clocks = <&sys_clkin1>;
-+				clock-names = "sysclk";
-+				#phy-cells = <0>;
-+			};
-+		};
-+
-+		sata: sata@4a141100 {
-+			compatible = "snps,dwc-ahci";
-+			reg = <0x4a140000 0x1100>, <0x4a141100 0x7>;
-+			interrupts = <GIC_SPI 54 IRQ_TYPE_LEVEL_HIGH>;
-+			phys = <&sata_phy>;
-+			phy-names = "sata-phy";
-+			clocks = <&sata_ref_clk>;
-+			ti,hwmods = "sata";
-+		};
- 	};
- };
- 
--- 
-1.8.3.2
+Tony
+
