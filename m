@@ -1,109 +1,184 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 10/13] tty: serial: omap: remove some dead code
-Date: Wed, 23 Apr 2014 10:35:04 -0500
-Message-ID: <5357DDA8.4040206@ti.com>
-References: <1398265117-11793-1-git-send-email-balbi@ti.com> <1398265117-11793-10-git-send-email-balbi@ti.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH RFC] ARM: dts: am335x: update USB DT references
+Date: Wed, 23 Apr 2014 17:35:29 +0200
+Message-ID: <5357DDC1.1070609@baylibre.com>
+References: <1397647595-10927-1-git-send-email-leigh@solinno.co.uk> <5356794C.7070707@baylibre.com> <20140423144822.GA4833@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1398265117-11793-10-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
-Cc: marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org, gustavo-THi1TnShQwVAfugRpC6u6w@public.gmane.org, johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jslaby-AlSwsSmVLrQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:63983 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751690AbaDWPfd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 11:35:33 -0400
+Received: by mail-wg0-f41.google.com with SMTP id n12so1036823wgh.12
+        for <linux-omap@vger.kernel.org>; Wed, 23 Apr 2014 08:35:32 -0700 (PDT)
+In-Reply-To: <20140423144822.GA4833@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Leigh Brown <leigh@solinno.co.uk>, Mugunthan V N <mugunthanvnm@ti.com>, devicetree@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 04/23/2014 09:58 AM, Felipe Balbi wrote:
-> nobody passes a DTR_gpio to this driver, so
-> this code is not necessary.
-> 
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> ---
+Hi Tony,
 
-Niel,
-this seems to revert the functionality introduced in
-commit 9574f36fb801035f6ab0fbb1b53ce2c12c17d100
-(OMAP/serial: Add support for driving a GPIO as DTR.)
+On 23/04/2014 16:48, Tony Lindgren wrote:
+> * Benoit Cousson <bcousson@baylibre.com> [140422 07:14]:
+>> Hi Leigh,
+>>
+>> On 16/04/2014 13:26, Leigh Brown wrote:
+>>> In "ARM: dts: am33xx: correcting dt node unit address for usb", the
+>>> usb_ctrl_mod and cppi41dma nodes were updated with the correct regi=
+ster
+>>> addresses.  However, the dts files that reference these nodes were =
+not
+>>> updated, and those devices are no longer being enabled.
+>>>
+>>> This patch corrects the references for the affected dts files.
+>>
+>> Thanks for the fix. BTW, why is it a RFC? Do you plan to send an upd=
+ated
+>> version?
+>>
+>> FYI, even with this fix, the BBB still does not have a working MUSB =
+on
+>> 3.15-rc2. Have you observed that as well?
+>>
+>>> Signed-off-by: Leigh Brown <leigh@solinno.co.uk>
+>>
+>> If this is a final version, I'll apply it for -rc3.
+>
+> Looks like I already have this in omap-for-v3.15/fixes-v2, sorry
+> looks like I never replied to this one.
 
-would you like to Ack this change?
+:-)
 
->  drivers/tty/serial/omap-serial.c | 39 ---------------------------------------
->  1 file changed, 39 deletions(-)
-> 
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> index b46aaf3..6654682 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -163,10 +163,6 @@ struct uart_omap_port {
->  	u8			wakeups_enabled;
->  	u32			features;
->  
-> -	int			DTR_gpio;
-> -	int			DTR_inverted;
-> -	int			DTR_active;
-> -
->  	struct serial_rs485	rs485;
->  	int			rts_gpio;
->  
-> @@ -694,16 +690,6 @@ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
->  	serial_out(up, UART_MCR, up->mcr);
->  	pm_runtime_mark_last_busy(up->dev);
->  	pm_runtime_put_autosuspend(up->dev);
-> -
-> -	if (gpio_is_valid(up->DTR_gpio) &&
-> -	    !!(mctrl & TIOCM_DTR) != up->DTR_active) {
-> -		up->DTR_active = !up->DTR_active;
-> -		if (gpio_cansleep(up->DTR_gpio))
-> -			schedule_work(&up->qos_work);
-> -		else
-> -			gpio_set_value(up->DTR_gpio,
-> -				       up->DTR_active != up->DTR_inverted);
-> -	}
->  }
->  
->  static void serial_omap_break_ctl(struct uart_port *port, int break_state)
-> @@ -847,9 +833,6 @@ static void serial_omap_uart_qos_work(struct work_struct *work)
->  						qos_work);
->  
->  	pm_qos_update_request(&up->pm_qos_request, up->latency);
-> -	if (gpio_is_valid(up->DTR_gpio))
-> -		gpio_set_value_cansleep(up->DTR_gpio,
-> -					up->DTR_active != up->DTR_inverted);
->  }
->  
->  static void
-> @@ -1672,28 +1655,6 @@ static int serial_omap_probe(struct platform_device *pdev)
->  	if (IS_ERR(base))
->  		return PTR_ERR(base);
->  
-> -	if (gpio_is_valid(omap_up_info->DTR_gpio) &&
-> -	    omap_up_info->DTR_present) {
-> -		ret = devm_gpio_request(&pdev->dev, omap_up_info->DTR_gpio,
-> -				"omap-serial");
-> -		if (ret < 0)
-> -			return ret;
-> -		ret = gpio_direction_output(omap_up_info->DTR_gpio,
-> -					    omap_up_info->DTR_inverted);
-> -		if (ret < 0)
-> -			return ret;
-> -	}
-> -
-> -	if (gpio_is_valid(omap_up_info->DTR_gpio) &&
-> -	    omap_up_info->DTR_present) {
-> -		up->DTR_gpio = omap_up_info->DTR_gpio;
-> -		up->DTR_inverted = omap_up_info->DTR_inverted;
-> -	} else {
-> -		up->DTR_gpio = -EINVAL;
-> -	}
-> -
-> -	up->DTR_active = 0;
-> -
->  	up->dev = &pdev->dev;
->  	up->port.dev = &pdev->dev;
->  	up->port.type = PORT_OMAP;
-> 
+OK, I'll let you handle this one.
+
+Thanks,
+Benoit
+
+>
+> Regards,
+>
+> Tony
+>
+>>> ---
+>>>   arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++--
+>>>   arch/arm/boot/dts/am335x-evm.dts          | 4 ++--
+>>>   arch/arm/boot/dts/am335x-evmsk.dts        | 4 ++--
+>>>   arch/arm/boot/dts/am335x-igep0033.dtsi    | 4 ++--
+>>>   4 files changed, 8 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/b=
+oot/dts/am335x-bone-common.dtsi
+>>> index e3f27ec..2e7d932 100644
+>>> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
+>>> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+>>> @@ -183,7 +183,7 @@
+>>>   &usb {
+>>>   	status =3D "okay";
+>>>
+>>> -	control@44e10000 {
+>>> +	control@44e10620 {
+>>>   		status =3D "okay";
+>>>   	};
+>>>
+>>> @@ -204,7 +204,7 @@
+>>>   		dr_mode =3D "host";
+>>>   	};
+>>>
+>>> -	dma-controller@07402000  {
+>>> +	dma-controller@47402000  {
+>>>   		status =3D "okay";
+>>>   	};
+>>>   };
+>>> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/a=
+m335x-evm.dts
+>>> index 28ae040..77df10d 100644
+>>> --- a/arch/arm/boot/dts/am335x-evm.dts
+>>> +++ b/arch/arm/boot/dts/am335x-evm.dts
+>>> @@ -331,7 +331,7 @@
+>>>   &usb {
+>>>   	status =3D "okay";
+>>>
+>>> -	control@44e10000 {
+>>> +	control@44e10620 {
+>>>   		status =3D "okay";
+>>>   	};
+>>>
+>>> @@ -352,7 +352,7 @@
+>>>   		dr_mode =3D "host";
+>>>   	};
+>>>
+>>> -	dma-controller@07402000  {
+>>> +	dma-controller@47402000  {
+>>>   		status =3D "okay";
+>>>   	};
+>>>   };
+>>> diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts=
+/am335x-evmsk.dts
+>>> index ec08f6f..ab23885 100644
+>>> --- a/arch/arm/boot/dts/am335x-evmsk.dts
+>>> +++ b/arch/arm/boot/dts/am335x-evmsk.dts
+>>> @@ -364,7 +364,7 @@
+>>>   &usb {
+>>>   	status =3D "okay";
+>>>
+>>> -	control@44e10000 {
+>>> +	control@44e10620 {
+>>>   		status =3D "okay";
+>>>   	};
+>>>
+>>> @@ -385,7 +385,7 @@
+>>>   		dr_mode =3D "host";
+>>>   	};
+>>>
+>>> -	dma-controller@07402000  {
+>>> +	dma-controller@47402000  {
+>>>   		status =3D "okay";
+>>>   	};
+>>>   };
+>>> diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot=
+/dts/am335x-igep0033.dtsi
+>>> index 7063311..5942e7d 100644
+>>> --- a/arch/arm/boot/dts/am335x-igep0033.dtsi
+>>> +++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
+>>> @@ -202,7 +202,7 @@
+>>>   &usb {
+>>>   	status =3D "okay";
+>>>
+>>> -	control@44e10000 {
+>>> +	control@44e10620 {
+>>>   		status =3D "okay";
+>>>   	};
+>>>
+>>> @@ -223,7 +223,7 @@
+>>>   		dr_mode =3D "host";
+>>>   	};
+>>>
+>>> -	dma-controller@07402000  {
+>>> +	dma-controller@47402000  {
+>>>   		status =3D "okay";
+>>>   	};
+>>>   };
+>>>
+>>
+>>
+>> --
+>> Beno=C3=AEt Cousson
+>> BayLibre
+>> Embedded Linux Technology Lab
+>> www.baylibre.com
 
 
--- 
-Regards,
-Nishanth Menon
+--=20
+Beno=C3=AEt Cousson
+BayLibre
+Embedded Linux Technology Lab
+www.baylibre.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
