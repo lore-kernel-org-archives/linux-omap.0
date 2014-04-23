@@ -1,78 +1,47 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2] gpio: omap: implement get_direction
-Date: Wed, 23 Apr 2014 15:45:29 +0200
-Message-ID: <CACRpkdbTq+UHVsZ-mYYPs7mZoVbv8wUctiCcgH9AKzQZ5O1aNw@mail.gmail.com>
-References: <1398173505-28193-1-git-send-email-yegorslists@googlemail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: linux-next regressions (next-20140423 A15: uevm/dra7)
+Date: Wed, 23 Apr 2014 08:47:45 -0500
+Message-ID: <5357C481.4090906@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1398173505-28193-1-git-send-email-yegorslists@googlemail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: yegorslists@googlemail.com
-Cc: ext Tony Lindgren <tony@atomide.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44910 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752084AbaDWNrq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Apr 2014 09:47:46 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Kevin Hilman <khilman@linaro.org>
 
-On Tue, Apr 22, 2014 at 3:31 PM,  <yegorslists@googlemail.com> wrote:
+Hi,
 
-> From: Yegor Yefremov <yegorslists@googlemail.com>
->
-> This patch implements gpio_chip's get_direction() routine, that
-> lets other drivers get particular GPIOs direction using
-> struct gpio_desc.
->
-> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
-> Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
-> ---
-> Changes:
->         v2: rework return value calculation
-(...)
+Will be great if someone else could confirm as well.
 
-I don't see why this need to be a broken-out function? Can it not
-be factored into gpio_get_direction?
+next-20140423-multi_lpae_defconfig
+ 1: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2HJJ9SKzM
+ 2: OMAP5432uEVM:  Boot FAIL: http://slexy.org/raw/s2HoDCbtO0
+TOTAL = 2 boards, Booted Boards = 0, No Boot boards = 2
 
-> +static int _get_gpio_direction(struct gpio_bank *bank, int gpio)
-> +{
-> +       void __iomem *reg = bank->base;
-> +       u32 l;
-> +
-> +       reg += bank->regs->direction;
-> +       l = (readl_relaxed(reg) >> gpio);
-> +
-> +       return (l & 0x00000001);
+next-20140423-multi_v7_defconfig
+ 1: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2070nXdAg
+ 2: OMAP5432uEVM:  Boot FAIL: http://slexy.org/raw/s20wKQEqGp
+TOTAL = 2 boards, Booted Boards = 0, No Boot boards = 2
 
-Rewrite the last two statements like this:
+next-20140423-omap2plus_defconfig
+ 1: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2XrqUmRqz
+ 2: OMAP5432uEVM:  Boot FAIL: http://slexy.org/raw/s2gQkdoTH4
 
-#include <linux/bitops.h>
 
-return !!(readl_relaxed(reg) & BIT(gpio));
+Exactly the same setup (rootfs and bootloader) as of yesterday's built
+image:
+next-20140422-omap2plus_defconfig
+ 1: DRA7xx-EVM:  Boot PASS: http://slexy.org/raw/s20sRLHVgN
+ 2: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s20ZxlYWaB
+TOTAL = 2 boards, Booted Boards = 2, No Boot boards = 0
 
-> +static int gpio_get_direction(struct gpio_chip *chip, unsigned offset)
-> +{
-> +       struct gpio_bank *bank;
-> +       unsigned long flags;
-> +       int dir;
-> +
-> +       bank = container_of(chip, struct gpio_bank, chip);
-> +       spin_lock_irqsave(&bank->lock, flags);
-> +       dir = _get_gpio_direction(bank, offset);
-> +       spin_unlock_irqrestore(&bank->lock, flags);
-> +       return dir;
-> +}
 
-So since _get_gpio_direction is never called from unlocked context,
-can it not just be part of this function then?
-
-(I make a mental note to prefix all functions in this driver
-with omap_*....)
-
-Yours,
-Linus Walleij
+-- 
+Regards,
+Nishanth Menon
