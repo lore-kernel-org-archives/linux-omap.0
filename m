@@ -1,34 +1,105 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 01/11] tty: serial: add missing braces
-Date: Tue, 22 Apr 2014 17:28:43 -0700
-Message-ID: <20140423002843.GC24603@kroah.com>
-References: <1395343807-21618-1-git-send-email-balbi@ti.com>
- <20140422142256.GC5524@saruman.home>
+From: Joel Fernandes <joelf@ti.com>
+Subject: [PATCH 4/8] ARM: OMAP2+: timer: Remove hwmod look-up dependency for DT-boot
+Date: Tue, 22 Apr 2014 20:27:05 -0500
+Message-ID: <1398216429-4681-5-git-send-email-joelf@ti.com>
+References: <1398216429-4681-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140422142256.GC5524@saruman.home>
-Sender: linux-serial-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-serial@vger.kernel.org, linux-bluetooth@vger.kernel.org, peter@hurleysoftware.com, m-karicheri2@ti.com, b32955@freescale.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1398216429-4681-1-git-send-email-joelf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 22, 2014 at 09:22:56AM -0500, Felipe Balbi wrote:
-> Hi,
-> 
-> On Thu, Mar 20, 2014 at 02:29:57PM -0500, Felipe Balbi wrote:
-> > per CodingStyle we should have those braces, no
-> > functional changes.
-> > 
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> 
-> Greg, do you want me to refresh and resend this series ?
+hwmod look ups should no longer directly happen for dmtimer users of
+DT-boot platforms. We separate out the code for platforms that are
+still non-DT. Ultimately this code should be deleted if all platforms
+are converted to DT-boot.
 
-If there are conflicts with my current tree, sure, I'd love to have
-that.  I should be trying to dig out from my patch backlog for 3.16-rc1
-by the end of this week...
+We use omap_dmtimer_powerup introduced earlier in the series to abstract
+out the hwmod dependency for the same. This will help us move the generic
+DT specific code out into drivers/clocksource/ later.
 
-thanks,
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
+ arch/arm/mach-omap2/timer.c |   33 +++++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
-greg k-h
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 9fdff5b..ea91ef9 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -266,10 +266,6 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 		if (!np)
+ 			return -ENODEV;
+ 
+-		of_property_read_string_index(np, "ti,hwmods", 0, &oh_name);
+-		if (!oh_name)
+-			return -ENODEV;
+-
+ 		timer->irq = irq_of_parse_and_map(np, 0);
+ 		if (!timer->irq)
+ 			return -ENXIO;
+@@ -277,19 +273,24 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 		timer->io_base = of_iomap(np, 0);
+ 
+ 		of_node_put(np);
++
++		if (!timer->io_base)
++			return -ENXIO;
++
++		r = omap_dmtimer_powerup(np);
++		if (r)
++			return r;
+ 	} else {
+ 		if (omap_dm_timer_reserve_systimer(timer->id))
+ 			return -ENODEV;
+ 
+ 		sprintf(name, "timer%d", timer->id);
+ 		oh_name = name;
+-	}
+ 
+-	oh = omap_hwmod_lookup(oh_name);
+-	if (!oh)
+-		return -ENODEV;
++		oh = omap_hwmod_lookup(oh_name);
++		if (!oh)
++			return -ENODEV;
+ 
+-	if (!of_have_populated_dt()) {
+ 		r = omap_hwmod_get_resource_byname(oh, IORESOURCE_IRQ, NULL,
+ 						   &irq);
+ 		if (r)
+@@ -303,11 +304,14 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 
+ 		/* Static mapping, never released */
+ 		timer->io_base = ioremap(mem.start, mem.end - mem.start);
++
++		if (!timer->io_base)
++			return -ENXIO;
++
++
++		omap_hwmod_setup_one(oh_name);
++		omap_hwmod_enable(oh);
+ 	}
+-
+-	if (!timer->io_base)
+-		return -ENXIO;
+-
+ 	/* After the dmtimer is using hwmod these clocks won't be needed */
+ 	timer->fclk = clk_get(NULL, omap_hwmod_get_main_clk(oh));
+ 	if (IS_ERR(timer->fclk))
+@@ -333,10 +337,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 
+ 	clk_put(src);
+ 
+-	omap_hwmod_setup_one(oh_name);
+-	omap_hwmod_enable(oh);
+ 	__omap_dm_timer_init_regs(timer);
+-
+ 	if (posted)
+ 		__omap_dm_timer_enable_posted(timer);
+ 
+-- 
+1.7.9.5
