@@ -1,147 +1,56 @@
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: Re: [PATCH 2/3] usb: ehci-exynos: Make provision for vdd regulators
-Date: Wed, 23 Apr 2014 21:44:36 +0900
-Message-ID: <000b01cf5ef1$c8d5ae50$5a810af0$%han@samsung.com>
-References: <1398082604-3013-1-git-send-email-gautam.vivek@samsung.com>
- <1398082604-3013-2-git-send-email-gautam.vivek@samsung.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: regressions in linux-next?
+Date: Wed, 23 Apr 2014 15:01:36 +0200
+Message-ID: <CACRpkdZ1Sv9oWhPWYEemGEnsCojs5amMMkru8DjpPxc=c9MRHA@mail.gmail.com>
+References: <53566C20.6000208@ti.com>
+	<53568706.1050204@ti.com>
+	<5356E5E4.1060509@ti.com>
+	<CABxcv=nATX0m8janD=kTZ_Askuy8StNx5r9vJM_Fq+EmQeZ0-g@mail.gmail.com>
+	<5356F2A4.6010106@ti.com>
+	<CABxcv=kx6zhJqVKcE1cijyOEak+jgXgsFaRAFYcZA4L_zxLRHg@mail.gmail.com>
+	<20140423013022.GA18648@kahuna>
+	<CABxcv=m3PhTXi=dRGPm_02-Edt_jOSCeVnTVKo_NiJkCzcKSew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1398082604-3013-2-git-send-email-gautam.vivek@samsung.com>
-Content-language: ko
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'Vivek Gautam' <gautam.vivek@samsung.com>
-Cc: linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, balbi@ti.com, kgene.kim@samsung.com, 'Jingoo Han' <jg1.han@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f52.google.com ([209.85.219.52]:56928 "EHLO
+	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754451AbaDWNBg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 09:01:36 -0400
+Received: by mail-oa0-f52.google.com with SMTP id l6so942909oag.25
+        for <linux-omap@vger.kernel.org>; Wed, 23 Apr 2014 06:01:36 -0700 (PDT)
+In-Reply-To: <CABxcv=m3PhTXi=dRGPm_02-Edt_jOSCeVnTVKo_NiJkCzcKSew@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-On Monday, April 21, 2014 9:17 PM, Vivek Gautam wrote:
-> 
-> Facilitate getting required 3.3V and 1.0V VDD supply for
-> EHCI controller on Exynos.
-> 
-> With patches for regulators' nodes merged in 3.15:
-> c8c253f ARM: dts: Add regulator entries to smdk5420
-> 275dcd2 ARM: dts: add max77686 pmic node for smdk5250,
-> 
-> certain perripherals will now need to ensure that,
-> they request VDD regulators in their drivers, and enable
-> them so as to make them working.
-> 
-> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
-> Cc: Jingoo Han <jg1.han@samsung.com>
+On Wed, Apr 23, 2014 at 9:24 AM, Javier Martinez Canillas
+<javier@dowhile0.org> wrote:
 
-Acked-by: Jingoo Han <jg1.han@samsung.com>
+> Linus, what do you think of the following patch?
+>
+> From ede333e85e0320d32e8c2d123560808ed7e43ece Mon Sep 17 00:00:00 2001
+> From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> Date: Wed, 23 Apr 2014 09:13:54 +0200
+> Subject: [PATCH 1/1] gpio: don't call irq_set_irq_type() on IRQ domain map
+>  function
+(...)
 
-Best regards,
-Jingoo Han
+So no setting a default type in the mapping function...
 
-> ---
-> 
-> Based on 'usb-next' branch of Greg's usb tree.
-> 
->  drivers/usb/host/ehci-exynos.c |   47 ++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 47 insertions(+)
-> 
-> diff --git a/drivers/usb/host/ehci-exynos.c b/drivers/usb/host/ehci-exynos.c
-> index d1d8c47..a3ca8cc 100644
-> --- a/drivers/usb/host/ehci-exynos.c
-> +++ b/drivers/usb/host/ehci-exynos.c
-> @@ -20,6 +20,7 @@
->  #include <linux/of.h>
->  #include <linux/of_gpio.h>
->  #include <linux/platform_device.h>
-> +#include <linux/regulator/consumer.h>
->  #include <linux/usb/phy.h>
->  #include <linux/usb/samsung_usb_phy.h>
->  #include <linux/usb.h>
-> @@ -46,6 +47,8 @@ struct exynos_ehci_hcd {
->  	struct clk *clk;
->  	struct usb_phy *phy;
->  	struct usb_otg *otg;
-> +	struct regulator *vdd33;
-> +	struct regulator *vdd10;
->  };
-> 
->  #define to_exynos_ehci(hcd) (struct exynos_ehci_hcd *)(hcd_to_ehci(hcd)->priv)
-> @@ -112,6 +115,28 @@ static int exynos_ehci_probe(struct platform_device *pdev)
->  		exynos_ehci->otg = phy->otg;
->  	}
-> 
-> +	exynos_ehci->vdd33 = devm_regulator_get(&pdev->dev, "vdd33");
-> +	if (IS_ERR(exynos_ehci->vdd33)) {
-> +		err = PTR_ERR(exynos_ehci->vdd33);
-> +		goto fail_regulator1;
-> +	}
-> +	err = regulator_enable(exynos_ehci->vdd33);
-> +	if (err) {
-> +		dev_err(&pdev->dev, "Failed to enable VDD33 supply\n");
-> +		goto fail_regulator1;
-> +	}
-> +
-> +	exynos_ehci->vdd10 = devm_regulator_get(&pdev->dev, "vdd10");
-> +	if (IS_ERR(exynos_ehci->vdd10)) {
-> +		err = PTR_ERR(exynos_ehci->vdd10);
-> +		goto fail_regulator2;
-> +	}
-> +	err = regulator_enable(exynos_ehci->vdd10);
-> +	if (err) {
-> +		dev_err(&pdev->dev, "Failed to enable VDD10 supply\n");
-> +		goto fail_regulator2;
-> +	}
-> +
->  skip_phy:
-> 
->  	exynos_ehci->clk = devm_clk_get(&pdev->dev, "usbhost");
-> @@ -178,6 +203,10 @@ fail_add_hcd:
->  fail_io:
->  	clk_disable_unprepare(exynos_ehci->clk);
->  fail_clk:
-> +	regulator_disable(exynos_ehci->vdd10);
-> +fail_regulator2:
-> +	regulator_disable(exynos_ehci->vdd33);
-> +fail_regulator1:
->  	usb_put_hcd(hcd);
->  	return err;
->  }
-> @@ -197,6 +226,9 @@ static int exynos_ehci_remove(struct platform_device *pdev)
-> 
->  	clk_disable_unprepare(exynos_ehci->clk);
-> 
-> +	regulator_disable(exynos_ehci->vdd10);
-> +	regulator_disable(exynos_ehci->vdd33);
-> +
->  	usb_put_hcd(hcd);
-> 
->  	return 0;
-> @@ -221,6 +253,9 @@ static int exynos_ehci_suspend(struct device *dev)
-> 
->  	clk_disable_unprepare(exynos_ehci->clk);
-> 
-> +	regulator_disable(exynos_ehci->vdd10);
-> +	regulator_disable(exynos_ehci->vdd33);
-> +
->  	return rc;
->  }
-> 
-> @@ -228,6 +263,18 @@ static int exynos_ehci_resume(struct device *dev)
->  {
->  	struct usb_hcd *hcd = dev_get_drvdata(dev);
->  	struct exynos_ehci_hcd *exynos_ehci = to_exynos_ehci(hcd);
-> +	int ret;
-> +
-> +	ret = regulator_enable(exynos_ehci->vdd33);
-> +	if (ret) {
-> +		dev_err(dev, "Failed to enable VDD33 supply\n");
-> +		return ret;
-> +	}
-> +	ret = regulator_enable(exynos_ehci->vdd10);
-> +	if (ret) {
-> +		dev_err(dev, "Failed to enable VDD10 supply\n");
-> +		return ret;
-> +	}
-> 
->  	clk_prepare_enable(exynos_ehci->clk);
-> 
-> --
-> 1.7.10.4
+> - irq_set_irq_type(irq, chip->irq_default_type);
+
+But there are drivers exploiting this to set up the hardware to some
+default state :-(
+
+What about this:
+
+if (chip->irq_default_type != IRQ_TYPE_NONE)
+    irq_set_irq_type(irq, chip->irq_default_type);
+
+This way you can pass IRQ_TYPE_NONE and nothing happens in
+the mapping.
+
+Yours,
+Linus Walleij
