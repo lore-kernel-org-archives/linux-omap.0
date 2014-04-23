@@ -1,72 +1,44 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: Boot fixes
-Date: Wed, 23 Apr 2014 12:25:30 -0500
-Message-ID: <5357F78A.5000406@ti.com>
-References: <1398192739-8901-1-git-send-email-d-gerlach@ti.com> <20140422190132.GA12204@atomide.com> <5356C8AE.3090907@ti.com> <20140423145904.GB4833@atomide.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4 0/4] ARM: OMAP: SATA support for OMAP5 & DRA7
+Date: Wed, 23 Apr 2014 20:30:33 +0300
+Message-ID: <1398274237-24510-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41178 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932213AbaDWRZ4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 13:25:56 -0400
-In-Reply-To: <20140423145904.GB4833@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: kishon-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, bcousson@baylibre.com, Sekhar Nori <nsekhar@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
 
-On 04/23/2014 09:59 AM, Tony Lindgren wrote:
-> * Dave Gerlach <d-gerlach@ti.com> [140422 12:53]:
->> On 04/22/2014 02:01 PM, Tony Lindgren wrote:
->>> * Dave Gerlach <d-gerlach@ti.com> [140422 11:52]:
->>>> This patch, along with patch here [1], fixes boot for am437x-gp-evm. The
->>>> bootloader configures gpio5_7 to control the DDR3 termination regulator,
->>>> the linked patch prevents that gpio bank from being reset and losing
->>>> the previously configured state, and this patch binds the gpio to a
->>>> regulator so the kernel is aware of the state of the gpio.
->>>>
->>>> [1] https://www.mail-archive.com/linux-omap@vger.kernel.org/msg102941.html
->>>
->>> Setting up the GPIO regulator makes sense to me. But the hack in the
->>> link above is potentially a nasty time bomb for anybody trying to
->>> use GPIO bank 5 on that board.
->>>
->>> What tests have been done that the GPIO bank behaves properly when
->>> it's not reset?
->>
->> We've been using this configuration on this board for a while without any
->> apparent issues. Also, am335x-evmsk already uses the same idea for the VTT
->> regulator on board from commit 6046adb6ad701026c10adeac8d6a4138895f12e5
->> [ARM: dts: am335x-evmsk: Do not reset gpio0] and I am unaware of any issues
->> with that either.
->
-> OK. Do you have other GPIOs in use as interrupts for devices in these
-> banks and do they work fine?
+Hi Tony,
 
-I dont see any interrupts in use from gpio5 bank but as a quick test if 
-I add ti,no-reset-on-init to gpio3 and gpio4 I see no issue with 
-matrix-keypad operation which uses gpios from each of those banks.
+These are the pending HWMOD and DTS patches to get SATA working
+on OMAP5-uevm and DRA7-evm. Please queue them for -next. Thanks.
 
->
-> Also, can you please test to make sure this works with the most recent
-> Javier's GPIO patches that had the issue of not booting on am335x-evmsk?
->
+cheers,
+-roger
 
-Yes, when using Javier's patches in addition to this patch [1], which 
-was found to be necessary through this discussion [2], the AM437x GP EVM 
-boots fine with linux-next with my regulator patch and gpio5 no reset 
-patch applied.
+---
+Balaji T K (2):
+  ARM: dts: omap5: add sata node
+  ARM: dts: dra7: add OCP2SCP3 and SATA nodes
 
-Regards,
-Dave
+Keshava Munegowda (1):
+  ARM: OMAP5: hwmod: Add ocp2scp3 and sata hwmods
 
-[1] https://patchwork.kernel.org/patch/4041881/
-[2] http://marc.info/?t=139817273800014&r=1&w=2
+Nikhil Devshatwar (1):
+  ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
 
-> Regards,
->
-> Tony
->
+ arch/arm/boot/dts/dra7.dtsi                | 39 ++++++++++++++++
+ arch/arm/boot/dts/omap5.dtsi               | 40 ++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 73 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 31 +++++++++++--
+ 4 files changed, 178 insertions(+), 5 deletions(-)
 
+-- 
+1.8.3.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
