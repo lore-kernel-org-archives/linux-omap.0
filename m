@@ -1,48 +1,100 @@
-From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: Re: [PATCH v2 05/13] extcon: extcon-class: improve extcon client API
-Date: Wed, 23 Apr 2014 09:33:26 +0200
-Message-ID: <53576CC6.1010302@samsung.com>
-References: <1397475984-28001-1-git-send-email-r.baldyga@samsung.com>
- <1397475984-28001-6-git-send-email-r.baldyga@samsung.com>
- <20140419105225.GB976@ambient.musicnaut.iki.fi> <53560A6F.8030909@samsung.com>
- <20140422150336.GA612@drone.musicnaut.iki.fi>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 02/11] ARM: OMAP3: Fix idle mode signaling for sys_clkreq
+ and sys_off_mode
+Date: Wed, 23 Apr 2014 10:51:10 +0300
+Message-ID: <535770EE.8060603@ti.com>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com> <1397173639-29587-3-git-send-email-tony@atomide.com> <5348FFFA.5040207@ti.com> <20140412150205.GB32292@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-reply-to: <20140422150336.GA612@drone.musicnaut.iki.fi>
-Sender: linux-doc-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, myungjoo.ham@samsung.com, cw00.choi@samsung.com, dbaryshkov@gmail.com, dwmw2@infradead.org, balbi@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, ldewangan@nvidia.com, kishon@ti.com, gg@slimlogic.co.uk, anton@enomsg.org, jonghwa3.lee@samsung.com, rongjun.ying@csr.com, linux@roeck-us.net, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, m.szyprowski@samsung.com, t.figa@samsung.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:56142 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754103AbaDWHvi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Apr 2014 03:51:38 -0400
+In-Reply-To: <20140412150205.GB32292@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On 04/22/2014 05:03 PM, Aaro Koskinen wrote:
-> Hi,
-> 
-> On Tue, Apr 22, 2014 at 08:21:35AM +0200, Robert Baldyga wrote:
->> On 04/19/2014 12:52 PM, Aaro Koskinen wrote:
->>> On Mon, Apr 14, 2014 at 01:46:16PM +0200, Robert Baldyga wrote:
->>>>  	dev_info(&pdev->dev,
->>>> -		 "OMAP USB OTG controller rev %d.%d (%s, id=%d, vbus=%d)\n",
->>>> -		 (rev >> 4) & 0xf, rev & 0xf, config->extcon, otg_dev->id,
->>>> +		 "OMAP USB OTG controller rev %d.%d (id=%d, vbus=%d)\n",
->>>> +		 (rev >> 4) & 0xf, rev & 0xf, otg_dev->id,
->>>>  		 otg_dev->vbus);
+On 04/12/2014 06:02 PM, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [140412 02:01]:
+>> On 04/11/2014 02:47 AM, Tony Lindgren wrote:>
+>>> @@ -282,6 +283,7 @@ void omap_sram_idle(void)
 >>>
->>> This change is unrelated to the patch and not needed.
->>>
+>>>    	/* CORE */
+>>>    	if (core_next_state < PWRDM_POWER_ON) {
+>>> +		omap3_vc_set_pmic_signaling(core_next_state);
+>>>    		if (core_next_state == PWRDM_POWER_OFF) {
+>>>    			omap3_core_save_context();
+>>>    			omap3_cm_save_context();
 >>
->> It's related because we no longer use config->extcon since we have
->> cable-oriented API. We can keep displaying it, but this value is
->> actually meaningless.
-> 
-> It's not completely meaningless, as the cable is searched using that name.
-> 
+>> I think this implementation is sub-optimal, as it only scales
+>> voltages if core is entering idle state. MPU only idle is possible,
+>> however you do not scale voltages in this case.
+>
+> Hmm that's same as PWRDM_POWER_RET? That's working too.
+> Or do you have something else in mind that I'm not aware
+> of?
 
-Yes, I see, you're right. I have forgot that this driver doesn't use
-devicetree. I will restore displaying extcon name.
+No, I mean the case where core_next_state == PWRDM_POWER_ON, but 
+mpu_next_state <= PWRDM_POWER_RET. You could scale MPU voltage in this 
+case but you don't with this implementation.
 
-Thanks!
-Robert Baldyga
-Samsung R&D Institute Poland
+>
+>>> @@ -220,6 +220,78 @@ static inline u32 omap_usec_to_32k(u32 usec)
+>>>    	return DIV_ROUND_UP_ULL(32768ULL * (u64)usec, 1000000ULL);
+>>>    }
+>>>
+>>> +void omap3_vc_set_pmic_signaling(int core_next_state)
+>>> +{
+>>> +	u32 voltctrl;
+>>> +
+>>> +	voltctrl = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
+>>> +					  OMAP3_PRM_VOLTCTRL_OFFSET);
+>>
+>> Just a note here, I am currently working on trying to get rid of all
+>> the direct prm_read/write calls outside PRCM drivers, this and rest
+>> should use voltdm->read/write.
+>
+> OK, sounds like you already have a patch for that in your
+> 3.14-rc4-cm-prm-driver-wip branch?
+
+Yes, there is a patch for that.
+
+>
+> Let's do the fixes first, then it's going to be a lot easier for
+> us to test the rest of the PRMC changes.
+>
+>>> +	/*
+>>> +	 * By default let's use I2C4 signaling for retention idle
+>>> +	 * and sys_off_mode pin signaling for off idle. This way we
+>>> +	 * have sys_clk_req pin go down for retention and both
+>>> +	 * sys_clk_req and sys_off_mode pins will go down for off
+>>> +	 * idle. And we can also scale voltages to zero for off-idle.
+>>> +	 * Note that no actual voltage scaling will happen unless the
+>>> +	 * board specific twl4030 PMIC scripts are loaded.
+>>> +	 */
+>>> +	val = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
+>>> +				     OMAP3_PRM_VOLTCTRL_OFFSET);
+>>
+>> Why not use the I2C4 signalling for off-mode? This way the voltages
+>> can be scaled to 0.6V even without any board specific scripts.
+>
+> Using I2C4 works too, we're just missing a place to set
+> and clear OMAP3430_PRM_VOLTCTRL_SEL_OFF bit currently. Sounds
+> like eventually we should allow changing it dynamically somewhere.
+
+You can't check the presence of the scripts here?
+
+> But for now, SEL_OFF should be enabled as it allows debugging PM
+> by looking at the sys_clkreq and sys_off_mode pins no matter if
+> there are board specific scripts or not. The sys_off_mode won't
+> toggle if things are configured to use I2C4, which is confusing.
+
+You can always measure the voltage rails directly also, but yea, it is 
+more convenient to just look at the led.
+
+-Tero
 
