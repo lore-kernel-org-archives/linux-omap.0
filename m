@@ -1,55 +1,60 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: linux-next regressions (next-20140423 A15: uevm/dra7)
-Date: Wed, 23 Apr 2014 09:23:42 -0500
-Message-ID: <5357CCEE.3000102@ti.com>
-References: <5357C481.4090906@ti.com> <5357C647.9000307@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: regressions in linux-next?
+Date: Wed, 23 Apr 2014 16:38:08 +0200
+Message-ID: <CACRpkdas=MxsvaB=q9rF7GwP+hJv61Ut5yL8Lc9amnTc=_E=pg@mail.gmail.com>
+References: <53566C20.6000208@ti.com>
+	<53568706.1050204@ti.com>
+	<5356E5E4.1060509@ti.com>
+	<CABxcv=nATX0m8janD=kTZ_Askuy8StNx5r9vJM_Fq+EmQeZ0-g@mail.gmail.com>
+	<5356F2A4.6010106@ti.com>
+	<CABxcv=kx6zhJqVKcE1cijyOEak+jgXgsFaRAFYcZA4L_zxLRHg@mail.gmail.com>
+	<20140423013022.GA18648@kahuna>
+	<CABxcv=m3PhTXi=dRGPm_02-Edt_jOSCeVnTVKo_NiJkCzcKSew@mail.gmail.com>
+	<CACRpkdZ1Sv9oWhPWYEemGEnsCojs5amMMkru8DjpPxc=c9MRHA@mail.gmail.com>
+	<5357C04F.3060902@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58955 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755767AbaDWOXn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Apr 2014 10:23:43 -0400
-In-Reply-To: <5357C647.9000307@ti.com>
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:45981 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751620AbaDWOiJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 10:38:09 -0400
+Received: by mail-ob0-f178.google.com with SMTP id wn1so1108137obc.37
+        for <linux-omap@vger.kernel.org>; Wed, 23 Apr 2014 07:38:08 -0700 (PDT)
+In-Reply-To: <5357C04F.3060902@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@linaro.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-On 04/23/2014 08:55 AM, Peter Ujfalusi wrote:
-> On 04/23/2014 04:47 PM, Nishanth Menon wrote:
->> Hi,
+On Wed, Apr 23, 2014 at 3:29 PM, Nishanth Menon <nm@ti.com> wrote:
+> On 04/23/2014 08:01 AM, Linus Walleij wrote:
+
+>> What about this:
 >>
->> Will be great if someone else could confirm as well.
+>> if (chip->irq_default_type != IRQ_TYPE_NONE)
+>>     irq_set_irq_type(irq, chip->irq_default_type);
 >>
->> next-20140423-multi_lpae_defconfig
->>  1: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2HJJ9SKzM
->>  2: OMAP5432uEVM:  Boot FAIL: http://slexy.org/raw/s2HoDCbtO0
->> TOTAL = 2 boards, Booted Boards = 0, No Boot boards = 2
->>
->> next-20140423-multi_v7_defconfig
->>  1: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2070nXdAg
->>  2: OMAP5432uEVM:  Boot FAIL: http://slexy.org/raw/s20wKQEqGp
->> TOTAL = 2 boards, Booted Boards = 0, No Boot boards = 2
->>
->> next-20140423-omap2plus_defconfig
->>  1: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2XrqUmRqz
->>  2: OMAP5432uEVM:  Boot FAIL: http://slexy.org/raw/s2gQkdoTH4
-> 
-> I suspect you are using ext4 as rootfs?
-> I just sent a fix for this or similar crash (as in the OMAP5432uEVM log):
-> http://marc.info/?l=linux-kernel&m=139826085609497&w=2
+>> This way you can pass IRQ_TYPE_NONE and nothing happens in
+>> the mapping.
+>
+> What if these drivers depend on IRQ_TYPE_NONE to do something for the
+> GPIO pins?
 
+Yeah :-(
 
-yep... I cherry-picked
-https://patchwork.kernel.org/patch/4041201/
-https://patchwork.kernel.org/patch/4041211/
+> would you expect these drivers to pass IRQ_TYPE_DEFAULT?
 
-and the platforms look fine in the round of testing I did. please feel
-free to add
-Tested-by: Nishanth Menon <nm@ti.com>
+Actually that sounds like a good idea. Maybe we can go over the few
+drivers that pass IRQ_TYPE_NONE and see what they actually want.
+There are not *too* many users of this call yet.
 
--- 
-Regards,
-Nishanth Menon
+> OR I wonder
+> if we could pass some flag like -1 for platforms that dont care?
+
+The flags parameter to gpiochip_irqchip_add() is unsigned...
+Switching to IRQ_TYPE_DEFAULT for drivers that want this is likely
+the sane thing to do.
+
+Yours,
+Linus Walleij
