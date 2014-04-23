@@ -1,70 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] Fix few omap gpmc regressions when booted with
- device tree
-Date: Tue, 22 Apr 2014 17:00:13 -0700
-Message-ID: <20140423000012.GD12204@atomide.com>
-References: <1398128080-18903-1-git-send-email-tony@atomide.com>
- <CABxcv=nDAp=iDXxVrajELJzEG=hEV3ceMJkUaiFOpe79za+LKA@mail.gmail.com>
- <20140422152347.GB19317@atomide.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 01/11] tty: serial: add missing braces
+Date: Tue, 22 Apr 2014 17:28:43 -0700
+Message-ID: <20140423002843.GC24603@kroah.com>
+References: <1395343807-21618-1-git-send-email-balbi@ti.com>
+ <20140422142256.GC5524@saruman.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50905 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752460AbaDWAAU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2014 20:00:20 -0400
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140422152347.GB19317@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20140422142256.GC5524@saruman.home>
+Sender: linux-serial-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-bluetooth@vger.kernel.org, peter@hurleysoftware.com, m-karicheri2@ti.com, b32955@freescale.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-* Tony Lindgren <tony@atomide.com> [140422 08:24]:
-> * Javier Martinez Canillas <javier@dowhile0.org> [140421 23:55]:
-> > On Tue, Apr 22, 2014 at 2:54 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > >
-> > > 2. There seems to be some timing issues with smc911x where
-> > >    rsync of larger files and apt-get dist-upgrade can produce
-> > >    strange errors. This seems to work reliably when booted in
-> > >    legacy mode.
-> > >
+On Tue, Apr 22, 2014 at 09:22:56AM -0500, Felipe Balbi wrote:
+> Hi,
+> 
+> On Thu, Mar 20, 2014 at 02:29:57PM -0500, Felipe Balbi wrote:
+> > per CodingStyle we should have those braces, no
+> > functional changes.
 > > 
-> > In what board are you having this issue? The smsc911x driver supports
-> > both SMSC's LAN911x and LAN921x families and I see that we have two
-> > .dtsi files with different timings
-> > (arm/boot/dts/omap-gpmc-smsc{911x,9221}.dtsi).
-> > 
-> > This is only a wild guess, but maybe your board has a smsc LAN921x
-> > chip but is including omap-gpmc-smsc911x.dtsi on its DTS?
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
 > 
-> Yes it seems to have two LAN9220s, so this could be the reason.
-> I don't think we had the omap-gpmc-smsc9221.dtsi when I added the
-> timings initially.
-> 
-> This is on a sbc-t3730 that I'm using as a gateway that was behaving
-> reliably before I upgraded it to DT based booting. It's currently
-> at v3.13-rc3 something, but I don't think we've much GPMC changes
-> since then.
-> 
-> I'll try upgrading the kernel today and running some tests with
-> rsync. Looks like we can also remove quite a bit of duplicate
-> timing data by using omap-gpmc-smsc9221.dtsi, I'll try something
-> like the patch below.
-> 
-> In any case, I suggest others run some tests on their GPMC Ethernet
-> too.
->  
-> +#include "omap-gpmc-smsc9221.dtsi"
-> +
+> Greg, do you want me to refresh and resend this series ?
 
-The 9221 timings won't work at all on 9220, it requires a 9221.
-I'll post a better clean-up patch to use the 911x timings.
+If there are conflicts with my current tree, sure, I'd love to have
+that.  I should be trying to dig out from my patch backlog for 3.16-rc1
+by the end of this week...
 
-Upgraded the kernel and the occasional corruption is still
-there. I guess I need to test also the same kernel in legacy
-mode to try to narrow it down.
+thanks,
 
-Regards,
-
-Tony
+greg k-h
