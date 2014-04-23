@@ -1,63 +1,36 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: linux-next regressions (next-20140423 A15: uevm/dra7)
-Date: Wed, 23 Apr 2014 16:55:19 +0300
-Message-ID: <5357C647.9000307@ti.com>
-References: <5357C481.4090906@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 11/11] pinctrl: single: Clear pin interrupts enabled by bootloader
+Date: Wed, 23 Apr 2014 15:57:31 +0200
+Message-ID: <CACRpkdZeUTugwxaxCUBDVE3b+ak21m8C2Ff4N5rZ3+i5OdQXyA@mail.gmail.com>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com>
+	<1397173639-29587-12-git-send-email-tony@atomide.com>
+	<CACRpkdYu2Obo8kuA2D9a33K_KCF-LPza=+reEpFnq8JFK6jOCg@mail.gmail.com>
+	<20140422161033.GC19317@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56514 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752771AbaDWNzY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 09:55:24 -0400
-In-Reply-To: <5357C481.4090906@ti.com>
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:57112 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751711AbaDWN5c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 09:57:32 -0400
+Received: by mail-oa0-f44.google.com with SMTP id n16so1051984oag.3
+        for <linux-omap@vger.kernel.org>; Wed, 23 Apr 2014 06:57:31 -0700 (PDT)
+In-Reply-To: <20140422161033.GC19317@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@linaro.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Haojian Zhuang <haojian.zhuang@linaro.org>
 
-On 04/23/2014 04:47 PM, Nishanth Menon wrote:
-> Hi,
->=20
-> Will be great if someone else could confirm as well.
->=20
-> next-20140423-multi_lpae_defconfig
->  1: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2HJJ9SKzM
->  2: OMAP5432uEVM:  Boot FAIL: http://slexy.org/raw/s2HoDCbtO0
-> TOTAL =3D 2 boards, Booted Boards =3D 0, No Boot boards =3D 2
->=20
-> next-20140423-multi_v7_defconfig
->  1: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2070nXdAg
->  2: OMAP5432uEVM:  Boot FAIL: http://slexy.org/raw/s20wKQEqGp
-> TOTAL =3D 2 boards, Booted Boards =3D 0, No Boot boards =3D 2
->=20
-> next-20140423-omap2plus_defconfig
->  1: DRA7xx-EVM:  Boot FAIL: http://slexy.org/raw/s2XrqUmRqz
->  2: OMAP5432uEVM:  Boot FAIL: http://slexy.org/raw/s2gQkdoTH4
+On Tue, Apr 22, 2014 at 6:10 PM, Tony Lindgren <tony@atomide.com> wrote:
 
-I suspect you are using ext4 as rootfs?
-I just sent a fix for this or similar crash (as in the OMAP5432uEVM log=
-):
-http://marc.info/?l=3Dlinux-kernel&m=3D139826085609497&w=3D2
+>> Shall I apply this patch or will you funnel it through ARM SoC
+>> due to deps?
+>
+> No deps except boards hanging without it.. Please feel free to
+> take this one, prererrably as a fix for the -rc series if no
+> objections.
 
->=20
->=20
-> Exactly the same setup (rootfs and bootloader) as of yesterday's buil=
-t
-> image:
-> next-20140422-omap2plus_defconfig
->  1: DRA7xx-EVM:  Boot PASS: http://slexy.org/raw/s20sRLHVgN
->  2: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s20ZxlYWaB
-> TOTAL =3D 2 boards, Booted Boards =3D 2, No Boot boards =3D 0
->=20
->=20
+Yes this is -rc material. Queued for fixes. Thanks!
 
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yours,
+Linus Walleij
