@@ -1,114 +1,155 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/11] ARM: OMAP3: Fix idle mode signaling for sys_clkreq
- and sys_off_mode
-Date: Wed, 23 Apr 2014 13:49:26 -0700
-Message-ID: <20140423204926.GB6053@atomide.com>
+Subject: Re: [PATCH 07/11] ARM: dts: Enable N900 keybaord sleep leds by
+ default
+Date: Wed, 23 Apr 2014 14:07:50 -0700
+Message-ID: <20140423210750.GC6053@atomide.com>
 References: <1397173639-29587-1-git-send-email-tony@atomide.com>
- <1397173639-29587-3-git-send-email-tony@atomide.com>
- <5348FFFA.5040207@ti.com>
- <20140412150205.GB32292@atomide.com>
- <535770EE.8060603@ti.com>
+ <1397173639-29587-8-git-send-email-tony@atomide.com>
+ <20140411233109.GG15736@drone.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10060 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753386AbaDWUtb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 16:49:31 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:37375 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755272AbaDWVIF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 17:08:05 -0400
 Content-Disposition: inline
-In-Reply-To: <535770EE.8060603@ti.com>
+In-Reply-To: <20140411233109.GG15736@drone.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Paul Walmsley <paul@pwsan.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Tero Kristo <t-kristo@ti.com>
 
-* Tero Kristo <t-kristo@ti.com> [140423 00:51]:
-> On 04/12/2014 06:02 PM, Tony Lindgren wrote:
-> >* Tero Kristo <t-kristo@ti.com> [140412 02:01]:
-> >>On 04/11/2014 02:47 AM, Tony Lindgren wrote:>
-> >>>@@ -282,6 +283,7 @@ void omap_sram_idle(void)
-> >>>
-> >>>   	/* CORE */
-> >>>   	if (core_next_state < PWRDM_POWER_ON) {
-> >>>+		omap3_vc_set_pmic_signaling(core_next_state);
-> >>>   		if (core_next_state == PWRDM_POWER_OFF) {
-> >>>   			omap3_core_save_context();
-> >>>   			omap3_cm_save_context();
-> >>
-> >>I think this implementation is sub-optimal, as it only scales
-> >>voltages if core is entering idle state. MPU only idle is possible,
-> >>however you do not scale voltages in this case.
-> >
-> >Hmm that's same as PWRDM_POWER_RET? That's working too.
-> >Or do you have something else in mind that I'm not aware
-> >of?
-> 
-> No, I mean the case where core_next_state == PWRDM_POWER_ON, but
-> mpu_next_state <= PWRDM_POWER_RET. You could scale MPU voltage in this case
-> but you don't with this implementation.
+* Aaro Koskinen <aaro.koskinen@iki.fi> [140411 16:39]:
+> Hi,
+>=20
+> On Thu, Apr 10, 2014 at 04:47:15PM -0700, Tony Lindgren wrote:
+> > +        leds {
+> > +                compatible =3D "gpio-leds";
+> > +                heartbeat {
+> > +                        label =3D "debug::sleep";
+> > +                        gpios =3D <&gpio6 2 GPIO_ACTIVE_HIGH>;  /*=
+ gpio162 */
+> > +                        linux,default-trigger =3D "default-on";
+>=20
+> Just some very minor nits, spaces should be converted to TABs here
+> for indent, and patch title should say "keyboard" instead of "keybaor=
+d".
+>=20
+> Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-OK makes sense to pass both mpu_next_state and core_next_state  
-to the function then.
-
-> >>>@@ -220,6 +220,78 @@ static inline u32 omap_usec_to_32k(u32 usec)
-> >>>   	return DIV_ROUND_UP_ULL(32768ULL * (u64)usec, 1000000ULL);
-> >>>   }
-> >>>
-> >>>+void omap3_vc_set_pmic_signaling(int core_next_state)
-> >>>+{
-> >>>+	u32 voltctrl;
-> >>>+
-> >>>+	voltctrl = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
-> >>>+					  OMAP3_PRM_VOLTCTRL_OFFSET);
-> >>
-> >>Just a note here, I am currently working on trying to get rid of all
-> >>the direct prm_read/write calls outside PRCM drivers, this and rest
-> >>should use voltdm->read/write.
-> >
-> >OK, sounds like you already have a patch for that in your
-> >3.14-rc4-cm-prm-driver-wip branch?
-> 
-> Yes, there is a patch for that.
-
-OK I'll pick it from there. 
-
-> >Let's do the fixes first, then it's going to be a lot easier for
-> >us to test the rest of the PRMC changes.
-> >
-> >>>+	/*
-> >>>+	 * By default let's use I2C4 signaling for retention idle
-> >>>+	 * and sys_off_mode pin signaling for off idle. This way we
-> >>>+	 * have sys_clk_req pin go down for retention and both
-> >>>+	 * sys_clk_req and sys_off_mode pins will go down for off
-> >>>+	 * idle. And we can also scale voltages to zero for off-idle.
-> >>>+	 * Note that no actual voltage scaling will happen unless the
-> >>>+	 * board specific twl4030 PMIC scripts are loaded.
-> >>>+	 */
-> >>>+	val = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
-> >>>+				     OMAP3_PRM_VOLTCTRL_OFFSET);
-> >>
-> >>Why not use the I2C4 signalling for off-mode? This way the voltages
-> >>can be scaled to 0.6V even without any board specific scripts.
-> >
-> >Using I2C4 works too, we're just missing a place to set
-> >and clear OMAP3430_PRM_VOLTCTRL_SEL_OFF bit currently. Sounds
-> >like eventually we should allow changing it dynamically somewhere.
-> 
-> You can't check the presence of the scripts here?
-
-I guess we could eventually add something for that :)
- 
-> >But for now, SEL_OFF should be enabled as it allows debugging PM
-> >by looking at the sys_clkreq and sys_off_mode pins no matter if
-> >there are board specific scripts or not. The sys_off_mode won't
-> >toggle if things are configured to use I2C4, which is confusing.
-> 
-> You can always measure the voltage rails directly also, but yea, it is more
-> convenient to just look at the led.
-
-And works for making sure we don't get new PM kernel regressions
-even if twl4030 is not working properly :)
-
-Regards,
+Thanks and sorry for the delay, got sidetracked with some GPMC bugs.
+Here's the updated version of this patch.
 
 Tony
+
+8< ------------------------
+=46rom: Tony Lindgren <tony@atomide.com>
+Date: Wed, 23 Apr 2014 13:59:24 -0700
+Subject: [PATCH] ARM: dts: Enable N900 keyboard sleep leds by default
+
+On N900 there are nice LEDs that show the state of the
+sys_clkreq and sys_off_mode pins.
+
+These LEDs go low when the system enters deeper idle
+states. The left LED shows the state of the sys_clkreq
+pin, and goes off during retention idle. The right LED
+shows the state of sys_off_mode pin and both go off
+during off idle.
+
+As N900 is a battery operated device, these LEDs should
+be off most of the time. So let's enable them by default
+so we can make sure the system is mostly idle.
+
+This allows the maintainers to also immediately test
+patches for PM regressions by looking at the LEDs,
+which certainly makes my life easier.
+
+The LED can naturally be disabled during runtime with:
+
+# echo none > /sys/class/leds/debug::sleep/trigger
+
+Note that we don't currently have support for omap3
+errata 1.158 that remuxes GPIO pins to INPUT_PULLUP |
+MUX_MODE7 for the duration of idle. This means that the
+GPIO pins set high will go down during off idle. In this
+case it does not matter as the sys_off_mode goes down
+too, but there's still a slim chance of false off idle
+LED signals. If in doubt, false LED signals can be
+verified by the sys_off_mode or vdd_core values.
+
+Also note that to allow the UARTs to autoidle, the
+following needs to be run on N900 to enable off idle:
+
+#!/bin/sh
+uarts=3D$(find /sys/class/tty/ttyO*/device/power/ -type d)
+for uart in $uarts; do
+	echo 3000 > $uart/autosuspend_delay_ms
+done
+
+uarts=3D$(find /sys/class/tty/ttyO*/power/ -type d)
+for uart in $uarts; do
+	echo enabled > $uart/wakeup
+	echo auto > $uart/control
+done
+
+echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
+
+=46or retention idle, change the above to set 0 to
+enable_off_mode.
+
+Also note that without the twl4030 PM scripts the actual
+voltage scaling won't happen for off idle so we only get
+voltage scaling over I2C4 for retention idle. I'll do
+some device tree patches for those also a bit later on.
+
+Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Tero Kristo <t-kristo@ti.com>
+Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -21,6 +21,17 @@
+ 		};
+ 	};
+=20
++	leds {
++		compatible =3D "gpio-leds";
++		heartbeat {
++			label =3D "debug::sleep";
++			gpios =3D <&gpio6 2 GPIO_ACTIVE_HIGH>;  /* gpio162 */
++			linux,default-trigger =3D "default-on";
++			pinctrl-names =3D "default";
++			pinctrl-0 =3D <&debug_leds>;
++		};
++	};
++
+ 	memory {
+ 		device_type =3D "memory";
+ 		reg =3D <0x80000000 0x10000000>; /* 256 MB */
+@@ -114,6 +125,12 @@
+ 		>;
+ 	};
+=20
++	debug_leds: pinmux_debug_led_pins {
++		pinctrl-single,pins =3D <
++			OMAP3_CORE1_IOPAD(0x2198, PIN_OUTPUT | MUX_MODE4)	/* mcbsp1_clkx.gp=
+io_162 */
++		>;
++	};
++
+ 	mmc1_pins: pinmux_mmc1_pins {
+ 		pinctrl-single,pins =3D <
+ 			0x114 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk */
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
