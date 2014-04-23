@@ -1,173 +1,103 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 3/4] ARM: OMAP2+: Add machine entry for dra72x devices
-Date: Wed, 23 Apr 2014 14:32:54 +0530
-Message-ID: <1398243775-4145-4-git-send-email-rnayak@ti.com>
-References: <1398243775-4145-1-git-send-email-rnayak@ti.com>
+From: Anton Tikhomirov <av.tikhomirov@samsung.com>
+Subject: RE: [PATCH 3/3] usb: dwc3-exynos: Make provision for vdd regulators
+Date: Wed, 23 Apr 2014 18:26:51 +0900
+Message-ID: <00bf01cf5ed6$28de18d0$7a9a4a70$%tikhomirov@samsung.com>
+References: <1398082604-3013-1-git-send-email-gautam.vivek@samsung.com>
+ <1398082604-3013-3-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ks_c_5601-1987
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43810 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754293AbaDWJEq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Apr 2014 05:04:46 -0400
-In-Reply-To: <1398243775-4145-1-git-send-email-rnayak@ti.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:41786 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752174AbaDWJ0x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 05:26:53 -0400
+In-reply-to: <1398082604-3013-3-git-send-email-gautam.vivek@samsung.com>
+Content-language: en-us
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
-Cc: tony@atomide.com, bcousson@baylibre.com, nm@ti.com, Rajendra Nayak <rnayak@ti.com>
+To: 'Vivek Gautam' <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, balbi@ti.com, kgene.kim@samsung.com
 
-The only difference from the dra74x devices is the missing .smp entry.
+Hello,
 
-While at it, also fix the use of __initdata (across the file) and replace them
-with __initconst as reported by checkpatch
+> -----Original Message-----
+> From: Vivek Gautam [mailto:gautamvivek1987@gmail.com] On Behalf Of
+> Vivek Gautam
+> Sent: Monday, April 21, 2014 9:17 PM
+> To: linux-usb@vger.kernel.org; linux-samsung-soc@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org; linux-
+> arm-kernel@lists.infradead.org; gregkh@linuxfoundation.org;
+> stern@rowland.harvard.edu; balbi@ti.com; kgene.kim@samsung.com; Vivek
+> Gautam; Anton Tikhomirov
+> Subject: [PATCH 3/3] usb: dwc3-exynos: Make provision for vdd
+> regulators
+> 
+> Facilitate getting required 3.3V and 1.0V VDD supply for
+> DWC3 controller on Exynos.
+> 
+> With patches for regulators' nodes merged in 3.15:
+> c8c253f ARM: dts: Add regulator entries to smdk5420
+> 275dcd2 ARM: dts: add max77686 pmic node for smdk5250,
+> 
+> certain perripherals will now need to ensure that,
+> they request VDD regulators in their drivers, and enable
+> them so as to make them working.
+> 
+> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> Cc: Anton Tikhomirov <av.tikhomirov@samsung.com>
+> ---
+> 
+> Based on 'usb-next' branch of Greg's USB tree.
+> Also cleanly applies on 'next' branch of Balbi's USB tree.
+> 
+>  drivers/usb/dwc3/dwc3-exynos.c |   51
+> ++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 49 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-
+> exynos.c
+> index 28c8ad7..c9d9102 100644
+> --- a/drivers/usb/dwc3/dwc3-exynos.c
+> +++ b/drivers/usb/dwc3/dwc3-exynos.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/usb/usb_phy_gen_xceiv.h>
+>  #include <linux/of.h>
+>  #include <linux/of_platform.h>
+> +#include <linux/regulator/consumer.h>
+> 
+>  struct dwc3_exynos {
+>  	struct platform_device	*usb2_phy;
+> @@ -34,6 +35,8 @@ struct dwc3_exynos {
+>  	struct device		*dev;
+> 
+>  	struct clk		*clk;
+> +	struct regulator	*vdd33;
+> +	struct regulator	*vdd10;
+>  };
+> 
+>  static int dwc3_exynos_register_phys(struct dwc3_exynos *exynos)
+> @@ -144,20 +147,46 @@ static int dwc3_exynos_probe(struct
+> platform_device *pdev)
+> 
+>  	clk_prepare_enable(exynos->clk);
+> 
+> +	exynos->vdd33 = devm_regulator_get(dev, "vdd33");
+> +	if (IS_ERR(exynos->vdd33)) {
+> +		ret = PTR_ERR(exynos->vdd33);
+> +		goto err2;
 
-ERROR: Use of const init definition must use __initconst
-+static const char *dra72x_boards_compat[] __initdata = {
+Is regulator property mandatory for dwc3-exynos? If it is not
+and device tree doesn't provide it, dwc3-exynos driver probe shouldn't
+fail here.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/board-generic.c |   46 +++++++++++++++++++++++++----------
- 1 file changed, 33 insertions(+), 13 deletions(-)
+> +	}
+> +	ret = regulator_enable(exynos->vdd33);
+> +	if (ret) {
+> +		dev_err(dev, "Failed to enable VDD33 supply\n");
+> +		goto err2;
+> +	}
+> +
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index b8920b6..4d1222d 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -43,7 +43,7 @@ static void __init omap_generic_init(void)
- }
- 
- #ifdef CONFIG_SOC_OMAP2420
--static const char *omap242x_boards_compat[] __initdata = {
-+static const char *omap242x_boards_compat[] __initconst = {
- 	"ti,omap2420",
- 	NULL,
- };
-@@ -62,7 +62,7 @@ MACHINE_END
- #endif
- 
- #ifdef CONFIG_SOC_OMAP2430
--static const char *omap243x_boards_compat[] __initdata = {
-+static const char *omap243x_boards_compat[] __initconst = {
- 	"ti,omap2430",
- 	NULL,
- };
-@@ -81,7 +81,7 @@ MACHINE_END
- #endif
- 
- #ifdef CONFIG_ARCH_OMAP3
--static const char *omap3_boards_compat[] __initdata = {
-+static const char *omap3_boards_compat[] __initconst = {
- 	"ti,omap3430",
- 	"ti,omap3",
- 	NULL,
-@@ -100,7 +100,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
- 	.restart	= omap3xxx_restart,
- MACHINE_END
- 
--static const char *omap36xx_boards_compat[] __initdata = {
-+static const char *omap36xx_boards_compat[] __initconst = {
- 	"ti,omap36xx",
- 	NULL,
- };
-@@ -118,7 +118,7 @@ DT_MACHINE_START(OMAP36XX_DT, "Generic OMAP36xx (Flattened Device Tree)")
- 	.restart	= omap3xxx_restart,
- MACHINE_END
- 
--static const char *omap3_gp_boards_compat[] __initdata = {
-+static const char *omap3_gp_boards_compat[] __initconst = {
- 	"ti,omap3-beagle",
- 	"timll,omap3-devkit8000",
- 	NULL,
-@@ -137,7 +137,7 @@ DT_MACHINE_START(OMAP3_GP_DT, "Generic OMAP3-GP (Flattened Device Tree)")
- 	.restart	= omap3xxx_restart,
- MACHINE_END
- 
--static const char *am3517_boards_compat[] __initdata = {
-+static const char *am3517_boards_compat[] __initconst = {
- 	"ti,am3517",
- 	NULL,
- };
-@@ -157,7 +157,7 @@ MACHINE_END
- #endif
- 
- #ifdef CONFIG_SOC_AM33XX
--static const char *am33xx_boards_compat[] __initdata = {
-+static const char *am33xx_boards_compat[] __initconst = {
- 	"ti,am33xx",
- 	NULL,
- };
-@@ -177,7 +177,7 @@ MACHINE_END
- #endif
- 
- #ifdef CONFIG_ARCH_OMAP4
--static const char *omap4_boards_compat[] __initdata = {
-+static const char *omap4_boards_compat[] __initconst = {
- 	"ti,omap4460",
- 	"ti,omap4430",
- 	"ti,omap4",
-@@ -199,7 +199,7 @@ MACHINE_END
- #endif
- 
- #ifdef CONFIG_SOC_OMAP5
--static const char *omap5_boards_compat[] __initdata = {
-+static const char *omap5_boards_compat[] __initconst = {
- 	"ti,omap5432",
- 	"ti,omap5430",
- 	"ti,omap5",
-@@ -221,7 +221,7 @@ MACHINE_END
- #endif
- 
- #ifdef CONFIG_SOC_AM43XX
--static const char *am43_boards_compat[] __initdata = {
-+static const char *am43_boards_compat[] __initconst = {
- 	"ti,am4372",
- 	"ti,am43",
- 	NULL,
-@@ -240,13 +240,14 @@ MACHINE_END
- #endif
- 
- #ifdef CONFIG_SOC_DRA7XX
--static const char *dra7xx_boards_compat[] __initdata = {
-+static const char *dra74x_boards_compat[] __initconst = {
-+	"ti,dra74x",
- 	"ti,dra7xx",
- 	"ti,dra7",
- 	NULL,
- };
- 
--DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
-+DT_MACHINE_START(DRA74X_DT, "Generic DRA74X (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.smp		= smp_ops(omap4_smp_ops),
- 	.map_io		= omap5_map_io,
-@@ -255,7 +256,26 @@ DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
- 	.init_irq	= omap_gic_of_init,
- 	.init_machine	= omap_generic_init,
- 	.init_time	= omap5_realtime_timer_init,
--	.dt_compat	= dra7xx_boards_compat,
-+	.dt_compat	= dra74x_boards_compat,
-+	.restart	= omap44xx_restart,
-+MACHINE_END
-+
-+static const char *dra72x_boards_compat[] __initconst = {
-+	"ti,dra72x",
-+	"ti,dra7xx",
-+	"ti,dra7",
-+	NULL,
-+};
-+
-+DT_MACHINE_START(DRA72_DT, "Generic DRA72X (Flattened Device Tree)")
-+	.reserve	= omap_reserve,
-+	.map_io		= omap5_map_io,
-+	.init_early	= dra7xx_init_early,
-+	.init_late	= dra7xx_init_late,
-+	.init_irq	= omap_gic_of_init,
-+	.init_machine	= omap_generic_init,
-+	.init_time	= omap5_realtime_timer_init,
-+	.dt_compat	= dra72x_boards_compat,
- 	.restart	= omap44xx_restart,
- MACHINE_END
- #endif
--- 
-1.7.9.5
+Thanks
 
