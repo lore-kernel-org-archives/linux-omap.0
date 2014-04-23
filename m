@@ -1,75 +1,54 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 01/11] tty: serial: add missing braces
-Date: Wed, 23 Apr 2014 09:53:05 -0500
-Message-ID: <20140423145305.GD9593@saruman.home>
-References: <1395343807-21618-1-git-send-email-balbi@ti.com>
- <20140422142256.GC5524@saruman.home>
- <20140423002843.GC24603@kroah.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: Boot fixes
+Date: Wed, 23 Apr 2014 07:59:05 -0700
+Message-ID: <20140423145904.GB4833@atomide.com>
+References: <1398192739-8901-1-git-send-email-d-gerlach@ti.com>
+ <20140422190132.GA12204@atomide.com>
+ <5356C8AE.3090907@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gE7i1rD7pdK0Ng3j"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60200 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757174AbaDWOza (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 10:55:30 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:15728 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753837AbaDWO7M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 10:59:12 -0400
 Content-Disposition: inline
-In-Reply-To: <20140423002843.GC24603@kroah.com>
+In-Reply-To: <5356C8AE.3090907@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Felipe Balbi <balbi@ti.com>, linux-serial@vger.kernel.org, linux-bluetooth@vger.kernel.org, peter@hurleysoftware.com, m-karicheri2@ti.com, b32955@freescale.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, bcousson@baylibre.com, Sekhar Nori <nsekhar@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
 
---gE7i1rD7pdK0Ng3j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Dave Gerlach <d-gerlach@ti.com> [140422 12:53]:
+> On 04/22/2014 02:01 PM, Tony Lindgren wrote:
+> >* Dave Gerlach <d-gerlach@ti.com> [140422 11:52]:
+> >>This patch, along with patch here [1], fixes boot for am437x-gp-evm. The
+> >>bootloader configures gpio5_7 to control the DDR3 termination regulator,
+> >>the linked patch prevents that gpio bank from being reset and losing
+> >>the previously configured state, and this patch binds the gpio to a
+> >>regulator so the kernel is aware of the state of the gpio.
+> >>
+> >>[1] https://www.mail-archive.com/linux-omap@vger.kernel.org/msg102941.html
+> >
+> >Setting up the GPIO regulator makes sense to me. But the hack in the
+> >link above is potentially a nasty time bomb for anybody trying to
+> >use GPIO bank 5 on that board.
+> >
+> >What tests have been done that the GPIO bank behaves properly when
+> >it's not reset?
+> 
+> We've been using this configuration on this board for a while without any
+> apparent issues. Also, am335x-evmsk already uses the same idea for the VTT
+> regulator on board from commit 6046adb6ad701026c10adeac8d6a4138895f12e5
+> [ARM: dts: am335x-evmsk: Do not reset gpio0] and I am unaware of any issues
+> with that either.
 
-On Tue, Apr 22, 2014 at 05:28:43PM -0700, Greg KH wrote:
-> On Tue, Apr 22, 2014 at 09:22:56AM -0500, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Thu, Mar 20, 2014 at 02:29:57PM -0500, Felipe Balbi wrote:
-> > > per CodingStyle we should have those braces, no
-> > > functional changes.
-> > >=20
-> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> >=20
-> > Greg, do you want me to refresh and resend this series ?
->=20
-> If there are conflicts with my current tree, sure, I'd love to have
-> that.  I should be trying to dig out from my patch backlog for 3.16-rc1
-> by the end of this week...
+OK. Do you have other GPIOs in use as interrupts for devices in these
+banks and do they work fine?
 
-then I'll resend rebased on -rc2, should make your life a little easier,
-hopefully.
+Also, can you please test to make sure this works with the most recent
+Javier's GPIO patches that had the issue of not booting on am335x-evmsk?
 
-cheers
+Regards,
 
---=20
-balbi
-
---gE7i1rD7pdK0Ng3j
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTV9PRAAoJEIaOsuA1yqRED6AP+wR8JhJKuLpQHyzWQ/BmV30D
-pO7rzivxYBmb6TVGVZ6DE1zlGlpblcI2p8Qgm3mYyJyk1stRui74YaZW1ZWX+mOT
-nM6LZxP9cfGPT2csc9xMNofmDu4GgJ/cHCjHbxsTnH5GTIeDm1aNs62vl0/eDHv3
-uGxcb6ReCfzjck3VNndqvC3icV3Li89H3bNSTVj2rbKqOfMhfhtFeR6z2o3GsOdD
-bAs8B9cFgISjYB5nETV1m1H2T1gr8nPFZN3Lg7VqmyjDNPniVDiKBQgFCVdhdaat
-1niKC5UroUoE1+cqG8d/zrIxOH1KwAvQRPGht3cd5pijz8PhPHcI9Ib46AXGQK8m
-f+70qBibEwAnuA0uWvUD6FAqsVdLKqdOJrkUXFCnzhVSZL3Uy8mUKNyDaSme+yrl
-Rv/FkMKFZsJ/K9umqb1Os0O4khq1bHy8snjUNuKjcNmPkk5f2ywf/vNfiYI/N74b
-Gc97+hCLRFevVqTP15u2N2AslxPm4p54GLYxCDGHkuVt6KzoUON2CAvAB7E9ZZuI
-KAzQwDPCVIuVGm3ejoEwKf0l5T7BTARQdDcy3xg7rdP7ogzqdGZjEDu6nESyegX8
-kus+TefmtswIuaY5HuXMgStge4vnQaVy1XoS7yqN2ydtDxneOZKem6aK7Yr9Wgzi
-4Ofo6GktXmU8oC1M88qq
-=yBKc
------END PGP SIGNATURE-----
-
---gE7i1rD7pdK0Ng3j--
+Tony
