@@ -1,70 +1,181 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 2/2] ARM: OMAP2+: hwmod: Don't leave the optional clocks in clk_prepare()ed state
-Date: Wed, 23 Apr 2014 11:41:04 +0530
-Message-ID: <1398233465-8845-3-git-send-email-rnayak@ti.com>
-References: <1398233465-8845-1-git-send-email-rnayak@ti.com>
+From: Patrice Chotard <patrice.chotard@st.com>
+Subject: Re: [STLinux Kernel] [PATCH 3/4] ARM: dts: Typo s/interrupts-names/interrupt-names/g
+Date: Wed, 23 Apr 2014 09:03:51 +0200
+Message-ID: <535765D7.5070007@st.com>
+References: <1398192025-31523-1-git-send-email-geert+renesas@glider.be> <1398192025-31523-3-git-send-email-geert+renesas@glider.be>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60829 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753866AbaDWGM6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 02:12:58 -0400
-In-Reply-To: <1398233465-8845-1-git-send-email-rnayak@ti.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:54304 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754161AbaDWHFQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Apr 2014 03:05:16 -0400
+In-Reply-To: <1398192025-31523-3-git-send-email-geert+renesas@glider.be>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: tony@atomide.com, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <bcousson@baylibre.com>
+To: Geert Uytterhoeven <geert+renesas@glider.be>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Cc: kernel@stlinux.com, Srinivas Kandagatla <srinivas.kandagatla@st.com>, linux-kernel@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-At hwmod init, theres no reason why optional clocks should be left in
-clk_prepare()ed state as these are actually directly controlled by the
-drivers themselves. Let the drivers prepare/unprepare as well as enable/
-disable them.
+Acked-by : Patrice Chotard <patrice.chotard@st.com>
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+Thanks
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 1f33f5d..9e3afc9 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -857,15 +857,6 @@ static int _init_opt_clks(struct omap_hwmod *oh)
- 			continue;
- 		}
- 		oc->_clk = c;
--		/*
--		 * HACK: This needs a re-visit once clk_prepare() is implemented
--		 * to do something meaningful. Today its just a no-op.
--		 * If clk_prepare() is used at some point to do things like
--		 * voltage scaling etc, then this would have to be moved to
--		 * some point where subsystems like i2c and pmic become
--		 * available.
--		 */
--		clk_prepare(oc->_clk);
- 	}
- 
- 	return ret;
-@@ -945,7 +936,7 @@ static void _enable_optional_clocks(struct omap_hwmod *oh)
- 		if (oc->_clk) {
- 			pr_debug("omap_hwmod: enable %s:%s\n", oc->role,
- 				 __clk_get_name(oc->_clk));
--			clk_enable(oc->_clk);
-+			clk_prepare_enable(oc->_clk);
- 		}
- }
- 
-@@ -960,7 +951,7 @@ static void _disable_optional_clocks(struct omap_hwmod *oh)
- 		if (oc->_clk) {
- 			pr_debug("omap_hwmod: disable %s:%s\n", oc->role,
- 				 __clk_get_name(oc->_clk));
--			clk_disable(oc->_clk);
-+			clk_disable_unprepare(oc->_clk);
- 		}
- }
- 
--- 
-1.7.9.5
+On 04/22/2014 08:40 PM, Geert Uytterhoeven wrote:
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> Cc: Benoit Cousson <bcousson@baylibre.com>
+> Cc: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: kernel@stlinux.com
+> Cc: linux-arm-kernel@lists.infradead.org
+> ---
+>   arch/arm/boot/dts/am33xx.dtsi          |    4 ++--
+>   arch/arm/boot/dts/am4372.dtsi          |    4 ++--
+>   arch/arm/boot/dts/stih415-pinctrl.dtsi |   10 +++++-----
+>   arch/arm/boot/dts/stih416-pinctrl.dtsi |   10 +++++-----
+>   4 files changed, 14 insertions(+), 14 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 07f283c20eb1..cb6811e5ae5a 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -802,7 +802,7 @@
+>   			      <0x46000000 0x400000>;
+>   			reg-names = "mpu", "dat";
+>   			interrupts = <80>, <81>;
+> -			interrupts-names = "tx", "rx";
+> +			interrupt-names = "tx", "rx";
+>   			status = "disabled";
+>   			dmas = <&edma 8>,
+>   				<&edma 9>;
+> @@ -816,7 +816,7 @@
+>   			      <0x46400000 0x400000>;
+>   			reg-names = "mpu", "dat";
+>   			interrupts = <82>, <83>;
+> -			interrupts-names = "tx", "rx";
+> +			interrupt-names = "tx", "rx";
+>   			status = "disabled";
+>   			dmas = <&edma 10>,
+>   				<&edma 11>;
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> index 36d523a26831..d1f8707ff1df 100644
+> --- a/arch/arm/boot/dts/am4372.dtsi
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -691,7 +691,7 @@
+>   			      <0x46000000 0x400000>;
+>   			reg-names = "mpu", "dat";
+>   			interrupts = <80>, <81>;
+> -			interrupts-names = "tx", "rx";
+> +			interrupt-names = "tx", "rx";
+>   			status = "disabled";
+>   			dmas = <&edma 8>,
+>   			       <&edma 9>;
+> @@ -705,7 +705,7 @@
+>   			      <0x46400000 0x400000>;
+>   			reg-names = "mpu", "dat";
+>   			interrupts = <82>, <83>;
+> -			interrupts-names = "tx", "rx";
+> +			interrupt-names = "tx", "rx";
+>   			status = "disabled";
+>   			dmas = <&edma 10>,
+>   			       <&edma 11>;
+> diff --git a/arch/arm/boot/dts/stih415-pinctrl.dtsi b/arch/arm/boot/dts/stih415-pinctrl.dtsi
+> index f09fb10a3791..81df870e5ee6 100644
+> --- a/arch/arm/boot/dts/stih415-pinctrl.dtsi
+> +++ b/arch/arm/boot/dts/stih415-pinctrl.dtsi
+> @@ -49,7 +49,7 @@
+>   			reg 		= <0xfe61f080 0x4>;
+>   			reg-names	= "irqmux";
+>   			interrupts 	= <GIC_SPI 180 IRQ_TYPE_LEVEL_HIGH>;
+> -			interrupts-names = "irqmux";
+> +			interrupt-names	= "irqmux";
+>   			ranges 		= <0 0xfe610000 0x5000>;
+>   
+>   			PIO0: gpio@fe610000 {
+> @@ -187,7 +187,7 @@
+>   			reg 		= <0xfee0f080 0x4>;
+>   			reg-names	= "irqmux";
+>   			interrupts 	= <GIC_SPI 181 IRQ_TYPE_LEVEL_HIGH>;
+> -			interrupts-names = "irqmux";
+> +			interrupt-names	= "irqmux";
+>   			ranges		= <0 0xfee00000 0x8000>;
+>   
+>   			PIO5: gpio@fee00000 {
+> @@ -282,7 +282,7 @@
+>   			reg 		= <0xfe82f080 0x4>;
+>   			reg-names	= "irqmux";
+>   			interrupts 	= <GIC_SPI 182 IRQ_TYPE_LEVEL_HIGH>;
+> -			interrupts-names = "irqmux";
+> +			interrupt-names	= "irqmux";
+>   			ranges		= <0 0xfe820000 0x8000>;
+>   
+>   			PIO13: gpio@fe820000 {
+> @@ -423,7 +423,7 @@
+>   			reg 		= <0xfd6bf080 0x4>;
+>   			reg-names	= "irqmux";
+>   			interrupts 	= <GIC_SPI 113 IRQ_TYPE_LEVEL_HIGH>;
+> -			interrupts-names = "irqmux";
+> +			interrupt-names	= "irqmux";
+>   			ranges		= <0 0xfd6b0000 0x3000>;
+>   
+>   			PIO100: gpio@fd6b0000 {
+> @@ -460,7 +460,7 @@
+>   			reg 		= <0xfd33f080 0x4>;
+>   			reg-names	= "irqmux";
+>   			interrupts 	= <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
+> -			interrupts-names = "irqmux";
+> +			interrupt-names	= "irqmux";
+>   			ranges		= <0 0xfd330000 0x5000>;
+>   
+>   			PIO103: gpio@fd330000 {
+> diff --git a/arch/arm/boot/dts/stih416-pinctrl.dtsi b/arch/arm/boot/dts/stih416-pinctrl.dtsi
+> index aeea304086eb..250d5ecc951e 100644
+> --- a/arch/arm/boot/dts/stih416-pinctrl.dtsi
+> +++ b/arch/arm/boot/dts/stih416-pinctrl.dtsi
+> @@ -53,7 +53,7 @@
+>   			reg 		= <0xfe61f080 0x4>;
+>   			reg-names	= "irqmux";
+>   			interrupts 	= <GIC_SPI 182 IRQ_TYPE_LEVEL_HIGH>;
+> -			interrupts-names = "irqmux";
+> +			interrupt-names	= "irqmux";
+>   			ranges		= <0 0xfe610000 0x6000>;
+>   
+>   			PIO0: gpio@fe610000 {
+> @@ -201,7 +201,7 @@
+>   			reg 		= <0xfee0f080 0x4>;
+>   			reg-names	= "irqmux";
+>   			interrupts 	= <GIC_SPI 183 IRQ_TYPE_LEVEL_HIGH>;
+> -			interrupts-names = "irqmux";
+> +			interrupt-names	= "irqmux";
+>   			ranges		= <0 0xfee00000 0x10000>;
+>   
+>   			PIO5: gpio@fee00000 {
+> @@ -333,7 +333,7 @@
+>   			reg 		= <0xfe82f080 0x4>;
+>   			reg-names	= "irqmux";
+>   			interrupts 	= <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>;
+> -			interrupts-names = "irqmux";
+> +			interrupt-names	= "irqmux";
+>   			ranges 		= <0 0xfe820000 0x6000>;
+>   
+>   			PIO13: gpio@fe820000 {
+> @@ -461,7 +461,7 @@
+>   			reg 		= <0xfd6bf080 0x4>;
+>   			reg-names	= "irqmux";
+>   			interrupts 	= <GIC_SPI 113 IRQ_TYPE_LEVEL_HIGH>;
+> -			interrupts-names = "irqmux";
+> +			interrupt-names	= "irqmux";
+>   			ranges		= <0 0xfd6b0000 0x3000>;
+>   
+>   			PIO100: gpio@fd6b0000 {
+> @@ -498,7 +498,7 @@
+>   			reg 		= <0xfd33f080 0x4>;
+>   			reg-names	= "irqmux";
+>   			interrupts 	= <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
+> -			interrupts-names = "irqmux";
+> +			interrupt-names	= "irqmux";
+>   			ranges			= <0 0xfd330000 0x5000>;
+>   
+>   			PIO103: gpio@fd330000 {
 
