@@ -1,60 +1,71 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: regressions in linux-next?
-Date: Wed, 23 Apr 2014 16:38:08 +0200
-Message-ID: <CACRpkdas=MxsvaB=q9rF7GwP+hJv61Ut5yL8Lc9amnTc=_E=pg@mail.gmail.com>
-References: <53566C20.6000208@ti.com>
-	<53568706.1050204@ti.com>
-	<5356E5E4.1060509@ti.com>
-	<CABxcv=nATX0m8janD=kTZ_Askuy8StNx5r9vJM_Fq+EmQeZ0-g@mail.gmail.com>
-	<5356F2A4.6010106@ti.com>
-	<CABxcv=kx6zhJqVKcE1cijyOEak+jgXgsFaRAFYcZA4L_zxLRHg@mail.gmail.com>
-	<20140423013022.GA18648@kahuna>
-	<CABxcv=m3PhTXi=dRGPm_02-Edt_jOSCeVnTVKo_NiJkCzcKSew@mail.gmail.com>
-	<CACRpkdZ1Sv9oWhPWYEemGEnsCojs5amMMkru8DjpPxc=c9MRHA@mail.gmail.com>
-	<5357C04F.3060902@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: [GIT PULL] arm: omap: Immutable branch between MFD and ARM OMAP due
+ for the v3.16 merge-window
+Date: Wed, 23 Apr 2014 15:46:44 +0100
+Message-ID: <20140423144644.GF6264@lee--X1>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com>
+ <1397173639-29587-11-git-send-email-tony@atomide.com>
+ <20140417080051.GE28725@lee--X1>
+ <20140417153722.GA23385@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f178.google.com ([209.85.214.178]:45981 "EHLO
-	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751620AbaDWOiJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 10:38:09 -0400
-Received: by mail-ob0-f178.google.com with SMTP id wn1so1108137obc.37
-        for <linux-omap@vger.kernel.org>; Wed, 23 Apr 2014 07:38:08 -0700 (PDT)
-In-Reply-To: <5357C04F.3060902@ti.com>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:46369 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751620AbaDWOqv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 10:46:51 -0400
+Received: by mail-wi0-f176.google.com with SMTP id r20so5025426wiv.9
+        for <linux-omap@vger.kernel.org>; Wed, 23 Apr 2014 07:46:50 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140417153722.GA23385@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-On Wed, Apr 23, 2014 at 3:29 PM, Nishanth Menon <nm@ti.com> wrote:
-> On 04/23/2014 08:01 AM, Linus Walleij wrote:
+Hi Tony,
 
->> What about this:
->>
->> if (chip->irq_default_type != IRQ_TYPE_NONE)
->>     irq_set_irq_type(irq, chip->irq_default_type);
->>
->> This way you can pass IRQ_TYPE_NONE and nothing happens in
->> the mapping.
->
-> What if these drivers depend on IRQ_TYPE_NONE to do something for the
-> GPIO pins?
+Sorry for the delay - I've been snowed under recently.
 
-Yeah :-(
+As requested, you patch based on v3.14 ( for some reason :) ).
 
-> would you expect these drivers to pass IRQ_TYPE_DEFAULT?
+The following changes since commit 455c6fdbd219161bd09b1165f11699d6d73d=
+e11c:
 
-Actually that sounds like a good idea. Maybe we can go over the few
-drivers that pass IRQ_TYPE_NONE and see what they actually want.
-There are not *too* many users of this call yet.
+  Linux 3.14 (2014-03-30 20:40:15 -0700)
 
-> OR I wonder
-> if we could pass some flag like -1 for platforms that dont care?
+are available in the git repository at:
 
-The flags parameter to gpiochip_irqchip_add() is unsigned...
-Switching to IRQ_TYPE_DEFAULT for drivers that want this is likely
-the sane thing to do.
+  git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git tags/ib-mfd=
+-omap-3.16
 
-Yours,
-Linus Walleij
+for you to fetch changes up to a613b739b8c08eab811e677810045cc0522fc3e6=
+:
+
+  mfd: twl-core: Fix idle mode signaling for omaps when booted with dev=
+ice tree (2014-04-23 15:31:05 +0100)
+
+----------------------------------------------------------------
+Immutable branch between MFD and ARM OMAP due for v3.16 merge-window.
+
+----------------------------------------------------------------
+Tony Lindgren (1):
+      mfd: twl-core: Fix idle mode signaling for omaps when booted with=
+ device tree
+
+ arch/arm/mach-omap2/omap_twl.c | 60 ----------------------------------=
+--------------------------
+ drivers/mfd/twl-core.c         | 15 +++++++++++++++
+ 2 files changed, 15 insertions(+), 60 deletions(-)
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
