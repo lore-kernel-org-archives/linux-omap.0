@@ -1,81 +1,95 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] gpio: do not set up hardware for IRQ_TYPE_NONE
-Date: Wed, 23 Apr 2014 10:11:56 -0500
-Message-ID: <5357D83C.1040904@ti.com>
-References: <1398264610-12663-1-git-send-email-linus.walleij@linaro.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 10/13] tty: serial: omap: remove some dead code
+Date: Wed, 23 Apr 2014 09:58:34 -0500
+Message-ID: <1398265117-11793-10-git-send-email-balbi@ti.com>
+References: <1398265117-11793-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1398264610-12663-1-git-send-email-linus.walleij@linaro.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@nvidia.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1398265117-11793-1-git-send-email-balbi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com, jslaby@suse.cz, grant.likely@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/23/2014 09:50 AM, Linus Walleij wrote:
-> Some GPIO irqchip drivers exploit the irqdomain mapping
-> function to set up the IRQ default type in the hardware,
-> make sure that if we pass IRQ_TYPE_NONE, no hardware setup
-> whatsoever takes place (this should be the norm) until
-> later when the IRQ gets utilized.
-> 
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> Cc: Javier Martinez Canillas <javier@dowhile0.org>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: linux-omap <linux-omap@vger.kernel.org>
-> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-> ---
-> TI folks: can you provide a Tested-by tag if this makes your
-> OMAPs work? I am pretty sure the other platforms will be
-> unaffected, if they aren't I will switch them over to react
-> to IRQ_TYPE_DEFAULT.
+nobody passes a DTR_gpio to this driver, so
+this code is not necessary.
 
-Tested-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/tty/serial/omap-serial.c | 39 ---------------------------------------
+ 1 file changed, 39 deletions(-)
 
-AM335x-sk (which fails to boot previously), now with this patch:
-	http://slexy.org/raw/s20dMOz3ke
-Discussion thread: http://marc.info/?t=139817273800014&r=1&w=2
-
-> ---
->  drivers/gpio/gpiolib.c | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-> index ee1819fdcf35..97d173e9aa2d 100644
-> --- a/drivers/gpio/gpiolib.c
-> +++ b/drivers/gpio/gpiolib.c
-> @@ -1409,7 +1409,12 @@ static int gpiochip_irq_map(struct irq_domain *d, unsigned int irq,
->  #else
->  	irq_set_noprobe(irq);
->  #endif
-> -	irq_set_irq_type(irq, chip->irq_default_type);
-> +	/*
-> +	 * No set-up of the hardware will happen if IRQ_TYPE_NONE
-> +	 * is passed as default type.
-> +	 */
-> +	if (chip->irq_default_type != IRQ_TYPE_NONE)
-> +		irq_set_irq_type(irq, chip->irq_default_type);
->  
->  	return 0;
->  }
-> @@ -1490,7 +1495,8 @@ static void gpiochip_irqchip_remove(struct gpio_chip *gpiochip)
->   * @first_irq: if not dynamically assigned, the base (first) IRQ to
->   * allocate gpiochip irqs from
->   * @handler: the irq handler to use (often a predefined irq core function)
-> - * @type: the default type for IRQs on this irqchip
-> + * @type: the default type for IRQs on this irqchip, pass IRQ_TYPE_NONE
-> + * to have the core avoid setting up any default type in the hardware.
->   *
->   * This function closely associates a certain irqchip with a certain
->   * gpiochip, providing an irq domain to translate the local IRQs to
-> 
-
-Acked-by: Nishanth Menon <nm@ti.com>
-
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index b46aaf3..6654682 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -163,10 +163,6 @@ struct uart_omap_port {
+ 	u8			wakeups_enabled;
+ 	u32			features;
+ 
+-	int			DTR_gpio;
+-	int			DTR_inverted;
+-	int			DTR_active;
+-
+ 	struct serial_rs485	rs485;
+ 	int			rts_gpio;
+ 
+@@ -694,16 +690,6 @@ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
+ 	serial_out(up, UART_MCR, up->mcr);
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
+-
+-	if (gpio_is_valid(up->DTR_gpio) &&
+-	    !!(mctrl & TIOCM_DTR) != up->DTR_active) {
+-		up->DTR_active = !up->DTR_active;
+-		if (gpio_cansleep(up->DTR_gpio))
+-			schedule_work(&up->qos_work);
+-		else
+-			gpio_set_value(up->DTR_gpio,
+-				       up->DTR_active != up->DTR_inverted);
+-	}
+ }
+ 
+ static void serial_omap_break_ctl(struct uart_port *port, int break_state)
+@@ -847,9 +833,6 @@ static void serial_omap_uart_qos_work(struct work_struct *work)
+ 						qos_work);
+ 
+ 	pm_qos_update_request(&up->pm_qos_request, up->latency);
+-	if (gpio_is_valid(up->DTR_gpio))
+-		gpio_set_value_cansleep(up->DTR_gpio,
+-					up->DTR_active != up->DTR_inverted);
+ }
+ 
+ static void
+@@ -1672,28 +1655,6 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	if (IS_ERR(base))
+ 		return PTR_ERR(base);
+ 
+-	if (gpio_is_valid(omap_up_info->DTR_gpio) &&
+-	    omap_up_info->DTR_present) {
+-		ret = devm_gpio_request(&pdev->dev, omap_up_info->DTR_gpio,
+-				"omap-serial");
+-		if (ret < 0)
+-			return ret;
+-		ret = gpio_direction_output(omap_up_info->DTR_gpio,
+-					    omap_up_info->DTR_inverted);
+-		if (ret < 0)
+-			return ret;
+-	}
+-
+-	if (gpio_is_valid(omap_up_info->DTR_gpio) &&
+-	    omap_up_info->DTR_present) {
+-		up->DTR_gpio = omap_up_info->DTR_gpio;
+-		up->DTR_inverted = omap_up_info->DTR_inverted;
+-	} else {
+-		up->DTR_gpio = -EINVAL;
+-	}
+-
+-	up->DTR_active = 0;
+-
+ 	up->dev = &pdev->dev;
+ 	up->port.dev = &pdev->dev;
+ 	up->port.type = PORT_OMAP;
 -- 
-Regards,
-Nishanth Menon
+1.9.2.459.g68773ac
