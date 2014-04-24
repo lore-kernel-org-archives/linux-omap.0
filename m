@@ -1,328 +1,171 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv3 19/41] OMAPDSS: panel-dpi: Add DT support
-Date: Thu, 24 Apr 2014 12:52:42 +0300
-Message-ID: <5358DEEA.1000506@ti.com>
-References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com> <1390301833-24944-20-git-send-email-tomi.valkeinen@ti.com> <20140418155107.GB5354@atomide.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v3 3/4] ARM: OMAP2+: Add machine entry for dra72x devices
+Date: Thu, 24 Apr 2014 15:36:26 +0530
+Message-ID: <1398333987-19454-4-git-send-email-rnayak@ti.com>
+References: <1398333987-19454-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="FfmEg9E7tL9JeBu8jCgEM6uOUI9u8uE2M"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57838 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57727 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752719AbaDXJxe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Apr 2014 05:53:34 -0400
-In-Reply-To: <20140418155107.GB5354@atomide.com>
+	id S1755665AbaDXKI1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Apr 2014 06:08:27 -0400
+In-Reply-To: <1398333987-19454-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Joachim Eastwood <manabian@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+Cc: tony@atomide.com, bcousson@baylibre.com, nm@ti.com, arnd@arndb.de, Rajendra Nayak <rnayak@ti.com>
 
---FfmEg9E7tL9JeBu8jCgEM6uOUI9u8uE2M
-Content-Type: multipart/mixed;
- boundary="------------000606020709000307030805"
+The only difference from the dra74x devices is the missing .smp entry.
 
-This is a multi-part message in MIME format.
---------------000606020709000307030805
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+While at it, also fix the use of __initdata (across the file) and replace them
+with __initconst as reported by checkpatch
 
-On 18/04/14 18:51, Tony Lindgren wrote:
+ERROR: Use of const init definition must use __initconst
++static const char *dra72x_boards_compat[] __initdata = {
 
->> +	gpio =3D of_get_gpio(node, 0);
->> +	if (gpio_is_valid(gpio) || gpio =3D=3D -ENOENT) {
->> +		ddata->enable_gpio =3D gpio;
->> +	} else {
->> +		dev_err(&pdev->dev, "failed to parse enable gpio\n");
->> +		return gpio;
->> +	}
->=20
-> We should set the GPIO polarity based on the OF_GPIO_ACTIVE_LOW like
-> gpio_backlight_probe_dt is doing.=20
-
-Instead of doing it with the old gpio API, and checking the 'active'
-flag everywhere, I think we can use the new gpiod API which handles the
-polarity automatically.
-
-I attached prototype patches (based on -rc2) for panel dpi using that
-approach. It's a bit messier than I'd like, because for non-DT boot we
-need to request the gpio using the old API, and then convert it to
-gpio_desc. We can remove that code when all the boards use DT.
-
-I've compiled tested this only, as I don't have DPI panels I could use.
-I did try similar approach for TFP410, and it seemed to work fine.
-
- Tomi
-
-
---------------000606020709000307030805
-Content-Type: text/x-patch;
- name="0001-panel-dpi-use-gpiod-for-enable-gpio.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
- filename="0001-panel-dpi-use-gpiod-for-enable-gpio.patch"
-
-=46rom f2280114f0eb814370664f24eba8ffee8280c840 Mon Sep 17 00:00:00 2001
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date: Thu, 24 Apr 2014 12:36:52 +0300
-Subject: [PATCH 1/3] panel-dpi: use gpiod for enable gpio
-
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- drivers/video/fbdev/omap2/displays-new/panel-dpi.c | 32 +++++++++++++---=
-------
- 1 file changed, 19 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/board-generic.c |   45 ++++++++++++++++++++++++-----------
+ 1 file changed, 31 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c b/drivers=
-/video/fbdev/omap2/displays-new/panel-dpi.c
-index 5f8f7e7c81ef..d379dec3bd4a 100644
---- a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
-+++ b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
-@@ -25,8 +25,10 @@ struct panel_drv_data {
-=20
- 	struct omap_video_timings videomode;
-=20
-+	/* used for non-DT boot, to be removed */
- 	int backlight_gpio;
--	int enable_gpio;
-+
-+	struct gpio_desc *enable_gpio;
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index b8920b6..dabb9f6 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -43,7 +43,7 @@ static void __init omap_generic_init(void)
+ }
+ 
+ #ifdef CONFIG_SOC_OMAP2420
+-static const char *omap242x_boards_compat[] __initdata = {
++static const char *omap242x_boards_compat[] __initconst = {
+ 	"ti,omap2420",
+ 	NULL,
  };
-=20
- #define to_panel_data(p) container_of(p, struct panel_drv_data, dssdev)
-@@ -77,8 +79,8 @@ static int panel_dpi_enable(struct omap_dss_device *dss=
-dev)
- 	if (r)
- 		return r;
-=20
--	if (gpio_is_valid(ddata->enable_gpio))
--		gpio_set_value_cansleep(ddata->enable_gpio, 1);
-+	if (ddata->enable_gpio)
-+		gpiod_set_value_cansleep(ddata->enable_gpio, 1);
-=20
- 	if (gpio_is_valid(ddata->backlight_gpio))
- 		gpio_set_value_cansleep(ddata->backlight_gpio, 1);
-@@ -96,8 +98,8 @@ static void panel_dpi_disable(struct omap_dss_device *d=
-ssdev)
- 	if (!omapdss_device_is_enabled(dssdev))
- 		return;
-=20
--	if (gpio_is_valid(ddata->enable_gpio))
--		gpio_set_value_cansleep(ddata->enable_gpio, 0);
-+	if (ddata->enable_gpio)
-+		gpiod_set_value_cansleep(ddata->enable_gpio, 0);
-=20
- 	if (gpio_is_valid(ddata->backlight_gpio))
- 		gpio_set_value_cansleep(ddata->backlight_gpio, 0);
-@@ -156,6 +158,7 @@ static int panel_dpi_probe_pdata(struct platform_devi=
-ce *pdev)
- 	struct panel_drv_data *ddata =3D platform_get_drvdata(pdev);
- 	struct omap_dss_device *dssdev, *in;
- 	struct videomode vm;
-+	int r;
-=20
- 	pdata =3D dev_get_platdata(&pdev->dev);
-=20
-@@ -176,10 +179,20 @@ static int panel_dpi_probe_pdata(struct platform_de=
-vice *pdev)
- 	dssdev =3D &ddata->dssdev;
- 	dssdev->name =3D pdata->name;
-=20
--	ddata->enable_gpio =3D pdata->enable_gpio;
-+	r =3D devm_gpio_request_one(&pdev->dev, pdata->enable_gpio,
-+					GPIOF_OUT_INIT_LOW, "panel enable");
-+	if (r)
-+		goto err_gpio;
+@@ -62,7 +62,7 @@ MACHINE_END
+ #endif
+ 
+ #ifdef CONFIG_SOC_OMAP2430
+-static const char *omap243x_boards_compat[] __initdata = {
++static const char *omap243x_boards_compat[] __initconst = {
+ 	"ti,omap2430",
+ 	NULL,
+ };
+@@ -81,7 +81,7 @@ MACHINE_END
+ #endif
+ 
+ #ifdef CONFIG_ARCH_OMAP3
+-static const char *omap3_boards_compat[] __initdata = {
++static const char *omap3_boards_compat[] __initconst = {
+ 	"ti,omap3430",
+ 	"ti,omap3",
+ 	NULL,
+@@ -100,7 +100,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
+ 	.restart	= omap3xxx_restart,
+ MACHINE_END
+ 
+-static const char *omap36xx_boards_compat[] __initdata = {
++static const char *omap36xx_boards_compat[] __initconst = {
+ 	"ti,omap36xx",
+ 	NULL,
+ };
+@@ -118,7 +118,7 @@ DT_MACHINE_START(OMAP36XX_DT, "Generic OMAP36xx (Flattened Device Tree)")
+ 	.restart	= omap3xxx_restart,
+ MACHINE_END
+ 
+-static const char *omap3_gp_boards_compat[] __initdata = {
++static const char *omap3_gp_boards_compat[] __initconst = {
+ 	"ti,omap3-beagle",
+ 	"timll,omap3-devkit8000",
+ 	NULL,
+@@ -137,7 +137,7 @@ DT_MACHINE_START(OMAP3_GP_DT, "Generic OMAP3-GP (Flattened Device Tree)")
+ 	.restart	= omap3xxx_restart,
+ MACHINE_END
+ 
+-static const char *am3517_boards_compat[] __initdata = {
++static const char *am3517_boards_compat[] __initconst = {
+ 	"ti,am3517",
+ 	NULL,
+ };
+@@ -157,7 +157,7 @@ MACHINE_END
+ #endif
+ 
+ #ifdef CONFIG_SOC_AM33XX
+-static const char *am33xx_boards_compat[] __initdata = {
++static const char *am33xx_boards_compat[] __initconst = {
+ 	"ti,am33xx",
+ 	NULL,
+ };
+@@ -177,7 +177,7 @@ MACHINE_END
+ #endif
+ 
+ #ifdef CONFIG_ARCH_OMAP4
+-static const char *omap4_boards_compat[] __initdata = {
++static const char *omap4_boards_compat[] __initconst = {
+ 	"ti,omap4460",
+ 	"ti,omap4430",
+ 	"ti,omap4",
+@@ -199,7 +199,7 @@ MACHINE_END
+ #endif
+ 
+ #ifdef CONFIG_SOC_OMAP5
+-static const char *omap5_boards_compat[] __initdata = {
++static const char *omap5_boards_compat[] __initconst = {
+ 	"ti,omap5432",
+ 	"ti,omap5430",
+ 	"ti,omap5",
+@@ -221,7 +221,7 @@ MACHINE_END
+ #endif
+ 
+ #ifdef CONFIG_SOC_AM43XX
+-static const char *am43_boards_compat[] __initdata = {
++static const char *am43_boards_compat[] __initconst = {
+ 	"ti,am4372",
+ 	"ti,am43",
+ 	NULL,
+@@ -240,13 +240,13 @@ MACHINE_END
+ #endif
+ 
+ #ifdef CONFIG_SOC_DRA7XX
+-static const char *dra7xx_boards_compat[] __initdata = {
+-	"ti,dra7xx",
++static const char *dra74x_boards_compat[] __initconst = {
++	"ti,dra74",
+ 	"ti,dra7",
+ 	NULL,
+ };
+ 
+-DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
++DT_MACHINE_START(DRA74X_DT, "Generic DRA74X (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
+ 	.smp		= smp_ops(omap4_smp_ops),
+ 	.map_io		= omap5_map_io,
+@@ -255,7 +255,24 @@ DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
+ 	.init_irq	= omap_gic_of_init,
+ 	.init_machine	= omap_generic_init,
+ 	.init_time	= omap5_realtime_timer_init,
+-	.dt_compat	= dra7xx_boards_compat,
++	.dt_compat	= dra74x_boards_compat,
++	.restart	= omap44xx_restart,
++MACHINE_END
 +
-+	ddata->enable_gpio =3D gpio_to_desc(pdata->enable_gpio);
-+
- 	ddata->backlight_gpio =3D pdata->backlight_gpio;
-=20
- 	return 0;
-+
-+err_gpio:
-+	omap_dss_put_device(ddata->in);
-+	return r;
- }
-=20
- static int panel_dpi_probe(struct platform_device *pdev)
-@@ -202,13 +215,6 @@ static int panel_dpi_probe(struct platform_device *p=
-dev)
- 		return -ENODEV;
- 	}
-=20
--	if (gpio_is_valid(ddata->enable_gpio)) {
--		r =3D devm_gpio_request_one(&pdev->dev, ddata->enable_gpio,
--				GPIOF_OUT_INIT_LOW, "panel enable");
--		if (r)
--			goto err_gpio;
--	}
--
- 	if (gpio_is_valid(ddata->backlight_gpio)) {
- 		r =3D devm_gpio_request_one(&pdev->dev, ddata->backlight_gpio,
- 				GPIOF_OUT_INIT_LOW, "panel backlight");
---=20
-1.9.1
-
-
---------------000606020709000307030805
-Content-Type: text/x-patch;
- name="0002-OMAPDSS-panel-dpi-Add-DT-support.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
- filename="0002-OMAPDSS-panel-dpi-Add-DT-support.patch"
-
-=46rom fe2a85da34499fab70212c4cc5870378678da709 Mon Sep 17 00:00:00 2001
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date: Thu, 16 May 2013 15:14:16 +0300
-Subject: [PATCH 2/3] OMAPDSS: panel-dpi: Add DT support
-
-Add DT support for panel-dpi.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Reviewed-by: Archit Taneja <archit@ti.com>
----
- drivers/video/fbdev/omap2/displays-new/panel-dpi.c | 59 ++++++++++++++++=
-+++++-
- 1 file changed, 58 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c b/drivers=
-/video/fbdev/omap2/displays-new/panel-dpi.c
-index d379dec3bd4a..dca6b10d1157 100644
---- a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
-+++ b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
-@@ -13,9 +13,12 @@
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
-+#include <linux/of_gpio.h>
-=20
- #include <video/omapdss.h>
- #include <video/omap-panel-data.h>
-+#include <video/of_display_timing.h>
-=20
- struct panel_drv_data {
- 	struct omap_dss_device dssdev;
-@@ -72,7 +75,8 @@ static int panel_dpi_enable(struct omap_dss_device *dss=
-dev)
- 	if (omapdss_device_is_enabled(dssdev))
- 		return 0;
-=20
--	in->ops.dpi->set_data_lines(in, ddata->data_lines);
-+	if (ddata->data_lines)
-+		in->ops.dpi->set_data_lines(in, ddata->data_lines);
- 	in->ops.dpi->set_timings(in, &ddata->videomode);
-=20
- 	r =3D in->ops.dpi->enable(in);
-@@ -195,6 +199,47 @@ err_gpio:
- 	return r;
- }
-=20
-+static int panel_dpi_probe_of(struct platform_device *pdev)
-+{
-+	struct panel_drv_data *ddata =3D platform_get_drvdata(pdev);
-+	struct device_node *node =3D pdev->dev.of_node;
-+	struct omap_dss_device *in;
-+	int r;
-+	struct display_timing timing;
-+	struct videomode vm;
-+	struct gpio_desc *gpio;
-+
-+	gpio =3D devm_gpiod_get(&pdev->dev, "enable");
-+	if (IS_ERR(gpio)) {
-+		dev_err(&pdev->dev, "failed to parse enable gpio\n");
-+		return PTR_ERR(gpio);
-+	} else {
-+		gpiod_direction_output(gpio, 0);
-+		ddata->enable_gpio =3D gpio;
-+	}
-+
-+	ddata->backlight_gpio =3D -ENOENT;
-+
-+	r =3D of_get_display_timing(node, "panel-timing", &timing);
-+	if (r) {
-+		dev_err(&pdev->dev, "failed to get video timing\n");
-+		return r;
-+	}
-+
-+	videomode_from_timing(&timing, &vm);
-+	videomode_to_omap_video_timings(&vm, &ddata->videomode);
-+
-+	in =3D omapdss_of_find_source_for_first_ep(node);
-+	if (IS_ERR(in)) {
-+		dev_err(&pdev->dev, "failed to find video source\n");
-+		return PTR_ERR(in);
-+	}
-+
-+	ddata->in =3D in;
-+
-+	return 0;
-+}
-+
- static int panel_dpi_probe(struct platform_device *pdev)
- {
- 	struct panel_drv_data *ddata;
-@@ -211,6 +256,10 @@ static int panel_dpi_probe(struct platform_device *p=
-dev)
- 		r =3D panel_dpi_probe_pdata(pdev);
- 		if (r)
- 			return r;
-+	} else if (pdev->dev.of_node) {
-+		r =3D panel_dpi_probe_of(pdev);
-+		if (r)
-+			return r;
- 	} else {
- 		return -ENODEV;
- 	}
-@@ -260,12 +309,20 @@ static int __exit panel_dpi_remove(struct platform_=
-device *pdev)
- 	return 0;
- }
-=20
-+static const struct of_device_id panel_dpi_of_match[] =3D {
-+	{ .compatible =3D "omapdss,panel-dpi", },
-+	{},
++static const char *dra72x_boards_compat[] __initconst = {
++	"ti,dra72",
++	NULL,
 +};
 +
-+MODULE_DEVICE_TABLE(of, panel_dpi_of_match);
-+
- static struct platform_driver panel_dpi_driver =3D {
- 	.probe =3D panel_dpi_probe,
- 	.remove =3D __exit_p(panel_dpi_remove),
- 	.driver =3D {
- 		.name =3D "panel-dpi",
- 		.owner =3D THIS_MODULE,
-+		.of_match_table =3D panel_dpi_of_match,
- 	},
- };
-=20
---=20
-1.9.1
++DT_MACHINE_START(DRA72_DT, "Generic DRA72X (Flattened Device Tree)")
++	.reserve	= omap_reserve,
++	.map_io		= omap5_map_io,
++	.init_early	= dra7xx_init_early,
++	.init_late	= dra7xx_init_late,
++	.init_irq	= omap_gic_of_init,
++	.init_machine	= omap_generic_init,
++	.init_time	= omap5_realtime_timer_init,
++	.dt_compat	= dra72x_boards_compat,
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
+ #endif
+-- 
+1.7.9.5
 
-
---------------000606020709000307030805--
-
---FfmEg9E7tL9JeBu8jCgEM6uOUI9u8uE2M
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTWN7qAAoJEPo9qoy8lh71lOYQAJbE9JjJdSePx69ww0lV8EDL
-bH6RquyxyzrcI7wkMZVAMlt0SG0NwfXuhJRN4NsHZGbBncgpTq0Qdng74aFyxrd/
-aR3zhogE+EJdRlQxXJvn0mPbeHWJHel+omiA3YkgScvxos9pbVzAGnCAeD/iVVVp
-0sOqJuTn/v5b6K9DVDkNmRfFK/V0udMo84qzW1HkkdgeYti/NPUs1rmYTMmprvA4
-mpyhVm8WAyuqaVyBuMFyyInYFhOHHo71SS8uyuprEF/2suylWkDQjt5HkO7lBFEg
-u5tsyINbGjO2hMUcpkRzJ9Azc9o1rfYsyFYIBKbsgIwGBwT+hLCBH/nkpx1+mGy3
-xFxZ9zjpuskidY3AeaILJ5E0MnIvcFzsJh0RydLMaEwqbAAlFoXBdjsSXH8N6Lia
-ZXHvxDLzHxQH949l7/urQMM44gUk5DoxyeCUVIodCS3/cz0RJO5EBKRKYqkT0GeE
-XtvyhR72VCLoYlB/6sMkwT/UrJUUU81OJM6LxFcNwrTUAVNYh8L6dAO9OA2/nDgN
-yQ+/5lpHJ7GlAKwhY15Zjim1yBzZ8uJLn72vUDYpNEJ6tuevsNCKlV0lrNpg05Fy
-1Jtnpdrkm4ar6fcLr7ho9YMeG+dgBRTiL2Ngw2v2BC3VdMmcu3sVR8+T9HAQxSB1
-oXcMMg2ZDqSjokAGf49N
-=pLc5
------END PGP SIGNATURE-----
-
---FfmEg9E7tL9JeBu8jCgEM6uOUI9u8uE2M--
