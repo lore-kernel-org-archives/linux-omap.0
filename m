@@ -1,86 +1,109 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/5] mmc: host: omap_hsmmc: a few improvements
-Date: Thu, 24 Apr 2014 09:48:22 -0500
-Message-ID: <20140424144822.GJ26661@saruman.home>
-References: <1395878690-9650-1-git-send-email-balbi@ti.com>
- <53592037.8050106@ti.com>
- <20140424143931.GE26661@saruman.home>
- <53592304.3070105@ti.com>
-Reply-To: <balbi@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] clk: ti: clk-7xx: Correct ABE DPLL configuration
+Date: Thu, 24 Apr 2014 18:03:59 +0300
+Message-ID: <535927DF.90404@ti.com>
+References: <1396446525-20302-1-git-send-email-peter.ujfalusi@ti.com> <533C1AC2.1000307@ti.com> <533CFFB3.9070201@ti.com> <5358D534.2070205@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KjX7LgAomYr70Ka9"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <53592304.3070105@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: balbi@ti.com, chris@printf.net, ulf.hansson@linaro.org, linux-mmc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5358D534.2070205@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---KjX7LgAomYr70Ka9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 04/24/2014 12:11 PM, Peter Ujfalusi wrote:
+> Mike, Tero,
+>
+> On 04/03/2014 09:29 AM, Peter Ujfalusi wrote:
+>> On 04/02/2014 05:12 PM, Tero Kristo wrote:
+>>> On 04/02/2014 04:48 PM, Peter Ujfalusi wrote:
+>>>> ABE DPLL frequency need to be lowered from 361267200
+>>>> to 180633600 to facilitate the ATL requironments.
+>>>> The dpll_abe_m2x2_ck clock need to be set to double
+>>>> of ABE DPLL rate in order to have correct clocks
+>>>> for audio.
+>>>
+>>> Do you have some sort of TRM reference for this?
+>>
+>> The ATL's max divider is 32.
+>> For audio purpose the clock coming out from the ATL instance should =
+be
+>> 128 * fs. It is only possible to have 44.1KHz sampling rate with ABE=
+ DPLL set
+>> to 361267200 or 180633600. Which means:
+>> The atl generated clock should be 128 * 44100 =3D 5644800
+>>  From ABE_DPLL 361267200 we would need to have 64 as divider (ATL ca=
+n't do this).
+>>  From the suggested ABE_DPLL of 180633600 we can use ATL divider of =
+32, which
+>> is the maximum it can do.
+>>
+>> So the reason for the change is to have ATLPCLK clock which can be u=
+sed for
+>> audio in the future, the 361267200 is just too high.
+>
+> Tero: can I have your ack for this patch or do you have further conce=
+rns?
 
-On Thu, Apr 24, 2014 at 08:13:16PM +0530, Balaji T K wrote:
-> On Thursday 24 April 2014 08:09 PM, Felipe Balbi wrote:
-> >On Thu, Apr 24, 2014 at 08:01:19PM +0530, Balaji T K wrote:
-> >>On Thursday 27 March 2014 05:34 AM, Felipe Balbi wrote:
-> >>>Hi,
-> >>>
-> >>>this series lets us access the newer registers introduced
-> >>>back in OMAP4 which give us some valid information about
-> >>>the OMAP HSMMC IP like max block size, support for ADMA,
-> >>>support for Retention.
-> >>
-> >>"Support for Retention" looks interesting, can you shed more lights on
-> >>it
-> >
-> >HWINFO has a bit (bit 6) which tells you whether retention is supported,
-> >it's in all TRMs since OMAP3630 or so.
-> >
-> >"6	RERETMODE		Retention mode generic parameter
-> >				This bit field indicates whether the
-> >				retention mode is supported using the
-> >				pin PIRFFRET.
-> >
-> >				0x0: Retention mode disabled
-> >				0x1: Retention mode enabled"
-> >
->=20
-> I have seen that but just wondering how the driver can make use of it
-> :-)
+Yea looks good to me, except for the fact that there is some work on=20
+getting default rate/parent support through DT. I would like a comment=20
+from Mike about the estimate when this can get in, and whether we shoul=
+d=20
+merge intermediate solutions still like this.
 
-oh, perhaps you can use to conditionally save context. The difficulty is
-knowing if we're going to RET or OFF, but that could be extrapolated
-=66rom pm_qos, perhaps ?!?
+Anyway, you can consider this patch acked by me, I'll let Mike to decid=
+e=20
+what to do with it though.
 
-just a thought.
+-Tero
 
---=20
-balbi
-
---KjX7LgAomYr70Ka9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTWSQ2AAoJEIaOsuA1yqREisMP/18DgeQ2YsZhdnUQN26MpyKT
-FtyEVUpna9AbJ5lhwAcQ8XRqsjikxXZqXgY2zOJ6d78zjSQmkKBTslxXH7kXEpj0
-2/THK1NdsIE1is7E/dM92nSXlwAbGCTbcWopr1tSAiO4QL+Ipek3lqtDDkX/uvup
-0BThWNEGtk5Kd8Au5JP6Nk1rl6fT+t7TQ8CQ6arKcOLCbnC2BKHgmguQGifJJeaT
-BdajhfIwYwW0mawKILd0lXsvzC21Gu8rT9XKGNea3Wx3+GeYvWoNDUWRCGdLQIDh
-ZY6/650dBLL9+x9TIZubNbG0OSjSa5ShKESq4aunVFroSugIScZKshpEptI5ZSKS
-oSX3Z4xT+tGxMb3w1Z8+LrFqf6QxbimRvsQgXmQI90G4tZY9PjocyALJD/ugeSmz
-EEdqPJn2i/bU1NIoDfBeNiUNeRzGrGj9IKCBjIeQwIe7wTeOnMi7QLIZ7LrwFHWE
-M4ovAFK16Hb3OtrNbE11EOlBs+MYZX22/afR1Ip5Gg+hEQ+ANJVPqcABRcGxfUDU
-s4LFs/DyAD6lN2yN0WQYXo2xi0DyshV6qpvAonmaCfUO3ae4Mvi42cWjXTmXkrge
-G2HEEqFPGRxl3aEW+2ucXB4gpn8bf/KPjwo4dCcoqG7U098HWCJGu6WGTKklM8cm
-s4s8gHaKADG5Lk/3noFD
-=EC27
------END PGP SIGNATURE-----
-
---KjX7LgAomYr70Ka9--
+> Mike: do you want me to resend this patch?
+>
+> Thanks,
+> P=E9ter
+>
+>>
+>>>
+>>> -Tero
+>>>
+>>>>
+>>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>>>> ---
+>>>>    drivers/clk/ti/clk-7xx.c | 7 ++++++-
+>>>>    1 file changed, 6 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+>>>> index f7e40734c819..19a55bf407dd 100644
+>>>> --- a/drivers/clk/ti/clk-7xx.c
+>>>> +++ b/drivers/clk/ti/clk-7xx.c
+>>>> @@ -16,7 +16,7 @@
+>>>>    #include <linux/clkdev.h>
+>>>>    #include <linux/clk/ti.h>
+>>>>
+>>>> -#define DRA7_DPLL_ABE_DEFFREQ                361267200
+>>>> +#define DRA7_DPLL_ABE_DEFFREQ                180633600
+>>>>    #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
+>>>>
+>>>>
+>>>> @@ -322,6 +322,11 @@ int __init dra7xx_dt_clk_init(void)
+>>>>        if (rc)
+>>>>            pr_err("%s: failed to configure ABE DPLL!\n", __func__)=
+;
+>>>>
+>>>> +    dpll_ck =3D clk_get_sys(NULL, "dpll_abe_m2x2_ck");
+>>>> +    rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ * 2);
+>>>> +    if (rc)
+>>>> +        pr_err("%s: failed to configure ABE DPLL m2x2!\n", __func=
+__);
+>>>> +
+>>>>        dpll_ck =3D clk_get_sys(NULL, "dpll_gmac_ck");
+>>>>        rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
+>>>>        if (rc)
+>>>>
+>>>
+>>
+>>
+>
