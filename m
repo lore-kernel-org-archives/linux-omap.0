@@ -1,7 +1,8 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 20/26] ARM: OMAP: dmtimer: Fold back private stop function
-Date: Thu, 24 Apr 2014 16:44:03 -0500
-Message-ID: <1398375849-6017-21-git-send-email-joelf@ti.com>
+Subject: [PATCH 18/26] ARM: OMAP2+: timer: Add legacy code for old way of
+ getting fclk
+Date: Thu, 24 Apr 2014 16:44:01 -0500
+Message-ID: <1398375849-6017-19-git-send-email-joelf@ti.com>
 References: <1398375849-6017-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,179 +22,73 @@ To: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-a
 Cc: Tony Lindgren <tony@atomide.com>, Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-In this patch, we fold back the functionality of the __omap_dm_timer_stop
-function into omap_dm_timer_stop. This reduces code size as we don't need any
-hacks or parameter passing. All public users are converted to use the
-omap_dm_timer_stop function.  The clk rate is setup into the dmtimer structure
-either by the early boot code for the specific platforms, or by calling a
-clk_get_rate once the timer is requested and prepared.
-
-We're also using omap_dm_timer_{read,write}_reg functions instead of underscore
-prefixed ones so that avoids passing of posted flags.
+Separate out legacy code for getting timer->fclk and reuse it for
+the DT-case as a fallback. All DT users should ideally be specifying
+a clock property with a phandle of its clock node. Till the migration
+is complete, add a legacy function to keep things working.
 
 Signed-off-by: Joel Fernandes <joelf@ti.com>
 ---
- arch/arm/mach-omap2/timer.c                  |    2 +-
- arch/arm/plat-omap/dmtimer.c                 |   45 ++++++++++++++++++--------
- arch/arm/plat-omap/include/plat/dmtimer.h    |   26 +--------------
- drivers/media/rc/ir-rx51.c                   |    4 +--
- drivers/staging/tidspbridge/core/dsp-clock.c |    2 +-
- 5 files changed, 36 insertions(+), 43 deletions(-)
+ arch/arm/mach-omap2/timer.c |   32 ++++++++++++++++++++++++--------
+ 1 file changed, 24 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 6735e2f..2d8ea96 100644
+index b3db1da..81a29b1 100644
 --- a/arch/arm/mach-omap2/timer.c
 +++ b/arch/arm/mach-omap2/timer.c
-@@ -105,7 +105,7 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
- {
- 	u32 period;
- 
--	__omap_dm_timer_stop(&clkev, OMAP_TIMER_POSTED, clkev.rate);
-+	omap_dm_timer_stop(&clkev, 0);
- 
- 	switch (mode) {
- 	case CLOCK_EVT_MODE_PERIODIC:
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index dee70be..8602586 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -310,6 +310,12 @@ found:
- 
- 	if (!timer)
- 		pr_debug("%s: timer request failed!\n", __func__);
-+	/*
-+	 * The prepare stage would've setup the parent clock or we wouldn't
-+	 * get so far. Set the rate of the timer now.
-+	 */
-+	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET))
-+		timer->rate = clk_get_rate(timer->fclk);
- 
- 	return timer;
+@@ -248,6 +248,19 @@ static u32 __init omap_dm_timer_get_errata(void)
+ 	return OMAP_TIMER_ERRATA_I103_I767;
  }
-@@ -461,27 +467,38 @@ int omap_dm_timer_start(struct omap_dm_timer *timer)
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_start);
  
--int omap_dm_timer_stop(struct omap_dm_timer *timer)
-+int omap_dm_timer_stop(struct omap_dm_timer *timer, int pm)
- {
--	unsigned long rate = 0;
-+	u32 l;
-+	unsigned long rate;
- 
- 	if (unlikely(!timer))
- 		return -EINVAL;
- 
--	/* OMAP1 is not converted to clk framework so avoid clk_get_rate here */
--	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET))
--		rate = clk_get_rate(timer->fclk);
-+	rate = timer->rate;
++static int legacy_hwmod_clkget(struct omap_dm_timer *timer, const char *oh_name)
++{
++	struct omap_hwmod *oh;
 +
-+	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-+	if (l & OMAP_TIMER_CTRL_ST) {
-+		l &= ~0x1;
-+		omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
-+#ifdef CONFIG_ARCH_OMAP2PLUS
-+		/* Readback to make sure write has completed */
-+		omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-+		/*
-+		 * Wait for functional clock period x 3.5 to make sure that
-+		 * timer is stopped
-+		 */
-+		udelay(3500000 / rate + 1);
-+#endif
-+	}
++	oh = omap_hwmod_lookup(oh_name);
++	if (!oh)
++		return -ENODEV;
++
++	timer->fclk = clk_get(NULL, omap_hwmod_get_main_clk(oh));
++	if (IS_ERR(timer->fclk))
++		return PTR_ERR(timer->fclk);
++}
++
+ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 					 const char *fck_source,
+ 					 const char *property,
+@@ -289,6 +302,14 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 			 * fall back code is to be deleted and we're to return
+ 			 * PTR_ERR(timer->fclk) here.
+ 			 */
++			of_property_read_string_index(np, "ti,hwmods", 0,
++						      &oh_name);
++			if (!oh_name)
++				return -ENODEV;
++
++			r = legacy_hwmod_clkget(timer, oh_name);
++			if (r)
++				return r;
+ 		}
+ 	} else {
+ 		if (omap_dm_timer_reserve_systimer(timer->id))
+@@ -320,15 +341,10 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
  
--	__omap_dm_timer_stop(timer, timer->posted, rate);
-+	/* Ack possibly pending interrupt */
-+	__raw_writel(OMAP_TIMER_INT_OVERFLOW, timer->irq_stat);
- 
--	/*
--	 * Since the register values are computed and written within
--	 * __omap_dm_timer_stop, we need to use read to retrieve the
--	 * context.
--	 */
--	timer->context.tclr =
--			omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
--	omap_dm_timer_disable(timer);
-+	if (pm) {
-+		timer->context.tclr = l;
-+		omap_dm_timer_disable(timer);
-+	}
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 7432bf3..1d3d9bb 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -141,7 +141,7 @@ struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer);
- 
- int omap_dm_timer_trigger(struct omap_dm_timer *timer);
- int omap_dm_timer_start(struct omap_dm_timer *timer);
--int omap_dm_timer_stop(struct omap_dm_timer *timer);
-+int omap_dm_timer_stop(struct omap_dm_timer *timer, int pm);
- 
- int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source);
- int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload, unsigned int value);
-@@ -366,30 +366,6 @@ static inline void __omap_dm_timer_override_errata(struct omap_dm_timer *timer,
- 	timer->errata &= ~errata;
- }
- 
--static inline void __omap_dm_timer_stop(struct omap_dm_timer *timer,
--					int posted, unsigned long rate)
--{
--	u32 l;
--
--	l = __omap_dm_timer_read(timer, OMAP_TIMER_CTRL_REG, posted);
--	if (l & OMAP_TIMER_CTRL_ST) {
--		l &= ~0x1;
--		__omap_dm_timer_write(timer, OMAP_TIMER_CTRL_REG, l, posted);
--#ifdef CONFIG_ARCH_OMAP2PLUS
--		/* Readback to make sure write has completed */
--		__omap_dm_timer_read(timer, OMAP_TIMER_CTRL_REG, posted);
--		/*
--		 * Wait for functional clock period x 3.5 to make sure that
--		 * timer is stopped
--		 */
--		udelay(3500000 / rate + 1);
--#endif
+ 		omap_hwmod_setup_one(oh_name);
+ 		omap_hwmod_enable(oh);
 -	}
--
--	/* Ack possibly pending interrupt */
--	__raw_writel(OMAP_TIMER_INT_OVERFLOW, timer->irq_stat);
--}
--
- static inline void __omap_dm_timer_int_enable(struct omap_dm_timer *timer,
- 						unsigned int value)
- {
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index b1e19a2..3dc736d 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -165,8 +165,8 @@ end:
- 	/* Stop TX here */
- 	lirc_rx51_off(lirc_rx51);
- 	lirc_rx51->wbuf_index = -1;
--	omap_dm_timer_stop(lirc_rx51->pwm_timer);
--	omap_dm_timer_stop(lirc_rx51->pulse_timer);
-+	omap_dm_timer_stop(lirc_rx51->pwm_timer, 1);
-+	omap_dm_timer_stop(lirc_rx51->pulse_timer, 1);
- 	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
- 	wake_up_interruptible(&lirc_rx51->wqueue);
  
-diff --git a/drivers/staging/tidspbridge/core/dsp-clock.c b/drivers/staging/tidspbridge/core/dsp-clock.c
-index 2788158..6ac36d1 100644
---- a/drivers/staging/tidspbridge/core/dsp-clock.c
-+++ b/drivers/staging/tidspbridge/core/dsp-clock.c
-@@ -300,7 +300,7 @@ int dsp_clk_disable(enum dsp_clk_id clk_id)
- 		clk_disable(iva2_clk);
- 		break;
- 	case GPT_CLK:
--		status = omap_dm_timer_stop(timer[clk_id - 1]);
-+		status = omap_dm_timer_stop(timer[clk_id - 1], 1);
- 		break;
- #ifdef CONFIG_OMAP_MCBSP
- 	case MCBSP_CLK:
+-	if (!timer->fclk || IS_ERR(timer->fclk)) {
+-		oh = omap_hwmod_lookup(oh_name);
+-		if (!oh)
+-			return -ENODEV;
+-		timer->fclk = clk_get(NULL, omap_hwmod_get_main_clk(oh));
+-		if (IS_ERR(timer->fclk))
+-			return PTR_ERR(timer->fclk);
++		r = legacy_hwmod_clkget(timer, oh_name);
++		if (r)
++			return r;
+ 	}
+ 
+ 	/*
 -- 
 1.7.9.5
