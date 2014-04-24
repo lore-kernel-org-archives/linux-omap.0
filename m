@@ -1,50 +1,63 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 1/6] PM / clock_ops: Add helpers combining generic runtime
- and generic clock PM
-Date: Thu, 24 Apr 2014 15:16:49 +0400
-Message-ID: <5358F2A1.40106@cogentembedded.com>
-References: <1398335198-26555-1-git-send-email-geert+renesas@glider.be> <1398335198-26555-2-git-send-email-geert+renesas@glider.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:53218 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754082AbaDXLQx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 07:16:53 -0400
-Received: by mail-lb0-f171.google.com with SMTP id w7so1867822lbi.16
-        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2014 04:16:50 -0700 (PDT)
-In-Reply-To: <1398335198-26555-2-git-send-email-geert+renesas@glider.be>
-Sender: linux-omap-owner@vger.kernel.org
+From: Peter Griffin <peter.griffin@linaro.org>
+Subject: [PATCH 02/13] video: omap2dss: fix LPAE warnings
+Date: Thu, 24 Apr 2014 13:28:18 +0100
+Message-ID: <1398342509-10243-3-git-send-email-peter.griffin@linaro.org>
+References: <1398342509-10243-1-git-send-email-peter.griffin@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1398342509-10243-1-git-send-email-peter.griffin@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linaro-kernel@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>, Peter Griffin <peter.griffin@linaro.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Geert Uytterhoeven <geert+renesas@glider.be>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ben Dooks <ben.dooks@codethink.co.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, devicetree@vger.kernel.org
 
-Hello.
+From: Arnd Bergmann <arnd@arndb.de>
 
-On 24-04-2014 14:26, Geert Uytterhoeven wrote:
+If LPAE is enabled, dma_addr_t is 64 bit, so we have to
+change a few type for everything in this driver to match
+again.
 
-> Add helpers pm_generic_runtime_clk_suspend() and
-> pm_generic_clk_runtime_resume(), combining generic runtime PM and generic
-> clock PM.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+---
+ drivers/video/fbdev/omap2/dss/dispc.c |    6 +++---
+ include/video/omapdss.h               |    4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-
-[...]
-
-> diff --git a/include/linux/pm_clock.h b/include/linux/pm_clock.h
-> index 6981aa288c45..bf1e4d09a0ca 100644
-> --- a/include/linux/pm_clock.h
-> +++ b/include/linux/pm_clock.h
-> @@ -35,6 +35,8 @@ extern int pm_clk_add_clk(struct device *dev, struct clk *clk);
->   extern void pm_clk_remove(struct device *dev, const char *con_id);
->   extern int pm_clk_suspend(struct device *dev);
->   extern int pm_clk_resume(struct device *dev);
-> +extern int pm_generic_runtime_clk_suspend(struct device *dev);
-> +extern int pm_generic_clk_runtime_resume(struct device *dev);
-
-    Shouldn't these function names be symmetric? I think '_clk' and '_runtime' 
-need swapping in one case.
-
-WBR, Sergei
-
+diff --git a/drivers/video/fbdev/omap2/dss/dispc.c b/drivers/video/fbdev/omap2/dss/dispc.c
+index f18397c..4fe1431 100644
+--- a/drivers/video/fbdev/omap2/dss/dispc.c
++++ b/drivers/video/fbdev/omap2/dss/dispc.c
+@@ -2577,9 +2577,9 @@ int dispc_ovl_setup(enum omap_plane plane, const struct omap_overlay_info *oi,
+ 
+ 	channel = dispc_ovl_get_channel_out(plane);
+ 
+-	DSSDBG("dispc_ovl_setup %d, pa %x, pa_uv %x, sw %d, %d,%d, %dx%d -> "
+-		"%dx%d, cmode %x, rot %d, mir %d, chan %d repl %d\n",
+-		plane, oi->paddr, oi->p_uv_addr, oi->screen_width, oi->pos_x,
++	DSSDBG("dispc_ovl_setup %d, pa %pad, pa_uv %pad, sw %d, %d,%d, %dx%d ->"
++		" %dx%d, cmode %x, rot %d, mir %d, chan %d repl %d\n",
++		plane, &oi->paddr, &oi->p_uv_addr, oi->screen_width, oi->pos_x,
+ 		oi->pos_y, oi->width, oi->height, oi->out_width, oi->out_height,
+ 		oi->color_mode, oi->rotation, oi->mirror, channel, replication);
+ 
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 6adb445..ded61a9 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -388,8 +388,8 @@ struct omap_dss_cpr_coefs {
+ };
+ 
+ struct omap_overlay_info {
+-	u32 paddr;
+-	u32 p_uv_addr;  /* for NV12 format */
++	dma_addr_t paddr;
++	dma_addr_t p_uv_addr;  /* for NV12 format */
+ 	u16 screen_width;
+ 	u16 width;
+ 	u16 height;
+-- 
+1.7.9.5
