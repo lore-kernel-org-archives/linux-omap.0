@@ -1,11 +1,14 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 00/26] OMAP dmtimer prep series
-Date: Thu, 24 Apr 2014 16:43:43 -0500
-Message-ID: <1398375849-6017-1-git-send-email-joelf@ti.com>
+Subject: [PATCH 01/26] ARM: OMAP: dmtimer: Remove setting of clk parent
+ indirectly through platform hook
+Date: Thu, 24 Apr 2014 16:43:44 -0500
+Message-ID: <1398375849-6017-2-git-send-email-joelf@ti.com>
+References: <1398375849-6017-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1398375849-6017-1-git-send-email-joelf@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,68 +22,69 @@ To: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-a
 Cc: Tony Lindgren <tony@atomide.com>, Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Here are a couple of patches moving things around in dmtimer and system timer
-code simplying, rewriting many parts of it, inorder to prep them for moving out
-of plat-omap and mach-omap2 to a generic clocksource driver. These patches are
-required before the clocksource migration can be done.
+There is a platform specific hook just for OMAP1 to set its clk parent.  Remove
+this hook and have OMAP1 set its parent in omap1_dm_timer_init.  If OMAP1 is
+ever migrated to clock framework, the correct way to do this would be through
+clk_set_parent like other platforms.
 
-Many of these patches have been out for a while now, I'd like to get any
-final feedback and have them merged for v3.16.
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
+ arch/arm/mach-omap1/timer.c                |    8 +++++++-
+ arch/arm/plat-omap/dmtimer.c               |    8 +++-----
+ include/linux/platform_data/dmtimer-omap.h |    2 --
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-The series includes all earlier series posted for OMAP1 timers, OMAP2+ timers,
-and common platform dmtimer code [1] [2].
-
-Tests have been performed with system timers on AM335x, DRA7 and OMAP4 Panda.
-
-The code delta is slightly more because a bit of redundancy introduced for fall
-back cases in mach-omap2/timer.c and a few more checks etc to simply things in
-plat-omap/dmtimer.c. Finally once we move things out to drivers/, there will be
-a lot of negative delta so this is a small cost for migration.
-
-[1] https://lkml.org/lkml/2014/4/16/737
-[2] http://www.kernelhub.org/?msg=453407&p=2
-
-Joel Fernandes (26):
-  ARM: OMAP: dmtimer: Remove setting of clk parent indirectly through
-    platform hook
-  ARM: OMAP: dmtimer: Add comments on OMAP1 clock framework
-  ARM: OMAP: dmtimer: Add note to set parent from DT
-  ARM: OMAP: dmtimer: Add function to check if timer is running
-  ARM: OMAP1: dmtimer: Rewrite modify of IDLECT mask to use new
-    is_running function
-  ARM: OMAP: dmtimer: Add a write_ctrl function to simplify bit setting
-  ARM: OMAP: dmtimer: Have __omap_dm_timer_load_start set ST bit in
-    CTRL instead of caller
-  ARM: OMAP: dmtimer: Add function to check for timer availability
-  ARM: OMAP: dmtimer: Get rid of check for mem resource error
-  ARM: OMAP: dmtimer: Check return of pm_runtime_get_sync
-  ARM: OMAP2+: timer: Add a powerup function
-  ARM: OMAP2+: timer: Simplify clock event/source name setting
-  ARM: OMAP2+: timer: Add comment on timer clk parenting
-  ARM: OMAP2+: timer: Remove hwmod look-up dependency for DT-boot
-  ARM: OMAP2+: timer: Use of_clk_get for DT platforms
-  ARM: OMAP2+: timer: Fix error message to not use hwmod structure
-  ARM: OMAP2+: timer: Add fallback for of_clk_get
-  ARM: OMAP2+: timer: Add legacy code for old way of getting fclk
-  ARM: OMAP: dmtimer: Remove API __omap_dm_timer_load_start
-  ARM: OMAP: dmtimer: Fold back private stop function
-  ARM: OMAP: dmtimer: Add systimer flag to dmtimer structure
-  ARM: OMAP: dmtimer: Eliminate __omap_dm_timer_write_status function
-  ARM: OMAP: dmtimer: Eliminate __omap_dm_timer_read_counter function
-  ARM: OMAP: dmtimer: Move private functions into dmtimer core and
-    export others
-  ARM: OMAP: dmtimer: Eliminate omap_dm_timer_int_enable function
-  ARM: OMAP: dmtimer: Use is_timer_available function in
-    omap_dm_timer_trigger
-
- arch/arm/mach-omap1/include/mach/hardware.h  |    2 +
- arch/arm/mach-omap1/timer.c                  |   34 +-
- arch/arm/mach-omap2/timer.c                  |  151 ++++++---
- arch/arm/plat-omap/dmtimer.c                 |  449 +++++++++++++++++---------
- arch/arm/plat-omap/include/plat/dmtimer.h    |  153 +--------
- drivers/staging/tidspbridge/core/dsp-clock.c |    2 +-
- include/linux/platform_data/dmtimer-omap.h   |    2 -
- 7 files changed, 451 insertions(+), 342 deletions(-)
-
+diff --git a/arch/arm/mach-omap1/timer.c b/arch/arm/mach-omap1/timer.c
+index bde7a35..4b9c604 100644
+--- a/arch/arm/mach-omap1/timer.c
++++ b/arch/arm/mach-omap1/timer.c
+@@ -140,7 +140,13 @@ static int __init omap1_dm_timer_init(void)
+ 			goto err_free_pdata;
+ 		}
+ 
+-		pdata->set_timer_src = omap1_dm_timer_set_src;
++		/*
++		 * Since OMAP1 doesn't support clock framework, set timer clock
++		 * source to 32KHz here instead of expecting it to be set by
++		 * dmtimer code.
++		 */
++		omap1_dm_timer_set_src(pdev, 0x01);
++
+ 		pdata->timer_capability = OMAP_TIMER_ALWON |
+ 				OMAP_TIMER_NEEDS_RESET | OMAP_TIMER_HAS_DSP_IRQ;
+ 
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 869254c..ecd3f97 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -494,12 +494,10 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+ 		return -EINVAL;
+ 
+ 	/*
+-	 * FIXME: Used for OMAP1 devices only because they do not currently
+-	 * use the clock framework to set the parent clock. To be removed
+-	 * once OMAP1 migrated to using clock framework for dmtimers
++	 * For OMAP1, timer source is already set during omap1_dm_timer_init.
+ 	 */
+-	if (pdata && pdata->set_timer_src)
+-		return pdata->set_timer_src(timer->pdev, source);
++	if (timer->capability & OMAP_TIMER_NEEDS_RESET)
++		return 0;
+ 
+ 	if (IS_ERR(timer->fclk))
+ 		return -EINVAL;
+diff --git a/include/linux/platform_data/dmtimer-omap.h b/include/linux/platform_data/dmtimer-omap.h
+index a19b78d..9f42b06 100644
+--- a/include/linux/platform_data/dmtimer-omap.h
++++ b/include/linux/platform_data/dmtimer-omap.h
+@@ -21,8 +21,6 @@
+ #define __PLATFORM_DATA_DMTIMER_OMAP_H__
+ 
+ struct dmtimer_platform_data {
+-	/* set_timer_src - Only used for OMAP1 devices */
+-	int (*set_timer_src)(struct platform_device *pdev, int source);
+ 	u32 timer_capability;
+ 	u32 timer_errata;
+ 	int (*get_context_loss_count)(struct device *);
 -- 
 1.7.9.5
