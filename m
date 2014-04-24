@@ -1,132 +1,155 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 23/23] Doc/DT: Add OMAP5 DSS DT bindings
-Date: Thu, 24 Apr 2014 13:17:19 +0300
-Message-ID: <1398334639-14172-24-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 21/23] OMAPDSS: HDMI: PLL changes for OMAP5
+Date: Thu, 24 Apr 2014 13:17:17 +0300
+Message-ID: <1398334639-14172-22-git-send-email-tomi.valkeinen@ti.com>
 References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58162 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58154 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755100AbaDXKTo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Apr 2014 06:19:44 -0400
+	id S1754598AbaDXKT3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Apr 2014 06:19:29 -0400
 In-Reply-To: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add DT binding documentation for OMAP5 Display Subsystem.
+From: Archit Taneja <archit@ti.com>
 
+Add a features struct to differentiate between the HDMI PLLs on OMAP4
+and OMAP5. The OMAP5 PLL is more sensitive when it comes to locking.  We
+need to ensure that the DCO freq isn't too low for lower pixel clocks.
+
+Modify the PLL computation slightly to ensure the HDMI PLL locks for lower
+frequencies. This will be later replaced by a more complex computation
+which makes sure all the PLL constraints are met.
+
+Signed-off-by: Archit Taneja <archit@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: devicetree@vger.kernel.org
 ---
- .../devicetree/bindings/video/ti,omap5-dss.txt     | 96 ++++++++++++++++++++++
- 1 file changed, 96 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/video/ti,omap5-dss.txt
+ drivers/video/fbdev/omap2/dss/hdmi_pll.c | 81 +++++++++++++++++++++++++++++++-
+ 1 file changed, 79 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/video/ti,omap5-dss.txt b/Documentation/devicetree/bindings/video/ti,omap5-dss.txt
-new file mode 100644
-index 000000000000..38ffc8fcd816
---- /dev/null
-+++ b/Documentation/devicetree/bindings/video/ti,omap5-dss.txt
-@@ -0,0 +1,96 @@
-+Texas Instruments OMAP5 Display Subsystem
-+=========================================
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi_pll.c b/drivers/video/fbdev/omap2/dss/hdmi_pll.c
+index 5fc71215c303..2b910cb9eee4 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi_pll.c
++++ b/drivers/video/fbdev/omap2/dss/hdmi_pll.c
+@@ -23,6 +23,18 @@
+ #define HDMI_DEFAULT_REGN 16
+ #define HDMI_DEFAULT_REGM2 1
+ 
++struct hdmi_pll_features {
++	bool sys_reset;
++	/* this is a hack, need to replace it with a better computation of M2 */
++	bool bound_dcofreq;
++	unsigned long fint_min, fint_max;
++	u16 regm_max;
++	unsigned long dcofreq_low_min, dcofreq_low_max;
++	unsigned long dcofreq_high_min, dcofreq_high_max;
++};
 +
-+See Documentation/devicetree/bindings/video/ti,omap-dss.txt for generic
-+description about OMAP Display Subsystem bindings.
++static const struct hdmi_pll_features *pll_feat;
 +
-+DSS Core
-+--------
+ void hdmi_pll_dump(struct hdmi_pll_data *pll, struct seq_file *s)
+ {
+ #define DUMPPLL(r) seq_printf(s, "%-35s %08x\n", #r,\
+@@ -57,7 +69,11 @@ void hdmi_pll_compute(struct hdmi_pll_data *pll, unsigned long clkin, int phy)
+ 
+ 	refclk = clkin / pi->regn;
+ 
+-	pi->regm2 = HDMI_DEFAULT_REGM2;
++	/* temorary hack to make sure DCO freq isn't calculated too low */
++	if (pll_feat->bound_dcofreq && phy <= 65000)
++		pi->regm2 = 3;
++	else
++		pi->regm2 = HDMI_DEFAULT_REGM2;
+ 
+ 	/*
+ 	 * multiplier is pixel_clk/ref_clk
+@@ -154,7 +170,7 @@ static int hdmi_pll_config(struct hdmi_pll_data *pll)
+ static int hdmi_pll_reset(struct hdmi_pll_data *pll)
+ {
+ 	/* SYSRESET  controlled by power FSM */
+-	REG_FLD_MOD(pll->base, PLLCTRL_PLL_CONTROL, 0x0, 3, 3);
++	REG_FLD_MOD(pll->base, PLLCTRL_PLL_CONTROL, pll_feat->sys_reset, 3, 3);
+ 
+ 	/* READ 0x0 reset is in progress */
+ 	if (hdmi_wait_for_bit_change(pll->base, PLLCTRL_PLL_STATUS, 0, 0, 1)
+@@ -197,11 +213,72 @@ void hdmi_pll_disable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp)
+ #define PLL_OFFSET	0x200
+ #define PLL_SIZE	0x100
+ 
++static const struct hdmi_pll_features omap44xx_pll_feats = {
++	.sys_reset		=	false,
++	.bound_dcofreq		=	false,
++	.fint_min		=	500000,
++	.fint_max		=	2500000,
++	.regm_max		=	4095,
++	.dcofreq_low_min	=	500000000,
++	.dcofreq_low_max	=	1000000000,
++	.dcofreq_high_min	=	1000000000,
++	.dcofreq_high_max	=	2000000000,
++};
 +
-+Required properties:
-+- compatible: "ti,omap5-dss"
-+- reg: address and length of the register space
-+- ti,hwmods: "dss_core"
-+- clocks: handle to fclk
-+- clock-names: "fck"
++static const struct hdmi_pll_features omap54xx_pll_feats = {
++	.sys_reset		=	true,
++	.bound_dcofreq		=	true,
++	.fint_min		=	620000,
++	.fint_max		=	2500000,
++	.regm_max		=	2046,
++	.dcofreq_low_min	=	750000000,
++	.dcofreq_low_max	=	1500000000,
++	.dcofreq_high_min	=	1250000000,
++	.dcofreq_high_max	=	2500000000UL,
++};
 +
-+Required nodes:
-+- DISPC
++static int hdmi_pll_init_features(struct platform_device *pdev)
++{
++	struct hdmi_pll_features *dst;
++	const struct hdmi_pll_features *src;
 +
-+Optional nodes:
-+- DSS Submodules: RFBI, DSI, HDMI
-+- Video port for DPI output
++	dst = devm_kzalloc(&pdev->dev, sizeof(*dst), GFP_KERNEL);
++	if (!dst) {
++		dev_err(&pdev->dev, "Failed to allocate HDMI PHY Features\n");
++		return -ENOMEM;
++	}
 +
-+DPI Endpoint required properties:
-+- data-lines: number of lines used
++	switch (omapdss_get_version()) {
++	case OMAPDSS_VER_OMAP4430_ES1:
++	case OMAPDSS_VER_OMAP4430_ES2:
++	case OMAPDSS_VER_OMAP4:
++		src = &omap44xx_pll_feats;
++		break;
 +
++	case OMAPDSS_VER_OMAP5:
++		src = &omap54xx_pll_feats;
++		break;
 +
-+DISPC
-+-----
++	default:
++		return -ENODEV;
++	}
 +
-+Required properties:
-+- compatible: "ti,omap5-dispc"
-+- reg: address and length of the register space
-+- ti,hwmods: "dss_dispc"
-+- interrupts: the DISPC interrupt
-+- clocks: handle to fclk
-+- clock-names: "fck"
++	memcpy(dst, src, sizeof(*dst));
++	pll_feat = dst;
 +
++	return 0;
++}
 +
-+RFBI
-+----
+ int hdmi_pll_init(struct platform_device *pdev, struct hdmi_pll_data *pll)
+ {
++	int r;
+ 	struct resource *res;
+ 	struct resource temp_res;
+ 
++	r = hdmi_pll_init_features(pdev);
++	if (r)
++		return r;
 +
-+Required properties:
-+- compatible: "ti,omap5-rfbi"
-+- reg: address and length of the register space
-+- ti,hwmods: "dss_rfbi"
-+- clocks: handles to fclk and iclk
-+- clock-names: "fck", "ick"
-+
-+Optional nodes:
-+- Video port for RFBI output
-+- RFBI controlled peripherals
-+
-+
-+DSI
-+---
-+
-+Required properties:
-+- compatible: "ti,omap5-dsi"
-+- reg: addresses and lengths of the register spaces for 'proto', 'phy' and 'pll'
-+- reg-names: "proto", "phy", "pll"
-+- interrupts: the DSI interrupt line
-+- ti,hwmods: "dss_dsi1" or "dss_dsi2"
-+- vdd-supply: power supply for DSI
-+- clocks: handles to fclk and pll clock
-+- clock-names: "fck", "sys_clk"
-+
-+Optional nodes:
-+- Video port for DSI output
-+- DSI controlled peripherals
-+
-+DSI Endpoint required properties:
-+- lanes: list of pin numbers for the DSI lanes: CLK+, CLK-, DATA0+, DATA0-,
-+  DATA1+, DATA1-, ...
-+
-+
-+HDMI
-+----
-+
-+Required properties:
-+- compatible: "ti,omap5-hdmi"
-+- reg: addresses and lengths of the register spaces for 'wp', 'pll', 'phy',
-+       'core'
-+- reg-names: "wp", "pll", "phy", "core"
-+- interrupts: the HDMI interrupt line
-+- ti,hwmods: "dss_hdmi"
-+- vdda-supply: vdda power supply
-+- clocks: handles to fclk and pll clock
-+- clock-names: "fck", "sys_clk"
-+
-+Optional nodes:
-+- Video port for HDMI output
-+
-+HDMI Endpoint optional properties:
-+- lanes: list of 8 pin numbers for the HDMI lanes: CLK+, CLK-, D0+, D0-,
-+  D1+, D1-, D2+, D2-. (default: 0,1,2,3,4,5,6,7)
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pll");
+ 	if (!res) {
+ 		DSSDBG("can't get PLL mem resource by name\n");
 -- 
 1.9.1
 
