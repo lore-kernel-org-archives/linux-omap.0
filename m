@@ -1,53 +1,49 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 19/23] OMAPDSS: HDMI: support larger register offsets for OMAP5 HDMI core
-Date: Thu, 24 Apr 2014 13:17:15 +0300
-Message-ID: <1398334639-14172-20-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 16/23] OMAPDSS: DSI: Add OMAP5 DSI module IDs
+Date: Thu, 24 Apr 2014 13:17:12 +0300
+Message-ID: <1398334639-14172-17-git-send-email-tomi.valkeinen@ti.com>
 References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47179 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58147 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755149AbaDXKT1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Apr 2014 06:19:27 -0400
+	id S1755391AbaDXKTT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Apr 2014 06:19:19 -0400
 In-Reply-To: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-From: Archit Taneja <archit@ti.com>
+Add OMAP5 DSI module ID support to the OMAP DSI driver.
 
-The HDMI core IP on OMAP5 has a wider address range for registers. The offsets
-for the later registers can't fit into the u16 type currently used for hdmi
-register read and write functions. Use u32 for offsets instead.
-
-Signed-off-by: Archit Taneja <archit@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/hdmi.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/fbdev/omap2/dss/dsi.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
-index d784b2cced9d..0e5979ef933c 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi.h
-+++ b/drivers/video/fbdev/omap2/dss/hdmi.h
-@@ -361,13 +361,13 @@ struct hdmi_core_data {
- 	struct hdmi_core_infoframe_avi avi_cfg;
+diff --git a/drivers/video/fbdev/omap2/dss/dsi.c b/drivers/video/fbdev/omap2/dss/dsi.c
+index 57f120896b43..a888d28fd055 100644
+--- a/drivers/video/fbdev/omap2/dss/dsi.c
++++ b/drivers/video/fbdev/omap2/dss/dsi.c
+@@ -5733,9 +5733,16 @@ static const struct dsi_module_id_data dsi_of_data_omap4[] = {
+ 	{ },
  };
  
--static inline void hdmi_write_reg(void __iomem *base_addr, const u16 idx,
-+static inline void hdmi_write_reg(void __iomem *base_addr, const u32 idx,
- 		u32 val)
- {
- 	__raw_writel(val, base_addr + idx);
- }
++static const struct dsi_module_id_data dsi_of_data_omap5[] = {
++	{ .address = 0x58004000, .id = 0, },
++	{ .address = 0x58009000, .id = 1, },
++	{ },
++};
++
+ static const struct of_device_id dsi_of_match[] = {
+ 	{ .compatible = "ti,omap3-dsi", .data = dsi_of_data_omap3, },
+ 	{ .compatible = "ti,omap4-dsi", .data = dsi_of_data_omap4, },
++	{ .compatible = "ti,omap5-dsi", .data = dsi_of_data_omap5, },
+ 	{},
+ };
  
--static inline u32 hdmi_read_reg(void __iomem *base_addr, const u16 idx)
-+static inline u32 hdmi_read_reg(void __iomem *base_addr, const u32 idx)
- {
- 	return __raw_readl(base_addr + idx);
- }
 -- 
 1.9.1
 
