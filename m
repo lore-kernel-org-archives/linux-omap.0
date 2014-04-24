@@ -1,62 +1,111 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH V2 00/19] bus: omap_l3_noc: driver cleanups and support
- for DRA7/AM4372
-Date: Thu, 24 Apr 2014 11:31:27 -0500
-Message-ID: <CAGo_u6p8wivmN-S8V2dyk7ZcoDbkkTiEJGJON4+9NYXqYFA2YQ@mail.gmail.com>
-References: <1397492726-17203-1-git-send-email-nm@ti.com>
-	<1397767775-10965-1-git-send-email-nm@ti.com>
-	<53504041.7090906@ti.com>
-	<5350410B.5010507@ti.com>
-	<5358D16A.9000500@ti.com>
-	<20140424162536.GD22987@atomide.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: regressions in linux-next?
+Date: Thu, 24 Apr 2014 18:33:12 +0200
+Message-ID: <CABxcv=kLOD7OQxPBxSaEBPzVW7bN2qRj09S=yozUg8OUL+7wCQ@mail.gmail.com>
+References: <53566C20.6000208@ti.com>
+	<53566EBA.808@ti.com>
+	<CABxcv=mu=xvt7cM7Q8vBP2hQH124=CL9Yuox8WWcVGeKJ+NSjA@mail.gmail.com>
+	<CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
+	<7hr44mpxk6.fsf@paris.lan>
+	<CAGo_u6r79StfHwf8t8OB5vyhByfusi3EF=PZA186piiAci_wjw@mail.gmail.com>
+	<CABxcv==7bisHnock37_Ai-k-n+u57Mk6YoAFvBV-XA+cEj+x+Q@mail.gmail.com>
+	<20140424154248.GB22987@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140424162536.GD22987-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, dt list <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:44249 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758447AbaDXQdO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 12:33:14 -0400
+Received: by mail-wi0-f173.google.com with SMTP id z2so1391824wiv.0
+        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2014 09:33:13 -0700 (PDT)
+In-Reply-To: <20140424154248.GB22987@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-On Thu, Apr 24, 2014 at 11:25 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> * Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [140424 01:55]:
->> On 04/18/2014 12:00 AM, Nishanth Menon wrote:
->> > On 04/17/2014 03:57 PM, Santosh Shilimkar wrote:
->> >> I looked at the series and its looks pretty good. Thanks for fixups, updates.
->> >> For whole series,
->> >> Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
->> >>
->> >
->> > Thanks.
->> >
->> >>> Patches(including Peter's) is available here:
->> >>> https://github.com/nmenon/linux-2.6-playground/commits/l3noc/driver-fixes-v2
->> >>>
->> >> Can Tony pull this branch for 3.16 then which includes Peter's series as well ?
->> >
->> > there is just an empty commit with information about peter's patches
->> > that i lined up to differentiate the series.. I can drop it if Tony
->> > would like me to.
+Hello Tony,
+
+On Thu, Apr 24, 2014 at 5:42 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Javier Martinez Canillas <javier@dowhile0.org> [140424 08:37]:
+>> Hello,
 >>
->> Looking at the branch I see my patches underneath so they are in the branch.
->> It would be great if Tony pulls this... Will be a great present to my patches
->> (omap_l3 patches in the branch) for their 1 year anniversary of being out on
->> the mailing list ;)
+>> On Thu, Apr 24, 2014 at 5:25 PM, Nishanth Menon <nm@ti.com> wrote:
+>> > On Thu, Apr 24, 2014 at 10:16 AM, Kevin Hilman <khilman@linaro.org> wrote:
+>> >> Linus Walleij <linus.walleij@linaro.org> writes:
+>> >>
+>> >>> On Tue, Apr 22, 2014 at 5:52 PM, Javier Martinez Canillas
+>> >>> <javier@dowhile0.org> wrote:
+>> >>>
+>> >>>> I've revised the patch again and I couldn't find the reason why
+>> >>>> certain boards are failing to boot.
+>> >>>>
+>> >>>> I can't reproduce this issue since I only have a DM3730 IGEPv2 board
+>> >>>> which boots fine but I should have access to an AM3354 IGEP Aquila
+>> >>>> board which is similar to the am335x-evmsk so I may be able to debug
+>> >>>> it.
+>> >>>
+>> >>> It would really REALLY appreciate if some of the people maintaining
+>> >>> and using OMAP1 would help Javier out in this refactoring operation.
+>> >>>
+>> >>> I'd really *hate* to have to drop his patches because of a lack of
+>> >>> boards. This refactoring is necessary to handle the exploding
+>> >>> multitude of GPIO drivers moving forward.
+>> >>>
+>> >>> We even tried to get an Innovator to boot just to be able to refactor
+>> >>> OMAP stuff but fell short on some special JTAG reflash snag so
+>> >>> we are dependent on maintainers to help out here :-/
+>> >>
+>> >> Unfortunately, my OMAP1 (omap5912/OSK[1]) died last year and I haven't been
+>> >> able to get it booting again.  I wonder if Spectrum Digital still has
+>> >> these available?  Their websites[1] says "call for price."
+>> >>
+>> >> Kevin
+>> >>
+>> >> [1] http://www.spectrumdigital.com/product_info.php?products_id=39
+>> >
+>> >
+>> > Perhaps dumb question: but are there folks who really care about omap1
+>> > boot anymore in upstream? should it be time to deprecate it - say for
+>> > 3.17 or so?
+>> >
+>> > Regards,
+>> > Nishanth Menon
+>>
+>> I know that at least Aaro Koskinen (cc'ed here) still uses mainline on
+>> OMAP1 boards and he is always very helpful when is asked to test some
+>> changes on this platform.
+>>
+>> Having said that I also wonder if at least we should split omap
+>> drivers to have separate support for DT-only (or in a path to be) and
+>> non-DT (and with no work towards migration) platforms. Since trying to
+>> support both DT and legacy booting is each time more hard.
 >
-> If you insist :) Maybe we should have some cake or something with it?
-> Seriously, I always thought that's a nice clean-up set, but never thought
-> I'm supposed to merge it. Will merge it as soon as I'm out of the fixes
-> and regressions land as that way I can easier test for any kind of
-> new regressions that might occur related to PM at least.
+> It really should not matter what the configuration data for the
+> drivers is. Both platform_data and DT data should be easily supported.
+>
 
-Thanks Tony. I will try and post a v3 tomorrow as a clean set of
-patches and a v3.15-rc1 based branch to ease integration.
+Yes, I think I expressed myself badly. I actually meant platforms that
+keep evolving vs platforms that nobody is active developing on them
+and is unlikely that will ever use the newer
+infrastructure/API/whatever that is added on the different subsystems.
 
-This should also give additional time for any further comments as well.
+In the GPIO OMAP driver example we have a lot of #ifdefery to separate
+OMAP1 and OMAP2+ code since OMAP1 does not support sparse IRQ (and
+probably never will) so it can't dynamically allocate IRQ numbers and
+I've seen similar things in other OMAP drivers.
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+But yes, the maintenance burden is not that much either, I was just
+thinking aloud if splitting these drivers would make sense or not.
+
+> And we're moving towards using platform_get_irq() and other functions
+> for drivers anyways as that's generic for all the drivers no matter
+> what the driver data source is.
+>
+> Regards,
+>
+> Tony
+
+Best regards,
+Javier
