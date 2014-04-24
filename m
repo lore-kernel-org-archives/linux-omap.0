@@ -1,69 +1,79 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RESEND 0/3] mfd: twl6040: Updates for i2s speed and fix for
- chip deadlock
-Date: Thu, 24 Apr 2014 12:12:36 +0300
-Message-ID: <5358D584.6080206@ti.com>
-References: <1396359901-32656-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/3] clk: Add clock driver for DRA7 ATL (Audio Tracking
+ Logic)
+Date: Thu, 24 Apr 2014 12:14:32 +0300
+Message-ID: <5358D5F8.3010401@ti.com>
+References: <1396446907-20383-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1396359901-32656-1-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1396446907-20383-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: lee.jones@linaro.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sameo@linux.intel.com, nm@ti.com
+To: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Lee,
+Hi Mike,
 
-On 04/01/2014 04:44 PM, Peter Ujfalusi wrote:
+On 04/02/2014 04:55 PM, Peter Ujfalusi wrote:
 > Hi,
 >=20
-> While looking into a report by Florian Vaussard [1] I have noticed co=
-uple of most
-> likely unrelated issues:
-> - all boards using twl6040 configures the i2c bus to 400KHz while twl=
-6040 is set
->   to 100KHz as default.
-> - if I set the audpwron GPIO high [2] in the bootloader the i2c commu=
-nication towards
->   twl6040 will be broken
-> - got confirmation from HW design teams that twl6040 can work on a bu=
-s with
->   400KHz even if after hard reset but it is optimal to swithc to 400K=
-Hz mode as
->   soon as possible.
+> Audio Tracking Logic is designed to be used by HD Radio
+> applications to synchronize the audio output clocks to the
+> baseband clock. ATL can be also used to track errors between
+> two reference clocks (BWS, AWS) and generate a modulated
+> clock output which averages to some desired frequency.
 >=20
-> The solution or these are:
-> set the twl6040 to i2c fast mode with regmap patch
-> Clear the INTID register right after we request the audpwron GPIO and=
- set it to
-> low.
+> To be able to integrate the ATL provided clocks to the clock tree we =
+need
+> two types of DT binding:
+> - DT clock nodes to represent the ATL clocks towards the CCF
+> - binding for the ATL IP itself which is going to handle the hw
+>   configuration
+>=20
+> The reason for this type of setup is that ATL itself is a separate de=
+vice
+> in the SoC, it has it's own address space and clock domain. Other IPs=
+ can
+> use the ATL generated clock as their functional clock (McASPs for exa=
+mple)
+> and external components like audio codecs can also use the very same =
+clock
+> as their MCLK.
+>=20
+> With setup pm_runtime can handle the ATL clock on demand of it's use =
+and
+> all the IP which needs ATL clock can be sure that it is enabled for t=
+hem.
+>=20
+> The first patch fixes the name of atl clkin3 node in dtsi file.
 
-Do you want me to resend this series again?
+Can you take a look at this series?
 
 Thanks,
 P=E9ter
 
 >=20
-> Generated on top of:
-> git://git.linaro.org/people/lee.jones/mfd.git for-mfd-next
->=20
-> Tested on PandaBoard, PandaBoardES, OMAP4-blaze (SDP)
->=20
-> [1] http://www.spinics.net/lists/arm-kernel/msg310725.html
-> [2] Command in u-boot to enable the audpwron on PandaBoards: gpio set=
- 127
->=20
 > Regards,
 > Peter
 > ---
 > Peter Ujfalusi (3):
->   mfd: twl6040: Select i2c fast mode as default with regmap patch
->   mfd: twl6040: Move register patching earlier in probe
->   mfd: twl6040: Clear the interrupt ID register before requesting IRQ
+>   ARM: dts: dra7xx-clocks: Correct name for atl clkin3 clock
+>   clk: Driver for DRA7 ATL (Audio Tracking Logic)
+>   ARM: DTS: dra7/dra7xx-clocks: ATL related changes
 >=20
->  drivers/mfd/twl6040.c       | 19 +++++++++++++------
->  include/linux/mfd/twl6040.h |  1 +
->  2 files changed, 14 insertions(+), 6 deletions(-)
+>  .../devicetree/bindings/clock/ti/dra7-atl.txt      |  97 +++++++
+>  arch/arm/boot/dts/dra7.dtsi                        |  11 +
+>  arch/arm/boot/dts/dra7xx-clocks.dtsi               |  38 +--
+>  drivers/clk/ti/Makefile                            |   3 +-
+>  drivers/clk/ti/clk-7xx.c                           |   2 +-
+>  drivers/clk/ti/clk-dra7-atl.c                      | 313 +++++++++++=
+++++++++++
+>  include/dt-bindings/clk/ti-dra7-atl.h              |  40 +++
+>  7 files changed, 483 insertions(+), 21 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/clock/ti/dra7-a=
+tl.txt
+>  create mode 100644 drivers/clk/ti/clk-dra7-atl.c
+>  create mode 100644 include/dt-bindings/clk/ti-dra7-atl.h
 >=20
