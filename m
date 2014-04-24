@@ -1,109 +1,61 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: clk-7xx: Correct ABE DPLL configuration
-Date: Thu, 24 Apr 2014 18:03:59 +0300
-Message-ID: <535927DF.90404@ti.com>
-References: <1396446525-20302-1-git-send-email-peter.ujfalusi@ti.com> <533C1AC2.1000307@ti.com> <533CFFB3.9070201@ti.com> <5358D534.2070205@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: musb_dsps: fix the exit routine for debugfs
+Date: Thu, 24 Apr 2014 10:10:58 -0500
+Message-ID: <20140424151058.GQ26661@saruman.home>
+References: <1398267583-19159-1-git-send-email-ogayot@baylibre.com>
+ <20140423155529.GL9593@saruman.home>
+ <20140424110734.1f83b52c@blinky>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5358D534.2070205@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mike Turquette <mturquette@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="uRjmd8ppyyws0Tml"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48072 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757663AbaDXPLI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 11:11:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20140424110734.1f83b52c@blinky>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Olivier Gayot <ogayot@baylibre.com>
+Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Markus Pargmann <mpa@pengutronix.de>
 
-On 04/24/2014 12:11 PM, Peter Ujfalusi wrote:
-> Mike, Tero,
->
-> On 04/03/2014 09:29 AM, Peter Ujfalusi wrote:
->> On 04/02/2014 05:12 PM, Tero Kristo wrote:
->>> On 04/02/2014 04:48 PM, Peter Ujfalusi wrote:
->>>> ABE DPLL frequency need to be lowered from 361267200
->>>> to 180633600 to facilitate the ATL requironments.
->>>> The dpll_abe_m2x2_ck clock need to be set to double
->>>> of ABE DPLL rate in order to have correct clocks
->>>> for audio.
->>>
->>> Do you have some sort of TRM reference for this?
->>
->> The ATL's max divider is 32.
->> For audio purpose the clock coming out from the ATL instance should =
-be
->> 128 * fs. It is only possible to have 44.1KHz sampling rate with ABE=
- DPLL set
->> to 361267200 or 180633600. Which means:
->> The atl generated clock should be 128 * 44100 =3D 5644800
->>  From ABE_DPLL 361267200 we would need to have 64 as divider (ATL ca=
-n't do this).
->>  From the suggested ABE_DPLL of 180633600 we can use ATL divider of =
-32, which
->> is the maximum it can do.
->>
->> So the reason for the change is to have ATLPCLK clock which can be u=
-sed for
->> audio in the future, the 361267200 is just too high.
->
-> Tero: can I have your ack for this patch or do you have further conce=
-rns?
+--uRjmd8ppyyws0Tml
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yea looks good to me, except for the fact that there is some work on=20
-getting default rate/parent support through DT. I would like a comment=20
-from Mike about the estimate when this can get in, and whether we shoul=
-d=20
-merge intermediate solutions still like this.
+Hi,
 
-Anyway, you can consider this patch acked by me, I'll let Mike to decid=
-e=20
-what to do with it though.
+On Thu, Apr 24, 2014 at 11:07:34AM +0200, Olivier Gayot wrote:
+> Ok, thank you, I didn't notice the existing thread.
 
--Tero
+no problem, but don't top-post please :-s
 
-> Mike: do you want me to resend this patch?
->
-> Thanks,
-> P=E9ter
->
->>
->>>
->>> -Tero
->>>
->>>>
->>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->>>> ---
->>>>    drivers/clk/ti/clk-7xx.c | 7 ++++++-
->>>>    1 file changed, 6 insertions(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
->>>> index f7e40734c819..19a55bf407dd 100644
->>>> --- a/drivers/clk/ti/clk-7xx.c
->>>> +++ b/drivers/clk/ti/clk-7xx.c
->>>> @@ -16,7 +16,7 @@
->>>>    #include <linux/clkdev.h>
->>>>    #include <linux/clk/ti.h>
->>>>
->>>> -#define DRA7_DPLL_ABE_DEFFREQ                361267200
->>>> +#define DRA7_DPLL_ABE_DEFFREQ                180633600
->>>>    #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
->>>>
->>>>
->>>> @@ -322,6 +322,11 @@ int __init dra7xx_dt_clk_init(void)
->>>>        if (rc)
->>>>            pr_err("%s: failed to configure ABE DPLL!\n", __func__)=
-;
->>>>
->>>> +    dpll_ck =3D clk_get_sys(NULL, "dpll_abe_m2x2_ck");
->>>> +    rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ * 2);
->>>> +    if (rc)
->>>> +        pr_err("%s: failed to configure ABE DPLL m2x2!\n", __func=
-__);
->>>> +
->>>>        dpll_ck =3D clk_get_sys(NULL, "dpll_gmac_ck");
->>>>        rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
->>>>        if (rc)
->>>>
->>>
->>
->>
->
+--=20
+balbi
+
+--uRjmd8ppyyws0Tml
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTWSmCAAoJEIaOsuA1yqRESoUQAI1edIy7OwBsUt3hpjO06Bfb
+/JyOHKWgLc3XkFmQhwRgKLFiirt4Zb4xtxhLP1lZqwyLfSl60vtTz0vxnkb2hC1V
+NSJnZ8q0gsRVyHlXVVOjDh3QeL+/sLPc23jECob8p8fmi5L3bTIsnZnAvPHgTdUl
+8ms4Iv45BRJB0kbXvPVr3gz9K8qARB6OPplotAAsbNhWcBwpwHX7KVWEHvYA0C46
+6ZOs95q7JqMbcld1GuIvk7XKq3bpCmgxevk/SaSQ3shue6uDovFyu4+TdD4oAlVo
+zijSAdvaSejL9tL7FwDlbZ0SwF/Oydus4TAoBsOwfAb+dAW4TotdQgqlRKdK1gFN
+so7oTj6p5iP+QIN4ll+f6zUnmq/pGlRbYgcuTd2Sqo1V5+NCSl8qfZBP2O/HveZu
+8xB0qcvOOA3Qw9gUC1aiuoVJTr1zAJTq7FMb3y04mjssk6YgmduSG4v9AQ1nHAgp
+yERkGqStvJaPYGIUoYyMb+G4Gov6J21aA8kc+XJvsdG4rNMFHJ0bMKwM/cfZwnLi
+O6+r0Z+nOWChdz/PrB3P4f4654mqqJQshvRsJXgvI2Ysj5vfsa5EdGxPLgsJrTmN
+NFmI+dy2gbyehAG30QNccNC0mldBVP1I7rKozFQBv2IecvF0YO7AOw/lbuJrsk5s
+OyO+EeFfGxOmDgK+XOA0
+=oLi/
+-----END PGP SIGNATURE-----
+
+--uRjmd8ppyyws0Tml--
