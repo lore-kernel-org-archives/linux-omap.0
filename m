@@ -1,61 +1,60 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 11/23] ARM: dts: omap5-uevm.dts: add tca6424a
-Date: Thu, 24 Apr 2014 17:49:29 +0400
-Message-ID: <53591669.7060502@cogentembedded.com>
-References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com> <1398334639-14172-12-git-send-email-tomi.valkeinen@ti.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM
+ with the PM core
+Date: Thu, 24 Apr 2014 16:09:00 +0200
+Message-ID: <CAMuHMdV=g13MnhhUDk9CFT+J5QPEryzO9HRSJFALJMfKi1Dn8w@mail.gmail.com>
+References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
+	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
+	<CAPDyKFr02yyhGNncYX2AgBXTA3Sc0AGQcExjtLvQ5QU0_=YJwg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:33691 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756747AbaDXNtb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 09:49:31 -0400
-Received: by mail-la0-f49.google.com with SMTP id ec20so1708513lab.36
-        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2014 06:49:29 -0700 (PDT)
-In-Reply-To: <1398334639-14172-12-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFr02yyhGNncYX2AgBXTA3Sc0AGQcExjtLvQ5QU0_=YJwg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-sh list <linux-sh@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tomasz Figa <tomasz.figa@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>
 
-Hello.
+Hi Ulf,
 
-On 24-04-2014 14:17, Tomi Valkeinen wrote:
-
-> omap5-uevm has a tca6424a I/O expander. Add it to the .dts file.
-
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> ---
->   arch/arm/boot/dts/omap5-uevm.dts | 7 +++++++
->   1 file changed, 7 insertions(+)
-
-> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-> index 3b99ec25b748..9e7581eaeb23 100644
-> --- a/arch/arm/boot/dts/omap5-uevm.dts
-> +++ b/arch/arm/boot/dts/omap5-uevm.dts
-> @@ -434,6 +434,13 @@
->   	pinctrl-0 = <&i2c5_pins>;
+On Thu, Apr 24, 2014 at 3:11 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+>> +static int of_clk_register(struct device *dev, struct clk *clk)
+>> +{
+>> +       int error;
+>> +
+>> +       if (!dev->pm_domain) {
+>> +               error = pm_clk_create(dev);
+>> +               if (error)
+>> +                       return error;
+>> +
+>> +               dev->pm_domain = &of_clk_pm_domain;
 >
->   	clock-frequency = <400000>;
-> +
-> +	tca6424a: tca6424a@22 {
+> I am concerned about how this will work in conjunction with the
+> generic power domain.
+>
+> A device can't reside in more than one pm_domain; thus I think it
+> would be better to always use the generic power domain and not have a
+> specific one for clocks. Typically the genpd should invoke
+> pm_clk_resume|suspend from it's runtime PM callbacks.
 
-    The ePAPR standard [1] says: "The name of a node should be somewhat generic,
-reflecting the function of the device and not its precise programming model.
-If appropriate, the name should be one of the following choices:
-[...]
-    - gpio;"
+On shmobile SoCs supporting power domains, the power domain is
+overridden later by calling rmobile_add_devices_to_domains() and friends.
 
-> +		compatible = "ti,tca6424";
-> +		reg = <0x22>;
-> +		gpio-controller;
-> +		#gpio-cells = <2>;
-> +	};
->   };
+My patch doesn't change that: the code behaved the same in the
+non-multi-platform case before: dev->pm_domain as set from
+drivers/sh/pm_runtime.c was overridden later.
 
-[1] http://www.power.org/resources/downloads/Power_ePAPR_APPROVED_v1.0.pdf
+I'll have a deeper look into the power domain code later anyway.
 
-WBR, Sergei
+Thanks!
 
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
