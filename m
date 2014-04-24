@@ -1,22 +1,28 @@
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: Re: [PATCH 1/3] usb: ohci-exynos: Make provision for vdd regulators
-Date: Thu, 24 Apr 2014 09:32:33 +0900
-Message-ID: <001a01cf5f54$af090810$0d1b1830$%han@samsung.com>
+From: Anton Tikhomirov <av.tikhomirov@samsung.com>
+Subject: RE: [PATCH 1/3] usb: ohci-exynos: Make provision for vdd regulators
+Date: Thu, 24 Apr 2014 09:38:04 +0900
+Message-ID: <002e01cf5f55$74aff060$5e0fd120$%tikhomirov@samsung.com>
 References: <1398082604-3013-1-git-send-email-gautam.vivek@samsung.com>
  <002b01cf5f52$a7bc0d70$f7342850$%tikhomirov@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ks_c_5601-1987
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-reply-to: <002b01cf5f52$a7bc0d70$f7342850$%tikhomirov@samsung.com>
-Content-language: ko
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'Anton Tikhomirov' <av.tikhomirov@samsung.com>, 'Vivek Gautam' <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Content-language: en-us
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: 'Vivek Gautam' <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, balbi@ti.com, kgene.kim@samsung.com, 'Jingoo Han' <jg1.han@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday, April 24, 2014 9:18 AM, Anton Tikhomirov wrote:
-> On Monday, April 21, 2014 9:17 PM, Vivek Gautam wrote:
+Hi,
+
+> Hi,
+> 
+> > -----Original Message-----
+> > From: linux-usb-owner@vger.kernel.org [mailto:linux-usb-
+> > owner@vger.kernel.org] On Behalf Of Vivek Gautam
+> > Sent: Monday, April 21, 2014 9:17 PM
 > >
 > > Facilitate getting required 3.3V and 1.0V VDD supply for
 > > OHCI controller on Exynos.
@@ -61,7 +67,8 @@ On Thursday, April 24, 2014 9:18 AM, Anton Tikhomirov wrote:
 > >  };
 > >
 > >  static void exynos_ohci_phy_enable(struct platform_device *pdev)
-> > @@ -98,6 +101,28 @@ static int exynos_ohci_probe(struct platform_device
+> > @@ -98,6 +101,28 @@ static int exynos_ohci_probe(struct
+> platform_device
 > > *pdev)
 > >  		exynos_ohci->otg = phy->otg;
 > >  	}
@@ -91,14 +98,6 @@ On Thursday, April 24, 2014 9:18 AM, Anton Tikhomirov wrote:
 > 
 > Do we need to skip regulator settings together with PHY configuration
 > in case of exynos5440?
-
-Oh, right. In the case of exynos5440, regulator settings is not 
-necessary. Vivek, would you fix it in order skip regulator settings
-in exynos5440? It also applies to ehci-exynos.
-
-Best regards,
-Jingoo Han
-
 > 
 > >  skip_phy:
 > >  	exynos_ohci->clk = devm_clk_get(&pdev->dev, "usbhost");
@@ -149,6 +148,11 @@ Jingoo Han
 > Not sure, but shall we continue resuming and do everything
 > we can in case of error? At least it will avoid
 > WARN_ON(clk->enable_count == 0) on next system suspend.
+
+On the other hand, if power is not applied to the controller,
+register access in ohci_resume() may lead to undefined behavior.
+What's your opinion?
+
 > 
 > > +	}
 > > +	ret = regulator_enable(exynos_ohci->vdd10);
@@ -162,3 +166,5 @@ Jingoo Han
 > > --
 > 
 > Thanks
+
+Thanks
