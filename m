@@ -1,44 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: fix dpll round_rate() to actually round
-Date: Thu, 24 Apr 2014 11:44:58 -0700
-Message-ID: <20140424184457.GH22987@atomide.com>
-References: <1389944699-27962-1-git-send-email-tomi.valkeinen@ti.com>
- <1389944699-27962-3-git-send-email-tomi.valkeinen@ti.com>
- <20140424182914.GD4659@saruman.home>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: regressions in linux-next?
+Date: Thu, 24 Apr 2014 22:22:24 +0300
+Message-ID: <20140424192224.GE575@drone.musicnaut.iki.fi>
+References: <53566C20.6000208@ti.com>
+ <53566EBA.808@ti.com>
+ <CABxcv=mu=xvt7cM7Q8vBP2hQH124=CL9Yuox8WWcVGeKJ+NSjA@mail.gmail.com>
+ <CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
+ <7hr44mpxk6.fsf@paris.lan>
+ <CAGo_u6r79StfHwf8t8OB5vyhByfusi3EF=PZA186piiAci_wjw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31310 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753229AbaDXSpE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 14:45:04 -0400
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:56752 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750860AbaDXT0o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 15:26:44 -0400
 Content-Disposition: inline
-In-Reply-To: <20140424182914.GD4659@saruman.home>
+In-Reply-To: <CAGo_u6r79StfHwf8t8OB5vyhByfusi3EF=PZA186piiAci_wjw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-* Felipe Balbi <balbi@ti.com> [140424 11:29]:
-> Hi,
-> 
-> On Fri, Jan 17, 2014 at 09:44:59AM +0200, Tomi Valkeinen wrote:
-> > omap2_dpll_round_rate() doesn't actually round the given rate, even if
-> > the name and the description so hints. Instead it only tries to find an
-> > exact rate match, or if that fails, return ~0 as an error.
-> > 
-> > What this basically means is that the user of the clock needs to know
-> > what rates the dpll can support, which obviously isn't right.
-> > 
-> > This patch adds a simple method of rounding: during the iteration, the
-> > code keeps track of the closest rate match. If no exact match is found,
-> > the closest is returned.
-> > 
-> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> 
-> Tony, looks like this patch was lost. Are you taking it during the -rc ?
+On Thu, Apr 24, 2014 at 10:25:29AM -0500, Nishanth Menon wrote:
+> Perhaps dumb question: but are there folks who really care about omap1
+> boot anymore in upstream?
 
-Would like to hear what Paul thinks of the updated patch suggested
-by Tomi first.
+Yes.
 
-Tony
+> should it be time to deprecate it - say for 3.17 or so?
+
+No. It's a working platform and has users.
+
+A.
