@@ -1,80 +1,194 @@
-From: Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>
-Subject: [PATCH/RFC 1/4] clk: Add CLK_RUNTIME_PM and clk_may_runtime_pm()
-Date: Thu, 24 Apr 2014 12:13:20 +0200
-Message-ID: <1398334403-26181-2-git-send-email-geert+renesas@glider.be>
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM with the PM core
+Date: Thu, 24 Apr 2014 12:13:22 +0200
+Message-ID: <1398334403-26181-4-git-send-email-geert+renesas@glider.be>
 References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1398334403-26181-1-git-send-email-geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Geert Uytterhoeven <geert+renesas@glider.be>
 List-Id: linux-omap@vger.kernel.org
 
-Add a flag CLK_RUNTIME_PM, to let low-level clock drivers indicate that
-a clock is suitable for Runtime PM.
-Add clk_may_runtime_pm(), to get the status of the flag.
+When adding a device from DT, check if its clocks are suitable for Runtime
+PM, and register them with the PM core.
+If Runtime PM is disabled, just enable the clock.
 
-This will allow the device core to enable automatic Runtime PM management
-for devices tied to clocks that are suitable for Runtime PM.
+This allows the PM core to automatically manage gate clocks of devices for
+Runtime PM.
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 ---
- drivers/clk/clk.c            |   12 ++++++++++++
- include/linux/clk-provider.h |    1 +
- include/linux/clk.h          |    1 +
- 3 files changed, 14 insertions(+)
+ drivers/of/Makefile    |    1 +
+ drivers/of/of_clk.c    |  103 ++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/of/platform.c  |    3 ++
+ include/linux/of_clk.h |   18 +++++++++
+ 4 files changed, 125 insertions(+)
+ create mode 100644 drivers/of/of_clk.c
+ create mode 100644 include/linux/of_clk.h
 
-diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index 0b2819551756..a83a2cc0af67 100644
---- a/drivers/clk/clk.c
-+++ b/drivers/clk/clk.c
-@@ -1115,6 +1115,18 @@ long clk_get_accuracy(struct clk *clk)
- EXPORT_SYMBOL_GPL(clk_get_accuracy);
- 
- /**
-+ * clk_may_runtime_pm - check if the clock is suitable for Runtime PM
-+ * @clk: the clock to check
-+ *
-+ * Return true if the clock is suitable for Runtime PM
-+ * Return false if clk is NULL, or if the clock is not suitable for Runtime PM.
+diff --git a/drivers/of/Makefile b/drivers/of/Makefile
+index ed9660adad77..49bcd413906f 100644
+--- a/drivers/of/Makefile
++++ b/drivers/of/Makefile
+@@ -10,3 +10,4 @@ obj-$(CONFIG_OF_PCI)	+= of_pci.o
+ obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
+ obj-$(CONFIG_OF_MTD)	+= of_mtd.o
+ obj-$(CONFIG_OF_RESERVED_MEM) += of_reserved_mem.o
++obj-$(CONFIG_COMMON_CLK) += of_clk.o
+diff --git a/drivers/of/of_clk.c b/drivers/of/of_clk.c
+new file mode 100644
+index 000000000000..35f5e9f3dd42
+--- /dev/null
++++ b/drivers/of/of_clk.c
+@@ -0,0 +1,103 @@
++/*
++ *  Copyright (C) 2014 Glider bvba
 + */
-+bool clk_may_runtime_pm(const struct clk *clk)
++
++#include <linux/clk.h>
++#include <linux/err.h>
++#include <linux/of.h>
++#include <linux/of_clk.h>
++#include <linux/platform_device.h>
++#include <linux/pm_clock.h>
++#include <linux/pm_runtime.h>
++
++
++#ifdef CONFIG_PM_RUNTIME
++
++static int of_clk_pm_runtime_suspend(struct device *dev)
 +{
-+	return clk && clk->flags & CLK_RUNTIME_PM;
++	int ret;
++
++	ret = pm_generic_runtime_suspend(dev);
++	if (ret)
++		return ret;
++
++	ret = pm_clk_suspend(dev);
++	if (ret) {
++		pm_generic_runtime_resume(dev);
++		return ret;
++	}
++
++	return 0;
 +}
 +
++static int of_clk_pm_runtime_resume(struct device *dev)
++{
++	pm_clk_resume(dev);
++	return pm_generic_runtime_resume(dev);
++}
++
++static struct dev_pm_domain of_clk_pm_domain = {
++	.ops = {
++		.runtime_suspend = of_clk_pm_runtime_suspend,
++		.runtime_resume = of_clk_pm_runtime_resume,
++		USE_PLATFORM_PM_SLEEP_OPS
++	},
++};
++
++static int of_clk_register(struct device *dev, struct clk *clk)
++{
++	int error;
++
++	if (!dev->pm_domain) {
++		error = pm_clk_create(dev);
++		if (error)
++			return error;
++
++		dev->pm_domain = &of_clk_pm_domain;
++	}
++
++	dev_dbg(dev, "Setting up clock for runtime PM management\n");
++	return pm_clk_add_clk(dev, clk);
++}
++
++#else /* !CONFIG_PM_RUNTIME */
++
++static int of_clk_register(struct device *dev, struct clk *clk)
++{
++	dev_dbg(dev, "Runtime PM disabled, enabling clock\n");
++	return clk_prepare_enable(clk);
++}
++
++#endif /* !CONFIG_PM_RUNTIME */
++
++
 +/**
-  * __clk_recalc_rates
-  * @clk: first clk in the subtree
-  * @msg: notification type (see include/linux/clk.h)
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 24c8ba4fa6ae..3ca9a7c1f02d 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -30,6 +30,7 @@
- #define CLK_GET_RATE_NOCACHE	BIT(6) /* do not use the cached clk rate */
- #define CLK_SET_RATE_NO_REPARENT BIT(7) /* don't re-parent on rate change */
- #define CLK_GET_ACCURACY_NOCACHE BIT(8) /* do not use the cached clk accuracy */
-+#define CLK_RUNTIME_PM		BIT(9) /* clock is suitable for Runtime PM */
++ * of_clk_register_runtime_pm_clocks - Register clocks suitable for Runtime PM
++ *                                     with the PM core
++ * @np: pointer to device tree node
++ * @pdev: pointer to corresponding device to register suitable clocks for
++ *
++ * Returns an error code
++ */
++int of_clk_register_runtime_pm_clocks(struct device_node *np,
++				      struct device *dev)
++{
++	unsigned int i;
++	struct clk *clk;
++	int error;
++
++	for (i = 0; (clk = of_clk_get(np, i)) && !IS_ERR(clk); i++) {
++		if (!clk_may_runtime_pm(clk)) {
++			clk_put(clk);
++			continue;
++		}
++
++		error = of_clk_register(dev, clk);
++		if (error) {
++			clk_put(clk);
++			return error;
++		}
++	}
++
++	return 0;
++}
+diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+index 404d1daebefa..29145302b6f8 100644
+--- a/drivers/of/platform.c
++++ b/drivers/of/platform.c
+@@ -18,6 +18,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/slab.h>
+ #include <linux/of_address.h>
++#include <linux/of_clk.h>
+ #include <linux/of_device.h>
+ #include <linux/of_irq.h>
+ #include <linux/of_platform.h>
+@@ -182,6 +183,8 @@ struct platform_device *of_device_alloc(struct device_node *np,
+ 	else
+ 		of_device_make_bus_id(&dev->dev);
  
- struct clk_hw;
- struct dentry;
-diff --git a/include/linux/clk.h b/include/linux/clk.h
-index d030fce1d77e..07f156580064 100644
---- a/include/linux/clk.h
-+++ b/include/linux/clk.h
-@@ -106,6 +106,7 @@ int clk_notifier_unregister(struct clk *clk, struct notifier_block *nb);
-  */
- long clk_get_accuracy(struct clk *clk);
- 
-+bool clk_may_runtime_pm(const struct clk *clk);
- #else /* !CONFIG_COMMON_CLK */
- 
- static inline long clk_get_accuracy(struct clk *clk)
++	of_clk_register_runtime_pm_clocks(np, &dev->dev);
++
+ 	return dev;
+ }
+ EXPORT_SYMBOL(of_device_alloc);
+diff --git a/include/linux/of_clk.h b/include/linux/of_clk.h
+new file mode 100644
+index 000000000000..b9b15614e39b
+--- /dev/null
++++ b/include/linux/of_clk.h
+@@ -0,0 +1,18 @@
++#ifndef _LINUX_OF_CLK_H
++#define _LINUX_OF_CLK_H
++
++struct device_node;
++struct device;
++
++#if defined(CONFIG_OF) && defined(CONFIG_COMMON_CLK)
++int of_clk_register_runtime_pm_clocks(struct device_node *np,
++				      struct device *dev);
++#else
++static inline int of_clk_register_runtime_pm_clocks(struct device_node *np,
++						    struct device *dev)
++{
++	return 0;
++}
++#endif /* CONFIG_OF && CONFIG_COMMON_CLK */
++
++#endif /* _LINUX_OF_CLK_H */
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
