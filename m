@@ -1,154 +1,164 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 10/13] tty: serial: omap: remove some dead code
-Date: Thu, 24 Apr 2014 10:13:29 +1000
-Message-ID: <20140424101329.02e6a62f@notabene.brown>
-References: <1398265117-11793-1-git-send-email-balbi@ti.com>
-	<1398265117-11793-10-git-send-email-balbi@ti.com>
-	<5357DDA8.4040206@ti.com>
-	<20140424084305.20c7f301@notabene.brown>
-	<20140423230121.GC10924@saruman.home>
+From: Anton Tikhomirov <av.tikhomirov@samsung.com>
+Subject: RE: [PATCH 1/3] usb: ohci-exynos: Make provision for vdd regulators
+Date: Thu, 24 Apr 2014 09:18:02 +0900
+Message-ID: <002b01cf5f52$a7bc0d70$f7342850$%tikhomirov@samsung.com>
+References: <1398082604-3013-1-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/3o3JF0SUzTrvuVU1E.zWyqc"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140423230121.GC10924@saruman.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Nishanth Menon <nm@ti.com>, Greg KH <gregkh@linuxfoundation.org>, marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com, jslaby@suse.cz, grant.likely@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=ks_c_5601-1987
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout2.samsung.com ([203.254.224.25]:47336 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751367AbaDXASG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 20:18:06 -0400
+In-reply-to: <1398082604-3013-1-git-send-email-gautam.vivek@samsung.com>
+Content-language: en-us
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: 'Vivek Gautam' <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, balbi@ti.com, kgene.kim@samsung.com, 'Jingoo Han' <jg1.han@samsung.com>
 
---Sig_/3o3JF0SUzTrvuVU1E.zWyqc
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Wed, 23 Apr 2014 18:01:21 -0500 Felipe Balbi <balbi@ti.com> wrote:
+> -----Original Message-----
+> From: linux-usb-owner@vger.kernel.org [mailto:linux-usb-
+> owner@vger.kernel.org] On Behalf Of Vivek Gautam
+> Sent: Monday, April 21, 2014 9:17 PM
+> 
+> Facilitate getting required 3.3V and 1.0V VDD supply for
+> OHCI controller on Exynos.
+> 
+> With patches for regulators' nodes merged in 3.15:
+> c8c253f ARM: dts: Add regulator entries to smdk5420
+> 275dcd2 ARM: dts: add max77686 pmic node for smdk5250,
+> 
+> certain perripherals will now need to ensure that,
+> they request VDD regulators in their drivers, and enable
+> them so as to make them working.
+> 
+> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> Cc: Jingoo Han <jg1.han@samsung.com>
+> ---
+> 
+> Based on 'usb-next' branch of Greg's usb tree.
+> 
+>  drivers/usb/host/ohci-exynos.c |   47
+> ++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 47 insertions(+)
+> 
+> diff --git a/drivers/usb/host/ohci-exynos.c b/drivers/usb/host/ohci-
+> exynos.c
+> index 68588d8..e2e72a8 100644
+> --- a/drivers/usb/host/ohci-exynos.c
+> +++ b/drivers/usb/host/ohci-exynos.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/module.h>
+>  #include <linux/of.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/regulator/consumer.h>
+>  #include <linux/usb/phy.h>
+>  #include <linux/usb/samsung_usb_phy.h>
+>  #include <linux/usb.h>
+> @@ -37,6 +38,8 @@ struct exynos_ohci_hcd {
+>  	struct clk *clk;
+>  	struct usb_phy *phy;
+>  	struct usb_otg *otg;
+> +	struct regulator *vdd33;
+> +	struct regulator *vdd10;
+>  };
+> 
+>  static void exynos_ohci_phy_enable(struct platform_device *pdev)
+> @@ -98,6 +101,28 @@ static int exynos_ohci_probe(struct platform_device
+> *pdev)
+>  		exynos_ohci->otg = phy->otg;
+>  	}
+> 
+> +	exynos_ohci->vdd33 = devm_regulator_get(&pdev->dev, "vdd33");
+> +	if (IS_ERR(exynos_ohci->vdd33)) {
+> +		err = PTR_ERR(exynos_ohci->vdd33);
+> +		goto fail_regulator1;
+> +	}
+> +	err = regulator_enable(exynos_ohci->vdd33);
+> +	if (err) {
+> +		dev_err(&pdev->dev, "Failed to enable VDD33 supply\n");
+> +		goto fail_regulator1;
+> +	}
+> +
+> +	exynos_ohci->vdd10 = devm_regulator_get(&pdev->dev, "vdd10");
+> +	if (IS_ERR(exynos_ohci->vdd10)) {
+> +		err = PTR_ERR(exynos_ohci->vdd10);
+> +		goto fail_regulator2;
+> +	}
+> +	err = regulator_enable(exynos_ohci->vdd10);
+> +	if (err) {
+> +		dev_err(&pdev->dev, "Failed to enable VDD10 supply\n");
+> +		goto fail_regulator2;
+> +	}
+> +
 
-> Hi,
->=20
-> On Thu, Apr 24, 2014 at 08:43:05AM +1000, NeilBrown wrote:
-> > On Wed, 23 Apr 2014 10:35:04 -0500 Nishanth Menon <nm@ti.com> wrote:
-> >=20
-> > > On 04/23/2014 09:58 AM, Felipe Balbi wrote:
-> > > > nobody passes a DTR_gpio to this driver, so
-> > > > this code is not necessary.
-> > > >=20
-> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > > ---
-> > >=20
-> > > Niel,
-> > > this seems to revert the functionality introduced in
-> > > commit 9574f36fb801035f6ab0fbb1b53ce2c12c17d100
-> > > (OMAP/serial: Add support for driving a GPIO as DTR.)
-> > >=20
-> > > would you like to Ack this change?
-> >=20
-> > I have a couple of out-of-tree drivers that use this support.
-> >=20
-> > I hope to get back to working on that code one day and even get those d=
-rivers
-> > upstream.  So I would really prefer this code to remain if it isn't cau=
-sing
-> > any actual problems.
->=20
-> it causes problem with DT (not really). That suport is only available on
-> legacy platform_data-based boot, it's not available on DT. I hear Tony
-> is pretty close to turning OMAP3 DT-only.
->=20
-> > Of course, I can always re-submit it when I need it again, but that it =
-just
-> > extra work all around.
->=20
-> I wonder how you will pass those attributes through DT considering they
-> are *really* SW configuration. Why can't you use the real DTR pin, btw ?
->=20
+Do we need to skip regulator settings together with PHY configuration
+in case of exynos5440?
 
-This myth that DT is only about hardware is probably one of the reasons tha=
-t I
-haven't got these out-of-tree drivers upstream yet.
+>  skip_phy:
+>  	exynos_ohci->clk = devm_clk_get(&pdev->dev, "usbhost");
+> 
+> @@ -154,6 +179,10 @@ fail_add_hcd:
+>  fail_io:
+>  	clk_disable_unprepare(exynos_ohci->clk);
+>  fail_clk:
+> +	regulator_disable(exynos_ohci->vdd10);
+> +fail_regulator2:
+> +	regulator_disable(exynos_ohci->vdd33);
+> +fail_regulator1:
+>  	usb_put_hcd(hcd);
+>  	return err;
+>  }
+> @@ -172,6 +201,9 @@ static int exynos_ohci_remove(struct
+> platform_device *pdev)
+> 
+>  	clk_disable_unprepare(exynos_ohci->clk);
+> 
+> +	regulator_disable(exynos_ohci->vdd10);
+> +	regulator_disable(exynos_ohci->vdd33);
+> +
+>  	usb_put_hcd(hcd);
+> 
+>  	return 0;
+> @@ -208,6 +240,9 @@ static int exynos_ohci_suspend(struct device *dev)
+> 
+>  	clk_disable_unprepare(exynos_ohci->clk);
+> 
+> +	regulator_disable(exynos_ohci->vdd10);
+> +	regulator_disable(exynos_ohci->vdd33);
+> +
+>  	spin_unlock_irqrestore(&ohci->lock, flags);
+> 
+>  	return 0;
+> @@ -218,6 +253,18 @@ static int exynos_ohci_resume(struct device *dev)
+>  	struct usb_hcd *hcd			= dev_get_drvdata(dev);
+>  	struct exynos_ohci_hcd *exynos_ohci	= to_exynos_ohci(hcd);
+>  	struct platform_device *pdev		= to_platform_device(dev);
+> +	int ret;
+> +
+> +	ret = regulator_enable(exynos_ohci->vdd33);
+> +	if (ret) {
+> +		dev_err(dev, "Failed to enable VDD33 supply\n");
+> +		return ret;
 
-There is no "real" DTR pin.
+Not sure, but shall we continue resuming and do everything
+we can in case of error? At least it will avoid
+WARN_ON(clk->enable_count == 0) on next system suspend.
 
-When I open /dev/ttyWHATEVER, I need the driver for the device that is
-permanently connected to that serial port to be told that the serial-device
-has been opened so that it can "power on" or "wake up" the device.
+> +	}
+> +	ret = regulator_enable(exynos_ohci->vdd10);
+> +	if (ret) {
+> +		dev_err(dev, "Failed to enable VDD10 supply\n");
+> +		return ret;
+> +	}
+> 
+>  	clk_prepare_enable(exynos_ohci->clk);
+> 
+> --
 
-I don't much care how that happens, or how I tell DT that it has to happen.
-I just need it to happen.
+Thanks
 
-In discrete hardware devices, the DTR line is what you would use.  The RS232
-port would raise (or lower or whatever) DTR when /dev/ttyWHATEVER was open,
-and  the device that was plugged in would detect the level change and do
-stuff.
-
-But I don't have discrete hardware.  I have a bunch of stuff soldered onto a
-board with ad-hoc connections chosen to make the life of the hardware build=
-er
-easy rather than chosen to make the life of the software developer easy
-(which I think is the correct choice).
-
-So I need to tell DT "This device is plugged into this UART, and there is no
-DTR line, but when the UARTs DTR line would be asserted (if it had one), th=
-en
-I need that regulator of there turned on". or maybe "I need to toggle this
-GPIO  with exactly this pattern, while watching that GPIO to see if it is
-working".
-
-So I thought:
-
- 1/ give the UART a "virtual" DTR so it could drive any GPIO
- 2/ create a "gpio-to-regulator" driver which presented as a (virtual) gpio
-    and responded to state changes on that GPIO by turning on or off the
-    regulator
- 3/ create a dedicated driver which knows how to toggle the magic GPIO while
-    watching the other GPIO to convince the silly device to wakeup, or go to
-    sleep, as required, and have this appear as a (virtual) GPIO.
-
-Then I can just tell DT that these (virtual) GPIOs are connected together,
-and it will all just work.  And it does.
-
-But given the whole "no no, DT is for describing hardware, and you are
-describing software" attitude,  it seems that I lost motivation for a while
-(that wasn't the only reason, but it didn't help).
-
-I have a patch which converts the OMAP serial driver to use DT to configure
-these virtual DTR lines.  I'm very happy to submit that if there is some
-chance it might be accepted and will keep the current DTR code in place.
-
-On the other hand, if you can point out to me what I'm missing, and how I c=
-an
-solve my problem with any virtual GPIOs, I'm all ears.
-
-To make my problem simple and explicit:  I have a device attached to a UART
-which has a separate regulator.  The regulator should be powered on if and
-only if the /dev/ttyXX interface to the UART is open.  The device is a
-bluetooth transceiver.
-(I have another device which is a GPS receiver which has similar
-but more complicated requirements)
-
-Thanks,
-NeilBrown
-
-
---Sig_/3o3JF0SUzTrvuVU1E.zWyqc
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIVAwUBU1hXKTnsnt1WYoG5AQKbQBAAqIJymgkITkPEb42Wdl/WAc5Tupcga6dW
-v4WP3SGhNOZJBtB+EctQlhX9Tq1lLRqr2N+ZOrLP2BeClESyBldwljsxPh50uKrm
-kNytSB1OKTxaVWTCR3IpKHuCXau76UnRgEtTV8lB3eOVx2hjjjcufddqfAjBWd4L
-7ANcOxYieQyhIOJjkdBTQI5lH8WP7hEJ/gYH6S8HiDt8HvDlRKFDmWu2pxrAF22v
-YssPN/n/B3WZh96D9X2XKNWIrzSfaGHMNYJrjBXQCHyRlAUuFjRtNIP0MDa0lmpS
-7uqB+wzW3HQ/LcNBbmaM1vdmvvnbPVslFQQuNZZott+18OmpMsTOMv+eJSv0SGkt
-/m0YDZoMCIG4/fDhYEJMJOKYSWWBY0d4tYQBXOM++T2gC4zpxPlHsBEP5GtxMqre
-aNFNhIZzU6PuEZjPBEwQz/R8iwDVP5et+DxB7GT5kpXi07m89jh3m8txLfuNr9Np
-qDL8jxge6r7+QSWkfsKjt9KT+MBlaq7ag9TRyQ3ZjO73XR/yzP3Hbf65sf+jwE+P
-clIvFMo/FomQp5PyMzgVMPdl0Fjrp+BeeaMHR20d6yHzS3vwJNnC8tBSs92jFvo2
-hccNg2iunqHNlqXkPc4P5PMaLsZU3/HW1vSO00qAqAndmC7ILwrVcdaZxsenxf+u
-yXkavL4drUw=
-=E12t
------END PGP SIGNATURE-----
-
---Sig_/3o3JF0SUzTrvuVU1E.zWyqc--
