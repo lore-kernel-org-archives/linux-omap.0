@@ -1,89 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: regressions in linux-next?
-Date: Thu, 24 Apr 2014 09:17:13 -0700
-Message-ID: <20140424161711.GC22987@atomide.com>
-References: <53566C20.6000208@ti.com>
- <53566EBA.808@ti.com>
- <CABxcv=mu=xvt7cM7Q8vBP2hQH124=CL9Yuox8WWcVGeKJ+NSjA@mail.gmail.com>
- <CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
- <7hr44mpxk6.fsf@paris.lan>
- <CAGo_u6r79StfHwf8t8OB5vyhByfusi3EF=PZA186piiAci_wjw@mail.gmail.com>
- <20140424154031.GA22987@atomide.com>
- <535931F3.10805@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH V2 00/19] bus: omap_l3_noc: driver cleanups and support
+ for DRA7/AM4372
+Date: Thu, 24 Apr 2014 09:25:36 -0700
+Message-ID: <20140424162536.GD22987@atomide.com>
+References: <1397492726-17203-1-git-send-email-nm@ti.com>
+ <1397767775-10965-1-git-send-email-nm@ti.com>
+ <53504041.7090906@ti.com>
+ <5350410B.5010507@ti.com>
+ <5358D16A.9000500@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10144 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758353AbaDXQRd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 12:17:33 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <535931F3.10805@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <5358D16A.9000500-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-* Nishanth Menon <nm@ti.com> [140424 08:47]:
-> On 04/24/2014 10:40 AM, Tony Lindgren wrote:
-> > * Nishanth Menon <nm@ti.com> [140424 08:25]:
-> >> On Thu, Apr 24, 2014 at 10:16 AM, Kevin Hilman <khilman@linaro.org> wrote:
-> >>> Linus Walleij <linus.walleij@linaro.org> writes:
-> >>>
-> >>>> On Tue, Apr 22, 2014 at 5:52 PM, Javier Martinez Canillas
-> >>>> <javier@dowhile0.org> wrote:
-> [...]
-> >>>> We even tried to get an Innovator to boot just to be able to refactor
-> >>>> OMAP stuff but fell short on some special JTAG reflash snag so
-> >>>> we are dependent on maintainers to help out here :-/
-> >>>
-> >>> Unfortunately, my OMAP1 (omap5912/OSK[1]) died last year and I haven't been
-> >>> able to get it booting again.  I wonder if Spectrum Digital still has
-> >>> these available?  Their websites[1] says "call for price."
-> >>>
-> >>> Kevin
-> >>>
-> >>> [1] http://www.spectrumdigital.com/product_info.php?products_id=39
+* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [140424 01:55]:
+> On 04/18/2014 12:00 AM, Nishanth Menon wrote:
+> > On 04/17/2014 03:57 PM, Santosh Shilimkar wrote:
+> >> I looked at the series and its looks pretty good. Thanks for fixups, updates.
+> >> For whole series,
+> >> Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 > >>
-> >>
-> >> Perhaps dumb question: but are there folks who really care about omap1
-> >> boot anymore in upstream? should it be time to deprecate it - say for
-> >> 3.17 or so?
 > > 
-> > Why? There are people still using omap1 and it works just fine. And
-> > in general the maintenance work needed for omap1 is really minimal.
+> > Thanks.
 > > 
-> > And in the GPIO case the issue was also discovered on new TI boards.
+> >>> Patches(including Peter's) is available here:
+> >>> https://github.com/nmenon/linux-2.6-playground/commits/l3noc/driver-fixes-v2
+> >>>
+> >> Can Tony pull this branch for 3.16 then which includes Peter's series as well ?
 > > 
+> > there is just an empty commit with information about peter's patches
+> > that i lined up to differentiate the series.. I can drop it if Tony
+> > would like me to.
 > 
-> I mean, yeah - hobby usage is nice.. but there is maintenance burden
-> when it comes to ensuring generic drivers such as timers, gpio etc.. I
-> am not saying we cannot maintain it, but if there are no strong
-> reasons why to keep it alive, it kinda reduces the scope of
-> modifications as kernel frameworks evolve to be generic. The OMAP1
-> generation of processors based boards are so hard to get and go
-> running that developer access to these boards slow things down as well.
+> Looking at the branch I see my patches underneath so they are in the branch.
+> It would be great if Tony pulls this... Will be a great present to my patches
+> (omap_l3 patches in the branch) for their 1 year anniversary of being out on
+> the mailing list ;)
 
-It's not a burden by any means like I said. And like I said, the
-drivers should work just fine no matter what the data source.
-
-Having the platform_data around actually forces us to fix up the
-drivers so they work in the standard Linux way. So it's really the
-mixed state of drivers that are the issue here.
-
-> I understand that "strong reasons to keep it alive" is pretty
-> subjective in nature.. but just throwing the thought out here.
-
-Strong reasons as in people are using it. There just isn't any
-stronger reason available in Linux land.
-
-Or what do you think is a "stronger reason" then? Merging random
-corporate snapshots of kernel code upstream from some hacked up
-kernel tree where the code has never even been even tested with
-the mainline kernel and is not usable for any available product?
-I don't think so :)
+If you insist :) Maybe we should have some cake or something with it?
+Seriously, I always thought that's a nice clean-up set, but never thought
+I'm supposed to merge it. Will merge it as soon as I'm out of the fixes
+and regressions land as that way I can easier test for any kind of
+new regressions that might occur related to PM at least.
 
 Regards,
 
 Tony
-
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
