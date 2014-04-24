@@ -1,114 +1,80 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/5] mmc: host: omap_hsmmc: a few improvements
-Date: Thu, 24 Apr 2014 10:26:01 -0500
-Message-ID: <20140424152601.GR26661@saruman.home>
-References: <1395878690-9650-1-git-send-email-balbi@ti.com>
- <20140421173203.GH22794@saruman.home>
- <53568B04.4050703@ti.com>
- <20140422154858.GN5524@saruman.home>
- <53592BF5.6020104@ti.com>
-Reply-To: <balbi@ti.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: regressions in linux-next?
+Date: Thu, 24 Apr 2014 17:37:07 +0200
+Message-ID: <CABxcv==7bisHnock37_Ai-k-n+u57Mk6YoAFvBV-XA+cEj+x+Q@mail.gmail.com>
+References: <53566C20.6000208@ti.com>
+	<53566EBA.808@ti.com>
+	<CABxcv=mu=xvt7cM7Q8vBP2hQH124=CL9Yuox8WWcVGeKJ+NSjA@mail.gmail.com>
+	<CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
+	<7hr44mpxk6.fsf@paris.lan>
+	<CAGo_u6r79StfHwf8t8OB5vyhByfusi3EF=PZA186piiAci_wjw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="N+qDRRsDvMgizTft"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <53592BF5.6020104@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: balbi@ti.com, chris@printf.net, ulf.hansson@linaro.org, linux-mmc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:41664 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757903AbaDXPhJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 11:37:09 -0400
+Received: by mail-wi0-f170.google.com with SMTP id bs8so1404330wib.3
+        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2014 08:37:08 -0700 (PDT)
+In-Reply-To: <CAGo_u6r79StfHwf8t8OB5vyhByfusi3EF=PZA186piiAci_wjw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
---N+qDRRsDvMgizTft
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
-On Thu, Apr 24, 2014 at 08:51:25PM +0530, Balaji T K wrote:
-> On Tuesday 22 April 2014 09:18 PM, Felipe Balbi wrote:
-> >Hi,
-> >
-> >On Tue, Apr 22, 2014 at 09:00:12PM +0530, Balaji T K wrote:
-> >>On Monday 21 April 2014 11:02 PM, Felipe Balbi wrote:
-> >>>Hi,
-> >>>
-> >>>On Wed, Mar 26, 2014 at 07:04:45PM -0500, Felipe Balbi wrote:
-> >>>>this series lets us access the newer registers introduced
-> >>>>back in OMAP4 which give us some valid information about
-> >>>>the OMAP HSMMC IP like max block size, support for ADMA,
-> >>>>support for Retention.
-> >>>>
-> >>>>Right now, only setting max_blk_size correctly as supporting
-> >>>>ADMA and Retention will take a lot of work.
-> >>>>
-> >>>>Tested on OMAP5 uEVM.
-> >>>>
-> >>>>Felipe Balbi (5):
-> >>>>   mmc: host: omap_hsmmc: pass host as an argument
-> >>>>   mmc: host: omap_hsmmc: add reg_offset field
-> >>>>   mmc: host: omap_hsmmc: introduce new accessor functions
-> >>>>   mmc: host: omap_hsmmc: switch over to new accessors
-> >>>>   mmc: host: omap_hsmmc: set max_blk_size correctly
-> >>
-> >>Got mislead by your reply to this series, about the alternative way of
-> >>reading memory size from CAPA register
-> >
-> >sure, we can do that if you prefer, I just felt I wouldn't touch
-> > platforms I can't really test :-s
->=20
-> I think so, since those 3 newer registers are not documented for all plat=
-forms.
-> Not sure whether it is valid in those cases where it is not documented.
->=20
-> Since capa register has these info and can be applied uniformly across
-> all paltforms, I feel reading capa register is the way to go. Do you
-> still think there is a need for new api with no offset ?
+On Thu, Apr 24, 2014 at 5:25 PM, Nishanth Menon <nm@ti.com> wrote:
+> On Thu, Apr 24, 2014 at 10:16 AM, Kevin Hilman <khilman@linaro.org> wrote:
+>> Linus Walleij <linus.walleij@linaro.org> writes:
+>>
+>>> On Tue, Apr 22, 2014 at 5:52 PM, Javier Martinez Canillas
+>>> <javier@dowhile0.org> wrote:
+>>>
+>>>> I've revised the patch again and I couldn't find the reason why
+>>>> certain boards are failing to boot.
+>>>>
+>>>> I can't reproduce this issue since I only have a DM3730 IGEPv2 board
+>>>> which boots fine but I should have access to an AM3354 IGEP Aquila
+>>>> board which is similar to the am335x-evmsk so I may be able to debug
+>>>> it.
+>>>
+>>> It would really REALLY appreciate if some of the people maintaining
+>>> and using OMAP1 would help Javier out in this refactoring operation.
+>>>
+>>> I'd really *hate* to have to drop his patches because of a lack of
+>>> boards. This refactoring is necessary to handle the exploding
+>>> multitude of GPIO drivers moving forward.
+>>>
+>>> We even tried to get an Innovator to boot just to be able to refactor
+>>> OMAP stuff but fell short on some special JTAG reflash snag so
+>>> we are dependent on maintainers to help out here :-/
+>>
+>> Unfortunately, my OMAP1 (omap5912/OSK[1]) died last year and I haven't been
+>> able to get it booting again.  I wonder if Spectrum Digital still has
+>> these available?  Their websites[1] says "call for price."
+>>
+>> Kevin
+>>
+>> [1] http://www.spectrumdigital.com/product_info.php?products_id=39
+>
+>
+> Perhaps dumb question: but are there folks who really care about omap1
+> boot anymore in upstream? should it be time to deprecate it - say for
+> 3.17 or so?
+>
+> Regards,
+> Nishanth Menon
 
-that same HWINFO register gives you information about availability of
-ADMA or not.
+I know that at least Aaro Koskinen (cc'ed here) still uses mainline on
+OMAP1 boards and he is always very helpful when is asked to test some
+changes on this platform.
 
-> >>>this has been here for almost a month, any comments ?
-> >>>
-> >>
-> >>Do you see any performance impact with this series ?
-> >
-> >in the normal case ? no... it helps only with large transfers
-> >
->=20
-> Do you have the numbers ?
-> Is it for read or write,
-> how large should the transfer size be ?
+Having said that I also wonder if at least we should split omap
+drivers to have separate support for DT-only (or in a path to be) and
+non-DT (and with no work towards migration) platforms. Since trying to
+support both DT and legacy booting is each time more hard.
 
-no numbers available... didn't save anything.
-
-> I couldn't get any performance improvements with this patch series,
-> Could you please share your test setup, may be I am missing something.
-
-just OMAP5 uEVM with UHS-I memory card.
-
---=20
-balbi
-
---N+qDRRsDvMgizTft
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTWS0JAAoJEIaOsuA1yqREvAAP/RIwXEg2eu1Zyokzylq5Fm6w
-f4S2M8wpKaoKKvi8QalZ31szXnLDC2jyEaHBmc7X0BPS2AZysnI8a/2dwOJ6QDDR
-Ftz+AtZJYQ5vSt5HYMvLgzzmQcIoAw7bEoKMqlrHEZFWEmyVCB7YCT1w2eYKrNWJ
-O5GAXJ6oZ11zw9byWEsa/W/NxhlqvJEW/tJZZIs0899/1MYxvYYBK/wnTwnQ7RsU
-UEob3vCNZdhoNFjYi4lTgrMVB8pH78W100Oii69a+lvNn/KkRrE2b6k7EvPdzirK
-U59Oq/GA1izde4hTH916Ai0BlVR9hTXg9W347QtvkYXSjkQHDN7+mWFs3BT9CTGd
-OsvrE8qlRw93lRf8UgzRL495nfrR1hwSDqP1JRqY6UHT8eC41UnKmHcIcUc8k8L7
-Yw6oXqE52I8QqhwD5Q7+D/qwBATwZxzotfzqqhjMiwvf8uPdXlnW5wk2AcsIKGvG
-/m6lM7kPLuGbhG6qHw9pxxxf5yEdjZ+lBwOycF1PHhXvKMR38/l63iEH85GyBVRL
-WP/0O3VlqKFI1fjZ+yfS2D1s4AkwGsfGm4fqJruPgSpPHqmNVzuXSxTLk71Ae5z/
-1mgV42M3lSO1hsJp0mvMQ3HFrKmO1RBO8qxlqyPGc+TQMuWxv6eG0bGPc05N3ktI
-dqy7NylSantxN9kwN1ZJ
-=dUdu
------END PGP SIGNATURE-----
-
---N+qDRRsDvMgizTft--
+Best regards,
+Javier
