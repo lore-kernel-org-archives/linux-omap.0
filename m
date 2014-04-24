@@ -1,106 +1,67 @@
-From: Felipe Balbi <balbi@ti.com>
+From: NeilBrown <neilb@suse.de>
 Subject: Re: [PATCH 10/13] tty: serial: omap: remove some dead code
-Date: Wed, 23 Apr 2014 20:43:34 -0500
-Message-ID: <20140424014334.GD13374@saruman.home>
+Date: Thu, 24 Apr 2014 12:24:07 +1000
+Message-ID: <20140424122407.106384bc@notabene.brown>
 References: <1398265117-11793-1-git-send-email-balbi@ti.com>
- <1398265117-11793-10-git-send-email-balbi@ti.com>
- <5357DDA8.4040206@ti.com>
- <20140424084305.20c7f301@notabene.brown>
- <20140423230121.GC10924@saruman.home>
- <20140424101329.02e6a62f@notabene.brown>
- <20140424012100.GB13374@saruman.home>
- <20140424114115.51ab3f98@notabene.brown>
-Reply-To: <balbi@ti.com>
+	<1398265117-11793-10-git-send-email-balbi@ti.com>
+	<5357DDA8.4040206@ti.com>
+	<20140424084305.20c7f301@notabene.brown>
+	<20140423230121.GC10924@saruman.home>
+	<20140424101329.02e6a62f@notabene.brown>
+	<20140424012100.GB13374@saruman.home>
+	<20140424114115.51ab3f98@notabene.brown>
+	<20140424014334.GD13374@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="osDK9TLjxFScVI/L"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140424114115.51ab3f98@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: balbi@ti.com, Nishanth Menon <nm@ti.com>, Greg KH <gregkh@linuxfoundation.org>, marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com, jslaby@suse.cz, grant.likely@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/X34t7Wbc9mHYz7pv8U.Qbv."; protocol="application/pgp-signature"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:44062 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751047AbaDXCYV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Apr 2014 22:24:21 -0400
+In-Reply-To: <20140424014334.GD13374@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Nishanth Menon <nm@ti.com>, Greg KH <gregkh@linuxfoundation.org>, marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com, jslaby@suse.cz, grant.likely@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
---osDK9TLjxFScVI/L
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Sig_/X34t7Wbc9mHYz7pv8U.Qbv.
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Wed, 23 Apr 2014 20:43:34 -0500 Felipe Balbi <balbi@ti.com> wrote:
 
-On Thu, Apr 24, 2014 at 11:41:15AM +1000, NeilBrown wrote:
-> On Wed, 23 Apr 2014 20:21:00 -0500 Felipe Balbi <balbi@ti.com> wrote:
+> so, Ack for $subject or not ?
 >=20
-> > I have no problem either way, just that unused code doesn't have to be
-> > sitting in the tree and I'm not entirely sure this GPIO should be
-> > handled by omap-serial.c, perhaps something more generic inside
-> > serial-core so other UART drivers can benefit from it.
->=20
-> Perhaps.  But there there are more people I need to convince :-)
 
-heh, Greg is in Cc, that'd be a good start.
+Just at the moment I'm finding it hard to care.
+So
+ Acked-by: NeilBrown <neilb@suse.de>
 
-> > > On the other hand, if you can point out to me what I'm missing, and h=
-ow I can
-> > > solve my problem with any virtual GPIOs, I'm all ears.
-> > >=20
-> > > To make my problem simple and explicit:  I have a device attached to =
-a UART
-> > > which has a separate regulator.  The regulator should be powered on i=
-f and
-> >=20
-> > So you're using DTR to power the GPIO and hoping that the regulator
-> > stabilizes quickly enough so that by the time your open() finishes you
-> > don't have to add nonsensical msleep() calls before writing to the
-> > device. Sounds a bit fragile to me.
->=20
-> The gpio_set call is synchronous, and the gpio-regulator driver could add=
- a
+Whatever....
 
-sure, but it's synchronous towards toggling the GPIO, pulling it high.
-It doesn't guarantee that the far-end regulator's output will be fully
-changed.
+NeilBrown
 
-> delay (I think).
-
-yeah, that'd be part of the regulator-gpio with the startup-delay-ns
-property (IIRC)
-
-> > > only if the /dev/ttyXX interface to the UART is open.  The device is a
-> > > bluetooth transceiver.
-> >=20
-> > considering this is a BTUART device, why didn't you do this at the ldisc
-> > level ? hci_uart_open() sounds like a good choice from a quick thinking.
-> >=20
->=20
-> I'll have a look into that, thanks.
-
-so, Ack for $subject or not ?
-
---=20
-balbi
-
---osDK9TLjxFScVI/L
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+--Sig_/X34t7Wbc9mHYz7pv8U.Qbv.
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJTWGxGAAoJEIaOsuA1yqRE7RoP/i0oa49Wd196SBwSHZOd1z0b
-rXV/AotJ3XLxC45gs66aqvPB1CeDWHzPrgQrrqLTzaB6uAXmdQaGz91SAXmmijrS
-4bOnmahVUmEiOXNUfKRi4cjS4BL003swKkAWmq732cY9ByHj1c7YMqZHwFUuUZC/
-XyMozsf6MaZ7MswqfM54+AE9iR1uYUdhoEMxqus89A9+A1Py5Cuwg9iEoTx1EtoK
-6VhmQBzrKLT0j/OBZSxYJ1SBZHnb3IJg/Kie+RJ4iiAuVduoOXGbAeG4pSueBGLV
-HTezLOV247aYYAOy2eZsmIev/f1dVVsok+qb1YgYl9nJy+0L2dU2qpx3f8lco7Jj
-wVbEsWfLKn81m3Mbop4Q5NVlupNNkgvjj6aug9QTl87wEDSV3zFGNVniHNmVgTbi
-fOz9XI1/e0A2l8sB4Y3sE2fh+ZuUQV7/uNm2mlhqjAod4nqudT1+C3juypahzHi+
-TM8hFgAWEPMgr4UzVrSt4uYk3C/RBfspUfj1HPdj3RPucxvXMZ7Jk3lxDGeu9/a3
-5Pg/140DgrL/qQeO3QEQVLMSqhOevi2jG7BDb88eRBD5r036uQjvPiR98cQzUbi5
-n5MFhW/Isp9k6nuN6cwd4TXHx9+5AEaokE3Hz2DQgqOqVFFG0TtgVpUwmqERVQ6g
-ExojUxOktA9Ba5URSoNV
-=z7lG
+iQIVAwUBU1h1yDnsnt1WYoG5AQK/fBAAju+nejoMEvj1BptVeWVrZdHGPFUk/VGb
+9qVki2U5fkBC9kcPd1/5OzPnB7Kyztgh+XmDWwwBLCIhoAW8kdmi/sLWkxxppBf3
+3L5tkqPIfrxqTFbpGiog/lcmjwZ0lnpP5Ew9fpI3XqpMfQFiEtZEgiqV5wdiEpO9
+t1FIenW48PtiJnj3F3qh+p7Ghp/0xwHvdRDQkGGFkgKE40tMEgPKwBlFvRpeXawE
+IIcrHY9Mmmo6VOa+pV/STD8Eeuor+V8i8ZcVwLVksP5YY9cxCmXRjUCUkw0BI/4P
+jit7eDGDVW+9g5KdZK1PRIGg69JVBXRHUqn03Gd3JwP2becXv37KV7Sn4tQPk7ls
+JzkCVEqqDvFyAaVDGKv1ylz3HAIfGZsQ+HN+BSQfySDyOohuapJfBkpLESGkqUmZ
+/aCnWRa6BckaZcn6n//UiY91evvu5YGHb2+NchNg/WLftEf/nBuvoH2CO06gSp6j
+FdqWfMpALDekPitbHMkj9zvAiwPhArce7bswmXKWBa9r8XKvmHdSOKuV23ajV3y3
+qNcZKWzLold7etMiCNSTJllQF99n8SUJ6tjWUel0MKavau8FzBJzkcNWUMtGdEuy
+WCPoG17b0A2ex3awDeWybnPcETE7e+rsHhFtnIrD2C7TMRoXASGfJx9YX/UTbpfX
+xZbIlCrSkss=
+=tmpn
 -----END PGP SIGNATURE-----
 
---osDK9TLjxFScVI/L--
+--Sig_/X34t7Wbc9mHYz7pv8U.Qbv.--
