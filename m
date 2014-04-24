@@ -1,71 +1,282 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 17/23] OMAPDSS: HDMI: improve Makefile
-Date: Thu, 24 Apr 2014 13:17:13 +0300
-Message-ID: <1398334639-14172-18-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 01/23] OMAPDSS: HDMI: lane config support
+Date: Thu, 24 Apr 2014 13:16:57 +0300
+Message-ID: <1398334639-14172-2-git-send-email-tomi.valkeinen@ti.com>
 References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47178 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753850AbaDXKTX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Apr 2014 06:19:23 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-We'll soon add support for OMAP5 HDMI, which uses some of the same files
-as OMAP4 HDMI does.
-
-This patch adds a new config entry "OMAP2_DSS_HDMI_COMMON", which both
-OMAP4 and OMAP5 HDMI config entries can select. OMAP2_DSS_HDMI_COMMON
-will cause the common HDMI files to be compiled.
+Add support to configure the pins used for the HDMI lanes. The order and
+polarity of the lanes can be defined in the DT data.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/Kconfig  | 9 ++++++---
- drivers/video/fbdev/omap2/dss/Makefile | 5 +++--
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ drivers/video/fbdev/omap2/dss/hdmi.h        |  6 ++
+ drivers/video/fbdev/omap2/dss/hdmi4.c       | 28 +++++++++
+ drivers/video/fbdev/omap2/dss/hdmi_common.c | 41 +++++++++++++
+ drivers/video/fbdev/omap2/dss/hdmi_phy.c    | 94 ++++++++++++++++++++++++++++-
+ 4 files changed, 167 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/dss/Kconfig b/drivers/video/fbdev/omap2/dss/Kconfig
-index dde4281663b1..36de3d5d2896 100644
---- a/drivers/video/fbdev/omap2/dss/Kconfig
-+++ b/drivers/video/fbdev/omap2/dss/Kconfig
-@@ -59,12 +59,15 @@ config OMAP2_DSS_VENC
- 	help
- 	  OMAP Video Encoder support for S-Video and composite TV-out.
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
+index e25681ff5a70..4e5c44e7eeb3 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi.h
++++ b/drivers/video/fbdev/omap2/dss/hdmi.h
+@@ -352,6 +352,9 @@ struct hdmi_phy_data {
+ 	void __iomem *base;
  
-+config OMAP2_DSS_HDMI_COMMON
-+	bool
+ 	int irq;
 +
- config OMAP4_DSS_HDMI
--	bool "HDMI support"
-+	bool "HDMI support for OMAP4"
-         default y
-+	select OMAP2_DSS_HDMI_COMMON
- 	help
--	  HDMI Interface. This adds the High Definition Multimedia Interface.
--	  See http://www.hdmi.org/ for HDMI specification.
-+	  HDMI support for OMAP4 based SoCs.
++	u8 lane_function[4];
++	u8 lane_polarity[4];
+ };
  
- config OMAP4_DSS_HDMI_AUDIO
- 	bool
-diff --git a/drivers/video/fbdev/omap2/dss/Makefile b/drivers/video/fbdev/omap2/dss/Makefile
-index 8aec8bda27cc..4cbe7ce406f9 100644
---- a/drivers/video/fbdev/omap2/dss/Makefile
-+++ b/drivers/video/fbdev/omap2/dss/Makefile
-@@ -10,6 +10,7 @@ omapdss-$(CONFIG_OMAP2_DSS_RFBI) += rfbi.o
- omapdss-$(CONFIG_OMAP2_DSS_VENC) += venc.o
- omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
- omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
--omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi4.o hdmi_common.o hdmi_wp.o hdmi_pll.o \
--	hdmi_phy.o hdmi4_core.o
-+omapdss-$(CONFIG_OMAP2_DSS_HDMI_COMMON) += hdmi_common.o hdmi_wp.o hdmi_pll.o \
-+	hdmi_phy.o
-+omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi4.o hdmi4_core.o
- ccflags-$(CONFIG_OMAP2_DSS_DEBUG) += -DDEBUG
+ struct hdmi_core_data {
+@@ -422,11 +425,14 @@ int hdmi_phy_enable(struct hdmi_phy_data *phy, struct hdmi_wp_data *wp,
+ void hdmi_phy_disable(struct hdmi_phy_data *phy, struct hdmi_wp_data *wp);
+ void hdmi_phy_dump(struct hdmi_phy_data *phy, struct seq_file *s);
+ int hdmi_phy_init(struct platform_device *pdev, struct hdmi_phy_data *phy);
++int hdmi_phy_parse_lanes(struct hdmi_phy_data *phy, const u32 *lanes);
+ 
+ /* HDMI common funcs */
+ const struct hdmi_config *hdmi_default_timing(void);
+ const struct hdmi_config *hdmi_get_timings(int mode, int code);
+ struct hdmi_cm hdmi_get_code(struct omap_video_timings *timing);
++int hdmi_parse_lanes_of(struct platform_device *pdev, struct device_node *ep,
++	struct hdmi_phy_data *phy);
+ 
+ #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
+ int hdmi_compute_acr(u32 pclk, u32 sample_freq, u32 *n, u32 *cts);
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi4.c b/drivers/video/fbdev/omap2/dss/hdmi4.c
+index f5f7944a1fd1..e15b89d49c28 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi4.c
++++ b/drivers/video/fbdev/omap2/dss/hdmi4.c
+@@ -600,6 +600,28 @@ static void __exit hdmi_uninit_output(struct platform_device *pdev)
+ 	omapdss_unregister_output(out);
+ }
+ 
++static int hdmi_probe_of(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct device_node *ep;
++	int r;
++
++	ep = omapdss_of_get_first_endpoint(node);
++	if (!ep)
++		return 0;
++
++	r = hdmi_parse_lanes_of(pdev, ep, &hdmi.phy);
++	if (r)
++		goto err;
++
++	of_node_put(ep);
++	return 0;
++
++err:
++	of_node_put(ep);
++	return r;
++}
++
+ /* HDMI HW IP initialisation */
+ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+ {
+@@ -609,6 +631,12 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+ 
+ 	mutex_init(&hdmi.lock);
+ 
++	if (pdev->dev.of_node) {
++		r = hdmi_probe_of(pdev);
++		if (r)
++			return r;
++	}
++
+ 	r = hdmi_wp_init(pdev, &hdmi.wp);
+ 	if (r)
+ 		return r;
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi_common.c b/drivers/video/fbdev/omap2/dss/hdmi_common.c
+index 0b12a3f62fe1..9a2c39cf297f 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi_common.c
++++ b/drivers/video/fbdev/omap2/dss/hdmi_common.c
+@@ -17,6 +17,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/err.h>
++#include <linux/of.h>
+ #include <video/omapdss.h>
+ 
+ #include "hdmi.h"
+@@ -323,6 +324,46 @@ end:
+ 	return cm;
+ }
+ 
++int hdmi_parse_lanes_of(struct platform_device *pdev, struct device_node *ep,
++	struct hdmi_phy_data *phy)
++{
++	struct property *prop;
++	int r, len;
++
++	prop = of_find_property(ep, "lanes", &len);
++	if (prop) {
++		u32 lanes[8];
++
++		if (len / sizeof(u32) != ARRAY_SIZE(lanes)) {
++			dev_err(&pdev->dev, "bad number of lanes\n");
++			return -EINVAL;
++		}
++
++		r = of_property_read_u32_array(ep, "lanes", lanes,
++			ARRAY_SIZE(lanes));
++		if (r) {
++			dev_err(&pdev->dev, "failed to read lane data\n");
++			return r;
++		}
++
++		r = hdmi_phy_parse_lanes(phy, lanes);
++		if (r) {
++			dev_err(&pdev->dev, "failed to parse lane data\n");
++			return r;
++		}
++	} else {
++		static const u32 default_lanes[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
++
++		r = hdmi_phy_parse_lanes(phy, default_lanes);
++		if (WARN_ON(r)) {
++			dev_err(&pdev->dev, "failed to parse lane data\n");
++			return r;
++		}
++	}
++
++	return 0;
++}
++
+ #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
+ int hdmi_compute_acr(u32 pclk, u32 sample_freq, u32 *n, u32 *cts)
+ {
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi_phy.c b/drivers/video/fbdev/omap2/dss/hdmi_phy.c
+index dd376ce8da01..c1c65624fd5d 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi_phy.c
++++ b/drivers/video/fbdev/omap2/dss/hdmi_phy.c
+@@ -59,6 +59,97 @@ static irqreturn_t hdmi_irq_handler(int irq, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
++int hdmi_phy_parse_lanes(struct hdmi_phy_data *phy, const u32 *lanes)
++{
++	int i;
++
++	for (i = 0; i < 8; i += 2) {
++		u8 lane, pol;
++		int dx, dy;
++
++		dx = lanes[i];
++		dy = lanes[i + 1];
++
++		if (dx < 0 || dx >= 8)
++			return -EINVAL;
++
++		if (dy < 0 || dy >= 8)
++			return -EINVAL;
++
++		if (dx & 1) {
++			if (dy != dx - 1)
++				return -EINVAL;
++			pol = 1;
++		} else {
++			if (dy != dx + 1)
++				return -EINVAL;
++			pol = 0;
++		}
++
++		lane = dx / 2;
++
++		phy->lane_function[lane] = i / 2;
++		phy->lane_polarity[lane] = pol;
++	}
++
++	return 0;
++}
++
++static void hdmi_phy_configure_lanes(struct hdmi_phy_data *phy)
++{
++	static const u16 pad_cfg_list[] = {
++		0x0123,
++		0x0132,
++		0x0312,
++		0x0321,
++		0x0231,
++		0x0213,
++		0x1023,
++		0x1032,
++		0x3012,
++		0x3021,
++		0x2031,
++		0x2013,
++		0x1203,
++		0x1302,
++		0x3102,
++		0x3201,
++		0x2301,
++		0x2103,
++		0x1230,
++		0x1320,
++		0x3120,
++		0x3210,
++		0x2310,
++		0x2130,
++	};
++
++	u16 lane_cfg = 0;
++	int i;
++	unsigned lane_cfg_val;
++	u16 pol_val = 0;
++
++	for (i = 0; i < 4; ++i)
++		lane_cfg |= phy->lane_function[i] << ((3 - i) * 4);
++
++	pol_val |= phy->lane_polarity[0] << 0;
++	pol_val |= phy->lane_polarity[1] << 3;
++	pol_val |= phy->lane_polarity[2] << 2;
++	pol_val |= phy->lane_polarity[3] << 1;
++
++	for (i = 0; i < ARRAY_SIZE(pad_cfg_list); ++i)
++		if (pad_cfg_list[i] == lane_cfg)
++			break;
++
++	if (WARN_ON(i == ARRAY_SIZE(pad_cfg_list)))
++		i = 0;
++
++	lane_cfg_val = i;
++
++	REG_FLD_MOD(phy->base, HDMI_TXPHY_PAD_CFG_CTRL, lane_cfg_val, 26, 22);
++	REG_FLD_MOD(phy->base, HDMI_TXPHY_PAD_CFG_CTRL, pol_val, 30, 27);
++}
++
+ int hdmi_phy_enable(struct hdmi_phy_data *phy, struct hdmi_wp_data *wp,
+ 			struct hdmi_config *cfg)
+ {
+@@ -92,8 +183,7 @@ int hdmi_phy_enable(struct hdmi_phy_data *phy, struct hdmi_wp_data *wp,
+ 	/* Setup max LDO voltage */
+ 	REG_FLD_MOD(phy->base, HDMI_TXPHY_POWER_CTRL, 0xB, 3, 0);
+ 
+-	/* Write to phy address 3 to change the polarity control */
+-	REG_FLD_MOD(phy->base, HDMI_TXPHY_PAD_CFG_CTRL, 0x1, 27, 27);
++	hdmi_phy_configure_lanes(phy);
+ 
+ 	r = request_threaded_irq(phy->irq, NULL, hdmi_irq_handler,
+ 				IRQF_ONESHOT, "OMAP HDMI", wp);
 -- 
 1.9.1
-
