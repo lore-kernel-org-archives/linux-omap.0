@@ -1,83 +1,232 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCHv3 19/41] OMAPDSS: panel-dpi: Add DT support
-Date: Thu, 24 Apr 2014 14:44:10 +0200
-Message-ID: <3615191.vG5AEQORWJ@avalon>
-References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com> <20140418155107.GB5354@atomide.com> <5358DEEA.1000506@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM
+ with the PM core
+Date: Thu, 24 Apr 2014 15:11:24 +0200
+Message-ID: <CAPDyKFr02yyhGNncYX2AgBXTA3Sc0AGQcExjtLvQ5QU0_=YJwg@mail.gmail.com>
+References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
+	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1719767.D5BMvv66GP"; micalg="pgp-sha1"; protocol="application/pgp-signature"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5358DEEA.1000506-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Joachim Eastwood <manabian-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Archit Taneja <archit-l0cyMroinI0@public.gmane.org>, Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>, Stefan Roese <stefan.roese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Dr . H . Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1398334403-26181-4-git-send-email-geert+renesas@glider.be>
+Sender: linux-pm-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-sh@vger.kernel.org, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tomasz Figa <tomasz.figa@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+On 24 April 2014 12:13, Geert Uytterhoeven <geert+renesas@glider.be> wrote:
+> When adding a device from DT, check if its clocks are suitable for Runtime
+> PM, and register them with the PM core.
+> If Runtime PM is disabled, just enable the clock.
+>
+> This allows the PM core to automatically manage gate clocks of devices for
+> Runtime PM.
 
---nextPart1719767.D5BMvv66GP
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="us-ascii"
+Normally I don't think it's a good idea to "automatically" manage
+clocks from PM core or any other place but from the driver (and
+possibly the subsystem).
 
-Hi Tomi,
+The reason is simply that we hide things that normally is supposed to
+be handled by the driver. Typically a cross SOC driver should work
+fine both with and without a pm_domain. It should also not rely on
+CONFIG_PM_RUNTIME.
 
-On Thursday 24 April 2014 12:52:42 Tomi Valkeinen wrote:
-> On 18/04/14 18:51, Tony Lindgren wrote:
-> >> +=09gpio =3D of_get_gpio(node, 0);
-> >> +=09if (gpio_is_valid(gpio) || gpio =3D=3D -ENOENT) {
-> >> +=09=09ddata->enable_gpio =3D gpio;
-> >> +=09} else {
-> >> +=09=09dev_err(&pdev->dev, "failed to parse enable gpio\n");
-> >> +=09=09return gpio;
-> >> +=09}
-> >=20
-> > We should set the GPIO polarity based on the OF_GPIO_ACTIVE_LOW lik=
-e
-> > gpio_backlight_probe_dt is doing.
->=20
-> Instead of doing it with the old gpio API, and checking the 'active'
-> flag everywhere, I think we can use the new gpiod API which handles t=
-he
-> polarity automatically.
->=20
-> I attached prototype patches (based on -rc2) for panel dpi using that=
+>
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> ---
+>  drivers/of/Makefile    |    1 +
+>  drivers/of/of_clk.c    |  103 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/of/platform.c  |    3 ++
+>  include/linux/of_clk.h |   18 +++++++++
+>  4 files changed, 125 insertions(+)
+>  create mode 100644 drivers/of/of_clk.c
+>  create mode 100644 include/linux/of_clk.h
+>
+> diff --git a/drivers/of/Makefile b/drivers/of/Makefile
+> index ed9660adad77..49bcd413906f 100644
+> --- a/drivers/of/Makefile
+> +++ b/drivers/of/Makefile
+> @@ -10,3 +10,4 @@ obj-$(CONFIG_OF_PCI)  += of_pci.o
+>  obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
+>  obj-$(CONFIG_OF_MTD)   += of_mtd.o
+>  obj-$(CONFIG_OF_RESERVED_MEM) += of_reserved_mem.o
+> +obj-$(CONFIG_COMMON_CLK) += of_clk.o
+> diff --git a/drivers/of/of_clk.c b/drivers/of/of_clk.c
+> new file mode 100644
+> index 000000000000..35f5e9f3dd42
+> --- /dev/null
+> +++ b/drivers/of/of_clk.c
+> @@ -0,0 +1,103 @@
+> +/*
+> + *  Copyright (C) 2014 Glider bvba
+> + */
+> +
+> +#include <linux/clk.h>
+> +#include <linux/err.h>
+> +#include <linux/of.h>
+> +#include <linux/of_clk.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/pm_clock.h>
+> +#include <linux/pm_runtime.h>
+> +
+> +
+> +#ifdef CONFIG_PM_RUNTIME
+> +
+> +static int of_clk_pm_runtime_suspend(struct device *dev)
+> +{
+> +       int ret;
+> +
+> +       ret = pm_generic_runtime_suspend(dev);
+> +       if (ret)
+> +               return ret;
+> +
+> +       ret = pm_clk_suspend(dev);
+> +       if (ret) {
+> +               pm_generic_runtime_resume(dev);
+> +               return ret;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +static int of_clk_pm_runtime_resume(struct device *dev)
+> +{
+> +       pm_clk_resume(dev);
+> +       return pm_generic_runtime_resume(dev);
+> +}
+> +
+> +static struct dev_pm_domain of_clk_pm_domain = {
+> +       .ops = {
+> +               .runtime_suspend = of_clk_pm_runtime_suspend,
+> +               .runtime_resume = of_clk_pm_runtime_resume,
+> +               USE_PLATFORM_PM_SLEEP_OPS
+> +       },
+> +};
+> +
+> +static int of_clk_register(struct device *dev, struct clk *clk)
+> +{
+> +       int error;
+> +
+> +       if (!dev->pm_domain) {
+> +               error = pm_clk_create(dev);
+> +               if (error)
+> +                       return error;
+> +
+> +               dev->pm_domain = &of_clk_pm_domain;
 
-> approach. It's a bit messier than I'd like, because for non-DT boot w=
-e
-> need to request the gpio using the old API, and then convert it to
-> gpio_desc. We can remove that code when all the boards use DT.
+I am concerned about how this will work in conjunction with the
+generic power domain.
 
-Just FYI, you can use the gpiod API with non-DT platforms if you regist=
-er GPIO=20
-lookup entries in board code with gpiod_add_lookup_table().
+A device can't reside in more than one pm_domain; thus I think it
+would be better to always use the generic power domain and not have a
+specific one for clocks. Typically the genpd should invoke
+pm_clk_resume|suspend from it's runtime PM callbacks.
 
-> I've compiled tested this only, as I don't have DPI panels I could us=
-e.
-> I did try similar approach for TFP410, and it seemed to work fine.
+> +       }
+> +
+> +       dev_dbg(dev, "Setting up clock for runtime PM management\n");
+> +       return pm_clk_add_clk(dev, clk);
+> +}
+> +
+> +#else /* !CONFIG_PM_RUNTIME */
+> +
+> +static int of_clk_register(struct device *dev, struct clk *clk)
+> +{
+> +       dev_dbg(dev, "Runtime PM disabled, enabling clock\n");
+> +       return clk_prepare_enable(clk);
+> +}
+> +
+> +#endif /* !CONFIG_PM_RUNTIME */
+> +
+> +
+> +/**
+> + * of_clk_register_runtime_pm_clocks - Register clocks suitable for Runtime PM
+> + *                                     with the PM core
+> + * @np: pointer to device tree node
+> + * @pdev: pointer to corresponding device to register suitable clocks for
+> + *
+> + * Returns an error code
+> + */
+> +int of_clk_register_runtime_pm_clocks(struct device_node *np,
+> +                                     struct device *dev)
+> +{
+> +       unsigned int i;
+> +       struct clk *clk;
+> +       int error;
+> +
+> +       for (i = 0; (clk = of_clk_get(np, i)) && !IS_ERR(clk); i++) {
+> +               if (!clk_may_runtime_pm(clk)) {
+> +                       clk_put(clk);
+> +                       continue;
+> +               }
+> +
+> +               error = of_clk_register(dev, clk);
+> +               if (error) {
+> +                       clk_put(clk);
+> +                       return error;
+> +               }
+> +       }
+> +
+> +       return 0;
+> +}
+> diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+> index 404d1daebefa..29145302b6f8 100644
+> --- a/drivers/of/platform.c
+> +++ b/drivers/of/platform.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/dma-mapping.h>
+>  #include <linux/slab.h>
+>  #include <linux/of_address.h>
+> +#include <linux/of_clk.h>
+>  #include <linux/of_device.h>
+>  #include <linux/of_irq.h>
+>  #include <linux/of_platform.h>
+> @@ -182,6 +183,8 @@ struct platform_device *of_device_alloc(struct device_node *np,
+>         else
+>                 of_device_make_bus_id(&dev->dev);
+>
+> +       of_clk_register_runtime_pm_clocks(np, &dev->dev);
+> +
 
-=2D-=20
-Regards,
+What about other device than platform devices? Could we handle the DT
+binding at driver core at probe instead?
 
-Laurent Pinchart
+Kind regards
+Ulf Hansson
 
---nextPart1719767.D5BMvv66GP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQEcBAABAgAGBQJTWQcaAAoJEIkPb2GL7hl1dz4IAKVksmLI0n/ZbMYHnMbcP4+3
-7olrT+4pCxqzYLNZOdta1NfSV5OJ58GcieMBrsIErw5RcrIJbws6iP+QOwwSthkT
-vPYTVa8+6dLJ2PdNvg8PJIjhRYL+26fHBT/ROKmqPgSf+OqkmRkR3opGXQe+0L+2
-keq0GBhKCCVwMmJO210BjlrEdz6fOBL5ZUAhiDjXHcf1KdzzAhiEJUeUFftR85Jv
-o70ZoDrz8h/ofHNgi7W3f36TdUP0kr+s5DnwyDUted525efCdd4JgeuBc6rVT1Cf
-pWn/AJtgcx5saJZ84//IW6muJswN9yTlK2C2/FMrwUbiR5VTt/c7S7Uy+9ZkQA8=
-=G8Ke
------END PGP SIGNATURE-----
-
---nextPart1719767.D5BMvv66GP--
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>         return dev;
+>  }
+>  EXPORT_SYMBOL(of_device_alloc);
+> diff --git a/include/linux/of_clk.h b/include/linux/of_clk.h
+> new file mode 100644
+> index 000000000000..b9b15614e39b
+> --- /dev/null
+> +++ b/include/linux/of_clk.h
+> @@ -0,0 +1,18 @@
+> +#ifndef _LINUX_OF_CLK_H
+> +#define _LINUX_OF_CLK_H
+> +
+> +struct device_node;
+> +struct device;
+> +
+> +#if defined(CONFIG_OF) && defined(CONFIG_COMMON_CLK)
+> +int of_clk_register_runtime_pm_clocks(struct device_node *np,
+> +                                     struct device *dev);
+> +#else
+> +static inline int of_clk_register_runtime_pm_clocks(struct device_node *np,
+> +                                                   struct device *dev)
+> +{
+> +       return 0;
+> +}
+> +#endif /* CONFIG_OF && CONFIG_COMMON_CLK */
+> +
+> +#endif /* _LINUX_OF_CLK_H */
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
