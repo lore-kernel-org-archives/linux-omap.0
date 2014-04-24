@@ -1,96 +1,202 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/4] mfd: twl4030power: Add a configuration to turn off oscillator during off-idle
-Date: Wed, 23 Apr 2014 17:40:29 -0700
-Message-ID: <1398300030-7386-4-git-send-email-tony@atomide.com>
+Subject: [PATCH 1a/4] mfd: twl4030-power: Add generic reset configuration
+Date: Wed, 23 Apr 2014 17:49:56 -0700
+Message-ID: <20140424004955.GG6053@atomide.com>
 References: <1398300030-7386-1-git-send-email-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19777 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35813 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751544AbaDXAkh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 20:40:37 -0400
+	with ESMTP id S1751671AbaDXAuE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2014 20:50:04 -0400
+Content-Disposition: inline
 In-Reply-To: <1398300030-7386-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Peter De Schrijver <pdeschrijver@nvidia.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>, Robert Nelson <robertcnelson@gmail.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
 
-Some oscillators can be turned off during off-idle saving few
-a little bit power at the cost of the oscillator start up
-latency.
+The twl4030 PMIC needs to be configured properly for things like
+warm reset and deeper idle states so the PMIC manages the regulators
+properly based on the hardware triggers from the SoC.
 
-If you board can do this, you can now enable it by using the
-ti,twl4030-power-idle-osc-off compatible flag.
+For example, when rebooting an OMAP3530 at 125 MHz, it hangs.
+With this patch, TWL4030 will be reset when a warm reset occures.
+This way the OMAP3530 does not hang on reboot.
 
+Let's use this as the default when compatible = "ti,twl4030-power".
+Other more complicated configurations can be added to the driver
+based on other compatible flags.
+
+Based on earlier patch by Matthias Brugger <matthias.bgg@gmail.com>:
+
+http://lists.infradead.org/pipermail/linux-arm-kernel/2013-January/144161.html
+
+For more information about twl4030 configuration for the
+"power scripts" see:
+
+http://www.omappedia.com/wiki/TWL4030_power_scripts
+
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Robert Nelson <robertcnelson@gmail.com>
 Cc: Peter De Schrijver <pdeschrijver@nvidia.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 Cc: Lee Jones <lee.jones@linaro.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
+
 ---
- .../devicetree/bindings/mfd/twl4030-power.txt         |  6 ++++++
- drivers/mfd/twl4030-power.c                           | 19 +++++++++++++++++++
- 2 files changed, 25 insertions(+)
+
+Sorry this got accidentally left out, should be the first patch
+in the series.
 
 diff --git a/Documentation/devicetree/bindings/mfd/twl4030-power.txt b/Documentation/devicetree/bindings/mfd/twl4030-power.txt
-index bbd6603..b9ee7b9 100644
+index 8e15ec3..b906116 100644
 --- a/Documentation/devicetree/bindings/mfd/twl4030-power.txt
 +++ b/Documentation/devicetree/bindings/mfd/twl4030-power.txt
-@@ -9,6 +9,7 @@ Required properties:
- 	"ti,twl4030-power"
- 	"ti,twl4030-power-reset"
- 	"ti,twl4030-power-idle"
-+	"ti,twl4030-power-idle-osc-off"
+@@ -5,7 +5,12 @@ to control the power resources, including power scripts. For now, the
+ binding only supports the complete shutdown of the system after poweroff.
  
- The use of ti,twl4030-power-reset is recommended at least on
- 3530 that needs a special configuration for warm reset to work.
-@@ -16,6 +17,11 @@ The use of ti,twl4030-power-reset is recommended at least on
- When using ti,twl4030-power-idle, the TI recommended configuration
- for idle modes is loaded to the tlw4030 PMIC.
- 
-+When using ti,twl4030-power-idle-osc-off, the TI recommended
-+configuration is used with the external oscillator being shut
-+down during off-idle. Note that this does not work on all boards
-+depending on how the external oscillator is wired.
+ Required properties:
+-- compatible : must be "ti,twl4030-power"
++- compatible : must be one of the following
++	"ti,twl4030-power"
++	"ti,twl4030-power-reset"
 +
++The use of ti,twl4030-power-reset is recommended at least on
++3530 that needs a special configuration for warm reset to work.
+ 
  Optional properties:
  - ti,use_poweroff: With this flag, the chip will initiates an ACTIVE-to-OFF or
- 		   SLEEP-to-OFF transition when the system poweroffs.
 diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 89c6b1a..12e4abe 100644
+index 96162b6..1db0560 100644
 --- a/drivers/mfd/twl4030-power.c
 +++ b/drivers/mfd/twl4030-power.c
-@@ -777,6 +777,21 @@ static struct twl4030_power_data omap3_idle = {
- 	.resource_config	= omap3_idle_rconfig,
- };
+@@ -29,6 +29,7 @@
+ #include <linux/i2c/twl.h>
+ #include <linux/platform_device.h>
+ #include <linux/of.h>
++#include <linux/of_device.h>
  
-+/* Disable 32 KiHz oscillator during idle */
-+static struct twl4030_resconfig osc_off_rconfig[] = {
-+	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-+	  .type = 3, .type2 = 2, .remap_off = TWL_REMAP_OFF,
-+	  .remap_sleep = TWL_REMAP_SLEEP, },
-+	{ /* Terminator */ },
+ #include <asm/mach-types.h>
+ 
+@@ -493,7 +494,8 @@ int twl4030_remove_script(u8 flags)
+ 	return err;
+ }
+ 
+-static int twl4030_power_configure_scripts(struct twl4030_power_data *pdata)
++static int
++twl4030_power_configure_scripts(const struct twl4030_power_data *pdata)
+ {
+ 	int err;
+ 	int i;
+@@ -509,7 +511,8 @@ static int twl4030_power_configure_scripts(struct twl4030_power_data *pdata)
+ 	return 0;
+ }
+ 
+-static int twl4030_power_configure_resources(struct twl4030_power_data *pdata)
++static int
++twl4030_power_configure_resources(const struct twl4030_power_data *pdata)
+ {
+ 	struct twl4030_resconfig *resconfig = pdata->resource_config;
+ 	int err;
+@@ -541,7 +544,7 @@ void twl4030_power_off(void)
+ 		pr_err("TWL4030 Unable to power off\n");
+ }
+ 
+-static bool twl4030_power_use_poweroff(struct twl4030_power_data *pdata,
++static bool twl4030_power_use_poweroff(const struct twl4030_power_data *pdata,
+ 					struct device_node *node)
+ {
+ 	if (pdata && pdata->use_poweroff)
+@@ -553,10 +556,60 @@ static bool twl4030_power_use_poweroff(struct twl4030_power_data *pdata,
+ 	return false;
+ }
+ 
++#ifdef CONFIG_OF
++
++/* Generic warm reset configuration for omap3 */
++
++static struct twl4030_ins omap3_wrst_seq[] = {
++	{ MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2 },
++	{ MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15 },
++	{ MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15 },
++	{ MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60 },
++	{ MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2 },
++	{ MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2 },
 +};
 +
-+static struct twl4030_power_data osc_off_idle = {
-+	.scripts		= omap3_idle_scripts,
-+	.num			= ARRAY_SIZE(omap3_idle_scripts),
-+	.resource_config	= omap3_idle_rconfig,
-+	.board_config		= osc_off_rconfig,
++static struct twl4030_script omap3_wrst_script = {
++	.script	= omap3_wrst_seq,
++	.size	= ARRAY_SIZE(omap3_wrst_seq),
++	.flags	= TWL4030_WRST_SCRIPT,
 +};
 +
- static struct of_device_id twl4030_power_of_match[] = {
- 	{
- 		.compatible = "ti,twl4030-power-reset",
-@@ -786,6 +801,10 @@ static struct of_device_id twl4030_power_of_match[] = {
- 		.compatible = "ti,twl4030-power-idle",
- 		.data = &omap3_idle,
- 	},
++static struct twl4030_script *omap3_reset_scripts[] = {
++	&omap3_wrst_script,
++};
++
++static struct twl4030_resconfig omap3_rconfig[] = {
++	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
++	  .type2 = -1 },
++	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
++	  .type2 = -1 },
++	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
++	  .type2 = -1 },
++	{ 0, 0},
++};
++
++static struct twl4030_power_data omap3_reset = {
++	.scripts		= omap3_reset_scripts,
++	.num			= ARRAY_SIZE(omap3_reset_scripts),
++	.resource_config	= omap3_rconfig,
++};
++
++static struct of_device_id twl4030_power_of_match[] = {
 +	{
-+		.compatible = "ti,twl4030-power-idle-osc-off",
-+		.data = &osc_off_idle,
++		.compatible = "ti,twl4030-power-reset",
++		.data = &omap3_reset,
 +	},
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, twl4030_power_of_match);
--- 
-1.8.1.1
-
++	{ },
++};
++MODULE_DEVICE_TABLE(of, twl4030_power_of_match);
++#endif	/* CONFIG_OF */
++
+ static int twl4030_power_probe(struct platform_device *pdev)
+ {
+-	struct twl4030_power_data *pdata = dev_get_platdata(&pdev->dev);
++	const struct twl4030_power_data *pdata = dev_get_platdata(&pdev->dev);
+ 	struct device_node *node = pdev->dev.of_node;
++	const struct of_device_id *match;
+ 	int err = 0;
+ 	int err2 = 0;
+ 	u8 val;
+@@ -577,8 +630,12 @@ static int twl4030_power_probe(struct platform_device *pdev)
+ 		return err;
+ 	}
+ 
++	match = of_match_device(of_match_ptr(twl4030_power_of_match),
++				&pdev->dev);
++	if (match && match->data)
++		pdata = match->data;
++
+ 	if (pdata) {
+-		/* TODO: convert to device tree */
+ 		err = twl4030_power_configure_scripts(pdata);
+ 		if (err) {
+ 			pr_err("TWL4030 failed to load scripts\n");
+@@ -628,14 +685,6 @@ static int twl4030_power_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_OF
+-static const struct of_device_id twl4030_power_of_match[] = {
+-	{.compatible = "ti,twl4030-power", },
+-	{ },
+-};
+-MODULE_DEVICE_TABLE(of, twl4030_power_of_match);
+-#endif
+-
+ static struct platform_driver twl4030_power_driver = {
+ 	.driver = {
+ 		.name	= "twl4030_power",
