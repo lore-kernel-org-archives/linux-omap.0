@@ -1,27 +1,45 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v2 00/13] extcon: major rework
-Date: Thu, 24 Apr 2014 12:52:03 -0700
-Message-ID: <20140424195203.GG12809@kroah.com>
-References: <1397475984-28001-1-git-send-email-r.baldyga@samsung.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: regressions in linux-next?
+Date: Thu, 24 Apr 2014 22:59:17 +0300
+Message-ID: <20140424195917.GF575@drone.musicnaut.iki.fi>
+References: <53566C20.6000208@ti.com>
+ <53566EBA.808@ti.com>
+ <CABxcv=mu=xvt7cM7Q8vBP2hQH124=CL9Yuox8WWcVGeKJ+NSjA@mail.gmail.com>
+ <CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
+ <7hr44mpxk6.fsf@paris.lan>
+ <CAGo_u6r79StfHwf8t8OB5vyhByfusi3EF=PZA186piiAci_wjw@mail.gmail.com>
+ <20140424154031.GA22987@atomide.com>
+ <535931F3.10805@ti.com>
+ <20140424161711.GC22987@atomide.com>
+ <535944F0.6030809@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:33141 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751177AbaDXUDh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 16:03:37 -0400
 Content-Disposition: inline
-In-Reply-To: <1397475984-28001-1-git-send-email-r.baldyga@samsung.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Robert Baldyga <r.baldyga@samsung.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, myungjoo.ham@samsung.com, cw00.choi@samsung.com, dbaryshkov@gmail.com, dwmw2@infradead.org, balbi@ti.com, grant.likely@linaro.org, ldewangan@nvidia.com, kishon@ti.com, gg@slimlogic.co.uk, anton@enomsg.org, jonghwa3.lee@samsung.com, rongjun.ying@csr.com, linux@roeck-us.net, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi, m.szyprowski@samsung.com, t.figa@samsung.com
+In-Reply-To: <535944F0.6030809@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-On Mon, Apr 14, 2014 at 01:46:11PM +0200, Robert Baldyga wrote:
-> This patchset adds many improvements to extcon class driver and extcon
-> provider drivers. It changes extcon API to faster and safer by replaceing
-> function taking extcon and cable names with functions working with
-> structures representing this objects.
+Hi,
 
-What is "faster" exactly?  How did you measure this?  What benchmarks
-can be run to test this claim?
+On Thu, Apr 24, 2014 at 12:08:00PM -0500, Nishanth Menon wrote:
+> The trigger was that even at TI, OMAP1s are hard to get to, in fact, I
+> do not of one person in TI who seems to have a functioning OMAP1
+> platform - and context of my question came from that background and
+> noticing others going through similar pain as well. Will continue to
+> look around.
 
-thanks,
+There has been commercially available consumer products based on OMAP1
+which can be still found places like ebay. E.g Nokia 770 runs mainline
+kernel out of the box. (Also Amstrad E3 works fine but you need
+to find an unused one because they locked the bootloader in a later
+firmware upgrade.) Never tested myself, but I think QEMU might even
+emulate some OMAP1 board.
 
-greg k-h
+A.
