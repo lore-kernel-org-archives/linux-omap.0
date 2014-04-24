@@ -1,49 +1,39 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 07/23] ARM: OMAP: add detection of omap5-dss
-Date: Thu, 24 Apr 2014 13:17:03 +0300
-Message-ID: <1398334639-14172-8-git-send-email-tomi.valkeinen@ti.com>
-References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH 0/6] PM / clock_ops: Add helpers combining generic runtime and generic clock PM
+Date: Thu, 24 Apr 2014 12:26:32 +0200
+Message-ID: <1398335198-26555-1-git-send-email-geert+renesas@glider.be>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ben Dooks <ben.dooks@codethink.co.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add detection of omap5-dss nodes so that the related devices get
-initialized.
+Several platform support codes combine pm_generic_runtime_suspend() and
+pm_clk_suspend(), resp. pm_clk_resume() and pm_generic_runtime_resume() in
+their .runtime_suspend resp. .runtime_resume callbacks.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/display.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Create helpers to consolidate.
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 974461441fc3..74869326dadc 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -665,6 +665,10 @@ struct device_node * __init omapdss_find_dss_of_node(void)
- 	if (node)
- 		return node;
- 
-+	node = of_find_compatible_node(NULL, NULL, "ti,omap5-dss");
-+	if (node)
-+		return node;
-+
- 	return NULL;
- }
- 
--- 
-1.9.1
+  - [1/6] PM / clock_ops: Add helpers combining generic runtime and generic
+	  clock PM
+  - [2/6] ARM: davinci: Use generic runtime and clock helpers
+  - [3/6] ARM: keystone: Use generic runtime and clock helpers
+  - [4/6] ARM: omap: Use generic runtime and clock helpers
+  - [5/6] drivers: sh: Use generic runtime and clock helpers
+  - [6/6] of/clk: Use generic runtime and clock helpers
+
+Patches 5 and 6 have dependencies (listed in the individual patches),
+but they can be postponed and handled later.
+
+Thanks!
+
+Gr{oetje,eeting}s,
+
+						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+							    -- Linus Torvalds
