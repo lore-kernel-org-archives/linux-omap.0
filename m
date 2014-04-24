@@ -1,8 +1,8 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 02/26] ARM: OMAP: dmtimer: Add comments on OMAP1 clock
- framework
-Date: Thu, 24 Apr 2014 16:43:45 -0500
-Message-ID: <1398375849-6017-3-git-send-email-joelf@ti.com>
+Subject: [PATCH 12/26] ARM: OMAP2+: timer: Simplify clock event/source name
+ setting
+Date: Thu, 24 Apr 2014 16:43:55 -0500
+Message-ID: <1398375849-6017-13-git-send-email-joelf@ti.com>
 References: <1398375849-6017-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,35 +22,61 @@ To: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-a
 Cc: Tony Lindgren <tony@atomide.com>, Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP1 doesn't support clock framework, add a comment where needed
-and correct a FIXME.
+For the OMAPs, we're setting up only one clockevent and clocksource. Further,
+for DT boot there's no easy way to get the timer name and currently this is
+done in an ugly way by reading a hwmod entry. So let's just set it to a simpler
+name like timer_clkev and timer_clksrc.
 
 Signed-off-by: Joel Fernandes <joelf@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/timer.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index ecd3f97..f5a674c 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -142,8 +142,7 @@ static int omap_dm_timer_prepare(struct omap_dm_timer *timer)
- 	int rc;
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index ec427e6..f192a41 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -251,7 +251,6 @@ static u32 __init omap_dm_timer_get_errata(void)
+ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 					 const char *fck_source,
+ 					 const char *property,
+-					 const char **timer_name,
+ 					 int posted)
+ {
+ 	char name[10]; /* 10 = sizeof("gptXX_Xck0") */
+@@ -290,8 +289,6 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 	if (!oh)
+ 		return -ENODEV;
  
- 	/*
--	 * FIXME: OMAP1 devices do not use the clock framework for dmtimers so
--	 * do not call clk_get() for these devices.
-+	 * Do not call clk_get() for OMAP1 due to no clock framework support.
+-	*timer_name = oh->name;
+-
+ 	if (!of_have_populated_dt()) {
+ 		r = omap_hwmod_get_resource_byname(oh, IORESOURCE_IRQ, NULL,
+ 						   &irq);
+@@ -365,8 +362,10 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
  	 */
- 	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET)) {
- 		timer->fclk = clk_get(&timer->pdev->dev, "fck");
-@@ -461,6 +460,7 @@ int omap_dm_timer_stop(struct omap_dm_timer *timer)
- 	if (unlikely(!timer))
- 		return -EINVAL;
+ 	__omap_dm_timer_override_errata(&clkev, OMAP_TIMER_ERRATA_I103_I767);
  
-+	/* OMAP1 is not converted to clk framework so avoid clk_get_rate here */
- 	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET))
- 		rate = clk_get_rate(timer->fclk);
++	clockevent_gpt.name = "timer_clkev";
++
+ 	res = omap_dm_timer_init_one(&clkev, fck_source, property,
+-				     &clockevent_gpt.name, OMAP_TIMER_POSTED);
++				     OMAP_TIMER_POSTED);
+ 	BUG_ON(res);
  
+ 	omap2_gp_timer_irq.dev_id = &clkev;
+@@ -489,10 +488,11 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
+ 	clksrc.errata = omap_dm_timer_get_errata();
+ 
+ 	res = omap_dm_timer_init_one(&clksrc, fck_source, property,
+-				     &clocksource_gpt.name,
+ 				     OMAP_TIMER_NONPOSTED);
+ 	BUG_ON(res);
+ 
++	clocksource_gpt.name = "timer_clksrc";
++
+ 	__omap_dm_timer_load_start(&clksrc,
+ 				   OMAP_TIMER_CTRL_AR, 0,
+ 				   OMAP_TIMER_NONPOSTED);
 -- 
 1.7.9.5
