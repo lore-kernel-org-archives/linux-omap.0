@@ -1,133 +1,162 @@
 From: Vivek Gautam <gautam.vivek@samsung.com>
 Subject: Re: [PATCH 1/3] usb: ohci-exynos: Make provision for vdd regulators
-Date: Thu, 24 Apr 2014 12:02:57 +0530
-Message-ID: <CAFp+6iFTVKHcF8zyfmFcrALHDaRHwXOC3Wbd7rv_X5LvjznPgg@mail.gmail.com>
+Date: Thu, 24 Apr 2014 12:10:27 +0530
+Message-ID: <CAFp+6iGo-Rk8d28=dosVW63f-ZrZjmxj9fsm7D7Vn4-HdhSgjw@mail.gmail.com>
 References: <1398082604-3013-1-git-send-email-gautam.vivek@samsung.com>
 	<002b01cf5f52$a7bc0d70$f7342850$%tikhomirov@samsung.com>
-	<002e01cf5f55$74aff060$5e0fd120$%tikhomirov@samsung.com>
+	<001a01cf5f54$af090810$0d1b1830$%han@samsung.com>
+	<000001cf5f5c$2f6c2440$8e446cc0$%han@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <002e01cf5f55$74aff060$5e0fd120$%tikhomirov@samsung.com>
+In-Reply-To: <000001cf5f5c$2f6c2440$8e446cc0$%han@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Anton Tikhomirov <av.tikhomirov@samsung.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Greg KH <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Jingoo Han <jg1.han@samsung.com>
+To: Jingoo Han <jg1.han@samsung.com>
+Cc: Anton Tikhomirov <av.tikhomirov@samsung.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Greg KH <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Kukjin Kim <kgene.kim@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Jingoo,
 
 
-On Thu, Apr 24, 2014 at 6:08 AM, Anton Tikhomirov
-<av.tikhomirov@samsung.com> wrote:
-> Hi,
->
->> Hi,
->>
->> > -----Original Message-----
->> > From: linux-usb-owner@vger.kernel.org [mailto:linux-usb-
->> > owner@vger.kernel.org] On Behalf Of Vivek Gautam
->> > Sent: Monday, April 21, 2014 9:17 PM
->> >
->> > Facilitate getting required 3.3V and 1.0V VDD supply for
->> > OHCI controller on Exynos.
->> >
->> > With patches for regulators' nodes merged in 3.15:
->> > c8c253f ARM: dts: Add regulator entries to smdk5420
->> > 275dcd2 ARM: dts: add max77686 pmic node for smdk5250,
->> >
->> > certain perripherals will now need to ensure that,
->> > they request VDD regulators in their drivers, and enable
->> > them so as to make them working.
->> >
->> > Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
->> > Cc: Jingoo Han <jg1.han@samsung.com>
->> > ---
->> >
->> > Based on 'usb-next' branch of Greg's usb tree.
->> >
->> >  drivers/usb/host/ohci-exynos.c |   47
->> > ++++++++++++++++++++++++++++++++++++++++
->> >  1 file changed, 47 insertions(+)
->> >
->> > diff --git a/drivers/usb/host/ohci-exynos.c b/drivers/usb/host/ohci-
->> > exynos.c
->> > index 68588d8..e2e72a8 100644
->> > --- a/drivers/usb/host/ohci-exynos.c
->> > +++ b/drivers/usb/host/ohci-exynos.c
+On Thu, Apr 24, 2014 at 6:56 AM, Jingoo Han <jg1.han@samsung.com> wrote:
+> On Thursday, April 24, 2014 9:33 AM, Jingoo Han wrote:
+>> On Thursday, April 24, 2014 9:18 AM, Anton Tikhomirov wrote:
+>> > On Monday, April 21, 2014 9:17 PM, Vivek Gautam wrote:
+>> > >
+>> > > Facilitate getting required 3.3V and 1.0V VDD supply for
+>> > > OHCI controller on Exynos.
+>> > >
+>> > > With patches for regulators' nodes merged in 3.15:
+>> > > c8c253f ARM: dts: Add regulator entries to smdk5420
+>> > > 275dcd2 ARM: dts: add max77686 pmic node for smdk5250,
+>> > >
+>> > > certain perripherals will now need to ensure that,
+>> > > they request VDD regulators in their drivers, and enable
+>> > > them so as to make them working.
+>> > >
+>> > > Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>> > > Cc: Jingoo Han <jg1.han@samsung.com>
+>> > > ---
+>> > >
+>> > > Based on 'usb-next' branch of Greg's usb tree.
+>> > >
+>> > >  drivers/usb/host/ohci-exynos.c |   47
+>> > > ++++++++++++++++++++++++++++++++++++++++
+>> > >  1 file changed, 47 insertions(+)
+>> > >
+>> > > diff --git a/drivers/usb/host/ohci-exynos.c b/drivers/usb/host/ohci-
+>> > > exynos.c
+>> > > index 68588d8..e2e72a8 100644
+>> > > --- a/drivers/usb/host/ohci-exynos.c
+>> > > +++ b/drivers/usb/host/ohci-exynos.c
 
 [snip]
 
->> >  static void exynos_ohci_phy_enable(struct platform_device *pdev)
->> > @@ -98,6 +101,28 @@ static int exynos_ohci_probe(struct
->> platform_device
->> > *pdev)
->> >             exynos_ohci->otg = phy->otg;
->> >     }
+>> > > @@ -98,6 +101,28 @@ static int exynos_ohci_probe(struct platform_device
+>> > > *pdev)
+>> > >           exynos_ohci->otg = phy->otg;
+>> > >   }
+>> > >
+>> > > + exynos_ohci->vdd33 = devm_regulator_get(&pdev->dev, "vdd33");
+>> > > + if (IS_ERR(exynos_ohci->vdd33)) {
+>> > > +         err = PTR_ERR(exynos_ohci->vdd33);
+>> > > +         goto fail_regulator1;
+>> > > + }
+>> > > + err = regulator_enable(exynos_ohci->vdd33);
+>> > > + if (err) {
+>> > > +         dev_err(&pdev->dev, "Failed to enable VDD33 supply\n");
+>> > > +         goto fail_regulator1;
+>> > > + }
+>> > > +
+>> > > + exynos_ohci->vdd10 = devm_regulator_get(&pdev->dev, "vdd10");
+>> > > + if (IS_ERR(exynos_ohci->vdd10)) {
+>> > > +         err = PTR_ERR(exynos_ohci->vdd10);
+>> > > +         goto fail_regulator2;
+>> > > + }
+>> > > + err = regulator_enable(exynos_ohci->vdd10);
+>> > > + if (err) {
+>> > > +         dev_err(&pdev->dev, "Failed to enable VDD10 supply\n");
+>> > > +         goto fail_regulator2;
+>> > > + }
+>> > > +
 >> >
->> > +   exynos_ohci->vdd33 = devm_regulator_get(&pdev->dev, "vdd33");
->> > +   if (IS_ERR(exynos_ohci->vdd33)) {
->> > +           err = PTR_ERR(exynos_ohci->vdd33);
->> > +           goto fail_regulator1;
->> > +   }
->> > +   err = regulator_enable(exynos_ohci->vdd33);
->> > +   if (err) {
->> > +           dev_err(&pdev->dev, "Failed to enable VDD33 supply\n");
->> > +           goto fail_regulator1;
->> > +   }
->> > +
->> > +   exynos_ohci->vdd10 = devm_regulator_get(&pdev->dev, "vdd10");
->> > +   if (IS_ERR(exynos_ohci->vdd10)) {
->> > +           err = PTR_ERR(exynos_ohci->vdd10);
->> > +           goto fail_regulator2;
->> > +   }
->> > +   err = regulator_enable(exynos_ohci->vdd10);
->> > +   if (err) {
->> > +           dev_err(&pdev->dev, "Failed to enable VDD10 supply\n");
->> > +           goto fail_regulator2;
->> > +   }
->> > +
+>> > Do we need to skip regulator settings together with PHY configuration
+>> > in case of exynos5440?
 >>
->> Do we need to skip regulator settings together with PHY configuration
->> in case of exynos5440?
->>
->> >  skip_phy:
->> >     exynos_ohci->clk = devm_clk_get(&pdev->dev, "usbhost");
->> >
-
-[snip]
-
->> > @@ -218,6 +253,18 @@ static int exynos_ohci_resume(struct device *dev)
->> >     struct usb_hcd *hcd                     = dev_get_drvdata(dev);
->> >     struct exynos_ohci_hcd *exynos_ohci     = to_exynos_ohci(hcd);
->> >     struct platform_device *pdev            = to_platform_device(dev);
->> > +   int ret;
->> > +
->> > +   ret = regulator_enable(exynos_ohci->vdd33);
->> > +   if (ret) {
->> > +           dev_err(dev, "Failed to enable VDD33 supply\n");
->> > +           return ret;
->>
->> Not sure, but shall we continue resuming and do everything
->> we can in case of error? At least it will avoid
->> WARN_ON(clk->enable_count == 0) on next system suspend.
-
-True, i will modify it.
+>> Oh, right. In the case of exynos5440, regulator settings is not
+>> necessary. Vivek, would you fix it in order skip regulator settings
+>> in exynos5440? It also applies to ehci-exynos.
 >
-> On the other hand, if power is not applied to the controller,
-> register access in ohci_resume() may lead to undefined behavior.
-> What's your opinion?
+> Sorry, in the case of exynos5440, this patch already skips
+> regulator settings.
+>
+> In the case of exynos5440, there is no need to set PHY setting
+> and regulator setting.
 
-AFA i think, it is obvious that the regulators would not work without
-a VDD supply.
-So the question is, do we have VDD LDOs available on all Exynos
-systems for usb ?
->From the schemata of Exynos5250 and Exynos5420 boards, i can see the
-required VDD LDOs
-for USB. Unfortunately at present i don't have a Exynos4* schemata.
+Right, in case of exynos5440, we are skipping PHY setting and regulator setting.
+Actually i had missed taking into account 5440, so just curious. Do we
+really not need a regulator
+settings for Exynos5440 ?
 
-If regulator is not a mandatory, then we can make it option similar to
-what Jingoo has also suggested
-in subsequent mail.
+>
+> How about making regulator setting "optional"?
+> Then, regulator setting can be done, only when regulator
+> is supported.
+
+True, so with Exynos5440 not needing the regulator, we should make the
+regulator settings optional.
+
+>
+> exynos_ohci_probe()
+>         exynos_ohci->vdd33 = devm_regulator_get(&pdev->dev, "vdd33");
+>         if (IS_ERR(exynos_ohci->vdd33)) {
+>                 dev_err(&pdev->dev, "Failed to get VDD33 supply\n");
+>         } else {
+>                 err = regulator_enable(exynos_ohci->vdd33);
+>                 if (err) {
+>                         dev_err(&pdev->dev, "Failed to enable VDD33 supply\n");
+>                         goto fail_regulator1;
+>                 }
+>         }
+>
+>         exynos_ohci->vdd10 = devm_regulator_get(&pdev->dev, "vdd10");
+>         if (IS_ERR(exynos_ohci->vdd10)) {
+>                 dev_err(&pdev->dev, "Failed to get VDD10 supply\n");
+>         } else {
+>                 err = regulator_enable(exynos_ohci->vdd10);
+>                 if (err) {
+>                         dev_err(&pdev->dev, "Failed to enable VDD10 supply\n");
+>                         goto fail_regulator2;
+>                 }
+>         }
+>
+> In this case, suspend/resume can be fixed as below.
+>
+> exynos_ohci_suspend()
+>         if (exynos_ohci->vdd10)
+>                 regulator_disable(exynos_ohci->vdd10);
+>         if (exynos_ohci->vdd33)
+>                 regulator_disable(exynos_ohci->vdd33);
+>
+> exynos_ohci_resume()
+>
+>         if (exynos_ohci->vdd33) {
+>                 ret = regulator_enable(exynos_ohci->vdd33);
+>                 if (ret) {
+>                         dev_err(dev, "Failed to enable VDD33 supply\n");
+>                         return ret;
+>                 }
+>         }
+>         if (exynos_ohci->vdd10) {
+>                 ret = regulator_enable(exynos_ohci->vdd10);
+>                 if (ret) {
+>                         dev_err(dev, "Failed to enable VDD10 supply\n");
+>                         return ret;
+>                 }
+>         }
+
+Thanks for the suggestion.
+I will make the required changes, and post the patchset again.
 
 [snip]
 
