@@ -1,54 +1,64 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: regressions in linux-next?
-Date: Thu, 24 Apr 2014 08:16:41 -0700
-Message-ID: <7hr44mpxk6.fsf@paris.lan>
-References: <53566C20.6000208@ti.com> <53566EBA.808@ti.com>
-	<CABxcv=mu=xvt7cM7Q8vBP2hQH124=CL9Yuox8WWcVGeKJ+NSjA@mail.gmail.com>
-	<CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH 3/5] mmc: host: omap_hsmmc: introduce new accessor functions
+Date: Thu, 24 Apr 2014 20:47:38 +0530
+Message-ID: <53592B12.8090700@ti.com>
+References: <1395878690-9650-1-git-send-email-balbi@ti.com> <1395878690-9650-4-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:33972 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757182AbaDXPQq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 11:16:46 -0400
-Received: by mail-pa0-f52.google.com with SMTP id kx10so2027211pab.39
-        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2014 08:16:46 -0700 (PDT)
-In-Reply-To: <CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
-	(Linus Walleij's message of "Wed, 23 Apr 2014 00:00:13 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1395878690-9650-4-git-send-email-balbi@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: chris@printf.net, ulf.hansson@linaro.org, linux-mmc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-Linus Walleij <linus.walleij@linaro.org> writes:
-
-> On Tue, Apr 22, 2014 at 5:52 PM, Javier Martinez Canillas
-> <javier@dowhile0.org> wrote:
+On Thursday 27 March 2014 05:34 AM, Felipe Balbi wrote:
+> we introduce new accessors which provide for register
+> access with and without offsets.
 >
->> I've revised the patch again and I couldn't find the reason why
->> certain boards are failing to boot.
->>
->> I can't reproduce this issue since I only have a DM3730 IGEPv2 board
->> which boots fine but I should have access to an AM3354 IGEP Aquila
->> board which is similar to the am335x-evmsk so I may be able to debug
->> it.
+> This is just to make sure newer versions of the IP
+> can access the new registers prepended at the beginning
+> of the address space.
 >
-> It would really REALLY appreciate if some of the people maintaining
-> and using OMAP1 would help Javier out in this refactoring operation.
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>   drivers/mmc/host/omap_hsmmc.c | 36 ++++++++++++++++++++++++++++++++++++
+>   1 file changed, 36 insertions(+)
 >
-> I'd really *hate* to have to drop his patches because of a lack of
-> boards. This refactoring is necessary to handle the exploding
-> multitude of GPIO drivers moving forward.
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index d46f768..e596c6a 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -211,6 +211,42 @@ struct omap_hsmmc_host {
+>   	struct	omap_mmc_platform_data	*pdata;
+>   };
 >
-> We even tried to get an Innovator to boot just to be able to refactor
-> OMAP stuff but fell short on some special JTAG reflash snag so
-> we are dependent on maintainers to help out here :-/
+> +static inline int _omap_hsmmc_read(struct omap_hsmmc_host *host,
+> +		u32 reg, bool offset)
+> +{
+> +	return readl(host->base + reg + (offset ? host->reg_offset : 0));
+> +}
+> +
+> +static inline void _omap_hsmmc_write(struct omap_hsmmc_host *host,
+> +		u32 reg, u32 val, bool offset)
+> +{
+> +	writel(val, host->base + reg + (offset ? host->reg_offset : 0));
+> +}
+> +
+> +static inline int omap_hsmmc_read_offset(struct omap_hsmmc_host *host,
 
-Unfortunately, my OMAP1 (omap5912/OSK[1]) died last year and I haven't been
-able to get it booting again.  I wonder if Spectrum Digital still has
-these available?  Their websites[1] says "call for price."
+I think you can rename this function as just omap_hsmmc_read
+(removing _offset suffix)
 
-Kevin
+> +		u32 reg)
+> +{
+> +	return _omap_hsmmc_read(host, reg, true);
+> +}
+> +
+> +static inline void omap_hsmmc_write_offset(struct omap_hsmmc_host *host,
 
-[1] http://www.spectrumdigital.com/product_info.php?products_id=39
+and this one as omap_hsmmc_write since this version of read/write is most often
+used, the one with no_offset might be used less often.
+
+
