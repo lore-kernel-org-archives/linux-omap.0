@@ -1,89 +1,72 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 11/23] ARM: dts: omap5-uevm.dts: add tca6424a
-Date: Thu, 24 Apr 2014 17:33:03 +0300
-Message-ID: <5359209F.7000308@ti.com>
-References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com> <1398334639-14172-12-git-send-email-tomi.valkeinen@ti.com> <53591669.7060502@cogentembedded.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 0/5] mmc: host: omap_hsmmc: a few improvements
+Date: Thu, 24 Apr 2014 09:39:31 -0500
+Message-ID: <20140424143931.GE26661@saruman.home>
+References: <1395878690-9650-1-git-send-email-balbi@ti.com>
+ <53592037.8050106@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="OaNegstrUp0IMkpXkdUnbMjfdWxxosrXN"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43898 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755990AbaDXOda (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Apr 2014 10:33:30 -0400
-In-Reply-To: <53591669.7060502@cogentembedded.com>
-Sender: linux-omap-owner@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="fWddYNRDgTk9wQGZ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <53592037.8050106@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, chris@printf.net, ulf.hansson@linaro.org, linux-mmc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
---OaNegstrUp0IMkpXkdUnbMjfdWxxosrXN
-Content-Type: text/plain; charset=ISO-8859-1
+--fWddYNRDgTk9wQGZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 24/04/14 16:49, Sergei Shtylyov wrote:
-> Hello.
+On Thu, Apr 24, 2014 at 08:01:19PM +0530, Balaji T K wrote:
+> On Thursday 27 March 2014 05:34 AM, Felipe Balbi wrote:
+> >Hi,
+> >
+> >this series lets us access the newer registers introduced
+> >back in OMAP4 which give us some valid information about
+> >the OMAP HSMMC IP like max block size, support for ADMA,
+> >support for Retention.
 >=20
-> On 24-04-2014 14:17, Tomi Valkeinen wrote:
->=20
->> omap5-uevm has a tca6424a I/O expander. Add it to the .dts file.
->=20
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> Cc: Tony Lindgren <tony@atomide.com>
->> ---
->>   arch/arm/boot/dts/omap5-uevm.dts | 7 +++++++
->>   1 file changed, 7 insertions(+)
->=20
->> diff --git a/arch/arm/boot/dts/omap5-uevm.dts
->> b/arch/arm/boot/dts/omap5-uevm.dts
->> index 3b99ec25b748..9e7581eaeb23 100644
->> --- a/arch/arm/boot/dts/omap5-uevm.dts
->> +++ b/arch/arm/boot/dts/omap5-uevm.dts
->> @@ -434,6 +434,13 @@
->>       pinctrl-0 =3D <&i2c5_pins>;
->>
->>       clock-frequency =3D <400000>;
->> +
->> +    tca6424a: tca6424a@22 {
->=20
->    The ePAPR standard [1] says: "The name of a node should be somewhat
-> generic,
-> reflecting the function of the device and not its precise programming
-> model.
-> If appropriate, the name should be one of the following choices:
-> [...]
->    - gpio;"
+> "Support for Retention" looks interesting, can you shed more lights on
+> it
 
-Right. I wonder what the name should be... "gpio" is out, as the name
-should be more specific. We already have gpio1-8, which are the gpio
-banks from the SoC. It could be 'gpio9', but that makes it sound it's
-just one more SoC gpio bank. 'gpio-expander1'?
+HWINFO has a bit (bit 6) which tells you whether retention is supported,
+it's in all TRMs since OMAP3630 or so.
 
- Tomi
+"6	RERETMODE		Retention mode generic parameter
+				This bit field indicates whether the
+				retention mode is supported using the
+				pin PIRFFRET.
 
+				0x0: Retention mode disabled
+				0x1: Retention mode enabled"
 
+--=20
+balbi
 
---OaNegstrUp0IMkpXkdUnbMjfdWxxosrXN
+--fWddYNRDgTk9wQGZ
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTWSCfAAoJEPo9qoy8lh715sAP/j2FkKE1tWbsDl47WvBt/OR7
-J0iCFHWGmrnMvlE0I9/nG5RGUcKyOa5QoJ54vA7dEC/7yAB0I0ESifDQJH/Ahgb0
-AoP/zqVVaWJzb5uIqKTnhzKZJMJ/Rd7BRaPe48hQicPZr+ywvSKdtH6HyLMBCidp
-nt+o7sgED/PUMk5WfmGzNJPGv590uNis89dM0Jpzk8VNpqWSZIgZf/yQAYApFrsv
-bYLPrgwKy3oGWxWiwWLjSUxI9tMkLgytrvTDrsGJvpoFp4L6XB8BaAFmGpD6D+92
-Mkb2iNE0Z8/hahxPb7hSwF4D7ri+XClycQtzyDB6YEHTbVFTqGLqSBpvJn7jjMKJ
-9isSJ20OZSnHsPKW29Uwz9Xwb88kB1dJv5NvZ8nzej3+Pgssj4pnhMFoUwAdvXQF
-ChIIBlFZNcVpDqoGByNH57cXazMSOiduS7Dov66h7wrkOW87Z3K5m+L9E8sVRgfP
-jbuf5EANDLeuZ/eiWzq5GqDaeJoMsyZxJdH+9j+/fZWU3SBl1+3428omoaXRf9eu
-02yAyJjnbBeD2F2Obj4LblryfdzfXGe3t+0IMlzti54vqsVXSb+0YzBYgIj38hrj
-XTNVKMZXKsiwjOjT0iXCdw/lnmF1QwGXKUDFub42n0/IBKwOM09cv4/sCzqbbeEb
-cBD5qPHMCzdhzkpnXtYP
-=Yfux
+iQIcBAEBAgAGBQJTWSIjAAoJEIaOsuA1yqREYi0QAJ0isNNTkVzz0NmZhgRvFbqM
+7vgsoY1+hOLXV8nuu3YOFGwTd1whldV5Qg17OgwH5cKUOEK4IfsP/P57b1M2GMIq
+PgFhAss0FvzfHnY0vIxwkcO4OlYq3D2hn7cLIV9LxRhooPLcl+vllbB76Pgm/+ew
+rh3mz1950fIiYOfzMDRj7y8uNcKc5qr7pJj2/baxIWFmBcME2VnVaJCLM7+u9SCf
+p8ut75KKmZZTkWw17t8ts4qvtzFEBw3aLLxxs3kk79AwoSNcCqxfH0xOYNXLqAGa
+Q0XIZ5q1AUNsDw7sWFrZbyl9V3s7Lu8Kp8F2tb20xaY24UHfNWX+DOb7bpcOaI07
+eRJwXK4hilFsicTBjX/O1mRkIElXDWAxSahE0uJ8kXXyx1JDy7UasvlFp4Z7IUvZ
+ufH1APYyofMusKHvPu7ENEu4C+SmP2mVA5F6iTSOcNyS75VHCEW6D6VchSpmV0Tw
+kaDIulOz5UuwmtWudcyZoOE46E4fyK0uGD/XRojmRoK/GznJNEOypLxYzm7mOhKc
+XzUgoVkqAxgp/9I/FJkZFa7pZG5jwuksuMNAr28Q5PXacCUvcUS9Iekhquyl8wpf
+4kyn0v3Fba0B+rWgyb3E3rAQ2uevrg8Fk9bvg7xJ8Ug3mLQ6fnFZqAXhsUuTachE
+nkYZ2YORRN1qxYzm+EMw
+=LcfW
 -----END PGP SIGNATURE-----
 
---OaNegstrUp0IMkpXkdUnbMjfdWxxosrXN--
+--fWddYNRDgTk9wQGZ--
