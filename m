@@ -1,61 +1,54 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: musb_dsps: fix the exit routine for debugfs
-Date: Thu, 24 Apr 2014 10:10:58 -0500
-Message-ID: <20140424151058.GQ26661@saruman.home>
-References: <1398267583-19159-1-git-send-email-ogayot@baylibre.com>
- <20140423155529.GL9593@saruman.home>
- <20140424110734.1f83b52c@blinky>
-Reply-To: <balbi@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: regressions in linux-next?
+Date: Thu, 24 Apr 2014 08:16:41 -0700
+Message-ID: <7hr44mpxk6.fsf@paris.lan>
+References: <53566C20.6000208@ti.com> <53566EBA.808@ti.com>
+	<CABxcv=mu=xvt7cM7Q8vBP2hQH124=CL9Yuox8WWcVGeKJ+NSjA@mail.gmail.com>
+	<CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="uRjmd8ppyyws0Tml"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48072 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757663AbaDXPLI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 11:11:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20140424110734.1f83b52c@blinky>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:33972 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757182AbaDXPQq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 11:16:46 -0400
+Received: by mail-pa0-f52.google.com with SMTP id kx10so2027211pab.39
+        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2014 08:16:46 -0700 (PDT)
+In-Reply-To: <CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com>
+	(Linus Walleij's message of "Wed, 23 Apr 2014 00:00:13 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olivier Gayot <ogayot@baylibre.com>
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Markus Pargmann <mpa@pengutronix.de>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
---uRjmd8ppyyws0Tml
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Linus Walleij <linus.walleij@linaro.org> writes:
 
-Hi,
+> On Tue, Apr 22, 2014 at 5:52 PM, Javier Martinez Canillas
+> <javier@dowhile0.org> wrote:
+>
+>> I've revised the patch again and I couldn't find the reason why
+>> certain boards are failing to boot.
+>>
+>> I can't reproduce this issue since I only have a DM3730 IGEPv2 board
+>> which boots fine but I should have access to an AM3354 IGEP Aquila
+>> board which is similar to the am335x-evmsk so I may be able to debug
+>> it.
+>
+> It would really REALLY appreciate if some of the people maintaining
+> and using OMAP1 would help Javier out in this refactoring operation.
+>
+> I'd really *hate* to have to drop his patches because of a lack of
+> boards. This refactoring is necessary to handle the exploding
+> multitude of GPIO drivers moving forward.
+>
+> We even tried to get an Innovator to boot just to be able to refactor
+> OMAP stuff but fell short on some special JTAG reflash snag so
+> we are dependent on maintainers to help out here :-/
 
-On Thu, Apr 24, 2014 at 11:07:34AM +0200, Olivier Gayot wrote:
-> Ok, thank you, I didn't notice the existing thread.
+Unfortunately, my OMAP1 (omap5912/OSK[1]) died last year and I haven't been
+able to get it booting again.  I wonder if Spectrum Digital still has
+these available?  Their websites[1] says "call for price."
 
-no problem, but don't top-post please :-s
+Kevin
 
---=20
-balbi
-
---uRjmd8ppyyws0Tml
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTWSmCAAoJEIaOsuA1yqRESoUQAI1edIy7OwBsUt3hpjO06Bfb
-/JyOHKWgLc3XkFmQhwRgKLFiirt4Zb4xtxhLP1lZqwyLfSl60vtTz0vxnkb2hC1V
-NSJnZ8q0gsRVyHlXVVOjDh3QeL+/sLPc23jECob8p8fmi5L3bTIsnZnAvPHgTdUl
-8ms4Iv45BRJB0kbXvPVr3gz9K8qARB6OPplotAAsbNhWcBwpwHX7KVWEHvYA0C46
-6ZOs95q7JqMbcld1GuIvk7XKq3bpCmgxevk/SaSQ3shue6uDovFyu4+TdD4oAlVo
-zijSAdvaSejL9tL7FwDlbZ0SwF/Oydus4TAoBsOwfAb+dAW4TotdQgqlRKdK1gFN
-so7oTj6p5iP+QIN4ll+f6zUnmq/pGlRbYgcuTd2Sqo1V5+NCSl8qfZBP2O/HveZu
-8xB0qcvOOA3Qw9gUC1aiuoVJTr1zAJTq7FMb3y04mjssk6YgmduSG4v9AQ1nHAgp
-yERkGqStvJaPYGIUoYyMb+G4Gov6J21aA8kc+XJvsdG4rNMFHJ0bMKwM/cfZwnLi
-O6+r0Z+nOWChdz/PrB3P4f4654mqqJQshvRsJXgvI2Ysj5vfsa5EdGxPLgsJrTmN
-NFmI+dy2gbyehAG30QNccNC0mldBVP1I7rKozFQBv2IecvF0YO7AOw/lbuJrsk5s
-OyO+EeFfGxOmDgK+XOA0
-=oLi/
------END PGP SIGNATURE-----
-
---uRjmd8ppyyws0Tml--
+[1] http://www.spectrumdigital.com/product_info.php?products_id=39
