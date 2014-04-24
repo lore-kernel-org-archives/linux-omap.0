@@ -1,8 +1,8 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 21/26] ARM: OMAP: dmtimer: Add systimer flag to dmtimer
- structure
-Date: Thu, 24 Apr 2014 16:44:04 -0500
-Message-ID: <1398375849-6017-22-git-send-email-joelf@ti.com>
+Subject: [PATCH 24/26] ARM: OMAP: dmtimer: Move private functions into dmtimer
+ core and export others
+Date: Thu, 24 Apr 2014 16:44:07 -0500
+Message-ID: <1398375849-6017-25-git-send-email-joelf@ti.com>
 References: <1398375849-6017-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,197 +22,322 @@ To: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-a
 Cc: Tony Lindgren <tony@atomide.com>, Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add a systimer flag to mark that a timer is used for system timers, this will
-help simplify cases where we have to use runtime PM for non system timers, and
-we don't have explicitly pass arguments to functions to tell it to do runtime
-PM and context save or not.
+omap_dm_timer_read/write are no longer used by anyone else outside of dmtimer.c,
+This allows us to remove it completely from the dmtimer.h header.
 
-Also will be useful in upcoming patches to not do certain pm runtime checks
-for !systimers.
+The reset of the functions are moved into dmtimer.c and the "__" prefix is removed,
+and they're exported for use by others such as OMAP2+ system timers.
+omap_dm_timer_init_regs
+omap_dm_timer_enable_posted
+omap_dm_timer_override_errata
+omap_dm_timer_int_enable
+
+All other functions in dmtimer.h have been either removed, or folded into other similar
+functions, and such users converted to use the one folded into.
 
 Signed-off-by: Joel Fernandes <joelf@ti.com>
 ---
- arch/arm/mach-omap2/timer.c                  |   12 ++++++------
- arch/arm/plat-omap/dmtimer.c                 |   11 ++++++-----
- arch/arm/plat-omap/include/plat/dmtimer.h    |    5 +++--
- drivers/media/rc/ir-rx51.c                   |    4 ++--
- drivers/staging/tidspbridge/core/dsp-clock.c |    4 ++--
- 5 files changed, 19 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/timer.c               |    8 +--
+ arch/arm/plat-omap/dmtimer.c              |  105 ++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/dmtimer.h |  103 ++--------------------------
+ 3 files changed, 113 insertions(+), 103 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 2d8ea96..5cceaae 100644
+index 39b3e34..afb22eb 100644
 --- a/arch/arm/mach-omap2/timer.c
 +++ b/arch/arm/mach-omap2/timer.c
-@@ -64,7 +64,7 @@
+@@ -363,9 +363,9 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
  
- /* Clockevent code */
+ 	clk_put(src);
  
--static struct omap_dm_timer clkev;
-+static struct omap_dm_timer clkev = { .systimer = 1 };
- static struct clock_event_device clockevent_gpt;
+-	__omap_dm_timer_init_regs(timer);
++	omap_dm_timer_init_regs(timer);
+ 	if (posted)
+-		__omap_dm_timer_enable_posted(timer);
++		omap_dm_timer_enable_posted(timer);
  
- #ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
-@@ -95,7 +95,7 @@ static struct irqaction omap2_gp_timer_irq = {
- static int omap2_gp_timer_set_next_event(unsigned long cycles,
- 					 struct clock_event_device *evt)
- {
--	omap_dm_timer_set_load_start(&clkev, 0xffffffff - cycles, 0, 0);
-+	omap_dm_timer_set_load_start(&clkev, 0xffffffff - cycles, 0);
+ 	/* Check that the intended posted configuration matches the actual */
+ 	if (posted != timer->posted)
+@@ -391,7 +391,7 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
+ 	 * so we are not impacted by errata i103 and i767. Therefore,
+ 	 * we can safely ignore this errata for clock-event timers.
+ 	 */
+-	__omap_dm_timer_override_errata(&clkev, OMAP_TIMER_ERRATA_I103_I767);
++	omap_dm_timer_override_errata(&clkev, OMAP_TIMER_ERRATA_I103_I767);
  
- 	return 0;
- }
-@@ -105,13 +105,13 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
- {
- 	u32 period;
+ 	clockevent_gpt.name = "timer_clkev";
  
--	omap_dm_timer_stop(&clkev, 0);
-+	omap_dm_timer_stop(&clkev);
+@@ -402,7 +402,7 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
+ 	omap2_gp_timer_irq.dev_id = &clkev;
+ 	setup_irq(clkev.irq, &omap2_gp_timer_irq);
  
- 	switch (mode) {
- 	case CLOCK_EVT_MODE_PERIODIC:
- 		period = clkev.rate / HZ;
- 		period -= 1;
--		omap_dm_timer_set_load_start(&clkev, 0xffffffff - period, 1, 0);
-+		omap_dm_timer_set_load_start(&clkev, 0xffffffff - period, 1);
- 		break;
- 	case CLOCK_EVT_MODE_ONESHOT:
- 		break;
-@@ -415,7 +415,7 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
- }
+-	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
++	omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
  
- /* Clocksource code */
--static struct omap_dm_timer clksrc;
-+static struct omap_dm_timer clksrc = { .systimer = 1 };
- static bool use_gptimer_clksrc;
- 
- /*
-@@ -524,7 +524,7 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
- 
- 	clocksource_gpt.name = "timer_clksrc";
- 
--	omap_dm_timer_set_load_start(&clksrc, 0, 1, 0);
-+	omap_dm_timer_set_load_start(&clksrc, 0, 1);
- 
- 	sched_clock_register(dmtimer_read_sched_clock, 32, clksrc.rate);
- 
+ 	clockevent_gpt.cpumask = cpu_possible_mask;
+ 	clockevent_gpt.irq = omap_dm_timer_get_irq(&clkev);
 diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 8602586..504784f 100644
+index 44cc336..f7c1d14 100644
 --- a/arch/arm/plat-omap/dmtimer.c
 +++ b/arch/arm/plat-omap/dmtimer.c
-@@ -467,7 +467,7 @@ int omap_dm_timer_start(struct omap_dm_timer *timer)
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_start);
+@@ -59,6 +59,26 @@ enum {
+ 	REQUEST_BY_NODE,
+ };
  
--int omap_dm_timer_stop(struct omap_dm_timer *timer, int pm)
-+int omap_dm_timer_stop(struct omap_dm_timer *timer)
- {
- 	u32 l;
- 	unsigned long rate;
-@@ -495,7 +495,7 @@ int omap_dm_timer_stop(struct omap_dm_timer *timer, int pm)
- 	/* Ack possibly pending interrupt */
- 	__raw_writel(OMAP_TIMER_INT_OVERFLOW, timer->irq_stat);
- 
--	if (pm) {
-+	if (!timer->systimer) {
- 		timer->context.tclr = l;
- 		omap_dm_timer_disable(timer);
- 	}
-@@ -589,7 +589,7 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_set_load);
- 
- /* Optimized set_load which removes costly spin wait in timer_start */
- int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, unsigned int load,
--				 int autoreload, int pm)
-+				 int autoreload)
- {
- 	int rc;
- 	u32 mask = ~0, val = 0;
-@@ -597,7 +597,7 @@ int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, unsigned int load,
- 	if (unlikely(!timer))
- 		return -EINVAL;
- 
--	if (pm) {
-+	if (!timer->systimer) {
- 		rc = omap_dm_timer_enable(timer);
- 		if (rc)
- 			return rc;
-@@ -615,12 +615,13 @@ int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, unsigned int load,
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_COUNTER_REG, load);
- 	val = omap_dm_timer_write_ctrl(timer, mask, val);
- 
--	if (pm) {
-+	if (!timer->systimer) {
- 		/* Save the context */
- 		timer->context.tclr = val;
- 		timer->context.tldr = load;
- 		timer->context.tcrr = load;
- 	}
++static inline u32 __omap_dm_timer_read(struct omap_dm_timer *timer, u32 reg,
++		int posted)
++{
++	if (posted)
++		while (__raw_readl(timer->pend) & (reg >> WPSHIFT))
++			cpu_relax();
 +
++	return __raw_readl(timer->func_base + (reg & 0xff));
++}
++
++static inline void __omap_dm_timer_write(struct omap_dm_timer *timer,
++		u32 reg, u32 val, int posted)
++{
++	if (posted)
++		while (__raw_readl(timer->pend) & (reg >> WPSHIFT))
++			cpu_relax();
++
++	__raw_writel(val, timer->func_base + (reg & 0xff));
++}
++
+ /**
+  * omap_dm_timer_read_reg - read timer registers in posted and non-posted mode
+  * @timer:      timer pointer over which read operation to perform
+@@ -176,7 +196,7 @@ static int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+ 		}
+ 	}
+ 
+-	__omap_dm_timer_enable_posted(timer);
++	omap_dm_timer_enable_posted(timer);
+ 	omap_dm_timer_disable(timer);
+ 
+ 	/*
+@@ -201,6 +221,85 @@ int omap_dm_timer_reserve_systimer(int id)
  	return 0;
  }
- EXPORT_SYMBOL_GPL(omap_dm_timer_set_load_start);
+ 
++void omap_dm_timer_init_regs(struct omap_dm_timer *timer)
++{
++	u32 tidr;
++
++	/* Assume v1 ip if bits [31:16] are zero */
++	tidr = __raw_readl(timer->io_base);
++	if (!(tidr >> 16)) {
++		timer->revision = 1;
++		timer->irq_stat = timer->io_base + OMAP_TIMER_V1_STAT_OFFSET;
++		timer->irq_ena = timer->io_base + OMAP_TIMER_V1_INT_EN_OFFSET;
++		timer->irq_dis = timer->io_base + OMAP_TIMER_V1_INT_EN_OFFSET;
++		timer->pend = timer->io_base + _OMAP_TIMER_WRITE_PEND_OFFSET;
++		timer->func_base = timer->io_base;
++	} else {
++		timer->revision = 2;
++		timer->irq_stat = timer->io_base + OMAP_TIMER_V2_IRQSTATUS;
++		timer->irq_ena = timer->io_base + OMAP_TIMER_V2_IRQENABLE_SET;
++		timer->irq_dis = timer->io_base + OMAP_TIMER_V2_IRQENABLE_CLR;
++		timer->pend = timer->io_base +
++			_OMAP_TIMER_WRITE_PEND_OFFSET +
++				OMAP_TIMER_V2_FUNC_OFFSET;
++		timer->func_base = timer->io_base + OMAP_TIMER_V2_FUNC_OFFSET;
++	}
++}
++EXPORT_SYMBOL_GPL(omap_dm_timer_init_regs);
++
++/*
++ * omap_dm_timer_enable_posted - enables write posted mode
++ * @timer:      pointer to timer instance handle
++ *
++ * Enables the write posted mode for the timer. When posted mode is enabled
++ * writes to certain timer registers are immediately acknowledged by the
++ * internal bus and hence prevents stalling the CPU waiting for the write to
++ * complete. Enabling this feature can improve performance for writing to the
++ * timer registers.
++ */
++void omap_dm_timer_enable_posted(struct omap_dm_timer *timer)
++{
++	if (timer->posted)
++		return;
++
++	if (timer->errata & OMAP_TIMER_ERRATA_I103_I767) {
++		timer->posted = OMAP_TIMER_NONPOSTED;
++		__omap_dm_timer_write(timer, OMAP_TIMER_IF_CTRL_REG, 0, 0);
++		return;
++	}
++
++	__omap_dm_timer_write(timer, OMAP_TIMER_IF_CTRL_REG,
++			      OMAP_TIMER_CTRL_POSTED, 0);
++	timer->context.tsicr = OMAP_TIMER_CTRL_POSTED;
++	timer->posted = OMAP_TIMER_POSTED;
++}
++EXPORT_SYMBOL_GPL(omap_dm_timer_enable_posted);
++
++/**
++ * omap_dm_timer_override_errata - override errata flags for a timer
++ * @timer:      pointer to timer handle
++ * @errata:	errata flags to be ignored
++ *
++ * For a given timer, override a timer errata by clearing the flags
++ * specified by the errata argument. A specific erratum should only be
++ * overridden for a timer if the timer is used in such a way the erratum
++ * has no impact.
++ */
++void omap_dm_timer_override_errata(struct omap_dm_timer *timer,
++						   u32 errata)
++{
++	timer->errata &= ~errata;
++}
++EXPORT_SYMBOL_GPL(omap_dm_timer_override_errata);
++
++void omap_dm_timer_int_enable(struct omap_dm_timer *timer,
++						unsigned int value)
++{
++	__raw_writel(value, timer->irq_ena);
++	__omap_dm_timer_write(timer, OMAP_TIMER_WAKEUP_EN_REG, value, 0);
++}
++EXPORT_SYMBOL_GPL(omap_dm_timer_int_enable);
++
+ /*
+  * Check if a timer is running based on timer_id, used for OMAP1 currently.
+  */
+@@ -722,7 +821,7 @@ int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
+ 	if (rc)
+ 		return rc;
+ 
+-	__omap_dm_timer_int_enable(timer, value);
++	omap_dm_timer_int_enable(timer, value);
+ 
+ 	/* Save the context */
+ 	timer->context.tier = value;
+@@ -917,7 +1016,7 @@ static int omap_dm_timer_probe(struct platform_device *pdev)
+ 
+ 	if (!timer->reserved) {
+ 		pm_runtime_get_sync(dev);
+-		__omap_dm_timer_init_regs(timer);
++		omap_dm_timer_init_regs(timer);
+ 		pm_runtime_put(dev);
+ 	}
+ 
 diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 1d3d9bb..7005a1e 100644
+index 6ab801b..9b52607 100644
 --- a/arch/arm/plat-omap/include/plat/dmtimer.h
 +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -118,6 +118,7 @@ struct omap_dm_timer {
- 	int (*get_context_loss_count)(struct device *);
- 	int ctx_loss_count;
- 	int revision;
-+	int systimer;
- 	u32 capability;
- 	u32 errata;
- 	struct platform_device *pdev;
-@@ -141,12 +142,12 @@ struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer);
+@@ -162,6 +162,13 @@ int omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value)
  
- int omap_dm_timer_trigger(struct omap_dm_timer *timer);
- int omap_dm_timer_start(struct omap_dm_timer *timer);
--int omap_dm_timer_stop(struct omap_dm_timer *timer, int pm);
-+int omap_dm_timer_stop(struct omap_dm_timer *timer);
+ int omap_dm_timers_active(void);
  
- int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source);
- int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload, unsigned int value);
- int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, unsigned int load,
--				 int autoreload, int pm);
-+				 int autoreload);
- int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable, unsigned int match);
- int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on, int toggle, int trigger);
- int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler);
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 3dc736d..b1e19a2 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -165,8 +165,8 @@ end:
- 	/* Stop TX here */
- 	lirc_rx51_off(lirc_rx51);
- 	lirc_rx51->wbuf_index = -1;
--	omap_dm_timer_stop(lirc_rx51->pwm_timer, 1);
--	omap_dm_timer_stop(lirc_rx51->pulse_timer, 1);
-+	omap_dm_timer_stop(lirc_rx51->pwm_timer);
-+	omap_dm_timer_stop(lirc_rx51->pulse_timer);
- 	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
- 	wake_up_interruptible(&lirc_rx51->wqueue);
++void omap_dm_timer_init_regs(struct omap_dm_timer *timer);
++void omap_dm_timer_enable_posted(struct omap_dm_timer *timer);
++void omap_dm_timer_override_errata(struct omap_dm_timer *timer,
++				   u32 errata);
++void omap_dm_timer_int_enable(struct omap_dm_timer *timer,
++			      unsigned int value);
++
+ /*
+  * Do not use the defines below, they are not needed. They should be only
+  * used by dmtimer.c and sys_timer related code.
+@@ -278,100 +285,4 @@ int omap_dm_timers_active(void);
  
-diff --git a/drivers/staging/tidspbridge/core/dsp-clock.c b/drivers/staging/tidspbridge/core/dsp-clock.c
-index 6ac36d1..e4b4181 100644
---- a/drivers/staging/tidspbridge/core/dsp-clock.c
-+++ b/drivers/staging/tidspbridge/core/dsp-clock.c
-@@ -189,7 +189,7 @@ void dsp_gpt_wait_overflow(short int clk_id, unsigned int load)
- 	 * Set counter value to overflow counter after
- 	 * one tick and start timer.
- 	 */
--	omap_dm_timer_set_load_start(gpt, load, 0, 1);
-+	omap_dm_timer_set_load_start(gpt, load, 0);
- 
- 	/* Wait 80us for timer to overflow */
- 	udelay(80);
-@@ -300,7 +300,7 @@ int dsp_clk_disable(enum dsp_clk_id clk_id)
- 		clk_disable(iva2_clk);
- 		break;
- 	case GPT_CLK:
--		status = omap_dm_timer_stop(timer[clk_id - 1], 1);
-+		status = omap_dm_timer_stop(timer[clk_id - 1]);
- 		break;
- #ifdef CONFIG_OMAP_MCBSP
- 	case MCBSP_CLK:
+ #define OMAP_TIMER_TICK_INT_MASK_COUNT_REG				\
+ 		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
+-
+-static inline u32 __omap_dm_timer_read(struct omap_dm_timer *timer, u32 reg,
+-						int posted)
+-{
+-	if (posted)
+-		while (__raw_readl(timer->pend) & (reg >> WPSHIFT))
+-			cpu_relax();
+-
+-	return __raw_readl(timer->func_base + (reg & 0xff));
+-}
+-
+-static inline void __omap_dm_timer_write(struct omap_dm_timer *timer,
+-					u32 reg, u32 val, int posted)
+-{
+-	if (posted)
+-		while (__raw_readl(timer->pend) & (reg >> WPSHIFT))
+-			cpu_relax();
+-
+-	__raw_writel(val, timer->func_base + (reg & 0xff));
+-}
+-
+-static inline void __omap_dm_timer_init_regs(struct omap_dm_timer *timer)
+-{
+-	u32 tidr;
+-
+-	/* Assume v1 ip if bits [31:16] are zero */
+-	tidr = __raw_readl(timer->io_base);
+-	if (!(tidr >> 16)) {
+-		timer->revision = 1;
+-		timer->irq_stat = timer->io_base + OMAP_TIMER_V1_STAT_OFFSET;
+-		timer->irq_ena = timer->io_base + OMAP_TIMER_V1_INT_EN_OFFSET;
+-		timer->irq_dis = timer->io_base + OMAP_TIMER_V1_INT_EN_OFFSET;
+-		timer->pend = timer->io_base + _OMAP_TIMER_WRITE_PEND_OFFSET;
+-		timer->func_base = timer->io_base;
+-	} else {
+-		timer->revision = 2;
+-		timer->irq_stat = timer->io_base + OMAP_TIMER_V2_IRQSTATUS;
+-		timer->irq_ena = timer->io_base + OMAP_TIMER_V2_IRQENABLE_SET;
+-		timer->irq_dis = timer->io_base + OMAP_TIMER_V2_IRQENABLE_CLR;
+-		timer->pend = timer->io_base +
+-			_OMAP_TIMER_WRITE_PEND_OFFSET +
+-				OMAP_TIMER_V2_FUNC_OFFSET;
+-		timer->func_base = timer->io_base + OMAP_TIMER_V2_FUNC_OFFSET;
+-	}
+-}
+-
+-/*
+- * __omap_dm_timer_enable_posted - enables write posted mode
+- * @timer:      pointer to timer instance handle
+- *
+- * Enables the write posted mode for the timer. When posted mode is enabled
+- * writes to certain timer registers are immediately acknowledged by the
+- * internal bus and hence prevents stalling the CPU waiting for the write to
+- * complete. Enabling this feature can improve performance for writing to the
+- * timer registers.
+- */
+-static inline void __omap_dm_timer_enable_posted(struct omap_dm_timer *timer)
+-{
+-	if (timer->posted)
+-		return;
+-
+-	if (timer->errata & OMAP_TIMER_ERRATA_I103_I767) {
+-		timer->posted = OMAP_TIMER_NONPOSTED;
+-		__omap_dm_timer_write(timer, OMAP_TIMER_IF_CTRL_REG, 0, 0);
+-		return;
+-	}
+-
+-	__omap_dm_timer_write(timer, OMAP_TIMER_IF_CTRL_REG,
+-			      OMAP_TIMER_CTRL_POSTED, 0);
+-	timer->context.tsicr = OMAP_TIMER_CTRL_POSTED;
+-	timer->posted = OMAP_TIMER_POSTED;
+-}
+-
+-/**
+- * __omap_dm_timer_override_errata - override errata flags for a timer
+- * @timer:      pointer to timer handle
+- * @errata:	errata flags to be ignored
+- *
+- * For a given timer, override a timer errata by clearing the flags
+- * specified by the errata argument. A specific erratum should only be
+- * overridden for a timer if the timer is used in such a way the erratum
+- * has no impact.
+- */
+-static inline void __omap_dm_timer_override_errata(struct omap_dm_timer *timer,
+-						   u32 errata)
+-{
+-	timer->errata &= ~errata;
+-}
+-
+-static inline void __omap_dm_timer_int_enable(struct omap_dm_timer *timer,
+-						unsigned int value)
+-{
+-	__raw_writel(value, timer->irq_ena);
+-	__omap_dm_timer_write(timer, OMAP_TIMER_WAKEUP_EN_REG, value, 0);
+-}
+-
+ #endif /* __ASM_ARCH_DMTIMER_H */
 -- 
 1.7.9.5
