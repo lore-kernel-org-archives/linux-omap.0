@@ -1,30 +1,48 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: omap-serial: use mctrl_gpio helpers
-Date: Thu, 24 Apr 2014 15:10:14 -0700
-Message-ID: <20140424221014.GA29114@kroah.com>
-References: <1398331471-16745-1-git-send-email-yegorslists@googlemail.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v3] gpio: omap: implement get_direction
+Date: Thu, 24 Apr 2014 15:25:16 -0700
+Message-ID: <7hppk6nz5f.fsf@paris.lan>
+References: <1398322659-20008-1-git-send-email-yegorslists@googlemail.com>
+	<CACRpkdZPNGHNQhqovDoaKTXZT3mJfN4pjKSBxW7m6wT5u-XEYQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40016 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756541AbaDXWHV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 18:07:21 -0400
-Content-Disposition: inline
-In-Reply-To: <1398331471-16745-1-git-send-email-yegorslists@googlemail.com>
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:61693 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755123AbaDXWZT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 18:25:19 -0400
+Received: by mail-pd0-f172.google.com with SMTP id w10so2393767pde.17
+        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2014 15:25:19 -0700 (PDT)
+In-Reply-To: <CACRpkdZPNGHNQhqovDoaKTXZT3mJfN4pjKSBxW7m6wT5u-XEYQ@mail.gmail.com>
+	(Linus Walleij's message of "Thu, 24 Apr 2014 15:13:04 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: yegorslists@googlemail.com
-Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: yegorslists@googlemail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>
 
-On Thu, Apr 24, 2014 at 11:24:30AM +0200, yegorslists@googlemail.com wrote:
-> This patch is based on Richard Genoud' patch adding generic GPIO support [1]
-> and my patch adding get_direction() functionality to OMAP's GPIO driver [2].
-> 
-> So far RTS/DTR are working both as modem control outputs and RTS as RS-485 2-wire controller.
-> 
-> CTS/DSR/DSR/RI are generating interrupts.
-> 
-> Richard, Greg, what is the status of [1]? It seems like it will be available in 3.16 first?
+Linus Walleij <linus.walleij@linaro.org> writes:
 
-Probably.
+> On Thu, Apr 24, 2014 at 8:57 AM,  <yegorslists@googlemail.com> wrote:
+>
+>> From: Yegor Yefremov <yegorslists@googlemail.com>
+>>
+>> This patch implements gpio_chip's get_direction() routine, that
+>> lets other drivers get particular GPIOs direction using
+>> struct gpio_desc.
+>>
+>> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+>> Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
+>> ---
+>> Changes:
+>>         v3: get rid of _get_gpio_direction() (Linus Walleij)
+>>         v2: rework return value calculation
+>
+> Looks good to me, Kevin, Santosh?
+
+Reviewed-by: Kevin Hilman <khilman@linaro.org>
+
+> Part of me wants to list Javier as maintainer for this driver.
+
+That's fine with me. 
+
+Kevin
