@@ -1,352 +1,328 @@
-From: yegorslists@googlemail.com
-Subject: [RFC] tty: serial: omap: use mctrl_gpio helpers
-Date: Thu, 24 Apr 2014 11:24:31 +0200
-Message-ID: <1398331471-16745-2-git-send-email-yegorslists@googlemail.com>
-References: <1398331471-16745-1-git-send-email-yegorslists@googlemail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv3 19/41] OMAPDSS: panel-dpi: Add DT support
+Date: Thu, 24 Apr 2014 12:52:42 +0300
+Message-ID: <5358DEEA.1000506@ti.com>
+References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com> <1390301833-24944-20-git-send-email-tomi.valkeinen@ti.com> <20140418155107.GB5354@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="FfmEg9E7tL9JeBu8jCgEM6uOUI9u8uE2M"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hhlx01.visionsystems.de ([62.145.30.242]:51959 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755021AbaDXJY6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 05:24:58 -0400
-In-Reply-To: <1398331471-16745-1-git-send-email-yegorslists@googlemail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:57838 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752719AbaDXJxe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Apr 2014 05:53:34 -0400
+In-Reply-To: <20140418155107.GB5354@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-serial@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, Yegor Yefremov <yegorslists@googlemail.com>
+To: Tony Lindgren <tony@atomide.com>, Joachim Eastwood <manabian@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-From: Yegor Yefremov <yegorslists@googlemail.com>
+--FfmEg9E7tL9JeBu8jCgEM6uOUI9u8uE2M
+Content-Type: multipart/mixed;
+ boundary="------------000606020709000307030805"
 
-This patch permits to use GPIOs to control the CTS/RTS/DTR/DSR/DCD/RI
-signals.
+This is a multi-part message in MIME format.
+--------------000606020709000307030805
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+On 18/04/14 18:51, Tony Lindgren wrote:
+
+>> +	gpio =3D of_get_gpio(node, 0);
+>> +	if (gpio_is_valid(gpio) || gpio =3D=3D -ENOENT) {
+>> +		ddata->enable_gpio =3D gpio;
+>> +	} else {
+>> +		dev_err(&pdev->dev, "failed to parse enable gpio\n");
+>> +		return gpio;
+>> +	}
+>=20
+> We should set the GPIO polarity based on the OF_GPIO_ACTIVE_LOW like
+> gpio_backlight_probe_dt is doing.=20
+
+Instead of doing it with the old gpio API, and checking the 'active'
+flag everywhere, I think we can use the new gpiod API which handles the
+polarity automatically.
+
+I attached prototype patches (based on -rc2) for panel dpi using that
+approach. It's a bit messier than I'd like, because for non-DT boot we
+need to request the gpio using the old API, and then convert it to
+gpio_desc. We can remove that code when all the boards use DT.
+
+I've compiled tested this only, as I don't have DPI panels I could use.
+I did try similar approach for TFP410, and it seemed to work fine.
+
+ Tomi
+
+
+--------------000606020709000307030805
+Content-Type: text/x-patch;
+ name="0001-panel-dpi-use-gpiod-for-enable-gpio.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+ filename="0001-panel-dpi-use-gpiod-for-enable-gpio.patch"
+
+=46rom f2280114f0eb814370664f24eba8ffee8280c840 Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Thu, 24 Apr 2014 12:36:52 +0300
+Subject: [PATCH 1/3] panel-dpi: use gpiod for enable gpio
+
 ---
- drivers/tty/serial/Kconfig       |    1 +
- drivers/tty/serial/omap-serial.c |  168 ++++++++++++++++++++++++++++++++++++--
- 2 files changed, 162 insertions(+), 7 deletions(-)
+ drivers/video/fbdev/omap2/displays-new/panel-dpi.c | 32 +++++++++++++---=
+------
+ 1 file changed, 19 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/tty/serial/Kconfig b/drivers/tty/serial/Kconfig
-index 6e748dc..3eeaa09 100644
---- a/drivers/tty/serial/Kconfig
-+++ b/drivers/tty/serial/Kconfig
-@@ -1088,6 +1088,7 @@ config SERIAL_OMAP
- 	tristate "OMAP serial port support"
- 	depends on ARCH_OMAP2PLUS
- 	select SERIAL_CORE
-+	select SERIAL_MCTRL_GPIO
- 	help
- 	  If you have a machine based on an Texas Instruments OMAP CPU you
- 	  can enable its onboard serial ports by enabling this option.
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 08b6b94..87dcad7 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -43,9 +43,13 @@
- #include <linux/gpio.h>
- #include <linux/of_gpio.h>
- #include <linux/platform_data/serial-omap.h>
-+#include <linux/gpio/consumer.h>
-+#include <linux/err.h>
- 
- #include <dt-bindings/gpio/gpio.h>
- 
-+#include "serial_mctrl_gpio.h"
+diff --git a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c b/drivers=
+/video/fbdev/omap2/displays-new/panel-dpi.c
+index 5f8f7e7c81ef..d379dec3bd4a 100644
+--- a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
++++ b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+@@ -25,8 +25,10 @@ struct panel_drv_data {
+=20
+ 	struct omap_video_timings videomode;
+=20
++	/* used for non-DT boot, to be removed */
+ 	int backlight_gpio;
+-	int enable_gpio;
 +
- #define OMAP_MAX_HSUART_PORTS	6
- 
- #define UART_BUILD_REVISION(x, y)	(((x) << 8) | (y))
-@@ -169,6 +173,9 @@ struct uart_omap_port {
- 
- 	struct serial_rs485	rs485;
- 	int			rts_gpio;
-+	struct mctrl_gpios	*gpios;
-+	int			gpio_irq[UART_GPIO_MAX];
-+	bool			ms_irq_enabled;
- 
- 	struct pm_qos_request	pm_qos_request;
- 	u32			latency;
-@@ -294,6 +301,27 @@ static void serial_omap_enable_ms(struct uart_port *port)
- 	dev_dbg(up->port.dev, "serial_omap_enable_ms+%d\n", up->port.line);
- 
- 	pm_runtime_get_sync(up->dev);
++	struct gpio_desc *enable_gpio;
+ };
+=20
+ #define to_panel_data(p) container_of(p, struct panel_drv_data, dssdev)
+@@ -77,8 +79,8 @@ static int panel_dpi_enable(struct omap_dss_device *dss=
+dev)
+ 	if (r)
+ 		return r;
+=20
+-	if (gpio_is_valid(ddata->enable_gpio))
+-		gpio_set_value_cansleep(ddata->enable_gpio, 1);
++	if (ddata->enable_gpio)
++		gpiod_set_value_cansleep(ddata->enable_gpio, 1);
+=20
+ 	if (gpio_is_valid(ddata->backlight_gpio))
+ 		gpio_set_value_cansleep(ddata->backlight_gpio, 1);
+@@ -96,8 +98,8 @@ static void panel_dpi_disable(struct omap_dss_device *d=
+ssdev)
+ 	if (!omapdss_device_is_enabled(dssdev))
+ 		return;
+=20
+-	if (gpio_is_valid(ddata->enable_gpio))
+-		gpio_set_value_cansleep(ddata->enable_gpio, 0);
++	if (ddata->enable_gpio)
++		gpiod_set_value_cansleep(ddata->enable_gpio, 0);
+=20
+ 	if (gpio_is_valid(ddata->backlight_gpio))
+ 		gpio_set_value_cansleep(ddata->backlight_gpio, 0);
+@@ -156,6 +158,7 @@ static int panel_dpi_probe_pdata(struct platform_devi=
+ce *pdev)
+ 	struct panel_drv_data *ddata =3D platform_get_drvdata(pdev);
+ 	struct omap_dss_device *dssdev, *in;
+ 	struct videomode vm;
++	int r;
+=20
+ 	pdata =3D dev_get_platdata(&pdev->dev);
+=20
+@@ -176,10 +179,20 @@ static int panel_dpi_probe_pdata(struct platform_de=
+vice *pdev)
+ 	dssdev =3D &ddata->dssdev;
+ 	dssdev->name =3D pdata->name;
+=20
+-	ddata->enable_gpio =3D pdata->enable_gpio;
++	r =3D devm_gpio_request_one(&pdev->dev, pdata->enable_gpio,
++					GPIOF_OUT_INIT_LOW, "panel enable");
++	if (r)
++		goto err_gpio;
 +
-+	/*
-+	* Interrupt should not be enabled twice
-+	*/
-+	if (up->ms_irq_enabled)
-+		return;
++	ddata->enable_gpio =3D gpio_to_desc(pdata->enable_gpio);
 +
-+	up->ms_irq_enabled = true;
-+
-+	if (up->gpio_irq[UART_GPIO_CTS] >= 0)
-+		enable_irq(up->gpio_irq[UART_GPIO_CTS]);
-+
-+	if (up->gpio_irq[UART_GPIO_DSR] >= 0)
-+		enable_irq(up->gpio_irq[UART_GPIO_DSR]);
-+
-+	if (up->gpio_irq[UART_GPIO_RI] >= 0)
-+		enable_irq(up->gpio_irq[UART_GPIO_RI]);
-+
-+	if (up->gpio_irq[UART_GPIO_DCD] >= 0)
-+		enable_irq(up->gpio_irq[UART_GPIO_DCD]);
-+
- 	up->ier |= UART_IER_MSI;
- 	serial_out(up, UART_IER, up->ier);
- 	pm_runtime_mark_last_busy(up->dev);
-@@ -310,6 +338,10 @@ static void serial_omap_stop_tx(struct uart_port *port)
- 	/* Handle RS-485 */
- 	if (up->rs485.flags & SER_RS485_ENABLED) {
- 		if (up->scr & OMAP_UART_SCR_TX_EMPTY) {
-+			struct gpio_desc *rts_gpiod;
-+
-+			rts_gpiod = mctrl_gpio_to_gpiod(up->gpios, UART_GPIO_RTS);
-+
- 			/* THR interrupt is fired when both TX FIFO and TX
- 			 * shift register are empty. This means there's nothing
- 			 * left to transmit now, so make sure the THR interrupt
-@@ -320,10 +352,10 @@ static void serial_omap_stop_tx(struct uart_port *port)
- 			up->scr &= ~OMAP_UART_SCR_TX_EMPTY;
- 			serial_out(up, UART_OMAP_SCR, up->scr);
- 			res = (up->rs485.flags & SER_RS485_RTS_AFTER_SEND) ? 1 : 0;
--			if (gpio_get_value(up->rts_gpio) != res) {
-+			if (gpiod_get_value(rts_gpiod) != res) {
- 				if (up->rs485.delay_rts_after_send > 0)
- 					mdelay(up->rs485.delay_rts_after_send);
--				gpio_set_value(up->rts_gpio, res);
-+				gpiod_set_value(rts_gpiod, res);
- 			}
- 		} else {
- 			/* We're asked to stop, but there's still stuff in the
-@@ -425,14 +457,18 @@ static void serial_omap_start_tx(struct uart_port *port)
- 
- 	/* Handle RS-485 */
- 	if (up->rs485.flags & SER_RS485_ENABLED) {
-+		struct gpio_desc *rts_gpiod;
-+
-+		rts_gpiod = mctrl_gpio_to_gpiod(up->gpios, UART_GPIO_RTS);
-+
- 		/* Fire THR interrupts when FIFO is below trigger level */
- 		up->scr &= ~OMAP_UART_SCR_TX_EMPTY;
- 		serial_out(up, UART_OMAP_SCR, up->scr);
- 
- 		/* if rts not already enabled */
- 		res = (up->rs485.flags & SER_RS485_RTS_ON_SEND) ? 1 : 0;
--		if (gpio_get_value(up->rts_gpio) != res) {
--			gpio_set_value(up->rts_gpio, res);
-+		if (gpiod_get_value(rts_gpiod) != res) {
-+			gpiod_set_value(rts_gpiod, res);
- 			if (up->rs485.delay_rts_before_send > 0)
- 				mdelay(up->rs485.delay_rts_before_send);
- 		}
-@@ -581,10 +617,45 @@ static irqreturn_t serial_omap_irq(int irq, void *dev_id)
- 	unsigned int type;
- 	irqreturn_t ret = IRQ_NONE;
- 	int max_count = 256;
-+	bool gpio_handled = false;
-+	bool gpio_any_delta = false;
- 
- 	spin_lock(&up->port.lock);
- 	pm_runtime_get_sync(up->dev);
- 
-+	if (!gpio_handled) {
-+		/*
-+		* Dealing with GPIO interrupt
-+		*/
-+		if (irq == up->gpio_irq[UART_GPIO_RI]) {
-+			up->port.icount.rng++;
-+			gpio_any_delta = true;
-+		}
-+
-+		if (irq == up->gpio_irq[UART_GPIO_DSR]) {
-+			up->port.icount.dsr++;
-+			gpio_any_delta = true;
-+		}
-+
-+		if (irq == up->gpio_irq[UART_GPIO_DCD]) {
-+			uart_handle_dcd_change
-+				(&up->port, UART_MSR_DCD);
-+			gpio_any_delta = true;
-+		}
-+
-+		if (irq == up->gpio_irq[UART_GPIO_CTS]) {
-+			uart_handle_cts_change
-+				(&up->port, UART_MSR_CTS);
-+			gpio_any_delta = true;
-+		}
-+
-+		if (gpio_any_delta) {
-+			wake_up_interruptible(&up->port.state->port.delta_msr_wait);
-+		}
-+
-+		gpio_handled = true;
-+	}
-+
- 	do {
- 		iir = serial_in(up, UART_IIR);
- 		if (iir & UART_IIR_NO_INT)
-@@ -632,6 +703,45 @@ static irqreturn_t serial_omap_irq(int irq, void *dev_id)
- 	return ret;
- }
- 
-+static void serial_omap_free_gpio_irq(struct uart_port *port)
-+{
-+	struct uart_omap_port *up = to_uart_omap_port(port);
-+	enum mctrl_gpio_idx i;
-+
-+	for (i = 0; i < UART_GPIO_MAX; i++)
-+		if (up->gpio_irq[i] >= 0)
-+			free_irq(up->gpio_irq[i], port);
-+}
-+
-+static int serial_omap_request_gpio_irq(struct uart_port *port)
-+{
-+	struct uart_omap_port *up = to_uart_omap_port(port);
-+	int *irq = up->gpio_irq;
-+	enum mctrl_gpio_idx i;
-+	int err = 0;
-+
-+	for (i = 0; (i < UART_GPIO_MAX) && !err; i++) {
-+		if (irq[i] < 0)
-+			continue;
-+
-+		irq_set_status_flags(irq[i], IRQ_NOAUTOEN);
-+		err = request_irq(irq[i], serial_omap_irq, IRQ_TYPE_EDGE_BOTH,
-+				"omap_serial", port);
-+		if (err)
-+			dev_err(port->dev, "omap_startup - Can't get %d irq\n",
-+				irq[i]);
-+	}
-+
-+	/*
-+	 * If something went wrong, rollback.
-+	 */
-+	while (err && (--i >= 0))
-+		if (irq[i] >= 0)
-+			free_irq(irq[i], port);
-+
-+	return err;
-+}
-+
- static unsigned int serial_omap_tx_empty(struct uart_port *port)
- {
- 	struct uart_omap_port *up = to_uart_omap_port(port);
-@@ -669,7 +779,8 @@ static unsigned int serial_omap_get_mctrl(struct uart_port *port)
- 		ret |= TIOCM_DSR;
- 	if (status & UART_MSR_CTS)
- 		ret |= TIOCM_CTS;
--	return ret;
-+
-+	return mctrl_gpio_get(up->gpios, &ret);
- }
- 
- static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
-@@ -698,6 +809,8 @@ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
- 
-+	mctrl_gpio_set(up->gpios, mctrl);
-+
- 	if (gpio_is_valid(up->DTR_gpio) &&
- 	    !!(mctrl & TIOCM_DTR) != up->DTR_active) {
- 		up->DTR_active = !up->DTR_active;
-@@ -733,6 +846,8 @@ static int serial_omap_startup(struct uart_port *port)
- 	unsigned long flags = 0;
- 	int retval;
- 
-+	up->ms_irq_enabled = false;
-+
- 	/*
- 	 * Allocate the IRQ
- 	 */
-@@ -752,6 +867,15 @@ static int serial_omap_startup(struct uart_port *port)
- 		disable_irq(up->wakeirq);
- 	}
- 
-+	retval = serial_omap_request_gpio_irq(port);
-+	if (retval) {
-+		free_irq(up->port.irq, up);
-+		if (up->wakeirq) {
-+			free_irq(up->wakeirq, up);
-+		}
-+		return retval;
-+	}
-+
- 	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
- 
- 	pm_runtime_get_sync(up->dev);
-@@ -842,6 +966,8 @@ static void serial_omap_shutdown(struct uart_port *port)
- 	free_irq(up->port.irq, up);
- 	if (up->wakeirq)
- 		free_irq(up->wakeirq, up);
-+	serial_omap_free_gpio_irq(port);
-+	up->ms_irq_enabled = false;
- }
- 
- static void serial_omap_uart_qos_work(struct work_struct *work)
-@@ -1370,6 +1496,9 @@ serial_omap_config_rs485(struct uart_port *port, struct serial_rs485 *rs485conf)
- 	unsigned long flags;
- 	unsigned int mode;
- 	int val;
-+	struct gpio_desc *rts_gpiod;
-+
-+	rts_gpiod = mctrl_gpio_to_gpiod(up->gpios, UART_GPIO_RTS);
- 
- 	pm_runtime_get_sync(up->dev);
- 	spin_lock_irqsave(&up->port.lock, flags);
-@@ -1386,12 +1515,12 @@ serial_omap_config_rs485(struct uart_port *port, struct serial_rs485 *rs485conf)
- 	 * Just as a precaution, only allow rs485
- 	 * to be enabled if the gpio pin is valid
- 	 */
--	if (gpio_is_valid(up->rts_gpio)) {
-+	if (!IS_ERR_OR_NULL(rts_gpiod)) {
- 		/* enable / disable rts */
- 		val = (up->rs485.flags & SER_RS485_ENABLED) ?
- 			SER_RS485_RTS_AFTER_SEND : SER_RS485_RTS_ON_SEND;
- 		val = (up->rs485.flags & val) ? 1 : 0;
--		gpio_set_value(up->rts_gpio, val);
-+		gpiod_set_value(rts_gpiod, val);
- 	} else
- 		up->rs485.flags &= ~SER_RS485_ENABLED;
- 
-@@ -1642,6 +1771,26 @@ static int serial_omap_probe_rs485(struct uart_omap_port *up,
+ 	ddata->backlight_gpio =3D pdata->backlight_gpio;
+=20
  	return 0;
++
++err_gpio:
++	omap_dss_put_device(ddata->in);
++	return r;
  }
- 
-+static int serial_omap_init_gpios(struct uart_omap_port *up, struct device *dev)
+=20
+ static int panel_dpi_probe(struct platform_device *pdev)
+@@ -202,13 +215,6 @@ static int panel_dpi_probe(struct platform_device *p=
+dev)
+ 		return -ENODEV;
+ 	}
+=20
+-	if (gpio_is_valid(ddata->enable_gpio)) {
+-		r =3D devm_gpio_request_one(&pdev->dev, ddata->enable_gpio,
+-				GPIOF_OUT_INIT_LOW, "panel enable");
+-		if (r)
+-			goto err_gpio;
+-	}
+-
+ 	if (gpio_is_valid(ddata->backlight_gpio)) {
+ 		r =3D devm_gpio_request_one(&pdev->dev, ddata->backlight_gpio,
+ 				GPIOF_OUT_INIT_LOW, "panel backlight");
+--=20
+1.9.1
+
+
+--------------000606020709000307030805
+Content-Type: text/x-patch;
+ name="0002-OMAPDSS-panel-dpi-Add-DT-support.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+ filename="0002-OMAPDSS-panel-dpi-Add-DT-support.patch"
+
+=46rom fe2a85da34499fab70212c4cc5870378678da709 Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Thu, 16 May 2013 15:14:16 +0300
+Subject: [PATCH 2/3] OMAPDSS: panel-dpi: Add DT support
+
+Add DT support for panel-dpi.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Reviewed-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/fbdev/omap2/displays-new/panel-dpi.c | 59 ++++++++++++++++=
++++++-
+ 1 file changed, 58 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c b/drivers=
+/video/fbdev/omap2/displays-new/panel-dpi.c
+index d379dec3bd4a..dca6b10d1157 100644
+--- a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
++++ b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+@@ -13,9 +13,12 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
++#include <linux/of.h>
++#include <linux/of_gpio.h>
+=20
+ #include <video/omapdss.h>
+ #include <video/omap-panel-data.h>
++#include <video/of_display_timing.h>
+=20
+ struct panel_drv_data {
+ 	struct omap_dss_device dssdev;
+@@ -72,7 +75,8 @@ static int panel_dpi_enable(struct omap_dss_device *dss=
+dev)
+ 	if (omapdss_device_is_enabled(dssdev))
+ 		return 0;
+=20
+-	in->ops.dpi->set_data_lines(in, ddata->data_lines);
++	if (ddata->data_lines)
++		in->ops.dpi->set_data_lines(in, ddata->data_lines);
+ 	in->ops.dpi->set_timings(in, &ddata->videomode);
+=20
+ 	r =3D in->ops.dpi->enable(in);
+@@ -195,6 +199,47 @@ err_gpio:
+ 	return r;
+ }
+=20
++static int panel_dpi_probe_of(struct platform_device *pdev)
 +{
-+	enum mctrl_gpio_idx i;
-+	struct gpio_desc *gpiod;
++	struct panel_drv_data *ddata =3D platform_get_drvdata(pdev);
++	struct device_node *node =3D pdev->dev.of_node;
++	struct omap_dss_device *in;
++	int r;
++	struct display_timing timing;
++	struct videomode vm;
++	struct gpio_desc *gpio;
 +
-+	up->gpios = mctrl_gpio_init(dev, 0);
-+	if (IS_ERR_OR_NULL(up->gpios))
-+		return -1;
-+
-+	for (i = 0; i < UART_GPIO_MAX; i++) {
-+		gpiod = mctrl_gpio_to_gpiod(up->gpios, i);
-+		if (gpiod && (gpiod_get_direction(gpiod) == GPIOF_DIR_IN))
-+			up->gpio_irq[i] = gpiod_to_irq(gpiod);
-+		else
-+			up->gpio_irq[i] = -EINVAL;
++	gpio =3D devm_gpiod_get(&pdev->dev, "enable");
++	if (IS_ERR(gpio)) {
++		dev_err(&pdev->dev, "failed to parse enable gpio\n");
++		return PTR_ERR(gpio);
++	} else {
++		gpiod_direction_output(gpio, 0);
++		ddata->enable_gpio =3D gpio;
 +	}
++
++	ddata->backlight_gpio =3D -ENOENT;
++
++	r =3D of_get_display_timing(node, "panel-timing", &timing);
++	if (r) {
++		dev_err(&pdev->dev, "failed to get video timing\n");
++		return r;
++	}
++
++	videomode_from_timing(&timing, &vm);
++	videomode_to_omap_video_timings(&vm, &ddata->videomode);
++
++	in =3D omapdss_of_find_source_for_first_ep(node);
++	if (IS_ERR(in)) {
++		dev_err(&pdev->dev, "failed to find video source\n");
++		return PTR_ERR(in);
++	}
++
++	ddata->in =3D in;
 +
 +	return 0;
 +}
 +
- static int serial_omap_probe(struct platform_device *pdev)
+ static int panel_dpi_probe(struct platform_device *pdev)
  {
- 	struct uart_omap_port	*up;
-@@ -1727,6 +1876,11 @@ static int serial_omap_probe(struct platform_device *pdev)
- 		goto err_port_line;
+ 	struct panel_drv_data *ddata;
+@@ -211,6 +256,10 @@ static int panel_dpi_probe(struct platform_device *p=
+dev)
+ 		r =3D panel_dpi_probe_pdata(pdev);
+ 		if (r)
+ 			return r;
++	} else if (pdev->dev.of_node) {
++		r =3D panel_dpi_probe_of(pdev);
++		if (r)
++			return r;
+ 	} else {
+ 		return -ENODEV;
  	}
- 
-+	ret = serial_omap_init_gpios(up, &pdev->dev);
-+	if (ret < 0)
-+		dev_err(&pdev->dev, "%s",
-+			"Failed to initialize GPIOs. The serial port may not work as expected");
+@@ -260,12 +309,20 @@ static int __exit panel_dpi_remove(struct platform_=
+device *pdev)
+ 	return 0;
+ }
+=20
++static const struct of_device_id panel_dpi_of_match[] =3D {
++	{ .compatible =3D "omapdss,panel-dpi", },
++	{},
++};
 +
- 	ret = serial_omap_probe_rs485(up, pdev->dev.of_node);
- 	if (ret < 0)
- 		goto err_rs485;
--- 
-1.7.7
++MODULE_DEVICE_TABLE(of, panel_dpi_of_match);
++
+ static struct platform_driver panel_dpi_driver =3D {
+ 	.probe =3D panel_dpi_probe,
+ 	.remove =3D __exit_p(panel_dpi_remove),
+ 	.driver =3D {
+ 		.name =3D "panel-dpi",
+ 		.owner =3D THIS_MODULE,
++		.of_match_table =3D panel_dpi_of_match,
+ 	},
+ };
+=20
+--=20
+1.9.1
 
+
+--------------000606020709000307030805--
+
+--FfmEg9E7tL9JeBu8jCgEM6uOUI9u8uE2M
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTWN7qAAoJEPo9qoy8lh71lOYQAJbE9JjJdSePx69ww0lV8EDL
+bH6RquyxyzrcI7wkMZVAMlt0SG0NwfXuhJRN4NsHZGbBncgpTq0Qdng74aFyxrd/
+aR3zhogE+EJdRlQxXJvn0mPbeHWJHel+omiA3YkgScvxos9pbVzAGnCAeD/iVVVp
+0sOqJuTn/v5b6K9DVDkNmRfFK/V0udMo84qzW1HkkdgeYti/NPUs1rmYTMmprvA4
+mpyhVm8WAyuqaVyBuMFyyInYFhOHHo71SS8uyuprEF/2suylWkDQjt5HkO7lBFEg
+u5tsyINbGjO2hMUcpkRzJ9Azc9o1rfYsyFYIBKbsgIwGBwT+hLCBH/nkpx1+mGy3
+xFxZ9zjpuskidY3AeaILJ5E0MnIvcFzsJh0RydLMaEwqbAAlFoXBdjsSXH8N6Lia
+ZXHvxDLzHxQH949l7/urQMM44gUk5DoxyeCUVIodCS3/cz0RJO5EBKRKYqkT0GeE
+XtvyhR72VCLoYlB/6sMkwT/UrJUUU81OJM6LxFcNwrTUAVNYh8L6dAO9OA2/nDgN
+yQ+/5lpHJ7GlAKwhY15Zjim1yBzZ8uJLn72vUDYpNEJ6tuevsNCKlV0lrNpg05Fy
+1Jtnpdrkm4ar6fcLr7ho9YMeG+dgBRTiL2Ngw2v2BC3VdMmcu3sVR8+T9HAQxSB1
+oXcMMg2ZDqSjokAGf49N
+=pLc5
+-----END PGP SIGNATURE-----
+
+--FfmEg9E7tL9JeBu8jCgEM6uOUI9u8uE2M--
