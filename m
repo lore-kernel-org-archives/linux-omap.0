@@ -1,73 +1,105 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 1/1] ARM: dts: omap3-igep0020: use SMSC9221 timings
-Date: Thu, 24 Apr 2014 18:53:50 +0200
-Message-ID: <1398358430-13570-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: regressions in linux-next?
+Date: Thu, 24 Apr 2014 12:08:00 -0500
+Message-ID: <535944F0.6030809@ti.com>
+References: <53566C20.6000208@ti.com> <53566EBA.808@ti.com> <CABxcv=mu=xvt7cM7Q8vBP2hQH124=CL9Yuox8WWcVGeKJ+NSjA@mail.gmail.com> <CACRpkdbhzmn4WOVi6nJiFmWX29z8MMScipn=UHZULZ3mrPrbFg@mail.gmail.com> <7hr44mpxk6.fsf@paris.lan> <CAGo_u6r79StfHwf8t8OB5vyhByfusi3EF=PZA186piiAci_wjw@mail.gmail.com> <20140424154031.GA22987@atomide.com> <535931F3.10805@ti.com> <20140424161711.GC22987@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:50431 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932355AbaDXQyG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 12:54:06 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51110 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932348AbaDXRIf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Apr 2014 13:08:35 -0400
+In-Reply-To: <20140424161711.GC22987@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-The IGEPv2 board has a SMSC LAN9221i ethernet chip and not a
-SMSC LAN911x connected to the GPMC. Each chip needs different
-timings in order to operate correctly so is wrong to include
-omap-gpmc-smsc911x.dtsi instead of omap-gpmc-smsc9221.dtsi.
+On 04/24/2014 11:17 AM, Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [140424 08:47]:
+>> On 04/24/2014 10:40 AM, Tony Lindgren wrote:
+>>> * Nishanth Menon <nm@ti.com> [140424 08:25]:
+>>>> On Thu, Apr 24, 2014 at 10:16 AM, Kevin Hilman <khilman@linaro.org> wrote:
+>>>>> Linus Walleij <linus.walleij@linaro.org> writes:
+>>>>>
+>>>>>> On Tue, Apr 22, 2014 at 5:52 PM, Javier Martinez Canillas
+>>>>>> <javier@dowhile0.org> wrote:
+>> [...]
+>>>>>> We even tried to get an Innovator to boot just to be able to refactor
+>>>>>> OMAP stuff but fell short on some special JTAG reflash snag so
+>>>>>> we are dependent on maintainers to help out here :-/
+>>>>>
+>>>>> Unfortunately, my OMAP1 (omap5912/OSK[1]) died last year and I haven't been
+>>>>> able to get it booting again.  I wonder if Spectrum Digital still has
+>>>>> these available?  Their websites[1] says "call for price."
+>>>>>
+>>>>> Kevin
+>>>>>
+>>>>> [1] http://www.spectrumdigital.com/product_info.php?products_id=39
+>>>>
+>>>>
+>>>> Perhaps dumb question: but are there folks who really care about omap1
+>>>> boot anymore in upstream? should it be time to deprecate it - say for
+>>>> 3.17 or so?
+>>>
+>>> Why? There are people still using omap1 and it works just fine. And
+>>> in general the maintenance work needed for omap1 is really minimal.
+>>>
+>>> And in the GPIO case the issue was also discovered on new TI boards.
+>>>
+>>
+>> I mean, yeah - hobby usage is nice.. but there is maintenance burden
+>> when it comes to ensuring generic drivers such as timers, gpio etc.. I
+>> am not saying we cannot maintain it, but if there are no strong
+>> reasons why to keep it alive, it kinda reduces the scope of
+>> modifications as kernel frameworks evolve to be generic. The OMAP1
+>> generation of processors based boards are so hard to get and go
+>> running that developer access to these boards slow things down as well.
+> 
+> It's not a burden by any means like I said. And like I said, the
+> drivers should work just fine no matter what the data source.
+> 
+> Having the platform_data around actually forces us to fix up the
+> drivers so they work in the standard Linux way. So it's really the
+> mixed state of drivers that are the issue here.
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
+:) fair enough. I guess this question dies for the time being at least.
 
-Hi Tony,
+> 
+>> I understand that "strong reasons to keep it alive" is pretty
+>> subjective in nature.. but just throwing the thought out here.
+> 
+> Strong reasons as in people are using it. There just isn't any
+> stronger reason available in Linux land.
+> 
+> Or what do you think is a "stronger reason" then? Merging random
 
-I see no performance difference when measuring network throughput using
-iperf(1) but this change is the correct one nonetheless since if we later
-better adjust the timings it will already include the right dtsi.
+The trigger was that even at TI, OMAP1s are hard to get to, in fact, I
+do not of one person in TI who seems to have a functioning OMAP1
+platform - and context of my question came from that background and
+noticing others going through similar pain as well. Will continue to
+look around.
 
-Best regards,
-Javier
+> corporate snapshots of kernel code upstream from some hacked up
+> kernel tree where the code has never even been even tested with
+> the mainline kernel and is not usable for any available product?
+> I don't think so :)
 
- arch/arm/boot/dts/omap3-igep.dtsi    | 2 +-
- arch/arm/boot/dts/omap3-igep0020.dts | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+Thanks for the flame :D. "evil vendor" kernels have a purpose to serve
+and I guess we know why they exist - even though we might not agree
+with many of the reasonings or the way things are done there. I, for
+one, will refuse to get into a flame about it :D.
 
-diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-index b97736d..e2d163b 100644
---- a/arch/arm/boot/dts/omap3-igep.dtsi
-+++ b/arch/arm/boot/dts/omap3-igep.dtsi
-@@ -107,7 +107,7 @@
- 		>;
- 	};
- 
--	smsc911x_pins: pinmux_smsc911x_pins {
-+	smsc9221_pins: pinmux_smsc9221_pins {
- 		pinctrl-single,pins = <
- 			0x1a2 (PIN_INPUT | MUX_MODE4)		/* mcspi1_cs2.gpio_176 */
- 		>;
-diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
-index 7abd64f..b22caaa 100644
---- a/arch/arm/boot/dts/omap3-igep0020.dts
-+++ b/arch/arm/boot/dts/omap3-igep0020.dts
-@@ -10,7 +10,7 @@
-  */
- 
- #include "omap3-igep.dtsi"
--#include "omap-gpmc-smsc911x.dtsi"
-+#include "omap-gpmc-smsc9221.dtsi"
- 
- / {
- 	model = "IGEPv2 (TI OMAP AM/DM37x)";
-@@ -248,7 +248,7 @@
- 
- 	ethernet@gpmc {
- 		pinctrl-names = "default";
--		pinctrl-0 = <&smsc911x_pins>;
-+		pinctrl-0 = <&smsc9221_pins>;
- 		reg = <5 0 0xff>;
- 		interrupt-parent = <&gpio6>;
- 		interrupts = <16 IRQ_TYPE_LEVEL_LOW>;
+We are all believers in upstream code functioning with all available
+platforms we can get our hands on - if that was not our objective, we
+at TI would never have spend money and effort trying to get automated
+test environments for boards that corporate may not see much sense in
+it. It is part of our continued commitment to working together as a
+single Linux community - yep, we are not perfect or maybe even "good
+enough", but we always strive to improve.
+
 -- 
-1.9.1
-
+Regards,
+Nishanth Menon
