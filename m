@@ -1,51 +1,80 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 0/4] ARM: DRA7: Add support for DRA72x devices
-Date: Thu, 24 Apr 2014 15:36:23 +0530
-Message-ID: <1398333987-19454-1-git-send-email-rnayak@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60214 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751980AbaDXKIU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 06:08:20 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>
+Subject: [PATCH/RFC 1/4] clk: Add CLK_RUNTIME_PM and clk_may_runtime_pm()
+Date: Thu, 24 Apr 2014 12:13:20 +0200
+Message-ID: <1398334403-26181-2-git-send-email-geert+renesas@glider.be>
+References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1398334403-26181-1-git-send-email-geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
-Cc: tony@atomide.com, bcousson@baylibre.com, nm@ti.com, arnd@arndb.de, Rajendra Nayak <rnayak@ti.com>
 
-changes in v3:
-Removed wildcards from compatible strings and duplicates from
-.dt_compat strings as suggested by Arnd
+Add a flag CLK_RUNTIME_PM, to let low-level clock drivers indicate that
+a clock is suitable for Runtime PM.
+Add clk_may_runtime_pm(), to get the status of the flag.
 
-DRA72x devices are single core Cortex A15 devices belonging to the
-DRA7 family (Similar to the DRA74x devices which are dual core Cortex
-A15 based)
+This will allow the device core to enable automatic Runtime PM management
+for devices tied to clocks that are suitable for Runtime PM.
 
-The patches (based off 3.15-rc2) add minimal DT/kernel modifications to add
-boot support for DRA72x devices reusing all the kernel data for DRA74x devices.
+Signed-off-by: Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>
+---
+ drivers/clk/clk.c            |   12 ++++++++++++
+ include/linux/clk-provider.h |    1 +
+ include/linux/clk.h          |    1 +
+ 3 files changed, 14 insertions(+)
 
-Rajendra Nayak (4):
-  ARM: dts: dra7-evm: Remove the wrong and undocumented compatible
-  ARM: dts: Add support for DRA72x family of devices
-  ARM: OMAP2+: Add machine entry for dra72x devices
-  ARM: DRA7: Add support for soc_is_dra74x() and soc_is_dra72x()
-    varients
-
- .../devicetree/bindings/arm/omap/omap.txt          |   14 ++++--
- arch/arm/boot/dts/Makefile                         |    3 +-
- arch/arm/boot/dts/dra7-evm.dts                     |    6 +--
- arch/arm/boot/dts/dra7.dtsi                        |   27 ------------
- arch/arm/boot/dts/dra72-evm.dts                    |   24 +++++++++++
- arch/arm/boot/dts/dra72x.dtsi                      |   25 +++++++++++
- arch/arm/boot/dts/dra74x.dtsi                      |   41 ++++++++++++++++++
- arch/arm/mach-omap2/board-generic.c                |   45 ++++++++++++++------
- arch/arm/mach-omap2/soc.h                          |    7 +++
- 9 files changed, 143 insertions(+), 49 deletions(-)
- create mode 100644 arch/arm/boot/dts/dra72-evm.dts
- create mode 100644 arch/arm/boot/dts/dra72x.dtsi
- create mode 100644 arch/arm/boot/dts/dra74x.dtsi
-
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index 0b2819551756..a83a2cc0af67 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -1115,6 +1115,18 @@ long clk_get_accuracy(struct clk *clk)
+ EXPORT_SYMBOL_GPL(clk_get_accuracy);
+ 
+ /**
++ * clk_may_runtime_pm - check if the clock is suitable for Runtime PM
++ * @clk: the clock to check
++ *
++ * Return true if the clock is suitable for Runtime PM
++ * Return false if clk is NULL, or if the clock is not suitable for Runtime PM.
++ */
++bool clk_may_runtime_pm(const struct clk *clk)
++{
++	return clk && clk->flags & CLK_RUNTIME_PM;
++}
++
++/**
+  * __clk_recalc_rates
+  * @clk: first clk in the subtree
+  * @msg: notification type (see include/linux/clk.h)
+diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+index 24c8ba4fa6ae..3ca9a7c1f02d 100644
+--- a/include/linux/clk-provider.h
++++ b/include/linux/clk-provider.h
+@@ -30,6 +30,7 @@
+ #define CLK_GET_RATE_NOCACHE	BIT(6) /* do not use the cached clk rate */
+ #define CLK_SET_RATE_NO_REPARENT BIT(7) /* don't re-parent on rate change */
+ #define CLK_GET_ACCURACY_NOCACHE BIT(8) /* do not use the cached clk accuracy */
++#define CLK_RUNTIME_PM		BIT(9) /* clock is suitable for Runtime PM */
+ 
+ struct clk_hw;
+ struct dentry;
+diff --git a/include/linux/clk.h b/include/linux/clk.h
+index d030fce1d77e..07f156580064 100644
+--- a/include/linux/clk.h
++++ b/include/linux/clk.h
+@@ -106,6 +106,7 @@ int clk_notifier_unregister(struct clk *clk, struct notifier_block *nb);
+  */
+ long clk_get_accuracy(struct clk *clk);
+ 
++bool clk_may_runtime_pm(const struct clk *clk);
+ #else /* !CONFIG_COMMON_CLK */
+ 
+ static inline long clk_get_accuracy(struct clk *clk)
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
