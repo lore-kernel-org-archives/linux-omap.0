@@ -1,60 +1,40 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 0/6] PM / clock_ops: Add helpers combining generic runtime
- and generic clock PM
-Date: Thu, 24 Apr 2014 15:26:53 +0200
-Message-ID: <CAPDyKFqi_6L48je_0cazHHDtQGzuvSPfocZT5+eLzd1egUVYXw@mail.gmail.com>
-References: <1398335198-26555-1-git-send-email-geert+renesas@glider.be>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v3] gpio: omap: implement get_direction
+Date: Thu, 24 Apr 2014 09:29:52 -0400
+Message-ID: <535911D0.3020907@ti.com>
+References: <1398322659-20008-1-git-send-email-yegorslists@googlemail.com> <CACRpkdZPNGHNQhqovDoaKTXZT3mJfN4pjKSBxW7m6wT5u-XEYQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1398335198-26555-1-git-send-email-geert+renesas@glider.be>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ben Dooks <ben.dooks@codethink.co.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, linux-sh@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdZPNGHNQhqovDoaKTXZT3mJfN4pjKSBxW7m6wT5u-XEYQ@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, yegorslists@googlemail.com, Kevin Hilman <khilman@linaro.org>
+Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 24 April 2014 12:26, Geert Uytterhoeven <geert+renesas@glider.be> wrote:
-> Several platform support codes combine pm_generic_runtime_suspend() and
-> pm_clk_suspend(), resp. pm_clk_resume() and pm_generic_runtime_resume() in
-> their .runtime_suspend resp. .runtime_resume callbacks.
->
-> Create helpers to consolidate.
->
->   - [1/6] PM / clock_ops: Add helpers combining generic runtime and generic
->           clock PM
+On Thursday 24 April 2014 09:13 AM, Linus Walleij wrote:
+> On Thu, Apr 24, 2014 at 8:57 AM,  <yegorslists@googlemail.com> wrote:
+> 
+>> From: Yegor Yefremov <yegorslists@googlemail.com>
+>>
+>> This patch implements gpio_chip's get_direction() routine, that
+>> lets other drivers get particular GPIOs direction using
+>> struct gpio_desc.
+>>
+>> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+>> Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
+>> ---
+>> Changes:
+>>         v3: get rid of _get_gpio_direction() (Linus Walleij)
+>>         v2: rework return value calculation
+> 
+> Looks good to me, Kevin, Santosh?
+> 
+Looks fine to me as well.
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-How about adding the code from the above patch into the generic power
-domain instead?
+> Part of me wants to list Javier as maintainer for this driver.
+> 
+Am ok with it as well.
 
->   - [2/6] ARM: davinci: Use generic runtime and clock helpers
->   - [3/6] ARM: keystone: Use generic runtime and clock helpers
->   - [4/6] ARM: omap: Use generic runtime and clock helpers
->   - [5/6] drivers: sh: Use generic runtime and clock helpers
-
-Then convert the above power domains implementations to the generic
-power domain? Would that work?
-
-Kind regards
-Ulf Hansson
-
->   - [6/6] of/clk: Use generic runtime and clock helpers
->
-> Patches 5 and 6 have dependencies (listed in the individual patches),
-> but they can be postponed and handled later.
->
-> Thanks!
->
-> Gr{oetje,eeting}s,
->
->                                                 Geert
->
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
->
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                                             -- Linus Torvalds
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
