@@ -1,155 +1,64 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 21/23] OMAPDSS: HDMI: PLL changes for OMAP5
-Date: Thu, 24 Apr 2014 13:17:17 +0300
-Message-ID: <1398334639-14172-22-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 04/23] OMAPDSS: DSI: set regulator voltage to 1.8V
+Date: Thu, 24 Apr 2014 13:17:00 +0300
+Message-ID: <1398334639-14172-5-git-send-email-tomi.valkeinen@ti.com>
 References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58154 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754598AbaDXKT3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Apr 2014 06:19:29 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-From: Archit Taneja <archit@ti.com>
+Set the DSI vdd regulator voltage to the required 1.8V.
 
-Add a features struct to differentiate between the HDMI PLLs on OMAP4
-and OMAP5. The OMAP5 PLL is more sensitive when it comes to locking.  We
-need to ensure that the DCO freq isn't too low for lower pixel clocks.
+This is required for the case when the regulator in the DT data defines
+a range of allowed voltages. In this case it's required to set the
+voltage, as otherwise enabling the voltage fails.
 
-Modify the PLL computation slightly to ensure the HDMI PLL locks for lower
-frequencies. This will be later replaced by a more complex computation
-which makes sure all the PLL constraints are met.
-
-Signed-off-by: Archit Taneja <archit@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/hdmi_pll.c | 81 +++++++++++++++++++++++++++++++-
- 1 file changed, 79 insertions(+), 2 deletions(-)
+ drivers/video/fbdev/omap2/dss/dsi.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi_pll.c b/drivers/video/fbdev/omap2/dss/hdmi_pll.c
-index 5fc71215c303..2b910cb9eee4 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi_pll.c
-+++ b/drivers/video/fbdev/omap2/dss/hdmi_pll.c
-@@ -23,6 +23,18 @@
- #define HDMI_DEFAULT_REGN 16
- #define HDMI_DEFAULT_REGM2 1
- 
-+struct hdmi_pll_features {
-+	bool sys_reset;
-+	/* this is a hack, need to replace it with a better computation of M2 */
-+	bool bound_dcofreq;
-+	unsigned long fint_min, fint_max;
-+	u16 regm_max;
-+	unsigned long dcofreq_low_min, dcofreq_low_max;
-+	unsigned long dcofreq_high_min, dcofreq_high_max;
-+};
-+
-+static const struct hdmi_pll_features *pll_feat;
-+
- void hdmi_pll_dump(struct hdmi_pll_data *pll, struct seq_file *s)
+diff --git a/drivers/video/fbdev/omap2/dss/dsi.c b/drivers/video/fbdev/omap2/dss/dsi.c
+index 8be9b04d8849..57f120896b43 100644
+--- a/drivers/video/fbdev/omap2/dss/dsi.c
++++ b/drivers/video/fbdev/omap2/dss/dsi.c
+@@ -1161,6 +1161,7 @@ static int dsi_regulator_init(struct platform_device *dsidev)
  {
- #define DUMPPLL(r) seq_printf(s, "%-35s %08x\n", #r,\
-@@ -57,7 +69,11 @@ void hdmi_pll_compute(struct hdmi_pll_data *pll, unsigned long clkin, int phy)
- 
- 	refclk = clkin / pi->regn;
- 
--	pi->regm2 = HDMI_DEFAULT_REGM2;
-+	/* temorary hack to make sure DCO freq isn't calculated too low */
-+	if (pll_feat->bound_dcofreq && phy <= 65000)
-+		pi->regm2 = 3;
-+	else
-+		pi->regm2 = HDMI_DEFAULT_REGM2;
- 
- 	/*
- 	 * multiplier is pixel_clk/ref_clk
-@@ -154,7 +170,7 @@ static int hdmi_pll_config(struct hdmi_pll_data *pll)
- static int hdmi_pll_reset(struct hdmi_pll_data *pll)
- {
- 	/* SYSRESET  controlled by power FSM */
--	REG_FLD_MOD(pll->base, PLLCTRL_PLL_CONTROL, 0x0, 3, 3);
-+	REG_FLD_MOD(pll->base, PLLCTRL_PLL_CONTROL, pll_feat->sys_reset, 3, 3);
- 
- 	/* READ 0x0 reset is in progress */
- 	if (hdmi_wait_for_bit_change(pll->base, PLLCTRL_PLL_STATUS, 0, 0, 1)
-@@ -197,11 +213,72 @@ void hdmi_pll_disable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp)
- #define PLL_OFFSET	0x200
- #define PLL_SIZE	0x100
- 
-+static const struct hdmi_pll_features omap44xx_pll_feats = {
-+	.sys_reset		=	false,
-+	.bound_dcofreq		=	false,
-+	.fint_min		=	500000,
-+	.fint_max		=	2500000,
-+	.regm_max		=	4095,
-+	.dcofreq_low_min	=	500000000,
-+	.dcofreq_low_max	=	1000000000,
-+	.dcofreq_high_min	=	1000000000,
-+	.dcofreq_high_max	=	2000000000,
-+};
-+
-+static const struct hdmi_pll_features omap54xx_pll_feats = {
-+	.sys_reset		=	true,
-+	.bound_dcofreq		=	true,
-+	.fint_min		=	620000,
-+	.fint_max		=	2500000,
-+	.regm_max		=	2046,
-+	.dcofreq_low_min	=	750000000,
-+	.dcofreq_low_max	=	1500000000,
-+	.dcofreq_high_min	=	1250000000,
-+	.dcofreq_high_max	=	2500000000UL,
-+};
-+
-+static int hdmi_pll_init_features(struct platform_device *pdev)
-+{
-+	struct hdmi_pll_features *dst;
-+	const struct hdmi_pll_features *src;
-+
-+	dst = devm_kzalloc(&pdev->dev, sizeof(*dst), GFP_KERNEL);
-+	if (!dst) {
-+		dev_err(&pdev->dev, "Failed to allocate HDMI PHY Features\n");
-+		return -ENOMEM;
-+	}
-+
-+	switch (omapdss_get_version()) {
-+	case OMAPDSS_VER_OMAP4430_ES1:
-+	case OMAPDSS_VER_OMAP4430_ES2:
-+	case OMAPDSS_VER_OMAP4:
-+		src = &omap44xx_pll_feats;
-+		break;
-+
-+	case OMAPDSS_VER_OMAP5:
-+		src = &omap54xx_pll_feats;
-+		break;
-+
-+	default:
-+		return -ENODEV;
-+	}
-+
-+	memcpy(dst, src, sizeof(*dst));
-+	pll_feat = dst;
-+
-+	return 0;
-+}
-+
- int hdmi_pll_init(struct platform_device *pdev, struct hdmi_pll_data *pll)
- {
+ 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+ 	struct regulator *vdds_dsi;
 +	int r;
- 	struct resource *res;
- 	struct resource temp_res;
  
-+	r = hdmi_pll_init_features(pdev);
-+	if (r)
-+		return r;
+ 	if (dsi->vdds_dsi_reg != NULL)
+ 		return 0;
+@@ -1173,6 +1174,15 @@ static int dsi_regulator_init(struct platform_device *dsidev)
+ 		return PTR_ERR(vdds_dsi);
+ 	}
+ 
++	if (regulator_can_change_voltage(vdds_dsi)) {
++		r = regulator_set_voltage(vdds_dsi, 1800000, 1800000);
++		if (r) {
++			devm_regulator_put(vdds_dsi);
++			DSSERR("can't set the DSI regulator voltage\n");
++			return r;
++		}
++	}
 +
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pll");
- 	if (!res) {
- 		DSSDBG("can't get PLL mem resource by name\n");
+ 	dsi->vdds_dsi_reg = vdds_dsi;
+ 
+ 	return 0;
 -- 
 1.9.1
-
