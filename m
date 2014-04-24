@@ -1,38 +1,60 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v3 2/4] ARM: dts: Add support for DRA72x family of devices
-Date: Thu, 24 Apr 2014 15:13:54 +0200
-Message-ID: <201404241513.54380.arnd@arndb.de>
-References: <1398333987-19454-1-git-send-email-rnayak@ti.com> <1398333987-19454-3-git-send-email-rnayak@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 0/6] PM / clock_ops: Add helpers combining generic runtime
+ and generic clock PM
+Date: Thu, 24 Apr 2014 15:26:53 +0200
+Message-ID: <CAPDyKFqi_6L48je_0cazHHDtQGzuvSPfocZT5+eLzd1egUVYXw@mail.gmail.com>
+References: <1398335198-26555-1-git-send-email-geert+renesas@glider.be>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1398333987-19454-3-git-send-email-rnayak@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com, nm@ti.com, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1398335198-26555-1-git-send-email-geert+renesas@glider.be>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ben Dooks <ben.dooks@codethink.co.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, linux-sh@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 24 April 2014, Rajendra Nayak wrote:
-> 
-> -- DRA742
-> -  compatible = "ti,dra7xx", "ti,dra7"
-> +- DRA74x
-> +  compatible = "ti,dra74", "ti,dra7"
-> +
-> +- DRA72x
-> +  compatible = "ti,dra72", "ti,dra7"
+On 24 April 2014 12:26, Geert Uytterhoeven <geert+renesas@glider.be> wrote:
+> Several platform support codes combine pm_generic_runtime_suspend() and
+> pm_clk_suspend(), resp. pm_clk_resume() and pm_generic_runtime_resume() in
+> their .runtime_suspend resp. .runtime_resume callbacks.
+>
+> Create helpers to consolidate.
+>
+>   - [1/6] PM / clock_ops: Add helpers combining generic runtime and generic
+>           clock PM
 
-Actually, what I meant was that you should list the fill name of the SoC,
-e.g. "ti,dra742", not just "ti,dra74". Leaving out the 'x' is not going
-to prevent this from breaking when you have a new dra745 that is incompatible.
+How about adding the code from the above patch into the generic power
+domain instead?
 
-You can always list more strings, e.g.
+>   - [2/6] ARM: davinci: Use generic runtime and clock helpers
+>   - [3/6] ARM: keystone: Use generic runtime and clock helpers
+>   - [4/6] ARM: omap: Use generic runtime and clock helpers
+>   - [5/6] drivers: sh: Use generic runtime and clock helpers
 
-	compatible = "ti,dra745", "ti,dra742", "ti,dra74", "ti,dra7";
+Then convert the above power domains implementations to the generic
+power domain? Would that work?
 
-if you have a dra745 product that is fully compatible with dra742, but the
-important part here is that the first string must be the full name.
+Kind regards
+Ulf Hansson
 
-	Arnd
+>   - [6/6] of/clk: Use generic runtime and clock helpers
+>
+> Patches 5 and 6 have dependencies (listed in the individual patches),
+> but they can be postponed and handled later.
+>
+> Thanks!
+>
+> Gr{oetje,eeting}s,
+>
+>                                                 Geert
+>
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+>
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                                             -- Linus Torvalds
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
