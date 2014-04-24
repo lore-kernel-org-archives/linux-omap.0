@@ -1,87 +1,118 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 05/14] arm: common: edma: Select event queue 1 as
-	default when booted with DT
-Date: Thu, 24 Apr 2014 12:07:09 +0300
-Message-ID: <5358D43D.20600@ti.com>
-References: <1396357575-30585-1-git-send-email-peter.ujfalusi@ti.com>
-	<1396357575-30585-6-git-send-email-peter.ujfalusi@ti.com>
-	<5347A4FD.1030803@ti.com> <5347ACDE.7040407@ti.com>
-	<5347AE49.5020109@ti.com> <5347B7F8.2000508@ti.com>
-	<20140411094217.GA32284@intel.com> <5347D2CC.4030407@ti.com>
-	<20140411113154.GB32284@intel.com> <5347DEDA.2060008@ti.com>
-	<20140411124641.GC32284@intel.com> <534BCCD3.9060805@ti.com>
-	<534BD0B5.5000004@ti.com> <534BD788.3050406@ti.com>
-	<534BF181.6060503@ti.com> <534E7EB0.9000601@ti.com>
-	<534EAA49.7030702@ti.com>
+From: Olivier Gayot <ogayot-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] usb: musb_dsps: fix the exit routine for debugfs
+Date: Thu, 24 Apr 2014 11:07:34 +0200
+Message-ID: <20140424110734.1f83b52c@blinky>
+References: <1398267583-19159-1-git-send-email-ogayot@baylibre.com>
+ <20140423155529.GL9593@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <534EAA49.7030702-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: joelf-l0cyMroinI0@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mporter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140423155529.GL9593-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Markus Pargmann <mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/16/2014 07:05 PM, Joel Fernandes wrote:
-> On 04/16/2014 07:59 AM, Peter Ujfalusi wrote:
-> [..]
->>>>>> If the dma-priority is missing we should assume lowest priority (0).
->>>>>> The highest priority depends on the platform. For eDMA3 in AM335x it=
- is three
->>>>>> level. For designware controller you might have the range 0-8 as val=
-id.
->>>>>>
->>>>>> The question is how to get this information into use?
->>>>>> We can take the priority number in the core when the dma channel is =
-requested
->>>>>> and add field to "struct dma_chan" in order to store it and the DMA =
-drivers
->>>>>> could have access to it.
->>>
->>> How about Vinod's idea of extending dma_slave_config? Priority is
->>> similar to rest of the runtime setup dmaengine_slave_config() is meant
->>> to do.
->>
->> The dma_slave_config is prepared by the client drivers, so they would ne=
-ed to
->> be updated to handle the priority for the DMA. This would lead to duplic=
-ated
->> code - unless we have a small function in dmaengine core to fetch this
->> information, but still all dmaengine clients would need to call that.
->> IMHO it would be better to let the dmaengine core to take the priority f=
-or the
->> channel when it has been asked so client drivers does not need to know a=
-bout it.
->>
-> =
+Ok, thank you, I didn't notice the existing thread.
 
-> I still feel it is much cleaner to keep this out of DT and have audio
-> driver configure the channel manually for higher priority. Because,
-> AFAIK audio is the only device that uses slave DMA and needs higher
-> priority. I'd imagine everyone else who needs high priority, have their
-> own dedicated DMAC, so from that sense I don't see the priority
-> mechanism being used a lot anywhere else but audio, so atleast we can
-> rule out things like code duplication in other drivers. Priority can be
-> set to a default of low for those drivers that don't configure the
-> channel for priority. I'm also OK with EDMA driver configuring channel
-> for higher priority manually for the Cyclic case like you did initially.
+On Wed, 23 Apr 2014 10:55:29 -0500
+Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
 
-So how should we go about this?
-I'm fine to select higher priority in the eDMA driver for now when a cyclic
-channel is configured and later when we have (if we ever have) generic way =
-to
-handle DMA channel/transaction priority we can switch eDMA as well to use i=
-t.
+> On Wed, Apr 23, 2014 at 05:39:43PM +0200, Olivier Gayot wrote:
+> > The following commit introduced the debugfs :
+> > 
+> > 40f099e32c2a06bad7d75683421e30fcc74924cd
+> > Author: Markus Pargmann <mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+> > Date:   Fri Jan 17 10:22:35 2014 +0100
+> > 
+> >     usb: musb: dsps, debugfs files
+> > 
+> > Unfortunately, a forgotten call to a cleanup function prevents the
+> > probing of musb in case of deferred probe.
+> > 
+> > Because musb_init_controller() often retries and creates a new
+> > debugfs directory each time it is called, we need to remove that
+> > directory in case the initialization fails. Otherwise, the
+> > debugfs_create_dir() fails at subsequent calls because the
+> > directory already exists.
+> > 
+> > Fixed by calling debugfs_remove_recursive() in the exit function.
+> > 
+> > Signed-off-by: Olivier Gayot <ogayot-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> > Cc: Markus Pargmann <mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+> > ---
+> >  drivers/usb/musb/musb_dsps.c |    2 ++
+> >  1 file changed, 2 insertions(+)
+> > 
+> > diff --git a/drivers/usb/musb/musb_dsps.c
+> > b/drivers/usb/musb/musb_dsps.c index 3372ded..c3de0a5 100644
+> > --- a/drivers/usb/musb/musb_dsps.c
+> > +++ b/drivers/usb/musb/musb_dsps.c
+> > @@ -471,6 +471,8 @@ static int dsps_musb_exit(struct musb *musb)
+> >  
+> >  	del_timer_sync(&glue->timer);
+> >  
+> > +	debugfs_remove_recursive(glue->dbgfs_root);
+> > +
+> >  	usb_phy_shutdown(musb->xceiv);
+> >  	return 0;
+> 
+> First of all this commit is wrong, second of all I already have the
+> proper commit:
+> 
+> commit 0fca91b8a446d4a38b8f3d4772c4a8665ebcd7b2
+> Author: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Date:   Wed Apr 2 11:46:51 2014 +0200
+> 
+>     usb: musb: dsps: move debugfs_remove_recursive()
+>     
+>     When the platform initialization fails due to missing resources,
+> it will return -EPROBE_DEFER after dsps_musb_init() has been called.
+>     
+>     dsps_musb_init() calls dsps_musb_dbg_init() to allocate the
+> debugfs nodes. At a later point in time, the probe will be retried,
+> and dsps_musb_dbg_init() will be called again. debugfs_create_dir()
+> will fail this time, as the node already exists, and so the entire
+> device probe will fail with -ENOMEM.
+>     
+>     Fix this by moving debugfs_remove_recursive() from dsps_remove()
+> to the plaform's exit function, so it will be cleanly torn down when
+> the probe fails. It also feels more natural this way, as .exit is the
+> counterpart to .init.
+>     
+>     Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>     Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> 
+> diff --git a/drivers/usb/musb/musb_dsps.c
+> b/drivers/usb/musb/musb_dsps.c index 3372ded..e2fd263 100644
+> --- a/drivers/usb/musb/musb_dsps.c
+> +++ b/drivers/usb/musb/musb_dsps.c
+> @@ -470,8 +470,9 @@ static int dsps_musb_exit(struct musb *musb)
+>  	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+>  
+>  	del_timer_sync(&glue->timer);
+> -
+>  	usb_phy_shutdown(musb->xceiv);
+> +	debugfs_remove_recursive(glue->dbgfs_root);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -708,8 +709,6 @@ static int dsps_remove(struct platform_device
+> *pdev) pm_runtime_put(&pdev->dev);
+>  	pm_runtime_disable(&pdev->dev);
+>  
+> -	debugfs_remove_recursive(glue->dbgfs_root);
+> -
+>  	return 0;
+>  }
+>  
+> 
+> a pull request has already been sent to Greg, should be in v3.15-rc3
+> 
 
--- =
-
-P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
