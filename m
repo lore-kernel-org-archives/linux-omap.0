@@ -1,86 +1,82 @@
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH v2] ARM: dts: am33xx: Move the cppi41dma node so it's probed early
-Date: Thu, 24 Apr 2014 18:11:21 -0300
-Message-ID: <1398373881-23369-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yk0-f169.google.com ([209.85.160.169]:58988 "EHLO
-	mail-yk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753343AbaDXVMC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 17:12:02 -0400
-Received: by mail-yk0-f169.google.com with SMTP id 142so2630974ykq.0
-        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2014 14:12:01 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Joel Fernandes <joelf@ti.com>
+Subject: [PATCH 04/26] ARM: OMAP: dmtimer: Add function to check if timer is running
+Date: Thu, 24 Apr 2014 16:43:47 -0500
+Message-ID: <1398375849-6017-5-git-send-email-joelf@ti.com>
+References: <1398375849-6017-1-git-send-email-joelf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1398375849-6017-1-git-send-email-joelf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 
-The DMA controller is needed for the USB controller to be correctly
-registered. Therefore, if the DMA node is located at the end an unecessary
-probe deferral is produced systematically.
+Inorder to move non-DM timer specific code that modifies the "idlect"
+mask on OMAP1, from dmtimer code, to OMAP1 specific timer initialization code,
+we introduce a new function that can possibly be reused for other purposes in
+the future. The function just checks if a timer is running based on the timer ID
+which should be same as pdev->id. This allows us to cleanly separate the timer vs
+non-timer bits and keep the timer bits in the dmtimer code.
 
-This is easily fixed by moving the node at the beggining of the child list,
-so it's probed first.
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
+ arch/arm/plat-omap/dmtimer.c              |   29 +++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/dmtimer.h |    2 ++
+ 2 files changed, 31 insertions(+)
 
-Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
---
-v1->v2:
-  * Added a comment to prevent a future clean-up based on the memory offset.
-
- arch/arm/boot/dts/am33xx.dtsi | 34 ++++++++++++++++++++--------------
- 1 file changed, 20 insertions(+), 14 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 9770e35..02e1eb6 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -453,6 +453,26 @@
- 			ti,hwmods = "usb_otg_hs";
- 			status = "disabled";
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 4debb3d..86b2641 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -187,6 +187,35 @@ int omap_dm_timer_reserve_systimer(int id)
+ 	return 0;
+ }
  
-+			/*
-+			 * The probe order matches the child ordering so the
-+			 * dma-controller node must be the first one to prevent
-+			 * spurious probe deferrals.
-+			 */
-+			cppi41dma: dma-controller@47402000 {
-+				compatible = "ti,am3359-cppi41";
-+				reg =  <0x47400000 0x1000
-+					0x47402000 0x1000
-+					0x47403000 0x1000
-+					0x47404000 0x4000>;
-+				reg-names = "glue", "controller", "scheduler", "queuemgr";
-+				interrupts = <17>;
-+				interrupt-names = "glue";
-+				#dma-cells = <2>;
-+				#dma-channels = <30>;
-+				#dma-requests = <256>;
-+				status = "disabled";
-+			};
++/*
++ * Check if a timer is running based on timer_id, used for OMAP1 currently.
++ */
++int omap_dm_timer_is_running(int timer_id)
++{
++	int i = 1, ret = 0;
++	struct omap_dm_timer *timer = NULL;
++	unsigned long flags;
 +
- 			usb_ctrl_mod: control@44e10620 {
- 				compatible = "ti,am335x-usb-ctrl-module";
- 				reg = <0x44e10620 0x10
-@@ -556,20 +576,6 @@
- 					"tx14", "tx15";
- 			};
++	spin_lock_irqsave(&dm_timer_lock, flags);
++	list_for_each_entry(timer, &omap_timer_list, node) {
++		if (i == timer_id) {
++			u32 l;
++			l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
++			if (l & OMAP_TIMER_CTRL_ST) {
++				ret = 1;
++				goto done;
++			} else {
++				goto done;
++			}
++		}
++		i++;
++	}
++done:
++	spin_unlock_irqrestore(&dm_timer_lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(omap_dm_timer_is_running);
++
+ static struct omap_dm_timer *_omap_dm_timer_request(int req_type, void *data)
+ {
+ 	struct omap_dm_timer *timer = NULL, *t;
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index 2861b15..41df0a6 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -135,6 +135,8 @@ void omap_dm_timer_disable(struct omap_dm_timer *timer);
  
--			cppi41dma: dma-controller@47402000 {
--				compatible = "ti,am3359-cppi41";
--				reg =  <0x47400000 0x1000
--					0x47402000 0x1000
--					0x47403000 0x1000
--					0x47404000 0x4000>;
--				reg-names = "glue", "controller", "scheduler", "queuemgr";
--				interrupts = <17>;
--				interrupt-names = "glue";
--				#dma-cells = <2>;
--				#dma-channels = <30>;
--				#dma-requests = <256>;
--				status = "disabled";
--			};
- 		};
+ int omap_dm_timer_get_irq(struct omap_dm_timer *timer);
  
- 		epwmss0: epwmss@48300000 {
++int omap_dm_timer_is_running(int timer_id);
++
+ u32 omap_dm_timer_modify_idlect_mask(u32 inputmask);
+ struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer);
+ 
 -- 
-1.9.1
-
+1.7.9.5
