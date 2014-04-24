@@ -1,319 +1,132 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 18/23] OMAPDSS: HDMI: move irq & phy pwr handling
-Date: Thu, 24 Apr 2014 13:17:14 +0300
-Message-ID: <1398334639-14172-19-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 23/23] Doc/DT: Add OMAP5 DSS DT bindings
+Date: Thu, 24 Apr 2014 13:17:19 +0300
+Message-ID: <1398334639-14172-24-git-send-email-tomi.valkeinen@ti.com>
 References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58151 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58162 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755017AbaDXKTZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Apr 2014 06:19:25 -0400
+	id S1755100AbaDXKTo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Apr 2014 06:19:44 -0400
 In-Reply-To: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree@vger.kernel.org
 
-HDMI IRQ handling was moved into hdmi_phy.c when restructuring the HDMI
-driver. While this worked fine, it's not correct.
-
-The HDMI IRQ handling should be either in the hdmi_wp, or in the main
-hdmi driver. This patch moves the handling to the main hdmi driver, as I
-feel it's a more appropriate choice.
-
-This move also requires changing the handling of the PHY power, as that
-was partly handled in the IRQ handler. The PHY power is handled via the
-WP module. An option would be to give HDMI PHY driver function pointers
-that it could use to manage the PHY power, but as the PHY power is not
-needed to access the PHY registers, the handling was also moved to the
-main HDMI driver. This could be changed later if need be.
-
-Note that there's slightly similar power issue with the PLL: the HDMI
-PLLs power is also handled via the WP module. For now, the PLL power
-handling is still done inside the PLL driver.
+Add DT binding documentation for OMAP5 Display Subsystem.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: devicetree@vger.kernel.org
 ---
- drivers/video/fbdev/omap2/dss/hdmi.h     |  6 +--
- drivers/video/fbdev/omap2/dss/hdmi4.c    | 75 +++++++++++++++++++++++++++++---
- drivers/video/fbdev/omap2/dss/hdmi_phy.c | 70 +----------------------------
- 3 files changed, 71 insertions(+), 80 deletions(-)
+ .../devicetree/bindings/video/ti,omap5-dss.txt     | 96 ++++++++++++++++++++++
+ 1 file changed, 96 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/video/ti,omap5-dss.txt
 
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
-index 4e5c44e7eeb3..d784b2cced9d 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi.h
-+++ b/drivers/video/fbdev/omap2/dss/hdmi.h
-@@ -351,8 +351,6 @@ struct hdmi_pll_data {
- struct hdmi_phy_data {
- 	void __iomem *base;
- 
--	int irq;
--
- 	u8 lane_function[4];
- 	u8 lane_polarity[4];
- };
-@@ -420,9 +418,7 @@ void hdmi_pll_compute(struct hdmi_pll_data *pll, unsigned long clkin, int phy);
- int hdmi_pll_init(struct platform_device *pdev, struct hdmi_pll_data *pll);
- 
- /* HDMI PHY funcs */
--int hdmi_phy_enable(struct hdmi_phy_data *phy, struct hdmi_wp_data *wp,
--		struct hdmi_config *cfg);
--void hdmi_phy_disable(struct hdmi_phy_data *phy, struct hdmi_wp_data *wp);
-+int hdmi_phy_configure(struct hdmi_phy_data *phy, struct hdmi_config *cfg);
- void hdmi_phy_dump(struct hdmi_phy_data *phy, struct seq_file *s);
- int hdmi_phy_init(struct platform_device *pdev, struct hdmi_phy_data *phy);
- int hdmi_phy_parse_lanes(struct hdmi_phy_data *phy, const u32 *lanes);
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi4.c b/drivers/video/fbdev/omap2/dss/hdmi4.c
-index 5c7dd5c06593..626aad2bef46 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi4.c
-+++ b/drivers/video/fbdev/omap2/dss/hdmi4.c
-@@ -81,6 +81,37 @@ static void hdmi_runtime_put(void)
- 	WARN_ON(r < 0 && r != -ENOSYS);
- }
- 
-+static irqreturn_t hdmi_irq_handler(int irq, void *data)
-+{
-+	struct hdmi_wp_data *wp = data;
-+	u32 irqstatus;
+diff --git a/Documentation/devicetree/bindings/video/ti,omap5-dss.txt b/Documentation/devicetree/bindings/video/ti,omap5-dss.txt
+new file mode 100644
+index 000000000000..38ffc8fcd816
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/ti,omap5-dss.txt
+@@ -0,0 +1,96 @@
++Texas Instruments OMAP5 Display Subsystem
++=========================================
 +
-+	irqstatus = hdmi_wp_get_irqstatus(wp);
-+	hdmi_wp_set_irqstatus(wp, irqstatus);
++See Documentation/devicetree/bindings/video/ti,omap-dss.txt for generic
++description about OMAP Display Subsystem bindings.
 +
-+	if ((irqstatus & HDMI_IRQ_LINK_CONNECT) &&
-+			irqstatus & HDMI_IRQ_LINK_DISCONNECT) {
-+		/*
-+		 * If we get both connect and disconnect interrupts at the same
-+		 * time, turn off the PHY, clear interrupts, and restart, which
-+		 * raises connect interrupt if a cable is connected, or nothing
-+		 * if cable is not connected.
-+		 */
-+		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_OFF);
++DSS Core
++--------
 +
-+		hdmi_wp_set_irqstatus(wp, HDMI_IRQ_LINK_CONNECT |
-+				HDMI_IRQ_LINK_DISCONNECT);
++Required properties:
++- compatible: "ti,omap5-dss"
++- reg: address and length of the register space
++- ti,hwmods: "dss_core"
++- clocks: handle to fclk
++- clock-names: "fck"
 +
-+		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_LDOON);
-+	} else if (irqstatus & HDMI_IRQ_LINK_CONNECT) {
-+		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_TXON);
-+	} else if (irqstatus & HDMI_IRQ_LINK_DISCONNECT) {
-+		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_LDOON);
-+	}
++Required nodes:
++- DISPC
 +
-+	return IRQ_HANDLED;
-+}
++Optional nodes:
++- DSS Submodules: RFBI, DSI, HDMI
++- Video port for DPI output
 +
- static int hdmi_init_regulator(void)
- {
- 	int r;
-@@ -150,11 +181,16 @@ static int hdmi_power_on_full(struct omap_dss_device *dssdev)
- 	struct omap_video_timings *p;
- 	struct omap_overlay_manager *mgr = hdmi.output.manager;
- 	unsigned long phy;
-+	struct hdmi_wp_data *wp = &hdmi.wp;
- 
- 	r = hdmi_power_on_core(dssdev);
- 	if (r)
- 		return r;
- 
-+	/* disable and clear irqs */
-+	hdmi_wp_clear_irqenable(wp, 0xffffffff);
-+	hdmi_wp_set_irqstatus(wp, 0xffffffff);
++DPI Endpoint required properties:
++- data-lines: number of lines used
 +
- 	p = &hdmi.cfg.timings;
- 
- 	DSSDBG("hdmi_power_on x_res= %d y_res = %d\n", p->x_res, p->y_res);
-@@ -171,12 +207,16 @@ static int hdmi_power_on_full(struct omap_dss_device *dssdev)
- 		goto err_pll_enable;
- 	}
- 
--	r = hdmi_phy_enable(&hdmi.phy, &hdmi.wp, &hdmi.cfg);
-+	r = hdmi_phy_configure(&hdmi.phy, &hdmi.cfg);
- 	if (r) {
--		DSSDBG("Failed to start PHY\n");
--		goto err_phy_enable;
-+		DSSDBG("Failed to configure PHY\n");
-+		goto err_phy_cfg;
- 	}
- 
-+	r = hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_LDOON);
-+	if (r)
-+		goto err_phy_pwr;
 +
- 	hdmi4_configure(&hdmi.core, &hdmi.wp, &hdmi.cfg);
- 
- 	/* bypass TV gamma table */
-@@ -193,13 +233,17 @@ static int hdmi_power_on_full(struct omap_dss_device *dssdev)
- 	if (r)
- 		goto err_mgr_enable;
- 
-+	hdmi_wp_set_irqenable(wp,
-+		HDMI_IRQ_LINK_CONNECT | HDMI_IRQ_LINK_DISCONNECT);
++DISPC
++-----
 +
- 	return 0;
- 
- err_mgr_enable:
- 	hdmi_wp_video_stop(&hdmi.wp);
- err_vid_enable:
--	hdmi_phy_disable(&hdmi.phy, &hdmi.wp);
--err_phy_enable:
-+err_phy_cfg:
-+	hdmi_wp_set_phy_pwr(&hdmi.wp, HDMI_PHYPWRCMD_OFF);
-+err_phy_pwr:
- 	hdmi_pll_disable(&hdmi.pll, &hdmi.wp);
- err_pll_enable:
- 	hdmi_power_off_core(dssdev);
-@@ -210,10 +254,14 @@ static void hdmi_power_off_full(struct omap_dss_device *dssdev)
- {
- 	struct omap_overlay_manager *mgr = hdmi.output.manager;
- 
-+	hdmi_wp_clear_irqenable(&hdmi.wp, 0xffffffff);
++Required properties:
++- compatible: "ti,omap5-dispc"
++- reg: address and length of the register space
++- ti,hwmods: "dss_dispc"
++- interrupts: the DISPC interrupt
++- clocks: handle to fclk
++- clock-names: "fck"
 +
- 	dss_mgr_disable(mgr);
- 
- 	hdmi_wp_video_stop(&hdmi.wp);
--	hdmi_phy_disable(&hdmi.phy, &hdmi.wp);
 +
-+	hdmi_wp_set_phy_pwr(&hdmi.wp, HDMI_PHYPWRCMD_OFF);
++RFBI
++----
 +
- 	hdmi_pll_disable(&hdmi.pll, &hdmi.wp);
- 
- 	hdmi_power_off_core(dssdev);
-@@ -636,6 +684,7 @@ err:
- static int omapdss_hdmihw_probe(struct platform_device *pdev)
- {
- 	int r;
-+	int irq;
- 
- 	hdmi.pdev = pdev;
- 
-@@ -669,6 +718,20 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
- 		return r;
- 	}
- 
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0) {
-+		DSSERR("platform_get_irq failed\n");
-+		return -ENODEV;
-+	}
++Required properties:
++- compatible: "ti,omap5-rfbi"
++- reg: address and length of the register space
++- ti,hwmods: "dss_rfbi"
++- clocks: handles to fclk and iclk
++- clock-names: "fck", "ick"
 +
-+	r = devm_request_threaded_irq(&pdev->dev, irq,
-+			NULL, hdmi_irq_handler,
-+			IRQF_ONESHOT, "OMAP HDMI", &hdmi.wp);
-+	if (r) {
-+		DSSERR("HDMI IRQ request failed\n");
-+		return r;
-+	}
++Optional nodes:
++- Video port for RFBI output
++- RFBI controlled peripherals
 +
- 	pm_runtime_enable(&pdev->dev);
- 
- 	hdmi_init_output(pdev);
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi_phy.c b/drivers/video/fbdev/omap2/dss/hdmi_phy.c
-index c1c65624fd5d..8d13e422de5e 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi_phy.c
-+++ b/drivers/video/fbdev/omap2/dss/hdmi_phy.c
-@@ -28,37 +28,6 @@ void hdmi_phy_dump(struct hdmi_phy_data *phy, struct seq_file *s)
- 	DUMPPHY(HDMI_TXPHY_PAD_CFG_CTRL);
- }
- 
--static irqreturn_t hdmi_irq_handler(int irq, void *data)
--{
--	struct hdmi_wp_data *wp = data;
--	u32 irqstatus;
--
--	irqstatus = hdmi_wp_get_irqstatus(wp);
--	hdmi_wp_set_irqstatus(wp, irqstatus);
--
--	if ((irqstatus & HDMI_IRQ_LINK_CONNECT) &&
--			irqstatus & HDMI_IRQ_LINK_DISCONNECT) {
--		/*
--		 * If we get both connect and disconnect interrupts at the same
--		 * time, turn off the PHY, clear interrupts, and restart, which
--		 * raises connect interrupt if a cable is connected, or nothing
--		 * if cable is not connected.
--		 */
--		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_OFF);
--
--		hdmi_wp_set_irqstatus(wp, HDMI_IRQ_LINK_CONNECT |
--				HDMI_IRQ_LINK_DISCONNECT);
--
--		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_LDOON);
--	} else if (irqstatus & HDMI_IRQ_LINK_CONNECT) {
--		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_TXON);
--	} else if (irqstatus & HDMI_IRQ_LINK_DISCONNECT) {
--		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_LDOON);
--	}
--
--	return IRQ_HANDLED;
--}
--
- int hdmi_phy_parse_lanes(struct hdmi_phy_data *phy, const u32 *lanes)
- {
- 	int i;
-@@ -150,21 +119,8 @@ static void hdmi_phy_configure_lanes(struct hdmi_phy_data *phy)
- 	REG_FLD_MOD(phy->base, HDMI_TXPHY_PAD_CFG_CTRL, pol_val, 30, 27);
- }
- 
--int hdmi_phy_enable(struct hdmi_phy_data *phy, struct hdmi_wp_data *wp,
--			struct hdmi_config *cfg)
-+int hdmi_phy_configure(struct hdmi_phy_data *phy, struct hdmi_config *cfg)
- {
--	u16 r = 0;
--	u32 irqstatus;
--
--	hdmi_wp_clear_irqenable(wp, 0xffffffff);
--
--	irqstatus = hdmi_wp_get_irqstatus(wp);
--	hdmi_wp_set_irqstatus(wp, irqstatus);
--
--	r = hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_LDOON);
--	if (r)
--		return r;
--
- 	/*
- 	 * Read address 0 in order to get the SCP reset done completed
- 	 * Dummy access performed to make sure reset is done
-@@ -185,27 +141,9 @@ int hdmi_phy_enable(struct hdmi_phy_data *phy, struct hdmi_wp_data *wp,
- 
- 	hdmi_phy_configure_lanes(phy);
- 
--	r = request_threaded_irq(phy->irq, NULL, hdmi_irq_handler,
--				IRQF_ONESHOT, "OMAP HDMI", wp);
--	if (r) {
--		DSSERR("HDMI IRQ request failed\n");
--		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_OFF);
--		return r;
--	}
--
--	hdmi_wp_set_irqenable(wp,
--		HDMI_IRQ_LINK_CONNECT | HDMI_IRQ_LINK_DISCONNECT);
--
- 	return 0;
- }
- 
--void hdmi_phy_disable(struct hdmi_phy_data *phy, struct hdmi_wp_data *wp)
--{
--	free_irq(phy->irq, wp);
--
--	hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_OFF);
--}
--
- #define PHY_OFFSET	0x300
- #define PHY_SIZE	0x100
- 
-@@ -240,11 +178,5 @@ int hdmi_phy_init(struct platform_device *pdev, struct hdmi_phy_data *phy)
- 		return -ENOMEM;
- 	}
- 
--	phy->irq = platform_get_irq(pdev, 0);
--	if (phy->irq < 0) {
--		DSSERR("platform_get_irq failed\n");
--		return -ENODEV;
--	}
--
- 	return 0;
- }
++
++DSI
++---
++
++Required properties:
++- compatible: "ti,omap5-dsi"
++- reg: addresses and lengths of the register spaces for 'proto', 'phy' and 'pll'
++- reg-names: "proto", "phy", "pll"
++- interrupts: the DSI interrupt line
++- ti,hwmods: "dss_dsi1" or "dss_dsi2"
++- vdd-supply: power supply for DSI
++- clocks: handles to fclk and pll clock
++- clock-names: "fck", "sys_clk"
++
++Optional nodes:
++- Video port for DSI output
++- DSI controlled peripherals
++
++DSI Endpoint required properties:
++- lanes: list of pin numbers for the DSI lanes: CLK+, CLK-, DATA0+, DATA0-,
++  DATA1+, DATA1-, ...
++
++
++HDMI
++----
++
++Required properties:
++- compatible: "ti,omap5-hdmi"
++- reg: addresses and lengths of the register spaces for 'wp', 'pll', 'phy',
++       'core'
++- reg-names: "wp", "pll", "phy", "core"
++- interrupts: the HDMI interrupt line
++- ti,hwmods: "dss_hdmi"
++- vdda-supply: vdda power supply
++- clocks: handles to fclk and pll clock
++- clock-names: "fck", "sys_clk"
++
++Optional nodes:
++- Video port for HDMI output
++
++HDMI Endpoint optional properties:
++- lanes: list of 8 pin numbers for the HDMI lanes: CLK+, CLK-, D0+, D0-,
++  D1+, D1-, D2+, D2-. (default: 0,1,2,3,4,5,6,7)
 -- 
 1.9.1
 
