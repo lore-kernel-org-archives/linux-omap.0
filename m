@@ -1,127 +1,58 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 12/23] ARM: dts: omap5-uevm.dts: add display nodes
-Date: Thu, 24 Apr 2014 13:17:08 +0300
-Message-ID: <1398334639-14172-13-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 08/23] ARM: dts: omap5-clocks.dtsi: add dss iclk
+Date: Thu, 24 Apr 2014 13:17:04 +0300
+Message-ID: <1398334639-14172-9-git-send-email-tomi.valkeinen@ti.com>
 References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58180 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59021 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752908AbaDXKUU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Apr 2014 06:20:20 -0400
+	id S1754396AbaDXKTI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Apr 2014 06:19:08 -0400
 In-Reply-To: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-omap5-uevm has a single HDMI output. Add the necessary display
-information, including pinmuxing.
+Add missing DSS interface clock node.
+
+Note: The TRM says DSS's interface clock is DSS_L3_GICLK, but it is not
+clear to me from reading the TRM and looking at the
+arch/arm/boot/dts/omap54xx-clocks.dtsi whether using 'l3_iclk_div' as
+the parent for 'dss_l3_iclk' is the correct clock.
+
+The clock is explicitly used only by the RFBI, and we don't have any
+boards using the RFBI, so I have no means to test it.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/boot/dts/omap5-uevm.dts | 82 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 82 insertions(+)
+ arch/arm/boot/dts/omap54xx-clocks.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 9e7581eaeb23..f625a8708567 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -183,6 +183,19 @@
- 		>;
+diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+index d487fdab3921..26c02f9e92c4 100644
+--- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+@@ -418,6 +418,14 @@
+ 		clock-div = <1>;
  	};
  
-+	dss_hdmi_pins: pinmux_dss_hdmi_pins {
-+		pinctrl-single,pins = <
-+			0x0fc (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
-+			0x100 (PIN_INPUT | MUX_MODE0)	/* hdmi_ddc_scl.hdmi_ddc_scl */
-+			0x102 (PIN_INPUT | MUX_MODE0)	/* hdmi_ddc_sda.hdmi_ddc_sda */
-+		>;
++	dss_l3_iclk: dss_l3_iclk {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&l3_iclk_div>;
++		clock-mult = <1>;
++		clock-div = <1>;
 +	};
 +
-+	tpd12s015_pins: pinmux_tpd12s015_pins {
-+		pinctrl-single,pins = <
-+			0x0fe (PIN_INPUT_PULLDOWN | MUX_MODE6)	/* hdmi_hpd.gpio7_193 */
-+		>;
-+	};
- };
- 
- &omap5_pmx_wkup {
-@@ -498,3 +511,72 @@
- &cpu0 {
- 	cpu0-supply = <&smps123_reg>;
- };
-+
-+/ {
-+	aliases {
-+		display0 = &hdmi0;
-+	};
-+
-+	tpd12s015: encoder@0 {
-+		compatible = "ti,tpd12s015";
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&tpd12s015_pins>;
-+
-+		gpios = <&tca6424a 0 GPIO_ACTIVE_HIGH>,	/* TCA6424A P01, CT CP HPD */
-+			<&tca6424a 1 GPIO_ACTIVE_HIGH>,	/* TCA6424A P00, LS OE */
-+			<&gpio7 1 GPIO_ACTIVE_HIGH>;	/* GPIO 193, HPD */
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+
-+				tpd12s015_in: endpoint@0 {
-+					remote-endpoint = <&hdmi_out>;
-+				};
-+			};
-+
-+			port@1 {
-+				reg = <1>;
-+
-+				tpd12s015_out: endpoint@0 {
-+					remote-endpoint = <&hdmi_connector_in>;
-+				};
-+			};
-+		};
-+	};
-+
-+	hdmi0: connector@0 {
-+		compatible = "hdmi-connector";
-+		label = "hdmi";
-+
-+		type = "b";
-+
-+		port {
-+			hdmi_connector_in: endpoint {
-+				remote-endpoint = <&tpd12s015_out>;
-+			};
-+		};
-+	};
-+};
-+
-+&dss {
-+	status = "ok";
-+};
-+
-+&hdmi {
-+	status = "ok";
-+	vdda-supply = <&ldo4_reg>;
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&dss_hdmi_pins>;
-+
-+	port {
-+		hdmi_out: endpoint {
-+			remote-endpoint = <&tpd12s015_in>;
-+		};
-+	};
-+};
+ 	slimbus1_slimbus_clk: slimbus1_slimbus_clk {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
 -- 
 1.9.1
 
