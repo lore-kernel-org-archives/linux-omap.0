@@ -1,7 +1,7 @@
 From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH/RFC 2/4] PM / clock_ops: Add pm_clk_add_clk()
-Date: Thu, 24 Apr 2014 12:13:21 +0200
-Message-ID: <1398334403-26181-3-git-send-email-geert+renesas@glider.be>
+Subject: [PATCH/RFC 4/4] clk: shmobile: mstp: Set CLK_RUNTIME_PM flag
+Date: Thu, 24 Apr 2014 12:13:23 +0200
+Message-ID: <1398334403-26181-5-git-send-email-geert+renesas@glider.be>
 References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,109 +21,28 @@ To: Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laur
 Cc: linux-omap@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The existing pm_clk_add() allows to pass a clock by con_id. However,
-when referring to a specific clock from DT, no con_id is available.
+Renesas MSTP (Module Stop) clocks are suitable for Runtime PM.
 
-Add pm_clk_add_clk(), which allows to specify the struct clk * directly.
+Hence set the CLK_RUNTIME_PM flag, to make of_clk enable automatic Runtime
+PM management for DT devices that are tied to an MSTP clock.
 
 Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 ---
- drivers/base/power/clock_ops.c |   40 ++++++++++++++++++++++++++++++----------
- include/linux/pm_clock.h       |    3 +++
- 2 files changed, 33 insertions(+), 10 deletions(-)
+ drivers/clk/shmobile/clk-mstp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/base/power/clock_ops.c b/drivers/base/power/clock_ops.c
-index b99e6c06ee67..2d5c9c1eceb1 100644
---- a/drivers/base/power/clock_ops.c
-+++ b/drivers/base/power/clock_ops.c
-@@ -53,7 +53,8 @@ static inline int __pm_clk_enable(struct device *dev, struct clk *clk)
-  */
- static void pm_clk_acquire(struct device *dev, struct pm_clock_entry *ce)
- {
--	ce->clk = clk_get(dev, ce->con_id);
-+	if (!ce->clk)
-+		ce->clk = clk_get(dev, ce->con_id);
- 	if (IS_ERR(ce->clk)) {
- 		ce->status = PCE_STATUS_ERROR;
- 	} else {
-@@ -63,15 +64,8 @@ static void pm_clk_acquire(struct device *dev, struct pm_clock_entry *ce)
- 	}
- }
+diff --git a/drivers/clk/shmobile/clk-mstp.c b/drivers/clk/shmobile/clk-mstp.c
+index 2e3c08fff173..6f860bad551e 100644
+--- a/drivers/clk/shmobile/clk-mstp.c
++++ b/drivers/clk/shmobile/clk-mstp.c
+@@ -139,7 +139,7 @@ cpg_mstp_clock_register(const char *name, const char *parent_name,
  
--/**
-- * pm_clk_add - Start using a device clock for power management.
-- * @dev: Device whose clock is going to be used for power management.
-- * @con_id: Connection ID of the clock.
-- *
-- * Add the clock represented by @con_id to the list of clocks used for
-- * the power management of @dev.
-- */
--int pm_clk_add(struct device *dev, const char *con_id)
-+static int __pm_clk_add(struct device *dev, const char *con_id,
-+			struct clk *clk)
- {
- 	struct pm_subsys_data *psd = dev_to_psd(dev);
- 	struct pm_clock_entry *ce;
-@@ -93,6 +87,8 @@ int pm_clk_add(struct device *dev, const char *con_id)
- 			kfree(ce);
- 			return -ENOMEM;
- 		}
-+	} else {
-+		ce->clk = clk;
- 	}
+ 	init.name = name;
+ 	init.ops = &cpg_mstp_clock_ops;
+-	init.flags = CLK_IS_BASIC | CLK_SET_RATE_PARENT;
++	init.flags = CLK_IS_BASIC | CLK_SET_RATE_PARENT | CLK_RUNTIME_PM;
+ 	init.parent_names = &parent_name;
+ 	init.num_parents = 1;
  
- 	pm_clk_acquire(dev, ce);
-@@ -102,6 +98,30 @@ int pm_clk_add(struct device *dev, const char *con_id)
- 	spin_unlock_irq(&psd->lock);
- 	return 0;
- }
-+/**
-+ * pm_clk_add - Start using a device clock for power management.
-+ * @dev: Device whose clock is going to be used for power management.
-+ * @con_id: Connection ID of the clock.
-+ *
-+ * Add the clock represented by @con_id to the list of clocks used for
-+ * the power management of @dev.
-+ */
-+int pm_clk_add(struct device *dev, const char *con_id)
-+{
-+	return __pm_clk_add(dev, con_id, NULL);
-+}
-+
-+/**
-+ * pm_clk_add_clk - Start using a device clock for power management.
-+ * @dev: Device whose clock is going to be used for power management.
-+ * @clk: Clock pointer
-+ *
-+ * Add the clock to the list of clocks used for the power management of @dev.
-+ */
-+int pm_clk_add_clk(struct device *dev, struct clk *clk)
-+{
-+	return __pm_clk_add(dev, NULL, clk);
-+}
- 
- /**
-  * __pm_clk_remove - Destroy PM clock entry.
-diff --git a/include/linux/pm_clock.h b/include/linux/pm_clock.h
-index 8348866e7b05..6981aa288c45 100644
---- a/include/linux/pm_clock.h
-+++ b/include/linux/pm_clock.h
-@@ -18,6 +18,8 @@ struct pm_clk_notifier_block {
- 	char *con_ids[];
- };
- 
-+struct clk;
-+
- #ifdef CONFIG_PM_CLK
- static inline bool pm_clk_no_clocks(struct device *dev)
- {
-@@ -29,6 +31,7 @@ extern void pm_clk_init(struct device *dev);
- extern int pm_clk_create(struct device *dev);
- extern void pm_clk_destroy(struct device *dev);
- extern int pm_clk_add(struct device *dev, const char *con_id);
-+extern int pm_clk_add_clk(struct device *dev, struct clk *clk);
- extern void pm_clk_remove(struct device *dev, const char *con_id);
- extern int pm_clk_suspend(struct device *dev);
- extern int pm_clk_resume(struct device *dev);
 -- 
 1.7.9.5
