@@ -1,225 +1,89 @@
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: Re: [PATCH 1/3] usb: ohci-exynos: Make provision for vdd regulators
-Date: Thu, 24 Apr 2014 10:26:15 +0900
-Message-ID: <000001cf5f5c$2f6c2440$8e446cc0$%han@samsung.com>
-References: <1398082604-3013-1-git-send-email-gautam.vivek@samsung.com>
- <002b01cf5f52$a7bc0d70$f7342850$%tikhomirov@samsung.com>
- <001a01cf5f54$af090810$0d1b1830$%han@samsung.com>
+From: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH 10/13] tty: serial: omap: remove some dead code
+Date: Thu, 24 Apr 2014 11:41:15 +1000
+Message-ID: <20140424114115.51ab3f98@notabene.brown>
+References: <1398265117-11793-1-git-send-email-balbi@ti.com>
+	<1398265117-11793-10-git-send-email-balbi@ti.com>
+	<5357DDA8.4040206@ti.com>
+	<20140424084305.20c7f301@notabene.brown>
+	<20140423230121.GC10924@saruman.home>
+	<20140424101329.02e6a62f@notabene.brown>
+	<20140424012100.GB13374@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-reply-to: <001a01cf5f54$af090810$0d1b1830$%han@samsung.com>
-Content-language: ko
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: 'Anton Tikhomirov' <av.tikhomirov@samsung.com>, 'Vivek Gautam' <gautam.vivek@samsung.com>
-Cc: linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, balbi@ti.com, kgene.kim@samsung.com, 'Jingoo Han' <jg1.han@samsung.com>
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/MyFDg_Y7ohVtZhnIDuTresh"; protocol="application/pgp-signature"
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140424012100.GB13374-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org, gustavo-THi1TnShQwVAfugRpC6u6w@public.gmane.org, johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jslaby-AlSwsSmVLrQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday, April 24, 2014 9:33 AM, Jingoo Han wrote:
-> On Thursday, April 24, 2014 9:18 AM, Anton Tikhomirov wrote:
-> > On Monday, April 21, 2014 9:17 PM, Vivek Gautam wrote:
-> > >
-> > > Facilitate getting required 3.3V and 1.0V VDD supply for
-> > > OHCI controller on Exynos.
-> > >
-> > > With patches for regulators' nodes merged in 3.15:
-> > > c8c253f ARM: dts: Add regulator entries to smdk5420
-> > > 275dcd2 ARM: dts: add max77686 pmic node for smdk5250,
-> > >
-> > > certain perripherals will now need to ensure that,
-> > > they request VDD regulators in their drivers, and enable
-> > > them so as to make them working.
-> > >
-> > > Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
-> > > Cc: Jingoo Han <jg1.han@samsung.com>
-> > > ---
-> > >
-> > > Based on 'usb-next' branch of Greg's usb tree.
-> > >
-> > >  drivers/usb/host/ohci-exynos.c |   47
-> > > ++++++++++++++++++++++++++++++++++++++++
-> > >  1 file changed, 47 insertions(+)
-> > >
-> > > diff --git a/drivers/usb/host/ohci-exynos.c b/drivers/usb/host/ohci-
-> > > exynos.c
-> > > index 68588d8..e2e72a8 100644
-> > > --- a/drivers/usb/host/ohci-exynos.c
-> > > +++ b/drivers/usb/host/ohci-exynos.c
-> > > @@ -18,6 +18,7 @@
-> > >  #include <linux/module.h>
-> > >  #include <linux/of.h>
-> > >  #include <linux/platform_device.h>
-> > > +#include <linux/regulator/consumer.h>
-> > >  #include <linux/usb/phy.h>
-> > >  #include <linux/usb/samsung_usb_phy.h>
-> > >  #include <linux/usb.h>
-> > > @@ -37,6 +38,8 @@ struct exynos_ohci_hcd {
-> > >  	struct clk *clk;
-> > >  	struct usb_phy *phy;
-> > >  	struct usb_otg *otg;
-> > > +	struct regulator *vdd33;
-> > > +	struct regulator *vdd10;
-> > >  };
-> > >
-> > >  static void exynos_ohci_phy_enable(struct platform_device *pdev)
-> > > @@ -98,6 +101,28 @@ static int exynos_ohci_probe(struct platform_device
-> > > *pdev)
-> > >  		exynos_ohci->otg = phy->otg;
-> > >  	}
-> > >
-> > > +	exynos_ohci->vdd33 = devm_regulator_get(&pdev->dev, "vdd33");
-> > > +	if (IS_ERR(exynos_ohci->vdd33)) {
-> > > +		err = PTR_ERR(exynos_ohci->vdd33);
-> > > +		goto fail_regulator1;
-> > > +	}
-> > > +	err = regulator_enable(exynos_ohci->vdd33);
-> > > +	if (err) {
-> > > +		dev_err(&pdev->dev, "Failed to enable VDD33 supply\n");
-> > > +		goto fail_regulator1;
-> > > +	}
-> > > +
-> > > +	exynos_ohci->vdd10 = devm_regulator_get(&pdev->dev, "vdd10");
-> > > +	if (IS_ERR(exynos_ohci->vdd10)) {
-> > > +		err = PTR_ERR(exynos_ohci->vdd10);
-> > > +		goto fail_regulator2;
-> > > +	}
-> > > +	err = regulator_enable(exynos_ohci->vdd10);
-> > > +	if (err) {
-> > > +		dev_err(&pdev->dev, "Failed to enable VDD10 supply\n");
-> > > +		goto fail_regulator2;
-> > > +	}
-> > > +
-> >
-> > Do we need to skip regulator settings together with PHY configuration
-> > in case of exynos5440?
-> 
-> Oh, right. In the case of exynos5440, regulator settings is not
-> necessary. Vivek, would you fix it in order skip regulator settings
-> in exynos5440? It also applies to ehci-exynos.
+--Sig_/MyFDg_Y7ohVtZhnIDuTresh
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Sorry, in the case of exynos5440, this patch already skips
-regulator settings.
+On Wed, 23 Apr 2014 20:21:00 -0500 Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
 
-In the case of exynos5440, there is no need to set PHY setting
-and regulator setting.
+> I have no problem either way, just that unused code doesn't have to be
+> sitting in the tree and I'm not entirely sure this GPIO should be
+> handled by omap-serial.c, perhaps something more generic inside
+> serial-core so other UART drivers can benefit from it.
 
-How about making regulator setting "optional"?
-Then, regulator setting can be done, only when regulator
-is supported.
+Perhaps.  But there there are more people I need to convince :-)
 
-exynos_ohci_probe()
-	exynos_ohci->vdd33 = devm_regulator_get(&pdev->dev, "vdd33");
-	if (IS_ERR(exynos_ohci->vdd33)) {
-		dev_err(&pdev->dev, "Failed to get VDD33 supply\n");
-	} else {
-		err = regulator_enable(exynos_ohci->vdd33);
-		if (err) {
-			dev_err(&pdev->dev, "Failed to enable VDD33 supply\n");
-			goto fail_regulator1;
-		}
-	}
+>=20
+> > On the other hand, if you can point out to me what I'm missing, and how=
+ I can
+> > solve my problem with any virtual GPIOs, I'm all ears.
+> >=20
+> > To make my problem simple and explicit:  I have a device attached to a =
+UART
+> > which has a separate regulator.  The regulator should be powered on if =
+and
+>=20
+> So you're using DTR to power the GPIO and hoping that the regulator
+> stabilizes quickly enough so that by the time your open() finishes you
+> don't have to add nonsensical msleep() calls before writing to the
+> device. Sounds a bit fragile to me.
 
-	exynos_ohci->vdd10 = devm_regulator_get(&pdev->dev, "vdd10");
-	if (IS_ERR(exynos_ohci->vdd10)) {
-		dev_err(&pdev->dev, "Failed to get VDD10 supply\n");
-	} else {
-		err = regulator_enable(exynos_ohci->vdd10);
-		if (err) {
-			dev_err(&pdev->dev, "Failed to enable VDD10 supply\n");
-			goto fail_regulator2;
-		}
-	}
+The gpio_set call is synchronous, and the gpio-regulator driver could add a
+delay (I think).
 
-In this case, suspend/resume can be fixed as below.
 
-exynos_ohci_suspend()
-	if (exynos_ohci->vdd10)
-		regulator_disable(exynos_ohci->vdd10);
-	if (exynos_ohci->vdd33)
-		regulator_disable(exynos_ohci->vdd33);
+>=20
+> > only if the /dev/ttyXX interface to the UART is open.  The device is a
+> > bluetooth transceiver.
+>=20
+> considering this is a BTUART device, why didn't you do this at the ldisc
+> level ? hci_uart_open() sounds like a good choice from a quick thinking.
+>=20
 
-exynos_ohci_resume()
+I'll have a look into that, thanks.
 
-	if (exynos_ohci->vdd33) {
-		ret = regulator_enable(exynos_ohci->vdd33);
-		if (ret) {
-			dev_err(dev, "Failed to enable VDD33 supply\n");
-			return ret;
-		}
-	}
-	if (exynos_ohci->vdd10) {
-		ret = regulator_enable(exynos_ohci->vdd10);
-		if (ret) {
-			dev_err(dev, "Failed to enable VDD10 supply\n");
-			return ret;
-		}
-	}
+NeilBrown
 
-Best regards,
-Jingoo Han
 
-> 
-> >
-> > >  skip_phy:
-> > >  	exynos_ohci->clk = devm_clk_get(&pdev->dev, "usbhost");
-> > >
-> > > @@ -154,6 +179,10 @@ fail_add_hcd:
-> > >  fail_io:
-> > >  	clk_disable_unprepare(exynos_ohci->clk);
-> > >  fail_clk:
-> > > +	regulator_disable(exynos_ohci->vdd10);
-> > > +fail_regulator2:
-> > > +	regulator_disable(exynos_ohci->vdd33);
-> > > +fail_regulator1:
-> > >  	usb_put_hcd(hcd);
-> > >  	return err;
-> > >  }
-> > > @@ -172,6 +201,9 @@ static int exynos_ohci_remove(struct
-> > > platform_device *pdev)
-> > >
-> > >  	clk_disable_unprepare(exynos_ohci->clk);
-> > >
-> > > +	regulator_disable(exynos_ohci->vdd10);
-> > > +	regulator_disable(exynos_ohci->vdd33);
-> > > +
-> > >  	usb_put_hcd(hcd);
-> > >
-> > >  	return 0;
-> > > @@ -208,6 +240,9 @@ static int exynos_ohci_suspend(struct device *dev)
-> > >
-> > >  	clk_disable_unprepare(exynos_ohci->clk);
-> > >
-> > > +	regulator_disable(exynos_ohci->vdd10);
-> > > +	regulator_disable(exynos_ohci->vdd33);
-> > > +
-> > >  	spin_unlock_irqrestore(&ohci->lock, flags);
-> > >
-> > >  	return 0;
-> > > @@ -218,6 +253,18 @@ static int exynos_ohci_resume(struct device *dev)
-> > >  	struct usb_hcd *hcd			= dev_get_drvdata(dev);
-> > >  	struct exynos_ohci_hcd *exynos_ohci	= to_exynos_ohci(hcd);
-> > >  	struct platform_device *pdev		= to_platform_device(dev);
-> > > +	int ret;
-> > > +
-> > > +	ret = regulator_enable(exynos_ohci->vdd33);
-> > > +	if (ret) {
-> > > +		dev_err(dev, "Failed to enable VDD33 supply\n");
-> > > +		return ret;
-> >
-> > Not sure, but shall we continue resuming and do everything
-> > we can in case of error? At least it will avoid
-> > WARN_ON(clk->enable_count == 0) on next system suspend.
-> >
-> > > +	}
-> > > +	ret = regulator_enable(exynos_ohci->vdd10);
-> > > +	if (ret) {
-> > > +		dev_err(dev, "Failed to enable VDD10 supply\n");
-> > > +		return ret;
-> > > +	}
-> > >
-> > >  	clk_prepare_enable(exynos_ohci->clk);
-> > >
-> > > --
-> >
-> > Thanks
+--Sig_/MyFDg_Y7ohVtZhnIDuTresh
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIVAwUBU1hruznsnt1WYoG5AQIoTxAAhZtt6b9GiMtK7g4jvMTBUXXlZ3k5XCK2
+zDLI/LyVWwR9T+3fsWOGf6X/n57YWdOGlNNjlKw8TWXUOCquRI9j33LLF3XTO/8K
+772Mffn4s1NcFzn1J4OqxcX4r4LiWnS0IH+mZKa/Hg/DLGr2tijLx+qlda8wzKTV
+emq7cpHkosXpbEFFTF9seSehBiY16Xvd9iHi5La0rYFDma7nh14S6+PRjaSmmmDN
+MI+2bdOH2veU7YEcngLzv21DrF4cAnF4wTCIfD86sENrJ4ezBKRD4+fFoaeh2CBq
+jhjzC6FO9EqH//FoihiSuElEdZ22UHsaJNODdlID/tO+DjYCPzxGeimgYJbzV2eo
+X/aMEzdrKUn/Hoeif8p21ayQ1jiAra6OLuTsrzg9ylezEfVk+KO3vsWrtoaDk4K2
+q85BSzAD6SZSBCr+/vZt0ynUQLYSifG5ARbh+qWCbVkRpPWTnOIOQBvyC/+Mrkpz
+eFwTouDDgMll5Iskn4oA38tgzFEck3bYb3pPjRhK+QT7uctvB5123w49qw4llTfD
+0w2KeUWGFFLMyCEy/91I19x2qhMRBQqoLS73pVh74OGb5sfQFD/vfd0bJKmSzbsh
+HJCiDg504o0ybFl47UkWFX8ZTshfFMUW9SCz0cbtPH53/fNfaagCERYbuYhNEj8Q
+BU77UdEnt1c=
+=YzD4
+-----END PGP SIGNATURE-----
+
+--Sig_/MyFDg_Y7ohVtZhnIDuTresh--
