@@ -1,46 +1,42 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V2 00/19] bus: omap_l3_noc: driver cleanups and support
- for DRA7/AM4372
-Date: Thu, 24 Apr 2014 09:19:25 -0500
-Message-ID: <53591D6D.3060507@ti.com>
-References: <1397492726-17203-1-git-send-email-nm@ti.com> <1397767775-10965-1-git-send-email-nm@ti.com> <53504041.7090906@ti.com> <5350410B.5010507@ti.com> <5358D16A.9000500@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH 0/5] mmc: host: omap_hsmmc: a few improvements
+Date: Thu, 24 Apr 2014 20:01:19 +0530
+Message-ID: <53592037.8050106@ti.com>
+References: <1395878690-9650-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5358D16A.9000500@ti.com>
+In-Reply-To: <1395878690-9650-1-git-send-email-balbi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Sricharan R <r.sricharan@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Rajendra Nayak <rnayak@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: chris@printf.net, ulf.hansson@linaro.org, linux-mmc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/24/2014 03:55 AM, Peter Ujfalusi wrote:
-> On 04/18/2014 12:00 AM, Nishanth Menon wrote:
->> On 04/17/2014 03:57 PM, Santosh Shilimkar wrote:
->>> I looked at the series and its looks pretty good. Thanks for fixups, updates.
->>> For whole series,
->>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>
->>
->> Thanks.
->>
->>>> Patches(including Peter's) is available here:
->>>> https://github.com/nmenon/linux-2.6-playground/commits/l3noc/driver-fixes-v2
->>>>
->>> Can Tony pull this branch for 3.16 then which includes Peter's series as well ?
->>
->> there is just an empty commit with information about peter's patches
->> that i lined up to differentiate the series.. I can drop it if Tony
->> would like me to.
-> 
-> Looking at the branch I see my patches underneath so they are in the branch.
-> It would be great if Tony pulls this... Will be a great present to my patches
-> (omap_l3 patches in the branch) for their 1 year anniversary of being out on
-> the mailing list ;)
-> 
-Peter, can I take this as an Ack for this series? if yes, I can repost
-a v3 with all the acks, updates together.
+On Thursday 27 March 2014 05:34 AM, Felipe Balbi wrote:
+> Hi,
+>
+> this series lets us access the newer registers introduced
+> back in OMAP4 which give us some valid information about
+> the OMAP HSMMC IP like max block size, support for ADMA,
+> support for Retention.
 
--- 
-Regards,
-Nishanth Menon
+"Support for Retention" looks interesting, can you shed more lights
+on it
+
+>
+> Right now, only setting max_blk_size correctly as supporting
+> ADMA and Retention will take a lot of work.
+>
+> Tested on OMAP5 uEVM.
+>
+> Felipe Balbi (5):
+>    mmc: host: omap_hsmmc: pass host as an argument
+>    mmc: host: omap_hsmmc: add reg_offset field
+>    mmc: host: omap_hsmmc: introduce new accessor functions
+>    mmc: host: omap_hsmmc: switch over to new accessors
+>    mmc: host: omap_hsmmc: set max_blk_size correctly
+>
+>   drivers/mmc/host/omap_hsmmc.c | 291 ++++++++++++++++++++++++++----------------
+>   1 file changed, 182 insertions(+), 109 deletions(-)
+>
