@@ -1,112 +1,107 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 06/23] ARM: OMAP: add OMAP5 DSI muxing
-Date: Fri, 25 Apr 2014 08:31:50 -0700
-Message-ID: <20140425153150.GA20807@atomide.com>
-References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
- <1398334639-14172-7-git-send-email-tomi.valkeinen@ti.com>
- <535A42D6.5090107@ti.com>
- <535A4470.2000509@ti.com>
- <535A5C0A.7040808@ti.com>
- <535A6C40.10609@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v5 2/5] ARM: dts: am43xx clock data
+Date: Fri, 25 Apr 2014 11:18:03 -0500
+Message-ID: <20140425161803.GU29632@saruman.home>
+References: <1395223803-4714-1-git-send-email-george.cherian@ti.com>
+ <1395223803-4714-3-git-send-email-george.cherian@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36637 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752332AbaDYPb4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2014 11:31:56 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="iytlPraCFSCqrfnM"
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <535A6C40.10609@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1395223803-4714-3-git-send-email-george.cherian@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, rogerq@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, anatol.pomozov@gmail.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140425 07:08]:
-> On 25/04/14 15:58, Archit Taneja wrote:
-> > On Friday 25 April 2014 04:48 PM, Tomi Valkeinen wrote:
-> >> On 25/04/14 14:11, Archit Taneja wrote:
-> >>> Hi,
-> >>>
-> >>> On Thursday 24 April 2014 03:47 PM, Tomi Valkeinen wrote:
-> >>>> Add support to set OMAP5 DSI pin muxing.
-> >>>>
-> >>>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> >>>> Cc: Tony Lindgren <tony@atomide.com>
-> >>>> ---
-> >>>>    arch/arm/mach-omap2/display.c | 35
-> >>>> ++++++++++++++++++++++++++++++++++-
-> >>>>    1 file changed, 34 insertions(+), 1 deletion(-)
-> >>>>
-> >>>> diff --git a/arch/arm/mach-omap2/display.c
-> >>>> b/arch/arm/mach-omap2/display.c
-> >>>> index 16d33d831287..974461441fc3 100644
-> >>>> --- a/arch/arm/mach-omap2/display.c
-> >>>> +++ b/arch/arm/mach-omap2/display.c
-> >>>> @@ -137,11 +137,42 @@ static int omap4_dsi_mux_pads(int dsi_id,
-> >>>> unsigned lanes)
-> >>>>        return 0;
-> >>>>    }
-> >>>>
-> >>>> +#define CONTROL_PAD_BASE    0x4A002800
-> >>>> +#define CONTROL_DSIPHY        0x614
-> >>>> +
-> >>>
-> >>> I guess this is something we can move to our driver, and use sysconf to
-> >>> get the register from DT.
-> >>
-> >> I just copied the same method as used for OMAP4.
-> >>
-> >> I guess sysconf is an option. But I really dislike the idea of moving
-> >> omap control module code to a display driver... I'm not sure what other
-> >> options we have, though. Maybe an OMAP DSI specific pinctrl driver?
-> > 
-> > OMAP4 has CONTROL_DSIPHY for configuring both lane enable/disbale, and
-> > pull up/down, but OMAP5 has normal PAD_CONF registers for DSI lines(2
-> > pins per register) for configuring pull up/down, and CONTROL_DSIPHY for
-> > lane enable/disable.
-> > 
-> > We would have a very messed up pinctrl driver, but it would probably be
-> > better than doing all this stuff in the driver.
-> 
-> Actually, this patch is not good. I should've looked at the code more
-> carefully =).
-> 
-> This one does ioremap every time the function is called, which could be
-> done multiple times.
-> 
-> And I think omap4_ctrl_pad_readl() can be used to access the registers.
-> Like this (not tested):
-> 
-> #define OMAP5_CONTROL_DSIPHY		0x614
-> 
-> static int omap5_dsi_mux_pads(int dsi_id, unsigned lanes)
-> {
-> 	u32 enable_mask, enable_shift, reg;
-> 
-> 	if (dsi_id == 0) {
-> 		enable_mask = OMAP4_DSI1_LANEENABLE_MASK;
-> 		enable_shift = OMAP4_DSI1_LANEENABLE_SHIFT;
-> 	} else if (dsi_id == 1) {
-> 		enable_mask = OMAP4_DSI2_LANEENABLE_MASK;
-> 		enable_shift = OMAP4_DSI2_LANEENABLE_SHIFT;
-> 	} else {
-> 		return -ENODEV;
-> 	}
-> 
-> 	reg = omap4_ctrl_pad_readl(OMAP5_CONTROL_DSIPHY);
-> 	reg &= ~enable_mask;
-> 	reg |= (lanes << enable_shift) & enable_mask;
-> 	omap4_ctrl_pad_writel(reg, OMAP5_CONTROL_DSIPHY);
-> 
-> 	return 0;
-> }
+--iytlPraCFSCqrfnM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Chances are any mux register in the syscon area already works with
-pinctrl-single,pins or pinctrl-single,bits option. The ones in the
-padconf area should be already mapped so the driver just has to
-request them.
+On Wed, Mar 19, 2014 at 03:40:00PM +0530, George Cherian wrote:
+> Add USB and USB PHY reference clock data
+>=20
+> Signed-off-by: George Cherian <george.cherian@ti.com>
 
-Regards,
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-Tony
+> ---
+>  arch/arm/boot/dts/am43xx-clocks.dtsi | 32 ++++++++++++++++++++++++++++++=
+++
+>  1 file changed, 32 insertions(+)
+>=20
+> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am4=
+3xx-clocks.dtsi
+> index 142009c..5171d3e 100644
+> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+> @@ -653,4 +653,36 @@
+>  		clocks =3D <&clk_32768_ck>, <&clk_32k_tpm_ck>;
+>  		reg =3D <0x4260>;
+>  	};
+> +
+> +	usb_phy0_always_on_clk32k: usb_phy0_always_on_clk32k {
+> +        	#clock-cells =3D <0>;
+> +	        compatible =3D "ti,gate-clock";
+> +	        clocks =3D <&usbphy_32khz_clkmux>;
+> +	        ti,bit-shift =3D <8>;
+> +	        reg =3D <0x2a40>;
+> +	};
+> +
+> +	usb_phy1_always_on_clk32k: usb_phy1_always_on_clk32k {
+> +        	#clock-cells =3D <0>;
+> +	        compatible =3D "ti,gate-clock";
+> +	        clocks =3D <&usbphy_32khz_clkmux>;
+> +	        ti,bit-shift =3D <8>;
+> +	        reg =3D <0x2a48>;
+> +	};
+> +
+> +	usb_otg_ss0_refclk960m: usb_otg_ss0_refclk960m {
+> +		#clock-cells =3D <0>;
+> +	        compatible =3D "ti,gate-clock";
+> +		clocks =3D <&dpll_per_clkdcoldo>;
+> +	        ti,bit-shift =3D <8>;
+> +	        reg =3D <0x8a60>;
+> +	};
+> +
+> +	usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m {
+> +		#clock-cells =3D <0>;
+> +	        compatible =3D "ti,gate-clock";
+> +		clocks =3D <&dpll_per_clkdcoldo>;
+> +	        ti,bit-shift =3D <8>;
+> +		reg =3D <0x8a68>;
+> +	};
+>  };
+> --=20
+> 1.8.3.1
+>=20
+
+--=20
+balbi
+
+--iytlPraCFSCqrfnM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTWoq7AAoJEIaOsuA1yqREzNEP/02qpimll/4CLC1JI0N3pD04
+cnN6Ta0jqqq8GZ94kcunXk0ApvrfV8Ns4CFFwNNa3LycHpc5yiEHiUJeYq2+dH1c
+FpH0tlmHai7+0RaPUHSPPrDJXA1y2hdFpwpVSRP5FIiiS8ORqNIiC01vqDEHVCXy
+BMO2OIsLJxdEI6fTdnHMrjtwyNktWoUlwt6qAzvcoHE9xw7mi62Q7t4WOZ6Jvsir
+5hN8sOsqtyZqLpmpFHL9xaqJ517ZuwWFYMApnpQ39+iYiYalp7+IBxxpaR3oKD5i
+VuNbOZNpvLrxvd0lMHs5UYmA+C+9hvQHoUbviLjSSfGz97VKWG9KD4tqlnsTk5HP
+2AniHYdqAxPHP4T/N/AIma7I8IxxgLbN/kpgGBHXC8Th08TXGwk+W0/ipBZ3Pu3H
+OFXCSPQky1gyfFdMvIR/W8nLeROkABtkDmeJh+Vn98wzDBwpQ+J6QGlPE974xNr1
+ecFfr8plV6Vm9uBhYNLhf6m1hc2gcqd5NCh3uiVEQRPVkJ/iMIukWjVBmh+7F0Ob
+7DVyeAPZ3wUC+Jux7jb7ygnEwo/UFzmfKDpWWfU6tF42gZzLSPsOZSvqcRhnGsI9
+vmOo1zSkJfnVksiBtdSKH1ykzTe2iLCfeqSmWOIWkxVGJa60F1svsjys6KT9Vu3/
+If7tT6KtbUXSAe9kr4qT
+=BeiK
+-----END PGP SIGNATURE-----
+
+--iytlPraCFSCqrfnM--
