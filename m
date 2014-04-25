@@ -1,83 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: Boot fixes
-Date: Fri, 25 Apr 2014 09:41:41 -0700
-Message-ID: <20140425164141.GD20807@atomide.com>
-References: <1398192739-8901-1-git-send-email-d-gerlach@ti.com>
- <20140422190132.GA12204@atomide.com>
- <5356C8AE.3090907@ti.com>
- <20140423145904.GB4833@atomide.com>
- <5357F78A.5000406@ti.com>
+Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: Do not reset gpio5
+Date: Fri, 25 Apr 2014 09:46:14 -0700
+Message-ID: <20140425164614.GE20807@atomide.com>
+References: <1395379213-15451-1-git-send-email-lokeshvutla@ti.com>
+ <53319A7D.1060904@ti.com>
+ <20140417163407.GB23385@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38319 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751144AbaDYQlt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2014 12:41:49 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19252 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751795AbaDYQqU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2014 12:46:20 -0400
 Content-Disposition: inline
-In-Reply-To: <5357F78A.5000406@ti.com>
+In-Reply-To: <20140417163407.GB23385@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, bcousson@baylibre.com, Sekhar Nori <nsekhar@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, nsekhar@ti.com, rnayak@ti.com, mark.rutland@arm.com, Dave Gerlach <d-gerlach@ti.com>
 
-* Dave Gerlach <d-gerlach@ti.com> [140423 10:25]:
-> On 04/23/2014 09:59 AM, Tony Lindgren wrote:
-> >* Dave Gerlach <d-gerlach@ti.com> [140422 12:53]:
-> >>On 04/22/2014 02:01 PM, Tony Lindgren wrote:
-> >>>* Dave Gerlach <d-gerlach@ti.com> [140422 11:52]:
-> >>>>This patch, along with patch here [1], fixes boot for am437x-gp-evm. The
-> >>>>bootloader configures gpio5_7 to control the DDR3 termination regulator,
-> >>>>the linked patch prevents that gpio bank from being reset and losing
-> >>>>the previously configured state, and this patch binds the gpio to a
-> >>>>regulator so the kernel is aware of the state of the gpio.
-> >>>>
-> >>>>[1] https://www.mail-archive.com/linux-omap@vger.kernel.org/msg102941.html
-> >>>
-> >>>Setting up the GPIO regulator makes sense to me. But the hack in the
-> >>>link above is potentially a nasty time bomb for anybody trying to
-> >>>use GPIO bank 5 on that board.
-> >>>
-> >>>What tests have been done that the GPIO bank behaves properly when
-> >>>it's not reset?
-> >>
-> >>We've been using this configuration on this board for a while without any
-> >>apparent issues. Also, am335x-evmsk already uses the same idea for the VTT
-> >>regulator on board from commit 6046adb6ad701026c10adeac8d6a4138895f12e5
-> >>[ARM: dts: am335x-evmsk: Do not reset gpio0] and I am unaware of any issues
-> >>with that either.
-> >
-> >OK. Do you have other GPIOs in use as interrupts for devices in these
-> >banks and do they work fine?
+* Tony Lindgren <tony@atomide.com> [140417 09:34]:
+> * Nishanth Menon <nm@ti.com> [140325 08:05]:
+> > On 03/21/2014 12:20 AM, Lokesh Vutla wrote:
+> > > From: Dave Gerlach <d-gerlach@ti.com>
+> > > 
+> > > Do not reset GPIO5 at boot-up because GPIO5_7 is used
+> > > on AM437x GP-EVM to control VTT regulators on DDR3.
+> > > Without this some GP-EVM boards will fail to boot because
+> > > of DDR3 corruption.
 > 
-> I dont see any interrupts in use from gpio5 bank but as a quick test if I
-> add ti,no-reset-on-init to gpio3 and gpio4 I see no issue with matrix-keypad
-> operation which uses gpios from each of those banks.
-
-OK thanks for testing. I'll apply the ti,no-reset-on-init patch from [1]
-above into omap-for-v3.15/fixes-v2.
-
-The regulator patch can wait for v3.16, and should be also implemented
-for the am335x-evmsk the same way, so maybe add that too to your patch?
-
-> >Also, can you please test to make sure this works with the most recent
-> >Javier's GPIO patches that had the issue of not booting on am335x-evmsk?
-> >
+> How funny :)
 > 
-> Yes, when using Javier's patches in addition to this patch [1], which was
-> found to be necessary through this discussion [2], the AM437x GP EVM boots
-> fine with linux-next with my regulator patch and gpio5 no reset patch
-> applied.
+> Ideally we would be able to specify which GPIO pins should
+> maintain their state during the boot.
+> 
+> AFAIK, this patch currently means that the kernel has no idea
+> what state the whole GPIO bank is in. At minimum we should
+> parse the GPIO bank state so the kernel knows it and then it
+> should be safe to set the no reset flag.
+> 
+> So for the workaround, can you guys please try to see test
+> if the old mux trick in the bootloader works to mux the pin
+> into something PIN_INPUT_PULLUP | MUX_MODE7? Or a PULLDOWN
+> depending on the direction naturally. That would allow
+> leaving out the GPIO completely from this.
 
-OK good to hear.
+OK so no safe mode as MUX_MODE7 on am335x. So based on the
+tests done by Dave on various GPIO banks without the reset,
+this seems OK to do. So applying into omap-for-v3.15/fixes-v2
+to get the board booting properly.
+
+Naturally this is not a reason to stop further work on making
+sure the GPIO driver actually knows what state the bank is
+as suggested by Felipe.
 
 Tony
- 
-> [1] https://patchwork.kernel.org/patch/4041881/
-> [2] http://marc.info/?t=139817273800014&r=1&w=2
-> 
-> >Regards,
-> >
-> >Tony
-> >
-> 
