@@ -1,7 +1,7 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 02/10] ARM: DRA7xx: hwmod: Add hwmod data for DES IP
-Date: Fri, 25 Apr 2014 18:02:40 -0500
-Message-ID: <1398466968-29506-3-git-send-email-joelf@ti.com>
+Subject: [PATCH 09/10] ARM: dts: OMAP4: clk: Add clk node for DES IP
+Date: Fri, 25 Apr 2014 18:02:47 -0500
+Message-ID: <1398466968-29506-10-git-send-email-joelf@ti.com>
 References: <1398466968-29506-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,86 +18,51 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Joel Fernandes <joelf@ti.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-dra7xx SoC has a DES module. Add the required data to hwmod.
+From: Lokesh Vutla <lokeshvutla@ti.com>
 
+DES IP already has main and interface clk as des_fck.
+Node for des_fck is missing in clk tree. Adding the same.
+
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 Signed-off-by: Joel Fernandes <joelf@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   39 +++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ arch/arm/boot/dts/omap44xx-clocks.dtsi |    8 ++++++++
+ drivers/clk/ti/clk-44xx.c              |    1 +
+ 2 files changed, 9 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 810c205..24ab160 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -561,6 +561,23 @@ static struct omap_hwmod_class dra7xx_gpio_hwmod_class = {
- 	.rev	= 2,
- };
+diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+index c821ff5..83cf189 100644
+--- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+@@ -985,6 +985,14 @@
+ 		reg = <0x15a8>;
+ 	};
  
-+static struct omap_hwmod_class_sysconfig dra7xx_des_sysc = {
-+	.rev_offs	= 0x0030,
-+	.sysc_offs	= 0x0034,
-+	.syss_offs	= 0x0038,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE |
-+			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-+			   SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO),
-+	.sysc_fields	= &omap_hwmod_sysc_type4,
-+};
++	des_fck: des_fck@4a0095b0 {
++	       #clock-cells = <0>;
++	       compatible = "gate-clock";
++	       clocks = <&l3_div_ck>;
++	       bit-shift = <1>;
++	       reg = <0x4a0095b0 0x4>;
++	};
 +
-+static struct omap_hwmod_class dra7xx_des_hwmod_class = {
-+	.name	= "des",
-+	.sysc	= &dra7xx_des_sysc,
-+	.rev	= 2,
-+};
-+
- /* gpio dev_attr */
- static struct omap_gpio_dev_attr gpio_dev_attr = {
- 	.bank_width	= 32,
-@@ -750,6 +767,19 @@ static struct omap_hwmod dra7xx_gpio8_hwmod = {
- 	.dev_attr	= &gpio_dev_attr,
- };
- 
-+static struct omap_hwmod dra7xx_des_hwmod = {
-+	.name		= "des",
-+	.class		= &dra7xx_des_hwmod_class,
-+	.clkdm_name	= "l4sec_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4SEC_DES3DES_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4SEC_DES3DES_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
-+		},
-+	},
-+};
-+
- /*
-  * 'gpmc' class
-  *
-@@ -2170,6 +2200,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per1__gpio8 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_per1 -> des */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per1__des = {
-+	.master		= &dra7xx_l4_per1_hwmod,
-+	.slave		= &dra7xx_des_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_addr_space dra7xx_gpmc_addrs[] = {
- 	{
- 		.pa_start	= 0x50000000,
-@@ -2704,6 +2742,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_per1__uart4,
- 	&dra7xx_l4_per1__uart5,
- 	&dra7xx_l4_per1__uart6,
-+	&dra7xx_l4_per1__des,
- 	&dra7xx_l4_per3__usb_otg_ss1,
- 	&dra7xx_l4_per3__usb_otg_ss2,
- 	&dra7xx_l4_per3__usb_otg_ss3,
+ 	dss_sys_clk: dss_sys_clk {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
+index 02517a8..85d97c3 100644
+--- a/drivers/clk/ti/clk-44xx.c
++++ b/drivers/clk/ti/clk-44xx.c
+@@ -120,6 +120,7 @@ static struct ti_dt_clk omap44xx_clks[] = {
+ 	DT_CLK(NULL, "syc_clk_div_ck", "syc_clk_div_ck"),
+ 	DT_CLK(NULL, "aes1_fck", "aes1_fck"),
+ 	DT_CLK(NULL, "aes2_fck", "aes2_fck"),
++	DT_CLK(NULL, "des_fck", "des_fck"),
+ 	DT_CLK(NULL, "dmic_sync_mux_ck", "dmic_sync_mux_ck"),
+ 	DT_CLK(NULL, "func_dmic_abe_gfclk", "func_dmic_abe_gfclk"),
+ 	DT_CLK(NULL, "dss_sys_clk", "dss_sys_clk"),
 -- 
 1.7.9.5
