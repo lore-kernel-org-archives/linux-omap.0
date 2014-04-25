@@ -1,65 +1,76 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 06/23] ARM: OMAP: add OMAP5 DSI muxing
-Date: Fri, 25 Apr 2014 18:28:50 +0530
-Message-ID: <535A5C0A.7040808@ti.com>
-References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com> <1398334639-14172-7-git-send-email-tomi.valkeinen@ti.com> <535A42D6.5090107@ti.com> <535A4470.2000509@ti.com>
+From: Robert Baldyga <r.baldyga@samsung.com>
+Subject: Re: [PATCH v2 01/13] Documentation: add extcon devicetree bindings
+Date: Fri, 25 Apr 2014 15:19:59 +0200
+Message-ID: <535A60FF.4000806@samsung.com>
+References: <20140422195117.GG12304@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60266 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751750AbaDYNAP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Apr 2014 09:00:15 -0400
-In-Reply-To: <535A4470.2000509@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <20140422195117.GG12304@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, myungjoo.ham@samsung.com, cw00.choi@samsung.com, dbaryshkov@gmail.com, dwmw2@infradead.org, balbi@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, ldewangan@nvidia.com, kishon@ti.com, gg@slimlogic.co.uk, anton@enomsg.org, jonghwa3.lee@samsung.com, rongjun.ying@csr.com, linux@roeck-us.net, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi, m.szyprowski@samsung.com, t.figa@samsung.com, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>
 
-On Friday 25 April 2014 04:48 PM, Tomi Valkeinen wrote:
-> On 25/04/14 14:11, Archit Taneja wrote:
->> Hi,
+On 04/22/2014 09:51 PM, Mark Brown wrote:
+> On Mon, Apr 14, 2014 at 01:46:12PM +0200, Robert Baldyga wrote:
+> 
+> That's quite some CC list you've got there, and the mail seems a bit
+> corrupted too (it confused my MUA).
+> 
+>> This patch adds extcon devicetree bindings. Documentation describes in general
+>> client and provider bindings, and contains detailed desctiprion of bindings
+>> for each extcon provider.
 >>
->> On Thursday 24 April 2014 03:47 PM, Tomi Valkeinen wrote:
->>> Add support to set OMAP5 DSI pin muxing.
->>>
->>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->>> Cc: Tony Lindgren <tony@atomide.com>
->>> ---
->>>    arch/arm/mach-omap2/display.c | 35 ++++++++++++++++++++++++++++++++++-
->>>    1 file changed, 34 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/display.c
->>> b/arch/arm/mach-omap2/display.c
->>> index 16d33d831287..974461441fc3 100644
->>> --- a/arch/arm/mach-omap2/display.c
->>> +++ b/arch/arm/mach-omap2/display.c
->>> @@ -137,11 +137,42 @@ static int omap4_dsi_mux_pads(int dsi_id,
->>> unsigned lanes)
->>>        return 0;
->>>    }
->>>
->>> +#define CONTROL_PAD_BASE    0x4A002800
->>> +#define CONTROL_DSIPHY        0x614
->>> +
->>
->> I guess this is something we can move to our driver, and use sysconf to
->> get the register from DT.
->
-> I just copied the same method as used for OMAP4.
->
-> I guess sysconf is an option. But I really dislike the idea of moving
-> omap control module code to a display driver... I'm not sure what other
-> options we have, though. Maybe an OMAP DSI specific pinctrl driver?
+>> Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
+>> ---
+>>  .../devicetree/bindings/extcon/extcon-adc-jack.txt |   60 +++++++++++++++++++
+>>  .../devicetree/bindings/extcon/extcon-arizona.txt  |   47 +++++++++++++++
+>>  .../devicetree/bindings/extcon/extcon-bindings.txt |   36 +++++++++++
+>>  .../devicetree/bindings/extcon/extcon-gpio.txt     |   63 ++++++++++++++++++++
+>>  .../devicetree/bindings/extcon/extcon-max14577.txt |   49 +++++++++++++++
+>>  .../devicetree/bindings/extcon/extcon-max77693.txt |   56 +++++++++++++++++
+>>  .../devicetree/bindings/extcon/extcon-max8997.txt  |   49 +++++++++++++++
+>>  .../devicetree/bindings/extcon/extcon-palmas.txt   |   37 ++++++++++--
+> 
+> This is creating device tree bindings for MFD components as devices when
+> those MFD components aren't well isolated from the rest of the device.
+> If we need to add extcon bindings the device should have the flexibility
+> to decide where to add the properties, and really things should be set
+> up so there's less duplication in the documentation.
 
-OMAP4 has CONTROL_DSIPHY for configuring both lane enable/disbale, and 
-pull up/down, but OMAP5 has normal PAD_CONF registers for DSI lines(2 
-pins per register) for configuring pull up/down, and CONTROL_DSIPHY for 
-lane enable/disable.
+Those components has their own addresses on i2c bus, so they are,
+technically, separate devices, and they can (should?) be described by
+separate nodes. And I think it doesn't matter if they are grouped in one
+chip.
 
-We would have a very messed up pinctrl driver, but it would probably be 
-better than doing all this stuff in the driver.
+However, it's easy to change it (give mfd master driver node to extcon),
+and we can have extcon device defined without additional node, and then
+parent node is an extcon node.
 
-Archit
+Best regards
+Robert Baldyga
+Samsung R&D Institute Poland
 
+> 
+>> +The following is the list of cables detected by the controller. Each
+>> +cable is assigned an identifier and client nodes use this identifies
+>> +to specify the cable which they are interested in.
+>> +
+>> +  Cable			ID
+>> +  ----------------------------
+>> +
+>> +  Mechanical	0
+>> +  Microphone	1
+>> +  Headphone		2
+>> +  Line-out		3
+>> +
+>> +Example 1: An example of a extcon controller node is listed below.
+>> +
+>> +	extcon: arizona-extcon {
+> 
+> The above doesn't entirely reflect what the hardware is capable of doing
+> - it reflects the default software configuration for the device but it's
+> got a wider feature set.
+> 
