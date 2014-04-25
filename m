@@ -1,106 +1,130 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv3 10/14] HSI: Introduce driver for SSI Protocol
-Date: Fri, 25 Apr 2014 20:49:01 +0200
-Message-ID: <20140425184900.GF22721@earth.universe>
-References: <1396053110-21639-1-git-send-email-sre@kernel.org>
- <1396053110-21639-11-git-send-email-sre@kernel.org>
- <20140419194936.GJ5148@amd.pavel.ucw.cz>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="Zi0sgQQBxRFxMTsj"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140419194936.GJ5148-tWAi6jLit6GreWDznjuHag@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Carlos Chinea <cch.devel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon-uiMcrn6V0Vs@public.gmane.org>, Joni Lapilainen <joni.lapilainen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Carlos Chinea <carlos.chinea-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCHv4 00/13] OMAP SSI driver / N900 modem support
+Date: Fri, 25 Apr 2014 21:06:03 +0200
+Message-ID: <1398452776-28638-1-git-send-email-sre@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, =?UTF-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE=20=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
---Zi0sgQQBxRFxMTsj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This is the eigth round of the OMAP SSI driver patches. The plan is
+to get it merged into 3.16.
 
-On Sat, Apr 19, 2014 at 09:49:36PM +0200, Pavel Machek wrote:
-> Hi!
->=20
-> > This adds a driver for the SSI McSAAB protocol as used in
-> > the Nokia N900.
-> >=20
-> > Signed-off-by: Carlos Chinea <carlos.chinea-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->=20
-> > +#define SSIP_MIN_PN_HDR		6	/* FIXME: Revisit */
-> > +#define SSIP_WDTOUT		2000	/* FIXME: has to be 500 msecs> */
->=20
-> Can they be fixed now, or do they have to wait?
+Changes since PATCHv3 [0]:
+ * Rebased devel branch to current master
+ * Dropped "ARM: dts: omap3 clocks: simplify ssi aliases"
+   (included in 3.15-rc)
+ * Added Reviewed-by tag from Pavel Machek to some of the patches
+ * Changed some style issues in nokia-modem driver found by
+   Pavel (and some more found by checkpatch)
+ * Fixed indention issues in omap_ssi_port.c found by Pavel
+ * Use "hsi-channel-ids" instead of "reg" as property name for
+   channels IDs as suggested by Rob Herring
+ * Use "hsi-channel-names" instead of "reg-names" (which is the
+   logical consequence of the previous change)
+ * Use port addresses instead of port ids in the port node names
+ * Add second port to the example dts to make it more clear,
+   that the controller has two ports
+ * Define order for memory and interrupt DT properties
+ * Drop interrupt names for ssi ports
+ * Remove ugly endianess #ifdef from ssi protocol driver by properly
+   using ntohs() and htons() macros
+ * Use for_each_available_child_of_node with of_platform_device_create
+   instead of of_platform_bus_create to make sure *only* omap3-ssi-port
+   subdevices are probed
+ * Removed hack, that the same resource is used for rx and tx channel
+   for clients initialized from DT
+ * Update my mail address in MODULE_AUTHOR to sre@kernel.org
 
-I would prefer to wait. The timing above works and having it in the
-git history doesn't hurt.
+Please send feedback (e.g. Tested-By or Reviewed-By :)), so that I can
+send a pull request for 3.16. You can either apply this patchset or
+use the n900-modem-support-2 branch available on [1].
 
-> > +#ifdef __LITTLE_ENDIAN
-> > +	((u16 *)skb->data)[2] =3D swab16(((u16 *)skb->data)[2]);
-> > +	dev_dbg(&dev->dev, "RX length fixed (%04x -> %u)\n",
-> > +			((u16 *)skb->data)[2], ntohs(((u16 *)skb->data)[2]));
-> > +#endif
->=20
-> Uh. Can this be replaced by
->     ((u16 *)skb->data)[2] =3D htons(((u16 *)skb->data)[2]);
->=20
-> (without the ifdef?)
+For testing the patchset you should build the kernel with all config
+entries in the HSI subsystem activated and boot using the updated
+device tree information, since platform data based booting is not
+supported. Testing the patchset with ofono works like this:
 
-Yes.
+ # provide cmt device for ofono
+ ln -sf /sys/bus/hsi/n900-modem /dev/cmt
+ # start ofono
+ ofono --nodetach --debug
+ # enable the modem
+ mdbus2 -s org.ofono /n900_0 org.ofono.Modem.SetProperty Powered true
+ # enable modem's RF parts
+ mdbus2 -s org.ofono /n900_0 org.ofono.Modem.SetProperty Online true
+ # scan for available networks (takes some time)
+ mdbus2 -s org.ofono /n900_0 org.ofono.NetworkRegistration.Scan
 
-> > +	/*
-> > +	 * Modem sends Phonet messages over SSI with its own endianess...
-> > +	 * Assume that modem has the same endianess as we do.
-> > +	 */
-> > +	if (skb_cow_head(skb, 0))
-> > +		goto drop;
-> > +#ifdef __LITTLE_ENDIAN
-> > +	((u16 *)skb->data)[2] =3D swab16(((u16 *)skb->data)[2]);
-> > +#endif
->=20
-> Here, too?
+TODO (post-merge):
+* Central Message Queue in HSI framework
+* Remove the hwmod DT hack
+* Implement proper context loss detection
+* Implement N900 modem PM
+* Remove wakeline checks (-> FIXMEs)
 
-Fixed in PATCHv4.
-
-> But it looks like the comment does not match the code, because we
-> swap.
-
-The swap only converts the package length field from/to network byte
-order. I think the comment still applies for the other actual message.
-
-I added a comment for the length field and kept the other comment as
-is for PATCHv4.
+[0] https://lkml.org/lkml/2014/3/28/492
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/sre/linux-hsi.git
 
 -- Sebastian
 
---Zi0sgQQBxRFxMTsj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Sebastian Reichel (13):
+  Documentation: HSI: Add some general description for the HSI subsystem
+  MAINTAINERS: update HSI entry
+  HSI: hsi-char: fix driver for multiport scenarios
+  HSI: method to unregister clients from an hsi port
+  HSI: Add channel resource support to HSI clients
+  HSI: export method to (un)register clients
+  HSI: Add common DT binding for HSI client devices
+  HSI: Introduce OMAP SSI driver
+  Documentation: DT: omap-ssi binding documentation
+  HSI: Introduce driver for SSI Protocol
+  HSI: Introduce Nokia N900 modem driver
+  DTS: ARM: OMAP3-N900: Add SSI support
+  DTS: ARM: OMAP3-N900: Add modem support
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+ .../devicetree/bindings/hsi/client-devices.txt     |   44 +
+ .../devicetree/bindings/hsi/nokia-modem.txt        |   57 +
+ Documentation/devicetree/bindings/hsi/omap-ssi.txt |   97 ++
+ Documentation/hsi.txt                              |   75 ++
+ MAINTAINERS                                        |    4 +-
+ arch/arm/boot/dts/omap3-n900.dts                   |   65 +
+ arch/arm/boot/dts/omap3.dtsi                       |   45 +
+ arch/arm/boot/dts/omap34xx.dtsi                    |   11 +
+ arch/arm/boot/dts/omap36xx.dtsi                    |   11 +
+ drivers/hsi/Kconfig                                |    1 +
+ drivers/hsi/Makefile                               |    1 +
+ drivers/hsi/clients/Kconfig                        |   17 +
+ drivers/hsi/clients/Makefile                       |    4 +-
+ drivers/hsi/clients/hsi_char.c                     |   14 +-
+ drivers/hsi/clients/nokia-modem.c                  |  272 ++++
+ drivers/hsi/clients/ssi_protocol.c                 | 1190 +++++++++++++++++
+ drivers/hsi/controllers/Kconfig                    |   19 +
+ drivers/hsi/controllers/Makefile                   |    6 +
+ drivers/hsi/controllers/omap_ssi.c                 |  625 +++++++++
+ drivers/hsi/controllers/omap_ssi.h                 |  166 +++
+ drivers/hsi/controllers/omap_ssi_port.c            | 1399 ++++++++++++++++++++
+ drivers/hsi/controllers/omap_ssi_regs.h            |  171 +++
+ drivers/hsi/hsi.c                                  |  273 +++-
+ include/linux/hsi/hsi.h                            |   30 +-
+ include/linux/hsi/ssi_protocol.h                   |   42 +
+ 25 files changed, 4620 insertions(+), 19 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/hsi/client-devices.txt
+ create mode 100644 Documentation/devicetree/bindings/hsi/nokia-modem.txt
+ create mode 100644 Documentation/devicetree/bindings/hsi/omap-ssi.txt
+ create mode 100644 Documentation/hsi.txt
+ create mode 100644 drivers/hsi/clients/nokia-modem.c
+ create mode 100644 drivers/hsi/clients/ssi_protocol.c
+ create mode 100644 drivers/hsi/controllers/Kconfig
+ create mode 100644 drivers/hsi/controllers/Makefile
+ create mode 100644 drivers/hsi/controllers/omap_ssi.c
+ create mode 100644 drivers/hsi/controllers/omap_ssi.h
+ create mode 100644 drivers/hsi/controllers/omap_ssi_port.c
+ create mode 100644 drivers/hsi/controllers/omap_ssi_regs.h
+ create mode 100644 include/linux/hsi/ssi_protocol.h
 
-iQIcBAEBCgAGBQJTWq4cAAoJENju1/PIO/qauXgP/AkArax6cNzm05x6VkLTcVwX
-sa+/H1kHdryPo8l+jiQyu6qcPA8gTnPIPXfEBN+ZwafamFlKgci47KYeCf+YDE1o
-IBbfoKZ/SFrzYCCON90HbayBBG/GoSK9ycFz1gdEwb37PTsgiIgo/507o8AzAljQ
-0Pl0mhLLXVi71OcevNwWA4+bO6xUl7HkNT1NoVafYZrHhTR7VDQ/D97y/4lH4mMz
-tT7ApT2sgtC8UwDc76hQaB1SXjQVjUa3pNs+7B1oOO9EfGbgcnelCOlva2ImD6vh
-YhIRfxb/DWpsRBMWuFkT3AB/vmIZ/aelxnvdCZryPQgdqGCKzBBAhHkkTjHa8oLT
-jjnlw52k2gthzH1G3f4ZZAuAHh1ZcZ9P5YScYkjNSIHgy9x6MMrMxA+T4NEPhOoW
-KBXvwpnqqhIFGn1chWTHOCd6o+LW2+/frfQwh4riD2duO4OGW8te367vaC5FNL80
-EJB5RAzpdQlsywEBAwKL2975XIL4rgtjgK371dCCLTOlWOybguaMAeoER7Mdy/kc
-jlkrf3MmQ+pKknR0kEX52ArvQfTLKjRrj3E3jvknkmAHWTqHinECEt3ta96QGdEb
-5JLEY3TQAhacft7eHh628i7VBoICcPoNqOSxHORmKML2RYrw8vkGavuR1iWtamWg
-MEb7Foi2ZH2LwxKtPK4b
-=cBwO
------END PGP SIGNATURE-----
-
---Zi0sgQQBxRFxMTsj--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.9.2
