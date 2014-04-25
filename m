@@ -1,60 +1,72 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM with the PM core
-Date: Fri, 25 Apr 2014 16:44:58 -0700
-Message-ID: <7hoazpdldx.fsf@paris.lan>
-References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
-	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 19/41] OMAPDSS: panel-dpi: Add DT support
+Date: Fri, 25 Apr 2014 16:53:49 -0700
+Message-ID: <20140425235348.GH20807@atomide.com>
+References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
+ <1390301833-24944-20-git-send-email-tomi.valkeinen@ti.com>
+ <20140418155107.GB5354@atomide.com>
+ <5358DEEA.1000506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1398334403-26181-4-git-send-email-geert+renesas@glider.be>
-	(Geert Uytterhoeven's message of "Thu, 24 Apr 2014 12:13:22 +0200")
-Sender: linux-pm-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19904 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751048AbaDYXx7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2014 19:53:59 -0400
+Content-Disposition: inline
+In-Reply-To: <5358DEEA.1000506@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Joachim Eastwood <manabian@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Geert Uytterhoeven <geert+renesas@glider.be> writes:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140424 02:53]:
+> On 18/04/14 18:51, Tony Lindgren wrote:
+> 
+> >> +	gpio = of_get_gpio(node, 0);
+> >> +	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
+> >> +		ddata->enable_gpio = gpio;
+> >> +	} else {
+> >> +		dev_err(&pdev->dev, "failed to parse enable gpio\n");
+> >> +		return gpio;
+> >> +	}
+> > 
+> > We should set the GPIO polarity based on the OF_GPIO_ACTIVE_LOW like
+> > gpio_backlight_probe_dt is doing. 
+> 
+> Instead of doing it with the old gpio API, and checking the 'active'
+> flag everywhere, I think we can use the new gpiod API which handles the
+> polarity automatically.
+> 
+> I attached prototype patches (based on -rc2) for panel dpi using that
+> approach. It's a bit messier than I'd like, because for non-DT boot we
+> need to request the gpio using the old API, and then convert it to
+> gpio_desc. We can remove that code when all the boards use DT.
+> 
+> I've compiled tested this only, as I don't have DPI panels I could use.
+> I did try similar approach for TFP410, and it seemed to work fine.
 
-> When adding a device from DT, check if its clocks are suitable for Runtime
-> PM, and register them with the PM core.
-> If Runtime PM is disabled, just enable the clock.
->
-> This allows the PM core to automatically manage gate clocks of devices for
-> Runtime PM.
+Got these working by updating my test patch to use enable-gpios instead
+of gpios, and had to change from GPIO_ACTIVE_LOW to GPIO_ACTIVE_HIGH.
+Are we now also breaking legacy booting by reversing the polarity?
 
-...unless the device is already in an existing pm_domain, right?
+In any case, looks like we have some duplicate panel code.. Turns
+out most panel dpi users for omap3 board-*.c files are just
+sharp-ls037v7dw01 panels but configured in QVGA mode. At least for
+EVM and and LDP based on looking at the pictures and the configuration
+pins (using the names kernel):
 
-I like this approach, and it extends nicely what we already do on
-platforms using drivers/base/power/clock_ops.c into DT land.
+QVGA = lcd MO
+reset = lcd RESB
+...
 
-My only concern is how this will interact if it's used along with
-devices that have existing pm_domains.  I don't have any specific
-concerns (yet, because it's Friday, and my brain is turing off), but it
-just made me wonder if this will be potentially confusing.
- 
-Also...
+Then the enable_gpio should be just a GPIO controlled 3.3V regulator
+in most cases. I suggest we move them over to ls037v7dw01 and allow
+configuring them both for VGA and QVGA depending on the orientation.
 
-[...]
+I guess you do have some device with ls037v7dw01 since you've been
+patching it?
 
-> +static int of_clk_register(struct device *dev, struct clk *clk)
-> +{
-> +	int error;
-> +
-> +	if (!dev->pm_domain) {
-> +		error = pm_clk_create(dev);
-> +		if (error)
-> +			return error;
-> +
-> +		dev->pm_domain = &of_clk_pm_domain;
-> +	}
-> +
-> +	dev_dbg(dev, "Setting up clock for runtime PM management\n");
-> +	return pm_clk_add_clk(dev, clk);
+Regards,
 
-I would've expected these 2 lines to be inside the pm_domain check.
-
-What's the reason for doing the pm_clk_add() when the pm_domain isn't
-going to be used?  I suppose it's harmless, but it's a bit confusing.
-
-Kevin
+Tony
