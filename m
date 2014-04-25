@@ -1,121 +1,65 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] arm: dts: am43x-clock: add tbclk data for ehrpwm.
-Date: Fri, 25 Apr 2014 15:10:00 +0300
-Message-ID: <535A5098.6040107@ti.com>
-References: <1398416142-7174-1-git-send-email-sourav.poddar@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 06/23] ARM: OMAP: add OMAP5 DSI muxing
+Date: Fri, 25 Apr 2014 18:28:50 +0530
+Message-ID: <535A5C0A.7040808@ti.com>
+References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com> <1398334639-14172-7-git-send-email-tomi.valkeinen@ti.com> <535A42D6.5090107@ti.com> <535A4470.2000509@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48030 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60266 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751546AbaDYMKV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Apr 2014 08:10:21 -0400
-In-Reply-To: <1398416142-7174-1-git-send-email-sourav.poddar@ti.com>
+	id S1751750AbaDYNAP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Apr 2014 09:00:15 -0400
+In-Reply-To: <535A4470.2000509@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>, mturquette@linaro.org, tony@atomide.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, balbi@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>
 
-On 04/25/2014 11:55 AM, Sourav Poddar wrote:
-> We need "tbclk" clock data for the functioning of ehrpwm
-> module. Hence, populating the required clock information
-> in clock dts file.
+On Friday 25 April 2014 04:48 PM, Tomi Valkeinen wrote:
+> On 25/04/14 14:11, Archit Taneja wrote:
+>> Hi,
+>>
+>> On Thursday 24 April 2014 03:47 PM, Tomi Valkeinen wrote:
+>>> Add support to set OMAP5 DSI pin muxing.
+>>>
+>>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>>> Cc: Tony Lindgren <tony@atomide.com>
+>>> ---
+>>>    arch/arm/mach-omap2/display.c | 35 ++++++++++++++++++++++++++++++++++-
+>>>    1 file changed, 34 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/display.c
+>>> b/arch/arm/mach-omap2/display.c
+>>> index 16d33d831287..974461441fc3 100644
+>>> --- a/arch/arm/mach-omap2/display.c
+>>> +++ b/arch/arm/mach-omap2/display.c
+>>> @@ -137,11 +137,42 @@ static int omap4_dsi_mux_pads(int dsi_id,
+>>> unsigned lanes)
+>>>        return 0;
+>>>    }
+>>>
+>>> +#define CONTROL_PAD_BASE    0x4A002800
+>>> +#define CONTROL_DSIPHY        0x614
+>>> +
+>>
+>> I guess this is something we can move to our driver, and use sysconf to
+>> get the register from DT.
 >
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
->   arch/arm/boot/dts/am43xx-clocks.dtsi |   48 ++++++++++++++++++++++++++++++++++
->   drivers/clk/ti/clk-43xx.c            |    6 +++++
->   2 files changed, 54 insertions(+)
+> I just copied the same method as used for OMAP4.
 >
-> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
-> index 142009c..54f68e8 100644
-> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
-> @@ -87,6 +87,54 @@
->   		clock-mult = <1>;
->   		clock-div = <1>;
->   	};
-> +
-> +	ehrpwm0_tbclk: ehrpwm0_tbclk@44e10664 {
-> +		#clock-cells = <0>;
-> +		compatible = "gate-clock";
+> I guess sysconf is an option. But I really dislike the idea of moving
+> omap control module code to a display driver... I'm not sure what other
+> options we have, though. Maybe an OMAP DSI specific pinctrl driver?
 
-Should be ti,gate-clock.
+OMAP4 has CONTROL_DSIPHY for configuring both lane enable/disbale, and 
+pull up/down, but OMAP5 has normal PAD_CONF registers for DSI lines(2 
+pins per register) for configuring pull up/down, and CONTROL_DSIPHY for 
+lane enable/disable.
 
-> +		clocks = <&dpll_per_m2_ck>;
-> +		bit-shift = <0>;
+We would have a very messed up pinctrl driver, but it would probably be 
+better than doing all this stuff in the driver.
 
-Should be ti,bit-shift.
-
-> +		reg = <0x44e10664 0x4>;
-
-Should be reg = <0x664>. Mainline kernel uses offsets for clock data, 
-not absolute register addresses.
-
-Similar comments for the rest of the patch.
-
--Tero
-
-> +	};
-> +
-> +	ehrpwm1_tbclk: ehrpwm1_tbclk@44e10664 {
-> +		#clock-cells = <0>;
-> +		compatible = "gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		bit-shift = <1>;
-> +		reg = <0x44e10664 0x4>;
-> +	};
-> +
-> +	ehrpwm2_tbclk: ehrpwm2_tbclk@44e10664 {
-> +		#clock-cells = <0>;
-> +		compatible = "gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		bit-shift = <2>;
-> +		reg = <0x44e10664 0x4>;
-> +	};
-> +
-> +	ehrpwm3_tbclk: ehrpwm3_tbclk@44e10664 {
-> +		#clock-cells = <0>;
-> +		compatible = "gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		bit-shift = <3>;
-> +		reg = <0x44e10664 0x4>;
-> +	};
-> +
-> +	ehrpwm4_tbclk: ehrpwm4_tbclk@44e10664 {
-> +		#clock-cells = <0>;
-> +		compatible = "gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		bit-shift = <4>;
-> +		reg = <0x44e10664 0x4>;
-> +	};
-> +
-> +	ehrpwm5_tbclk: ehrpwm5_tbclk@44e10664 {
-> +		#clock-cells = <0>;
-> +		compatible = "gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		bit-shift = <5>;
-> +		reg = <0x44e10664 0x4>;
-> +	};
->   };
->   &prcm_clocks {
->   	clk_32768_ck: clk_32768_ck {
-> diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
-> index 67c8de5..527a43d 100644
-> --- a/drivers/clk/ti/clk-43xx.c
-> +++ b/drivers/clk/ti/clk-43xx.c
-> @@ -105,6 +105,12 @@ static struct ti_dt_clk am43xx_clks[] = {
->   	DT_CLK(NULL, "func_12m_clk", "func_12m_clk"),
->   	DT_CLK(NULL, "vtp_clk_div", "vtp_clk_div"),
->   	DT_CLK(NULL, "usbphy_32khz_clkmux", "usbphy_32khz_clkmux"),
-> +	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
-> +	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
-> +	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
-> +	DT_CLK("48306200.ehrpwm", "tbclk", "ehrpwm3_tbclk"),
-> +	DT_CLK("48308200.ehrpwm", "tbclk", "ehrpwm4_tbclk"),
-> +	DT_CLK("4830a200.ehrpwm", "tbclk", "ehrpwm5_tbclk"),
->   	{ .node_name = NULL },
->   };
->
->
+Archit
 
