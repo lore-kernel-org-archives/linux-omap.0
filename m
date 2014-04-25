@@ -1,96 +1,87 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v5 5/5] ARM: dts: am43x-epos-evm: Enable USB
-Date: Fri, 25 Apr 2014 11:18:37 -0500
-Message-ID: <20140425161837.GX29632@saruman.home>
+Subject: Re: [PATCH v5 0/5] Add USB nodes for am43xx epos and gp evm
+Date: Fri, 25 Apr 2014 11:19:12 -0500
+Message-ID: <20140425161912.GY29632@saruman.home>
 References: <1395223803-4714-1-git-send-email-george.cherian@ti.com>
- <1395223803-4714-6-git-send-email-george.cherian@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YG0IFkGWIt6MbjRk"
+	protocol="application/pgp-signature"; boundary="bIBSTgLWjO5xMb20"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1395223803-4714-6-git-send-email-george.cherian@ti.com>
+In-Reply-To: <1395223803-4714-1-git-send-email-george.cherian@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
+To: George Cherian <george.cherian@ti.com>, Benoit Cousson <bcousson@baylibre.org>
 Cc: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, rogerq@ti.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, anatol.pomozov@gmail.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
---YG0IFkGWIt6MbjRk
+--bIBSTgLWjO5xMb20
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 19, 2014 at 03:40:03PM +0530, George Cherian wrote:
-> Enable
-> 	- USB PHY
-> 	- USB
+On Wed, Mar 19, 2014 at 03:39:58PM +0530, George Cherian wrote:
+> The patch series adds USB dt nodes for am43xx epos and gp evm
+> Boot tested with linux-next + Tony's omap-for-v3.15/dt
 >=20
-> for am43x-epos-evm
+> Changes from v1 -> v2
+> 	* Reorder "doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue"
+> 	* Address v1 coments on "ARM: dts: AM4372: Add USB nodes" =20
 >=20
-> Signed-off-by: George Cherian <george.cherian@ti.com>
-> Acked-by: Roger Quadros <rogerq@ti.com>
+> Changes from v2 -> v3
+> 	* Removed unwanted dwc3_1 and dwc3_2 nodes from am437x-gp-evm.dts=20
+> 	  and am43x-epos-evm.dts=20
+>=20
+> Changes from v3 -> v4
+> 	* Refreshed on top of Tony's omap-for-v3.15/dt tree
+> 	* Added usb_phy0_always_on_clk32k and usb_phy1_always_on_clk32k Patch 2
+> 	* Used the above clocks in Patch 3=20
+> 	* Patch 4 and 5 edited the unwanted portions of commit log
+>=20
+> Changes from v4 -> v5
+> 	* Address Roger's comment for the clock data
+>=20
+> George Cherian (5):
+>   doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue
+>   ARM: dts: am43xx clock data
+>   ARM: dts: AM4372: Add USB nodes
+>   ARM: dts: am437x-gp-evm: Enable USB
+>   ARM: dts: am43x-epos-evm: Enable USB
+>=20
+>  Documentation/devicetree/bindings/usb/omap-usb.txt |  4 +-
+>  arch/arm/boot/dts/am4372.dtsi                      | 94 ++++++++++++++++=
+++++++
+>  arch/arm/boot/dts/am437x-gp-evm.dts                | 18 +++++
+>  arch/arm/boot/dts/am43x-epos-evm.dts               | 18 +++++
+>  arch/arm/boot/dts/am43xx-clocks.dtsi               | 32 ++++++++
+>  5 files changed, 165 insertions(+), 1 deletion(-)
 
-Acked-by: Felipe Balbi <balbi@ti.com>
-
-> ---
->  arch/arm/boot/dts/am43x-epos-evm.dts | 18 ++++++++++++++++++
->  1 file changed, 18 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am4=
-3x-epos-evm.dts
-> index 167dbc8..1a4946a 100644
-> --- a/arch/arm/boot/dts/am43x-epos-evm.dts
-> +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-> @@ -367,3 +367,21 @@
->  	pinctrl-0 =3D <&spi1_pins>;
->  	status =3D "okay";
->  };
-> +
-> +&usb2_phy1 {
-> +	status =3D "okay";
-> +};
-> +
-> +&usb1 {
-> +	dr_mode =3D "peripheral";
-> +	status =3D "okay";
-> +};
-> +
-> +&usb2_phy2 {
-> +	status =3D "okay";
-> +};
-> +
-> +&usb2 {
-> +	dr_mode =3D "host";
-> +	status =3D "okay";
-> +};
-> --=20
-> 1.8.3.1
->=20
+Is this applied anywhere yet ? Benoit, are you taking this for v3.16
+merge window ?
 
 --=20
 balbi
 
---YG0IFkGWIt6MbjRk
+--bIBSTgLWjO5xMb20
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTWordAAoJEIaOsuA1yqRE6nAP/2Fosa5jEQXbJ/j6GbQTe3md
-4ZM6VlIGOcjoQmRIW4VsVvw/N8eLy4VHDOfAuz0a/d6UXcT6iwPz/x2snneoiL1c
-5kYCasr6qz+6btIVda191q8I9IWA9iDijyMQ4pNcHyWH7JcnlUp2K4MzWMSlir4u
-Fe1CRP6Mt0e2jL2GzQqMhta2px2vzPnbghcIYat7U7kHMTiuw6NNYQ4I4TSDFE86
-0tcwoHMtT8SOeOIgbZBZpHiPoS4yxJWMalmqbn3CWo1nsddA/Wu70+zL0LZK7B7P
-75hobfrzI+6cRiF5xsXGT43O6InoPGAl6Htb6egtO2U8+DaibYGg/8h5iYkHNKbT
-CpenRNqUEoUQb4fghvEVOpAH+MJ54fgeMVF7Y5Yjo530Bgb0BHo0ZoWyYgWO4HfV
-FXwYLGpTy+qKy3I8G2MT4iTw9AzOZDR7kMT+fdrKTHyTHbhsOmU0nGasNFxQAwna
-7yAHig55tbrC9sLxFVd2MklsqszZaY1n5YnexMQvPrUzG+C+yJrv2aJ1eSvjJj+c
-1d/WllWR3yEiJCdYW8yNhcASnxlYd/hmBG9vGcZInisj6OT7VC+CTbDRO1P5Js8h
-ceBDlW05uIQout13r8xSxpyoEMvVMRABjFcC7zsa1shD78t7E8YX/5RsuWl0VNzp
-SBxg8ICWk0lKIpiddTom
-=yBV0
+iQIcBAEBAgAGBQJTWosAAAoJEIaOsuA1yqREm/8P/j/e8Yb+w2xBkrvYyUkVedqb
+nMk37PSLIakrEYGvx28YajiJKcegNaUFMBZjNRrzP/abgDt3KIhgyEVt8jEHm4y3
+yfJuse9ytTgtyPaBXedFMrQlslRz+AHJQY1OeJu1oZvNzs74PHLkuhaizDhEnprG
+YZguqQIsia2qKy9VATzkL/0tk7xH4AyeKgzUmEPIgrTkVg5qvCh67GwDc78Wa2if
+hCfERUg7ZuzI6uzMgt/YURn8AjFlDLjC7MzKopNiD1WFYsqzoruD/vFodFjn0gx8
+GIA9rZXPjEp12WQb80LfFlkIyFd84oBlN8c0RbaRDwFDAupfMHcWbs/E3uHzztId
+GbmAlOI7mRKDA7NIKljf8P79XfS/ruUuhkgh10cnVA07Ar82yIIlJwmI1elgai6o
+qJZMeTVzxXeWw9M+qRZsulogPwymGw7KqofJDr5prdogoMeZUMNbSwrWwVlcDrlt
+C8BR/s51j0Mx0YzoMNaFE7gh6EFOZE45I1zjMxG9RBq6riyR1Cb1WeyVv4maVUx6
+2jr0cZaZAa5MDHMEzlhW4bRzGI8zQHKd02vK0JTXbs53i4i2vzqqE1ifKT1HaLEz
+i5CchwS4pro1kSr2Nf8OON6za4tCgvRRR3ZlPNjYKEctMDawseqATNSguNRKFcs9
+oP1pku9UZeL2Fr9uCtML
+=n8Fs
 -----END PGP SIGNATURE-----
 
---YG0IFkGWIt6MbjRk--
+--bIBSTgLWjO5xMb20--
