@@ -1,7 +1,7 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 09/10] ARM: dts: OMAP4: clk: Add clk node for DES IP
-Date: Fri, 25 Apr 2014 18:02:47 -0500
-Message-ID: <1398466968-29506-10-git-send-email-joelf@ti.com>
+Subject: [PATCH 08/10] ARM: dts: DRA7: Add DT node for AES IP
+Date: Fri, 25 Apr 2014 18:02:46 -0500
+Message-ID: <1398466968-29506-9-git-send-email-joelf@ti.com>
 References: <1398466968-29506-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,51 +18,37 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, Joel Fernandes <joelf@ti.com>
+Cc: Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Lokesh Vutla <lokeshvutla@ti.com>
+DRA7 SoC has same AES IP as on OMAP4. Add DT entries for the same.
 
-DES IP already has main and interface clk as des_fck.
-Node for des_fck is missing in clk tree. Adding the same.
-
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 Signed-off-by: Joel Fernandes <joelf@ti.com>
 ---
- arch/arm/boot/dts/omap44xx-clocks.dtsi |    8 ++++++++
- drivers/clk/ti/clk-44xx.c              |    1 +
- 2 files changed, 9 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-index c821ff5..83cf189 100644
---- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-@@ -985,6 +985,14 @@
- 		reg = <0x15a8>;
- 	};
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 0533b89..c45f7e9 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -790,6 +790,17 @@
+ 			status = "disabled";
+ 		};
  
-+	des_fck: des_fck@4a0095b0 {
-+	       #clock-cells = <0>;
-+	       compatible = "gate-clock";
-+	       clocks = <&l3_div_ck>;
-+	       bit-shift = <1>;
-+	       reg = <0x4a0095b0 0x4>;
-+	};
++		aes: aes@4b500000 {
++			compatible = "ti,omap4-aes";
++			ti,hwmods = "aes";
++			reg = <0x4b500000 0xa0>;
++			interrupts = <GIC_SPI 85 IRQ_TYPE_LEVEL_HIGH>;
++			dmas = <&sdma 111>, <&sdma 110>;
++			dma-names = "tx", "rx";
++			clocks = <&l3_iclk_div>;
++			clock-names = "fck";
++		};
 +
- 	dss_sys_clk: dss_sys_clk {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
-diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
-index 02517a8..85d97c3 100644
---- a/drivers/clk/ti/clk-44xx.c
-+++ b/drivers/clk/ti/clk-44xx.c
-@@ -120,6 +120,7 @@ static struct ti_dt_clk omap44xx_clks[] = {
- 	DT_CLK(NULL, "syc_clk_div_ck", "syc_clk_div_ck"),
- 	DT_CLK(NULL, "aes1_fck", "aes1_fck"),
- 	DT_CLK(NULL, "aes2_fck", "aes2_fck"),
-+	DT_CLK(NULL, "des_fck", "des_fck"),
- 	DT_CLK(NULL, "dmic_sync_mux_ck", "dmic_sync_mux_ck"),
- 	DT_CLK(NULL, "func_dmic_abe_gfclk", "func_dmic_abe_gfclk"),
- 	DT_CLK(NULL, "dss_sys_clk", "dss_sys_clk"),
+ 		des: des@480a5000 {
+ 			compatible = "ti,omap4-des";
+ 			ti,hwmods = "des";
 -- 
 1.7.9.5
