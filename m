@@ -1,79 +1,165 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: Add support for the BeagleBoard xM A/B
-Date: Thu, 24 Apr 2014 16:37:32 -0700
-Message-ID: <20140424233731.GA4811@atomide.com>
-References: <1397574599-29573-1-git-send-email-robertcnelson@gmail.com>
- <7hiopynyt5.fsf@paris.lan>
- <CAGa+x84uPwuUC61S4Wi2ymSdxVMs14pb_kCv0RhQRi-KySxSAw@mail.gmail.com>
+From: sourav <sourav.poddar@ti.com>
+Subject: Re: [PATCH] arm: dts: am43x-clock: add tbclk data for ehrpwm.
+Date: Fri, 25 Apr 2014 11:12:39 +0530
+Message-ID: <5359F5CF.6020408@ti.com>
+References: <1398162345-3163-1-git-send-email-sourav.poddar@ti.com> <53566374.3070609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42353 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753325AbaDXXhh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2014 19:37:37 -0400
-Content-Disposition: inline
-In-Reply-To: <CAGa+x84uPwuUC61S4Wi2ymSdxVMs14pb_kCv0RhQRi-KySxSAw@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60309 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750888AbaDYFnJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2014 01:43:09 -0400
+In-Reply-To: <53566374.3070609@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Robert Nelson <robertcnelson@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: mturquette@linaro.org, tony@atomide.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, balbi@ti.com
 
-* Kevin Hilman <khilman@linaro.org> [140424 16:22]:
-> On Thu, Apr 24, 2014 at 3:32 PM, Kevin Hilman <khilman@linaro.org> wrote:
-> > Robert Nelson <robertcnelson@gmail.com> writes:
-> >
-> >> BeagleBoard xM A/B has an inverted usb hub enable line vs the xM C
-> >>
-> >> Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
-> >> ---
-> >>  arch/arm/boot/dts/Makefile               |  1 +
-> >>  arch/arm/boot/dts/omap3-beagle-xm-ab.dts | 15 +++++++++++++++
-> >>  2 files changed, 16 insertions(+)
-> >>  create mode 100644 arch/arm/boot/dts/omap3-beagle-xm-ab.dts
-> >>
-> >> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> >> index 35c146f..0bdeba3 100644
-> >> --- a/arch/arm/boot/dts/Makefile
-> >> +++ b/arch/arm/boot/dts/Makefile
-> >> @@ -246,6 +246,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
-> >>       omap3-sbc-t3730.dtb \
-> >>       omap3-devkit8000.dtb \
-> >>       omap3-beagle-xm.dtb \
-> >> +     omap3-beagle-xm-ab.dtb \
-> >>       omap3-evm.dtb \
-> >>       omap3-evm-37xx.dtb \
-> >>       omap3-ldp.dtb \
-> >> diff --git a/arch/arm/boot/dts/omap3-beagle-xm-ab.dts b/arch/arm/boot/dts/omap3-beagle-xm-ab.dts
-> >> new file mode 100644
-> >> index 0000000..9d81123
-> >> --- /dev/null
-> >> +++ b/arch/arm/boot/dts/omap3-beagle-xm-ab.dts
-> >> @@ -0,0 +1,15 @@
-> >> +/*
-> >> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or modify
-> >> + * it under the terms of the GNU General Public License version 2 as
-> >> + * published by the Free Software Foundation.
-> >> + */
-> >> +
-> >> +#include "omap3-beagle-xm.dts"
-> >> +
-> >> +/ {
-> >> +     /* HS USB Port 2 Power enable was inverted with the xM C */
-> >> +     hsusb2_power: hsusb2_power_reg {
-> >> +             enable-active-high;
-> >
-> > Missing '};' here?
-> >
-> > This causes build breakage in linux-omap master, which now has this
-> > applied.
-> 
-> ignore this.  It's already been fixed, but was still lingering in
-> Tony's master branch.
+Hi Tero,
 
-Oops, sorry yeah looks like I forgot to remerge the updated fixes
-branch. Will update it today.
+On Tuesday 22 April 2014 06:11 PM, Tero Kristo wrote:
+> On 04/22/2014 01:25 PM, Sourav Poddar wrote:
+>> We need "tblclk" clock data for the functioning of ehrpwm
+>> module. Hence, populating the required clock information
+>> in clock dts file.
+>>
+>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+>> ---
+>>   arch/arm/boot/dts/am43xx-clocks.dtsi |   84 
+>> ++++++++++++++++++++++++++++++++++
+>>   drivers/clk/ti/clk-43xx.c            |    6 +++
+>>   2 files changed, 90 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi 
+>> b/arch/arm/boot/dts/am43xx-clocks.dtsi
+>> index 142009c..869f9a5 100644
+>> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
+>> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+>> @@ -87,6 +87,90 @@
+>>           clock-mult = <1>;
+>>           clock-div = <1>;
+>>       };
+>> +
+>> +    ehrpwm0_gate_tbclk: ehrpwm0_gate_tbclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,composite-no-wait-gate-clock";
+>> +        clocks = <&dpll_per_m2_ck>;
+>> +        ti,bit-shift = <0>;
+>> +        reg = <0x0664>;
+>> +    };
+>> +
+>> +    ehrpwm0_tbclk: ehrpwm0_tbclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,composite-clock";
+>> +        clocks = <&ehrpwm0_gate_tbclk>;
+>> +    };
+>
+> Why do you use composite-clock type here? I see only add one sub-clock 
+> to the composite, thus the composite part is unused. How about using a 
+> gate-clock type only? Same question applies for the rest of the patch 
+> also.
+>
 
-Tony
+Yes, I though of doing so and I think it should be fine to use 
+gate-clock only. I did this following the ehrpwm clock data in
+"am33xx-clock.dtsi" file, where we use composite clock for ehrpwm. I 
+think it needs to be changed there also.?
+
+-Sourav
+> -Tero
+>
+>> +
+>> +    ehrpwm1_gate_tbclk: ehrpwm1_gate_tbclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,composite-no-wait-gate-clock";
+>> +        clocks = <&dpll_per_m2_ck>;
+>> +        ti,bit-shift = <1>;
+>> +        reg = <0x0664>;
+>> +    };
+>> +
+>> +    ehrpwm1_tbclk: ehrpwm1_tbclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,composite-clock";
+>> +        clocks = <&ehrpwm1_gate_tbclk>;
+>> +    };
+>> +
+>> +    ehrpwm2_gate_tbclk: ehrpwm2_gate_tbclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,composite-no-wait-gate-clock";
+>> +        clocks = <&dpll_per_m2_ck>;
+>> +        ti,bit-shift = <2>;
+>> +        reg = <0x0664>;
+>> +    };
+>> +
+>> +    ehrpwm2_tbclk: ehrpwm2_tbclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,composite-clock";
+>> +        clocks = <&ehrpwm2_gate_tbclk>;
+>> +    };
+>> +
+>> +    ehrpwm3_gate_tbclk: ehrpwm3_gate_tbclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,composite-no-wait-gate-clock";
+>> +        clocks = <&dpll_per_m2_ck>;
+>> +        ti,bit-shift = <2>;
+>> +        reg = <0x0664>;
+>> +    };
+>> +
+>> +    ehrpwm3_tbclk: ehrpwm3_tbclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,composite-clock";
+>> +        clocks = <&ehrpwm3_gate_tbclk>;
+>> +    };
+>> +
+>> +    ehrpwm4_gate_tbclk: ehrpwm4_gate_tbclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,composite-no-wait-gate-clock";
+>> +        clocks = <&dpll_per_m2_ck>;
+>> +        ti,bit-shift = <2>;
+>> +        reg = <0x0664>;
+>> +    };
+>> +
+>> +    ehrpwm4_tbclk: ehrpwm4_tbclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,composite-clock";
+>> +        clocks = <&ehrpwm4_gate_tbclk>;
+>> +    };
+>> +
+>> +    ehrpwm5_gate_tbclk: ehrpwm5_gate_tbclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,composite-no-wait-gate-clock";
+>> +        clocks = <&dpll_per_m2_ck>;
+>> +        ti,bit-shift = <2>;
+>> +        reg = <0x0664>;
+>> +    };
+>> +
+>> +    ehrpwm5_tbclk: ehrpwm5_tbclk {
+>> +        #clock-cells = <0>;
+>> +        compatible = "ti,composite-clock";
+>> +        clocks = <&ehrpwm5_gate_tbclk>;
+>> +    };
+>>   };
+>> &prcm_clocks {
+>>       clk_32768_ck: clk_32768_ck {
+>> diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
+>> index 67c8de5..5413a6a 100644
+>> --- a/drivers/clk/ti/clk-43xx.c
+>> +++ b/drivers/clk/ti/clk-43xx.c
+>> @@ -105,6 +105,12 @@ static struct ti_dt_clk am43xx_clks[] = {
+>>       DT_CLK(NULL, "func_12m_clk", "func_12m_clk"),
+>>       DT_CLK(NULL, "vtp_clk_div", "vtp_clk_div"),
+>>       DT_CLK(NULL, "usbphy_32khz_clkmux", "usbphy_32khz_clkmux"),
+>> +    DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
+>> +    DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
+>> +    DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
+>> +    DT_CLK("48306200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
+>> +    DT_CLK("48308200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
+>> +    DT_CLK("4830a200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
+>>       { .node_name = NULL },
+>>   };
+>>
+>>
+>
+
