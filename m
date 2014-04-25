@@ -1,106 +1,60 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 04/10] ARM: DRA7xx: Add hwmod entries for RNG module
-Date: Fri, 25 Apr 2014 18:02:42 -0500
-Message-ID: <1398466968-29506-5-git-send-email-joelf@ti.com>
-References: <1398466968-29506-1-git-send-email-joelf@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM with the PM core
+Date: Fri, 25 Apr 2014 16:44:58 -0700
+Message-ID: <7hoazpdldx.fsf@paris.lan>
+References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
+	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1398466968-29506-1-git-send-email-joelf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Joel Fernandes <joelf@ti.com>
+Content-Type: text/plain
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1398334403-26181-4-git-send-email-geert+renesas@glider.be>
+	(Geert Uytterhoeven's message of "Thu, 24 Apr 2014 12:13:22 +0200")
+Sender: linux-pm-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add the CLKCTRL offsets, SYSC offsets to the RNG module.
+Geert Uytterhoeven <geert+renesas@glider.be> writes:
 
-Signed-off-by: Joel Fernandes <joelf@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   35 +++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+> When adding a device from DT, check if its clocks are suitable for Runtime
+> PM, and register them with the PM core.
+> If Runtime PM is disabled, just enable the clock.
+>
+> This allows the PM core to automatically manage gate clocks of devices for
+> Runtime PM.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index e76e712..7c75e5f 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -583,6 +583,15 @@ static struct omap_hwmod_class_sysconfig dra7xx_des_sysc = {
- 	.sysc_fields	= &omap_hwmod_sysc_type4,
- };
+...unless the device is already in an existing pm_domain, right?
+
+I like this approach, and it extends nicely what we already do on
+platforms using drivers/base/power/clock_ops.c into DT land.
+
+My only concern is how this will interact if it's used along with
+devices that have existing pm_domains.  I don't have any specific
+concerns (yet, because it's Friday, and my brain is turing off), but it
+just made me wonder if this will be potentially confusing.
  
-+/* rng */
-+static struct omap_hwmod_class_sysconfig dra7xx_rng_sysc = {
-+        .rev_offs       = 0x1fe0,
-+        .sysc_offs      = 0x1fe4,
-+        .sysc_flags     = SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE,
-+        .idlemodes      = SIDLE_FORCE | SIDLE_NO,
-+        .sysc_fields    = &omap_hwmod_sysc_type1,
-+};
-+
- static struct omap_hwmod_class dra7xx_aes_hwmod_class = {
- 	.name	= "aes",
- 	.sysc	= &dra7xx_aes_sysc,
-@@ -595,6 +604,11 @@ static struct omap_hwmod_class dra7xx_des_hwmod_class = {
- 	.rev	= 2,
- };
- 
-+static struct omap_hwmod_class dra7xx_rng_hwmod_class = {
-+        .name           = "rng",
-+        .sysc           = &dra7xx_rng_sysc,
-+};
-+
- /* gpio dev_attr */
- static struct omap_gpio_dev_attr gpio_dev_attr = {
- 	.bank_width	= 32,
-@@ -810,6 +824,19 @@ static struct omap_hwmod dra7xx_des_hwmod = {
- 	},
- };
- 
-+static struct omap_hwmod dra7xx_rng_hwmod = {
-+        .name           = "rng",
-+        .class          = &dra7xx_rng_hwmod_class,
-+        .clkdm_name     = "l4sec_clkdm",
-+        .prcm = {
-+                .omap4 = {
-+                        .clkctrl_offs = DRA7XX_CM_L4SEC_RNG_CLKCTRL_OFFSET,
-+                        .context_offs = DRA7XX_RM_L4SEC_RNG_CONTEXT_OFFSET,
-+                        .modulemode   = MODULEMODE_HWCTRL,
-+                },
-+        },
-+};
-+
- /*
-  * 'gpmc' class
-  *
-@@ -2246,6 +2273,13 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per1__des = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_per1 -> rng */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per1__rng = {
-+        .master         = &dra7xx_l4_per1_hwmod,
-+        .slave          = &dra7xx_rng_hwmod,
-+        .user           = OCP_USER_MPU,
-+};
-+
- static struct omap_hwmod_addr_space dra7xx_gpmc_addrs[] = {
- 	{
- 		.pa_start	= 0x50000000,
-@@ -2782,6 +2816,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_per1__uart5,
- 	&dra7xx_l4_per1__uart6,
- 	&dra7xx_l4_per1__des,
-+	&dra7xx_l4_per1__rng,
- 	&dra7xx_l4_per3__usb_otg_ss1,
- 	&dra7xx_l4_per3__usb_otg_ss2,
- 	&dra7xx_l4_per3__usb_otg_ss3,
--- 
-1.7.9.5
+Also...
+
+[...]
+
+> +static int of_clk_register(struct device *dev, struct clk *clk)
+> +{
+> +	int error;
+> +
+> +	if (!dev->pm_domain) {
+> +		error = pm_clk_create(dev);
+> +		if (error)
+> +			return error;
+> +
+> +		dev->pm_domain = &of_clk_pm_domain;
+> +	}
+> +
+> +	dev_dbg(dev, "Setting up clock for runtime PM management\n");
+> +	return pm_clk_add_clk(dev, clk);
+
+I would've expected these 2 lines to be inside the pm_domain check.
+
+What's the reason for doing the pm_clk_add() when the pm_domain isn't
+going to be used?  I suppose it's harmless, but it's a bit confusing.
+
+Kevin
