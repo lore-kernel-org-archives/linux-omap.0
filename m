@@ -1,105 +1,71 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv4 01/13] Documentation: HSI: Add some general description for the HSI subsystem
-Date: Fri, 25 Apr 2014 21:06:04 +0200
-Message-ID: <1398452776-28638-2-git-send-email-sre@kernel.org>
-References: <1398452776-28638-1-git-send-email-sre@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1398452776-28638-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, =?UTF-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE=20=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] somewhat urgent omap fixes against v3.15-rc1, fixes gpmc
+Date: Fri, 25 Apr 2014 13:30:48 -0700
+Message-ID: <20140425203047.GG20807@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:13541 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752757AbaDYUay (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2014 16:30:54 -0400
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Add a document, which gives a rough introduction about what HSI
-is and how its handled by the Linux kernel.
+The following changes since commit fb677ef70b65e22cd4401d31b700a8b4041efae1:
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
-Reviewed-by: Pavel Machek <pavel@ucw.cz>
----
- Documentation/hsi.txt | 75 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 75 insertions(+)
- create mode 100644 Documentation/hsi.txt
+  ARM: OMAP2+: Fix GPMC remap for devices using an offset (2014-04-23 11:09:22 -0700)
 
-diff --git a/Documentation/hsi.txt b/Documentation/hsi.txt
-new file mode 100644
-index 0000000..6ac6cd5
---- /dev/null
-+++ b/Documentation/hsi.txt
-@@ -0,0 +1,75 @@
-+HSI - High-speed Synchronous Serial Interface
-+
-+1. Introduction
-+~~~~~~~~~~~~~~~
-+
-+High Speed Syncronous Interface (HSI) is a fullduplex, low latency protocol,
-+that is optimized for die-level interconnect between an Application Processor
-+and a Baseband chipset. It has been specified by the MIPI alliance in 2003 and
-+implemented by multiple vendors since then.
-+
-+The HSI interface supports full duplex communication over multiple channels
-+(typically 8) and is capable of reaching speeds up to 200 Mbit/s.
-+
-+The serial protocol uses two signals, DATA and FLAG as combined data and clock
-+signals and an additional READY signal for flow control. An additional WAKE
-+signal can be used to wakeup the chips from standby modes. The signals are
-+commonly prefixed by AC for signals going from the application die to the
-+cellular die and CA for signals going the other way around.
-+
-++------------+                                 +---------------+
-+|  Cellular  |                                 |  Application  |
-+|    Die     |                                 |      Die      |
-+|            | - - - - - - CAWAKE - - - - - - >|               |
-+|           T|------------ CADATA ------------>|R              |
-+|           X|------------ CAFLAG ------------>|X              |
-+|            |<----------- ACREADY ------------|               |
-+|            |                                 |               |
-+|            |                                 |               |
-+|            |< - - - - -  ACWAKE - - - - - - -|               |
-+|           R|<----------- ACDATA -------------|T              |
-+|           X|<----------- ACFLAG -------------|X              |
-+|            |------------ CAREADY ----------->|               |
-+|            |                                 |               |
-+|            |                                 |               |
-++------------+                                 +---------------+
-+
-+2. HSI Subsystem in Linux
-+~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+In the Linux kernel the hsi subsystem is supposed to be used for HSI devices.
-+The hsi subsystem contains drivers for hsi controllers including support for
-+multi-port controllers and provides a generic API for using the HSI ports.
-+
-+It also contains HSI client drivers, which make use of the generic API to
-+implement a protocol used on the HSI interface. These client drivers can
-+use an arbitrary number of channels.
-+
-+3. hsi-char Device
-+~~~~~~~~~~~~~~~~~~
-+
-+Each port automatically registers a generic client driver called hsi_char,
-+which provides a charecter device for userspace representing the HSI port.
-+It can be used to communicate via HSI from userspace. Userspace may
-+configure the hsi_char device using the following ioctl commands:
-+
-+* HSC_RESET:
-+ - flush the HSI port
-+
-+* HSC_SET_PM
-+ - enable or disable the client.
-+
-+* HSC_SEND_BREAK
-+ - send break
-+
-+* HSC_SET_RX
-+ - set RX configuration
-+
-+* HSC_GET_RX
-+ - get RX configuration
-+
-+* HSC_SET_TX
-+ - set TX configuration
-+
-+* HSC_GET_TX
-+ - get TX configuration
--- 
-1.9.2
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/fixes-gpmc
+
+for you to fetch changes up to 4c05160342f16361fc37ae34dcae9210306a83e9:
+
+  ARM: dts: AM3517: Disable absent IPs inherited from OMAP3 (2014-04-25 09:55:00 -0700)
+
+----------------------------------------------------------------
+Mostly fixes for occasional memory corruption caused by bad
+timings for smc911x LAN9220 (and potentially LAN9221) devices
+that were noted on a cm-t3730 system. Also fix THUMB mode
+for SMP, and mailbox related warnings when booted with device
+tree.
+
+----------------------------------------------------------------
+Dave Gerlach (1):
+      ARM: dts: am437x-gp-evm: Do not reset gpio5
+
+Javier Martinez Canillas (1):
+      ARM: dts: omap3-igep0020: use SMSC9221 timings
+
+Joel Fernandes (1):
+      ARM: OMAP5: Switch to THUMB mode if needed on secondary CPU
+
+Suman Anna (3):
+      ARM: dts: OMAP5: Add mailbox dt node to fix boot warning
+      ARM: dts: OMAP2: Fix interrupts for OMAP2420 mailbox
+      ARM: dts: AM3517: Disable absent IPs inherited from OMAP3
+
+Tony Lindgren (3):
+      ARM: dts: Fix bad OTG muxing for cm-t boards
+      ARM: dts: Fix GPMC Ethernet timings for omap cm-t sbc-t boards for device tree
+      ARM: dts: Fix GPMC timings for LAN9220
+
+ arch/arm/boot/dts/am3517.dtsi             | 16 ++++++++
+ arch/arm/boot/dts/am437x-gp-evm.dts       |  5 +++
+ arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi | 19 ++++-----
+ arch/arm/boot/dts/omap2.dtsi              |  7 ----
+ arch/arm/boot/dts/omap2420.dtsi           |  8 ++++
+ arch/arm/boot/dts/omap2430.dtsi           |  7 ++++
+ arch/arm/boot/dts/omap3-cm-t3x30.dtsi     | 66 +++++++------------------------
+ arch/arm/boot/dts/omap3-igep.dtsi         |  2 +-
+ arch/arm/boot/dts/omap3-igep0020.dts      |  4 +-
+ arch/arm/boot/dts/omap3-sb-t35.dtsi       | 37 +++++------------
+ arch/arm/boot/dts/omap3-sbc-t3517.dts     | 13 ++++++
+ arch/arm/boot/dts/omap3.dtsi              |  2 +-
+ arch/arm/boot/dts/omap5.dtsi              |  7 ++++
+ arch/arm/mach-omap2/omap-headsmp.S        |  8 +++-
+ 14 files changed, 99 insertions(+), 102 deletions(-)
