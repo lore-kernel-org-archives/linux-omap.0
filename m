@@ -1,72 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 19/41] OMAPDSS: panel-dpi: Add DT support
-Date: Fri, 25 Apr 2014 16:53:49 -0700
-Message-ID: <20140425235348.GH20807@atomide.com>
-References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
- <1390301833-24944-20-git-send-email-tomi.valkeinen@ti.com>
- <20140418155107.GB5354@atomide.com>
- <5358DEEA.1000506@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19904 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751048AbaDYXx7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2014 19:53:59 -0400
-Content-Disposition: inline
-In-Reply-To: <5358DEEA.1000506@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCHv3 0/5] tsc2005 DT binding
+Date: Sat, 26 Apr 2014 01:56:14 +0200
+Message-ID: <1398470179-20880-1-git-send-email-sre@kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dtor-JGs/UdohzUI@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Joachim Eastwood <manabian@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140424 02:53]:
-> On 18/04/14 18:51, Tony Lindgren wrote:
-> 
-> >> +	gpio = of_get_gpio(node, 0);
-> >> +	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
-> >> +		ddata->enable_gpio = gpio;
-> >> +	} else {
-> >> +		dev_err(&pdev->dev, "failed to parse enable gpio\n");
-> >> +		return gpio;
-> >> +	}
-> > 
-> > We should set the GPIO polarity based on the OF_GPIO_ACTIVE_LOW like
-> > gpio_backlight_probe_dt is doing. 
-> 
-> Instead of doing it with the old gpio API, and checking the 'active'
-> flag everywhere, I think we can use the new gpiod API which handles the
-> polarity automatically.
-> 
-> I attached prototype patches (based on -rc2) for panel dpi using that
-> approach. It's a bit messier than I'd like, because for non-DT boot we
-> need to request the gpio using the old API, and then convert it to
-> gpio_desc. We can remove that code when all the boards use DT.
-> 
-> I've compiled tested this only, as I don't have DPI panels I could use.
-> I did try similar approach for TFP410, and it seemed to work fine.
+Hi,
 
-Got these working by updating my test patch to use enable-gpios instead
-of gpios, and had to change from GPIO_ACTIVE_LOW to GPIO_ACTIVE_HIGH.
-Are we now also breaking legacy booting by reversing the polarity?
+This adds device tree support for the tsc2005 touchscreen
+controller, which is currently only used by the Nokia N900
+board.
 
-In any case, looks like we have some duplicate panel code.. Turns
-out most panel dpi users for omap3 board-*.c files are just
-sharp-ls037v7dw01 panels but configured in QVGA mode. At least for
-EVM and and LDP based on looking at the pictures and the configuration
-pins (using the names kernel):
+The patch does not update the reset pin handling for platform
+data based probe to avoid merge conflicts. The n900 platform
+code will be removed in the near future (3.16?) and the driver
+can be simplified once that has happened.
 
-QVGA = lcd MO
-reset = lcd RESB
-...
+Changes since v2 [0]:
+ * rename "ti,x-plate-resistance" to "ti,x-plate-ohms", so that
+   the same property name is used for tsc2005 and tsc2007
+ * document "x-size" and "y-size" as deprecated form of
+   touchscreen-size-x and touchscreen-size-y
+ * add documentation for "touchscreen-inverted-x" and
+   "touchscreen-inverted-y" to the common touchscreen binding
+   and mark "x-invert" and "y-invert" as deprecated.
+ * add units to the property descriptions in the common
+   touchscreen binding Documentation
+ * document "moving-threshold" as deprecated form of
+   "touchscreen-fuzz-x" and "touchscreen-fuzz-y" combination
+ * document "contact-threshold" as deprecated form of
+   "touchscreen-fuzz-pressure"
 
-Then the enable_gpio should be just a GPIO controlled 3.3V regulator
-in most cases. I suggest we move them over to ls037v7dw01 and allow
-configuring them both for VGA and QVGA depending on the orientation.
+[0] https://lkml.org/lkml/2014/4/5/103
 
-I guess you do have some device with ls037v7dw01 since you've been
-patching it?
+-- Sebastian
 
-Regards,
+Sebastian Reichel (5):
+  Input: add common DT binding for touchscreens
+  Input: tsc2005: use dev_err for error messages
+  Input: tsc2005: convert driver to use devm_*
+  Input: tsc2005: add DT support
+  Documentation: dt: Document TSC2005 DT binding
 
-Tony
+ .../bindings/input/touchscreen/touchscreen.txt     |  27 +++++
+ .../bindings/input/touchscreen/tsc2005.txt         |  39 +++++++
+ drivers/input/input.c                              |  34 ++++++
+ drivers/input/touchscreen/tsc2005.c                | 130 ++++++++++++++-------
+ include/linux/input.h                              |   8 ++
+ 5 files changed, 197 insertions(+), 41 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+ create mode 100644 Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
+
+-- 
+1.9.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
