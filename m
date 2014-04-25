@@ -1,7 +1,7 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 03/10] ARM: DRA7xx: hwmod: Add hwmod data for AES IP
-Date: Fri, 25 Apr 2014 18:02:41 -0500
-Message-ID: <1398466968-29506-4-git-send-email-joelf@ti.com>
+Subject: [PATCH 02/10] ARM: DRA7xx: hwmod: Add hwmod data for DES IP
+Date: Fri, 25 Apr 2014 18:02:40 -0500
+Message-ID: <1398466968-29506-3-git-send-email-joelf@ti.com>
 References: <1398466968-29506-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,7 +21,7 @@ To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Li
 Cc: Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-DRA7xx SoC has same AES IP as OMAP4. Add hwmod data for the same.
+dra7xx SoC has a DES module. Add the required data to hwmod.
 
 Signed-off-by: Joel Fernandes <joelf@ti.com>
 ---
@@ -29,82 +29,75 @@ Signed-off-by: Joel Fernandes <joelf@ti.com>
  1 file changed, 39 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 24ab160..e76e712 100644
+index 810c205..24ab160 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -561,6 +561,17 @@ static struct omap_hwmod_class dra7xx_gpio_hwmod_class = {
+@@ -561,6 +561,23 @@ static struct omap_hwmod_class dra7xx_gpio_hwmod_class = {
  	.rev	= 2,
  };
  
-+static struct omap_hwmod_class_sysconfig dra7xx_aes_sysc = {
-+	.rev_offs	= 0x0080,
-+	.sysc_offs	= 0x0084,
-+	.syss_offs	= 0x0088,
++static struct omap_hwmod_class_sysconfig dra7xx_des_sysc = {
++	.rev_offs	= 0x0030,
++	.sysc_offs	= 0x0034,
++	.syss_offs	= 0x0038,
 +	.sysc_flags	= (SYSC_HAS_AUTOIDLE |
 +			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
 +			   SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO),
 +	.sysc_fields	= &omap_hwmod_sysc_type4,
 +};
 +
- static struct omap_hwmod_class_sysconfig dra7xx_des_sysc = {
- 	.rev_offs	= 0x0030,
- 	.sysc_offs	= 0x0034,
-@@ -572,6 +583,12 @@ static struct omap_hwmod_class_sysconfig dra7xx_des_sysc = {
- 	.sysc_fields	= &omap_hwmod_sysc_type4,
- };
- 
-+static struct omap_hwmod_class dra7xx_aes_hwmod_class = {
-+	.name	= "aes",
-+	.sysc	= &dra7xx_aes_sysc,
++static struct omap_hwmod_class dra7xx_des_hwmod_class = {
++	.name	= "des",
++	.sysc	= &dra7xx_des_sysc,
 +	.rev	= 2,
 +};
 +
- static struct omap_hwmod_class dra7xx_des_hwmod_class = {
- 	.name	= "des",
- 	.sysc	= &dra7xx_des_sysc,
-@@ -767,6 +784,19 @@ static struct omap_hwmod dra7xx_gpio8_hwmod = {
+ /* gpio dev_attr */
+ static struct omap_gpio_dev_attr gpio_dev_attr = {
+ 	.bank_width	= 32,
+@@ -750,6 +767,19 @@ static struct omap_hwmod dra7xx_gpio8_hwmod = {
  	.dev_attr	= &gpio_dev_attr,
  };
  
-+static struct omap_hwmod dra7xx_aes_hwmod = {
-+	.name		= "aes",
-+	.class		= &dra7xx_aes_hwmod_class,
++static struct omap_hwmod dra7xx_des_hwmod = {
++	.name		= "des",
++	.class		= &dra7xx_des_hwmod_class,
 +	.clkdm_name	= "l4sec_clkdm",
 +	.prcm = {
 +		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4SEC_AES1_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4SEC_AES1_CONTEXT_OFFSET,
++			.clkctrl_offs = DRA7XX_CM_L4SEC_DES3DES_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_L4SEC_DES3DES_CONTEXT_OFFSET,
 +			.modulemode   = MODULEMODE_HWCTRL,
 +		},
 +	},
 +};
 +
- static struct omap_hwmod dra7xx_des_hwmod = {
- 	.name		= "des",
- 	.class		= &dra7xx_des_hwmod_class,
-@@ -2118,6 +2148,14 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
+ /*
+  * 'gpmc' class
+  *
+@@ -2170,6 +2200,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per1__gpio8 = {
  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
  
-+/* l3_main_1 -> aes */
-+static struct omap_hwmod_ocp_if dra7xx_l3_main_1__aes = {
-+	.master		= &dra7xx_l3_main_1_hwmod,
-+	.slave		= &dra7xx_aes_hwmod,
++/* l4_per1 -> des */
++static struct omap_hwmod_ocp_if dra7xx_l4_per1__des = {
++	.master		= &dra7xx_l4_per1_hwmod,
++	.slave		= &dra7xx_des_hwmod,
 +	.clk		= "l3_iclk_div",
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
- static struct omap_hwmod_addr_space dra7xx_elm_addrs[] = {
+ static struct omap_hwmod_addr_space dra7xx_gpmc_addrs[] = {
  	{
- 		.pa_start	= 0x48078000,
-@@ -2694,6 +2732,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l3_main_1__dss,
- 	&dra7xx_l3_main_1__dispc,
- 	&dra7xx_l3_main_1__hdmi,
-+	&dra7xx_l3_main_1__aes,
- 	&dra7xx_l4_per1__elm,
- 	&dra7xx_l4_wkup__gpio1,
- 	&dra7xx_l4_per1__gpio2,
+ 		.pa_start	= 0x50000000,
+@@ -2704,6 +2742,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_per1__uart4,
+ 	&dra7xx_l4_per1__uart5,
+ 	&dra7xx_l4_per1__uart6,
++	&dra7xx_l4_per1__des,
+ 	&dra7xx_l4_per3__usb_otg_ss1,
+ 	&dra7xx_l4_per3__usb_otg_ss2,
+ 	&dra7xx_l4_per3__usb_otg_ss3,
 -- 
 1.7.9.5
