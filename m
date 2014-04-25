@@ -1,135 +1,92 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCHv3 07/14] HSI: Add common DT binding for HSI client devices
-Date: Fri, 25 Apr 2014 20:32:26 +0200
-Message-ID: <20140425183225.GC22721@earth.universe>
+Subject: Re: [PATCHv3 08/14] HSI: Introduce OMAP SSI driver
+Date: Fri, 25 Apr 2014 20:36:05 +0200
+Message-ID: <20140425183604.GD22721@earth.universe>
 References: <1396053110-21639-1-git-send-email-sre@kernel.org>
- <1396053110-21639-8-git-send-email-sre@kernel.org>
- <CAL_JsqLMAj7LewzkOk+tSyaZcS8CXyeozY5zMAY=iTWueuVuVA@mail.gmail.com>
+ <1396053110-21639-9-git-send-email-sre@kernel.org>
+ <20140419193050.GH5148@amd.pavel.ucw.cz>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="H8ygTp4AXg6deix2"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="n/aVsWSeQ4JHkrmm"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.19.201]:59246 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750992AbaDYSgM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Apr 2014 14:36:12 -0400
 Content-Disposition: inline
-In-Reply-To: <CAL_JsqLMAj7LewzkOk+tSyaZcS8CXyeozY5zMAY=iTWueuVuVA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+In-Reply-To: <20140419193050.GH5148@amd.pavel.ucw.cz>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Carlos Chinea <carlos.chinea@nokia.com>
 
 
---H8ygTp4AXg6deix2
+--n/aVsWSeQ4JHkrmm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Apr 21, 2014 at 11:52:11AM -0500, Rob Herring wrote:
-> On Fri, Mar 28, 2014 at 7:31 PM, Sebastian Reichel <sre@kernel.org> wrote:
-> > Implement and document generic DT bindings for HSI clients.
-> >
+On Sat, Apr 19, 2014 at 09:30:51PM +0200, Pavel Machek wrote:
+> > Add OMAP SSI driver to the HSI subsystem.
+> >=20
+> > The Synchronous Serial Interface (SSI) is a legacy version
+> > of HSI. As in the case of HSI, it is mainly used to connect
+> > Application engines (APE) with cellular modem engines (CMT)
+> > in cellular handsets.
+> >=20
+> > It provides a multichannel, full-duplex, multi-core communication
+> > with no reference clock. The OMAP SSI block is capable of reaching
+> > speeds of 110 Mbit/s.
+> >=20
+> > Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
 > > Signed-off-by: Sebastian Reichel <sre@kernel.org>
 >=20
-> Seems pretty reasonable although I know little about HSI.
-
-ok.
-
-> > ---
-> >  .../devicetree/bindings/hsi/client-devices.txt     |  44 +++++
-> >  drivers/hsi/hsi.c                                  | 197 +++++++++++++=
-+++++++-
-> >  include/linux/hsi/hsi.h                            |   2 +
-> >  3 files changed, 241 insertions(+), 2 deletions(-)
-> >  create mode 100644 Documentation/devicetree/bindings/hsi/client-device=
-s.txt
-> >
-> > diff --git a/Documentation/devicetree/bindings/hsi/client-devices.txt b=
-/Documentation/devicetree/bindings/hsi/client-devices.txt
-> > new file mode 100644
-> > index 0000000..7504cb1
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/hsi/client-devices.txt
-> > @@ -0,0 +1,44 @@
-> > +Each HSI port is supposed to have one child node, which
-> > +symbols the remote device connected to the HSI port. The
-> > +following properties are standardized for HSI clients:
-> > +
-> > +Required HSI configuration properties:
-> > +
-> > +- reg:                 A list of channel ids
-> > +
-> > +- hsi-rx-mode:         Receiver Bit transmission mode ("stream" or "fr=
-ame")
-> > +- hsi-tx-mode:         Transmitter Bit transmission mode ("stream" or =
-"frame")
-> > +- hsi-mode:            May be used instead hsi-rx-mode and hsi-tx-mode=
- if
-> > +                       the transmission mode is the same for receiver =
-and
-> > +                       transmitter
-> > +- hsi-speed-kbps:      Max bit transmission speed in kbit/s
-> > +- hsi-flow:            RX flow type ("synchronized" or "pipeline")
-> > +- hsi-arb-mode:                Arbitration mode for TX frame ("round-r=
-obin", "priority")
-> > +
-> > +Optional HSI configuration properties:
-> > +
-> > +- reg-names:           A list with one name per channel specified in t=
-he
-> > +                       reg property
-> > +
-> > +
-> > +Device Tree node example for an HSI client:
-> > +
-> > +hsi-controller {
-> > +       hsi-port {
-> > +               modem: hsi-client {
-> > +                       compatible =3D "nokia,n900-modem";
+> > +	bool			wktest:1; /* FIXME: HACK to be removed */
+> > +	bool			wkin_cken:1; /* Workaround */
 >=20
-> Is there only 1 version of HSI? If not, then perhaps you need to
-> know what version a client is.
+> There is more thanone FIXME in the code. It may be better to fix after
+> merge...
 
-There is HSI (High-speed Synchronous Serial Interface) and a legacy
-variant from Texas Instruments called SSI (Synchronous Serial Interface).
-The main difference is the speed and I don't think the difference
-must be encoded in the Device Tree.
+I would prefer to keep them in there and have a look after the
+merge. Most FIXMEs in the code are for the wakeline test and some
+concern the timings. Since the current code works I would prefer
+to add it to the mainline kernel and tackle this afterwards.
 
-> > +                       reg =3D <0>, <1>, <2>, <3>;
+> > +DEFINE_SIMPLE_ATTRIBUTE(ssi_sst_div_fops, ssi_div_get, ssi_div_set, "%=
+llu\n");
+> > +
+> > +static int __init ssi_debug_add_port(struct omap_ssi_port *omap_port,
+> > +							struct dentry *dir)
+> > +{
 >=20
-> Where do these numbers get defined?
+> A little strange indentation. Is it intentional?
+>
+> [...] (more ugly indentation cases)
 
-HSI provides multiple serial connections and this describes which
-channels are used for the remote device.
-
->Are they always 0-N?
-
-=46rom what I understand they don't have to.
-
-> I don't see much advantage to using reg. Perhaps something like
-> hsi-channel-ids would be better.
-
-I will change it to hsi-channel-ids for PATCHv4.
+Fixed in v4.
 
 -- Sebastian
 
---H8ygTp4AXg6deix2
+--n/aVsWSeQ4JHkrmm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJTWqo5AAoJENju1/PIO/qaZHwP/1FdBz12XC3wBiGql1IVSQ3E
-xYx5oG9fjbCIPcRYGCSFu882mCu+/XpTUzr0bhAfv6//HXjr/+iGDIUi0/E7hzOz
-XArRGxZy6fpqmon1g2ETFU9jNt+Dtni3hTXSruusZ4YtR4/KzFz8yXGKNaWSwE+P
-HqpUb96popHLHpgPtg0AsZCweUBlEJrJOvjOdelyfUDa3vqp16NwPhhFOlJ4gW2Z
-8Wc8BCg+5o5msSi4lLGiFzz4ej2mg3VFEyGfNm116cD5kUYdO4+9uOrYW/Ef6DMW
-TJNLwpchfIJRFm/Af0c0daWfC+2WF1JByBNXg41ojfyNCcS7C77st07e79QKkfuK
-OiJX38SWf7d4tAiOMni7kAkKazxmkprJsvUms+JVk2bLIBTHPUBy+7K/qBY6EgMR
-Ox5s0OOkS2TO4gf1NTZAvcfO4DIKxZJ6tyIfUg/TF161DTFbQWy/ZEESNX1ILvGL
-1d2jMu+jH9tM+7ST8ckflaaGHwV2eIN2wkYYgP5vdNXf/DA+Aw7xCaVGHF/pWC4F
-EIZRJRh/6aowRVuV1UtFUa2LC2xbnXyyIep44DruL4Clke7a8L6A2+HZP2jgB3nW
-kien8fRUPhY7GxFkWB2skOrfY+UWomO00kI4nRpocTA67HNbFJfJvuVpvHuUY38g
-oLspYNQrIKW408VoMZ3S
-=hzcH
+iQIcBAEBCgAGBQJTWqsUAAoJENju1/PIO/qafbEQAIWovOVXSwiNOeKwa6F9qtU3
+xkLB2zQePMGabDicRZjL3r19c0mCFDmDfcpsyK3NZ9ig9kXdk+daV/W6SAh1Ve9A
+LcTahmgl1RSQoud7Rcb/y1RJMtWlu+rDtXiEJ77GC69/rTxHNAHsB8++iCH7+xhD
+wzDokHQeV0JSiYQ6x0P5sYVaZJHatGd6kNpie6Fw4lVfv/0Y6kw2NIw81pNq04UD
+E3c3P8WnWDVB72odTxaiwRDsN7fquZODKMnbnWXPneG9UsZpngOQa4qvzEViu4Hj
+vDbyUpHLXfMG0q19HoSPqEm0yKA2eu6JFj2Nd0facgmOJunai7YNYtdi0E/xzu5d
+h+Gz4z9C5B2JAy1n4PLltAsK+qIn1AO9BOLJnf+eotCltrK1FcXMsOCI9uwD/6Hg
+TucfPRTiqsjSddaMPbmBRkHnkjUwG0y4gQwhgEgaJFOQj+bLx1GOiA2o8zMV2QXT
+9h0edib86J8ypgvuLEXhFCRfKezoC+tBtzG5k5N7NKgPeYAASA1MUlBTCFKhcSFi
+DJia4Dgww8BT+klgCzPLRsBf1sLSoM8wMs6t0PqJm7EUmeN2Nw+b/yjP+V9FztsI
+n+rmw5OZvd5iNCASZr41+XdquzZq0VfJxYJObQNBA5rHn6tAAstCkNfadIKcLGTs
+2YFUMtaWzh4im2mthVpt
+=gbdb
 -----END PGP SIGNATURE-----
 
---H8ygTp4AXg6deix2--
+--n/aVsWSeQ4JHkrmm--
