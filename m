@@ -1,82 +1,50 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] power: twl4030_charger: clear IRQs after handling them
-Date: Fri, 25 Apr 2014 16:00:36 -0500
-Message-ID: <20140425210036.GO29632@saruman.home>
-References: <1397661299-31342-1-git-send-email-balbi@ti.com>
- <20140416163526.GA3049@atomide.com>
- <535ACC62.102@ti.com>
-Reply-To: <balbi@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: [PATCH 07/10] ARM: dts: DRA7: Add DT node for DES IP
+Date: Fri, 25 Apr 2014 18:02:45 -0500
+Message-ID: <1398466968-29506-8-git-send-email-joelf@ti.com>
+References: <1398466968-29506-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sd7l8P2TFUHagl4l"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <535ACC62.102@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, dbaryshkov@gmail.com, dwmw2@infradead.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40142 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751722AbaDYXDU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Apr 2014 19:03:20 -0400
+In-Reply-To: <1398466968-29506-1-git-send-email-joelf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Joel Fernandes <joelf@ti.com>
 
---sd7l8P2TFUHagl4l
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+DRA7xx SoCs have a DES3DES IP. Add DT data for the same.
 
-On Fri, Apr 25, 2014 at 03:58:10PM -0500, Nishanth Menon wrote:
-> On 04/16/2014 11:35 AM, Tony Lindgren wrote:
-> > * Felipe Balbi <balbi@ti.com> [140416 08:18]:
-> >> TRM says we *must* write 1 to each bit we're handling
-> >> in order to clear the IRQ status and bring IRQ line
-> >> low. This patch implements that.
-> >>
-> >> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> >> ---
-> >>
-> >> Russell, I don't have HW to test, but this should
-> >> solve the problem you saw when not using battery
-> >> with Zoom board. Let me know if it doesn't.
-> >=20
-> > BTW, looks like we're enabling BCI automatically in twl4030.dtsi
-> > while the legacy booting does not have TWL_COMMON_PDATA_BCI
-> > enabled for LDP. Anyways, for LDP BCI should be enabled for
-> > sure, that's the only way to power at least the earlier LDP
-> > revisions.
-> >=20
-> I picked up https://patchwork.kernel.org/patch/4002371/ for testing.
->=20
-> Unfortunately, it does not seem to work in my tests:
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
+ arch/arm/boot/dts/dra7.dtsi |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-alright, I'll have a look after I get this other issue out of the way.
-Probably not until next week.
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 1c0f8e1..0533b89 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -789,6 +789,17 @@
+ 			dma-names = "tx0", "rx0";
+ 			status = "disabled";
+ 		};
++
++		des: des@480a5000 {
++			compatible = "ti,omap4-des";
++			ti,hwmods = "des";
++			reg = <0x480a5000 0xa0>;
++			interrupts = <GIC_SPI 82 IRQ_TYPE_LEVEL_HIGH>;
++			dmas = <&sdma 117>, <&sdma 116>;
++			dma-names = "tx", "rx";
++			clocks = <&l3_iclk_div>;
++			clock-names = "fck";
++		};
+ 	};
+ };
+ 
+-- 
+1.7.9.5
 
-> This patch should probably also acknowledge that Russell reported this
-> issue.
-
-sure I can add that, although it doesn't solve anything as it is ...
-
---=20
-balbi
-
---sd7l8P2TFUHagl4l
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTWsz0AAoJEIaOsuA1yqRE99YQAJxRRZwPXpOVgZTQIzwUNKh0
-o866g/MT5rqOQJAPDMY6fp4MvQzPJPLaSfHqRAbVuR+9VF8ydIhdpGh/T9zj5pUI
-QktZqLxWeFklzyCuDb/FZSIfpkEYlR9K93E/hmZ7lJcZEYTkjxsjvq83HSVpatQH
-EEvrnde4Kgf2L2u4YhrH5B4DQxxoGAW58VLJ9U4JUw2qIOgUscwVQ+GxrsUPFovK
-fS88a21GorjFGk21DOOiTPgEovYjoW4NkvflAktiB5/tF6otUoJchylTLSVhFxSf
-G7MvQjS5FfKsOn8E6+bYzb/jX1bslWYHHnJ/LBhTWM7UVOUDiAf7dqJ/1Yk+feOC
-k3zNA7flQbVFw1kszSgy+WFo6qxQ3KUeF46zJuE+TyJfGVpvSxVNs0UM8zF1T4ND
-wwOMMaET+u0yHBdh0I4sNKTnUef1ve0sbj8D/auiRXcRBVS0pCa0RnoPWjYOEWJu
-qdMwAJreWjbRH/9rk7vRVEc7nVdSU7mOnjJzFLwYbZWRbCQQF6RdlFe84aAX13WM
-k0K6XC8gY04smUodl6r/Penamv/243jWfEMjsaSahvMxOs2+7UB0lmmCk+41gtAW
-9uV3e9cs5QQoNEDn4cy7EM1tpjLU7ZRzblMsBAu87URRWfmmW3vac/XXLH773Z2m
-KZlUOEWqONecQSinFteJ
-=3Yyl
------END PGP SIGNATURE-----
-
---sd7l8P2TFUHagl4l--
