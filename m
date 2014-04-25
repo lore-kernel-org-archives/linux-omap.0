@@ -1,105 +1,112 @@
-From: Richard Genoud <richard.genoud@gmail.com>
-Subject: Re: [PATCH v6 1/3] tty/serial: Add GPIOLIB helpers for controlling
- modem lines
-Date: Fri, 25 Apr 2014 16:56:31 +0200
-Message-ID: <CACQ1gAiDw3XcspRwSEEX9e9rH=qFMvyW2ic+SmugMDi8kNKEaQ@mail.gmail.com>
-References: <1394469951-21192-1-git-send-email-richard.genoud@gmail.com>
- <1394469951-21192-2-git-send-email-richard.genoud@gmail.com> <535669DB.8010109@visionsystems.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 06/23] ARM: OMAP: add OMAP5 DSI muxing
+Date: Fri, 25 Apr 2014 08:31:50 -0700
+Message-ID: <20140425153150.GA20807@atomide.com>
+References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
+ <1398334639-14172-7-git-send-email-tomi.valkeinen@ti.com>
+ <535A42D6.5090107@ti.com>
+ <535A4470.2000509@ti.com>
+ <535A5C0A.7040808@ti.com>
+ <535A6C40.10609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <535669DB.8010109@visionsystems.de>
-Sender: linux-serial-owner@vger.kernel.org
-To: yegor_sub1@visionsystems.de
-Cc: Richard Genoud <noreply.rgenoud@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexander Shiyan <shc_work@mail.ru>, Linus Walleij <linus.walleij@linaro.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, mpfj-list@newflow.co.uk, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36637 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752332AbaDYPb4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2014 11:31:56 -0400
+Content-Disposition: inline
+In-Reply-To: <535A6C40.10609@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-2014-04-22 15:08 GMT+02:00 Yegor Yefremov <yegor_sub1@visionsystems.de>:
-> On 10.03.2014 17:45, Richard Genoud wrote:
->> This patch add some helpers to control modem lines (CTS/RTS/DSR...) via
->> GPIO.
->> This will be useful for many boards which have a serial controller that
->> only handle CTS/RTS pins (or even just RX/TX).
->>
->> Signed-off-by: Richard Genoud <richard.genoud@gmail.com>
->
-> ....
->
->> +
->> +struct mctrl_gpios {
->> +     struct gpio_desc *gpio[UART_GPIO_MAX];
->> +};
->> +
->> +static const struct {
->> +     const char *name;
->> +     unsigned int mctrl;
->> +     bool dir_out;
->> +} mctrl_gpios_desc[UART_GPIO_MAX] = {
->> +     { "cts", TIOCM_CTS, false, },
->> +     { "dsr", TIOCM_DSR, false, },
->> +     { "dcd", TIOCM_CD, false, },
->> +     { "rng", TIOCM_RNG, false, },
->> +     { "rts", TIOCM_RTS, true, },
->> +     { "dtr", TIOCM_DTR, true, },
->> +     { "out1", TIOCM_OUT1, true, },
->> +     { "out2", TIOCM_OUT2, true, },
->> +};
->> +
->> +void mctrl_gpio_set(struct mctrl_gpios *gpios, unsigned int mctrl)
->> +{
->> +     enum mctrl_gpio_idx i;
->> +
->> +     if (IS_ERR_OR_NULL(gpios))
->> +             return;
->> +
->> +     for (i = 0; i < UART_GPIO_MAX; i++)
->> +             if (!IS_ERR_OR_NULL(gpios->gpio[i]) &&
->> +                 mctrl_gpios_desc[i].dir_out)
->> +                     gpiod_set_value(gpios->gpio[i],
->> +                                     !!(mctrl & mctrl_gpios_desc[i].mctrl));
->> +}
->> +EXPORT_SYMBOL_GPL(mctrl_gpio_set);
->> +
->> +struct gpio_desc *mctrl_gpio_to_gpiod(struct mctrl_gpios *gpios,
->> +                                   enum mctrl_gpio_idx gidx)
->> +{
->> +     if (!IS_ERR_OR_NULL(gpios) && !IS_ERR_OR_NULL(gpios->gpio[gidx]))
->> +             return gpios->gpio[gidx];
->> +     else
->> +             return NULL;
->> +}
->> +EXPORT_SYMBOL_GPL(mctrl_gpio_to_gpiod);
->> +
->> +unsigned int mctrl_gpio_get(struct mctrl_gpios *gpios, unsigned int *mctrl)
->> +{
->> +     enum mctrl_gpio_idx i;
->> +
->> +     /*
->> +      * return it unchanged if the structure is not allocated
->> +      */
->> +     if (IS_ERR_OR_NULL(gpios))
->> +             return *mctrl;
->> +
->> +     for (i = 0; i < UART_GPIO_MAX; i++) {
->> +             if (!IS_ERR_OR_NULL(gpios->gpio[i]) &&
->> +                 !mctrl_gpios_desc[i].dir_out) {
->> +                     if (gpiod_get_value(gpios->gpio[i]))
->> +                             *mctrl |= mctrl_gpios_desc[i].mctrl;
->> +                     else
->> +                             *mctrl &= ~mctrl_gpios_desc[i].mctrl;
->> +             }
->> +     }
->> +
->> +     return *mctrl;
->> +}
->> +EXPORT_SYMBOL_GPL(mctrl_gpio_get);
->
-> Should this routine be renamed to msr_gpio_get() or perhaps better to give all values (inputs and outputs)?
->
-> I'm trying to port this approach to omap-serial to implement RS485 switching. I need to know if RTS is already on or not and set it accordingly.
->
-> What would be the best solution for this task using this new API?
-Sorry, but I don't really get what you're trying to do.
-Could you explain a little bit more ?
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140425 07:08]:
+> On 25/04/14 15:58, Archit Taneja wrote:
+> > On Friday 25 April 2014 04:48 PM, Tomi Valkeinen wrote:
+> >> On 25/04/14 14:11, Archit Taneja wrote:
+> >>> Hi,
+> >>>
+> >>> On Thursday 24 April 2014 03:47 PM, Tomi Valkeinen wrote:
+> >>>> Add support to set OMAP5 DSI pin muxing.
+> >>>>
+> >>>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> >>>> Cc: Tony Lindgren <tony@atomide.com>
+> >>>> ---
+> >>>>    arch/arm/mach-omap2/display.c | 35
+> >>>> ++++++++++++++++++++++++++++++++++-
+> >>>>    1 file changed, 34 insertions(+), 1 deletion(-)
+> >>>>
+> >>>> diff --git a/arch/arm/mach-omap2/display.c
+> >>>> b/arch/arm/mach-omap2/display.c
+> >>>> index 16d33d831287..974461441fc3 100644
+> >>>> --- a/arch/arm/mach-omap2/display.c
+> >>>> +++ b/arch/arm/mach-omap2/display.c
+> >>>> @@ -137,11 +137,42 @@ static int omap4_dsi_mux_pads(int dsi_id,
+> >>>> unsigned lanes)
+> >>>>        return 0;
+> >>>>    }
+> >>>>
+> >>>> +#define CONTROL_PAD_BASE    0x4A002800
+> >>>> +#define CONTROL_DSIPHY        0x614
+> >>>> +
+> >>>
+> >>> I guess this is something we can move to our driver, and use sysconf to
+> >>> get the register from DT.
+> >>
+> >> I just copied the same method as used for OMAP4.
+> >>
+> >> I guess sysconf is an option. But I really dislike the idea of moving
+> >> omap control module code to a display driver... I'm not sure what other
+> >> options we have, though. Maybe an OMAP DSI specific pinctrl driver?
+> > 
+> > OMAP4 has CONTROL_DSIPHY for configuring both lane enable/disbale, and
+> > pull up/down, but OMAP5 has normal PAD_CONF registers for DSI lines(2
+> > pins per register) for configuring pull up/down, and CONTROL_DSIPHY for
+> > lane enable/disable.
+> > 
+> > We would have a very messed up pinctrl driver, but it would probably be
+> > better than doing all this stuff in the driver.
+> 
+> Actually, this patch is not good. I should've looked at the code more
+> carefully =).
+> 
+> This one does ioremap every time the function is called, which could be
+> done multiple times.
+> 
+> And I think omap4_ctrl_pad_readl() can be used to access the registers.
+> Like this (not tested):
+> 
+> #define OMAP5_CONTROL_DSIPHY		0x614
+> 
+> static int omap5_dsi_mux_pads(int dsi_id, unsigned lanes)
+> {
+> 	u32 enable_mask, enable_shift, reg;
+> 
+> 	if (dsi_id == 0) {
+> 		enable_mask = OMAP4_DSI1_LANEENABLE_MASK;
+> 		enable_shift = OMAP4_DSI1_LANEENABLE_SHIFT;
+> 	} else if (dsi_id == 1) {
+> 		enable_mask = OMAP4_DSI2_LANEENABLE_MASK;
+> 		enable_shift = OMAP4_DSI2_LANEENABLE_SHIFT;
+> 	} else {
+> 		return -ENODEV;
+> 	}
+> 
+> 	reg = omap4_ctrl_pad_readl(OMAP5_CONTROL_DSIPHY);
+> 	reg &= ~enable_mask;
+> 	reg |= (lanes << enable_shift) & enable_mask;
+> 	omap4_ctrl_pad_writel(reg, OMAP5_CONTROL_DSIPHY);
+> 
+> 	return 0;
+> }
 
-Richard.
+Chances are any mux register in the syscon area already works with
+pinctrl-single,pins or pinctrl-single,bits option. The ones in the
+padconf area should be already mapped so the driver just has to
+request them.
+
+Regards,
+
+Tony
