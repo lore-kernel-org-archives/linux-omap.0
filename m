@@ -1,92 +1,114 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCHv3 08/14] HSI: Introduce OMAP SSI driver
-Date: Fri, 25 Apr 2014 20:36:05 +0200
-Message-ID: <20140425183604.GD22721@earth.universe>
-References: <1396053110-21639-1-git-send-email-sre@kernel.org>
- <1396053110-21639-9-git-send-email-sre@kernel.org>
- <20140419193050.GH5148@amd.pavel.ucw.cz>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: Re: [PATCH v6 1/3] tty/serial: Add GPIOLIB helpers for controlling
+ modem lines
+Date: Fri, 25 Apr 2014 20:37:10 +0200
+Message-ID: <CAGm1_kvd7G0HthX1dRqRK52nDSPfDqHwAZ2EDn+CUbSpzJv-Mw@mail.gmail.com>
+References: <1394469951-21192-1-git-send-email-richard.genoud@gmail.com>
+ <1394469951-21192-2-git-send-email-richard.genoud@gmail.com>
+ <535669DB.8010109@visionsystems.de> <CACQ1gAiDw3XcspRwSEEX9e9rH=qFMvyW2ic+SmugMDi8kNKEaQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="n/aVsWSeQ4JHkrmm"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:59246 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750992AbaDYSgM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Apr 2014 14:36:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20140419193050.GH5148@amd.pavel.ucw.cz>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <CACQ1gAiDw3XcspRwSEEX9e9rH=qFMvyW2ic+SmugMDi8kNKEaQ@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Richard Genoud <richard.genoud@gmail.com>
+Cc: Yegor Yefremov <yegor_sub1@visionsystems.de>, Richard Genoud <noreply.rgenoud@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexander Shiyan <shc_work@mail.ru>, Linus Walleij <linus.walleij@linaro.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, mpfj-list@newflow.co.uk, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Carlos Chinea <carlos.chinea@nokia.com>
+
+On Fri, Apr 25, 2014 at 4:56 PM, Richard Genoud
+<richard.genoud@gmail.com> wrote:
+> 2014-04-22 15:08 GMT+02:00 Yegor Yefremov <yegor_sub1@visionsystems.de>:
+>> On 10.03.2014 17:45, Richard Genoud wrote:
+>>> This patch add some helpers to control modem lines (CTS/RTS/DSR...) via
+>>> GPIO.
+>>> This will be useful for many boards which have a serial controller that
+>>> only handle CTS/RTS pins (or even just RX/TX).
+>>>
+>>> Signed-off-by: Richard Genoud <richard.genoud@gmail.com>
+>>
+>> ....
+>>
+>>> +
+>>> +struct mctrl_gpios {
+>>> +     struct gpio_desc *gpio[UART_GPIO_MAX];
+>>> +};
+>>> +
+>>> +static const struct {
+>>> +     const char *name;
+>>> +     unsigned int mctrl;
+>>> +     bool dir_out;
+>>> +} mctrl_gpios_desc[UART_GPIO_MAX] = {
+>>> +     { "cts", TIOCM_CTS, false, },
+>>> +     { "dsr", TIOCM_DSR, false, },
+>>> +     { "dcd", TIOCM_CD, false, },
+>>> +     { "rng", TIOCM_RNG, false, },
+>>> +     { "rts", TIOCM_RTS, true, },
+>>> +     { "dtr", TIOCM_DTR, true, },
+>>> +     { "out1", TIOCM_OUT1, true, },
+>>> +     { "out2", TIOCM_OUT2, true, },
+>>> +};
+>>> +
+>>> +void mctrl_gpio_set(struct mctrl_gpios *gpios, unsigned int mctrl)
+>>> +{
+>>> +     enum mctrl_gpio_idx i;
+>>> +
+>>> +     if (IS_ERR_OR_NULL(gpios))
+>>> +             return;
+>>> +
+>>> +     for (i = 0; i < UART_GPIO_MAX; i++)
+>>> +             if (!IS_ERR_OR_NULL(gpios->gpio[i]) &&
+>>> +                 mctrl_gpios_desc[i].dir_out)
+>>> +                     gpiod_set_value(gpios->gpio[i],
+>>> +                                     !!(mctrl & mctrl_gpios_desc[i].mctrl));
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(mctrl_gpio_set);
+>>> +
+>>> +struct gpio_desc *mctrl_gpio_to_gpiod(struct mctrl_gpios *gpios,
+>>> +                                   enum mctrl_gpio_idx gidx)
+>>> +{
+>>> +     if (!IS_ERR_OR_NULL(gpios) && !IS_ERR_OR_NULL(gpios->gpio[gidx]))
+>>> +             return gpios->gpio[gidx];
+>>> +     else
+>>> +             return NULL;
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(mctrl_gpio_to_gpiod);
+>>> +
+>>> +unsigned int mctrl_gpio_get(struct mctrl_gpios *gpios, unsigned int *mctrl)
+>>> +{
+>>> +     enum mctrl_gpio_idx i;
+>>> +
+>>> +     /*
+>>> +      * return it unchanged if the structure is not allocated
+>>> +      */
+>>> +     if (IS_ERR_OR_NULL(gpios))
+>>> +             return *mctrl;
+>>> +
+>>> +     for (i = 0; i < UART_GPIO_MAX; i++) {
+>>> +             if (!IS_ERR_OR_NULL(gpios->gpio[i]) &&
+>>> +                 !mctrl_gpios_desc[i].dir_out) {
+>>> +                     if (gpiod_get_value(gpios->gpio[i]))
+>>> +                             *mctrl |= mctrl_gpios_desc[i].mctrl;
+>>> +                     else
+>>> +                             *mctrl &= ~mctrl_gpios_desc[i].mctrl;
+>>> +             }
+>>> +     }
+>>> +
+>>> +     return *mctrl;
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(mctrl_gpio_get);
+>>
+>> Should this routine be renamed to msr_gpio_get() or perhaps better to give all values (inputs and outputs)?
+>>
+>> I'm trying to port this approach to omap-serial to implement RS485 switching. I need to know if RTS is already on or not and set it accordingly.
+>>
+>> What would be the best solution for this task using this new API?
+> Sorry, but I don't really get what you're trying to do.
+> Could you explain a little bit more ?
+
+Never mind, I've solved this in this patch:
+http://www.spinics.net/lists/arm-kernel/msg325197.html via using
+
+gpiod_set_value() and gpiod_get_value() directly.
 
 
---n/aVsWSeQ4JHkrmm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, Apr 19, 2014 at 09:30:51PM +0200, Pavel Machek wrote:
-> > Add OMAP SSI driver to the HSI subsystem.
-> >=20
-> > The Synchronous Serial Interface (SSI) is a legacy version
-> > of HSI. As in the case of HSI, it is mainly used to connect
-> > Application engines (APE) with cellular modem engines (CMT)
-> > in cellular handsets.
-> >=20
-> > It provides a multichannel, full-duplex, multi-core communication
-> > with no reference clock. The OMAP SSI block is capable of reaching
-> > speeds of 110 Mbit/s.
-> >=20
-> > Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
-> > Signed-off-by: Sebastian Reichel <sre@kernel.org>
->=20
-> > +	bool			wktest:1; /* FIXME: HACK to be removed */
-> > +	bool			wkin_cken:1; /* Workaround */
->=20
-> There is more thanone FIXME in the code. It may be better to fix after
-> merge...
-
-I would prefer to keep them in there and have a look after the
-merge. Most FIXMEs in the code are for the wakeline test and some
-concern the timings. Since the current code works I would prefer
-to add it to the mainline kernel and tackle this afterwards.
-
-> > +DEFINE_SIMPLE_ATTRIBUTE(ssi_sst_div_fops, ssi_div_get, ssi_div_set, "%=
-llu\n");
-> > +
-> > +static int __init ssi_debug_add_port(struct omap_ssi_port *omap_port,
-> > +							struct dentry *dir)
-> > +{
->=20
-> A little strange indentation. Is it intentional?
->
-> [...] (more ugly indentation cases)
-
-Fixed in v4.
-
--- Sebastian
-
---n/aVsWSeQ4JHkrmm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTWqsUAAoJENju1/PIO/qafbEQAIWovOVXSwiNOeKwa6F9qtU3
-xkLB2zQePMGabDicRZjL3r19c0mCFDmDfcpsyK3NZ9ig9kXdk+daV/W6SAh1Ve9A
-LcTahmgl1RSQoud7Rcb/y1RJMtWlu+rDtXiEJ77GC69/rTxHNAHsB8++iCH7+xhD
-wzDokHQeV0JSiYQ6x0P5sYVaZJHatGd6kNpie6Fw4lVfv/0Y6kw2NIw81pNq04UD
-E3c3P8WnWDVB72odTxaiwRDsN7fquZODKMnbnWXPneG9UsZpngOQa4qvzEViu4Hj
-vDbyUpHLXfMG0q19HoSPqEm0yKA2eu6JFj2Nd0facgmOJunai7YNYtdi0E/xzu5d
-h+Gz4z9C5B2JAy1n4PLltAsK+qIn1AO9BOLJnf+eotCltrK1FcXMsOCI9uwD/6Hg
-TucfPRTiqsjSddaMPbmBRkHnkjUwG0y4gQwhgEgaJFOQj+bLx1GOiA2o8zMV2QXT
-9h0edib86J8ypgvuLEXhFCRfKezoC+tBtzG5k5N7NKgPeYAASA1MUlBTCFKhcSFi
-DJia4Dgww8BT+klgCzPLRsBf1sLSoM8wMs6t0PqJm7EUmeN2Nw+b/yjP+V9FztsI
-n+rmw5OZvd5iNCASZr41+XdquzZq0VfJxYJObQNBA5rHn6tAAstCkNfadIKcLGTs
-2YFUMtaWzh4im2mthVpt
-=gbdb
------END PGP SIGNATURE-----
-
---n/aVsWSeQ4JHkrmm--
+Yegor
