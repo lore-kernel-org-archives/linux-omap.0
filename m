@@ -1,50 +1,84 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 00/10] ARM: OMAP: dts and HWMOD entries for crypto modules
-Date: Fri, 25 Apr 2014 18:02:38 -0500
-Message-ID: <1398466968-29506-1-git-send-email-joelf@ti.com>
+Subject: [PATCH 01/10] ARM: OMAP: hwmod: Add SYSC offsets for AES IP
+Date: Fri, 25 Apr 2014 18:02:39 -0500
+Message-ID: <1398466968-29506-2-git-send-email-joelf@ti.com>
+References: <1398466968-29506-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1398466968-29506-1-git-send-email-joelf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Cc: Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony, Benoit,
+The AES IP has the SIDLE offset by 2 and not 3, to allow SIDLE modes
+to work for AES, we add a new SYSC type to HWMOD code.
 
-Here are some dts/hwmod  patches for crypto on OMAP4 and DRA7, couple of them
-are resends and some are sent for first time now that clock nodes are available
-in dts.
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.h             |   11 +++++++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.c |   10 ++++++++++
+ 2 files changed, 21 insertions(+)
 
-If there's no other feedback, I would like these queued for v3.16. Thanks.
-
-Patches 1,2 and 3 are dts, the rest are hwmod entries. The patches are rebased
-on v3.15-rc2. and can pulled from the Git repo below:
-https://github.com/joelagnel/linux-kernel.git (branch v3.16/prep-dts)
-
-Joel Fernandes (9):
-  ARM: OMAP: hwmod: Add SYSC offsets for AES IP
-  ARM: DRA7xx: hwmod: Add hwmod data for DES IP
-  ARM: DRA7xx: hwmod: Add hwmod data for AES IP
-  ARM: DRA7xx: Add hwmod entries for RNG module
-  ARM: OMAP4: hwmod: Add hwmod data for AES IP
-  ARM: OMAP4: hwmod: add hwmod data for DES IP
-  ARM: dts: DRA7: Add DT node for DES IP
-  ARM: dts: DRA7: Add DT node for AES IP
-  ARM: dts: OMAP4: Add clock nodes for AES/DES nodes
-
-Lokesh Vutla (1):
-  ARM: dts: OMAP4: clk: Add clk node for DES IP
-
- arch/arm/boot/dts/dra7.dtsi                  |   22 +++++
- arch/arm/boot/dts/omap4.dtsi                 |    4 +
- arch/arm/boot/dts/omap44xx-clocks.dtsi       |    8 ++
- arch/arm/mach-omap2/omap_hwmod.h             |   11 +++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |   78 ++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c    |  113 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_common_data.c |   10 +++
- drivers/clk/ti/clk-44xx.c                    |    1 +
- 8 files changed, 247 insertions(+)
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index 0f97d63..b2efcc8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -41,6 +41,7 @@ struct omap_device;
+ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type1;
+ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2;
+ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3;
++extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type4;
+ 
+ /*
+  * OCP SYSCONFIG bit shifts/masks TYPE1. These are for IPs compliant
+@@ -81,6 +82,16 @@ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3;
+ #define SYSC_TYPE3_MIDLEMODE_SHIFT	2
+ #define SYSC_TYPE3_MIDLEMODE_MASK	(0x3 << SYSC_TYPE3_MIDLEMODE_SHIFT)
+ 
++/*
++ * OCP SYSCONFIG bit shifts/masks TYPE4.
++ */
++#define SYSC_TYPE4_SIDLEMODE_SHIFT	2
++#define SYSC_TYPE4_SIDLEMODE_MASK	(0x3 << SYSC_TYPE4_SIDLEMODE_SHIFT)
++#define SYSC_TYPE4_SOFTRESET_SHIFT	1
++#define SYSC_TYPE4_SOFTRESET_MASK	(1 << SYSC_TYPE4_SOFTRESET_SHIFT)
++#define SYSC_TYPE4_AUTOIDLE_SHIFT	0
++#define SYSC_TYPE4_AUTOIDLE_MASK	(1 << SYSC_TYPE4_AUTOIDLE_SHIFT)
++
+ /* OCP SYSSTATUS bit shifts/masks */
+ #define SYSS_RESETDONE_SHIFT		0
+ #define SYSS_RESETDONE_MASK		(1 << SYSS_RESETDONE_SHIFT)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.c b/arch/arm/mach-omap2/omap_hwmod_common_data.c
+index 79d623b..7443dc0 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_common_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_common_data.c
+@@ -59,6 +59,16 @@ struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3 = {
+ 	.sidle_shift	= SYSC_TYPE3_SIDLEMODE_SHIFT,
+ };
+ 
++/**
++ * struct omap_hwmod_sysc_type4 - TYPE4 sysconfig scheme.
++ * Used by some IPs on AM33xx
++ */
++struct omap_hwmod_sysc_fields omap_hwmod_sysc_type4 = {
++	.sidle_shift	= SYSC_TYPE4_SIDLEMODE_SHIFT,
++	.srst_shift	= SYSC_TYPE4_SOFTRESET_SHIFT,
++	.autoidle_shift	= SYSC_TYPE4_AUTOIDLE_SHIFT,
++};
++
+ struct omap_dss_dispc_dev_attr omap2_3_dss_dispc_dev_attr = {
+ 	.manager_count		= 2,
+ 	.has_framedonetv_irq	= 0
 -- 
 1.7.9.5
