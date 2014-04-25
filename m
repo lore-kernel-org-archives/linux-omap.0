@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv4 03/13] HSI: hsi-char: fix driver for multiport scenarios
-Date: Fri, 25 Apr 2014 21:06:06 +0200
-Message-ID: <1398452776-28638-4-git-send-email-sre@kernel.org>
+Subject: [PATCHv4 01/13] Documentation: HSI: Add some general description for the HSI subsystem
+Date: Fri, 25 Apr 2014 21:06:04 +0200
+Message-ID: <1398452776-28638-2-git-send-email-sre@kernel.org>
 References: <1398452776-28638-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1398452776-28638-1-git-send-email-sre@kernel.org>
@@ -10,27 +10,96 @@ To: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, 
 Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, =?UTF-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE=20=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Fix return code check of alloc_chrdev_region, which
-returns 0 on success.
+Add a document, which gives a rough introduction about what HSI
+is and how its handled by the Linux kernel.
 
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 Reviewed-by: Pavel Machek <pavel@ucw.cz>
 ---
- drivers/hsi/clients/hsi_char.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/hsi.txt | 75 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 75 insertions(+)
+ create mode 100644 Documentation/hsi.txt
 
-diff --git a/drivers/hsi/clients/hsi_char.c b/drivers/hsi/clients/hsi_char.c
-index e61e5f9..3073320 100644
---- a/drivers/hsi/clients/hsi_char.c
-+++ b/drivers/hsi/clients/hsi_char.c
-@@ -705,7 +705,7 @@ static int hsc_probe(struct device *dev)
- 	if (!hsc_major) {
- 		ret = alloc_chrdev_region(&hsc_dev, hsc_baseminor,
- 						HSC_DEVS, devname);
--		if (ret > 0)
-+		if (ret == 0)
- 			hsc_major = MAJOR(hsc_dev);
- 	} else {
- 		hsc_dev = MKDEV(hsc_major, hsc_baseminor);
+diff --git a/Documentation/hsi.txt b/Documentation/hsi.txt
+new file mode 100644
+index 0000000..6ac6cd5
+--- /dev/null
++++ b/Documentation/hsi.txt
+@@ -0,0 +1,75 @@
++HSI - High-speed Synchronous Serial Interface
++
++1. Introduction
++~~~~~~~~~~~~~~~
++
++High Speed Syncronous Interface (HSI) is a fullduplex, low latency protocol,
++that is optimized for die-level interconnect between an Application Processor
++and a Baseband chipset. It has been specified by the MIPI alliance in 2003 and
++implemented by multiple vendors since then.
++
++The HSI interface supports full duplex communication over multiple channels
++(typically 8) and is capable of reaching speeds up to 200 Mbit/s.
++
++The serial protocol uses two signals, DATA and FLAG as combined data and clock
++signals and an additional READY signal for flow control. An additional WAKE
++signal can be used to wakeup the chips from standby modes. The signals are
++commonly prefixed by AC for signals going from the application die to the
++cellular die and CA for signals going the other way around.
++
+++------------+                                 +---------------+
++|  Cellular  |                                 |  Application  |
++|    Die     |                                 |      Die      |
++|            | - - - - - - CAWAKE - - - - - - >|               |
++|           T|------------ CADATA ------------>|R              |
++|           X|------------ CAFLAG ------------>|X              |
++|            |<----------- ACREADY ------------|               |
++|            |                                 |               |
++|            |                                 |               |
++|            |< - - - - -  ACWAKE - - - - - - -|               |
++|           R|<----------- ACDATA -------------|T              |
++|           X|<----------- ACFLAG -------------|X              |
++|            |------------ CAREADY ----------->|               |
++|            |                                 |               |
++|            |                                 |               |
+++------------+                                 +---------------+
++
++2. HSI Subsystem in Linux
++~~~~~~~~~~~~~~~~~~~~~~~~~
++
++In the Linux kernel the hsi subsystem is supposed to be used for HSI devices.
++The hsi subsystem contains drivers for hsi controllers including support for
++multi-port controllers and provides a generic API for using the HSI ports.
++
++It also contains HSI client drivers, which make use of the generic API to
++implement a protocol used on the HSI interface. These client drivers can
++use an arbitrary number of channels.
++
++3. hsi-char Device
++~~~~~~~~~~~~~~~~~~
++
++Each port automatically registers a generic client driver called hsi_char,
++which provides a charecter device for userspace representing the HSI port.
++It can be used to communicate via HSI from userspace. Userspace may
++configure the hsi_char device using the following ioctl commands:
++
++* HSC_RESET:
++ - flush the HSI port
++
++* HSC_SET_PM
++ - enable or disable the client.
++
++* HSC_SEND_BREAK
++ - send break
++
++* HSC_SET_RX
++ - set RX configuration
++
++* HSC_GET_RX
++ - get RX configuration
++
++* HSC_SET_TX
++ - set TX configuration
++
++* HSC_GET_TX
++ - get TX configuration
 -- 
 1.9.2
