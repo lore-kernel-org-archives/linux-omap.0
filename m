@@ -1,71 +1,75 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 0/3] Minor OMAP DTS fixes
-Date: Fri, 25 Apr 2014 12:14:48 -0500
-Message-ID: <535A9808.70204@ti.com>
-References: <1398205417-1575-1-git-send-email-s-anna@ti.com> <20140425165739.GF20807@atomide.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCHv3 05/14] HSI: Add channel resource support to HSI clients
+Date: Fri, 25 Apr 2014 19:32:47 +0200
+Message-ID: <20140425173247.GA22721@earth.universe>
+References: <1396053110-21639-1-git-send-email-sre@kernel.org>
+ <1396053110-21639-6-git-send-email-sre@kernel.org>
+ <20140419191126.GE5148@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55547 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751222AbaDYRPN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Apr 2014 13:15:13 -0400
-In-Reply-To: <20140425165739.GF20807@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="6c2NcOVqGQ03X4Wi"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140419191126.GE5148@amd.pavel.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony,
 
-On 04/25/2014 11:57 AM, Tony Lindgren wrote:
-> * Suman Anna <s-anna@ti.com> [140422 15:24]:
->> Hi Tony, Benoit,
->>
->> This series includes couple of minor fixes in the OMAP DTS files. The patches
->> are based on 3.15-rc2.
->>
->> The first patch fixes the only WARN_ON trace present during kernel boot on
->> OMAP5 uEVM, and this has been present since some time now. 
->> [    0.045578] ------------[ cut here ]------------
->> [    0.045598] WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2538 _init+0x1c0/0x3dc()
->> [    0.045605] omap_hwmod: mailbox: doesn't have mpu register target base
->> [    0.045611] Modules linked in:
->> [    0.045625] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.15.0-rc2-00001-gb5e85a0 #45
->> [    0.045653] [<c0015724>] (unwind_backtrace) from [<c00120f4>] (show_stack+0x10/0x14)
->> [    0.045672] [<c00120f4>] (show_stack) from [<c05a1ccc>] (dump_stack+0x78/0x94)
->> [    0.045686] [<c05a1ccc>] (dump_stack) from [<c0042a74>] (warn_slowpath_common+0x6c/0x8c)
->> [    0.045698] [<c0042a74>] (warn_slowpath_common) from [<c0042b28>] (warn_slowpath_fmt+0x30/0x40)
->> [    0.045710] [<c0042b28>] (warn_slowpath_fmt) from [<c0803b40>] (_init+0x1c0/0x3dc)
->> [    0.045724] [<c0803b40>] (_init) from [<c0029c8c>] (omap_hwmod_for_each+0x34/0x5c)
->> [    0.045736] [<c0029c8c>] (omap_hwmod_for_each) from [<c08042b0>] (__omap_hwmod_setup_all+0x24/0x40)
->> [    0.045748] [<c08042b0>] (__omap_hwmod_setup_all) from [<c00088b8>] (do_one_initcall+0x34/0x160)
->> [    0.045761] [<c00088b8>] (do_one_initcall) from [<c07f7bf4>] (kernel_init_freeable+0xfc/0x1c8)
->> [    0.045772] [<c07f7bf4>] (kernel_init_freeable) from [<c059c4f4>] (kernel_init+0x8/0xe4)
->> [    0.045784] [<c059c4f4>] (kernel_init) from [<c000eaa8>] (ret_from_fork+0x14/0x2c)
->> [    0.045826] ---[ end trace c25fc521f2569d3c ]---
->>
->> The last patch eliminates the following traces on AM3517 based boards.
->> [    0.418496] platform iva.2: Cannot lookup hwmod 'iva'
->> [    0.454352] platform 48094000.mailbox: Cannot lookup hwmod 'mailbox'
->> [    0.460610] platform 480bd400.mmu: Cannot lookup hwmod 'mmu_isp'
->> [    0.464065] platform 480c9000.smartreflex: Cannot lookup hwmod 'smartreflex_mpu_iva'
->>
->> There are a few other such traces remaining, but these are all on valid nodes.
->> [    0.420275] platform 480c5000.aes: Cannot lookup hwmod 'aes'
->> [    0.462403] platform 480c3000.sham: Cannot lookup hwmod 'sham'
->> [    0.463246] platform 480cb000.smartreflex: Cannot lookup hwmod 'smartreflex_core'
->> [    0.477243] platform 480ab000.usb_otg_hs: Cannot lookup hwmod 'usb_otg_hs'
-> 
-> Thanks applying all three into omap-for-v3.15/fixes-v2 with patch
-> updated with the above warnings. Next time, please include the
-> warnings into the patch description, just leave out the time
-> stamps.
+--6c2NcOVqGQ03X4Wi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks. I have mentioned the warning for the OMAP5 one very briefly, and
-wasn't sure if I needed to copy the entire backtrace, but will remember
-to include them in the future.
+On Sat, Apr 19, 2014 at 09:11:26PM +0200, Pavel Machek wrote:
+> Hi!
+>=20
+> > Make HSI channel ids platform data, which can be provided
+> > by platform data.
+> >
+>=20
+> >  static void hsi_client_release(struct device *dev)
+> >  {
+> > -	kfree(to_hsi_client(dev));
+> > +	struct hsi_client *cl =3D to_hsi_client(dev);
+> > +
+> > +	if (cl->tx_cfg.channels)
+> > +		kfree(cl->tx_cfg.channels);
+> > +	if (cl->rx_cfg.channels && cl->rx_cfg.channels !=3D cl->tx_cfg.channe=
+ls)
+> > +		kfree(cl->rx_cfg.channels);
+> > +
+> > +	kfree(cl);
+>=20
+> Can cl->rx_cfg.channels =3D=3D cl->tx_cfg.channels happen? That seems
+> like quite a hack :-(.
 
-regards
-Suman
+Yes it could happen. I have updated this for PATCHv4 (so that it can
+no longer happen).
+
+-- Sebastian
+
+--6c2NcOVqGQ03X4Wi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJTWpw/AAoJENju1/PIO/qaxVkP/0CXhPFJ+8E9LhSZubCzLzxu
+4J+2sW1a9WEDlOwdO+8CUtms7sBsAmWqMjc/WbUH8cV7ItiBrIgKaUOIZFWQKHkm
+wJW57BOciOf9+Fm3bj5/+BVesJUPF17uYX2RpJwE/yvRixtLVA6ls3MaHZSNo1E8
+5WrkuyxEPIyti8je5RK9i/g72rAcFUZ+/6VmBr8H8DBqN2WX+C02BXaZeM1vTfAw
+RgaVlOszn/9PVO6LrY0FgLywxny8UECnJl6oEvtDas9EJzJ8bdmdFm6CptIvLtsI
+eoRibCW4uxNvUwJIlcnm/qSI4dVH/qtZZMNY1G4en3mqvE1uwqxycVRVefoBRGBM
+7zI4TbViFPpQOyhBRqzGZxkuu3BvZHB4sD0VnHcxRk1w4S2fxv+x+SvJLt36/PZO
+aIfUSI+e8q0hqNf6HU5a1mUP5bDs7n+ysTRLprotdTbahamdmEsB36cPT0oC9ypt
+gdo10k9pBy8WIEBSonKeeMmRU93KrphNq59rKZ8vjd0ubaHnu3AOvXcANUpYrnIZ
+5GEc37ITlsu1Pk9mnz4HP/1zVR2zMP0lmKshQ7oba+Rx4RydI4y8BKUFwGdM4/1T
+qhZzz9jEiaqHkSqihq7SOVsKy/5paMcRYsxp1CQuFXg2LbI1CwFrq4HJxYWBXomb
+z38L07/gFnggjwYQHgYe
+=Cf+p
+-----END PGP SIGNATURE-----
+
+--6c2NcOVqGQ03X4Wi--
