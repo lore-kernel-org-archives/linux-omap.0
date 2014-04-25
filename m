@@ -1,38 +1,83 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: dts: omap3-igep0020: use SMSC9221 timings
-Date: Fri, 25 Apr 2014 09:30:33 -0700
-Message-ID: <20140425163033.GC20807@atomide.com>
-References: <1398358430-13570-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: Boot fixes
+Date: Fri, 25 Apr 2014 09:41:41 -0700
+Message-ID: <20140425164141.GD20807@atomide.com>
+References: <1398192739-8901-1-git-send-email-d-gerlach@ti.com>
+ <20140422190132.GA12204@atomide.com>
+ <5356C8AE.3090907@ti.com>
+ <20140423145904.GB4833@atomide.com>
+ <5357F78A.5000406@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65435 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38319 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753024AbaDYQai (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2014 12:30:38 -0400
+	with ESMTP id S1751144AbaDYQlt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2014 12:41:49 -0400
 Content-Disposition: inline
-In-Reply-To: <1398358430-13570-1-git-send-email-javier.martinez@collabora.co.uk>
+In-Reply-To: <5357F78A.5000406@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, bcousson@baylibre.com, Sekhar Nori <nsekhar@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
 
-* Javier Martinez Canillas <javier.martinez@collabora.co.uk> [140424 09:54]:
-> The IGEPv2 board has a SMSC LAN9221i ethernet chip and not a
-> SMSC LAN911x connected to the GPMC. Each chip needs different
-> timings in order to operate correctly so is wrong to include
-> omap-gpmc-smsc911x.dtsi instead of omap-gpmc-smsc9221.dtsi.
+* Dave Gerlach <d-gerlach@ti.com> [140423 10:25]:
+> On 04/23/2014 09:59 AM, Tony Lindgren wrote:
+> >* Dave Gerlach <d-gerlach@ti.com> [140422 12:53]:
+> >>On 04/22/2014 02:01 PM, Tony Lindgren wrote:
+> >>>* Dave Gerlach <d-gerlach@ti.com> [140422 11:52]:
+> >>>>This patch, along with patch here [1], fixes boot for am437x-gp-evm. The
+> >>>>bootloader configures gpio5_7 to control the DDR3 termination regulator,
+> >>>>the linked patch prevents that gpio bank from being reset and losing
+> >>>>the previously configured state, and this patch binds the gpio to a
+> >>>>regulator so the kernel is aware of the state of the gpio.
+> >>>>
+> >>>>[1] https://www.mail-archive.com/linux-omap@vger.kernel.org/msg102941.html
+> >>>
+> >>>Setting up the GPIO regulator makes sense to me. But the hack in the
+> >>>link above is potentially a nasty time bomb for anybody trying to
+> >>>use GPIO bank 5 on that board.
+> >>>
+> >>>What tests have been done that the GPIO bank behaves properly when
+> >>>it's not reset?
+> >>
+> >>We've been using this configuration on this board for a while without any
+> >>apparent issues. Also, am335x-evmsk already uses the same idea for the VTT
+> >>regulator on board from commit 6046adb6ad701026c10adeac8d6a4138895f12e5
+> >>[ARM: dts: am335x-evmsk: Do not reset gpio0] and I am unaware of any issues
+> >>with that either.
+> >
+> >OK. Do you have other GPIOs in use as interrupts for devices in these
+> >banks and do they work fine?
 > 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> ---
-> 
-> Hi Tony,
-> 
-> I see no performance difference when measuring network throughput using
-> iperf(1) but this change is the correct one nonetheless since if we later
-> better adjust the timings it will already include the right dtsi.
+> I dont see any interrupts in use from gpio5 bank but as a quick test if I
+> add ti,no-reset-on-init to gpio3 and gpio4 I see no issue with matrix-keypad
+> operation which uses gpios from each of those banks.
 
-Yes, let's fix this as wrong timings can cause memory corruption.
-Applying into omap-for-v3.15/fixes-v2.
+OK thanks for testing. I'll apply the ti,no-reset-on-init patch from [1]
+above into omap-for-v3.15/fixes-v2.
+
+The regulator patch can wait for v3.16, and should be also implemented
+for the am335x-evmsk the same way, so maybe add that too to your patch?
+
+> >Also, can you please test to make sure this works with the most recent
+> >Javier's GPIO patches that had the issue of not booting on am335x-evmsk?
+> >
+> 
+> Yes, when using Javier's patches in addition to this patch [1], which was
+> found to be necessary through this discussion [2], the AM437x GP EVM boots
+> fine with linux-next with my regulator patch and gpio5 no reset patch
+> applied.
+
+OK good to hear.
 
 Tony
+ 
+> [1] https://patchwork.kernel.org/patch/4041881/
+> [2] http://marc.info/?t=139817273800014&r=1&w=2
+> 
+> >Regards,
+> >
+> >Tony
+> >
+> 
