@@ -1,76 +1,32 @@
-From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: Re: [PATCH v2 01/13] Documentation: add extcon devicetree bindings
-Date: Fri, 25 Apr 2014 15:19:59 +0200
-Message-ID: <535A60FF.4000806@samsung.com>
-References: <20140422195117.GG12304@sirena.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Johan Hovold <jhovold@gmail.com>
+Subject: [PATCH] ARM: dts: am335x-boneblack: remove use of ti,vcc-aux-disable-is-sleep
+Date: Fri, 25 Apr 2014 15:36:26 +0200
+Message-ID: <1398432986-30585-1-git-send-email-jhovold@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20140422195117.GG12304@sirena.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, myungjoo.ham@samsung.com, cw00.choi@samsung.com, dbaryshkov@gmail.com, dwmw2@infradead.org, balbi@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, ldewangan@nvidia.com, kishon@ti.com, gg@slimlogic.co.uk, anton@enomsg.org, jonghwa3.lee@samsung.com, rongjun.ying@csr.com, linux@roeck-us.net, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi, m.szyprowski@samsung.com, t.figa@samsung.com, Lee Jones <lee.jones@linaro.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Johan Hovold <jhovold@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/22/2014 09:51 PM, Mark Brown wrote:
-> On Mon, Apr 14, 2014 at 01:46:12PM +0200, Robert Baldyga wrote:
-> 
-> That's quite some CC list you've got there, and the mail seems a bit
-> corrupted too (it confused my MUA).
-> 
->> This patch adds extcon devicetree bindings. Documentation describes in general
->> client and provider bindings, and contains detailed desctiprion of bindings
->> for each extcon provider.
->>
->> Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
->> ---
->>  .../devicetree/bindings/extcon/extcon-adc-jack.txt |   60 +++++++++++++++++++
->>  .../devicetree/bindings/extcon/extcon-arizona.txt  |   47 +++++++++++++++
->>  .../devicetree/bindings/extcon/extcon-bindings.txt |   36 +++++++++++
->>  .../devicetree/bindings/extcon/extcon-gpio.txt     |   63 ++++++++++++++++++++
->>  .../devicetree/bindings/extcon/extcon-max14577.txt |   49 +++++++++++++++
->>  .../devicetree/bindings/extcon/extcon-max77693.txt |   56 +++++++++++++++++
->>  .../devicetree/bindings/extcon/extcon-max8997.txt  |   49 +++++++++++++++
->>  .../devicetree/bindings/extcon/extcon-palmas.txt   |   37 ++++++++++--
-> 
-> This is creating device tree bindings for MFD components as devices when
-> those MFD components aren't well isolated from the rest of the device.
-> If we need to add extcon bindings the device should have the flexibility
-> to decide where to add the properties, and really things should be set
-> up so there's less duplication in the documentation.
+Remove use of property ti,vcc-aux-disable-is-sleep, which does not
+exist.
 
-Those components has their own addresses on i2c bus, so they are,
-technically, separate devices, and they can (should?) be described by
-separate nodes. And I think it doesn't matter if they are grouped in one
-chip.
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+---
+ arch/arm/boot/dts/am335x-boneblack.dts | 1 -
+ 1 file changed, 1 deletion(-)
 
-However, it's easy to change it (give mfd master driver node to extcon),
-and we can have extcon device defined without additional node, and then
-parent node is an extcon node.
-
-Best regards
-Robert Baldyga
-Samsung R&D Institute Poland
-
-> 
->> +The following is the list of cables detected by the controller. Each
->> +cable is assigned an identifier and client nodes use this identifies
->> +to specify the cable which they are interested in.
->> +
->> +  Cable			ID
->> +  ----------------------------
->> +
->> +  Mechanical	0
->> +  Microphone	1
->> +  Headphone		2
->> +  Line-out		3
->> +
->> +Example 1: An example of a extcon controller node is listed below.
->> +
->> +	extcon: arizona-extcon {
-> 
-> The above doesn't entirely reflect what the hardware is capable of doing
-> - it reflects the default software configuration for the device but it's
-> got a wider feature set.
-> 
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 6b71ad95a5cf..305975d3f531 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -26,7 +26,6 @@
+ 	pinctrl-0 = <&emmc_pins>;
+ 	bus-width = <8>;
+ 	status = "okay";
+-	ti,vcc-aux-disable-is-sleep;
+ };
+ 
+ &am33xx_pinmux {
+-- 
+1.8.3.2
