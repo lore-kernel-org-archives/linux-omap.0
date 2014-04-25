@@ -1,61 +1,174 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH V2 00/19] bus: omap_l3_noc: driver cleanups and support
- for DRA7/AM4372
-Date: Fri, 25 Apr 2014 09:27:19 +0300
-Message-ID: <535A0047.5030807@ti.com>
-References: <1397492726-17203-1-git-send-email-nm@ti.com> <1397767775-10965-1-git-send-email-nm@ti.com> <53504041.7090906@ti.com> <5350410B.5010507@ti.com> <5358D16A.9000500@ti.com> <53591D6D.3060507@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] arm: dts: am43x-clock: add tbclk data for ehrpwm.
+Date: Fri, 25 Apr 2014 09:49:21 +0300
+Message-ID: <535A0571.5070608@ti.com>
+References: <1398162345-3163-1-git-send-email-sourav.poddar@ti.com> <53566374.3070609@ti.com> <5359F5CF.6020408@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53591D6D.3060507-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
-Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33696 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751113AbaDYGtq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Apr 2014 02:49:46 -0400
+In-Reply-To: <5359F5CF.6020408@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: sourav <sourav.poddar@ti.com>
+Cc: mturquette@linaro.org, tony@atomide.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, balbi@ti.com
 
-On 04/24/2014 05:19 PM, Nishanth Menon wrote:
-> On 04/24/2014 03:55 AM, Peter Ujfalusi wrote:
->> On 04/18/2014 12:00 AM, Nishanth Menon wrote:
->>> On 04/17/2014 03:57 PM, Santosh Shilimkar wrote:
->>>> I looked at the series and its looks pretty good. Thanks for fixup=
-s, updates.
->>>> For whole series,
->>>> Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
->>>>
+On 04/25/2014 08:42 AM, sourav wrote:
+> Hi Tero,
+>
+> On Tuesday 22 April 2014 06:11 PM, Tero Kristo wrote:
+>> On 04/22/2014 01:25 PM, Sourav Poddar wrote:
+>>> We need "tblclk" clock data for the functioning of ehrpwm
+>>> module. Hence, populating the required clock information
+>>> in clock dts file.
 >>>
->>> Thanks.
+>>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+>>> ---
+>>>   arch/arm/boot/dts/am43xx-clocks.dtsi |   84
+>>> ++++++++++++++++++++++++++++++++++
+>>>   drivers/clk/ti/clk-43xx.c            |    6 +++
+>>>   2 files changed, 90 insertions(+)
 >>>
->>>>> Patches(including Peter's) is available here:
->>>>> https://github.com/nmenon/linux-2.6-playground/commits/l3noc/driv=
-er-fixes-v2
->>>>>
->>>> Can Tony pull this branch for 3.16 then which includes Peter's ser=
-ies as well ?
->>>
->>> there is just an empty commit with information about peter's patche=
-s
->>> that i lined up to differentiate the series.. I can drop it if Tony
->>> would like me to.
+>>> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi
+>>> b/arch/arm/boot/dts/am43xx-clocks.dtsi
+>>> index 142009c..869f9a5 100644
+>>> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
+>>> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+>>> @@ -87,6 +87,90 @@
+>>>           clock-mult = <1>;
+>>>           clock-div = <1>;
+>>>       };
+>>> +
+>>> +    ehrpwm0_gate_tbclk: ehrpwm0_gate_tbclk {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,composite-no-wait-gate-clock";
+>>> +        clocks = <&dpll_per_m2_ck>;
+>>> +        ti,bit-shift = <0>;
+>>> +        reg = <0x0664>;
+>>> +    };
+>>> +
+>>> +    ehrpwm0_tbclk: ehrpwm0_tbclk {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,composite-clock";
+>>> +        clocks = <&ehrpwm0_gate_tbclk>;
+>>> +    };
 >>
->> Looking at the branch I see my patches underneath so they are in the=
- branch.
->> It would be great if Tony pulls this... Will be a great present to m=
-y patches
->> (omap_l3 patches in the branch) for their 1 year anniversary of bein=
-g out on
->> the mailing list ;)
+>> Why do you use composite-clock type here? I see only add one sub-clock
+>> to the composite, thus the composite part is unused. How about using a
+>> gate-clock type only? Same question applies for the rest of the patch
+>> also.
 >>
-> Peter, can I take this as an Ack for this series? if yes, I can repos=
-t
-> a v3 with all the acks, updates together.
+>
+> Yes, I though of doing so and I think it should be fine to use
+> gate-clock only. I did this following the ehrpwm clock data in
+> "am33xx-clock.dtsi" file, where we use composite clock for ehrpwm. I
+> think it needs to be changed there also.?
 
-Nishanth, sure you can add my Ack or Reviewed-by.
+Yeah, that seems to be a quirk that was generated by the automatic 
+conversion script, there is no reason for these being composite clocks 
+either.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Tero
+
+>
+> -Sourav
+>> -Tero
+>>
+>>> +
+>>> +    ehrpwm1_gate_tbclk: ehrpwm1_gate_tbclk {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,composite-no-wait-gate-clock";
+>>> +        clocks = <&dpll_per_m2_ck>;
+>>> +        ti,bit-shift = <1>;
+>>> +        reg = <0x0664>;
+>>> +    };
+>>> +
+>>> +    ehrpwm1_tbclk: ehrpwm1_tbclk {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,composite-clock";
+>>> +        clocks = <&ehrpwm1_gate_tbclk>;
+>>> +    };
+>>> +
+>>> +    ehrpwm2_gate_tbclk: ehrpwm2_gate_tbclk {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,composite-no-wait-gate-clock";
+>>> +        clocks = <&dpll_per_m2_ck>;
+>>> +        ti,bit-shift = <2>;
+>>> +        reg = <0x0664>;
+>>> +    };
+>>> +
+>>> +    ehrpwm2_tbclk: ehrpwm2_tbclk {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,composite-clock";
+>>> +        clocks = <&ehrpwm2_gate_tbclk>;
+>>> +    };
+>>> +
+>>> +    ehrpwm3_gate_tbclk: ehrpwm3_gate_tbclk {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,composite-no-wait-gate-clock";
+>>> +        clocks = <&dpll_per_m2_ck>;
+>>> +        ti,bit-shift = <2>;
+>>> +        reg = <0x0664>;
+>>> +    };
+>>> +
+>>> +    ehrpwm3_tbclk: ehrpwm3_tbclk {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,composite-clock";
+>>> +        clocks = <&ehrpwm3_gate_tbclk>;
+>>> +    };
+>>> +
+>>> +    ehrpwm4_gate_tbclk: ehrpwm4_gate_tbclk {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,composite-no-wait-gate-clock";
+>>> +        clocks = <&dpll_per_m2_ck>;
+>>> +        ti,bit-shift = <2>;
+>>> +        reg = <0x0664>;
+>>> +    };
+>>> +
+>>> +    ehrpwm4_tbclk: ehrpwm4_tbclk {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,composite-clock";
+>>> +        clocks = <&ehrpwm4_gate_tbclk>;
+>>> +    };
+>>> +
+>>> +    ehrpwm5_gate_tbclk: ehrpwm5_gate_tbclk {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,composite-no-wait-gate-clock";
+>>> +        clocks = <&dpll_per_m2_ck>;
+>>> +        ti,bit-shift = <2>;
+>>> +        reg = <0x0664>;
+>>> +    };
+>>> +
+>>> +    ehrpwm5_tbclk: ehrpwm5_tbclk {
+>>> +        #clock-cells = <0>;
+>>> +        compatible = "ti,composite-clock";
+>>> +        clocks = <&ehrpwm5_gate_tbclk>;
+>>> +    };
+>>>   };
+>>> &prcm_clocks {
+>>>       clk_32768_ck: clk_32768_ck {
+>>> diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
+>>> index 67c8de5..5413a6a 100644
+>>> --- a/drivers/clk/ti/clk-43xx.c
+>>> +++ b/drivers/clk/ti/clk-43xx.c
+>>> @@ -105,6 +105,12 @@ static struct ti_dt_clk am43xx_clks[] = {
+>>>       DT_CLK(NULL, "func_12m_clk", "func_12m_clk"),
+>>>       DT_CLK(NULL, "vtp_clk_div", "vtp_clk_div"),
+>>>       DT_CLK(NULL, "usbphy_32khz_clkmux", "usbphy_32khz_clkmux"),
+>>> +    DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
+>>> +    DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
+>>> +    DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
+>>> +    DT_CLK("48306200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
+>>> +    DT_CLK("48308200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
+>>> +    DT_CLK("4830a200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
+>>>       { .node_name = NULL },
+>>>   };
+>>>
+>>>
+>>
+>
+
