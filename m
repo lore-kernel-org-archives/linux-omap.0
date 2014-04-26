@@ -1,131 +1,147 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv3 1/5] Input: add common DT binding for touchscreens
-Date: Sat, 26 Apr 2014 01:56:15 +0200
-Message-ID: <1398470179-20880-2-git-send-email-sre@kernel.org>
-References: <1398470179-20880-1-git-send-email-sre@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1398470179-20880-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, linux-input@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
+From: Tomasz Figa <tomasz.figa@gmail.com>
+Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime
+ PM with the PM core
+Date: Sat, 26 Apr 2014 03:59:40 +0200
+Message-ID: <535B130C.1000007@gmail.com>
+References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
+ <CAPDyKFr02yyhGNncYX2AgBXTA3Sc0AGQcExjtLvQ5QU0_=YJwg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAPDyKFr02yyhGNncYX2AgBXTA3Sc0AGQcExjtLvQ5QU0_=YJwg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, Simon Horman <horms@verge.net.au>, linux-sh@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add common DT binding documentation for touchscreen devices and
-implement input_parse_touchscreen_of_params, which parses the common
-properties and configures the input device accordingly.
 
-The method currently does not interpret the axis inversion properties,
-since there is no matching flag in the generic linux input device.
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- .../bindings/input/touchscreen/touchscreen.txt     | 27 +++++++++++++++++
- drivers/input/input.c                              | 34 ++++++++++++++++++++++
- include/linux/input.h                              |  8 +++++
- 3 files changed, 69 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+On 24.04.2014 15:11, Ulf Hansson wrote:
+> On 24 April 2014 12:13, Geert Uytterhoeven <geert+renesas@glider.be> wrote:
+>> When adding a device from DT, check if its clocks are suitable for Runtime
+>> PM, and register them with the PM core.
+>> If Runtime PM is disabled, just enable the clock.
+>>
+>> This allows the PM core to automatically manage gate clocks of devices for
+>> Runtime PM.
+>
+> Normally I don't think it's a good idea to "automatically" manage
+> clocks from PM core or any other place but from the driver (and
+> possibly the subsystem).
+>
+> The reason is simply that we hide things that normally is supposed to
+> be handled by the driver. Typically a cross SOC driver should work
+> fine both with and without a pm_domain. It should also not rely on
+> CONFIG_PM_RUNTIME.
+>
+>>
+>> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+>> ---
+>>   drivers/of/Makefile    |    1 +
+>>   drivers/of/of_clk.c    |  103 ++++++++++++++++++++++++++++++++++++++++++++++++
+>>   drivers/of/platform.c  |    3 ++
+>>   include/linux/of_clk.h |   18 +++++++++
+>>   4 files changed, 125 insertions(+)
+>>   create mode 100644 drivers/of/of_clk.c
+>>   create mode 100644 include/linux/of_clk.h
+>>
+>> diff --git a/drivers/of/Makefile b/drivers/of/Makefile
+>> index ed9660adad77..49bcd413906f 100644
+>> --- a/drivers/of/Makefile
+>> +++ b/drivers/of/Makefile
+>> @@ -10,3 +10,4 @@ obj-$(CONFIG_OF_PCI)  += of_pci.o
+>>   obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
+>>   obj-$(CONFIG_OF_MTD)   += of_mtd.o
+>>   obj-$(CONFIG_OF_RESERVED_MEM) += of_reserved_mem.o
+>> +obj-$(CONFIG_COMMON_CLK) += of_clk.o
+>> diff --git a/drivers/of/of_clk.c b/drivers/of/of_clk.c
+>> new file mode 100644
+>> index 000000000000..35f5e9f3dd42
+>> --- /dev/null
+>> +++ b/drivers/of/of_clk.c
+>> @@ -0,0 +1,103 @@
+>> +/*
+>> + *  Copyright (C) 2014 Glider bvba
+>> + */
+>> +
+>> +#include <linux/clk.h>
+>> +#include <linux/err.h>
+>> +#include <linux/of.h>
+>> +#include <linux/of_clk.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/pm_clock.h>
+>> +#include <linux/pm_runtime.h>
+>> +
+>> +
+>> +#ifdef CONFIG_PM_RUNTIME
+>> +
+>> +static int of_clk_pm_runtime_suspend(struct device *dev)
+>> +{
+>> +       int ret;
+>> +
+>> +       ret = pm_generic_runtime_suspend(dev);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = pm_clk_suspend(dev);
+>> +       if (ret) {
+>> +               pm_generic_runtime_resume(dev);
+>> +               return ret;
+>> +       }
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static int of_clk_pm_runtime_resume(struct device *dev)
+>> +{
+>> +       pm_clk_resume(dev);
+>> +       return pm_generic_runtime_resume(dev);
+>> +}
+>> +
+>> +static struct dev_pm_domain of_clk_pm_domain = {
+>> +       .ops = {
+>> +               .runtime_suspend = of_clk_pm_runtime_suspend,
+>> +               .runtime_resume = of_clk_pm_runtime_resume,
+>> +               USE_PLATFORM_PM_SLEEP_OPS
+>> +       },
+>> +};
+>> +
+>> +static int of_clk_register(struct device *dev, struct clk *clk)
+>> +{
+>> +       int error;
+>> +
+>> +       if (!dev->pm_domain) {
+>> +               error = pm_clk_create(dev);
+>> +               if (error)
+>> +                       return error;
+>> +
+>> +               dev->pm_domain = &of_clk_pm_domain;
+>
+> I am concerned about how this will work in conjunction with the
+> generic power domain.
+>
+> A device can't reside in more than one pm_domain; thus I think it
+> would be better to always use the generic power domain and not have a
+> specific one for clocks. Typically the genpd should invoke
+> pm_clk_resume|suspend from it's runtime PM callbacks.
 
-diff --git a/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt b/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-new file mode 100644
-index 0000000..d8e0616
---- /dev/null
-+++ b/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-@@ -0,0 +1,27 @@
-+General Touchscreen Properties:
-+
-+Optional properties for Touchscreens:
-+ - touchscreen-size-x		: horizontal resolution of touchscreen
-+				  (in pixels)
-+ - touchscreen-size-y		: vertical resolution of touchscreen
-+				  (in pixels)
-+ - touchscreen-max-pressure	: maximum reported pressure (arbitrary range
-+				  dependent on the controller)
-+ - touchscreen-fuzz-x		: horizontal noise value of the absolute input
-+				  device (in pixels)
-+ - touchscreen-fuzz-y		: vertical noise value of the absolute input
-+				  device (in pixels)
-+ - touchscreen-fuzz-pressure	: pressure noise value of the absolute input
-+				  device (arbitrary range dependent on the
-+				  controller)
-+ - touchscreen-inverted-x	: X axis is inverted (boolean)
-+ - touchscreen-inverted-y	: Y axis is inverted (boolean)
-+
-+Deprecated properties for Touchscreens:
-+ - x-size			: deprecated name for touchscreen-size-x
-+ - y-size			: deprecated name for touchscreen-size-y
-+ - moving-threshold		: deprecated name for a combination of
-+				  touchscreen-fuzz-x and touchscreen-fuzz-y
-+ - contact-threshold		: deprecated name for touchscreen-fuzz-pressure
-+ - x-invert			: deprecated name for touchscreen-inverted-x
-+ - y-invert			: deprecated name for touchscreen-inverted-y
-diff --git a/drivers/input/input.c b/drivers/input/input.c
-index 1c4c0db..97966d93 100644
---- a/drivers/input/input.c
-+++ b/drivers/input/input.c
-@@ -27,6 +27,7 @@
- #include <linux/device.h>
- #include <linux/mutex.h>
- #include <linux/rcupdate.h>
-+#include <linux/of.h>
- #include "input-compat.h"
- 
- MODULE_AUTHOR("Vojtech Pavlik <vojtech@suse.cz>");
-@@ -2398,6 +2399,39 @@ void input_free_minor(unsigned int minor)
- }
- EXPORT_SYMBOL(input_free_minor);
- 
-+#if defined(CONFIG_OF)
-+/**
-+ * input_parse_touchscreen_of_params - parse common touchscreen DT properties
-+ * @dev: device that should be parsed
-+ *
-+ * This function parses common DT properties for touchscreens and setups the
-+ * input device accordingly. The function keeps previously setuped default
-+ * values if no value is specified via DT.
-+ */
-+void input_parse_touchscreen_of_params(struct input_dev *dev)
-+{
-+	struct device_node *np = dev->dev.parent->of_node;
-+	struct input_absinfo *absinfo;
-+
-+	input_alloc_absinfo(dev);
-+	if (!dev->absinfo)
-+		return;
-+
-+	absinfo = &dev->absinfo[ABS_X];
-+	of_property_read_u32(np, "touchscreen-size-x", &absinfo->maximum);
-+	of_property_read_u32(np, "touchscreen-fuzz-x", &absinfo->fuzz);
-+
-+	absinfo = &dev->absinfo[ABS_Y];
-+	of_property_read_u32(np, "touchscreen-size-y", &absinfo->maximum);
-+	of_property_read_u32(np, "touchscreen-fuzz-y", &absinfo->fuzz);
-+
-+	absinfo = &dev->absinfo[ABS_PRESSURE];
-+	of_property_read_u32(np, "touchscreen-max-pressure", &absinfo->maximum);
-+	of_property_read_u32(np, "touchscreen-fuzz-pressure", &absinfo->fuzz);
-+}
-+EXPORT_SYMBOL(input_parse_touchscreen_of_params);
-+#endif
-+
- static int __init input_init(void)
- {
- 	int err;
-diff --git a/include/linux/input.h b/include/linux/input.h
-index 82ce323..3dc3b1e 100644
---- a/include/linux/input.h
-+++ b/include/linux/input.h
-@@ -531,4 +531,12 @@ int input_ff_erase(struct input_dev *dev, int effect_id, struct file *file);
- int input_ff_create_memless(struct input_dev *dev, void *data,
- 		int (*play_effect)(struct input_dev *, void *, struct ff_effect *));
- 
-+#if defined(CONFIG_OF)
-+void input_parse_touchscreen_of_params(struct input_dev *dev);
-+#else
-+static inline void input_parse_touchscreen_of_params(struct input_dev *dev) {
-+	return;
-+}
-+#endif
-+
- #endif
--- 
-1.9.2
+I'm not sure about this. A typical use case would be to gate clocks ASAP 
+and then wait until device is idle long enough to consider turning off 
+the power domain worthwhile. Also sometimes we may want to gate the 
+clocks, but prevent power domain from being powered off to retain 
+hardware state (e.g. because there is no way to read it and restore later).
+
+I believe, though, that for devices that are not inside a controllable 
+power domain, this might be a good solution.
+
+Best regards,
+Tomasz
