@@ -1,67 +1,76 @@
-From: Axel Lin <axel.lin@ingics.com>
-Subject: [PATCH] mmc: omap: Use DIV_ROUND_UP instead of open coded
-Date: Sun, 27 Apr 2014 18:56:56 +0800
-Message-ID: <1398596216.21067.1.camel@phoenix>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCHv3 07/14] HSI: Add common DT binding for HSI client
+ devices
+Date: Sun, 27 Apr 2014 12:57:55 +0200
+Message-ID: <20140427105755.GA12265@amd.pavel.ucw.cz>
+References: <1396053110-21639-1-git-send-email-sre@kernel.org>
+ <1396053110-21639-8-git-send-email-sre@kernel.org>
+ <20140419191612.GG5148@amd.pavel.ucw.cz>
+ <20140425182535.GB22721@earth.universe>
+ <20140425205926.GA30032@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <chris@printf.net>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20140425205926.GA30032-SfvFxonMDyemK9LvCR3Hrw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Carlos Chinea <cch.devel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon-uiMcrn6V0Vs@public.gmane.org>, Joni Lapilainen <joni.lapilainen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This also makes the intention more clear.
+On Fri 2014-04-25 22:59:27, Sebastian Reichel wrote:
+> On Fri, Apr 25, 2014 at 08:25:36PM +0200, Sebastian Reichel wrote:
+> > On Sat, Apr 19, 2014 at 09:16:12PM +0200, Pavel Machek wrote:
+> > > On Sat 2014-03-29 01:31:43, Sebastian Reichel wrote:
+> > > > Implement and document generic DT bindings for HSI clients.
+> > > > 
+> > > > Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > > 
+> > > Reviewed-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+> > > 
+> > > > diff --git a/drivers/hsi/hsi.c b/drivers/hsi/hsi.c
+> > > > index 07e1639..5973906 100644
+> > > > --- a/drivers/hsi/hsi.c
+> > > > +++ b/drivers/hsi/hsi.c
+> > > > @@ -26,8 +26,14 @@
+> > > >  #include <linux/slab.h>
+> > > >  #include <linux/string.h>
+> > > >  #include <linux/notifier.h>
+> > > > +#include <linux/of.h>
+> > > > +#include <linux/of_device.h>
+> > > >  #include "hsi_core.h"
+> > > 
+> > > 
+> > > > +	err = hsi_of_property_parse_mode(client, "hsi-mode", &mode);
+> > > > +	if (err) {
+> > > > +		err = hsi_of_property_parse_mode(client, "hsi-rx-mode",
+> > > > +						 &cl->rx_cfg.mode);
+> > > > +		if (err)
+> > > > +			goto err;
+> > > > +
+> > > > +		err = hsi_of_property_parse_mode(client, "hsi-tx-mode",
+> > > > +						 &cl->tx_cfg.mode);
+> > > > +		if (err)
+> > > > +			goto err;
+> > > 
+> > > Will this need some #ifdef CONFIG_OF?
+> > 
+> > It would only be needed to reduce the amount of kernel code for
+> > disabled Device Tree. I don't think its worth it, since there is no
+> > platform in the mainline kernel, which uses HSI without DT.
+> 
+> mh actually it is needed, since there is no stub provided for
+> of_modalias_node in non DT mode (there are stubs for all other
+> of_* methods used). I will include the ifdef in PATCHv5.
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/mmc/host/omap.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Alternatively, you can make driver depend on DT...
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 5c2e58b..711981e 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -177,7 +177,7 @@ static void mmc_omap_fclk_offdelay(struct mmc_omap_slot *slot)
- 	unsigned long tick_ns;
- 
- 	if (slot != NULL && slot->host->fclk_enabled && slot->fclk_freq > 0) {
--		tick_ns = (1000000000 + slot->fclk_freq - 1) / slot->fclk_freq;
-+		tick_ns = DIV_ROUND_UP(1000000000, slot->fclk_freq);
- 		ndelay(8 * tick_ns);
- 	}
- }
-@@ -435,7 +435,7 @@ static void mmc_omap_send_stop_work(struct work_struct *work)
- 	struct mmc_data *data = host->stop_data;
- 	unsigned long tick_ns;
- 
--	tick_ns = (1000000000 + slot->fclk_freq - 1)/slot->fclk_freq;
-+	tick_ns = DIV_ROUND_UP(1000000000, slot->fclk_freq);
- 	ndelay(8*tick_ns);
- 
- 	mmc_omap_start_command(host, data->stop);
-@@ -477,7 +477,7 @@ mmc_omap_send_abort(struct mmc_omap_host *host, int maxloops)
- 	u16 stat = 0;
- 
- 	/* Sending abort takes 80 clocks. Have some extra and round up */
--	timeout = (120*1000000 + slot->fclk_freq - 1)/slot->fclk_freq;
-+	timeout = DIV_ROUND_UP(120 * 1000000, slot->fclk_freq);
- 	restarts = 0;
- 	while (restarts < maxloops) {
- 		OMAP_MMC_WRITE(host, STAT, 0xFFFF);
-@@ -677,8 +677,8 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
- 	if (n > host->buffer_bytes_left)
- 		n = host->buffer_bytes_left;
- 
--	nwords = n / 2;
--	nwords += n & 1; /* handle odd number of bytes to transfer */
-+	/* Round up to handle odd number of bytes to transfer */
-+	nwords = DIV_ROUND_UP(n, 2);
- 
- 	host->buffer_bytes_left -= n;
- 	host->total_bytes_left -= n;
+Thanks,
+									Pavel
 -- 
-1.8.3.2
-
-
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
