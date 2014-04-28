@@ -1,35 +1,63 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 5/6] ARM: AM43xx: clk: Change the cpts ref clock source
- to dpll_core_m5 clk
-Date: Mon, 28 Apr 2014 18:18:56 +0200
-Message-ID: <20140428161856.GB4266@netboy>
-References: <1398658225-25873-1-git-send-email-george.cherian@ti.com>
- <1398658225-25873-6-git-send-email-george.cherian@ti.com>
- <20140428071034.GB4380@netboy>
- <535E4FDC.70306@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH 07/10] ARM: dts: DRA7: Add DT node for DES IP
+Date: Mon, 28 Apr 2014 11:38:33 -0500
+Message-ID: <535E8409.10905@ti.com>
+References: <1398466968-29506-1-git-send-email-joelf@ti.com>
+ <1398466968-29506-8-git-send-email-joelf@ti.com>
+ <535BE096.2060407@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <535E4FDC.70306@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, davem@davemloft.net, jeffrey.t.kirsher@intel.com, dborkman@redhat.com, ast@plumgrid.com, tklauser@distanz.ch, mpa@pengutronix.de, bhutchings@solarflare.com, zonque@gmail.com, balbi@ti.com, mugunthanvnm@ti.com, t-kristo@ti.com, mturquette@linaro.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, bcousson@baylibre.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <535BE096.2060407@cogentembedded.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Apr 28, 2014 at 06:25:56PM +0530, George Cherian wrote:
-> In beagle bone white (AM335x)  CPTS has a choice of 2 clocksource
-> -dpll_core_m5_ck
-> -dpll_core_m4_ck
-> and by default  dpll_core_m5_ck is used. Where as in AM437x the
-> default clocksource used is dpll_core_m4_ck .
+On 04/26/2014 11:36 AM, Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 26-04-2014 3:02, Joel Fernandes wrote:
+> 
+>> DRA7xx SoCs have a DES3DES IP. Add DT data for the same.
+> 
+>> Signed-off-by: Joel Fernandes <joelf@ti.com>
+>> ---
+>>   arch/arm/boot/dts/dra7.dtsi |   11 +++++++++++
+>>   1 file changed, 11 insertions(+)
+> 
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>> index 1c0f8e1..0533b89 100644
+>> --- a/arch/arm/boot/dts/dra7.dtsi
+>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>> @@ -789,6 +789,17 @@
+>>               dma-names = "tx0", "rx0";
+>>               status = "disabled";
+>>           };
+>> +
+>> +        des: des@480a5000 {
+> 
+>    Shouldn't the node name be "crypto@480a5000", according to the ePAPR
+> standard?
+> 
+Actually I'm not a big fan of the standard here in this regard.
+"crypto@480a5000" doesn't mean anything and serves no purpose for
+anyone. There are quite a few crypto modules and such a name doesn't
+help and is confusing at best.
 
-Is your patch changing the default clock for am335x?
+There's no property either in the device tree node itself to describe it
+as des, except for the phandle label which is used only at dt
+compile-time if I'm right. So makes sense to have the name be more specific.
 
-If yes, it shouldn't.
-If no, then the patch description should say so.
+This is how we have added dts nodes for other crypto modules in the past...
 
-Thanks,
-Richard
-
- 
+thanks,
+ -Joel
