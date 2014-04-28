@@ -1,157 +1,129 @@
-From: Guido =?iso-8859-1?Q?Mart=EDnez?= <guido-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org>
-Subject: Re: [PATCH 1/4] ARM: dts: am335x-bone-common: use phandles for USB
- and DMA refs
-Date: Mon, 28 Apr 2014 13:10:41 -0300
-Message-ID: <20140428161041.GA6140@solid>
-References: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
- <535E689D.7010204@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 19/41] OMAPDSS: panel-dpi: Add DT support
+Date: Mon, 28 Apr 2014 09:13:07 -0700
+Message-ID: <20140428161306.GL20807@atomide.com>
+References: <1390301833-24944-1-git-send-email-tomi.valkeinen@ti.com>
+ <1390301833-24944-20-git-send-email-tomi.valkeinen@ti.com>
+ <20140418155107.GB5354@atomide.com>
+ <5358DEEA.1000506@ti.com>
+ <20140425235348.GH20807@atomide.com>
+ <535E30ED.10903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34667 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932770AbaD1QNR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 12:13:17 -0400
 Content-Disposition: inline
-In-Reply-To: <535E689D.7010204-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org>
+In-Reply-To: <535E30ED.10903@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Joachim Eastwood <manabian@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-On Mon, Apr 28, 2014 at 08:11:33PM +0530, George Cherian wrote:
-> On 4/28/2014 7:28 PM, Guido Mart=EDnez wrote:
-> >Use phandles instead of unit adresses to reference usb and dma nodes=
-=2E
-> >This makes the DT more robust and readable.
-> The series will give dtb build errors
-> Error: arch/arm/boot/dts/am335x-bone-common.dtsi:186.2-15 syntax erro=
-r
-> FATAL ERROR: Unable to parse input tree
-> Error: arch/arm/boot/dts/am335x-evmsk.dts:367.2-15 syntax error
-> FATAL ERROR: Unable to parse input tree
-> make[1]: *** [arch/arm/boot/dts/am335x-bone.dtb] Error 1
-> make[1]: *** Waiting for unfinished jobs....
-> Error: arch/arm/boot/dts/am335x-evm.dts:334.2-15 syntax error
-> FATAL ERROR: Unable to parse input tree
-> make[1]: *** [arch/arm/boot/dts/am335x-evmsk.dtb] Error 1
-> make[1]: *** [arch/arm/boot/dts/am335x-evm.dtb] Error 1
-> Error: arch/arm/boot/dts/am335x-igep0033.dtsi:204.2-15 syntax error
-> FATAL ERROR: Unable to parse input tree
-> make[1]: *** [arch/arm/boot/dts/am335x-base0033.dtb] Error 1
-> Error: arch/arm/boot/dts/am335x-bone-common.dtsi:186.2-15 syntax erro=
-r
-> FATAL ERROR: Unable to parse input tree
-> make[1]: *** [arch/arm/boot/dts/am335x-boneblack.dtb] Error 1
-> make: *** [dtbs] Error 2
->=20
-Terribly sorry about this. I'll send a v2.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140428 03:44]:
+> On 26/04/14 02:53, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [140424 02:53]:
+> >> On 18/04/14 18:51, Tony Lindgren wrote:
+> >>
+> >>>> +	gpio = of_get_gpio(node, 0);
+> >>>> +	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
+> >>>> +		ddata->enable_gpio = gpio;
+> >>>> +	} else {
+> >>>> +		dev_err(&pdev->dev, "failed to parse enable gpio\n");
+> >>>> +		return gpio;
+> >>>> +	}
+> >>>
+> >>> We should set the GPIO polarity based on the OF_GPIO_ACTIVE_LOW like
+> >>> gpio_backlight_probe_dt is doing. 
+> >>
+> >> Instead of doing it with the old gpio API, and checking the 'active'
+> >> flag everywhere, I think we can use the new gpiod API which handles the
+> >> polarity automatically.
+> >>
+> >> I attached prototype patches (based on -rc2) for panel dpi using that
+> >> approach. It's a bit messier than I'd like, because for non-DT boot we
+> >> need to request the gpio using the old API, and then convert it to
+> >> gpio_desc. We can remove that code when all the boards use DT.
+> >>
+> >> I've compiled tested this only, as I don't have DPI panels I could use.
+> >> I did try similar approach for TFP410, and it seemed to work fine.
+> > 
+> > Got these working by updating my test patch to use enable-gpios instead
+> > of gpios, and had to change from GPIO_ACTIVE_LOW to GPIO_ACTIVE_HIGH.
+> > Are we now also breaking legacy booting by reversing the polarity?
+> 
+> I don't think so. The GPIOs should be active-high by default, if I'm not
+> mistaken, so the polarities should be the same for legacy boot with or
+> without those patches. Of course, I don't have the boards so I have no
+> idea if the polarities have been correct even before.
 
-> >
-> >Signed-off-by: Guido Mart=EDnez <guido-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org>
-> >---
-> >  arch/arm/boot/dts/am335x-bone-common.dtsi | 12 ++++++------
-> >  1 file changed, 6 insertions(+), 6 deletions(-)
-> >
-> >diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/bo=
-ot/dts/am335x-bone-common.dtsi
-> >index 2e7d932..b95bc9a 100644
-> >--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-> >+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> >@@ -183,28 +183,28 @@
-> >  &usb {
-> >  	status =3D "okay";
-> >-	control@44e10620 {
-> >+	&usb_ctrl_mod {
-> >  		status =3D "okay";
-> >  	};
-> >-	usb-phy@47401300 {
-> >+	&usb0_phy {
-> >  		status =3D "okay";
-> >  	};
-> >-	usb-phy@47401b00 {
-> >+	&usb1_phy {
-> >  		status =3D "okay";
-> >  	};
-> >-	usb@47401000 {
-> >+	&usb0 {
-> >  		status =3D "okay";
-> >  	};
-> >-	usb@47401800 {
-> >+	&usb1 {
-> >  		status =3D "okay";
-> >  		dr_mode =3D "host";
-> >  	};
-> >-	dma-controller@47402000  {
-> >+	&cppi41dma  {
-> >  		status =3D "okay";
-> >  	};
-> >  };
-> Instead the patch should be
->=20
->      diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi
-> b/arch/arm/boot/dts/am335x-bone-common.dtsi
->      index 2e7d932..06be20a 100644
->      --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
->      +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
->      @@ -182,31 +182,30 @@
->=20
->       &usb {
->              status =3D "okay";
->      +};
->      +&usb_ctrl_mod {
->      +       status =3D "okay";
->      +};
->=20
->      -       control@44e10620 {
->      -               status =3D "okay";
->      -       };
->      -
->      -       usb-phy@47401300 {
->      -               status =3D "okay";
->      -       };
->      +&usb0_phy {
->      +       status =3D "okay";
->      +};
->=20
->      -       usb-phy@47401b00 {
->      -               status =3D "okay";
->      -       };
->      +&usb1_phy {
->      +       status =3D "okay";
->      +};
->=20
->      -       usb@47401000 {
->      -               status =3D "okay";
->      -       };
->      +&usb {
->      +       status =3D "okay";
->      +};
->=20
->      -       usb@47401800 {
->      -               status =3D "okay";
->      -               dr_mode =3D "host";
->      -       };
->      +&usb1 {
->      +       status =3D "okay";
->      +       dr_mode =3D "host";
->      +};
->=20
->      -       dma-controller@47402000  {
->      -               status =3D "okay";
->      -       };
->      +&cppi41dma  {
->      +       status =3D "okay";
->       };
->=20
->=20
->=20
-> --=20
-> -George
->=20
+OK
+ 
+> debugfs/gpio shows the actual value of the gpio, so you could check from
+> there what it is.
 
---=20
-Guido Mart=EDnez, VanguardiaSur
-www.vanguardiasur.com.ar
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yeah that should be checked.
+ 
+> > In any case, looks like we have some duplicate panel code.. Turns
+> > out most panel dpi users for omap3 board-*.c files are just
+> > sharp-ls037v7dw01 panels but configured in QVGA mode. At least for
+> > EVM and and LDP based on looking at the pictures and the configuration
+> 
+> Hmm, true, board-ldp.c's panel looks very much like sharp-ls037v7dw01.
+
+Yes it seems so also based on the photos of the LCD panel. And 3430sdp
+also seems to have something similar but it's upside down.
+ 
+> Which EVM are you talking about?
+
+The LogicPD omap3 EVMs TMDSEVM3530 and TMDSEVM3730. The am335x EVM
+has a different larger panel.
+ 
+> > pins (using the names kernel):
+> > 
+> > QVGA = lcd MO
+> > reset = lcd RESB
+> > ...
+> > 
+> > Then the enable_gpio should be just a GPIO controlled 3.3V regulator
+> > in most cases. I suggest we move them over to ls037v7dw01 and allow
+> > configuring them both for VGA and QVGA depending on the orientation.
+> 
+> Looking at the panel spec, it has the following pins:
+> 
+> RESB - reset
+> MO - VGA/QVGA
+> UD - vertical scanning direction
+> LR - horizontal scanning direction
+> INI - power on control
+> 
+> And it needs 3.3V power.
+> 
+> Are you saying that on some boards the gpio used for enable_gpio is
+> actually used to switch on a 3.3V regulator?
+
+The 3.3V GPIO regulator is needed in addition to the configurable pins,
+I guess some ls037v7dw01 panels only have a subset of the pins
+controllable by GPIOs, and the GPIO regulator may be used instead of
+the INI. But that's hard to know without schematics.
+ 
+> > I guess you do have some device with ls037v7dw01 since you've been
+> > patching it?
+> 
+> No, I don't have any boards with that panel.
+
+OK. I'll move my boards over to ls037v7dw01 and do a DT conversion
+patch for it that just sets a standard gpios property for panel
+ls037v7dw01. The gpios entry can have 0 entries in the middle
+depending on wiring configuration and there should not be any need
+to name each GPIO.
+
+As far as I'm concerned, your panel-dpi patch is fine with me,
+and we should not add more configuration to it for the ls037v7dw01
+panels.
+
+Regards,
+
+Tony
