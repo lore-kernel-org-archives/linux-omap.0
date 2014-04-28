@@ -1,53 +1,50 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 0/7] USB support for DRA7-evm
-Date: Mon, 28 Apr 2014 17:01:20 +0300
-Message-ID: <1398693687-13967-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 2/7] ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
+Date: Mon, 28 Apr 2014 17:01:22 +0300
+Message-ID: <1398693687-13967-3-git-send-email-rogerq@ti.com>
+References: <1398693687-13967-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1398693687-13967-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 Cc: george.cherian-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Add the sysconfig class bits for the Super Speed USB
+controllers
 
-This series enables the 2 USB ports on the DRA7-evm.
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-NOTE: USB1 port is hard coded to work in peripheral mode and USB2 port
-in host mode. This is due to missing ID pin interrupt in pre ver.E boards.
-
-USB1 port doesn't in peripheral mode out of the box due to missing VBUS detection
-and mailbox write. To test this I had to do a manual write to enable VBUSVALID
-in the USB_UTMI_OTG_STATUS register.
-	omapconf set bit 0x48880084 1
-
-USB2 port works well in host mode.
-
-Patches are based on 3.15-rc3.
-
-cheers,
--roger
-
-Roger Quadros (7):
-  ARM: dts: dra7-clock: Add "l3init_960m_gfclk" clock gate
-  ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
-  phy: omap-usb2: Use generic clock names "wkupclk" and "refclk"
-  ARM: dts: omap4+: Add clocks to USB2 PHY node
-  phy: omap-usb2: Add clock names to Documentation binding
-  ARM: dts: dra7: Add USB related nodes
-  dts: dra7-evm: add USB support
-
- Documentation/devicetree/bindings/phy/ti-phy.txt |   7 ++
- arch/arm/boot/dts/dra7-evm.dts                   |  24 ++++
- arch/arm/boot/dts/dra7.dtsi                      | 149 +++++++++++++++++++++++
- arch/arm/boot/dts/dra7xx-clocks.dtsi             |  12 +-
- arch/arm/boot/dts/omap4.dtsi                     |   2 +
- arch/arm/boot/dts/omap5.dtsi                     |   2 +
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c        |  22 ++--
- drivers/phy/phy-omap-usb2.c                      |   8 +-
- 8 files changed, 210 insertions(+), 16 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 810c205..067d322 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1731,8 +1731,20 @@ static struct omap_hwmod dra7xx_uart6_hwmod = {
+  *
+  */
+ 
++static struct omap_hwmod_class_sysconfig dra7xx_usb_otg_ss_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.sysc_flags	= (SYSC_HAS_DMADISABLE | SYSC_HAS_MIDLEMODE |
++			   SYSC_HAS_SIDLEMODE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
++			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
++	.sysc_fields	= &omap_hwmod_sysc_type2,
++};
++
+ static struct omap_hwmod_class dra7xx_usb_otg_ss_hwmod_class = {
+ 	.name	= "usb_otg_ss",
++	.sysc	= &dra7xx_usb_otg_ss_sysc,
+ };
+ 
+ /* usb_otg_ss1 */
 -- 
 1.8.3.2
 
