@@ -1,68 +1,144 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv2 3/9] ASoC: omap: rx51: Use
-	devm_snd_soc_register_card
-Date: Mon, 28 Apr 2014 16:07:21 +0200
-Message-ID: <1398694047-28596-4-git-send-email-sre@kernel.org>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCHv2 8/9] ASoC: omap: rx51: Add DT support
+Date: Mon, 28 Apr 2014 16:07:26 +0200
+Message-ID: <1398694047-28596-9-git-send-email-sre@kernel.org>
 References: <1398694047-28596-1-git-send-email-sre@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1398694047-28596-1-git-send-email-sre@kernel.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Sebastian Reichel <sre@ring0.de>, Mark Brown <broonie@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <rob.herring@calxeda.com>, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1398694047-28596-1-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-VGhpcyBwYXRjaCBjb252ZXJ0cyB0aGUgcng1MSBBU29DIG1vZHVsZSB0byB1c2UKZGV2bV9zbmRf
-c29jX3JlZ2lzdGVyX2NhcmQuCgpTaWduZWQtb2ZmLWJ5OiBQYWxpIFJvaMOhciA8cGFsaS5yb2hh
-ckBnbWFpbC5jb20+ClNpZ25lZC1vZmYtYnk6IFNlYmFzdGlhbiBSZWljaGVsIDxzcmVAa2VybmVs
-Lm9yZz4KLS0tCiBzb3VuZC9zb2Mvb21hcC9yeDUxLmMgfCA0MiArKysrKysrKysrKysrKysrKysr
-KysrLS0tLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAyMiBpbnNlcnRpb25zKCsp
-LCAyMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9zb3VuZC9zb2Mvb21hcC9yeDUxLmMgYi9z
-b3VuZC9zb2Mvb21hcC9yeDUxLmMKaW5kZXggNTU3MTNkMC4uYmJlM2E2NiAxMDA2NDQKLS0tIGEv
-c291bmQvc29jL29tYXAvcng1MS5jCisrKyBiL3NvdW5kL3NvYy9vbWFwL3J4NTEuYwpAQCAtMzYz
-LDEwICszNjMsOSBAQCBzdGF0aWMgc3RydWN0IHNuZF9zb2NfY2FyZCByeDUxX3NvdW5kX2NhcmQg
-PSB7CiAJLm51bV9kYXBtX3JvdXRlcyA9IEFSUkFZX1NJWkUoYXVkaW9fbWFwKSwKIH07CiAKLXN0
-YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpyeDUxX3NuZF9kZXZpY2U7Ci0KLXN0YXRpYyBp
-bnQgX19pbml0IHJ4NTFfc29jX2luaXQodm9pZCkKK3N0YXRpYyBpbnQgcng1MV9zb2NfcHJvYmUo
-c3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIHsKKwlzdHJ1Y3Qgc25kX3NvY19jYXJkICpj
-YXJkID0gJnJ4NTFfc291bmRfY2FyZDsKIAlpbnQgZXJyOwogCiAJaWYgKCFtYWNoaW5lX2lzX25v
-a2lhX3J4NTEoKSAmJiAhb2ZfbWFjaGluZV9pc19jb21wYXRpYmxlKCJub2tpYSxvbWFwMy1uOTAw
-IikpCkBAIC0zODEsMjIgKzM4MCwxNiBAQCBzdGF0aWMgaW50IF9faW5pdCByeDUxX3NvY19pbml0
-KHZvaWQpCiAJaWYgKGVycikKIAkJZ290byBlcnJfZ3Bpb19lY2lfc3c7CiAKLQlyeDUxX3NuZF9k
-ZXZpY2UgPSBwbGF0Zm9ybV9kZXZpY2VfYWxsb2MoInNvYy1hdWRpbyIsIC0xKTsKLQlpZiAoIXJ4
-NTFfc25kX2RldmljZSkgewotCQllcnIgPSAtRU5PTUVNOwotCQlnb3RvIGVycjE7Ci0JfQotCi0J
-cGxhdGZvcm1fc2V0X2RydmRhdGEocng1MV9zbmRfZGV2aWNlLCAmcng1MV9zb3VuZF9jYXJkKTsK
-KwljYXJkLT5kZXYgPSAmcGRldi0+ZGV2OwogCi0JZXJyID0gcGxhdGZvcm1fZGV2aWNlX2FkZChy
-eDUxX3NuZF9kZXZpY2UpOwotCWlmIChlcnIpCi0JCWdvdG8gZXJyMjsKKwllcnIgPSBkZXZtX3Nu
-ZF9zb2NfcmVnaXN0ZXJfY2FyZChjYXJkLT5kZXYsIGNhcmQpOworCWlmIChlcnIpIHsKKwkJZGV2
-X2VycigmcGRldi0+ZGV2LCAic25kX3NvY19yZWdpc3Rlcl9jYXJkIGZhaWxlZCAoJWQpXG4iLCBl
-cnIpOworCQlnb3RvIGVycl9zbmQ7CisJfQogCiAJcmV0dXJuIDA7Ci1lcnIyOgotCXBsYXRmb3Jt
-X2RldmljZV9wdXQocng1MV9zbmRfZGV2aWNlKTsKLWVycjE6CitlcnJfc25kOgogCWdwaW9fZnJl
-ZShSWDUxX0VDSV9TV19HUElPKTsKIGVycl9ncGlvX2VjaV9zdzoKIAlncGlvX2ZyZWUoUlg1MV9U
-Vk9VVF9TRUxfR1BJTyk7CkBAIC00MDUsMTggKzM5OCwyNyBAQCBlcnJfZ3Bpb190dm91dF9zZWw6
-CiAJcmV0dXJuIGVycjsKIH0KIAotc3RhdGljIHZvaWQgX19leGl0IHJ4NTFfc29jX2V4aXQodm9p
-ZCkKK3N0YXRpYyBpbnQgcng1MV9zb2NfcmVtb3ZlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBk
-ZXYpCiB7CiAJc25kX3NvY19qYWNrX2ZyZWVfZ3Bpb3MoJnJ4NTFfYXZfamFjaywgQVJSQVlfU0la
-RShyeDUxX2F2X2phY2tfZ3Bpb3MpLAogCQkJCXJ4NTFfYXZfamFja19ncGlvcyk7CiAKLQlwbGF0
-Zm9ybV9kZXZpY2VfdW5yZWdpc3RlcihyeDUxX3NuZF9kZXZpY2UpOwogCWdwaW9fZnJlZShSWDUx
-X0VDSV9TV19HUElPKTsKIAlncGlvX2ZyZWUoUlg1MV9UVk9VVF9TRUxfR1BJTyk7CisKKwlyZXR1
-cm4gMDsKIH0KIAotbW9kdWxlX2luaXQocng1MV9zb2NfaW5pdCk7Ci1tb2R1bGVfZXhpdChyeDUx
-X3NvY19leGl0KTsKK3N0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZHJpdmVyIHJ4NTFfc29jX2RyaXZl
-ciA9IHsKKwkuZHJpdmVyID0geworCQkubmFtZSA9ICJyeDUxLWF1ZGlvIiwKKwkJLm93bmVyID0g
-VEhJU19NT0RVTEUsCisJfSwKKwkucHJvYmUgPSByeDUxX3NvY19wcm9iZSwKKwkucmVtb3ZlID0g
-cng1MV9zb2NfcmVtb3ZlLAorfTsKKworbW9kdWxlX3BsYXRmb3JtX2RyaXZlcihyeDUxX3NvY19k
-cml2ZXIpOwogCiBNT0RVTEVfQVVUSE9SKCJOb2tpYSBDb3Jwb3JhdGlvbiIpOwogTU9EVUxFX0RF
-U0NSSVBUSU9OKCJBTFNBIFNvQyBOb2tpYSBSWC01MSIpOwotLSAKMS45LjIKCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkFsc2EtZGV2ZWwgbWFpbGluZyBs
-aXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpodHRwOi8vbWFpbG1hbi5hbHNhLXByb2pl
-Y3Qub3JnL21haWxtYW4vbGlzdGluZm8vYWxzYS1kZXZlbAo=
+This patch adds device tree support to the Nokia N900 audio driver and
+adds documentation for the DT binding.
+
+Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ .../devicetree/bindings/sound/nokia,rx51.txt       | 27 +++++++++++
+ sound/soc/omap/rx51.c                              | 53 ++++++++++++++++++++++
+ 2 files changed, 80 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/sound/nokia,rx51.txt
+
+diff --git a/Documentation/devicetree/bindings/sound/nokia,rx51.txt b/Documentation/devicetree/bindings/sound/nokia,rx51.txt
+new file mode 100644
+index 0000000..72f93d9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/sound/nokia,rx51.txt
+@@ -0,0 +1,27 @@
++* Nokia N900 audio setup
++
++Required properties:
++- compatible: Should contain "nokia,n900-audio"
++- nokia,cpu-dai: phandle for the McBSP node
++- nokia,audio-codec: phandles for the main TLV320AIC3X node and the
++                     auxiliary TLV320AIC3X node (in this order)
++- nokia,headphone-amplifier: phandle for the TPA6130A2 node
++- tvout-selection-gpios: GPIO for tvout selection
++- jack-detection-gpios: GPIO for jack detection
++- eci-switch-gpios: GPIO for ECI (Enhancement Control Interface) switch
++- speaker-amplifier-gpios: GPIO for speaker amplifier
++
++Example:
++
++sound {
++	compatible = "nokia,n900-audio";
++
++	nokia,cpu-dai = <&mcbsp2>;
++	nokia,audio-codec = <&tlv320aic3x>, <&tlv320aic3x_aux>;
++	nokia,headphone-amplifier = <&tpa6130a2>;
++
++	tvout-selection-gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>; /* 40 */
++	jack-detection-gpios = <&gpio6 17 GPIO_ACTIVE_HIGH>; /* 177 */
++	eci-switch-gpios = <&gpio6 22 GPIO_ACTIVE_HIGH>; /* 182 */
++	speaker-amplifier-gpios = <&twl_gpio 7 GPIO_ACTIVE_HIGH>;
++};
+diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
+index 110deca..866578b 100644
+--- a/sound/soc/omap/rx51.c
++++ b/sound/soc/omap/rx51.c
+@@ -386,6 +386,7 @@ static struct snd_soc_card rx51_sound_card = {
+ static int rx51_soc_probe(struct platform_device *pdev)
+ {
+ 	struct rx51_audio_pdata *pdata;
++	struct device_node *np = pdev->dev.of_node;
+ 	struct snd_soc_card *card = &rx51_sound_card;
+ 	int err;
+ 
+@@ -394,6 +395,49 @@ static int rx51_soc_probe(struct platform_device *pdev)
+ 
+ 	card->dev = &pdev->dev;
+ 
++	if (np) {
++		struct device_node *dai_node;
++
++		dai_node = of_parse_phandle(np, "nokia,cpu-dai", 0);
++		if (!dai_node) {
++			dev_err(&pdev->dev, "McBSP node is not provided\n");
++			return -EINVAL;
++		}
++		rx51_dai[0].cpu_dai_name = NULL;
++		rx51_dai[0].platform_name = NULL;
++		rx51_dai[0].cpu_of_node = dai_node;
++		rx51_dai[0].platform_of_node = dai_node;
++
++		dai_node = of_parse_phandle(np, "nokia,audio-codec", 0);
++		if (!dai_node) {
++			dev_err(&pdev->dev, "Codec node is not provided\n");
++			return -EINVAL;
++		}
++		rx51_dai[0].codec_name = NULL;
++		rx51_dai[0].codec_of_node = dai_node;
++
++		dai_node = of_parse_phandle(np, "nokia,audio-codec", 1);
++		if (!dai_node) {
++			dev_err(&pdev->dev, "Auxiliary Codec node is not provided\n");
++			return -EINVAL;
++		}
++		rx51_aux_dev[0].codec_name = NULL;
++		rx51_aux_dev[0].codec_of_node = dai_node;
++		rx51_codec_conf[0].dev_name = NULL;
++		rx51_codec_conf[0].of_node = dai_node;
++
++		dai_node = of_parse_phandle(np, "nokia,headphone-amplifier", 0);
++		if (!dai_node) {
++			dev_err(&pdev->dev, "Headphone amplifier node is not provided\n");
++			return -EINVAL;
++		}
++
++		/* TODO: tpa6130a2a driver supports only a single instance, so
++		 * this driver ignores the headphone-amplifier node for now.
++		 * It's already mandatory in the DT binding to be future proof.
++		 */
++	}
++
+ 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+ 	if (pdata == NULL) {
+ 		dev_err(card->dev, "failed to create private data\n");
+@@ -463,10 +507,19 @@ static int rx51_soc_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(CONFIG_OF)
++static const struct of_device_id rx51_audio_of_match[] = {
++	{ .compatible = "nokia,n900-audio", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, rx51_audio_of_match);
++#endif
++
+ static struct platform_driver rx51_soc_driver = {
+ 	.driver = {
+ 		.name = "rx51-audio",
+ 		.owner = THIS_MODULE,
++		.of_match_table = of_match_ptr(rx51_audio_of_match),
+ 	},
+ 	.probe = rx51_soc_probe,
+ 	.remove = rx51_soc_remove,
+-- 
+1.9.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
