@@ -1,65 +1,83 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH] ARM: dts: am33xx: fix DMA support for the second USB
- interface
-Date: Mon, 28 Apr 2014 19:55:51 +0530
-Message-ID: <535E64EF.2020108@ti.com>
-References: <1398674237-4129-1-git-send-email-yegorslists@googlemail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/6] drivers: net: cpts: Remove hardcoded clock name for
+ CPTS
+Date: Mon, 28 Apr 2014 09:31:15 -0500
+Message-ID: <20140428143115.GC30292@saruman.home>
+References: <1398658225-25873-1-git-send-email-george.cherian@ti.com>
+ <1398658225-25873-2-git-send-email-george.cherian@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56027 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751311AbaD1O0s (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Apr 2014 10:26:48 -0400
-In-Reply-To: <1398674237-4129-1-git-send-email-yegorslists@googlemail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="B4IIlcmfBL/1gGOG"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1398658225-25873-2-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, davem@davemloft.net, richardcochran@gmail.com, jeffrey.t.kirsher@intel.com, dborkman@redhat.com, ast@plumgrid.com, tklauser@distanz.ch, mpa@pengutronix.de, bhutchings@solarflare.com, zonque@gmail.com, balbi@ti.com, mugunthanvnm@ti.com, t-kristo@ti.com, mturquette@linaro.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: yegorslists@googlemail.com, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com
 
-On 4/28/2014 2:07 PM, yegorslists@googlemail.com wrote:
-> From: Yegor Yefremov <yegorslists@googlemail.com>
->
-> This patch creates unique DMA channels for the second USB
-> interface, otherwise the second USB interface is not usable
-> at all.
-MUSB_DMA_NUM_CHANNELS is 15, so if you pass  any dma-names > 15 (> 
-rx15/tx15),
-the dma_controller_create in musb_core.c fails and it falls back to PIO 
-mode.
+--B4IIlcmfBL/1gGOG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->
-> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+On Mon, Apr 28, 2014 at 09:40:20AM +0530, George Cherian wrote:
+> CPTS refclk name is hardcoded, which makes it fail in case of DRA7x
+> Remove the hardcoded clock name for CPTS refclk and get the same from DT.
+>=20
+> Signed-off-by: George Cherian <george.cherian@ti.com>
 > ---
->   arch/arm/boot/dts/am33xx.dtsi |   12 ++++++------
->   1 files changed, 6 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 07f283c..e04cbbc 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -548,12 +548,12 @@
->   					&cppi41dma 26 1 &cppi41dma 27 1
->   					&cppi41dma 28 1 &cppi41dma 29 1>;
->   				dma-names =
-> -					"rx1", "rx2", "rx3", "rx4", "rx5", "rx6", "rx7",
-> -					"rx8", "rx9", "rx10", "rx11", "rx12", "rx13",
-> -					"rx14", "rx15",
-> -					"tx1", "tx2", "tx3", "tx4", "tx5", "tx6", "tx7",
-> -					"tx8", "tx9", "tx10", "tx11", "tx12", "tx13",
-> -					"tx14", "tx15";
-> +					"rx16", "rx17", "rx18", "rx19", "rx20", "rx21", "rx22",
-> +					"rx23", "rx24", "rx25", "rx26", "rx27", "rx28",
-> +					"rx29", "rx30",
-> +					"tx16", "tx17", "tx18", "tx19", "tx20", "tx21", "tx22",
-> +					"tx23", "tx24", "tx25", "tx26", "tx27", "tx28",
-> +					"tx29", "tx30";
->   			};
->   
->   			cppi41dma: dma-controller@47402000 {
+>  drivers/net/ethernet/ti/cpts.c | 11 ++++-------
+>  1 file changed, 4 insertions(+), 7 deletions(-)
+>=20
+> diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpt=
+s.c
+> index 2435139..0b6f6f7 100644
+> --- a/drivers/net/ethernet/ti/cpts.c
+> +++ b/drivers/net/ethernet/ti/cpts.c
+> @@ -236,13 +236,11 @@ static void cpts_overflow_check(struct work_struct =
+*work)
+>  	schedule_delayed_work(&cpts->overflow_work, CPTS_OVERFLOW_PERIOD);
+>  }
+> =20
+> -#define CPTS_REF_CLOCK_NAME "cpsw_cpts_rft_clk"
+> -
+> -static void cpts_clk_init(struct cpts *cpts)
+> +static void cpts_clk_init(struct device *dev, struct cpts *cpts)
+>  {
+> -	cpts->refclk =3D clk_get(NULL, CPTS_REF_CLOCK_NAME);
+> +	cpts->refclk =3D devm_clk_get(dev, "cpts");
+>  	if (IS_ERR(cpts->refclk)) {
+> -		pr_err("Failed to clk_get %s\n", CPTS_REF_CLOCK_NAME);
+> +		pr_err("Failed to get cpts refclk\n");
 
+now you have a dev pointer as argument, how about converting this to
+dev_err() ?
 
--- 
--George
+--=20
+balbi
 
+--B4IIlcmfBL/1gGOG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTXmYzAAoJEIaOsuA1yqREXIMP/1Bc/quLxm2iQcjkrvVGV0bG
+8ysMIL84mDbhgbPzyDSj8KUK/wd714H0Lzc3hUbVemWRt3TlqYv/fjrwT6iEct9+
+gKXY+FSHHQ71aMCGAeJq8lazpfgasexWVg6CVaAMHSIAdujQd3HwmXfswskV6aXz
+47BGrfcUBfrmu25Ex2+HPLF6snIqi5lQg9TiejkQdtJKcE2LcVNMuinwExJ19B7b
+8OrXwXhN6Y8zm7aOaP6dNd/yAsn2XTEWUy9nioUV0/t/bpcX7sIMdhkeoCoM/C75
+hxTiMnfCHjhxdCznqsCQRsd3CwzGjX6vHg3tV5aFwHkp7vxbRUJnRIIUp7Q4wYWQ
+So1WfQcsOjkiZcctjG7PdjnUDP15EXWDcSzgWJJLTLLKW63fWVzF5bZUGtlTQGyy
+ERc6jBnfIDF0rD8pa1EEXXzKdJsimb9MhTWRYhieHWz+nNRIiOhhkRowURyl+D+r
+8sm74qhtxxlzURtOHDfYRQX+/TMinKUDT+XEaItJ7sr6wBIYRSnnwzBDd5KEpBhc
+O0QKckywGfxlCArB357BNPxuOuuOFZ5IVfJ4at6mDtJ4GbVB/pd93EVHPPA/Ceur
+GiJUQDY7Cl83cQQZI9sSi/m9jVlYvNsmA4HlQZVI9/6IdFaC2N//py3fgMidqiIT
+IaiVJR78G14uCHOOBCeO
+=3dw5
+-----END PGP SIGNATURE-----
+
+--B4IIlcmfBL/1gGOG--
