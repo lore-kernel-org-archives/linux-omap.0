@@ -1,52 +1,131 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH 5/6] ARM: AM43xx: clk: Change the cpts ref clock source
- to dpll_core_m5 clk
-Date: Mon, 28 Apr 2014 18:25:56 +0530
-Message-ID: <535E4FDC.70306@ti.com>
-References: <1398658225-25873-1-git-send-email-george.cherian@ti.com> <1398658225-25873-6-git-send-email-george.cherian@ti.com> <20140428071034.GB4380@netboy>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [Resend/PATCH] arm: dts: am43x-epos: Add qspi device.
+Date: Mon, 28 Apr 2014 19:12:30 +0530
+Message-ID: <1398692550-31758-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140428071034.GB4380@netboy>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Richard Cochran <richardcochran@gmail.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, davem@davemloft.net, jeffrey.t.kirsher@intel.com, dborkman@redhat.com, ast@plumgrid.com, tklauser@distanz.ch, mpa@pengutronix.de, bhutchings@solarflare.com, zonque@gmail.com, balbi@ti.com, mugunthanvnm@ti.com, t-kristo@ti.com, mturquette@linaro.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, bcousson@baylibre.com
+To: bcousson@baylibre.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, tony@atomide.com
+Cc: Sourav Poddar <sourav.poddar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 4/28/2014 12:40 PM, Richard Cochran wrote:
-> On Mon, Apr 28, 2014 at 09:40:24AM +0530, George Cherian wrote:
->> cpsw_cpts_rft_clk has got the choice of 3 clocksources
->>   -dpll_core_m4_ck
->>   -dpll_core_m5_ck
->>   -dpll_disp_m2_ck
->>
->> By default dpll_core_m4_ck is selected, witn this as clock
->> source the CPTS doesnot work properly. It gives clockcheck errors
->> while running PTP.
->>
->>   clockcheck: clock jumped backward or running slower than expected!
-> It is strange that I have never seen this error, since I have often
-> tested linuxptp on a beagle bone white.
-In beagle bone white (AM335x)  CPTS has a choice of 2 clocksource
--dpll_core_m5_ck
--dpll_core_m4_ck
-and by default  dpll_core_m5_ck is used. Where as in AM437x the default 
-clocksource used is dpll_core_m4_ck .
+This patch adds qspi nodes for am43xx SOC devices.
 
-You can change the clocksource in beagle bone white by writing  1 to 
-0x44e00520 (By default its 0).
->
-> Can you please explain why this clock doesn't work correctly?
->
->> By selecting dpll_core_m5_ck as the clocksource fixes this issue.
->> In AM335x dpll_core_m5_ck is the default clocksource.
-> The choice of clock source in the CPTS driver originally came from
-> TI. It would be nice to know why that was the wrong choice.
->
-> Thanks,
-> Richard
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+Note,
+checpatch gives 1 warning on flash compatible string
+"mx66l51235l". This flash is supported in m25p80 driver and
+the driver is used for other flash devices also. Hence, each
+flash compatible is not described in[1], but a genric example 
+is shown using spansion flash device. 
+[1]:
+Documentation/devicetree/bindings/mtd/m25p80.txt
 
+ arch/arm/boot/dts/am4372.dtsi        |   11 ++++++
+ arch/arm/boot/dts/am43x-epos-evm.dts |   63 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 74 insertions(+)
 
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 36d523a..49633ff 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -735,6 +735,17 @@
+ 			#size-cells = <1>;
+ 			status = "disabled";
+ 		};
++
++		qspi: qspi@47900000 {
++			compatible = "ti,am4372-qspi";
++			reg = <0x47900000 0x100>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "qspi";
++			interrupts = <0 138 0x4>;
++			num-cs = <4>;
++			status = "disabled";
++		};
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 167dbc8..25cd07c 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -138,6 +138,17 @@
+ 				0x160 (PIN_INPUT | MUX_MODE7) /* spi0_cs1.gpio0_6 */
+ 			>;
+ 		};
++
++		qspi1_default: qspi1_default {
++			pinctrl-single,pins = <
++				0x7c (PIN_INPUT_PULLUP | MUX_MODE3)
++				0x88 (PIN_INPUT_PULLUP | MUX_MODE2)
++				0x90 (PIN_INPUT_PULLUP | MUX_MODE3)
++				0x94 (PIN_INPUT_PULLUP | MUX_MODE3)
++				0x98 (PIN_INPUT_PULLUP | MUX_MODE3)
++				0x9c (PIN_INPUT_PULLUP | MUX_MODE3)
++			>;
++		};
+ 	};
+ 
+ 	matrix_keypad: matrix_keypad@0 {
+@@ -367,3 +378,55 @@
+ 	pinctrl-0 = <&spi1_pins>;
+ 	status = "okay";
+ };
++
++&qspi {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&qspi1_default>;
++
++	spi-max-frequency = <48000000>;
++	m25p80@0 {
++		compatible = "mx66l51235l";
++		spi-max-frequency = <48000000>;
++		reg = <0>;
++		spi-cpol;
++		spi-cpha;
++		spi-tx-bus-width = <1>;
++		spi-rx-bus-width = <4>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		/* MTD partition table.
++		 * The ROM checks the first 512KiB
++		 * for a valid file to boot(XIP).
++		 */
++		partition@0 {
++			label = "QSPI.U_BOOT";
++			reg = <0x00000000 0x000080000>;
++		};
++		partition@1 {
++			label = "QSPI.U_BOOT.backup";
++			reg = <0x00080000 0x00080000>;
++		};
++		partition@2 {
++			label = "QSPI.U-BOOT-SPL_OS";
++			reg = <0x00100000 0x00010000>;
++		};
++		partition@3 {
++			label = "QSPI.U_BOOT_ENV";
++			reg = <0x00110000 0x00010000>;
++		};
++		partition@4 {
++			label = "QSPI.U-BOOT-ENV.backup";
++			reg = <0x00120000 0x00010000>;
++		};
++		partition@5 {
++			label = "QSPI.KERNEL";
++			reg = <0x00130000 0x0800000>;
++		};
++		partition@6 {
++			label = "QSPI.FILESYSTEM";
++			reg = <0x00930000 0x36D0000>;
++		};
++	};
++};
 -- 
--George
+1.7.9.5
