@@ -1,46 +1,83 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 5/6] ARM: AM43xx: clk: Change the cpts ref clock source
- to dpll_core_m5 clk
-Date: Mon, 28 Apr 2014 09:10:36 +0200
-Message-ID: <20140428071034.GB4380@netboy>
-References: <1398658225-25873-1-git-send-email-george.cherian@ti.com>
- <1398658225-25873-6-git-send-email-george.cherian@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: [PATCH 0/5] mmc: omap_hsmmc: Enable SDIO IRQ.
+Date: Mon, 28 Apr 2014 09:37:53 +0200
+Message-ID: <1398670678-30611-1-git-send-email-afenkart@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:47751 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751656AbaD1HKx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 03:10:53 -0400
-Content-Disposition: inline
-In-Reply-To: <1398658225-25873-6-git-send-email-george.cherian@ti.com>
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:57662 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753178AbaD1HjN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 03:39:13 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, davem@davemloft.net, jeffrey.t.kirsher@intel.com, dborkman@redhat.com, ast@plumgrid.com, tklauser@distanz.ch, mpa@pengutronix.de, bhutchings@solarflare.com, zonque@gmail.com, balbi@ti.com, mugunthanvnm@ti.com, t-kristo@ti.com, mturquette@linaro.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, bcousson@baylibre.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Andreas Fenkart <afenkart@gmail.com>
 
-On Mon, Apr 28, 2014 at 09:40:24AM +0530, George Cherian wrote:
-> cpsw_cpts_rft_clk has got the choice of 3 clocksources
->  -dpll_core_m4_ck
->  -dpll_core_m5_ck
->  -dpll_disp_m2_ck
-> 
-> By default dpll_core_m4_ck is selected, witn this as clock
-> source the CPTS doesnot work properly. It gives clockcheck errors
-> while running PTP.
-> 
->  clockcheck: clock jumped backward or running slower than expected!
+Hi Balaji, Tony, all
 
-It is strange that I have never seen this error, since I have often
-tested linuxptp on a beagle bone white.
+v10 
+- bug fix on multi-core, untested
+- incorporated changes from Balaji
+- use devres / RAII mechanism to configure wake_up /
+  sdio irq capabilities
+- drop pinctrl state 'active'
+  rely on driver-model states 'default', 'idle'
+- add specific 'gpio_dat1' state for am335x SWAKEUP hack
+- reorganized patches; +1 patch multi-core bugfix / +1 for pinctrl 
+- rebased 455c6fdbd21916 / cherry-picks from mmc-next 
 
-Can you please explain why this clock doesn't work correctly?
+v9
+- extended comment about why wake-irq is needed
+- drop double '(' ')' around card_detect_irq
+- drop final '.' in in subject line of patch
 
-> By selecting dpll_core_m5_ck as the clocksource fixes this issue.
-> In AM335x dpll_core_m5_ck is the default clocksource.
+v8
+- rebased on top of Tony Lindgren<tony@atomide.com> changes
+  - improved changelog describing the earlier work
+  - improved wakeup irq setup
+  - works for am3730 es platform now
+- my changes on top:
+  - compile tested with #undef CONFIG_OF
+  - disable wake_irq in handler to prevent infinite loop  
+  - fixed typo and added comment about wake-irq
 
-The choice of clock source in the CPTS driver originally came from
-TI. It would be nice to know why that was the wrong choice.
+v7
+- rebase on 3.14.0-rc3-49726-g77e15ec
+- split omap_hsmmc_pin_init due to regression on omap-3730 platform
 
-Thanks,
-Richard
+v6
+- rebase on Linux 3.13-rc3
+- reformatting debugfs
+
+v5
+- fix compile error introduced by last minute one line fix
+
+v4:
+- switch to interrupts-extended format
+- drop ti,swakeup-missing flag convert to comaptible section
+
+v3:
+- removed gpio_irq from platform_data
+
+v2:
+- incorparated changes as suggested by reviewers
+- simplified workaround for am335x, gpio will now only wake
+  the module from runtime suspend, not handle the sdio irq
+  itself 
+
+Andreas Fenkart (5):
+  mmc: omap_hsmmc: Enable SDIO interrupt
+  mmc: omap_hsmmc: bug: abort runtime suspend if pending sdio irq
+    detected
+  mmc: omap_hsmmc: Extend debugfs by SDIO IRQ handling, runtime state
+  mmc: omap_hsmmc: switch default/idle pinctrl states in runtime hooks
+  mmc: omap_hsmmc: Pin remux workaround to support SDIO interrupt on
+    AM335x
+
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   51 ++++
+ drivers/mmc/host/omap_hsmmc.c                      |  285 ++++++++++++++++++--
+ include/linux/platform_data/mmc-omap.h             |    1 +
+ 3 files changed, 316 insertions(+), 21 deletions(-)
+
+-- 
+1.7.10.4
+
