@@ -1,53 +1,79 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv2 1/9] ASoC: omap: rx51: Use static const char
-	* const arrays
-Date: Mon, 28 Apr 2014 16:07:19 +0200
-Message-ID: <1398694047-28596-2-git-send-email-sre@kernel.org>
+Subject: [PATCHv2 5/9] ASoC: omap: rx51: omap_mcbsp_st_add_controls: add id parameter
+Date: Mon, 28 Apr 2014 16:07:23 +0200
+Message-ID: <1398694047-28596-6-git-send-email-sre@kernel.org>
 References: <1398694047-28596-1-git-send-email-sre@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1398694047-28596-1-git-send-email-sre@kernel.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sre@ring0.de>, Mark Brown <broonie@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <rob.herring@calxeda.com>, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Mark the array and the string const by using "static const char * const
-foo[]" instead of "static const char* foo[]".
+This is a preparation for DT based booting where the McBSP id
+is set to -1 for all McBSP instances.
 
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- sound/soc/omap/rx51.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ sound/soc/omap/omap-mcbsp.c | 5 +++--
+ sound/soc/omap/omap-mcbsp.h | 2 +-
+ sound/soc/omap/rx51.c       | 2 +-
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
-index add0047..1a3f05c 100644
---- a/sound/soc/omap/rx51.c
-+++ b/sound/soc/omap/rx51.c
-@@ -258,9 +258,11 @@ static const struct snd_soc_dapm_route audio_map[] = {
- 	{"b Mic Bias", NULL, "HS Mic"}
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index af2764a..71d2266 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -693,7 +693,7 @@ OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP" #port " Sidetone Channel 1 Volume", \
+ OMAP_MCBSP_ST_CONTROLS(2);
+ OMAP_MCBSP_ST_CONTROLS(3);
+ 
+-int omap_mcbsp_st_add_controls(struct snd_soc_pcm_runtime *rtd)
++int omap_mcbsp_st_add_controls(struct snd_soc_pcm_runtime *rtd, int port_id)
+ {
+ 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
+ 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
+@@ -703,7 +703,7 @@ int omap_mcbsp_st_add_controls(struct snd_soc_pcm_runtime *rtd)
+ 		return 0;
+ 	}
+ 
+-	switch (mcbsp->id) {
++	switch (port_id) {
+ 	case 2: /* McBSP 2 */
+ 		return snd_soc_add_dai_controls(cpu_dai,
+ 					omap_mcbsp2_st_controls,
+@@ -713,6 +713,7 @@ int omap_mcbsp_st_add_controls(struct snd_soc_pcm_runtime *rtd)
+ 					omap_mcbsp3_st_controls,
+ 					ARRAY_SIZE(omap_mcbsp3_st_controls));
+ 	default:
++		dev_err(mcbsp->dev, "Port %d not supported\n", port_id);
+ 		break;
+ 	}
+ 
+diff --git a/sound/soc/omap/omap-mcbsp.h b/sound/soc/omap/omap-mcbsp.h
+index ba8386a..2e3369c 100644
+--- a/sound/soc/omap/omap-mcbsp.h
++++ b/sound/soc/omap/omap-mcbsp.h
+@@ -39,6 +39,6 @@ enum omap_mcbsp_div {
+ 	OMAP_MCBSP_CLKGDV,		/* Sample rate generator divider */
  };
  
--static const char *spk_function[] = {"Off", "On"};
--static const char *input_function[] = {"ADC", "Digital Mic"};
--static const char *jack_function[] = {"Off", "TV-OUT", "Headphone", "Headset"};
-+static const char * const spk_function[] = {"Off", "On"};
-+static const char * const input_function[] = {"ADC", "Digital Mic"};
-+static const char * const jack_function[] = {
-+	"Off", "TV-OUT", "Headphone", "Headset"
-+};
+-int omap_mcbsp_st_add_controls(struct snd_soc_pcm_runtime *rtd);
++int omap_mcbsp_st_add_controls(struct snd_soc_pcm_runtime *rtd, int port_id);
  
- static const struct soc_enum rx51_enum[] = {
- 	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(spk_function), spk_function),
+ #endif
+diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
+index bbe3a66..e140b1b 100644
+--- a/sound/soc/omap/rx51.c
++++ b/sound/soc/omap/rx51.c
+@@ -297,7 +297,7 @@ static int rx51_aic34_init(struct snd_soc_pcm_runtime *rtd)
+ 		return err;
+ 	snd_soc_limit_volume(codec, "TPA6130A2 Headphone Playback Volume", 42);
+ 
+-	err = omap_mcbsp_st_add_controls(rtd);
++	err = omap_mcbsp_st_add_controls(rtd, 2);
+ 	if (err < 0)
+ 		return err;
+ 
 -- 
 1.9.2
