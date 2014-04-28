@@ -1,8 +1,8 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V3 16/20] bus: omap_l3_noc: add information about the type of
- operation
-Date: Mon, 28 Apr 2014 10:14:56 -0500
-Message-ID: <1398698101-25513-17-git-send-email-nm@ti.com>
+Subject: [PATCH V3 17/20] bus: omap_l3_noc: Add information about the context
+ of operation
+Date: Mon, 28 Apr 2014 10:14:57 -0500
+Message-ID: <1398698101-25513-18-git-send-email-nm@ti.com>
 References: <1397492726-17203-1-git-send-email-nm@ti.com>
  <1398698101-25513-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
@@ -23,17 +23,17 @@ To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.co
 Cc: nm@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Today we get error such as
-L3 Custom Error: MASTER MPU TARGET L4PER2
+L3 error may be triggered using Debug interface (example JTAG) or
+due to other errors, for example an opcode fetch (due to function
+pointer or stack corruption) or a data access (due to some other
+failure). NOC registers contain additional information to help aid
+debug information.
 
-But since the actual instruction triggerring the error Vs the point
-at which we report error may not be aligned, it makes sense to try
-and provide additional information - example the type of operation
-that was attempted to being performed can help narrow the debug down
-further.
-
-This helps provide log such as:
-L3 Custom Error: MASTER MPU TARGET L4PER2 (Read)
+With this, we can enhance the error information to more detailed form:
+"
+L3 Custom Error: MASTER MPU TARGET L4PER2 (Read): Data Access in User mode
+during Functional access
+"
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
@@ -41,88 +41,85 @@ Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Tested-by: Darren Etheridge <detheridge@ti.com>
 ---
 V3: no change
- drivers/bus/omap_l3_noc.c |    9 ++++++++-
- drivers/bus/omap_l3_noc.h |   13 +++++++++++++
- 2 files changed, 21 insertions(+), 1 deletion(-)
+ drivers/bus/omap_l3_noc.c |   18 ++++++++++++++----
+ drivers/bus/omap_l3_noc.h |    2 ++
+ 2 files changed, 16 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-index 00e4fed..9d021d0 100644
+index 9d021d0..08344b0 100644
 --- a/drivers/bus/omap_l3_noc.c
 +++ b/drivers/bus/omap_l3_noc.c
-@@ -60,8 +60,10 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
+@@ -60,15 +60,16 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
  {
  	int k;
  	u32 std_err_main, clear, masterid;
-+	u8 op_code;
+-	u8 op_code;
++	u8 op_code, m_req_info;
  	void __iomem *l3_targ_base;
  	void __iomem *l3_targ_stderr, *l3_targ_slvofslsb, *l3_targ_mstaddr;
-+	void __iomem *l3_targ_hdr;
+-	void __iomem *l3_targ_hdr;
++	void __iomem *l3_targ_hdr, *l3_targ_info;
  	struct l3_target_data *l3_targ_inst;
  	struct l3_masters_data *master;
  	char *target_name, *master_name = "UN IDENTIFIED";
-@@ -96,6 +98,7 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
- 			 readl_relaxed(l3_targ_slvofslsb));
+ 	char *err_description;
+ 	char err_string[30] = { 0 };
++	char info_string[60] = { 0 };
+ 
+ 	/* We DONOT expect err_src to go out of bounds */
+ 	BUG_ON(err_src > MAX_CLKDM_TARGETS);
+@@ -99,6 +100,7 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
  
  		l3_targ_mstaddr = l3_targ_base + L3_TARG_STDERRLOG_MSTADDR;
-+		l3_targ_hdr = l3_targ_base + L3_TARG_STDERRLOG_HDR;
+ 		l3_targ_hdr = l3_targ_base + L3_TARG_STDERRLOG_HDR;
++		l3_targ_info = l3_targ_base + L3_TARG_STDERRLOG_INFO;
  		break;
  
  	case CUSTOM_ERROR:
-@@ -103,6 +106,7 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
- 
+@@ -107,6 +109,7 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
  		l3_targ_mstaddr = l3_targ_base +
  				  L3_TARG_STDERRLOG_CINFO_MSTADDR;
-+		l3_targ_hdr = l3_targ_base + L3_TARG_STDERRLOG_CINFO_OPCODE;
+ 		l3_targ_hdr = l3_targ_base + L3_TARG_STDERRLOG_CINFO_OPCODE;
++		l3_targ_info = l3_targ_base + L3_TARG_STDERRLOG_CINFO_INFO;
  		break;
  
  	default:
-@@ -122,11 +126,14 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
- 		}
- 	}
+@@ -128,13 +131,20 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
  
-+	op_code = readl_relaxed(l3_targ_hdr) & 0x7;
+ 	op_code = readl_relaxed(l3_targ_hdr) & 0x7;
+ 
++	m_req_info = readl_relaxed(l3_targ_info) & 0xF;
++	snprintf(info_string, sizeof(info_string),
++		 ": %s in %s mode during %s access",
++		 (m_req_info & BIT(0)) ? "Opcode Fetch" : "Data Access",
++		 (m_req_info & BIT(1)) ? "Supervisor" : "User",
++		 (m_req_info & BIT(3)) ? "Debug" : "Functional");
 +
  	WARN(true,
--	     "%s:L3 %s Error: MASTER %s TARGET %s%s\n",
-+	     "%s:L3 %s Error: MASTER %s TARGET %s (%s)%s\n",
+-	     "%s:L3 %s Error: MASTER %s TARGET %s (%s)%s\n",
++	     "%s:L3 %s Error: MASTER %s TARGET %s (%s)%s%s\n",
  	     dev_name(l3->dev),
  	     err_description,
  	     master_name, target_name,
-+	     l3_transaction_type[op_code],
- 	     err_string);
+ 	     l3_transaction_type[op_code],
+-	     err_string);
++	     err_string, info_string);
  
  	/* clear the std error log*/
+ 	clear = std_err_main | CLEAR_STDERR_LOG;
 diff --git a/drivers/bus/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
-index 4e18307..6670fd9 100644
+index 6670fd9..36dc48b 100644
 --- a/drivers/bus/omap_l3_noc.h
 +++ b/drivers/bus/omap_l3_noc.h
-@@ -29,14 +29,27 @@
- 
- /* L3 TARG register offsets */
+@@ -31,7 +31,9 @@
  #define L3_TARG_STDERRLOG_MAIN		0x48
-+#define L3_TARG_STDERRLOG_HDR		0x4c
+ #define L3_TARG_STDERRLOG_HDR		0x4c
  #define L3_TARG_STDERRLOG_MSTADDR	0x50
++#define L3_TARG_STDERRLOG_INFO		0x58
  #define L3_TARG_STDERRLOG_SLVOFSLSB	0x5c
++#define L3_TARG_STDERRLOG_CINFO_INFO	0x64
  #define L3_TARG_STDERRLOG_CINFO_MSTADDR	0x68
-+#define L3_TARG_STDERRLOG_CINFO_OPCODE	0x6c
+ #define L3_TARG_STDERRLOG_CINFO_OPCODE	0x6c
  #define L3_FLAGMUX_REGERR0		0xc
- #define L3_FLAGMUX_MASK0		0x8
- 
- #define L3_TARGET_NOT_SUPPORTED		NULL
- 
-+static const char * const l3_transaction_type[] = {
-+	/* 0 0 0 */ "Idle",
-+	/* 0 0 1 */ "Write",
-+	/* 0 1 0 */ "Read",
-+	/* 0 1 1 */ "ReadEx",
-+	/* 1 0 0 */ "Read Link",
-+	/* 1 0 1 */ "Write Non-Posted",
-+	/* 1 1 0 */ "Write Conditional",
-+	/* 1 1 1 */ "Write Broadcast",
-+};
-+
- /**
-  * struct l3_masters_data - L3 Master information
-  * @id:		ID of the L3 Master
 -- 
 1.7.9.5
