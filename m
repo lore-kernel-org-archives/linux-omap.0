@@ -1,169 +1,53 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv2 4/9] ASoC: Allow Aux Codecs to be specified using DT
-Date: Mon, 28 Apr 2014 16:07:22 +0200
-Message-ID: <1398694047-28596-5-git-send-email-sre@kernel.org>
+Subject: [PATCHv2 1/9] ASoC: omap: rx51: Use static const char
+	* const arrays
+Date: Mon, 28 Apr 2014 16:07:19 +0200
+Message-ID: <1398694047-28596-2-git-send-email-sre@kernel.org>
 References: <1398694047-28596-1-git-send-email-sre@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1398694047-28596-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Sebastian Reichel <sre@ring0.de>, Mark Brown <broonie@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <rob.herring@calxeda.com>, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds support for specifying auxiliary codecs and
-codec configuration via device tree phandles.
+Mark the array and the string const by using "static const char * const
+foo[]" instead of "static const char* foo[]".
 
-This change adds new fields to snd_soc_aux_dev and snd_soc_codec_conf
-and adds support for the changes to SoC core methods.
-
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- include/sound/soc.h  | 13 +++++++++-
- sound/soc/soc-core.c | 68 ++++++++++++++++++++++++++++++++--------------------
- 2 files changed, 54 insertions(+), 27 deletions(-)
+ sound/soc/omap/rx51.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/include/sound/soc.h b/include/sound/soc.h
-index 0fadb3c..22dfaef 100644
---- a/include/sound/soc.h
-+++ b/include/sound/soc.h
-@@ -923,7 +923,12 @@ struct snd_soc_dai_link {
+diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
+index add0047..1a3f05c 100644
+--- a/sound/soc/omap/rx51.c
++++ b/sound/soc/omap/rx51.c
+@@ -258,9 +258,11 @@ static const struct snd_soc_dapm_route audio_map[] = {
+ 	{"b Mic Bias", NULL, "HS Mic"}
  };
  
- struct snd_soc_codec_conf {
-+	/*
-+	 * specify device either by device name, or by
-+	 * DT/OF node, but not both.
-+	 */
- 	const char *dev_name;
-+	const struct device_node *of_node;
+-static const char *spk_function[] = {"Off", "On"};
+-static const char *input_function[] = {"ADC", "Digital Mic"};
+-static const char *jack_function[] = {"Off", "TV-OUT", "Headphone", "Headset"};
++static const char * const spk_function[] = {"Off", "On"};
++static const char * const input_function[] = {"ADC", "Digital Mic"};
++static const char * const jack_function[] = {
++	"Off", "TV-OUT", "Headphone", "Headset"
++};
  
- 	/*
- 	 * optional map of kcontrol, widget and path name prefixes that are
-@@ -934,7 +939,13 @@ struct snd_soc_codec_conf {
- 
- struct snd_soc_aux_dev {
- 	const char *name;		/* Codec name */
--	const char *codec_name;		/* for multi-codec */
-+
-+	/*
-+	 * specify multi-codec either by device name, or by
-+	 * DT/OF node, but not both.
-+	 */
-+	const char *codec_name;
-+	const struct device_node *codec_of_node;
- 
- 	/* codec/machine specific init - e.g. add machine controls */
- 	int (*init)(struct snd_soc_dapm_context *dapm);
-diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
-index f18112a..39f6c04 100644
---- a/sound/soc/soc-core.c
-+++ b/sound/soc/soc-core.c
-@@ -1119,10 +1119,12 @@ static void soc_set_name_prefix(struct snd_soc_card *card,
- 
- 	for (i = 0; i < card->num_configs; i++) {
- 		struct snd_soc_codec_conf *map = &card->codec_conf[i];
--		if (map->dev_name && !strcmp(codec->name, map->dev_name)) {
--			codec->name_prefix = map->name_prefix;
--			break;
--		}
-+		if (map->of_node && codec->dev->of_node != map->of_node)
-+			continue;
-+		if (map->dev_name && strcmp(codec->name, map->dev_name))
-+			continue;
-+		codec->name_prefix = map->name_prefix;
-+		break;
- 	}
- }
- 
-@@ -1652,52 +1654,66 @@ static void soc_unregister_ac97_dai_link(struct snd_soc_pcm_runtime *rtd)
- }
- #endif
- 
--static int soc_check_aux_dev(struct snd_soc_card *card, int num)
-+struct snd_soc_codec *soc_find_matching_codec(struct snd_soc_card *card, int num)
- {
- 	struct snd_soc_aux_dev *aux_dev = &card->aux_dev[num];
- 	struct snd_soc_codec *codec;
- 
--	/* find CODEC from registered CODECs*/
-+	/* find CODEC from registered CODECs */
- 	list_for_each_entry(codec, &codec_list, list) {
--		if (!strcmp(codec->name, aux_dev->codec_name))
--			return 0;
-+		if (aux_dev->codec_of_node &&
-+		   (codec->dev->of_node != aux_dev->codec_of_node))
-+			continue;
-+		if (aux_dev->codec_name && strcmp(codec->name, aux_dev->codec_name))
-+			continue;
-+		return codec;
- 	}
- 
--	dev_err(card->dev, "ASoC: %s not registered\n", aux_dev->codec_name);
-+	return NULL;
-+}
-+
-+static int soc_check_aux_dev(struct snd_soc_card *card, int num)
-+{
-+	struct snd_soc_aux_dev *aux_dev = &card->aux_dev[num];
-+	const char *codecname = aux_dev->codec_name;
-+	struct snd_soc_codec *codec = soc_find_matching_codec(card, num);
- 
-+	if (codec)
-+		return 0;
-+	if (aux_dev->codec_of_node)
-+		codecname = of_node_full_name(aux_dev->codec_of_node);
-+
-+	dev_err(card->dev, "ASoC: %s not registered\n", codecname);
- 	return -EPROBE_DEFER;
- }
- 
- static int soc_probe_aux_dev(struct snd_soc_card *card, int num)
- {
- 	struct snd_soc_aux_dev *aux_dev = &card->aux_dev[num];
--	struct snd_soc_codec *codec;
-+	const char *codecname = aux_dev->codec_name;
- 	int ret = -ENODEV;
-+	struct snd_soc_codec *codec = soc_find_matching_codec(card, num);
- 
--	/* find CODEC from registered CODECs*/
--	list_for_each_entry(codec, &codec_list, list) {
--		if (!strcmp(codec->name, aux_dev->codec_name)) {
--			if (codec->probed) {
--				dev_err(codec->dev,
--					"ASoC: codec already probed");
--				ret = -EBUSY;
--				goto out;
--			}
--			goto found;
--		}
-+	if (!codec) {
-+		if (aux_dev->codec_of_node)
-+			codecname = of_node_full_name(aux_dev->codec_of_node);
-+
-+		/* codec not found */
-+		dev_err(card->dev, "ASoC: codec %s not found", codecname);
-+		return -EPROBE_DEFER;
-+	}
-+
-+	if (codec->probed) {
-+		dev_err(codec->dev, "ASoC: codec already probed");
-+		return -EBUSY;
- 	}
--	/* codec not found */
--	dev_err(card->dev, "ASoC: codec %s not found", aux_dev->codec_name);
--	return -EPROBE_DEFER;
- 
--found:
- 	ret = soc_probe_codec(card, codec);
- 	if (ret < 0)
- 		return ret;
- 
- 	ret = soc_post_component_init(card, codec, num, 1);
- 
--out:
- 	return ret;
- }
- 
+ static const struct soc_enum rx51_enum[] = {
+ 	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(spk_function), spk_function),
 -- 
 1.9.2
