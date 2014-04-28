@@ -1,34 +1,169 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv2 2/9] ASoC: omap: rx51: Add module alias
-Date: Mon, 28 Apr 2014 16:07:20 +0200
-Message-ID: <1398694047-28596-3-git-send-email-sre@kernel.org>
+Subject: [PATCHv2 4/9] ASoC: Allow Aux Codecs to be specified using DT
+Date: Mon, 28 Apr 2014 16:07:22 +0200
+Message-ID: <1398694047-28596-5-git-send-email-sre@kernel.org>
 References: <1398694047-28596-1-git-send-email-sre@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1398694047-28596-1-git-send-email-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sre@ring0.de>, Mark Brown <broonie@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Sebastian Reichel <sre@kernel.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-omap@vger.kernel.org
 
-Add module alias to support driver autoloading.
+This patch adds support for specifying auxiliary codecs and
+codec configuration via device tree phandles.
 
-Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+This change adds new fields to snd_soc_aux_dev and snd_soc_codec_conf
+and adds support for the changes to SoC core methods.
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- sound/soc/omap/rx51.c | 1 +
- 1 file changed, 1 insertion(+)
+ include/sound/soc.h  | 13 +++++++++-
+ sound/soc/soc-core.c | 68 ++++++++++++++++++++++++++++++++--------------------
+ 2 files changed, 54 insertions(+), 27 deletions(-)
 
-diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
-index 1a3f05c..55713d0 100644
---- a/sound/soc/omap/rx51.c
-+++ b/sound/soc/omap/rx51.c
-@@ -421,3 +421,4 @@ module_exit(rx51_soc_exit);
- MODULE_AUTHOR("Nokia Corporation");
- MODULE_DESCRIPTION("ALSA SoC Nokia RX-51");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:rx51-audio");
---=20
+diff --git a/include/sound/soc.h b/include/sound/soc.h
+index 0fadb3c..22dfaef 100644
+--- a/include/sound/soc.h
++++ b/include/sound/soc.h
+@@ -923,7 +923,12 @@ struct snd_soc_dai_link {
+ };
+ 
+ struct snd_soc_codec_conf {
++	/*
++	 * specify device either by device name, or by
++	 * DT/OF node, but not both.
++	 */
+ 	const char *dev_name;
++	const struct device_node *of_node;
+ 
+ 	/*
+ 	 * optional map of kcontrol, widget and path name prefixes that are
+@@ -934,7 +939,13 @@ struct snd_soc_codec_conf {
+ 
+ struct snd_soc_aux_dev {
+ 	const char *name;		/* Codec name */
+-	const char *codec_name;		/* for multi-codec */
++
++	/*
++	 * specify multi-codec either by device name, or by
++	 * DT/OF node, but not both.
++	 */
++	const char *codec_name;
++	const struct device_node *codec_of_node;
+ 
+ 	/* codec/machine specific init - e.g. add machine controls */
+ 	int (*init)(struct snd_soc_dapm_context *dapm);
+diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+index f18112a..39f6c04 100644
+--- a/sound/soc/soc-core.c
++++ b/sound/soc/soc-core.c
+@@ -1119,10 +1119,12 @@ static void soc_set_name_prefix(struct snd_soc_card *card,
+ 
+ 	for (i = 0; i < card->num_configs; i++) {
+ 		struct snd_soc_codec_conf *map = &card->codec_conf[i];
+-		if (map->dev_name && !strcmp(codec->name, map->dev_name)) {
+-			codec->name_prefix = map->name_prefix;
+-			break;
+-		}
++		if (map->of_node && codec->dev->of_node != map->of_node)
++			continue;
++		if (map->dev_name && strcmp(codec->name, map->dev_name))
++			continue;
++		codec->name_prefix = map->name_prefix;
++		break;
+ 	}
+ }
+ 
+@@ -1652,52 +1654,66 @@ static void soc_unregister_ac97_dai_link(struct snd_soc_pcm_runtime *rtd)
+ }
+ #endif
+ 
+-static int soc_check_aux_dev(struct snd_soc_card *card, int num)
++struct snd_soc_codec *soc_find_matching_codec(struct snd_soc_card *card, int num)
+ {
+ 	struct snd_soc_aux_dev *aux_dev = &card->aux_dev[num];
+ 	struct snd_soc_codec *codec;
+ 
+-	/* find CODEC from registered CODECs*/
++	/* find CODEC from registered CODECs */
+ 	list_for_each_entry(codec, &codec_list, list) {
+-		if (!strcmp(codec->name, aux_dev->codec_name))
+-			return 0;
++		if (aux_dev->codec_of_node &&
++		   (codec->dev->of_node != aux_dev->codec_of_node))
++			continue;
++		if (aux_dev->codec_name && strcmp(codec->name, aux_dev->codec_name))
++			continue;
++		return codec;
+ 	}
+ 
+-	dev_err(card->dev, "ASoC: %s not registered\n", aux_dev->codec_name);
++	return NULL;
++}
++
++static int soc_check_aux_dev(struct snd_soc_card *card, int num)
++{
++	struct snd_soc_aux_dev *aux_dev = &card->aux_dev[num];
++	const char *codecname = aux_dev->codec_name;
++	struct snd_soc_codec *codec = soc_find_matching_codec(card, num);
+ 
++	if (codec)
++		return 0;
++	if (aux_dev->codec_of_node)
++		codecname = of_node_full_name(aux_dev->codec_of_node);
++
++	dev_err(card->dev, "ASoC: %s not registered\n", codecname);
+ 	return -EPROBE_DEFER;
+ }
+ 
+ static int soc_probe_aux_dev(struct snd_soc_card *card, int num)
+ {
+ 	struct snd_soc_aux_dev *aux_dev = &card->aux_dev[num];
+-	struct snd_soc_codec *codec;
++	const char *codecname = aux_dev->codec_name;
+ 	int ret = -ENODEV;
++	struct snd_soc_codec *codec = soc_find_matching_codec(card, num);
+ 
+-	/* find CODEC from registered CODECs*/
+-	list_for_each_entry(codec, &codec_list, list) {
+-		if (!strcmp(codec->name, aux_dev->codec_name)) {
+-			if (codec->probed) {
+-				dev_err(codec->dev,
+-					"ASoC: codec already probed");
+-				ret = -EBUSY;
+-				goto out;
+-			}
+-			goto found;
+-		}
++	if (!codec) {
++		if (aux_dev->codec_of_node)
++			codecname = of_node_full_name(aux_dev->codec_of_node);
++
++		/* codec not found */
++		dev_err(card->dev, "ASoC: codec %s not found", codecname);
++		return -EPROBE_DEFER;
++	}
++
++	if (codec->probed) {
++		dev_err(codec->dev, "ASoC: codec already probed");
++		return -EBUSY;
+ 	}
+-	/* codec not found */
+-	dev_err(card->dev, "ASoC: codec %s not found", aux_dev->codec_name);
+-	return -EPROBE_DEFER;
+ 
+-found:
+ 	ret = soc_probe_codec(card, codec);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	ret = soc_post_component_init(card, codec, num, 1);
+ 
+-out:
+ 	return ret;
+ }
+ 
+-- 
 1.9.2
