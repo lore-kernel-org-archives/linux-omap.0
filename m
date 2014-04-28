@@ -1,96 +1,42 @@
-From: =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
-Subject: [PATCH v2 4/4] ARM: dts: am335x-igep0033: use phandles for USB and DMA refs
-Date: Mon, 28 Apr 2014 17:54:35 -0300
-Message-ID: <1398718475-1883-4-git-send-email-guido@vanguardiasur.com.ar>
-References: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
- <1398718475-1883-1-git-send-email-guido@vanguardiasur.com.ar>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP3: clock: Back-propagate rate change from
+ cam_mclk to dpll4_m5 on all OMAP3 platforms
+Date: Mon, 28 Apr 2014 21:57:33 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1404282156400.14616@utopia.booyaka.com>
+References: <1398085583-9615-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1144989685-1398722253=:14616"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yh0-f49.google.com ([209.85.213.49]:57514 "EHLO
-	mail-yh0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755826AbaD1U4w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 16:56:52 -0400
-Received: by mail-yh0-f49.google.com with SMTP id t59so3110004yho.22
-        for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2014 13:56:52 -0700 (PDT)
-In-Reply-To: <1398718475-1883-1-git-send-email-guido@vanguardiasur.com.ar>
+Received: from utopia.booyaka.com ([74.50.51.50]:37763 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751993AbaD1V5e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 17:57:34 -0400
+In-Reply-To: <1398085583-9615-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: bcousson@baylibre.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, george.cherian@ti.com, =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>, =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>, Enric Balletbo i Serra <eballetbo@iseebcn.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, t-kristo@ti.com
 
-Use phandles instead of unit adresses to reference usb and dma nodes.
-This makes the DT more robust and readable.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Signed-off-by: Guido Mart=C3=ADnez <guido@vanguardiasur.com.ar>
-Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
----
- arch/arm/boot/dts/am335x-igep0033.dtsi | 38 +++++++++++++++++---------=
---------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+--843723315-1144989685-1398722253=:14616
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts=
-/am335x-igep0033.dtsi
-index 9f22c18..9c53b50 100644
---- a/arch/arm/boot/dts/am335x-igep0033.dtsi
-+++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-@@ -200,31 +200,31 @@
-=20
- &usb {
- 	status =3D "okay";
-+};
-=20
--	control@44e10620 {
--		status =3D "okay";
--	};
-+&usb_ctrl_mod {
-+	status =3D "okay";
-+};
-=20
--	usb-phy@47401300 {
--		status =3D "okay";
--	};
-+&usb0_phy {
-+	status =3D "okay";
-+};
-=20
--	usb-phy@47401b00 {
--		status =3D "okay";
--	};
-+&usb1_phy {
-+	status =3D "okay";
-+};
-=20
--	usb@47401000 {
--		status =3D "okay";
--	};
-+&usb0 {
-+	status =3D "okay";
-+};
-=20
--	usb@47401800 {
--		status =3D "okay";
--		dr_mode =3D "host";
--	};
-+&usb1 {
-+	status =3D "okay";
-+	dr_mode =3D "host";
-+};
-=20
--	dma-controller@47402000  {
--		status =3D "okay";
--	};
-+&cppi41dma  {
-+	status =3D "okay";
- };
-=20
- #include "tps65910.dtsi"
---=20
-1.9.2
+On Mon, 21 Apr 2014, Laurent Pinchart wrote:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+>=20
+> Commit 7b2e1277598e4187c9be3e61fd9b0f0423f97986 ("ARM: OMAP3: clock:
+> Back-propagate rate change from cam_mclk to dpll4_m5") enabled clock
+> rate back-propagation from cam_mclk do dpll4_m5 on OMAP3630 only.
+> Perform back-propagation on other OMAP3 platforms as well.
+>=20
+> Reported-by: Jean-Philippe Fran=C3=A7ois <jp.francois@cynove.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Thanks, queued for v3.15-rc.
+
+- Paul
+--843723315-1144989685-1398722253=:14616--
