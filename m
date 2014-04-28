@@ -1,50 +1,94 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/2] dmaengine: edma: update DMA memcpy to use new param
-	element
-Date: Mon, 28 Apr 2014 15:48:48 -0500
-Message-ID: <1398718128-22647-2-git-send-email-joelf@ti.com>
-References: <1398718128-22647-1-git-send-email-joelf@ti.com>
+From: =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
+Subject: [PATCH v2 1/4] ARM: dts: am335x-bone-common: use phandles for USB and DMA refs
+Date: Mon, 28 Apr 2014 17:54:32 -0300
+Message-ID: <1398718475-1883-1-git-send-email-guido@vanguardiasur.com.ar>
+References: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1398718128-22647-1-git-send-email-joelf-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Matt Porter <matt-agtwNxEcTQJWk0Htik3J/w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yk0-f171.google.com ([209.85.160.171]:56535 "EHLO
+	mail-yk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752338AbaD1U4g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 16:56:36 -0400
+Received: by mail-yk0-f171.google.com with SMTP id 10so1054076ykt.30
+        for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2014 13:56:35 -0700 (PDT)
+In-Reply-To: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: bcousson@baylibre.com
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, george.cherian@ti.com, =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>, =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
 
-edma param struct is now within an edma_pset struct introduced in Thomas
-Gleixner's edma tx status series. Update memcpy function for the same.
+Use phandles instead of unit adresses to reference usb and dma nodes.
+This makes the DT more robust and readable.
 
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Guido Mart=C3=ADnez <guido@vanguardiasur.com.ar>
 ---
- drivers/dma/edma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 38 +++++++++++++++--------=
+--------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 8926078..ec9c410 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -582,8 +582,8 @@ struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
- 	 * on completion of every TR, and enable transfer-completion
- 	 * interrupt on completion of the whole transfer.
- 	 */
--	edesc->pset[0].opt |= ITCCHEN;
--	edesc->pset[0].opt |= TCINTEN;
-+	edesc->pset[0].param.opt |= ITCCHEN;
-+	edesc->pset[0].param.opt |= TCINTEN;
- 
- 	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
- }
--- 
-1.7.9.5
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/=
+dts/am335x-bone-common.dtsi
+index 2e7d932..ded1283 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -182,31 +182,31 @@
+=20
+ &usb {
+ 	status =3D "okay";
++};
+=20
+-	control@44e10620 {
+-		status =3D "okay";
+-	};
++&usb_ctrl_mod {
++	status =3D "okay";
++};
+=20
+-	usb-phy@47401300 {
+-		status =3D "okay";
+-	};
++&usb0_phy {
++	status =3D "okay";
++};
+=20
+-	usb-phy@47401b00 {
+-		status =3D "okay";
+-	};
++&usb1_phy {
++	status =3D "okay";
++};
+=20
+-	usb@47401000 {
+-		status =3D "okay";
+-	};
++&usb0 {
++	status =3D "okay";
++};
+=20
+-	usb@47401800 {
+-		status =3D "okay";
+-		dr_mode =3D "host";
+-	};
++&usb1 {
++	status =3D "okay";
++	dr_mode =3D "host";
++};
+=20
+-	dma-controller@47402000  {
+-		status =3D "okay";
+-	};
++&cppi41dma  {
++	status =3D "okay";
+ };
+=20
+ &i2c0 {
+--=20
+1.9.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
