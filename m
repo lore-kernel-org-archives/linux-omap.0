@@ -1,29 +1,46 @@
-From: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/6] drivers: net: cpts: Remove hardcoded clock name for
- CPTS
-Date: Mon, 28 Apr 2014 08:55:29 +0200
-Message-ID: <20140428065529.GA4380@netboy>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH 5/6] ARM: AM43xx: clk: Change the cpts ref clock source
+ to dpll_core_m5 clk
+Date: Mon, 28 Apr 2014 09:10:36 +0200
+Message-ID: <20140428071034.GB4380@netboy>
 References: <1398658225-25873-1-git-send-email-george.cherian@ti.com>
- <1398658225-25873-2-git-send-email-george.cherian@ti.com>
+ <1398658225-25873-6-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:47751 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751656AbaD1HKx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 03:10:53 -0400
 Content-Disposition: inline
-In-Reply-To: <1398658225-25873-2-git-send-email-george.cherian-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ast-uqk4Ao+rVK5Wk0Htik3J/w@public.gmane.org, tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org, mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org, zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, mugunthanvnm-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+In-Reply-To: <1398658225-25873-6-git-send-email-george.cherian@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, davem@davemloft.net, jeffrey.t.kirsher@intel.com, dborkman@redhat.com, ast@plumgrid.com, tklauser@distanz.ch, mpa@pengutronix.de, bhutchings@solarflare.com, zonque@gmail.com, balbi@ti.com, mugunthanvnm@ti.com, t-kristo@ti.com, mturquette@linaro.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, bcousson@baylibre.com
 
-On Mon, Apr 28, 2014 at 09:40:20AM +0530, George Cherian wrote:
-> CPTS refclk name is hardcoded, which makes it fail in case of DRA7x
-> Remove the hardcoded clock name for CPTS refclk and get the same from DT.
+On Mon, Apr 28, 2014 at 09:40:24AM +0530, George Cherian wrote:
+> cpsw_cpts_rft_clk has got the choice of 3 clocksources
+>  -dpll_core_m4_ck
+>  -dpll_core_m5_ck
+>  -dpll_disp_m2_ck
+> 
+> By default dpll_core_m4_ck is selected, witn this as clock
+> source the CPTS doesnot work properly. It gives clockcheck errors
+> while running PTP.
+> 
+>  clockcheck: clock jumped backward or running slower than expected!
 
-Patch ordering - doesn't this patch depend on patch #2?
+It is strange that I have never seen this error, since I have often
+tested linuxptp on a beagle bone white.
+
+Can you please explain why this clock doesn't work correctly?
+
+> By selecting dpll_core_m5_ck as the clocksource fixes this issue.
+> In AM335x dpll_core_m5_ck is the default clocksource.
+
+The choice of clock source in the CPTS driver originally came from
+TI. It would be nice to know why that was the wrong choice.
 
 Thanks,
 Richard
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
