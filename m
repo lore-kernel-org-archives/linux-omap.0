@@ -1,144 +1,231 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCHv2 8/9] ASoC: omap: rx51: Add DT support
-Date: Mon, 28 Apr 2014 16:07:26 +0200
-Message-ID: <1398694047-28596-9-git-send-email-sre@kernel.org>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCHv2 6/9] ASoC: omap: rx51: get GPIO numbers via gpiod API
+Date: Mon, 28 Apr 2014 16:07:24 +0200
+Message-ID: <1398694047-28596-7-git-send-email-sre@kernel.org>
 References: <1398694047-28596-1-git-send-email-sre@kernel.org>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1398694047-28596-1-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1398694047-28596-1-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@ring0.de>, Mark Brown <broonie@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds device tree support to the Nokia N900 audio driver and
-adds documentation for the DT binding.
+Update the driver to get GPIO numbers from the
+devm gpiod API instead of requesting hardcoded
+GPIO numbers.
 
-Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- .../devicetree/bindings/sound/nokia,rx51.txt       | 27 +++++++++++
- sound/soc/omap/rx51.c                              | 53 ++++++++++++++++++++++
- 2 files changed, 80 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/sound/nokia,rx51.txt
+ sound/soc/omap/rx51.c | 114 ++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 79 insertions(+), 35 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/sound/nokia,rx51.txt b/Documentation/devicetree/bindings/sound/nokia,rx51.txt
-new file mode 100644
-index 0000000..72f93d9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/sound/nokia,rx51.txt
-@@ -0,0 +1,27 @@
-+* Nokia N900 audio setup
-+
-+Required properties:
-+- compatible: Should contain "nokia,n900-audio"
-+- nokia,cpu-dai: phandle for the McBSP node
-+- nokia,audio-codec: phandles for the main TLV320AIC3X node and the
-+                     auxiliary TLV320AIC3X node (in this order)
-+- nokia,headphone-amplifier: phandle for the TPA6130A2 node
-+- tvout-selection-gpios: GPIO for tvout selection
-+- jack-detection-gpios: GPIO for jack detection
-+- eci-switch-gpios: GPIO for ECI (Enhancement Control Interface) switch
-+- speaker-amplifier-gpios: GPIO for speaker amplifier
-+
-+Example:
-+
-+sound {
-+	compatible = "nokia,n900-audio";
-+
-+	nokia,cpu-dai = <&mcbsp2>;
-+	nokia,audio-codec = <&tlv320aic3x>, <&tlv320aic3x_aux>;
-+	nokia,headphone-amplifier = <&tpa6130a2>;
-+
-+	tvout-selection-gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>; /* 40 */
-+	jack-detection-gpios = <&gpio6 17 GPIO_ACTIVE_HIGH>; /* 177 */
-+	eci-switch-gpios = <&gpio6 22 GPIO_ACTIVE_HIGH>; /* 182 */
-+	speaker-amplifier-gpios = <&twl_gpio 7 GPIO_ACTIVE_HIGH>;
-+};
 diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
-index 110deca..866578b 100644
+index e140b1b..30cfac0 100644
 --- a/sound/soc/omap/rx51.c
 +++ b/sound/soc/omap/rx51.c
-@@ -386,6 +386,7 @@ static struct snd_soc_card rx51_sound_card = {
+@@ -26,6 +26,7 @@
+ #include <linux/delay.h>
+ #include <linux/gpio.h>
+ #include <linux/platform_device.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/module.h>
+ #include <sound/core.h>
+ #include <sound/jack.h>
+@@ -38,15 +39,6 @@
+ 
+ #include "omap-mcbsp.h"
+ 
+-#define RX51_TVOUT_SEL_GPIO		40
+-#define RX51_JACK_DETECT_GPIO		177
+-#define RX51_ECI_SW_GPIO		182
+-/*
+- * REVISIT: TWL4030 GPIO base in RX-51. Now statically defined to 192. This
+- * gpio is reserved in arch/arm/mach-omap2/board-rx51-peripherals.c
+- */
+-#define RX51_SPEAKER_AMP_TWL_GPIO	(192 + 7)
+-
+ enum {
+ 	RX51_JACK_DISABLED,
+ 	RX51_JACK_TVOUT,		/* tv-out with stereo output */
+@@ -54,12 +46,21 @@ enum {
+ 	RX51_JACK_HS,			/* headset: stereo output with mic */
+ };
+ 
++struct rx51_audio_pdata {
++	struct gpio_desc *tvout_selection_gpio;
++	struct gpio_desc *jack_detection_gpio;
++	struct gpio_desc *eci_sw_gpio;
++	struct gpio_desc *speaker_amp_gpio;
++};
++
+ static int rx51_spk_func;
+ static int rx51_dmic_func;
+ static int rx51_jack_func;
+ 
+ static void rx51_ext_control(struct snd_soc_dapm_context *dapm)
+ {
++	struct snd_soc_card *card = dapm->card;
++	struct rx51_audio_pdata *pdata = snd_soc_card_get_drvdata(card);
+ 	int hp = 0, hs = 0, tvout = 0;
+ 
+ 	switch (rx51_jack_func) {
+@@ -93,7 +94,7 @@ static void rx51_ext_control(struct snd_soc_dapm_context *dapm)
+ 	else
+ 		snd_soc_dapm_disable_pin_unlocked(dapm, "HS Mic");
+ 
+-	gpio_set_value(RX51_TVOUT_SEL_GPIO, tvout);
++	gpiod_set_value(pdata->tvout_selection_gpio, tvout);
+ 
+ 	snd_soc_dapm_sync_unlocked(dapm);
+ 
+@@ -154,10 +155,12 @@ static int rx51_set_spk(struct snd_kcontrol *kcontrol,
+ static int rx51_spk_event(struct snd_soc_dapm_widget *w,
+ 			  struct snd_kcontrol *k, int event)
+ {
+-	if (SND_SOC_DAPM_EVENT_ON(event))
+-		gpio_set_value_cansleep(RX51_SPEAKER_AMP_TWL_GPIO, 1);
+-	else
+-		gpio_set_value_cansleep(RX51_SPEAKER_AMP_TWL_GPIO, 0);
++	struct snd_soc_dapm_context *dapm = w->dapm;
++	struct snd_soc_card *card = dapm->card;
++	struct rx51_audio_pdata *pdata = snd_soc_card_get_drvdata(card);
++
++	gpiod_set_raw_value_cansleep(pdata->speaker_amp_gpio,
++				     !!SND_SOC_DAPM_EVENT_ON(event));
+ 
+ 	return 0;
+ }
+@@ -223,7 +226,6 @@ static struct snd_soc_jack rx51_av_jack;
+ 
+ static struct snd_soc_jack_gpio rx51_av_jack_gpios[] = {
+ 	{
+-		.gpio = RX51_JACK_DETECT_GPIO,
+ 		.name = "avdet-gpio",
+ 		.report = SND_JACK_HEADSET,
+ 		.invert = 1,
+@@ -284,6 +286,9 @@ static const struct snd_kcontrol_new aic34_rx51_controls[] = {
+ static int rx51_aic34_init(struct snd_soc_pcm_runtime *rtd)
+ {
+ 	struct snd_soc_codec *codec = rtd->codec;
++	struct snd_soc_card *card = codec->card;
++	struct rx51_audio_pdata *pdata = snd_soc_card_get_drvdata(card);
++
+ 	struct snd_soc_dapm_context *dapm = &codec->dapm;
+ 	int err;
+ 
+@@ -307,6 +312,11 @@ static int rx51_aic34_init(struct snd_soc_pcm_runtime *rtd)
+ 			       &rx51_av_jack);
+ 	if (err)
+ 		return err;
++
++	/* prepare gpio for snd_soc_jack_add_gpios */
++	rx51_av_jack_gpios[0].gpio = desc_to_gpio(pdata->jack_detection_gpio);
++	devm_gpiod_put(card->dev, pdata->jack_detection_gpio);
++
+ 	err = snd_soc_jack_add_gpios(&rx51_av_jack,
+ 				     ARRAY_SIZE(rx51_av_jack_gpios),
+ 				     rx51_av_jack_gpios);
+@@ -365,37 +375,74 @@ static struct snd_soc_card rx51_sound_card = {
+ 
  static int rx51_soc_probe(struct platform_device *pdev)
  {
- 	struct rx51_audio_pdata *pdata;
-+	struct device_node *np = pdev->dev.of_node;
++	struct rx51_audio_pdata *pdata;
  	struct snd_soc_card *card = &rx51_sound_card;
  	int err;
  
-@@ -394,6 +395,49 @@ static int rx51_soc_probe(struct platform_device *pdev)
+ 	if (!machine_is_nokia_rx51() && !of_machine_is_compatible("nokia,omap3-n900"))
+ 		return -ENODEV;
  
+-	err = gpio_request_one(RX51_TVOUT_SEL_GPIO,
+-			       GPIOF_DIR_OUT | GPIOF_INIT_LOW, "tvout_sel");
+-	if (err)
+-		goto err_gpio_tvout_sel;
+-	err = gpio_request_one(RX51_ECI_SW_GPIO,
+-			       GPIOF_DIR_OUT | GPIOF_INIT_HIGH, "eci_sw");
+-	if (err)
+-		goto err_gpio_eci_sw;
+-
  	card->dev = &pdev->dev;
  
-+	if (np) {
-+		struct device_node *dai_node;
++	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
++	if (pdata == NULL) {
++		dev_err(card->dev, "failed to create private data\n");
++		return -ENOMEM;
++	}
++	snd_soc_card_set_drvdata(card, pdata);
 +
-+		dai_node = of_parse_phandle(np, "nokia,cpu-dai", 0);
-+		if (!dai_node) {
-+			dev_err(&pdev->dev, "McBSP node is not provided\n");
-+			return -EINVAL;
-+		}
-+		rx51_dai[0].cpu_dai_name = NULL;
-+		rx51_dai[0].platform_name = NULL;
-+		rx51_dai[0].cpu_of_node = dai_node;
-+		rx51_dai[0].platform_of_node = dai_node;
-+
-+		dai_node = of_parse_phandle(np, "nokia,audio-codec", 0);
-+		if (!dai_node) {
-+			dev_err(&pdev->dev, "Codec node is not provided\n");
-+			return -EINVAL;
-+		}
-+		rx51_dai[0].codec_name = NULL;
-+		rx51_dai[0].codec_of_node = dai_node;
-+
-+		dai_node = of_parse_phandle(np, "nokia,audio-codec", 1);
-+		if (!dai_node) {
-+			dev_err(&pdev->dev, "Auxiliary Codec node is not provided\n");
-+			return -EINVAL;
-+		}
-+		rx51_aux_dev[0].codec_name = NULL;
-+		rx51_aux_dev[0].codec_of_node = dai_node;
-+		rx51_codec_conf[0].dev_name = NULL;
-+		rx51_codec_conf[0].of_node = dai_node;
-+
-+		dai_node = of_parse_phandle(np, "nokia,headphone-amplifier", 0);
-+		if (!dai_node) {
-+			dev_err(&pdev->dev, "Headphone amplifier node is not provided\n");
-+			return -EINVAL;
-+		}
-+
-+		/* TODO: tpa6130a2a driver supports only a single instance, so
-+		 * this driver ignores the headphone-amplifier node for now.
-+		 * It's already mandatory in the DT binding to be future proof.
-+		 */
++	pdata->tvout_selection_gpio = devm_gpiod_get(card->dev,
++						     "tvout-selection");
++	if (IS_ERR(pdata->tvout_selection_gpio)) {
++		dev_err(card->dev, "could not get tvout selection gpio\n");
++		return PTR_ERR(pdata->tvout_selection_gpio);
 +	}
 +
- 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
- 	if (pdata == NULL) {
- 		dev_err(card->dev, "failed to create private data\n");
-@@ -463,10 +507,19 @@ static int rx51_soc_remove(struct platform_device *pdev)
++	err = gpiod_direction_output(pdata->tvout_selection_gpio, 0);
++	if (err) {
++		dev_err(card->dev, "could not setup tvout selection gpio\n");
++		return err;
++	}
++
++	pdata->jack_detection_gpio = devm_gpiod_get(card->dev,
++						    "jack-detection");
++	if (IS_ERR(pdata->jack_detection_gpio)) {
++		dev_err(card->dev, "could not get jack detection gpio\n");
++		return PTR_ERR(pdata->jack_detection_gpio);
++	}
++
++	pdata->eci_sw_gpio = devm_gpiod_get(card->dev, "eci-switch");
++	if (IS_ERR(pdata->eci_sw_gpio)) {
++		dev_err(card->dev, "could not get eci switch gpio\n");
++		return PTR_ERR(pdata->eci_sw_gpio);
++	}
++
++	err = gpiod_direction_output(pdata->eci_sw_gpio, 1);
++	if (err) {
++		dev_err(card->dev, "could not setup eci switch gpio\n");
++		return err;
++	}
++
++	pdata->speaker_amp_gpio = devm_gpiod_get(card->dev,
++						 "speaker-amplifier");
++	if (IS_ERR(pdata->speaker_amp_gpio)) {
++		dev_err(card->dev, "could not get speaker enable gpio\n");
++		return PTR_ERR(pdata->speaker_amp_gpio);
++	}
++
++	err = gpiod_direction_output(pdata->speaker_amp_gpio, 0);
++	if (err) {
++		dev_err(card->dev, "could not setup speaker enable gpio\n");
++		return err;
++	}
++
+ 	err = devm_snd_soc_register_card(card->dev, card);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", err);
+-		goto err_snd;
++		return err;
+ 	}
+ 
+ 	return 0;
+-err_snd:
+-	gpio_free(RX51_ECI_SW_GPIO);
+-err_gpio_eci_sw:
+-	gpio_free(RX51_TVOUT_SEL_GPIO);
+-err_gpio_tvout_sel:
+-
+-	return err;
+ }
+ 
+ static int rx51_soc_remove(struct platform_device *pdev)
+@@ -403,9 +450,6 @@ static int rx51_soc_remove(struct platform_device *pdev)
+ 	snd_soc_jack_free_gpios(&rx51_av_jack, ARRAY_SIZE(rx51_av_jack_gpios),
+ 				rx51_av_jack_gpios);
+ 
+-	gpio_free(RX51_ECI_SW_GPIO);
+-	gpio_free(RX51_TVOUT_SEL_GPIO);
+-
  	return 0;
  }
  
-+#if defined(CONFIG_OF)
-+static const struct of_device_id rx51_audio_of_match[] = {
-+	{ .compatible = "nokia,n900-audio", },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, rx51_audio_of_match);
-+#endif
-+
- static struct platform_driver rx51_soc_driver = {
- 	.driver = {
- 		.name = "rx51-audio",
- 		.owner = THIS_MODULE,
-+		.of_match_table = of_match_ptr(rx51_audio_of_match),
- 	},
- 	.probe = rx51_soc_probe,
- 	.remove = rx51_soc_remove,
 -- 
 1.9.2
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
