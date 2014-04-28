@@ -1,125 +1,43 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V3 17/20] bus: omap_l3_noc: Add information about the context
- of operation
-Date: Mon, 28 Apr 2014 10:14:57 -0500
-Message-ID: <1398698101-25513-18-git-send-email-nm@ti.com>
-References: <1397492726-17203-1-git-send-email-nm@ti.com>
- <1398698101-25513-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] mfd: twl4030-power: Add recommended idle
+ configuration
+Date: Mon, 28 Apr 2014 08:33:47 -0700
+Message-ID: <20140428153346.GI20807@atomide.com>
+References: <1398300030-7386-1-git-send-email-tony@atomide.com>
+ <1398300030-7386-2-git-send-email-tony@atomide.com>
+ <20140428114133.GV21279@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1398698101-25513-1-git-send-email-nm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sricharan R <r.sricharan@ti.com>, Sekhar Nori <nsekhar@ti.com>, Rajendra Nayak <rnayak@ti.com>
-Cc: nm@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47450 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756434AbaD1Pdz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 11:33:55 -0400
+Content-Disposition: inline
+In-Reply-To: <20140428114133.GV21279@lee--X1>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Peter De Schrijver <pdeschrijver@nvidia.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-L3 error may be triggered using Debug interface (example JTAG) or
-due to other errors, for example an opcode fetch (due to function
-pointer or stack corruption) or a data access (due to some other
-failure). NOC registers contain additional information to help aid
-debug information.
+* Lee Jones <lee.jones@linaro.org> [140428 04:42]:
+> > These settings are based on the "Recommended Sleep Sequences for
+> > the Zoom Platform" pdf at:
+> > 
+> > http://omappedia.com/wiki/File:Recommended_Sleep_Sequences_Zoom.pdf
+> > 
+> > These settings assume most of the regulators are under control of
+> > Linux, and cuts off VDD1 and VDD2 during off-idle as Linux cannot
+> > do it.
+> 
+> Linux does it becuase Linux can't do it. Eh?
 
-With this, we can enhance the error information to more detailed form:
-"
-L3 Custom Error: MASTER MPU TARGET L4PER2 (Read): Data Access in User mode
-during Functional access
-"
+Heh yeah that's confusing, will update to:
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Tested-by: Darren Etheridge <detheridge@ti.com>
----
-V3: no change
- drivers/bus/omap_l3_noc.c |   18 ++++++++++++++----
- drivers/bus/omap_l3_noc.h |    2 ++
- 2 files changed, 16 insertions(+), 4 deletions(-)
+These settings assume most of the regulators are under control of
+Linux, and twl4030 only cuts off VDD1 and VDD2 during off-idle as
+Linux cannot do it.
 
-diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-index 9d021d0..08344b0 100644
---- a/drivers/bus/omap_l3_noc.c
-+++ b/drivers/bus/omap_l3_noc.c
-@@ -60,15 +60,16 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
- {
- 	int k;
- 	u32 std_err_main, clear, masterid;
--	u8 op_code;
-+	u8 op_code, m_req_info;
- 	void __iomem *l3_targ_base;
- 	void __iomem *l3_targ_stderr, *l3_targ_slvofslsb, *l3_targ_mstaddr;
--	void __iomem *l3_targ_hdr;
-+	void __iomem *l3_targ_hdr, *l3_targ_info;
- 	struct l3_target_data *l3_targ_inst;
- 	struct l3_masters_data *master;
- 	char *target_name, *master_name = "UN IDENTIFIED";
- 	char *err_description;
- 	char err_string[30] = { 0 };
-+	char info_string[60] = { 0 };
- 
- 	/* We DONOT expect err_src to go out of bounds */
- 	BUG_ON(err_src > MAX_CLKDM_TARGETS);
-@@ -99,6 +100,7 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
- 
- 		l3_targ_mstaddr = l3_targ_base + L3_TARG_STDERRLOG_MSTADDR;
- 		l3_targ_hdr = l3_targ_base + L3_TARG_STDERRLOG_HDR;
-+		l3_targ_info = l3_targ_base + L3_TARG_STDERRLOG_INFO;
- 		break;
- 
- 	case CUSTOM_ERROR:
-@@ -107,6 +109,7 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
- 		l3_targ_mstaddr = l3_targ_base +
- 				  L3_TARG_STDERRLOG_CINFO_MSTADDR;
- 		l3_targ_hdr = l3_targ_base + L3_TARG_STDERRLOG_CINFO_OPCODE;
-+		l3_targ_info = l3_targ_base + L3_TARG_STDERRLOG_CINFO_INFO;
- 		break;
- 
- 	default:
-@@ -128,13 +131,20 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
- 
- 	op_code = readl_relaxed(l3_targ_hdr) & 0x7;
- 
-+	m_req_info = readl_relaxed(l3_targ_info) & 0xF;
-+	snprintf(info_string, sizeof(info_string),
-+		 ": %s in %s mode during %s access",
-+		 (m_req_info & BIT(0)) ? "Opcode Fetch" : "Data Access",
-+		 (m_req_info & BIT(1)) ? "Supervisor" : "User",
-+		 (m_req_info & BIT(3)) ? "Debug" : "Functional");
-+
- 	WARN(true,
--	     "%s:L3 %s Error: MASTER %s TARGET %s (%s)%s\n",
-+	     "%s:L3 %s Error: MASTER %s TARGET %s (%s)%s%s\n",
- 	     dev_name(l3->dev),
- 	     err_description,
- 	     master_name, target_name,
- 	     l3_transaction_type[op_code],
--	     err_string);
-+	     err_string, info_string);
- 
- 	/* clear the std error log*/
- 	clear = std_err_main | CLEAR_STDERR_LOG;
-diff --git a/drivers/bus/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
-index 6670fd9..36dc48b 100644
---- a/drivers/bus/omap_l3_noc.h
-+++ b/drivers/bus/omap_l3_noc.h
-@@ -31,7 +31,9 @@
- #define L3_TARG_STDERRLOG_MAIN		0x48
- #define L3_TARG_STDERRLOG_HDR		0x4c
- #define L3_TARG_STDERRLOG_MSTADDR	0x50
-+#define L3_TARG_STDERRLOG_INFO		0x58
- #define L3_TARG_STDERRLOG_SLVOFSLSB	0x5c
-+#define L3_TARG_STDERRLOG_CINFO_INFO	0x64
- #define L3_TARG_STDERRLOG_CINFO_MSTADDR	0x68
- #define L3_TARG_STDERRLOG_CINFO_OPCODE	0x6c
- #define L3_FLAGMUX_REGERR0		0xc
--- 
-1.7.9.5
+Regards,
+
+Tony
