@@ -1,235 +1,78 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 6/7] ARM: dts: dra7: Add USB related nodes
-Date: Mon, 28 Apr 2014 11:05:56 -0500
-Message-ID: <20140428160556.GJ30292@saruman.home>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 7/7] dts: dra7-evm: add USB support
+Date: Mon, 28 Apr 2014 11:07:05 -0500
+Message-ID: <20140428160705.GK30292@saruman.home>
 References: <1398693687-13967-1-git-send-email-rogerq@ti.com>
- <1398693687-13967-7-git-send-email-rogerq@ti.com>
-Reply-To: <balbi@ti.com>
+ <1398693687-13967-8-git-send-email-rogerq@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6THr7QwYWIbrk6Kt"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51987 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751656AbaD1QGC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Apr 2014 12:06:02 -0400
+	protocol="application/pgp-signature"; boundary="Jtds+vpI57xq70EV"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1398693687-13967-7-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1398693687-13967-8-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, kishon@ti.com, tony@atomide.com, george.cherian@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
 
---6THr7QwYWIbrk6Kt
+--Jtds+vpI57xq70EV
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Apr 28, 2014 at 05:01:26PM +0300, Roger Quadros wrote:
-> Add nodes for the Super Speed USB controllers, omap-control-usb,
-> USB2 PHY and USB3 PHY devices.
+On Mon, Apr 28, 2014 at 05:01:27PM +0300, Roger Quadros wrote:
+> Add USB pinmux information and USB modes
+> for the USB controllers.
 >=20
-> Remove ocp2scp1 address space from hwmod data as it is
-> now provided via device tree.
->=20
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
+Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
 > ---
->  arch/arm/boot/dts/dra7.dtsi               | 149 ++++++++++++++++++++++++=
-++++++
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  10 --
->  2 files changed, 149 insertions(+), 10 deletions(-)
+>  arch/arm/boot/dts/dra7-evm.dts | 24 ++++++++++++++++++++++++
+>  1 file changed, 24 insertions(+)
 >=20
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index 149b550..4535e54 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -789,6 +789,155 @@
->  			dma-names =3D "tx0", "rx0";
->  			status =3D "disabled";
->  		};
-> +
-> +		omap_control_usb2phy1: control-phy@4a002300 {
-> +			compatible =3D "ti,control-phy-usb2";
-> +			reg =3D <0x4a002300 0x4>;
-> +			reg-names =3D "power";
-> +		};
-> +
-> +		omap_control_usb3phy1: control-phy@4a002370 {
-> +			compatible =3D "ti,control-phy-pipe3";
-> +			reg =3D <0x4a002370 0x4>;
-> +			reg-names =3D "power";
-> +		};
-> +
-> +		omap_control_usb2phy2: control-phy@0x4a002e74 {
-> +			compatible =3D "ti,control-phy-usb2-dra7";
-> +			reg =3D <0x4a002e74 0x4>;
-> +			reg-names =3D "power";
-> +		};
-> +
-> +		/* OCP2SCP1 */
-> +		ocp2scp@4a080000 {
-> +			compatible =3D "ti,omap-ocp2scp";
-> +			#address-cells =3D <1>;
-> +			#size-cells =3D <1>;
-> +			ranges;
-> +			reg =3D <0x4a080000 0x20>;
-> +			ti,hwmods =3D "ocp2scp1";
-> +
-> +			usb2_phy1: phy@4a084000 {
-> +				compatible =3D "ti,omap-usb2";
-> +				reg =3D <0x4a084000 0x400>;
-> +				ctrl-module =3D <&omap_control_usb2phy1>;
-> +				clocks =3D <&usb_phy1_always_on_clk32k>,
-> +					 <&usb_otg_ss1_refclk960m>;
-> +				clock-names =3D	"wkupclk",
-> +						"refclk";
-> +				#phy-cells =3D <0>;
-> +			};
-> +
-> +			usb2_phy2: phy@4a085000 {
-> +				compatible =3D "ti,omap-usb2";
-> +				reg =3D <0x4a085000 0x400>;
-> +				ctrl-module =3D <&omap_control_usb2phy2>;
-> +				clocks =3D <&usb_phy2_always_on_clk32k>,
-> +					 <&usb_otg_ss2_refclk960m>;
-> +				clock-names =3D	"wkupclk",
-> +						"refclk";
-> +				#phy-cells =3D <0>;
-> +			};
-> +
-> +			usb3_phy1: phy@4a084400 {
-> +				compatible =3D "ti,omap-usb3";
-> +				reg =3D <0x4a084400 0x80>,
-> +				      <0x4a084800 0x64>,
-> +				      <0x4a084c00 0x40>;
-> +				reg-names =3D "phy_rx", "phy_tx", "pll_ctrl";
-> +				ctrl-module =3D <&omap_control_usb3phy1>;
-> +				clocks =3D <&usb_phy3_always_on_clk32k>,
-> +					 <&sys_clkin1>,
-> +					 <&usb_otg_ss1_refclk960m>;
-> +				clock-names =3D	"wkupclk",
-> +						"sysclk",
-> +						"refclk";
-> +				#phy-cells =3D <0>;
-> +			};
-> +		};
-> +
-> +		omap_dwc3_1@48880000 {
-> +			compatible =3D "ti,dwc3";
-> +			ti,hwmods =3D "usb_otg_ss1";
-> +			reg =3D <0x48880000 0x10000>;
-> +			interrupts =3D <0 77 4>;
-> +			#address-cells =3D <1>;
-> +			#size-cells =3D <1>;
-> +			utmi-mode =3D <2>;
-> +			ranges;
-> +			usb1: usb@48890000 {
-> +				compatible =3D "snps,dwc3";
-> +				reg =3D <0x48890000 0x17000>;
-> +				interrupts =3D <0 76 4>;
-> +				phys =3D <&usb2_phy1>, <&usb3_phy1>;
-> +				phy-names =3D "usb2-phy", "usb3-phy";
-> +				tx-fifo-resize;
-> +				maximum-speed =3D "super-speed";
-> +				dr_mode =3D "otg";
-> +			};
-> +		};
-> +
-> +		omap_dwc3_2@488c0000 {
-> +			compatible =3D "ti,dwc3";
-> +			ti,hwmods =3D "usb_otg_ss2";
-> +			reg =3D <0x488c0000 0x10000>;
-> +			interrupts =3D <0 92 4>;
-> +			#address-cells =3D <1>;
-> +			#size-cells =3D <1>;
-> +			utmi-mode =3D <2>;
-> +			ranges;
-> +			usb2: usb@488d0000 {
-> +				compatible =3D "snps,dwc3";
-> +				reg =3D <0x488d0000 0x17000>;
-> +				interrupts =3D <0 78 4>;
-> +				phys =3D <&usb2_phy2>;
-> +				phy-names =3D "usb2-phy";
-> +				tx-fifo-resize;
-> +				maximum-speed =3D "high-speed";
-> +				dr_mode =3D "otg";
-> +			};
-> +		};
-> +
-> +		/* IRQ for DWC3_3 and DWC3_4 need IRQ crossbar */
-> +		omap_dwc3_3@48900000 {
-> +			compatible =3D "ti,dwc3";
-> +			ti,hwmods =3D "usb_otg_ss3";
-> +			reg =3D <0x48900000 0x10000>;
-> +		/*	interrupts =3D <0 TBD 4>; */
-> +			#address-cells =3D <1>;
-> +			#size-cells =3D <1>;
-> +			utmi-mode =3D <2>;
-> +			ranges;
-> +			status =3D "disabled";
-> +			usb3: usb@48910000 {
-> +				compatible =3D "snps,dwc3";
-> +				reg =3D <0x48910000 0x17000>;
-> +		/*		interrupts =3D <0 93 4>; */
-> +				tx-fifo-resize;
-> +				maximum-speed =3D "high-speed";
-> +				dr_mode =3D "otg";
-> +			};
-> +		};
-> +
-> +		omap_dwc3_4@48940000 {
-> +			compatible =3D "ti,dwc3";
-> +			ti,hwmods =3D "usb_otg_ss4";
-> +			reg =3D <0x48940000 0x10000>;
-> +		/*	interrupts =3D <0 TBD 4>; */
-> +			#address-cells =3D <1>;
-> +			#size-cells =3D <1>;
-> +			utmi-mode =3D <2>;
-> +			ranges;
-> +			status =3D "disabled";
-> +			usb4: usb@48950000 {
-> +				compatible =3D "snps,dwc3";
-> +				reg =3D <0x48950000 0x17000>;
-> +		/*		interrupts =3D <0 TBD 4>; */
-> +				tx-fifo-resize;
-> +				maximum-speed =3D "high-speed";
-> +				dr_mode =3D "otg";
-> +			};
-> +		};
+> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.=
+dts
+> index 5babba0..1d77815 100644
+> --- a/arch/arm/boot/dts/dra7-evm.dts
+> +++ b/arch/arm/boot/dts/dra7-evm.dts
+> @@ -93,6 +93,18 @@
+>  			0x24c (PIN_INPUT_SLEW | MUX_MODE0) /* uart3_txd */
+>  		>;
 >  	};
+> +
+> +	usb1_pins: pinmux_usb1_pins {
+> +                pinctrl-single,pins =3D <
+> +			0x280	0xc0000	/* usb1_drvvbus, SLOW_SLEW | PULLUPEN | MODE0 */
+> +                >;
+> +        };
+> +
+> +	usb2_pins: pinmux_usb2_pins {
+> +                pinctrl-single,pins =3D <
+> +			0x284	0xc0000 /* usb2_drvvbus, SLOW_SLEW | PULLUPEN | MODE0 */
+> +                >;
+> +        };
 >  };
 > =20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-om=
-ap2/omap_hwmod_7xx_data.c
-> index 067d322..d6f9709 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -2330,21 +2330,11 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__mp=
-u =3D {
->  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+>  &i2c1 {
+> @@ -273,3 +285,15 @@
+>  &cpu0 {
+>  	cpu0-supply =3D <&smps123_reg>;
 >  };
-> =20
-> -static struct omap_hwmod_addr_space dra7xx_ocp2scp1_addrs[] =3D {
-> -	{
-> -		.pa_start	=3D 0x4a080000,
-> -		.pa_end		=3D 0x4a08001f,
-> -		.flags		=3D ADDR_TYPE_RT
-> -	},
-> -	{ }
-> -};
-> -
->  /* l4_cfg -> ocp2scp1 */
->  static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 =3D {
->  	.master		=3D &dra7xx_l4_cfg_hwmod,
->  	.slave		=3D &dra7xx_ocp2scp1_hwmod,
->  	.clk		=3D "l4_root_clk_div",
-> -	.addr		=3D dra7xx_ocp2scp1_addrs,
->  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
->  };
-> =20
+> +
+> +&usb1 {
+> +	dr_mode =3D "peripheral";
+> +	pinctrl-names =3D "default";
+> +	pinctrl-0 =3D <&usb1_pins>;
+> +};
+> +
+> +&usb2 {
+> +	dr_mode =3D "host";
+> +	pinctrl-names =3D "default";
+> +	pinctrl-0 =3D <&usb2_pins>;
+> +};
 > --=20
 > 1.8.3.2
 >=20
@@ -237,26 +80,30 @@ u =3D {
 --=20
 balbi
 
---6THr7QwYWIbrk6Kt
+--Jtds+vpI57xq70EV
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTXnxkAAoJEIaOsuA1yqREBiUQALQ5IJzkVMppPuHICrSmY2aE
-RaN//P+F1V8apy9Pp+uW+qtq2VXrAtQagwnCrHHfaaeSKpD98Jlr8OS7nxtcX7FL
-eZtEZ4zWGkY/47XKDxL9Z+wPdIPAnO8NJBxcqMklaBCbgt9dKmAq9v3jf/SWDGiW
-wMPvjUCnbWcBpyrEKAUQQKcWVJ98hGUMNCBwiTNDWAjIK+3CUOYsH9zn71ycxIwv
-D/WZxIHUNJOtrmaMWFwUXQC2AjqkL16XG6T7ex2N4skEmhpXTOSJUG9BPjORdxMJ
-APlXKDH2dfXcR5R0xGUIIf9kAVOmD7Wsu2MUKGJhOJ7Os2Y5IMPbiPHFpktyK4N7
-9FSeoSZKSfYX/YT7qGvVSvA4L+/ncDBZ7N8pCYuvVlv/qZjwZIfydtOd29GuN579
-f5Z/Tzr9aSCZIO524X3eKPLwRt8wpwjLP9Ge/iWFUhlUMNob1e7Pv1yYQWq9wfw1
-C0lW37dvOXPCNtNpzA68uiITCX+j8uHOQhrLnCZaFyjkyF1cl7AirYtnh2utcdYP
-ZKitYAGSRiQm8suBX+KcAhJtDoUm6O6lgLcdpquVtZ704lbFmwFQJi0lutG6X6RY
-yEPRdOnAwMhUzO/cPNKrqk4xO47VJsaWVRBzX8gvtk/YiSYe5FX+92Gr286WBpsg
-CLTxVShbb68AqlAFyVMk
-=ZY10
+iQIcBAEBAgAGBQJTXnypAAoJEIaOsuA1yqREjO0P/3exr+z5ORWJedwGGSGdjlAu
+pg5RHN3tpumJoqNV0LCfaQuTRhCCGEymD5YwPpkIQWrvKihCIHyb/A5hfIMNjG9A
+DTC/JZ4e32mn036V3tP2PKY8qugHj/U/POrSJe0Q+My5Dfq7hwBOOT3eaaIMnSTR
+3mZjkkJbxbVOdbbMALrW/0+U4ZcCTpnTKGj3NKUHOnDYidUG4memEyT7I+tO983A
+0jV8ufu9H7ZUkGYoISxyXbcmy0Zr8i9aW27WoOBXTSymu7Pv0wB3Onyoy01q8T1M
+Lppw8rkt6SlVSpph5zYlsfsFaWxgV2pIlK72AwEPTmvYSglTd7XRky2+mKrCbVYl
+SFDfC64pZ29hupG2YBgsFIV9WhgjakbCKDNuozj5krxgZb/K6EabYVo2RILFLYTl
+8yLT9Fjz3z6GQ97bi3jkfaXVr9gM5kZNBsMsKn4jCBO/ZLI7O9x6rzo8fOabrB6g
+JpIDsuqgWR0KcAI2rm9gvmmm55y11FRaCNF4CCtfzi/wQYvJaXY24LaGRipF0wgC
+zmL8jXYeLPNDE3TrR0uB6Vcqq0T/o18n+iLlVQ4qLhSb1ENnfmUC0TFkwQzc5JJD
+dIX6Cn0ytkgDzkTd2e+2TnfS0v+GTw0nlkUGM0buiOCbPeVkpLCrhBddBU5sxPf0
+UjKkwtHlyhLWvA/zhPBO
+=UGeP
 -----END PGP SIGNATURE-----
 
---6THr7QwYWIbrk6Kt--
+--Jtds+vpI57xq70EV--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
