@@ -1,152 +1,61 @@
-From: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/4] ARM: dts: am335x-bone-common: use phandles for USB
- and DMA refs
-Date: Mon, 28 Apr 2014 20:11:33 +0530
-Message-ID: <535E689D.7010204@ti.com>
-References: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH 1/6] drivers: net: cpts: Remove hardcoded clock name for
+ CPTS
+Date: Mon, 28 Apr 2014 20:15:35 +0530
+Message-ID: <535E698F.7060104@ti.com>
+References: <1398658225-25873-1-git-send-email-george.cherian@ti.com>
+ <1398658225-25873-2-git-send-email-george.cherian@ti.com>
+ <20140428143115.GC30292@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1398693512-5355-1-git-send-email-guido-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?B?R3VpZG8gTWFydMOtbmV6?= <guido-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?UTF-8?B?RXplcXVpZWwgR2FyY8OtYQ==?= <ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140428143115.GC30292@saruman.home>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com
+Cc: mark.rutland@arm.com, mugunthanvnm@ti.com, tony@atomide.com, ast@plumgrid.com, mturquette@linaro.org, jeffrey.t.kirsher@intel.com, tklauser@distanz.ch, devicetree@vger.kernel.org, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, richardcochran@gmail.com, robh+dt@kernel.org, bhutchings@solarflare.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, zonque@gmail.com, t-kristo@ti.com, dborkman@redhat.com, bcousson@baylibre.com, galak@codeaurora.org, mpa@pengutronix.de, davem@davemloft.net
 List-Id: linux-omap@vger.kernel.org
 
-On 4/28/2014 7:28 PM, Guido Mart=C3=ADnez wrote:
-> Use phandles instead of unit adresses to reference usb and dma nodes.
-> This makes the DT more robust and readable.
-The series will give dtb build errors
-Error: arch/arm/boot/dts/am335x-bone-common.dtsi:186.2-15 syntax error
-=46ATAL ERROR: Unable to parse input tree
-Error: arch/arm/boot/dts/am335x-evmsk.dts:367.2-15 syntax error
-=46ATAL ERROR: Unable to parse input tree
-make[1]: *** [arch/arm/boot/dts/am335x-bone.dtb] Error 1
-make[1]: *** Waiting for unfinished jobs....
-Error: arch/arm/boot/dts/am335x-evm.dts:334.2-15 syntax error
-=46ATAL ERROR: Unable to parse input tree
-make[1]: *** [arch/arm/boot/dts/am335x-evmsk.dtb] Error 1
-make[1]: *** [arch/arm/boot/dts/am335x-evm.dtb] Error 1
-Error: arch/arm/boot/dts/am335x-igep0033.dtsi:204.2-15 syntax error
-=46ATAL ERROR: Unable to parse input tree
-make[1]: *** [arch/arm/boot/dts/am335x-base0033.dtb] Error 1
-Error: arch/arm/boot/dts/am335x-bone-common.dtsi:186.2-15 syntax error
-=46ATAL ERROR: Unable to parse input tree
-make[1]: *** [arch/arm/boot/dts/am335x-boneblack.dtb] Error 1
-make: *** [dtbs] Error 2
-
->
-> Signed-off-by: Guido Mart=C3=ADnez <guido-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org>
-> ---
->   arch/arm/boot/dts/am335x-bone-common.dtsi | 12 ++++++------
->   1 file changed, 6 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boo=
-t/dts/am335x-bone-common.dtsi
-> index 2e7d932..b95bc9a 100644
-> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> @@ -183,28 +183,28 @@
->   &usb {
->   	status =3D "okay";
->  =20
-> -	control@44e10620 {
-> +	&usb_ctrl_mod {
->   		status =3D "okay";
->   	};
->  =20
-> -	usb-phy@47401300 {
-> +	&usb0_phy {
->   		status =3D "okay";
->   	};
->  =20
-> -	usb-phy@47401b00 {
-> +	&usb1_phy {
->   		status =3D "okay";
->   	};
->  =20
-> -	usb@47401000 {
-> +	&usb0 {
->   		status =3D "okay";
->   	};
->  =20
-> -	usb@47401800 {
-> +	&usb1 {
->   		status =3D "okay";
->   		dr_mode =3D "host";
->   	};
->  =20
-> -	dma-controller@47402000  {
-> +	&cppi41dma  {
->   		status =3D "okay";
->   	};
->   };
-Instead the patch should be
-
-      diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi=20
-b/arch/arm/boot/dts/am335x-bone-common.dtsi
-      index 2e7d932..06be20a 100644
-      --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-      +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-      @@ -182,31 +182,30 @@
-
-       &usb {
-              status =3D "okay";
-      +};
-      +&usb_ctrl_mod {
-      +       status =3D "okay";
-      +};
-
-      -       control@44e10620 {
-      -               status =3D "okay";
-      -       };
-      -
-      -       usb-phy@47401300 {
-      -               status =3D "okay";
-      -       };
-      +&usb0_phy {
-      +       status =3D "okay";
-      +};
-
-      -       usb-phy@47401b00 {
-      -               status =3D "okay";
-      -       };
-      +&usb1_phy {
-      +       status =3D "okay";
-      +};
-
-      -       usb@47401000 {
-      -               status =3D "okay";
-      -       };
-      +&usb {
-      +       status =3D "okay";
-      +};
-
-      -       usb@47401800 {
-      -               status =3D "okay";
-      -               dr_mode =3D "host";
-      -       };
-      +&usb1 {
-      +       status =3D "okay";
-      +       dr_mode =3D "host";
-      +};
-
-      -       dma-controller@47402000  {
-      -               status =3D "okay";
-      -       };
-      +&cppi41dma  {
-      +       status =3D "okay";
-       };
+On 4/28/2014 8:01 PM, Felipe Balbi wrote:
+> On Mon, Apr 28, 2014 at 09:40:20AM +0530, George Cherian wrote:
+>> CPTS refclk name is hardcoded, which makes it fail in case of DRA7x
+>> Remove the hardcoded clock name for CPTS refclk and get the same from DT.
+>>
+>> Signed-off-by: George Cherian <george.cherian@ti.com>
+>> ---
+>>   drivers/net/ethernet/ti/cpts.c | 11 ++++-------
+>>   1 file changed, 4 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+>> index 2435139..0b6f6f7 100644
+>> --- a/drivers/net/ethernet/ti/cpts.c
+>> +++ b/drivers/net/ethernet/ti/cpts.c
+>> @@ -236,13 +236,11 @@ static void cpts_overflow_check(struct work_struct *work)
+>>   	schedule_delayed_work(&cpts->overflow_work, CPTS_OVERFLOW_PERIOD);
+>>   }
+>>   
+>> -#define CPTS_REF_CLOCK_NAME "cpsw_cpts_rft_clk"
+>> -
+>> -static void cpts_clk_init(struct cpts *cpts)
+>> +static void cpts_clk_init(struct device *dev, struct cpts *cpts)
+>>   {
+>> -	cpts->refclk = clk_get(NULL, CPTS_REF_CLOCK_NAME);
+>> +	cpts->refclk = devm_clk_get(dev, "cpts");
+>>   	if (IS_ERR(cpts->refclk)) {
+>> -		pr_err("Failed to clk_get %s\n", CPTS_REF_CLOCK_NAME);
+>> +		pr_err("Failed to get cpts refclk\n");
+> now you have a dev pointer as argument, how about converting this to
+> dev_err() ?
+Yep will do.. in next version.
 
 
-
---=20
+-- 
 -George
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
