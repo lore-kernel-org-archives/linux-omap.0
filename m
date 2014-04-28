@@ -1,55 +1,44 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] gpio: always enable GPIO_OMAP on ARCH_OMAP
-Date: Mon, 28 Apr 2014 11:07:03 +0200
-Message-ID: <5523458.JVZJJObMjC@wuerfel>
+From: Robert Baldyga <r.baldyga@samsung.com>
+Subject: Re: [PATCH v2 00/13] extcon: major rework
+Date: Mon, 28 Apr 2014 11:34:02 +0200
+Message-ID: <535E208A.4050305@samsung.com>
+References: <1397475984-28001-1-git-send-email-r.baldyga@samsung.com>
+ <20140424195203.GG12809@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:62867 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754335AbaD1JHi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 05:07:38 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-reply-to: <20140424195203.GG12809@kroah.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rob@landley.net, myungjoo.ham@samsung.com, cw00.choi@samsung.com, dbaryshkov@gmail.com, dwmw2@infradead.org, balbi@ti.com, grant.likely@linaro.org, ldewangan@nvidia.com, kishon@ti.com, gg@slimlogic.co.uk, anton@enomsg.org, jonghwa3.lee@samsung.com, rongjun.ying@csr.com, linux@roeck-us.net, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi, m.szyprowski@samsung.com, t.figa@samsung.com
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Commit 4df42de9d3e "gpio: omap: add a GPIO_OMAP option instead of using
-ARCH_OMAP" made it possible to build OMAP kernels without the GPIO driver,
-which at least on OMAP2 and OMAP3 causes build errors because of functions
-used by the platform power management code:
+On 04/24/2014 09:52 PM, Greg KH wrote:
+> On Mon, Apr 14, 2014 at 01:46:11PM +0200, Robert Baldyga wrote:
+>> This patchset adds many improvements to extcon class driver and extcon
+>> provider drivers. It changes extcon API to faster and safer by replaceing
+>> function taking extcon and cable names with functions working with
+>> structures representing this objects.
+> 
+> What is "faster" exactly?  How did you measure this?  What benchmarks
+> can be run to test this claim?
+> 
 
-arch/arm/mach-omap2/built-in.o: In function `omap_sram_idle':
-arch/arm/mach-omap2/pm24xx.c:129: undefined reference to `omap2_gpio_prepare_for_idle'
-arch/arm/mach-omap2/pm24xx.c:129: undefined reference to `omap2_gpio_resume_after_idle'
+Most of new API functions are O(1), because they take as argument
+pointer to struct extcon_cable, and operates on it. In contrast,
+previous API functions needed to compare given cable name with name of
+each cable specified in extcon controller. This solution was also prone
+to errors - when you make typo in extcon name or cable name it will not
+be detected at compilation time. The new API uses names only at
+initialization, and after that each function takes pointer to struct
+extcon_cable.
 
-We presumably always want the GPIO driver on OMAP, so this adds a slightly
-broader dependency and only allows disabling the driver only when no
-OMAP2PLUS platform is selected.
+The old API is also fragile because defined list of cables could be
+different in each extcon provider (the same cable could have different
+name in each extcon provider), so using different extcon providers with
+different drivers would need doing modifications in drivers.
 
-However, it seems entirely reasonable to include the driver in build tests
-on other platforms, so we should also allow building it for COMPILE_TEST
-builds and select the required GENERIC_IRQ_CHIP that may not already be
-enabled on other platforms.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-index c58b828..c8c42be 100644
---- a/drivers/gpio/Kconfig
-+++ b/drivers/gpio/Kconfig
-@@ -244,9 +244,10 @@ config GPIO_OCTEON
- 	  family of SOCs.
- 
- config GPIO_OMAP
--	bool "TI OMAP GPIO support"
-+	bool "TI OMAP GPIO support" if COMPILE_TEST && !ARCH_OMAP2PLUS
- 	default y if ARCH_OMAP
--	depends on ARM && ARCH_OMAP
-+	depends on ARM
-+	select GENERIC_IRQ_CHIP
- 	select GPIOLIB_IRQCHIP
- 	help
- 	  Say yes here to enable GPIO support for TI OMAP SoCs.
-
+Best regards
+Robert Baldyga
+Samsung R&D Institute Poland
