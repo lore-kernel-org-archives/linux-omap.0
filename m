@@ -1,51 +1,22 @@
-From: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
-Subject: RE: [PATCH] usb: dwc3: debugfs: add snapshot to dump requests trbs
- events
-Date: Mon, 28 Apr 2014 19:58:43 +0000
-Message-ID: <A2CA0424C0A6F04399FB9E1CD98E03046D192103@US01WEMBX2.internal.synopsys.com>
-References: <20140428204923.GC12185@intel.com>
- <20140428155536.GE30292@saruman.home>
+From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Subject: Re: [PATCH 51/97] ARM: l2c: remove platforms/SoCs setting early BRESP
+Date: Mon, 28 Apr 2014 14:04:45 -0600
+Message-ID: <535EB45D.4010406@wwwdotorg.org>
+References: <20140428192419.GV26756@n2100.arm.linux.org.uk> <E1WerG4-0001X4-Ic@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140428155536.GE30292@saruman.home>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "balbi@ti.com" <balbi@ti.com>, Zhuang Jin Can <jin.can.zhuang@intel.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <E1WerG4-0001X4-Ic-eh5Bv4kxaXIANfyc6IWni62ZND6+EDdj@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Peter De Schrijver <pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: linux-arm-kernel-0qwDCntBQCZpWr+L1FloEB2eb7JE58TQ@public.gmane.org, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Viresh Kumar <viresh.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shiraz Hashim <shiraz.hashim-qxv4g6HH51o@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, spear-devel-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-> From: linux-usb-owner@vger.kernel.org [mailto:linux-usb-owner@vger.kernel.org] On Behalf Of Felipe Balbi
-> Sent: Monday, April 28, 2014 8:56 AM
-> 
-> On Mon, Apr 28, 2014 at 04:49:23PM -0400, Zhuang Jin Can wrote:
-> > Adds a debugfs file "snapshot" to dump dwc3 requests, trbs and events.
+On 04/28/2014 01:30 PM, Russell King wrote:
+> Since we now automatically enable early BRESP in core L2C-310 code when
+> we detect a Cortex-A9, we don't need platforms/SoCs to set this bit
+> explicitly.  Instead, they should seek to preserve the value of bit 30
+> in the auxiliary control register.
 
-< snip > 
-
-> > +	for (i = 0; i < evt->length; i += 4) {
-> > +		event.raw = *(u32 *) (evt->buf + i);
-> > +		if (i == evt->lpos) {
-> > +			seq_puts(s, "lpos-------|\n");
-> > +			seq_puts(s, "           \\\n");
-> > +		}
-> > +		seq_printf(s, "event[%d]: %08x ", i, event.raw);
-> > +
-> > +		if (event.type.is_devspec)
-> > +			dwc3_dump_dev_event(s, &event.devt);
-> > +		else
-> > +			dwc3_dump_ep_event(s, &event.depevt);
-> > +		seq_puts(s, "\n");
-> > +	}
-> 
-> how well have you tested this ? I'm not entirely sure you should be
-> reading the event buffer at any time you want, though I might be wrong.
-
-Just FYI, it is fine to read from the event buffer memory at any time.
-But of course, if you happen to read from a location at the same time
-the core is writing to it, you may read either the old value or the new,
-depending on the timing. So the results might not be 100% reliable.
-
--- 
-Paul
+Acked-by: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
