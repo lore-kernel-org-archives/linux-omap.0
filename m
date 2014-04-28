@@ -1,54 +1,68 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv2 9/9] DTS: OMAP3-N900: Add sound support
-Date: Mon, 28 Apr 2014 16:07:27 +0200
-Message-ID: <1398694047-28596-10-git-send-email-sre@kernel.org>
+Subject: [PATCHv2 3/9] ASoC: omap: rx51: Use
+	devm_snd_soc_register_card
+Date: Mon, 28 Apr 2014 16:07:21 +0200
+Message-ID: <1398694047-28596-4-git-send-email-sre@kernel.org>
 References: <1398694047-28596-1-git-send-email-sre@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1398694047-28596-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Sebastian Reichel <sre@ring0.de>, Mark Brown <broonie@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Sebastian Reichel <sre@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <rob.herring@calxeda.com>, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds support for the Nokia N900's sound
-system.
-
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- arch/arm/boot/dts/omap3-n900.dts | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
-
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 6bc8100..5701f91 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -90,6 +90,19 @@
- 			};
- 		};
- 	};
-+
-+	sound: n900-audio {
-+		compatible = "nokia,n900-audio";
-+
-+		nokia,cpu-dai = <&mcbsp2>;
-+		nokia,audio-codec = <&tlv320aic3x>, <&tlv320aic3x_aux>;
-+		nokia,headphone-amplifier = <&tpa6130a2>;
-+
-+		tvout-selection-gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>; /* 40 */
-+		jack-detection-gpios = <&gpio6 17 GPIO_ACTIVE_HIGH>; /* 177 */
-+		eci-switch-gpios = <&gpio6 22 GPIO_ACTIVE_HIGH>; /* 182 */
-+		speaker-amplifier-gpios = <&twl_gpio 7 GPIO_ACTIVE_HIGH>;
-+	};
- };
- 
- &omap3_pmx_core {
-@@ -662,3 +675,7 @@
- 		};
- 	};
- };
-+
-+&mcbsp2 {
-+	status = "ok";
-+};
--- 
-1.9.2
+VGhpcyBwYXRjaCBjb252ZXJ0cyB0aGUgcng1MSBBU29DIG1vZHVsZSB0byB1c2UKZGV2bV9zbmRf
+c29jX3JlZ2lzdGVyX2NhcmQuCgpTaWduZWQtb2ZmLWJ5OiBQYWxpIFJvaMOhciA8cGFsaS5yb2hh
+ckBnbWFpbC5jb20+ClNpZ25lZC1vZmYtYnk6IFNlYmFzdGlhbiBSZWljaGVsIDxzcmVAa2VybmVs
+Lm9yZz4KLS0tCiBzb3VuZC9zb2Mvb21hcC9yeDUxLmMgfCA0MiArKysrKysrKysrKysrKysrKysr
+KysrLS0tLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAyMiBpbnNlcnRpb25zKCsp
+LCAyMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9zb3VuZC9zb2Mvb21hcC9yeDUxLmMgYi9z
+b3VuZC9zb2Mvb21hcC9yeDUxLmMKaW5kZXggNTU3MTNkMC4uYmJlM2E2NiAxMDA2NDQKLS0tIGEv
+c291bmQvc29jL29tYXAvcng1MS5jCisrKyBiL3NvdW5kL3NvYy9vbWFwL3J4NTEuYwpAQCAtMzYz
+LDEwICszNjMsOSBAQCBzdGF0aWMgc3RydWN0IHNuZF9zb2NfY2FyZCByeDUxX3NvdW5kX2NhcmQg
+PSB7CiAJLm51bV9kYXBtX3JvdXRlcyA9IEFSUkFZX1NJWkUoYXVkaW9fbWFwKSwKIH07CiAKLXN0
+YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpyeDUxX3NuZF9kZXZpY2U7Ci0KLXN0YXRpYyBp
+bnQgX19pbml0IHJ4NTFfc29jX2luaXQodm9pZCkKK3N0YXRpYyBpbnQgcng1MV9zb2NfcHJvYmUo
+c3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIHsKKwlzdHJ1Y3Qgc25kX3NvY19jYXJkICpj
+YXJkID0gJnJ4NTFfc291bmRfY2FyZDsKIAlpbnQgZXJyOwogCiAJaWYgKCFtYWNoaW5lX2lzX25v
+a2lhX3J4NTEoKSAmJiAhb2ZfbWFjaGluZV9pc19jb21wYXRpYmxlKCJub2tpYSxvbWFwMy1uOTAw
+IikpCkBAIC0zODEsMjIgKzM4MCwxNiBAQCBzdGF0aWMgaW50IF9faW5pdCByeDUxX3NvY19pbml0
+KHZvaWQpCiAJaWYgKGVycikKIAkJZ290byBlcnJfZ3Bpb19lY2lfc3c7CiAKLQlyeDUxX3NuZF9k
+ZXZpY2UgPSBwbGF0Zm9ybV9kZXZpY2VfYWxsb2MoInNvYy1hdWRpbyIsIC0xKTsKLQlpZiAoIXJ4
+NTFfc25kX2RldmljZSkgewotCQllcnIgPSAtRU5PTUVNOwotCQlnb3RvIGVycjE7Ci0JfQotCi0J
+cGxhdGZvcm1fc2V0X2RydmRhdGEocng1MV9zbmRfZGV2aWNlLCAmcng1MV9zb3VuZF9jYXJkKTsK
+KwljYXJkLT5kZXYgPSAmcGRldi0+ZGV2OwogCi0JZXJyID0gcGxhdGZvcm1fZGV2aWNlX2FkZChy
+eDUxX3NuZF9kZXZpY2UpOwotCWlmIChlcnIpCi0JCWdvdG8gZXJyMjsKKwllcnIgPSBkZXZtX3Nu
+ZF9zb2NfcmVnaXN0ZXJfY2FyZChjYXJkLT5kZXYsIGNhcmQpOworCWlmIChlcnIpIHsKKwkJZGV2
+X2VycigmcGRldi0+ZGV2LCAic25kX3NvY19yZWdpc3Rlcl9jYXJkIGZhaWxlZCAoJWQpXG4iLCBl
+cnIpOworCQlnb3RvIGVycl9zbmQ7CisJfQogCiAJcmV0dXJuIDA7Ci1lcnIyOgotCXBsYXRmb3Jt
+X2RldmljZV9wdXQocng1MV9zbmRfZGV2aWNlKTsKLWVycjE6CitlcnJfc25kOgogCWdwaW9fZnJl
+ZShSWDUxX0VDSV9TV19HUElPKTsKIGVycl9ncGlvX2VjaV9zdzoKIAlncGlvX2ZyZWUoUlg1MV9U
+Vk9VVF9TRUxfR1BJTyk7CkBAIC00MDUsMTggKzM5OCwyNyBAQCBlcnJfZ3Bpb190dm91dF9zZWw6
+CiAJcmV0dXJuIGVycjsKIH0KIAotc3RhdGljIHZvaWQgX19leGl0IHJ4NTFfc29jX2V4aXQodm9p
+ZCkKK3N0YXRpYyBpbnQgcng1MV9zb2NfcmVtb3ZlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBk
+ZXYpCiB7CiAJc25kX3NvY19qYWNrX2ZyZWVfZ3Bpb3MoJnJ4NTFfYXZfamFjaywgQVJSQVlfU0la
+RShyeDUxX2F2X2phY2tfZ3Bpb3MpLAogCQkJCXJ4NTFfYXZfamFja19ncGlvcyk7CiAKLQlwbGF0
+Zm9ybV9kZXZpY2VfdW5yZWdpc3RlcihyeDUxX3NuZF9kZXZpY2UpOwogCWdwaW9fZnJlZShSWDUx
+X0VDSV9TV19HUElPKTsKIAlncGlvX2ZyZWUoUlg1MV9UVk9VVF9TRUxfR1BJTyk7CisKKwlyZXR1
+cm4gMDsKIH0KIAotbW9kdWxlX2luaXQocng1MV9zb2NfaW5pdCk7Ci1tb2R1bGVfZXhpdChyeDUx
+X3NvY19leGl0KTsKK3N0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZHJpdmVyIHJ4NTFfc29jX2RyaXZl
+ciA9IHsKKwkuZHJpdmVyID0geworCQkubmFtZSA9ICJyeDUxLWF1ZGlvIiwKKwkJLm93bmVyID0g
+VEhJU19NT0RVTEUsCisJfSwKKwkucHJvYmUgPSByeDUxX3NvY19wcm9iZSwKKwkucmVtb3ZlID0g
+cng1MV9zb2NfcmVtb3ZlLAorfTsKKworbW9kdWxlX3BsYXRmb3JtX2RyaXZlcihyeDUxX3NvY19k
+cml2ZXIpOwogCiBNT0RVTEVfQVVUSE9SKCJOb2tpYSBDb3Jwb3JhdGlvbiIpOwogTU9EVUxFX0RF
+U0NSSVBUSU9OKCJBTFNBIFNvQyBOb2tpYSBSWC01MSIpOwotLSAKMS45LjIKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkFsc2EtZGV2ZWwgbWFpbGluZyBs
+aXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpodHRwOi8vbWFpbG1hbi5hbHNhLXByb2pl
+Y3Qub3JnL21haWxtYW4vbGlzdGluZm8vYWxzYS1kZXZlbAo=
