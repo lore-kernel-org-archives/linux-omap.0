@@ -1,87 +1,29 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 06/23] ARM: OMAP: add OMAP5 DSI muxing
-Date: Mon, 28 Apr 2014 09:52:30 +0300
-Message-ID: <535DFAAE.1010606@ti.com>
-References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
- <1398334639-14172-7-git-send-email-tomi.valkeinen@ti.com>
- <535A42D6.5090107@ti.com> <535A4470.2000509@ti.com> <535A5C0A.7040808@ti.com>
- <535A6C40.10609@ti.com> <20140425153150.GA20807@atomide.com>
+From: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/6] drivers: net: cpts: Remove hardcoded clock name for
+ CPTS
+Date: Mon, 28 Apr 2014 08:55:29 +0200
+Message-ID: <20140428065529.GA4380@netboy>
+References: <1398658225-25873-1-git-send-email-george.cherian@ti.com>
+ <1398658225-25873-2-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6950961109137922703=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140425153150.GA20807@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1398658225-25873-2-git-send-email-george.cherian-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ast-uqk4Ao+rVK5Wk0Htik3J/w@public.gmane.org, tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org, mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org, zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, mugunthanvnm-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---===============6950961109137922703==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="R0fkEM4aFfVHFtXemTfENm1CcBGTSsUCI"
+On Mon, Apr 28, 2014 at 09:40:20AM +0530, George Cherian wrote:
+> CPTS refclk name is hardcoded, which makes it fail in case of DRA7x
+> Remove the hardcoded clock name for CPTS refclk and get the same from DT.
 
---R0fkEM4aFfVHFtXemTfENm1CcBGTSsUCI
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Patch ordering - doesn't this patch depend on patch #2?
 
-On 25/04/14 18:31, Tony Lindgren wrote:
-
-> Chances are any mux register in the syscon area already works with
-> pinctrl-single,pins or pinctrl-single,bits option. The ones in the
-> padconf area should be already mapped so the driver just has to
-> request them.
-
-If using the padconf (say omap4_padconf_global for omap4), doesn't that
-mean we need to have platform specific bits in the driver? Isn't that
-something we've been trying to remove all the time?
-
- Tomi
-
-
-
---R0fkEM4aFfVHFtXemTfENm1CcBGTSsUCI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTXfqxAAoJEPo9qoy8lh71YHYP/0YgWF+CwRkET8PHisPYQ+nA
-LLb95F6hBl2yjVTh4yzbNg4GtTANzP6REx/UOmMgiU7B7lQtArgu0zrOdgBYceb9
-orWwqcmNqiBCOZCOFUXRLulk0ZfwaV9nbKXK7FAi3WFv5K/AM6sANlVTLQyUKYTZ
-LS5oRa3TvYkwentu/2r7cc/jKHtC3G9evLSMHv6bZwb22UL9zTN7MEUhIi9C6Wj6
-7CFpJB35Dr3K9661jDPwohKODLQBffVMNBOIXw9H1aK2M2aTzaxcPwCiXUMpheix
-KtlzJe6z3xfZObS9+xUXr7i0u9jBY4bImfZMrey46sldYZzr85SqnG42Rlbq4zyV
-q3JyhPhDMuQ4lDMxslp/O6u5a7tVZDw/TE1KfpIb+1IjUQxTFXQqRqRGR4TTzjBs
-ZOEW+CG1KAHhF/1jjULbp8ooSnCY2GEcPUt8YrA7KBJK4QPcz+F+vKhD6gySSeQ0
-n0LwRDTP+PLIjAM121Eq61XxVY4pr1VEExWd4a1u6zP7gzpiiidAxsFQOPeTQJHe
-BwFcoyW8e5E8MMjYz6jJKV2EKCkFrsX9DeZmOCCheR9ltMsyTM+ThfFjKM3tz5ph
-apO39+3cgVBksN+wsNYPkVdTu1Uu4rhDEzORrIHRkE9YxBS0jk3wpSeUM3HKmOny
-FNgrQOyiQqjCmV59tdSW
-=7I4W
------END PGP SIGNATURE-----
-
---R0fkEM4aFfVHFtXemTfENm1CcBGTSsUCI--
-
-
---===============6950961109137922703==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============6950961109137922703==--
+Thanks,
+Richard
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
