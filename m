@@ -1,56 +1,65 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC 0/2] [media] si4713 DT binding
-Date: Mon, 28 Apr 2014 16:15:29 +0200
-Message-ID: <20140428141527.GA29509@earth.universe>
-References: <1396785125-8759-1-git-send-email-sre@kernel.org>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH] ARM: dts: am33xx: fix DMA support for the second USB
+ interface
+Date: Mon, 28 Apr 2014 19:55:51 +0530
+Message-ID: <535E64EF.2020108@ti.com>
+References: <1398674237-4129-1-git-send-email-yegorslists@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="vtzGhvizbBRQ85DL"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1396785125-8759-1-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mauro Carvalho Chehab <m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dinesh Ram <Dinesh.Ram-vJEk5272eHo@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56027 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751311AbaD1O0s (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Apr 2014 10:26:48 -0400
+In-Reply-To: <1398674237-4129-1-git-send-email-yegorslists@googlemail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: yegorslists@googlemail.com, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com
+
+On 4/28/2014 2:07 PM, yegorslists@googlemail.com wrote:
+> From: Yegor Yefremov <yegorslists@googlemail.com>
+>
+> This patch creates unique DMA channels for the second USB
+> interface, otherwise the second USB interface is not usable
+> at all.
+MUSB_DMA_NUM_CHANNELS is 15, so if you pass  any dma-names > 15 (> 
+rx15/tx15),
+the dma_controller_create in musb_core.c fails and it falls back to PIO 
+mode.
+
+>
+> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+> ---
+>   arch/arm/boot/dts/am33xx.dtsi |   12 ++++++------
+>   1 files changed, 6 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 07f283c..e04cbbc 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -548,12 +548,12 @@
+>   					&cppi41dma 26 1 &cppi41dma 27 1
+>   					&cppi41dma 28 1 &cppi41dma 29 1>;
+>   				dma-names =
+> -					"rx1", "rx2", "rx3", "rx4", "rx5", "rx6", "rx7",
+> -					"rx8", "rx9", "rx10", "rx11", "rx12", "rx13",
+> -					"rx14", "rx15",
+> -					"tx1", "tx2", "tx3", "tx4", "tx5", "tx6", "tx7",
+> -					"tx8", "tx9", "tx10", "tx11", "tx12", "tx13",
+> -					"tx14", "tx15";
+> +					"rx16", "rx17", "rx18", "rx19", "rx20", "rx21", "rx22",
+> +					"rx23", "rx24", "rx25", "rx26", "rx27", "rx28",
+> +					"rx29", "rx30",
+> +					"tx16", "tx17", "tx18", "tx19", "tx20", "tx21", "tx22",
+> +					"tx23", "tx24", "tx25", "tx26", "tx27", "tx28",
+> +					"tx29", "tx30";
+>   			};
+>   
+>   			cppi41dma: dma-controller@47402000 {
 
 
---vtzGhvizbBRQ85DL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+-- 
+-George
 
-On Sun, Apr 06, 2014 at 01:52:03PM +0200, Sebastian Reichel wrote:
-> This is an RFC patch adding DT support to the si4713 radio
-> transmitter i2c driver.
-
-ping?
-
--- Sebastian
-
---vtzGhvizbBRQ85DL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTXmJ/AAoJENju1/PIO/qa1KkP/1dDXOZJigLquQCPJrq1Dw4T
-ZK4uSXEA7/pkNF6AbZ855JLVDpGifke6lH8VPmJFXGjYS/qCNGycthvAXtLIG24/
-2JWVCpDi1NE38cZUqGXeFo4f3AzY4go8DRNHdY1NRZoNMh5Rx8Du6rJxHoYwNghS
-xvNdS5G9AH1YHHwXLfQJkrCMGvBA09D/DYXz3ATi8D53gQiSq7Zr8ZGtSK+/UTFl
-aSkc9aFXPjPqQsrDcmgx/iZbb1ZJd0CvYT3fIQwYl4mqb4e+dgyfkunTi1WkS3xI
-RW0ny2IAJSar68STvrAhT0Zav91dzXULzrx0daHg9+AR0JfOdtcW9L6pfSPTZ/wN
-kcwN5BB6LxJn3chgzN/MoSBpkzr3X/0E3XIJBzN5aepe/mYvij0JRES6RkcVTErB
-hpnUyPGNW/ryUPq4hWpn81CAx8C23WWAbECt5kcBkv37TBuzdzDPF4y11HuB6aJt
-UmtqFx0og+qCNaCJr7fyHK1S8T8uSOim3XiFKehByJYS1O0KTWWvzRsour2xajgU
-FpFTE92ReJda+0WLBX58Nbdc/1p831Yzr0XbEpVFgUAHELJ1t8d4vfikVTG7IfFo
-Wvr2iRlp4USUs0Mou5oXEOja4op14jPNssZBn6bhC0TP9s4VRP3jGF8k/K3bZCQX
-SrtcaPbFr+cF4MVSdrYT
-=7nd5
------END PGP SIGNATURE-----
-
---vtzGhvizbBRQ85DL--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
