@@ -1,22 +1,52 @@
-From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Subject: Re: [PATCH 49/97] ARM: l2c: fix register naming
-Date: Mon, 28 Apr 2014 14:05:59 -0600
-Message-ID: <535EB4A7.1090007@wwwdotorg.org>
-References: <20140428192419.GV26756@n2100.arm.linux.org.uk> <E1WerFu-0001Wq-BX@rmk-PC.arm.linux.org.uk>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [patch V2 0/6] dma: edma: Provide granular residue accounting
+Date: Mon, 28 Apr 2014 15:47:37 -0500
+Message-ID: <535EBE69.6060803@ti.com>
+References: <20140428104416.464002156@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <E1WerFu-0001Wq-BX-eh5Bv4kxaXIANfyc6IWni62ZND6+EDdj@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Peter De Schrijver <pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: linux-arm-kernel-0qwDCntBQCZpWr+L1FloEB2eb7JE58TQ@public.gmane.org, Anton Vorontsov <anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Shawn Guo <shawn.guo-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Barry Song <baohua-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Viresh Kumar <viresh.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shiraz Hashim <shiraz.hashim-qxv4g6HH51o@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>, Patrice Chotard <patrice.chotard-qxv4g6HH51o@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, spear-devel-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:36910 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754374AbaD1UsH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Apr 2014 16:48:07 -0400
+In-Reply-To: <20140428104416.464002156@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, dmaengine@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, dan.j.williams@intel.com, vinod.koul@intel.com, nsekhar@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 04/28/2014 01:30 PM, Russell King wrote:
-> We have a mixture of different devices with different register layouts,
-> but we group all the bits together in an opaque mess.  Split them out
-> into those which are L2C-310 specific and ones which refer to earlier
-> devices.  Provide full auxiliary control register definitions.
+On 04/28/2014 05:49 AM, Thomas Gleixner wrote:
+> A simpler version to provide granular residue accounting and readout
+> for EDMA.
+> 
+> Delta to V1:
+> 
+>       - Removed the double read of the address in PaRAM
+> 
+>       - Simplified the stats update in the interrupt callback for
+>         intermediate transfers
+> 
+> Thanks,
+> 
+> 	tglx
+> 
 
-Acked-by: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Thanks for the series. I went over all the patches and it looks great.
+Acked-by: Joel Fernandes <joelf@ti.com>
+
+The patches however didn't apply and had some conflicts with my dma
+memcpy series and peter's cyclic series so I resolved conflicts and
+created a single branch based on Vinod's slave-dma next branch (commit
+406efb1a745c1dc512dc9c3c859e302e7b7f907e) that Vinod can pull.
+
+I also renamed subject line of patches in Thomas's series to be
+"dmaengine: edma" and documented some of the variables used.
+
+https://github.com/joelagnel/linux-kernel.git (for-vinod branch)
+
+Vinod, could you pull if it looks OK?
+
+regards,
+-Joel
