@@ -1,96 +1,69 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH] ARM: OMAP5: Switch to THUMB mode if needed on secondary
- CPU
-Date: Mon, 28 Apr 2014 12:21:49 -0500
-Message-ID: <535E8E2D.1020708@ti.com>
-References: <1398191506-3741-1-git-send-email-joelf@ti.com>
- <20140428164348.GA14354@e103592.cambridge.arm.com> <535E8DC2.4010504@ti.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH 2/5] ASoC: Add HA (HEAD acoustics) DSP
+	codec driver template
+Date: Mon, 28 Apr 2014 20:32:39 +0300
+Message-ID: <535E90B7.3050405@bitmer.com>
+References: <1398687476-10829-1-git-send-email-sr@denx.de>
+ <1398687476-10829-2-git-send-email-sr@denx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <535E8DC2.4010504@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Martin <Dave.Martin@arm.com>
-Cc: Nishanth Menon <nm@ti.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1398687476-10829-2-git-send-email-sr@denx.de>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Stefan Roese <sr@denx.de>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: broonie@kernel.org, Thorsten Eisbein <thorsten.eisbein@head-acoustics.de>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/28/2014 12:20 PM, Joel Fernandes wrote:
-> On 04/28/2014 11:43 AM, Dave Martin wrote:
->> On Tue, Apr 22, 2014 at 01:31:46PM -0500, Joel Fernandes wrote:
->>> On my DRA7 system, when the kernel is built in THUMB mode, the secondary CPU
->>> (Cortex A15) fails to come up causing SMP boot on second CPU to timeout. This
->>> seems to be because the CPU is in ARM mode once the ROM hands over control to
->>> the kernel.  Switch to THUMB mode if required once the kernel is control of
->>> secondary CPU. On OMAP4 on the other hand, it appears to be in THUMB mode on
->>> entry so this is not required and SMP boot works as is.
->>>
->>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> Cc: Russell King <linux@arm.linux.org.uk>
->>> Cc: Nishanth Menon <nm@ti.com>
->>> Cc: Tony Lindgren <tony@atomide.com>
->>> Signed-off-by: Joel Fernandes <joelf@ti.com>
->>> ---
->>>  arch/arm/mach-omap2/omap-headsmp.S |    8 ++++++--
->>>  1 file changed, 6 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
->>> index 75e9295..1809dce 100644
->>> --- a/arch/arm/mach-omap2/omap-headsmp.S
->>> +++ b/arch/arm/mach-omap2/omap-headsmp.S
->>> @@ -1,7 +1,7 @@
->>>  /*
->>>   * Secondary CPU startup routine source file.
->>>   *
->>> - * Copyright (C) 2009 Texas Instruments, Inc.
->>> + * Copyright (C) 2014 Texas Instruments, Inc.
->>>   *
->>>   * Author:
->>>   *      Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> @@ -28,9 +28,13 @@
->>>   * code.  This routine also provides a holding flag into which
->>>   * secondary core is held until we're ready for it to initialise.
->>>   * The primary core will update this flag using a hardware
->>> -+ * register AuxCoreBoot0.
->>> + * register AuxCoreBoot0.
->>>   */
->>>  ENTRY(omap5_secondary_startup)
->>
->> Are you sure this problem is not caused by the missing ENDPROC() for
->> omap5_secondary_startup?
->>
->> You have END() instead (which may have been accidental).
->>
->> Without ENDPROC(), the symbol is not marked as a function and so
->> the Thumb bit won't be set when taking a pointer -- so the kernel
->> is actually telling the firmware to enter in ARM state.
->>
->>
->> Try changing END() to ENDPROC() without this patch, and see if it
->> makes a difference.
->>
->> If it still doesn't work, then the firmware either doesn't support
->> entering in ARM, or is buggy.
-> 
-> Thanks for the suggestion. I'm guessing what you mean is with ENDPROC,
-> interworking code uses bx instead of bl to set thumb mode.
-> 
-> But ROM/firmware doesn't have access to symbol table, how would it know
-> the type of the symbol to be ARM or THUMB before it branches?
-> 
-Sorry what I meant is, say its of Type function. What tells the firmware
-to switch to THUMB?
+Hi Stefan
 
-What's typically done is a boot address register is written by the
-kernel, and the firmware jumps to it after WFE.
+On 04/28/2014 03:17 PM, Stefan Roese wrote:
+> From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+> 
+> This codec driver template represents an I2C controlled multichannel audio
+> codec that has many typical ASoC codec driver features like volume controls,
+> mixer stages, mux selection, output power control, in-codec audio routings,
+> codec bias management and DAI link configuration.
+> 
+I think it's fair to change authorship to you or Thorsten as this is now
+more a real codec driver than implementation template I developed
+originally a few years back and you have done porting to newer kernel
+and API. Plus taking review commits too :-)
 
-thanks,
--Joel
+> Updates from Stefan Roese, 2014-04-28:
+> Port the HA DSP codec driver to Linux v3.15-rc. This includes
+> support for DT based probing. No platform-data code is needed
+> any more, DT nodes are sufficient.
+> 
+> Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+> Signed-off-by: Stefan Roese <sr@denx.de>
+> Cc: Thorsten Eisbein <thorsten.eisbein@head-acoustics.de>
+> ---
+To me it's fine if you write commit log like it was done by you and say
+it's based on early implementation template from me. Or something like that.
+
+> diff --git a/sound/soc/codecs/ha-dsp.c b/sound/soc/codecs/ha-dsp.c
+> new file mode 100644
+> index 0000000..7cf24dc
+> --- /dev/null
+> +++ b/sound/soc/codecs/ha-dsp.c
+> @@ -0,0 +1,419 @@
+> +/*
+> + * ha-dsp.c  --  HA DSP ALSA SoC Audio driver
+> + *
+> + * Copyright 2011 Head acoustics GmbH
+> + *
+> + * Author: Jarkko Nikula <jarkko.nikula@bitmer.com>
+> + *
+List here also other authors in order to get kudos to you too.
+
+-- 
+Jarkko
