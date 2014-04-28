@@ -1,150 +1,97 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1a/4] mfd: twl4030-power: Add generic reset configuration
-Date: Mon, 28 Apr 2014 09:01:09 -0700
-Message-ID: <20140428160108.GK20807@atomide.com>
-References: <1398300030-7386-1-git-send-email-tony@atomide.com>
- <20140424004955.GG6053@atomide.com>
- <20140428113721.GU21279@lee--X1>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 3/7] phy: omap-usb2: Use generic clock names "wkupclk"
+ and "refclk"
+Date: Mon, 28 Apr 2014 11:03:47 -0500
+Message-ID: <20140428160347.GG30292@saruman.home>
+References: <1398693687-13967-1-git-send-email-rogerq@ti.com>
+ <1398693687-13967-4-git-send-email-rogerq@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14173 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932792AbaD1QBR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 12:01:17 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TmwHKJoIRFM7Mu/A"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20140428113721.GU21279@lee--X1>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1398693687-13967-4-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Matthias Brugger <matthias.bgg@gmail.com>, Robert Nelson <robertcnelson@gmail.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-* Lee Jones <lee.jones@linaro.org> [140428 04:37]:
-> > The twl4030 PMIC needs to be configured properly for things like
-> > warm reset and deeper idle states so the PMIC manages the regulators
-> > properly based on the hardware triggers from the SoC.
-> > 
-> > For example, when rebooting an OMAP3530 at 125 MHz, it hangs.
-> > With this patch, TWL4030 will be reset when a warm reset occures.
-> > This way the OMAP3530 does not hang on reboot.
-> > 
-> > Let's use this as the default when compatible = "ti,twl4030-power".
-> > Other more complicated configurations can be added to the driver
-> > based on other compatible flags.
-> > 
-> > Based on earlier patch by Matthias Brugger <matthias.bgg@gmail.com>:
-> > 
-> > http://lists.infradead.org/pipermail/linux-arm-kernel/2013-January/144161.html
-> > 
-> > For more information about twl4030 configuration for the
-> > "power scripts" see:
-> > 
-> > http://www.omappedia.com/wiki/TWL4030_power_scripts
-> > 
-> > Cc: Matthias Brugger <matthias.bgg@gmail.com>
-> > Cc: Robert Nelson <robertcnelson@gmail.com>
-> > Cc: Peter De Schrijver <pdeschrijver@nvidia.com>
-> > Cc: Samuel Ortiz <sameo@linux.intel.com>
-> > Cc: Lee Jones <lee.jones@linaro.org>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > ---
-> > 
-> > Sorry this got accidentally left out, should be the first patch
-> > in the series.
-> > 
-> > diff --git a/Documentation/devicetree/bindings/mfd/twl4030-power.txt b/Documentation/devicetree/bindings/mfd/twl4030-power.txt
-> > index 8e15ec3..b906116 100644
-> > --- a/Documentation/devicetree/bindings/mfd/twl4030-power.txt
-> > +++ b/Documentation/devicetree/bindings/mfd/twl4030-power.txt
-> > @@ -5,7 +5,12 @@ to control the power resources, including power scripts. For now, the
-> >  binding only supports the complete shutdown of the system after poweroff.
-> >  
-> >  Required properties:
-> > -- compatible : must be "ti,twl4030-power"
-> > +- compatible : must be one of the following
-> > +	"ti,twl4030-power"
-> > +	"ti,twl4030-power-reset"
-> > +
-> 
-> I think it'll be sensible to wait for a DT Ack for this kind of
-> change.
+--TmwHKJoIRFM7Mu/A
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Sure. This could also be board specific, for example something like
-ti,twl4030-power-n900, ti,twl4030-power-panda-es and so on. But
-I think we can get away with just a few generic configurations.
- 
-> > +#ifdef CONFIG_OF
-> > +
-> > +/* Generic warm reset configuration for omap3 */
-> > +
-> > +static struct twl4030_ins omap3_wrst_seq[] = {
-> > +	{ MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2 },
-> > +	{ MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15 },
-> > +	{ MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15 },
-> > +	{ MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60 },
-> > +	{ MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2 },
-> > +	{ MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2 },
-> > +};
-> 
-> Nit: I'd prefer the number formatting to be unified here i.e. all in
-> the same base, all <0x10 with leading zero.
+Hi,
 
-Thanks will check those.
-  
-> > +static struct twl4030_script omap3_wrst_script = {
-> > +	.script	= omap3_wrst_seq,
-> > +	.size	= ARRAY_SIZE(omap3_wrst_seq),
-> > +	.flags	= TWL4030_WRST_SCRIPT,
-> > +};
-> > +
-> > +static struct twl4030_script *omap3_reset_scripts[] = {
-> > +	&omap3_wrst_script,
-> > +};
-> > +
-> > +static struct twl4030_resconfig omap3_rconfig[] = {
-> > +	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
-> > +	  .type2 = -1 },
-> > +	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
-> > +	  .type2 = -1 },
-> > +	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
-> > +	  .type2 = -1 },
-> > +	{ 0, 0},
-> > +};
-> 
-> Nit: May be just my OCD, but this looks a little messy. Perhaps a
-> simple MACRO might tidy things up, although that seems a little
-> over-kill for such a small sturct[]. At the very least least please
-> even up the brackets in the sentinel.
+On Mon, Apr 28, 2014 at 05:01:23PM +0300, Roger Quadros wrote:
+> As clocks might be named differently on multiple platforms, use a generic
+> name in the driver and allow device tree node to specify the platform
+> specific clock name.
+>=20
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/phy/phy-omap-usb2.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
+> index a2205a8..fb5e515 100644
+> --- a/drivers/phy/phy-omap-usb2.c
+> +++ b/drivers/phy/phy-omap-usb2.c
+> @@ -275,16 +275,16 @@ static int omap_usb2_probe(struct platform_device *=
+pdev)
+>  	if (IS_ERR(phy_provider))
+>  		return PTR_ERR(phy_provider);
+> =20
+> -	phy->wkupclk =3D devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
+> +	phy->wkupclk =3D devm_clk_get(phy->dev, "wkupclk");
 
-Yeah I was thinking about that too, but from configuring things
-point of view it's essential to see what each entry is doing.
-Having a macro with lots of parameters would make it a bit hard
-to read the actual configuration. The macro would be something
-like for the above:
+doesn't this patch cause a regression ? I mean, you're changing the
+clock name before fixing DTS. Also, that DTS has been in a major version
+of the kernel, so we need to maintain compatibility with it. How about:
 
-RCONFIG(RES_HFCLKOUT, DEV_GRP_P3, -1, -1, 0, 0);
-RCONFIG(RES_VDD1, DEV_GRP_P1, -1, -1, 0, 0);
-RCONFIG(RES_VDD2, DEV_GRP_P1, -1, -1, 0, 0);
+	phy->wkupclk =3D devm_clk_get(phy->dev, "wkupclk");
+	if (IS_ERR(phy->wkupclk)) {
+		dev_err(&pdev->dev, "unable to get wkupclk, trying old name\n");
+		phy->wkupclk =3D devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
+		if (IS_ERR(phy->wkupclk)) {
+			dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
+			return PTR_ERR(phy->wkupclk);
+		} else {
+			dev_warn(&pdev->dev, "found usb_phy_cm_clk32k, please fix your DTS\n");
+		}
+	}
 
-and something like this for other entries:
+a bit ugly, but at least we don't cause any regressions. Likewise for
+other clocks.
 
-RCONFIG(RES_VAUX1, DEV_GRP_NULL, 0, 0, TWL_REMAP_OFF, TWL_REMAP_SLEEP); 
+--=20
+balbi
 
-Personally I think it actually makes it harder to figure out what
-is getting configured for the twl4030 as then it does not relate
-to the documentation any longer, but I'm fine doing that if people
-prefer macros here. Using macros could also be done later without
-as it's all private to the driver.
- 
-> /me goes to organise his soup tins into alphabetical order.
+--TmwHKJoIRFM7Mu/A
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-I think using macros is a good comment, I always found the twl4030
-configuration confusing. So if anybody has good macro ideas, I'm
-open to it for sure. In this it's more like adding custom labels
-to soup tins about their list of ingredients instead of sorting
-the tins :) And it does not make the contents taste much better..
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Regards,
+iQIcBAEBAgAGBQJTXnvjAAoJEIaOsuA1yqREVVUP/jOXH9w40xHCHrKEBH7jF5+h
+w/BiiiqX1YSrUHe2H5PtbVTJCOSBfHkct/t7TJTOZerIN7zIdwnw5lI5T30/WHS8
+0l6mv/JPJZGzPmLHCrZm4gd5C8nGeePvP+KB+1+1RuCRM6gBoUhLPTDLo+7twzDI
+1owzKtYO1vZ8MEGgZVpxVtAnGJkc07BgJR/WqnnRIIxsr9XvjSRqdZmQRxBII6//
+SKYPpHxspepfepYAUCmHS2c8kAVzL0TP+TXbbUFeeP/NFFKFTYVR89MM55E820Q3
+MzZA+ITOasFvE4DJmdns6mF2CZfUbeihbS2Bqq3m9XqC6uYyNK0bYvQIDtVf/SJA
+XPz2n/F+wB7DT6sK0PrI1ZCNDbO1Zc+D5fCkpvye8gs2BqJkxNedZqcZV+t3b6OB
+REwKNDh7ljnu99Hp2b0HDLD+OjoHqlIvfQfhdbgT8+rXwuOcDTsLrJP4TlyIU+GQ
+3mNdEa7nIlu5nfHMT8AkRgYMmzMJXjeKuXbcSp+aiImh2PUGChwQeRUipbQUEg4l
+H2XG6/G4zYB1zIIhkQiCLjQ965k4m6ywjY2JMsm5BrjX1HRDxNAoE7jP/Q7anyih
+RFFFQV9ici7D1VYei4sWcPMDOIgp+Mqbq3xDYy4u76vJwRvkBCMr1eDZEqyFCbOM
+Om8laT6bPqg69i0vZcPr
+=radd
+-----END PGP SIGNATURE-----
 
-Tony
+--TmwHKJoIRFM7Mu/A--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
