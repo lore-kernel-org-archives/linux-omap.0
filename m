@@ -1,47 +1,37 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH 3/5] ASoC: omap: Add HA (HEAD acoustics)
- DSP add-on card audio driver for TAO3530
-Date: Mon, 28 Apr 2014 20:39:29 +0300
-Message-ID: <535E9251.9010803@bitmer.com>
-References: <1398687476-10829-1-git-send-email-sr@denx.de>
- <1398687476-10829-3-git-send-email-sr@denx.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/5] arm: omap2: skip device build from platform code
+ for dt.
+Date: Mon, 28 Apr 2014 18:28:45 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1404281827410.14616@utopia.booyaka.com>
+References: <1397651532-31456-1-git-send-email-sourav.poddar@ti.com>
+ <1397651532-31456-4-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1398687476-10829-3-git-send-email-sr@denx.de>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Stefan Roese <sr@denx.de>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: broonie@kernel.org, Thorsten Eisbein <thorsten.eisbein@head-acoustics.de>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1397651532-31456-4-git-send-email-sourav.poddar@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, Sourav Poddar <sourav.poddar@ti.com>
+Cc: wsa@the-dreams.de, michael.opdenacker@free-electrons.com, balbi@ti.com, bcousson@baylibre.com, zbr@ioremap.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/28/2014 03:17 PM, Stefan Roese wrote:
-> From: Jarkko Nikula <jarkko.nikula@bitmer.com>
->
-Same authorship and commit log notes here than to 2/5. One important
-note below.
+On Wed, 16 Apr 2014, Sourav Poddar wrote:
 
-> --- /dev/null
-> +++ b/sound/soc/omap/ha-dsp-card.c
-> @@ -0,0 +1,307 @@
-> +/*
-> + * ha-dsp-card.c  --  SoC audio HA-DSP add-on card for TAO-3530
-> + *
-> + * Author: Jarkko Nikula <jarkko.nikula@bitmer.com>
-> + *
-> + * Additional changes by:
-> + *   Thorsten Eisbein <thorsten.eisbein@head-acoustics.de>
-> + *   Stefan Roese <sr@denx.de>
-> + *
-Put here Copyright 2011 Head acoustics GmbH.
+> For SOCs with dt enabled, device should be build through device tree.
+> Prevent device build call from platform code, if device tree is
+> enabled.
+> 
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 
--- 
-Jarkko
+Isn't OMAP2+ only supporting DT device enumeration now?
+
+
+- Paul
