@@ -1,34 +1,51 @@
-From: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/6] drivers: net: cpsw: Enable Annexe F Time sync
-Date: Mon, 28 Apr 2014 09:55:31 +0200
-Message-ID: <20140428075530.GA8371@netboy>
-References: <1398658225-25873-1-git-send-email-george.cherian@ti.com>
- <1398658225-25873-5-git-send-email-george.cherian@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1398658225-25873-5-git-send-email-george.cherian-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ast-uqk4Ao+rVK5Wk0Htik3J/w@public.gmane.org, tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org, mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org, zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, mugunthanvnm-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+From: yegorslists@googlemail.com
+Subject: [PATCH] ARM: dts: am33xx: fix DMA support for the second USB interface
+Date: Mon, 28 Apr 2014 10:37:17 +0200
+Message-ID: <1398674237-4129-1-git-send-email-yegorslists@googlemail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from hhlx01.vscom.de ([62.145.30.242]:43448 "EHLO
+	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751321AbaD1IiH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 04:38:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com, Yegor Yefremov <yegorslists@googlemail.com>
 
-On Mon, Apr 28, 2014 at 09:40:23AM +0530, George Cherian wrote:
-> Enable the Annex F Time Sync explicitly for DRA7x and AM4372.
-> With this enabled the L2 PTP is working.
+From: Yegor Yefremov <yegorslists@googlemail.com>
 
-L2 works fine without this bit. If this is needed for V3 hardware,
-then it should have its own code variant.
+This patch creates unique DMA channels for the second USB
+interface, otherwise the second USB interface is not usable
+at all.
+
+Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 07f283c..e04cbbc 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -548,12 +548,12 @@
+ 					&cppi41dma 26 1 &cppi41dma 27 1
+ 					&cppi41dma 28 1 &cppi41dma 29 1>;
+ 				dma-names =
+-					"rx1", "rx2", "rx3", "rx4", "rx5", "rx6", "rx7",
+-					"rx8", "rx9", "rx10", "rx11", "rx12", "rx13",
+-					"rx14", "rx15",
+-					"tx1", "tx2", "tx3", "tx4", "tx5", "tx6", "tx7",
+-					"tx8", "tx9", "tx10", "tx11", "tx12", "tx13",
+-					"tx14", "tx15";
++					"rx16", "rx17", "rx18", "rx19", "rx20", "rx21", "rx22",
++					"rx23", "rx24", "rx25", "rx26", "rx27", "rx28",
++					"rx29", "rx30",
++					"tx16", "tx17", "tx18", "tx19", "tx20", "tx21", "tx22",
++					"tx23", "tx24", "tx25", "tx26", "tx27", "tx28",
++					"tx29", "tx30";
+ 			};
  
-> while at that rename TS_BIT8 to TS_TTL_NONZERO
+ 			cppi41dma: dma-controller@47402000 {
+-- 
+1.7.7
 
-Is this bit finally documented for am335x?
-
-Thanks,
-Richard
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
