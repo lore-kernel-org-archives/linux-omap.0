@@ -1,58 +1,85 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/5] drivers: w1: omap_hdq: cleanup and bug fixes.
-Date: Mon, 28 Apr 2014 19:19:46 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1404281918360.14616@utopia.booyaka.com>
-References: <1397651532-31456-1-git-send-email-sourav.poddar@ti.com> <1397651532-31456-2-git-send-email-sourav.poddar@ti.com>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+Subject: [PATCH 04/97] ARM: l2c: omap2: remove ES1.0 support
+Date: Mon, 28 Apr 2014 20:26:15 +0100
+Message-ID: <E1WerBv-0007VC-SE@rmk-PC.arm.linux.org.uk>
+References: <20140428192419.GV26756@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:35436 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751379AbaD1TTr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 15:19:47 -0400
-In-Reply-To: <1397651532-31456-2-git-send-email-sourav.poddar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140428192419.GV26756@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.ifradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: zbr@ioremap.net, tony@atomide.com, michael.opdenacker@free-electrons.com, wsa@the-dreams.de, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
 
-On Wed, 16 Apr 2014, Sourav Poddar wrote:
+Santosh says:
+> But we should kill all of that since we long back decided to remove
+> ES1.0 related code. The mach-omap code alreasy has removed the ES1.0
+> compatibility so feel free to remove any specific ES1.0
+> related stuff. That silicon is long dead.
 
-> The patch adds the following to the omap hdq driver.
-> 1. HDQ Device reset call in probe.
-> 2. Enabling '1 wire mode' and checking for presence pulse bit.
-> 3. Proper disabling and enabling of interrupts during read path.
-> 4. Add re-initialization code during SKIP ROM command execution.
-> 5. Miscellaneous cleanup(formatting, return error checks).
-> 
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
->  drivers/w1/masters/omap_hdq.c |   85 ++++++++++++++++++++++++++++++++---------
->  1 file changed, 68 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
-> index 9900e8e..0a7bf7f 100644
-> --- a/drivers/w1/masters/omap_hdq.c
-> +++ b/drivers/w1/masters/omap_hdq.c
+Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/mach-omap2/omap4-common.c | 25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
-...
-
-> @@ -115,6 +116,15 @@ static inline u8 hdq_reg_merge(struct hdq_data *hdq_data, u32 offset,
->  	return new_val;
->  }
->  
-> +static void hdq_disable_interrupt(struct hdq_data *hdq_data, u32 offset,
-> +				  u8 mask)
-> +{
-> +	u32 ie;
-> +
-> +	ie = readl(hdq_data->hdq_base + offset);
-> +	writel(ie & mask, hdq_data->hdq_base + offset);
-> +}
-> +
-
-Does this function really need to take offset and mask arguments?  Won't 
-they always be constant, and therefore, no need to pass them?
-
-
-- Paul
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 95e171a055f3..48cf74d284ec 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -182,7 +182,7 @@ static void omap4_l2x0_set_debug(unsigned long val)
+ 
+ static int __init omap_l2_cache_init(void)
+ {
+-	u32 aux_ctrl = 0;
++	u32 aux_ctrl;
+ 
+ 	/*
+ 	 * To avoid code running on other OMAPs in
+@@ -196,27 +196,18 @@ static int __init omap_l2_cache_init(void)
+ 	if (WARN_ON(!l2cache_base))
+ 		return -ENOMEM;
+ 
+-	/*
+-	 * 16-way associativity, parity disabled
+-	 * Way size - 32KB (es1.0)
+-	 * Way size - 64KB (es2.0 +)
+-	 */
+-	aux_ctrl = ((1 << L2X0_AUX_CTRL_ASSOCIATIVITY_SHIFT) |
++	/* 16-way associativity, parity disabled, way size - 64KB (es2.0 +) */
++	aux_ctrl = (1 << L2X0_AUX_CTRL_ASSOCIATIVITY_SHIFT) |
+ 			(0x1 << 25) |
+ 			(0x1 << L2X0_AUX_CTRL_NS_LOCKDOWN_SHIFT) |
+-			(0x1 << L2X0_AUX_CTRL_NS_INT_CTRL_SHIFT));
+-
+-	if (omap_rev() == OMAP4430_REV_ES1_0) {
+-		aux_ctrl |= 0x2 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT;
+-	} else {
+-		aux_ctrl |= ((0x3 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT) |
++			(0x1 << L2X0_AUX_CTRL_NS_INT_CTRL_SHIFT)) |
++			(0x3 << L2X0_AUX_CTRL_WAY_SIZE_SHIFT) |
+ 			(1 << L2X0_AUX_CTRL_SHARE_OVERRIDE_SHIFT) |
+ 			(1 << L2X0_AUX_CTRL_DATA_PREFETCH_SHIFT) |
+ 			(1 << L2X0_AUX_CTRL_INSTR_PREFETCH_SHIFT) |
+-			(1 << L2X0_AUX_CTRL_EARLY_BRESP_SHIFT));
+-	}
+-	if (omap_rev() != OMAP4430_REV_ES1_0)
+-		omap_smc1(0x109, aux_ctrl);
++			(1 << L2X0_AUX_CTRL_EARLY_BRESP_SHIFT);
++
++	omap_smc1(0x109, aux_ctrl);
+ 
+ 	/* Enable PL310 L2 Cache controller */
+ 	omap_smc1(0x102, 0x1);
+-- 
+1.8.3.1
