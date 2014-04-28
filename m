@@ -1,43 +1,74 @@
-From: =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
-Subject: [PATCH 2/4] ARM: dts: am335x-evm: use phandles for USB and DMA refs
-Date: Mon, 28 Apr 2014 10:58:30 -0300
-Message-ID: <1398693512-5355-2-git-send-email-guido@vanguardiasur.com.ar>
-References: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 1/7] ARM: dts: dra7-clock: Add "l3init_960m_gfclk" clock gate
+Date: Mon, 28 Apr 2014 17:01:21 +0300
+Message-ID: <1398693687-13967-2-git-send-email-rogerq@ti.com>
+References: <1398693687-13967-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: LKML <linux-kernel@vger.kernel.org>, bcousson@baylibre.com, tony@atomide.com
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, robh+dt@kernel.org, =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>, =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>, galak@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1398693687-13967-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: george.cherian-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-VXNlIHBoYW5kbGVzIGluc3RlYWQgb2YgdW5pdCBhZHJlc3NlcyB0byByZWZlcmVuY2UgdXNiIGFu
-ZCBkbWEgbm9kZXMuClRoaXMgbWFrZXMgdGhlIERUIG1vcmUgcm9idXN0IGFuZCByZWFkYWJsZS4K
-ClNpZ25lZC1vZmYtYnk6IEd1aWRvIE1hcnTDrW5leiA8Z3VpZG9AdmFuZ3VhcmRpYXN1ci5jb20u
-YXI+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bS5kdHMgfCAxMiArKysrKystLS0t
-LS0KIDEgZmlsZSBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pCgpkaWZm
-IC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWV2bS5kdHMgYi9hcmNoL2FybS9ib290
-L2R0cy9hbTMzNXgtZXZtLmR0cwppbmRleCA2MDI4MjE3Li5lODAyNjI3IDEwMDY0NAotLS0gYS9h
-cmNoL2FybS9ib290L2R0cy9hbTMzNXgtZXZtLmR0cworKysgYi9hcmNoL2FybS9ib290L2R0cy9h
-bTMzNXgtZXZtLmR0cwpAQCAtMzMxLDI4ICszMzEsMjggQEAKICZ1c2IgewogCXN0YXR1cyA9ICJv
-a2F5IjsKIAotCWNvbnRyb2xANDRlMTA2MjAgeworCSZ1c2JfY3RybF9tb2QgewogCQlzdGF0dXMg
-PSAib2theSI7CiAJfTsKIAotCXVzYi1waHlANDc0MDEzMDAgeworCSZ1c2IwX3BoeSB7CiAJCXN0
-YXR1cyA9ICJva2F5IjsKIAl9OwogCi0JdXNiLXBoeUA0NzQwMWIwMCB7CisJJnVzYjFfcGh5IHsK
-IAkJc3RhdHVzID0gIm9rYXkiOwogCX07CiAKLQl1c2JANDc0MDEwMDAgeworCSZ1c2IwIHsKIAkJ
-c3RhdHVzID0gIm9rYXkiOwogCX07CiAKLQl1c2JANDc0MDE4MDAgeworCSZ1c2IxIHsKIAkJc3Rh
-dHVzID0gIm9rYXkiOwogCQlkcl9tb2RlID0gImhvc3QiOwogCX07CiAKLQlkbWEtY29udHJvbGxl
-ckA0NzQwMjAwMCAgeworCSZjcHBpNDFkbWEgIHsKIAkJc3RhdHVzID0gIm9rYXkiOwogCX07CiB9
-OwotLSAKMS45LjIKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3Rz
-LmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5m
-by9saW51eC1hcm0ta2VybmVsCg==
+This clock gate description is missing in the older Reference manuals.
+It is present on the SoC to provide 960MHz reference clock to the
+internal USB PHYs.
+
+Reference: DRA75x_DRA74x_ES1.1_NDA_TRM_vO.pdf, pg. 900,
+Table 3-812. CM_COREAON_L3INIT_60M_GFCLK_CLKCTRL
+
+Use l3init_960m_gfclk as parent of usb_otg_ss1_refclk960m and
+usb_otg_ss2_refclk960m.
+
+CC: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index cfb8fc7..c767687 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -1386,6 +1386,14 @@
+ 		ti,dividers = <1>, <8>;
+ 	};
+ 
++	l3init_960m_gfclk: l3init_960m_gfclk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&dpll_usb_clkdcoldo>;
++		ti,bit-shift = <8>;
++		reg = <0x06c0>;
++	};
++
+ 	dss_32khz_clk: dss_32khz_clk {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+@@ -1533,7 +1541,7 @@
+ 	usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+-		clocks = <&dpll_usb_clkdcoldo>;
++		clocks = <&l3init_960m_gfclk>;
+ 		ti,bit-shift = <8>;
+ 		reg = <0x13f0>;
+ 	};
+@@ -1541,7 +1549,7 @@
+ 	usb_otg_ss2_refclk960m: usb_otg_ss2_refclk960m {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
+-		clocks = <&dpll_usb_clkdcoldo>;
++		clocks = <&l3init_960m_gfclk>;
+ 		ti,bit-shift = <8>;
+ 		reg = <0x1340>;
+ 	};
+-- 
+1.8.3.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
