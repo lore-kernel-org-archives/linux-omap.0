@@ -1,81 +1,87 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [PATCH] gpio: always enable GPIO_OMAP on ARCH_OMAP
-Date: Tue, 29 Apr 2014 01:59:20 +0200
-Message-ID: <535EEB58.60809@collabora.co.uk>
-References: <5523458.JVZJJObMjC@wuerfel>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: dwc3: debugfs: add snapshot to dump requests trbs
+ events
+Date: Mon, 28 Apr 2014 18:59:57 -0500
+Message-ID: <20140428235957.GD18010@saruman.home>
+References: <20140428204923.GC12185@intel.com>
+ <20140428155536.GE30292@saruman.home>
+ <A2CA0424C0A6F04399FB9E1CD98E03046D192103@US01WEMBX2.internal.synopsys.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:52704 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756019AbaD1X7Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 19:59:25 -0400
-In-Reply-To: <5523458.JVZJJObMjC@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YkJPYEFdoxh/AXLE"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <A2CA0424C0A6F04399FB9E1CD98E03046D192103@US01WEMBX2.internal.synopsys.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
+Cc: "balbi@ti.com" <balbi@ti.com>, Zhuang Jin Can <jin.can.zhuang@intel.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hello Arnd,
+--YkJPYEFdoxh/AXLE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks a lot for the patch.
+On Mon, Apr 28, 2014 at 07:58:43PM +0000, Paul Zimmerman wrote:
+> > From: linux-usb-owner@vger.kernel.org [mailto:linux-usb-owner@vger.kern=
+el.org] On Behalf Of Felipe Balbi
+> > Sent: Monday, April 28, 2014 8:56 AM
+> >=20
+> > On Mon, Apr 28, 2014 at 04:49:23PM -0400, Zhuang Jin Can wrote:
+> > > Adds a debugfs file "snapshot" to dump dwc3 requests, trbs and events.
+>=20
+> < snip >=20
+>=20
+> > > +	for (i =3D 0; i < evt->length; i +=3D 4) {
+> > > +		event.raw =3D *(u32 *) (evt->buf + i);
+> > > +		if (i =3D=3D evt->lpos) {
+> > > +			seq_puts(s, "lpos-------|\n");
+> > > +			seq_puts(s, "           \\\n");
+> > > +		}
+> > > +		seq_printf(s, "event[%d]: %08x ", i, event.raw);
+> > > +
+> > > +		if (event.type.is_devspec)
+> > > +			dwc3_dump_dev_event(s, &event.devt);
+> > > +		else
+> > > +			dwc3_dump_ep_event(s, &event.depevt);
+> > > +		seq_puts(s, "\n");
+> > > +	}
+> >=20
+> > how well have you tested this ? I'm not entirely sure you should be
+> > reading the event buffer at any time you want, though I might be wrong.
+>=20
+> Just FYI, it is fine to read from the event buffer memory at any time.
+> But of course, if you happen to read from a location at the same time
+> the core is writing to it, you may read either the old value or the new,
+> depending on the timing. So the results might not be 100% reliable.
 
-On 04/28/2014 11:07 AM, Arnd Bergmann wrote:
-> Commit 4df42de9d3e "gpio: omap: add a GPIO_OMAP option instead of using
-> ARCH_OMAP" made it possible to build OMAP kernels without the GPIO driver,
-> which at least on OMAP2 and OMAP3 causes build errors because of functions
-> used by the platform power management code:
-> 
-> arch/arm/mach-omap2/built-in.o: In function `omap_sram_idle':
-> arch/arm/mach-omap2/pm24xx.c:129: undefined reference to `omap2_gpio_prepare_for_idle'
-> arch/arm/mach-omap2/pm24xx.c:129: undefined reference to `omap2_gpio_resume_after_idle'
-> 
-> We presumably always want the GPIO driver on OMAP, so this adds a slightly
-> broader dependency and only allows disabling the driver only when no
-> OMAP2PLUS platform is selected.
->
+Thanks, based on this I'll stick to my
+"use-a-ring-buffer-to-store-last-5-events" suggestion :-)
 
-This driver is also used by OMAP1. Even when disabling GPIO_OMAP on that
-platform doesn't cause a build error since no function defined in the driver is
-used directly by platform code, I think that we always want this driver on OMAP1
-too.
+--=20
+balbi
 
-> However, it seems entirely reasonable to include the driver in build tests
-> on other platforms, so we should also allow building it for COMPILE_TEST
-> builds and select the required GENERIC_IRQ_CHIP that may not already be
-> enabled on other platforms.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> 
-> diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-> index c58b828..c8c42be 100644
-> --- a/drivers/gpio/Kconfig
-> +++ b/drivers/gpio/Kconfig
-> @@ -244,9 +244,10 @@ config GPIO_OCTEON
->  	  family of SOCs.
->  
->  config GPIO_OMAP
-> -	bool "TI OMAP GPIO support"
-> +	bool "TI OMAP GPIO support" if COMPILE_TEST && !ARCH_OMAP2PLUS
+--YkJPYEFdoxh/AXLE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-So this should be:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-+       bool "TI OMAP GPIO support" if COMPILE_TEST && !ARCH_OMAP2PLUS &&
-!ARCH_OMAP1
+iQIcBAEBAgAGBQJTXut9AAoJEIaOsuA1yqRErXUQAIH5YnN4JaUhYWK9womYZ59D
+DHiqq3UoaLsyT9fk5CL5x+l+fSjKGZ+GhvvQ3YEhhNoqM28+aCO1gC09mivk3oxc
++Oqoh33sGLhvn0R5ST0pWmTckBJQXyZMwPEhWF9KIeJP7+neXo+lJUqD3XfvPYeY
+oF6r8BelrGpQTwgVgeNLo3y7r5jSiTMO6sAa7iU+dj9JQE2FKLUHfH6XfLvaIWyJ
+iQpPlcAoDZa2lGJuYaj1LMX0eRPi30+9BFiZXz3V14zFaHnPtcMn5cjvsCWCdEWd
+APItzKMuEjf10mmmIXkjDL5wTCqGsui0gsWUFJfjMmxUMKKK9SL3790nQTETnGzR
+0L7b0nsTbgsehNx4T0/zdEAIncJXg8NSlljvRVRzkO5eBRWmsQLiXIC3pn4sGnDf
+vykGpTDsklybTF+SedJpBpQhAakUkd09zAgSkMx8sLWK59svZKzBcNnckYIz0E42
+eO+hl16UOK7ZoDngGwCs2QN6uZyFOVnuzQp0tKMN7I9TFfKupbdmiJSqp4jzdTUM
+Sqe8TO9O8mt32zLs1cfhq1UO6IJL3ahypfmaiSe9omrZlNlhwX9XdqNrgt8Qn5BS
+2X8vfJpoSk56c4tNaqrPDL7Ptp2pph5NoyAoAq8TAlwlHAKIyO9B3r3hJMy1AvAn
+d4k2zS13UtuKbjK3SP3B
+=+6Mi
+-----END PGP SIGNATURE-----
 
->  	default y if ARCH_OMAP
-> -	depends on ARM && ARCH_OMAP
-> +	depends on ARM
-> +	select GENERIC_IRQ_CHIP
->  	select GPIOLIB_IRQCHIP
->  	help
->  	  Say yes here to enable GPIO support for TI OMAP SoCs.
-> 
-
-With that change:
-
-Acked-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-
-Best regards,
-Javier
+--YkJPYEFdoxh/AXLE--
