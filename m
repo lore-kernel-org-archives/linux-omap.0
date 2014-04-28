@@ -1,61 +1,58 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v2 5/7] phy: omap-usb2: Add clock names to Documentation
- binding
-Date: Mon, 28 Apr 2014 21:23:35 +0400
-Message-ID: <535E8E97.7040809@cogentembedded.com>
-References: <1398693687-13967-1-git-send-email-rogerq@ti.com> <1398693687-13967-6-git-send-email-rogerq@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/5] drivers: w1: omap_hdq: cleanup and bug fixes.
+Date: Mon, 28 Apr 2014 19:19:46 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1404281918360.14616@utopia.booyaka.com>
+References: <1397651532-31456-1-git-send-email-sourav.poddar@ti.com> <1397651532-31456-2-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1398693687-13967-6-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: george.cherian-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:35436 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751379AbaD1TTr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 15:19:47 -0400
+In-Reply-To: <1397651532-31456-2-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: zbr@ioremap.net, tony@atomide.com, michael.opdenacker@free-electrons.com, wsa@the-dreams.de, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
 
-Hello.
+On Wed, 16 Apr 2014, Sourav Poddar wrote:
 
-On 04/28/2014 06:01 PM, Roger Quadros wrote:
-
-> Add "wkupclk" and "refclk" information to DT binding information.
-
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> The patch adds the following to the omap hdq driver.
+> 1. HDQ Device reset call in probe.
+> 2. Enabling '1 wire mode' and checking for presence pulse bit.
+> 3. Proper disabling and enabling of interrupts during read path.
+> 4. Add re-initialization code during SKIP ROM command execution.
+> 5. Miscellaneous cleanup(formatting, return error checks).
+> 
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 > ---
->   Documentation/devicetree/bindings/phy/ti-phy.txt | 7 +++++++
->   1 file changed, 7 insertions(+)
+>  drivers/w1/masters/omap_hdq.c |   85 ++++++++++++++++++++++++++++++++---------
+>  1 file changed, 68 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
+> index 9900e8e..0a7bf7f 100644
+> --- a/drivers/w1/masters/omap_hdq.c
+> +++ b/drivers/w1/masters/omap_hdq.c
 
-> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-> index 788fb0f..9ce458f 100644
-> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
-> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-> @@ -32,6 +32,11 @@ Required properties:
->    - reg : Address and length of the register set for the device.
->    - #phy-cells: determine the number of cells that should be given in the
->      phandle while referencing this phy.
-> + - clocks: a list of phandles and clock-specifier pairs, one for each entry in
-> +   clock-names.
+...
 
-    I thought clock specifier includes phandle. Anyway, this description 
-doesn't seem to match your example...
+> @@ -115,6 +116,15 @@ static inline u8 hdq_reg_merge(struct hdq_data *hdq_data, u32 offset,
+>  	return new_val;
+>  }
+>  
+> +static void hdq_disable_interrupt(struct hdq_data *hdq_data, u32 offset,
+> +				  u8 mask)
+> +{
+> +	u32 ie;
+> +
+> +	ie = readl(hdq_data->hdq_base + offset);
+> +	writel(ie & mask, hdq_data->hdq_base + offset);
+> +}
+> +
 
-> + - clock-names: should include:
-> +   * "wkupclk" - wakeup clock.
-> +   * "refclk" - reference clock (optional).
->
->   Optional properties:
->    - ctrl-module : phandle of the control module used by PHY driver to power on
-> @@ -44,6 +49,8 @@ usb2phy@4a0ad080 {
->   	reg = <0x4a0ad080 0x58>;
->   	ctrl-module = <&omap_control_usb>;
->   	#phy-cells = <0>;
-> +	clocks = <&usb_phy_cm_clk32k>, <&usb_otg_ss_refclk960m>;
-> +	clock-names = "wkupclk", "refclk";
->   };
+Does this function really need to take offset and mask arguments?  Won't 
+they always be constant, and therefore, no need to pass them?
 
-WBR, Sergei
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
