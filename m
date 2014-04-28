@@ -1,108 +1,67 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv3 07/14] HSI: Add common DT binding for HSI client devices
-Date: Sun, 27 Apr 2014 13:33:59 +0200
-Message-ID: <20140427113358.GB2092@earth.universe>
-References: <1396053110-21639-1-git-send-email-sre@kernel.org>
- <1396053110-21639-8-git-send-email-sre@kernel.org>
- <20140419191612.GG5148@amd.pavel.ucw.cz>
- <20140425182535.GB22721@earth.universe>
- <20140425205926.GA30032@earth.universe>
- <20140427105755.GA12265@amd.pavel.ucw.cz>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH 1/6] drivers: net: cpts: Remove hardcoded clock name for CPTS
+Date: Mon, 28 Apr 2014 09:40:20 +0530
+Message-ID: <1398658225-25873-2-git-send-email-george.cherian@ti.com>
+References: <1398658225-25873-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="xXmbgvnjoT4axfJE"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140427105755.GA12265-tWAi6jLit6GreWDznjuHag@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Carlos Chinea <cch.devel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon-uiMcrn6V0Vs@public.gmane.org>, Joni Lapilainen <joni.lapilainen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45274 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753270AbaD1ENb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 00:13:31 -0400
+In-Reply-To: <1398658225-25873-1-git-send-email-george.cherian@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: davem@davemloft.net, richardcochran@gmail.com, jeffrey.t.kirsher@intel.com, dborkman@redhat.com, ast@plumgrid.com, tklauser@distanz.ch, mpa@pengutronix.de, bhutchings@solarflare.com, zonque@gmail.com, balbi@ti.com, mugunthanvnm@ti.com, george.cherian@ti.com, t-kristo@ti.com, mturquette@linaro.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, bcousson@baylibre.com
 
+CPTS refclk name is hardcoded, which makes it fail in case of DRA7x
+Remove the hardcoded clock name for CPTS refclk and get the same from DT.
 
---xXmbgvnjoT4axfJE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: George Cherian <george.cherian@ti.com>
+---
+ drivers/net/ethernet/ti/cpts.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-On Sun, Apr 27, 2014 at 12:57:55PM +0200, Pavel Machek wrote:
-> On Fri 2014-04-25 22:59:27, Sebastian Reichel wrote:
-> > On Fri, Apr 25, 2014 at 08:25:36PM +0200, Sebastian Reichel wrote:
-> > > On Sat, Apr 19, 2014 at 09:16:12PM +0200, Pavel Machek wrote:
-> > > > On Sat 2014-03-29 01:31:43, Sebastian Reichel wrote:
-> > > > > Implement and document generic DT bindings for HSI clients.
-> > > > >=20
-> > > > > Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > > >=20
-> > > > Reviewed-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-> > > >=20
-> > > > > diff --git a/drivers/hsi/hsi.c b/drivers/hsi/hsi.c
-> > > > > index 07e1639..5973906 100644
-> > > > > --- a/drivers/hsi/hsi.c
-> > > > > +++ b/drivers/hsi/hsi.c
-> > > > > @@ -26,8 +26,14 @@
-> > > > >  #include <linux/slab.h>
-> > > > >  #include <linux/string.h>
-> > > > >  #include <linux/notifier.h>
-> > > > > +#include <linux/of.h>
-> > > > > +#include <linux/of_device.h>
-> > > > >  #include "hsi_core.h"
-> > > >=20
-> > > >=20
-> > > > > +	err =3D hsi_of_property_parse_mode(client, "hsi-mode", &mode);
-> > > > > +	if (err) {
-> > > > > +		err =3D hsi_of_property_parse_mode(client, "hsi-rx-mode",
-> > > > > +						 &cl->rx_cfg.mode);
-> > > > > +		if (err)
-> > > > > +			goto err;
-> > > > > +
-> > > > > +		err =3D hsi_of_property_parse_mode(client, "hsi-tx-mode",
-> > > > > +						 &cl->tx_cfg.mode);
-> > > > > +		if (err)
-> > > > > +			goto err;
-> > > >=20
-> > > > Will this need some #ifdef CONFIG_OF?
-> > >=20
-> > > It would only be needed to reduce the amount of kernel code for
-> > > disabled Device Tree. I don't think its worth it, since there is no
-> > > platform in the mainline kernel, which uses HSI without DT.
-> >=20
-> > mh actually it is needed, since there is no stub provided for
-> > of_modalias_node in non DT mode (there are stubs for all other
-> > of_* methods used). I will include the ifdef in PATCHv5.
->=20
-> Alternatively, you can make driver depend on DT...
+diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+index 2435139..0b6f6f7 100644
+--- a/drivers/net/ethernet/ti/cpts.c
++++ b/drivers/net/ethernet/ti/cpts.c
+@@ -236,13 +236,11 @@ static void cpts_overflow_check(struct work_struct *work)
+ 	schedule_delayed_work(&cpts->overflow_work, CPTS_OVERFLOW_PERIOD);
+ }
+ 
+-#define CPTS_REF_CLOCK_NAME "cpsw_cpts_rft_clk"
+-
+-static void cpts_clk_init(struct cpts *cpts)
++static void cpts_clk_init(struct device *dev, struct cpts *cpts)
+ {
+-	cpts->refclk = clk_get(NULL, CPTS_REF_CLOCK_NAME);
++	cpts->refclk = devm_clk_get(dev, "cpts");
+ 	if (IS_ERR(cpts->refclk)) {
+-		pr_err("Failed to clk_get %s\n", CPTS_REF_CLOCK_NAME);
++		pr_err("Failed to get cpts refclk\n");
+ 		cpts->refclk = NULL;
+ 		return;
+ 	}
+@@ -252,7 +250,6 @@ static void cpts_clk_init(struct cpts *cpts)
+ static void cpts_clk_release(struct cpts *cpts)
+ {
+ 	clk_disable(cpts->refclk);
+-	clk_put(cpts->refclk);
+ }
+ 
+ static int cpts_match(struct sk_buff *skb, unsigned int ptp_class,
+@@ -390,7 +387,7 @@ int cpts_register(struct device *dev, struct cpts *cpts,
+ 	for (i = 0; i < CPTS_MAX_EVENTS; i++)
+ 		list_add(&cpts->pool_data[i].list, &cpts->pool);
+ 
+-	cpts_clk_init(cpts);
++	cpts_clk_init(dev, cpts);
+ 	cpts_write32(cpts, CPTS_EN, control);
+ 	cpts_write32(cpts, TS_PEND_EN, int_enable);
+ 
+-- 
+1.8.3.1
 
-I would be ok with making individual HSI client or controller
-drivers dependent on DT, but I don't think its a good idea to make
-the whole HSI framework dependent on DT.
-
--- Sebastian
-
---xXmbgvnjoT4axfJE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTXOsmAAoJENju1/PIO/qa13EP/00riztm9sWYM+GJm/smFZDj
-cNdD4rMEyh5qSn/NVXkATuJAqzLBW4u5iX4KYnk25cBc/f6Hl3JYidlHpRuT95Lb
-cnAaYN9bMNdOie3vNBV+QN9bcoVtcADgq7N+Ad/vLbkoFCKX/G8yqz/bQ56nZJZG
-79IBCF0SfSJ6SHZHeCwIYlqri15bWLuN+E3o2J+FjhYOOK+jfMuo718G1asOfEye
-moyPsYC1sn4iWegqd4SrzYEVnyGC67uRC5CUSolsCnalyR4/KXpyB9MtV/K4Q4ew
-WQsxIzmYclxCYaZzinqP3dAqSQJOaoy9vDzwyZ8QJOa3MtgWaTnkoI1roK6Sr2tq
-Di2oqCWZlB8sLA/UC/wEFZMbCwKoE6EAVh5wOWimBA7veOT6fNIPxVgVZ4iQr/h6
-wXgIGSmVuqvpVUetmMx2Q+nFGF/LTWMzGwANw00mefU/XygJzqFMZ8GhDjq/tabg
-pGLTpXLFcQB3sp4tjpVqlDGN4s+2jr6plLyhDPq9JJknjPpOKU5kH2uawpyXO2SN
-4W6WWxWpUWastkE+cBXjjXbfhvF7dhNJxRSKAFJOBTHsFkXGaxUEwZofkd46TPNo
-6qkXM6/5EwUAuO9bXampWuvNEOXeTZJl20IuLFn5WWpaNKKcxQMnGwZP5blRj0em
-AXTtQhrgtauTRtMeaNEO
-=Dzyn
------END PGP SIGNATURE-----
-
---xXmbgvnjoT4axfJE--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
