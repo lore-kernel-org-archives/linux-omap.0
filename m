@@ -1,187 +1,87 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v3 3/4] ARM: OMAP2+: Add machine entry for dra72x devices
-Date: Mon, 28 Apr 2014 11:40:28 +0530
-Message-ID: <535DF0D4.60407@ti.com>
-References: <1398333987-19454-1-git-send-email-rnayak@ti.com> <1398333987-19454-4-git-send-email-rnayak@ti.com> <53594534.8010100@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 06/23] ARM: OMAP: add OMAP5 DSI muxing
+Date: Mon, 28 Apr 2014 09:52:30 +0300
+Message-ID: <535DFAAE.1010606@ti.com>
+References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
+ <1398334639-14172-7-git-send-email-tomi.valkeinen@ti.com>
+ <535A42D6.5090107@ti.com> <535A4470.2000509@ti.com> <535A5C0A.7040808@ti.com>
+ <535A6C40.10609@ti.com> <20140425153150.GA20807@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50876 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751200AbaD1GMW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 02:12:22 -0400
-In-Reply-To: <53594534.8010100@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============6950961109137922703=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140425153150.GA20807@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "Menon, Nishanth" <nm@ti.com>, "arnd@arndb.de" <arnd@arndb.de>
 
-On Thursday 24 April 2014 10:39 PM, Suman Anna wrote:
-> Hi Rajendra,
-> 
-> On 04/24/2014 05:06 AM, Nayak, Rajendra wrote:
->> The only difference from the dra74x devices is the missing .smp entry.
->>
->> While at it, also fix the use of __initdata (across the file) and replace them
->> with __initconst as reported by checkpatch
->>
->> ERROR: Use of const init definition must use __initconst
->> +static const char *dra72x_boards_compat[] __initdata = {
-> 
-> Since it looks like you are gonna do another respin, care to separate
-> out the __initdata to __initconst change for existing ones into a
-> different patch, and limit this patch to just what the patch subject says.
+--===============6950961109137922703==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="R0fkEM4aFfVHFtXemTfENm1CcBGTSsUCI"
 
-Sure, I will, if that helps.
+--R0fkEM4aFfVHFtXemTfENm1CcBGTSsUCI
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> regards
-> Suman
-> 
->>
->> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> ---
->>  arch/arm/mach-omap2/board-generic.c |   45 ++++++++++++++++++++++++-----------
->>  1 file changed, 31 insertions(+), 14 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
->> index b8920b6..dabb9f6 100644
->> --- a/arch/arm/mach-omap2/board-generic.c
->> +++ b/arch/arm/mach-omap2/board-generic.c
->> @@ -43,7 +43,7 @@ static void __init omap_generic_init(void)
->>  }
->>  
->>  #ifdef CONFIG_SOC_OMAP2420
->> -static const char *omap242x_boards_compat[] __initdata = {
->> +static const char *omap242x_boards_compat[] __initconst = {
->>  	"ti,omap2420",
->>  	NULL,
->>  };
->> @@ -62,7 +62,7 @@ MACHINE_END
->>  #endif
->>  
->>  #ifdef CONFIG_SOC_OMAP2430
->> -static const char *omap243x_boards_compat[] __initdata = {
->> +static const char *omap243x_boards_compat[] __initconst = {
->>  	"ti,omap2430",
->>  	NULL,
->>  };
->> @@ -81,7 +81,7 @@ MACHINE_END
->>  #endif
->>  
->>  #ifdef CONFIG_ARCH_OMAP3
->> -static const char *omap3_boards_compat[] __initdata = {
->> +static const char *omap3_boards_compat[] __initconst = {
->>  	"ti,omap3430",
->>  	"ti,omap3",
->>  	NULL,
->> @@ -100,7 +100,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
->>  	.restart	= omap3xxx_restart,
->>  MACHINE_END
->>  
->> -static const char *omap36xx_boards_compat[] __initdata = {
->> +static const char *omap36xx_boards_compat[] __initconst = {
->>  	"ti,omap36xx",
->>  	NULL,
->>  };
->> @@ -118,7 +118,7 @@ DT_MACHINE_START(OMAP36XX_DT, "Generic OMAP36xx (Flattened Device Tree)")
->>  	.restart	= omap3xxx_restart,
->>  MACHINE_END
->>  
->> -static const char *omap3_gp_boards_compat[] __initdata = {
->> +static const char *omap3_gp_boards_compat[] __initconst = {
->>  	"ti,omap3-beagle",
->>  	"timll,omap3-devkit8000",
->>  	NULL,
->> @@ -137,7 +137,7 @@ DT_MACHINE_START(OMAP3_GP_DT, "Generic OMAP3-GP (Flattened Device Tree)")
->>  	.restart	= omap3xxx_restart,
->>  MACHINE_END
->>  
->> -static const char *am3517_boards_compat[] __initdata = {
->> +static const char *am3517_boards_compat[] __initconst = {
->>  	"ti,am3517",
->>  	NULL,
->>  };
->> @@ -157,7 +157,7 @@ MACHINE_END
->>  #endif
->>  
->>  #ifdef CONFIG_SOC_AM33XX
->> -static const char *am33xx_boards_compat[] __initdata = {
->> +static const char *am33xx_boards_compat[] __initconst = {
->>  	"ti,am33xx",
->>  	NULL,
->>  };
->> @@ -177,7 +177,7 @@ MACHINE_END
->>  #endif
->>  
->>  #ifdef CONFIG_ARCH_OMAP4
->> -static const char *omap4_boards_compat[] __initdata = {
->> +static const char *omap4_boards_compat[] __initconst = {
->>  	"ti,omap4460",
->>  	"ti,omap4430",
->>  	"ti,omap4",
->> @@ -199,7 +199,7 @@ MACHINE_END
->>  #endif
->>  
->>  #ifdef CONFIG_SOC_OMAP5
->> -static const char *omap5_boards_compat[] __initdata = {
->> +static const char *omap5_boards_compat[] __initconst = {
->>  	"ti,omap5432",
->>  	"ti,omap5430",
->>  	"ti,omap5",
->> @@ -221,7 +221,7 @@ MACHINE_END
->>  #endif
->>  
->>  #ifdef CONFIG_SOC_AM43XX
->> -static const char *am43_boards_compat[] __initdata = {
->> +static const char *am43_boards_compat[] __initconst = {
->>  	"ti,am4372",
->>  	"ti,am43",
->>  	NULL,
->> @@ -240,13 +240,13 @@ MACHINE_END
->>  #endif
->>  
->>  #ifdef CONFIG_SOC_DRA7XX
->> -static const char *dra7xx_boards_compat[] __initdata = {
->> -	"ti,dra7xx",
->> +static const char *dra74x_boards_compat[] __initconst = {
->> +	"ti,dra74",
->>  	"ti,dra7",
->>  	NULL,
->>  };
->>  
->> -DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
->> +DT_MACHINE_START(DRA74X_DT, "Generic DRA74X (Flattened Device Tree)")
->>  	.reserve	= omap_reserve,
->>  	.smp		= smp_ops(omap4_smp_ops),
->>  	.map_io		= omap5_map_io,
->> @@ -255,7 +255,24 @@ DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
->>  	.init_irq	= omap_gic_of_init,
->>  	.init_machine	= omap_generic_init,
->>  	.init_time	= omap5_realtime_timer_init,
->> -	.dt_compat	= dra7xx_boards_compat,
->> +	.dt_compat	= dra74x_boards_compat,
->> +	.restart	= omap44xx_restart,
->> +MACHINE_END
->> +
->> +static const char *dra72x_boards_compat[] __initconst = {
->> +	"ti,dra72",
->> +	NULL,
->> +};
->> +
->> +DT_MACHINE_START(DRA72_DT, "Generic DRA72X (Flattened Device Tree)")
->> +	.reserve	= omap_reserve,
->> +	.map_io		= omap5_map_io,
->> +	.init_early	= dra7xx_init_early,
->> +	.init_late	= dra7xx_init_late,
->> +	.init_irq	= omap_gic_of_init,
->> +	.init_machine	= omap_generic_init,
->> +	.init_time	= omap5_realtime_timer_init,
->> +	.dt_compat	= dra72x_boards_compat,
->>  	.restart	= omap44xx_restart,
->>  MACHINE_END
->>  #endif
->>
-> 
+On 25/04/14 18:31, Tony Lindgren wrote:
 
+> Chances are any mux register in the syscon area already works with
+> pinctrl-single,pins or pinctrl-single,bits option. The ones in the
+> padconf area should be already mapped so the driver just has to
+> request them.
+
+If using the padconf (say omap4_padconf_global for omap4), doesn't that
+mean we need to have platform specific bits in the driver? Isn't that
+something we've been trying to remove all the time?
+
+ Tomi
+
+
+
+--R0fkEM4aFfVHFtXemTfENm1CcBGTSsUCI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTXfqxAAoJEPo9qoy8lh71YHYP/0YgWF+CwRkET8PHisPYQ+nA
+LLb95F6hBl2yjVTh4yzbNg4GtTANzP6REx/UOmMgiU7B7lQtArgu0zrOdgBYceb9
+orWwqcmNqiBCOZCOFUXRLulk0ZfwaV9nbKXK7FAi3WFv5K/AM6sANlVTLQyUKYTZ
+LS5oRa3TvYkwentu/2r7cc/jKHtC3G9evLSMHv6bZwb22UL9zTN7MEUhIi9C6Wj6
+7CFpJB35Dr3K9661jDPwohKODLQBffVMNBOIXw9H1aK2M2aTzaxcPwCiXUMpheix
+KtlzJe6z3xfZObS9+xUXr7i0u9jBY4bImfZMrey46sldYZzr85SqnG42Rlbq4zyV
+q3JyhPhDMuQ4lDMxslp/O6u5a7tVZDw/TE1KfpIb+1IjUQxTFXQqRqRGR4TTzjBs
+ZOEW+CG1KAHhF/1jjULbp8ooSnCY2GEcPUt8YrA7KBJK4QPcz+F+vKhD6gySSeQ0
+n0LwRDTP+PLIjAM121Eq61XxVY4pr1VEExWd4a1u6zP7gzpiiidAxsFQOPeTQJHe
+BwFcoyW8e5E8MMjYz6jJKV2EKCkFrsX9DeZmOCCheR9ltMsyTM+ThfFjKM3tz5ph
+apO39+3cgVBksN+wsNYPkVdTu1Uu4rhDEzORrIHRkE9YxBS0jk3wpSeUM3HKmOny
+FNgrQOyiQqjCmV59tdSW
+=7I4W
+-----END PGP SIGNATURE-----
+
+--R0fkEM4aFfVHFtXemTfENm1CcBGTSsUCI--
+
+
+--===============6950961109137922703==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============6950961109137922703==--
