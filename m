@@ -1,55 +1,64 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 3/7] phy: omap-usb2: Use generic clock names "wkupclk" and "refclk"
-Date: Mon, 28 Apr 2014 17:01:23 +0300
-Message-ID: <1398693687-13967-4-git-send-email-rogerq@ti.com>
-References: <1398693687-13967-1-git-send-email-rogerq@ti.com>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCHv2 0/9] DT support for N900 soundcard (rx51-audio)
+Date: Mon, 28 Apr 2014 16:07:18 +0200
+Message-ID: <1398694047-28596-1-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1398693687-13967-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: george.cherian-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-As clocks might be named differently on multiple platforms, use a generic
-name in the driver and allow device tree node to specify the platform
-specific clock name.
+Hi,
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- drivers/phy/phy-omap-usb2.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+This patchset adds DT support in rx51-audio. I tested it on my
+Nokia N900 and was able to play a wav file using aplay. I have
+not tested the whole functionality, but output via speakers,
+headphones and the related enable controls seem to work.
 
-diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-index a2205a8..fb5e515 100644
---- a/drivers/phy/phy-omap-usb2.c
-+++ b/drivers/phy/phy-omap-usb2.c
-@@ -275,16 +275,16 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 	if (IS_ERR(phy_provider))
- 		return PTR_ERR(phy_provider);
- 
--	phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
-+	phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
- 	if (IS_ERR(phy->wkupclk)) {
--		dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
-+		dev_err(&pdev->dev, "unable to get wkupclk\n");
- 		return PTR_ERR(phy->wkupclk);
- 	}
- 	clk_prepare(phy->wkupclk);
- 
--	phy->optclk = devm_clk_get(phy->dev, "usb_otg_ss_refclk960m");
-+	phy->optclk = devm_clk_get(phy->dev, "refclk");
- 	if (IS_ERR(phy->optclk))
--		dev_vdbg(&pdev->dev, "unable to get refclk960m\n");
-+		dev_dbg(&pdev->dev, "unable to get refclk\n");
- 	else
- 		clk_prepare(phy->optclk);
- 
+Changes since PATCHv1 [0]:
+ * drop "ASoC: tlv320aic3x: fix shared reset pin for DT"
+   (already applied)
+ * drop "ASoC: RX-51: Convert to table based DAPM setup"
+   (similar patch was applied to -next)
+ * remove useless "card->dev = NULL;" from first patch
+ * split patches from into smaller chunks
+ * introduce new patch, which fixes a checkpatch warning
+ * use gpiod API, which reduces the DT specific bits of
+   the driver
+ * rebase to newer -next checkout
+
+[0] https://lkml.org/lkml/2014/4/5/92
+
+-- Sebastian
+
+Sebastian Reichel (9):
+  ASoC: omap: rx51: Use static const char * const arrays
+  ASoC: omap: rx51: Add module alias
+  ASoC: omap: rx51: Use devm_snd_soc_register_card
+  ASoC: Allow Aux Codecs to be specified using DT
+  ASoC: omap: rx51: omap_mcbsp_st_add_controls: add id parameter
+  ASoC: omap: rx51: get GPIO numbers via gpiod API
+  ASoC: omap: rx51: Add some error messages
+  ASoC: omap: rx51: Add DT support
+  DTS: OMAP3-N900: Add sound support
+
+ .../devicetree/bindings/sound/nokia,rx51.txt       |  27 +++
+ arch/arm/boot/dts/omap3-n900.dts                   |  17 ++
+ include/sound/soc.h                                |  13 +-
+ sound/soc/omap/omap-mcbsp.c                        |   5 +-
+ sound/soc/omap/omap-mcbsp.h                        |   2 +-
+ sound/soc/omap/rx51.c                              | 226 +++++++++++++++------
+ sound/soc/soc-core.c                               |  68 ++++---
+ 7 files changed, 271 insertions(+), 87 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/sound/nokia,rx51.txt
+
 -- 
-1.8.3.2
+1.9.2
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
