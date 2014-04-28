@@ -1,98 +1,180 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V3 15/20] bus: omap_l3_noc: ignore masked out unclearable targets
-Date: Mon, 28 Apr 2014 10:14:55 -0500
-Message-ID: <1398698101-25513-16-git-send-email-nm@ti.com>
+Subject: [PATCH V3 20/20] bus: omap_l3_noc: Add AM4372 interconnect error data
+Date: Mon, 28 Apr 2014 10:15:00 -0500
+Message-ID: <1398698101-25513-21-git-send-email-nm@ti.com>
 References: <1397492726-17203-1-git-send-email-nm@ti.com>
  <1398698101-25513-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1398698101-25513-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sricharan R <r.sricharan@ti.com>, Sekhar Nori <nsekhar@ti.com>, Rajendra Nayak <rnayak@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nm@ti.com
+Cc: nm@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Afzal Mohammed <afzal@ti.com>
 
-Errors that cannot be cleared (determined by reading REGERR register)
-are currently handled by masking it. Documentation states that REGERR
-"Checks which application/debug error sources are active" - it does not
-indicate that this is "interrupt status" - masked out status represented
-eventually in the irq line to MPU.
-For example:
+Add AM4372 information to handle L3 error.
 
-Lets say module 0 bit 8(0x100) was unclearable, we do the mask it from
-generating further errors. However in the following cases:
-a) bit 9 of Module 0
-OR
-b) any bit of Module 1+
-occur, the interrupt handler wrongly assumes that the raw interrupt
-status of module 0 bit 8 is the root cause of the interrupt, and
-returns. This causes unhandled interrupt and resultant infinite
-interrupts.
+AM4372 has two clk domains 100f and 200s. Provide flagmux and data
+associated with it.
 
-Fix this scenario by storing the events we masked out and masking raw
-status with masked ones before identifying and handling the error.
+NOTE: Timeout doesn't have STDERRLOG_MAIN register. And per hardware
+team, L3 timeout error cannot be cleared the normal way (by setting
+bit 31 in STDERRLOG_MAIN), instead it may be required to do system
+reset. L3 error handler can't help in such scenarios.
 
-Reported-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Hence indicate timeout target offset as L3_TARGET_NOT_SUPPORTED as
+done for undocumented bits.
+
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
-Tested-by: Vaibhav Hiremath <hvaibhav@gmail.com>
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 Signed-off-by: Nishanth Menon <nm@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Tested-by: Darren Etheridge <detheridge@ti.com>
 ---
-V3: new patch
+V3: New master information + masterid parse information update
 
- drivers/bus/omap_l3_noc.c |    9 +++++++++
- drivers/bus/omap_l3_noc.h |    4 ++++
- 2 files changed, 13 insertions(+)
+ .../devicetree/bindings/arm/omap/l3-noc.txt        |    1 +
+ drivers/bus/omap_l3_noc.c                          |    1 +
+ drivers/bus/omap_l3_noc.h                          |   91 ++++++++++++++++++++
+ 3 files changed, 93 insertions(+)
 
+diff --git a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
+index 45d0fc2..974624e 100644
+--- a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
++++ b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
+@@ -7,6 +7,7 @@ Required properties:
+ - compatible : Should be "ti,omap3-l3-smx" for OMAP3 family
+                Should be "ti,omap4-l3-noc" for OMAP4 family
+ 	       Should be "ti,dra7-l3-noc" for DRA7 family
++               Should be "ti,am4372-l3-noc" for AM43 family
+ - reg:	Contains L3 register address range for each noc domain.
+ - ti,hwmods: "l3_main_1", ... One hwmod for each noc domain.
+ 
 diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-index 0691e6d..00e4fed 100644
+index 6cdd02e..531ae59 100644
 --- a/drivers/bus/omap_l3_noc.c
 +++ b/drivers/bus/omap_l3_noc.c
-@@ -169,6 +169,9 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
- 		err_reg = readl_relaxed(base + flag_mux->offset +
- 					L3_FLAGMUX_REGERR0 + (inttype << 3));
- 
-+		err_reg &= ~(inttype ? flag_mux->mask_app_bits :
-+				flag_mux->mask_dbg_bits);
-+
- 		/* Get the corresponding error and analyse */
- 		if (err_reg) {
- 			/* Identify the source from control status register */
-@@ -193,6 +196,12 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
- 				mask_val = readl_relaxed(mask_reg);
- 				mask_val &= ~(1 << err_src);
- 				writel_relaxed(mask_val, mask_reg);
-+
-+				/* Mark these bits as to be ignored */
-+				if (inttype)
-+					flag_mux->mask_app_bits |= 1 << err_src;
-+				else
-+					flag_mux->mask_dbg_bits |= 1 << err_src;
- 			}
- 
- 			/* Error found so break the for loop */
+@@ -231,6 +231,7 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
+ static const struct of_device_id l3_noc_match[] = {
+ 	{.compatible = "ti,omap4-l3-noc", .data = &omap_l3_data},
+ 	{.compatible = "ti,dra7-l3-noc", .data = &dra_l3_data},
++	{.compatible = "ti,am4372-l3-noc", .data = &am4372_l3_data},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, l3_noc_match);
 diff --git a/drivers/bus/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
-index ea2f51c..4e18307 100644
+index 9562a75..551e010 100644
 --- a/drivers/bus/omap_l3_noc.h
 +++ b/drivers/bus/omap_l3_noc.h
-@@ -66,11 +66,15 @@ struct l3_target_data {
-  *		target data. unsupported ones are marked with
-  *		L3_TARGET_NOT_SUPPORTED
-  * @num_targ_data: number of entries in target data
-+ * @mask_app_bits: ignore these from raw application irq status
-+ * @mask_dbg_bits: ignore these from raw debug irq status
-  */
- struct l3_flagmux_data {
- 	u32 offset;
- 	struct l3_target_data *l3_targ;
- 	u8 num_targ_data;
-+	u32 mask_app_bits;
-+	u32 mask_dbg_bits;
+@@ -381,4 +381,95 @@ static const struct omap_l3 dra_l3_data = {
+ 	.mst_addr_mask = 0xFC,
  };
  
- 
++/* AM4372 data */
++static struct l3_target_data am4372_l3_target_data_200f[] = {
++	{0xf00,  "EMIF",},
++	{0x1200, "DES",},
++	{0x400,  "OCMCRAM",},
++	{0x700,  "TPTC0",},
++	{0x800,  "TPTC1",},
++	{0x900,  "TPTC2"},
++	{0xb00,  "TPCC",},
++	{0xd00,  "DEBUGSS",},
++	{0xdead, L3_TARGET_NOT_SUPPORTED,},
++	{0x200,  "SHA",},
++	{0xc00,  "SGX530",},
++	{0x500,  "AES0",},
++	{0xa00,  "L4_FAST",},
++	{0x300,  "MPUSS_L2_RAM",},
++	{0x100,  "ICSS",},
++};
++
++static struct l3_flagmux_data am4372_l3_flagmux_200f = {
++	.offset = 0x1000,
++	.l3_targ = am4372_l3_target_data_200f,
++	.num_targ_data = ARRAY_SIZE(am4372_l3_target_data_200f),
++};
++
++static struct l3_target_data am4372_l3_target_data_100s[] = {
++	{0x100, "L4_PER_0",},
++	{0x200, "L4_PER_1",},
++	{0x300, "L4_PER_2",},
++	{0x400, "L4_PER_3",},
++	{0x800, "McASP0",},
++	{0x900, "McASP1",},
++	{0xC00, "MMCHS2",},
++	{0x700, "GPMC",},
++	{0xD00, "L4_FW",},
++	{0xdead, L3_TARGET_NOT_SUPPORTED,},
++	{0x500, "ADCTSC",},
++	{0xE00, "L4_WKUP",},
++	{0xA00, "MAG_CARD",},
++};
++
++static struct l3_flagmux_data am4372_l3_flagmux_100s = {
++	.offset = 0x600,
++	.l3_targ = am4372_l3_target_data_100s,
++	.num_targ_data = ARRAY_SIZE(am4372_l3_target_data_100s),
++};
++
++static struct l3_masters_data am4372_l3_masters[] = {
++	{ 0x0, "M1 (128-bit)"},
++	{ 0x1, "M2 (64-bit)"},
++	{ 0x4, "DAP"},
++	{ 0x5, "P1500"},
++	{ 0xC, "ICSS0"},
++	{ 0xD, "ICSS1"},
++	{ 0x14, "Wakeup Processor"},
++	{ 0x18, "TPTC0 Read"},
++	{ 0x19, "TPTC0 Write"},
++	{ 0x1A, "TPTC1 Read"},
++	{ 0x1B, "TPTC1 Write"},
++	{ 0x1C, "TPTC2 Read"},
++	{ 0x1D, "TPTC2 Write"},
++	{ 0x20, "SGX530"},
++	{ 0x21, "OCP WP Traffic Probe"},
++	{ 0x22, "OCP WP DMA Profiling"},
++	{ 0x23, "OCP WP Event Trace"},
++	{ 0x25, "DSS"},
++	{ 0x28, "Crypto DMA RD"},
++	{ 0x29, "Crypto DMA WR"},
++	{ 0x2C, "VPFE0"},
++	{ 0x2D, "VPFE1"},
++	{ 0x30, "GEMAC"},
++	{ 0x34, "USB0 RD"},
++	{ 0x35, "USB0 WR"},
++	{ 0x36, "USB1 RD"},
++	{ 0x37, "USB1 WR"},
++};
++
++static struct l3_flagmux_data *am4372_l3_flagmux[] = {
++	&am4372_l3_flagmux_200f,
++	&am4372_l3_flagmux_100s,
++};
++
++static const struct omap_l3 am4372_l3_data = {
++	.l3_flagmux = am4372_l3_flagmux,
++	.num_modules = ARRAY_SIZE(am4372_l3_flagmux),
++	.l3_masters = am4372_l3_masters,
++	.num_masters = ARRAY_SIZE(am4372_l3_masters),
++	/* All 6 bits of register field used to distinguish initiator */
++	.mst_addr_mask = 0x3F,
++};
++
+ #endif	/* __OMAP_L3_NOC_H */
 -- 
 1.7.9.5
