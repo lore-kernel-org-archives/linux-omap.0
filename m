@@ -1,63 +1,111 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH 07/10] ARM: dts: DRA7: Add DT node for DES IP
-Date: Mon, 28 Apr 2014 11:38:33 -0500
-Message-ID: <535E8409.10905@ti.com>
-References: <1398466968-29506-1-git-send-email-joelf@ti.com>
- <1398466968-29506-8-git-send-email-joelf@ti.com>
- <535BE096.2060407@cogentembedded.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: next-20140428 (regression: DEADLOCK)
+Date: Mon, 28 Apr 2014 11:43:26 -0500
+Message-ID: <20140428164319.GM30292@saruman.home>
+References: <535E4EB7.5010605@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <535BE096.2060407@cogentembedded.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lbQeYSs6J2ITmUo7"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:55916 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755802AbaD1Qnb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Apr 2014 12:43:31 -0400
+Received: from dlelxv90.itg.ti.com ([172.17.2.17])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id s3SGhVwG000505
+	for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2014 11:43:31 -0500
+Received: from DLEE70.ent.ti.com (dlemailx.itg.ti.com [157.170.170.113])
+	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id s3SGhVRr010406
+	for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2014 11:43:31 -0500
+Content-Disposition: inline
+In-Reply-To: <535E4EB7.5010605@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On 04/26/2014 11:36 AM, Sergei Shtylyov wrote:
-> Hello.
-> 
-> On 26-04-2014 3:02, Joel Fernandes wrote:
-> 
->> DRA7xx SoCs have a DES3DES IP. Add DT data for the same.
-> 
->> Signed-off-by: Joel Fernandes <joelf@ti.com>
->> ---
->>   arch/arm/boot/dts/dra7.dtsi |   11 +++++++++++
->>   1 file changed, 11 insertions(+)
-> 
->> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->> index 1c0f8e1..0533b89 100644
->> --- a/arch/arm/boot/dts/dra7.dtsi
->> +++ b/arch/arm/boot/dts/dra7.dtsi
->> @@ -789,6 +789,17 @@
->>               dma-names = "tx0", "rx0";
->>               status = "disabled";
->>           };
->> +
->> +        des: des@480a5000 {
-> 
->    Shouldn't the node name be "crypto@480a5000", according to the ePAPR
-> standard?
-> 
-Actually I'm not a big fan of the standard here in this regard.
-"crypto@480a5000" doesn't mean anything and serves no purpose for
-anyone. There are quite a few crypto modules and such a name doesn't
-help and is confusing at best.
+--lbQeYSs6J2ITmUo7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-There's no property either in the device tree node itself to describe it
-as des, except for the phandle label which is used only at dt
-compile-time if I'm right. So makes sense to have the name be more specific.
+On Mon, Apr 28, 2014 at 07:51:03AM -0500, Nishanth Menon wrote:
+> omap2plus_defconfig shows for the following platform deadlock with
+> console_lock.
+>=20
+>  1: am335x-evm:  Boot PASS: http://slexy.org/raw/s2biDSRTAP
+>  2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s20deZjf34
+>  3: am3517-evm:  Boot PASS: http://slexy.org/raw/s21NM1bLxs
+>  4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s2022AFyZ6
+>  5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s21Dq284CM
+>  6: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s2aK24U5ON
+>  7: beagleboard-vanilla:  Boot PASS: http://slexy.org/raw/s21j15I8kK
+>  8: beaglebone-black:  Boot PASS: http://slexy.org/raw/s21jO02jIK
+>  9: craneboard:  Boot PASS: http://slexy.org/raw/s22JGqMSfY
+> 10: DRA7xx-EVM:  Boot PASS: http://slexy.org/raw/s260y1Opd1
+> 11:       n900:  Boot PASS: http://slexy.org/raw/s20IDKmJ6L
+> 12: pandaboard-vanilla:  Boot PASS: http://slexy.org/raw/s2dJcyep9A
+> 13:    sdp2430:  Boot PASS: http://slexy.org/raw/s20Oldnm8I
+> 14:    sdp3430:  Boot PASS: http://slexy.org/raw/s2Mo7s3ttZ
+> 15: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s2qXj7HFTJ
+>=20
+>=20
+>  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>  [ INFO: possible recursive locking detected ]
+>  3.15.0-rc2-next-20140428-00002-gd0ca5e6 #1 Not tainted
+>  ---------------------------------------------
+>  swapper/0/0 is trying to acquire lock:
+>   (console_lock){+.+...}, at: [<c07d1124>] con_init+0xc/0x28c
+>=20
+>  but task is already holding lock:
+>   (console_lock){+.+...}, at: [<c008c224>] vprintk_emit+0x200/0x590
+>=20
+>  other info that might help us debug this:
+>   Possible unsafe locking scenario:
+>=20
+>         CPU0
+>         ----
+>    lock(console_lock);
+>    lock(console_lock);
+>=20
+>   *** DEADLOCK ***
+>=20
+>   May be due to missing lock nesting notation
+>=20
+>  1 lock held by swapper/0/0:
+>   #0:  (console_lock){+.+...}, at: [<c008c224>] vprintk_emit+0x200/0x590
 
-This is how we have added dts nodes for other crypto modules in the past...
+someone already found the culprit:
 
-thanks,
- -Joel
+http://marc.info/?l=3Dlinux-kernel&m=3D139870299331959
+
+cheers
+
+--=20
+balbi
+
+--lbQeYSs6J2ITmUo7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTXoUnAAoJEIaOsuA1yqRE8VQP/RgazYR42d1ryqw0z5idpKqI
+LXtLW8neuJHKYzn1TxdEoI3bBrFV7QnFmHh0POP9J7ty2MPw11Yuzej1yieQlLdH
++JvUayTVUmHRftqw/dKmv4RYDAx247/jkHBDCMk1u2rKLsy9nhliW5F07HH/F+gb
+9XaK7gOxGFzcGdcKWbZVv94/cMg1NA02bIX9TgvYkW3ur4nnH/d7XFgyfbZ9UjZU
+wTyilLBIvB3iq612ssrTylMTw/mwtd0LC4oAxsJ4lYch1wxXefRsXj1qetxN9czo
+7ezCFIDNgoxx0pl1VqF/1d/3gyvGW6AOxQ9rGTr08FCoW/Pacp9zlvVqntmpBtTs
+tsHZTQ44LXbXJAhPkuQD7vrL1Bv2hqiFOH1MFAsy+uYcrWHQQuM0ZW21sOsrx4iw
+sc5innJss+UEpibtD84S/YAccN1keUxNRbYI3PXi17He1O+nkkqzJETT+S6C55h6
+kQmi33w4TMgxgf0tRe2+shJ/duVpcotT9OAErr1Ukv0mcbTwN4iCylPQOilzvkGL
+ZbNYOQw5/7QFeZLPLPug/lNhvJ6XqPhi/NtQZv+RNt9kmITckBhfI3kR4EOQ8dhm
+Cgnd5etsMZGJexpS3VvlBS9G0mQyqk6Jj5Xh0uF4pBnZmHdAT9jXgYWAen2Jnqx2
+WqoRKbubI0HVgm94us/A
+=R8UB
+-----END PGP SIGNATURE-----
+
+--lbQeYSs6J2ITmUo7--
