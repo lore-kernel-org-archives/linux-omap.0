@@ -1,51 +1,36 @@
-From: yegorslists@googlemail.com
-Subject: [PATCH] ARM: dts: am33xx: fix DMA support for the second USB interface
-Date: Mon, 28 Apr 2014 10:37:17 +0200
-Message-ID: <1398674237-4129-1-git-send-email-yegorslists@googlemail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hhlx01.vscom.de ([62.145.30.242]:43448 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751321AbaD1IiH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 04:38:07 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v3 2/4] ARM: dts: Add support for DRA72x family of devices
+Date: Mon, 28 Apr 2014 10:50:51 +0200
+Message-ID: <5761706.QaRvAizEZ2@wuerfel>
+References: <1398333987-19454-1-git-send-email-rnayak@ti.com> <201404241513.54380.arnd@arndb.de> <535DF092.7000307@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <535DF092.7000307-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, nm-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com, Yegor Yefremov <yegorslists@googlemail.com>
 
-From: Yegor Yefremov <yegorslists@googlemail.com>
+On Monday 28 April 2014 11:39:22 Rajendra Nayak wrote:
+> 
+> DRA742 EVM:  Software Developement Board for DRA742
+> compatible = "ti,dra7-evm", "ti,dra742", "ti,dra74", "ti,dra7"
+> DRA722 EVM: Software Development Board for DRA722
+> compatible = "ti,dra72-evm", "ti,dra722", "ti,dra72", "ti,dra7"
+> 
+> I was also calling the .dtsi files as dra72x.dtsi and dra74x.dtsi, do you suggest I call
+> them dra742.dtsi and dra722.dtsi instead? Just that if we end up with a dra745 which is
+> fully compatible with dra742, as you mentioned above, we would be using a dra742.dtsi for a dra745
+> device which could be a little confusing.
 
-This patch creates unique DMA channels for the second USB
-interface, otherwise the second USB interface is not usable
-at all.
+For the file names, wildcards are ok. Alternatively you could have
+a dra745.dtsi that does nothing but include dra752.dtsi and override
+the compatible string (if there is one to start with).
 
-Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
----
- arch/arm/boot/dts/am33xx.dtsi |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 07f283c..e04cbbc 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -548,12 +548,12 @@
- 					&cppi41dma 26 1 &cppi41dma 27 1
- 					&cppi41dma 28 1 &cppi41dma 29 1>;
- 				dma-names =
--					"rx1", "rx2", "rx3", "rx4", "rx5", "rx6", "rx7",
--					"rx8", "rx9", "rx10", "rx11", "rx12", "rx13",
--					"rx14", "rx15",
--					"tx1", "tx2", "tx3", "tx4", "tx5", "tx6", "tx7",
--					"tx8", "tx9", "tx10", "tx11", "tx12", "tx13",
--					"tx14", "tx15";
-+					"rx16", "rx17", "rx18", "rx19", "rx20", "rx21", "rx22",
-+					"rx23", "rx24", "rx25", "rx26", "rx27", "rx28",
-+					"rx29", "rx30",
-+					"tx16", "tx17", "tx18", "tx19", "tx20", "tx21", "tx22",
-+					"tx23", "tx24", "tx25", "tx26", "tx27", "tx28",
-+					"tx29", "tx30";
- 			};
- 
- 			cppi41dma: dma-controller@47402000 {
--- 
-1.7.7
-
+	Arnd
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
