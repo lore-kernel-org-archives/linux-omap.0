@@ -1,42 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] mfd: twl4030-power: Add recommended idle
+Subject: Re: [PATCH 2/4] mfd: twl4030-power: Add support for board specific
  configuration
-Date: Mon, 28 Apr 2014 08:33:47 -0700
-Message-ID: <20140428153346.GI20807@atomide.com>
+Date: Mon, 28 Apr 2014 08:36:20 -0700
+Message-ID: <20140428153620.GJ20807@atomide.com>
 References: <1398300030-7386-1-git-send-email-tony@atomide.com>
- <1398300030-7386-2-git-send-email-tony@atomide.com>
- <20140428114133.GV21279@lee--X1>
+ <1398300030-7386-3-git-send-email-tony@atomide.com>
+ <20140428114726.GW21279@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47450 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756434AbaD1Pdz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 11:33:55 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20140428114133.GV21279@lee--X1>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <20140428114726.GW21279@lee--X1>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Peter De Schrijver <pdeschrijver@nvidia.com>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: Peter De Schrijver <pdeschrijver@nvidia.com>, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-* Lee Jones <lee.jones@linaro.org> [140428 04:42]:
-> > These settings are based on the "Recommended Sleep Sequences for
-> > the Zoom Platform" pdf at:
+* Lee Jones <lee.jones@linaro.org> [140428 04:47]:
+> > With the recommended twl4030 configuration added, we can now add
+> > board specific changes as modifications to the recommended
+> > configuration.
 > > 
-> > http://omappedia.com/wiki/File:Recommended_Sleep_Sequences_Zoom.pdf
+> > Cc: Peter De Schrijver <pdeschrijver@nvidia.com>
+> > Cc: Samuel Ortiz <sameo@linux.intel.com>
+> > Cc: Lee Jones <lee.jones@linaro.org>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  drivers/mfd/twl4030-power.c | 21 +++++++++++++++++++++
+> >  include/linux/i2c/twl.h     |  1 +
+> >  2 files changed, 22 insertions(+)
 > > 
-> > These settings assume most of the regulators are under control of
-> > Linux, and cuts off VDD1 and VDD2 during off-idle as Linux cannot
-> > do it.
+> > diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> > index 89a8528..89c6b1a 100644
+> > --- a/drivers/mfd/twl4030-power.c
+> > +++ b/drivers/mfd/twl4030-power.c
+> > @@ -511,13 +511,34 @@ twl4030_power_configure_scripts(const struct twl4030_power_data *pdata)
+> >  	return 0;
+> >  }
+> >  
+> > +static void twl4030_patch_rconfig(struct twl4030_resconfig *common,
+> > +				  struct twl4030_resconfig *board)
+> > +{
+> > +	while (common->resource) {
+> > +		struct twl4030_resconfig *b = board;
+> > +
+> > +		while (b->resource) {
+> > +			if (b->resource == common->resource) {
+> > +				*common = *b;
+> > +				break;
+> > +			}
+> > +			b++;
+> > +		}
+> > +		common++;
+> > +	}
+> > +}
 > 
-> Linux does it becuase Linux can't do it. Eh?
+> Forgive my ignorance, as I don't know how 'common' is setup, but we
+> appear to move to the next 'common' reference them immediately
+> dereference it without checking to see if it actually exists. Same
+> with 'b'. What happens if we reach the end of the array? NULL
+> dereference or does the final element always have a NULLed resource
+> attribute?
 
-Heh yeah that's confusing, will update to:
-
-These settings assume most of the regulators are under control of
-Linux, and twl4030 only cuts off VDD1 and VDD2 during off-idle as
-Linux cannot do it.
+Yes there's always a NULL entry at the end of the list always in
+this case, and the configured lists are always static in the driver.
 
 Regards,
 
