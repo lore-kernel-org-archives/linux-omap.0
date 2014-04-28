@@ -1,71 +1,33 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: next-20140428 (regression: DEADLOCK)
-Date: Mon, 28 Apr 2014 07:51:03 -0500
-Message-ID: <535E4EB7.5010605@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH 4/6] drivers: net: cpsw: Enable Annexe F Time sync
+Date: Mon, 28 Apr 2014 18:28:07 +0530
+Message-ID: <535E505F.3010302@ti.com>
+References: <1398658225-25873-1-git-send-email-george.cherian@ti.com> <1398658225-25873-5-git-send-email-george.cherian@ti.com> <20140428075530.GA8371@netboy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51258 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755836AbaD1MvE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Apr 2014 08:51:04 -0400
-Received: from dlelxv90.itg.ti.com ([172.17.2.17])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id s3SCp4JG028213
-	for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2014 07:51:04 -0500
-Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
-	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id s3SCp4mw004312
-	for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2014 07:51:04 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140428075530.GA8371@netboy>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Richard Cochran <richardcochran@gmail.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, davem@davemloft.net, jeffrey.t.kirsher@intel.com, dborkman@redhat.com, ast@plumgrid.com, tklauser@distanz.ch, mpa@pengutronix.de, bhutchings@solarflare.com, zonque@gmail.com, balbi@ti.com, mugunthanvnm@ti.com, t-kristo@ti.com, mturquette@linaro.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-omap2plus_defconfig shows for the following platform deadlock with
-console_lock.
-
- 1: am335x-evm:  Boot PASS: http://slexy.org/raw/s2biDSRTAP
- 2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s20deZjf34
- 3: am3517-evm:  Boot PASS: http://slexy.org/raw/s21NM1bLxs
- 4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s2022AFyZ6
- 5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s21Dq284CM
- 6: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s2aK24U5ON
- 7: beagleboard-vanilla:  Boot PASS: http://slexy.org/raw/s21j15I8kK
- 8: beaglebone-black:  Boot PASS: http://slexy.org/raw/s21jO02jIK
- 9: craneboard:  Boot PASS: http://slexy.org/raw/s22JGqMSfY
-10: DRA7xx-EVM:  Boot PASS: http://slexy.org/raw/s260y1Opd1
-11:       n900:  Boot PASS: http://slexy.org/raw/s20IDKmJ6L
-12: pandaboard-vanilla:  Boot PASS: http://slexy.org/raw/s2dJcyep9A
-13:    sdp2430:  Boot PASS: http://slexy.org/raw/s20Oldnm8I
-14:    sdp3430:  Boot PASS: http://slexy.org/raw/s2Mo7s3ttZ
-15: OMAP5432uEVM:  Boot PASS: http://slexy.org/raw/s2qXj7HFTJ
-
-
- =============================================
- [ INFO: possible recursive locking detected ]
- 3.15.0-rc2-next-20140428-00002-gd0ca5e6 #1 Not tainted
- ---------------------------------------------
- swapper/0/0 is trying to acquire lock:
-  (console_lock){+.+...}, at: [<c07d1124>] con_init+0xc/0x28c
-
- but task is already holding lock:
-  (console_lock){+.+...}, at: [<c008c224>] vprintk_emit+0x200/0x590
-
- other info that might help us debug this:
-  Possible unsafe locking scenario:
-
-        CPU0
-        ----
-   lock(console_lock);
-   lock(console_lock);
-
-  *** DEADLOCK ***
-
-  May be due to missing lock nesting notation
-
- 1 lock held by swapper/0/0:
-  #0:  (console_lock){+.+...}, at: [<c008c224>] vprintk_emit+0x200/0x590
+On 4/28/2014 1:25 PM, Richard Cochran wrote:
+> On Mon, Apr 28, 2014 at 09:40:23AM +0530, George Cherian wrote:
+>> Enable the Annex F Time Sync explicitly for DRA7x and AM4372.
+>> With this enabled the L2 PTP is working.
+> L2 works fine without this bit. If this is needed for V3 hardware,
+> then it should have its own code variant.
+okay
+>   
+>> while at that rename TS_BIT8 to TS_TTL_NONZERO
+> Is this bit finally documented for am335x?
+Not for am335x, but for other SoC's it s documented.
+> Thanks,
+> Richard
+>
 
 
 -- 
-Regards,
-Nishanth Menon
+-George
