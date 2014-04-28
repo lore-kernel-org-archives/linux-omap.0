@@ -1,231 +1,61 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv2 6/9] ASoC: omap: rx51: get GPIO numbers via gpiod API
-Date: Mon, 28 Apr 2014 16:07:24 +0200
-Message-ID: <1398694047-28596-7-git-send-email-sre@kernel.org>
-References: <1398694047-28596-1-git-send-email-sre@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1398694047-28596-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, Mark Brown <broonie@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Sebastian Reichel <sre@kernel.org>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] ARM: OMAP3: clock: Back-propagate rate change from cam_mclk to dpll4_m5 on all OMAP3 platforms
+Date: Mon, 28 Apr 2014 16:11:44 +0200
+Message-ID: <2880107.LhfF5Zj821@avalon>
+References: <1398085583-9615-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33474 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756318AbaD1OLi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2014 10:11:38 -0400
+In-Reply-To: <1398085583-9615-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-Update the driver to get GPIO numbers from the
-devm gpiod API instead of requesting hardcoded
-GPIO numbers.
+Ping ?
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- sound/soc/omap/rx51.c | 114 ++++++++++++++++++++++++++++++++++----------------
- 1 file changed, 79 insertions(+), 35 deletions(-)
+On Monday 21 April 2014 15:06:23 Laurent Pinchart wrote:
+> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+>=20
+> Commit 7b2e1277598e4187c9be3e61fd9b0f0423f97986 ("ARM: OMAP3: clock:
+> Back-propagate rate change from cam_mclk to dpll4_m5") enabled clock
+> rate back-propagation from cam_mclk do dpll4_m5 on OMAP3630 only.
+> Perform back-propagation on other OMAP3 platforms as well.
+>=20
+> Reported-by: Jean-Philippe Fran=E7ois <jp.francois@cynove.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  arch/arm/mach-omap2/cclock3xxx_data.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c
+> b/arch/arm/mach-omap2/cclock3xxx_data.c index 8f5121b..eb8c75e 100644
+> --- a/arch/arm/mach-omap2/cclock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/cclock3xxx_data.c
+> @@ -456,7 +456,8 @@ static struct clk_hw_omap dpll4_m5x2_ck_hw =3D {
+>  	.clkdm_name	=3D "dpll4_clkdm",
+>  };
+>=20
+> -DEFINE_STRUCT_CLK(dpll4_m5x2_ck, dpll4_m5x2_ck_parent_names,
+> dpll4_m5x2_ck_ops); +DEFINE_STRUCT_CLK_FLAGS(dpll4_m5x2_ck,
+> dpll4_m5x2_ck_parent_names, +			dpll4_m5x2_ck_ops,=20
+CLK_SET_RATE_PARENT);
+>=20
+>  static struct clk dpll4_m5x2_ck_3630 =3D {
+>  	.name		=3D "dpll4_m5x2_ck",
 
-diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
-index e140b1b..30cfac0 100644
---- a/sound/soc/omap/rx51.c
-+++ b/sound/soc/omap/rx51.c
-@@ -26,6 +26,7 @@
- #include <linux/delay.h>
- #include <linux/gpio.h>
- #include <linux/platform_device.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/module.h>
- #include <sound/core.h>
- #include <sound/jack.h>
-@@ -38,15 +39,6 @@
- 
- #include "omap-mcbsp.h"
- 
--#define RX51_TVOUT_SEL_GPIO		40
--#define RX51_JACK_DETECT_GPIO		177
--#define RX51_ECI_SW_GPIO		182
--/*
-- * REVISIT: TWL4030 GPIO base in RX-51. Now statically defined to 192. This
-- * gpio is reserved in arch/arm/mach-omap2/board-rx51-peripherals.c
-- */
--#define RX51_SPEAKER_AMP_TWL_GPIO	(192 + 7)
--
- enum {
- 	RX51_JACK_DISABLED,
- 	RX51_JACK_TVOUT,		/* tv-out with stereo output */
-@@ -54,12 +46,21 @@ enum {
- 	RX51_JACK_HS,			/* headset: stereo output with mic */
- };
- 
-+struct rx51_audio_pdata {
-+	struct gpio_desc *tvout_selection_gpio;
-+	struct gpio_desc *jack_detection_gpio;
-+	struct gpio_desc *eci_sw_gpio;
-+	struct gpio_desc *speaker_amp_gpio;
-+};
-+
- static int rx51_spk_func;
- static int rx51_dmic_func;
- static int rx51_jack_func;
- 
- static void rx51_ext_control(struct snd_soc_dapm_context *dapm)
- {
-+	struct snd_soc_card *card = dapm->card;
-+	struct rx51_audio_pdata *pdata = snd_soc_card_get_drvdata(card);
- 	int hp = 0, hs = 0, tvout = 0;
- 
- 	switch (rx51_jack_func) {
-@@ -93,7 +94,7 @@ static void rx51_ext_control(struct snd_soc_dapm_context *dapm)
- 	else
- 		snd_soc_dapm_disable_pin_unlocked(dapm, "HS Mic");
- 
--	gpio_set_value(RX51_TVOUT_SEL_GPIO, tvout);
-+	gpiod_set_value(pdata->tvout_selection_gpio, tvout);
- 
- 	snd_soc_dapm_sync_unlocked(dapm);
- 
-@@ -154,10 +155,12 @@ static int rx51_set_spk(struct snd_kcontrol *kcontrol,
- static int rx51_spk_event(struct snd_soc_dapm_widget *w,
- 			  struct snd_kcontrol *k, int event)
- {
--	if (SND_SOC_DAPM_EVENT_ON(event))
--		gpio_set_value_cansleep(RX51_SPEAKER_AMP_TWL_GPIO, 1);
--	else
--		gpio_set_value_cansleep(RX51_SPEAKER_AMP_TWL_GPIO, 0);
-+	struct snd_soc_dapm_context *dapm = w->dapm;
-+	struct snd_soc_card *card = dapm->card;
-+	struct rx51_audio_pdata *pdata = snd_soc_card_get_drvdata(card);
-+
-+	gpiod_set_raw_value_cansleep(pdata->speaker_amp_gpio,
-+				     !!SND_SOC_DAPM_EVENT_ON(event));
- 
- 	return 0;
- }
-@@ -223,7 +226,6 @@ static struct snd_soc_jack rx51_av_jack;
- 
- static struct snd_soc_jack_gpio rx51_av_jack_gpios[] = {
- 	{
--		.gpio = RX51_JACK_DETECT_GPIO,
- 		.name = "avdet-gpio",
- 		.report = SND_JACK_HEADSET,
- 		.invert = 1,
-@@ -284,6 +286,9 @@ static const struct snd_kcontrol_new aic34_rx51_controls[] = {
- static int rx51_aic34_init(struct snd_soc_pcm_runtime *rtd)
- {
- 	struct snd_soc_codec *codec = rtd->codec;
-+	struct snd_soc_card *card = codec->card;
-+	struct rx51_audio_pdata *pdata = snd_soc_card_get_drvdata(card);
-+
- 	struct snd_soc_dapm_context *dapm = &codec->dapm;
- 	int err;
- 
-@@ -307,6 +312,11 @@ static int rx51_aic34_init(struct snd_soc_pcm_runtime *rtd)
- 			       &rx51_av_jack);
- 	if (err)
- 		return err;
-+
-+	/* prepare gpio for snd_soc_jack_add_gpios */
-+	rx51_av_jack_gpios[0].gpio = desc_to_gpio(pdata->jack_detection_gpio);
-+	devm_gpiod_put(card->dev, pdata->jack_detection_gpio);
-+
- 	err = snd_soc_jack_add_gpios(&rx51_av_jack,
- 				     ARRAY_SIZE(rx51_av_jack_gpios),
- 				     rx51_av_jack_gpios);
-@@ -365,37 +375,74 @@ static struct snd_soc_card rx51_sound_card = {
- 
- static int rx51_soc_probe(struct platform_device *pdev)
- {
-+	struct rx51_audio_pdata *pdata;
- 	struct snd_soc_card *card = &rx51_sound_card;
- 	int err;
- 
- 	if (!machine_is_nokia_rx51() && !of_machine_is_compatible("nokia,omap3-n900"))
- 		return -ENODEV;
- 
--	err = gpio_request_one(RX51_TVOUT_SEL_GPIO,
--			       GPIOF_DIR_OUT | GPIOF_INIT_LOW, "tvout_sel");
--	if (err)
--		goto err_gpio_tvout_sel;
--	err = gpio_request_one(RX51_ECI_SW_GPIO,
--			       GPIOF_DIR_OUT | GPIOF_INIT_HIGH, "eci_sw");
--	if (err)
--		goto err_gpio_eci_sw;
--
- 	card->dev = &pdev->dev;
- 
-+	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (pdata == NULL) {
-+		dev_err(card->dev, "failed to create private data\n");
-+		return -ENOMEM;
-+	}
-+	snd_soc_card_set_drvdata(card, pdata);
-+
-+	pdata->tvout_selection_gpio = devm_gpiod_get(card->dev,
-+						     "tvout-selection");
-+	if (IS_ERR(pdata->tvout_selection_gpio)) {
-+		dev_err(card->dev, "could not get tvout selection gpio\n");
-+		return PTR_ERR(pdata->tvout_selection_gpio);
-+	}
-+
-+	err = gpiod_direction_output(pdata->tvout_selection_gpio, 0);
-+	if (err) {
-+		dev_err(card->dev, "could not setup tvout selection gpio\n");
-+		return err;
-+	}
-+
-+	pdata->jack_detection_gpio = devm_gpiod_get(card->dev,
-+						    "jack-detection");
-+	if (IS_ERR(pdata->jack_detection_gpio)) {
-+		dev_err(card->dev, "could not get jack detection gpio\n");
-+		return PTR_ERR(pdata->jack_detection_gpio);
-+	}
-+
-+	pdata->eci_sw_gpio = devm_gpiod_get(card->dev, "eci-switch");
-+	if (IS_ERR(pdata->eci_sw_gpio)) {
-+		dev_err(card->dev, "could not get eci switch gpio\n");
-+		return PTR_ERR(pdata->eci_sw_gpio);
-+	}
-+
-+	err = gpiod_direction_output(pdata->eci_sw_gpio, 1);
-+	if (err) {
-+		dev_err(card->dev, "could not setup eci switch gpio\n");
-+		return err;
-+	}
-+
-+	pdata->speaker_amp_gpio = devm_gpiod_get(card->dev,
-+						 "speaker-amplifier");
-+	if (IS_ERR(pdata->speaker_amp_gpio)) {
-+		dev_err(card->dev, "could not get speaker enable gpio\n");
-+		return PTR_ERR(pdata->speaker_amp_gpio);
-+	}
-+
-+	err = gpiod_direction_output(pdata->speaker_amp_gpio, 0);
-+	if (err) {
-+		dev_err(card->dev, "could not setup speaker enable gpio\n");
-+		return err;
-+	}
-+
- 	err = devm_snd_soc_register_card(card->dev, card);
- 	if (err) {
- 		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", err);
--		goto err_snd;
-+		return err;
- 	}
- 
- 	return 0;
--err_snd:
--	gpio_free(RX51_ECI_SW_GPIO);
--err_gpio_eci_sw:
--	gpio_free(RX51_TVOUT_SEL_GPIO);
--err_gpio_tvout_sel:
--
--	return err;
- }
- 
- static int rx51_soc_remove(struct platform_device *pdev)
-@@ -403,9 +450,6 @@ static int rx51_soc_remove(struct platform_device *pdev)
- 	snd_soc_jack_free_gpios(&rx51_av_jack, ARRAY_SIZE(rx51_av_jack_gpios),
- 				rx51_av_jack_gpios);
- 
--	gpio_free(RX51_ECI_SW_GPIO);
--	gpio_free(RX51_TVOUT_SEL_GPIO);
--
- 	return 0;
- }
- 
--- 
-1.9.2
+--=20
+Regards,
+
+Laurent Pinchart
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
