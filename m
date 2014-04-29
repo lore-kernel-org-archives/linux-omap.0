@@ -1,52 +1,82 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 06/23] ARM: OMAP: add OMAP5 DSI muxing
-Date: Tue, 29 Apr 2014 19:19:23 +0300
-Message-ID: <535FD10B.4020108@ti.com>
-References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com> <1398334639-14172-7-git-send-email-tomi.valkeinen@ti.com> <535A42D6.5090107@ti.com> <535A4470.2000509@ti.com> <535A5C0A.7040808@ti.com> <535A6C40.10609@ti.com> <20140425153150.GA20807@atomide.com> <535DFAAE.1010606@ti.com> <20140428164528.GM20807@atomide.com> <535F37E9.8090609@ti.com> <20140429150529.GA27571@atomide.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: fix dpll round_rate() to actually round
+Date: Tue, 29 Apr 2014 19:27:12 +0300
+Message-ID: <535FD2E0.1050806@ti.com>
+References: <1389944699-27962-1-git-send-email-tomi.valkeinen@ti.com> <1389944699-27962-3-git-send-email-tomi.valkeinen@ti.com> <20140424182914.GD4659@saruman.home> <20140424184457.GH22987@atomide.com> <20140429155111.GC633@saruman.home>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="xF0NqvUiaJaMqxBegi3r4xiE7FIFhWnja"
+	boundary="iCTPQqg5OR42olfkhqNx3tCStoGlTQFuQ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59754 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758242AbaD2QTu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Apr 2014 12:19:50 -0400
-In-Reply-To: <20140429150529.GA27571@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:32980 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751379AbaD2Q1k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 12:27:40 -0400
+In-Reply-To: <20140429155111.GC633@saruman.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: balbi@ti.com, Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>
 
---xF0NqvUiaJaMqxBegi3r4xiE7FIFhWnja
+--iCTPQqg5OR42olfkhqNx3tCStoGlTQFuQ
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 29/04/14 18:05, Tony Lindgren wrote:
-
->> omap4_padconf_global is a syscon node, not pinctrl. As syscon just giv=
-es
->> a raw regmap to its memory area, the driver needs to know about the OM=
-AP
->> control registers to use it.
+On 29/04/14 18:51, Felipe Balbi wrote:
+> On Thu, Apr 24, 2014 at 11:44:58AM -0700, Tony Lindgren wrote:
+>> * Felipe Balbi <balbi@ti.com> [140424 11:29]:
+>>> Hi,
+>>>
+>>> On Fri, Jan 17, 2014 at 09:44:59AM +0200, Tomi Valkeinen wrote:
+>>>> omap2_dpll_round_rate() doesn't actually round the given rate, even =
+if
+>>>> the name and the description so hints. Instead it only tries to find=
+ an
+>>>> exact rate match, or if that fails, return ~0 as an error.
+>>>>
+>>>> What this basically means is that the user of the clock needs to kno=
+w
+>>>> what rates the dpll can support, which obviously isn't right.
+>>>>
+>>>> This patch adds a simple method of rounding: during the iteration, t=
+he
+>>>> code keeps track of the closest rate match. If no exact match is fou=
+nd,
+>>>> the closest is returned.
+>>>>
+>>>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>>>
+>>> Tony, looks like this patch was lost. Are you taking it during the -r=
+c ?
+>>
+>> Would like to hear what Paul thinks of the updated patch suggested
+>> by Tomi first.
 >=20
-> That would be probably best set up the same way we have already set up
-> for example omap4_padconf_global: tisyscon@4a1005a0. Then drivers can
-> access it using regmap, see how drivers/regulator/pbias-regulator.c
-> sets up the pbias regulator with regmap for MMC.
+> Paul, any chance you can review Tomi's v2 ? It'd be very nice to get
+> display working on BBB.
 
-Right, but it means that the driver will contain platform specific code
-for all the omap revisions it supports. Isn't that wrong?
+Btw, I'm fine with my v2 patch, but I think the original one is fine also=
+=2E
 
-I already have a patch for DSI that uses the syscon-method, and it works
-fine. But it's quite ugly, imo, to fiddle with the OMAP control
-registers in a driver.
+It's true that the original patch changes the dpll behavior when an
+exact match is not found. However, I think our drivers always request an
+exact match, and in that case the original patch doesn't change the
+behavior in practice.
+
+In theory it's possible that a driver requests a non-exact clock from
+the dpll, and when it gets an error, it does something else. But, if I'm
+not mistaken, all our dplls have a clk-divider after them. And as
+clk-divider doesn't handle the error from dpll in any way, and instead
+returns bogus rates, I presume all our drivers use exact clocks.
+
+So v2 is perhaps slightly safer option, but I'm not sure if the added
+complexity (even if quite small) is worth it.
 
  Tomi
 
 
 
---xF0NqvUiaJaMqxBegi3r4xiE7FIFhWnja
+--iCTPQqg5OR42olfkhqNx3tCStoGlTQFuQ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -54,19 +84,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTX9ELAAoJEPo9qoy8lh71kxwP/2p6LVJhgXbyVN9+uNABipuF
-RRMsrZCrInT1Ql44Hk5HFQJKLVbBsXtqP5k7wR7MCU3KoOjAq/rcK77ZP1X0ovWT
-QfEoWZBSpgp1yjWPyoZPMiLzGyCZ+w0eDSZtOE23SQ1feoZAzDYWaoxJ/2SImic0
-HUDNGOccsiUMDOvJkRCSPTTFl+E1p/QAUfnbGVO7V2QTk2SFGd5CKdiJ0L2wIYxi
-OWTpOXLPjrun7p0Z8gzD45AMWaFvO15joUvd+HcAB1Jt1zzjUj8cH/a8Sf3GC0Ka
-Un5BsoeZN/R0mxnhRyXrM6+jr4APJjeFnLXYL1k0fa75JdXkvdb72VloEQr/CU9S
-YVdnj6P8CNWb4ftDhkGnkGgOQBLxaYxbVPFRPmu6HQ+JxfZzrRhSgL+LAJxzOIxq
-/RK7kYbRzTJdNfpZGMFUNMQGg+lC1vePE0l8NtFKttg4i6I/qOqV/1OkYxHzv88W
-zi6kjUeEbb2znYqufuoIs22VdFbSN/xrCVJnZlRENc9Haoe1fRa22Xt+0hsN5rGZ
-UDSCCmU7VTNSvmNfdVQ1SKzHeTG97kJi+V1okj+RhXdAC2suiKIAF2tobTqXQ22r
-iHVtweAnQh3TxqCX0gWd1hhGqGqVCdae5lY5YxOy2mVw2yeej7o0qw7ZPII9OBRL
-eDJ80zrtove2cLmysld5
-=YEar
+iQIcBAEBAgAGBQJTX9LgAAoJEPo9qoy8lh71qB0P+gOe4yqQrmX8O9kOc7D7oF/2
+1BVMMvI1C5wis3DIpka7xuwD8Bvym0vRKYNNDudVNnPFVC8yYcRkJ6s+oTRksfhB
+Rd+aWjE+qo9nM3U/f9wi7n4vnijc2wP5hJC9Jw050ONaAiaTT1Ecs6P8vveMlQa7
+Ds1WhmA6UkRlCgJm0dU9z6O+BUxePsUmwqE3vFqCCcmem2z2BDlM/uf3yXbmtlzL
+1lvTqpOwPpN1QIpTfTzPDUtNherTngOO7yKyyamNJNRx7XF63paNKCMbwIoLJDR0
+eJidoXHGw9QTfd+haGiYzZG1BsknFZZUXrg/8ax9tp2UWYnZdOX/rhoCHo//O1kZ
+W56+4CT04hci3rWEo4W4ya2FdvVk7i/vdriV9YTpVAKKA40mveSL/Nr4x6uVAtRE
+MnW2b+XXfQFuc+sTvJW8iYyaT9trBV2Kai2gj6BAygNKWaH5n/ba+HWAM/hkTWti
+zmT+QUv/20VG/TCxKaed2lg/g95cvJEDXHuE3cMnN5i9KpwUHMCjNqOu8b7oLLKr
+DIxX/TrbSVClFPSO5tvW3VziF6ntWmcYLpqV/wc/9v4MkYi+8oZTfp5zoGAc4Yvt
+9fl6MNF6aZuyvsp1ZPQZBx6DNBVoU20YXMhvoYN0ZluXMBlZQXMG8hC+1o5874YH
+mjjUPbULDUwyTzaTt8cN
+=2Y/y
 -----END PGP SIGNATURE-----
 
---xF0NqvUiaJaMqxBegi3r4xiE7FIFhWnja--
+--iCTPQqg5OR42olfkhqNx3tCStoGlTQFuQ--
