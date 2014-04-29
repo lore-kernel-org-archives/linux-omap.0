@@ -1,179 +1,229 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/4] OMAPDSS: panel-sharp-ls037v7dw01: update to use gpiod
-Date: Tue, 29 Apr 2014 16:52:40 -0700
-Message-ID: <1398815562-24113-3-git-send-email-tony@atomide.com>
+Subject: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree support
+Date: Tue, 29 Apr 2014 16:52:41 -0700
+Message-ID: <1398815562-24113-4-git-send-email-tony@atomide.com>
 References: <1398815562-24113-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38215 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38234 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754278AbaD2Xwv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 19:52:51 -0400
+	with ESMTP id S1754461AbaD2Xww (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 19:52:52 -0400
 In-Reply-To: <1398815562-24113-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: tomi.valkeinen@ti.com
 
-Using gpiod will make it easier to add device tree support
-for this panel in the following patches.
-
-Note that all the GPIOs for this panel are optional, any
-of the the GPIOs could be configured with external pulls
-instead of GPIOs, so let's not error out if GPIOs are not
-found to make the panel more generic.
+We can pass the GPIO configuration for ls037v7dw01 in a standard
+gpios property.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- .../omap2/displays-new/panel-sharp-ls037v7dw01.c   | 92 +++++++++-------------
- 1 file changed, 38 insertions(+), 54 deletions(-)
+ .../bindings/panel/sharp,ls037v7dw01.txt           | 53 ++++++++++++++
+ .../omap2/displays-new/panel-sharp-ls037v7dw01.c   | 84 ++++++++++++++++++++--
+ 2 files changed, 133 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/panel/sharp,ls037v7dw01.txt
 
+diff --git a/Documentation/devicetree/bindings/panel/sharp,ls037v7dw01.txt b/Documentation/devicetree/bindings/panel/sharp,ls037v7dw01.txt
+new file mode 100644
+index 0000000..7f6f5e1
+--- /dev/null
++++ b/Documentation/devicetree/bindings/panel/sharp,ls037v7dw01.txt
+@@ -0,0 +1,53 @@
++SHARP LS037V7DW01 TFT-LCD panel
++
++Required properties:
++- compatible: should be "sharp,ls037v7dw01"
++
++Optional properties:
++- reset-gpios: a GPIO spec for the optional reset pin
++- enable-gpios: a GPIO array for the optional configuration GPIOs
++  ordered MO, LR, UD, INI as specified in the LS037V7DW01.pdf file.
++
++This binding is compatible with the simple-panel binding, which is specified
++in simple-panel.txt in this directory.
++
++This panel can have zero to five GPIOs to configure
++to change configuration between QVGA and VGA mode
++and the scan direction. As these pins can be also
++configured with external pulls, all the GPIOs are
++considered optional with holes in the array.
++
++Example when connected to a omap2+ based device:
++
++	lcd0: display {
++		compatible = "sharp,ls037v7dw01";
++		power-supply = <&lcd_3v3>;
++		reset-gpios = <&gpio5 27 GPIO_ACTIVE_HIGH>;	/* gpio155, lcd RESB */
++		enable-gpios = <&gpio5 26 GPIO_ACTIVE_HIGH	/* gpio154, lcd MO */
++				&gpio1 2 GPIO_ACTIVE_HIGH	/* gpio2, lcd LR */
++				&gpio1 3 GPIO_ACTIVE_HIGH	/* gpio3, lcd UD */
++				&gpio5 24 GPIO_ACTIVE_HIGH>;	/* gpio152, lcd INI */
++
++		panel-timing {
++			clock-frequency = <19200000>;
++			hback-porch = <28>;
++			hactive = <480>;
++			hfront-porch = <1>;
++			hsync-len = <2>;
++			vback-porch = <1>;
++			vactive = <640>;
++			vfront-porch = <1>;
++			vsync-len = <1>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			de-active = <1>;
++			pixelclk-active = <1>;
++		};
++
++		port {
++			lcd_in: endpoint {
++				remote-endpoint = <&dpi_out>;
++			};
++		};
++	};
++
 diff --git a/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c b/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
-index b2f710b..de8473a 100644
+index de8473a..3a04fb0 100644
 --- a/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
 +++ b/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
-@@ -26,11 +26,11 @@ struct panel_drv_data {
+@@ -12,15 +12,19 @@
+ #include <linux/delay.h>
+ #include <linux/gpio.h>
+ #include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_gpio.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+-
++#include <linux/regulator/consumer.h>
++#include <video/of_display_timing.h>
+ #include <video/omapdss.h>
+ #include <video/omap-panel-data.h>
  
- 	struct omap_video_timings videomode;
+ struct panel_drv_data {
+ 	struct omap_dss_device dssdev;
+ 	struct omap_dss_device *in;
++	struct regulator *vcc;
  
--	int resb_gpio;
--	int ini_gpio;
--	int mo_gpio;
--	int lr_gpio;
--	int ud_gpio;
-+	struct gpio_desc *resb_gpio;	/* low = reset active min 20 us */
-+	struct gpio_desc *ini_gpio;	/* high = power on */
-+	struct gpio_desc *mo_gpio;	/* low = 480x640, high = 240x320 */
-+	struct gpio_desc *lr_gpio;	/* high = conventional horizontal scanning */
-+	struct gpio_desc *ud_gpio;	/* high = conventional vertical scanning */
- };
+ 	int data_lines;
  
- static const struct omap_video_timings sharp_ls_timings = {
-@@ -105,11 +105,11 @@ static int sharp_ls_enable(struct omap_dss_device *dssdev)
- 	/* wait couple of vsyncs until enabling the LCD */
- 	msleep(50);
+@@ -95,7 +99,8 @@ static int sharp_ls_enable(struct omap_dss_device *dssdev)
+ 	if (omapdss_device_is_enabled(dssdev))
+ 		return 0;
  
--	if (gpio_is_valid(ddata->resb_gpio))
--		gpio_set_value_cansleep(ddata->resb_gpio, 1);
-+	if (!IS_ERR(ddata->resb_gpio))
-+		gpiod_set_value_cansleep(ddata->resb_gpio, 1);
+-	in->ops.dpi->set_data_lines(in, ddata->data_lines);
++	if (ddata->data_lines)
++		in->ops.dpi->set_data_lines(in, ddata->data_lines);
+ 	in->ops.dpi->set_timings(in, &ddata->videomode);
  
--	if (gpio_is_valid(ddata->ini_gpio))
--		gpio_set_value_cansleep(ddata->ini_gpio, 1);
-+	if (!IS_ERR(ddata->ini_gpio))
-+		gpiod_set_value_cansleep(ddata->ini_gpio, 1);
+ 	r = in->ops.dpi->enable(in);
+@@ -230,6 +235,67 @@ static int sharp_ls_probe_pdata(struct platform_device *pdev)
+ 	ddata->ini_gpio = sharp_ls_get_gpio(&pdev->dev, pdata->ini_gpio,
+ 					    GPIOF_OUT_INIT_LOW, "lcd INI");
  
- 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
- 
-@@ -124,11 +124,11 @@ static void sharp_ls_disable(struct omap_dss_device *dssdev)
- 	if (!omapdss_device_is_enabled(dssdev))
- 		return;
- 
--	if (gpio_is_valid(ddata->ini_gpio))
--		gpio_set_value_cansleep(ddata->ini_gpio, 0);
-+	if (!IS_ERR(ddata->ini_gpio))
-+		gpiod_set_value_cansleep(ddata->ini_gpio, 0);
- 
--	if (gpio_is_valid(ddata->resb_gpio))
--		gpio_set_value_cansleep(ddata->resb_gpio, 0);
-+	if (!IS_ERR(ddata->resb_gpio))
-+		gpiod_set_value_cansleep(ddata->resb_gpio, 0);
- 
- 	/* wait at least 5 vsyncs after disabling the LCD */
- 
-@@ -182,6 +182,21 @@ static struct omap_dss_driver sharp_ls_ops = {
- 	.get_resolution	= omapdss_default_get_resolution,
- };
- 
-+static struct gpio_desc *
-+sharp_ls_get_gpio(struct device *dev, int gpio, unsigned long flags,
-+		  char *desc)
-+{
-+	int r;
++	ddata->videomode = sharp_ls_timings;
 +
-+	r = devm_gpio_request_one(dev, gpio, flags, desc);
-+	if (r) {
-+		dev_err(dev, "no %s gpio\n", desc);
-+		return ERR_PTR(r);
-+	}
-+
-+	return gpio_to_desc(gpio);
++	return 0;
 +}
 +
- static int sharp_ls_probe_pdata(struct platform_device *pdev)
- {
- 	const struct panel_sharp_ls037v7dw01_platform_data *pdata;
-@@ -204,11 +219,16 @@ static int sharp_ls_probe_pdata(struct platform_device *pdev)
- 	dssdev = &ddata->dssdev;
- 	dssdev->name = pdata->name;
- 
--	ddata->resb_gpio = pdata->resb_gpio;
--	ddata->ini_gpio = pdata->ini_gpio;
--	ddata->mo_gpio = pdata->mo_gpio;
--	ddata->lr_gpio = pdata->lr_gpio;
--	ddata->ud_gpio = pdata->ud_gpio;
-+	ddata->mo_gpio = sharp_ls_get_gpio(&pdev->dev, pdata->mo_gpio,
-+					   GPIOF_OUT_INIT_LOW, "lcd MO");
-+	ddata->lr_gpio = sharp_ls_get_gpio(&pdev->dev, pdata->lr_gpio,
-+					   GPIOF_OUT_INIT_HIGH, "lcd LR");
-+	ddata->ud_gpio = sharp_ls_get_gpio(&pdev->dev, pdata->ud_gpio,
-+					   GPIOF_OUT_INIT_HIGH, "lcd UD");
-+	ddata->resb_gpio = sharp_ls_get_gpio(&pdev->dev, pdata->resb_gpio,
-+					     GPIOF_OUT_INIT_LOW, "lcd RESB");
-+	ddata->ini_gpio = sharp_ls_get_gpio(&pdev->dev, pdata->ini_gpio,
-+					    GPIOF_OUT_INIT_LOW, "lcd INI");
- 
++static struct gpio_desc *
++sharp_ls_get_gpio_of(struct device *dev, int index, int val, char *desc)
++{
++	struct gpio_desc *gpio;
++
++	gpio = devm_gpiod_get_index(dev, desc, index);
++	if (!IS_ERR(gpio))
++		gpiod_direction_output(gpio, val);
++
++	return gpio;
++}
++
++static int sharp_ls_probe_of(struct platform_device *pdev)
++{
++	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	struct device_node *node = pdev->dev.of_node;
++	struct omap_dss_device *in;
++	struct display_timing timing;
++	struct videomode vm;
++	int r;
++
++	ddata->vcc = devm_regulator_get(&pdev->dev, "envdd");
++	if (IS_ERR(ddata->vcc)) {
++		dev_err(&pdev->dev, "failed to get regulator\n");
++		return PTR_ERR(ddata->vcc);
++	}
++
++	r = regulator_enable(ddata->vcc);
++	if (r != 0) {
++		dev_err(&pdev->dev, "failed to enable regulator\n");
++		return r;
++	}
++
++	ddata->resb_gpio = sharp_ls_get_gpio_of(&pdev->dev, 0, 0, "reset");	/* lcd RESB */
++	ddata->mo_gpio = sharp_ls_get_gpio_of(&pdev->dev, 0, 0, "enable");	/* lcd MO */
++	ddata->lr_gpio = sharp_ls_get_gpio_of(&pdev->dev, 1, 1, "enable");	/* lcd LR */
++	ddata->ud_gpio = sharp_ls_get_gpio_of(&pdev->dev, 2, 1, "enable");	/* lcd UD */
++	ddata->ini_gpio = sharp_ls_get_gpio_of(&pdev->dev, 3, 0, "enable");	/* lcd INI */
++
++	r = of_get_display_timing(node, "panel-timing", &timing);
++	if (r) {
++		dev_err(&pdev->dev, "failed to get video timing\n");
++		return r;
++	}
++
++	videomode_from_timing(&timing, &vm);
++	videomode_to_omap_video_timings(&vm, &ddata->videomode);
++
++	in = omapdss_of_find_source_for_first_ep(node);
++	if (IS_ERR(in)) {
++		dev_err(&pdev->dev, "failed to find video source\n");
++		return PTR_ERR(in);
++	}
++
++	ddata->in = in;
++
  	return 0;
  }
-@@ -233,41 +253,6 @@ static int sharp_ls_probe(struct platform_device *pdev)
+ 
+@@ -249,12 +315,14 @@ static int sharp_ls_probe(struct platform_device *pdev)
+ 		r = sharp_ls_probe_pdata(pdev);
+ 		if (r)
+ 			return r;
++	} else if (pdev->dev.of_node) {
++		r = sharp_ls_probe_of(pdev);
++		if (r)
++			return r;
+ 	} else {
  		return -ENODEV;
  	}
  
--	if (gpio_is_valid(ddata->mo_gpio)) {
--		r = devm_gpio_request_one(&pdev->dev, ddata->mo_gpio,
--				GPIOF_OUT_INIT_LOW, "lcd MO");
--		if (r)
--			goto err_gpio;
--	}
+-	ddata->videomode = sharp_ls_timings;
 -
--	if (gpio_is_valid(ddata->lr_gpio)) {
--		r = devm_gpio_request_one(&pdev->dev, ddata->lr_gpio,
--				GPIOF_OUT_INIT_HIGH, "lcd LR");
--		if (r)
--			goto err_gpio;
--	}
--
--	if (gpio_is_valid(ddata->ud_gpio)) {
--		r = devm_gpio_request_one(&pdev->dev, ddata->ud_gpio,
--				GPIOF_OUT_INIT_HIGH, "lcd UD");
--		if (r)
--			goto err_gpio;
--	}
--
--	if (gpio_is_valid(ddata->resb_gpio)) {
--		r = devm_gpio_request_one(&pdev->dev, ddata->resb_gpio,
--				GPIOF_OUT_INIT_LOW, "lcd RESB");
--		if (r)
--			goto err_gpio;
--	}
--
--	if (gpio_is_valid(ddata->ini_gpio)) {
--		r = devm_gpio_request_one(&pdev->dev, ddata->ini_gpio,
--				GPIOF_OUT_INIT_LOW, "lcd INI");
--		if (r)
--			goto err_gpio;
--	}
--
- 	ddata->videomode = sharp_ls_timings;
- 
  	dssdev = &ddata->dssdev;
-@@ -287,7 +272,6 @@ static int sharp_ls_probe(struct platform_device *pdev)
+ 	dssdev->dev = &pdev->dev;
+ 	dssdev->driver = &sharp_ls_ops;
+@@ -292,12 +360,20 @@ static int __exit sharp_ls_remove(struct platform_device *pdev)
  	return 0;
- 
- err_reg:
--err_gpio:
- 	omap_dss_put_device(ddata->in);
- 	return r;
  }
+ 
++static const struct of_device_id sharp_ls_of_match[] = {
++	{ .compatible = "sharp,ls037v7dw01", },
++	{},
++};
++
++MODULE_DEVICE_TABLE(of, sharp_ls_of_match);
++
+ static struct platform_driver sharp_ls_driver = {
+ 	.probe = sharp_ls_probe,
+ 	.remove = __exit_p(sharp_ls_remove),
+ 	.driver = {
+ 		.name = "panel-sharp-ls037v7dw01",
+ 		.owner = THIS_MODULE,
++		.of_match_table = sharp_ls_of_match,
+ 	},
+ };
+ 
 -- 
 1.8.1.1
 
