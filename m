@@ -1,19 +1,35 @@
 From: Xia Kaixu <kaixu.xia@linaro.org>
-Subject: [PATCH 06/15] ASoC: RX-51 audio needs I2C
-Date: Tue, 29 Apr 2014 19:18:27 +0800
-Message-ID: <1398770316-19715-7-git-send-email-kaixu.xia@linaro.org>
+Subject: [PATCH 14/15] ASoC: Amstrad E3 needs TTY support for codec
+Date: Tue, 29 Apr 2014 19:18:35 +0800
+Message-ID: <1398770316-19715-15-git-send-email-kaixu.xia@linaro.org>
 References: <1398770316-19715-1-git-send-email-kaixu.xia@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:35480 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933717AbaD2LUa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 07:20:30 -0400
+Received: by mail-pd0-f178.google.com with SMTP id fp1so45939pdb.23
+        for <linux-omap@vger.kernel.org>; Tue, 29 Apr 2014 04:20:27 -0700 (PDT)
 In-Reply-To: <1398770316-19715-1-git-send-email-kaixu.xia@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linaro-kernel@lists.linaro.org, arnd@arndb.de, kaixu.xia@linaro.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linaro-kernel@lists.linaro.org, arnd@arndb.de, kaixu.xia@linaro.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
 From: Arnd Bergmann <arnd@arndb.de>
 
-The codec requires I2C to be enabled, so any other option
-that selects it should also depend on I2C.
+The cx20442 codec driver used here requires the TTY layer to
+be enabled, or we get a link error:
+
+sound/built-in.o: In function `cx20442_codec_remove':
+cx20442.c:398: undefined reference to `tty_hangup'
+sound/built-in.o: In function `ams_delta_remove':
+ams-delta.c:613: undefined reference to `tty_unregister_ldisc'
+sound/built-in.o: In function `ams_delta_cx20442_init':
+ams-delta.c:559: undefined reference to `tty_register_ldisc'
+
+This adds the missing dependency in the E3 configuration, there
+was already one for the codec.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Xia Kaixu <kaixu.xia@linaro.org>
@@ -21,24 +37,25 @@ Cc: Mark Brown <broonie@kernel.org>
 Cc: Liam Girdwood <lgirdwood@gmail.com>
 Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: alsa-devel@alsa-project.org
 Cc: linux-omap@vger.kernel.org
+Cc: alsa-devel@alsa-project.org
 ---
  sound/soc/omap/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index e006593..2796af9 100644
+index 2796af9..d44463a 100644
 --- a/sound/soc/omap/Kconfig
 +++ b/sound/soc/omap/Kconfig
-@@ -26,7 +26,7 @@ config SND_OMAP_SOC_N810
+@@ -37,7 +37,7 @@ config SND_OMAP_SOC_RX51
  
- config SND_OMAP_SOC_RX51
- 	tristate "SoC Audio support for Nokia RX-51"
--	depends on SND_OMAP_SOC && ARM && (MACH_NOKIA_RX51 || COMPILE_TEST)
-+	depends on SND_OMAP_SOC && ARM && (MACH_NOKIA_RX51 || COMPILE_TEST) && I2C
+ config SND_OMAP_SOC_AMS_DELTA
+ 	tristate "SoC Audio support for Amstrad E3 (Delta) videophone"
+-	depends on SND_OMAP_SOC && MACH_AMS_DELTA
++	depends on SND_OMAP_SOC && MACH_AMS_DELTA && TTY
  	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TLV320AIC3X
- 	select SND_SOC_TPA6130A2
+ 	select SND_SOC_CX20442
+ 	help
 -- 
 1.7.9.5
+
