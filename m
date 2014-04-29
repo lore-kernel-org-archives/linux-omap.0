@@ -1,47 +1,37 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM
- with the PM core
-Date: Tue, 29 Apr 2014 14:16:10 +0100
-Message-ID: <20140429131610.29859C4094A@trevor.secretlab.ca>
-References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
-	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
-	<7hoazpdldx.fsf@paris.lan>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7hoazpdldx.fsf@paris.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>, Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH V3 00/20] bus: omap_l3_noc: driver cleanups and support
+ for DRA7/AM4372
+Date: Tue, 29 Apr 2014 19:12:14 +0530
+Message-ID: <535FAC36.10408@ti.com>
+References: <1397492726-17203-1-git-send-email-nm@ti.com> <1398698101-25513-1-git-send-email-nm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1398698101-25513-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 25 Apr 2014 16:44:58 -0700, Kevin Hilman <khilman@linaro.org> wrote:
-> Geert Uytterhoeven <geert+renesas@glider.be> writes:
-> 
-> > When adding a device from DT, check if its clocks are suitable for Runtime
-> > PM, and register them with the PM core.
-> > If Runtime PM is disabled, just enable the clock.
-> >
-> > This allows the PM core to automatically manage gate clocks of devices for
-> > Runtime PM.
-> 
-> ...unless the device is already in an existing pm_domain, right?
-> 
-> I like this approach, and it extends nicely what we already do on
-> platforms using drivers/base/power/clock_ops.c into DT land.
-> 
-> My only concern is how this will interact if it's used along with
-> devices that have existing pm_domains.  I don't have any specific
-> concerns (yet, because it's Friday, and my brain is turing off), but it
-> just made me wonder if this will be potentially confusing.
+On Monday 28 April 2014 08:44 PM, Nishanth Menon wrote:
+> V3: has the following changes (w.r.t v2):
+> 	- fixed relaxed commit message and usage.
+> 	- AM437x internal documents showed that:
+> 		- new master information updated into the data
+> 		- masterid register definition is different from OMAP4-DRA7 - some
+> 		  additional parsing is done in hardware to "avoid s/w parsing"
+> 	- Additional testing information showed logic fail for masking "unclearable"
+> 		new patch added to series - patch #15
+> 	- Picked up previous acks and tested by - minor changes verified
 
-I have big concerns about this approach. First, it will only work if
-a clock is available at deivce creation time. The conversion of irq
-controllers to normal device drivers has already shown that is a bad
-idea.
+Tested the series on AM437x ePOS EVM and works great.
 
-I also don't like that it tries to set up every clock, but there is no
-guarantee that the driver will even use it. I would rather see this
-behaviour linked into the function that obtains the clock at driver
-.probe() time. That way it can handle deferred probe correctly and it
-only sets up clocks that are actually used by the driver.
+Tested-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 
-g.
+Thanks,
+Sekhar
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
