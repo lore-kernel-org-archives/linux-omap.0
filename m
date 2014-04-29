@@ -1,78 +1,73 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 3/7] phy: omap-usb2: Use generic clock names "wkupclk"
- and "refclk"
-Date: Tue, 29 Apr 2014 10:50:39 +0300
-Message-ID: <535F59CF.6050002@ti.com>
-References: <1398693687-13967-1-git-send-email-rogerq@ti.com> <1398693687-13967-4-git-send-email-rogerq@ti.com> <20140428160347.GG30292@saruman.home>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 5/7] phy: omap-usb2: Add clock names to Documentation
+ binding
+Date: Tue, 29 Apr 2014 10:57:34 +0300
+Message-ID: <535F5B6E.4050401@ti.com>
+References: <1398693687-13967-1-git-send-email-rogerq@ti.com> <1398693687-13967-6-git-send-email-rogerq@ti.com> <535E8E97.7040809@cogentembedded.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140428160347.GG30292-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35905 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932491AbaD2H5m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 03:57:42 -0400
+In-Reply-To: <535E8E97.7040809@cogentembedded.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, balbi@ti.com, kishon@ti.com, tony@atomide.com
+Cc: george.cherian@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
 
-+Nishant
+Hi Sergei,
 
-Hi,
-
-On 04/28/2014 07:03 PM, Felipe Balbi wrote:
-> Hi,
+On 04/28/2014 08:23 PM, Sergei Shtylyov wrote:
+> Hello.
 > 
-> On Mon, Apr 28, 2014 at 05:01:23PM +0300, Roger Quadros wrote:
->> As clocks might be named differently on multiple platforms, use a generic
->> name in the driver and allow device tree node to specify the platform
->> specific clock name.
->>
->> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> On 04/28/2014 06:01 PM, Roger Quadros wrote:
+> 
+>> Add "wkupclk" and "refclk" information to DT binding information.
+> 
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
 >> ---
->>  drivers/phy/phy-omap-usb2.c | 8 ++++----
->>  1 file changed, 4 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
->> index a2205a8..fb5e515 100644
->> --- a/drivers/phy/phy-omap-usb2.c
->> +++ b/drivers/phy/phy-omap-usb2.c
->> @@ -275,16 +275,16 @@ static int omap_usb2_probe(struct platform_device *pdev)
->>  	if (IS_ERR(phy_provider))
->>  		return PTR_ERR(phy_provider);
->>  
->> -	phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
->> +	phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
+>>   Documentation/devicetree/bindings/phy/ti-phy.txt | 7 +++++++
+>>   1 file changed, 7 insertions(+)
 > 
-> doesn't this patch cause a regression ? I mean, you're changing the
-> clock name before fixing DTS. Also, that DTS has been in a major version
-> of the kernel, so we need to maintain compatibility with it. How about:
+>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>> index 788fb0f..9ce458f 100644
+>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>> @@ -32,6 +32,11 @@ Required properties:
+>>    - reg : Address and length of the register set for the device.
+>>    - #phy-cells: determine the number of cells that should be given in the
+>>      phandle while referencing this phy.
+>> + - clocks: a list of phandles and clock-specifier pairs, one for each entry in
+>> +   clock-names.
+> 
+>    I thought clock specifier includes phandle. Anyway, this description doesn't seem to match your example...
 
-I'm changing the DTS in Patch 4, but I prefer to do it in this patch to prevent synchronization
-issues in -next.
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/clock/clock-bindings.txt#n64
 
-About backward compatibility, I agree with you but at the same time I don't think anyone using TI
-SoCs burns the DTB to ROM and needs backward compatibility. We supply our BSPs/SDKs with the updated DTBs.
-Do you feel strict backward compatibility is worth the effort for TI specific blocks?
-
-> 
-> 	phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
-> 	if (IS_ERR(phy->wkupclk)) {
-> 		dev_err(&pdev->dev, "unable to get wkupclk, trying old name\n");
-> 		phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
-> 		if (IS_ERR(phy->wkupclk)) {
-> 			dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
-> 			return PTR_ERR(phy->wkupclk);
-> 		} else {
-> 			dev_warn(&pdev->dev, "found usb_phy_cm_clk32k, please fix your DTS\n");
-> 		}
-> 	}
-> 
-> a bit ugly, but at least we don't cause any regressions. Likewise for
-> other clocks.
-> 
+The example was taken from real world where the clock doesn't need specifier.
+Examples can always be a subset of supported bindings.
 
 cheers,
 -roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> 
+>> + - clock-names: should include:
+>> +   * "wkupclk" - wakeup clock.
+>> +   * "refclk" - reference clock (optional).
+>>
+>>   Optional properties:
+>>    - ctrl-module : phandle of the control module used by PHY driver to power on
+>> @@ -44,6 +49,8 @@ usb2phy@4a0ad080 {
+>>       reg = <0x4a0ad080 0x58>;
+>>       ctrl-module = <&omap_control_usb>;
+>>       #phy-cells = <0>;
+>> +    clocks = <&usb_phy_cm_clk32k>, <&usb_otg_ss_refclk960m>;
+>> +    clock-names = "wkupclk", "refclk";
+>>   };
+> 
+> WBR, Sergei
+> 
+
