@@ -1,114 +1,71 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3] arm: dts: am43x-clock: add tbclk data for ehrpwm.
-Date: Tue, 29 Apr 2014 17:51:14 +0300
-Message-ID: <535FBC62.9050902@ti.com>
-References: <1398780946-31453-1-git-send-email-sourav.poddar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 06/23] ARM: OMAP: add OMAP5 DSI muxing
+Date: Tue, 29 Apr 2014 08:05:30 -0700
+Message-ID: <20140429150529.GA27571@atomide.com>
+References: <1398334639-14172-1-git-send-email-tomi.valkeinen@ti.com>
+ <1398334639-14172-7-git-send-email-tomi.valkeinen@ti.com>
+ <535A42D6.5090107@ti.com>
+ <535A4470.2000509@ti.com>
+ <535A5C0A.7040808@ti.com>
+ <535A6C40.10609@ti.com>
+ <20140425153150.GA20807@atomide.com>
+ <535DFAAE.1010606@ti.com>
+ <20140428164528.GM20807@atomide.com>
+ <535F37E9.8090609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57559 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751706AbaD2OvT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Apr 2014 10:51:19 -0400
-In-Reply-To: <1398780946-31453-1-git-send-email-sourav.poddar@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36918 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758012AbaD2PFf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 11:05:35 -0400
+Content-Disposition: inline
+In-Reply-To: <535F37E9.8090609@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>, mturquette@linaro.org, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 04/29/2014 05:15 PM, Sourav Poddar wrote:
-> We need "tbclk" clock data for the functioning of ehrpwm
-> module. Hence, populating the required clock information
-> in clock dts file.
->
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140428 22:26]:
+> On 28/04/14 19:45, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [140427 23:53]:
+> >> On 25/04/14 18:31, Tony Lindgren wrote:
+> >>
+> >>> Chances are any mux register in the syscon area already works with
+> >>> pinctrl-single,pins or pinctrl-single,bits option. The ones in the
+> >>> padconf area should be already mapped so the driver just has to
+> >>> request them.
+> >>
+> >> If using the padconf (say omap4_padconf_global for omap4), doesn't that
+> >> mean we need to have platform specific bits in the driver? Isn't that
+> >> something we've been trying to remove all the time?
+> > 
+> > No, it's all done in a Linux generic way during driver probe, see
+> > drivers/base/pinctrl.c. You just need to define the default pins
+> > in the .dts files. If you need dynamic remuxing in the driver,
+> > you can define other named states that the driver can then toggle
+> > with pinctrl_select_state().
+> 
+> omap4_padconf_global is a syscon node, not pinctrl. As syscon just gives
+> a raw regmap to its memory area, the driver needs to know about the OMAP
+> control registers to use it.
 
-Acked-by: Tero Kristo <t-kristo@ti.com>
+That would be probably best set up the same way we have already set up
+for example omap4_padconf_global: tisyscon@4a1005a0. Then drivers can
+access it using regmap, see how drivers/regulator/pbias-regulator.c
+sets up the pbias regulator with regmap for MMC.
+ 
+> Pinctrl-single cannot be used for CONTROL_DSIPHY register, as the
+> register contents are a bit funny and DSI1 and DSI2 bits are mixed
+> together. And CONTROL_DSIPHY is already in the memory region defined by
+> the omap4_padconf_global, so I guess it wouldn't be good to map parts of
+> the same memory region in a pinctrl node.
 
+If it's more than a mux, then it should not be set up as a pinctrl
+register. Looks like CONTROL_DSIPHY is already available for drivers
+via regmap as it falls into the *_padconf_global mappings for omap4
+and omap5.
 
-> ---
-> v2->v3
-> - correct bitshifting
->
->   arch/arm/boot/dts/am43xx-clocks.dtsi |   48 ++++++++++++++++++++++++++++++++++
->   drivers/clk/ti/clk-43xx.c            |    6 +++++
->   2 files changed, 54 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
-> index 142009c..42d7b1f 100644
-> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
-> @@ -87,6 +87,54 @@
->   		clock-mult = <1>;
->   		clock-div = <1>;
->   	};
-> +
-> +	ehrpwm0_tbclk: ehrpwm0_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		ti,bit-shift = <0>;
-> +		reg = <0x0664>;
-> +	};
-> +
-> +	ehrpwm1_tbclk: ehrpwm1_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		ti,bit-shift = <1>;
-> +		reg = <0x0664>;
-> +	};
-> +
-> +	ehrpwm2_tbclk: ehrpwm2_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		ti,bit-shift = <2>;
-> +		reg = <0x0664>;
-> +	};
-> +
-> +	ehrpwm3_tbclk: ehrpwm3_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		ti,bit-shift = <4>;
-> +		reg = <0x0664>;
-> +	};
-> +
-> +	ehrpwm4_tbclk: ehrpwm4_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		ti,bit-shift = <5>;
-> +		reg = <0x0664>;
-> +	};
-> +
-> +	ehrpwm5_tbclk: ehrpwm5_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,gate-clock";
-> +		clocks = <&dpll_per_m2_ck>;
-> +		ti,bit-shift = <6>;
-> +		reg = <0x0664>;
-> +	};
->   };
->   &prcm_clocks {
->   	clk_32768_ck: clk_32768_ck {
-> diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
-> index 67c8de5..527a43d 100644
-> --- a/drivers/clk/ti/clk-43xx.c
-> +++ b/drivers/clk/ti/clk-43xx.c
-> @@ -105,6 +105,12 @@ static struct ti_dt_clk am43xx_clks[] = {
->   	DT_CLK(NULL, "func_12m_clk", "func_12m_clk"),
->   	DT_CLK(NULL, "vtp_clk_div", "vtp_clk_div"),
->   	DT_CLK(NULL, "usbphy_32khz_clkmux", "usbphy_32khz_clkmux"),
-> +	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
-> +	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
-> +	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
-> +	DT_CLK("48306200.ehrpwm", "tbclk", "ehrpwm3_tbclk"),
-> +	DT_CLK("48308200.ehrpwm", "tbclk", "ehrpwm4_tbclk"),
-> +	DT_CLK("4830a200.ehrpwm", "tbclk", "ehrpwm5_tbclk"),
->   	{ .node_name = NULL },
->   };
->
->
+Regards,
 
+Tony
