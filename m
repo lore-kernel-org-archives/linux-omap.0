@@ -1,100 +1,78 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: [PATCH v2] ARM: dts: am33xx: Move the cppi41dma node so it's
- probed early
-Date: Tue, 29 Apr 2014 08:19:11 +0200
-Message-ID: <CAGm1_kvHtSLNEfkJ24xZGGzsqAjHDTM1XztnX-QGs4iM5voMUw@mail.gmail.com>
-References: <1398373881-23369-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 3/7] phy: omap-usb2: Use generic clock names "wkupclk"
+ and "refclk"
+Date: Tue, 29 Apr 2014 10:50:39 +0300
+Message-ID: <535F59CF.6050002@ti.com>
+References: <1398693687-13967-1-git-send-email-rogerq@ti.com> <1398693687-13967-4-git-send-email-rogerq@ti.com> <20140428160347.GG30292@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:64966 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755162AbaD2GTc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 02:19:32 -0400
-Received: by mail-pb0-f54.google.com with SMTP id rp16so3302241pbb.13
-        for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2014 23:19:31 -0700 (PDT)
-In-Reply-To: <1398373881-23369-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140428160347.GG30292-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Thu, Apr 24, 2014 at 11:11 PM, Ezequiel Garcia
-<ezequiel@vanguardiasur.com.ar> wrote:
-> The DMA controller is needed for the USB controller to be correctly
-> registered. Therefore, if the DMA node is located at the end an unecessary
-> probe deferral is produced systematically.
->
-> This is easily fixed by moving the node at the beggining of the child list,
-> so it's probed first.
->
-> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
++Nishant
 
-Tested-by: Yegor Yefremov <yegorslists@googlemail.com>
+Hi,
 
-> --
-> v1->v2:
->   * Added a comment to prevent a future clean-up based on the memory offset.
->
->  arch/arm/boot/dts/am33xx.dtsi | 34 ++++++++++++++++++++--------------
->  1 file changed, 20 insertions(+), 14 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 9770e35..02e1eb6 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -453,6 +453,26 @@
->                         ti,hwmods = "usb_otg_hs";
->                         status = "disabled";
->
-> +                       /*
-> +                        * The probe order matches the child ordering so the
-> +                        * dma-controller node must be the first one to prevent
-> +                        * spurious probe deferrals.
-> +                        */
-> +                       cppi41dma: dma-controller@47402000 {
-> +                               compatible = "ti,am3359-cppi41";
-> +                               reg =  <0x47400000 0x1000
-> +                                       0x47402000 0x1000
-> +                                       0x47403000 0x1000
-> +                                       0x47404000 0x4000>;
-> +                               reg-names = "glue", "controller", "scheduler", "queuemgr";
-> +                               interrupts = <17>;
-> +                               interrupt-names = "glue";
-> +                               #dma-cells = <2>;
-> +                               #dma-channels = <30>;
-> +                               #dma-requests = <256>;
-> +                               status = "disabled";
-> +                       };
-> +
->                         usb_ctrl_mod: control@44e10620 {
->                                 compatible = "ti,am335x-usb-ctrl-module";
->                                 reg = <0x44e10620 0x10
-> @@ -556,20 +576,6 @@
->                                         "tx14", "tx15";
->                         };
->
-> -                       cppi41dma: dma-controller@47402000 {
-> -                               compatible = "ti,am3359-cppi41";
-> -                               reg =  <0x47400000 0x1000
-> -                                       0x47402000 0x1000
-> -                                       0x47403000 0x1000
-> -                                       0x47404000 0x4000>;
-> -                               reg-names = "glue", "controller", "scheduler", "queuemgr";
-> -                               interrupts = <17>;
-> -                               interrupt-names = "glue";
-> -                               #dma-cells = <2>;
-> -                               #dma-channels = <30>;
-> -                               #dma-requests = <256>;
-> -                               status = "disabled";
-> -                       };
->                 };
->
->                 epwmss0: epwmss@48300000 {
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 04/28/2014 07:03 PM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, Apr 28, 2014 at 05:01:23PM +0300, Roger Quadros wrote:
+>> As clocks might be named differently on multiple platforms, use a generic
+>> name in the driver and allow device tree node to specify the platform
+>> specific clock name.
+>>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/phy/phy-omap-usb2.c | 8 ++++----
+>>  1 file changed, 4 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
+>> index a2205a8..fb5e515 100644
+>> --- a/drivers/phy/phy-omap-usb2.c
+>> +++ b/drivers/phy/phy-omap-usb2.c
+>> @@ -275,16 +275,16 @@ static int omap_usb2_probe(struct platform_device *pdev)
+>>  	if (IS_ERR(phy_provider))
+>>  		return PTR_ERR(phy_provider);
+>>  
+>> -	phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
+>> +	phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
+> 
+> doesn't this patch cause a regression ? I mean, you're changing the
+> clock name before fixing DTS. Also, that DTS has been in a major version
+> of the kernel, so we need to maintain compatibility with it. How about:
+
+I'm changing the DTS in Patch 4, but I prefer to do it in this patch to prevent synchronization
+issues in -next.
+
+About backward compatibility, I agree with you but at the same time I don't think anyone using TI
+SoCs burns the DTB to ROM and needs backward compatibility. We supply our BSPs/SDKs with the updated DTBs.
+Do you feel strict backward compatibility is worth the effort for TI specific blocks?
+
+> 
+> 	phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
+> 	if (IS_ERR(phy->wkupclk)) {
+> 		dev_err(&pdev->dev, "unable to get wkupclk, trying old name\n");
+> 		phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
+> 		if (IS_ERR(phy->wkupclk)) {
+> 			dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
+> 			return PTR_ERR(phy->wkupclk);
+> 		} else {
+> 			dev_warn(&pdev->dev, "found usb_phy_cm_clk32k, please fix your DTS\n");
+> 		}
+> 	}
+> 
+> a bit ugly, but at least we don't cause any regressions. Likewise for
+> other clocks.
+> 
+
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
