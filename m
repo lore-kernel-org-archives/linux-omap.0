@@ -1,72 +1,67 @@
-From: Joachim Eastwood <manabian@gmail.com>
-Subject: Re: [PATCH 1/4] ARM: dts: Add support for OMAP4 Variscite OM44 family
-Date: Wed, 30 Apr 2014 03:24:23 +0200
-Message-ID: <CAGhQ9Vw8sxifmG5Y3xbywm9B9e36VHxCk_oKLmh1qCgoOUOBSQ@mail.gmail.com>
-References: <1397833849-22396-1-git-send-email-manabian@gmail.com>
-	<1397833849-22396-2-git-send-email-manabian@gmail.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH v10 1/5] mmc: omap_hsmmc: Enable SDIO interrupt
+Date: Mon, 28 Apr 2014 23:43:41 -0500
+Message-ID: <535F2DFD.5070307@ti.com>
+References: <1398670860-30695-1-git-send-email-afenkart@gmail.com> <1398670860-30695-2-git-send-email-afenkart@gmail.com>
+Reply-To: <joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f171.google.com ([209.85.220.171]:34562 "EHLO
-	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813AbaD3BYX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 21:24:23 -0400
-Received: by mail-vc0-f171.google.com with SMTP id ld13so1363150vcb.30
-        for <linux-omap@vger.kernel.org>; Tue, 29 Apr 2014 18:24:23 -0700 (PDT)
-In-Reply-To: <1397833849-22396-2-git-send-email-manabian@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:59333 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750861AbaD3C2T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Apr 2014 22:28:19 -0400
+In-Reply-To: <1398670860-30695-2-git-send-email-afenkart@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Joachim Eastwood <manabian@gmail.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+To: Andreas Fenkart <afenkart@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 18 April 2014 17:10, Joachim Eastwood <manabian@gmail.com> wrote:
-> Add support for VAR-SOM-OM44[1] SODIMM system on module from Variscite. SoM
-> features a OMAP4460, 1GB RAM, Gigabit Ethernet (LAN7500) and optional WLAN/BT.
->
-> Also add support for VAR-STK-OM44 development board from Variscite. This kit
-> features a VAR-SOM-OM44 and the carrier board VAR-OM44CustomBoard[2]. The
-> VAR-STK-OM44 is the same as VAR-DVK-OM44 but without the LCD display.
->
-> omap4-var-stk-om44.dts replace the old and very limited omap4-var-som.dts.
->
-> [1] http://www.variscite.com/products/system-on-module-som/cortex-a9/var-som-om44-cpu-ti-omap-4-omap4460
-> [2] http://www.variscite.com/products/single-board-computers/var-om44customboard
->
-> Signed-off-by: Joachim Eastwood <manabian@gmail.com>
-> ---
+Minor nit...
 
-Tomi,
-
-Do you plan to push the patch that add hpd-gpios to the
-"hdmi-connector" for 3.16? (nodes for my board below)
-https://patchwork.kernel.org/patch/4006021/
-
-Also in the patch set I am using your DT bindings for "panel-dpi". See
-patch [2 of 4] for nodes.
-https://patchwork.kernel.org/patch/4047241/
-
-Will this patch be upstream in 3.16?
-
-As I am about to send out a new version of this patch set it would be
-nice to know if I need to split out the display stuff, for later
-inclusion, or if it can go in as it is.
-
-regards
-Joachim Eastwood
-
-> +       hdmi0: connector@0 {
-> +               compatible = "hdmi-connector";
-> +               pinctrl-names = "default";
-> +               pinctrl-0 = <&hdmi_hpd_pins>;
-> +               label = "hdmi";
-> +               type = "a";
+On 04/28/2014 02:40 AM, Andreas Fenkart wrote:
+[..]
+>  	/* Do not initialize card-specific things if the power is off */
+>  	if (host->power_mode == MMC_POWER_OFF)
+> @@ -1117,8 +1138,12 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
+>  	int status;
+>  
+>  	status = OMAP_HSMMC_READ(host->base, STAT);
+> -	while (status & INT_EN_MASK && host->req_in_progress) {
+> -		omap_hsmmc_do_irq(host, status);
+> +	while (status & (INT_EN_MASK | CIRQ_EN)) {
+> +		if (host->req_in_progress)
+> +			omap_hsmmc_do_irq(host, status);
 > +
-> +               hpd-gpios = <&gpio2 31 GPIO_ACTIVE_HIGH>; /* gpio_63 */
+> +		if (status & CIRQ_EN)
+> +			mmc_signal_sdio_irq(host->mmc);
+>  
+>  		/* Flush posted write */
+>  		status = OMAP_HSMMC_READ(host->base, STAT);
+> @@ -1127,6 +1152,23 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> +static irqreturn_t omap_hsmmc_wake_irq(int irq, void *dev_id)
+> +{
+> +	struct omap_hsmmc_host *host = dev_id;
+> +	unsigned long flags;
 > +
-> +               port {
-> +                       hdmi_connector_in: endpoint {
-> +                               remote-endpoint = <&hdmi_out>;
-> +                       };
-> +               };
-> +       };
-> +};
+> +	/* cirq is level triggered, disable to avoid infinite loop */
+> +	spin_lock_irqsave(&host->irq_lock, flags);
+
+Do you need to save restore flags here? IRQ is already disabled since
+you're in hard IRQ context so spin_lock() seems sufficient.
+
+> +	if (host->flags & HSMMC_WAKE_IRQ_ENABLED) {
+> +		disable_irq_nosync(host->wake_irq);
+> +		host->flags &= ~HSMMC_WAKE_IRQ_ENABLED;
+> +	}
+> +	spin_unlock_irqrestore(&host->irq_lock, flags);
+
+spin_unlock() seems sufficient.
+
+regards,
+-Joel
+
