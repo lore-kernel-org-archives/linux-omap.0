@@ -1,48 +1,44 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v4 5/5] ARM: DRA7: Add support for soc_is_dra74x() and
- soc_is_dra72x() varients
-Date: Tue, 29 Apr 2014 13:18:30 +0200
-Message-ID: <4792826.emf6IohHd6@wuerfel>
-References: <1398769513-8736-1-git-send-email-rnayak@ti.com>
- <1398769513-8736-6-git-send-email-rnayak@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1398769513-8736-6-git-send-email-rnayak@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: nm@ti.com, devicetree@vger.kernel.org, s-anna@ti.com, tony@atomide.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Xia Kaixu <kaixu.xia@linaro.org>
+Subject: [PATCH 06/15] ASoC: RX-51 audio needs I2C
+Date: Tue, 29 Apr 2014 19:18:27 +0800
+Message-ID: <1398770316-19715-7-git-send-email-kaixu.xia@linaro.org>
+References: <1398770316-19715-1-git-send-email-kaixu.xia@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1398770316-19715-1-git-send-email-kaixu.xia@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linaro-kernel@lists.linaro.org, arnd@arndb.de, kaixu.xia@linaro.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 29 April 2014 16:35:13 Rajendra Nayak wrote:
-> @@ -393,7 +395,12 @@ IS_OMAP_TYPE(3430, 0x3430)
->  
->  #if defined(CONFIG_SOC_DRA7XX)
->  #undef soc_is_dra7xx
-> +#undef soc_is_dra74x
-> +#undef soc_is_dra72x
->  #define soc_is_dra7xx()        (of_machine_is_compatible("ti,dra7"))
-> +#define soc_is_dra74x()        (of_machine_is_compatible("ti,dra74"))
-> +#define soc_is_dra72x()        (of_machine_is_compatible("ti,dra72"))
-> +
+From: Arnd Bergmann <arnd@arndb.de>
 
-You shouldn't normally have to define these. Why are they needed?
+The codec requires I2C to be enabled, so any other option
+that selects it should also depend on I2C.
 
-Maybe it's better to wait for a user to show up, and then we can decide
-whether we actually want to have them this way, or if there is a better
-solution for the particular use case.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Xia Kaixu <kaixu.xia@linaro.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: alsa-devel@alsa-project.org
+Cc: linux-omap@vger.kernel.org
+---
+ sound/soc/omap/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Normally, we'd want to make run-time decisions based on properties
-of the nodes a driver is working on, not the global machine compatible
-string.
-
-	Arnd
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index e006593..2796af9 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -26,7 +26,7 @@ config SND_OMAP_SOC_N810
+ 
+ config SND_OMAP_SOC_RX51
+ 	tristate "SoC Audio support for Nokia RX-51"
+-	depends on SND_OMAP_SOC && ARM && (MACH_NOKIA_RX51 || COMPILE_TEST)
++	depends on SND_OMAP_SOC && ARM && (MACH_NOKIA_RX51 || COMPILE_TEST) && I2C
+ 	select SND_OMAP_SOC_MCBSP
+ 	select SND_SOC_TLV320AIC3X
+ 	select SND_SOC_TPA6130A2
+-- 
+1.7.9.5
