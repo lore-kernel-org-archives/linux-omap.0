@@ -1,38 +1,47 @@
-From: Jenny Tc <jenny.tc@intel.com>
-Subject: Re: [RFC] power_supply: Introduce generic psy charging driver
-Date: Tue, 29 Apr 2014 09:05:09 +0530
-Message-ID: <20140429033509.GA24114@jenny-desktop>
-References: <1396843810-16743-1-git-send-email-jenny.tc@intel.com>
- <20140428165436.GA23310@jenny-desktop>
- <20140428175606.GA26042@amd.pavel.ucw.cz>
+From: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 5/6] ARM: AM43xx: clk: Change the cpts ref clock source
+ to dpll_core_m5 clk
+Date: Tue, 29 Apr 2014 09:58:36 +0530
+Message-ID: <535F2A74.9060908@ti.com>
+References: <1398658225-25873-1-git-send-email-george.cherian@ti.com> <1398658225-25873-6-git-send-email-george.cherian@ti.com> <20140428071034.GB4380@netboy> <535E4FDC.70306@ti.com> <20140428161856.GB4266@netboy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:3588 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751460AbaD2DfR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Apr 2014 23:35:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20140428175606.GA26042@amd.pavel.ucw.cz>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140428161856.GB4266@netboy>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ast-uqk4Ao+rVK5Wk0Htik3J/w@public.gmane.org, tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org, mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org, zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, mugunthanvnm-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
 
-On Mon, Apr 28, 2014 at 07:56:06PM +0200, Pavel Machek wrote:
-> On Mon 2014-04-28 22:24:36, Jenny Tc wrote:
-> > Dmitry/Pavel,
-> > 
-> > Request your feedback on this. Fixed the comments from Pavel and waiting for 
-> > your feedback on the changes
-> 
-> IIRC, my latest comments were "this is completely misdesigned, it is
-> using strings and table searches where it should use pointers". Did
-> that change?
+Hi Richard,
 
-Yes, that's changed.
+On 4/28/2014 9:48 PM, Richard Cochran wrote:
+> On Mon, Apr 28, 2014 at 06:25:56PM +0530, George Cherian wrote:
+>> In beagle bone white (AM335x)  CPTS has a choice of 2 clocksource
+>> -dpll_core_m5_ck
+>> -dpll_core_m4_ck
+>> and by default  dpll_core_m5_ck is used. Where as in AM437x the
+>> default clocksource used is dpll_core_m4_ck .
+> Is your patch changing the default clock for am335x?
+No
+>
+> If yes, it shouldn't.
+> If no, then the patch description should say so.
+I am modifying the file
 
-> 
-> -- 
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+drivers/clk/ti/clk-43xx.c for am33xx its drivers/clk/ti/clk-33xx.c
+
+> Thanks,
+> Richard
+>
+>   
+
+
+-- 
+-George
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
