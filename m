@@ -1,66 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 06/23] ARM: OMAP: add OMAP5 DSI muxing
-Date: Tue, 29 Apr 2014 10:38:39 -0700
-Message-ID: <20140429173838.GB27571@atomide.com>
-References: <535A4470.2000509@ti.com>
- <535A5C0A.7040808@ti.com>
- <535A6C40.10609@ti.com>
- <20140425153150.GA20807@atomide.com>
- <535DFAAE.1010606@ti.com>
- <20140428164528.GM20807@atomide.com>
- <535F37E9.8090609@ti.com>
- <20140429150529.GA27571@atomide.com>
- <535FD10B.4020108@ti.com>
- <535FD43B.3030102@ti.com>
+From: Dave Martin <Dave.Martin@arm.com>
+Subject: Re: [PATCH] ARM: OMAP5: Switch to THUMB mode if needed on secondary
+ CPU
+Date: Tue, 29 Apr 2014 19:31:31 +0100
+Message-ID: <20140429183131.GF3582@e103592.cambridge.arm.com>
+References: <1398191506-3741-1-git-send-email-joelf@ti.com>
+ <20140428164348.GA14354@e103592.cambridge.arm.com>
+ <535E8DC2.4010504@ti.com>
+ <535E8E2D.1020708@ti.com>
+ <20140429091725.GA3582@e103592.cambridge.arm.com>
+ <D49C397D-1ABD-4882-B3F5-94F359D7552B@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48245 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932491AbaD2Ris (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 13:38:48 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <535FD43B.3030102@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <D49C397D-1ABD-4882-B3F5-94F359D7552B@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joel Fernandes <agnel.joel@gmail.com>
+Cc: Joel Fernandes <joelf@ti.com>, Nishanth Menon <nm@ti.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140429 09:33]:
-> On 29/04/14 19:19, Tomi Valkeinen wrote:
-> > On 29/04/14 18:05, Tony Lindgren wrote:
+On Tue, Apr 29, 2014 at 05:36:30PM +0100, Joel Fernandes wrote:
+
+[...]
+
+> >> Sorry what I meant is, say its of Type function. What tells the firmware
+> >> to switch to THUMB?
+> >> 
+> >> What's typically done is a boot address register is written by the
+> >> kernel, and the firmware jumps to it after WFE.
 > > 
-> >>> omap4_padconf_global is a syscon node, not pinctrl. As syscon just gives
-> >>> a raw regmap to its memory area, the driver needs to know about the OMAP
-> >>> control registers to use it.
-> >>
-> >> That would be probably best set up the same way we have already set up
-> >> for example omap4_padconf_global: tisyscon@4a1005a0. Then drivers can
-> >> access it using regmap, see how drivers/regulator/pbias-regulator.c
-> >> sets up the pbias regulator with regmap for MMC.
+> > Using ENTRY(x) ... ENDPROC(x) causes the symbol seen by the linker
+> > for x to have the Thumb bit set if the code is Thumb.
 > > 
-> > Right, but it means that the driver will contain platform specific code
-> > for all the omap revisions it supports. Isn't that wrong?
+> > This means that any reference the linker fixes up for that symbol
+> > will have the Thumb bit set appropriately.  This applies to any kind
+> > of reference, so code in another file that takes the address of the
+> > symbol and then passes that address to the firmware should result in the
+> > firmware getting an address with the Thumb bit.
 > > 
-> > I already have a patch for DSI that uses the syscon-method, and it works
-> > fine. But it's quite ugly, imo, to fiddle with the OMAP control
-> > registers in a driver.
+> > From the firmware's point of view it just gets a raw address, but
+> > the Thumb bit will now be set.  The firmware still needs to handle
+> > this correctly when jumping, but from the look of the code this may
+> > already work on omap3/4.  It would be interesting to know whether it
+> > works on omap5.
+> 
+> Thanks a lot for the explanation. That makes perfect sense. I will try it and let you know if it works on OMAP5.
 
-Anything using the system control module registers should be a separate
-driver. And it should ideally be implemeting some Linux generic framework
-that the consumer driver can then use. That leaves out the need to export
-custom functions.
+ARM/thumb interworking making perfect sense?  I'll have to frame that
+and put it on the wall :)
 
-I guess we don't have a PHY framework for displays though, so how about
-just a separate minimal driver under drivers/video/omap2 that uses the
-syscon?
- 
-> Oh, also, if I do that, I need to know both the SoC version and the DSS
-> version in the driver.
+objdump and nm conveniently mask off the Thumb bit from all function
+addresses they print out, but if you show the symbols using readelf
+instead you'll see addresses with bit 0 set for Thumb functions.
 
-Don't you get all you need in the compatible string? Something like
-compatible ti,dss-phy-omap5?
 
-Regards,
+It's possible that the firmware still doesn't handle branching to Thumb
+correctly, but if it does it would be nice to remove the requirement to
+build an odd piece of a Thumb-2 kernel in ARM.
 
-Tony
+Cheers
+---Dave
