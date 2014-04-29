@@ -1,80 +1,116 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] gpio: always enable GPIO_OMAP on ARCH_OMAP
-Date: Tue, 29 Apr 2014 14:07:43 +0200
-Message-ID: <4195837.kkE84zMEnN@wuerfel>
-References: <5523458.JVZJJObMjC@wuerfel> <13943940.Yb2C7lPSBy@wuerfel> <535F84B9.6000406@collabora.co.uk>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv2] arm: dts: am43x-clock: add tbclk data for ehrpwm.
+Date: Tue, 29 Apr 2014 15:46:18 +0300
+Message-ID: <535F9F1A.2090103@ti.com>
+References: <1398760447-10504-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:63389 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933447AbaD2MHv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 08:07:51 -0400
-In-Reply-To: <535F84B9.6000406@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1398760447-10504-1-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tuesday 29 April 2014 12:53:45 Javier Martinez Canillas wrote:
-> Hello Arnd,
-> 
-> On 04/29/2014 12:26 PM, Arnd Bergmann wrote:
-> > On Tuesday 29 April 2014 01:59:20 Javier Martinez Canillas wrote:
-> >> This driver is also used by OMAP1. Even when disabling GPIO_OMAP on that
-> >> platform doesn't cause a build error since no function defined in the driver is
-> >> used directly by platform code, I think that we always want this driver on OMAP1
-> >> too.
-> >> 
-> >> > However, it seems entirely reasonable to include the driver in build tests
-> >> > on other platforms, so we should also allow building it for COMPILE_TEST
-> >> > builds and select the required GENERIC_IRQ_CHIP that may not already be
-> >> > enabled on other platforms.
-> >> > 
-> >> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> >> > 
-> >> > diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-> >> > index c58b828..c8c42be 100644
-> >> > --- a/drivers/gpio/Kconfig
-> >> > +++ b/drivers/gpio/Kconfig
-> >> > @@ -244,9 +244,10 @@ config GPIO_OCTEON
-> >> >         family of SOCs.
-> >> >  
-> >> >  config GPIO_OMAP
-> >> > -     bool "TI OMAP GPIO support"
-> >> > +     bool "TI OMAP GPIO support" if COMPILE_TEST && !ARCH_OMAP2PLUS
-> >> 
-> >> So this should be:
-> >> 
-> >> +       bool "TI OMAP GPIO support" if COMPILE_TEST && !ARCH_OMAP2PLUS &&
-> >> !ARCH_OMAP1
-> >> 
-> > 
-> > Well, if COMPILE_TEST is disabled on OMAP1, the option is already
-> > hidden and enabled in my version. It seems reasonable to me to 
-> > allow compile-testing OMAP1 without the GPIO driver, while a kernel
-> > running on OMAP1 should always have COMPILE_TEST disabled.
-> > 
-> 
-> I understand your point. I thought you also wanted to be sure that the option
-> will be hidden in platforms where it make sense to always enable GPIO_OMAP even
-> if COMPILE_TEST is enabled.
+On 04/29/2014 11:34 AM, Sourav Poddar wrote:
+> We need "tbclk" clock data for the functioning of ehrpwm
+> module. Hence, populating the required clock information
+> in clock dts file.
+>
+> Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+> ---
+> v1->v2:
+> change compatible according to mainline.
+>   arch/arm/boot/dts/am43xx-clocks.dtsi |   48 ++++++++++++++++++++++++++++++++++
+>   drivers/clk/ti/clk-43xx.c            |    6 +++++
+>   2 files changed, 54 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+> index 142009c..4044441 100644
+> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+> @@ -87,6 +87,54 @@
+>   		clock-mult = <1>;
+>   		clock-div = <1>;
+>   	};
+> +
+> +	ehrpwm0_tbclk: ehrpwm0_tbclk@44e10664 {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,gate-clock";
+> +		clocks = <&dpll_per_m2_ck>;
+> +		ti,bit-shift = <0>;
+> +		reg = <0x0664>;
+> +	};
+> +
+> +	ehrpwm1_tbclk: ehrpwm1_tbclk@44e10664 {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,gate-clock";
+> +		clocks = <&dpll_per_m2_ck>;
+> +		ti,bit-shift = <1>;
+> +		reg = <0x0664>;
+> +	};
+> +
+> +	ehrpwm2_tbclk: ehrpwm2_tbclk@44e10664 {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,gate-clock";
+> +		clocks = <&dpll_per_m2_ck>;
+> +		ti,bit-shift = <2>;
+> +		reg = <0x0664>;
+> +	};
+> +
+> +	ehrpwm3_tbclk: ehrpwm3_tbclk@44e10664 {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,gate-clock";
+> +		clocks = <&dpll_per_m2_ck>;
+> +		ti,bit-shift = <3>;
+> +		reg = <0x0664>;
+> +	};
+> +
+> +	ehrpwm4_tbclk: ehrpwm4_tbclk@44e10664 {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,gate-clock";
+> +		clocks = <&dpll_per_m2_ck>;
+> +		ti,bit-shift = <4>;
+> +		reg = <0x0664>;
+> +	};
+> +
+> +	ehrpwm5_tbclk: ehrpwm5_tbclk@44e10664 {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,gate-clock";
+> +		clocks = <&dpll_per_m2_ck>;
+> +		ti,bit-shift = <5>;
+> +		reg = <0x0664>;
+> +	};
 
-I thought about that, but didn't want to enforce it without a good reason
-when your original patch had just made it possible to disable the option.
+Looking at the TRM, I guess pwm3, pwm4 and pwm5 bit-shifts are wrong? 
+Namely, bit 3 of the register is used for PWM_SYNCSEL instead of PWM3 
+clock enable. Is this correct and these should be fixed?
 
-> If the idea of this patch is to only avoid build errors when GPIO_OMAP is
-> disabled and allowing build testing the driver in other platforms, then I'm ok
-> with your patch and feel free to add my Acked-by tag.
+-Tero
 
-Ok, thanks!
+>   };
+>   &prcm_clocks {
+>   	clk_32768_ck: clk_32768_ck {
+> diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
+> index 67c8de5..527a43d 100644
+> --- a/drivers/clk/ti/clk-43xx.c
+> +++ b/drivers/clk/ti/clk-43xx.c
+> @@ -105,6 +105,12 @@ static struct ti_dt_clk am43xx_clks[] = {
+>   	DT_CLK(NULL, "func_12m_clk", "func_12m_clk"),
+>   	DT_CLK(NULL, "vtp_clk_div", "vtp_clk_div"),
+>   	DT_CLK(NULL, "usbphy_32khz_clkmux", "usbphy_32khz_clkmux"),
+> +	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
+> +	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
+> +	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
+> +	DT_CLK("48306200.ehrpwm", "tbclk", "ehrpwm3_tbclk"),
+> +	DT_CLK("48308200.ehrpwm", "tbclk", "ehrpwm4_tbclk"),
+> +	DT_CLK("4830a200.ehrpwm", "tbclk", "ehrpwm5_tbclk"),
+>   	{ .node_name = NULL },
+>   };
+>
+>
 
-> And you are right that COMPILE_TEST is disabled in omap1_defconfig and after all
-> there are so many drivers needed for a platform to be usable on boot. So one has
-> to take care of enabling all the needed options as long as there isn't a
-> combination that cause a build error like the one you are fixing here.
-
-Ok
-
-	Arnd
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
