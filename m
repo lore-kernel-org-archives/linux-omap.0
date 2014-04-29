@@ -1,73 +1,111 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 5/7] phy: omap-usb2: Add clock names to Documentation
- binding
-Date: Tue, 29 Apr 2014 10:57:34 +0300
-Message-ID: <535F5B6E.4050401@ti.com>
-References: <1398693687-13967-1-git-send-email-rogerq@ti.com> <1398693687-13967-6-git-send-email-rogerq@ti.com> <535E8E97.7040809@cogentembedded.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH v2] ARM: dts: am33xx: Move the cppi41dma node so it's
+ probed early
+Date: Tue, 29 Apr 2014 13:28:29 +0530
+Message-ID: <535F5BA5.6000903@ti.com>
+References: <1398373881-23369-1-git-send-email-ezequiel@vanguardiasur.com.ar> <CAGm1_kvHtSLNEfkJ24xZGGzsqAjHDTM1XztnX-QGs4iM5voMUw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35905 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932491AbaD2H5m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 03:57:42 -0400
-In-Reply-To: <535E8E97.7040809@cogentembedded.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35112 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932491AbaD2H7G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Apr 2014 03:59:06 -0400
+In-Reply-To: <CAGm1_kvHtSLNEfkJ24xZGGzsqAjHDTM1XztnX-QGs4iM5voMUw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, balbi@ti.com, kishon@ti.com, tony@atomide.com
-Cc: george.cherian@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
+To: Yegor Yefremov <yegorslists@googlemail.com>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Sergei,
-
-On 04/28/2014 08:23 PM, Sergei Shtylyov wrote:
-> Hello.
-> 
-> On 04/28/2014 06:01 PM, Roger Quadros wrote:
-> 
->> Add "wkupclk" and "refclk" information to DT binding information.
-> 
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>   Documentation/devicetree/bindings/phy/ti-phy.txt | 7 +++++++
->>   1 file changed, 7 insertions(+)
-> 
->> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
->> index 788fb0f..9ce458f 100644
->> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
->> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
->> @@ -32,6 +32,11 @@ Required properties:
->>    - reg : Address and length of the register set for the device.
->>    - #phy-cells: determine the number of cells that should be given in the
->>      phandle while referencing this phy.
->> + - clocks: a list of phandles and clock-specifier pairs, one for each entry in
->> +   clock-names.
-> 
->    I thought clock specifier includes phandle. Anyway, this description doesn't seem to match your example...
-
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/clock/clock-bindings.txt#n64
-
-The example was taken from real world where the clock doesn't need specifier.
-Examples can always be a subset of supported bindings.
-
-cheers,
--roger
-
-> 
->> + - clock-names: should include:
->> +   * "wkupclk" - wakeup clock.
->> +   * "refclk" - reference clock (optional).
+On 4/29/2014 11:49 AM, Yegor Yefremov wrote:
+> On Thu, Apr 24, 2014 at 11:11 PM, Ezequiel Garcia
+> <ezequiel@vanguardiasur.com.ar> wrote:
+>> The DMA controller is needed for the USB controller to be correctly
+>> registered. Therefore, if the DMA node is located at the end an unecessary
+>> probe deferral is produced systematically.
 >>
->>   Optional properties:
->>    - ctrl-module : phandle of the control module used by PHY driver to power on
->> @@ -44,6 +49,8 @@ usb2phy@4a0ad080 {
->>       reg = <0x4a0ad080 0x58>;
->>       ctrl-module = <&omap_control_usb>;
->>       #phy-cells = <0>;
->> +    clocks = <&usb_phy_cm_clk32k>, <&usb_otg_ss_refclk960m>;
->> +    clock-names = "wkupclk", "refclk";
->>   };
-> 
-> WBR, Sergei
-> 
+>> This is easily fixed by moving the node at the beggining of the child list,
+>> so it's probed first.
+This will give issues on module removal.
+Since we use device_for_each_child in remove patch, it will try to 
+remove cppi dma controller, while the channel
+is still in use by musb node.
+>> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+> Tested-by: Yegor Yefremov <yegorslists@googlemail.com>
+>
+>> --
+>> v1->v2:
+>>    * Added a comment to prevent a future clean-up based on the memory offset.
+>>
+>>   arch/arm/boot/dts/am33xx.dtsi | 34 ++++++++++++++++++++--------------
+>>   1 file changed, 20 insertions(+), 14 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+>> index 9770e35..02e1eb6 100644
+>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>> @@ -453,6 +453,26 @@
+>>                          ti,hwmods = "usb_otg_hs";
+>>                          status = "disabled";
+>>
+>> +                       /*
+>> +                        * The probe order matches the child ordering so the
+>> +                        * dma-controller node must be the first one to prevent
+>> +                        * spurious probe deferrals.
+>> +                        */
+>> +                       cppi41dma: dma-controller@47402000 {
+>> +                               compatible = "ti,am3359-cppi41";
+>> +                               reg =  <0x47400000 0x1000
+>> +                                       0x47402000 0x1000
+>> +                                       0x47403000 0x1000
+>> +                                       0x47404000 0x4000>;
+>> +                               reg-names = "glue", "controller", "scheduler", "queuemgr";
+>> +                               interrupts = <17>;
+>> +                               interrupt-names = "glue";
+>> +                               #dma-cells = <2>;
+>> +                               #dma-channels = <30>;
+>> +                               #dma-requests = <256>;
+>> +                               status = "disabled";
+>> +                       };
+>> +
+>>                          usb_ctrl_mod: control@44e10620 {
+>>                                  compatible = "ti,am335x-usb-ctrl-module";
+>>                                  reg = <0x44e10620 0x10
+>> @@ -556,20 +576,6 @@
+>>                                          "tx14", "tx15";
+>>                          };
+>>
+>> -                       cppi41dma: dma-controller@47402000 {
+>> -                               compatible = "ti,am3359-cppi41";
+>> -                               reg =  <0x47400000 0x1000
+>> -                                       0x47402000 0x1000
+>> -                                       0x47403000 0x1000
+>> -                                       0x47404000 0x4000>;
+>> -                               reg-names = "glue", "controller", "scheduler", "queuemgr";
+>> -                               interrupts = <17>;
+>> -                               interrupt-names = "glue";
+>> -                               #dma-cells = <2>;
+>> -                               #dma-channels = <30>;
+>> -                               #dma-requests = <256>;
+>> -                               status = "disabled";
+>> -                       };
+>>                  };
+>>
+>>                  epwmss0: epwmss@48300000 {
+>> --
+>> 1.9.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+-George
 
