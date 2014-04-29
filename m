@@ -1,42 +1,38 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 51/97] ARM: l2c: remove platforms/SoCs setting early
-	BRESP
-Date: Tue, 29 Apr 2014 01:21:41 +0100
-Message-ID: <20140429002140.GP27282@n2100.arm.linux.org.uk>
-References: <20140428192419.GV26756@n2100.arm.linux.org.uk> <E1WerG4-0001X4-Ic@rmk-PC.arm.linux.org.uk> <20140429000224.GA31083@verge.net.au>
+From: Jenny Tc <jenny.tc@intel.com>
+Subject: Re: [RFC] power_supply: Introduce generic psy charging driver
+Date: Tue, 29 Apr 2014 09:05:09 +0530
+Message-ID: <20140429033509.GA24114@jenny-desktop>
+References: <1396843810-16743-1-git-send-email-jenny.tc@intel.com>
+ <20140428165436.GA23310@jenny-desktop>
+ <20140428175606.GA26042@amd.pavel.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:3588 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751460AbaD2DfR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Apr 2014 23:35:17 -0400
 Content-Disposition: inline
-In-Reply-To: <20140429000224.GA31083@verge.net.au>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
-Cc: linux-arm-kernel@lists.infradead.org, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Tony Lindgren <tony@atomide.com>, Magnus Damm <magnus.damm@gmail.com>, Viresh Kumar <viresh.linux@gmail.com>, Shiraz Hashim <shiraz.hashim@st.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, spear-devel@list.st.com, linux-tegra@vger.kernel.org
+In-Reply-To: <20140428175606.GA26042@amd.pavel.ucw.cz>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-kernel@vger.kernel.org, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Anton Vorontsov <anton.vorontsov@linaro.org>, Kim Milo <Milo.Kim@ti.com>, Jingoo Han <jg1.han@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Sachin Kamat <sachin.kamat@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rhyland Klein <rklein@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@ring0.de>, aaro.koskinen@iki.fi, Pallala Ramakrishna <ramakrishna.pallala@intel.com>, freemangordon@abv.bg, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
 
-On Tue, Apr 29, 2014 at 09:02:27AM +0900, Simon Horman wrote:
-> On Mon, Apr 28, 2014 at 08:30:32PM +0100, Russell King wrote:
-> > Since we now automatically enable early BRESP in core L2C-310 code when
-> > we detect a Cortex-A9, we don't need platforms/SoCs to set this bit
-> > explicitly.  Instead, they should seek to preserve the value of bit 30
-> > in the auxiliary control register.
+On Mon, Apr 28, 2014 at 07:56:06PM +0200, Pavel Machek wrote:
+> On Mon 2014-04-28 22:24:36, Jenny Tc wrote:
+> > Dmitry/Pavel,
 > > 
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > Request your feedback on this. Fixed the comments from Pavel and waiting for 
+> > your feedback on the changes
 > 
-> I would prefer if this patch was broken out into individual patches
-> for each board or SoC file and that they were then picked up
-> by their respective platform maintainers.
+> IIRC, my latest comments were "this is completely misdesigned, it is
+> using strings and table searches where it should use pointers". Did
+> that change?
+
+Yes, that's changed.
+
 > 
-> Likewise for patch 66/97. Although it is only for shmobile
-> I would prefer it broken out.
-
-Oh fuck that.
-
-Okay, I'm dropping the whole patch set right now and forgetting the whole
-damned thing.  The L2 cache code can damned well stay as it is and remain
-an unmaintainable mess.
-
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+> -- 
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
