@@ -1,57 +1,179 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/4] OMAPDSS: Fix DSS clock multiplier issue on 3703 and probably 3630
-Date: Tue, 29 Apr 2014 16:52:39 -0700
-Message-ID: <1398815562-24113-2-git-send-email-tony@atomide.com>
+Subject: [PATCH 2/4] OMAPDSS: panel-sharp-ls037v7dw01: update to use gpiod
+Date: Tue, 29 Apr 2014 16:52:40 -0700
+Message-ID: <1398815562-24113-3-git-send-email-tony@atomide.com>
 References: <1398815562-24113-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38193 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38215 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754111AbaD2Xwt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 19:52:49 -0400
+	with ESMTP id S1754278AbaD2Xwv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 19:52:51 -0400
 In-Reply-To: <1398815562-24113-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: tomi.valkeinen@ti.com
 
-Otherwise we can get often errors like the following and the
-display won't come on:
+Using gpiod will make it easier to add device tree support
+for this panel in the following patches.
 
-omapdss APPLY error: FIFO UNDERFLOW on gfx, disabling the overlay
-omapdss APPLY error: SYNC_LOST on channel lcd, restarting
-the output with video overlays disabled
-
-There are some earlier references to this issue:
-
-http://www.spinics.net/lists/linux-omap/msg59511.html
-http://www.spinics.net/lists/linux-omap/msg59724.html
-
-It seems that it's safe to set the lower values even for 3630.
-If we can confirm that 3630 works with the higher values
-reliably we can add further detection.
+Note that all the GPIOs for this panel are optional, any
+of the the GPIOs could be configured with external pulls
+instead of GPIOs, so let's not error out if GPIOs are not
+found to make the panel more generic.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/video/fbdev/omap2/dss/dss.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ .../omap2/displays-new/panel-sharp-ls037v7dw01.c   | 92 +++++++++-------------
+ 1 file changed, 38 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/dss/dss.c b/drivers/video/fbdev/omap2/dss/dss.c
-index d55266c..ad6561f 100644
---- a/drivers/video/fbdev/omap2/dss/dss.c
-+++ b/drivers/video/fbdev/omap2/dss/dss.c
-@@ -707,9 +707,10 @@ static const struct dss_features omap34xx_dss_feats __initconst = {
- 	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
+diff --git a/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c b/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
+index b2f710b..de8473a 100644
+--- a/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
++++ b/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
+@@ -26,11 +26,11 @@ struct panel_drv_data {
+ 
+ 	struct omap_video_timings videomode;
+ 
+-	int resb_gpio;
+-	int ini_gpio;
+-	int mo_gpio;
+-	int lr_gpio;
+-	int ud_gpio;
++	struct gpio_desc *resb_gpio;	/* low = reset active min 20 us */
++	struct gpio_desc *ini_gpio;	/* high = power on */
++	struct gpio_desc *mo_gpio;	/* low = 480x640, high = 240x320 */
++	struct gpio_desc *lr_gpio;	/* high = conventional horizontal scanning */
++	struct gpio_desc *ud_gpio;	/* high = conventional vertical scanning */
  };
  
-+/* Supposedly 3630 can use div 32 mult 2, but that needs to be rechecked */
- static const struct dss_features omap3630_dss_feats __initconst = {
--	.fck_div_max		=	32,
--	.dss_fck_multiplier	=	1,
-+	.fck_div_max		=	16,
-+	.dss_fck_multiplier	=	2,
- 	.parent_clk_name	=	"dpll4_ck",
- 	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
+ static const struct omap_video_timings sharp_ls_timings = {
+@@ -105,11 +105,11 @@ static int sharp_ls_enable(struct omap_dss_device *dssdev)
+ 	/* wait couple of vsyncs until enabling the LCD */
+ 	msleep(50);
+ 
+-	if (gpio_is_valid(ddata->resb_gpio))
+-		gpio_set_value_cansleep(ddata->resb_gpio, 1);
++	if (!IS_ERR(ddata->resb_gpio))
++		gpiod_set_value_cansleep(ddata->resb_gpio, 1);
+ 
+-	if (gpio_is_valid(ddata->ini_gpio))
+-		gpio_set_value_cansleep(ddata->ini_gpio, 1);
++	if (!IS_ERR(ddata->ini_gpio))
++		gpiod_set_value_cansleep(ddata->ini_gpio, 1);
+ 
+ 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+ 
+@@ -124,11 +124,11 @@ static void sharp_ls_disable(struct omap_dss_device *dssdev)
+ 	if (!omapdss_device_is_enabled(dssdev))
+ 		return;
+ 
+-	if (gpio_is_valid(ddata->ini_gpio))
+-		gpio_set_value_cansleep(ddata->ini_gpio, 0);
++	if (!IS_ERR(ddata->ini_gpio))
++		gpiod_set_value_cansleep(ddata->ini_gpio, 0);
+ 
+-	if (gpio_is_valid(ddata->resb_gpio))
+-		gpio_set_value_cansleep(ddata->resb_gpio, 0);
++	if (!IS_ERR(ddata->resb_gpio))
++		gpiod_set_value_cansleep(ddata->resb_gpio, 0);
+ 
+ 	/* wait at least 5 vsyncs after disabling the LCD */
+ 
+@@ -182,6 +182,21 @@ static struct omap_dss_driver sharp_ls_ops = {
+ 	.get_resolution	= omapdss_default_get_resolution,
  };
+ 
++static struct gpio_desc *
++sharp_ls_get_gpio(struct device *dev, int gpio, unsigned long flags,
++		  char *desc)
++{
++	int r;
++
++	r = devm_gpio_request_one(dev, gpio, flags, desc);
++	if (r) {
++		dev_err(dev, "no %s gpio\n", desc);
++		return ERR_PTR(r);
++	}
++
++	return gpio_to_desc(gpio);
++}
++
+ static int sharp_ls_probe_pdata(struct platform_device *pdev)
+ {
+ 	const struct panel_sharp_ls037v7dw01_platform_data *pdata;
+@@ -204,11 +219,16 @@ static int sharp_ls_probe_pdata(struct platform_device *pdev)
+ 	dssdev = &ddata->dssdev;
+ 	dssdev->name = pdata->name;
+ 
+-	ddata->resb_gpio = pdata->resb_gpio;
+-	ddata->ini_gpio = pdata->ini_gpio;
+-	ddata->mo_gpio = pdata->mo_gpio;
+-	ddata->lr_gpio = pdata->lr_gpio;
+-	ddata->ud_gpio = pdata->ud_gpio;
++	ddata->mo_gpio = sharp_ls_get_gpio(&pdev->dev, pdata->mo_gpio,
++					   GPIOF_OUT_INIT_LOW, "lcd MO");
++	ddata->lr_gpio = sharp_ls_get_gpio(&pdev->dev, pdata->lr_gpio,
++					   GPIOF_OUT_INIT_HIGH, "lcd LR");
++	ddata->ud_gpio = sharp_ls_get_gpio(&pdev->dev, pdata->ud_gpio,
++					   GPIOF_OUT_INIT_HIGH, "lcd UD");
++	ddata->resb_gpio = sharp_ls_get_gpio(&pdev->dev, pdata->resb_gpio,
++					     GPIOF_OUT_INIT_LOW, "lcd RESB");
++	ddata->ini_gpio = sharp_ls_get_gpio(&pdev->dev, pdata->ini_gpio,
++					    GPIOF_OUT_INIT_LOW, "lcd INI");
+ 
+ 	return 0;
+ }
+@@ -233,41 +253,6 @@ static int sharp_ls_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
+ 
+-	if (gpio_is_valid(ddata->mo_gpio)) {
+-		r = devm_gpio_request_one(&pdev->dev, ddata->mo_gpio,
+-				GPIOF_OUT_INIT_LOW, "lcd MO");
+-		if (r)
+-			goto err_gpio;
+-	}
+-
+-	if (gpio_is_valid(ddata->lr_gpio)) {
+-		r = devm_gpio_request_one(&pdev->dev, ddata->lr_gpio,
+-				GPIOF_OUT_INIT_HIGH, "lcd LR");
+-		if (r)
+-			goto err_gpio;
+-	}
+-
+-	if (gpio_is_valid(ddata->ud_gpio)) {
+-		r = devm_gpio_request_one(&pdev->dev, ddata->ud_gpio,
+-				GPIOF_OUT_INIT_HIGH, "lcd UD");
+-		if (r)
+-			goto err_gpio;
+-	}
+-
+-	if (gpio_is_valid(ddata->resb_gpio)) {
+-		r = devm_gpio_request_one(&pdev->dev, ddata->resb_gpio,
+-				GPIOF_OUT_INIT_LOW, "lcd RESB");
+-		if (r)
+-			goto err_gpio;
+-	}
+-
+-	if (gpio_is_valid(ddata->ini_gpio)) {
+-		r = devm_gpio_request_one(&pdev->dev, ddata->ini_gpio,
+-				GPIOF_OUT_INIT_LOW, "lcd INI");
+-		if (r)
+-			goto err_gpio;
+-	}
+-
+ 	ddata->videomode = sharp_ls_timings;
+ 
+ 	dssdev = &ddata->dssdev;
+@@ -287,7 +272,6 @@ static int sharp_ls_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err_reg:
+-err_gpio:
+ 	omap_dss_put_device(ddata->in);
+ 	return r;
+ }
 -- 
 1.8.1.1
 
