@@ -1,59 +1,63 @@
 From: Dan Murphy <dmurphy@ti.com>
-Subject: [RFC 03/11] drivers: reset: omap5: Add reset data for omap5
-Date: Tue, 29 Apr 2014 15:19:42 -0500
-Message-ID: <1398802790-29287-4-git-send-email-dmurphy@ti.com>
+Subject: [RFC 08/11] ARM: dts: am33xx: Add prcm_resets node
+Date: Tue, 29 Apr 2014 15:19:47 -0500
+Message-ID: <1398802790-29287-9-git-send-email-dmurphy@ti.com>
 References: <1398802790-29287-1-git-send-email-dmurphy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44066 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44071 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758340AbaD2UU2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Apr 2014 16:20:28 -0400
+	id S1758373AbaD2UUa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Apr 2014 16:20:30 -0400
 In-Reply-To: <1398802790-29287-1-git-send-email-dmurphy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, devicetree@vger.kernel.org
 Cc: t-kristo@ti.com, s-anna@ti.com, p.zabel@pengutronix.de, Dan Murphy <dmurphy@ti.com>
 
-Add the reset register data for the omap5 SoC.
+Add the prcm_resets node to the prcm parent node.
+Add the dt-bindings header to the DT file
 
 Signed-off-by: Dan Murphy <dmurphy@ti.com>
 ---
- drivers/reset/ti/Makefile         |    1 +
- drivers/reset/ti/reset-ti-data.h  |    2 ++
- drivers/reset/ti/reset-ti-omap5.c |   61 +++++++++++++++++++++++++++++++++++++
- drivers/reset/ti/reset-ti.c       |    3 ++
- 4 files changed, 67 insertions(+)
- create mode 100644 drivers/reset/ti/reset-ti-omap5.c
+ arch/arm/boot/dts/am33xx.dtsi                |    6 ++++++
+ include/dt-bindings/reset/ti,am33xx-resets.h |   18 ++++++++++++++++++
+ 2 files changed, 24 insertions(+)
+ create mode 100644 include/dt-bindings/reset/ti,am33xx-resets.h
 
-diff --git a/drivers/reset/ti/Makefile b/drivers/reset/ti/Makefile
-index 622eb3b..4d2d06c 100644
---- a/drivers/reset/ti/Makefile
-+++ b/drivers/reset/ti/Makefile
-@@ -1,2 +1,3 @@
- obj-$(CONFIG_RESET_TI) += reset-ti.o
- obj-$(CONFIG_SOC_DRA7XX) += reset-ti-dra7xx.o
-+obj-$(CONFIG_SOC_OMAP5) += reset-ti-omap5.o
-diff --git a/drivers/reset/ti/reset-ti-data.h b/drivers/reset/ti/reset-ti-data.h
-index 5812ed5..d3c6d42 100644
---- a/drivers/reset/ti/reset-ti-data.h
-+++ b/drivers/reset/ti/reset-ti-data.h
-@@ -56,4 +56,6 @@ struct ti_reset_data {
- };
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 07f283c..df9d9c6 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -10,6 +10,7 @@
  
- extern struct ti_reset_data dra7_reset_data;
-+extern struct ti_reset_data omap5_reset_data;
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/pinctrl/am33xx.h>
++#include <dt-bindings/reset/ti,am33xx-resets.h>
+ 
+ #include "skeleton.dtsi"
+ 
+@@ -117,6 +118,11 @@
+ 
+ 			prcm_clockdomains: clockdomains {
+ 			};
 +
- #endif
-diff --git a/drivers/reset/ti/reset-ti-omap5.c b/drivers/reset/ti/reset-ti-omap5.c
++			prcm_resets: resets {
++				compatible = "ti,am335x-resets";
++				#reset-cells = <1>;
++			};
+ 		};
+ 
+ 		scrm: scrm@44e10000 {
+diff --git a/include/dt-bindings/reset/ti,am33xx-resets.h b/include/dt-bindings/reset/ti,am33xx-resets.h
 new file mode 100644
-index 0000000..3e7529c
+index 0000000..dfe7954
 --- /dev/null
-+++ b/drivers/reset/ti/reset-ti-omap5.c
-@@ -0,0 +1,61 @@
++++ b/include/dt-bindings/reset/ti,am33xx-resets.h
+@@ -0,0 +1,18 @@
 +/*
-+ * OMAP5 reset data for PRCM Module
++ * AM33xx reset index for PRCM Module
 + *
 + * Copyright 2014 Texas Instruments Inc.
 + *
@@ -62,71 +66,14 @@ index 0000000..3e7529c
 + * published by the Free Software Foundation.
 + */
 +
-+#include "reset-ti-data.h"
++#ifndef _DT_BINDINGS_RESET_TI_AM33XX_H
++#define _DT_BINDINGS_RESET_TI_AM33XX_H
 +
-+static struct ti_reset_reg_data omap5_reset_reg_data[] = {
-+	{
-+		.rstctrl_offs = 0x1c00,
-+		.rstctrl_bit = 0x0,
-+		.rstst_offs	= 0x1c04,
-+		.rstst_bit = 0x0,
-+	},
-+	{
-+		.rstctrl_offs = 0x410,
-+		.rstctrl_bit = 0x0,
-+		.rstst_offs	= 0x414,
-+		.rstst_bit = 0x0,
-+	}, /* DSP_RESET */
-+	{
-+		.rstctrl_offs = 0x410,
-+		.rstctrl_bit = 0x1,
-+		.rstst_offs	= 0x414,
-+		.rstst_bit = 0x1,
-+	}, /* DSP_MMU_CACHE */
-+	{
-+		.rstctrl_offs = 0x910,
-+		.rstctrl_bit = 0x0,
-+		.rstst_offs	= 0x914,
-+		.rstst_bit = 0x0,
-+	}, /* IPU_CPU0 */
-+	{
-+		.rstctrl_offs = 0x910,
-+		.rstctrl_bit = 0x1,
-+		.rstst_offs	= 0x914,
-+		.rstst_bit = 0x1,
-+	}, /* IPU_CPU1 */
-+	{
-+		.rstctrl_offs = 0x910,
-+		.rstctrl_bit = 0x2,
-+		.rstst_offs	= 0x914,
-+		.rstst_bit = 0x2,
-+	}, /* IPU_MMU_CACHE */
-+	{
-+		.rstctrl_offs = 0x1210,
-+		.rstctrl_bit = 0,
-+		.rstst_offs	= 0x1214,
-+		.rstst_bit	= 0,
-+	},
-+};
++#define RESET_DEVICE_RESET			0
++#define RESET_GFX_RESET				1
++#define RESET_PER_RESET				2
 +
-+struct ti_reset_data omap5_reset_data = {
-+	.reg_data	= omap5_reset_reg_data,
-+	.nr_resets	= ARRAY_SIZE(omap5_reset_reg_data),
-+};
-diff --git a/drivers/reset/ti/reset-ti.c b/drivers/reset/ti/reset-ti.c
-index 486b77c..7310827 100644
---- a/drivers/reset/ti/reset-ti.c
-+++ b/drivers/reset/ti/reset-ti.c
-@@ -135,6 +135,9 @@ static const struct of_device_id ti_reset_of_match[] = {
- #ifdef CONFIG_SOC_DRA7XX
- 	{ .compatible = "ti,dra7-resets", .data = &dra7_reset_data,},
- #endif
-+#ifdef CONFIG_SOC_OMAP5
-+	{ .compatible = "ti,omap5-resets", .data = &omap5_reset_data,},
 +#endif
- 	{},
- };
- 
 -- 
 1.7.9.5
 
