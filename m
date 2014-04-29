@@ -1,22 +1,17 @@
 From: Joel Fernandes <joelf@ti.com>
 Subject: Re: [PATCH v10 1/5] mmc: omap_hsmmc: Enable SDIO interrupt
-Date: Mon, 28 Apr 2014 23:43:41 -0500
-Message-ID: <535F2DFD.5070307@ti.com>
+Date: Mon, 28 Apr 2014 23:42:04 -0500
+Message-ID: <535F2D9C.6090304@ti.com>
 References: <1398670860-30695-1-git-send-email-afenkart@gmail.com> <1398670860-30695-2-git-send-email-afenkart@gmail.com>
-Reply-To: <joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59333 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750861AbaD3C2T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Apr 2014 22:28:19 -0400
+Return-path: <linux-mmc-owner@vger.kernel.org>
 In-Reply-To: <1398670860-30695-2-git-send-email-afenkart@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org
+Cc: linux-doc@vger.kernel.org, linux-omap@vger.kernel.orglinux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 
 Minor nit...
 
@@ -64,4 +59,5 @@ spin_unlock() seems sufficient.
 
 regards,
 -Joel
+
 
