@@ -1,48 +1,65 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH v2] ARM: dts: am33xx: Move the cppi41dma node so it's
- probed early
-Date: Tue, 29 Apr 2014 11:09:07 +0200
-Message-ID: <535F6C33.9040408@linutronix.de>
-References: <1398373881-23369-1-git-send-email-ezequiel@vanguardiasur.com.ar> <CAGm1_kvHtSLNEfkJ24xZGGzsqAjHDTM1XztnX-QGs4iM5voMUw@mail.gmail.com> <535F5BA5.6000903@ti.com> <535F5D6B.6090802@linutronix.de> <535F6276.4050601@ti.com>
+From: sourav <sourav.poddar@ti.com>
+Subject: Re: [PATCH 1/5] drivers: w1: omap_hdq: cleanup and bug fixes.
+Date: Tue, 29 Apr 2014 14:45:08 +0530
+Message-ID: <535F6D9C.8050502@ti.com>
+References: <1397651532-31456-1-git-send-email-sourav.poddar@ti.com> <1397651532-31456-2-git-send-email-sourav.poddar@ti.com> <alpine.DEB.2.02.1404281918360.14616@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:37124 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756753AbaD2JJK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 05:09:10 -0400
-In-Reply-To: <535F6276.4050601@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:38384 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752134AbaD2JPu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Apr 2014 05:15:50 -0400
+In-Reply-To: <alpine.DEB.2.02.1404281918360.14616@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: zbr@ioremap.net, tony@atomide.com, michael.opdenacker@free-electrons.com, wsa@the-dreams.de, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
 
-On 04/29/2014 10:27 AM, George Cherian wrote:
-> Hi Sebastian,
+Hi Paul,
 
-Hi George,
+On Tuesday 29 April 2014 12:49 AM, Paul Walmsley wrote:
+> On Wed, 16 Apr 2014, Sourav Poddar wrote:
+>
+>> The patch adds the following to the omap hdq driver.
+>> 1. HDQ Device reset call in probe.
+>> 2. Enabling '1 wire mode' and checking for presence pulse bit.
+>> 3. Proper disabling and enabling of interrupts during read path.
+>> 4. Add re-initialization code during SKIP ROM command execution.
+>> 5. Miscellaneous cleanup(formatting, return error checks).
+>>
+>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+>> ---
+>>   drivers/w1/masters/omap_hdq.c |   85 ++++++++++++++++++++++++++++++++---------
+>>   1 file changed, 68 insertions(+), 17 deletions(-)
+>>
+>> diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
+>> index 9900e8e..0a7bf7f 100644
+>> --- a/drivers/w1/masters/omap_hdq.c
+>> +++ b/drivers/w1/masters/omap_hdq.c
+> ...
+>
+>> @@ -115,6 +116,15 @@ static inline u8 hdq_reg_merge(struct hdq_data *hdq_data, u32 offset,
+>>   	return new_val;
+>>   }
+>>
+>> +static void hdq_disable_interrupt(struct hdq_data *hdq_data, u32 offset,
+>> +				  u8 mask)
+>> +{
+>> +	u32 ie;
+>> +
+>> +	ie = readl(hdq_data->hdq_base + offset);
+>> +	writel(ie&  mask, hdq_data->hdq_base + offset);
+>> +}
+>> +
+> Does this function really need to take offset and mask arguments?  Won't
+> they always be constant, and therefore, no need to pass them?
 
-> On 4/29/2014 1:36 PM, Sebastian Andrzej Siewior wrote:
->> On 04/29/2014 09:58 AM, George Cherian wrote:
->>>>> This is easily fixed by moving the node at the beggining of the child
->>>>> list,
->>>>> so it's probed first.
->>> This will give issues on module removal.
->>> Since we use device_for_each_child in remove patch, it will try to
->>> remove cppi dma controller, while the channel
->>> is still in use by musb node.
->> Isn't this currently disabled because it blew up in the phy code?
-> Yes. So how if the dt  looks like this
+Yes, thats correct, they are always constant and can be used directly 
+inside the
+api. I will fix this in my next version.
 
-No. I remember we talked about this and we decided not to duct tape the
-bug by moving the nodes around. Instead we wanted to disable the child
-removal part (one tiny module that can't be removed) until the PHY code
-does no longer blow up.
-If the same case is for the DMA driver then it should be fixed, too.
-The order of the nodes in .dts should not crash the kernel under any
-circumstances. If a different node order accelerates the probing then
-fine. But a crash is a no no.
-
-Sebastian
+>
+> - Paul
 
