@@ -1,51 +1,47 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv2 3/9] ASoC: omap: rx51: Use devm_snd_soc_register_card
-Date: Tue, 29 Apr 2014 15:23:10 -0700
-Message-ID: <20140429222310.GR15125@sirena.org.uk>
-References: <1398694047-28596-1-git-send-email-sre@kernel.org>
- <1398694047-28596-4-git-send-email-sre@kernel.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tV/+6PImfyFtriLg"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1398694047-28596-4-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/4] OMAPDSS: Add support for panel ls037v7dw01
+Date: Tue, 29 Apr 2014 16:52:38 -0700
+Message-ID: <1398815562-24113-1-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38157 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750756AbaD2Xws (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 19:52:48 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com
 
+Hi all,
 
---tV/+6PImfyFtriLg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Here are few patches to add devicetree support for panel ls037v7dw01
+that's found on many omap3 boards. They seem to be often mis-configured
+as various panel dpi entries, but really should be move to use panel
+ls037v7dw01 instead. This panel is found at least on the omap3 sdp,
+ldp, omap3 evm and few other development boards.
 
-On Mon, Apr 28, 2014 at 04:07:21PM +0200, Sebastian Reichel wrote:
-> This patch converts the rx51 ASoC module to use
-> devm_snd_soc_register_card.
+Regards,
 
-Applied, thanks.
+Tony
 
---tV/+6PImfyFtriLg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Tony Lindgren (4):
+  OMAPDSS: Fix DSS clock multiplier issue on 3703 and probably 3630
+  OMAPDSS: panel-sharp-ls037v7dw01: update to use gpiod
+  OMAPDSS: panel-sharp-ls037v7dw01: add device tree support
+  ARM: dts: Add LCD panel sharp ls037v7dw01 support for omap3-evm and
+    ldp
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+ .../bindings/panel/sharp,ls037v7dw01.txt           |  53 +++++++
+ .../arm/boot/dts/omap-panel-sharp-ls037v7dw01.dtsi |  82 ++++++++++
+ arch/arm/boot/dts/omap3-evm-37xx.dts               |  50 ++++++
+ arch/arm/boot/dts/omap3-evm-common.dtsi            |  47 ++++++
+ arch/arm/boot/dts/omap3-ldp.dts                    |  31 +++-
+ .../omap2/displays-new/panel-sharp-ls037v7dw01.c   | 176 ++++++++++++++-------
+ drivers/video/fbdev/omap2/dss/dss.c                |   5 +-
+ 7 files changed, 379 insertions(+), 65 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/panel/sharp,ls037v7dw01.txt
+ create mode 100644 arch/arm/boot/dts/omap-panel-sharp-ls037v7dw01.dtsi
 
-iQIcBAEBAgAGBQJTYCZKAAoJELSic+t+oim91dUP/0R34P4VuZw/NvaI8G5IcwVo
-nirBkCC3TmjksRwA11l+ouTJpf4Blmybssp6/vDCL0jDt+FCgFcgCsiqK8zGZQyZ
-JR1O9OKgvHWThYVmIv2oJuDEikhtSzvc+SnPzv4VvXgbMtZXhWiJG4j5O0+PJA7E
-vvZChiMOSRoZ2SpnylCNAw8KF1iDNdKvmO10Sb4RwhLqX+YoxLU/tSV1yE7zeD1z
-2lMxEtr/jN9AUAqVQz4cTq3pI4muv8G2zLd4W0LOz91UgjXdIgc+MJz0oJKqoVjt
-g1l2yzvGNTz61nark7n0sEaN4NG+2tAA+QBZeHKasn+FKaFIQ/TrOXlfa4P1e+pg
-fDuhwlIzbmaXSt2+UEg/VkBBJ6T/jLY1VD0hUeP3JYgtpnTO+uQzux+aSOTGd6Vw
-q1a0rrHh4PjlbGlyoDyZUiWixMLGlkt/w2nIhwQlAPnKMJ274dQ5f04ulMwRpk9W
-uZUIhFm6i/MidN6il1D9OKWi/dD93RDSZTRhipSoIUE2YJSmemlYsJzCt5POS8uh
-mZRHMes+hB2o99S6Tosht0RATdZlg0K3QHahiu292LIq9pEUI7yr3/R47MDHMDID
-24PgMw6O5w1/bxwuii44fEOqlDCp+m3i7ZXfSOSB1/YzSx0OeWs8rlteWJI0Ci3a
-yCWCMSvWvJHzx9eiQ6A6
-=sabg
------END PGP SIGNATURE-----
+-- 
+1.8.1.1
 
---tV/+6PImfyFtriLg--
