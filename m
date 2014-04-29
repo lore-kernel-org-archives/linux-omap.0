@@ -1,34 +1,91 @@
-From: sourav <sourav.poddar@ti.com>
-Subject: Re: [PATCH 3/5] arm: omap2: skip device build from platform code
- for dt.
-Date: Tue, 29 Apr 2014 14:21:36 +0530
-Message-ID: <535F6818.5060406@ti.com>
-References: <1397651532-31456-1-git-send-email-sourav.poddar@ti.com> <1397651532-31456-4-git-send-email-sourav.poddar@ti.com> <alpine.DEB.2.02.1404281827410.14616@utopia.booyaka.com> <20140428183922.GV30292@saruman.home>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [patch V2 0/6] dma: edma: Provide granular residue accounting
+Date: Tue, 29 Apr 2014 14:16:35 +0530
+Message-ID: <20140429084635.GN32284@intel.com>
+References: <20140428104416.464002156@linutronix.de> <535EBE69.6060803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37546 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751680AbaD2IwP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Apr 2014 04:52:15 -0400
-In-Reply-To: <20140428183922.GV30292@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <535EBE69.6060803@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: nsekhar@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, dan.j.williams@intel.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Paul Walmsley <paul@pwsan.com>, tony@atomide.com, zbr@ioremap.net, michael.opdenacker@free-electrons.com, wsa@the-dreams.de, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 29 April 2014 12:09 AM, Felipe Balbi wrote:
-> On Mon, Apr 28, 2014 at 06:28:45PM +0000, Paul Walmsley wrote:
->> On Wed, 16 Apr 2014, Sourav Poddar wrote:
->>
->>> For SOCs with dt enabled, device should be build through device tree.
->>> Prevent device build call from platform code, if device tree is
->>> enabled.
->>>
->>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
->> Isn't OMAP2+ only supporting DT device enumeration now?
-> At least OMAP3 still isn't Dt-only.
->
-Yes, for omap3 boards only, I have kept a #ifndef. Else we could
-have remove this code.
+On Mon, Apr 28, 2014 at 03:47:37PM -0500, Joel Fernandes wrote:
+> On 04/28/2014 05:49 AM, Thomas Gleixner wrote:
+> > A simpler version to provide granular residue accounting and readout
+> > for EDMA.
+> > 
+> > Delta to V1:
+> > 
+> >       - Removed the double read of the address in PaRAM
+> > 
+> >       - Simplified the stats update in the interrupt callback for
+> >         intermediate transfers
+> > 
+> > Thanks,
+> > 
+> > 	tglx
+> > 
+> 
+> Thanks for the series. I went over all the patches and it looks great.
+> Acked-by: Joel Fernandes <joelf@ti.com>
+> 
+> The patches however didn't apply and had some conflicts with my dma
+> memcpy series and peter's cyclic series so I resolved conflicts and
+> created a single branch based on Vinod's slave-dma next branch (commit
+> 406efb1a745c1dc512dc9c3c859e302e7b7f907e) that Vinod can pull.
+> 
+> I also renamed subject line of patches in Thomas's series to be
+> "dmaengine: edma" and documented some of the variables used.
+> 
+> https://github.com/joelagnel/linux-kernel.git (for-vinod branch)
+> 
+> Vinod, could you pull if it looks OK?
+
+The patches look good.
+
+But,
+commit 770f0f3a20188b7e17db2790803b9da925dc0b94
+Author: Thomas Gleixner <tglx@linutronix.de>
+Date:   Mon Apr 28 10:49:43 2014 +0000
+
+    dmaengine: edma: Make reading the position of active channels work
+
+    As Joel pointed out, edma_read_position() uses memcpy_fromio() to read
+    the parameter ram. That's not synchronized with the internal update as
+    it does a byte by byte copy. We need to do a 32bit read to get a
+    consistent value.
+
+    Further reading destination and source is pointless. In DEV_TO_MEM
+    transfers we are only interested in the destination, in MEM_TO_DEV we
+    care about the source. In MEM_TO_MEM it really does not matter which
+    one you read.
+
+    Simple solution: Remove the pointers, select dest/source via a bool
+    and return the read value.
+
+    Remove the export of this function while at it. The only potential
+    user is the dmaengine and that's always builtin.
+
+    Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+
+You s-o-b missing in this one, also ack from Sekhar missing. Do you want to redo
+this or prefer me to cherry-pick patches adding acks and your s-o-b, since I
+already fetched your branch
+
+Either way is fine with me...
+
+-- 
+~Vinod
