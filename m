@@ -1,72 +1,43 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 2/2] ARM: dts: AM437x: Add touchscreen support for GP EVM
-Date: Wed, 30 Apr 2014 15:43:25 +0300
-Message-ID: <1398861805-9229-3-git-send-email-rogerq@ti.com>
-References: <1398861805-9229-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH 0/2] ARM: dts: AM43xx: Touchscreen support
+Date: Wed, 30 Apr 2014 15:43:23 +0300
+Message-ID: <1398861805-9229-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52767 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51758 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933706AbaD3Mnf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Apr 2014 08:43:35 -0400
-In-Reply-To: <1398861805-9229-1-git-send-email-rogerq@ti.com>
+	id S932715AbaD3Mna (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Apr 2014 08:43:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, bcousson@baylibre.com
-Cc: mugunthanvnm@ti.com, nsekhar@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: mugunthanvnm@ti.com, nsekhar@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-From: Sekhar Nori <nsekhar@ti.com>
+Hi Benoit & Tony,
 
-Add touchscreen support for AM437x GP EVM using pixcir
-touchscreen controller.
+These patches add I2C touch screen support for am43x-epos-evm
+and am437x-gp-evm.
 
-CC: Benoit Cousson <bcousson@baylibre.com>
-CC: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-Acked-by: Roger Quadros <rogerq@ti.com>
+Relevant driver side changes are here.
+http://thread.gmane.org/gmane.linux.kernel.input/35803
+
+Please queue this for -next (3.16). Thanks.
+
+cheers,
+-roger
+
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+Roger Quadros (1):
+  ARM: dts: am43x-epos-evm: Correct Touch controller info
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index df8798e..bc9889f 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -81,6 +81,12 @@
- 			0x164 MUX_MODE0       /* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
- 		>;
- 	};
-+
-+	pixcir_ts_pins: pixcir_ts_pins {
-+		pinctrl-single,pins = <
-+			0x264 (PIN_INPUT_PULLUP | MUX_MODE7)  /* spi2_d0.gpio3_22 */
-+		>;
-+	};
- };
- 
- &i2c0 {
-@@ -93,6 +99,20 @@
-         status = "okay";
-         pinctrl-names = "default";
-         pinctrl-0 = <&i2c1_pins>;
-+
-+	pixcir_ts@5c {
-+		compatible = "pixcir,pixcir_tangoc";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pixcir_ts_pins>;
-+		reg = <0x5c>;
-+		interrupt-parent = <&gpio3>;
-+		interrupts = <22 0>;
-+
-+		attb-gpio = <&gpio3 22 GPIO_ACTIVE_HIGH>;
-+
-+		x-size = <1024>;
-+		y-size = <600>;
-+	};
- };
- 
- &epwmss0 {
+Sekhar Nori (1):
+  ARM: dts: AM437x: Add touchscreen support for GP EVM
+
+ arch/arm/boot/dts/am437x-gp-evm.dts  | 20 ++++++++++++++++++++
+ arch/arm/boot/dts/am43x-epos-evm.dts | 12 ++++++++++--
+ 2 files changed, 30 insertions(+), 2 deletions(-)
+
 -- 
 1.8.3.2
 
