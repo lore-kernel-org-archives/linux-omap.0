@@ -1,27 +1,27 @@
 From: Geert Uytterhoeven <geert@linux-m68k.org>
 Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM
  with the PM core
-Date: Wed, 30 Apr 2014 23:54:37 +0200
-Message-ID: <CAMuHMdUdnoah1uZbMn_xONXZ2i8wG5kY7msMzCdBwS+xt9tmDA@mail.gmail.com>
+Date: Thu, 1 May 2014 00:06:07 +0200
+Message-ID: <CAMuHMdUz9bOx3AMfCQuk8nhW3A_xm1Y8DYi9-yg30iu_j94Vzw@mail.gmail.com>
 References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
 	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
-	<7hoazpdldx.fsf@paris.lan>
-	<20140429131610.29859C4094A@trevor.secretlab.ca>
+	<CAPDyKFr02yyhGNncYX2AgBXTA3Sc0AGQcExjtLvQ5QU0_=YJwg@mail.gmail.com>
+	<2068296.FXWLXn1mqR@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20140429131610.29859C4094A@trevor.secretlab.ca>
-Sender: linux-sh-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Kevin Hilman <khilman@linaro.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-sh list <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <2068296.FXWLXn1mqR@avalon>
+Sender: linux-pm-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-sh list <linux-sh@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tomasz Figa <tomasz.figa@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grant,
+Hi Laurent,
 
-On Tue, Apr 29, 2014 at 3:16 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
-> On Fri, 25 Apr 2014 16:44:58 -0700, Kevin Hilman <khilman@linaro.org> wrote:
->> Geert Uytterhoeven <geert+renesas@glider.be> writes:
->>
+On Wed, Apr 30, 2014 at 11:23 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> On Thursday 24 April 2014 15:11:24 Ulf Hansson wrote:
+>> On 24 April 2014 12:13, Geert Uytterhoeven <geert+renesas@glider.be> wrote:
 >> > When adding a device from DT, check if its clocks are suitable for Runtime
 >> > PM, and register them with the PM core.
 >> > If Runtime PM is disabled, just enable the clock.
@@ -29,39 +29,24 @@ On Tue, Apr 29, 2014 at 3:16 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
 >> > This allows the PM core to automatically manage gate clocks of devices for
 >> > Runtime PM.
 >>
->> ...unless the device is already in an existing pm_domain, right?
+>> Normally I don't think it's a good idea to "automatically" manage
+>> clocks from PM core or any other place but from the driver (and
+>> possibly the subsystem).
 >>
->> I like this approach, and it extends nicely what we already do on
->> platforms using drivers/base/power/clock_ops.c into DT land.
->>
->> My only concern is how this will interact if it's used along with
->> devices that have existing pm_domains.  I don't have any specific
->> concerns (yet, because it's Friday, and my brain is turing off), but it
->> just made me wonder if this will be potentially confusing.
+>> The reason is simply that we hide things that normally is supposed to
+>> be handled by the driver. Typically a cross SOC driver should work
+>> fine both with and without a pm_domain. It should also not rely on
+>> CONFIG_PM_RUNTIME.
 >
-> I have big concerns about this approach. First, it will only work if
-> a clock is available at deivce creation time. The conversion of irq
-> controllers to normal device drivers has already shown that is a bad
-> idea.
+> That's a very good point. Geert, what do you think should happen if
+> CONFIG_PM_RUNTIME is not set ? I don't have a strong opinion (yet) on whether
+> we could require CONFIG_PM_RUNTIME, but it would indeed be nice to support
+> both cases. One option would be to keep the clocks enabled unconditionally in
+> that case, as not setting CONFIG_PM_RUNTIME means that the user doesn't care
+> (or cares less) about power consumption.
 
-That's  indeed a valid concern that needs to be addressed.
-
-> I also don't like that it tries to set up every clock, but there is no
-> guarantee that the driver will even use it. I would rather see this
-> behaviour linked into the function that obtains the clock at driver
-> .probe() time. That way it can handle deferred probe correctly and it
-> only sets up clocks that are actually used by the driver.
-
-Not every clock. Only the clocks that are advertised by the clock driver as
-being suitable for runtime_pm management. These are typically module
-clocks, that must be enabled for the module to work. The driver doesn't
-always want to handle these explicitly.
-
-In fact we have one case on shmobile where the module clock for an IP
-core (rcar-gpio) is enabled unconditionally in one SoC,  while it became
-controllable through a gate clock in a later SoC.
-With my patch, just adding the clock to the DT node is sufficient to make
-it work.
+This is already handled by my patch. If CONFIG_PM_RUNTIME is disabled,
+the clocks are enabled by calling clk_prepare_enabled().
 
 Gr{oetje,eeting}s,
 
