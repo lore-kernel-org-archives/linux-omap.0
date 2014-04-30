@@ -1,64 +1,57 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH] ARM: OMAP5: Switch to THUMB mode if needed on secondary
- CPU
-Date: Tue, 29 Apr 2014 21:55:38 -0500
-Message-ID: <5360662A.50106@ti.com>
-References: <1398191506-3741-1-git-send-email-joelf@ti.com> <20140428164348.GA14354@e103592.cambridge.arm.com> <535E8DC2.4010504@ti.com> <535E8E2D.1020708@ti.com> <20140429091725.GA3582@e103592.cambridge.arm.com> <D49C397D-1ABD-4882-B3F5-94F359D7552B@gmail.com> <20140429183131.GF3582@e103592.cambridge.arm.com>
+Subject: Re: [patch V2 0/6] dma: edma: Provide granular residue accounting
+Date: Tue, 29 Apr 2014 23:25:02 -0500
+Message-ID: <53607B1E.2030906@ti.com>
+References: <20140428104416.464002156@linutronix.de> <535EBE69.6060803@ti.com> <20140429084635.GN32284@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32845 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:35998 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751500AbaD3C4I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 22:56:08 -0400
-In-Reply-To: <20140429183131.GF3582@e103592.cambridge.arm.com>
+	with ESMTP id S1750978AbaD3EZh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2014 00:25:37 -0400
+In-Reply-To: <20140429084635.GN32284@intel.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <Dave.Martin@arm.com>, Joel Fernandes <agnel.joel@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dan.j.williams@intel.com, nsekhar@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 04/29/2014 01:31 PM, Dave Martin wrote:
-> On Tue, Apr 29, 2014 at 05:36:30PM +0100, Joel Fernandes wrote:
+On 04/29/2014 03:46 AM, Vinod Koul wrote:
+[..]
+> commit 770f0f3a20188b7e17db2790803b9da925dc0b94
+> Author: Thomas Gleixner <tglx@linutronix.de>
+> Date:   Mon Apr 28 10:49:43 2014 +0000
 > 
-> [...]
+>     dmaengine: edma: Make reading the position of active channels work
 > 
->>>> Sorry what I meant is, say its of Type function. What tells the firmware
->>>> to switch to THUMB?
->>>>
->>>> What's typically done is a boot address register is written by the
->>>> kernel, and the firmware jumps to it after WFE.
->>>
->>> Using ENTRY(x) ... ENDPROC(x) causes the symbol seen by the linker
->>> for x to have the Thumb bit set if the code is Thumb.
->>>
->>> This means that any reference the linker fixes up for that symbol
->>> will have the Thumb bit set appropriately.  This applies to any kind
->>> of reference, so code in another file that takes the address of the
->>> symbol and then passes that address to the firmware should result in the
->>> firmware getting an address with the Thumb bit.
->>>
->>> From the firmware's point of view it just gets a raw address, but
->>> the Thumb bit will now be set.  The firmware still needs to handle
->>> this correctly when jumping, but from the look of the code this may
->>> already work on omap3/4.  It would be interesting to know whether it
->>> works on omap5.
->>
->> Thanks a lot for the explanation. That makes perfect sense. I will try it and let you know if it works on OMAP5.
+>     As Joel pointed out, edma_read_position() uses memcpy_fromio() to read
+>     the parameter ram. That's not synchronized with the internal update as
+>     it does a byte by byte copy. We need to do a 32bit read to get a
+>     consistent value.
 > 
-> ARM/thumb interworking making perfect sense?  I'll have to frame that
-> and put it on the wall :)
+>     Further reading destination and source is pointless. In DEV_TO_MEM
+>     transfers we are only interested in the destination, in MEM_TO_DEV we
+>     care about the source. In MEM_TO_MEM it really does not matter which
+>     one you read.
 > 
-> objdump and nm conveniently mask off the Thumb bit from all function
-> addresses they print out, but if you show the symbols using readelf
-> instead you'll see addresses with bit 0 set for Thumb functions.
+>     Simple solution: Remove the pointers, select dest/source via a bool
+>     and return the read value.
 > 
-> It's possible that the firmware still doesn't handle branching to Thumb
-> correctly, but if it does it would be nice to remove the requirement to
-> build an odd piece of a Thumb-2 kernel in ARM.
+>     Remove the export of this function while at it. The only potential
+>     user is the dmaengine and that's always builtin.
+> 
+>     Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> 
+> You s-o-b missing in this one, also ack from Sekhar missing. Do you want to redo
+> this or prefer me to cherry-pick patches adding acks and your s-o-b, since I
+> already fetched your branch
+> 
+> Either way is fine with me...
+> 
 
-Sure, it works great! thanks, I sent out a patch that applies on top of
-the first one. Thanks for spotting it.
+If its Ok with you, it would great if you could add my Ack and Sob.
+Thanks a lot. Let me know if you'd want me to do anything else here.
 
 Regards,
 -Joel
