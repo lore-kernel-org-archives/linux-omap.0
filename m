@@ -1,68 +1,49 @@
-From: Andreas Fenkart <afenkart@gmail.com>
-Subject: Re: [PATCH v10 1/5] mmc: omap_hsmmc: Enable SDIO interrupt
-Date: Wed, 30 Apr 2014 23:04:44 +0200
-Message-ID: <CALtMJEDEnB=4MJMGcupH6GR4QpYumMX9bPB3+mvBnNtAQHphOA@mail.gmail.com>
-References: <1398670860-30695-1-git-send-email-afenkart@gmail.com>
-	<1398670860-30695-2-git-send-email-afenkart@gmail.com>
-	<CALbNGRQL_GoEkyiNnihdP9NQ4Dz5my-FuqH6YYKKv+CBnSq67g@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM with the PM core
+Date: Wed, 30 Apr 2014 23:23:11 +0200
+Message-ID: <2068296.FXWLXn1mqR@avalon>
+References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be> <1398334403-26181-4-git-send-email-geert+renesas@glider.be> <CAPDyKFr02yyhGNncYX2AgBXTA3Sc0AGQcExjtLvQ5QU0_=YJwg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CALbNGRQL_GoEkyiNnihdP9NQ4Dz5my-FuqH6YYKKv+CBnSq67g@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: =?UTF-8?Q?Andreas_M=C3=BCller?= <schnitzeltony@googlemail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFr02yyhGNncYX2AgBXTA3Sc0AGQcExjtLvQ5QU0_=YJwg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-sh@vger.kernel.org, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tomasz Figa <tomasz.figa@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andreas,
+Hi Ulf and Geert,
 
-2014-04-30 14:23 GMT+02:00 Andreas M=C3=BCller <schnitzeltony@googlemai=
-l.com>:
-> On Mon, Apr 28, 2014 at 9:40 AM, Andreas Fenkart <afenkart@gmail.com>=
- wrote:
->> @@ -2201,11 +2346,16 @@ static int omap_hsmmc_suspend(struct device =
-*dev)
->>         pm_runtime_get_sync(host->dev);
->>
->>         if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER)) {
->> -               omap_hsmmc_disable_irq(host);
->> +               OMAP_HSMMC_WRITE(host->base, ISE, 0);
->> +               OMAP_HSMMC_WRITE(host->base, IE, 0);
->> +               OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
->>                 OMAP_HSMMC_WRITE(host->base, HCTL,
->>                                 OMAP_HSMMC_READ(host->base, HCTL) & =
-~SDBP);
->>         }
->>
->> +       if (host->wake_irq && !(host->mmc->pm_flags & MMC_PM_WAKE_SD=
-IO_IRQ))
->> +               disable_irq(host->wake_irq);
->> +
+On Thursday 24 April 2014 15:11:24 Ulf Hansson wrote:
+> On 24 April 2014 12:13, Geert Uytterhoeven <geert+renesas@glider.be> wrote:
+> > When adding a device from DT, check if its clocks are suitable for Runtime
+> > PM, and register them with the PM core.
+> > If Runtime PM is disabled, just enable the clock.
+> > 
+> > This allows the PM core to automatically manage gate clocks of devices for
+> > Runtime PM.
+> 
+> Normally I don't think it's a good idea to "automatically" manage
+> clocks from PM core or any other place but from the driver (and
+> possibly the subsystem).
+> 
+> The reason is simply that we hide things that normally is supposed to
+> be handled by the driver. Typically a cross SOC driver should work
+> fine both with and without a pm_domain. It should also not rely on
+> CONFIG_PM_RUNTIME.
 
-I think it says, "Do you want to wake up from deep power states when
-an SDIO IRQ is pending"
-Will try to bring this more to the point
+That's a very good point. Geert, what do you think should happen if 
+CONFIG_PM_RUNTIME is not set ? I don't have a strong opinion (yet) on whether 
+we could require CONFIG_PM_RUNTIME, but it would indeed be nice to support 
+both cases. One option would be to keep the clocks enabled unconditionally in 
+that case, as not setting CONFIG_PM_RUNTIME means that the user doesn't care 
+(or cares less) about power consumption.
 
->>         if (host->dbclk)
->>                 clk_disable_unprepare(host->dbclk);
->>
->> @@ -2231,6 +2381,9 @@ static int omap_hsmmc_resume(struct device *de=
-v)
->>
->>         omap_hsmmc_protect_card(host);
->>
->> +       if (host->wake_irq & !(host->mmc->pm_flags & MMC_PM_WAKE_SDI=
-O_IRQ))
+> > Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-you're right should be '&&'
+-- 
+Regards,
 
->> +               enable_irq(host->wake_irq);
->> +
->>         pm_runtime_mark_last_busy(host->dev);
->>         pm_runtime_put_autosuspend(host->dev);
->>         return 0;
-> Maybe I misunderstand something here but shouldn't
-> disable_irq/enable_irq be swapped here?
+Laurent Pinchart
 
-/Andreas
