@@ -1,92 +1,81 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: dwc3: gadget: giveback request if start transfer
- fail
-Date: Wed, 30 Apr 2014 14:58:29 -0500
-Message-ID: <20140430195829.GA3839@saruman.home>
-References: <20140501063608.GA30575@intel.com>
+Subject: Re: [PATCH] usb: dwc3: gadget: fix burst size corruption
+Date: Wed, 30 Apr 2014 15:03:53 -0500
+Message-ID: <20140430200353.GC3839@saruman.home>
+References: <20140501071604.GB30575@intel.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="J2SCkAp4GZ/dPZZf"
+	protocol="application/pgp-signature"; boundary="W5WqUoFLvi1M7tJE"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140501063608.GA30575@intel.com>
+In-Reply-To: <20140501071604.GB30575@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, David Cohen <david.a.cohen@linux.intel.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---J2SCkAp4GZ/dPZZf
+--W5WqUoFLvi1M7tJE
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Thu, May 01, 2014 at 02:36:08AM -0400, Zhuang Jin Can wrote:
-> At least we should giveback the current request to the
-> gadget. Otherwise, the gadget will be stuck without knowing
-> anything.
+On Thu, May 01, 2014 at 03:16:04AM -0400, Zhuang Jin Can wrote:
+> endpoint.maxburst may be 0 if a gadget doesn't call config_ep_by_speed()
+> to update it from the companion descriptor.
+> And endpoint.maxburst - 1 returns 11111b which wrongly sets bit
+> 26 of endpoint parameter 0.
+> This sets a wrong endpoint state and will cause "Get Endpoint State"
+> command can't get the corret endpoint state and "Set Endpoint Config"
+> command can't restore the correct endpoint state during hibernation
+> resume flow.
+> Thus, when endpoint.maxburst is 0, we should set burst as 0 directly.
 >=20
-> It was oberved that the failure can happen if the request is
-> queued when the run/stop bit of controller is not set.
-
-why is your gadget queueing any requests before calling ->udc_start() ?
-
-A better question, what modification have you done to udc-core.c which
-broke this ? udc-core *always* calls ->udc_start() by the time you load
-a gadget driver so this case will *never* happen. Whatever modification
-you did, broke this assumption and I will *not* accept this patch
-because the bug is elsewhere and *not* in mainline kernel.
-
 > Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
 > ---
->  drivers/usb/dwc3/gadget.c |    4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+>  drivers/usb/dwc3/gadget.c |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 >=20
 > diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-> index 70715ee..8d0c3c7 100644
+> index 70715ee..44eca95 100644
 > --- a/drivers/usb/dwc3/gadget.c
 > +++ b/drivers/usb/dwc3/gadget.c
-> @@ -1000,9 +1000,7 @@ static int __dwc3_gadget_kick_transfer(struct dwc3_=
-ep *dep, u16 cmd_param,
->  		 * here and stop, unmap, free and del each of the linked
->  		 * requests instead of what we do now.
->  		 */
-> -		usb_gadget_unmap_request(&dwc->gadget, &req->request,
-> -				req->direction);
-> -		list_del(&req->list);
-> +		dwc3_gadget_giveback(dep, req, -ESHUTDOWN);
->  		return ret;
->  	}
+> @@ -440,7 +440,8 @@ static int dwc3_gadget_set_ep_config(struct dwc3 *dwc=
+, struct dwc3_ep *dep,
 > =20
-> --=20
-> 1.7.9.5
->=20
+>  	/* Burst size is only needed in SuperSpeed mode */
+>  	if (dwc->gadget.speed =3D=3D USB_SPEED_SUPER) {
+> -		u32 burst =3D dep->endpoint.maxburst - 1;
+> +		u32 burst =3D dep->endpoint.maxburst ?
+> +				dep->endpoint.maxburst - 1 : 0;
+
+again, you found a bug on the gadget driver. Fix that. composite.c
+guarantees that for those functions which don't pass bMaxBurst,
+gadget->maxburst will be set to *at least* 1.
 
 --=20
 balbi
 
---J2SCkAp4GZ/dPZZf
+--W5WqUoFLvi1M7tJE
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTYVXlAAoJEIaOsuA1yqRE5CAP/3JxjLFO9mBGh4aEw4rE60g1
-9dEDKYTW0B/qs1S3XaaoMENqn3+tA1wtkOXSAGjHNRl4QW/wWwzearmnPHPK1Zf6
-/wcteu3FiYz8lwAg8/8EzhcCZSGNmEL7cz5/428MplHfDZ6EwEbw4/NcBm3/4LKc
-YMudAFYYYbcTBcnSGxCtmm4+NgUxy0M14jV5EBqPrKFz64jdVTG+DxylL4XThiqm
-hsela1Jf62DCPDthe8eVqkA1+th648sH6GCNS5rJ2CAUlHw6T4sXhKn+ewju77eJ
-3i2wWw7nEIghjg13phmsk7zlOJIll+Zzfri1iAJzAg3HuhuIbPUMDgjVmKqPFkR2
-q3huq22Jb30G4m0ZthACdvtK79giJVgDBOgBK0pPOjEw8RLyjbV2ey9UFnoBun+j
-HEjZlXnIrOCPiG3YtXHl8pHw3DZqPGO88k56nItbS8DVB5uDBVQvPbQgeHflRMrQ
-+cH5OidQPVCAZ3n1wiQKqi4tpP9tEGx9xr1PvvDAg3PPKGLmGXXAeme+76QBhMey
-fqjPvg0JBD1tiIVZT6Shuy9+vmJZMVg1apcNitQulvHJYMhy0q9lpqNYOwsVGJvT
-95UrH/cN7cARpXxx/DKz7WDXpeLZIr3s3mh+u87bt8UfGoV+GCFR6EdVArrupT/H
-YgQDwaB0Z56bj22HS3Xt
-=VdFX
+iQIcBAEBAgAGBQJTYVcpAAoJEIaOsuA1yqREn2sP/jRP2GT4ONO7CxVaauLiS/BW
+Z1LcuKQ5hNlR8Z+AxePMuwoGmxJEx2V8/E2bN504i6F8kgo30aXb89trMUb2qV6m
+Y874pnsg6037CrHPHwi3VzK229XiXp7LtNwnszPoSVbH2Hdg62wKwb59GWFTPniX
+MwVi6sh3bvC6kWa+JTEpKvDphHgB6d91UlZJEFJ8FBUSLUf5kR/lH9ycIPEKpO8c
+Ko1j0k9KKysfylJflc+v8dOgS5uTMOXd4MOeVSOZfhMYHdz5s5yge2bauBqTiVwi
+CxREzBH5jdTIJaXKgTu+/HJY6el8bx1izIX13urrxxt0Ciz0sN8HrrvYHRsGHax6
+QyIMM5EGtXTa7/8FICHU1yJftBnLEnai9CV0Mooa6llNmxUaCg0UXOIAoN+HC0FV
+mBfaWwSSDTfrm6gG3CqIt+0XjacUhHFvRRmw2z8HOWdd4atnpdRIPIr1yTV+Etl2
+gBKiVtA9en4RKic4GAJISWcI6efApPlKsk994YotyDGetQSHL/qIohwxZUy1lQZt
+yVmT8HGgJLm/GBhWVxN2++zu5rXfcqY7LeN3xs0E28+vBMwXji2d8rC8kk+EJ1Pt
+TSL4GI3nkUYiFsuITBMG2h9pRKN33SOwDiarCYMGeZ9YhvakogLCm4Uwx9g3CLVF
+WW/QDL/l1blfCpzZDY7O
+=Xr9Z
 -----END PGP SIGNATURE-----
 
---J2SCkAp4GZ/dPZZf--
+--W5WqUoFLvi1M7tJE--
