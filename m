@@ -1,81 +1,68 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: dwc3: gadget: fix burst size corruption
-Date: Wed, 30 Apr 2014 15:03:53 -0500
-Message-ID: <20140430200353.GC3839@saruman.home>
-References: <20140501071604.GB30575@intel.com>
-Reply-To: <balbi@ti.com>
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: Re: [PATCH v10 1/5] mmc: omap_hsmmc: Enable SDIO interrupt
+Date: Wed, 30 Apr 2014 23:04:44 +0200
+Message-ID: <CALtMJEDEnB=4MJMGcupH6GR4QpYumMX9bPB3+mvBnNtAQHphOA@mail.gmail.com>
+References: <1398670860-30695-1-git-send-email-afenkart@gmail.com>
+	<1398670860-30695-2-git-send-email-afenkart@gmail.com>
+	<CALbNGRQL_GoEkyiNnihdP9NQ4Dz5my-FuqH6YYKKv+CBnSq67g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="W5WqUoFLvi1M7tJE"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140501071604.GB30575@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CALbNGRQL_GoEkyiNnihdP9NQ4Dz5my-FuqH6YYKKv+CBnSq67g@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: =?UTF-8?Q?Andreas_M=C3=BCller?= <schnitzeltony@googlemail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---W5WqUoFLvi1M7tJE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Andreas,
 
-On Thu, May 01, 2014 at 03:16:04AM -0400, Zhuang Jin Can wrote:
-> endpoint.maxburst may be 0 if a gadget doesn't call config_ep_by_speed()
-> to update it from the companion descriptor.
-> And endpoint.maxburst - 1 returns 11111b which wrongly sets bit
-> 26 of endpoint parameter 0.
-> This sets a wrong endpoint state and will cause "Get Endpoint State"
-> command can't get the corret endpoint state and "Set Endpoint Config"
-> command can't restore the correct endpoint state during hibernation
-> resume flow.
-> Thus, when endpoint.maxburst is 0, we should set burst as 0 directly.
->=20
-> Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
-> ---
->  drivers/usb/dwc3/gadget.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-> index 70715ee..44eca95 100644
-> --- a/drivers/usb/dwc3/gadget.c
-> +++ b/drivers/usb/dwc3/gadget.c
-> @@ -440,7 +440,8 @@ static int dwc3_gadget_set_ep_config(struct dwc3 *dwc=
-, struct dwc3_ep *dep,
-> =20
->  	/* Burst size is only needed in SuperSpeed mode */
->  	if (dwc->gadget.speed =3D=3D USB_SPEED_SUPER) {
-> -		u32 burst =3D dep->endpoint.maxburst - 1;
-> +		u32 burst =3D dep->endpoint.maxburst ?
-> +				dep->endpoint.maxburst - 1 : 0;
+2014-04-30 14:23 GMT+02:00 Andreas M=C3=BCller <schnitzeltony@googlemai=
+l.com>:
+> On Mon, Apr 28, 2014 at 9:40 AM, Andreas Fenkart <afenkart@gmail.com>=
+ wrote:
+>> @@ -2201,11 +2346,16 @@ static int omap_hsmmc_suspend(struct device =
+*dev)
+>>         pm_runtime_get_sync(host->dev);
+>>
+>>         if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER)) {
+>> -               omap_hsmmc_disable_irq(host);
+>> +               OMAP_HSMMC_WRITE(host->base, ISE, 0);
+>> +               OMAP_HSMMC_WRITE(host->base, IE, 0);
+>> +               OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
+>>                 OMAP_HSMMC_WRITE(host->base, HCTL,
+>>                                 OMAP_HSMMC_READ(host->base, HCTL) & =
+~SDBP);
+>>         }
+>>
+>> +       if (host->wake_irq && !(host->mmc->pm_flags & MMC_PM_WAKE_SD=
+IO_IRQ))
+>> +               disable_irq(host->wake_irq);
+>> +
 
-again, you found a bug on the gadget driver. Fix that. composite.c
-guarantees that for those functions which don't pass bMaxBurst,
-gadget->maxburst will be set to *at least* 1.
+I think it says, "Do you want to wake up from deep power states when
+an SDIO IRQ is pending"
+Will try to bring this more to the point
 
---=20
-balbi
+>>         if (host->dbclk)
+>>                 clk_disable_unprepare(host->dbclk);
+>>
+>> @@ -2231,6 +2381,9 @@ static int omap_hsmmc_resume(struct device *de=
+v)
+>>
+>>         omap_hsmmc_protect_card(host);
+>>
+>> +       if (host->wake_irq & !(host->mmc->pm_flags & MMC_PM_WAKE_SDI=
+O_IRQ))
 
---W5WqUoFLvi1M7tJE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+you're right should be '&&'
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+>> +               enable_irq(host->wake_irq);
+>> +
+>>         pm_runtime_mark_last_busy(host->dev);
+>>         pm_runtime_put_autosuspend(host->dev);
+>>         return 0;
+> Maybe I misunderstand something here but shouldn't
+> disable_irq/enable_irq be swapped here?
 
-iQIcBAEBAgAGBQJTYVcpAAoJEIaOsuA1yqREn2sP/jRP2GT4ONO7CxVaauLiS/BW
-Z1LcuKQ5hNlR8Z+AxePMuwoGmxJEx2V8/E2bN504i6F8kgo30aXb89trMUb2qV6m
-Y874pnsg6037CrHPHwi3VzK229XiXp7LtNwnszPoSVbH2Hdg62wKwb59GWFTPniX
-MwVi6sh3bvC6kWa+JTEpKvDphHgB6d91UlZJEFJ8FBUSLUf5kR/lH9ycIPEKpO8c
-Ko1j0k9KKysfylJflc+v8dOgS5uTMOXd4MOeVSOZfhMYHdz5s5yge2bauBqTiVwi
-CxREzBH5jdTIJaXKgTu+/HJY6el8bx1izIX13urrxxt0Ciz0sN8HrrvYHRsGHax6
-QyIMM5EGtXTa7/8FICHU1yJftBnLEnai9CV0Mooa6llNmxUaCg0UXOIAoN+HC0FV
-mBfaWwSSDTfrm6gG3CqIt+0XjacUhHFvRRmw2z8HOWdd4atnpdRIPIr1yTV+Etl2
-gBKiVtA9en4RKic4GAJISWcI6efApPlKsk994YotyDGetQSHL/qIohwxZUy1lQZt
-yVmT8HGgJLm/GBhWVxN2++zu5rXfcqY7LeN3xs0E28+vBMwXji2d8rC8kk+EJ1Pt
-TSL4GI3nkUYiFsuITBMG2h9pRKN33SOwDiarCYMGeZ9YhvakogLCm4Uwx9g3CLVF
-WW/QDL/l1blfCpzZDY7O
-=Xr9Z
------END PGP SIGNATURE-----
-
---W5WqUoFLvi1M7tJE--
+/Andreas
