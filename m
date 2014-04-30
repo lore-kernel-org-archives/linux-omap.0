@@ -1,112 +1,77 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] fbdev: omap2: Fix format string mismatch in display-sysfs.c
-Date: Wed, 30 Apr 2014 11:43:05 +0300
-Message-ID: <5360B799.4020701@ti.com>
-References: <1398682455-21043-1-git-send-email-standby24x7@gmail.com> <002401cf62d3$634cc1f0$29e645d0$%han@samsung.com>
+From: Dave Martin <Dave.Martin@arm.com>
+Subject: Re: [PATCH] ARM: OMAP5: Redo THUMB mode switch on secondary CPU
+Date: Wed, 30 Apr 2014 10:43:56 +0100
+Message-ID: <20140430094348.GA3986@e103592.cambridge.arm.com>
+References: <1398826427-17200-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="4bELrnWf1LjS42wMGbKK6plwGav7o225c"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45453 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755330AbaD3InO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Apr 2014 04:43:14 -0400
-In-Reply-To: <002401cf62d3$634cc1f0$29e645d0$%han@samsung.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1398826427-17200-1-git-send-email-joelf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Russell King <linux@arm.linux.org.uk>, open list <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "open list:OMAP SUPPORT" <linux-omap@vger.kernel.org>, "moderated list:ARM SUB-ARCHITECT..." <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jingoo Han <jg1.han@samsung.com>, 'Masanari Iida' <standby24x7@gmail.com>
-Cc: 'Jean-Christophe Plagniol-Villard' <plagnioj@jcrosoft.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
---4bELrnWf1LjS42wMGbKK6plwGav7o225c
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Tue, Apr 29, 2014 at 09:53:47PM -0500, Joel Fernandes wrote:
+> Here's a redo of the patch [1] that effectively does the same
+> thing but is the right way to do things by using ENDPROC instead.
+> The firmware correctly switches to THUMB before entry.
+> 
+> The patch applies ontop of the earlier patch [1].
+> 
+> [1] https://lkml.org/lkml/2014/4/22/1044
+> 
+> Suggested-by: Dave Martin <Dave.Martin@arm.com>
+> Cc: Dave Martin <Dave.Martin@arm.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Joel Fernandes <joelf@ti.com>
 
-On 28/04/14 14:17, Jingoo Han wrote:
-> On Monday, April 28, 2014 7:54 PM, Masanari Iida wrote:
->>
->> Fix two format string mismatch in display-sysfs.c
->>
->> Signed-off-by: Masanari Iida <standby24x7@gmail.com>
->> ---
->>  drivers/video/fbdev/omap2/dss/display-sysfs.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/video/fbdev/omap2/dss/display-sysfs.c b/drivers/v=
-ideo/fbdev/omap2/dss/display-
->> sysfs.c
->> index 5a2095a..5928bc9 100644
->> --- a/drivers/video/fbdev/omap2/dss/display-sysfs.c
->> +++ b/drivers/video/fbdev/omap2/dss/display-sysfs.c
->> @@ -184,7 +184,7 @@ static ssize_t display_rotate_show(struct device *=
-dev,
->>  	if (!dssdev->driver->get_rotate)
->>  		return -ENOENT;
->>  	rotate =3D dssdev->driver->get_rotate(dssdev);
->=20
-> According to 'struct omap_dss_driver', get_rotate() returns 'u8'.
-> Then, how about changing the type of 'rotate' variable from 'int'
-> to 'u8' as below?
->=20
-> --- a/drivers/video/fbdev/omap2/dss/display-sysfs.c
-> +++ b/drivers/video/fbdev/omap2/dss/display-sysfs.c
-> @@ -180,7 +180,7 @@ static ssize_t display_rotate_show(struct device *d=
-ev,
->                 struct device_attribute *attr, char *buf)
->  {
->         struct omap_dss_device *dssdev =3D to_dss_device_sysfs(dev);
-> -       int rotate;
-> +       u8 rotate;
->         if (!dssdev->driver->get_rotate)
->                 return -ENOENT;
->         rotate =3D dssdev->driver->get_rotate(dssdev);
->=20
->=20
-> Best regards,
-> Jingoo Han
->=20
->> -	return snprintf(buf, PAGE_SIZE, "%u\n", rotate);
->> +	return snprintf(buf, PAGE_SIZE, "%d\n", rotate);
->>  }
->>
->>  static ssize_t display_rotate_store(struct device *dev,
->> @@ -215,7 +215,7 @@ static ssize_t display_mirror_show(struct device *=
-dev,
->>  	if (!dssdev->driver->get_mirror)
->>  		return -ENOENT;
->>  	mirror =3D dssdev->driver->get_mirror(dssdev);
->> -	return snprintf(buf, PAGE_SIZE, "%u\n", mirror);
->> +	return snprintf(buf, PAGE_SIZE, "%d\n", mirror);
->>  }
+Looks OK to me.
 
-And get_mirror returns a bool, not int, so I guess that could be fixed al=
-so.
+This also makes omap5 consistent with omap3/4 here.
 
- Tomi
+Reviewed-by: Dave Martin <Dave.Martin@arm.com>
 
-
-
---4bELrnWf1LjS42wMGbKK6plwGav7o225c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTYLeZAAoJEPo9qoy8lh71VREP/iX0kdeXmYlLb7fMHAosn++b
-jVF/CG6CcdAWwozEN8BspttPnCEKIm+YBqnyNnxUUsqk0dmn6AXV8hUAyWcOJXNl
-T7cuBrZQYwvAf0lWStoNGsSNARkZbXseiWtSOfGDDRucW1gQHyWaX3BBkl/gpK5d
-pMXhsvOnUQzC7JIxKoDHDsG5d4ApKGYv+XSYCGY2awg3dxuhhhkpLslfF9FvVlWR
-x3M+eUFxn76c72dnOl84q+WxJ7AZG1BzN2bdkwON+j87i8JysKddzgkblfw0Ceo8
-uiePgPztJAnFTxYMhnutvvcjFY5qOgq3xFZ1M1++l0NauYdOUwHil6v9VuWbyRZf
-la09xk9PtCjGm0SDU5XpCEvekAGsJYv+RFB7dagxUPqjRVawuF8KtB4Xm7AX1n1n
-PHdxSbOBj/rEx3+zPkSm2qSlARynksE04Ae+HK0tIJ2WdkvDOsFrYxtTGdD2G19m
-ZOOWsEuLamrXWkrBAZiiqOvbHqCKKeZaKqkVFSDMlRz0TkJRuuZOokOflEJ7l3g9
-slkQJfTfU5vfwAr8S1CycDH8YazcSa18Af8eCqTKjywh2UPwbiBTgRlEcfTaMbob
-Y4gBWiUm5i+Z7D/qBsLAD5FcKRyqXVRpGfwSVEsybtrdHsnr1aIRg1SDVX//9mV8
-fI9Ml2A+vBTSjR0WKwwp
-=9upy
------END PGP SIGNATURE-----
-
---4bELrnWf1LjS42wMGbKK6plwGav7o225c--
+> ---
+> 
+> Tony, the earlier patch went into your fixes, and can remain. This patch is just a simple redo of the same and can go in for v3.16, no problem. Thanks.
+> 
+>  arch/arm/mach-omap2/omap-headsmp.S |    6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
+> index 1809dce..bf36f26 100644
+> --- a/arch/arm/mach-omap2/omap-headsmp.S
+> +++ b/arch/arm/mach-omap2/omap-headsmp.S
+> @@ -31,10 +31,6 @@
+>   * register AuxCoreBoot0.
+>   */
+>  ENTRY(omap5_secondary_startup)
+> -.arm
+> -THUMB( adr     r9, BSYM(wait)  )       @ CPU may be entered in ARM mode.
+> -THUMB( bx      r9              )       @ If this is a Thumb-2 kernel,
+> -THUMB( .thumb                  )       @ switch to Thumb now.
+>  wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
+>  	ldr	r0, [r2]
+>  	mov	r0, r0, lsr #5
+> @@ -43,7 +39,7 @@ wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
+>  	cmp	r0, r4
+>  	bne	wait
+>  	b	secondary_startup
+> -END(omap5_secondary_startup)
+> +ENDPROC(omap5_secondary_startup)
+>  /*
+>   * OMAP4 specific entry point for secondary CPU to jump from ROM
+>   * code.  This routine also provides a holding flag into which
+> -- 
+> 1.7.9.5
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
