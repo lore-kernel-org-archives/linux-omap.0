@@ -1,39 +1,296 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] clk: ti: clk-54xx: Set the rate for dpll_abe_m2x2_ck
-Date: Wed, 30 Apr 2014 14:39:37 +0300
-Message-ID: <1398857977-30114-1-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/2] ARM: DTS: omap54xx-clocks: remove the autoidle properties for clock nodes
+Date: Wed, 30 Apr 2014 14:41:35 +0300
+Message-ID: <1398858096-32144-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mturquette@linaro.org, t-kristo@ti.com, tony@atomide.com
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-In order to get correct clock dividers for AESS/ABE we need to set the
-dpll_abe_m2x2_ck rate to be double of dpll_abe_ck.
+In OMAP5 bit 8 in PRCM registers are not defined (Reserved) unlike their
+counterpart in OMAP4.
+It is better to not write to these bits.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/clk/ti/clk-54xx.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm/boot/dts/omap54xx-clocks.dtsi | 48 ----------------------------------
+ 1 file changed, 48 deletions(-)
 
-diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
-index 08f3d1b915b3..5e183993e3ec 100644
---- a/drivers/clk/ti/clk-54xx.c
-+++ b/drivers/clk/ti/clk-54xx.c
-@@ -240,6 +240,12 @@ int __init omap5xxx_dt_clk_init(void)
- 	if (rc)
- 		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+index d487fdab3921..d784ff5d3904 100644
+--- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
+@@ -120,10 +120,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_abe_x2_ck>;
+ 		ti,max-div = <31>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x01f0>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
  
-+	abe_dpll = clk_get_sys(NULL, "dpll_abe_m2x2_ck");
-+	if (!rc)
-+		rc = clk_set_rate(abe_dpll, OMAP5_DPLL_ABE_DEFFREQ * 2);
-+	if (rc)
-+		pr_err("%s: failed to configure ABE m2x2 DPLL!\n", __func__);
-+
- 	usb_dpll = clk_get_sys(NULL, "dpll_usb_ck");
- 	rc = clk_set_rate(usb_dpll, OMAP5_DPLL_USB_DEFFREQ);
- 	if (rc)
+ 	abe_24m_fclk: abe_24m_fclk {
+@@ -164,10 +162,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_abe_x2_ck>;
+ 		ti,max-div = <31>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x01f4>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_core_ck: dpll_core_ck {
+@@ -188,10 +184,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_core_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0150>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	c2c_fclk: c2c_fclk {
+@@ -215,10 +209,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_core_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0138>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_core_h12x2_ck: dpll_core_h12x2_ck {
+@@ -226,10 +218,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_core_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x013c>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_core_h13x2_ck: dpll_core_h13x2_ck {
+@@ -237,10 +227,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_core_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0140>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_core_h14x2_ck: dpll_core_h14x2_ck {
+@@ -248,10 +236,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_core_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0144>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_core_h22x2_ck: dpll_core_h22x2_ck {
+@@ -259,10 +245,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_core_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0154>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_core_h23x2_ck: dpll_core_h23x2_ck {
+@@ -270,10 +254,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_core_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0158>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_core_h24x2_ck: dpll_core_h24x2_ck {
+@@ -281,10 +263,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_core_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x015c>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_core_m2_ck: dpll_core_m2_ck {
+@@ -292,10 +272,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_core_ck>;
+ 		ti,max-div = <31>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0130>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_core_m3x2_ck: dpll_core_m3x2_ck {
+@@ -303,10 +281,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_core_x2_ck>;
+ 		ti,max-div = <31>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0134>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	iva_dpll_hs_clk_div: iva_dpll_hs_clk_div {
+@@ -335,10 +311,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_iva_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x01b8>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_iva_h12x2_ck: dpll_iva_h12x2_ck {
+@@ -346,10 +320,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_iva_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x01bc>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	mpu_dpll_hs_clk_div: mpu_dpll_hs_clk_div {
+@@ -372,10 +344,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_mpu_ck>;
+ 		ti,max-div = <31>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0170>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	per_dpll_hs_clk_div: per_dpll_hs_clk_div {
+@@ -642,10 +612,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_per_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0158>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_per_h12x2_ck: dpll_per_h12x2_ck {
+@@ -653,10 +621,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_per_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x015c>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_per_h14x2_ck: dpll_per_h14x2_ck {
+@@ -664,10 +630,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_per_x2_ck>;
+ 		ti,max-div = <63>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0164>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_per_m2_ck: dpll_per_m2_ck {
+@@ -675,10 +639,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_per_ck>;
+ 		ti,max-div = <31>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0150>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_per_m2x2_ck: dpll_per_m2x2_ck {
+@@ -686,10 +648,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_per_x2_ck>;
+ 		ti,max-div = <31>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0150>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_per_m3x2_ck: dpll_per_m3x2_ck {
+@@ -697,10 +657,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_per_x2_ck>;
+ 		ti,max-div = <31>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0154>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_unipro1_ck: dpll_unipro1_ck {
+@@ -723,10 +681,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_unipro1_ck>;
+ 		ti,max-div = <127>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0210>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_unipro2_ck: dpll_unipro2_ck {
+@@ -749,10 +705,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_unipro2_ck>;
+ 		ti,max-div = <127>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x01d0>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	dpll_usb_ck: dpll_usb_ck {
+@@ -775,10 +729,8 @@
+ 		compatible = "ti,divider-clock";
+ 		clocks = <&dpll_usb_ck>;
+ 		ti,max-div = <127>;
+-		ti,autoidle-shift = <8>;
+ 		reg = <0x0190>;
+ 		ti,index-starts-at-one;
+-		ti,invert-autoidle-bit;
+ 	};
+ 
+ 	func_128m_clk: func_128m_clk {
 -- 
 1.9.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
