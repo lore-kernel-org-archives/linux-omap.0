@@ -1,81 +1,72 @@
 From: Joachim Eastwood <manabian@gmail.com>
-Subject: Re: [PATCH 4/4] ARM: dts: Add LCD panel sharp ls037v7dw01 support for
- omap3-evm and ldp
-Date: Wed, 30 Apr 2014 03:07:53 +0200
-Message-ID: <CAGhQ9Vwa8xXQEo5dNEKAvmaS9DoBjVSthtd8=owk+atVdFuiiA@mail.gmail.com>
-References: <1398815562-24113-1-git-send-email-tony@atomide.com>
-	<1398815562-24113-5-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH 1/4] ARM: dts: Add support for OMAP4 Variscite OM44 family
+Date: Wed, 30 Apr 2014 03:24:23 +0200
+Message-ID: <CAGhQ9Vw8sxifmG5Y3xbywm9B9e36VHxCk_oKLmh1qCgoOUOBSQ@mail.gmail.com>
+References: <1397833849-22396-1-git-send-email-manabian@gmail.com>
+	<1397833849-22396-2-git-send-email-manabian@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f172.google.com ([209.85.220.172]:47296 "EHLO
-	mail-vc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750861AbaD3BHy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 21:07:54 -0400
-In-Reply-To: <1398815562-24113-5-git-send-email-tony@atomide.com>
+Received: from mail-vc0-f171.google.com ([209.85.220.171]:34562 "EHLO
+	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750813AbaD3BYX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 21:24:23 -0400
+Received: by mail-vc0-f171.google.com with SMTP id ld13so1363150vcb.30
+        for <linux-omap@vger.kernel.org>; Tue, 29 Apr 2014 18:24:23 -0700 (PDT)
+In-Reply-To: <1397833849-22396-2-git-send-email-manabian@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Joachim Eastwood <manabian@gmail.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
 
-On 30 April 2014 01:52, Tony Lindgren <tony@atomide.com> wrote:
-> Looks like quite a few omaps have sharp ls037v7dw01 that's configured
-> as various panel dpi entries for whatever legacy reasons. For device
-> tree based support, let's just configure these properly for panel
-> ls037v7dw01 instead of panel dpi.
+On 18 April 2014 17:10, Joachim Eastwood <manabian@gmail.com> wrote:
+> Add support for VAR-SOM-OM44[1] SODIMM system on module from Variscite. SoM
+> features a OMAP4460, 1GB RAM, Gigabit Ethernet (LAN7500) and optional WLAN/BT.
 >
-> This patch creates a common file for panel ls037v7dw01, and makes
-> boards ldp and omap3-evm to use it. The panel for ldp is configured
-> in the qvga mode and omap3-evm panel in vga mode.
+> Also add support for VAR-STK-OM44 development board from Variscite. This kit
+> features a VAR-SOM-OM44 and the carrier board VAR-OM44CustomBoard[2]. The
+> VAR-STK-OM44 is the same as VAR-DVK-OM44 but without the LCD display.
 >
-> The ls037v7dw01 also seems to be coupled with an ad7846 touchscreen
-> controller for the omaps, so let's add a basic configuration for
-> the touchscreen also using the default values.
+> omap4-var-stk-om44.dts replace the old and very limited omap4-var-som.dts.
 >
-> Note that we can now remove the regulator-name = "vdds_dsi"
-> entry for ldp, that's no longer needed as we have the entry
-> for vdds_dsi-supply = <&vpll2>.
+> [1] http://www.variscite.com/products/system-on-module-som/cortex-a9/var-som-om44-cpu-ti-omap-4-omap4460
+> [2] http://www.variscite.com/products/single-board-computers/var-om44customboard
 >
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Joachim Eastwood <manabian@gmail.com>
 > ---
->  .../arm/boot/dts/omap-panel-sharp-ls037v7dw01.dtsi | 82 ++++++++++++++++++++++
->  arch/arm/boot/dts/omap3-evm-37xx.dts               | 50 +++++++++++++
->  arch/arm/boot/dts/omap3-evm-common.dtsi            | 47 +++++++++++++
->  arch/arm/boot/dts/omap3-ldp.dts                    | 31 ++++++--
->  4 files changed, 205 insertions(+), 5 deletions(-)
->  create mode 100644 arch/arm/boot/dts/omap-panel-sharp-ls037v7dw01.dtsi
 
-> diff --git a/arch/arm/boot/dts/omap3-ldp.dts b/arch/arm/boot/dts/omap3-ldp.dts
-> index 0abe986..50fdac9 100644
-> --- a/arch/arm/boot/dts/omap3-ldp.dts
-> +++ b/arch/arm/boot/dts/omap3-ldp.dts
-> @@ -164,6 +164,7 @@
->
->  #include "twl4030.dtsi"
->  #include "twl4030_omap3.dtsi"
-> +#include "omap-panel-sharp-ls037v7dw01.dtsi"
->
->  &i2c2 {
->         clock-frequency = <400000>;
-> @@ -173,6 +174,31 @@
->         clock-frequency = <400000>;
->  };
->
-> +&lcd_3v3 {
-> +       gpio = <&twl_gpio 7 GPIO_ACTIVE_HIGH>;
-> +       enable-active-high;
-> +};
-> +
-> +&lcd0 {
-> +       reset-gpios = <&gpio2 23 GPIO_ACTIVE_HIGH>;     /* gpio55, lcd RESB */
-> +       gpios = <&gpio2 24 GPIO_ACTIVE_LOW      /* gpio56, lcd MO */
+Tomi,
 
-enable-gpios ?
+Do you plan to push the patch that add hpd-gpios to the
+"hdmi-connector" for 3.16? (nodes for my board below)
+https://patchwork.kernel.org/patch/4006021/
 
-> +                0                              /* lcd LR */
-> +                0                              /* lcd UD */
-> +                0>;                            /* lcd INI */
-> +};
+Also in the patch set I am using your DT bindings for "panel-dpi". See
+patch [2 of 4] for nodes.
+https://patchwork.kernel.org/patch/4047241/
+
+Will this patch be upstream in 3.16?
+
+As I am about to send out a new version of this patch set it would be
+nice to know if I need to split out the display stuff, for later
+inclusion, or if it can go in as it is.
 
 regards
 Joachim Eastwood
+
+> +       hdmi0: connector@0 {
+> +               compatible = "hdmi-connector";
+> +               pinctrl-names = "default";
+> +               pinctrl-0 = <&hdmi_hpd_pins>;
+> +               label = "hdmi";
+> +               type = "a";
+> +
+> +               hpd-gpios = <&gpio2 31 GPIO_ACTIVE_HIGH>; /* gpio_63 */
+> +
+> +               port {
+> +                       hdmi_connector_in: endpoint {
+> +                               remote-endpoint = <&hdmi_out>;
+> +                       };
+> +               };
+> +       };
+> +};
