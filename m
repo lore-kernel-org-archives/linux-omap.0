@@ -1,81 +1,67 @@
 From: Geert Uytterhoeven <geert@linux-m68k.org>
 Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM
  with the PM core
-Date: Wed, 30 Apr 2014 23:47:14 +0200
-Message-ID: <CAMuHMdWAXDVtHN2bTW515eDqkob=nXm3YFd6SCjjYcmWy_OEyA@mail.gmail.com>
+Date: Wed, 30 Apr 2014 23:54:37 +0200
+Message-ID: <CAMuHMdUdnoah1uZbMn_xONXZ2i8wG5kY7msMzCdBwS+xt9tmDA@mail.gmail.com>
 References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
 	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
 	<7hoazpdldx.fsf@paris.lan>
+	<20140429131610.29859C4094A@trevor.secretlab.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <7hoazpdldx.fsf@paris.lan>
+In-Reply-To: <20140429131610.29859C4094A@trevor.secretlab.ca>
 Sender: linux-sh-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-sh list <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Kevin Hilman <khilman@linaro.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-sh list <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kevin,
+Hi Grant,
 
-On Sat, Apr 26, 2014 at 1:44 AM, Kevin Hilman <khilman@linaro.org> wrote:
-> Geert Uytterhoeven <geert+renesas@glider.be> writes:
->> When adding a device from DT, check if its clocks are suitable for Runtime
->> PM, and register them with the PM core.
->> If Runtime PM is disabled, just enable the clock.
+On Tue, Apr 29, 2014 at 3:16 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
+> On Fri, 25 Apr 2014 16:44:58 -0700, Kevin Hilman <khilman@linaro.org> wrote:
+>> Geert Uytterhoeven <geert+renesas@glider.be> writes:
 >>
->> This allows the PM core to automatically manage gate clocks of devices for
->> Runtime PM.
+>> > When adding a device from DT, check if its clocks are suitable for Runtime
+>> > PM, and register them with the PM core.
+>> > If Runtime PM is disabled, just enable the clock.
+>> >
+>> > This allows the PM core to automatically manage gate clocks of devices for
+>> > Runtime PM.
+>>
+>> ...unless the device is already in an existing pm_domain, right?
+>>
+>> I like this approach, and it extends nicely what we already do on
+>> platforms using drivers/base/power/clock_ops.c into DT land.
+>>
+>> My only concern is how this will interact if it's used along with
+>> devices that have existing pm_domains.  I don't have any specific
+>> concerns (yet, because it's Friday, and my brain is turing off), but it
+>> just made me wonder if this will be potentially confusing.
 >
-> ...unless the device is already in an existing pm_domain, right?
+> I have big concerns about this approach. First, it will only work if
+> a clock is available at deivce creation time. The conversion of irq
+> controllers to normal device drivers has already shown that is a bad
+> idea.
 
-At this point in the kernel boot process, the device cannot be in a
-pm_domain yet.
+That's  indeed a valid concern that needs to be addressed.
 
-> I like this approach, and it extends nicely what we already do on
-> platforms using drivers/base/power/clock_ops.c into DT land.
->
-> My only concern is how this will interact if it's used along with
-> devices that have existing pm_domains.  I don't have any specific
-> concerns (yet, because it's Friday, and my brain is turing off), but it
-> just made me wonder if this will be potentially confusing.
+> I also don't like that it tries to set up every clock, but there is no
+> guarantee that the driver will even use it. I would rather see this
+> behaviour linked into the function that obtains the clock at driver
+> .probe() time. That way it can handle deferred probe correctly and it
+> only sets up clocks that are actually used by the driver.
 
-Adding devices to pm_domains is done later, so it can be overridden.
+Not every clock. Only the clocks that are advertised by the clock driver as
+being suitable for runtime_pm management. These are typically module
+clocks, that must be enabled for the module to work. The driver doesn't
+always want to handle these explicitly.
 
-> Also...
->
-> [...]
->
->> +static int of_clk_register(struct device *dev, struct clk *clk)
->> +{
->> +     int error;
->> +
->> +     if (!dev->pm_domain) {
->> +             error = pm_clk_create(dev);
->> +             if (error)
->> +                     return error;
->> +
->> +             dev->pm_domain = &of_clk_pm_domain;
->> +     }
->> +
->> +     dev_dbg(dev, "Setting up clock for runtime PM management\n");
->> +     return pm_clk_add_clk(dev, clk);
->
-> I would've expected these 2 lines to be inside the pm_domain check.
->
-> What's the reason for doing the pm_clk_add() when the pm_domain isn't
-> going to be used?  I suppose it's harmless, but it's a bit confusing.
-
-Sorry, the !dev->pm_domain check does deserve a comment explaining this.
-If there are multiple clocks suitable for pm_runtime, the pm_clk_create(dev)
-should be done only once.
-
-Currently e.g. davinci registers 3 clocks with pm_clk ("fck",
-"master", and "slave").
-Omap has 2 ("fck" and "ick").
-
-BTW, keystone doesn't seem to set pm_clk_notifier_block.con_ids. From a quick
-look, this will crash with a NULL-pointer dereference in pm_clk_notify()? Or am
-I missing something here?
+In fact we have one case on shmobile where the module clock for an IP
+core (rcar-gpio) is enabled unconditionally in one SoC,  while it became
+controllable through a gate clock in a later SoC.
+With my patch, just adding the clock to the DT node is sufficient to make
+it work.
 
 Gr{oetje,eeting}s,
 
