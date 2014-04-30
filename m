@@ -1,63 +1,65 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH v10 1/5] mmc: omap_hsmmc: Enable SDIO interrupt
-Date: Mon, 28 Apr 2014 23:42:04 -0500
-Message-ID: <535F2D9C.6090304@ti.com>
-References: <1398670860-30695-1-git-send-email-afenkart@gmail.com> <1398670860-30695-2-git-send-email-afenkart@gmail.com>
+Subject: [PATCH] ARM: OMAP5: Redo THUMB mode switch on secondary CPU
+Date: Tue, 29 Apr 2014 21:53:47 -0500
+Message-ID: <1398826427-17200-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1398670860-30695-2-git-send-email-afenkart@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org
-Cc: linux-doc@vger.kernel.org, linux-omap@vger.kernel.orglinux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60996 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753305AbaD3Cy2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2014 22:54:28 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Joel Fernandes <joelf@ti.com>, Dave Martin <Dave.Martin@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>, "open list:OMAP SUPPORT" <linux-omap@vger.kernel.org>, "moderated list:ARM SUB-ARCHITECT..." <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>
 
-Minor nit...
+Here's a redo of the patch [1] that effectively does the same
+thing but is the right way to do things by using ENDPROC instead.
+The firmware correctly switches to THUMB before entry.
 
-On 04/28/2014 02:40 AM, Andreas Fenkart wrote:
-[..]
->  	/* Do not initialize card-specific things if the power is off */
->  	if (host->power_mode == MMC_POWER_OFF)
-> @@ -1117,8 +1138,12 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
->  	int status;
->  
->  	status = OMAP_HSMMC_READ(host->base, STAT);
-> -	while (status & INT_EN_MASK && host->req_in_progress) {
-> -		omap_hsmmc_do_irq(host, status);
-> +	while (status & (INT_EN_MASK | CIRQ_EN)) {
-> +		if (host->req_in_progress)
-> +			omap_hsmmc_do_irq(host, status);
-> +
-> +		if (status & CIRQ_EN)
-> +			mmc_signal_sdio_irq(host->mmc);
->  
->  		/* Flush posted write */
->  		status = OMAP_HSMMC_READ(host->base, STAT);
-> @@ -1127,6 +1152,23 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
->  	return IRQ_HANDLED;
->  }
->  
-> +static irqreturn_t omap_hsmmc_wake_irq(int irq, void *dev_id)
-> +{
-> +	struct omap_hsmmc_host *host = dev_id;
-> +	unsigned long flags;
-> +
-> +	/* cirq is level triggered, disable to avoid infinite loop */
-> +	spin_lock_irqsave(&host->irq_lock, flags);
+The patch applies ontop of the earlier patch [1].
 
-Do you need to save restore flags here? IRQ is already disabled since
-you're in hard IRQ context so spin_lock() seems sufficient.
+[1] https://lkml.org/lkml/2014/4/22/1044
 
-> +	if (host->flags & HSMMC_WAKE_IRQ_ENABLED) {
-> +		disable_irq_nosync(host->wake_irq);
-> +		host->flags &= ~HSMMC_WAKE_IRQ_ENABLED;
-> +	}
-> +	spin_unlock_irqrestore(&host->irq_lock, flags);
+Suggested-by: Dave Martin <Dave.Martin@arm.com>
+Cc: Dave Martin <Dave.Martin@arm.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
 
-spin_unlock() seems sufficient.
+Tony, the earlier patch went into your fixes, and can remain. This patch is just a simple redo of the same and can go in for v3.16, no problem. Thanks.
 
-regards,
--Joel
+ arch/arm/mach-omap2/omap-headsmp.S |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
+index 1809dce..bf36f26 100644
+--- a/arch/arm/mach-omap2/omap-headsmp.S
++++ b/arch/arm/mach-omap2/omap-headsmp.S
+@@ -31,10 +31,6 @@
+  * register AuxCoreBoot0.
+  */
+ ENTRY(omap5_secondary_startup)
+-.arm
+-THUMB( adr     r9, BSYM(wait)  )       @ CPU may be entered in ARM mode.
+-THUMB( bx      r9              )       @ If this is a Thumb-2 kernel,
+-THUMB( .thumb                  )       @ switch to Thumb now.
+ wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
+ 	ldr	r0, [r2]
+ 	mov	r0, r0, lsr #5
+@@ -43,7 +39,7 @@ wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
+ 	cmp	r0, r4
+ 	bne	wait
+ 	b	secondary_startup
+-END(omap5_secondary_startup)
++ENDPROC(omap5_secondary_startup)
+ /*
+  * OMAP4 specific entry point for secondary CPU to jump from ROM
+  * code.  This routine also provides a holding flag into which
+-- 
+1.7.9.5
 
