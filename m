@@ -1,81 +1,74 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: dwc3: gadget: fix burst size corruption
-Date: Thu, 1 May 2014 10:15:00 -0500
-Message-ID: <20140501151500.GC6355@saruman.home>
-References: <20140501211424.GE30575@intel.com>
- <Pine.LNX.4.44L0.1405010941550.1152-100000@iolanthe.rowland.org>
-Reply-To: <balbi@ti.com>
+From: Jon Loeliger <loeliger-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 51/97] ARM: l2c: remove platforms/SoCs setting early BRESP
+Date: Thu, 1 May 2014 11:18:45 -0500
+Message-ID: <CAJgR-BiGjp9G=E7SzgidyVLTjpQ3ETFTFwxDapVc28PyokGa=g@mail.gmail.com>
+References: <20140428192419.GV26756@n2100.arm.linux.org.uk>
+	<E1WerG4-0001X4-Ic@rmk-PC.arm.linux.org.uk>
+	<20140429000224.GA31083@verge.net.au>
+	<20140429002140.GP27282@n2100.arm.linux.org.uk>
+	<20140501151236.078E3C409DA@trevor.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NKoe5XOeduwbEQHU"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40169 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751833AbaEAPPH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 May 2014 11:15:07 -0400
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1405010941550.1152-100000@iolanthe.rowland.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140501151236.078E3C409DA-WNowdnHR2B42iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, spear-devel-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, Shiraz Hashim <shiraz.hashim-qxv4g6HH51o@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Viresh Kumar <viresh.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Zhuang Jin Can <jin.can.zhuang@intel.com>, Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
---NKoe5XOeduwbEQHU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Russell,
 
-Hi,
+I emphatically second Grant's opinion here:
+This is a good patch series and is a much-needed improvement.
 
-On Thu, May 01, 2014 at 09:45:17AM -0400, Alan Stern wrote:
-> On Thu, 1 May 2014, Zhuang Jin Can wrote:
->=20
-> > > again, you found a bug on the gadget driver. Fix that. composite.c
-> > > guarantees that for those functions which don't pass bMaxBurst,
-> > > gadget->maxburst will be set to *at least* 1.
-> > >=20
-> > I agree the real fix should be in the gadget driver. The patch intents
-> > to prevent hibernatition from being corrupted by a bad gadget driver.
-> > If OEMs develop their own gadget driver forgetting to call
-> > config_ep_by_speed(), it'll turn out to be everything works except
-> > dwc3 hibernation, and they'll complain to dwc3. f_ffs is an
-> > example has SuperSpeed support but doesn't call config_ep_by_speed().
-> > It's just for robustness, and dwc3 is not doing anything wrong.
-> > It did cause me a long time to figure out why the hibernation was broke=
-n.
->=20
-> You could include the check, for the sake of robustness, in dwc3 -- but
-> if it fails, you should write a message to the kernel log saying that
-> the gadget driver needs to be fixed.
+I am in the middle of a board-port for an A9 system, and this
+series will greatly simplify things for me *despite* the fact that
+I will need to convert to the new write_sec() form of L2C control
+on PSCI-enabled non-secure platforms.
 
-Also, if we're adding something to dwc3, we need to add to other
-USB3-capable UDCs too. Namely dummy and marvel's.
+To reiterate Grant's request, please re-consider applying
+this L2C patch series!
 
-cheers
+Thank you,
+jdl
 
---=20
-balbi
 
---NKoe5XOeduwbEQHU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTYmT0AAoJEIaOsuA1yqREwpQQAKC9G6VYzp+l3IILP8SRaxqE
-AMaU93d07t8b8jSUHVlmWHjkhQcZC2hvLZ1RXiQKALeqvXeIuZlZ9T/s5IEOpAUC
-qAMt+MDIkZYE+rgUP9vn+4qo/c57J+Cs+0OJUwdv9EBCgBbwCHLLxMHD/Um5qLoP
-a4/9VMfecjMeqMI2Mfb2FRPOvMiKQwdG+NIjBNTEfeI0Q3bk1m8djGoxgzXEgnWC
-D4sRq2SsFP3Q0nlzEVRtfG0uqFewj+SOPOHO/4342tj/psLzjXQAo4mD0JPD1aI4
-tuk/0EupPCoNsgFNieWxBqOzFDVTOcOzIkpwPyi13LAkQjI6HHiPKweBC2PY07YS
-hY+88bQuhsg6WipVNxbsHFtbwtBZABLvpjcMSPYN/ddRgTyihmzY1ACFeicflsy/
-sz9NvavqSBpO7AwneIkB0mB+gDbLFR+X3c0/5iVM2M2x5pgughWNqD/bYJ7R2HFq
-KnajoKuLg0LfUl6ZwRf5UCG7r6kRdetp0yAqhWVyGHAefGtZy3UJV3qX5mbd4vFe
-5Haw7bK4baxtkbJkCxI7GJCljqbLOcHiBoDzktuKiZWPssf52+Rc0w0CLPqhDS9F
-nItf2C2jYLSGUh5g9XlQrPZUwokRoGHQOBMvyKMB8779LveoRtwd/Dl8ZJaVRQHV
-oMSeF43BIfvPegtZCFJ/
-=stcS
------END PGP SIGNATURE-----
-
---NKoe5XOeduwbEQHU--
+On Thu, May 1, 2014 at 10:12 AM, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> wrote:
+> On Tue, 29 Apr 2014 01:21:41 +0100, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
+>> On Tue, Apr 29, 2014 at 09:02:27AM +0900, Simon Horman wrote:
+>> > On Mon, Apr 28, 2014 at 08:30:32PM +0100, Russell King wrote:
+>> > > Since we now automatically enable early BRESP in core L2C-310 code when
+>> > > we detect a Cortex-A9, we don't need platforms/SoCs to set this bit
+>> > > explicitly.  Instead, they should seek to preserve the value of bit 30
+>> > > in the auxiliary control register.
+>> > >
+>> > > Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> > > Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+>> >
+>> > I would prefer if this patch was broken out into individual patches
+>> > for each board or SoC file and that they were then picked up
+>> > by their respective platform maintainers.
+>> >
+>> > Likewise for patch 66/97. Although it is only for shmobile
+>> > I would prefer it broken out.
+>>
+>> Oh fuck that.
+>>
+>> Okay, I'm dropping the whole patch set right now and forgetting the whole
+>> damned thing.  The L2 cache code can damned well stay as it is and remain
+>> an unmaintainable mess.
+>
+> FWIW, there are an awful lot of people, myself included, who do care
+> that you've done this work. It is 100% okay for you to say "no" to
+> requests to split things up because of the complexity of the series.
+>
+> I really hope you're reconsider and not give up on this series.
+>
+> g.
+>
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
