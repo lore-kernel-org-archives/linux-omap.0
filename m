@@ -1,52 +1,52 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv2 5/9] ASoC: omap: rx51: omap_mcbsp_st_add_controls: add
- id parameter
-Date: Thu, 1 May 2014 10:54:50 -0700
-Message-ID: <20140501175450.GF3245@sirena.org.uk>
+Subject: Re: [PATCHv2 6/9] ASoC: omap: rx51: get GPIO numbers via gpiod API
+Date: Thu, 1 May 2014 10:55:01 -0700
+Message-ID: <20140501175501.GG3245@sirena.org.uk>
 References: <1398694047-28596-1-git-send-email-sre@kernel.org>
- <1398694047-28596-6-git-send-email-sre@kernel.org>
+ <1398694047-28596-7-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3y/CVJp2vtgPOhvS"
+	protocol="application/pgp-signature"; boundary="zgr1mbP1ee4HJQ5m"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1398694047-28596-6-git-send-email-sre@kernel.org>
+In-Reply-To: <1398694047-28596-7-git-send-email-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sre@kernel.org>
 Cc: Sebastian Reichel <sre@ring0.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
 
---3y/CVJp2vtgPOhvS
+--zgr1mbP1ee4HJQ5m
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Apr 28, 2014 at 04:07:23PM +0200, Sebastian Reichel wrote:
-> This is a preparation for DT based booting where the McBSP id
-> is set to -1 for all McBSP instances.
+On Mon, Apr 28, 2014 at 04:07:24PM +0200, Sebastian Reichel wrote:
+> Update the driver to get GPIO numbers from the
+> devm gpiod API instead of requesting hardcoded
+> GPIO numbers.
 
 Applied, thanks.
 
---3y/CVJp2vtgPOhvS
+--zgr1mbP1ee4HJQ5m
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJTYopnAAoJELSic+t+oim9Pp8P/0W4IGyCpGGVPDGgzt9/ELiJ
-EY7qhIAnH9boqlLe/k0Js23zNILPFlLf5P+lB5LOd9dRzWjudtRTvsVF4dM+DVBW
-SDkXkhMD2dhwGklx0BTVhBGS6vkWdyDdwJP6Cdg6+yyzF+sTjB74e9SMH7YVZwiY
-QcRLEttQRHGJlrzjj+K0ig2YqUhg04X27lKFcZF9Kw/FZUzWnxjzvL3EsXPLmwTz
-CdZ3zm2oq8ooXrxUG4JGsMsfNZETehZOmKz2lvSrZchAsk/CUORkkFTB9Ll/XC21
-hVtGbFTOXWKEPJDUEkLpVluOF86WYfKiShlR92gp3q8uQU8WmT/9E1HFFpVjJDrn
-36ICE8UoXHjOLUZtxbcgaCaSSwRX/f3hh/EHiWiwKTWyBGvmmOrQLxS38WgYnoZI
-Lhz2l9icLXrzKLKoQ6PV25pMcNZZdr2VqfZIuCQmbZ0pn6Oi8CLDwEjXRJ0bg8zB
-cZSIiaraLuR1d8WHLlXGZovzVG/I5VMKZj1rsfAitLz1xodxJpGbLN85tyQ28aBv
-sWNIWmx5UbNZzVGMqoo+d06io7srXlzIlhiNMzRCxXMKjjjzCnaQyAgIN89Z9b75
-ALw/H5Debc+raHQeBZzulXqR5AymeiCT4ckvBYn0qhR8EAb1OoHWRVMTX3Rg8NsH
-UHyuvm43/7Iu9k6RtQGR
-=w12b
+iQIcBAEBAgAGBQJTYopyAAoJELSic+t+oim90ZcP/3O5HOJYq4KcSyVaAEgBATDv
+v+YXU7yPQa4/WlXy4kb6pYDuR9GInwTMQTsvNA7UwePX4kx2yuIDuf2lP8bYMIKz
+OAr8j0ePJ3Vb4GUfll8s4ZW3wtADj1d6rPnXJ7UV2ONIoZIJgEEn6bFetS1yBOxO
+dpkhdHhYYXeIE/CitU8agmZegBI2dvIpEbkpLMvlMp2L19JjWuM5O9UWkHGZj6FX
+KJxFIyd4QNZQ/+iw9xsddvq3hSi07vQ168kENC1x+0Nzov1Hb8LM1DEv9vCvX5JV
+OqZTRDeDP6RZLJmqadfq1UZZZ979DK6NBdphMaWbRBEZhIZmmkMAoC1C6hf4KDIs
+mjtGpqa799YQGsc3IhefMP7X/kvlBRNnpJekttjP6BHdTaH+aC5lgrxEE8JKjA0O
+EbEGfIDwBPnI67EpKlYZq8RVBOzZ6n3HKsUBjaAEk6Bn+a/g4MGVGgXkVM5qlXJY
+YbVgEgBJ5YFimz+RmxvA07vSpYJvWQMZutpCCRi0DjXO/MwbWEgjWr8AY2kY9S+3
+sGurHBc5MuPhGOW8LrbVonYyoaugTSdzrweHUEIxDOw1VFv0U87oU4RAoEjDyuMl
+hIqav9ui9igAOVjj8qOAGldnGg3FvInYgwk77vhwdka8nwY5WRbyT71MJ9BWRvmN
+BcKWdpcLqOcCC8lnEeaG
+=qJ/Q
 -----END PGP SIGNATURE-----
 
---3y/CVJp2vtgPOhvS--
+--zgr1mbP1ee4HJQ5m--
