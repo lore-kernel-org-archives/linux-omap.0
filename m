@@ -1,67 +1,88 @@
-From: Joel Fernandes <agnel.joel@gmail.com>
-Subject: Re: [patch V2 0/6] dma: edma: Provide granular residue accounting
-Date: Wed, 30 Apr 2014 20:57:05 -0500
-Message-ID: <CAD=GYpY-aYaF5YqeqcyR3E=zWbfMFYf7fsuV36wvCfpyZ7Ud=w@mail.gmail.com>
-References: <20140428104416.464002156@linutronix.de>
-	<535EBE69.6060803@ti.com>
-	<20140429084635.GN32284@intel.com>
-	<53607B1E.2030906@ti.com>
-	<20140430050828.GP32284@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM
+ with the PM core
+Date: Thu, 01 May 2014 09:03:31 +0100
+Message-ID: <20140501080331.D3CFAC409DA@trevor.secretlab.ca>
+References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
+	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
+	<7hoazpdldx.fsf@paris.lan>
+	<20140429131610.29859C4094A@trevor.secretlab.ca>
+	<CAMuHMdUdnoah1uZbMn_xONXZ2i8wG5kY7msMzCdBwS+xt9tmDA@mail.gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:35229 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751330AbaEAB5G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2014 21:57:06 -0400
-In-Reply-To: <20140430050828.GP32284@intel.com>
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:36168 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751716AbaEAIDn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 May 2014 04:03:43 -0400
+Received: by mail-ee0-f53.google.com with SMTP id b15so896463eek.12
+        for <linux-omap@vger.kernel.org>; Thu, 01 May 2014 01:03:42 -0700 (PDT)
+In-Reply-To: <CAMuHMdUdnoah1uZbMn_xONXZ2i8wG5kY7msMzCdBwS+xt9tmDA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: Joel Fernandes <joelf@ti.com>, nsekhar@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, dan.j.williams@intel.com, linux-arm-kernel@lists.infradead.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Kevin Hilman <khilman@linaro.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-sh list <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Apr 30, 2014 at 12:08 AM, Vinod Koul <vinod.koul@intel.com> wrote:
-> On Tue, Apr 29, 2014 at 11:25:02PM -0500, Joel Fernandes wrote:
->> On 04/29/2014 03:46 AM, Vinod Koul wrote:
->> [..]
->> > commit 770f0f3a20188b7e17db2790803b9da925dc0b94
->> > Author: Thomas Gleixner <tglx@linutronix.de>
->> > Date:   Mon Apr 28 10:49:43 2014 +0000
->> >
->> >     dmaengine: edma: Make reading the position of active channels work
->> >
->> >     As Joel pointed out, edma_read_position() uses memcpy_fromio() to read
->> >     the parameter ram. That's not synchronized with the internal update as
->> >     it does a byte by byte copy. We need to do a 32bit read to get a
->> >     consistent value.
->> >
->> >     Further reading destination and source is pointless. In DEV_TO_MEM
->> >     transfers we are only interested in the destination, in MEM_TO_DEV we
->> >     care about the source. In MEM_TO_MEM it really does not matter which
->> >     one you read.
->> >
->> >     Simple solution: Remove the pointers, select dest/source via a bool
->> >     and return the read value.
->> >
->> >     Remove the export of this function while at it. The only potential
->> >     user is the dmaengine and that's always builtin.
->> >
->> >     Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
->> >
->> > You s-o-b missing in this one, also ack from Sekhar missing. Do you want to redo
->> > this or prefer me to cherry-pick patches adding acks and your s-o-b, since I
->> > already fetched your branch
->> >
->> > Either way is fine with me...
->> >
->>
->> If its Ok with you, it would great if you could add my Ack and Sob.
->> Thanks a lot. Let me know if you'd want me to do anything else here.
-> Done, The changes are getting pushed, pls do verify
+On Wed, 30 Apr 2014 23:54:37 +0200, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+> Hi Grant,
+> 
+> On Tue, Apr 29, 2014 at 3:16 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
+> > On Fri, 25 Apr 2014 16:44:58 -0700, Kevin Hilman <khilman@linaro.org> wrote:
+> >> Geert Uytterhoeven <geert+renesas@glider.be> writes:
+> >>
+> >> > When adding a device from DT, check if its clocks are suitable for Runtime
+> >> > PM, and register them with the PM core.
+> >> > If Runtime PM is disabled, just enable the clock.
+> >> >
+> >> > This allows the PM core to automatically manage gate clocks of devices for
+> >> > Runtime PM.
+> >>
+> >> ...unless the device is already in an existing pm_domain, right?
+> >>
+> >> I like this approach, and it extends nicely what we already do on
+> >> platforms using drivers/base/power/clock_ops.c into DT land.
+> >>
+> >> My only concern is how this will interact if it's used along with
+> >> devices that have existing pm_domains.  I don't have any specific
+> >> concerns (yet, because it's Friday, and my brain is turing off), but it
+> >> just made me wonder if this will be potentially confusing.
+> >
+> > I have big concerns about this approach. First, it will only work if
+> > a clock is available at deivce creation time. The conversion of irq
+> > controllers to normal device drivers has already shown that is a bad
+> > idea.
+> 
+> That's  indeed a valid concern that needs to be addressed.
+> 
+> > I also don't like that it tries to set up every clock, but there is no
+> > guarantee that the driver will even use it. I would rather see this
+> > behaviour linked into the function that obtains the clock at driver
+> > .probe() time. That way it can handle deferred probe correctly and it
+> > only sets up clocks that are actually used by the driver.
+> 
+> Not every clock. Only the clocks that are advertised by the clock driver as
+> being suitable for runtime_pm management. These are typically module
+> clocks, that must be enabled for the module to work. The driver doesn't
+> always want to handle these explicitly.
 
-Sorry for the late reply as I'm at a conference.
+Help me out here becasue I don't understand how that works with this
+patch set. From my, admittedly naive, reading it looks like the setup is
+being done at device creation time, but if the driver (or module) gets
+to declare which clocks need to be enabled in order to work, then that
+information is not available at device creation time.
 
-Thanks, I verified and it looks OK.
+> In fact we have one case on shmobile where the module clock for an IP
+> core (rcar-gpio) is enabled unconditionally in one SoC,  while it became
+> controllable through a gate clock in a later SoC.
+> With my patch, just adding the clock to the DT node is sufficient to make
+> it work.
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
 
-Regards,
--Joel
