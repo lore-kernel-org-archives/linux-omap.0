@@ -1,124 +1,51 @@
-From: Leigh Brown <leigh@solinno.co.uk>
-Subject: USB on Beaglebone black with mainline kernel
-Date: Thu, 01 May 2014 18:32:01 +0100
-Message-ID: <2041f22864c5524e6ff51c86487d7c86@doppler.thel33t.co.uk>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCHv2 8/9] ASoC: omap: rx51: Add DT support
+Date: Thu, 1 May 2014 10:58:16 -0700
+Message-ID: <20140501175816.GJ3245@sirena.org.uk>
+References: <1398694047-28596-1-git-send-email-sre@kernel.org>
+ <1398694047-28596-9-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from doppler.thel33t.co.uk ([193.110.88.198]:46244 "EHLO
-	doppler.thel33t.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750738AbaEARSR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 May 2014 13:18:17 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jcZk2Ix8j3PVOBnV"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1398694047-28596-9-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Sebastian Reichel <sre@ring0.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP <linux-omap@vger.kernel.org>, Linux USB <linux-usb@vger.kernel.org>
 
-Hello,
 
-I'm trying to run the mainline kernel on my Beaglebone Black and things 
-are working quite well, apart from USB.  There have been a few patches 
-recently that have improved things, but right now I'm at the point where 
-I could do with a pointer in the right direction.
+--jcZk2Ix8j3PVOBnV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The main issue now is this :-
+On Mon, Apr 28, 2014 at 04:07:26PM +0200, Sebastian Reichel wrote:
+> This patch adds device tree support to the Nokia N900 audio driver and
+> adds documentation for the DT binding.
 
-usb 2-1: new high-speed USB device number 2 using musb-hdrc
-musb-hdrc musb-hdrc.1.auto: qh dc059c80 urb dc059b00 dev0 ep0out, hw_ep 
-0, dc2c5040/8
-musb-hdrc musb-hdrc.1.auto: --> hw0 urb dc059b00 spd3 dev0 ep0out 
-h_addr00 h_port00 bytes 8
-musb-hdrc musb-hdrc.1.auto: TX ep0 fifo e0eb2e00 count 8 buf dc2c5040
-musb-hdrc musb-hdrc.1.auto: Start TX0 pio
-musb-hdrc musb-hdrc.1.auto: usbintr (0) epintr(1)
-musb-hdrc musb-hdrc.1.auto: ** IRQ host usb0000 tx0001 rx0000
-musb-hdrc musb-hdrc.1.auto: <== csr0 0010, qh dc059c80, count 0, urb 
-dc059b00, stage 1
-musb-hdrc musb-hdrc.1.auto: no response, csr0 0010
-musb-hdrc musb-hdrc.1.auto: aborting
-musb-hdrc musb-hdrc.1.auto: complete dc059b00 
-usb_api_blocking_completion+0x0/0x14 [usbcore] (-71), dev0 ep0in, 0/64
+Applied, thanks.
 
-and my usb stick is not detected.  The usb stick is detected fine with 
-the
-linux-3.8.13-bone43-201405011132 kernel.
+--jcZk2Ix8j3PVOBnV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Complete dmesg and other interesting files are here (I've used #define 
-DEBUG 1 on relevant files) :-
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-http://www.solinno.co.uk/public/bbb/linux-3.15.0-rc3+-201405011446/
+iQIcBAEBAgAGBQJTYos1AAoJELSic+t+oim9WrAP/3aAA1C4A4H93H3DwSjbmDhQ
+nGYbs2aCKlXaLVSz6mpNhtdJWd0yciB1NqzbFumsk6Me3xdcT6jpV0QcBdOpcAkz
+8SpvsZAP2dFHin/uBQk70EY0DXWPNf7IgUigIlElwZSo674pGvHD9AgiJLDmQFGB
+slIFfANp5jGevGvu4siy38xFrCWrDTozOEMTjN86Oqz8RIsEjeawPdiEL0XAcW++
+b0uLV2adQCNfGiPjqSLDdamXbnLmjh2lpyJ6d6DXAntpRJ9RLZV2Ma0T1cuQfe1Z
+lQhTohHexZwA6BnuMdOG7U69tLokV369zU7woAosx7KAFgNNQ2FEFcDvlptq8dcF
+9jCiXMZyALk2CI8R6gt0McMlKKzjCWKkSBtrs5a3pJz964jzkfsZUe3iW1bfIwCS
+xnxsVW7l4DSKVcvmR0vj8o2nPpYfQSL99Qh2jPNyndLAuUY6stvLzi4xQTdPlG1h
+RSYr8v9oCr2jRjWWAv50M8Z1pmM4wpJyLB3Um/bj6H5EWU350/SH24G9HDIOG4Nb
+/mbWLa6gUGdK8mXgjefAp9C8JDhqImiPGrb6SSZuzVlcy7uCD74aMWjxfyWJ5GLe
+bSrn0wKwCowa6n7zpqWlvLGdujFOlCYbrEkGPYJ5YReVHqvjIqeYiaTErYPIy2Gt
+7sRQur6P1WULPHgTic2p
+=+egX
+-----END PGP SIGNATURE-----
 
-Same stuff for working kernel :-
-
-http://www.solinno.co.uk/public/bbb/linux-3.8.13-bone43-201405011132/
-
-I'd really appreciate any assistance - does anyone have a working config 
-for a recent mainline kernel?
-
-Thanks,
-
-Leigh.
-
-Addendum - I've been tinkering without really knowing what I'm doing, 
-but nothing has helped so far.
-
-I've tried is adding clock details into the am33xx.dtsi for the USB phys 
-:-
-
-diff --git a/arch/arm/boot/dts/am33xx.dtsi 
-b/arch/arm/boot/dts/am33xx.dtsi
-index cb6811e..027d7fb 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -467,6 +467,8 @@
-                                 reg-names = "phy";
-                                 status = "disabled";
-                                 ti,ctrl_mod = <&usb_ctrl_mod>;
-+                               clocks = <&usbotg_fck 0>;
-+                               clock-names = "main_clk";
-                         };
-
-                         usb0: usb@47401000 {
-@@ -515,6 +517,8 @@
-                                 reg-names = "phy";
-                                 status = "disabled";
-                                 ti,ctrl_mod = <&usb_ctrl_mod>;
-+                               clocks = <&usbotg_fck 0>;
-+                               clock-names = "main_clk";
-                         };
-
-                         usb1: usb@47401800 {
-
-However it didn't seem to help.  I also tried to force phy detection 
-using usb_bind_phy() :-
-
-diff --git a/arch/arm/mach-omap2/board-generic.c 
-b/arch/arm/mach-omap2/board-gen
-index b8920b6..7218515 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -15,6 +15,7 @@
-  #include <linux/of_irq.h>
-  #include <linux/of_platform.h>
-  #include <linux/irqdomain.h>
-+#include <linux/usb/phy.h>
-
-  #include <asm/mach/arch.h>
-
-@@ -40,6 +41,12 @@ static void __init omap_generic_init(void)
-         pdata_quirks_init(omap_dt_match_table);
-
-         omapdss_init_of();
-+
-+       if (of_machine_is_compatible("ti,am33xx")) {
-+               pr_info("horrible hack: adding usb bindings for 
-am335x\n");
-+               usb_bind_phy("musb-hdrc.0.auto", 0, "47401300.usb-phy");
-+               usb_bind_phy("musb-hdrc.1.auto", 0, "47401b00.usb-phy");
-+       }
-  }
-
-  #ifdef CONFIG_SOC_OMAP2420
-
-This hasn't helped either.
+--jcZk2Ix8j3PVOBnV--
