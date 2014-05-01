@@ -1,132 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 08/11] ARM: dts: am33xx: Add prcm_resets node
-Date: Wed, 30 Apr 2014 15:33:36 -0700
-Message-ID: <20140430223335.GB21341@atomide.com>
-References: <1398802790-29287-1-git-send-email-dmurphy@ti.com>
- <1398802790-29287-9-git-send-email-dmurphy@ti.com>
- <6286135.g77D4pMffU@wuerfel>
- <20140430002211.GC27571@atomide.com>
- <53613A29.8080803@ti.com>
- <20140430181042.GC12362@atomide.com>
- <53613D47.4000905@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv5 01/15] Documentation: dt: add common bindings for hwspinlock
+Date: Wed, 30 Apr 2014 19:34:22 -0500
+Message-ID: <1398904476-26200-2-git-send-email-s-anna@ti.com>
+References: <1398904476-26200-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34000 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752243AbaD3Wdp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2014 18:33:45 -0400
-Content-Disposition: inline
-In-Reply-To: <53613D47.4000905@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1398904476-26200-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Dan Murphy <dmurphy@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, t-kristo@ti.com, s-anna@ti.com, p.zabel@pengutronix.de
 
-* Dan Murphy <dmurphy@ti.com> [140430 11:14]:
-> On 04/30/2014 01:10 PM, Tony Lindgren wrote:
-> > * Dan Murphy <dmurphy@ti.com> [140430 11:00]:
-> >> Tony and Arnd
-> >>
-> >> Thanks for the comments
-> >>
-> >> On 04/29/2014 07:22 PM, Tony Lindgren wrote:
-> >>> * Arnd Bergmann <arnd@arndb.de> [140429 13:35]:
-> >>>> On Tuesday 29 April 2014 15:19:47 Dan Murphy wrote:
-> >>>>> + * AM33xx reset index for PRCM Module
-> >>>>> + *
-> >>>>> + * Copyright 2014 Texas Instruments Inc.
-> >>>>> + *
-> >>>>> + * This program is free software; you can redistribute it and/or modify
-> >>>>> + * it under the terms of the GNU General Public License version 2 as
-> >>>>> + * published by the Free Software Foundation.
-> >>>>> + */
-> >>>>> +
-> >>>>> +#ifndef _DT_BINDINGS_RESET_TI_AM33XX_H
-> >>>>> +#define _DT_BINDINGS_RESET_TI_AM33XX_H
-> >>>>> +
-> >>>>> +#define RESET_DEVICE_RESET                     0
-> >>>>> +#define RESET_GFX_RESET                                1
-> >>>>> +#define RESET_PER_RESET                                2
-> >>>>> +
-> >>>>> +#endif
-> >>>> Interfaces like this should only be used if you can't use hardware
-> >>>> numbers, in general. If these numbers are in the data sheet, just
-> >>>> put them directly into the dts file, as we do for interrupt numbers,
-> >>>> gpio numbers, register offsets etc.
-> >>>>
-> >>>> If you have made them up to define an interface between the driver
-> >>>> and DT because there is no usable hardare ID, I'd suggest just using
-> >>>> a single file across all SoCs that have this driver, and have
-> >>>> a unified name space.
-> >>> Also, it's a bit unclear how the reset controller phandle is used
-> >>> referenced and used by the consumer device.. Maybe setting that up
-> >>> first in a Linux generic way is a good point starting point.
-> >>>
-> >>> Maybe something like this along the same way as clocks are set up
-> >>> (completely untested):
-> >>>
-> >>> &reset1 {
-> >>> 	iva_reset: reset1 {
-> >>> 		reg = /bits/ 8 <0>;
-> >>> 	};
-> >>> 	gfx_reset: reset1 {
-> >>> 		reg = /bits/ 8 <1>;
-> >>> 	};
-> >>> 	...
-> >>> };
-> >>>
-> >>> &iva {
-> >>> 	compatible = "ti,ivahd";
-> >>> 	resets = <&reset1 1>;
-> >>> 	...
-> >>> };
-> >> I had something very similar to this when I was developing this driver but moved away from this.
-> >>
-> >> Following the clocks implementation I had a separate dtsi for resets for each device and had the data defined like so
-> >> for each SoC.
-> >>
-> >> &prcm_resets {
-> >>        device_reset: device_reset {
-> >>                rstctrl_offs = <0x1104>;
-> >>                ctrl_bit-shift = <0>;
-> >>                rstst_offs      = <0x1114>;
-> >>                sts_bit-shift   = <0>;
-> >>        };
-> >>
-> >>        gpu_reset: gpu_reset {
-> >>                rstctrl_offs = <0x0D00>;
-> >>                ctrl_bit-shift = <3>;
-> >>                rstst_offs      = <0x0D0C>;
-> >>                sts_bit-shift = <5>;
-> >>        };
-> >> };
-> >>
-> >> And then any client interested in a specific reset driver would include this
-> >>
-> >> resets = <&prcm_resets &gpu_reset>;
-> >> reset-names = "gpu_reset";
-> >>
-> >> Our reset code would then retrieve the register data through the phandle instead of an index.
-> >>
-> >> Thoughts?
-> > Using phandles makes sense here because it avoids the indexing. Indexing
-> > has a problem of needing to be in sync with the .dts files and the
-> > device driver(s). Using an index also easily causes misuse of virtual
-> > indexes being added that no longer describe the hardware at all.
-> 
-> Thanks.  What about placing register data in the dts files?  Is there any issue with this concept?
+This patch adds the generic common bindings used to represent
+a hwlock device and use/request locks in a device-tree build.
 
-I don't have issues with that but others may. In this case it seems
-like you should get away just defining few different types of reset
-controllers without adding any any custom properties?
+All the platform-specific hwlock driver implementations need the
+number of locks and associated base id for registering the locks
+present within the device with the driver core. The number of locks
+is represented by 'hwlock-num-locks' property in DT bindings. A
+property for base id is not needed in DT binding, as it can be
+satisfied using a phandle + args specifier. The args specifier
+length is dependent on each vendor-specific implementation and
+is represented through the '#hwlock-cells' property.
 
-In your example above, the rstctrl_offs should be just standard
-reg entry as an offset from the prcm_resets base address. Then you
-you only really need the bit shift and the type of the reset
-controller? And the type could be the compatible flag?
+Note that the document is named hwlock.txt deliberately to keep it
+a bit more generic.
 
-Regards,
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+---
+ .../devicetree/bindings/hwlock/hwlock.txt          | 52 ++++++++++++++++++++++
+ 1 file changed, 52 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
 
-Tony
+diff --git a/Documentation/devicetree/bindings/hwlock/hwlock.txt b/Documentation/devicetree/bindings/hwlock/hwlock.txt
+new file mode 100644
+index 0000000..32381cc
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hwlock/hwlock.txt
+@@ -0,0 +1,52 @@
++Generic hwlock bindings
++=======================
++
++Generic bindings that are common to all the hwlock platform specific driver
++implementations, the retrieved values are used for registering the device
++specific parameters with the hwspinlock core.
++
++The validity and need of these common properties may vary from one platform
++implementation to another. The platform specific bindings should explicitly
++state if a property is mandatory or optional. Please look through the
++individual platform specific hwlock binding documentations for identifying
++the applicable properties.
++
++Common properties:
++- #hwlock-cells:	Specifies the number of cells needed to represent a
++			specific lock.
++- hwlock-num-locks:	Number of locks present in a hwlock device. This
++			property is needed on hwlock devices, where the number
++			of supported locks within a hwlock device cannot be
++			read from a register.
++
++Hwlock Users:
++=============
++
++Nodes that require specific hwlock(s) should specify them using one or more
++properties, each containing a phandle to the hwlock node and an args specifier
++value as indicated by #hwlock-cells. Multiple hwlocks can be requested using
++an array of the phandle and hwlock number specifier tuple.
++
++1. Example of a node using a single specific hwlock:
++
++The following example has a node requesting a hwlock in the bank defined by
++the node hwlock1. hwlock1 is a hwlock provider with an argument specifier
++of length 1.
++
++	node {
++		...
++		hwlocks = <&hwlock1 2>;
++		...
++	};
++
++2. Example of a node using multiple specific hwlocks:
++
++The following example has a node requesting two hwlocks, a hwlock within
++the hwlock device node 'hwlock1' with #hwlock-cells value of 1, and another
++hwlock within the hwlock device node 'hwlock2' with #hwlock-cells value of 2.
++
++	node {
++		...
++		hwlocks = <&hwlock1 2>, <&hwlock2 0 3>;
++		...
++	};
+-- 
+1.9.2
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
