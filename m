@@ -1,47 +1,96 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 51/97] ARM: l2c: remove platforms/SoCs setting early
- BRESP
-Date: Thu, 01 May 2014 16:12:35 +0100
-Message-ID: <20140501151236.078E3C409DA@trevor.secretlab.ca>
-References: <20140428192419.GV26756@n2100.arm.linux.org.uk>
-	<E1WerG4-0001X4-Ic@rmk-PC.arm.linux.org.uk>
-	<20140429000224.GA31083@verge.net.au>
-	<20140429002140.GP27282@n2100.arm.linux.org.uk>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20140429002140.GP27282@n2100.arm.linux.org.uk>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Simon Horman <horms@verge.net.au>
-Cc: linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, spear-devel@list.st.com, Shiraz Hashim <shiraz.hashim@st.com>, Thierry Reding <thierry.reding@gmail.com>, Viresh Kumar <viresh.linux@gmail.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: dwc3: gadget: giveback request if start transfer
+ fail
+Date: Thu, 1 May 2014 10:13:28 -0500
+Message-ID: <20140501151328.GB6355@saruman.home>
+References: <20140501063608.GA30575@intel.com>
+ <20140430195829.GA3839@saruman.home>
+ <20140501204452.GD30575@intel.com>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VrqPEDrXMn8OVzN4"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140501204452.GD30575@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, David Cohen <david.a.cohen@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 29 Apr 2014 01:21:41 +0100, Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
-> On Tue, Apr 29, 2014 at 09:02:27AM +0900, Simon Horman wrote:
-> > On Mon, Apr 28, 2014 at 08:30:32PM +0100, Russell King wrote:
-> > > Since we now automatically enable early BRESP in core L2C-310 code when
-> > > we detect a Cortex-A9, we don't need platforms/SoCs to set this bit
-> > > explicitly.  Instead, they should seek to preserve the value of bit 30
-> > > in the auxiliary control register.
-> > > 
-> > > Acked-by: Tony Lindgren <tony@atomide.com>
-> > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > 
-> > I would prefer if this patch was broken out into individual patches
-> > for each board or SoC file and that they were then picked up
-> > by their respective platform maintainers.
-> > 
-> > Likewise for patch 66/97. Although it is only for shmobile
-> > I would prefer it broken out.
-> 
-> Oh fuck that.
-> 
-> Okay, I'm dropping the whole patch set right now and forgetting the whole
-> damned thing.  The L2 cache code can damned well stay as it is and remain
-> an unmaintainable mess.
+--VrqPEDrXMn8OVzN4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-FWIW, there are an awful lot of people, myself included, who do care
-that you've done this work. It is 100% okay for you to say "no" to
-requests to split things up because of the complexity of the series.
+Hi,
 
-I really hope you're reconsider and not give up on this series.
+On Thu, May 01, 2014 at 04:44:52PM -0400, Zhuang Jin Can wrote:
+> On Wed, Apr 30, 2014 at 02:58:29PM -0500, Felipe Balbi wrote:
+> > On Thu, May 01, 2014 at 02:36:08AM -0400, Zhuang Jin Can wrote:
+> > > At least we should giveback the current request to the
+> > > gadget. Otherwise, the gadget will be stuck without knowing
+> > > anything.
+> > >=20
+> > > It was oberved that the failure can happen if the request is
+> > > queued when the run/stop bit of controller is not set.
+> >=20
+> > why is your gadget queueing any requests before calling ->udc_start() ?
+> >=20
+> > A better question, what modification have you done to udc-core.c which
+> > broke this ? udc-core *always* calls ->udc_start() by the time you load
+> > a gadget driver so this case will *never* happen. Whatever modification
+> > you did, broke this assumption and I will *not* accept this patch
+> > because the bug is elsewhere and *not* in mainline kernel.
+> >=20
+> It's found in Android using kernel 3.10.20. Android has its own
+> usb_composite_driver usb/gadget/android.c (not in mainline), and it
 
-g.
+so you found something on an old kernel using an out-of-tree gadget
+driver.
+
+> allows userspace to disconnect the pullup (i.e clear run/stop bit in dwc3)
+> and remove the gadget functions like adb, mtp and then add new functions
+> like rndis, acm. The problem is when you disconnect the pullup, a gadget
+> maybe in the middle of queuing a request, and result in the "start
+> transfer cmd failure". I think this is also a common issue for other
+
+Android gadget needs to learn how to cope with that.
+
+> usb_composite_drivers too. Normally, if one of the gadget deactivate its
+> own function, the pullup will be disconnected, other gadgets won't get
+> notified until their requests are failed. So it makes dwc3 more robust
+> to deal with these situations.
+
+Right, but Android gadget can run on top of several other UDCs and you
+want to have a single one of them cope with android's bug ?
+
+You'd be better off getting google to accept a bugfix to the android
+gadget, since that's where the problem lies.
+
+--=20
+balbi
+
+--VrqPEDrXMn8OVzN4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTYmSYAAoJEIaOsuA1yqRES5AQALZg0XKhhTipPYgcoUUDnkP2
+oV354oGahLfm/96geEYmKyUAdDKP6RicOz6R8AjCeRBwAH2Fg/56sHZ83hYBeY6K
+Bpb/6/H2VnwNIHIntKnt8flkERkw4pO8QJfY4hsyMCT/7IyN6cYTXSO5N3CZ5pI3
+5PKv0GJgPd0LKfyaTo49sgWu6iaFMmgeNdUoHRfL+enOxBCwwd69vcLdcS9U7IP8
+sXnDcr6JagxDC9cAt7jvSBrHVfk2XAOHnXZ9WUHtoATz7oD11F1xmkxKhowK2ztM
+AESu8rylBcK68bmt5+vPC4+I1G5tLg0xE6l2PvgTamAazDX4uR8G40D26FIl80lS
+Tw8LCfUAHq0LFJQD7QVNXXrwxCgKRAEvR8Ipf1B1ZGsI5pPflK1Bi4MlGeqpEqzL
+DPrH19P3dw8gjkaZ/RFZ/U9BHiM3Ynqvz32jMeYmnZMUrVYQ37lFcPO+6EmJm1my
++w+UfBbsL9S17IAT1KXCcQwd60YqSTvVupyw3L1D9LRxQYorflPORXlFVAo1Y4E/
+t7i9kPOkbDDhvqCe9ejPMg9uIiZZsjsHJD7rgXycEc3elYg6hi0F4k8qJmtHwqDG
+ZLmHDIclyk185hlBnmUIYevnvOl7kj62Zq5ZyAi7dCtDtFBQbiWRCnPZPz2BAkq/
+FEjLb8+83LHlfoZiYwR0
+=DE1I
+-----END PGP SIGNATURE-----
+
+--VrqPEDrXMn8OVzN4--
