@@ -1,74 +1,61 @@
 From: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Subject: Re: [PATCH] usb: dwc3: gadget: giveback request if start transfer
- fail
-Date: Thu, 1 May 2014 16:44:52 -0400
-Message-ID: <20140501204452.GD30575@intel.com>
-References: <20140501063608.GA30575@intel.com>
- <20140430195829.GA3839@saruman.home>
+Subject: Re: [PATCH] usb: dwc3: gadget: fix burst size corruption
+Date: Thu, 1 May 2014 17:14:24 -0400
+Message-ID: <20140501211424.GE30575@intel.com>
+References: <20140501071604.GB30575@intel.com>
+ <20140430200353.GC3839@saruman.home>
 Reply-To: jin.can.zhuang@intel.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140430195829.GA3839@saruman.home>
+In-Reply-To: <20140430200353.GC3839@saruman.home>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, David Cohen <david.a.cohen@linux.intel.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Balbi,
-
-On Wed, Apr 30, 2014 at 02:58:29PM -0500, Felipe Balbi wrote:
-> On Thu, May 01, 2014 at 02:36:08AM -0400, Zhuang Jin Can wrote:
-> > At least we should giveback the current request to the
-> > gadget. Otherwise, the gadget will be stuck without knowing
-> > anything.
+On Wed, Apr 30, 2014 at 03:03:53PM -0500, Felipe Balbi wrote:
+> On Thu, May 01, 2014 at 03:16:04AM -0400, Zhuang Jin Can wrote:
+> > endpoint.maxburst may be 0 if a gadget doesn't call config_ep_by_speed()
+> > to update it from the companion descriptor.
+> > And endpoint.maxburst - 1 returns 11111b which wrongly sets bit
+> > 26 of endpoint parameter 0.
+> > This sets a wrong endpoint state and will cause "Get Endpoint State"
+> > command can't get the corret endpoint state and "Set Endpoint Config"
+> > command can't restore the correct endpoint state during hibernation
+> > resume flow.
+> > Thus, when endpoint.maxburst is 0, we should set burst as 0 directly.
 > > 
-> > It was oberved that the failure can happen if the request is
-> > queued when the run/stop bit of controller is not set.
-> 
-> why is your gadget queueing any requests before calling ->udc_start() ?
-> 
-> A better question, what modification have you done to udc-core.c which
-> broke this ? udc-core *always* calls ->udc_start() by the time you load
-> a gadget driver so this case will *never* happen. Whatever modification
-> you did, broke this assumption and I will *not* accept this patch
-> because the bug is elsewhere and *not* in mainline kernel.
-> 
-It's found in Android using kernel 3.10.20. Android has its own
-usb_composite_driver usb/gadget/android.c (not in mainline), and it
-allows userspace to disconnect the pullup (i.e clear run/stop bit in dwc3)
-and remove the gadget functions like adb, mtp and then add new functions
-like rndis, acm. The problem is when you disconnect the pullup, a gadget
-maybe in the middle of queuing a request, and result in the "start
-transfer cmd failure". I think this is also a common issue for other
-usb_composite_drivers too. Normally, if one of the gadget deactivate its
-own function, the pullup will be disconnected, other gadgets won't get
-notified until their requests are failed. So it makes dwc3 more robust
-to deal with these situations.
-
 > > Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
 > > ---
-> >  drivers/usb/dwc3/gadget.c |    4 +---
-> >  1 file changed, 1 insertion(+), 3 deletions(-)
+> >  drivers/usb/dwc3/gadget.c |    3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
 > > 
 > > diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-> > index 70715ee..8d0c3c7 100644
+> > index 70715ee..44eca95 100644
 > > --- a/drivers/usb/dwc3/gadget.c
 > > +++ b/drivers/usb/dwc3/gadget.c
-> > @@ -1000,9 +1000,7 @@ static int __dwc3_gadget_kick_transfer(struct dwc3_ep *dep, u16 cmd_param,
-> >  		 * here and stop, unmap, free and del each of the linked
-> >  		 * requests instead of what we do now.
-> >  		 */
-> > -		usb_gadget_unmap_request(&dwc->gadget, &req->request,
-> > -				req->direction);
-> > -		list_del(&req->list);
-> > +		dwc3_gadget_giveback(dep, req, -ESHUTDOWN);
-> >  		return ret;
-> >  	}
+> > @@ -440,7 +440,8 @@ static int dwc3_gadget_set_ep_config(struct dwc3 *dwc, struct dwc3_ep *dep,
 > >  
-> > -- 
-> > 1.7.9.5
-> > 
+> >  	/* Burst size is only needed in SuperSpeed mode */
+> >  	if (dwc->gadget.speed == USB_SPEED_SUPER) {
+> > -		u32 burst = dep->endpoint.maxburst - 1;
+> > +		u32 burst = dep->endpoint.maxburst ?
+> > +				dep->endpoint.maxburst - 1 : 0;
+> 
+> again, you found a bug on the gadget driver. Fix that. composite.c
+> guarantees that for those functions which don't pass bMaxBurst,
+> gadget->maxburst will be set to *at least* 1.
+> 
+I agree the real fix should be in the gadget driver. The patch intents
+to prevent hibernatition from being corrupted by a bad gadget driver.
+If OEMs develop their own gadget driver forgetting to call
+config_ep_by_speed(), it'll turn out to be everything works except
+dwc3 hibernation, and they'll complain to dwc3. f_ffs is an
+example has SuperSpeed support but doesn't call config_ep_by_speed().
+It's just for robustness, and dwc3 is not doing anything wrong.
+It did cause me a long time to figure out why the hibernation was broken.
 
+Thanks
 Jincan
