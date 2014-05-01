@@ -1,51 +1,72 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv2 8/9] ASoC: omap: rx51: Add DT support
-Date: Thu, 1 May 2014 10:58:16 -0700
-Message-ID: <20140501175816.GJ3245@sirena.org.uk>
+Subject: Re: [PATCHv2 9/9] DTS: OMAP3-N900: Add sound support
+Date: Thu, 1 May 2014 10:58:45 -0700
+Message-ID: <20140501175845.GK3245@sirena.org.uk>
 References: <1398694047-28596-1-git-send-email-sre@kernel.org>
- <1398694047-28596-9-git-send-email-sre@kernel.org>
+ <1398694047-28596-10-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jcZk2Ix8j3PVOBnV"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1398694047-28596-9-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1613884849551644160=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1398694047-28596-10-git-send-email-sre@kernel.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Sebastian Reichel <sre@kernel.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <rob.herring@calxeda.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Sebastian Reichel <sre@ring0.de>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
 
---jcZk2Ix8j3PVOBnV
+--===============1613884849551644160==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zQZ31nKYDGgulmZX"
+Content-Disposition: inline
+
+
+--zQZ31nKYDGgulmZX
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Apr 28, 2014 at 04:07:26PM +0200, Sebastian Reichel wrote:
-> This patch adds device tree support to the Nokia N900 audio driver and
-> adds documentation for the DT binding.
+On Mon, Apr 28, 2014 at 04:07:27PM +0200, Sebastian Reichel wrote:
+> This patch adds support for the Nokia N900's sound
+> system.
 
-Applied, thanks.
+Reviewed-by: Mark Brown <broonie@linaro.org>
 
---jcZk2Ix8j3PVOBnV
+--zQZ31nKYDGgulmZX
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJTYos1AAoJELSic+t+oim9WrAP/3aAA1C4A4H93H3DwSjbmDhQ
-nGYbs2aCKlXaLVSz6mpNhtdJWd0yciB1NqzbFumsk6Me3xdcT6jpV0QcBdOpcAkz
-8SpvsZAP2dFHin/uBQk70EY0DXWPNf7IgUigIlElwZSo674pGvHD9AgiJLDmQFGB
-slIFfANp5jGevGvu4siy38xFrCWrDTozOEMTjN86Oqz8RIsEjeawPdiEL0XAcW++
-b0uLV2adQCNfGiPjqSLDdamXbnLmjh2lpyJ6d6DXAntpRJ9RLZV2Ma0T1cuQfe1Z
-lQhTohHexZwA6BnuMdOG7U69tLokV369zU7woAosx7KAFgNNQ2FEFcDvlptq8dcF
-9jCiXMZyALk2CI8R6gt0McMlKKzjCWKkSBtrs5a3pJz964jzkfsZUe3iW1bfIwCS
-xnxsVW7l4DSKVcvmR0vj8o2nPpYfQSL99Qh2jPNyndLAuUY6stvLzi4xQTdPlG1h
-RSYr8v9oCr2jRjWWAv50M8Z1pmM4wpJyLB3Um/bj6H5EWU350/SH24G9HDIOG4Nb
-/mbWLa6gUGdK8mXgjefAp9C8JDhqImiPGrb6SSZuzVlcy7uCD74aMWjxfyWJ5GLe
-bSrn0wKwCowa6n7zpqWlvLGdujFOlCYbrEkGPYJ5YReVHqvjIqeYiaTErYPIy2Gt
-7sRQur6P1WULPHgTic2p
-=+egX
+iQIcBAEBAgAGBQJTYotSAAoJELSic+t+oim99HEP/122Wq5I10RDplUTgqqueWTf
+w31sm04rUgvKqtqIIoH5W/h8k5n3YsLIyFIpouNiyKlaIP9Hjtz4ciijCYHF+gcM
+k0qJrZrtYbiSTJVA80ausKtUwVcaF4YkoCo7KtBTvvDRnMoUADBQuNsMZHGd2GRQ
+hJpeaT1KqoS5PNQ7yuuNUUubJHli2KtDHy+eEtbx7xHxAprz5vgNmjM6V4uKC205
+cnJlC4nI7yPjruHjQ5X6VIII9zvtP8tH0WBpRe+uOZzkCIJSEWCqoUbFinrK7P24
+tCs3Q1GCE3ltdmVh7y5fYD3h/As7UIvcn7l+GrF2IZLtMPxT85DITyUQb921Wksj
+rXmfjpLKBhNfx8SNlR9o6SKyIskGpkPBDDnBD9wRlwIPiIGhNptAjB6WZ72BG3Oo
+yWCrHeJYtB07eFlGwkLRMjbeh/rF2Lgj0DcfstKPYvQY6f6gmmGYoBKCIQmcYMZy
+x0cCNbB2Kwm8osYkWT/BquCM4Npad1U1LBr5w7xhaduCu60vp8L7oq9zPvvte/2E
+zo4H6uqJdEd3I1HbJLJqBY1Ca+8FbdGOZlphVorV8W9BAjC6fGOIORHOxzOTLbd+
+AaWKorJORjcoO11lW9IdFw55ieBXkt+E1OLa5BOZbd4c2p0sfjLZzkFgEEkvqe8m
+B5TNSmPPwoyfojN1ImRK
+=xNkZ
 -----END PGP SIGNATURE-----
 
---jcZk2Ix8j3PVOBnV--
+--zQZ31nKYDGgulmZX--
+
+--===============1613884849551644160==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============1613884849551644160==--
