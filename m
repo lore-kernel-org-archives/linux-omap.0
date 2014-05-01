@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv5 RFC 11/15] hwspinlock/core: add support for reserved locks
-Date: Wed, 30 Apr 2014 19:34:32 -0500
-Message-ID: <1398904476-26200-12-git-send-email-s-anna@ti.com>
+Subject: [PATCHv5 RFC 12/15] hwspinlock/core: add OF helper to parse reserved locks
+Date: Wed, 30 Apr 2014 19:34:33 -0500
+Message-ID: <1398904476-26200-13-git-send-email-s-anna@ti.com>
 References: <1398904476-26200-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,189 +12,84 @@ To: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Kumar
 Cc: Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The HwSpinlock core allows requesting either a specific lock or an
-available normal lock. The specific locks are usually reserved during
-board init time, while the normal available locks are intended to be
-assigned at runtime.
+The property 'hwlock-reserved-locks' will be used to represent
+the number of locks to be reserved for clients that would need
+to request/operate on specific locks. A new OF helper function,
+of_hwspin_lock_get_num_reserved_locks(), is added to minimize
+duplication in different platform implementations.
 
-The HwSpinlock core has been enhanced to:
-  1. allow the platform implementations to register a set of 'reserved'
-     locks
-  2. restrict the anonymous hwspin_lock_request() API to allocate only
-     from non-reserved locks
-  3. limit these reserved locks to be allocated only using the
-     _request_specific() API variants.
-
-The existing platform implementations have also been updated to adjust
-for the change of the registration API.
+The function will return a value of 0 if the property is not
+defined, so as to support a default behavior of marking all
+locks as unused and open for anonymous allocations.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/hwspinlock/hwspinlock_core.c     | 20 ++++++++++++++++----
- drivers/hwspinlock/hwspinlock_internal.h |  3 +++
- drivers/hwspinlock/omap_hwspinlock.c     |  4 ++--
- drivers/hwspinlock/u8500_hsem.c          |  3 ++-
- include/linux/hwspinlock.h               | 10 +++++++---
- 5 files changed, 30 insertions(+), 10 deletions(-)
+ .../devicetree/bindings/hwlock/hwlock.txt          |  3 +++
+ drivers/hwspinlock/hwspinlock_core.c               | 25 ++++++++++++++++++++++
+ include/linux/hwspinlock.h                         |  1 +
+ 3 files changed, 29 insertions(+)
 
+diff --git a/Documentation/devicetree/bindings/hwlock/hwlock.txt b/Documentation/devicetree/bindings/hwlock/hwlock.txt
+index d538a9b..88d16d2 100644
+--- a/Documentation/devicetree/bindings/hwlock/hwlock.txt
++++ b/Documentation/devicetree/bindings/hwlock/hwlock.txt
+@@ -18,6 +18,9 @@ Common properties:
+ 			property is needed on hwlock devices, where the number
+ 			of supported locks within a hwlock device cannot be
+ 			read from a register.
++- hwlock-reserved-locks: Number of locks to reserve for clients requiring
++			specific locks. This value cannot exceed the value of
++			hwlock-num-locks.
+ - hwlock-base-id:	An unique base Id for the locks for a particular hwlock
+ 			device. This property is mandatory ONLY if a SoC has
+ 			several hwlock devices.
 diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
-index c2063bc..e05cea8 100644
+index e05cea8..e74b55b 100644
 --- a/drivers/hwspinlock/hwspinlock_core.c
 +++ b/drivers/hwspinlock/hwspinlock_core.c
-@@ -432,6 +432,8 @@ static int hwspinlock_device_add(struct hwspinlock_device *bank)
-  * @ops: hwspinlock handlers for this device
-  * @base_id: id of the first hardware spinlock in this bank
-  * @num_locks: number of hwspinlocks provided by this device
-+ * @num_reserved_locks: number of reserved hwspinlocks starting from @base_id
-+ *			on this device
-  *
-  * This function should be called from the underlying platform-specific
-  * implementation, to register a new hwspinlock device instance.
-@@ -441,13 +443,15 @@ static int hwspinlock_device_add(struct hwspinlock_device *bank)
-  * Returns 0 on success, or an appropriate error code on failure
-  */
- int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
--		const struct hwspinlock_ops *ops, int base_id, int num_locks)
-+		const struct hwspinlock_ops *ops, int base_id, int num_locks,
-+		int num_reserved_locks)
- {
- 	struct hwspinlock *hwlock;
- 	int ret = 0, i;
+@@ -286,6 +286,31 @@ int of_hwspin_lock_get_base_id(struct device_node *dn)
+ EXPORT_SYMBOL_GPL(of_hwspin_lock_get_base_id);
  
- 	if (!bank || !ops || !dev || !num_locks || !ops->trylock ||
--	    !ops->unlock || (dev->of_node && !ops->of_xlate)) {
-+	    !ops->unlock || (dev->of_node && !ops->of_xlate) ||
-+	    (num_locks < num_reserved_locks)) {
- 		pr_err("invalid parameters\n");
- 		return -EINVAL;
- 	}
-@@ -456,6 +460,7 @@ int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
- 	bank->ops = ops;
- 	bank->base_id = base_id;
- 	bank->num_locks = num_locks;
-+	bank->num_reserved_locks = num_reserved_locks;
- 
- 	mutex_lock(&hwspinlock_tree_lock);
- 	ret = hwspinlock_device_add(bank);
-@@ -468,7 +473,8 @@ int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
- 
- 		spin_lock_init(&hwlock->lock);
- 		hwlock->bank = bank;
--		hwlock->type = HWSPINLOCK_UNUSED;
-+		hwlock->type = (i < num_reserved_locks ?
-+				HWSPINLOCK_RESERVED : HWSPINLOCK_UNUSED);
- 
- 		ret = hwspin_lock_register_single(hwlock, base_id + i);
- 		if (ret)
-@@ -651,7 +657,13 @@ struct hwspinlock *hwspin_lock_request_specific(unsigned int id)
- 	/* sanity check (this shouldn't happen) */
- 	WARN_ON(hwlock_to_id(hwlock) != id);
- 
--	/* make sure this hwspinlock is unused */
-+	if (hwlock->type != HWSPINLOCK_RESERVED) {
-+		pr_warn("hwspinlock %u is not a reserved lock\n", id);
-+		hwlock = NULL;
-+		goto out;
-+	}
+ /**
++ * of_hwspin_lock_get_num_reserved_locks() - retrieve number of reserved locks
++ * @dn: device node pointer
++ *
++ * This is an OF helper function that can be called by the underlying platform
++ * specific implementations, to retrieve the number of locks to reserve from
++ * the hwspinlock device instance's base id. The hwlock-reserved-locks DT
++ * property needs to be defined for requesting any DT-based locks.
++ *
++ * Returns a positive number of locks on success, a default value of 0 if the
++ * property is missing or an appropriate error code as returned by the OF layer
++ */
++int of_hwspin_lock_get_num_reserved_locks(struct device_node *dn)
++{
++	unsigned int val = 0;
++	int ret;
 +
-+	/* make sure this hwspinlock is an unused reserved lock */
- 	ret = radix_tree_tag_get(&hwspinlock_tree, id, hwlock->type);
- 	if (ret == 0) {
- 		pr_warn("hwspinlock %u is already in use\n", id);
-diff --git a/drivers/hwspinlock/hwspinlock_internal.h b/drivers/hwspinlock/hwspinlock_internal.h
-index 1be32ca..570e876 100644
---- a/drivers/hwspinlock/hwspinlock_internal.h
-+++ b/drivers/hwspinlock/hwspinlock_internal.h
-@@ -64,6 +64,8 @@ struct hwspinlock {
-  * @ops: platform-specific hwspinlock handlers
-  * @base_id: id index of the first lock in this device
-  * @num_locks: number of locks in this device
-+ * @num_reserved_locks: number of reserved locks in this device starting
-+ *			from @base_id
-  * @lock: dynamically allocated array of 'struct hwspinlock'
-  */
- struct hwspinlock_device {
-@@ -72,6 +74,7 @@ struct hwspinlock_device {
- 	const struct hwspinlock_ops *ops;
- 	int base_id;
- 	int num_locks;
-+	int num_reserved_locks;
- 	struct hwspinlock lock[0];
- };
- 
-diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
-index 7764291..1d0c78e 100644
---- a/drivers/hwspinlock/omap_hwspinlock.c
-+++ b/drivers/hwspinlock/omap_hwspinlock.c
-@@ -88,7 +88,7 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	void __iomem *io_base;
- 	int num_locks, i, ret;
--	int base_id = 0;
-+	int base_id = 0, reserved_locks = 0;
- 
- 	if (!node)
- 		return -ENODEV;
-@@ -144,7 +144,7 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
- 		hwlock->priv = io_base + LOCK_BASE_OFFSET + sizeof(u32) * i;
- 
- 	ret = hwspin_lock_register(bank, &pdev->dev, &omap_hwspinlock_ops,
--						base_id, num_locks);
-+					base_id, num_locks, reserved_locks);
- 	if (ret)
- 		goto reg_fail;
- 
-diff --git a/drivers/hwspinlock/u8500_hsem.c b/drivers/hwspinlock/u8500_hsem.c
-index 401c33b..2b4f001 100644
---- a/drivers/hwspinlock/u8500_hsem.c
-+++ b/drivers/hwspinlock/u8500_hsem.c
-@@ -134,7 +134,8 @@ static int u8500_hsem_probe(struct platform_device *pdev)
- 	pm_runtime_enable(&pdev->dev);
- 
- 	ret = hwspin_lock_register(bank, &pdev->dev, &u8500_hwspinlock_ops,
--						pdata->base_id, num_locks);
-+					pdata->base_id, num_locks,
-+					pdata->num_reserved_locks);
- 	if (ret)
- 		goto reg_fail;
- 
++	ret = of_property_read_u32(dn, "hwlock-reserved-locks", &val);
++	if (!ret || ret == -EINVAL)
++		ret = val;
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(of_hwspin_lock_get_num_reserved_locks);
++
++/**
+  * of_hwspin_lock_get_num_locks() - OF helper to retrieve number of locks
+  * @dn: device node pointer
+  *
 diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
-index 4857728..d120035 100644
+index d120035..d18431f 100644
 --- a/include/linux/hwspinlock.h
 +++ b/include/linux/hwspinlock.h
-@@ -35,6 +35,7 @@ struct hwspinlock_ops;
- /**
-  * struct hwspinlock_pdata - platform data for hwspinlock drivers
-  * @base_id: base id for this hwspinlock device
-+ * @num_reserved_locks: number of reserved locks starting from @base_id
-  *
-  * hwspinlock devices provide system-wide hardware locks that are used
-  * by remote processors that have no other way to achieve synchronization.
-@@ -53,11 +54,13 @@ struct hwspinlock_ops;
-  *
-  * This platform data structure should be used to provide the base id
-  * for each device (which is trivially 0 when only a single hwspinlock
-- * device exists). It can be shared between different platforms, hence
-- * its location.
-+ * device exists). It should also be used to provide the number of reserved
-+ * locks for non-DT based devices. It can be shared between different
-+ * platforms, hence its location.
-  */
- struct hwspinlock_pdata {
- 	int base_id;
-+	int num_reserved_locks;
- };
- 
- #if defined(CONFIG_HWSPINLOCK) || defined(CONFIG_HWSPINLOCK_MODULE)
-@@ -67,7 +70,8 @@ int of_hwspin_lock_simple_xlate(struct hwspinlock_device *bank,
+@@ -69,6 +69,7 @@ int of_hwspin_lock_simple_xlate(struct hwspinlock_device *bank,
+ 				const struct of_phandle_args *hwlock_spec);
  int of_hwspin_lock_get_base_id(struct device_node *dn);
  int of_hwspin_lock_get_num_locks(struct device_node *dn);
++int of_hwspin_lock_get_num_reserved_locks(struct device_node *dn);
  int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
--		const struct hwspinlock_ops *ops, int base_id, int num_locks);
-+		const struct hwspinlock_ops *ops, int base_id, int num_locks,
-+		int num_reserved_locks);
- int hwspin_lock_unregister(struct hwspinlock_device *bank);
- struct hwspinlock *hwspin_lock_request(void);
- struct hwspinlock *hwspin_lock_request_specific(unsigned int id);
+ 		const struct hwspinlock_ops *ops, int base_id, int num_locks,
+ 		int num_reserved_locks);
 -- 
 1.9.2
