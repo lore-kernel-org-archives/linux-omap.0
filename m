@@ -1,74 +1,47 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM
- with the PM core
-Date: Thu, 1 May 2014 16:46:31 +0200
-Message-ID: <CAMuHMdVSSZwEn=R_vDPYLWnZoxrdynwJMgKSsbbNZYdvQaYxvg@mail.gmail.com>
-References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
-	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
-	<7hoazpdldx.fsf@paris.lan>
-	<20140429131610.29859C4094A@trevor.secretlab.ca>
-	<CAMuHMdUdnoah1uZbMn_xONXZ2i8wG5kY7msMzCdBwS+xt9tmDA@mail.gmail.com>
-	<20140501080331.D3CFAC409DA@trevor.secretlab.ca>
-	<CAMuHMdXbJrnNPyPmD-rcGN-M4ybFtrS3FCuvegJue1Pe-ae8SQ@mail.gmail.com>
-	<CACxGe6sy-fumkNPRcQqB8G4so85dHW_5pZSv+cQDqzJfoneZ+A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CACxGe6sy-fumkNPRcQqB8G4so85dHW_5pZSv+cQDqzJfoneZ+A@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Kevin Hilman <khilman@linaro.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-sh list <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 51/97] ARM: l2c: remove platforms/SoCs setting early
+ BRESP
+Date: Thu, 01 May 2014 16:12:35 +0100
+Message-ID: <20140501151236.078E3C409DA@trevor.secretlab.ca>
+References: <20140428192419.GV26756@n2100.arm.linux.org.uk>
+	<E1WerG4-0001X4-Ic@rmk-PC.arm.linux.org.uk>
+	<20140429000224.GA31083@verge.net.au>
+	<20140429002140.GP27282@n2100.arm.linux.org.uk>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20140429002140.GP27282@n2100.arm.linux.org.uk>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Simon Horman <horms@verge.net.au>
+Cc: linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, spear-devel@list.st.com, Shiraz Hashim <shiraz.hashim@st.com>, Thierry Reding <thierry.reding@gmail.com>, Viresh Kumar <viresh.linux@gmail.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grant,
+On Tue, 29 Apr 2014 01:21:41 +0100, Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
+> On Tue, Apr 29, 2014 at 09:02:27AM +0900, Simon Horman wrote:
+> > On Mon, Apr 28, 2014 at 08:30:32PM +0100, Russell King wrote:
+> > > Since we now automatically enable early BRESP in core L2C-310 code when
+> > > we detect a Cortex-A9, we don't need platforms/SoCs to set this bit
+> > > explicitly.  Instead, they should seek to preserve the value of bit 30
+> > > in the auxiliary control register.
+> > > 
+> > > Acked-by: Tony Lindgren <tony@atomide.com>
+> > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > 
+> > I would prefer if this patch was broken out into individual patches
+> > for each board or SoC file and that they were then picked up
+> > by their respective platform maintainers.
+> > 
+> > Likewise for patch 66/97. Although it is only for shmobile
+> > I would prefer it broken out.
+> 
+> Oh fuck that.
+> 
+> Okay, I'm dropping the whole patch set right now and forgetting the whole
+> damned thing.  The L2 cache code can damned well stay as it is and remain
+> an unmaintainable mess.
 
-On Thu, May 1, 2014 at 3:56 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
-> On Thu, May 1, 2014 at 2:41 PM, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
->> On Thu, May 1, 2014 at 10:03 AM, Grant Likely <grant.likely@secretlab.ca> wrote:
->>> On Wed, 30 Apr 2014 23:54:37 +0200, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
->>>> On Tue, Apr 29, 2014 at 3:16 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
->>>> > I also don't like that it tries to set up every clock, but there is no
->>>> > guarantee that the driver will even use it. I would rather see this
->>>> > behaviour linked into the function that obtains the clock at driver
->>>> > .probe() time. That way it can handle deferred probe correctly and it
->>>> > only sets up clocks that are actually used by the driver.
->>>>
->>>> Not every clock. Only the clocks that are advertised by the clock driver as
->>>> being suitable for runtime_pm management. These are typically module
->>>> clocks, that must be enabled for the module to work. The driver doesn't
->>>> always want to handle these explicitly.
->>>
->>> Help me out here becasue I don't understand how that works with this
->>> patch set. From my, admittedly naive, reading it looks like the setup is
->>> being done at device creation time, but if the driver (or module) gets
->>> to declare which clocks need to be enabled in order to work, then that
->>> information is not available at device creation time.
->>
->> Setup is indeed done at registration time. Note the check calling
->> clk_may_runtime_pm(), which is introduced in "[PATCH/RFC 1/4] clk: Add
->> CLK_RUNTIME_PM and clk_may_runtime_pm()".
->>
->> Clock drivers are initialized much earlier, so they can set the CLK_RUNTIME_PM
->> flag for suitable clocks before platform devices are created from DT, cfr. the
->> example for shmobile MSTP clocks in "[PATCH/RFC 4/4] clk: shmobile: mstp:
->> Set CLK_RUNTIME_PM flag".
->
-> This is where I have issue. You're *assuming* clock drivers are
-> initialized much earlier. That is not guaranteed. It is perfectly
-> valid for clocks to be set up by a normal device driver, just like for
-> interrupt controllers or gpio controllers.
+FWIW, there are an awful lot of people, myself included, who do care
+that you've done this work. It is 100% okay for you to say "no" to
+requests to split things up because of the complexity of the series.
 
-OK, I didn't know that. In that case, nothing happens, and everything
-works like before. So the drivers still have to take care of the
-clocks themselves.
+I really hope you're reconsider and not give up on this series.
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+g.
