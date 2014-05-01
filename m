@@ -1,55 +1,141 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv2 4/9] ASoC: Allow Aux Codecs to be specified using DT
-Date: Thu, 1 May 2014 10:57:17 -0700
-Message-ID: <20140501175717.GI3245@sirena.org.uk>
-References: <1398694047-28596-1-git-send-email-sre@kernel.org>
- <1398694047-28596-5-git-send-email-sre@kernel.org>
+From: Dan Murphy <dmurphy@ti.com>
+Subject: Re: [RFC 08/11] ARM: dts: am33xx: Add prcm_resets node
+Date: Thu, 1 May 2014 13:46:47 -0500
+Message-ID: <53629697.8000407@ti.com>
+References: <1398802790-29287-1-git-send-email-dmurphy@ti.com> <1398802790-29287-9-git-send-email-dmurphy@ti.com> <6286135.g77D4pMffU@wuerfel> <20140430002211.GC27571@atomide.com> <53613A29.8080803@ti.com> <20140430181042.GC12362@atomide.com> <53613D47.4000905@ti.com> <20140430223335.GB21341@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yBd94+RIx/Fx7UDH"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1398694047-28596-5-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42952 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751400AbaEASrV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 May 2014 14:47:21 -0400
+In-Reply-To: <20140430223335.GB21341@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, t-kristo@ti.com, s-anna@ti.com, p.zabel@pengutronix.de
+
+Tony
+
+On 04/30/2014 05:33 PM, Tony Lindgren wrote:
+> * Dan Murphy <dmurphy@ti.com> [140430 11:14]:
+>> On 04/30/2014 01:10 PM, Tony Lindgren wrote:
+>>> * Dan Murphy <dmurphy@ti.com> [140430 11:00]:
+>>>> Tony and Arnd
+>>>>
+>>>> Thanks for the comments
+>>>>
+>>>> On 04/29/2014 07:22 PM, Tony Lindgren wrote:
+>>>>> * Arnd Bergmann <arnd@arndb.de> [140429 13:35]:
+>>>>>> On Tuesday 29 April 2014 15:19:47 Dan Murphy wrote:
+>>>>>>> + * AM33xx reset index for PRCM Module
+>>>>>>> + *
+>>>>>>> + * Copyright 2014 Texas Instruments Inc.
+>>>>>>> + *
+>>>>>>> + * This program is free software; you can redistribute it and/or modify
+>>>>>>> + * it under the terms of the GNU General Public License version 2 as
+>>>>>>> + * published by the Free Software Foundation.
+>>>>>>> + */
+>>>>>>> +
+>>>>>>> +#ifndef _DT_BINDINGS_RESET_TI_AM33XX_H
+>>>>>>> +#define _DT_BINDINGS_RESET_TI_AM33XX_H
+>>>>>>> +
+>>>>>>> +#define RESET_DEVICE_RESET                     0
+>>>>>>> +#define RESET_GFX_RESET                                1
+>>>>>>> +#define RESET_PER_RESET                                2
+>>>>>>> +
+>>>>>>> +#endif
+>>>>>> Interfaces like this should only be used if you can't use hardware
+>>>>>> numbers, in general. If these numbers are in the data sheet, just
+>>>>>> put them directly into the dts file, as we do for interrupt numbers,
+>>>>>> gpio numbers, register offsets etc.
+>>>>>>
+>>>>>> If you have made them up to define an interface between the driver
+>>>>>> and DT because there is no usable hardare ID, I'd suggest just using
+>>>>>> a single file across all SoCs that have this driver, and have
+>>>>>> a unified name space.
+>>>>> Also, it's a bit unclear how the reset controller phandle is used
+>>>>> referenced and used by the consumer device.. Maybe setting that up
+>>>>> first in a Linux generic way is a good point starting point.
+>>>>>
+>>>>> Maybe something like this along the same way as clocks are set up
+>>>>> (completely untested):
+>>>>>
+>>>>> &reset1 {
+>>>>> 	iva_reset: reset1 {
+>>>>> 		reg = /bits/ 8 <0>;
+>>>>> 	};
+>>>>> 	gfx_reset: reset1 {
+>>>>> 		reg = /bits/ 8 <1>;
+>>>>> 	};
+>>>>> 	...
+>>>>> };
+>>>>>
+>>>>> &iva {
+>>>>> 	compatible = "ti,ivahd";
+>>>>> 	resets = <&reset1 1>;
+>>>>> 	...
+>>>>> };
+>>>> I had something very similar to this when I was developing this driver but moved away from this.
+>>>>
+>>>> Following the clocks implementation I had a separate dtsi for resets for each device and had the data defined like so
+>>>> for each SoC.
+>>>>
+>>>> &prcm_resets {
+>>>>        device_reset: device_reset {
+>>>>                rstctrl_offs = <0x1104>;
+>>>>                ctrl_bit-shift = <0>;
+>>>>                rstst_offs      = <0x1114>;
+>>>>                sts_bit-shift   = <0>;
+>>>>        };
+>>>>
+>>>>        gpu_reset: gpu_reset {
+>>>>                rstctrl_offs = <0x0D00>;
+>>>>                ctrl_bit-shift = <3>;
+>>>>                rstst_offs      = <0x0D0C>;
+>>>>                sts_bit-shift = <5>;
+>>>>        };
+>>>> };
+>>>>
+>>>> And then any client interested in a specific reset driver would include this
+>>>>
+>>>> resets = <&prcm_resets &gpu_reset>;
+>>>> reset-names = "gpu_reset";
+>>>>
+>>>> Our reset code would then retrieve the register data through the phandle instead of an index.
+>>>>
+>>>> Thoughts?
+>>> Using phandles makes sense here because it avoids the indexing. Indexing
+>>> has a problem of needing to be in sync with the .dts files and the
+>>> device driver(s). Using an index also easily causes misuse of virtual
+>>> indexes being added that no longer describe the hardware at all.
+>> Thanks.  What about placing register data in the dts files?  Is there any issue with this concept?
+> I don't have issues with that but others may. In this case it seems
+> like you should get away just defining few different types of reset
+> controllers without adding any any custom properties?
+>
+> In your example above, the rstctrl_offs should be just standard
+> reg entry as an offset from the prcm_resets base address. Then you
+> you only really need the bit shift and the type of the reset
+> controller? And the type could be the compatible flag?
+
+Well the only issue I have with declaring the reg with the standard dt entry
+is I have two register offsets here.
+
+I will have to see if I can do this per the standard.
+I may have to have children called control and status and define the reg and bits that way.
+
+Dan
+
+> Regards,
+>
+> Tony
+>
 
 
---yBd94+RIx/Fx7UDH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+-- 
+------------------
+Dan Murphy
 
-On Mon, Apr 28, 2014 at 04:07:22PM +0200, Sebastian Reichel wrote:
-> This patch adds support for specifying auxiliary codecs and
-> codec configuration via device tree phandles.
-
-Applied, thanks.
-
---yBd94+RIx/Fx7UDH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTYor6AAoJELSic+t+oim9shkP/jMiBr2W/oJ26RYRp/hvcoPY
-Iv9PQ3BUGwf+rOXYz3pe0aJwL8xtmnlISIgKJwLkuf4rLFeU9x7GTfQbz0sQAOYD
-TOGh9CBDSdAvjJUR88Q6PqT48gCudqRJXMwKqAw9NEgg+wBLfVWY/knB6AYQfS0p
-4PU5PLennBq01xGARK+IdIpmXc9HN+i4u0afMSid5+Ow2PjZTFZ/dLyJFTvDX9Dd
-kx9klJ22f/pIAO7qDgStwMxpw/zewdNpj6eGqIBxU7f8I9NsEtkhSg6rnEDx5DHj
-7izeihFvht/h787paEY44eq9OsD5cn56L8JqRuPTp99ER/A8aI2YJt2531+igFLQ
-O/KFJBjL0zXFnA7Evg/UlTvV1rdfPh8mrGT1e2hRvxorjnpvDkCEaqu9khX9OO80
-eA1Dy+NiWxv+ZIOEfVrGN1WjFBReDgAhYo6C7iBBiL4fyMmbd6l4gfiTgkt8dwO3
-IsKObP30uNe7ZAk47EKigiraiw+ZH7+tAs77UmC4Pa8+7YXzdmhazgLTSu04ALyW
-T+k2lTYcRb4Ie9hTNr8WqVYm5IwOeAJmbhgJvQdMKsWwAW2RgBDb+Ru5zwlmP2nj
-hNy+czN1UTt3Pz0T286CK2u54lJ+IjVvsYI4q+n08kKgxgt3TOFnOF5BgDwskjIl
-4D0vKVCbybK5FuQAae6T
-=pyai
------END PGP SIGNATURE-----
-
---yBd94+RIx/Fx7UDH--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
