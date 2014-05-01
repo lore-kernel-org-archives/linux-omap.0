@@ -1,88 +1,74 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM
- with the PM core
-Date: Thu, 01 May 2014 09:03:31 +0100
-Message-ID: <20140501080331.D3CFAC409DA@trevor.secretlab.ca>
-References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
-	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
-	<7hoazpdldx.fsf@paris.lan>
-	<20140429131610.29859C4094A@trevor.secretlab.ca>
-	<CAMuHMdUdnoah1uZbMn_xONXZ2i8wG5kY7msMzCdBwS+xt9tmDA@mail.gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:36168 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751716AbaEAIDn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 May 2014 04:03:43 -0400
-Received: by mail-ee0-f53.google.com with SMTP id b15so896463eek.12
-        for <linux-omap@vger.kernel.org>; Thu, 01 May 2014 01:03:42 -0700 (PDT)
-In-Reply-To: <CAMuHMdUdnoah1uZbMn_xONXZ2i8wG5kY7msMzCdBwS+xt9tmDA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Subject: Re: [PATCH] usb: dwc3: gadget: giveback request if start transfer
+ fail
+Date: Thu, 1 May 2014 16:44:52 -0400
+Message-ID: <20140501204452.GD30575@intel.com>
+References: <20140501063608.GA30575@intel.com>
+ <20140430195829.GA3839@saruman.home>
+Reply-To: jin.can.zhuang@intel.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140430195829.GA3839@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, David Cohen <david.a.cohen@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Kevin Hilman <khilman@linaro.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-sh list <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, 30 Apr 2014 23:54:37 +0200, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> Hi Grant,
-> 
-> On Tue, Apr 29, 2014 at 3:16 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
-> > On Fri, 25 Apr 2014 16:44:58 -0700, Kevin Hilman <khilman@linaro.org> wrote:
-> >> Geert Uytterhoeven <geert+renesas@glider.be> writes:
-> >>
-> >> > When adding a device from DT, check if its clocks are suitable for Runtime
-> >> > PM, and register them with the PM core.
-> >> > If Runtime PM is disabled, just enable the clock.
-> >> >
-> >> > This allows the PM core to automatically manage gate clocks of devices for
-> >> > Runtime PM.
-> >>
-> >> ...unless the device is already in an existing pm_domain, right?
-> >>
-> >> I like this approach, and it extends nicely what we already do on
-> >> platforms using drivers/base/power/clock_ops.c into DT land.
-> >>
-> >> My only concern is how this will interact if it's used along with
-> >> devices that have existing pm_domains.  I don't have any specific
-> >> concerns (yet, because it's Friday, and my brain is turing off), but it
-> >> just made me wonder if this will be potentially confusing.
-> >
-> > I have big concerns about this approach. First, it will only work if
-> > a clock is available at deivce creation time. The conversion of irq
-> > controllers to normal device drivers has already shown that is a bad
-> > idea.
-> 
-> That's  indeed a valid concern that needs to be addressed.
-> 
-> > I also don't like that it tries to set up every clock, but there is no
-> > guarantee that the driver will even use it. I would rather see this
-> > behaviour linked into the function that obtains the clock at driver
-> > .probe() time. That way it can handle deferred probe correctly and it
-> > only sets up clocks that are actually used by the driver.
-> 
-> Not every clock. Only the clocks that are advertised by the clock driver as
-> being suitable for runtime_pm management. These are typically module
-> clocks, that must be enabled for the module to work. The driver doesn't
-> always want to handle these explicitly.
+Hi Balbi,
 
-Help me out here becasue I don't understand how that works with this
-patch set. From my, admittedly naive, reading it looks like the setup is
-being done at device creation time, but if the driver (or module) gets
-to declare which clocks need to be enabled in order to work, then that
-information is not available at device creation time.
+On Wed, Apr 30, 2014 at 02:58:29PM -0500, Felipe Balbi wrote:
+> On Thu, May 01, 2014 at 02:36:08AM -0400, Zhuang Jin Can wrote:
+> > At least we should giveback the current request to the
+> > gadget. Otherwise, the gadget will be stuck without knowing
+> > anything.
+> > 
+> > It was oberved that the failure can happen if the request is
+> > queued when the run/stop bit of controller is not set.
+> 
+> why is your gadget queueing any requests before calling ->udc_start() ?
+> 
+> A better question, what modification have you done to udc-core.c which
+> broke this ? udc-core *always* calls ->udc_start() by the time you load
+> a gadget driver so this case will *never* happen. Whatever modification
+> you did, broke this assumption and I will *not* accept this patch
+> because the bug is elsewhere and *not* in mainline kernel.
+> 
+It's found in Android using kernel 3.10.20. Android has its own
+usb_composite_driver usb/gadget/android.c (not in mainline), and it
+allows userspace to disconnect the pullup (i.e clear run/stop bit in dwc3)
+and remove the gadget functions like adb, mtp and then add new functions
+like rndis, acm. The problem is when you disconnect the pullup, a gadget
+maybe in the middle of queuing a request, and result in the "start
+transfer cmd failure". I think this is also a common issue for other
+usb_composite_drivers too. Normally, if one of the gadget deactivate its
+own function, the pullup will be disconnected, other gadgets won't get
+notified until their requests are failed. So it makes dwc3 more robust
+to deal with these situations.
 
-> In fact we have one case on shmobile where the module clock for an IP
-> core (rcar-gpio) is enabled unconditionally in one SoC,  while it became
-> controllable through a gate clock in a later SoC.
-> With my patch, just adding the clock to the DT node is sufficient to make
-> it work.
-> 
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-> 
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
+> > Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
+> > ---
+> >  drivers/usb/dwc3/gadget.c |    4 +---
+> >  1 file changed, 1 insertion(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+> > index 70715ee..8d0c3c7 100644
+> > --- a/drivers/usb/dwc3/gadget.c
+> > +++ b/drivers/usb/dwc3/gadget.c
+> > @@ -1000,9 +1000,7 @@ static int __dwc3_gadget_kick_transfer(struct dwc3_ep *dep, u16 cmd_param,
+> >  		 * here and stop, unmap, free and del each of the linked
+> >  		 * requests instead of what we do now.
+> >  		 */
+> > -		usb_gadget_unmap_request(&dwc->gadget, &req->request,
+> > -				req->direction);
+> > -		list_del(&req->list);
+> > +		dwc3_gadget_giveback(dep, req, -ESHUTDOWN);
+> >  		return ret;
+> >  	}
+> >  
+> > -- 
+> > 1.7.9.5
+> > 
 
+Jincan
