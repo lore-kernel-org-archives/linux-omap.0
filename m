@@ -1,55 +1,70 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v10 2/5] mmc: omap_hsmmc: bug: abort runtime suspend if
- pending sdio irq detected
-Date: Fri, 2 May 2014 20:25:40 +0530
-Message-ID: <5363B1EC.9040206@ti.com>
-References: <1398670860-30695-1-git-send-email-afenkart@gmail.com> <1398670860-30695-3-git-send-email-afenkart@gmail.com>
+From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM
+ with the PM core
+Date: Fri, 2 May 2014 16:58:03 +0200
+Message-ID: <CAMuHMdWLfKcKLORPJ9f-0TLoWM5EfCZ0G5MfxjUiJCRJG555Sg@mail.gmail.com>
+References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
+	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
+	<CAPDyKFr02yyhGNncYX2AgBXTA3Sc0AGQcExjtLvQ5QU0_=YJwg@mail.gmail.com>
+	<535B130C.1000007@gmail.com>
+	<CAPDyKFqG0dV+-y2=t=d3w6_hxWsYi+sOmNdvS6ECPOuoQ61Pmw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1398670860-30695-3-git-send-email-afenkart@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAPDyKFqG0dV+-y2=t=d3w6_hxWsYi+sOmNdvS6ECPOuoQ61Pmw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux-sh list <linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 28 April 2014 01:10 PM, Andreas Fenkart wrote:
-> on multicores, an sdio irq handler could be running in parallel to
-> runtime suspend. In the worst case it could be waiting for the spinlock
-> held by the runtime suspend. When runtime suspend is complete and the
-> functional clock (fclk) turned off, the irq handler will continue and
-> cause a SIGBUS on the first register access.
->
-> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 700fb91..e675042 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -56,6 +56,7 @@
->   #define OMAP_HSMMC_RSP54	0x0118
->   #define OMAP_HSMMC_RSP76	0x011C
->   #define OMAP_HSMMC_DATA		0x0120
-> +#define OMAP_HSMMC_PSTATE	0x0124
->   #define OMAP_HSMMC_HCTL		0x0128
->   #define OMAP_HSMMC_SYSCTL	0x012C
->   #define OMAP_HSMMC_STAT		0x0130
-> @@ -2400,6 +2401,7 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
->   {
->   	struct omap_hsmmc_host *host;
->   	unsigned long flags;
-> +	int ret = 0;
->
->   	host = platform_get_drvdata(to_platform_device(dev));
->   	omap_hsmmc_context_save(host);
-> @@ -2411,14 +2413,29 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
->   		/* disable sdio irq handling to prevent race */
->   		OMAP_HSMMC_WRITE(host->base, ISE, 0);
->   		OMAP_HSMMC_WRITE(host->base, IE, 0);
-> -		OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-> +
-> +		if (!(OMAP_HSMMC_READ(host->base, PSTATE) & BIT(21))) {
+Hi Ulf, Tomasz,
 
-Please use #define for BIT(21), something like DLEV_DAT1
+On Fri, May 2, 2014 at 10:13 AM, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
+>>>> +static int of_clk_register(struct device *dev, struct clk *clk)
+>>>> +{
+>>>> +       int error;
+>>>> +
+>>>> +       if (!dev->pm_domain) {
+>>>> +               error = pm_clk_create(dev);
+>>>> +               if (error)
+>>>> +                       return error;
+>>>> +
+>>>> +               dev->pm_domain = &of_clk_pm_domain;
+>>>
+>>>
+>>> I am concerned about how this will work in conjunction with the
+>>> generic power domain.
+>>>
+>>> A device can't reside in more than one pm_domain; thus I think it
+>>> would be better to always use the generic power domain and not have a
+>>> specific one for clocks. Typically the genpd should invoke
+>>> pm_clk_resume|suspend from it's runtime PM callbacks.
+>>
+>> I'm not sure about this. A typical use case would be to gate clocks ASAP and
+>> then wait until device is idle long enough to consider turning off the power
+>> domain worthwhile. Also sometimes we may want to gate the clocks, but
+>> prevent power domain from being powered off to retain hardware state (e.g.
+>> because there is no way to read it and restore later).
+>
+> So, in principle you prefer to have driver's handle clock gating to
+> save power from their runtime PM callbacks, instead of from the power
+> domain, right? Just to clarify, that's my view as well.
 
+If there's both a gate clock and a power domain, and the driver's Runtime PM
+callbacks handle clock gating, who's handling the power domain?
+
+Gr{oetje,eeting}s,
+
+                        Geert (still trying to fit all pieces of the
+puzzle together)
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
