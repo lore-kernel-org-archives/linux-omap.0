@@ -1,48 +1,58 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM
- with the PM core
-Date: Fri, 2 May 2014 16:35:44 +0200
-Message-ID: <CAMuHMdUGdfF8x58dz46VWNsC4X0cmFng39Z2xSO_pXYqn9u=HA@mail.gmail.com>
-References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
-	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
-	<CAPDyKFpTwPDu9afhOjhhQ2PKGFB+hWsp=mcaYTq8OvuGF7yT3Q@mail.gmail.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v10 4/5] mmc: omap_hsmmc: switch default/idle pinctrl
+ states in runtime hooks
+Date: Fri, 2 May 2014 20:08:55 +0530
+Message-ID: <5363ADFF.5020306@ti.com>
+References: <1398670860-30695-1-git-send-email-afenkart@gmail.com> <1398670860-30695-5-git-send-email-afenkart@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:47227 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752027AbaEBOfp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2014 10:35:45 -0400
-In-Reply-To: <CAPDyKFpTwPDu9afhOjhhQ2PKGFB+hWsp=mcaYTq8OvuGF7yT3Q@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36717 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751757AbaEBOjF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 May 2014 10:39:05 -0400
+In-Reply-To: <1398670860-30695-5-git-send-email-afenkart@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-sh list <linux-sh@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Andreas Fenkart <afenkart@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Ulf,
-
-On Fri, May 2, 2014 at 10:56 AM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
->> +static int of_clk_pm_runtime_suspend(struct device *dev)
->> +{
->> +       int ret;
->> +
->> +       ret = pm_generic_runtime_suspend(dev);
->> +       if (ret)
->> +               return ret;
->> +
->> +       ret = pm_clk_suspend(dev);
+On Monday 28 April 2014 01:10 PM, Andreas Fenkart wrote:
+> These are predefined states of the driver model. When not present,
+> as if not set in the device tree, they simple become no-ops.
+> So it is always safe to call them.
+> This is not the simplest implementation, on AM335x at least, we could
+> witch to idle at any point in the suspend hook, only the default state
+> needs to be set before writing to the irq registers or an IRQ might get
+> lost.
 >
-> What about slow clocks? Those aren't handled with pm_clk_suspend().
+> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 76fe3bd..9cc0d21 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1992,7 +1992,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>   	const struct of_device_id *match;
+>   	dma_cap_mask_t mask;
+>   	unsigned tx_req, rx_req;
+> -	struct pinctrl *pinctrl;
+>   	const struct omap_mmc_of_data *data;
+>
+>   	match = of_match_device(of_match_ptr(omap_mmc_of_match), &pdev->dev);
+> @@ -2215,11 +2214,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>   	}
+>
+>   	omap_hsmmc_disable_irq(host);
+> -
+> -	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
+> -	if (IS_ERR(pinctrl))
+> -		dev_warn(&pdev->dev,
+> -			"pins are not configured from the driver\n");
+> +	pinctrl_pm_select_default_state(host->dev);
 
-How are slow clocks handled?
+This can be removed, since device core layer sets pin mux to "default" state
+before probe.
 
-Gr{oetje,eeting}s,
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
