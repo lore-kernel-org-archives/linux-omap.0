@@ -1,68 +1,59 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH] PM / OPP: move cpufreq specific OPP functions out of
- generic OPP library
-Date: Fri, 2 May 2014 07:15:58 -0500
-Message-ID: <CAGo_u6oT6nK0-Sj8yp9C2r8FkQ8SXF8LvhbHxDjAoGs+Pd=szA@mail.gmail.com>
-References: <1398992810-14957-1-git-send-email-nm@ti.com>
-	<CAKohpokEuZ69HnnKE89maXk=21cgAMjEYjEvEcaoBpg4bLRsGg@mail.gmail.com>
-	<CAGo_u6ohKZh+zKWSzGbvT+AKgnhSjzX7v9isqpd2pc-Cpmxocg@mail.gmail.com>
-	<CAKohponv-p20=www51rW13RSG6=ACgDrRDfL9Xd26ePgjkpWfA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <CAKohponv-p20=www51rW13RSG6=ACgDrRDfL9Xd26ePgjkpWfA@mail.gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Kevin Hilman <khilman@deeprootsystems.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: Display not working if omapdrm is builtin with 3.15rc
+Date: Fri, 2 May 2014 14:33:06 +0200
+Message-ID: <AD528168-3D2D-42E7-B219-E3FCE32A859E@dominion.thruhere.net>
+References: <3A6485D2-7FEA-4C7E-9541-B814DFEE17A2@dominion.thruhere.net> <5363888C.5090303@ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:53167 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751721AbaEBMdK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2014 08:33:10 -0400
+Received: by mail-wi0-f179.google.com with SMTP id bs8so2230894wib.6
+        for <linux-omap@vger.kernel.org>; Fri, 02 May 2014 05:33:09 -0700 (PDT)
+In-Reply-To: <5363888C.5090303@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Fri, May 2, 2014 at 12:22 AM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
-> On 2 May 2014 10:48, Nishanth Menon <nm@ti.com> wrote:
->> On Thu, May 1, 2014 at 11:30 PM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
->>>> diff --git a/drivers/cpufreq/cpufreq_opp.c b/drivers/cpufreq/cpufreq_opp.c
->>>> new file mode 100644
->>>> index 0000000..2602ff8
->>>> --- /dev/null
->>>> +++ b/drivers/cpufreq/cpufreq_opp.c
->>>> @@ -0,0 +1,102 @@
->>>> +/*
->>>> + * Generic OPP Interface for CPUFREQ drivers
->>>> + *
->>>> + * Copyright (C) 2009-2014 Texas Instruments Incorporated.
->>>> + *     Nishanth Menon
->>>> + *     Romit Dasgupta
->>>> + *     Kevin Hilman
->>>> + *
->>>> + * This program is free software; you can redistribute it and/or modify
->>>> + * it under the terms of the GNU General Public License version 2 as
->>>> + * published by the Free Software Foundation.
->>>> + */
->>>
->>> I hope you have just copy pasted routines to this file, and haven't done
->>> even the most minor modification in those, as its hard to review it.
->>
->> there is code replacement ofcourse ->
->> * the logic of walking down the list holding a mutex has been replaced
->> with rcu locks,
->> * instead of reading internal data structure and generating the list,
->> use the existing search API that does exactly the same.
->> * Documentation update for the same.
->
-> Hmm, actually if I would have written this patch, then probably I would
-> have done the same thing, but looking from the reviewers perspective,
-> it would be much more easy if we can separate things into patches.
->
-> So, maybe do these changes first in opp.c only and then finally a
-> patch that just moves things around.
->
->> Both are needed if you have to move the code out. functionally, both
->> are equivalent
->
-> That's an assumption and we never know when we might have screwed
-> the code :) .. And so more careful review of those parts is required :)
 
-True. Will do the same as suggested for the formal series. Thanks for
-your feedback and review.
+Op 2 mei 2014, om 13:59 heeft Tomi Valkeinen <tomi.valkeinen@ti.com> het volgende geschreven:
 
-Regards,
-Nishanth Menon
+> On 02/05/14 13:47, Koen Kooi wrote:
+>> Hi,
+>> 
+>> I've been trying to get DVI on my beagleboard XM to output a picture with mainline and with 3.15rc it still doesn't work. If I statically build in everything the drm encoders and connectors all go into deferred probe mode and fail, falling back to 1024x768. I with omapdrm and encoders/outputs/etc as modules deferred probe is avoided, far fewer error messages and a 1280x1024 resolution is being used. But still the monitor still says 'no signal' detected.
+>> 
+>> So what's the magic to get an actual signal on the hdmi connector?
+> 
+> Sigh, looks like my beagle xM died on me while testing this...
+> 
+> The reason for this is that the twl_gpio (which TFP410 uses) gets
+> initialized really late, so display things get deferred. Then, before
+> TFP410 has initialized, omapdrm starts. It finds VENC (tv-out) display
+> available, so it starts. After that TFP410 gets probed, but as DRM
+> doesn't support adding displays later, it is never actually added to
+> omapdrm.
+> 
+> Also, the VENC output doesn't even work by default if
+> CONFIG_DRM_OMAP_NUM_CRTCS is 1. It needs to be set to 2 to support the
+> second output (tv-out in this case). But my board died before I managed
+> to test this.
+> 
+> So, the probing is quite broken. And I have no good ideas how to fix it,
+> only bad ones...
+> 
+> A simple thing to do for testing is to either disable
+> CONFIG_OMAP2_DSS_VENC from the kernel, or remove the svideo-connector
+> from the board's .dts file. This results in tv-out not being available,
+> so when omapdrm starts and finds no displays, it'll defer its probe,
+> thus getting the DVI next time it probes.
+
+I disabled CONFIG_OMAP2_DSS_VENC and DVI works as expected with everything builtin!
+
+regards,
+
+Koen
