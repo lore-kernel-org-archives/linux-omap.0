@@ -1,79 +1,50 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [RFC PATCH] PM / OPP: move cpufreq specific OPP functions out of
- generic OPP library
-Date: Fri, 2 May 2014 10:52:59 +0530
-Message-ID: <CAKohponv-p20=www51rW13RSG6=ACgDrRDfL9Xd26ePgjkpWfA@mail.gmail.com>
-References: <1398992810-14957-1-git-send-email-nm@ti.com>
-	<CAKohpokEuZ69HnnKE89maXk=21cgAMjEYjEvEcaoBpg4bLRsGg@mail.gmail.com>
-	<CAGo_u6ohKZh+zKWSzGbvT+AKgnhSjzX7v9isqpd2pc-Cpmxocg@mail.gmail.com>
+From: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 0/6] Add CPTS support for AM437x
+Date: Fri, 2 May 2014 12:01:58 +0530
+Message-ID: <1399012324-20737-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <CAGo_u6ohKZh+zKWSzGbvT+AKgnhSjzX7v9isqpd2pc-Cpmxocg@mail.gmail.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Kevin Hilman <khilman@deeprootsystems.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ast-uqk4Ao+rVK5Wk0Htik3J/w@public.gmane.org, tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org, mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org, zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, mugunthanvnm-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2 May 2014 10:48, Nishanth Menon <nm@ti.com> wrote:
-> On Thu, May 1, 2014 at 11:30 PM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
->>> diff --git a/drivers/cpufreq/cpufreq_opp.c b/drivers/cpufreq/cpufreq_opp.c
->>> new file mode 100644
->>> index 0000000..2602ff8
->>> --- /dev/null
->>> +++ b/drivers/cpufreq/cpufreq_opp.c
->>> @@ -0,0 +1,102 @@
->>> +/*
->>> + * Generic OPP Interface for CPUFREQ drivers
->>> + *
->>> + * Copyright (C) 2009-2014 Texas Instruments Incorporated.
->>> + *     Nishanth Menon
->>> + *     Romit Dasgupta
->>> + *     Kevin Hilman
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + */
->>
->> I hope you have just copy pasted routines to this file, and haven't done
->> even the most minor modification in those, as its hard to review it.
->
-> there is code replacement ofcourse ->
-> * the logic of walking down the list holding a mutex has been replaced
-> with rcu locks,
-> * instead of reading internal data structure and generating the list,
-> use the existing search API that does exactly the same.
-> * Documentation update for the same.
+The series adds CPTS support for AM4372.
 
-Hmm, actually if I would have written this patch, then probably I would
-have done the same thing, but looking from the reviewers perspective,
-it would be much more easy if we can separate things into patches.
+Patch 1 - DT changes w.r.t clock changes for AM33xx.
+Patch 2 - CPTS clock name harcoding in the driver is removed. 
+	  Easier to pass the clock name from dt rather than hardcoding in driver.
+	  Also in prepration for DRA7x CPTS support.
+Patch 3 - Enable the CPTS support for both DRA7x and AM4372 in the driver.
+Patch 4 - Enable the Annexe F for L2 PTP for AM437x and DRA7x.
+Patch 5 - Change the default clocksource to dpll_core_m5 
+Patch 6 - DT changes for AM4372.
 
-So, maybe do these changes first in opp.c only and then finally a
-patch that just moves things around.
 
-> Both are needed if you have to move the code out. functionally, both
-> are equivalent
+v1 -> v2
+	Patch 1 and 2 Re-ordering.
+	Seperate TS_BITS define for Hw version V2 and V3
 
-That's an assumption and we never know when we might have screwed
-the code :) .. And so more careful review of those parts is required :)
+George Cherian (6):
+  ARM: dts: am33xx: Add clock names for cpsw and cpts
+  drivers: net: cpts: Remove hardcoded clock name for CPTS
+  drivers: net: cpsw: Enable CPTS for DRA7xx and AM4372
+  drivers: net: cpsw: Enable Annexe F Time sync
+  ARM: AM43xx: clk: Change the cpts ref clock source to dpll_core_m5 clk
+  ARM: dts: am4372: Add clock names for cpsw and cpts
 
->>> diff --git a/drivers/cpufreq/cpufreq_opp.h b/drivers/cpufreq/cpufreq_opp.h
->>
->> Two problems, driver may lie in arch/ as well, though we don't recommend
->> them, secondly move these in cpufreq.h, don't need a header here for sure.
->
-> There are none at the moment. ideally, we'd like to discourage folks
+ arch/arm/boot/dts/am33xx.dtsi  |  2 ++
+ arch/arm/boot/dts/am4372.dtsi  |  2 ++
+ drivers/clk/ti/clk-43xx.c      | 16 ++++++++++++
+ drivers/net/ethernet/ti/cpsw.c | 56 +++++++++++++++++++++++++++++++-----------
+ drivers/net/ethernet/ti/cpts.c | 11 +++------
+ 5 files changed, 66 insertions(+), 21 deletions(-)
 
-Yes, we do. :)
+-- 
+1.8.3.1
 
-> putting cpufreq drivers in arch/ given the amount of effort you have
-> undertaken in bringing them all here. but I have personally no strong
-> objection to getting rid of the private header and using the generic
-> cpufreq header.
->
-> Otherwise, I assume you are ok with this approach and will post a
-> formal patch by monday.
-
-Yep.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
