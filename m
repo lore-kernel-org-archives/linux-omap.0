@@ -1,99 +1,48 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH 9/9] mmc: omap_hsmmc: enable wakeup event for sdio
-Date: Fri, 2 May 2014 21:03:21 +0530
-Message-ID: <5363BAC1.2040201@ti.com>
-References: <1395404448-30030-2-git-send-email-afenkart@gmail.com> <1395418658-2375-1-git-send-email-balajitk@ti.com> <1395418658-2375-10-git-send-email-balajitk@ti.com>
+From: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Subject: Re: [PATCH] usb: dwc3: gadget: fix burst size corruption
+Date: Fri, 2 May 2014 23:35:44 -0400
+Message-ID: <20140503033544.GA19925@intel.com>
+References: <20140501211424.GE30575@intel.com>
+ <Pine.LNX.4.44L0.1405010941550.1152-100000@iolanthe.rowland.org>
+ <20140501151500.GC6355@saruman.home>
+Reply-To: jin.can.zhuang@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60649 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752071AbaEBPd0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 May 2014 11:33:26 -0400
-In-Reply-To: <1395418658-2375-10-git-send-email-balajitk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140501151500.GC6355@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-mmc@vger.kernel.org, chris@printf.net, linux-omap@vger.kernel.org, Andreas Fenkart <afenkart@gmail.com>
 
-On Friday 21 March 2014 09:47 PM, Balaji T K wrote:
-> To detect sdio irqs properly without spurious events,
-> OMAP4 needs IWE in CON and CTPL, CLKEXTFREE in HCTL to be set
->
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-Hi Andreas,
+Hi,
 
-Can you please test this patch on top of your current(v10) series
-and confirm that there are no regression due to this
-additional programming on your am335x platform.
+On Thu, May 01, 2014 at 10:15:00AM -0500, Felipe Balbi wrote:
+> On Thu, May 01, 2014 at 09:45:17AM -0400, Alan Stern wrote:
+> > On Thu, 1 May 2014, Zhuang Jin Can wrote:
+> > > > again, you found a bug on the gadget driver. Fix that. composite.c
+> > > > guarantees that for those functions which don't pass bMaxBurst,
+> > > > gadget->maxburst will be set to *at least* 1.
+> > > > 
+> > > I agree the real fix should be in the gadget driver. The patch intents
+> > > to prevent hibernatition from being corrupted by a bad gadget driver.
+> > > If OEMs develop their own gadget driver forgetting to call
+> > > config_ep_by_speed(), it'll turn out to be everything works except
+> > > dwc3 hibernation, and they'll complain to dwc3. f_ffs is an
+> > > example has SuperSpeed support but doesn't call config_ep_by_speed().
+> > > It's just for robustness, and dwc3 is not doing anything wrong.
+> > > It did cause me a long time to figure out why the hibernation was broken.
+> > 
+> > You could include the check, for the sake of robustness, in dwc3 -- but
+> > if it fails, you should write a message to the kernel log saying that
+> > the gadget driver needs to be fixed.
+I admit the fix is too paranoid. Thanks your comment.
 
-Thanks and Regards,
-Balaji T K
-> ---
->   drivers/mmc/host/omap_hsmmc.c |   13 ++++++++++++-
->   1 files changed, 12 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 2482783..120f7cf 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -94,7 +94,10 @@
->   #define BCE			(1 << 1)
->   #define FOUR_BIT		(1 << 1)
->   #define HSPE			(1 << 2)
-> +#define IWE			(1 << 24)
->   #define DDR			(1 << 19)
-> +#define CLKEXTFREE		(1 << 16)
-> +#define CTPL			(1 << 11)
->   #define DW8			(1 << 5)
->   #define OD			0x1
->   #define STAT_CLEAR		0xFFFFFFFF
-> @@ -732,6 +735,8 @@ static int omap_hsmmc_context_restore(struct omap_hsmmc_host *host)
->   		capa = VS18;
->   	}
->
-> +	if (host->mmc->caps & MMC_CAP_SDIO_IRQ)
-> +		hctl |= IWE;
->   	OMAP_HSMMC_WRITE(host->base, HCTL,
->   			OMAP_HSMMC_READ(host->base, HCTL) | hctl);
->
-> @@ -1728,7 +1733,7 @@ static void omap_hsmmc_init_card(struct mmc_host *mmc, struct mmc_card *card)
->   static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
->   {
->   	struct omap_hsmmc_host *host = mmc_priv(mmc);
-> -	u32 irq_mask;
-> +	u32 irq_mask, con;
->   	unsigned long flags;
->
->   	if (enable)
-> @@ -1737,14 +1742,18 @@ static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
->   	if (host->flags & HSMMC_RUNTIME_SUSPENDED)
->   		goto out;
->
-> +	con = OMAP_HSMMC_READ(host->base, CON);
->   	irq_mask = OMAP_HSMMC_READ(host->base, ISE);
->   	if (enable) {
->   		host->flags |= HSMMC_SDIO_IRQ_ENABLED;
->   		irq_mask |= CIRQ_EN;
-> +		con |= CTPL | CLKEXTFREE;
->   	} else {
->   		host->flags &= ~HSMMC_SDIO_IRQ_ENABLED;
->   		irq_mask &= ~CIRQ_EN;
-> +		con &= ~(CTPL | CLKEXTFREE);
->   	}
-> +	OMAP_HSMMC_WRITE(host->base, CON, con);
->   	OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
->
->   	/*
-> @@ -1801,6 +1810,8 @@ static int omap_hsmmc_configure_wake_irq(struct omap_hsmmc_host *host)
->   		}
->   		host->flags |= HSMMC_SWAKEUP_QUIRK;
->   	}
-> +	OMAP_HSMMC_WRITE(host->base, HCTL,
-> +			 OMAP_HSMMC_READ(host->base, HCTL) | IWE);
->
->   	return 0;
->   }
->
+> 
+> Also, if we're adding something to dwc3, we need to add to other
+> USB3-capable UDCs too. Namely dummy and marvel's.
+So I think the fix is not valuable to you. Thanks for your comment.
+And I'm new to communitiy, hope you can bear with me:)
 
+Jincan
