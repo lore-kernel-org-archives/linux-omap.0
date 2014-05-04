@@ -1,67 +1,126 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH 51/97] ARM: l2c: remove platforms/SoCs setting early BRESP
-Date: Sat, 3 May 2014 14:37:01 -0700
-Message-ID: <CAOesGMiYG7oLd2DKeQxactjJyxsst4g688XD=bKNskDY16PR_g@mail.gmail.com>
-References: <20140428192419.GV26756@n2100.arm.linux.org.uk>
-	<E1WerG4-0001X4-Ic@rmk-PC.arm.linux.org.uk>
-	<20140429000224.GA31083@verge.net.au>
-	<20140429002140.GP27282@n2100.arm.linux.org.uk>
-	<20140501151236.078E3C409DA@trevor.secretlab.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20140501151236.078E3C409DA@trevor.secretlab.ca>
-Sender: linux-sh-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Simon Horman <horms@verge.net.au>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, Linux-sh list <linux-sh@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, spear-devel <spear-devel@list.st.com>, Shiraz Hashim <shiraz.hashim@st.com>, Thierry Reding <thierry.reding@gmail.com>, Viresh Kumar <viresh.linux@gmail.com>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+From: Peter Robinson <pbrobinson@gmail.com>
+Subject: [PATCH] ARM: OMAP dts: Only build dtb if associated SoC is built
+Date: Sun,  4 May 2014 01:11:37 +0100
+Message-ID: <1399162297-23527-1-git-send-email-pbrobinson@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:57734 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753350AbaEDAMK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 May 2014 20:12:10 -0400
+Received: by mail-wi0-f179.google.com with SMTP id bs8so3968653wib.0
+        for <linux-omap@vger.kernel.org>; Sat, 03 May 2014 17:12:08 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: arnd@arndb.de, robh+dt@kernel.org, tony@atomide.com, Peter Robinson <pbrobinson@gmail.com>
 
-On Thu, May 1, 2014 at 8:12 AM, Grant Likely <grant.likely@secretlab.ca> wrote:
-> On Tue, 29 Apr 2014 01:21:41 +0100, Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
->> On Tue, Apr 29, 2014 at 09:02:27AM +0900, Simon Horman wrote:
->> > On Mon, Apr 28, 2014 at 08:30:32PM +0100, Russell King wrote:
->> > > Since we now automatically enable early BRESP in core L2C-310 code when
->> > > we detect a Cortex-A9, we don't need platforms/SoCs to set this bit
->> > > explicitly.  Instead, they should seek to preserve the value of bit 30
->> > > in the auxiliary control register.
->> > >
->> > > Acked-by: Tony Lindgren <tony@atomide.com>
->> > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
->> >
->> > I would prefer if this patch was broken out into individual patches
->> > for each board or SoC file and that they were then picked up
->> > by their respective platform maintainers.
->> >
->> > Likewise for patch 66/97. Although it is only for shmobile
->> > I would prefer it broken out.
->>
->> Oh fuck that.
->>
->> Okay, I'm dropping the whole patch set right now and forgetting the whole
->> damned thing.  The L2 cache code can damned well stay as it is and remain
->> an unmaintainable mess.
->
-> FWIW, there are an awful lot of people, myself included, who do care
-> that you've done this work. It is 100% okay for you to say "no" to
-> requests to split things up because of the complexity of the series.
->
-> I really hope you're reconsider and not give up on this series.
+With ARCH_OMAP2PLUS being separated out into OMAP2/3/4/5 etc all the TI device
+tree blobs are built no matter the combination of SoCs that are enabled. This
+often causes a bunch of irrelevant .dts to be built on a multi platform kernel,
+this enables the building of just the ones relevant to the SoCs that are
+actually enabled. It also orders the dts file alphabetically.
+---
+ arch/arm/boot/dts/Makefile | 56 +++++++++++++++++++++++-----------------------
+ 1 file changed, 28 insertions(+), 28 deletions(-)
 
-+1. I've been very behind on email lately and I haven't paid enough
-attention to this, but I'd like to see this go in for 3.16 as well,
-and it shouldn't have to go in through each subtree. Sequencing that
-in this case would be a huge pain indeed.
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 377b7c3..b0d0352 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -230,65 +230,65 @@ dtb-$(CONFIG_ARCH_NOMADIK) += ste-nomadik-s8815.dtb
+ dtb-$(CONFIG_ARCH_NSPIRE) += nspire-cx.dtb \
+ 	nspire-tp.dtb \
+ 	nspire-clp.dtb
+-dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+-	omap2430-sdp.dtb \
++dtb-$(CONFIG_ARCH_OMAP2) += omap2420-h4.dtb \
+ 	omap2420-n800.dtb \
+ 	omap2420-n810.dtb \
+ 	omap2420-n810-wimax.dtb \
+-	omap3430-sdp.dtb \
++	omap2430-sdp.dtb
++dtb-$(CONFIG_ARCH_OMAP3) += omap3430-sdp.dtb \
+ 	omap3-beagle.dtb \
++	omap3-beagle-xm.dtb \
++	omap3-beagle-xm-ab.dtb \
+ 	omap3-cm-t3517.dtb \
+-	omap3-sbc-t3517.dtb \
+ 	omap3-cm-t3530.dtb \
+-	omap3-sbc-t3530.dtb \
+ 	omap3-cm-t3730.dtb \
+-	omap3-sbc-t3730.dtb \
+ 	omap3-devkit8000.dtb \
+-	omap3-beagle-xm.dtb \
+-	omap3-beagle-xm-ab.dtb \
+ 	omap3-evm.dtb \
+ 	omap3-evm-37xx.dtb \
++	omap3-gta04.dtb \
++	omap3-igep0020.dtb \
++	omap3-igep0030.dtb \
+ 	omap3-ldp.dtb \
++	omap3-lilly-dbb056.dtb \
+ 	omap3-n900.dtb \
+ 	omap3-n9.dtb \
+ 	omap3-n950.dtb \
+ 	omap3-overo-alto35.dtb \
+-	omap3-overo-storm-alto35.dtb \
+ 	omap3-overo-chestnut43.dtb \
+-	omap3-overo-storm-chestnut43.dtb \
+ 	omap3-overo-gallop43.dtb \
+-	omap3-overo-storm-gallop43.dtb \
+ 	omap3-overo-palo43.dtb \
++	omap3-overo-storm-alto35.dtb \
++	omap3-overo-storm-chestnut43.dtb \
++	omap3-overo-storm-gallop43.dtb \
+ 	omap3-overo-storm-palo43.dtb \
+-	omap3-overo-summit.dtb \
+ 	omap3-overo-storm-summit.dtb \
+-	omap3-overo-tobi.dtb \
+ 	omap3-overo-storm-tobi.dtb \
+-	omap3-gta04.dtb \
+-	omap3-igep0020.dtb \
+-	omap3-igep0030.dtb \
+-	omap3-lilly-dbb056.dtb \
+-	omap3-zoom3.dtb \
+-	omap4-duovero-parlor.dtb \
++	omap3-overo-summit.dtb \
++	omap3-overo-tobi.dtb \
++	omap3-sbc-t3517.dtb \
++	omap3-sbc-t3530.dtb \
++	omap3-sbc-t3730.dtb \
++	omap3-zoom3.dtb
++dtb-$(CONFIG_ARCH_OMAP4) += omap4-duovero-parlor.dtb \
+ 	omap4-panda.dtb \
+ 	omap4-panda-a4.dtb \
+ 	omap4-panda-es.dtb \
+-	omap4-var-som.dtb \
+ 	omap4-sdp.dtb \
+ 	omap4-sdp-es23plus.dtb \
+-	omap5-uevm.dtb \
+-	am335x-evm.dtb \
+-	am335x-evmsk.dtb \
++	omap4-var-som.dtb
++dtb-$(CONFIG_SOC_OMAP5) += omap5-uevm.dtb
++dtb-$(CONFIG_SOC_AM33XX) += am335x-base0033.dtb \
+ 	am335x-bone.dtb \
+ 	am335x-boneblack.dtb \
++	am335x-evm.dtb \
++	am335x-evmsk.dtb \
+ 	am335x-nano.dtb \
+-	am335x-base0033.dtb \
+ 	am3517-craneboard.dtb \
+ 	am3517-evm.dtb \
+-	am3517_mt_ventoux.dtb \
+-	am43x-epos-evm.dtb \
+-	am437x-gp-evm.dtb \
+-	dra7-evm.dtb
++	am3517_mt_ventoux.dtb
++dtb-$(CONFIG_SOC_AM43XX) += am43x-epos-evm.dtb \
++	am437x-gp-evm.dtb
++dtb-$(CONFIG_SOC_DRA7XX) += dra7-evm.dtb
+ dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-ethernet-disk-mini-v2.dtb
+ dtb-$(CONFIG_ARCH_PRIMA2) += prima2-evb.dtb
+ dtb-$(CONFIG_ARCH_QCOM) += qcom-msm8660-surf.dtb \
+-- 
+1.9.0
 
-It would be better to just keep it all on a shared topic branch that
-we can merge into arm-soc as a dependency, so we can resolve merge
-conflicts as we merge in from platform maintainers. I wouldn't expect
-anything major besides some context conflicts due to nearby edits.
-
-The only thing I am not 100% on is if it's a good idea or not to add
-to the machine descriptor, since it'll make it harder to make
-descriptor-free generic platforms for A9, but it's a minor detail and
-the benefit of the series outweigh that (and we can revisit if truly
-needed later).
-
-
--Olof
