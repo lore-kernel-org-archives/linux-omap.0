@@ -1,92 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 1/5] Input: add common DT binding for touchscreens
-Date: Mon, 5 May 2014 13:12:02 -0700
-Message-ID: <20140505201202.GH25949@atomide.com>
-References: <1398470179-20880-1-git-send-email-sre@kernel.org>
- <1398470179-20880-2-git-send-email-sre@kernel.org>
- <20140505194125.GD25949@atomide.com>
- <20140505195139.GA26978@core.coreip.homeip.net>
+From: Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCHv5 RFC 12/15] hwspinlock/core: add OF helper to parse
+ reserved locks
+Date: Mon, 5 May 2014 16:54:22 -0500
+Message-ID: <20140505215422.GD5546@joshc.qualcomm.com>
+References: <1398904476-26200-1-git-send-email-s-anna@ti.com>
+ <1398904476-26200-13-git-send-email-s-anna@ti.com>
+ <53680639.1080405@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20140505195139.GA26978@core.coreip.homeip.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Sebastian Reichel <sre@ring0.de>, linux-input@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <53680639.1080405-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Dmitry Torokhov <dmitry.torokhov@gmail.com> [140505 12:52]:
-> On Mon, May 05, 2014 at 12:41:26PM -0700, Tony Lindgren wrote:
-> > * Sebastian Reichel <sre@kernel.org> [140425 16:56]:
-> > > Add common DT binding documentation for touchscreen devices and
-> > > implement input_parse_touchscreen_of_params, which parses the common
-> > > properties and configures the input device accordingly.
-> > > 
-> > > The method currently does not interpret the axis inversion properties,
-> > > since there is no matching flag in the generic linux input device.
-> > > 
-> > > Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> > > ---
-> > >  .../bindings/input/touchscreen/touchscreen.txt     | 27 +++++++++++++++++
-> > >  drivers/input/input.c                              | 34 ++++++++++++++++++++++
-> > >  include/linux/input.h                              |  8 +++++
-> > >  3 files changed, 69 insertions(+)
-> > >  create mode 100644 Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt b/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-> > > new file mode 100644
-> > > index 0000000..d8e0616
-> > > --- /dev/null
-> > > +++ b/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-> > > @@ -0,0 +1,27 @@
-> > > +General Touchscreen Properties:
-> > > +
-> > > +Optional properties for Touchscreens:
-> > > + - touchscreen-size-x		: horizontal resolution of touchscreen
-> > > +				  (in pixels)
-> > > + - touchscreen-size-y		: vertical resolution of touchscreen
-> > > +				  (in pixels)
-> > > + - touchscreen-max-pressure	: maximum reported pressure (arbitrary range
-> > > +				  dependent on the controller)
-> > > + - touchscreen-fuzz-x		: horizontal noise value of the absolute input
-> > > +				  device (in pixels)
-> > > + - touchscreen-fuzz-y		: vertical noise value of the absolute input
-> > > +				  device (in pixels)
-> > > + - touchscreen-fuzz-pressure	: pressure noise value of the absolute input
-> > > +				  device (arbitrary range dependent on the
-> > > +				  controller)
+On Mon, May 05, 2014 at 04:44:25PM -0500, Suman Anna wrote:
+> Hi Rob,
 > 
-> Fuzz seems like linux-specific property, not generic one.
-> 
-> 
-> > > + - touchscreen-inverted-x	: X axis is inverted (boolean)
-> > > + - touchscreen-inverted-y	: Y axis is inverted (boolean)
+> On 04/30/2014 07:34 PM, Suman Anna wrote:
+> > The property 'hwlock-reserved-locks' will be used to represent
+> > the number of locks to be reserved for clients that would need
+> > to request/operate on specific locks. A new OF helper function,
+> > of_hwspin_lock_get_num_reserved_locks(), is added to minimize
+> > duplication in different platform implementations.
 > > 
-> > We probably also need something to swap x and y depending on the
-> > display orientation in addition to the touchscreen-inverted-x and y.
-> > Just swapping x and y is not enough depending if we rotate by 270
-> > degrees instead of 90 degrees.
+> > The function will return a value of 0 if the property is not
+> > defined, so as to support a default behavior of marking all
+> > locks as unused and open for anonymous allocations.
 > > 
-> > Naturally that part can be added later.
+> > Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+> > ---
+> >  .../devicetree/bindings/hwlock/hwlock.txt          |  3 +++
+> >  drivers/hwspinlock/hwspinlock_core.c               | 25 ++++++++++++++++++++++
+> >  include/linux/hwspinlock.h                         |  1 +
+> >  3 files changed, 29 insertions(+)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/hwlock/hwlock.txt b/Documentation/devicetree/bindings/hwlock/hwlock.txt
+> > index d538a9b..88d16d2 100644
+> > --- a/Documentation/devicetree/bindings/hwlock/hwlock.txt
+> > +++ b/Documentation/devicetree/bindings/hwlock/hwlock.txt
+> > @@ -18,6 +18,9 @@ Common properties:
+> >  			property is needed on hwlock devices, where the number
+> >  			of supported locks within a hwlock device cannot be
+> >  			read from a register.
+> > +- hwlock-reserved-locks: Number of locks to reserve for clients requiring
+> > +			specific locks. This value cannot exceed the value of
+> > +			hwlock-num-locks.
 > 
-> So far we've been relying on upper layers (such as tslib) to perform
-> such transformations rather than re-implementing it in every driver. Are
-> we saying that we need to implement this in input core?
+> Any suggestions here on the approach? This property falls into a gray
+> area as well, as the current approach is somewhat limiting (it doesn't
+> support sparse reserved locks, and expects them at the beginning of the
+> lock range).
 
-We seem to have that already partially implemented at least with
-ti,swap-xy in Documentation/devicetree/bindings/input/ads7846.txt.
+Is it possible to implement a pinctrl-like hogging approach, whereby the
+specific locks that need to be reserved are consumed by the controller
+itself?
 
-But that only works for the 90 degree rotation case as it's missing
-something similar to touchscreen-inverted-x I just noticed few days
-ago while trying to make some legacy code disappear :)
+  Josh
 
-No idea where rotation should be specified. But if the panel is
-rotated based on the DT property or kernel cmdline, probably the
-touchscreen should be too? In most cases touchscreens are integrated
-together with the LCD panel, and they are not separate like other
-input devices.
-
-Regards,
-
-Tony
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+hosted by The Linux Foundation
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
