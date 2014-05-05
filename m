@@ -1,60 +1,136 @@
-From: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv5 RFC 08/15] hwspinlock/core: add support for base id in DT
-Date: Mon, 5 May 2014 15:37:20 -0500
-Message-ID: <CAL_JsqJW1pqUjQ3DQrppO5n=MmpFOhCyU2zkSzA9s9TpYbq3CA@mail.gmail.com>
-References: <1398904476-26200-1-git-send-email-s-anna@ti.com>
-	<1398904476-26200-9-git-send-email-s-anna@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: [PATCH 3/5] irqchip: crossbar: Skip some irqs from getting mapped to crossbar
+Date: Mon, 5 May 2014 19:48:45 +0530
+Message-ID: <1399299527-10955-4-git-send-email-r.sricharan@ti.com>
+References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1398904476-26200-9-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:51494 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932764AbaEEOUb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 May 2014 10:20:31 -0400
+In-Reply-To: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: nm@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, tony@atomide.com
 
-On Wed, Apr 30, 2014 at 7:34 PM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
-> The HwSpinlock core requires a base id for registering a bank
-> of hwspinlocks. This base id needs to be unique across multiple
-> IP instances of a hwspinlock device, so that each hwlock can be
-> represented uniquely in a system.
->
-> Support has been added to represent this in DT through a common
-> property 'hwlock-base-id', and retrieve the value through a core
-> OF helper function, of_hwspin_lock_get_base_id(). The representation
-> in DT provides a uniform way of assigning a fixed base value for a
-> hwspinlock device across different SoCs.
->
-> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/hwlock/hwlock.txt |  6 ++++++
->  drivers/hwspinlock/hwspinlock_core.c                | 21 +++++++++++++++++++++
->  include/linux/hwspinlock.h                          |  1 +
->  3 files changed, 28 insertions(+)
->
-> diff --git a/Documentation/devicetree/bindings/hwlock/hwlock.txt b/Documentation/devicetree/bindings/hwlock/hwlock.txt
-> index 32381cc..d538a9b 100644
-> --- a/Documentation/devicetree/bindings/hwlock/hwlock.txt
-> +++ b/Documentation/devicetree/bindings/hwlock/hwlock.txt
-> @@ -18,6 +18,12 @@ Common properties:
->                         property is needed on hwlock devices, where the number
->                         of supported locks within a hwlock device cannot be
->                         read from a register.
-> +- hwlock-base-id:      An unique base Id for the locks for a particular hwlock
-> +                       device. This property is mandatory ONLY if a SoC has
-> +                       several hwlock devices.
-> +
-> +                       See documentation on struct hwspinlock_pdata in
-> +                       include/linux/hwspinlock.h for more details.
+From: Nishanth Menon <nm@ti.com>
 
-The documentation cannot refer to kernel files. Generally, creating a
-global number space like this would not be accepted, but I don't
-really have any better idea here.
+When, in the system due to varied reasons, interrupts might be unusable
+due to hardware behavior, but register maps do exist, then those interrupts
+should be skipped while mapping irq to crossbars.
 
-Please put all binding docs in 1 patch and copy all the DT binding maintainers.
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Sricharan R <r.sricharan@ti.com>
+---
+ drivers/irqchip/irq-crossbar.c |   47 ++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 43 insertions(+), 4 deletions(-)
 
-Rob
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+index 51d4b87..847f6e3 100644
+--- a/drivers/irqchip/irq-crossbar.c
++++ b/drivers/irqchip/irq-crossbar.c
+@@ -13,11 +13,13 @@
+ #include <linux/io.h>
+ #include <linux/of_address.h>
+ #include <linux/of_irq.h>
++#include <linux/of_device.h>
+ #include <linux/slab.h>
+ #include <linux/irqchip/arm-gic.h>
+ 
+ #define IRQ_FREE	-1
+ #define IRQ_RESERVED	-2
++#define IRQ_SKIP	-3
+ #define GIC_IRQ_START	32
+ 
+ /*
+@@ -34,6 +36,16 @@ struct crossbar_device {
+ 	void (*write) (int, int);
+ };
+ 
++/**
++ * struct crossbar_data: Platform specific data
++ * @irqs_unused: array of irqs that cannot be used because of hw erratas
++ * @size: size of the irqs_unused array
++ */
++struct crossbar_data {
++	const uint *irqs_unused;
++	const uint size;
++};
++
+ static struct crossbar_device *cb;
+ 
+ static inline void crossbar_writel(int irq_no, int cb_no)
+@@ -119,10 +131,12 @@ const struct irq_domain_ops routable_irq_domain_ops = {
+ 	.xlate = crossbar_domain_xlate
+ };
+ 
+-static int __init crossbar_of_init(struct device_node *node)
++static int __init crossbar_of_init(struct device_node *node,
++				   const struct crossbar_data *data)
+ {
+ 	int i, size, max, reserved = 0, entry;
+ 	const __be32 *irqsr;
++	const int *irqsk = NULL;
+ 
+ 	cb = kzalloc(sizeof(*cb), GFP_KERNEL);
+ 
+@@ -194,6 +208,22 @@ static int __init crossbar_of_init(struct device_node *node)
+ 		reserved += size;
+ 	}
+ 
++	/* Skip the ones marked as unused */
++	if (data) {
++		irqsk = data->irqs_unused;
++		size = data->size;
++
++		for (i = 0; i < size; i++) {
++			entry = irqsk[i];
++
++			if (entry > max) {
++				pr_err("Invalid skip entry\n");
++				goto err3;
++			}
++			cb->irq_map[entry] = IRQ_SKIP;
++		}
++	}
++
+ 	register_routable_domain_ops(&routable_irq_domain_ops);
+ 	return 0;
+ 
+@@ -208,18 +238,27 @@ err1:
+ 	return -ENOMEM;
+ }
+ 
++/* irq number 10 cannot be used because of hw bug */
++int dra_irqs_unused[] = { 10 };
++struct crossbar_data cb_dra_data = { dra_irqs_unused,
++				     ARRAY_SIZE(dra_irqs_unused) };
++
+ static const struct of_device_id crossbar_match[] __initconst = {
+-	{ .compatible = "ti,irq-crossbar" },
++	{ .compatible = "ti,irq-crossbar", .data = &cb_dra_data },
+ 	{}
+ };
+ 
+ int __init irqcrossbar_init(void)
+ {
+ 	struct device_node *np;
+-	np = of_find_matching_node(NULL, crossbar_match);
++	const struct of_device_id *of_id;
++	const struct crossbar_data *cdata;
++
++	np = of_find_matching_node_and_match(NULL, crossbar_match, &of_id);
+ 	if (!np)
+ 		return -ENODEV;
+ 
+-	crossbar_of_init(np);
++	cdata = of_id->data;
++	crossbar_of_init(np, cdata);
+ 	return 0;
+ }
+-- 
+1.7.9.5
+
