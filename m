@@ -1,56 +1,52 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH 5/5] irqchip: crossbar: Change allocation logic by reversing search for free irqs
-Date: Mon, 5 May 2014 19:48:47 +0530
-Message-ID: <1399299527-10955-6-git-send-email-r.sricharan@ti.com>
-References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
+From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 2/2] ARM: dts: am335x-evmsk: Add vtt_fixed regulator
+Date: Mon, 5 May 2014 14:58:29 -0500
+Message-ID: <1399319909-53795-3-git-send-email-d-gerlach@ti.com>
+References: <1399319909-53795-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43392 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932538AbaEEOUf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 10:20:35 -0400
-In-Reply-To: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1399319909-53795-1-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: nm@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, tony@atomide.com
 
-From: Nishanth Menon <nm@ti.com>
+The VTT regulator for DDR3 termination on the am335x-evmsk is
+controlled by a gpio. It is configured by the bootloader so here we
+define an always-on, fixed voltage regulator to hold the gpio.
 
-Reverse the search algorithm to ensure that address mapping and IRQ
-allocation logics are proper. This can open up new bugs which are
-easily fixable rather than wait till allocation logic approaches
-the limit to find new bugs.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Sricharan R <r.sricharan@ti.com>
+Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 ---
- drivers/irqchip/irq-crossbar.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am335x-evmsk.dts | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index 287d3ce..de021638 100644
---- a/drivers/irqchip/irq-crossbar.c
-+++ b/drivers/irqchip/irq-crossbar.c
-@@ -68,7 +68,7 @@ static inline int get_prev_map_irq(int cb_no)
- {
- 	int i;
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index ab23885..d6b8acb 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -57,6 +57,17 @@
+ 		enable-active-high;
+ 	};
  
--	for (i = 0; i < cb->int_max; i++)
-+	for (i = cb->int_max - 1; i >= 0; i--)
- 		if (cb->irq_map[i] == cb_no)
- 			return i;
- 
-@@ -79,7 +79,7 @@ static inline int allocate_free_irq(int cb_no)
- {
- 	int i;
- 
--	for (i = 0; i < cb->int_max; i++) {
-+	for (i = cb->int_max - 1; i >= 0; i--) {
- 		if (cb->irq_map[i] == IRQ_FREE) {
- 			cb->irq_map[i] = cb_no;
- 			return i;
++	vtt_fixed: fixedregulator@3 {
++		compatible = "regulator-fixed";
++		regulator-name = "vtt";
++		regulator-min-microvolt = <1500000>;
++		regulator-max-microvolt = <1500000>;
++		gpio = <&gpio0 7 GPIO_ACTIVE_HIGH>;
++		regulator-always-on;
++		regulator-boot-on;
++		enable-active-high;
++	};
++
+ 	leds {
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&user_leds_s0>;
 -- 
-1.7.9.5
+1.9.0
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
