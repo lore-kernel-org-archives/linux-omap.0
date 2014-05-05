@@ -1,66 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] arm: n950: Add missing regulator definitions
-Date: Mon, 5 May 2014 12:51:12 -0700
-Message-ID: <20140505195112.GF25949@atomide.com>
-References: <1399162988-4946-1-git-send-email-sakari.ailus@iki.fi>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/4] OMAPDSS: Add support for panel ls037v7dw01
+Date: Mon, 5 May 2014 11:41:38 -0700
+Message-ID: <20140505184138.GB15463@atomide.com>
+References: <1398815562-24113-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:65301 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752630AbaEETvQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 15:51:16 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1399162988-4946-1-git-send-email-sakari.ailus@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1398815562-24113-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: tomi.valkeinen-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 
-* Sakari Ailus <sakari.ailus@iki.fi> [140503 17:20]:
-> The N950/N9 uses two additional regulators from the twl 4030 for CSI-2
-> receiver (vaux2) and cameras (vaux3).
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [140429 16:53]:
+> Hi all,
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Here are few patches to add devicetree support for panel ls037v7dw01
+> that's found on many omap3 boards. They seem to be often mis-configured
+> as various panel dpi entries, but really should be move to use panel
+> ls037v7dw01 instead. This panel is found at least on the omap3 sdp,
+> ldp, omap3 evm and few other development boards.
 
-Thanks applying into omap-for-v3.16/dt.
+Tomi, assuming no more comments, do you want to pick up the first
+three patches of this series? I can queue the .dts changes or you
+can also set up a separate .dts changes branch for DSS that I can
+merge in too.
 
 Tony
-
-> ---
->  arch/arm/boot/dts/omap3-n950-n9.dtsi |   14 ++++++++++++++
->  1 file changed, 14 insertions(+)
+ 
+> Regards,
 > 
-> diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> index 5c26c18..7d64f30 100644
-> --- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> +++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> @@ -67,6 +67,20 @@
->  	ti,pulldowns	= <0x008106>; /* BIT(1) | BIT(2) | BIT(8) | BIT(15) */
->  };
->  
-> +/* CSI-2 receiver */
-> +&vaux2 {
-> +	regulator-name = "vaux2"; 
-> +	regulator-min-microvolt = <1800000>;
-> +	regulator-max-microvolt = <1800000>;
-> +};
-> +
-> +/* Cameras */
-> +&vaux3 {
-> +	regulator-name = "vaux3"; 
-> +	regulator-min-microvolt = <2800000>;
-> +	regulator-max-microvolt = <2800000>;
-> +};
-> +
->  &i2c2 {
->  	clock-frequency = <400000>;
->  };
+> Tony
+> 
+> Tony Lindgren (4):
+>   OMAPDSS: Fix DSS clock multiplier issue on 3703 and probably 3630
+>   OMAPDSS: panel-sharp-ls037v7dw01: update to use gpiod
+>   OMAPDSS: panel-sharp-ls037v7dw01: add device tree support
+>   ARM: dts: Add LCD panel sharp ls037v7dw01 support for omap3-evm and
+>     ldp
+> 
+>  .../bindings/panel/sharp,ls037v7dw01.txt           |  53 +++++++
+>  .../arm/boot/dts/omap-panel-sharp-ls037v7dw01.dtsi |  82 ++++++++++
+>  arch/arm/boot/dts/omap3-evm-37xx.dts               |  50 ++++++
+>  arch/arm/boot/dts/omap3-evm-common.dtsi            |  47 ++++++
+>  arch/arm/boot/dts/omap3-ldp.dts                    |  31 +++-
+>  .../omap2/displays-new/panel-sharp-ls037v7dw01.c   | 176 ++++++++++++++-------
+>  drivers/video/fbdev/omap2/dss/dss.c                |   5 +-
+>  7 files changed, 379 insertions(+), 65 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/panel/sharp,ls037v7dw01.txt
+>  create mode 100644 arch/arm/boot/dts/omap-panel-sharp-ls037v7dw01.dtsi
+> 
 > -- 
-> 1.7.10.4
+> 1.8.1.1
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
