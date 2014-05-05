@@ -1,82 +1,68 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 4/7] ARM: dts: dra7-clock: Add "l3init_960m_gfclk" clock gate
-Date: Mon, 5 May 2014 12:54:43 +0300
-Message-ID: <1399283686-6127-5-git-send-email-rogerq@ti.com>
-References: <1399283686-6127-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 0/7] USB support for DRA7-evm
+Date: Mon, 5 May 2014 12:54:39 +0300
+Message-ID: <1399283686-6127-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49964 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756010AbaEEJzJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 May 2014 05:55:09 -0400
-In-Reply-To: <1399283686-6127-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: george.cherian-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: kishon@ti.com, tony@atomide.com, balbi@ti.com, bcousson@baylibre.com
-Cc: george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Tero Kristo <t-kristo@ti.com>
 
-This clock gate description is missing in the older Reference manuals.
-It is present on the SoC to provide 960MHz reference clock to the
-internal USB PHYs.
+Hi,
 
-Reference: DRA75x_DRA74x_ES1.1_NDA_TRM_vO.pdf, pg. 900,
-Table 3-812. CM_COREAON_L3INIT_60M_GFCLK_CLKCTRL
+This series enables the 2 USB ports on the DRA7-evm.
 
-Use l3init_960m_gfclk as parent of usb_otg_ss1_refclk960m and
-usb_otg_ss2_refclk960m.
+NOTE: USB1 port is hard coded to work in peripheral mode and USB2 port
+in host mode. This is due to missing ID pin interrupt in pre ver.E boards.
 
-CC: Beno=C3=AEt Cousson <bcousson@baylibre.com>
-CC: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+USB1 port doesn't in peripheral mode out of the box due to missing VBUS detection
+and mailbox write. To test this I had to do a manual write to enable VBUSVALID
+in the USB_UTMI_OTG_STATUS register.
+	omapconf set bit 0x48880084 1
+
+USB2 port works well in host mode.
+
+Patches are based on 3.15-rc3.
+
+cheers,
+-roger
+
+Changelog:
+
+v3:
+-Rearraged patches. PHY related stuff first.
+-Addressed backward compatibility issue for phy-omap-usb2.
+
+v2:
+-Rebased on v3.15-rc3
+
 ---
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+Roger Quadros (7):
+  phy: omap-usb2: Use generic clock names "wkupclk" and "refclk"
+  phy: omap-usb2: Add clock names to Documentation binding
+  ARM: dts: omap4+: Add clocks to USB2 PHY node
+  ARM: dts: dra7-clock: Add "l3init_960m_gfclk" clock gate
+  ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
+  ARM: dts: dra7: Add USB related nodes
+  dts: dra7-evm: add USB support
 
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/d=
-ra7xx-clocks.dtsi
-index cfb8fc7..c767687 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -1386,6 +1386,14 @@
- 		ti,dividers =3D <1>, <8>;
- 	};
-=20
-+	l3init_960m_gfclk: l3init_960m_gfclk {
-+		#clock-cells =3D <0>;
-+		compatible =3D "ti,gate-clock";
-+		clocks =3D <&dpll_usb_clkdcoldo>;
-+		ti,bit-shift =3D <8>;
-+		reg =3D <0x06c0>;
-+	};
-+
- 	dss_32khz_clk: dss_32khz_clk {
- 		#clock-cells =3D <0>;
- 		compatible =3D "ti,gate-clock";
-@@ -1533,7 +1541,7 @@
- 	usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m {
- 		#clock-cells =3D <0>;
- 		compatible =3D "ti,gate-clock";
--		clocks =3D <&dpll_usb_clkdcoldo>;
-+		clocks =3D <&l3init_960m_gfclk>;
- 		ti,bit-shift =3D <8>;
- 		reg =3D <0x13f0>;
- 	};
-@@ -1541,7 +1549,7 @@
- 	usb_otg_ss2_refclk960m: usb_otg_ss2_refclk960m {
- 		#clock-cells =3D <0>;
- 		compatible =3D "ti,gate-clock";
--		clocks =3D <&dpll_usb_clkdcoldo>;
-+		clocks =3D <&l3init_960m_gfclk>;
- 		ti,bit-shift =3D <8>;
- 		reg =3D <0x1340>;
- 	};
---=20
+ Documentation/devicetree/bindings/phy/ti-phy.txt |   7 ++
+ arch/arm/boot/dts/dra7-evm.dts                   |  24 ++++
+ arch/arm/boot/dts/dra7.dtsi                      | 149 +++++++++++++++++++++++
+ arch/arm/boot/dts/dra7xx-clocks.dtsi             |  12 +-
+ arch/arm/boot/dts/omap4.dtsi                     |   2 +
+ arch/arm/boot/dts/omap5.dtsi                     |   2 +
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c        |  22 ++--
+ drivers/phy/phy-omap-usb2.c                      |  30 +++--
+ 8 files changed, 229 insertions(+), 19 deletions(-)
+
+-- 
 1.8.3.2
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
