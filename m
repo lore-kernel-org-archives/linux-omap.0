@@ -1,128 +1,71 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: [RFC] [v2 Patch 6/6] ARM: dts: omap5: Add prm_resets node
-Date: Mon, 5 May 2014 15:09:27 -0500
-Message-ID: <1399320567-3639-7-git-send-email-dmurphy@ti.com>
-References: <1399320567-3639-1-git-send-email-dmurphy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 1/5] Input: add common DT binding for touchscreens
+Date: Mon, 5 May 2014 12:41:26 -0700
+Message-ID: <20140505194125.GD25949@atomide.com>
+References: <1398470179-20880-1-git-send-email-sre@kernel.org>
+ <1398470179-20880-2-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48461 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752163AbaEEUJz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 May 2014 16:09:55 -0400
-In-Reply-To: <1399320567-3639-1-git-send-email-dmurphy@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33987 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752831AbaEETle (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 15:41:34 -0400
+Content-Disposition: inline
+In-Reply-To: <1398470179-20880-2-git-send-email-sre@kernel.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com
-Cc: Dan Murphy <dmurphy@ti.com>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Sebastian Reichel <sre@ring0.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, linux-input@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Add the prm_resets node to the prm parent node.
+* Sebastian Reichel <sre@kernel.org> [140425 16:56]:
+> Add common DT binding documentation for touchscreen devices and
+> implement input_parse_touchscreen_of_params, which parses the common
+> properties and configures the input device accordingly.
+> 
+> The method currently does not interpret the axis inversion properties,
+> since there is no matching flag in the generic linux input device.
+> 
+> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> ---
+>  .../bindings/input/touchscreen/touchscreen.txt     | 27 +++++++++++++++++
+>  drivers/input/input.c                              | 34 ++++++++++++++++++++++
+>  include/linux/input.h                              |  8 +++++
+>  3 files changed, 69 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt b/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+> new file mode 100644
+> index 0000000..d8e0616
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+> @@ -0,0 +1,27 @@
+> +General Touchscreen Properties:
+> +
+> +Optional properties for Touchscreens:
+> + - touchscreen-size-x		: horizontal resolution of touchscreen
+> +				  (in pixels)
+> + - touchscreen-size-y		: vertical resolution of touchscreen
+> +				  (in pixels)
+> + - touchscreen-max-pressure	: maximum reported pressure (arbitrary range
+> +				  dependent on the controller)
+> + - touchscreen-fuzz-x		: horizontal noise value of the absolute input
+> +				  device (in pixels)
+> + - touchscreen-fuzz-y		: vertical noise value of the absolute input
+> +				  device (in pixels)
+> + - touchscreen-fuzz-pressure	: pressure noise value of the absolute input
+> +				  device (arbitrary range dependent on the
+> +				  controller)
+> + - touchscreen-inverted-x	: X axis is inverted (boolean)
+> + - touchscreen-inverted-y	: Y axis is inverted (boolean)
 
-Add the omap54xx_resets file to define the
-omap5 reset lines that are handled by this reset
-framework.
+We probably also need something to swap x and y depending on the
+display orientation in addition to the touchscreen-inverted-x and y.
+Just swapping x and y is not enough depending if we rotate by 270
+degrees instead of 90 degrees.
 
-Signed-off-by: Dan Murphy <dmurphy@ti.com>
----
- arch/arm/boot/dts/omap5.dtsi           |    7 ++++
- arch/arm/boot/dts/omap54xx-resets.dtsi |   66 ++++++++++++++++++++++++++++++++
- 2 files changed, 73 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap54xx-resets.dtsi
+Naturally that part can be added later.
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index f8c9855..b6e3c4c 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -134,6 +134,12 @@
- 
- 			prm_clockdomains: clockdomains {
- 			};
-+
-+			prm_resets: resets {
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				#reset-cells = <1>;
-+			};
- 		};
- 
- 		cm_core_aon: cm_core_aon@4a004000 {
-@@ -873,3 +879,4 @@
- };
- 
- /include/ "omap54xx-clocks.dtsi"
-+/include/ "omap54xx-resets.dtsi"
-diff --git a/arch/arm/boot/dts/omap54xx-resets.dtsi b/arch/arm/boot/dts/omap54xx-resets.dtsi
-new file mode 100644
-index 0000000..cba6f52
---- /dev/null
-+++ b/arch/arm/boot/dts/omap54xx-resets.dtsi
-@@ -0,0 +1,66 @@
-+/*
-+ * Device Tree Source for OMAP5 reset data
-+ *
-+ * Copyright (C) 2014 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+&prm_resets {
-+	dsp_rstctrl {
-+		reg = <0x1c00>,
-+			  <0x1c04>;
-+
-+		dsp_reset: dsp_reset {
-+			control-bit = <0x01>;
-+			status-bit = <0x01>;
-+		};
-+
-+		dsp_mmu_reset: dsp_mmu_reset {
-+			control-bit = <0x02>;
-+			status-bit = <0x02>;
-+		};
-+	};
-+
-+	ipu_rstctrl {
-+		reg = <0x910>,
-+			  <0x914>;
-+
-+		ipu_cpu0_reset: ipu_cpu0_reset {
-+			control-bit = <0x01>;
-+			status-bit = <0x01>;
-+		};
-+
-+		ipu_cpu1_reset: ipu_cpu1_reset {
-+			control-bit = <0x02>;
-+			status-bit = <0x02>;
-+		};
-+
-+		ipu_mmu_reset: ipu_mmu_reset {
-+			control-bit = <0x04>;
-+			status-bit = <0x04>;
-+		};
-+	};
-+
-+	iva_rstctrl {
-+		reg = <0x1210>,
-+			  <0x1214>;
-+
-+		iva_reset: iva_reset {
-+			control-bit = <0x01>;
-+			status-bit = <0x01>;
-+		};
-+	};
-+
-+	device_rstctrl {
-+		reg = <0x1c00>,
-+			  <0x1c04>;
-+
-+		device_reset: device_reset {
-+			control-bit = <0x01>;
-+			status-bit = <0x01>;
-+		};
-+	};
-+};
--- 
-1.7.9.5
+Regards,
 
+That 
