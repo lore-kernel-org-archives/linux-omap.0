@@ -1,56 +1,25 @@
-From: Darren Etheridge <detheridge@ti.com>
-Subject: Re: [PATCH 0/5] irqchip/dra7: crossbar bug fixes
-Date: Mon, 5 May 2014 13:10:52 -0500
-Message-ID: <20140505181052.GC2626@ti.com>
-References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/2] PM / OPP: Remove cpufreq wrapper dependency on
+ internal data organization
+Date: Mon, 5 May 2014 09:25:58 -0500
+Message-ID: <CAGo_u6pcEKDiAqvJW66_p7M7D0noFj6o9Rw5_d8Af3NMBhHA=g@mail.gmail.com>
+References: <1399296830-13056-1-git-send-email-nm@ti.com>
+	<1399296830-13056-2-git-send-email-nm@ti.com>
+	<CAKohpomeP3Ftx8mH=x0Hj7HEpw6A9X8O8JEFqvrJbkZYDqDS6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54953 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751288AbaEESLz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 14:11:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAKohpomeP3Ftx8mH=x0Hj7HEpw6A9X8O8JEFqvrJbkZYDqDS6Q@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Kevin Hilman <khilman@deeprootsystems.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, tony@atomide.com
 
-Sricharan R <r.sricharan@ti.com> wrote on Mon [2014-May-05 19:48:42 +0530]:
-> These are fixes for the crossbar to handle two interrupts getting
-> mapped twice to same crossbar and to skip some interrupts being used
-> due to hardware bugs.
-> 
-> Nishanth Menon (5):
->   irqchip: crossbar: dont use '0' to mark reserved interrupts
->   irqchip: crossbar: check for premapped crossbar before allocating
->   irqchip: crossbar: Skip some irqs from getting mapped to crossbar
->   irqchip: crossbar: Initialise the crossbar with a safe value
->   irqchip: crossbar: Change allocation logic by reversing search for
->     free irqs
-> 
-Looks good!
+On Mon, May 5, 2014 at 9:23 AM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
+>
+>
+> What if opp is being added for some reason at the same time?
+> I hope we can surely see some awkward results, maybe some
+> NULL pointers invocations as well..
 
-I tested this patch series (plus the necessary dts changes) on a
-DRA7xx-EVM with the work in progress VIP driver which needs a crossbar
-mapping otherwise it won't get any interrupts (using 3.15-rc4 kernel).
-It boots cleanly and interrupts are firing for VIP, so everything
-working for me.
-
-Without this patch series I can't even get the DRA7xx EVM to boot with
-IRQ crossbar support enabled so this is a big improvement.
-
-Tested-by: Darren Etheridge <detheridge@ti.com>
-
-
->  drivers/irqchip/irq-crossbar.c |   82 ++++++++++++++++++++++++++++++++++++----
->  1 file changed, 74 insertions(+), 8 deletions(-)
-> 
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+we wont - rcu operations ensure that.
