@@ -1,43 +1,56 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 0/2] PM / OPP: move cpufreq specific helpers out of OPP layer
-Date: Mon, 5 May 2014 08:33:48 -0500
-Message-ID: <1399296830-13056-1-git-send-email-nm@ti.com>
+From: Darren Etheridge <detheridge@ti.com>
+Subject: Re: [PATCH 0/5] irqchip/dra7: crossbar bug fixes
+Date: Mon, 5 May 2014 13:10:52 -0500
+Message-ID: <20140505181052.GC2626@ti.com>
+References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49109 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932352AbaEENeU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 May 2014 09:34:20 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:54953 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751288AbaEESLz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 14:11:55 -0400
+Content-Disposition: inline
+In-Reply-To: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, cpufreq@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, tony@atomide.com
 
-CPUFreq usage of OPP should be independent of the ordering of type of
-data storage inside OPP layer. The current operations can equally be
-performed by generic operations.
+Sricharan R <r.sricharan@ti.com> wrote on Mon [2014-May-05 19:48:42 +0530]:
+> These are fixes for the crossbar to handle two interrupts getting
+> mapped twice to same crossbar and to skip some interrupts being used
+> due to hardware bugs.
+> 
+> Nishanth Menon (5):
+>   irqchip: crossbar: dont use '0' to mark reserved interrupts
+>   irqchip: crossbar: check for premapped crossbar before allocating
+>   irqchip: crossbar: Skip some irqs from getting mapped to crossbar
+>   irqchip: crossbar: Initialise the crossbar with a safe value
+>   irqchip: crossbar: Change allocation logic by reversing search for
+>     free irqs
+> 
+Looks good!
 
-[RFC]: https://patchwork.kernel.org/patch/4100811/
+I tested this patch series (plus the necessary dts changes) on a
+DRA7xx-EVM with the work in progress VIP driver which needs a crossbar
+mapping otherwise it won't get any interrupts (using 3.15-rc4 kernel).
+It boots cleanly and interrupts are firing for VIP, so everything
+working for me.
 
-Series based on: v3.15-rc1
+Without this patch series I can't even get the DRA7xx EVM to boot with
+IRQ crossbar support enabled so this is a big improvement.
 
-Nishanth Menon (2):
-  PM / OPP: Remove cpufreq wrapper dependency on internal data
-    organization
-  PM / OPP: Move cpufreq specific OPP functions out of generic OPP
-    library
+Tested-by: Darren Etheridge <detheridge@ti.com>
 
- Documentation/cpu-freq/core.txt |   29 +++++++++++
- Documentation/power/opp.txt     |   40 ++------------
- drivers/base/power/opp.c        |   91 --------------------------------
- drivers/cpufreq/Makefile        |    2 +
- drivers/cpufreq/cpufreq_opp.c   |  110 +++++++++++++++++++++++++++++++++++++++
- include/linux/cpufreq.h         |   21 ++++++++
- include/linux/pm_opp.h          |   20 -------
- 7 files changed, 167 insertions(+), 146 deletions(-)
- create mode 100644 drivers/cpufreq/cpufreq_opp.c
 
--- 
-1.7.9.5
-
+>  drivers/irqchip/irq-crossbar.c |   82 ++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 74 insertions(+), 8 deletions(-)
+> 
+> -- 
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
