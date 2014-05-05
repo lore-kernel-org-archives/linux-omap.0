@@ -1,37 +1,75 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH 2/2] PM / OPP: Move cpufreq specific OPP functions out of
- generic OPP library
-Date: Mon, 5 May 2014 20:05:44 +0530
-Message-ID: <CAKohpom0nq_v0wzaLtU4NxRxJwLgrUB1K8+9QtkanibeznEi4g@mail.gmail.com>
-References: <1399296830-13056-1-git-send-email-nm@ti.com>
-	<1399296830-13056-3-git-send-email-nm@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 5/6] ARM: AM43xx: clk: Change the cpts ref clock source
+ to dpll_core_m5 clk
+Date: Mon, 5 May 2014 15:22:01 +0300
+Message-ID: <53678269.2000306@ti.com>
+References: <1399012324-20737-1-git-send-email-george.cherian@ti.com> <1399012324-20737-6-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <1399296830-13056-3-git-send-email-nm@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Kevin Hilman <khilman@deeprootsystems.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1399012324-20737-6-git-send-email-george.cherian-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ast-uqk4Ao+rVK5Wk0Htik3J/w@public.gmane.org, tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org, mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org, zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, mugunthanvnm-l0cyMroinI0@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 5 May 2014 19:03, Nishanth Menon <nm@ti.com> wrote:
-> CPUFreq specific helper functions for OPP (Operating Performance Points)
-> now use generic OPP functions that allow CPUFreq to be be moved back
-> into CPUFreq framework. This allows for independent modifications
-> or future enhancements as needed isolated to just CPUFreq framework
-> alone.
+On 05/02/2014 09:32 AM, George Cherian wrote:
+> cpsw_cpts_rft_clk has got the choice of 3 clocksources
+>   -dpll_core_m4_ck
+>   -dpll_core_m5_ck
+>   -dpll_disp_m2_ck
 >
-> Here, we just move relevant code and documentation to make this part of
-> CPUFreq infrastructure.
+> By default dpll_core_m4_ck is selected, witn this as clock
+> source the CPTS doesnot work properly. It gives clockcheck errors
+> while running PTP.
 >
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Viresh Kumar <viresh.kumar@linaro.org>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: cpufreq@vger.kernel.org
-> Cc: linux-samsung-soc@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
+>   clockcheck: clock jumped backward or running slower than expected!
+>
+> By selecting dpll_core_m5_ck as the clocksource fixes this issue.
+> In AM335x dpll_core_m5_ck is the default clocksource.
+>
+> Signed-off-by: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
 
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+Acked-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+
+> ---
+>   drivers/clk/ti/clk-43xx.c | 16 ++++++++++++++++
+>   1 file changed, 16 insertions(+)
+>
+> diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
+> index 67c8de5..b4877e0 100644
+> --- a/drivers/clk/ti/clk-43xx.c
+> +++ b/drivers/clk/ti/clk-43xx.c
+> @@ -110,9 +110,25 @@ static struct ti_dt_clk am43xx_clks[] = {
+>
+>   int __init am43xx_dt_clk_init(void)
+>   {
+> +	struct clk *clk1, *clk2;
+> +
+>   	ti_dt_clocks_register(am43xx_clks);
+>
+>   	omap2_clk_disable_autoidle_all();
+>
+> +	/*
+> +	 * cpsw_cpts_rft_clk  has got the choice of 3 clocksources
+> +	 * dpll_core_m4_ck, dpll_core_m5_ck and dpll_disp_m2_ck.
+> +	 * By default dpll_core_m4_ck is selected, witn this as clock
+> +	 * source the CPTS doesnot work properly. It gives clockcheck errors
+> +	 * while running PTP.
+> +	 * clockcheck: clock jumped backward or running slower than expected!
+> +	 * By selecting dpll_core_m5_ck as the clocksource fixes this issue.
+> +	 * In AM335x dpll_core_m5_ck is the default clocksource.
+> +	 */
+> +	clk1 = clk_get_sys(NULL, "cpsw_cpts_rft_clk");
+> +	clk2 = clk_get_sys(NULL, "dpll_core_m5_ck");
+> +	clk_set_parent(clk1, clk2);
+> +
+>   	return 0;
+>   }
+>
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
