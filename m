@@ -1,78 +1,63 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCHv3 1/5] Input: add common DT binding for touchscreens
-Date: Mon, 5 May 2014 12:51:39 -0700
-Message-ID: <20140505195139.GA26978@core.coreip.homeip.net>
-References: <1398470179-20880-1-git-send-email-sre@kernel.org>
- <1398470179-20880-2-git-send-email-sre@kernel.org>
- <20140505194125.GD25949@atomide.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 3/7] ARM: dts: omap4+: Add clocks to USB2 PHY node
+Date: Mon, 5 May 2014 12:54:42 +0300
+Message-ID: <1399283686-6127-4-git-send-email-rogerq@ti.com>
+References: <1399283686-6127-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140505194125.GD25949@atomide.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Sebastian Reichel <sre@ring0.de>, linux-input@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1399283686-6127-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: george.cherian-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 05, 2014 at 12:41:26PM -0700, Tony Lindgren wrote:
-> * Sebastian Reichel <sre@kernel.org> [140425 16:56]:
-> > Add common DT binding documentation for touchscreen devices and
-> > implement input_parse_touchscreen_of_params, which parses the common
-> > properties and configures the input device accordingly.
-> > 
-> > The method currently does not interpret the axis inversion properties,
-> > since there is no matching flag in the generic linux input device.
-> > 
-> > Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> > ---
-> >  .../bindings/input/touchscreen/touchscreen.txt     | 27 +++++++++++++++++
-> >  drivers/input/input.c                              | 34 ++++++++++++++++++++++
-> >  include/linux/input.h                              |  8 +++++
-> >  3 files changed, 69 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-> > 
-> > diff --git a/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt b/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-> > new file mode 100644
-> > index 0000000..d8e0616
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-> > @@ -0,0 +1,27 @@
-> > +General Touchscreen Properties:
-> > +
-> > +Optional properties for Touchscreens:
-> > + - touchscreen-size-x		: horizontal resolution of touchscreen
-> > +				  (in pixels)
-> > + - touchscreen-size-y		: vertical resolution of touchscreen
-> > +				  (in pixels)
-> > + - touchscreen-max-pressure	: maximum reported pressure (arbitrary range
-> > +				  dependent on the controller)
-> > + - touchscreen-fuzz-x		: horizontal noise value of the absolute input
-> > +				  device (in pixels)
-> > + - touchscreen-fuzz-y		: vertical noise value of the absolute input
-> > +				  device (in pixels)
-> > + - touchscreen-fuzz-pressure	: pressure noise value of the absolute input
-> > +				  device (arbitrary range dependent on the
-> > +				  controller)
+The USB2 PHY driver expects named clocks for wakeup clock
+and reference clock. Provide this information for USB2 PHY
+nodes in OMAP4 and OMAP5 SoC DTS.
 
-Fuzz seems like linux-specific property, not generic one.
+CC: Beno=C3=AEt Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/omap4.dtsi | 2 ++
+ arch/arm/boot/dts/omap5.dtsi | 2 ++
+ 2 files changed, 4 insertions(+)
 
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dts=
+i
+index 649b5cd..f866de9 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -642,6 +642,8 @@
+ 				compatible =3D "ti,omap-usb2";
+ 				reg =3D <0x4a0ad080 0x58>;
+ 				ctrl-module =3D <&omap_control_usb2phy>;
++				clocks =3D <&usb_phy_cm_clk32k>;
++				clock-names =3D "wkupclk";
+ 				#phy-cells =3D <0>;
+ 			};
+ 		};
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dts=
+i
+index f8c9855..47b714c 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -803,6 +803,8 @@
+ 				compatible =3D "ti,omap-usb2";
+ 				reg =3D <0x4a084000 0x7c>;
+ 				ctrl-module =3D <&omap_control_usb2phy>;
++				clocks =3D <&usb_phy_cm_clk32k>, <&usb_otg_ss_refclk960m>;
++				clock-names =3D "wkupclk", "refclk";
+ 				#phy-cells =3D <0>;
+ 			};
+=20
+--=20
+1.8.3.2
 
-> > + - touchscreen-inverted-x	: X axis is inverted (boolean)
-> > + - touchscreen-inverted-y	: Y axis is inverted (boolean)
-> 
-> We probably also need something to swap x and y depending on the
-> display orientation in addition to the touchscreen-inverted-x and y.
-> Just swapping x and y is not enough depending if we rotate by 270
-> degrees instead of 90 degrees.
-> 
-> Naturally that part can be added later.
-
-So far we've been relying on upper layers (such as tslib) to perform
-such transformations rather than re-implementing it in every driver. Are
-we saying that we need to implement this in input core?
-
-Thanks.
-
--- 
-Dmitry
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
