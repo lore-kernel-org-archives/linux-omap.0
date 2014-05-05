@@ -1,33 +1,87 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH v2 0/6] Add CPTS support for AM437x
-Date: Sun, 4 May 2014 18:24:22 +0200
-Message-ID: <20140504162422.GA28908@netboy>
-References: <1399012324-20737-1-git-send-email-george.cherian@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 3/7] phy: omap-usb2: Use generic clock names "wkupclk"
+ and "refclk"
+Date: Mon, 5 May 2014 10:23:25 +0300
+Message-ID: <53673C6D.5060400@ti.com>
+References: <1398693687-13967-1-git-send-email-rogerq@ti.com>	<1398693687-13967-4-git-send-email-rogerq@ti.com>	<20140428160347.GG30292@saruman.home>	<535F59CF.6050002@ti.com>	<20140429161420.GH633@saruman.home>	<20140429161616.GI633@saruman.home> <CAGo_u6oAJZvUBvOWMtkn8pEXO1Q=A+CrQ1kcWGWLobFza65sbA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1399012324-20737-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, davem@davemloft.net, jeffrey.t.kirsher@intel.com, dborkman@redhat.com, ast@plumgrid.com, tklauser@distanz.ch, mpa@pengutronix.de, bhutchings@solarflare.com, zonque@gmail.com, balbi@ti.com, mugunthanvnm@ti.com, t-kristo@ti.com, mturquette@linaro.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, bcousson@baylibre.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33450 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754637AbaEEHXa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 May 2014 03:23:30 -0400
+In-Reply-To: <CAGo_u6oAJZvUBvOWMtkn8pEXO1Q=A+CrQ1kcWGWLobFza65sbA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, "Balbi, Felipe" <balbi@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, george.cherian@ti.com, linux-omap <linux-omap@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, linux-usb@vger.kernel.org
 
-On Fri, May 02, 2014 at 12:01:58PM +0530, George Cherian wrote:
-> The series adds CPTS support for AM4372.
+On 04/30/2014 06:20 PM, Nishanth Menon wrote:
+> On Tue, Apr 29, 2014 at 11:16 AM, Felipe Balbi <balbi@ti.com> wrote:
+>> On Tue, Apr 29, 2014 at 11:14:20AM -0500, Felipe Balbi wrote:
+>>> On Tue, Apr 29, 2014 at 10:50:39AM +0300, Roger Quadros wrote:
+>>>> +Nishant
+>>>>
+>>>> Hi,
+>>>>
+>>>> On 04/28/2014 07:03 PM, Felipe Balbi wrote:
+>>>>> Hi,
+>>>>>
+>>>>> On Mon, Apr 28, 2014 at 05:01:23PM +0300, Roger Quadros wrote:
+>>>>>> As clocks might be named differently on multiple platforms, use a generic
+>>>>>> name in the driver and allow device tree node to specify the platform
+>>>>>> specific clock name.
+>>>>>>
+>>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>>>> ---
+>>>>>>  drivers/phy/phy-omap-usb2.c | 8 ++++----
+>>>>>>  1 file changed, 4 insertions(+), 4 deletions(-)
+>>>>>>
+>>>>>> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
+>>>>>> index a2205a8..fb5e515 100644
+>>>>>> --- a/drivers/phy/phy-omap-usb2.c
+>>>>>> +++ b/drivers/phy/phy-omap-usb2.c
+>>>>>> @@ -275,16 +275,16 @@ static int omap_usb2_probe(struct platform_device *pdev)
+>>>>>>          if (IS_ERR(phy_provider))
+>>>>>>                  return PTR_ERR(phy_provider);
+>>>>>>
+>>>>>> -        phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
+>>>>>> +        phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
+>>>>>
+>>>>> doesn't this patch cause a regression ? I mean, you're changing the
+>>>>> clock name before fixing DTS. Also, that DTS has been in a major version
+>>>>> of the kernel, so we need to maintain compatibility with it. How about:
+>>>>
+>>>> I'm changing the DTS in Patch 4, but I prefer to do it in this patch
+>>>> to prevent synchronization issues in -next.
+>>>>
+>>>> About backward compatibility, I agree with you but at the same time I
+>>>> don't think anyone using TI SoCs burns the DTB to ROM and needs
+>>>> backward compatibility. We supply our BSPs/SDKs with the updated DTBs.
+>>>> Do you feel strict backward compatibility is worth the effort for TI
+>>>> specific blocks?
+>>>
+>>> dunno, but it would, at least, avoid "synchronization issues with
+>>> linux-next" :-)
+>>
+>> and the bisectability issue.
 > 
-> Patch 1 - DT changes w.r.t clock changes for AM33xx.
-> Patch 2 - CPTS clock name harcoding in the driver is removed. 
-> 	  Easier to pass the clock name from dt rather than hardcoding in driver.
-> 	  Also in prepration for DRA7x CPTS support.
-> Patch 3 - Enable the CPTS support for both DRA7x and AM4372 in the driver.
-> Patch 4 - Enable the Annexe F for L2 PTP for AM437x and DRA7x.
-> Patch 5 - Change the default clocksource to dpll_core_m5 
-> Patch 6 - DT changes for AM4372.
-> 
-> 
-> v1 -> v2
-> 	Patch 1 and 2 Re-ordering.
-> 	Seperate TS_BITS define for Hw version V2 and V3
+> I agree - we cannot drop backward compatibility for DTBs
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=2a9330010bea5982a5c6593824bc036bf62d67b7
 
-Acked-by: Richard Cochran <richardcochran@gmail.com>
+That says backward compatibility for stable bindings.
+In this case, the binding that I changed doesn't even exist in Documentation/devicetree/bindings,
+so it never was a stable binding. 
+
+> "
+> +
+> + 3) Bindings can be augmented, but the driver shouldn't break when given
+> + the old binding. ie. add additional properties, but don't change the
+> + meaning of an existing property. For drivers, default to the original
+> + behaviour when a newly added property is missing.
+> "
+
+cheers,
+-roger
