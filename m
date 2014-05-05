@@ -1,46 +1,37 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] somewhat urgent omap fixes against v3.15-rc1, fixes
- gpmc
-Date: Sun, 4 May 2014 22:21:08 -0700
-Message-ID: <20140505052108.GC16022@quad.lixom.net>
-References: <20140425203047.GG20807@atomide.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH 1/2] PM / OPP: Remove cpufreq wrapper dependency on
+ internal data organization
+Date: Mon, 5 May 2014 20:10:00 +0530
+Message-ID: <CAKohponPGO511A--_sh5LYM6txgv5LTEy+n4RpshC8WH1CyEgw@mail.gmail.com>
+References: <1399296830-13056-1-git-send-email-nm@ti.com>
+	<1399296830-13056-2-git-send-email-nm@ti.com>
+	<CAKohpomeP3Ftx8mH=x0Hj7HEpw6A9X8O8JEFqvrJbkZYDqDS6Q@mail.gmail.com>
+	<CAGo_u6pcEKDiAqvJW66_p7M7D0noFj6o9Rw5_d8Af3NMBhHA=g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:39835 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754345AbaEEFVE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 01:21:04 -0400
-Received: by mail-pd0-f178.google.com with SMTP id r10so3935311pdi.23
-        for <linux-omap@vger.kernel.org>; Sun, 04 May 2014 22:21:03 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140425203047.GG20807@atomide.com>
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:63353 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932836AbaEEOkA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 10:40:00 -0400
+Received: by mail-ob0-f171.google.com with SMTP id wn1so3736621obc.2
+        for <linux-omap@vger.kernel.org>; Mon, 05 May 2014 07:40:00 -0700 (PDT)
+In-Reply-To: <CAGo_u6pcEKDiAqvJW66_p7M7D0noFj6o9Rw5_d8Af3NMBhHA=g@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Kevin Hilman <khilman@deeprootsystems.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, Apr 25, 2014 at 01:30:48PM -0700, Tony Lindgren wrote:
-> The following changes since commit fb677ef70b65e22cd4401d31b700a8b4041efae1:
-> 
->   ARM: OMAP2+: Fix GPMC remap for devices using an offset (2014-04-23 11:09:22 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/fixes-gpmc
-> 
-> for you to fetch changes up to 4c05160342f16361fc37ae34dcae9210306a83e9:
-> 
->   ARM: dts: AM3517: Disable absent IPs inherited from OMAP3 (2014-04-25 09:55:00 -0700)
-> 
-> ----------------------------------------------------------------
-> Mostly fixes for occasional memory corruption caused by bad
-> timings for smc911x LAN9220 (and potentially LAN9221) devices
-> that were noted on a cm-t3730 system. Also fix THUMB mode
-> for SMP, and mailbox related warnings when booted with device
-> tree.
+On 5 May 2014 19:55, Nishanth Menon <nm@ti.com> wrote:
+> On Mon, May 5, 2014 at 9:23 AM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
+>>
+>>
+>> What if opp is being added for some reason at the same time?
+>> I hope we can surely see some awkward results, maybe some
+>> NULL pointers invocations as well..
+>
+> we wont - rcu operations ensure that.
 
-Merged into fixes.
+Stupid !!
 
-
--Olof
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
