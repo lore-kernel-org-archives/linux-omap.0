@@ -1,77 +1,63 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv5 RFC 08/15] hwspinlock/core: add support for base id
- in DT
-Date: Mon, 5 May 2014 16:37:52 -0500
-Message-ID: <536804B0.6050707@ti.com>
-References: <1398904476-26200-1-git-send-email-s-anna@ti.com>	<1398904476-26200-9-git-send-email-s-anna@ti.com> <CAL_JsqJW1pqUjQ3DQrppO5n=MmpFOhCyU2zkSzA9s9TpYbq3CA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ARM: dts: OMAP5: add pmu node
+Date: Mon, 5 May 2014 12:56:38 -0700
+Message-ID: <20140505195638.GG25949@atomide.com>
+References: <1395243953-11856-1-git-send-email-nathan_lynch@mentor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL_JsqJW1pqUjQ3DQrppO5n=MmpFOhCyU2zkSzA9s9TpYbq3CA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64215 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752075AbaEET4n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 15:56:43 -0400
+Content-Disposition: inline
+In-Reply-To: <1395243953-11856-1-git-send-email-nathan_lynch@mentor.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nathan Lynch <nathan_lynch@mentor.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, bcousson@baylibre.com
 
-Hi Rob,
-
-On 05/05/2014 03:37 PM, Rob Herring wrote:
-> On Wed, Apr 30, 2014 at 7:34 PM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
->> The HwSpinlock core requires a base id for registering a bank
->> of hwspinlocks. This base id needs to be unique across multiple
->> IP instances of a hwspinlock device, so that each hwlock can be
->> represented uniquely in a system.
->>
->> Support has been added to represent this in DT through a common
->> property 'hwlock-base-id', and retrieve the value through a core
->> OF helper function, of_hwspin_lock_get_base_id(). The representation
->> in DT provides a uniform way of assigning a fixed base value for a
->> hwspinlock device across different SoCs.
->>
->> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
->> ---
->>  Documentation/devicetree/bindings/hwlock/hwlock.txt |  6 ++++++
->>  drivers/hwspinlock/hwspinlock_core.c                | 21 +++++++++++++++++++++
->>  include/linux/hwspinlock.h                          |  1 +
->>  3 files changed, 28 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/hwlock/hwlock.txt b/Documentation/devicetree/bindings/hwlock/hwlock.txt
->> index 32381cc..d538a9b 100644
->> --- a/Documentation/devicetree/bindings/hwlock/hwlock.txt
->> +++ b/Documentation/devicetree/bindings/hwlock/hwlock.txt
->> @@ -18,6 +18,12 @@ Common properties:
->>                         property is needed on hwlock devices, where the number
->>                         of supported locks within a hwlock device cannot be
->>                         read from a register.
->> +- hwlock-base-id:      An unique base Id for the locks for a particular hwlock
->> +                       device. This property is mandatory ONLY if a SoC has
->> +                       several hwlock devices.
->> +
->> +                       See documentation on struct hwspinlock_pdata in
->> +                       include/linux/hwspinlock.h for more details.
+* Nathan Lynch <nathan_lynch@mentor.com> [140319 08:50]:
+> Expose the PMU on OMAP5.
 > 
-> The documentation cannot refer to kernel files. 
-
-OK, good to know. There are couple of such existing references, so
-didn't think it was an issue. I will fold this patch and remove the
-kernel reference if this property is ok to add.
-
-> Generally, creating a
-> global number space like this would not be accepted, but I don't
-> really have any better idea here.
+> Tested with perf on OMAP5 uEVM.
 > 
-> Please put all binding docs in 1 patch and copy all the DT binding maintainers.
+> Signed-off-by: Nathan Lynch <nathan_lynch@mentor.com>
 
-I have deliberately put these in separate patches (as RFC) as there
-doesn't seem to be a consensus on this. I had added this originally,
-dropped it and brought it back again based on discussion on the previous
-version. Intention was either to fold into the original patch if
-accepted or drop them and revisit later.
+Applying into omap-for-v3.16/dt thanks.
 
-regards
-Suman
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
+
+> ---
+> 
+> Changes since v1:
+> - Use symbolic constants.
+> 
+>  arch/arm/boot/dts/omap5.dtsi | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index a72813a9663e..ccb38944c85a 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -76,6 +76,12 @@
+>  			     <GIC_PPI 10 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>;
+>  	};
+>  
+> +	pmu {
+> +		compatible = "arm,cortex-a15-pmu";
+> +		interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>,
+> +			     <GIC_SPI 132 IRQ_TYPE_LEVEL_HIGH>;
+> +	};
+> +
+>  	gic: interrupt-controller@48211000 {
+>  		compatible = "arm,cortex-a15-gic";
+>  		interrupt-controller;
+> -- 
+> 1.8.3.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
