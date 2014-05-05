@@ -1,53 +1,32 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/4] Support for Variscite OM44 modules and boards
-Date: Mon, 5 May 2014 17:15:30 -0700
-Message-ID: <20140506001530.GL25949@atomide.com>
-References: <1398971269-20515-1-git-send-email-manabian@gmail.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 3.14 012/158] ARM: dts: am33xx: correcting dt node unit
+ address for usb
+Date: Mon, 5 May 2014 13:47:11 -0700
+Message-ID: <20140505204711.GC18222@kroah.com>
+References: <20140504154029.975081050@linuxfoundation.org>
+ <20140504154031.690140742@linuxfoundation.org>
+ <20140505083757.GB30739@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52156 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932509AbaEFAPh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 20:15:37 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1398971269-20515-1-git-send-email-manabian@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20140505083757.GB30739@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johan Hovold <jhovold@gmail.com>
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>, Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Leigh Brown <leigh@solinno.co.uk>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joachim Eastwood <manabian@gmail.com>
-Cc: bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 
-* Joachim Eastwood <manabian@gmail.com> [140501 12:08]:
-> Hello,
+On Mon, May 05, 2014 at 10:37:57AM +0200, Johan Hovold wrote:
+> On Sun, May 04, 2014 at 11:38:41AM -0400, Greg Kroah-Hartman wrote:
+> > 3.14-stable review patch.  If anyone has any objections, please let me know.
 > 
-> This patch set adds support for Variscite OM44 series of system on modules and boards.
+> This one should not be backported without commit
 > 
-> There weren't many comments on v1 of this patch set so I hope this can make it into 3.16.
-> Changes since v2:
->  * Use OMAP IOPAD macros
+> 	a2f8d6b30321 ("ARM: dts: am335x: update USB DT references")
 > 
-> Patch 1: Add support for the SoM itself and the reference carrier board. Together these make the VAR-STK-OM44 dev kit.
-> Patch 2: Add support for VAR-DVK-OM44 which is just the STK with a LCD display.
-> Patch 3: Nodes for WLAN/BT support.
-> Patch 4: Add quirks so that WLAN can be used. Still waiting for proper DT bindings.
-> 
-> Since this patch set now uses the IOPAD macros a fix from Tony is need.
-> See: https://patchwork.kernel.org/patch/4025421/
+> which is in Linus' tree but is not marked for stable (or USB will be
+> disabled for the boards relying on the old node addresses).
 
-Just noted that the macro won't work while was about to
-apply these, sorry. So we're back to either using the
-existing OMAP4_WKUP_IOPAD or raw offset from the padconf
-area unless you have some great macro ideas.
- 
-> Note that patch 1 relies upon a patch from Tomi Valkeinen add hpd-gpio (hotplug detect) to the "hdmi-connector".
-> See: http://marc.info/?l=linux-omap&m=139771947508021&w=2
-> 
-> Patch 2 also relies upon a patch from Tomi that adds DT support to panel-dpi.
-> See: http://marc.info/?l=devicetree&m=139030201815380&w=2
+Thanks for letting me know, I've now applied that patch as well.
 
-Maybe also leave out the DSS changes until Tomi has confirmed
-those?
-
-Regards,
-
-Tony
+greg k-h
