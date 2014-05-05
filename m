@@ -1,138 +1,34 @@
-From: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
-Subject: [RFC] [v2 Patch 2/6] ARM: TI: Describe the ti reset DT entries
-Date: Mon, 5 May 2014 15:09:23 -0500
-Message-ID: <1399320567-3639-3-git-send-email-dmurphy@ti.com>
-References: <1399320567-3639-1-git-send-email-dmurphy@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V4 0/3] ARM: DTS: DRA7: Updates for adding crossbar device
+Date: Mon, 5 May 2014 09:55:48 -0500
+Message-ID: <5367A674.5060507@ti.com>
+References: <1384431928-2328-1-git-send-email-r.sricharan@ti.com> <52C1197A.5010701@ti.com> <5367A216.2090303@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1399320567-3639-1-git-send-email-dmurphy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5367A216.2090303@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-Describe the TI reset DT entries for TI SoC's.
+On 05/05/2014 09:37 AM, Sricharan R wrote:
+[..]
+> I have pushed the below branch for the crossbar-dts data rebased on 3.15-rc4
+> 
+> git@github.com:Sricharanti/sricharan.git
+> branch: crossbar_dts_3.15_rc4
+> 
+> These patches are dependent on the crossbar driver fixes sent below.
+> 
+> http://marc.info/?l=linux-omap&m=139929963420299&w=2
+> 
 
-Signed-off-by: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
----
- .../devicetree/bindings/reset/ti,reset.txt         |  103 ++++++++++++++++++++
- 1 file changed, 103 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/reset/ti,reset.txt
+I suggest reposting the DTS patches if there has been any changes
+since the last revision posted.
 
-diff --git a/Documentation/devicetree/bindings/reset/ti,reset.txt b/Documentation/devicetree/bindings/reset/ti,reset.txt
-new file mode 100644
-index 0000000..9d5c29c
---- /dev/null
-+++ b/Documentation/devicetree/bindings/reset/ti,reset.txt
-@@ -0,0 +1,103 @@
-+Texas Instruments Reset Controller
-+======================================
-+Please also refer to reset.txt in this directory for common reset
-+controller binding usage.
-+
-+Specifying the reset entries for the IP module
-+==============================================
-+Parent module:
-+This is the module node that contains the reset registers and bits.
-+
-+example:
-+			prcm_resets: resets {
-+				compatible = "ti,dra7-resets";
-+				#reset-cells = <1>;
-+			};
-+
-+Required parent properties:
-+- compatible : Should be one of,
-+		"ti,omap4-prm" for OMAP4 PRM instances
-+		"ti,omap5-prm" for OMAP5 PRM instances
-+		"ti,dra7-prm" for DRA7xx PRM instances
-+		"ti,am4-prcm" for AM43xx PRCM instances
-+		"ti,am3-prcm" for AM33xx PRCM instances
-+
-+Required child reset property:
-+- compatible : Should be
-+		"resets" for All TI SoCs
-+
-+example:
-+		prm: prm@4ae06000 {
-+			compatible = "ti,omap5-prm";
-+			reg = <0x4ae06000 0x3000>;
-+
-+			prm_resets: resets {
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				#reset-cells = <1>;
-+			};
-+		};
-+
-+
-+Reset node declaration
-+==============================================
-+The reset node is declared in a parent child relationship.  The main parent
-+is the PRCM module which contains the base address.  The first child within
-+the reset parent declares the target modules reset name.  This is followed by
-+the control and status offsets.
-+
-+Within the first reset child node is a secondary child node which declares the
-+reset signal of interest.  Under this node the control and status bits
-+are declared.  These bits declare the bit mask for the target reset.
-+
-+
-+Required properties:
-+reg - This is the register offset from the PRCM parent.
-+	This must be declared as:
-+
-+	reg = <control register offset>,
-+		  <status register offset>;
-+
-+control-bit - This is the bit within the register which controls the reset
-+	of the target module.  This is declared as a bit mask for the register.
-+status-bit - This is the bit within the register which contains the status of
-+	the reset of the target module.
-+	This is declared as a bit mask for the register.
-+
-+example:
-+&prm_resets {
-+	dsp_rstctrl {
-+		reg = <0x1c00>,
-+			  <0x1c04>;
-+
-+		dsp_reset: dsp_reset {
-+			control-bit = <0x01>;
-+			status-bit = <0x01>;
-+		};
-+	};
-+};
-+
-+
-+
-+Client Node Declaration
-+==============================================
-+This is the consumer of the parent node to declare what resets this
-+particular module is interested in.
-+
-+example:
-+	src: src@55082000 {
-+		    resets = <&reset_src phandle>;
-+			reset-names = "<reset_name>";
-+	};
-+
-+Required Properties:
-+reset_src - This is the parent DT entry for the reset controller
-+phandle - This is the phandle of the specific reset to be used by the clien
-+	driver.
-+reset-names - This is the reset name of module that the device driver
-+	needs to be able to reset.  This value must correspond to a value within
-+	the reset controller array.
-+
-+example:
-+resets = <&prm_resets &dsp_mmu_reset>;
-+reset-names = "dsp_mmu_reset";
+
 -- 
-1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Nishanth Menon
