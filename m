@@ -1,69 +1,69 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v5 0/5] Add USB nodes for am43xx epos and gp evm
-Date: Mon, 5 May 2014 12:23:47 -0700
-Message-ID: <20140505192346.GC15463@atomide.com>
-References: <1395223803-4714-1-git-send-email-george.cherian@ti.com>
- <20140425161912.GY29632@saruman.home>
- <536745F6.9080402@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCHv3 00/14] OMAP SSI driver / N900 modem support
+Date: Tue, 6 May 2014 00:41:44 +0200
+Message-ID: <20140505224143.GB6261@earth.universe>
+References: <1396053110-21639-1-git-send-email-sre@kernel.org>
+ <20140505193129.GC25949@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="s/l3CgOIzMHHjg/5"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.19.201]:55290 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756775AbaEEWlt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 May 2014 18:41:49 -0400
 Content-Disposition: inline
-In-Reply-To: <536745F6.9080402-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBg9hUCZPvPmw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, anatol.pomozov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+In-Reply-To: <20140505193129.GC25949@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-* George Cherian <george.cherian-l0cyMroinI0@public.gmane.org> [140505 01:04]:
-> Hi Benoit,
-> 
-> On 4/25/2014 9:49 PM, Felipe Balbi wrote:
-> >On Wed, Mar 19, 2014 at 03:39:58PM +0530, George Cherian wrote:
-> >>The patch series adds USB dt nodes for am43xx epos and gp evm
-> >>Boot tested with linux-next + Tony's omap-for-v3.15/dt
-> >>
-> >>Changes from v1 -> v2
-> >>	* Reorder "doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue"
-> >>	* Address v1 coments on "ARM: dts: AM4372: Add USB nodes"
-> >>
-> >>Changes from v2 -> v3
-> >>	* Removed unwanted dwc3_1 and dwc3_2 nodes from am437x-gp-evm.dts
-> >>	  and am43x-epos-evm.dts
-> >>
-> >>Changes from v3 -> v4
-> >>	* Refreshed on top of Tony's omap-for-v3.15/dt tree
-> >>	* Added usb_phy0_always_on_clk32k and usb_phy1_always_on_clk32k Patch 2
-> >>	* Used the above clocks in Patch 3
-> >>	* Patch 4 and 5 edited the unwanted portions of commit log
-> >>
-> >>Changes from v4 -> v5
-> >>	* Address Roger's comment for the clock data
-> >>
-> >>George Cherian (5):
-> >>   doc: Add "ti,am437x-dwc3" comaptible for dwc3 glue
-> >>   ARM: dts: am43xx clock data
-> >>   ARM: dts: AM4372: Add USB nodes
-> >>   ARM: dts: am437x-gp-evm: Enable USB
-> >>   ARM: dts: am43x-epos-evm: Enable USB
-> >>
-> >>  Documentation/devicetree/bindings/usb/omap-usb.txt |  4 +-
-> >>  arch/arm/boot/dts/am4372.dtsi                      | 94 ++++++++++++++++++++++
-> >>  arch/arm/boot/dts/am437x-gp-evm.dts                | 18 +++++
-> >>  arch/arm/boot/dts/am43x-epos-evm.dts               | 18 +++++
-> >>  arch/arm/boot/dts/am43xx-clocks.dtsi               | 32 ++++++++
-> >>  5 files changed, 165 insertions(+), 1 deletion(-)
-> >Is this applied anywhere yet ? Benoit, are you taking this for v3.16
-> >merge window ?
-> >
-> Ping on this series.
 
-Applying these into omap-for-v3.16/dt as I'm applying patches today.
+--s/l3CgOIzMHHjg/5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+On Mon, May 05, 2014 at 12:31:30PM -0700, Tony Lindgren wrote:
+> * Sebastian Reichel <sre@kernel.org> [140328 17:36]:
+> > Please send feedback (e.g. Tested-By or Reviewed-By :)), so that I can
+> > send a pull request for 3.16. You can either apply this patchset or
+> > use the n900-modem-support branch available on [1].
+>=20
+> Sebastian, can you please do a separate pull request for the .dts
+> changes for me once the driver changes are pulled? Otherwise we
+> will be creating pointless merge conflicts.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That was my intention from the beginning. I only added those patches
+here to make reviewing the other patches easier.
+
+I'm still missing a reviewed by for the most important patches (ssi
+driver, modem protocol driver), though. Can somebody at least test
+the patches and provide a Tested-By?
+
+-- Sebastian
+
+--s/l3CgOIzMHHjg/5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJTaBOnAAoJENju1/PIO/qaxgIQAJWby+pGWyAjQqTTTjQHwavW
+3zN0ce5kBeKkxdfFurz/zPxxbZ7FNXd9TdbVEQJuTz/4CkPpxX6jyMYoSdATj/sh
+ZIhqfUlzg2fUz4ozKpT0hGIaVHJ9SDJ0HD9Cm1P+5GfelpuqNZ2pjMVyVyywYLtw
+kFAvd+BrwPHmou6Dx6p+6jYsjjPS6NXN6r14pkO3bXsD4HhI7oFuKUHiQGEtUJqw
+jIt92AE/QfsMojfueKyCI130d1nCKyguJLGonpNXMUzrViW8Y68fPRrkjUjPFTjM
+uUmQldOZyUolmVp8b3wpbfRoDlmpqD7z0XD0oLA+aG4l8bPPoOXLj4zPqrdxAjwT
+3bUBUI8I2nAzfeGZR38HSCIxB3En7RHcCAVh3sIagUpQoWQ9I4vnJk8JjZeCV7EV
+FSr5bCQ7JzC3Cq5PMlKCY1+1sigMyeWkunEq0BcqsQFLqh8px7iTQrJKfojK+uuu
+48lwcyhFs10HFtfwP2e+EJjFcwSPuItqJLmwzBEtEy48kkP6Y9GHh7c09MKmBpZm
+/R1oRUNBpknLIjRmfCXWmQWyQ5JqqNAX9eqJJ1yTk9dgGMrdvkBOkzeb1zErUiau
+9R8EJIJo2LnZScIJzAn/D1AYNkVolb1iPQmuZI9c+xN0Pcw7N7S03zCkWAnkAAOV
+f9RPaZdqBteQrrBRSsV9
+=eAOQ
+-----END PGP SIGNATURE-----
+
+--s/l3CgOIzMHHjg/5--
