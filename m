@@ -1,54 +1,43 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 2/7] phy: omap-usb2: Add clock names to Documentation binding
-Date: Mon, 5 May 2014 12:54:41 +0300
-Message-ID: <1399283686-6127-3-git-send-email-rogerq@ti.com>
-References: <1399283686-6127-1-git-send-email-rogerq@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 0/2] PM / OPP: move cpufreq specific helpers out of OPP layer
+Date: Mon, 5 May 2014 08:33:48 -0500
+Message-ID: <1399296830-13056-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57430 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49109 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756010AbaEEJzA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 May 2014 05:55:00 -0400
-In-Reply-To: <1399283686-6127-1-git-send-email-rogerq@ti.com>
+	id S932352AbaEENeU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 May 2014 09:34:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kishon@ti.com, tony@atomide.com, balbi@ti.com, bcousson@baylibre.com
-Cc: george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, cpufreq@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-Add "wkupclk" and "refclk" information to DT binding information.
+CPUFreq usage of OPP should be independent of the ordering of type of
+data storage inside OPP layer. The current operations can equally be
+performed by generic operations.
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- Documentation/devicetree/bindings/phy/ti-phy.txt | 7 +++++++
- 1 file changed, 7 insertions(+)
+[RFC]: https://patchwork.kernel.org/patch/4100811/
 
-diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-index 788fb0f..9ce458f 100644
---- a/Documentation/devicetree/bindings/phy/ti-phy.txt
-+++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-@@ -32,6 +32,11 @@ Required properties:
-  - reg : Address and length of the register set for the device.
-  - #phy-cells: determine the number of cells that should be given in the
-    phandle while referencing this phy.
-+ - clocks: a list of phandles and clock-specifier pairs, one for each entry in
-+   clock-names.
-+ - clock-names: should include:
-+   * "wkupclk" - wakeup clock.
-+   * "refclk" - reference clock (optional).
- 
- Optional properties:
-  - ctrl-module : phandle of the control module used by PHY driver to power on
-@@ -44,6 +49,8 @@ usb2phy@4a0ad080 {
- 	reg = <0x4a0ad080 0x58>;
- 	ctrl-module = <&omap_control_usb>;
- 	#phy-cells = <0>;
-+	clocks = <&usb_phy_cm_clk32k>, <&usb_otg_ss_refclk960m>;
-+	clock-names = "wkupclk", "refclk";
- };
- 
- TI PIPE3 PHY
+Series based on: v3.15-rc1
+
+Nishanth Menon (2):
+  PM / OPP: Remove cpufreq wrapper dependency on internal data
+    organization
+  PM / OPP: Move cpufreq specific OPP functions out of generic OPP
+    library
+
+ Documentation/cpu-freq/core.txt |   29 +++++++++++
+ Documentation/power/opp.txt     |   40 ++------------
+ drivers/base/power/opp.c        |   91 --------------------------------
+ drivers/cpufreq/Makefile        |    2 +
+ drivers/cpufreq/cpufreq_opp.c   |  110 +++++++++++++++++++++++++++++++++++++++
+ include/linux/cpufreq.h         |   21 ++++++++
+ include/linux/pm_opp.h          |   20 -------
+ 7 files changed, 167 insertions(+), 146 deletions(-)
+ create mode 100644 drivers/cpufreq/cpufreq_opp.c
+
 -- 
-1.8.3.2
+1.7.9.5
 
