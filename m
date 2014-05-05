@@ -1,115 +1,66 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/4] ARM: dts: am335x-evm: use phandles for USB and DMA
- refs
-Date: Tue, 6 May 2014 11:16:27 -0500
-Message-ID: <20140506161627.GJ25849@saruman.home>
-References: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
- <1398693512-5355-2-git-send-email-guido@vanguardiasur.com.ar>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] arm: n950: Add missing regulator definitions
+Date: Mon, 5 May 2014 12:51:12 -0700
+Message-ID: <20140505195112.GF25949@atomide.com>
+References: <1399162988-4946-1-git-send-email-sakari.ailus@iki.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4wkndigzIeYF6Hbg"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39653 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753425AbaEFQSj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 May 2014 12:18:39 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:65301 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752630AbaEETvQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 15:51:16 -0400
 Content-Disposition: inline
-In-Reply-To: <1398693512-5355-2-git-send-email-guido@vanguardiasur.com.ar>
+In-Reply-To: <1399162988-4946-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>
-Cc: LKML <linux-kernel@vger.kernel.org>, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 
---4wkndigzIeYF6Hbg
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Sakari Ailus <sakari.ailus@iki.fi> [140503 17:20]:
+> The N950/N9 uses two additional regulators from the twl 4030 for CSI-2
+> receiver (vaux2) and cameras (vaux3).
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-On Mon, Apr 28, 2014 at 10:58:30AM -0300, Guido Mart=EDnez wrote:
-> Use phandles instead of unit adresses to reference usb and dma nodes.
-> This makes the DT more robust and readable.
->=20
-> Signed-off-by: Guido Mart=EDnez <guido@vanguardiasur.com.ar>
+Thanks applying into omap-for-v3.16/dt.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+Tony
 
 > ---
->  arch/arm/boot/dts/am335x-evm.dts | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
->=20
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-=
-evm.dts
-> index 6028217..e802627 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -331,28 +331,28 @@
->  &usb {
->  	status =3D "okay";
-> =20
-> -	control@44e10620 {
-> +	&usb_ctrl_mod {
->  		status =3D "okay";
->  	};
-> =20
-> -	usb-phy@47401300 {
-> +	&usb0_phy {
->  		status =3D "okay";
->  	};
-> =20
-> -	usb-phy@47401b00 {
-> +	&usb1_phy {
->  		status =3D "okay";
->  	};
-> =20
-> -	usb@47401000 {
-> +	&usb0 {
->  		status =3D "okay";
->  	};
-> =20
-> -	usb@47401800 {
-> +	&usb1 {
->  		status =3D "okay";
->  		dr_mode =3D "host";
->  	};
-> =20
-> -	dma-controller@47402000  {
-> +	&cppi41dma  {
->  		status =3D "okay";
->  	};
+>  arch/arm/boot/dts/omap3-n950-n9.dtsi |   14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> index 5c26c18..7d64f30 100644
+> --- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> +++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> @@ -67,6 +67,20 @@
+>  	ti,pulldowns	= <0x008106>; /* BIT(1) | BIT(2) | BIT(8) | BIT(15) */
 >  };
-> --=20
-> 1.9.2
->=20
+>  
+> +/* CSI-2 receiver */
+> +&vaux2 {
+> +	regulator-name = "vaux2"; 
+> +	regulator-min-microvolt = <1800000>;
+> +	regulator-max-microvolt = <1800000>;
+> +};
+> +
+> +/* Cameras */
+> +&vaux3 {
+> +	regulator-name = "vaux3"; 
+> +	regulator-min-microvolt = <2800000>;
+> +	regulator-max-microvolt = <2800000>;
+> +};
+> +
+>  &i2c2 {
+>  	clock-frequency = <400000>;
+>  };
+> -- 
+> 1.7.10.4
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-
---=20
-balbi
-
---4wkndigzIeYF6Hbg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTaQrbAAoJEIaOsuA1yqRE7f4QAJ5CYqdobdBY8+3jfVncqo45
-IRclizz5bgJl4BWdu6RNDIB1/wozXPKwZZyeGTIvU9seeWNIwXFn8ILNVrMfzBJm
-kvmm8O25DTu+0DUepXxx3h12ix3sMrS/hZRlwwRx8hse3A8BV8bz0GakMFoXxufw
-pQIllRA+nytoZKbZA4mzaWkm99q9hCbGNbbXoAIWZJLZSKgl/RtPomXzrpzDJx3W
-Xr9hTSX336A3oUxTsamhmoSeRUTVhT48OLH/8LZlqt3awatS46ezCNOURsXCcIig
-cZNAsKiGfObpAz7ePuoEc9k7mpCLQlo/FILSjDIkPRUT+dJkv+uyhS18HDp2axKd
-irx4G251jaf4sWNSvKOsnzCAPGfToyER1MpUcU/vRLoTtJRNpXc6NBT9D8zjMsz7
-MEOEce9ThQWRLzQO/sd5UKJ3LgFU4pehtNy1ynV0kDauSJltn4Uf9lL+AhO9YTpf
-2PoQZ2TdUeAm/BP7QmAbbastilxVEhV1uvZzVCtbATtcQarbv7Xx1VbaGXhtDu1k
-i/jbo2skG8np498L+pG8MzPDz7xchQP9HptgptBvaRmurdCY0+/MlTZZM58x7zsK
-H2qc0Ww4kv+MgKz+RZfW5kYd9s9pMGvg2SFVuzc9Rtn60PSg0SOabNB1OcknbLXX
-C3bOFuTahomaOcjos/bo
-=60Dh
------END PGP SIGNATURE-----
-
---4wkndigzIeYF6Hbg--
+> 
