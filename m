@@ -1,240 +1,132 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [jenny.tc@intel.com: [RFC] power_supply: Introduce generic psy
- charging driver]
-Date: Mon, 5 May 2014 14:47:45 +0200
-Message-ID: <20140505124745.GC16461@amd.pavel.ucw.cz>
-References: <20140429062526.GA12879@jenny-desktop>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC] [v2 Patch 2/6] ARM: TI: Describe the ti reset DT entries
+Date: Mon, 5 May 2014 15:01:55 -0700
+Message-ID: <20140505220155.GI25949@atomide.com>
+References: <1399320567-3639-1-git-send-email-dmurphy@ti.com>
+ <1399320567-3639-3-git-send-email-dmurphy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20140429062526.GA12879@jenny-desktop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jenny Tc <jenny.tc@intel.com>, linux-kernel@vger.kernel.org, dbaryshkov@gmail.com, cbouatmailru@gmail.com, anton.vorontsov@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org
+In-Reply-To: <1399320567-3639-3-git-send-email-dmurphy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
-
-(Only part of original cc-list preserved.)
-
-> RFC: Fixed comments for patch v8, removed sorting and string comparisons
-
-Ok, its better now.
-
-> The Power Supply charging driver connects multiple subsystems
-> to do charging in a generic way. The subsystems involves power_supply,
-> thermal and battery communication subsystems (1wire).With this the charging is
-> handled in a generic way.
-> 
-> The driver makes use of different new features - Battery Identification
-> interfaces, pluggable charging algorithms, charger cable arbitrations etc.
-> The patch also introduces generic interface for charger cable notifications.
-> Charger cable events and capabilities can be notified using the generic
-> power_supply_notifier chain.
-> 
-> Overall this driver removes the charging logic out of the charger chip driver
-> and the charger chip driver can just listen to the request from the power
-> supply charging driver to set the charger properties. This can be implemented
-> by exposing get_property and set property callbacks.
-> 
-> Signed-off-by: Jenny TC <jenny.tc@intel.com>
-> ---
->  Documentation/power/power_supply_charger.txt |  350 +++++++++
->  drivers/power/Kconfig                        |    8 +
->  drivers/power/Makefile                       |    1 +
->  drivers/power/power_supply_charger.c         | 1066 ++++++++++++++++++++++++++
->  drivers/power/power_supply_charger.h         |  226 ++++++
->  drivers/power/power_supply_core.c            |    3 +
->  include/linux/power/power_supply_charger.h   |  304 ++++++++
->  include/linux/power_supply.h                 |  161 ++++
->  8 files changed, 2119 insertions(+)
->  create mode 100644 Documentation/power/power_supply_charger.txt
->  create mode 100644 drivers/power/power_supply_charger.c
->  create mode 100644 drivers/power/power_supply_charger.h
->  create mode 100644 include/linux/power/power_supply_charger.h
-> 
-> diff --git a/Documentation/power/power_supply_charger.txt b/Documentation/power/power_supply_charger.txt
-> new file mode 100644
-> index 0000000..1bb8cb4
-> --- /dev/null
-> +++ b/Documentation/power/power_supply_charger.txt
-> @@ -0,0 +1,350 @@
-> +1. Introduction
-> +===============
+* Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org> [140505 13:10]:
 > +
-> +The Power Supply charging driver connects multiple subsystems
-> +to do charging in a generic way. The subsystems involves power_supply,
-> +thermal and battery communication subsystems (1wire).With this the charging is
-
-Space after '.'.
-
-> +static struct charger_cable cable_list[] = {
-> +	{
-> +	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_USB_SDP,
-> +	 },
-> +	{
-> +	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_USB_CDP,
-> +	 },
-> +	{
-> +	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_USB_DCP,
-> +	 },
-> +	{
-> +	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_USB_ACA,
-> +	 },
-> +	{
-> +	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_ACA_DOCK,
-> +	 },
-> +	{
-> +	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_SE1,
-> +	 },
-> +	{
-> +	 .psy_cable_type = PSY_CHARGER_CABLE_TYPE_AC,
-> +	 },
-> +};
-
-Can we get rid of this?
-
-> +struct usb_phy *otg_xceiver;
-> +static int handle_event_notification(struct notifier_block *nb,
-> +				   unsigned long event, void *data);
-> +struct notifier_block nb = {
-> +		   .notifier_call = handle_event_notification,
+> +Required parent properties:
+> +- compatible : Should be one of,
+> +		"ti,omap4-prm" for OMAP4 PRM instances
+> +		"ti,omap5-prm" for OMAP5 PRM instances
+> +		"ti,dra7-prm" for DRA7xx PRM instances
+> +		"ti,am4-prcm" for AM43xx PRCM instances
+> +		"ti,am3-prcm" for AM33xx PRCM instances
+> +
+> +Required child reset property:
+> +- compatible : Should be
+> +		"resets" for All TI SoCs
+> +
+> +example:
+> +		prm: prm@4ae06000 {
+> +			compatible = "ti,omap5-prm";
+> +			reg = <0x4ae06000 0x3000>;
+> +
+> +			prm_resets: resets {
+> +				#address-cells = <1>;
+> +				#size-cells = <1>;
+> +				#reset-cells = <1>;
+> +			};
 > +		};
 
-You need to add way more statics.
+The reg entries you have in the example below has different format
+compared to this?
 
-
-
-> +static void update_supplied_to_psy(struct power_supply *psy)
-> +{
-> +	WARN_ON(charger_context == NULL);
-
-Useless.
-
-> +	for (i = 0; i < psy->num_supplicants; i++) {
-> +		charger_context->supplied_to_psy[cnt++] =
-> +			power_supply_get_by_name(psy->supplied_to[i]);
-> +		charger_context->supplied_to_psy[cnt] = NULL;
-> +	}
-> +}
-
-Still some name lookups to be killed.
-
-> +		for (i = 0; i < pst->num_supplicants; i++) {
-> +			psb = power_supply_get_by_name(pst->supplied_to[i]);
-> +			if (psb == psy) {
-> +				batt_context->supplied_by_psy[cnt++] = pst;
-> +				batt_context->supplied_by_psy[cnt] = NULL;
-> +				break;
-> +			}
-> +		}
-> +	}
-
-And here.
-
-> +	WARN_ON(psy->data == NULL);
-
-Useless.
-
-> +	charger_context = (struct psy_charger_context *)psy->data;
-
-> +static inline bool is_supplied_to_has_ext_pwr_changed(struct power_supply *psy)
-> +{
-> +	int i;
-> +	struct power_supply *psb;
-> +	bool is_pwr_changed_defined = true;
+> +Reset node declaration
+> +==============================================
+> +The reset node is declared in a parent child relationship.  The main parent
+> +is the PRCM module which contains the base address.  The first child within
+> +the reset parent declares the target modules reset name.  This is followed by
+> +the control and status offsets.
 > +
-> +	for (i = 0; i < psy->num_supplicants; i++) {
-> +		psb =
-> +		    power_supply_get_by_name(psy->
-> +					     supplied_to[i]);
-> +		if (psb && !psb->external_power_changed)
-> +			is_pwr_changed_defined &= false;
-> +	}
-
-You did not really get rid of the name lookups..
-
-&= false. Bad idea.
-
-
-> +static int trigger_algo(struct power_supply *psy)
-> +{
-> +	unsigned long cc = 0, cv = 0, cc_min;
-> +	struct psy_batt_context *batt_context;
-> +	struct psy_charging_algo *algo;
-> +	struct psy_batt_chrg_prof chrg_profile;
-> +	struct power_supply *psc;
-> +	int cnt = 0;
+> +Within the first reset child node is a secondary child node which declares the
+> +reset signal of interest.  Under this node the control and status bits
+> +are declared.  These bits declare the bit mask for the target reset.
 > +
-> +	if (psy->type != POWER_SUPPLY_TYPE_BATTERY)
-> +		return 0;
 > +
-> +	if (psy_get_battery_prop(&chrg_profile)) {
-> +		pr_err("Error in getting charge profile:%s:%d\n", __FILE__,
-> +		       __LINE__);
-> +		return -EINVAL;
-> +	}
+> +Required properties:
+> +reg - This is the register offset from the PRCM parent.
+> +	This must be declared as:
 > +
-> +	batt_context = (struct psy_batt_context *)psy->data;
-
-Create inline function doing the cast. You have too many opencoded
-casts.
-
-> +	batt_context->algo_stat = algo->get_next_cc_cv
-> +		(&batt_context->batt_props, chrg_profile, &cc, &cv);
-> +static inline void enable_supplied_by_charging
-> +		(struct power_supply *psy, bool is_enable)
-
-This is not how you indent that, is it.
-
-> +static void __power_supply_trigger_charging_handler(struct power_supply *psy)
-> +{
-> +	int i;
-> +	struct power_supply *psb = NULL;
+> +	reg = <control register offset>,
+> +		  <status register offset>;
 > +
-> +	if (!is_trigger_charging_algo(psy))
-> +		return;
+> +control-bit - This is the bit within the register which controls the reset
+> +	of the target module.  This is declared as a bit mask for the register.
+> +status-bit - This is the bit within the register which contains the status of
+> +	the reset of the target module.
+> +	This is declared as a bit mask for the register.
 > +
-> +	if (psy_is_battery(psy)) {
-> +		if (trigger_algo(psy))
-> +			enable_supplied_by_charging(psy, false);
-> +		else
-> +			enable_supplied_by_charging(psy, true);
+> +example:
+> +&prm_resets {
+> +	dsp_rstctrl {
+> +		reg = <0x1c00>,
+> +			  <0x1c04>;
 
-enable...(psy, trigger_algo())
+Shouldn't this be start and size instead of start and end here?
 
+> +		dsp_reset: dsp_reset {
+> +			control-bit = <0x01>;
+> +			status-bit = <0x01>;
+> +		};
+> +	};
+> +};
 
+Are the control-bit and status-bit always the same? If so, you can
+keep that knowlede private to the the driver.
 
-> +static inline int psy_throttle_cc_value
-> +		(struct power_supply *psy, unsigned int state)
+And maybe you can have the bit offset in a reg property here to
+avoid adding any custom properties? Something like:
 
-Indent.
+	dsp_reset: reset@1 {
+		reg = 1;
+	};
 
+If reg is not suitable for that, it seems that some generic property
+to describe the bit offset is needed by quite a few drivers
+anyways, for things like clocks and regulators. 
 
-> +#define PSY_MAX_CV(psy) \
-> +		psy_get_ps_int_property(psy,\
-> +			POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX)
-> +#define PSY_VOLTAGE_NOW(psy) \
-> +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_VOLTAGE_NOW)
-> +#define PSY_VOLTAGE_OCV(psy) \
-> +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_VOLTAGE_OCV)
-> +#define PSY_CURRENT_NOW(psy) \
-> +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_CURRENT_NOW)
-> +#define PSY_STATUS(psy) \
-> +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_STATUS)
-> +#define PSY_TEMPERATURE(psy) \
-> +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_TEMP)
-> +#define PSY_BATTERY_TYPE(psy) \
-> +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_TECHNOLOGY)
-> +#define PSY_ONLINE(psy) \
-> +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_ONLINE)
+> +Client Node Declaration
+> +==============================================
+> +This is the consumer of the parent node to declare what resets this
+> +particular module is interested in.
+> +
+> +example:
+> +	src: src@55082000 {
+> +		    resets = <&reset_src phandle>;
+> +			reset-names = "<reset_name>";
+> +	};
+> +
+> +Required Properties:
+> +reset_src - This is the parent DT entry for the reset controller
+> +phandle - This is the phandle of the specific reset to be used by the clien
+> +	driver.
+> +reset-names - This is the reset name of module that the device driver
+> +	needs to be able to reset.  This value must correspond to a value within
+> +	the reset controller array.
+> +
+> +example:
+> +resets = <&prm_resets &dsp_mmu_reset>;
+> +reset-names = "dsp_mmu_reset";
 
-This looks like bad idea. Just opencode it.
+This part looks OK to me, not sure if we need the reset-names property
+if we have one already why not.
 
-s/return  /return /g
+Regards,
 
-Thanks,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
