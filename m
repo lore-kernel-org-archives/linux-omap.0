@@ -1,82 +1,138 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 3/7] phy: omap-usb2: Use generic clock names "wkupclk"
- and "refclk"
-Date: Mon, 5 May 2014 12:23:32 +0300
-Message-ID: <53675894.1090703@ti.com>
-References: <1398693687-13967-1-git-send-email-rogerq@ti.com>	<1398693687-13967-4-git-send-email-rogerq@ti.com>	<20140428160347.GG30292@saruman.home>	<535F59CF.6050002@ti.com>	<20140429161420.GH633@saruman.home>	<20140429161616.GI633@saruman.home> <CAGo_u6oAJZvUBvOWMtkn8pEXO1Q=A+CrQ1kcWGWLobFza65sbA@mail.gmail.com> <53673C6D.5060400@ti.com>
+From: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
+Subject: [RFC] [v2 Patch 2/6] ARM: TI: Describe the ti reset DT entries
+Date: Mon, 5 May 2014 15:09:23 -0500
+Message-ID: <1399320567-3639-3-git-send-email-dmurphy@ti.com>
+References: <1399320567-3639-1-git-send-email-dmurphy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48769 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755347AbaEEJXh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 May 2014 05:23:37 -0400
-In-Reply-To: <53673C6D.5060400@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1399320567-3639-1-git-send-email-dmurphy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, "Balbi, Felipe" <balbi@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, george.cherian@ti.com, linux-omap <linux-omap@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, linux-usb@vger.kernel.org
 
-On 05/05/2014 10:23 AM, Roger Quadros wrote:
-> On 04/30/2014 06:20 PM, Nishanth Menon wrote:
->> On Tue, Apr 29, 2014 at 11:16 AM, Felipe Balbi <balbi@ti.com> wrote:
->>> On Tue, Apr 29, 2014 at 11:14:20AM -0500, Felipe Balbi wrote:
->>>> On Tue, Apr 29, 2014 at 10:50:39AM +0300, Roger Quadros wrote:
->>>>> +Nishant
->>>>>
->>>>> Hi,
->>>>>
->>>>> On 04/28/2014 07:03 PM, Felipe Balbi wrote:
->>>>>> Hi,
->>>>>>
->>>>>> On Mon, Apr 28, 2014 at 05:01:23PM +0300, Roger Quadros wrote:
->>>>>>> As clocks might be named differently on multiple platforms, use a generic
->>>>>>> name in the driver and allow device tree node to specify the platform
->>>>>>> specific clock name.
->>>>>>>
->>>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>>>> ---
->>>>>>>  drivers/phy/phy-omap-usb2.c | 8 ++++----
->>>>>>>  1 file changed, 4 insertions(+), 4 deletions(-)
->>>>>>>
->>>>>>> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
->>>>>>> index a2205a8..fb5e515 100644
->>>>>>> --- a/drivers/phy/phy-omap-usb2.c
->>>>>>> +++ b/drivers/phy/phy-omap-usb2.c
->>>>>>> @@ -275,16 +275,16 @@ static int omap_usb2_probe(struct platform_device *pdev)
->>>>>>>          if (IS_ERR(phy_provider))
->>>>>>>                  return PTR_ERR(phy_provider);
->>>>>>>
->>>>>>> -        phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
->>>>>>> +        phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
->>>>>>
->>>>>> doesn't this patch cause a regression ? I mean, you're changing the
->>>>>> clock name before fixing DTS. Also, that DTS has been in a major version
->>>>>> of the kernel, so we need to maintain compatibility with it. How about:
->>>>>
->>>>> I'm changing the DTS in Patch 4, but I prefer to do it in this patch
->>>>> to prevent synchronization issues in -next.
->>>>>
->>>>> About backward compatibility, I agree with you but at the same time I
->>>>> don't think anyone using TI SoCs burns the DTB to ROM and needs
->>>>> backward compatibility. We supply our BSPs/SDKs with the updated DTBs.
->>>>> Do you feel strict backward compatibility is worth the effort for TI
->>>>> specific blocks?
->>>>
->>>> dunno, but it would, at least, avoid "synchronization issues with
->>>> linux-next" :-)
->>>
->>> and the bisectability issue.
->>
->> I agree - we cannot drop backward compatibility for DTBs
->> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=2a9330010bea5982a5c6593824bc036bf62d67b7
-> 
-> That says backward compatibility for stable bindings.
-> In this case, the binding that I changed doesn't even exist in Documentation/devicetree/bindings,
-> so it never was a stable binding. 
+Describe the TI reset DT entries for TI SoC's.
 
-Forgot to mention, I'm sending a revised version based on your and Felipe's suggestion.
+Signed-off-by: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
+---
+ .../devicetree/bindings/reset/ti,reset.txt         |  103 ++++++++++++++++++++
+ 1 file changed, 103 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/reset/ti,reset.txt
 
-cheers,
--roger
+diff --git a/Documentation/devicetree/bindings/reset/ti,reset.txt b/Documentation/devicetree/bindings/reset/ti,reset.txt
+new file mode 100644
+index 0000000..9d5c29c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/reset/ti,reset.txt
+@@ -0,0 +1,103 @@
++Texas Instruments Reset Controller
++======================================
++Please also refer to reset.txt in this directory for common reset
++controller binding usage.
++
++Specifying the reset entries for the IP module
++==============================================
++Parent module:
++This is the module node that contains the reset registers and bits.
++
++example:
++			prcm_resets: resets {
++				compatible = "ti,dra7-resets";
++				#reset-cells = <1>;
++			};
++
++Required parent properties:
++- compatible : Should be one of,
++		"ti,omap4-prm" for OMAP4 PRM instances
++		"ti,omap5-prm" for OMAP5 PRM instances
++		"ti,dra7-prm" for DRA7xx PRM instances
++		"ti,am4-prcm" for AM43xx PRCM instances
++		"ti,am3-prcm" for AM33xx PRCM instances
++
++Required child reset property:
++- compatible : Should be
++		"resets" for All TI SoCs
++
++example:
++		prm: prm@4ae06000 {
++			compatible = "ti,omap5-prm";
++			reg = <0x4ae06000 0x3000>;
++
++			prm_resets: resets {
++				#address-cells = <1>;
++				#size-cells = <1>;
++				#reset-cells = <1>;
++			};
++		};
++
++
++Reset node declaration
++==============================================
++The reset node is declared in a parent child relationship.  The main parent
++is the PRCM module which contains the base address.  The first child within
++the reset parent declares the target modules reset name.  This is followed by
++the control and status offsets.
++
++Within the first reset child node is a secondary child node which declares the
++reset signal of interest.  Under this node the control and status bits
++are declared.  These bits declare the bit mask for the target reset.
++
++
++Required properties:
++reg - This is the register offset from the PRCM parent.
++	This must be declared as:
++
++	reg = <control register offset>,
++		  <status register offset>;
++
++control-bit - This is the bit within the register which controls the reset
++	of the target module.  This is declared as a bit mask for the register.
++status-bit - This is the bit within the register which contains the status of
++	the reset of the target module.
++	This is declared as a bit mask for the register.
++
++example:
++&prm_resets {
++	dsp_rstctrl {
++		reg = <0x1c00>,
++			  <0x1c04>;
++
++		dsp_reset: dsp_reset {
++			control-bit = <0x01>;
++			status-bit = <0x01>;
++		};
++	};
++};
++
++
++
++Client Node Declaration
++==============================================
++This is the consumer of the parent node to declare what resets this
++particular module is interested in.
++
++example:
++	src: src@55082000 {
++		    resets = <&reset_src phandle>;
++			reset-names = "<reset_name>";
++	};
++
++Required Properties:
++reset_src - This is the parent DT entry for the reset controller
++phandle - This is the phandle of the specific reset to be used by the clien
++	driver.
++reset-names - This is the reset name of module that the device driver
++	needs to be able to reset.  This value must correspond to a value within
++	the reset controller array.
++
++example:
++resets = <&prm_resets &dsp_mmu_reset>;
++reset-names = "dsp_mmu_reset";
+-- 
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
