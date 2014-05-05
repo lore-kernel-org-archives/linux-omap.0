@@ -1,113 +1,102 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCHv5 RFC 12/15] hwspinlock/core: add OF helper to parse reserved
- locks
-Date: Mon, 5 May 2014 16:44:25 -0500
-Message-ID: <53680639.1080405@ti.com>
-References: <1398904476-26200-1-git-send-email-s-anna@ti.com> <1398904476-26200-13-git-send-email-s-anna@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] DTS: ARM: OMAP3-N900: Add WL1251 support
+Date: Mon, 5 May 2014 12:25:14 -0700
+Message-ID: <20140505192514.GA25949@atomide.com>
+References: <1394747995-25090-1-git-send-email-sre@debian.org>
+ <1394747995-25090-2-git-send-email-sre@debian.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60905 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755936AbaEEVox (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 May 2014 17:44:53 -0400
-In-Reply-To: <1398904476-26200-13-git-send-email-s-anna@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57164 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751774AbaEETZ0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 15:25:26 -0400
+Content-Disposition: inline
+In-Reply-To: <1394747995-25090-2-git-send-email-sre@debian.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Rob Herring <robherring2@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: Sebastian Reichel <sre@ring0.de>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, "John W. Linville" <linville@tuxdriver.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Rob,
+* Sebastian Reichel <sre@debian.org> [140313 15:03]:
+> Add device tree support for the wireless chip
+> built into the Nokia N900.
+> 
+> Signed-off-by: Sebastian Reichel <sre@debian.org>
 
-On 04/30/2014 07:34 PM, Suman Anna wrote:
-> The property 'hwlock-reserved-locks' will be used to represent
-> the number of locks to be reserved for clients that would need
-> to request/operate on specific locks. A new OF helper function,
-> of_hwspin_lock_get_num_reserved_locks(), is added to minimize
-> duplication in different platform implementations.
-> 
-> The function will return a value of 0 if the property is not
-> defined, so as to support a default behavior of marking all
-> locks as unused and open for anonymous allocations.
-> 
-> Signed-off-by: Suman Anna <s-anna@ti.com>
+Thanks applying into omap-for-v3.16/dt.
+
+Tony
+
 > ---
->  .../devicetree/bindings/hwlock/hwlock.txt          |  3 +++
->  drivers/hwspinlock/hwspinlock_core.c               | 25 ++++++++++++++++++++++
->  include/linux/hwspinlock.h                         |  1 +
->  3 files changed, 29 insertions(+)
+>  arch/arm/boot/dts/omap3-n900.dts | 40 ++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 40 insertions(+)
 > 
-> diff --git a/Documentation/devicetree/bindings/hwlock/hwlock.txt b/Documentation/devicetree/bindings/hwlock/hwlock.txt
-> index d538a9b..88d16d2 100644
-> --- a/Documentation/devicetree/bindings/hwlock/hwlock.txt
-> +++ b/Documentation/devicetree/bindings/hwlock/hwlock.txt
-> @@ -18,6 +18,9 @@ Common properties:
->  			property is needed on hwlock devices, where the number
->  			of supported locks within a hwlock device cannot be
->  			read from a register.
-> +- hwlock-reserved-locks: Number of locks to reserve for clients requiring
-> +			specific locks. This value cannot exceed the value of
-> +			hwlock-num-locks.
-
-Any suggestions here on the approach? This property falls into a gray
-area as well, as the current approach is somewhat limiting (it doesn't
-support sparse reserved locks, and expects them at the beginning of the
-lock range).
-
-regards
-Suman
-
->  - hwlock-base-id:	An unique base Id for the locks for a particular hwlock
->  			device. This property is mandatory ONLY if a SoC has
->  			several hwlock devices.
-> diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
-> index e05cea8..e74b55b 100644
-> --- a/drivers/hwspinlock/hwspinlock_core.c
-> +++ b/drivers/hwspinlock/hwspinlock_core.c
-> @@ -286,6 +286,31 @@ int of_hwspin_lock_get_base_id(struct device_node *dn)
->  EXPORT_SYMBOL_GPL(of_hwspin_lock_get_base_id);
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index e91dae7..0f48b9b 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -148,6 +148,15 @@
+>  		>;
+>  	};
 >  
->  /**
-> + * of_hwspin_lock_get_num_reserved_locks() - retrieve number of reserved locks
-> + * @dn: device node pointer
-> + *
-> + * This is an OF helper function that can be called by the underlying platform
-> + * specific implementations, to retrieve the number of locks to reserve from
-> + * the hwspinlock device instance's base id. The hwlock-reserved-locks DT
-> + * property needs to be defined for requesting any DT-based locks.
-> + *
-> + * Returns a positive number of locks on success, a default value of 0 if the
-> + * property is missing or an appropriate error code as returned by the OF layer
-> + */
-> +int of_hwspin_lock_get_num_reserved_locks(struct device_node *dn)
-> +{
-> +	unsigned int val = 0;
-> +	int ret;
+> +	mcspi4_pins: pinmux_mcspi4_pins {
+> +		pinctrl-single,pins = <
+> +			0x15c (PIN_INPUT_PULLDOWN | MUX_MODE1) /* mcspi4_clk */
+> +			0x162 (PIN_INPUT_PULLDOWN | MUX_MODE1) /* mcspi4_somi */
+> +			0x160 (PIN_OUTPUT | MUX_MODE1) /* mcspi4_simo */
+> +			0x166 (PIN_OUTPUT | MUX_MODE1) /* mcspi4_cs0 */
+> +		>;
+> +	};
 > +
-> +	ret = of_property_read_u32(dn, "hwlock-reserved-locks", &val);
-> +	if (!ret || ret == -EINVAL)
-> +		ret = val;
+>  	mmc1_pins: pinmux_mmc1_pins {
+>  		pinctrl-single,pins = <
+>  			0x114 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk */
+> @@ -203,6 +212,13 @@
+>  			0x15e (PIN_OUTPUT | MUX_MODE4)		/* gpio 157 => cmt_bsi */
+>  		>;
+>  	};
 > +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(of_hwspin_lock_get_num_reserved_locks);
+> +	wl1251_pins: pinmux_wl1251 {
+> +		pinctrl-single,pins = <
+> +			0x0ce (PIN_OUTPUT | MUX_MODE4)		/* gpio 87 => wl1251 enable */
+> +			0x05a (PIN_INPUT | MUX_MODE4)		/* gpio 42 => wl1251 irq */
+> +		>;
+> +	};
+>  };
+>  
+>  &i2c1 {
+> @@ -603,6 +619,30 @@
+>  	};
+>  };
+>  
+> +&mcspi4 {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&mcspi4_pins>;
 > +
-> +/**
->   * of_hwspin_lock_get_num_locks() - OF helper to retrieve number of locks
->   * @dn: device node pointer
->   *
-> diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
-> index d120035..d18431f 100644
-> --- a/include/linux/hwspinlock.h
-> +++ b/include/linux/hwspinlock.h
-> @@ -69,6 +69,7 @@ int of_hwspin_lock_simple_xlate(struct hwspinlock_device *bank,
->  				const struct of_phandle_args *hwlock_spec);
->  int of_hwspin_lock_get_base_id(struct device_node *dn);
->  int of_hwspin_lock_get_num_locks(struct device_node *dn);
-> +int of_hwspin_lock_get_num_reserved_locks(struct device_node *dn);
->  int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
->  		const struct hwspinlock_ops *ops, int base_id, int num_locks,
->  		int num_reserved_locks);
+> +	wl1251@0 {
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&wl1251_pins>;
+> +
+> +		vio-supply = <&vio>;
+> +
+> +		compatible = "ti,wl1251";
+> +		reg = <0>;
+> +		spi-max-frequency = <48000000>;
+> +
+> +		spi-cpol;
+> +		spi-cpha;
+> +
+> +		ti,power-gpio = <&gpio3 23 GPIO_ACTIVE_HIGH>; /* 87 */
+> +
+> +		interrupt-parent = <&gpio2>;
+> +		interrupts = <10 IRQ_TYPE_NONE>; /* gpio line 42 */
+> +	};
+> +};
+> +
+>  &usb_otg_hs {
+>  	interface-type = <0>;
+>  	usb-phy = <&usb2_phy>;
+> -- 
+> 1.9.0
 > 
-
