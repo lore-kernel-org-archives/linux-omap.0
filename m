@@ -1,70 +1,84 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [RFC 2/4] ARM: dts: Add ctrl-core DT node for DRA7
-Date: Tue, 6 May 2014 10:52:32 +0530
-Message-ID: <53687198.60405@ti.com>
-References: <1397654063-8055-1-git-send-email-archit@ti.com> <1397654063-8055-2-git-send-email-archit@ti.com> <20140418171854.GJ5354@atomide.com> <5354A970.8040605@ti.com> <20140421151034.GA23945@atomide.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [GIT PULL 4/4] omap crossbar support for v3.15
+Date: Mon, 5 May 2014 20:00:38 +0530
+Message-ID: <5367A08E.5030904@ti.com>
+References: <pull-1393802089-910509> <5313bcc5.a8fc440a.467f.7ba2SMTPIN_ADDED_MISSING@mx.google.com> <20140309073347.GL16310@quad.lixom.net> <20140310163620.GB4882@atomide.com> <531F0494.1040105@ti.com> <5367A022.1040305@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39505 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32888 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750893AbaEFFYA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 May 2014 01:24:00 -0400
-In-Reply-To: <20140421151034.GA23945@atomide.com>
+	id S932575AbaEEOcU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 May 2014 10:32:20 -0400
+In-Reply-To: <5367A022.1040305@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+Cc: Olof Johansson <olof@lixom.net>, arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
 Hi,
 
-On Monday 21 April 2014 08:40 PM, Tony Lindgren wrote:
-> * Archit Taneja <archit@ti.com> [140420 22:16]:
->> Hi,
->>
->> On Friday 18 April 2014 10:48 PM, Tony Lindgren wrote:
->>> * Archit Taneja <archit@ti.com> [140416 06:20]:
->>>> Add DT node for the ctrl-core sub module of the DRA7 control module. We map the
->>>> CTRL_MODULE_CORE address region up to 0x4a002d60, this region contains register
->>>> fields which configure clocks. The remainder of the registers are related to
->>>> pad configurations or cross-bar configurations, and therefore aren't mapped.
->>>
->>> Can you please check if this can just use the existing
->>> regmap syscon mapping:
->>>
->>> syscon = <&dra7_ctrl_general>;
->>>
->>> See how the drivers/regulator/pbias-regulator.c is using the
->>> syscon to initialize a regulator and then omap_hsmmc.c just does
->>> the standard regulator calls.
->>
->> The thing is that this bit needs to be set before the the DSS hwmods are
->> reset, and that happens very early. If we don't do this, DSS won't reset
->> properly, and not get back to an idle state.
->>
->> I am not sure where I can configure the syscon register early enough that it
->> happens before the hwmods are reset. With a syscon mapping, I guess we would
->> access the register when the DSS driver is probed. But that's too late for
->> us.
->>
->> Ideally, it would be much better to have a syscon mapping. Do you have any
->> suggestions how this can be achieved very early in boot?
+On Monday 05 May 2014 07:58 PM, Sricharan R wrote:
+> Hi Tony,
 >
-> It's best to move the reset and initialization of DSS happen later. I believe
-> we already are resetting only some of the hwmods early on.
+> On Tuesday 11 March 2014 06:11 PM, Sricharan R wrote:
+>> Tony,
+>>
+>> On Monday 10 March 2014 10:06 PM, Tony Lindgren wrote:
+>>> * Olof Johansson <olof@lixom.net> [140308 23:36]:
+>>>> On Sun, Mar 02, 2014 at 03:14:49PM -0800, Tony Lindgren wrote:
+>>>>> The following changes since commit 38dbfb59d1175ef458d006556061adeaa8751b72:
+>>>>>
+>>>>>   Linus 3.14-rc1 (2014-02-02 16:42:13 -0800)
+>>>>>
+>>>>> are available in the git repository at:
+>>>>>
+>>>>>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/crossbar-signed
+>>>>>
+>>>>> for you to fetch changes up to 9594274201ac3c67d5c569aae63792e58bcd33e6:
+>>>>>
+>>>>>   Merge branch 'crossbar_3.14_rc1' of git://github.com/Sricharanti/sricharan into omap-for-v3.15/crossbar (2014-02-28 13:35:02 -0800)
+>>>>>
+>>>>> ----------------------------------------------------------------
+>>>>>
+>>>>> Add support for GIC crossbar that routes interrupts on newer omaps.
+>>>>>
+>>>>> Looks like people wanted these merged via the omap tree as it's
+>>>>> the only user for the GIC crossbar.
+>>>>>
+>>>>> ----------------------------------------------------------------
+>>>>> Sricharan R (4):
+>>>>>       DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
+>>>>>       DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
+>>>>>       ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
+>>>>>       ARM: DRA: Enable Crossbar IP support for DRA7XX
+>>>> Whoa, lots of caps on those driver subjects. I don't think we need those
+>>>> in the future, lower case is just fine (and DRIVERS: usually isn't used).
+>>> Oops yeah I had them as "irqchip: crossbar" and "irqchip: irq-gic" in
+>>> my earlier branch for v3.14 that did not get merged, but this time I
+>>> pulled from Sricharan.
+>>>
+>>> Scricharan, maybe use less yelling naming for any follow-up patches?
+>>>  
+>>   Will make sure that there are no caps in the follow up patches.
+>>
+>> Regards,
+>>  Sricharan
+> I have pushed the below branch for the crossbar-dts data rebased on 3.15-rc4
+>
+> git@github.com:Sricharanti/sricharan.git
+> branch: crossbar_dts_3.15_rc4
+>
+> These patches are dependent on the crossbar driver fixes sent below.
+>
+> http://marc.info/?l=linux-omap&m=139929963420299&w=2
+>
+> Regards,
+>  Sricharan
 >
 
-I looked at this in some more detail. With the current hwmod 
-flags(HWMOD_INIT_NO_RESET/NO_IDLE), we still try to enable the IP, it's 
-just the reset part(ocp reset/custom reset and sysc register) or the 
-disable part that is skipped. hwmod still tries to enable the IP.
+ Sorry, please ignore this. Used a wrong thread.
 
-This again results in the same issue.
-
-One thing which wasn't clear was that why do we enable a hwmod in the 
-first place, if we know that we are going to skip reset?
-
-Archit
-
-
+Regards,
+ Sricharan
