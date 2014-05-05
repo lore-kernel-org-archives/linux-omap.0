@@ -1,87 +1,135 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 3/7] phy: omap-usb2: Use generic clock names "wkupclk"
- and "refclk"
-Date: Mon, 5 May 2014 10:23:25 +0300
-Message-ID: <53673C6D.5060400@ti.com>
-References: <1398693687-13967-1-git-send-email-rogerq@ti.com>	<1398693687-13967-4-git-send-email-rogerq@ti.com>	<20140428160347.GG30292@saruman.home>	<535F59CF.6050002@ti.com>	<20140429161420.GH633@saruman.home>	<20140429161616.GI633@saruman.home> <CAGo_u6oAJZvUBvOWMtkn8pEXO1Q=A+CrQ1kcWGWLobFza65sbA@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3] arm: dts: am43x-clock: add tbclk data for ehrpwm.
+Date: Mon, 5 May 2014 10:49:38 +0300
+Message-ID: <53674292.5050008@ti.com>
+References: <1398780946-31453-1-git-send-email-sourav.poddar@ti.com> <535FBC62.9050902@ti.com> <20140501190015.5739.86963@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33450 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754637AbaEEHXa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 May 2014 03:23:30 -0400
-In-Reply-To: <CAGo_u6oAJZvUBvOWMtkn8pEXO1Q=A+CrQ1kcWGWLobFza65sbA@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:55918 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754777AbaEEHtb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 03:49:31 -0400
+In-Reply-To: <20140501190015.5739.86963@quantum>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, "Balbi, Felipe" <balbi@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, george.cherian@ti.com, linux-omap <linux-omap@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, linux-usb@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com
 
-On 04/30/2014 06:20 PM, Nishanth Menon wrote:
-> On Tue, Apr 29, 2014 at 11:16 AM, Felipe Balbi <balbi@ti.com> wrote:
->> On Tue, Apr 29, 2014 at 11:14:20AM -0500, Felipe Balbi wrote:
->>> On Tue, Apr 29, 2014 at 10:50:39AM +0300, Roger Quadros wrote:
->>>> +Nishant
->>>>
->>>> Hi,
->>>>
->>>> On 04/28/2014 07:03 PM, Felipe Balbi wrote:
->>>>> Hi,
->>>>>
->>>>> On Mon, Apr 28, 2014 at 05:01:23PM +0300, Roger Quadros wrote:
->>>>>> As clocks might be named differently on multiple platforms, use a generic
->>>>>> name in the driver and allow device tree node to specify the platform
->>>>>> specific clock name.
->>>>>>
->>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>>> ---
->>>>>>  drivers/phy/phy-omap-usb2.c | 8 ++++----
->>>>>>  1 file changed, 4 insertions(+), 4 deletions(-)
->>>>>>
->>>>>> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
->>>>>> index a2205a8..fb5e515 100644
->>>>>> --- a/drivers/phy/phy-omap-usb2.c
->>>>>> +++ b/drivers/phy/phy-omap-usb2.c
->>>>>> @@ -275,16 +275,16 @@ static int omap_usb2_probe(struct platform_device *pdev)
->>>>>>          if (IS_ERR(phy_provider))
->>>>>>                  return PTR_ERR(phy_provider);
->>>>>>
->>>>>> -        phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
->>>>>> +        phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
->>>>>
->>>>> doesn't this patch cause a regression ? I mean, you're changing the
->>>>> clock name before fixing DTS. Also, that DTS has been in a major version
->>>>> of the kernel, so we need to maintain compatibility with it. How about:
->>>>
->>>> I'm changing the DTS in Patch 4, but I prefer to do it in this patch
->>>> to prevent synchronization issues in -next.
->>>>
->>>> About backward compatibility, I agree with you but at the same time I
->>>> don't think anyone using TI SoCs burns the DTB to ROM and needs
->>>> backward compatibility. We supply our BSPs/SDKs with the updated DTBs.
->>>> Do you feel strict backward compatibility is worth the effort for TI
->>>> specific blocks?
+On 05/01/2014 10:00 PM, Mike Turquette wrote:
+> Quoting Tero Kristo (2014-04-29 07:51:14)
+>> On 04/29/2014 05:15 PM, Sourav Poddar wrote:
+>>> We need "tbclk" clock data for the functioning of ehrpwm
+>>> module. Hence, populating the required clock information
+>>> in clock dts file.
 >>>
->>> dunno, but it would, at least, avoid "synchronization issues with
->>> linux-next" :-)
+>>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 >>
->> and the bisectability issue.
-> 
-> I agree - we cannot drop backward compatibility for DTBs
-> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=2a9330010bea5982a5c6593824bc036bf62d67b7
+>> Acked-by: Tero Kristo <t-kristo@ti.com>
+>
+> Looks good to me.
+>
+> Tero, just to be clear, are you planning on batching up OMAPish clock
+> patches and sending a pull request (once they have been reviewed on the
+> list)?
 
-That says backward compatibility for stable bindings.
-In this case, the binding that I changed doesn't even exist in Documentation/devicetree/bindings,
-so it never was a stable binding. 
+No, I haven't been planning on sending a pull-req, as I believe you 
+still want to ack the TI related clock driver patches yourself also. If 
+you want to change the setup I am of course willing to negotiate the 
+terms. :)
 
-> "
-> +
-> + 3) Bindings can be augmented, but the driver shouldn't break when given
-> + the old binding. ie. add additional properties, but don't change the
-> + meaning of an existing property. For drivers, default to the original
-> + behaviour when a newly added property is missing.
-> "
+-Tero
 
-cheers,
--roger
+>
+> Thanks,
+> Mike
+>
+>>
+>>
+>>> ---
+>>> v2->v3
+>>> - correct bitshifting
+>>>
+>>>    arch/arm/boot/dts/am43xx-clocks.dtsi |   48 ++++++++++++++++++++++++++++++++++
+>>>    drivers/clk/ti/clk-43xx.c            |    6 +++++
+>>>    2 files changed, 54 insertions(+)
+>>>
+>>> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+>>> index 142009c..42d7b1f 100644
+>>> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
+>>> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+>>> @@ -87,6 +87,54 @@
+>>>                clock-mult = <1>;
+>>>                clock-div = <1>;
+>>>        };
+>>> +
+>>> +     ehrpwm0_tbclk: ehrpwm0_tbclk {
+>>> +             #clock-cells = <0>;
+>>> +             compatible = "ti,gate-clock";
+>>> +             clocks = <&dpll_per_m2_ck>;
+>>> +             ti,bit-shift = <0>;
+>>> +             reg = <0x0664>;
+>>> +     };
+>>> +
+>>> +     ehrpwm1_tbclk: ehrpwm1_tbclk {
+>>> +             #clock-cells = <0>;
+>>> +             compatible = "ti,gate-clock";
+>>> +             clocks = <&dpll_per_m2_ck>;
+>>> +             ti,bit-shift = <1>;
+>>> +             reg = <0x0664>;
+>>> +     };
+>>> +
+>>> +     ehrpwm2_tbclk: ehrpwm2_tbclk {
+>>> +             #clock-cells = <0>;
+>>> +             compatible = "ti,gate-clock";
+>>> +             clocks = <&dpll_per_m2_ck>;
+>>> +             ti,bit-shift = <2>;
+>>> +             reg = <0x0664>;
+>>> +     };
+>>> +
+>>> +     ehrpwm3_tbclk: ehrpwm3_tbclk {
+>>> +             #clock-cells = <0>;
+>>> +             compatible = "ti,gate-clock";
+>>> +             clocks = <&dpll_per_m2_ck>;
+>>> +             ti,bit-shift = <4>;
+>>> +             reg = <0x0664>;
+>>> +     };
+>>> +
+>>> +     ehrpwm4_tbclk: ehrpwm4_tbclk {
+>>> +             #clock-cells = <0>;
+>>> +             compatible = "ti,gate-clock";
+>>> +             clocks = <&dpll_per_m2_ck>;
+>>> +             ti,bit-shift = <5>;
+>>> +             reg = <0x0664>;
+>>> +     };
+>>> +
+>>> +     ehrpwm5_tbclk: ehrpwm5_tbclk {
+>>> +             #clock-cells = <0>;
+>>> +             compatible = "ti,gate-clock";
+>>> +             clocks = <&dpll_per_m2_ck>;
+>>> +             ti,bit-shift = <6>;
+>>> +             reg = <0x0664>;
+>>> +     };
+>>>    };
+>>>    &prcm_clocks {
+>>>        clk_32768_ck: clk_32768_ck {
+>>> diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
+>>> index 67c8de5..527a43d 100644
+>>> --- a/drivers/clk/ti/clk-43xx.c
+>>> +++ b/drivers/clk/ti/clk-43xx.c
+>>> @@ -105,6 +105,12 @@ static struct ti_dt_clk am43xx_clks[] = {
+>>>        DT_CLK(NULL, "func_12m_clk", "func_12m_clk"),
+>>>        DT_CLK(NULL, "vtp_clk_div", "vtp_clk_div"),
+>>>        DT_CLK(NULL, "usbphy_32khz_clkmux", "usbphy_32khz_clkmux"),
+>>> +     DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
+>>> +     DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
+>>> +     DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
+>>> +     DT_CLK("48306200.ehrpwm", "tbclk", "ehrpwm3_tbclk"),
+>>> +     DT_CLK("48308200.ehrpwm", "tbclk", "ehrpwm4_tbclk"),
+>>> +     DT_CLK("4830a200.ehrpwm", "tbclk", "ehrpwm5_tbclk"),
+>>>        { .node_name = NULL },
+>>>    };
+>>>
+>>>
+>>
+
