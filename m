@@ -1,31 +1,81 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv2 9/9] DTS: OMAP3-N900: Add sound support
-Date: Mon, 5 May 2014 12:45:13 -0700
-Message-ID: <20140505194513.GE25949@atomide.com>
-References: <1398694047-28596-1-git-send-email-sre@kernel.org>
- <1398694047-28596-10-git-send-email-sre@kernel.org>
- <20140501175845.GK3245@sirena.org.uk>
+From: Nishanth Menon <nm@ti.com>
+Subject: [GIT PULL #1/2] bus: omap_l3_noc: driver fixes and DRA7/AM437x
+ support
+Date: Mon, 5 May 2014 15:03:22 -0500
+Message-ID: <20140505200322.GA9863@kahuna>
+References: <1397492726-17203-1-git-send-email-nm@ti.com>
+ <1398698101-25513-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140501175845.GK3245-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+In-Reply-To: <1398698101-25513-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [140501 11:41]:
-> On Mon, Apr 28, 2014 at 04:07:27PM +0200, Sebastian Reichel wrote:
-> > This patch adds support for the Nokia N900's sound
-> > system.
-> 
-> Reviewed-by: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Hi Tony,
 
-Applying the last patch into omap-for-v3.16/dt branch thanks.
+   Please pull the following driver fixes based on V3 of l3noc fixes and
+   support for DRA7 and AM437x for upcoming 3.16 window.
+   http://marc.info/?l=linux-omap&m=139869922030493&w=2
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+   This is part 1 of the pull request containing purely the driver
+   updates.
+
+The following changes since commit 455c6fdbd219161bd09b1165f11699d6d73de11c:
+
+  Linux 3.14 (2014-03-30 20:40:15 -0700)
+
+are available in the git repository at:
+
+  https://github.com/nmenon/linux-2.6-playground.git pull/l3noc/driver-fixes
+
+for you to fetch changes up to 27b7d5f3cc49f2e5cd6c005d73696058b7140c5c:
+
+  bus: omap_l3_noc: Add AM4372 interconnect error data (2014-05-05 14:34:37 -0500)
+
+----------------------------------------------------------------
+Afzal Mohammed (2):
+      bus: omap_l3_noc: ignore masked out unclearable targets
+      bus: omap_l3_noc: Add AM4372 interconnect error data
+
+Nishanth Menon (14):
+      bus: omap_l3_noc: Fix copyright information
+      bus: omap_l3_noc: remove iclk from omap_l3 struct
+      bus: omap_l3_noc: populate l3->dev and use it
+      bus: omap_l3_noc: switch over to relaxed variants of readl/writel
+      bus: omap_l3_noc: un-obfuscate l3_targ address computation
+      bus: omap_l3_noc: move L3 master data structure out
+      bus: omap_l3_noc: convert target information into a structure
+      bus: omap_l3_noc: convert flagmux information into a structure
+      bus: omap_l3_noc: fix masterid detection
+      bus: omap_l3_noc: make error reporting and handling common
+      bus: omap_l3_noc: improve readability by using helper for slave event parsing
+      bus: omap_l3_noc: add information about the type of operation
+      bus: omap_l3_noc: Add information about the context of operation
+      bus: omap_l3_noc: introduce concept of submodule
+
+Peter Ujfalusi (5):
+      drivers: bus: omap_l3: Convert to use devm_kzalloc
+      drivers: bus: omap_l3: Convert to use devm_ioremap_resource()
+      drivers: bus: omap_l3: Convert to use devm_request_irq()
+      drivers: bus: omap_l3: Remove the platform driver's remove function
+      drivers: bus: omap_l3: Change pr_crit() to dev_err() when IRQ request fails
+
+Rajendra Nayak (2):
+      bus: omap_l3_noc: Add support for discountinous flag mux input numbers
+      bus: omap_l3_noc: Add DRA7 interconnect error data
+
+Sricharan R (2):
+      bus: omap_l3_noc: rename functions and data to omap_l3
+      bus: omap_l3_noc: use of_match_data to pick up SoC information
+
+ .../devicetree/bindings/arm/omap/l3-noc.txt        |    2 +
+ drivers/bus/omap_l3_noc.c                          |  406 ++++++++-------
+ drivers/bus/omap_l3_noc.h                          |  545 +++++++++++++++-----
+ 3 files changed, 653 insertions(+), 300 deletions(-)
+-- 
+Regards,
+Nishanth Menon
