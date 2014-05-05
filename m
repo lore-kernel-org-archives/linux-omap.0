@@ -1,34 +1,35 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH 0/5] irqchip/dra7: crossbar bug fixes
-Date: Mon, 5 May 2014 19:48:42 +0530
-Message-ID: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH 1/2] PM / OPP: Remove cpufreq wrapper dependency on
+ internal data organization
+Date: Mon, 5 May 2014 19:53:14 +0530
+Message-ID: <CAKohpomeP3Ftx8mH=x0Hj7HEpw6A9X8O8JEFqvrJbkZYDqDS6Q@mail.gmail.com>
+References: <1399296830-13056-1-git-send-email-nm@ti.com>
+	<1399296830-13056-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51489 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932538AbaEEOU1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 May 2014 10:20:27 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <1399296830-13056-2-git-send-email-nm@ti.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Kevin Hilman <khilman@deeprootsystems.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: nm@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com, tony@atomide.com
 
-These are fixes for the crossbar to handle two interrupts getting
-mapped twice to same crossbar and to skip some interrupts being used
-due to hardware bugs.
+On 5 May 2014 19:03, Nishanth Menon <nm@ti.com> wrote:
+> diff --git a/drivers/base/power/opp.c b/drivers/base/power/opp.c
+>  int dev_pm_opp_init_cpufreq_table(struct device *dev,
+>                             struct cpufreq_frequency_table **table)
+>  {
+> -       struct device_opp *dev_opp;
+>         struct dev_pm_opp *opp;
+> -       struct cpufreq_frequency_table *freq_table;
+> -       int i = 0;
+> +       struct cpufreq_frequency_table *freq_table = NULL;
+> +       int i, max_opps, ret = 0;
+> +       unsigned long rate;
+>
+> -       /* Pretend as if I am an updater */
+> -       mutex_lock(&dev_opp_list_lock);
 
-Nishanth Menon (5):
-  irqchip: crossbar: dont use '0' to mark reserved interrupts
-  irqchip: crossbar: check for premapped crossbar before allocating
-  irqchip: crossbar: Skip some irqs from getting mapped to crossbar
-  irqchip: crossbar: Initialise the crossbar with a safe value
-  irqchip: crossbar: Change allocation logic by reversing search for
-    free irqs
-
- drivers/irqchip/irq-crossbar.c |   82 ++++++++++++++++++++++++++++++++++++----
- 1 file changed, 74 insertions(+), 8 deletions(-)
-
--- 
-1.7.9.5
-
+What if opp is being added for some reason at the same time?
+I hope we can surely see some awkward results, maybe some
+NULL pointers invocations as well..
