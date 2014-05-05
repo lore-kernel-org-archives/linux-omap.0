@@ -1,35 +1,52 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH 1/2] PM / OPP: Remove cpufreq wrapper dependency on
- internal data organization
-Date: Mon, 5 May 2014 19:53:14 +0530
-Message-ID: <CAKohpomeP3Ftx8mH=x0Hj7HEpw6A9X8O8JEFqvrJbkZYDqDS6Q@mail.gmail.com>
-References: <1399296830-13056-1-git-send-email-nm@ti.com>
-	<1399296830-13056-2-git-send-email-nm@ti.com>
+From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/2] ARM: dts: am437x-gp-evm: Add vtt_fixed regulator
+Date: Mon, 5 May 2014 14:58:28 -0500
+Message-ID: <1399319909-53795-2-git-send-email-d-gerlach@ti.com>
+References: <1399319909-53795-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <1399296830-13056-2-git-send-email-nm@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Kevin Hilman <khilman@deeprootsystems.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1399319909-53795-1-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 5 May 2014 19:03, Nishanth Menon <nm@ti.com> wrote:
-> diff --git a/drivers/base/power/opp.c b/drivers/base/power/opp.c
->  int dev_pm_opp_init_cpufreq_table(struct device *dev,
->                             struct cpufreq_frequency_table **table)
->  {
-> -       struct device_opp *dev_opp;
->         struct dev_pm_opp *opp;
-> -       struct cpufreq_frequency_table *freq_table;
-> -       int i = 0;
-> +       struct cpufreq_frequency_table *freq_table = NULL;
-> +       int i, max_opps, ret = 0;
-> +       unsigned long rate;
->
-> -       /* Pretend as if I am an updater */
-> -       mutex_lock(&dev_opp_list_lock);
+The VTT regulator for DDR3 termination on the am437x-gp-evm is
+controlled by a gpio. It is configured by the bootloader so here we
+define an always-on, fixed voltage regulator to hold the gpio.
 
-What if opp is being added for some reason at the same time?
-I hope we can surely see some awkward results, maybe some
-NULL pointers invocations as well..
+Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am437x-gp-evm.dts | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index df8798e..6e61e42 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -27,6 +27,17 @@
+ 		enable-active-high;
+ 	};
+ 
++	vtt_fixed: fixedregulator-vtt {
++		compatible = "regulator-fixed";
++		regulator-name = "vtt_fixed";
++		regulator-min-microvolt = <1500000>;
++		regulator-max-microvolt = <1500000>;
++		regulator-always-on;
++		regulator-boot-on;
++		enable-active-high;
++		gpio = <&gpio5 7 GPIO_ACTIVE_HIGH>;
++	};
++
+ 	backlight {
+ 		compatible = "pwm-backlight";
+ 		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
+-- 
+1.9.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
