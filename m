@@ -1,70 +1,144 @@
-From: Johan Hovold <jhovold@gmail.com>
-Subject: Re: [PATCH 3.14 012/158] ARM: dts: am33xx: correcting dt node unit
- address for usb
-Date: Mon, 5 May 2014 10:37:57 +0200
-Message-ID: <20140505083757.GB30739@localhost>
-References: <20140504154029.975081050@linuxfoundation.org>
- <20140504154031.690140742@linuxfoundation.org>
+From: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
+Subject: [RFC] [v2 Patch 5/6] ARM: dts: dra7: Add prm_resets node
+Date: Mon, 5 May 2014 15:09:26 -0500
+Message-ID: <1399320567-3639-6-git-send-email-dmurphy@ti.com>
+References: <1399320567-3639-1-git-send-email-dmurphy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140504154031.690140742@linuxfoundation.org>
-Sender: stable-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>, Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Leigh Brown <leigh@solinno.co.uk>, devicetree@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1399320567-3639-1-git-send-email-dmurphy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, May 04, 2014 at 11:38:41AM -0400, Greg Kroah-Hartman wrote:
-> 3.14-stable review patch.  If anyone has any objections, please let me know.
+Add the prcm_resets node to the prm parent node.
 
-This one should not be backported without commit
+Add the draxx_resets file to define the
+dra7xx reset lines that are handled by this reset
+framework.
 
-	a2f8d6b30321 ("ARM: dts: am335x: update USB DT references")
+Signed-off-by: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/dra7.dtsi          |    7 +++
+ arch/arm/boot/dts/dra7xx-resets.dtsi |   82 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 89 insertions(+)
+ create mode 100644 arch/arm/boot/dts/dra7xx-resets.dtsi
 
-which is in Linus' tree but is not marked for stable (or USB will be
-disabled for the boards relying on the old node addresses).
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 149b550..c008996 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -120,6 +120,12 @@
+ 
+ 			prm_clockdomains: clockdomains {
+ 			};
++
++			prm_resets: resets {
++				#address-cells = <1>;
++				#size-cells = <1>;
++				#reset-cells = <1>;
++			};
+ 		};
+ 
+ 		cm_core_aon: cm_core_aon@4a005000 {
+@@ -793,3 +799,4 @@
+ };
+ 
+ /include/ "dra7xx-clocks.dtsi"
++/include/ "dra7xx-resets.dtsi"
+diff --git a/arch/arm/boot/dts/dra7xx-resets.dtsi b/arch/arm/boot/dts/dra7xx-resets.dtsi
+new file mode 100644
+index 0000000..4c4966d
+--- /dev/null
++++ b/arch/arm/boot/dts/dra7xx-resets.dtsi
+@@ -0,0 +1,82 @@
++/*
++ * Device Tree Source for DRA7XX reset data
++ *
++ * Copyright (C) 2014 Texas Instruments, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++&prm_resets {
++	dsp_rstctrl {
++		reg = <0x410>,
++			  <0x414>;
++
++		dsp_reset: dsp_reset {
++			control-bit = <0x01>;
++			status-bit = <0x01>;
++		};
++
++		dsp_mmu_reset: dsp_mmu_reset {
++			control-bit = <0x02>;
++			status-bit = <0x02>;
++		};
++	};
++
++	ipu_rstctrl {
++		reg = <0x510>,
++			  <0x514>;
++
++		ipu_cpu0_reset: ipu_cpu0_reset {
++			control-bit = <0x01>;
++			status-bit = <0x01>;
++		};
++
++		ipu_cpu1_reset: ipu_cpu1_reset {
++			control-bit = <0x02>;
++			status-bit = <0x02>;
++		};
++
++		ipu_mmu_reset: ipu_mmu_reset {
++			control-bit = <0x04>;
++			status-bit = <0x04>;
++		};
++	};
++
++	iva_rstctrl {
++		reg = <0xf10>,
++			  <0xf14>;
++
++		iva_reset: iva_reset {
++			control-bit = <0x01>;
++			status-bit = <0x01>;
++		};
++	};
++
++	pcie_rstctrl {
++		reg = <0x1310>,
++			  <0x1314>;
++
++		pcie1_reset: pcie1_reset {
++			control-bit = <0x01>;
++			status-bit = <0x01>;
++		};
++
++		pcie2_reset: pcie2_reset {
++			control-bit = <0x01>;
++			status-bit = <0x01>;
++		};
++	};
++
++	device_rstctrl {
++		reg = <0x1D00>,
++			  <0x1D04>;
++
++		device_reset: device_reset {
++			control-bit = <0x01>;
++			status-bit = <0x01>;
++		};
++	};
++
++};
+-- 
+1.7.9.5
 
-Thanks,
-Johan
-
-> ------------------
-> 
-> From: Mugunthan V N <mugunthanvnm@ti.com>
-> 
-> commit 8abcdd680d543fb582371e146e62ba9f2af8a816 upstream.
-> 
-> DT node's unit address should be its own register offset address to make it a
-> unique across the system. This patch corrects the incorrect USB entries with
-> correct register offset for unit address.
-> 
-> Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> 
-> ---
->  arch/arm/boot/dts/am33xx.dtsi |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -448,7 +448,7 @@
->  			ti,hwmods = "usb_otg_hs";
->  			status = "disabled";
->  
-> -			usb_ctrl_mod: control@44e10000 {
-> +			usb_ctrl_mod: control@44e10620 {
->  				compatible = "ti,am335x-usb-ctrl-module";
->  				reg = <0x44e10620 0x10
->  					0x44e10648 0x4>;
-> @@ -551,7 +551,7 @@
->  					"tx14", "tx15";
->  			};
->  
-> -			cppi41dma: dma-controller@07402000 {
-> +			cppi41dma: dma-controller@47402000 {
->  				compatible = "ti,am3359-cppi41";
->  				reg =  <0x47400000 0x1000
->  					0x47402000 0x1000
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
