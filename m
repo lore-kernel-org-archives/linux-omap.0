@@ -1,160 +1,115 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [RFC] [v2 Patch 2/6] ARM: TI: Describe the ti reset DT entries
-Date: Tue, 6 May 2014 08:18:37 -0500
-Message-ID: <5368E12D.1060706@ti.com>
-References: <1399320567-3639-1-git-send-email-dmurphy@ti.com> <1399320567-3639-3-git-send-email-dmurphy@ti.com> <20140505220155.GI25949@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 4/4] ARM: dts: am335x-igep0033: use phandles for USB and
+ DMA refs
+Date: Tue, 6 May 2014 11:17:03 -0500
+Message-ID: <20140506161703.GM25849@saruman.home>
+References: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1398693512-5355-4-git-send-email-guido@vanguardiasur.com.ar>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="McpcKDxJRrEJVmOH"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43165 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751607AbaEFNTA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 09:19:00 -0400
-In-Reply-To: <20140505220155.GI25949@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:53899 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753300AbaEFQRs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 May 2014 12:17:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1398693512-5355-4-git-send-email-guido@vanguardiasur.com.ar>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>
+Cc: LKML <linux-kernel@vger.kernel.org>, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
 
-Tony
+--McpcKDxJRrEJVmOH
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for the comments
+On Mon, Apr 28, 2014 at 10:58:32AM -0300, Guido Mart=EDnez wrote:
+> Use phandles instead of unit adresses to reference usb and dma nodes.
+> This makes the DT more robust and readable.
+>=20
+> Signed-off-by: Guido Mart=EDnez <guido@vanguardiasur.com.ar>
 
-On 05/05/2014 05:01 PM, Tony Lindgren wrote:
-> * Dan Murphy <dmurphy@ti.com> [140505 13:10]:
->> +
->> +Required parent properties:
->> +- compatible : Should be one of,
->> +		"ti,omap4-prm" for OMAP4 PRM instances
->> +		"ti,omap5-prm" for OMAP5 PRM instances
->> +		"ti,dra7-prm" for DRA7xx PRM instances
->> +		"ti,am4-prcm" for AM43xx PRCM instances
->> +		"ti,am3-prcm" for AM33xx PRCM instances
->> +
->> +Required child reset property:
->> +- compatible : Should be
->> +		"resets" for All TI SoCs
->> +
->> +example:
->> +		prm: prm@4ae06000 {
->> +			compatible = "ti,omap5-prm";
->> +			reg = <0x4ae06000 0x3000>;
->> +
->> +			prm_resets: resets {
->> +				#address-cells = <1>;
->> +				#size-cells = <1>;
->> +				#reset-cells = <1>;
->> +			};
->> +		};
-> The reg entries you have in the example below has different format
-> compared to this?
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-This is the parent to the resets.  The reg entries below are for
-the child reset signals.
+> ---
+>  arch/arm/boot/dts/am335x-igep0033.dtsi | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/a=
+m335x-igep0033.dtsi
+> index 9f22c18..81cf68b 100644
+> --- a/arch/arm/boot/dts/am335x-igep0033.dtsi
+> +++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
+> @@ -201,28 +201,28 @@
+>  &usb {
+>  	status =3D "okay";
+> =20
+> -	control@44e10620 {
+> +	&usb_ctrl_mod {
+>  		status =3D "okay";
+>  	};
+> =20
+> -	usb-phy@47401300 {
+> +	&usb0_phy {
+>  		status =3D "okay";
+>  	};
+> =20
+> -	usb-phy@47401b00 {
+> +	&usb1_phy {
+>  		status =3D "okay";
+>  	};
+> =20
+> -	usb@47401000 {
+> +	&usb0 {
+>  		status =3D "okay";
+>  	};
+> =20
+> -	usb@47401800 {
+> +	&usb1 {
+>  		status =3D "okay";
+>  		dr_mode =3D "host";
+>  	};
+> =20
+> -	dma-controller@47402000  {
+> +	&cppi41dma  {
+>  		status =3D "okay";
+>  	};
+>  };
+> --=20
+> 1.9.2
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
->
->> +Reset node declaration
->> +==============================================
->> +The reset node is declared in a parent child relationship.  The main parent
->> +is the PRCM module which contains the base address.  The first child within
->> +the reset parent declares the target modules reset name.  This is followed by
->> +the control and status offsets.
->> +
->> +Within the first reset child node is a secondary child node which declares the
->> +reset signal of interest.  Under this node the control and status bits
->> +are declared.  These bits declare the bit mask for the target reset.
->> +
->> +
->> +Required properties:
->> +reg - This is the register offset from the PRCM parent.
->> +	This must be declared as:
->> +
->> +	reg = <control register offset>,
->> +		  <status register offset>;
->> +
->> +control-bit - This is the bit within the register which controls the reset
->> +	of the target module.  This is declared as a bit mask for the register.
->> +status-bit - This is the bit within the register which contains the status of
->> +	the reset of the target module.
->> +	This is declared as a bit mask for the register.
->> +
->> +example:
->> +&prm_resets {
->> +	dsp_rstctrl {
->> +		reg = <0x1c00>,
->> +			  <0x1c04>;
-> Shouldn't this be start and size instead of start and end here?
+--=20
+balbi
 
-I could do start and size.  But the size will be the same for each register.
-AM33xx really hurts the consistency model here as the other patches in the series
-it appears that the control and status are consistent but AM33xx the registers are all over
-the place.
+--McpcKDxJRrEJVmOH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-I have not looked at OMAP2->4 yet for control and status register offsets.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
->> +		dsp_reset: dsp_reset {
->> +			control-bit = <0x01>;
->> +			status-bit = <0x01>;
->> +		};
->> +	};
->> +};
-> Are the control-bit and status-bit always the same? If so, you can
-> keep that knowlede private to the the driver.
+iQIcBAEBAgAGBQJTaQr/AAoJEIaOsuA1yqREYjEQAKiMKdTfGKKPkJO91rX2+EAO
+5ec7cXNIiaNl/7vRZLxCU7sLR57iYHRvjt3kxjq2mrr8ObFkXQtFc0RbTo8flULk
+bA4fTdm0xlweb7jz735shA0zDSh3eX4UtYxafUtGbtxjckY7vvT61JNOciayrPRJ
+FTqvnOots9iOWhIYnfDE1+jBivTEZ3RmN5ftwF3SrsISns5im4JPtkVgl+jlwCFH
+sUzftadNnxeZK6qmR5BSql5N9lWhRSqMIN1Fq/+M7P7u8qJiYhNDjWwfzbargLsW
+28RarO93ZaAd5NiePCnVr5Hfp698iIu3l9mEk2frfF2Br4oVz0M4trtqqF0R4x8J
+LoeJqTieTp1hasZNQwgbZ62n3TKkxSZ+rekJC25wgPlqecNpKlU+ciwN6BbbZKeN
+21l9x/YKhL2i2yicALlMn6s/+yZAhc9zQx+4zj/fUWkxUXb3iltya4h/4kD8MtkJ
+0tScREwV1pZQEIJj4LgEGQesuegA/6Ks1V/sdlGCCyCEMQdwOQUGbXbD8cs8B0v2
+LcUrUnkNQKm8s3MbAP+gNkizrFkgurtQGytAtChFNCvt7aoAIjICJMU8Q6QeYzH9
+sktTUYS9RHFgyqekjI1di05Qe6+lDuM+OX3MvcS3E12F3tUwk196l06sldaDkyLz
+4GWA20JJ3z2sCW9AxucS
+=ZZxB
+-----END PGP SIGNATURE-----
 
-No there is a case in the am33xx resets file where the status and control bits are not the same.
-
->
-> And maybe you can have the bit offset in a reg property here to
-> avoid adding any custom properties? Something like:
->
-> 	dsp_reset: reset@1 {
-> 		reg = 1;
-> 	};
->
-> If reg is not suitable for that, it seems that some generic property
-> to describe the bit offset is needed by quite a few drivers
-> anyways, for things like clocks and regulators. 
-
-I will have to look into this.  Maybe a generic entry called bit-offset
-that defines the bit or a mask for the registers.  It can mimic the reg
-entry.
-
->> +Client Node Declaration
->> +==============================================
->> +This is the consumer of the parent node to declare what resets this
->> +particular module is interested in.
->> +
->> +example:
->> +	src: src@55082000 {
->> +		    resets = <&reset_src phandle>;
->> +			reset-names = "<reset_name>";
->> +	};
->> +
->> +Required Properties:
->> +reset_src - This is the parent DT entry for the reset controller
->> +phandle - This is the phandle of the specific reset to be used by the clien
->> +	driver.
->> +reset-names - This is the reset name of module that the device driver
->> +	needs to be able to reset.  This value must correspond to a value within
->> +	the reset controller array.
->> +
->> +example:
->> +resets = <&prm_resets &dsp_mmu_reset>;
->> +reset-names = "dsp_mmu_reset";
-> This part looks OK to me, not sure if we need the reset-names property
-> if we have one already why not.
-
-reset-names are part of the reset.txt file.  I could probably drop the resets and reset-name information here
-and point to the reset.txt file for further explanation.
-
->
-> Regards,
->
-> Tony
-
-
--- 
-------------------
-Dan Murphy
-
+--McpcKDxJRrEJVmOH--
