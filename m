@@ -1,393 +1,224 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 2/2] clk: Add driver for Palmas clk32kg and clk32kgaudio clocks
-Date: Tue, 6 May 2014 16:24:45 +0300
-Message-ID: <1399382685-14781-3-git-send-email-peter.ujfalusi@ti.com>
-References: <1399382685-14781-1-git-send-email-peter.ujfalusi@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 01/17] phy: phy-omap-pipe3: Add support for PCIe PHY
+Date: Tue, 6 May 2014 19:03:47 +0530
+Message-ID: <1399383244-14556-2-git-send-email-kishon@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54122 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751771AbaEFNZD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 May 2014 09:25:03 -0400
-In-Reply-To: <1399382685-14781-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1399383244-14556-1-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: rogerq@ti.com, balajitk@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: mturquette@linaro.org, grant.likely@linaro.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ldewangan@nvidia.com, linux-doc@vger.kernel.org, nm@ti.com, robh+dt@kernel.org
 
-Palmas class of devices can provide 32K clock(s) to be used by other devices
-on the board. Depending on the actual device the provided clocks can be:
-CLK32K_KG and CLK32K_KGAUDIO
-or only one:
-CLK32K_KG (TPS659039 for example)
+PCIe PHY uses an external pll instead of the internal pll used by SATA
+and USB3. So added support in pipe3 PHY to use external pll.
 
-Use separate compatible flags for the two 32K clock.
-A system which needs or have only one of the 32k clock from
-Palmas will need to add node(s) for each clock as separate section
-in the dts file.
-The two compatible property is:
-"ti,palmas-clk32kg" for clk32kg clock
-"ti,palmas-clk32kgaudio" for clk32kgaudio clock
-
-Apart from the register control of the clocks - which is done via
-the clock API there is a posibility to enable the external sleep
-control. In this way the clock can be enabled/disabled on demand by the
-user of the clock.
-
-See the documentation for more details.
-
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/clk/Kconfig      |   7 ++
- drivers/clk/Makefile     |   1 +
- drivers/clk/clk-palmas.c | 307 +++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 315 insertions(+)
- create mode 100644 drivers/clk/clk-palmas.c
+ Documentation/devicetree/bindings/phy/ti-phy.txt |    8 +-
+ drivers/phy/phy-ti-pipe3.c                       |   99 +++++++++++++++++-----
+ 2 files changed, 84 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
-index 6f56d3a4f010..a070b77a1e17 100644
---- a/drivers/clk/Kconfig
-+++ b/drivers/clk/Kconfig
-@@ -109,6 +109,13 @@ config COMMON_CLK_KEYSTONE
-           Supports clock drivers for Keystone based SOCs. These SOCs have local
- 	  a power sleep control module that gate the clock to the IPs and PLLs.
+diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+index 9ce458f..cf3de7e 100644
+--- a/Documentation/devicetree/bindings/phy/ti-phy.txt
++++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+@@ -56,8 +56,8 @@ usb2phy@4a0ad080 {
+ TI PIPE3 PHY
  
-+config COMMON_CLK_PALMAS
-+	tristate "Clock driver for TI Palmas devices"
-+	depends on MFD_PALMAS
-+	---help---
-+	  This driver supports TI Palmas devices 32KHz output KG and KG_AUDIO
-+	  using common clock framework.
-+
- source "drivers/clk/qcom/Kconfig"
+ Required properties:
+- - compatible: Should be "ti,phy-usb3" or "ti,phy-pipe3-sata".
+-   "ti,omap-usb3" is deprecated.
++ - compatible: Should be "ti,phy-usb3", "ti,phy-pipe3-sata" or
++   "ti,phy-pipe3-pcie. "ti,omap-usb3" is deprecated.
+  - reg : Address and length of the register set for the device.
+  - reg-names: The names of the register addresses corresponding to the registers
+    filled in "reg".
+@@ -69,6 +69,10 @@ Required properties:
+    * "wkupclk" - wakeup clock.
+    * "sysclk" - system clock.
+    * "refclk" - reference clock.
++   * "dpll_ref" - external dpll ref clk
++   * "dpll_ref_m2" - external dpll ref clk
++   * "phy-div" - divider for apll
++   * "div-clk" - apll clock
  
- endmenu
-diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-index 5f8a28735c96..d67214debc12 100644
---- a/drivers/clk/Makefile
-+++ b/drivers/clk/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_COMMON_CLK_MAX77686)	+= clk-max77686.o
- obj-$(CONFIG_ARCH_MOXART)		+= clk-moxart.o
- obj-$(CONFIG_ARCH_NOMADIK)		+= clk-nomadik.o
- obj-$(CONFIG_ARCH_NSPIRE)		+= clk-nspire.o
-+obj-$(CONFIG_COMMON_CLK_PALMAS)		+= clk-palmas.o
- obj-$(CONFIG_CLK_PPC_CORENET)		+= clk-ppc-corenet.o
- obj-$(CONFIG_COMMON_CLK_S2MPS11)	+= clk-s2mps11.o
- obj-$(CONFIG_COMMON_CLK_SI5351)		+= clk-si5351.o
-diff --git a/drivers/clk/clk-palmas.c b/drivers/clk/clk-palmas.c
-new file mode 100644
-index 000000000000..781630e1372b
---- /dev/null
-+++ b/drivers/clk/clk-palmas.c
-@@ -0,0 +1,307 @@
-+/*
-+ * Clock driver for Palmas device.
-+ *
-+ * Copyright (c) 2013, NVIDIA Corporation.
-+ * Copyright (c) 2013-2014 Texas Instruments, Inc.
-+ *
-+ * Author:	Laxman Dewangan <ldewangan@nvidia.com>
-+ *		Peter Ujfalusi <peter.ujfalusi@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-+ * whether express or implied; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-+ * General Public License for more details.
-+ */
+ Optional properties:
+  - ctrl-module : phandle of the control module used by PHY driver to power on
+diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+index 5913676..d43019d 100644
+--- a/drivers/phy/phy-ti-pipe3.c
++++ b/drivers/phy/phy-ti-pipe3.c
+@@ -80,6 +80,7 @@ struct ti_pipe3 {
+ 	struct clk		*wkupclk;
+ 	struct clk		*sys_clk;
+ 	struct clk		*refclk;
++	struct clk		*div_clk;
+ 	struct pipe3_dpll_map	*dpll_map;
+ };
+ 
+@@ -215,6 +216,9 @@ static int ti_pipe3_init(struct phy *x)
+ 	u32 val;
+ 	int ret = 0;
+ 
++	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
++		return 0;
 +
-+#include <linux/clk.h>
-+#include <linux/clkdev.h>
-+#include <linux/clk-provider.h>
-+#include <linux/mfd/palmas.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+
-+#define PALMAS_CLOCK_DT_EXT_CONTROL_ENABLE1	1
-+#define PALMAS_CLOCK_DT_EXT_CONTROL_ENABLE2	2
-+#define PALMAS_CLOCK_DT_EXT_CONTROL_NSLEEP	3
-+
-+struct palmas_clk32k_desc {
-+	const char *clk_name;
-+	unsigned int control_reg;
-+	unsigned int enable_mask;
-+	unsigned int sleep_mask;
-+	unsigned int sleep_reqstr_id;
-+	int delay;
-+};
-+
-+struct palmas_clock_info {
-+	struct device *dev;
-+	struct clk *clk;
-+	struct clk_hw hw;
-+	struct palmas *palmas;
-+	struct palmas_clk32k_desc *clk_desc;
-+	int ext_control_pin;
-+};
-+
-+static inline struct palmas_clock_info *to_palmas_clks_info(struct clk_hw *hw)
-+{
-+	return container_of(hw, struct palmas_clock_info, hw);
-+}
-+
-+static unsigned long palmas_clks_recalc_rate(struct clk_hw *hw,
-+					     unsigned long parent_rate)
-+{
-+	return 32768;
-+}
-+
-+static int palmas_clks_prepare(struct clk_hw *hw)
-+{
-+	struct palmas_clock_info *cinfo = to_palmas_clks_info(hw);
-+	int ret;
-+
-+	ret = palmas_update_bits(cinfo->palmas, PALMAS_RESOURCE_BASE,
-+				 cinfo->clk_desc->control_reg,
-+				 cinfo->clk_desc->enable_mask,
-+				 cinfo->clk_desc->enable_mask);
-+	if (ret < 0)
-+		dev_err(cinfo->dev, "Reg 0x%02x update failed, %d\n",
-+			cinfo->clk_desc->control_reg, ret);
-+	else if (cinfo->clk_desc->delay)
-+		udelay(cinfo->clk_desc->delay);
-+
-+	return ret;
-+}
-+
-+static void palmas_clks_unprepare(struct clk_hw *hw)
-+{
-+	struct palmas_clock_info *cinfo = to_palmas_clks_info(hw);
-+	int ret;
-+
-+	/*
-+	 * Clock can be disabled through external pin if it is externally
-+	 * controlled.
+ 	/* Bring it out of IDLE if it is IDLE */
+ 	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
+ 	if (val & PLL_IDLE) {
+@@ -238,8 +242,11 @@ static int ti_pipe3_exit(struct phy *x)
+ 	u32 val;
+ 	unsigned long timeout;
+ 
+-	/* SATA DPLL can't be powered down due to Errata i783 */
+-	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata"))
++	/* SATA DPLL can't be powered down due to Errata i783 and PCIe
++	 * does not have internal DPLL
 +	 */
-+	if (cinfo->ext_control_pin)
-+		return;
-+
-+	ret = palmas_update_bits(cinfo->palmas, PALMAS_RESOURCE_BASE,
-+				 cinfo->clk_desc->control_reg,
-+				 cinfo->clk_desc->enable_mask, 0);
-+	if (ret < 0)
-+		dev_err(cinfo->dev, "Reg 0x%02x update failed, %d\n",
-+			cinfo->clk_desc->control_reg, ret);
-+}
-+
-+static int palmas_clks_is_prepared(struct clk_hw *hw)
-+{
-+	struct palmas_clock_info *cinfo = to_palmas_clks_info(hw);
-+	int ret;
-+	u32 val;
-+
-+	if (cinfo->ext_control_pin)
-+		return 1;
-+
-+	ret = palmas_read(cinfo->palmas, PALMAS_RESOURCE_BASE,
-+			  cinfo->clk_desc->control_reg, &val);
-+	if (ret < 0) {
-+		dev_err(cinfo->dev, "Reg 0x%02x read failed, %d\n",
-+			cinfo->clk_desc->control_reg, ret);
-+		return ret;
-+	}
-+	return !!(val & cinfo->clk_desc->enable_mask);
-+}
-+
-+static struct clk_ops palmas_clks_ops = {
-+	.prepare	= palmas_clks_prepare,
-+	.unprepare	= palmas_clks_unprepare,
-+	.is_prepared	= palmas_clks_is_prepared,
-+	.recalc_rate	= palmas_clks_recalc_rate,
-+};
-+
-+struct palmas_clks_of_match_data {
-+	struct clk_init_data init;
-+	struct palmas_clk32k_desc desc;
-+};
-+
-+static struct palmas_clks_of_match_data palmas_of_clk32kg = {
-+	.init = {
-+		.name = "clk32kg",
-+		.ops = &palmas_clks_ops,
-+		.flags = CLK_IS_ROOT | CLK_IGNORE_UNUSED,
-+	},
-+	.desc = {
-+		.clk_name = "clk32kg",
-+		.control_reg = PALMAS_CLK32KG_CTRL,
-+		.enable_mask = PALMAS_CLK32KG_CTRL_MODE_ACTIVE,
-+		.sleep_mask = PALMAS_CLK32KG_CTRL_MODE_SLEEP,
-+		.sleep_reqstr_id = PALMAS_EXTERNAL_REQSTR_ID_CLK32KG,
-+		.delay = 200,
-+	},
-+};
-+
-+static struct palmas_clks_of_match_data palmas_of_clk32kgaudio = {
-+	.init = {
-+		.name = "clk32kgaudio",
-+		.ops = &palmas_clks_ops,
-+		.flags = CLK_IS_ROOT | CLK_IGNORE_UNUSED,
-+	},
-+	.desc = {
-+		.clk_name = "clk32kgaudio",
-+		.control_reg = PALMAS_CLK32KGAUDIO_CTRL,
-+		.enable_mask = PALMAS_CLK32KG_CTRL_MODE_ACTIVE,
-+		.sleep_mask = PALMAS_CLK32KG_CTRL_MODE_SLEEP,
-+		.sleep_reqstr_id = PALMAS_EXTERNAL_REQSTR_ID_CLK32KGAUDIO,
-+		.delay = 200,
-+	},
-+};
-+
-+static struct of_device_id palmas_clks_of_match[] = {
-+	{
-+		.compatible = "ti,palmas-clk32kg",
-+		.data = &palmas_of_clk32kg,
-+	},
-+	{
-+		.compatible = "ti,palmas-clk32kgaudio",
-+		.data = &palmas_of_clk32kgaudio,
-+	},
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, palmas_clks_of_match);
-+
-+static void palmas_clks_get_clk_data(struct platform_device *pdev,
-+				     struct palmas_clock_info *cinfo)
-+{
-+	struct device_node *node = pdev->dev.of_node;
-+	unsigned int prop;
-+	int ret;
-+
-+	ret = of_property_read_u32(node, "ti,external-sleep-control",
-+				   &prop);
-+	if (ret)
-+		return;
-+
-+	switch (prop) {
-+	case PALMAS_CLOCK_DT_EXT_CONTROL_ENABLE1:
-+		prop = PALMAS_EXT_CONTROL_ENABLE1;
-+		break;
-+	case PALMAS_CLOCK_DT_EXT_CONTROL_ENABLE2:
-+		prop = PALMAS_EXT_CONTROL_ENABLE2;
-+		break;
-+	case PALMAS_CLOCK_DT_EXT_CONTROL_NSLEEP:
-+		prop = PALMAS_EXT_CONTROL_NSLEEP;
-+		break;
-+	default:
-+		dev_warn(&pdev->dev, "%s: Invalid ext control option: %u\n",
-+			 node->name, prop);
-+		prop = 0;
-+		break;
-+	}
-+	cinfo->ext_control_pin = prop;
-+}
-+
-+static int palmas_clks_init_configure(struct palmas_clock_info *cinfo)
-+{
-+	int ret;
-+
-+	ret = palmas_update_bits(cinfo->palmas, PALMAS_RESOURCE_BASE,
-+				 cinfo->clk_desc->control_reg,
-+				 cinfo->clk_desc->sleep_mask, 0);
-+	if (ret < 0) {
-+		dev_err(cinfo->dev, "Reg 0x%02x update failed, %d\n",
-+			cinfo->clk_desc->control_reg, ret);
-+		return ret;
-+	}
-+
-+	if (cinfo->ext_control_pin) {
-+		ret = clk_prepare(cinfo->clk);
-+		if (ret < 0) {
-+			dev_err(cinfo->dev, "Clock prep failed, %d\n", ret);
-+			return ret;
-+		}
-+
-+		ret = palmas_ext_control_req_config(cinfo->palmas,
-+					cinfo->clk_desc->sleep_reqstr_id,
-+					cinfo->ext_control_pin, true);
-+		if (ret < 0) {
-+			dev_err(cinfo->dev, "Ext config for %s failed, %d\n",
-+				cinfo->clk_desc->clk_name, ret);
-+			return ret;
-+		}
-+	}
-+
-+	return ret;
-+}
-+static int palmas_clks_probe(struct platform_device *pdev)
-+{
-+	struct palmas *palmas = dev_get_drvdata(pdev->dev.parent);
-+	struct device_node *node = pdev->dev.of_node;
-+	struct palmas_clks_of_match_data *match_data;
-+	const struct of_device_id *match;
-+	struct palmas_clock_info *cinfo;
++	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata") ||
++	    of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
+ 		return 0;
+ 
+ 	/* Put DPLL in IDLE mode */
+@@ -286,32 +293,41 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+ 	struct device_node *control_node;
+ 	struct platform_device *control_pdev;
+ 	const struct of_device_id *match;
+-
+-	match = of_match_device(of_match_ptr(ti_pipe3_id_table), &pdev->dev);
+-	if (!match)
+-		return -EINVAL;
 +	struct clk *clk;
-+	int ret;
-+
-+	match = of_match_device(palmas_clks_of_match, &pdev->dev);
-+	match_data = (struct palmas_clks_of_match_data *)match->data;
-+
-+	cinfo = devm_kzalloc(&pdev->dev, sizeof(*cinfo), GFP_KERNEL);
-+	if (!cinfo)
-+		return -ENOMEM;
-+
-+	palmas_clks_get_clk_data(pdev, cinfo);
-+	platform_set_drvdata(pdev, cinfo);
-+
-+	cinfo->dev = &pdev->dev;
-+	cinfo->palmas = palmas;
-+
-+	cinfo->clk_desc = &match_data->desc;
-+	cinfo->hw.init = &match_data->init;
-+	clk = devm_clk_register(&pdev->dev, &cinfo->hw);
-+	if (IS_ERR(clk)) {
-+		ret = PTR_ERR(clk);
-+		dev_err(&pdev->dev, "Fail to register clock %s, %d\n",
-+			match_data->desc.clk_name, ret);
-+		return ret;
+ 
+ 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+ 	if (!phy) {
+ 		dev_err(&pdev->dev, "unable to alloc mem for TI PIPE3 PHY\n");
+ 		return -ENOMEM;
+ 	}
++	phy->dev		= &pdev->dev;
+ 
+-	phy->dpll_map = (struct pipe3_dpll_map *)match->data;
+-	if (!phy->dpll_map) {
+-		dev_err(&pdev->dev, "no DPLL data\n");
+-		return -EINVAL;
+-	}
++	if (!of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
++		match = of_match_device(of_match_ptr(ti_pipe3_id_table),
++					&pdev->dev);
++		if (!match)
++			return -EINVAL;
+ 
+-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pll_ctrl");
+-	phy->pll_ctrl_base = devm_ioremap_resource(&pdev->dev, res);
+-	if (IS_ERR(phy->pll_ctrl_base))
+-		return PTR_ERR(phy->pll_ctrl_base);
++		phy->dpll_map = (struct pipe3_dpll_map *)match->data;
++		if (!phy->dpll_map) {
++			dev_err(&pdev->dev, "no DPLL data\n");
++			return -EINVAL;
++		}
+ 
+-	phy->dev		= &pdev->dev;
++		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
++						   "pll_ctrl");
++		phy->pll_ctrl_base = devm_ioremap_resource(&pdev->dev, res);
++		if (IS_ERR(phy->pll_ctrl_base))
++			return PTR_ERR(phy->pll_ctrl_base);
+ 
+-	if (!of_device_is_compatible(node, "ti,phy-pipe3-sata")) {
++		phy->sys_clk = devm_clk_get(phy->dev, "sysclk");
++		if (IS_ERR(phy->sys_clk)) {
++			dev_err(&pdev->dev, "unable to get sysclk\n");
++			return -EINVAL;
++		}
 +	}
+ 
++	if (!of_device_is_compatible(node, "ti,phy-pipe3-sata")) {
+ 		phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
+ 		if (IS_ERR(phy->wkupclk)) {
+ 			dev_err(&pdev->dev, "unable to get wkupclk\n");
+@@ -328,10 +344,35 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+ 		phy->refclk = ERR_PTR(-ENODEV);
+ 	}
+ 
+-	phy->sys_clk = devm_clk_get(phy->dev, "sysclk");
+-	if (IS_ERR(phy->sys_clk)) {
+-		dev_err(&pdev->dev, "unable to get sysclk\n");
+-		return -EINVAL;
++	if (of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
++		clk = devm_clk_get(phy->dev, "dpll_ref");
++		if (IS_ERR(clk)) {
++			dev_err(&pdev->dev, "unable to get dpll ref clk\n");
++			return PTR_ERR(clk);
++		}
++		clk_set_rate(clk, 1500000000);
 +
-+	cinfo->clk = clk;
-+	ret = palmas_clks_init_configure(cinfo);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "Clock config failed, %d\n", ret);
-+		return ret;
++		clk = devm_clk_get(phy->dev, "dpll_ref_m2");
++		if (IS_ERR(clk)) {
++			dev_err(&pdev->dev, "unable to get dpll ref m2 clk\n");
++			return PTR_ERR(clk);
++		}
++		clk_set_rate(clk, 100000000);
++
++		clk = devm_clk_get(phy->dev, "phy-div");
++		if (IS_ERR(clk)) {
++			dev_err(&pdev->dev, "unable to get phy-div clk\n");
++			return PTR_ERR(clk);
++		}
++		clk_set_rate(clk, 100000000);
++
++		phy->div_clk = devm_clk_get(phy->dev, "div-clk");
++		if (IS_ERR(phy->div_clk)) {
++			dev_err(&pdev->dev, "unable to get div-clk\n");
++			return PTR_ERR(phy->div_clk);
++		}
++	} else {
++		phy->div_clk = ERR_PTR(-ENODEV);
+ 	}
+ 
+ 	control_node = of_parse_phandle(node, "ctrl-module", 0);
+@@ -387,6 +428,8 @@ static int ti_pipe3_runtime_suspend(struct device *dev)
+ 		clk_disable_unprepare(phy->wkupclk);
+ 	if (!IS_ERR(phy->refclk))
+ 		clk_disable_unprepare(phy->refclk);
++	if (!IS_ERR(phy->div_clk))
++		clk_disable_unprepare(phy->div_clk);
+ 
+ 	return 0;
+ }
+@@ -412,8 +455,19 @@ static int ti_pipe3_runtime_resume(struct device *dev)
+ 		}
+ 	}
+ 
++	if (!IS_ERR(phy->div_clk)) {
++		ret = clk_prepare_enable(phy->div_clk);
++		if (ret) {
++			dev_err(phy->dev, "Failed to enable div_clk %d\n", ret);
++			goto err3;
++		}
 +	}
+ 	return 0;
+ 
++err3:
++	if (!IS_ERR(phy->wkupclk))
++		clk_disable_unprepare(phy->wkupclk);
 +
-+	ret = of_clk_add_provider(node, of_clk_src_simple_get, cinfo->clk);
-+	if (ret < 0)
-+		dev_err(&pdev->dev, "Fail to add clock driver, %d\n", ret);
-+	return ret;
-+}
-+
-+static int palmas_clks_remove(struct platform_device *pdev)
-+{
-+	of_clk_del_provider(pdev->dev.of_node);
-+	return 0;
-+}
-+
-+static struct platform_driver palmas_clks_driver = {
-+	.driver = {
-+		.name = "palmas-clk",
-+		.owner = THIS_MODULE,
-+		.of_match_table = palmas_clks_of_match,
+ err2:
+ 	if (!IS_ERR(phy->refclk))
+ 		clk_disable_unprepare(phy->refclk);
+@@ -446,6 +500,9 @@ static const struct of_device_id ti_pipe3_id_table[] = {
+ 		.compatible = "ti,phy-pipe3-sata",
+ 		.data = dpll_map_sata,
+ 	},
++	{
++		.compatible = "ti,phy-pipe3-pcie",
 +	},
-+	.probe = palmas_clks_probe,
-+	.remove = palmas_clks_remove,
-+};
-+
-+module_platform_driver(palmas_clks_driver);
-+
-+MODULE_DESCRIPTION("Clock driver for Palmas Series Devices");
-+MODULE_ALIAS("platform:palmas-clk");
-+MODULE_AUTHOR("Peter Ujfalusi <peter.ujfalusi@ti.com>");
-+MODULE_LICENSE("GPL v2");
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(of, ti_pipe3_id_table);
 -- 
-1.9.2
+1.7.9.5
 
