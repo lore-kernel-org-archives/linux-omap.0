@@ -1,482 +1,153 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V5 2/3] arm: dts: dra7: Replace peripheral interrupt numbers with crossbar inputs
-Date: Tue, 6 May 2014 19:26:18 +0530
-Message-ID: <1399384579-25620-3-git-send-email-r.sricharan@ti.com>
-References: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for configuring the iATU
+Date: Tue, 6 May 2014 19:03:52 +0530
+Message-ID: <1399383244-14556-7-git-send-email-kishon@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, tglx@linutronix.de, galak@codeaurora.org, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, robherring2@gmail.com
-Cc: Sricharan R <r.sricharan@ti.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1399383244-14556-1-git-send-email-kishon@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: rogerq@ti.com, balajitk@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Marek Vasut <marex@denx.de>
 List-Id: linux-omap@vger.kernel.org
 
-Now with the crossbar IP in picture, the peripherals do not have the
-fixed interrupt lines. Instead they rely on the crossbar irqchip to
-allocate and map a free interrupt line to its crossbar input. So replacing
-all the peripheral interrupt numbers with its fixed crossbar input lines.
+In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
+address. So whenever the cpu issues a read/write request, the 4 most
+significant bits are used by L3 to determine the target controller.
+For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
+the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
+the outbound translation window the *base* should be programmed as 0x000_0000.
+Whenever we try to write to say 0x2000_0000, it will be translated to whatever
+we have programmed in the translation window with base as 0x000_0000.
 
-Cc: Benoit Cousson <bcousson@baylibre.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sricharan R <r.sricharan@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Marek Vasut <marex@denx.de>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Mohit Kumar <mohit.kumar@st.com>
 ---
-[V5] Rebased on 3.15-rc4 and replaced irqs numbers with crossbar
-     numbers for new peripherals.
+ .../devicetree/bindings/pci/designware-pcie.txt    |    1 +
+ drivers/pci/host/pcie-designware.c                 |   39 ++++++++++++++------
+ drivers/pci/host/pcie-designware.h                 |    1 +
+ 3 files changed, 29 insertions(+), 12 deletions(-)
 
- arch/arm/boot/dts/dra7.dtsi |  100 +++++++++++++++++++++++--------------------
- 1 file changed, 54 insertions(+), 46 deletions(-)
-
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 0274a86..52e4bd0 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -106,8 +106,8 @@
- 		ti,hwmods = "l3_main_1", "l3_main_2";
- 		reg = <0x44000000 0x2000>,
- 		      <0x44800000 0x3000>;
--		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
--			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
-+		interrupts = <GIC_SPI 4 IRQ_TYPE_LEVEL_HIGH>,
-+			     <GIC_SPI 5 IRQ_TYPE_LEVEL_HIGH>;
+diff --git a/Documentation/devicetree/bindings/pci/designware-pcie.txt b/Documentation/devicetree/bindings/pci/designware-pcie.txt
+index d6fae13..c574dd3 100644
+--- a/Documentation/devicetree/bindings/pci/designware-pcie.txt
++++ b/Documentation/devicetree/bindings/pci/designware-pcie.txt
+@@ -27,6 +27,7 @@ Optional properties for fsl,imx6q-pcie
+ - power-on-gpio: gpio pin number of power-enable signal
+ - wake-up-gpio: gpio pin number of incoming wakeup signal
+ - disable-gpio: gpio pin number of outgoing rfkill/endpoint disable signal
++- base-mask: address mask for the PCIe controller target port
  
- 		prm: prm@4ae06000 {
- 			compatible = "ti,dra7-prm";
-@@ -182,10 +182,10 @@
- 		sdma: dma-controller@4a056000 {
- 			compatible = "ti,omap4430-sdma";
- 			reg = <0x4a056000 0x1000>;
--			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
--				     <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
--				     <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>,
--				     <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
- 			#dma-cells = <1>;
- 			#dma-channels = <32>;
- 			#dma-requests = <127>;
-@@ -194,7 +194,7 @@
- 		gpio1: gpio@4ae10000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x4ae10000 0x200>;
--			interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 24 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio1";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -205,7 +205,7 @@
- 		gpio2: gpio@48055000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48055000 0x200>;
--			interrupts = <GIC_SPI 30 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio2";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -216,7 +216,7 @@
- 		gpio3: gpio@48057000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48057000 0x200>;
--			interrupts = <GIC_SPI 31 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 26 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio3";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -227,7 +227,7 @@
- 		gpio4: gpio@48059000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48059000 0x200>;
--			interrupts = <GIC_SPI 32 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 27 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio4";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -238,7 +238,7 @@
- 		gpio5: gpio@4805b000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x4805b000 0x200>;
--			interrupts = <GIC_SPI 33 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio5";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -249,7 +249,7 @@
- 		gpio6: gpio@4805d000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x4805d000 0x200>;
--			interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio6";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -260,7 +260,7 @@
- 		gpio7: gpio@48051000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48051000 0x200>;
--			interrupts = <GIC_SPI 35 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 30 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio7";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -271,7 +271,7 @@
- 		gpio8: gpio@48053000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48053000 0x200>;
--			interrupts = <GIC_SPI 121 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 116 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio8";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -282,7 +282,7 @@
- 		uart1: serial@4806a000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x4806a000 0x100>;
--			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart1";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
-@@ -291,7 +291,7 @@
- 		uart2: serial@4806c000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x4806c000 0x100>;
--			interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart2";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
-@@ -300,7 +300,7 @@
- 		uart3: serial@48020000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x48020000 0x100>;
--			interrupts = <GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart3";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
-@@ -309,7 +309,7 @@
- 		uart4: serial@4806e000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x4806e000 0x100>;
--			interrupts = <GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart4";
- 			clock-frequency = <48000000>;
-                         status = "disabled";
-@@ -318,7 +318,7 @@
- 		uart5: serial@48066000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x48066000 0x100>;
--			interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart5";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
-@@ -327,7 +327,7 @@
- 		uart6: serial@48068000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x48068000 0x100>;
--			interrupts = <GIC_SPI 106 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart6";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
-@@ -336,6 +336,7 @@
- 		uart7: serial@48420000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x48420000 0x100>;
-+			interrupts = <GIC_SPI 218 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart7";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
-@@ -344,6 +345,7 @@
- 		uart8: serial@48422000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x48422000 0x100>;
-+			interrupts = <GIC_SPI 219 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart8";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
-@@ -352,6 +354,7 @@
- 		uart9: serial@48424000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x48424000 0x100>;
-+			interrupts = <GIC_SPI 220 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart9";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
-@@ -360,6 +363,7 @@
- 		uart10: serial@4ae2b000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x4ae2b000 0x100>;
-+			interrupts = <GIC_SPI 221 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart10";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
-@@ -368,7 +372,7 @@
- 		timer1: timer@4ae18000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x4ae18000 0x80>;
--			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 32 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer1";
- 			ti,timer-alwon;
- 		};
-@@ -376,28 +380,28 @@
- 		timer2: timer@48032000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48032000 0x80>;
--			interrupts = <GIC_SPI 38 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 33 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer2";
- 		};
+ Example:
  
- 		timer3: timer@48034000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48034000 0x80>;
--			interrupts = <GIC_SPI 39 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer3";
- 		};
+diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+index c4e3732..243f148 100644
+--- a/drivers/pci/host/pcie-designware.c
++++ b/drivers/pci/host/pcie-designware.c
+@@ -463,6 +463,9 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
+ 		return -EINVAL;
+ 	}
  
- 		timer4: timer@48036000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48036000 0x80>;
--			interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 35 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer4";
- 		};
++	if (of_property_read_u64(np, "base-mask", &pp->base_mask))
++		pp->base_mask = ~0x0ULL;
++
+ 	if (IS_ENABLED(CONFIG_PCI_MSI)) {
+ 		pp->irq_domain = irq_domain_add_linear(pp->dev->of_node,
+ 					MAX_MSI_IRQS, &msi_domain_ops,
+@@ -502,12 +505,15 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
  
- 		timer5: timer@48820000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48820000 0x80>;
--			interrupts = <GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 36 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer5";
- 			ti,timer-dsp;
- 		};
-@@ -405,7 +409,7 @@
- 		timer6: timer@48822000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48822000 0x80>;
--			interrupts = <GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer6";
- 			ti,timer-dsp;
- 			ti,timer-pwm;
-@@ -414,7 +418,7 @@
- 		timer7: timer@48824000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48824000 0x80>;
--			interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 38 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer7";
- 			ti,timer-dsp;
- 		};
-@@ -422,7 +426,7 @@
- 		timer8: timer@48826000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48826000 0x80>;
--			interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 39 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer8";
- 			ti,timer-dsp;
- 			ti,timer-pwm;
-@@ -431,21 +435,21 @@
- 		timer9: timer@4803e000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x4803e000 0x80>;
--			interrupts = <GIC_SPI 45 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer9";
- 		};
+ static void dw_pcie_prog_viewport_cfg0(struct pcie_port *pp, u32 busdev)
+ {
++	u64 cfg0_base;
++
++	cfg0_base = pp->cfg0_base & pp->base_mask;
+ 	/* Program viewport 0 : OUTBOUND : CFG0 */
+ 	dw_pcie_writel_rc(pp, PCIE_ATU_REGION_OUTBOUND | PCIE_ATU_REGION_INDEX0,
+ 			  PCIE_ATU_VIEWPORT);
+-	dw_pcie_writel_rc(pp, pp->cfg0_base, PCIE_ATU_LOWER_BASE);
+-	dw_pcie_writel_rc(pp, (pp->cfg0_base >> 32), PCIE_ATU_UPPER_BASE);
+-	dw_pcie_writel_rc(pp, pp->cfg0_base + pp->config.cfg0_size - 1,
++	dw_pcie_writel_rc(pp, cfg0_base, PCIE_ATU_LOWER_BASE);
++	dw_pcie_writel_rc(pp, (cfg0_base >> 32), PCIE_ATU_UPPER_BASE);
++	dw_pcie_writel_rc(pp, cfg0_base + pp->config.cfg0_size - 1,
+ 			  PCIE_ATU_LIMIT);
+ 	dw_pcie_writel_rc(pp, busdev, PCIE_ATU_LOWER_TARGET);
+ 	dw_pcie_writel_rc(pp, 0, PCIE_ATU_UPPER_TARGET);
+@@ -517,13 +523,16 @@ static void dw_pcie_prog_viewport_cfg0(struct pcie_port *pp, u32 busdev)
  
- 		timer10: timer@48086000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48086000 0x80>;
--			interrupts = <GIC_SPI 46 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer10";
- 		};
+ static void dw_pcie_prog_viewport_cfg1(struct pcie_port *pp, u32 busdev)
+ {
++	u64 cfg1_base;
++
++	cfg1_base = pp->cfg1_base & pp->base_mask;
+ 	/* Program viewport 1 : OUTBOUND : CFG1 */
+ 	dw_pcie_writel_rc(pp, PCIE_ATU_REGION_OUTBOUND | PCIE_ATU_REGION_INDEX1,
+ 			  PCIE_ATU_VIEWPORT);
+ 	dw_pcie_writel_rc(pp, PCIE_ATU_TYPE_CFG1, PCIE_ATU_CR1);
+-	dw_pcie_writel_rc(pp, pp->cfg1_base, PCIE_ATU_LOWER_BASE);
+-	dw_pcie_writel_rc(pp, (pp->cfg1_base >> 32), PCIE_ATU_UPPER_BASE);
+-	dw_pcie_writel_rc(pp, pp->cfg1_base + pp->config.cfg1_size - 1,
++	dw_pcie_writel_rc(pp, cfg1_base, PCIE_ATU_LOWER_BASE);
++	dw_pcie_writel_rc(pp, (cfg1_base >> 32), PCIE_ATU_UPPER_BASE);
++	dw_pcie_writel_rc(pp, cfg1_base + pp->config.cfg1_size - 1,
+ 			  PCIE_ATU_LIMIT);
+ 	dw_pcie_writel_rc(pp, busdev, PCIE_ATU_LOWER_TARGET);
+ 	dw_pcie_writel_rc(pp, 0, PCIE_ATU_UPPER_TARGET);
+@@ -532,13 +541,16 @@ static void dw_pcie_prog_viewport_cfg1(struct pcie_port *pp, u32 busdev)
  
- 		timer11: timer@48088000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48088000 0x80>;
--			interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer11";
- 			ti,timer-pwm;
- 		};
-@@ -453,6 +457,7 @@
- 		timer13: timer@48828000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48828000 0x80>;
-+			interrupts = <GIC_SPI 339 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer13";
- 			status = "disabled";
- 		};
-@@ -460,6 +465,7 @@
- 		timer14: timer@4882a000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x4882a000 0x80>;
-+			interrupts = <GIC_SPI 340 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer14";
- 			status = "disabled";
- 		};
-@@ -467,6 +473,7 @@
- 		timer15: timer@4882c000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x4882c000 0x80>;
-+			interrupts = <GIC_SPI 341 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer15";
- 			status = "disabled";
- 		};
-@@ -474,6 +481,7 @@
- 		timer16: timer@4882e000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x4882e000 0x80>;
-+			interrupts = <GIC_SPI 342 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer16";
- 			status = "disabled";
- 		};
-@@ -481,7 +489,7 @@
- 		wdt2: wdt@4ae14000 {
- 			compatible = "ti,omap4-wdt";
- 			reg = <0x4ae14000 0x80>;
--			interrupts = <GIC_SPI 80 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 75 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "wd_timer2";
- 		};
+ static void dw_pcie_prog_viewport_mem_outbound(struct pcie_port *pp)
+ {
++	u64 mem_base;
++
++	mem_base = pp->mem_base & pp->base_mask;
+ 	/* Program viewport 0 : OUTBOUND : MEM */
+ 	dw_pcie_writel_rc(pp, PCIE_ATU_REGION_OUTBOUND | PCIE_ATU_REGION_INDEX0,
+ 			  PCIE_ATU_VIEWPORT);
+ 	dw_pcie_writel_rc(pp, PCIE_ATU_TYPE_MEM, PCIE_ATU_CR1);
+-	dw_pcie_writel_rc(pp, pp->mem_base, PCIE_ATU_LOWER_BASE);
+-	dw_pcie_writel_rc(pp, (pp->mem_base >> 32), PCIE_ATU_UPPER_BASE);
+-	dw_pcie_writel_rc(pp, pp->mem_base + pp->config.mem_size - 1,
++	dw_pcie_writel_rc(pp, mem_base, PCIE_ATU_LOWER_BASE);
++	dw_pcie_writel_rc(pp, (mem_base >> 32), PCIE_ATU_UPPER_BASE);
++	dw_pcie_writel_rc(pp, mem_base + pp->config.mem_size - 1,
+ 			  PCIE_ATU_LIMIT);
+ 	dw_pcie_writel_rc(pp, pp->config.mem_bus_addr, PCIE_ATU_LOWER_TARGET);
+ 	dw_pcie_writel_rc(pp, upper_32_bits(pp->config.mem_bus_addr),
+@@ -548,13 +560,16 @@ static void dw_pcie_prog_viewport_mem_outbound(struct pcie_port *pp)
  
-@@ -495,14 +503,14 @@
- 		dmm@4e000000 {
- 			compatible = "ti,omap5-dmm";
- 			reg = <0x4e000000 0x800>;
--			interrupts = <0 113 0x4>;
-+			interrupts = <GIC_SPI 108 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "dmm";
- 		};
- 
- 		i2c1: i2c@48070000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48070000 0x100>;
--			interrupts = <GIC_SPI 56 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 51 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c1";
-@@ -512,7 +520,7 @@
- 		i2c2: i2c@48072000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48072000 0x100>;
--			interrupts = <GIC_SPI 57 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 52 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c2";
-@@ -522,7 +530,7 @@
- 		i2c3: i2c@48060000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48060000 0x100>;
--			interrupts = <GIC_SPI 61 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 56 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c3";
-@@ -532,7 +540,7 @@
- 		i2c4: i2c@4807a000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x4807a000 0x100>;
--			interrupts = <GIC_SPI 62 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 57 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c4";
-@@ -542,7 +550,7 @@
- 		i2c5: i2c@4807c000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x4807c000 0x100>;
--			interrupts = <GIC_SPI 60 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c5";
-@@ -552,7 +560,7 @@
- 		mmc1: mmc@4809c000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x4809c000 0x400>;
--			interrupts = <GIC_SPI 83 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 78 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc1";
- 			ti,dual-volt;
- 			ti,needs-special-reset;
-@@ -565,7 +573,7 @@
- 		mmc2: mmc@480b4000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x480b4000 0x400>;
--			interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 81 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc2";
- 			ti,needs-special-reset;
- 			dmas = <&sdma 47>, <&sdma 48>;
-@@ -576,7 +584,7 @@
- 		mmc3: mmc@480ad000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x480ad000 0x400>;
--			interrupts = <GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 89 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc3";
- 			ti,needs-special-reset;
- 			dmas = <&sdma 77>, <&sdma 78>;
-@@ -587,7 +595,7 @@
- 		mmc4: mmc@480d1000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x480d1000 0x400>;
--			interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc4";
- 			ti,needs-special-reset;
- 			dmas = <&sdma 57>, <&sdma 58>;
-@@ -730,7 +738,7 @@
- 		mcspi1: spi@48098000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x48098000 0x200>;
--			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 60 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi1";
-@@ -751,7 +759,7 @@
- 		mcspi2: spi@4809a000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x4809a000 0x200>;
--			interrupts = <GIC_SPI 66 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 61 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi2";
-@@ -767,7 +775,7 @@
- 		mcspi3: spi@480b8000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x480b8000 0x200>;
--			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi3";
-@@ -780,7 +788,7 @@
- 		mcspi4: spi@480ba000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x480ba000 0x200>;
--			interrupts = <GIC_SPI 48 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi4";
+ static void dw_pcie_prog_viewport_io_outbound(struct pcie_port *pp)
+ {
++	u64 io_base;
++
++	io_base = pp->io_base & pp->base_mask;
+ 	/* Program viewport 1 : OUTBOUND : IO */
+ 	dw_pcie_writel_rc(pp, PCIE_ATU_REGION_OUTBOUND | PCIE_ATU_REGION_INDEX1,
+ 			  PCIE_ATU_VIEWPORT);
+ 	dw_pcie_writel_rc(pp, PCIE_ATU_TYPE_IO, PCIE_ATU_CR1);
+-	dw_pcie_writel_rc(pp, pp->io_base, PCIE_ATU_LOWER_BASE);
+-	dw_pcie_writel_rc(pp, (pp->io_base >> 32), PCIE_ATU_UPPER_BASE);
+-	dw_pcie_writel_rc(pp, pp->io_base + pp->config.io_size - 1,
++	dw_pcie_writel_rc(pp, io_base, PCIE_ATU_LOWER_BASE);
++	dw_pcie_writel_rc(pp, (io_base >> 32), PCIE_ATU_UPPER_BASE);
++	dw_pcie_writel_rc(pp, io_base + pp->config.io_size - 1,
+ 			  PCIE_ATU_LIMIT);
+ 	dw_pcie_writel_rc(pp, pp->config.io_bus_addr, PCIE_ATU_LOWER_TARGET);
+ 	dw_pcie_writel_rc(pp, upper_32_bits(pp->config.io_bus_addr),
+diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
+index 3063b35..3fa12a6 100644
+--- a/drivers/pci/host/pcie-designware.h
++++ b/drivers/pci/host/pcie-designware.h
+@@ -35,6 +35,7 @@ struct pcie_port {
+ 	struct device		*dev;
+ 	u8			root_bus_nr;
+ 	void __iomem		*dbi_base;
++	u64			base_mask;
+ 	u64			cfg0_base;
+ 	void __iomem		*va_cfg0_base;
+ 	u64			cfg1_base;
 -- 
 1.7.9.5
