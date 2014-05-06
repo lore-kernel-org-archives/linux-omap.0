@@ -1,77 +1,45 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 0/2] clk: Support for Palmas clk32kg and clk32kgaudio
- clocks
-Date: Tue, 6 May 2014 08:31:36 -0500
-Message-ID: <20140506133136.GA11626@kahuna>
-References: <1399382685-14781-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 2/4] ARM: dts: am437x-gp-evm: add support for parallel
+ NAND flash
+Date: Tue, 6 May 2014 08:39:57 -0700
+Message-ID: <20140506153956.GE18474@atomide.com>
+References: <1398152020-19391-1-git-send-email-pekon@ti.com>
+ <1398152020-19391-3-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43844 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751561AbaEFNbk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 09:31:40 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:12978 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751085AbaEFPkB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 11:40:01 -0400
 Content-Disposition: inline
-In-Reply-To: <1399382685-14781-1-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1398152020-19391-3-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: mturquette@linaro.org, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ldewangan@nvidia.com, linux-doc@vger.kernel.org, robh+dt@kernel.org
+To: Pekon Gupta <pekon@ti.com>
+Cc: bcousson@baylibre.com, linux-omap <linux-omap@vger.kernel.org>
 
-On 16:24-20140506, Peter Ujfalusi wrote:
-> Hi,
-> 
-> Changes since v1:
-> - binding documentation and driver has been separated based on Nishanth Menon's
->   comment
-> 
-> v1 of the driver can be found:
-> https://lkml.org/lkml/2014/4/3/104
-> 
-> Palmas class of devices can provide 32K clock(s) to be used by other devices
-> on the board. Depending on the actual device the provided clocks can be:
-> CLK32K_KG and CLK32K_KGAUDIO
-> or only one:
-> CLK32K_KG (TPS659039 for example)
-> 
-> Use separate compatible flags for the two 32K clock.
-> A system which needs or have only one of the 32k clock from
-> Palmas will need to add node(s) for each clock as separate section
-> in the dts file.
-> The two compatible property is:
-> "ti,palmas-clk32kg" for clk32kg clock
-> "ti,palmas-clk32kgaudio" for clk32kgaudio clock
-> 
-> Apart from the register control of the clocks - which is done via
-> the clock API there is a posibility to enable the external sleep
-> control. In this way the clock can be enabled/disabled on demand by the
-> user of the clock.
-> 
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (2):
->   dt/bindings: Binding documentation for Palmas clk32kg and clk32kgaudio
->     clocks
->   clk: Add driver for Palmas clk32kg and clk32kgaudio clocks
-> 
->  .../bindings/clock/clk-palmas-clk32kg-clocks.txt   |  35 +++
->  drivers/clk/Kconfig                                |   7 +
->  drivers/clk/Makefile                               |   1 +
->  drivers/clk/clk-palmas.c                           | 307 +++++++++++++++++++++
->  include/dt-bindings/mfd/palmas.h                   |  18 ++
->  5 files changed, 368 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/clock/clk-palmas-clk32kg-clocks.txt
->  create mode 100644 drivers/clk/clk-palmas.c
->  create mode 100644 include/dt-bindings/mfd/palmas.h
-> 
-> -- 
-> 1.9.2
-> 
+* Pekon Gupta <pekon@ti.com> [140422 00:34]:
+> +&gpmc {
+> +	status = "okay";
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&nand_flash_x8>;
+> +	ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
 
-Series:
-Reviewed-by: Nishanth Menon <nm@ti.com>
+Please use the minimum size 16MB GPMC range here, NAND only
+has few registers addressable unlike NOR that actually uses the
+whole range.
 
--- 
+> +	nand@0,0 {
+> +		reg = <0 0 0>; /* CS0, offset 0 */
+
+Then here map the true size of the NAND device IO register area.
+
+BTW, we should do the similar changes to other files so we can
+unify the GPMC partitioning a bit. But that's unsafe to do until 
+we have fixed the issue of mapping GPMC devices to a different
+location from the bootloader location.
+
 Regards,
-Nishanth Menon
+
+Tony
