@@ -1,69 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP5: Redo THUMB mode switch on secondary CPU
-Date: Mon, 5 May 2014 17:32:58 -0700
-Message-ID: <20140506003257.GM25949@atomide.com>
-References: <1398826427-17200-1-git-send-email-joelf@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for configuring the iATU
+Date: Tue, 06 May 2014 15:59 +0200
+Message-ID: <4764413.ZAEU5S5p0p@wuerfel>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com> <1399383244-14556-7-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1398826427-17200-1-git-send-email-joelf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Dave Martin <Dave.Martin@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>, "open list:OMAP SUPPORT" <linux-omap@vger.kernel.org>, "moderated list:ARM SUB-ARCHITECT..." <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.126.187]:49982 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756464AbaEFN7G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 09:59:06 -0400
+In-Reply-To: <1399383244-14556-7-git-send-email-kishon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, rogerq@ti.com, balajitk@ti.com, Bjorn Helgaas <bhelgaas@google.com>, Marek Vasut <marex@denx.de>, santosh.shilimkar@ti.com
 
-* Joel Fernandes <joelf@ti.com> [140429 19:54]:
-> Here's a redo of the patch [1] that effectively does the same
-> thing but is the right way to do things by using ENDPROC instead.
-> The firmware correctly switches to THUMB before entry.
+On Tuesday 06 May 2014 19:03:52 Kishon Vijay Abraham I wrote:
+> In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
+> address. So whenever the cpu issues a read/write request, the 4 most
+> significant bits are used by L3 to determine the target controller.
+> For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
+> the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
+> the outbound translation window the *base* should be programmed as 0x000_0000.
+> Whenever we try to write to say 0x2000_0000, it will be translated to whatever
+> we have programmed in the translation window with base as 0x000_0000.
 > 
-> The patch applies ontop of the earlier patch [1].
-> 
-> [1] https://lkml.org/lkml/2014/4/22/1044
-> 
-> Suggested-by: Dave Martin <Dave.Martin@arm.com>
-> Cc: Dave Martin <Dave.Martin@arm.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Joel Fernandes <joelf@ti.com>
-> ---
-> 
-> Tony, the earlier patch went into your fixes, and can remain. This patch is just a simple redo of the same and can go in for v3.16, no problem. Thanks.
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Marek Vasut <marex@denx.de>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Acked-by: Jingoo Han <jg1.han@samsung.com>
+> Acked-by: Mohit Kumar <mohit.kumar@st.com>
 
-OK thanks, applying into omap-for-v3.16/fixes-not-urgent.
+Sorry, but NAK.
 
-Tony
- 
->  arch/arm/mach-omap2/omap-headsmp.S |    6 +-----
->  1 file changed, 1 insertion(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
-> index 1809dce..bf36f26 100644
-> --- a/arch/arm/mach-omap2/omap-headsmp.S
-> +++ b/arch/arm/mach-omap2/omap-headsmp.S
-> @@ -31,10 +31,6 @@
->   * register AuxCoreBoot0.
->   */
->  ENTRY(omap5_secondary_startup)
-> -.arm
-> -THUMB( adr     r9, BSYM(wait)  )       @ CPU may be entered in ARM mode.
-> -THUMB( bx      r9              )       @ If this is a Thumb-2 kernel,
-> -THUMB( .thumb                  )       @ switch to Thumb now.
->  wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
->  	ldr	r0, [r2]
->  	mov	r0, r0, lsr #5
-> @@ -43,7 +39,7 @@ wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
->  	cmp	r0, r4
->  	bne	wait
->  	b	secondary_startup
-> -END(omap5_secondary_startup)
-> +ENDPROC(omap5_secondary_startup)
->  /*
->   * OMAP4 specific entry point for secondary CPU to jump from ROM
->   * code.  This routine also provides a holding flag into which
-> -- 
-> 1.7.9.5
-> 
+We have a standard 'dma-ranges' property to handle this, so use it.
+
+See the x-gene PCIe driver patches for an example. Please also talk
+to Santosh about it, as he is implementing generic support for
+parsing dma-ranges in platform devices at the moment.
+
+I also suspect you will have to implement swiotlb support to make
+generic PCI devices work behind this bridge. Otherwise you end up
+with random physical addresses passed into DMA registers.
+
+	Arnd
+
