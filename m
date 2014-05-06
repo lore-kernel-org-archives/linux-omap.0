@@ -1,88 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: dss_pwrdm & core_pwrdm not entering sleep state correctly on
- am37xx
-Date: Tue, 6 May 2014 12:58:41 -0700
-Message-ID: <20140506195841.GA31384@atomide.com>
-References: <CABCN2SufRoYEDokszRJ4Xme91f6xsfXZ9M7=wp_CUGZaTXAteQ@mail.gmail.com>
+From: Darren Etheridge <detheridge@ti.com>
+Subject: Re: [PATCH V5 0/3] arm: dts: dra7: Updates for adding crossbar device
+Date: Tue, 6 May 2014 16:45:26 -0500
+Message-ID: <20140506214526.GF2626@ti.com>
+References: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62391 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754021AbaEFT6p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 15:58:45 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54050 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753359AbaEFVqp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 May 2014 17:46:45 -0400
 Content-Disposition: inline
-In-Reply-To: <CABCN2SufRoYEDokszRJ4Xme91f6xsfXZ9M7=wp_CUGZaTXAteQ@mail.gmail.com>
+In-Reply-To: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew LeCain <alecain@google.com>
-Cc: linux-omap@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, tglx@linutronix.de, galak@codeaurora.org, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, robherring2@gmail.com
 
-* Andrew LeCain <alecain@google.com> [140506 12:10]:
-> Hi,
+Sricharan R <r.sricharan@ti.com> wrote on Tue [2014-May-06 19:26:16 +0530]:
+> Some socs have a large number of interrupts requests to service
+> the needs of its many peripherals and subsystems. All of the interrupt
+> requests lines from the subsystems are not needed at the same
+> time, so they have to be muxed to the controllers appropriately.
+> In such places a interrupt controllers are preceded by an
+> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+> requests to the controller inputs.
 > 
-> I'm trying to backport a display driver for an RFBI panel to 2.6.32,
-> but the dss_pwrdm is complaining about not entering target state:
-
-Backport from which kernel? The RFBI got removed recently because
-of the move of the panels. Probably should get patched back in once
-it's working again, so at least I would like to see this get fixed
-properly in the mainline kernel if you have patches somewhere.
- 
-> root@02AA01AB381207S7# cat /sys/kernel/debug/pm_debug/count | grep dss
-> dss_pwrdm (ON),OFF:0,RET:11,INA:0,ON:12
-> dss_clkdm->dss_pwrdm (0)
+> The dts file update to support the crossbar device and convert
+> peripheral irq numbers to crossbar number are added here.
 > 
-> root@02AA01AB381207S7# echo -n "mem" > /sys/power/state
-> PM: Syncing filesystems ... done.
-> PM: Preparing system for mem sleep
-> Freezing user space processes ... (elapsed 0.02 seconds) done.
-> Freezing remaining freezable tasks ... (elapsed 0.04 seconds) done.
-> PM: Entering mem sleep
-> spidev spi2.0: ... can't suspend
-> WLAN: Suspend call
-> WLAN_firmware Suspend
-> Wake locks are active (count: 0)
-> Shutting Down I&F Clock Interface
-> Powerdomain (core_pwrdm) didn't enter target state 0
-> Powerdomain (dss_pwrdm) didn't enter target state 0
-> Could not enter target state in pm_suspend
-> <snip>
-> #no change after attempted suspend.
-> root@02AA01AB381207S7# cat /sys/kernel/debug/pm_debug/count | grep dss
+> This is a rebase of V4 series on top of 3.15-rc4
 > 
-> dss_pwrdm (ON),OFF:0,RET:11,INA:0,ON:12
-> dss_clkdm->dss_pwrdm (0)
+> This series depends on crossbar-driver-fixes sent below
+> http://marc.info/?l=linux-omap&m=139929963420299&w=2
 > 
+> Sricharan R (3):
+>   arm: dts: dra7: Add crossbar device binding
+>   arm: dts: dra7: Replace peripheral interrupt numbers with crossbar
+>     inputs
+>   arm: dts: dra7: Add routable-irqs property for gic node
 > 
-> I was worried it might be the dss clocks not being disabled, but I
-> instrumented dss_clk_(en|dis)able to print clock counts and it goes to
-> 0 before suspending. I don't really understand what will prevent the
-> dss power domain from entering retain state or not, so any pointers
-> would be useful.
 
-Maybe dump out the autoidle registers like CM_IDLEST_PER and
-CM_IDLEST*_CORE and that should show you what's still blocking 
-idle transitions.
- 
-> I'm less worried about the core_pwrdm error because that isn't a
-> regression from the old panel, and power numbers are low enough
-> without it, but any tips there would be great as well.
+OK, assuming the bisectability issues discussed earlier on this thread
+are addressed.  I have tested the earlier crossbar patch series in
+conjunction with this dts series with VIP capture and DSS display
+running together on DRA7.  Looks good with this combination of
+devices. VIP is one of the modules that must have a crossbar mapping as
+there is no default interrupt mapping for it, therefore VIP makes a good
+test case.
 
-2.6.32 is getting pretty old.. We do have pending patches to
-have mainline kernel hit core off for omap3 with twl4030 cutting
-off vdd_core. I did not yet test with a display as the panels
-have been still pending for device tree based booting. These
-should allow you to quite easily to test against v3.14-rc4:
+So please feel free to add:
 
-[PATCH 00/11] Fixes for omap PM for making omap3 DT only
-
-BTW, if your SoC is 3703 then you need to also idle IVA2:
-
-2d403f7b1981 (ARM: OMAP3: Fix iva2_pwrdm settings for 3703)
-
-Regards,
-
-Tony
+Tested-by: Darren Etheridge <detheridge@ti.com>
 
 
+>  arch/arm/boot/dts/dra7.dtsi |  109 +++++++++++++++++++++++++------------------
+>  1 file changed, 63 insertions(+), 46 deletions(-)
+> 
+> -- 
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
