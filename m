@@ -1,73 +1,160 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 00/17] PCIe support for DRA7xx
-Date: Tue, 6 May 2014 19:03:46 +0530
-Message-ID: <1399383244-14556-1-git-send-email-kishon@ti.com>
+Subject: [PATCH 04/17] phy: pipe3: insert delay to enumerate in GEN2 mode
+Date: Tue, 6 May 2014 19:03:50 +0530
+Message-ID: <1399383244-14556-5-git-send-email-kishon@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1399383244-14556-1-git-send-email-kishon@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
 Cc: rogerq@ti.com, balajitk@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch series adds support for PCIe in DRA7xx including drivers and dt
-data. PCIe in DRA7xx uses desingware IP and hence this re-uses the
-pcie desingware driver (pcie-designware.c) by Jingoo.
+8-bit delay value (0xF1) is required for GEN2 devices to be enumerated
+consistently. Added an API to be called from PHY drivers to set this delay
+value and called it from PIPE3 driver to set the delay value.
 
-The last couple of patches are marked as *TEMP* since the TI reset driver [1]
-is not yet merged and is in RFC.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ Documentation/devicetree/bindings/phy/ti-phy.txt |    4 +--
+ drivers/phy/phy-omap-control.c                   |   41 ++++++++++++++++++++++
+ drivers/phy/phy-ti-pipe3.c                       |    4 ++-
+ include/linux/phy/omap_control_phy.h             |    9 +++++
+ 4 files changed, 55 insertions(+), 3 deletions(-)
 
-Tested broadcom PCIe card and XIO2000 bridge along with DGE530T ethernet
-card.
-
-Changes from RFC:
-* Added external clock support for PCIE APLL
-* Miscellaneous cleanups in Documentation, macro naming etc..
-
-[1] -> http://www.spinics.net/lists/linux-omap/msg106411.html
-
-Keerthy (2):
-  ARM: dts: DRA7: Add divider table to optfclk_pciephy_div clock
-  ARM: dts: DRA7: Change the parent of apll_pcie_in_clk_mux to
-    dpll_pcie_ref_m2ldo_ck
-
-Kishon Vijay Abraham I (15):
-  phy: phy-omap-pipe3: Add support for PCIe PHY
-  phy: omap-control: add external clock support for PCIe PHY
-  phy: ti-pipe3: add external clock support for PCIe PHY
-  phy: pipe3: insert delay to enumerate in GEN2 mode
-  pci: host: pcie-dra7xx: add support for pcie-dra7xx controller
-  pci: host: pcie-designware: Use *base-mask* for configuring the iATU
-  arm: dra7xx: Add hwmod data for pcie1 phy and pcie2 phy
-  arm: dra7xx: Add hwmod data for pcie1 and pcie2 subsystems
-  ARM: dts: dra7xx-clocks: Add missing 32khz clocks used for PHY
-  ARM: dts: dra7: Add dt data for PCIe PHY control module
-  ARM: dts: dra7: Add dt data for PCIe PHY
-  ARM: dts: dra7: Add dt data for PCIe controller
-  ARM: OMAP: Enable PCI for DRA7
-  pci: host: pcie-dra7xx: use reset framework APIs to reset PCIe
-  ARM: dts: dra7: Add *resets* property for PCIe dt node
-
- .../devicetree/bindings/pci/designware-pcie.txt    |    1 +
- Documentation/devicetree/bindings/pci/ti-pci.txt   |   35 ++
- Documentation/devicetree/bindings/phy/ti-phy.txt   |   21 +-
- arch/arm/boot/dts/dra7.dtsi                        |   55 +++
- arch/arm/boot/dts/dra7xx-clocks.dtsi               |   11 +-
- arch/arm/mach-omap2/Kconfig                        |    2 +
- arch/arm/mach-omap2/cm2_7xx.h                      |    4 +
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  112 ++++++
- arch/arm/mach-omap2/prm7xx.h                       |    4 +
- drivers/pci/host/Kconfig                           |   10 +
- drivers/pci/host/Makefile                          |    1 +
- drivers/pci/host/pci-dra7xx.c                      |  395 ++++++++++++++++++++
- drivers/pci/host/pcie-designware.c                 |   39 +-
- drivers/pci/host/pcie-designware.h                 |    1 +
- drivers/phy/phy-omap-control.c                     |   92 ++++-
- drivers/phy/phy-ti-pipe3.c                         |  142 +++++--
- include/linux/phy/omap_control_phy.h               |   23 ++
- 17 files changed, 898 insertions(+), 50 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/pci/ti-pci.txt
- create mode 100644 drivers/pci/host/pci-dra7xx.c
-
+diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+index d50f8ee..5653dc4 100644
+--- a/Documentation/devicetree/bindings/phy/ti-phy.txt
++++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+@@ -18,9 +18,9 @@ Required properties:
+                         AM437 platform.
+  - reg : Address and length of the register set for the device. It contains
+    the address of "otghs_control" for control-phy-otghs or "power" register
+-   for other types and "control_sma" for control-phy-pcie
++   for other types and "control_sma", "pcie_pcs" for control-phy-pcie
+  - reg-names: should be "otghs_control" for control-phy-otghs,
+-  "control_sma" for control-phy-pcie and "power" for other types.
++  "control_sma", "pcie_pcs" for control-phy-pcie and "power" for other types.
+ 
+ omap_control_usb: omap-control-usb@4a002300 {
+         compatible = "ti,control-phy-otghs";
+diff --git a/drivers/phy/phy-omap-control.c b/drivers/phy/phy-omap-control.c
+index 47a1b6c..6ba551b 100644
+--- a/drivers/phy/phy-omap-control.c
++++ b/drivers/phy/phy-omap-control.c
+@@ -61,6 +61,41 @@ void omap_control_pcie_tx_rx_control(struct device *dev, u8 ctrl)
+ EXPORT_SYMBOL_GPL(omap_control_pcie_tx_rx_control);
+ 
+ /**
++ * omap_control_pcie_pcs - set the PCS delay count
++ * @dev: the control module device
++ * @id: index of the pcie PHY (should be 1 or 2)
++ * @delay: 8 bit delay value
++ */
++void omap_control_pcie_pcs(struct device *dev, u8 id, u8 delay)
++{
++	u32 val;
++	struct omap_control_phy	*control_phy;
++
++	if (IS_ERR(dev) || !dev) {
++		pr_err("%s: invalid device\n", __func__);
++		return;
++	}
++
++	control_phy = dev_get_drvdata(dev);
++	if (!control_phy) {
++		dev_err(dev, "%s: invalid control phy device\n", __func__);
++		return;
++	}
++
++	if (control_phy->type != OMAP_CTRL_TYPE_PCIE) {
++		dev_err(dev, "%s: unsupported operation\n", __func__);
++		return;
++	}
++
++	val = readl(control_phy->pcie_pcs);
++	val &= ~(OMAP_CTRL_PCIE_PCS_MASK <<
++		(id * OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT));
++	val |= delay << (id * OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT);
++	writel(val, control_phy->pcie_pcs);
++}
++EXPORT_SYMBOL_GPL(omap_control_pcie_pcs);
++
++/**
+  * omap_control_phy_power - power on/off the phy using control module reg
+  * @dev: the control module device
+  * @on: 0 or 1, based on powering on or off the PHY
+@@ -335,6 +370,12 @@ static int omap_control_phy_probe(struct platform_device *pdev)
+ 		control_phy->ctrl_sma = devm_ioremap_resource(&pdev->dev, res);
+ 		if (IS_ERR(control_phy->ctrl_sma))
+ 			return PTR_ERR(control_phy->ctrl_sma);
++
++		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
++						   "pcie_pcs");
++		control_phy->pcie_pcs = devm_ioremap_resource(&pdev->dev, res);
++		if (IS_ERR(control_phy->pcie_pcs))
++			return PTR_ERR(control_phy->pcie_pcs);
+ 	}
+ 
+ 	dev_set_drvdata(control_phy->dev, control_phy);
+diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+index 5513aa0..a1a0e35 100644
+--- a/drivers/phy/phy-ti-pipe3.c
++++ b/drivers/phy/phy-ti-pipe3.c
+@@ -216,8 +216,10 @@ static int ti_pipe3_init(struct phy *x)
+ 	u32 val;
+ 	int ret = 0;
+ 
+-	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
++	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie")) {
++		omap_control_pcie_pcs(phy->control_dev, 0x1, 0xF1);
+ 		return 0;
++	}
+ 
+ 	/* Bring it out of IDLE if it is IDLE */
+ 	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
+diff --git a/include/linux/phy/omap_control_phy.h b/include/linux/phy/omap_control_phy.h
+index 15cfbfe..6127c04 100644
+--- a/include/linux/phy/omap_control_phy.h
++++ b/include/linux/phy/omap_control_phy.h
+@@ -35,6 +35,7 @@ struct omap_control_phy {
+ 	u32 __iomem *power;
+ 	u32 __iomem *power_aux;
+ 	u32 __iomem *ctrl_sma;
++	u32 __iomem *pcie_pcs;
+ 
+ 	struct clk *sys_clk;
+ 
+@@ -68,6 +69,9 @@ enum omap_control_usb_mode {
+ #define	OMAP_CTRL_PCIE_TX_RX_CONTROL_SHIFT	0x10
+ #define	OMAP_CTRL_PCIE_TX_RX_CONTROL_MASK	0x3
+ 
++#define	OMAP_CTRL_PCIE_PCS_MASK			0xff
++#define	OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT	0x8
++
+ #define	OMAP_CTRL_PCIE_PHY_TX_ACSPCIE		0x1
+ #define	OMAP_CTRL_PCIE_PHY_RX_ACSPCIE		0x2
+ #define	OMAP_CTRL_PCIE_PHY_TX_RX_ACSPCIE	0x3
+@@ -84,6 +88,7 @@ void omap_control_phy_power(struct device *dev, int on);
+ void omap_control_usb_set_mode(struct device *dev,
+ 			       enum omap_control_usb_mode mode);
+ void omap_control_pcie_tx_rx_control(struct device *dev, u8 ctrl);
++void omap_control_pcie_pcs(struct device *dev, u8 id, u8 delay);
+ #else
+ 
+ static inline void omap_control_phy_power(struct device *dev, int on)
+@@ -98,6 +103,10 @@ static inline void omap_control_usb_set_mode(struct device *dev,
+ static inline void omap_control_pcie_tx_rx_control(struct device *dev, u8 ctrl)
+ {
+ }
++
++static inline void omap_control_pcie_pcs(struct device *dev, u8 id, u8 delay)
++{
++}
+ #endif
+ 
+ #endif	/* __OMAP_CONTROL_PHY_H__ */
 -- 
 1.7.9.5
