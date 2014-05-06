@@ -1,58 +1,60 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V5 1/3] arm: dts: dra7: Add crossbar device binding
-Date: Tue, 6 May 2014 19:26:17 +0530
-Message-ID: <1399384579-25620-2-git-send-email-r.sricharan@ti.com>
-References: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] mfd: twl6040: Correct HPPLL configuration for 19.2 and 38.4 MHz mclk
+Date: Tue, 6 May 2014 11:46:10 +0300
+Message-ID: <1399365970-19543-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, tglx@linutronix.de, galak@codeaurora.org, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, robherring2@gmail.com
-Cc: Sricharan R <r.sricharan@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47021 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934374AbaEFIqQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 May 2014 04:46:16 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: lee.jones@linaro.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sameo@linux.intel.com
 
-This adds the irq crossbar device node.
+When the MCLK is 19.2 or 38.4 MHz the HPPLL need to be enabled and can be
+put in bypass mode.
+This will fix HPPLL use on boards with 19.2MHz mclk.
 
-There is a IRQ crossbar device in the soc, which
-maps the irq requests from the peripherals to the
-mpu interrupt controller's inputs. The Peripheral irq
-requests are connected to only one crossbar
-input and the output of the crossbar is connected to only one
-controller's input line. The crossbar device is used to map
-a peripheral input to a free mpu's interrupt controller line.
-
-Cc: Benoit Cousson <bcousson@baylibre.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sricharan R <r.sricharan@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-[V5] Rebased on top of 3.15-rc4 and corrected the
-     irqs-reserved list
+ drivers/mfd/twl6040.c | 13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
- arch/arm/boot/dts/dra7.dtsi |    8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 149b550..0274a86 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -790,6 +790,14 @@
- 			status = "disabled";
- 		};
- 	};
-+
-+	crossbar_mpu: crossbar@4a020000 {
-+		compatible = "ti,irq-crossbar";
-+		reg = <0x4a002a48 0x130>;
-+		ti,max-irqs = <160>;
-+		ti,reg-size = <2>;
-+		ti,irqs-reserved = <0 1 2 3 5 6 131 132>;
-+	};
- };
- 
- /include/ "dra7xx-clocks.dtsi"
+diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+index 12b314ea48dc..ae26d84b3a59 100644
+--- a/drivers/mfd/twl6040.c
++++ b/drivers/mfd/twl6040.c
+@@ -441,12 +441,9 @@ int twl6040_set_pll(struct twl6040 *twl6040, int pll_id,
+ 					    TWL6040_HPLLENA;
+ 				break;
+ 			case 19200000:
+-				/*
+-				* PLL disabled
+-				* (enable PLL if MCLK jitter quality
+-				*  doesn't meet specification)
+-				*/
+-				hppllctl |= TWL6040_MCLK_19200KHZ;
++				/* PLL enabled, bypass mode */
++				hppllctl |= TWL6040_MCLK_19200KHZ |
++					    TWL6040_HPLLBP | TWL6040_HPLLENA;
+ 				break;
+ 			case 26000000:
+ 				/* PLL enabled, active mode */
+@@ -454,9 +451,9 @@ int twl6040_set_pll(struct twl6040 *twl6040, int pll_id,
+ 					    TWL6040_HPLLENA;
+ 				break;
+ 			case 38400000:
+-				/* PLL enabled, active mode */
++				/* PLL enabled, bypass mode */
+ 				hppllctl |= TWL6040_MCLK_38400KHZ |
+-					    TWL6040_HPLLENA;
++					    TWL6040_HPLLBP | TWL6040_HPLLENA;
+ 				break;
+ 			default:
+ 				dev_err(twl6040->dev,
 -- 
-1.7.9.5
+1.9.2
+
