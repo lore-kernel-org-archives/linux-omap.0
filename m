@@ -1,77 +1,132 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 0/7] USB support for DRA7-evm
-Date: Tue, 6 May 2014 10:19:47 +0300
-Message-ID: <53688D13.4000409@ti.com>
-References: <1399283686-6127-1-git-send-email-rogerq@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 2/4] ARM: dts: am335x-evm: use phandles for USB and
+ DMA refs
+Date: Tue, 6 May 2014 11:18:00 -0500
+Message-ID: <20140506161800.GO25849@saruman.home>
+References: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1398718475-1883-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1398718475-1883-2-git-send-email-guido@vanguardiasur.com.ar>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1399283686-6127-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: george.cherian-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SavPGzlo48F1Gxyz"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:36838 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751070AbaEFQSJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 May 2014 12:18:09 -0400
+Content-Disposition: inline
+In-Reply-To: <1398718475-1883-2-git-send-email-guido@vanguardiasur.com.ar>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>
+Cc: bcousson@baylibre.com, tony@atomide.com, linux-omap@vger.kernel.org, george.cherian@ti.com, Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
 
-Hi Kishon,
+--SavPGzlo48F1Gxyz
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Could you please pick the first 2 patches in this series for phy-next?
-They are independent of the rest. Thanks.
+On Mon, Apr 28, 2014 at 05:54:33PM -0300, Guido Mart=EDnez wrote:
+> Use phandles instead of unit adresses to reference usb and dma nodes.
+> This makes the DT more robust and readable.
+>=20
+> Signed-off-by: Guido Mart=EDnez <guido@vanguardiasur.com.ar>
 
-cheers,
--roger
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-On 05/05/2014 12:54 PM, Roger Quadros wrote:
-> Hi,
-> 
-> This series enables the 2 USB ports on the DRA7-evm.
-> 
-> NOTE: USB1 port is hard coded to work in peripheral mode and USB2 port
-> in host mode. This is due to missing ID pin interrupt in pre ver.E boards.
-> 
-> USB1 port doesn't in peripheral mode out of the box due to missing VBUS detection
-> and mailbox write. To test this I had to do a manual write to enable VBUSVALID
-> in the USB_UTMI_OTG_STATUS register.
-> 	omapconf set bit 0x48880084 1
-> 
-> USB2 port works well in host mode.
-> 
-> Patches are based on 3.15-rc3.
-> 
-> cheers,
-> -roger
-> 
-> Changelog:
-> 
-> v3:
-> -Rearraged patches. PHY related stuff first.
-> -Addressed backward compatibility issue for phy-omap-usb2.
-> 
-> v2:
-> -Rebased on v3.15-rc3
-> 
 > ---
-> Roger Quadros (7):
->   phy: omap-usb2: Use generic clock names "wkupclk" and "refclk"
->   phy: omap-usb2: Add clock names to Documentation binding
->   ARM: dts: omap4+: Add clocks to USB2 PHY node
->   ARM: dts: dra7-clock: Add "l3init_960m_gfclk" clock gate
->   ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
->   ARM: dts: dra7: Add USB related nodes
->   dts: dra7-evm: add USB support
-> 
->  Documentation/devicetree/bindings/phy/ti-phy.txt |   7 ++
->  arch/arm/boot/dts/dra7-evm.dts                   |  24 ++++
->  arch/arm/boot/dts/dra7.dtsi                      | 149 +++++++++++++++++++++++
->  arch/arm/boot/dts/dra7xx-clocks.dtsi             |  12 +-
->  arch/arm/boot/dts/omap4.dtsi                     |   2 +
->  arch/arm/boot/dts/omap5.dtsi                     |   2 +
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c        |  22 ++--
->  drivers/phy/phy-omap-usb2.c                      |  30 +++--
->  8 files changed, 229 insertions(+), 19 deletions(-)
-> 
+>  arch/arm/boot/dts/am335x-evm.dts | 38 +++++++++++++++++++---------------=
+----
+>  1 file changed, 19 insertions(+), 19 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-=
+evm.dts
+> index 6028217..33f7c57 100644
+> --- a/arch/arm/boot/dts/am335x-evm.dts
+> +++ b/arch/arm/boot/dts/am335x-evm.dts
+> @@ -330,31 +330,31 @@
+> =20
+>  &usb {
+>  	status =3D "okay";
+> +};
+> =20
+> -	control@44e10620 {
+> -		status =3D "okay";
+> -	};
+> +&usb_ctrl_mod {
+> +	status =3D "okay";
+> +};
+> =20
+> -	usb-phy@47401300 {
+> -		status =3D "okay";
+> -	};
+> +&usb0_phy {
+> +	status =3D "okay";
+> +};
+> =20
+> -	usb-phy@47401b00 {
+> -		status =3D "okay";
+> -	};
+> +&usb1_phy {
+> +	status =3D "okay";
+> +};
+> =20
+> -	usb@47401000 {
+> -		status =3D "okay";
+> -	};
+> +&usb0 {
+> +	status =3D "okay";
+> +};
+> =20
+> -	usb@47401800 {
+> -		status =3D "okay";
+> -		dr_mode =3D "host";
+> -	};
+> +&usb1 {
+> +	status =3D "okay";
+> +	dr_mode =3D "host";
+> +};
+> =20
+> -	dma-controller@47402000  {
+> -		status =3D "okay";
+> -	};
+> +&cppi41dma  {
+> +	status =3D "okay";
+>  };
+> =20
+>  &i2c1 {
+> --=20
+> 1.9.2
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+balbi
+
+--SavPGzlo48F1Gxyz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTaQs4AAoJEIaOsuA1yqREV8EP/RG3I4j4d1xuG0El6jsxsHRO
+e5y2eQ9wxHRt7G/rA12BfucbxZP3Wv1d7+EaPya6Q0cXX/WvBlYic8sQYjJDnv6K
+xxn0oCHs16gQPlqKQMTKT3WdR62DEreWF1ZIxTzyWWNUsyNMmfZ13lBKGAG8tyaj
+QjetRswl0eaHpbM0YufSCgoLthHK8J5a2y7RBxgaypO25oDtZTRlCip0hNqqtV98
+YDLgawtZmOQ4kFNKhOwHF+6UKpP+a4Fz7aZ7A9gr/gtT6ekyQtYuchOih1+EKdWw
+6AePrKbDz4qiWe628l3tPhp9VjpTkHFFubwSvqtE+NeYpBomd9IxwcLu9TUnKYQG
+qsarGMa+7ZUjqrQPqvRZYvCP1JeI5OjtepQNPhW423MlPnVN0m5pFA32mr9AW1sB
+Ghe48eTSukzR8fU2etvCS/ETpO8cWPLxWaOvyvqu5jAbiLc7V34R9BK4e3zldIHx
+DiMEUmolF8ULzAamHW58inK7F4hMBGkY6g6YXOCSTKfDHzNM6h8BgzuvEEeGf4aX
+OIYSQu0e+YLiIexCg5Qu5avu5vkyLTw4JyBPemBC0ge23jxbpu3Kq6loWxruDdwm
+CVt3v/DRIoAhy6gLW1BXmGA+ZjPnat2Wsw/7A213eLkviPaZ51ziwUVGkVREFmJV
+6l7o89LQg0SlsvL1ptm4
+=oZPc
+-----END PGP SIGNATURE-----
+
+--SavPGzlo48F1Gxyz--
