@@ -1,56 +1,106 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 4/4] ARM: dts: am43xx: fix starting offset of
- NAND.filesystem MTD partition
-Date: Tue, 6 May 2014 08:55:20 -0700
-Message-ID: <20140506155520.GG18474@atomide.com>
-References: <1398157362-32571-1-git-send-email-pekon@ti.com>
- <1398157362-32571-2-git-send-email-pekon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 10/17] arm: dra7xx: Add hwmod data for pcie1 and pcie2 subsystems
+Date: Tue, 6 May 2014 19:03:56 +0530
+Message-ID: <1399383244-14556-11-git-send-email-kishon@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52109 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757874AbaEFPzZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 11:55:25 -0400
-Content-Disposition: inline
-In-Reply-To: <1398157362-32571-2-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1399383244-14556-1-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: rogerq@ti.com, balajitk@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: bcousson@baylibre.com, linux-omap <linux-omap@vger.kernel.org>
 
-* Pekon Gupta <pekon@ti.com> [140422 02:03]:
-> MTD NAND partition for file-system should start at offset=0xA00000
+Added hwmod data for pcie1 and pcie2 subsystem present in DRA7xx SOC.
 
-Applying to omap-for-v3.16/fixes-not-urgent with hex changed to use
-lower case like we tend to do.
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   55 +++++++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
 
-Hmm, how come you did not fold this into the original patch to the
-mainline kernel as it seems you had the fix in the vendor tree
-earlier?
-
-Regards,
-
-Tony
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 1282a42..a51fa7f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1231,6 +1231,43 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+ };
  
-> Signed-off-by: Pekon Gupta <pekon@ti.com>
-> ---
->  arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-> index 167dbc8..d09e6fb 100644
-> --- a/arch/arm/boot/dts/am43x-epos-evm.dts
-> +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-> @@ -341,7 +341,7 @@
->  		};
->  		partition@9 {
->  			label = "NAND.file-system";
-> -			reg = <0x00800000 0x1F600000>;
-> +			reg = <0x00A00000 0x1F600000>;
->  		};
->  	};
->  };
-> -- 
-> 1.8.5.1.163.gd7aced9
-> 
+ /*
++ * 'PCIE' class
++ *
++ */
++
++static struct omap_hwmod_class dra7xx_pcie_hwmod_class = {
++	.name	= "pcie",
++};
++
++/* pcie1 */
++static struct omap_hwmod dra7xx_pcie1_hwmod = {
++	.name		= "pcie1",
++	.class		= &dra7xx_pcie_hwmod_class,
++	.clkdm_name	= "l3init_clkdm",
++	.main_clk	= "l4_root_clk_div",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs	= DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/* pcie2 */
++static struct omap_hwmod dra7xx_pcie2_hwmod = {
++	.name		= "pcie2",
++	.class		= &dra7xx_pcie_hwmod_class,
++	.clkdm_name	= "l3init_clkdm",
++	.main_clk	= "l4_root_clk_div",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/*
+  * 'PCIE PHY' class
+  *
+  */
+@@ -2388,6 +2425,22 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* l4_cfg -> pcie1 */
++static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1 = {
++	.master		= &dra7xx_l4_cfg_hwmod,
++	.slave		= &dra7xx_pcie1_hwmod,
++	.clk		= "l4_root_clk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_cfg -> pcie2 */
++static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2 = {
++	.master		= &dra7xx_l4_cfg_hwmod,
++	.slave		= &dra7xx_pcie2_hwmod,
++	.clk		= "l4_root_clk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* l4_cfg -> pcie1 phy */
+ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1_phy = {
+ 	.master		= &dra7xx_l4_cfg_hwmod,
+@@ -2751,6 +2804,8 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_cfg__mpu,
+ 	&dra7xx_l4_cfg__ocp2scp1,
+ 	&dra7xx_l4_cfg__ocp2scp3,
++	&dra7xx_l4_cfg__pcie1,
++	&dra7xx_l4_cfg__pcie2,
+ 	&dra7xx_l4_cfg__pcie1_phy,
+ 	&dra7xx_l4_cfg__pcie2_phy,
+ 	&dra7xx_l3_main_1__qspi,
+-- 
+1.7.9.5
+
