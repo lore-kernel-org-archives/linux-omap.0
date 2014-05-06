@@ -1,55 +1,113 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V5 3/3] arm: dts: dra7: Add routable-irqs property for gic node
-Date: Tue, 6 May 2014 19:26:19 +0530
-Message-ID: <1399384579-25620-4-git-send-email-r.sricharan@ti.com>
-References: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 1/2] dt/bindings: Binding documentation for Palmas clk32kg and clk32kgaudio clocks
+Date: Tue, 6 May 2014 16:24:44 +0300
+Message-ID: <1399382685-14781-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1399382685-14781-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, tglx@linutronix.de, galak@codeaurora.org, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, robherring2@gmail.com
-Cc: Sricharan R <r.sricharan@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:54113 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750948AbaEFNY5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 May 2014 09:24:57 -0400
+In-Reply-To: <1399382685-14781-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: mturquette@linaro.org, grant.likely@linaro.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ldewangan@nvidia.com, linux-doc@vger.kernel.org, nm@ti.com, robh+dt@kernel.org
 
-There is a IRQ crossbar device in the soc, which maps the
-irq requests from the peripherals to the mpu interrupt
-controller's inputs. The gic provides the support for such
-IPs in the form of routable-irqs. So adding the property
-here to gic node.
+Palmas class of devices can provide 32K clock(s) to be used by other devices
+on the board. Depending on the actual device the provided clocks can be:
+CLK32K_KG and CLK32K_KGAUDIO
+or only one:
+CLK32K_KG (TPS659039 for example)
 
-Cc: Benoit Cousson <bcousson@baylibre.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sricharan R <r.sricharan@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Use separate compatible flags for the two 32K clock.
+A system which needs or have only one of the 32k clock from
+Palmas will need to add node(s) for each clock as separate section
+in the dts file.
+The two compatible property is:
+"ti,palmas-clk32kg" for clk32kg clock
+"ti,palmas-clk32kgaudio" for clk32kgaudio clock
+
+Apart from the register control of the clocks - which is done via
+the clock API there is a posibility to enable the external sleep
+control. In this way the clock can be enabled/disabled on demand by the
+user of the clock.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-[V5] Rebased and corrected routable irqs from 160 to 192
+ .../bindings/clock/clk-palmas-clk32kg-clocks.txt   | 35 ++++++++++++++++++++++
+ include/dt-bindings/mfd/palmas.h                   | 18 +++++++++++
+ 2 files changed, 53 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/clock/clk-palmas-clk32kg-clocks.txt
+ create mode 100644 include/dt-bindings/mfd/palmas.h
 
- arch/arm/boot/dts/dra7.dtsi |    1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 52e4bd0..cec826f 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -72,6 +72,7 @@
- 		compatible = "arm,cortex-a15-gic";
- 		interrupt-controller;
- 		#interrupt-cells = <3>;
-+		arm,routable-irqs = <192>;
- 		reg = <0x48211000 0x1000>,
- 		      <0x48212000 0x1000>,
- 		      <0x48214000 0x2000>,
+diff --git a/Documentation/devicetree/bindings/clock/clk-palmas-clk32kg-clocks.txt b/Documentation/devicetree/bindings/clock/clk-palmas-clk32kg-clocks.txt
+new file mode 100644
+index 000000000000..4208886d834a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/clock/clk-palmas-clk32kg-clocks.txt
+@@ -0,0 +1,35 @@
++* Palmas 32KHz clocks *
++
++Palmas device has two clock output pins for 32KHz, KG and KG_AUDIO.
++
++This binding uses the common clock binding ./clock-bindings.txt.
++
++Required properties:
++- compatible :	"ti,palmas-clk32kg" for clk32kg clock
++		"ti,palmas-clk32kgaudio" for clk32kgaudio clock
++- #clock-cells : shall be set to 0.
++
++Optional property:
++- ti,external-sleep-control: The external enable input pins controlled the
++	enable/disable of clocks.  The external enable input pins ENABLE1,
++	ENABLE2 and NSLEEP. The valid values for the external pins are:
++		PALMAS_EXT_CONTROL_PIN_ENABLE1 for ENABLE1 pin
++		PALMAS_EXT_CONTROL_PIN_ENABLE2 for ENABLE2 pin
++		PALMAS_EXT_CONTROL_PIN_NSLEEP for NSLEEP pin
++	Option 0 or missing this property means the clock is enabled/disabled
++	via register access and these pins do not have any control.
++	The macros of external control pins for DTS is defined at
++	dt-bindings/mfd/palmas.h
++
++Example:
++	#include <dt-bindings/mfd/palmas.h>
++	...
++	palmas: tps65913@58 {
++		...
++		clk32kg: palmas_clk32k@0 {
++			compatible = "ti,palmas-clk32kg";
++			#clock-cells = <0>;
++			ti,external-sleep-control = <PALMAS_EXT_CONTROL_PIN_NSLEEP>;
++		};
++		...
++	};
+diff --git a/include/dt-bindings/mfd/palmas.h b/include/dt-bindings/mfd/palmas.h
+new file mode 100644
+index 000000000000..2c8ac4841385
+--- /dev/null
++++ b/include/dt-bindings/mfd/palmas.h
+@@ -0,0 +1,18 @@
++/*
++ * This header provides macros for Palmas device bindings.
++ *
++ * Copyright (c) 2013, NVIDIA Corporation.
++ *
++ * Author: Laxman Dewangan <ldewangan@nvidia.com>
++ *
++ */
++
++#ifndef __DT_BINDINGS_PALMAS_H__
++#define __DT_BINDINGS_PALMAS_H
++
++/* External control pins */
++#define PALMAS_EXT_CONTROL_PIN_ENABLE1	1
++#define PALMAS_EXT_CONTROL_PIN_ENABLE2	2
++#define PALMAS_EXT_CONTROL_PIN_NSLEEP	3
++
++#endif /* __DT_BINDINGS_PALMAS_H */
 -- 
-1.7.9.5
+1.9.2
+
