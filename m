@@ -1,149 +1,174 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [Resend/PATCH] arm: dts: dra7: Add qspi device.
-Date: Tue, 6 May 2014 16:37:24 +0530
-Message-ID: <1399374445-16456-1-git-send-email-sourav.poddar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm/dts: am335x-evmsk enable display and lcd panel
+ support
+Date: Tue, 6 May 2014 09:10:02 -0700
+Message-ID: <20140506161001.GH18474@atomide.com>
+References: <1398199063-3026-1-git-send-email-detheridge@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52111 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934703AbaEFLHf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 May 2014 07:07:35 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29062 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753905AbaEFQKH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 12:10:07 -0400
+Content-Disposition: inline
+In-Reply-To: <1398199063-3026-1-git-send-email-detheridge@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Sourav Poddar <sourav.poddar@ti.com>
+To: Darren Etheridge <detheridge@ti.com>
+Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-These add device tree entry for qspi controller driver on dra7-evm.
+* Darren Etheridge <detheridge@ti.com> [140422 13:39]:
+> Add the necessary nodes to enable the LCD controller and the
+> LCD panel that is attached to the Texas Instruments AM335x
+> EVMSK platform.  Also setup the necessary pin mux within the
+> DT file to drive the LCD connector and add the correct
+> pinmux settings for the lcd pins to be configured to when
+> the SoC goes into sleep state for the minimum power
+> consumption.
+> 
+> For the sleep mode LCD pin settings, MUX_MODE7 is chosen as
+> this corresponds to switching the pins into input GPIO's with
+> an internal pulldown.  Which has been determined to offer the
+> lowest power solution vs leaving the pins configured in LCD
+> mode.
 
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
-Depends on sricharan's irq crossbar.
+Probably best that Tomi queues all the panel .dts changes into
+a separate immutable branch that I can merge too.
 
- arch/arm/boot/dts/dra7-evm.dts |   80 ++++++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/dra7.dtsi    |   14 +++++++
- 2 files changed, 94 insertions(+)
-
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 5babba0..62f4256 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -93,6 +93,21 @@
- 			0x24c (PIN_INPUT_SLEW | MUX_MODE0) /* uart3_txd */
- 		>;
- 	};
-+
-+	qspi1_pins: pinmux_qspi1_pins {
-+		pinctrl-single,pins = <
-+			0x4c (PIN_INPUT | MUX_MODE1)  /* gpmc_a3.qspi1_cs2 */
-+			0x50 (PIN_INPUT | MUX_MODE1)  /* gpmc_a4.qspi1_cs3 */
-+			0x74 (PIN_INPUT | MUX_MODE1)  /* gpmc_a13.qspi1_rtclk */
-+			0x78 (PIN_INPUT | MUX_MODE1)  /* gpmc_a14.qspi1_d3 */
-+			0x7c (PIN_INPUT | MUX_MODE1)  /* gpmc_a15.qspi1_d2 */
-+			0x80 (PIN_INPUT | MUX_MODE1) /* gpmc_a16.qspi1_d1 */
-+			0x84 (PIN_INPUT | MUX_MODE1)  /* gpmc_a17.qspi1_d0 */
-+			0x88 (PIN_INPUT | MUX_MODE1)  /* qpmc_a18.qspi1_sclk */
-+			0xb8 (PIN_INPUT_PULLUP | MUX_MODE1)  /* gpmc_cs2.qspi1_cs0 */
-+			0xbc (PIN_INPUT_PULLUP | MUX_MODE1)  /* gpmc_cs3.qspi1_cs1 */
-+		>;
-+	};
- };
+Tony
  
- &i2c1 {
-@@ -273,3 +288,68 @@
- &cpu0 {
- 	cpu0-supply = <&smps123_reg>;
- };
-+
-+&qspi {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&qspi1_pins>;
-+
-+	spi-max-frequency = <48000000>;
-+	m25p80@0 {
-+		compatible = "s25fl256s1";
-+		spi-max-frequency = <48000000>;
-+		reg = <0>;
-+		spi-tx-bus-width = <1>;
-+		spi-rx-bus-width = <4>;
-+		spi-cpol;
-+		spi-cpha;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+
-+		/* MTD partition table.
-+		 * The ROM checks the first four physical blocks
-+		 * for a valid file to boot and the flash here is
-+		 * 64KiB block size.
-+		 */
-+		partition@0 {
-+			label = "QSPI.SPL";
-+			reg = <0x00000000 0x000010000>;
-+		};
-+		partition@1 {
-+			label = "QSPI.SPL.backup1";
-+			reg = <0x00010000 0x00010000>;
-+		};
-+		partition@2 {
-+			label = "QSPI.SPL.backup2";
-+			reg = <0x00020000 0x00010000>;
-+		};
-+		partition@3 {
-+			label = "QSPI.SPL.backup3";
-+			reg = <0x00030000 0x00010000>;
-+		};
-+		partition@4 {
-+			label = "QSPI.u-boot";
-+			reg = <0x00040000 0x00100000>;
-+		};
-+		partition@5 {
-+			label = "QSPI.u-boot-spl-os";
-+			reg = <0x00140000 0x00010000>;
-+		};
-+		partition@6 {
-+			label = "QSPI.u-boot-env";
-+			reg = <0x00150000 0x00010000>;
-+		};
-+		partition@7 {
-+			label = "QSPI.u-boot-env.backup1";
-+			reg = <0x00160000 0x0010000>;
-+		};
-+		partition@8 {
-+			label = "QSPI.kernel";
-+			reg = <0x00170000 0x0800000>;
-+		};
-+		partition@9 {
-+			label = "QSPI.file-system";
-+			reg = <0x00970000 0x01690000>;
-+		};
-+	};
-+};
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index d93311a..a4557b4 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -798,6 +798,20 @@
- 			dma-names = "tx0", "rx0";
- 			status = "disabled";
- 		};
-+
-+		qspi: qspi@4b300000 {
-+			compatible = "ti,dra7xxx-qspi";
-+			reg = <0x4b300000 0x100>;
-+			reg-names = "qspi_base";
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			ti,hwmods = "qspi";
-+			clocks = <&qspi_gfclk_div>;
-+			clock-names = "fck";
-+			num-cs = <4>;
-+			interrupts = <0 343 0x4>;
-+			status = "disabled";
-+		};
- 	};
- 
- 	crossbar_mpu: crossbar@4a020000 {
--- 
-1.7.9.5
-
+> Signed-off-by: Darren Etheridge <detheridge@ti.com>
+> ---
+>  arch/arm/boot/dts/am335x-evmsk.dts | 105 +++++++++++++++++++++++++++++++++++++
+>  1 file changed, 105 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+> index ec08f6f..a5e1ab8 100644
+> --- a/arch/arm/boot/dts/am335x-evmsk.dts
+> +++ b/arch/arm/boot/dts/am335x-evmsk.dts
+> @@ -138,12 +138,113 @@
+>  			"Headphone Jack",       "HPLOUT",
+>  			"Headphone Jack",       "HPROUT";
+>  	};
+> +
+> +	panel {
+> +		compatible = "ti,tilcdc,panel";
+> +		pinctrl-names = "default", "sleep";
+> +		pinctrl-0 = <&lcd_pins_default>;
+> +		pinctrl-1 = <&lcd_pins_sleep>;
+> +		status = "okay";
+> +		panel-info {
+> +			ac-bias           = <255>;
+> +			ac-bias-intrpt    = <0>;
+> +			dma-burst-sz      = <16>;
+> +			bpp               = <32>;
+> +			fdd               = <0x80>;
+> +			sync-edge         = <0>;
+> +			sync-ctrl         = <1>;
+> +			raster-order      = <0>;
+> +			fifo-th           = <0>;
+> +		};
+> +		display-timings {
+> +			480x272 {
+> +				hactive         = <480>;
+> +				vactive         = <272>;
+> +				hback-porch     = <43>;
+> +				hfront-porch    = <8>;
+> +				hsync-len       = <4>;
+> +				vback-porch     = <12>;
+> +				vfront-porch    = <4>;
+> +				vsync-len       = <10>;
+> +				clock-frequency = <9000000>;
+> +				hsync-active    = <0>;
+> +				vsync-active    = <0>;
+> +			};
+> +		};
+> +	};
+>  };
+>  
+>  &am33xx_pinmux {
+>  	pinctrl-names = "default";
+>  	pinctrl-0 = <&gpio_keys_s0 &clkout2_pin>;
+>  
+> +	lcd_pins_default: lcd_pins_default {
+> +		pinctrl-single,pins = <
+> +			0x20 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad8.lcd_data16 */
+> +			0x24 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad9.lcd_data17 */
+> +			0x28 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad10.lcd_data18 */
+> +			0x2c (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad11.lcd_data19 */
+> +			0x30 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad12.lcd_data20 */
+> +			0x34 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad13.lcd_data21 */
+> +			0x38 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad14.lcd_data22 */
+> +			0x3c (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad15.lcd_data23 */
+> +			0xa0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data0.lcd_data0 */
+> +			0xa4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data1.lcd_data1 */
+> +			0xa8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data2.lcd_data2 */
+> +			0xac (PIN_OUTPUT | MUX_MODE0)	/* lcd_data3.lcd_data3 */
+> +			0xb0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data4.lcd_data4 */
+> +			0xb4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data5.lcd_data5 */
+> +			0xb8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data6.lcd_data6 */
+> +			0xbc (PIN_OUTPUT | MUX_MODE0)	/* lcd_data7.lcd_data7 */
+> +			0xc0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data8.lcd_data8 */
+> +			0xc4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data9.lcd_data9 */
+> +			0xc8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data10.lcd_data10 */
+> +			0xcc (PIN_OUTPUT | MUX_MODE0)	/* lcd_data11.lcd_data11 */
+> +			0xd0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data12.lcd_data12 */
+> +			0xd4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data13.lcd_data13 */
+> +			0xd8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data14.lcd_data14 */
+> +			0xdc (PIN_OUTPUT | MUX_MODE0)	/* lcd_data15.lcd_data15 */
+> +			0xe0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_vsync.lcd_vsync */
+> +			0xe4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_hsync.lcd_hsync */
+> +			0xe8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_pclk.lcd_pclk */
+> +			0xec (PIN_OUTPUT | MUX_MODE0)	/* lcd_ac_bias_en.lcd_ac_bias_en */
+> +		>;
+> +	};
+> +
+> +	lcd_pins_sleep: lcd_pins_sleep {
+> +		pinctrl-single,pins = <
+> +			0x20 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad8.lcd_data16 */
+> +			0x24 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad9.lcd_data17 */
+> +			0x28 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad10.lcd_data18 */
+> +			0x2c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad11.lcd_data19 */
+> +			0x30 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad12.lcd_data20 */
+> +			0x34 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad13.lcd_data21 */
+> +			0x38 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad14.lcd_data22 */
+> +			0x3c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad15.lcd_data23 */
+> +			0xa0 (PULL_DISABLE | MUX_MODE7)		/* lcd_data0.lcd_data0 */
+> +			0xa4 (PULL_DISABLE | MUX_MODE7)		/* lcd_data1.lcd_data1 */
+> +			0xa8 (PULL_DISABLE | MUX_MODE7)		/* lcd_data2.lcd_data2 */
+> +			0xac (PULL_DISABLE | MUX_MODE7)		/* lcd_data3.lcd_data3 */
+> +			0xb0 (PULL_DISABLE | MUX_MODE7)		/* lcd_data4.lcd_data4 */
+> +			0xb4 (PULL_DISABLE | MUX_MODE7)		/* lcd_data5.lcd_data5 */
+> +			0xb8 (PULL_DISABLE | MUX_MODE7)		/* lcd_data6.lcd_data6 */
+> +			0xbc (PULL_DISABLE | MUX_MODE7)		/* lcd_data7.lcd_data7 */
+> +			0xc0 (PULL_DISABLE | MUX_MODE7)		/* lcd_data8.lcd_data8 */
+> +			0xc4 (PULL_DISABLE | MUX_MODE7)		/* lcd_data9.lcd_data9 */
+> +			0xc8 (PULL_DISABLE | MUX_MODE7)		/* lcd_data10.lcd_data10 */
+> +			0xcc (PULL_DISABLE | MUX_MODE7)		/* lcd_data11.lcd_data11 */
+> +			0xd0 (PULL_DISABLE | MUX_MODE7)		/* lcd_data12.lcd_data12 */
+> +			0xd4 (PULL_DISABLE | MUX_MODE7)		/* lcd_data13.lcd_data13 */
+> +			0xd8 (PULL_DISABLE | MUX_MODE7)		/* lcd_data14.lcd_data14 */
+> +			0xdc (PULL_DISABLE | MUX_MODE7)		/* lcd_data15.lcd_data15 */
+> +			0xe0 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_vsync.lcd_vsync */
+> +			0xe4 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_hsync.lcd_hsync */
+> +			0xe8 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_pclk.lcd_pclk */
+> +			0xec (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_ac_bias_en.lcd_ac_bias_en */
+> +		>;
+> +	};
+> +
+> +
+>  	user_leds_s0: user_leds_s0 {
+>  		pinctrl-single,pins = <
+>  			0x10 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad4.gpio1_4 */
+> @@ -560,3 +661,7 @@
+>  		ti,wire-config = <0x00 0x11 0x22 0x33>;
+>  	};
+>  };
+> +
+> +&lcdc {
+> +      status = "okay";
+> +};
+> -- 
+> 1.8.4
+> 
