@@ -1,53 +1,46 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 11/17] ARM: dts: dra7xx-clocks: Add missing 32khz clocks used for PHY
-Date: Tue, 6 May 2014 19:03:57 +0530
-Message-ID: <1399383244-14556-12-git-send-email-kishon@ti.com>
+Subject: [PATCH 12/17] ARM: dts: dra7: Add dt data for PCIe PHY control module
+Date: Tue, 6 May 2014 19:03:58 +0530
+Message-ID: <1399383244-14556-13-git-send-email-kishon@ti.com>
 References: <1399383244-14556-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58971 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757687AbaEFNff (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 May 2014 09:35:35 -0400
+Return-path: <linux-doc-owner@vger.kernel.org>
 In-Reply-To: <1399383244-14556-1-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-doc-owner@vger.kernel.org
 To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
-Cc: rogerq@ti.com, balajitk@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <robh+dt@kernel.org>
+Cc: rogerq@ti.com, balajitk@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
-Added missing 32khz clock used by PCIe PHY.
-The documention for this node can be found @ ../bindings/clock/ti/gate.txt.
+Added dt data for PCIe PHY control module used by PCIe PHY.
+The documention for this node can be found @ ../bindings/phy/ti-phy.txt
 
 Cc: Tony Lindgren <tony@atomide.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Rob Herring <robh+dt@kernel.org>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7xx-clocks.dtsi |    8 ++++++++
+ arch/arm/boot/dts/dra7.dtsi |    8 ++++++++
  1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index 44993ec..e1bd052 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -1165,6 +1165,14 @@
- 		reg = <0x021c>, <0x0220>;
- 	};
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index f0ca46d..0d3c8c0 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -876,6 +876,14 @@
+ 			};
+ 		};
  
-+	optfclk_pciephy_32khz: optfclk_pciephy_32khz@4a0093b0 {
-+		compatible = "ti,gate-clock";
-+		clocks = <&sys_32k_ck>;
-+		#clock-cells = <0>;
-+		reg = <0x13b0>;
-+		ti,bit-shift = <8>;
-+	};
++		omap_control_pcie1phy: omap-control-pciephy@0x4a003c40 {
++			compatible = "ti,control-phy-pcie";
++			reg = <0x4a003c40 0x4>, <0x4a003c14 0x4>, <0x4a003c34 0x4>;
++			reg-names = "power", "control_sma", "pcie_pcs";
++			clocks = <&sys_clkin1>;
++			clock-names = "sysclk";
++		};
 +
- 	optfclk_pciephy_div: optfclk_pciephy_div@4a00821c {
- 		compatible = "ti,divider-clock";
- 		clocks = <&apll_pcie_ck>;
+ 		/* OCP2SCP3 */
+ 		ocp2scp@4a090000 {
+ 			compatible = "ti,omap-ocp2scp";
 -- 
 1.7.9.5
 
