@@ -1,14 +1,17 @@
-From: Joachim  Eastwood <manabian@gmail.com>
-Subject: Re: [PATCH v2 0/4] Support for Variscite OM44 modules and boards
-Date: Tue, 6 May 2014 20:02:52 +0200
-Message-ID: <CAGhQ9VystybERsiPUX4ESNBcKPKBN44GvuPUtTM+jpywUqON3A@mail.gmail.com>
-References: <1398971269-20515-1-git-send-email-manabian@gmail.com>
- <20140506001530.GL25949@atomide.com>
+From: Darren Etheridge <detheridge@ti.com>
+Subject: Re: [PATCH V5 1/3] arm: dts: dra7: Add crossbar device binding
+Date: Tue, 6 May 2014 15:07:50 -0500
+Message-ID: <20140506200750.GE2626@ti.com>
+References: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
+ <1399384579-25620-2-git-send-email-r.sricharan@ti.com>
+ <20140506194055.GA6962@saruman.home> <53693C02.2090305@ti.com>
+ <20140506195804.GD2626@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140506001530.GL25949@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20140506195804.GD2626@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,53 +21,72 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <bcousson@baylibre.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, tony@atomide.com, linus.walleij@linaro.org, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, Sricharan R <r.sricharan@ti.com>, santosh.shilimkar@ti.com, bcousson@baylibre.com, galak@codeaurora.org, marc.zyngier@arm.com, tglx@linutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-1On 6 May 2014 02:15, Tony Lindgren <tony@atomide.com> wrote:
-> * Joachim Eastwood <manabian@gmail.com> [140501 12:08]:
->> Hello,
->>
->> This patch set adds support for Variscite OM44 series of system on modules and boards.
->>
->> There weren't many comments on v1 of this patch set so I hope this can make it into 3.16.
->> Changes since v2:
->>  * Use OMAP IOPAD macros
->>
->> Patch 1: Add support for the SoM itself and the reference carrier board. Together these make the VAR-STK-OM44 dev kit.
->> Patch 2: Add support for VAR-DVK-OM44 which is just the STK with a LCD display.
->> Patch 3: Nodes for WLAN/BT support.
->> Patch 4: Add quirks so that WLAN can be used. Still waiting for proper DT bindings.
->>
->> Since this patch set now uses the IOPAD macros a fix from Tony is need.
->> See: https://patchwork.kernel.org/patch/4025421/
->
-> Just noted that the macro won't work while was about to
-> apply these, sorry. So we're back to either using the
-> existing OMAP4_WKUP_IOPAD or raw offset from the padconf
-> area unless you have some great macro ideas.
+Darren Etheridge <detheridge@ti.com> wrote on Tue [2014-May-06 14:58:04 -0500]:
+> Nishanth Menon <nm@ti.com> wrote on Tue [2014-May-06 14:46:10 -0500]:
+> > On 05/06/2014 02:40 PM, Felipe Balbi wrote:
+> > > On Tue, May 06, 2014 at 07:26:17PM +0530, Sricharan R wrote:
+> > >> This adds the irq crossbar device node.
+> > >>
+> > >> There is a IRQ crossbar device in the soc, which
+> > >> maps the irq requests from the peripherals to the
+> > >> mpu interrupt controller's inputs. The Peripheral irq
+> > >> requests are connected to only one crossbar
+> > >> input and the output of the crossbar is connected to only one
+> > >> controller's input line. The crossbar device is used to map
+> > >> a peripheral input to a free mpu's interrupt controller line.
+> > >>
+> > >> Cc: Benoit Cousson <bcousson@baylibre.com>
+> > >> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > >> Cc: Rajendra Nayak <rnayak@ti.com>
+> > >> Cc: Tony Lindgren <tony@atomide.com>
+> > >> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+> > >> Signed-off-by: Nishanth Menon <nm@ti.com>
+> > >> ---
+> > >> [V5] Rebased on top of 3.15-rc4 and corrected the
+> > >>      irqs-reserved list
+> > >>
+> > >>  arch/arm/boot/dts/dra7.dtsi |    8 ++++++++
+> > >>  1 file changed, 8 insertions(+)
+> > >>
+> > >> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> > >> index 149b550..0274a86 100644
+> > >> --- a/arch/arm/boot/dts/dra7.dtsi
+> > >> +++ b/arch/arm/boot/dts/dra7.dtsi
+> > >> @@ -790,6 +790,14 @@
+> > >>  			status = "disabled";
+> > >>  		};
+> > >>  	};
+> > >> +
+> > >> +	crossbar_mpu: crossbar@4a020000 {
+> > > 
+> > > shouldn't this be "status = disabled"; so that boards enable this
+> > > on-demand ??
+> > > 
+> > It cannot be and does not need to be. crossbar is an SoC feature. by
+> > defining crossbar, the IRQ numbers we provide in DTS now becomes
+> > crossbar numbers which get mapped to GIC interrupt numbers dynamically.
+> > 
+> > further crossbar is not a board feature. it is as ingrained in DRA7
+> > behavior as GIC is. we are fortunate that we have some default mapping
+> > of crossbar that allows the current peripherals to work, with this
+> > support, we dont have to depend any longer on "we are lucky that is
+> > mapped".
+> > 
+> > That said, in hindsight, patch #1 and 2 should be squashed IMHO. else
+> > we have a bisectability problem here.
+> > 
+> Yes the bisectability problem is completely true - I was just testing
+> that as your email came in.  In fact I think all three patches need to
+> be squashed into one, I can't boot the dra7-EVM unless I have all three
+> patches applied.
+> 
 
-I see. I'll take another look at the macro's and see what I can come up with.
+Or I just tried reordering, so patch 3/3 becomes patch 1 and then squash
+patch 1/3 and patch 2/3 together to form patch 2.  That seems to at
+least let the kernel boot to completion.
 
->> Note that patch 1 relies upon a patch from Tomi Valkeinen add hpd-gpio (hotplug detect) to the "hdmi-connector".
->> See: http://marc.info/?l=linux-omap&m=139771947508021&w=2
->>
->> Patch 2 also relies upon a patch from Tomi that adds DT support to panel-dpi.
->> See: http://marc.info/?l=devicetree&m=139030201815380&w=2
->
-> Maybe also leave out the DSS changes until Tomi has confirmed
-> those?
-
-I can split the patch set and put a patch with the DSS DT nodes at the
-end. Maybe this last patch can go through Tomi if he has a DSS DT
-branch. I don't want to drop it entirely from the patch set because
-some other people has expressed interest in testing it with full
-display and hdmi support.
-
-I am traveling right now and don't have access to my development
-machine. So I won't be able to rework the patch set until early next
-week.
-
-regards
-Joachim Eastwood
+Darren
