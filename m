@@ -1,34 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Resend/PATCH] arm: dts: am43x-epos: Add qspi device.
-Date: Tue, 6 May 2014 09:14:04 -0700
-Message-ID: <20140506161404.GI18474@atomide.com>
-References: <1398692550-31758-1-git-send-email-sourav.poddar@ti.com>
- <53689BDF.5030208@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 00/17] PCIe support for DRA7xx
+Date: Tue, 6 May 2014 19:03:46 +0530
+Message-ID: <1399383244-14556-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:39380 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750874AbaEFQOJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 12:14:09 -0400
-Content-Disposition: inline
-In-Reply-To: <53689BDF.5030208@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: rogerq@ti.com, balajitk@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: sourav <sourav.poddar@ti.com>
-Cc: bcousson@baylibre.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com
 
-* sourav <sourav.poddar@ti.com> [140506 01:23]:
-> Hi Tony,
-> 
-> On Monday 28 April 2014 07:12 PM, Sourav Poddar wrote:
-> >This patch adds qspi nodes for am43xx SOC devices.
-> >
-> >Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
-> 
-> This patch has been posted many times before.
-> If this patch looks OK, can it be picked?
+This patch series adds support for PCIe in DRA7xx including drivers and dt
+data. PCIe in DRA7xx uses desingware IP and hence this re-uses the
+pcie desingware driver (pcie-designware.c) by Jingoo.
 
-Thanks applying into omap-for-v3.16/dt.
+The last couple of patches are marked as *TEMP* since the TI reset driver [1]
+is not yet merged and is in RFC.
 
-Tony
+Tested broadcom PCIe card and XIO2000 bridge along with DGE530T ethernet
+card.
+
+Changes from RFC:
+* Added external clock support for PCIE APLL
+* Miscellaneous cleanups in Documentation, macro naming etc..
+
+[1] -> http://www.spinics.net/lists/linux-omap/msg106411.html
+
+Keerthy (2):
+  ARM: dts: DRA7: Add divider table to optfclk_pciephy_div clock
+  ARM: dts: DRA7: Change the parent of apll_pcie_in_clk_mux to
+    dpll_pcie_ref_m2ldo_ck
+
+Kishon Vijay Abraham I (15):
+  phy: phy-omap-pipe3: Add support for PCIe PHY
+  phy: omap-control: add external clock support for PCIe PHY
+  phy: ti-pipe3: add external clock support for PCIe PHY
+  phy: pipe3: insert delay to enumerate in GEN2 mode
+  pci: host: pcie-dra7xx: add support for pcie-dra7xx controller
+  pci: host: pcie-designware: Use *base-mask* for configuring the iATU
+  arm: dra7xx: Add hwmod data for pcie1 phy and pcie2 phy
+  arm: dra7xx: Add hwmod data for pcie1 and pcie2 subsystems
+  ARM: dts: dra7xx-clocks: Add missing 32khz clocks used for PHY
+  ARM: dts: dra7: Add dt data for PCIe PHY control module
+  ARM: dts: dra7: Add dt data for PCIe PHY
+  ARM: dts: dra7: Add dt data for PCIe controller
+  ARM: OMAP: Enable PCI for DRA7
+  pci: host: pcie-dra7xx: use reset framework APIs to reset PCIe
+  ARM: dts: dra7: Add *resets* property for PCIe dt node
+
+ .../devicetree/bindings/pci/designware-pcie.txt    |    1 +
+ Documentation/devicetree/bindings/pci/ti-pci.txt   |   35 ++
+ Documentation/devicetree/bindings/phy/ti-phy.txt   |   21 +-
+ arch/arm/boot/dts/dra7.dtsi                        |   55 +++
+ arch/arm/boot/dts/dra7xx-clocks.dtsi               |   11 +-
+ arch/arm/mach-omap2/Kconfig                        |    2 +
+ arch/arm/mach-omap2/cm2_7xx.h                      |    4 +
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  112 ++++++
+ arch/arm/mach-omap2/prm7xx.h                       |    4 +
+ drivers/pci/host/Kconfig                           |   10 +
+ drivers/pci/host/Makefile                          |    1 +
+ drivers/pci/host/pci-dra7xx.c                      |  395 ++++++++++++++++++++
+ drivers/pci/host/pcie-designware.c                 |   39 +-
+ drivers/pci/host/pcie-designware.h                 |    1 +
+ drivers/phy/phy-omap-control.c                     |   92 ++++-
+ drivers/phy/phy-ti-pipe3.c                         |  142 +++++--
+ include/linux/phy/omap_control_phy.h               |   23 ++
+ 17 files changed, 898 insertions(+), 50 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/pci/ti-pci.txt
+ create mode 100644 drivers/pci/host/pci-dra7xx.c
+
+-- 
+1.7.9.5
