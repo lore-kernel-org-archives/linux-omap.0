@@ -1,49 +1,102 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for configuring the iATU
-Date: Tue, 06 May 2014 15:59 +0200
-Message-ID: <4764413.ZAEU5S5p0p@wuerfel>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com> <1399383244-14556-7-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: Correct offset in OMAP4_WKUP_IOPAD macro
+Date: Mon, 5 May 2014 17:12:37 -0700
+Message-ID: <20140506001237.GK25949@atomide.com>
+References: <1397924056-6462-1-git-send-email-manabian@gmail.com>
+ <CAGhQ9VwU_BjrD+c9uJn9FBwo6v_BOMUCKwiOW-7eqOu056a79A@mail.gmail.com>
+ <20140421153539.GB23945@atomide.com>
+ <CAGhQ9VyFQgcOw8y97R6HR1apXo-89JyktADxR6jb1EJipXqqjA@mail.gmail.com>
+ <CAGhQ9VxCA_VnO18zWgtWUExNE6YJd+krNEVLtyZTpyY6hRyHUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:49982 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756464AbaEFN7G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 09:59:06 -0400
-In-Reply-To: <1399383244-14556-7-git-send-email-kishon@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:46637 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756974AbaEFAMl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2014 20:12:41 -0400
+Content-Disposition: inline
+In-Reply-To: <CAGhQ9VxCA_VnO18zWgtWUExNE6YJd+krNEVLtyZTpyY6hRyHUg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, rogerq@ti.com, balajitk@ti.com, Bjorn Helgaas <bhelgaas@google.com>, Marek Vasut <marex@denx.de>, santosh.shilimkar@ti.com
+To: Joachim Eastwood <manabian@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tuesday 06 May 2014 19:03:52 Kishon Vijay Abraham I wrote:
-> In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
-> address. So whenever the cpu issues a read/write request, the 4 most
-> significant bits are used by L3 to determine the target controller.
-> For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
-> the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
-> the outbound translation window the *base* should be programmed as 0x000_0000.
-> Whenever we try to write to say 0x2000_0000, it will be translated to whatever
-> we have programmed in the translation window with base as 0x000_0000.
-> 
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Marek Vasut <marex@denx.de>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Acked-by: Jingoo Han <jg1.han@samsung.com>
-> Acked-by: Mohit Kumar <mohit.kumar@st.com>
+Hi,
 
-Sorry, but NAK.
+Sorry for dropping the ball on this one, got distracted with various
+other fixes for a while.
 
-We have a standard 'dma-ranges' property to handle this, so use it.
+* Joachim Eastwood <manabian@gmail.com> [140421 09:16]:
+> On 21 April 2014 18:12, Joachim  Eastwood <manabian@gmail.com> wrote:
+> > On 21 April 2014 17:35, Tony Lindgren <tony@atomide.com> wrote:
+> >> * Joachim Eastwood <manabian@gmail.com> [140419 09:25]:
+> >>> On 19 April 2014 18:14, Joachim Eastwood <manabian@gmail.com> wrote:
+> >>> > This was introduced in 43a348ea53eb5fd79 but hasn't caused
+> >>> > any harm since it don't have any users yet.
+> >>>
+> >>> Or maybe I am confused about this macro.
+> >>>
+> >>> Tony which offset from the OMAP4 TRM should be used?
+> >>>
+> >>> Under section 18.6.8 there are is a column with address offset. Is
+> >>> this the number you want in the macro?
+> >>
+> >> Oh I see, the offsets in the TRM in this case are from the base
+> >> of the wkup module padconf base instead of listing the physical
+> >> address for the register. Ideally the value would be what the
+> >> documentation lists in the "Table 18-9. Device Wake-Up Control
+> >> Module Pad Configuration Register Fields" with 2 added to it for
+> >> the upper registers as we're using 16-bit register address.
+> >> In any case something that's relatively easy to verify against
+> >> the documentation. But that seems to vary between the physical
+> >> address and the offset, so we need to specify some mask there.
+> >>
+> >> Something like below (untested) should do the trick as long as
+> >> we never have padconf reg areas larger than 0xfff. We may want to
+> >> allow defining a custom mask for the macro if needed depending
+> >> how the documentation is defining the mux tables for.
+> >>
+> >> --- a/include/dt-bindings/pinctrl/omap.h
+> >> +++ b/include/dt-bindings/pinctrl/omap.h
+> >> @@ -51,9 +51,9 @@
+> >>
+> >>  /*
+> >>   * Macros to allow using the absolute physical address instead of the
+> >> - * padconf registers instead of the offset from padconf base.
+> >> + * padconf register offset from padconf register base.
+> >>   */
+> >> -#define OMAP_IOPAD_OFFSET(pa, offset)  (((pa) & 0xffff) - (offset))
+> >> +#define OMAP_IOPAD_OFFSET(pa, offset)   (((pa) & 0xfff) - ((offset) & 0xfff))
+> >>
+> >>  #define OMAP2420_CORE_IOPAD(pa, val)   OMAP_IOPAD_OFFSET((pa), 0x0030) (val)
+> >>  #define OMAP2430_CORE_IOPAD(pa, val)   OMAP_IOPAD_OFFSET((pa), 0x2030) (val)
+> >
+> > This give the same result as my patch so it's okay for me. Checked the
+> > resulting dtb's and they are equivalent.
+> >
+> > Your patch will also have an effect on some of the others macros but I
+> > assume that is okey.
 
-See the x-gene PCIe driver patches for an example. Please also talk
-to Santosh about it, as he is implementing generic support for
-parsing dma-ranges in platform devices at the moment.
+Yeah looks like the above won't work as the padconf value can easily
+be larger than the 0xfff masked offset.. For example OMAP3_CORE1_IOPAD
+at 0x48002030 would become 0x030 and the value for it can be up to
+0x238. And we really want the macros to behave the same way for
+everything rather than obfuscate the calculation even further.
 
-I also suspect you will have to implement swiotlb support to make
-generic PCI devices work behind this bridge. Otherwise you end up
-with random physical addresses passed into DMA registers.
+I guess we could add few new macros, but looks like am335x is using
+yet another way of documenting these so it may be endless patching.
+ 
+> For reference my var-som-om44.dtsi now looks like this:
+> http://slexy.org/raw/s213OvSZfF
 
-	Arnd
+OK sorry just noticed you're using it already while was about to
+apply your patches. Care to update that series again to not use the
+macro, or by adding the offsets? 
+ 
+> > Will this be sent as a fix for 3.15?
 
+No since it won't work properly :)
+
+Regards,
+
+Tony
