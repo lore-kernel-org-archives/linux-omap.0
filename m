@@ -1,49 +1,55 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am335x-boneblack: remove use of
- ti,vcc-aux-disable-is-sleep
-Date: Mon, 5 May 2014 17:37:34 -0700
-Message-ID: <20140506003734.GO25949@atomide.com>
-References: <1398432986-30585-1-git-send-email-jhovold@gmail.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: [PATCH V5 3/3] arm: dts: dra7: Add routable-irqs property for gic node
+Date: Tue, 6 May 2014 19:26:19 +0530
+Message-ID: <1399384579-25620-4-git-send-email-r.sricharan@ti.com>
+References: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1398432986-30585-1-git-send-email-jhovold-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johan Hovold <jhovold-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, tglx@linutronix.de, galak@codeaurora.org, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, robherring2@gmail.com
+Cc: Sricharan R <r.sricharan@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Johan Hovold <jhovold-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [140425 06:37]:
-> Remove use of property ti,vcc-aux-disable-is-sleep, which does not
-> exist.
-> 
-> Signed-off-by: Johan Hovold <jhovold-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+There is a IRQ crossbar device in the soc, which maps the
+irq requests from the peripherals to the mpu interrupt
+controller's inputs. The gic provides the support for such
+IPs in the form of routable-irqs. So adding the property
+here to gic node.
 
-Thanks applying into omap-for-v3.16/fixes-not-urgent.
+Cc: Benoit Cousson <bcousson@baylibre.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sricharan R <r.sricharan@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+[V5] Rebased and corrected routable irqs from 160 to 192
 
-Tony
+ arch/arm/boot/dts/dra7.dtsi |    1 +
+ 1 file changed, 1 insertion(+)
 
-> ---
->  arch/arm/boot/dts/am335x-boneblack.dts | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-> index 6b71ad95a5cf..305975d3f531 100644
-> --- a/arch/arm/boot/dts/am335x-boneblack.dts
-> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
-> @@ -26,7 +26,6 @@
->  	pinctrl-0 = <&emmc_pins>;
->  	bus-width = <8>;
->  	status = "okay";
-> -	ti,vcc-aux-disable-is-sleep;
->  };
->  
->  &am33xx_pinmux {
-> -- 
-> 1.8.3.2
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 52e4bd0..cec826f 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -72,6 +72,7 @@
+ 		compatible = "arm,cortex-a15-gic";
+ 		interrupt-controller;
+ 		#interrupt-cells = <3>;
++		arm,routable-irqs = <192>;
+ 		reg = <0x48211000 0x1000>,
+ 		      <0x48212000 0x1000>,
+ 		      <0x48214000 0x2000>,
+-- 
+1.7.9.5
