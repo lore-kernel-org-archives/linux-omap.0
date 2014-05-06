@@ -1,52 +1,60 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH/RFC 3/4] of/clk: Register clocks suitable for Runtime PM
- with the PM core
-Date: Tue, 6 May 2014 09:43:30 +0200
-Message-ID: <CAPDyKFoSOUfgvrKE8x3dih7xvm3VBoNZHjPxWCtFw_h-QALqvw@mail.gmail.com>
-References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
-	<1398334403-26181-4-git-send-email-geert+renesas@glider.be>
-	<CAPDyKFpTwPDu9afhOjhhQ2PKGFB+hWsp=mcaYTq8OvuGF7yT3Q@mail.gmail.com>
-	<CAMuHMdUGdfF8x58dz46VWNsC4X0cmFng39Z2xSO_pXYqn9u=HA@mail.gmail.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 13/17] ARM: dts: dra7: Add dt data for PCIe PHY
+Date: Tue, 6 May 2014 19:03:59 +0530
+Message-ID: <1399383244-14556-14-git-send-email-kishon@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMuHMdUGdfF8x58dz46VWNsC4X0cmFng39Z2xSO_pXYqn9u=HA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, Simon Horman <horms@verge.net.au>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Felipe Balbi <balbi@ti.com>, Mike Turquette <mturquette@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-sh list <linux-sh@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1399383244-14556-1-git-send-email-kishon@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: rogerq@ti.com, balajitk@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 2 May 2014 16:35, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> Hi Ulf,
->
-> On Fri, May 2, 2014 at 10:56 AM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
->>> +static int of_clk_pm_runtime_suspend(struct device *dev)
->>> +{
->>> +       int ret;
->>> +
->>> +       ret = pm_generic_runtime_suspend(dev);
->>> +       if (ret)
->>> +               return ret;
->>> +
->>> +       ret = pm_clk_suspend(dev);
->>
->> What about slow clocks? Those aren't handled with pm_clk_suspend().
->
-> How are slow clocks handled?
+Added dt data for PCIe PHY as a child node of ocp2scp3.
+The documention for this node can be found @ ../bindings/phy/ti-phy.txt.
 
-clk_prepare|unprepare - these functions may sleep.
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/boot/dts/dra7.dtsi |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-Kind regards
-Ulf Hansson
-
->
-> Gr{oetje,eeting}s,
->
->                         Geert
->
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
->
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 0d3c8c0..653b5f6 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -903,6 +903,29 @@
+ 				clock-names = "sysclk";
+ 				#phy-cells = <0>;
+ 			};
++
++			pcie1_phy: pciephy@4a094000 {
++				compatible = "ti,phy-pipe3-pcie";
++				reg = <0x4A094000 0x80>, /* phy_rx */
++				      <0x4A094400 0x64>; /* phy_tx */
++				reg-names = "phy_rx", "phy_tx";
++				ctrl-module = <&omap_control_pcie1phy>;
++				clocks = <&dpll_pcie_ref_ck>,
++					 <&dpll_pcie_ref_m2ldo_ck>,
++					 <&optfclk_pciephy_32khz>,
++					 <&optfclk_pciephy_clk>,
++					 <&optfclk_pciephy_div_clk>,
++					 <&optfclk_pciephy_div>,
++					 <&apll_pcie_in_clk_mux>,
++					 <&pciesref_acs_clk_ck>;
++				clock-names = "dpll_ref", "dpll_ref_m2",
++					      "wkupclk", "refclk",
++					      "div-clk", "phy-div",
++					      "apll_mux", "refclk_ext";
++				#phy-cells = <0>;
++				ti,hwmods = "pcie1-phy";
++				ti,ext-clk;
++			};
+ 		};
+ 
+ 		omap_dwc3_1@48880000 {
+-- 
+1.7.9.5
