@@ -1,43 +1,43 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 08/17] ARM: dts: DRA7: Change the parent of apll_pcie_in_clk_mux to dpll_pcie_ref_m2ldo_ck
-Date: Tue, 6 May 2014 19:03:54 +0530
-Message-ID: <1399383244-14556-9-git-send-email-kishon@ti.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/4] ARM: dts: am335x-bone-common: use phandles for
+ USB and DMA refs
+Date: Tue, 6 May 2014 09:37:18 -0700
+Message-ID: <20140506163718.GK18474@atomide.com>
+References: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1398718475-1883-1-git-send-email-guido@vanguardiasur.com.ar>
+ <20140506161749.GN25849@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399383244-14556-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
-Cc: rogerq@ti.com, balajitk@ti.com, Keerthy <j-keerthy@ti.com>, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Kishon Vijay Abraham I <kishon@ti.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:37815 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750942AbaEFQhY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 12:37:24 -0400
+Content-Disposition: inline
+In-Reply-To: <20140506161749.GN25849@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Guido =?utf-8?B?TWFydMOtbmV6?= <guido@vanguardiasur.com.ar>, bcousson@baylibre.com, linux-omap@vger.kernel.org, george.cherian@ti.com, Ezequiel =?utf-8?Q?Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>
 
-From: Keerthy <j-keerthy@ti.com>
+* Felipe Balbi <balbi@ti.com> [140506 09:19]:
+> On Mon, Apr 28, 2014 at 05:54:32PM -0300, Guido Mart=C3=ADnez wrote:
+> > Use phandles instead of unit adresses to reference usb and dma node=
+s.
+> > This makes the DT more robust and readable.
+> >=20
+> > Signed-off-by: Guido Mart=C3=ADnez <guido@vanguardiasur.com.ar>
+>=20
+> (acked wrong version previously, sorry)
+>=20
+> Acked-by: Felipe Balbi <balbi@ti.com>
 
-Change the parent of apll_pcie_in_clk_mux to dpll_pcie_ref_m2ldo_ck
-from dpll_pcie_ref_ck.
+Applying all four from the v2 into omap-for-v3.16/dt thanks.
 
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/boot/dts/dra7xx-clocks.dtsi |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index 55e95c5..44993ec 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -1152,7 +1152,7 @@
- 
- 	apll_pcie_in_clk_mux: apll_pcie_in_clk_mux@4ae06118 {
- 		compatible = "ti,mux-clock";
--		clocks = <&dpll_pcie_ref_ck>, <&pciesref_acs_clk_ck>;
-+		clocks = <&dpll_pcie_ref_m2ldo_ck>, <&pciesref_acs_clk_ck>;
- 		#clock-cells = <0>;
- 		reg = <0x021c 0x4>;
- 		ti,bit-shift = <7>;
--- 
-1.7.9.5
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
