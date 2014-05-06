@@ -1,104 +1,89 @@
-From: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
-Subject: [RFC] [v2 Patch 3/6] ARM: dts: am33xx: Add prcm_resets node
-Date: Mon, 5 May 2014 15:09:24 -0500
-Message-ID: <1399320567-3639-4-git-send-email-dmurphy@ti.com>
-References: <1399320567-3639-1-git-send-email-dmurphy@ti.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH 05/17] pci: host: pcie-dra7xx: add support for
+ pcie-dra7xx controller
+Date: Tue, 6 May 2014 10:35:08 -0600
+Message-ID: <20140506163507.GA15542@obsidianresearch.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>
+ <1399383244-14556-6-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1399320567-3639-1-git-send-email-dmurphy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1399383244-14556-6-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, Marek Vasut <marex@denx.de>, balajitk@ti.com, Mohit Kumar <mohit.kumar@st.com>, Jingoo Han <jg1.han@samsung.com>, Bjorn Helgaas <bhelgaas@google.com>, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add the prcm_resets node to the prcm parent node.
+On Tue, May 06, 2014 at 07:03:51PM +0530, Kishon Vijay Abraham I wrote:
+> +Example:
+> +pcie@51000000 {
+> +	compatible = "ti,dra7xx-pcie";
+> +	reg = <0x51002000 0x14c>, <0x51000000 0x2000>;
+> +	reg-names = "ti_conf", "rc_dbics";
+> +	interrupts = <0 232 0x4>, <0 233 0x4>;
+> +	#address-cells = <3>;
+> +	#size-cells = <2>;
+> +	device_type = "pci";
+> +	ti,device_type = <3>;
+> +	ranges = <0x00000800 0 0x20001000 0x20001000 0 0x00002000  /* Configuration Space */
 
-Add the am33xx_resets file to define the
-am33xx reset lines that are handled by this reset
-framework.
+Configuration space should not show up in the ranges, please don't
+copy that mistake from other drivers, put it in reg.
 
-Signed-off-by: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am33xx-resets.dtsi |   42 ++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/am33xx.dtsi        |    7 ++++++
- 2 files changed, 49 insertions(+)
- create mode 100644 arch/arm/boot/dts/am33xx-resets.dtsi
+> +	interrupt-map-mask = <0 0 0 0>;
+> +	interrupt-map = <0x0 0 &gic 134>;
 
-diff --git a/arch/arm/boot/dts/am33xx-resets.dtsi b/arch/arm/boot/dts/am33xx-resets.dtsi
-new file mode 100644
-index 0000000..9260626
---- /dev/null
-+++ b/arch/arm/boot/dts/am33xx-resets.dtsi
-@@ -0,0 +1,42 @@
-+/*
-+ * Device Tree Source for AM33XX reset data
-+ *
-+ * Copyright (C) 2014 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+&prcm_resets {
-+	gfx_rstctrl {
-+		reg = <0x1104>,
-+			  <0x1114>;
-+
-+		gfx_reset: gfx_reset {
-+			control-bit = <0x01>;
-+			status-bit = <0x01>;
-+		};
-+	};
-+
-+	per_rstctrl {
-+		reg = <0xD00>,
-+			  <0xD0C>;
-+
-+		iva_reset: iva_reset {
-+			control-bit = <0x04>;
-+			status-bit = <0x10>;
-+		};
-+	};
-+
-+	device_rstctrl {
-+		reg = <0xf00>,
-+			  <0xf08>;
-+
-+		device_reset: device_reset {
-+			control-bit = <0x01>;
-+			status-bit = <0x01>;
-+		};
-+	};
-+
-+};
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index cb6811e..6b1a6df 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -117,6 +117,12 @@
- 
- 			prcm_clockdomains: clockdomains {
- 			};
-+
-+			prcm_resets: resets {
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				#reset-cells = <1>;
-+			};
- 		};
- 
- 		scrm: scrm@44e10000 {
-@@ -833,3 +839,4 @@
- };
- 
- /include/ "am33xx-clocks.dtsi"
-+/include/ "am33xx-resets.dtsi"
--- 
-1.7.9.5
+The HW cannot decode INTA/B/C/D?
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +#define	PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI		0x0034
+> +#define	PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI		0x0038
+> +#define	INTA						BIT(0)
+> +#define	INTB						BIT(1)
+> +#define	INTC						BIT(2)
+> +#define	INTD						BIT(3)
+> +#define	MSI						BIT(4)
+> +#define	LEG_EP_INTERRUPTS (INTA | INTB | INTC | INTD)
+
+Oh, it can, it would be wise to export this from the driver. Look at
+the latest patches from Srikanth Thokala for the Xilinx PCI driver to
+see how this should look
+
+> +static int dra7xx_pcie_establish_link(struct pcie_port *pp)
+> +{
+> +	u32 reg;
+> +	int retries = 1000;
+> +	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
+> +
+> +	if (dw_pcie_link_up(pp)) {
+> +		dev_err(pp->dev, "link is already up\n");
+> +		return 0;
+> +	}
+> +
+> +	reg = dra7xx_pcie_readl(dra7xx->base, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
+> +	reg |= LTSSM_EN;
+> +	dra7xx_pcie_writel(dra7xx->base, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
+> +
+> +	while (--retries) {
+> +		reg = dra7xx_pcie_readl(dra7xx->base,
+> +					PCIECTRL_DRA7XX_CONF_PHY_CS);
+> +		if (reg & LINK_UP)
+> +			break;
+> +		usleep_range(10, 20);
+> +	}
+> +
+> +	if (retries <= 0) {
+> +		dev_err(pp->dev, "link is not up\n");
+> +		return -ETIMEDOUT;
+> +	}
+> +
+> +	return 0;
+> +}
+
+It would be really nice to see the link bring up process live in the
+PCI core, every driver seems to have its own take on this.
+
+The PCI-E spec requires a 100ms delay after link bring up (aka hot
+reset) before sending any configuration TLPs.
+
+Jason
