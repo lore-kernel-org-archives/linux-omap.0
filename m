@@ -1,89 +1,160 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH 05/17] pci: host: pcie-dra7xx: add support for
- pcie-dra7xx controller
-Date: Tue, 6 May 2014 10:35:08 -0600
-Message-ID: <20140506163507.GA15542@obsidianresearch.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com>
- <1399383244-14556-6-git-send-email-kishon@ti.com>
+From: Dan Murphy <dmurphy@ti.com>
+Subject: Re: [RFC] [v2 Patch 2/6] ARM: TI: Describe the ti reset DT entries
+Date: Tue, 6 May 2014 08:18:37 -0500
+Message-ID: <5368E12D.1060706@ti.com>
+References: <1399320567-3639-1-git-send-email-dmurphy@ti.com> <1399320567-3639-3-git-send-email-dmurphy@ti.com> <20140505220155.GI25949@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1399383244-14556-6-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, Marek Vasut <marex@denx.de>, balajitk@ti.com, Mohit Kumar <mohit.kumar@st.com>, Jingoo Han <jg1.han@samsung.com>, Bjorn Helgaas <bhelgaas@google.com>, rogerq@ti.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43165 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751607AbaEFNTA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 09:19:00 -0400
+In-Reply-To: <20140505220155.GI25949@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Tue, May 06, 2014 at 07:03:51PM +0530, Kishon Vijay Abraham I wrote:
-> +Example:
-> +pcie@51000000 {
-> +	compatible = "ti,dra7xx-pcie";
-> +	reg = <0x51002000 0x14c>, <0x51000000 0x2000>;
-> +	reg-names = "ti_conf", "rc_dbics";
-> +	interrupts = <0 232 0x4>, <0 233 0x4>;
-> +	#address-cells = <3>;
-> +	#size-cells = <2>;
-> +	device_type = "pci";
-> +	ti,device_type = <3>;
-> +	ranges = <0x00000800 0 0x20001000 0x20001000 0 0x00002000  /* Configuration Space */
+Tony
 
-Configuration space should not show up in the ranges, please don't
-copy that mistake from other drivers, put it in reg.
+Thanks for the comments
 
-> +	interrupt-map-mask = <0 0 0 0>;
-> +	interrupt-map = <0x0 0 &gic 134>;
+On 05/05/2014 05:01 PM, Tony Lindgren wrote:
+> * Dan Murphy <dmurphy@ti.com> [140505 13:10]:
+>> +
+>> +Required parent properties:
+>> +- compatible : Should be one of,
+>> +		"ti,omap4-prm" for OMAP4 PRM instances
+>> +		"ti,omap5-prm" for OMAP5 PRM instances
+>> +		"ti,dra7-prm" for DRA7xx PRM instances
+>> +		"ti,am4-prcm" for AM43xx PRCM instances
+>> +		"ti,am3-prcm" for AM33xx PRCM instances
+>> +
+>> +Required child reset property:
+>> +- compatible : Should be
+>> +		"resets" for All TI SoCs
+>> +
+>> +example:
+>> +		prm: prm@4ae06000 {
+>> +			compatible = "ti,omap5-prm";
+>> +			reg = <0x4ae06000 0x3000>;
+>> +
+>> +			prm_resets: resets {
+>> +				#address-cells = <1>;
+>> +				#size-cells = <1>;
+>> +				#reset-cells = <1>;
+>> +			};
+>> +		};
+> The reg entries you have in the example below has different format
+> compared to this?
 
-The HW cannot decode INTA/B/C/D?
+This is the parent to the resets.  The reg entries below are for
+the child reset signals.
 
-> +#define	PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI		0x0034
-> +#define	PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI		0x0038
-> +#define	INTA						BIT(0)
-> +#define	INTB						BIT(1)
-> +#define	INTC						BIT(2)
-> +#define	INTD						BIT(3)
-> +#define	MSI						BIT(4)
-> +#define	LEG_EP_INTERRUPTS (INTA | INTB | INTC | INTD)
+>
+>> +Reset node declaration
+>> +==============================================
+>> +The reset node is declared in a parent child relationship.  The main parent
+>> +is the PRCM module which contains the base address.  The first child within
+>> +the reset parent declares the target modules reset name.  This is followed by
+>> +the control and status offsets.
+>> +
+>> +Within the first reset child node is a secondary child node which declares the
+>> +reset signal of interest.  Under this node the control and status bits
+>> +are declared.  These bits declare the bit mask for the target reset.
+>> +
+>> +
+>> +Required properties:
+>> +reg - This is the register offset from the PRCM parent.
+>> +	This must be declared as:
+>> +
+>> +	reg = <control register offset>,
+>> +		  <status register offset>;
+>> +
+>> +control-bit - This is the bit within the register which controls the reset
+>> +	of the target module.  This is declared as a bit mask for the register.
+>> +status-bit - This is the bit within the register which contains the status of
+>> +	the reset of the target module.
+>> +	This is declared as a bit mask for the register.
+>> +
+>> +example:
+>> +&prm_resets {
+>> +	dsp_rstctrl {
+>> +		reg = <0x1c00>,
+>> +			  <0x1c04>;
+> Shouldn't this be start and size instead of start and end here?
 
-Oh, it can, it would be wise to export this from the driver. Look at
-the latest patches from Srikanth Thokala for the Xilinx PCI driver to
-see how this should look
+I could do start and size.  But the size will be the same for each register.
+AM33xx really hurts the consistency model here as the other patches in the series
+it appears that the control and status are consistent but AM33xx the registers are all over
+the place.
 
-> +static int dra7xx_pcie_establish_link(struct pcie_port *pp)
-> +{
-> +	u32 reg;
-> +	int retries = 1000;
-> +	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
-> +
-> +	if (dw_pcie_link_up(pp)) {
-> +		dev_err(pp->dev, "link is already up\n");
-> +		return 0;
-> +	}
-> +
-> +	reg = dra7xx_pcie_readl(dra7xx->base, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
-> +	reg |= LTSSM_EN;
-> +	dra7xx_pcie_writel(dra7xx->base, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
-> +
-> +	while (--retries) {
-> +		reg = dra7xx_pcie_readl(dra7xx->base,
-> +					PCIECTRL_DRA7XX_CONF_PHY_CS);
-> +		if (reg & LINK_UP)
-> +			break;
-> +		usleep_range(10, 20);
-> +	}
-> +
-> +	if (retries <= 0) {
-> +		dev_err(pp->dev, "link is not up\n");
-> +		return -ETIMEDOUT;
-> +	}
-> +
-> +	return 0;
-> +}
+I have not looked at OMAP2->4 yet for control and status register offsets.
 
-It would be really nice to see the link bring up process live in the
-PCI core, every driver seems to have its own take on this.
+>> +		dsp_reset: dsp_reset {
+>> +			control-bit = <0x01>;
+>> +			status-bit = <0x01>;
+>> +		};
+>> +	};
+>> +};
+> Are the control-bit and status-bit always the same? If so, you can
+> keep that knowlede private to the the driver.
 
-The PCI-E spec requires a 100ms delay after link bring up (aka hot
-reset) before sending any configuration TLPs.
+No there is a case in the am33xx resets file where the status and control bits are not the same.
 
-Jason
+>
+> And maybe you can have the bit offset in a reg property here to
+> avoid adding any custom properties? Something like:
+>
+> 	dsp_reset: reset@1 {
+> 		reg = 1;
+> 	};
+>
+> If reg is not suitable for that, it seems that some generic property
+> to describe the bit offset is needed by quite a few drivers
+> anyways, for things like clocks and regulators. 
+
+I will have to look into this.  Maybe a generic entry called bit-offset
+that defines the bit or a mask for the registers.  It can mimic the reg
+entry.
+
+>> +Client Node Declaration
+>> +==============================================
+>> +This is the consumer of the parent node to declare what resets this
+>> +particular module is interested in.
+>> +
+>> +example:
+>> +	src: src@55082000 {
+>> +		    resets = <&reset_src phandle>;
+>> +			reset-names = "<reset_name>";
+>> +	};
+>> +
+>> +Required Properties:
+>> +reset_src - This is the parent DT entry for the reset controller
+>> +phandle - This is the phandle of the specific reset to be used by the clien
+>> +	driver.
+>> +reset-names - This is the reset name of module that the device driver
+>> +	needs to be able to reset.  This value must correspond to a value within
+>> +	the reset controller array.
+>> +
+>> +example:
+>> +resets = <&prm_resets &dsp_mmu_reset>;
+>> +reset-names = "dsp_mmu_reset";
+> This part looks OK to me, not sure if we need the reset-names property
+> if we have one already why not.
+
+reset-names are part of the reset.txt file.  I could probably drop the resets and reset-name information here
+and point to the reset.txt file for further explanation.
+
+>
+> Regards,
+>
+> Tony
+
+
+-- 
+------------------
+Dan Murphy
+
