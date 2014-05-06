@@ -1,139 +1,133 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] clk: ti: clk-7xx: Correct ABE DPLL configuration
-Date: Tue, 6 May 2014 16:39:16 +0300
-Message-ID: <5368E604.4040107@ti.com>
-References: <1396446525-20302-1-git-send-email-peter.ujfalusi@ti.com> <533C1AC2.1000307@ti.com> <533CFFB3.9070201@ti.com> <5358D534.2070205@ti.com> <535927DF.90404@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 4/4] ARM: dts: am335x-igep0033: use phandles for USB
+ and DMA refs
+Date: Tue, 6 May 2014 11:18:15 -0500
+Message-ID: <20140506161815.GQ25849@saruman.home>
+References: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1398718475-1883-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1398718475-1883-4-git-send-email-guido@vanguardiasur.com.ar>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="sxhug0Teuf3tiWmo"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55147 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53946 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755072AbaEFNjV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 May 2014 09:39:21 -0400
-In-Reply-To: <535927DF.90404@ti.com>
+	id S1753016AbaEFQS0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 May 2014 12:18:26 -0400
+Content-Disposition: inline
+In-Reply-To: <1398718475-1883-4-git-send-email-guido@vanguardiasur.com.ar>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>
+Cc: bcousson@baylibre.com, tony@atomide.com, linux-omap@vger.kernel.org, george.cherian@ti.com, Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Mike,
+--sxhug0Teuf3tiWmo
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 04/24/2014 06:03 PM, Tero Kristo wrote:
-> On 04/24/2014 12:11 PM, Peter Ujfalusi wrote:
->> Mike, Tero,
->>
->> On 04/03/2014 09:29 AM, Peter Ujfalusi wrote:
->>> On 04/02/2014 05:12 PM, Tero Kristo wrote:
->>>> On 04/02/2014 04:48 PM, Peter Ujfalusi wrote:
->>>>> ABE DPLL frequency need to be lowered from 361267200
->>>>> to 180633600 to facilitate the ATL requironments.
->>>>> The dpll_abe_m2x2_ck clock need to be set to double
->>>>> of ABE DPLL rate in order to have correct clocks
->>>>> for audio.
->>>>
->>>> Do you have some sort of TRM reference for this?
->>>
->>> The ATL's max divider is 32.
->>> For audio purpose the clock coming out from the ATL instance should=
- be
->>> 128 * fs. It is only possible to have 44.1KHz sampling rate with AB=
-E DPLL set
->>> to 361267200 or 180633600. Which means:
->>> The atl generated clock should be 128 * 44100 =3D 5644800
->>>  From ABE_DPLL 361267200 we would need to have 64 as divider (ATL c=
-an't do
->>> this).
->>>  From the suggested ABE_DPLL of 180633600 we can use ATL divider of=
- 32, which
->>> is the maximum it can do.
->>>
->>> So the reason for the change is to have ATLPCLK clock which can be =
-used for
->>> audio in the future, the 361267200 is just too high.
->>
->> Tero: can I have your ack for this patch or do you have further conc=
-erns?
+On Mon, Apr 28, 2014 at 05:54:35PM -0300, Guido Mart=EDnez wrote:
+> Use phandles instead of unit adresses to reference usb and dma nodes.
+> This makes the DT more robust and readable.
 >=20
-> Yea looks good to me, except for the fact that there is some work on =
-getting
-> default rate/parent support through DT. I would like a comment from M=
-ike about
-> the estimate when this can get in, and whether we should merge interm=
-ediate
-> solutions still like this.
->=20
-> Anyway, you can consider this patch acked by me, I'll let Mike to dec=
-ide what
-> to do with it though.
+> Signed-off-by: Guido Mart=EDnez <guido@vanguardiasur.com.ar>
+> Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Do you have anything against this patch? Since right now there is no ot=
-her
-ways to fix the ABE DPLL for dra7 it would be great if we could have th=
-is in
-till we have the final solution. Also I'd like to point out that the or=
-iginal
-frequency the ABE DPLL was not correct and renders the audio to be not =
-usable
-on the platform.
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-Thanks,
-P=E9ter
+> ---
+>  arch/arm/boot/dts/am335x-igep0033.dtsi | 38 +++++++++++++++++-----------=
+------
+>  1 file changed, 19 insertions(+), 19 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/a=
+m335x-igep0033.dtsi
+> index 9f22c18..9c53b50 100644
+> --- a/arch/arm/boot/dts/am335x-igep0033.dtsi
+> +++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
+> @@ -200,31 +200,31 @@
+> =20
+>  &usb {
+>  	status =3D "okay";
+> +};
+> =20
+> -	control@44e10620 {
+> -		status =3D "okay";
+> -	};
+> +&usb_ctrl_mod {
+> +	status =3D "okay";
+> +};
+> =20
+> -	usb-phy@47401300 {
+> -		status =3D "okay";
+> -	};
+> +&usb0_phy {
+> +	status =3D "okay";
+> +};
+> =20
+> -	usb-phy@47401b00 {
+> -		status =3D "okay";
+> -	};
+> +&usb1_phy {
+> +	status =3D "okay";
+> +};
+> =20
+> -	usb@47401000 {
+> -		status =3D "okay";
+> -	};
+> +&usb0 {
+> +	status =3D "okay";
+> +};
+> =20
+> -	usb@47401800 {
+> -		status =3D "okay";
+> -		dr_mode =3D "host";
+> -	};
+> +&usb1 {
+> +	status =3D "okay";
+> +	dr_mode =3D "host";
+> +};
+> =20
+> -	dma-controller@47402000  {
+> -		status =3D "okay";
+> -	};
+> +&cppi41dma  {
+> +	status =3D "okay";
+>  };
+> =20
+>  #include "tps65910.dtsi"
+> --=20
+> 1.9.2
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
->=20
-> -Tero
->=20
->> Mike: do you want me to resend this patch?
->>
->> Thanks,
->> P=E9ter
->>
->>>
->>>>
->>>> -Tero
->>>>
->>>>>
->>>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->>>>> ---
->>>>>    drivers/clk/ti/clk-7xx.c | 7 ++++++-
->>>>>    1 file changed, 6 insertions(+), 1 deletion(-)
->>>>>
->>>>> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
->>>>> index f7e40734c819..19a55bf407dd 100644
->>>>> --- a/drivers/clk/ti/clk-7xx.c
->>>>> +++ b/drivers/clk/ti/clk-7xx.c
->>>>> @@ -16,7 +16,7 @@
->>>>>    #include <linux/clkdev.h>
->>>>>    #include <linux/clk/ti.h>
->>>>>
->>>>> -#define DRA7_DPLL_ABE_DEFFREQ                361267200
->>>>> +#define DRA7_DPLL_ABE_DEFFREQ                180633600
->>>>>    #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
->>>>>
->>>>>
->>>>> @@ -322,6 +322,11 @@ int __init dra7xx_dt_clk_init(void)
->>>>>        if (rc)
->>>>>            pr_err("%s: failed to configure ABE DPLL!\n", __func__=
-);
->>>>>
->>>>> +    dpll_ck =3D clk_get_sys(NULL, "dpll_abe_m2x2_ck");
->>>>> +    rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ * 2);
->>>>> +    if (rc)
->>>>> +        pr_err("%s: failed to configure ABE DPLL m2x2!\n", __fun=
-c__);
->>>>> +
->>>>>        dpll_ck =3D clk_get_sys(NULL, "dpll_gmac_ck");
->>>>>        rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
->>>>>        if (rc)
->>>>>
->>>>
->>>
->>>
->>
->=20
+--=20
+balbi
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--sxhug0Teuf3tiWmo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTaQtHAAoJEIaOsuA1yqREe04QAIDDIY/9GY0EYGC9YkS7VLG1
+1r5gp28uuT60CCoS4CQjo9qNGej9NBlsL9jNTXkHp3jy157Ougi/84GBZG5UeaR3
+yPSIsKY4U48VC21PdEJu6RFwqFkvPs7dsGTXRIwiLv85yfXqWt0YbhzMiNsyyDph
+9L+CRHGbRr2nojJE5GfnYsFViJy/6j4N9NWCaf2qLNWJxcHMGpE8175JEThE+WtL
+6ZpUL/PqemwNy3ws5Z7vTxnrAvSr+PaTfWg4OnJCUWeMlFn1pDmUrMl7F0S1FYZy
+eQ8206dASMQrIZ2X+KiwZdeW21o4fFbt0ZwLvdCSZOm42NTi2Xifwvp+kmzsbV/T
+lw58ha80bkUK77N9Q5x2YLfUUkIA7c6T6hJHUa6+GRSJo+g3kVqerHvlMhw6fyOx
+y5o2csqeTjte3Ncnr0O/wH5iSK5h0uOfIuunDzo9WUYDq2zf1XzwnyoVfTt0kmM2
+OXVaHERspjfeUMkUCQw+ux9GUaB5MHLORz4kgTXJqDuX+60sYAjq6Zy3fwRX1CUJ
+3dFb8b6vKtj7+a7Rm2yqNNZnI0CY6z4v5sV+pgflWgzkvxCfP8xQOxTV+YIA7FIr
+fVSS2rlua3KuokSjbUcuFqC6dUzqHDi94Q/cMrIOZkuUFapCVEEC7VsrPPLAyqjD
+po+WUywYDBSYXW5NIu4S
+=8zHd
+-----END PGP SIGNATURE-----
+
+--sxhug0Teuf3tiWmo--
