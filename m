@@ -1,168 +1,115 @@
-From: Marek Vasut <marex@denx.de>
-Subject: Re: [PATCH 05/17] pci: host: pcie-dra7xx: add support for pcie-dra7xx controller
-Date: Tue, 6 May 2014 15:44:28 +0200
-Message-ID: <201405061544.28738.marex@denx.de>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com> <1399383244-14556-6-git-send-email-kishon@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 3/4] ARM: dts: am335x-evmsk: use phandles for USB and DMA
+ refs
+Date: Tue, 6 May 2014 11:16:53 -0500
+Message-ID: <20140506161653.GL25849@saruman.home>
+References: <1398693512-5355-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1398693512-5355-3-git-send-email-guido@vanguardiasur.com.ar>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UeXZ3FjlYZvuln/G"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:58077 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752001AbaEFNys (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 09:54:48 -0400
-In-Reply-To: <1399383244-14556-6-git-send-email-kishon@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39591 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750962AbaEFQRh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 May 2014 12:17:37 -0400
+Content-Disposition: inline
+In-Reply-To: <1398693512-5355-3-git-send-email-guido@vanguardiasur.com.ar>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, rogerq@ti.com, balajitk@ti.com, Bjorn Helgaas <bhelgaas@google.com>, Mohit Kumar <mohit.kumar@st.com>, Jingoo Han <jg1.han@samsung.com>
+To: Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>
+Cc: LKML <linux-kernel@vger.kernel.org>, bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
 
-On Tuesday, May 06, 2014 at 03:33:51 PM, Kishon Vijay Abraham I wrote:
-> Added support for pcie controller in dra7xx. This driver re-uses
-> the designware core code that is already present in kernel.
+--UeXZ3FjlYZvuln/G
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-[...]
+On Mon, Apr 28, 2014 at 10:58:31AM -0300, Guido Mart=EDnez wrote:
+> Use phandles instead of unit adresses to reference usb and dma nodes.
+> This makes the DT more robust and readable.
+>=20
+> Signed-off-by: Guido Mart=EDnez <guido@vanguardiasur.com.ar>
 
-> +#define to_dra7xx_pcie(x)	container_of((x), struct dra7xx_pcie, pp)
-> +
-> +static inline u32 dra7xx_pcie_readl(void __iomem *base, u32 offset)
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-Just pass struct dra7xx_pcie * instead of *base here , it will make the code 
-below shorter.
+> ---
+>  arch/arm/boot/dts/am335x-evmsk.dts | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335=
+x-evmsk.dts
+> index ab23885..44b8d75 100644
+> --- a/arch/arm/boot/dts/am335x-evmsk.dts
+> +++ b/arch/arm/boot/dts/am335x-evmsk.dts
+> @@ -364,28 +364,28 @@
+>  &usb {
+>  	status =3D "okay";
+> =20
+> -	control@44e10620 {
+> +	&usb_ctrl_mod {
+>  		status =3D "okay";
+>  	};
+> =20
+> -	usb-phy@47401300 {
+> +	&usb0_phy {
+>  		status =3D "okay";
+>  	};
+> =20
+> -	usb-phy@47401b00 {
+> +	&usb1_phy {
+>  		status =3D "okay";
+>  	};
+> =20
+> -	usb@47401000 {
+> +	&usb0 {
+>  		status =3D "okay";
+>  	};
+> =20
+> -	usb@47401800 {
+> +	&usb1 {
+>  		status =3D "okay";
+>  		dr_mode =3D "host";
+>  	};
+> =20
+> -	dma-controller@47402000  {
+> +	&cppi41dma  {
+>  		status =3D "okay";
+>  	};
+>  };
+> --=20
+> 1.9.2
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
-> +{
-> +	return readl(base + offset);
-> +}
-> +
-> +static inline void dra7xx_pcie_writel(void __iomem *base, u32 offset, u32
-> value) +{
+--=20
+balbi
 
-DTTO.
+--UeXZ3FjlYZvuln/G
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +	writel(value, base + offset);
-> +}
-> +
-> +static int dra7xx_pcie_link_up(struct pcie_port *pp)
-> +{
-> +	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
-> +	u32 reg = dra7xx_pcie_readl(dra7xx->base, PCIECTRL_DRA7XX_CONF_PHY_CS);
-> +
-> +	if (reg & LINK_UP)
-> +		return true;
-> +	return false;
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-return reg & LINK_UP;
+iQIcBAEBAgAGBQJTaQr1AAoJEIaOsuA1yqRELgMP/08TnA+0ygwdhLvnv/kENDBV
+fjgVCXjLwUy991enOg572OwqZWqXTAOWBBZRmDj8i3VJ3T27PHgnH2vlH/1cd35+
+HgEO8EXNe1/EE5Jcp5ZSs7mFh/DsBJzvoevLW2ckKSuwoWFgOULr3YbE0sW1CI6o
+SucCsQ0ePd2ZSG0LmSA1ISr/AKfVPPvb8N614WgPtg8wc27KjKmwUY33V8dRvjSO
+Oc4D5jq6gUXRZcRDilyq0S7fnxe6VqY5nj/aYvTCrUXOesUXvTkRArZyKIT39mHj
+hPqQ+yKRaCWbOk3OiOtpYZ3yEZeEuYsRmG6iToNuBGgK/2xe1zYbSkH1uCiVHW/B
+XYpZl9wbzFk80LNXn92cjzklbBhRsRNn6EBdwpl5FQAZNtidLg9XBWDOIO966Wo2
+rULACbamT6o8DgVt+WGJDWpzxczfCWDbJpZI9+TpoZLJ+xUX/OA9kF/Lh9EAKd56
+wnCr8FFQ8On8qnCkatzSQEt0g+jmRo63hbsJLD6jakLTr1fQqC5uyyf1PidJYidL
+sainci9Vw/tlI9mk25VDgbwSF1MlllZ+EOlXe5P3F9DdgGo+huVFicz2JlfRygbm
+I/PBKy3rioSbn684koclpjkO7YIo0GB+ESM8dLcLQ7TPhICSMsObF7fVAZ5ACX/U
+NhUPqfXct9YAnMK1SVdY
+=Vexg
+-----END PGP SIGNATURE-----
 
-> +}
-> +
-> +static int dra7xx_pcie_establish_link(struct pcie_port *pp)
-> +{
-> +	u32 reg;
-> +	int retries = 1000;
-> +	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
-> +
-> +	if (dw_pcie_link_up(pp)) {
-> +		dev_err(pp->dev, "link is already up\n");
-
-This will spew, since the .link_up (and thus this function) can be called 
-repeatedly. The subsystem will query if the link is up via this function.
-
-> +		return 0;
-> +	}
-> +
-> +	reg = dra7xx_pcie_readl(dra7xx->base, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
-> +	reg |= LTSSM_EN;
-> +	dra7xx_pcie_writel(dra7xx->base, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
-> +
-> +	while (--retries) {
-
-Use retries--
-
-> +		reg = dra7xx_pcie_readl(dra7xx->base,
-> +					PCIECTRL_DRA7XX_CONF_PHY_CS);
-> +		if (reg & LINK_UP)
-> +			break;
-> +		usleep_range(10, 20);
-> +	}
-> +
-> +	if (retries <= 0) {
-
-Then check if retries == 0 and retries can be unsigned int.
-
-> +		dev_err(pp->dev, "link is not up\n");
-> +		return -ETIMEDOUT;
-> +	}
-> +
-> +	return 0;
-> +}
-[...]
-> +static int __init dra7xx_pcie_probe(struct platform_device *pdev)
-> +{
-> +	u32 reg;
-> +	int ret;
-> +	int irq;
-> +	struct phy *phy;
-> +	void __iomem *base;
-> +	struct resource *res;
-> +	struct dra7xx_pcie *dra7xx;
-> +	struct device *dev = &pdev->dev;
-> +
-> +	dra7xx = devm_kzalloc(&pdev->dev, sizeof(*dra7xx), GFP_KERNEL);
-> +	if (!dra7xx)
-> +		return -ENOMEM;
-> +
-> +	irq = platform_get_irq(pdev, 0);
-> +	if (irq < 0) {
-> +		dev_err(dev, "missing IRQ resource\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret = devm_request_irq(&pdev->dev, irq, dra7xx_pcie_irq_handler,
-> +			       IRQF_SHARED, "dra7xx-pcie-main", dra7xx);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "failed to request irq\n");
-> +		return ret;
-> +	}
-> +
-> +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ti_conf");
-> +	base = devm_ioremap_nocache(dev, res->start, resource_size(res));
-> +	if (!base)
-> +		return -ENOMEM;
-> +
-> +	phy = devm_phy_get(dev, "pcie-phy");
-> +	if (IS_ERR(phy))
-> +		return PTR_ERR(phy);
-> +
-> +	ret = phy_init(phy);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = phy_power_on(phy);
-> +	if (ret < 0)
-> +		goto err_power_on;
-> +
-> +	dra7xx->base = base;
-> +	dra7xx->phy = phy;
-> +	dra7xx->dev = dev;
-> +
-> +	pm_runtime_enable(&pdev->dev);
-> +	ret = pm_runtime_get_sync(&pdev->dev);
-> +	if (IS_ERR_VALUE(ret)) {
-> +		dev_err(dev, "pm_runtime_get_sync failed\n");
-> +		goto err_runtime_get;
-> +	}
-> +
-> +	reg = dra7xx_pcie_readl(dra7xx->base, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
-> +	reg &= ~LTSSM_EN;
-> +	dra7xx_pcie_writel(dra7xx->base, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
-
-platform_set_drvdata() should be here, before you add the port.
-
-> +	ret = add_pcie_port(dra7xx, pdev);
-> +	if (ret < 0)
-> +		goto err_add_port;
-> +
-> +	platform_set_drvdata(pdev, dra7xx);
-> +	return 0;
-[...]
+--UeXZ3FjlYZvuln/G--
