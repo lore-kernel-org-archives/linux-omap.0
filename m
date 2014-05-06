@@ -1,74 +1,65 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [TEMP PATCH 16/17] pci: host: pcie-dra7xx: use reset framework APIs to reset PCIe
-Date: Tue, 6 May 2014 19:04:02 +0530
-Message-ID: <1399383244-14556-17-git-send-email-kishon@ti.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 0/2] clk: Support for Palmas clk32kg and clk32kgaudio clocks
+Date: Tue, 6 May 2014 16:24:43 +0300
+Message-ID: <1399382685-14781-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1399383244-14556-1-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
-Cc: rogerq@ti.com, balajitk@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, Dan Murphy <dmurphy@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Get reset nodes from dt and use reset framework APIs to reset PCIe.
-This is needed since reset is handled by the SoC.
+Hi,
 
-Cc: Dan Murphy <dmurphy@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Changes since v1:
+- binding documentation and driver has been separated based on Nishanth Menon's
+  comment
+
+v1 of the driver can be found:
+https://lkml.org/lkml/2014/4/3/104
+
+Palmas class of devices can provide 32K clock(s) to be used by other devices
+on the board. Depending on the actual device the provided clocks can be:
+CLK32K_KG and CLK32K_KGAUDIO
+or only one:
+CLK32K_KG (TPS659039 for example)
+
+Use separate compatible flags for the two 32K clock.
+A system which needs or have only one of the 32k clock from
+Palmas will need to add node(s) for each clock as separate section
+in the dts file.
+The two compatible property is:
+"ti,palmas-clk32kg" for clk32kg clock
+"ti,palmas-clk32kgaudio" for clk32kgaudio clock
+
+Apart from the register control of the clocks - which is done via
+the clock API there is a posibility to enable the external sleep
+control. In this way the clock can be enabled/disabled on demand by the
+user of the clock.
+
+Regards,
+Peter
 ---
- Documentation/devicetree/bindings/pci/ti-pci.txt |    2 ++
- drivers/pci/host/pci-dra7xx.c                    |   10 ++++++++++
- 2 files changed, 12 insertions(+)
+Peter Ujfalusi (2):
+  dt/bindings: Binding documentation for Palmas clk32kg and clk32kgaudio
+    clocks
+  clk: Add driver for Palmas clk32kg and clk32kgaudio clocks
 
-diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
-index 6cb6f09..cfb95c0 100644
---- a/Documentation/devicetree/bindings/pci/ti-pci.txt
-+++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
-@@ -9,6 +9,8 @@ This node should have the properties described in "designware-pcie.txt".
-  - phys : the phandle for the PHY device (used by generic PHY framework)
-  - phy-names : the names of the PHY corresponding to the PHYs present in the
-    *phy* phandle.
-+ - resets: phandle used if reset is handled be soc
-+ - reset-names: name given to the phandle
- 
- Example:
- pcie@51000000 {
-diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index a37c25c..17d64ee 100644
---- a/drivers/pci/host/pci-dra7xx.c
-+++ b/drivers/pci/host/pci-dra7xx.c
-@@ -20,6 +20,7 @@
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/resource.h>
-+#include <linux/reset.h>
- #include <linux/types.h>
- 
- #include "pcie-designware.h"
-@@ -281,6 +282,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	struct dra7xx_pcie *dra7xx;
- 	struct device *dev = &pdev->dev;
-+	struct reset_control *rstc;
- 
- 	dra7xx = devm_kzalloc(&pdev->dev, sizeof(*dra7xx), GFP_KERNEL);
- 	if (!dra7xx)
-@@ -304,6 +306,14 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	if (!base)
- 		return -ENOMEM;
- 
-+	rstc = devm_reset_control_get(dev, "reset");
-+	if (IS_ERR(rstc))
-+		return PTR_ERR(rstc);
-+
-+	ret = reset_control_deassert(rstc);
-+	if (ret)
-+		return ret;
-+
- 	phy = devm_phy_get(dev, "pcie-phy");
- 	if (IS_ERR(phy))
- 		return PTR_ERR(phy);
+ .../bindings/clock/clk-palmas-clk32kg-clocks.txt   |  35 +++
+ drivers/clk/Kconfig                                |   7 +
+ drivers/clk/Makefile                               |   1 +
+ drivers/clk/clk-palmas.c                           | 307 +++++++++++++++++++++
+ include/dt-bindings/mfd/palmas.h                   |  18 ++
+ 5 files changed, 368 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/clock/clk-palmas-clk32kg-clocks.txt
+ create mode 100644 drivers/clk/clk-palmas.c
+ create mode 100644 include/dt-bindings/mfd/palmas.h
+
 -- 
-1.7.9.5
+1.9.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
