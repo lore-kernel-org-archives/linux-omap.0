@@ -1,64 +1,56 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [TEMP PATCH 17/17] ARM: dts: dra7: Add *resets* property for
- PCIe dt node
-Date: Tue, 6 May 2014 08:40:40 -0500
-Message-ID: <5368E658.1040209@ti.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com>
- <1399383244-14556-18-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 4/4] ARM: dts: am43xx: fix starting offset of
+ NAND.filesystem MTD partition
+Date: Tue, 6 May 2014 08:55:20 -0700
+Message-ID: <20140506155520.GG18474@atomide.com>
+References: <1398157362-32571-1-git-send-email-pekon@ti.com>
+ <1398157362-32571-2-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1399383244-14556-18-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
-Cc: balajitk@ti.com, rogerq@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52109 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757874AbaEFPzZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 11:55:25 -0400
+Content-Disposition: inline
+In-Reply-To: <1398157362-32571-2-git-send-email-pekon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pekon Gupta <pekon@ti.com>
+Cc: bcousson@baylibre.com, linux-omap <linux-omap@vger.kernel.org>
 
-On 05/06/2014 08:34 AM, Kishon Vijay Abraham I wrote:
-> Added *resets* and *reset-names* properies for PCIe dt node.
-> The documention for this node can be found @ ../bindings/pci/ti-pci.txt.
->
-> Cc: Dan Murphy <dmurphy@ti.com>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+* Pekon Gupta <pekon@ti.com> [140422 02:03]:
+> MTD NAND partition for file-system should start at offset=0xA00000
+
+Applying to omap-for-v3.16/fixes-not-urgent with hex changed to use
+lower case like we tend to do.
+
+Hmm, how come you did not fold this into the original patch to the
+mainline kernel as it seems you had the fix in the vendor tree
+earlier?
+
+Regards,
+
+Tony
+ 
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
 > ---
->  arch/arm/boot/dts/dra7.dtsi |    2 ++
->  1 file changed, 2 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index 20b1a09..7bc0555 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -1031,6 +1031,8 @@
->  			ti,hwmods = "pcie1";
->  			phys = <&pcie1_phy>;
->  			phy-names = "pcie-phy";
-> +			resets = <&prm_resets &device_reset>;
-
-If you look @ v2 of the reset framework patchset your phandle should be
-
-resets = <&prm_resets &pcie1_reset>;
-
-If you call the device_reset phandle you will reset the SoC.
-
-
-> +			reset-names = "reset";
-
-This needs to be more descriptive.
-
+>  arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+> index 167dbc8..d09e6fb 100644
+> --- a/arch/arm/boot/dts/am43x-epos-evm.dts
+> +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+> @@ -341,7 +341,7 @@
 >  		};
->  
->  		sata: sata@4a141100 {
-
-
--- 
-------------------
-Dan Murphy
+>  		partition@9 {
+>  			label = "NAND.file-system";
+> -			reg = <0x00800000 0x1F600000>;
+> +			reg = <0x00A00000 0x1F600000>;
+>  		};
+>  	};
+>  };
+> -- 
+> 1.8.5.1.163.gd7aced9
+> 
