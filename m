@@ -1,91 +1,74 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v3 4/7] ARM: dts: dra7-clock: Add "l3init_960m_gfclk"
- clock gate
-Date: Tue, 6 May 2014 13:10:33 +0300
-Message-ID: <5368B519.6030600@ti.com>
-References: <1399283686-6127-1-git-send-email-rogerq@ti.com> <1399283686-6127-5-git-send-email-rogerq@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [TEMP PATCH 16/17] pci: host: pcie-dra7xx: use reset framework APIs to reset PCIe
+Date: Tue, 6 May 2014 19:04:02 +0530
+Message-ID: <1399383244-14556-17-git-send-email-kishon@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50106 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934643AbaEFKKZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 May 2014 06:10:25 -0400
-In-Reply-To: <1399283686-6127-5-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1399383244-14556-1-git-send-email-kishon@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: rogerq@ti.com, balajitk@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, Dan Murphy <dmurphy@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, kishon@ti.com, tony@atomide.com, balbi@ti.com, bcousson@baylibre.com
-Cc: george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
 
-On 05/05/2014 12:54 PM, Roger Quadros wrote:
-> This clock gate description is missing in the older Reference manuals=
-=2E
-> It is present on the SoC to provide 960MHz reference clock to the
-> internal USB PHYs.
->
-> Reference: DRA75x_DRA74x_ES1.1_NDA_TRM_vO.pdf, pg. 900,
-> Table 3-812. CM_COREAON_L3INIT_60M_GFCLK_CLKCTRL
->
-> Use l3init_960m_gfclk as parent of usb_otg_ss1_refclk960m and
-> usb_otg_ss2_refclk960m.
->
-> CC: Beno=C3=AEt Cousson <bcousson@baylibre.com>
-> CC: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+Get reset nodes from dt and use reset framework APIs to reset PCIe.
+This is needed since reset is handled by the SoC.
 
-Got myself to download the latest copy of the TRM, so this patch looks=20
-valid.
+Cc: Dan Murphy <dmurphy@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ Documentation/devicetree/bindings/pci/ti-pci.txt |    2 ++
+ drivers/pci/host/pci-dra7xx.c                    |   10 ++++++++++
+ 2 files changed, 12 insertions(+)
 
-Acked-by: Tero Kristo <t-kristo@ti.com>
-
-> ---
->   arch/arm/boot/dts/dra7xx-clocks.dtsi | 12 ++++++++++--
->   1 file changed, 10 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts=
-/dra7xx-clocks.dtsi
-> index cfb8fc7..c767687 100644
-> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> @@ -1386,6 +1386,14 @@
->   		ti,dividers =3D <1>, <8>;
->   	};
->
-> +	l3init_960m_gfclk: l3init_960m_gfclk {
-> +		#clock-cells =3D <0>;
-> +		compatible =3D "ti,gate-clock";
-> +		clocks =3D <&dpll_usb_clkdcoldo>;
-> +		ti,bit-shift =3D <8>;
-> +		reg =3D <0x06c0>;
-> +	};
-> +
->   	dss_32khz_clk: dss_32khz_clk {
->   		#clock-cells =3D <0>;
->   		compatible =3D "ti,gate-clock";
-> @@ -1533,7 +1541,7 @@
->   	usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m {
->   		#clock-cells =3D <0>;
->   		compatible =3D "ti,gate-clock";
-> -		clocks =3D <&dpll_usb_clkdcoldo>;
-> +		clocks =3D <&l3init_960m_gfclk>;
->   		ti,bit-shift =3D <8>;
->   		reg =3D <0x13f0>;
->   	};
-> @@ -1541,7 +1549,7 @@
->   	usb_otg_ss2_refclk960m: usb_otg_ss2_refclk960m {
->   		#clock-cells =3D <0>;
->   		compatible =3D "ti,gate-clock";
-> -		clocks =3D <&dpll_usb_clkdcoldo>;
-> +		clocks =3D <&l3init_960m_gfclk>;
->   		ti,bit-shift =3D <8>;
->   		reg =3D <0x1340>;
->   	};
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+index 6cb6f09..cfb95c0 100644
+--- a/Documentation/devicetree/bindings/pci/ti-pci.txt
++++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+@@ -9,6 +9,8 @@ This node should have the properties described in "designware-pcie.txt".
+  - phys : the phandle for the PHY device (used by generic PHY framework)
+  - phy-names : the names of the PHY corresponding to the PHYs present in the
+    *phy* phandle.
++ - resets: phandle used if reset is handled be soc
++ - reset-names: name given to the phandle
+ 
+ Example:
+ pcie@51000000 {
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+index a37c25c..17d64ee 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -20,6 +20,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/resource.h>
++#include <linux/reset.h>
+ #include <linux/types.h>
+ 
+ #include "pcie-designware.h"
+@@ -281,6 +282,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	struct dra7xx_pcie *dra7xx;
+ 	struct device *dev = &pdev->dev;
++	struct reset_control *rstc;
+ 
+ 	dra7xx = devm_kzalloc(&pdev->dev, sizeof(*dra7xx), GFP_KERNEL);
+ 	if (!dra7xx)
+@@ -304,6 +306,14 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	if (!base)
+ 		return -ENOMEM;
+ 
++	rstc = devm_reset_control_get(dev, "reset");
++	if (IS_ERR(rstc))
++		return PTR_ERR(rstc);
++
++	ret = reset_control_deassert(rstc);
++	if (ret)
++		return ret;
++
+ 	phy = devm_phy_get(dev, "pcie-phy");
+ 	if (IS_ERR(phy))
+ 		return PTR_ERR(phy);
+-- 
+1.7.9.5
