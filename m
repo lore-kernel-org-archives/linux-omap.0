@@ -1,67 +1,142 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 14/17] ARM: dts: dra7: Add dt data for PCIe controller
-Date: Tue, 6 May 2014 19:04:00 +0530
-Message-ID: <1399383244-14556-15-git-send-email-kishon@ti.com>
+Subject: [PATCH 09/17] arm: dra7xx: Add hwmod data for pcie1 phy and pcie2 phy
+Date: Tue, 6 May 2014 19:03:55 +0530
+Message-ID: <1399383244-14556-10-git-send-email-kishon@ti.com>
 References: <1399383244-14556-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44302 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757725AbaEFNfv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 09:35:51 -0400
+Return-path: <linux-doc-owner@vger.kernel.org>
 In-Reply-To: <1399383244-14556-1-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-doc-owner@vger.kernel.org
 To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
-Cc: rogerq@ti.com, balajitk@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jg1.han@samsung.com>, Rob Herring <robh+dt@kernel.org>
+Cc: rogerq@ti.com, balajitk@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+List-Id: linux-omap@vger.kernel.org
 
-Added dt data for PCIe controller. This node contains dt data for
-both the DRA7 part of designware controller and for the designware core.
-The documention for this node can be found @ ../bindings/pci/ti-pci.txt.
+Added hwmod data for pcie1 and pcie2 phy present in DRA7xx SOC.
+Also added the missing CLKCTRL OFFSET macro and CONTEXT OFFSET macro
+for pcie1 phy and pcie2 phy.
 
 Cc: Tony Lindgren <tony@atomide.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ arch/arm/mach-omap2/cm2_7xx.h             |    4 ++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   57 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm7xx.h              |    4 ++
+ 3 files changed, 65 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 653b5f6..20b1a09 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1011,6 +1011,28 @@
- 			};
- 		};
+diff --git a/arch/arm/mach-omap2/cm2_7xx.h b/arch/arm/mach-omap2/cm2_7xx.h
+index 9ad7594..e966e3a 100644
+--- a/arch/arm/mach-omap2/cm2_7xx.h
++++ b/arch/arm/mach-omap2/cm2_7xx.h
+@@ -357,6 +357,10 @@
+ #define DRA7XX_CM_L3INIT_SATA_CLKCTRL				DRA7XX_CM_CORE_REGADDR(DRA7XX_CM_CORE_L3INIT_INST, 0x0088)
+ #define DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET				0x00a0
+ #define DRA7XX_CM_PCIE_STATICDEP_OFFSET				0x00a4
++#define DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL_OFFSET			0x00b0
++#define DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL			DRA7XX_CM_CORE_REGADDR(DRA7XX_CM_CORE_L3INIT_INST, 0x00b0)
++#define DRA7XX_CM_L3INIT_PCIESS2_CLKCTRL_OFFSET			0x00b8
++#define DRA7XX_CM_L3INIT_PCIESS2_CLKCTRL			DRA7XX_CM_CORE_REGADDR(DRA7XX_CM_CORE_L3INIT_INST, 0x00b8)
+ #define DRA7XX_CM_GMAC_CLKSTCTRL_OFFSET				0x00c0
+ #define DRA7XX_CM_GMAC_STATICDEP_OFFSET				0x00c4
+ #define DRA7XX_CM_GMAC_DYNAMICDEP_OFFSET			0x00c8
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index b9bb476..1282a42 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1231,6 +1231,45 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+ };
  
-+		pcie@51000000 {
-+			compatible = "ti,dra7xx-pcie";
-+			reg = <0x51002000 0x14c>, <0x51000000 0x2000>;
-+			reg-names = "ti_conf", "rc_dbics";
-+			interrupts = <0 232 0x4>, <0 233 0x4>;
-+			#address-cells = <3>;
-+			#size-cells = <2>;
-+			device_type = "pci";
-+			ti,device_type = <3>;
-+			ranges = <0x00000800 0 0x20001000 0x20001000 0 0x00002000
-+				  0x81000000 0 0          0x20003000 0 0x00010000
-+				  0x82000000 0 0x20013000 0x20013000 0 0xffed000>;
-+			#interrupt-cells = <1>;
-+			base-mask = <0x00000000 0x0fffffff>;
-+			num-lanes = <1>;
-+			interrupt-map-mask = <0 0 0 0>;
-+			interrupt-map = <0x0 0 &gic 233>;
-+			ti,hwmods = "pcie1";
-+			phys = <&pcie1_phy>;
-+			phy-names = "pcie-phy";
-+		};
+ /*
++ * 'PCIE PHY' class
++ *
++ */
 +
- 		sata: sata@4a141100 {
- 			compatible = "snps,dwc-ahci";
- 			reg = <0x4a140000 0x1100>, <0x4a141100 0x7>;
++static struct omap_hwmod_class dra7xx_pcie_phy_hwmod_class = {
++	.name	= "pcie-phy",
++};
++
++/* pcie1 phy */
++static struct omap_hwmod dra7xx_pcie1_phy_hwmod = {
++	.name		= "pcie1-phy",
++	.class		= &dra7xx_pcie_phy_hwmod_class,
++	.clkdm_name	= "l3init_clkdm",
++	.main_clk	= "l4_root_clk_div",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_L3INIT_PCIESS1_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/* pcie2 phy */
++static struct omap_hwmod dra7xx_pcie2_phy_hwmod = {
++	.name		= "pcie2-phy",
++	.class		= &dra7xx_pcie_phy_hwmod_class,
++	.clkdm_name	= "l3init_clkdm",
++	.main_clk	= "l4_root_clk_div",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_L3INIT_PCIESS2_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_L3INIT_PCIESS2_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/*
+  * 'qspi' class
+  *
+  */
+@@ -2349,6 +2388,22 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* l4_cfg -> pcie1 phy */
++static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1_phy = {
++	.master		= &dra7xx_l4_cfg_hwmod,
++	.slave		= &dra7xx_pcie1_phy_hwmod,
++	.clk		= "l4_root_clk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_cfg -> pcie2 phy */
++static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2_phy = {
++	.master		= &dra7xx_l4_cfg_hwmod,
++	.slave		= &dra7xx_pcie2_phy_hwmod,
++	.clk		= "l4_root_clk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_addr_space dra7xx_qspi_addrs[] = {
+ 	{
+ 		.pa_start	= 0x4b300000,
+@@ -2696,6 +2751,8 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_cfg__mpu,
+ 	&dra7xx_l4_cfg__ocp2scp1,
+ 	&dra7xx_l4_cfg__ocp2scp3,
++	&dra7xx_l4_cfg__pcie1_phy,
++	&dra7xx_l4_cfg__pcie2_phy,
+ 	&dra7xx_l3_main_1__qspi,
+ 	&dra7xx_l4_cfg__sata,
+ 	&dra7xx_l4_cfg__smartreflex_core,
+diff --git a/arch/arm/mach-omap2/prm7xx.h b/arch/arm/mach-omap2/prm7xx.h
+index d92a840..4bb50fbf 100644
+--- a/arch/arm/mach-omap2/prm7xx.h
++++ b/arch/arm/mach-omap2/prm7xx.h
+@@ -374,6 +374,10 @@
+ #define DRA7XX_RM_L3INIT_IEEE1500_2_OCP_CONTEXT_OFFSET		0x007c
+ #define DRA7XX_PM_L3INIT_SATA_WKDEP_OFFSET			0x0088
+ #define DRA7XX_RM_L3INIT_SATA_CONTEXT_OFFSET			0x008c
++#define DRA7XX_PM_L3INIT_PCIESS1_WKDEP_OFFSET			0x00b0
++#define DRA7XX_RM_L3INIT_PCIESS1_CONTEXT_OFFSET		0x00b4
++#define DRA7XX_PM_L3INIT_PCIESS2_WKDEP_OFFSET			0x00b8
++#define DRA7XX_RM_L3INIT_PCIESS2_CONTEXT_OFFSET		0x00bc
+ #define DRA7XX_RM_GMAC_GMAC_CONTEXT_OFFSET			0x00d4
+ #define DRA7XX_RM_L3INIT_OCP2SCP1_CONTEXT_OFFSET		0x00e4
+ #define DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET		0x00ec
 -- 
 1.7.9.5
 
