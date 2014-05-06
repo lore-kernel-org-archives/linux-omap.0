@@ -1,80 +1,88 @@
-From: Darren Etheridge <detheridge@ti.com>
-Subject: Re: [PATCH V5 1/3] arm: dts: dra7: Add crossbar device binding
-Date: Tue, 6 May 2014 14:58:04 -0500
-Message-ID: <20140506195804.GD2626@ti.com>
-References: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
- <1399384579-25620-2-git-send-email-r.sricharan@ti.com>
- <20140506194055.GA6962@saruman.home>
- <53693C02.2090305@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: dss_pwrdm & core_pwrdm not entering sleep state correctly on
+ am37xx
+Date: Tue, 6 May 2014 12:58:41 -0700
+Message-ID: <20140506195841.GA31384@atomide.com>
+References: <CABCN2SufRoYEDokszRJ4Xme91f6xsfXZ9M7=wp_CUGZaTXAteQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62391 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754021AbaEFT6p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 15:58:45 -0400
 Content-Disposition: inline
-In-Reply-To: <53693C02.2090305@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: balbi@ti.com, Sricharan R <r.sricharan@ti.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, tglx@linutronix.de, galak@codeaurora.org, santosh.shilimkar@ti.com, bcousson@baylibre.com, robherring2@gmail.com
+In-Reply-To: <CABCN2SufRoYEDokszRJ4Xme91f6xsfXZ9M7=wp_CUGZaTXAteQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andrew LeCain <alecain@google.com>
+Cc: linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> wrote on Tue [2014-May-06 14:46:10 -0500]:
-> On 05/06/2014 02:40 PM, Felipe Balbi wrote:
-> > On Tue, May 06, 2014 at 07:26:17PM +0530, Sricharan R wrote:
-> >> This adds the irq crossbar device node.
-> >>
-> >> There is a IRQ crossbar device in the soc, which
-> >> maps the irq requests from the peripherals to the
-> >> mpu interrupt controller's inputs. The Peripheral irq
-> >> requests are connected to only one crossbar
-> >> input and the output of the crossbar is connected to only one
-> >> controller's input line. The crossbar device is used to map
-> >> a peripheral input to a free mpu's interrupt controller line.
-> >>
-> >> Cc: Benoit Cousson <bcousson@baylibre.com>
-> >> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> >> Cc: Rajendra Nayak <rnayak@ti.com>
-> >> Cc: Tony Lindgren <tony@atomide.com>
-> >> Signed-off-by: Sricharan R <r.sricharan@ti.com>
-> >> Signed-off-by: Nishanth Menon <nm@ti.com>
-> >> ---
-> >> [V5] Rebased on top of 3.15-rc4 and corrected the
-> >>      irqs-reserved list
-> >>
-> >>  arch/arm/boot/dts/dra7.dtsi |    8 ++++++++
-> >>  1 file changed, 8 insertions(+)
-> >>
-> >> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> >> index 149b550..0274a86 100644
-> >> --- a/arch/arm/boot/dts/dra7.dtsi
-> >> +++ b/arch/arm/boot/dts/dra7.dtsi
-> >> @@ -790,6 +790,14 @@
-> >>  			status = "disabled";
-> >>  		};
-> >>  	};
-> >> +
-> >> +	crossbar_mpu: crossbar@4a020000 {
-> > 
-> > shouldn't this be "status = disabled"; so that boards enable this
-> > on-demand ??
-> > 
-> It cannot be and does not need to be. crossbar is an SoC feature. by
-> defining crossbar, the IRQ numbers we provide in DTS now becomes
-> crossbar numbers which get mapped to GIC interrupt numbers dynamically.
+* Andrew LeCain <alecain@google.com> [140506 12:10]:
+> Hi,
 > 
-> further crossbar is not a board feature. it is as ingrained in DRA7
-> behavior as GIC is. we are fortunate that we have some default mapping
-> of crossbar that allows the current peripherals to work, with this
-> support, we dont have to depend any longer on "we are lucky that is
-> mapped".
-> 
-> That said, in hindsight, patch #1 and 2 should be squashed IMHO. else
-> we have a bisectability problem here.
-> 
-Yes the bisectability problem is completely true - I was just testing
-that as your email came in.  In fact I think all three patches need to
-be squashed into one, I can't boot the dra7-EVM unless I have all three
-patches applied.
+> I'm trying to backport a display driver for an RFBI panel to 2.6.32,
+> but the dss_pwrdm is complaining about not entering target state:
 
-With all three patches applied, basic boot is looking good.  I will
-reply with my tested-by once I have got VIP, etc up and running.
+Backport from which kernel? The RFBI got removed recently because
+of the move of the panels. Probably should get patched back in once
+it's working again, so at least I would like to see this get fixed
+properly in the mainline kernel if you have patches somewhere.
+ 
+> root@02AA01AB381207S7# cat /sys/kernel/debug/pm_debug/count | grep dss
+> dss_pwrdm (ON),OFF:0,RET:11,INA:0,ON:12
+> dss_clkdm->dss_pwrdm (0)
+> 
+> root@02AA01AB381207S7# echo -n "mem" > /sys/power/state
+> PM: Syncing filesystems ... done.
+> PM: Preparing system for mem sleep
+> Freezing user space processes ... (elapsed 0.02 seconds) done.
+> Freezing remaining freezable tasks ... (elapsed 0.04 seconds) done.
+> PM: Entering mem sleep
+> spidev spi2.0: ... can't suspend
+> WLAN: Suspend call
+> WLAN_firmware Suspend
+> Wake locks are active (count: 0)
+> Shutting Down I&F Clock Interface
+> Powerdomain (core_pwrdm) didn't enter target state 0
+> Powerdomain (dss_pwrdm) didn't enter target state 0
+> Could not enter target state in pm_suspend
+> <snip>
+> #no change after attempted suspend.
+> root@02AA01AB381207S7# cat /sys/kernel/debug/pm_debug/count | grep dss
+> 
+> dss_pwrdm (ON),OFF:0,RET:11,INA:0,ON:12
+> dss_clkdm->dss_pwrdm (0)
+> 
+> 
+> I was worried it might be the dss clocks not being disabled, but I
+> instrumented dss_clk_(en|dis)able to print clock counts and it goes to
+> 0 before suspending. I don't really understand what will prevent the
+> dss power domain from entering retain state or not, so any pointers
+> would be useful.
 
-Darren
+Maybe dump out the autoidle registers like CM_IDLEST_PER and
+CM_IDLEST*_CORE and that should show you what's still blocking 
+idle transitions.
+ 
+> I'm less worried about the core_pwrdm error because that isn't a
+> regression from the old panel, and power numbers are low enough
+> without it, but any tips there would be great as well.
+
+2.6.32 is getting pretty old.. We do have pending patches to
+have mainline kernel hit core off for omap3 with twl4030 cutting
+off vdd_core. I did not yet test with a display as the panels
+have been still pending for device tree based booting. These
+should allow you to quite easily to test against v3.14-rc4:
+
+[PATCH 00/11] Fixes for omap PM for making omap3 DT only
+
+BTW, if your SoC is 3703 then you need to also idle IVA2:
+
+2d403f7b1981 (ARM: OMAP3: Fix iva2_pwrdm settings for 3703)
+
+Regards,
+
+Tony
+
+
