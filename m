@@ -1,33 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] ARM: dts: AM43xx: Touchscreen support
-Date: Tue, 6 May 2014 09:39:44 -0700
-Message-ID: <20140506163943.GL18474@atomide.com>
-References: <1398861805-9229-1-git-send-email-rogerq@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 08/17] ARM: dts: DRA7: Change the parent of apll_pcie_in_clk_mux to dpll_pcie_ref_m2ldo_ck
+Date: Tue, 6 May 2014 19:03:54 +0530
+Message-ID: <1399383244-14556-9-git-send-email-kishon@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37933 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751747AbaEFQjs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 12:39:48 -0400
-Content-Disposition: inline
-In-Reply-To: <1398861805-9229-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1399383244-14556-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: rogerq@ti.com, balajitk@ti.com, Keerthy <j-keerthy@ti.com>, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: bcousson@baylibre.com, mugunthanvnm@ti.com, nsekhar@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [140430 05:43]:
-> Hi Benoit & Tony,
-> 
-> These patches add I2C touch screen support for am43x-epos-evm
-> and am437x-gp-evm.
-> 
-> Relevant driver side changes are here.
-> http://thread.gmane.org/gmane.linux.kernel.input/35803
-> 
-> Please queue this for -next (3.16). Thanks.
+From: Keerthy <j-keerthy@ti.com>
 
-Applying both into omap-for-v3.16/dt thanks.
+Change the parent of apll_pcie_in_clk_mux to dpll_pcie_ref_m2ldo_ck
+from dpll_pcie_ref_ck.
 
-Tony
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/boot/dts/dra7xx-clocks.dtsi |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index 55e95c5..44993ec 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -1152,7 +1152,7 @@
+ 
+ 	apll_pcie_in_clk_mux: apll_pcie_in_clk_mux@4ae06118 {
+ 		compatible = "ti,mux-clock";
+-		clocks = <&dpll_pcie_ref_ck>, <&pciesref_acs_clk_ck>;
++		clocks = <&dpll_pcie_ref_m2ldo_ck>, <&pciesref_acs_clk_ck>;
+ 		#clock-cells = <0>;
+ 		reg = <0x021c 0x4>;
+ 		ti,bit-shift = <7>;
+-- 
+1.7.9.5
