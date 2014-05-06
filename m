@@ -1,36 +1,91 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v3 0/4] add parallel NAND support for TI's new OMAPx and
- AMxx platforms (Part-2)
-Date: Tue, 6 May 2014 10:41:19 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACADBB@DBDE04.ent.ti.com>
-References: <1398152020-19391-1-git-send-email-pekon@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v3 4/7] ARM: dts: dra7-clock: Add "l3init_960m_gfclk"
+ clock gate
+Date: Tue, 6 May 2014 13:10:33 +0300
+Message-ID: <5368B519.6030600@ti.com>
+References: <1399283686-6127-1-git-send-email-rogerq@ti.com> <1399283686-6127-5-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51157 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50106 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934631AbaEFKl0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2014 06:41:26 -0400
-In-Reply-To: <1398152020-19391-1-git-send-email-pekon@ti.com>
-Content-Language: en-US
+	id S934643AbaEFKKZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 May 2014 06:10:25 -0400
+In-Reply-To: <1399283686-6127-5-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Roger Quadros <rogerq@ti.com>, kishon@ti.com, tony@atomide.com, balbi@ti.com, bcousson@baylibre.com
+Cc: george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
 
-Hello Tony,
-
->From: Gupta, Pekon
+On 05/05/2014 12:54 PM, Roger Quadros wrote:
+> This clock gate description is missing in the older Reference manuals=
+=2E
+> It is present on the SoC to provide 960MHz reference clock to the
+> internal USB PHYs.
 >
->*changes v2 -> v3*
->rebased on git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap :master
->merged leftover patches (dra7-evm and am43x-epos-evm fix) from Part-1 series
+> Reference: DRA75x_DRA74x_ES1.1_NDA_TRM_vO.pdf, pg. 900,
+> Table 3-812. CM_COREAON_L3INIT_60M_GFCLK_CLKCTRL
+>
+> Use l3init_960m_gfclk as parent of usb_otg_ss1_refclk960m and
+> usb_otg_ss2_refclk960m.
+>
+> CC: Beno=C3=AEt Cousson <bcousson@baylibre.com>
+> CC: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+
+Got myself to download the latest copy of the TRM, so this patch looks=20
+valid.
+
+Acked-by: Tero Kristo <t-kristo@ti.com>
+
+> ---
+>   arch/arm/boot/dts/dra7xx-clocks.dtsi | 12 ++++++++++--
+>   1 file changed, 10 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts=
+/dra7xx-clocks.dtsi
+> index cfb8fc7..c767687 100644
+> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> @@ -1386,6 +1386,14 @@
+>   		ti,dividers =3D <1>, <8>;
+>   	};
+>
+> +	l3init_960m_gfclk: l3init_960m_gfclk {
+> +		#clock-cells =3D <0>;
+> +		compatible =3D "ti,gate-clock";
+> +		clocks =3D <&dpll_usb_clkdcoldo>;
+> +		ti,bit-shift =3D <8>;
+> +		reg =3D <0x06c0>;
+> +	};
+> +
+>   	dss_32khz_clk: dss_32khz_clk {
+>   		#clock-cells =3D <0>;
+>   		compatible =3D "ti,gate-clock";
+> @@ -1533,7 +1541,7 @@
+>   	usb_otg_ss1_refclk960m: usb_otg_ss1_refclk960m {
+>   		#clock-cells =3D <0>;
+>   		compatible =3D "ti,gate-clock";
+> -		clocks =3D <&dpll_usb_clkdcoldo>;
+> +		clocks =3D <&l3init_960m_gfclk>;
+>   		ti,bit-shift =3D <8>;
+>   		reg =3D <0x13f0>;
+>   	};
+> @@ -1541,7 +1549,7 @@
+>   	usb_otg_ss2_refclk960m: usb_otg_ss2_refclk960m {
+>   		#clock-cells =3D <0>;
+>   		compatible =3D "ti,gate-clock";
+> -		clocks =3D <&dpll_usb_clkdcoldo>;
+> +		clocks =3D <&l3init_960m_gfclk>;
+>   		ti,bit-shift =3D <8>;
+>   		reg =3D <0x1340>;
+>   	};
 >
 
-Can you please see if this series can be taken in for 3.16 ? As this series
-concludes GPMC-NAND support for all major OMAP boards and brings
-it to a stable point.
-
-
-with regards, pekon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
