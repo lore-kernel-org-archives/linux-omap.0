@@ -1,54 +1,45 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [jenny.tc@intel.com: [RFC] power_supply: Introduce generic psy
- charging driver]
-Date: Wed, 7 May 2014 15:23:47 +0200
-Message-ID: <20140507132347.GA21687@amd.pavel.ucw.cz>
-References: <20140429062526.GA12879@jenny-desktop>
- <20140505124745.GC16461@amd.pavel.ucw.cz>
- <20140507084655.GA25243@jenny-desktop>
+From: Darren Etheridge <detheridge@ti.com>
+Subject: Re: [PATCH V6 0/2] arm: dts: dra7: Updates for adding crossbar device
+Date: Wed, 7 May 2014 09:56:56 -0500
+Message-ID: <20140507145656.GG2626@ti.com>
+References: <1399464998-23216-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140507084655.GA25243@jenny-desktop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jenny Tc <jenny.tc@intel.com>
-Cc: linux-kernel@vger.kernel.org, dbaryshkov@gmail.com, cbouatmailru@gmail.com, anton.vorontsov@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org
+In-Reply-To: <1399464998-23216-1-git-send-email-r.sricharan@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, tglx@linutronix.de, galak@codeaurora.org, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, robherring2@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
-
-> > > +#define PSY_MAX_CV(psy) \
-> > > +		psy_get_ps_int_property(psy,\
-> > > +			POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX)
-> > > +#define PSY_VOLTAGE_NOW(psy) \
-> > > +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_VOLTAGE_NOW)
-> > > +#define PSY_VOLTAGE_OCV(psy) \
-> > > +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_VOLTAGE_OCV)
-> > > +#define PSY_CURRENT_NOW(psy) \
-> > > +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_CURRENT_NOW)
-> > > +#define PSY_STATUS(psy) \
-> > > +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_STATUS)
-> > > +#define PSY_TEMPERATURE(psy) \
-> > > +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_TEMP)
-> > > +#define PSY_BATTERY_TYPE(psy) \
-> > > +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_TECHNOLOGY)
-> > > +#define PSY_ONLINE(psy) \
-> > > +		psy_get_ps_int_property(psy, POWER_SUPPLY_PROP_ONLINE)
-> > 
-> > This looks like bad idea. Just opencode it.
+Sricharan R <r.sricharan@ti.com> wrote on Wed [2014-May-07 17:46:36 +0530]:
+> Some socs have a large number of interrupts requests to service
+> the needs of its many peripherals and subsystems. All of the interrupt
+> requests lines from the subsystems are not needed at the same
+> time, so they have to be muxed to the controllers appropriately.
+> In such places a interrupt controllers are preceded by an
+> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+> requests to the controller inputs.
 > 
-> This was to make it more readable, and avoids open codes in multiple places.
-> Initially Anton had positive thoughts about this. Isn't it more readable with
-> the macros?
+> The dts file update to support the crossbar device and convert
+> peripheral irq numbers to crossbar number are added here.
+> 
+> This is a rebase on top of 3.15-rc4
+> 
+> This series depends on crossbar-driver-fixes sent below
+> http://marc.info/?l=linux-omap&m=139929963420299&w=2
+> 
+> [V6] Reordered patch 3 to patch 1 and
+>      squashed patch 2 and 3 from V5 in to patch 2
+> 
+> Sricharan R (2):
+>   arm: dts: dra7: Add routable-irqs property for gic node
+>   arm: dts: dra7: Add crossbar device binding
+> 
 
-Well... I'd expect PSY_ONLINE() macro to do something like (psy &
-0x01), not call function. Yes, it is shorter, but IMO it is not
-clearer.
+Just for thoroughness I dropped the previous 3 patch series from my
+build and replaced with this two patch series.  Everything still works
+with my test setup so I consider these patches good.
 
-But if Anton likes it...
-
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Darren
