@@ -1,67 +1,60 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 13/13] video: omap: allow building on !MMU
-Date: Wed, 7 May 2014 12:14:27 +0300
-Message-ID: <5369F973.10803@ti.com>
-References: <1398342509-10243-1-git-send-email-peter.griffin@linaro.org> <1398342509-10243-14-git-send-email-peter.griffin@linaro.org>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 05/17] pci: host: pcie-dra7xx: add support for pcie-dra7xx
+ controller
+Date: Wed, 7 May 2014 14:52:47 +0530
+Message-ID: <5369FB67.6040905@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com> <1399383244-14556-6-git-send-email-kishon@ti.com> <20140506163507.GA15542@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="dEWaKqBDIhpEP6uWPfrVghDeIlpxe7XL0"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1398342509-10243-14-git-send-email-peter.griffin@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Griffin <peter.griffin@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20140506163507.GA15542@obsidianresearch.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, Marek Vasut <marex@denx.de>, balajitk@ti.com, Mohit Kumar <mohit.kumar@st.com>, Jingoo Han <jg1.han@samsung.com>, Bjorn Helgaas <bhelgaas@google.com>, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---dEWaKqBDIhpEP6uWPfrVghDeIlpxe7XL0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On 24/04/14 15:28, Peter Griffin wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
->=20
-> The omap lcdc driver has an elaborate mmap_kern function
-> to map the frame buffer into kernel address space as
-> write-combined. This uses functions that are only available
-> on MMU-enabled builds.
->=20
-> It does seem equivalent to ioremap_wc though, so we should
-> be able to just use that instead.
->=20
-> This patch is build-tested only, it needs to be run on real
-> hardware before applying.
+On Tuesday 06 May 2014 10:05 PM, Jason Gunthorpe wrote:
+> On Tue, May 06, 2014 at 07:03:51PM +0530, Kishon Vijay Abraham I wrote:
+>> +Example:
+>> +pcie@51000000 {
+>> +	compatible = "ti,dra7xx-pcie";
+>> +	reg = <0x51002000 0x14c>, <0x51000000 0x2000>;
+>> +	reg-names = "ti_conf", "rc_dbics";
+>> +	interrupts = <0 232 0x4>, <0 233 0x4>;
+>> +	#address-cells = <3>;
+>> +	#size-cells = <2>;
+>> +	device_type = "pci";
+>> +	ti,device_type = <3>;
+>> +	ranges = <0x00000800 0 0x20001000 0x20001000 0 0x00002000  /* Configuration Space */
+> 
+> Configuration space should not show up in the ranges, please don't
+> copy that mistake from other drivers, put it in reg.
 
-I don't have omap1 boards, and I don't know anyone that has. I don't
-even know if the omap1 fb is working or not...
+But then it needs pcie-designware.c to be modified and it will be breaking
+other platforms no?
+> 
+>> +	interrupt-map-mask = <0 0 0 0>;
+>> +	interrupt-map = <0x0 0 &gic 134>;
+> 
+> The HW cannot decode INTA/B/C/D?
+> 
+>> +#define	PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI		0x0034
+>> +#define	PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI		0x0038
+>> +#define	INTA						BIT(0)
+>> +#define	INTB						BIT(1)
+>> +#define	INTC						BIT(2)
+>> +#define	INTD						BIT(3)
+>> +#define	MSI						BIT(4)
+>> +#define	LEG_EP_INTERRUPTS (INTA | INTB | INTC | INTD)
+> 
+> Oh, it can, it would be wise to export this from the driver. Look at
+> the latest patches from Srikanth Thokala for the Xilinx PCI driver to
+> see how this should look
 
-Tony, any idea of omap1's fb? Are you able to test this?
+ok.. will have a look at it.
 
- Tomi
-
-
-
---dEWaKqBDIhpEP6uWPfrVghDeIlpxe7XL0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTaflzAAoJEPo9qoy8lh71mwEP/ixwXorGiw6rNjAy3+rQ/Ht3
-d1rWch/w3Xtu+eSjKLKRDBcIKdo0FjU839RrPvFXd48ooo256tJn1hR/DKiysX2T
-52uCv/FBJRHHdVvc7ujtwcKSzxL8y/xa9YYL7N3jFlGxbLUqWOJqKiji5fAR408H
-PV55iIV8sANH2RoWY5u8JL+UebSkj8GMsapRnf4+Pl30/H+oGRExD+xHEcT5e07/
-6F3P6b/FTkG/esI2XQIFx3df7vqpLf/myW3RtjOPd4yQZW3lW5LNZz4XZOuqunzG
-MeIX6e+6zFH/JiG/WR/xmeES/gEhTSx9gcOYykbWUDVZZGOp8R6TpsMZFSeLHama
-6qNHtS7sYJfupZlyNUHQFvJiQiSe2rIOLIa3MQITuWCvh5vxoNQvGlElpumVIN7+
-817hmLIf5bQsQfOWTM6RwEuqnSA++2DKwOhkA0E+9sWT+ChZJ8AyVQhW0Jq5NrnW
-34w17sJZFgXHdYkaDmwQb0TWlITJ3D0CKOpiCWEjo24Z5gAyP/pn/QTNAQQ8iVGD
-O35y4qDzQnPX6KSaalQMa/HystgqjuKITPmVmfzerxgCFpmjGgwQeIjKKqkrfv4h
-7ZeZ8r8TsBLz8+aOPeJro6/cDrf3Z04f/a9s4czesat6F0kfQqi+PDGaH1r+4+XI
-5kgARnLt/C5OSbEE+1sw
-=N6bJ
------END PGP SIGNATURE-----
-
---dEWaKqBDIhpEP6uWPfrVghDeIlpxe7XL0--
+Thanks
+Kishon
