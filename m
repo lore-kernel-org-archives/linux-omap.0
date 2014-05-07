@@ -1,80 +1,90 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
-Date: Wed, 7 May 2014 11:03:42 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1405071050530.1325-100000@iolanthe.rowland.org>
-References: <20140507215344.GH19925@intel.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
+ support
+Date: Wed, 7 May 2014 08:03:43 -0700
+Message-ID: <20140507150343.GA9502@atomide.com>
+References: <1398815562-24113-1-git-send-email-tony@atomide.com>
+ <1398815562-24113-4-git-send-email-tony@atomide.com>
+ <5369EAE7.3030705@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140507215344.GH19925@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Zhuang Jin Can <jin.can.zhuang@intel.com>
-Cc: USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, liping.zhou@intel.com, david.a.cohen@linux.intel.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51578 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933220AbaEGPDv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2014 11:03:51 -0400
+Content-Disposition: inline
+In-Reply-To: <5369EAE7.3030705@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Wed, 7 May 2014, Zhuang Jin Can wrote:
-
-> A delayed status request may be queued before composite framework returns
-> USB_GADGET_DELAYED_STATUS, because the thread queueing the request can run
-> on a different core in parallel with the control request irq.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140507 01:13]:
+> On 30/04/14 02:52, Tony Lindgren wrote:
+> > We can pass the GPIO configuration for ls037v7dw01 in a standard
+> > gpios property.
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  .../bindings/panel/sharp,ls037v7dw01.txt           | 53 ++++++++++++++
+> >  .../omap2/displays-new/panel-sharp-ls037v7dw01.c   | 84 ++++++++++++++++++++--
+> >  2 files changed, 133 insertions(+), 4 deletions(-)
+> >  create mode 100644 Documentation/devicetree/bindings/panel/sharp,ls037v7dw01.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/panel/sharp,ls037v7dw01.txt b/Documentation/devicetree/bindings/panel/sharp,ls037v7dw01.txt
+> > new file mode 100644
+> > index 0000000..7f6f5e1
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/panel/sharp,ls037v7dw01.txt
+> > @@ -0,0 +1,53 @@
+> > +SHARP LS037V7DW01 TFT-LCD panel
+> > +
+> > +Required properties:
+> > +- compatible: should be "sharp,ls037v7dw01"
+> > +
+> > +Optional properties:
+> > +- reset-gpios: a GPIO spec for the optional reset pin
+> > +- enable-gpios: a GPIO array for the optional configuration GPIOs
+> > +  ordered MO, LR, UD, INI as specified in the LS037V7DW01.pdf file.
+> > +
+> > +This binding is compatible with the simple-panel binding, which is specified
+> > +in simple-panel.txt in this directory.
+> > +
+> > +This panel can have zero to five GPIOs to configure
+> > +to change configuration between QVGA and VGA mode
+> > +and the scan direction. As these pins can be also
+> > +configured with external pulls, all the GPIOs are
+> > +considered optional with holes in the array.
+> > +
+> > +Example when connected to a omap2+ based device:
+> > +
+> > +	lcd0: display {
+> > +		compatible = "sharp,ls037v7dw01";
+> > +		power-supply = <&lcd_3v3>;
+> > +		reset-gpios = <&gpio5 27 GPIO_ACTIVE_HIGH>;	/* gpio155, lcd RESB */
+> > +		enable-gpios = <&gpio5 26 GPIO_ACTIVE_HIGH	/* gpio154, lcd MO */
+> > +				&gpio1 2 GPIO_ACTIVE_HIGH	/* gpio2, lcd LR */
+> > +				&gpio1 3 GPIO_ACTIVE_HIGH	/* gpio3, lcd UD */
+> > +				&gpio5 24 GPIO_ACTIVE_HIGH>;	/* gpio152, lcd INI */
 > 
-> SETUP XferComplete IRQ        		fsg_main_thread
-> ----------------------        		---------------
-> 	|					|
-> spin_lock_irqsave(&dwc->lock)               sleeping
-> 	|					|
-> 	...					...
-> dwc3_ep0_inspect_setup()			|
-> 	|					|
-> dwc3_ep0_delegate_req() 			|
-> 	|					|
-> 	...					|
-> spin_unlock(&dwc->lock);			|
-> 	|					|
-> fsg_set_alt()   ======> Signal Wakeup ====>	|
-> 	| 					|
-> other gadgets->set_alt() 	       handle exception
-> 	|					|
-> 	|			usb_composite_setup_continue()
-> 	|					|
-> 	|			spin_lock_irqsave(&dwc->lock)
->   	|			     __dwc3_gadget_ep0_queue()
-> 	|				 delay_status is false
-> 	|			spin_unlock_irqrestore(&dwc->lock)
-> 	|					|
-> 	|				     sleeping
-> spin_lock(&dwc->lock); 				|
-> 	|					|
-> delayed_status=true				|
-> 	|					|
-> 
-> 		STATUS XferNotReady IRQ
-> 		------------------------
-> 			|
-> 		dwc3_ep0_xfernotready()
-> 			|
-> 		   delayed_status is true, return;
-> 
-> The result is the status packet will never be transferred, and
-> delayed_status is not cleared.
-> 
-> Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
-> Reported-by: Zhou Liping <liping.zhou@intel.com>
+> Why are most of the gpios in 'enable-gpios'? MO, LR and UD don't really
+> have anything to do with enabling the panel. Why not just have one
+> 'gpios' array with all the gpios, as they are quite a mixed bunch?
 
-A similar problem can occur in the opposite sense: The thread queuing
-the delayed status request might be delayed for so long that another
-SETUP packet arrives from the host first.  In that case, the delayed
-status request is a response for a stale transfer, so it must not be
-sent to the host.
+Yeah that's what I had initially, but reading simple-panel.txt noticed
+there are some standardized GPIOs for reset and enable.
 
-Do dwc3 and composite.c handle this case correctly?
+How about we set up one reset-gpios, one enable-gpios and an array of
+three unlabelled GPIOs?
 
-Back in the old g_file_storage driver, I addressed this issue by
-keeping a counter of all the setup requests.  When it came time to send
-a delayed status response, the response would be sent only if the
-counter had not changed from when the original setup request was
-received.
+Or if we want to add something generic, we could add new mode-gpios
+property that other panels might be able to use too?
 
-As far as I can see, composite.c doesn't do anything like that.
+BTW, I'm also personally fine with all five gpios showing in a single
+gpios property, I'm not too exited about naming anything in DT..
 
-Alan Stern
+Regards,
+
+Tony
+
