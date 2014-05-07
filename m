@@ -1,95 +1,82 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH 04/26] ARM: OMAP: dmtimer: Add function to check if timer
- is running
-Date: Wed, 7 May 2014 17:00:22 -0500
-Message-ID: <536AACF6.9070204@ti.com>
-References: <1398375849-6017-1-git-send-email-joelf@ti.com> <1398375849-6017-5-git-send-email-joelf@ti.com> <20140507152521.GE9502@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 01/26] ARM: OMAP: dmtimer: Remove setting of clk parent
+ indirectly through platform hook
+Date: Wed, 7 May 2014 15:04:27 -0700
+Message-ID: <20140507220426.GC19102@atomide.com>
+References: <1398375849-6017-1-git-send-email-joelf@ti.com>
+ <1398375849-6017-2-git-send-email-joelf@ti.com>
+ <20140507151907.GB9502@atomide.com>
+ <536AA900.4040200@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44352 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751424AbaEGWAs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 May 2014 18:00:48 -0400
-In-Reply-To: <20140507152521.GE9502@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25151 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881AbaEGWEb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2014 18:04:31 -0400
+Content-Disposition: inline
+In-Reply-To: <536AA900.4040200@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Joel Fernandes <joelf@ti.com>
 Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 05/07/2014 10:25 AM, Tony Lindgren wrote:
-> * Joel Fernandes <joelf@ti.com> [140424 14:44]:
->> Inorder to move non-DM timer specific code that modifies the "idlect"
->> mask on OMAP1, from dmtimer code, to OMAP1 specific timer initialization code,
->> we introduce a new function that can possibly be reused for other purposes in
->> the future. The function just checks if a timer is running based on the timer ID
->> which should be same as pdev->id. This allows us to cleanly separate the timer vs
->> non-timer bits and keep the timer bits in the dmtimer code.
->>
->> Signed-off-by: Joel Fernandes <joelf@ti.com>
->> ---
->>  arch/arm/plat-omap/dmtimer.c              |   29 +++++++++++++++++++++++++++++
->>  arch/arm/plat-omap/include/plat/dmtimer.h |    2 ++
->>  2 files changed, 31 insertions(+)
->>
->> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
->> index 4debb3d..86b2641 100644
->> --- a/arch/arm/plat-omap/dmtimer.c
->> +++ b/arch/arm/plat-omap/dmtimer.c
->> @@ -187,6 +187,35 @@ int omap_dm_timer_reserve_systimer(int id)
->>  	return 0;
->>  }
->>  
->> +/*
->> + * Check if a timer is running based on timer_id, used for OMAP1 currently.
->> + */
->> +int omap_dm_timer_is_running(int timer_id)
->> +{
->> +	int i = 1, ret = 0;
->> +	struct omap_dm_timer *timer = NULL;
->> +	unsigned long flags;
->> +
->> +	spin_lock_irqsave(&dm_timer_lock, flags);
->> +	list_for_each_entry(timer, &omap_timer_list, node) {
->> +		if (i == timer_id) {
->> +			u32 l;
->> +			l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
->> +			if (l & OMAP_TIMER_CTRL_ST) {
->> +				ret = 1;
->> +				goto done;
->> +			} else {
->> +				goto done;
->> +			}
->> +		}
->> +		i++;
->> +	}
->> +done:
->> +	spin_unlock_irqrestore(&dm_timer_lock, flags);
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL_GPL(omap_dm_timer_is_running);
+* Joel Fernandes <joelf@ti.com> [140507 14:44]:
+> On 05/07/2014 10:19 AM, Tony Lindgren wrote:
+> > * Joel Fernandes <joelf@ti.com> [140424 14:44]:
+> >> There is a platform specific hook just for OMAP1 to set its clk parent.  Remove
+> >> this hook and have OMAP1 set its parent in omap1_dm_timer_init.  If OMAP1 is
+> >> ever migrated to clock framework, the correct way to do this would be through
+> >> clk_set_parent like other platforms.
+> >>
+> >> Signed-off-by: Joel Fernandes <joelf@ti.com>
+> >> ---
+> >>  arch/arm/mach-omap1/timer.c                |    8 +++++++-
+> >>  arch/arm/plat-omap/dmtimer.c               |    8 +++-----
+> >>  include/linux/platform_data/dmtimer-omap.h |    2 --
+> >>  3 files changed, 10 insertions(+), 8 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap1/timer.c b/arch/arm/mach-omap1/timer.c
+> >> index bde7a35..4b9c604 100644
+> >> --- a/arch/arm/mach-omap1/timer.c
+> >> +++ b/arch/arm/mach-omap1/timer.c
+> >> @@ -140,7 +140,13 @@ static int __init omap1_dm_timer_init(void)
+> >>  			goto err_free_pdata;
+> >>  		}
+> >>  
+> >> -		pdata->set_timer_src = omap1_dm_timer_set_src;
+> >> +		/*
+> >> +		 * Since OMAP1 doesn't support clock framework, set timer clock
+> >> +		 * source to 32KHz here instead of expecting it to be set by
+> >> +		 * dmtimer code.
+> >> +		 */
+> >> +		omap1_dm_timer_set_src(pdev, 0x01);
+> >> +
+> >>  		pdata->timer_capability = OMAP_TIMER_ALWON |
+> >>  				OMAP_TIMER_NEEDS_RESET | OMAP_TIMER_HAS_DSP_IRQ;
+> >>  
+> > 
+> > This does not sound right, omap1 does support clock framework just fine.
+> > It is not using the common clock framework though.
+> > 
+> > This breaks omap_dm_timer_set_source() for sure. Setting the source
+> > during init is not a right solution here. Probably best to keep the
+> > pdata hook around, drivers can support pdata and DT data together
+> > just fine.
 > 
-> Let's not add new exported custom functions, let's instead try to get
-> rid of them. What needs to use this one?
+> Actually pdata hook in this case is used only in 1 place, and is OMAP1
+> specific so I felt its better to clean it up.
+> 
+> Can you elaborate a bit more on why it breaks? I have no way of testing
+> OMAP1 without hardware.
+> 
+> What difference is it to set MOD_CONF_CTRL_1 in omap1's
+> arch_initcall(omap1_dm_timer_init)  versus doing so later?
 
-This piece of code was entangled with OMAP1 specific logic.
+You're making a driver behave in a different way for omap1
+compared to omap2+ where selecting the clock source won't work
+for omap1.
 
-The OMAP1 specific logic is moved into a new function in the OMAP1 timer
-layer called: omap_dm_timer_modify_idlect_mask
+Regards,
 
-What's left is code that needs to iterate over all the timers by
-checking the OMAP_TIMER_CTRL_ST bit in the control register. This is
-left back into the dmtimer code but needs to be exported since we
-ultimately will move dmtimer into clock source.
-
-If you notice, I removed export of omap_dm_timer_modify_idlect_mask
-since it is moved to omap1 layer and is local there, so it should be OK
-to export this symbol instead. We are not adding more exports, and its
-still an improvement over the old code as the OMAP1 specific logic is
-decoupled from the generic dmtimer code.
-
-thanks,
-
--Joel
-
+Tony
