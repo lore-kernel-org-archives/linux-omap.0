@@ -1,68 +1,32 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH 01/26] ARM: OMAP: dmtimer: Remove setting of clk parent
- indirectly through platform hook
-Date: Wed, 7 May 2014 16:43:28 -0500
-Message-ID: <536AA900.4040200@ti.com>
-References: <1398375849-6017-1-git-send-email-joelf@ti.com> <1398375849-6017-2-git-send-email-joelf@ti.com> <20140507151907.GB9502@atomide.com>
+Subject: Re: [PATCH 02/26] ARM: OMAP: dmtimer: Add comments on OMAP1 clock
+ framework
+Date: Wed, 7 May 2014 16:48:33 -0500
+Message-ID: <536AAA31.6080905@ti.com>
+References: <1398375849-6017-1-git-send-email-joelf@ti.com> <1398375849-6017-3-git-send-email-joelf@ti.com> <20140507152004.GC9502@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140507151907.GB9502@atomide.com>
+In-Reply-To: <20140507152004.GC9502@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 05/07/2014 10:19 AM, Tony Lindgren wrote:
+On 05/07/2014 10:20 AM, Tony Lindgren wrote:
 > * Joel Fernandes <joelf@ti.com> [140424 14:44]:
->> There is a platform specific hook just for OMAP1 to set its clk parent.  Remove
->> this hook and have OMAP1 set its parent in omap1_dm_timer_init.  If OMAP1 is
->> ever migrated to clock framework, the correct way to do this would be through
->> clk_set_parent like other platforms.
->>
->> Signed-off-by: Joel Fernandes <joelf@ti.com>
->> ---
->>  arch/arm/mach-omap1/timer.c                |    8 +++++++-
->>  arch/arm/plat-omap/dmtimer.c               |    8 +++-----
->>  include/linux/platform_data/dmtimer-omap.h |    2 --
->>  3 files changed, 10 insertions(+), 8 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap1/timer.c b/arch/arm/mach-omap1/timer.c
->> index bde7a35..4b9c604 100644
->> --- a/arch/arm/mach-omap1/timer.c
->> +++ b/arch/arm/mach-omap1/timer.c
->> @@ -140,7 +140,13 @@ static int __init omap1_dm_timer_init(void)
->>  			goto err_free_pdata;
->>  		}
->>  
->> -		pdata->set_timer_src = omap1_dm_timer_set_src;
->> +		/*
->> +		 * Since OMAP1 doesn't support clock framework, set timer clock
->> +		 * source to 32KHz here instead of expecting it to be set by
->> +		 * dmtimer code.
->> +		 */
->> +		omap1_dm_timer_set_src(pdev, 0x01);
->> +
->>  		pdata->timer_capability = OMAP_TIMER_ALWON |
->>  				OMAP_TIMER_NEEDS_RESET | OMAP_TIMER_HAS_DSP_IRQ;
->>  
+>> OMAP1 doesn't support clock framework, add a comment where needed
+>> and correct a FIXME.
 > 
-> This does not sound right, omap1 does support clock framework just fine.
-> It is not using the common clock framework though.
-> 
-> This breaks omap_dm_timer_set_source() for sure. Setting the source
-> during init is not a right solution here. Probably best to keep the
-> pdata hook around, drivers can support pdata and DT data together
-> just fine.
+> This is at least a wrong comment, the original comment seems right
+> to me.
 
-Actually pdata hook in this case is used only in 1 place, and is OMAP1
-specific so I felt its better to clean it up.
+Can you elaborate a bit more please on the wrongness of the comment?
 
-Can you elaborate a bit more on why it breaks? I have no way of testing
-OMAP1 without hardware.
+I can change the comment to say "common clock" instead of "clock" if
+that's the only problem here.
 
-What difference is it to set MOD_CONF_CTRL_1 in omap1's
-arch_initcall(omap1_dm_timer_init)  versus doing so later?
+ thanks,
 
 -Joel
