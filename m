@@ -1,209 +1,86 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 6/7] ARM: dts: dra7: Add USB related nodes
-Date: Wed, 7 May 2014 14:55:35 +0300
-Message-ID: <536A1F37.4010202@ti.com>
-References: <1399283686-6127-1-git-send-email-rogerq@ti.com> <1399283686-6127-7-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v5 4/4] ARM: dts: dra7: add OCP2SCP3 and SATA nodes
+Date: Wed, 7 May 2014 14:58:58 +0300
+Message-ID: <536A2002.4020603@ti.com>
+References: <1398274237-24510-1-git-send-email-rogerq@ti.com> <1398274575-24818-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1399283686-6127-7-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: kishon-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44112 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751834AbaEGL7U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 May 2014 07:59:20 -0400
+In-Reply-To: <1398274575-24818-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>
 
-Add nodes for the Super Speed USB controllers, omap-control-usb,
-USB2 PHY and USB3 PHY devices.
+From: Balaji T K <balajitk@ti.com>
 
-Use IRQ crossbar for interrupts.
+Add nodes for OCP2SCP3 bus, SATA controller and SATA PHY.
 
-Remove ocp2scp1 address space from hwmod data as it is
-now provided via device tree.
+[Roger Q] Clean up. Updated IRQ for interrupt crossbar.
 
-CC: Beno=C3=AEt Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+CC: Benoit Cousson <bcousson@baylibre.com>
+Signed-off-by: Balaji T K <balajitk@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi               | 148 ++++++++++++++++++++++=
-++++++++
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  10 --
- 2 files changed, 148 insertions(+), 10 deletions(-)
+ arch/arm/boot/dts/dra7.dtsi | 39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index cec826f..8bc48bd 100644
+index cec826f..1f42e72 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -798,6 +798,154 @@
- 			dma-names =3D "tx0", "rx0";
- 			status =3D "disabled";
+@@ -798,6 +798,45 @@
+ 			dma-names = "tx0", "rx0";
+ 			status = "disabled";
  		};
 +
-+		omap_control_usb2phy1: control-phy@4a002300 {
-+			compatible =3D "ti,control-phy-usb2";
-+			reg =3D <0x4a002300 0x4>;
-+			reg-names =3D "power";
++		omap_control_sata: control-phy@4a002374 {
++			compatible = "ti,control-phy-pipe3";
++			reg = <0x4a002374 0x4>;
++			reg-names = "power";
++			clocks = <&sys_clkin1>;
++			clock-names = "sysclk";
 +		};
 +
-+		omap_control_usb3phy1: control-phy@4a002370 {
-+			compatible =3D "ti,control-phy-pipe3";
-+			reg =3D <0x4a002370 0x4>;
-+			reg-names =3D "power";
-+		};
-+
-+		omap_control_usb2phy2: control-phy@0x4a002e74 {
-+			compatible =3D "ti,control-phy-usb2-dra7";
-+			reg =3D <0x4a002e74 0x4>;
-+			reg-names =3D "power";
-+		};
-+
-+		/* OCP2SCP1 */
-+		ocp2scp@4a080000 {
-+			compatible =3D "ti,omap-ocp2scp";
-+			#address-cells =3D <1>;
-+			#size-cells =3D <1>;
++		/* OCP2SCP3 */
++		ocp2scp@4a090000 {
++			compatible = "ti,omap-ocp2scp";
++			#address-cells = <1>;
++			#size-cells = <1>;
 +			ranges;
-+			reg =3D <0x4a080000 0x20>;
-+			ti,hwmods =3D "ocp2scp1";
-+
-+			usb2_phy1: phy@4a084000 {
-+				compatible =3D "ti,omap-usb2";
-+				reg =3D <0x4a084000 0x400>;
-+				ctrl-module =3D <&omap_control_usb2phy1>;
-+				clocks =3D <&usb_phy1_always_on_clk32k>,
-+					 <&usb_otg_ss1_refclk960m>;
-+				clock-names =3D	"wkupclk",
-+						"refclk";
-+				#phy-cells =3D <0>;
-+			};
-+
-+			usb2_phy2: phy@4a085000 {
-+				compatible =3D "ti,omap-usb2";
-+				reg =3D <0x4a085000 0x400>;
-+				ctrl-module =3D <&omap_control_usb2phy2>;
-+				clocks =3D <&usb_phy2_always_on_clk32k>,
-+					 <&usb_otg_ss2_refclk960m>;
-+				clock-names =3D	"wkupclk",
-+						"refclk";
-+				#phy-cells =3D <0>;
-+			};
-+
-+			usb3_phy1: phy@4a084400 {
-+				compatible =3D "ti,omap-usb3";
-+				reg =3D <0x4a084400 0x80>,
-+				      <0x4a084800 0x64>,
-+				      <0x4a084c00 0x40>;
-+				reg-names =3D "phy_rx", "phy_tx", "pll_ctrl";
-+				ctrl-module =3D <&omap_control_usb3phy1>;
-+				clocks =3D <&usb_phy3_always_on_clk32k>,
-+					 <&sys_clkin1>,
-+					 <&usb_otg_ss1_refclk960m>;
-+				clock-names =3D	"wkupclk",
-+						"sysclk",
-+						"refclk";
-+				#phy-cells =3D <0>;
++			reg = <0x4a090000 0x20>;
++			ti,hwmods = "ocp2scp3";
++			sata_phy: phy@4A096000 {
++				compatible = "ti,phy-pipe3-sata";
++				reg = <0x4A096000 0x80>, /* phy_rx */
++				      <0x4A096400 0x64>, /* phy_tx */
++				      <0x4A096800 0x40>; /* pll_ctrl */
++				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
++				ctrl-module = <&omap_control_sata>;
++				clocks = <&sys_clkin1>;
++				clock-names = "sysclk";
++				#phy-cells = <0>;
 +			};
 +		};
 +
-+		omap_dwc3_1@48880000 {
-+			compatible =3D "ti,dwc3";
-+			ti,hwmods =3D "usb_otg_ss1";
-+			reg =3D <0x48880000 0x10000>;
-+			interrupts =3D <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells =3D <1>;
-+			#size-cells =3D <1>;
-+			utmi-mode =3D <2>;
-+			ranges;
-+			usb1: usb@48890000 {
-+				compatible =3D "snps,dwc3";
-+				reg =3D <0x48890000 0x17000>;
-+				interrupts =3D <GIC_SPI 71 IRQ_TYPE_LEVEL_HIGH>;
-+				phys =3D <&usb2_phy1>, <&usb3_phy1>;
-+				phy-names =3D "usb2-phy", "usb3-phy";
-+				tx-fifo-resize;
-+				maximum-speed =3D "super-speed";
-+				dr_mode =3D "otg";
-+			};
-+		};
-+
-+		omap_dwc3_2@488c0000 {
-+			compatible =3D "ti,dwc3";
-+			ti,hwmods =3D "usb_otg_ss2";
-+			reg =3D <0x488c0000 0x10000>;
-+			interrupts =3D <GIC_SPI 87 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells =3D <1>;
-+			#size-cells =3D <1>;
-+			utmi-mode =3D <2>;
-+			ranges;
-+			usb2: usb@488d0000 {
-+				compatible =3D "snps,dwc3";
-+				reg =3D <0x488d0000 0x17000>;
-+				interrupts =3D <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
-+				phys =3D <&usb2_phy2>;
-+				phy-names =3D "usb2-phy";
-+				tx-fifo-resize;
-+				maximum-speed =3D "high-speed";
-+				dr_mode =3D "otg";
-+			};
-+		};
-+
-+		omap_dwc3_3@48900000 {
-+			compatible =3D "ti,dwc3";
-+			ti,hwmods =3D "usb_otg_ss3";
-+			reg =3D <0x48900000 0x10000>;
-+			interrupts =3D <GIC_SPI 344 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells =3D <1>;
-+			#size-cells =3D <1>;
-+			utmi-mode =3D <2>;
-+			ranges;
-+			status =3D "disabled";
-+			usb3: usb@48910000 {
-+				compatible =3D "snps,dwc3";
-+				reg =3D <0x48910000 0x17000>;
-+				interrupts =3D <GIC_SPI 88 IRQ_TYPE_LEVEL_HIGH>;
-+				tx-fifo-resize;
-+				maximum-speed =3D "high-speed";
-+				dr_mode =3D "otg";
-+			};
-+		};
-+
-+		omap_dwc3_4@48940000 {
-+			compatible =3D "ti,dwc3";
-+			ti,hwmods =3D "usb_otg_ss4";
-+			reg =3D <0x48940000 0x10000>;
-+			interrupts =3D <GIC_SPI 346 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells =3D <1>;
-+			#size-cells =3D <1>;
-+			utmi-mode =3D <2>;
-+			ranges;
-+			status =3D "disabled";
-+			usb4: usb@48950000 {
-+				compatible =3D "snps,dwc3";
-+				reg =3D <0x48950000 0x17000>;
-+				interrupts =3D <GIC_SPI 345 IRQ_TYPE_LEVEL_HIGH>;
-+				tx-fifo-resize;
-+				maximum-speed =3D "high-speed";
-+				dr_mode =3D "otg";
-+			};
++		sata: sata@4a141100 {
++			compatible = "snps,dwc-ahci";
++			reg = <0x4a140000 0x1100>, <0x4a141100 0x7>;
++			interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
++			phys = <&sata_phy>;
++			phy-names = "sata-phy";
++			clocks = <&sata_ref_clk>;
++			ti,hwmods = "sata";
 +		};
  	};
-=20
+ 
  	crossbar_mpu: crossbar@4a020000 {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-=
-omap2/omap_hwmod_7xx_data.c
-index 067d322..d6f9709 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -2330,21 +2330,11 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__=
-mpu =3D {
- 	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
- };
-=20
--static struct omap_hwmod_addr_space dra7xx_ocp2scp1_addrs[] =3D {
--	{
--		.pa_start	=3D 0x4a080000,
--		.pa_end		=3D 0x4a08001f,
--		.flags		=3D ADDR_TYPE_RT
--	},
--	{ }
--};
+-- 
+1.8.3.2
+
+
