@@ -1,89 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 09/26] ARM: OMAP: dmtimer: Get rid of check for mem
- resource error
-Date: Wed, 7 May 2014 15:22:39 -0700
-Message-ID: <20140507222238.GF19102@atomide.com>
-References: <1398375849-6017-1-git-send-email-joelf@ti.com>
- <1398375849-6017-10-git-send-email-joelf@ti.com>
- <20140507152426.GD9502@atomide.com>
- <536AAB1C.6010301@ti.com>
- <20140507220959.GE19102@atomide.com>
- <536AB041.5070705@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: don't try to register the main clock
+ twice.
+Date: Wed, 7 May 2014 23:20:19 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1405072233470.23579@utopia.booyaka.com>
+References: <1396007435-20100-1-git-send-email-wsa@the-dreams.de> <alpine.DEB.2.02.1404111829520.14347@utopia.booyaka.com> <20140417085539.GA7804@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <536AB041.5070705@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:36345 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751331AbaEGXUU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2014 19:20:20 -0400
+In-Reply-To: <20140417085539.GA7804@katana>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>, mporter@linaro.org, Benoit Cousson <bcousson@baylibre.com>, joelagnel@ti.com
+Cc: NeilBrown <neilb@suse.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@sang-engineering.com>
 
-* Joel Fernandes <joelf@ti.com> [140507 15:15]:
-> On 05/07/2014 05:10 PM, Tony Lindgren wrote:
-> > * Joel Fernandes <joelf@ti.com> [140507 14:53]:
-> >> On 05/07/2014 10:24 AM, Tony Lindgren wrote:
-> >>> * Joel Fernandes <joelf@ti.com> [140424 14:44]:
-> >>>> The subsequent devm_ioremap_resource will catch it and print an error, let it
-> >>>> be checked there.
-> >>>>
-> >>>> Signed-off-by: Joel Fernandes <joelf@ti.com>
-> >>>> ---
-> >>>>  arch/arm/plat-omap/dmtimer.c |    4 ----
-> >>>>  1 file changed, 4 deletions(-)
-> >>>>
-> >>>> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> >>>> index 7e806f9..1fd30fa 100644
-> >>>> --- a/arch/arm/plat-omap/dmtimer.c
-> >>>> +++ b/arch/arm/plat-omap/dmtimer.c
-> >>>> @@ -810,10 +810,6 @@ static int omap_dm_timer_probe(struct platform_device *pdev)
-> >>>>  	}
-> >>>>  
-> >>>>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> >>>> -	if (unlikely(!mem)) {
-> >>>> -		dev_err(dev, "%s: no memory resource.\n", __func__);
-> >>>> -		return -ENODEV;
-> >>>> -	}
-> >>>>  
-> >>>>  	timer = devm_kzalloc(dev, sizeof(struct omap_dm_timer), GFP_KERNEL);
-> >>>>  	if (!timer) {
-> >>>
-> >>> We still need to return an error here and not try to continue though.
-> >>
-> >> We are returning an error if mem is NULL so the redundant check is
-> >> unnecessary:
-> >>
-> >> ...
-> >>         timer->io_base = devm_ioremap_resource(dev, mem);
-> >>         if (IS_ERR(timer->io_base))
-> >>                 return PTR_ERR(timer->io_base);
+(+ Matt Porter, Joel Fernandes)
+
+Hi Wolfram,
+
+On Thu, 17 Apr 2014, Wolfram Sang wrote:
+
+> thanks for the reply!
+
+Always good to hear from you - 
+
+> > > If omap_device_alloc is given 2 or more "struct omap_hwmod" it will try
+> > > to register the 'main_clk' of each of them with the same alias - "fck" -
+> > > against the same device.  This fails. So to avoid a warning, don't even
+> > > try.
+> > > 
+> > > Signed-off-by: NeilBrown <neilb@suse.de>
+> > > [wsa: ported to top-of-tree]
+> > > Signed-off-by: Wolfram Sang <wsa@sang-engineering.com>
 > > 
-> > Why would you want to even continue omap_dm_timer_probe()
-> > further and allocate memory if platform_get_resource() fails?
-> > 
+> > What devices and hwmods cause this warning on AM335x?   Ideally, there 
+> > should only be one hwmod per device.  Usually when multiple hwmods are 
+> > stacked up for a device, it means that something isn't right - either the 
+> > hwmod data, or the device driver itself. 
 > 
-> But its freed anyway on error. I just felt that extra LOC could be
-> removed. Ideally we should do something like
-> 
-> 
-> mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> io_base = devm_ioremap_resource(dev, mem);
-> if (IS_ERR(io_base))
-> 	return PTR_ERR(io_base);
-> 
-> timer = devm_kzalloc(dev, sizeof(struct omap_dm_timer), GFP_KERNEL);
-> if (!timer) {
->  ...
-> }
-> timer->io_base = io_base;
-> 
-> 
-> That combines the platform_get_resource and devm_ioremap_resource error
-> paths into 1 path and avoids redundant checks.. I can do it this way, or
-> if you want drop the patch entirely, I'm OK with it both ways..
+> I applied the patch because of the edma driver DT entry for the am335x.
+> Check am33xx.dtsi, it has multiple hwmods. 
 
-Just drop the dev_err if anything. Removing error checking from
-function calls is always going to cause people to wonder what's
-going on.
+I just took a look at the EDMA DT data vis-a-vis SPRUH73J Section 11.2.2 
+"Third-Party Transfer Controller (TPTC) Integration".  This section 
+clearly indicates that the TPTCs have their own L3 Fast Interconnect slave 
+ports, marked as "CFG Slave".  Cross-checking this with Table 2-1 "L3 
+Memory Map" indeed indicates that these three devices have their own 1MB 
+physical address ranges hanging off the L3.
 
-Tony
+So the EDMA DT data is flat-out wrong here and should not have been 
+merged.  Looks like it was added by commit 
+505975d3802f8d3a3c0905f38056213d06997b36 ("ARM: dts: AM33XX: Add EDMA 
+support").  Matt, Joel, could you please fix this data?  The TPTCs are 
+separate IP blocks with separate address ranges and MPU IRQs and should 
+have separate DT nodes.
+
+> I also get this message printed for the d_can driver with am335x; they 
+> have two entries in drivers/clk/ti/clk-33xx.c. Probably as a workaround 
+> to match the desired clock name for the d_can driver? Didn't really 
+> investigate yet.
+
+That's pretty weird.  I wonder where the second fck alias is coming from?  
+The DT & hwmod data for those devices looks relatively straightforward.  
+Is the hwmod code adding fck aliases for both of the entries from the 
+clock file?
+
+> > In the specific context of this patch, the problem would be: what if the 
+> > two hwmods have different main_clk entries?  Which one should be 
+> > associated with the "fck" alias?
+> 
+> Sadly, I am in a board bringup phase and can't really contribute to the
+> discussions. Lots of other issues to tackle at the moment.
+
+Understood.  Good luck with your board -
+
+
+- Paul
