@@ -1,376 +1,209 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 3/4] clk: ti: Driver for DRA7 ATL (Audio Tracking Logic)
-Date: Wed, 7 May 2014 13:20:47 +0300
-Message-ID: <1399458048-28213-4-git-send-email-peter.ujfalusi@ti.com>
-References: <1399458048-28213-1-git-send-email-peter.ujfalusi@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4 6/7] ARM: dts: dra7: Add USB related nodes
+Date: Wed, 7 May 2014 14:55:35 +0300
+Message-ID: <536A1F37.4010202@ti.com>
+References: <1399283686-6127-1-git-send-email-rogerq@ti.com> <1399283686-6127-7-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399458048-28213-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mturquette@linaro.org, grant.likely@linaro.org, tony@atomide.com, t-kristo@ti.com
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-doc@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1399283686-6127-7-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: kishon-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Audio Tracking Logic is designed to be used by HD Radio applications to
-synchronize the audio output clocks to the baseband clock. ATL can be also
-used to track errors between two reference clocks (BWS, AWS) and generate a modulated
-clock output which averages to some desired frequency.
-In essence ATL is generating a clock to be used by an audio codec and also
-to be used by the SoC as MCLK.
+Add nodes for the Super Speed USB controllers, omap-control-usb,
+USB2 PHY and USB3 PHY devices.
 
-To be able to integrate the ATL provided clocks to the clock tree we need
-two types of DT binding:
-- DT clock nodes to represent the ATL clocks towards the CCF
-- binding for the ATL IP itself which is going to handle the hw
-  configuration
+Use IRQ crossbar for interrupts.
 
-The reason for this type of setup is that ATL itself is a separate device
-in the SoC, it has it's own address space and clock domain. Other IPs can
-use the ATL generated clock as their functional clock (McASPs for example)
-and external components like audio codecs can also use the very same clock
-as their MCLK.
+Remove ocp2scp1 address space from hwmod data as it is
+now provided via device tree.
 
-The ATL IP in DRA7 contains 4 ATL instences.
-
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Beno=C3=AEt Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- drivers/clk/ti/Makefile       |   3 +-
- drivers/clk/ti/clk-dra7-atl.c | 313 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 315 insertions(+), 1 deletion(-)
- create mode 100644 drivers/clk/ti/clk-dra7-atl.c
+ arch/arm/boot/dts/dra7.dtsi               | 148 ++++++++++++++++++++++=
+++++++++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  10 --
+ 2 files changed, 148 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 4319d4031aa3..18e2443224e6 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -6,6 +6,7 @@ obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= $(clk-common) interface.o clk-3xxx.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(clk-common) clk-44xx.o
- obj-$(CONFIG_SOC_OMAP5)			+= $(clk-common) clk-54xx.o
--obj-$(CONFIG_SOC_DRA7XX)		+= $(clk-common) clk-7xx.o
-+obj-$(CONFIG_SOC_DRA7XX)		+= $(clk-common) clk-7xx.o \
-+					   clk-dra7-atl.o
- obj-$(CONFIG_SOC_AM43XX)		+= $(clk-common) clk-43xx.o
- endif
-diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
-new file mode 100644
-index 000000000000..97a8992eebb7
---- /dev/null
-+++ b/drivers/clk/ti/clk-dra7-atl.c
-@@ -0,0 +1,313 @@
-+/*
-+ * DRA7 ATL (Audio Tracking Logic) clock driver
-+ *
-+ * Copyright (C) 2013 Texas Instruments, Inc.
-+ *
-+ * Peter Ujfalusi <peter.ujfalusi@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index cec826f..8bc48bd 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -798,6 +798,154 @@
+ 			dma-names =3D "tx0", "rx0";
+ 			status =3D "disabled";
+ 		};
 +
-+#include <linux/module.h>
-+#include <linux/clk-provider.h>
-+#include <linux/slab.h>
-+#include <linux/io.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
++		omap_control_usb2phy1: control-phy@4a002300 {
++			compatible =3D "ti,control-phy-usb2";
++			reg =3D <0x4a002300 0x4>;
++			reg-names =3D "power";
++		};
 +
-+#define DRA7_ATL_INSTANCES	4
++		omap_control_usb3phy1: control-phy@4a002370 {
++			compatible =3D "ti,control-phy-pipe3";
++			reg =3D <0x4a002370 0x4>;
++			reg-names =3D "power";
++		};
 +
-+#define DRA7_ATL_PPMR_REG(id)		(0x200 + (id * 0x80))
-+#define DRA7_ATL_BBSR_REG(id)		(0x204 + (id * 0x80))
-+#define DRA7_ATL_ATLCR_REG(id)		(0x208 + (id * 0x80))
-+#define DRA7_ATL_SWEN_REG(id)		(0x210 + (id * 0x80))
-+#define DRA7_ATL_BWSMUX_REG(id)		(0x214 + (id * 0x80))
-+#define DRA7_ATL_AWSMUX_REG(id)		(0x218 + (id * 0x80))
-+#define DRA7_ATL_PCLKMUX_REG(id)	(0x21c + (id * 0x80))
++		omap_control_usb2phy2: control-phy@0x4a002e74 {
++			compatible =3D "ti,control-phy-usb2-dra7";
++			reg =3D <0x4a002e74 0x4>;
++			reg-names =3D "power";
++		};
 +
-+#define DRA7_ATL_SWEN			BIT(0)
-+#define DRA7_ATL_DIVIDER_MASK		(0x1f)
-+#define DRA7_ATL_PCLKMUX		BIT(0)
-+struct dra7_atl_clock_info;
++		/* OCP2SCP1 */
++		ocp2scp@4a080000 {
++			compatible =3D "ti,omap-ocp2scp";
++			#address-cells =3D <1>;
++			#size-cells =3D <1>;
++			ranges;
++			reg =3D <0x4a080000 0x20>;
++			ti,hwmods =3D "ocp2scp1";
 +
-+struct dra7_atl_desc {
-+	struct clk *clk;
-+	struct clk_hw hw;
-+	struct dra7_atl_clock_info *cinfo;
-+	int id;
++			usb2_phy1: phy@4a084000 {
++				compatible =3D "ti,omap-usb2";
++				reg =3D <0x4a084000 0x400>;
++				ctrl-module =3D <&omap_control_usb2phy1>;
++				clocks =3D <&usb_phy1_always_on_clk32k>,
++					 <&usb_otg_ss1_refclk960m>;
++				clock-names =3D	"wkupclk",
++						"refclk";
++				#phy-cells =3D <0>;
++			};
 +
-+	bool probed;		/* the driver for the IP has been loaded */
-+	bool valid;		/* configured */
-+	bool enabled;
-+	u32 bws;		/* Baseband Word Select Mux */
-+	u32 aws;		/* Audio Word Select Mux */
-+	u32 divider;		/* Cached divider value */
-+};
++			usb2_phy2: phy@4a085000 {
++				compatible =3D "ti,omap-usb2";
++				reg =3D <0x4a085000 0x400>;
++				ctrl-module =3D <&omap_control_usb2phy2>;
++				clocks =3D <&usb_phy2_always_on_clk32k>,
++					 <&usb_otg_ss2_refclk960m>;
++				clock-names =3D	"wkupclk",
++						"refclk";
++				#phy-cells =3D <0>;
++			};
 +
-+struct dra7_atl_clock_info {
-+	struct device *dev;
-+	void __iomem *iobase;
++			usb3_phy1: phy@4a084400 {
++				compatible =3D "ti,omap-usb3";
++				reg =3D <0x4a084400 0x80>,
++				      <0x4a084800 0x64>,
++				      <0x4a084c00 0x40>;
++				reg-names =3D "phy_rx", "phy_tx", "pll_ctrl";
++				ctrl-module =3D <&omap_control_usb3phy1>;
++				clocks =3D <&usb_phy3_always_on_clk32k>,
++					 <&sys_clkin1>,
++					 <&usb_otg_ss1_refclk960m>;
++				clock-names =3D	"wkupclk",
++						"sysclk",
++						"refclk";
++				#phy-cells =3D <0>;
++			};
++		};
 +
-+	struct dra7_atl_desc *cdesc;
-+};
++		omap_dwc3_1@48880000 {
++			compatible =3D "ti,dwc3";
++			ti,hwmods =3D "usb_otg_ss1";
++			reg =3D <0x48880000 0x10000>;
++			interrupts =3D <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
++			#address-cells =3D <1>;
++			#size-cells =3D <1>;
++			utmi-mode =3D <2>;
++			ranges;
++			usb1: usb@48890000 {
++				compatible =3D "snps,dwc3";
++				reg =3D <0x48890000 0x17000>;
++				interrupts =3D <GIC_SPI 71 IRQ_TYPE_LEVEL_HIGH>;
++				phys =3D <&usb2_phy1>, <&usb3_phy1>;
++				phy-names =3D "usb2-phy", "usb3-phy";
++				tx-fifo-resize;
++				maximum-speed =3D "super-speed";
++				dr_mode =3D "otg";
++			};
++		};
 +
-+#define to_atl_desc(_hw)	container_of(_hw, struct dra7_atl_desc, hw)
++		omap_dwc3_2@488c0000 {
++			compatible =3D "ti,dwc3";
++			ti,hwmods =3D "usb_otg_ss2";
++			reg =3D <0x488c0000 0x10000>;
++			interrupts =3D <GIC_SPI 87 IRQ_TYPE_LEVEL_HIGH>;
++			#address-cells =3D <1>;
++			#size-cells =3D <1>;
++			utmi-mode =3D <2>;
++			ranges;
++			usb2: usb@488d0000 {
++				compatible =3D "snps,dwc3";
++				reg =3D <0x488d0000 0x17000>;
++				interrupts =3D <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
++				phys =3D <&usb2_phy2>;
++				phy-names =3D "usb2-phy";
++				tx-fifo-resize;
++				maximum-speed =3D "high-speed";
++				dr_mode =3D "otg";
++			};
++		};
 +
-+static inline void atl_write(struct dra7_atl_clock_info *cinfo, u32 reg,
-+			     u32 val)
-+{
-+	__raw_writel(val, cinfo->iobase + reg);
-+}
++		omap_dwc3_3@48900000 {
++			compatible =3D "ti,dwc3";
++			ti,hwmods =3D "usb_otg_ss3";
++			reg =3D <0x48900000 0x10000>;
++			interrupts =3D <GIC_SPI 344 IRQ_TYPE_LEVEL_HIGH>;
++			#address-cells =3D <1>;
++			#size-cells =3D <1>;
++			utmi-mode =3D <2>;
++			ranges;
++			status =3D "disabled";
++			usb3: usb@48910000 {
++				compatible =3D "snps,dwc3";
++				reg =3D <0x48910000 0x17000>;
++				interrupts =3D <GIC_SPI 88 IRQ_TYPE_LEVEL_HIGH>;
++				tx-fifo-resize;
++				maximum-speed =3D "high-speed";
++				dr_mode =3D "otg";
++			};
++		};
 +
-+static inline int atl_read(struct dra7_atl_clock_info *cinfo, u32 reg)
-+{
-+	return __raw_readl(cinfo->iobase + reg);
-+}
-+
-+static int atl_clk_enable(struct clk_hw *hw)
-+{
-+	struct dra7_atl_desc *cdesc = to_atl_desc(hw);
-+
-+	if (!cdesc->probed)
-+		goto out;
-+
-+	if (unlikely(!cdesc->valid))
-+		dev_warn(cdesc->cinfo->dev, "atl%d has not been configured\n",
-+			 cdesc->id);
-+	pm_runtime_get_sync(cdesc->cinfo->dev);
-+
-+	atl_write(cdesc->cinfo, DRA7_ATL_ATLCR_REG(cdesc->id),
-+		  cdesc->divider - 1);
-+	atl_write(cdesc->cinfo, DRA7_ATL_SWEN_REG(cdesc->id), DRA7_ATL_SWEN);
-+
-+out:
-+	cdesc->enabled = true;
-+
-+	return 0;
-+}
-+
-+static void atl_clk_disable(struct clk_hw *hw)
-+{
-+	struct dra7_atl_desc *cdesc = to_atl_desc(hw);
-+
-+	if (!cdesc->probed)
-+		goto out;
-+
-+	atl_write(cdesc->cinfo, DRA7_ATL_SWEN_REG(cdesc->id), 0);
-+	pm_runtime_put_sync(cdesc->cinfo->dev);
-+
-+out:
-+	cdesc->enabled = false;
-+}
-+
-+static int atl_clk_is_enabled(struct clk_hw *hw)
-+{
-+	struct dra7_atl_desc *cdesc = to_atl_desc(hw);
-+
-+	return cdesc->enabled;
-+}
-+
-+static unsigned long atl_clk_recalc_rate(struct clk_hw *hw,
-+					 unsigned long parent_rate)
-+{
-+	struct dra7_atl_desc *cdesc = to_atl_desc(hw);
-+
-+	return parent_rate / cdesc->divider;
-+}
-+
-+static long atl_clk_round_rate(struct clk_hw *hw, unsigned long rate,
-+			       unsigned long *parent_rate)
-+{
-+	unsigned divider;
-+
-+	divider = (*parent_rate + rate / 2) / rate;
-+	if (divider > DRA7_ATL_DIVIDER_MASK + 1)
-+		divider = DRA7_ATL_DIVIDER_MASK + 1;
-+
-+	return *parent_rate / divider;
-+}
-+
-+static int atl_clk_set_rate(struct clk_hw *hw, unsigned long rate,
-+			    unsigned long parent_rate)
-+{
-+	struct dra7_atl_desc *cdesc = to_atl_desc(hw);
-+	u32 divider;
-+
-+	divider = ((parent_rate + rate / 2) / rate) - 1;
-+	if (divider > DRA7_ATL_DIVIDER_MASK)
-+		divider = DRA7_ATL_DIVIDER_MASK;
-+
-+	cdesc->divider = divider + 1;
-+
-+	return 0;
-+}
-+
-+const struct clk_ops atl_clk_ops = {
-+	.enable		= atl_clk_enable,
-+	.disable	= atl_clk_disable,
-+	.is_enabled	= atl_clk_is_enabled,
-+	.recalc_rate	= atl_clk_recalc_rate,
-+	.round_rate	= atl_clk_round_rate,
-+	.set_rate	= atl_clk_set_rate,
-+};
-+
-+static void __init of_dra7_atl_clock_setup(struct device_node *node)
-+{
-+	struct dra7_atl_desc *clk_hw = NULL;
-+	struct clk_init_data init = { 0 };
-+	const char **parent_names = NULL;
-+	struct clk *clk;
-+
-+	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
-+	if (!clk_hw) {
-+		pr_err("%s: could not allocate dra7_atl_desc\n", __func__);
-+		return;
-+	}
-+
-+	clk_hw->hw.init = &init;
-+	clk_hw->divider = 1;
-+	init.name = node->name;
-+	init.ops = &atl_clk_ops;
-+	init.flags = CLK_IGNORE_UNUSED;
-+	init.num_parents = of_clk_get_parent_count(node);
-+
-+	if (init.num_parents != 1) {
-+		pr_err("%s: atl clock %s must have 1 parent\n", __func__,
-+		       node->name);
-+		goto cleanup;
-+	}
-+
-+	parent_names = kzalloc(sizeof(char *), GFP_KERNEL);
-+
-+	if (!parent_names)
-+		goto cleanup;
-+
-+	parent_names[0] = of_clk_get_parent_name(node, 0);
-+
-+	init.parent_names = parent_names;
-+
-+	clk = clk_register(NULL, &clk_hw->hw);
-+
-+	if (!IS_ERR(clk)) {
-+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-+		return;
-+	}
-+cleanup:
-+	kfree(parent_names);
-+	kfree(clk_hw);
-+}
-+CLK_OF_DECLARE(dra7_atl_clock, "ti,dra7-atl-clock", of_dra7_atl_clock_setup);
-+
-+static int of_dra7_atl_clk_probe(struct platform_device *pdev)
-+{
-+	struct device_node *node = pdev->dev.of_node;
-+	struct dra7_atl_clock_info *cinfo;
-+	int i;
-+	int ret = 0;
-+
-+	if (!node)
-+		return -ENODEV;
-+
-+	cinfo = devm_kzalloc(&pdev->dev, sizeof(*cinfo), GFP_KERNEL);
-+	if (!cinfo)
-+		return -ENOMEM;
-+
-+	cinfo->iobase = of_iomap(node, 0);
-+	cinfo->dev = &pdev->dev;
-+	pm_runtime_enable(cinfo->dev);
-+
-+	pm_runtime_get_sync(cinfo->dev);
-+	atl_write(cinfo, DRA7_ATL_PCLKMUX_REG(0), DRA7_ATL_PCLKMUX);
-+
-+	for (i = 0; i < DRA7_ATL_INSTANCES; i++) {
-+		struct device_node *cfg_node;
-+		char prop[5];
-+		struct dra7_atl_desc *cdesc;
-+		struct of_phandle_args clkspec;
-+		struct clk *clk;
-+		int rc;
-+
-+		rc = of_parse_phandle_with_args(node, "ti,provided-clocks",
-+						NULL, i, &clkspec);
-+
-+		if (rc) {
-+			pr_err("%s: failed to lookup atl clock %d\n", __func__,
-+			       i);
-+			return -EINVAL;
-+		}
-+
-+		clk = of_clk_get_from_provider(&clkspec);
-+
-+		cdesc = to_atl_desc(__clk_get_hw(clk));
-+		cdesc->cinfo = cinfo;
-+		cdesc->id = i;
-+
-+		/* Get configuration for the ATL instances */
-+		snprintf(prop, sizeof(prop), "atl%u", i);
-+		cfg_node = of_find_node_by_name(node, prop);
-+		if (cfg_node) {
-+			ret = of_property_read_u32(cfg_node, "bws",
-+						   &cdesc->bws);
-+			ret |= of_property_read_u32(cfg_node, "aws",
-+						    &cdesc->aws);
-+			if (!ret) {
-+				cdesc->valid = true;
-+				atl_write(cinfo, DRA7_ATL_BWSMUX_REG(i),
-+					  cdesc->bws);
-+				atl_write(cinfo, DRA7_ATL_AWSMUX_REG(i),
-+					  cdesc->aws);
-+			}
-+		}
-+
-+		cdesc->probed = true;
-+		/*
-+		 * Enable the clock if it has been asked prior to loading the
-+		 * hw driver
-+		 */
-+		if (cdesc->enabled)
-+			atl_clk_enable(__clk_get_hw(clk));
-+	}
-+	pm_runtime_put_sync(cinfo->dev);
-+
-+	return ret;
-+}
-+
-+static int of_dra7_atl_clk_remove(struct platform_device *pdev)
-+{
-+	pm_runtime_disable(&pdev->dev);
-+
-+	return 0;
-+}
-+
-+static struct of_device_id of_dra7_atl_clk_match_tbl[] = {
-+	{ .compatible = "ti,dra7-atl", },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, of_dra7_atl_clk_match_tbl);
-+
-+static struct platform_driver dra7_atl_clk_driver = {
-+	.driver = {
-+		.name = "dra7-atl",
-+		.owner = THIS_MODULE,
-+		.of_match_table = of_dra7_atl_clk_match_tbl,
-+	},
-+	.probe = of_dra7_atl_clk_probe,
-+	.remove = of_dra7_atl_clk_remove,
-+};
-+
-+module_platform_driver(dra7_atl_clk_driver);
-+
-+MODULE_DESCRIPTION("Clock driver for DRA7 Audio Tracking Logic");
-+MODULE_ALIAS("platform:dra7-atl-clock");
-+MODULE_AUTHOR("Peter Ujfalusi <peter.ujfalusi@ti.com>");
-+MODULE_LICENSE("GPL v2");
-+
--- 
-1.9.2
++		omap_dwc3_4@48940000 {
++			compatible =3D "ti,dwc3";
++			ti,hwmods =3D "usb_otg_ss4";
++			reg =3D <0x48940000 0x10000>;
++			interrupts =3D <GIC_SPI 346 IRQ_TYPE_LEVEL_HIGH>;
++			#address-cells =3D <1>;
++			#size-cells =3D <1>;
++			utmi-mode =3D <2>;
++			ranges;
++			status =3D "disabled";
++			usb4: usb@48950000 {
++				compatible =3D "snps,dwc3";
++				reg =3D <0x48950000 0x17000>;
++				interrupts =3D <GIC_SPI 345 IRQ_TYPE_LEVEL_HIGH>;
++				tx-fifo-resize;
++				maximum-speed =3D "high-speed";
++				dr_mode =3D "otg";
++			};
++		};
+ 	};
+=20
+ 	crossbar_mpu: crossbar@4a020000 {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-=
+omap2/omap_hwmod_7xx_data.c
+index 067d322..d6f9709 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -2330,21 +2330,11 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__=
+mpu =3D {
+ 	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+ };
+=20
+-static struct omap_hwmod_addr_space dra7xx_ocp2scp1_addrs[] =3D {
+-	{
+-		.pa_start	=3D 0x4a080000,
+-		.pa_end		=3D 0x4a08001f,
+-		.flags		=3D ADDR_TYPE_RT
+-	},
+-	{ }
+-};
