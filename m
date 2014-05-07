@@ -1,186 +1,238 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 05/17] pci: host: pcie-dra7xx: add support for pcie-dra7xx
- controller
-Date: Wed, 7 May 2014 14:14:55 +0530
-Message-ID: <5369F287.6000103@ti.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com> <1399383244-14556-6-git-send-email-kishon@ti.com> <4300084.bc6ByDTk7W@wuerfel>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 6/7] ARM: dts: dra7: Add USB related nodes
+Date: Wed, 7 May 2014 11:45:40 +0300
+Message-ID: <5369F2B4.6030603@ti.com>
+References: <1399283686-6127-1-git-send-email-rogerq@ti.com> <1399283686-6127-7-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4300084.bc6ByDTk7W@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, Marek Vasut <marex@denx.de>, balajitk@ti.com, Mohit Kumar <mohit.kumar@st.com>, Jingoo Han <jg1.han@samsung.com>, Bjorn Helgaas <bhelgaas@google.com>, rogerq@ti.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1399283686-6127-7-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: george.cherian-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Tony,
 
-On Tuesday 06 May 2014 07:24 PM, Arnd Bergmann wrote:
-> On Tuesday 06 May 2014 19:03:51 Kishon Vijay Abraham I wrote:
->> Added support for pcie controller in dra7xx. This driver re-uses
->> the designware core code that is already present in kernel.
->>
->> Cc: Bjorn Helgaas <bhelgaas@google.com>
->> Cc: Mohit Kumar <mohit.kumar@st.com>
->> Cc: Jingoo Han <jg1.han@samsung.com>
->> Cc: Marek Vasut <marex@denx.de>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> 
-> Looks pretty good overall, just a few details I noticed:
-> 
->> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
->> new file mode 100644
->> index 0000000..6cb6f09
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
->> @@ -0,0 +1,33 @@
->> +TI PCI Controllers
->> +
->> +PCIe Designware Controller
->> +This node should have the properties described in "designware-pcie.txt".
->> + - compatible: Should be "ti,dra7xx-pcie""
-> 
-> No "xx" in compatible strings please. Just make name this after the first
-> chip to use this particular interface.
+This patch will need to be updated for IRQ crossbar changes.
 
-ok.
-> 
->> + - reg : Address and length of the register set for the device.
->> + - reg-names : "ti_conf" for the TI specific registers and rc_dbics for the
->> +   "designware" registers.
-> 
-> The description uses inconsistent quotation marks. You should also have
-> a fixed order in the binding, such as
-> 
->  - reg : Two register ranges as listed in the reg-names property
->  - reg-names : The first entry must be "ti-conf" for the TI specific registers
-> 	       The second entry must be "rc-dbics" for the designware pcie registers.
+I will send a revised version of just this patch based on crossbar chan=
+ges [1]
 
-ok, looks better.
-> 
->> + - phys : the phandle for the PHY device (used by generic PHY framework)
->> + - phy-names : the names of the PHY corresponding to the PHYs present in the
->> +   *phy* phandle.
-> 
-> It's not just a phandle, it can be any phy specifier including additional
-> argument cells.
-> 
-> The second line should just read
-> 
->  - phy-names : must be "pcie-phy"
+[1] - http://article.gmane.org/gmane.linux.documentation/23293
 
-will fix this.
-> 
->> diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
->> index a6f67ec..7be6393 100644
->> --- a/drivers/pci/host/Kconfig
->> +++ b/drivers/pci/host/Kconfig
->> @@ -1,6 +1,16 @@
->>  menu "PCI host controller drivers"
->>  	depends on PCI
->>  
->> +config PCI_DRA7XX
->> +	bool "TI DRA7xx PCIe controller"
->> +	select PCIE_DW
->> +	depends on OF || HAS_IOMEM || TI_PIPE3
-> 
-> I think you mean &&, not || here.
+cheers,
+-roger
 
-ah.. indeed.
-> 
->> +static inline u32 x(void __iomem *base, u32 offset)
->> +{
->> +	return readl(base + offset);
->> +}
->> +
->> +static inline void dra7xx_pcie_writel(void __iomem *base, u32 offset, u32 value)
->> +{
->> +	writel(value, base + offset);
->> +}
-> 
-> These don't actually seem to add any value, you need more characters
-> to call the inline function than to open-code it.
-> 
->> +static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
->> +{
->> +	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
->> +
->> +	dra7xx_pcie_writel(dra7xx->base, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
->> +			   ~INTERRUPTS);
->> +	dra7xx_pcie_writel(dra7xx->base,
->> +			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN, INTERRUPTS);
->> +	dra7xx_pcie_writel(dra7xx->base, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
->> +			   ~LEG_EP_INTERRUPTS & ~MSI);
->> +
->> +	if (IS_ENABLED(CONFIG_PCI_MSI))
->> +		dra7xx_pcie_writel(dra7xx->base,
->> +				   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI, MSI);
->> +	else
->> +		dra7xx_pcie_writel(dra7xx->base,
->> +				   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
->> +				   LEG_EP_INTERRUPTS);
-> 
-> Doesn't this just enable one or the other? In general I'd assume you need
-> both INTx and MSI, at least if MSI is available.
+On 05/05/2014 12:54 PM, Roger Quadros wrote:
+> Add nodes for the Super Speed USB controllers, omap-control-usb,
+> USB2 PHY and USB3 PHY devices.
+>=20
+> Remove ocp2scp1 address space from hwmod data as it is
+> now provided via device tree.
+>=20
+> CC: Beno=C3=AEt Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/dra7.dtsi               | 149 ++++++++++++++++++++=
+++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  10 --
+>  2 files changed, 149 insertions(+), 10 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dts=
+i
+> index 149b550..4535e54 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -789,6 +789,155 @@
+>  			dma-names =3D "tx0", "rx0";
+>  			status =3D "disabled";
+>  		};
+> +
+> +		omap_control_usb2phy1: control-phy@4a002300 {
+> +			compatible =3D "ti,control-phy-usb2";
+> +			reg =3D <0x4a002300 0x4>;
+> +			reg-names =3D "power";
+> +		};
+> +
+> +		omap_control_usb3phy1: control-phy@4a002370 {
+> +			compatible =3D "ti,control-phy-pipe3";
+> +			reg =3D <0x4a002370 0x4>;
+> +			reg-names =3D "power";
+> +		};
+> +
+> +		omap_control_usb2phy2: control-phy@0x4a002e74 {
+> +			compatible =3D "ti,control-phy-usb2-dra7";
+> +			reg =3D <0x4a002e74 0x4>;
+> +			reg-names =3D "power";
+> +		};
+> +
+> +		/* OCP2SCP1 */
+> +		ocp2scp@4a080000 {
+> +			compatible =3D "ti,omap-ocp2scp";
+> +			#address-cells =3D <1>;
+> +			#size-cells =3D <1>;
+> +			ranges;
+> +			reg =3D <0x4a080000 0x20>;
+> +			ti,hwmods =3D "ocp2scp1";
+> +
+> +			usb2_phy1: phy@4a084000 {
+> +				compatible =3D "ti,omap-usb2";
+> +				reg =3D <0x4a084000 0x400>;
+> +				ctrl-module =3D <&omap_control_usb2phy1>;
+> +				clocks =3D <&usb_phy1_always_on_clk32k>,
+> +					 <&usb_otg_ss1_refclk960m>;
+> +				clock-names =3D	"wkupclk",
+> +						"refclk";
+> +				#phy-cells =3D <0>;
+> +			};
+> +
+> +			usb2_phy2: phy@4a085000 {
+> +				compatible =3D "ti,omap-usb2";
+> +				reg =3D <0x4a085000 0x400>;
+> +				ctrl-module =3D <&omap_control_usb2phy2>;
+> +				clocks =3D <&usb_phy2_always_on_clk32k>,
+> +					 <&usb_otg_ss2_refclk960m>;
+> +				clock-names =3D	"wkupclk",
+> +						"refclk";
+> +				#phy-cells =3D <0>;
+> +			};
+> +
+> +			usb3_phy1: phy@4a084400 {
+> +				compatible =3D "ti,omap-usb3";
+> +				reg =3D <0x4a084400 0x80>,
+> +				      <0x4a084800 0x64>,
+> +				      <0x4a084c00 0x40>;
+> +				reg-names =3D "phy_rx", "phy_tx", "pll_ctrl";
+> +				ctrl-module =3D <&omap_control_usb3phy1>;
+> +				clocks =3D <&usb_phy3_always_on_clk32k>,
+> +					 <&sys_clkin1>,
+> +					 <&usb_otg_ss1_refclk960m>;
+> +				clock-names =3D	"wkupclk",
+> +						"sysclk",
+> +						"refclk";
+> +				#phy-cells =3D <0>;
+> +			};
+> +		};
+> +
+> +		omap_dwc3_1@48880000 {
+> +			compatible =3D "ti,dwc3";
+> +			ti,hwmods =3D "usb_otg_ss1";
+> +			reg =3D <0x48880000 0x10000>;
+> +			interrupts =3D <0 77 4>;
+> +			#address-cells =3D <1>;
+> +			#size-cells =3D <1>;
+> +			utmi-mode =3D <2>;
+> +			ranges;
+> +			usb1: usb@48890000 {
+> +				compatible =3D "snps,dwc3";
+> +				reg =3D <0x48890000 0x17000>;
+> +				interrupts =3D <0 76 4>;
+> +				phys =3D <&usb2_phy1>, <&usb3_phy1>;
+> +				phy-names =3D "usb2-phy", "usb3-phy";
+> +				tx-fifo-resize;
+> +				maximum-speed =3D "super-speed";
+> +				dr_mode =3D "otg";
+> +			};
+> +		};
+> +
+> +		omap_dwc3_2@488c0000 {
+> +			compatible =3D "ti,dwc3";
+> +			ti,hwmods =3D "usb_otg_ss2";
+> +			reg =3D <0x488c0000 0x10000>;
+> +			interrupts =3D <0 92 4>;
+> +			#address-cells =3D <1>;
+> +			#size-cells =3D <1>;
+> +			utmi-mode =3D <2>;
+> +			ranges;
+> +			usb2: usb@488d0000 {
+> +				compatible =3D "snps,dwc3";
+> +				reg =3D <0x488d0000 0x17000>;
+> +				interrupts =3D <0 78 4>;
+> +				phys =3D <&usb2_phy2>;
+> +				phy-names =3D "usb2-phy";
+> +				tx-fifo-resize;
+> +				maximum-speed =3D "high-speed";
+> +				dr_mode =3D "otg";
+> +			};
+> +		};
+> +
+> +		/* IRQ for DWC3_3 and DWC3_4 need IRQ crossbar */
+> +		omap_dwc3_3@48900000 {
+> +			compatible =3D "ti,dwc3";
+> +			ti,hwmods =3D "usb_otg_ss3";
+> +			reg =3D <0x48900000 0x10000>;
+> +		/*	interrupts =3D <0 TBD 4>; */
+> +			#address-cells =3D <1>;
+> +			#size-cells =3D <1>;
+> +			utmi-mode =3D <2>;
+> +			ranges;
+> +			status =3D "disabled";
+> +			usb3: usb@48910000 {
+> +				compatible =3D "snps,dwc3";
+> +				reg =3D <0x48910000 0x17000>;
+> +		/*		interrupts =3D <0 93 4>; */
+> +				tx-fifo-resize;
+> +				maximum-speed =3D "high-speed";
+> +				dr_mode =3D "otg";
+> +			};
+> +		};
+> +
+> +		omap_dwc3_4@48940000 {
+> +			compatible =3D "ti,dwc3";
+> +			ti,hwmods =3D "usb_otg_ss4";
+> +			reg =3D <0x48940000 0x10000>;
+> +		/*	interrupts =3D <0 TBD 4>; */
+> +			#address-cells =3D <1>;
+> +			#size-cells =3D <1>;
+> +			utmi-mode =3D <2>;
+> +			ranges;
+> +			status =3D "disabled";
+> +			usb4: usb@48950000 {
+> +				compatible =3D "snps,dwc3";
+> +				reg =3D <0x48950000 0x17000>;
+> +		/*		interrupts =3D <0 TBD 4>; */
+> +				tx-fifo-resize;
+> +				maximum-speed =3D "high-speed";
+> +				dr_mode =3D "otg";
+> +			};
+> +		};
+>  	};
+>  };
+> =20
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mac=
+h-omap2/omap_hwmod_7xx_data.c
+> index 067d322..d6f9709 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> @@ -2330,21 +2330,11 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg=
+__mpu =3D {
+>  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+> =20
+> -static struct omap_hwmod_addr_space dra7xx_ocp2scp1_addrs[] =3D {
+> -	{
+> -		.pa_start	=3D 0x4a080000,
+> -		.pa_end		=3D 0x4a08001f,
+> -		.flags		=3D ADDR_TYPE_RT
+> -	},
+> -	{ }
+> -};
+> -
+>  /* l4_cfg -> ocp2scp1 */
+>  static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 =3D {
+>  	.master		=3D &dra7xx_l4_cfg_hwmod,
+>  	.slave		=3D &dra7xx_ocp2scp1_hwmod,
+>  	.clk		=3D "l4_root_clk_div",
+> -	.addr		=3D dra7xx_ocp2scp1_addrs,
+>  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+> =20
+>=20
 
-Not sure since the programming sequence in the TRM explicitly states either
-legacy interrupts or MSI interrupts should be enabled but not both.
-> 
-> It probably doesn't hurt to always turn them all on.
-> 
->> +static int add_pcie_port(struct dra7xx_pcie *dra7xx,
->> +			  struct platform_device *pdev)
->> +{
->> +	int ret;
->> +	struct pcie_port *pp;
->> +	struct resource *res;
->> +	struct device *dev = &pdev->dev;
->> +
->> +	pp = &dra7xx->pp;
->> +	pp->dev = dev;
->> +	pp->ops = &dra7xx_pcie_host_ops;
->> +
->> +	spin_lock_init(&pp->conf_lock);
->> +
->> +	pp->irq = platform_get_irq(pdev, 1);
->> +	if (pp->irq < 0) {
->> +		dev_err(dev, "missing IRQ resource\n");
->> +		return -EINVAL;
->> +	}
->>
-> 
-> The binding does not list a mandatory "interrupts" property, so
-> this should not be treated as an error.
-
-actually the 'interrupts' property is documented in pci/designware-pcie.txt.
-> 
->> +static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->> +{
->> +	irq = platform_get_irq(pdev, 0);
->> +	if (irq < 0) {
->> +		dev_err(dev, "missing IRQ resource\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	ret = devm_request_irq(&pdev->dev, irq, dra7xx_pcie_irq_handler,
->> +			       IRQF_SHARED, "dra7xx-pcie-main", dra7xx);
->> +	if (ret) {
->> +		dev_err(&pdev->dev, "failed to request irq\n");
->> +		return ret;
->> +	}
-> 
-> Same here.
-> 
->> +
->> +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ti_conf");
->> +	base = devm_ioremap_nocache(dev, res->start, resource_size(res));
-> 
-> Just use devm_ioremap() instead of devm_ioremap_nocache(). The second
-> one is just there for historic reasons, and they always do the same
-> thing.
-
-Ok.
-
-Thanks
-Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
