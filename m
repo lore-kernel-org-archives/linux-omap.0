@@ -1,45 +1,80 @@
-From: Darren Etheridge <detheridge@ti.com>
-Subject: Re: [PATCH V6 0/2] arm: dts: dra7: Updates for adding crossbar device
-Date: Wed, 7 May 2014 09:56:56 -0500
-Message-ID: <20140507145656.GG2626@ti.com>
-References: <1399464998-23216-1-git-send-email-r.sricharan@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
+Date: Wed, 7 May 2014 11:03:42 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1405071050530.1325-100000@iolanthe.rowland.org>
+References: <20140507215344.GH19925@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1399464998-23216-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, tglx@linutronix.de, galak@codeaurora.org, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, robherring2@gmail.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140507215344.GH19925@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>, Zhuang Jin Can <jin.can.zhuang@intel.com>
+Cc: USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, liping.zhou@intel.com, david.a.cohen@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-Sricharan R <r.sricharan@ti.com> wrote on Wed [2014-May-07 17:46:36 +0530]:
-> Some socs have a large number of interrupts requests to service
-> the needs of its many peripherals and subsystems. All of the interrupt
-> requests lines from the subsystems are not needed at the same
-> time, so they have to be muxed to the controllers appropriately.
-> In such places a interrupt controllers are preceded by an
-> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
-> requests to the controller inputs.
-> 
-> The dts file update to support the crossbar device and convert
-> peripheral irq numbers to crossbar number are added here.
-> 
-> This is a rebase on top of 3.15-rc4
-> 
-> This series depends on crossbar-driver-fixes sent below
-> http://marc.info/?l=linux-omap&m=139929963420299&w=2
-> 
-> [V6] Reordered patch 3 to patch 1 and
->      squashed patch 2 and 3 from V5 in to patch 2
-> 
-> Sricharan R (2):
->   arm: dts: dra7: Add routable-irqs property for gic node
->   arm: dts: dra7: Add crossbar device binding
-> 
+On Wed, 7 May 2014, Zhuang Jin Can wrote:
 
-Just for thoroughness I dropped the previous 3 patch series from my
-build and replaced with this two patch series.  Everything still works
-with my test setup so I consider these patches good.
+> A delayed status request may be queued before composite framework returns
+> USB_GADGET_DELAYED_STATUS, because the thread queueing the request can run
+> on a different core in parallel with the control request irq.
+> 
+> SETUP XferComplete IRQ        		fsg_main_thread
+> ----------------------        		---------------
+> 	|					|
+> spin_lock_irqsave(&dwc->lock)               sleeping
+> 	|					|
+> 	...					...
+> dwc3_ep0_inspect_setup()			|
+> 	|					|
+> dwc3_ep0_delegate_req() 			|
+> 	|					|
+> 	...					|
+> spin_unlock(&dwc->lock);			|
+> 	|					|
+> fsg_set_alt()   ======> Signal Wakeup ====>	|
+> 	| 					|
+> other gadgets->set_alt() 	       handle exception
+> 	|					|
+> 	|			usb_composite_setup_continue()
+> 	|					|
+> 	|			spin_lock_irqsave(&dwc->lock)
+>   	|			     __dwc3_gadget_ep0_queue()
+> 	|				 delay_status is false
+> 	|			spin_unlock_irqrestore(&dwc->lock)
+> 	|					|
+> 	|				     sleeping
+> spin_lock(&dwc->lock); 				|
+> 	|					|
+> delayed_status=true				|
+> 	|					|
+> 
+> 		STATUS XferNotReady IRQ
+> 		------------------------
+> 			|
+> 		dwc3_ep0_xfernotready()
+> 			|
+> 		   delayed_status is true, return;
+> 
+> The result is the status packet will never be transferred, and
+> delayed_status is not cleared.
+> 
+> Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
+> Reported-by: Zhou Liping <liping.zhou@intel.com>
 
-Darren
+A similar problem can occur in the opposite sense: The thread queuing
+the delayed status request might be delayed for so long that another
+SETUP packet arrives from the host first.  In that case, the delayed
+status request is a response for a stale transfer, so it must not be
+sent to the host.
+
+Do dwc3 and composite.c handle this case correctly?
+
+Back in the old g_file_storage driver, I addressed this issue by
+keeping a counter of all the setup requests.  When it came time to send
+a delayed status response, the response would be sent only if the
+counter had not changed from when the original setup request was
+received.
+
+As far as I can see, composite.c doesn't do anything like that.
+
+Alan Stern
