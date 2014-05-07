@@ -1,86 +1,52 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 4/4] ARM: dts: dra7: add OCP2SCP3 and SATA nodes
-Date: Wed, 7 May 2014 14:58:58 +0300
-Message-ID: <536A2002.4020603@ti.com>
-References: <1398274237-24510-1-git-send-email-rogerq@ti.com> <1398274575-24818-1-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH V5 0/3] arm: dts: dra7: Updates for adding crossbar device
+Date: Wed, 7 May 2014 15:06:14 +0300
+Message-ID: <536A21B6.9040900@ti.com>
+References: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44112 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751834AbaEGL7U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 May 2014 07:59:20 -0400
-In-Reply-To: <1398274575-24818-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1399384579-25620-1-git-send-email-r.sricharan@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>, tony@atomide.com
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, tglx@linutronix.de, galak@codeaurora.org, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, robherring2@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>
 
-From: Balaji T K <balajitk@ti.com>
+On 05/06/2014 04:56 PM, Sricharan R wrote:
+> Some socs have a large number of interrupts requests to service
+> the needs of its many peripherals and subsystems. All of the interrupt
+> requests lines from the subsystems are not needed at the same
+> time, so they have to be muxed to the controllers appropriately.
+> In such places a interrupt controllers are preceded by an
+> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+> requests to the controller inputs.
+> 
+> The dts file update to support the crossbar device and convert
+> peripheral irq numbers to crossbar number are added here.
+> 
+> This is a rebase of V4 series on top of 3.15-rc4
+> 
+> This series depends on crossbar-driver-fixes sent below
+> http://marc.info/?l=linux-omap&m=139929963420299&w=2
 
-Add nodes for OCP2SCP3 bus, SATA controller and SATA PHY.
+For USB and SATA
 
-[Roger Q] Clean up. Updated IRQ for interrupt crossbar.
+Tested-by: Roger Quadros <rogerq@ti.com>
 
-CC: Benoit Cousson <bcousson@baylibre.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi | 39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+NOTE: I've updated the USB and SATA patches on l-o list to work with this series.
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index cec826f..1f42e72 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -798,6 +798,45 @@
- 			dma-names = "tx0", "rx0";
- 			status = "disabled";
- 		};
-+
-+		omap_control_sata: control-phy@4a002374 {
-+			compatible = "ti,control-phy-pipe3";
-+			reg = <0x4a002374 0x4>;
-+			reg-names = "power";
-+			clocks = <&sys_clkin1>;
-+			clock-names = "sysclk";
-+		};
-+
-+		/* OCP2SCP3 */
-+		ocp2scp@4a090000 {
-+			compatible = "ti,omap-ocp2scp";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			reg = <0x4a090000 0x20>;
-+			ti,hwmods = "ocp2scp3";
-+			sata_phy: phy@4A096000 {
-+				compatible = "ti,phy-pipe3-sata";
-+				reg = <0x4A096000 0x80>, /* phy_rx */
-+				      <0x4A096400 0x64>, /* phy_tx */
-+				      <0x4A096800 0x40>; /* pll_ctrl */
-+				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
-+				ctrl-module = <&omap_control_sata>;
-+				clocks = <&sys_clkin1>;
-+				clock-names = "sysclk";
-+				#phy-cells = <0>;
-+			};
-+		};
-+
-+		sata: sata@4a141100 {
-+			compatible = "snps,dwc-ahci";
-+			reg = <0x4a140000 0x1100>, <0x4a141100 0x7>;
-+			interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
-+			phys = <&sata_phy>;
-+			phy-names = "sata-phy";
-+			clocks = <&sata_ref_clk>;
-+			ti,hwmods = "sata";
-+		};
- 	};
- 
- 	crossbar_mpu: crossbar@4a020000 {
--- 
-1.8.3.2
+cheers,
+-roger
 
+> 
+> Sricharan R (3):
+>   arm: dts: dra7: Add crossbar device binding
+>   arm: dts: dra7: Replace peripheral interrupt numbers with crossbar
+>     inputs
+>   arm: dts: dra7: Add routable-irqs property for gic node
+> 
+>  arch/arm/boot/dts/dra7.dtsi |  109 +++++++++++++++++++++++++------------------
+>  1 file changed, 63 insertions(+), 46 deletions(-)
+> 
 
