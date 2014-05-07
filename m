@@ -1,60 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 2/4] ARM: dts: am437x-gp-evm: add support for parallel
- NAND flash
-Date: Wed, 7 May 2014 14:19:49 -0700
-Message-ID: <20140507211949.GA19102@atomide.com>
-References: <1398152020-19391-1-git-send-email-pekon@ti.com>
- <1398152020-19391-3-git-send-email-pekon@ti.com>
- <20140506153956.GE18474@atomide.com>
- <20980858CB6D3A4BAE95CA194937D5E73EACB432@DBDE04.ent.ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH 01/26] ARM: OMAP: dmtimer: Remove setting of clk parent
+ indirectly through platform hook
+Date: Wed, 7 May 2014 16:43:28 -0500
+Message-ID: <536AA900.4040200@ti.com>
+References: <1398375849-6017-1-git-send-email-joelf@ti.com> <1398375849-6017-2-git-send-email-joelf@ti.com> <20140507151907.GB9502@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58673 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292AbaEGVTy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2014 17:19:54 -0400
-Content-Disposition: inline
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EACB432@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140507151907.GB9502@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: "bcousson@baylibre.com" <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>
 
-* Gupta, Pekon <pekon@ti.com> [140507 12:20]:
-> >From: Tony Lindgren [mailto:tony@atomide.com]
-> >>* Pekon Gupta <pekon@ti.com> [140422 00:34]:
-> >> +&gpmc {
-> >> +	status = "okay";
-> >> +	pinctrl-names = "default";
-> >> +	pinctrl-0 = <&nand_flash_x8>;
-> >> +	ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
-> >
-> >Please use the minimum size 16MB GPMC range here, NAND only
-> >has few registers addressable unlike NOR that actually uses the
-> >whole range.
-> >
-> >> +	nand@0,0 {
-> >> +		reg = <0 0 0>; /* CS0, offset 0 */
-> >
-> >Then here map the true size of the NAND device IO register area.
-> >
-> >BTW, we should do the similar changes to other files so we can
-> >unify the GPMC partitioning a bit. But that's unsafe to do until
-> >we have fixed the issue of mapping GPMC devices to a different
-> >location from the bootloader location.
-> >
-> I have found the fix of this issue in gpmc_cs_remap() just testing it
-> using beaglebone NOR cape. I'll post that separately, once I'm confident.
+On 05/07/2014 10:19 AM, Tony Lindgren wrote:
+> * Joel Fernandes <joelf@ti.com> [140424 14:44]:
+>> There is a platform specific hook just for OMAP1 to set its clk parent.  Remove
+>> this hook and have OMAP1 set its parent in omap1_dm_timer_init.  If OMAP1 is
+>> ever migrated to clock framework, the correct way to do this would be through
+>> clk_set_parent like other platforms.
+>>
+>> Signed-off-by: Joel Fernandes <joelf@ti.com>
+>> ---
+>>  arch/arm/mach-omap1/timer.c                |    8 +++++++-
+>>  arch/arm/plat-omap/dmtimer.c               |    8 +++-----
+>>  include/linux/platform_data/dmtimer-omap.h |    2 --
+>>  3 files changed, 10 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap1/timer.c b/arch/arm/mach-omap1/timer.c
+>> index bde7a35..4b9c604 100644
+>> --- a/arch/arm/mach-omap1/timer.c
+>> +++ b/arch/arm/mach-omap1/timer.c
+>> @@ -140,7 +140,13 @@ static int __init omap1_dm_timer_init(void)
+>>  			goto err_free_pdata;
+>>  		}
+>>  
+>> -		pdata->set_timer_src = omap1_dm_timer_set_src;
+>> +		/*
+>> +		 * Since OMAP1 doesn't support clock framework, set timer clock
+>> +		 * source to 32KHz here instead of expecting it to be set by
+>> +		 * dmtimer code.
+>> +		 */
+>> +		omap1_dm_timer_set_src(pdev, 0x01);
+>> +
+>>  		pdata->timer_capability = OMAP_TIMER_ALWON |
+>>  				OMAP_TIMER_NEEDS_RESET | OMAP_TIMER_HAS_DSP_IRQ;
+>>  
+> 
+> This does not sound right, omap1 does support clock framework just fine.
+> It is not using the common clock framework though.
+> 
+> This breaks omap_dm_timer_set_source() for sure. Setting the source
+> during init is not a right solution here. Probably best to keep the
+> pdata hook around, drivers can support pdata and DT data together
+> just fine.
 
-OK that's great. Yet another issue I've noticed is that u-boot
-seems to program 37xx L3 to run at 200 MHz and the LAN9220
-timings overflow the GPMC registers as 200 / 5 >= 32.
- 
-> But for now, I'll re-send just these patches for NAND DT node with
-> your feedbacks incorporated, so that NAND is stable on these
-> platforms / boards from 3.16 onwards.
+Actually pdata hook in this case is used only in 1 place, and is OMAP1
+specific so I felt its better to clean it up.
 
-OK sounds good to me.
+Can you elaborate a bit more on why it breaks? I have no way of testing
+OMAP1 without hardware.
 
-Tony
+What difference is it to set MOD_CONF_CTRL_1 in omap1's
+arch_initcall(omap1_dm_timer_init)  versus doing so later?
+
+-Joel
