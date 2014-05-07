@@ -1,59 +1,93 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH 09/26] ARM: OMAP: dmtimer: Get rid of check for mem resource
- error
-Date: Wed, 7 May 2014 16:52:28 -0500
-Message-ID: <536AAB1C.6010301@ti.com>
-References: <1398375849-6017-1-git-send-email-joelf@ti.com> <1398375849-6017-10-git-send-email-joelf@ti.com> <20140507152426.GD9502@atomide.com>
+Subject: Re: [PATCH 04/26] ARM: OMAP: dmtimer: Add function to check if timer
+ is running
+Date: Wed, 7 May 2014 17:00:22 -0500
+Message-ID: <536AACF6.9070204@ti.com>
+References: <1398375849-6017-1-git-send-email-joelf@ti.com> <1398375849-6017-5-git-send-email-joelf@ti.com> <20140507152521.GE9502@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45313 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753004AbaEGVwx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2014 17:52:53 -0400
-In-Reply-To: <20140507152426.GD9502@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:44352 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751424AbaEGWAs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 May 2014 18:00:48 -0400
+In-Reply-To: <20140507152521.GE9502@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 05/07/2014 10:24 AM, Tony Lindgren wrote:
+On 05/07/2014 10:25 AM, Tony Lindgren wrote:
 > * Joel Fernandes <joelf@ti.com> [140424 14:44]:
->> The subsequent devm_ioremap_resource will catch it and print an error, let it
->> be checked there.
+>> Inorder to move non-DM timer specific code that modifies the "idlect"
+>> mask on OMAP1, from dmtimer code, to OMAP1 specific timer initialization code,
+>> we introduce a new function that can possibly be reused for other purposes in
+>> the future. The function just checks if a timer is running based on the timer ID
+>> which should be same as pdev->id. This allows us to cleanly separate the timer vs
+>> non-timer bits and keep the timer bits in the dmtimer code.
 >>
 >> Signed-off-by: Joel Fernandes <joelf@ti.com>
 >> ---
->>  arch/arm/plat-omap/dmtimer.c |    4 ----
->>  1 file changed, 4 deletions(-)
+>>  arch/arm/plat-omap/dmtimer.c              |   29 +++++++++++++++++++++++++++++
+>>  arch/arm/plat-omap/include/plat/dmtimer.h |    2 ++
+>>  2 files changed, 31 insertions(+)
 >>
 >> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
->> index 7e806f9..1fd30fa 100644
+>> index 4debb3d..86b2641 100644
 >> --- a/arch/arm/plat-omap/dmtimer.c
 >> +++ b/arch/arm/plat-omap/dmtimer.c
->> @@ -810,10 +810,6 @@ static int omap_dm_timer_probe(struct platform_device *pdev)
->>  	}
+>> @@ -187,6 +187,35 @@ int omap_dm_timer_reserve_systimer(int id)
+>>  	return 0;
+>>  }
 >>  
->>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> -	if (unlikely(!mem)) {
->> -		dev_err(dev, "%s: no memory resource.\n", __func__);
->> -		return -ENODEV;
->> -	}
->>  
->>  	timer = devm_kzalloc(dev, sizeof(struct omap_dm_timer), GFP_KERNEL);
->>  	if (!timer) {
+>> +/*
+>> + * Check if a timer is running based on timer_id, used for OMAP1 currently.
+>> + */
+>> +int omap_dm_timer_is_running(int timer_id)
+>> +{
+>> +	int i = 1, ret = 0;
+>> +	struct omap_dm_timer *timer = NULL;
+>> +	unsigned long flags;
+>> +
+>> +	spin_lock_irqsave(&dm_timer_lock, flags);
+>> +	list_for_each_entry(timer, &omap_timer_list, node) {
+>> +		if (i == timer_id) {
+>> +			u32 l;
+>> +			l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
+>> +			if (l & OMAP_TIMER_CTRL_ST) {
+>> +				ret = 1;
+>> +				goto done;
+>> +			} else {
+>> +				goto done;
+>> +			}
+>> +		}
+>> +		i++;
+>> +	}
+>> +done:
+>> +	spin_unlock_irqrestore(&dm_timer_lock, flags);
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(omap_dm_timer_is_running);
 > 
-> We still need to return an error here and not try to continue though.
+> Let's not add new exported custom functions, let's instead try to get
+> rid of them. What needs to use this one?
 
-We are returning an error if mem is NULL so the redundant check is
-unnecessary:
+This piece of code was entangled with OMAP1 specific logic.
 
-...
-        timer->io_base = devm_ioremap_resource(dev, mem);
-        if (IS_ERR(timer->io_base))
-                return PTR_ERR(timer->io_base);
+The OMAP1 specific logic is moved into a new function in the OMAP1 timer
+layer called: omap_dm_timer_modify_idlect_mask
 
+What's left is code that needs to iterate over all the timers by
+checking the OMAP_TIMER_CTRL_ST bit in the control register. This is
+left back into the dmtimer code but needs to be exported since we
+ultimately will move dmtimer into clock source.
+
+If you notice, I removed export of omap_dm_timer_modify_idlect_mask
+since it is moved to omap1 layer and is local there, so it should be OK
+to export this symbol instead. We are not adding more exports, and its
+still an improvement over the old code as the OMAP1 specific logic is
+decoupled from the generic dmtimer code.
 
 thanks,
 
