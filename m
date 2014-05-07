@@ -1,107 +1,177 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 2/4] OMAPDSS: panel-sharp-ls037v7dw01: update to use gpiod
-Date: Wed, 7 May 2014 11:15:12 +0300
-Message-ID: <5369EB90.8060007@ti.com>
-References: <1398815562-24113-1-git-send-email-tony@atomide.com>
- <1398815562-24113-3-git-send-email-tony@atomide.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 05/17] pci: host: pcie-dra7xx: add support for pcie-dra7xx
+ controller
+Date: Wed, 7 May 2014 13:51:57 +0530
+Message-ID: <5369ED25.70101@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com> <1399383244-14556-6-git-send-email-kishon@ti.com> <201405061544.28738.marex@denx.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0027326360646278318=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1398815562-24113-3-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201405061544.28738.marex-ynQEQJNshbs@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Mohit Kumar <mohit.kumar-qxv4g6HH51o@public.gmane.org>, Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============0027326360646278318==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="01KEpad7JTjQsvFkc0WExh7SPSGvkDhDE"
+Hi,
 
---01KEpad7JTjQsvFkc0WExh7SPSGvkDhDE
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Tuesday 06 May 2014 07:14 PM, Marek Vasut wrote:
+> On Tuesday, May 06, 2014 at 03:33:51 PM, Kishon Vijay Abraham I wrote:
+>> Added support for pcie controller in dra7xx. This driver re-uses
+>> the designware core code that is already present in kernel.
+> 
+> [...]
+> 
+>> +#define to_dra7xx_pcie(x)	container_of((x), struct dra7xx_pcie, pp)
+>> +
+>> +static inline u32 dra7xx_pcie_readl(void __iomem *base, u32 offset)
+> 
+> Just pass struct dra7xx_pcie * instead of *base here , it will make the code 
+> below shorter.
+> 
+>> +{
+>> +	return readl(base + offset);
+>> +}
+>> +
+>> +static inline void dra7xx_pcie_writel(void __iomem *base, u32 offset, u32
+>> value) +{
+> 
+> DTTO.
+> 
+>> +	writel(value, base + offset);
+>> +}
+>> +
+>> +static int dra7xx_pcie_link_up(struct pcie_port *pp)
+>> +{
+>> +	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
+>> +	u32 reg = dra7xx_pcie_readl(dra7xx->base, PCIECTRL_DRA7XX_CONF_PHY_CS);
+>> +
+>> +	if (reg & LINK_UP)
+>> +		return true;
+>> +	return false;
+> 
+> return reg & LINK_UP;
+> 
+>> +}
+>> +
+>> +static int dra7xx_pcie_establish_link(struct pcie_port *pp)
+>> +{
+>> +	u32 reg;
+>> +	int retries = 1000;
+>> +	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
+>> +
+>> +	if (dw_pcie_link_up(pp)) {
+>> +		dev_err(pp->dev, "link is already up\n");
+> 
+> This will spew, since the .link_up (and thus this function) can be called 
+> repeatedly. The subsystem will query if the link is up via this function.
 
-On 30/04/14 02:52, Tony Lindgren wrote:
-> Using gpiod will make it easier to add device tree support
-> for this panel in the following patches.
->=20
-> Note that all the GPIOs for this panel are optional, any
-> of the the GPIOs could be configured with external pulls
-> instead of GPIOs, so let's not error out if GPIOs are not
-> found to make the panel more generic.
->=20
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  .../omap2/displays-new/panel-sharp-ls037v7dw01.c   | 92 +++++++++-----=
---------
->  1 file changed, 38 insertions(+), 54 deletions(-)
+*dra7xx_pcie_establish_link* is not the callback for link_up function, so it's
+actually called only once.
+> 
+>> +		return 0;
+>> +	}
+>> +
+>> +	reg = dra7xx_pcie_readl(dra7xx->base, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
+>> +	reg |= LTSSM_EN;
+>> +	dra7xx_pcie_writel(dra7xx->base, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
+>> +
+>> +	while (--retries) {
+> 
+> Use retries--
+> 
+>> +		reg = dra7xx_pcie_readl(dra7xx->base,
+>> +					PCIECTRL_DRA7XX_CONF_PHY_CS);
+>> +		if (reg & LINK_UP)
+>> +			break;
+>> +		usleep_range(10, 20);
+>> +	}
+>> +
+>> +	if (retries <= 0) {
+> 
+> Then check if retries == 0 and retries can be unsigned int.
+> 
+>> +		dev_err(pp->dev, "link is not up\n");
+>> +		return -ETIMEDOUT;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+> [...]
+>> +static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>> +{
+>> +	u32 reg;
+>> +	int ret;
+>> +	int irq;
+>> +	struct phy *phy;
+>> +	void __iomem *base;
+>> +	struct resource *res;
+>> +	struct dra7xx_pcie *dra7xx;
+>> +	struct device *dev = &pdev->dev;
+>> +
+>> +	dra7xx = devm_kzalloc(&pdev->dev, sizeof(*dra7xx), GFP_KERNEL);
+>> +	if (!dra7xx)
+>> +		return -ENOMEM;
+>> +
+>> +	irq = platform_get_irq(pdev, 0);
+>> +	if (irq < 0) {
+>> +		dev_err(dev, "missing IRQ resource\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	ret = devm_request_irq(&pdev->dev, irq, dra7xx_pcie_irq_handler,
+>> +			       IRQF_SHARED, "dra7xx-pcie-main", dra7xx);
+>> +	if (ret) {
+>> +		dev_err(&pdev->dev, "failed to request irq\n");
+>> +		return ret;
+>> +	}
+>> +
+>> +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ti_conf");
+>> +	base = devm_ioremap_nocache(dev, res->start, resource_size(res));
+>> +	if (!base)
+>> +		return -ENOMEM;
+>> +
+>> +	phy = devm_phy_get(dev, "pcie-phy");
+>> +	if (IS_ERR(phy))
+>> +		return PTR_ERR(phy);
+>> +
+>> +	ret = phy_init(phy);
+>> +	if (ret < 0)
+>> +		return ret;
+>> +
+>> +	ret = phy_power_on(phy);
+>> +	if (ret < 0)
+>> +		goto err_power_on;
+>> +
+>> +	dra7xx->base = base;
+>> +	dra7xx->phy = phy;
+>> +	dra7xx->dev = dev;
+>> +
+>> +	pm_runtime_enable(&pdev->dev);
+>> +	ret = pm_runtime_get_sync(&pdev->dev);
+>> +	if (IS_ERR_VALUE(ret)) {
+>> +		dev_err(dev, "pm_runtime_get_sync failed\n");
+>> +		goto err_runtime_get;
+>> +	}
+>> +
+>> +	reg = dra7xx_pcie_readl(dra7xx->base, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
+>> +	reg &= ~LTSSM_EN;
+>> +	dra7xx_pcie_writel(dra7xx->base, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
+> 
+> platform_set_drvdata() should be here, before you add the port.
+> 
+>> +	ret = add_pcie_port(dra7xx, pdev);
+>> +	if (ret < 0)
+>> +		goto err_add_port;
+>> +
+>> +	platform_set_drvdata(pdev, dra7xx);
 
-<snip>
+Al-right. Will fix this and all your other comments.
 
-> +static struct gpio_desc *
-> +sharp_ls_get_gpio(struct device *dev, int gpio, unsigned long flags,
-> +		  char *desc)
-> +{
-> +	int r;
-> +
-> +	r =3D devm_gpio_request_one(dev, gpio, flags, desc);
-> +	if (r) {
-> +		dev_err(dev, "no %s gpio\n", desc);
-
-As it's fine to not have a gpio, I guess this error print should be remov=
-ed.
-
-Also, if the error is EPROBE_DEFER, the driver should fail and return
-that. The same goes for the DT version in the next patch.
-
- Tomi
-
-
-
---01KEpad7JTjQsvFkc0WExh7SPSGvkDhDE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTaeuQAAoJEPo9qoy8lh711swP/0Z8usacElSZgblnBscYXQV+
-abLMe+nOUiSyUJ9JRe5uVW7oRWIlulOJsAUAXMg85UGya12RhW8jmmfyqLoWAuN3
-ym8794Hqy/CMLcgwhhybP3RZjxykk/WHQCTo5bOZ7/R+TpIZWyobd48aGYS7r0bU
-dXpl4URUSy6MPkWAT9dG+GG7sZTnHjdJ6AeUxFTbey25rtobWIQ8WohFA2mOwt8W
-WREGSRP5SS0P+r5vKneYyarETpYgtMbHV++RPnbQaOceOeo379q386wQ/u/C+Tc1
-Sx/ED6QrYYduKf44f8fEq3GqsLi4HZ2pueNscXadKIrFBMnXcMP3TMW6KO4wbv9v
-0+NgtXaiT17VhpySvIG+AroThzzQoY0yhf4OOlVMKPfgTklKFUC4AVgTpuEx1FjZ
-vABIkYgI5JFPIrbXBG6hYenTtrk/LmgltKN9p/0vVoyfEr1bB6ks8ZxmF2EpRJwd
-WMeXdjhId3epmTNATIWjaOyFx+8kEfQucOmmp0JDyKw/1zv/zrgUzc/AfxIckmEy
-MioBAskQwk1ZxGwFxpL7u7FidNunjzHPW9/MIck9N3MoyF04XQMZ5j8x1ulqbNs/
-yXRwkhartj6Zw08YXOD6XqnmBc2/uk0iQFgRlbI1MvTJ9bWa8ehmGDaPz3bxVVWX
-5z3HSiylVq2XORKECNln
-=Ns5W
------END PGP SIGNATURE-----
-
---01KEpad7JTjQsvFkc0WExh7SPSGvkDhDE--
-
-
---===============0027326360646278318==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============0027326360646278318==--
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
