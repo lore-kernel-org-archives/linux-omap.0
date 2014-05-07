@@ -1,81 +1,77 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH 09/26] ARM: OMAP: dmtimer: Get rid of check for mem resource
- error
-Date: Wed, 7 May 2014 17:14:25 -0500
-Message-ID: <536AB041.5070705@ti.com>
-References: <1398375849-6017-1-git-send-email-joelf@ti.com> <1398375849-6017-10-git-send-email-joelf@ti.com> <20140507152426.GD9502@atomide.com> <536AAB1C.6010301@ti.com> <20140507220959.GE19102@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: fix dpll round_rate() to actually
+ round
+Date: Wed, 7 May 2014 22:16:45 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1405072210360.23579@utopia.booyaka.com>
+References: <1389944699-27962-1-git-send-email-tomi.valkeinen@ti.com> <1389944699-27962-3-git-send-email-tomi.valkeinen@ti.com> <20140424182914.GD4659@saruman.home> <20140424184457.GH22987@atomide.com> <20140429155111.GC633@saruman.home>
+ <535FD2E0.1050806@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140507220959.GE19102@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:35845 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751337AbaEGWQq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2014 18:16:46 -0400
+In-Reply-To: <535FD2E0.1050806@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, nm@ti.com, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
 
-On 05/07/2014 05:10 PM, Tony Lindgren wrote:
-> * Joel Fernandes <joelf@ti.com> [140507 14:53]:
->> On 05/07/2014 10:24 AM, Tony Lindgren wrote:
->>> * Joel Fernandes <joelf@ti.com> [140424 14:44]:
->>>> The subsequent devm_ioremap_resource will catch it and print an error, let it
->>>> be checked there.
->>>>
->>>> Signed-off-by: Joel Fernandes <joelf@ti.com>
->>>> ---
->>>>  arch/arm/plat-omap/dmtimer.c |    4 ----
->>>>  1 file changed, 4 deletions(-)
->>>>
->>>> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
->>>> index 7e806f9..1fd30fa 100644
->>>> --- a/arch/arm/plat-omap/dmtimer.c
->>>> +++ b/arch/arm/plat-omap/dmtimer.c
->>>> @@ -810,10 +810,6 @@ static int omap_dm_timer_probe(struct platform_device *pdev)
->>>>  	}
->>>>  
->>>>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->>>> -	if (unlikely(!mem)) {
->>>> -		dev_err(dev, "%s: no memory resource.\n", __func__);
->>>> -		return -ENODEV;
->>>> -	}
->>>>  
->>>>  	timer = devm_kzalloc(dev, sizeof(struct omap_dm_timer), GFP_KERNEL);
->>>>  	if (!timer) {
->>>
->>> We still need to return an error here and not try to continue though.
->>
->> We are returning an error if mem is NULL so the redundant check is
->> unnecessary:
->>
->> ...
->>         timer->io_base = devm_ioremap_resource(dev, mem);
->>         if (IS_ERR(timer->io_base))
->>                 return PTR_ERR(timer->io_base);
+Hi,
+
+On Tue, 29 Apr 2014, Tomi Valkeinen wrote:
+
+> On 29/04/14 18:51, Felipe Balbi wrote:
+> > On Thu, Apr 24, 2014 at 11:44:58AM -0700, Tony Lindgren wrote:
+> >> * Felipe Balbi <balbi@ti.com> [140424 11:29]:
+> >>> Hi,
+> >>>
+> >>> On Fri, Jan 17, 2014 at 09:44:59AM +0200, Tomi Valkeinen wrote:
+> >>>> omap2_dpll_round_rate() doesn't actually round the given rate, even if
+> >>>> the name and the description so hints. Instead it only tries to find an
+> >>>> exact rate match, or if that fails, return ~0 as an error.
+> >>>>
+> >>>> What this basically means is that the user of the clock needs to know
+> >>>> what rates the dpll can support, which obviously isn't right.
+> >>>>
+> >>>> This patch adds a simple method of rounding: during the iteration, the
+> >>>> code keeps track of the closest rate match. If no exact match is found,
+> >>>> the closest is returned.
+> >>>>
+> >>>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> >>>
+> >>> Tony, looks like this patch was lost. Are you taking it during the -rc ?
+> >>
+> >> Would like to hear what Paul thinks of the updated patch suggested
+> >> by Tomi first.
+> > 
+> > Paul, any chance you can review Tomi's v2 ? It'd be very nice to get
+> > display working on BBB.
 > 
-> Why would you want to even continue omap_dm_timer_probe()
-> further and allocate memory if platform_get_resource() fails?
+> Btw, I'm fine with my v2 patch, but I think the original one is fine also.
 > 
+> It's true that the original patch changes the dpll behavior when an
+> exact match is not found. However, I think our drivers always request an
+> exact match, and in that case the original patch doesn't change the
+> behavior in practice.
+> 
+> In theory it's possible that a driver requests a non-exact clock from
+> the dpll, and when it gets an error, it does something else.
 
-But its freed anyway on error. I just felt that extra LOC could be
-removed. Ideally we should do something like
+The path that worries me at the moment is the set-rate path.  That calls 
+__clk_round_rate() (if the user hasn't called it already) and silently 
+tries to set the clock to the altered rate.
+
+So I think I'd prefer the v2 patches - since at least then, we can control 
+the scope of the altered behavior.  Tomi, care to address Nishanth's 
+comments on your v2 patches from his April 30th mail?
+
+> But, if I'm not mistaken, all our dplls have a clk-divider after them. 
+> And as clk-divider doesn't handle the error from dpll in any way, and 
+> instead returns bogus rates, I presume all our drivers use exact clocks.
+
+Sigh, sounds like another bug to fix...
 
 
-mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-io_base = devm_ioremap_resource(dev, mem);
-if (IS_ERR(io_base))
-	return PTR_ERR(io_base);
-
-timer = devm_kzalloc(dev, sizeof(struct omap_dm_timer), GFP_KERNEL);
-if (!timer) {
- ...
-}
-timer->io_base = io_base;
-
-
-That combines the platform_get_resource and devm_ioremap_resource error
-paths into 1 path and avoids redundant checks.. I can do it this way, or
-if you want drop the patch entirely, I'm OK with it both ways..
-
-thanks,
-
--Joel
+- Paul
