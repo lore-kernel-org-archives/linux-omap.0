@@ -1,108 +1,83 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [PATCH 1/1] ARM: dts: am437x-gp-evm: Add ethernet support for GP EVM
-Date: Wed, 7 May 2014 15:00:53 +0530
-Message-ID: <1399455053-10324-1-git-send-email-mugunthanvnm@ti.com>
+From: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Subject: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
+Date: Wed, 7 May 2014 17:53:44 -0400
+Message-ID: <20140507215344.GH19925@intel.com>
+Reply-To: jin.can.zhuang@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, liping.zhou@intel.com, david.a.cohen@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-Add CPSW ethernet support for AM437x GP EVM which has one slave pinned out
+A delayed status request may be queued before composite framework returns
+USB_GADGET_DELAYED_STATUS, because the thread queueing the request can run
+on a different core in parallel with the control request irq.
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+SETUP XferComplete IRQ        		fsg_main_thread
+----------------------        		---------------
+	|					|
+spin_lock_irqsave(&dwc->lock)               sleeping
+	|					|
+	...					...
+dwc3_ep0_inspect_setup()			|
+	|					|
+dwc3_ep0_delegate_req() 			|
+	|					|
+	...					|
+spin_unlock(&dwc->lock);			|
+	|					|
+fsg_set_alt()   ======> Signal Wakeup ====>	|
+	| 					|
+other gadgets->set_alt() 	       handle exception
+	|					|
+	|			usb_composite_setup_continue()
+	|					|
+	|			spin_lock_irqsave(&dwc->lock)
+  	|			     __dwc3_gadget_ep0_queue()
+	|				 delay_status is false
+	|			spin_unlock_irqrestore(&dwc->lock)
+	|					|
+	|				     sleeping
+spin_lock(&dwc->lock); 				|
+	|					|
+delayed_status=true				|
+	|					|
+
+		STATUS XferNotReady IRQ
+		------------------------
+			|
+		dwc3_ep0_xfernotready()
+			|
+		   delayed_status is true, return;
+
+The result is the status packet will never be transferred, and
+delayed_status is not cleared.
+
+Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Reported-by: Zhou Liping <liping.zhou@intel.com>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 72 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+ drivers/usb/dwc3/ep0.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 2e0c636..30ace1b 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -98,6 +98,58 @@
- 			0x264 (PIN_INPUT_PULLUP | MUX_MODE7)  /* spi2_d0.gpio3_22 */
- 		>;
- 	};
+diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
+index 21a3520..07292c0 100644
+--- a/drivers/usb/dwc3/ep0.c
++++ b/drivers/usb/dwc3/ep0.c
+@@ -1020,7 +1020,11 @@ static void dwc3_ep0_xfernotready(struct dwc3 *dwc,
+ 		if (dwc->delayed_status) {
+ 			WARN_ON_ONCE(event->endpoint_number != 1);
+ 			dev_vdbg(dwc->dev, "Mass Storage delayed status\n");
+-			return;
 +
-+	cpsw_default: cpsw_default {
-+		pinctrl-single,pins = <
-+			/* Slave 1 */
-+			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txen.rgmii1_txen */
-+			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxdv.rgmii1_rxctl */
-+			0x11c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_txd3 */
-+			0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_txd2 */
-+			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_txd1 */
-+			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_txd0 */
-+			0x12c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txclk.rmii1_tclk */
-+			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxclk.rmii1_rclk */
-+			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rxd3 */
-+			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rxd2 */
-+			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rxd1 */
-+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rxd0 */
-+		>;
-+	};
-+
-+	cpsw_sleep: cpsw_sleep {
-+		pinctrl-single,pins = <
-+			/* Slave 1 reset value */
-+			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x120 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x12c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
-+
-+	davinci_mdio_default: davinci_mdio_default {
-+		pinctrl-single,pins = <
-+			/* MDIO */
-+			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
-+			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
-+		>;
-+	};
-+
-+	davinci_mdio_sleep: davinci_mdio_sleep {
-+		pinctrl-single,pins = <
-+			/* MDIO reset value */
-+			0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
- };
++			if (list_empty(&dwc->eps[0]->request_list))
++				return;
++			else
++				dwc->delayed_status = false;
+ 		}
  
- &i2c0 {
-@@ -174,3 +226,23 @@
- 	dr_mode = "host";
- 	status = "okay";
- };
-+
-+&mac {
-+	slaves = <1>;
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&cpsw_default>;
-+	pinctrl-1 = <&cpsw_sleep>;
-+	status = "okay";
-+};
-+
-+&davinci_mdio {
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&davinci_mdio_default>;
-+	pinctrl-1 = <&davinci_mdio_sleep>;
-+	status = "okay";
-+};
-+
-+&cpsw_emac0 {
-+	phy_id = <&davinci_mdio>, <0>;
-+	phy-mode = "rgmii";
-+};
+ 		dwc3_ep0_do_control_status(dwc, event);
 -- 
-1.9.2.459.g68773ac
+1.7.9.5
