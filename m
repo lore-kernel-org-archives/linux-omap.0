@@ -1,194 +1,151 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 2/4] dt:/bindings: DRA7 ATL (Audio Tracking Logic) clock bindings
-Date: Wed, 7 May 2014 13:20:46 +0300
-Message-ID: <1399458048-28213-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 1/4] ARM: dts: dra7xx-clocks: Correct name for atl clkin3
+ clock
+Date: Wed, 7 May 2014 13:20:45 +0300
+Message-ID: <1399458048-28213-2-git-send-email-peter.ujfalusi@ti.com>
 References: <1399458048-28213-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1399458048-28213-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: mturquette@linaro.org, grant.likely@linaro.org, tony@atomide.com, t-kristo@ti.com
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-doc@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Audio Tracking Logic is designed to be used by HD Radio applications to
-synchronize the audio output clocks to the baseband clock. ATL can be also
-used to track errors between two reference clocks (BWS, AWS) and generate a modulated
-clock output which averages to some desired frequency.
-In essence ATL is generating a clock to be used by an audio codec and also
-to be used by the SoC as MCLK.
-
-To be able to integrate the ATL provided clocks to the clock tree we need
-two types of DT binding:
-- DT clock nodes to represent the ATL clocks towards the CCF
-- binding for the ATL IP itself which is going to handle the hw
-  configuration
-
-The reason for this type of setup is that ATL itself is a separate device
-in the SoC, it has it's own address space and clock domain. Other IPs can
-use the ATL generated clock as their functional clock (McASPs for example)
-and external components like audio codecs can also use the very same clock
-as their MCLK.
-
-The ATL IP in DRA7 contains 4 ATL instences.
+To allign the name with the other atl clock names:
+atlclkin3_ck -> atl_clkin3_ck
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- .../devicetree/bindings/clock/ti/dra7-atl.txt      | 97 ++++++++++++++++++++++
- include/dt-bindings/clk/ti-dra7-atl.h              | 40 +++++++++
- 2 files changed, 137 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/clock/ti/dra7-atl.txt
- create mode 100644 include/dt-bindings/clk/ti-dra7-atl.h
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 22 +++++++++++-----------
+ drivers/clk/ti/clk-7xx.c             |  2 +-
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/dra7-atl.txt b/Documentation/devicetree/bindings/clock/ti/dra7-atl.txt
-new file mode 100644
-index 000000000000..c90e63c443ef
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti/dra7-atl.txt
-@@ -0,0 +1,97 @@
-+Device Tree Clock bindings for ATL (Audio Tracking Logic) of DRA7 SoC.
-+
-+The ATL IP is used to generate clock to be used to synchronize baseband and
-+audio codec. A single ATL IP provides four ATL clock instances sharing the same
-+functional clock but can be configured to provide different clocks.
-+ATL can maintain a clock averages to some desired frequency based on the bws/aws
-+signals - can compensate the drift between the two ws signal.
-+
-+In order to provide the support for ATL and it's output clocks (which can be used
-+internally within the SoC or external components) two sets of bindings is needed:
-+
-+Clock tree binding:
-+This binding uses the common clock binding[1].
-+To be able to integrate the ATL clocks with DT clock tree.
-+Provides ccf level representation of the ATL clocks to be used by drivers.
-+Since the clock instances are part of a single IP this binding is used as a node
-+for the DT clock tree, the IP driver is needed to handle the actual configuration
-+of the IP.
-+
-+[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+
-+Required properties:
-+- compatible : shall be "ti,dra7-atl-clock"
-+- #clock-cells : from common clock binding; shall be set to 0.
-+- clocks : link phandles to functional clock of ATL
-+
-+Binding for the IP driver:
-+This binding is used to configure the IP driver which is going to handle the
-+configuration of the IP for the ATL clock instances.
-+
-+Required properties:
-+- compatible : shall be "ti,dra7-atl"
-+- reg : base address for the ATL IP
-+- ti,provided-clocks : List of phandles to the clocks associated with the ATL
-+- clocks : link phandles to functional clock of ATL
-+- clock-names : Shall be set to "fck"
-+- ti,hwmods : Shall be set to "atl"
-+
-+Optional properties:
-+Configuration of ATL instances:
-+- atl{0/1/2/3} {
-+	- bws : Baseband word select signal selection
-+	- aws : Audio word select signal selection
-+};
-+
-+For valid word select signals, see the dt-bindings/clk/ti-dra7-atl.h include
-+file.
-+
-+Examples:
-+/* clock bindings for atl provided clocks */
-+atl_clkin0_ck: atl_clkin0_ck {
-+	#clock-cells = <0>;
-+	compatible = "ti,dra7-atl-clock";
-+	clocks = <&atl_gfclk_mux>;
-+};
-+
-+atl_clkin1_ck: atl_clkin1_ck {
-+	#clock-cells = <0>;
-+	compatible = "ti,dra7-atl-clock";
-+	clocks = <&atl_gfclk_mux>;
-+};
-+
-+atl_clkin2_ck: atl_clkin2_ck {
-+	#clock-cells = <0>;
-+	compatible = "ti,dra7-atl-clock";
-+	clocks = <&atl_gfclk_mux>;
-+};
-+
-+atl_clkin3_ck: atl_clkin3_ck {
-+	#clock-cells = <0>;
-+	compatible = "ti,dra7-atl-clock";
-+	clocks = <&atl_gfclk_mux>;
-+};
-+
-+/* binding for the IP */
-+atl: atl@4843c000 {
-+	compatible = "ti,dra7-atl";
-+	reg = <0x4843c000 0x3ff>;
-+	ti,hwmods = "atl";
-+	ti,provided-clocks = <&atl_clkin0_ck>, <&atl_clkin1_ck>,
-+				<&atl_clkin2_ck>, <&atl_clkin3_ck>;
-+	clocks = <&atl_gfclk_mux>;
-+	clock-names = "fck";
-+	status = "disabled";
-+};
-+
-+#include <dt-bindings/clk/ti-dra7-atl.h>
-+
-+&atl {
-+	status = "okay";
-+
-+	atl2 {
-+		bws = <DRA7_ATL_WS_MCASP2_FSX>;
-+		aws = <DRA7_ATL_WS_MCASP3_FSX>;
-+	};
-+};
-+
-diff --git a/include/dt-bindings/clk/ti-dra7-atl.h b/include/dt-bindings/clk/ti-dra7-atl.h
-new file mode 100644
-index 000000000000..42dd4164f6f4
---- /dev/null
-+++ b/include/dt-bindings/clk/ti-dra7-atl.h
-@@ -0,0 +1,40 @@
-+/*
-+ * This header provides constants for DRA7 ATL (Audio Tracking Logic)
-+ *
-+ * The constants defined in this header are used in dts files
-+ *
-+ * Copyright (C) 2013 Texas Instruments, Inc.
-+ *
-+ * Peter Ujfalusi <peter.ujfalusi@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _DT_BINDINGS_CLK_DRA7_ATL_H
-+#define _DT_BINDINGS_CLK_DRA7_ATL_H
-+
-+#define DRA7_ATL_WS_MCASP1_FSR		0
-+#define DRA7_ATL_WS_MCASP1_FSX		1
-+#define DRA7_ATL_WS_MCASP2_FSR		2
-+#define DRA7_ATL_WS_MCASP2_FSX		3
-+#define DRA7_ATL_WS_MCASP3_FSX		4
-+#define DRA7_ATL_WS_MCASP4_FSX		5
-+#define DRA7_ATL_WS_MCASP5_FSX		6
-+#define DRA7_ATL_WS_MCASP6_FSX		7
-+#define DRA7_ATL_WS_MCASP7_FSX		8
-+#define DRA7_ATL_WS_MCASP8_FSX		9
-+#define DRA7_ATL_WS_MCASP8_AHCLKX	10
-+#define DRA7_ATL_WS_XREF_CLK3		11
-+#define DRA7_ATL_WS_XREF_CLK0		12
-+#define DRA7_ATL_WS_XREF_CLK1		13
-+#define DRA7_ATL_WS_XREF_CLK2		14
-+#define DRA7_ATL_WS_OSC1_X1		15
-+
-+#endif
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index cfb8fc753f50..30160348934c 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -26,7 +26,7 @@
+ 		clock-frequency = <0>;
+ 	};
+ 
+-	atlclkin3_ck: atlclkin3_ck {
++	atl_clkin3_ck: atl_clkin3_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "fixed-clock";
+ 		clock-frequency = <0>;
+@@ -730,7 +730,7 @@
+ 	mcasp1_ahclkr_mux: mcasp1_ahclkr_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <28>;
+ 		reg = <0x0550>;
+ 	};
+@@ -738,7 +738,7 @@
+ 	mcasp1_ahclkx_mux: mcasp1_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x0550>;
+ 	};
+@@ -1631,7 +1631,7 @@
+ 	mcasp2_ahclkr_mux: mcasp2_ahclkr_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <28>;
+ 		reg = <0x1860>;
+ 	};
+@@ -1639,7 +1639,7 @@
+ 	mcasp2_ahclkx_mux: mcasp2_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1860>;
+ 	};
+@@ -1655,7 +1655,7 @@
+ 	mcasp3_ahclkx_mux: mcasp3_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1868>;
+ 	};
+@@ -1671,7 +1671,7 @@
+ 	mcasp4_ahclkx_mux: mcasp4_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1898>;
+ 	};
+@@ -1687,7 +1687,7 @@
+ 	mcasp5_ahclkx_mux: mcasp5_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1878>;
+ 	};
+@@ -1703,7 +1703,7 @@
+ 	mcasp6_ahclkx_mux: mcasp6_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1904>;
+ 	};
+@@ -1719,7 +1719,7 @@
+ 	mcasp7_ahclkx_mux: mcasp7_ahclkx_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1908>;
+ 	};
+@@ -1735,7 +1735,7 @@
+ 	mcasp8_ahclk_mux: mcasp8_ahclk_mux {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+-		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atlclkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
++		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+ 		ti,bit-shift = <22>;
+ 		reg = <0x1890>;
+ 	};
+diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+index 19a55bf407dd..cb8e6f14e880 100644
+--- a/drivers/clk/ti/clk-7xx.c
++++ b/drivers/clk/ti/clk-7xx.c
+@@ -24,7 +24,7 @@ static struct ti_dt_clk dra7xx_clks[] = {
+ 	DT_CLK(NULL, "atl_clkin0_ck", "atl_clkin0_ck"),
+ 	DT_CLK(NULL, "atl_clkin1_ck", "atl_clkin1_ck"),
+ 	DT_CLK(NULL, "atl_clkin2_ck", "atl_clkin2_ck"),
+-	DT_CLK(NULL, "atlclkin3_ck", "atlclkin3_ck"),
++	DT_CLK(NULL, "atl_clkin3_ck", "atl_clkin3_ck"),
+ 	DT_CLK(NULL, "hdmi_clkin_ck", "hdmi_clkin_ck"),
+ 	DT_CLK(NULL, "mlb_clkin_ck", "mlb_clkin_ck"),
+ 	DT_CLK(NULL, "mlbp_clkin_ck", "mlbp_clkin_ck"),
 -- 
 1.9.2
