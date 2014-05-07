@@ -1,73 +1,73 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
-Date: Wed, 7 May 2014 12:59:06 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1405071252550.1325-100000@iolanthe.rowland.org>
-References: <20140508043902.GI19925@intel.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
+ support
+Date: Wed, 7 May 2014 10:59:20 -0700
+Message-ID: <20140507175919.GH9502@atomide.com>
+References: <1398815562-24113-1-git-send-email-tony@atomide.com>
+ <1398815562-24113-4-git-send-email-tony@atomide.com>
+ <5369EAE7.3030705@ti.com>
+ <20140507150343.GA9502@atomide.com>
+ <536A5920.1020908@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:42670 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751638AbaEGQ7I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2014 12:59:08 -0400
-In-Reply-To: <20140508043902.GI19925@intel.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:39312 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751227AbaEGR70 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2014 13:59:26 -0400
+Content-Disposition: inline
+In-Reply-To: <536A5920.1020908@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Cc: Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, liping.zhou@intel.com, david.a.cohen@linux.intel.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Thu, 8 May 2014, Zhuang Jin Can wrote:
-
-> > A similar problem can occur in the opposite sense: The thread queuing
-> > the delayed status request might be delayed for so long that another
-> > SETUP packet arrives from the host first.  In that case, the delayed
-> > status request is a response for a stale transfer, so it must not be
-> > sent to the host.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140507 09:03]:
+> On 07/05/14 18:03, Tony Lindgren wrote:
+> 
+> >>> +	lcd0: display {
+> >>> +		compatible = "sharp,ls037v7dw01";
+> >>> +		power-supply = <&lcd_3v3>;
+> >>> +		reset-gpios = <&gpio5 27 GPIO_ACTIVE_HIGH>;	/* gpio155, lcd RESB */
+> >>> +		enable-gpios = <&gpio5 26 GPIO_ACTIVE_HIGH	/* gpio154, lcd MO */
+> >>> +				&gpio1 2 GPIO_ACTIVE_HIGH	/* gpio2, lcd LR */
+> >>> +				&gpio1 3 GPIO_ACTIVE_HIGH	/* gpio3, lcd UD */
+> >>> +				&gpio5 24 GPIO_ACTIVE_HIGH>;	/* gpio152, lcd INI */
+> >>
+> >> Why are most of the gpios in 'enable-gpios'? MO, LR and UD don't really
+> >> have anything to do with enabling the panel. Why not just have one
+> >> 'gpios' array with all the gpios, as they are quite a mixed bunch?
 > > 
-> > Do dwc3 and composite.c handle this case correctly?
+> > Yeah that's what I had initially, but reading simple-panel.txt noticed
+> > there are some standardized GPIOs for reset and enable.
+> 
+> I'm not sure if it's worth to try to make it compatible with
+> simple-panel. simple-panel bindings do not work with omapdss anyway, and
+> simple-panel doesn't have the support for input ports/endpoints.
+> 
+> Can the panel be used with only one gpio (I guess that would be INI or
+> RESB)? If not, simple-panel doesn't work.
+
+I guess in theory yes.
+ 
+> > How about we set up one reset-gpios, one enable-gpios and an array of
+> > three unlabelled GPIOs?
 > > 
-> So the situation you describe is that we get the STATUS XferNotReady
-> event, but gadget queues a status request when control transfer already
-> failed.
+> > Or if we want to add something generic, we could add new mode-gpios
+> > property that other panels might be able to use too?
+> > 
+> > BTW, I'm also personally fine with all five gpios showing in a single
+> > gpios property, I'm not too exited about naming anything in DT..
+> 
+> I don't have a strong opinion here. I don't have much experience with
+> DT, especially with making bindings compatible with other ones.
+> 
+> I'd just forget the simple-panel, and have single gpio array.
 
-When the host already timed out the control transfer and started a new 
-one.  Here's what I'm talking about:
+Well if it's a don't care flag for both of us, let's try to use
+the existing standard for simple-panel.txt and add mode-gpios
+property. I'll post a patch for that.
 
-	Host sends a Set-Configuration request.
+Regards,
 
-	The UDC driver calls the gadget driver's setup function.
-
-	The setup function returns DELAYED_STATUS.
-
-	After a few seconds, the host gets tired of waiting and
-	sends a Get-Descriptor request
-
-	The gadget driver finally submits the delayed request response
-	to the Set-Configuration request.  But it is now too late,
-	because the host expects a response to the Get-Descriptor 
-	request.
-
->  dwc3 can't move to SETUP phase until the status request arrives,
-> so any SETUP transaction from host will fail. If status request
-> eventually arrives, it already missed the first control transfer, and
-> I don't know how the controller will behave. If we still can get a
-> STATUS XferComplete event without actually transfer anything on the
-> bus, then we can move back to SETUP PHASE which will remove the stale
-> delayed status request and start the new SETUP transaction. But I think
-> in this situation, the host should already lose it patience and start
-> to reset the bus.
-
-My point is that the UDC driver can't handle this.  Therefore the
-gadget driver has to prevent this from happening.
-
-That means composite.c has to avoid sending delayed status responses if 
-a new SETUP packet has been received already.
-
-> Per my understanding, it's impossible for dwc3 to send a stale STATUS
-> request for a new SETUP transaction. 
-
-dwc3 won't know that the status response is stale.  It will think the 
-response was meant for the new transfer, not the old one.
-
-Alan Stern
-
+Tony
