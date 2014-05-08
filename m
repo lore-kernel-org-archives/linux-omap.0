@@ -1,57 +1,86 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] ARM: OMAP2+: Add support for RNG on DT booted N900
-Date: Thu, 8 May 2014 21:54:50 +0200
-Message-ID: <20140508195449.GA3521@earth.universe>
-References: <1396873726-4657-1-git-send-email-sre@kernel.org>
+From: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
+Subject: RE: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
+Date: Thu, 8 May 2014 19:55:03 +0000
+Message-ID: <A2CA0424C0A6F04399FB9E1CD98E03046D195F08@US01WEMBX2.internal.synopsys.com>
+References: <20140508043902.GI19925@intel.com>
+ <Pine.LNX.4.44L0.1405071252550.1325-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:55707 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754583AbaEHTyz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 May 2014 15:54:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1396873726-4657-1-git-send-email-sre@kernel.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1405071252550.1325-100000@iolanthe.rowland.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>, Zhuang Jin Can <jin.can.zhuang@intel.com>
+Cc: Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, "liping.zhou@intel.com" <liping.zhou@intel.com>, "david.a.cohen@linux.intel.com" <david.a.cohen@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
+> From: linux-usb-owner@vger.kernel.org [mailto:linux-usb-owner@vger.kernel.org] On Behalf Of Alan Stern
+> Sent: Wednesday, May 07, 2014 9:59 AM
+> 
+> On Thu, 8 May 2014, Zhuang Jin Can wrote:
+> 
+> > > A similar problem can occur in the opposite sense: The thread queuing
+> > > the delayed status request might be delayed for so long that another
+> > > SETUP packet arrives from the host first.  In that case, the delayed
+> > > status request is a response for a stale transfer, so it must not be
+> > > sent to the host.
+> > >
+> > > Do dwc3 and composite.c handle this case correctly?
+> > >
+> > So the situation you describe is that we get the STATUS XferNotReady
+> > event, but gadget queues a status request when control transfer already
+> > failed.
+> 
+> When the host already timed out the control transfer and started a new
+> one.  Here's what I'm talking about:
+> 
+> 	Host sends a Set-Configuration request.
+> 
+> 	The UDC driver calls the gadget driver's setup function.
+> 
+> 	The setup function returns DELAYED_STATUS.
+> 
+> 	After a few seconds, the host gets tired of waiting and
+> 	sends a Get-Descriptor request
+> 
+> 	The gadget driver finally submits the delayed request response
+> 	to the Set-Configuration request.  But it is now too late,
+> 	because the host expects a response to the Get-Descriptor
+> 	request.
+> 
+> >  dwc3 can't move to SETUP phase until the status request arrives,
+> > so any SETUP transaction from host will fail. If status request
+> > eventually arrives, it already missed the first control transfer, and
+> > I don't know how the controller will behave. If we still can get a
+> > STATUS XferComplete event without actually transfer anything on the
+> > bus, then we can move back to SETUP PHASE which will remove the stale
+> > delayed status request and start the new SETUP transaction. But I think
+> > in this situation, the host should already lose it patience and start
+> > to reset the bus.
+> 
+> My point is that the UDC driver can't handle this.  Therefore the
+> gadget driver has to prevent this from happening.
+> 
+> That means composite.c has to avoid sending delayed status responses if
+> a new SETUP packet has been received already.
+> 
+> > Per my understanding, it's impossible for dwc3 to send a stale STATUS
+> > request for a new SETUP transaction.
+> 
+> dwc3 won't know that the status response is stale.  It will think the
+> response was meant for the new transfer, not the old one.
 
---xHFwDpU9dbj6ez1V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The DWC3 controller will actually handle this case on its own. If
+it sees another SETUP packet come in before the previous Control
+transfer has completed, it will not send any DATA or STATUS phase
+packets for the previous Control transfer to the host. But it will
+"fake" the correct responses to the software, so the dwc3 driver will
+think that the DATA/STATUS stages completed successfully, even though
+nothing actually went out on the bus.
 
-Hi,
+For other controllers that can't do this, maybe it should be handled
+in the UDC driver rather than in the composite gadget?
 
-On Mon, Apr 07, 2014 at 02:28:46PM +0200, Sebastian Reichel wrote:
-> Add support for OMAP3 ROM Random Number Generator via
-> pdata-quirks.
-
-ping
-
--- Sebastian
-
---xHFwDpU9dbj6ez1V
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTa+EJAAoJENju1/PIO/qa7s8P/RtZ4+gP17W+Dp249y693xQg
-2z87y7XYI1tTQyn0QBmdworX0YwfaMLD/OTmbkt3nRzoYCkp2vKIbIGjza0eZ0FA
-H9hN86pCKsTEJv/WXl+BQBxdBo+/s0dQU/P/jhN/L3MB2PjbXbdG9YW3IyKC4cgz
-dt8SasniaiEXbEI8nXrby4hZVTp80CSqFFR+UrbduLH5znfpE4yuAiYaFf4kJxeo
-AcE3w3Eeui5JC2WJDPvjzuu0/4/rgimOdcccgC1G+HLKK7H90yvP+7tRXs4yzuhA
-EoZbAOXAJgZabizG7lB85Rbstn0WtzM0j+iyrG0EVa97yV53kZ1QsDIaTXl3YEM2
-tfbi1gsLVwTumJrxH6QnHpXhWDTspg+yRhjibzzZ1Z/Bvd0IlFbB/qxndDiDmcpS
-ZNaCcp0Verx/dpr4SYwfkYnPbgxSV0uhdR7977YiWnZzqXdSaCRr1H6O1FqMLmvc
-1zNMISaF8wkTDuUquwlUTWOper7qXRIT5MFYpz58xH+G4UlfwkqwQ9YbDvmLRZje
-phAbwmXEJmk4rSZ6oOYP9j5p75FplpYaOsB0zCkZi8eJG/zlUjC8uGaRTs8WPQ2P
-S54xkh5xqhLMnpN1rAjIOd/0OPg2f+R5Fuc5caeBxya58rgbicV+aU4kkIdaAHHW
-mcw5Pb3MYHuyjDo//EjJ
-=bsld
------END PGP SIGNATURE-----
-
---xHFwDpU9dbj6ez1V--
+-- 
+Paul
