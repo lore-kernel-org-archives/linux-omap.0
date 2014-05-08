@@ -1,63 +1,73 @@
-From: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for
- configuring the iATU
-Date: Thu, 08 May 2014 18:05:11 +0900
-Message-ID: <000201cf6a9c$9dd295e0$d977c1a0$%han@samsung.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com>
- <1399383244-14556-7-git-send-email-kishon@ti.com> <4764413.ZAEU5S5p0p@wuerfel>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 1/3] clk: ti: add 'ti,round-rate' flag
+Date: Thu, 8 May 2014 12:06:47 +0300
+Message-ID: <1399540009-6953-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <4764413.ZAEU5S5p0p@wuerfel>
-Content-language: ko
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Arnd Bergmann' <arnd-r2nGTMty4D4@public.gmane.org>, 'Kishon Vijay Abraham I' <kishon-l0cyMroinI0@public.gmane.org>
-Cc: 'Santosh Shilimkar' <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, 'Bjorn Helgaas' <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, 'Marek Vasut' <marex-ynQEQJNshbs@public.gmane.org>, 'Jingoo Han' <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51781 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753088AbaEHJHH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 May 2014 05:07:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Tuesday, May 06, 2014 10:59 PM, Arnd Bergmann wrote:
-> On Tuesday 06 May 2014 19:03:52 Kishon Vijay Abraham I wrote:
-> > In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
-> > address. So whenever the cpu issues a read/write request, the 4 most
-> > significant bits are used by L3 to determine the target controller.
-> > For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
-> > the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
-> > the outbound translation window the *base* should be programmed as 0x000_0000.
-> > Whenever we try to write to say 0x2000_0000, it will be translated to whatever
-> > we have programmed in the translation window with base as 0x000_0000.
-> >
-> > Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-> > Cc: Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>
-> > Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> > Acked-by: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> > Acked-by: Mohit Kumar <mohit.kumar-qxv4g6HH51o@public.gmane.org>
-> 
-> Sorry, but NAK.
-> 
-> We have a standard 'dma-ranges' property to handle this, so use it.
-> 
-> See the x-gene PCIe driver patches for an example. Please also talk
-> to Santosh about it, as he is implementing generic support for
-> parsing dma-ranges in platform devices at the moment.
+The current DPLL code does not try to round the clock rate, and instead
+returns an error if the requested clock rate cannot be produced exactly
+by the DPLL.
 
-Hi Arnd,
+It could be argued that this is a bug, but as the current drivers may
+depend on that behavior, a new flag 'ti,round-rate' is added which
+enables clock rate rounding.
 
-Do you mean the following patch?
-http://www.spinics.net/lists/kernel/msg1737725.html
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ Documentation/devicetree/bindings/clock/ti/dpll.txt | 2 ++
+ drivers/clk/ti/dpll.c                               | 3 +++
+ include/linux/clk/ti.h                              | 1 +
+ 3 files changed, 6 insertions(+)
 
-Thank you.
+diff --git a/Documentation/devicetree/bindings/clock/ti/dpll.txt b/Documentation/devicetree/bindings/clock/ti/dpll.txt
+index 30bfdb7c9f18..7912d876e858 100644
+--- a/Documentation/devicetree/bindings/clock/ti/dpll.txt
++++ b/Documentation/devicetree/bindings/clock/ti/dpll.txt
+@@ -48,6 +48,8 @@ Optional properties:
+ 	- ti,low-power-stop : DPLL supports low power stop mode, gating output
+ 	- ti,low-power-bypass : DPLL output matches rate of parent bypass clock
+ 	- ti,lock : DPLL locks in programmed rate
++- ti,round-rate : if not set, the dpll will return an error if asked for a
++                  clock rate that it cannot produce exactly.
+ 
+ Examples:
+ 	dpll_core_ck: dpll_core_ck@44e00490 {
+diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+index 7e498a44f97d..c5858c46b58c 100644
+--- a/drivers/clk/ti/dpll.c
++++ b/drivers/clk/ti/dpll.c
+@@ -265,6 +265,9 @@ static void __init of_ti_dpll_setup(struct device_node *node,
+ 	if (dpll_mode)
+ 		dd->modes = dpll_mode;
+ 
++	if (of_property_read_bool(node, "ti,round-rate"))
++		clk_hw->flags |= DPLL_USE_ROUNDED_RATE;
++
+ 	ti_clk_register_dpll(&clk_hw->hw, node);
+ 	return;
+ 
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 4a21a872dbbd..79e8a7876457 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -155,6 +155,7 @@ struct clk_hw_omap {
+ #define INVERT_ENABLE		(1 << 4)	/* 0 enables, 1 disables */
+ #define CLOCK_CLKOUTX2		(1 << 5)
+ #define MEMMAP_ADDRESSING	(1 << 6)
++#define DPLL_USE_ROUNDED_RATE	(1 << 7)	/* dpll's round_rate() returns rounded rate */
+ 
+ /* CM_CLKEN_PLL*.EN* bit values - not all are available for every DPLL */
+ #define DPLL_LOW_POWER_STOP	0x1
+-- 
+1.9.1
 
-Best regards,
-Jingoo Han
-
-> 
-> I also suspect you will have to implement swiotlb support to make
-> generic PCI devices work behind this bridge. Otherwise you end up
-> with random physical addresses passed into DMA registers.
-
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
