@@ -1,85 +1,49 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 3/5] irqchip: crossbar: Skip some irqs from getting mapped
- to crossbar
-Date: Thu, 8 May 2014 19:05:40 -0400
-Message-ID: <536C0DC4.7090309@ti.com>
-References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>	<1399299527-10955-4-git-send-email-r.sricharan@ti.com>	<536BD9D8.4080905@ti.com>	<20140508203659.GA5620@kahuna> <CAD=GYpbQQxQgKd3oZcAuWrxoD4VrkKzpybd11qwxs405HSUVGw@mail.gmail.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 13/13] video: omap: allow building on !MMU
+Date: Fri, 9 May 2014 02:04:15 +0300
+Message-ID: <20140508230415.GA6670@drone.musicnaut.iki.fi>
+References: <1398342509-10243-1-git-send-email-peter.griffin@linaro.org>
+ <1398342509-10243-14-git-send-email-peter.griffin@linaro.org>
+ <5369F973.10803@ti.com>
+ <20140508215338.GE2198@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37504 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756030AbaEHXGF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 May 2014 19:06:05 -0400
-In-Reply-To: <CAD=GYpbQQxQgKd3oZcAuWrxoD4VrkKzpybd11qwxs405HSUVGw@mail.gmail.com>
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:37296 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932078AbaEHXIo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 19:08:44 -0400
+Content-Disposition: inline
+In-Reply-To: <20140508215338.GE2198@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <agnel.joel@gmail.com>, Nishanth Menon <nm@ti.com>
-Cc: Joel Fernandes <joelf@ti.com>, "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Sricharan R <r.sricharan@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Peter Griffin <peter.griffin@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-On Thursday 08 May 2014 06:43 PM, Joel Fernandes wrote:
-> On Thu, May 8, 2014 at 3:37 PM, Nishanth Menon <nm@ti.com> wrote:
->> On 14:24-20140508, Joel Fernandes wrote:
->>> On 05/05/2014 09:18 AM, Sricharan R wrote:
->>>> From: Nishanth Menon <nm@ti.com>
->>>>
->>>> When, in the system due to varied reasons, interrupts might be unusable
->>>> due to hardware behavior, but register maps do exist, then those interrupts
->>>> should be skipped while mapping irq to crossbars.
->>>>
->>>
->>> Just wondering, instead of hardcoding this data in the code, and
->>> introducing additional flags (IRQ_SKIP), why not just put these GIC IRQs
->>> in the ti,irq-reserved property in DTS for platforms where such IRQs are
->>> not usable. That way you're skipping these IRQs anyway.
->>>
->>> Also that would avoid adding more hard coded data for future SoCs into
->>> the source for such IRQs that must be skipped, and also reduces LOC.
->>>
->>
->> Good question - lets try to explain the hardware a little here ->
->> obviously a driver that cannot use the hardware is useless compared to
->> reducing LOC count ;).. and apologies about the long reply..
->>
->> Basic understanding:
->> GIC has 160 SPIs and number of hardware block interrupt sources is around or
->> more than 400. So, in comes crossbar - which is basically a mapper by
->> allowing us to select an hardware block interrupt source (identified as
->> crossbar_number or cb_no in code). So all we have to do is to write to a
->> register in crossbar corresponding to GIC and viola, we now routed the
->> interrupt source to a GIC interrupt of our choice. At least the
->> Specification reads so.... until you drill down to the details.
-> 
-> Thanks for the long explanation and the diagrams!
-> 
-> Yes, I feel there is no other way and with so many HW bugs, I think it
-> makes sense to make it a real irqchip driver.
->
-It doesn't because its not an irqchip. 
- 
-> Further since not everything goes through the crossbar and some are
-> direct mapped like your diagram, the correct fix is probably making it
-> an irqchip and doing the interrupt controller parenting correctly in
-> DT.
-> 
-> That would take care of A), because users of such direct mapped
-> interrupts will go through the GIC interrupt controller directly.
-> 
-> It will also take care of B), because if writing to cross bar has no
-> effect for a particular IRQ, or if those IRQs are hard-wired to
-> something, as you said, then that something should go through the GIC
-> directly.
-> 
-> I can try to whip up something like this if it makes sense, let me know...
-> 
-I have been ignoring this series considering they were just fixes
-but you comments are like re-inventing wheel. Please read all
-the old threads and comments from Thomas and me on why we took
-approach and why it is not an irqchip. There is no need to complicate
-it further.
+Hi,
 
+On Thu, May 08, 2014 at 02:53:38PM -0700, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140507 02:15]:
+> > I don't have omap1 boards, and I don't know anyone that has. I don't
+> > even know if the omap1 fb is working or not...
 
-Regards,
-Santosh
+OMAP1 fb is working very well. As a matter of fact, it's much more usable
+for me than fb on OMAP2/3 - apart from N900 (on which fb is working again
+with 3.15) none of my 4 other OMAP2/3 boards have a working display/fb
+in mainline yet. :-(
 
+> > Tony, any idea of omap1's fb? Are you able to test this?
+> 
+> I have three omap1 boards in my rack that I use for my boot
+> testing. Tried to enable framebuffer but so far no luck on
+> any of them. So I'm not much of a help here. Looks like the
+> patch should work though..
+> 
+> Aaro & Janusz, care to take a look at the patch in this
+> thread?
+
+I couldn't figure out how to enter this code path. Amstrad E3 & Nokia
+770 will take the alloc_fbmem() path & exit, and based on quick look
+I could not see way to enter mmap_kern(). Is that dead code?
+
+A.
