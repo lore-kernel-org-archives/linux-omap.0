@@ -1,83 +1,98 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH] ARM: OMAP2+: don't try to register the main clock twice.
-Date: Thu, 8 May 2014 09:02:58 +0200
-Message-ID: <20140508070258.GA2656@katana>
-References: <1396007435-20100-1-git-send-email-wsa@the-dreams.de>
- <alpine.DEB.2.02.1404111829520.14347@utopia.booyaka.com>
- <20140417085539.GA7804@katana>
- <alpine.DEB.2.02.1405072233470.23579@utopia.booyaka.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 1/2] gpio: omap: prepare and unprepare the debounce clock
+Date: Thu, 8 May 2014 12:36:22 +0530
+Message-ID: <536B2CEE.4010809@ti.com>
+References: <1398233465-8845-1-git-send-email-rnayak@ti.com> <1398233465-8845-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:37730 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751942AbaEHHDG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 May 2014 03:03:06 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1405072233470.23579@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1398233465-8845-2-git-send-email-rnayak@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com, linux-gpio@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, gnurou@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: mporter@linaro.org, Benoit Cousson <bcousson@baylibre.com>, joelagnel@ti.com, NeilBrown <neilb@suse.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@sang-engineering.com>
 
+On Wednesday 23 April 2014 11:41 AM, Rajendra Nayak wrote:
+> Replace the clk_enable()s with a clk_prepare_enable() and
+> the clk_disables()s with a clk_disable_unprepare()
+> 
+> This never showed issues due to the OMAP platform code (hwmod)
+> leaving these clocks in clk_prepare()ed state by default.
+> 
+> Reported-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Cc: linux-gpio@vger.kernel.org
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
---/04w6evG8XlLl3ft
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Linus,
 
+Do you mind picking this fix up via the GPIO tree? Alternatively you could
+Ack this if you are fine and we can take both Patch 1/2 and Patch 2/2 from this
+series via the OMAP tree.
 
-> > I also get this message printed for the d_can driver with am335x; they=
-=20
-> > have two entries in drivers/clk/ti/clk-33xx.c. Probably as a workaround=
-=20
-> > to match the desired clock name for the d_can driver? Didn't really=20
-> > investigate yet.
->=20
-> That's pretty weird.  I wonder where the second fck alias is coming from?=
- =20
-> The DT & hwmod data for those devices looks relatively straightforward. =
-=20
-> Is the hwmod code adding fck aliases for both of the entries from the=20
-> clock file?
+Patch 2/2 has a dependency on Patch 1/2 and they need to go in in that order else
+gpio would break. More discussions are here [1].
+Let us know what you think. Thanks.
 
-$ grep 'can' drivers/clk/ti/clk-33xx.c=20
- * This program is free software; you can redistribute it and/or
-	DT_CLK(NULL, "dcan0_fck", "dcan0_fck"),
-	DT_CLK("481cc000.d_can", NULL, "dcan0_fck"),
-	DT_CLK(NULL, "dcan1_fck", "dcan1_fck"),
-	DT_CLK("481d0000.d_can", NULL, "dcan1_fck"),
+regards,
+Rajendra
 
-I quickly tried to remove the entries not specifying platform devices
-but that prevented my system from booting (Huh?). Still, no time to
-really check it, though.
+[1] http://www.mail-archive.com/linux-gpio@vger.kernel.org/msg02801.html
 
-Thanks,
+> ---
+>  drivers/gpio/gpio-omap.c |   10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 19b886c..78bc5a4 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -180,7 +180,7 @@ static inline void _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
+>  static inline void _gpio_dbck_enable(struct gpio_bank *bank)
+>  {
+>  	if (bank->dbck_enable_mask && !bank->dbck_enabled) {
+> -		clk_enable(bank->dbck);
+> +		clk_prepare_enable(bank->dbck);
+>  		bank->dbck_enabled = true;
+>  
+>  		writel_relaxed(bank->dbck_enable_mask,
+> @@ -198,7 +198,7 @@ static inline void _gpio_dbck_disable(struct gpio_bank *bank)
+>  		 */
+>  		writel_relaxed(0, bank->base + bank->regs->debounce_en);
+>  
+> -		clk_disable(bank->dbck);
+> +		clk_disable_unprepare(bank->dbck);
+>  		bank->dbck_enabled = false;
+>  	}
+>  }
+> @@ -231,7 +231,7 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
+>  
+>  	l = GPIO_BIT(bank, gpio);
+>  
+> -	clk_enable(bank->dbck);
+> +	clk_prepare_enable(bank->dbck);
+>  	reg = bank->base + bank->regs->debounce;
+>  	writel_relaxed(debounce, reg);
+>  
+> @@ -245,7 +245,7 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
+>  	bank->dbck_enable_mask = val;
+>  
+>  	writel_relaxed(val, reg);
+> -	clk_disable(bank->dbck);
+> +	clk_disable_unprepare(bank->dbck);
+>  	/*
+>  	 * Enable debounce clock per module.
+>  	 * This call is mandatory because in omap_gpio_request() when
+> @@ -290,7 +290,7 @@ static void _clear_gpio_debounce(struct gpio_bank *bank, unsigned gpio)
+>  		bank->context.debounce = 0;
+>  		writel_relaxed(bank->context.debounce, bank->base +
+>  			     bank->regs->debounce);
+> -		clk_disable(bank->dbck);
+> +		clk_disable_unprepare(bank->dbck);
+>  		bank->dbck_enabled = false;
+>  	}
+>  }
+> 
 
-   Wolfram
-
-
---/04w6evG8XlLl3ft
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTaywiAAoJEBQN5MwUoCm2MysP/1C7On1TEBgqTnVbLYdP/HqW
-ugp44EKfJqMRyFObaqX7Bc6ubyWbxQZjkooipvYhXGciY2IALHJMtxMWFd6S63Zl
-3x2b4PWUxb5yLaQVXrckQZLb2EorpjvIbp2DlI4cMZ9/LVLlOCNA0CLY190ATyfW
-CVnYzPK+f8dc6qm3kbBuQ9r+wcmDkb3+zDuCxYvDulEq/KnvI/poDFEabLQxBZ7o
-5sUQ5k426dGfAsdMjWjGOoojb7+yJ1bwd2XY83nKqfLkSr8Acl2xs5grbqMun3uW
-RhGZlQuK1Wg2NK61AR0HhnocIkx2EAZxz1+POgzGd2oTGpDgzfrGzm6278I/4eLs
-ojuBXG34OMZoUEHR1IIV5cr9sjYJSwy07MLq2BQFuWCbX2az1Guf1J2u0b026mr7
-C9neX0teIo73toGI9NAri2ypdP8hK1emfsKzPLYTZ47xkF0lI8rMp7omBmg95Ypl
-HWjxw7WW9Dnc6klveHLKjtYqveKN1CAoDuYNuofoHEMYS3UMKhMl+zamHXJUxqaJ
-AKdZ9YwMNmJ1mK4q4nHuATLXQzb2ieebmKRhOdlftfBDgGxvZmmb6ostzjXq5o6R
-g4aUoBfrhD9Abx3D/ge5Jo1nwwWHKrdpncupp8fmVOS+7yubOzmAHhlTkz5Gpu/6
-4pWB8EvTdXmCH89wwAQn
-=h0VR
------END PGP SIGNATURE-----
-
---/04w6evG8XlLl3ft--
