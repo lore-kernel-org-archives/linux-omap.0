@@ -1,91 +1,46 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/3] ARM: OMAP2+: fix dpll round_rate() to actually round
-Date: Thu, 8 May 2014 12:06:48 +0300
-Message-ID: <1399540009-6953-2-git-send-email-tomi.valkeinen@ti.com>
-References: <1399540009-6953-1-git-send-email-tomi.valkeinen@ti.com>
+From: Joachim Eastwood <manabian@gmail.com>
+Subject: Re: OMAP baseline test results for v3.15-rc4
+Date: Thu, 8 May 2014 11:11:22 +0200
+Message-ID: <CAGhQ9Vx_dJTn20S1OngAks1KvZkH=MUWEh-4bv5ciM7PhofJ8Q@mail.gmail.com>
+References: <alpine.DEB.2.02.1405080417150.23579@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51785 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753397AbaEHJHJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 May 2014 05:07:09 -0400
-In-Reply-To: <1399540009-6953-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-vc0-f178.google.com ([209.85.220.178]:33424 "EHLO
+	mail-vc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753507AbaEHJLX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 05:11:23 -0400
+Received: by mail-vc0-f178.google.com with SMTP id hq16so35388vcb.37
+        for <linux-omap@vger.kernel.org>; Thu, 08 May 2014 02:11:22 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.02.1405080417150.23579@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
-Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, kernel-build-reports@lists.linaro.org
 
-omap2_dpll_round_rate() doesn't actually round the given rate, even if
-the name and the description so hints. Instead it only tries to find an
-exact rate match, or if that fails, return ~0 as an error.
+On 8 May 2014 06:23, Paul Walmsley <paul@pwsan.com> wrote:
+>
+> Here are some basic OMAP test results for Linux v3.15-rc4.
+> Logs and other details at:
+>
+>     http://www.pwsan.com/omap/testlogs/test_v3.15-rc4/20140505112251/
+>
+>
+> Test summary
+> ------------
+<snip>
+>
+> The eMMC on the 4460 VAR-SOM-OM has failed; I guess it's run out of
+> reserve blocks to reallocate.  Now it's time to find yet another way
+> to boot it.
 
-What this basically means is that the user of the clock needs to know
-what rates the dpll can support, which obviously isn't right.
+I have some patches for u-boot which makes it possible to use the
+on-board LAN7500 USB Ethernet controller for tftp.
 
-This patch adds a simple method of rounding: during the iteration, the
-code keeps track of the closest rate match. If no exact match is found,
-the closest is returned.
+Since you have a VAR-SOM-OM44 module maybe you could test my dts patches for it?
+I will post a new version of the patch set early next week. I can cc you.
 
-However, as it is unclear whether current drivers rely on the current
-behavior, the rounding functionality not enabled by default, but by
-setting DPLL_USE_ROUNDED_RATE for the DPLL.
+Do you have the VAR-DVK-OM44 eval board?
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/clkt_dpll.c | 23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
-index 332af927f4d3..ddbb8d003719 100644
---- a/arch/arm/mach-omap2/clkt_dpll.c
-+++ b/arch/arm/mach-omap2/clkt_dpll.c
-@@ -298,6 +298,8 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
- 	struct dpll_data *dd;
- 	unsigned long ref_rate;
- 	const char *clk_name;
-+	unsigned long diff, closest_diff = ~0;
-+	bool use_rounding = clk->flags & DPLL_USE_ROUNDED_RATE;
- 
- 	if (!clk || !clk->dpll_data)
- 		return ~0;
-@@ -345,20 +347,31 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
- 		pr_debug("clock: %s: m = %d: n = %d: new_rate = %lu\n",
- 			 clk_name, m, n, new_rate);
- 
--		if (target_rate == new_rate) {
-+		diff = max(target_rate, new_rate) - min(target_rate, new_rate);
-+
-+		if ((use_rounding && diff < closest_diff) ||
-+			(!use_rounding && diff == 0)) {
-+			closest_diff = diff;
-+
- 			dd->last_rounded_m = m;
- 			dd->last_rounded_n = n;
--			dd->last_rounded_rate = target_rate;
--			break;
-+			dd->last_rounded_rate = new_rate;
-+
-+			if (diff == 0)
-+				break;
- 		}
- 	}
- 
--	if (target_rate != new_rate) {
-+	if (closest_diff == ~0) {
- 		pr_debug("clock: %s: cannot round to rate %lu\n",
- 			 clk_name, target_rate);
- 		return ~0;
- 	}
- 
--	return target_rate;
-+	if (closest_diff > 0)
-+		pr_debug("clock: %s: rounded rate %lu to %lu\n",
-+			 clk_name, target_rate, dd->last_rounded_rate);
-+
-+	return dd->last_rounded_rate;
- }
- 
--- 
-1.9.1
-
+regards
+Joachim Eastwood
