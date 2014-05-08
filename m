@@ -1,73 +1,83 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2] ARM: omap5: hwmod_data: Update McPDM hwmod's flags
-Date: Thu, 8 May 2014 16:03:08 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1405081602220.23579@utopia.booyaka.com>
-References: <1398858208-1346-1-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.02.1405080018490.23579@utopia.booyaka.com> <536B5790.1050800@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: omap4-panda-es boot issues with v3.15-rc4
+Date: Thu, 8 May 2014 20:12:21 +0300
+Message-ID: <536BBAF5.8070906@ti.com>
+References: <536B7E44.2040303@ti.com>	<7hppjos2w2.fsf@paris.lan> <CAGa+x84VB3CXDm71JWxHx1-Qk1xVNeXdwUjZnb42_wg+piOzzA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-427682295-1399564988=:23579"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43610 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753317AbaEHQDJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 12:03:09 -0400
-In-Reply-To: <536B5790.1050800@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40561 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754884AbaEHQWv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 May 2014 12:22:51 -0400
+In-Reply-To: <CAGa+x84VB3CXDm71JWxHx1-Qk1xVNeXdwUjZnb42_wg+piOzzA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: tony@atomide.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com
+To: Kevin Hilman <khilman@linaro.org>, Roger Quadros <rogerq@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Taras Kondratiuk <taras.kondratiuk@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kristo, Tero" <t-kristo@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi,
 
---843723315-427682295-1399564988=:23579
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On 05/08/2014 06:40 PM, Kevin Hilman wrote:
+> On Thu, May 8, 2014 at 8:31 AM, Kevin Hilman <khilman@linaro.org> wrote:
+>> Roger Quadros <rogerq@ti.com> writes:
+>>
+>>> Hi,
+>>>
+>>> Nishant pointed me to a booting issue with omap4-panda-es on linux-next but I'm observing
+>>> similar issues, although less frequent, with v3.15-rc4 as well.
+>>>
+>>> Configuration:
+>>>
+>>> - kernel v3.15-rc4 or linux-next (20140507)
+>>> - multi_v7_defconfig with LEDS_TRIGGER_HEARTBEAT and LEDS_GPIO enabled
+>>> - u-boot/master       173d294b94cf
+>>>
+>>> Observations:
+>>>
+>>> - Out of 10 boots a few may not succeed and hang midway without any warnings. Heartbeat LED stops.
+>>> e.g. http://www.hastebin.com/ebumojegoq.vhdl
+>>>
+>>> - Hang more noticeable on linux-next (20140507) than on v3.15-rc4
+>>
+>> I've beeen noticing the same thing for awhile with my boot tests.  For
+>> me, next-20140508 is failing most of the time now.
+>>
+>>> - Hang more noticeable with USB_EHCI_HCD enabled but hang observed even without USB_EHCI_HCD.
+>>> Maybe related to when high speed interrupts occur in the boot process.
+>>>
+>>> - On successful boots following warning is seen
+>>> [    4.010375] gic_timer_retrigger: lost localtimer interrupt
+>>>
+>>> - On successful boots heartbeat LED stops blinking after boot process and left idle. LED can remain stuck in
+>>> ON state as well. It does blink again when doing activity on console.
+>>>
+>>> Workaround:
+>>>
+>>> - Disabling CPU_IDLE or even just disabling C3 (MPU OSWR) seems to fix all the above issues.
+>>>
+>>> I don't really know what exactly is the issue but it seems to be specific to OMAP4, GIC, MPU OSWR.
+>>
+>> I can confirm that disabling CONFIG_CPU_IDLE seems to make the problem
+>> go away.  Hmm....
+> 
+> Another finger pointing in the same direction: omap2plus_defconfig +
+> CONFIG_CPU_IDLE=y also fails to boot rather consistently in today's
+> -next.
 
-On Thu, 8 May 2014, Peter Ujfalusi wrote:
+Is it observed on OMAP4460 only?
+if no - it's smth new.
+if yes - may be some racing condition is still present.
 
-> Hi Paul,
->=20
-> On 05/08/2014 03:20 AM, Paul Walmsley wrote:
-> > Hi P=E9ter,
-> >=20
-> > On Wed, 30 Apr 2014, Peter Ujfalusi wrote:
-> >=20
-> >> Add HWMOD_SWSUP_SIDLE to flags.
-> >>
-> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> >=20
-> > This patch could use a better changelog.  It would be ideal to understa=
-nd=20
-> > _why_ HWMOD_SWSUP_SIDLE is needed.  Is there a known hardware bug?  Or =
-is=20
-> > this simply based on practical observation, e.g., something bad happens=
- if=20
-> > the McPDM is not software-idled?
->=20
-> The same issue exists on OMAP5 as on OMAP4:
->=20
-> commit 12d82e4b0aa6c71f38b668a372f9a13f243207da
-> Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Date:   Fri Jan 18 16:48:16 2013 -0700
->=20
->     ARM: OMAP4: hwmod_data: Correct IDLEMODE for McPDM
->=20
->     McPDM need to be configured to NO_IDLE mode when it is in used otherw=
-ise
->     vital clocks will be gated which results 'slow motion' audio playback=
-=2E
->=20
->     Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->     [paul@pwsan.com: copy patch description into hwmod data comments]
->     Signed-off-by: Paul Walmsley <paul@pwsan.com>
->=20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+Roger, is it possible to connect debugger and check GIC distributor status
+(gic_dist_base_addr + GIC_DIST_CTRL) in case of failure?
 
-Thanks, could you please resend the patch with an updated commit message? =
-=20
-Then I'll take it.  I assume this is -rc material?
+According to the current code (OMAP4460) it's possible that CPU0 will stuck only in case
+if CPU1 is kicked off from PWRDM_POWER_OFF state somehow but not by CPU0. 
+Code assumes that CPU1 can exit from PWRDM_POWER_OFF state only when CPU0 calls clkdm_wakeup(cpu_clkdm[1]); 
 
+Sorry, but I'm not able to debug it now.
 
-- Paul
---843723315-427682295-1399564988=:23579--
+Regards,
+-grygorii
