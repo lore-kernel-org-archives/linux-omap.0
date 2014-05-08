@@ -1,110 +1,74 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [RFC 6/6] omapdss: DSS: add reg-id param to dpi_select_source
-Date: Thu, 8 May 2014 14:45:17 +0530
-Message-ID: <1399540517-17883-6-git-send-email-archit@ti.com>
-References: <1399540517-17883-1-git-send-email-archit@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 05/17] pci: host: pcie-dra7xx: add support for pcie-dra7xx controller
+Date: Thu, 08 May 2014 11:16:16 +0200
+Message-ID: <4266819.iBi1FzBIBZ@wuerfel>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com> <5525000.bPgPLB3ZrT@wuerfel> <000101cf6a9b$6c96c8d0$45c45a70$%han@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43184 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752459AbaEHJQk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 May 2014 05:16:40 -0400
-In-Reply-To: <1399540517-17883-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <000101cf6a9b$6c96c8d0$45c45a70$%han@samsung.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Jingoo Han <jg1.han@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, 'Kishon Vijay Abraham I' <kishon@ti.com>, 'Jason Gunthorpe' <jgunthorpe@obsidianresearch.com>, 'Marek Vasut' <marex@denx.de>, devicetree@vger.kernel.org, balajitk@ti.com, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, 'Mohit Kumar' <mohit.kumar@st.com>, 'Bjorn Helgaas' <bhelgaas@google.com>, linux-omap@vger.kernel.org, rogerq@ti.com, 'Pratyush Anand' <pratyush.anand@st.com>, 'Thierry Reding' <treding@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Add an argument which describes which DPI instance we are referring to when
-selecting it's overlay manager. This will come into use when a DSS version
-supports multiple DPI instances.
+On Thursday 08 May 2014 17:56:38 Jingoo Han wrote:
+> On Wednesday, May 07, 2014 6:26 PM, Arnd Bergmann wrote:
+> > On Wednesday 07 May 2014 14:52:47 Kishon Vijay Abraham I wrote:
+> > > On Tuesday 06 May 2014 10:05 PM, Jason Gunthorpe wrote:
+> > > > On Tue, May 06, 2014 at 07:03:51PM +0530, Kishon Vijay Abraham I wrote:
+> > > >> +Example:
+> > > >> +pcie@51000000 {
+> > > >> +    compatible = "ti,dra7xx-pcie";
+> > > >> +    reg = <0x51002000 0x14c>, <0x51000000 0x2000>;
+> > > >> +    reg-names = "ti_conf", "rc_dbics";
+> > > >> +    interrupts = <0 232 0x4>, <0 233 0x4>;
+> > > >> +    #address-cells = >;
+> > > >> +    #size-cells = <2>;
+> > > >> +    device_type = "pci";
+> > > >> +    ti,device_type = >;
+> > > >> +    ranges = <0x00000800 0 0x20001000 0x20001000 0 0x00002000  /* Configuration Space */
+> > > >
+> > > > Configuration space should not show up in the ranges, please don't
+> > > > copy that mistake from other drivers, put it in reg.
+> > >
+> > > But then it needs pcie-designware.c to be modified and it will be breaking
+> > > other platforms no?
+> > 
+> > I think the pcie-designware driver should be changed to allow either way.
+> > Ideally we would deprecate the existing method in a way that for new front-ends
+> > it doesn't work, but the old front-ends can still deal with it but also work
+> > if you put it into the reg property.
+> 
+> (+cc Pratyush Anand, Thierry Reding)
+> 
+> Hi Arnd,
+> 
+> Thank you for your comment.
+> Do you mean the case of Tegra PCIe as below?
+> 
+> ./arch/arm/boot/dts/tegra20.dts
+>         pcie-controller@80003000 {
+>                 ...
+>                 reg = <0x80003000 0x00000800   /* PADS registers */
+>                          0x80003800 0x00000200   /* AFI registers */
+>                          0x90000000 0x10000000>; /* configuration space */
+>                 ...
+>                 ranges = <0x82000000 0 0x80000000 0x80000000 0 0x00001000   /* port 0 registers */
+>                         0x82000000 0 0x80001000 0x80001000 0 0x00001000   /* port 1 registers */
+>                         0x81000000 0 0          0x82000000 0 0x00010000   /* downstream I/O */
+>                         0x82000000 0 0xa0000000 0xa0000000 0 0x08000000   /* non-prefetchable memory */
+>                         0xc2000000 0 0xa8000000 0xa8000000 0 0x18000000>; /* prefetchable memory */
+>                 ...
+> 
+> ./drivers/pci/host/pci-tegra.c
+>         /* request configuration space, but remap later, on demand */
+>         res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "cs");
+>         ...
+>         pcie->cs = devm_request_mem_region(pcie->dev, res->start,
+>                                                 resource_size(res), res->name);
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/fbdev/omap2/dss/dpi.c |  2 +-
- drivers/video/fbdev/omap2/dss/dss.c | 12 ++++++------
- drivers/video/fbdev/omap2/dss/dss.h |  2 +-
- 3 files changed, 8 insertions(+), 8 deletions(-)
+Yes, that is how the config space should be handled normally.
 
-diff --git a/drivers/video/fbdev/omap2/dss/dpi.c b/drivers/video/fbdev/omap2/dss/dpi.c
-index faf266e..def8e68 100644
---- a/drivers/video/fbdev/omap2/dss/dpi.c
-+++ b/drivers/video/fbdev/omap2/dss/dpi.c
-@@ -420,7 +420,7 @@ static int dpi_display_enable(struct omap_dss_device *dssdev)
- 	if (r)
- 		goto err_get_dispc;
- 
--	r = dss_dpi_select_source(out->manager->id);
-+	r = dss_dpi_select_source(out->reg, out->manager->id);
- 	if (r)
- 		goto err_src_sel;
- 
-diff --git a/drivers/video/fbdev/omap2/dss/dss.c b/drivers/video/fbdev/omap2/dss/dss.c
-index 4087f3b..ffa6d84 100644
---- a/drivers/video/fbdev/omap2/dss/dss.c
-+++ b/drivers/video/fbdev/omap2/dss/dss.c
-@@ -74,7 +74,7 @@ struct dss_features {
- 	u8 fck_div_max;
- 	u8 dss_fck_multiplier;
- 	const char *parent_clk_name;
--	int (*dpi_select_source)(enum omap_channel channel);
-+	int (*dpi_select_source)(int id, enum omap_channel channel);
- 	int (*init_ports)(struct platform_device *pdev);
- 	void (*uninit_ports)(struct platform_device *pdev);
- };
-@@ -570,7 +570,7 @@ enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void)
- 	return REG_GET(DSS_CONTROL, 15, 15);
- }
- 
--static int dss_dpi_select_source_omap2_omap3(enum omap_channel channel)
-+static int dss_dpi_select_source_omap2_omap3(int id, enum omap_channel channel)
- {
- 	if (channel != OMAP_DSS_CHANNEL_LCD)
- 		return -EINVAL;
-@@ -578,7 +578,7 @@ static int dss_dpi_select_source_omap2_omap3(enum omap_channel channel)
- 	return 0;
- }
- 
--static int dss_dpi_select_source_omap4(enum omap_channel channel)
-+static int dss_dpi_select_source_omap4(int id, enum omap_channel channel)
- {
- 	int val;
- 
-@@ -598,7 +598,7 @@ static int dss_dpi_select_source_omap4(enum omap_channel channel)
- 	return 0;
- }
- 
--static int dss_dpi_select_source_omap5(enum omap_channel channel)
-+static int dss_dpi_select_source_omap5(int id, enum omap_channel channel)
- {
- 	int val;
- 
-@@ -624,9 +624,9 @@ static int dss_dpi_select_source_omap5(enum omap_channel channel)
- 	return 0;
- }
- 
--int dss_dpi_select_source(enum omap_channel channel)
-+int dss_dpi_select_source(int id, enum omap_channel channel)
- {
--	return dss.feat->dpi_select_source(channel);
-+	return dss.feat->dpi_select_source(id, channel);
- }
- 
- static int dss_get_clocks(void)
-diff --git a/drivers/video/fbdev/omap2/dss/dss.h b/drivers/video/fbdev/omap2/dss/dss.h
-index 6f68f72..f3ddcc9 100644
---- a/drivers/video/fbdev/omap2/dss/dss.h
-+++ b/drivers/video/fbdev/omap2/dss/dss.h
-@@ -209,7 +209,7 @@ int dss_init_platform_driver(void) __init;
- void dss_uninit_platform_driver(void);
- 
- unsigned long dss_get_dispc_clk_rate(void);
--int dss_dpi_select_source(enum omap_channel channel);
-+int dss_dpi_select_source(int id, enum omap_channel channel);
- void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select);
- enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void);
- const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src);
--- 
-1.8.3.2
-
+	Arnd
