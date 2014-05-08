@@ -1,143 +1,63 @@
-From: Johan Hovold <jhovold@gmail.com>
-Subject: [PATCH] ARM: dts: AM33XX: fix ethernet and mdio default state
-Date: Thu,  8 May 2014 10:57:36 +0200
-Message-ID: <1399539456-555-1-git-send-email-jhovold@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:63637 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752762AbaEHI63 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 04:58:29 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for
+ configuring the iATU
+Date: Thu, 08 May 2014 18:05:11 +0900
+Message-ID: <000201cf6a9c$9dd295e0$d977c1a0$%han@samsung.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>
+ <1399383244-14556-7-git-send-email-kishon@ti.com> <4764413.ZAEU5S5p0p@wuerfel>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <4764413.ZAEU5S5p0p@wuerfel>
+Content-language: ko
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Arnd Bergmann' <arnd-r2nGTMty4D4@public.gmane.org>, 'Kishon Vijay Abraham I' <kishon-l0cyMroinI0@public.gmane.org>
+Cc: 'Santosh Shilimkar' <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, 'Bjorn Helgaas' <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, 'Marek Vasut' <marex-ynQEQJNshbs@public.gmane.org>, 'Jingoo Han' <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Johan Hovold <jhovold@gmail.com>
 
-Make sure ethernet and mdio nodes are disabled by default and enable
-them explicitly only on boards that actually use them.
+On Tuesday, May 06, 2014 10:59 PM, Arnd Bergmann wrote:
+> On Tuesday 06 May 2014 19:03:52 Kishon Vijay Abraham I wrote:
+> > In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
+> > address. So whenever the cpu issues a read/write request, the 4 most
+> > significant bits are used by L3 to determine the target controller.
+> > For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
+> > the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
+> > the outbound translation window the *base* should be programmed as 0x000_0000.
+> > Whenever we try to write to say 0x2000_0000, it will be translated to whatever
+> > we have programmed in the translation window with base as 0x000_0000.
+> >
+> > Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+> > Cc: Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>
+> > Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> > Acked-by: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> > Acked-by: Mohit Kumar <mohit.kumar-qxv4g6HH51o@public.gmane.org>
+> 
+> Sorry, but NAK.
+> 
+> We have a standard 'dma-ranges' property to handle this, so use it.
+> 
+> See the x-gene PCIe driver patches for an example. Please also talk
+> to Santosh about it, as he is implementing generic support for
+> parsing dma-ranges in platform devices at the moment.
 
-Signed-off-by: Johan Hovold <jhovold@gmail.com>
----
- arch/arm/boot/dts/am335x-bone-common.dtsi | 3 ++-
- arch/arm/boot/dts/am335x-evm.dts          | 2 ++
- arch/arm/boot/dts/am335x-evmsk.dts        | 2 ++
- arch/arm/boot/dts/am335x-igep0033.dtsi    | 8 ++++++++
- arch/arm/boot/dts/am335x-nano.dts         | 5 +++++
- arch/arm/boot/dts/am33xx.dtsi             | 2 ++
- 6 files changed, 21 insertions(+), 1 deletion(-)
+Hi Arnd,
 
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 2e7d932887b5..26a1fa958f37 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -280,13 +280,14 @@
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&cpsw_default>;
- 	pinctrl-1 = <&cpsw_sleep>;
--
-+	status = "okay";
- };
- 
- &davinci_mdio {
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&davinci_mdio_default>;
- 	pinctrl-1 = <&davinci_mdio_sleep>;
-+	status = "okay";
- };
- 
- &mmc1 {
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 6028217ace0f..44c63d1c4f12 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -614,12 +614,14 @@
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&cpsw_default>;
- 	pinctrl-1 = <&cpsw_sleep>;
-+	status = "okay";
- };
- 
- &davinci_mdio {
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&davinci_mdio_default>;
- 	pinctrl-1 = <&davinci_mdio_sleep>;
-+	status = "okay";
- };
- 
- &cpsw_emac0 {
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index ab238850a7b2..365383f7f617 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -484,12 +484,14 @@
- 	pinctrl-0 = <&cpsw_default>;
- 	pinctrl-1 = <&cpsw_sleep>;
- 	dual_emac = <1>;
-+	status = "okay";
- };
- 
- &davinci_mdio {
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&davinci_mdio_default>;
- 	pinctrl-1 = <&davinci_mdio_sleep>;
-+	status = "okay";
- };
- 
- &cpsw_emac0 {
-diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
-index 9f22c189f636..27445d07f953 100644
---- a/arch/arm/boot/dts/am335x-igep0033.dtsi
-+++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-@@ -95,6 +95,14 @@
- 	};
- };
- 
-+&mac {
-+	status = "okay";
-+};
-+
-+&davinci_mdio {
-+	status = "okay";
-+};
-+
- &cpsw_emac0 {
- 	phy_id = <&davinci_mdio>, <0>;
- };
-diff --git a/arch/arm/boot/dts/am335x-nano.dts b/arch/arm/boot/dts/am335x-nano.dts
-index 9907b494b99c..a3466455b171 100644
---- a/arch/arm/boot/dts/am335x-nano.dts
-+++ b/arch/arm/boot/dts/am335x-nano.dts
-@@ -344,6 +344,11 @@
- 
- &mac {
- 	dual_emac = <1>;
-+	status = "okay";
-+};
-+
-+&davinci_mdio {
-+	status = "okay";
- };
- 
- &cpsw_emac0 {
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index cb6811e5ae5a..0fb5df4ad498 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -688,6 +688,7 @@
- 			 */
- 			interrupts = <40 41 42 43>;
- 			ranges;
-+			status = "disabled";
- 
- 			davinci_mdio: mdio@4a101000 {
- 				compatible = "ti,davinci_mdio";
-@@ -696,6 +697,7 @@
- 				ti,hwmods = "davinci_mdio";
- 				bus_freq = <1000000>;
- 				reg = <0x4a101000 0x100>;
-+				status = "disabled";
- 			};
- 
- 			cpsw_emac0: slave@4a100200 {
--- 
-1.8.3.2
+Do you mean the following patch?
+http://www.spinics.net/lists/kernel/msg1737725.html
 
+Thank you.
+
+Best regards,
+Jingoo Han
+
+> 
+> I also suspect you will have to implement swiotlb support to make
+> generic PCI devices work behind this bridge. Otherwise you end up
+> with random physical addresses passed into DMA registers.
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
