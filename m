@@ -1,74 +1,52 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 05/17] pci: host: pcie-dra7xx: add support for pcie-dra7xx controller
-Date: Thu, 08 May 2014 11:16:16 +0200
-Message-ID: <4266819.iBi1FzBIBZ@wuerfel>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com> <5525000.bPgPLB3ZrT@wuerfel> <000101cf6a9b$6c96c8d0$45c45a70$%han@samsung.com>
+Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for configuring the iATU
+Date: Thu, 08 May 2014 11:18:29 +0200
+Message-ID: <6882241.amuhzvbd8n@wuerfel>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com> <4764413.ZAEU5S5p0p@wuerfel> <000201cf6a9c$9dd295e0$d977c1a0$%han@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <000101cf6a9b$6c96c8d0$45c45a70$%han@samsung.com>
-Sender: linux-doc-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <000201cf6a9c$9dd295e0$d977c1a0$%han@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jingoo Han <jg1.han@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, 'Kishon Vijay Abraham I' <kishon@ti.com>, 'Jason Gunthorpe' <jgunthorpe@obsidianresearch.com>, 'Marek Vasut' <marex@denx.de>, devicetree@vger.kernel.org, balajitk@ti.com, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, 'Mohit Kumar' <mohit.kumar@st.com>, 'Bjorn Helgaas' <bhelgaas@google.com>, linux-omap@vger.kernel.org, rogerq@ti.com, 'Pratyush Anand' <pratyush.anand@st.com>, 'Thierry Reding' <treding@nvidia.com>
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>, 'Santosh Shilimkar' <santosh.shilimkar@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, rogerq@ti.com, balajitk@ti.com, 'Bjorn Helgaas' <bhelgaas@google.com>, 'Marek Vasut' <marex@denx.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 08 May 2014 17:56:38 Jingoo Han wrote:
-> On Wednesday, May 07, 2014 6:26 PM, Arnd Bergmann wrote:
-> > On Wednesday 07 May 2014 14:52:47 Kishon Vijay Abraham I wrote:
-> > > On Tuesday 06 May 2014 10:05 PM, Jason Gunthorpe wrote:
-> > > > On Tue, May 06, 2014 at 07:03:51PM +0530, Kishon Vijay Abraham I wrote:
-> > > >> +Example:
-> > > >> +pcie@51000000 {
-> > > >> +    compatible = "ti,dra7xx-pcie";
-> > > >> +    reg = <0x51002000 0x14c>, <0x51000000 0x2000>;
-> > > >> +    reg-names = "ti_conf", "rc_dbics";
-> > > >> +    interrupts = <0 232 0x4>, <0 233 0x4>;
-> > > >> +    #address-cells = >;
-> > > >> +    #size-cells = <2>;
-> > > >> +    device_type = "pci";
-> > > >> +    ti,device_type = >;
-> > > >> +    ranges = <0x00000800 0 0x20001000 0x20001000 0 0x00002000  /* Configuration Space */
-> > > >
-> > > > Configuration space should not show up in the ranges, please don't
-> > > > copy that mistake from other drivers, put it in reg.
+On Thursday 08 May 2014 18:05:11 Jingoo Han wrote:
+> On Tuesday, May 06, 2014 10:59 PM, Arnd Bergmann wrote:
+> > On Tuesday 06 May 2014 19:03:52 Kishon Vijay Abraham I wrote:
+> > > In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
+> > > address. So whenever the cpu issues a read/write request, the 4 most
+> > > significant bits are used by L3 to determine the target controller.
+> > > For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
+> > > the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
+> > > the outbound translation window the *base* should be programmed as 0x000_0000.
+> > > Whenever we try to write to say 0x2000_0000, it will be translated to whatever
+> > > we have programmed in the translation window with base as 0x000_0000.
 > > >
-> > > But then it needs pcie-designware.c to be modified and it will be breaking
-> > > other platforms no?
+> > > Cc: Bjorn Helgaas <bhelgaas@google.com>
+> > > Cc: Marek Vasut <marex@denx.de>
+> > > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> > > Acked-by: Jingoo Han <jg1.han@samsung.com>
+> > > Acked-by: Mohit Kumar <mohit.kumar@st.com>
 > > 
-> > I think the pcie-designware driver should be changed to allow either way.
-> > Ideally we would deprecate the existing method in a way that for new front-ends
-> > it doesn't work, but the old front-ends can still deal with it but also work
-> > if you put it into the reg property.
-> 
-> (+cc Pratyush Anand, Thierry Reding)
+> > Sorry, but NAK.
+> > 
+> > We have a standard 'dma-ranges' property to handle this, so use it.
+> > 
+> > See the x-gene PCIe driver patches for an example. Please also talk
+> > to Santosh about it, as he is implementing generic support for
+> > parsing dma-ranges in platform devices at the moment.
 > 
 > Hi Arnd,
 > 
-> Thank you for your comment.
-> Do you mean the case of Tegra PCIe as below?
+> Do you mean the following patch?
+> http://www.spinics.net/lists/kernel/msg1737725.html
 > 
-> ./arch/arm/boot/dts/tegra20.dts
->         pcie-controller@80003000 {
->                 ...
->                 reg = <0x80003000 0x00000800   /* PADS registers */
->                          0x80003800 0x00000200   /* AFI registers */
->                          0x90000000 0x10000000>; /* configuration space */
->                 ...
->                 ranges = <0x82000000 0 0x80000000 0x80000000 0 0x00001000   /* port 0 registers */
->                         0x82000000 0 0x80001000 0x80001000 0 0x00001000   /* port 1 registers */
->                         0x81000000 0 0          0x82000000 0 0x00010000   /* downstream I/O */
->                         0x82000000 0 0xa0000000 0xa0000000 0 0x08000000   /* non-prefetchable memory */
->                         0xc2000000 0 0xa8000000 0xa8000000 0 0x18000000>; /* prefetchable memory */
->                 ...
-> 
-> ./drivers/pci/host/pci-tegra.c
->         /* request configuration space, but remap later, on demand */
->         res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "cs");
->         ...
->         pcie->cs = devm_request_mem_region(pcie->dev, res->start,
->                                                 resource_size(res), res->name);
 
-Yes, that is how the config space should be handled normally.
+That is the patch Santosh did for platform devices, which is related but not
+what I meant here. For the PCI inbound window setup, please have a look
+at https://lkml.org/lkml/2014/3/19/607
 
 	Arnd
