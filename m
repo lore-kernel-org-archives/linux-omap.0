@@ -1,85 +1,121 @@
-From: Zhuang Jin Can <jin.can.zhuang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
-Date: Thu, 8 May 2014 12:00:47 -0400
-Message-ID: <20140508160046.GJ19925@intel.com>
-References: <20140508043902.GI19925@intel.com>
- <Pine.LNX.4.44L0.1405071252550.1325-100000@iolanthe.rowland.org>
-Reply-To: jin.can.zhuang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.15-rc4
+Date: Thu, 8 May 2014 04:23:09 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1405080417150.23579@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1405071252550.1325-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kernel development list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, liping.zhou-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, david.a.cohen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:37537 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750947AbaEHEXK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 00:23:10 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On Wed, May 07, 2014 at 12:59:06PM -0400, Alan Stern wrote:
-> On Thu, 8 May 2014, Zhuang Jin Can wrote:
-> 
-> > > A similar problem can occur in the opposite sense: The thread queuing
-> > > the delayed status request might be delayed for so long that another
-> > > SETUP packet arrives from the host first.  In that case, the delayed
-> > > status request is a response for a stale transfer, so it must not be
-> > > sent to the host.
-> > > 
-> > > Do dwc3 and composite.c handle this case correctly?
-> > > 
-> > So the situation you describe is that we get the STATUS XferNotReady
-> > event, but gadget queues a status request when control transfer already
-> > failed.
-> 
-> When the host already timed out the control transfer and started a new 
-> one.  Here's what I'm talking about:
-> 
-> 	Host sends a Set-Configuration request.
-> 
-> 	The UDC driver calls the gadget driver's setup function.
-> 
-> 	The setup function returns DELAYED_STATUS.
-> 
-> 	After a few seconds, the host gets tired of waiting and
-> 	sends a Get-Descriptor request
-My understanding is dwc3 will return NYET to host for this
-Get-Descriptor request transaction, as dwc3 is still in STATUS phase,
-there's no buffer to receive anything in ep0-out. And your below
-comments is not applicapable to dwc3.
-> 
-> 	The gadget driver finally submits the delayed request response
-> 	to the Set-Configuration request.  But it is now too late,
-> 	because the host expects a response to the Get-Descriptor 
-> 	request.
-> 
-> >  dwc3 can't move to SETUP phase until the status request arrives,
-> > so any SETUP transaction from host will fail. If status request
-> > eventually arrives, it already missed the first control transfer, and
-> > I don't know how the controller will behave. If we still can get a
-> > STATUS XferComplete event without actually transfer anything on the
-> > bus, then we can move back to SETUP PHASE which will remove the stale
-> > delayed status request and start the new SETUP transaction. But I think
-> > in this situation, the host should already lose it patience and start
-> > to reset the bus.
-> 
-> My point is that the UDC driver can't handle this.  Therefore the
-> gadget driver has to prevent this from happening.
-> 
-> That means composite.c has to avoid sending delayed status responses if 
-> a new SETUP packet has been received already.
-> 
-> > Per my understanding, it's impossible for dwc3 to send a stale STATUS
-> > request for a new SETUP transaction. 
-> 
-> dwc3 won't know that the status response is stale.  It will think the 
-> response was meant for the new transfer, not the old one.
-> 
-> Alan Stern
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Here are some basic OMAP test results for Linux v3.15-rc4.
+Logs and other details at:
+
+    http://www.pwsan.com/omap/testlogs/test_v3.15-rc4/20140505112251/
+
+
+Test summary
+------------
+
+Build: uImage+dtb:
+    Pass ( 9/ 9): omap2plus_defconfig_am33xx_only/am335x-bone,
+                  omap2plus_defconfig/omap4-panda,
+                  omap2plus_defconfig/omap4-panda-es,
+                  omap2plus_defconfig/am3517-evm,
+                  omap2plus_defconfig/omap2430-sdp,
+                  omap2plus_defconfig/omap3-beagle,
+                  omap2plus_defconfig/omap3-beagle-xm,
+                  omap2plus_defconfig/omap3-evm-37xx,
+                  omap2plus_defconfig/omap4-var-som
+
+Build: zImage:
+    Pass (14/14): multi_v7_defconfig, omap2plus_defconfig,
+                  omap2plus_defconfig_am33xx_only,
+                  omap2plus_defconfig_2430sdp_only,
+                  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+                  omap2plus_defconfig_n800_only_a,
+                  omap2plus_defconfig_n800_multi_omap2xxx,
+                  omap2plus_defconfig_omap2_4_only,
+                  omap2plus_defconfig_omap3_4_only,
+                  rmk_omap3430_ldp_allnoconfig,
+                  rmk_omap3430_ldp_oldconfig,
+                  rmk_omap4430_sdp_allnoconfig,
+                  rmk_omap4430_sdp_oldconfig
+
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+                  omap1_defconfig_5912osk_only
+
+Boot to userspace:
+    FAIL ( 1/12): 2430sdp
+    skip ( 3/12): 5912osk, cmt3517, 4460varsomom
+    Pass ( 8/12): 3517evm, 3530es3beagle, 3730beaglexm, 37xxevm,
+                  4430es2panda, 4460pandaes, am335xbone, am335xbonelt
+
+PM: chip retention via suspend:
+    skip ( 1/ 7): 4460varsomom
+    FAIL ( 2/ 7): 2430sdp, 4430es2panda
+    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
+
+PM: chip retention via dynamic idle:
+    skip ( 1/ 7): 4460varsomom
+    FAIL ( 6/ 7): 2430sdp, 3530es3beagle, 3730beaglexm, 37xxevm,
+                  4430es2panda, 4460pandaes
+
+PM: chip off except CORE via suspend:
+    FAIL ( 1/ 1): 3730beaglexm
+
+PM: chip off except CORE via dynamic idle:
+    FAIL ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    skip ( 1/ 5): 4460varsomom
+    FAIL ( 4/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes
+
+PM: chip off via dynamic idle:
+    skip ( 1/ 5): 4460varsomom
+    FAIL ( 4/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes
+
+
+vmlinux object size
+(delta in bytes from test_v3.15-rc3 (d1db0eea852497762cab43b905b879dfcd3b8987)):
+   text     data      bss    total  kernel
+   +216        0        0     +216  omap1_defconfig
+   +248        0        0     +248  omap1_defconfig_1510innovator_only
+   +216        0        0     +216  omap1_defconfig_5912osk_only
+   +364       +8        0     +372  multi_v7_defconfig
+   +448        0        0     +448  omap2plus_defconfig
+   +304        0        0     +304  omap2plus_defconfig_2430sdp_only
+   +512       +8        0     +520  omap2plus_defconfig_am33xx_only
+   +512       +8        0     +520  omap2plus_defconfig_am43xx_only
+   +448        0        0     +448  omap2plus_defconfig_cpupm
+   +512       +8        0     +520  omap2plus_defconfig_dra7xx_only
+   +420       +8       +4     +432  omap2plus_defconfig_n800_multi_omap2xxx
+   +388        0       +4     +392  omap2plus_defconfig_n800_only_a
+   +512       +8        0     +520  omap2plus_defconfig_no_pm
+   +384        0        0     +384  omap2plus_defconfig_omap2_4_only
+   +512        0        0     +512  omap2plus_defconfig_omap3_4_only
+   +512        0        0     +512  omap2plus_defconfig_omap5_only
+   +336        0        0     +336  rmk_omap3430_ldp_allnoconfig
+   +352       +8        0     +360  rmk_omap3430_ldp_oldconfig
+   +352        0      -16     +336  rmk_omap4430_sdp_allnoconfig
+   +392       -8        0     +384  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.15-rc3 (d1db0eea852497762cab43b905b879dfcd3b8987))
+  avail  rsrvd   high  freed  board          kconfig
+ -1007432k -40120k -269312k  -388k  4460varsomom   omap2plus_defconfig
+
+
+The eMMC on the 4460 VAR-SOM-OM has failed; I guess it's run out of 
+reserve blocks to reallocate.  Now it's time to find yet another way 
+to boot it.
+
+
