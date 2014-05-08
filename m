@@ -1,112 +1,79 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [RFC 2/4] ARM: dts: Add ctrl-core DT node for DRA7
-Date: Thu, 8 May 2014 13:46:38 +0530
-Message-ID: <536B3D66.4020905@ti.com>
-References: <1397654063-8055-1-git-send-email-archit@ti.com> <1397654063-8055-2-git-send-email-archit@ti.com> <20140418171854.GJ5354@atomide.com> <5354A970.8040605@ti.com> <20140421151034.GA23945@atomide.com> <53687198.60405@ti.com> <20140506142606.GA18474@atomide.com> <536B1E12.1080304@ti.com> <536B380D.7000503@ti.com>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: Re: [PATCH 05/17] pci: host: pcie-dra7xx: add support for pcie-dra7xx
+ controller
+Date: Thu, 08 May 2014 17:56:38 +0900
+Message-ID: <000101cf6a9b$6c96c8d0$45c45a70$%han@samsung.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>
+ <20140506163507.GA15542@obsidianresearch.com> <5369FB67.6040905@ti.com>
+ <5525000.bPgPLB3ZrT@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56281 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751103AbaEHISK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 May 2014 04:18:10 -0400
-In-Reply-To: <536B380D.7000503@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-reply-to: <5525000.bPgPLB3ZrT@wuerfel>
+Content-language: ko
+Sender: linux-doc-owner@vger.kernel.org
+To: 'Arnd Bergmann' <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>, 'Jason Gunthorpe' <jgunthorpe@obsidianresearch.com>, 'Marek Vasut' <marex@denx.de>, devicetree@vger.kernel.org, balajitk@ti.com, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, 'Mohit Kumar' <mohit.kumar@st.com>, 'Bjorn Helgaas' <bhelgaas@google.com>, linux-omap@vger.kernel.org, rogerq@ti.com, 'Pratyush Anand' <pratyush.anand@st.com>, 'Thierry Reding' <treding@nvidia.com>, 'Jingoo Han' <jg1.han@samsung.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-On Thursday 08 May 2014 01:23 PM, Tero Kristo wrote:
-> On 05/08/2014 09:02 AM, Archit Taneja wrote:
->> On Tuesday 06 May 2014 07:56 PM, Tony Lindgren wrote:
->>> * Archit Taneja <archit@ti.com> [140505 22:24]:
->>>> Hi,
->>>>
->>>> On Monday 21 April 2014 08:40 PM, Tony Lindgren wrote:
->>>>> * Archit Taneja <archit@ti.com> [140420 22:16]:
->>>>>> Hi,
->>>>>>
->>>>>> On Friday 18 April 2014 10:48 PM, Tony Lindgren wrote:
->>>>>>> * Archit Taneja <archit@ti.com> [140416 06:20]:
->>>>>>>> Add DT node for the ctrl-core sub module of the DRA7 control
->>>>>>>> module. We map the
->>>>>>>> CTRL_MODULE_CORE address region up to 0x4a002d60, this region
->>>>>>>> contains register
->>>>>>>> fields which configure clocks. The remainder of the registers are
->>>>>>>> related to
->>>>>>>> pad configurations or cross-bar configurations, and therefore
->>>>>>>> aren't mapped.
->>>>>>>
->>>>>>> Can you please check if this can just use the existing
->>>>>>> regmap syscon mapping:
->>>>>>>
->>>>>>> syscon = <&dra7_ctrl_general>;
->>>>>>>
->>>>>>> See how the drivers/regulator/pbias-regulator.c is using the
->>>>>>> syscon to initialize a regulator and then omap_hsmmc.c just does
->>>>>>> the standard regulator calls.
->>>>>>
->>>>>> The thing is that this bit needs to be set before the the DSS
->>>>>> hwmods are
->>>>>> reset, and that happens very early. If we don't do this, DSS won't
->>>>>> reset
->>>>>> properly, and not get back to an idle state.
->>>>>>
->>>>>> I am not sure where I can configure the syscon register early
->>>>>> enough that it
->>>>>> happens before the hwmods are reset. With a syscon mapping, I guess
->>>>>> we would
->>>>>> access the register when the DSS driver is probed. But that's too
->>>>>> late for
->>>>>> us.
->>>>>>
->>>>>> Ideally, it would be much better to have a syscon mapping. Do you
->>>>>> have any
->>>>>> suggestions how this can be achieved very early in boot?
->>>>>
->>>>> It's best to move the reset and initialization of DSS happen later.
->>>>> I believe
->>>>> we already are resetting only some of the hwmods early on.
->>>>>
->>>>
->>>> I looked at this in some more detail. With the current hwmod
->>>> flags(HWMOD_INIT_NO_RESET/NO_IDLE), we still try to enable the IP,
->>>> it's just
->>>> the reset part(ocp reset/custom reset and sysc register) or the
->>>> disable part
->>>> that is skipped. hwmod still tries to enable the IP.
->>>>
->>>> This again results in the same issue.
->>>>
->>>> One thing which wasn't clear was that why do we enable a hwmod in the
->>>> first
->>>> place, if we know that we are going to skip reset?
->>>
->>> Probably to configure the idle bits. In general, we should configure the
->>> modules lazily as the driver probes as requested, and then idle the
->>> unused modules with a late_initcall.
->>
->> Okay, we were thinking of changing the hwmod code to skip enable for
->> hwmods(which have the HWMOD_INIT_NO_RESET flag) altogether. But that
->> doesn't seem like a viable option.
->>
->> I can't think of any other way of getting around this, besides making
->> control module a clock provider.
->>
->> Paul said that it's not that bad to make DRA7 CTRL module a clock
->> provider, but outside of PRCM code. I guess that would involve having
->> something along the lines of of_prcm_init() in mach-omap2/control.c
->
-> That sounds like pretty much one of the things I have done here:
->
-> https://github.com/t-kristo/linux-pm/tree/3.14-rc4-cm-prm-driver-wip
->
-> The patches in their current form haven't been posted yet though, as
-> they are waiting for some of the pre-reqs, but feel free to re-use
-> something from here.
+On Wednesday, May 07, 2014 6:26 PM, Arnd Bergmann wrote:
+> On Wednesday 07 May 2014 14:52:47 Kishon Vijay Abraham I wrote:
+> > On Tuesday 06 May 2014 10:05 PM, Jason Gunthorpe wrote:
+> > > On Tue, May 06, 2014 at 07:03:51PM +0530, Kishon Vijay Abraham I wrote:
+> > >> +Example:
+> > >> +pcie@51000000 {
+> > >> +    compatible = "ti,dra7xx-pcie";
+> > >> +    reg = <0x51002000 0x14c>, <0x51000000 0x2000>;
+> > >> +    reg-names = "ti_conf", "rc_dbics";
+> > >> +    interrupts = <0 232 0x4>, <0 233 0x4>;
+> > >> +    #address-cells = >;
+> > >> +    #size-cells = <2>;
+> > >> +    device_type = "pci";
+> > >> +    ti,device_type = >;
+> > >> +    ranges = <0x00000800 0 0x20001000 0x20001000 0 0x00002000  /* Configuration Space */
+> > >
+> > > Configuration space should not show up in the ranges, please don't
+> > > copy that mistake from other drivers, put it in reg.
+> >
+> > But then it needs pcie-designware.c to be modified and it will be breaking
+> > other platforms no?
+> 
+> I think the pcie-designware driver should be changed to allow either way.
+> Ideally we would deprecate the existing method in a way that for new front-ends
+> it doesn't work, but the old front-ends can still deal with it but also work
+> if you put it into the reg property.
 
-Ah nice, thanks!
+(+cc Pratyush Anand, Thierry Reding)
 
-Archit
+Hi Arnd,
+
+Thank you for your comment.
+Do you mean the case of Tegra PCIe as below?
+
+./arch/arm/boot/dts/tegra20.dts
+	pcie-controller@80003000 {
+		...
+		reg = <0x80003000 0x00000800   /* PADS registers */
+			 0x80003800 0x00000200   /* AFI registers */
+			 0x90000000 0x10000000>; /* configuration space */
+		...
+		ranges = <0x82000000 0 0x80000000 0x80000000 0 0x00001000   /* port 0 registers */
+			0x82000000 0 0x80001000 0x80001000 0 0x00001000   /* port 1 registers */
+			0x81000000 0 0          0x82000000 0 0x00010000   /* downstream I/O */
+			0x82000000 0 0xa0000000 0xa0000000 0 0x08000000   /* non-prefetchable memory */
+			0xc2000000 0 0xa8000000 0xa8000000 0 0x18000000>; /* prefetchable memory */
+		...
+
+./drivers/pci/host/pci-tegra.c
+	/* request configuration space, but remap later, on demand */
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "cs");
+	...
+	pcie->cs = devm_request_mem_region(pcie->dev, res->start,
+						resource_size(res), res->name);
+
+
+Best regards,
+Jingoo Han
+
 
