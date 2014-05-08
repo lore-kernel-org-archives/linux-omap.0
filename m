@@ -1,153 +1,72 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 3/5] irqchip: crossbar: Skip some irqs from getting
- mapped to crossbar
-Date: Thu, 8 May 2014 15:37:00 -0500
-Message-ID: <20140508203659.GA5620@kahuna>
-References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
- <1399299527-10955-4-git-send-email-r.sricharan@ti.com>
- <536BD9D8.4080905@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 2/4] ARM: dts: am437x-gp-evm: add support for parallel
+ NAND flash
+Date: Thu, 8 May 2014 13:45:46 -0700
+Message-ID: <20140508204546.GD2198@atomide.com>
+References: <1398152020-19391-1-git-send-email-pekon@ti.com>
+ <1398152020-19391-3-git-send-email-pekon@ti.com>
+ <20140506153956.GE18474@atomide.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EACB432@DBDE04.ent.ti.com>
+ <20140507211949.GA19102@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43737 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755598AbaEHUhZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 May 2014 16:37:25 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38479 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755323AbaEHUpv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 16:45:51 -0400
 Content-Disposition: inline
-In-Reply-To: <536BD9D8.4080905@ti.com>
+In-Reply-To: <20140507211949.GA19102@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, rnayak@ti.com, santosh.shilimkar@ti.com
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: "bcousson@baylibre.com" <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On 14:24-20140508, Joel Fernandes wrote:
-> On 05/05/2014 09:18 AM, Sricharan R wrote:
-> > From: Nishanth Menon <nm@ti.com>
-> > 
-> > When, in the system due to varied reasons, interrupts might be unusable
-> > due to hardware behavior, but register maps do exist, then those interrupts
-> > should be skipped while mapping irq to crossbars.
-> > 
-> 
-> Just wondering, instead of hardcoding this data in the code, and
-> introducing additional flags (IRQ_SKIP), why not just put these GIC IRQs
-> in the ti,irq-reserved property in DTS for platforms where such IRQs are
-> not usable. That way you're skipping these IRQs anyway.
-> 
-> Also that would avoid adding more hard coded data for future SoCs into
-> the source for such IRQs that must be skipped, and also reduces LOC.
-> 
+* Tony Lindgren <tony@atomide.com> [140507 14:20]:
+> * Gupta, Pekon <pekon@ti.com> [140507 12:20]:
+> > >From: Tony Lindgren [mailto:tony@atomide.com]
+> > >>* Pekon Gupta <pekon@ti.com> [140422 00:34]:
+> > >> +&gpmc {
+> > >> +	status =3D "okay";
+> > >> +	pinctrl-names =3D "default";
+> > >> +	pinctrl-0 =3D <&nand_flash_x8>;
+> > >> +	ranges =3D <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
+> > >
+> > >Please use the minimum size 16MB GPMC range here, NAND only
+> > >has few registers addressable unlike NOR that actually uses the
+> > >whole range.
+> > >
+> > >> +	nand@0,0 {
+> > >> +		reg =3D <0 0 0>; /* CS0, offset 0 */
+> > >
+> > >Then here map the true size of the NAND device IO register area.
+> > >
+> > >BTW, we should do the similar changes to other files so we can
+> > >unify the GPMC partitioning a bit. But that's unsafe to do until
+> > >we have fixed the issue of mapping GPMC devices to a different
+> > >location from the bootloader location.
+> > >
+> > I have found the fix of this issue in gpmc_cs_remap() just testing =
+it
+> > using beaglebone NOR cape. I'll post that separately, once I'm conf=
+ident.
+>=20
+> OK that's great. Yet another issue I've noticed is that u-boot
+> seems to program 37xx L3 to run at 200 MHz and the LAN9220
+> timings overflow the GPMC registers as 200 / 5 >=3D 32.
 
-Good question - lets try to explain the hardware a little here ->
-obviously a driver that cannot use the hardware is useless compared to
-reducing LOC count ;).. and apologies about the long reply..
+And looks like we have a build warning in the -rc cycle with
+omap2plus_defconfig:
 
-Basic understanding:
-GIC has 160 SPIs and number of hardware block interrupt sources is around or
-more than 400. So, in comes crossbar - which is basically a mapper by
-allowing us to select an hardware block interrupt source (identified as
-crossbar_number or cb_no in code). So all we have to do is to write to a
-register in crossbar corresponding to GIC and viola, we now routed the
-interrupt source to a GIC interrupt of our choice. At least the
-Specification reads so.... until you drill down to the details.
+drivers/mtd/nand/omap2.c:1250:12: warning: =E2=80=98erased_sector_bitfl=
+ips=E2=80=99 defined but not used [-Wunused-function]
 
-A) You have 160 SPI GIC, and 152 crossbar registers. So, you have 8 GIC SPI
-interrupts that are hardwired. the reserved mapping basically marks
-these to indicate that we dont have registers. Example: 0 1 2 3 5
-6 131 and 132
-	- Limitation today - if you want to use PMU for CPU0, SPI
-	interrupt is 131, then if you define, in dts:
-	interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>
-	driver assumes it is crossbar number 131(reserved), Similarly:
-	GIC CS_CTI_MPU_C0_IRQ (SPI 1) is ELM_IRQ (crossbar 1)
-	GIC CS_CTI_MPU_C1_IRQ (SPI 2) is EXT_SYS_IRQ_1 (crossbar 2)
-	GIC MPU_CLUSTER_IRQ_AXIERR (SPI 3) is reserved (crossbar 3)
-	GIC WD_TIMER_MPU_C0_IRQ_WARN (SPI 5) is L3_MAIN_IRQ_APP_ERR (crossbar 5)
-	GIC WD_TIMER_MPU_C1_IRQ_WARN (SPI 6) is PRM_IRQ_MPU (crossbar 6)
-	GIC MPU_CLUSTER_IRQ_PMU_C0 (SPI 131) is reserved (crossbar 131)
-	GIC MPU_CLUSTER_IRQ_PMU_C1 (SPI 132) is reserved (crossbar 132)
+Can you please fix that if not already fixed?
 
-	As of today, we cannot differentiate in DTS if it is one of
-	these "direct map" interrupts we are requesting or crossbar
-	number we are requesting.
-
-B) among the 152 cross bar registers, you have three sets:
-B.1) The ones like Crossbar register 1 which maps to SPI4 - no problem -
-     you write the crossbar number you want to map, bingo, job done.
-     - The driver works brilliantly here. and this is true for 148 GIC
-     SPIs.
-B.2) The ones like 10 139 140 - these are interesting, because we have
-     crossbar registers corresponding to these, However writing anything
-     to them has no impact - at least 10 is confirmed to have been
-     hardwired to L3_APP_IRQ (but not documented), we are trying to get
-     explanations for 139 and 140. - but there is strong indication
-     based on testing performed that the registers are NOPs and GIC is
-     hardwired in.
-
-     I had originally discovered 10, but only a day or so back did we
-     understand what is going on, others we dont know yet.
-B.3) 133 is a variation to B.2 - There is an magical efuse register
-    which controls if the GIC is hardwired or not. when the efuse bit is
-    0, it behaves like B.1(program and it works), but almost all silicon
-    have it set to "hardwired mode" :(
-
-The following you wont find in any TRM, and is based on tests performed
-during the last few days - primarily meant to illustrate this.
-
-                      MPU Crossbar                  
-                      152 registers                 
-   +-------+         +------+                       
-   |       |    +----+C1    |                       
-   | PPI.. |    |    +------+                       
-   | 0..32 |    | <--+C2    |                       
-   |       |    |    +------+     +------------+    
-   +-------+    | +--+C5    |     |            +---+
-   |  SPI1 |    | |  +------+   <-+ L3 APP IRQ |   |
-   |       |    | |  |      |     ++-------+---+   |
-   +-------+    | |  |      |      +-------+       |
-   |  SPI3 |    | |  +------+      | CPU0  |       |
-   |       |    | |  |      |      | PMU   +----+  |
-   +-------+    | |  +------+      +-------+    |  |
-   | SPI4  | <--+ |  |      |                   |  |
-   |       |      |  |      |                   |  |
-   +-------+      |  |      |    +---------+    |  |
-   | SPI10 | <----+  |      |    | External|    |  |
-+> |       |         |      |    | NMI     |    |  |
-|  +-------+         +------+    +-+-----+-++   |  |
-|  | SPI131|         |      |      +-----+  |   |  |
-|  |       | <+      +------+      | Efuse  |   |  |
-|  +-------+  |      |C126  | <--+-----+-+  |   |  |
-|  | SPI133| <---+   +------+    +-----+    |   |  |
-|  +-------+  |  | +-+C132  |    |CPU0 |    |   |  |
-|  | SPI139| <-----+ +------+    |WDT  |    |   |  |
-|  +-------+  |  | | +------+    +--+--+    |   |  |
-|  | ..... |  |  | |                |       |   |  |
-|  +-------+  |  | +----------------+       |   |  |
-|  | SPI159|  |  |                          |   |  |
-|  +-------+  |  +--------------------------+   |  |
-|             |                                 |  |
-|    GIC      +---------------------------------+  |
-|  160 SPI                                         |
-|                                                  |
-+--------------------------------------------------+
-
-
-So, to answer your question - I hope this explains skip and reserved.
-Now, we happily can handle case B.1 (148 SPI interrupts) - However,
-
-The reason I requested this series to be blocked is:
-a) We dont completely (yet) have explanation about hardware for B.2 139
-   and 140.
-b) we definitely need to be able to request the interrupts of A, B.2,
-   B.3 - and our framework as it stands right now fails.
-
-NOTE:
-obviously we claim dra7 compatibility. dra742 and 744 seem similar - but
-we dont have confirmation for the same yet. following device tree
-maintainer recommendations of having dts compatibility closely match
-with SoC behavior. yeah, we could make the driver too generic and move
-everything to dts.. but that does not seem to be the way we do things with dt.
-
--- 
-Regards,
-Nishanth Menon
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
