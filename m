@@ -1,52 +1,47 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: omap4-panda-es boot issues with v3.15-rc4
-Date: Thu, 8 May 2014 15:53:24 +0300
-Message-ID: <536B7E44.2040303@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 4/8] usb: phy: fix isp1301-omap dependency on tps65010
+Date: Thu,  8 May 2014 15:52:17 +0200
+Message-ID: <1399557141-1346645-5-git-send-email-arnd@arndb.de>
+References: <1399557141-1346645-1-git-send-email-arnd@arndb.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53039 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752756AbaEHMxy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 08:53:54 -0400
+Received: from mout.kundenserver.de ([212.227.17.13]:49995 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752535AbaEHNwk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 09:52:40 -0400
+In-Reply-To: <1399557141-1346645-1-git-send-email-arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, taras.kondratiuk@linaro.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kristo, Tero" <t-kristo@ti.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org
 
-Hi,
+The isp1301-omap driver cannot be built-in if the tps65010 driver
+is a module, otherwise we get a link error from the reference to
+the tps65010_set_vbus_draw function.
 
-Nishant pointed me to a booting issue with omap4-panda-es on linux-next but I'm observing
-similar issues, although less frequent, with v3.15-rc4 as well.
+There is already a hack in the driver to work around the problem
+of tps65010 being not available at all. This patch extends that
+hack to ensure that the real tps65010_set_vbus_draw() function
+is only called when it's avaiable.
 
-Configuration:
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-omap@vger.kernel.org
+---
+ drivers/usb/phy/phy-isp1301-omap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-- kernel v3.15-rc4 or linux-next (20140507)
-- multi_v7_defconfig with LEDS_TRIGGER_HEARTBEAT and LEDS_GPIO enabled
-- u-boot/master	173d294b94cf
+diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
+index 6e146d7..35a0dd2 100644
+--- a/drivers/usb/phy/phy-isp1301-omap.c
++++ b/drivers/usb/phy/phy-isp1301-omap.c
+@@ -94,7 +94,7 @@ struct isp1301 {
+ 
+ #if defined(CONFIG_MACH_OMAP_H2) || defined(CONFIG_MACH_OMAP_H3)
+ 
+-#if	defined(CONFIG_TPS65010) || defined(CONFIG_TPS65010_MODULE)
++#if	defined(CONFIG_TPS65010) || (defined(CONFIG_TPS65010_MODULE) && defined(MODULE))
+ 
+ #include <linux/i2c/tps65010.h>
+ 
+-- 
+1.8.3.2
 
-Observations:
-
-- Out of 10 boots a few may not succeed and hang midway without any warnings. Heartbeat LED stops.
-e.g. http://www.hastebin.com/ebumojegoq.vhdl
-
-- Hang more noticeable on linux-next (20140507) than on v3.15-rc4
-
-- Hang more noticeable with USB_EHCI_HCD enabled but hang observed even without USB_EHCI_HCD.
-Maybe related to when high speed interrupts occur in the boot process.
-
-- On successful boots following warning is seen
-[    4.010375] gic_timer_retrigger: lost localtimer interrupt
-
-- On successful boots heartbeat LED stops blinking after boot process and left idle. LED can remain stuck in
-ON state as well. It does blink again when doing activity on console.
-
-Workaround:
-
-- Disabling CPU_IDLE or even just disabling C3 (MPU OSWR) seems to fix all the above issues.
-
-I don't really know what exactly is the issue but it seems to be specific to OMAP4, GIC, MPU OSWR.
-
-cheers,
--roger
