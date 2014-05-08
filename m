@@ -1,78 +1,134 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH 4/5] usb: dwc3: dwc3-omap: Fix the crash on module removal
-Date: Thu, 8 May 2014 15:03:06 +0530
-Message-ID: <1399541587-14067-5-git-send-email-george.cherian@ti.com>
-References: <1399541587-14067-1-git-send-email-george.cherian@ti.com>
+Subject: [PATCH v2 3/5] usb: musb: core: Convert the musb_platform_reset to have a return value.
+Date: Thu, 8 May 2014 15:05:41 +0530
+Message-ID: <1399541743-14158-4-git-send-email-george.cherian@ti.com>
+References: <1399541743-14158-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399541587-14067-1-git-send-email-george.cherian@ti.com>
+In-Reply-To: <1399541743-14158-1-git-send-email-george.cherian@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, rogerq@ti.com, kishon@ti.com, George Cherian <george.cherian@ti.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, zonque@gmail.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Following crash is seen on dwc3_omap removal
-Unable to handle kernel NULL pointer dereference at virtual address 00000018
-pgd = ec098000
-[00000018] *pgd=ad1f9831, *pte=00000000, *ppte=00000000
-Internal error: Oops: 17 [#1] SMP ARM
-Modules linked in: usb_f_ss_lb g_zero usb_f_acm u_serial usb_f_ecm u_ether libcomposite configfs snd_usb_audio snd_usbmidi_lib snd_rawmidi snd_hwdep snd_soc_omap snd_pcm_dmaengine snd_soc_core snd_compress snd_pcm snd_tim]
-CPU: 0 PID: 1296 Comm: rmmod Tainted: G        W     3.15.0-rc4-02716-g95c4e18-dirty #10
-task: ed05a080 ti: ec368000 task.ti: ec368000
-PC is at release_resource+0x14/0x7c
-LR is at release_resource+0x10/0x7c
-pc : [<c0044724>]    lr : [<c0044720>]    psr: 60000013
-sp : ec369ec0  ip : 60000013  fp : 00021008
-r10: 00000000  r9 : ec368000  r8 : c000e7a4
-r7 : 00000081  r6 : bf0062c0  r5 : ed7cd000  r4 : ed7d85c0
-r3 : 00000000  r2 : 00000000  r1 : 00000011  r0 : c086d08c
-Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-Control: 10c5387d  Table: ac098059  DAC: 00000015
-Process rmmod (pid: 1296, stack limit = 0xec368248)
-Stack: (0xec369ec0 to 0xec36a000)
-9ec0: 00000000 00000001 ed7cd000 c034de94 ed7cd010 ed7cd000 00000000 c034e194
-9ee0: 00000000 bf0062cc ed7cd010 c03490b0 ed154cc0 ed4c2570 ed2b8410 ed156810
-ed156810 bf006d24 c034db9c c034db84 c034c518
-9f20: bf006d24 ed156810 bf006d24 c034cd2c bf006d24 bf006d68 00000800 c034c340
-9f40: 00000000 c00a9e5c 00000020 00000000 bf006d68 00000800 ec369f4c 33637764
-9f60: 616d6f5f 00000070 00000001 ec368000 ed05a080 c000e670 00000001 c0084010
-9f80: 00021088 00000800 00021088 00000081 80000010 0000e6f4 00021088 00000800
-9fa0: 00021088 c000e5e0 00021088 00000800 000210b8 00000800 e04f6d00 e04f6d00
-9fc0: 00021088 00000800 00021088 00000081 00000001 00000000 be91de08 00021008
-9fe0: 4d768880 be91dbb4 b6fc5984 4d76888c 80000010 000210b8 00000000 00000000
-[<c0044724>] (release_resource) from [<c034de94>] (platform_device_del+0x6c/0x9c)
-[<c034de94>] (platform_device_del) from [<c034e194>] (platform_device_unregister+0xc/0x18)
-[<c034e194>] (platform_device_unregister) from [<bf0062cc>] (dwc3_omap_remove_core+0xc/0x14 [dwc3_omap])
-[<bf0062cc>] (dwc3_omap_remove_core [dwc3_omap]) from [<c03490b0>] (device_for_each_child+0x34/0x74)
-[<c03490b0>] (device_for_each_child) from [<bf0062b4>] (dwc3_omap_remove+0x6c/0x78 [dwc3_omap])
-[<bf0062b4>] (dwc3_omap_remove [dwc3_omap]) from [<c034db9c>] (platform_drv_remove+0x18/0x1c)
-[<c034db9c>] (platform_drv_remove) from [<c034c518>] (__device_release_driver+0x70/0xc8)
-[<c034c518>] (__device_release_driver) from [<c034cd2c>] (driver_detach+0xb4/0xb8)
-[<c034cd2c>] (driver_detach) from [<c034c340>] (bus_remove_driver+0x4c/0x90)
-[<c034c340>] (bus_remove_driver) from [<c00a9e5c>] (SyS_delete_module+0x10c/0x198)
-[<c00a9e5c>] (SyS_delete_module) from [<c000e5e0>] (ret_fast_syscall+0x0/0x48)
-Code: e1a04000 e59f0068 eb14505e e5943010 (e5932018)
----[ end trace 7e2a8746ff4fc811 ]---
-Segmentation fault
+Currently musb_platform_reset() is only used by dsps.
+In case of BABBLE interrupt for other platforms the  musb_platform_reset()
+is a NOP. In such situations no need to re-initialize the endpoints.
+Also in the latest silicon revision of AM335x, we do have a babble recovery
+mechanism without resetting the IP block. In preperation to add that support
+its better to have a rest_done return for  musb_platform_reset().
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/musb/musb_core.c | 38 +++++++++++++++++++++-----------------
+ drivers/usb/musb/musb_core.h | 10 ++++++----
+ drivers/usb/musb/musb_dsps.c |  3 ++-
+ 3 files changed, 29 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 0b9b1d8..82b20d8f 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -322,7 +322,7 @@ static int dwc3_omap_remove_core(struct device *dev, void *c)
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index dcadc62..983a591 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1755,28 +1755,32 @@ static void musb_irq_work(struct work_struct *data)
+ static void musb_recover_work(struct work_struct *data)
  {
- 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct musb *musb = container_of(data, struct musb, recover_work.work);
+-	int status;
++	int status, reset_done;
  
--	platform_device_unregister(pdev);
-+	of_device_unregister(pdev);
+-	musb_platform_reset(musb);
++	reset_done  = musb_platform_reset(musb);
++	if (reset_done  < 0)
++		return;
  
+-	usb_phy_vbus_off(musb->xceiv);
+-	usleep_range(100, 200);
++	if (reset_done) {
++		usb_phy_vbus_off(musb->xceiv);
++		usleep_range(100, 200);
+ 
+-	usb_phy_vbus_on(musb->xceiv);
+-	usleep_range(100, 200);
++		usb_phy_vbus_on(musb->xceiv);
++		usleep_range(100, 200);
+ 
+-	/*
+-	 * When a babble condition occurs, the musb controller removes the
+-	 * session bit and the endpoint config is lost.
+-	 */
+-	if (musb->dyn_fifo)
+-		status = ep_config_from_table(musb);
+-	else
+-		status = ep_config_from_hw(musb);
++		/*
++		 * When a babble condition occurs, the musb controller removes the
++		 * session bit and the endpoint config is lost.
++		 */
++		if (musb->dyn_fifo)
++			status = ep_config_from_table(musb);
++		else
++			status = ep_config_from_hw(musb);
+ 
+-	/* start the session again */
+-	if (status == 0)
+-		musb_start(musb);
++		/* start the session again */
++		if (status == 0)
++			musb_start(musb);
++	}
+ }
+ 
+ /* --------------------------------------------------------------------------
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 423cd00..3ccb428 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -192,7 +192,7 @@ struct musb_platform_ops {
+ 
+ 	int	(*set_mode)(struct musb *musb, u8 mode);
+ 	void	(*try_idle)(struct musb *musb, unsigned long timeout);
+-	void	(*reset)(struct musb *musb);
++	int	(*reset)(struct musb *musb);
+ 
+ 	int	(*vbus_status)(struct musb *musb);
+ 	void	(*set_vbus)(struct musb *musb, int on);
+@@ -554,10 +554,12 @@ static inline void musb_platform_try_idle(struct musb *musb,
+ 		musb->ops->try_idle(musb, timeout);
+ }
+ 
+-static inline void musb_platform_reset(struct musb *musb)
++static inline int  musb_platform_reset(struct musb *musb)
+ {
+-	if (musb->ops->reset)
+-		musb->ops->reset(musb);
++	if (!musb->ops->reset)
++		return -EINVAL;
++
++	return musb->ops->reset(musb);
+ }
+ 
+ static inline int musb_platform_get_vbus_status(struct musb *musb)
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 74c4193..8438200 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -536,7 +536,7 @@ static int dsps_musb_set_mode(struct musb *musb, u8 mode)
  	return 0;
  }
+ 
+-static void dsps_musb_reset(struct musb *musb)
++static int dsps_musb_reset(struct musb *musb)
+ {
+ 	struct device *dev = musb->controller;
+ 	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+@@ -548,6 +548,7 @@ static void dsps_musb_reset(struct musb *musb)
+ 	usleep_range(100, 200);
+ 	usb_phy_init(musb->xceiv);
+ 
++	return 1;
+ }
+ 
+ static struct musb_platform_ops dsps_ops = {
 -- 
 1.8.3.1
