@@ -1,100 +1,55 @@
-From: Andreas Fenkart <afenkart@gmail.com>
-Subject: =?UTF-8?q?=5BPATCH=20v11=200/7=5D=20mmc=3A=20omap=5Fhsmmc=3A=20Enable=20SDIO=20IRQ=2E?=
-Date: Fri,  9 May 2014 01:16:51 +0200
-Message-ID: <1399591018-12930-1-git-send-email-afenkart@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 13/13] video: omap: allow building on !MMU
+Date: Thu, 8 May 2014 16:17:11 -0700
+Message-ID: <20140508231711.GF2198@atomide.com>
+References: <1398342509-10243-1-git-send-email-peter.griffin@linaro.org>
+ <1398342509-10243-14-git-send-email-peter.griffin@linaro.org>
+ <5369F973.10803@ti.com>
+ <20140508215338.GE2198@atomide.com>
+ <20140508230415.GA6670@drone.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, =?UTF-8?q?Andreas=20M=C3=BCller?= <schnitzeltony@googlemail.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Andreas Fenkart <afenkart@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140508230415.GA6670@drone.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Peter Griffin <peter.griffin@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Balaji, Tony, all
+* Aaro Koskinen <aaro.koskinen@iki.fi> [140508 16:09]:
+> Hi,
+> 
+> On Thu, May 08, 2014 at 02:53:38PM -0700, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [140507 02:15]:
+> > > I don't have omap1 boards, and I don't know anyone that has. I don't
+> > > even know if the omap1 fb is working or not...
+> 
+> OMAP1 fb is working very well. As a matter of fact, it's much more usable
+> for me than fb on OMAP2/3 - apart from N900 (on which fb is working again
+> with 3.15) none of my 4 other OMAP2/3 boards have a working display/fb
+> in mainline yet. :-(
 
-v11
-- split !CONFIG_OF compile break into separate patch
-- enable IWE/CLKEXTFREE in CON/HCTL register needed for omap4
-- '&' vs '&&' in omap_hsmmc_resume, 1/5 (Andreas M=C3=BCller)
-- #define DLEV_DAT instead of BIT(21) 2/5 (Balaji)
-- pinctrl_pm_select_default_state() removed, 4/5 (Balaji)
-- drop _irqsave/_irqrestore from omap_hsmmc_wake_irq handler since it
-  can't be preempted by same priority omap_hsmmc_irq handler 1/5(Joel F=
-ernandes)
-- replace devres_open_group by explicit devm_free calls 1/5 (Balaji)
-- disable_irq_nosync wake_irq since we handle it thread safe 1/5 (Balaj=
-i)
-- drop 'gpio_dat1' pinctrl states and rework documentation 5/5 (Balaji)
+I hear you.. What do you have in the .config for omap1?
+Would be nice to enable the framebuffer in omap1_defconfig?
+ 
+> > > Tony, any idea of omap1's fb? Are you able to test this?
+> > 
+> > I have three omap1 boards in my rack that I use for my boot
+> > testing. Tried to enable framebuffer but so far no luck on
+> > any of them. So I'm not much of a help here. Looks like the
+> > patch should work though..
+> > 
+> > Aaro & Janusz, care to take a look at the patch in this
+> > thread?
+> 
+> I couldn't figure out how to enter this code path. Amstrad E3 & Nokia
+> 770 will take the alloc_fbmem() path & exit, and based on quick look
+> I could not see way to enter mmap_kern(). Is that dead code?
 
-v10
-- bug fix on multi-core, untested
-- incorporated changes from Balaji
-- use devres / RAII mechanism to configure wake_up /
-  sdio irq capabilities
-- drop pinctrl state 'active'
-  rely on driver-model states 'default', 'idle'
-- add specific 'gpio_dat1' state for am335x SWAKEUP hack
-- reorganized patches; +1 patch multi-core bugfix / +1 for pinctrl
-- rebased 455c6fdbd21916 / cherry-picks from mmc-next
+Could be. It may be something left from when we had code to keep
+the bootloader logo displayed while booting kernel.
 
-v9
-- extended comment about why wake-irq is needed
-- drop double '(' ')' around card_detect_irq
-- drop final '.' in in subject line of patch
+Regards,
 
-v8
-- rebased on top of Tony Lindgren<tony@atomide.com> changes
-  - improved changelog describing the earlier work
-  - improved wakeup irq setup
-  - works for am3730 es platform now
-- my changes on top:
-  - compile tested with #undef CONFIG_OF
-  - disable wake_irq in handler to prevent infinite loop =20
-  - fixed typo and added comment about wake-irq
-
-v7
-- rebase on 3.14.0-rc3-49726-g77e15ec
-- split omap_hsmmc_pin_init due to regression on omap-3730 platform
-
-v6
-- rebase on Linux 3.13-rc3
-- reformatting debugfs
-
-v5
-- fix compile error introduced by last minute one line fix
-
-v4:
-- switch to interrupts-extended format
-- drop ti,swakeup-missing flag convert to comaptible section
-
-v3:
-- removed gpio_irq from platform_data
-
-v2:
-- incorparated changes as suggested by reviewers
-- simplified workaround for am335x, gpio will now only wake
-  the module from runtime suspend, not handle the sdio irq
-  itself=20
-
-Andreas Fenkart (6):
-  mmc: omap_hsmmc: compile fix for !CONFIG_OF build
-  mmc: omap_hsmmc: Enable SDIO interrupt
-  mmc: omap_hsmmc: Extend debugfs by SDIO IRQ handling, runtime state
-  mmc: omap_hsmmc: abort runtime suspend if pending sdio irq detected
-  mmc: omap_hsmmc: switch default/idle pinctrl states in runtime hooks
-  mmc: omap_hsmmc: Pin remux workaround to support SDIO interrupt on
-    AM335x
-
-Balaji T K (1):
-  mmc: omap_hsmmc: enable wakeup event for sdio OMAP4
-
- .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   53 ++++
- drivers/mmc/host/omap_hsmmc.c                      |  283 ++++++++++++=
-++++++--
- include/linux/platform_data/mmc-omap.h             |    1 +
- 3 files changed, 316 insertions(+), 21 deletions(-)
-
---=20
-1.7.10.4
-
+Tony
