@@ -1,78 +1,112 @@
 From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH V5 0/3] arm: dts: dra7: Updates for adding crossbar device
-Date: Thu, 8 May 2014 13:43:36 +0530
-Message-ID: <536B3CB0.2050907@ti.com>
-References: <1399384579-25620-1-git-send-email-r.sricharan@ti.com> <20140506214526.GF2626@ti.com>
+Subject: Re: [RFC 2/4] ARM: dts: Add ctrl-core DT node for DRA7
+Date: Thu, 8 May 2014 13:46:38 +0530
+Message-ID: <536B3D66.4020905@ti.com>
+References: <1397654063-8055-1-git-send-email-archit@ti.com> <1397654063-8055-2-git-send-email-archit@ti.com> <20140418171854.GJ5354@atomide.com> <5354A970.8040605@ti.com> <20140421151034.GA23945@atomide.com> <53687198.60405@ti.com> <20140506142606.GA18474@atomide.com> <536B1E12.1080304@ti.com> <536B380D.7000503@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20140506214526.GF2626@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Darren Etheridge <detheridge@ti.com>, Sricharan R <r.sricharan@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, tglx@linutronix.de, galak@codeaurora.org, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com, robherring2@gmail.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:56281 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751103AbaEHISK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 May 2014 04:18:10 -0400
+In-Reply-To: <536B380D.7000503@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-On Wednesday 07 May 2014 03:15 AM, Darren Etheridge wrote:
-> Sricharan R <r.sricharan@ti.com> wrote on Tue [2014-May-06 19:26:16 +0530]:
->> Some socs have a large number of interrupts requests to service
->> the needs of its many peripherals and subsystems. All of the interrupt
->> requests lines from the subsystems are not needed at the same
->> time, so they have to be muxed to the controllers appropriately.
->> In such places a interrupt controllers are preceded by an
->> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
->> requests to the controller inputs.
+On Thursday 08 May 2014 01:23 PM, Tero Kristo wrote:
+> On 05/08/2014 09:02 AM, Archit Taneja wrote:
+>> On Tuesday 06 May 2014 07:56 PM, Tony Lindgren wrote:
+>>> * Archit Taneja <archit@ti.com> [140505 22:24]:
+>>>> Hi,
+>>>>
+>>>> On Monday 21 April 2014 08:40 PM, Tony Lindgren wrote:
+>>>>> * Archit Taneja <archit@ti.com> [140420 22:16]:
+>>>>>> Hi,
+>>>>>>
+>>>>>> On Friday 18 April 2014 10:48 PM, Tony Lindgren wrote:
+>>>>>>> * Archit Taneja <archit@ti.com> [140416 06:20]:
+>>>>>>>> Add DT node for the ctrl-core sub module of the DRA7 control
+>>>>>>>> module. We map the
+>>>>>>>> CTRL_MODULE_CORE address region up to 0x4a002d60, this region
+>>>>>>>> contains register
+>>>>>>>> fields which configure clocks. The remainder of the registers are
+>>>>>>>> related to
+>>>>>>>> pad configurations or cross-bar configurations, and therefore
+>>>>>>>> aren't mapped.
+>>>>>>>
+>>>>>>> Can you please check if this can just use the existing
+>>>>>>> regmap syscon mapping:
+>>>>>>>
+>>>>>>> syscon = <&dra7_ctrl_general>;
+>>>>>>>
+>>>>>>> See how the drivers/regulator/pbias-regulator.c is using the
+>>>>>>> syscon to initialize a regulator and then omap_hsmmc.c just does
+>>>>>>> the standard regulator calls.
+>>>>>>
+>>>>>> The thing is that this bit needs to be set before the the DSS
+>>>>>> hwmods are
+>>>>>> reset, and that happens very early. If we don't do this, DSS won't
+>>>>>> reset
+>>>>>> properly, and not get back to an idle state.
+>>>>>>
+>>>>>> I am not sure where I can configure the syscon register early
+>>>>>> enough that it
+>>>>>> happens before the hwmods are reset. With a syscon mapping, I guess
+>>>>>> we would
+>>>>>> access the register when the DSS driver is probed. But that's too
+>>>>>> late for
+>>>>>> us.
+>>>>>>
+>>>>>> Ideally, it would be much better to have a syscon mapping. Do you
+>>>>>> have any
+>>>>>> suggestions how this can be achieved very early in boot?
+>>>>>
+>>>>> It's best to move the reset and initialization of DSS happen later.
+>>>>> I believe
+>>>>> we already are resetting only some of the hwmods early on.
+>>>>>
+>>>>
+>>>> I looked at this in some more detail. With the current hwmod
+>>>> flags(HWMOD_INIT_NO_RESET/NO_IDLE), we still try to enable the IP,
+>>>> it's just
+>>>> the reset part(ocp reset/custom reset and sysc register) or the
+>>>> disable part
+>>>> that is skipped. hwmod still tries to enable the IP.
+>>>>
+>>>> This again results in the same issue.
+>>>>
+>>>> One thing which wasn't clear was that why do we enable a hwmod in the
+>>>> first
+>>>> place, if we know that we are going to skip reset?
+>>>
+>>> Probably to configure the idle bits. In general, we should configure the
+>>> modules lazily as the driver probes as requested, and then idle the
+>>> unused modules with a late_initcall.
 >>
->> The dts file update to support the crossbar device and convert
->> peripheral irq numbers to crossbar number are added here.
+>> Okay, we were thinking of changing the hwmod code to skip enable for
+>> hwmods(which have the HWMOD_INIT_NO_RESET flag) altogether. But that
+>> doesn't seem like a viable option.
 >>
->> This is a rebase of V4 series on top of 3.15-rc4
+>> I can't think of any other way of getting around this, besides making
+>> control module a clock provider.
 >>
->> This series depends on crossbar-driver-fixes sent below
->> http://marc.info/?l=linux-omap&m=139929963420299&w=2
->>
->> Sricharan R (3):
->>    arm: dts: dra7: Add crossbar device binding
->>    arm: dts: dra7: Replace peripheral interrupt numbers with crossbar
->>      inputs
->>    arm: dts: dra7: Add routable-irqs property for gic node
->>
+>> Paul said that it's not that bad to make DRA7 CTRL module a clock
+>> provider, but outside of PRCM code. I guess that would involve having
+>> something along the lines of of_prcm_init() in mach-omap2/control.c
 >
-> OK, assuming the bisectability issues discussed earlier on this thread
-> are addressed.  I have tested the earlier crossbar patch series in
-> conjunction with this dts series with VIP capture and DSS display
-> running together on DRA7.  Looks good with this combination of
-> devices. VIP is one of the modules that must have a crossbar mapping as
-> there is no default interrupt mapping for it, therefore VIP makes a good
-> test case.
+> That sounds like pretty much one of the things I have done here:
 >
-> So please feel free to add:
+> https://github.com/t-kristo/linux-pm/tree/3.14-rc4-cm-prm-driver-wip
 >
-> Tested-by: Darren Etheridge <detheridge@ti.com>
+> The patches in their current form haven't been posted yet though, as
+> they are waiting for some of the pre-reqs, but feel free to re-use
+> something from here.
 
-DMM doesn't get used by default since it's hwmod is missing in DRA7x's 
-hwmod data. I added the hwmod and tried using dmm with omapdrm, it works 
-fine.
+Ah nice, thanks!
 
-So, for DSS and DMM:
-
-Tested-by: Archit Taneja <archit@ti.com>
-
->
->
->>   arch/arm/boot/dts/dra7.dtsi |  109 +++++++++++++++++++++++++------------------
->>   1 file changed, 63 insertions(+), 46 deletions(-)
->>
->> --
->> 1.7.9.5
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Archit
 
