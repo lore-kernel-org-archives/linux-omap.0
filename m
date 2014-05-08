@@ -1,86 +1,131 @@
-From: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
-Subject: RE: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
-Date: Thu, 8 May 2014 19:55:03 +0000
-Message-ID: <A2CA0424C0A6F04399FB9E1CD98E03046D195F08@US01WEMBX2.internal.synopsys.com>
-References: <20140508043902.GI19925@intel.com>
- <Pine.LNX.4.44L0.1405071252550.1325-100000@iolanthe.rowland.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH v3 2/3] ARM: dts: oma3-gta04: Add display support
+Date: Thu,  8 May 2014 22:16:51 +0200
+Message-ID: <1399580212-5183-3-git-send-email-marek@goldelico.com>
+References: <1399580212-5183-1-git-send-email-marek@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1405071252550.1325-100000@iolanthe.rowland.org>
-Content-Language: en-US
+In-Reply-To: <1399580212-5183-1-git-send-email-marek@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>, Zhuang Jin Can <jin.can.zhuang@intel.com>
-Cc: Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, "liping.zhou@intel.com" <liping.zhou@intel.com>, "david.a.cohen@linux.intel.com" <david.a.cohen@linux.intel.com>
+To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rdunlap@infradead.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, plagnioj@jcrosoft.com, tomi.valkeinen@ti.com, grant.likely@linaro.org
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-> From: linux-usb-owner@vger.kernel.org [mailto:linux-usb-owner@vger.kernel.org] On Behalf Of Alan Stern
-> Sent: Wednesday, May 07, 2014 9:59 AM
-> 
-> On Thu, 8 May 2014, Zhuang Jin Can wrote:
-> 
-> > > A similar problem can occur in the opposite sense: The thread queuing
-> > > the delayed status request might be delayed for so long that another
-> > > SETUP packet arrives from the host first.  In that case, the delayed
-> > > status request is a response for a stale transfer, so it must not be
-> > > sent to the host.
-> > >
-> > > Do dwc3 and composite.c handle this case correctly?
-> > >
-> > So the situation you describe is that we get the STATUS XferNotReady
-> > event, but gadget queues a status request when control transfer already
-> > failed.
-> 
-> When the host already timed out the control transfer and started a new
-> one.  Here's what I'm talking about:
-> 
-> 	Host sends a Set-Configuration request.
-> 
-> 	The UDC driver calls the gadget driver's setup function.
-> 
-> 	The setup function returns DELAYED_STATUS.
-> 
-> 	After a few seconds, the host gets tired of waiting and
-> 	sends a Get-Descriptor request
-> 
-> 	The gadget driver finally submits the delayed request response
-> 	to the Set-Configuration request.  But it is now too late,
-> 	because the host expects a response to the Get-Descriptor
-> 	request.
-> 
-> >  dwc3 can't move to SETUP phase until the status request arrives,
-> > so any SETUP transaction from host will fail. If status request
-> > eventually arrives, it already missed the first control transfer, and
-> > I don't know how the controller will behave. If we still can get a
-> > STATUS XferComplete event without actually transfer anything on the
-> > bus, then we can move back to SETUP PHASE which will remove the stale
-> > delayed status request and start the new SETUP transaction. But I think
-> > in this situation, the host should already lose it patience and start
-> > to reset the bus.
-> 
-> My point is that the UDC driver can't handle this.  Therefore the
-> gadget driver has to prevent this from happening.
-> 
-> That means composite.c has to avoid sending delayed status responses if
-> a new SETUP packet has been received already.
-> 
-> > Per my understanding, it's impossible for dwc3 to send a stale STATUS
-> > request for a new SETUP transaction.
-> 
-> dwc3 won't know that the status response is stale.  It will think the
-> response was meant for the new transfer, not the old one.
+This patch add support for lcd display on gta04 board. Display control
+is connected to spi (used spi bitbang driver).
 
-The DWC3 controller will actually handle this case on its own. If
-it sees another SETUP packet come in before the previous Control
-transfer has completed, it will not send any DATA or STATUS phase
-packets for the previous Control transfer to the host. But it will
-"fake" the correct responses to the software, so the dwc3 driver will
-think that the DATA/STATUS stages completed successfully, even though
-nothing actually went out on the bus.
+Signed-off-by: Marek Belisko <marek@goldelico.com>
+---
+ arch/arm/boot/dts/omap3-gta04.dts | 87 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 87 insertions(+)
 
-For other controllers that can't do this, maybe it should be handled
-in the UDC driver rather than in the composite gadget?
-
+diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
+index f8ad125..eb9ab1a 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dts
++++ b/arch/arm/boot/dts/omap3-gta04.dts
+@@ -44,6 +44,36 @@
+ 		ti,mcbsp = <&mcbsp2>;
+ 		ti,codec = <&twl_audio>;
+ 	};
++
++	spi_lcd {
++		compatible = "spi-gpio";
++		#address-cells = <0x1>;
++		#size-cells = <0x0>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&spi_gpio_pins>;
++
++		gpio-sck = <&gpio1 12 0>;
++		gpio-miso = <&gpio1 18 0>;
++		gpio-mosi = <&gpio1 20 0>;
++		cs-gpios = <&gpio1 19 0>;
++		num-chipselects = <1>;
++
++		/* lcd panel */
++		lcd: td028ttec1@0 {
++			compatible = "toppoly,td028ttec1";
++			reg = <0>;
++			spi-max-frequency = <100000>;
++			spi-cpol;
++			spi-cpha;
++
++			label = "lcd";
++			port {
++				lcd_in: endpoint {
++					remote-endpoint = <&dpi_out>;
++				};
++			};
++		};
++	};
+ };
+ 
+ &omap3_pmx_core {
+@@ -78,6 +108,47 @@
+ 			0x11e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3.sdmmc1_dat3 */
+ 		>;
+ 	};
++
++	dss_dpi_pins: pinmux_dss_dpi_pins {
++               pinctrl-single,pins = <
++                       0x0a4 (PIN_OUTPUT | MUX_MODE0)   /* dss_pclk.dss_pclk */
++                       0x0a6 (PIN_OUTPUT | MUX_MODE0)   /* dss_hsync.dss_hsync */
++                       0x0a8 (PIN_OUTPUT | MUX_MODE0)   /* dss_vsync.dss_vsync */
++                       0x0aa (PIN_OUTPUT | MUX_MODE0)   /* dss_acbias.dss_acbias */
++                       0x0ac (PIN_OUTPUT | MUX_MODE0)   /* dss_data0.dss_data0 */
++                       0x0ae (PIN_OUTPUT | MUX_MODE0)   /* dss_data1.dss_data1 */
++                       0x0b0 (PIN_OUTPUT | MUX_MODE0)   /* dss_data2.dss_data2 */
++                       0x0b2 (PIN_OUTPUT | MUX_MODE0)   /* dss_data3.dss_data3 */
++                       0x0b4 (PIN_OUTPUT | MUX_MODE0)   /* dss_data4.dss_data4 */
++                       0x0b6 (PIN_OUTPUT | MUX_MODE0)   /* dss_data5.dss_data5 */
++                       0x0b8 (PIN_OUTPUT | MUX_MODE0)   /* dss_data6.dss_data6 */
++                       0x0ba (PIN_OUTPUT | MUX_MODE0)   /* dss_data7.dss_data7 */
++                       0x0bc (PIN_OUTPUT | MUX_MODE0)   /* dss_data8.dss_data8 */
++                       0x0be (PIN_OUTPUT | MUX_MODE0)   /* dss_data9.dss_data9 */
++                       0x0c0 (PIN_OUTPUT | MUX_MODE0)   /* dss_data10.dss_data10 */
++                       0x0c2 (PIN_OUTPUT | MUX_MODE0)   /* dss_data11.dss_data11 */
++                       0x0c4 (PIN_OUTPUT | MUX_MODE0)   /* dss_data12.dss_data12 */
++                       0x0c6 (PIN_OUTPUT | MUX_MODE0)   /* dss_data13.dss_data13 */
++                       0x0c8 (PIN_OUTPUT | MUX_MODE0)   /* dss_data14.dss_data14 */
++                       0x0ca (PIN_OUTPUT | MUX_MODE0)   /* dss_data15.dss_data15 */
++                       0x0cc (PIN_OUTPUT | MUX_MODE0)   /* dss_data16.dss_data16 */
++                       0x0ce (PIN_OUTPUT | MUX_MODE0)   /* dss_data17.dss_data17 */
++                       0x0d0 (PIN_OUTPUT | MUX_MODE0)   /* dss_data18.dss_data18 */
++                       0x0d2 (PIN_OUTPUT | MUX_MODE0)   /* dss_data19.dss_data19 */
++                       0x0d4 (PIN_OUTPUT | MUX_MODE0)   /* dss_data20.dss_data20 */
++                       0x0d6 (PIN_OUTPUT | MUX_MODE0)   /* dss_data21.dss_data21 */
++                       0x0d8 (PIN_OUTPUT | MUX_MODE0)   /* dss_data22.dss_data22 */
++                       0x0da (PIN_OUTPUT | MUX_MODE0)   /* dss_data23.dss_data23 */
++               >;
++       };
++
++	spi_gpio_pins: spi_gpio_pinmux {
++		pinctrl-single,pins = <0x5a8 (PIN_OUTPUT | MUX_MODE4) /* clk */
++			0x5b6 (PIN_OUTPUT | MUX_MODE4) /* cs */
++			0x5b8 (PIN_OUTPUT | MUX_MODE4) /* tx */
++			0x5b4 (PIN_INPUT | MUX_MODE4) /* rx */
++		>;
++	};
+ };
+ 
+ &i2c1 {
+@@ -219,3 +290,19 @@
+ 	regulator-min-microvolt = <2800000>;
+ 	regulator-max-microvolt = <3150000>;
+ };
++
++&dss {
++	pinctrl-names = "default";
++	pinctrl-0 = < &dss_dpi_pins >;
++
++	status = "okay";
++
++	vdds_dsi-supply = <&vpll2>;
++
++	port {
++		dpi_out: endpoint {
++			remote-endpoint = <&lcd_in>;
++			data-lines = <24>;
++		};
++	};
++};
 -- 
-Paul
+1.9.1
