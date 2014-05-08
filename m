@@ -1,36 +1,39 @@
-From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH v3 0/3] Add display support for gta04 device
-Date: Thu,  8 May 2014 22:16:49 +0200
-Message-ID: <1399580212-5183-1-git-send-email-marek@goldelico.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rdunlap@infradead.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, plagnioj@jcrosoft.com, tomi.valkeinen@ti.com, grant.likely@linaro.org
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
+From: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: [PATCH v3 3/3] omapdss: panel-tpo-td028ec1: Add module alias
+Date: Thu,  8 May 2014 22:16:52 +0200
+Message-ID: <1399580212-5183-4-git-send-email-marek@goldelico.com>
+References: <1399580212-5183-1-git-send-email-marek@goldelico.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1399580212-5183-1-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This 3 patches adding display support for openmoko gta04 device.
-First patch add DT bindings for topolly td028 panel. Second add description for
-dss + panel and third fix panel probing when panel is compiled as module.
+Add module alias string to make it working when panel is compiled as module.
+Without this change panel module is not probed thus display is not working.
 
-Changes from v2:
-- add missing 'port' node for dpi_out endpoint (comment from Tomi Valkeinen)
+Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+---
+ drivers/video/fbdev/omap2/displays-new/panel-tpo-td028ttec1.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Changes from v1:
-- extend panel compatible string by 'omapdss'
-- add tpo-td028 panel to dss_compat_conv_list
-- add MODULE_ALIAS macro to properly probe panel when is compiled as module
-
-Marek Belisko (3):
-  omapdss: panel-tpo-td028ec1: Add DT support.
-  ARM: dts: oma3-gta04: Add display support
-  omapdss: panel-tpo-td028ec1: Add module alias
-
- .../bindings/video/toppoly,td028ttec1.txt          | 30 ++++++++
- arch/arm/boot/dts/omap3-gta04.dts                  | 87 ++++++++++++++++++++++
- arch/arm/mach-omap2/display.c                      |  1 +
- .../omap2/displays-new/panel-tpo-td028ttec1.c      | 33 +++++++-
- 4 files changed, 150 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/video/toppoly,td028ttec1.txt
-
+diff --git a/drivers/video/fbdev/omap2/displays-new/panel-tpo-td028ttec1.c b/drivers/video/fbdev/omap2/displays-new/panel-tpo-td028ttec1.c
+index 5b3466e..728808b 100644
+--- a/drivers/video/fbdev/omap2/displays-new/panel-tpo-td028ttec1.c
++++ b/drivers/video/fbdev/omap2/displays-new/panel-tpo-td028ttec1.c
+@@ -505,6 +505,7 @@ static struct spi_driver td028ttec1_spi_driver = {
+ 
+ module_spi_driver(td028ttec1_spi_driver);
+ 
++MODULE_ALIAS("spi:toppoly,td028ttec1");
+ MODULE_AUTHOR("H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>");
+ MODULE_DESCRIPTION("Toppoly TD028TTEC1 panel driver");
+ MODULE_LICENSE("GPL");
 -- 
 1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
