@@ -1,93 +1,91 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 7/8] usb: ohci: sort out dependencies for lpc32xx and omap
-Date: Thu,  8 May 2014 15:52:20 +0200
-Message-ID: <1399557141-1346645-8-git-send-email-arnd@arndb.de>
-References: <1399557141-1346645-1-git-send-email-arnd@arndb.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND PATCH 0/4] ARM: OMAP: raw read and write endian fix
+Date: Thu, 8 May 2014 07:23:58 -0700
+Message-ID: <20140508142357.GA26833@atomide.com>
+References: <1397583469-14457-1-git-send-email-taras.kondratiuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1399557141-1346645-1-git-send-email-arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Alan Stern <stern@rowland.harvard.edu>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55186 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751336AbaEHOYE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 10:24:04 -0400
+Content-Disposition: inline
+In-Reply-To: <1397583469-14457-1-git-send-email-taras.kondratiuk@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The dependency on the isp1301 driver is not something that
-should be in the main OHCI driver but rather the SoC specific
-part of it.
+* Taras Kondratiuk <taras.kondratiuk@linaro.org> [140415 10:38]:
+> This series does trivial replacement of __raw_xxx functions with xxx_relaxed
+> endian-neutral variants in 'mach-omap2' and 'plat-omap' directories.
+> Some code here most probably won't be used in BE mode (like debug-leds for
+> OMAP1 boards), but changes are made anyway to remove __raw_xxx() functions
+> completely and simplify future grep'ing for new __raw_xxx() entries.
+> 
+> This is a part of RFC series [1].
+> It was missed in previous merge window [2].
+> 
+> Based on v3.15-rc1.
 
-This moves the dependency for LPC32xx into USB_OHCI_HCD_LPC32XX,
-and changes the 'select ISP1301_OMAP' to a similar 'depends on'.
-Since the same dependency exists for the client driver, do the
-same change there.
+Thanks applying these into omap-for-v3.16/be.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org
-Cc: Alan Stern <stern@rowland.harvard.edu>
----
- drivers/usb/gadget/Kconfig | 4 ++--
- drivers/usb/host/Kconfig   | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Regards,
 
-diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
-index 7fca52b..ba18e9c 100644
---- a/drivers/usb/gadget/Kconfig
-+++ b/drivers/usb/gadget/Kconfig
-@@ -157,7 +157,7 @@ config USB_AT91
+Tony
  
- config USB_LPC32XX
- 	tristate "LPC32XX USB Peripheral Controller"
--	depends on ARCH_LPC32XX
-+	depends on ARCH_LPC32XX && I2C
- 	select USB_ISP1301
- 	help
- 	   This option selects the USB device controller in the LPC32xx SoC.
-@@ -226,7 +226,7 @@ config USB_GR_UDC
- config USB_OMAP
- 	tristate "OMAP USB Device Controller"
- 	depends on ARCH_OMAP1
--	select ISP1301_OMAP if MACH_OMAP_H2 || MACH_OMAP_H3
-+	depends on ISP1301_OMAP || !(MACH_OMAP_H2 || MACH_OMAP_H3)
- 	help
- 	   Many Texas Instruments OMAP processors have flexible full
- 	   speed USB device controllers, with support for up to 30
-diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
-index 890fc8c..e229a47 100644
---- a/drivers/usb/host/Kconfig
-+++ b/drivers/usb/host/Kconfig
-@@ -345,8 +345,6 @@ config USB_FOTG210_HCD
- 
- config USB_OHCI_HCD
- 	tristate "OHCI HCD (USB 1.1) support"
--	select ISP1301_OMAP if MACH_OMAP_H2 || MACH_OMAP_H3
--	depends on USB_ISP1301 || !ARCH_LPC32XX
- 	---help---
- 	  The Open Host Controller Interface (OHCI) is a standard for accessing
- 	  USB 1.1 host controller hardware.  It does more in hardware than Intel's
-@@ -365,6 +363,7 @@ if USB_OHCI_HCD
- config USB_OHCI_HCD_OMAP1
- 	tristate "OHCI support for OMAP1/2 chips"
- 	depends on ARCH_OMAP1
-+	depends on ISP1301_OMAP || !(MACH_OMAP_H2 || MACH_OMAP_H3)
- 	default y
- 	---help---
- 	  Enables support for the OHCI controller on OMAP1/2 chips.
-@@ -388,6 +387,7 @@ config USB_OHCI_HCD_S3C2410
- config USB_OHCI_HCD_LPC32XX
- 	tristate "Support for LPC on-chip OHCI USB controller"
- 	depends on USB_OHCI_HCD && ARCH_LPC32XX
-+	depends on USB_ISP1301
- 	default y
- 	---help---
-           Enables support for the on-chip OHCI controller on
--- 
-1.8.3.2
+> [1] http://www.spinics.net/lists/linux-omap/msg99927.html
+> [2] https://lkml.org/lkml/2014/4/2/292
+> 
+> Victor Kamensky (4):
+>   ARM: OMAP2+: raw read and write endian fix
+>   ARM: OMAP: dmtimer: raw read and write endian fix
+>   ARM: OMAP: counter-32k: raw read and write endian fix
+>   ARM: OMAP: debug-leds: raw read and write endian fix
+> 
+>  arch/arm/mach-omap2/board-flash.c         |    4 +--
+>  arch/arm/mach-omap2/clkt2xxx_dpllcore.c   |    2 +-
+>  arch/arm/mach-omap2/clkt2xxx_osc.c        |    8 +++---
+>  arch/arm/mach-omap2/clkt2xxx_sys.c        |    2 +-
+>  arch/arm/mach-omap2/cm2xxx_3xxx.h         |    4 +--
+>  arch/arm/mach-omap2/cm33xx.c              |    4 +--
+>  arch/arm/mach-omap2/cm3xxx.c              |    8 +++---
+>  arch/arm/mach-omap2/cm44xx.c              |    8 +++---
+>  arch/arm/mach-omap2/cminst44xx.c          |    4 +--
+>  arch/arm/mach-omap2/control.c             |   20 +++++++-------
+>  arch/arm/mach-omap2/dma.c                 |    4 +--
+>  arch/arm/mach-omap2/gpmc.c                |    8 +++---
+>  arch/arm/mach-omap2/id.c                  |    2 +-
+>  arch/arm/mach-omap2/irq.c                 |    4 +--
+>  arch/arm/mach-omap2/mux.c                 |    8 +++---
+>  arch/arm/mach-omap2/omap-hotplug.c        |    4 +--
+>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   18 ++++++-------
+>  arch/arm/mach-omap2/omap-smp.c            |    6 ++---
+>  arch/arm/mach-omap2/omap-wakeupgen.c      |   42 ++++++++++++++---------------
+>  arch/arm/mach-omap2/omap4-common.c        |   18 ++++++-------
+>  arch/arm/mach-omap2/omap_hwmod.c          |   10 +++----
+>  arch/arm/mach-omap2/omap_phy_internal.c   |    6 ++---
+>  arch/arm/mach-omap2/prcm_mpu44xx.c        |    4 +--
+>  arch/arm/mach-omap2/prm2xxx.h             |    2 +-
+>  arch/arm/mach-omap2/prm2xxx_3xxx.h        |    4 +--
+>  arch/arm/mach-omap2/prm33xx.c             |    4 +--
+>  arch/arm/mach-omap2/prm3xxx.h             |    2 +-
+>  arch/arm/mach-omap2/prm44xx.c             |    4 +--
+>  arch/arm/mach-omap2/prminst44xx.c         |    4 +--
+>  arch/arm/mach-omap2/sdrc.h                |    8 +++---
+>  arch/arm/mach-omap2/sdrc2xxx.c            |    4 +--
+>  arch/arm/mach-omap2/sr_device.c           |    2 +-
+>  arch/arm/mach-omap2/sram.c                |   16 +++++------
+>  arch/arm/mach-omap2/timer.c               |    8 +++---
+>  arch/arm/mach-omap2/vc.c                  |    4 +--
+>  arch/arm/mach-omap2/wd_timer.c            |    8 +++---
+>  arch/arm/plat-omap/counter_32k.c          |    6 ++---
+>  arch/arm/plat-omap/debug-leds.c           |   14 +++++-----
+>  arch/arm/plat-omap/dmtimer.c              |    8 +++---
+>  arch/arm/plat-omap/include/plat/dmtimer.h |   16 +++++------
+>  40 files changed, 156 insertions(+), 156 deletions(-)
+> 
+> -- 
+> 1.7.9.5
+> 
