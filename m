@@ -1,152 +1,153 @@
-From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH v3 1/3] omapdss: panel-tpo-td028ec1: Add DT support.
-Date: Thu,  8 May 2014 22:16:50 +0200
-Message-ID: <1399580212-5183-2-git-send-email-marek@goldelico.com>
-References: <1399580212-5183-1-git-send-email-marek@goldelico.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/5] irqchip: crossbar: Skip some irqs from getting
+ mapped to crossbar
+Date: Thu, 8 May 2014 15:37:00 -0500
+Message-ID: <20140508203659.GA5620@kahuna>
+References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
+ <1399299527-10955-4-git-send-email-r.sricharan@ti.com>
+ <536BD9D8.4080905@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1399580212-5183-1-git-send-email-marek@goldelico.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rdunlap@infradead.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, plagnioj@jcrosoft.com, tomi.valkeinen@ti.com, grant.likely@linaro.org
-Cc: devicetree@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, hns@goldelico.com, linux-kernel@vger.kernel.org, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:43737 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755598AbaEHUhZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 May 2014 16:37:25 -0400
+Content-Disposition: inline
+In-Reply-To: <536BD9D8.4080905@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, rnayak@ti.com, santosh.shilimkar@ti.com
 
-Signed-off-by: Marek Belisko <marek@goldelico.com>
----
- .../bindings/video/toppoly,td028ttec1.txt          | 30 ++++++++++++++++++++
- arch/arm/mach-omap2/display.c                      |  1 +
- .../omap2/displays-new/panel-tpo-td028ttec1.c      | 32 +++++++++++++++++++++-
- 3 files changed, 62 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/video/toppoly,td028ttec1.txt
+On 14:24-20140508, Joel Fernandes wrote:
+> On 05/05/2014 09:18 AM, Sricharan R wrote:
+> > From: Nishanth Menon <nm@ti.com>
+> > 
+> > When, in the system due to varied reasons, interrupts might be unusable
+> > due to hardware behavior, but register maps do exist, then those interrupts
+> > should be skipped while mapping irq to crossbars.
+> > 
+> 
+> Just wondering, instead of hardcoding this data in the code, and
+> introducing additional flags (IRQ_SKIP), why not just put these GIC IRQs
+> in the ti,irq-reserved property in DTS for platforms where such IRQs are
+> not usable. That way you're skipping these IRQs anyway.
+> 
+> Also that would avoid adding more hard coded data for future SoCs into
+> the source for such IRQs that must be skipped, and also reduces LOC.
+> 
 
-diff --git a/Documentation/devicetree/bindings/video/toppoly,td028ttec1.txt b/Documentation/devicetree/bindings/video/toppoly,td028ttec1.txt
-new file mode 100644
-index 0000000..7175dc3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/video/toppoly,td028ttec1.txt
-@@ -0,0 +1,30 @@
-+Toppoly TD028TTEC1 Panel
-+========================
-+
-+Required properties:
-+- compatible: "toppoly,td028ttec1"
-+
-+Optional properties:
-+- label: a symbolic name for the panel
-+
-+Required nodes:
-+- Video port for DPI input
-+
-+Example
-+-------
-+
-+lcd-panel: td028ttec1@0 {
-+	compatible = "toppoly,td028ttec1";
-+	reg = <0>;
-+	spi-max-frequency = <100000>;
-+	spi-cpol;
-+	spi-cpha;
-+
-+	label = "lcd";
-+	port {
-+		lcd_in: endpoint {
-+			remote-endpoint = <&dpi_out>;
-+		};
-+	};
-+};
-+
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 16d33d8..66a2ee0 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -566,6 +566,7 @@ static const char * const dss_compat_conv_list[] __initconst = {
- 	"svideo-connector",
- 	"ti,tfp410",
- 	"ti,tpd12s015",
-+	"toppoly,td028ttec1",
- };
- 
- /* prepend compatible string with "omapdss," */
-diff --git a/drivers/video/fbdev/omap2/displays-new/panel-tpo-td028ttec1.c b/drivers/video/fbdev/omap2/displays-new/panel-tpo-td028ttec1.c
-index fae6adc..5b3466e 100644
---- a/drivers/video/fbdev/omap2/displays-new/panel-tpo-td028ttec1.c
-+++ b/drivers/video/fbdev/omap2/displays-new/panel-tpo-td028ttec1.c
-@@ -206,7 +206,8 @@ static int td028ttec1_panel_enable(struct omap_dss_device *dssdev)
- 	if (omapdss_device_is_enabled(dssdev))
- 		return 0;
- 
--	in->ops.dpi->set_data_lines(in, ddata->data_lines);
-+	if (ddata->data_lines)
-+		in->ops.dpi->set_data_lines(in, ddata->data_lines);
- 	in->ops.dpi->set_timings(in, &ddata->videomode);
- 
- 	r = in->ops.dpi->enable(in);
-@@ -389,6 +390,23 @@ static int td028ttec1_panel_probe_pdata(struct spi_device *spi)
- 	return 0;
- }
- 
-+static int td028ttec1_probe_of(struct spi_device *spi)
-+{
-+	struct device_node *node = spi->dev.of_node;
-+	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
-+	struct omap_dss_device *in;
-+
-+	in = omapdss_of_find_source_for_first_ep(node);
-+	if (IS_ERR(in)) {
-+		dev_err(&spi->dev, "failed to find video source\n");
-+		return PTR_ERR(in);
-+	}
-+
-+	ddata->in = in;
-+
-+	return 0;
-+}
-+
- static int td028ttec1_panel_probe(struct spi_device *spi)
- {
- 	struct panel_drv_data *ddata;
-@@ -418,6 +436,10 @@ static int td028ttec1_panel_probe(struct spi_device *spi)
- 		r = td028ttec1_panel_probe_pdata(spi);
- 		if (r)
- 			return r;
-+	} else if (spi->dev.of_node) {
-+		r = td028ttec1_probe_of(spi);
-+		if (r)
-+			return r;
- 	} else {
- 		return -ENODEV;
- 	}
-@@ -463,6 +485,13 @@ static int td028ttec1_panel_remove(struct spi_device *spi)
- 	return 0;
- }
- 
-+static const struct of_device_id td028ttec1_of_match[] = {
-+	{ .compatible = "omapdss,toppoly,td028ttec1", },
-+	{},
-+};
-+
-+MODULE_DEVICE_TABLE(of, td028ttec1_of_match);
-+
- static struct spi_driver td028ttec1_spi_driver = {
- 	.probe		= td028ttec1_panel_probe,
- 	.remove		= td028ttec1_panel_remove,
-@@ -470,6 +499,7 @@ static struct spi_driver td028ttec1_spi_driver = {
- 	.driver         = {
- 		.name   = "panel-tpo-td028ttec1",
- 		.owner  = THIS_MODULE,
-+		.of_match_table = td028ttec1_of_match,
- 	},
- };
- 
+Good question - lets try to explain the hardware a little here ->
+obviously a driver that cannot use the hardware is useless compared to
+reducing LOC count ;).. and apologies about the long reply..
+
+Basic understanding:
+GIC has 160 SPIs and number of hardware block interrupt sources is around or
+more than 400. So, in comes crossbar - which is basically a mapper by
+allowing us to select an hardware block interrupt source (identified as
+crossbar_number or cb_no in code). So all we have to do is to write to a
+register in crossbar corresponding to GIC and viola, we now routed the
+interrupt source to a GIC interrupt of our choice. At least the
+Specification reads so.... until you drill down to the details.
+
+A) You have 160 SPI GIC, and 152 crossbar registers. So, you have 8 GIC SPI
+interrupts that are hardwired. the reserved mapping basically marks
+these to indicate that we dont have registers. Example: 0 1 2 3 5
+6 131 and 132
+	- Limitation today - if you want to use PMU for CPU0, SPI
+	interrupt is 131, then if you define, in dts:
+	interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>
+	driver assumes it is crossbar number 131(reserved), Similarly:
+	GIC CS_CTI_MPU_C0_IRQ (SPI 1) is ELM_IRQ (crossbar 1)
+	GIC CS_CTI_MPU_C1_IRQ (SPI 2) is EXT_SYS_IRQ_1 (crossbar 2)
+	GIC MPU_CLUSTER_IRQ_AXIERR (SPI 3) is reserved (crossbar 3)
+	GIC WD_TIMER_MPU_C0_IRQ_WARN (SPI 5) is L3_MAIN_IRQ_APP_ERR (crossbar 5)
+	GIC WD_TIMER_MPU_C1_IRQ_WARN (SPI 6) is PRM_IRQ_MPU (crossbar 6)
+	GIC MPU_CLUSTER_IRQ_PMU_C0 (SPI 131) is reserved (crossbar 131)
+	GIC MPU_CLUSTER_IRQ_PMU_C1 (SPI 132) is reserved (crossbar 132)
+
+	As of today, we cannot differentiate in DTS if it is one of
+	these "direct map" interrupts we are requesting or crossbar
+	number we are requesting.
+
+B) among the 152 cross bar registers, you have three sets:
+B.1) The ones like Crossbar register 1 which maps to SPI4 - no problem -
+     you write the crossbar number you want to map, bingo, job done.
+     - The driver works brilliantly here. and this is true for 148 GIC
+     SPIs.
+B.2) The ones like 10 139 140 - these are interesting, because we have
+     crossbar registers corresponding to these, However writing anything
+     to them has no impact - at least 10 is confirmed to have been
+     hardwired to L3_APP_IRQ (but not documented), we are trying to get
+     explanations for 139 and 140. - but there is strong indication
+     based on testing performed that the registers are NOPs and GIC is
+     hardwired in.
+
+     I had originally discovered 10, but only a day or so back did we
+     understand what is going on, others we dont know yet.
+B.3) 133 is a variation to B.2 - There is an magical efuse register
+    which controls if the GIC is hardwired or not. when the efuse bit is
+    0, it behaves like B.1(program and it works), but almost all silicon
+    have it set to "hardwired mode" :(
+
+The following you wont find in any TRM, and is based on tests performed
+during the last few days - primarily meant to illustrate this.
+
+                      MPU Crossbar                  
+                      152 registers                 
+   +-------+         +------+                       
+   |       |    +----+C1    |                       
+   | PPI.. |    |    +------+                       
+   | 0..32 |    | <--+C2    |                       
+   |       |    |    +------+     +------------+    
+   +-------+    | +--+C5    |     |            +---+
+   |  SPI1 |    | |  +------+   <-+ L3 APP IRQ |   |
+   |       |    | |  |      |     ++-------+---+   |
+   +-------+    | |  |      |      +-------+       |
+   |  SPI3 |    | |  +------+      | CPU0  |       |
+   |       |    | |  |      |      | PMU   +----+  |
+   +-------+    | |  +------+      +-------+    |  |
+   | SPI4  | <--+ |  |      |                   |  |
+   |       |      |  |      |                   |  |
+   +-------+      |  |      |    +---------+    |  |
+   | SPI10 | <----+  |      |    | External|    |  |
++> |       |         |      |    | NMI     |    |  |
+|  +-------+         +------+    +-+-----+-++   |  |
+|  | SPI131|         |      |      +-----+  |   |  |
+|  |       | <+      +------+      | Efuse  |   |  |
+|  +-------+  |      |C126  | <--+-----+-+  |   |  |
+|  | SPI133| <---+   +------+    +-----+    |   |  |
+|  +-------+  |  | +-+C132  |    |CPU0 |    |   |  |
+|  | SPI139| <-----+ +------+    |WDT  |    |   |  |
+|  +-------+  |  | | +------+    +--+--+    |   |  |
+|  | ..... |  |  | |                |       |   |  |
+|  +-------+  |  | +----------------+       |   |  |
+|  | SPI159|  |  |                          |   |  |
+|  +-------+  |  +--------------------------+   |  |
+|             |                                 |  |
+|    GIC      +---------------------------------+  |
+|  160 SPI                                         |
+|                                                  |
++--------------------------------------------------+
+
+
+So, to answer your question - I hope this explains skip and reserved.
+Now, we happily can handle case B.1 (148 SPI interrupts) - However,
+
+The reason I requested this series to be blocked is:
+a) We dont completely (yet) have explanation about hardware for B.2 139
+   and 140.
+b) we definitely need to be able to request the interrupts of A, B.2,
+   B.3 - and our framework as it stands right now fails.
+
+NOTE:
+obviously we claim dra7 compatibility. dra742 and 744 seem similar - but
+we dont have confirmation for the same yet. following device tree
+maintainer recommendations of having dts compatibility closely match
+with SoC behavior. yeah, we could make the driver too generic and move
+everything to dts.. but that does not seem to be the way we do things with dt.
+
 -- 
-1.9.1
+Regards,
+Nishanth Menon
