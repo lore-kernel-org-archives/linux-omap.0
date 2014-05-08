@@ -1,34 +1,55 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/2] gpio: omap: prepare and unprepare the debounce clock
-Date: Thu, 8 May 2014 10:45:24 -0400
-Message-ID: <536B9884.6030809@ti.com>
-References: <1398233465-8845-1-git-send-email-rnayak@ti.com> <1398233465-8845-2-git-send-email-rnayak@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.15-rc4
+Date: Thu, 8 May 2014 15:00:41 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1405081456560.23579@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1405080417150.23579@utopia.booyaka.com> <CAGhQ9Vx_dJTn20S1OngAks1KvZkH=MUWEh-4bv5ciM7PhofJ8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1398233465-8845-2-git-send-email-rnayak@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: tony@atomide.com, paul@pwsan.com, linux-gpio@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:42711 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754924AbaEHPAm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 11:00:42 -0400
+In-Reply-To: <CAGhQ9Vx_dJTn20S1OngAks1KvZkH=MUWEh-4bv5ciM7PhofJ8Q@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joachim Eastwood <manabian@gmail.com>
+Cc: linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, kernel-build-reports@lists.linaro.org
 
-On Wednesday 23 April 2014 02:11 AM, Rajendra Nayak wrote:
-> Replace the clk_enable()s with a clk_prepare_enable() and
-> the clk_disables()s with a clk_disable_unprepare()
+Hello Joachim,
+
+On Thu, 8 May 2014, Joachim Eastwood wrote:
+
+> On 8 May 2014 06:23, Paul Walmsley <paul@pwsan.com> wrote:
+> >
+> > Here are some basic OMAP test results for Linux v3.15-rc4.
+> > Logs and other details at:
+> >
+> >     http://www.pwsan.com/omap/testlogs/test_v3.15-rc4/20140505112251/
+> >
+> >
+> > Test summary
+> > ------------
+> <snip>
+> >
+> > The eMMC on the 4460 VAR-SOM-OM has failed; I guess it's run out of
+> > reserve blocks to reallocate.  Now it's time to find yet another way
+> > to boot it.
 > 
-> This never showed issues due to the OMAP platform code (hwmod)
-> leaving these clocks in clk_prepare()ed state by default.
-> 
-> Reported-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Cc: linux-gpio@vger.kernel.org
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
-$subject patch looks fine but I don't see patch 2/2 assuming this
-is series of two patches.
+> I have some patches for u-boot which makes it possible to use the
+> on-board LAN7500 USB Ethernet controller for tftp.
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+That's great!
+
+> Since you have a VAR-SOM-OM44 module maybe you could test my dts patches for it?
+> I will post a new version of the patch set early next week. I can cc you.
+
+I'd like to load the rootfs off the external SD slot.  Looks like you 
+might be adding support for that with your recent DT patches?
+
+> Do you have the VAR-DVK-OM44 eval board?
+
+Yes.
 
 
+- Paul
