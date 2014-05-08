@@ -1,30 +1,28 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL #1/2] bus: omap_l3_noc: driver fixes and DRA7/AM437x
- support
-Date: Thu, 8 May 2014 08:03:58 -0700
-Message-ID: <20140508150357.GB26833@atomide.com>
+Subject: Re: [GIT PULL #2/2] ARM: dts: DRA7/AM437x l3noc dts updates
+Date: Thu, 8 May 2014 08:04:18 -0700
+Message-ID: <20140508150417.GC26833@atomide.com>
 References: <1397492726-17203-1-git-send-email-nm@ti.com>
  <1398698101-25513-1-git-send-email-nm@ti.com>
  <20140505200322.GA9863@kahuna>
+ <20140505200635.GB9863@kahuna>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140505200322.GA9863@kahuna>
+In-Reply-To: <20140505200635.GB9863@kahuna>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
 Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [140505 13:03]:
+* Nishanth Menon <nm@ti.com> [140505 13:07]:
 > Hi Tony,
 > 
->    Please pull the following driver fixes based on V3 of l3noc fixes and
->    support for DRA7 and AM437x for upcoming 3.16 window.
->    http://marc.info/?l=linux-omap&m=139869922030493&w=2
-> 
->    This is part 1 of the pull request containing purely the driver
->    updates.
+>    Please pull the following to the dts support of AM437x and DRA7
+>    support for l3_noc for the upcoming 3.16 window. This series was posted
+>    http://marc.info/?l=linux-omap&m=139750288003978&w=2 and the
+>    functionality enabled by the first pull request for driver.
 > 
 > The following changes since commit 455c6fdbd219161bd09b1165f11699d6d73de11c:
 > 
@@ -32,56 +30,26 @@ List-Id: linux-omap@vger.kernel.org
 > 
 > are available in the git repository at:
 > 
->   https://github.com/nmenon/linux-2.6-playground.git pull/l3noc/driver-fixes
+>   https://github.com/nmenon/linux-2.6-playground.git pull/l3noc/dts-fixes
 > 
-> for you to fetch changes up to 27b7d5f3cc49f2e5cd6c005d73696058b7140c5c:
+> for you to fetch changes up to 2eeddb8a5356e088021a8dd84de870de89bf793d:
 > 
->   bus: omap_l3_noc: Add AM4372 interconnect error data (2014-05-05 14:34:37 -0500)
+>   ARM: dts: AM4372: add l3-noc information (2014-05-05 14:35:29 -0500)
 
-Thanks pulling this into omap-for-v3.16/l3-noc.
+Thanks pulling into omap-for-v3.16/fixes-not-urgent.
 
 Tony
  
 > ----------------------------------------------------------------
-> Afzal Mohammed (2):
->       bus: omap_l3_noc: ignore masked out unclearable targets
->       bus: omap_l3_noc: Add AM4372 interconnect error data
+> Afzal Mohammed (1):
+>       ARM: dts: AM4372: add l3-noc information
 > 
-> Nishanth Menon (14):
->       bus: omap_l3_noc: Fix copyright information
->       bus: omap_l3_noc: remove iclk from omap_l3 struct
->       bus: omap_l3_noc: populate l3->dev and use it
->       bus: omap_l3_noc: switch over to relaxed variants of readl/writel
->       bus: omap_l3_noc: un-obfuscate l3_targ address computation
->       bus: omap_l3_noc: move L3 master data structure out
->       bus: omap_l3_noc: convert target information into a structure
->       bus: omap_l3_noc: convert flagmux information into a structure
->       bus: omap_l3_noc: fix masterid detection
->       bus: omap_l3_noc: make error reporting and handling common
->       bus: omap_l3_noc: improve readability by using helper for slave event parsing
->       bus: omap_l3_noc: add information about the type of operation
->       bus: omap_l3_noc: Add information about the context of operation
->       bus: omap_l3_noc: introduce concept of submodule
+> Rajendra Nayak (1):
+>       ARM: dts: DRA7: Use dra7-l3-noc instead of omap4-l3-noc
 > 
-> Peter Ujfalusi (5):
->       drivers: bus: omap_l3: Convert to use devm_kzalloc
->       drivers: bus: omap_l3: Convert to use devm_ioremap_resource()
->       drivers: bus: omap_l3: Convert to use devm_request_irq()
->       drivers: bus: omap_l3: Remove the platform driver's remove function
->       drivers: bus: omap_l3: Change pr_crit() to dev_err() when IRQ request fails
-> 
-> Rajendra Nayak (2):
->       bus: omap_l3_noc: Add support for discountinous flag mux input numbers
->       bus: omap_l3_noc: Add DRA7 interconnect error data
-> 
-> Sricharan R (2):
->       bus: omap_l3_noc: rename functions and data to omap_l3
->       bus: omap_l3_noc: use of_match_data to pick up SoC information
-> 
->  .../devicetree/bindings/arm/omap/l3-noc.txt        |    2 +
->  drivers/bus/omap_l3_noc.c                          |  406 ++++++++-------
->  drivers/bus/omap_l3_noc.h                          |  545 +++++++++++++++-----
->  3 files changed, 653 insertions(+), 300 deletions(-)
+>  arch/arm/boot/dts/am4372.dtsi |    6 +++++-
+>  arch/arm/boot/dts/dra7.dtsi   |    6 +++---
+>  2 files changed, 8 insertions(+), 4 deletions(-)
 > -- 
 > Regards,
 > Nishanth Menon
