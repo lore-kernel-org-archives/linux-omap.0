@@ -1,48 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 13/13] video: omap: allow building on !MMU
-Date: Thu, 8 May 2014 14:53:38 -0700
-Message-ID: <20140508215338.GE2198@atomide.com>
-References: <1398342509-10243-1-git-send-email-peter.griffin@linaro.org>
- <1398342509-10243-14-git-send-email-peter.griffin@linaro.org>
- <5369F973.10803@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: omap4-panda-es boot issues with v3.15-rc4
+Date: Thu, 08 May 2014 15:15:23 -0700
+Message-ID: <7hha4zsyro.fsf@paris.lan>
+References: <536B7E44.2040303@ti.com> <7hppjos2w2.fsf@paris.lan>
+	<CAGa+x84VB3CXDm71JWxHx1-Qk1xVNeXdwUjZnb42_wg+piOzzA@mail.gmail.com>
+	<20140508165558.GB2198@atomide.com>
+	<20140508184055.GC2198@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5369F973.10803@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Peter Griffin <peter.griffin@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:60813 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932095AbaEHWPZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 18:15:25 -0400
+Received: by mail-pa0-f52.google.com with SMTP id kx10so3465034pab.11
+        for <linux-omap@vger.kernel.org>; Thu, 08 May 2014 15:15:25 -0700 (PDT)
+In-Reply-To: <20140508184055.GC2198@atomide.com> (Tony Lindgren's message of
+	"Thu, 8 May 2014 11:40:56 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Roger Quadros <rogerq@ti.com>, "Menon, Nishanth" <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Taras Kondratiuk <taras.kondratiuk@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kristo, Tero" <t-kristo@ti.com>, Paul Burton <paul.burton@imgtec.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140507 02:15]:
-> On 24/04/14 15:28, Peter Griffin wrote:
-> > From: Arnd Bergmann <arnd@arndb.de>
-> > 
-> > The omap lcdc driver has an elaborate mmap_kern function
-> > to map the frame buffer into kernel address space as
-> > write-combined. This uses functions that are only available
-> > on MMU-enabled builds.
-> > 
-> > It does seem equivalent to ioremap_wc though, so we should
-> > be able to just use that instead.
-> > 
-> > This patch is build-tested only, it needs to be run on real
-> > hardware before applying.
-> 
-> I don't have omap1 boards, and I don't know anyone that has. I don't
-> even know if the omap1 fb is working or not...
-> 
-> Tony, any idea of omap1's fb? Are you able to test this?
+Tony Lindgren <tony@atomide.com> writes:
 
-I have three omap1 boards in my rack that I use for my boot
-testing. Tried to enable framebuffer but so far no luck on
-any of them. So I'm not much of a help here. Looks like the
-patch should work though..
+[...]
 
-Aaro & Janusz, care to take a look at the patch in this
-thread?
+> ..but I think I found the cause for recent hangs on panda, just a wild
+> guess based on looking at the recent cpuidle patches after v3.14.
+>
+> Looks like reverting 0b89e9aa2856 (cpuidle: delay enabling interrupts
+> until all coupled CPUs leave idle) makes booting work reliably again
+> on panda.
+>
+> Can you guys confirm, so far no issues here after few boot tests,
+> but it might be too early to tell.
 
-Regards,
+Reverting that makes things a bit more stable, but it still eventually
+fails in the same way.  For me it took 8 boots for it to eventually
+fail.
 
-Tony
+However, if I build with CONFIG_CPU_IDLE=n, it becomes much more stable
+(20+ boots in a row and still going.)
+
+Kevin
+
+
+
+
