@@ -1,91 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND PATCH 0/4] ARM: OMAP: raw read and write endian fix
-Date: Thu, 8 May 2014 07:23:58 -0700
-Message-ID: <20140508142357.GA26833@atomide.com>
-References: <1397583469-14457-1-git-send-email-taras.kondratiuk@linaro.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
+Date: Thu, 8 May 2014 10:25:46 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1405081019230.1087-100000@iolanthe.rowland.org>
+References: <20140508160046.GJ19925@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55186 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336AbaEHOYE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 10:24:04 -0400
-Content-Disposition: inline
-In-Reply-To: <1397583469-14457-1-git-send-email-taras.kondratiuk@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140508160046.GJ19925@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Cc: Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, liping.zhou@intel.com, david.a.cohen@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Taras Kondratiuk <taras.kondratiuk@linaro.org> [140415 10:38]:
-> This series does trivial replacement of __raw_xxx functions with xxx_relaxed
-> endian-neutral variants in 'mach-omap2' and 'plat-omap' directories.
-> Some code here most probably won't be used in BE mode (like debug-leds for
-> OMAP1 boards), but changes are made anyway to remove __raw_xxx() functions
-> completely and simplify future grep'ing for new __raw_xxx() entries.
-> 
-> This is a part of RFC series [1].
-> It was missed in previous merge window [2].
-> 
-> Based on v3.15-rc1.
+On Thu, 8 May 2014, Zhuang Jin Can wrote:
 
-Thanks applying these into omap-for-v3.16/be.
+> > When the host already timed out the control transfer and started a new 
+> > one.  Here's what I'm talking about:
+> > 
+> > 	Host sends a Set-Configuration request.
+> > 
+> > 	The UDC driver calls the gadget driver's setup function.
+> > 
+> > 	The setup function returns DELAYED_STATUS.
+> > 
+> > 	After a few seconds, the host gets tired of waiting and
+> > 	sends a Get-Descriptor request
+> My understanding is dwc3 will return NYET to host for this
+> Get-Descriptor request transaction, as dwc3 is still in STATUS phase,
+> there's no buffer to receive anything in ep0-out.
 
-Regards,
+dwc3 _cannot_ return NYET to a SETUP packet.  The USB protocol does not 
+allow it.  A device must always respond to SETUP with ACK.
 
-Tony
- 
-> [1] http://www.spinics.net/lists/linux-omap/msg99927.html
-> [2] https://lkml.org/lkml/2014/4/2/292
-> 
-> Victor Kamensky (4):
->   ARM: OMAP2+: raw read and write endian fix
->   ARM: OMAP: dmtimer: raw read and write endian fix
->   ARM: OMAP: counter-32k: raw read and write endian fix
->   ARM: OMAP: debug-leds: raw read and write endian fix
-> 
->  arch/arm/mach-omap2/board-flash.c         |    4 +--
->  arch/arm/mach-omap2/clkt2xxx_dpllcore.c   |    2 +-
->  arch/arm/mach-omap2/clkt2xxx_osc.c        |    8 +++---
->  arch/arm/mach-omap2/clkt2xxx_sys.c        |    2 +-
->  arch/arm/mach-omap2/cm2xxx_3xxx.h         |    4 +--
->  arch/arm/mach-omap2/cm33xx.c              |    4 +--
->  arch/arm/mach-omap2/cm3xxx.c              |    8 +++---
->  arch/arm/mach-omap2/cm44xx.c              |    8 +++---
->  arch/arm/mach-omap2/cminst44xx.c          |    4 +--
->  arch/arm/mach-omap2/control.c             |   20 +++++++-------
->  arch/arm/mach-omap2/dma.c                 |    4 +--
->  arch/arm/mach-omap2/gpmc.c                |    8 +++---
->  arch/arm/mach-omap2/id.c                  |    2 +-
->  arch/arm/mach-omap2/irq.c                 |    4 +--
->  arch/arm/mach-omap2/mux.c                 |    8 +++---
->  arch/arm/mach-omap2/omap-hotplug.c        |    4 +--
->  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   18 ++++++-------
->  arch/arm/mach-omap2/omap-smp.c            |    6 ++---
->  arch/arm/mach-omap2/omap-wakeupgen.c      |   42 ++++++++++++++---------------
->  arch/arm/mach-omap2/omap4-common.c        |   18 ++++++-------
->  arch/arm/mach-omap2/omap_hwmod.c          |   10 +++----
->  arch/arm/mach-omap2/omap_phy_internal.c   |    6 ++---
->  arch/arm/mach-omap2/prcm_mpu44xx.c        |    4 +--
->  arch/arm/mach-omap2/prm2xxx.h             |    2 +-
->  arch/arm/mach-omap2/prm2xxx_3xxx.h        |    4 +--
->  arch/arm/mach-omap2/prm33xx.c             |    4 +--
->  arch/arm/mach-omap2/prm3xxx.h             |    2 +-
->  arch/arm/mach-omap2/prm44xx.c             |    4 +--
->  arch/arm/mach-omap2/prminst44xx.c         |    4 +--
->  arch/arm/mach-omap2/sdrc.h                |    8 +++---
->  arch/arm/mach-omap2/sdrc2xxx.c            |    4 +--
->  arch/arm/mach-omap2/sr_device.c           |    2 +-
->  arch/arm/mach-omap2/sram.c                |   16 +++++------
->  arch/arm/mach-omap2/timer.c               |    8 +++---
->  arch/arm/mach-omap2/vc.c                  |    4 +--
->  arch/arm/mach-omap2/wd_timer.c            |    8 +++---
->  arch/arm/plat-omap/counter_32k.c          |    6 ++---
->  arch/arm/plat-omap/debug-leds.c           |   14 +++++-----
->  arch/arm/plat-omap/dmtimer.c              |    8 +++---
->  arch/arm/plat-omap/include/plat/dmtimer.h |   16 +++++------
->  40 files changed, 156 insertions(+), 156 deletions(-)
-> 
-> -- 
-> 1.7.9.5
-> 
+On the other hand, dwc3 _can_ return NYET to the token packet that
+follows the SETUP transaction.  That's what it should do.  But at this
+point it should be in the DATA stage, not the STATUS stage.  Receiving
+a SETUP packet should abort a STATUS stage.
+
+>  And your below
+> comments is not applicapable to dwc3.
+
+True, they apply to composite.c rather than dwc3.  However, they
+address an issue very similar to your patch, so I raised this topic in
+your email thread.
+
+Alan Stern
