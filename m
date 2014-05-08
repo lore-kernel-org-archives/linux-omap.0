@@ -1,192 +1,52 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 1/2] gpio: omap: prepare and unprepare the debounce clock
-Date: Thu, 8 May 2014 17:36:41 +0530
-Message-ID: <536B7351.2060201@ti.com>
-References: <1398233465-8845-1-git-send-email-rnayak@ti.com> <1398233465-8845-2-git-send-email-rnayak@ti.com> <536B2CEE.4010809@ti.com> <CABxcv==5cwnk4aiZ+AVuAoMf9YnZJsfiJKRkZTYHFuP2-DmnnQ@mail.gmail.com> <536B660B.7080200@ti.com> <CABxcv=mOYUDKFNHT=wtS-G3dOWXve_Wy1TpxFwkBddPu4i2XXA@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: omap4-panda-es boot issues with v3.15-rc4
+Date: Thu, 8 May 2014 15:53:24 +0300
+Message-ID: <536B7E44.2040303@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CABxcv=mOYUDKFNHT=wtS-G3dOWXve_Wy1TpxFwkBddPu4i2XXA@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Linux GPIO List <linux-gpio@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53039 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752756AbaEHMxy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 08:53:54 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "tony@atomide.com" <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, taras.kondratiuk@linaro.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kristo, Tero" <t-kristo@ti.com>
 
-On Thursday 08 May 2014 05:34 PM, Javier Martinez Canillas wrote:
-> Hello Rajendra,
-> 
-> On Thu, May 8, 2014 at 1:10 PM, Rajendra Nayak <rnayak@ti.com> wrote:
->> On Thursday 08 May 2014 02:56 PM, Javier Martinez Canillas wrote:
->>> Hello Rajendra,
->>>
->>> On Thu, May 8, 2014 at 9:06 AM, Rajendra Nayak <rnayak@ti.com> wrote:
->>>> On Wednesday 23 April 2014 11:41 AM, Rajendra Nayak wrote:
->>>>> Replace the clk_enable()s with a clk_prepare_enable() and
->>>>> the clk_disables()s with a clk_disable_unprepare()
->>>>>
->>>>> This never showed issues due to the OMAP platform code (hwmod)
->>>>> leaving these clocks in clk_prepare()ed state by default.
->>>>>
->>>>> Reported-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->>>>> Cc: linux-gpio@vger.kernel.org
->>>>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>>>
->>>> Linus,
->>>>
->>>> Do you mind picking this fix up via the GPIO tree? Alternatively you could
->>>> Ack this if you are fine and we can take both Patch 1/2 and Patch 2/2 from this
->>>> series via the OMAP tree.
->>>>
->>>> Patch 2/2 has a dependency on Patch 1/2 and they need to go in in that order else
->>>> gpio would break. More discussions are here [1].
->>>> Let us know what you think. Thanks.
->>>>
->>>
->>> I wonder if that is really the case. Your Patch 2/2 removes the call
->>> to clk_prepare on _init_opt_clks() but it also replaces
->>> clk_{enable,disable} with clk_prepare_enable()/clk_disable_unprepare()
->>> on _enable_optional_clocks() and _disable_optional_clocks()
->>> respectively.
->>
->> Right, the difference being, by the time hwmod is done enabling/disabling
->> the opt clocks, without patch 2/2, the prepare count is 1, with patch 2/2
->> prepare count is 0.
->>
-> 
-> Ok, got it now.
-> 
->>>
->>> And GPIO banks are reset by hwmod on init which as far as I know
->>> happen very early before the GPIO OMAP driver is even probed so by the
->>> time clk_enable() is called on the GPIO driver the clock will already
->>> be prepared by _enable_optional_clocks(). I tested linux-gpio/devel
->>
->> and unprepared by _disable_optional_clocks()?
->>
-> 
-> I see that _disable_optional_clocks() is called as well so the clock
-> is left unprepared as you said.
-> 
->>> branch + only your Patch 2/2 and the GPIOs were working correctly on a
->>> OMAP3 board.
->>
->> Did gpio_debounce() ever get called for any of the gpios?
->>
-> 
-> I don't see gpio_debounce() to be called indeed.
-> 
-> omap_gpio_runtime_resume() is executed and calls
-> _gpio_dbck_enable(bank) but clk_enable(bank->dbck) is not called since
-> bank->dbck_enable_mask is 0, that was my confusion since I thought
-> that clk_enable() was called.
-> 
-> Now I understand the dependency between the two patches.
-> 
->>>
->>> So I think that there isn't a strict dependency between these two
->>> patches or am I missing something?
->>>
->>> In fact now that I think about it I wonder what's the functional
->>> change of your Patch 2/2 since hwmod is still calling clk_prepare()
->>> before the driver. If the clocks should actually be controlled by the
->>
->> I don't understand why you say 'before the driver'. Hwmod needs to control
->> optional clocks for some devices in order to do a ocp reset. So it does
->> touch these optional clocks, but if you look at the code it subsequently
->> also disables (and unprepares with patch 2/2) these clocks before returning
->> the control to the driver.
->>
-> 
-> Right, it was just me getting confused by the interaction between
-> hwmod and the GPIO driver. Thanks a lot for the explanation and sorry
-> for the noise.
+Hi,
 
-No issues, thanks for the review and ack.
+Nishant pointed me to a booting issue with omap4-panda-es on linux-next but I'm observing
+similar issues, although less frequent, with v3.15-rc4 as well.
 
-> 
-> Feel free to add my:
-> 
-> Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
-> 
-> Best regards,
-> Javier
-> 
->>> drivers like you said then I think that we should remove
->>> _{enable,disable}_optional_clocks() completely and let the drivers do
->>> the clock prepare and enable like is made on your Patch 1/2 for the
->>> GPIO driver.
->>>
->>> What do you think about it?
->>>
->>> Best regards,
->>> Javier
->>>
->>>> regards,
->>>> Rajendra
->>>>
->>>> [1] http://www.mail-archive.com/linux-gpio@vger.kernel.org/msg02801.html
->>>>
->>>>> ---
->>>>>  drivers/gpio/gpio-omap.c |   10 +++++-----
->>>>>  1 file changed, 5 insertions(+), 5 deletions(-)
->>>>>
->>>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->>>>> index 19b886c..78bc5a4 100644
->>>>> --- a/drivers/gpio/gpio-omap.c
->>>>> +++ b/drivers/gpio/gpio-omap.c
->>>>> @@ -180,7 +180,7 @@ static inline void _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
->>>>>  static inline void _gpio_dbck_enable(struct gpio_bank *bank)
->>>>>  {
->>>>>       if (bank->dbck_enable_mask && !bank->dbck_enabled) {
->>>>> -             clk_enable(bank->dbck);
->>>>> +             clk_prepare_enable(bank->dbck);
->>>>>               bank->dbck_enabled = true;
->>>>>
->>>>>               writel_relaxed(bank->dbck_enable_mask,
->>>>> @@ -198,7 +198,7 @@ static inline void _gpio_dbck_disable(struct gpio_bank *bank)
->>>>>                */
->>>>>               writel_relaxed(0, bank->base + bank->regs->debounce_en);
->>>>>
->>>>> -             clk_disable(bank->dbck);
->>>>> +             clk_disable_unprepare(bank->dbck);
->>>>>               bank->dbck_enabled = false;
->>>>>       }
->>>>>  }
->>>>> @@ -231,7 +231,7 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
->>>>>
->>>>>       l = GPIO_BIT(bank, gpio);
->>>>>
->>>>> -     clk_enable(bank->dbck);
->>>>> +     clk_prepare_enable(bank->dbck);
->>>>>       reg = bank->base + bank->regs->debounce;
->>>>>       writel_relaxed(debounce, reg);
->>>>>
->>>>> @@ -245,7 +245,7 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
->>>>>       bank->dbck_enable_mask = val;
->>>>>
->>>>>       writel_relaxed(val, reg);
->>>>> -     clk_disable(bank->dbck);
->>>>> +     clk_disable_unprepare(bank->dbck);
->>>>>       /*
->>>>>        * Enable debounce clock per module.
->>>>>        * This call is mandatory because in omap_gpio_request() when
->>>>> @@ -290,7 +290,7 @@ static void _clear_gpio_debounce(struct gpio_bank *bank, unsigned gpio)
->>>>>               bank->context.debounce = 0;
->>>>>               writel_relaxed(bank->context.debounce, bank->base +
->>>>>                            bank->regs->debounce);
->>>>> -             clk_disable(bank->dbck);
->>>>> +             clk_disable_unprepare(bank->dbck);
->>>>>               bank->dbck_enabled = false;
->>>>>       }
->>>>>  }
->>>>>
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-gpio" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+Configuration:
 
+- kernel v3.15-rc4 or linux-next (20140507)
+- multi_v7_defconfig with LEDS_TRIGGER_HEARTBEAT and LEDS_GPIO enabled
+- u-boot/master	173d294b94cf
+
+Observations:
+
+- Out of 10 boots a few may not succeed and hang midway without any warnings. Heartbeat LED stops.
+e.g. http://www.hastebin.com/ebumojegoq.vhdl
+
+- Hang more noticeable on linux-next (20140507) than on v3.15-rc4
+
+- Hang more noticeable with USB_EHCI_HCD enabled but hang observed even without USB_EHCI_HCD.
+Maybe related to when high speed interrupts occur in the boot process.
+
+- On successful boots following warning is seen
+[    4.010375] gic_timer_retrigger: lost localtimer interrupt
+
+- On successful boots heartbeat LED stops blinking after boot process and left idle. LED can remain stuck in
+ON state as well. It does blink again when doing activity on console.
+
+Workaround:
+
+- Disabling CPU_IDLE or even just disabling C3 (MPU OSWR) seems to fix all the above issues.
+
+I don't really know what exactly is the issue but it seems to be specific to OMAP4, GIC, MPU OSWR.
+
+cheers,
+-roger
