@@ -1,7 +1,7 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 2/8] usb: musb: tusb-dma can't be built-in if tusb is not
-Date: Thu,  8 May 2014 15:52:15 +0200
-Message-ID: <1399557141-1346645-3-git-send-email-arnd@arndb.de>
+Subject: [PATCH 3/8] usb: musb: omap2plus bus glue needs USB host support
+Date: Thu,  8 May 2014 15:52:16 +0200
+Message-ID: <1399557141-1346645-4-git-send-email-arnd@arndb.de>
 References: <1399557141-1346645-1-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,14 +21,9 @@ To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Arnd Bergmann <arnd@arndb.de>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-A configuration with CONFIG_USB_MUSB_HDRC=y, CONFIG_USB_TUSB_OMAP_DMA=y
-and CONFIG_USB_MUSB_TUSB6010=m causes a link failure because of the
-dependency on the tusb_get_revision symbol:
-
-(.text+0x154ce8): undefined reference to `tusb_get_revision'
-
-This patch ensures that either MUSB_HDRC and MUSB_TUSB6010 are
-both modules or both built-in, which are the valid configurations.
+The musb/omap2430.c bus glue driver calls usb_hcd_poll_rh_status,
+which is only available if CONFIG_USB is also set, i.e. we
+are building USB host mode and not just endpoint mode.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: linux-omap@vger.kernel.org
@@ -37,17 +32,17 @@ Cc: linux-omap@vger.kernel.org
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index 8b78979..618b152 100644
+index 618b152..fce762c 100644
 --- a/drivers/usb/musb/Kconfig
 +++ b/drivers/usb/musb/Kconfig
-@@ -144,7 +144,7 @@ config USB_TI_CPPI41_DMA
+@@ -76,7 +76,7 @@ config USB_MUSB_TUSB6010
  
- config USB_TUSB_OMAP_DMA
- 	bool 'TUSB 6010'
--	depends on USB_MUSB_TUSB6010
-+	depends on USB_MUSB_TUSB6010 = USB_MUSB_HDRC # both built-in or both modules
- 	depends on ARCH_OMAP
- 	help
- 	  Enable DMA transfers on TUSB 6010 when OMAP DMA is available.
+ config USB_MUSB_OMAP2PLUS
+ 	tristate "OMAP2430 and onwards"
+-	depends on ARCH_OMAP2PLUS
++	depends on ARCH_OMAP2PLUS && USB
+ 	select GENERIC_PHY
+ 
+ config USB_MUSB_AM35X
 -- 
 1.8.3.2
