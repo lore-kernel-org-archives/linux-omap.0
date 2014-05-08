@@ -1,47 +1,53 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 4/8] usb: phy: fix isp1301-omap dependency on tps65010
-Date: Thu,  8 May 2014 15:52:17 +0200
-Message-ID: <1399557141-1346645-5-git-send-email-arnd@arndb.de>
+Subject: [PATCH 2/8] usb: musb: tusb-dma can't be built-in if tusb is not
+Date: Thu,  8 May 2014 15:52:15 +0200
+Message-ID: <1399557141-1346645-3-git-send-email-arnd@arndb.de>
 References: <1399557141-1346645-1-git-send-email-arnd@arndb.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:49995 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752535AbaEHNwk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 09:52:40 -0400
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1399557141-1346645-1-git-send-email-arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-The isp1301-omap driver cannot be built-in if the tps65010 driver
-is a module, otherwise we get a link error from the reference to
-the tps65010_set_vbus_draw function.
+A configuration with CONFIG_USB_MUSB_HDRC=y, CONFIG_USB_TUSB_OMAP_DMA=y
+and CONFIG_USB_MUSB_TUSB6010=m causes a link failure because of the
+dependency on the tusb_get_revision symbol:
 
-There is already a hack in the driver to work around the problem
-of tps65010 being not available at all. This patch extends that
-hack to ensure that the real tps65010_set_vbus_draw() function
-is only called when it's avaiable.
+(.text+0x154ce8): undefined reference to `tusb_get_revision'
+
+This patch ensures that either MUSB_HDRC and MUSB_TUSB6010 are
+both modules or both built-in, which are the valid configurations.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: linux-omap@vger.kernel.org
 ---
- drivers/usb/phy/phy-isp1301-omap.c | 2 +-
+ drivers/usb/musb/Kconfig | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
-index 6e146d7..35a0dd2 100644
---- a/drivers/usb/phy/phy-isp1301-omap.c
-+++ b/drivers/usb/phy/phy-isp1301-omap.c
-@@ -94,7 +94,7 @@ struct isp1301 {
+diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+index 8b78979..618b152 100644
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -144,7 +144,7 @@ config USB_TI_CPPI41_DMA
  
- #if defined(CONFIG_MACH_OMAP_H2) || defined(CONFIG_MACH_OMAP_H3)
- 
--#if	defined(CONFIG_TPS65010) || defined(CONFIG_TPS65010_MODULE)
-+#if	defined(CONFIG_TPS65010) || (defined(CONFIG_TPS65010_MODULE) && defined(MODULE))
- 
- #include <linux/i2c/tps65010.h>
- 
+ config USB_TUSB_OMAP_DMA
+ 	bool 'TUSB 6010'
+-	depends on USB_MUSB_TUSB6010
++	depends on USB_MUSB_TUSB6010 = USB_MUSB_HDRC # both built-in or both modules
+ 	depends on ARCH_OMAP
+ 	help
+ 	  Enable DMA transfers on TUSB 6010 when OMAP DMA is available.
 -- 
 1.8.3.2
-
