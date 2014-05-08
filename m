@@ -1,109 +1,85 @@
-From: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
-Subject: RE: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
-Date: Thu, 8 May 2014 23:01:36 +0000
-Message-ID: <A2CA0424C0A6F04399FB9E1CD98E03046D195FB1@US01WEMBX2.internal.synopsys.com>
-References: <A2CA0424C0A6F04399FB9E1CD98E03046D195F08@US01WEMBX2.internal.synopsys.com>
- <Pine.LNX.4.44L0.1405081712420.995-100000@iolanthe.rowland.org>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 3/5] irqchip: crossbar: Skip some irqs from getting mapped
+ to crossbar
+Date: Thu, 8 May 2014 19:05:40 -0400
+Message-ID: <536C0DC4.7090309@ti.com>
+References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>	<1399299527-10955-4-git-send-email-r.sricharan@ti.com>	<536BD9D8.4080905@ti.com>	<20140508203659.GA5620@kahuna> <CAD=GYpbQQxQgKd3oZcAuWrxoD4VrkKzpybd11qwxs405HSUVGw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1405081712420.995-100000@iolanthe.rowland.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Zhuang Jin Can <jin.can.zhuang@intel.com>, Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, "liping.zhou@intel.com" <liping.zhou@intel.com>, "david.a.cohen@linux.intel.com" <david.a.cohen@linux.intel.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37504 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756030AbaEHXGF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 May 2014 19:06:05 -0400
+In-Reply-To: <CAD=GYpbQQxQgKd3oZcAuWrxoD4VrkKzpybd11qwxs405HSUVGw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joel Fernandes <agnel.joel@gmail.com>, Nishanth Menon <nm@ti.com>
+Cc: Joel Fernandes <joelf@ti.com>, "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Sricharan R <r.sricharan@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-> From: Alan Stern [mailto:stern@rowland.harvard.edu]
-> Sent: Thursday, May 08, 2014 2:18 PM
+On Thursday 08 May 2014 06:43 PM, Joel Fernandes wrote:
+> On Thu, May 8, 2014 at 3:37 PM, Nishanth Menon <nm@ti.com> wrote:
+>> On 14:24-20140508, Joel Fernandes wrote:
+>>> On 05/05/2014 09:18 AM, Sricharan R wrote:
+>>>> From: Nishanth Menon <nm@ti.com>
+>>>>
+>>>> When, in the system due to varied reasons, interrupts might be unusable
+>>>> due to hardware behavior, but register maps do exist, then those interrupts
+>>>> should be skipped while mapping irq to crossbars.
+>>>>
+>>>
+>>> Just wondering, instead of hardcoding this data in the code, and
+>>> introducing additional flags (IRQ_SKIP), why not just put these GIC IRQs
+>>> in the ti,irq-reserved property in DTS for platforms where such IRQs are
+>>> not usable. That way you're skipping these IRQs anyway.
+>>>
+>>> Also that would avoid adding more hard coded data for future SoCs into
+>>> the source for such IRQs that must be skipped, and also reduces LOC.
+>>>
+>>
+>> Good question - lets try to explain the hardware a little here ->
+>> obviously a driver that cannot use the hardware is useless compared to
+>> reducing LOC count ;).. and apologies about the long reply..
+>>
+>> Basic understanding:
+>> GIC has 160 SPIs and number of hardware block interrupt sources is around or
+>> more than 400. So, in comes crossbar - which is basically a mapper by
+>> allowing us to select an hardware block interrupt source (identified as
+>> crossbar_number or cb_no in code). So all we have to do is to write to a
+>> register in crossbar corresponding to GIC and viola, we now routed the
+>> interrupt source to a GIC interrupt of our choice. At least the
+>> Specification reads so.... until you drill down to the details.
 > 
-> On Thu, 8 May 2014, Paul Zimmerman wrote:
+> Thanks for the long explanation and the diagrams!
 > 
-> > > When the host already timed out the control transfer and started a new
-> > > one.  Here's what I'm talking about:
-> > >
-> > > 	Host sends a Set-Configuration request.
-> > >
-> > > 	The UDC driver calls the gadget driver's setup function.
-> > >
-> > > 	The setup function returns DELAYED_STATUS.
-> > >
-> > > 	After a few seconds, the host gets tired of waiting and
-> > > 	sends a Get-Descriptor request
-> > >
-> > > 	The gadget driver finally submits the delayed request response
-> > > 	to the Set-Configuration request.  But it is now too late,
-> > > 	because the host expects a response to the Get-Descriptor
-> > > 	request.
-> > >
-> > > >  dwc3 can't move to SETUP phase until the status request arrives,
-> > > > so any SETUP transaction from host will fail. If status request
-> > > > eventually arrives, it already missed the first control transfer, and
-> > > > I don't know how the controller will behave. If we still can get a
-> > > > STATUS XferComplete event without actually transfer anything on the
-> > > > bus, then we can move back to SETUP PHASE which will remove the stale
-> > > > delayed status request and start the new SETUP transaction. But I think
-> > > > in this situation, the host should already lose it patience and start
-> > > > to reset the bus.
-> > >
-> > > My point is that the UDC driver can't handle this.  Therefore the
-> > > gadget driver has to prevent this from happening.
-> > >
-> > > That means composite.c has to avoid sending delayed status responses if
-> > > a new SETUP packet has been received already.
-> > >
-> > > > Per my understanding, it's impossible for dwc3 to send a stale STATUS
-> > > > request for a new SETUP transaction.
-> > >
-> > > dwc3 won't know that the status response is stale.  It will think the
-> > > response was meant for the new transfer, not the old one.
-> >
-> > The DWC3 controller will actually handle this case on its own. If
-> > it sees another SETUP packet come in before the previous Control
-> > transfer has completed, it will not send any DATA or STATUS phase
-> > packets for the previous Control transfer to the host. But it will
-> > "fake" the correct responses to the software, so the dwc3 driver will
-> > think that the DATA/STATUS stages completed successfully, even though
-> > nothing actually went out on the bus.
+> Yes, I feel there is no other way and with so many HW bugs, I think it
+> makes sense to make it a real irqchip driver.
+>
+It doesn't because its not an irqchip. 
+ 
+> Further since not everything goes through the crossbar and some are
+> direct mapped like your diagram, the correct fix is probably making it
+> an irqchip and doing the interrupt controller parenting correctly in
+> DT.
 > 
-> That doesn't handle the problem I described above.  When the dwc3
-> driver gets the late delayed status response, it will think it is a
-> response to the new SETUP packet, and so it will carry out a bogus
-> transfer.  It won't know that the status request was meant to be a
-> response to a defunct control transfer.
-
-I think you misunderstood me. What I meant was, once the DWC3
-controller sees the next SETUP packet, it will still accept the
-commands from the dwc3 driver to start the DATA and STATUS phases
-for the previous Control transfer, and will send back (fake) completion
-events for those commands to the driver. But it won't actually send
-anything on the wire.
-
-So it should be impossible for the dwc3 driver to carry out a bogus
-transfer. This is a feature of the DWC3 controller intended to
-simplify what the software needs to handle, and to automatically
-take care of the corner cases involved here.
-
-> > For other controllers that can't do this, maybe it should be handled
-> > in the UDC driver rather than in the composite gadget?
+> That would take care of A), because users of such direct mapped
+> interrupts will go through the GIC interrupt controller directly.
 > 
-> The only place this can be handled properly is in the gadget driver:
-> composite.c for those gadgets using it, otherwise in the higher level
-> driver (if there are any remaining gadgets that don't use the composite
-> framework).
+> It will also take care of B), because if writing to cross bar has no
+> effect for a particular IRQ, or if those IRQs are hard-wired to
+> something, as you said, then that something should go through the GIC
+> directly.
+> 
+> I can try to whip up something like this if it makes sense, let me know...
+> 
+I have been ignoring this series considering they were just fixes
+but you comments are like re-inventing wheel. Please read all
+the old threads and comments from Thomas and me on why we took
+approach and why it is not an irqchip. There is no need to complicate
+it further.
 
-Why can't the UDC drivers handle this? AFAIK they all keep track of
-which phase of a Control transfer they are in. If they see another
-SETUP packet arrive, they could "fake" the DATA/STATUS stages of the
-previous transfer, before passing on the next SETUP packet to the
-gadget driver. Similar to what the DWC3 controller does in hardware.
 
-Although, I guess it would be simpler to do it once in composite.c,
-instead of in each individual UDC driver. But there would have to be
-a quirk or something, to disable the code if the dwc3 driver is in
-use. And that wouldn't fix the problem for gadgets that don't use
-composite.c.
+Regards,
+Santosh
 
--- 
-Paul
