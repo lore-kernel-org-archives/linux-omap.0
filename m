@@ -1,7 +1,7 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH 3/5] usb: dwc3: dwc3-omap: Add dwc3_omap_extcon_register function
-Date: Thu, 8 May 2014 15:03:05 +0530
-Message-ID: <1399541587-14067-4-git-send-email-george.cherian@ti.com>
+Subject: [PATCH 5/5] usb: dwc3: dwc3-omap: Disable/Enable core interrupts in Suspend/Resume
+Date: Thu, 8 May 2014 15:03:07 +0530
+Message-ID: <1399541587-14067-6-git-send-email-george.cherian@ti.com>
 References: <1399541587-14067-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,103 +12,64 @@ To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.ker
 Cc: balbi@ti.com, gregkh@linuxfoundation.org, rogerq@ti.com, kishon@ti.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Move the extcon related code to its own function.
-Improve code readability, decrease the dwc3_probe() size.
+Enabling the core interrupts in complete is too late for XHCI, and stops
+xhci from proper operation. So remove prepare and complete and disable/enable
+interrupts in suspend/resume
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 65 ++++++++++++++++++++++++++------------------
- 1 file changed, 39 insertions(+), 26 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c | 20 ++------------------
+ 1 file changed, 2 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index b739a24..0b9b1d8 100644
+index 82b20d8f..0916c4b 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -450,6 +450,42 @@ static void dwc3_omap_set_utmi_mode(struct dwc3_omap *omap)
- 	dwc3_omap_write_utmi_status(omap, reg);
+@@ -622,27 +622,12 @@ static const struct of_device_id of_dwc3_match[] = {
+ MODULE_DEVICE_TABLE(of, of_dwc3_match);
+ 
+ #ifdef CONFIG_PM_SLEEP
+-static int dwc3_omap_prepare(struct device *dev)
+-{
+-	struct dwc3_omap	*omap = dev_get_drvdata(dev);
+-
+-	dwc3_omap_disable_irqs(omap);
+-
+-	return 0;
+-}
+-
+-static void dwc3_omap_complete(struct device *dev)
+-{
+-	struct dwc3_omap	*omap = dev_get_drvdata(dev);
+-
+-	dwc3_omap_enable_irqs(omap);
+-}
+-
+ static int dwc3_omap_suspend(struct device *dev)
+ {
+ 	struct dwc3_omap	*omap = dev_get_drvdata(dev);
+ 
+ 	omap->utmi_otg_status = dwc3_omap_read_utmi_status(omap);
++	dwc3_omap_disable_irqs(omap);
+ 
+ 	return 0;
+ }
+@@ -652,6 +637,7 @@ static int dwc3_omap_resume(struct device *dev)
+ 	struct dwc3_omap	*omap = dev_get_drvdata(dev);
+ 
+ 	dwc3_omap_write_utmi_status(omap, omap->utmi_otg_status);
++	dwc3_omap_enable_irqs(omap);
+ 
+ 	pm_runtime_disable(dev);
+ 	pm_runtime_set_active(dev);
+@@ -661,8 +647,6 @@ static int dwc3_omap_resume(struct device *dev)
  }
  
-+static int dwc3_omap_extcon_register(struct dwc3_omap *omap)
-+{
-+	u32			ret;
-+	struct device_node	*node = omap->dev->of_node;
-+	struct extcon_dev	*edev;
-+
-+	if (of_property_read_bool(node, "extcon")) {
-+		edev = extcon_get_edev_by_phandle(omap->dev, 0);
-+		if (IS_ERR(edev)) {
-+			dev_vdbg(omap->dev, "couldn't get extcon device\n");
-+			return -EPROBE_DEFER;
-+		}
-+
-+		omap->vbus_nb.notifier_call = dwc3_omap_vbus_notifier;
-+		ret = extcon_register_interest(&omap->extcon_vbus_dev,
-+					       edev->name, "USB",
-+					       &omap->vbus_nb);
-+		if (ret < 0)
-+			dev_vdbg(omap->dev, "failed to register notifier for USB\n");
-+
-+		omap->id_nb.notifier_call = dwc3_omap_id_notifier;
-+		ret = extcon_register_interest(&omap->extcon_id_dev,
-+					       edev->name, "USB-HOST",
-+					       &omap->id_nb);
-+		if (ret < 0)
-+			dev_vdbg(omap->dev, "failed to register notifier for USB-HOST\n");
-+
-+		if (extcon_get_cable_state(edev, "USB") == true)
-+			dwc3_omap_set_mailbox(omap, OMAP_DWC3_VBUS_VALID);
-+		if (extcon_get_cable_state(edev, "USB-HOST") == true)
-+			dwc3_omap_set_mailbox(omap, OMAP_DWC3_ID_GROUND);
-+	}
-+
-+	return 0;
-+}
-+
- static int dwc3_omap_probe(struct platform_device *pdev)
- {
- 	struct device_node	*node = pdev->dev.of_node;
-@@ -457,7 +493,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 	struct dwc3_omap	*omap;
- 	struct resource		*res;
- 	struct device		*dev = &pdev->dev;
--	struct extcon_dev	*edev;
- 	struct regulator	*vbus_reg = NULL;
+ static const struct dev_pm_ops dwc3_omap_dev_pm_ops = {
+-	.prepare	= dwc3_omap_prepare,
+-	.complete	= dwc3_omap_complete,
  
- 	int			ret = -ENOMEM;
-@@ -529,31 +564,9 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 
- 	dwc3_omap_enable_irqs(omap);
- 
--	if (of_property_read_bool(node, "extcon")) {
--		edev = extcon_get_edev_by_phandle(dev, 0);
--		if (IS_ERR(edev)) {
--			dev_vdbg(dev, "couldn't get extcon device\n");
--			ret = -EPROBE_DEFER;
--			goto err2;
--		}
--
--		omap->vbus_nb.notifier_call = dwc3_omap_vbus_notifier;
--		ret = extcon_register_interest(&omap->extcon_vbus_dev,
--			edev->name, "USB", &omap->vbus_nb);
--		if (ret < 0)
--			dev_vdbg(dev, "failed to register notifier for USB\n");
--		omap->id_nb.notifier_call = dwc3_omap_id_notifier;
--		ret = extcon_register_interest(&omap->extcon_id_dev, edev->name,
--					 "USB-HOST", &omap->id_nb);
--		if (ret < 0)
--			dev_vdbg(dev,
--				"failed to register notifier for USB-HOST\n");
--
--		if (extcon_get_cable_state(edev, "USB") == true)
--			dwc3_omap_set_mailbox(omap, OMAP_DWC3_VBUS_VALID);
--		if (extcon_get_cable_state(edev, "USB-HOST") == true)
--			dwc3_omap_set_mailbox(omap, OMAP_DWC3_ID_GROUND);
--	}
-+	ret = dwc3_omap_extcon_register(omap);
-+	if (ret < 0)
-+		goto err2;
- 
- 	ret = of_platform_populate(node, NULL, NULL, dev);
- 	if (ret) {
+ 	SET_SYSTEM_SLEEP_PM_OPS(dwc3_omap_suspend, dwc3_omap_resume)
+ };
 -- 
 1.8.3.1
