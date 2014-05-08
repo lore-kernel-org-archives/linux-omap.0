@@ -1,44 +1,88 @@
-From: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Subject: Re: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
-Date: Thu, 8 May 2014 23:01:33 -0400
-Message-ID: <20140509030133.GK19925@intel.com>
-References: <20140508160046.GJ19925@intel.com>
- <Pine.LNX.4.44L0.1405081019230.1087-100000@iolanthe.rowland.org>
-Reply-To: jin.can.zhuang@intel.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL #1/2] bus: omap_l3_noc: driver fixes and DRA7/AM437x
+ support
+Date: Thu, 8 May 2014 08:03:58 -0700
+Message-ID: <20140508150357.GB26833@atomide.com>
+References: <1397492726-17203-1-git-send-email-nm@ti.com>
+ <1398698101-25513-1-git-send-email-nm@ti.com>
+ <20140505200322.GA9863@kahuna>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1405081019230.1087-100000@iolanthe.rowland.org>
+In-Reply-To: <20140505200322.GA9863@kahuna>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, liping.zhou@intel.com, david.a.cohen@linux.intel.com
+To: Nishanth Menon <nm@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 08, 2014 at 10:25:46AM -0400, Alan Stern wrote:
-> On Thu, 8 May 2014, Zhuang Jin Can wrote:
+* Nishanth Menon <nm@ti.com> [140505 13:03]:
+> Hi Tony,
 > 
-> > > When the host already timed out the control transfer and started a new 
-> > > one.  Here's what I'm talking about:
-> > > 
-> > > 	Host sends a Set-Configuration request.
-> > > 
-> > > 	The UDC driver calls the gadget driver's setup function.
-> > > 
-> > > 	The setup function returns DELAYED_STATUS.
-> > > 
-> > > 	After a few seconds, the host gets tired of waiting and
-> > > 	sends a Get-Descriptor request
-> > My understanding is dwc3 will return NYET to host for this
-> > Get-Descriptor request transaction, as dwc3 is still in STATUS phase,
-> > there's no buffer to receive anything in ep0-out.
+>    Please pull the following driver fixes based on V3 of l3noc fixes and
+>    support for DRA7 and AM437x for upcoming 3.16 window.
+>    http://marc.info/?l=linux-omap&m=139869922030493&w=2
 > 
-> dwc3 _cannot_ return NYET to a SETUP packet.  The USB protocol does not 
-> allow it.  A device must always respond to SETUP with ACK.
-It true that device can not return NYET to a SETUP packet.
-A device must always respond to SETUP with ACK _if_ the SETUP packet is
-correctly received. Because there's no buffer prepared in ep0 for dwc3
-to receive the SETUP packet, I guess there will be no handshake
-returned to host. I can confirm this by doing an experiment tomorrow:)
+>    This is part 1 of the pull request containing purely the driver
+>    updates.
+> 
+> The following changes since commit 455c6fdbd219161bd09b1165f11699d6d73de11c:
+> 
+>   Linux 3.14 (2014-03-30 20:40:15 -0700)
+> 
+> are available in the git repository at:
+> 
+>   https://github.com/nmenon/linux-2.6-playground.git pull/l3noc/driver-fixes
+> 
+> for you to fetch changes up to 27b7d5f3cc49f2e5cd6c005d73696058b7140c5c:
+> 
+>   bus: omap_l3_noc: Add AM4372 interconnect error data (2014-05-05 14:34:37 -0500)
 
-Jincan
+Thanks pulling this into omap-for-v3.16/l3-noc.
+
+Tony
+ 
+> ----------------------------------------------------------------
+> Afzal Mohammed (2):
+>       bus: omap_l3_noc: ignore masked out unclearable targets
+>       bus: omap_l3_noc: Add AM4372 interconnect error data
+> 
+> Nishanth Menon (14):
+>       bus: omap_l3_noc: Fix copyright information
+>       bus: omap_l3_noc: remove iclk from omap_l3 struct
+>       bus: omap_l3_noc: populate l3->dev and use it
+>       bus: omap_l3_noc: switch over to relaxed variants of readl/writel
+>       bus: omap_l3_noc: un-obfuscate l3_targ address computation
+>       bus: omap_l3_noc: move L3 master data structure out
+>       bus: omap_l3_noc: convert target information into a structure
+>       bus: omap_l3_noc: convert flagmux information into a structure
+>       bus: omap_l3_noc: fix masterid detection
+>       bus: omap_l3_noc: make error reporting and handling common
+>       bus: omap_l3_noc: improve readability by using helper for slave event parsing
+>       bus: omap_l3_noc: add information about the type of operation
+>       bus: omap_l3_noc: Add information about the context of operation
+>       bus: omap_l3_noc: introduce concept of submodule
+> 
+> Peter Ujfalusi (5):
+>       drivers: bus: omap_l3: Convert to use devm_kzalloc
+>       drivers: bus: omap_l3: Convert to use devm_ioremap_resource()
+>       drivers: bus: omap_l3: Convert to use devm_request_irq()
+>       drivers: bus: omap_l3: Remove the platform driver's remove function
+>       drivers: bus: omap_l3: Change pr_crit() to dev_err() when IRQ request fails
+> 
+> Rajendra Nayak (2):
+>       bus: omap_l3_noc: Add support for discountinous flag mux input numbers
+>       bus: omap_l3_noc: Add DRA7 interconnect error data
+> 
+> Sricharan R (2):
+>       bus: omap_l3_noc: rename functions and data to omap_l3
+>       bus: omap_l3_noc: use of_match_data to pick up SoC information
+> 
+>  .../devicetree/bindings/arm/omap/l3-noc.txt        |    2 +
+>  drivers/bus/omap_l3_noc.c                          |  406 ++++++++-------
+>  drivers/bus/omap_l3_noc.h                          |  545 +++++++++++++++-----
+>  3 files changed, 653 insertions(+), 300 deletions(-)
+> -- 
+> Regards,
+> Nishanth Menon
+> 
