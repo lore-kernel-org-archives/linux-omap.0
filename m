@@ -1,47 +1,28 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
-Date: Thu, 8 May 2014 10:25:46 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1405081019230.1087-100000@iolanthe.rowland.org>
-References: <20140508160046.GJ19925@intel.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH] ARM: dts: AM33XX: fix ethernet and mdio default state
+Date: Thu, 8 May 2014 20:08:30 +0530
+Message-ID: <536B96E6.9090000@ti.com>
+References: <1399539456-555-1-git-send-email-jhovold@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140508160046.GJ19925@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Cc: Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, liping.zhou@intel.com, david.a.cohen@linux.intel.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35728 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753442AbaEHOjA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 May 2014 10:39:00 -0400
+In-Reply-To: <1399539456-555-1-git-send-email-jhovold@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Johan Hovold <jhovold@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Thu, 8 May 2014, Zhuang Jin Can wrote:
+On Thursday 08 May 2014 02:27 PM, Johan Hovold wrote:
+> Make sure ethernet and mdio nodes are disabled by default and enable
+> them explicitly only on boards that actually use them.
+>
+> Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Acked-by: Mugunthan V N <mugunthanvnm@ti.com>
 
-> > When the host already timed out the control transfer and started a new 
-> > one.  Here's what I'm talking about:
-> > 
-> > 	Host sends a Set-Configuration request.
-> > 
-> > 	The UDC driver calls the gadget driver's setup function.
-> > 
-> > 	The setup function returns DELAYED_STATUS.
-> > 
-> > 	After a few seconds, the host gets tired of waiting and
-> > 	sends a Get-Descriptor request
-> My understanding is dwc3 will return NYET to host for this
-> Get-Descriptor request transaction, as dwc3 is still in STATUS phase,
-> there's no buffer to receive anything in ep0-out.
-
-dwc3 _cannot_ return NYET to a SETUP packet.  The USB protocol does not 
-allow it.  A device must always respond to SETUP with ACK.
-
-On the other hand, dwc3 _can_ return NYET to the token packet that
-follows the SETUP transaction.  That's what it should do.  But at this
-point it should be in the DATA stage, not the STATUS stage.  Receiving
-a SETUP packet should abort a STATUS stage.
-
->  And your below
-> comments is not applicapable to dwc3.
-
-True, they apply to composite.c rather than dwc3.  However, they
-address an issue very similar to your patch, so I raised this topic in
-your email thread.
-
-Alan Stern
+Regards
+Mugunthan V N
