@@ -1,57 +1,65 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v2 3/5] usb: musb: core: Convert the musb_platform_reset
- to have a return value.
-Date: Thu, 08 May 2014 11:47:47 +0200
-Message-ID: <536B52C3.3010109@gmail.com>
-References: <1399541743-14158-1-git-send-email-george.cherian@ti.com> <1399541743-14158-4-git-send-email-george.cherian@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 1/2] ARM: omap5: hwmod_data: Update McPDM hwmod's flags
+Date: Thu, 8 May 2014 13:08:16 +0300
+Message-ID: <536B5790.1050800@ti.com>
+References: <1398858208-1346-1-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.02.1405080018490.23579@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399541743-14158-4-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: balbi@ti.com, gregkh@linuxfoundation.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45219 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753256AbaEHKIp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 May 2014 06:08:45 -0400
+In-Reply-To: <alpine.DEB.2.02.1405080018490.23579@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: tony@atomide.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com
 
-Hi Geroge,
+Hi Paul,
 
-On 05/08/2014 11:35 AM, George Cherian wrote:
-> -static inline void musb_platform_reset(struct musb *musb)
-> +static inline int  musb_platform_reset(struct musb *musb)
->  {
-> -	if (musb->ops->reset)
-> -		musb->ops->reset(musb);
-> +	if (!musb->ops->reset)
-> +		return -EINVAL;
-> +
-> +	return musb->ops->reset(musb);
->  }
->  
->  static inline int musb_platform_get_vbus_status(struct musb *musb)
-> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-> index 74c4193..8438200 100644
-> --- a/drivers/usb/musb/musb_dsps.c
-> +++ b/drivers/usb/musb/musb_dsps.c
-> @@ -536,7 +536,7 @@ static int dsps_musb_set_mode(struct musb *musb, u8 mode)
->  	return 0;
->  }
->  
-> -static void dsps_musb_reset(struct musb *musb)
-> +static int dsps_musb_reset(struct musb *musb)
->  {
->  	struct device *dev = musb->controller;
->  	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
-> @@ -548,6 +548,7 @@ static void dsps_musb_reset(struct musb *musb)
->  	usleep_range(100, 200);
->  	usb_phy_init(musb->xceiv);
->  
-> +	return 1;
+On 05/08/2014 03:20 AM, Paul Walmsley wrote:
+> Hi P=E9ter,
+>=20
+> On Wed, 30 Apr 2014, Peter Ujfalusi wrote:
+>=20
+>> Add HWMOD_SWSUP_SIDLE to flags.
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>=20
+> This patch could use a better changelog.  It would be ideal to unders=
+tand=20
+> _why_ HWMOD_SWSUP_SIDLE is needed.  Is there a known hardware bug?  O=
+r is=20
+> this simply based on practical observation, e.g., something bad happe=
+ns if=20
+> the McPDM is not software-idled?
 
-Could we follow the general kernel rule here and return 0 for success,
-and < 0 on failure?
+The same issue exists on OMAP5 as on OMAP4:
 
+commit 12d82e4b0aa6c71f38b668a372f9a13f243207da
+Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date:   Fri Jan 18 16:48:16 2013 -0700
 
+    ARM: OMAP4: hwmod_data: Correct IDLEMODE for McPDM
 
-Thanks,
-Daniel
+    McPDM need to be configured to NO_IDLE mode when it is in used othe=
+rwise
+    vital clocks will be gated which results 'slow motion' audio playba=
+ck.
+
+    Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+    [paul@pwsan.com: copy patch description into hwmod data comments]
+    Signed-off-by: Paul Walmsley <paul@pwsan.com>
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
