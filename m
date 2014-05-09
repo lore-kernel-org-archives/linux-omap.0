@@ -1,35 +1,45 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v3 2/4] ARM: dts: am437x-gp-evm: add support for
- parallel NAND flash
-Date: Fri, 9 May 2014 04:09:26 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACBA91@DBDE04.ent.ti.com>
-References: <1398152020-19391-1-git-send-email-pekon@ti.com>
- <1398152020-19391-3-git-send-email-pekon@ti.com>
- <20140506153956.GE18474@atomide.com>
- <20980858CB6D3A4BAE95CA194937D5E73EACB432@DBDE04.ent.ti.com>
- <20140507211949.GA19102@atomide.com> <20140508204546.GD2198@atomide.com>
+From: Joel Fernandes <agnel.joel@gmail.com>
+Subject: Re: [PATCH 3/5] irqchip: crossbar: Skip some irqs from getting mapped
+ to crossbar
+Date: Thu, 8 May 2014 23:22:50 -0500
+Message-ID: <CAD=GYpbRn=LEthpAUX9LNBGTB4iDs7TGiSSgLJuuS0tSatRRJQ@mail.gmail.com>
+References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
+	<1399299527-10955-4-git-send-email-r.sricharan@ti.com>
+	<536BD9D8.4080905@ti.com>
+	<20140508203659.GA5620@kahuna>
+	<CAD=GYpbQQxQgKd3oZcAuWrxoD4VrkKzpybd11qwxs405HSUVGw@mail.gmail.com>
+	<536C0DC4.7090309@ti.com>
+	<CAD=GYpav4mHaqo4jfb0ePchf3cvuvSnFKj_+osbrt_8-tYRRrQ@mail.gmail.com>
+	<536C2071.8040502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59920 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751240AbaEIEJe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 00:09:34 -0400
-In-Reply-To: <20140508204546.GD2198@atomide.com>
-Content-Language: en-US
+Received: from mail-oa0-f48.google.com ([209.85.219.48]:45484 "EHLO
+	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750712AbaEIEWv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 00:22:51 -0400
+Received: by mail-oa0-f48.google.com with SMTP id i4so4198960oah.7
+        for <linux-omap@vger.kernel.org>; Thu, 08 May 2014 21:22:51 -0700 (PDT)
+In-Reply-To: <536C2071.8040502@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "bcousson@baylibre.com" <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Joel Fernandes <joelf@ti.com>, "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Sricharan R <r.sricharan@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-SGkgVG9ueSwNCg0KPg0KPkFuZCBsb29rcyBsaWtlIHdlIGhhdmUgYSBidWlsZCB3YXJuaW5nIGlu
-IHRoZSAtcmMgY3ljbGUgd2l0aA0KPm9tYXAycGx1c19kZWZjb25maWc6DQo+DQo+ZHJpdmVycy9t
-dGQvbmFuZC9vbWFwMi5jOjEyNTA6MTI6IHdhcm5pbmc6IOKAmGVyYXNlZF9zZWN0b3JfYml0Zmxp
-cHPigJkgZGVmaW5lZCBidXQgbm90IHVzZWQgWy0NCj5XdW51c2VkLWZ1bmN0aW9uXQ0KPg0KPkNh
-biB5b3UgcGxlYXNlIGZpeCB0aGF0IGlmIG5vdCBhbHJlYWR5IGZpeGVkPw0KPg0KDQpZZXMsIHRo
-aXMgaXMgYWxyZWFkeSBmaXhlZCBhbmQgaXMgaW4gTVREIE1haW50YWluZXIncyB0cmVlIFsxXS4g
-QXMgdGhpcyB3YXJuaW5nDQp3YXMgaW50cm9kdWNlZCBpbiBNVEQgcGF0Y2hlcywgc28gZml4IGlz
-IGFsc28gY29taW5nIHZpYSB0aGF0IHN1Yi1zeXN0ZW0uDQoNCmh0dHA6Ly9saXN0cy5pbmZyYWRl
-YWQub3JnL3BpcGVybWFpbC9saW51eC1tdGQvMjAxNC1BcHJpbC8wNTMzMzAuaHRtbA0KDQoNCndp
-dGggcmVnYXJkcywgcGVrb24NCg==
+On Thu, May 8, 2014 at 7:25 PM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+[..]
+> The concern was really not where the code resides but what the actual
+> hardware is and how can it fit into Linux. The whole reason I was
+> actually against irqhcip from beginning of crossbar series was the
+> hardware is not irqchip rather just a router. Thomas the formally
+> NAKed that approach on thread [1]. If there are bugs, doesn't mean
+> we can make fit the hardware into some subsystem where it can't be
+> described.
+>
+> Regards,
+> Santosh
+> [1] https://lkml.org/lkml/2013/9/13/413
+>
+
+Ok, thanks for pointing to the post.
