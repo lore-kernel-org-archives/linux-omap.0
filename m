@@ -1,59 +1,69 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/1] drivers/video/fbdev/omap2/dss/dss.c: add __exit to
- dss_uninit_ports
-Date: Fri, 9 May 2014 12:57:16 +0300
-Message-ID: <536CA67C.2090109@ti.com>
-References: <20140423180958.8b3cc405c00fbbf7c6c5a947@skynet.be>
+Subject: Re: [RFC 1/6] omapdss: remove check for simpler port/endpoint binding
+Date: Fri, 9 May 2014 12:59:53 +0300
+Message-ID: <536CA719.1080707@ti.com>
+References: <1399540517-17883-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="AeMGSGLlMmj0gi91eLW9XgjTdD1CrS5G5"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140423180958.8b3cc405c00fbbf7c6c5a947@skynet.be>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Fabian Frederick <fabf@skynet.be>, linux-kernel <linux-kernel@vger.kernel.org>
-Cc: akpm <akpm@linux-foundation.org>, linux-omap@vger.kernel.org
+	boundary="68AKOKdso9DUxdsPM0RS1pDkpldSMaERp"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50089 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753422AbaEIJ74 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2014 05:59:56 -0400
+In-Reply-To: <1399540517-17883-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
---AeMGSGLlMmj0gi91eLW9XgjTdD1CrS5G5
+--68AKOKdso9DUxdsPM0RS1pDkpldSMaERp
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 23/04/14 19:09, Fabian Frederick wrote:
-> dss_uninit_ports is only called by __exit omap_dsshw_remove
+On 08/05/14 12:15, Archit Taneja wrote:
+> The support for simpler port/endpoint binding was removed in the merged=
+ version
+> of omapdss DT. But dss_init_ports still tries to get to an endpoint eve=
+n if no
+> port exists. Remove this as this doesn't work.
 >=20
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> Signed-off-by: Archit Taneja <archit@ti.com>
 > ---
->  drivers/video/fbdev/omap2/dss/dss.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/video/fbdev/omap2/dss/dss.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
 >=20
 > diff --git a/drivers/video/fbdev/omap2/dss/dss.c b/drivers/video/fbdev/=
 omap2/dss/dss.c
-> index d55266c..a1c1cc2 100644
+> index d55266c..31ef262 100644
 > --- a/drivers/video/fbdev/omap2/dss/dss.c
 > +++ b/drivers/video/fbdev/omap2/dss/dss.c
-> @@ -813,7 +813,7 @@ static int __init dss_init_ports(struct platform_de=
-vice *pdev)
->  	return 0;
->  }
+> @@ -784,12 +784,8 @@ static int __init dss_init_ports(struct platform_d=
+evice *pdev)
+>  		return 0;
 > =20
-> -static void dss_uninit_ports(void)
-> +static void __exit dss_uninit_ports(void)
->  {
->  #ifdef CONFIG_OMAP2_DSS_DPI
->  	dpi_uninit_port();
+>  	port =3D omapdss_of_get_next_port(parent, NULL);
+> -	if (!port) {
+> -#ifdef CONFIG_OMAP2_DSS_DPI
+> -		dpi_init_port(pdev, parent);
+> -#endif
+> +	if (!port)
+>  		return 0;
+> -	}
+> =20
+>  	do {
+>  		u32 reg;
 >=20
 
-Thanks, queued for 3.16.
+I'll try to find time to review the rest, but I'll queue this one
+already for 3.16.
 
  Tomi
 
 
 
---AeMGSGLlMmj0gi91eLW9XgjTdD1CrS5G5
+--68AKOKdso9DUxdsPM0RS1pDkpldSMaERp
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -61,19 +71,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTbKZ8AAoJEPo9qoy8lh71TNgQAKFCeaXACuyvqFUnCn55hFBT
-2G0TQREpyUdjgWIYvBKUzEfBL7hWYnXBBh9wK8ngB2QtU/5KLR5YZTmPy/rXEj3F
-v5WkD7Kuk2fB1f58hiXfj0Y6+h4k2qj5BMvHktE4K2DQVFG1jDc6nuJ9P3Zbtzd2
-NIi0npQqQbH2zdox84amsOELejwPagjGtJ9HR7WX+qqT6coBbo7UFxLp67+GLmDo
-poJOWcsPY3Yf4NR70UFH4Q2A2YJPRKDwibsvZhrneyS1XWY2V5Yih+/APokWo0U1
-clpz5wTsuO7Gr+MXAc3hO/BRVoniERkYcW21RXlzHmd9asanzDjNNjf932PSg/W/
-sVtbXun1rrjBCczirbQDAHCInAP6V9VycuI94+bYsJdYLX9yZNdTXNQI6obyQPSr
-FmesSpCSgOzUhXOGzoR+zwZHAyV948f78T+sFwn6Q6801L5fxtaoPKdbhJyKfmHI
-D0F/IGqUFaS/fLgj7Gnz17aYjRNYIANWCyJcZikzmmpwoCBchBW6GfbTpIRj69Wo
-9ulBW8GsB9f/U5UcvcB9UY/A4ILxsDaCTt40cpff5Sz0aupUKBy1x/pdoHwxwrJY
-CgdVVEwh5sjZkypkUnOK8+VFcpBUTSk4wTOZ5VW6D7kxUSxaCm3gBZgnTLDl0hnT
-etz/puv7g9QdFTx743Xp
-=SNtz
+iQIcBAEBAgAGBQJTbKcZAAoJEPo9qoy8lh71xioP/RH56IT2oH6sqCqR95iPMq0e
+Ko7eaLSMxgLXSFtV1rHCc0hNIaelnTOtZvJX54jWNsKgjWOTgDhot8Nefx/hs4wN
+Wp79jBqC252+bvm8uk3bTunBII0aPMuIhEPH1psTVlVb5Ins8fb258YQKaOj0+nl
+HwgPuNYzlBXXfPNy9q7glFxsNAGUak2OIgqKit2gjnQJ5N55/Khfu2QMQxSv2+wQ
+VXxE6cyGGCuisUqDmBHcl2yMD3ps3PABxQVGv7X4Kn/qjYfYFgU7TPX2LHo07SE2
+DWEKKrXj9vQ1iCTKu5RhLTZ/bUEpcpH1/iUPPQnadAF0zvg053eTWzA8DM0gjALd
+0cavAgGRK059AKhOoLoiZBbE/16l9Oj8YBmCiDeXJkHFAv5jfKkAHEUFX7y5dD2P
+IzdzwD09RvKSJeKBVYgKsGKo5fd9vJ64FXEIV7gop9jHF+/e3fq431qvTVL+YdHS
+uB5e3S7YzvqkFPUkrqdVHJyuAEyl6zP8/D0QBufMIKRU6rCFE8EBoEBzFGYKXSPi
+GSxvuEuMxG5jpSOc6mRCdGtH/gmZ7RedTuOp/acI0J0TZdB138X7H5SfLfHu106d
+OH0X8+BxYmgyqsrjGst+LVU1EEN6PuiDSIpG8/uo6Vr25ehXBdTTPogMXniuz2zr
+2ml+xoxH6qr888LKk78D
+=KBVO
 -----END PGP SIGNATURE-----
 
---AeMGSGLlMmj0gi91eLW9XgjTdD1CrS5G5--
+--68AKOKdso9DUxdsPM0RS1pDkpldSMaERp--
