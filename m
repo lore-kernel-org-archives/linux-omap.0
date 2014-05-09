@@ -1,55 +1,44 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.15-rc4
-Date: Thu, 8 May 2014 15:00:41 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1405081456560.23579@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1405080417150.23579@utopia.booyaka.com> <CAGhQ9Vx_dJTn20S1OngAks1KvZkH=MUWEh-4bv5ciM7PhofJ8Q@mail.gmail.com>
+From: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Subject: Re: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
+Date: Thu, 8 May 2014 23:01:33 -0400
+Message-ID: <20140509030133.GK19925@intel.com>
+References: <20140508160046.GJ19925@intel.com>
+ <Pine.LNX.4.44L0.1405081019230.1087-100000@iolanthe.rowland.org>
+Reply-To: jin.can.zhuang@intel.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42711 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754924AbaEHPAm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 11:00:42 -0400
-In-Reply-To: <CAGhQ9Vx_dJTn20S1OngAks1KvZkH=MUWEh-4bv5ciM7PhofJ8Q@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1405081019230.1087-100000@iolanthe.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, liping.zhou@intel.com, david.a.cohen@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Joachim Eastwood <manabian@gmail.com>
-Cc: linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, kernel-build-reports@lists.linaro.org
 
-Hello Joachim,
-
-On Thu, 8 May 2014, Joachim Eastwood wrote:
-
-> On 8 May 2014 06:23, Paul Walmsley <paul@pwsan.com> wrote:
-> >
-> > Here are some basic OMAP test results for Linux v3.15-rc4.
-> > Logs and other details at:
-> >
-> >     http://www.pwsan.com/omap/testlogs/test_v3.15-rc4/20140505112251/
-> >
-> >
-> > Test summary
-> > ------------
-> <snip>
-> >
-> > The eMMC on the 4460 VAR-SOM-OM has failed; I guess it's run out of
-> > reserve blocks to reallocate.  Now it's time to find yet another way
-> > to boot it.
+On Thu, May 08, 2014 at 10:25:46AM -0400, Alan Stern wrote:
+> On Thu, 8 May 2014, Zhuang Jin Can wrote:
 > 
-> I have some patches for u-boot which makes it possible to use the
-> on-board LAN7500 USB Ethernet controller for tftp.
+> > > When the host already timed out the control transfer and started a new 
+> > > one.  Here's what I'm talking about:
+> > > 
+> > > 	Host sends a Set-Configuration request.
+> > > 
+> > > 	The UDC driver calls the gadget driver's setup function.
+> > > 
+> > > 	The setup function returns DELAYED_STATUS.
+> > > 
+> > > 	After a few seconds, the host gets tired of waiting and
+> > > 	sends a Get-Descriptor request
+> > My understanding is dwc3 will return NYET to host for this
+> > Get-Descriptor request transaction, as dwc3 is still in STATUS phase,
+> > there's no buffer to receive anything in ep0-out.
+> 
+> dwc3 _cannot_ return NYET to a SETUP packet.  The USB protocol does not 
+> allow it.  A device must always respond to SETUP with ACK.
+It true that device can not return NYET to a SETUP packet.
+A device must always respond to SETUP with ACK _if_ the SETUP packet is
+correctly received. Because there's no buffer prepared in ep0 for dwc3
+to receive the SETUP packet, I guess there will be no handshake
+returned to host. I can confirm this by doing an experiment tomorrow:)
 
-That's great!
-
-> Since you have a VAR-SOM-OM44 module maybe you could test my dts patches for it?
-> I will post a new version of the patch set early next week. I can cc you.
-
-I'd like to load the rootfs off the external SD slot.  Looks like you 
-might be adding support for that with your recent DT patches?
-
-> Do you have the VAR-DVK-OM44 eval board?
-
-Yes.
-
-
-- Paul
+Jincan
