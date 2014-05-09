@@ -1,63 +1,58 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for
- configuring the iATU
-Date: Fri, 9 May 2014 17:20:09 +0530
-Message-ID: <536CC0F1.301@ti.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com> <4764413.ZAEU5S5p0p@wuerfel> <000201cf6a9c$9dd295e0$d977c1a0$%han@samsung.com> <6882241.amuhzvbd8n@wuerfel>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 00/11] ARM: OMAP: OMAP5 & AM43x DSS
+Date: Fri, 9 May 2014 14:56:08 +0300
+Message-ID: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6882241.amuhzvbd8n@wuerfel>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: 'Santosh Shilimkar' <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, 'Bjorn Helgaas' <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, 'Marek Vasut' <marex-ynQEQJNshbs@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53764 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751142AbaEIL5B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2014 07:57:01 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
 Hi,
 
-On Thursday 08 May 2014 02:48 PM, Arnd Bergmann wrote:
-> On Thursday 08 May 2014 18:05:11 Jingoo Han wrote:
->> On Tuesday, May 06, 2014 10:59 PM, Arnd Bergmann wrote:
->>> On Tuesday 06 May 2014 19:03:52 Kishon Vijay Abraham I wrote:
->>>> In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
->>>> address. So whenever the cpu issues a read/write request, the 4 most
->>>> significant bits are used by L3 to determine the target controller.
->>>> For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
->>>> the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
->>>> the outbound translation window the *base* should be programmed as 0x000_0000.
->>>> Whenever we try to write to say 0x2000_0000, it will be translated to whatever
->>>> we have programmed in the translation window with base as 0x000_0000.
->>>>
->>>> Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
->>>> Cc: Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>
->>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->>>> Acked-by: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
->>>> Acked-by: Mohit Kumar <mohit.kumar-qxv4g6HH51o@public.gmane.org>
->>>
->>> Sorry, but NAK.
->>>
->>> We have a standard 'dma-ranges' property to handle this, so use it.
->>>
->>> See the x-gene PCIe driver patches for an example. Please also talk
->>> to Santosh about it, as he is implementing generic support for
->>> parsing dma-ranges in platform devices at the moment.
->>
->> Hi Arnd,
->>
->> Do you mean the following patch?
->> http://www.spinics.net/lists/kernel/msg1737725.html
->>
-> 
-> That is the patch Santosh did for platform devices, which is related but not
-> what I meant here. For the PCI inbound window setup, please have a look
-> at https://lkml.org/lkml/2014/3/19/607
+Here are arch/arm/ patches to add display support for OMAP5 and AM43x.
 
-For some reason lkml is not showing any contents. Do you have a different link?
+I have these in my tree, in a branch I will send to Tony for merging. Most of
+these patches have already been around the lists, but I wanted to send them one
+more time to verify that all looks right and everybody is fine with them.
 
-Thanks
-Kishon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Tomi
+
+Archit Taneja (1):
+  ARM: OMAP2+: hwmod: OMAP5 DSS hwmod data
+
+Sathya Prakash M R (4):
+  ARM: AM43xx: hwmod: add DSS hwmod data
+  ARM: dts: am43xx: add ti,set-rate-parent for disp_clk
+  ARM: dts: am4372.dtsi: add DSS information
+  ARM: dts: am437x-gp-evm: add LCD data
+
+Tomi Valkeinen (6):
+  ARM: dts: am43x-epos-evm: add LCD data
+  ARM: dts: omap5-clocks.dtsi: add dss iclk
+  ARM: dts: omap5-clocks.dtsi: add ti,set-rate-parent to dss_dss_clk
+  ARM: dts: omap5.dtsi: add DSS nodes
+  ARM: dts: omap5-uevm.dts: add tca6424a
+  ARM: dts: omap5-uevm.dts: add display nodes
+
+ arch/arm/boot/dts/am4372.dtsi              |  30 +++
+ arch/arm/boot/dts/am437x-gp-evm.dts        |  97 ++++++++++
+ arch/arm/boot/dts/am43x-epos-evm.dts       | 101 ++++++++++
+ arch/arm/boot/dts/am43xx-clocks.dtsi       |   1 +
+ arch/arm/boot/dts/omap5-uevm.dts           |  89 +++++++++
+ arch/arm/boot/dts/omap5.dtsi               |  70 +++++++
+ arch/arm/boot/dts/omap54xx-clocks.dtsi     |   9 +
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 104 +++++++++++
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 283 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm43xx.h             |   1 +
+ 10 files changed, 785 insertions(+)
+
+-- 
+1.9.1
+
