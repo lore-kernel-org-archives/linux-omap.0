@@ -1,121 +1,112 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH v2] ARM: dts: am33xx: Move the cppi41dma node so it's
- probed early
-Date: Fri, 9 May 2014 11:52:59 +0530
-Message-ID: <536C7443.4000805@ti.com>
-References: <1398373881-23369-1-git-send-email-ezequiel@vanguardiasur.com.ar>	<CAGm1_kvHtSLNEfkJ24xZGGzsqAjHDTM1XztnX-QGs4iM5voMUw@mail.gmail.com>	<535F5BA5.6000903@ti.com> <CAAEAJfCG3c++WBgeipF6sCE1-9pHgU80t2Mpz0Y4koU5-uEwSA@mail.gmail.com>
+Subject: [RFC PATCH] ARM: dts: am33xx: Re-arrange the USB dt to reflect the h/w configuration
+Date: Fri, 9 May 2014 12:01:08 +0530
+Message-ID: <1399617068-19826-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36456 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751098AbaEIGXo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 02:23:44 -0400
-In-Reply-To: <CAAEAJfCG3c++WBgeipF6sCE1-9pHgU80t2Mpz0Y4koU5-uEwSA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, tony@atomide.com, bcousson@baylibre.com, ezequiel@vanguardiasur.com.ar, bigeasy@linutronix.de, yegorslists@googlemail.com, balbi@ti.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?B?RXplcXVpZWwgR2FyY8OtYQ==?= <ezequiel@vanguardiasur.com.ar>
-Cc: Yegor Yefremov <yegorslists@googlemail.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On 5/8/2014 10:30 PM, Ezequiel Garc=C3=ADa wrote:
-> Hi George,
->
-> On 29 April 2014 04:58, George Cherian <george.cherian@ti.com> wrote:
->> On 4/29/2014 11:49 AM, Yegor Yefremov wrote:
->>> On Thu, Apr 24, 2014 at 11:11 PM, Ezequiel Garcia
->>> <ezequiel@vanguardiasur.com.ar> wrote:
->>>> The DMA controller is needed for the USB controller to be correctl=
-y
->>>> registered. Therefore, if the DMA node is located at the end an
->>>> unecessary
->>>> probe deferral is produced systematically.
->>>>
->>>> This is easily fixed by moving the node at the beggining of the ch=
-ild
->>>> list,
->>>> so it's probed first.
->> This will give issues on module removal.
->> Since we use device_for_each_child in remove patch, it will try to r=
-emove
->> cppi dma controller, while the channel
->> is still in use by musb node.
->>
-> OK, this seems confusing: are you sure module removal works?
-No it does not .
->
-> Doing this simple test on v3.15-rcN:
->
-> $ modprobe musb_dsps
-> $ modprobe musb_am335x
-> $ modprobe musb_am335x -r
->
-> And the kernel blows up :-(
->
-> I've been debugging this and I think we simply cannot support removal
-> of the musb_am335x
-> module.
->
-> Had this ever worked before
-Nope. I feel the whole problem is because how its modeled in dt.
+Re arrange the USB dt for AM33xx to take it a bit closer
+to the hardware configuration.
 
-If you look at the TRM following are the memory maps for the USB module=
-s
-USB control Module 0x44e10_0620
+The USBSS is designed as follows
 
-USBSS             0x4740_0000
+USB control Module	0x44e10_0620
 
-USB0               0x4740_1000
-USB0_PHY      0x4740_1300
-USB0_CORE    0x4740_1400
+USBSS			0x4740_0000
 
-USB1               0x4740_1800
-USB1_PHY      0x4740_1b00
-USB1_CORE    0x4740_1c00
+USB0			0x4740_1000
+USB0_PHY		0x4740_1300
+USB0_CORE		0x4740_1400
 
-CPPI DMA Controller 0x4740_2000
-CPPI DMA Scheduler 0x4740_3000
-Queue Manager         0x4740_4000
+USB1			0x4740_1800
+USB1_PHY		0x4740_1b00
+USB1_CORE		0x4740_1c00
 
-Now in the curent DT we have  the follwoing
+CPPI DMA Controller	0x4740_2000
+CPPI DMA Scheduler	0x4740_3000
+Queue Manager		0x4740_4000
+
+So model the DT as follows
 USBSS {
-     usb_ctrl_mod: {
-         0x44e10_0620
-     }
-     usb0_phy:{
-     0x4740_1300
-     }
-     usb0: {
-     0x4740_1000
-     0x4740_1400
-     }
-     usb1_phy: {
-     0x4740_1b00
-     }
-     usb1:{
-     0x4740_1800
-     0x4740_1c00
-     }
-     cppi41dma: {
-     0x4740_2000
-     0x4740_3000
-     0x4740_4000
-     }
+    usb_ctrl_mod: {
+        0x44e10_0620
+    }
+    usb0: {
+    0x4740_1000
+    0x4740_1400
+    }
+    usb0_phy:{
+    0x4740_1300
+    }
+    usb1:{
+    0x4740_1800
+    0x4740_1c00
+    }
+    usb1_phy: {
+    0x4740_1b00
+    }
+    cppi41dma: {
+    0x4740_2000
+    0x4740_3000
+    0x4740_4000
+    }
 }
 
-Just by remodelling the dt the whole problem can be solved.
-I am still not convinced why we should not be doing it?
-Because neither ways its not the exact representation of the H/W.
+Signed-off-by: George Cherian <george.cherian@ti.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-I will send a patch as RFC for the same.
-
-
---=20
--George
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index cb6811e..d33a1e7 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -461,14 +461,6 @@
+ 				status = "disabled";
+ 			};
+ 
+-			usb0_phy: usb-phy@47401300 {
+-				compatible = "ti,am335x-usb-phy";
+-				reg = <0x47401300 0x100>;
+-				reg-names = "phy";
+-				status = "disabled";
+-				ti,ctrl_mod = <&usb_ctrl_mod>;
+-			};
+-
+ 			usb0: usb@47401000 {
+ 				compatible = "ti,musb-am33xx";
+ 				status = "disabled";
+@@ -509,9 +501,9 @@
+ 					"tx14", "tx15";
+ 			};
+ 
+-			usb1_phy: usb-phy@47401b00 {
++			usb0_phy: usb-phy@47401300 {
+ 				compatible = "ti,am335x-usb-phy";
+-				reg = <0x47401b00 0x100>;
++				reg = <0x47401300 0x100>;
+ 				reg-names = "phy";
+ 				status = "disabled";
+ 				ti,ctrl_mod = <&usb_ctrl_mod>;
+@@ -556,6 +548,14 @@
+ 					"tx14", "tx15";
+ 			};
+ 
++			usb1_phy: usb-phy@47401b00 {
++				compatible = "ti,am335x-usb-phy";
++				reg = <0x47401b00 0x100>;
++				reg-names = "phy";
++				status = "disabled";
++				ti,ctrl_mod = <&usb_ctrl_mod>;
++			};
++
+ 			cppi41dma: dma-controller@47402000 {
+ 				compatible = "ti,am3359-cppi41";
+ 				reg =  <0x47400000 0x1000
+-- 
+1.8.3.1
