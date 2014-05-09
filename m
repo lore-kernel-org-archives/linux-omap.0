@@ -1,85 +1,119 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 3/5] irqchip: crossbar: Skip some irqs from getting mapped
- to crossbar
-Date: Fri, 9 May 2014 07:54:55 -0500
-Message-ID: <536CD01F.2070506@ti.com>
-References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>	<1399299527-10955-4-git-send-email-r.sricharan@ti.com>	<536BD9D8.4080905@ti.com>	<20140508203659.GA5620@kahuna>	<CAD=GYpbQQxQgKd3oZcAuWrxoD4VrkKzpybd11qwxs405HSUVGw@mail.gmail.com>	<536C0DC4.7090309@ti.com>	<CAD=GYpav4mHaqo4jfb0ePchf3cvuvSnFKj_+osbrt_8-tYRRrQ@mail.gmail.com>	<536C2071.8040502@ti.com> <CAD=GYpbRn=LEthpAUX9LNBGTB4iDs7TGiSSgLJuuS0tSatRRJQ@mail.gmail.com>
+From: Joachim Eastwood <manabian@gmail.com>
+Subject: Re: [PATCH] ARM: dts: Correct offset in OMAP4_WKUP_IOPAD macro
+Date: Fri, 9 May 2014 14:57:47 +0200
+Message-ID: <CAGhQ9Vw+cR-cKQ-w3psZPOWOqwugntXq-9g5=4cZV-ijQZecTQ@mail.gmail.com>
+References: <1397924056-6462-1-git-send-email-manabian@gmail.com>
+	<CAGhQ9VwU_BjrD+c9uJn9FBwo6v_BOMUCKwiOW-7eqOu056a79A@mail.gmail.com>
+	<20140421153539.GB23945@atomide.com>
+	<CAGhQ9VyFQgcOw8y97R6HR1apXo-89JyktADxR6jb1EJipXqqjA@mail.gmail.com>
+	<CAGhQ9VxCA_VnO18zWgtWUExNE6YJd+krNEVLtyZTpyY6hRyHUg@mail.gmail.com>
+	<20140506001237.GK25949@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41211 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751623AbaEIMzS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 08:55:18 -0400
-In-Reply-To: <CAD=GYpbRn=LEthpAUX9LNBGTB4iDs7TGiSSgLJuuS0tSatRRJQ@mail.gmail.com>
+Received: from mail-ve0-f171.google.com ([209.85.128.171]:64426 "EHLO
+	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751924AbaEIM5s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 08:57:48 -0400
+Received: by mail-ve0-f171.google.com with SMTP id oz11so5125994veb.2
+        for <linux-omap@vger.kernel.org>; Fri, 09 May 2014 05:57:48 -0700 (PDT)
+In-Reply-To: <20140506001237.GK25949@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <agnel.joel@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Joel Fernandes <joelf@ti.com>, "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Sricharan R <r.sricharan@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-On 05/08/2014 11:22 PM, Joel Fernandes wrote:
-> On Thu, May 8, 2014 at 7:25 PM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com> wrote:
-[...]
-> Ok, thanks for pointing to the post.
-> 
+On 6 May 2014 02:12, Tony Lindgren <tony@atomide.com> wrote:
+> Hi,
+>
+> Sorry for dropping the ball on this one, got distracted with various
+> other fixes for a while.
+>
+> * Joachim Eastwood <manabian@gmail.com> [140421 09:16]:
+>> On 21 April 2014 18:12, Joachim  Eastwood <manabian@gmail.com> wrote:
+>> > On 21 April 2014 17:35, Tony Lindgren <tony@atomide.com> wrote:
+>> >> * Joachim Eastwood <manabian@gmail.com> [140419 09:25]:
+>> >>> On 19 April 2014 18:14, Joachim Eastwood <manabian@gmail.com> wrote:
+>> >>> > This was introduced in 43a348ea53eb5fd79 but hasn't caused
+>> >>> > any harm since it don't have any users yet.
+>> >>>
+>> >>> Or maybe I am confused about this macro.
+>> >>>
+>> >>> Tony which offset from the OMAP4 TRM should be used?
+>> >>>
+>> >>> Under section 18.6.8 there are is a column with address offset. Is
+>> >>> this the number you want in the macro?
+>> >>
+>> >> Oh I see, the offsets in the TRM in this case are from the base
+>> >> of the wkup module padconf base instead of listing the physical
+>> >> address for the register. Ideally the value would be what the
+>> >> documentation lists in the "Table 18-9. Device Wake-Up Control
+>> >> Module Pad Configuration Register Fields" with 2 added to it for
+>> >> the upper registers as we're using 16-bit register address.
+>> >> In any case something that's relatively easy to verify against
+>> >> the documentation. But that seems to vary between the physical
+>> >> address and the offset, so we need to specify some mask there.
+>> >>
+>> >> Something like below (untested) should do the trick as long as
+>> >> we never have padconf reg areas larger than 0xfff. We may want to
+>> >> allow defining a custom mask for the macro if needed depending
+>> >> how the documentation is defining the mux tables for.
+>> >>
+>> >> --- a/include/dt-bindings/pinctrl/omap.h
+>> >> +++ b/include/dt-bindings/pinctrl/omap.h
+>> >> @@ -51,9 +51,9 @@
+>> >>
+>> >>  /*
+>> >>   * Macros to allow using the absolute physical address instead of the
+>> >> - * padconf registers instead of the offset from padconf base.
+>> >> + * padconf register offset from padconf register base.
+>> >>   */
+>> >> -#define OMAP_IOPAD_OFFSET(pa, offset)  (((pa) & 0xffff) - (offset))
+>> >> +#define OMAP_IOPAD_OFFSET(pa, offset)   (((pa) & 0xfff) - ((offset) & 0xfff))
+>> >>
+>> >>  #define OMAP2420_CORE_IOPAD(pa, val)   OMAP_IOPAD_OFFSET((pa), 0x0030) (val)
+>> >>  #define OMAP2430_CORE_IOPAD(pa, val)   OMAP_IOPAD_OFFSET((pa), 0x2030) (val)
+>> >
+>> > This give the same result as my patch so it's okay for me. Checked the
+>> > resulting dtb's and they are equivalent.
+>> >
+>> > Your patch will also have an effect on some of the others macros but I
+>> > assume that is okey.
+>
+> Yeah looks like the above won't work as the padconf value can easily
+> be larger than the 0xfff masked offset.. For example OMAP3_CORE1_IOPAD
+> at 0x48002030 would become 0x030 and the value for it can be up to
+> 0x238. And we really want the macros to behave the same way for
+> everything rather than obfuscate the calculation even further.
+>
+> I guess we could add few new macros, but looks like am335x is using
+> yet another way of documenting these so it may be endless patching.
+>
+>> For reference my var-som-om44.dtsi now looks like this:
+>> http://slexy.org/raw/s213OvSZfF
+>
+> OK sorry just noticed you're using it already while was about to
+> apply your patches. Care to update that series again to not use the
+> macro, or by adding the offsets?
+
+hm, I'd rather add offsets than remove the macro's now.
+
+How about we introduce a mask parameter in to the OMAP_IOPAD_OFFSET macro?
+Something like this:
+#define OMAP_IOPAD_OFFSET(pa, offset, mask) (((pa) & mask) - ((offset) & mask))
+
+#define OMAP4_CORE_IOPAD(pa, val) OMAP_IOPAD_OFFSET((pa), 0x0040, 0xfff) (val)
+
+#define OMAP4_WKUP_IOPAD(pa, val) OMAP_IOPAD_OFFSET((pa), 0xe040, 0xfff) (val)
+
+Of course we need to fix the other users as well.
 
 
-Yep - thanks Santosh for clarifying this. Now, we still have the
-issues that I pointed out in [1] - without resolving which, we should
-not enable crossbar for dra74x/72x.
+One other possibility is to use my original patch in this mail or just
+create a OMAP4_IOPAD with offset 0x040 which will on OMAP4 work for
+both core and wkup.
 
-A. taking example of PMU
-	interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>
-this wont work. instead the crossbar driver needs some sort of a hint
-to know that it should not map these on crossbar register instead
-assign GIC mapping directly.
+What do you think?
 
-I propose doing the following
-#define GIC_CROSSBAR_PASSTHROUGH(irq_no) ((irq_no) | (0x1 << 31))
-
-and dts will define the following:
-interrupts = <GIC_SPI GIC_CROSSBAR_PASSTHROUGH(131) IRQ_TYPE_LEVEL_HIGH>
-
-This will also work for the other cases (B.2, B.3)
-
-For B.2: L3_APP_IRQ:
-instead of:
-interrupts = <GIC_SPI  5 IRQ_TYPE_LEVEL_HIGH>
-we do:
-interrupts = <GIC_SPI GIC_CROSSBAR_PASSTHROUGH(10) IRQ_TYPE_LEVEL_HIGH>
-
-For B.3: NMI
-interrupts = <GIC_SPI GIC_CROSSBAR_PASSTHROUGH(133) IRQ_TYPE_LEVEL_HIGH>
-
-xlate is easy ->
-
-diff --git a/drivers/irqchip/irq-crossbar.c
-b/drivers/irqchip/irq-crossbar.c
-index de021638..fd09ab4 100644
---- a/drivers/irqchip/irq-crossbar.c
-+++ b/drivers/irqchip/irq-crossbar.c
-@@ -112,6 +112,10 @@ static int crossbar_domain_xlate(struct
-irq_domain *d,
- {
-        unsigned long ret;
-
-+       /* Check to see if direct GIC mapping is required */
-+       if (intspec[1] & BIT(31))
-+               return intspec[1] & ~BIT[31];
-+
-        ret = get_prev_map_irq(intspec[1]);
-        if (!IS_ERR_VALUE(ret))
-                goto found;
-
-But then, crossbar_domain_map and crossbar_domain_unmap need hints as
-well to know that there is no corresponding crossbar registers.
-Have'nt thought through that yet. Looking to hear about opinions here.
-
-
-
-[1] http://marc.info/?l=linux-arm-kernel&m=139958155312421&w=2
--- 
-Regards,
-Nishanth Menon
+regards
+Joachim Eastwood
