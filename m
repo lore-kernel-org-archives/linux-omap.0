@@ -1,48 +1,225 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Remove suspend_set_ops from common pm late init
-Date: Fri, 9 May 2014 15:38:15 -0500
-Message-ID: <CAGo_u6o8uWB7zycuYa=3BQU8K2=S1YPWqHA49-CopdSERxGiRw@mail.gmail.com>
-References: <1399661580-54599-1-git-send-email-d-gerlach@ti.com>
-	<536D26C6.1060903@ti.com>
-	<536D37C0.1000704@ti.com>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v4 1/6] ARM: dts: am335x-bone: add support for beaglebone NAND cape
+Date: Sat, 10 May 2014 02:10:10 +0530
+Message-ID: <1399668015-10499-2-git-send-email-pekon@ti.com>
+References: <1399668015-10499-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:59322 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756796AbaEIUiQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 16:38:16 -0400
-Received: by mail-wg0-f42.google.com with SMTP id y10so4379498wgg.25
-        for <linux-omap@vger.kernel.org>; Fri, 09 May 2014 13:38:15 -0700 (PDT)
-In-Reply-To: <536D37C0.1000704@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:42170 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756913AbaEIUkh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2014 16:40:37 -0400
+In-Reply-To: <1399668015-10499-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com
+Cc: linux-omap <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>
 
-On Fri, May 9, 2014 at 3:17 PM, Dave Gerlach <d-gerlach@ti.com> wrote:
-> On 05/09/2014 02:04 PM, Nishanth Menon wrote:
->>
->> On 05/09/2014 01:53 PM, Dave Gerlach wrote:
+Beaglebone Board can be connected to expansion boards to add devices to them.
+These expansion boards are called 'capes'. This patch adds support for
+following versions of Beaglebone(AM335x) NAND capes
+(a) NAND Device with bus-width=16, block-size=128k, page-size=2k, oob-size=64
+(b) NAND Device with bus-width=16, block-size=256k, page-size=4k, oob-size=224
+Further information and datasheets can be found at [1] and [2]
 
->>> +#ifdef CONFIG_SUSPEND
->>> +void omap_common_suspend_init(void);
->>> +#else
->>> +static inline void omap_common_suspend_init(void)
->>> +{
->>> +}
->>> +#endif
->>> +
->>
->> push this off to this pm.h?
->
->
-> I could, I had just put it in the same spot as omap2_common_pm_late_init. I
-> agree it makes sense to move it though.
->
+* How to boot from NAND using Memory Expander + NAND Cape ? *
+ - Important: As BOOTSEL values are sampled only at POR, so after changing any
+   setting on SW2 (DIP switch), disconnect and reconnect all board power supply
+   (including mini-USB console port) to POR the beaglebone.
 
-yeah - the usage in the case of suspend_init is restricted solely to
-pm code.. generic code does not have to invoke it.
+ - Selection of ECC scheme
+  for NAND cape(a), ROM code expects BCH8_HW ecc-scheme
+  for NAND cape(b), ROM code expects BCH16_HW ecc-scheme
 
-Regards,
-Nishanth Menon
+ - Selection of boot modes can be controlled via  DIP switch(SW2) present on
+   Memory Expander cape, so first boot via MMC or other sources to flash NAND
+   device and then switch to SW2[SWITCH_BOOT]=ON to boot from NAND Cape.
+   SW2[SWITCH_BOOT] == OFF  follow default boot order  MMC-> SPI -> UART -> USB
+   SW2[SWITCH_BOOT] == ON   boot mode selected via DIP switch(SW2)
+
+ - For NAND boot following switch settings need to be followed
+   SW2[ 0] = ON   (SYSBOOT[ 0]==0: NAND boot mode selected )
+   SW2[ 1] = ON   (SYSBOOT[ 1]==0:       -- do --          )
+   SW2[ 2] = OFF  (SYSBOOT[ 2]==1:       -- do --          )
+   SW2[ 3] = OFF  (SYSBOOT[ 3]==1:       -- do --          )
+   SW2[ 4] = ON   (SYSBOOT[ 4]==0:       -- do --          )
+   SW2[ 8] = OFF  (SYSBOOT[ 8]==1: 0:x8 device, 1:x16 device )
+   SW2[ 9] = ON   (SYSBOOT[ 9]==0: ECC done by ROM  )
+   SW2[10] = ON   (SYSBOOT[10]==0: Non Muxed device )
+   SW2[11] = ON   (SYSBOOT[11]==0:    -- do --      )
+
+[1] http://beagleboardtoys.info/index.php?title=BeagleBone_Memory_Expansion
+[2] http://beagleboardtoys.info/index.php?title=BeagleBone_4Gb_16-Bit_NAND_Module
+
+Signed-off-by: Pekon Gupta <pekon@ti.com>
+---
+ arch/arm/boot/dts/am335x-bone-memory-cape.dts | 130 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts             |   1 +
+ arch/arm/boot/dts/am335x-boneblack.dts        |   1 +
+ 3 files changed, 132 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-bone-memory-cape.dts
+
+diff --git a/arch/arm/boot/dts/am335x-bone-memory-cape.dts b/arch/arm/boot/dts/am335x-bone-memory-cape.dts
+new file mode 100644
+index 0000000..c59b3d7
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-bone-memory-cape.dts
+@@ -0,0 +1,130 @@
++/*
++ * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This DTS adds supports for capes using GPMC interface to connect external
++ * memory like NAND, NOR Flash to Beaglebone-LT (white) and Beaglebone-Black.
++ */
++
++
++&am33xx_pinmux {
++	nand_flash_x16: nand_flash_x16 {
++		pinctrl-single,pins = <
++			0x00 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad0.gpmc_ad0 */
++			0x04 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad1.gpmc_ad1 */
++			0x08 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad2.gpmc_ad2 */
++			0x0c (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad3.gpmc_ad3 */
++			0x10 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad4.gpmc_ad4 */
++			0x14 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad5.gpmc_ad5 */
++			0x18 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad6.gpmc_ad6 */
++			0x1c (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad7.gpmc_ad7 */
++			0x20 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad8.gpmc_ad8 */
++			0x24 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad9.gpmc_ad9 */
++			0x28 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad10.gpmc_ad10 */
++			0x2c (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad11.gpmc_ad11 */
++			0x30 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad12.gpmc_ad12 */
++			0x34 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad13.gpmc_ad13 */
++			0x38 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad14.gpmc_ad14 */
++			0x3c (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad15.gpmc_ad15 */
++			0x70 (MUX_MODE0 | PIN_INPUT_PULLUP )	/* gpmc_wait0.gpmc_wait0 */
++			0x74 (MUX_MODE7 | PIN_OUTPUT_PULLUP)	/* gpmc_wpn.gpio0_30 */
++			0x7c (MUX_MODE0 | PIN_OUTPUT_PULLUP)	/* gpmc_csn0.gpmc_csn0  */
++			0x90 (MUX_MODE0 | PIN_OUTPUT)		/* gpmc_advn_ale.gpmc_advn_ale */
++			0x94 (MUX_MODE0 | PIN_OUTPUT)		/* gpmc_oen_ren.gpmc_oen_ren */
++			0x98 (MUX_MODE0 | PIN_OUTPUT)		/* gpmc_wen.gpmc_wen */
++			0x9c (MUX_MODE0 | PIN_OUTPUT)		/* gpmc_be0n_cle.gpmc_be0n_cle */
++		>;
++	};
++};
++
++&elm {
++     status = "disabled";
++};
++
++&gpmc {
++     status = "disabled";
++};
++
++&gpmc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&nand_flash_x16>;
++	ranges = <0 0 0 0x01000000>;	/* CS0: NAND */
++	nand@0,0 {
++		reg = <0 0 0x380>; /* CS0, offset=0x0, reg-map size=0x380 */
++		ti,nand-ecc-opt = "bch8";
++		ti,elm-id = <&elm>;
++		nand-bus-width = <16>;
++		gpmc,device-width = <2>;
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <80>;
++		gpmc,cs-wr-off-ns = <80>;
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <80>;
++		gpmc,adv-wr-off-ns = <80>;
++		gpmc,we-on-ns = <20>;
++		gpmc,we-off-ns = <60>;
++		gpmc,oe-on-ns = <20>;
++		gpmc,oe-off-ns = <60>;
++		gpmc,access-ns = <40>;
++		gpmc,rd-cycle-ns = <80>;
++		gpmc,wr-cycle-ns = <80>;
++		gpmc,wait-on-read = "true";
++		gpmc,wait-on-write = "true";
++		gpmc,bus-turnaround-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <0>;
++		gpmc,clk-activation-ns = <0>;
++		gpmc,wait-monitoring-ns = <0>;
++		gpmc,wr-access-ns = <40>;
++		gpmc,wr-data-mux-bus-ns = <0>;
++		/* MTD partition table */
++		/* All SPL-* partitions are sized to minimal length
++		 * which can be independently programmable. For
++		 * NAND flash this is equal to size of erase-block */
++		#address-cells = <1>;
++		#size-cells = <1>;
++		partition@0 {
++			label = "NAND.SPL";
++			reg = <0x00000000 0x00040000>;
++		};
++		partition@1 {
++			label = "NAND.SPL.backup1";
++			reg = <0x00040000 0x00040000>;
++		};
++		partition@2 {
++			label = "NAND.SPL.backup2";
++			reg = <0x00080000 0x00040000>;
++		};
++		partition@3 {
++			label = "NAND.SPL.backup3";
++			reg = <0x000C0000 0x00040000>;
++		};
++		partition@4 {
++			label = "NAND.u-boot-spl-os";
++			reg = <0x00100000 0x00080000>;
++		};
++		partition@5 {
++			label = "NAND.u-boot";
++			reg = <0x00180000 0x00100000>;
++		};
++		partition@6 {
++			label = "NAND.u-boot-env";
++			reg = <0x00280000 0x00040000>;
++		};
++		partition@7 {
++			label = "NAND.u-boot-env.backup1";
++			reg = <0x002C0000 0x00040000>;
++		};
++		partition@8 {
++			label = "NAND.kernel";
++			reg = <0x00300000 0x00700000>;
++		};
++		partition@9 {
++			label = "NAND.file-system";
++			reg = <0x00A00000 0x1F600000>;
++		};
++	};
++};
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 94ee427..f16bfcf 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -9,6 +9,7 @@
+ 
+ #include "am33xx.dtsi"
+ #include "am335x-bone-common.dtsi"
++#include "am335x-bone-memory-cape.dts"
+ 
+ &ldo3_reg {
+ 	regulator-min-microvolt = <1800000>;
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 6b71ad9..c030b24 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -9,6 +9,7 @@
+ 
+ #include "am33xx.dtsi"
+ #include "am335x-bone-common.dtsi"
++#include "am335x-bone-memory-cape.dts"
+ 
+ &ldo3_reg {
+ 	regulator-min-microvolt = <1800000>;
+-- 
+1.8.5.1.163.gd7aced9
+
