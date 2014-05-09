@@ -1,126 +1,179 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 11/11] ARM: dts: omap5-uevm.dts: add display nodes
-Date: Fri, 9 May 2014 14:56:19 +0300
-Message-ID: <1399636579-8062-12-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 01/11] ARM: AM43xx: hwmod: add DSS hwmod data
+Date: Fri, 9 May 2014 14:56:09 +0300
+Message-ID: <1399636579-8062-2-git-send-email-tomi.valkeinen@ti.com>
 References: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49034 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756273AbaEIL5a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 07:57:30 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:50682 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752485AbaEIL5G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 07:57:06 -0400
 In-Reply-To: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Archit Taneja <archit@ti.com>, Sathya Prakash M R <sathyap@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-omap5-uevm has a single HDMI output. Add the necessary display
-information, including pinmuxing.
+From: Sathya Prakash M R <sathyap@ti.com>
 
+Add DSS hwmod data for AM43xx.
+
+Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/boot/dts/omap5-uevm.dts | 82 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 82 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 104 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm43xx.h             |   1 +
+ 2 files changed, 105 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 76877516f6df..9ffbe71b88c3 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -183,6 +183,19 @@
- 		>;
- 	};
- 
-+	dss_hdmi_pins: pinmux_dss_hdmi_pins {
-+		pinctrl-single,pins = <
-+			0x0fc (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
-+			0x100 (PIN_INPUT | MUX_MODE0)	/* hdmi_ddc_scl.hdmi_ddc_scl */
-+			0x102 (PIN_INPUT | MUX_MODE0)	/* hdmi_ddc_sda.hdmi_ddc_sda */
-+		>;
-+	};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+index 5c2cc8083fdd..8c14db2e1e47 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+@@ -19,6 +19,8 @@
+ #include "omap_hwmod.h"
+ #include "omap_hwmod_33xx_43xx_common_data.h"
+ #include "prcm43xx.h"
++#include "omap_hwmod_common_data.h"
 +
-+	tpd12s015_pins: pinmux_tpd12s015_pins {
-+		pinctrl-single,pins = <
-+			0x0fe (PIN_INPUT_PULLDOWN | MUX_MODE6)	/* hdmi_hpd.gpio7_193 */
-+		>;
-+	};
+ 
+ /* IP blocks */
+ static struct omap_hwmod am43xx_l4_hs_hwmod = {
+@@ -415,6 +417,76 @@ static struct omap_hwmod am43xx_qspi_hwmod = {
+ 	},
  };
  
- &omap5_pmx_wkup {
-@@ -498,3 +511,72 @@
- &cpu0 {
- 	cpu0-supply = <&smps123_reg>;
++/* Display sub system - DSS */
++
++static struct omap_hwmod_dma_info am43xx_dss_sdma_chs[] = {
++	{ .name = "dispc", .dma_req = 5 },
++	{ .dma_req = -1 },
++};
++
++struct omap_dss_dispc_dev_attr am43xx_dss_dispc_dev_attr = {
++	.manager_count		= 1,
++	.has_framedonetv_irq	= 0
++};
++
++
++static struct omap_hwmod_class_sysconfig am43xx_dispc_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class am43xx_dispc_hwmod_class = {
++	.name	= "dispc",
++	.sysc	= &am43xx_dispc_sysc,
++};
++
++static struct omap_hwmod am43xx_dss_core_hwmod = {
++	.name		= "dss_core",
++	.class		= &omap2_dss_hwmod_class,
++	.clkdm_name	= "dss_clkdm",
++	.main_clk	= "disp_clk",
++	.sdma_reqs	= am43xx_dss_sdma_chs,
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/* display controller -dispc*/
++
++static struct omap_hwmod am43xx_dss_dispc_hwmod = {
++	.name		= "dss_dispc",
++	.class		= &am43xx_dispc_hwmod_class,
++	.clkdm_name	= "dss_clkdm",
++	.main_clk	= "disp_clk",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
++		},
++	},
++	.dev_attr	= &am43xx_dss_dispc_dev_attr,
++};
++
++/*RFBI*/
++
++static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
++	.name		= "dss_rfbi",
++	.class		= &omap2_rfbi_hwmod_class,
++	.clkdm_name	= "dss_clkdm",
++	.main_clk	= "disp_clk",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
++		},
++	},
++};
++
+ /* Interfaces */
+ static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
+ 	.master		= &am33xx_l3_main_hwmod,
+@@ -654,6 +726,34 @@ static struct omap_hwmod_ocp_if am43xx_l3_s__qspi = {
+ 	.user           = OCP_USER_MPU | OCP_USER_SDMA,
  };
-+
-+/ {
-+	aliases {
-+		display0 = &hdmi0;
-+	};
-+
-+	tpd12s015: encoder@0 {
-+		compatible = "ti,tpd12s015";
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&tpd12s015_pins>;
-+
-+		gpios = <&gpio9 0 GPIO_ACTIVE_HIGH>,	/* TCA6424A P01, CT CP HPD */
-+			<&gpio9 1 GPIO_ACTIVE_HIGH>,	/* TCA6424A P00, LS OE */
-+			<&gpio7 1 GPIO_ACTIVE_HIGH>;	/* GPIO 193, HPD */
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+
-+				tpd12s015_in: endpoint@0 {
-+					remote-endpoint = <&hdmi_out>;
-+				};
-+			};
-+
-+			port@1 {
-+				reg = <1>;
-+
-+				tpd12s015_out: endpoint@0 {
-+					remote-endpoint = <&hdmi_connector_in>;
-+				};
-+			};
-+		};
-+	};
-+
-+	hdmi0: connector@0 {
-+		compatible = "hdmi-connector";
-+		label = "hdmi";
-+
-+		type = "b";
-+
-+		port {
-+			hdmi_connector_in: endpoint {
-+				remote-endpoint = <&tpd12s015_out>;
-+			};
-+		};
-+	};
+ 
++static struct omap_hwmod_ocp_if am43xx_dss__l3_main = {
++	.master		= &am43xx_dss_core_hwmod,
++	.slave		= &am33xx_l3_main_hwmod,
++	.clk		= "disp_clk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
-+&dss {
-+	status = "ok";
++static struct omap_hwmod_ocp_if am43xx_l4_ls__dss = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_dss_core_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
-+&hdmi {
-+	status = "ok";
-+	vdda-supply = <&ldo4_reg>;
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&dss_hdmi_pins>;
-+
-+	port {
-+		hdmi_out: endpoint {
-+			remote-endpoint = <&tpd12s015_in>;
-+		};
-+	};
++static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_dispc = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_dss_dispc_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_dss_rfbi_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l4_wkup__synctimer,
+ 	&am43xx_l4_ls__timer8,
+@@ -748,6 +848,10 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am43xx_l4_ls__ocp2scp1,
+ 	&am43xx_l3_s__usbotgss0,
+ 	&am43xx_l3_s__usbotgss1,
++	&am43xx_dss__l3_main,
++	&am43xx_l4_ls__dss,
++	&am43xx_l4_ls__dss_dispc,
++	&am43xx_l4_ls__dss_rfbi,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
+index 7785be984edd..ad7b3e9977f8 100644
+--- a/arch/arm/mach-omap2/prcm43xx.h
++++ b/arch/arm/mach-omap2/prcm43xx.h
+@@ -142,5 +142,6 @@
+ #define AM43XX_CM_PER_USBPHYOCP2SCP0_CLKCTRL_OFFSET	0x05B8
+ #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
+ #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
++#define AM43XX_CM_PER_DSS_CLKCTRL_OFFSET		0x0a20
+ 
+ #endif
 -- 
 1.9.1
 
