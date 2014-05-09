@@ -1,160 +1,83 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 2/2] ARM: omap5: hwmod_data: Add AESS related data
-Date: Fri, 9 May 2014 11:00:18 +0300
-Message-ID: <536C8B12.9030007@ti.com>
-References: <1398858208-1346-1-git-send-email-peter.ujfalusi@ti.com> <1398858208-1346-2-git-send-email-peter.ujfalusi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/4] OMAPDSS: Fix DSS clock multiplier issue on 3703 and
+ probably 3630
+Date: Fri, 9 May 2014 11:01:52 +0300
+Message-ID: <536C8B70.1000306@ti.com>
+References: <1398815562-24113-1-git-send-email-tony@atomide.com> <1398815562-24113-2-git-send-email-tony@atomide.com> <20140508232006.GG2198@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41679 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751370AbaEIIAq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 04:00:46 -0400
-In-Reply-To: <1398858208-1346-2-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="3jIX68OOgDqkWAxTqG5EtkJ1weIGNAqvK"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140508232006.GG2198-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, Paul Walmsley <paul@pwsan.com>
 
-Paul,
+--3jIX68OOgDqkWAxTqG5EtkJ1weIGNAqvK
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On 04/30/2014 02:43 PM, Peter Ujfalusi wrote:
-> Add the needed hwmod entries which is needed for AESS (Audio Engine
-> SubSystem) and ABE.
-
-please ignore this patch to add AESS to hwmod data. W/o addresses defin=
-ed we
-will see warnings printed. So either I add the addresses to hwmod data =
-or need
-to have aess also in DT.
-
---=20
-P=E9ter
-
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 64 ++++++++++++++++++++=
-++++++++++
->  1 file changed, 64 insertions(+)
+On 09/05/14 02:20, Tony Lindgren wrote:
+> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [140429 16:53]:
+>> Otherwise we can get often errors like the following and the
+>> display won't come on:
+>>
+>> omapdss APPLY error: FIFO UNDERFLOW on gfx, disabling the overlay
+>> omapdss APPLY error: SYNC_LOST on channel lcd, restarting
+>> the output with video overlays disabled
+>>
+>> There are some earlier references to this issue:
+>>
+>> http://www.spinics.net/lists/linux-omap/msg59511.html
+>> http://www.spinics.net/lists/linux-omap/msg59724.html
+>>
+>> It seems that it's safe to set the lower values even for 3630.
+>> If we can confirm that 3630 works with the higher values
+>> reliably we can add further detection.
 >=20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/ma=
-ch-omap2/omap_hwmod_54xx_data.c
-> index e829664e6a6c..3e20c025b5a4 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> @@ -146,6 +146,7 @@ static struct omap_hwmod omap54xx_l4_abe_hwmod =3D=
- {
->  	.prcm =3D {
->  		.omap4 =3D {
->  			.clkctrl_offs =3D OMAP54XX_CM_ABE_L4_ABE_CLKCTRL_OFFSET,
-> +			.context_offs =3D OMAP54XX_RM_ABE_AESS_CONTEXT_OFFSET,
->  			.flags =3D HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
->  		},
->  	},
-> @@ -211,6 +212,42 @@ static struct omap_hwmod omap54xx_mpu_private_hw=
-mod =3D {
->  };
-> =20
->  /*
-> + * 'aess' class
-> + * audio engine sub system
-> + */
-> +
-> +static struct omap_hwmod_class_sysconfig omap54xx_aess_sysc =3D {
-> +	.rev_offs	=3D 0x0000,
-> +	.sysc_offs	=3D 0x0010,
-> +	.sysc_flags	=3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
-> +	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART |
-> +			   MSTANDBY_SMART_WKUP),
-> +	.sysc_fields	=3D &omap_hwmod_sysc_type2,
-> +};
-> +
-> +static struct omap_hwmod_class omap54xx_aess_hwmod_class =3D {
-> +	.name	=3D "aess",
-> +	.sysc	=3D &omap54xx_aess_sysc,
-> +	.enable_preprogram =3D omap_hwmod_aess_preprogram,
-> +};
-> +
-> +/* aess */
-> +static struct omap_hwmod omap54xx_aess_hwmod =3D {
-> +	.name		=3D "aess",
-> +	.class		=3D &omap54xx_aess_hwmod_class,
-> +	.clkdm_name	=3D "abe_clkdm",
-> +	.main_clk	=3D "aess_fclk",
-> +	.prcm =3D {
-> +		.omap4 =3D {
-> +			.clkctrl_offs =3D OMAP54XX_CM_ABE_AESS_CLKCTRL_OFFSET,
-> +			.context_offs =3D OMAP54XX_RM_ABE_AESS_CONTEXT_OFFSET,
-> +			.modulemode   =3D MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +};
-> +
-> +/*
->   * 'counter' class
->   * 32-bit ordinary counter, clocked by the falling edge of the 32 kh=
-z clock
->   */
-> @@ -1892,6 +1929,14 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cf=
-g__l3_main_3 =3D {
->  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
->  };
-> =20
-> +/* aess -> l4_abe */
-> +static struct omap_hwmod_ocp_if __maybe_unused omap54xx_aess__l4_abe=
- =3D {
-> +	.master		=3D &omap54xx_aess_hwmod,
-> +	.slave		=3D &omap54xx_l4_abe_hwmod,
-> +	.clk		=3D "abe_iclk",
-> +	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  /* l3_main_1 -> l4_abe */
->  static struct omap_hwmod_ocp_if omap54xx_l3_main_1__l4_abe =3D {
->  	.master		=3D &omap54xx_l3_main_1_hwmod,
-> @@ -1966,6 +2011,22 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cf=
-g__dma_system =3D {
->  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
->  };
-> =20
-> +/* l4_abe -> aess */
-> +static struct omap_hwmod_ocp_if __maybe_unused omap54xx_l4_abe__aess=
- =3D {
-> +	.master		=3D &omap54xx_l4_abe_hwmod,
-> +	.slave		=3D &omap54xx_aess_hwmod,
-> +	.clk		=3D "abe_iclk",
-> +	.user		=3D OCP_USER_MPU,
-> +};
-> +
-> +/* l4_abe -> aess (dma) */
-> +static struct omap_hwmod_ocp_if __maybe_unused omap54xx_l4_abe__aess=
-_dma =3D {
-> +	.master		=3D &omap54xx_l4_abe_hwmod,
-> +	.slave		=3D &omap54xx_aess_hwmod,
-> +	.clk		=3D "abe_iclk",
-> +	.user		=3D OCP_USER_SDMA,
-> +};
-> +
->  /* l4_abe -> dmic */
->  static struct omap_hwmod_ocp_if omap54xx_l4_abe__dmic =3D {
->  	.master		=3D &omap54xx_l4_abe_hwmod,
-> @@ -2417,6 +2478,9 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod=
-_ocp_ifs[] __initdata =3D {
->  	&omap54xx_l3_main_1__l3_main_3,
->  	&omap54xx_l3_main_2__l3_main_3,
->  	&omap54xx_l4_cfg__l3_main_3,
-> +	&omap54xx_l4_abe__aess,
-> +	&omap54xx_l4_abe__aess_dma,
-> +	&omap54xx_aess__l4_abe,
->  	&omap54xx_l3_main_1__l4_abe,
->  	&omap54xx_mpu__l4_abe,
->  	&omap54xx_l3_main_1__l4_cfg,
+> BTW, I'm also seeing this warning on 3730-evm it may be related:
 >=20
+> [    3.523101] ------------[ cut here ]------------
+> [    3.528015] WARNING: CPU: 0 PID: 6 at drivers/video/fbdev/omap2/dss/=
+dss.c:483 dss_set_fck_rate+0x6c/0x8c()
+> [    3.538360] clk rate mismatch: 108000000 !=3D 115200000
+> [    3.543518] Modules linked in:
 
+Hmm... Can you paste the clk_summary from debugfs? Somehow the clock
+framework calculates the clock rate differently than the dss. Or do we
+have different clock.dts files used for 3730 and 3630?
+
+ Tomi
+
+
+
+--3jIX68OOgDqkWAxTqG5EtkJ1weIGNAqvK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTbItwAAoJEPo9qoy8lh71tFcP/1p90wC6hphrF0G+gPZX/AEX
+An0Mzt0BXvPzVBsyy/KQxMtpr/YFRPvNiGL52zYkMsLWaSkzfExGxfj5VboCWr6D
+1uspLD+dr12EUKYpk2rlGARLh2OiNvoC0p8nDmbvWCL4Eo+aWPEB24lFg6EbCChy
+VyMZzpaNultkwAxCH7/PJ3WIFuVGl1TptWM2a7mLIfdmeFr1nPfrz1JNrBgDlqbi
+3NhuJJK2zroTM8h2U3RufLu+EwpFuVXf+N72/ZkOcqPb+YuF0+H4ahNHqDXAq6FW
+cA/9B6qFzKSgI5/t9peEYbSLjneKPSApnMjluUabxjmQ8RoA0DSruidODwdbBaLj
+AfLz4pZJky7XwawxVwCUgRouQbdjxVMnPAqOCCysiqVLCSwsbXepP3W46vXHHpKe
+P4BD14G0WpJETzMdtrh+8PnNCmxeV+cdvj/d1RZWz8XGEkjaw/ecsWeBKoyP80q6
+9j2Vo2QeC2EP8q3QT/W9S5fQkL2/KTfpKyb3TYAZVTIiyyK2csjqCMTRs1VmMUA7
+MtZp8iUXAaqPg8KADcL/ab/K4o16AXpmVsAA37Bhw05auXtMPwijb1PEKzydjheF
+IkD49RImPplb+yhsWD+PzdB88H99Li8dVjehseO4/qj7DUT/jm++w8L9mqDrvDN+
+8yKOaA5gWBjImaheoX2b
+=Oyw8
+-----END PGP SIGNATURE-----
+
+--3jIX68OOgDqkWAxTqG5EtkJ1weIGNAqvK--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
