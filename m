@@ -1,48 +1,77 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] gpio: always enable GPIO_OMAP on ARCH_OMAP
-Date: Fri, 09 May 2014 10:48:27 +0200
-Message-ID: <5419755.pTjp3y9xzp@wuerfel>
-References: <5523458.JVZJJObMjC@wuerfel> <CACRpkdYD+mSgkbUM+NXd9LQY+auTQMnvHFf7BZw_PUKbReYNcQ@mail.gmail.com>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v3 0/4]  mtd: nand: omap: add support for BCH16_ECC
+Date: Fri, 9 May 2014 14:29:11 +0530
+Message-ID: <1399625955-20882-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:54351 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751460AbaEIIsg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 04:48:36 -0400
-In-Reply-To: <CACRpkdYD+mSgkbUM+NXd9LQY+auTQMnvHFf7BZw_PUKbReYNcQ@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60591 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752790AbaEIJAn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2014 05:00:43 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Linus Walleij <linus.walleij@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Felipe Balbi <balbi@ti.com>, Pekon Gupta <pekon@ti.com>
 
-On Friday 09 May 2014 09:48:00 Linus Walleij wrote:
-> On Mon, Apr 28, 2014 at 11:07 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> 
-> > Commit 4df42de9d3e "gpio: omap: add a GPIO_OMAP option instead of using
-> > ARCH_OMAP" made it possible to build OMAP kernels without the GPIO driver,
-> > which at least on OMAP2 and OMAP3 causes build errors because of functions
-> > used by the platform power management code:
-> >
-> > arch/arm/mach-omap2/built-in.o: In function `omap_sram_idle':
-> > arch/arm/mach-omap2/pm24xx.c:129: undefined reference to `omap2_gpio_prepare_for_idle'
-> > arch/arm/mach-omap2/pm24xx.c:129: undefined reference to `omap2_gpio_resume_after_idle'
-> >
-> > We presumably always want the GPIO driver on OMAP, so this adds a slightly
-> > broader dependency and only allows disabling the driver only when no
-> > OMAP2PLUS platform is selected.
-> >
-> > However, it seems entirely reasonable to include the driver in build tests
-> > on other platforms, so we should also allow building it for COMPILE_TEST
-> > builds and select the required GENERIC_IRQ_CHIP that may not already be
-> > enabled on other platforms.
-> >
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> 
-> Patch applied to my devel branch, this is not a fix to Torvalds HEAD
-> AFAICT, but a fix to v3.16? Else poke me.
+(re-sending as forgot to loop in linux-omap and Tony Lindgren <tony@atomide.com>)
 
-Yes, 3.16 is ok.
+*changes v2 -> v3*
+[PATCH v2 3/4] rebased to http://lists.infradead.org/pipermail/linux-mtd/2014-March/052655.html
+- no change in other patches
+ 
 
-	Arnd
+*changes v1 -> v2*
+ rebased and cleaned on following versions of pending patches
+  (1) [PATCH v8 0/6] mtd: nand: omap: optimized chip->ecc.correct() for H/W ECC schemes
+  http://lists.infradead.org/pipermail/linux-mtd/2014-February/052092.html
+
+  (2) [PATCH v6 0/4] mtd: nand: omap: optimize chip->ecc.calculate() for H/W ECC schemes
+  http://lists.infradead.org/pipermail/linux-mtd/2014-February/052272.html
+
+  (3) [PATCH v5 0/4] mtd: nand: omap: optimize chip->ecc.hwctl() for H/W ECC schemes
+  http://lists.infradead.org/pipermail/linux-mtd/2014-March/052327.html
+
+  (4) [PATCH v6 0/4] mtd: devices: elm: add checks ELM H/W constrains, driver code cleanup
+  http://lists.infradead.org/pipermail/linux-mtd/2014-March/052455.html
+ 
+ Tested on Beaglebone-LT(white) NAND cape having NAND Device with
+       bus-width=16, block-size=256k, page-size=4k, oob-size=224
+
+
+*original v1*
+http://lists.infradead.org/pipermail/linux-mtd/2013-July/047562.html
+
+With increase in NAND flash densities and shrinking of technology
+NAND flash has become more suspectible to multiple bit-flips.
+Thus stronger ECC schemes are required for detecting and correcting multiple
+simultaneous bit-flips in same NAND page. But stronger ECC schemes have large
+ECC syndrome which require more space in OOB/Spare.
+
+This patch add support for BCH16 ecc-scheme on OMAP NAND driver:
+(a) BCH16 ecc-scheme can correct 16 bit-flips per 512Bytes of data.
+(b) BCH16 ecc-scheme generates 26-bytes of ECC syndrome / 512B.
+
+Due to (b) this scheme can only be used with NAND devices which have enough
+OOB to satisfy following equation:
+OOBsize per page >= 26 * (page-size / 512)
+
+
+Pekon Gupta (4):
+  mtd: nand: omap: add support for BCH16_ECC - GPMC driver updates
+  mtd: nand: omap: add support for BCH16_ECC - ELM driver updates
+  mtd: nand: omap: add support for BCH16_ECC - NAND driver updates
+  mtd: nand: omap: Documentation: How to select correct ECC scheme for
+    your device ?
+
+ .../devicetree/bindings/mtd/gpmc-nand.txt          | 39 +++++++++
+ arch/arm/mach-omap2/gpmc.c                         | 15 ++++
+ drivers/mtd/devices/elm.c                          | 42 ++++++++++
+ drivers/mtd/nand/omap2.c                           | 94 ++++++++++++++++++++++
+ include/linux/platform_data/elm.h                  |  3 +-
+ include/linux/platform_data/mtd-nand-omap2.h       |  5 ++
+ 6 files changed, 197 insertions(+), 1 deletion(-)
+
+-- 
+1.8.5.1.163.gd7aced9
+
