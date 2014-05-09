@@ -1,53 +1,62 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/4] OMAPDSS: Add support for panel ls037v7dw01
-Date: Fri, 9 May 2014 12:34:03 +0300
-Message-ID: <536CA10B.9040702@ti.com>
-References: <1398815562-24113-1-git-send-email-tony@atomide.com> <20140505184138.GB15463@atomide.com>
+Subject: Re: [PATCH v3 0/3] Add display support for gta04 device
+Date: Fri, 9 May 2014 12:37:24 +0300
+Message-ID: <536CA1D4.6010605@ti.com>
+References: <1399580212-5183-1-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="B2b105InfVMfGnj26AW1mIrEGS8NasbhO"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45645 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752669AbaEIJe2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 05:34:28 -0400
-In-Reply-To: <20140505184138.GB15463@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+	boundary="edfPGatkwflS48KB5oIg0SrJaxCV8TVle"
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1399580212-5183-1-git-send-email-marek@goldelico.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Marek Belisko <marek@goldelico.com>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rdunlap@infradead.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, plagnioj@jcrosoft.com, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
---B2b105InfVMfGnj26AW1mIrEGS8NasbhO
+--edfPGatkwflS48KB5oIg0SrJaxCV8TVle
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 05/05/14 21:41, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [140429 16:53]:
->> Hi all,
->>
->> Here are few patches to add devicetree support for panel ls037v7dw01
->> that's found on many omap3 boards. They seem to be often mis-configure=
-d
->> as various panel dpi entries, but really should be move to use panel
->> ls037v7dw01 instead. This panel is found at least on the omap3 sdp,
->> ldp, omap3 evm and few other development boards.
+On 08/05/14 23:16, Marek Belisko wrote:
+> This 3 patches adding display support for openmoko gta04 device.
+> First patch add DT bindings for topolly td028 panel. Second add descrip=
+tion for
+> dss + panel and third fix panel probing when panel is compiled as modul=
+e.
 >=20
-> Tomi, assuming no more comments, do you want to pick up the first
-> three patches of this series? I can queue the .dts changes or you
-> can also set up a separate .dts changes branch for DSS that I can
-> merge in too.
+> Changes from v2:
+> - add missing 'port' node for dpi_out endpoint (comment from Tomi Valke=
+inen)
+>=20
+> Changes from v1:
+> - extend panel compatible string by 'omapdss'
+> - add tpo-td028 panel to dss_compat_conv_list
+> - add MODULE_ALIAS macro to properly probe panel when is compiled as mo=
+dule
+>=20
+> Marek Belisko (3):
+>   omapdss: panel-tpo-td028ec1: Add DT support.
+>   ARM: dts: oma3-gta04: Add display support
+>   omapdss: panel-tpo-td028ec1: Add module alias
+>=20
+>  .../bindings/video/toppoly,td028ttec1.txt          | 30 ++++++++
+>  arch/arm/boot/dts/omap3-gta04.dts                  | 87 ++++++++++++++=
+++++++++
+>  arch/arm/mach-omap2/display.c                      |  1 +
+>  .../omap2/displays-new/panel-tpo-td028ttec1.c      | 33 +++++++-
+>  4 files changed, 150 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/devicetree/bindings/video/toppoly,td0=
+28ttec1.txt
+>=20
 
-If it's all the same to you, I'd like to collect all display related
-arch/arm/ patches into my tree, and I'll send you a merge request when
-it's stable.
-
-I already have OMAP5 and AM43xx stuff there.
+I think this series looks fine. I'll pick it up.
 
  Tomi
 
 
 
---B2b105InfVMfGnj26AW1mIrEGS8NasbhO
+--edfPGatkwflS48KB5oIg0SrJaxCV8TVle
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -55,19 +64,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTbKELAAoJEPo9qoy8lh71Wm0P/04/5kITL2Ga250U0XuM1p2x
-ZOgwhvv5886Z+WiuRZnXwg5G99NvFwPTTC1q172oFj2uOwOUNDAYfVALK5YNHLBR
-odNxx4Qanlug0G0LZktrNkcGx6JuTONZhyCZs2LwXURohoU9SeM6elN4or/APNjK
-GMM1LVoeQ2wTntX/PLwcQYNDrTjqq9ZYfhP7j/N0p4r6CTMYAbA6KpDHXGkD2O4i
-06/NMlTMeaykMcivyf+yvbCEZRr/Fv8ffKae7aUsPS5TwATnW/BRB+9lzjdx+jsc
-FIPWJy+z1FZTvWKtO4dVCbxVwhdA+LKIoJSfJUc9bKrJfiNWyJoYWpi2lyHduNNT
-wrF1UY8xPkVB4K9jEJMwyU8QaG8xF6K2o01QHUlmZ0moFUNFAt/Y+SQglf17et2o
-qKaGZgQMtKoPvKKZhZN1K+wOuGjIuYxpVBPpEDE6rDpjNdmmok7mSxeMZ6RYEI3U
-vVmPaRJwpgTr4ouW9BL3usHgeysB36jCxklPyds0DnUiGkuPVjIP+9rBcb9W45k0
-3LhlL7mA3B/6I6ZfTUOPlHCIexYh/3VP1aer6vJgWwXd5Fs5rqbFf0XXZWt0t3Qz
-7aTdLE4Ntndu9pcTh0i/NX509mIGBpjHRuwhAn5p3rrDq9ZDev1WN7FsIcDKc6Qp
-ypuzDGZuKDP8nBp/ebgx
-=lnIj
+iQIcBAEBAgAGBQJTbKHUAAoJEPo9qoy8lh71xSwP/31AJ6WQVmWybr+czhxNILov
+A4aO8T+eHPG3mz8RqfwC8ibxPpSiqqJfbr+gz0Cykx5uXokU0R/1XRofpDbIorY8
+cvG7kSf3mpFh6juYU3LlK6kA/BJMttf7ArxIr0Dutg1dESMSrH+LpN5OkmWRH7ef
+fmbUBUndWc5m9vTD36IO2WQiqXBiaAMsUYHf5mbra3OOGivM+F91pj6jyEBUgHEG
+1yxtSTahHbVl4Ztsyj5/aATW/knzZJXCGUtGizUn9HFqfH8USB42j2TroIIGzn71
+BUma3MOGMusPmgG2MOvJuj8SKKElynbxR/uFfdnKTz+/3Ff2GRC+ZIyHNu1hTsNE
+2Iu4ID4AFZgC/u9H1FAHgoAITzhz9w6YyruaZFFtqVtRrpAzfJmk1fFpVKVSxHDD
+BhCtqRZS3+Ma9fxr2/ygRjW3V2cdRBUmVFN4HnfkMGXMNSZS/h3koCRSYnHjH49t
+N88eS14y8yRxIJjEdWFAa4Z7jy1IqvpB2RGxMfJIN3w1Gz2qCma8RIx17veSj6Se
+GxiEz9hhdqO0ERkrl5yliksCKD5/i+82MXVjrLWCRcht6HFQTNgdiC9PPV+cEQSy
+2Dy+r6gO4HRBWY2CzL75J/A5neiVWO+eaLW2Vo9ZzNcXUwkJvuRJRWf9icPf7wBH
+e9M9j8BAIvbkUO6xMkh6
+=pUQ8
 -----END PGP SIGNATURE-----
 
---B2b105InfVMfGnj26AW1mIrEGS8NasbhO--
+--edfPGatkwflS48KB5oIg0SrJaxCV8TVle--
