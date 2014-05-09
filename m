@@ -1,33 +1,28 @@
-From: Nishanth Menon <nm@ti.com>
+From: Joel Fernandes <joelf@ti.com>
 Subject: Re: [PATCH 3/5] irqchip: crossbar: Skip some irqs from getting mapped
  to crossbar
-Date: Fri, 9 May 2014 08:36:27 -0500
-Message-ID: <536CD9DB.4010508@ti.com>
-References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>	<1399299527-10955-4-git-send-email-r.sricharan@ti.com>	<536BD9D8.4080905@ti.com>	<20140508203659.GA5620@kahuna>	<CAD=GYpbQQxQgKd3oZcAuWrxoD4VrkKzpybd11qwxs405HSUVGw@mail.gmail.com>	<536C0DC4.7090309@ti.com>	<CAD=GYpav4mHaqo4jfb0ePchf3cvuvSnFKj_+osbrt_8-tYRRrQ@mail.gmail.com>	<536C2071.8040502@ti.com> <CAD=GYpbRn=LEthpAUX9LNBGTB4iDs7TGiSSgLJuuS0tSatRRJQ@mail.gmail.com> <536CD01F.2070506@ti.com> <536CD7BE.5020407@ti.com>
+Date: Fri, 9 May 2014 08:37:44 -0500
+Message-ID: <536CDA28.40307@ti.com>
+References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>	<1399299527-10955-4-git-send-email-r.sricharan@ti.com>	<536BD9D8.4080905@ti.com>	<20140508203659.GA5620@kahuna>	<CAD=GYpbQQxQgKd3oZcAuWrxoD4VrkKzpybd11qwxs405HSUVGw@mail.gmail.com>	<536C0DC4.7090309@ti.com>	<CAD=GYpav4mHaqo4jfb0ePchf3cvuvSnFKj_+osbrt_8-tYRRrQ@mail.gmail.com>	<536C2071.8040502@ti.com> <CAD=GYpbRn=LEthpAUX9LNBGTB4iDs7TGiSSgLJuuS0tSatRRJQ@mail.gmail.com> <536CD01F.2070506@ti.com> <536CD9CE.9040504@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52772 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754925AbaEINgu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 09:36:50 -0400
-In-Reply-To: <536CD7BE.5020407@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54483 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756681AbaEINiN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 09:38:13 -0400
+In-Reply-To: <536CD9CE.9040504@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Joel Fernandes <agnel.joel@gmail.com>
-Cc: Joel Fernandes <joelf@ti.com>, "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Sricharan R <r.sricharan@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Nishanth Menon <nm@ti.com>, Joel Fernandes <agnel.joel@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Sricharan R <r.sricharan@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On 05/09/2014 08:27 AM, Santosh Shilimkar wrote:
-> On Friday 09 May 2014 08:54 AM, Nishanth Menon wrote:
->> On 05/08/2014 11:22 PM, Joel Fernandes wrote:
->>> On Thu, May 8, 2014 at 7:25 PM, Santosh Shilimkar
->>> <santosh.shilimkar@ti.com> wrote:
->> [...]
->>> Ok, thanks for pointing to the post.
->>>
->>
->>
+On 05/09/2014 08:36 AM, Joel Fernandes wrote:
+> Hi Nishanth,
+> 
+> On 05/09/2014 07:54 AM, Nishanth Menon wrote:
+> [..]
 >> Yep - thanks Santosh for clarifying this. Now, we still have the
 >> issues that I pointed out in [1] - without resolving which, we should
 >> not enable crossbar for dra74x/72x.
@@ -43,7 +38,9 @@ On 05/09/2014 08:27 AM, Santosh Shilimkar wrote:
 >>
 >> and dts will define the following:
 >> interrupts = <GIC_SPI GIC_CROSSBAR_PASSTHROUGH(131) IRQ_TYPE_LEVEL_HIGH>
->>
+> 
+> I would pick something smaller like GIC_SKIP_CROSSBAR.
+> 
 >> This will also work for the other cases (B.2, B.3)
 >>
 >> For B.2: L3_APP_IRQ:
@@ -55,9 +52,6 @@ On 05/09/2014 08:27 AM, Santosh Shilimkar wrote:
 >> For B.3: NMI
 >> interrupts = <GIC_SPI GIC_CROSSBAR_PASSTHROUGH(133) IRQ_TYPE_LEVEL_HIGH>
 >>
-> We can't do add a flag to generic interrupt controller flags since its
-> very specific to cross-bar.
-> 
 >> xlate is easy ->
 >>
 >> diff --git a/drivers/irqchip/irq-crossbar.c
@@ -76,40 +70,13 @@ On 05/09/2014 08:27 AM, Santosh Shilimkar wrote:
 >> +
 >>         ret = get_prev_map_irq(intspec[1]);
 >>         if (!IS_ERR_VALUE(ret))
->>                 goto found;
->>
->> But then, crossbar_domain_map and crossbar_domain_unmap need hints as
->> well to know that there is no corresponding crossbar registers.
->> Have'nt thought through that yet. Looking to hear about opinions here.
->>
->>
-> May be we need additional property like reserved to take care of 1:1
-> map.
 > 
-> ti,irqs-direct-map = <131 132>;
+> Sounds good, one problem I see here though is once you do the xlate, the
+> information that the IRQ number is GIC cross bar is lost because you are
+> 0'ing bit 31. Then how will map/unmap decide if it needs to be crossbar
+> mapped/unmapped or GIC?
 > 
-We already have equivalents for these -> reserved and skip. Problem is
-how does crossbar driver know the difference between direct maps and
-crossbar value?
 
-6 is one of those reserved ones. dts for a device says:
-interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>
+Correcting myself here, I meant "IRQ number is GIC cross bar skipped".
 
 
-Now, xlate gets intspec[1] = 6.  6 is valid crossbar number
-PRM_IRQ_MPU, however GIC 6 is mapped to WD_TIMER_MPU_C1_IRQ_WARN ->
-you need to be able to get a hint that this is direct mapping dts
-intended.
-
-in the "6" example:
-
-How do i get PRM_IRQ_MPU?
-interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>
-
-How do I get WD_TIMER_MPU_C1_IRQ_WARN?
-interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH> ????? - that wont work as
-crossbar driver thinks it is crossbar 6 (PRM_IRQ_MPU)
-
--- 
-Regards,
-Nishanth Menon
