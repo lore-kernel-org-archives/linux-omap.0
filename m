@@ -1,58 +1,89 @@
-From: Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH v2] ARM: dts: am33xx: Move the cppi41dma node so it's
- probed early
-Date: Fri, 9 May 2014 10:26:51 -0300
-Message-ID: <20140509132651.GD764@arch.cereza>
-References: <1398373881-23369-1-git-send-email-ezequiel@vanguardiasur.com.ar>
- <CAGm1_kvHtSLNEfkJ24xZGGzsqAjHDTM1XztnX-QGs4iM5voMUw@mail.gmail.com>
- <535F5BA5.6000903@ti.com>
- <CAAEAJfCG3c++WBgeipF6sCE1-9pHgU80t2Mpz0Y4koU5-uEwSA@mail.gmail.com>
- <536C7443.4000805@ti.com>
- <536C82F1.6020809@linutronix.de>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 3/5] irqchip: crossbar: Skip some irqs from getting mapped
+ to crossbar
+Date: Fri, 9 May 2014 09:27:26 -0400
+Message-ID: <536CD7BE.5020407@ti.com>
+References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>	<1399299527-10955-4-git-send-email-r.sricharan@ti.com>	<536BD9D8.4080905@ti.com>	<20140508203659.GA5620@kahuna>	<CAD=GYpbQQxQgKd3oZcAuWrxoD4VrkKzpybd11qwxs405HSUVGw@mail.gmail.com>	<536C0DC4.7090309@ti.com>	<CAD=GYpav4mHaqo4jfb0ePchf3cvuvSnFKj_+osbrt_8-tYRRrQ@mail.gmail.com>	<536C2071.8040502@ti.com> <CAD=GYpbRn=LEthpAUX9LNBGTB4iDs7TGiSSgLJuuS0tSatRRJQ@mail.gmail.com> <536CD01F.2070506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yh0-f49.google.com ([209.85.213.49]:59679 "EHLO
-	mail-yh0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750824AbaEIN1Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 09:27:24 -0400
-Received: by mail-yh0-f49.google.com with SMTP id c41so3661668yho.22
-        for <linux-omap@vger.kernel.org>; Fri, 09 May 2014 06:27:24 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <536C82F1.6020809@linutronix.de>
+Received: from bear.ext.ti.com ([192.94.94.41]:52384 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751364AbaEIN1y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2014 09:27:54 -0400
+In-Reply-To: <536CD01F.2070506@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: George Cherian <george.cherian@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Nishanth Menon <nm@ti.com>, Joel Fernandes <agnel.joel@gmail.com>
+Cc: Joel Fernandes <joelf@ti.com>, "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Sricharan R <r.sricharan@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On 09 May 09:25 AM, Sebastian Andrzej Siewior wrote:
-> On 05/09/2014 08:22 AM, George Cherian wrote:
-> > Just by remodelling the dt the whole problem can be solved.
-> > I am still not convinced why we should not be doing it?
-> > Because neither ways its not the exact representation of the H/W.
+On Friday 09 May 2014 08:54 AM, Nishanth Menon wrote:
+> On 05/08/2014 11:22 PM, Joel Fernandes wrote:
+>> On Thu, May 8, 2014 at 7:25 PM, Santosh Shilimkar
+>> <santosh.shilimkar@ti.com> wrote:
+> [...]
+>> Ok, thanks for pointing to the post.
+>>
 > 
-> Ha. Now I am confused. First I assumed that the musb_am335x module is
-> built-in only to duct-tape the bug you are seeing. So this patch never
-> made it mainline then.
+> 
+> Yep - thanks Santosh for clarifying this. Now, we still have the
+> issues that I pointed out in [1] - without resolving which, we should
+> not enable crossbar for dra74x/72x.
+> 
+> A. taking example of PMU
+> 	interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>
+> this wont work. instead the crossbar driver needs some sort of a hint
+> to know that it should not map these on crossbar register instead
+> assign GIC mapping directly.
+> 
+> I propose doing the following
+> #define GIC_CROSSBAR_PASSTHROUGH(irq_no) ((irq_no) | (0x1 << 31))
+> 
+> and dts will define the following:
+> interrupts = <GIC_SPI GIC_CROSSBAR_PASSTHROUGH(131) IRQ_TYPE_LEVEL_HIGH>
+> 
+> This will also work for the other cases (B.2, B.3)
+> 
+> For B.2: L3_APP_IRQ:
+> instead of:
+> interrupts = <GIC_SPI  5 IRQ_TYPE_LEVEL_HIGH>
+> we do:
+> interrupts = <GIC_SPI GIC_CROSSBAR_PASSTHROUGH(10) IRQ_TYPE_LEVEL_HIGH>
+> 
+> For B.3: NMI
+> interrupts = <GIC_SPI GIC_CROSSBAR_PASSTHROUGH(133) IRQ_TYPE_LEVEL_HIGH>
+> 
+We can't do add a flag to generic interrupt controller flags since its
+very specific to cross-bar.
 
-Mainline panics easily upon module removal: 
+> xlate is easy ->
+> 
+> diff --git a/drivers/irqchip/irq-crossbar.c
+> b/drivers/irqchip/irq-crossbar.c
+> index de021638..fd09ab4 100644
+> --- a/drivers/irqchip/irq-crossbar.c
+> +++ b/drivers/irqchip/irq-crossbar.c
+> @@ -112,6 +112,10 @@ static int crossbar_domain_xlate(struct
+> irq_domain *d,
+>  {
+>         unsigned long ret;
+> 
+> +       /* Check to see if direct GIC mapping is required */
+> +       if (intspec[1] & BIT(31))
+> +               return intspec[1] & ~BIT[31];
+> +
+>         ret = get_prev_map_irq(intspec[1]);
+>         if (!IS_ERR_VALUE(ret))
+>                 goto found;
+> 
+> But then, crossbar_domain_map and crossbar_domain_unmap need hints as
+> well to know that there is no corresponding crossbar registers.
+> Have'nt thought through that yet. Looking to hear about opinions here.
+> 
+> 
+May be we need additional property like reserved to take care of 1:1
+map.
 
-$ modprobe musb_am335x
-$ modprobe musb_dsps
+ti,irqs-direct-map = <131 132>;
 
-Here you insert something to the USB
-
-$ modprobe musb_am335x -r ... bang! the kernel panics.
-
-It works fine if you remove the musb_dsps and musb_am335x in that order,
-but the dependency is not enforced anywhere.
-
-So I guess preventing the module removal should be fine for now.
-In that case, mind testing/acking/whatever this patch:
-
-http://www.spinics.net/lists/linux-usb/msg107244.html
-
-Regards,
--- 
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
