@@ -1,82 +1,64 @@
-From: Matt Ranostay <mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am335x-bone-common: Add i2c2 definition
-Date: Fri, 9 May 2014 09:24:46 -0700
-Message-ID: <CAKzfze-ijg1GTJzNvhEVN5ULm9q0gQhScLpwC-CLNa90Whf1sg@mail.gmail.com>
-References: <1399614983-552-1-git-send-email-mranostay@gmail.com>
-	<536CD0D1.4080903@ti.com>
+From: Darren Etheridge <detheridge@ti.com>
+Subject: Re: [PATCH] arm/dts: am335x-evmsk enable display and lcd panel
+ support
+Date: Fri, 9 May 2014 11:27:16 -0500
+Message-ID: <20140509162716.GK2626@ti.com>
+References: <1398199063-3026-1-git-send-email-detheridge@ti.com>
+ <20140506161001.GH18474@atomide.com>
+ <536CBBFE.40508@ti.com>
+ <20140509144748.GI2626@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <536CD0D1.4080903-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pantelis Antoniou <pantelis.antoniou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matt Porter <matt.porter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:51113 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754465AbaEIQ17 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2014 12:27:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20140509144748.GI2626@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-On Fri, May 9, 2014 at 5:57 AM, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> wrote:
-> On Fri 09 May 2014 12:56:23 AM CDT, Matt Ranostay wrote:
->> Add missing i2c2 bus define to access various cape and
->> prototype/breakout board devices.
->>
->> Signed-off-by: Matt Ranostay <mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> ---
->>  arch/arm/boot/dts/am335x-bone-common.dtsi | 16 ++++++++++++++++
->>  1 file changed, 16 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
->> index 2e7d932..2aedfee 100644
->> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
->> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
->> @@ -84,6 +84,13 @@
->>               >;
->>       };
->>
->> +     i2c2_pins: pinmux_i2c2_pins {
->> +             pinctrl-single,pins = <
->> +                     0x178 (PIN_INPUT_PULLUP | MUX_MODE3)    /* i2c2_sda.uart1_ctsn */
->> +                     0x17c (PIN_INPUT_PULLUP | MUX_MODE3)    /* i2c2_scl.uart1_rtsn */
->
-> I dont understand the comment -> i2c2_sda is being muxed to uart1_cstsn?
->
-Good catch I mixed up the ordering of the comment.
+Darren Etheridge <detheridge@ti.com> wrote on Fri [2014-May-09 09:47:49 -0500]:
+> Tomi Valkeinen <tomi.valkeinen@ti.com> wrote on Fri [2014-May-09 14:29:02 +0300]:
+> > On 06/05/14 19:10, Tony Lindgren wrote:
+> > > * Darren Etheridge <detheridge@ti.com> [140422 13:39]:
+> > >> Add the necessary nodes to enable the LCD controller and the
+> > >> LCD panel that is attached to the Texas Instruments AM335x
+> > >> EVMSK platform.  Also setup the necessary pin mux within the
+> > >> DT file to drive the LCD connector and add the correct
+> > >> pinmux settings for the lcd pins to be configured to when
+> > >> the SoC goes into sleep state for the minimum power
+> > >> consumption.
+> > >>
+> > >> For the sleep mode LCD pin settings, MUX_MODE7 is chosen as
+> > >> this corresponds to switching the pins into input GPIO's with
+> > >> an internal pulldown.  Which has been determined to offer the
+> > >> lowest power solution vs leaving the pins configured in LCD
+> > >> mode.
+> > > 
+> > > Probably best that Tomi queues all the panel .dts changes into
+> > > a separate immutable branch that I can merge too.
+> > 
+> > This is not for OMAP DSS, but for the LCDC used in beaglebone, so there
+> > are no dependencies to any of my work.
+> > 
+> 
+> Benoit had always queued these LCDC dts patches in the past.  This is
+> exactly the same as what had been done for AM335x-EVM and
+> AM335x-BeagleBone both of which are already in the mainline kernel.  I
+> had just missed the EVMSK previously.
+> 
+> Darren
+> 
 
->> +             >;
->> +     };
->> +
->>       uart0_pins: pinmux_uart0_pins {
->>               pinctrl-single,pins = <
->>                       0x170 (PIN_INPUT_PULLUP | MUX_MODE0)    /* uart0_rxd.uart0_rxd */
->> @@ -222,6 +229,15 @@
->>
->>  };
->>
->> +
->> +&i2c2 {
->> +     pinctrl-names = "default";
->> +     pinctrl-0 = <&i2c2_pins>;
->> +
->> +     status = "okay";
->> +     clock-frequency = <400000>;
->
-> How did we decide on 400KHz -> do all all i2c2 devices on ALL capes
-> work in full speed? OR should we consider a conservative 100KHz?
->
+There is a labeling mistake in this patch with the comments for LCD pins
+16 through 23.  I will correct it and send a V2.
 
-Probably a better plan.
-Will submit v2 this weekend.
-
->> +};
->> +
->>  /include/ "tps65217.dtsi"
->>
->>  &tps {
->
->
+> 
 > --
-> Regards,
-> Nishanth Menon
->
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
