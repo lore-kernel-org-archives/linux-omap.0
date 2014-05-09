@@ -1,191 +1,83 @@
 From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v3 3/4] mtd: nand: omap: add support for BCH16_ECC - NAND driver updates
-Date: Fri, 9 May 2014 14:29:14 +0530
-Message-ID: <1399625955-20882-4-git-send-email-pekon@ti.com>
+Subject: [PATCH v3 4/4] mtd: nand: omap: Documentation: How to select correct ECC scheme for your device ?
+Date: Fri, 9 May 2014 14:29:15 +0530
+Message-ID: <1399625955-20882-5-git-send-email-pekon@ti.com>
 References: <1399625955-20882-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47987 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754129AbaEIJAn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 05:00:43 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:44217 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752790AbaEIJAq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 05:00:46 -0400
 In-Reply-To: <1399625955-20882-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Felipe Balbi <balbi@ti.com>, Pekon Gupta <pekon@ti.com>
 
-This patch add support for BCH16 ecc-scheme in OMAP NAND driver, by extending
-following functions:
- - omap_enable_hwecc (nand_chip->ecc.hwctl): configure GPMC controller
- - omap_calculate_ecc_bch (nand_chip->ecc.calculate): fetch ECC signature from GPMC controller
- - omap_elm_correct_data (nand_chip->ecc.correct): detect and correct ECC errors using ELM
-
-(a) BCH16 ecc-scheme can detect and correct 16 bit-flips per 512Bytes of data.
-(b) BCH16 ecc-scheme generates 26-bytes of ECC syndrome / 512B.
-Due to (b) this scheme can only be used with NAND devices which have enough
-OOB to satisfy the relation: "OOBsize per page >= 26 * (page-size / 512)"
+ - Adds DT binding property for BCH16 ECC scheme
+ - Adds describes on factors which determine choice of ECC scheme for particular device
 
 Signed-off-by: Pekon Gupta <pekon@ti.com>
 ---
- drivers/mtd/nand/omap2.c | 94 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 94 insertions(+)
+ .../devicetree/bindings/mtd/gpmc-nand.txt          | 39 ++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index d161c9b..c359af0 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -137,6 +137,10 @@
- #define BADBLOCK_MARKER_LENGTH		2
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index 5e1f31b..f2dbb33 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -28,6 +28,8 @@ Optional properties:
+ 		"ham1"		1-bit Hamming ecc code
+ 		"bch4"		4-bit BCH ecc code
+ 		"bch8"		8-bit BCH ecc code
++		"bch16"		16-bit BCH ECC code
++		Refer below "How to select correct ECC scheme for your device ?"
  
- #ifdef CONFIG_MTD_NAND_OMAP_BCH
-+static u_char bch16_vector[] = {0xf5, 0x24, 0x1c, 0xd0, 0x61, 0xb3, 0xf1, 0x55,
-+				0x2e, 0x2c, 0x86, 0xa3, 0xed, 0x36, 0x1b, 0x78,
-+				0x48, 0x76, 0xa9, 0x3b, 0x97, 0xd1, 0x7a, 0x93,
-+				0x07, 0x0e};
- static u_char bch8_vector[] = {0xf3, 0xdb, 0x14, 0x16, 0x8b, 0xd2, 0xbe, 0xcc,
- 	0xac, 0x6b, 0xff, 0x99, 0x7b};
- static u_char bch4_vector[] = {0x00, 0x6b, 0x31, 0xdd, 0x41, 0xbc, 0x10};
-@@ -1115,6 +1119,19 @@ static void __maybe_unused omap_enable_hwecc_bch(struct mtd_info *mtd, int mode)
- 			ecc_size1 = BCH_ECC_SIZE1;
- 		}
- 		break;
-+	case OMAP_ECC_BCH16_CODE_HW:
-+		bch_type = 0x2;
-+		nsectors = chip->ecc.steps;
-+		if (mode == NAND_ECC_READ) {
-+			wr_mode	  = 0x01;
-+			ecc_size0 = 52; /* ECC bits in nibbles per sector */
-+			ecc_size1 = 0;  /* non-ECC bits in nibbles per sector */
-+		} else {
-+			wr_mode	  = 0x01;
-+			ecc_size0 = 0;  /* extra bits in nibbles per sector */
-+			ecc_size1 = 52; /* OOB bits in nibbles per sector */
-+		}
-+		break;
- 	default:
- 		return;
- 	}
-@@ -1163,6 +1180,7 @@ static int __maybe_unused omap_calculate_ecc_bch(struct mtd_info *mtd,
- 	struct gpmc_nand_regs	*gpmc_regs = &info->reg;
- 	u8 *ecc_code;
- 	unsigned long nsectors, bch_val1, bch_val2, bch_val3, bch_val4;
-+	u32 val;
- 	int i;
+  - ti,nand-xfer-type:		A string setting the data transfer type. One of:
  
- 	nsectors = ((readl(info->reg.gpmc_ecc_config) >> 4) & 0x7) + 1;
-@@ -1202,6 +1220,41 @@ static int __maybe_unused omap_calculate_ecc_bch(struct mtd_info *mtd,
- 			*ecc_code++ = ((bch_val1 >> 4) & 0xFF);
- 			*ecc_code++ = ((bch_val1 & 0xF) << 4);
- 			break;
-+		case OMAP_ECC_BCH16_CODE_HW:
-+			val = readl(gpmc_regs->gpmc_bch_result6[i]);
-+			ecc_code[0]  = ((val >>  8) & 0xFF);
-+			ecc_code[1]  = ((val >>  0) & 0xFF);
-+			val = readl(gpmc_regs->gpmc_bch_result5[i]);
-+			ecc_code[2]  = ((val >> 24) & 0xFF);
-+			ecc_code[3]  = ((val >> 16) & 0xFF);
-+			ecc_code[4]  = ((val >>  8) & 0xFF);
-+			ecc_code[5]  = ((val >>  0) & 0xFF);
-+			val = readl(gpmc_regs->gpmc_bch_result4[i]);
-+			ecc_code[6]  = ((val >> 24) & 0xFF);
-+			ecc_code[7]  = ((val >> 16) & 0xFF);
-+			ecc_code[8]  = ((val >>  8) & 0xFF);
-+			ecc_code[9]  = ((val >>  0) & 0xFF);
-+			val = readl(gpmc_regs->gpmc_bch_result3[i]);
-+			ecc_code[10] = ((val >> 24) & 0xFF);
-+			ecc_code[11] = ((val >> 16) & 0xFF);
-+			ecc_code[12] = ((val >>  8) & 0xFF);
-+			ecc_code[13] = ((val >>  0) & 0xFF);
-+			val = readl(gpmc_regs->gpmc_bch_result2[i]);
-+			ecc_code[14] = ((val >> 24) & 0xFF);
-+			ecc_code[15] = ((val >> 16) & 0xFF);
-+			ecc_code[16] = ((val >>  8) & 0xFF);
-+			ecc_code[17] = ((val >>  0) & 0xFF);
-+			val = readl(gpmc_regs->gpmc_bch_result1[i]);
-+			ecc_code[18] = ((val >> 24) & 0xFF);
-+			ecc_code[19] = ((val >> 16) & 0xFF);
-+			ecc_code[20] = ((val >>  8) & 0xFF);
-+			ecc_code[21] = ((val >>  0) & 0xFF);
-+			val = readl(gpmc_regs->gpmc_bch_result0[i]);
-+			ecc_code[22] = ((val >> 24) & 0xFF);
-+			ecc_code[23] = ((val >> 16) & 0xFF);
-+			ecc_code[24] = ((val >>  8) & 0xFF);
-+			ecc_code[25] = ((val >>  0) & 0xFF);
-+			break;
- 		default:
- 			return -EINVAL;
- 		}
-@@ -1228,6 +1281,8 @@ static int __maybe_unused omap_calculate_ecc_bch(struct mtd_info *mtd,
- 			/* Set 14th ECC byte as 0x0 for ROM compatibility */
- 			ecc_calc[eccbytes - 1] = 0x0;
- 			break;
-+		case OMAP_ECC_BCH16_CODE_HW:
-+			break;
- 		default:
- 			return -EINVAL;
- 		}
-@@ -1319,6 +1374,10 @@ static int omap_elm_correct_data(struct mtd_info *mtd, u_char *data,
- 		actual_eccbytes = ecc->bytes - 1;
- 		erased_ecc_vec = bch8_vector;
- 		break;
-+	case OMAP_ECC_BCH16_CODE_HW:
-+		actual_eccbytes = ecc->bytes;
-+		erased_ecc_vec = bch16_vector;
-+		break;
- 	default:
- 		pr_err("invalid driver configuration\n");
- 		return -EINVAL;
-@@ -1402,6 +1461,7 @@ static int omap_elm_correct_data(struct mtd_info *mtd, u_char *data,
- 						BCH4_BIT_PAD;
- 					break;
- 				case OMAP_ECC_BCH8_CODE_HW:
-+				case OMAP_ECC_BCH16_CODE_HW:
- 					pos = err_vec[i].error_loc[j];
- 					break;
- 				default:
-@@ -1929,6 +1989,40 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		goto return_error;
- #endif
+@@ -90,3 +92,40 @@ Example for an AM33xx board:
+ 		};
+ 	};
  
-+	case OMAP_ECC_BCH16_CODE_HW:
-+#ifdef CONFIG_MTD_NAND_OMAP_BCH
-+		pr_info("using OMAP_ECC_BCH16_CODE_HW ECC scheme\n");
-+		nand_chip->ecc.mode		= NAND_ECC_HW;
-+		nand_chip->ecc.size		= 512;
-+		nand_chip->ecc.bytes		= 26;
-+		nand_chip->ecc.strength		= 16;
-+		nand_chip->ecc.hwctl		= omap_enable_hwecc_bch;
-+		nand_chip->ecc.correct		= omap_elm_correct_data;
-+		nand_chip->ecc.calculate	= omap_calculate_ecc_bch;
-+		nand_chip->ecc.read_page	= omap_read_page_bch;
-+		nand_chip->ecc.write_page	= omap_write_page_bch;
-+		/* This ECC scheme requires ELM H/W block */
-+		err = is_elm_present(info, pdata->elm_of_node, BCH16_ECC);
-+		if (err < 0) {
-+			pr_err("ELM is required for this ECC scheme\n");
-+			goto return_error;
-+		}
-+		/* define ECC layout */
-+		ecclayout->eccbytes		= nand_chip->ecc.bytes *
-+							(mtd->writesize /
-+							nand_chip->ecc.size);
-+		oob_index			= BADBLOCK_MARKER_LENGTH;
-+		for (i = 0; i < ecclayout->eccbytes; i++, oob_index++)
-+			ecclayout->eccpos[i]	= oob_index;
-+		/* reserved marker already included in ecclayout->eccbytes */
-+		ecclayout->oobfree->offset	=
-+				ecclayout->eccpos[ecclayout->eccbytes - 1] + 1;
-+		break;
-+#else
-+		pr_err("nand: error: CONFIG_MTD_NAND_OMAP_BCH not enabled\n");
-+		err = -EINVAL;
-+		goto return_error;
-+#endif
- 	default:
- 		pr_err("nand: error: invalid or unsupported ECC scheme\n");
- 		err = -EINVAL;
++How to select correct ECC scheme for your device ?
++--------------------------------------------------
++Higher ECC scheme usually means better protection against bit-flips and
++increased system lifetime. However, selection of ECC scheme is dependent
++on various other factors like;
++(1) Presence of supporting hardware engines on SoC.
++	Some legacy OMAP SoC do not have ELM h/w engine thus such SoC cannot
++	support BCHx_HW ECC schemes. But such SoC can support
++	BCHx_HW_DETECTION_SW ECC schemes which use s/w library with slight
++	CPU performance panalty only when too bit-flips are detected.
++(2) Device parameters like OOBSIZE
++	Higher ECC schemes require more OOB/Spare area to store ECC.
++	So choice of ECC scheme is limited by NAND oobsize. In general
++	following expression help determine whether given device can
++	accomodate ECC syndrome or not:
++	"2 + (PAGESIZE / 512) * ECC_BYTES" >= OOBSIZE
++	where
++		OOBSIZE		number of bytes in OOB/spare area
++		PAGESIZE	number of bytes in main-area of device page
++		ECC_BYTES	number of ECC bytes generated to protect
++		                512 bytes of data, which is:
++				'3' for HAM1_xx ecc schemes
++				'7' for BCH4_xx ecc schemes
++				'14' for BCH8_xx ecc schemes
++				'26' for BCH16_xx ecc schemes
++
++	Example(a): For a device with PAGESIZE = 2048 and OOBSIZE = 64
++		Number of spare/OOB bytes required for using BCH16 ecc-scheme
++		"(2 + (2048 / 512) * 26) = 106 bytes" is greater than OOBSIZE
++		(As per above table for BCH16 ecc-scheme, ECC_BYTES = 26)
++		Thus BCH16 cannot be supported on 2K NAND with OOBSIZE=64 bytes
++
++	Example(b): For a device with PAGESIZE = 2048 and OOBSIZE = 128
++		Number of spare/OOB bytes required for using BCH16 ecc-scheme
++		"(2 + (2048 / 512) * 26) = 106 bytes" is less than OOBSIZE
++		(As per above table for BCH16 ecc-scheme, ECC_BYTES = 26)
++		Thus BCH16 can be supported on 4K NAND with OOBSIZE=128 bytes
 -- 
 1.8.5.1.163.gd7aced9
 
