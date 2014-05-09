@@ -1,72 +1,54 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 3/5] irqchip: crossbar: Skip some irqs from getting mapped
- to crossbar
-Date: Thu, 8 May 2014 20:25:21 -0400
-Message-ID: <536C2071.8040502@ti.com>
-References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>	<1399299527-10955-4-git-send-email-r.sricharan@ti.com>	<536BD9D8.4080905@ti.com>	<20140508203659.GA5620@kahuna>	<CAD=GYpbQQxQgKd3oZcAuWrxoD4VrkKzpybd11qwxs405HSUVGw@mail.gmail.com>	<536C0DC4.7090309@ti.com> <CAD=GYpav4mHaqo4jfb0ePchf3cvuvSnFKj_+osbrt_8-tYRRrQ@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] power: twl4030_charger: clear IRQs after handling them
+Date: Thu, 8 May 2014 18:03:12 -0700
+Message-ID: <20140509010312.GK2198@atomide.com>
+References: <1397661299-31342-1-git-send-email-balbi@ti.com>
+ <20140416163526.GA3049@atomide.com>
+ <535ACC62.102@ti.com>
+ <20140425210036.GO29632@saruman.home>
+ <20140507002421.GA19711@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40132 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755282AbaEIAZr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 May 2014 20:25:47 -0400
-In-Reply-To: <CAD=GYpav4mHaqo4jfb0ePchf3cvuvSnFKj_+osbrt_8-tYRRrQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140507002421.GA19711@kahuna>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, Russell King <linux@arm.linux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dbaryshkov@gmail.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, dwmw2@infradead.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <agnel.joel@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Joel Fernandes <joelf@ti.com>, "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Sricharan R <r.sricharan@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On Thursday 08 May 2014 08:13 PM, Joel Fernandes wrote:
-> On Thu, May 8, 2014 at 6:05 PM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com> wrote:
-> [..]
->>> Further since not everything goes through the crossbar and some are
->>> direct mapped like your diagram, the correct fix is probably making it
->>> an irqchip and doing the interrupt controller parenting correctly in
->>> DT.
->>>
->>> That would take care of A), because users of such direct mapped
->>> interrupts will go through the GIC interrupt controller directly.
->>>
->>> It will also take care of B), because if writing to cross bar has no
->>> effect for a particular IRQ, or if those IRQs are hard-wired to
->>> something, as you said, then that something should go through the GIC
->>> directly.
->>>
->>> I can try to whip up something like this if it makes sense, let me know...
->>>
->> I have been ignoring this series considering they were just fixes
->> but you comments are like re-inventing wheel. Please read all
->> the old threads and comments from Thomas and me on why we took
->> approach and why it is not an irqchip. There is no need to complicate
->> it further.
+* Nishanth Menon <nm@ti.com> [140506 17:25]:
+> Subject: [PATCH] power: twl4030_charger: detect battery presence prior to
+>  enabling charger
 > 
-> Are you talking about the discussion on this thread?
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2013-August/194318.html
+> TWL4030's Battery Charger seems to be designed for non-hotpluggable
+> batteries.
 > 
-> I didn't really get a sense that there was a common agreement that
-> irqchip is not the way to go there. I can stand corrected if there was
-> a common consensus that irqchip is not the right solution (with any
-> specific comments why). There was a concern in the thread that making
-> it irqchip doesn't help dma reuse the infrastructure, but that concern
-> seems moot now that the driver is proposed to live in drivers/irqchip.
+> If battery is not present in the system, BATSTS is always set with the
+> expectation that software will take actions to move to a required safe
+> state (could be power down or disable various charger paths).
 > 
-Obviously you haven't read all the threads... Please read [1]. There
-was a reason I said read *all* the threads. Because anyone who looks
-at this hardware IP block thinks it can be irqchip. You are not the
-first one who said that.
+> It does not seem possible even by manipulating the edge detection
+> of the event (using BCIEDR2 register) to have a consistent hotplug
+> handling. This seems to be the result of BATSTS interrupt generated
+> when the thermistor of the battery pack is disconnected from the
+> dedicated ADIN1 pin. Clearing the status just results in the status
+> being regenerated by the monitoring ADC(MADC) and disabling the
+> edges of event just makes hotplug no longer function. The only
+> other option is to disable the detection of the MADC by disabling
+> BCIMFEN4::BATSTSMCHGEN (battery presence detector) - but then, we can
+> never again detect battery reconnection.
+> 
+> So, detect battery presence based on precharge(which is hardware
+> automatic state) or default main charger configuration at the time of
+> probe and enable charger logic only if battery was present.
+> 
+> Reported-by: Russell King <linux@arm.linux.org.uk>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-The concern was really not where the code resides but what the actual
-hardware is and how can it fit into Linux. The whole reason I was
-actually against irqhcip from beginning of crossbar series was the
-hardware is not irqchip rather just a router. Thomas the formally
-NAKed that approach on thread [1]. If there are bugs, doesn't mean
-we can make fit the hardware into some subsystem where it can't be
-described.
+Gets rid of the errors for me if CONFIG_CHARGER_TWL4030=y.
+Looks like we don't have that enabled by default in
+omap2plus_defconfig which explain why it's taken so long to
+notice this one:
 
-Regards,
-Santosh
-[1] https://lkml.org/lkml/2013/9/13/413
-
+Tested-by: Tony Lindgren <tony@atomide.com>
