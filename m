@@ -1,64 +1,161 @@
 From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v4 0/6] add parallel NAND support for TI's new OMAPx and AMxx platforms (Part-2)
-Date: Sat, 10 May 2014 02:10:09 +0530
-Message-ID: <1399668015-10499-1-git-send-email-pekon@ti.com>
+Subject: [PATCH v4 2/6] ARM: dts: am437x-gp-evm: add support for parallel NAND flash
+Date: Sat, 10 May 2014 02:10:11 +0530
+Message-ID: <1399668015-10499-3-git-send-email-pekon@ti.com>
+References: <1399668015-10499-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60740 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60743 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756913AbaEIUkf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 16:40:35 -0400
+	id S1757450AbaEIUki (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2014 16:40:38 -0400
+In-Reply-To: <1399668015-10499-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com
 Cc: linux-omap <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>
 
-*changes v3 -> v4*
-fixed <reg> and <range> property for all GPMC DT nodes
-added fix for am335x-evm and am437x-epos-evm
-rebased on git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap +omap-for-v3.16/dt
+Adds pinmux and DT node for Micron (MT29F4G08AB) x8 NAND device present on
+am437x-gp-evm board.
+(1) As NAND Flash data lines are muxed with eMMC, Thus at a given time either
+    eMMC or NAND can be enabled. Selection between eMMC and NAND is controlled:
+    (a) By dynamically driving following GPIO pin from software
+        SPI2_CS0(GPIO) == 0 NAND is selected (default)
+        SPI2_CS0(GPIO) == 1 eMMC is selected
+    (b) By statically using Jumper (J89) on the board
 
+(2) As NAND device connnected to this board has page-size=4K and oob-size=224,
+    So ROM code expects boot-loaders to be flashed in BCH16 ECC scheme for
+    NAND boot.
 
-*changes v2 -> v3*
-rebased on git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap :master
-merged leftover patches (dra7-evm and am43x-epos-evm fix) from Part-1 series
+Signed-off-by: Pekon Gupta <pekon@ti.com>
+---
+ arch/arm/boot/dts/am437x-gp-evm.dts | 107 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 107 insertions(+)
 
-
-*changes v1 -> v2*
-[PATCH v2 1/2] created new DTS for memory-capes based on following feedbacks
-  http://www.spinics.net/lists/linux-omap/msg104348.html from 'Nishanth Menon <nm@ti.com>'
-  http://www.spinics.net/lists/linux-omap/msg104447.html from 'Tony Lindgren <tony@atomide.com>'
-[PATCH v2 2/2] <same as [PATCH v1 1/3]>
-
-
-*original v1*
-This patch-set adds parallel NAND support on following TI platforms
- - AM335x (am335x-bone LT, am335x-boneblack): <disabled by default>
- - AM43xx (am437x-gp-evm)
-
-
-Minal Shah (1):
-  ARM: dts: dra7: add support for parallel NAND flash
-
-Pekon Gupta (5):
-  ARM: dts: am335x-bone: add support for beaglebone NAND cape
-  ARM: dts: am437x-gp-evm: add support for parallel NAND flash
-  ARM: dts: am43xx: fix starting offset of NAND.filesystem MTD partition
-  ARM: dts: am43x-epos-evm: fix reg and range property of GPMC NAND node
-  ARM: dts: am335x-evm: fix reg and range property of GPMC NAND node
-
- arch/arm/boot/dts/am335x-bone-memory-cape.dts | 130 ++++++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts             |   1 +
- arch/arm/boot/dts/am335x-boneblack.dts        |   1 +
- arch/arm/boot/dts/am335x-evm.dts              |   4 +-
- arch/arm/boot/dts/am437x-gp-evm.dts           | 107 +++++++++++++++++++++
- arch/arm/boot/dts/am43x-epos-evm.dts          |   6 +-
- arch/arm/boot/dts/dra7-evm.dts                | 117 +++++++++++++++++++++++
- arch/arm/boot/dts/dra7.dtsi                   |  20 ++++
- 8 files changed, 381 insertions(+), 5 deletions(-)
- create mode 100644 arch/arm/boot/dts/am335x-bone-memory-cape.dts
-
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 2e0c636..bfb2007 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -98,6 +98,27 @@
+ 			0x264 (PIN_INPUT_PULLUP | MUX_MODE7)  /* spi2_d0.gpio3_22 */
+ 		>;
+ 	};
++
++	nand_flash_x8: nand_flash_x8 {
++		pinctrl-single,pins = <
++			0x26C(PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* spi2_cs0.gpio/eMMCorNANDsel */
++			0x0  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
++			0x4  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
++			0x8  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
++			0xc  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
++			0x10 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
++			0x14 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
++			0x18 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
++			0x1c (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
++			0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
++			0x74 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_wpn.gpmc_wpn */
++			0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0  */
++			0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
++			0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
++			0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
++			0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
++		>;
++	};
+ };
+ 
+ &i2c0 {
+@@ -174,3 +195,89 @@
+ 	dr_mode = "host";
+ 	status = "okay";
+ };
++
++&elm {
++	status = "okay";
++};
++
++&gpmc {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&nand_flash_x8>;
++	ranges = <0 0 0 0x1000000>;	/* CS0: NAND */
++	nand@0,0 {
++		reg = <0 0 0x380>; /* CS0, offset=0, reg-map size=0x380 */
++		ti,nand-ecc-opt = "bch8";
++		ti,elm-id = <&elm>;
++		nand-bus-width = <8>;
++		gpmc,device-width = <1>;
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <40>;
++		gpmc,cs-wr-off-ns = <40>;
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <25>;
++		gpmc,adv-wr-off-ns = <25>;
++		gpmc,we-on-ns = <0>;
++		gpmc,we-off-ns = <20>;
++		gpmc,oe-on-ns = <3>;
++		gpmc,oe-off-ns = <30>;
++		gpmc,access-ns = <30>;
++		gpmc,rd-cycle-ns = <40>;
++		gpmc,wr-cycle-ns = <40>;
++		gpmc,wait-on-read = "true";
++		gpmc,wait-on-write = "true";
++		gpmc,bus-turnaround-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <0>;
++		gpmc,clk-activation-ns = <0>;
++		gpmc,wait-monitoring-ns = <0>;
++		gpmc,wr-access-ns = <40>;
++		gpmc,wr-data-mux-bus-ns = <0>;
++		/* MTD partition table */
++		/* All SPL-* partitions are sized to minimal length
++		 * which can be independently programmable. For
++		 * NAND flash this is equal to size of erase-block */
++		#address-cells = <1>;
++		#size-cells = <1>;
++		partition@0 {
++			label = "NAND.SPL";
++			reg = <0x00000000 0x00040000>;
++		};
++		partition@1 {
++			label = "NAND.SPL.backup1";
++			reg = <0x00040000 0x00040000>;
++		};
++		partition@2 {
++			label = "NAND.SPL.backup2";
++			reg = <0x00080000 0x00040000>;
++		};
++		partition@3 {
++			label = "NAND.SPL.backup3";
++			reg = <0x000c0000 0x00040000>;
++		};
++		partition@4 {
++			label = "NAND.u-boot-spl-os";
++			reg = <0x00100000 0x00080000>;
++		};
++		partition@5 {
++			label = "NAND.u-boot";
++			reg = <0x00180000 0x00100000>;
++		};
++		partition@6 {
++			label = "NAND.u-boot-env";
++			reg = <0x00280000 0x00040000>;
++		};
++		partition@7 {
++			label = "NAND.u-boot-env.backup1";
++			reg = <0x002c0000 0x00040000>;
++		};
++		partition@8 {
++			label = "NAND.kernel";
++			reg = <0x00300000 0x00700000>;
++		};
++		partition@9 {
++			label = "NAND.file-system";
++			reg = <0x00a00000 0x1f600000>;
++		};
++	};
++};
 -- 
 1.8.5.1.163.gd7aced9
 
