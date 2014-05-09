@@ -1,68 +1,76 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v11 1/7] mmc: omap_hsmmc: compile fix for !CONFIG_OF build
-Date: Fri, 9 May 2014 01:48:10 +0200
-Message-ID: <20140508234809.GB7533@earth.universe>
-References: <1399591018-12930-1-git-send-email-afenkart@gmail.com>
- <1399591234-13089-1-git-send-email-afenkart@gmail.com>
+From: Joel Fernandes <agnel.joel@gmail.com>
+Subject: Re: [PATCH 3/5] irqchip: crossbar: Skip some irqs from getting mapped
+ to crossbar
+Date: Thu, 8 May 2014 19:13:31 -0500
+Message-ID: <CAD=GYpav4mHaqo4jfb0ePchf3cvuvSnFKj_+osbrt_8-tYRRrQ@mail.gmail.com>
+References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>
+	<1399299527-10955-4-git-send-email-r.sricharan@ti.com>
+	<536BD9D8.4080905@ti.com>
+	<20140508203659.GA5620@kahuna>
+	<CAD=GYpbQQxQgKd3oZcAuWrxoD4VrkKzpybd11qwxs405HSUVGw@mail.gmail.com>
+	<536C0DC4.7090309@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="rJwd6BRFiFCcLxzm"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1399591234-13089-1-git-send-email-afenkart@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f48.google.com ([209.85.219.48]:45930 "EHLO
+	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751295AbaEIANb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2014 20:13:31 -0400
+Received: by mail-oa0-f48.google.com with SMTP id i4so4031201oah.35
+        for <linux-omap@vger.kernel.org>; Thu, 08 May 2014 17:13:31 -0700 (PDT)
+In-Reply-To: <536C0DC4.7090309@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Joel Fernandes <joelf@ti.com>, "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Sricharan R <r.sricharan@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
+On Thu, May 8, 2014 at 6:05 PM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+[..]
+>> Further since not everything goes through the crossbar and some are
+>> direct mapped like your diagram, the correct fix is probably making it
+>> an irqchip and doing the interrupt controller parenting correctly in
+>> DT.
+>>
+>> That would take care of A), because users of such direct mapped
+>> interrupts will go through the GIC interrupt controller directly.
+>>
+>> It will also take care of B), because if writing to cross bar has no
+>> effect for a particular IRQ, or if those IRQs are hard-wired to
+>> something, as you said, then that something should go through the GIC
+>> directly.
+>>
+>> I can try to whip up something like this if it makes sense, let me know...
+>>
+> I have been ignoring this series considering they were just fixes
+> but you comments are like re-inventing wheel. Please read all
+> the old threads and comments from Thomas and me on why we took
+> approach and why it is not an irqchip. There is no need to complicate
+> it further.
 
---rJwd6BRFiFCcLxzm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Are you talking about the discussion on this thread?
+http://lists.infradead.org/pipermail/linux-arm-kernel/2013-August/194318.html
 
-On Fri, May 09, 2014 at 01:20:28AM +0200, Andreas Fenkart wrote:
-> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
->=20
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 8d07e2b..5042a15 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1864,6 +1864,7 @@ static inline struct omap_mmc_platform_data
->  {
->  	return ERR_PTR(-EINVAL);
->  }
-> +#define omap_mmc_of_match      NULL
->  #endif
-> =20
->  static int omap_hsmmc_probe(struct platform_device *pdev)
+I didn't really get a sense that there was a common agreement that
+irqchip is not the way to go there. I can stand corrected if there was
+a common consensus that irqchip is not the right solution (with any
+specific comments why). There was a concern in the thread that making
+it irqchip doesn't help dma reuse the infrastructure, but that concern
+seems moot now that the driver is proposed to live in drivers/irqchip.
 
-What do you need this for? omap_hsmmc.c uses of_match_ptr() to
-access omap_mmc_of_match, which is a macro returning NULL for
-!CONFIG_OF.
+Further, I don't think my comments are re-inventing anything because
+the brand-new bugs that are being found now weren't found then and my
+comments were more related to these bugs.
 
--- Sebastian
+As for complexity, it appears there will be signficant hacks coming up
+that are required to handle the corner cases by adding more lists and
+dt-properties. So its already on a complicated path.. Even with such
+hacks, Nishanth pointed out that the implementation can break. Its
+already like a deck of cards in my opinion and complicates things for
+everyone using it. You said you hadn't gone through the fixes in this
+series, you should go over them and see the new lists added to skip
+and reserve various things.
 
---rJwd6BRFiFCcLxzm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+thanks,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTbBe5AAoJENju1/PIO/qaCaYP/RN9LK9aH9XsSferJeV4P/RT
-N5tfholvkQr33PU00R2UJdI1xKxs0UgDTX1X4E/s+NI8xsjYd+9DaaZuR6dhqx+Q
-AIQfmaJ2/Qad+BVueiwCOpK+SzUZEdsbi9tLYvlbBpyrKVMfEap8yCVhRcifPfxG
-fe0J80dKY8rgW95QI35Fvg+SJ1QJsOhvYAktRwrFbgOu57AQcEOpJajEAmbCMnth
-RLiGjU3WaWwXEQuFwv+2+Ku+wAGKChLA4C8hXl0GnzLteAUVu6fcCFrXs0ru8BDh
-WkEEARsZJHa9PTPRj31CxTFemu0uYuL6BIGhlZL4nqpabVQm9MTW5+w7Xmlzaju7
-8K829LxzAjUUJIWCE928q6UJnZNFOSKfhu/zPeDpc65HkAoHDrmfE38rqgouuC1r
-C6raqLrA/acrNgJDIb/IpKFGORdnxn3XwJfCmTMp+w+edr8ieIXIrHGNJAy8i8fo
-sKG/Wpo+m6juuPz3X5DqMSA/cjYJYb8pM/aKuNeMfoF8kPtpR8cO3QkzQeSBOeQh
-shV4RPv/fxuVJIubwMkf5w1BoYNtxKUh4hWzDWPen+ybC86fI9v497eHS+Tw/19E
-ktgzFYNHTwxAaSzbwimRD+u+VQLchRK0gtPDmqFmrdn/I8Ks3jcrLc77Rm+W3vms
-5yzwipQtBYDeffsH4ZLz
-=hyFF
------END PGP SIGNATURE-----
-
---rJwd6BRFiFCcLxzm--
+  -Joel
