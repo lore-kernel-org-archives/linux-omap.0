@@ -1,75 +1,58 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am335x-bone-common: Add i2c2 definition
-Date: Fri, 9 May 2014 07:57:53 -0500
-Message-ID: <536CD0D1.4080903@ti.com>
-References: <1399614983-552-1-git-send-email-mranostay@gmail.com>
+From: Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
+Subject: Re: [PATCH v2] ARM: dts: am33xx: Move the cppi41dma node so it's
+ probed early
+Date: Fri, 9 May 2014 10:26:51 -0300
+Message-ID: <20140509132651.GD764@arch.cereza>
+References: <1398373881-23369-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+ <CAGm1_kvHtSLNEfkJ24xZGGzsqAjHDTM1XztnX-QGs4iM5voMUw@mail.gmail.com>
+ <535F5BA5.6000903@ti.com>
+ <CAAEAJfCG3c++WBgeipF6sCE1-9pHgU80t2Mpz0Y4koU5-uEwSA@mail.gmail.com>
+ <536C7443.4000805@ti.com>
+ <536C82F1.6020809@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1399614983-552-1-git-send-email-mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matt Ranostay <mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pantelis.antoniou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, matt.porter-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yh0-f49.google.com ([209.85.213.49]:59679 "EHLO
+	mail-yh0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750824AbaEIN1Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 09:27:24 -0400
+Received: by mail-yh0-f49.google.com with SMTP id c41so3661668yho.22
+        for <linux-omap@vger.kernel.org>; Fri, 09 May 2014 06:27:24 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <536C82F1.6020809@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: George Cherian <george.cherian@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Fri 09 May 2014 12:56:23 AM CDT, Matt Ranostay wrote:
-> Add missing i2c2 bus define to access various cape and
-> prototype/breakout board devices.
->
-> Signed-off-by: Matt Ranostay <mranostay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  arch/arm/boot/dts/am335x-bone-common.dtsi | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> index 2e7d932..2aedfee 100644
-> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> @@ -84,6 +84,13 @@
->  		>;
->  	};
->
-> +	i2c2_pins: pinmux_i2c2_pins {
-> +		pinctrl-single,pins = <
-> +			0x178 (PIN_INPUT_PULLUP | MUX_MODE3)	/* i2c2_sda.uart1_ctsn */
-> +			0x17c (PIN_INPUT_PULLUP | MUX_MODE3)	/* i2c2_scl.uart1_rtsn */
+On 09 May 09:25 AM, Sebastian Andrzej Siewior wrote:
+> On 05/09/2014 08:22 AM, George Cherian wrote:
+> > Just by remodelling the dt the whole problem can be solved.
+> > I am still not convinced why we should not be doing it?
+> > Because neither ways its not the exact representation of the H/W.
+> 
+> Ha. Now I am confused. First I assumed that the musb_am335x module is
+> built-in only to duct-tape the bug you are seeing. So this patch never
+> made it mainline then.
 
-I dont understand the comment -> i2c2_sda is being muxed to uart1_cstsn?
+Mainline panics easily upon module removal: 
 
-> +		>;
-> +	};
-> +
->  	uart0_pins: pinmux_uart0_pins {
->  		pinctrl-single,pins = <
->  			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
-> @@ -222,6 +229,15 @@
->
->  };
->
-> +
-> +&i2c2 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&i2c2_pins>;
-> +
-> +	status = "okay";
-> +	clock-frequency = <400000>;
+$ modprobe musb_am335x
+$ modprobe musb_dsps
 
-How did we decide on 400KHz -> do all all i2c2 devices on ALL capes 
-work in full speed? OR should we consider a conservative 100KHz?
+Here you insert something to the USB
 
-> +};
-> +
->  /include/ "tps65217.dtsi"
->
->  &tps {
+$ modprobe musb_am335x -r ... bang! the kernel panics.
 
+It works fine if you remove the musb_dsps and musb_am335x in that order,
+but the dependency is not enforced anywhere.
 
---
+So I guess preventing the module removal should be fine for now.
+In that case, mind testing/acking/whatever this patch:
+
+http://www.spinics.net/lists/linux-usb/msg107244.html
+
 Regards,
-Nishanth Menon
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
