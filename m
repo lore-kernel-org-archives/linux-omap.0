@@ -1,82 +1,45 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v3 0/3] Add display support for gta04 device
-Date: Fri, 9 May 2014 12:37:24 +0300
-Message-ID: <536CA1D4.6010605@ti.com>
-References: <1399580212-5183-1-git-send-email-marek@goldelico.com>
+From: Pavel Machek <pavel-ynQEQJNshbs@public.gmane.org>
+Subject: Re: [PATCH 05/17] pci: host: pcie-dra7xx: add support for
+ pcie-dra7xx controller
+Date: Fri, 9 May 2014 11:43:30 +0200
+Message-ID: <20140509094330.GB4877@xo-6d-61-c0.localdomain>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>
+ <1399383244-14556-6-git-send-email-kishon@ti.com>
+ <201405061544.28738.marex@denx.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="edfPGatkwflS48KB5oIg0SrJaxCV8TVle"
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1399580212-5183-1-git-send-email-marek@goldelico.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Marek Belisko <marek@goldelico.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rdunlap@infradead.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, plagnioj@jcrosoft.com, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <201405061544.28738.marex-ynQEQJNshbs@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>
+Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Mohit Kumar <mohit.kumar-qxv4g6HH51o@public.gmane.org>, Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---edfPGatkwflS48KB5oIg0SrJaxCV8TVle
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+> > +	writel(value, base + offset);
+> > +}
+> > +
+> > +static int dra7xx_pcie_link_up(struct pcie_port *pp)
+> > +{
+> > +	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
+> > +	u32 reg = dra7xx_pcie_readl(dra7xx->base, PCIECTRL_DRA7XX_CONF_PHY_CS);
+> > +
+> > +	if (reg & LINK_UP)
+> > +		return true;
+> > +	return false;
+> 
+> return reg & LINK_UP;
 
-On 08/05/14 23:16, Marek Belisko wrote:
-> This 3 patches adding display support for openmoko gta04 device.
-> First patch add DT bindings for topolly td028 panel. Second add descrip=
-tion for
-> dss + panel and third fix panel probing when panel is compiled as modul=
-e.
->=20
-> Changes from v2:
-> - add missing 'port' node for dpi_out endpoint (comment from Tomi Valke=
-inen)
->=20
-> Changes from v1:
-> - extend panel compatible string by 'omapdss'
-> - add tpo-td028 panel to dss_compat_conv_list
-> - add MODULE_ALIAS macro to properly probe panel when is compiled as mo=
-dule
->=20
-> Marek Belisko (3):
->   omapdss: panel-tpo-td028ec1: Add DT support.
->   ARM: dts: oma3-gta04: Add display support
->   omapdss: panel-tpo-td028ec1: Add module alias
->=20
->  .../bindings/video/toppoly,td028ttec1.txt          | 30 ++++++++
->  arch/arm/boot/dts/omap3-gta04.dts                  | 87 ++++++++++++++=
-++++++++
->  arch/arm/mach-omap2/display.c                      |  1 +
->  .../omap2/displays-new/panel-tpo-td028ttec1.c      | 33 +++++++-
->  4 files changed, 150 insertions(+), 1 deletion(-)
->  create mode 100644 Documentation/devicetree/bindings/video/toppoly,td0=
-28ttec1.txt
->=20
+Function int returning true. I'd change the prototype and would
+return !!(reg & ...);
 
-I think this series looks fine. I'll pick it up.
-
- Tomi
+									Pavel
 
 
-
---edfPGatkwflS48KB5oIg0SrJaxCV8TVle
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTbKHUAAoJEPo9qoy8lh71xSwP/31AJ6WQVmWybr+czhxNILov
-A4aO8T+eHPG3mz8RqfwC8ibxPpSiqqJfbr+gz0Cykx5uXokU0R/1XRofpDbIorY8
-cvG7kSf3mpFh6juYU3LlK6kA/BJMttf7ArxIr0Dutg1dESMSrH+LpN5OkmWRH7ef
-fmbUBUndWc5m9vTD36IO2WQiqXBiaAMsUYHf5mbra3OOGivM+F91pj6jyEBUgHEG
-1yxtSTahHbVl4Ztsyj5/aATW/knzZJXCGUtGizUn9HFqfH8USB42j2TroIIGzn71
-BUma3MOGMusPmgG2MOvJuj8SKKElynbxR/uFfdnKTz+/3Ff2GRC+ZIyHNu1hTsNE
-2Iu4ID4AFZgC/u9H1FAHgoAITzhz9w6YyruaZFFtqVtRrpAzfJmk1fFpVKVSxHDD
-BhCtqRZS3+Ma9fxr2/ygRjW3V2cdRBUmVFN4HnfkMGXMNSZS/h3koCRSYnHjH49t
-N88eS14y8yRxIJjEdWFAa4Z7jy1IqvpB2RGxMfJIN3w1Gz2qCma8RIx17veSj6Se
-GxiEz9hhdqO0ERkrl5yliksCKD5/i+82MXVjrLWCRcht6HFQTNgdiC9PPV+cEQSy
-2Dy+r6gO4HRBWY2CzL75J/A5neiVWO+eaLW2Vo9ZzNcXUwkJvuRJRWf9icPf7wBH
-e9M9j8BAIvbkUO6xMkh6
-=pUQ8
------END PGP SIGNATURE-----
-
---edfPGatkwflS48KB5oIg0SrJaxCV8TVle--
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
