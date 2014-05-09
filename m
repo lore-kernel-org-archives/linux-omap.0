@@ -1,119 +1,67 @@
-From: Darren Etheridge <detheridge@ti.com>
-Subject: Re: [PATCH] ARM: dts: am335x-evm: fix comments for lcd pins
-Date: Fri, 9 May 2014 10:59:30 -0500
-Message-ID: <20140509155929.GJ2626@ti.com>
-References: <1399648580-14487-1-git-send-email-wsa@the-dreams.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: Correct offset in OMAP4_WKUP_IOPAD macro
+Date: Fri, 9 May 2014 09:07:26 -0700
+Message-ID: <20140509160725.GG17814@atomide.com>
+References: <1397924056-6462-1-git-send-email-manabian@gmail.com>
+ <CAGhQ9VwU_BjrD+c9uJn9FBwo6v_BOMUCKwiOW-7eqOu056a79A@mail.gmail.com>
+ <20140421153539.GB23945@atomide.com>
+ <CAGhQ9VyFQgcOw8y97R6HR1apXo-89JyktADxR6jb1EJipXqqjA@mail.gmail.com>
+ <CAGhQ9VxCA_VnO18zWgtWUExNE6YJd+krNEVLtyZTpyY6hRyHUg@mail.gmail.com>
+ <20140506001237.GK25949@atomide.com>
+ <CAGhQ9Vw+cR-cKQ-w3psZPOWOqwugntXq-9g5=4cZV-ijQZecTQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49877 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750987AbaEIQAn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 12:00:43 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14451 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755882AbaEIQHa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 12:07:30 -0400
 Content-Disposition: inline
-In-Reply-To: <1399648580-14487-1-git-send-email-wsa@the-dreams.de>
+In-Reply-To: <CAGhQ9Vw+cR-cKQ-w3psZPOWOqwugntXq-9g5=4cZV-ijQZecTQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-arm-kernel@lists.infradead.org, Wolfram Sang <wsa@sang-engineering.com>, Benoit Parrot <bparrot@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Joachim Eastwood <manabian@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Wolfram,
-
-Wolfram Sang <wsa@the-dreams.de> wrote on Fri [2014-May-09 17:15:50 +0200]:
-> From: Wolfram Sang <wsa@sang-engineering.com>
+* Joachim Eastwood <manabian@gmail.com> [140509 05:58]:
+> On 6 May 2014 02:12, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > OK sorry just noticed you're using it already while was about to
+> > apply your patches. Care to update that series again to not use the
+> > macro, or by adding the offsets?
 > 
-> In the comments, LCD pins 16-23 were numbered in the wrong order.
-> Fix this and use proper pinmux constants for all entries while we are
+> hm, I'd rather add offsets than remove the macro's now.
 > 
-Looks like you are absolutely correct - I just confirmed this from both
-the AM335x-EVM schematic and the AM335x pinmux utility.
-
-The same mistake is also in my EVMSK LCD enabling patch that is floating
-around on this list at the moment.  I will fix that and resend it.
-BeagleBone Black only uses the first 16 LCD pins so the dts for that is
-correct.
-
-Thanks for finding and fixing it.
-
-Darren
-
-> Signed-off-by: Wolfram Sang <wsa@sang-engineering.com>
-> Cc: Benoit Parrot <bparrot@ti.com>
-> ---
->  arch/arm/boot/dts/am335x-evm.dts | 56 ++++++++++++++++++++--------------------
->  1 file changed, 28 insertions(+), 28 deletions(-)
+> How about we introduce a mask parameter in to the OMAP_IOPAD_OFFSET macro?
+> Something like this:
+> #define OMAP_IOPAD_OFFSET(pa, offset, mask) (((pa) & mask) - ((offset) & mask))
 > 
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index 6028217ace0f..1b642f1cd469 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -268,34 +268,34 @@
->  
->  	lcd_pins_s0: lcd_pins_s0 {
->  		pinctrl-single,pins = <
-> -			0x20 0x01	/* gpmc_ad8.lcd_data16, OUTPUT | MODE1 */
-> -			0x24 0x01	/* gpmc_ad9.lcd_data17, OUTPUT | MODE1 */
-> -			0x28 0x01	/* gpmc_ad10.lcd_data18, OUTPUT | MODE1 */
-> -			0x2c 0x01	/* gpmc_ad11.lcd_data19, OUTPUT | MODE1 */
-> -			0x30 0x01	/* gpmc_ad12.lcd_data20, OUTPUT | MODE1 */
-> -			0x34 0x01	/* gpmc_ad13.lcd_data21, OUTPUT | MODE1 */
-> -			0x38 0x01	/* gpmc_ad14.lcd_data22, OUTPUT | MODE1 */
-> -			0x3c 0x01	/* gpmc_ad15.lcd_data23, OUTPUT | MODE1 */
-> -			0xa0 0x00	/* lcd_data0.lcd_data0, OUTPUT | MODE0 */
-> -			0xa4 0x00	/* lcd_data1.lcd_data1, OUTPUT | MODE0 */
-> -			0xa8 0x00	/* lcd_data2.lcd_data2, OUTPUT | MODE0 */
-> -			0xac 0x00	/* lcd_data3.lcd_data3, OUTPUT | MODE0 */
-> -			0xb0 0x00	/* lcd_data4.lcd_data4, OUTPUT | MODE0 */
-> -			0xb4 0x00	/* lcd_data5.lcd_data5, OUTPUT | MODE0 */
-> -			0xb8 0x00	/* lcd_data6.lcd_data6, OUTPUT | MODE0 */
-> -			0xbc 0x00	/* lcd_data7.lcd_data7, OUTPUT | MODE0 */
-> -			0xc0 0x00	/* lcd_data8.lcd_data8, OUTPUT | MODE0 */
-> -			0xc4 0x00	/* lcd_data9.lcd_data9, OUTPUT | MODE0 */
-> -			0xc8 0x00	/* lcd_data10.lcd_data10, OUTPUT | MODE0 */
-> -			0xcc 0x00	/* lcd_data11.lcd_data11, OUTPUT | MODE0 */
-> -			0xd0 0x00	/* lcd_data12.lcd_data12, OUTPUT | MODE0 */
-> -			0xd4 0x00	/* lcd_data13.lcd_data13, OUTPUT | MODE0 */
-> -			0xd8 0x00	/* lcd_data14.lcd_data14, OUTPUT | MODE0 */
-> -			0xdc 0x00	/* lcd_data15.lcd_data15, OUTPUT | MODE0 */
-> -			0xe0 0x00	/* lcd_vsync.lcd_vsync, OUTPUT | MODE0 */
-> -			0xe4 0x00	/* lcd_hsync.lcd_hsync, OUTPUT | MODE0 */
-> -			0xe8 0x00	/* lcd_pclk.lcd_pclk, OUTPUT | MODE0 */
-> -			0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OUTPUT | MODE0 */
-> +			0x20 (PIN_OUTPUT | MUX_MODE1)		/* gpmc_ad8.lcd_data23 */
-> +			0x24 (PIN_OUTPUT | MUX_MODE1)		/* gpmc_ad9.lcd_data22 */
-> +			0x28 (PIN_OUTPUT | MUX_MODE1)		/* gpmc_ad10.lcd_data21 */
-> +			0x2c (PIN_OUTPUT | MUX_MODE1)		/* gpmc_ad11.lcd_data20 */
-> +			0x30 (PIN_OUTPUT | MUX_MODE1)		/* gpmc_ad12.lcd_data19 */
-> +			0x34 (PIN_OUTPUT | MUX_MODE1)		/* gpmc_ad13.lcd_data18 */
-> +			0x38 (PIN_OUTPUT | MUX_MODE1)		/* gpmc_ad14.lcd_data17 */
-> +			0x3c (PIN_OUTPUT | MUX_MODE1)		/* gpmc_ad15.lcd_data16 */
-> +			0xa0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data0.lcd_data0 */
-> +			0xa4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data1.lcd_data1 */
-> +			0xa8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data2.lcd_data2 */
-> +			0xac (PIN_OUTPUT | MUX_MODE0)		/* lcd_data3.lcd_data3 */
-> +			0xb0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data4.lcd_data4 */
-> +			0xb4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data5.lcd_data5 */
-> +			0xb8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data6.lcd_data6 */
-> +			0xbc (PIN_OUTPUT | MUX_MODE0)		/* lcd_data7.lcd_data7 */
-> +			0xc0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data8.lcd_data8 */
-> +			0xc4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data9.lcd_data9 */
-> +			0xc8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data10.lcd_data10 */
-> +			0xcc (PIN_OUTPUT | MUX_MODE0)		/* lcd_data11.lcd_data11 */
-> +			0xd0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data12.lcd_data12 */
-> +			0xd4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data13.lcd_data13 */
-> +			0xd8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data14.lcd_data14 */
-> +			0xdc (PIN_OUTPUT | MUX_MODE0)		/* lcd_data15.lcd_data15 */
-> +			0xe0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_vsync.lcd_vsync */
-> +			0xe4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_hsync.lcd_hsync */
-> +			0xe8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_pclk.lcd_pclk */
-> +			0xec (PIN_OUTPUT | MUX_MODE0)		/* lcd_ac_bias_en.lcd_ac_bias_en */
->  		>;
->  	};
->  
-> -- 
-> 1.9.2
+> #define OMAP4_CORE_IOPAD(pa, val) OMAP_IOPAD_OFFSET((pa), 0x0040, 0xfff) (val)
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> #define OMAP4_WKUP_IOPAD(pa, val) OMAP_IOPAD_OFFSET((pa), 0xe040, 0xfff) (val)
+> 
+> Of course we need to fix the other users as well.
+
+I was thinking that too initially, but then we would have macros that behave
+in a different way:
+
+1. Calculate the iopad offset from the iopad register area start based on
+   the iopad physical address
+
+2. Calculate the iopad offset from the iopad register area start based on
+   the iopadd offset from the driver base address
+
+> One other possibility is to use my original patch in this mail or just
+> create a OMAP4_IOPAD with offset 0x040 which will on OMAP4 work for
+> both core and wkup.
+
+That also makes the macro behave in a different way depending on the
+SoC which is not nice.
+ 
+> What do you think?
+
+I think it's best to add some new macros to avoid confusion.
+
+Regards,
+
+Tony
