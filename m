@@ -1,169 +1,122 @@
-From: Darren Etheridge <detheridge@ti.com>
-Subject: [PATCH v2] arm/dts: am335x-evmsk enable display and lcd panel support
-Date: Fri, 9 May 2014 13:49:14 -0500
-Message-ID: <1399661354-10022-1-git-send-email-detheridge@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH] ARM: OMAP2+: Remove suspend_set_ops from common pm late init
+Date: Fri, 9 May 2014 13:53:00 -0500
+Message-ID: <1399661580-54599-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56668 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56691 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754353AbaEISxI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 14:53:08 -0400
+	id S1754353AbaEISxf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2014 14:53:35 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com
-Cc: Wolfram Sang <wsa@sang-engineering.com>, linux-arm-kernel@lists.infradead.org, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Darren Etheridge <detheridge@ti.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>
 
-Add the necessary nodes to enable the LCD controller and the
-LCD panel that is attached to the Texas Instruments AM335x
-EVMSK platform.  Also setup the necessary pin mux within the
-DT file to drive the LCD connector and add the correct
-pinmux settings for the lcd pins to be configured to when
-the SoC goes into sleep state for the minimum power
-consumption.
+In omap2_common_pm_late_init suspend_set_ops was called to set common
+suspend handling functions for all omap platforms. This created two
+problems. First, these suspend ops were being set for all platforms,
+regardless of whether or not suspend support has been integrated so in
+the case of AM33XX, suspend to mem was presented as available but
+failed every time. Second, some platforms will need to define a
+completely separate set of suspend ops, such as AM33XX, due to
+differences from previous omap platforms so there is no need to
+always set the common omap ops.
 
-For the sleep mode LCD pin settings, MUX_MODE7 is chosen as
-this corresponds to switching the pins into input GPIO's with
-an internal pulldown.  Which has been determined to offer the
-lowest power solution vs leaving the pins configured in LCD
-mode.
+This patch moves the suspend_set_ops call from omap2_common_pm_late_init
+into a separate function that then gets called in the omap*_pm_init
+functions for each platform.
 
-Signed-off-by: Darren Etheridge <detheridge@ti.com>
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
+ arch/arm/mach-omap2/common.h | 8 ++++++++
+ arch/arm/mach-omap2/pm.c     | 8 ++++----
+ arch/arm/mach-omap2/pm24xx.c | 1 +
+ arch/arm/mach-omap2/pm34xx.c | 1 +
+ arch/arm/mach-omap2/pm44xx.c | 1 +
+ 5 files changed, 15 insertions(+), 4 deletions(-)
 
-v2:
-Fixed up the incorrect label ordering in the pinmux comments for LCD pins
-16 through 23 as reported by Wolfram Sang <wsa@sang-engineering.com>
-
- arch/arm/boot/dts/am335x-evmsk.dts | 105 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 105 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index ab23885..d99c1b1 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -138,12 +138,113 @@
- 			"Headphone Jack",       "HPLOUT",
- 			"Headphone Jack",       "HPROUT";
- 	};
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index d88aff7..091e1c7 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -162,6 +162,14 @@ static inline void omap44xx_restart(enum reboot_mode mode, const char *cmd)
+ }
+ #endif
+ 
++#ifdef CONFIG_SUSPEND
++void omap_common_suspend_init(void);
++#else
++static inline void omap_common_suspend_init(void)
++{
++}
++#endif
 +
-+	panel {
-+		compatible = "ti,tilcdc,panel";
-+		pinctrl-names = "default", "sleep";
-+		pinctrl-0 = <&lcd_pins_default>;
-+		pinctrl-1 = <&lcd_pins_sleep>;
-+		status = "okay";
-+		panel-info {
-+			ac-bias           = <255>;
-+			ac-bias-intrpt    = <0>;
-+			dma-burst-sz      = <16>;
-+			bpp               = <32>;
-+			fdd               = <0x80>;
-+			sync-edge         = <0>;
-+			sync-ctrl         = <1>;
-+			raster-order      = <0>;
-+			fifo-th           = <0>;
-+		};
-+		display-timings {
-+			480x272 {
-+				hactive         = <480>;
-+				vactive         = <272>;
-+				hback-porch     = <43>;
-+				hfront-porch    = <8>;
-+				hsync-len       = <4>;
-+				vback-porch     = <12>;
-+				vfront-porch    = <4>;
-+				vsync-len       = <10>;
-+				clock-frequency = <9000000>;
-+				hsync-active    = <0>;
-+				vsync-active    = <0>;
-+			};
-+		};
-+	};
+ /* This gets called from mach-omap2/io.c, do not call this */
+ void __init omap2_set_globals_tap(u32 class, void __iomem *tap);
+ 
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index e1b4141..c9b36fb 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -243,6 +243,10 @@ static const struct platform_suspend_ops omap_pm_ops = {
+ 	.valid		= suspend_valid_only_mem,
  };
  
- &am33xx_pinmux {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&gpio_keys_s0 &clkout2_pin>;
++void __init omap_common_suspend_init(void)
++{
++	suspend_set_ops(&omap_pm_ops);
++}
+ #endif /* CONFIG_SUSPEND */
  
-+	lcd_pins_default: lcd_pins_default {
-+		pinctrl-single,pins = <
-+			0x20 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad8.lcd_data23 */
-+			0x24 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad9.lcd_data22 */
-+			0x28 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad10.lcd_data21 */
-+			0x2c (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad11.lcd_data20 */
-+			0x30 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad12.lcd_data19 */
-+			0x34 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad13.lcd_data18 */
-+			0x38 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad14.lcd_data17 */
-+			0x3c (PIN_OUTPUT | MUX_MODE1)	/* gpmc_ad15.lcd_data16 */
-+			0xa0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data0.lcd_data0 */
-+			0xa4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data1.lcd_data1 */
-+			0xa8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data2.lcd_data2 */
-+			0xac (PIN_OUTPUT | MUX_MODE0)	/* lcd_data3.lcd_data3 */
-+			0xb0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data4.lcd_data4 */
-+			0xb4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data5.lcd_data5 */
-+			0xb8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data6.lcd_data6 */
-+			0xbc (PIN_OUTPUT | MUX_MODE0)	/* lcd_data7.lcd_data7 */
-+			0xc0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data8.lcd_data8 */
-+			0xc4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data9.lcd_data9 */
-+			0xc8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data10.lcd_data10 */
-+			0xcc (PIN_OUTPUT | MUX_MODE0)	/* lcd_data11.lcd_data11 */
-+			0xd0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data12.lcd_data12 */
-+			0xd4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data13.lcd_data13 */
-+			0xd8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data14.lcd_data14 */
-+			0xdc (PIN_OUTPUT | MUX_MODE0)	/* lcd_data15.lcd_data15 */
-+			0xe0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_vsync.lcd_vsync */
-+			0xe4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_hsync.lcd_hsync */
-+			0xe8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_pclk.lcd_pclk */
-+			0xec (PIN_OUTPUT | MUX_MODE0)	/* lcd_ac_bias_en.lcd_ac_bias_en */
-+		>;
-+	};
-+
-+	lcd_pins_sleep: lcd_pins_sleep {
-+		pinctrl-single,pins = <
-+			0x20 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad8.lcd_data23 */
-+			0x24 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad9.lcd_data22 */
-+			0x28 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad10.lcd_data21 */
-+			0x2c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad11.lcd_data20 */
-+			0x30 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad12.lcd_data19 */
-+			0x34 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad13.lcd_data18 */
-+			0x38 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad14.lcd_data17 */
-+			0x3c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad15.lcd_data16 */
-+			0xa0 (PULL_DISABLE | MUX_MODE7)	/* lcd_data0.lcd_data0 */
-+			0xa4 (PULL_DISABLE | MUX_MODE7)	/* lcd_data1.lcd_data1 */
-+			0xa8 (PULL_DISABLE | MUX_MODE7)	/* lcd_data2.lcd_data2 */
-+			0xac (PULL_DISABLE | MUX_MODE7)	/* lcd_data3.lcd_data3 */
-+			0xb0 (PULL_DISABLE | MUX_MODE7)	/* lcd_data4.lcd_data4 */
-+			0xb4 (PULL_DISABLE | MUX_MODE7)	/* lcd_data5.lcd_data5 */
-+			0xb8 (PULL_DISABLE | MUX_MODE7)	/* lcd_data6.lcd_data6 */
-+			0xbc (PULL_DISABLE | MUX_MODE7)	/* lcd_data7.lcd_data7 */
-+			0xc0 (PULL_DISABLE | MUX_MODE7)	/* lcd_data8.lcd_data8 */
-+			0xc4 (PULL_DISABLE | MUX_MODE7)	/* lcd_data9.lcd_data9 */
-+			0xc8 (PULL_DISABLE | MUX_MODE7)	/* lcd_data10.lcd_data10 */
-+			0xcc (PULL_DISABLE | MUX_MODE7)	/* lcd_data11.lcd_data11 */
-+			0xd0 (PULL_DISABLE | MUX_MODE7)	/* lcd_data12.lcd_data12 */
-+			0xd4 (PULL_DISABLE | MUX_MODE7)	/* lcd_data13.lcd_data13 */
-+			0xd8 (PULL_DISABLE | MUX_MODE7)	/* lcd_data14.lcd_data14 */
-+			0xdc (PULL_DISABLE | MUX_MODE7)	/* lcd_data15.lcd_data15 */
-+			0xe0 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_vsync.lcd_vsync */
-+			0xe4 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_hsync.lcd_hsync */
-+			0xe8 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_pclk.lcd_pclk */
-+			0xec (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_ac_bias_en.lcd_ac_bias_en */
-+		>;
-+	};
-+
-+
- 	user_leds_s0: user_leds_s0 {
- 		pinctrl-single,pins = <
- 			0x10 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad4.gpio1_4 */
-@@ -560,3 +661,7 @@
- 		ti,wire-config = <0x00 0x11 0x22 0x33>;
- 	};
- };
-+
-+&lcdc {
-+      status = "okay";
-+};
+ static void __init omap3_init_voltages(void)
+@@ -310,9 +314,5 @@ int __init omap2_common_pm_late_init(void)
+ 	/* cpufreq dummy device instantiation */
+ 	omap_init_cpufreq();
+ 
+-#ifdef CONFIG_SUSPEND
+-	suspend_set_ops(&omap_pm_ops);
+-#endif
+-
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index 8c07594..8cd2408 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -231,6 +231,7 @@ static void __init prcm_setup_regs(void)
+ 
+ #ifdef CONFIG_SUSPEND
+ 	omap_pm_suspend = omap2_enter_full_retention;
++	omap_common_suspend_init();
+ #endif
+ 
+ 	/* REVISIT: Configure number of 32 kHz clock cycles for sys_clk
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 87099bb..32b2597 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -707,6 +707,7 @@ int __init omap3_pm_init(void)
+ 
+ #ifdef CONFIG_SUSPEND
+ 	omap_pm_suspend = omap3_pm_suspend;
++	omap_common_suspend_init();
+ #endif
+ 
+ 	arm_pm_idle = omap3_pm_idle;
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index eefb30c..58d7cd7 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -253,6 +253,7 @@ int __init omap4_pm_init(void)
+ 
+ #ifdef CONFIG_SUSPEND
+ 	omap_pm_suspend = omap4_pm_suspend;
++	omap_common_suspend_init();
+ #endif
+ 
+ 	/* Overwrite the default cpu_do_idle() */
 -- 
-1.8.4
+1.9.0
 
