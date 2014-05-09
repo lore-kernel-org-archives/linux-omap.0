@@ -1,74 +1,93 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] arm/dts: am335x-evmsk enable display and lcd panel support
-Date: Fri, 9 May 2014 14:29:02 +0300
-Message-ID: <536CBBFE.40508@ti.com>
-References: <1398199063-3026-1-git-send-email-detheridge@ti.com> <20140506161001.GH18474@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 05/17] pci: host: pcie-dra7xx: add support for pcie-dra7xx
+ controller
+Date: Fri, 9 May 2014 16:59:04 +0530
+Message-ID: <536CBC00.6000709@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com> <4300084.bc6ByDTk7W@wuerfel> <5369F287.6000103@ti.com> <6485683.q96o7U6vf8@wuerfel>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="kFCCUXLXLxExcieBKb5FeLAn23RC7etUS"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47958 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38005 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753446AbaEIL3G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 07:29:06 -0400
-In-Reply-To: <20140506161001.GH18474@atomide.com>
+	id S1753422AbaEIL3w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2014 07:29:52 -0400
+In-Reply-To: <6485683.q96o7U6vf8@wuerfel>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Darren Etheridge <detheridge@ti.com>
-Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: Marek Vasut <marex@denx.de>, devicetree@vger.kernel.org, balajitk@ti.com, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, Jingoo Han <jg1.han@samsung.com>, linux-kernel@vger.kernel.org, Mohit Kumar <mohit.kumar@st.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, rogerq@ti.com
 
---kFCCUXLXLxExcieBKb5FeLAn23RC7etUS
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Arnd,
 
-On 06/05/14 19:10, Tony Lindgren wrote:
-> * Darren Etheridge <detheridge@ti.com> [140422 13:39]:
->> Add the necessary nodes to enable the LCD controller and the
->> LCD panel that is attached to the Texas Instruments AM335x
->> EVMSK platform.  Also setup the necessary pin mux within the
->> DT file to drive the LCD connector and add the correct
->> pinmux settings for the lcd pins to be configured to when
->> the SoC goes into sleep state for the minimum power
->> consumption.
+On Wednesday 07 May 2014 03:00 PM, Arnd Bergmann wrote:
+> On Wednesday 07 May 2014 14:14:55 Kishon Vijay Abraham I wrote:
+>>>> +static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
+>>>> +{
+>>>> +    struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
+>>>> +
+>>>> +    dra7xx_pcie_writel(dra7xx->base, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
+>>>> +                       ~INTERRUPTS);
+>>>> +    dra7xx_pcie_writel(dra7xx->base,
+>>>> +                       PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN, INTERRUPTS);
+>>>> +    dra7xx_pcie_writel(dra7xx->base, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
+>>>> +                       ~LEG_EP_INTERRUPTS & ~MSI);
+>>>> +
+>>>> +    if (IS_ENABLED(CONFIG_PCI_MSI))
+>>>> +            dra7xx_pcie_writel(dra7xx->base,
+>>>> +                               PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI, MSI);
+>>>> +    else
+>>>> +            dra7xx_pcie_writel(dra7xx->base,
+>>>> +                               PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
+>>>> +                               LEG_EP_INTERRUPTS);
+>>>
+>>> Doesn't this just enable one or the other? In general I'd assume you need
+>>> both INTx and MSI, at least if MSI is available.
 >>
->> For the sleep mode LCD pin settings, MUX_MODE7 is chosen as
->> this corresponds to switching the pins into input GPIO's with
->> an internal pulldown.  Which has been determined to offer the
->> lowest power solution vs leaving the pins configured in LCD
->> mode.
->=20
-> Probably best that Tomi queues all the panel .dts changes into
-> a separate immutable branch that I can merge too.
+>> Not sure since the programming sequence in the TRM explicitly states either
+>> legacy interrupts or MSI interrupts should be enabled but not both.
+> 
+> Hmm, I think that means you can't have MSI at all. You have to support
+> legacy PCI devices that can't do MSI.
+> 
+> Do you know if you have a modern GIC implementation with MSI support
+> in these SoCs? It would be better anyway to use the GIC for doing
 
-This is not for OMAP DSS, but for the LCDC used in beaglebone, so there
-are no dependencies to any of my work.
+In DRA7 it is not there. I'm not sure in other platforms.
+> MSI, so you can just ignore the internal MSI controller here.
+> 
+>>>> +static int add_pcie_port(struct dra7xx_pcie *dra7xx,
+>>>> +                      struct platform_device *pdev)
+>>>> +{
+>>>> +    int ret;
+>>>> +    struct pcie_port *pp;
+>>>> +    struct resource *res;
+>>>> +    struct device *dev = &pdev->dev;
+>>>> +
+>>>> +    pp = &dra7xx->pp;
+>>>> +    pp->dev = dev;
+>>>> +    pp->ops = &dra7xx_pcie_host_ops;
+>>>> +
+>>>> +    spin_lock_init(&pp->conf_lock);
+>>>> +
+>>>> +    pp->irq = platform_get_irq(pdev, 1);
+>>>> +    if (pp->irq < 0) {
+>>>> +            dev_err(dev, "missing IRQ resource\n");
+>>>> +            return -EINVAL;
+>>>> +    }
+>>>>
+>>>
+>>> The binding does not list a mandatory "interrupts" property, so
+>>> this should not be treated as an error.
+>>
+>> actually the 'interrupts' property is documented in pci/designware-pcie.txt.
+> 
+> Hmm, but you don't seem to use it the same way as documented there.
+> I'm not sure what 'level interrupt, pulse interrupt, special interrupt'
+> in the parent binding are, but they don't seem to be the ones you use
+> here.
 
- Tomi
+Yeah. I'll update my Documentation. Thanks for pointing this out.
 
-
-
---kFCCUXLXLxExcieBKb5FeLAn23RC7etUS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTbLv+AAoJEPo9qoy8lh711mAP/225WkaqaAhrPKzc/LZlAvBj
-5Eav97Ld57sKnBrfDtrI+D2u1lD45DyNL40qo8/ezZvxpczoisma3gvAfaOO+ces
-bokNfxL/hhqu/MPeU6BXVGaqMc00+4rvgYV6/MZ0yblvJkw/9h7KoTQd5VEymm82
-N9AlokPIf1oOKWBeiUXhdUB7Tcsrg48Y6vThMO60BXpuBIr2UvMcPZ31lAS4jYcY
-aIjHncYO6+uqjbE0fZs9d+8eoOe9H1ml2XgX9g0nqjrWkKxbG+RK6mvzAgb3v/kq
-2iG3ojFScco6trjSYc14Pi8UhglfV4cjzZpyA7yDiFPcaD5CHMy0MjswuaGxfdrr
-FIIMmlD1cywNgWaBLGnMN7qj1uhBFrpEtfLOaYXi12rcgwxuGlmoTy34JBLy0ea5
-fTWkr09iNflSwOiGIJV2xIKoUZeQV75ylmJv8r7EKdLbHy1jUOvtYK9FITFk9fCS
-nKFkE3yG9gzRtj/+7x6xJ913NSlZv4bqvEZi4ikIcBDG6gCIIxg5zPHgGeCRTHNC
-Zh1FFWSlKFx6ZG2Y648sYHpD6XozZEtUGlj3m2/KlElAdt/jNbq2ZwbzXRbV8qBB
-SFZBET/j2SzETcqfirVK6j+m/d/zLpXDbOMayZTc1l/ad8q74RdIIaw3S3LojIFV
-l6tMngQNvv9y/KuBKRnU
-=Lwdj
------END PGP SIGNATURE-----
-
---kFCCUXLXLxExcieBKb5FeLAn23RC7etUS--
+Thanks
+Kishon
