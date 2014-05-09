@@ -1,86 +1,92 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] ARM: dts: Add LCD panel sharp ls037v7dw01 support
- for omap3-evm and ldp
-Date: Fri, 9 May 2014 08:37:23 -0700
-Message-ID: <20140509153723.GD17814@atomide.com>
+Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
+ support
+Date: Fri, 9 May 2014 08:55:04 -0700
+Message-ID: <20140509155504.GE17814@atomide.com>
 References: <1398815562-24113-1-git-send-email-tony@atomide.com>
- <1398815562-24113-5-git-send-email-tony@atomide.com>
- <CAGhQ9Vwa8xXQEo5dNEKAvmaS9DoBjVSthtd8=owk+atVdFuiiA@mail.gmail.com>
- <20140430174751.GA12362@atomide.com>
- <20140505183919.GA15463@atomide.com>
- <20140508233628.GJ2198@atomide.com>
- <536C7EA7.5000306@ti.com>
+ <1398815562-24113-4-git-send-email-tony@atomide.com>
+ <5369EAE7.3030705@ti.com>
+ <20140507150343.GA9502@atomide.com>
+ <536A5920.1020908@ti.com>
+ <20140507175919.GH9502@atomide.com>
+ <20140508233300.GI2198@atomide.com>
+ <536C8293.4070506@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62600 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45229 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667AbaEIPh3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 11:37:29 -0400
+	with ESMTP id S1755009AbaEIPzK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 11:55:10 -0400
 Content-Disposition: inline
-In-Reply-To: <536C7EA7.5000306@ti.com>
+In-Reply-To: <536C8293.4070506@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Joachim Eastwood <manabian@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140509 00:08]:
-> On 09/05/14 02:36, Tony Lindgren wrote:
-> 
-> > --- /dev/null
-> > +++ b/arch/arm/boot/dts/omap-panel-sharp-ls037v7dw01.dtsi
-> > @@ -0,0 +1,82 @@
-> > +/*
-> > + * Common file for omap dpi panels with QVGA and reset pins
-> > + *
-> > + * Note that the board specifc DTS file needs to specify
-> > + * at minimum the GPIO enable-gpios for display, and
-> > + * gpios for gpio-backlight.
-> > + */
-> 
-> This looks very board specific to me... The regulator and the use of
-> mcspi1 depend on the board, so this file can't be used on just any omap
-> board with the same panel. And this can (probably) only be used on
-> boards with a single display. Do those boards have tv-out?
-
-Yes there's also TV out and DVI on omap3-evm, LDP just has DVI.
-
-It seems that all omap3 boards using this are pretty much wired
-the same way.
- 
-> So I have nothing against having common files, but shouldn't this be
-> named something more specific? If the boards involved are TI's OMAP3
-> development boards, maybe this should be something like...
-> omap3-ti-dev-panel-sharp-ls037v7dw01.dtsi. Well, that's a quite long one.
-
-Yeah let's use omap3-panel-sharp-ls037v7dw01.dtsi. Looking at the
-legacy board files that should cover quite a few of them.
-
-I guess it might also work on 2430sdp, but let's assume omap3
-for now.
- 
-> > +/ {
-> > +	aliases {
-> > +		display0 = &lcd0;
-> > +	};
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140509 00:24]:
+> On 09/05/14 02:33, Tony Lindgren wrote:
+> > +Example when connected to a omap2+ based device:
 > > +
-> > +	backlight0: backlight {
-> > +		compatible = "gpio-backlight";
-> > +	};
+> > +	lcd0: display {
+> > +		compatible = "sharp,ls037v7dw01";
+> > +		power-supply = <&lcd_3v3>;
+> > +		enable-gpios = <&gpio5 24 GPIO_ACTIVE_HIGH>;	/* gpio152, lcd INI */
+> > +		reset-gpios = <&gpio5 27 GPIO_ACTIVE_HIGH>;	/* gpio155, lcd RESB */
+> > +		mode-gpios = <&gpio5 26 GPIO_ACTIVE_HIGH	/* gpio154, lcd MO */
+> > +			      &gpio1 2 GPIO_ACTIVE_HIGH		/* gpio2, lcd LR */
+> > +			      &gpio1 3 GPIO_ACTIVE_HIGH>;	/* gpio3, lcd UD */
 > > +
-> > +	/* 3.3V GPIO controlled regulator for LCD_ENVDD */
-> > +	lcd_3v3: regulator-lcd-3v3 {
-> > +		compatible = "regulator-fixed";
-> > +		regulator-name = "lcd_3v3";
-> > +		regulator-min-microvolt = <3300000>;
-> > +		regulator-max-microvolt = <3300000>;
-> > +		startup-delay-us = <70000>;
-> > +		regulator-always-on;
+> > +		panel-timing {
+> > +			clock-frequency = <19200000>;
+> > +			hback-porch = <28>;
+> > +			hactive = <480>;
+> > +			hfront-porch = <1>;
+> > +			hsync-len = <2>;
+> > +			vback-porch = <1>;
+> > +			vactive = <640>;
+> > +			vfront-porch = <1>;
+> > +			vsync-len = <1>;
+> > +			hsync-active = <0>;
+> > +			vsync-active = <0>;
+> > +			de-active = <1>;
+> > +			pixelclk-active = <1>;
+> > +		};
 > 
-> Why always-on?
+> I don't think we should define panel-timing here. We know it's
+> sharp,ls037v7dw01, so the driver knows the video timings. Also, if we
+> would extend the driver to support both resolution modes, it needs to
+> support two different timings, so the above doesn't work in that case
+> either.
 
-Oops, yeah that should not be there. The GPIO is board specific.
+OK. It seems we can have at least two different timings for this panel,
+the VGA timing above and the QVGA timings that LDP uses that are listed
+in the .dts changes.
+ 
+> Although if the MO gpio is not controlled by the driver, we should tell
+> the driver whether that gpio is high or low.
+
+What do you have in mind for telling that? We should also tell the
+orientation of the panel:
+
+EVM	VGA	omapfb.rotate=3
+LDP	QVGA	omapfb.rotate=0
+
+Do you have something in mind for that?
+ 
+> At the moment our display drivers are OMAP specific, and for that reason
+> we should prefix the compatible strings with "omapdss,". For example,
+> drivers/video/fbdev/omap2/displays-new/panel-dsi-cm.c:
+> 
+> 	{ .compatible = "omapdss,panel-dsi-cm", },
+> 
+> But we should still have the right compatible string in the .dts, so we
+> convert the compatible name in arch/arm/mach-omap2/display.c, with
+> 'dss_compat_conv_list' array, to which this panel's name should be added.
+
+Oh so what do you want to have in the .dts file then?
 
 Regards,
 
-Tony
+Tony 
