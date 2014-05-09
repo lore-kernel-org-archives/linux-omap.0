@@ -1,93 +1,63 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 05/17] pci: host: pcie-dra7xx: add support for pcie-dra7xx
- controller
-Date: Fri, 9 May 2014 16:59:04 +0530
-Message-ID: <536CBC00.6000709@ti.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com> <4300084.bc6ByDTk7W@wuerfel> <5369F287.6000103@ti.com> <6485683.q96o7U6vf8@wuerfel>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for
+ configuring the iATU
+Date: Fri, 9 May 2014 17:20:09 +0530
+Message-ID: <536CC0F1.301@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com> <4764413.ZAEU5S5p0p@wuerfel> <000201cf6a9c$9dd295e0$d977c1a0$%han@samsung.com> <6882241.amuhzvbd8n@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38005 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753422AbaEIL3w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 07:29:52 -0400
-In-Reply-To: <6485683.q96o7U6vf8@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <6882241.amuhzvbd8n@wuerfel>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: 'Santosh Shilimkar' <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, 'Bjorn Helgaas' <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, 'Marek Vasut' <marex-ynQEQJNshbs@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
-Cc: Marek Vasut <marex@denx.de>, devicetree@vger.kernel.org, balajitk@ti.com, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, Jingoo Han <jg1.han@samsung.com>, linux-kernel@vger.kernel.org, Mohit Kumar <mohit.kumar@st.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, rogerq@ti.com
 
-Hi Arnd,
+Hi,
 
-On Wednesday 07 May 2014 03:00 PM, Arnd Bergmann wrote:
-> On Wednesday 07 May 2014 14:14:55 Kishon Vijay Abraham I wrote:
->>>> +static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
->>>> +{
->>>> +    struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
->>>> +
->>>> +    dra7xx_pcie_writel(dra7xx->base, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
->>>> +                       ~INTERRUPTS);
->>>> +    dra7xx_pcie_writel(dra7xx->base,
->>>> +                       PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN, INTERRUPTS);
->>>> +    dra7xx_pcie_writel(dra7xx->base, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
->>>> +                       ~LEG_EP_INTERRUPTS & ~MSI);
->>>> +
->>>> +    if (IS_ENABLED(CONFIG_PCI_MSI))
->>>> +            dra7xx_pcie_writel(dra7xx->base,
->>>> +                               PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI, MSI);
->>>> +    else
->>>> +            dra7xx_pcie_writel(dra7xx->base,
->>>> +                               PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
->>>> +                               LEG_EP_INTERRUPTS);
->>>
->>> Doesn't this just enable one or the other? In general I'd assume you need
->>> both INTx and MSI, at least if MSI is available.
->>
->> Not sure since the programming sequence in the TRM explicitly states either
->> legacy interrupts or MSI interrupts should be enabled but not both.
-> 
-> Hmm, I think that means you can't have MSI at all. You have to support
-> legacy PCI devices that can't do MSI.
-> 
-> Do you know if you have a modern GIC implementation with MSI support
-> in these SoCs? It would be better anyway to use the GIC for doing
-
-In DRA7 it is not there. I'm not sure in other platforms.
-> MSI, so you can just ignore the internal MSI controller here.
-> 
->>>> +static int add_pcie_port(struct dra7xx_pcie *dra7xx,
->>>> +                      struct platform_device *pdev)
->>>> +{
->>>> +    int ret;
->>>> +    struct pcie_port *pp;
->>>> +    struct resource *res;
->>>> +    struct device *dev = &pdev->dev;
->>>> +
->>>> +    pp = &dra7xx->pp;
->>>> +    pp->dev = dev;
->>>> +    pp->ops = &dra7xx_pcie_host_ops;
->>>> +
->>>> +    spin_lock_init(&pp->conf_lock);
->>>> +
->>>> +    pp->irq = platform_get_irq(pdev, 1);
->>>> +    if (pp->irq < 0) {
->>>> +            dev_err(dev, "missing IRQ resource\n");
->>>> +            return -EINVAL;
->>>> +    }
+On Thursday 08 May 2014 02:48 PM, Arnd Bergmann wrote:
+> On Thursday 08 May 2014 18:05:11 Jingoo Han wrote:
+>> On Tuesday, May 06, 2014 10:59 PM, Arnd Bergmann wrote:
+>>> On Tuesday 06 May 2014 19:03:52 Kishon Vijay Abraham I wrote:
+>>>> In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
+>>>> address. So whenever the cpu issues a read/write request, the 4 most
+>>>> significant bits are used by L3 to determine the target controller.
+>>>> For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
+>>>> the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
+>>>> the outbound translation window the *base* should be programmed as 0x000_0000.
+>>>> Whenever we try to write to say 0x2000_0000, it will be translated to whatever
+>>>> we have programmed in the translation window with base as 0x000_0000.
 >>>>
+>>>> Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+>>>> Cc: Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>>>> Acked-by: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+>>>> Acked-by: Mohit Kumar <mohit.kumar-qxv4g6HH51o@public.gmane.org>
 >>>
->>> The binding does not list a mandatory "interrupts" property, so
->>> this should not be treated as an error.
+>>> Sorry, but NAK.
+>>>
+>>> We have a standard 'dma-ranges' property to handle this, so use it.
+>>>
+>>> See the x-gene PCIe driver patches for an example. Please also talk
+>>> to Santosh about it, as he is implementing generic support for
+>>> parsing dma-ranges in platform devices at the moment.
 >>
->> actually the 'interrupts' property is documented in pci/designware-pcie.txt.
+>> Hi Arnd,
+>>
+>> Do you mean the following patch?
+>> http://www.spinics.net/lists/kernel/msg1737725.html
+>>
 > 
-> Hmm, but you don't seem to use it the same way as documented there.
-> I'm not sure what 'level interrupt, pulse interrupt, special interrupt'
-> in the parent binding are, but they don't seem to be the ones you use
-> here.
+> That is the patch Santosh did for platform devices, which is related but not
+> what I meant here. For the PCI inbound window setup, please have a look
+> at https://lkml.org/lkml/2014/3/19/607
 
-Yeah. I'll update my Documentation. Thanks for pointing this out.
+For some reason lkml is not showing any contents. Do you have a different link?
 
 Thanks
 Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
