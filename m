@@ -1,64 +1,33 @@
-From: Darren Etheridge <detheridge@ti.com>
-Subject: Re: [PATCH] arm/dts: am335x-evmsk enable display and lcd panel
- support
-Date: Fri, 9 May 2014 11:27:16 -0500
-Message-ID: <20140509162716.GK2626@ti.com>
-References: <1398199063-3026-1-git-send-email-detheridge@ti.com>
- <20140506161001.GH18474@atomide.com>
- <536CBBFE.40508@ti.com>
- <20140509144748.GI2626@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH v2 0/6] mmc: omap_hsmmc: convert to use devm_* and fixes
+Date: Fri, 9 May 2014 22:16:47 +0530
+Message-ID: <1399654013-28262-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51113 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754465AbaEIQ17 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 12:27:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20140509144748.GI2626@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, chris@printf.net, ulf.hansson@linaro.org
+Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-Darren Etheridge <detheridge@ti.com> wrote on Fri [2014-May-09 09:47:49 -0500]:
-> Tomi Valkeinen <tomi.valkeinen@ti.com> wrote on Fri [2014-May-09 14:29:02 +0300]:
-> > On 06/05/14 19:10, Tony Lindgren wrote:
-> > > * Darren Etheridge <detheridge@ti.com> [140422 13:39]:
-> > >> Add the necessary nodes to enable the LCD controller and the
-> > >> LCD panel that is attached to the Texas Instruments AM335x
-> > >> EVMSK platform.  Also setup the necessary pin mux within the
-> > >> DT file to drive the LCD connector and add the correct
-> > >> pinmux settings for the lcd pins to be configured to when
-> > >> the SoC goes into sleep state for the minimum power
-> > >> consumption.
-> > >>
-> > >> For the sleep mode LCD pin settings, MUX_MODE7 is chosen as
-> > >> this corresponds to switching the pins into input GPIO's with
-> > >> an internal pulldown.  Which has been determined to offer the
-> > >> lowest power solution vs leaving the pins configured in LCD
-> > >> mode.
-> > > 
-> > > Probably best that Tomi queues all the panel .dts changes into
-> > > a separate immutable branch that I can merge too.
-> > 
-> > This is not for OMAP DSS, but for the LCDC used in beaglebone, so there
-> > are no dependencies to any of my work.
-> > 
-> 
-> Benoit had always queued these LCDC dts patches in the past.  This is
-> exactly the same as what had been done for AM335x-EVM and
-> AM335x-BeagleBone both of which are already in the mainline kernel.  I
-> had just missed the EVMSK previously.
-> 
-> Darren
-> 
+v2:
+use devm_ioremap_resource
+add cmd23 multiblock read/write fix
 
-There is a labeling mistake in this patch with the comments for LCD pins
-16 through 23.  I will correct it and send a V2.
+Balaji T K (6):
+  mmc: omap_hsmmc: use devm_clk_get
+  mmc: omap_hsmmc: use devm_request_irq
+  mmc: omap_hsmmc: use devm_request_threaded_irq
+  mmc: omap_hsmmc: use devm_ioremap_resource
+  mmc: omap_hsmmc: fix cmd23 multiblock read/write
+  mmc: omap_hsmmc: split omap-dma header file
 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/mmc/host/omap_hsmmc.c  |   57 ++++++++++++---------------------------
+ include/linux/omap-dma.h       |   19 +------------
+ include/linux/omap-dmaengine.h |   21 ++++++++++++++
+ 3 files changed, 40 insertions(+), 57 deletions(-)
+ create mode 100644 include/linux/omap-dmaengine.h
+
+-- 
+1.7.5.4
+
