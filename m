@@ -1,67 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: Correct offset in OMAP4_WKUP_IOPAD macro
-Date: Fri, 9 May 2014 09:07:26 -0700
-Message-ID: <20140509160725.GG17814@atomide.com>
-References: <1397924056-6462-1-git-send-email-manabian@gmail.com>
- <CAGhQ9VwU_BjrD+c9uJn9FBwo6v_BOMUCKwiOW-7eqOu056a79A@mail.gmail.com>
- <20140421153539.GB23945@atomide.com>
- <CAGhQ9VyFQgcOw8y97R6HR1apXo-89JyktADxR6jb1EJipXqqjA@mail.gmail.com>
- <CAGhQ9VxCA_VnO18zWgtWUExNE6YJd+krNEVLtyZTpyY6hRyHUg@mail.gmail.com>
- <20140506001237.GK25949@atomide.com>
- <CAGhQ9Vw+cR-cKQ-w3psZPOWOqwugntXq-9g5=4cZV-ijQZecTQ@mail.gmail.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] ARM: dts: am335x-evm: fix comments for lcd pins
+Date: Fri, 9 May 2014 18:09:02 +0200
+Message-ID: <20140509160902.GA14250@katana>
+References: <1399648580-14487-1-git-send-email-wsa@the-dreams.de>
+ <20140509155929.GJ2626@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gBBFr7Ir9EOA20Yy"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14451 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755882AbaEIQHa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 12:07:30 -0400
+Received: from sauhun.de ([89.238.76.85]:50547 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752279AbaEIQJN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2014 12:09:13 -0400
 Content-Disposition: inline
-In-Reply-To: <CAGhQ9Vw+cR-cKQ-w3psZPOWOqwugntXq-9g5=4cZV-ijQZecTQ@mail.gmail.com>
+In-Reply-To: <20140509155929.GJ2626@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joachim Eastwood <manabian@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Darren Etheridge <detheridge@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Wolfram Sang <wsa@sang-engineering.com>, Benoit Parrot <bparrot@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-* Joachim Eastwood <manabian@gmail.com> [140509 05:58]:
-> On 6 May 2014 02:12, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > OK sorry just noticed you're using it already while was about to
-> > apply your patches. Care to update that series again to not use the
-> > macro, or by adding the offsets?
-> 
-> hm, I'd rather add offsets than remove the macro's now.
-> 
-> How about we introduce a mask parameter in to the OMAP_IOPAD_OFFSET macro?
-> Something like this:
-> #define OMAP_IOPAD_OFFSET(pa, offset, mask) (((pa) & mask) - ((offset) & mask))
-> 
-> #define OMAP4_CORE_IOPAD(pa, val) OMAP_IOPAD_OFFSET((pa), 0x0040, 0xfff) (val)
-> 
-> #define OMAP4_WKUP_IOPAD(pa, val) OMAP_IOPAD_OFFSET((pa), 0xe040, 0xfff) (val)
-> 
-> Of course we need to fix the other users as well.
 
-I was thinking that too initially, but then we would have macros that behave
-in a different way:
+--gBBFr7Ir9EOA20Yy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-1. Calculate the iopad offset from the iopad register area start based on
-   the iopad physical address
 
-2. Calculate the iopad offset from the iopad register area start based on
-   the iopadd offset from the driver base address
+> The same mistake is also in my EVMSK LCD enabling patch that is floating
+> around on this list at the moment.  I will fix that and resend it.
+> BeagleBone Black only uses the first 16 LCD pins so the dts for that is
+> correct.
 
-> One other possibility is to use my original patch in this mail or just
-> create a OMAP4_IOPAD with offset 0x040 which will on OMAP4 work for
-> both core and wkup.
+Well, even in the TI-based-3.2-kernel I originally got with the custom
+hardware, this mistake was present in mach-omap2/mux33xx.c. No wonder it
+spread from there :)
 
-That also makes the macro behave in a different way depending on the
-SoC which is not nice.
- 
-> What do you think?
+> Thanks for finding and fixing it.
 
-I think it's best to add some new macros to avoid confusion.
+Very welcome!
 
-Regards,
 
-Tony
+--gBBFr7Ir9EOA20Yy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTbP2eAAoJEBQN5MwUoCm2ypcP+gKVNvkJZdPtMsKGVULcYCi4
+KWZ0FWjs6LmkC4+dT7AN9+hmsuzC5EyjGz+yBKa84KvqcoitUzLvdgAutXDpfRqk
+JL0aUrX1aRB/yN7qn40wxW/5gajoCu/RorrAucLqK523YqqmIaZVnej8OYzO7NhR
+c81vN88cmRyj3gydblOFHMb/+/yWZl6bvJVaLWCu/ZuAG3PCldQ5OUp5Nm+TXMRE
+BGhZthl0BHp6OiInCgV6QHss/fszQsl8ha3pGgzw57acOnBN94SotWZUblUEXzw9
+19P+wLzXDHoVgNeoqpTvQDIGTp0cdjWF1nnbU1RC6+1gtxetZfWAyefdmdmbvFU1
+4/BVTEDDOi4yXXCgh7nBu24n/6cTsjAYyO5BcoMs1jnt6qbkFLgjUvtikhOLMqhr
+ffIxA0b3H6CuQxbdmayQp5Gw0jnokfLEX4O/2lrIe86nsGsuvW4RKIOHGk8HLR8z
+E90Zt0MarF6+LuOnDsNkAOiK5CdXD5YWwle69QDGWIyxq+uLrSB/n12VQZmZiedj
+SAjRWoPmF3dhpRkuMKnbdOoa4KZ29x4kUgW6wRjFkgeCccJGyE3rbfABzNi7bn9/
+3UXgNbKcuiEyh5Y2xehz2/GvHrk/Z9Vloyo9AYsqbfeZXDTNGkS90jqjnyPFExLh
+lVlka/iaeIpL/mSmW15l
+=hFzS
+-----END PGP SIGNATURE-----
+
+--gBBFr7Ir9EOA20Yy--
