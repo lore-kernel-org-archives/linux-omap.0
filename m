@@ -1,55 +1,126 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 07/11] ARM: dts: omap5-clocks.dtsi: add dss iclk
-Date: Fri, 9 May 2014 14:56:15 +0300
-Message-ID: <1399636579-8062-8-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 11/11] ARM: dts: omap5-uevm.dts: add display nodes
+Date: Fri, 9 May 2014 14:56:19 +0300
+Message-ID: <1399636579-8062-12-git-send-email-tomi.valkeinen@ti.com>
 References: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39222 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49034 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756367AbaEIL5Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 07:57:16 -0400
+	id S1756273AbaEIL5a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2014 07:57:30 -0400
 In-Reply-To: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>, Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add missing DSS interface clock node.
-
-Note: The TRM says DSS's interface clock is DSS_L3_GICLK, but it is not
-clear to me from reading the TRM and looking at the
-arch/arm/boot/dts/omap54xx-clocks.dtsi whether using 'l3_iclk_div' as
-the parent for 'dss_l3_iclk' is the correct clock.
-
-The clock is explicitly used only by the RFBI, and we don't have any
-boards using the RFBI, so I have no means to test it.
+omap5-uevm has a single HDMI output. Add the necessary display
+information, including pinmuxing.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/boot/dts/omap54xx-clocks.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/arm/boot/dts/omap5-uevm.dts | 82 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 82 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi b/arch/arm/boot/dts/omap54xx-clocks.dtsi
-index d487fdab3921..26c02f9e92c4 100644
---- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
-@@ -418,6 +418,14 @@
- 		clock-div = <1>;
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index 76877516f6df..9ffbe71b88c3 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -183,6 +183,19 @@
+ 		>;
  	};
  
-+	dss_l3_iclk: dss_l3_iclk {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&l3_iclk_div>;
-+		clock-mult = <1>;
-+		clock-div = <1>;
++	dss_hdmi_pins: pinmux_dss_hdmi_pins {
++		pinctrl-single,pins = <
++			0x0fc (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++			0x100 (PIN_INPUT | MUX_MODE0)	/* hdmi_ddc_scl.hdmi_ddc_scl */
++			0x102 (PIN_INPUT | MUX_MODE0)	/* hdmi_ddc_sda.hdmi_ddc_sda */
++		>;
 +	};
 +
- 	slimbus1_slimbus_clk: slimbus1_slimbus_clk {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
++	tpd12s015_pins: pinmux_tpd12s015_pins {
++		pinctrl-single,pins = <
++			0x0fe (PIN_INPUT_PULLDOWN | MUX_MODE6)	/* hdmi_hpd.gpio7_193 */
++		>;
++	};
+ };
+ 
+ &omap5_pmx_wkup {
+@@ -498,3 +511,72 @@
+ &cpu0 {
+ 	cpu0-supply = <&smps123_reg>;
+ };
++
++/ {
++	aliases {
++		display0 = &hdmi0;
++	};
++
++	tpd12s015: encoder@0 {
++		compatible = "ti,tpd12s015";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&tpd12s015_pins>;
++
++		gpios = <&gpio9 0 GPIO_ACTIVE_HIGH>,	/* TCA6424A P01, CT CP HPD */
++			<&gpio9 1 GPIO_ACTIVE_HIGH>,	/* TCA6424A P00, LS OE */
++			<&gpio7 1 GPIO_ACTIVE_HIGH>;	/* GPIO 193, HPD */
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++
++				tpd12s015_in: endpoint@0 {
++					remote-endpoint = <&hdmi_out>;
++				};
++			};
++
++			port@1 {
++				reg = <1>;
++
++				tpd12s015_out: endpoint@0 {
++					remote-endpoint = <&hdmi_connector_in>;
++				};
++			};
++		};
++	};
++
++	hdmi0: connector@0 {
++		compatible = "hdmi-connector";
++		label = "hdmi";
++
++		type = "b";
++
++		port {
++			hdmi_connector_in: endpoint {
++				remote-endpoint = <&tpd12s015_out>;
++			};
++		};
++	};
++};
++
++&dss {
++	status = "ok";
++};
++
++&hdmi {
++	status = "ok";
++	vdda-supply = <&ldo4_reg>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&dss_hdmi_pins>;
++
++	port {
++		hdmi_out: endpoint {
++			remote-endpoint = <&tpd12s015_in>;
++		};
++	};
++};
 -- 
 1.9.1
 
