@@ -1,84 +1,61 @@
-From: =?UTF-8?Q?Andreas_M=C3=BCller?= <schnitzeltony@googlemail.com>
-Subject: Re: [PATCH 1/4] OMAPDSS: Fix DSS clock multiplier issue on 3703 and
- probably 3630
-Date: Fri, 9 May 2014 23:06:55 +0200
-Message-ID: <CALbNGRR3U1veFgXmOWpfG3yNVESdxi2t79WDrJwOZ1oShuG1yA@mail.gmail.com>
-References: <1398815562-24113-1-git-send-email-tony@atomide.com>
-	<1398815562-24113-2-git-send-email-tony@atomide.com>
-	<536C860E.1000501@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 13/13] video: omap: allow building on !MMU
+Date: Sat, 10 May 2014 00:21:12 +0300
+Message-ID: <20140509212112.GB6670@drone.musicnaut.iki.fi>
+References: <1398342509-10243-1-git-send-email-peter.griffin@linaro.org>
+ <1398342509-10243-14-git-send-email-peter.griffin@linaro.org>
+ <5369F973.10803@ti.com>
+ <20140508215338.GE2198@atomide.com>
+ <20140508230415.GA6670@drone.musicnaut.iki.fi>
+ <20140508231711.GF2198@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f173.google.com ([209.85.220.173]:48286 "EHLO
-	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757382AbaEIVG4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 17:06:56 -0400
-In-Reply-To: <536C860E.1000501@ti.com>
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:45737 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757209AbaEIVZl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 17:25:41 -0400
+Content-Disposition: inline
+In-Reply-To: <20140508231711.GF2198@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Peter Griffin <peter.griffin@linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-On Fri, May 9, 2014 at 9:38 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On 30/04/14 02:52, Tony Lindgren wrote:
->> Otherwise we can get often errors like the following and the
->> display won't come on:
->>
->> omapdss APPLY error: FIFO UNDERFLOW on gfx, disabling the overlay
->> omapdss APPLY error: SYNC_LOST on channel lcd, restarting
->> the output with video overlays disabled
->>
->> There are some earlier references to this issue:
->>
->> http://www.spinics.net/lists/linux-omap/msg59511.html
->> http://www.spinics.net/lists/linux-omap/msg59724.html
->
-resend - my client had HTML enabled...
+Hi,
 
-FWIW: I have had issues long time ago [1]. With mainline 3.14.3 I had
-still the reboot problem on old 600MHz OMAP 3530. Applying this patch
-solved the issues. For other versions I had no chance to reproduce the
-original wakup issue mentioned in old thread
+On Thu, May 08, 2014 at 04:17:11PM -0700, Tony Lindgren wrote:
+> > OMAP1 fb is working very well. As a matter of fact, it's much more usable
+> > for me than fb on OMAP2/3 - apart from N900 (on which fb is working again
+> > with 3.15) none of my 4 other OMAP2/3 boards have a working display/fb
+> > in mainline yet. :-(
+> 
+> I hear you.. What do you have in the .config for omap1?
+> Would be nice to enable the framebuffer in omap1_defconfig?
 
-[1] http://marc.info/?l=linux-omap&m=136250904607413&w=2
+Looks like the needed stuff is enabled there. Unfortunately I cannot
+test the full omap1_defconfig because of size limitations.
 
-Andreas
-> Those don't sound like the same issue, but it's hard to say. What kind
-> of clock rates do you get? Cat you paste debugfs/omapdss/clk, with and
-> without this patch?
->
-> What resolution do you have? If it's a very high resolution (say, DVI
-> output to a monitor), it could just be an issue of
-> not-enough-memory-bandwidth.
->
->> It seems that it's safe to set the lower values even for 3630.
->> If we can confirm that 3630 works with the higher values
->> reliably we can add further detection.
->>
->> Signed-off-by: Tony Lindgren <tony@atomide.com>
->> ---
->>  drivers/video/fbdev/omap2/dss/dss.c | 5 +++--
->>  1 file changed, 3 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/video/fbdev/omap2/dss/dss.c b/drivers/video/fbdev/omap2/dss/dss.c
->> index d55266c..ad6561f 100644
->> --- a/drivers/video/fbdev/omap2/dss/dss.c
->> +++ b/drivers/video/fbdev/omap2/dss/dss.c
->> @@ -707,9 +707,10 @@ static const struct dss_features omap34xx_dss_feats __initconst = {
->>       .dpi_select_source      =       &dss_dpi_select_source_omap2_omap3,
->>  };
->>
->> +/* Supposedly 3630 can use div 32 mult 2, but that needs to be rechecked */
->>  static const struct dss_features omap3630_dss_feats __initconst = {
->> -     .fck_div_max            =       32,
->> -     .dss_fck_multiplier     =       1,
->> +     .fck_div_max            =       16,
->> +     .dss_fck_multiplier     =       2,
->
-> These values tell about the clock hardware, they are not settings that
-> can be changed to change the clock. OMAP3630 has a fixed x2 multiplier
-> and a divider with maximum value of 16.
->
->  Tomi
->
->
+> > > > Tony, any idea of omap1's fb? Are you able to test this?
+> > > 
+> > > I have three omap1 boards in my rack that I use for my boot
+> > > testing. Tried to enable framebuffer but so far no luck on
+> > > any of them. So I'm not much of a help here. Looks like the
+> > > patch should work though..
+> > > 
+> > > Aaro & Janusz, care to take a look at the patch in this
+> > > thread?
+> > 
+> > I couldn't figure out how to enter this code path. Amstrad E3 & Nokia
+> > 770 will take the alloc_fbmem() path & exit, and based on quick look
+> > I could not see way to enter mmap_kern(). Is that dead code?
+> 
+> Could be. It may be something left from when we had code to keep
+> the bootloader logo displayed while booting kernel.
+
+The support for early fbmem alloc was removed in 2011
+(1e434f9318efc3dddc0c0b8d2071712668154c2b, OMAPFB: remove early mem
+alloc from old omapfb), so I think we can safely delete this code.
+I can prepare & test a patch for this.
+
+A.
