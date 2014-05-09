@@ -1,131 +1,58 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] video: omap: delete support for early fbmem allocation
-Date: Sat, 10 May 2014 01:52:44 +0300
-Message-ID: <1399675964-22917-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Peter Griffin <peter.griffin@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: omap4-panda-es boot issues with v3.15-rc4
+Date: Fri, 09 May 2014 16:45:33 -0700
+Message-ID: <7heh02ms82.fsf@paris.lan>
+References: <536B7E44.2040303@ti.com> <7hppjos2w2.fsf@paris.lan>
+	<CAGa+x84VB3CXDm71JWxHx1-Qk1xVNeXdwUjZnb42_wg+piOzzA@mail.gmail.com>
+	<20140508165558.GB2198@atomide.com>
+	<20140508184055.GC2198@atomide.com> <7hha4zsyro.fsf@paris.lan>
+	<536C9084.50209@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:47749 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756183AbaEIXpf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 19:45:35 -0400
+Received: by mail-pa0-f48.google.com with SMTP id rd3so4952402pab.35
+        for <linux-omap@vger.kernel.org>; Fri, 09 May 2014 16:45:35 -0700 (PDT)
+In-Reply-To: <536C9084.50209@ti.com> (Roger Quadros's message of "Fri, 9 May
+	2014 11:23:32 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Taras Kondratiuk <taras.kondratiuk@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kristo, Tero" <t-kristo@ti.com>, Paul Burton <paul.burton@imgtec.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Commit 1e434f9318efc3dddc0c0b8d2071712668154c2b (OMAPFB: remove early mem
-alloc from old omapfb) deleted the support for early fbmem allocation
-from the platform code, but some code still remains in the driver side.
-Delete this code now, as it repotedly causes build issues on !MMU.
+Roger Quadros <rogerq@ti.com> writes:
 
-The patch was tested on Amstrad E3 and Nokia 770 and framebuffer
-functionality is not affected.
+> Kevin,
+>
+> On 05/09/2014 01:15 AM, Kevin Hilman wrote:
+>> Tony Lindgren <tony@atomide.com> writes:
+>> 
+>> [...]
+>> 
+>>> ..but I think I found the cause for recent hangs on panda, just a wild
+>>> guess based on looking at the recent cpuidle patches after v3.14.
+>>>
+>>> Looks like reverting 0b89e9aa2856 (cpuidle: delay enabling interrupts
+>>> until all coupled CPUs leave idle) makes booting work reliably again
+>>> on panda.
+>>>
+>>> Can you guys confirm, so far no issues here after few boot tests,
+>>> but it might be too early to tell.
+>> 
+>> Reverting that makes things a bit more stable, but it still eventually
+>> fails in the same way.  For me it took 8 boots for it to eventually
+>> fail.
+>> 
+>> However, if I build with CONFIG_CPU_IDLE=n, it becomes much more stable
+>> (20+ boots in a row and still going.)
+>> 
+>
+> Can you please test with CPU_IDLE enabled but C3 disabled as in below patch?
+> It worked for me 10/10 boots.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- drivers/video/fbdev/omap/lcdc.c | 67 ++---------------------------------------
- 1 file changed, 2 insertions(+), 65 deletions(-)
+Yup, it worked for me too for 10/10 boots in a row.
 
-diff --git a/drivers/video/fbdev/omap/lcdc.c b/drivers/video/fbdev/omap/lcdc.c
-index b52f625..6efa259 100644
---- a/drivers/video/fbdev/omap/lcdc.c
-+++ b/drivers/video/fbdev/omap/lcdc.c
-@@ -74,7 +74,6 @@ static struct omap_lcd_controller {
- 	void			(*dma_callback)(void *data);
- 	void			*dma_callback_data;
- 
--	int			fbmem_allocated;
- 	dma_addr_t		vram_phys;
- 	void			*vram_virt;
- 	unsigned long		vram_size;
-@@ -611,42 +610,6 @@ static void lcdc_dma_handler(u16 status, void *data)
- 		lcdc.dma_callback(lcdc.dma_callback_data);
- }
- 
--static int mmap_kern(void)
--{
--	struct vm_struct	*kvma;
--	struct vm_area_struct	vma;
--	pgprot_t		pgprot;
--	unsigned long		vaddr;
--
--	kvma = get_vm_area(lcdc.vram_size, VM_IOREMAP);
--	if (kvma == NULL) {
--		dev_err(lcdc.fbdev->dev, "can't get kernel vm area\n");
--		return -ENOMEM;
--	}
--	vma.vm_mm = &init_mm;
--
--	vaddr = (unsigned long)kvma->addr;
--	vma.vm_start = vaddr;
--	vma.vm_end = vaddr + lcdc.vram_size;
--
--	pgprot = pgprot_writecombine(pgprot_kernel);
--	if (io_remap_pfn_range(&vma, vaddr,
--			   lcdc.vram_phys >> PAGE_SHIFT,
--			   lcdc.vram_size, pgprot) < 0) {
--		dev_err(lcdc.fbdev->dev, "kernel mmap for FB memory failed\n");
--		return -EAGAIN;
--	}
--
--	lcdc.vram_virt = (void *)vaddr;
--
--	return 0;
--}
--
--static void unmap_kern(void)
--{
--	vunmap(lcdc.vram_virt);
--}
--
- static int alloc_palette_ram(void)
- {
- 	lcdc.palette_virt = dma_alloc_writecombine(lcdc.fbdev->dev,
-@@ -703,8 +666,6 @@ static void free_fbmem(void)
- 
- static int setup_fbmem(struct omapfb_mem_desc *req_md)
- {
--	int r;
--
- 	if (!req_md->region_cnt) {
- 		dev_err(lcdc.fbdev->dev, "no memory regions defined\n");
- 		return -EINVAL;
-@@ -715,31 +676,7 @@ static int setup_fbmem(struct omapfb_mem_desc *req_md)
- 		req_md->region_cnt = 1;
- 	}
- 
--	if (req_md->region[0].paddr == 0) {
--		lcdc.fbmem_allocated = 1;
--		if ((r = alloc_fbmem(&req_md->region[0])) < 0)
--			return r;
--		return 0;
--	}
--
--	lcdc.vram_phys = req_md->region[0].paddr;
--	lcdc.vram_size = req_md->region[0].size;
--
--	if ((r = mmap_kern()) < 0)
--		return r;
--
--	dev_dbg(lcdc.fbdev->dev, "vram at %08x size %08lx mapped to 0x%p\n",
--		 lcdc.vram_phys, lcdc.vram_size, lcdc.vram_virt);
--
--	return 0;
--}
--
--static void cleanup_fbmem(void)
--{
--	if (lcdc.fbmem_allocated)
--		free_fbmem();
--	else
--		unmap_kern();
-+	return alloc_fbmem(&req_md->region[0]);
- }
- 
- static int omap_lcdc_init(struct omapfb_device *fbdev, int ext_mode,
-@@ -833,7 +770,7 @@ static void omap_lcdc_cleanup(void)
- {
- 	if (!lcdc.ext_mode)
- 		free_palette_ram();
--	cleanup_fbmem();
-+	free_fbmem();
- 	omap_free_lcd_dma();
- 	free_irq(OMAP_LCDC_IRQ, lcdc.fbdev);
- 	clk_disable(lcdc.lcd_ck);
--- 
-1.9.0
+Kevin
