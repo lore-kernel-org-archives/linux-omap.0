@@ -1,161 +1,89 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v4 2/6] ARM: dts: am437x-gp-evm: add support for parallel NAND flash
-Date: Sat, 10 May 2014 02:10:11 +0530
-Message-ID: <1399668015-10499-3-git-send-email-pekon@ti.com>
-References: <1399668015-10499-1-git-send-email-pekon@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 3/5] irqchip: crossbar: Skip some irqs from getting mapped
+ to crossbar
+Date: Fri, 9 May 2014 16:41:18 -0400
+Message-ID: <536D3D6E.8030304@ti.com>
+References: <1399299527-10955-1-git-send-email-r.sricharan@ti.com>	<1399299527-10955-4-git-send-email-r.sricharan@ti.com>	<536BD9D8.4080905@ti.com>	<20140508203659.GA5620@kahuna>	<CAD=GYpbQQxQgKd3oZcAuWrxoD4VrkKzpybd11qwxs405HSUVGw@mail.gmail.com>	<536C0DC4.7090309@ti.com>	<CAD=GYpav4mHaqo4jfb0ePchf3cvuvSnFKj_+osbrt_8-tYRRrQ@mail.gmail.com>	<536C2071.8040502@ti.com> <CAD=GYpbRn=LEthpAUX9LNBGTB4iDs7TGiSSgLJuuS0tSatRRJQ@mail.gmail.com> <536CD01F.2070506@ti.com> <536CD7BE.5020407@ti.com> <536CD9DB.4010508@ti.com> <536CDBDF.10600@ti.com> <536CDF94.7000900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60743 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757450AbaEIUki (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 16:40:38 -0400
-In-Reply-To: <1399668015-10499-1-git-send-email-pekon@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44278 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757476AbaEIUlq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2014 16:41:46 -0400
+In-Reply-To: <536CDF94.7000900@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com
-Cc: linux-omap <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>
+To: Nishanth Menon <nm@ti.com>, Joel Fernandes <agnel.joel@gmail.com>
+Cc: Joel Fernandes <joelf@ti.com>, "tony@atomide.com" <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Sricharan R <r.sricharan@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-Adds pinmux and DT node for Micron (MT29F4G08AB) x8 NAND device present on
-am437x-gp-evm board.
-(1) As NAND Flash data lines are muxed with eMMC, Thus at a given time either
-    eMMC or NAND can be enabled. Selection between eMMC and NAND is controlled:
-    (a) By dynamically driving following GPIO pin from software
-        SPI2_CS0(GPIO) == 0 NAND is selected (default)
-        SPI2_CS0(GPIO) == 1 eMMC is selected
-    (b) By statically using Jumper (J89) on the board
+On Friday 09 May 2014 10:00 AM, Nishanth Menon wrote:
+> On 05/09/2014 08:45 AM, Santosh Shilimkar wrote:
+>> On Friday 09 May 2014 09:36 AM, Nishanth Menon wrote:
+[..]
 
-(2) As NAND device connnected to this board has page-size=4K and oob-size=224,
-    So ROM code expects boot-loaders to be flashed in BCH16 ECC scheme for
-    NAND boot.
+>> Looks like I am missing something. Is the issue because of SPI offset (32)
+>> which makes above confusion ?
+> 
+> The way we modelled crossbar is that the irqchip is GIC and routable
+> mapper is crossbar - which makes sense. now for every "interrupts"
+> description we try to find a map using the crossbar driver as the irq
+> framework rightly identifies that peripheral interrupts are routable
+> and crossbar driver is the guy who knows how to map these to a proper
+> GIC interrupt number. So far, we are good.
+> 
+> Now the trouble starts when our hardware description in dts assumes
+> that every peripheral interrupt is a routable interrupt - as this
+> thread describes - that is NOT the case.
+> 
+> Now the question is how do you differentiate?
+> 
+> interrupts = <GIC_SPI Number Level>
+> 
+> GIC_SPI is correct since we are attempting to describe the SPI
+> interrupt (offset what ever it is, is a NOP from conceptual discussion).
+> 
+> Level is fine as well.
+> 
+> Number: what does this indicate? crossbar number is what we have
+> assumed so far. however, then you loose the ability to describe
+> interrupts on GIC SPI which dont have crossbar interrupts.
+> 
+> Question is how do we differentiate between the two?
+> 
+Updating the thread about an off-list discussion on $subject.
+Nishant understood the how he was indirectly changing the meaning
+of IRQ bindings and why its a bad idea. The point which
+didn't came out clearly on the list was also the limited set
+of route-able IRQ registers at cross-bar which is utter non-sense
+and broken hardware. And since we are patching up the cross-bar
+hardware bugs, it should be done such a way that the cross-bar
+device tree bindings reflect that.
 
-Signed-off-by: Pekon Gupta <pekon@ti.com>
----
- arch/arm/boot/dts/am437x-gp-evm.dts | 107 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 107 insertions(+)
+Here is the way forward we decided...
+Add additional/optional properties to cross-bar binding
+so that you can represent IRQs which can't be routed by
+cross-bar. Something like 'MAX_ROUTABLE_IRQS'.
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 2e0c636..bfb2007 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -98,6 +98,27 @@
- 			0x264 (PIN_INPUT_PULLUP | MUX_MODE7)  /* spi2_d0.gpio3_22 */
- 		>;
- 	};
-+
-+	nand_flash_x8: nand_flash_x8 {
-+		pinctrl-single,pins = <
-+			0x26C(PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* spi2_cs0.gpio/eMMCorNANDsel */
-+			0x0  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
-+			0x4  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
-+			0x8  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
-+			0xc  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
-+			0x10 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
-+			0x14 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
-+			0x18 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
-+			0x1c (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
-+			0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
-+			0x74 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_wpn.gpmc_wpn */
-+			0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0  */
-+			0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
-+			0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
-+			0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
-+			0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
-+		>;
-+	};
- };
- 
- &i2c0 {
-@@ -174,3 +195,89 @@
- 	dr_mode = "host";
- 	status = "okay";
- };
-+
-+&elm {
-+	status = "okay";
-+};
-+
-+&gpmc {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&nand_flash_x8>;
-+	ranges = <0 0 0 0x1000000>;	/* CS0: NAND */
-+	nand@0,0 {
-+		reg = <0 0 0x380>; /* CS0, offset=0, reg-map size=0x380 */
-+		ti,nand-ecc-opt = "bch8";
-+		ti,elm-id = <&elm>;
-+		nand-bus-width = <8>;
-+		gpmc,device-width = <1>;
-+		gpmc,sync-clk-ps = <0>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <40>;
-+		gpmc,cs-wr-off-ns = <40>;
-+		gpmc,adv-on-ns = <0>;
-+		gpmc,adv-rd-off-ns = <25>;
-+		gpmc,adv-wr-off-ns = <25>;
-+		gpmc,we-on-ns = <0>;
-+		gpmc,we-off-ns = <20>;
-+		gpmc,oe-on-ns = <3>;
-+		gpmc,oe-off-ns = <30>;
-+		gpmc,access-ns = <30>;
-+		gpmc,rd-cycle-ns = <40>;
-+		gpmc,wr-cycle-ns = <40>;
-+		gpmc,wait-on-read = "true";
-+		gpmc,wait-on-write = "true";
-+		gpmc,bus-turnaround-ns = <0>;
-+		gpmc,cycle2cycle-delay-ns = <0>;
-+		gpmc,clk-activation-ns = <0>;
-+		gpmc,wait-monitoring-ns = <0>;
-+		gpmc,wr-access-ns = <40>;
-+		gpmc,wr-data-mux-bus-ns = <0>;
-+		/* MTD partition table */
-+		/* All SPL-* partitions are sized to minimal length
-+		 * which can be independently programmable. For
-+		 * NAND flash this is equal to size of erase-block */
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		partition@0 {
-+			label = "NAND.SPL";
-+			reg = <0x00000000 0x00040000>;
-+		};
-+		partition@1 {
-+			label = "NAND.SPL.backup1";
-+			reg = <0x00040000 0x00040000>;
-+		};
-+		partition@2 {
-+			label = "NAND.SPL.backup2";
-+			reg = <0x00080000 0x00040000>;
-+		};
-+		partition@3 {
-+			label = "NAND.SPL.backup3";
-+			reg = <0x000c0000 0x00040000>;
-+		};
-+		partition@4 {
-+			label = "NAND.u-boot-spl-os";
-+			reg = <0x00100000 0x00080000>;
-+		};
-+		partition@5 {
-+			label = "NAND.u-boot";
-+			reg = <0x00180000 0x00100000>;
-+		};
-+		partition@6 {
-+			label = "NAND.u-boot-env";
-+			reg = <0x00280000 0x00040000>;
-+		};
-+		partition@7 {
-+			label = "NAND.u-boot-env.backup1";
-+			reg = <0x002c0000 0x00040000>;
-+		};
-+		partition@8 {
-+			label = "NAND.kernel";
-+			reg = <0x00300000 0x00700000>;
-+		};
-+		partition@9 {
-+			label = "NAND.file-system";
-+			reg = <0x00a00000 0x1f600000>;
-+		};
-+	};
-+};
--- 
-1.8.5.1.163.gd7aced9
+Then on the cleint modules which has the shortcoming, you just
+add MAX_ROUTABLE_IRQS to those IRQs. That way cross-bar
+driver fails to route them and just returns the offset
+IRQline thinking it is already hard wired.
+
+As a proof of concept I suggest you to just create a bidnig
+patch with example usage of such case in the Documentation
+and send it for review.
+
+Copy Device Tree folks and Thomas to see if they are ok with it
+or can suggest some better way to deal with the issue.
+
+Thanks for the patience and explaining the issue repeatedly.
+
+regards,
+Santosh
+
+
+
+
 
