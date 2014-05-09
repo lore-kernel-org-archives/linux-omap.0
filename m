@@ -1,106 +1,155 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v2] arm/dts: am335x-evmsk enable display and lcd panel
- support
-Date: Fri, 9 May 2014 21:29:18 +0200
-Message-ID: <20140509192918.GA18138@katana>
-References: <1399661354-10022-1-git-send-email-detheridge@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Remove suspend_set_ops from common pm late
+ init
+Date: Fri, 9 May 2014 15:17:04 -0500
+Message-ID: <536D37C0.1000704@ti.com>
+References: <1399661580-54599-1-git-send-email-d-gerlach@ti.com> <536D26C6.1060903@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="huq684BweRXVnRxX"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:51995 "EHLO pokefinder.org"
+Received: from comal.ext.ti.com ([198.47.26.152]:59876 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757323AbaEIT3Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2014 15:29:25 -0400
-Content-Disposition: inline
-In-Reply-To: <1399661354-10022-1-git-send-email-detheridge@ti.com>
+	id S1756553AbaEIUR0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2014 16:17:26 -0400
+In-Reply-To: <536D26C6.1060903@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Darren Etheridge <detheridge@ti.com>
-Cc: bcousson@baylibre.com, tony@atomide.com, Wolfram Sang <wsa@sang-engineering.com>, linux-arm-kernel@lists.infradead.org, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
+On 05/09/2014 02:04 PM, Nishanth Menon wrote:
+> On 05/09/2014 01:53 PM, Dave Gerlach wrote:
+>> In omap2_common_pm_late_init suspend_set_ops was called to set common
+>> suspend handling functions for all omap platforms. This created two
+>> problems. First, these suspend ops were being set for all platforms,
+>> regardless of whether or not suspend support has been integrated so in
+>> the case of AM33XX, suspend to mem was presented as available but
+>> failed every time. Second, some platforms will need to define a
+>> completely separate set of suspend ops, such as AM33XX, due to
+>> differences from previous omap platforms so there is no need to
+>> always set the common omap ops.
+>>
+>> This patch moves the suspend_set_ops call from omap2_common_pm_late_init
+>> into a separate function that then gets called in the omap*_pm_init
+>> functions for each platform.
+>>
+>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/common.h | 8 ++++++++
+>>   arch/arm/mach-omap2/pm.c     | 8 ++++----
+>>   arch/arm/mach-omap2/pm24xx.c | 1 +
+>>   arch/arm/mach-omap2/pm34xx.c | 1 +
+>>   arch/arm/mach-omap2/pm44xx.c | 1 +
+>>   5 files changed, 15 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+>> index d88aff7..091e1c7 100644
+>> --- a/arch/arm/mach-omap2/common.h
+>> +++ b/arch/arm/mach-omap2/common.h
+>> @@ -162,6 +162,14 @@ static inline void omap44xx_restart(enum reboot_mode mode, const char *cmd)
+>>   }
+>>   #endif
+>>
+>> +#ifdef CONFIG_SUSPEND
+>> +void omap_common_suspend_init(void);
+>> +#else
+>> +static inline void omap_common_suspend_init(void)
+>> +{
+>> +}
+>> +#endif
+>> +
+> push this off to this pm.h?
 
---huq684BweRXVnRxX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I could, I had just put it in the same spot as 
+omap2_common_pm_late_init. I agree it makes sense to move it though.
 
-On Fri, May 09, 2014 at 01:49:14PM -0500, Darren Etheridge wrote:
-> Add the necessary nodes to enable the LCD controller and the
-> LCD panel that is attached to the Texas Instruments AM335x
-> EVMSK platform.  Also setup the necessary pin mux within the
-> DT file to drive the LCD connector and add the correct
-> pinmux settings for the lcd pins to be configured to when
-> the SoC goes into sleep state for the minimum power
-> consumption.
->=20
-> For the sleep mode LCD pin settings, MUX_MODE7 is chosen as
-> this corresponds to switching the pins into input GPIO's with
-> an internal pulldown.  Which has been determined to offer the
-> lowest power solution vs leaving the pins configured in LCD
-> mode.
->=20
-> Signed-off-by: Darren Etheridge <detheridge@ti.com>
+>
+>>   /* This gets called from mach-omap2/io.c, do not call this */
+>>   void __init omap2_set_globals_tap(u32 class, void __iomem *tap);
+>>
+>> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+>> index e1b4141..c9b36fb 100644
+>> --- a/arch/arm/mach-omap2/pm.c
+>> +++ b/arch/arm/mach-omap2/pm.c
+>> @@ -243,6 +243,10 @@ static const struct platform_suspend_ops omap_pm_ops = {
+>>   	.valid		= suspend_valid_only_mem,
+>>   };
+>>
+>> +void __init omap_common_suspend_init(void)
+> provide kernel doc please? and do we need __init?
 
-In general:
+Added and no.
 
-Acked-by: Wolfram Sang <wsa@sang-engineering.com>
+>
+>> +{
+>> +	suspend_set_ops(&omap_pm_ops);
+>> +}
+>>   #endif /* CONFIG_SUSPEND */
+>>
+>>   static void __init omap3_init_voltages(void)
+>> @@ -310,9 +314,5 @@ int __init omap2_common_pm_late_init(void)
+>>   	/* cpufreq dummy device instantiation */
+>>   	omap_init_cpufreq();
+>>
+>> -#ifdef CONFIG_SUSPEND
+>> -	suspend_set_ops(&omap_pm_ops);
+>> -#endif
+>> -
+>>   	return 0;
+>>   }
+>> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+>> index 8c07594..8cd2408 100644
+>> --- a/arch/arm/mach-omap2/pm24xx.c
+>> +++ b/arch/arm/mach-omap2/pm24xx.c
+>> @@ -231,6 +231,7 @@ static void __init prcm_setup_regs(void)
+>>
+>>   #ifdef CONFIG_SUSPEND
+>>   	omap_pm_suspend = omap2_enter_full_retention;
+>> +	omap_common_suspend_init();
+>>   #endif
+>>
+>>   	/* REVISIT: Configure number of 32 kHz clock cycles for sys_clk
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+>> index 87099bb..32b2597 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -707,6 +707,7 @@ int __init omap3_pm_init(void)
+>>
+>>   #ifdef CONFIG_SUSPEND
+>>   	omap_pm_suspend = omap3_pm_suspend;
+>> +	omap_common_suspend_init();
+>>   #endif
+>>
+>>   	arm_pm_idle = omap3_pm_idle;
+>> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+>> index eefb30c..58d7cd7 100644
+>> --- a/arch/arm/mach-omap2/pm44xx.c
+>> +++ b/arch/arm/mach-omap2/pm44xx.c
+>> @@ -253,6 +253,7 @@ int __init omap4_pm_init(void)
+>>
+>>   #ifdef CONFIG_SUSPEND
+>>   	omap_pm_suspend = omap4_pm_suspend;
+>> +	omap_common_suspend_init();
+>
+> do we need to expose omap_pm_suspend anymore with this since the
+> original purpose was to make pm.c know about the suspend function?
+> How about:
+> omap_common_suspend_init(omap4_pm_suspend);
+> should do the job, right? and with that, you dont need the #ifdef
+> CONFIG_SUSPEND either in each of the pmxxx.c files since you already
+> deal with it in header.
 
-> +	lcd_pins_sleep: lcd_pins_sleep {
-> +		pinctrl-single,pins =3D <
-> +			0x20 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad8.lcd_data23 */
-> +			0x24 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad9.lcd_data22 */
-> +			0x28 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad10.lcd_data21 */
-> +			0x2c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad11.lcd_data20 */
-> +			0x30 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad12.lcd_data19 */
-> +			0x34 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad13.lcd_data18 */
-> +			0x38 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad14.lcd_data17 */
-> +			0x3c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad15.lcd_data16 */
-> +			0xa0 (PULL_DISABLE | MUX_MODE7)	/* lcd_data0.lcd_data0 */
-> +			0xa4 (PULL_DISABLE | MUX_MODE7)	/* lcd_data1.lcd_data1 */
-> +			0xa8 (PULL_DISABLE | MUX_MODE7)	/* lcd_data2.lcd_data2 */
-> +			0xac (PULL_DISABLE | MUX_MODE7)	/* lcd_data3.lcd_data3 */
-> +			0xb0 (PULL_DISABLE | MUX_MODE7)	/* lcd_data4.lcd_data4 */
-> +			0xb4 (PULL_DISABLE | MUX_MODE7)	/* lcd_data5.lcd_data5 */
-> +			0xb8 (PULL_DISABLE | MUX_MODE7)	/* lcd_data6.lcd_data6 */
-> +			0xbc (PULL_DISABLE | MUX_MODE7)	/* lcd_data7.lcd_data7 */
-> +			0xc0 (PULL_DISABLE | MUX_MODE7)	/* lcd_data8.lcd_data8 */
-> +			0xc4 (PULL_DISABLE | MUX_MODE7)	/* lcd_data9.lcd_data9 */
-> +			0xc8 (PULL_DISABLE | MUX_MODE7)	/* lcd_data10.lcd_data10 */
-> +			0xcc (PULL_DISABLE | MUX_MODE7)	/* lcd_data11.lcd_data11 */
-> +			0xd0 (PULL_DISABLE | MUX_MODE7)	/* lcd_data12.lcd_data12 */
-> +			0xd4 (PULL_DISABLE | MUX_MODE7)	/* lcd_data13.lcd_data13 */
-> +			0xd8 (PULL_DISABLE | MUX_MODE7)	/* lcd_data14.lcd_data14 */
-> +			0xdc (PULL_DISABLE | MUX_MODE7)	/* lcd_data15.lcd_data15 */
-> +			0xe0 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_vsync.lcd_vsync */
-> +			0xe4 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_hsync.lcd_hsync */
-> +			0xe8 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_pclk.lcd_pclk */
-> +			0xec (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* lcd_ac_bias_en.lcd_ac_bias_e=
-n */
+Yes, I like this idea myself.
 
-Maybe a comment why LCD0-15 are handled differently?
+Thanks for the comments,
+Dave
 
+>
+>>   #endif
+>>
+>>   	/* Overwrite the default cpu_do_idle() */
+>>
+>
+>
 
---huq684BweRXVnRxX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTbSyNAAoJEBQN5MwUoCm2mEkQAISZ/Mh+puZM7ejzvb16VNzC
-HYUUlNei/dKpf5b4ZaROfYYYCUzuOzlHZHjkNTCKO44VrLsix30YlGcvXiHTgmGN
-Fm86gSAfO7R0a6PV19ULU5II4LMvaa5afki+ob/EcUL+cMtzyoSnks+Pyb3xMNiu
-k12sMChZQBWoUlbBE8ZgmIowEUTityuG0LTEbGFXM5uWXXq9yOR3Bw8mFHFD6zt+
-hOO6i0ZGFHLfUEySc/tE3cNZnC3vOoyDJrKnd0YruisMSATkaroerPuz8j5zAHgH
-Tx7IRlMsYMPZxNdxICOApPzNCMkp5H58xNH9GIsgvzsZNArH9pY5GV4s6HaEitJT
-ezK8lVx94+xzo6Ws4qlg64zKEmmsIABDKuNQEOrsKD4RJhUNILK4q4EB12TwA/gd
-KH2m2VULYwba/se9n/o/e2tzKTrrYJ19Xl4W++hYc6t2aisfMSYaEi/vOG6SLKxF
-pYu1RseT1WAPvgPyELZL3EjMR4ikjVaHNbPd+rkw0513+hOkiHqQXMtEPHudFZbW
-b8VGFHQv1qk3RLSqDQxEidJd4w142PxX2SBd/4+7cHYhtdfcxAZjZt7y3Xlox0iG
-bkCd1BZeFFkx5Utq9oYbgkv2DnaT9ivZeARlEKSH8Og2wGbZAbV4Rll2oRzkfe6w
-nJtlACQvJPEDLLRDCdXB
-=/bCK
------END PGP SIGNATURE-----
-
---huq684BweRXVnRxX--
