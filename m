@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv5 09/10] DTS: ARM: OMAP3-N900: Add SSI support
-Date: Sat, 10 May 2014 18:37:49 +0200
-Message-ID: <1399739870-13526-10-git-send-email-sre@kernel.org>
+Subject: [PATCHv5 10/10] DTS: ARM: OMAP3-N900: Add modem support
+Date: Sat, 10 May 2014 18:37:50 +0200
+Message-ID: <1399739870-13526-11-git-send-email-sre@kernel.org>
 References: <1399739870-13526-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1399739870-13526-1-git-send-email-sre@kernel.org>
@@ -10,157 +10,77 @@ To: Sebastian Reichel <sre@kernel.org>, Linus Walleij <linus.walleij@linaro.org>
 Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, =?UTF-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE=20=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-omap@vger.kernel.org
 
-Add SSI device tree data for OMAP3 and Nokia N900.
+Add modem device tree data to Nokia N900's DTS file.
 
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 Reviewed-by: Pavel Machek <pavel@ucw.cz>
 Tested-By: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 ---
- arch/arm/boot/dts/omap3-n900.dts | 24 +++++++++++++++++++++
- arch/arm/boot/dts/omap3.dtsi     | 45 ++++++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap34xx.dtsi  | 11 ++++++++++
- arch/arm/boot/dts/omap36xx.dtsi  | 11 ++++++++++
- 4 files changed, 91 insertions(+)
+ arch/arm/boot/dts/omap3-n900.dts | 43 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 1a57b61..ef8b241 100644
+index ef8b241..3cd899d 100644
 --- a/arch/arm/boot/dts/omap3-n900.dts
 +++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -173,6 +173,19 @@
- 			0x0da (PIN_OUTPUT | MUX_MODE1)   /* dss_data23.sdi_clkn */
+@@ -186,6 +186,17 @@
+ 			0x15a (PIN_OUTPUT | MUX_MODE1)		/* ssi1_wake */
  		>;
  	};
 +
-+	ssi_pins: pinmux_ssi {
++	modem_pins: pinmux_modem {
 +		pinctrl-single,pins = <
-+			0x150 (PIN_INPUT_PULLUP | MUX_MODE1)	/* ssi1_rdy_tx */
-+			0x14e (PIN_OUTPUT | MUX_MODE1)		/* ssi1_flag_tx */
-+			0x152 (PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* ssi1_wake_tx (cawake) */
-+			0x14c (PIN_OUTPUT | MUX_MODE1)		/* ssi1_dat_tx */
-+			0x154 (PIN_INPUT | MUX_MODE1)		/* ssi1_dat_rx */
-+			0x156 (PIN_INPUT | MUX_MODE1)		/* ssi1_flag_rx */
-+			0x158 (PIN_OUTPUT | MUX_MODE1)		/* ssi1_rdy_rx */
-+			0x15a (PIN_OUTPUT | MUX_MODE1)		/* ssi1_wake */
++			0x0ac (PIN_OUTPUT | MUX_MODE4)		/* gpio 70 => cmt_apeslpx */
++			0x0b0 (PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* gpio 72 => ape_rst_rq */
++			0x0b2 (PIN_OUTPUT | MUX_MODE4)		/* gpio 73 => cmt_rst_rq */
++			0x0b4 (PIN_OUTPUT | MUX_MODE4)		/* gpio 74 => cmt_en */
++			0x0b6 (PIN_OUTPUT | MUX_MODE4)		/* gpio 75 => cmt_rst */
++			0x15e (PIN_OUTPUT | MUX_MODE4)		/* gpio 157 => cmt_bsi */
 +		>;
 +	};
  };
  
  &i2c1 {
-@@ -662,3 +675,14 @@
- 		};
- 	};
+@@ -681,8 +692,38 @@
+ 	pinctrl-0 = <&ssi_pins>;
+ 
+ 	ti,ssi-cawake-gpio = <&gpio5 23 GPIO_ACTIVE_HIGH>; /* 151 */
++
++	modem: hsi-client {
++		compatible = "nokia,n900-modem";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&modem_pins>;
++
++		hsi-channel-ids = <0>, <1>, <2>, <3>;
++		hsi-channel-names = "mcsaab-control",
++				    "speech-control",
++				    "speech-data",
++				    "mcsaab-data";
++		hsi-speed-kbps = <55000>;
++		hsi-mode = "frame";
++		hsi-flow = "synchronized";
++		hsi-arb-mode = "round-robin";
++
++		interrupts-extended = <&gpio3 8 IRQ_TYPE_EDGE_FALLING>; /* 72 */
++
++		gpios = <&gpio3  6 GPIO_ACTIVE_HIGH>, /* 70 */
++			<&gpio3  9 GPIO_ACTIVE_HIGH>, /* 73 */
++			<&gpio3 10 GPIO_ACTIVE_HIGH>, /* 74 */
++			<&gpio3 11 GPIO_ACTIVE_HIGH>, /* 75 */
++			<&gpio5 29 GPIO_ACTIVE_HIGH>; /* 157 */
++		gpio-names = "cmt_apeslpx",
++			     "cmt_rst_rq",
++			     "cmt_en",
++			     "cmt_rst",
++			     "cmt_bsi";
++	};
  };
-+
-+&ssi_port1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&ssi_pins>;
-+
-+	ti,ssi-cawake-gpio = <&gpio5 23 GPIO_ACTIVE_HIGH>; /* 151 */
-+};
-+
-+&ssi_port2 {
-+	status = "disabled";
-+};
+ 
+ &ssi_port2 {
+ 	status = "disabled";
+-};
 \ No newline at end of file
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index acb9019..b8cd2d7 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -757,6 +757,51 @@
- 				clock-names = "fck";
- 			};
- 		};
-+
-+		ssi: ssi-controller@48058000 {
-+			compatible = "ti,omap3-ssi";
-+			ti,hwmods = "ssi";
-+
-+			status = "disabled";
-+
-+			reg = <0x48058000 0x1000>,
-+			      <0x48059000 0x1000>;
-+			reg-names = "sys",
-+				    "gdd";
-+
-+			interrupts = <71>;
-+			interrupt-names = "gdd_mpu";
-+
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+
-+			ssi_port1: ssi-port@4805a000 {
-+				compatible = "ti,omap3-ssi-port";
-+
-+				reg = <0x4805a000 0x800>,
-+				      <0x4805a800 0x800>;
-+				reg-names = "tx",
-+					    "rx";
-+
-+				interrupt-parent = <&intc>;
-+				interrupts = <67>,
-+					     <68>;
-+			};
-+
-+			ssi_port2: ssi-port@4805b000 {
-+				compatible = "ti,omap3-ssi-port";
-+
-+				reg = <0x4805b000 0x800>,
-+				      <0x4805b800 0x800>;
-+				reg-names = "tx",
-+					    "rx";
-+
-+				interrupt-parent = <&intc>;
-+				interrupts = <69>,
-+					     <70>;
-+			};
-+		};
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
-index 2e92360..3819c1e 100644
---- a/arch/arm/boot/dts/omap34xx.dtsi
-+++ b/arch/arm/boot/dts/omap34xx.dtsi
-@@ -40,6 +40,17 @@
- 	};
- };
- 
-+&ssi {
-+	status = "ok";
-+
-+	clocks = <&ssi_ssr_fck>,
-+		 <&ssi_sst_fck>,
-+		 <&ssi_ick>;
-+	clock-names = "ssi_ssr_fck",
-+		      "ssi_sst_fck",
-+		      "ssi_ick";
 +};
-+
- /include/ "omap34xx-omap36xx-clocks.dtsi"
- /include/ "omap36xx-omap3430es2plus-clocks.dtsi"
- /include/ "omap36xx-am35xx-omap3430es2plus-clocks.dtsi"
-diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
-index 22cf464..541704a 100644
---- a/arch/arm/boot/dts/omap36xx.dtsi
-+++ b/arch/arm/boot/dts/omap36xx.dtsi
-@@ -78,6 +78,17 @@
- 	clock-names = "fck", "tv_dac_clk";
- };
- 
-+&ssi {
-+	status = "ok";
-+
-+	clocks = <&ssi_ssr_fck>,
-+		 <&ssi_sst_fck>,
-+		 <&ssi_ick>;
-+	clock-names = "ssi_ssr_fck",
-+		      "ssi_sst_fck",
-+		      "ssi_ick";
-+};
-+
- /include/ "omap34xx-omap36xx-clocks.dtsi"
- /include/ "omap36xx-omap3430es2plus-clocks.dtsi"
- /include/ "omap36xx-am35xx-omap3430es2plus-clocks.dtsi"
 -- 
 2.0.0.rc0
