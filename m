@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv5 03/10] HSI: export method to (un)register clients
-Date: Sat, 10 May 2014 18:37:43 +0200
-Message-ID: <1399739870-13526-4-git-send-email-sre@kernel.org>
+Subject: [PATCHv5 06/10] Documentation: DT: omap-ssi binding documentation
+Date: Sat, 10 May 2014 18:37:46 +0200
+Message-ID: <1399739870-13526-7-git-send-email-sre@kernel.org>
 References: <1399739870-13526-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1399739870-13526-1-git-send-email-sre@kernel.org>
@@ -10,82 +10,118 @@ To: Sebastian Reichel <sre@kernel.org>, Linus Walleij <linus.walleij@linaro.org>
 Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, =?UTF-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE=20=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-omap@vger.kernel.org
 
-Expose method for registering and unregistering HSI clients, so that
-client drivers can register other client drivers.
-
-This is useful for HSI drivers, which want to use the functionality
-of other HSI drivers. For example the N900 modem driver can load HSI
-drivers for mcsaab protocol and speech protocol.
+Create device tree binding documentation for
+OMAP Synchronous Serial Interface (SSI) device.
 
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 Reviewed-by: Pavel Machek <pavel@ucw.cz>
-Tested-By: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 ---
- drivers/hsi/hsi.c       | 11 ++++++++---
- include/linux/hsi/hsi.h |  3 +++
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ Documentation/devicetree/bindings/hsi/omap-ssi.txt | 97 ++++++++++++++++++++++
+ 1 file changed, 97 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hsi/omap-ssi.txt
 
-diff --git a/drivers/hsi/hsi.c b/drivers/hsi/hsi.c
-index de2ad8f..834a2d6 100644
---- a/drivers/hsi/hsi.c
-+++ b/drivers/hsi/hsi.c
-@@ -69,14 +69,15 @@ static void hsi_client_release(struct device *dev)
- 	kfree(cl);
- }
- 
--static void hsi_new_client(struct hsi_port *port, struct hsi_board_info *info)
-+struct hsi_client *hsi_new_client(struct hsi_port *port,
-+						struct hsi_board_info *info)
- {
- 	struct hsi_client *cl;
- 	size_t size;
- 
- 	cl = kzalloc(sizeof(*cl), GFP_KERNEL);
- 	if (!cl)
--		return;
-+		return NULL;
- 
- 	cl->tx_cfg = info->tx_cfg;
- 	if (cl->tx_cfg.channels) {
-@@ -103,7 +104,10 @@ static void hsi_new_client(struct hsi_port *port, struct hsi_board_info *info)
- 		pr_err("hsi: failed to register client: %s\n", info->name);
- 		put_device(&cl->device);
- 	}
+diff --git a/Documentation/devicetree/bindings/hsi/omap-ssi.txt b/Documentation/devicetree/bindings/hsi/omap-ssi.txt
+new file mode 100644
+index 0000000..f26625e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hsi/omap-ssi.txt
+@@ -0,0 +1,97 @@
++OMAP SSI controller bindings
 +
-+	return cl;
- }
-+EXPORT_SYMBOL_GPL(hsi_new_client);
- 
- static void hsi_scan_board_info(struct hsi_controller *hsi)
- {
-@@ -119,12 +123,13 @@ static void hsi_scan_board_info(struct hsi_controller *hsi)
- 		}
- }
- 
--static int hsi_remove_client(struct device *dev, void *data __maybe_unused)
-+int hsi_remove_client(struct device *dev, void *data __maybe_unused)
- {
- 	device_unregister(dev);
- 
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(hsi_remove_client);
- 
- static int hsi_remove_port(struct device *dev, void *data __maybe_unused)
- {
-diff --git a/include/linux/hsi/hsi.h b/include/linux/hsi/hsi.h
-index e3cff94..e20a399 100644
---- a/include/linux/hsi/hsi.h
-+++ b/include/linux/hsi/hsi.h
-@@ -296,6 +296,9 @@ struct hsi_controller *hsi_alloc_controller(unsigned int n_ports, gfp_t flags);
- void hsi_put_controller(struct hsi_controller *hsi);
- int hsi_register_controller(struct hsi_controller *hsi);
- void hsi_unregister_controller(struct hsi_controller *hsi);
-+struct hsi_client *hsi_new_client(struct hsi_port *port,
-+						struct hsi_board_info *info);
-+int hsi_remove_client(struct device *dev, void *data);
- void hsi_port_unregister_clients(struct hsi_port *port);
- 
- static inline void hsi_controller_set_drvdata(struct hsi_controller *hsi,
++OMAP Synchronous Serial Interface (SSI) controller implements a legacy
++variant of MIPI's High Speed Synchronous Serial Interface (HSI).
++
++Required properties:
++- compatible:		Should include "ti,omap3-ssi".
++- reg-names:		Contains the values "sys" and "gdd" (in this order).
++- reg:			Contains a matching register specifier for each entry
++			in reg-names.
++- interrupt-names:	Contains the value "gdd_mpu".
++- interrupts: 		Contains matching interrupt information for each entry
++			in interrupt-names.
++- ranges:		Represents the bus address mapping between the main
++			controller node and the child nodes below.
++- clock-names:		Must include the following entries:
++  "ssi_ssr_fck": The OMAP clock of that name
++  "ssi_sst_fck": The OMAP clock of that name
++  "ssi_ick": The OMAP clock of that name
++- clocks:		Contains a matching clock specifier for each entry in
++			clock-names.
++- #address-cells:	Should be set to <1>
++- #size-cells:		Should be set to <1>
++
++Each port is represented as a sub-node of the ti,omap3-ssi device.
++
++Required Port sub-node properties:
++- compatible:		Should be set to the following value
++			ti,omap3-ssi-port (applicable to OMAP34xx devices)
++- reg-names:		Contains the values "tx" and "rx" (in this order).
++- reg:			Contains a matching register specifier for each entry
++			in reg-names.
++- interrupt-parent	Should be a phandle for the interrupt controller
++- interrupts:		Should contain interrupt specifiers for mpu interrupts
++			0 and 1 (in this order).
++- ti,ssi-cawake-gpio:	Defines which GPIO pin is used to signify CAWAKE
++			events for the port. This is an optional board-specific
++			property. If it's missing the port will not be
++			enabled.
++
++Example for Nokia N900:
++
++ssi-controller@48058000 {
++	compatible = "ti,omap3-ssi";
++
++	/* needed until hwmod is updated to use the compatible string */
++	ti,hwmods = "ssi";
++
++	reg = <0x48058000 0x1000>,
++	      <0x48059000 0x1000>;
++	reg-names = "sys",
++		    "gdd";
++
++	interrupts = <55>;
++	interrupt-names = "gdd_mpu";
++
++	clocks = <&ssi_ssr_fck>,
++		 <&ssi_sst_fck>,
++		 <&ssi_ick>;
++	clock-names = "ssi_ssr_fck",
++		      "ssi_sst_fck",
++		      "ssi_ick";
++
++	#address-cells = <1>;
++	#size-cells = <1>;
++	ranges;
++
++	ssi-port@4805a000 {
++		compatible = "ti,omap3-ssi-port";
++
++		reg = <0x4805a000 0x800>,
++		      <0x4805a800 0x800>;
++		reg-names = "tx",
++			    "rx";
++
++		interrupt-parent = <&intc>;
++		interrupts = <67>,
++			     <68>;
++
++		ti,ssi-cawake-gpio = <&gpio5 23 GPIO_ACTIVE_HIGH>; /* 151 */
++	}
++
++	ssi-port@4805a000 {
++		compatible = "ti,omap3-ssi-port";
++
++		reg = <0x4805b000 0x800>,
++		      <0x4805b800 0x800>;
++		reg-names = "tx",
++			    "rx";
++
++		interrupt-parent = <&intc>;
++		interrupts = <69>,
++			     <70>;
++
++		status = "disabled"; /* second port is not used on N900 */
++	}
++}
 -- 
 2.0.0.rc0
