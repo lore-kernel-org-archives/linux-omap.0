@@ -1,204 +1,108 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH v4 3/6] ARM: dts: dra7: add support for parallel NAND flash
-Date: Sat, 10 May 2014 19:57:00 +0200
-Message-ID: <CABxcv=nNuMLDCbNimWWR6yBbq3dHV6i87vBu69ZXGcYE-c9bmA@mail.gmail.com>
-References: <1399668412-10818-1-git-send-email-pekon@ti.com>
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: =?UTF-8?q?=5BPATCH=20v11=200/6=5D=20mmc=3A=20omap=5Fhsmmc=3A=20Enable=20SDIO=20IRQ=20?=
+Date: Sun, 11 May 2014 13:28:52 +0200
+Message-ID: <1399807738-32223-1-git-send-email-afenkart@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:56256 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751001AbaEJR5C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 May 2014 13:57:02 -0400
-Received: by mail-wi0-f176.google.com with SMTP id n15so2703888wiw.15
-        for <linux-omap@vger.kernel.org>; Sat, 10 May 2014 10:57:00 -0700 (PDT)
-In-Reply-To: <1399668412-10818-1-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, Sebastian Reichel <sre@kernel.org>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Andreas Fenkart <afenkart@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, Minal Shah <minalkshah@gmail.com>
 
-Hello Pekon,
+Hi Balaji, Tony, all
 
-On Fri, May 9, 2014 at 10:46 PM, Pekon Gupta <pekon@ti.com> wrote:
-> From: Minal Shah <minalkshah@gmail.com>
->
-> DRA7xx platform has in-build GPMC and ELM h/w engines which can be used
-> for accessing externel NAND flash device. This patch:
-> - adds generic DT binding in dra7.dtsi for enabling GPMC and ELM h/w engines
-> - adds DT binding for Micron NAND Flash (MT29F2G16AADWP) present on dra7-evm
-> *Important*
->         On DRA7 EVM, GPMC_WPN and NAND_BOOTn are controlled by DIP switch
->         So following board settings are required for NAND device detection:
->         SW5.9 (GPMC_WPN) = LOW
->         SW5.1 (NAND_BOOTn) = HIGH
->
-> Signed-off-by: Minal Shah <minalkshah@gmail.com>
-> Signed-off-by: Pekon Gupta <pekon@ti.com>
-> ---
->  arch/arm/boot/dts/dra7-evm.dts | 117 +++++++++++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/dra7.dtsi    |  20 +++++++
->  2 files changed, 137 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> index 5f1f6da..ed4e974 100644
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -108,6 +108,37 @@
->                         0xbc (PIN_INPUT_PULLUP | MUX_MODE1)  /* gpmc_cs3.qspi1_cs1 */
->                 >;
->         };
-> +
-> +       nand_flash_x16: nand_flash_x16 {
-> +               /* On DRA7 EVM, GPMC_WPN and NAND_BOOTn comes from DIP switch
-> +                * So NAND flash requires following switch settings:
-> +                * SW5.9 (GPMC_WPN) = LOW
-> +                * SW5.1 (NAND_BOOTn) = HIGH */
-> +               pinctrl-single,pins = <
-> +                       0x0     (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad0     */
-> +                       0x4     (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad1     */
-> +                       0x8     (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad2     */
-> +                       0xc     (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad3     */
-> +                       0x10    (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad4     */
-> +                       0x14    (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad5     */
-> +                       0x18    (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad6     */
-> +                       0x1c    (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad7     */
-> +                       0x20    (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad8     */
-> +                       0x24    (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad9     */
-> +                       0x28    (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad10    */
-> +                       0x2C    (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad11    */
-> +                       0x30    (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad12    */
-> +                       0x34    (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad13    */
-> +                       0x38    (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad14    */
-> +                       0x3C    (PIN_INPUT  | MUX_MODE0)        /* gpmc_ad15    */
-> +                       0xd8    (PIN_INPUT_PULLUP  | MUX_MODE0) /* gpmc_wait0   */
-> +                       0xcc    (PIN_OUTPUT | MUX_MODE0)        /* gpmc_wen     */
-> +                       0xb4    (PIN_OUTPUT_PULLUP | MUX_MODE0) /* gpmc_csn0    */
-> +                       0xc4    (PIN_OUTPUT | MUX_MODE0)        /* gpmc_advn_ale */
-> +                       0xc8    (PIN_OUTPUT | MUX_MODE0)        /* gpmc_oen_ren  */
-> +                       0xd0    (PIN_OUTPUT | MUX_MODE0)        /* gpmc_be0n_cle */
-> +               >;
-> +       };
->  };
->
->  &i2c1 {
-> @@ -353,3 +384,89 @@
->                 };
->         };
->  };
-> +
-> +&elm {
-> +       status = "okay";
-> +};
-> +
-> +&gpmc {
-> +       status = "okay";
-> +       pinctrl-names = "default";
-> +       pinctrl-0 = <&nand_flash_x16>;
-> +       ranges = <0 0 0 0x1000000>;
-> +       nand@0,0 {
-> +               reg = <0 0 0x380>;
-> +               ti,nand-ecc-opt = "bch8";
-> +               ti,elm-id = <&elm>;
-> +               nand-bus-width = <16>;
-> +               gpmc,device-width = <2>;
-> +               gpmc,sync-clk-ps = <0>;
-> +               gpmc,cs-on-ns = <0>;
-> +               gpmc,cs-rd-off-ns = <40>;
-> +               gpmc,cs-wr-off-ns = <40>;
-> +               gpmc,adv-on-ns = <0>;
-> +               gpmc,adv-rd-off-ns = <30>;
-> +               gpmc,adv-wr-off-ns = <30>;
-> +               gpmc,we-on-ns = <5>;
-> +               gpmc,we-off-ns = <25>;
-> +               gpmc,oe-on-ns = <2>;
-> +               gpmc,oe-off-ns = <20>;
-> +               gpmc,access-ns = <20>;
-> +               gpmc,wr-access-ns = <40>;
-> +               gpmc,rd-cycle-ns = <40>;
-> +               gpmc,wr-cycle-ns = <40>;
-> +               gpmc,wait-on-read = "true";
-> +               gpmc,wait-on-write = "true";
-> +               gpmc,bus-turnaround-ns = <0>;
-> +               gpmc,cycle2cycle-delay-ns = <0>;
-> +               gpmc,clk-activation-ns = <0>;
-> +               gpmc,wait-monitoring-ns = <0>;
-> +               gpmc,wr-data-mux-bus-ns = <0>;
-> +               /* MTD partition table */
-> +               /* All SPL-* partitions are sized to minimal length
-> +                * which can be independently programmable. For
-> +                * NAND flash this is equal to size of erase-block */
-> +               #address-cells = <1>;
-> +               #size-cells = <1>;
-> +               partition@0 {
-> +                       label = "NAND.SPL";
-> +                       reg = <0x00000000 0x000020000>;
-> +               };
-> +               partition@1 {
-> +                       label = "NAND.SPL.backup1";
-> +                       reg = <0x00020000 0x00020000>;
-> +               };
-> +               partition@2 {
-> +                       label = "NAND.SPL.backup2";
-> +                       reg = <0x00040000 0x00020000>;
-> +               };
-> +               partition@3 {
-> +                       label = "NAND.SPL.backup3";
-> +                       reg = <0x00060000 0x00020000>;
-> +               };
-> +               partition@4 {
-> +                       label = "NAND.u-boot-spl-os";
-> +                       reg = <0x00080000 0x00040000>;
-> +               };
-> +               partition@5 {
-> +                       label = "NAND.u-boot";
-> +                       reg = <0x000c0000 0x00100000>;
-> +               };
-> +               partition@6 {
-> +                       label = "NAND.u-boot-env";
-> +                       reg = <0x001c0000 0x00020000>;
-> +               };
-> +               partition@7 {
-> +                       label = "NAND.u-boot-env";
-> +                       reg = <0x001e0000 0x00020000>;
-> +               };
-> +               partition@8 {
-> +                       label = "NAND.kernel";
-> +                       reg = <0x00200000 0x00800000>;
-> +               };
-> +               partition@9 {
-> +                       label = "NAND.file-system";
-> +                       reg = <0x00a00000 0x0f600000>;
-> +               };
-> +       };
-> +};
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index 37a0595..6af775a 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -776,6 +776,26 @@
->                         interrupts = <0 343 0x4>;
->                         status = "disabled";
->                 };
-> +
-> +               elm: elm@48078000 {
-> +                       compatible = "ti,am3352-elm";
-> +                       reg = <0x48078000 0x2000>;
+v12
+- drop !CONFIG_OF compile break only exists when
+  #undef CONFIG_OF after include headers 1/7(Sebastian Reichel)
+- do not emit "falling back to polling" if wake_irq not specified
+  since MMC does not need it, and it might confuse users
+  only emit if pinmux default/idle is not present or claiming
+  the irq failed 2/7(Balaji)
+- dropped out-of-tree patches 6/7(Balaji)
+- mention "ti,am33xx-hsmmc" compatible section in bindings
+  documentation 1/5
 
-It is really necessary to map all this 8 KB address space for GPMC registers?
+v11
+- split !CONFIG_OF compile break into separate patch
+- enable IWE/CLKEXTFREE in CON/HCTL register needed for omap4
+- '&' vs '&&' in omap_hsmmc_resume, 1/5 (Andreas M=C3=BCller)
+- #define DLEV_DAT instead of BIT(21) 2/5 (Balaji)
+- pinctrl_pm_select_default_state() removed, 4/5 (Balaji)
+- drop _irqsave/_irqrestore from omap_hsmmc_wake_irq handler since it
+  can't be preempted by same priority omap_hsmmc_irq handler 1/5(Joel F=
+ernandes)
+- replace devres_open_group by explicit devm_free calls 1/5 (Balaji)
+- disable_irq_nosync wake_irq since we handle it thread safe 1/5 (Balaj=
+i)
+- drop 'gpio_dat1' pinctrl states and rework documentation 5/5 (Balaji)
 
-I don't have access to the DRA7 TRM but for example the OMAP3 TRM says
-that the GPMC module register address space size is 16 MB while in
-practice the registers use less than 1 KB (0..0x02d0 to be exact) so
-in arch/arm/boot/dts/omap3.dtsi we have:
+v10
+- bug fix on multi-core, untested
+- incorporated changes from Balaji
+- use devres / RAII mechanism to configure wake_up /
+  sdio irq capabilities
+- drop pinctrl state 'active'
+  rely on driver-model states 'default', 'idle'
+- add specific 'gpio_dat1' state for am335x SWAKEUP hack
+- reorganized patches; +1 patch multi-core bugfix / +1 for pinctrl
+- rebased 455c6fdbd21916 / cherry-picks from mmc-next
 
-gpmc: gpmc@6e000000 {
-...
-                        reg = <0x6e000000 0x02d0>;
-...
-};
+v9
+- extended comment about why wake-irq is needed
+- drop double '(' ')' around card_detect_irq
+- drop final '.' in in subject line of patch
 
-Shouldn't this be similar (the same?) for DRA7 GPMC device node?
+v8
+- rebased on top of Tony Lindgren<tony@atomide.com> changes
+  - improved changelog describing the earlier work
+  - improved wakeup irq setup
+  - works for am3730 es platform now
+- my changes on top:
+  - compile tested with #undef CONFIG_OF
+  - disable wake_irq in handler to prevent infinite loop =20
+  - fixed typo and added comment about wake-irq
 
-Thanks a lot and best regards,
-Javier
+v7
+- rebase on 3.14.0-rc3-49726-g77e15ec
+- split omap_hsmmc_pin_init due to regression on omap-3730 platform
+
+v6
+- rebase on Linux 3.13-rc3
+- reformatting debugfs
+
+v5
+- fix compile error introduced by last minute one line fix
+
+v4:
+- switch to interrupts-extended format
+- drop ti,swakeup-missing flag convert to comaptible section
+
+v3:
+- removed gpio_irq from platform_data
+
+v2:
+- incorparated changes as suggested by reviewers
+- simplified workaround for am335x, gpio will now only wake
+  the module from runtime suspend, not handle the sdio irq
+  itself=20
+
+Andreas Fenkart (6):
+  mmc: omap_hsmmc: Enable SDIO interrupt
+  mmc: omap_hsmmc: enable wakeup event for sdio OMAP4
+  mmc: omap_hsmmc: Extend debugfs by SDIO IRQ handling, runtime state
+  mmc: omap_hsmmc: abort runtime suspend if pending sdio irq detected
+  mmc: omap_hsmmc: switch default/idle pinctrl states in runtime hooks
+  mmc: omap_hsmmc: Pin remux workaround to support SDIO interrupt on
+    AM335x
+
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   54 ++++
+ drivers/mmc/host/omap_hsmmc.c                      |  280 ++++++++++++=
+++++++--
+ include/linux/platform_data/mmc-omap.h             |    1 +
+ 3 files changed, 314 insertions(+), 21 deletions(-)
+
+--=20
+1.7.10.4
+
