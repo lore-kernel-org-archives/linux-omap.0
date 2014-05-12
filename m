@@ -1,203 +1,85 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v5 3/4] ARM: dts: dra7: add support for parallel NAND flash
-Date: Mon, 12 May 2014 17:19:12 +0530
-Message-ID: <1399895353-3663-4-git-send-email-pekon@ti.com>
-References: <1399895353-3663-1-git-send-email-pekon@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 1/3] clk: ti: add 'ti,round-rate' flag
+Date: Mon, 12 May 2014 15:02:01 +0300
+Message-ID: <5370B839.3050108@ti.com>
+References: <1399540009-6953-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51548 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52093 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754515AbaELLtl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 May 2014 07:49:41 -0400
-In-Reply-To: <1399895353-3663-1-git-send-email-pekon@ti.com>
+	id S1752039AbaELMBj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 May 2014 08:01:39 -0400
+In-Reply-To: <1399540009-6953-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, bcousson@baylibre.com, Minal Shah <minalkshah@gmail.com>, Pekon Gupta <pekon@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 
-From: Minal Shah <minalkshah@gmail.com>
+On 05/08/2014 12:06 PM, Tomi Valkeinen wrote:
+> The current DPLL code does not try to round the clock rate, and instead
+> returns an error if the requested clock rate cannot be produced exactly
+> by the DPLL.
+>
+> It could be argued that this is a bug, but as the current drivers may
+> depend on that behavior, a new flag 'ti,round-rate' is added which
+> enables clock rate rounding.
 
-DRA7xx platform has in-build GPMC and ELM h/w engines which can be used
-for accessing externel NAND flash device. This patch:
-- adds generic DT binding in dra7.dtsi for enabling GPMC and ELM h/w engines
-- adds DT binding for Micron NAND Flash (MT29F2G16AADWP) present on dra7-evm
-*Important*
-	On DRA7 EVM, GPMC_WPN and NAND_BOOTn are controlled by DIP switch
-	So following board settings are required for NAND device detection:
-	SW5.9 (GPMC_WPN) = LOW
-	SW5.1 (NAND_BOOTn) = HIGH
+Someone could probably argue that this flag is not a hardware feature, 
+but instead is used to describe linux-kernel behavior, and would 
+probably be frowned upon by the DT enthusiasts. Othen than that, I like 
+this approach better than a global setting, but would like second 
+opinions here.
 
-Signed-off-by: Minal Shah <minalkshah@gmail.com>
-Signed-off-by: Pekon Gupta <pekon@ti.com>
----
- arch/arm/boot/dts/dra7-evm.dts | 117 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/dra7.dtsi    |  20 +++++++
- 2 files changed, 137 insertions(+)
+-Tero
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 5f1f6da..c86755d 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -108,6 +108,37 @@
- 			0xbc (PIN_INPUT_PULLUP | MUX_MODE1)  /* gpmc_cs3.qspi1_cs1 */
- 		>;
- 	};
-+
-+	nand_flash_x16: nand_flash_x16 {
-+		/* On DRA7 EVM, GPMC_WPN and NAND_BOOTn comes from DIP switch
-+		 * So NAND flash requires following switch settings:
-+		 * SW5.9 (GPMC_WPN) = LOW
-+		 * SW5.1 (NAND_BOOTn) = HIGH */
-+		pinctrl-single,pins = <
-+			0x0 	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad0	*/
-+			0x4 	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad1	*/
-+			0x8 	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad2	*/
-+			0xc 	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad3	*/
-+			0x10	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad4	*/
-+			0x14	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad5	*/
-+			0x18	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad6	*/
-+			0x1c	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad7	*/
-+			0x20	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad8	*/
-+			0x24	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad9	*/
-+			0x28	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad10	*/
-+			0x2C	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad11	*/
-+			0x30	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad12	*/
-+			0x34	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad13	*/
-+			0x38	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad14	*/
-+			0x3C	(PIN_INPUT  | MUX_MODE0)	/* gpmc_ad15	*/
-+			0xd8	(PIN_INPUT_PULLUP  | MUX_MODE0)	/* gpmc_wait0	*/
-+			0xcc	(PIN_OUTPUT | MUX_MODE0)	/* gpmc_wen	*/
-+			0xb4	(PIN_OUTPUT_PULLUP | MUX_MODE0)	/* gpmc_csn0	*/
-+			0xc4	(PIN_OUTPUT | MUX_MODE0)	/* gpmc_advn_ale */
-+			0xc8	(PIN_OUTPUT | MUX_MODE0)	/* gpmc_oen_ren	 */
-+			0xd0	(PIN_OUTPUT | MUX_MODE0)	/* gpmc_be0n_cle */
-+		>;
-+	};
- };
- 
- &i2c1 {
-@@ -353,3 +384,89 @@
- 		};
- 	};
- };
-+
-+&elm {
-+	status = "okay";
-+};
-+
-+&gpmc {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&nand_flash_x16>;
-+	ranges = <0 0 0 0x01000000>; /* CS0: min. address-space configurable under GPMC chip-select = 16MB */
-+	nand@0,0 {
-+		reg = <0 0 0x380>; /* CS0, offet=0x0, GPMC register-space size=0x380 */
-+		ti,nand-ecc-opt = "bch8";
-+		ti,elm-id = <&elm>;
-+		nand-bus-width = <16>;
-+		gpmc,device-width = <2>;
-+		gpmc,sync-clk-ps = <0>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <40>;
-+		gpmc,cs-wr-off-ns = <40>;
-+		gpmc,adv-on-ns = <0>;
-+		gpmc,adv-rd-off-ns = <30>;
-+		gpmc,adv-wr-off-ns = <30>;
-+		gpmc,we-on-ns = <5>;
-+		gpmc,we-off-ns = <25>;
-+		gpmc,oe-on-ns = <2>;
-+		gpmc,oe-off-ns = <20>;
-+		gpmc,access-ns = <20>;
-+		gpmc,wr-access-ns = <40>;
-+		gpmc,rd-cycle-ns = <40>;
-+		gpmc,wr-cycle-ns = <40>;
-+		gpmc,wait-on-read = "true";
-+		gpmc,wait-on-write = "true";
-+		gpmc,bus-turnaround-ns = <0>;
-+		gpmc,cycle2cycle-delay-ns = <0>;
-+		gpmc,clk-activation-ns = <0>;
-+		gpmc,wait-monitoring-ns = <0>;
-+		gpmc,wr-data-mux-bus-ns = <0>;
-+		/* MTD partition table */
-+		/* All SPL-* partitions are sized to minimal length
-+		 * which can be independently programmable. For
-+		 * NAND flash this is equal to size of erase-block */
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		partition@0 {
-+			label = "NAND.SPL";
-+			reg = <0x00000000 0x000020000>;
-+		};
-+		partition@1 {
-+			label = "NAND.SPL.backup1";
-+			reg = <0x00020000 0x00020000>;
-+		};
-+		partition@2 {
-+			label = "NAND.SPL.backup2";
-+			reg = <0x00040000 0x00020000>;
-+		};
-+		partition@3 {
-+			label = "NAND.SPL.backup3";
-+			reg = <0x00060000 0x00020000>;
-+		};
-+		partition@4 {
-+			label = "NAND.u-boot-spl-os";
-+			reg = <0x00080000 0x00040000>;
-+		};
-+		partition@5 {
-+			label = "NAND.u-boot";
-+			reg = <0x000c0000 0x00100000>;
-+		};
-+		partition@6 {
-+			label = "NAND.u-boot-env";
-+			reg = <0x001c0000 0x00020000>;
-+		};
-+		partition@7 {
-+			label = "NAND.u-boot-env";
-+			reg = <0x001e0000 0x00020000>;
-+		};
-+		partition@8 {
-+			label = "NAND.kernel";
-+			reg = <0x00200000 0x00800000>;
-+		};
-+		partition@9 {
-+			label = "NAND.file-system";
-+			reg = <0x00a00000 0x0f600000>;
-+		};
-+	};
-+};
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 37a0595..120ebaa 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -776,6 +776,26 @@
- 			interrupts = <0 343 0x4>;
- 			status = "disabled";
- 		};
-+
-+		elm: elm@48078000 {
-+			compatible = "ti,am3352-elm";
-+			reg = <0x48078000 0x1000>;
-+			interrupts = <GIC_SPI 4 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,hwmods = "elm";
-+			status = "disabled";
-+		};
-+
-+		gpmc: gpmc@50000000 {
-+			compatible = "ti,am3352-gpmc";
-+			ti,hwmods = "gpmc";
-+			reg = <0x50000000 0x380>; /* actual memory-space taken by GPMC registers */
-+			interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
-+			gpmc,num-cs = <8>;
-+			gpmc,num-waitpins = <2>;
-+			#address-cells = <2>;
-+			#size-cells = <1>;
-+			status = "disabled";
-+		};
- 	};
- };
- 
--- 
-1.8.5.1.163.gd7aced9
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>   Documentation/devicetree/bindings/clock/ti/dpll.txt | 2 ++
+>   drivers/clk/ti/dpll.c                               | 3 +++
+>   include/linux/clk/ti.h                              | 1 +
+>   3 files changed, 6 insertions(+)
+>
+> diff --git a/Documentation/devicetree/bindings/clock/ti/dpll.txt b/Documentation/devicetree/bindings/clock/ti/dpll.txt
+> index 30bfdb7c9f18..7912d876e858 100644
+> --- a/Documentation/devicetree/bindings/clock/ti/dpll.txt
+> +++ b/Documentation/devicetree/bindings/clock/ti/dpll.txt
+> @@ -48,6 +48,8 @@ Optional properties:
+>   	- ti,low-power-stop : DPLL supports low power stop mode, gating output
+>   	- ti,low-power-bypass : DPLL output matches rate of parent bypass clock
+>   	- ti,lock : DPLL locks in programmed rate
+> +- ti,round-rate : if not set, the dpll will return an error if asked for a
+> +                  clock rate that it cannot produce exactly.
+>
+>   Examples:
+>   	dpll_core_ck: dpll_core_ck@44e00490 {
+> diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+> index 7e498a44f97d..c5858c46b58c 100644
+> --- a/drivers/clk/ti/dpll.c
+> +++ b/drivers/clk/ti/dpll.c
+> @@ -265,6 +265,9 @@ static void __init of_ti_dpll_setup(struct device_node *node,
+>   	if (dpll_mode)
+>   		dd->modes = dpll_mode;
+>
+> +	if (of_property_read_bool(node, "ti,round-rate"))
+> +		clk_hw->flags |= DPLL_USE_ROUNDED_RATE;
+> +
+>   	ti_clk_register_dpll(&clk_hw->hw, node);
+>   	return;
+>
+> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+> index 4a21a872dbbd..79e8a7876457 100644
+> --- a/include/linux/clk/ti.h
+> +++ b/include/linux/clk/ti.h
+> @@ -155,6 +155,7 @@ struct clk_hw_omap {
+>   #define INVERT_ENABLE		(1 << 4)	/* 0 enables, 1 disables */
+>   #define CLOCK_CLKOUTX2		(1 << 5)
+>   #define MEMMAP_ADDRESSING	(1 << 6)
+> +#define DPLL_USE_ROUNDED_RATE	(1 << 7)	/* dpll's round_rate() returns rounded rate */
+>
+>   /* CM_CLKEN_PLL*.EN* bit values - not all are available for every DPLL */
+>   #define DPLL_LOW_POWER_STOP	0x1
+>
 
