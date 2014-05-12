@@ -1,56 +1,74 @@
 From: Joachim Eastwood <manabian@gmail.com>
-Subject: [PATCH] ARM: dts: Change IOPAD macro's for OMAP4/5
-Date: Mon, 12 May 2014 20:16:27 +0200
-Message-ID: <1399918587-20170-1-git-send-email-manabian@gmail.com>
+Subject: [PATCH v3 0/4] Support for Variscite OM44 modules and boards
+Date: Mon, 12 May 2014 20:31:59 +0200
+Message-ID: <1399919523-20330-1-git-send-email-manabian@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:60096 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751616AbaELSQs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 14:16:48 -0400
-Received: by mail-la0-f52.google.com with SMTP id gl10so2171565lab.25
-        for <linux-omap@vger.kernel.org>; Mon, 12 May 2014 11:16:47 -0700 (PDT)
+Received: from mail-la0-f48.google.com ([209.85.215.48]:41009 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750924AbaELScm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 14:32:42 -0400
+Received: by mail-la0-f48.google.com with SMTP id mc6so2217653lab.21
+        for <linux-omap@vger.kernel.org>; Mon, 12 May 2014 11:32:41 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Joachim Eastwood <manabian@gmail.com>
+To: tony@atomide.com, bcousson@baylibre.com
+Cc: linux-arm-kernel@lists.infradead.org, paul@pwsan.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, Joachim Eastwood <manabian@gmail.com>
 
-The OMAP4/5 TRMs primarily list address offsets from the padconf
-physical address (which is not driver base address) and not
-always the absolute physical address for padconf registers like
-some other OMAP TRMs. So create a new macro to use this offset
-and to avoid confusion between different OMAP parts.
+Hello,
 
-Signed-off-by: Joachim Eastwood <manabian@gmail.com>
----
- include/dt-bindings/pinctrl/omap.h | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+This patch set adds support for Variscite OM44 series of system on
+modules and boards.
 
-diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/pinctrl/omap.h
-index b04528cd033c..827e80964a35 100644
---- a/include/dt-bindings/pinctrl/omap.h
-+++ b/include/dt-bindings/pinctrl/omap.h
-@@ -62,12 +62,17 @@
- #define OMAP3630_CORE2_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x25a0) (val)
- #define OMAP3_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2a00) (val)
- #define AM33XX_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
--#define OMAP4_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x0040) (val)
--#define OMAP4_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0xe040) (val)
- #define AM4372_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
--#define OMAP5_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2840) (val)
--#define OMAP5_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0xc840) (val)
- #define DRA7XX_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x3400) (val)
- 
-+/*
-+ * Macros to allow using the offset from the padconf physical address
-+ * instead  of the offset from padconf base.
-+ */
-+#define OMAP_PADCONF_OFFSET(offset, base_offset)	((offset) - (base_offset))
-+
-+#define OMAP4_IOPAD(offset, val)	OMAP_PADCONF_OFFSET((offset), 0x0040) (val)
-+#define OMAP5_IOPAD(offset, val)	OMAP_PADCONF_OFFSET((offset), 0x0040) (val)
-+
- #endif
- 
+Changes v3:
+ * Use new OMAP4_IOPAD macro
+ * Add Tomi's Ack for patches with DSS DT nodes
+ * Rebase on Tony's omap-for-v3.16/dt branch
+v2:
+ * Use OMAP IOPAD macros
+
+Patch 1: Add support for the SoM itself and the reference carrier
+board. Together these make the VAR-STK-OM44 dev kit.
+
+Patch 2: Add support for VAR-DVK-OM44 which is just the STK with
+a LCD display.
+
+Patch 3: Nodes for WLAN/BT support.
+
+Patch 4: Add quirks so that WLAN can be used. Still waiting for
+proper DT bindings.
+
+Since this patch set uses the new OMAP4_IOPAD macro the follow patch
+must be applied: https://patchwork.kernel.org/patch/4160561/
+
+Note that patch 1 and 2 relies upon the DSS panel and HDMI hpq DT
+patches from Tomi Valkeinen. See Tomi's 3.16/omap branch.
+
+The branch from Tomi mentioned above is destined for 3.16.
+
+Joachim Eastwood (4):
+  ARM: dts: Add support for OMAP4 Variscite OM44 family
+  ARM: dts: Add support for OMAP4 VAR-DVK-OM44
+  ARM: dts: Add VAR-SOM-OM44 WLAN nodes
+  ARM: OMAP2+: Use pdata quirks for wl12xx on VAR-STK/DVK-OM44
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   6 +
+ .../devicetree/bindings/vendor-prefixes.txt        |   1 +
+ arch/arm/boot/dts/Makefile                         |   3 +-
+ arch/arm/boot/dts/omap4-var-dvk-om44.dts           |  71 +++++
+ arch/arm/boot/dts/omap4-var-om44customboard.dtsi   | 235 ++++++++++++++
+ arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi     |  68 ++++
+ arch/arm/boot/dts/omap4-var-som-om44.dtsi          | 343 +++++++++++++++++++++
+ arch/arm/boot/dts/omap4-var-som.dts                |  96 ------
+ arch/arm/boot/dts/omap4-var-stk-om44.dts           |  17 +
+ arch/arm/mach-omap2/pdata-quirks.c                 |   7 +
+ 10 files changed, 750 insertions(+), 97 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap4-var-dvk-om44.dts
+ create mode 100644 arch/arm/boot/dts/omap4-var-om44customboard.dtsi
+ create mode 100644 arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi
+ create mode 100644 arch/arm/boot/dts/omap4-var-som-om44.dtsi
+ delete mode 100644 arch/arm/boot/dts/omap4-var-som.dts
+ create mode 100644 arch/arm/boot/dts/omap4-var-stk-om44.dts
+
 -- 
 1.8.0
 
