@@ -1,133 +1,94 @@
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [RFC/PATCH] usb: musb: Prevent musb_am335x from being removed
-Date: Mon, 12 May 2014 11:08:35 -0300
-Message-ID: <20140512140835.GB20360@arch.cereza>
-References: <1399570060-28939-1-git-send-email-ezequiel@vanguardiasur.com.ar>
- <5370552C.40506@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
+ support
+Date: Mon, 12 May 2014 07:26:46 -0700
+Message-ID: <20140512142646.GA31772@atomide.com>
+References: <20140507150343.GA9502@atomide.com>
+ <536A5920.1020908@ti.com>
+ <20140507175919.GH9502@atomide.com>
+ <20140508233300.GI2198@atomide.com>
+ <536C8293.4070506@ti.com>
+ <20140509155504.GE17814@atomide.com>
+ <53707A64.2060203@ti.com>
+ <CABxcv=kwhodeFTHoVpn1nHeh9+kV5fwMN9s3Kbk6h7_xJp4UYA@mail.gmail.com>
+ <53709706.10501@ti.com>
+ <CABxcv=mY0a+yJgmCTPN=BhSQD57Pw022zOd5_KxEgvvF_-=O7Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yh0-f46.google.com ([209.85.213.46]:51292 "EHLO
-	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758466AbaELOJJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 10:09:09 -0400
-Received: by mail-yh0-f46.google.com with SMTP id 29so6298134yhl.19
-        for <linux-omap@vger.kernel.org>; Mon, 12 May 2014 07:09:09 -0700 (PDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51700 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758478AbaELO0z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 10:26:55 -0400
 Content-Disposition: inline
-In-Reply-To: <5370552C.40506@ti.com>
+In-Reply-To: <CABxcv=mY0a+yJgmCTPN=BhSQD57Pw022zOd5_KxEgvvF_-=O7Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, yegorslists@googlemail.com
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 12 May 10:29 AM, George Cherian wrote:
-> On 5/8/2014 10:57 PM, Ezequiel Garcia wrote:
-> >At probe time, the musb_am335x driver registers its childs by
-> >calling of_platform_populate(), which registers all childs in
-> >the devicetree hierarchy recursively.
-> >
-> >On the other side, the driver's remove() function uses of_device_unregister()
-> >to remove each child in the musb_am335x driver device struct.
-> >
-> >However, when musb_dsps is loaded, its devices are attached to the musb_am335x
-> >driver device struct as musb_am335x childs. Hence, musb_am335x remove()
-> >will attempt to unregister the devices registered by musb_dsps, which produces
-> >a kernel panic.
-> >
-> >In other words, the childs in the "struct device" hierarchy are not the same
-> >as the childs in the "devicetree" hierarchy.
-> >
-> >Ideally, we should be enforcing the removal of the devices registered by
-> >musb_am335x *only*, instead of all the child devices. However, because of the
-> >recursive nature of of_platform_populate, this doesn't seem possible.
-> >
-> >Therefore, as the only solution at hand, this commit disables musb_am335x driver
-> >removal capability, preventing it from being ever removed.
-> >
-> >Just for reference, here's the panic upon module removal:
-> >
-> >musb-hdrc musb-hdrc.0.auto: remove, state 4
-> >usb usb1: USB disconnect, device number 1
-> >musb-hdrc musb-hdrc.0.auto: USB bus 1 deregistered
-> >Unable to handle kernel NULL pointer dereference at virtual address 0000008c
-> >pgd = de11c000
-> >[0000008c] *pgd=9e174831, *pte=00000000, *ppte=00000000
-> >Internal error: Oops: 17 [#1] ARM
-> >Modules linked in: musb_am335x(-) musb_dsps musb_hdrc usbcore usb_common
-> >CPU: 0 PID: 623 Comm: modprobe Not tainted 3.15.0-rc4-00001-g24efd13 #69
-> >task: de1b7500 ti: de122000 task.ti: de122000
-> >PC is at am335x_shutdown+0x10/0x28
-> >LR is at am335x_shutdown+0xc/0x28
-> >pc : [<c0327798>]    lr : [<c0327794>]    psr: a0000013
-> >sp : de123df8  ip : 00000004  fp : 00028f00
-> >r10: 00000000  r9 : de122000  r8 : c000e6c4
-> >r7 : de0e3c10  r6 : de0e3800  r5 : de624010  r4 : de1ec750
-> >r3 : de0e3810  r2 : 00000000  r1 : 00000001  r0 : 00000000
-> >Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-> >Control: 10c5387d  Table: 9e11c019  DAC: 00000015
-> >Process modprobe (pid: 623, stack limit = 0xde122240)
-> >Stack: (0xde123df8 to 0xde124000)
-> >3de0:                                                       de0e3810 bf054488
-> >3e00: bf05444c de624010 60000013 bf043650 000012fc de624010 de0e3810 bf043a20
-> >3e20: de0e3810 bf04b240 c0635b88 c02ca37c c02ca364 c02c8db0 de1b7500 de0e3844
-> >3e40: de0e3810 c02c8e28 c0635b88 de02824c de0e3810 c02c884c de0e3800 de0e3810
-> >3e60: de0e3818 c02c5b20 bf05417c de0e3800 de0e3800 c0635b88 de0f2410 c02ca838
-> >3e80: bf05417c de0e3800 bf055438 c02ca8cc de0e3c10 bf054194 de0e3c10 c02ca37c
-> >3ea0: c02ca364 c02c8db0 de1b7500 de0e3c44 de0e3c10 c02c8e28 c0635b88 de02824c
-> >3ec0: de0e3c10 c02c884c de0e3c10 de0e3c10 de0e3c18 c02c5b20 de0e3c10 de0e3c10
-> >3ee0: 00000000 bf059000 a0000013 c02c5bc0 00000000 bf05900c de0e3c10 c02c5c48
-> >3f00: de0dd0c0 de1ec970 de0f2410 bf05929c de0f2444 bf05902c de0f2410 c02ca37c
-> >3f20: c02ca364 c02c8db0 bf05929c de0f2410 bf05929c c02c94c8 bf05929c 00000000
-> >3f40: 00000800 c02c8ab4 bf0592e0 c007fc40 c00dd820 6273756d 336d615f 00783533
-> >3f60: c064a0ac de1b7500 de122000 de1b7500 c000e590 00000001 c000e6c4 c0060160
-> >3f80: 00028e70 00028e70 00028ea4 00000081 60000010 00028e70 00028e70 00028ea4
-> >3fa0: 00000081 c000e500 00028e70 00028e70 00028ea4 00000800 becb59f8 00027608
-> >3fc0: 00028e70 00028e70 00028ea4 00000081 00000001 00000001 00000000 00028f00
-> >3fe0: b6e6b6f0 becb59d4 000160e8 b6e6b6fc 60000010 00028ea4 00000000 00000000
-> >[<c0327798>] (am335x_shutdown) from [<bf054488>] (dsps_musb_exit+0x3c/0x4c [musb_dsps])
-> >[<bf054488>] (dsps_musb_exit [musb_dsps]) from [<bf043650>] (musb_shutdown+0x80/0x90 [musb_hdrc])
-> >[<bf043650>] (musb_shutdown [musb_hdrc]) from [<bf043a20>] (musb_remove+0x24/0x68 [musb_hdrc])
-> >[<bf043a20>] (musb_remove [musb_hdrc]) from [<c02ca37c>] (platform_drv_remove+0x18/0x1c)
-> >[<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release_driver+0x70/0xc8)
-> >[<c02c8db0>] (__device_release_driver) from [<c02c8e28>] (device_release_driver+0x20/0x2c)
-> >[<c02c8e28>] (device_release_driver) from [<c02c884c>] (bus_remove_device+0xdc/0x10c)
-> >[<c02c884c>] (bus_remove_device) from [<c02c5b20>] (device_del+0x104/0x198)
-> >[<c02c5b20>] (device_del) from [<c02ca838>] (platform_device_del+0x14/0x9c)
-> >[<c02ca838>] (platform_device_del) from [<c02ca8cc>] (platform_device_unregister+0xc/0x20)
-> >[<c02ca8cc>] (platform_device_unregister) from [<bf054194>] (dsps_remove+0x18/0x38 [musb_dsps])
-> >[<bf054194>] (dsps_remove [musb_dsps]) from [<c02ca37c>] (platform_drv_remove+0x18/0x1c)
-> >[<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release_driver+0x70/0xc8)
-> >[<c02c8db0>] (__device_release_driver) from [<c02c8e28>] (device_release_driver+0x20/0x2c)
-> >[<c02c8e28>] (device_release_driver) from [<c02c884c>] (bus_remove_device+0xdc/0x10c)
-> >[<c02c884c>] (bus_remove_device) from [<c02c5b20>] (device_del+0x104/0x198)
-> >[<c02c5b20>] (device_del) from [<c02c5bc0>] (device_unregister+0xc/0x20)
-> >[<c02c5bc0>] (device_unregister) from [<bf05900c>] (of_remove_populated_child+0xc/0x14 [musb_am335x])
-> >[<bf05900c>] (of_remove_populated_child [musb_am335x]) from [<c02c5c48>] (device_for_each_child+0x44/0x70)
-> >[<c02c5c48>] (device_for_each_child) from [<bf05902c>] (am335x_child_remove+0x18/0x30 [musb_am335x])
-> >[<bf05902c>] (am335x_child_remove [musb_am335x]) from [<c02ca37c>] (platform_drv_remove+0x18/0x1c)
-> >[<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release_driver+0x70/0xc8)
-> >[<c02c8db0>] (__device_release_driver) from [<c02c94c8>] (driver_detach+0xb4/0xb8)
-> >[<c02c94c8>] (driver_detach) from [<c02c8ab4>] (bus_remove_driver+0x4c/0xa0)
-> >[<c02c8ab4>] (bus_remove_driver) from [<c007fc40>] (SyS_delete_module+0x128/0x1cc)
-> >[<c007fc40>] (SyS_delete_module) from [<c000e500>] (ret_fast_syscall+0x0/0x48)
-> >
-> >Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-> Acked-by: George Cherian <george.cherian@ti.com>
+* Javier Martinez Canillas <javier@dowhile0.org> [140512 03:01]:
+> Hello Tomi,
 > 
+> On Mon, May 12, 2014 at 11:40 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> > On 12/05/14 12:34, Javier Martinez Canillas wrote:
+> >
+> >> Maybe we can remove this hackery by relying on the fact that a
+> >> compatible string can have a set of values that goes from more
+> >> specific to more general. So you can have something like:
+> >>
+> >> compatible = "sony,panel-foobar", "omapdss,panel-foobar"
+> >>
+> >> So right now only "omapdss,panel-foobar" will be matched and later
+> >> when we have common panel drivers then that driver could handle the
+> >> "sony,panel-foobar" compatible string.
+> >>
+> >> Other platforms could do something similar and have
+> >>
+> >> compatible = "sony,panel-foobar", "baz,panel-foobar"
+> >>
+> >> That way you won't break DT backward compatible but still not require
+> >> hacks on arch/arm/mach-omap2/display.c.
+> >>
+> >> We do the same for OMAP boards, we now have the following compatible string:
+> >>
+> >> compatible = "isee,omap3-igep0020", "ti,omap36xx", "ti,omap3";
+> >>
+> >> There isn't a struct machine_desc that matches "isee,omap3-igep0020"
+> >> but later if we find that we need some board specific initialization
+> >> we could add one without breaking existing DTS. In fact it used to be
+> >> a single machine_desc that matched "ti,omap3" for both omap36xx and
+> >> omap34xx but later when some DT clocks changes were introduced we
+> >> needed to split both SoC families.
+> >
+> > I think that's a different thing. "isee,omap3-igep0020" is a proper
+> > compatible string, if the board is "isee,...".  No matter what software
+> > you run, that's correct and fine.
+> >
+> > The omapdss case is different, there the "omapdss" points to a sw thing,
+> > it does not describe the hardware. It's only needed as we don't have
+> > proper sw drivers for the devices.
+> >
+> > That said, I think what you describe would work. But I would rather keep
+> > the .dts files clean and correct, and keep that hacks hidden inside the
+> > kernel.
+> >
+> 
+> Thanks for the explanation. Since DT are meant to describe hardware
+> and not software I agree with you that we shouldn't leak an
+> implementation detail to the DeviceTrees.
+> 
+> And after all fortunately we don't have a stable API in the kernel
+> like the one that is enforced in the DT so we can fix it later ;-)
 
-Thanks!
+This remapping of compatible flags sounds smelly to me, please discuss
+it first with the device tree people.
 
-The module removal was introduced together with the driver in this commit:
+I think we're better off just using the compatible properties limited
+to the simple-panel.txt for now and actually describe the real
+hardware. The fact that the panel is connected to DSS should be possible
+to find out based on the phandles.
 
-commit 97238b35d5bbb5d5312d83c30a429824b777619f
-Author: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Date:   Fri Jul 5 14:51:33 2013 +0200
+Regards,
 
-    usb: musb: dsps: use proper child nodes
-
-AFAICS, by using git tag --contains, the above was merged since v3.12.
-
-Should I send a patch and Cc stable properly?
--- 
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
+Tony
