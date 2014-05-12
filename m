@@ -1,81 +1,82 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
- support
-Date: Mon, 12 May 2014 17:55:05 +0300
-Message-ID: <5370E0C9.8050201@ti.com>
-References: <20140507150343.GA9502@atomide.com> <536A5920.1020908@ti.com> <20140507175919.GH9502@atomide.com> <20140508233300.GI2198@atomide.com> <536C8293.4070506@ti.com> <20140509155504.GE17814@atomide.com> <53707A64.2060203@ti.com> <CABxcv=kwhodeFTHoVpn1nHeh9+kV5fwMN9s3Kbk6h7_xJp4UYA@mail.gmail.com> <53709706.10501@ti.com> <CABxcv=mY0a+yJgmCTPN=BhSQD57Pw022zOd5_KxEgvvF_-=O7Q@mail.gmail.com> <20140512142646.GA31772@atomide.com>
+Subject: Re: [PATCH 00/11] ARM: OMAP: OMAP5 & AM43x DSS
+Date: Mon, 12 May 2014 17:57:54 +0300
+Message-ID: <5370E172.20009@ti.com>
+References: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com> <5370CBD5.3060107@ti.com> <20140512143604.GB31772@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="Ujt9mCI21xMm5QlwAq6oCkDSJO5x0DdVH"
+	boundary="2EGnwN2Tp86nKdrNBxoCuwsPsHSW6fA65"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60177 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758731AbaELOze (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 10:55:34 -0400
-In-Reply-To: <20140512142646.GA31772@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:53273 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758227AbaELO6V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 May 2014 10:58:21 -0400
+In-Reply-To: <20140512143604.GB31772@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Archit Taneja <archit@ti.com>, Tero Kristo <t-kristo@ti.com>
 
---Ujt9mCI21xMm5QlwAq6oCkDSJO5x0DdVH
+--2EGnwN2Tp86nKdrNBxoCuwsPsHSW6fA65
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 12/05/14 17:26, Tony Lindgren wrote:
+On 12/05/14 17:36, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140512 06:26]:
+>> Hi Tony,
+>>
+>> On 09/05/14 14:56, Tomi Valkeinen wrote:
+>>> Hi,
+>>>
+>>> Here are arch/arm/ patches to add display support for OMAP5 and AM43x=
+=2E
+>>>
+>>> I have these in my tree, in a branch I will send to Tony for merging.=
+ Most of
+>>> these patches have already been around the lists, but I wanted to sen=
+d them one
+>>> more time to verify that all looks right and everybody is fine with t=
+hem.
+>>
+>> I have pushed these to:
+>>
+>> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git 3.16/oma=
+p
+>>
+>> If you're fine with these, I think we can consider that branch stable.=
 
->>> The omapdss case is different, there the "omapdss" points to a sw thi=
-ng,
->>> it does not describe the hardware. It's only needed as we don't have
->>> proper sw drivers for the devices.
->>>
->>> That said, I think what you describe would work. But I would rather k=
-eep
->>> the .dts files clean and correct, and keep that hacks hidden inside t=
-he
->>> kernel.
->>>
->>
->> Thanks for the explanation. Since DT are meant to describe hardware
->> and not software I agree with you that we shouldn't leak an
->> implementation detail to the DeviceTrees.
->>
->> And after all fortunately we don't have a stable API in the kernel
->> like the one that is enforced in the DT so we can fix it later ;-)
+>> There are probably still a few display related .dts changed for the
+>> board coming up, but I'll add those on top of the current commits.
 >=20
-> This remapping of compatible flags sounds smelly to me, please discuss
-> it first with the device tree people.
+> Please coordinate things with Paul and Tero so you at least have proper=
 
-It's already in v3.15.
+> acks for the hwmod and and clock patches. In general we really want to
+> queue hwmod and clock changes separately as those can easily mess up th=
+ings
+> in a bad way like we've already seen with overlapping hwmod entries in
+> the .dts files.
 
-I agree it's smelly, but it smelly only inside the kernel, not visible
-anywhere, and we can remove it when we have common panel drivers,
-without any modifications to .dts files.
+Ok. I'm fine with splitting the series if that's easiest way to manage it=
+=2E
 
-> I think we're better off just using the compatible properties limited
-> to the simple-panel.txt for now and actually describe the real
-> hardware. The fact that the panel is connected to DSS should be possibl=
-e
-> to find out based on the phandles.
+Paul, Tero?
 
-I'm not sure what you mean. We do describe only the real hardware. The
-compatible string in the .dts file is "sharp,ls037v7dw01".
+> Also, I'm wondering why we still have .clk and .opt_clks entries in the=
 
-Prepending the "omapdss" to the compatible string is required for the
-device/driver matching to work, because we can't use the
-"sharp,ls037v7dw01" compatible string in our omap specific panel driver.
+> hwmod data for am43xx and omap5 which are both device tree based with
+> all the clocks coming from .dts files?
 
-I'm not sure what it would give us to try to be compatible with
-simple-panel.txt. The simple-panel bindings won't probably be compatible
-with the future common display drivers in any case, as the simple-panel
-binding is just too limited and doesn't describe the hardware fully.
+I think they are needed for the omap_device/hwmod stuff to work. Only
+omapdss driver knows about the clocks defined in the .dts files, and the
+omap_device/hwmod code still needs to do the reset and maybe some other
+tasks that require the clocks.
 
  Tomi
 
 
 
---Ujt9mCI21xMm5QlwAq6oCkDSJO5x0DdVH
+--2EGnwN2Tp86nKdrNBxoCuwsPsHSW6fA65
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -83,19 +84,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTcODJAAoJEPo9qoy8lh71bgkP/Rdv+TTwx5W9V3BmWRNvfdZJ
-FlN6/WaYYBjzZqbQtzK/Wpe08ZINIgCZY+Y+g784fiZDPLH3friVwLvtBNodiQF6
-e5Z/JNQjZNDGCrJvVv6KGjRcHYP5U0AeYTRuGf1lr+oaJkSWRdh1ThhiWRCl8NHw
-WH9xmJKTGZvlTTnhBUdK2Hl9gCMjG2ILdcg8M9toGiXBMA27IyhfeP0KcDHVcKrK
-JLDgSENncj/MX7Ug7A1jYGM1R67oas7h3qki9xuIK7AeEngCwei4ppaXz6HGYYm/
-WstJfejv6hq3KVUvhqLjcmMNn+HIvDWHbJ956xtiodZ9mhfR21MvwvmncaTMhTgt
-iyzbTknNWEPINo0qZn4psZgAu/eWTpgZlQngFbJ8Z69f/ZqSRQFdurzFdFaDyw2o
-YjqupZIkC+D7tXHSQt37ovFkR3iECnPEVeMB0JjnBYmLYnmw3O6B2lyPzdRXsOlT
-1llaJw0mEPznu4zR12tw1t1UHDFu8S8varkt1S0CflDYFOBcqs7/CMru8vwNtgs2
-7wFmtkk2cQBWgxYcHZ9NKSa2QxJnFn3iNUyL7PdcuFtItlRYiFMjcwDJvBuGyiPQ
-sW4UJhlToYSMeqVGF4SiMUtm7YAdp3/XWzpMgv6kcx+EqXmOyzYUOxVdo//qkmZ+
-C1znj2iJHxd/7MkrL3ZE
-=XD6Y
+iQIcBAEBAgAGBQJTcOFyAAoJEPo9qoy8lh71riYP/jVWA8PqhJF4icXtWT+jrXSD
+DFhmhi9A9naGOWJyn//b1WFAoPOTvrxUaEhF2K5lFhK2DzJrJHuL1+yIek7m2PLX
+yg8mhY8THo2Bru9ljDmvJzp3Yl5zum4R33S3BLRiq8RQsCwGxrbpcKliSEoy2dyn
+B7YsyJ+OScG2/qr2koYQPDu5g3XoxqUxUDx3dYS0hLFrtFLd35LOGFC6mLMOfnsb
+14lp1b+hb3Kz98e1chM1gB893BE1BNxYrEQH3T2FaFwM3jZ2i9iuEcDzp35rtoka
+sIW/f4Qy+GVV4+msN2ugr5MRPcVtfYmuYNdU5mDD1sTXOTYpW41aPj4aCWvquQLv
+GNhgZpQVQqgZgx2wBhGFxf1a02MSeCAPAa0DWsIrBUh3BecmMlZ55irRFu22Lytj
+xi7gKvV3G1hVeTz9jGeSLFru/MoSmEhf2GtcB1Ixifu5tvrXKhgyUjR9RMf3xrE/
+D0lPR7Av7r21OprsFkbpFTB/ye+MykkxRswz3mO94XkDCR0todmNGJdhONjAnurQ
+Pu9NZlTMwW1puXt5uHMfzU9NKjOE7/lGFINnFbyssp1BlZZE0U6biNCmojnxmczE
+VWxdaGTwYVtYWqzpyB/eJRw9gEMSnnf4nw1wHbk9TfA38kTKTlTPQmcTu2kCbzx0
+zCTMXzEoShICpFhhf0Al
+=Tp0Z
 -----END PGP SIGNATURE-----
 
---Ujt9mCI21xMm5QlwAq6oCkDSJO5x0DdVH--
+--2EGnwN2Tp86nKdrNBxoCuwsPsHSW6fA65--
