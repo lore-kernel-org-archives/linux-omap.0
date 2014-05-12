@@ -1,112 +1,76 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
- support
-Date: Mon, 12 May 2014 10:38:12 +0300
-Message-ID: <53707A64.2060203@ti.com>
-References: <1398815562-24113-1-git-send-email-tony@atomide.com> <1398815562-24113-4-git-send-email-tony@atomide.com> <5369EAE7.3030705@ti.com> <20140507150343.GA9502@atomide.com> <536A5920.1020908@ti.com> <20140507175919.GH9502@atomide.com> <20140508233300.GI2198@atomide.com> <536C8293.4070506@ti.com> <20140509155504.GE17814@atomide.com>
+From: =?UTF-8?Q?Andreas_M=C3=BCller?= <schnitzeltony@googlemail.com>
+Subject: Re: [PATCH 1/4] OMAPDSS: Fix DSS clock multiplier issue on 3703 and
+ probably 3630
+Date: Mon, 12 May 2014 10:20:12 +0200
+Message-ID: <CALbNGRQpieZ+b-PvC+K2Zxb3hOd6KOCrPVOnveds-fXENn8GJg@mail.gmail.com>
+References: <1398815562-24113-1-git-send-email-tony@atomide.com>
+	<1398815562-24113-2-git-send-email-tony@atomide.com>
+	<536C860E.1000501@ti.com>
+	<CALbNGRR3U1veFgXmOWpfG3yNVESdxi2t79WDrJwOZ1oShuG1yA@mail.gmail.com>
+	<20140511144209.GA28266@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="aN4lrGsNv5aprSa1wEgrbQLIN7hEEnIbk"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33270 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751385AbaELHij (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 May 2014 03:38:39 -0400
-In-Reply-To: <20140509155504.GE17814@atomide.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:36691 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752685AbaELIUN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 04:20:13 -0400
+In-Reply-To: <20140511144209.GA28266@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
---aN4lrGsNv5aprSa1wEgrbQLIN7hEEnIbk
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 09/05/14 18:55, Tony Lindgren wrote:
-
->> Although if the MO gpio is not controlled by the driver, we should tel=
-l
->> the driver whether that gpio is high or low.
->=20
-> What do you have in mind for telling that? We should also tell the
-> orientation of the panel:
->=20
-> EVM	VGA	omapfb.rotate=3D3
-> LDP	QVGA	omapfb.rotate=3D0
->=20
-> Do you have something in mind for that?
-
-Hmm, right. I guess all we can do is have boolean flags in the .dts for
-MO, LR and UD, which tells if the respective pins are hard-wires high or
-low. And say in the documentation that you must either have a proper
-GPIO, or use the flag, but not both.
-
-The panel mounting orientation is a different matter. But I think it is
-also something we should specify in the .dts. However, we don't have any
-SW support to handle it, and it's a bit unclear to me how it should be
-handled, so I think that has to be left for later.
-
->> At the moment our display drivers are OMAP specific, and for that reas=
-on
->> we should prefix the compatible strings with "omapdss,". For example,
->> drivers/video/fbdev/omap2/displays-new/panel-dsi-cm.c:
+On Sun, May 11, 2014 at 4:42 PM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Andreas M=C3=BCller <schnitzeltony@googlemail.com> [140509 14:07]:
+>> On Fri, May 9, 2014 at 9:38 AM, Tomi Valkeinen <tomi.valkeinen@ti.co=
+m> wrote:
+>> > On 30/04/14 02:52, Tony Lindgren wrote:
+>> >> Otherwise we can get often errors like the following and the
+>> >> display won't come on:
+>> >>
+>> >> omapdss APPLY error: FIFO UNDERFLOW on gfx, disabling the overlay
+>> >> omapdss APPLY error: SYNC_LOST on channel lcd, restarting
+>> >> the output with video overlays disabled
+>> >>
+>> >> There are some earlier references to this issue:
+>> >>
+>> >> http://www.spinics.net/lists/linux-omap/msg59511.html
+>> >> http://www.spinics.net/lists/linux-omap/msg59724.html
+>> >
+>> resend - my client had HTML enabled...
 >>
->> 	{ .compatible =3D "omapdss,panel-dsi-cm", },
->>
->> But we should still have the right compatible string in the .dts, so w=
-e
->> convert the compatible name in arch/arm/mach-omap2/display.c, with
->> 'dss_compat_conv_list' array, to which this panel's name should be add=
-ed.
->=20
-> Oh so what do you want to have in the .dts file then?
+>> FWIW: I have had issues long time ago [1]. With mainline 3.14.3 I ha=
+d
+>> still the reboot problem on old 600MHz OMAP 3530. Applying this patc=
+h
+>> solved the issues. For other versions I had no chance to reproduce t=
+he
+>> original wakup issue mentioned in old thread
+>
+> Sorry I'm a bit confused now. Is the reboot issue a separate issue
+> related to the twl4030 generic scripts for 3530?
+>
+> And then this patch fixes dm3730 wake-up (from suspend?) issues?
+>
+> Or do we have some other bug where we wrongly hit omap3630_dss_feats
+> on 3530 somehow?
+(What I think) I have done: Have 3.14.3 still booting with legacy
+board init (please don't kill me for that). Without applying your
+patch old OMAP3530 crashed at every reboot with SYNCH_LOST.
 
-The .dts should have the proper names. The idea of this hackery is that
-in the .dts we can have the proper compatible string. So in the .dts, we
-have, say:
+After applying your patch reboot works fine.
 
-"sony,panel-foobar"
+Looking into id-code makes me wonder what changes on 36xx-features do
+to 35xx devices (treated as 34xx - right?). The only way that this
+happens is for unknown hawkeye fallthough. I suggest you simply forget
+my note and I will find out what really 'fixed' dss reboot problem.
 
-Then, at boot time, omap's platform code changes that to:
-
-"omapdss,sony,panel-foobar".
-
-And our (omap specific) panel-foobar driver use that
-"omapdss,sony,panel-foobar" string.
-
-This way some other platform could do the same, and have their platform
-specific drivers handle the panel.
-
-At some point in the future we hopefully will have common panel drivers,
-and at that point we can remove that hackery. The .dts files will
-already be correct.
-
- Tomi
-
-
-
---aN4lrGsNv5aprSa1wEgrbQLIN7hEEnIbk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTcHpkAAoJEPo9qoy8lh71P9MP/R3by/ToNjeQb6ItsiIHK/Co
-t4JJ36+91rQr+xIh5kOjk9GEBjTUCN92aBY+IuK3ppHg1KOVWvMfQQ6vxXpvolwL
-CKZXX3lvlLQTjimBKiIQNRvuUHLqBoy1KgKhAuNLLO9NE+L+RKLlX8nqTqXoyFKb
-INbX3VV72EBLVOgSAyfCOGWkvLwZAPuf7GEnkuhAmgZMCxfR9yB8KG0Q5TjhOYhB
-XHfZndo6k1lHek009p75YqX89mt9E27uVw5/V86kse1GJjpyyNL+Z7k7lRL5xIwJ
-fdrU43QFA3MvaBDJ2NDfjD/dqbu7gNtC59wD8xNzS9nm495eTpFbOlq4qhHSZleo
-kzKldW3Zh3m8nzq18Lw79fPsTDe+5lDYEno22tIJKNlQTQ9xybFZiVY0NT/EODdT
-WDqsC+TSrLvw20jRNVtufOibdqPd/Juw55amOiQmojw/p4svT0tER4HhT9br++nu
-s2EtDK3y4t8R7waVktw8uH5UEZDUpbMaoXYup9Xeom2Xys0YUI2FhWvkQe0r7rvn
-MsEsq7TgqH9nHvSD4QiYtjwfA/k3mWDuJ9wTd+PIWFRwr6WKQLTzywsVNNx2w98M
-6Q2W56uvM23qjok839tTCGjJzNbLkkuVTEW3gBGok0Ex8HX1UuO4tc9nyb1c6hSs
-bLq7mtGF9gtUMcWk//MO
-=I6OZ
------END PGP SIGNATURE-----
-
---aN4lrGsNv5aprSa1wEgrbQLIN7hEEnIbk--
+Andreas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
