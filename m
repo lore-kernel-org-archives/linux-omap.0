@@ -1,90 +1,72 @@
-From: Joachim Eastwood <manabian@gmail.com>
-Subject: Re: [PATCH] ARM: dts: Correct offset in OMAP4_WKUP_IOPAD macro
-Date: Sun, 11 May 2014 19:27:43 +0200
-Message-ID: <CAGhQ9VwALSFVn3dd+VWV4AWBZnHUFqpJv7yQyLvR4U+W6nL+aQ@mail.gmail.com>
-References: <1397924056-6462-1-git-send-email-manabian@gmail.com>
-	<CAGhQ9VwU_BjrD+c9uJn9FBwo6v_BOMUCKwiOW-7eqOu056a79A@mail.gmail.com>
-	<20140421153539.GB23945@atomide.com>
-	<CAGhQ9VyFQgcOw8y97R6HR1apXo-89JyktADxR6jb1EJipXqqjA@mail.gmail.com>
-	<CAGhQ9VxCA_VnO18zWgtWUExNE6YJd+krNEVLtyZTpyY6hRyHUg@mail.gmail.com>
-	<20140506001237.GK25949@atomide.com>
-	<CAGhQ9Vw+cR-cKQ-w3psZPOWOqwugntXq-9g5=4cZV-ijQZecTQ@mail.gmail.com>
-	<20140509160725.GG17814@atomide.com>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for
+ configuring the iATU
+Date: Mon, 12 May 2014 10:44:07 +0900
+Message-ID: <006501cf6d83$a9f39510$fddabf30$%han@samsung.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>
+ <4764413.ZAEU5S5p0p@wuerfel> <000201cf6a9c$9dd295e0$d977c1a0$%han@samsung.com>
+ <6882241.amuhzvbd8n@wuerfel> <536CC0F1.301@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f173.google.com ([209.85.220.173]:63372 "EHLO
-	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754991AbaEKR1o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 May 2014 13:27:44 -0400
-Received: by mail-vc0-f173.google.com with SMTP id il7so7680871vcb.32
-        for <linux-omap@vger.kernel.org>; Sun, 11 May 2014 10:27:43 -0700 (PDT)
-In-Reply-To: <20140509160725.GG17814@atomide.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:23405 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754391AbaELBoK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 May 2014 21:44:10 -0400
+In-reply-to: <536CC0F1.301@ti.com>
+Content-language: ko
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: 'Kishon Vijay Abraham I' <kishon@ti.com>
+Cc: 'Arnd Bergmann' <arnd@arndb.de>, 'Santosh Shilimkar' <santosh.shilimkar@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, rogerq@ti.com, balajitk@ti.com, 'Bjorn Helgaas' <bhelgaas@google.com>, 'Marek Vasut' <marex@denx.de>, 'Jingoo Han' <jg1.han@samsung.com>
 
-On 9 May 2014 18:07, Tony Lindgren <tony@atomide.com> wrote:
-> * Joachim Eastwood <manabian@gmail.com> [140509 05:58]:
->> On 6 May 2014 02:12, Tony Lindgren <tony@atomide.com> wrote:
->> >
->> > OK sorry just noticed you're using it already while was about to
->> > apply your patches. Care to update that series again to not use the
->> > macro, or by adding the offsets?
->>
->> hm, I'd rather add offsets than remove the macro's now.
->>
->> How about we introduce a mask parameter in to the OMAP_IOPAD_OFFSET macro?
->> Something like this:
->> #define OMAP_IOPAD_OFFSET(pa, offset, mask) (((pa) & mask) - ((offset) & mask))
->>
->> #define OMAP4_CORE_IOPAD(pa, val) OMAP_IOPAD_OFFSET((pa), 0x0040, 0xfff) (val)
->>
->> #define OMAP4_WKUP_IOPAD(pa, val) OMAP_IOPAD_OFFSET((pa), 0xe040, 0xfff) (val)
->>
->> Of course we need to fix the other users as well.
->
-> I was thinking that too initially, but then we would have macros that behave
-> in a different way:
->
-> 1. Calculate the iopad offset from the iopad register area start based on
->    the iopad physical address
->
-> 2. Calculate the iopad offset from the iopad register area start based on
->    the iopadd offset from the driver base address
->
->> One other possibility is to use my original patch in this mail or just
->> create a OMAP4_IOPAD with offset 0x040 which will on OMAP4 work for
->> both core and wkup.
->
-> That also makes the macro behave in a different way depending on the
-> SoC which is not nice.
->
->> What do you think?
->
-> I think it's best to add some new macros to avoid confusion.
->
+On Friday, May 09, 2014 8:50 PM, Kishon Vijay Abraham I wrote:
+> On Thursday 08 May 2014 02:48 PM, Arnd Bergmann wrote:
+> > On Thursday 08 May 2014 18:05:11 Jingoo Han wrote:
+> >> On Tuesday, May 06, 2014 10:59 PM, Arnd Bergmann wrote:
+> >>> On Tuesday 06 May 2014 19:03:52 Kishon Vijay Abraham I wrote:
+> >>>> In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
+> >>>> address. So whenever the cpu issues a read/write request, the 4 most
+> >>>> significant bits are used by L3 to determine the target controller.
+> >>>> For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
+> >>>> the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
+> >>>> the outbound translation window the *base* should be programmed as 0x000_0000.
+> >>>> Whenever we try to write to say 0x2000_0000, it will be translated to whatever
+> >>>> we have programmed in the translation window with base as 0x000_0000.
+> >>>>
+> >>>> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> >>>> Cc: Marek Vasut <marex@denx.de>
+> >>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >>>> Acked-by: Jingoo Han <jg1.han@samsung.com>
+> >>>> Acked-by: Mohit Kumar <mohit.kumar@st.com>
+> >>>
+> >>> Sorry, but NAK.
+> >>>
+> >>> We have a standard 'dma-ranges' property to handle this, so use it.
+> >>>
+> >>> See the x-gene PCIe driver patches for an example. Please also talk
+> >>> to Santosh about it, as he is implementing generic support for
+> >>> parsing dma-ranges in platform devices at the moment.
+> >>
+> >> Hi Arnd,
+> >>
+> >> Do you mean the following patch?
+> >> http://www.spinics.net/lists/kernel/msg1737725.html
+> >>
+> >
+> > That is the patch Santosh did for platform devices, which is related but not
+> > what I meant here. For the PCI inbound window setup, please have a look
+> > at https://lkml.org/lkml/2014/3/19/607
+> 
+> For some reason lkml is not showing any contents. Do you have a different link?
 
-I see.
+Hi Kishon,
 
-How about something like this then:
-/*
-* Macros to allow using the offset from the padconf physical address
-* instead of the offset from padconf base.
-*/
-#define OMAP_PADCONF_OFFSET(offset, base_offset) ((offset) - (base_offset))
-
-#define OMAP4_IOPAD(offset, val) OMAP_PADCONF_OFFSET((offset), 0x0040) (val)
-#define OMAP5_IOPAD(offset, val) OMAP_PADCONF_OFFSET((offset), 0x0040) (val)
-
-The OMAP4/5 TRMs list address offsets from the padconf physical
-address (which is not driver base address) and not absolute physical
-address for padconf registers like some other OMAP TRMs. So create a
-new macro to avoid confusion between different OMAP parts.
-
-I can cook up a patch if you like the idea above.
+Please refer to the following link. :-)
+http://www.spinics.net/lists/linux-pci/msg29855.html
 
 
-regards
-Joachim Eastwood
+Best regards,
+Jingoo Han
+
