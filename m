@@ -1,80 +1,64 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 5/5] Doc/DT: hdmi-connector: add HPD GPIO documentation
-Date: Mon, 12 May 2014 09:30:12 +0300
-Message-ID: <53706A74.7050601@ti.com>
-References: <1399638727-23254-1-git-send-email-tomi.valkeinen@ti.com> <1399638727-23254-5-git-send-email-tomi.valkeinen@ti.com> <53705DC8.1050903@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v4 3/6] ARM: dts: dra7: add support for parallel NAND
+ flash
+Date: Mon, 12 May 2014 07:03:47 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACC26A@DBDE04.ent.ti.com>
+References: <1399668412-10818-1-git-send-email-pekon@ti.com>
+ <CABxcv=nNuMLDCbNimWWR6yBbq3dHV6i87vBu69ZXGcYE-c9bmA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="Hx7225UnrR0xk0xpK9HGkaa1geXTsKwOU"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58481 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752803AbaELGaX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 May 2014 02:30:23 -0400
-In-Reply-To: <53705DC8.1050903@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38124 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752803AbaELHD4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 03:03:56 -0400
+In-Reply-To: <CABxcv=nNuMLDCbNimWWR6yBbq3dHV6i87vBu69ZXGcYE-c9bmA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: devicetree@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, Minal Shah <minalkshah@gmail.com>
 
---Hx7225UnrR0xk0xpK9HGkaa1geXTsKwOU
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 12/05/14 08:36, Archit Taneja wrote:
-> Hi,
->=20
-> On Friday 09 May 2014 06:02 PM, Tomi Valkeinen wrote:
->> Add binding documentation for HDMI connector's HPD GPIO.
->>
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> Cc: devicetree@vger.kernel.org
->> ---
->>   Documentation/devicetree/bindings/video/hdmi-connector.txt | 1 +
->>   1 file changed, 1 insertion(+)
->>
->> diff --git
->> a/Documentation/devicetree/bindings/video/hdmi-connector.txt
->> b/Documentation/devicetree/bindings/video/hdmi-connector.txt
->> index ccccc19e2573..acd5668b1ce1 100644
->> --- a/Documentation/devicetree/bindings/video/hdmi-connector.txt
->> +++ b/Documentation/devicetree/bindings/video/hdmi-connector.txt
->> @@ -7,6 +7,7 @@ Required properties:
->>
->>   Optional properties:
->>   - label: a symbolic name for the connector
->> +- hpd-gpios: HPD GPIO number
->=20
-> Would there ever be more than one HPD gpio?
-
-No. HDMI spec specifies that there is one HPD pin in the connector.
-
- Tomi
-
-
-
---Hx7225UnrR0xk0xpK9HGkaa1geXTsKwOU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTcGp7AAoJEPo9qoy8lh71B6cP/0pyCgw5U1ZHi6rAragZU5C0
-VSfrDQwyuo02DE/RqreTuYBlbRxVk5yLL+u8z+AQPRp7UnS6MTIgPCrMmPda2Eey
-6NK4p1jzDXxcyai+r9FP8UCcW9O2qGf0i6SZ14/z/Rv1i+e3hSI1HCLw+fqgTy8N
-tnS8m8kkQJaJgghVrpdJJCpd7W0BjBCAGD4KuP9QNmM9HcOYKO7tjopPN2YvpMyo
-/sDJ9UnEsIwaQGzqwtNbov4XtNc5NICGc6RF54LobeYxQFI8PGlpeLAb841QVKlh
-v464Fytp2LG/1Cq/kWtVNNrGlEHHdpcIA5ZL0iPEl+JXQ8XRZaTUoOzClHnhpOxp
-dJzO/v9JLbfJ0/iIbX8BiRbXlyS7r4BmwgEMcSi16HtC/ckaaGx6WXH17Wq/IjWl
-5H0w8D03wskq7ovPxEc0sF8a56OIzdyxwI+GnFGuVQToLSCQcP59EwMSax/bI1ng
-+x5zzhBkrwfqpAKsmImCrfJgdjU2GKpFVmHwVCYdXdDAki/nQu6F0YugPlAxiwwm
-GOSSM6iM4sQXtPkc/cif1Bpq75FtrGTzKlXQKh6o2tUcT61SJsWwgf1BOnEqbZ2w
-kizZFySWgwCRUZZ6+iFkz7jCsqdXuP53+7HimxymIlPqvpEYbyCVtnMuZHiibOi8
-odNm6GbHcnTT+LfbyfDZ
-=gbe2
------END PGP SIGNATURE-----
-
---Hx7225UnrR0xk0xpK9HGkaa1geXTsKwOU--
+SGVsbG8sDQoNCkZyb206IEphdmllciBNYXJ0aW5leiBDYW5pbGxhcyBbbWFpbHRvOmphdmllckBk
+b3doaWxlMC5vcmddDQo+T24gRnJpLCBNYXkgOSwgMjAxNCBhdCAxMDo0NiBQTSwgUGVrb24gR3Vw
+dGEgPHBla29uQHRpLmNvbT4gd3JvdGU6DQo+PiBGcm9tOiBNaW5hbCBTaGFoIDxtaW5hbGtzaGFo
+QGdtYWlsLmNvbT4NClsuLi5dDQo+PiArJmdwbWMgew0KPj4gKyAgICAgICBzdGF0dXMgPSAib2th
+eSI7DQo+PiArICAgICAgIHBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7DQo+PiArICAgICAgIHBp
+bmN0cmwtMCA9IDwmbmFuZF9mbGFzaF94MTY+Ow0KPj4gKyAgICAgICByYW5nZXMgPSA8MCAwIDAg
+MHgxMDAwMDAwPjsNCj4+ICsgICAgICAgbmFuZEAwLDAgew0KPj4gKyAgICAgICAgICAgICAgIHJl
+ZyA9IDwwIDAgMHgzODA+Ow0KWy4uLl0NCg0KPj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3Qv
+ZHRzL2RyYTcuZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRzL2RyYTcuZHRzaQ0KPj4gaW5kZXggMzdh
+MDU5NS4uNmFmNzc1YSAxMDA2NDQNCj4+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL2RyYTcuZHRz
+aQ0KPj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5kdHNpDQo+PiBAQCAtNzc2LDYgKzc3
+NiwyNiBAQA0KPj4gICAgICAgICAgICAgICAgICAgICAgICAgaW50ZXJydXB0cyA9IDwwIDM0MyAw
+eDQ+Ow0KPj4gICAgICAgICAgICAgICAgICAgICAgICAgc3RhdHVzID0gImRpc2FibGVkIjsNCj4+
+ICAgICAgICAgICAgICAgICB9Ow0KPj4gKw0KPj4gKyAgICAgICAgICAgICAgIGVsbTogZWxtQDQ4
+MDc4MDAwIHsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGNvbXBhdGlibGUgPSAidGksYW0z
+MzUyLWVsbSI7DQo+PiArICAgICAgICAgICAgICAgICAgICAgICByZWcgPSA8MHg0ODA3ODAwMCAw
+eDIwMDA+Ow0KPg0KPkl0IGlzIHJlYWxseSBuZWNlc3NhcnkgdG8gbWFwIGFsbCB0aGlzIDggS0Ig
+YWRkcmVzcyBzcGFjZSBmb3IgR1BNQyByZWdpc3RlcnM/DQo+DQo+SSBkb24ndCBoYXZlIGFjY2Vz
+cyB0byB0aGUgRFJBNyBUUk0gYnV0IGZvciBleGFtcGxlIHRoZSBPTUFQMyBUUk0gc2F5cw0KPnRo
+YXQgdGhlIEdQTUMgbW9kdWxlIHJlZ2lzdGVyIGFkZHJlc3Mgc3BhY2Ugc2l6ZSBpcyAxNiBNQiB3
+aGlsZSBpbg0KPnByYWN0aWNlIHRoZSByZWdpc3RlcnMgdXNlIGxlc3MgdGhhbiAxIEtCICgwLi4w
+eDAyZDAgdG8gYmUgZXhhY3QpIHNvDQo+aW4gYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMuZHRzaSB3
+ZSBoYXZlOg0KPg0KVGhlc2UgYXJlIG5vdCBHUE1DIHJlZ2lzdGVycy4gUGxhdGZvcm1zIGZyb20g
+T01BUDQgYW5kIGJleW9uZA0KKGxpa2UgQU0zMzV4LCBPTUFQNSkgaGF2ZSBhbm90aGVyIHNtYWxs
+IGhhcmR3YXJlIGVuZ2luZSBjYWxsZWQgRUxNIFsxXQ0KKEVycm9yIExvY2F0ZXIgTW9kdWxlKSBp
+biBhZGRpdGlvbiB0byBHUE1DLCB3aGljaCBpcyB1c2VkIGZvciBkZXRlY3RpbmcNCkVDQyBlcnJv
+cnMgaW4gaGFyZHdhcmUuIEVMTSBEcml2ZXIgJEtFUk5FTC9kcml2ZXJzL210ZC9kZXZpY2VzL2Vs
+bS5jDQoNCkhvd2V2ZXIsIHRoYW5rcyBmb3IgcG9pbnRpbmcgb3V0LCB0aGlzIGFkZHJlc3Mtc3Bh
+Y2UgZm9yIEVMTSBpcyBpbmNvcnJlY3QuDQpMYXN0IEVMTSByZWdpc3RlciBvZmZzZXQgaXMgMHhG
+QzAgKEVMTV9FUlJPUl9MT0NBVElPTl8xNV83KSBbMV0uDQoNCj5ncG1jOiBncG1jQDZlMDAwMDAw
+IHsNCj4uLi4NCj4gICAgICAgICAgICAgICAgICAgICAgICByZWcgPSA8MHg2ZTAwMDAwMCAweDAy
+ZDA+Ow0KPi4uLg0KPn07DQo+DQo+U2hvdWxkbid0IHRoaXMgYmUgc2ltaWxhciAodGhlIHNhbWU/
+KSBmb3IgRFJBNyBHUE1DIGRldmljZSBub2RlPw0KPg0KTmV3ZXIgcGxhdGZvcm1zIGhhdmUgdXBn
+cmFkZWQgdmVyc2lvbiBvZiBHUE1DIGVuZ2luZSB3aGljaCBzdXBwb3J0cw0KQkNIMTYgRUNDIHNj
+aGVtZSBpbiBoYXJkd2FyZS4gVGh1cyB0aGUgR1BNQyBhZGRyZXNzIHNwYWNlIHdhcw0KZXhwYW5k
+ZWQgdG8gaW5jbHVkZSBzb21lIGV4dHJhIHJlZ2lzdGVycyByZXF1aXJlZCBmb3IgQkNIMTYgRUND
+IFsyXS4NCg0KDQo+VGhhbmtzIGEgbG90IGFuZCBiZXN0IHJlZ2FyZHMsDQo+SmF2aWVyDQoNClsx
+XSBodHRwOi8vd3d3LnRpLmNvbS9saXQvZ3BuL2FtMzM1OSAgICAoU2VjdGlvbiA3LjQgdG8gNy40
+LjUpDQoNClsyXSBodHRwOi8vd3d3LnRpLmNvbS9saXQvZ3BuL2FtMzM1OSAgICAoU2VjdGlvbiA3
+LjEgdG8gNy4xLjUpDQooVGhvdWdoIHRoZSBBTTMzNXggYWRkcmVzcyBzcGFjZSBtZW50aW9ucyAw
+eDM2OCBhcyBsYXN0IGFkZHJlc3MsDQogaXQgc2hvdWxkIGJlIDB4Mzc4LiBJIGhhdmUgcmFpc2Vk
+IGRvY3VtZW50YXRpb24gYnVnIGZvciBpdCkuDQoNCg0Kd2l0aCByZWdhcmRzLCBwZWtvbg0K
