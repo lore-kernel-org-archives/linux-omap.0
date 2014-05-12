@@ -1,105 +1,186 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH 00/19] Rework OMAP4+ HDMI audio support
-Date: Mon, 12 May 2014 12:12:11 +0300
-Message-ID: <cover.1399884780.git.jsarha@ti.com>
+Subject: [PATCH 01/19] ASoC: omap-pcm: Move omap-pcm under include/sound
+Date: Mon, 12 May 2014 12:12:12 +0300
+Message-ID: <6b5197d4e9bc94bf617bc5e5add990fa6287089e.1399884780.git.jsarha@ti.com>
+References: <cover.1399884780.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37954 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37956 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751000AbaELJMm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 May 2014 05:12:42 -0400
+	id S1751888AbaELJMo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 May 2014 05:12:44 -0400
+In-Reply-To: <cover.1399884780.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Since RFC version of the patch set: 
-- Split callbacks removal patch away from "Integrated ASoC DAI
-  component driver implementation" patches for easier reading
+Make including the omap-pcm.h outside sound/soc/omap more convenient.
 
-This set of patches fixes OMAP4+ HDMI audio. The structure of the
-implementatin looks a bit different than before. Instead of creating a
-driver specific API for a separate ASoC component driver to connect
-to, this implementation integrates an the component driver into the
-HDMI driver.
-
-The idea is to use an existing ASoC component driver API instead of
-creating a new custom API for each HDMI IP and to avoid splitting the
-driver to half for separate video and audio parts connected with the
-API.
-
-The new implementation also uses simple-audio-card for a machine
-driver instead of having its own HW specific machine driver.
-
-The patches are based on 3.15-rc2 merged with
-git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-next
-and
-git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt-omap5
-
-Everything is pushed here here:
-git://git.ti.com/~jyrisarha/ti-linux-kernel/jyrisarhas-audio-video-linux-feature-tree.git omap-hdmi-audio
-
-Best regards,
-Jyri
-
-Jyri Sarha (19):
-  ASoC: omap-pcm: Move omap-pcm under include/sound
-  OMAPDSS: hdmi-common: Add hdmi_dss_audio_from_hw_params()
-  OMAPDSS: hdmi4: Remove callbacks for an external ASoC DAI driver
-  OMAPDSS: hdmi4: Integrated ASoC DAI component driver implementation
-  OMAPDSS: Kconfig: Add depencies and help section to
-    OMAP4_DSS_HDMI_AUDIO
-  OMAPDSS: hdmi.h: Add HDMI_AUDIO_LAYOUT_6CH enum value
-  OMAPDSS: hdmi5_core: Fix compilation with OMAP5_DSS_HDMI_AUDIO
-  OMAPDSS: hdmi5: Remove callbacks for an external ASoC DAI driver
-  OMAPDSS: hdmi5: Integrated ASoC DAI component driver implementation
-  OMAPDSS: Kconfig: Add depencies and help section to
-    OMAP5_DSS_HDMI_AUDIO
-  ASoC: omap: Remove obsolete HDMI audio code and Kconfig options
-  OMAPDSS: Remove obsolete audio code
-  ARM: omap4.dtsi: Add audio related parametes to hdmi node
-  ARM: omap4-panda-common.dtsi: Add HDMI audio nodes
-  ARM: omap5.dtsi: Add audio related parameters to hdmi node
-  ARM: omap5-uevm.dts: Add hdmi audio related nodes
-  ARM: omap2plus_defconfig: Build DSS HDMI support for OMAP4 in kernel
-  ARM: omap2plus_defconfig: Enable OMAP5 HDMI support
-  ARM: omap2plus_defconfig: Enable OMAP4+ HDMI audio support
-
- .../devicetree/bindings/video/ti,omap4-dss.txt     |    4 +
- .../devicetree/bindings/video/ti,omap5-dss.txt     |    4 +
- arch/arm/boot/dts/omap4-panda-common.dtsi          |   21 +-
- arch/arm/boot/dts/omap4.dtsi                       |    2 +
- arch/arm/boot/dts/omap5-uevm.dts                   |   19 +
- arch/arm/boot/dts/omap5.dtsi                       |    2 +
- arch/arm/configs/omap2plus_defconfig               |   20 +-
- .../fbdev/omap2/displays-new/connector-hdmi.c      |   99 ------
- .../fbdev/omap2/displays-new/encoder-tpd12s015.c   |   56 ---
- drivers/video/fbdev/omap2/dss/Kconfig              |   19 +-
- drivers/video/fbdev/omap2/dss/hdmi.h               |    8 +-
- drivers/video/fbdev/omap2/dss/hdmi4.c              |  216 ++++++++----
- drivers/video/fbdev/omap2/dss/hdmi5.c              |  216 ++++++++----
- drivers/video/fbdev/omap2/dss/hdmi5_core.c         |    2 +-
- drivers/video/fbdev/omap2/dss/hdmi_common.c        |  117 ++++++-
- include/sound/omap-pcm.h                           |   30 ++
- include/video/omapdss.h                            |   31 --
- sound/soc/davinci/davinci-mcasp.c                  |    2 +-
- sound/soc/omap/Kconfig                             |   13 -
- sound/soc/omap/Makefile                            |    4 -
- sound/soc/omap/omap-dmic.c                         |    2 +-
- sound/soc/omap/omap-hdmi-card.c                    |   87 -----
- sound/soc/omap/omap-hdmi.c                         |  364 --------------------
- sound/soc/omap/omap-hdmi.h                         |   38 --
- sound/soc/omap/omap-mcbsp.c                        |    2 +-
- sound/soc/omap/omap-mcpdm.c                        |    2 +-
- sound/soc/omap/omap-pcm.h                          |   30 --
- 27 files changed, 540 insertions(+), 870 deletions(-)
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+---
+ include/sound/omap-pcm.h          |   30 ++++++++++++++++++++++++++++++
+ sound/soc/davinci/davinci-mcasp.c |    2 +-
+ sound/soc/omap/omap-dmic.c        |    2 +-
+ sound/soc/omap/omap-hdmi.c        |    2 +-
+ sound/soc/omap/omap-mcbsp.c       |    2 +-
+ sound/soc/omap/omap-mcpdm.c       |    2 +-
+ sound/soc/omap/omap-pcm.h         |   30 ------------------------------
+ 7 files changed, 35 insertions(+), 35 deletions(-)
  create mode 100644 include/sound/omap-pcm.h
- delete mode 100644 sound/soc/omap/omap-hdmi-card.c
- delete mode 100644 sound/soc/omap/omap-hdmi.c
- delete mode 100644 sound/soc/omap/omap-hdmi.h
  delete mode 100644 sound/soc/omap/omap-pcm.h
 
+diff --git a/include/sound/omap-pcm.h b/include/sound/omap-pcm.h
+new file mode 100644
+index 0000000..c1d2f31
+--- /dev/null
++++ b/include/sound/omap-pcm.h
+@@ -0,0 +1,30 @@
++/*
++ * omap-pcm.h - OMAP PCM driver
++ *
++ * Copyright (C) 2014 Texas Instruments, Inc.
++ *
++ * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++
++#ifndef __OMAP_PCM_H__
++#define __OMAP_PCM_H__
++
++#if IS_ENABLED(CONFIG_SND_OMAP_SOC)
++int omap_pcm_platform_register(struct device *dev);
++#else
++static inline int omap_pcm_platform_register(struct device *dev)
++{
++	return 0;
++}
++#endif /* CONFIG_SND_OMAP_SOC */
++
++#endif /* __OMAP_PCM_H__ */
+diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
+index 14058dc..9afb146 100644
+--- a/sound/soc/davinci/davinci-mcasp.c
++++ b/sound/soc/davinci/davinci-mcasp.c
+@@ -33,10 +33,10 @@
+ #include <sound/initval.h>
+ #include <sound/soc.h>
+ #include <sound/dmaengine_pcm.h>
++#include <sound/omap-pcm.h>
+ 
+ #include "davinci-pcm.h"
+ #include "davinci-mcasp.h"
+-#include "../omap/omap-pcm.h"
+ 
+ #define MCASP_MAX_AFIFO_DEPTH	64
+ 
+diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
+index 53da041..6925d71 100644
+--- a/sound/soc/omap/omap-dmic.c
++++ b/sound/soc/omap/omap-dmic.c
+@@ -40,9 +40,9 @@
+ #include <sound/initval.h>
+ #include <sound/soc.h>
+ #include <sound/dmaengine_pcm.h>
++#include <sound/omap-pcm.h>
+ 
+ #include "omap-dmic.h"
+-#include "omap-pcm.h"
+ 
+ struct omap_dmic {
+ 	struct device *dev;
+diff --git a/sound/soc/omap/omap-hdmi.c b/sound/soc/omap/omap-hdmi.c
+index 537a1ec..eb9c392 100644
+--- a/sound/soc/omap/omap-hdmi.c
++++ b/sound/soc/omap/omap-hdmi.c
+@@ -34,9 +34,9 @@
+ #include <sound/asoundef.h>
+ #include <sound/dmaengine_pcm.h>
+ #include <video/omapdss.h>
++#include <sound/omap-pcm.h>
+ 
+ #include "omap-hdmi.h"
+-#include "omap-pcm.h"
+ 
+ #define DRV_NAME "omap-hdmi-audio-dai"
+ 
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index af2764a..10d6cec 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -34,11 +34,11 @@
+ #include <sound/initval.h>
+ #include <sound/soc.h>
+ #include <sound/dmaengine_pcm.h>
++#include <sound/omap-pcm.h>
+ 
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+ #include "mcbsp.h"
+ #include "omap-mcbsp.h"
+-#include "omap-pcm.h"
+ 
+ #define OMAP_MCBSP_RATES	(SNDRV_PCM_RATE_8000_96000)
+ 
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
+index d8ebb52..f0e2ebe 100644
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -40,9 +40,9 @@
+ #include <sound/pcm_params.h>
+ #include <sound/soc.h>
+ #include <sound/dmaengine_pcm.h>
++#include <sound/omap-pcm.h>
+ 
+ #include "omap-mcpdm.h"
+-#include "omap-pcm.h"
+ 
+ struct mcpdm_link_config {
+ 	u32 link_mask; /* channel mask for the direction */
+diff --git a/sound/soc/omap/omap-pcm.h b/sound/soc/omap/omap-pcm.h
+deleted file mode 100644
+index c1d2f31..0000000
+--- a/sound/soc/omap/omap-pcm.h
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/*
+- * omap-pcm.h - OMAP PCM driver
+- *
+- * Copyright (C) 2014 Texas Instruments, Inc.
+- *
+- * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- */
+-
+-#ifndef __OMAP_PCM_H__
+-#define __OMAP_PCM_H__
+-
+-#if IS_ENABLED(CONFIG_SND_OMAP_SOC)
+-int omap_pcm_platform_register(struct device *dev);
+-#else
+-static inline int omap_pcm_platform_register(struct device *dev)
+-{
+-	return 0;
+-}
+-#endif /* CONFIG_SND_OMAP_SOC */
+-
+-#endif /* __OMAP_PCM_H__ */
 -- 
 1.7.9.5
 
