@@ -1,45 +1,80 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH] ARM: dts: am335x-evm: fix comments for lcd pins
-Date: Mon, 12 May 2014 08:03:36 +0200
-Message-ID: <20140512060336.GD29070@pengutronix.de>
-References: <1399648580-14487-1-git-send-email-wsa@the-dreams.de>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 5/5] Doc/DT: hdmi-connector: add HPD GPIO documentation
+Date: Mon, 12 May 2014 09:30:12 +0300
+Message-ID: <53706A74.7050601@ti.com>
+References: <1399638727-23254-1-git-send-email-tomi.valkeinen@ti.com> <1399638727-23254-5-git-send-email-tomi.valkeinen@ti.com> <53705DC8.1050903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="Hx7225UnrR0xk0xpK9HGkaa1geXTsKwOU"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48026 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751884AbaELGDo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 02:03:44 -0400
-Content-Disposition: inline
-In-Reply-To: <1399648580-14487-1-git-send-email-wsa@the-dreams.de>
+Received: from comal.ext.ti.com ([198.47.26.152]:58481 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752803AbaELGaX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 May 2014 02:30:23 -0400
+In-Reply-To: <53705DC8.1050903@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-arm-kernel@lists.infradead.org, Benoit Parrot <bparrot@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Wolfram Sang <wsa@sang-engineering.com>
+To: Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org
 
-Hi Wolfram,
+--Hx7225UnrR0xk0xpK9HGkaa1geXTsKwOU
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, May 09, 2014 at 05:15:50PM +0200, Wolfram Sang wrote:
-> From: Wolfram Sang <wsa@sang-engineering.com>
+On 12/05/14 08:36, Archit Taneja wrote:
+> Hi,
 >=20
-> In the comments, LCD pins 16-23 were numbered in the wrong order.
-> Fix this and use proper pinmux constants for all entries while we are
+> On Friday 09 May 2014 06:02 PM, Tomi Valkeinen wrote:
+>> Add binding documentation for HDMI connector's HPD GPIO.
+>>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> Cc: devicetree@vger.kernel.org
+>> ---
+>>   Documentation/devicetree/bindings/video/hdmi-connector.txt | 1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git
+>> a/Documentation/devicetree/bindings/video/hdmi-connector.txt
+>> b/Documentation/devicetree/bindings/video/hdmi-connector.txt
+>> index ccccc19e2573..acd5668b1ce1 100644
+>> --- a/Documentation/devicetree/bindings/video/hdmi-connector.txt
+>> +++ b/Documentation/devicetree/bindings/video/hdmi-connector.txt
+>> @@ -7,6 +7,7 @@ Required properties:
+>>
+>>   Optional properties:
+>>   - label: a symbolic name for the connector
+>> +- hpd-gpios: HPD GPIO number
 >=20
-Your sentence misses a word at the
+> Would there ever be more than one HPD gpio?
 
-Uwe
-> Signed-off-by: Wolfram Sang <wsa@sang-engineering.com>
-> Cc: Benoit Parrot <bparrot@ti.com>
+No. HDMI spec specifies that there is one HPD pin in the connector.
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Tomi
+
+
+
+--Hx7225UnrR0xk0xpK9HGkaa1geXTsKwOU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTcGp7AAoJEPo9qoy8lh71B6cP/0pyCgw5U1ZHi6rAragZU5C0
+VSfrDQwyuo02DE/RqreTuYBlbRxVk5yLL+u8z+AQPRp7UnS6MTIgPCrMmPda2Eey
+6NK4p1jzDXxcyai+r9FP8UCcW9O2qGf0i6SZ14/z/Rv1i+e3hSI1HCLw+fqgTy8N
+tnS8m8kkQJaJgghVrpdJJCpd7W0BjBCAGD4KuP9QNmM9HcOYKO7tjopPN2YvpMyo
+/sDJ9UnEsIwaQGzqwtNbov4XtNc5NICGc6RF54LobeYxQFI8PGlpeLAb841QVKlh
+v464Fytp2LG/1Cq/kWtVNNrGlEHHdpcIA5ZL0iPEl+JXQ8XRZaTUoOzClHnhpOxp
+dJzO/v9JLbfJ0/iIbX8BiRbXlyS7r4BmwgEMcSi16HtC/ckaaGx6WXH17Wq/IjWl
+5H0w8D03wskq7ovPxEc0sF8a56OIzdyxwI+GnFGuVQToLSCQcP59EwMSax/bI1ng
++x5zzhBkrwfqpAKsmImCrfJgdjU2GKpFVmHwVCYdXdDAki/nQu6F0YugPlAxiwwm
+GOSSM6iM4sQXtPkc/cif1Bpq75FtrGTzKlXQKh6o2tUcT61SJsWwgf1BOnEqbZ2w
+kizZFySWgwCRUZZ6+iFkz7jCsqdXuP53+7HimxymIlPqvpEYbyCVtnMuZHiibOi8
+odNm6GbHcnTT+LfbyfDZ
+=gbe2
+-----END PGP SIGNATURE-----
+
+--Hx7225UnrR0xk0xpK9HGkaa1geXTsKwOU--
