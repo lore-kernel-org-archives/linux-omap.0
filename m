@@ -1,180 +1,178 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v2] ARM: OMAP2+: Remove suspend_set_ops from common pm late init
-Date: Mon, 12 May 2014 13:33:21 -0500
-Message-ID: <1399919601-15543-1-git-send-email-d-gerlach@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [RFC] [v2 Patch 2/6] ARM: TI: Describe the ti reset DT entries
+Date: Mon, 12 May 2014 13:46:15 -0500
+Message-ID: <537116F7.5070403@ti.com>
+References: <1399320567-3639-1-git-send-email-dmurphy@ti.com> <1399320567-3639-3-git-send-email-dmurphy@ti.com> <20140505220155.GI25949@atomide.com> <5368E12D.1060706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42745 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751297AbaELSeJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 14:34:09 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:36889 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752153AbaELSqk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 May 2014 14:46:40 -0400
+In-Reply-To: <5368E12D.1060706@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+To: "Murphy, Dan" <dmurphy@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-In omap2_common_pm_late_init suspend_set_ops was called to set common
-suspend handling functions for all omap platforms. This created two
-problems. First, these suspend ops were being set for all platforms,
-regardless of whether or not suspend support has been integrated so in
-the case of AM33XX, suspend to mem was presented as available but
-failed every time. Second, some platforms will need to define a
-completely separate set of suspend ops, such as AM33XX, due to
-differences from previous omap platforms so there is no need to
-always set the common omap ops.
+Dan,
 
-This patch moves the suspend_set_ops call from omap2_common_pm_late_init
-into a separate function that then gets called in the omap*_pm_init
-functions for each platform.
+On 05/06/2014 08:18 AM, Murphy, Dan wrote:
+> Tony
+> 
+> Thanks for the comments
+> 
+> On 05/05/2014 05:01 PM, Tony Lindgren wrote:
+>> * Dan Murphy <dmurphy@ti.com> [140505 13:10]:
+>>> +
+>>> +Required parent properties:
+>>> +- compatible : Should be one of,
+>>> +		"ti,omap4-prm" for OMAP4 PRM instances
+>>> +		"ti,omap5-prm" for OMAP5 PRM instances
+>>> +		"ti,dra7-prm" for DRA7xx PRM instances
+>>> +		"ti,am4-prcm" for AM43xx PRCM instances
+>>> +		"ti,am3-prcm" for AM33xx PRCM instances
+>>> +
+>>> +Required child reset property:
+>>> +- compatible : Should be
+>>> +		"resets" for All TI SoCs
+>>> +
+>>> +example:
+>>> +		prm: prm@4ae06000 {
+>>> +			compatible = "ti,omap5-prm";
+>>> +			reg = <0x4ae06000 0x3000>;
+>>> +
+>>> +			prm_resets: resets {
+>>> +				#address-cells = <1>;
+>>> +				#size-cells = <1>;
+>>> +				#reset-cells = <1>;
+>>> +			};
+>>> +		};
+>> The reg entries you have in the example below has different format
+>> compared to this?
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
+Right, the #size-cells should have been 0, or each reg field updated
+with an additional field value of 4 as the registers are all of constant
+width - 4 bytes.
 
-v2:
-Don't need to expose omap_pm_ops, use omap_common_suspend_init to set
-Add kernel-doc for omap_common_suspend_init
+> 
+> This is the parent to the resets.  The reg entries below are for
+> the child reset signals.
+> 
+>>
+>>> +Reset node declaration
+>>> +==============================================
+>>> +The reset node is declared in a parent child relationship.  The main parent
+>>> +is the PRCM module which contains the base address.  The first child within
+>>> +the reset parent declares the target modules reset name.  This is followed by
+>>> +the control and status offsets.
+>>> +
+>>> +Within the first reset child node is a secondary child node which declares the
+>>> +reset signal of interest.  Under this node the control and status bits
+>>> +are declared.  These bits declare the bit mask for the target reset.
+>>> +
+>>> +
+>>> +Required properties:
+>>> +reg - This is the register offset from the PRCM parent.
+>>> +	This must be declared as:
+>>> +
+>>> +	reg = <control register offset>,
+>>> +		  <status register offset>;
+>>> +
+>>> +control-bit - This is the bit within the register which controls the reset
+>>> +	of the target module.  This is declared as a bit mask for the register.
+>>> +status-bit - This is the bit within the register which contains the status of
+>>> +	the reset of the target module.
+>>> +	This is declared as a bit mask for the register.
+>>> +
+>>> +example:
+>>> +&prm_resets {
+>>> +	dsp_rstctrl {
+>>> +		reg = <0x1c00>,
+>>> +			  <0x1c04>;
+>> Shouldn't this be start and size instead of start and end here?
 
- arch/arm/mach-omap2/pm.c     | 17 ++++++++++++-----
- arch/arm/mach-omap2/pm.h     |  8 +++++++-
- arch/arm/mach-omap2/pm24xx.c |  4 +---
- arch/arm/mach-omap2/pm34xx.c |  7 +++----
- arch/arm/mach-omap2/pm44xx.c |  6 +++---
- 5 files changed, 26 insertions(+), 16 deletions(-)
+These are two registers - one for control and one for status.
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index e1b4141..dd31212 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -32,11 +32,13 @@
- #include "pm.h"
- #include "twl-common.h"
- 
-+#ifdef CONFIG_SUSPEND
- /*
-  * omap_pm_suspend: points to a function that does the SoC-specific
-  * suspend work
-  */
--int (*omap_pm_suspend)(void);
-+static int (*omap_pm_suspend)(void);
-+#endif
- 
- #ifdef CONFIG_PM
- /**
-@@ -243,6 +245,15 @@ static const struct platform_suspend_ops omap_pm_ops = {
- 	.valid		= suspend_valid_only_mem,
- };
- 
-+/**
-+ * omap_common_suspend_init - Set common suspend routines for OMAP SoCs
-+ * @pm_suspend: function pointer to SoC specific suspend function
-+ */
-+void omap_common_suspend_init(void *pm_suspend)
-+{
-+	omap_pm_suspend = pm_suspend;
-+	suspend_set_ops(&omap_pm_ops);
-+}
- #endif /* CONFIG_SUSPEND */
- 
- static void __init omap3_init_voltages(void)
-@@ -310,9 +321,5 @@ int __init omap2_common_pm_late_init(void)
- 	/* cpufreq dummy device instantiation */
- 	omap_init_cpufreq();
- 
--#ifdef CONFIG_SUSPEND
--	suspend_set_ops(&omap_pm_ops);
--#endif
--
- 	return 0;
- }
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index d4d0fce..e150102 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -34,7 +34,6 @@ extern void *omap3_secure_ram_storage;
- extern void omap3_pm_off_mode_enable(int);
- extern void omap_sram_idle(void);
- extern int omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused);
--extern int (*omap_pm_suspend)(void);
- 
- #if defined(CONFIG_PM_OPP)
- extern int omap3_opp_init(void);
-@@ -147,4 +146,11 @@ static inline void omap_pm_get_oscillator(u32 *tstart, u32 *tshut) { *tstart = *
- static inline void omap_pm_setup_sr_i2c_pcb_length(u32 mm) { }
- #endif
- 
-+#ifdef CONFIG_SUSPEND
-+void omap_common_suspend_init(void *pm_suspend);
-+#else
-+static inline void omap_common_suspend_init(void *pm_suspend)
-+{
-+}
-+#endif /* CONFIG_SUSPEND */
- #endif
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 8c07594..a5ea988 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -229,9 +229,7 @@ static void __init prcm_setup_regs(void)
- 	clkdm_for_each(omap_pm_clkdms_setup, NULL);
- 	clkdm_add_wkdep(mpu_clkdm, wkup_clkdm);
- 
--#ifdef CONFIG_SUSPEND
--	omap_pm_suspend = omap2_enter_full_retention;
--#endif
-+	omap_common_suspend_init(omap2_enter_full_retention);
- 
- 	/* REVISIT: Configure number of 32 kHz clock cycles for sys_clk
- 	 * stabilisation */
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 87099bb..90ea2d3 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -391,7 +391,8 @@ restore:
- 
- 	return ret;
- }
--
-+#else
-+#define omap3_pm_suspend NULL
- #endif /* CONFIG_SUSPEND */
- 
- 
-@@ -705,9 +706,7 @@ int __init omap3_pm_init(void)
- 	per_clkdm = clkdm_lookup("per_clkdm");
- 	wkup_clkdm = clkdm_lookup("wkup_clkdm");
- 
--#ifdef CONFIG_SUSPEND
--	omap_pm_suspend = omap3_pm_suspend;
--#endif
-+	omap_common_suspend_init(omap3_pm_suspend);
- 
- 	arm_pm_idle = omap3_pm_idle;
- 	omap3_idle_init();
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index eefb30c..0dda6cf 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -96,6 +96,8 @@ static int omap4_pm_suspend(void)
- 
- 	return 0;
- }
-+#else
-+#define omap4_pm_suspend NULL
- #endif /* CONFIG_SUSPEND */
- 
- static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
-@@ -251,9 +253,7 @@ int __init omap4_pm_init(void)
- 
- 	(void) clkdm_for_each(omap_pm_clkdms_setup, NULL);
- 
--#ifdef CONFIG_SUSPEND
--	omap_pm_suspend = omap4_pm_suspend;
--#endif
-+	omap_common_suspend_init(omap4_pm_suspend);
- 
- 	/* Overwrite the default cpu_do_idle() */
- 	arm_pm_idle = omap_default_idle;
--- 
-1.9.0
+> 
+> I could do start and size.  But the size will be the same for each register.
+> AM33xx really hurts the consistency model here as the other patches in the series
+> it appears that the control and status are consistent but AM33xx the registers are all over
+> the place.
+> 
+> I have not looked at OMAP2->4 yet for control and status register offsets.
+> 
+>>> +		dsp_reset: dsp_reset {
+>>> +			control-bit = <0x01>;
+>>> +			status-bit = <0x01>;
+>>> +		};
+>>> +	};
+>>> +};
+>> Are the control-bit and status-bit always the same? If so, you can
+>> keep that knowlede private to the the driver.
+> 
+> No there is a case in the am33xx resets file where the status and control bits are not the same.
+
+Do we really need two separate properties to represent this, as these
+are essentially the relevant bits in the corresponding reg elements.
+I guess this is somewhat same as Tony's suggestion about using the reg
+field for these sub-nodes, in which case, you would have to add another
+#address-cells as 1 for each of the child reset nodes.
+
+regards
+Suman
+
+> 
+>>
+>> And maybe you can have the bit offset in a reg property here to
+>> avoid adding any custom properties? Something like:
+>>
+>> 	dsp_reset: reset@1 {
+>> 		reg = 1;
+>> 	};
+>>
+>> If reg is not suitable for that, it seems that some generic property
+>> to describe the bit offset is needed by quite a few drivers
+>> anyways, for things like clocks and regulators.
+> 
+> I will have to look into this.  Maybe a generic entry called bit-offset
+> that defines the bit or a mask for the registers.  It can mimic the reg
+> entry.
+> 
+>>> +Client Node Declaration
+>>> +==============================================
+>>> +This is the consumer of the parent node to declare what resets this
+>>> +particular module is interested in.
+>>> +
+>>> +example:
+>>> +	src: src@55082000 {
+>>> +		    resets = <&reset_src phandle>;
+>>> +			reset-names = "<reset_name>";
+>>> +	};
+>>> +
+>>> +Required Properties:
+>>> +reset_src - This is the parent DT entry for the reset controller
+>>> +phandle - This is the phandle of the specific reset to be used by the clien
+>>> +	driver.
+>>> +reset-names - This is the reset name of module that the device driver
+>>> +	needs to be able to reset.  This value must correspond to a value within
+>>> +	the reset controller array.
+>>> +
+>>> +example:
+>>> +resets = <&prm_resets &dsp_mmu_reset>;
+>>> +reset-names = "dsp_mmu_reset";
+>> This part looks OK to me, not sure if we need the reset-names property
+>> if we have one already why not.
+> 
+> reset-names are part of the reset.txt file.  I could probably drop the resets and reset-name information here
+> and point to the reset.txt file for further explanation.
+> 
+>>
+>> Regards,
+>>
+>> Tony
+> 
+> 
 
