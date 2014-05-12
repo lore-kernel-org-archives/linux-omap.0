@@ -1,41 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 6/6] ARM: dts: am335x-evm: fix reg and range property
- of GPMC NAND node
-Date: Mon, 12 May 2014 12:44:01 -0700
-Message-ID: <20140512194401.GA5668@atomide.com>
-References: <1399668412-10818-1-git-send-email-pekon@ti.com>
- <1399668412-10818-4-git-send-email-pekon@ti.com>
- <CABxcv==icXxn74_zz1YQTq2jvuPyDSSh5ZM_NKA1W3SUzD6EKA@mail.gmail.com>
+Subject: Re: [PATCH v2] ARM: dts: am335x-bone-common: Add i2c2 definition
+Date: Mon, 12 May 2014 12:50:50 -0700
+Message-ID: <20140512195050.GB5668@atomide.com>
+References: <1399686184-1594-1-git-send-email-mranostay@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31801 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751509AbaELToJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 15:44:09 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34389 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751692AbaELTu6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 15:50:58 -0400
 Content-Disposition: inline
-In-Reply-To: <CABxcv==icXxn74_zz1YQTq2jvuPyDSSh5ZM_NKA1W3SUzD6EKA@mail.gmail.com>
+In-Reply-To: <1399686184-1594-1-git-send-email-mranostay@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Pekon Gupta <pekon@ti.com>, Benoit Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Matt Ranostay <mranostay@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, pantelis.antoniou@gmail.com, matt.porter@linaro.org
 
-* Javier Martinez Canillas <javier@dowhile0.org> [140510 10:12]:
-> Hello Pekon,
+* Matt Ranostay <mranostay@gmail.com> [140509 18:43]:
+> Add missing i2c2 bus define to access various cape and
+> prototype/breakout board devices.
 > 
-> On Fri, May 9, 2014 at 10:46 PM, Pekon Gupta <pekon@ti.com> wrote:
-> > 1) NAND device memory is not directly accessible to CPU, its indirectly accessed
-> >    via registers. So the 'reg' property for GPMC NAND nodes should be limited to
-> >    address range of internal GPMC registers only.
-> > 2) Also, minimum granularity of address space under a GPMC chip-select is 16MB
-> >    so 'range' property for GPMC NAND node should specify 16MB as its memory-size
+> Signed-off-by: Matt Ranostay <mranostay@gmail.com>
+> ---
+>  arch/arm/boot/dts/am335x-bone-common.dtsi | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
 > 
-> This is true for all SoC using the GPMC right? So we need to do the
-> same modification for all OMAP boards to avoid mapping a bigger
-> address space unnecessarily.
+> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> index 2e7d932..5fdae2e 100644
+> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
+> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> @@ -84,6 +84,13 @@
+>  		>;
+>  	};
+>  
+> +	i2c2_pins: pinmux_i2c2_pins {
+> +		pinctrl-single,pins = <
+> +			0x178 (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_ctsn.i2c2_sda */
+> +			0x17c (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_rtsn.i2c2_scl */
+> +		>;
+> +	};
+> +
+>  	uart0_pins: pinmux_uart0_pins {
+>  		pinctrl-single,pins = <
+>  			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
+>
+> @@ -222,6 +229,15 @@
+>  
+>  };
+>  
+> +
+> +&i2c2 {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&i2c2_pins>;
+> +
+> +	status = "okay";
+> +	clock-frequency = <100000>;
+> +};
+> +
 
-Yes we should fix them all up. See also the commenting standard I suggested
-in the parallel NAND series.
+If these pins are not used for i2c2 on some capes, this device
+should be set to status = "disabled" state by default. Then
+u-boot could re-enable it on the boards that have i2c2 in use.
 
 Regards,
 
