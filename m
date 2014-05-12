@@ -1,41 +1,49 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 13/19] ARM: omap4.dtsi: Add audio related parametes to hdmi node
-Date: Mon, 12 May 2014 12:12:24 +0300
-Message-ID: <1bc3c1cddbbc4d4b210ffc2be82fc36d53d311ee.1399884780.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH 18/19] ARM: omap2plus_defconfig: Enable OMAP5 HDMI support
+Date: Mon, 12 May 2014 12:12:29 +0300
+Message-ID: <0bfc3fad1abdf93cfd2b063554564dc540838646.1399884780.git.jsarha@ti.com>
 References: <cover.1399884780.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1399884780.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: peter.ujfalusi-l0cyMroinI0@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37975 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753443AbaELJNG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 May 2014 05:13:06 -0400
+In-Reply-To: <cover.1399884780.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Adds HDMI audio sDMA properties.
+This patch is here only as an example on how to enable HDMI video for
+OMAP5 uEVM. Adds CONFIG_GPIO_PCA953X=y and CONFIG_OMAP5_DSS_HDMI=y.
 
-Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi |    2 ++
+ arch/arm/configs/omap2plus_defconfig |    2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 27fcac8..c7f0913 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -919,6 +919,8 @@
- 				ti,hwmods = "dss_hdmi";
- 				clocks = <&dss_48mhz_clk>, <&dss_sys_clk>;
- 				clock-names = "fck", "sys_clk";
-+				dmas = <&sdma 76>;
-+				dma-names = "audio_tx";
- 			};
- 		};
- 	};
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 35c42aa..363733e 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -157,6 +157,7 @@ CONFIG_PINCTRL_SINGLE=y
+ CONFIG_DEBUG_GPIO=y
+ CONFIG_GPIO_SYSFS=y
+ CONFIG_GPIO_TWL4030=y
++CONFIG_GPIO_PCA953X=y
+ CONFIG_W1=y
+ CONFIG_POWER_SUPPLY=y
+ CONFIG_SENSORS_LM75=m
+@@ -190,6 +191,7 @@ CONFIG_FB_TILEBLITTING=y
+ CONFIG_OMAP2_DSS=y
+ CONFIG_OMAP2_DSS_SDI=y
+ CONFIG_OMAP2_DSS_DSI=y
++CONFIG_OMAP5_DSS_HDMI=y
+ CONFIG_FB_OMAP2=y
+ CONFIG_DISPLAY_ENCODER_TFP410=m
+ CONFIG_DISPLAY_ENCODER_TPD12S015=m
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
