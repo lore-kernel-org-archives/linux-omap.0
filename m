@@ -1,115 +1,134 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: RCU stall on panda
-Date: Mon, 12 May 2014 14:21:03 -0700
-Message-ID: <20140512212102.GF5668@atomide.com>
-References: <53675C5F.10509@linaro.org>
- <20140505180617.GM8754@linux.vnet.ibm.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: omap4-panda-es boot issues with v3.15-rc4
+Date: Mon, 12 May 2014 17:40:31 -0400
+Message-ID: <53713FCF.3000006@ti.com>
+References: <536B7E44.2040303@ti.com> <7hppjos2w2.fsf@paris.lan> <CAGa+x84VB3CXDm71JWxHx1-Qk1xVNeXdwUjZnb42_wg+piOzzA@mail.gmail.com> <20140508165558.GB2198@atomide.com> <20140508184055.GC2198@atomide.com> <7hha4zsyro.fsf@paris.lan> <536C9084.50209@ti.com> <7heh02ms82.fsf@paris.lan> <20140511155542.GD28266@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:63489 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751477AbaELVVO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 17:21:14 -0400
-Content-Disposition: inline
-In-Reply-To: <20140505180617.GM8754@linux.vnet.ibm.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45019 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755279AbaELVlD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 May 2014 17:41:03 -0400
+In-Reply-To: <20140511155542.GD28266@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Alex Shi <alex.shi@linaro.org>, "naresh.kamboju@linaro.org Kamboju" <naresh.kamboju@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, LAK <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@linaro.org>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>
+Cc: Roger Quadros <rogerq@ti.com>, "Menon, Nishanth" <nm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Paul Walmsley <paul@pwsan.com>, Taras Kondratiuk <taras.kondratiuk@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kristo, Tero" <t-kristo@ti.com>, Paul Burton <paul.burton@imgtec.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-* Paul E. McKenney <paulmck@linux.vnet.ibm.com> [140505 11:11]:
-> On Mon, May 05, 2014 at 05:39:43PM +0800, Alex Shi wrote:
-> > I keep seeing the RCU stall problem on panda board from 3.10 kernel to latest upstream kernel
-> > and google find some one report it before: https://lkml.org/lkml/2012/9/20/519
-> > 
-> > Is it the hardware issue or a real software problem?
+On Sunday 11 May 2014 11:55 AM, Tony Lindgren wrote:
+> * Kevin Hilman <khilman@linaro.org> [140509 16:46]:
+>> Roger Quadros <rogerq@ti.com> writes:
+>>
+>>> Kevin,
+>>>
+>>> On 05/09/2014 01:15 AM, Kevin Hilman wrote:
+>>>> Tony Lindgren <tony@atomide.com> writes:
+>>>>
+>>>> [...]
+>>>>
+>>>>> ..but I think I found the cause for recent hangs on panda, just a wild
+>>>>> guess based on looking at the recent cpuidle patches after v3.14.
+>>>>>
+>>>>> Looks like reverting 0b89e9aa2856 (cpuidle: delay enabling interrupts
+>>>>> until all coupled CPUs leave idle) makes booting work reliably again
+>>>>> on panda.
+>>>>>
+>>>>> Can you guys confirm, so far no issues here after few boot tests,
+>>>>> but it might be too early to tell.
+>>>>
+>>>> Reverting that makes things a bit more stable, but it still eventually
+>>>> fails in the same way.  For me it took 8 boots for it to eventually
+>>>> fail.
+>>>>
+>>>> However, if I build with CONFIG_CPU_IDLE=n, it becomes much more stable
+>>>> (20+ boots in a row and still going.)
+>>>>
+>>>
+>>> Can you please test with CPU_IDLE enabled but C3 disabled as in below patch?
+>>> It worked for me 10/10 boots.
+>>
+>> Yup, it worked for me too for 10/10 boots in a row.
 > 
-> I cannot distinguish between hardware and software from the trace below,
-> but given that you are also seeing a soft lockup, either way you do
-> appear to have a real problem as opposed to an RCU CPU stall warning
-> false positive.
+> But what has caused this regression, does it work reliably with let's
+> say v3.13 or v3.12?
+> 
+IIRC things were stable till some CPUIDLE code consolidation happened.
+I don't recall exactly but some one did discuss about it a while back.
 
-Looks like you have CPU_IDLE enabled on panda. Hangs with current linux
-next with CPU_IDLE are currently being discussed on the linux-omap list
-in thread "omap4-panda-es boot issues with v3.15-rc4"
+Can you re-run your test-cases with patch at end of the email. This
+is just a hunch so don't blame me if I waste your time testing the
+patch.
 
-I've seen occasional system hangs, and I've also noticed that doing
-ctrl-a-f h or ctrl-a-f l for sysrq backtrace can unlock the system
-producing similar errors to the below.
+regards,
+Santosh
 
-Regards,
+>From bdd30d68f8fa659aa0e3ce436f94029a7719036b Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Mon, 12 May 2014 17:37:59 -0400
+Subject: [PATCH] Revert "cpuidle / omap4 : use CPUIDLE_FLAG_TIMER_STOP flag"
 
-Tony
+This reverts commit cb7094e848f7bcaa0a4cda3db4b232f08dbf5b78.
+
+Conflicts:
+
+	arch/arm/mach-omap2/cpuidle44xx.c
+---
+ arch/arm/mach-omap2/cpuidle44xx.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index 01fc710..aae3606 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -83,6 +83,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ {
+ 	struct idle_statedata *cx = state_ptr + index;
+ 	u32 mpuss_can_lose_context = 0;
++	int cpu_id = smp_processor_id();
  
-> >   95.519653] INFO: rcu_sched self-detected stall on CPU^M
-> > [   95.519866]  1: (1 GPs behind) idle=2e7/1/0 softirq=4404/4405 ^M
-> > [   95.526489] INFO: rcu_sched detected stalls on CPUs/tasks:^M
-> > [   95.526489]  1: (1 GPs behind) idle=2e7/1/0 softirq=4404/4405 ^M
-> > [   95.526489]  (detected by 0, t=4229 jiffies, g=800, c=799, q=440)^M
-> > [   95.526519] Task dump for CPU 1:^M
-> > [   95.526519] swapper/1       R running      0     0      1 0x00000000^M
-> > [   95.559844]   (t=4229 jiffies g=800 c=799 q=440)^M
-> > [   95.564727] CPU: 1 PID: 0 Comm: swapper/1 Not tainted 3.15.0-rc4 #93^M
-> > [   95.571502] [<c00133fd>] (unwind_backtrace) from [<c001076d>] (show_stack+0x11/0x14)^M
-> > [   95.579711] [<c001076d>] (show_stack) from [<c0570465>] (dump_stack+0x75/0x88)^M
-> > [   95.587371] [<c0570465>] (dump_stack) from [<c0084383>] (rcu_check_callbacks+0x353/0x79c)^M
-> > [   95.596038] [<c0084383>] (rcu_check_callbacks) from [<c003e99f>] (update_process_times+0x33/0x4c)^M
-> > [   95.605438] [<c003e99f>] (update_process_times) from [<c008e5a3>] (tick_sched_handle.isra.18+0x1f/0x48)^M
-> > [   95.615386] [<c008e5a3>] (tick_sched_handle.isra.18) from [<c008e609>] (tick_sched_timer+0x3d/0x5c)^M
-> > [   95.624969] [<c008e609>] (tick_sched_timer) from [<c0051a23>] (__run_hrtimer+0x67/0x310)^M
-> > [   95.633544] [<c0051a23>] (__run_hrtimer) from [<c00525fd>] (hrtimer_interrupt+0xe1/0x214)^M
-> > [   95.642211] [<c00525fd>] (hrtimer_interrupt) from [<c008cecb>] (tick_receive_broadcast+0x1f/0x30)^M
-> > [   95.651611] [<c008cecb>] (tick_receive_broadcast) from [<c0011e4f>] (handle_IPI+0xb3/0x120)^M
-> > [   95.660461] [<c0011e4f>] (handle_IPI) from [<c00085e5>] (gic_handle_irq+0x51/0x54)^M
-> > [   95.668487] [<c00085e5>] (gic_handle_irq) from [<c057603f>] (__irq_svc+0x3f/0x64)^M
-> > [   95.676391] Exception stack(0xee0dbf10 to 0xee0dbf58)^M
-> > [   95.681762] bf00:                                     00000001 00000001 00000000 ee0d8c40^M
-> > [   95.690429] bf20: 3c6bd296 00000016 3c6f8c43 00000016 eefab540 c08e0c84 00000000 c0fc7114^M
-> > [   95.699066] bf40: 00000010 ee0dbf58 c006ef4d c0443890 40000033 ffffffff^M
-> > [   95.706085] [<c057603f>] (__irq_svc) from [<c0443890>] (cpuidle_enter_state+0xc0/0xc4)^M
-> > [   95.714477] [<c0443890>] (cpuidle_enter_state) from [<c0444d11>] (cpuidle_enter_state_coupled+0xe1/0x290)^M
-> > [   95.724639] [<c0444d11>] (cpuidle_enter_state_coupled) from [<c0067cd1>] (cpu_startup_entry+0x1a5/0x494)^M
-> > [   95.734680] [<c0067cd1>] (cpu_startup_entry) from [<80008685>] (0x80008685)^M
-> > [   95.742095] BUG: soft lockup - CPU#1 stuck for 40s! [swapper/1:0]^M
-> > [   95.748535] Modules linked in:^M
-> > [   95.751770] irq event stamp: 128730^M
-> > [   95.755462] hardirqs last  enabled at (128727): [<c044388f>] cpuidle_enter_state+0xbf/0xc4^M
-> > [   95.764221] hardirqs last disabled at (128728): [<c0576033>] __irq_svc+0x33/0x64^M
-> > [   95.772064] softirqs last  enabled at (128730): [<c00386cd>] irq_enter+0x59/0x60^M
-> > [   95.779907] softirqs last disabled at (128729): [<c00386ba>] irq_enter+0x46/0x60^M
-> > [   95.787750] ^M
-> > 
-> > 
-> > my RCU and IDLE related kernel config as blow:
-> > 
-> > CONFIG_TREE_RCU=y
-> > CONFIG_RCU_STALL_COMMON=y
-> > CONFIG_RCU_FANOUT=32
-> > CONFIG_RCU_FANOUT_LEAF=16
-> > CONFIG_TREE_RCU_TRACE=y
-> > CONFIG_PROVE_RCU=y
-> > CONFIG_PROVE_RCU_REPEATEDLY=y
-> > CONFIG_SPARSE_RCU_POINTER=y
-> > CONFIG_RCU_CPU_STALL_TIMEOUT=21
-> > CONFIG_RCU_CPU_STALL_INFO=y
-> > CONFIG_RCU_TRACE=y
-> > alexs@alex-panda:~$ cat /proc/config.gz | gunzip | grep IDLE
-> > CONFIG_NO_HZ_IDLE=y
-> > CONFIG_GENERIC_SMP_IDLE_THREAD=y
-> > CONFIG_GENERIC_IDLE_POLL_SETUP=y
-> > CONFIG_CPU_IDLE=y
-> > CONFIG_CPU_IDLE_GOV_LADDER=y
-> > CONFIG_CPU_IDLE_GOV_MENU=y
-> > CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED=y
-> > 
-> > -- 
-> > Thanks
-> >     Alex
-> > 
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+ 	/*
+ 	 * CPU0 has to wait and stay ON until CPU1 is OFF state.
+@@ -110,6 +111,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	mpuss_can_lose_context = (cx->mpu_state == PWRDM_POWER_RET) &&
+ 				 (cx->mpu_logic_state == PWRDM_POWER_OFF);
+ 
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
++
+ 	/*
+ 	 * Call idle CPU PM enter notifier chain so that
+ 	 * VFP and per CPU interrupt context is saved.
+@@ -165,6 +168,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	if (dev->cpu == 0 && mpuss_can_lose_context)
+ 		cpu_cluster_pm_exit();
+ 
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
++
+ fail:
+ 	cpuidle_coupled_parallel_barrier(dev, &abort_barrier);
+ 	cpu_done[dev->cpu] = false;
+@@ -189,8 +194,7 @@ static struct cpuidle_driver omap4_idle_driver = {
+ 			/* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */
+ 			.exit_latency = 328 + 440,
+ 			.target_residency = 960,
+-			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED |
+-			         CPUIDLE_FLAG_TIMER_STOP,
++			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
+ 			.enter = omap_enter_idle_coupled,
+ 			.name = "C2",
+ 			.desc = "CPUx OFF, MPUSS CSWR",
+@@ -199,8 +203,7 @@ static struct cpuidle_driver omap4_idle_driver = {
+ 			/* C3 - CPU0 OFF + CPU1 OFF + MPU OSWR */
+ 			.exit_latency = 460 + 518,
+ 			.target_residency = 1100,
+-			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED |
+-			         CPUIDLE_FLAG_TIMER_STOP,
++			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
+ 			.enter = omap_enter_idle_coupled,
+ 			.name = "C3",
+ 			.desc = "CPUx OFF, MPUSS OSWR",
+-- 
+1.7.9.5
+
+
