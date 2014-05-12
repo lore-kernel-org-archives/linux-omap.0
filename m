@@ -1,79 +1,81 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH v5 0/4] add parallel NAND support for TI's new OMAPx and
- AMxx platforms (Part-2)
-Date: Mon, 12 May 2014 14:27:12 +0200
-Message-ID: <CABxcv=n1xfuNtjQ3fqaeMccGHzCHuGtP0hrtsBMsMWo5oFFLaQ@mail.gmail.com>
-References: <1399895353-3663-1-git-send-email-pekon@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 00/11] ARM: OMAP: OMAP5 & AM43x DSS
+Date: Mon, 12 May 2014 16:25:41 +0300
+Message-ID: <5370CBD5.3060107@ti.com>
+References: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="tfx4TgjU53kmeTE3xw50MVRTACcI94Hve"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f182.google.com ([74.125.82.182]:63803 "EHLO
-	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750752AbaELM1N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 08:27:13 -0400
-Received: by mail-we0-f182.google.com with SMTP id t60so6891520wes.27
-        for <linux-omap@vger.kernel.org>; Mon, 12 May 2014 05:27:12 -0700 (PDT)
-In-Reply-To: <1399895353-3663-1-git-send-email-pekon@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:48479 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756723AbaELN0K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 May 2014 09:26:10 -0400
+In-Reply-To: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Archit Taneja <archit@ti.com>
 
-Hello Pekon,
+--tfx4TgjU53kmeTE3xw50MVRTACcI94Hve
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, May 12, 2014 at 1:49 PM, Pekon Gupta <pekon@ti.com> wrote:
-> *changes v4 -> v5*
-> use lower-case hexadecimal numbers
-> add comments for using different memory sizes in <range> and <reg> properties
-> fix 'reg size' property for GPMC and ELM nodes in dra7.dtsi
->
->
-> *changes v3 -> v4*
-> fixed <reg> and <range> property for all GPMC DT nodes
-> added fix for am335x-evm and am437x-epos-evm
-> rebased on git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap +omap-for-v3.16/dt
->
->
-> *changes v2 -> v3*
-> rebased on git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap :master
-> merged leftover patches (dra7-evm and am43x-epos-evm fix) from Part-1 series
->
->
-> *changes v1 -> v2*
-> [PATCH v2 1/2] created new DTS for memory-capes based on following feedbacks
->   http://www.spinics.net/lists/linux-omap/msg104348.html from 'Nishanth Menon <nm@ti.com>'
->   http://www.spinics.net/lists/linux-omap/msg104447.html from 'Tony Lindgren <tony@atomide.com>'
-> [PATCH v2 2/2] <same as [PATCH v1 1/3]>
->
->
-> *original v1*
-> This patch-set adds parallel NAND support on following TI platforms
->  - AM335x (am335x-bone LT, am335x-boneblack): <disabled by default>
->  - AM43xx (am437x-gp-evm)
->
->
-> Minal Shah (1):
->   ARM: dts: dra7: add support for parallel NAND flash
->
-> Pekon Gupta (3):
->   ARM: dts: am335x-bone: add support for beaglebone NAND cape
->   ARM: dts: am437x-gp-evm: add support for parallel NAND flash
->   ARM: dts: am43xx: fix starting offset of NAND.filesystem MTD partition
->
->  arch/arm/boot/dts/am335x-bone-memory-cape.dts | 130 ++++++++++++++++++++++++++
->  arch/arm/boot/dts/am335x-bone.dts             |   1 +
->  arch/arm/boot/dts/am335x-boneblack.dts        |   1 +
->  arch/arm/boot/dts/am437x-gp-evm.dts           | 107 +++++++++++++++++++++
->  arch/arm/boot/dts/am43x-epos-evm.dts          |   2 +-
->  arch/arm/boot/dts/dra7-evm.dts                | 117 +++++++++++++++++++++++
->  arch/arm/boot/dts/dra7.dtsi                   |  20 ++++
->  7 files changed, 377 insertions(+), 1 deletion(-)
->  create mode 100644 arch/arm/boot/dts/am335x-bone-memory-cape.dts
->
+Hi Tony,
 
-Looks good to me. For the whole series:
+On 09/05/14 14:56, Tomi Valkeinen wrote:
+> Hi,
+>=20
+> Here are arch/arm/ patches to add display support for OMAP5 and AM43x.
+>=20
+> I have these in my tree, in a branch I will send to Tony for merging. M=
+ost of
+> these patches have already been around the lists, but I wanted to send =
+them one
+> more time to verify that all looks right and everybody is fine with the=
+m.
 
-Reviewed-by: Javier Martinez Canillas <javier@dowhile0.org>
+I have pushed these to:
 
-Best regards,
-Javier
+git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git 3.16/omap
+
+If you're fine with these, I think we can consider that branch stable.
+There are probably still a few display related .dts changed for the
+board coming up, but I'll add those on top of the current commits.
+
+I also have pushed OMAP5 and AM43xx related OMAPDSS patches to my
+for-next branch, so with "3.16/omap" branch and linux-next, the omap5
+and am43xx displays should be functional.
+
+How do you want to handle getting the 3.16/omap branch to linux-next?
+Will you take "ownership" of the branch, and push it to linux-next?
+
+ Tomi
+
+
+
+--tfx4TgjU53kmeTE3xw50MVRTACcI94Hve
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTcMvVAAoJEPo9qoy8lh71LT4QAI2P7+tQl0oW3CFbR1m3VlDy
+2cWjUWqBsoLkC4B+NKtU3Du3eBKkjVxDBTYA9xx+2JjdiJLlN30UrHTjHkN+N2SA
+hsIWisySrsO4vU14TiP5PPhCRE7Pd4x17bzm4wC1+rDhE+JZUO8t0jvwS5a1taYl
+yiYoQuZ02KjMSGF9fcjZDqEzu8kV1vhtUtHTtQgT7Zm4RbxY3RnqKRleIqra8cOT
+69b9UWibeoFwN1rw87w68HN1pNZ1xTPsWsWLiT9T+VgPXV/CpwQM04zxGUXSqGdK
+2ON9eWiVAD7NVvPrQA5y8+IbHKtp3GF0qgfnn08ZGrnNpLhBrrbhZ6GuQlx5InGv
+BAjIJLIw6IN9yZsy2jEw3a3buvjUd+o4Q1pahR9YLTtREBIFx1wGGpwWz0ColEe9
+KYwbHXIslSE+bXR8wFxdCE3QzDmr02J7ufXMZboX+J2wh96wzL4xqHtisFmy20oj
+tOBt2N/sEslpxzZN1PqBW4a4u0TRr0MF9nO04GVQKTvf5J0FnfWkklsIKUP6NBwA
+tmHMeGpQpP0N+9KM8SljbfLdATicgH3azYEpTpbORoxQAG09eSvVjSW+0NGEni0M
+hMtCnK2Lt5l25Eu6pS9mDahEVwLQrg2nVrAIw6lGLG9b/5/hP8E3zkAo4g+xMUFN
+f5VVMVu4QR4nE3iyl3Zw
+=rmxF
+-----END PGP SIGNATURE-----
+
+--tfx4TgjU53kmeTE3xw50MVRTACcI94Hve--
