@@ -1,14 +1,14 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH 01/19] ASoC: omap-pcm: Move omap-pcm under include/sound
-Date: Mon, 12 May 2014 12:12:12 +0300
-Message-ID: <6b5197d4e9bc94bf617bc5e5add990fa6287089e.1399884780.git.jsarha@ti.com>
+Subject: [PATCH 02/19] OMAPDSS: hdmi-common: Add hdmi_dss_audio_from_hw_params()
+Date: Mon, 12 May 2014 12:12:13 +0300
+Message-ID: <6dbb6dbbf299609fa3f527bcd5e41d5648b764d3.1399884780.git.jsarha@ti.com>
 References: <cover.1399884780.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37956 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37957 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751888AbaELJMo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751872AbaELJMo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 12 May 2014 05:12:44 -0400
 In-Reply-To: <cover.1399884780.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,171 +16,171 @@ List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Make including the omap-pcm.h outside sound/soc/omap more convenient.
+Add common function for struct omap_dss_audio initialization from
+struct snd_pcm_hw_params.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- include/sound/omap-pcm.h          |   30 ++++++++++++++++++++++++++++++
- sound/soc/davinci/davinci-mcasp.c |    2 +-
- sound/soc/omap/omap-dmic.c        |    2 +-
- sound/soc/omap/omap-hdmi.c        |    2 +-
- sound/soc/omap/omap-mcbsp.c       |    2 +-
- sound/soc/omap/omap-mcpdm.c       |    2 +-
- sound/soc/omap/omap-pcm.h         |   30 ------------------------------
- 7 files changed, 35 insertions(+), 35 deletions(-)
- create mode 100644 include/sound/omap-pcm.h
- delete mode 100644 sound/soc/omap/omap-pcm.h
+ drivers/video/fbdev/omap2/dss/hdmi.h        |    5 ++
+ drivers/video/fbdev/omap2/dss/hdmi_common.c |  117 ++++++++++++++++++++++++++-
+ 2 files changed, 121 insertions(+), 1 deletion(-)
 
-diff --git a/include/sound/omap-pcm.h b/include/sound/omap-pcm.h
-new file mode 100644
-index 0000000..c1d2f31
---- /dev/null
-+++ b/include/sound/omap-pcm.h
-@@ -0,0 +1,30 @@
-+/*
-+ * omap-pcm.h - OMAP PCM driver
-+ *
-+ * Copyright (C) 2014 Texas Instruments, Inc.
-+ *
-+ * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
+index fbee078..65bf072 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi.h
++++ b/drivers/video/fbdev/omap2/dss/hdmi.h
+@@ -433,6 +433,11 @@ int hdmi_parse_lanes_of(struct platform_device *pdev, struct device_node *ep,
+ 
+ #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO) || defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
+ int hdmi_compute_acr(u32 pclk, u32 sample_freq, u32 *n, u32 *cts);
++struct snd_pcm_hw_params;
++struct snd_soc_dai;
++int hdmi_dss_audio_from_hw_params(struct snd_pcm_hw_params *params,
++				  struct omap_dss_audio *dss_audio,
++				  struct snd_soc_dai *dai);
+ int hdmi_wp_audio_enable(struct hdmi_wp_data *wp, bool enable);
+ int hdmi_wp_audio_core_req_enable(struct hdmi_wp_data *wp, bool enable);
+ void hdmi_wp_audio_config_format(struct hdmi_wp_data *wp,
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi_common.c b/drivers/video/fbdev/omap2/dss/hdmi_common.c
+index 9a2c39c..85a2407 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi_common.c
++++ b/drivers/video/fbdev/omap2/dss/hdmi_common.c
+@@ -19,6 +19,12 @@
+ #include <linux/err.h>
+ #include <linux/of.h>
+ #include <video/omapdss.h>
++#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO) || defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
++#include <sound/asound.h>
++#include <sound/asoundef.h>
++#include <sound/pcm_params.h>
++#include <sound/soc.h>
++#endif
+ 
+ #include "hdmi.h"
+ 
+@@ -364,7 +370,7 @@ int hdmi_parse_lanes_of(struct platform_device *pdev, struct device_node *ep,
+ 	return 0;
+ }
+ 
+-#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
++#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO) || defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
+ int hdmi_compute_acr(u32 pclk, u32 sample_freq, u32 *n, u32 *cts)
+ {
+ 	u32 deep_color;
+@@ -463,4 +469,113 @@ int hdmi_compute_acr(u32 pclk, u32 sample_freq, u32 *n, u32 *cts)
+ 
+ 	return 0;
+ }
 +
-+#ifndef __OMAP_PCM_H__
-+#define __OMAP_PCM_H__
-+
-+#if IS_ENABLED(CONFIG_SND_OMAP_SOC)
-+int omap_pcm_platform_register(struct device *dev);
-+#else
-+static inline int omap_pcm_platform_register(struct device *dev)
++int hdmi_dss_audio_from_hw_params(struct snd_pcm_hw_params *params,
++				  struct omap_dss_audio *dss_audio,
++				  struct snd_soc_dai *dai)
 +{
++	struct snd_aes_iec958 *iec = dss_audio->iec;
++	struct snd_cea_861_aud_if *cea = dss_audio->cea;
++
++	/*
++	 * fill the IEC-60958 channel status word
++	 */
++	/* initialize the word bytes */
++	memset(iec->status, 0, sizeof(iec->status));
++
++	/* specify IEC-60958-3 (commercial use) */
++	iec->status[0] &= ~IEC958_AES0_PROFESSIONAL;
++
++	/* specify that the audio is LPCM*/
++	iec->status[0] &= ~IEC958_AES0_NONAUDIO;
++
++	iec->status[0] |= IEC958_AES0_CON_NOT_COPYRIGHT;
++
++	iec->status[0] |= IEC958_AES0_CON_EMPHASIS_NONE;
++
++	iec->status[0] |= IEC958_AES1_PRO_MODE_NOTID;
++
++	iec->status[1] = IEC958_AES1_CON_GENERAL;
++
++	iec->status[2] |= IEC958_AES2_CON_SOURCE_UNSPEC;
++
++	iec->status[2] |= IEC958_AES2_CON_CHANNEL_UNSPEC;
++
++	switch (params_rate(params)) {
++	case 32000:
++		iec->status[3] |= IEC958_AES3_CON_FS_32000;
++		break;
++	case 44100:
++		iec->status[3] |= IEC958_AES3_CON_FS_44100;
++		break;
++	case 48000:
++		iec->status[3] |= IEC958_AES3_CON_FS_48000;
++		break;
++	case 88200:
++		iec->status[3] |= IEC958_AES3_CON_FS_88200;
++		break;
++	case 96000:
++		iec->status[3] |= IEC958_AES3_CON_FS_96000;
++		break;
++	case 176400:
++		iec->status[3] |= IEC958_AES3_CON_FS_176400;
++		break;
++	case 192000:
++		iec->status[3] |= IEC958_AES3_CON_FS_192000;
++		break;
++	default:
++		dev_err(dai->dev, "rate not supported!\n");
++		return -EINVAL;
++	}
++
++	/* specify the clock accuracy */
++	iec->status[3] |= IEC958_AES3_CON_CLOCK_1000PPM;
++
++	/*
++	 * specify the word length. The same word length value can mean
++	 * two different lengths. Hence, we need to specify the maximum
++	 * word length as well.
++	 */
++	switch (params_format(params)) {
++	case SNDRV_PCM_FORMAT_S16_LE:
++		iec->status[4] |= IEC958_AES4_CON_WORDLEN_20_16;
++		iec->status[4] &= ~IEC958_AES4_CON_MAX_WORDLEN_24;
++		break;
++	case SNDRV_PCM_FORMAT_S24_LE:
++		iec->status[4] |= IEC958_AES4_CON_WORDLEN_24_20;
++		iec->status[4] |= IEC958_AES4_CON_MAX_WORDLEN_24;
++		break;
++	default:
++		dev_err(dai->dev, "format not supported!\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * Fill the CEA-861 audio infoframe (see spec for details)
++	 */
++
++	cea->db1_ct_cc = (params_channels(params) - 1)
++		& CEA861_AUDIO_INFOFRAME_DB1CC;
++	cea->db1_ct_cc |= CEA861_AUDIO_INFOFRAME_DB1CT_FROM_STREAM;
++
++	cea->db2_sf_ss = CEA861_AUDIO_INFOFRAME_DB2SF_FROM_STREAM;
++	cea->db2_sf_ss |= CEA861_AUDIO_INFOFRAME_DB2SS_FROM_STREAM;
++
++	cea->db3 = 0; /* not used, all zeros */
++
++	/*
++	 * The OMAP HDMI IP requires to use the 8-channel channel code when
++	 * transmitting more than two channels.
++	 */
++	if (params_channels(params) == 2)
++		cea->db4_ca = 0x0;
++	else
++		cea->db4_ca = 0x13;
++
++	cea->db5_dminh_lsv = CEA861_AUDIO_INFOFRAME_DB5_DM_INH_PROHIBITED;
++	/* the expression is trivial but makes clear what we are doing */
++	cea->db5_dminh_lsv |= (0 & CEA861_AUDIO_INFOFRAME_DB5_LSV);
++
 +	return 0;
 +}
-+#endif /* CONFIG_SND_OMAP_SOC */
-+
-+#endif /* __OMAP_PCM_H__ */
-diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index 14058dc..9afb146 100644
---- a/sound/soc/davinci/davinci-mcasp.c
-+++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -33,10 +33,10 @@
- #include <sound/initval.h>
- #include <sound/soc.h>
- #include <sound/dmaengine_pcm.h>
-+#include <sound/omap-pcm.h>
- 
- #include "davinci-pcm.h"
- #include "davinci-mcasp.h"
--#include "../omap/omap-pcm.h"
- 
- #define MCASP_MAX_AFIFO_DEPTH	64
- 
-diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-index 53da041..6925d71 100644
---- a/sound/soc/omap/omap-dmic.c
-+++ b/sound/soc/omap/omap-dmic.c
-@@ -40,9 +40,9 @@
- #include <sound/initval.h>
- #include <sound/soc.h>
- #include <sound/dmaengine_pcm.h>
-+#include <sound/omap-pcm.h>
- 
- #include "omap-dmic.h"
--#include "omap-pcm.h"
- 
- struct omap_dmic {
- 	struct device *dev;
-diff --git a/sound/soc/omap/omap-hdmi.c b/sound/soc/omap/omap-hdmi.c
-index 537a1ec..eb9c392 100644
---- a/sound/soc/omap/omap-hdmi.c
-+++ b/sound/soc/omap/omap-hdmi.c
-@@ -34,9 +34,9 @@
- #include <sound/asoundef.h>
- #include <sound/dmaengine_pcm.h>
- #include <video/omapdss.h>
-+#include <sound/omap-pcm.h>
- 
- #include "omap-hdmi.h"
--#include "omap-pcm.h"
- 
- #define DRV_NAME "omap-hdmi-audio-dai"
- 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index af2764a..10d6cec 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -34,11 +34,11 @@
- #include <sound/initval.h>
- #include <sound/soc.h>
- #include <sound/dmaengine_pcm.h>
-+#include <sound/omap-pcm.h>
- 
- #include <linux/platform_data/asoc-ti-mcbsp.h>
- #include "mcbsp.h"
- #include "omap-mcbsp.h"
--#include "omap-pcm.h"
- 
- #define OMAP_MCBSP_RATES	(SNDRV_PCM_RATE_8000_96000)
- 
-diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
-index d8ebb52..f0e2ebe 100644
---- a/sound/soc/omap/omap-mcpdm.c
-+++ b/sound/soc/omap/omap-mcpdm.c
-@@ -40,9 +40,9 @@
- #include <sound/pcm_params.h>
- #include <sound/soc.h>
- #include <sound/dmaengine_pcm.h>
-+#include <sound/omap-pcm.h>
- 
- #include "omap-mcpdm.h"
--#include "omap-pcm.h"
- 
- struct mcpdm_link_config {
- 	u32 link_mask; /* channel mask for the direction */
-diff --git a/sound/soc/omap/omap-pcm.h b/sound/soc/omap/omap-pcm.h
-deleted file mode 100644
-index c1d2f31..0000000
---- a/sound/soc/omap/omap-pcm.h
-+++ /dev/null
-@@ -1,30 +0,0 @@
--/*
-- * omap-pcm.h - OMAP PCM driver
-- *
-- * Copyright (C) 2014 Texas Instruments, Inc.
-- *
-- * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- */
--
--#ifndef __OMAP_PCM_H__
--#define __OMAP_PCM_H__
--
--#if IS_ENABLED(CONFIG_SND_OMAP_SOC)
--int omap_pcm_platform_register(struct device *dev);
--#else
--static inline int omap_pcm_platform_register(struct device *dev)
--{
--	return 0;
--}
--#endif /* CONFIG_SND_OMAP_SOC */
--
--#endif /* __OMAP_PCM_H__ */
+ #endif
 -- 
 1.7.9.5
 
