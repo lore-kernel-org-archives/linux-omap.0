@@ -1,90 +1,121 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree support
-Date: Mon, 12 May 2014 12:00:17 +0200
-Message-ID: <CABxcv=mY0a+yJgmCTPN=BhSQD57Pw022zOd5_KxEgvvF_-=O7Q@mail.gmail.com>
-References: <1398815562-24113-1-git-send-email-tony@atomide.com>
-	<1398815562-24113-4-git-send-email-tony@atomide.com>
-	<5369EAE7.3030705@ti.com>
-	<20140507150343.GA9502@atomide.com>
-	<536A5920.1020908@ti.com>
-	<20140507175919.GH9502@atomide.com>
-	<20140508233300.GI2198@atomide.com>
-	<536C8293.4070506@ti.com>
-	<20140509155504.GE17814@atomide.com>
-	<53707A64.2060203@ti.com>
-	<CABxcv=kwhodeFTHoVpn1nHeh9+kV5fwMN9s3Kbk6h7_xJp4UYA@mail.gmail.com>
-	<53709706.10501@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/4] OMAPDSS: Fix DSS clock multiplier issue on 3703 and
+ probably 3630
+Date: Mon, 12 May 2014 14:36:02 +0300
+Message-ID: <5370B222.7050702@ti.com>
+References: <1398815562-24113-1-git-send-email-tony@atomide.com> <1398815562-24113-2-git-send-email-tony@atomide.com> <536C860E.1000501@ti.com> <20140509143703.GA17814@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="7mhkTaHVSGkqaKBvUtLsjwxEJqh7QfE0i"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:36306 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753761AbaELKAS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 06:00:18 -0400
-Received: by mail-we0-f169.google.com with SMTP id u56so6683470wes.28
-        for <linux-omap@vger.kernel.org>; Mon, 12 May 2014 03:00:17 -0700 (PDT)
-In-Reply-To: <53709706.10501@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51034 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751115AbaELLg2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 07:36:28 -0400
+In-Reply-To: <20140509143703.GA17814@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hello Tomi,
+--7mhkTaHVSGkqaKBvUtLsjwxEJqh7QfE0i
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, May 12, 2014 at 11:40 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On 12/05/14 12:34, Javier Martinez Canillas wrote:
->
->> Maybe we can remove this hackery by relying on the fact that a
->> compatible string can have a set of values that goes from more
->> specific to more general. So you can have something like:
+On 09/05/14 17:37, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140509 00:39]:
+>> On 30/04/14 02:52, Tony Lindgren wrote:
+>>> Otherwise we can get often errors like the following and the
+>>> display won't come on:
+>>>
+>>> omapdss APPLY error: FIFO UNDERFLOW on gfx, disabling the overlay
+>>> omapdss APPLY error: SYNC_LOST on channel lcd, restarting
+>>> the output with video overlays disabled
+>>>
+>>> There are some earlier references to this issue:
+>>>
+>>> http://www.spinics.net/lists/linux-omap/msg59511.html
+>>> http://www.spinics.net/lists/linux-omap/msg59724.html
 >>
->> compatible = "sony,panel-foobar", "omapdss,panel-foobar"
->>
->> So right now only "omapdss,panel-foobar" will be matched and later
->> when we have common panel drivers then that driver could handle the
->> "sony,panel-foobar" compatible string.
->>
->> Other platforms could do something similar and have
->>
->> compatible = "sony,panel-foobar", "baz,panel-foobar"
->>
->> That way you won't break DT backward compatible but still not require
->> hacks on arch/arm/mach-omap2/display.c.
->>
->> We do the same for OMAP boards, we now have the following compatible string:
->>
->> compatible = "isee,omap3-igep0020", "ti,omap36xx", "ti,omap3";
->>
->> There isn't a struct machine_desc that matches "isee,omap3-igep0020"
->> but later if we find that we need some board specific initialization
->> we could add one without breaking existing DTS. In fact it used to be
->> a single machine_desc that matched "ti,omap3" for both omap36xx and
->> omap34xx but later when some DT clocks changes were introduced we
->> needed to split both SoC families.
->
-> I think that's a different thing. "isee,omap3-igep0020" is a proper
-> compatible string, if the board is "isee,...".  No matter what software
-> you run, that's correct and fine.
->
-> The omapdss case is different, there the "omapdss" points to a sw thing,
-> it does not describe the hardware. It's only needed as we don't have
-> proper sw drivers for the devices.
->
-> That said, I think what you describe would work. But I would rather keep
-> the .dts files clean and correct, and keep that hacks hidden inside the
-> kernel.
->
+>> Those don't sound like the same issue, but it's hard to say. What kind=
 
-Thanks for the explanation. Since DT are meant to describe hardware
-and not software I agree with you that we shouldn't leak an
-implementation detail to the DeviceTrees.
+>> of clock rates do you get? Cat you paste debugfs/omapdss/clk, with and=
 
-And after all fortunately we don't have a stable API in the kernel
-like the one that is enforced in the DT so we can fix it later ;-)
+>> without this patch?
+>=20
+> Without this patch:
+> # cat /sys/kernel/debug/omapdss/clk=20
+> [   24.833831] DSS: dss_runtime_get
+> [   24.837554] DSS: dss_runtime_put
+> [   24.840972] DISPC: dispc_runtime_get
+> [   24.844757] DISPC: dispc_runtime_put
+> - DSS -
+> DSS_FCK (DSS1_ALWON_FCLK) =3D 57600000
+> - DISPC -
+> dispc fclk source =3D DSS_FCK (DSS1_ALWON_FCLK)
+> fck             57600000       =20
+> - LCD -
+> LCD clk source =3D DSS_FCK (DSS1_ALWON_FCLK)
+> lck             57600000        lck div 1
+> pck             19200000        pck div 3
+>=20
+>=20
+> With this patch:
+> # cat /sys/kernel/debug/omapdss/clk=20
+> [   34.580688] DSS: dss_runtime_get
+> [   34.584197] DSS: dss_runtime_put
+> [   34.587768] DISPC: dispc_runtime_get
+> [   34.591552] DISPC: dispc_runtime_put
+> - DSS -
+> DSS_FCK (DSS1_ALWON_FCLK) =3D 108000000
+> - DISPC -
+> dispc fclk source =3D DSS_FCK (DSS1_ALWON_FCLK)
+> fck             108000000      =20
+> - LCD -
+> LCD clk source =3D DSS_FCK (DSS1_ALWON_FCLK)
+> lck             108000000       lck div 1
+> pck             18000000        pck div 6
+> =20
+>> What resolution do you have? If it's a very high resolution (say, DVI
+>> output to a monitor), it could just be an issue of
+>> not-enough-memory-bandwidth.
+>=20
+> This is just the 3730-evm with the Sharp VGA panel mentioned in
+> this series.
 
->  Tomi
->
->
+Hmm, well, those both look fine. The fck is well below the maximum,
+which is somewhere around 170MHz-180MHz. The lck/pck ratio is higher
+with this patch, but that should affect the GFX overlay.
 
-Bets regards,
-Javier
+So you're just booting, and there are no applications that use the
+framebuffer? And there is no rotation or such configured?
+
+ Tomi
+
+
+
+--7mhkTaHVSGkqaKBvUtLsjwxEJqh7QfE0i
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTcLIiAAoJEPo9qoy8lh71al0QAK6MSeVv6KaLxKJDjAOyAQK+
+0kCLluWyrNpnaCOP1mru/OcojSlYeVsdsx8dRXcplIuhfJuS1vdF/F0CRIbP6FhD
+wnbGy2XuZthH3RkYF28dzcSid4Ov5Gra4wfA3Vkm8R+moYqiKfxvKivbm557JHIp
+Vi04/aFC6h2pXz05kbt+UDYwP+B+J5WvvEAh0LDZc2SiN1j9Ab5GG+62kVW+dsOO
+COjKM6q5uTKrnF9zMC3j45clf4UIpvc4+6F9m3jbljvSu+x/d2SqNsdiUFcxrE/2
+lXRMkjDcyL/rr65Xum9sN8hUG5CbDf287d2t3uzxGU/GVOXSU+avegPLxDhqLWyf
+wjL9022Ilef6EIs1zaGP7KyvdPnTcvwkNwqgyB6VVkin+LElimwb1Y1KH4qlxXRH
+/SdY1oxbM/HfzYo0q+HRDHGN3x5umf2eKNWW/c9HmrTCtDq94PiyeIJvU1cvqZ17
++2wP3yOkzpIax9wRJCLgowsbW6E4mbxe9ZA965CYIi2UVBm5UTZY+Ni62wDNR++y
+ULuLCwYpZzVEFc3onY5R1XQXrGoxUNxQIcsrysZAsyMKvKmnfWusSnmm6rO7Ruth
+FjedykbIPd+EcUXRNCdzuNoJBV/HWdN/iU55YE8w6/pVr3RlOq+bLcNO9gPgEigq
+BD7T45pX4u2vZAz7CVTZ
+=UBWI
+-----END PGP SIGNATURE-----
+
+--7mhkTaHVSGkqaKBvUtLsjwxEJqh7QfE0i--
