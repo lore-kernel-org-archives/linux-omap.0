@@ -1,81 +1,107 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 00/11] ARM: OMAP: OMAP5 & AM43x DSS
-Date: Mon, 12 May 2014 16:25:41 +0300
-Message-ID: <5370CBD5.3060107@ti.com>
-References: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v2 1/6] mmc: omap_hsmmc: use devm_clk_get
+Date: Mon, 12 May 2014 19:03:21 +0530
+Message-ID: <5370CDA1.2060209@ti.com>
+References: <1399654013-28262-1-git-send-email-balajitk@ti.com> <1399654013-28262-2-git-send-email-balajitk@ti.com> <CAPDyKFpQ43168D4FVpbKExHuBPAfkyPrhiy4mG7c=481cpncmQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="tfx4TgjU53kmeTE3xw50MVRTACcI94Hve"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48479 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48820 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756723AbaELN0K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 May 2014 09:26:10 -0400
-In-Reply-To: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com>
+	id S1752682AbaELNd1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 May 2014 09:33:27 -0400
+In-Reply-To: <CAPDyKFpQ43168D4FVpbKExHuBPAfkyPrhiy4mG7c=481cpncmQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Archit Taneja <archit@ti.com>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: linux-mmc <linux-mmc@vger.kernel.org>, Chris Ball <chris@printf.net>, linux-omap <linux-omap@vger.kernel.org>
 
---tfx4TgjU53kmeTE3xw50MVRTACcI94Hve
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Monday 12 May 2014 02:03 PM, Ulf Hansson wrote:
+> On 9 May 2014 18:46, Balaji T K <balajitk@ti.com> wrote:
+>> With devm_clk_get conversion clk_put can be removed in clean up path
+>>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>> ---
+>>   drivers/mmc/host/omap_hsmmc.c |   15 ++++-----------
+>>   1 files changed, 4 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index b4de63b..b8ae7ee 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -1922,7 +1922,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>>
+>>          spin_lock_init(&host->irq_lock);
+>>
+>> -       host->fclk = clk_get(&pdev->dev, "fck");
+>> +       host->fclk = devm_clk_get(&pdev->dev, "fck");
+>>          if (IS_ERR(host->fclk)) {
+>>                  ret = PTR_ERR(host->fclk);
+>>                  host->fclk = NULL;
+>> @@ -1941,7 +1941,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>>
+>>          omap_hsmmc_context_save(host);
+>>
+>> -       host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
+>> +       host->dbclk = devm_clk_get(&pdev->dev, "mmchsdb_fck");
+>>          /*
+>>           * MMC can still work without debounce clock.
+>>           */
+>> @@ -1949,7 +1949,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>>                  host->dbclk = NULL;
+>>          } else if (clk_prepare_enable(host->dbclk) != 0) {
+>>                  dev_warn(mmc_dev(host->mmc), "Failed to enable debounce clk\n");
+>> -               clk_put(host->dbclk);
+>>                  host->dbclk = NULL;
+>
+> You should use the IS_ERR macro, no need to reset dbclk to NULL.
+>
 
-Hi Tony,
+Agreed, IS_ERR macro usage deserves patch on its own.
+will create separate patch on top of this series.
 
-On 09/05/14 14:56, Tomi Valkeinen wrote:
-> Hi,
->=20
-> Here are arch/arm/ patches to add display support for OMAP5 and AM43x.
->=20
-> I have these in my tree, in a branch I will send to Tony for merging. M=
-ost of
-> these patches have already been around the lists, but I wanted to send =
-them one
-> more time to verify that all looks right and everybody is fine with the=
-m.
+Thanks and Regards
+Balaji T K
+>>          }
+>>
+>> @@ -2105,11 +2104,8 @@ err_irq:
+>>                  dma_release_channel(host->rx_chan);
+>>          pm_runtime_put_sync(host->dev);
+>>          pm_runtime_disable(host->dev);
+>> -       clk_put(host->fclk);
+>> -       if (host->dbclk) {
+>> +       if (host->dbclk)
+>
+> Use IS_ERR instead.
+>
+>>                  clk_disable_unprepare(host->dbclk);
+>> -               clk_put(host->dbclk);
+>> -       }
+>>   err1:
+>>          iounmap(host->base);
+>>          mmc_free_host(mmc);
+>> @@ -2144,11 +2140,8 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
+>>
+>>          pm_runtime_put_sync(host->dev);
+>>          pm_runtime_disable(host->dev);
+>> -       clk_put(host->fclk);
+>> -       if (host->dbclk) {
+>> +       if (host->dbclk)
+>
+> Use IS_ERR instead.
+>
+>>                  clk_disable_unprepare(host->dbclk);
+>> -               clk_put(host->dbclk);
+>> -       }
+>>
+>>          omap_hsmmc_gpio_free(host->pdata);
+>>          iounmap(host->base);
+>> --
+>> 1.7.5.4
+>>
+>
+> Kind regards
+> Ulf Hansson
+>
 
-I have pushed these to:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git 3.16/omap
-
-If you're fine with these, I think we can consider that branch stable.
-There are probably still a few display related .dts changed for the
-board coming up, but I'll add those on top of the current commits.
-
-I also have pushed OMAP5 and AM43xx related OMAPDSS patches to my
-for-next branch, so with "3.16/omap" branch and linux-next, the omap5
-and am43xx displays should be functional.
-
-How do you want to handle getting the 3.16/omap branch to linux-next?
-Will you take "ownership" of the branch, and push it to linux-next?
-
- Tomi
-
-
-
---tfx4TgjU53kmeTE3xw50MVRTACcI94Hve
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTcMvVAAoJEPo9qoy8lh71LT4QAI2P7+tQl0oW3CFbR1m3VlDy
-2cWjUWqBsoLkC4B+NKtU3Du3eBKkjVxDBTYA9xx+2JjdiJLlN30UrHTjHkN+N2SA
-hsIWisySrsO4vU14TiP5PPhCRE7Pd4x17bzm4wC1+rDhE+JZUO8t0jvwS5a1taYl
-yiYoQuZ02KjMSGF9fcjZDqEzu8kV1vhtUtHTtQgT7Zm4RbxY3RnqKRleIqra8cOT
-69b9UWibeoFwN1rw87w68HN1pNZ1xTPsWsWLiT9T+VgPXV/CpwQM04zxGUXSqGdK
-2ON9eWiVAD7NVvPrQA5y8+IbHKtp3GF0qgfnn08ZGrnNpLhBrrbhZ6GuQlx5InGv
-BAjIJLIw6IN9yZsy2jEw3a3buvjUd+o4Q1pahR9YLTtREBIFx1wGGpwWz0ColEe9
-KYwbHXIslSE+bXR8wFxdCE3QzDmr02J7ufXMZboX+J2wh96wzL4xqHtisFmy20oj
-tOBt2N/sEslpxzZN1PqBW4a4u0TRr0MF9nO04GVQKTvf5J0FnfWkklsIKUP6NBwA
-tmHMeGpQpP0N+9KM8SljbfLdATicgH3azYEpTpbORoxQAG09eSvVjSW+0NGEni0M
-hMtCnK2Lt5l25Eu6pS9mDahEVwLQrg2nVrAIw6lGLG9b/5/hP8E3zkAo4g+xMUFN
-f5VVMVu4QR4nE3iyl3Zw
-=rmxF
------END PGP SIGNATURE-----
-
---tfx4TgjU53kmeTE3xw50MVRTACcI94Hve--
