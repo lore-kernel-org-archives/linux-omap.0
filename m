@@ -1,128 +1,52 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH v4 3/6] ARM: dts: dra7: add support for parallel NAND flash
-Date: Mon, 12 May 2014 10:49:58 +0200
-Message-ID: <CABxcv==SGZ1fReXkgT769Z70ek_guMVn6nSK0FFgzjoksLGBrw@mail.gmail.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v4 3/6] ARM: dts: dra7: add support for parallel NAND
+ flash
+Date: Mon, 12 May 2014 09:05:08 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACC2C2@DBDE04.ent.ti.com>
 References: <1399668412-10818-1-git-send-email-pekon@ti.com>
 	<CABxcv=nNuMLDCbNimWWR6yBbq3dHV6i87vBu69ZXGcYE-c9bmA@mail.gmail.com>
 	<20980858CB6D3A4BAE95CA194937D5E73EACC26A@DBDE04.ent.ti.com>
+ <CABxcv==SGZ1fReXkgT769Z70ek_guMVn6nSK0FFgzjoksLGBrw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:46536 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754366AbaELIuA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 04:50:00 -0400
-Received: by mail-wg0-f43.google.com with SMTP id l18so6383557wgh.2
-        for <linux-omap@vger.kernel.org>; Mon, 12 May 2014 01:49:59 -0700 (PDT)
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EACC26A@DBDE04.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44345 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750752AbaELJFS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 05:05:18 -0400
+In-Reply-To: <CABxcv==SGZ1fReXkgT769Z70ek_guMVn6nSK0FFgzjoksLGBrw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>
 Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, Minal Shah <minalkshah@gmail.com>
 
-Hello Pekon,
-
-On Mon, May 12, 2014 at 9:03 AM, Gupta, Pekon <pekon@ti.com> wrote:
-> Hello,
->
-> From: Javier Martinez Canillas [mailto:javier@dowhile0.org]
->>On Fri, May 9, 2014 at 10:46 PM, Pekon Gupta <pekon@ti.com> wrote:
->>> From: Minal Shah <minalkshah@gmail.com>
-> [...]
->>> +&gpmc {
->>> +       status = "okay";
->>> +       pinctrl-names = "default";
->>> +       pinctrl-0 = <&nand_flash_x16>;
->>> +       ranges = <0 0 0 0x1000000>;
->>> +       nand@0,0 {
->>> +               reg = <0 0 0x380>;
-> [...]
->
->>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->>> index 37a0595..6af775a 100644
->>> --- a/arch/arm/boot/dts/dra7.dtsi
->>> +++ b/arch/arm/boot/dts/dra7.dtsi
->>> @@ -776,6 +776,26 @@
->>>                         interrupts = <0 343 0x4>;
->>>                         status = "disabled";
->>>                 };
->>> +
->>> +               elm: elm@48078000 {
->>> +                       compatible = "ti,am3352-elm";
->>> +                       reg = <0x48078000 0x2000>;
->>
->>It is really necessary to map all this 8 KB address space for GPMC registers?
->>
->>I don't have access to the DRA7 TRM but for example the OMAP3 TRM says
->>that the GPMC module register address space size is 16 MB while in
->>practice the registers use less than 1 KB (0..0x02d0 to be exact) so
->>in arch/arm/boot/dts/omap3.dtsi we have:
->>
-> These are not GPMC registers. Platforms from OMAP4 and beyond
-> (like AM335x, OMAP5) have another small hardware engine called ELM [1]
-> (Error Locater Module) in addition to GPMC, which is used for detecting
-> ECC errors in hardware. ELM Driver $KERNEL/drivers/mtd/devices/elm.c
->
-
-Yes, I know what ELM is, I just made a mistake when adding my comments
-inline. I actually meant the 8KB from the following device node:
-
-> +               gpmc: gpmc@50000000 {
-> +                       compatible = "ti,am3352-gpmc";
-> +                       ti,hwmods = "gpmc";
-> +                       reg = <0x50000000 0x2000>;
-> +                       interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
-> +                       gpmc,num-cs = <8>;
-> +                       gpmc,num-waitpins = <2>;
-> +                       #address-cells = <2>;
-> +                       #size-cells = <1>;
-> +                       status = "disabled";
-> +               };
-
-> However, thanks for pointing out, this address-space for ELM is incorrect.
-> Last ELM register offset is 0xFC0 (ELM_ERROR_LOCATION_15_7) [1].
->
-
-And yes, comments applies to ELM register address space as well.
-
->>gpmc: gpmc@6e000000 {
->>...
->>                        reg = <0x6e000000 0x02d0>;
->>...
->>};
->>
->>Shouldn't this be similar (the same?) for DRA7 GPMC device node?
->>
-> Newer platforms have upgraded version of GPMC engine which supports
-> BCH16 ECC scheme in hardware. Thus the GPMC address space was
-> expanded to include some extra registers required for BCH16 ECC [2].
->
->
-
-I see and did the GPMC register space became that big to need to map 8KB?
-
-Although the smallest unit for ioremap is PAGE_SIZE and using any of
-these reg sizes:
-
-reg = <0x6e000000 0x02d0>;
-reg = <0x6e000000 0x0400>;
-reg = <0x6e000000 0x1000>;
-
-in practice have the same effect, DTS should describe the hardware and
-not an implementation detail so I think that we should use only the
-register size that is defined in the TRM.
-
->
-> [1] http://www.ti.com/lit/gpn/am3359    (Section 7.4 to 7.4.5)
->
-> [2] http://www.ti.com/lit/gpn/am3359    (Section 7.1 to 7.1.5)
-> (Though the AM335x address space mentions 0x368 as last address,
->  it should be 0x378. I have raised documentation bug for it).
->
->
-> with regards, pekon
-
-Best regards,
-Javier
-
-[0]: http://lxr.free-electrons.com/source/arch/arm/mm/ioremap.c#L334
+PkZyb206IEphdmllciBNYXJ0aW5leiBDYW5pbGxhcyBbbWFpbHRvOmphdmllckBkb3doaWxlMC5v
+cmddDQpbLi4uXQ0KDQo+PiBOZXdlciBwbGF0Zm9ybXMgaGF2ZSB1cGdyYWRlZCB2ZXJzaW9uIG9m
+IEdQTUMgZW5naW5lIHdoaWNoIHN1cHBvcnRzDQo+PiBCQ0gxNiBFQ0Mgc2NoZW1lIGluIGhhcmR3
+YXJlLiBUaHVzIHRoZSBHUE1DIGFkZHJlc3Mgc3BhY2Ugd2FzDQo+PiBleHBhbmRlZCB0byBpbmNs
+dWRlIHNvbWUgZXh0cmEgcmVnaXN0ZXJzIHJlcXVpcmVkIGZvciBCQ0gxNiBFQ0MgWzJdLg0KPj4N
+Cj4+DQo+DQo+SSBzZWUgYW5kIGRpZCB0aGUgR1BNQyByZWdpc3RlciBzcGFjZSBiZWNhbWUgdGhh
+dCBiaWcgdG8gbmVlZCB0byBtYXAgOEtCPw0KPg0KPkFsdGhvdWdoIHRoZSBzbWFsbGVzdCB1bml0
+IGZvciBpb3JlbWFwIGlzIFBBR0VfU0laRSBhbmQgdXNpbmcgYW55IG9mDQo+dGhlc2UgcmVnIHNp
+emVzOg0KPg0KPnJlZyA9IDwweDZlMDAwMDAwIDB4MDJkMD47DQo+cmVnID0gPDB4NmUwMDAwMDAg
+MHgwNDAwPjsNCj5yZWcgPSA8MHg2ZTAwMDAwMCAweDEwMDA+Ow0KPg0KPmluIHByYWN0aWNlIGhh
+dmUgdGhlIHNhbWUgZWZmZWN0LCBEVFMgc2hvdWxkIGRlc2NyaWJlIHRoZSBoYXJkd2FyZSBhbmQN
+Cj5ub3QgYW4gaW1wbGVtZW50YXRpb24gZGV0YWlsIHNvIEkgdGhpbmsgdGhhdCB3ZSBzaG91bGQg
+dXNlIG9ubHkgdGhlDQo+cmVnaXN0ZXIgc2l6ZSB0aGF0IGlzIGRlZmluZWQgaW4gdGhlIFRSTS4N
+Cj4NClllcywgSSBhZ3JlZSB3aXRoIHlvdS4NCkkgaGF2ZSBmaXhlZCB0aGlzIGluIG5ld2VyIHZl
+cnNpb24gb2YgdGhlIHBhdGNoIGFuZCB3aWxsIGJlIHNlbmRpbmcgaXQgc29vbi4NCkJ1dCB0aGlz
+IHNlcmllcyB3aWxsIG9ubHkgY29udGFpbiB1cGRhdGVzIGZvciBuZXcgcGxhdGZvcm1zIHdpdGgg
+YWRkaXRpb24NCm9mIE5BTkQgbm9kZSBpbiBEVFMsIHNvIHRoYXQgdGhpcyBzZXJpZXMgaXMgbm90
+IHN0YWxsZWQgZm9yIGFueSByZWFzb24uDQpGb3IgZml4aW5nIGV4aXN0aW5nIHBsYXRmb3JtL2Jv
+YXJkcyBEVFMgSSdsbCBzZW5kIGFub3RoZXIgc2VyaWVzIHNvb24uDQoNCkZvciBub3csIEknbGwg
+dXNlIEdQTUMgYWRkcmVzcy1zcGFjZSBzaXplID0gMHgzODAgYXMgaXQgbWF0Y2hlcyB3aXRoDQph
+Y3R1YWwgaGFyZHdhcmUgYW5kIGlzIHdvcmtpbmcuDQoNCj4+DQo+PiBbMV0gaHR0cDovL3d3dy50
+aS5jb20vbGl0L2dwbi9hbTMzNTkgICAgKFNlY3Rpb24gNy40IHRvIDcuNC41KQ0KPj4NCj4+IFsy
+XSBodHRwOi8vd3d3LnRpLmNvbS9saXQvZ3BuL2FtMzM1OSAgICAoU2VjdGlvbiA3LjEgdG8gNy4x
+LjUpDQo+PiAoVGhvdWdoIHRoZSBBTTMzNXggYWRkcmVzcyBzcGFjZSBtZW50aW9ucyAweDM2OCBh
+cyBsYXN0IGFkZHJlc3MsDQo+PiAgaXQgc2hvdWxkIGJlIDB4Mzc4LiBJIGhhdmUgcmFpc2VkIGRv
+Y3VtZW50YXRpb24gYnVnIGZvciBpdCkuDQo+Pg0KPj4NCj4+IHdpdGggcmVnYXJkcywgcGVrb24N
+Cj4NCj5CZXN0IHJlZ2FyZHMsDQo+SmF2aWVyDQo+DQo+WzBdOiBodHRwOi8vbHhyLmZyZWUtZWxl
+Y3Ryb25zLmNvbS9zb3VyY2UvYXJjaC9hcm0vbW0vaW9yZW1hcC5jI0wzMzQNCg==
