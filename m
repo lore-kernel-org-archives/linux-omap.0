@@ -1,75 +1,45 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v2 1/6] mmc: omap_hsmmc: use devm_clk_get
-Date: Mon, 12 May 2014 15:50:38 +0200
-Message-ID: <CAPDyKFqJc92kZn_Yj87q3GJWOq+jftm0UPsShAPREqkMKC5S4g@mail.gmail.com>
-References: <1399654013-28262-1-git-send-email-balajitk@ti.com>
-	<1399654013-28262-2-git-send-email-balajitk@ti.com>
-	<CAPDyKFpQ43168D4FVpbKExHuBPAfkyPrhiy4mG7c=481cpncmQ@mail.gmail.com>
-	<5370CDA1.2060209@ti.com>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: Re: [PATCH v2] ARM: dts: am33xx: Move the cppi41dma node so it's
+ probed early
+Date: Mon, 12 May 2014 11:02:26 -0300
+Message-ID: <20140512140226.GA20360@arch.cereza>
+References: <1398373881-23369-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+ <53705548.7020400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <5370CDA1.2060209@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-mmc <linux-mmc@vger.kernel.org>, Chris Ball <chris@printf.net>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <53705548.7020400@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: George Cherian <george.cherian@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12 May 2014 15:33, Balaji T K <balajitk@ti.com> wrote:
-> On Monday 12 May 2014 02:03 PM, Ulf Hansson wrote:
->>
->> On 9 May 2014 18:46, Balaji T K <balajitk@ti.com> wrote:
->>>
->>> With devm_clk_get conversion clk_put can be removed in clean up path
->>>
->>> Signed-off-by: Balaji T K <balajitk@ti.com>
->>> ---
->>>   drivers/mmc/host/omap_hsmmc.c |   15 ++++-----------
->>>   1 files changed, 4 insertions(+), 11 deletions(-)
->>>
->>> diff --git a/drivers/mmc/host/omap_hsmmc.c
->>> b/drivers/mmc/host/omap_hsmmc.c
->>> index b4de63b..b8ae7ee 100644
->>> --- a/drivers/mmc/host/omap_hsmmc.c
->>> +++ b/drivers/mmc/host/omap_hsmmc.c
->>> @@ -1922,7 +1922,7 @@ static int omap_hsmmc_probe(struct platform_device
->>> *pdev)
->>>
->>>          spin_lock_init(&host->irq_lock);
->>>
->>> -       host->fclk = clk_get(&pdev->dev, "fck");
->>> +       host->fclk = devm_clk_get(&pdev->dev, "fck");
->>>          if (IS_ERR(host->fclk)) {
->>>                  ret = PTR_ERR(host->fclk);
->>>                  host->fclk = NULL;
->>> @@ -1941,7 +1941,7 @@ static int omap_hsmmc_probe(struct platform_device
->>> *pdev)
->>>
->>>          omap_hsmmc_context_save(host);
->>>
->>> -       host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
->>> +       host->dbclk = devm_clk_get(&pdev->dev, "mmchsdb_fck");
->>>          /*
->>>           * MMC can still work without debounce clock.
->>>           */
->>> @@ -1949,7 +1949,6 @@ static int omap_hsmmc_probe(struct platform_device
->>> *pdev)
->>>                  host->dbclk = NULL;
->>>          } else if (clk_prepare_enable(host->dbclk) != 0) {
->>>                  dev_warn(mmc_dev(host->mmc), "Failed to enable debounce
->>> clk\n");
->>> -               clk_put(host->dbclk);
->>>                  host->dbclk = NULL;
->>
->>
->> You should use the IS_ERR macro, no need to reset dbclk to NULL.
->>
->
-> Agreed, IS_ERR macro usage deserves patch on its own.
-> will create separate patch on top of this series.
+On 12 May 10:29 AM, George Cherian wrote:
+> On 4/25/2014 2:41 AM, Ezequiel Garcia wrote:
+> >The DMA controller is needed for the USB controller to be correctly
+> >registered. Therefore, if the DMA node is located at the end an unecessary
+> >probe deferral is produced systematically.
+> >
+> >This is easily fixed by moving the node at the beggining of the child list,
+> >so it's probed first.
+> >
+> >Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+> Acked-by: George Cherian <george.cherian@ti.com>
 
-Or you just update this patch, since it would touch there very same
-piece of code. :-)
-
-Kind regards
-Ulf Hansson
+Actually, I'm having second thoughts about this patch. I think it's really
+fragile to depend on the devicetree ordering. Instead, I've prepared a patch
+that forces the driver to probe the nodes in strict order, based in the
+compatible string.
+-- 
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
