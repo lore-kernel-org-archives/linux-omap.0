@@ -1,118 +1,93 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: Re: [RFC/PATCH] usb: musb: Prevent musb_am335x from being removed
-Date: Mon, 12 May 2014 10:29:24 +0530
-Message-ID: <5370552C.40506@ti.com>
-References: <1399570060-28939-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Subject: Re: [PATCH v2] ARM: dts: am33xx: Move the cppi41dma node so it's
+ probed early
+Date: Mon, 12 May 2014 10:29:52 +0530
+Message-ID: <53705548.7020400@ti.com>
+References: <1398373881-23369-1-git-send-email-ezequiel@vanguardiasur.com.ar>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33362 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54359 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750721AbaELE7n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 May 2014 00:59:43 -0400
-In-Reply-To: <1399570060-28939-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+	id S1751120AbaELFAa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 May 2014 01:00:30 -0400
+In-Reply-To: <1398373881-23369-1-git-send-email-ezequiel@vanguardiasur.com.ar>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: =?ISO-8859-1?Q?Guido_Mart=EDnez?= <guido@vanguardiasur.com.ar>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, yegorslists@googlemail.com
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On 5/8/2014 10:57 PM, Ezequiel Garcia wrote:
-> At probe time, the musb_am335x driver registers its childs by
-> calling of_platform_populate(), which registers all childs in
-> the devicetree hierarchy recursively.
+On 4/25/2014 2:41 AM, Ezequiel Garcia wrote:
+> The DMA controller is needed for the USB controller to be correctly
+> registered. Therefore, if the DMA node is located at the end an unecessary
+> probe deferral is produced systematically.
 >
-> On the other side, the driver's remove() function uses of_device_unregister()
-> to remove each child in the musb_am335x driver device struct.
->
-> However, when musb_dsps is loaded, its devices are attached to the musb_am335x
-> driver device struct as musb_am335x childs. Hence, musb_am335x remove()
-> will attempt to unregister the devices registered by musb_dsps, which produces
-> a kernel panic.
->
-> In other words, the childs in the "struct device" hierarchy are not the same
-> as the childs in the "devicetree" hierarchy.
->
-> Ideally, we should be enforcing the removal of the devices registered by
-> musb_am335x *only*, instead of all the child devices. However, because of the
-> recursive nature of of_platform_populate, this doesn't seem possible.
->
-> Therefore, as the only solution at hand, this commit disables musb_am335x driver
-> removal capability, preventing it from being ever removed.
->
-> Just for reference, here's the panic upon module removal:
->
-> musb-hdrc musb-hdrc.0.auto: remove, state 4
-> usb usb1: USB disconnect, device number 1
-> musb-hdrc musb-hdrc.0.auto: USB bus 1 deregistered
-> Unable to handle kernel NULL pointer dereference at virtual address 0000008c
-> pgd = de11c000
-> [0000008c] *pgd=9e174831, *pte=00000000, *ppte=00000000
-> Internal error: Oops: 17 [#1] ARM
-> Modules linked in: musb_am335x(-) musb_dsps musb_hdrc usbcore usb_common
-> CPU: 0 PID: 623 Comm: modprobe Not tainted 3.15.0-rc4-00001-g24efd13 #69
-> task: de1b7500 ti: de122000 task.ti: de122000
-> PC is at am335x_shutdown+0x10/0x28
-> LR is at am335x_shutdown+0xc/0x28
-> pc : [<c0327798>]    lr : [<c0327794>]    psr: a0000013
-> sp : de123df8  ip : 00000004  fp : 00028f00
-> r10: 00000000  r9 : de122000  r8 : c000e6c4
-> r7 : de0e3c10  r6 : de0e3800  r5 : de624010  r4 : de1ec750
-> r3 : de0e3810  r2 : 00000000  r1 : 00000001  r0 : 00000000
-> Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-> Control: 10c5387d  Table: 9e11c019  DAC: 00000015
-> Process modprobe (pid: 623, stack limit = 0xde122240)
-> Stack: (0xde123df8 to 0xde124000)
-> 3de0:                                                       de0e3810 bf054488
-> 3e00: bf05444c de624010 60000013 bf043650 000012fc de624010 de0e3810 bf043a20
-> 3e20: de0e3810 bf04b240 c0635b88 c02ca37c c02ca364 c02c8db0 de1b7500 de0e3844
-> 3e40: de0e3810 c02c8e28 c0635b88 de02824c de0e3810 c02c884c de0e3800 de0e3810
-> 3e60: de0e3818 c02c5b20 bf05417c de0e3800 de0e3800 c0635b88 de0f2410 c02ca838
-> 3e80: bf05417c de0e3800 bf055438 c02ca8cc de0e3c10 bf054194 de0e3c10 c02ca37c
-> 3ea0: c02ca364 c02c8db0 de1b7500 de0e3c44 de0e3c10 c02c8e28 c0635b88 de02824c
-> 3ec0: de0e3c10 c02c884c de0e3c10 de0e3c10 de0e3c18 c02c5b20 de0e3c10 de0e3c10
-> 3ee0: 00000000 bf059000 a0000013 c02c5bc0 00000000 bf05900c de0e3c10 c02c5c48
-> 3f00: de0dd0c0 de1ec970 de0f2410 bf05929c de0f2444 bf05902c de0f2410 c02ca37c
-> 3f20: c02ca364 c02c8db0 bf05929c de0f2410 bf05929c c02c94c8 bf05929c 00000000
-> 3f40: 00000800 c02c8ab4 bf0592e0 c007fc40 c00dd820 6273756d 336d615f 00783533
-> 3f60: c064a0ac de1b7500 de122000 de1b7500 c000e590 00000001 c000e6c4 c0060160
-> 3f80: 00028e70 00028e70 00028ea4 00000081 60000010 00028e70 00028e70 00028ea4
-> 3fa0: 00000081 c000e500 00028e70 00028e70 00028ea4 00000800 becb59f8 00027608
-> 3fc0: 00028e70 00028e70 00028ea4 00000081 00000001 00000001 00000000 00028f00
-> 3fe0: b6e6b6f0 becb59d4 000160e8 b6e6b6fc 60000010 00028ea4 00000000 00000000
-> [<c0327798>] (am335x_shutdown) from [<bf054488>] (dsps_musb_exit+0x3c/0x4c [musb_dsps])
-> [<bf054488>] (dsps_musb_exit [musb_dsps]) from [<bf043650>] (musb_shutdown+0x80/0x90 [musb_hdrc])
-> [<bf043650>] (musb_shutdown [musb_hdrc]) from [<bf043a20>] (musb_remove+0x24/0x68 [musb_hdrc])
-> [<bf043a20>] (musb_remove [musb_hdrc]) from [<c02ca37c>] (platform_drv_remove+0x18/0x1c)
-> [<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release_driver+0x70/0xc8)
-> [<c02c8db0>] (__device_release_driver) from [<c02c8e28>] (device_release_driver+0x20/0x2c)
-> [<c02c8e28>] (device_release_driver) from [<c02c884c>] (bus_remove_device+0xdc/0x10c)
-> [<c02c884c>] (bus_remove_device) from [<c02c5b20>] (device_del+0x104/0x198)
-> [<c02c5b20>] (device_del) from [<c02ca838>] (platform_device_del+0x14/0x9c)
-> [<c02ca838>] (platform_device_del) from [<c02ca8cc>] (platform_device_unregister+0xc/0x20)
-> [<c02ca8cc>] (platform_device_unregister) from [<bf054194>] (dsps_remove+0x18/0x38 [musb_dsps])
-> [<bf054194>] (dsps_remove [musb_dsps]) from [<c02ca37c>] (platform_drv_remove+0x18/0x1c)
-> [<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release_driver+0x70/0xc8)
-> [<c02c8db0>] (__device_release_driver) from [<c02c8e28>] (device_release_driver+0x20/0x2c)
-> [<c02c8e28>] (device_release_driver) from [<c02c884c>] (bus_remove_device+0xdc/0x10c)
-> [<c02c884c>] (bus_remove_device) from [<c02c5b20>] (device_del+0x104/0x198)
-> [<c02c5b20>] (device_del) from [<c02c5bc0>] (device_unregister+0xc/0x20)
-> [<c02c5bc0>] (device_unregister) from [<bf05900c>] (of_remove_populated_child+0xc/0x14 [musb_am335x])
-> [<bf05900c>] (of_remove_populated_child [musb_am335x]) from [<c02c5c48>] (device_for_each_child+0x44/0x70)
-> [<c02c5c48>] (device_for_each_child) from [<bf05902c>] (am335x_child_remove+0x18/0x30 [musb_am335x])
-> [<bf05902c>] (am335x_child_remove [musb_am335x]) from [<c02ca37c>] (platform_drv_remove+0x18/0x1c)
-> [<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release_driver+0x70/0xc8)
-> [<c02c8db0>] (__device_release_driver) from [<c02c94c8>] (driver_detach+0xb4/0xb8)
-> [<c02c94c8>] (driver_detach) from [<c02c8ab4>] (bus_remove_driver+0x4c/0xa0)
-> [<c02c8ab4>] (bus_remove_driver) from [<c007fc40>] (SyS_delete_module+0x128/0x1cc)
-> [<c007fc40>] (SyS_delete_module) from [<c000e500>] (ret_fast_syscall+0x0/0x48)
+> This is easily fixed by moving the node at the beggining of the child list,
+> so it's probed first.
 >
 > Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 Acked-by: George Cherian <george.cherian@ti.com>
+> --
+> v1->v2:
+>    * Added a comment to prevent a future clean-up based on the memory offset.
+>
+>   arch/arm/boot/dts/am33xx.dtsi | 34 ++++++++++++++++++++--------------
+>   1 file changed, 20 insertions(+), 14 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 9770e35..02e1eb6 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -453,6 +453,26 @@
+>   			ti,hwmods = "usb_otg_hs";
+>   			status = "disabled";
+>   
+> +			/*
+> +			 * The probe order matches the child ordering so the
+> +			 * dma-controller node must be the first one to prevent
+> +			 * spurious probe deferrals.
+> +			 */
+> +			cppi41dma: dma-controller@47402000 {
+> +				compatible = "ti,am3359-cppi41";
+> +				reg =  <0x47400000 0x1000
+> +					0x47402000 0x1000
+> +					0x47403000 0x1000
+> +					0x47404000 0x4000>;
+> +				reg-names = "glue", "controller", "scheduler", "queuemgr";
+> +				interrupts = <17>;
+> +				interrupt-names = "glue";
+> +				#dma-cells = <2>;
+> +				#dma-channels = <30>;
+> +				#dma-requests = <256>;
+> +				status = "disabled";
+> +			};
+> +
+>   			usb_ctrl_mod: control@44e10620 {
+>   				compatible = "ti,am335x-usb-ctrl-module";
+>   				reg = <0x44e10620 0x10
+> @@ -556,20 +576,6 @@
+>   					"tx14", "tx15";
+>   			};
+>   
+> -			cppi41dma: dma-controller@47402000 {
+> -				compatible = "ti,am3359-cppi41";
+> -				reg =  <0x47400000 0x1000
+> -					0x47402000 0x1000
+> -					0x47403000 0x1000
+> -					0x47404000 0x4000>;
+> -				reg-names = "glue", "controller", "scheduler", "queuemgr";
+> -				interrupts = <17>;
+> -				interrupt-names = "glue";
+> -				#dma-cells = <2>;
+> -				#dma-channels = <30>;
+> -				#dma-requests = <256>;
+> -				status = "disabled";
+> -			};
+>   		};
+>   
+>   		epwmss0: epwmss@48300000 {
 
-With this I think it make sense to take the following  patch also, to 
-avoid unnecessary probe deferral
-http://www.spinics.net/lists/linux-usb/msg106202.html
 
 -- 
 -George
