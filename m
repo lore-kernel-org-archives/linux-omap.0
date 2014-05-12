@@ -1,61 +1,80 @@
-From: Kwesi Global Limited <agyemangkwesi2002@outlook.com>
-Subject: Inquiry about your products,
-Date: Mon, 12 May 2014 13:01:41 +0100
-Message-ID: <CAEE0YnfzbS4k70cmM94jnaME=a07RmDZE6brTbN0kO0mfsCOmg__17194.8805837475$1399896116$gmane$org@mail.gmail.com>
-Reply-To: agyemangkwesi2002@outlook.com
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: fix dpll round_rate() to actually round
+Date: Mon, 12 May 2014 15:11:46 +0300
+Message-ID: <5370BA82.8030703@ti.com>
+References: <1389944699-27962-1-git-send-email-tomi.valkeinen@ti.com> <1389944699-27962-3-git-send-email-tomi.valkeinen@ti.com> <20140424182914.GD4659@saruman.home> <20140424184457.GH22987@atomide.com> <20140429155111.GC633@saruman.home> <535FD2E0.1050806@ti.com> <alpine.DEB.2.02.1405072210360.23579@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="7pg1Oo8I5pbRoKUF8aGBjauIFXLXMMqS2"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ve0-f196.google.com ([209.85.128.196]:43966 "EHLO
-	mail-ve0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752039AbaELMBm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 08:01:42 -0400
-Received: by mail-ve0-f196.google.com with SMTP id oz11so2081655veb.11
-        for <linux-omap@vger.kernel.org>; Mon, 12 May 2014 05:01:41 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:52460 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756723AbaELMMO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 08:12:14 -0400
+In-Reply-To: <alpine.DEB.2.02.1405072210360.23579@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: agyemangkwesi2002@outlook.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, nm@ti.com, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
 
-Dear Sir/Madam,
+--7pg1Oo8I5pbRoKUF8aGBjauIFXLXMMqS2
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
+On 08/05/14 01:16, Paul Walmsley wrote:
 
-My name is Mr. Agyemang Kwesi. I am the Proprietor of Kwesi Global
-Limited. My office address is at NTHC Residential Area, Comm. 14,
-Tema, Ghana. I am doing import/export business since 1998 with my
-wife. We also represent some foreign companies in Ghana.
+>> It's true that the original patch changes the dpll behavior when an
+>> exact match is not found. However, I think our drivers always request =
+an
+>> exact match, and in that case the original patch doesn't change the
+>> behavior in practice.
+>>
+>> In theory it's possible that a driver requests a non-exact clock from
+>> the dpll, and when it gets an error, it does something else.
+>=20
+> The path that worries me at the moment is the set-rate path.  That call=
+s=20
+> __clk_round_rate() (if the user hasn't called it already) and silently =
 
+> tries to set the clock to the altered rate.
 
-We found posts about your company and products on the internet and we
-are pleased to inform you that we are interested in your products.
-Please send me your brochure, product catalog and pricing information.
-Also tell me your nearest sales office to Ghana.
+Hmm, so you mean a driver could call set_rate, and presume it only uses
+exact rates the dpll can produce, and presumes that set_rate returns an
+error if the dpll cannot produce the requested rate?
 
+Isn't that what I said? If a driver has such behavior, I think it still
+doesn't work, as (correct me if I'm wrong) we always have the
+clk-divider after a dpll. And the clk-divider doesn't handle the error,
+so neither can the driver.
 
-Kwesi Global Limited promotes itself as a turn-key solutions provider
-while providing our clients with the ability to the services they
-need. Business consulting is a broad term and many consulting firms
-fall short in their ability to  facilitate a wide range of services.
+Or what kind of scenario do you have in mind?
 
-Kwesi Global Limited is different in that our seasoned core business
-development team utilizes confident interactions with a circle of
-available resource to meet client real needs.
-
-
-We hope for a positive response from you.
-
-
-Sincerely yours
-
-Mr. Agyemang Kwesi
-Kwesi Global Limited
-NTHC Residential Area, Comm. 14, Tema
-Ghana.
-
-
-
-Tel: +233 50-2596 304
-Mobile: +233 545 485 124
+ Tomi
 
 
-1. Company Registration number CA-411
-2. Company VAT number 524E002284
+
+--7pg1Oo8I5pbRoKUF8aGBjauIFXLXMMqS2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTcLqCAAoJEPo9qoy8lh71jvkP/3tf74UzYJ7bBB2eticLUPjq
+jbsZPfBhV4WSvpW3GbrVrU9jTDiD7PVUbyYWHu2jLaSIJF+Ddq/tHfTVROqzuBkA
+HMWIGHmQXsv4DvOV7cMjlZD4tSHsk1DgYLFcbx4GXoWD2PkHjRZyLkZ0pe1Eg2XF
+tLpJaftFKbqSp83FEj7TwTWVkwFdtStPbNRI4iyp4jgu3dbOyz/Zupq6LN5ecdYd
+NabtMlVMvVKCuvv9osP3I6A2s8fgJCyQVqztBN9fXrtRsuAUBt8ZbJi8+gynIms6
+jWMQ4KY4FJ3mb5yM2jv5+X4euIKlTSmKERZX4KAeChwZDCbtHiaMvm0kh+Yfus6B
+F7miehrj0FQ+R+M0Kkrl8wG3L3emZezuZFag1oy/jqiBdzt/WzafDsCl+TtyBEzk
+T7+gVH3HagHJXM+c9RZGc5ULkN8dHvwq3OKxhquCOznKnS8IKydRYfXnkJoEf+PC
+low1NB5chRybR5Dk0iTJWhNZsOoRhNjf2REVxb8bHwcaSZiPVhrIOIGPoOHtbsrS
+pWZlgFB/MwLkAmk8forTf0uADwcyqNGQ7GrBQn9mzmasAkMbwAvL0fscJnH7vH06
+5r5BzELBGMZUnCo014rgB28hWOGrBcqTOS3nXMhY1BPQy4a8SFxu0XNyVd2oJJsd
+rKuCVhSgINX2ZwtfWdNf
+=CDxT
+-----END PGP SIGNATURE-----
+
+--7pg1Oo8I5pbRoKUF8aGBjauIFXLXMMqS2--
