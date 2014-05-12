@@ -1,100 +1,128 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v2 1/6] mmc: omap_hsmmc: use devm_clk_get
-Date: Mon, 12 May 2014 10:33:07 +0200
-Message-ID: <CAPDyKFpQ43168D4FVpbKExHuBPAfkyPrhiy4mG7c=481cpncmQ@mail.gmail.com>
-References: <1399654013-28262-1-git-send-email-balajitk@ti.com>
-	<1399654013-28262-2-git-send-email-balajitk@ti.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH v4 3/6] ARM: dts: dra7: add support for parallel NAND flash
+Date: Mon, 12 May 2014 10:49:58 +0200
+Message-ID: <CABxcv==SGZ1fReXkgT769Z70ek_guMVn6nSK0FFgzjoksLGBrw@mail.gmail.com>
+References: <1399668412-10818-1-git-send-email-pekon@ti.com>
+	<CABxcv=nNuMLDCbNimWWR6yBbq3dHV6i87vBu69ZXGcYE-c9bmA@mail.gmail.com>
+	<20980858CB6D3A4BAE95CA194937D5E73EACC26A@DBDE04.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f173.google.com ([209.85.216.173]:63566 "EHLO
-	mail-qc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753601AbaELIdI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 04:33:08 -0400
-Received: by mail-qc0-f173.google.com with SMTP id i8so7279857qcq.4
-        for <linux-omap@vger.kernel.org>; Mon, 12 May 2014 01:33:08 -0700 (PDT)
-In-Reply-To: <1399654013-28262-2-git-send-email-balajitk@ti.com>
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:46536 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754366AbaELIuA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 04:50:00 -0400
+Received: by mail-wg0-f43.google.com with SMTP id l18so6383557wgh.2
+        for <linux-omap@vger.kernel.org>; Mon, 12 May 2014 01:49:59 -0700 (PDT)
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EACC26A@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-mmc <linux-mmc@vger.kernel.org>, Chris Ball <chris@printf.net>, linux-omap <linux-omap@vger.kernel.org>
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, Minal Shah <minalkshah@gmail.com>
 
-On 9 May 2014 18:46, Balaji T K <balajitk@ti.com> wrote:
-> With devm_clk_get conversion clk_put can be removed in clean up path
->
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |   15 ++++-----------
->  1 files changed, 4 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index b4de63b..b8ae7ee 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1922,7 +1922,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->
->         spin_lock_init(&host->irq_lock);
->
-> -       host->fclk = clk_get(&pdev->dev, "fck");
-> +       host->fclk = devm_clk_get(&pdev->dev, "fck");
->         if (IS_ERR(host->fclk)) {
->                 ret = PTR_ERR(host->fclk);
->                 host->fclk = NULL;
-> @@ -1941,7 +1941,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->
->         omap_hsmmc_context_save(host);
->
-> -       host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
-> +       host->dbclk = devm_clk_get(&pdev->dev, "mmchsdb_fck");
->         /*
->          * MMC can still work without debounce clock.
->          */
-> @@ -1949,7 +1949,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->                 host->dbclk = NULL;
->         } else if (clk_prepare_enable(host->dbclk) != 0) {
->                 dev_warn(mmc_dev(host->mmc), "Failed to enable debounce clk\n");
-> -               clk_put(host->dbclk);
->                 host->dbclk = NULL;
+Hello Pekon,
 
-You should use the IS_ERR macro, no need to reset dbclk to NULL.
-
->         }
+On Mon, May 12, 2014 at 9:03 AM, Gupta, Pekon <pekon@ti.com> wrote:
+> Hello,
 >
-> @@ -2105,11 +2104,8 @@ err_irq:
->                 dma_release_channel(host->rx_chan);
->         pm_runtime_put_sync(host->dev);
->         pm_runtime_disable(host->dev);
-> -       clk_put(host->fclk);
-> -       if (host->dbclk) {
-> +       if (host->dbclk)
-
-Use IS_ERR instead.
-
->                 clk_disable_unprepare(host->dbclk);
-> -               clk_put(host->dbclk);
-> -       }
->  err1:
->         iounmap(host->base);
->         mmc_free_host(mmc);
-> @@ -2144,11 +2140,8 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
+> From: Javier Martinez Canillas [mailto:javier@dowhile0.org]
+>>On Fri, May 9, 2014 at 10:46 PM, Pekon Gupta <pekon@ti.com> wrote:
+>>> From: Minal Shah <minalkshah@gmail.com>
+> [...]
+>>> +&gpmc {
+>>> +       status = "okay";
+>>> +       pinctrl-names = "default";
+>>> +       pinctrl-0 = <&nand_flash_x16>;
+>>> +       ranges = <0 0 0 0x1000000>;
+>>> +       nand@0,0 {
+>>> +               reg = <0 0 0x380>;
+> [...]
 >
->         pm_runtime_put_sync(host->dev);
->         pm_runtime_disable(host->dev);
-> -       clk_put(host->fclk);
-> -       if (host->dbclk) {
-> +       if (host->dbclk)
-
-Use IS_ERR instead.
-
->                 clk_disable_unprepare(host->dbclk);
-> -               clk_put(host->dbclk);
-> -       }
->
->         omap_hsmmc_gpio_free(host->pdata);
->         iounmap(host->base);
-> --
-> 1.7.5.4
+>>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>>> index 37a0595..6af775a 100644
+>>> --- a/arch/arm/boot/dts/dra7.dtsi
+>>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>>> @@ -776,6 +776,26 @@
+>>>                         interrupts = <0 343 0x4>;
+>>>                         status = "disabled";
+>>>                 };
+>>> +
+>>> +               elm: elm@48078000 {
+>>> +                       compatible = "ti,am3352-elm";
+>>> +                       reg = <0x48078000 0x2000>;
+>>
+>>It is really necessary to map all this 8 KB address space for GPMC registers?
+>>
+>>I don't have access to the DRA7 TRM but for example the OMAP3 TRM says
+>>that the GPMC module register address space size is 16 MB while in
+>>practice the registers use less than 1 KB (0..0x02d0 to be exact) so
+>>in arch/arm/boot/dts/omap3.dtsi we have:
+>>
+> These are not GPMC registers. Platforms from OMAP4 and beyond
+> (like AM335x, OMAP5) have another small hardware engine called ELM [1]
+> (Error Locater Module) in addition to GPMC, which is used for detecting
+> ECC errors in hardware. ELM Driver $KERNEL/drivers/mtd/devices/elm.c
 >
 
-Kind regards
-Ulf Hansson
+Yes, I know what ELM is, I just made a mistake when adding my comments
+inline. I actually meant the 8KB from the following device node:
+
+> +               gpmc: gpmc@50000000 {
+> +                       compatible = "ti,am3352-gpmc";
+> +                       ti,hwmods = "gpmc";
+> +                       reg = <0x50000000 0x2000>;
+> +                       interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
+> +                       gpmc,num-cs = <8>;
+> +                       gpmc,num-waitpins = <2>;
+> +                       #address-cells = <2>;
+> +                       #size-cells = <1>;
+> +                       status = "disabled";
+> +               };
+
+> However, thanks for pointing out, this address-space for ELM is incorrect.
+> Last ELM register offset is 0xFC0 (ELM_ERROR_LOCATION_15_7) [1].
+>
+
+And yes, comments applies to ELM register address space as well.
+
+>>gpmc: gpmc@6e000000 {
+>>...
+>>                        reg = <0x6e000000 0x02d0>;
+>>...
+>>};
+>>
+>>Shouldn't this be similar (the same?) for DRA7 GPMC device node?
+>>
+> Newer platforms have upgraded version of GPMC engine which supports
+> BCH16 ECC scheme in hardware. Thus the GPMC address space was
+> expanded to include some extra registers required for BCH16 ECC [2].
+>
+>
+
+I see and did the GPMC register space became that big to need to map 8KB?
+
+Although the smallest unit for ioremap is PAGE_SIZE and using any of
+these reg sizes:
+
+reg = <0x6e000000 0x02d0>;
+reg = <0x6e000000 0x0400>;
+reg = <0x6e000000 0x1000>;
+
+in practice have the same effect, DTS should describe the hardware and
+not an implementation detail so I think that we should use only the
+register size that is defined in the TRM.
+
+>
+> [1] http://www.ti.com/lit/gpn/am3359    (Section 7.4 to 7.4.5)
+>
+> [2] http://www.ti.com/lit/gpn/am3359    (Section 7.1 to 7.1.5)
+> (Though the AM335x address space mentions 0x368 as last address,
+>  it should be 0x378. I have raised documentation bug for it).
+>
+>
+> with regards, pekon
+
+Best regards,
+Javier
+
+[0]: http://lxr.free-electrons.com/source/arch/arm/mm/ioremap.c#L334
