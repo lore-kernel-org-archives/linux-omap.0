@@ -1,93 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
- support
-Date: Mon, 12 May 2014 08:51:32 -0700
-Message-ID: <20140512155132.GH31772@atomide.com>
-References: <20140507175919.GH9502@atomide.com>
- <20140508233300.GI2198@atomide.com>
- <536C8293.4070506@ti.com>
- <20140509155504.GE17814@atomide.com>
- <53707A64.2060203@ti.com>
- <CABxcv=kwhodeFTHoVpn1nHeh9+kV5fwMN9s3Kbk6h7_xJp4UYA@mail.gmail.com>
- <53709706.10501@ti.com>
- <CABxcv=mY0a+yJgmCTPN=BhSQD57Pw022zOd5_KxEgvvF_-=O7Q@mail.gmail.com>
- <20140512142646.GA31772@atomide.com>
- <5370E0C9.8050201@ti.com>
+Subject: Re: [PATCH] ARM: OMAP dts: Only build dtb if associated SoC is built
+Date: Mon, 12 May 2014 09:03:04 -0700
+Message-ID: <20140512160303.GI31772@atomide.com>
+References: <1399162297-23527-1-git-send-email-pbrobinson@gmail.com>
+ <20140506171827.GP18474@atomide.com>
+ <CALeDE9PjS=zPzsUHiHLJc4Q9hYm_-49+1bRjqRO_a-r6_1LLQw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:18867 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50013 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752685AbaELPvh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 11:51:37 -0400
+	with ESMTP id S1752665AbaELQDI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 12:03:08 -0400
 Content-Disposition: inline
-In-Reply-To: <5370E0C9.8050201@ti.com>
+In-Reply-To: <CALeDE9PjS=zPzsUHiHLJc4Q9hYm_-49+1bRjqRO_a-r6_1LLQw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Peter Robinson <pbrobinson@gmail.com>
+Cc: linux-omap@vger.kernel.org, arnd@arndb.de, robh+dt@kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140512 07:55]:
-> On 12/05/14 17:26, Tony Lindgren wrote:
+* Peter Robinson <pbrobinson@gmail.com> [140509 14:28]:
+> On Tue, May 6, 2014 at 6:18 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Peter Robinson <pbrobinson@gmail.com> [140503 17:12]:
+> >> With ARCH_OMAP2PLUS being separated out into OMAP2/3/4/5 etc all the TI device
+> >> tree blobs are built no matter the combination of SoCs that are enabled. This
+> >> often causes a bunch of irrelevant .dts to be built on a multi platform kernel,
+> >> this enables the building of just the ones relevant to the SoCs that are
+> >> actually enabled. It also orders the dts file alphabetically.
+> >
+> > Sure, makes sense and grouping + sorting also helps to avoid trivial
+> > merge conflicts.
+> >
+> > I've changed the ordering a bit as am335x is based on omap3, and
+> > omap43x based on omap4. And 3517 is an omap3 with the faster
+> > Ethernet and few other changes.
 > 
-> >>> The omapdss case is different, there the "omapdss" points to a sw thing,
-> >>> it does not describe the hardware. It's only needed as we don't have
-> >>> proper sw drivers for the devices.
-> >>>
-> >>> That said, I think what you describe would work. But I would rather keep
-> >>> the .dts files clean and correct, and keep that hacks hidden inside the
-> >>> kernel.
-> >>>
-> >>
-> >> Thanks for the explanation. Since DT are meant to describe hardware
-> >> and not software I agree with you that we shouldn't leak an
-> >> implementation detail to the DeviceTrees.
-> >>
-> >> And after all fortunately we don't have a stable API in the kernel
-> >> like the one that is enforced in the DT so we can fix it later ;-)
-> > 
-> > This remapping of compatible flags sounds smelly to me, please discuss
-> > it first with the device tree people.
+> Makes sense.
 > 
-> It's already in v3.15.
+> > I'll apply the following patch into omap-for-v3.16/dt. BTW, looks
+> > like you missed a Signed-off-by in your original patch.
+> 
+> Apologies, I was sure I added it but then I crafted the patch a couple
+> of times as it's my first first upstream kernel patch so I must have
+> missed it for the real one. Can I just ack it now with the below? If
+> so...
 
-Oh great.. And you dumped it into arch/arm/mach-omap2 too and I somehow
-even acked it :( Looks like there's also the custom mux hacks. And
-custom hwmod hacks. And ongoing soc_is_xxx tinkering. Now let's not add
-_any_ new crap into arch/arm/mach-omap2/display.c.
+No problem :) Would add it thanks..
+ 
+> Signed-off-by: Peter Robinson <pbrobinson@gmail.com>
 
-So please consider this a huge eternal NAK to add any more crap to
-arch/arm/mach-omap2/display.c from me. No more new soc_is beyond
-the soc_is_am43xx() you have in linux next. No more adding 
-of_find_compatible_node() beyond ti,omap5-dss you have in linux next.
-
-And no more new panel remapping in this file as soon as you have found
-a better solution. Preferrably by v3.17 merge window. This file just
-needs to disappear. Yuk.
-
-> I agree it's smelly, but it smelly only inside the kernel, not visible
-> anywhere, and we can remove it when we have common panel drivers,
-> without any modifications to .dts files.
-> 
-> > I think we're better off just using the compatible properties limited
-> > to the simple-panel.txt for now and actually describe the real
-> > hardware. The fact that the panel is connected to DSS should be possible
-> > to find out based on the phandles.
-> 
-> I'm not sure what you mean. We do describe only the real hardware. The
-> compatible string in the .dts file is "sharp,ls037v7dw01".
-> 
-> Prepending the "omapdss" to the compatible string is required for the
-> device/driver matching to work, because we can't use the
-> "sharp,ls037v7dw01" compatible string in our omap specific panel driver.
-> 
-> I'm not sure what it would give us to try to be compatible with
-> simple-panel.txt. The simple-panel bindings won't probably be compatible
-> with the future common display drivers in any case, as the simple-panel
-> binding is just too limited and doesn't describe the hardware fully.
-
-Hmm what else does a panel need where the existing binding cannot be
-extended? 
+..but I had to apply it already already as I wanted to have it
+applied before other patches adding things to the Makefile. Having
+just my Signed-off-by should be just fine in this case as I had to
+edit the patch anyways, and it's just sorting the Makefile and not
+adding any new code.
 
 Regards,
 
