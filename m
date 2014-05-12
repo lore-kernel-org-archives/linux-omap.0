@@ -1,64 +1,112 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v4 3/6] ARM: dts: dra7: add support for parallel NAND
- flash
-Date: Mon, 12 May 2014 07:03:47 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACC26A@DBDE04.ent.ti.com>
-References: <1399668412-10818-1-git-send-email-pekon@ti.com>
- <CABxcv=nNuMLDCbNimWWR6yBbq3dHV6i87vBu69ZXGcYE-c9bmA@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
+ support
+Date: Mon, 12 May 2014 10:38:12 +0300
+Message-ID: <53707A64.2060203@ti.com>
+References: <1398815562-24113-1-git-send-email-tony@atomide.com> <1398815562-24113-4-git-send-email-tony@atomide.com> <5369EAE7.3030705@ti.com> <20140507150343.GA9502@atomide.com> <536A5920.1020908@ti.com> <20140507175919.GH9502@atomide.com> <20140508233300.GI2198@atomide.com> <536C8293.4070506@ti.com> <20140509155504.GE17814@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="aN4lrGsNv5aprSa1wEgrbQLIN7hEEnIbk"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38124 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752803AbaELHD4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 03:03:56 -0400
-In-Reply-To: <CABxcv=nNuMLDCbNimWWR6yBbq3dHV6i87vBu69ZXGcYE-c9bmA@mail.gmail.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:33270 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751385AbaELHij (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 May 2014 03:38:39 -0400
+In-Reply-To: <20140509155504.GE17814@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, Minal Shah <minalkshah@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-SGVsbG8sDQoNCkZyb206IEphdmllciBNYXJ0aW5leiBDYW5pbGxhcyBbbWFpbHRvOmphdmllckBk
-b3doaWxlMC5vcmddDQo+T24gRnJpLCBNYXkgOSwgMjAxNCBhdCAxMDo0NiBQTSwgUGVrb24gR3Vw
-dGEgPHBla29uQHRpLmNvbT4gd3JvdGU6DQo+PiBGcm9tOiBNaW5hbCBTaGFoIDxtaW5hbGtzaGFo
-QGdtYWlsLmNvbT4NClsuLi5dDQo+PiArJmdwbWMgew0KPj4gKyAgICAgICBzdGF0dXMgPSAib2th
-eSI7DQo+PiArICAgICAgIHBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7DQo+PiArICAgICAgIHBp
-bmN0cmwtMCA9IDwmbmFuZF9mbGFzaF94MTY+Ow0KPj4gKyAgICAgICByYW5nZXMgPSA8MCAwIDAg
-MHgxMDAwMDAwPjsNCj4+ICsgICAgICAgbmFuZEAwLDAgew0KPj4gKyAgICAgICAgICAgICAgIHJl
-ZyA9IDwwIDAgMHgzODA+Ow0KWy4uLl0NCg0KPj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3Qv
-ZHRzL2RyYTcuZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRzL2RyYTcuZHRzaQ0KPj4gaW5kZXggMzdh
-MDU5NS4uNmFmNzc1YSAxMDA2NDQNCj4+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL2RyYTcuZHRz
-aQ0KPj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5kdHNpDQo+PiBAQCAtNzc2LDYgKzc3
-NiwyNiBAQA0KPj4gICAgICAgICAgICAgICAgICAgICAgICAgaW50ZXJydXB0cyA9IDwwIDM0MyAw
-eDQ+Ow0KPj4gICAgICAgICAgICAgICAgICAgICAgICAgc3RhdHVzID0gImRpc2FibGVkIjsNCj4+
-ICAgICAgICAgICAgICAgICB9Ow0KPj4gKw0KPj4gKyAgICAgICAgICAgICAgIGVsbTogZWxtQDQ4
-MDc4MDAwIHsNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGNvbXBhdGlibGUgPSAidGksYW0z
-MzUyLWVsbSI7DQo+PiArICAgICAgICAgICAgICAgICAgICAgICByZWcgPSA8MHg0ODA3ODAwMCAw
-eDIwMDA+Ow0KPg0KPkl0IGlzIHJlYWxseSBuZWNlc3NhcnkgdG8gbWFwIGFsbCB0aGlzIDggS0Ig
-YWRkcmVzcyBzcGFjZSBmb3IgR1BNQyByZWdpc3RlcnM/DQo+DQo+SSBkb24ndCBoYXZlIGFjY2Vz
-cyB0byB0aGUgRFJBNyBUUk0gYnV0IGZvciBleGFtcGxlIHRoZSBPTUFQMyBUUk0gc2F5cw0KPnRo
-YXQgdGhlIEdQTUMgbW9kdWxlIHJlZ2lzdGVyIGFkZHJlc3Mgc3BhY2Ugc2l6ZSBpcyAxNiBNQiB3
-aGlsZSBpbg0KPnByYWN0aWNlIHRoZSByZWdpc3RlcnMgdXNlIGxlc3MgdGhhbiAxIEtCICgwLi4w
-eDAyZDAgdG8gYmUgZXhhY3QpIHNvDQo+aW4gYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMuZHRzaSB3
-ZSBoYXZlOg0KPg0KVGhlc2UgYXJlIG5vdCBHUE1DIHJlZ2lzdGVycy4gUGxhdGZvcm1zIGZyb20g
-T01BUDQgYW5kIGJleW9uZA0KKGxpa2UgQU0zMzV4LCBPTUFQNSkgaGF2ZSBhbm90aGVyIHNtYWxs
-IGhhcmR3YXJlIGVuZ2luZSBjYWxsZWQgRUxNIFsxXQ0KKEVycm9yIExvY2F0ZXIgTW9kdWxlKSBp
-biBhZGRpdGlvbiB0byBHUE1DLCB3aGljaCBpcyB1c2VkIGZvciBkZXRlY3RpbmcNCkVDQyBlcnJv
-cnMgaW4gaGFyZHdhcmUuIEVMTSBEcml2ZXIgJEtFUk5FTC9kcml2ZXJzL210ZC9kZXZpY2VzL2Vs
-bS5jDQoNCkhvd2V2ZXIsIHRoYW5rcyBmb3IgcG9pbnRpbmcgb3V0LCB0aGlzIGFkZHJlc3Mtc3Bh
-Y2UgZm9yIEVMTSBpcyBpbmNvcnJlY3QuDQpMYXN0IEVMTSByZWdpc3RlciBvZmZzZXQgaXMgMHhG
-QzAgKEVMTV9FUlJPUl9MT0NBVElPTl8xNV83KSBbMV0uDQoNCj5ncG1jOiBncG1jQDZlMDAwMDAw
-IHsNCj4uLi4NCj4gICAgICAgICAgICAgICAgICAgICAgICByZWcgPSA8MHg2ZTAwMDAwMCAweDAy
-ZDA+Ow0KPi4uLg0KPn07DQo+DQo+U2hvdWxkbid0IHRoaXMgYmUgc2ltaWxhciAodGhlIHNhbWU/
-KSBmb3IgRFJBNyBHUE1DIGRldmljZSBub2RlPw0KPg0KTmV3ZXIgcGxhdGZvcm1zIGhhdmUgdXBn
-cmFkZWQgdmVyc2lvbiBvZiBHUE1DIGVuZ2luZSB3aGljaCBzdXBwb3J0cw0KQkNIMTYgRUNDIHNj
-aGVtZSBpbiBoYXJkd2FyZS4gVGh1cyB0aGUgR1BNQyBhZGRyZXNzIHNwYWNlIHdhcw0KZXhwYW5k
-ZWQgdG8gaW5jbHVkZSBzb21lIGV4dHJhIHJlZ2lzdGVycyByZXF1aXJlZCBmb3IgQkNIMTYgRUND
-IFsyXS4NCg0KDQo+VGhhbmtzIGEgbG90IGFuZCBiZXN0IHJlZ2FyZHMsDQo+SmF2aWVyDQoNClsx
-XSBodHRwOi8vd3d3LnRpLmNvbS9saXQvZ3BuL2FtMzM1OSAgICAoU2VjdGlvbiA3LjQgdG8gNy40
-LjUpDQoNClsyXSBodHRwOi8vd3d3LnRpLmNvbS9saXQvZ3BuL2FtMzM1OSAgICAoU2VjdGlvbiA3
-LjEgdG8gNy4xLjUpDQooVGhvdWdoIHRoZSBBTTMzNXggYWRkcmVzcyBzcGFjZSBtZW50aW9ucyAw
-eDM2OCBhcyBsYXN0IGFkZHJlc3MsDQogaXQgc2hvdWxkIGJlIDB4Mzc4LiBJIGhhdmUgcmFpc2Vk
-IGRvY3VtZW50YXRpb24gYnVnIGZvciBpdCkuDQoNCg0Kd2l0aCByZWdhcmRzLCBwZWtvbg0K
+--aN4lrGsNv5aprSa1wEgrbQLIN7hEEnIbk
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 09/05/14 18:55, Tony Lindgren wrote:
+
+>> Although if the MO gpio is not controlled by the driver, we should tel=
+l
+>> the driver whether that gpio is high or low.
+>=20
+> What do you have in mind for telling that? We should also tell the
+> orientation of the panel:
+>=20
+> EVM	VGA	omapfb.rotate=3D3
+> LDP	QVGA	omapfb.rotate=3D0
+>=20
+> Do you have something in mind for that?
+
+Hmm, right. I guess all we can do is have boolean flags in the .dts for
+MO, LR and UD, which tells if the respective pins are hard-wires high or
+low. And say in the documentation that you must either have a proper
+GPIO, or use the flag, but not both.
+
+The panel mounting orientation is a different matter. But I think it is
+also something we should specify in the .dts. However, we don't have any
+SW support to handle it, and it's a bit unclear to me how it should be
+handled, so I think that has to be left for later.
+
+>> At the moment our display drivers are OMAP specific, and for that reas=
+on
+>> we should prefix the compatible strings with "omapdss,". For example,
+>> drivers/video/fbdev/omap2/displays-new/panel-dsi-cm.c:
+>>
+>> 	{ .compatible =3D "omapdss,panel-dsi-cm", },
+>>
+>> But we should still have the right compatible string in the .dts, so w=
+e
+>> convert the compatible name in arch/arm/mach-omap2/display.c, with
+>> 'dss_compat_conv_list' array, to which this panel's name should be add=
+ed.
+>=20
+> Oh so what do you want to have in the .dts file then?
+
+The .dts should have the proper names. The idea of this hackery is that
+in the .dts we can have the proper compatible string. So in the .dts, we
+have, say:
+
+"sony,panel-foobar"
+
+Then, at boot time, omap's platform code changes that to:
+
+"omapdss,sony,panel-foobar".
+
+And our (omap specific) panel-foobar driver use that
+"omapdss,sony,panel-foobar" string.
+
+This way some other platform could do the same, and have their platform
+specific drivers handle the panel.
+
+At some point in the future we hopefully will have common panel drivers,
+and at that point we can remove that hackery. The .dts files will
+already be correct.
+
+ Tomi
+
+
+
+--aN4lrGsNv5aprSa1wEgrbQLIN7hEEnIbk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTcHpkAAoJEPo9qoy8lh71P9MP/R3by/ToNjeQb6ItsiIHK/Co
+t4JJ36+91rQr+xIh5kOjk9GEBjTUCN92aBY+IuK3ppHg1KOVWvMfQQ6vxXpvolwL
+CKZXX3lvlLQTjimBKiIQNRvuUHLqBoy1KgKhAuNLLO9NE+L+RKLlX8nqTqXoyFKb
+INbX3VV72EBLVOgSAyfCOGWkvLwZAPuf7GEnkuhAmgZMCxfR9yB8KG0Q5TjhOYhB
+XHfZndo6k1lHek009p75YqX89mt9E27uVw5/V86kse1GJjpyyNL+Z7k7lRL5xIwJ
+fdrU43QFA3MvaBDJ2NDfjD/dqbu7gNtC59wD8xNzS9nm495eTpFbOlq4qhHSZleo
+kzKldW3Zh3m8nzq18Lw79fPsTDe+5lDYEno22tIJKNlQTQ9xybFZiVY0NT/EODdT
+WDqsC+TSrLvw20jRNVtufOibdqPd/Juw55amOiQmojw/p4svT0tER4HhT9br++nu
+s2EtDK3y4t8R7waVktw8uH5UEZDUpbMaoXYup9Xeom2Xys0YUI2FhWvkQe0r7rvn
+MsEsq7TgqH9nHvSD4QiYtjwfA/k3mWDuJ9wTd+PIWFRwr6WKQLTzywsVNNx2w98M
+6Q2W56uvM23qjok839tTCGjJzNbLkkuVTEW3gBGok0Ex8HX1UuO4tc9nyb1c6hSs
+bLq7mtGF9gtUMcWk//MO
+=I6OZ
+-----END PGP SIGNATURE-----
+
+--aN4lrGsNv5aprSa1wEgrbQLIN7hEEnIbk--
