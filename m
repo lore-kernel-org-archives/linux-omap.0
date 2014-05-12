@@ -1,51 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/19] Rework OMAP4+ HDMI audio support
-Date: Mon, 12 May 2014 08:06:16 -0700
-Message-ID: <20140512150616.GF31772@atomide.com>
-References: <cover.1399884780.git.jsarha@ti.com>
+From: United Nations <maj@junin.gob.ar>
+Subject: =?utf-8?Q?Felicit=C4=83ri?=
+Date: Mon, 12 May 2014 12:22:58 -0300 (ART)
+Message-ID: <132381478.422760.1399908178095.JavaMail.zimbra__48580.930234357$1399908963$gmane$org@junin.gob.ar>
+Reply-To: United Nations <unitednationsgrants@admin.in.th>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33805 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758642AbaELPGY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 11:06:24 -0400
-Content-Disposition: inline
-In-Reply-To: <cover.1399884780.git.jsarha@ti.com>
+Received: from junin.gov.ar ([201.234.19.13]:52720 "EHLO mail.junin.gob.ar"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751692AbaELPfe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 11:35:34 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, tomi.valkeinen@ti.com, detheridge@ti.com
 
-* Jyri Sarha <jsarha@ti.com> [140512 02:13]:
-> Since RFC version of the patch set: 
-> - Split callbacks removal patch away from "Integrated ASoC DAI
->   component driver implementation" patches for easier reading
-> 
-> This set of patches fixes OMAP4+ HDMI audio. The structure of the
-> implementatin looks a bit different than before. Instead of creating a
-> driver specific API for a separate ASoC component driver to connect
-> to, this implementation integrates an the component driver into the
-> HDMI driver.
-> 
-> The idea is to use an existing ASoC component driver API instead of
-> creating a new custom API for each HDMI IP and to avoid splitting the
-> driver to half for separate video and audio parts connected with the
-> API.
-> 
-> The new implementation also uses simple-audio-card for a machine
-> driver instead of having its own HW specific machine driver.
 
-Can you guys please post this split into the following separate
-parts for the maintainers to merge:
 
-- ASoC changes
-- DSS changes
-- DTS changes
+=46elicit=C4=83ri=20
 
-And once those are all in, please post the defconfig changes.
+Sunte=C8=9Bi unul dintre beneficiarii de pe ordinea de zi a Na=C8=9Biun=
+ilor Unite 2014/2015 Grant Award. Informa=C8=9Biile dvs. au fost verifi=
+cate =C8=99i suma de =C8=99ase milioane de euro (6.000.000,00) a fost a=
+cordat pentru a v=C4=83 =C3=AEn programul de granturi al Na=C8=9Biunilo=
+r Unite ca Date tale au fost listate pe lista c=C3=A2=C8=99tig=C4=83toa=
+re.=20
 
-Regards,
+Aceast=C4=83 sum=C4=83 urmeaz=C4=83 a fi utilizate de dumneavoastr=C4=83=
+ pentru orice scop, de care vor beneficia foloseste comunitatea ta.=20
 
-Tony
- 
+Informa=C8=9Biile de care avem nevoie pentru verificare sunt:=20
+
+Numele complet:=20
+adresa:=20
+Urm=C4=83tor de Kin:=20
+
+Va oferi, de asemenea, un cont bancar care premiile de finan=C8=9Bare a=
+r trebui s=C4=83 fie depus =C3=AEn. Ve=C8=9Bi avea nevoie, de asemenea,=
+ s=C4=83 pl=C4=83teasc=C4=83 doar o tax=C4=83 administrativ=C4=83 de 72=
+1 de euro (=C8=99apte sute dou=C4=83zeci =C8=99i unu de euro).=20
+
+Ajunge =C3=AEnapoi la noi c=C3=A2t mai cur=C3=A2nd posibil, astfel =C3=AE=
+nc=C3=A2t s=C4=83 pute=C8=9Bi trimite certificatul c=C3=A2=C8=99tig=C4=83=
+toare.=20
+
+Biroul Organiza=C8=9Biei Na=C8=9Biunilor Unite.=20
+2014/2015
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
