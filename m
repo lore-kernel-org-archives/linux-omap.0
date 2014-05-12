@@ -1,44 +1,45 @@
-From: Archit Taneja <archit-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 5/5] Doc/DT: hdmi-connector: add HPD GPIO documentation
-Date: Mon, 12 May 2014 11:06:08 +0530
-Message-ID: <53705DC8.1050903@ti.com>
-References: <1399638727-23254-1-git-send-email-tomi.valkeinen@ti.com> <1399638727-23254-5-git-send-email-tomi.valkeinen@ti.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH] ARM: dts: am335x-evm: fix comments for lcd pins
+Date: Mon, 12 May 2014 08:03:36 +0200
+Message-ID: <20140512060336.GD29070@pengutronix.de>
+References: <1399648580-14487-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1399638727-23254-5-git-send-email-tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48026 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751884AbaELGDo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2014 02:03:44 -0400
+Content-Disposition: inline
+In-Reply-To: <1399648580-14487-1-git-send-email-wsa@the-dreams.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-arm-kernel@lists.infradead.org, Benoit Parrot <bparrot@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Wolfram Sang <wsa@sang-engineering.com>
 
-Hi,
+Hi Wolfram,
 
-On Friday 09 May 2014 06:02 PM, Tomi Valkeinen wrote:
-> Add binding documentation for HDMI connector's HPD GPIO.
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> ---
->   Documentation/devicetree/bindings/video/hdmi-connector.txt | 1 +
->   1 file changed, 1 insertion(+)
->
-> diff --git a/Documentation/devicetree/bindings/video/hdmi-connector.txt b/Documentation/devicetree/bindings/video/hdmi-connector.txt
-> index ccccc19e2573..acd5668b1ce1 100644
-> --- a/Documentation/devicetree/bindings/video/hdmi-connector.txt
-> +++ b/Documentation/devicetree/bindings/video/hdmi-connector.txt
-> @@ -7,6 +7,7 @@ Required properties:
->
->   Optional properties:
->   - label: a symbolic name for the connector
-> +- hpd-gpios: HPD GPIO number
+On Fri, May 09, 2014 at 05:15:50PM +0200, Wolfram Sang wrote:
+> From: Wolfram Sang <wsa@sang-engineering.com>
+>=20
+> In the comments, LCD pins 16-23 were numbered in the wrong order.
+> Fix this and use proper pinmux constants for all entries while we are
+>=20
+Your sentence misses a word at the
 
-Would there ever be more than one HPD gpio?
+Uwe
+> Signed-off-by: Wolfram Sang <wsa@sang-engineering.com>
+> Cc: Benoit Parrot <bparrot@ti.com>
 
-Archit
-
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
