@@ -1,81 +1,47 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for configuring the iATU
-Date: Tue, 13 May 2014 14:47:25 +0200
-Message-ID: <10531498.kYV5eO1J1m@wuerfel>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com> <6882241.amuhzvbd8n@wuerfel> <537210BF.2050100@ti.com>
+From: Tom Rini <trini@ti.com>
+Subject: Re: [PATCH v2] ARM: dts: am335x-bone-common: Add i2c2 definition
+Date: Tue, 13 May 2014 08:53:39 -0400
+Message-ID: <537215D3.70306@ti.com>
+References: <1399686184-1594-1-git-send-email-mranostay@gmail.com>	<20140512195050.GB5668@atomide.com>	<CAOCHtYiYwx_bEsyqkbUTTAbhBYESzvfBOOYeVuFXPS1dDy0ZKA@mail.gmail.com>	<20140512201517.GC5668@atomide.com>	<CAOCHtYg6XpF0Gbo4iFqsFvP=QSivQQvCzov8UfxeLXMzrRYEWw@mail.gmail.com>	<20140512204213.GD5668@atomide.com> <CAOCHtYgg7jwxswH+mqF3RA7-0RP-nGuft+Ze-GRwu1fbA6+0Bw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <537210BF.2050100-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, 'Santosh Shilimkar' <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, 'Bjorn Helgaas' <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, 'Marek Vasut' <marex-ynQEQJNshbs@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:39215 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932401AbaEMMxx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 May 2014 08:53:53 -0400
+In-Reply-To: <CAOCHtYgg7jwxswH+mqF3RA7-0RP-nGuft+Ze-GRwu1fbA6+0Bw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Robert Nelson <robertcnelson@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: Matt Ranostay <mranostay@gmail.com>, robh+dt@kernel.org, mark.rutland@arm.com, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, linux kernel <linux-kernel@vger.kernel.org>, Pantelis Antoniou <pantelis.antoniou@gmail.com>, Matt Porter <matt.porter@linaro.org>
 
-On Tuesday 13 May 2014 18:01:59 Kishon Vijay Abraham I wrote:
-> On Thursday 08 May 2014 02:48 PM, Arnd Bergmann wrote:
-> > On Thursday 08 May 2014 18:05:11 Jingoo Han wrote:
-> >> On Tuesday, May 06, 2014 10:59 PM, Arnd Bergmann wrote:
-> >>> On Tuesday 06 May 2014 19:03:52 Kishon Vijay Abraham I wrote:
-> >>>> In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
-> >>>> address. So whenever the cpu issues a read/write request, the 4 most
-> >>>> significant bits are used by L3 to determine the target controller.
-> >>>> For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
-> >>>> the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
-> >>>> the outbound translation window the *base* should be programmed as 0x000_0000.
-> >>>> Whenever we try to write to say 0x2000_0000, it will be translated to whatever
-> >>>> we have programmed in the translation window with base as 0x000_0000.
-> >>>>
-> >>>> Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-> >>>> Cc: Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>
-> >>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> >>>> Acked-by: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> >>>> Acked-by: Mohit Kumar <mohit.kumar-qxv4g6HH51o@public.gmane.org>
-> >>>
-> >>> Sorry, but NAK.
-> >>>
-> >>> We have a standard 'dma-ranges' property to handle this, so use it.
-> >>>
-> >>> See the x-gene PCIe driver patches for an example. Please also talk
-> >>> to Santosh about it, as he is implementing generic support for
-> >>> parsing dma-ranges in platform devices at the moment.
-> >>
-> >> Hi Arnd,
-> >>
-> >> Do you mean the following patch?
-> >> http://www.spinics.net/lists/kernel/msg1737725.html
-> >>
-> > 
-> > That is the patch Santosh did for platform devices, which is related but not
-> > what I meant here. For the PCI inbound window setup, please have a look
-> > at https://lkml.org/lkml/2014/3/19/607
+On 05/12/2014 04:57 PM, Robert Nelson wrote:
+>>> Either case if fine with me.  As who knows when the dtc "overlay" will
+>>> every truly make it mainline, as the capemgr was the only real kernel
+>>> user of the i2c/at24 eeprom information.
+>>
+>> Sounds like we should keep it disabled though so u-boot can be used
+>> to toggle it while waiting for the capemgr. That's because the board
+>> has a header for pins, so it's not exactly limited to just the capes.
+>>
+>> Anybody working on enabling/disabling cape dtb configurations in u-boot?
 > 
-> Do you think it can be used for *outbound* window setup too? The problem is the
-> *ranges* property defines both the pci address and cpu address which should
-> have been enough to program the ob translation window, but the hw is designed
-> so that the controller sees only the 28 bits. (The most significant 4 bits is
-> for the l3 to address the controller).
+> Well,
+> 
+> Would Tom even approve of that in mainline u-boot? He didn't want my
+> "invert" the gpio to enable the usb hub on the older beagle xm A/B..
+> 
+> http://lists.denx.de/pipermail/u-boot/2014-January/172154.html
+> 
+> http://lists.denx.de/pipermail/u-boot/2014-January/172274.html
 
-I'm not following what the problem is. You should always be able to describe
-in the inbound window (that is from the CPU perspective) using dma-ranges
-and the outbound window using ranges.
+I would think that using the 'fdt' command in U-Boot to add all
+properties of every cape found on a running system would drive someone
+to madness quite quickly.  Moving all of Pantelis' work for dynamic
+device trees from the kernel to N bootloaders (U-Boot, barebox, UEFI,
+etc) sounds like a step in the wrong direction.
 
-If you have a case where the outbound translation is a 256MB (i.e. 28bit)
-section of the CPU address space, that could be represented as
-
-	ranges = <0x82000000 0 0  0xb0000000  0 0x10000000>;
-
-or 
-
-	ranges = <0x82000000 0 0xb0000000  0xb0000000  0 0x10000000>;
-
-depending on whether you want the BARs to be programmed using a low
-address 0x0-0x0fffffff or an address matching the window
-0xb0000000-0xbfffffff.
-
-	Arnd
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Tom
