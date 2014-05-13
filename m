@@ -1,51 +1,59 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 0/4] ARM/DT: edma: Get IP configuration from hardware
-Date: Tue, 13 May 2014 10:43:44 +0300
-Message-ID: <1399967028-24757-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 2/4] dt/bindings: ti,edma: Remove redundant properties from documentation
+Date: Tue, 13 May 2014 10:43:46 +0300
+Message-ID: <1399967028-24757-3-git-send-email-peter.ujfalusi@ti.com>
+References: <1399967028-24757-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52350 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752074AbaEMHo2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 May 2014 03:44:28 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1399967028-24757-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: nsekhar@ti.com, joelf@ti.com
 Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-We are requesting redundant information via DT for the driver since the very same
-data is available in the HW: by reading and decoding the content of CCCFG
-register we can get:
+>From CCCFG register of eDMA3 we can get all the needed information for the
+driver about the IP:
 Number of channels: NUM_DMACH
 Number of regions: NUM_REGN
 Number of slots (PaRAM sets): NUM_PAENTRY
 Number of TC/EQ: NUM_EVQUE
 
-So these does not need to be provided by the DT binding.
+The ti,edma-regions; ti,edma-slots and dma-channels in DT are
+redundant since the very same information can be obtained from the HW.
+The mentioned properties can be removed from the binding document.
 
-The driver will no longer look for these properties from DT and they can be
-removed from the binding documentation and from the dtsi files as well.
-The change will not introduce regression when new kernel is booted using older
-DTB (since we just ignore the mentioned properties).
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (4):
-  ARM: edma: Get IP information from HW when booting with DT
-  dt/bindings: ti,edma: Remove redundant properties from documentation
-  ARM: dts: am33xx: Remove obsolete properties from edma node
-  ARM: dts: am4372: Remove obsolete properties from edma node
+ Documentation/devicetree/bindings/dma/ti-edma.txt | 6 ------
+ 1 file changed, 6 deletions(-)
 
- Documentation/devicetree/bindings/dma/ti-edma.txt |   6 -
- arch/arm/boot/dts/am33xx.dtsi                     |   3 -
- arch/arm/boot/dts/am4372.dtsi                     |   3 -
- arch/arm/common/edma.c                            | 128 +++++++++++++---------
- 4 files changed, 79 insertions(+), 61 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
+index 9fbbdb783a72..cf8d0a2d5b33 100644
+--- a/Documentation/devicetree/bindings/dma/ti-edma.txt
++++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
+@@ -2,11 +2,8 @@ TI EDMA
+ 
+ Required properties:
+ - compatible : "ti,edma3"
+-- ti,edma-regions: Number of regions
+-- ti,edma-slots: Number of slots
+ - #dma-cells: Should be set to <1>
+               Clients should use a single channel number per DMA request.
+-- dma-channels: Specify total DMA channels per CC
+ - reg: Memory map for accessing module
+ - interrupt-parent: Interrupt controller the interrupt is routed through
+ - interrupts: Exactly 3 interrupts need to be specified in the order:
+@@ -26,9 +23,6 @@ edma: edma@49000000 {
+ 	compatible = "ti,edma3";
+ 	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
+ 	#dma-cells = <1>;
+-	dma-channels = <64>;
+-	ti,edma-regions = <4>;
+-	ti,edma-slots = <256>;
+ 	ti,edma-xbar-event-map = <1 12
+ 				  2 13>;
+ };
 -- 
 1.9.3
 
