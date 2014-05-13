@@ -1,110 +1,39 @@
 From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [PATCH 2/2] ARM: dts: am437x-gp-evm: Add ethernet support for GP EVM
-Date: Tue, 13 May 2014 14:14:31 +0530
-Message-ID: <1399970671-29203-3-git-send-email-mugunthanvnm@ti.com>
-References: <1399970671-29203-1-git-send-email-mugunthanvnm@ti.com>
+Subject: Re: [PATCH 0/3] Add DRA7xx CPSW Ethernet support in Device Tree
+Date: Tue, 13 May 2014 14:23:40 +0530
+Message-ID: <5371DD94.1050400@ti.com>
+References: <1399968246-21166-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399970671-29203-1-git-send-email-mugunthanvnm@ti.com>
+In-Reply-To: <1399968246-21166-1-git-send-email-mugunthanvnm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: bcousson@baylibre.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add CPSW ethernet support for AM437x GP EVM which has one slave pinned out
+Tony/Benoit
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- arch/arm/boot/dts/am437x-gp-evm.dts | 72 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+On Tuesday 13 May 2014 01:34 PM, Mugunthan V N wrote:
+> Adding device tree entry for CPSW to make it work in Dual EMAC mode.
+>
+> DRA7 cpsw phy sel driver patch has been pulled in net-next git with the
+> following commit id *d415fa1b88748d664b7b6a310dd8e699d2686cf7*
+>
+> Mugunthan V N (3):
+>   pinctrl: dra7: dt-bindings: add pin off modes for dra7 SoC
+>   arm/dts: dra7xx: Add CPSW and MDIO module nodes for dra7xx
+>   arm/dts: dra7xx: Enable CPSW and MDIO for dra7xx EVM
+>
+>  arch/arm/boot/dts/dra7-evm.dts    | 103 ++++++++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/dra7.dtsi       |  59 ++++++++++++++++++++++
+>  include/dt-bindings/pinctrl/dra.h |   8 +++
+>  3 files changed, 170 insertions(+)
+>
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 4e92d9e..8dc1c6e 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -98,6 +98,58 @@
- 			0x264 (PIN_INPUT_PULLUP | MUX_MODE7)  /* spi2_d0.gpio3_22 */
- 		>;
- 	};
-+
-+	cpsw_default: cpsw_default {
-+		pinctrl-single,pins = <
-+			/* Slave 1 */
-+			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txen.rgmii1_txen */
-+			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxdv.rgmii1_rxctl */
-+			0x11c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_txd3 */
-+			0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_txd2 */
-+			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_txd1 */
-+			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_txd0 */
-+			0x12c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txclk.rmii1_tclk */
-+			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxclk.rmii1_rclk */
-+			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rxd3 */
-+			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rxd2 */
-+			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rxd1 */
-+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rxd0 */
-+		>;
-+	};
-+
-+	cpsw_sleep: cpsw_sleep {
-+		pinctrl-single,pins = <
-+			/* Slave 1 reset value */
-+			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x120 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x12c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
-+
-+	davinci_mdio_default: davinci_mdio_default {
-+		pinctrl-single,pins = <
-+			/* MDIO */
-+			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
-+			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
-+		>;
-+	};
-+
-+	davinci_mdio_sleep: davinci_mdio_sleep {
-+		pinctrl-single,pins = <
-+			/* MDIO reset value */
-+			0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
- };
- 
- &i2c0 {
-@@ -179,3 +231,23 @@
- 	dr_mode = "host";
- 	status = "okay";
- };
-+
-+&mac {
-+	slaves = <1>;
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&cpsw_default>;
-+	pinctrl-1 = <&cpsw_sleep>;
-+	status = "okay";
-+};
-+
-+&davinci_mdio {
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&davinci_mdio_default>;
-+	pinctrl-1 = <&davinci_mdio_sleep>;
-+	status = "okay";
-+};
-+
-+&cpsw_emac0 {
-+	phy_id = <&davinci_mdio>, <0>;
-+	phy-mode = "rgmii";
-+};
--- 
-1.9.2.459.g68773ac
+This patch series depends on Cross bar dt patch set
+http://comments.gmane.org/gmane.linux.drivers.devicetree/73025
+
+Regards
+Mugunthan V N
