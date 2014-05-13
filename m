@@ -1,270 +1,347 @@
-From: John Syn <john3909@gmail.com>
-Subject: Re: [PATCH v2] ARM: dts: am335x-bone-common: Add i2c2 definition
-Date: Tue, 13 May 2014 13:24:03 -0700
-Message-ID: <CF97C6D2.246DE%john3909@gmail.com>
-References: <1399686184-1594-1-git-send-email-mranostay@gmail.com>
- <20140512195050.GB5668@atomide.com>
- <CAOCHtYiYwx_bEsyqkbUTTAbhBYESzvfBOOYeVuFXPS1dDy0ZKA@mail.gmail.com>
- <20140512201517.GC5668@atomide.com>
- <CAOCHtYg6XpF0Gbo4iFqsFvP=QSivQQvCzov8UfxeLXMzrRYEWw@mail.gmail.com>
- <20140512204213.GD5668@atomide.com>
- <CAOCHtYgg7jwxswH+mqF3RA7-0RP-nGuft+Ze-GRwu1fbA6+0Bw@mail.gmail.com>
- <537215D3.70306@ti.com>
- <CABxcv=nq9XvyN0aPOBFDm0UyoaW-Htyy0tyP3YhYaDnDUo3a5w@mail.gmail.com>
- <20140513142252.GG32082@beef>
- <CABxcv=mSs71pS1PAS-WdP0ru_Eb1XhXEm1qCCKW7=aL7EN4FgQ@mail.gmail.com>
- <4BCFCB24-9732-4B96-B814-5290CA2D0EE4@gmail.com>
- <CABxcv=mWqENSzODJYAJRgDYNy46X6WkQ+0e4NSDt8qE-ob1KuQ@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
+ support
+Date: Tue, 13 May 2014 14:26:39 -0700
+Message-ID: <20140513212639.GA18001@atomide.com>
+References: <1398815562-24113-1-git-send-email-tony@atomide.com>
+ <1398815562-24113-4-git-send-email-tony@atomide.com>
+ <5369EAE7.3030705@ti.com>
+ <20140507150343.GA9502@atomide.com>
+ <536A5920.1020908@ti.com>
+ <20140507175919.GH9502@atomide.com>
+ <20140508233300.GI2198@atomide.com>
+ <536C924E.5000307@ti.com>
+ <20140509153008.GC17814@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:54088 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751145AbaEMUYL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 May 2014 16:24:11 -0400
-In-Reply-To: <CABxcv=mWqENSzODJYAJRgDYNy46X6WkQ+0e4NSDt8qE-ob1KuQ@mail.gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54961 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753289AbaEMV0s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 May 2014 17:26:48 -0400
+Content-Disposition: inline
+In-Reply-To: <20140509153008.GC17814@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>, Pantelis Antoniou <pantelis.antoniou@gmail.com>
-Cc: Matt Porter <matt.porter@linaro.org>, Tom Rini <trini@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Tony Lindgren <tony@atomide.com>, Matt Ranostay <mranostay@gmail.com>, robh+dt@kernel.org, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, linux kernel <linux-kernel@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
+* Tony Lindgren <tony@atomide.com> [140509 08:31]:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140509 01:31]:
+> > On 09/05/14 02:33, Tony Lindgren wrote:
+> > > * Tony Lindgren <tony@atomide.com> [140507 11:00]:
+> > >> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140507 09:03]:
+> > >>> On 07/05/14 18:03, Tony Lindgren wrote:
+> > >>>>
+> > >>>> BTW, I'm also personally fine with all five gpios showing in a single
+> > >>>> gpios property, I'm not too exited about naming anything in DT..
+> > >>>
+> > >>> I don't have a strong opinion here. I don't have much experience with
+> > >>> DT, especially with making bindings compatible with other ones.
+> > >>>
+> > >>> I'd just forget the simple-panel, and have single gpio array.
+> > >>
+> > >> Well if it's a don't care flag for both of us, let's try to use
+> > >> the existing standard for simple-panel.txt and add mode-gpios
+> > >> property. I'll post a patch for that.
+> > > 
+> > > Here's an updated version using enable-gpios, reset-gpios and
+> > > mode-gpios. So it follows simple-panel.txt and adds mode-gpios
+> > > that's currently specific to this panel only.
+> > > 
+> > > Also updated for -EPROBE_DEFER handling, tested that by changing
+> > > one of the GPIOs to be a twl4030 GPIO.
+> > 
+> > To speed things up a bit, I made the changes I suggested. Compile tested
+> > only.
+> 
+> OK thanks did not get the penguin with it so need to look at it a bit
+> more.
 
-On 5/13/14, 10:51 AM, "Javier Martinez Canillas" <javier@dowhile0.org>
-wrote:
-
->Hello Pantelis,
->
->On Tue, May 13, 2014 at 7:07 PM, Pantelis Antoniou
-><pantelis.antoniou@gmail.com> wrote:
->> Hi Javier,
->>
->> On May 13, 2014, at 7:39 AM, Javier Martinez Canillas wrote:
->>
->>> On Tue, May 13, 2014 at 4:22 PM, Matt Porter <matt.porter@linaro.or=
-g>
->>>wrote:
->>>> On Tue, May 13, 2014 at 04:06:02PM +0200, Javier Martinez Canillas
->>>>wrote:
->>>>> On Tue, May 13, 2014 at 2:53 PM, Tom Rini <trini@ti.com> wrote:
->>>>>> On 05/12/2014 04:57 PM, Robert Nelson wrote:
->>>>>>>>> Either case if fine with me.  As who knows when the dtc
->>>>>>>>>"overlay" will
->>>>>>>>> every truly make it mainline, as the capemgr was the only rea=
-l
->>>>>>>>>kernel
->>>>>>>>> user of the i2c/at24 eeprom information.
->>>>>>>>
->>>>>>>> Sounds like we should keep it disabled though so u-boot can be
->>>>>>>>used
->>>>>>>> to toggle it while waiting for the capemgr. That's because the
->>>>>>>>board
->>>>>>>> has a header for pins, so it's not exactly limited to just the
->>>>>>>>capes.
->>>>>>>>
->>>>>>>> Anybody working on enabling/disabling cape dtb configurations =
-in
->>>>>>>>u-boot?
->>>>>>>
->>>>>>> Well,
->>>>>>>
->>>>>>> Would Tom even approve of that in mainline u-boot? He didn't wa=
-nt
->>>>>>>my
->>>>>>> "invert" the gpio to enable the usb hub on the older beagle xm
->>>>>>>A/B..
->>>>>>>
->>>>>>> http://lists.denx.de/pipermail/u-boot/2014-January/172154.html
->>>>>>>
->>>>>>> http://lists.denx.de/pipermail/u-boot/2014-January/172274.html
->>>>>
->>>>> Using fdt set from the bootloader to use the same FDT for similar
->>>>> boards (like the example with Beagle xM variants) is kind of tryi=
-ng
->>>>>to
->>>>> replicate what we used to do from boards files where it was possi=
-ble
->>>>> to manage a set of boards using the same platform code.
->>>>>
->>>>> But Device Trees are meant to describe hardware and thus should b=
-e
->>>>> static, if two board are almost identical but slightly different,
->>>>>then
->>>>> are two different hardware where each need its proper FDT that
->>>>> describes it.
->>>>>
->>>>>>
->>>>>> I would think that using the 'fdt' command in U-Boot to add all
->>>>>> properties of every cape found on a running system would drive
->>>>>>someone
->>>>>> to madness quite quickly.  Moving all of Pantelis' work for dyna=
-mic
->>>>>> device trees from the kernel to N bootloaders (U-Boot, barebox,
->>>>>>UEFI,
->>>>>> etc) sounds like a step in the wrong direction.
->>>>>>
->>>>>
->>>>> Agreed. I think that until the device tree overlay and the cape
->>>>> manager find their way into mainline we should treat capes as if =
-they
->>>>> were expansion boards attached to a Computer-on-Module. That is, =
-a
->>>>> static based board which its own DTS including the BB{B,W} as an =
-dtsi
->>>>> and not something that can be added on runtime.
->>>>
->>>> It's far more complicated than a SOM plus carrier board. Consider =
-that
->>>> you can have any 4 of these capes stacked on the BBB/BBW in any
->>>> combination (assuming no resource conflicts). Capturing all possib=
-le
->>>> combinations in static dtsis is not practical.
->>>>
->>>
->>
->> Since this appears to be all coming back to DT overlays, let me try =
-to
->> address some points.
->>
->
->It seems that you misunderstood my comments. I do think that DT
->overlays and the cape manager are a great solution for any hardware
->that could be expanded on runtime and I really hope that they can
->eventually land into mainline.
->
->In fact if you look on my previous mail you will see that I said:
->"until device tree overlay and the cape manager find their way into
->mainline..."
->
->>> Right, I forgot that the capes were stackable so is indeed not
->>> practical to model every single combination as DTS in mainline. Eve=
-n
->>> if stacking was not possible there are just too many capes out ther=
-e
->>> to have a DTS for every single cape.
->>>
->>
->> Each cape does have a DTS as dynamically loaded fragment; it works
->>absolutely fine.
->>
->> Trying to come up with a base DTS for all the capes you've stacked u=
-p
->> is an exponential problem.
->>
->>> My point was that someone who wants to use a BBB + a set of capes c=
-an
->>> today write a DTS for its own stacked setup.
->>>
->>
->> No, the guy that designs a cape (or learns how to) can not write a D=
-TS
->>for
->> the base board and the cape in question. Doing that he essentially c=
-uts
->> himself off from the community.
->>
->> Let me explain, the point is for people to easily design capes,
->>open-source their
->> design as well as their software, and share them to the community.
->>
->> This requires that things are easily shareable.
->>
->> Requiring a relative newbie in kernel development not only generate =
-his
->>own
->> base DT, but also to merge all of the other capes DT into his own is=
- a
->> nightmare.
->>
->> BTW, on another tangent, it's not just the BB people that care about
->>dynamic
->> hardware configuration. There are a number of FPGA people that seem
->>interested
->> as well.
->>
->> The notion of hardware as something static that never changes is
->>obsolete IMHO.
->>
->>> Unfortunately I don't have a solution but what I'm pretty sure is t=
-hat
->>> mangling the DTS from the bootloader is not the right one :-)
->>>
->>
->> No, it is not. And this is what we're trying to solve here.
->>
->
->What I said that I'm against is modifying a FDT using U-Boot scripts
->commands that is something that mentioned in this thread. That is not
->a robust way to do it and also is not something that a newbie could do
->it neither.
->
->Also, doing these FDT changes in the bootloader has several
->disadvantages, besides having to implement on each bootloaders like
->Tom said, you need to upgrade your bootloader which is something that
->just can't be done on many boards and also is still a static
->configuration since you need to reboot in order to use a different
->FDT. So the hardware can't really be expanded on runtime unlike with
->DT overlays where the overlays are loaded from regular files.
->
->But I guess you agree with me on all those points and you just
->misunderstood my comments. So DT overlays is definitely the way to go
->(or something similar) but my point is that until we have that
->solution merged, you can use a static DT in mainline for your stacked
->cape or use a vendor kernel that already has DT overlays support.
-
-Given that we are not hot plugging capes, why do we need to modify the =
-DT
-at runtime? Even FPGA developers are not modifying their I/O at runtime=
-=2E
-=46or example, using the BBB as a reference, why not add an am335x-cape=
--dtsi
-to the am335x-boneblack.dts as follows:
-
-/dts-v1/;
-
-/include/ "am33xx.dtsi"
-
-/include/ "am335x-bone-common.dtsi=B2
-
-/include/ =B3am335x-cape.dtsi"
-
-&am33xx_pinmux {
-xxx
-
-and =B3am335x-cape.dtsi=B2 would look like this:
-
-/include/ =B3BB-BONE-AUDI-00A0.dtsi=B2
-/include/ =B3BB-BONE-UART1-00A0.dtsi=B2
-xxx
-
-So, cape developers create their own DTSI and users only update the
-am335x-cape.dtsi to include the cape DT required.
-
-What am I missing?=20
-
-BTW, DTC should be updated to detect I/O conflicts. Waiting for the ker=
-nel
-to boot before detecting DT conflicts isn=B9t OK.
+Here's this patch updated again for QVGA and VGA support and to use
+your panel remapping. I've also made sure the blanking works properly
+on evm-37xx and ldp.
 
 Regards,
-John
 
+Tony
 
+8< --------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 28 Apr 2014 20:22:21 -0700
+Subject: [PATCH] OMAPDSS: panel-sharp-ls037v7dw01: add device tree support
 
->
->I hope I explained myself better this time ;-)
->
->Best regards,
->Javier
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" =
-in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Add device tree support for sharp-ls037v7dw01 panel.
 
+Note that this patch is using the remapping of the compatible
+flag as implemented by Tomi (that I do not like), but seems
+like that's currently needed to avoid redoing the panel
+bindings later on. And for the record, that has been agreed
+to be a temporary measure until the generic display bindings
+can be used by DSS.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/sharp,ls037v7dw01.txt
+@@ -0,0 +1,44 @@
++SHARP LS037V7DW01 TFT-LCD panel
++===================================
++
++Required properties:
++- compatible: "sharp,ls037v7dw01"
++
++Optional properties:
++- label: a symbolic name for the panel
++- enable-gpios: a GPIO spec for the optional enable pin
++  this pin is the INI pin as specified in the LS037V7DW01.pdf file.
++- reset-gpios: a GPIO spec for the optional reset pin
++  this pin is the RESB pin as specified in the LS037V7DW01.pdf file.
++- mode-gpios: a GPIO
++  ordered MO, LR, and UD as specified in the LS037V7DW01.pdf file.
++
++Required nodes:
++- Video port for DPI input
++
++This panel can have zero to five GPIOs to configure
++to change configuration between QVGA and VGA mode
++and the scan direction. As these pins can be also
++configured with external pulls, all the GPIOs are
++considered optional with holes in the array.
++
++Example
++-------
++
++Example when connected to a omap2+ based device:
++
++lcd0: display {
++	compatible = "sharp,ls037v7dw01";
++	power-supply = <&lcd_3v3>;
++	enable-gpios = <&gpio5 24 GPIO_ACTIVE_HIGH>;	/* gpio152, lcd INI */
++	reset-gpios = <&gpio5 27 GPIO_ACTIVE_HIGH>;	/* gpio155, lcd RESB */
++	mode-gpios = <&gpio5 26 GPIO_ACTIVE_HIGH	/* gpio154, lcd MO */
++		      &gpio1 2 GPIO_ACTIVE_HIGH		/* gpio2, lcd LR */
++		      &gpio1 3 GPIO_ACTIVE_HIGH>;	/* gpio3, lcd UD */
++
++	port {
++		lcd_in: endpoint {
++			remote-endpoint = <&dpi_out>;
++		};
++	};
++};
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -562,6 +562,7 @@ static const char * const dss_compat_conv_list[] __initconst = {
+ 	"hdmi-connector",
+ 	"panel-dpi",
+ 	"panel-dsi-cm",
++	"sharp,ls037v7dw01",
+ 	"sony,acx565akm",
+ 	"svideo-connector",
+ 	"ti,tfp410",
+--- a/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
++++ b/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
+@@ -12,15 +12,18 @@
+ #include <linux/delay.h>
+ #include <linux/gpio.h>
+ #include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_gpio.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+-
++#include <linux/regulator/consumer.h>
+ #include <video/omapdss.h>
+ #include <video/omap-panel-data.h>
+ 
+ struct panel_drv_data {
+ 	struct omap_dss_device dssdev;
+ 	struct omap_dss_device *in;
++	struct regulator *vcc;
+ 
+ 	int data_lines;
+ 
+@@ -31,9 +34,33 @@ struct panel_drv_data {
+ 	struct gpio_desc *mo_gpio;	/* low = 480x640, high = 240x320 */
+ 	struct gpio_desc *lr_gpio;	/* high = conventional horizontal scanning */
+ 	struct gpio_desc *ud_gpio;	/* high = conventional vertical scanning */
++
++#define SHARP_LS_QVGA	(1 << 0)
++	u32 flags;
++};
++
++static const struct omap_video_timings sharp_ls_qvga_timings = {
++	.x_res = 240,
++	.y_res = 320,
++
++	.pixelclock	= 5400000,
++
++	.hsw		= 3,
++	.hfp		= 3,
++	.hbp		= 39,
++
++	.vsw		= 1,
++	.vfp		= 2,
++	.vbp		= 7,
++
++	.vsync_level	= OMAPDSS_SIG_ACTIVE_LOW,
++	.hsync_level	= OMAPDSS_SIG_ACTIVE_LOW,
++	.data_pclk_edge	= OMAPDSS_DRIVE_SIG_RISING_EDGE,
++	.de_level	= OMAPDSS_SIG_ACTIVE_HIGH,
++	.sync_pclk_edge	= OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES,
+ };
+ 
+-static const struct omap_video_timings sharp_ls_timings = {
++static const struct omap_video_timings sharp_ls_vga_timings = {
+ 	.x_res = 480,
+ 	.y_res = 640,
+ 
+@@ -95,12 +122,21 @@ static int sharp_ls_enable(struct omap_dss_device *dssdev)
+ 	if (omapdss_device_is_enabled(dssdev))
+ 		return 0;
+ 
+-	in->ops.dpi->set_data_lines(in, ddata->data_lines);
++	if (ddata->data_lines)
++		in->ops.dpi->set_data_lines(in, ddata->data_lines);
+ 	in->ops.dpi->set_timings(in, &ddata->videomode);
+ 
++	if (ddata->vcc) {
++		r = regulator_enable(ddata->vcc);
++		if (r != 0)
++			return r;
++	}
++
+ 	r = in->ops.dpi->enable(in);
+-	if (r)
++	if (r) {
++		regulator_disable(ddata->vcc);
+ 		return r;
++	}
+ 
+ 	/* wait couple of vsyncs until enabling the LCD */
+ 	msleep(50);
+@@ -136,6 +172,9 @@ static void sharp_ls_disable(struct omap_dss_device *dssdev)
+ 
+ 	in->ops.dpi->disable(in);
+ 
++	if (ddata->vcc)
++		regulator_disable(ddata->vcc);
++
+ 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
+ }
+ 
+@@ -243,6 +282,72 @@ static int sharp_ls_probe_pdata(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static struct gpio_desc *
++sharp_ls_get_gpio_of(struct device *dev, int index, int val, char *desc)
++{
++	struct gpio_desc *gpio;
++
++	gpio = devm_gpiod_get_index(dev, desc, index);
++	if (IS_ERR(gpio))
++		return gpio;
++
++	gpiod_direction_output(gpio, val);
++
++	return gpio;
++}
++
++static int sharp_ls_probe_of(struct platform_device *pdev)
++{
++	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	struct device_node *node = pdev->dev.of_node;
++	struct omap_dss_device *in;
++
++	ddata->vcc = devm_regulator_get(&pdev->dev, "envdd");
++	if (IS_ERR(ddata->vcc)) {
++		dev_err(&pdev->dev, "failed to get regulator\n");
++		return PTR_ERR(ddata->vcc);
++	}
++
++	/* lcd INI */
++	ddata->ini_gpio = sharp_ls_get_gpio_of(&pdev->dev, 0, 0, "enable");
++	if (PTR_ERR(ddata->ini_gpio) == -EPROBE_DEFER)
++		return -EPROBE_DEFER;
++
++	/* lcd RESB */
++	ddata->resb_gpio = sharp_ls_get_gpio_of(&pdev->dev, 0, 1, "reset");
++	if (PTR_ERR(ddata->resb_gpio) == -EPROBE_DEFER)
++		return -EPROBE_DEFER;
++
++	/* lcd MO */
++	ddata->mo_gpio = sharp_ls_get_gpio_of(&pdev->dev, 0, 1, "mode");
++	if (PTR_ERR(ddata->mo_gpio) == -EPROBE_DEFER)
++		return -EPROBE_DEFER;
++
++	if (!IS_ERR(ddata->mo_gpio))
++		if (gpiod_get_raw_value_cansleep(ddata->mo_gpio))
++			ddata->flags |= SHARP_LS_QVGA;
++
++	/* lcd LR */
++	ddata->lr_gpio = sharp_ls_get_gpio_of(&pdev->dev, 1, 1, "mode");
++	if (PTR_ERR(ddata->lr_gpio) == -EPROBE_DEFER)
++		return -EPROBE_DEFER;
++
++	/* lcd UD */
++	ddata->ud_gpio = sharp_ls_get_gpio_of(&pdev->dev, 2, 1, "mode");
++	if (PTR_ERR(ddata->ud_gpio) == -EPROBE_DEFER)
++		return -EPROBE_DEFER;
++
++	in = omapdss_of_find_source_for_first_ep(node);
++	if (IS_ERR(in)) {
++		dev_err(&pdev->dev, "failed to find video source\n");
++		return PTR_ERR(in);
++	}
++
++	ddata->in = in;
++
++	return 0;
++}
++
+ static int sharp_ls_probe(struct platform_device *pdev)
+ {
+ 	struct panel_drv_data *ddata;
+@@ -259,11 +364,18 @@ static int sharp_ls_probe(struct platform_device *pdev)
+ 		r = sharp_ls_probe_pdata(pdev);
+ 		if (r)
+ 			return r;
++	} else if (pdev->dev.of_node) {
++		r = sharp_ls_probe_of(pdev);
++		if (r)
++			return r;
+ 	} else {
+ 		return -ENODEV;
+ 	}
+ 
+-	ddata->videomode = sharp_ls_timings;
++	if (ddata->flags & SHARP_LS_QVGA)
++		ddata->videomode = sharp_ls_qvga_timings;
++	else
++		ddata->videomode = sharp_ls_vga_timings;
+ 
+ 	dssdev = &ddata->dssdev;
+ 	dssdev->dev = &pdev->dev;
+@@ -302,12 +414,20 @@ static int __exit sharp_ls_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct of_device_id sharp_ls_of_match[] = {
++	{ .compatible = "omapdss,sharp,ls037v7dw01", },
++	{},
++};
++
++MODULE_DEVICE_TABLE(of, sharp_ls_of_match);
++
+ static struct platform_driver sharp_ls_driver = {
+ 	.probe = sharp_ls_probe,
+ 	.remove = __exit_p(sharp_ls_remove),
+ 	.driver = {
+ 		.name = "panel-sharp-ls037v7dw01",
+ 		.owner = THIS_MODULE,
++		.of_match_table = sharp_ls_of_match,
+ 	},
+ };
+ 
