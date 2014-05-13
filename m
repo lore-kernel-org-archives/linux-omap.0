@@ -1,102 +1,58 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
-Date: Tue, 13 May 2014 10:39:26 -0400
-Message-ID: <1399991966-14582-1-git-send-email-santosh.shilimkar@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
+Date: Tue, 13 May 2014 10:05:34 -0500
+Message-ID: <20140513150534.GF1151@saruman.home>
+References: <20140507215344.GH19925@intel.com>
+ <20140514014551.GA16153@intel.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49528 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932767AbaEMOjz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 May 2014 10:39:55 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SxgehGEc6vB0cZwN"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140514014551.GA16153@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, liping.zhou@intel.com, david.a.cohen@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: khilman@linaro.org, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Roger Quadros <rogerq@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>
 
-On OMAP4 panda board, there have been several bug reports about boot
-hang and lock-ups with CPU_IDLE enabled. The root cause of the issue
-is missing interrupts while in idle state. Commit cb7094e8 {cpuidle / omap4 :
-use CPUIDLE_FLAG_TIMER_STOP flag} moved the broadcast notifiers to common
-code for right reasons but on OMAP4 which suffers from a nasty ROM code
-bug with GIC, commit ff999b8a {ARM: OMAP4460: Workaround for ROM bug ..},
-we loose interrupts which leads to issues like lock-up, hangs etc.
+--SxgehGEc6vB0cZwN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Patch reverts commit cb7094 {cpuidle / omap4 : use CPUIDLE_FLAG_TIMER_STOP
-flag} to avoid the issue. With this change, OMAP4 panda boards, the mentioned
-issues are getting fixed. We no longer loose interrupts which was the cause
-of the regression.
+Hi,
 
-Cc: Roger Quadros <rogerq@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-Reported-tested-by: Roger Quadros <rogerq@ti.com>
-Reported-tested-by: Kevin Hilman <khilman@linaro.org>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/cpuidle44xx.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+On Tue, May 13, 2014 at 09:45:51PM -0400, Zhuang Jin Can wrote:
+> Hi Balbi,
+>=20
+> Do you have any comment for this patch?
 
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index 01fc710..3e169d9 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -14,6 +14,7 @@
- #include <linux/cpuidle.h>
- #include <linux/cpu_pm.h>
- #include <linux/export.h>
-+#include <linux/clockchips.h>
- 
- #include <asm/cpuidle.h>
- #include <asm/proc-fns.h>
-@@ -83,6 +84,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- {
- 	struct idle_statedata *cx = state_ptr + index;
- 	u32 mpuss_can_lose_context = 0;
-+	int cpu_id = smp_processor_id();
- 
- 	/*
- 	 * CPU0 has to wait and stay ON until CPU1 is OFF state.
-@@ -110,6 +112,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- 	mpuss_can_lose_context = (cx->mpu_state == PWRDM_POWER_RET) &&
- 				 (cx->mpu_logic_state == PWRDM_POWER_OFF);
- 
-+	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
-+
- 	/*
- 	 * Call idle CPU PM enter notifier chain so that
- 	 * VFP and per CPU interrupt context is saved.
-@@ -165,6 +169,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- 	if (dev->cpu == 0 && mpuss_can_lose_context)
- 		cpu_cluster_pm_exit();
- 
-+	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
-+
- fail:
- 	cpuidle_coupled_parallel_barrier(dev, &abort_barrier);
- 	cpu_done[dev->cpu] = false;
-@@ -189,8 +195,7 @@ static struct cpuidle_driver omap4_idle_driver = {
- 			/* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */
- 			.exit_latency = 328 + 440,
- 			.target_residency = 960,
--			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED |
--			         CPUIDLE_FLAG_TIMER_STOP,
-+			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
- 			.enter = omap_enter_idle_coupled,
- 			.name = "C2",
- 			.desc = "CPUx OFF, MPUSS CSWR",
-@@ -199,8 +204,7 @@ static struct cpuidle_driver omap4_idle_driver = {
- 			/* C3 - CPU0 OFF + CPU1 OFF + MPU OSWR */
- 			.exit_latency = 460 + 518,
- 			.target_residency = 1100,
--			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED |
--			         CPUIDLE_FLAG_TIMER_STOP,
-+			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
- 			.enter = omap_enter_idle_coupled,
- 			.name = "C3",
- 			.desc = "CPUx OFF, MPUSS OSWR",
--- 
-1.7.9.5
+do you have an easy test-case which I can use to validate on my end ?
 
+--=20
+balbi
+
+--SxgehGEc6vB0cZwN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTcjS+AAoJEIaOsuA1yqREnnEP/2CNYg3HvK8p/qXKYsLFC2fM
+7TE/OB/YH9zkawnOk4LZJfJJX6nomH+I23iGFmPnLTDE2r5lIPkXLZWdOFyVS/hC
+E06R6wO2IU+Z0i3OTFP4clCl7RDmzee4RdbwBxcssu5l/61CrWJAJlVpopYP91pt
+lRfoES+H3FD/IKFiKSqLMDnxRJSgjwtsEunmK/RJ38Ts+SuyvnXJ6t9CITOh9gjR
+NmbS5CT/l/dc5OKhwJy0CBExKPrudwh3Ri/kPmER+8x2oblz8yjFcIPPiAucQhoV
+H9OXwRfVYQy96NwYhawScZcFMRLrYjMtvZNgJQ6Ja3PILTC/Y6/RE3hb81UINp3I
+6kH0uJ/CWH9PV0aNt/RB4DL3iMS36UsHBdIdf+ucSpfAJOXKCTuE5pKu1Cqz4XcF
+Enb8siEHUWjDDU+nozoNme+pX27lwBiRprRAHcoZ1S5SbRlR/XBGVWQsULN1iJIl
+xt/KzCCEu8fabf+QxkyyV0b2rTR/EMyFGJhCkvUv6uk9ADX0P3hVHkMz1V+jW9eD
+nQmHrK8BFztC2/4iKK7jabyusd/F4u6Mo1XX5+h83kgT05ysa0KEx5kqYmxnAJ0b
+d1lje2F+ak/mKTXyBbz3jNIijRUCjOwVWpiKJ7MQO7dMmEBHmHBGQyDboqlWpX3y
+uWODlaUsbKkiTb9jhErM
+=SQnj
+-----END PGP SIGNATURE-----
+
+--SxgehGEc6vB0cZwN--
