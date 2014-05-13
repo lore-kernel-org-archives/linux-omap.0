@@ -1,65 +1,99 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 7/7] dts: dra7-evm: add USB support
-Date: Tue, 13 May 2014 10:18:02 -0700
-Message-ID: <20140513171802.GG16837@atomide.com>
-References: <1399283686-6127-1-git-send-email-rogerq@ti.com>
- <1399283686-6127-8-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH 1/1] ARM: dts: am437x-gp-evm: Add ethernet support for GP
+ EVM
+Date: Tue, 13 May 2014 10:20:39 -0700
+Message-ID: <20140513172038.GH16837@atomide.com>
+References: <1399455053-10324-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48050 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753612AbaEMRSI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 May 2014 13:18:08 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26089 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752859AbaEMRUs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 May 2014 13:20:48 -0400
 Content-Disposition: inline
-In-Reply-To: <1399283686-6127-8-git-send-email-rogerq@ti.com>
+In-Reply-To: <1399455053-10324-1-git-send-email-mugunthanvnm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: kishon@ti.com, balbi@ti.com, bcousson@baylibre.com, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [140505 02:55]:
-> Add USB pinmux information and USB modes
-> for the USB controllers.
->=20
-> CC: Beno=C3=AEt Cousson <bcousson@baylibre.com>
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+* Mugunthan V N <mugunthanvnm@ti.com> [140507 02:31]:
+> Add CPSW ethernet support for AM437x GP EVM which has one slave pinned out
+> 
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 > ---
->  arch/arm/boot/dts/dra7-evm.dts | 24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-=
-evm.dts
-> index 5babba0..1d77815 100644
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -93,6 +93,18 @@
->  			0x24c (PIN_INPUT_SLEW | MUX_MODE0) /* uart3_txd */
+>  arch/arm/boot/dts/am437x-gp-evm.dts | 72 +++++++++++++++++++++++++++++++++++++
+>  1 file changed, 72 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+> index 2e0c636..30ace1b 100644
+> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
+> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+> @@ -98,6 +98,58 @@
+>  			0x264 (PIN_INPUT_PULLUP | MUX_MODE7)  /* spi2_d0.gpio3_22 */
 >  		>;
 >  	};
 > +
-> +	usb1_pins: pinmux_usb1_pins {
-> +                pinctrl-single,pins =3D <
-> +			0x280	0xc0000	/* usb1_drvvbus, SLOW_SLEW | PULLUPEN | MODE0 */
-> +                >;
-> +        };
+> +	cpsw_default: cpsw_default {
+> +		pinctrl-single,pins = <
+> +			/* Slave 1 */
+> +			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txen.rgmii1_txen */
+> +			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxdv.rgmii1_rxctl */
+> +			0x11c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_txd3 */
+> +			0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_txd2 */
+> +			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_txd1 */
+> +			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_txd0 */
+> +			0x12c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txclk.rmii1_tclk */
+> +			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxclk.rmii1_rclk */
+> +			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rxd3 */
+> +			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rxd2 */
+> +			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rxd1 */
+> +			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rxd0 */
+> +		>;
+> +	};
 > +
-> +	usb2_pins: pinmux_usb2_pins {
-> +                pinctrl-single,pins =3D <
-> +			0x284	0xc0000 /* usb2_drvvbus, SLOW_SLEW | PULLUPEN | MODE0 */
-> +                >;
-> +        };
+> +	cpsw_sleep: cpsw_sleep {
+> +		pinctrl-single,pins = <
+> +			/* Slave 1 reset value */
+> +			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +			0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +			0x120 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +			0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +			0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +			0x12c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +		>;
+> +	};
+
+Just a nitpick comment to make things more readable. Can you please add
+the comments for these pins too so people can cross check them against
+the documentation easier?
+
+> +	davinci_mdio_default: davinci_mdio_default {
+> +		pinctrl-single,pins = <
+> +			/* MDIO */
+> +			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
+> +			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
+> +		>;
+> +	};
+> +
+> +	davinci_mdio_sleep: davinci_mdio_sleep {
+> +		pinctrl-single,pins = <
+> +			/* MDIO reset value */
+> +			0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+> +		>;
+> +	};
 >  };
 
-Looks like these should use the existing defins PIN_INPUT_SLEW etc?
+And here too please.
 
-Regards,
+Thanks,
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony 
