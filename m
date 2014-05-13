@@ -1,40 +1,42 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for configuring the iATU
-Date: Tue, 13 May 2014 15:27:46 +0200
-Message-ID: <202752041.rgamje4etj@wuerfel>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com> <10531498.kYV5eO1J1m@wuerfel> <53721D7F.9070200@ti.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH v3 0/5] Add support for SW babble Control
+Date: Tue, 13 May 2014 15:30:36 +0200
+Message-ID: <53721E7C.3090406@gmail.com>
+References: <1399969905-3509-1-git-send-email-george.cherian@ti.com> <5371EA01.3080307@gmail.com> <537208A9.4020507@ti.com> <53720E0F.3070008@gmail.com> <537216AC.4090401@ti.com> <53721ABF.8060705@gmail.com> <53721D24.4090704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53721D7F.9070200-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, 'Santosh Shilimkar' <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, 'Bjorn Helgaas' <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, 'Marek Vasut' <marex-ynQEQJNshbs@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53721D24.4090704@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: balbi@ti.com, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 13 May 2014 18:56:23 Kishon Vijay Abraham I wrote:
-> > If you have a case where the outbound translation is a 256MB (i.e. 28bit)
-> > section of the CPU address space, that could be represented as
-> > 
-> >       ranges = <0x82000000 0 0  0xb0000000  0 0x10000000>;
-> > 
-> > or 
-> > 
-> >       ranges = <0x82000000 0 0xb0000000  0xb0000000  0 0x10000000>;
-> > 
-> > depending on whether you want the BARs to be programmed using a low
-> > address 0x0-0x0fffffff or an address matching the window
-> > 0xb0000000-0xbfffffff.
-> 
-> The problem is, for configuring the window starting at 0xb0000000, the ATU
-> should be programmed 0x0000000 (the cpu address for it will be 0xb0000000 though).
-> 
+On 05/13/2014 03:24 PM, George Cherian wrote:
+> Basically, there are 2 types of babble conditions.
+> 1) Transient babble condition - which could be recovered from without an 
+> IP reset .
+> 2) Babble condition - which could be recovered from only by doing an IP 
+> reset.
 
-Then use the first of the two?
+Ok, thanks for the explanation.
 
-	Arnd
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Looks like you are always hitting case 2 (Most times am also hitting the 
+> same).
+
+Seems like, yes.
+
+> There is no 100% reliable method to force it to happen. Following is
+> my setup ,
+> I have a HUB with 4 devices connected , which gives me a Babble interrupt
+> on both connects and disconnects ( Not always though).
+
+I also get them at disconnects, but only with one specific USB device.
+
+But as I don't ever see case 1) above, I can't say if your approach
+works. What I can say, though, is that your patches don't break the
+recovery from babble conditions that I experienced :)
+
+
+Daniel
