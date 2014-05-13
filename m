@@ -1,86 +1,62 @@
-From: George Cherian <george.cherian@ti.com>
+From: Daniel Mack <zonque@gmail.com>
 Subject: Re: [PATCH v3 0/5] Add support for SW babble Control
-Date: Tue, 13 May 2014 18:27:16 +0530
-Message-ID: <537216AC.4090401@ti.com>
-References: <1399969905-3509-1-git-send-email-george.cherian@ti.com> <5371EA01.3080307@gmail.com> <537208A9.4020507@ti.com> <53720E0F.3070008@gmail.com>
+Date: Tue, 13 May 2014 15:14:39 +0200
+Message-ID: <53721ABF.8060705@gmail.com>
+References: <1399969905-3509-1-git-send-email-george.cherian@ti.com> <5371EA01.3080307@gmail.com> <537208A9.4020507@ti.com> <53720E0F.3070008@gmail.com> <537216AC.4090401@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53720E0F.3070008@gmail.com>
+In-Reply-To: <537216AC.4090401@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: balbi@ti.com, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
 
-On 5/13/2014 5:50 PM, Daniel Mack wrote:
-> On 05/13/2014 01:57 PM, George Cherian wrote:
->> On 5/13/2014 3:16 PM, Daniel Mack wrote:
->>> On 05/13/2014 10:31 AM, George Cherian wrote:
->>>> Series add support for SW babble control logic found in
->>>> new silicon versions of AM335x. Runtime differentiation of
->>>> silicon version is done by checking the BABBLE_CTL register.
->>>> For newer silicon the register default value read is 0x4 and
->>>> for older versions its 0x0.
->>> I tested this on a AM33xx platform and don't see any regression at
->>> least. This hardware has MUSB_BABBLE_CTL == MUSB_BABBLE_RCV_DISABLE.
->>> Anything particular you want me to test as well?
->> Are you seeing a wrapper restart done always or does it continue with a
->> restart
->> after the babble condition?
-> MUSB_BABBLE_CTL == MUSB_BABBLE_RCV_DISABLE, so sw_babble_control() is
-> called from dsps_musb_reset(). However, MUSB_BABBLE_CTL still returns
-> 0x04 (MUSB_BABBLE_RCV_DISABLE) inside that function, which means
-> (babble_ctl & MUSB_BABBLE_STUCK_J) is false, and hence
-> sw_babble_control() returns 1.
-Ah.... Missed a critical portion....
-My bad...
+Hi George,
 
-I never enabled the MUSB_BABBLE_SW_SESSION_CTRL in the MUSB_BABBLE_CTL reg.
-can you try with the following patch.
+On 05/13/2014 02:57 PM, George Cherian wrote:
+> I never enabled the MUSB_BABBLE_SW_SESSION_CTRL in the MUSB_BABBLE_CTL reg.
+> can you try with the following patch.
+> 
+> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+> index 1ae6681..1160cd1 100644
+> --- a/drivers/usb/musb/musb_dsps.c
+> +++ b/drivers/usb/musb/musb_dsps.c
+> @@ -477,8 +477,11 @@ static int dsps_musb_init(struct musb *musb)
+>   	 * logic enabled.
+>   	 */
+>   	val = dsps_readb(musb->mregs, MUSB_BABBLE_CTL);
+> -	if (val == MUSB_BABBLE_RCV_DISABLE)
+> +	if (val == MUSB_BABBLE_RCV_DISABLE) {
+>   		glue->sw_babble_enabled = true;
+> +		val |= MUSB_BABBLE_SW_SESSION_CTRL;
+> +	        dsps_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
+> +	}
+>   
+>   	ret = dsps_musb_dbg_init(musb, glue);
+>   	if (ret)
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 1ae6681..1160cd1 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -477,8 +477,11 @@ static int dsps_musb_init(struct musb *musb)
-  	 * logic enabled.
-  	 */
-  	val = dsps_readb(musb->mregs, MUSB_BABBLE_CTL);
--	if (val == MUSB_BABBLE_RCV_DISABLE)
-+	if (val == MUSB_BABBLE_RCV_DISABLE) {
-  		glue->sw_babble_enabled = true;
-+		val |= MUSB_BABBLE_SW_SESSION_CTRL;
-+	        dsps_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
-+	}
-  
-  	ret = dsps_musb_dbg_init(musb, glue);
-  	if (ret)
--- 1.8.3.1
-
-I will resend the series, if this works fine.
-Thanks for all your help.
-
->   Consequently, the glue is fully reset in
-> this case. Does this help?
->
-> FWIW, this is the output of dsps_musb_reset() with dev_dbg() enabled:
->
-> [   54.066124] CAUTION: musb: Babble Interrupt Occurred
-> [   54.071856] usb 1-1: USB disconnect, device number 8
-> [   54.159495] musb-hdrc musb-hdrc.0.auto: babble: MUSB_BABBLE_CTL value 4
-> [   54.166446] musb-hdrc musb-hdrc.0.auto: STUCK_J is reset
->
->
-> I only have one exact USB device to reproduce the babble condition, so I
-> guess this is all I can do for now.
-Same with me also . I also have only one device with which i get the issue.
->
->
-> Thanks,
-> Daniel
->
+MUSB_BABBLE_STUCK_J still remains unset, so I get the same result as
+without the patch: a full glue reset is conducted. Do I get you right
+that you expect MUSB_BABBLE_STUCK_J to be set in babble conditions when
+MUSB_BABBLE_SW_SESSION_CTRL is set?
 
 
--- 
--George
+[   19.672373] CAUTION: musb: Babble Interrupt Occurred
+[   19.677776] musb_stage0_irq 789: unhandled DISCONNECT transition
+(a_wait_bcon)
+[   19.685815] usb 1-1: USB disconnect, device number 3
+[   19.769720] musb-hdrc musb-hdrc.0.auto: babble: MUSB_BABBLE_CTL value 44
+[   19.776765] musb-hdrc musb-hdrc.0.auto: STUCK_J is reset
+
+
+I don't quite follow, especially as I lack documentation of the IP core.
+How do you test babble errors, is there any way to force them to happen
+reliably?
+
+Anyway, the full glue layer solves this rare condition quite well for
+me. Is there any downside of this?
+
+
+Daniel
