@@ -1,206 +1,111 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 1/4] ARM: edma: Get IP information from HW when booting with DT
-Date: Tue, 13 May 2014 10:43:45 +0300
-Message-ID: <1399967028-24757-2-git-send-email-peter.ujfalusi@ti.com>
-References: <1399967028-24757-1-git-send-email-peter.ujfalusi@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH 1/1] arm: dra7xx: Add hwmod data for MDIO and CPSW
+Date: Tue, 13 May 2014 13:28:57 +0530
+Message-ID: <1399967937-20926-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1399967028-24757-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: nsekhar@ti.com, joelf@ti.com
-Cc: devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, vinod.koul@intel.com, linux-kernel@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
->From CCCFG register of eDMA3 we can get all the needed information for the
-driver about the IP:
-Number of channels: NUM_DMACH
-Number of regions: NUM_REGN
-Number of slots (PaRAM sets): NUM_PAENTRY
-Number of TC/EQ: NUM_EVQUE
+Adding hwmod data for CPSW and MDIO which is present in DRA7xx SoC
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 ---
- arch/arm/common/edma.c | 128 ++++++++++++++++++++++++++++++-------------------
- 1 file changed, 79 insertions(+), 49 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 65 +++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index fade9ada81f8..1a98f3cd4cd9 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -102,7 +102,16 @@
- #define PARM_OFFSET(param_no)	(EDMA_PARM + ((param_no) << 5))
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 810c205..02ea08f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -273,6 +273,56 @@ static struct omap_hwmod dra7xx_ctrl_module_wkup_hwmod = {
+ };
  
- #define EDMA_DCHMAP	0x0100  /* 64 registers */
--#define CHMAP_EXIST	BIT(24)
+ /*
++ * 'gmac' class
++ * cpsw/gmac sub system
++ */
++static struct omap_hwmod_class_sysconfig dra7xx_gmac_sysc = {
++	.rev_offs	= 0x0,
++	.sysc_offs	= 0x8,
++	.syss_offs	= 0x4,
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE |
++			   SYSS_HAS_RESET_STATUS),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | MSTANDBY_FORCE |
++			   MSTANDBY_NO),
++	.sysc_fields	= &omap_hwmod_sysc_type3,
++};
 +
-+/* CCCFG register */
-+#define GET_NUM_DMACH(x)	(x & 0x7) /* bits 0-2 */
-+#define GET_NUM_QDMACH(x)	((x & 0x70) >> 4) /* bits 4-6 */
-+#define GET_NUM_INTCH(x)	((x & 0x700) >> 8) /* bits 8-10 */
-+#define GET_NUM_PAENTRY(x)	((x & 0x7000) >> 12) /* bits 12-14 */
-+#define GET_NUM_EVQUE(x)	((x & 0x70000) >> 16) /* bits 16-18 */
-+#define GET_NUM_REGN(x)		((x & 0x300000) >> 20) /* bits 20-21 */
-+#define CHMAP_EXIST		BIT(24)
-+#define MP_EXIST		BIT(25)
++static struct omap_hwmod_class dra7xx_gmac_hwmod_class = {
++	.name		= "gmac",
++	.sysc		= &dra7xx_gmac_sysc,
++};
++
++static struct omap_hwmod dra7xx_gmac_hwmod = {
++	.name		= "gmac",
++	.class		= &dra7xx_gmac_hwmod_class,
++	.clkdm_name	= "gmac_clkdm",
++	.flags		= (HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY),
++	.main_clk	= "dpll_gmac_ck",
++	.mpu_rt_idx	= 1,
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= DRA7XX_CM_GMAC_GMAC_CLKCTRL_OFFSET,
++			.context_offs	= DRA7XX_RM_GMAC_GMAC_CONTEXT_OFFSET,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/*
++ * 'mdio' class
++ */
++static struct omap_hwmod_class dra7xx_mdio_hwmod_class = {
++	.name		= "davinci_mdio",
++};
++
++static struct omap_hwmod dra7xx_mdio_hwmod = {
++	.name		= "davinci_mdio",
++	.class		= &dra7xx_mdio_hwmod_class,
++	.clkdm_name	= "gmac_clkdm",
++	.main_clk	= "dpll_gmac_ck",
++};
++
++/*
+  * 'dcan' class
+  *
+  */
+@@ -1999,6 +2049,19 @@ static struct omap_hwmod_ocp_if dra7xx_l4_wkup__ctrl_module_wkup = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
  
- #define EDMA_MAX_DMACH           64
- #define EDMA_MAX_PARAMENTRY     512
-@@ -1415,6 +1424,68 @@ void edma_clear_event(unsigned channel)
- }
- EXPORT_SYMBOL(edma_clear_event);
- 
-+static int edma_setup_info_from_hw(struct device *dev,
-+				   struct edma_soc_info *pdata)
-+{
-+	int i;
-+	u32 value, cccfg, n_tc;
-+	s8 (*queue_tc_map)[2], (*queue_priority_map)[2];
++static struct omap_hwmod_ocp_if dra7xx_l4_per2__cpgmac0 = {
++	.master		= &dra7xx_l4_per2_hwmod,
++	.slave		= &dra7xx_gmac_hwmod,
++	.clk		= "dpll_gmac_ck",
++	.user		= OCP_USER_MPU,
++};
 +
-+	/* Decode the eDMA3 configuration from CCCFG register */
-+	cccfg = edma_read(0, EDMA_CCCFG);
++static struct omap_hwmod_ocp_if dra7xx_gmac__mdio = {
++	.master		= &dra7xx_gmac_hwmod,
++	.slave		= &dra7xx_mdio_hwmod,
++	.user		= OCP_USER_MPU,
++};
 +
-+	value = GET_NUM_DMACH(cccfg);
-+	pdata->n_channel = BIT(value + 1);
-+
-+	value = GET_NUM_REGN(cccfg);
-+	pdata->n_region = BIT(value);
-+
-+	value = GET_NUM_PAENTRY(cccfg);
-+	pdata->n_slot = BIT(value + 4);
-+
-+	value = GET_NUM_EVQUE(cccfg);
-+	n_tc = value + 1;
-+
-+	dev_dbg(dev, "eDMA3 HW configuration (cccfg: 0x%08x):\n", cccfg);
-+	dev_dbg(dev, "n_channel: %u\n", pdata->n_channel);
-+	dev_dbg(dev, "n_region: %u\n", pdata->n_region);
-+	dev_dbg(dev, "n_slot: %u\n", pdata->n_slot);
-+	dev_dbg(dev, "n_tc: %u\n", n_tc);
-+
-+	pdata->n_cc = 1;
-+
-+	queue_tc_map = devm_kzalloc(dev, (n_tc + 1) * sizeof(s8), GFP_KERNEL);
-+	if (!queue_tc_map)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < n_tc; i++) {
-+		queue_tc_map[i][0] = i;
-+		queue_tc_map[i][1] = i;
-+	}
-+	queue_tc_map[i][0] = -1;
-+	queue_tc_map[i][1] = -1;
-+
-+	pdata->queue_tc_mapping = queue_tc_map;
-+
-+	queue_priority_map = devm_kzalloc(dev, (n_tc + 1) * sizeof(s8),
-+					  GFP_KERNEL);
-+	if (!queue_priority_map)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < n_tc; i++) {
-+		queue_priority_map[i][0] = i;
-+		queue_priority_map[i][1] = i;
-+	}
-+	queue_priority_map[i][0] = -1;
-+	queue_priority_map[i][1] = -1;
-+
-+	pdata->queue_priority_mapping = queue_priority_map;
-+
-+	pdata->default_queue = 0;
-+
-+	return 0;
-+}
-+
- #if IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_DMADEVICES)
- 
- static int edma_of_read_u32_to_s16_array(const struct device_node *np,
-@@ -1483,63 +1554,16 @@ static int edma_of_parse_dt(struct device *dev,
- 			    struct device_node *node,
- 			    struct edma_soc_info *pdata)
- {
--	int ret = 0, i;
--	u32 value;
-+	int ret = 0;
- 	struct property *prop;
- 	size_t sz;
- 	struct edma_rsv_info *rsv_info;
--	s8 (*queue_tc_map)[2], (*queue_priority_map)[2];
--
--	ret = of_property_read_u32(node, "dma-channels", &value);
--	if (ret < 0)
--		return ret;
--	pdata->n_channel = value;
--
--	ret = of_property_read_u32(node, "ti,edma-regions", &value);
--	if (ret < 0)
--		return ret;
--	pdata->n_region = value;
--
--	ret = of_property_read_u32(node, "ti,edma-slots", &value);
--	if (ret < 0)
--		return ret;
--	pdata->n_slot = value;
--
--	pdata->n_cc = 1;
- 
- 	rsv_info = devm_kzalloc(dev, sizeof(struct edma_rsv_info), GFP_KERNEL);
- 	if (!rsv_info)
- 		return -ENOMEM;
- 	pdata->rsv = rsv_info;
- 
--	queue_tc_map = devm_kzalloc(dev, 8*sizeof(s8), GFP_KERNEL);
--	if (!queue_tc_map)
--		return -ENOMEM;
--
--	for (i = 0; i < 3; i++) {
--		queue_tc_map[i][0] = i;
--		queue_tc_map[i][1] = i;
--	}
--	queue_tc_map[i][0] = -1;
--	queue_tc_map[i][1] = -1;
--
--	pdata->queue_tc_mapping = queue_tc_map;
--
--	queue_priority_map = devm_kzalloc(dev, 8*sizeof(s8), GFP_KERNEL);
--	if (!queue_priority_map)
--		return -ENOMEM;
--
--	for (i = 0; i < 3; i++) {
--		queue_priority_map[i][0] = i;
--		queue_priority_map[i][1] = i;
--	}
--	queue_priority_map[i][0] = -1;
--	queue_priority_map[i][1] = -1;
--
--	pdata->queue_priority_mapping = queue_priority_map;
--
--	pdata->default_queue = 0;
--
- 	prop = of_find_property(node, "ti,edma-xbar-event-map", &sz);
- 	if (prop)
- 		ret = edma_xbar_event_map(dev, node, pdata, sz);
-@@ -1655,6 +1679,12 @@ static int edma_probe(struct platform_device *pdev)
- 		if (IS_ERR(edmacc_regs_base[j]))
- 			return PTR_ERR(edmacc_regs_base[j]);
- 
-+		if (node) {
-+			/* Get eDMA3 configuration from IP */
-+			ret = edma_setup_info_from_hw(dev, info[j]);
-+			if (ret)
-+				return ret;
-+		}
- 		edma_cc[j] = devm_kzalloc(&pdev->dev, sizeof(struct edma),
- 					  GFP_KERNEL);
- 		if (!edma_cc[j])
+ /* l4_wkup -> dcan1 */
+ static struct omap_hwmod_ocp_if dra7xx_l4_wkup__dcan1 = {
+ 	.master		= &dra7xx_l4_wkup_hwmod,
+@@ -2652,6 +2715,8 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_wkup__ctrl_module_wkup,
+ 	&dra7xx_l4_wkup__dcan1,
+ 	&dra7xx_l4_per2__dcan2,
++	&dra7xx_l4_per2__cpgmac0,
++	&dra7xx_gmac__mdio,
+ 	&dra7xx_l4_cfg__dma_system,
+ 	&dra7xx_l3_main_1__dss,
+ 	&dra7xx_l3_main_1__dispc,
 -- 
-1.9.3
+1.9.2.459.g68773ac
