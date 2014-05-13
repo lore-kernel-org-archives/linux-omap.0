@@ -1,45 +1,55 @@
-From: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Subject: Re: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
-Date: Tue, 13 May 2014 23:28:54 -0400
-Message-ID: <20140514032854.GB16153@intel.com>
-References: <20140507215344.GH19925@intel.com>
- <20140514014551.GA16153@intel.com>
- <20140513150534.GF1151@saruman.home>
-Reply-To: jin.can.zhuang@intel.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: RCU stall on panda
+Date: Tue, 13 May 2014 08:32:20 -0700
+Message-ID: <20140513153220.GC16837@atomide.com>
+References: <53675C5F.10509@linaro.org>
+ <20140505180617.GM8754@linux.vnet.ibm.com>
+ <20140512212102.GF5668@atomide.com>
+ <5371BD69.8010600@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:47391 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752544AbaEMP2y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 May 2014 11:28:54 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10239 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751991AbaEMPcb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 May 2014 11:32:31 -0400
 Content-Disposition: inline
-In-Reply-To: <20140513150534.GF1151@saruman.home>
+In-Reply-To: <5371BD69.8010600@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, liping.zhou@intel.com, david.a.cohen@linux.intel.com
+To: Alex Shi <alex.shi@linaro.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "naresh.kamboju@linaro.org Kamboju" <naresh.kamboju@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, LAK <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@linaro.org>, linux-omap@vger.kernel.org
 
-On Tue, May 13, 2014 at 10:05:34AM -0500, Felipe Balbi wrote:
-> Hi,
-> 
-> On Tue, May 13, 2014 at 09:45:51PM -0400, Zhuang Jin Can wrote:
-> > Hi Balbi,
+* Alex Shi <alex.shi@linaro.org> [140512 23:37]:
+> On 05/13/2014 05:21 AM, Tony Lindgren wrote:
+> > * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [140505 11:11]:
+> >> On Mon, May 05, 2014 at 05:39:43PM +0800, Alex Shi wrote:
+> >>> I keep seeing the RCU stall problem on panda board from 3.10 kernel to latest upstream kernel
+> >>> and google find some one report it before: https://lkml.org/lkml/2012/9/20/519
+> >>>
+> >>> Is it the hardware issue or a real software problem?
+> >>
+> >> I cannot distinguish between hardware and software from the trace below,
+> >> but given that you are also seeing a soft lockup, either way you do
+> >> appear to have a real problem as opposed to an RCU CPU stall warning
+> >> false positive.
 > > 
-> > Do you have any comment for this patch?
+> > Looks like you have CPU_IDLE enabled on panda. Hangs with current linux
+> > next with CPU_IDLE are currently being discussed on the linux-omap list
+> > in thread "omap4-panda-es boot issues with v3.15-rc4"
+> > 
+> > I've seen occasional system hangs, and I've also noticed that doing
+> > ctrl-a-f h or ctrl-a-f l for sysrq backtrace can unlock the system
+> > producing similar errors to the below.
+> > 
 > 
-> do you have an easy test-case which I can use to validate on my end ?
-The issue was reproduced on a multi-core platform with f_mass_storage and
-adb (f_fs gadget) enabled. The enumeration will fail when it's connected
-to PC via USB2 cable.
+> Thanks a lot for the info.
+> In fact, the oops keeps in upstream kernel from 3.10 to latest.
 
-You may not be able to use adb (I think), but do replacing it with some other
-gadgets (e.g.f_rndis). And f_mass_storage gadget should be the first
-interface in the composite device (this is important to larger the
-chance to reproduce the issue, the delayed status request will be queued
-while irq is still enabling other endpoints of other gadgets).
+Care to test if the revert of commit cb7094 Santosh posted as
+"[PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled"
+solves the problem for you?
 
-Best Regards
-Jincan
+Regards,
 
-
+Tony
