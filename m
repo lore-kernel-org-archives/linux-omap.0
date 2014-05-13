@@ -1,29 +1,40 @@
-From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/2] Add AM437x GP EVM cpsw DT node
-Date: Tue, 13 May 2014 14:14:29 +0530
-Message-ID: <1399970671-29203-1-git-send-email-mugunthanvnm@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH 1/2] ARM: dts: am4372: Add cpsw phy sel dt node
+Date: Tue, 13 May 2014 14:14:30 +0530
+Message-ID: <1399970671-29203-2-git-send-email-mugunthanvnm@ti.com>
+References: <1399970671-29203-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1399970671-29203-1-git-send-email-mugunthanvnm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add AM437x GP EVM cpsw device tree node
+Add cpsw phy sel device tree node for selecting phy mode in control module
 
-Mugunthan V N (2):
-  ARM: dts: am4372: Add cpsw phy sel dt node
-  ARM: dts: am437x-gp-evm: Add ethernet support for GP EVM
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ arch/arm/boot/dts/am4372.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
- arch/arm/boot/dts/am4372.dtsi       |  6 ++++
- arch/arm/boot/dts/am437x-gp-evm.dts | 72 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 78 insertions(+)
-
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index ac37ac9..0ff84cf 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -521,6 +521,12 @@
+ 				/* Filled in by U-Boot */
+ 				mac-address = [ 00 00 00 00 00 00 ];
+ 			};
++
++			phy_sel: cpsw-phy-sel@44e10650 {
++				compatible = "ti,am43xx-cpsw-phy-sel";
++				reg= <0x44e10650 0x4>;
++				reg-names = "gmii-sel";
++			};
+ 		};
+ 
+ 		epwmss0: epwmss@48300000 {
 -- 
 1.9.2.459.g68773ac
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
