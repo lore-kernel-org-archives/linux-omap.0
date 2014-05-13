@@ -1,39 +1,44 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 0/3] Add DRA7xx CPSW Ethernet support in Device Tree
-Date: Tue, 13 May 2014 14:23:40 +0530
-Message-ID: <5371DD94.1050400@ti.com>
-References: <1399968246-21166-1-git-send-email-mugunthanvnm@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/2] gpio: omap: prepare and unprepare the debounce clock
+Date: Tue, 13 May 2014 11:24:24 +0200
+Message-ID: <CACRpkdZ2EhKyjg6_txGByN501QiOOQ+N5rvDZDm_jqNRWZxN5g@mail.gmail.com>
+References: <1398233465-8845-1-git-send-email-rnayak@ti.com>
+	<1398233465-8845-2-git-send-email-rnayak@ti.com>
+	<536B2CEE.4010809@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399968246-21166-1-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:44915 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759397AbaEMJYY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 May 2014 05:24:24 -0400
+Received: by mail-ob0-f182.google.com with SMTP id wn1so66879obc.13
+        for <linux-omap@vger.kernel.org>; Tue, 13 May 2014 02:24:24 -0700 (PDT)
+In-Reply-To: <536B2CEE.4010809@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ext Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alexandre Courbot <gnurou@gmail.com>
 
-Tony/Benoit
+On Thu, May 8, 2014 at 9:06 AM, Rajendra Nayak <rnayak@ti.com> wrote:
 
-On Tuesday 13 May 2014 01:34 PM, Mugunthan V N wrote:
-> Adding device tree entry for CPSW to make it work in Dual EMAC mode.
->
-> DRA7 cpsw phy sel driver patch has been pulled in net-next git with the
-> following commit id *d415fa1b88748d664b7b6a310dd8e699d2686cf7*
->
-> Mugunthan V N (3):
->   pinctrl: dra7: dt-bindings: add pin off modes for dra7 SoC
->   arm/dts: dra7xx: Add CPSW and MDIO module nodes for dra7xx
->   arm/dts: dra7xx: Enable CPSW and MDIO for dra7xx EVM
->
->  arch/arm/boot/dts/dra7-evm.dts    | 103 ++++++++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/dra7.dtsi       |  59 ++++++++++++++++++++++
->  include/dt-bindings/pinctrl/dra.h |   8 +++
->  3 files changed, 170 insertions(+)
->
+> Do you mind picking this fix up via the GPIO tree?
 
-This patch series depends on Cross bar dt patch set
-http://comments.gmane.org/gmane.linux.drivers.devicetree/73025
+Yes, it's merged to my devel branch now with the ACKs.
 
-Regards
-Mugunthan V N
+> Alternatively you could
+> Ack this if you are fine and we can take both Patch 1/2 and Patch 2/2 from this
+> series via the OMAP tree.
+
+This probably will not work as I have a set of other changes to this
+driver in my tree.
+
+> Patch 2/2 has a dependency on Patch 1/2 and they need to go in in that order else
+> gpio would break. More discussions are here [1].
+
+Tell me if I should prepare an immutable tag on my branch that you
+can pull in. I want an explicit handshake with the platform
+maintainer for this kind of stuff.
+
+Yours,
+Linus Walleij
