@@ -1,96 +1,71 @@
-From: Zhuang Jin Can <jin.can.zhuang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
-Date: Tue, 13 May 2014 21:45:51 -0400
-Message-ID: <20140514014551.GA16153@intel.com>
-References: <20140507215344.GH19925@intel.com>
-Reply-To: jin.can.zhuang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH v2] ARM: dts: am335x-bone-common: Add i2c2 definition
+Date: Tue, 13 May 2014 16:06:02 +0200
+Message-ID: <CABxcv=nq9XvyN0aPOBFDm0UyoaW-Htyy0tyP3YhYaDnDUo3a5w@mail.gmail.com>
+References: <1399686184-1594-1-git-send-email-mranostay@gmail.com>
+	<20140512195050.GB5668@atomide.com>
+	<CAOCHtYiYwx_bEsyqkbUTTAbhBYESzvfBOOYeVuFXPS1dDy0ZKA@mail.gmail.com>
+	<20140512201517.GC5668@atomide.com>
+	<CAOCHtYg6XpF0Gbo4iFqsFvP=QSivQQvCzov8UfxeLXMzrRYEWw@mail.gmail.com>
+	<20140512204213.GD5668@atomide.com>
+	<CAOCHtYgg7jwxswH+mqF3RA7-0RP-nGuft+Ze-GRwu1fbA6+0Bw@mail.gmail.com>
+	<537215D3.70306@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140507215344.GH19925-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liping.zhou-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, david.a.cohen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <537215D3.70306@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tom Rini <trini@ti.com>
+Cc: Robert Nelson <robertcnelson@gmail.com>, Tony Lindgren <tony@atomide.com>, Matt Ranostay <mranostay@gmail.com>, robh+dt@kernel.org, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, linux kernel <linux-kernel@vger.kernel.org>, Pantelis Antoniou <pantelis.antoniou@gmail.com>, Matt Porter <matt.porter@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Balbi,
+On Tue, May 13, 2014 at 2:53 PM, Tom Rini <trini@ti.com> wrote:
+> On 05/12/2014 04:57 PM, Robert Nelson wrote:
+>>>> Either case if fine with me.  As who knows when the dtc "overlay" will
+>>>> every truly make it mainline, as the capemgr was the only real kernel
+>>>> user of the i2c/at24 eeprom information.
+>>>
+>>> Sounds like we should keep it disabled though so u-boot can be used
+>>> to toggle it while waiting for the capemgr. That's because the board
+>>> has a header for pins, so it's not exactly limited to just the capes.
+>>>
+>>> Anybody working on enabling/disabling cape dtb configurations in u-boot?
+>>
+>> Well,
+>>
+>> Would Tom even approve of that in mainline u-boot? He didn't want my
+>> "invert" the gpio to enable the usb hub on the older beagle xm A/B..
+>>
+>> http://lists.denx.de/pipermail/u-boot/2014-January/172154.html
+>>
+>> http://lists.denx.de/pipermail/u-boot/2014-January/172274.html
 
-Do you have any comment for this patch?
+Using fdt set from the bootloader to use the same FDT for similar
+boards (like the example with Beagle xM variants) is kind of trying to
+replicate what we used to do from boards files where it was possible
+to manage a set of boards using the same platform code.
 
-Thanks
-Jincan
+But Device Trees are meant to describe hardware and thus should be
+static, if two board are almost identical but slightly different, then
+are two different hardware where each need its proper FDT that
+describes it.
 
-On Wed, May 07, 2014 at 05:53:44PM -0400, Zhuang Jin Can wrote:
-> A delayed status request may be queued before composite framework returns
-> USB_GADGET_DELAYED_STATUS, because the thread queueing the request can run
-> on a different core in parallel with the control request irq.
-> 
-> SETUP XferComplete IRQ        		fsg_main_thread
-> ----------------------        		---------------
-> 	|					|
-> spin_lock_irqsave(&dwc->lock)               sleeping
-> 	|					|
-> 	...					...
-> dwc3_ep0_inspect_setup()			|
-> 	|					|
-> dwc3_ep0_delegate_req() 			|
-> 	|					|
-> 	...					|
-> spin_unlock(&dwc->lock);			|
-> 	|					|
-> fsg_set_alt()   ======> Signal Wakeup ====>	|
-> 	| 					|
-> other gadgets->set_alt() 	       handle exception
-> 	|					|
-> 	|			usb_composite_setup_continue()
-> 	|					|
-> 	|			spin_lock_irqsave(&dwc->lock)
->   	|			     __dwc3_gadget_ep0_queue()
-> 	|				 delay_status is false
-> 	|			spin_unlock_irqrestore(&dwc->lock)
-> 	|					|
-> 	|				     sleeping
-> spin_lock(&dwc->lock); 				|
-> 	|					|
-> delayed_status=true				|
-> 	|					|
-> 
-> 		STATUS XferNotReady IRQ
-> 		------------------------
-> 			|
-> 		dwc3_ep0_xfernotready()
-> 			|
-> 		   delayed_status is true, return;
-> 
-> The result is the status packet will never be transferred, and
-> delayed_status is not cleared.
-> 
-> Signed-off-by: Zhuang Jin Can <jin.can.zhuang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reported-by: Zhou Liping <liping.zhou-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/usb/dwc3/ep0.c |    6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
-> index 21a3520..07292c0 100644
-> --- a/drivers/usb/dwc3/ep0.c
-> +++ b/drivers/usb/dwc3/ep0.c
-> @@ -1020,7 +1020,11 @@ static void dwc3_ep0_xfernotready(struct dwc3 *dwc,
->  		if (dwc->delayed_status) {
->  			WARN_ON_ONCE(event->endpoint_number != 1);
->  			dev_vdbg(dwc->dev, "Mass Storage delayed status\n");
-> -			return;
-> +
-> +			if (list_empty(&dwc->eps[0]->request_list))
-> +				return;
-> +			else
-> +				dwc->delayed_status = false;
->  		}
->  
->  		dwc3_ep0_do_control_status(dwc, event);
-> -- 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> I would think that using the 'fdt' command in U-Boot to add all
+> properties of every cape found on a running system would drive someone
+> to madness quite quickly.  Moving all of Pantelis' work for dynamic
+> device trees from the kernel to N bootloaders (U-Boot, barebox, UEFI,
+> etc) sounds like a step in the wrong direction.
+>
+
+Agreed. I think that until the device tree overlay and the cape
+manager find their way into mainline we should treat capes as if they
+were expansion boards attached to a Computer-on-Module. That is, a
+static based board which its own DTS including the BB{B,W} as an dtsi
+and not something that can be added on runtime.
+
+> --
+> Tom
+
+Best regards,
+Javier
