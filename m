@@ -1,50 +1,124 @@
-From: Thomas Abraham <ta.omasab@gmail.com>
-Subject: Re: [PATCH 0/2] PM / OPP: move cpufreq specific helpers out of OPP layer
-Date: Tue, 13 May 2014 23:59:01 +0530
-Message-ID: <CAJuA9agOJyQ_2KOoyn=ohVOeO199aVqm_YXtpUVfETQiPk+ZTw@mail.gmail.com>
-References: <1399296830-13056-1-git-send-email-nm@ti.com>
+From: Bin Liu <binmlist@gmail.com>
+Subject: Re: [PATCH v3 0/5] Add support for SW babble Control
+Date: Tue, 13 May 2014 13:37:00 -0500
+Message-ID: <CADYTM3bvQPHLJSR=ytTR3bupo=Nk6nQtw=4UgbXurbjkEFSQoA@mail.gmail.com>
+References: <1399969905-3509-1-git-send-email-george.cherian@ti.com>
+	<5371EA01.3080307@gmail.com>
+	<537208A9.4020507@ti.com>
+	<53720E0F.3070008@gmail.com>
+	<537216AC.4090401@ti.com>
+	<53721ABF.8060705@gmail.com>
+	<53721D24.4090704@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <1399296830-13056-1-git-send-email-nm@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, Kevin Hilman <khilman@deeprootsystems.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f170.google.com ([209.85.223.170]:48306 "EHLO
+	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751943AbaEMShA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 May 2014 14:37:00 -0400
+In-Reply-To: <53721D24.4090704@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: Daniel Mack <zonque@gmail.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, gregkh@linuxfoundation.org
 
-On Mon, May 5, 2014 at 7:03 PM, Nishanth Menon <nm@ti.com> wrote:
-> CPUFreq usage of OPP should be independent of the ordering of type of
-> data storage inside OPP layer. The current operations can equally be
-> performed by generic operations.
->
-> [RFC]: https://patchwork.kernel.org/patch/4100811/
->
-> Series based on: v3.15-rc1
->
-> Nishanth Menon (2):
->   PM / OPP: Remove cpufreq wrapper dependency on internal data
->     organization
->   PM / OPP: Move cpufreq specific OPP functions out of generic OPP
->     library
->
->  Documentation/cpu-freq/core.txt |   29 +++++++++++
->  Documentation/power/opp.txt     |   40 ++------------
->  drivers/base/power/opp.c        |   91 --------------------------------
->  drivers/cpufreq/Makefile        |    2 +
->  drivers/cpufreq/cpufreq_opp.c   |  110 +++++++++++++++++++++++++++++++++++++++
->  include/linux/cpufreq.h         |   21 ++++++++
->  include/linux/pm_opp.h          |   20 -------
->  7 files changed, 167 insertions(+), 146 deletions(-)
->  create mode 100644 drivers/cpufreq/cpufreq_opp.c
+Hi,
 
-Works fine on Exynos.
-Tested-by: Thomas Abraham <thomas.ab@samsung.com>
+On Tue, May 13, 2014 at 8:24 AM, George Cherian <george.cherian@ti.com> wrote:
+> Hi Daniel,
+>
+>
+> On 5/13/2014 6:44 PM, Daniel Mack wrote:
+>>
+>> Hi George,
+>>
+>> On 05/13/2014 02:57 PM, George Cherian wrote:
+>>>
+>>> I never enabled the MUSB_BABBLE_SW_SESSION_CTRL in the MUSB_BABBLE_CTL
+>>> reg.
+>>> can you try with the following patch.
+>>>
+>>> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+>>> index 1ae6681..1160cd1 100644
+>>> --- a/drivers/usb/musb/musb_dsps.c
+>>> +++ b/drivers/usb/musb/musb_dsps.c
+>>> @@ -477,8 +477,11 @@ static int dsps_musb_init(struct musb *musb)
+>>>          * logic enabled.
+>>>          */
+>>>         val = dsps_readb(musb->mregs, MUSB_BABBLE_CTL);
+>>> -       if (val == MUSB_BABBLE_RCV_DISABLE)
+>>> +       if (val == MUSB_BABBLE_RCV_DISABLE) {
+>>>                 glue->sw_babble_enabled = true;
+>>> +               val |= MUSB_BABBLE_SW_SESSION_CTRL;
+>>> +               dsps_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
+>>> +       }
+>>>         ret = dsps_musb_dbg_init(musb, glue);
+>>>         if (ret)
+>>
+>> MUSB_BABBLE_STUCK_J still remains unset, so I get the same result as
+>> without the patch: a full glue reset is conducted. Do I get you right
+>> that you expect MUSB_BABBLE_STUCK_J to be set in babble conditions when
+>> MUSB_BABBLE_SW_SESSION_CTRL is set?
+>>
+> Basically, there are 2 types of babble conditions.
+> 1) Transient babble condition - which could be recovered from without an IP
+> reset .
+> 2) Babble condition - which could be recovered from only by doing an IP
+> reset.
+>
+> Looks like you are always hitting case 2 (Most times am also hitting the
+> same).
+> Case 1 is really hard to reproduce. I don't have a reliable method as of now
+> to
+> reproduce this case consistently.
+>
+>> [   19.672373] CAUTION: musb: Babble Interrupt Occurred
+>> [   19.677776] musb_stage0_irq 789: unhandled DISCONNECT transition
+>> (a_wait_bcon)
+>> [   19.685815] usb 1-1: USB disconnect, device number 3
+>> [   19.769720] musb-hdrc musb-hdrc.0.auto: babble: MUSB_BABBLE_CTL value
+>> 44
+>> [   19.776765] musb-hdrc musb-hdrc.0.auto: STUCK_J is reset
+>>
+>>
+>> I don't quite follow, especially as I lack documentation of the IP core.
+>> How do you test babble errors, is there any way to force them to happen
+>> reliably?
+>
+>
+> There is no 100% reliable method to force it to happen. Following is
 
+I have a way to force babble happen reliably - shorting DP or DM to
+VBUS. I opened the far-end plug of the USB cable, so I can easily
+short DP or DM to VBUS.
+
+But the interesting thing is that with TI 3.2 kernel, shorting DP or
+DM to VBUS causes MISC register to be 0x4, but the result is
+completely opposite in TI 3.12.10 kernel, which cause MISC to be 0x64.
+
+So in the 3.2 kernel, the babble handing resets the controller, but
+the 3.12.10 does not.
+
+Regards,
+-Bin.
+
+> my setup ,
+> I have a HUB with 4 devices connected , which gives me a Babble interrupt
+> on both connects and disconnects ( Not always though).
+>
+>> Anyway, the full glue layer solves this rare condition quite well for
+>> me. Is there any downside of this?
+>>
+>>
+>> Daniel
+>>
+>
 >
 > --
-> 1.7.9.5
+> -George
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
