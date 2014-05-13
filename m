@@ -1,101 +1,270 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/8] usb: phy: fix isp1301-omap dependency on tps65010
-Date: Tue, 13 May 2014 14:52:16 -0500
-Message-ID: <20140513195215.GB1151@saruman.home>
-References: <1399557141-1346645-1-git-send-email-arnd@arndb.de>
- <1399557141-1346645-5-git-send-email-arnd@arndb.de>
- <20140513152631.GI1151@saruman.home>
- <7581425.j2FgrCi2P6@wuerfel>
-Reply-To: <balbi@ti.com>
+From: John Syn <john3909@gmail.com>
+Subject: Re: [PATCH v2] ARM: dts: am335x-bone-common: Add i2c2 definition
+Date: Tue, 13 May 2014 13:24:03 -0700
+Message-ID: <CF97C6D2.246DE%john3909@gmail.com>
+References: <1399686184-1594-1-git-send-email-mranostay@gmail.com>
+ <20140512195050.GB5668@atomide.com>
+ <CAOCHtYiYwx_bEsyqkbUTTAbhBYESzvfBOOYeVuFXPS1dDy0ZKA@mail.gmail.com>
+ <20140512201517.GC5668@atomide.com>
+ <CAOCHtYg6XpF0Gbo4iFqsFvP=QSivQQvCzov8UfxeLXMzrRYEWw@mail.gmail.com>
+ <20140512204213.GD5668@atomide.com>
+ <CAOCHtYgg7jwxswH+mqF3RA7-0RP-nGuft+Ze-GRwu1fbA6+0Bw@mail.gmail.com>
+ <537215D3.70306@ti.com>
+ <CABxcv=nq9XvyN0aPOBFDm0UyoaW-Htyy0tyP3YhYaDnDUo3a5w@mail.gmail.com>
+ <20140513142252.GG32082@beef>
+ <CABxcv=mSs71pS1PAS-WdP0ru_Eb1XhXEm1qCCKW7=aL7EN4FgQ@mail.gmail.com>
+ <4BCFCB24-9732-4B96-B814-5290CA2D0EE4@gmail.com>
+ <CABxcv=mWqENSzODJYAJRgDYNy46X6WkQ+0e4NSDt8qE-ob1KuQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mZSo2Zk6iB5ZAp9g"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38154 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752563AbaEMTwt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 May 2014 15:52:49 -0400
-Content-Disposition: inline
-In-Reply-To: <7581425.j2FgrCi2P6@wuerfel>
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:54088 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751145AbaEMUYL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 May 2014 16:24:11 -0400
+In-Reply-To: <CABxcv=mWqENSzODJYAJRgDYNy46X6WkQ+0e4NSDt8qE-ob1KuQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>, Pantelis Antoniou <pantelis.antoniou@gmail.com>
+Cc: Matt Porter <matt.porter@linaro.org>, Tom Rini <trini@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Tony Lindgren <tony@atomide.com>, Matt Ranostay <mranostay@gmail.com>, robh+dt@kernel.org, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, linux kernel <linux-kernel@vger.kernel.org>
 
---mZSo2Zk6iB5ZAp9g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On 5/13/14, 10:51 AM, "Javier Martinez Canillas" <javier@dowhile0.org>
+wrote:
 
-On Tue, May 13, 2014 at 09:48:27PM +0200, Arnd Bergmann wrote:
-> On Tuesday 13 May 2014 10:26:31 Felipe Balbi wrote:
-> > On Thu, May 08, 2014 at 03:52:17PM +0200, Arnd Bergmann wrote:
-> > > The isp1301-omap driver cannot be built-in if the tps65010 driver
-> > > is a module, otherwise we get a link error from the reference to
-> > > the tps65010_set_vbus_draw function.
-> > >=20
-> > > There is already a hack in the driver to work around the problem
-> > > of tps65010 being not available at all. This patch extends that
-> > > hack to ensure that the real tps65010_set_vbus_draw() function
-> > > is only called when it's avaiable.
-> > >=20
-> > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > > Cc: linux-omap@vger.kernel.org
-> > > ---
-> > >  drivers/usb/phy/phy-isp1301-omap.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >=20
-> > > diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy=
--isp1301-omap.c
-> > > index 6e146d7..35a0dd2 100644
-> > > --- a/drivers/usb/phy/phy-isp1301-omap.c
-> > > +++ b/drivers/usb/phy/phy-isp1301-omap.c
-> > > @@ -94,7 +94,7 @@ struct isp1301 {
-> > > =20
-> > >  #if defined(CONFIG_MACH_OMAP_H2) || defined(CONFIG_MACH_OMAP_H3)
-> > > =20
-> > > -#if  defined(CONFIG_TPS65010) || defined(CONFIG_TPS65010_MODULE)
-> > > +#if  defined(CONFIG_TPS65010) || (defined(CONFIG_TPS65010_MODULE) &&=
- defined(MODULE))
-> >=20
-> > nack, I would rather see a real fix, possibly also fixing the original
-> > hack.
->=20
-> Any suggestion how?
+>Hello Pantelis,
+>
+>On Tue, May 13, 2014 at 7:07 PM, Pantelis Antoniou
+><pantelis.antoniou@gmail.com> wrote:
+>> Hi Javier,
+>>
+>> On May 13, 2014, at 7:39 AM, Javier Martinez Canillas wrote:
+>>
+>>> On Tue, May 13, 2014 at 4:22 PM, Matt Porter <matt.porter@linaro.or=
+g>
+>>>wrote:
+>>>> On Tue, May 13, 2014 at 04:06:02PM +0200, Javier Martinez Canillas
+>>>>wrote:
+>>>>> On Tue, May 13, 2014 at 2:53 PM, Tom Rini <trini@ti.com> wrote:
+>>>>>> On 05/12/2014 04:57 PM, Robert Nelson wrote:
+>>>>>>>>> Either case if fine with me.  As who knows when the dtc
+>>>>>>>>>"overlay" will
+>>>>>>>>> every truly make it mainline, as the capemgr was the only rea=
+l
+>>>>>>>>>kernel
+>>>>>>>>> user of the i2c/at24 eeprom information.
+>>>>>>>>
+>>>>>>>> Sounds like we should keep it disabled though so u-boot can be
+>>>>>>>>used
+>>>>>>>> to toggle it while waiting for the capemgr. That's because the
+>>>>>>>>board
+>>>>>>>> has a header for pins, so it's not exactly limited to just the
+>>>>>>>>capes.
+>>>>>>>>
+>>>>>>>> Anybody working on enabling/disabling cape dtb configurations =
+in
+>>>>>>>>u-boot?
+>>>>>>>
+>>>>>>> Well,
+>>>>>>>
+>>>>>>> Would Tom even approve of that in mainline u-boot? He didn't wa=
+nt
+>>>>>>>my
+>>>>>>> "invert" the gpio to enable the usb hub on the older beagle xm
+>>>>>>>A/B..
+>>>>>>>
+>>>>>>> http://lists.denx.de/pipermail/u-boot/2014-January/172154.html
+>>>>>>>
+>>>>>>> http://lists.denx.de/pipermail/u-boot/2014-January/172274.html
+>>>>>
+>>>>> Using fdt set from the bootloader to use the same FDT for similar
+>>>>> boards (like the example with Beagle xM variants) is kind of tryi=
+ng
+>>>>>to
+>>>>> replicate what we used to do from boards files where it was possi=
+ble
+>>>>> to manage a set of boards using the same platform code.
+>>>>>
+>>>>> But Device Trees are meant to describe hardware and thus should b=
+e
+>>>>> static, if two board are almost identical but slightly different,
+>>>>>then
+>>>>> are two different hardware where each need its proper FDT that
+>>>>> describes it.
+>>>>>
+>>>>>>
+>>>>>> I would think that using the 'fdt' command in U-Boot to add all
+>>>>>> properties of every cape found on a running system would drive
+>>>>>>someone
+>>>>>> to madness quite quickly.  Moving all of Pantelis' work for dyna=
+mic
+>>>>>> device trees from the kernel to N bootloaders (U-Boot, barebox,
+>>>>>>UEFI,
+>>>>>> etc) sounds like a step in the wrong direction.
+>>>>>>
+>>>>>
+>>>>> Agreed. I think that until the device tree overlay and the cape
+>>>>> manager find their way into mainline we should treat capes as if =
+they
+>>>>> were expansion boards attached to a Computer-on-Module. That is, =
+a
+>>>>> static based board which its own DTS including the BB{B,W} as an =
+dtsi
+>>>>> and not something that can be added on runtime.
+>>>>
+>>>> It's far more complicated than a SOM plus carrier board. Consider =
+that
+>>>> you can have any 4 of these capes stacked on the BBB/BBW in any
+>>>> combination (assuming no resource conflicts). Capturing all possib=
+le
+>>>> combinations in static dtsis is not practical.
+>>>>
+>>>
+>>
+>> Since this appears to be all coming back to DT overlays, let me try =
+to
+>> address some points.
+>>
+>
+>It seems that you misunderstood my comments. I do think that DT
+>overlays and the cape manager are a great solution for any hardware
+>that could be expanded on runtime and I really hope that they can
+>eventually land into mainline.
+>
+>In fact if you look on my previous mail you will see that I said:
+>"until device tree overlay and the cape manager find their way into
+>mainline..."
+>
+>>> Right, I forgot that the capes were stackable so is indeed not
+>>> practical to model every single combination as DTS in mainline. Eve=
+n
+>>> if stacking was not possible there are just too many capes out ther=
+e
+>>> to have a DTS for every single cape.
+>>>
+>>
+>> Each cape does have a DTS as dynamically loaded fragment; it works
+>>absolutely fine.
+>>
+>> Trying to come up with a base DTS for all the capes you've stacked u=
+p
+>> is an exponential problem.
+>>
+>>> My point was that someone who wants to use a BBB + a set of capes c=
+an
+>>> today write a DTS for its own stacked setup.
+>>>
+>>
+>> No, the guy that designs a cape (or learns how to) can not write a D=
+TS
+>>for
+>> the base board and the cape in question. Doing that he essentially c=
+uts
+>> himself off from the community.
+>>
+>> Let me explain, the point is for people to easily design capes,
+>>open-source their
+>> design as well as their software, and share them to the community.
+>>
+>> This requires that things are easily shareable.
+>>
+>> Requiring a relative newbie in kernel development not only generate =
+his
+>>own
+>> base DT, but also to merge all of the other capes DT into his own is=
+ a
+>> nightmare.
+>>
+>> BTW, on another tangent, it's not just the BB people that care about
+>>dynamic
+>> hardware configuration. There are a number of FPGA people that seem
+>>interested
+>> as well.
+>>
+>> The notion of hardware as something static that never changes is
+>>obsolete IMHO.
+>>
+>>> Unfortunately I don't have a solution but what I'm pretty sure is t=
+hat
+>>> mangling the DTS from the bootloader is not the right one :-)
+>>>
+>>
+>> No, it is not. And this is what we're trying to solve here.
+>>
+>
+>What I said that I'm against is modifying a FDT using U-Boot scripts
+>commands that is something that mentioned in this thread. That is not
+>a robust way to do it and also is not something that a newbie could do
+>it neither.
+>
+>Also, doing these FDT changes in the bootloader has several
+>disadvantages, besides having to implement on each bootloaders like
+>Tom said, you need to upgrade your bootloader which is something that
+>just can't be done on many boards and also is still a static
+>configuration since you need to reboot in order to use a different
+>FDT. So the hardware can't really be expanded on runtime unlike with
+>DT overlays where the overlays are loaded from regular files.
+>
+>But I guess you agree with me on all those points and you just
+>misunderstood my comments. So DT overlays is definitely the way to go
+>(or something similar) but my point is that until we have that
+>solution merged, you can use a static DT in mainline for your stacked
+>cape or use a vendor kernel that already has DT overlays support.
 
-well, that driver shouldn't depend on a particular PMIC. It should use
-regulator framework to enable and disable vbus regulator, to start with.
+Given that we are not hot plugging capes, why do we need to modify the =
+DT
+at runtime? Even FPGA developers are not modifying their I/O at runtime=
+=2E
+=46or example, using the BBB as a reference, why not add an am335x-cape=
+-dtsi
+to the am335x-boneblack.dts as follows:
 
-In fact, isp1301-omap.c shouldn't even exist. isp1301 is a generic
-device and not OMAP-specific.
+/dts-v1/;
 
-cheers
+/include/ "am33xx.dtsi"
 
---=20
-balbi
+/include/ "am335x-bone-common.dtsi=B2
 
---mZSo2Zk6iB5ZAp9g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+/include/ =B3am335x-cape.dtsi"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+&am33xx_pinmux {
+xxx
 
-iQIcBAEBAgAGBQJTcnfvAAoJEIaOsuA1yqREq7YQAK+4606C+29sc+6U4Tf/at5v
-lIlWb3UmLi673HUzhtCR6Zku0eTE/GeYE6E7aWY29l6Q+kB0KAgTmxnKGLxqRIUe
-Jw7+mU8HvolTCWWrbSyMxOkdzpwl6wQEr4t7p5enl/VBMdMvsENjmzRUUgHVjewb
-pP0heIAG3i9ASvVHW6dzTWXWlMSNqKAjVK27bGVbvbOMshmoX87FaI9RyU9SJ0Ss
-zA6ux/YuWF/FwTuKYpK1UUs/gqLDgg0P91/WXCuTOg0xeLNQ1Mb89XqdMI/IjChf
-85C3Gg+jFatWqHtw4tfZawA5c3+GOVEdZNEjqgO7l74eTx5FKv1Nz3ubwOywlt0f
-PbCY8LPJ83GLI0twTEqQwC04r18iAGFtjLqz6cHJJ1bgYXVo3Pg+ouU6hHTR7h/d
-cEdifgALvzL+Gbe9rOVogjQ4OkrPjwkkU9IoXQw4WGo6shaOB9i73VDTIfnk8kog
-axmsUTUUIUkPmE0MyA8uT4SLbDyYwcr8hyGqdcq0l+AK0IZaAXdFTVlIu+IqhMTI
-bpyUzBY6Teaw140WN9AC3lECm9+bNDPeYyuQXfYFp88EkRorMtUyFg4QHKwnJCTz
-skQQoFIvnO2mQBEB/HF/h0NsanzGrKLw9HFHze7CbChbJXbUEmRxL0mRJFwUuHmy
-JzT0duO2Uopv37YP2xfH
-=qLJg
------END PGP SIGNATURE-----
+and =B3am335x-cape.dtsi=B2 would look like this:
 
---mZSo2Zk6iB5ZAp9g--
+/include/ =B3BB-BONE-AUDI-00A0.dtsi=B2
+/include/ =B3BB-BONE-UART1-00A0.dtsi=B2
+xxx
+
+So, cape developers create their own DTSI and users only update the
+am335x-cape.dtsi to include the cape DT required.
+
+What am I missing?=20
+
+BTW, DTC should be updated to detect I/O conflicts. Waiting for the ker=
+nel
+to boot before detecting DT conflicts isn=B9t OK.
+
+Regards,
+John
+
+
+
+>
+>I hope I explained myself better this time ;-)
+>
+>Best regards,
+>Javier
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" =
+in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
