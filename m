@@ -1,41 +1,38 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v3 2/5] usb: musb: dsps: Call usb_phy(_shutdown/_init) during musb_platform_reset()
-Date: Tue, 13 May 2014 14:01:42 +0530
-Message-ID: <1399969905-3509-3-git-send-email-george.cherian@ti.com>
-References: <1399969905-3509-1-git-send-email-george.cherian@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH 0/4] ARM/DT: edma: Get IP configuration from hardware
+Date: Tue, 13 May 2014 14:03:28 +0530
+Message-ID: <5371D8D8.8000003@ti.com>
+References: <1399967028-24757-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399969905-3509-1-git-send-email-george.cherian@ti.com>
+In-Reply-To: <1399967028-24757-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, zonque@gmail.com, George Cherian <george.cherian@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, joelf@ti.com
+Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-For DSPS platform usb_phy_vbus(_off/_on) are NOPs.
-So during musb_platform_reset() call usb_phy(_shutdown/_init)
+On Tuesday 13 May 2014 01:13 PM, Peter Ujfalusi wrote:
+> Hi,
+> 
+> We are requesting redundant information via DT for the driver since the very same
+> data is available in the HW: by reading and decoding the content of CCCFG
+> register we can get:
+> Number of channels: NUM_DMACH
+> Number of regions: NUM_REGN
+> Number of slots (PaRAM sets): NUM_PAENTRY
+> Number of TC/EQ: NUM_EVQUE
+> 
+> So these does not need to be provided by the DT binding.
+> 
+> The driver will no longer look for these properties from DT and they can be
+> removed from the binding documentation and from the dtsi files as well.
+> The change will not introduce regression when new kernel is booted using older
+> DTB (since we just ignore the mentioned properties).
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
----
- drivers/usb/musb/musb_dsps.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+Peter, to which baseline do these patches apply? I tried applying them
+to v3.15-rc5 but 1/4 doesn't apply cleanly.
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 51beb13..74c4193 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -543,7 +543,11 @@ static void dsps_musb_reset(struct musb *musb)
- 	const struct dsps_musb_wrapper *wrp = glue->wrp;
- 
- 	dsps_writel(musb->ctrl_base, wrp->control, (1 << wrp->reset));
--	udelay(100);
-+	usleep_range(100, 200);
-+	usb_phy_shutdown(musb->xceiv);
-+	usleep_range(100, 200);
-+	usb_phy_init(musb->xceiv);
-+
- }
- 
- static struct musb_platform_ops dsps_ops = {
--- 
-1.8.3.1
+Thanks,
+Sekhar
