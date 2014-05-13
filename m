@@ -1,51 +1,63 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v3 0/5] Add support for SW babble Control
-Date: Tue, 13 May 2014 14:20:31 +0200
-Message-ID: <53720E0F.3070008@gmail.com>
-References: <1399969905-3509-1-git-send-email-george.cherian@ti.com> <5371EA01.3080307@gmail.com> <537208A9.4020507@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for
+ configuring the iATU
+Date: Tue, 13 May 2014 18:01:59 +0530
+Message-ID: <537210BF.2050100@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com> <4764413.ZAEU5S5p0p@wuerfel> <000201cf6a9c$9dd295e0$d977c1a0$%han@samsung.com> <6882241.amuhzvbd8n@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <537208A9.4020507@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com, gregkh@linuxfoundation.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <6882241.amuhzvbd8n@wuerfel>
+Sender: linux-pci-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Jingoo Han <jg1.han@samsung.com>
+Cc: 'Santosh Shilimkar' <santosh.shilimkar@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, rogerq@ti.com, balajitk@ti.com, 'Bjorn Helgaas' <bhelgaas@google.com>, 'Marek Vasut' <marex@denx.de>
 List-Id: linux-omap@vger.kernel.org
 
-On 05/13/2014 01:57 PM, George Cherian wrote:
-> On 5/13/2014 3:16 PM, Daniel Mack wrote:
->> On 05/13/2014 10:31 AM, George Cherian wrote:
->>> Series add support for SW babble control logic found in
->>> new silicon versions of AM335x. Runtime differentiation of
->>> silicon version is done by checking the BABBLE_CTL register.
->>> For newer silicon the register default value read is 0x4 and
->>> for older versions its 0x0.
->> I tested this on a AM33xx platform and don't see any regression at
->> least. This hardware has MUSB_BABBLE_CTL == MUSB_BABBLE_RCV_DISABLE.
->> Anything particular you want me to test as well?
-> Are you seeing a wrapper restart done always or does it continue with a 
-> restart
-> after the babble condition?
+Hi Arnd,
 
-MUSB_BABBLE_CTL == MUSB_BABBLE_RCV_DISABLE, so sw_babble_control() is
-called from dsps_musb_reset(). However, MUSB_BABBLE_CTL still returns
-0x04 (MUSB_BABBLE_RCV_DISABLE) inside that function, which means
-(babble_ctl & MUSB_BABBLE_STUCK_J) is false, and hence
-sw_babble_control() returns 1. Consequently, the glue is fully reset in
-this case. Does this help?
+On Thursday 08 May 2014 02:48 PM, Arnd Bergmann wrote:
+> On Thursday 08 May 2014 18:05:11 Jingoo Han wrote:
+>> On Tuesday, May 06, 2014 10:59 PM, Arnd Bergmann wrote:
+>>> On Tuesday 06 May 2014 19:03:52 Kishon Vijay Abraham I wrote:
+>>>> In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
+>>>> address. So whenever the cpu issues a read/write request, the 4 most
+>>>> significant bits are used by L3 to determine the target controller.
+>>>> For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
+>>>> the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
+>>>> the outbound translation window the *base* should be programmed as 0x000_0000.
+>>>> Whenever we try to write to say 0x2000_0000, it will be translated to whatever
+>>>> we have programmed in the translation window with base as 0x000_0000.
+>>>>
+>>>> Cc: Bjorn Helgaas <bhelgaas@google.com>
+>>>> Cc: Marek Vasut <marex@denx.de>
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>> Acked-by: Jingoo Han <jg1.han@samsung.com>
+>>>> Acked-by: Mohit Kumar <mohit.kumar@st.com>
+>>>
+>>> Sorry, but NAK.
+>>>
+>>> We have a standard 'dma-ranges' property to handle this, so use it.
+>>>
+>>> See the x-gene PCIe driver patches for an example. Please also talk
+>>> to Santosh about it, as he is implementing generic support for
+>>> parsing dma-ranges in platform devices at the moment.
+>>
+>> Hi Arnd,
+>>
+>> Do you mean the following patch?
+>> http://www.spinics.net/lists/kernel/msg1737725.html
+>>
+> 
+> That is the patch Santosh did for platform devices, which is related but not
+> what I meant here. For the PCI inbound window setup, please have a look
+> at https://lkml.org/lkml/2014/3/19/607
 
-FWIW, this is the output of dsps_musb_reset() with dev_dbg() enabled:
+Do you think it can be used for *outbound* window setup too? The problem is the
+*ranges* property defines both the pci address and cpu address which should
+have been enough to program the ob translation window, but the hw is designed
+so that the controller sees only the 28 bits. (The most significant 4 bits is
+for the l3 to address the controller).
 
-[   54.066124] CAUTION: musb: Babble Interrupt Occurred
-[   54.071856] usb 1-1: USB disconnect, device number 8
-[   54.159495] musb-hdrc musb-hdrc.0.auto: babble: MUSB_BABBLE_CTL value 4
-[   54.166446] musb-hdrc musb-hdrc.0.auto: STUCK_J is reset
-
-
-I only have one exact USB device to reproduce the babble condition, so I
-guess this is all I can do for now.
-
-
-Thanks,
-Daniel
+Thanks
+Kishon
