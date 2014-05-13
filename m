@@ -1,59 +1,58 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 0/5] ARM/DT: edma: Get IP configuration from hardware
-Date: Tue, 13 May 2014 13:30:27 +0300
-Message-ID: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 3/5] dt/bindings: ti,edma: Remove redundant properties from documentation
+Date: Tue, 13 May 2014 13:30:30 +0300
+Message-ID: <1399977032-26469-4-git-send-email-peter.ujfalusi@ti.com>
+References: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: nsekhar@ti.com, joelf@ti.com
-Cc: devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, vinod.koul@intel.com, linux-kernel@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-Changes sicne v1:
-- added missing patch to remove the memset from edma_of_parse_dt()
-
-We are requesting redundant information via DT for the driver since the very same
-data is available in the HW: by reading and decoding the content of CCCFG
-register we can get:
+>From CCCFG register of eDMA3 we can get all the needed information for the
+driver about the IP:
 Number of channels: NUM_DMACH
 Number of regions: NUM_REGN
 Number of slots (PaRAM sets): NUM_PAENTRY
 Number of TC/EQ: NUM_EVQUE
 
-So these does not need to be provided by the DT binding.
+The ti,edma-regions; ti,edma-slots and dma-channels in DT are
+redundant since the very same information can be obtained from the HW.
+The mentioned properties can be removed from the binding document.
 
-The driver will no longer look for these properties from DT and they can be
-removed from the binding documentation and from the dtsi files as well.
-The change will not introduce regression when new kernel is booted using older
-DTB (since we just ignore the mentioned properties).
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (5):
-  ARM: edma: No need to clean the pdata in edma_of_parse_dt()
-  ARM: edma: Get IP information from HW when booting with DT
-  dt/bindings: ti,edma: Remove redundant properties from documentation
-  ARM: dts: am33xx: Remove obsolete properties from edma node
-  ARM: dts: am4372: Remove obsolete properties from edma node
+ Documentation/devicetree/bindings/dma/ti-edma.txt | 6 ------
+ 1 file changed, 6 deletions(-)
 
- Documentation/devicetree/bindings/dma/ti-edma.txt |   6 -
- arch/arm/boot/dts/am33xx.dtsi                     |   3 -
- arch/arm/boot/dts/am4372.dtsi                     |   3 -
- arch/arm/common/edma.c                            | 130 +++++++++++++---------
- 4 files changed, 79 insertions(+), 63 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
+index 9fbbdb783a72..cf8d0a2d5b33 100644
+--- a/Documentation/devicetree/bindings/dma/ti-edma.txt
++++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
+@@ -2,11 +2,8 @@ TI EDMA
+ 
+ Required properties:
+ - compatible : "ti,edma3"
+-- ti,edma-regions: Number of regions
+-- ti,edma-slots: Number of slots
+ - #dma-cells: Should be set to <1>
+               Clients should use a single channel number per DMA request.
+-- dma-channels: Specify total DMA channels per CC
+ - reg: Memory map for accessing module
+ - interrupt-parent: Interrupt controller the interrupt is routed through
+ - interrupts: Exactly 3 interrupts need to be specified in the order:
+@@ -26,9 +23,6 @@ edma: edma@49000000 {
+ 	compatible = "ti,edma3";
+ 	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
+ 	#dma-cells = <1>;
+-	dma-channels = <64>;
+-	ti,edma-regions = <4>;
+-	ti,edma-slots = <256>;
+ 	ti,edma-xbar-event-map = <1 12
+ 				  2 13>;
+ };
 -- 
 1.9.3
