@@ -1,171 +1,115 @@
-From: Bin Liu <binmlist@gmail.com>
-Subject: Re: [PATCH v3 0/5] Add support for SW babble Control
-Date: Wed, 14 May 2014 11:43:25 -0500
-Message-ID: <CADYTM3bfnhCVi8VKiypMsQOndmzG-=yPksYNV+qZ8X73LPTZog@mail.gmail.com>
-References: <1399969905-3509-1-git-send-email-george.cherian@ti.com>
-	<5371EA01.3080307@gmail.com>
-	<537208A9.4020507@ti.com>
-	<53720E0F.3070008@gmail.com>
-	<537216AC.4090401@ti.com>
-	<53721ABF.8060705@gmail.com>
-	<53721D24.4090704@ti.com>
-	<CADYTM3bvQPHLJSR=ytTR3bupo=Nk6nQtw=4UgbXurbjkEFSQoA@mail.gmail.com>
-	<53730130.3000300@ti.com>
-	<CADYTM3YH2TJpS0z-Pb=rQPVV5ETHwfYMOOv=BohNB7UmahC9Rw@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.15-rc5
+Date: Wed, 14 May 2014 16:47:19 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1405141645530.21921@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CADYTM3YH2TJpS0z-Pb=rQPVV5ETHwfYMOOv=BohNB7UmahC9Rw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: Daniel Mack <zonque@gmail.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, gregkh@linuxfoundation.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:44990 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753279AbaENQrU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 12:47:20 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-George,
 
-On Wed, May 14, 2014 at 9:34 AM, Bin Liu <binmlist@gmail.com> wrote:
-> George,
->
-> On Wed, May 14, 2014 at 12:37 AM, George Cherian <george.cherian@ti.com> wrote:
->> On 5/14/2014 12:07 AM, Bin Liu wrote:
->>>
->>> Hi,
->>>
->>> On Tue, May 13, 2014 at 8:24 AM, George Cherian <george.cherian@ti.com>
->>> wrote:
->>>>
->>>> Hi Daniel,
->>>>
->>>>
->>>> On 5/13/2014 6:44 PM, Daniel Mack wrote:
->>>>>
->>>>> Hi George,
->>>>>
->>>>> On 05/13/2014 02:57 PM, George Cherian wrote:
->>>>>>
->>>>>> I never enabled the MUSB_BABBLE_SW_SESSION_CTRL in the MUSB_BABBLE_CTL
->>>>>> reg.
->>>>>> can you try with the following patch.
->>>>>>
->>>>>> diff --git a/drivers/usb/musb/musb_dsps.c
->>>>>> b/drivers/usb/musb/musb_dsps.c
->>>>>> index 1ae6681..1160cd1 100644
->>>>>> --- a/drivers/usb/musb/musb_dsps.c
->>>>>> +++ b/drivers/usb/musb/musb_dsps.c
->>>>>> @@ -477,8 +477,11 @@ static int dsps_musb_init(struct musb *musb)
->>>>>>           * logic enabled.
->>>>>>           */
->>>>>>          val = dsps_readb(musb->mregs, MUSB_BABBLE_CTL);
->>>>>> -       if (val == MUSB_BABBLE_RCV_DISABLE)
->>>>>> +       if (val == MUSB_BABBLE_RCV_DISABLE) {
->>>>>>                  glue->sw_babble_enabled = true;
->>>>>> +               val |= MUSB_BABBLE_SW_SESSION_CTRL;
->>>>>> +               dsps_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
->>>>>> +       }
->>>>>>          ret = dsps_musb_dbg_init(musb, glue);
->>>>>>          if (ret)
->>>>>
->>>>> MUSB_BABBLE_STUCK_J still remains unset, so I get the same result as
->>>>> without the patch: a full glue reset is conducted. Do I get you right
->>>>> that you expect MUSB_BABBLE_STUCK_J to be set in babble conditions when
->>>>> MUSB_BABBLE_SW_SESSION_CTRL is set?
->>>>>
->>>> Basically, there are 2 types of babble conditions.
->>>> 1) Transient babble condition - which could be recovered from without an
->>>> IP
->>>> reset .
->>>> 2) Babble condition - which could be recovered from only by doing an IP
->>>> reset.
->>>>
->>>> Looks like you are always hitting case 2 (Most times am also hitting the
->>>> same).
->>>> Case 1 is really hard to reproduce. I don't have a reliable method as of
->>>> now
->>>> to
->>>> reproduce this case consistently.
->>>>
->>>>> [   19.672373] CAUTION: musb: Babble Interrupt Occurred
->>>>> [   19.677776] musb_stage0_irq 789: unhandled DISCONNECT transition
->>>>> (a_wait_bcon)
->>>>> [   19.685815] usb 1-1: USB disconnect, device number 3
->>>>> [   19.769720] musb-hdrc musb-hdrc.0.auto: babble: MUSB_BABBLE_CTL value
->>>>> 44
->>>>> [   19.776765] musb-hdrc musb-hdrc.0.auto: STUCK_J is reset
->>>>>
->>>>>
->>>>> I don't quite follow, especially as I lack documentation of the IP core.
->>>>> How do you test babble errors, is there any way to force them to happen
->>>>> reliably?
->>>>
->>>>
->>>> There is no 100% reliable method to force it to happen. Following is
->>>
->>> I have a way to force babble happen reliably - shorting DP or DM to
->>> VBUS. I opened the far-end plug of the USB cable, so I can easily
->>> short DP or DM to VBUS.
->>
->> Good to know that you have a reliable way to test babble condition.
->> Can you please do a quick test on 3.15.0-rc4 with the series applied?
->> In case of any assistance please do let me know.
->
-> Sure, but could you please re-send those patches to my corporate email
-> so that I can apply them from Thunderbird?
+Here are some basic OMAP test results for Linux v3.15-rc5.
+Logs and other details at:
 
-You don't have to resend the patches. Nishanth Menon showed me a way
-to extract the patch from Gmail - Thanks Nishanth.
+    http://www.pwsan.com/omap/testlogs/test_v3.15-rc5/20140511121007/
 
-But which repo do you want to me test with? The first patch ([PATCH v2
-1/5] usb: musb: core: Convert babble recover work to delayed work)
-does not apply to v3.15-rc4 tag. the current musb_core.c does not have
-the recovery work for musb. Please let me know what I missed.
 
-Thanks,
--Bin.
+Test summary
+------------
 
->
-> I read these linux-usb emails in Gmail, and  am not aware of any easy
-> way to extract patches from Gmail.
->
-> BTY, I tested with TI 3.12.10 kernel, in which I guess the babble
-> handling is similar to this patch set. With TI3.12.10, MISC is always
-> 0x64, so MUSB never restarts.
->
-> Thanks,
-> -Bin.
->
->>
->>> But the interesting thing is that with TI 3.2 kernel, shorting DP or
->>> DM to VBUS causes MISC register to be 0x4, but the result is
->>> completely opposite in TI 3.12.10 kernel, which cause MISC to be 0x64.
->>>
->>> So in the 3.2 kernel, the babble handing resets the controller, but
->>> the 3.12.10 does not.
->>>
->>> Regards,
->>> -Bin.
->>>
->>>> my setup ,
->>>> I have a HUB with 4 devices connected , which gives me a Babble interrupt
->>>> on both connects and disconnects ( Not always though).
->>>>
->>>>> Anyway, the full glue layer solves this rare condition quite well for
->>>>> me. Is there any downside of this?
->>>>>
->>>>>
->>>>> Daniel
->>>>>
->>>>
->>>> --
->>>> -George
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>>>
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->>
->> --
->> -George
->>
+Build: uImage+dtb:
+    Pass ( 9/ 9): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig/omap4-var-som
+
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
+
+Build: zImage:
+    Pass (14/14): multi_v7_defconfig, omap2plus_defconfig,
+		  omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig
+
+Boot to userspace:
+    FAIL ( 1/12): 2430sdp
+    skip ( 3/12): 5912osk, cmt3517, 4460varsomom
+    Pass ( 8/12): 3517evm, 3530es3beagle, 3730beaglexm, 37xxevm,
+		  4430es2panda, 4460pandaes, am335xbone, am335xbonelt
+
+PM: chip retention via suspend:
+    skip ( 1/ 7): 4460varsomom
+    FAIL ( 2/ 7): 2430sdp, 4430es2panda
+    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
+
+PM: chip retention via dynamic idle:
+    skip ( 1/ 7): 4460varsomom
+    FAIL ( 6/ 7): 2430sdp, 3530es3beagle, 3730beaglexm, 37xxevm,
+		  4430es2panda, 4460pandaes
+
+PM: chip off except CORE via suspend:
+    FAIL ( 1/ 1): 3730beaglexm
+
+PM: chip off except CORE via dynamic idle:
+    FAIL ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    skip ( 1/ 5): 4460varsomom
+    FAIL ( 4/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes
+
+PM: chip off via dynamic idle:
+    skip ( 1/ 5): 4460varsomom
+    FAIL ( 4/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes
+
+
+vmlinux object size
+(delta in bytes from test_v3.15-rc4 (89ca3b881987f5a4be4c5dbaa7f0df12bbdde2fd)):
+   text     data      bss    total  kernel
+   +303      +64        0     +367  omap1_defconfig
+   +335      +96        0     +431  omap1_defconfig_1510innovator_only
+   +303      +64        0     +367  omap1_defconfig_5912osk_only
+   +363     +120        0     +483  multi_v7_defconfig
+   +179      +64      -64     +179  omap2plus_defconfig
+    +79      +96        0     +175  omap2plus_defconfig_2430sdp_only
+   +179      +64      -64     +179  omap2plus_defconfig_am33xx_only
+   +175      +64        0     +239  omap2plus_defconfig_am43xx_only
+   +179      +64      -64     +179  omap2plus_defconfig_cpupm
+  +4271      +64        0    +4335  omap2plus_defconfig_dra7xx_only
+   -369        0      -32     -401  omap2plus_defconfig_n800_multi_omap2xxx
+   -305        0      -32     -337  omap2plus_defconfig_n800_only_a
+   +115      +64      -64     +115  omap2plus_defconfig_no_pm
+   +239      +64      -64     +239  omap2plus_defconfig_omap2_4_only
+   +175      +64      -64     +175  omap2plus_defconfig_omap3_4_only
+   +111      +64        0     +175  omap2plus_defconfig_omap5_only
+    -68        0      -68     -136  rmk_omap3430_ldp_allnoconfig
+    +95        0        0      +95  rmk_omap3430_ldp_oldconfig
+    +12        0     -148     -136  rmk_omap4430_sdp_allnoconfig
+    +95        0        0      +95  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.15-rc4 (89ca3b881987f5a4be4c5dbaa7f0df12bbdde2fd))
+  avail  rsrvd   high  freed  board          kconfig
+    -4k     4k      .      .  2420n800       omap2plus_defconfig_n800_only_a
+
