@@ -1,84 +1,71 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v2] mmc: omap: Use DIV_ROUND_UP instead of open coded
-Date: Wed, 14 May 2014 11:33:25 +0200
-Message-ID: <CAPDyKFp3tQVtcDbUD1R1GeO1Zr0ScE2yZVZuWVmztq02FfjP+w@mail.gmail.com>
-References: <1399079262.9244.1.camel@phoenix>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [alsa-devel] [PATCH 00/19] Rework OMAP4+ HDMI audio support
+Date: Wed, 14 May 2014 13:02:22 +0300
+Message-ID: <53733F2E.4030803@ti.com>
+References: <cover.1399884780.git.jsarha@ti.com> <CAGhQ9VzjndCBp+ZHS3XPPvS4ors6u9BfHf4NY_HNYN5ynyQOYQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qg0-f54.google.com ([209.85.192.54]:43523 "EHLO
-	mail-qg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752251AbaENJd0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 05:33:26 -0400
-Received: by mail-qg0-f54.google.com with SMTP id q108so2357115qgd.13
-        for <linux-omap@vger.kernel.org>; Wed, 14 May 2014 02:33:25 -0700 (PDT)
-In-Reply-To: <1399079262.9244.1.camel@phoenix>
+Received: from devils.ext.ti.com ([198.47.26.153]:42305 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752121AbaENKCe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 06:02:34 -0400
+In-Reply-To: <CAGhQ9VzjndCBp+ZHS3XPPvS4ors6u9BfHf4NY_HNYN5ynyQOYQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Axel Lin <axel.lin@ingics.com>
-Cc: Chris Ball <chris@printf.net>, Joachim Eastwood <manabian@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>
+To: Joachim Eastwood <manabian@gmail.com>
+Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com, broonie@kernel.org, peter.ujfalusi@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Benoit Cousson <bcousson@baylibre.com>
 
-On 3 May 2014 03:07, Axel Lin <axel.lin@ingics.com> wrote:
-> Also uses NSEC_PER_SEC and USEC_PER_SEC instead of hard-coded value.
-> This makes the intention more clear.
+On 05/13/2014 12:13 AM, Joachim Eastwood wrote:
+> On 12 May 2014 11:12, Jyri Sarha <jsarha@ti.com> wrote:
+...
 >
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+> hey, this worked straight away :)
+>
+> But there seems to be something wrong with the channel mapping.
+>
+> For stereo (speaker-test -c 2) the mapping is correct.
+>
+> But for -c 4 and -c 8 it gets weird:
+> speaker-test -c 4 -s X # where X is 1-4
+> 1: Front Left is Rear Left
+> 2: Front Right is Rear Right
+> 3: Rear Right is Front Right
+> 4: Rear Left is Front Left
+>
+> speaker-test -c 8 -s X # where X is 1-8
+> 1: Front Left is Rear Left
+> 2: Center is Rear Left
+> 3: Front Right is Rear Right
+> 4: Side Right is Front Right
+> 5: Rear Right is silent
+> 6: Rear Left is Center
+> 7: Side Left is Front Left
+> 8: LFE - Rear Right
+>
+> I think you need to check what channel order ALSA expects. I believe
+> speaker-test does the right thing on my HTPC normally connected to my
+> receiver.
+>
 
-Thanks Axel!
+I checked the implementation and there was indeed something weird there, 
+but the implementation can not explain the FL and FR channels jumping 
+around. FL and FL should always be the first two channels in all 
+configurations and the implementation does not touch them.
 
-Will include this patch in the next PR to Chris.
+The implementation uses 8ch HDMI setup for anything above 2ch with 
+"Audio InfoFrame Data Byte 4" set to 0x13. According to CEA-861 specs 
+this means following channel order: FL, FR, LFE, FC, RL, RR, RLC, RRC
 
-Kind regards
-Ulf Hansson
+This is a closest match to ALSA 8ch mapping (according to 
+sound/core/pcm_lib.c) which is: FL, FR, FC, LFE, RL, RR, SL, SR
 
-> ---
->  drivers/mmc/host/omap.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index 5c2e58b..81974ec 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -177,7 +177,7 @@ static void mmc_omap_fclk_offdelay(struct mmc_omap_slot *slot)
->         unsigned long tick_ns;
->
->         if (slot != NULL && slot->host->fclk_enabled && slot->fclk_freq > 0) {
-> -               tick_ns = (1000000000 + slot->fclk_freq - 1) / slot->fclk_freq;
-> +               tick_ns = DIV_ROUND_UP(NSEC_PER_SEC, slot->fclk_freq);
->                 ndelay(8 * tick_ns);
->         }
->  }
-> @@ -435,7 +435,7 @@ static void mmc_omap_send_stop_work(struct work_struct *work)
->         struct mmc_data *data = host->stop_data;
->         unsigned long tick_ns;
->
-> -       tick_ns = (1000000000 + slot->fclk_freq - 1)/slot->fclk_freq;
-> +       tick_ns = DIV_ROUND_UP(NSEC_PER_SEC, slot->fclk_freq);
->         ndelay(8*tick_ns);
->
->         mmc_omap_start_command(host, data->stop);
-> @@ -477,7 +477,7 @@ mmc_omap_send_abort(struct mmc_omap_host *host, int maxloops)
->         u16 stat = 0;
->
->         /* Sending abort takes 80 clocks. Have some extra and round up */
-> -       timeout = (120*1000000 + slot->fclk_freq - 1)/slot->fclk_freq;
-> +       timeout = DIV_ROUND_UP(120 * USEC_PER_SEC, slot->fclk_freq);
->         restarts = 0;
->         while (restarts < maxloops) {
->                 OMAP_MMC_WRITE(host, STAT, 0xFFFF);
-> @@ -677,8 +677,8 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
->         if (n > host->buffer_bytes_left)
->                 n = host->buffer_bytes_left;
->
-> -       nwords = n / 2;
-> -       nwords += n & 1; /* handle odd number of bytes to transfer */
-> +       /* Round up to handle odd number of bytes to transfer */
-> +       nwords = DIV_ROUND_UP(n, 2);
->
->         host->buffer_bytes_left -= n;
->         host->total_bytes_left -= n;
-> --
-> 1.8.3.2
->
->
->
+Current implementation has FLE and FC channels correctly swapped, but it 
+shifts them to last two channels and RL, RR, SL, SR are shifted down to 
+fill the place. This is all wrong and I'll try to come up with a fix for 
+that. Unfortunately I can not test anything beyond 2 ch myself so I 
+would need someone to volunteer to test my patch.
+
+Best regards,
+Jyri
