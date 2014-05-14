@@ -1,105 +1,110 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP5: DSS hwmod data
-Date: Wed, 14 May 2014 19:44:26 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1405141939030.21921@utopia.booyaka.com>
-References: <1394619996-3525-1-git-send-email-tomi.valkeinen@ti.com> <alpine.DEB.2.02.1405080432570.23579@utopia.booyaka.com> <536B1A9C.7050006@ti.com> <alpine.DEB.2.02.1405081558570.23579@utopia.booyaka.com> <536C777C.8000600@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
+Date: Wed, 14 May 2014 15:50:00 -0400
+Message-ID: <5373C8E8.6040208@ti.com>
+References: <1399991966-14582-1-git-send-email-santosh.shilimkar@ti.com> <5373C78E.7040301@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:47396 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751087AbaENTo1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 15:44:27 -0400
-In-Reply-To: <536C777C.8000600@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40833 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750834AbaENTua (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 15:50:30 -0400
+In-Reply-To: <5373C78E.7040301@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Archit Taneja <archit@ti.com>, Tony Lindgren <tony@atomide.com>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>, khilman@linaro.org, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-On Fri, 9 May 2014, Tomi Valkeinen wrote:
-
-> On 08/05/14 19:01, Paul Walmsley wrote:
-> > Hi Archit,
-> > 
-> > On Thu, 8 May 2014, Archit Taneja wrote:
-> > 
-> >> Hi Paul,
-> >>
-> >> On Thursday 08 May 2014 10:07 AM, Paul Walmsley wrote:
-> >>> Hi,
-> >>>
-> >>> On Wed, 12 Mar 2014, Tomi Valkeinen wrote:
-> >>>
-> >>>> This patch adds hwmod data for omap5 display subsystem. I have tested this
-> >>>> on
-> >>>> omap5-uevm with a DSI panel. I cannot test omap5-uevm's hdmi output yet,
-> >>>> as the
-> >>>> mainline is missing omap5 HDMI driver.
-> >>>>
-> >>>> I do see this when booting:
-> >>>>
-> >>>>    omap_hwmod: dss_dispc: cannot be enabled for reset (3)
-> >>>>    omap_hwmod: dss_dsi1: cannot be enabled for reset (3)
-> >>>>    omap_hwmod: dss_dsi2: cannot be enabled for reset (3)
-> >>>>    omap_hwmod: dss_hdmi: cannot be enabled for reset (3)
-> >>>>    omap_hwmod: dss_rfbi: cannot be enabled for reset (3)
-> >>>>
-> >>>> But at least DSI works just fine.
-> >>>
-> >>> Am looking at this for v3.16.  But I think someone needs to take a look at
-> >>> those warnings and figure out why they are happening.
-> >>
-> >> We associate DSS clock domain's MODULEMODE bits only with the dss_core hwmod.
-> >> The rest of the dss hwmods don't touch MODULEMODE.
-> >>
-> >> Therefore, these hwmods cannot be enabled independently, and reset.
-> >>
-> >> We don't face this issue in the omapdss driver since the platform devices
-> >> corresponding to these hwmods have their parent as the platform device
-> >> corresponding to 'dss_core'. This parent child-relation ensures that
-> >> 'dss_core' is enabled when the a child calls a pm_runtime_get function.
-> >>
-> >> The problem is that we have multiple hwmods which use the same MODULEMODE bit.
-> >> There is no use-counting done when it comes to enabling/disabling modulemode.
-> >> If there was such a thing, we could have provided MODULEMODE flags even for
-> >> the children hwmods.
-> > 
-> > Thanks for the summary.  This is indeed a long-overdue item for the hwmod 
-> > core code.  Can you please patch the hwmod core code to add this?  I'd 
-> > suggest making the use-counting functionality conditional on a hwmod flag 
-> > that you can set for all of the DSS hwmods.  (Ideally, the core code would 
-> > detect that several modules share the same MODULEMODE bits, and 
-> > automatically set it for those cases, but that seems a bit too complex for 
-> > a first cut.)
+On Wednesday 14 May 2014 03:44 PM, Daniel Lezcano wrote:
+> On 05/13/2014 04:39 PM, Santosh Shilimkar wrote:
+>> On OMAP4 panda board, there have been several bug reports about boot
+>> hang and lock-ups with CPU_IDLE enabled. The root cause of the issue
+>> is missing interrupts while in idle state. Commit cb7094e8 {cpuidle / omap4 :
+>> use CPUIDLE_FLAG_TIMER_STOP flag} moved the broadcast notifiers to common
+>> code for right reasons but on OMAP4 which suffers from a nasty ROM code
+>> bug with GIC, commit ff999b8a {ARM: OMAP4460: Workaround for ROM bug ..},
+>> we loose interrupts which leads to issues like lock-up, hangs etc.
+>>
+>> Patch reverts commit cb7094 {cpuidle / omap4 : use CPUIDLE_FLAG_TIMER_STOP
+>> flag} to avoid the issue. With this change, OMAP4 panda boards, the mentioned
+>> issues are getting fixed. We no longer loose interrupts which was the cause
+>> of the regression.
+>>
+>> Cc: Roger Quadros <rogerq@ti.com>
+>> Cc: Kevin Hilman <khilman@linaro.org>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+>> Reported-tested-by: Roger Quadros <rogerq@ti.com>
+>> Reported-tested-by: Kevin Hilman <khilman@linaro.org>
+>> Tested-by: Tony Lindgren <tony@atomide.com>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/cpuidle44xx.c |   12 ++++++++----
+>>   1 file changed, 8 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+>> index 01fc710..3e169d9 100644
+>> --- a/arch/arm/mach-omap2/cpuidle44xx.c
+>> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
+>> @@ -14,6 +14,7 @@
+>>   #include <linux/cpuidle.h>
+>>   #include <linux/cpu_pm.h>
+>>   #include <linux/export.h>
+>> +#include <linux/clockchips.h>
+>>
+>>   #include <asm/cpuidle.h>
+>>   #include <asm/proc-fns.h>
+>> @@ -83,6 +84,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+>>   {
+>>       struct idle_statedata *cx = state_ptr + index;
+>>       u32 mpuss_can_lose_context = 0;
+>> +    int cpu_id = smp_processor_id();
+>>
+>>       /*
+>>        * CPU0 has to wait and stay ON until CPU1 is OFF state.
+>> @@ -110,6 +112,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+>>       mpuss_can_lose_context = (cx->mpu_state == PWRDM_POWER_RET) &&
+>>                    (cx->mpu_logic_state == PWRDM_POWER_OFF);
+>>
+>> +    clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
+>> +
+>>       /*
+>>        * Call idle CPU PM enter notifier chain so that
+>>        * VFP and per CPU interrupt context is saved.
+>> @@ -165,6 +169,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+>>       if (dev->cpu == 0 && mpuss_can_lose_context)
+>>           cpu_cluster_pm_exit();
+>>
+>> +    clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
+>> +
+>>   fail:
+>>       cpuidle_coupled_parallel_barrier(dev, &abort_barrier);
+>>       cpu_done[dev->cpu] = false;
+>> @@ -189,8 +195,7 @@ static struct cpuidle_driver omap4_idle_driver = {
+>>               /* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */
+>>               .exit_latency = 328 + 440,
+>>               .target_residency = 960,
+>> -            .flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED |
+>> -                     CPUIDLE_FLAG_TIMER_STOP,
+>> +            .flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
+>>               .enter = omap_enter_idle_coupled,
+>>               .name = "C2",
+>>               .desc = "CPUx OFF, MPUSS CSWR",
+>> @@ -199,8 +204,7 @@ static struct cpuidle_driver omap4_idle_driver = {
+>>               /* C3 - CPU0 OFF + CPU1 OFF + MPU OSWR */
+>>               .exit_latency = 460 + 518,
+>>               .target_residency = 1100,
+>> -            .flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED |
+>> -                     CPUIDLE_FLAG_TIMER_STOP,
+>> +            .flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
+>>               .enter = omap_enter_idle_coupled,
+>>               .name = "C3",
+>>               .desc = "CPUx OFF, MPUSS OSWR",
 > 
-> Can we still go forward with this patch as it is? As far as I
-> understand, the warnings are harmless (more or less), but without this
-> patch we won't have OMAP5 display support.
+> Shouldn't the broadcast timer to be setup with CLOCK_EVT_NOTIFY_BROADCAST_ON also ?
+> 
+Which is already taken care by __cpuidle_register_driver(). Note that setup code
+is still used from generic code...
 
-Generally speaking, we try to avoid queuing patches that add warnings, for 
-a few different reasons:
-
-1. end users don't know whether they are serious or not, and could waste 
-time trying to determine whether those warnings are causing other, 
-unrelated problems for them
-
-2. once patches with warnings are merged, even if folks promise to fix 
-them, usually people tend to deprioritize 'closing the loop' on the fixes 
-- so they often never make it back upstream
-
-3. some maintainers search for warnings in their test logs and push back 
-on patches that generate them
-
-
-All that said, you and Archit are pretty good in my experience about 
-following up on issues.  And Archit has mentioned that he will be 
-patching the hwmod core code to fix the underlying issue:
-
-http://www.spinics.net/lists/arm-kernel/msg329614.html
-
-So, at least speaking for myself, I'm willing to queue this patch for 
-3.16, with the understanding that you all will be patching the hwmod core 
-code to fix the root cause.
-
-
-- Paul
