@@ -1,29 +1,25 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] Add AM437x GP EVM cpsw DT node
-Date: Wed, 14 May 2014 16:16:13 -0700
-Message-ID: <20140514231613.GB13427@atomide.com>
-References: <1399970671-29203-1-git-send-email-mugunthanvnm@ti.com>
+Subject: Re: [PATCH v2 4/5] ARM: dts: am33xx: Remove obsolete properties from
+ edma node
+Date: Wed, 14 May 2014 16:17:35 -0700
+Message-ID: <20140514231734.GC13427@atomide.com>
+References: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com>
+ <1399977032-26469-5-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22260 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751609AbaENXQR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 19:16:17 -0400
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1399970671-29203-1-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1399977032-26469-5-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: nsekhar@ti.com, joelf@ti.com, linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Mugunthan V N <mugunthanvnm@ti.com> [140513 01:45]:
-> Add AM437x GP EVM cpsw device tree node
-> 
-> Mugunthan V N (2):
->   ARM: dts: am4372: Add cpsw phy sel dt node
->   ARM: dts: am437x-gp-evm: Add ethernet support for GP EVM
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [140513 03:31]:
+> dma-channels, ti,edma-regions and ti,edma-slots no longer needed in DT since
+> the the same information is available in the IP's CCCFG register.
 
-Thanks applying both into omap-for-v3.16/dt.
+Sounds like this must go with the edma patches or else
+applied later on. Probably best to merge it with edma:
 
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
