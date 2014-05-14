@@ -1,51 +1,96 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for configuring the iATU
-Date: Tue, 13 May 2014 15:34:53 +0200
-Message-ID: <4528185.oZbgyuuFKX@wuerfel>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com> <53721D7F.9070200@ti.com> <202752041.rgamje4etj@wuerfel>
+From: Zhuang Jin Can <jin.can.zhuang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] usb: dwc3: ep0: fix delayed status is queued too early
+Date: Tue, 13 May 2014 21:45:51 -0400
+Message-ID: <20140514014551.GA16153@intel.com>
+References: <20140507215344.GH19925@intel.com>
+Reply-To: jin.can.zhuang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <202752041.rgamje4etj@wuerfel>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, 'Santosh Shilimkar' <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, 'Bjorn Helgaas' <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, 'Marek Vasut' <marex-ynQEQJNshbs@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20140507215344.GH19925-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liping.zhou-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, david.a.cohen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 13 May 2014 15:27:46 Arnd Bergmann wrote:
-> On Tuesday 13 May 2014 18:56:23 Kishon Vijay Abraham I wrote:
-> > > If you have a case where the outbound translation is a 256MB (i.e. 28bit)
-> > > section of the CPU address space, that could be represented as
-> > > 
-> > >       ranges = <0x82000000 0 0  0xb0000000  0 0x10000000>;
-> > > 
-> > > or 
-> > > 
-> > >       ranges = <0x82000000 0 0xb0000000  0xb0000000  0 0x10000000>;
-> > > 
-> > > depending on whether you want the BARs to be programmed using a low
-> > > address 0x0-0x0fffffff or an address matching the window
-> > > 0xb0000000-0xbfffffff.
-> > 
-> > The problem is, for configuring the window starting at 0xb0000000, the ATU
-> > should be programmed 0x0000000 (the cpu address for it will be 0xb0000000 though).
-> > 
+Hi Balbi,
+
+Do you have any comment for this patch?
+
+Thanks
+Jincan
+
+On Wed, May 07, 2014 at 05:53:44PM -0400, Zhuang Jin Can wrote:
+> A delayed status request may be queued before composite framework returns
+> USB_GADGET_DELAYED_STATUS, because the thread queueing the request can run
+> on a different core in parallel with the control request irq.
 > 
-> Then use the first of the two?
+> SETUP XferComplete IRQ        		fsg_main_thread
+> ----------------------        		---------------
+> 	|					|
+> spin_lock_irqsave(&dwc->lock)               sleeping
+> 	|					|
+> 	...					...
+> dwc3_ep0_inspect_setup()			|
+> 	|					|
+> dwc3_ep0_delegate_req() 			|
+> 	|					|
+> 	...					|
+> spin_unlock(&dwc->lock);			|
+> 	|					|
+> fsg_set_alt()   ======> Signal Wakeup ====>	|
+> 	| 					|
+> other gadgets->set_alt() 	       handle exception
+> 	|					|
+> 	|			usb_composite_setup_continue()
+> 	|					|
+> 	|			spin_lock_irqsave(&dwc->lock)
+>   	|			     __dwc3_gadget_ep0_queue()
+> 	|				 delay_status is false
+> 	|			spin_unlock_irqrestore(&dwc->lock)
+> 	|					|
+> 	|				     sleeping
+> spin_lock(&dwc->lock); 				|
+> 	|					|
+> delayed_status=true				|
+> 	|					|
 > 
-
-To clarify: using <0x82000000 0 0  0xb0000000  0 0x10000000> will give you 
-a mem_offset of 0xb0000000, which should work just fine for this case.
-
-What I don't understand is why the ATU cares about whether the outbound
-address is 0x0000000 or 0xb0000000 if it just decodes the lower 28 bit
-anyway. Did you mean that we have to program the BARs using low addresses
-regardless of what is programmed in the ATU? That would make more sense,
-and it also matches what I suggested.
-
-	Arnd
+> 		STATUS XferNotReady IRQ
+> 		------------------------
+> 			|
+> 		dwc3_ep0_xfernotready()
+> 			|
+> 		   delayed_status is true, return;
+> 
+> The result is the status packet will never be transferred, and
+> delayed_status is not cleared.
+> 
+> Signed-off-by: Zhuang Jin Can <jin.can.zhuang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reported-by: Zhou Liping <liping.zhou-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/usb/dwc3/ep0.c |    6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
+> index 21a3520..07292c0 100644
+> --- a/drivers/usb/dwc3/ep0.c
+> +++ b/drivers/usb/dwc3/ep0.c
+> @@ -1020,7 +1020,11 @@ static void dwc3_ep0_xfernotready(struct dwc3 *dwc,
+>  		if (dwc->delayed_status) {
+>  			WARN_ON_ONCE(event->endpoint_number != 1);
+>  			dev_vdbg(dwc->dev, "Mass Storage delayed status\n");
+> -			return;
+> +
+> +			if (list_empty(&dwc->eps[0]->request_list))
+> +				return;
+> +			else
+> +				dwc->delayed_status = false;
+>  		}
+>  
+>  		dwc3_ep0_do_control_status(dwc, event);
+> -- 
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
