@@ -1,58 +1,130 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP2+: enable LEDS class support
-Date: Wed, 14 May 2014 08:10:05 -0700
-Message-ID: <20140514151004.GA18463@atomide.com>
-References: <1400067905-20786-1-git-send-email-javier@dowhile0.org>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 03/17] phy: ti-pipe3: add external clock support for PCIe
+ PHY
+Date: Wed, 14 May 2014 20:49:24 +0530
+Message-ID: <5373897C.6080504@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com> <1399383244-14556-4-git-send-email-kishon@ti.com> <53736CBC.2060702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58323 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750741AbaENPKL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 11:10:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1400067905-20786-1-git-send-email-javier@dowhile0.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <53736CBC.2060702@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: balajitk@ti.com, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: AnilKumar Ch <anilkumar@ti.com>, linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <javier@dowhile0.org> [140514 04:46]:
-> Commit 5610b8ede ("ARM: OMAP2+: AM33XX: omap2plus_defconfig:
-> Add support for few drivers") added support for different
-> drivers including GPIO based leds.
+Hi Roger,
+
+On Wednesday 14 May 2014 06:46 PM, Roger Quadros wrote:
+> Hi Kishon,
 > 
-> But LEDS_GPIO config option depends on LEDS_CLASS which was
-> not included so GPIO leds option is not selected. Adding as
-> built-in option since the related options are built-in too.
-
-Yeah this is already enabled with the PM related patches as
-we can use the n900 debug LEDs to monitor for PM related
-regressions. So patch "ARM: dts: Enable N900 keyboard sleep
-leds by default" enables CONFIG_LEDS_CLASS, I've sent a pull
-request for that few days ago for v3.16.
-
-Regards,
-
-Tony
- 
-> Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
-> ---
->  arch/arm/configs/omap2plus_defconfig | 1 +
->  1 file changed, 1 insertion(+)
+> On 05/06/2014 04:33 PM, Kishon Vijay Abraham I wrote:
+>> APLL used by PCIE phy can either use external clock as input or the clock
+>> from DPLL. Added support for the APLL to use external clock as input here.
+>>
+>> Cc: Rajendra Nayak <rnayak@ti.com>
+>> Cc: Tero Kristo <t-kristo@ti.com>
+>> Cc: Paul Walmsley <paul@pwsan.com>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/phy/ti-phy.txt |    4 ++
+>>  drivers/phy/phy-ti-pipe3.c                       |   75 ++++++++++++++--------
+>>  2 files changed, 52 insertions(+), 27 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>> index bc9afb5..d50f8ee 100644
+>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>> @@ -76,6 +76,10 @@ Required properties:
+>>     * "dpll_ref_m2" - external dpll ref clk
+>>     * "phy-div" - divider for apll
+>>     * "div-clk" - apll clock
+>> +   * "apll_mux" - mux for pcie apll
+>> +   * "refclk_ext" - external reference clock for pcie apll
+>> + - ti,ext-clk: To specifiy if PCIE apll should use external clock. Applicable
+>> +   only to PCIE PHY.
 > 
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index a4e8d01..0a70170 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -239,6 +239,7 @@ CONFIG_SDIO_UART=y
->  CONFIG_MMC_OMAP=y
->  CONFIG_MMC_OMAP_HS=y
->  CONFIG_NEW_LEDS=y
-> +CONFIG_LEDS_CLASS=y
->  CONFIG_LEDS_GPIO=y
->  CONFIG_LEDS_TRIGGERS=y
->  CONFIG_LEDS_TRIGGER_TIMER=y
-> -- 
-> 2.0.0.rc0
+> Instead of specifying both clock sources "dpll_ref_clock", "refclk_ext" and then specifying a 3rd control option "ti,ext-clk" to select one of the 2 sources, why can't the DT just supply one clock source, i.e. the one that is being used in the board instance? The driver should then just configure the clock rate that is needed at that node. Shouldn't the clock framework automatically take care of muxing and parent rates?
+
+Want the dt to have all the clocks used by the controller. "ti,ext-clk" should
+go in the board dt file (suggested by Nishanth).
+The point is at some point later if some one wants to change the clock source,
+it should be a simple enabling "ti,ext-clk" flag instead of finding the clock
+phandle etc..
 > 
+>>  
+>>  Optional properties:
+>>   - ctrl-module : phandle of the control module used by PHY driver to power on
+>> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+>> index d43019d..5513aa0 100644
+>> --- a/drivers/phy/phy-ti-pipe3.c
+>> +++ b/drivers/phy/phy-ti-pipe3.c
+>> @@ -293,7 +293,7 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+>>  	struct device_node *control_node;
+>>  	struct platform_device *control_pdev;
+>>  	const struct of_device_id *match;
+>> -	struct clk *clk;
+>> +	struct clk *clk, *pclk;
+>>  
+>>  	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+>>  	if (!phy) {
+>> @@ -302,6 +302,20 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+>>  	}
+>>  	phy->dev		= &pdev->dev;
+>>  
+>> +	control_node = of_parse_phandle(node, "ctrl-module", 0);
+>> +	if (!control_node) {
+>> +		dev_err(&pdev->dev, "Failed to get control device phandle\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	control_pdev = of_find_device_by_node(control_node);
+>> +	if (!control_pdev) {
+>> +		dev_err(&pdev->dev, "Failed to get control device\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	phy->control_dev = &control_pdev->dev;
+>> +
+> 
+> Why this code was moved move is not part of patch description/subject.
+
+external clock support needs 'control_dev', so had to move the get control
+device part before configuring the clocks.
+> 
+>>  	if (!of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
+>>  		match = of_match_device(of_match_ptr(ti_pipe3_id_table),
+>>  					&pdev->dev);
+>> @@ -345,19 +359,40 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+>>  	}
+>>  
+>>  	if (of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
+>> -		clk = devm_clk_get(phy->dev, "dpll_ref");
+>> -		if (IS_ERR(clk)) {
+>> -			dev_err(&pdev->dev, "unable to get dpll ref clk\n");
+>> -			return PTR_ERR(clk);
+>> +		if (!of_property_read_bool(node, "ti,ext-clk")) {
+>> +			clk = devm_clk_get(phy->dev, "dpll_ref");
+>> +			if (IS_ERR(clk)) {
+>> +				dev_err(&pdev->dev,
+>> +					"unable to get dpll ref clk\n");
+>> +				return PTR_ERR(clk);
+>> +			}
+>> +			clk_set_rate(clk, 1500000000);
+>> +
+>> +			clk = devm_clk_get(phy->dev, "dpll_ref_m2");
+>> +			if (IS_ERR(clk)) {
+>> +				dev_err(&pdev->dev,
+>> +					"unable to get dpll ref m2 clk\n");
+>> +				return PTR_ERR(clk);
+>> +			}
+>> +			clk_set_rate(clk, 100000000);
+>> +		} else {
+>> +			omap_control_pcie_tx_rx_control(phy->control_dev,
+>> +						OMAP_CTRL_PCIE_PHY_RX_ACSPCIE);
+
+                        ^^here
+
+Thanks
+Kishon
