@@ -1,44 +1,47 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: [PATCH 1/1] ARM: OMAP2+: enable LEDS class support
-Date: Wed, 14 May 2014 13:45:05 +0200
-Message-ID: <1400067905-20786-1-git-send-email-javier@dowhile0.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] ARM: OMAP2+: nand: Fix NAND on OMAP2 and OMAP3 boards
+Date: Wed, 14 May 2014 15:35:08 +0300
+Message-ID: <1400070908-2929-1-git-send-email-rogerq@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:33402 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755261AbaENLpX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 07:45:23 -0400
-Received: by mail-wi0-f171.google.com with SMTP id hm4so7838770wib.10
-        for <linux-omap@vger.kernel.org>; Wed, 14 May 2014 04:45:21 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59546 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755075AbaENMfl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 May 2014 08:35:41 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: AnilKumar Ch <anilkumar@ti.com>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier@dowhile0.org>
+To: tony@atomide.com
+Cc: pekon@ti.com, balbi@ti.com, ezequiel.garcia@free-electrons.com, computersforpeace@gmail.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-Commit 5610b8ede ("ARM: OMAP2+: AM33XX: omap2plus_defconfig:
-Add support for few drivers") added support for different
-drivers including GPIO based leds.
+Commit c66d039197e4 broke NAND for non-DT boot on all OMAP2 and OMAP3
+boards using board_nand_init(). Following error is seen at boot
 
-But LEDS_GPIO config option depends on LEDS_CLASS which was
-not included so GPIO leds option is not selected. Adding as
-built-in option since the related options are built-in too.
+[    0.154998]  (null): Unsupported NAND ECC scheme selected
 
-Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+For OMAP2 and OMAP3 platforms, the ecc_opt parameter in platform data
+must be set to OMAP_ECC_HAM1_CODE_HW to work properly.
+
+Tested on omap3-beagle c4.
+
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/configs/omap2plus_defconfig | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/mach-omap2/board-flash.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index a4e8d01..0a70170 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -239,6 +239,7 @@ CONFIG_SDIO_UART=y
- CONFIG_MMC_OMAP=y
- CONFIG_MMC_OMAP_HS=y
- CONFIG_NEW_LEDS=y
-+CONFIG_LEDS_CLASS=y
- CONFIG_LEDS_GPIO=y
- CONFIG_LEDS_TRIGGERS=y
- CONFIG_LEDS_TRIGGER_TIMER=y
+diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+index ac82512..b6885e4 100644
+--- a/arch/arm/mach-omap2/board-flash.c
++++ b/arch/arm/mach-omap2/board-flash.c
+@@ -142,7 +142,7 @@ __init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs,
+ 	board_nand_data.nr_parts	= nr_parts;
+ 	board_nand_data.devsize		= nand_type;
+ 
+-	board_nand_data.ecc_opt = OMAP_ECC_BCH8_CODE_HW;
++	board_nand_data.ecc_opt = OMAP_ECC_HAM1_CODE_HW;
+ 	gpmc_nand_init(&board_nand_data, gpmc_t);
+ }
+ #endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
 -- 
-2.0.0.rc0
+1.8.3.2
 
