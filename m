@@ -1,24 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 5/5] ARM: dts: am4372: Remove obsolete properties from
- edma node
-Date: Wed, 14 May 2014 16:18:07 -0700
-Message-ID: <20140514231807.GD13427@atomide.com>
-References: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com>
- <1399977032-26469-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
+Date: Wed, 14 May 2014 16:31:19 -0700
+Message-ID: <20140514233119.GA31594@atomide.com>
+References: <1399991966-14582-1-git-send-email-santosh.shilimkar@ti.com>
+ <5373C78E.7040301@linaro.org>
+ <5373C8E8.6040208@ti.com>
+ <5373CBB9.40506@linaro.org>
+ <20140514205649.GC27426@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62252 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751425AbaENXbZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 19:31:25 -0400
 Content-Disposition: inline
-In-Reply-To: <1399977032-26469-6-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: nsekhar@ti.com, joelf@ti.com, linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, bcousson@baylibre.com
+In-Reply-To: <20140514205649.GC27426@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [140513 03:31]:
-> dma-channels, ti,edma-regions and ti,edma-slots no longer needed in DT since
-> the the same information is available in the IP's CCCFG register.
+* Tony Lindgren <tony@atomide.com> [140514 13:57]:
+> * Daniel Lezcano <daniel.lezcano@linaro.org> [140514 13:02]:
+> > 
+> > So the broadcast timer does not operate with this revert. Moreover, I am not
+> > sure reverting this patch is the right solution.
+> 
+> OK I'll hold on sending anything until there's some conclusion.
+> 
+> Are you able to reproduce the problem with current Linux next?
 
-This too:
+BTW, I'm also noticing now hangs on omap3 with my PM patches
+on v3.15-rc4 that seem similar to the panda cpuidle hang.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+The hangs on omap3 do not happen on my v3.14 based branch, so
+I'm wondering if there are some recent cpuidle regressions too
+in play?
+
+Regards,
+
+Tony
