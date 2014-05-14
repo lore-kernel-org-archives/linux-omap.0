@@ -1,109 +1,29 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
-Date: Wed, 14 May 2014 17:18:12 -0400
-Message-ID: <5373DD94.8030208@ti.com>
-References: <1399991966-14582-1-git-send-email-santosh.shilimkar@ti.com> <5373C78E.7040301@linaro.org> <5373C8E8.6040208@ti.com> <5373CBB9.40506@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 4/4] ARM: dts: dra7: add OCP2SCP3 and SATA nodes
+Date: Wed, 14 May 2014 14:18:52 -0700
+Message-ID: <20140514211851.GF27426@atomide.com>
+References: <1398274237-24510-1-git-send-email-rogerq@ti.com>
+ <1398274575-24818-1-git-send-email-rogerq@ti.com>
+ <536A2002.4020603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55225 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753554AbaENVSh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 May 2014 17:18:37 -0400
-In-Reply-To: <5373CBB9.40506@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <536A2002.4020603@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>, khilman@linaro.org, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-On Wednesday 14 May 2014 04:02 PM, Daniel Lezcano wrote:
-> On 05/14/2014 09:50 PM, Santosh Shilimkar wrote:
->> On Wednesday 14 May 2014 03:44 PM, Daniel Lezcano wrote:
->>> On 05/13/2014 04:39 PM, Santosh Shilimkar wrote:
->>>> On OMAP4 panda board, there have been several bug reports about boot
->>>> hang and lock-ups with CPU_IDLE enabled. The root cause of the issue
->>>> is missing interrupts while in idle state. Commit cb7094e8 {cpuidle / omap4 :
->>>> use CPUIDLE_FLAG_TIMER_STOP flag} moved the broadcast notifiers to common
->>>> code for right reasons but on OMAP4 which suffers from a nasty ROM code
->>>> bug with GIC, commit ff999b8a {ARM: OMAP4460: Workaround for ROM bug ..},
->>>> we loose interrupts which leads to issues like lock-up, hangs etc.
->>>>
->>>> Patch reverts commit cb7094 {cpuidle / omap4 : use CPUIDLE_FLAG_TIMER_STOP
->>>> flag} to avoid the issue. With this change, OMAP4 panda boards, the mentioned
->>>> issues are getting fixed. We no longer loose interrupts which was the cause
->>>> of the regression.
->>>>
->>>> Cc: Roger Quadros <rogerq@ti.com>
->>>> Cc: Kevin Hilman <khilman@linaro.org>
->>>> Cc: Tony Lindgren <tony@atomide.com>
->>>> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
->>>> Reported-tested-by: Roger Quadros <rogerq@ti.com>
->>>> Reported-tested-by: Kevin Hilman <khilman@linaro.org>
->>>> Tested-by: Tony Lindgren <tony@atomide.com>
->>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>> ---
+* Roger Quadros <rogerq@ti.com> [140507 04:59]:
+> From: Balaji T K <balajitk@ti.com>
 > 
-> [ ... ]
+> Add nodes for OCP2SCP3 bus, SATA controller and SATA PHY.
 > 
->>>>
->>>> +    clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
->>>> +
->>>>        /*
->>>>         * Call idle CPU PM enter notifier chain so that
->>>>         * VFP and per CPU interrupt context is saved.
->>>> @@ -165,6 +169,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
->>>>        if (dev->cpu == 0 && mpuss_can_lose_context)
->>>>            cpu_cluster_pm_exit();
->>>>
->>>> +    clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
-> 
-> [ ... ]
-> 
->>>
->>> Shouldn't the broadcast timer to be setup with CLOCK_EVT_NOTIFY_BROADCAST_ON also ?
->>>
->> Which is already taken care by __cpuidle_register_driver(). Note that setup code
->> is still used from generic code...
-> 
-> Nope, if the flag CPUIDLE_FLAG_TIMER_STOP is not set, the cpuidle framework won't setup the timer.
-> 
-I see. I assumed it was taken care. So we might have setup the timer too.
+> [Roger Q] Clean up. Updated IRQ for interrupt crossbar.
 
-> static void __cpuidle_driver_init(struct cpuidle_driver *drv)
-> {
-> 
->     ...
-> 
->     for (i = drv->state_count - 1; i >= 0 ; i--) {
->         if (drv->states[i].flags & CPUIDLE_FLAG_TIMER_STOP) {
-May be you should start the bc timer in case 'CPUIDLE_FLAG_TIMER_STOP'
-or 'CPUIDLE_FLAG_COUPLED'
->             drv->bctimer = 1;
->             break;
->         }
->     }
-> 
->     ...
-> 
-> }
-> 
-> static int __cpuidle_register_driver(struct cpuidle_driver *drv)
-> {
->     ...
-> 
->     if (drv->bctimer)
->         on_each_cpu_mask(drv->cpumask,
->         cpuidle_setup_broadcast_timer,
->          (void *)CLOCK_EVT_NOTIFY_BROADCAST_ON, 1);
-> 
->     ...
-> }
-> 
-> So the broadcast timer does not operate with this revert. Moreover, I am not sure reverting this patch is the right solution.
-> 
-With above mentioned change, it should work. Other alternatives is OMAP4 driver does
-its won registration where it can start the timer. The way it was before the
-consolidation.
+Adding this too into omap-for-v3.16/dt.
 
-Ofcourse if you have better fix, then great. 
+Regards,
+
+Tony
