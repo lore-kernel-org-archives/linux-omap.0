@@ -1,71 +1,35 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [alsa-devel] [PATCH 00/19] Rework OMAP4+ HDMI audio support
-Date: Wed, 14 May 2014 13:02:22 +0300
-Message-ID: <53733F2E.4030803@ti.com>
-References: <cover.1399884780.git.jsarha@ti.com> <CAGhQ9VzjndCBp+ZHS3XPPvS4ors6u9BfHf4NY_HNYN5ynyQOYQ@mail.gmail.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v11 0/6] mmc: omap_hsmmc: Enable SDIO IRQ
+Date: Wed, 14 May 2014 12:21:23 +0200
+Message-ID: <CAPDyKFqwNYr3WHe+4e5+3gt-NCYiwPq7DxG7HHr+YTygZXPZnw@mail.gmail.com>
+References: <1399807738-32223-1-git-send-email-afenkart@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42305 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752121AbaENKCe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 06:02:34 -0400
-In-Reply-To: <CAGhQ9VzjndCBp+ZHS3XPPvS4ors6u9BfHf4NY_HNYN5ynyQOYQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1399807738-32223-1-git-send-email-afenkart@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Andreas Fenkart <afenkart@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, Sebastian Reichel <sre@kernel.org>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joachim Eastwood <manabian@gmail.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com, broonie@kernel.org, peter.ujfalusi@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Benoit Cousson <bcousson@baylibre.com>
 
-On 05/13/2014 12:13 AM, Joachim Eastwood wrote:
-> On 12 May 2014 11:12, Jyri Sarha <jsarha@ti.com> wrote:
-...
+On 11 May 2014 13:28, Andreas Fenkart <afenkart@gmail.com> wrote:
+> Hi Balaji, Tony, all
 >
-> hey, this worked straight away :)
->
-> But there seems to be something wrong with the channel mapping.
->
-> For stereo (speaker-test -c 2) the mapping is correct.
->
-> But for -c 4 and -c 8 it gets weird:
-> speaker-test -c 4 -s X # where X is 1-4
-> 1: Front Left is Rear Left
-> 2: Front Right is Rear Right
-> 3: Rear Right is Front Right
-> 4: Rear Left is Front Left
->
-> speaker-test -c 8 -s X # where X is 1-8
-> 1: Front Left is Rear Left
-> 2: Center is Rear Left
-> 3: Front Right is Rear Right
-> 4: Side Right is Front Right
-> 5: Rear Right is silent
-> 6: Rear Left is Center
-> 7: Side Left is Front Left
-> 8: LFE - Rear Right
->
-> I think you need to check what channel order ALSA expects. I believe
-> speaker-test does the right thing on my HTPC normally connected to my
-> receiver.
->
+> v12
+> - drop !CONFIG_OF compile break only exists when
+>   #undef CONFIG_OF after include headers 1/7(Sebastian Reichel)
+> - do not emit "falling back to polling" if wake_irq not specified
+>   since MMC does not need it, and it might confuse users
+>   only emit if pinmux default/idle is not present or claiming
+>   the irq failed 2/7(Balaji)
+> - dropped out-of-tree patches 6/7(Balaji)
+> - mention "ti,am33xx-hsmmc" compatible section in bindings
+>   documentation 1/5
 
-I checked the implementation and there was indeed something weird there, 
-but the implementation can not explain the FL and FR channels jumping 
-around. FL and FL should always be the first two channels in all 
-configurations and the implementation does not touch them.
+Hi Andreas,
 
-The implementation uses 8ch HDMI setup for anything above 2ch with 
-"Audio InfoFrame Data Byte 4" set to 0x13. According to CEA-861 specs 
-this means following channel order: FL, FR, LFE, FC, RL, RR, RLC, RRC
+It seems like we are ready to merge this patchset - I will include it
+in the next PR I send to Chris.
 
-This is a closest match to ALSA 8ch mapping (according to 
-sound/core/pcm_lib.c) which is: FL, FR, FC, LFE, RL, RR, SL, SR
-
-Current implementation has FLE and FC channels correctly swapped, but it 
-shifts them to last two channels and RL, RR, SL, SR are shifted down to 
-fill the place. This is all wrong and I'll try to come up with a fix for 
-that. Unfortunately I can not test anything beyond 2 ch myself so I 
-would need someone to volunteer to test my patch.
-
-Best regards,
-Jyri
+Kind regards
+Ulf Hansson
