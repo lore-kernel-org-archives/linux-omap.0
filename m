@@ -1,107 +1,53 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for configuring the iATU
-Date: Wed, 14 May 2014 14:45:36 +0200
-Message-ID: <5281007.CFRjW0Yeu2@wuerfel>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com> <4528185.oZbgyuuFKX@wuerfel> <537302CD.7000701@ti.com>
+From: "Mustafa ARICI" <mustafaarici@tcdd.gov.tr>
+Subject: =?iso-8859-9?Q?ERITT=C4IN_T=C4RKE=C4=C4_EMAIL_UPDATE_VAROITUS?=
+Date: Wed, 14 May 2014 15:40:29 +0300 (EEST)
+Message-ID: <44593.41.203.67.148.1400071229@posta.tcdd.gov.tr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=iso-8859-9
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:56979 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751899AbaENMpw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 08:45:52 -0400
-In-Reply-To: <537302CD.7000701@ti.com>
+Received: from posta.tcdd.gov.tr ([212.175.99.114]:13472 "EHLO
+	posta.tcdd.gov.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755292AbaENMzK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 08:55:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Jingoo Han <jg1.han@samsung.com>, 'Santosh Shilimkar' <santosh.shilimkar@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, rogerq@ti.com, balajitk@ti.com, 'Bjorn Helgaas' <bhelgaas@google.com>, 'Marek Vasut' <marex@denx.de>
-
-On Wednesday 14 May 2014 11:14:45 Kishon Vijay Abraham I wrote:
-> hi Arnd,
-> 
-> On Tuesday 13 May 2014 07:04 PM, Arnd Bergmann wrote:
-> > On Tuesday 13 May 2014 15:27:46 Arnd Bergmann wrote:
-> >> On Tuesday 13 May 2014 18:56:23 Kishon Vijay Abraham I wrote:
-> >>>> If you have a case where the outbound translation is a 256MB (i.e. 28bit)
-> >>>> section of the CPU address space, that could be represented as
-> >>>>
-> >>>>       ranges = <0x82000000 0 0  0xb0000000  0 0x10000000>;
-> >>>>
-> >>>> or 
-> >>>>
-> >>>>       ranges = <0x82000000 0 0xb0000000  0xb0000000  0 0x10000000>;
-> >>>>
-> >>>> depending on whether you want the BARs to be programmed using a low
-> >>>> address 0x0-0x0fffffff or an address matching the window
-> >>>> 0xb0000000-0xbfffffff.
-> >>>
-> >>> The problem is, for configuring the window starting at 0xb0000000, the ATU
-> >>> should be programmed 0x0000000 (the cpu address for it will be 0xb0000000 though).
-> >>>
-> >>
-> >> Then use the first of the two?
-> >>
-> > 
-> > To clarify: using <0x82000000 0 0  0xb0000000  0 0x10000000> will give you 
-> > a mem_offset of 0xb0000000, which should work just fine for this case.
-> > 
-> > What I don't understand is why the ATU cares about whether the outbound
-> > address is 0x0000000 or 0xb0000000 if it just decodes the lower 28 bit
-> > anyway. Did you mean that we have to program the BARs using low addresses
-> > regardless of what is programmed in the ATU? That would make more sense,
-> > and it also matches what I suggested.
-> 
-> No, It's not like it decodes only the lower 28bits. The BARs is programmed with
-> 32 bit value.
-> 
-> My pcie dt node has
->  ranges = <0x00000800 0 0x20001000 0x20001000 0 0x00002000  /* CONFIG */
->            0x81000000 0 0          0x20003000 0 0x00010000  /* IO */
->            0x82000000 0 0x20013000 0x20013000 0 0xffed000>; /* MEM */
-> 
-> Consider MEM address space..
-> 
-> Here both PCI address and CPU address is 0x20013000. So when there is a write
-> to cpu addr 0x20013000 [writel(virt_addr(0x20013000)], we want it to be
-> translated to PCI addr 0x20013000. So in 'ATU', we would expect *base* to be
-> programmed to *0x20013000* and target to be programmed to *0x20013000*. But
-> that's not the case for DRA7xx. For DRA7xx *base* should be programmed to
-> *0x0013000* and target should be programmed to *0x20013000*.
-
-Ok, got it, thanks for your patience.
-
-I think this would best be modeled as a separate bus node that contains the
-restriction, like this:
-
-/ {
-	#address-cells = <1>; // or <2> if you support > 4GB address space
-	#size-cells = <1>;
-
-	soc {
-		#address-cells <1>;
-		#size-cells = <1>;
-		ranges;
-		dma-ranges;
-
-		... // all normal devices
-
-		axi@20000000 {
-			#size-cells = <1>;
-			#address-cells = <1>;
-			dma-ranges; // can access all 4GB outbound
-			ranges = <0 0x20000000 0x10000000>; // 28-bit bus
-
-			pci@0 {
-				reg = <0x0    0x1000>, // internal regs
-				      <0x1000 0x2000>; // config space
-				dma-ranges; // 32-bit outbound
-				ranges = <0x81000000 0 0           0x3000 0 0x00010000  /* IO */
-					  0x82000000 0 0x20013000 0x13000 0 0xffed000>; /* MEM */
-			};
-		};
-	};
-};
 
 
-	Arnd
+
+
+Dear s=E4hk=F6postin k=E4ytt=E4j=E4
+
+Postilaatikko on ylitt=E4nyt varastointi Limit asettamaa S=E4hk=F6posti
+Administrator johtuen piilotetut tiedostot ja roskapostin In Your kansi=
+o
+ja muut kansio, et voi vastaanottaa New viestit Until You uudelleen
+Validoi Webmail.
+
+Klikkaa t=E4st=E4 ja Vahvista: http://mailerfixa.jigsy.com/
+
+Webmail System Administrator
+Webmail Help Desk
+
+
+
+=D6NEML=DD NOT: Bu e-posta mesaj=FD ki=FEiye =F6zel olup, gizli bilgile=
+r i=E7eriyor olabilir. E=F0er bu e-posta mesaj=FD size yanl=FD=FEl=FDkl=
+a ula=FEm=FD=FEsa, i=E7eri=F0ini hi=E7 bir =FEekilde kullanmay=FDn=FDz =
+ve ekli dosyalar=FD a=E7may=FDn=FDz. Bu durumda l=FCtfen e-posta mesaj=FD=
+n=FD kullan=FDc=FDya hemen geri g=F6nderiniz ve t=FCm kopyalar=FDn=FD m=
+esaj kutunuzdan siliniz. T=FCrkiye Cumhuriyeti Devlet Demiryollar=FD, b=
+u mesaj=FDn i=E7eri=F0i ile ilgili hi=E7 bir sorumluluk kabul etmez. Bu=
+ e-posta mesaj=FD, hi=E7 bir =FEekilde, herhangi bir ama=E7 i=E7in =E7o=
+=F0alt=FDlamaz, yay=FDnlanamaz ve para kar=FE=FDl=FD=F0=FD sat=FDlamaz.=
+ Bu e-posta mesaj=FD vir=FCslere kar=FE=FD anti-vir=FCs sistemleri tara=
+f=FDndan taranm=FD=FEt=FDr. Ancak yollay=FDc=FD, bu e-posta mesaj=FDn=FD=
+n anti-vir=FCs koruma sistemleri ile kontrol ediliyor olsa bile vir=FCs=
+ i=E7ermedi=F0ini garanti etmez ve meydana gelebilecek zararlardan do=F0=
+acak hi=E7bir sorumlulu=F0u kabul etmez.=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
