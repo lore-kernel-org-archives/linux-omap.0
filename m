@@ -1,69 +1,67 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for
- configuring the iATU
-Date: Wed, 14 May 2014 11:14:45 +0530
-Message-ID: <537302CD.7000701@ti.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com> <53721D7F.9070200@ti.com> <202752041.rgamje4etj@wuerfel> <4528185.oZbgyuuFKX@wuerfel>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH 5/5] usb: dwc3: dwc3-omap: Disable/Enable core interrupts
+ in Suspend/Resume
+Date: Wed, 14 May 2014 11:29:43 +0530
+Message-ID: <5373064F.4000204@ti.com>
+References: <1399541587-14067-1-git-send-email-george.cherian@ti.com> <1399541587-14067-6-git-send-email-george.cherian@ti.com> <20140513155019.GN1151@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <4528185.oZbgyuuFKX@wuerfel>
-Sender: linux-doc-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jingoo Han <jg1.han@samsung.com>, 'Santosh Shilimkar' <santosh.shilimkar@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, rogerq@ti.com, balajitk@ti.com, 'Bjorn Helgaas' <bhelgaas@google.com>, 'Marek Vasut' <marex@denx.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140513155019.GN1151@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, rogerq@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-hi Arnd,
+On 5/13/2014 9:20 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Thu, May 08, 2014 at 03:03:07PM +0530, George Cherian wrote:
+>> Enabling the core interrupts in complete is too late for XHCI, and stops
+>> xhci from proper operation. So remove prepare and complete and disable/enable
+> isn't this a bug in xhci ? I mean the driver should make no assumption
+> as to when IRQs are enabled, why do we need to enable IRQs earlier when
+> the device is only considered "ready for use" after ->complete()
+> finishes executing ?
+I dont think its a bug in xhci. In case of xhci-pci driver it actually 
+does an
+hcd->driver->pci_suspend (xhci_suspend) followed by synchronize_irq()
+and the does a pci_disable_device().  In resume path it calls 
+pci_enable_device()
+followed by hcd->driver->pci_resume(xhci_resume).
 
-On Tuesday 13 May 2014 07:04 PM, Arnd Bergmann wrote:
-> On Tuesday 13 May 2014 15:27:46 Arnd Bergmann wrote:
->> On Tuesday 13 May 2014 18:56:23 Kishon Vijay Abraham I wrote:
->>>> If you have a case where the outbound translation is a 256MB (i.e. 28bit)
->>>> section of the CPU address space, that could be represented as
->>>>
->>>>       ranges = <0x82000000 0 0  0xb0000000  0 0x10000000>;
->>>>
->>>> or 
->>>>
->>>>       ranges = <0x82000000 0 0xb0000000  0xb0000000  0 0x10000000>;
->>>>
->>>> depending on whether you want the BARs to be programmed using a low
->>>> address 0x0-0x0fffffff or an address matching the window
->>>> 0xb0000000-0xbfffffff.
->>>
->>> The problem is, for configuring the window starting at 0xb0000000, the ATU
->>> should be programmed 0x0000000 (the cpu address for it will be 0xb0000000 though).
->>>
->>
->> Then use the first of the two?
->>
-> 
-> To clarify: using <0x82000000 0 0  0xb0000000  0 0x10000000> will give you 
-> a mem_offset of 0xb0000000, which should work just fine for this case.
-> 
-> What I don't understand is why the ATU cares about whether the outbound
-> address is 0x0000000 or 0xb0000000 if it just decodes the lower 28 bit
-> anyway. Did you mean that we have to program the BARs using low addresses
-> regardless of what is programmed in the ATU? That would make more sense,
-> and it also matches what I suggested.
+In case of dwc3-omap we do have a wrapper register which can still 
+disable the XHCI IRQs
+even though the xhci driver enables the interrupts internally.
 
-No, It's not like it decodes only the lower 28bits. The BARs is programmed with
-32 bit value.
+Now dwc3-omap wrapper driver should not actually fiddle with the core 
+Interrupt
+enable/disable except in probe/remove.
 
-My pcie dt node has
- ranges = <0x00000800 0 0x20001000 0x20001000 0 0x00002000  /* CONFIG */
-           0x81000000 0 0          0x20003000 0 0x00010000  /* IO */
-           0x82000000 0 0x20013000 0x20013000 0 0xffed000>; /* MEM */
+>  From documentation we have:
+>
+> 107  * @complete: Undo the changes made by @prepare().  This method is executed for
+> 108  *      all kinds of resume transitions, following one of the resume callbacks:
+> 109  *      @resume(), @thaw(), @restore().  Also called if the state transition
+> 110  *      fails before the driver's suspend callback: @suspend(), @freeze() or
+> 111  *      @poweroff(), can be executed (e.g. if the suspend callback fails for one
+> 112  *      of the other devices that the PM core has unsuccessfully attempted to
+> 113  *      suspend earlier).
+> 114  *      The PM core executes subsystem-level @complete() after it has executed
+> 115  *      the appropriate resume callbacks for all devices.
+>
+> which tells me that using ->complete() to reenable IRQs is ok here.
+> Specially when you consider that the role of ->prepare() is to prevent
+> new children from being created and, for a USB host, that means we
+> should prevent hub port changes.
+Probably the patch should have been to still keep the complete/prepare 
+in place
+but not disable the core interrupts, rather enable/disable only the 
+wrapper interrupt.
+> cheers
+>
 
-Consider MEM address space..
 
-Here both PCI address and CPU address is 0x20013000. So when there is a write
-to cpu addr 0x20013000 [writel(virt_addr(0x20013000)], we want it to be
-translated to PCI addr 0x20013000. So in 'ATU', we would expect *base* to be
-programmed to *0x20013000* and target to be programmed to *0x20013000*. But
-that's not the case for DRA7xx. For DRA7xx *base* should be programmed to
-*0x0013000* and target should be programmed to *0x20013000*.
-
-Thanks
-Kishon
+-- 
+-George
