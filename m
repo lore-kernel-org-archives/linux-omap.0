@@ -1,167 +1,142 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
- support
-Date: Wed, 14 May 2014 09:19:39 +0300
-Message-ID: <53730AFB.2090800@ti.com>
-References: <20140509155504.GE17814@atomide.com> <53707A64.2060203@ti.com> <CABxcv=kwhodeFTHoVpn1nHeh9+kV5fwMN9s3Kbk6h7_xJp4UYA@mail.gmail.com> <53709706.10501@ti.com> <CABxcv=mY0a+yJgmCTPN=BhSQD57Pw022zOd5_KxEgvvF_-=O7Q@mail.gmail.com> <20140512142646.GA31772@atomide.com> <5370E0C9.8050201@ti.com> <20140512155132.GH31772@atomide.com> <5371F923.80000@ti.com> <CABxcv==_LCw1kPYm17g=h8VfSN2V_qsgXjTnsy-JOetawSv4pA@mail.gmail.com> <20140513152518.GA16837@atomide.com>
+Subject: Re: [PATCH 1/4] OMAPDSS: Fix DSS clock multiplier issue on 3703 and
+ probably 3630
+Date: Wed, 14 May 2014 09:41:26 +0300
+Message-ID: <53731016.8020103@ti.com>
+References: <1398815562-24113-1-git-send-email-tony@atomide.com> <1398815562-24113-2-git-send-email-tony@atomide.com> <536C860E.1000501@ti.com> <20140509143703.GA17814@atomide.com> <5370B222.7050702@ti.com> <20140512143934.GC31772@atomide.com> <5370DE42.2060607@ti.com> <20140513152626.GB16837@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="fTpCvbkCp2BpGTTftNiSc1MiuOFFiBhJ1"
+	boundary="o4rrmRDoDogx8XTQ1MwgADa2j0BLfKlan"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33259 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752012AbaENGUN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2014 02:20:13 -0400
-In-Reply-To: <20140513152518.GA16837@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:33567 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750717AbaENGlx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 May 2014 02:41:53 -0400
+In-Reply-To: <20140513152626.GB16837@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
---fTpCvbkCp2BpGTTftNiSc1MiuOFFiBhJ1
+--o4rrmRDoDogx8XTQ1MwgADa2j0BLfKlan
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 13/05/14 18:25, Tony Lindgren wrote:
-
-> Well ideally the revision info for a device would come from device
-> revision registers rather using the SoC revision. In the DSS case when
-> the SoC revision is needed by a device it maybe it can be deciphered
-> from a combination of compatible flag and the clock rate for example?
-
-I've been trying that. The HW guys didn't bother to update the DSS
-revision registers, so they are useless. And, for example, the OMAP3 ES
-difference is only about bitfield widths in two registers.
-
-I tried writing "too long" value to the register on the earlier ES
-version, hoping that the extra bits would be kept at zero, but that
-wasn't the case. So I just don't see a way to detect this from the DSS's
-point of view.
-
->>> Do you object to the compatible string remapping as such, or just tha=
-t
->>> it's in arch/arm/mach-omap2?
->=20
-> It's something I'd rather not have under mach-omap2 as that means that
-> I may need to deal with it too to some extent. And I don't think we
-> need to do such remapping, we should be able to use the panel compatibl=
-e
-> strings as they are just fine. It should be possible to figure out from=
-
-> the device tree properties what controller the panel belongs to. Or
-> for now, use the panel registration to figure out what display controll=
-er
-> it belongs to.
->=20
->>> I guess nothing prevents me from moving it to drivers/, and having so=
-me
->>> early-ish initcall doing the job.
->=20
-> /me likes this idea if you need it at all. Stuff like this tends to sta=
-y
-> and spread, so I'd rather not do the remapping of compatible strings at=
-
-> all.
-
-Yep. I'll look to this. Thinking about it now, it kind of makes more
-sense to have it in the omapdss's directory.
-
->> So, since we can change the kernel later but not the DTS, I agree with=
-
->> you that the remapping is the least bad of our options.
->=20
-> Yes the binding for the panel should just describe the panel so it can =
-be
-> used with whatever display controller. But we do have quite a few buses=
-
-> probing devices. How about set up the panel probing the same way?
-
-> For the panels on display controller, just do the usual
-> for_each_child_of_node(pdev->dev.of_node, child) and probe them?
->
-> It seems the remapping of compatible strings is not needed in this
-> as we're only picking up panels that are children of the display
-> controller.
-
-The panels (or display encoders) are not (usually) children of the
-display controller. They are children of their respective control bus.
-Say, an i2c panel is a child of i2c bus. If there's no control bus, like
-is the case with the sharp panel, it's a platform device.
-
-The video paths of the panels and encoders are connected using the v4l2
-style ports/endpoints. We can use those to see what display controller a
-panel is connected to, but only after the panel driver has already
-probed. We don't have control for the actual probing, as that happens
-with whatever the control bus is for the display component.
-
->>>>> I'm not sure what it would give us to try to be compatible with
->>>>> simple-panel.txt. The simple-panel bindings won't probably be compa=
-tible
->>>>> with the future common display drivers in any case, as the simple-p=
-anel
->>>>> binding is just too limited and doesn't describe the hardware fully=
-=2E
+On 13/05/14 18:26, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140512 07:45]:
+>> On 12/05/14 17:39, Tony Lindgren wrote:
+>>> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140512 04:36]:
+>>>> On 09/05/14 17:37, Tony Lindgren wrote:
+>>>>>
+>>>>> This is just the 3730-evm with the Sharp VGA panel mentioned in
+>>>>> this series.
 >>>>
->>>> Hmm what else does a panel need where the existing binding cannot be=
+>>>> Hmm, well, those both look fine. The fck is well below the maximum,
+>>>> which is somewhere around 170MHz-180MHz. The lck/pck ratio is higher=
 
->>>> extended?
+>>>> with this patch, but that should affect the GFX overlay.
+>>>>
+>>>> So you're just booting, and there are no applications that use the
+>>>> framebuffer? And there is no rotation or such configured?
 >>>
->>> The existing simple-panel binding doesn't describe the connections of=
-
->>> the panel, i.e. its video input. I guess it can be extended, but I do=
-n't
->>> see what the benefit is of trying to create new panel bindings
->>> compatible with the simple-panel bindings. As I see, the simple-panel=
-
->>> bindings work only with very limited use cases, where the drivers mak=
+>>> Right. The rotation is set to 3 though.
+>>
+>> Hmm, that's probably the issue then. VRFB rotation is very heavy on th=
 e
->>> assumptions. Simple panel bindings cannot be used with omapdss, nor c=
-an
->>> it be used with the future common display framework.
+>> memory bandwidth, and is generally a very easy way to get sync lost er=
+rors.
 >=20
-> Well it seems at least the reset and enable pin standard from that
-> binding can be kept.
-
-Only enable gpio there. But even that's vague. Do you turn on the power
-before or after setting the enable gpio? How long delay should be
-between the power and the gpio? Different panels have different rules
-for the power-up.
-
->>> But I'm not really familiar with using extending current bindings, an=
-d
->>> making new bindings compatible with old ones. Can you explain why it'=
-d
->>> be good to have the sharp panel bindings compatible with simple-panel=
-?
->>> In what kind of scenario would it be used?
+> I found another case without rotation where the error always triggers.
+> By forcing 3730-evm LCD panel to QVGA mode it always seems to happen
+> even without rotation.
 >=20
-> Ideally the panel binding just describes the panel and it should not
-> matter which display controller it is a child of.
+> Without this patch with errors and no image:
+>=20
+> # cat /sys/kernel/debug/omapdss/clk=20
+> [   55.185729] DSS: dss_runtime_get
+> [   55.189422] DSS: dss_runtime_put
+> [   55.192810] DISPC: dispc_runtime_get
+> [   55.196685] DISPC: dispc_runtime_put
+> - DSS -
+> DSS_FCK (DSS1_ALWON_FCLK) =3D 27000000
+> - DISPC -
+> dispc fclk source =3D DSS_FCK (DSS1_ALWON_FCLK)
+> fck             27000000       =20
+> - LCD -
+> LCD clk source =3D DSS_FCK (DSS1_ALWON_FCLK)
+> lck             27000000        lck div 1
+> pck             5400000         pck div 5
+>=20
+> With this patch without errors and penguin showing:
+>=20
+> # cat /sys/kernel/debug/omapdss/clk
+> [   19.905792] DSS: dss_runtime_get
+> [   19.909545] DSS: dss_runtime_put
+> [   19.912933] DISPC: dispc_runtime_get
+> [   19.916778] DISPC: dispc_runtime_put
+> - DSS -
+> DSS_FCK (DSS1_ALWON_FCLK) =3D 108000000
+> - DISPC -
+> dispc fclk source =3D DSS_FCK (DSS1_ALWON_FCLK)
+> fck             108000000      =20
+> - LCD -
+> LCD clk source =3D DSS_FCK (DSS1_ALWON_FCLK)
+> lck             108000000       lck div 1
+> pck             5400000         pck div 20
+>=20
+> In this case the errors are different too:
+>=20
+> DISPC: channel 0 xres 240 yres 320
+> DISPC: pck 5400000
+> DISPC: hsw 3 hfp 3 hbp 39 vsw 1 vfp 2 vbp 7
+> DISPC: vsync_level 1 hsync_level 1 data_pclk_edge 1 de_level 0 sync_pcl=
+k_edge 0
+> DISPC: hsync 18947Hz, vsync 57Hz
+> DISPC: lck =3D 27000000 (1)
+> DISPC: pck =3D 5400000 (5)
+> APPLY: DISPC IRQ: 0x60: GFX_FIFO_UNDERFLOW=20
+> APPLY: DISPC IRQ: 0x4062: GFX_FIFO_UNDERFLOW SYNC_LOST=20
+> DISPC: dispc_runtime_get
+> omapdss APPLY error: FIFO UNDERFLOW on gfx, disabling the overlay
 
-Yes, but that means the panel bindings need to have enough information
-so that all display controllers can use it. Simple-panel bindings do not
-have enough information. The simple-panel bindings do not have
-information about the video bus input, and it doesn't even have
-information about the resolution or bitdepth of the panel.
+I'm quite out of ideas... The pixel clock is so low that underflow
+shouldn't really happen. I was trying to find 3730 documentation that
+would describe the PRCM's multipliers and dividers for DSS (i.e. the
+ones you change in this patch), but I didn't find anything.
 
-So I'm still asking, if we create sharp bindings that use the same
-properties as the simple-panel bindings, and define that sharp panel is
-compatible with simple-panel, what kind of scenario in practice would it
-be used in?
+Maybe the DSS clock's fixed multiplier has been changed for 3730. But in
+that case our .dts files related to the clocks are wrong too. The clock
+nodes related to this are dpll4_m4x2_mul_ck, which is corresponds to the
+"dss_fck_multiplier" value in omapdss, and dpll4_m4_ck, which
+corresponds to the "fck_div_max" value.
 
-Would the scenario be some other OS, that doesn't have a driver for the
-sharp panel, but has a driver for the simple-panel? That would only work
-if the sharp panel hardware is setup so that only the enable gpio is
-needed, so that quite a narrow definition of "compatible".
+One thing to try out is, without this patch, change
+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK to force the dss func clock higher.
+With QVGA mode, you could try, say, value of 19, which should make sure
+the fck is at least 19 times higher than pck.
 
-Or is there some other scenario in which it could be used?
+> Regarding rotation, it does look like that with VGA mode enabling
+> rotation makes the error trigger quite often on 3730.
+> =20
+>> will handle it fine with the clock rates and bandwidth usage you have
+>> for your use cases.
+>=20
+> I don't think it's all because of rotation. And rotating my head
+
+No, probably not. The pixel clocks are so low that the rotation should
+work fine. Except if there's something wrong the the VRFB or the memory
+bus, which make the VRFB rotation not work even with low pixel clocks.
+
+> makes my neck hurt!
+
+You need to learn to hold the device a bit differently!
 
  Tomi
 
 
 
---fTpCvbkCp2BpGTTftNiSc1MiuOFFiBhJ1
+--o4rrmRDoDogx8XTQ1MwgADa2j0BLfKlan
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -169,19 +144,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTcwr/AAoJEPo9qoy8lh71EeoQAIVD2f5osde4NF5ymty47ZUE
-0PsnJ4KPAnOrTX+6SS4Uv3Z/tV9Fh7AiOmGmbYxfv/Rp9Yeu5Fg5tT20raKw2aTU
-nSfV6XtyCivh2IDOWmg+W6OapvefGuD4hrZ/LszB5p1WVh5fk5Q9NnsDxNLbdn2T
-QydXf52+unCXiYIghRNtNNOUb7mw5UxRaPIoZ+Wr6SSOwB2WRveQ5VK1aTtslAY+
-r6GnQcdG4FtLOtqCRUwbvgvEM7PCCazQnpha2vtg1JptBp5lj7SAX9yDldoNf3zt
-zKhl3p5tRSBmxyMX/Nfw8pXcM5Leuby5HJk3GuTa4RHnAgMvDWGP98tCXzKevPs0
-G4aSwhfFpQJFNL3QKIRiBjTfjmikRJagJUgn0VHAC7GRSY/tUcupegmUhO2lFeyq
-axMzAZTxuP41TPB4ucqdZI85S6u2sxHvTCHWFR3mUviUoFpCWx65cvcCMvoc1zLK
-O4jgFpDZxUf8T6Uru2Jd8pzYkqoRY1aBYDq8R44jvy4850hH6KkKnkg/MD1RouQP
-jW4O869xKS9HA4Ljc7dT6PRNnC1hrZfUPchust7rb7ydvwJbZGa7L8ZlkexawA9/
-vggEy+hLm1PuuRvCNpvw7FpoLrY4x7SVIpsXUNo7rVYXafDuXs7GMuR1ZVx2w9aK
-602TPjCK9Vic6k93lwOx
-=iMYm
+iQIcBAEBAgAGBQJTcxAWAAoJEPo9qoy8lh71wikQAKeAseU9vrnBHAXNn3aNLT0R
+nT/+PSiXWFTjLooYDEESTm0bRUi+Aj168d8Cz/J028a6NEhsxNFsR1XG7PpIs9c8
+DXWGjy9GTTRGrjCi/DEjuqOWQVmEdWvzZCeUkB97azDMb0PVze7fAztUwNiaF2Lk
+RFxQahwEs7dMSwBryDCOKHrflWac8myuwlY8QeV0Wlu5FIg1KvqF0+cHPdUzdX4e
+4ZKeqY9opLsbC9I15fMbS2v2/gCvYqYsfd7SbvWqsDGuWxfe3iqs3RGMHOHQgsJw
+KHBFih4cW/fdCbOMM2avDzFQoFdn5cvDrmTdEfE6gI9a+01Zw7UswCzi8JQ5ubKy
+g+iZ/pJxnup+iTn3kO2X9lkVowxXcidP/72+yDNatP2/3V2VYG3b76YZ/Ge0Ct23
+Yfn44a7B+DqZrztAKTnr+sq877HamlUr6pjdblHiNkasC7tQyRMUqh9ibTV/sioZ
+ag/V8pFlSRxQeYRX/PTIcvCIf0McFImKPs7r3XjDx+6PCFlXETb/mEeYQFIWRYOR
++0CiG+NntNGxyHTma+yU/VQP6tRBGI2oGdCG3moaXrE94JFi22ryYNidgmgED0ub
+cn7MLdbBzKMgmM4pRu+Y2DreXfA3KzWIVCa/gSz7tRTX74f7XcaQred1GoJ+VkVQ
+Msm1+4jvU5m8H19M1oJQ
+=hMuw
 -----END PGP SIGNATURE-----
 
---fTpCvbkCp2BpGTTftNiSc1MiuOFFiBhJ1--
+--o4rrmRDoDogx8XTQ1MwgADa2j0BLfKlan--
