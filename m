@@ -1,101 +1,76 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: [PATCH] ARM: OMAP: replace checks for CONFIG_USB_GADGET_OMAP
-Date: Thu, 15 May 2014 22:55:45 +0200
-Message-ID: <1400187345.11786.28.camel@x220>
+From: Joachim Eastwood <manabian@gmail.com>
+Subject: Re: OMAP DSS: panel-dpi and enable gpios
+Date: Thu, 15 May 2014 23:02:23 +0200
+Message-ID: <CAGhQ9VwyrO-G4m8Rv-nEUujEmQn+tkDn+9=BwvhU-ZSk0eFtvg@mail.gmail.com>
+References: <CAGhQ9VxDQaRzjCMm1RfxVmPt7Nk14ZTeS0-BmBfFDcxQNy__Tw@mail.gmail.com>
+	<5374BEBD.4060305@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vc0-f172.google.com ([209.85.220.172]:48123 "EHLO
+	mail-vc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752392AbaEOVCY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 17:02:24 -0400
+Received: by mail-vc0-f172.google.com with SMTP id hr9so5117803vcb.31
+        for <linux-omap@vger.kernel.org>; Thu, 15 May 2014 14:02:23 -0700 (PDT)
+In-Reply-To: <5374BEBD.4060305@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Commit 193ab2a60700 ("usb: gadget: allow multiple gadgets to be built")
-apparently required that checks for CONFIG_USB_GADGET_OMAP would be
-replaced with checks for CONFIG_USB_OMAP. Do so now for the remaining
-checks for CONFIG_USB_GADGET_OMAP, even though these checks have
-basically been broken since v3.1.
+On 15 May 2014 15:18, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 12/05/14 20:58, Joachim Eastwood wrote:
+>> Hello Tomi,
+>>
+>> There seems to be a mismatch between your panel-dpi code and DT docs.
+>>
+>> The docs state that enable-gpios is optinal but in panel-dpi.c you
+>> have the following code
+>> gpio = devm_gpiod_get(&pdev->dev, "enable");
+>> if (IS_ERR(gpio)) {
+>>     dev_err(&pdev->dev, "failed to parse enable gpio\n");
+>>     return PTR_ERR(gpio);
+>> } else {
+>>     gpiod_direction_output(gpio, 0);
+>>     ddata->enable_gpio = gpio;
+>> }
+>>
+>> Making probing fail on my DT since I don't use enable-gpios with
+>
+> Would this work? Only compile tested.
+>
+> diff --git a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+> index dca6b10d1157..2ac38eaa4c8f 100644
+> --- a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+> +++ b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+> @@ -210,14 +210,19 @@ static int panel_dpi_probe_of(struct platform_device *pdev)
+>         struct gpio_desc *gpio;
+>
+>         gpio = devm_gpiod_get(&pdev->dev, "enable");
+> +
+>         if (IS_ERR(gpio)) {
+> -               dev_err(&pdev->dev, "failed to parse enable gpio\n");
+> -               return PTR_ERR(gpio);
+> +               r = PTR_ERR(gpio);
+> +               if (r == -EPROBE_DEFER || r != -ENOENT)
+> +                       return r;
+> +               else
+> +                       gpio = NULL;
+>         } else {
+>                 gpiod_direction_output(gpio, 0);
+> -               ddata->enable_gpio = gpio;
+>         }
+>
+> +       ddata->enable_gpio = gpio;
+> +
+>         ddata->backlight_gpio = -ENOENT;
+>
+>         r = of_get_display_timing(node, "panel-timing", &timing);
 
-Fixes: 193ab2a60700 ("usb: gadget: allow multiple gadgets to be built")
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-Also untested.
+Seems to do the trick here.
 
-It seems efficient to also include the change to phy-isp1301-omap.c in
-this patch (ie, not ship that as a separate patch).
+Display is showing Tux's on boot up again :)
 
- arch/arm/mach-omap1/board-h2.c        | 2 +-
- arch/arm/mach-omap1/board-h3.c        | 2 +-
- arch/arm/mach-omap1/board-innovator.c | 2 +-
- arch/arm/mach-omap1/board-osk.c       | 2 +-
- drivers/usb/phy/phy-isp1301-omap.c    | 2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-index 65d2acb31498..57092bc7f4f1 100644
---- a/arch/arm/mach-omap1/board-h2.c
-+++ b/arch/arm/mach-omap1/board-h2.c
-@@ -346,7 +346,7 @@ static struct omap_usb_config h2_usb_config __initdata = {
- 	/* usb1 has a Mini-AB port and external isp1301 transceiver */
- 	.otg		= 2,
- 
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#ifdef	CONFIG_USB_OMAP
- 	.hmc_mode	= 19,	/* 0:host(off) 1:dev|otg 2:disabled */
- 	/* .hmc_mode	= 21,*/	/* 0:host(off) 1:dev(loopback) 2:host(loopback) */
- #elif	defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-index 816ecd13f81e..c828aacf469a 100644
---- a/arch/arm/mach-omap1/board-h3.c
-+++ b/arch/arm/mach-omap1/board-h3.c
-@@ -366,7 +366,7 @@ static struct omap_usb_config h3_usb_config __initdata = {
- 	/* usb1 has a Mini-AB port and external isp1301 transceiver */
- 	.otg	    = 2,
- 
--#ifdef CONFIG_USB_GADGET_OMAP
-+#ifdef CONFIG_USB_OMAP
- 	.hmc_mode       = 19,   /* 0:host(off) 1:dev|otg 2:disabled */
- #elif  defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
- 	/* NONSTANDARD CABLE NEEDED (B-to-Mini-B) */
-diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-index bd5f02e9c354..1652ead0effa 100644
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -312,7 +312,7 @@ static struct omap_usb_config h2_usb_config __initdata = {
- 	/* usb1 has a Mini-AB port and external isp1301 transceiver */
- 	.otg		= 2,
- 
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#ifdef	CONFIG_USB_OMAP
- 	.hmc_mode	= 19,	/* 0:host(off) 1:dev|otg 2:disabled */
- 	/* .hmc_mode	= 21,*/	/* 0:host(off) 1:dev(loopback) 2:host(loopback) */
- #elif	defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index 3a0262156e93..70b1b282e5c2 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -283,7 +283,7 @@ static struct omap_usb_config osk_usb_config __initdata = {
- 	 * be used, with a NONSTANDARD gender-bending cable/dongle, as
- 	 * a peripheral.
- 	 */
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#ifdef	CONFIG_USB_OMAP
- 	.register_dev	= 1,
- 	.hmc_mode	= 0,
- #else
-diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
-index 6e146d723b37..1ea6a0c30040 100644
---- a/drivers/usb/phy/phy-isp1301-omap.c
-+++ b/drivers/usb/phy/phy-isp1301-omap.c
-@@ -1295,7 +1295,7 @@ isp1301_set_host(struct usb_otg *otg, struct usb_bus *host)
- 		return isp1301_otg_enable(isp);
- 	return 0;
- 
--#elif	!defined(CONFIG_USB_GADGET_OMAP)
-+#elif	!defined(CONFIG_USB_OMAP)
- 	// FIXME update its refcount
- 	otg->host = host;
- 
--- 
-1.9.0
+regards
+Joachim Eastwood
