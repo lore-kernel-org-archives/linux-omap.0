@@ -1,101 +1,57 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: dwc3: gadget: check link trb after free_slot is
- increased
-Date: Thu, 15 May 2014 10:37:57 -0500
-Message-ID: <20140515153757.GB7360@saruman.home>
-References: <20140515215757.GD16153@intel.com>
-Reply-To: <balbi@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 0/2] ARM: dts: Fix OMAP3 ISP functional clock configuration
+Date: Thu, 15 May 2014 17:53:03 +0200
+Message-ID: <1740476.H24kT8Bx1K@avalon>
+References: <1398076907-2901-1-git-send-email-laurent.pinchart@ideasonboard.com> <8771357.o1oFFUoBzb@avalon> <20140513010610.GJ5668@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="l76fUT7nc3MelDdI"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140515215757.GD16153@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Cc: Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, david.a.cohen@linux.intel.com, Yuan@intel.com, Hang <hang.yuan@intel.com>, Zhuang@intel.com, Li@intel.com, Jiebing <jiebing.li@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44950 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256AbaEOPw7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 11:52:59 -0400
+In-Reply-To: <20140513010610.GJ5668@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tero Kristo <t-kristo@ti.com>
 
---l76fUT7nc3MelDdI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Monday 12 May 2014 18:06:10 Tony Lindgren wrote:
+> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140512 16:17]:
+> > On Thursday 08 May 2014 13:57:15 Tomi Valkeinen wrote:
+> > > On 21/04/14 13:41, Laurent Pinchart wrote:
+> > > > Hello,
+> > > > 
+> > > > This patch set enables rate propagation from the OMAP3 ISP functional
+> > > > clock to the DPLL4 M5 clock. It copies Tomi Valkeinen's similar patch
+> > > > set for the OMAP DSS functional clock from the "OMAP: OMAP3 DSS
+> > > > related clock patches" patch series.
+> > > > 
+> > > > Laurent Pinchart (2):
+> > > >   ARM: dts: use ti,fixed-factor-clock for dpll4_m5x2_mul_ck
+> > > >   ARM: dts: set 'ti,set-rate-parent' for dpll4_m5 path
+> > > >  
+> > > >  arch/arm/boot/dts/omap36xx-clocks.dtsi | 2 +-
+> > > >  arch/arm/boot/dts/omap3xxx-clocks.dtsi | 7 ++++---
+> > > >  2 files changed, 5 insertions(+), 4 deletions(-)
+> > > 
+> > > These look fine to me.
+> > > 
+> > > Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > 
+> > Thank you.
+> > 
+> > Tony, could you please pick the patches up for v3.16 ?
+> 
+> I'd like to see acks from Tero on these two, or Tero queue
+> them along with other clock dts clock changes.
 
-Hi
+I'm fine with Tero queuing the patches in his tree. Tero, could they go in 
+v3.16 ?
 
-On Fri, May 16, 2014 at 05:57:57AM +0800, Zhuang Jin Can wrote:
-> In ISOC transfers, when free_slot points to the last TRB (i.e. Link
-> TRB), and all queued requests meet Missed Interval Isoc error, busy_slot
-> points to trb0.
-> 	busy_slot->trb0
-> 		   trb1
-> 		   ...
-> 	free_slot->trb31(Link TRB)
->=20
-> After end transfer and receiving the XferNotReady event, trb_left is
-> caculated as 1 which is wrong, and no TRB will be primed to the
-> endpoint.
->=20
-> The root cause is free_slot is not increased the same way as busy_slot.
-> When busy_slot is increased by one, it checks if points to a link TRB
-> after increasement, but free_slot checks it before increasement.
-> free_slot should behave the same as busy_slot to make the trb_left
-> caculation correct.
->=20
-> Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
-> Signed-off-by: Jiebing Li <jiebing.li@intel.com>
-> ---
->  drivers/usb/dwc3/gadget.c |    8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
->=20
-> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-> index 54da8c8..2ebe82b 100644
-> --- a/drivers/usb/dwc3/gadget.c
-> +++ b/drivers/usb/dwc3/gadget.c
-> @@ -828,10 +828,6 @@ static void dwc3_prepare_one_trb(struct dwc3_ep *dep,
->  			length, last ? " last" : "",
->  			chain ? " chain" : "");
-> =20
-> -	/* Skip the LINK-TRB on ISOC */
-> -	if (((dep->free_slot & DWC3_TRB_MASK) =3D=3D DWC3_TRB_NUM - 1) &&
-> -			usb_endpoint_xfer_isoc(dep->endpoint.desc))
-> -		dep->free_slot++;
-> =20
->  	trb =3D &dep->trb_pool[dep->free_slot & DWC3_TRB_MASK];
+-- 
+Regards,
 
-I have a feeling this has a negative side effect of letting us use the
-link TRB for data transfer... I mean, if we don't increment free_slot
-before accessing our trb_pool, we have no way to skip link trb on this
-access here.
+Laurent Pinchart
 
-How did you find the bug ? do you have good instructions on how to
-reproduce it ? How did you test the patch and for how long ?
-
-cheers
-
---=20
-balbi
-
---l76fUT7nc3MelDdI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTdN9VAAoJEIaOsuA1yqREKDwQAIS0kiAToZ5wPkuTBT3/fQbg
-R8ET7bR0/zBBYxlUXesxdlVIEZiWvg3Cxcosnaxe1XjhqGu68CYk1c79dfSUeLBv
-rLR6c3KKhgpKSYwHqNy97x27L0qtYBP86B8cplK/iXejGyc/FqNLmCU/W7xqg4od
-1krS+UOre+2g0MeOYDbJyX486WQuQNUx/XU/d+vYBEJ9UR3TESQ9HE+98ZVai0gs
-ZvqE1RiPEBnHTZkb3ak7FBc8D34jDHIb75E4Myj8e8MrZywq13wbDIm5MiugpcCl
-3iTdr2egvOXTdBvj5sJLsK4e96fYDL0ta5X6zTaHsCVSr0Dnsz9xbLKwxg5ECxXo
-m+zdi+oR9L2zdacFV8/zavZUiqJJcijnjrQn3SX5V/Y5xm+VTUHhIcxOGuWJKfP4
-0uFbRkBiyljMngcvi8OEIzje8NiX1N5RDM3WSMl6VbqS3gPGaMfacDSoHQNX0exb
-1xzzpawiB2309cyzST8NEFXkQdI6FyTdKPVKu/3Dwtpo0qHZnMkk5sz+ctv25Vux
-fy4AuWcgnNuIJR1cng6NfxSncr3eSs+ZtJatg+E15SROnivJwlh+bd3Y+P4owqFa
-dq20DDK1WqxVtaBttMg2E2TSwq7tMR87mjgj6KMozPvV8xzGYtOAyh5/Ikl+ZTCr
-HX8KD350HzyCXVE1Uvk8
-=Hecb
------END PGP SIGNATURE-----
-
---l76fUT7nc3MelDdI--
