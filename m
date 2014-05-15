@@ -1,212 +1,101 @@
-From: Bin Liu <binmlist@gmail.com>
-Subject: Re: [PATCH v3 0/5] Add support for SW babble Control
-Date: Thu, 15 May 2014 10:19:07 -0500
-Message-ID: <CADYTM3bJWUQm_Zrxvb+UY5CzTDYODDfQ=MWdqL7tJaetbL1Qzg@mail.gmail.com>
-References: <1399969905-3509-1-git-send-email-george.cherian@ti.com>
-	<5371EA01.3080307@gmail.com>
-	<537208A9.4020507@ti.com>
-	<53720E0F.3070008@gmail.com>
-	<537216AC.4090401@ti.com>
-	<53721ABF.8060705@gmail.com>
-	<53721D24.4090704@ti.com>
-	<CADYTM3bvQPHLJSR=ytTR3bupo=Nk6nQtw=4UgbXurbjkEFSQoA@mail.gmail.com>
-	<53730130.3000300@ti.com>
-	<CADYTM3YH2TJpS0z-Pb=rQPVV5ETHwfYMOOv=BohNB7UmahC9Rw@mail.gmail.com>
-	<CADYTM3bfnhCVi8VKiypMsQOndmzG-=yPksYNV+qZ8X73LPTZog@mail.gmail.com>
-	<53745E84.2000002@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: dwc3: gadget: check link trb after free_slot is
+ increased
+Date: Thu, 15 May 2014 10:37:57 -0500
+Message-ID: <20140515153757.GB7360@saruman.home>
+References: <20140515215757.GD16153@intel.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="l76fUT7nc3MelDdI"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53745E84.2000002@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20140515215757.GD16153@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: Daniel Mack <zonque@gmail.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, gregkh@linuxfoundation.org, "Liu, Bin" <b-liu@ti.com>
+To: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Cc: Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, david.a.cohen@linux.intel.com, Yuan@intel.com, Hang <hang.yuan@intel.com>, Zhuang@intel.com, Li@intel.com, Jiebing <jiebing.li@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-George,
+--l76fUT7nc3MelDdI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 15, 2014 at 1:28 AM, George Cherian <george.cherian@ti.com> wrote:
-> Hi Bin,
->
->
-> On 5/14/2014 10:13 PM, Bin Liu wrote:
->>
->> George,
->>
->> On Wed, May 14, 2014 at 9:34 AM, Bin Liu <binmlist@gmail.com> wrote:
->>>
->>> George,
->>>
->>> On Wed, May 14, 2014 at 12:37 AM, George Cherian <george.cherian@ti.com>
->>> wrote:
->>>>
->>>> On 5/14/2014 12:07 AM, Bin Liu wrote:
->>>>>
->>>>> Hi,
->>>>>
->>>>> On Tue, May 13, 2014 at 8:24 AM, George Cherian <george.cherian@ti.com>
->>>>> wrote:
->>>>>>
->>>>>> Hi Daniel,
->>>>>>
->>>>>>
->>>>>> On 5/13/2014 6:44 PM, Daniel Mack wrote:
->>>>>>>
->>>>>>> Hi George,
->>>>>>>
->>>>>>> On 05/13/2014 02:57 PM, George Cherian wrote:
->>>>>>>>
->>>>>>>> I never enabled the MUSB_BABBLE_SW_SESSION_CTRL in the
->>>>>>>> MUSB_BABBLE_CTL
->>>>>>>> reg.
->>>>>>>> can you try with the following patch.
->>>>>>>>
->>>>>>>> diff --git a/drivers/usb/musb/musb_dsps.c
->>>>>>>> b/drivers/usb/musb/musb_dsps.c
->>>>>>>> index 1ae6681..1160cd1 100644
->>>>>>>> --- a/drivers/usb/musb/musb_dsps.c
->>>>>>>> +++ b/drivers/usb/musb/musb_dsps.c
->>>>>>>> @@ -477,8 +477,11 @@ static int dsps_musb_init(struct musb *musb)
->>>>>>>>            * logic enabled.
->>>>>>>>            */
->>>>>>>>           val = dsps_readb(musb->mregs, MUSB_BABBLE_CTL);
->>>>>>>> -       if (val == MUSB_BABBLE_RCV_DISABLE)
->>>>>>>> +       if (val == MUSB_BABBLE_RCV_DISABLE) {
->>>>>>>>                   glue->sw_babble_enabled = true;
->>>>>>>> +               val |= MUSB_BABBLE_SW_SESSION_CTRL;
->>>>>>>> +               dsps_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
->>>>>>>> +       }
->>>>>>>>           ret = dsps_musb_dbg_init(musb, glue);
->>>>>>>>           if (ret)
->>>>>>>
->>>>>>> MUSB_BABBLE_STUCK_J still remains unset, so I get the same result as
->>>>>>> without the patch: a full glue reset is conducted. Do I get you right
->>>>>>> that you expect MUSB_BABBLE_STUCK_J to be set in babble conditions
->>>>>>> when
->>>>>>> MUSB_BABBLE_SW_SESSION_CTRL is set?
->>>>>>>
->>>>>> Basically, there are 2 types of babble conditions.
->>>>>> 1) Transient babble condition - which could be recovered from without
->>>>>> an
->>>>>> IP
->>>>>> reset .
->>>>>> 2) Babble condition - which could be recovered from only by doing an
->>>>>> IP
->>>>>> reset.
->>>>>>
->>>>>> Looks like you are always hitting case 2 (Most times am also hitting
->>>>>> the
->>>>>> same).
->>>>>> Case 1 is really hard to reproduce. I don't have a reliable method as
->>>>>> of
->>>>>> now
->>>>>> to
->>>>>> reproduce this case consistently.
->>>>>>
->>>>>>> [   19.672373] CAUTION: musb: Babble Interrupt Occurred
->>>>>>> [   19.677776] musb_stage0_irq 789: unhandled DISCONNECT transition
->>>>>>> (a_wait_bcon)
->>>>>>> [   19.685815] usb 1-1: USB disconnect, device number 3
->>>>>>> [   19.769720] musb-hdrc musb-hdrc.0.auto: babble: MUSB_BABBLE_CTL
->>>>>>> value
->>>>>>> 44
->>>>>>> [   19.776765] musb-hdrc musb-hdrc.0.auto: STUCK_J is reset
->>>>>>>
->>>>>>>
->>>>>>> I don't quite follow, especially as I lack documentation of the IP
->>>>>>> core.
->>>>>>> How do you test babble errors, is there any way to force them to
->>>>>>> happen
->>>>>>> reliably?
->>>>>>
->>>>>>
->>>>>> There is no 100% reliable method to force it to happen. Following is
->>>>>
->>>>> I have a way to force babble happen reliably - shorting DP or DM to
->>>>> VBUS. I opened the far-end plug of the USB cable, so I can easily
->>>>> short DP or DM to VBUS.
->>>>
->>>> Good to know that you have a reliable way to test babble condition.
->>>> Can you please do a quick test on 3.15.0-rc4 with the series applied?
->>>> In case of any assistance please do let me know.
->>>
->>> Sure, but could you please re-send those patches to my corporate email
->>> so that I can apply them from Thunderbird?
->>
->> You don't have to resend the patches. Nishanth Menon showed me a way
->> to extract the patch from Gmail - Thanks Nishanth.
->>
->> But which repo do you want to me test with? The first patch ([PATCH v2
->> 1/5] usb: musb: core: Convert babble recover work to delayed work)
->> does not apply to v3.15-rc4 tag. the current musb_core.c does not have
->> the recovery work for musb. Please let me know what I missed.
->
-> Oops I missed to mention the same.
-> Please try on
-> git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git master
+Hi
 
-The test is done. The babble always causes STUCK_J is reset,
-MUSB_BABBLE_CTL is 0x44 or 0x4. MUSB reset happens.
+On Fri, May 16, 2014 at 05:57:57AM +0800, Zhuang Jin Can wrote:
+> In ISOC transfers, when free_slot points to the last TRB (i.e. Link
+> TRB), and all queued requests meet Missed Interval Isoc error, busy_slot
+> points to trb0.
+> 	busy_slot->trb0
+> 		   trb1
+> 		   ...
+> 	free_slot->trb31(Link TRB)
+>=20
+> After end transfer and receiving the XferNotReady event, trb_left is
+> caculated as 1 which is wrong, and no TRB will be primed to the
+> endpoint.
+>=20
+> The root cause is free_slot is not increased the same way as busy_slot.
+> When busy_slot is increased by one, it checks if points to a link TRB
+> after increasement, but free_slot checks it before increasement.
+> free_slot should behave the same as busy_slot to make the trb_left
+> caculation correct.
+>=20
+> Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
+> Signed-off-by: Jiebing Li <jiebing.li@intel.com>
+> ---
+>  drivers/usb/dwc3/gadget.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+> index 54da8c8..2ebe82b 100644
+> --- a/drivers/usb/dwc3/gadget.c
+> +++ b/drivers/usb/dwc3/gadget.c
+> @@ -828,10 +828,6 @@ static void dwc3_prepare_one_trb(struct dwc3_ep *dep,
+>  			length, last ? " last" : "",
+>  			chain ? " chain" : "");
+> =20
+> -	/* Skip the LINK-TRB on ISOC */
+> -	if (((dep->free_slot & DWC3_TRB_MASK) =3D=3D DWC3_TRB_NUM - 1) &&
+> -			usb_endpoint_xfer_isoc(dep->endpoint.desc))
+> -		dep->free_slot++;
+> =20
+>  	trb =3D &dep->trb_pool[dep->free_slot & DWC3_TRB_MASK];
 
-Do you think when re-start happens the driver should print a message
-on console saying re-start due to babble? It would help debug the
-babble problems while the dynamic debug is off.
+I have a feeling this has a negative side effect of letting us use the
+link TRB for data transfer... I mean, if we don't increment free_slot
+before accessing our trb_pool, we have no way to skip link trb on this
+access here.
 
-Thanks,
--Bin.
+How did you find the bug ? do you have good instructions on how to
+reproduce it ? How did you test the patch and for how long ?
 
->
->> Thanks,
->> -Bin.
->>
->>> I read these linux-usb emails in Gmail, and  am not aware of any easy
->>> way to extract patches from Gmail.
->>>
->>> BTY, I tested with TI 3.12.10 kernel, in which I guess the babble
->>> handling is similar to this patch set. With TI3.12.10, MISC is always
->>> 0x64, so MUSB never restarts.
->>>
->>> Thanks,
->>> -Bin.
->>>
->>>>> But the interesting thing is that with TI 3.2 kernel, shorting DP or
->>>>> DM to VBUS causes MISC register to be 0x4, but the result is
->>>>> completely opposite in TI 3.12.10 kernel, which cause MISC to be 0x64.
->>>>>
->>>>> So in the 3.2 kernel, the babble handing resets the controller, but
->>>>> the 3.12.10 does not.
->>>>>
->>>>> Regards,
->>>>> -Bin.
->>>>>
->>>>>> my setup ,
->>>>>> I have a HUB with 4 devices connected , which gives me a Babble
->>>>>> interrupt
->>>>>> on both connects and disconnects ( Not always though).
->>>>>>
->>>>>>> Anyway, the full glue layer solves this rare condition quite well for
->>>>>>> me. Is there any downside of this?
->>>>>>>
->>>>>>>
->>>>>>> Daniel
->>>>>>>
->>>>>> --
->>>>>> -George
->>>>>>
->>>>>> --
->>>>>> To unsubscribe from this list: send the line "unsubscribe linux-omap"
->>>>>> in
->>>>>>
->>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>
->>>>
->>>>
->>>> --
->>>> -George
->>>>
->
->
-> --
-> -George
->
+cheers
+
+--=20
+balbi
+
+--l76fUT7nc3MelDdI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTdN9VAAoJEIaOsuA1yqREKDwQAIS0kiAToZ5wPkuTBT3/fQbg
+R8ET7bR0/zBBYxlUXesxdlVIEZiWvg3Cxcosnaxe1XjhqGu68CYk1c79dfSUeLBv
+rLR6c3KKhgpKSYwHqNy97x27L0qtYBP86B8cplK/iXejGyc/FqNLmCU/W7xqg4od
+1krS+UOre+2g0MeOYDbJyX486WQuQNUx/XU/d+vYBEJ9UR3TESQ9HE+98ZVai0gs
+ZvqE1RiPEBnHTZkb3ak7FBc8D34jDHIb75E4Myj8e8MrZywq13wbDIm5MiugpcCl
+3iTdr2egvOXTdBvj5sJLsK4e96fYDL0ta5X6zTaHsCVSr0Dnsz9xbLKwxg5ECxXo
+m+zdi+oR9L2zdacFV8/zavZUiqJJcijnjrQn3SX5V/Y5xm+VTUHhIcxOGuWJKfP4
+0uFbRkBiyljMngcvi8OEIzje8NiX1N5RDM3WSMl6VbqS3gPGaMfacDSoHQNX0exb
+1xzzpawiB2309cyzST8NEFXkQdI6FyTdKPVKu/3Dwtpo0qHZnMkk5sz+ctv25Vux
+fy4AuWcgnNuIJR1cng6NfxSncr3eSs+ZtJatg+E15SROnivJwlh+bd3Y+P4owqFa
+dq20DDK1WqxVtaBttMg2E2TSwq7tMR87mjgj6KMozPvV8xzGYtOAyh5/Ikl+ZTCr
+HX8KD350HzyCXVE1Uvk8
+=Hecb
+-----END PGP SIGNATURE-----
+
+--l76fUT7nc3MelDdI--
