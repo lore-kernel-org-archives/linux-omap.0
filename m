@@ -1,56 +1,39 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: [PATCH] ARM: OMAP: remove some dead code
-Date: Thu, 15 May 2014 21:16:21 +0200
-Message-ID: <1400181381.11786.18.camel@x220>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCHv3 0/5] tsc2005 DT binding
+Date: Thu, 15 May 2014 22:16:31 +0300
+Message-ID: <20140515191631.GA4752@drone.musicnaut.iki.fi>
+References: <1398470179-20880-1-git-send-email-sre@kernel.org>
+ <20140515142315.GA15716@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140515142315.GA15716@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, linux-input@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-A check for CONFIG_CBUS_TAHVO_USB was added in v2.6.17. The related
-Kconfig symbol has never been part of the tree. Remove that check.
+Hi,
 
-Replace the while (...) loop with a simple if (...) statement, while
-we're at it.
+On Thu, May 15, 2014 at 04:23:16PM +0200, Sebastian Reichel wrote:
+> On Sat, Apr 26, 2014 at 01:56:14AM +0200, Sebastian Reichel wrote:
+> > This adds device tree support for the tsc2005 touchscreen
+> > controller, which is currently only used by the Nokia N900
+> > board.
+> > 
+> > The patch does not update the reset pin handling for platform
+> > data based probe to avoid merge conflicts. The n900 platform
+> > code will be removed in the near future (3.16?) and the driver
+> > can be simplified once that has happened.
+> 
+> Ping. It would be nice to see this patchset in 3.16, since its
+> the last important hardware component missing for N900 DT boot.
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-Untested, as usual.
+FWIW, for all these patches feel free to add:
 
-A quick search across the history of the tree suggests CBUS_TAHVO_USB
-was N770 related. Not that this matters much.
+	Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
- arch/arm/mach-omap1/pm.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+Thanks for great work,
 
-diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-index dbee729e3b6d..34b4c0044961 100644
---- a/arch/arm/mach-omap1/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -123,19 +123,8 @@ void omap1_pm_idle(void)
- #warning Enable 32kHz OS timer in order to allow sleep states in idle
- 	use_idlect1 = use_idlect1 & ~(1 << 9);
- #else
--
--	while (enable_dyn_sleep) {
--
--#ifdef CONFIG_CBUS_TAHVO_USB
--		extern int vbus_active;
--		/* Clock requirements? */
--		if (vbus_active)
--			break;
--#endif
-+	if (enable_dyn_sleep)
- 		do_sleep = 1;
--		break;
--	}
--
- #endif
- 
- #ifdef CONFIG_OMAP_DM_TIMER
--- 
-1.9.0
+A.
