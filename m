@@ -1,64 +1,165 @@
-From: Alex Shi <alex.shi@linaro.org>
-Subject: Re: RCU stall on panda
-Date: Thu, 15 May 2014 16:44:29 +0800
-Message-ID: <53747E6D.60500@linaro.org>
-References: <53675C5F.10509@linaro.org> <20140505180617.GM8754@linux.vnet.ibm.com> <20140512212102.GF5668@atomide.com> <5371BD69.8010600@linaro.org> <20140513153220.GC16837@atomide.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 2/5] ARM: edma: Get IP information from HW when booting
+ with DT
+Date: Thu, 15 May 2014 14:23:04 +0530
+Message-ID: <53748070.4080706@ti.com>
+References: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com> <1399977032-26469-3-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:59129 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751004AbaEOIod (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 04:44:33 -0400
-Received: by mail-pb0-f49.google.com with SMTP id jt11so814152pbb.36
-        for <linux-omap@vger.kernel.org>; Thu, 15 May 2014 01:44:33 -0700 (PDT)
-In-Reply-To: <20140513153220.GC16837@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1399977032-26469-3-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, joelf-l0cyMroinI0@public.gmane.org
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "naresh.kamboju@linaro.org Kamboju" <naresh.kamboju@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, LAK <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@linaro.org>, linux-omap@vger.kernel.org
 
-On 05/13/2014 11:32 PM, Tony Lindgren wrote:
-> * Alex Shi <alex.shi@linaro.org> [140512 23:37]:
->> On 05/13/2014 05:21 AM, Tony Lindgren wrote:
->>> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [140505 11:11]:
->>>> On Mon, May 05, 2014 at 05:39:43PM +0800, Alex Shi wrote:
->>>>> I keep seeing the RCU stall problem on panda board from 3.10 kernel to latest upstream kernel
->>>>> and google find some one report it before: https://lkml.org/lkml/2012/9/20/519
->>>>>
->>>>> Is it the hardware issue or a real software problem?
->>>>
->>>> I cannot distinguish between hardware and software from the trace below,
->>>> but given that you are also seeing a soft lockup, either way you do
->>>> appear to have a real problem as opposed to an RCU CPU stall warning
->>>> false positive.
->>>
->>> Looks like you have CPU_IDLE enabled on panda. Hangs with current linux
->>> next with CPU_IDLE are currently being discussed on the linux-omap list
->>> in thread "omap4-panda-es boot issues with v3.15-rc4"
->>>
->>> I've seen occasional system hangs, and I've also noticed that doing
->>> ctrl-a-f h or ctrl-a-f l for sysrq backtrace can unlock the system
->>> producing similar errors to the below.
->>>
->>
->> Thanks a lot for the info.
->> In fact, the oops keeps in upstream kernel from 3.10 to latest.
+Hi Peter,
+
+On Tuesday 13 May 2014 04:00 PM, Peter Ujfalusi wrote:
+> From CCCFG register of eDMA3 we can get all the needed information for the
+> driver about the IP:
+> Number of channels: NUM_DMACH
+> Number of regions: NUM_REGN
+> Number of slots (PaRAM sets): NUM_PAENTRY
+> Number of TC/EQ: NUM_EVQUE
 > 
-> Care to test if the revert of commit cb7094 Santosh posted as
-> "[PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled"
-> solves the problem for you?
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/common/edma.c | 128 ++++++++++++++++++++++++++++++-------------------
+>  1 file changed, 79 insertions(+), 49 deletions(-)
 > 
+> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+> index fade9ada81f8..1a98f3cd4cd9 100644
+> --- a/arch/arm/common/edma.c
+> +++ b/arch/arm/common/edma.c
+> @@ -102,7 +102,16 @@
+>  #define PARM_OFFSET(param_no)	(EDMA_PARM + ((param_no) << 5))
+>  
+>  #define EDMA_DCHMAP	0x0100  /* 64 registers */
+> -#define CHMAP_EXIST	BIT(24)
+> +
+> +/* CCCFG register */
+> +#define GET_NUM_DMACH(x)	(x & 0x7) /* bits 0-2 */
+> +#define GET_NUM_QDMACH(x)	((x & 0x70) >> 4) /* bits 4-6 */
+> +#define GET_NUM_INTCH(x)	((x & 0x700) >> 8) /* bits 8-10 */
+> +#define GET_NUM_PAENTRY(x)	((x & 0x7000) >> 12) /* bits 12-14 */
+> +#define GET_NUM_EVQUE(x)	((x & 0x70000) >> 16) /* bits 16-18 */
+> +#define GET_NUM_REGN(x)		((x & 0x300000) >> 20) /* bits 20-21 */
+> +#define CHMAP_EXIST		BIT(24)
+> +#define MP_EXIST		BIT(25)
 
-After enable this patch, system maybe hang in idle. :(
+Of these new defines, you do not use GET_NUM_QDMACH(), GET_NUM_INTCH()
+and MP_EXIST (at least in this patch). Can you please get rid of them if
+not needed? May be its just me but its pretty annoying to search for a
+define only to find its never used :)
 
-> Regards,
-> 
-> Tony
-> 
+>  
+>  #define EDMA_MAX_DMACH           64
+>  #define EDMA_MAX_PARAMENTRY     512
+> @@ -1415,6 +1424,68 @@ void edma_clear_event(unsigned channel)
+>  }
+>  EXPORT_SYMBOL(edma_clear_event);
+>  
+> +static int edma_setup_info_from_hw(struct device *dev,
+> +				   struct edma_soc_info *pdata)
+> +{
+> +	int i;
+> +	u32 value, cccfg, n_tc;
+> +	s8 (*queue_tc_map)[2], (*queue_priority_map)[2];
+> +
+> +	/* Decode the eDMA3 configuration from CCCFG register */
+> +	cccfg = edma_read(0, EDMA_CCCFG);
 
+You do not handle the second controller here, but its pretty straight
+forward to add that by passing the controller number to this function.
 
--- 
-Thanks
-    Alex
+I was wondering why we never read the hardware for this information
+before, and strangely enough cannot find any SoC where the CCCFG
+register does not publish this information correctly. I have tested on
+DA850, DA830, DM365, DM355 and DM6467.
+
+Instead of keeping this specific to OF case, the code can be simplified
+much better if we read from hardware all the time. We can directly
+populate the equivalent variables in the internal structure 'struct
+edma' instead of populating them in 'struct edma_soc_info' and then
+copying then over.
+
+> +
+> +	value = GET_NUM_DMACH(cccfg);
+> +	pdata->n_channel = BIT(value + 1);
+> +
+> +	value = GET_NUM_REGN(cccfg);
+> +	pdata->n_region = BIT(value);
+> +
+> +	value = GET_NUM_PAENTRY(cccfg);
+> +	pdata->n_slot = BIT(value + 4);
+> +
+> +	value = GET_NUM_EVQUE(cccfg);
+> +	n_tc = value + 1;
+> +
+> +	dev_dbg(dev, "eDMA3 HW configuration (cccfg: 0x%08x):\n", cccfg);
+> +	dev_dbg(dev, "n_channel: %u\n", pdata->n_channel);
+> +	dev_dbg(dev, "n_region: %u\n", pdata->n_region);
+> +	dev_dbg(dev, "n_slot: %u\n", pdata->n_slot);
+> +	dev_dbg(dev, "n_tc: %u\n", n_tc);
+> +
+
+[snip]
+
+> +	pdata->n_cc = 1;
+> +
+> +	queue_tc_map = devm_kzalloc(dev, (n_tc + 1) * sizeof(s8), GFP_KERNEL);
+> +	if (!queue_tc_map)
+> +		return -ENOMEM;
+> +
+> +	for (i = 0; i < n_tc; i++) {
+> +		queue_tc_map[i][0] = i;
+> +		queue_tc_map[i][1] = i;
+> +	}
+> +	queue_tc_map[i][0] = -1;
+> +	queue_tc_map[i][1] = -1;
+> +
+> +	pdata->queue_tc_mapping = queue_tc_map;
+> +
+> +	queue_priority_map = devm_kzalloc(dev, (n_tc + 1) * sizeof(s8),
+> +					  GFP_KERNEL);
+> +	if (!queue_priority_map)
+> +		return -ENOMEM;
+> +
+> +	for (i = 0; i < n_tc; i++) {
+> +		queue_priority_map[i][0] = i;
+> +		queue_priority_map[i][1] = i;
+> +	}
+> +	queue_priority_map[i][0] = -1;
+> +	queue_priority_map[i][1] = -1;
+> +
+> +	pdata->queue_priority_mapping = queue_priority_map;
+> +
+> +	pdata->default_queue = 0;
+
+This is part is not really setting up from hardware (rather falling back
+to some sane defaults for the DT case). Could you leave them in
+edma_of_parse_dt()?
+
+> @@ -1655,6 +1679,12 @@ static int edma_probe(struct platform_device *pdev)
+>  		if (IS_ERR(edmacc_regs_base[j]))
+>  			return PTR_ERR(edmacc_regs_base[j]);
+>  
+> +		if (node) {
+> +			/* Get eDMA3 configuration from IP */
+> +			ret = edma_setup_info_from_hw(dev, info[j]);
+> +			if (ret)
+> +				return ret;
+
+No need to do this only for the DT case, I think. Also, once we get rid
+of the edma_soc_info dependency, just pass edma_cc[] directly
+
+		edma_setup_info_from_hw(dev, j, edma_cc[j]);
+
+Thanks,
+Sekhar
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
