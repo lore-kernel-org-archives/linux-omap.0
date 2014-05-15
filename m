@@ -1,165 +1,94 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 2/5] ARM: edma: Get IP information from HW when booting
- with DT
-Date: Thu, 15 May 2014 14:23:04 +0530
-Message-ID: <53748070.4080706@ti.com>
-References: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com> <1399977032-26469-3-git-send-email-peter.ujfalusi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 4/4] ARM: dts: Add LCD panel sharp ls037v7dw01 support
+ for omap3-evm and ldp
+Date: Thu, 15 May 2014 11:57:38 +0300
+Message-ID: <53748182.1080705@ti.com>
+References: <1398815562-24113-1-git-send-email-tony@atomide.com> <1398815562-24113-5-git-send-email-tony@atomide.com> <CAGhQ9Vwa8xXQEo5dNEKAvmaS9DoBjVSthtd8=owk+atVdFuiiA@mail.gmail.com> <20140430174751.GA12362@atomide.com> <20140505183919.GA15463@atomide.com> <20140508233628.GJ2198@atomide.com> <536C7EA7.5000306@ti.com> <20140509153723.GD17814@atomide.com> <20140513213205.GB18001@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1399977032-26469-3-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, joelf-l0cyMroinI0@public.gmane.org
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="1jeKGunVfgW41ftxLHlplOnak6Pjishup"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37054 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751191AbaEOI6F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 May 2014 04:58:05 -0400
+In-Reply-To: <20140513213205.GB18001@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Joachim Eastwood <manabian@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Peter,
+--1jeKGunVfgW41ftxLHlplOnak6Pjishup
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Tuesday 13 May 2014 04:00 PM, Peter Ujfalusi wrote:
-> From CCCFG register of eDMA3 we can get all the needed information for the
-> driver about the IP:
-> Number of channels: NUM_DMACH
-> Number of regions: NUM_REGN
-> Number of slots (PaRAM sets): NUM_PAENTRY
-> Number of TC/EQ: NUM_EVQUE
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/common/edma.c | 128 ++++++++++++++++++++++++++++++-------------------
->  1 file changed, 79 insertions(+), 49 deletions(-)
-> 
-> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-> index fade9ada81f8..1a98f3cd4cd9 100644
-> --- a/arch/arm/common/edma.c
-> +++ b/arch/arm/common/edma.c
-> @@ -102,7 +102,16 @@
->  #define PARM_OFFSET(param_no)	(EDMA_PARM + ((param_no) << 5))
->  
->  #define EDMA_DCHMAP	0x0100  /* 64 registers */
-> -#define CHMAP_EXIST	BIT(24)
-> +
-> +/* CCCFG register */
-> +#define GET_NUM_DMACH(x)	(x & 0x7) /* bits 0-2 */
-> +#define GET_NUM_QDMACH(x)	((x & 0x70) >> 4) /* bits 4-6 */
-> +#define GET_NUM_INTCH(x)	((x & 0x700) >> 8) /* bits 8-10 */
-> +#define GET_NUM_PAENTRY(x)	((x & 0x7000) >> 12) /* bits 12-14 */
-> +#define GET_NUM_EVQUE(x)	((x & 0x70000) >> 16) /* bits 16-18 */
-> +#define GET_NUM_REGN(x)		((x & 0x300000) >> 20) /* bits 20-21 */
-> +#define CHMAP_EXIST		BIT(24)
-> +#define MP_EXIST		BIT(25)
+On 14/05/14 00:32, Tony Lindgren wrote:
 
-Of these new defines, you do not use GET_NUM_QDMACH(), GET_NUM_INTCH()
-and MP_EXIST (at least in this patch). Can you please get rid of them if
-not needed? May be its just me but its pretty annoying to search for a
-define only to find its never used :)
+> +&lcd0 {
+> +	enable-gpios =3D <&gpio5 24 GPIO_ACTIVE_HIGH>;	/* gpio152, lcd INI */=
 
->  
->  #define EDMA_MAX_DMACH           64
->  #define EDMA_MAX_PARAMENTRY     512
-> @@ -1415,6 +1424,68 @@ void edma_clear_event(unsigned channel)
->  }
->  EXPORT_SYMBOL(edma_clear_event);
->  
-> +static int edma_setup_info_from_hw(struct device *dev,
-> +				   struct edma_soc_info *pdata)
-> +{
-> +	int i;
-> +	u32 value, cccfg, n_tc;
-> +	s8 (*queue_tc_map)[2], (*queue_priority_map)[2];
-> +
-> +	/* Decode the eDMA3 configuration from CCCFG register */
-> +	cccfg = edma_read(0, EDMA_CCCFG);
+> +	reset-gpios =3D <&gpio5 27 GPIO_ACTIVE_HIGH>;	/* gpio155, lcd RESB */=
 
-You do not handle the second controller here, but its pretty straight
-forward to add that by passing the controller number to this function.
+> +	/*
+> +	 * The LCD is sideways, so we want the VGA mode instead of
+> +	 * QVGA mode. Probably also want to have omapfb.rotate=3D3
+> +	 * in the kernel cmdline until there's a binding for that.
+> +	 */
+> +	mode-gpios =3D <&gpio5 26 GPIO_ACTIVE_LOW		/* gpio154, lcd MO */
+> +		      &gpio1 2 GPIO_ACTIVE_HIGH		/* gpio2, lcd LR */
+> +		      &gpio1 3 GPIO_ACTIVE_HIGH>;	/* gpio3, lcd UD */
 
-I was wondering why we never read the hardware for this information
-before, and strangely enough cannot find any SoC where the CCCFG
-register does not publish this information correctly. I have tested on
-DA850, DA830, DM365, DM355 and DM6467.
+I don't think that is correct. The panel bindings should define what the
+first mode-gpio means. Looking at the panel spec, I think the definition
+should be "enable QVGA mode". And in the board's dts above, the
+GPIO_ACTIVE_x should tell which is one is correct polarity for QVGA
+mode. Which is GPIO_ACTIVE_HIGH here.
 
-Instead of keeping this specific to OF case, the code can be simplified
-much better if we read from hardware all the time. We can directly
-populate the equivalent variables in the internal structure 'struct
-edma' instead of populating them in 'struct edma_soc_info' and then
-copying then over.
+If we want to tell the panel driver to use QVGA mode, we should do that
+explicitly with a flag, not by hacking the GPIO polarities. It's the
+panel driver's job to set the GPIO.
 
-> +
-> +	value = GET_NUM_DMACH(cccfg);
-> +	pdata->n_channel = BIT(value + 1);
-> +
-> +	value = GET_NUM_REGN(cccfg);
-> +	pdata->n_region = BIT(value);
-> +
-> +	value = GET_NUM_PAENTRY(cccfg);
-> +	pdata->n_slot = BIT(value + 4);
-> +
-> +	value = GET_NUM_EVQUE(cccfg);
-> +	n_tc = value + 1;
-> +
-> +	dev_dbg(dev, "eDMA3 HW configuration (cccfg: 0x%08x):\n", cccfg);
-> +	dev_dbg(dev, "n_channel: %u\n", pdata->n_channel);
-> +	dev_dbg(dev, "n_region: %u\n", pdata->n_region);
-> +	dev_dbg(dev, "n_slot: %u\n", pdata->n_slot);
-> +	dev_dbg(dev, "n_tc: %u\n", n_tc);
-> +
+So in the previous mail I suggested the 'vga-mode' flag, but I think we
+need actually two flags for each GPIO: one that's used to tell the
+driver which mode we want, which is used if the panel driver has control
+for the GPIO, and the other that tells which is the hardwired setting.
 
-[snip]
+Then again, the two cases are exclusive, so maybe a single flag per mode
+pin is ok. So, for the MO pin, we could have 'qvga-mode' flag in the
+=2Edts, which means:
 
-> +	pdata->n_cc = 1;
-> +
-> +	queue_tc_map = devm_kzalloc(dev, (n_tc + 1) * sizeof(s8), GFP_KERNEL);
-> +	if (!queue_tc_map)
-> +		return -ENOMEM;
-> +
-> +	for (i = 0; i < n_tc; i++) {
-> +		queue_tc_map[i][0] = i;
-> +		queue_tc_map[i][1] = i;
-> +	}
-> +	queue_tc_map[i][0] = -1;
-> +	queue_tc_map[i][1] = -1;
-> +
-> +	pdata->queue_tc_mapping = queue_tc_map;
-> +
-> +	queue_priority_map = devm_kzalloc(dev, (n_tc + 1) * sizeof(s8),
-> +					  GFP_KERNEL);
-> +	if (!queue_priority_map)
-> +		return -ENOMEM;
-> +
-> +	for (i = 0; i < n_tc; i++) {
-> +		queue_priority_map[i][0] = i;
-> +		queue_priority_map[i][1] = i;
-> +	}
-> +	queue_priority_map[i][0] = -1;
-> +	queue_priority_map[i][1] = -1;
-> +
-> +	pdata->queue_priority_mapping = queue_priority_map;
-> +
-> +	pdata->default_queue = 0;
+"If there is MO gpio, set MO high. If there's no MO gpio, presume MO pin
+is pulled up"
 
-This is part is not really setting up from hardware (rather falling back
-to some sane defaults for the DT case). Could you leave them in
-edma_of_parse_dt()?
+Of course, one could argue that, in case MO is controlled with GPIO, the
+'qvga-mode' flag is about SW level configuration, not hardware...
 
-> @@ -1655,6 +1679,12 @@ static int edma_probe(struct platform_device *pdev)
->  		if (IS_ERR(edmacc_regs_base[j]))
->  			return PTR_ERR(edmacc_regs_base[j]);
->  
-> +		if (node) {
-> +			/* Get eDMA3 configuration from IP */
-> +			ret = edma_setup_info_from_hw(dev, info[j]);
-> +			if (ret)
-> +				return ret;
+ Tomi
 
-No need to do this only for the DT case, I think. Also, once we get rid
-of the edma_soc_info dependency, just pass edma_cc[] directly
 
-		edma_setup_info_from_hw(dev, j, edma_cc[j]);
 
-Thanks,
-Sekhar
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--1jeKGunVfgW41ftxLHlplOnak6Pjishup
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTdIGCAAoJEPo9qoy8lh71DYMP/1xJtYbWVC6Ek4cZco768MmR
+FNcQSNgo46vAG5YFf65xr2fzvEWY7+Ucm0zRZRoThPOoNvi6apTMnsl3B+53x++F
+xyM/QXU6L64f5zRqlDxZRPd2Tv+7ob0CVWTm1LDbF3oVJH9S/E6g6cDyTuXGbVAW
+LJAJJb9eI5ebIXDe/z4YMuxUXldDJmvtC2a8FKqEe+d8AXop3+ZWTs0vm/vhgtgn
+t/g+XqJS1/dppTExDout++4w3hLnUuA6XKtNF237qiEp4X6BpCJ7HR8Yql4mkipm
+aVt9e1LzSPIezpITb88i7SVXlthDrjuLgwSnVpdWiNpInjuxNbbVfHU5qgC8N53P
+HKXGOpt5RP4bLO+R9wEqgdNsE7vyIc9W2AeKSUQiwzRWt7Y0gJRJFBaCthVk92NC
+8xx+jjDu8YV2iZiMEs4uQvHKQsulgro/EUsEQuOcVn7p/mR5YIrFTubjnK9jV2Rn
+SF9LZ6WGRGc+49Fkhata+XPuGrjGn6bBxa/v0i918bQgPSn9t2eQWaatq8KdhybS
+LqBR4VVHcpSwN40dnqPC4sOEOBSWL5SGhk6o5yAr+IVke1o78IF4aPv2ZDejE9BA
+gxTK588Y5gVKeIO6y5ZEQnsxVWOsuqlgLqdZK5v0pVUXbDWtJyLQKj9w0poWVVF+
+yoUkYnIxDXcKwvyEymfi
+=m0NP
+-----END PGP SIGNATURE-----
+
+--1jeKGunVfgW41ftxLHlplOnak6Pjishup--
