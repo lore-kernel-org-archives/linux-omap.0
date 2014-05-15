@@ -1,85 +1,72 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: RCU stall on panda
-Date: Thu, 15 May 2014 11:05:53 +0200
-Message-ID: <53748371.5030704@linaro.org>
-References: <53675C5F.10509@linaro.org> <20140505180617.GM8754@linux.vnet.ibm.com> <20140512212102.GF5668@atomide.com> <5371BD69.8010600@linaro.org> <20140513153220.GC16837@atomide.com> <53747E6D.60500@linaro.org>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 03/17] phy: ti-pipe3: add external clock support for PCIe
+ PHY
+Date: Thu, 15 May 2014 14:45:11 +0530
+Message-ID: <5374859F.5080902@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>	<1399383244-14556-4-git-send-email-kishon@ti.com>	<53736CBC.2060702@ti.com>	<5373897C.6080504@ti.com> <CAGo_u6qw1OomEw_ueb3x+xT+qZLAfGv7Se1K=o725aOoD3ankQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:49125 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750786AbaEOJFo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 05:05:44 -0400
-Received: by mail-wi0-f172.google.com with SMTP id hi2so9410283wib.5
-        for <linux-omap@vger.kernel.org>; Thu, 15 May 2014 02:05:43 -0700 (PDT)
-In-Reply-To: <53747E6D.60500@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAGo_u6qw1OomEw_ueb3x+xT+qZLAfGv7Se1K=o725aOoD3ankQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, dt list <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, linux-pci@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Alex Shi <alex.shi@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "naresh.kamboju@linaro.org Kamboju" <naresh.kamboju@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, LAK <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@linaro.org>, linux-omap@vger.kernel.org
 
-On 05/15/2014 10:44 AM, Alex Shi wrote:
-> On 05/13/2014 11:32 PM, Tony Lindgren wrote:
->> * Alex Shi <alex.shi@linaro.org> [140512 23:37]:
->>> On 05/13/2014 05:21 AM, Tony Lindgren wrote:
->>>> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [140505 11:11]:
->>>>> On Mon, May 05, 2014 at 05:39:43PM +0800, Alex Shi wrote:
->>>>>> I keep seeing the RCU stall problem on panda board from 3.10 ker=
-nel to latest upstream kernel
->>>>>> and google find some one report it before: https://lkml.org/lkml=
-/2012/9/20/519
->>>>>>
->>>>>> Is it the hardware issue or a real software problem?
->>>>>
->>>>> I cannot distinguish between hardware and software from the trace=
- below,
->>>>> but given that you are also seeing a soft lockup, either way you =
-do
->>>>> appear to have a real problem as opposed to an RCU CPU stall warn=
-ing
->>>>> false positive.
->>>>
->>>> Looks like you have CPU_IDLE enabled on panda. Hangs with current =
-linux
->>>> next with CPU_IDLE are currently being discussed on the linux-omap=
- list
->>>> in thread "omap4-panda-es boot issues with v3.15-rc4"
->>>>
->>>> I've seen occasional system hangs, and I've also noticed that doin=
-g
->>>> ctrl-a-f h or ctrl-a-f l for sysrq backtrace can unlock the system
->>>> producing similar errors to the below.
->>>>
+Hi Nishanth,
+
+On Wednesday 14 May 2014 09:04 PM, Nishanth Menon wrote:
+> On Wed, May 14, 2014 at 10:19 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> Hi Roger,
+>>
+>> On Wednesday 14 May 2014 06:46 PM, Roger Quadros wrote:
+>>> Hi Kishon,
 >>>
->>> Thanks a lot for the info.
->>> In fact, the oops keeps in upstream kernel from 3.10 to latest.
+>>> On 05/06/2014 04:33 PM, Kishon Vijay Abraham I wrote:
+>>>> APLL used by PCIE phy can either use external clock as input or the clock
+>>>> from DPLL. Added support for the APLL to use external clock as input here.
+>>>>
+>>>> Cc: Rajendra Nayak <rnayak@ti.com>
+>>>> Cc: Tero Kristo <t-kristo@ti.com>
+>>>> Cc: Paul Walmsley <paul@pwsan.com>
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>> ---
+>>>>  Documentation/devicetree/bindings/phy/ti-phy.txt |    4 ++
+>>>>  drivers/phy/phy-ti-pipe3.c                       |   75 ++++++++++++++--------
+>>>>  2 files changed, 52 insertions(+), 27 deletions(-)
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>>>> index bc9afb5..d50f8ee 100644
+>>>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+>>>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>>>> @@ -76,6 +76,10 @@ Required properties:
+>>>>     * "dpll_ref_m2" - external dpll ref clk
+>>>>     * "phy-div" - divider for apll
+>>>>     * "div-clk" - apll clock
+>>>> +   * "apll_mux" - mux for pcie apll
+>>>> +   * "refclk_ext" - external reference clock for pcie apll
+>>>> + - ti,ext-clk: To specifiy if PCIE apll should use external clock. Applicable
+>>>> +   only to PCIE PHY.
+>>>
+>>> Instead of specifying both clock sources "dpll_ref_clock", "refclk_ext" and then specifying a 3rd control option "ti,ext-clk" to select one of the 2 sources, why can't the DT just supply one clock source, i.e. the one that is being used in the board instance? The driver should then just configure the clock rate that is needed at that node. Shouldn't the clock framework automatically take care of muxing and parent rates?
 >>
->> Care to test if the revert of commit cb7094 Santosh posted as
->> "[PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled"
->> solves the problem for you?
->>
->
-> After enable this patch, system maybe hang in idle. :(
+>> Want the dt to have all the clocks used by the controller. "ti,ext-clk" should
+>> go in the board dt file (suggested by Nishanth).
+>> The point is at some point later if some one wants to change the clock source,
+>> it should be a simple enabling "ti,ext-clk" flag instead of finding the clock
+>> phandle etc..
+> 
+> Wonder if that is implicit by the presence of  "refclk_ext" in the
+> clocks provided?
 
-Hi Alex,
+IMO the presence of "refclk_ext" is useless unless the board indicates it
+provides the clock source.
 
-do you mean even with this revert applied, the board hangs in idle ?
+refclk_ext holds phandle for *fixed-clock*, so irrespective of whether the
+board provides a clock or not, it can have that handle for configuring in PRCM.
+However if the board does not provide the clock source, configuring refclk_ext
+in PRCM is useless.
 
-
-
-
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Kishon
