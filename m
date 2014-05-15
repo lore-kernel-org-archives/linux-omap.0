@@ -1,37 +1,108 @@
-From: Alex Shi <alex.shi@linaro.org>
-Subject: Re: RCU stall on panda
-Date: Thu, 15 May 2014 21:26:20 +0800
-Message-ID: <5374C07C.1070400@linaro.org>
-References: <53675C5F.10509@linaro.org> <20140505180617.GM8754@linux.vnet.ibm.com> <20140512212102.GF5668@atomide.com> <5371BD69.8010600@linaro.org> <20140513153220.GC16837@atomide.com> <53747E6D.60500@linaro.org> <53748371.5030704@linaro.org>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v2 6/6] mmc: omap_hsmmc: split omap-dma header file
+Date: Thu, 15 May 2014 19:08:52 +0530
+Message-ID: <5374C36C.1020404@ti.com>
+References: <1399654013-28262-1-git-send-email-balajitk@ti.com> <1399654013-28262-7-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f44.google.com ([209.85.160.44]:62718 "EHLO
-	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273AbaEON0j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 09:26:39 -0400
-Received: by mail-pb0-f44.google.com with SMTP id rq2so1112424pbb.3
-        for <linux-omap@vger.kernel.org>; Thu, 15 May 2014 06:26:39 -0700 (PDT)
-In-Reply-To: <53748371.5030704@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1399654013-28262-7-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-mmc@vger.kernel.org, chris@printf.net, ulf.hansson@linaro.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "naresh.kamboju@linaro.org Kamboju" <naresh.kamboju@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, LAK <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@linaro.org>, linux-omap@vger.kernel.org
 
-On 05/15/2014 05:05 PM, Daniel Lezcano wrote:
->>>
->>
->> After enable this patch, system maybe hang in idle. :(
-> 
-> Hi Alex,
-> 
-> do you mean even with this revert applied, the board hangs in idle ?
-> 
+On Friday 09 May 2014 10:16 PM, Balaji T K wrote:
+> moving dmaengine consumer specific function to omap-dmaengine.h
+> to Resolve build failure seen with sh-allmodconfig:
+>      include/linux/omap-dma.h:171:8: error: expected identifier before numeric constant
+>      make[4]: *** [drivers/mmc/host/omap_hsmmc.o] Error 1
+>
+> Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
 
-yes.
-My board is panda ES. without this revert, it works.
+Hi Russell, Tony,
 
--- 
-Thanks
-    Alex
+Since this patches touches omap dma header file,
+can you provide your comments / ack if it looks ok ?
+
+> ---
+>   drivers/mmc/host/omap_hsmmc.c  |    2 +-
+>   include/linux/omap-dma.h       |   19 +------------------
+>   include/linux/omap-dmaengine.h |   21 +++++++++++++++++++++
+>   3 files changed, 23 insertions(+), 19 deletions(-)
+>   create mode 100644 include/linux/omap-dmaengine.h
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index cba71d6..6b7b755 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -31,7 +31,7 @@
+>   #include <linux/of.h>
+>   #include <linux/of_gpio.h>
+>   #include <linux/of_device.h>
+> -#include <linux/omap-dma.h>
+> +#include <linux/omap-dmaengine.h>
+>   #include <linux/mmc/host.h>
+>   #include <linux/mmc/core.h>
+>   #include <linux/mmc/mmc.h>
+> diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
+> index 41a13e7..999f52d 100644
+> --- a/include/linux/omap-dma.h
+> +++ b/include/linux/omap-dma.h
+> @@ -1,23 +1,6 @@
+> -/*
+> - * OMAP DMA Engine support
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License version 2 as
+> - * published by the Free Software Foundation.
+> - */
+>   #ifndef __LINUX_OMAP_DMA_H
+>   #define __LINUX_OMAP_DMA_H
+> -
+> -struct dma_chan;
+> -
+> -#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
+> -bool omap_dma_filter_fn(struct dma_chan *, void *);
+> -#else
+> -static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
+> -{
+> -	return false;
+> -}
+> -#endif
+> +#include <linux/omap-dmaengine.h>
+>
+>   /*
+>    *  Legacy OMAP DMA handling defines and functions
+> diff --git a/include/linux/omap-dmaengine.h b/include/linux/omap-dmaengine.h
+> new file mode 100644
+> index 0000000..2b0b6aa
+> --- /dev/null
+> +++ b/include/linux/omap-dmaengine.h
+> @@ -0,0 +1,21 @@
+> +/*
+> + * OMAP DMA Engine support
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#ifndef __LINUX_OMAP_DMAENGINE_H
+> +#define __LINUX_OMAP_DMAENGINE_H
+> +
+> +struct dma_chan;
+> +
+> +#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
+> +bool omap_dma_filter_fn(struct dma_chan *, void *);
+> +#else
+> +static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
+> +{
+> +	return false;
+> +}
+> +#endif
+> +#endif /* __LINUX_OMAP_DMAENGINE_H */
+>
+
