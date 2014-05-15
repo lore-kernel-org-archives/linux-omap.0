@@ -1,50 +1,38 @@
-From: "Wilde, Martin" <martin.wilde@apextoolgroup.com>
-Subject: hang-ups, using SanDisk Extreme Pro microSD cards
-Date: Thu, 15 May 2014 07:35:34 +0000
-Message-ID: <93B72C021D0EAC478BEFF60E93B1934BD1D08F35@APSS051.ATG.root>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v2 3/5] dt/bindings: ti,edma: Remove redundant properties from documentation
+Date: Thu, 15 May 2014 10:01:57 +0200
+Message-ID: <7468082.VY82PIo3ZY@wuerfel>
+References: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com> <1399977032-26469-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail1.apextoolgroup.com ([199.115.148.10]:23751 "EHLO
-	mail1.apextoolgroup.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752751AbaEOHfg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 03:35:36 -0400
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1399977032-26469-4-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: nsekhar@ti.com, joelf@ti.com, linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Dear All,
+On Tuesday 13 May 2014 13:30:30 Peter Ujfalusi wrote:
+> From CCCFG register of eDMA3 we can get all the needed information for the
+> driver about the IP:
+> Number of channels: NUM_DMACH
+> Number of regions: NUM_REGN
+> Number of slots (PaRAM sets): NUM_PAENTRY
+> Number of TC/EQ: NUM_EVQUE
+> 
+> The ti,edma-regions; ti,edma-slots and dma-channels in DT are
+> redundant since the very same information can be obtained from the HW.
+> The mentioned properties can be removed from the binding document.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-I am using a ISEE Igepv2 CPU board, booting from microSD card. I am using SanDisk Extreme Pro 8GByte cards.
+I wonder if we should keep them listed as "optional" properties so you
+can have a dtb file that still works with older kernels which need them.
 
-I experience occasional hang-ups of the Linux system in different severity:
+What you do is an incompatible change to the binding, which we shouldn't
+do lightly. Any new dts files don't need this information of course, but
+as a general rule, I'd rather keep things like this around unless we
+already have to enforce an ABI break that is well documented.
 
-1.) System seems to hang for some seconds, but afterwards continues work with no kernel messages in this case
-
-2.) kernel is putting out message:
-[ 4211.686096] mmcblk0: error -110 sending read/write command, response 0x900, card status 0xe00
-[ 4211.701538] mmcblk0: error -110 transferring data, sector 674693, nr 42, card status 0xc00
-
- Afterwards the Linux system is completely dead - no SSH, no ping, nothing.
-
-The problem occurs quite often -> every 4rd to 5th reboot after a few minutes working time.
-
-I have used the ISEE Igepv2 kernel 2.6.37-8 and Igep X-Loader 2.6.0-1 in this case with igep00x0-defconfig.
-
-Linux system is compiled, using the Pengutronix PTXDist 2011-11-0 cross compile environment
-
-I tried afterwards on same CPU board with  Transcend Premium 8GByte cards with no problems.
-
-I tried with mainline kernel 3.15-rc4 and u-boot-2014-04 afterwards. Here I do not get the above messages, but still with some SanDisk cards I get a complete system hang-up. 
-
-Same, with Transcend cards, or even some other SanDisk cards I do not have problems.
-
-The Linux images are duplicated using a script with parted, mkfs and tar to copy the images.
-
-Does anybody else already had such problems?
-
-best regards,
-
-Martin Wilde
+	Arnd
