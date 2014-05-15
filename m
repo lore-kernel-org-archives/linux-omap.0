@@ -1,88 +1,82 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH 1/3] clk: ti: add 'ti,round-rate' flag
-Date: Wed, 14 May 2014 23:08:34 -0700
-Message-ID: <20140515060834.3084.5199@quantum>
-References: <1399540009-6953-1-git-send-email-tomi.valkeinen@ti.com>
- <5370B839.3050108@ti.com> <5370BAFF.9070501@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [RFC PATCH] ARM: dts: am33xx: Re-arrange the USB dt to reflect
+ the h/w configuration
+Date: Thu, 15 May 2014 11:38:36 +0530
+Message-ID: <537459E4.5060203@ti.com>
+References: <1399617068-19826-1-git-send-email-george.cherian@ti.com> <20140514215034.GL27426@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:54268 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751882AbaEOGIm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 02:08:42 -0400
-Received: by mail-pb0-f50.google.com with SMTP id ma3so646295pbc.37
-        for <linux-omap@vger.kernel.org>; Wed, 14 May 2014 23:08:41 -0700 (PDT)
-In-Reply-To: <5370BAFF.9070501@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140514215034.GL27426@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, bcousson@baylibre.com, ezequiel@vanguardiasur.com.ar, bigeasy@linutronix.de, yegorslists@googlemail.com, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
-Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 
-Quoting Tomi Valkeinen (2014-05-12 05:13:51)
-> On 12/05/14 15:02, Tero Kristo wrote:
-> > On 05/08/2014 12:06 PM, Tomi Valkeinen wrote:
-> >> The current DPLL code does not try to round the clock rate, and instead
-> >> returns an error if the requested clock rate cannot be produced exactly
-> >> by the DPLL.
-> >>
-> >> It could be argued that this is a bug, but as the current drivers may
-> >> depend on that behavior, a new flag 'ti,round-rate' is added which
-> >> enables clock rate rounding.
-> > 
-> > Someone could probably argue that this flag is not a hardware feature,
-> 
-> I fully agree.
-> 
-> > but instead is used to describe linux-kernel behavior, and would
-> > probably be frowned upon by the DT enthusiasts. Othen than that, I like
-> > this approach better than a global setting, but would like second
-> > opinions here.
-> 
-> I think the dpll code should always do rounding. That's what
-> round_rate() is supposed to do, afaik. The current behavior of not
-> rounding and returning an error is a bug in my opinion.
+Hi Tony,
+On 5/15/2014 3:20 AM, Tony Lindgren wrote:
+> * George Cherian <george.cherian@ti.com> [140508 23:34]:
+>> Re arrange the USB dt for AM33xx to take it a bit closer
+>> to the hardware configuration.
+>>
+>> The USBSS is designed as follows
+>>
+>> USB control Module	0x44e10_0620
+>>
+>> USBSS			0x4740_0000
+>>
+>> USB0			0x4740_1000
+>> USB0_PHY		0x4740_1300
+>> USB0_CORE		0x4740_1400
+>>
+>> USB1			0x4740_1800
+>> USB1_PHY		0x4740_1b00
+>> USB1_CORE		0x4740_1c00
+>>
+>> CPPI DMA Controller	0x4740_2000
+>> CPPI DMA Scheduler	0x4740_3000
+>> Queue Manager		0x4740_4000
+>>
+>> So model the DT as follows
+>> USBSS {
+>>      usb_ctrl_mod: {
+>>          0x44e10_0620
+>>      }
+>>      usb0: {
+>>      0x4740_1000
+>>      0x4740_1400
+>>      }
+>>      usb0_phy:{
+>>      0x4740_1300
+>>      }
+>>      usb1:{
+>>      0x4740_1800
+>>      0x4740_1c00
+>>      }
+>>      usb1_phy: {
+>>      0x4740_1b00
+>>      }
+>>      cppi41dma: {
+>>      0x4740_2000
+>>      0x4740_3000
+>>      0x4740_4000
+>>      }
+>> }
+> Is this just a cosmetic change or is this trying to workaround
+> some edma related init order issue?
+Please ignore this patch. Was trying to workaround some dma and phy 
+related issues.
+The same got fixed with following
 
->From include/linux/clk.h:
+http://www.spinics.net/lists/linux-usb/msg107244.html
 
-/**
- * clk_round_rate - adjust a rate to the exact rate a clock can provide
- * @clk: clock source
- * @rate: desired clock rate in Hz
- *
- * Returns rounded clock rate in Hz, or negative errno.
- */
-long clk_round_rate(struct clk *clk, unsigned long rate);
 
-Definitely not rounding the rate is a bug, with respect to the API
-definition. Has anyone tried making the new flag as the default behavior
-and seeing if anything breaks?
+>
+> Regards,
+>
+> Tony
 
-For those users of the omapconf tool I enjoy doing something like the
-following:
 
-<boot current, buggy behavior>
-omapconf dump prcm > old
-
-<boot with Tomi's flag enabled for all DPLLs by default>
-omapconf dump prcm > new
-
-diff -u old new
-
-This should reveal any deltas, assuming the board boots and doesn't let
-magic smoke out.
-
-Regards,
-Mike
-
-> 
-> So, if you ask me, the whole flag is just for the purpose of keeping the
-> current drivers working, which could depend on the broken behavior. But
-> I think we cannot have such drivers (functional, at least) in any case,
-> as the clk-divider driver is broken and doesn't handle the errors the
-> dpll code currently returns for non-exact rates.
-> 
->  Tomi
-> 
-> 
+-- 
+-George
