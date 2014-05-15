@@ -1,91 +1,121 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: AM335x host only USB
-Date: Thu, 15 May 2014 11:13:23 -0500
-Message-ID: <20140515161323.GG7360@saruman.home>
-References: <528DE96A.6080903@newflow.co.uk>
- <CAF3EQkSrpf-9Ezf5Y7htfaQAEfN9PDV=CUxS_h9peKjawDhUSw@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
+Date: Thu, 15 May 2014 13:03:26 -0400
+Message-ID: <5374F35E.5040900@ti.com>
+References: <1399991966-14582-1-git-send-email-santosh.shilimkar@ti.com> <5373C78E.7040301@linaro.org> <5373C8E8.6040208@ti.com> <5373CBB9.40506@linaro.org> <5373DD94.8030208@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vJguvTgX93MxBIIe"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAF3EQkSrpf-9Ezf5Y7htfaQAEfN9PDV=CUxS_h9peKjawDhUSw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?utf-8?B?6buD5L+K56W6?= <steve.huang@climax.com.tw>
-Cc: Mark Jackson <mpfj-list@newflow.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58450 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752715AbaEORDu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 May 2014 13:03:50 -0400
+In-Reply-To: <5373DD94.8030208@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: khilman@linaro.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
---vJguvTgX93MxBIIe
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Daniel,
 
-Hi,
+On Wednesday 14 May 2014 05:18 PM, Santosh Shilimkar wrote:
+> On Wednesday 14 May 2014 04:02 PM, Daniel Lezcano wrote:
+>> On 05/14/2014 09:50 PM, Santosh Shilimkar wrote:
+>>> On Wednesday 14 May 2014 03:44 PM, Daniel Lezcano wrote:
+>>>> On 05/13/2014 04:39 PM, Santosh Shilimkar wrote:
+>>>>> On OMAP4 panda board, there have been several bug reports about boot
+>>>>> hang and lock-ups with CPU_IDLE enabled. The root cause of the issue
+>>>>> is missing interrupts while in idle state. Commit cb7094e8 {cpuidle / omap4 :
+>>>>> use CPUIDLE_FLAG_TIMER_STOP flag} moved the broadcast notifiers to common
+>>>>> code for right reasons but on OMAP4 which suffers from a nasty ROM code
+>>>>> bug with GIC, commit ff999b8a {ARM: OMAP4460: Workaround for ROM bug ..},
+>>>>> we loose interrupts which leads to issues like lock-up, hangs etc.
+>>>>>
+>>>>> Patch reverts commit cb7094 {cpuidle / omap4 : use CPUIDLE_FLAG_TIMER_STOP
+>>>>> flag} to avoid the issue. With this change, OMAP4 panda boards, the mentioned
+>>>>> issues are getting fixed. We no longer loose interrupts which was the cause
+>>>>> of the regression.
+>>>>>
+>>>>> Cc: Roger Quadros <rogerq@ti.com>
+>>>>> Cc: Kevin Hilman <khilman@linaro.org>
+>>>>> Cc: Tony Lindgren <tony@atomide.com>
+>>>>> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+>>>>> Reported-tested-by: Roger Quadros <rogerq@ti.com>
+>>>>> Reported-tested-by: Kevin Hilman <khilman@linaro.org>
+>>>>> Tested-by: Tony Lindgren <tony@atomide.com>
+>>>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>>> ---
+>>
+>> [ ... ]
+>>
+>>>>>
+>>>>> +    clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
+>>>>> +
+>>>>>        /*
+>>>>>         * Call idle CPU PM enter notifier chain so that
+>>>>>         * VFP and per CPU interrupt context is saved.
+>>>>> @@ -165,6 +169,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+>>>>>        if (dev->cpu == 0 && mpuss_can_lose_context)
+>>>>>            cpu_cluster_pm_exit();
+>>>>>
+>>>>> +    clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
+>>
+>> [ ... ]
+>>
+>>>>
+>>>> Shouldn't the broadcast timer to be setup with CLOCK_EVT_NOTIFY_BROADCAST_ON also ?
+>>>>
+>>> Which is already taken care by __cpuidle_register_driver(). Note that setup code
+>>> is still used from generic code...
+>>
+>> Nope, if the flag CPUIDLE_FLAG_TIMER_STOP is not set, the cpuidle framework won't setup the timer.
+>>
+> I see. I assumed it was taken care. So we might have setup the timer too.
+> 
+>> static void __cpuidle_driver_init(struct cpuidle_driver *drv)
+>> {
+>>
+>>     ...
+>>
+>>     for (i = drv->state_count - 1; i >= 0 ; i--) {
+>>         if (drv->states[i].flags & CPUIDLE_FLAG_TIMER_STOP) {
+> May be you should start the bc timer in case 'CPUIDLE_FLAG_TIMER_STOP'
+> or 'CPUIDLE_FLAG_COUPLED'
+>>             drv->bctimer = 1;
+>>             break;
+>>         }
+>>     }
+>>
+>>     ...
+>>
+>> }
+>>
+>> static int __cpuidle_register_driver(struct cpuidle_driver *drv)
+>> {
+>>     ...
+>>
+>>     if (drv->bctimer)
+>>         on_each_cpu_mask(drv->cpumask,
+>>         cpuidle_setup_broadcast_timer,
+>>          (void *)CLOCK_EVT_NOTIFY_BROADCAST_ON, 1);
+>>
+>>     ...
+>> }
+>>
+>> So the broadcast timer does not operate with this revert. Moreover, I am not sure reverting this patch is the right solution.
+>>
+> With above mentioned change, it should work. Other alternatives is OMAP4 driver does
+> its won registration where it can start the timer. The way it was before the
+> consolidation.
+> 
+> Ofcourse if you have better fix, then great. 
+> 
+What is your suggestion. We *must* fix the regression asap. I think 
+$subject patch with an update to bctimer start under CPUIDLE_FLAG_COUPLED
+seems a good way forward.
 
-On Thu, May 15, 2014 at 03:23:14PM +0800, =E9=BB=83=E4=BF=8A=E7=A5=BA wrote:
-> Dear all,
->=20
-> Is any update here?
-> I'm looking forward for your reply, thanks.
->=20
-> Steve
->=20
->=20
->=20
-> 2013-11-21 19:07 GMT+08:00 Mark Jackson <mpfj-list@newflow.co.uk>:
->=20
-> > We have a custom AM335x CPU board with a type A connector, which is
-> > intended
-> > to be run in host-only mode.
-> >
-> > Using Linus' latest git, I can compile a part-working kernel that can
-> > detect
-> > an (internal?) usb hub, but is unable to see any devices connected to i=
-t.
-> >
-> > Here's a snippet from my boot log:-
-> >
-> > Starting kernel ...
-> >
-> > [    0.000000] Booting Linux on physical CPU 0x0
-> > [    0.000000] Linux version 3.12.0-10713-gf9a173a-dirty
+Do let me know.
 
-pretty old kernel, friend. You know we can't really support you on such
-an old kernel, right ?
-
-In any case, try to backport commits:
-
-943c13971c08ddeb06f4cb9dea1addb76f6b4423
-2df6761e5eca9a810050a15062ae8abce1bbae41
-
-and see what happens. I'm assuming you didn't ground ID pin, since
-you're using a standard A receptacle. I suggest hardwiring it to ground
-anyway.
-
---=20
-balbi
-
---vJguvTgX93MxBIIe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTdOeiAAoJEIaOsuA1yqRE0NcQALMRMMQ29B8TK2Pi9VH1Te6H
-kGtt+5cZz/o6nRKpiRmzcHSeLGegZRmmMqLczI+8LzLyvGjJqyFI+g+YUJDTACRo
-CvR9qA3WW1tJXHRr1j7uvthUlFuWNeD9Ra8hAv6dnTGrw2JB0pQCfZwIVOVzhdqh
-7acjZoV6nar2l9rY8pbBjtNa+zBhEXjkt4g1uRYRtPVwBge3Blo+9kYv4bWhhqme
-94x6eqI287Kr/EzzgpIgoFr4Q+nlOQFIM23pSjHw8WQLHPJAjBgqFUqQdcYce+eW
-xjFLQSdRey+wxcasfGc9+TrDTt9+lFURiHN4Ie+6ARPYbdwGgatPH3sS+O4IPCuX
-UpXWZWMvX9o/sOCTZYNDR5H94IHBVpyEk/rG2fq0335mQCBsislT8EhGEmjtmK2B
-WdSEaSssqKYOZxYsoj+qQ3dq9+5WDEXsvc+ISi84Y3+qdIbB+GCD0UXgUqciYCpw
-GuMSawk/QqnPF+qRyTqom48pyCajqFFXiJqbsoor6WIhsUcyFFpZ0joindLzvQfk
-mCHANKtIxTDcuDxXMqvw7+cMys54qCW71OgvDIAhJkdZBReQh6O07c2lI2A45cv6
-WvjkgRsa9HMPflXzJaQKJiCzEcu9rOAZinJmvAwR3ZTaQMNXz+EUD4Rd+jz4KcEV
-L9onSlrnoylIbLysE+lv
-=avHa
------END PGP SIGNATURE-----
-
---vJguvTgX93MxBIIe--
+Regards,
+Santosh
