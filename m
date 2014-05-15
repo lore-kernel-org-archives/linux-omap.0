@@ -1,70 +1,37 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: [PATCH] ARM: OMAP: SX1: remove check for CONFIG_SX1_OLD_FLASH
-Date: Thu, 15 May 2014 21:41:42 +0200
-Message-ID: <1400182902.11786.21.camel@x220>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] ARM: OMAP: remove some dead code
+Date: Thu, 15 May 2014 22:43:17 +0300
+Message-ID: <20140515194317.GB4752@drone.musicnaut.iki.fi>
+References: <1400181381.11786.18.camel@x220>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1400181381.11786.18.camel@x220>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-A check for CONFIG_SX1_OLD_FLASH was added in v2.6.24. But the related
-Kconfig symbol was never part of the tree. So we can remove some dead
-code.
+On Thu, May 15, 2014 at 09:16:21PM +0200, Paul Bolle wrote:
+> A check for CONFIG_CBUS_TAHVO_USB was added in v2.6.17. The related
+> Kconfig symbol has never been part of the tree. Remove that check.
+> 
+> Replace the while (...) loop with a simple if (...) statement, while
+> we're at it.
+> 
+> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-Also untested.
+Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
- arch/arm/mach-omap1/board-sx1.c | 26 --------------------------
- 1 file changed, 26 deletions(-)
+> ---
+> Untested, as usual.
+> 
+> A quick search across the history of the tree suggests CBUS_TAHVO_USB
+> was N770 related. Not that this matters much.
 
-diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
-index 0a8d3349149c..29e526235dc2 100644
---- a/arch/arm/mach-omap1/board-sx1.c
-+++ b/arch/arm/mach-omap1/board-sx1.c
-@@ -266,31 +266,6 @@ static struct physmap_flash_data sx1_flash_data = {
- 	.nr_parts	= ARRAY_SIZE(sx1_partitions),
- };
- 
--#ifdef CONFIG_SX1_OLD_FLASH
--/* MTD Intel StrataFlash - old flashes */
--static struct resource sx1_old_flash_resource[] = {
--	[0] = {
--		.start	= OMAP_CS0_PHYS,	/* Physical */
--		.end	= OMAP_CS0_PHYS + SZ_16M - 1,,
--		.flags	= IORESOURCE_MEM,
--	},
--	[1] = {
--		.start	= OMAP_CS1_PHYS,
--		.end	= OMAP_CS1_PHYS + SZ_8M - 1,
--		.flags	= IORESOURCE_MEM,
--	},
--};
--
--static struct platform_device sx1_flash_device = {
--	.name		= "physmap-flash",
--	.id		= 0,
--	.dev		= {
--		.platform_data	= &sx1_flash_data,
--	},
--	.num_resources	= 2,
--	.resource	= &sx1_old_flash_resource,
--};
--#else
- /* MTD Intel 4000 flash - new flashes */
- static struct resource sx1_new_flash_resource = {
- 	.start		= OMAP_CS0_PHYS,
-@@ -307,7 +282,6 @@ static struct platform_device sx1_flash_device = {
- 	.num_resources	= 1,
- 	.resource	= &sx1_new_flash_resource,
- };
--#endif
- 
- /*----------- USB -------------------------*/
- 
--- 
-1.9.0
+Yes, Tahvo USB is only used on Nokia 770 (which is the correct name,
+not N770). The driver is nowadays behind TAHVO_USB, but like you said
+the old symbol was never part of the mainline so it's OK to delete it.
+
+A.
