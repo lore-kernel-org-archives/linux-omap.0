@@ -1,80 +1,67 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 03/17] phy: ti-pipe3: add external clock support for PCIe
- PHY
-Date: Thu, 15 May 2014 12:25:45 +0300
-Message-ID: <53748819.8060705@ti.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com>	<1399383244-14556-4-git-send-email-kishon@ti.com>	<53736CBC.2060702@ti.com>	<5373897C.6080504@ti.com> <CAGo_u6qw1OomEw_ueb3x+xT+qZLAfGv7Se1K=o725aOoD3ankQ@mail.gmail.com> <5374859F.5080902@ti.com>
+From: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Subject: [PATCH] usb: dwc3: gadget: check link trb after free_slot is
+ increased
+Date: Fri, 16 May 2014 05:57:57 +0800
+Message-ID: <20140515215757.GD16153@intel.com>
+Reply-To: jin.can.zhuang@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52443 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751000AbaEOJ0O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 May 2014 05:26:14 -0400
-In-Reply-To: <5374859F.5080902@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, david.a.cohen@linux.intel.com, Yuan@intel.com, Hang <hang.yuan@intel.com>, Zhuang@intel.com, Jin Can <jin.can.zhuang@intel.com>, Li@intel.com, Jiebing <jiebing.li@intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Nishanth Menon <nm@ti.com>
-Cc: dt list <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, linux-pci@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 
-On 05/15/2014 12:15 PM, Kishon Vijay Abraham I wrote:
-> Hi Nishanth,
-> 
-> On Wednesday 14 May 2014 09:04 PM, Nishanth Menon wrote:
->> On Wed, May 14, 2014 at 10:19 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->>> Hi Roger,
->>>
->>> On Wednesday 14 May 2014 06:46 PM, Roger Quadros wrote:
->>>> Hi Kishon,
->>>>
->>>> On 05/06/2014 04:33 PM, Kishon Vijay Abraham I wrote:
->>>>> APLL used by PCIE phy can either use external clock as input or the clock
->>>>> from DPLL. Added support for the APLL to use external clock as input here.
->>>>>
->>>>> Cc: Rajendra Nayak <rnayak@ti.com>
->>>>> Cc: Tero Kristo <t-kristo@ti.com>
->>>>> Cc: Paul Walmsley <paul@pwsan.com>
->>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>>> ---
->>>>>  Documentation/devicetree/bindings/phy/ti-phy.txt |    4 ++
->>>>>  drivers/phy/phy-ti-pipe3.c                       |   75 ++++++++++++++--------
->>>>>  2 files changed, 52 insertions(+), 27 deletions(-)
->>>>>
->>>>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>> index bc9afb5..d50f8ee 100644
->>>>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>> @@ -76,6 +76,10 @@ Required properties:
->>>>>     * "dpll_ref_m2" - external dpll ref clk
->>>>>     * "phy-div" - divider for apll
->>>>>     * "div-clk" - apll clock
->>>>> +   * "apll_mux" - mux for pcie apll
->>>>> +   * "refclk_ext" - external reference clock for pcie apll
->>>>> + - ti,ext-clk: To specifiy if PCIE apll should use external clock. Applicable
->>>>> +   only to PCIE PHY.
->>>>
->>>> Instead of specifying both clock sources "dpll_ref_clock", "refclk_ext" and then specifying a 3rd control option "ti,ext-clk" to select one of the 2 sources, why can't the DT just supply one clock source, i.e. the one that is being used in the board instance? The driver should then just configure the clock rate that is needed at that node. Shouldn't the clock framework automatically take care of muxing and parent rates?
->>>
->>> Want the dt to have all the clocks used by the controller. "ti,ext-clk" should
->>> go in the board dt file (suggested by Nishanth).
->>> The point is at some point later if some one wants to change the clock source,
->>> it should be a simple enabling "ti,ext-clk" flag instead of finding the clock
->>> phandle etc..
->>
->> Wonder if that is implicit by the presence of  "refclk_ext" in the
->> clocks provided?
-> 
-> IMO the presence of "refclk_ext" is useless unless the board indicates it
-> provides the clock source.
-> 
-> refclk_ext holds phandle for *fixed-clock*, so irrespective of whether the
-> board provides a clock or not, it can have that handle for configuring in PRCM.
-> However if the board does not provide the clock source, configuring refclk_ext
-> in PRCM is useless.
+In ISOC transfers, when free_slot points to the last TRB (i.e. Link
+TRB), and all queued requests meet Missed Interval Isoc error, busy_slot
+points to trb0.
+	busy_slot->trb0
+		   trb1
+		   ...
+	free_slot->trb31(Link TRB)
 
-I think what Nishant meant is that if "refclk_ext" is provided it means that the driver
-should use that over "dpll_ref_clock" so no need of a separate "ti,ext-clk" flag.
+After end transfer and receiving the XferNotReady event, trb_left is
+caculated as 1 which is wrong, and no TRB will be primed to the
+endpoint.
 
-cheers,
--roger
+The root cause is free_slot is not increased the same way as busy_slot.
+When busy_slot is increased by one, it checks if points to a link TRB
+after increasement, but free_slot checks it before increasement.
+free_slot should behave the same as busy_slot to make the trb_left
+caculation correct.
+
+Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Signed-off-by: Jiebing Li <jiebing.li@intel.com>
+---
+ drivers/usb/dwc3/gadget.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 54da8c8..2ebe82b 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -828,10 +828,6 @@ static void dwc3_prepare_one_trb(struct dwc3_ep *dep,
+ 			length, last ? " last" : "",
+ 			chain ? " chain" : "");
+ 
+-	/* Skip the LINK-TRB on ISOC */
+-	if (((dep->free_slot & DWC3_TRB_MASK) == DWC3_TRB_NUM - 1) &&
+-			usb_endpoint_xfer_isoc(dep->endpoint.desc))
+-		dep->free_slot++;
+ 
+ 	trb = &dep->trb_pool[dep->free_slot & DWC3_TRB_MASK];
+ 
+@@ -843,6 +839,10 @@ static void dwc3_prepare_one_trb(struct dwc3_ep *dep,
+ 	}
+ 
+ 	dep->free_slot++;
++	/* Skip the LINK-TRB on ISOC */
++	if (((dep->free_slot & DWC3_TRB_MASK) == DWC3_TRB_NUM - 1) &&
++			usb_endpoint_xfer_isoc(dep->endpoint.desc))
++		dep->free_slot++;
+ 
+ 	trb->size = DWC3_TRB_SIZE_LENGTH(length);
+ 	trb->bpl = lower_32_bits(dma);
+-- 
+1.7.9.5
