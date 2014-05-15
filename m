@@ -1,117 +1,220 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/3] clk: ti: add 'ti,round-rate' flag
-Date: Thu, 15 May 2014 15:25:37 +0300
-Message-ID: <5374B241.9010201@ti.com>
-References: <1399540009-6953-1-git-send-email-tomi.valkeinen@ti.com> <5370B839.3050108@ti.com> <5370BAFF.9070501@ti.com> <20140515060834.3084.5199@quantum>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 2/5] ARM: edma: Get IP information from HW when booting
+ with DT
+Date: Thu, 15 May 2014 15:30:05 +0300
+Message-ID: <5374B34D.2060904@ti.com>
+References: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com> <1399977032-26469-3-git-send-email-peter.ujfalusi@ti.com> <53748070.4080706@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="6KxgkLIuRAxNFmGoJDLqJJFn2Mx9g2doC"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45122 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752799AbaEOMZn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 May 2014 08:25:43 -0400
-In-Reply-To: <20140515060834.3084.5199@quantum>
+Received: from devils.ext.ti.com ([198.47.26.153]:51202 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752793AbaEOMak (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 08:30:40 -0400
+In-Reply-To: <53748070.4080706@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
-Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
+To: Sekhar Nori <nsekhar@ti.com>, joelf@ti.com
+Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 
---6KxgkLIuRAxNFmGoJDLqJJFn2Mx9g2doC
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi Sekhar,
 
-On 15/05/14 09:08, Mike Turquette wrote:
-> Quoting Tomi Valkeinen (2014-05-12 05:13:51)
->> On 12/05/14 15:02, Tero Kristo wrote:
->>> On 05/08/2014 12:06 PM, Tomi Valkeinen wrote:
->>>> The current DPLL code does not try to round the clock rate, and inst=
-ead
->>>> returns an error if the requested clock rate cannot be produced exac=
-tly
->>>> by the DPLL.
->>>>
->>>> It could be argued that this is a bug, but as the current drivers ma=
-y
->>>> depend on that behavior, a new flag 'ti,round-rate' is added which
->>>> enables clock rate rounding.
->>>
->>> Someone could probably argue that this flag is not a hardware feature=
-,
->>
->> I fully agree.
->>
->>> but instead is used to describe linux-kernel behavior, and would
->>> probably be frowned upon by the DT enthusiasts. Othen than that, I li=
-ke
->>> this approach better than a global setting, but would like second
->>> opinions here.
->>
->> I think the dpll code should always do rounding. That's what
->> round_rate() is supposed to do, afaik. The current behavior of not
->> rounding and returning an error is a bug in my opinion.
+On 05/15/2014 11:53 AM, Sekhar Nori wrote:
+> Hi Peter,
 >=20
-> From include/linux/clk.h:
+> On Tuesday 13 May 2014 04:00 PM, Peter Ujfalusi wrote:
+>> From CCCFG register of eDMA3 we can get all the needed information f=
+or the
+>> driver about the IP:
+>> Number of channels: NUM_DMACH
+>> Number of regions: NUM_REGN
+>> Number of slots (PaRAM sets): NUM_PAENTRY
+>> Number of TC/EQ: NUM_EVQUE
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>> ---
+>>  arch/arm/common/edma.c | 128 ++++++++++++++++++++++++++++++--------=
+-----------
+>>  1 file changed, 79 insertions(+), 49 deletions(-)
+>>
+>> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+>> index fade9ada81f8..1a98f3cd4cd9 100644
+>> --- a/arch/arm/common/edma.c
+>> +++ b/arch/arm/common/edma.c
+>> @@ -102,7 +102,16 @@
+>>  #define PARM_OFFSET(param_no)	(EDMA_PARM + ((param_no) << 5))
+>> =20
+>>  #define EDMA_DCHMAP	0x0100  /* 64 registers */
+>> -#define CHMAP_EXIST	BIT(24)
+>> +
+>> +/* CCCFG register */
+>> +#define GET_NUM_DMACH(x)	(x & 0x7) /* bits 0-2 */
+>> +#define GET_NUM_QDMACH(x)	((x & 0x70) >> 4) /* bits 4-6 */
+>> +#define GET_NUM_INTCH(x)	((x & 0x700) >> 8) /* bits 8-10 */
+>> +#define GET_NUM_PAENTRY(x)	((x & 0x7000) >> 12) /* bits 12-14 */
+>> +#define GET_NUM_EVQUE(x)	((x & 0x70000) >> 16) /* bits 16-18 */
+>> +#define GET_NUM_REGN(x)		((x & 0x300000) >> 20) /* bits 20-21 */
+>> +#define CHMAP_EXIST		BIT(24)
+>> +#define MP_EXIST		BIT(25)
 >=20
-> /**
->  * clk_round_rate - adjust a rate to the exact rate a clock can provide=
+> Of these new defines, you do not use GET_NUM_QDMACH(), GET_NUM_INTCH(=
+)
+> and MP_EXIST (at least in this patch). Can you please get rid of them=
+ if
+> not needed? May be its just me but its pretty annoying to search for =
+a
+> define only to find its never used :)
 
->  * @clk: clock source
->  * @rate: desired clock rate in Hz
->  *
->  * Returns rounded clock rate in Hz, or negative errno.
->  */
-> long clk_round_rate(struct clk *clk, unsigned long rate);
+Sure, I can remove the ones we are not using in the code. I usually pre=
+fer to
+have full description if the register even if we only use one bit from =
+the
+register.
+
 >=20
-> Definitely not rounding the rate is a bug, with respect to the API
-> definition. Has anyone tried making the new flag as the default behavio=
-r
-> and seeing if anything breaks?
+>> =20
+>>  #define EDMA_MAX_DMACH           64
+>>  #define EDMA_MAX_PARAMENTRY     512
+>> @@ -1415,6 +1424,68 @@ void edma_clear_event(unsigned channel)
+>>  }
+>>  EXPORT_SYMBOL(edma_clear_event);
+>> =20
+>> +static int edma_setup_info_from_hw(struct device *dev,
+>> +				   struct edma_soc_info *pdata)
+>> +{
+>> +	int i;
+>> +	u32 value, cccfg, n_tc;
+>> +	s8 (*queue_tc_map)[2], (*queue_priority_map)[2];
+>> +
+>> +	/* Decode the eDMA3 configuration from CCCFG register */
+>> +	cccfg =3D edma_read(0, EDMA_CCCFG);
+>=20
+> You do not handle the second controller here, but its pretty straight
+> forward to add that by passing the controller number to this function=
+=2E
 
-The v1 of the patch fixed the rounding unconditionally:
+The second controller is not handled because in DT boot we only handle =
+1 cc as
+far as I know. I don't know why, but this is how the DT support has bee=
+n
+written and used.
 
-http://article.gmane.org/gmane.linux.ports.arm.kernel/295077
+> I was wondering why we never read the hardware for this information
+> before, and strangely enough cannot find any SoC where the CCCFG
+> register does not publish this information correctly. I have tested o=
+n
+> DA850, DA830, DM365, DM355 and DM6467.
 
-Paul wanted it optional so that existing drivers would not break. No one
-knows if there is such a driver, or what would the driver's code look
-like that would cause an issue.
+Good question. I was also puzzled about this.
 
-And, as I've pointed out in the above thread, as clk-divider driver
-doesn't an error code from the dpll driver, my opinion is that such
-drivers would not work even now.
+> Instead of keeping this specific to OF case, the code can be simplifi=
+ed
+> much better if we read from hardware all the time. We can directly
+> populate the equivalent variables in the internal structure 'struct
+> edma' instead of populating them in 'struct edma_soc_info' and then
+> copying then over.
 
-I like v1 more.
+Yes, we can switch the non DT boot to this mode as well, true. At first=
+ I
+wanted to change code which I can test easily. For non DT boot I would =
+need to
+set up my old daVinci board ;)
 
-In any case, I hope we'd get something merged ASAP so that we fix the
-display AM3xxx boards and we'd still have time to possibly find out if
-some other driver breaks.
+>> +
+>> +	value =3D GET_NUM_DMACH(cccfg);
+>> +	pdata->n_channel =3D BIT(value + 1);
+>> +
+>> +	value =3D GET_NUM_REGN(cccfg);
+>> +	pdata->n_region =3D BIT(value);
+>> +
+>> +	value =3D GET_NUM_PAENTRY(cccfg);
+>> +	pdata->n_slot =3D BIT(value + 4);
+>> +
+>> +	value =3D GET_NUM_EVQUE(cccfg);
+>> +	n_tc =3D value + 1;
+>> +
+>> +	dev_dbg(dev, "eDMA3 HW configuration (cccfg: 0x%08x):\n", cccfg);
+>> +	dev_dbg(dev, "n_channel: %u\n", pdata->n_channel);
+>> +	dev_dbg(dev, "n_region: %u\n", pdata->n_region);
+>> +	dev_dbg(dev, "n_slot: %u\n", pdata->n_slot);
+>> +	dev_dbg(dev, "n_tc: %u\n", n_tc);
+>> +
+>=20
+> [snip]
+>=20
+>> +	pdata->n_cc =3D 1;
+>> +
+>> +	queue_tc_map =3D devm_kzalloc(dev, (n_tc + 1) * sizeof(s8), GFP_KE=
+RNEL);
+>> +	if (!queue_tc_map)
+>> +		return -ENOMEM;
+>> +
+>> +	for (i =3D 0; i < n_tc; i++) {
+>> +		queue_tc_map[i][0] =3D i;
+>> +		queue_tc_map[i][1] =3D i;
+>> +	}
+>> +	queue_tc_map[i][0] =3D -1;
+>> +	queue_tc_map[i][1] =3D -1;
+>> +
+>> +	pdata->queue_tc_mapping =3D queue_tc_map;
+>> +
+>> +	queue_priority_map =3D devm_kzalloc(dev, (n_tc + 1) * sizeof(s8),
+>> +					  GFP_KERNEL);
+>> +	if (!queue_priority_map)
+>> +		return -ENOMEM;
+>> +
+>> +	for (i =3D 0; i < n_tc; i++) {
+>> +		queue_priority_map[i][0] =3D i;
+>> +		queue_priority_map[i][1] =3D i;
+>> +	}
+>> +	queue_priority_map[i][0] =3D -1;
+>> +	queue_priority_map[i][1] =3D -1;
+>> +
+>> +	pdata->queue_priority_mapping =3D queue_priority_map;
+>> +
+>> +	pdata->default_queue =3D 0;
+>=20
+> This is part is not really setting up from hardware (rather falling b=
+ack
+> to some sane defaults for the DT case). Could you leave them in
+> edma_of_parse_dt()?
 
- Tomi
+Not really since the number of tc is not know as early as edma_of_parse=
+_dt(),
+we used to a magic number of 3 in place for n_tc previously.
+We are doing similar things as previously done in edma_of_parse_dt() bu=
+t with
+'correct' number of tc.
 
+>> @@ -1655,6 +1679,12 @@ static int edma_probe(struct platform_device =
+*pdev)
+>>  		if (IS_ERR(edmacc_regs_base[j]))
+>>  			return PTR_ERR(edmacc_regs_base[j]);
+>> =20
+>> +		if (node) {
+>> +			/* Get eDMA3 configuration from IP */
+>> +			ret =3D edma_setup_info_from_hw(dev, info[j]);
+>> +			if (ret)
+>> +				return ret;
+>=20
+> No need to do this only for the DT case, I think. Also, once we get r=
+id
+> of the edma_soc_info dependency, just pass edma_cc[] directly
+>=20
+> 		edma_setup_info_from_hw(dev, j, edma_cc[j]);
 
+Yes, let's do this for DT and not DT boot as well.
+I will keep the queue_tc_map and queue_priority_map setup in there I th=
+ink to
+be done in case of DT boot.
 
---6KxgkLIuRAxNFmGoJDLqJJFn2Mx9g2doC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+I'll try to craft v3 as soon as I can.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTdLJBAAoJEPo9qoy8lh71sd0P/i3nUX0Ebg3Wl9wgEO9fCaEk
-H+I0UgRl2QiwnKU7+f8lFbMRXvz+VSepYL4L460Arx/1P0bABRIvNo2LFC9m2TCP
-vqGWResivRPX49Y6YlQNVlZeKCuBjaD1r3M+udOVfhqBDbzdUj4ScECASbBR1UQV
-7wKPBM/1xKKGCgNYinVKe7fOzp8s+aoMI0FALMfT0Sbg0rVcQDW0TqfyG5OrYqw/
-vI5+FYuTNBHwy71kOcLLIPfH2AuJvZ+R8HwTgUBbzml9DQ8vBODnvUp8McA0Q4CX
-DDYUvLaKgwQewNhB/6d0l4/QALQXsoewbdP+wXF6/WNicW8AM2ZNtSVN8NhIyroO
-QZYwMtS/EGZIP21BF4oGrE3tdtL8nN40KIElWX3Yh1jtHcVa4B03KjWOnZ4kuXUn
-GOxO26R6LuBHpNCoVWGRkQxba3BafH2KF1BLy3Ad7V42sBhNSQqWZZ1dwk9+xaWA
-8kc6I01pm2YwWSOSj3m9YRskWHPhAT8rTq8V+voQXEJ+sUok3Nperkd+D+j21UVc
-g17pbHsp10pC9F5AFW8Mo4eHEoW3Dy/r7HADOTQ22mjZ9GTRt2OZc2sGe4Jv5Yqt
-WcydHFkec/6YxWBqIywi6hd8Wkg0tj295I2QkUo1EoX66uxubDswYA6/01aB6v+b
-MBg+V7Lj3yXJwCSQbCng
-=7aaY
------END PGP SIGNATURE-----
-
---6KxgkLIuRAxNFmGoJDLqJJFn2Mx9g2doC--
+Thanks,
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
