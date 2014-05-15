@@ -1,77 +1,37 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v2 1/6] mmc: omap_hsmmc: use devm_clk_get
-Date: Thu, 15 May 2014 18:55:45 +0530
-Message-ID: <5374C059.8080404@ti.com>
-References: <1399654013-28262-1-git-send-email-balajitk@ti.com> <1399654013-28262-2-git-send-email-balajitk@ti.com> <CAPDyKFpQ43168D4FVpbKExHuBPAfkyPrhiy4mG7c=481cpncmQ@mail.gmail.com> <5370CDA1.2060209@ti.com> <CAPDyKFqJc92kZn_Yj87q3GJWOq+jftm0UPsShAPREqkMKC5S4g@mail.gmail.com>
+From: Alex Shi <alex.shi@linaro.org>
+Subject: Re: RCU stall on panda
+Date: Thu, 15 May 2014 21:26:20 +0800
+Message-ID: <5374C07C.1070400@linaro.org>
+References: <53675C5F.10509@linaro.org> <20140505180617.GM8754@linux.vnet.ibm.com> <20140512212102.GF5668@atomide.com> <5371BD69.8010600@linaro.org> <20140513153220.GC16837@atomide.com> <53747E6D.60500@linaro.org> <53748371.5030704@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFqJc92kZn_Yj87q3GJWOq+jftm0UPsShAPREqkMKC5S4g@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: linux-mmc <linux-mmc@vger.kernel.org>, Chris Ball <chris@printf.net>, linux-omap <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:62718 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754273AbaEON0j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 09:26:39 -0400
+Received: by mail-pb0-f44.google.com with SMTP id rq2so1112424pbb.3
+        for <linux-omap@vger.kernel.org>; Thu, 15 May 2014 06:26:39 -0700 (PDT)
+In-Reply-To: <53748371.5030704@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "naresh.kamboju@linaro.org Kamboju" <naresh.kamboju@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, LAK <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@linaro.org>, linux-omap@vger.kernel.org
 
-On Monday 12 May 2014 07:20 PM, Ulf Hansson wrote:
-> On 12 May 2014 15:33, Balaji T K <balajitk@ti.com> wrote:
->> On Monday 12 May 2014 02:03 PM, Ulf Hansson wrote:
->>>
->>> On 9 May 2014 18:46, Balaji T K <balajitk@ti.com> wrote:
->>>>
->>>> With devm_clk_get conversion clk_put can be removed in clean up path
->>>>
->>>> Signed-off-by: Balaji T K <balajitk@ti.com>
->>>> ---
->>>>    drivers/mmc/host/omap_hsmmc.c |   15 ++++-----------
->>>>    1 files changed, 4 insertions(+), 11 deletions(-)
->>>>
->>>> diff --git a/drivers/mmc/host/omap_hsmmc.c
->>>> b/drivers/mmc/host/omap_hsmmc.c
->>>> index b4de63b..b8ae7ee 100644
->>>> --- a/drivers/mmc/host/omap_hsmmc.c
->>>> +++ b/drivers/mmc/host/omap_hsmmc.c
->>>> @@ -1922,7 +1922,7 @@ static int omap_hsmmc_probe(struct platform_device
->>>> *pdev)
->>>>
->>>>           spin_lock_init(&host->irq_lock);
->>>>
->>>> -       host->fclk = clk_get(&pdev->dev, "fck");
->>>> +       host->fclk = devm_clk_get(&pdev->dev, "fck");
->>>>           if (IS_ERR(host->fclk)) {
->>>>                   ret = PTR_ERR(host->fclk);
->>>>                   host->fclk = NULL;
->>>> @@ -1941,7 +1941,7 @@ static int omap_hsmmc_probe(struct platform_device
->>>> *pdev)
->>>>
->>>>           omap_hsmmc_context_save(host);
->>>>
->>>> -       host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
->>>> +       host->dbclk = devm_clk_get(&pdev->dev, "mmchsdb_fck");
->>>>           /*
->>>>            * MMC can still work without debounce clock.
->>>>            */
->>>> @@ -1949,7 +1949,6 @@ static int omap_hsmmc_probe(struct platform_device
->>>> *pdev)
->>>>                   host->dbclk = NULL;
->>>>           } else if (clk_prepare_enable(host->dbclk) != 0) {
->>>>                   dev_warn(mmc_dev(host->mmc), "Failed to enable debounce
->>>> clk\n");
->>>> -               clk_put(host->dbclk);
->>>>                   host->dbclk = NULL;
->>>
->>>
->>> You should use the IS_ERR macro, no need to reset dbclk to NULL.
+On 05/15/2014 05:05 PM, Daniel Lezcano wrote:
 >>>
 >>
->> Agreed, IS_ERR macro usage deserves patch on its own.
->> will create separate patch on top of this series.
->
-> Or you just update this patch, since it would touch there very same
-> piece of code. :-)
+>> After enable this patch, system maybe hang in idle. :(
+> 
+> Hi Alex,
+> 
+> do you mean even with this revert applied, the board hangs in idle ?
+> 
 
-plus few more code additionally, since these are two different logical changes,
-have sent a separate patch. But feel free to squash them if needed.
+yes.
+My board is panda ES. without this revert, it works.
 
-Thanks and Regards,
-Balaji T K
+-- 
+Thanks
+    Alex
