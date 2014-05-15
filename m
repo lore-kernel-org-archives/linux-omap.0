@@ -1,39 +1,70 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCHv3 0/5] tsc2005 DT binding
-Date: Thu, 15 May 2014 22:16:31 +0300
-Message-ID: <20140515191631.GA4752@drone.musicnaut.iki.fi>
-References: <1398470179-20880-1-git-send-email-sre@kernel.org>
- <20140515142315.GA15716@earth.universe>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: [PATCH] ARM: OMAP: SX1: remove check for CONFIG_SX1_OLD_FLASH
+Date: Thu, 15 May 2014 21:41:42 +0200
+Message-ID: <1400182902.11786.21.camel@x220>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140515142315.GA15716@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, linux-input@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+A check for CONFIG_SX1_OLD_FLASH was added in v2.6.24. But the related
+Kconfig symbol was never part of the tree. So we can remove some dead
+code.
 
-On Thu, May 15, 2014 at 04:23:16PM +0200, Sebastian Reichel wrote:
-> On Sat, Apr 26, 2014 at 01:56:14AM +0200, Sebastian Reichel wrote:
-> > This adds device tree support for the tsc2005 touchscreen
-> > controller, which is currently only used by the Nokia N900
-> > board.
-> > 
-> > The patch does not update the reset pin handling for platform
-> > data based probe to avoid merge conflicts. The n900 platform
-> > code will be removed in the near future (3.16?) and the driver
-> > can be simplified once that has happened.
-> 
-> Ping. It would be nice to see this patchset in 3.16, since its
-> the last important hardware component missing for N900 DT boot.
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+Also untested.
 
-FWIW, for all these patches feel free to add:
+ arch/arm/mach-omap1/board-sx1.c | 26 --------------------------
+ 1 file changed, 26 deletions(-)
 
-	Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-
-Thanks for great work,
-
-A.
+diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
+index 0a8d3349149c..29e526235dc2 100644
+--- a/arch/arm/mach-omap1/board-sx1.c
++++ b/arch/arm/mach-omap1/board-sx1.c
+@@ -266,31 +266,6 @@ static struct physmap_flash_data sx1_flash_data = {
+ 	.nr_parts	= ARRAY_SIZE(sx1_partitions),
+ };
+ 
+-#ifdef CONFIG_SX1_OLD_FLASH
+-/* MTD Intel StrataFlash - old flashes */
+-static struct resource sx1_old_flash_resource[] = {
+-	[0] = {
+-		.start	= OMAP_CS0_PHYS,	/* Physical */
+-		.end	= OMAP_CS0_PHYS + SZ_16M - 1,,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start	= OMAP_CS1_PHYS,
+-		.end	= OMAP_CS1_PHYS + SZ_8M - 1,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-};
+-
+-static struct platform_device sx1_flash_device = {
+-	.name		= "physmap-flash",
+-	.id		= 0,
+-	.dev		= {
+-		.platform_data	= &sx1_flash_data,
+-	},
+-	.num_resources	= 2,
+-	.resource	= &sx1_old_flash_resource,
+-};
+-#else
+ /* MTD Intel 4000 flash - new flashes */
+ static struct resource sx1_new_flash_resource = {
+ 	.start		= OMAP_CS0_PHYS,
+@@ -307,7 +282,6 @@ static struct platform_device sx1_flash_device = {
+ 	.num_resources	= 1,
+ 	.resource	= &sx1_new_flash_resource,
+ };
+-#endif
+ 
+ /*----------- USB -------------------------*/
+ 
+-- 
+1.9.0
