@@ -1,114 +1,101 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/3] OMAPDSS: panel-lgphilips-lb035q02: Add DT support
-Date: Thu, 15 May 2014 13:10:36 +0300
-Message-ID: <1400148637-17726-3-git-send-email-tomi.valkeinen@ti.com>
-References: <1400148637-17726-1-git-send-email-tomi.valkeinen@ti.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/1] ARM: dts: am437x-gp-evm: Add ethernet support for
+ GP EVM
+Date: Thu, 15 May 2014 17:04:50 +0530
+Message-ID: <5374A65A.5050408@ti.com>
+References: <1399455053-10324-1-git-send-email-mugunthanvnm@ti.com> <20140513172038.GH16837@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45653 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753557AbaEOKLW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 May 2014 06:11:22 -0400
-In-Reply-To: <1400148637-17726-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140513172038.GH16837-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Archit Taneja <archit@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add DT support for panel-lgphilips-lb035q02.
+On Tuesday 13 May 2014 10:50 PM, Tony Lindgren wrote:
+> * Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org> [140507 02:31]:
+>> Add CPSW ethernet support for AM437x GP EVM which has one slave pinned out
+>>
+>> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  arch/arm/boot/dts/am437x-gp-evm.dts | 72 +++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 72 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+>> index 2e0c636..30ace1b 100644
+>> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
+>> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+>> @@ -98,6 +98,58 @@
+>>  			0x264 (PIN_INPUT_PULLUP | MUX_MODE7)  /* spi2_d0.gpio3_22 */
+>>  		>;
+>>  	};
+>> +
+>> +	cpsw_default: cpsw_default {
+>> +		pinctrl-single,pins = <
+>> +			/* Slave 1 */
+>> +			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txen.rgmii1_txen */
+>> +			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxdv.rgmii1_rxctl */
+>> +			0x11c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_txd3 */
+>> +			0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_txd2 */
+>> +			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_txd1 */
+>> +			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_txd0 */
+>> +			0x12c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txclk.rmii1_tclk */
+>> +			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxclk.rmii1_rclk */
+>> +			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rxd3 */
+>> +			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rxd2 */
+>> +			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rxd1 */
+>> +			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rxd0 */
+>> +		>;
+>> +	};
+>> +
+>> +	cpsw_sleep: cpsw_sleep {
+>> +		pinctrl-single,pins = <
+>> +			/* Slave 1 reset value */
+>> +			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +			0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +			0x120 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +			0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +			0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +			0x12c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +		>;
+>> +	};
+> Just a nitpick comment to make things more readable. Can you please add
+> the comments for these pins too so people can cross check them against
+> the documentation easier?
+>
+>> +	davinci_mdio_default: davinci_mdio_default {
+>> +		pinctrl-single,pins = <
+>> +			/* MDIO */
+>> +			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
+>> +			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
+>> +		>;
+>> +	};
+>> +
+>> +	davinci_mdio_sleep: davinci_mdio_sleep {
+>> +		pinctrl-single,pins = <
+>> +			/* MDIO reset value */
+>> +			0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>> +		>;
+>> +	};
+>>  };
+> And here too please.
+>
+>
 
-We disable the use of the backlight_gpio as it should be handled via
-backlight framework with DT boots.
+Will add the comments and post the patch again
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- .../omap2/displays-new/panel-lgphilips-lb035q02.c  | 44 +++++++++++++++++++++-
- 1 file changed, 43 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/video/fbdev/omap2/displays-new/panel-lgphilips-lb035q02.c b/drivers/video/fbdev/omap2/displays-new/panel-lgphilips-lb035q02.c
-index 6e6acd696a70..76c4fdc51c31 100644
---- a/drivers/video/fbdev/omap2/displays-new/panel-lgphilips-lb035q02.c
-+++ b/drivers/video/fbdev/omap2/displays-new/panel-lgphilips-lb035q02.c
-@@ -159,7 +159,8 @@ static int lb035q02_enable(struct omap_dss_device *dssdev)
- 	if (omapdss_device_is_enabled(dssdev))
- 		return 0;
- 
--	in->ops.dpi->set_data_lines(in, ddata->data_lines);
-+	if (ddata->data_lines)
-+		in->ops.dpi->set_data_lines(in, ddata->data_lines);
- 	in->ops.dpi->set_timings(in, &ddata->videomode);
- 
- 	r = in->ops.dpi->enable(in);
-@@ -277,6 +278,35 @@ err_gpio:
- 	return r;
- }
- 
-+static int lb035q02_probe_of(struct spi_device *spi)
-+{
-+	struct device_node *node = spi->dev.of_node;
-+	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
-+	struct omap_dss_device *in;
-+	struct gpio_desc *gpio;
-+
-+	gpio = devm_gpiod_get(&spi->dev, "enable");
-+	if (IS_ERR(gpio)) {
-+		dev_err(&spi->dev, "failed to parse enable gpio\n");
-+		return PTR_ERR(gpio);
-+	} else {
-+		gpiod_direction_output(gpio, 0);
-+		ddata->enable_gpio = gpio;
-+	}
-+
-+	ddata->backlight_gpio = -ENOENT;
-+
-+	in = omapdss_of_find_source_for_first_ep(node);
-+	if (IS_ERR(in)) {
-+		dev_err(&spi->dev, "failed to find video source\n");
-+		return PTR_ERR(in);
-+	}
-+
-+	ddata->in = in;
-+
-+	return 0;
-+}
-+
- static int lb035q02_panel_spi_probe(struct spi_device *spi)
- {
- 	struct panel_drv_data *ddata;
-@@ -295,6 +325,10 @@ static int lb035q02_panel_spi_probe(struct spi_device *spi)
- 		r = lb035q02_probe_pdata(spi);
- 		if (r)
- 			return r;
-+	} else if (spi->dev.of_node) {
-+		r = lb035q02_probe_of(spi);
-+		if (r)
-+			return r;
- 	} else {
- 		return -ENODEV;
- 	}
-@@ -346,6 +380,13 @@ static int lb035q02_panel_spi_remove(struct spi_device *spi)
- 	return 0;
- }
- 
-+static const struct of_device_id lb035q02_of_match[] = {
-+	{ .compatible = "omapdss,lgphilips,lb035q02", },
-+	{},
-+};
-+
-+MODULE_DEVICE_TABLE(of, lb035q02_of_match);
-+
- static struct spi_driver lb035q02_spi_driver = {
- 	.probe		= lb035q02_panel_spi_probe,
- 	.remove		= lb035q02_panel_spi_remove,
-@@ -357,6 +398,7 @@ static struct spi_driver lb035q02_spi_driver = {
- 
- module_spi_driver(lb035q02_spi_driver);
- 
-+MODULE_ALIAS("spi:lgphilips,lb035q02");
- MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@ti.com>");
- MODULE_DESCRIPTION("LG.Philips LB035Q02 LCD Panel driver");
- MODULE_LICENSE("GPL");
--- 
-1.9.1
-
+Regards
+Mugunthan V N
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
