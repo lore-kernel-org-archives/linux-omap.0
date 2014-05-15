@@ -1,266 +1,162 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAPDSS: move 'compatible' converter to omapdss driver
-Date: Thu, 15 May 2014 11:13:54 -0700
-Message-ID: <20140515181354.GB23659@atomide.com>
-References: <1400141136-25358-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
+ support
+Date: Thu, 15 May 2014 11:21:34 -0700
+Message-ID: <20140515182133.GC23659@atomide.com>
+References: <CABxcv=mY0a+yJgmCTPN=BhSQD57Pw022zOd5_KxEgvvF_-=O7Q@mail.gmail.com>
+ <20140512142646.GA31772@atomide.com>
+ <5370E0C9.8050201@ti.com>
+ <20140512155132.GH31772@atomide.com>
+ <5371F923.80000@ti.com>
+ <CABxcv==_LCw1kPYm17g=h8VfSN2V_qsgXjTnsy-JOetawSv4pA@mail.gmail.com>
+ <20140513152518.GA16837@atomide.com>
+ <53730AFB.2090800@ti.com>
+ <20140514160216.GD18463@atomide.com>
+ <537487AE.3060906@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29978 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46425 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753375AbaEOSN7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 14:13:59 -0400
+	with ESMTP id S1753904AbaEOSVl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 14:21:41 -0400
 Content-Disposition: inline
-In-Reply-To: <1400141136-25358-1-git-send-email-tomi.valkeinen@ti.com>
+In-Reply-To: <537487AE.3060906@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140515 01:06]:
-> Move the panel/encoder driver compatible-string converter from
-> arch/arm/mach-omap2/display.c to omapdss driver. That is a more logical
-> place for it, as it's really an omapdss internal hack.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140515 02:24]:
+> On 14/05/14 19:02, Tony Lindgren wrote:
+> 
+> >> The video paths of the panels and encoders are connected using the v4l2
+> >> style ports/endpoints. We can use those to see what display controller a
+> >> panel is connected to, but only after the panel driver has already
+> >> probed. We don't have control for the actual probing, as that happens
+> >> with whatever the control bus is for the display component.
+> > 
+> > OK. So with generic panels, you can just let the panels probe with
+> > the right compatible flag then and let the ports/endpoints registration
+> > to figure out if the panel is usable for the display controller in
+> > question.
+> 
+> I'm not sure what you mean here.
+> 
+> Do you mean with the future common display framework? There's no need to
+> figure out anything there, as supposedly the .dts has been written
+> correctly and the panel and the display controller work together.
 
-Thanks, maybe also consider just using the compatible flags
-instead as discussed in the other thread. Anyways for moving
-this out of mach-omap2:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
+OK. Yes I meant for future use.
  
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  arch/arm/mach-omap2/display.c                     |  56 -----------
->  drivers/video/fbdev/omap2/Makefile                |   2 +-
->  drivers/video/fbdev/omap2/dss/Kconfig             |   4 +
->  drivers/video/fbdev/omap2/dss/Makefile            |   1 +
->  drivers/video/fbdev/omap2/dss/omapdss-boot-init.c | 112 ++++++++++++++++++++++
->  5 files changed, 118 insertions(+), 57 deletions(-)
->  create mode 100644 drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
+> If you mean with the current kernel, there's still nothing to figure
+> out. We can have only single driver with a particular compatible string.
+> And as our current drivers are omap specific, it makes sense to have
+> their compatible string be something omap-ish. And if the .dts file
+> connects the display controller and the panel, then they must be usable
+> together.
+
+Yup.
+ 
+> >>> Well it seems at least the reset and enable pin standard from that
+> >>> binding can be kept.
+> >>
+> >> Only enable gpio there. But even that's vague. Do you turn on the power
+> >> before or after setting the enable gpio? How long delay should be
+> >> between the power and the gpio? Different panels have different rules
+> >> for the power-up.
+> > 
+> > Sure, it's a complex problem. But for the enable gpio..
+> > 
+> > Maybe the enable GPIO should be treated as a regulator? That would allow
+> > specifying first the source regulator startup delay, and then the
+> > panel has it's own startup delay.
 > 
-> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-> index 16d33d831287..519a20fc0432 100644
-> --- a/arch/arm/mach-omap2/display.c
-> +++ b/arch/arm/mach-omap2/display.c
-> @@ -555,65 +555,9 @@ int omap_dss_reset(struct omap_hwmod *oh)
->  	return r;
->  }
->  
-> -/* list of 'compatible' nodes to convert to omapdss specific */
-> -static const char * const dss_compat_conv_list[] __initconst = {
-> -	"composite-connector",
-> -	"dvi-connector",
-> -	"hdmi-connector",
-> -	"panel-dpi",
-> -	"panel-dsi-cm",
-> -	"sony,acx565akm",
-> -	"svideo-connector",
-> -	"ti,tfp410",
-> -	"ti,tpd12s015",
-> -};
-> -
-> -/* prepend compatible string with "omapdss," */
-> -static __init void omapdss_omapify_node(struct device_node *node,
-> -	const char *compat)
-> -{
-> -	char *new_compat;
-> -	struct property *prop;
-> -
-> -	new_compat = kasprintf(GFP_KERNEL, "omapdss,%s", compat);
-> -
-> -	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
-> -
-> -	if (!prop) {
-> -		pr_err("omapdss_omapify_node: kzalloc failed\n");
-> -		return;
-> -	}
-> -
-> -	prop->name = "compatible";
-> -	prop->value = new_compat;
-> -	prop->length = strlen(new_compat) + 1;
-> -
-> -	of_update_property(node, prop);
-> -}
-> -
-> -/*
-> - * As omapdss panel drivers are omapdss specific, but we want to define the
-> - * DT-data in generic manner, we convert the compatible strings of the panel
-> - * nodes from "panel-foo" to "omapdss,panel-foo". This way we can have both
-> - * correct DT data and omapdss specific drivers.
-> - *
-> - * When we get generic panel drivers to the kernel, this will be removed.
-> - */
->  void __init omapdss_early_init_of(void)
->  {
-> -	int i;
-> -
-> -	for (i = 0; i < ARRAY_SIZE(dss_compat_conv_list); ++i) {
-> -		const char *compat = dss_compat_conv_list[i];
-> -		struct device_node *node = NULL;
-> -
-> -		while ((node = of_find_compatible_node(node, NULL, compat))) {
-> -			if (!of_device_is_available(node))
-> -				continue;
->  
-> -			omapdss_omapify_node(node, compat);
-> -		}
-> -	}
->  }
->  
->  struct device_node * __init omapdss_find_dss_of_node(void)
-> diff --git a/drivers/video/fbdev/omap2/Makefile b/drivers/video/fbdev/omap2/Makefile
-> index bf8127df8c71..f8745ec369cc 100644
-> --- a/drivers/video/fbdev/omap2/Makefile
-> +++ b/drivers/video/fbdev/omap2/Makefile
-> @@ -1,5 +1,5 @@
->  obj-$(CONFIG_OMAP2_VRFB) += vrfb.o
->  
-> -obj-$(CONFIG_OMAP2_DSS) += dss/
-> +obj-y += dss/
->  obj-y += displays-new/
->  obj-$(CONFIG_FB_OMAP2) += omapfb/
-> diff --git a/drivers/video/fbdev/omap2/dss/Kconfig b/drivers/video/fbdev/omap2/dss/Kconfig
-> index dde4281663b1..a28f3a39ab1b 100644
-> --- a/drivers/video/fbdev/omap2/dss/Kconfig
-> +++ b/drivers/video/fbdev/omap2/dss/Kconfig
-> @@ -1,6 +1,10 @@
-> +config OMAP2_DSS_INIT
-> +	bool
-> +
->  menuconfig OMAP2_DSS
->          tristate "OMAP2+ Display Subsystem support"
->  	select VIDEOMODE_HELPERS
-> +	select OMAP2_DSS_INIT
->          help
->  	  OMAP2+ Display Subsystem support.
->  
-> diff --git a/drivers/video/fbdev/omap2/dss/Makefile b/drivers/video/fbdev/omap2/dss/Makefile
-> index 8aec8bda27cc..3b79ad74f2e1 100644
-> --- a/drivers/video/fbdev/omap2/dss/Makefile
-> +++ b/drivers/video/fbdev/omap2/dss/Makefile
-> @@ -1,3 +1,4 @@
-> +obj-$(CONFIG_OMAP2_DSS_INIT) += omapdss-boot-init.o
->  obj-$(CONFIG_OMAP2_DSS) += omapdss.o
->  # Core DSS files
->  omapdss-y := core.o dss.o dss_features.o dispc.o dispc_coefs.o display.o \
-> diff --git a/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c b/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
-> new file mode 100644
-> index 000000000000..468f6eff370c
-> --- /dev/null
-> +++ b/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
-> @@ -0,0 +1,112 @@
-> +/*
-> + * Copyright (C) 2014 Texas Instruments
-> + * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> + * more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along with
-> + * this program.  If not, see <http://www.gnu.org/licenses/>.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/of.h>
-> +#include <linux/slab.h>
-> +
-> +/* list of 'compatible' nodes to convert to omapdss specific */
-> +static const char * const dss_compat_conv_list[] __initconst = {
-> +	"composite-connector",
-> +	"dvi-connector",
-> +	"hdmi-connector",
-> +	"panel-dpi",
-> +	"panel-dsi-cm",
-> +	"sony,acx565akm",
-> +	"svideo-connector",
-> +	"ti,tfp410",
-> +	"ti,tpd12s015",
-> +};
-> +
-> +/* prepend compatible string with "omapdss," */
-> +static __init void omapdss_omapify_node(struct device_node *node,
-> +	const char *compat)
-> +{
-> +	char *new_compat;
-> +	struct property *prop;
-> +
-> +	new_compat = kasprintf(GFP_KERNEL, "omapdss,%s", compat);
-> +
-> +	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
-> +
-> +	if (!prop) {
-> +		pr_err("omapdss_omapify_node: kzalloc failed\n");
-> +		return;
-> +	}
-> +
-> +	prop->name = "compatible";
-> +	prop->value = new_compat;
-> +	prop->length = strlen(new_compat) + 1;
-> +
-> +	of_update_property(node, prop);
-> +}
-> +
-> +static struct device_node * __init omapdss_find_dss_of_node(void)
-> +{
-> +	struct device_node *node;
-> +
-> +	node = of_find_compatible_node(NULL, NULL, "ti,omap2-dss");
-> +	if (node)
-> +		return node;
-> +
-> +	node = of_find_compatible_node(NULL, NULL, "ti,omap3-dss");
-> +	if (node)
-> +		return node;
-> +
-> +	node = of_find_compatible_node(NULL, NULL, "ti,omap4-dss");
-> +	if (node)
-> +		return node;
-> +
-> +	node = of_find_compatible_node(NULL, NULL, "ti,omap5-dss");
-> +	if (node)
-> +		return node;
-> +
-> +	return NULL;
-> +}
-> +
-> +/*
-> + * As omapdss panel drivers are omapdss specific, but we want to define the
-> + * DT-data in generic manner, we convert the compatible strings of the panel
-> + * nodes from "panel-foo" to "omapdss,panel-foo". This way we can have both
-> + * correct DT data and omapdss specific drivers.
-> + *
-> + * When we get generic panel drivers to the kernel, this will be removed.
-> + */
-> +static int __init omap_dss_boot_init(void)
-> +{
-> +	int i;
-> +
-> +	/* do we have omapdss device? */
-> +	if (omapdss_find_dss_of_node() == NULL)
-> +		return 0;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(dss_compat_conv_list); ++i) {
-> +		const char *compat = dss_compat_conv_list[i];
-> +		struct device_node *node = NULL;
-> +
-> +		while ((node = of_find_compatible_node(node, NULL, compat))) {
-> +			if (!of_device_is_available(node))
-> +				continue;
-> +
-> +			omapdss_omapify_node(node, compat);
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +subsys_initcall(omap_dss_boot_init);
-> -- 
-> 1.9.1
+> Well... I don't know. Sounds rather hacky to me. We have the option to
+> have a specific driver for this panel, and that driver can handle all
+> the delays and power-up sequences just right in a clean manner.
+
+I guess we could have a generic startup-latency property for the GPIOs.
+ 
+> >>>>> But I'm not really familiar with using extending current bindings, and
+> >>>>> making new bindings compatible with old ones. Can you explain why it'd
+> >>>>> be good to have the sharp panel bindings compatible with simple-panel?
+> >>>>> In what kind of scenario would it be used?
+> >>>
+> >>> Ideally the panel binding just describes the panel and it should not
+> >>> matter which display controller it is a child of.
+> >>
+> >> Yes, but that means the panel bindings need to have enough information
+> >> so that all display controllers can use it. Simple-panel bindings do not
+> >> have enough information. The simple-panel bindings do not have
+> >> information about the video bus input, and it doesn't even have
+> >> information about the resolution or bitdepth of the panel.
+> > 
+> > Some of that you can hide into the panel driver based on the compatible
+> > flag. So why not already do something like this in the .dts files
+> > instead of the remapping:
+> > 
+> > compatible = "sharp,ls037v7dw01-omap-dss", "sharp,ls037v7dw01"; 
+> > 
+> > And drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
+> > would only claim to be compatible with "sharp,ls037v7dw01-omap-dss".
+> > 
+> > Then when the common panel framework is available, you can stop
+> > parsing sharp,ls037v7dw01-omap-dss but the .dts files don't need
+> > to be changed and it's fine to keep "sharp,ls037v7dw01-omap-dss"
+> > in the .dts files.
 > 
+> Hmm, I don't see how this relates to the simple-panel bindings.
+> 
+> But you're right, having "sharp,ls037v7dw01-omap-dss" in the .dts is an
+> alternative for the compatible-string conversion we do now. I guess it's
+> a matter of taste, but I rather hide it inside the kernel, in an
+> internal omapdss file, than pollute the .dts files with those compatible
+> strings.
+
+Well it avoid you parsing through all the nodes during booting
+and leaves out the function to do remapping. And removes the need
+for maintaining a custom display mapping table. I'd say that's a
+pretty good list of advantages right there :)
+ 
+> >> So I'm still asking, if we create sharp bindings that use the same
+> >> properties as the simple-panel bindings, and define that sharp panel is
+> >> compatible with simple-panel, what kind of scenario in practice would it
+> >> be used in?
+> > 
+> > Well with the above example, just by dss with "sharp,ls037v7dw01-omap-dss"
+> > until some other SoC notices it can use the GPIO parts of the panel
+> > code at least :)
+> >  
+> >> Would the scenario be some other OS, that doesn't have a driver for the
+> >> sharp panel, but has a driver for the simple-panel? That would only work
+> >> if the sharp panel hardware is setup so that only the enable gpio is
+> >> needed, so that quite a narrow definition of "compatible".
+> > 
+> > That's where we can use the compatible flags and just avoid parsing
+> > the generic compatible flag unless some common framework is available.
+> 
+> Hmm, sorry, I don't follow. My question was about the simple-panel
+> bindings, not common display framework.
+> 
+> You were saying that the sharp bindings should be compatible with
+> simple-panel bindings. I'm still trying to understand what benefit does
+> that give us.
+
+Oh sorry, for that part I don't really have an opinion. If you think
+the simple-panel binding is not going to be usable in the long
+run, then I'm fine with whatever binding you display guys come up
+with and prefer to use.
+ 
+> As I see it, the sharp panel could be used with the simple-panel
+> bindings only in certain special case, where all the mode pins and the
+> reset are hardwired in the board hardware, and they are hardwired in a
+> certain state (all hardwired low, probably), which matches what the
+> simple-panel driver expects.
+
+OK. Maybe take a stab at updating the binding for this as I don't
+know what you want to do with it?
+
+Regards,
+
+Tony
