@@ -1,47 +1,56 @@
 From: Paul Bolle <pebolle@tiscali.nl>
-Subject: [PATCH] ARM: OMAP: omap3stalker: remove two Kconfig macros
-Date: Thu, 15 May 2014 20:37:45 +0200
-Message-ID: <1400179065.11786.14.camel@x220>
+Subject: [PATCH] ARM: OMAP: remove some dead code
+Date: Thu, 15 May 2014 21:16:21 +0200
+Message-ID: <1400181381.11786.18.camel@x220>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Checks for CONFIG_OMAP2_VENC_OUT_TYPE_SVIDEO and
-CONFIG_OMAP2_VENC_OUT_TYPE_COMPOSITE were added in v2.6.35. But the
-related Kconfig symbols have never been added to the tree. Remove these
-checks.
+A check for CONFIG_CBUS_TAHVO_USB was added in v2.6.17. The related
+Kconfig symbol has never been part of the tree. Remove that check.
 
-Initialize connector_type to OMAP_DSS_VENC_TYPE_COMPOSITE explicitly.
-That's what's happening currently: OMAP_DSS_VENC_TYPE_COMPOSITE equals
-zero and connector_type remains zero since both checks currently fail.
+Replace the while (...) loop with a simple if (...) statement, while
+we're at it.
 
 Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
 ---
-Untested.
+Untested, as usual.
 
- arch/arm/mach-omap2/board-omap3stalker.c | 4 ----
- 1 file changed, 4 deletions(-)
+A quick search across the history of the tree suggests CBUS_TAHVO_USB
+was N770 related. Not that this matters much.
 
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index 119efaf5808a..a2e035e0792a 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -121,11 +121,7 @@ static struct platform_device omap3stalker_tfp410_device = {
- static struct connector_atv_platform_data omap3stalker_tv_pdata = {
- 	.name = "tv",
- 	.source = "venc.0",
--#if defined(CONFIG_OMAP2_VENC_OUT_TYPE_SVIDEO)
--	.connector_type = OMAP_DSS_VENC_TYPE_SVIDEO,
--#elif defined(CONFIG_OMAP2_VENC_OUT_TYPE_COMPOSITE)
- 	.connector_type = OMAP_DSS_VENC_TYPE_COMPOSITE,
+ arch/arm/mach-omap1/pm.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
+index dbee729e3b6d..34b4c0044961 100644
+--- a/arch/arm/mach-omap1/pm.c
++++ b/arch/arm/mach-omap1/pm.c
+@@ -123,19 +123,8 @@ void omap1_pm_idle(void)
+ #warning Enable 32kHz OS timer in order to allow sleep states in idle
+ 	use_idlect1 = use_idlect1 & ~(1 << 9);
+ #else
+-
+-	while (enable_dyn_sleep) {
+-
+-#ifdef CONFIG_CBUS_TAHVO_USB
+-		extern int vbus_active;
+-		/* Clock requirements? */
+-		if (vbus_active)
+-			break;
 -#endif
- 	.invert_polarity = false,
- };
++	if (enable_dyn_sleep)
+ 		do_sleep = 1;
+-		break;
+-	}
+-
+ #endif
  
+ #ifdef CONFIG_OMAP_DM_TIMER
 -- 
 1.9.0
