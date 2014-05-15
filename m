@@ -1,220 +1,134 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 2/5] ARM: edma: Get IP information from HW when booting
- with DT
-Date: Thu, 15 May 2014 15:30:05 +0300
-Message-ID: <5374B34D.2060904@ti.com>
-References: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com> <1399977032-26469-3-git-send-email-peter.ujfalusi@ti.com> <53748070.4080706@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 03/17] phy: ti-pipe3: add external clock support for PCIe
+ PHY
+Date: Thu, 15 May 2014 07:33:13 -0500
+Message-ID: <5374B409.3000607@ti.com>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com>	<1399383244-14556-4-git-send-email-kishon@ti.com>	<53736CBC.2060702@ti.com>	<5373897C.6080504@ti.com>	<CAGo_u6qw1OomEw_ueb3x+xT+qZLAfGv7Se1K=o725aOoD3ankQ@mail.gmail.com>	<5374859F.5080902@ti.com>	<53748819.8060705@ti.com>	<CAGo_u6qbbdAbdvrB3AFXSH1qD5MaBkJbi6oJJvvTWW4xfbmd_Q@mail.gmail.com>	<5374AC0A.7070709@ti.com> <CAGo_u6r8XtGHOvsfJKQMZ2ghFRz8x8_UhzyKE9jnwO6mJ2HYpQ@mail.gmail.com> <5374B09F.2080803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51202 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752793AbaEOMak (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 08:30:40 -0400
-In-Reply-To: <53748070.4080706@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <5374B09F.2080803@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Roger Quadros <rogerq@ti.com>, dt list <devicetree@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, linux-pci@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, lkml <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, joelf@ti.com
-Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 
-Hi Sekhar,
-
-On 05/15/2014 11:53 AM, Sekhar Nori wrote:
-> Hi Peter,
->=20
-> On Tuesday 13 May 2014 04:00 PM, Peter Ujfalusi wrote:
->> From CCCFG register of eDMA3 we can get all the needed information f=
-or the
->> driver about the IP:
->> Number of channels: NUM_DMACH
->> Number of regions: NUM_REGN
->> Number of slots (PaRAM sets): NUM_PAENTRY
->> Number of TC/EQ: NUM_EVQUE
+On 05/15/2014 07:18 AM, Kishon Vijay Abraham I wrote:
+> Hi,
+> 
+> On Thursday 15 May 2014 05:42 PM, Nishanth Menon wrote:
+>> On Thu, May 15, 2014 at 6:59 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>> Hi Nishant,
+>>>
+>>> On Thursday 15 May 2014 05:16 PM, Nishanth Menon wrote:
+>>>> On Thu, May 15, 2014 at 4:25 AM, Roger Quadros <rogerq@ti.com> wrote:
+>>>>> On 05/15/2014 12:15 PM, Kishon Vijay Abraham I wrote:
+>>>>>> Hi Nishanth,
+>>>>>>
+>>>>>> On Wednesday 14 May 2014 09:04 PM, Nishanth Menon wrote:
+>>>>>>> On Wed, May 14, 2014 at 10:19 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>>>>>>> Hi Roger,
+>>>>>>>>
+>>>>>>>> On Wednesday 14 May 2014 06:46 PM, Roger Quadros wrote:
+>>>>>>>>> Hi Kishon,
+>>>>>>>>>
+>>>>>>>>> On 05/06/2014 04:33 PM, Kishon Vijay Abraham I wrote:
+>>>>>>>>>> APLL used by PCIE phy can either use external clock as input or the clock
+>>>>>>>>>> from DPLL. Added support for the APLL to use external clock as input here.
+>>>>>>>>>>
+>>>>>>>>>> Cc: Rajendra Nayak <rnayak@ti.com>
+>>>>>>>>>> Cc: Tero Kristo <t-kristo@ti.com>
+>>>>>>>>>> Cc: Paul Walmsley <paul@pwsan.com>
+>>>>>>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>>>>>>>> ---
+>>>>>>>>>>  Documentation/devicetree/bindings/phy/ti-phy.txt |    4 ++
+>>>>>>>>>>  drivers/phy/phy-ti-pipe3.c                       |   75 ++++++++++++++--------
+>>>>>>>>>>  2 files changed, 52 insertions(+), 27 deletions(-)
+>>>>>>>>>>
+>>>>>>>>>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>>>>>>>>>> index bc9afb5..d50f8ee 100644
+>>>>>>>>>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+>>>>>>>>>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>>>>>>>>>> @@ -76,6 +76,10 @@ Required properties:
+>>>>>>>>>>     * "dpll_ref_m2" - external dpll ref clk
+>>>>>>>>>>     * "phy-div" - divider for apll
+>>>>>>>>>>     * "div-clk" - apll clock
+>>>>>>>>>> +   * "apll_mux" - mux for pcie apll
+>>>>>>>>>> +   * "refclk_ext" - external reference clock for pcie apll
+>>>>>>>>>> + - ti,ext-clk: To specifiy if PCIE apll should use external clock. Applicable
+>>>>>>>>>> +   only to PCIE PHY.
+>>>>>>>>>
+>>>>>>>>> Instead of specifying both clock sources "dpll_ref_clock", "refclk_ext" and then specifying a 3rd control option "ti,ext-clk" to select one of the 2 sources, why can't the DT just supply one clock source, i.e. the one that is being used in the board instance? The driver should then just configure the clock rate that is needed at that node. Shouldn't the clock framework automatically take care of muxing and parent rates?
+>>>>>>>>
+>>>>>>>> Want the dt to have all the clocks used by the controller. "ti,ext-clk" should
+>>>>>>>> go in the board dt file (suggested by Nishanth).
+>>>>>>>> The point is at some point later if some one wants to change the clock source,
+>>>>>>>> it should be a simple enabling "ti,ext-clk" flag instead of finding the clock
+>>>>>>>> phandle etc..
+>>>>>>>
+>>>>>>> Wonder if that is implicit by the presence of  "refclk_ext" in the
+>>>>>>> clocks provided?
+>>>>>>
+>>>>>> IMO the presence of "refclk_ext" is useless unless the board indicates it
+>>>>>> provides the clock source.
+>>>>>>
+>>>>>> refclk_ext holds phandle for *fixed-clock*, so irrespective of whether the
+>>>>>> board provides a clock or not, it can have that handle for configuring in PRCM.
+>>>>>> However if the board does not provide the clock source, configuring refclk_ext
+>>>>>> in PRCM is useless.
+>>>>>
+>>>>> I think what Nishant meant is that if "refclk_ext" is provided it means that the driver
+>>>>> should use that over "dpll_ref_clock" so no need of a separate "ti,ext-clk" flag.
+>>>>
+>>>> yes, thank you for clarifying - it does indeed redundant to have
+>>>> "ti,ext-clk". and apologies on being a little obscure in the comment.
+>>>
+>>> Irrespective of whether external reference clock is used or not, all DRA7
+>>> (apll) has an input for external reference clock (and also a PRCM register for
+>>> programming it) and it has to be specified in dt no?
 >>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> ---
->>  arch/arm/common/edma.c | 128 ++++++++++++++++++++++++++++++--------=
------------
->>  1 file changed, 79 insertions(+), 49 deletions(-)
->>
->> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
->> index fade9ada81f8..1a98f3cd4cd9 100644
->> --- a/arch/arm/common/edma.c
->> +++ b/arch/arm/common/edma.c
->> @@ -102,7 +102,16 @@
->>  #define PARM_OFFSET(param_no)	(EDMA_PARM + ((param_no) << 5))
->> =20
->>  #define EDMA_DCHMAP	0x0100  /* 64 registers */
->> -#define CHMAP_EXIST	BIT(24)
->> +
->> +/* CCCFG register */
->> +#define GET_NUM_DMACH(x)	(x & 0x7) /* bits 0-2 */
->> +#define GET_NUM_QDMACH(x)	((x & 0x70) >> 4) /* bits 4-6 */
->> +#define GET_NUM_INTCH(x)	((x & 0x700) >> 8) /* bits 8-10 */
->> +#define GET_NUM_PAENTRY(x)	((x & 0x7000) >> 12) /* bits 12-14 */
->> +#define GET_NUM_EVQUE(x)	((x & 0x70000) >> 16) /* bits 16-18 */
->> +#define GET_NUM_REGN(x)		((x & 0x300000) >> 20) /* bits 20-21 */
->> +#define CHMAP_EXIST		BIT(24)
->> +#define MP_EXIST		BIT(25)
->=20
-> Of these new defines, you do not use GET_NUM_QDMACH(), GET_NUM_INTCH(=
-)
-> and MP_EXIST (at least in this patch). Can you please get rid of them=
- if
-> not needed? May be its just me but its pretty annoying to search for =
-a
-> define only to find its never used :)
+>> Why is that a binding for ti-phy? that is a problem for the APLL clock
+>> driver (selecting it's own source). PHY properties should describe
+>> itself -> let the bindings of the APLL describe itself. please dont
+>> mix the two up.
+> 
+> The apll clock node is like this
+> 
+> apll_pcie_in_clk_mux: apll_pcie_in_clk_mux@4ae06118 {
+>         compatible = "mux-clock";
+>         clocks = <&dpll_pcie_ref_m2ldo_ck>, <&pciesref_acs_clk_ck>;
+>         #clock-cells = <0>;
+>         reg = <0x4a00821c 0x4>;
+>         bit-mask = <0x80>;
+> };
+> 
+> The external reference clock is denoted by *pciesref_acs_clk_ck*.
+> 
+> refclk_ext holds the phandle to *pciesref_acs_clk_ck* and is used in
+> "clk_set_parent" to set the parent of apll mux.
 
-Sure, I can remove the ones we are not using in the code. I usually pre=
-fer to
-have full description if the register even if we only use one bit from =
-the
-register.
+So, How about this: if refclk_ext is not defined, dont do setparent,
+if it is defined, do setparent.
+in short:
+Optional Properties:
+* "refclk_ext" - external reference clock for pcie apll - if defined,
+used as the parent to "apll_mux"
 
->=20
->> =20
->>  #define EDMA_MAX_DMACH           64
->>  #define EDMA_MAX_PARAMENTRY     512
->> @@ -1415,6 +1424,68 @@ void edma_clear_event(unsigned channel)
->>  }
->>  EXPORT_SYMBOL(edma_clear_event);
->> =20
->> +static int edma_setup_info_from_hw(struct device *dev,
->> +				   struct edma_soc_info *pdata)
->> +{
->> +	int i;
->> +	u32 value, cccfg, n_tc;
->> +	s8 (*queue_tc_map)[2], (*queue_priority_map)[2];
->> +
->> +	/* Decode the eDMA3 configuration from CCCFG register */
->> +	cccfg =3D edma_read(0, EDMA_CCCFG);
->=20
-> You do not handle the second controller here, but its pretty straight
-> forward to add that by passing the controller number to this function=
-=2E
+That said, my problem in general with this approach(which many folks
+have taken of describing parent of clock X in hardware block binding
+for Y) is the following:
 
-The second controller is not handled because in DT boot we only handle =
-1 cc as
-far as I know. I don't know why, but this is how the DT support has bee=
-n
-written and used.
+The binding now has dependency on clock tree hierarchy. What if
+towmorrow, we have a tree where refclk_ext parent of muxZ parent of
+apll_mux? the binding breaks down. Lets not forget that we consider DT
+as an ABI - we dont want to change the binding in the future.
 
-> I was wondering why we never read the hardware for this information
-> before, and strangely enough cannot find any SoC where the CCCFG
-> register does not publish this information correctly. I have tested o=
-n
-> DA850, DA830, DM365, DM355 and DM6467.
+I had always preferred describing parent-child relationship of clocks
+by the approach Tero posted: https://patchwork.kernel.org/patch/3871551/
 
-Good question. I was also puzzled about this.
+Maybe Mike and Tero could help here?
 
-> Instead of keeping this specific to OF case, the code can be simplifi=
-ed
-> much better if we read from hardware all the time. We can directly
-> populate the equivalent variables in the internal structure 'struct
-> edma' instead of populating them in 'struct edma_soc_info' and then
-> copying then over.
-
-Yes, we can switch the non DT boot to this mode as well, true. At first=
- I
-wanted to change code which I can test easily. For non DT boot I would =
-need to
-set up my old daVinci board ;)
-
->> +
->> +	value =3D GET_NUM_DMACH(cccfg);
->> +	pdata->n_channel =3D BIT(value + 1);
->> +
->> +	value =3D GET_NUM_REGN(cccfg);
->> +	pdata->n_region =3D BIT(value);
->> +
->> +	value =3D GET_NUM_PAENTRY(cccfg);
->> +	pdata->n_slot =3D BIT(value + 4);
->> +
->> +	value =3D GET_NUM_EVQUE(cccfg);
->> +	n_tc =3D value + 1;
->> +
->> +	dev_dbg(dev, "eDMA3 HW configuration (cccfg: 0x%08x):\n", cccfg);
->> +	dev_dbg(dev, "n_channel: %u\n", pdata->n_channel);
->> +	dev_dbg(dev, "n_region: %u\n", pdata->n_region);
->> +	dev_dbg(dev, "n_slot: %u\n", pdata->n_slot);
->> +	dev_dbg(dev, "n_tc: %u\n", n_tc);
->> +
->=20
-> [snip]
->=20
->> +	pdata->n_cc =3D 1;
->> +
->> +	queue_tc_map =3D devm_kzalloc(dev, (n_tc + 1) * sizeof(s8), GFP_KE=
-RNEL);
->> +	if (!queue_tc_map)
->> +		return -ENOMEM;
->> +
->> +	for (i =3D 0; i < n_tc; i++) {
->> +		queue_tc_map[i][0] =3D i;
->> +		queue_tc_map[i][1] =3D i;
->> +	}
->> +	queue_tc_map[i][0] =3D -1;
->> +	queue_tc_map[i][1] =3D -1;
->> +
->> +	pdata->queue_tc_mapping =3D queue_tc_map;
->> +
->> +	queue_priority_map =3D devm_kzalloc(dev, (n_tc + 1) * sizeof(s8),
->> +					  GFP_KERNEL);
->> +	if (!queue_priority_map)
->> +		return -ENOMEM;
->> +
->> +	for (i =3D 0; i < n_tc; i++) {
->> +		queue_priority_map[i][0] =3D i;
->> +		queue_priority_map[i][1] =3D i;
->> +	}
->> +	queue_priority_map[i][0] =3D -1;
->> +	queue_priority_map[i][1] =3D -1;
->> +
->> +	pdata->queue_priority_mapping =3D queue_priority_map;
->> +
->> +	pdata->default_queue =3D 0;
->=20
-> This is part is not really setting up from hardware (rather falling b=
-ack
-> to some sane defaults for the DT case). Could you leave them in
-> edma_of_parse_dt()?
-
-Not really since the number of tc is not know as early as edma_of_parse=
-_dt(),
-we used to a magic number of 3 in place for n_tc previously.
-We are doing similar things as previously done in edma_of_parse_dt() bu=
-t with
-'correct' number of tc.
-
->> @@ -1655,6 +1679,12 @@ static int edma_probe(struct platform_device =
-*pdev)
->>  		if (IS_ERR(edmacc_regs_base[j]))
->>  			return PTR_ERR(edmacc_regs_base[j]);
->> =20
->> +		if (node) {
->> +			/* Get eDMA3 configuration from IP */
->> +			ret =3D edma_setup_info_from_hw(dev, info[j]);
->> +			if (ret)
->> +				return ret;
->=20
-> No need to do this only for the DT case, I think. Also, once we get r=
-id
-> of the edma_soc_info dependency, just pass edma_cc[] directly
->=20
-> 		edma_setup_info_from_hw(dev, j, edma_cc[j]);
-
-Yes, let's do this for DT and not DT boot as well.
-I will keep the queue_tc_map and queue_priority_map setup in there I th=
-ink to
-be done in case of DT boot.
-
-I'll try to craft v3 as soon as I can.
-
-Thanks,
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Nishanth Menon
