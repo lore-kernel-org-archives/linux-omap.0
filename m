@@ -1,139 +1,128 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 03/17] phy: ti-pipe3: add external clock support for PCIe
- PHY
-Date: Thu, 15 May 2014 18:12:13 +0530
-Message-ID: <5374B625.2020800@ti.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com>	<1399383244-14556-4-git-send-email-kishon@ti.com>	<53736CBC.2060702@ti.com>	<5373897C.6080504@ti.com>	<CAGo_u6qw1OomEw_ueb3x+xT+qZLAfGv7Se1K=o725aOoD3ankQ@mail.gmail.com>	<5374859F.5080902@ti.com>	<53748819.8060705@ti.com>	<CAGo_u6qbbdAbdvrB3AFXSH1qD5MaBkJbi6oJJvvTWW4xfbmd_Q@mail.gmail.com>	<5374AC0A.7070709@ti.com> <CAGo_u6r8XtGHOvsfJKQMZ2ghFRz8x8_UhzyKE9jnwO6mJ2HYpQ@mail.gmail.com> <5374B09F.2080803@ti.com> <5374B409.3000607@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v2 2/5] ARM: edma: Get IP information from HW when booting
+ with DT
+Date: Thu, 15 May 2014 18:18:56 +0530
+Message-ID: <5374B7B8.4060604@ti.com>
+References: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com> <1399977032-26469-3-git-send-email-peter.ujfalusi@ti.com> <53748070.4080706@ti.com> <5374B34D.2060904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5374B409.3000607@ti.com>
+In-Reply-To: <5374B34D.2060904@ti.com>
 Sender: linux-doc-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Mike Turquette <mturquette@linaro.org>, Tero Kristo <t-kristo@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, dt list <devicetree@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, linux-pci@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, joelf@ti.com
+Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thursday 15 May 2014 06:00 PM, Peter Ujfalusi wrote:
 
-On Thursday 15 May 2014 06:03 PM, Nishanth Menon wrote:
-> On 05/15/2014 07:18 AM, Kishon Vijay Abraham I wrote:
->> Hi,
->>
->> On Thursday 15 May 2014 05:42 PM, Nishanth Menon wrote:
->>> On Thu, May 15, 2014 at 6:59 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->>>> Hi Nishant,
->>>>
->>>> On Thursday 15 May 2014 05:16 PM, Nishanth Menon wrote:
->>>>> On Thu, May 15, 2014 at 4:25 AM, Roger Quadros <rogerq@ti.com> wrote:
->>>>>> On 05/15/2014 12:15 PM, Kishon Vijay Abraham I wrote:
->>>>>>> Hi Nishanth,
->>>>>>>
->>>>>>> On Wednesday 14 May 2014 09:04 PM, Nishanth Menon wrote:
->>>>>>>> On Wed, May 14, 2014 at 10:19 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->>>>>>>>> Hi Roger,
->>>>>>>>>
->>>>>>>>> On Wednesday 14 May 2014 06:46 PM, Roger Quadros wrote:
->>>>>>>>>> Hi Kishon,
->>>>>>>>>>
->>>>>>>>>> On 05/06/2014 04:33 PM, Kishon Vijay Abraham I wrote:
->>>>>>>>>>> APLL used by PCIE phy can either use external clock as input or the clock
->>>>>>>>>>> from DPLL. Added support for the APLL to use external clock as input here.
->>>>>>>>>>>
->>>>>>>>>>> Cc: Rajendra Nayak <rnayak@ti.com>
->>>>>>>>>>> Cc: Tero Kristo <t-kristo@ti.com>
->>>>>>>>>>> Cc: Paul Walmsley <paul@pwsan.com>
->>>>>>>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>>>>>>>>> ---
->>>>>>>>>>>  Documentation/devicetree/bindings/phy/ti-phy.txt |    4 ++
->>>>>>>>>>>  drivers/phy/phy-ti-pipe3.c                       |   75 ++++++++++++++--------
->>>>>>>>>>>  2 files changed, 52 insertions(+), 27 deletions(-)
->>>>>>>>>>>
->>>>>>>>>>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>>>>>>>> index bc9afb5..d50f8ee 100644
->>>>>>>>>>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>>>>>>>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>>>>>>>> @@ -76,6 +76,10 @@ Required properties:
->>>>>>>>>>>     * "dpll_ref_m2" - external dpll ref clk
->>>>>>>>>>>     * "phy-div" - divider for apll
->>>>>>>>>>>     * "div-clk" - apll clock
->>>>>>>>>>> +   * "apll_mux" - mux for pcie apll
->>>>>>>>>>> +   * "refclk_ext" - external reference clock for pcie apll
->>>>>>>>>>> + - ti,ext-clk: To specifiy if PCIE apll should use external clock. Applicable
->>>>>>>>>>> +   only to PCIE PHY.
->>>>>>>>>>
->>>>>>>>>> Instead of specifying both clock sources "dpll_ref_clock", "refclk_ext" and then specifying a 3rd control option "ti,ext-clk" to select one of the 2 sources, why can't the DT just supply one clock source, i.e. the one that is being used in the board instance? The driver should then just configure the clock rate that is needed at that node. Shouldn't the clock framework automatically take care of muxing and parent rates?
->>>>>>>>>
->>>>>>>>> Want the dt to have all the clocks used by the controller. "ti,ext-clk" should
->>>>>>>>> go in the board dt file (suggested by Nishanth).
->>>>>>>>> The point is at some point later if some one wants to change the clock source,
->>>>>>>>> it should be a simple enabling "ti,ext-clk" flag instead of finding the clock
->>>>>>>>> phandle etc..
->>>>>>>>
->>>>>>>> Wonder if that is implicit by the presence of  "refclk_ext" in the
->>>>>>>> clocks provided?
->>>>>>>
->>>>>>> IMO the presence of "refclk_ext" is useless unless the board indicates it
->>>>>>> provides the clock source.
->>>>>>>
->>>>>>> refclk_ext holds phandle for *fixed-clock*, so irrespective of whether the
->>>>>>> board provides a clock or not, it can have that handle for configuring in PRCM.
->>>>>>> However if the board does not provide the clock source, configuring refclk_ext
->>>>>>> in PRCM is useless.
->>>>>>
->>>>>> I think what Nishant meant is that if "refclk_ext" is provided it means that the driver
->>>>>> should use that over "dpll_ref_clock" so no need of a separate "ti,ext-clk" flag.
->>>>>
->>>>> yes, thank you for clarifying - it does indeed redundant to have
->>>>> "ti,ext-clk". and apologies on being a little obscure in the comment.
->>>>
->>>> Irrespective of whether external reference clock is used or not, all DRA7
->>>> (apll) has an input for external reference clock (and also a PRCM register for
->>>> programming it) and it has to be specified in dt no?
->>>
->>> Why is that a binding for ti-phy? that is a problem for the APLL clock
->>> driver (selecting it's own source). PHY properties should describe
->>> itself -> let the bindings of the APLL describe itself. please dont
->>> mix the two up.
->>
->> The apll clock node is like this
->>
->> apll_pcie_in_clk_mux: apll_pcie_in_clk_mux@4ae06118 {
->>         compatible = "mux-clock";
->>         clocks = <&dpll_pcie_ref_m2ldo_ck>, <&pciesref_acs_clk_ck>;
->>         #clock-cells = <0>;
->>         reg = <0x4a00821c 0x4>;
->>         bit-mask = <0x80>;
->> };
->>
->> The external reference clock is denoted by *pciesref_acs_clk_ck*.
->>
->> refclk_ext holds the phandle to *pciesref_acs_clk_ck* and is used in
->> "clk_set_parent" to set the parent of apll mux.
-> 
-> So, How about this: if refclk_ext is not defined, dont do setparent,
-> if it is defined, do setparent.
-> in short:
-> Optional Properties:
-> * "refclk_ext" - external reference clock for pcie apll - if defined,
-> used as the parent to "apll_mux"
+> The second controller is not handled because in DT boot we only handle 1 cc as
+> far as I know. I don't know why, but this is how the DT support has been
+> written and used.
 
-Ok, will remove "ti,ext-clk".
+Its just because none of the platforms under heavy development use two
+controllers. Joel promised to work on it at some point ;)
 
-Thanks
-Kishon
 > 
-> That said, my problem in general with this approach(which many folks
-> have taken of describing parent of clock X in hardware block binding
-> for Y) is the following:
+>> I was wondering why we never read the hardware for this information
+>> before, and strangely enough cannot find any SoC where the CCCFG
+>> register does not publish this information correctly. I have tested on
+>> DA850, DA830, DM365, DM355 and DM6467.
 > 
-> The binding now has dependency on clock tree hierarchy. What if
-> towmorrow, we have a tree where refclk_ext parent of muxZ parent of
-> apll_mux? the binding breaks down. Lets not forget that we consider DT
-> as an ABI - we dont want to change the binding in the future.
+> Good question. I was also puzzled about this.
 > 
-> I had always preferred describing parent-child relationship of clocks
-> by the approach Tero posted: https://patchwork.kernel.org/patch/3871551/
+>> Instead of keeping this specific to OF case, the code can be simplified
+>> much better if we read from hardware all the time. We can directly
+>> populate the equivalent variables in the internal structure 'struct
+>> edma' instead of populating them in 'struct edma_soc_info' and then
+>> copying then over.
 > 
-> Maybe Mike and Tero could help here?
+> Yes, we can switch the non DT boot to this mode as well, true. At first I
+> wanted to change code which I can test easily. For non DT boot I would need to
+> set up my old daVinci board ;)
+
+I can help testing (and even with writing the DaVinci platform specific
+patches).
+
+>>> +	pdata->n_cc = 1;
+>>> +
+>>> +	queue_tc_map = devm_kzalloc(dev, (n_tc + 1) * sizeof(s8), GFP_KERNEL);
+>>> +	if (!queue_tc_map)
+>>> +		return -ENOMEM;
+>>> +
+>>> +	for (i = 0; i < n_tc; i++) {
+>>> +		queue_tc_map[i][0] = i;
+>>> +		queue_tc_map[i][1] = i;
+>>> +	}
+>>> +	queue_tc_map[i][0] = -1;
+>>> +	queue_tc_map[i][1] = -1;
+>>> +
+>>> +	pdata->queue_tc_mapping = queue_tc_map;
+>>> +
+>>> +	queue_priority_map = devm_kzalloc(dev, (n_tc + 1) * sizeof(s8),
+>>> +					  GFP_KERNEL);
+>>> +	if (!queue_priority_map)
+>>> +		return -ENOMEM;
+>>> +
+>>> +	for (i = 0; i < n_tc; i++) {
+>>> +		queue_priority_map[i][0] = i;
+>>> +		queue_priority_map[i][1] = i;
+>>> +	}
+>>> +	queue_priority_map[i][0] = -1;
+>>> +	queue_priority_map[i][1] = -1;
+>>> +
+>>> +	pdata->queue_priority_mapping = queue_priority_map;
+>>> +
+>>> +	pdata->default_queue = 0;
+>>
+>> This is part is not really setting up from hardware (rather falling back
+>> to some sane defaults for the DT case). Could you leave them in
+>> edma_of_parse_dt()?
 > 
+> Not really since the number of tc is not know as early as edma_of_parse_dt(),
+> we used to a magic number of 3 in place for n_tc previously.
+> We are doing similar things as previously done in edma_of_parse_dt() but with
+> 'correct' number of tc.
+
+Okay. I did not notice the n_tc hardcoding. In that case to make this
+function usable on non-DT case we will have to do something like:
+
+	/* Default to 1 if nothing passed */
+	if (!pdata->n_cc)
+		pdata->n_cc = 1;
+
+	if (!pdata->queue_priority_mapping) {
+		queue_priority_map = devm_kzalloc(...)
+	}
+
+I was hoping we could avoid that.
+
+>>> @@ -1655,6 +1679,12 @@ static int edma_probe(struct platform_device *pdev)
+>>>  		if (IS_ERR(edmacc_regs_base[j]))
+>>>  			return PTR_ERR(edmacc_regs_base[j]);
+>>>  
+>>> +		if (node) {
+>>> +			/* Get eDMA3 configuration from IP */
+>>> +			ret = edma_setup_info_from_hw(dev, info[j]);
+>>> +			if (ret)
+>>> +				return ret;
+>>
+>> No need to do this only for the DT case, I think. Also, once we get rid
+>> of the edma_soc_info dependency, just pass edma_cc[] directly
+>>
+>> 		edma_setup_info_from_hw(dev, j, edma_cc[j]);
+> 
+> Yes, let's do this for DT and not DT boot as well.
+> I will keep the queue_tc_map and queue_priority_map setup in there I think to
+> be done in case of DT boot.
+
+Right.
+
+> 
+> I'll try to craft v3 as soon as I can.
+
+Thanks.
+
+Regards,
+Sekhar
+
