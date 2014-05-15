@@ -1,108 +1,60 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v2 6/6] mmc: omap_hsmmc: split omap-dma header file
-Date: Thu, 15 May 2014 19:08:52 +0530
-Message-ID: <5374C36C.1020404@ti.com>
-References: <1399654013-28262-1-git-send-email-balajitk@ti.com> <1399654013-28262-7-git-send-email-balajitk@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCHv3 0/5] tsc2005 DT binding
+Date: Thu, 15 May 2014 16:23:16 +0200
+Message-ID: <20140515142315.GA15716@earth.universe>
+References: <1398470179-20880-1-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1399654013-28262-7-git-send-email-balajitk@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-mmc@vger.kernel.org, chris@printf.net, ulf.hansson@linaro.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1398470179-20880-1-git-send-email-sre@kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, linux-input@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 09 May 2014 10:16 PM, Balaji T K wrote:
-> moving dmaengine consumer specific function to omap-dmaengine.h
-> to Resolve build failure seen with sh-allmodconfig:
->      include/linux/omap-dma.h:171:8: error: expected identifier before numeric constant
->      make[4]: *** [drivers/mmc/host/omap_hsmmc.o] Error 1
->
-> Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Balaji T K <balajitk@ti.com>
 
-Hi Russell, Tony,
+--J/dobhs11T7y2rNN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Since this patches touches omap dma header file,
-can you provide your comments / ack if it looks ok ?
+On Sat, Apr 26, 2014 at 01:56:14AM +0200, Sebastian Reichel wrote:
+> This adds device tree support for the tsc2005 touchscreen
+> controller, which is currently only used by the Nokia N900
+> board.
+>=20
+> The patch does not update the reset pin handling for platform
+> data based probe to avoid merge conflicts. The n900 platform
+> code will be removed in the near future (3.16?) and the driver
+> can be simplified once that has happened.
 
-> ---
->   drivers/mmc/host/omap_hsmmc.c  |    2 +-
->   include/linux/omap-dma.h       |   19 +------------------
->   include/linux/omap-dmaengine.h |   21 +++++++++++++++++++++
->   3 files changed, 23 insertions(+), 19 deletions(-)
->   create mode 100644 include/linux/omap-dmaengine.h
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index cba71d6..6b7b755 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -31,7 +31,7 @@
->   #include <linux/of.h>
->   #include <linux/of_gpio.h>
->   #include <linux/of_device.h>
-> -#include <linux/omap-dma.h>
-> +#include <linux/omap-dmaengine.h>
->   #include <linux/mmc/host.h>
->   #include <linux/mmc/core.h>
->   #include <linux/mmc/mmc.h>
-> diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
-> index 41a13e7..999f52d 100644
-> --- a/include/linux/omap-dma.h
-> +++ b/include/linux/omap-dma.h
-> @@ -1,23 +1,6 @@
-> -/*
-> - * OMAP DMA Engine support
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License version 2 as
-> - * published by the Free Software Foundation.
-> - */
->   #ifndef __LINUX_OMAP_DMA_H
->   #define __LINUX_OMAP_DMA_H
-> -
-> -struct dma_chan;
-> -
-> -#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
-> -bool omap_dma_filter_fn(struct dma_chan *, void *);
-> -#else
-> -static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
-> -{
-> -	return false;
-> -}
-> -#endif
-> +#include <linux/omap-dmaengine.h>
->
->   /*
->    *  Legacy OMAP DMA handling defines and functions
-> diff --git a/include/linux/omap-dmaengine.h b/include/linux/omap-dmaengine.h
-> new file mode 100644
-> index 0000000..2b0b6aa
-> --- /dev/null
-> +++ b/include/linux/omap-dmaengine.h
-> @@ -0,0 +1,21 @@
-> +/*
-> + * OMAP DMA Engine support
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +#ifndef __LINUX_OMAP_DMAENGINE_H
-> +#define __LINUX_OMAP_DMAENGINE_H
-> +
-> +struct dma_chan;
-> +
-> +#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
-> +bool omap_dma_filter_fn(struct dma_chan *, void *);
-> +#else
-> +static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
-> +{
-> +	return false;
-> +}
-> +#endif
-> +#endif /* __LINUX_OMAP_DMAENGINE_H */
->
+Ping. It would be nice to see this patchset in 3.16, since its
+the last important hardware component missing for N900 DT boot.
 
+-- Sebastian
+
+--J/dobhs11T7y2rNN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJTdM3TAAoJENju1/PIO/qahKkQAInrLPv8Si/nxIsWEynE8RYm
+YjHrOzkU0EiN/RPB3DT1wZNSnAHgJ9dEiAtuhjGYBssE5pyJIdTFG7LHrd3x2jvD
+pS2pNlt8ifzzaLoB+a3j9d+QGhDejJqJ4sJKUmxSDga4fKnyKpsruV3nOM6WBruy
+vSisJKT7pK9Rqq80vtKfISN1TTs0qAnN8RXb0oNoyesrVNOHzwqn5h3impuBJ0k5
+/hd/bL3MR1F5t7MbhONYuK0UIGyTDFAkZXndCmOu90f0TOeVc/oGx0HQMEUjZSv4
+3Vb/RRQTJEzoQ1vXVpiOcZ7baa/FnzF/eONt0+bRDKsrk8/THtXdAtODeZWsVzYG
+Ey/lIco41Z1A2vRhe4umzOsG/rFszk8xYKSPAXNUaEqvAB44Dq7jQlp+nqcG0JYM
+3Spn/pLyba1HFr/c0ftTovyEWDvqpUrtoUhZZS1cOu+PqHGPa4jV2LIR29rqIDdq
+GuHE0ZQrvZuz3IzUC0m1TfTLeGBKMerjEAjZW+WxyrI0VJ6i9aGKx8X9rO7FiHNx
+BusBvlSj0+NvNPwq6bleOdaGbwB35ZZGmAPo7GLUm+asbCoQii6bAHHo4wStR1xS
+MNRRFsysWdbqfrKGHR3INGD8EzFXWrk+/AL/B6YiUqp7JPj8g3L7Uf+ow45EuN0H
+lMWsoixXgkxqzhtj1aOy
+=cPDq
+-----END PGP SIGNATURE-----
+
+--J/dobhs11T7y2rNN--
