@@ -1,128 +1,83 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v2 2/5] ARM: edma: Get IP information from HW when booting
- with DT
-Date: Thu, 15 May 2014 18:18:56 +0530
-Message-ID: <5374B7B8.4060604@ti.com>
-References: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com> <1399977032-26469-3-git-send-email-peter.ujfalusi@ti.com> <53748070.4080706@ti.com> <5374B34D.2060904@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
+ support
+Date: Thu, 15 May 2014 16:07:13 +0300
+Message-ID: <5374BC01.7030802@ti.com>
+References: <1398815562-24113-1-git-send-email-tony@atomide.com> <1398815562-24113-4-git-send-email-tony@atomide.com> <5369EAE7.3030705@ti.com> <20140507150343.GA9502@atomide.com> <536A5920.1020908@ti.com> <20140507175919.GH9502@atomide.com> <20140508233300.GI2198@atomide.com> <536C924E.5000307@ti.com> <20140509153008.GC17814@atomide.com> <20140513212639.GA18001@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5374B34D.2060904@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, joelf@ti.com
-Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="WC660HF6H0CT5Gw5VNuL9cijJ1K7k4MGM"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60910 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750916AbaEONHj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 May 2014 09:07:39 -0400
+In-Reply-To: <20140513212639.GA18001@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Thursday 15 May 2014 06:00 PM, Peter Ujfalusi wrote:
+--WC660HF6H0CT5Gw5VNuL9cijJ1K7k4MGM
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> The second controller is not handled because in DT boot we only handle 1 cc as
-> far as I know. I don't know why, but this is how the DT support has been
-> written and used.
+On 14/05/14 00:26, Tony Lindgren wrote:
 
-Its just because none of the platforms under heavy development use two
-controllers. Joel promised to work on it at some point ;)
+> +static int sharp_ls_probe_of(struct platform_device *pdev)
+> +{
+> +	struct panel_drv_data *ddata =3D platform_get_drvdata(pdev);
+> +	struct device_node *node =3D pdev->dev.of_node;
+> +	struct omap_dss_device *in;
+> +
+> +	ddata->vcc =3D devm_regulator_get(&pdev->dev, "envdd");
+> +	if (IS_ERR(ddata->vcc)) {
+> +		dev_err(&pdev->dev, "failed to get regulator\n");
+> +		return PTR_ERR(ddata->vcc);
+> +	}
+> +
+> +	/* lcd INI */
+> +	ddata->ini_gpio =3D sharp_ls_get_gpio_of(&pdev->dev, 0, 0, "enable");=
 
-> 
->> I was wondering why we never read the hardware for this information
->> before, and strangely enough cannot find any SoC where the CCCFG
->> register does not publish this information correctly. I have tested on
->> DA850, DA830, DM365, DM355 and DM6467.
-> 
-> Good question. I was also puzzled about this.
-> 
->> Instead of keeping this specific to OF case, the code can be simplified
->> much better if we read from hardware all the time. We can directly
->> populate the equivalent variables in the internal structure 'struct
->> edma' instead of populating them in 'struct edma_soc_info' and then
->> copying then over.
-> 
-> Yes, we can switch the non DT boot to this mode as well, true. At first I
-> wanted to change code which I can test easily. For non DT boot I would need to
-> set up my old daVinci board ;)
+> +	if (PTR_ERR(ddata->ini_gpio) =3D=3D -EPROBE_DEFER)
+> +		return -EPROBE_DEFER;
 
-I can help testing (and even with writing the DaVinci platform specific
-patches).
+Hmm, the GPIOs are optional, but shouldn't we react somehow to real
+errors? I guess we should do something like:
 
->>> +	pdata->n_cc = 1;
->>> +
->>> +	queue_tc_map = devm_kzalloc(dev, (n_tc + 1) * sizeof(s8), GFP_KERNEL);
->>> +	if (!queue_tc_map)
->>> +		return -ENOMEM;
->>> +
->>> +	for (i = 0; i < n_tc; i++) {
->>> +		queue_tc_map[i][0] = i;
->>> +		queue_tc_map[i][1] = i;
->>> +	}
->>> +	queue_tc_map[i][0] = -1;
->>> +	queue_tc_map[i][1] = -1;
->>> +
->>> +	pdata->queue_tc_mapping = queue_tc_map;
->>> +
->>> +	queue_priority_map = devm_kzalloc(dev, (n_tc + 1) * sizeof(s8),
->>> +					  GFP_KERNEL);
->>> +	if (!queue_priority_map)
->>> +		return -ENOMEM;
->>> +
->>> +	for (i = 0; i < n_tc; i++) {
->>> +		queue_priority_map[i][0] = i;
->>> +		queue_priority_map[i][1] = i;
->>> +	}
->>> +	queue_priority_map[i][0] = -1;
->>> +	queue_priority_map[i][1] = -1;
->>> +
->>> +	pdata->queue_priority_mapping = queue_priority_map;
->>> +
->>> +	pdata->default_queue = 0;
->>
->> This is part is not really setting up from hardware (rather falling back
->> to some sane defaults for the DT case). Could you leave them in
->> edma_of_parse_dt()?
-> 
-> Not really since the number of tc is not know as early as edma_of_parse_dt(),
-> we used to a magic number of 3 in place for n_tc previously.
-> We are doing similar things as previously done in edma_of_parse_dt() but with
-> 'correct' number of tc.
+ddata->ini_gpio =3D sharp_ls_get_gpio_of(&pdev->dev, 0, 0, "enable");
+if (IS_ERR(ddata->ini_gpio) {
+	int err =3D PTR_ERR(ddata->ini_gpio);
+	if (err =3D=3D -EPROBE_DEFER || err !=3D -ENOENT)
+		return err;
+}
 
-Okay. I did not notice the n_tc hardcoding. In that case to make this
-function usable on non-DT case we will have to do something like:
+ Tomi
 
-	/* Default to 1 if nothing passed */
-	if (!pdata->n_cc)
-		pdata->n_cc = 1;
 
-	if (!pdata->queue_priority_mapping) {
-		queue_priority_map = devm_kzalloc(...)
-	}
 
-I was hoping we could avoid that.
+--WC660HF6H0CT5Gw5VNuL9cijJ1K7k4MGM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
->>> @@ -1655,6 +1679,12 @@ static int edma_probe(struct platform_device *pdev)
->>>  		if (IS_ERR(edmacc_regs_base[j]))
->>>  			return PTR_ERR(edmacc_regs_base[j]);
->>>  
->>> +		if (node) {
->>> +			/* Get eDMA3 configuration from IP */
->>> +			ret = edma_setup_info_from_hw(dev, info[j]);
->>> +			if (ret)
->>> +				return ret;
->>
->> No need to do this only for the DT case, I think. Also, once we get rid
->> of the edma_soc_info dependency, just pass edma_cc[] directly
->>
->> 		edma_setup_info_from_hw(dev, j, edma_cc[j]);
-> 
-> Yes, let's do this for DT and not DT boot as well.
-> I will keep the queue_tc_map and queue_priority_map setup in there I think to
-> be done in case of DT boot.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Right.
+iQIcBAEBAgAGBQJTdLwBAAoJEPo9qoy8lh71Ub4QAJsKC1xdeQ5Nw8ioygGiqiTY
+Q7s8hHkPtY4t7QNyA7+xv/O0VDz7dOuIkeaBi3xA5EGwm3QP98cEf76R/fu801XK
+IYBNzr13Xz1zHObwdyBd0zXoxCIS+BWU6cZuy658/tpB5NpE3kNbruI8B0TmceyQ
+PlZ4wE5s03MtMKuTrg04Dr62Vi61qMauOiN0ff7Mi2aSrCRsCKmBgpR1UZ+0+RsT
++ZJ6xPZHLKBmy+7fTcb28x4YODznp+cStRXVr9XGY3zwU/GDprFykx2+zCpXuBqB
+9cQhKvVwSU8UU5CD8uQ7ko1iNx9LmbIOf7NhRKaCpKxqj7EvXebmLZeiyalwdhD7
+UZM3DEzNdy2YroFxtDWfIz6d2srXG2a9I2DnSZYxd4azcHxxyEfpQvEvTzA45XiA
+jDELxGA27PzFptJdlGIDFAZUS7QRhcX6F64S+EHuQ7As1Al53iL6BM/0+UWVeBRT
+qMA/fHDRQs/DkUreEWFHtWJtPs2+V+dA3wKhaDNYEED+jw3uh7WAl6YRCX1iwia7
+uIqUnxw+EbHH+MjbNDL+wA3sKf0+IdQ1g8la+qzzFV+hoBLV7iqYnDrlHAeJrdNH
+GUE3JQslWl3HcG7rACtT36mWHqqwI+XFP1GerIGpOgYyq1AWjk+8VYJGzTQdNs56
+zWPgU4qTnzUcU/HMjfIH
+=2Tt9
+-----END PGP SIGNATURE-----
 
-> 
-> I'll try to craft v3 as soon as I can.
-
-Thanks.
-
-Regards,
-Sekhar
-
+--WC660HF6H0CT5Gw5VNuL9cijJ1K7k4MGM--
