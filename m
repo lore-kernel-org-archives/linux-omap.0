@@ -1,37 +1,44 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] ARM: OMAP: remove some dead code
-Date: Thu, 15 May 2014 22:43:17 +0300
-Message-ID: <20140515194317.GB4752@drone.musicnaut.iki.fi>
-References: <1400181381.11786.18.camel@x220>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: [PATCH] ARM: OMAP: AM3517EVM: remove check for
+ CONFIG_PANEL_SHARP_LQ043T1DG01
+Date: Thu, 15 May 2014 21:54:52 +0200
+Message-ID: <1400183692.11786.23.camel@x220>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1400181381.11786.18.camel@x220>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 15, 2014 at 09:16:21PM +0200, Paul Bolle wrote:
-> A check for CONFIG_CBUS_TAHVO_USB was added in v2.6.17. The related
-> Kconfig symbol has never been part of the tree. Remove that check.
-> 
-> Replace the while (...) loop with a simple if (...) statement, while
-> we're at it.
-> 
-> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+The Kconfig symbol PANEL_SHARP_LQ043T1DG01 was removed in v2.6.38. The
+check for CONFIG_PANEL_SHARP_LQ043T1DG01 and its MODULE variant has
+evaluated to false ever since. Remove that check.
 
-Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+Untested, again.
 
-> ---
-> Untested, as usual.
-> 
-> A quick search across the history of the tree suggests CBUS_TAHVO_USB
-> was N770 related. Not that this matters much.
+ arch/arm/mach-omap2/board-am3517evm.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-Yes, Tahvo USB is only used on Nokia 770 (which is the correct name,
-not N770). The driver is nowadays behind TAHVO_USB, but like you said
-the old symbol was never part of the mainline so it's OK to delete it.
-
-A.
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 543d9a882de3..4f9383cecf76 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -262,12 +262,7 @@ static struct usbhs_phy_data phy_data[] __initdata = {
+ 
+ static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
+ 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
+-#if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
+-		defined(CONFIG_PANEL_SHARP_LQ043T1DG01_MODULE)
+-	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
+-#else
+ 	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
+-#endif
+ };
+ 
+ #ifdef CONFIG_OMAP_MUX
+-- 
+1.9.0
