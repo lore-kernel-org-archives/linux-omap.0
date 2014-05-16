@@ -1,108 +1,48 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for
- configuring the iATU
-Date: Fri, 16 May 2014 14:30:56 +0530
-Message-ID: <5375D3C8.1060204@ti.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com> <4528185.oZbgyuuFKX@wuerfel> <537302CD.7000701@ti.com> <5281007.CFRjW0Yeu2@wuerfel>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: Re: [PATCH] ARM: OMAP: replace checks for CONFIG_USB_GADGET_OMAP
+Date: Fri, 16 May 2014 11:36:14 +0200
+Message-ID: <1400232974.20342.22.camel@x220>
+References: <1400187345.11786.28.camel@x220>
+	 <20140515231229.GA25523@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5281007.CFRjW0Yeu2@wuerfel>
-Sender: linux-doc-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jingoo Han <jg1.han@samsung.com>, 'Santosh Shilimkar' <santosh.shilimkar@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, rogerq@ti.com, balajitk@ti.com, 'Bjorn Helgaas' <bhelgaas@google.com>, 'Marek Vasut' <marex@denx.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cpsmtpb-ews02.kpnxchange.com ([213.75.39.5]:61619 "EHLO
+	cpsmtpb-ews02.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756258AbaEPJgQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 May 2014 05:36:16 -0400
+In-Reply-To: <20140515231229.GA25523@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Arnd,
+Felipe,
 
-On Wednesday 14 May 2014 06:15 PM, Arnd Bergmann wrote:
-> On Wednesday 14 May 2014 11:14:45 Kishon Vijay Abraham I wrote:
->> hi Arnd,
->>
->> On Tuesday 13 May 2014 07:04 PM, Arnd Bergmann wrote:
->>> On Tuesday 13 May 2014 15:27:46 Arnd Bergmann wrote:
->>>> On Tuesday 13 May 2014 18:56:23 Kishon Vijay Abraham I wrote:
->>>>>> If you have a case where the outbound translation is a 256MB (i.e. 28bit)
->>>>>> section of the CPU address space, that could be represented as
->>>>>>
->>>>>>       ranges = <0x82000000 0 0  0xb0000000  0 0x10000000>;
->>>>>>
->>>>>> or 
->>>>>>
->>>>>>       ranges = <0x82000000 0 0xb0000000  0xb0000000  0 0x10000000>;
->>>>>>
->>>>>> depending on whether you want the BARs to be programmed using a low
->>>>>> address 0x0-0x0fffffff or an address matching the window
->>>>>> 0xb0000000-0xbfffffff.
->>>>>
->>>>> The problem is, for configuring the window starting at 0xb0000000, the ATU
->>>>> should be programmed 0x0000000 (the cpu address for it will be 0xb0000000 though).
->>>>>
->>>>
->>>> Then use the first of the two?
->>>>
->>>
->>> To clarify: using <0x82000000 0 0  0xb0000000  0 0x10000000> will give you 
->>> a mem_offset of 0xb0000000, which should work just fine for this case.
->>>
->>> What I don't understand is why the ATU cares about whether the outbound
->>> address is 0x0000000 or 0xb0000000 if it just decodes the lower 28 bit
->>> anyway. Did you mean that we have to program the BARs using low addresses
->>> regardless of what is programmed in the ATU? That would make more sense,
->>> and it also matches what I suggested.
->>
->> No, It's not like it decodes only the lower 28bits. The BARs is programmed with
->> 32 bit value.
->>
->> My pcie dt node has
->>  ranges = <0x00000800 0 0x20001000 0x20001000 0 0x00002000  /* CONFIG */
->>            0x81000000 0 0          0x20003000 0 0x00010000  /* IO */
->>            0x82000000 0 0x20013000 0x20013000 0 0xffed000>; /* MEM */
->>
->> Consider MEM address space..
->>
->> Here both PCI address and CPU address is 0x20013000. So when there is a write
->> to cpu addr 0x20013000 [writel(virt_addr(0x20013000)], we want it to be
->> translated to PCI addr 0x20013000. So in 'ATU', we would expect *base* to be
->> programmed to *0x20013000* and target to be programmed to *0x20013000*. But
->> that's not the case for DRA7xx. For DRA7xx *base* should be programmed to
->> *0x0013000* and target should be programmed to *0x20013000*.
+On Thu, 2014-05-15 at 18:12 -0500, Felipe Balbi wrote:
+> On Thu, May 15, 2014 at 10:55:45PM +0200, Paul Bolle wrote:
+> > diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
+> > index 65d2acb31498..57092bc7f4f1 100644
+> > --- a/arch/arm/mach-omap1/board-h2.c
+> > +++ b/arch/arm/mach-omap1/board-h2.c
+> > @@ -346,7 +346,7 @@ static struct omap_usb_config h2_usb_config __initdata = {
+> >  	/* usb1 has a Mini-AB port and external isp1301 transceiver */
+> >  	.otg		= 2,
+> >  
+> > -#ifdef	CONFIG_USB_GADGET_OMAP
+> > +#ifdef	CONFIG_USB_OMAP
 > 
-> Ok, got it, thanks for your patience.
-> 
-> I think this would best be modeled as a separate bus node that contains the
-> restriction, like this:
-> 
-> / {
-> 	#address-cells = <1>; // or <2> if you support > 4GB address space
-> 	#size-cells = <1>;
-> 
-> 	soc {
-> 		#address-cells <1>;
-> 		#size-cells = <1>;
-> 		ranges;
-> 		dma-ranges;
-> 
-> 		... // all normal devices
-> 
-> 		axi@20000000 {
-> 			#size-cells = <1>;
-> 			#address-cells = <1>;
-> 			dma-ranges; // can access all 4GB outbound
-> 			ranges = <0 0x20000000 0x10000000>; // 28-bit bus
-> 
-> 			pci@0 {
-> 				reg = <0x0    0x1000>, // internal regs
-> 				      <0x1000 0x2000>; // config space
+> CONFIG_USB_OMAP is tristate, it might be better to use
+> IS_ENABLED(CONFIG_USB_OMAP) here. Likewise for the rest of the patch.
 
-The internal reg address space starts at 0x51000000. By Using this <0
-0x20000000 0x10000000>; as ranges, we are not able to get the memory resource
-properly. Can we use multiple ranges? how do we specify which ranges the *reg*
-property to use?
+Will do shortly. That does increase the scope of the patch, a bit, but
+since this code has been effectively dead since v3.1 that is hardly an
+additional risk.
 
-Btw I was using *simple-bus* as compatible to *axi*. Or should I create a new
-*axi* driver to create the pcie memory resources myself?
+Thanks!
 
-Thanks
-Kishon
+
+Paul Bolle
+
