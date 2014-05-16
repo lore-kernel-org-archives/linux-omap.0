@@ -1,87 +1,69 @@
-From: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Subject: Re: [PATCH] usb: dwc3: gadget: check link trb after free_slot is
- increased
-Date: Fri, 16 May 2014 23:50:13 +0800
-Message-ID: <20140516155013.GE16153@intel.com>
-References: <20140515215757.GD16153@intel.com>
- <20140515153757.GB7360@saruman.home>
-Reply-To: jin.can.zhuang@intel.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP2+: some hwmod data patches for v3.16
+Date: Fri, 16 May 2014 04:45:43 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1405160444200.29738@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140515153757.GB7360@saruman.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, david.a.cohen@linux.intel.com, Yuan Hang <hang.yuan@intel.com>, Li Jiebing <jiebing.li@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:36250 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752117AbaEPEpo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 00:45:44 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On Thu, May 15, 2014 at 10:37:57AM -0500, Felipe Balbi wrote:
-> Hi
-> 
-> On Fri, May 16, 2014 at 05:57:57AM +0800, Zhuang Jin Can wrote:
-> > In ISOC transfers, when free_slot points to the last TRB (i.e. Link
-> > TRB), and all queued requests meet Missed Interval Isoc error, busy_slot
-> > points to trb0.
-> > 	busy_slot->trb0
-> > 		   trb1
-> > 		   ...
-> > 	free_slot->trb31(Link TRB)
-> > 
-> > After end transfer and receiving the XferNotReady event, trb_left is
-> > caculated as 1 which is wrong, and no TRB will be primed to the
-> > endpoint.
-> > 
-> > The root cause is free_slot is not increased the same way as busy_slot.
-> > When busy_slot is increased by one, it checks if points to a link TRB
-> > after increasement, but free_slot checks it before increasement.
-> > free_slot should behave the same as busy_slot to make the trb_left
-> > caculation correct.
-> > 
-> > Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
-> > Signed-off-by: Jiebing Li <jiebing.li@intel.com>
-> > ---
-> >  drivers/usb/dwc3/gadget.c |    8 ++++----
-> >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-> > index 54da8c8..2ebe82b 100644
-> > --- a/drivers/usb/dwc3/gadget.c
-> > +++ b/drivers/usb/dwc3/gadget.c
-> > @@ -828,10 +828,6 @@ static void dwc3_prepare_one_trb(struct dwc3_ep *dep,
-> >  			length, last ? " last" : "",
-> >  			chain ? " chain" : "");
-> >  
-> > -	/* Skip the LINK-TRB on ISOC */
-> > -	if (((dep->free_slot & DWC3_TRB_MASK) == DWC3_TRB_NUM - 1) &&
-> > -			usb_endpoint_xfer_isoc(dep->endpoint.desc))
-> > -		dep->free_slot++;
-> >  
-> >  	trb = &dep->trb_pool[dep->free_slot & DWC3_TRB_MASK];
-> 
-> I have a feeling this has a negative side effect of letting us use the
-> link TRB for data transfer... I mean, if we don't increment free_slot
-> before accessing our trb_pool, we have no way to skip link trb on this
-> access here.
-After every free_slot++ Link TRB is checked and increased if appropriate,
-this guarantees you next time access free_slot, it can't be a Link
-TRB.
+Hi Tony
 
-> 
-> How did you find the bug ? do you have good instructions on how to
-> reproduce it ? How did you test the patch and for how long ?
-The bug is reproduced on Android with f_audio_source.c enabled, which
-has an isoc-in endpoint keeps sending audio data to host in an interval
-of 1 ms. Normally, you need to run for 12+ hours to hit the issue.
-So I think you can just run some isoc transfers for a long time to
-reproduce it. To accelarte the reproducing, you can run some concurrent
-data transfer as well, so the possibility to meet missed interval error
-is larger.
+The following changes since commit d1db0eea852497762cab43b905b879dfcd3b8987:
 
-The patch is tested for basic functionality like enumeration, data
-transfers. For this bug, it was tested for 20+ hours.
+  Linux 3.15-rc3 (2014-04-27 19:29:27 -0700)
 
-Thanks
-Jincan
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git for-v3.16/hwmod-a
+
+for you to fetch changes up to 433480707967187a74ced38bd38edba749998013:
+
+  ARM: OMAP2+: hwmod: OMAP5 DSS hwmod data (2014-05-14 12:26:10 -0600)
+
+- ----------------------------------------------------------------
+First (and possibly last) set of hwmod data changes for v3.16.  This
+set should clean up some obsolete OMAP4 hwmod data, and add OMAP5 DSS
+support.
+
+Basic build, boot, and PM logs are available here:
+
+http://www.pwsan.com/omap/testlogs/hwmod-a-v3.16/20140515210013/
+
+- ----------------------------------------------------------------
+Archit Taneja (1):
+      ARM: OMAP2+: hwmod: OMAP5 DSS hwmod data
+
+Peter Ujfalusi (1):
+      ARM: omap4: hwmod_data: Clean up audio related structures (remove/merge them)
+
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  99 +---------
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 283 +++++++++++++++++++++++++++++
+ 2 files changed, 292 insertions(+), 90 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTdZeVAAoJEMePsQ0LvSpLlPsP/32nvu4wLWKSRfHAZFSTO3cf
+MAPWwxsej9FfkOJN92Y/z6RVt8UNaIGmNTZgJr4tQMhvNuIxTM39jkl2NSB0ggJU
+NlQdJkgV6M5cGhKkAC3u7+Fz7/lxsr8ml2MpBzifHGVf9zZHGrNRhwMs3r34fVz0
+pGu3XGQI/LBkASW5TLfEqWrYfYCBR1dsEVLlFuUfLc+DIvpFU7z07DM577BHLlzg
+17KByqWHFW3dn15JSWYgOEFicYGnD5absjSXayAw5B9gjCKrNycPEk1Tm3FePX8r
+lH8cqHGJ7aiffhj2h/HkX8jUHKXNCyWkyEOzey59V8Rde1G5Rhm3dIxrlBldBS9e
+Wxa16MiqMktcVf4iUbuesTPEldtqkCc39zuiRwqQ6YRotFxmCPZlI+gNKkfmcqSD
+zRn+q+XoeNsh5Y9UekqfK4Cm1+NacLxmS8nxtjxaVPvkzLLX0lYubG8WRedg/501
+7wCd/ubsRGeH+tSt49IItmoEYZgBysareZDxAL8oSX/7zjklaNJcR4k1uGZ8xDVU
+r9MNzxBl0a/wvCz6zGY8gdpy1hbCt9uM9iXH36nopG6oXOFayTQKZlv0g/xOlyzs
+gNy7ELwtVq7AVCnAPaeBy3kLbV5nOFWaTSR/jdaCfNx6oaGOVvFEzsDEU820Sd2G
+WXtp0giThLDS7xBdsQc/
+=seX1
+-----END PGP SIGNATURE-----
