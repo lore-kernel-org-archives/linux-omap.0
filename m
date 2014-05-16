@@ -1,110 +1,83 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: [PATCH v2] ARM: OMAP: replace checks for CONFIG_USB_GADGET_OMAP
-Date: Fri, 16 May 2014 12:00:57 +0200
-Message-ID: <1400234457.20342.25.camel@x220>
-References: <1400187345.11786.28.camel@x220>
-	 <20140515231229.GA25523@saruman.home> <1400232974.20342.22.camel@x220>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 07/19] OMAPDSS: hdmi5_core: Fix compilation with OMAP5_DSS_HDMI_AUDIO
+Date: Fri, 16 May 2014 13:31:01 +0300
+Message-ID: <5375E8E5.5020007@ti.com>
+References: <cover.1399884780.git.jsarha@ti.com> <6e02441be6a699e4376e547ae99515d14079850d.1399884780.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="W2A8t0RkUIJJd9L4o9hKCMVLNFd5Rn1BO"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cpsmtpb-ews09.kpnxchange.com ([213.75.39.14]:56486 "EHLO
-	cpsmtpb-ews09.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755828AbaEPKBA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 May 2014 06:01:00 -0400
-In-Reply-To: <1400232974.20342.22.camel@x220>
+Received: from bear.ext.ti.com ([192.94.94.41]:49972 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756838AbaEPKbM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 May 2014 06:31:12 -0400
+In-Reply-To: <6e02441be6a699e4376e547ae99515d14079850d.1399884780.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com
 
-Commit 193ab2a60700 ("usb: gadget: allow multiple gadgets to be built")
-apparently required that checks for CONFIG_USB_GADGET_OMAP would be
-replaced with checks for CONFIG_USB_OMAP. Do so now for the remaining
-checks for CONFIG_USB_GADGET_OMAP, even though these checks have
-basically been broken since v3.1.
+--W2A8t0RkUIJJd9L4o9hKCMVLNFd5Rn1BO
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-And, since we're touching this code, use the IS_ENABLED() macro, so
-things will now (hopefully) also work if USB_OMAP is modular.
+Hi,
 
-Fixes: 193ab2a60700 ("usb: gadget: allow multiple gadgets to be built")
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-v2: us IS_ENABLED() as Felipe requested. Still untested.
+On 12/05/14 12:12, Jyri Sarha wrote:
+> Use correct variable name for base address.
+>=20
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> ---
+>  drivers/video/fbdev/omap2/dss/hdmi5_core.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/video/fbdev/omap2/dss/hdmi5_core.c b/drivers/video=
+/fbdev/omap2/dss/hdmi5_core.c
+> index 270ebdd..af88e3c 100644
+> --- a/drivers/video/fbdev/omap2/dss/hdmi5_core.c
+> +++ b/drivers/video/fbdev/omap2/dss/hdmi5_core.c
+> @@ -786,7 +786,7 @@ static void hdmi5_core_audio_config(struct hdmi_cor=
+e_data *core,
+>  	REG_FLD_MOD(base, HDMI_CORE_AUD_GP_POL, 1, 0, 0);
+> =20
+>  	/* unmute audio */
+> -	REG_FLD_MOD(core_sys_base, HDMI_CORE_FC_AUDSCONF, 0, 7, 4);
+> +	REG_FLD_MOD(base, HDMI_CORE_FC_AUDSCONF, 0, 7, 4);
+>  }
+> =20
+>  static void hdmi5_core_audio_infoframe_cfg(struct hdmi_core_data *core=
+,
 
- arch/arm/mach-omap1/board-h2.c        | 2 +-
- arch/arm/mach-omap1/board-h3.c        | 2 +-
- arch/arm/mach-omap1/board-innovator.c | 2 +-
- arch/arm/mach-omap1/board-osk.c       | 2 +-
- drivers/usb/phy/phy-isp1301-omap.c    | 2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+This fix is independent of the rest of the series, so I'll already pick
+this one to my 3.16 omapdss branch.
 
-diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-index 65d2acb31498..5b45d266d83e 100644
---- a/arch/arm/mach-omap1/board-h2.c
-+++ b/arch/arm/mach-omap1/board-h2.c
-@@ -346,7 +346,7 @@ static struct omap_usb_config h2_usb_config __initdata = {
- 	/* usb1 has a Mini-AB port and external isp1301 transceiver */
- 	.otg		= 2,
- 
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#if IS_ENABLED(CONFIG_USB_OMAP)
- 	.hmc_mode	= 19,	/* 0:host(off) 1:dev|otg 2:disabled */
- 	/* .hmc_mode	= 21,*/	/* 0:host(off) 1:dev(loopback) 2:host(loopback) */
- #elif	defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-index 816ecd13f81e..bfed4f928663 100644
---- a/arch/arm/mach-omap1/board-h3.c
-+++ b/arch/arm/mach-omap1/board-h3.c
-@@ -366,7 +366,7 @@ static struct omap_usb_config h3_usb_config __initdata = {
- 	/* usb1 has a Mini-AB port and external isp1301 transceiver */
- 	.otg	    = 2,
- 
--#ifdef CONFIG_USB_GADGET_OMAP
-+#if IS_ENABLED(CONFIG_USB_OMAP)
- 	.hmc_mode       = 19,   /* 0:host(off) 1:dev|otg 2:disabled */
- #elif  defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
- 	/* NONSTANDARD CABLE NEEDED (B-to-Mini-B) */
-diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-index bd5f02e9c354..c49ce83cc1eb 100644
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -312,7 +312,7 @@ static struct omap_usb_config h2_usb_config __initdata = {
- 	/* usb1 has a Mini-AB port and external isp1301 transceiver */
- 	.otg		= 2,
- 
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#if IS_ENABLED(CONFIG_USB_OMAP)
- 	.hmc_mode	= 19,	/* 0:host(off) 1:dev|otg 2:disabled */
- 	/* .hmc_mode	= 21,*/	/* 0:host(off) 1:dev(loopback) 2:host(loopback) */
- #elif	defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index 3a0262156e93..7436d4cf6596 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -283,7 +283,7 @@ static struct omap_usb_config osk_usb_config __initdata = {
- 	 * be used, with a NONSTANDARD gender-bending cable/dongle, as
- 	 * a peripheral.
- 	 */
--#ifdef	CONFIG_USB_GADGET_OMAP
-+#if IS_ENABLED(CONFIG_USB_OMAP)
- 	.register_dev	= 1,
- 	.hmc_mode	= 0,
- #else
-diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
-index 6e146d723b37..69e49be8866b 100644
---- a/drivers/usb/phy/phy-isp1301-omap.c
-+++ b/drivers/usb/phy/phy-isp1301-omap.c
-@@ -1295,7 +1295,7 @@ isp1301_set_host(struct usb_otg *otg, struct usb_bus *host)
- 		return isp1301_otg_enable(isp);
- 	return 0;
- 
--#elif	!defined(CONFIG_USB_GADGET_OMAP)
-+#elif !IS_ENABLED(CONFIG_USB_OMAP)
- 	// FIXME update its refcount
- 	otg->host = host;
- 
--- 
-1.9.0
+ Tomi
 
+
+
+
+--W2A8t0RkUIJJd9L4o9hKCMVLNFd5Rn1BO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTdejlAAoJEPo9qoy8lh71QSoP/jSYhAEh5ad2o5B8+Y74bcc8
+cOLG5naHlZG3V9TPXg2wxJOgVYOWR5RK9LZb4xMufjo1OKItJpke6lI0lqtuZBG7
+JgcRkQSqT1OkrB5NY4amcYzO/yCJuATHer1as5srxB03VmC0fuSqJoDIIUCemzTL
+35csLVxi5yWBeDEe2VeEoqfpprU9VgNUDGiJKmEpiLuGv6ypwRNhMNrARxX+cf4q
+suePVcs288Cwfs7jvP8qgNYO3Y3PKECxviDDEhZYxsnpxAgd2If+EA2VdT2BT/vn
+uy+tcxyz3YFYtkmnn+r54WL2SuDTwRd2TYOpL2C5ct585n6YoGAAaciuTSzwoItn
+X4aeNvVN+YVs9YhfBxv+dLE1EwgFUoIKDlxJoie190nWhDXaHzQfNcDcXJweTZJM
+Nft/fAowx5K+7fpmawgJEzhKv2t0gImQXCqkrXeW6o/9G797pk81/foeZNFGpJIM
+7fzKQJ6MLigtOhdiAwoD7ih8it+0a2l+u9ykYz1aeLnc55O4LMiV4tBeou7DGvO1
+ekD6a3krgC7BCgmubmwALwnfyxGnhb2UvDw6EU71ZpfJ21drUjmSOrR69B5gFcOt
+edD70NMXSGBYSrOJFcxZYPVPhCrgA4op2LvK2nsi+VUtObuYKDZdZ+NqtHkgehcD
+ANswUsgdVsG/5pZ0NtGM
+=Lc2L
+-----END PGP SIGNATURE-----
+
+--W2A8t0RkUIJJd9L4o9hKCMVLNFd5Rn1BO--
