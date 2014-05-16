@@ -1,83 +1,81 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 07/19] OMAPDSS: hdmi5_core: Fix compilation with OMAP5_DSS_HDMI_AUDIO
-Date: Fri, 16 May 2014 13:31:01 +0300
-Message-ID: <5375E8E5.5020007@ti.com>
-References: <cover.1399884780.git.jsarha@ti.com> <6e02441be6a699e4376e547ae99515d14079850d.1399884780.git.jsarha@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 0/3] ARM: OMAP5+: Support Duty Cycle Correction(DCC)
+Date: Fri, 16 May 2014 05:45:57 -0500
+Message-ID: <1400237160-25125-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="W2A8t0RkUIJJd9L4o9hKCMVLNFd5Rn1BO"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49972 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756838AbaEPKbM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 May 2014 06:31:12 -0400
-In-Reply-To: <6e02441be6a699e4376e547ae99515d14079850d.1399884780.git.jsarha@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47126 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756919AbaEPKq1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 06:46:27 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com
-
---W2A8t0RkUIJJd9L4o9hKCMVLNFd5Rn1BO
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>, Tero Kristo <t-kristo@ti.com>, Paul <paul@pwsan.com>
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
 Hi,
 
-On 12/05/14 12:12, Jyri Sarha wrote:
-> Use correct variable name for base address.
->=20
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  drivers/video/fbdev/omap2/dss/hdmi5_core.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/video/fbdev/omap2/dss/hdmi5_core.c b/drivers/video=
-/fbdev/omap2/dss/hdmi5_core.c
-> index 270ebdd..af88e3c 100644
-> --- a/drivers/video/fbdev/omap2/dss/hdmi5_core.c
-> +++ b/drivers/video/fbdev/omap2/dss/hdmi5_core.c
-> @@ -786,7 +786,7 @@ static void hdmi5_core_audio_config(struct hdmi_cor=
-e_data *core,
->  	REG_FLD_MOD(base, HDMI_CORE_AUD_GP_POL, 1, 0, 0);
-> =20
->  	/* unmute audio */
-> -	REG_FLD_MOD(core_sys_base, HDMI_CORE_FC_AUDSCONF, 0, 7, 4);
-> +	REG_FLD_MOD(base, HDMI_CORE_FC_AUDSCONF, 0, 7, 4);
->  }
-> =20
->  static void hdmi5_core_audio_infoframe_cfg(struct hdmi_core_data *core=
-,
+This patch series has been carried over in vendor kernel for quiet
+few years now.
 
-This fix is independent of the rest of the series, so I'll already pick
-this one to my 3.16 omapdss branch.
+Unfortunately, it was very recently re-discovered and upstream kernel
+is noticed to be broken for OMAP5 1.5GHz - at least we are operating
+DPLL at frequency higher than what it was intended to be when CPUFreq
+is enabled. Thankfully, with nominal voltage(we dont use AVS yet in
+upstream for the mentioned platforms) and margins in trimming, we
+have so far not crashed - but I strongly suspect this might be some
+boundary case survival.
 
- Tomi
+Verified on the following impacted platforms using 3.15-rc4 based
+vendor kernel.
 
+Before:
+OMAP5432: http://slexy.org/view/s20cs0qQFg
+DRA72x: http://slexy.org/view/s2TXtSa6mH (refused to lock)
+DRA75x: http://slexy.org/view/s20AW8MU5c
+After:
+OMAP5432: http://slexy.org/view/s21iAfWxpu
+DRA72x: http://slexy.org/view/s2hwsvGLmC (locks properly)
+DRA75x: http://slexy.org/view/s21ehw8WQn
 
+Hopefully, we can get these into some kernel revision in some form.
 
+NOTE: Support for 4470(which is the only other platform requiring
+DCC) is not present in upstream kernel and there are no plans to
+support that SoC, even if it is added at a later point, support can be
+extended as needed.
 
---W2A8t0RkUIJJd9L4o9hKCMVLNFd5Rn1BO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Series based on v3.15-rc5 tag.
+Also available on my tree:
+	https://github.com/nmenon/linux-2.6-playground/
+	branch:  push/clock/dcc 
+	
+	weblink: https://github.com/nmenon/linux-2.6-playground/commits/push/clock/dcc
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Verification:
+3.15-rc4 based kernel - DRA75x-evm, 72x-evm, OMAP5uevm
+3.15-rc5 - OMAP5uEVM(only one supporting 1.5GHz atm)
 
-iQIcBAEBAgAGBQJTdejlAAoJEPo9qoy8lh71QSoP/jSYhAEh5ad2o5B8+Y74bcc8
-cOLG5naHlZG3V9TPXg2wxJOgVYOWR5RK9LZb4xMufjo1OKItJpke6lI0lqtuZBG7
-JgcRkQSqT1OkrB5NY4amcYzO/yCJuATHer1as5srxB03VmC0fuSqJoDIIUCemzTL
-35csLVxi5yWBeDEe2VeEoqfpprU9VgNUDGiJKmEpiLuGv6ypwRNhMNrARxX+cf4q
-suePVcs288Cwfs7jvP8qgNYO3Y3PKECxviDDEhZYxsnpxAgd2If+EA2VdT2BT/vn
-uy+tcxyz3YFYtkmnn+r54WL2SuDTwRd2TYOpL2C5ct585n6YoGAAaciuTSzwoItn
-X4aeNvVN+YVs9YhfBxv+dLE1EwgFUoIKDlxJoie190nWhDXaHzQfNcDcXJweTZJM
-Nft/fAowx5K+7fpmawgJEzhKv2t0gImQXCqkrXeW6o/9G797pk81/foeZNFGpJIM
-7fzKQJ6MLigtOhdiAwoD7ih8it+0a2l+u9ykYz1aeLnc55O4LMiV4tBeou7DGvO1
-ekD6a3krgC7BCgmubmwALwnfyxGnhb2UvDw6EU71ZpfJ21drUjmSOrR69B5gFcOt
-edD70NMXSGBYSrOJFcxZYPVPhCrgA4op2LvK2nsi+VUtObuYKDZdZ+NqtHkgehcD
-ANswUsgdVsG/5pZ0NtGM
-=Lc2L
------END PGP SIGNATURE-----
+Andrii Tseglytskyi (1):
+  ARM: OMAP5+: dpll: support Duty Cycle Correction(DCC)
 
---W2A8t0RkUIJJd9L4o9hKCMVLNFd5Rn1BO--
+Nishanth Menon (2):
+  clk: dpll: support OMAP5 MPU DPLL that need special handling for
+    higher frequencies
+  ARM: dts: OMAP5/DRA7: use omap5-mpu-dpll-clock capable of dealing
+    with higher frequencies
+
+ .../devicetree/bindings/clock/ti/dpll.txt          |    1 +
+ arch/arm/boot/dts/dra7xx-clocks.dtsi               |    2 +-
+ arch/arm/boot/dts/omap54xx-clocks.dtsi             |    2 +-
+ arch/arm/mach-omap2/dpll3xxx.c                     |    9 +++++++++
+ drivers/clk/ti/dpll.c                              |   21 ++++++++++++++++++++
+ include/linux/clk/ti.h                             |    4 ++++
+ 6 files changed, 37 insertions(+), 2 deletions(-)
+
+Regards,
+Nishanth Menon
+-- 
+1.7.9.5
+
