@@ -1,54 +1,84 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 3/3] ARM: dts: OMAP5/DRA7: use omap5-mpu-dpll-clock capable of dealing with higher frequencies
-Date: Fri, 16 May 2014 05:46:00 -0500
-Message-ID: <1400237160-25125-4-git-send-email-nm@ti.com>
-References: <1400237160-25125-1-git-send-email-nm@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 05/19] OMAPDSS: Kconfig: Add depencies and help section
+ to OMAP4_DSS_HDMI_AUDIO
+Date: Fri, 16 May 2014 13:52:55 +0300
+Message-ID: <5375EE07.4090802@ti.com>
+References: <cover.1399884780.git.jsarha@ti.com> <198496d6220a13b0e8910361d969b8f978ee1398.1399884780.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1400237160-25125-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>, Tero Kristo <t-kristo@ti.com>, Paul <paul@pwsan.com>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="v37FiRuuIllofris9W3FC9QsoifXNHGRA"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:50673 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932327AbaEPKxG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 May 2014 06:53:06 -0400
+In-Reply-To: <198496d6220a13b0e8910361d969b8f978ee1398.1399884780.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com
 
-OMAP5432, DRA75x and DRA72x have MPU DPLLs that need Duty Cycle
-Correction(DCC) to operate safely at frequencies >= 1.4GHz.
+--v37FiRuuIllofris9W3FC9QsoifXNHGRA
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Switch to "ti,omap5-mpu-dpll-clock" compatible property which provides
-this support.
+Hi,
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/boot/dts/dra7xx-clocks.dtsi   |    2 +-
- arch/arm/boot/dts/omap54xx-clocks.dtsi |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+On 12/05/14 12:12, Jyri Sarha wrote:
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> ---
+>  drivers/video/fbdev/omap2/dss/Kconfig |   10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/video/fbdev/omap2/dss/Kconfig b/drivers/video/fbde=
+v/omap2/dss/Kconfig
+> index 8921a7a..ecc2f50 100644
+> --- a/drivers/video/fbdev/omap2/dss/Kconfig
+> +++ b/drivers/video/fbdev/omap2/dss/Kconfig
+> @@ -70,7 +70,15 @@ config OMAP4_DSS_HDMI
+>  	  HDMI support for OMAP4 based SoCs.
+> =20
+>  config OMAP4_DSS_HDMI_AUDIO
+> -	bool
+> +	bool "HDMI audio support for OMAP4"
+> +	depends on OMAP4_DSS_HDMI
+> +	depends on SND_OMAP_SOC=3Dy || OMAP2_DSS =3D SND_OMAP_SOC
+> +	default y
+> +	help
+> +	  HDMI audio support for OMAP4 based SoCs. Adds integrated
+> +	  ASoC Digital Audio Interface component driver into OMAPDSS
+> +	  module. Select SND_SOC_HDMI_CODEC and SND_SIMPLE_CARD with
+> +	  devicetree description for full HDMI audio support.
 
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index cfb8fc7..aac5522 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -277,7 +277,7 @@
- 
- 	dpll_mpu_ck: dpll_mpu_ck {
- 		#clock-cells = <0>;
--		compatible = "ti,omap4-dpll-clock";
-+		compatible = "ti,omap5-mpu-dpll-clock";
- 		clocks = <&sys_clkin1>, <&mpu_dpll_hs_clk_div>;
- 		reg = <0x0160>, <0x0164>, <0x016c>, <0x0168>;
- 	};
-diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi b/arch/arm/boot/dts/omap54xx-clocks.dtsi
-index d487fda..465505c 100644
---- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
-@@ -362,7 +362,7 @@
- 
- 	dpll_mpu_ck: dpll_mpu_ck {
- 		#clock-cells = <0>;
--		compatible = "ti,omap4-dpll-clock";
-+		compatible = "ti,omap5-mpu-dpll-clock";
- 		clocks = <&sys_clkin>, <&mpu_dpll_hs_clk_div>;
- 		reg = <0x0160>, <0x0164>, <0x016c>, <0x0168>;
- 	};
--- 
-1.7.9.5
+What does "for full HDMI audio support" mean? What's the partial support?=
+ =3D)
+
+ Tomi
+
+
+
+--v37FiRuuIllofris9W3FC9QsoifXNHGRA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTde4HAAoJEPo9qoy8lh71M3kP/3RwAPy6cradgWXXBhgSdDmD
+a6t6dDuqPp0ANfQuZkdbP/j1/k0B2g3wfCdepkQkYoU6lOre8bD1uABLrHn9LM8E
+N0S981tIGFssuuJaAUnivWvcvpfqGuAOB6+enUT2xDHVNqyrn1M64WjQXHZPczgG
+8Qj2arEAcIruLjI7AYkAMrJjG+tEmfvVtO2sB9fS4AFMu1ba4XAXr3+Bo5/SvVMj
+4wWo6DI3DVjLQwBozPxEXi8+bi7L2xScHIPBX4byT/6pjWvowUOlEzdMLpAdAD4D
+v+oZwpoPHbHJ2Fo+HLtQIu72shGphn/CMKxxv0q7W1+zNHSgK8zxAaLTAg6gcr3M
+vmT4dntQhNlrYfu/wOAfHW7OsAvBSyFAJ6OywgwXO2kb7bRpffIr4yPNvSrA7nHW
+BxTR3i35iokfZmbpH5qh3nZ5Q0Mgy4fUVH4nDmGbmvV7Bpx1mTpjM1f7i8YwOD28
+W8Gnq9wHivx8F74HSlLbH4bUhDlWn8Hvt5f9HarnO7HGVwCJNoUSDSAcMAaBno8p
+K5sM6IDLqcgRvcFrFAAI4ppL3/XNYD2BQd5h6IkghDuyfLw8retYym0/bTmXdHI5
+24S7CRkpSAPhMdS5mO3iAno7/raw2UQGoO9u+BSSmGmPBFadyGKdlJzaE7BEeYH/
+2iwEMn4VgOqZIKZt6C4f
+=q7Qx
+-----END PGP SIGNATURE-----
+
+--v37FiRuuIllofris9W3FC9QsoifXNHGRA--
