@@ -1,105 +1,38 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 03/13] ARM: edma: Do not change TC -> Queue mapping,
- leave it to default.
-Date: Fri, 16 May 2014 15:17:10 +0300
-Message-ID: <1400242640-9902-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 11/13] ARM: dts: am4372: Remove obsolete properties from edma node
+Date: Fri, 16 May 2014 15:17:18 +0300
+Message-ID: <1400242640-9902-12-git-send-email-peter.ujfalusi@ti.com>
 References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: nsekhar@ti.com, joelf@ti.com, arnd@arndb.de
-Cc: devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, vinod.koul@intel.com, linux-kernel@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-There is no need to change the default TC -> Queue mapping. By default the
-mapping is: TC0 -> Q0, TC1 -> Q1, etc.
-Changing this has no benefits at all and all the board files are just setting
-the same mapping back to the HW.
+dma-channels, ti,edma-regions and ti,edma-slots no longer needed in DT since
+the the same information is available in the IP's CCCFG register.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/common/edma.c | 28 +---------------------------
- 1 file changed, 1 insertion(+), 27 deletions(-)
+ arch/arm/boot/dts/am4372.dtsi | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index d42c84a3432a..0bc5ed6fc249 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -290,12 +290,6 @@ static void map_dmach_queue(unsigned ctlr, unsigned ch_no,
- 			~(0x7 << bit), queue_no << bit);
- }
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 03a225505126..b9f83b705f4b 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -108,9 +108,6 @@
+ 					<GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
+ 					<GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
+ 			#dma-cells = <1>;
+-			dma-channels = <64>;
+-			ti,edma-regions = <4>;
+-			ti,edma-slots = <256>;
+ 		};
  
--static void __init map_queue_tc(unsigned ctlr, int queue_no, int tc_no)
--{
--	int bit = queue_no * 4;
--	edma_modify(ctlr, EDMA_QUETCMAP, ~(0x7 << bit), ((tc_no & 0x7) << bit));
--}
--
- static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
- 		int priority)
- {
-@@ -1470,7 +1464,7 @@ static int edma_of_parse_dt(struct device *dev,
- 	struct property *prop;
- 	size_t sz;
- 	struct edma_rsv_info *rsv_info;
--	s8 (*queue_tc_map)[2], (*queue_priority_map)[2];
-+	s8 (*queue_priority_map)[2];
- 
- 	ret = of_property_read_u32(node, "dma-channels", &value);
- 	if (ret < 0)
-@@ -1495,19 +1489,6 @@ static int edma_of_parse_dt(struct device *dev,
- 		return -ENOMEM;
- 	pdata->rsv = rsv_info;
- 
--	queue_tc_map = devm_kzalloc(dev, 8*sizeof(s8), GFP_KERNEL);
--	if (!queue_tc_map)
--		return -ENOMEM;
--
--	for (i = 0; i < 3; i++) {
--		queue_tc_map[i][0] = i;
--		queue_tc_map[i][1] = i;
--	}
--	queue_tc_map[i][0] = -1;
--	queue_tc_map[i][1] = -1;
--
--	pdata->queue_tc_mapping = queue_tc_map;
--
- 	queue_priority_map = devm_kzalloc(dev, 8*sizeof(s8), GFP_KERNEL);
- 	if (!queue_priority_map)
- 		return -ENOMEM;
-@@ -1568,7 +1549,6 @@ static int edma_probe(struct platform_device *pdev)
- 	struct edma_soc_info	**info = pdev->dev.platform_data;
- 	struct edma_soc_info    *ninfo[EDMA_MAX_CC] = {NULL};
- 	s8		(*queue_priority_mapping)[2];
--	s8		(*queue_tc_mapping)[2];
- 	int			i, j, off, ln, found = 0;
- 	int			status = -1;
- 	const s16		(*rsv_chans)[2];
-@@ -1735,14 +1715,8 @@ static int edma_probe(struct platform_device *pdev)
- 		for (i = 0; i < edma_cc[j]->num_channels; i++)
- 			map_dmach_queue(j, i, info[j]->default_queue);
- 
--		queue_tc_mapping = info[j]->queue_tc_mapping;
- 		queue_priority_mapping = info[j]->queue_priority_mapping;
- 
--		/* Event queue to TC mapping */
--		for (i = 0; queue_tc_mapping[i][0] != -1; i++)
--			map_queue_tc(j, queue_tc_mapping[i][0],
--					queue_tc_mapping[i][1]);
--
- 		/* Event queue priority mapping */
- 		for (i = 0; queue_priority_mapping[i][0] != -1; i++)
- 			assign_priority_to_queue(j,
+ 		uart0: serial@44e09000 {
 -- 
 1.9.3
