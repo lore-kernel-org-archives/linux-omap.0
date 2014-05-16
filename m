@@ -1,70 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 2/4] ARM: dts: am437x-gp-evm: add support for parallel
- NAND flash
-Date: Fri, 16 May 2014 09:20:50 -0700
-Message-ID: <20140516162049.GF22031@atomide.com>
-References: <1400238230-26357-1-git-send-email-pekon@ti.com>
- <1400238230-26357-3-git-send-email-pekon@ti.com>
- <537602FE.4020108@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH v2 2/5] ARM: edma: Get IP information from HW when booting
+ with DT
+Date: Fri, 16 May 2014 12:31:27 -0500
+Message-ID: <53764B6F.9030106@ti.com>
+References: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com> <1399977032-26469-3-git-send-email-peter.ujfalusi@ti.com> <53748070.4080706@ti.com> <5374B34D.2060904@ti.com> <5374B7B8.4060604@ti.com>
+Reply-To: <joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35313 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756073AbaEPQUz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 12:20:55 -0400
-Content-Disposition: inline
-In-Reply-To: <537602FE.4020108@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <5374B7B8.4060604@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, vinod.koul@intel.com, linux-kernel@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Pekon Gupta <pekon@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-* Roger Quadros <rogerq@ti.com> [140516 05:23]:
-> On 05/16/2014 02:03 PM, Pekon Gupta wrote:
-> > +&gpmc {
-> > +	status = "okay";
-> > +	pinctrl-names = "default";
-> > +	pinctrl-0 = <&nand_flash_x8>;
-> > +	ranges = <0 0 0 0x01000000>;	/* minimum GPMC partition = 16MB */
-> > +	nand@0,0 {
-> > +		reg = <0 0 0x37c>;	/* device IO registers */
+On 05/15/2014 07:48 AM, Sekhar Nori wrote:
+> On Thursday 15 May 2014 06:00 PM, Peter Ujfalusi wrote:
 > 
-> This register space is used by the parent GPMC node as well as the NAND controller. So doing a request_and_ioremap() on this space will fail as it is already taken by the GPMC driver. 
+>> The second controller is not handled because in DT boot we only handle 1 cc as
+>> far as I know. I don't know why, but this is how the DT support has been
+>> written and used.
 > 
-> Further, the GPMC register space doesn't map to the GPMC memory map created by this Chip select but it is mapped to L3_IO space. i.e. (physical address 0x6e00 0000)
-> 
-> We could have split the GPMC register space into GPMC part and NAND part but to add to the complexity, the register spaces for GPMC vs NAND are interleaved so it can't be easily split up. The way the NAND driver is currently written is that it expects the register addresses to come via platform data, primarily to get around this address interleaving issue. 
-> 
-> Apart from the GPMC register space, the NAND controller uses 4 bytes of GPMC memory map for I/O, and that is something that could be reflected here.
-> 
-> e.g.
-> 		reg = <0 0 4>;		/* NAND I/O space */
+> Its just because none of the platforms under heavy development use two
+> controllers. Joel promised to work on it at some point ;)
 
-Guys, the reg size here is size of the IO region for the
-NAND driver, it should not have anything to do with the GPMC
-registers for the GPMC functions that the NAND driver may call.
+Yeah, often things like that go down in priority when there aren't
+users, and when other things on fire need to be tended to :-D
 
-So it sounds like 0x37c is wrong, and 4 is the right value if
-the NAND chip has only one IO register.
- 
-> But still, the start address can't be 0 and has to be assigned when this CS region is mapped. It is still unclear to me how that can be done.
+I think the next on-fire thing as far as EDMA goes would be to move out
+into drivers/edma. I like Peter's series in that it probably is a step
+forward there.
 
-If the offset for the NAND driver needs to be different from 0,
-it can be in the offset. For example, the smsc,lan91c94 driver
-wants the IO address space to be at offset 0x300 to avoid some
-extra warnings during the boot. So for that, the reg entry is:
+thanks,
 
-reg = <1 0x300 0xf>;
+-Joel
 
-Where we have:
-
-1 = chip select
-0x300 = offset of smsc device register IO space from the start of
-        16MB minimum GPMC partition
-0xf = size of smsc device register IO space that the Ethernet
-      driver ioremaps
-
-Regards,
-
-Tony
