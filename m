@@ -1,184 +1,123 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 2/4] ARM: dts: am437x-gp-evm: add support for parallel
- NAND flash
-Date: Fri, 16 May 2014 15:22:22 +0300
-Message-ID: <537602FE.4020108@ti.com>
-References: <1400238230-26357-1-git-send-email-pekon@ti.com> <1400238230-26357-3-git-send-email-pekon@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: dwc3: gadget: check link trb after free_slot is
+ increased
+Date: Fri, 16 May 2014 07:41:06 -0500
+Message-ID: <20140516124106.GA20386@saruman.home>
+References: <20140515215757.GD16153@intel.com>
+ <20140515153757.GB7360@saruman.home>
+ <20140516155013.GE16153@intel.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57462 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932571AbaEPMW2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 May 2014 08:22:28 -0400
-In-Reply-To: <1400238230-26357-3-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="uAKRQypu60I7Lcqm"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140516155013.GE16153@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Cc: Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, david.a.cohen@linux.intel.com, Yuan Hang <hang.yuan@intel.com>, Li Jiebing <jiebing.li@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Hi Pekon,
+--uAKRQypu60I7Lcqm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 05/16/2014 02:03 PM, Pekon Gupta wrote:
-> Adds pinmux and DT node for Micron (MT29F4G08AB) x8 NAND device present on
-> am437x-gp-evm board.
-> (1) As NAND Flash data lines are muxed with eMMC, Thus at a given time either
->     eMMC or NAND can be enabled. Selection between eMMC and NAND is controlled:
->     (a) By dynamically driving following GPIO pin from software
->         SPI2_CS0(GPIO) == 0 NAND is selected (default)
->         SPI2_CS0(GPIO) == 1 eMMC is selected
->     (b) By statically using Jumper (J89) on the board
-> 
-> (2) As NAND device connnected to this board has page-size=4K and oob-size=224,
->     So ROM code expects boot-loaders to be flashed in BCH16 ECC scheme for
->     NAND boot.
-> 
-> Signed-off-by: Pekon Gupta <pekon@ti.com>
-> Reviewed-by: Javier Martinez Canillas <javier@dowhile0.org>
-> ---
->  arch/arm/boot/dts/am437x-gp-evm.dts | 108 ++++++++++++++++++++++++++++++++++++
->  1 file changed, 108 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-> index 30ace1b..97b71e6 100644
-> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
-> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-> @@ -150,6 +150,27 @@
->  			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
->  		>;
->  	};
-> +
-> +	nand_flash_x8: nand_flash_x8 {
-> +		pinctrl-single,pins = <
-> +			0x26c(PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* spi2_cs0.gpio/eMMCorNANDsel */
-> +			0x0  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
-> +			0x4  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
-> +			0x8  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
-> +			0xc  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
-> +			0x10 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
-> +			0x14 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
-> +			0x18 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
-> +			0x1c (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
-> +			0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
-> +			0x74 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_wpn.gpmc_wpn */
-> +			0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0  */
-> +			0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
-> +			0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
-> +			0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
-> +			0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
-> +		>;
-> +	};
->  };
->  
->  &i2c0 {
-> @@ -246,3 +267,90 @@
->  	phy_id = <&davinci_mdio>, <0>;
->  	phy-mode = "rgmii";
->  };
-> +
-> +&elm {
-> +	status = "okay";
-> +};
-> +
-> +&gpmc {
-> +	status = "okay";
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&nand_flash_x8>;
-> +	ranges = <0 0 0 0x01000000>;	/* minimum GPMC partition = 16MB */
-> +	nand@0,0 {
-> +		reg = <0 0 0x37c>;	/* device IO registers */
+Hi,
 
-This register space is used by the parent GPMC node as well as the NAND controller. So doing a request_and_ioremap() on this space will fail as it is already taken by the GPMC driver. 
+On Fri, May 16, 2014 at 11:50:13PM +0800, Zhuang Jin Can wrote:
+> > On Fri, May 16, 2014 at 05:57:57AM +0800, Zhuang Jin Can wrote:
+> > > In ISOC transfers, when free_slot points to the last TRB (i.e. Link
+> > > TRB), and all queued requests meet Missed Interval Isoc error, busy_s=
+lot
+> > > points to trb0.
+> > > 	busy_slot->trb0
+> > > 		   trb1
+> > > 		   ...
+> > > 	free_slot->trb31(Link TRB)
+> > >=20
+> > > After end transfer and receiving the XferNotReady event, trb_left is
+> > > caculated as 1 which is wrong, and no TRB will be primed to the
+> > > endpoint.
+> > >=20
+> > > The root cause is free_slot is not increased the same way as busy_slo=
+t.
+> > > When busy_slot is increased by one, it checks if points to a link TRB
+> > > after increasement, but free_slot checks it before increasement.
+> > > free_slot should behave the same as busy_slot to make the trb_left
+> > > caculation correct.
+> > >=20
+> > > Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
+> > > Signed-off-by: Jiebing Li <jiebing.li@intel.com>
+> > > ---
+> > >  drivers/usb/dwc3/gadget.c |    8 ++++----
+> > >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > >=20
+> > > diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+> > > index 54da8c8..2ebe82b 100644
+> > > --- a/drivers/usb/dwc3/gadget.c
+> > > +++ b/drivers/usb/dwc3/gadget.c
+> > > @@ -828,10 +828,6 @@ static void dwc3_prepare_one_trb(struct dwc3_ep =
+*dep,
+> > >  			length, last ? " last" : "",
+> > >  			chain ? " chain" : "");
+> > > =20
+> > > -	/* Skip the LINK-TRB on ISOC */
+> > > -	if (((dep->free_slot & DWC3_TRB_MASK) =3D=3D DWC3_TRB_NUM - 1) &&
+> > > -			usb_endpoint_xfer_isoc(dep->endpoint.desc))
+> > > -		dep->free_slot++;
+> > > =20
+> > >  	trb =3D &dep->trb_pool[dep->free_slot & DWC3_TRB_MASK];
+> >=20
+> > I have a feeling this has a negative side effect of letting us use the
+> > link TRB for data transfer... I mean, if we don't increment free_slot
+> > before accessing our trb_pool, we have no way to skip link trb on this
+> > access here.
+> After every free_slot++ Link TRB is checked and increased if appropriate,
+> this guarantees you next time access free_slot, it can't be a Link
+> TRB.
 
-Further, the GPMC register space doesn't map to the GPMC memory map created by this Chip select but it is mapped to L3_IO space. i.e. (physical address 0x6e00 0000)
+right, next access will be fine, but you're forgetting about current
+access.
 
-We could have split the GPMC register space into GPMC part and NAND part but to add to the complexity, the register spaces for GPMC vs NAND are interleaved so it can't be easily split up. The way the NAND driver is currently written is that it expects the register addresses to come via platform data, primarily to get around this address interleaving issue. 
+> > How did you find the bug ? do you have good instructions on how to
+> > reproduce it ? How did you test the patch and for how long ?
+> The bug is reproduced on Android with f_audio_source.c enabled, which
+> has an isoc-in endpoint keeps sending audio data to host in an interval
+> of 1 ms. Normally, you need to run for 12+ hours to hit the issue.
+> So I think you can just run some isoc transfers for a long time to
+> reproduce it. To accelarte the reproducing, you can run some concurrent
+> data transfer as well, so the possibility to meet missed interval error
+> is larger.
+>=20
+> The patch is tested for basic functionality like enumeration, data
+> transfers. For this bug, it was tested for 20+ hours.
 
-Apart from the GPMC register space, the NAND controller uses 4 bytes of GPMC memory map for I/O, and that is something that could be reflected here.
+thanks, g_audio loop should be fine.
 
-e.g.
-		reg = <0 0 4>;		/* NAND I/O space */
+--=20
+balbi
 
-But still, the start address can't be 0 and has to be assigned when this CS region is mapped. It is still unclear to me how that can be done.
+--uAKRQypu60I7Lcqm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-cheers,
--roger
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> +		ti,nand-ecc-opt = "bch8";
-> +		ti,elm-id = <&elm>;
-> +		nand-bus-width = <8>;
-> +		gpmc,device-width = <1>;
-> +		gpmc,sync-clk-ps = <0>;
-> +		gpmc,cs-on-ns = <0>;
-> +		gpmc,cs-rd-off-ns = <40>;
-> +		gpmc,cs-wr-off-ns = <40>;
-> +		gpmc,adv-on-ns = <0>;
-> +		gpmc,adv-rd-off-ns = <25>;
-> +		gpmc,adv-wr-off-ns = <25>;
-> +		gpmc,we-on-ns = <0>;
-> +		gpmc,we-off-ns = <20>;
-> +		gpmc,oe-on-ns = <3>;
-> +		gpmc,oe-off-ns = <30>;
-> +		gpmc,access-ns = <30>;
-> +		gpmc,rd-cycle-ns = <40>;
-> +		gpmc,wr-cycle-ns = <40>;
-> +		gpmc,wait-pin = <0>;
-> +		gpmc,wait-on-read;
-> +		gpmc,wait-on-write;
-> +		gpmc,bus-turnaround-ns = <0>;
-> +		gpmc,cycle2cycle-delay-ns = <0>;
-> +		gpmc,clk-activation-ns = <0>;
-> +		gpmc,wait-monitoring-ns = <0>;
-> +		gpmc,wr-access-ns = <40>;
-> +		gpmc,wr-data-mux-bus-ns = <0>;
-> +		/* MTD partition table */
-> +		/* All SPL-* partitions are sized to minimal length
-> +		 * which can be independently programmable. For
-> +		 * NAND flash this is equal to size of erase-block */
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> +		partition@0 {
-> +			label = "NAND.SPL";
-> +			reg = <0x00000000 0x00040000>;
-> +		};
-> +		partition@1 {
-> +			label = "NAND.SPL.backup1";
-> +			reg = <0x00040000 0x00040000>;
-> +		};
-> +		partition@2 {
-> +			label = "NAND.SPL.backup2";
-> +			reg = <0x00080000 0x00040000>;
-> +		};
-> +		partition@3 {
-> +			label = "NAND.SPL.backup3";
-> +			reg = <0x000c0000 0x00040000>;
-> +		};
-> +		partition@4 {
-> +			label = "NAND.u-boot-spl-os";
-> +			reg = <0x00100000 0x00080000>;
-> +		};
-> +		partition@5 {
-> +			label = "NAND.u-boot";
-> +			reg = <0x00180000 0x00100000>;
-> +		};
-> +		partition@6 {
-> +			label = "NAND.u-boot-env";
-> +			reg = <0x00280000 0x00040000>;
-> +		};
-> +		partition@7 {
-> +			label = "NAND.u-boot-env.backup1";
-> +			reg = <0x002c0000 0x00040000>;
-> +		};
-> +		partition@8 {
-> +			label = "NAND.kernel";
-> +			reg = <0x00300000 0x00700000>;
-> +		};
-> +		partition@9 {
-> +			label = "NAND.file-system";
-> +			reg = <0x00a00000 0x1f600000>;
-> +		};
-> +	};
-> +};
-> 
+iQIcBAEBAgAGBQJTdgdiAAoJEIaOsuA1yqRE/YQP+wUl8UuKG3hDR5YZnfSVuBGJ
+INcVDDaC8WpqfnCy9U7oeOGEnA3yFf7kjmumF3fSE91vFlI9yIQ1b5MPED3SXV62
+OMxsHDE31ua4IMb+KJ8Tm/eRvjIf9UzAFOH1BqS32NsCpsc1GNQnjQvgXePpDdGB
+HEPG0gLLccDOPoBExgjzTIsPHvxiuQFUxjougQEXKEjI0ZdFTuvSoXoidT31Kqc2
+0hJn+gkTekPMhXNvH6gx1cC57gueDtcRwF6aPUYB+sQvMCzC2ZtdCfY/my7G0z/T
+VJev9NRaeABI44f6y3CWiI16GORTNR6hj+iL7NaNmdCwUbrnVB9yp/am4Snp0fFJ
+UQtbpmXKTaUPqg1vgAcFPzo5fE2QoykX5N144hbbZEejTOWNtziqyb1qbCz1Hixi
+sMERQyKwjM9WzL3HAyipT2CJgISE4Uhl75N80X1ZrKgS0A6BQo/vZ2m26lkh9fe/
+NwBtN8Bg4CN8kldkDp5LOYSYuOlRaENHGEO82yFRYNHSUs0BzDIT2Ql2OaLgfoO7
+kxLk81aZ3HcBS9tZjCYs8eYvMjJoC3hVe92U4BrgYoEMa/6ddrDIBZUXKqFvFXSj
+be3fh7e2SlCjLy/oXOxexgk7UM8ZUhsM5p+2PQj7O6KLn51aNQTsERtkiqKU9rCW
+7CQm12XHvOwjN+IPIh9u
+=uBd+
+-----END PGP SIGNATURE-----
 
+--uAKRQypu60I7Lcqm--
