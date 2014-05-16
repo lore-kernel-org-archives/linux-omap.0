@@ -1,60 +1,73 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: some hwmod data patches for v3.16
-Date: Fri, 16 May 2014 11:38:12 +0300
-Message-ID: <5375CE74.6000603@ti.com>
-References: <alpine.DEB.2.02.1405160444200.29738@utopia.booyaka.com>
+Subject: Re: [PATCH 00/11] ARM: OMAP: OMAP5 & AM43x DSS
+Date: Fri, 16 May 2014 11:42:18 +0300
+Message-ID: <5375CF6A.7030602@ti.com>
+References: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com> <5370CBD5.3060107@ti.com> <20140512143604.GB31772@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="DMiOGbnX7iUWaQlgmBl5ECIFdAQefGSnb"
+	boundary="pDLFdvtOwiDOiD3oE2o6orXcXGC2inBQe"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42553 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756529AbaEPIik (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 04:38:40 -0400
-In-Reply-To: <alpine.DEB.2.02.1405160444200.29738@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50106 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753295AbaEPImp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 May 2014 04:42:45 -0400
+In-Reply-To: <20140512143604.GB31772@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Archit Taneja <archit@ti.com>, Tero Kristo <t-kristo@ti.com>
 
---DMiOGbnX7iUWaQlgmBl5ECIFdAQefGSnb
+--pDLFdvtOwiDOiD3oE2o6orXcXGC2inBQe
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hi Paul,
+On 12/05/14 17:36, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140512 06:26]:
+>> Hi Tony,
+>>
+>> On 09/05/14 14:56, Tomi Valkeinen wrote:
+>>> Hi,
+>>>
+>>> Here are arch/arm/ patches to add display support for OMAP5 and AM43x=
+=2E
+>>>
+>>> I have these in my tree, in a branch I will send to Tony for merging.=
+ Most of
+>>> these patches have already been around the lists, but I wanted to sen=
+d them one
+>>> more time to verify that all looks right and everybody is fine with t=
+hem.
+>>
+>> I have pushed these to:
+>>
+>> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git 3.16/oma=
+p
+>>
+>> If you're fine with these, I think we can consider that branch stable.=
 
-On 16/05/14 07:45, Paul Walmsley wrote:
-> Hi Tony
+>> There are probably still a few display related .dts changed for the
+>> board coming up, but I'll add those on top of the current commits.
 >=20
-> The following changes since commit d1db0eea852497762cab43b905b879dfcd3b=
-8987:
->=20
->   Linux 3.15-rc3 (2014-04-27 19:29:27 -0700)
->=20
-> are available in the git repository at:
->=20
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git fo=
-r-v3.16/hwmod-a
->=20
-> for you to fetch changes up to 433480707967187a74ced38bd38edba749998013=
-:
->=20
->   ARM: OMAP2+: hwmod: OMAP5 DSS hwmod data (2014-05-14 12:26:10 -0600)
->=20
-> ----------------------------------------------------------------
-> First (and possibly last) set of hwmod data changes for v3.16.  This
-> set should clean up some obsolete OMAP4 hwmod data, and add OMAP5 DSS
-> support.
+> Please coordinate things with Paul and Tero so you at least have proper=
 
-What about the AM43xx hwmod data I sent in the same series:
+> acks for the hwmod and and clock patches. In general we really want to
+> queue hwmod and clock changes separately as those can easily mess up th=
+ings
+> in a bad way like we've already seen with overlapping hwmod entries in
+> the .dts files.
 
-http://article.gmane.org/gmane.linux.ports.arm.omap/114192
+I don't think the clock dts changes can be separated from the other dts
+changes, as the new 'dss_l3_iclk' clock node is required by the
+omap5.dtsi when adding the DSS support.
+
+The HWMOD patches can go separately.
 
  Tomi
 
 
---DMiOGbnX7iUWaQlgmBl5ECIFdAQefGSnb
+
+--pDLFdvtOwiDOiD3oE2o6orXcXGC2inBQe
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -62,19 +75,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTdc50AAoJEPo9qoy8lh71+zkP/R7Visw5kCv6CAJul/syyXnH
-D2U1PnwBEe+8j1q2mUBU8eldCY0+Fkj2/uih0mMBPseFfWHg0c2XYQ8pbsvGZj4C
-9TtEPnwCub/r5yGggZJ2UgYo8kTvDypF+VBCxqGYsMmsF0NPtOZbtom+ctPlUDBd
-Xa6GRIkWgDlTa+66kh7qxUf6BkS+wksI9LCvQDwSP3BM0q3fhUXxM6bTiwTPR37v
-b2+H9DtV9WKIHNgHXFM1W4b5q62ftrbiVEyhhctzUD4sBaOctbHR2wJRUgV6aO5o
-lNsmulBrBvjWoZV+FbywnRTqD+YABBqOqQ/vRO8rwvnh8F472C5T0Cs0NrELRK+K
-kMeam5ffJed0jXwcwML6oqL+sCHdMQ8VZGVQtP49ztd0W8jiky57DKlhDI5VjNGQ
-JhNHIZ/tMWRECgi4oJVMMOt/iV7m27keeCNxWu4uMMXmQDxucVEtvfFfZofaZ3hH
-pwTeX4wuFzE1iUqZI4eyolEux5vYMHn/Glwhfc1tO9rHVnW8UQrHeGzh2zSKdLEk
-dEZHf8lGs3Z4y0wOoll/+lUUyIaP0b1lTWfrLcKpVrWclQBOlGmxqyjocP/dKal6
-EtdkDz7G8ihgc2ylVB8G19ZzbmAbCBHJ+9z8wmh955Ce0CdKfqC1KlL5l392xuX9
-pKSLiHh3XEv7ib6wSZmx
-=Gb2a
+iQIcBAEBAgAGBQJTdc9qAAoJEPo9qoy8lh71l3MP/1zTezZ0NhCAxsp/ahK9nCOu
+0cqr+6hxXwpKwkKYawg+PzpPOore7TsWaI3yR3PSeSj0HdShSJM8lTR7OSLNrnZY
+IItwHpTUA0lvA3R+RGQB6vFJZG+ykopyIRYE8HIj7XSMM0AbhPnfwLyV13jzBh+A
+TOq60ZdCtTohpnCy9DtX34s2B1gkWpULJvLdfS2nR5jqmLwef3zRG+9yDJ1XxKOt
+pP0Z1K5JjrN9FAcou8KvQ5++DRM/XQnLf840KwiruglzWEpgpgfLMl5WqAuSCwLL
+dmrOhnEEecQx4LXMS89hFDntYDvZ1qJFgkqRX7kDt34IooIjuoKHEHDW6BMbiEZc
+YtxfJVwKmQV1D5vJoslO1tamQq+nrTMsvshtjzb4wpli98bxQIpUuoh1AYFD9/qJ
+9xPP3reE64N5ZXOm12fG1WZj+hl+EBLrWOxoVVcJy9AtI8gmkQx/RGIjgUvxDjzK
+uZvt+gmlD/VKEkBqaeJ68vlgr9EhbtV3t0SgA30It6G+NMcY0FxKXdwQs7g8uEIG
+/xcc0jfZkCh9r9x5GknujzpeP39dsLQPI1YlgxoadszMccgu6waVQ9/40iB2CbT4
+igd9wv4pA7LPzxy0L/WLrAqzH+oz3uiqSRyn1AhV5lNwcnyWYfgabJ+Ed4beybi4
+9VWgSzQThfJxHh5zy80z
+=XWm+
 -----END PGP SIGNATURE-----
 
---DMiOGbnX7iUWaQlgmBl5ECIFdAQefGSnb--
+--pDLFdvtOwiDOiD3oE2o6orXcXGC2inBQe--
