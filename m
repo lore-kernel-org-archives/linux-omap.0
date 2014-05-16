@@ -1,41 +1,38 @@
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH v6 1/4] ARM: dts: am335x-bone: add support for beaglebone
- NAND cape
-Date: Fri, 16 May 2014 08:57:36 -0300
-Message-ID: <20140516115736.GA684@arch.cereza>
-References: <1400238230-26357-1-git-send-email-pekon@ti.com>
- <1400238230-26357-2-git-send-email-pekon@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 01/13] ARM: edma: No need to clean the pdata in edma_of_parse_dt()
+Date: Fri, 16 May 2014 15:17:08 +0300
+Message-ID: <1400242640-9902-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yk0-f180.google.com ([209.85.160.180]:35337 "EHLO
-	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932116AbaEPL6M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 07:58:12 -0400
-Received: by mail-yk0-f180.google.com with SMTP id q9so1998376ykb.39
-        for <linux-omap@vger.kernel.org>; Fri, 16 May 2014 04:58:11 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1400238230-26357-2-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: nsekhar@ti.com, joelf@ti.com, arnd@arndb.de
+Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, Roger Quadros <rogerq@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Hello Pekon,
+The pdata has been just allocated with devm_kzalloc() in
+edma_setup_info_from_dt() and passed to this function.
 
-On 16 May 04:33 PM, Pekon Gupta wrote:
-[..]
-> +		gpmc,wait-pin = <0>;
-> +		gpmc,wait-on-read;
-> +		gpmc,wait-on-write;
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/common/edma.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-Thanks for adding the wait-pin property. I think the other boards also
-needs this change. Javier, do you have a IGEP Aquila with NAND to try?
-
-Pekon, have you noticed that there's no devicetree property to enable
-ready/busy? In other words, the NAND driver dev_ready field will never
-be true when probed from DT.
-
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 8452cf246330..01707aae0a2b 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -1472,8 +1472,6 @@ static int edma_of_parse_dt(struct device *dev,
+ 	struct edma_rsv_info *rsv_info;
+ 	s8 (*queue_tc_map)[2], (*queue_priority_map)[2];
+ 
+-	memset(pdata, 0, sizeof(struct edma_soc_info));
+-
+ 	ret = of_property_read_u32(node, "dma-channels", &value);
+ 	if (ret < 0)
+ 		return ret;
 -- 
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
+1.9.3
+
