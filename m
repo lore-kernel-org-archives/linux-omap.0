@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 13/13] ARM/platform_data: edma: Remove redundant/unused parameters from edma_soc_info
-Date: Fri, 16 May 2014 15:17:20 +0300
-Message-ID: <1400242640-9902-14-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 10/13] ARM: dts: am33xx: Remove obsolete properties from edma node
+Date: Fri, 16 May 2014 15:17:17 +0300
+Message-ID: <1400242640-9902-11-git-send-email-peter.ujfalusi@ti.com>
 References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,35 +12,27 @@ To: nsekhar@ti.com, joelf@ti.com, arnd@arndb.de
 Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-The following parameters are no longer needed by the edma driver since the
-information can be obtained from the IP's CCCFG register:
-n_channel, n_region, n_slot and n_tc.
-Remove the n_cc as well since in this context it has no meaning. We have
-separate edma_soc_info struct/eDMA3_CC instance so this member does not
-make any sense (and the driver no longer uses it).
+dma-channels, ti,edma-regions and ti,edma-slots no longer needed in DT since
+the the same information is available in the IP's CCCFG register.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- include/linux/platform_data/edma.h | 7 -------
- 1 file changed, 7 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/include/linux/platform_data/edma.h b/include/linux/platform_data/edma.h
-index 633e196ebdf2..eb8d5627d080 100644
---- a/include/linux/platform_data/edma.h
-+++ b/include/linux/platform_data/edma.h
-@@ -158,13 +158,6 @@ struct edma_rsv_info {
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index f1eea4af40ed..37d4cad4dd38 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -147,9 +147,6 @@
+ 				<0x44e10f90 0x40>;
+ 			interrupts = <12 13 14>;
+ 			#dma-cells = <1>;
+-			dma-channels = <64>;
+-			ti,edma-regions = <4>;
+-			ti,edma-slots = <256>;
+ 		};
  
- /* platform_data for EDMA driver */
- struct edma_soc_info {
--
--	/* how many dma resources of each type */
--	unsigned	n_channel;
--	unsigned	n_region;
--	unsigned	n_slot;
--	unsigned	n_tc;
--	unsigned	n_cc;
- 	/*
- 	 * Default queue is expected to be a low-priority queue.
- 	 * This way, long transfers on the default queue started
+ 		gpio0: gpio@44e07000 {
 -- 
 1.9.3
