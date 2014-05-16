@@ -1,99 +1,46 @@
-From: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Subject: Re: [PATCH] usb: dwc3: gadget: check link trb after free_slot is
- increased
-Date: Fri, 16 May 2014 22:47:18 +0800
-Message-ID: <20140516144718.GI16153@intel.com>
-References: <20140515215757.GD16153@intel.com>
- <20140515153757.GB7360@saruman.home>
- <20140516155013.GE16153@intel.com>
- <20140516124106.GA20386@saruman.home>
-Reply-To: jin.can.zhuang@intel.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 10/13] ARM: dts: am33xx: Remove obsolete properties
+ from edma node
+Date: Fri, 16 May 2014 08:02:17 -0700
+Message-ID: <20140516150216.GA22031@atomide.com>
+References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
+ <1400242640-9902-11-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140516124106.GA20386@saruman.home>
+In-Reply-To: <1400242640-9902-11-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, david.a.cohen@linux.intel.com, Yuan Hang <hang.yuan@intel.com>, Li Jiebing <jiebing.li@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: nsekhar@ti.com, joelf@ti.com, arnd@arndb.de, linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-On Fri, May 16, 2014 at 07:41:06AM -0500, Felipe Balbi wrote:
-> On Fri, May 16, 2014 at 11:50:13PM +0800, Zhuang Jin Can wrote:
-> > > On Fri, May 16, 2014 at 05:57:57AM +0800, Zhuang Jin Can wrote:
-> > > > In ISOC transfers, when free_slot points to the last TRB (i.e. Link
-> > > > TRB), and all queued requests meet Missed Interval Isoc error, busy_slot
-> > > > points to trb0.
-> > > > 	busy_slot->trb0
-> > > > 		   trb1
-> > > > 		   ...
-> > > > 	free_slot->trb31(Link TRB)
-> > > > 
-> > > > After end transfer and receiving the XferNotReady event, trb_left is
-> > > > caculated as 1 which is wrong, and no TRB will be primed to the
-> > > > endpoint.
-> > > > 
-> > > > The root cause is free_slot is not increased the same way as busy_slot.
-> > > > When busy_slot is increased by one, it checks if points to a link TRB
-> > > > after increasement, but free_slot checks it before increasement.
-> > > > free_slot should behave the same as busy_slot to make the trb_left
-> > > > caculation correct.
-> > > > 
-> > > > Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
-> > > > Signed-off-by: Jiebing Li <jiebing.li@intel.com>
-> > > > ---
-> > > >  drivers/usb/dwc3/gadget.c |    8 ++++----
-> > > >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-> > > > index 54da8c8..2ebe82b 100644
-> > > > --- a/drivers/usb/dwc3/gadget.c
-> > > > +++ b/drivers/usb/dwc3/gadget.c
-> > > > @@ -828,10 +828,6 @@ static void dwc3_prepare_one_trb(struct dwc3_ep *dep,
-> > > >  			length, last ? " last" : "",
-> > > >  			chain ? " chain" : "");
-> > > >  
-> > > > -	/* Skip the LINK-TRB on ISOC */
-> > > > -	if (((dep->free_slot & DWC3_TRB_MASK) == DWC3_TRB_NUM - 1) &&
-> > > > -			usb_endpoint_xfer_isoc(dep->endpoint.desc))
-> > > > -		dep->free_slot++;
-> > > >  
-> > > >  	trb = &dep->trb_pool[dep->free_slot & DWC3_TRB_MASK];
-> > > 
-> > > I have a feeling this has a negative side effect of letting us use the
-> > > link TRB for data transfer... I mean, if we don't increment free_slot
-> > > before accessing our trb_pool, we have no way to skip link trb on this
-> > > access here.
-> > After every free_slot++ Link TRB is checked and increased if appropriate,
-> > this guarantees you next time access free_slot, it can't be a Link
-> > TRB.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [140516 05:18]:
+> dma-channels, ti,edma-regions and ti,edma-slots no longer needed in DT since
+> the the same information is available in the IP's CCCFG register.
 > 
-> right, next access will be fine, but you're forgetting about current
-> access.
-> 
-The current access is the next access relative to last access.
-So if the first access is fine, succeeding accesses should be fine.
-And the first access happens on when the free_slot points to slot 1
-which is not a link trb. 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-> > > How did you find the bug ? do you have good instructions on how to
-> > > reproduce it ? How did you test the patch and for how long ?
-> > The bug is reproduced on Android with f_audio_source.c enabled, which
-> > has an isoc-in endpoint keeps sending audio data to host in an interval
-> > of 1 ms. Normally, you need to run for 12+ hours to hit the issue.
-> > So I think you can just run some isoc transfers for a long time to
-> > reproduce it. To accelarte the reproducing, you can run some concurrent
-> > data transfer as well, so the possibility to meet missed interval error
-> > is larger.
-> > 
-> > The patch is tested for basic functionality like enumeration, data
-> > transfers. For this bug, it was tested for 20+ hours.
-> 
-> thanks, g_audio loop should be fine.
-> 
-np.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-
-Regards
-Jincan
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi | 3 ---
+>  1 file changed, 3 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index f1eea4af40ed..37d4cad4dd38 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -147,9 +147,6 @@
+>  				<0x44e10f90 0x40>;
+>  			interrupts = <12 13 14>;
+>  			#dma-cells = <1>;
+> -			dma-channels = <64>;
+> -			ti,edma-regions = <4>;
+> -			ti,edma-slots = <256>;
+>  		};
+>  
+>  		gpio0: gpio@44e07000 {
+> -- 
+> 1.9.3
+> 
