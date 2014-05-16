@@ -1,86 +1,107 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
-Date: Fri, 16 May 2014 14:29:42 -0700
-Message-ID: <20140516212942.GK12881@atomide.com>
-References: <1399991966-14582-1-git-send-email-santosh.shilimkar@ti.com>
- <5373C78E.7040301@linaro.org>
- <5373C8E8.6040208@ti.com>
- <5373CBB9.40506@linaro.org>
- <5373DD94.8030208@ti.com>
- <5374F35E.5040900@ti.com>
- <5374FE61.50901@linaro.org>
- <5374FF5B.8050702@ti.com>
- <5375079E.3060305@ti.com>
- <537615EA.3020809@ti.com>
+Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
+ support
+Date: Fri, 16 May 2014 14:39:07 -0700
+Message-ID: <20140516213907.GL12881@atomide.com>
+References: <CABxcv==_LCw1kPYm17g=h8VfSN2V_qsgXjTnsy-JOetawSv4pA@mail.gmail.com>
+ <20140513152518.GA16837@atomide.com>
+ <53730AFB.2090800@ti.com>
+ <20140514160216.GD18463@atomide.com>
+ <537487AE.3060906@ti.com>
+ <20140515182133.GC23659@atomide.com>
+ <5375A8A8.7080306@ti.com>
+ <20140516160717.GD22031@atomide.com>
+ <20140516174158.GA11733@earth.universe>
+ <20140516180154.GG22031@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43942 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:63132 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753701AbaEPV3s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 17:29:48 -0400
+	with ESMTP id S1753822AbaEPVjQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 17:39:16 -0400
 Content-Disposition: inline
-In-Reply-To: <537615EA.3020809@ti.com>
+In-Reply-To: <20140516180154.GG22031@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Alex Shi <alex.shi@linaro.org>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Sebastian Reichel <sre@ring0.de>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [140516 06:43]:
-> Tony,
+* Tony Lindgren <tony@atomide.com> [140516 11:02]:
+> * Sebastian Reichel <sre@ring0.de> [140516 10:42]:
+> > On Fri, May 16, 2014 at 09:07:17AM -0700, Tony Lindgren wrote:
+> > > * Tomi Valkeinen <tomi.valkeinen@ti.com> [140515 22:57]:
+> > > > On 15/05/14 21:21, Tony Lindgren wrote:
+> > > > >> But you're right, having "sharp,ls037v7dw01-omap-dss" in the .dts is an
+> > > > >> alternative for the compatible-string conversion we do now. I guess it's
+> > > > >> a matter of taste, but I rather hide it inside the kernel, in an
+> > > > >> internal omapdss file, than pollute the .dts files with those compatible
+> > > > >> strings.
+> > > > > 
+> > > > > Well it avoid you parsing through all the nodes during booting
+> > > > > and leaves out the function to do remapping. And removes the need
+> > > > > for maintaining a custom display mapping table. I'd say that's a
+> > > > > pretty good list of advantages right there :)
+> > > > 
+> > > > Yep... I don't know. Maybe I'm being too careful about doing wrong
+> > > > things with .dts. I just like it more if any hacks are in kernel code,
+> > > > which I can remove without anyone noticing.
+> > > > 
+> > > > Anyway, we already have board.dts files using the non-omapified
+> > > > compatible strings in the mainline, so if I would now add the omapified
+> > > > compatible strings to .dts files, those old board.dts files would break.
+> > > > 
+> > > > So I guess the choice has already been made.
+> > > 
+> > > I really think you should remove this misuse of device tree code ASAP.
+> > > It's better to fix it up now than carry the hack for next two years
+> > > and keep on adding to it.
+> > 
+> > IMHO appending -omap-dss to a random device is an even bigger hack,
+> > since its adding lots of bloat to the API. Let's assume there is
+> > another OS using DT for ARM, but has no proper API for SPI
+> > controllers and it introduces your hack to SPI devices. That would
+> > mean each SPI device has -omap-spi appended (or -exynos-spi,
+> > -foo-spi, ...). At least I would blame them for creating a huge
+> > unmaintainable mess.
 > 
-> On Thursday 15 May 2014 02:29 PM, Santosh Shilimkar wrote:
-> > On Thursday 15 May 2014 01:54 PM, Santosh Shilimkar wrote:
-> >> On Thursday 15 May 2014 01:50 PM, Daniel Lezcano wrote:
-> >>> On 05/15/2014 07:03 PM, Santosh Shilimkar wrote:
-> > 
-> > [..]
-> > 
-> >>>>> With above mentioned change, it should work. Other alternatives is OMAP4 driver does
-> >>>>> its won registration where it can start the timer. The way it was before the
-> >>>>> consolidation.
-> >>>>>
-> >>>>> Ofcourse if you have better fix, then great.
-> >>>>>
-> >>>> What is your suggestion. We *must* fix the regression asap. I think
-> >>>> $subject patch with an update to bctimer start under CPUIDLE_FLAG_COUPLED
-> >>>> seems a good way forward.
-> >>>>
-> >>>> Do let me know.
-> >>>
-> >>> Did you see Alex Shi's email [cc'ed] ? Reverting this change makes the panda ES to hang.
-> >>>
-> >> The hang is definitely due to the bctimer not started. As I said, I assumed it was and
-> >> then you corrected saying it is under the flag.
-> >>
-> >>> I am not convinced the culprit is this code you are trying to revert.
-> >>>
-> >> fair enough. Thats why I said if you have an alternative fix thats great.
-> >>
-> > For record, below is updated patch with bctimer started which
-> > was missed in earlier version. I haven't tested it though.
-> > 
-> > Alex,
-> > Please give a try with your test-case and see if you still see the hang.
-> > Am just curious about your issue and hence the request..
-> > 
-> Alex tested below patch and he don't see the hang so the patch is
-> addressing the issue.
+> I think you're misunderstanding. I do not want the naming to
+> be Linux specific. The naming should naturally be as hardware
+> specific as possible. In this case something like:
 > 
-> If Daniel works out an alternate fix to avoid reverts, that will be great
-> but if not, we should merge the below patch. I let you take call on it.
- 
-Daniel any news on this?
+> compatible = "sharp,ls037v7dw01-dss", "sharp,ls037v7dw01";
+> 
+> Or we should probably use:
+> 
+> compatible = "sharp,ls037v7dw01-dpi", "sharp,ls037v7dw01";
+> 
+> As dpi here reflects the hardware it's connected to. The dss
+> is probably a Linux name.
+> 
+> Not use what you're after with the SPI example though, but sounds
+> like that's something different.
+> 
+> > I think Tomi's workaround is a much better hack, since it keeps the
+> > API clean. If the code simply prefixes "omapdss," to all
+> > "child"-devices of omapdss it can be left mostly untouched, too.
+> 
+> AFAIK that remapping not needed at all. All that is already
+> available with the compatible flags.
 
-And just to recap, this problem can be reproduced with current
-Linux next with omap2plus_defconfig with CONFIG_CPU_IDLE enabled. The
-system should hang during the boot at some point.
+And alternatively we can also just use the sharp,ls037v7dw01
+in the panel driver(s). We can have the panels bail out in driver
+probe based on of_machine_is_compatible if nothing else is available.
 
-And for the record, the omap3 hang fix is now posted to the lists as
-"[PATCH] ARM: OMAP2+: Fix DMA hang after off-idle". This should not
-have anything to do with the omap4 cpu_idle hang as omap4 does not
-currently lose context during idle.
+Also, currently the remapping code also probably keeps prepending
+more and more omapdss,omapdss,omapdss,... on each kexec reboot? And
+it would be quite silly for each display controller to have to do
+their own remapping for shared panels?
 
-Regards,
+If we still still despite all these reasons decide to go with
+the remapping of the compatible strings, it should really be a
+Linux generic (or drivers/video generic function), not implemented
+for each display controller.
+
+Cheers,
 
 Tony
