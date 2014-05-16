@@ -1,58 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Alex Shi <alex.shi@linaro.org>
 Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
-Date: Thu, 15 May 2014 17:13:06 -0700
-Message-ID: <20140516001306.GA6580@atomide.com>
-References: <1399991966-14582-1-git-send-email-santosh.shilimkar@ti.com>
- <5373C78E.7040301@linaro.org>
- <5373C8E8.6040208@ti.com>
- <5373CBB9.40506@linaro.org>
- <20140514205649.GC27426@atomide.com>
- <20140514233119.GA31594@atomide.com>
+Date: Fri, 16 May 2014 08:33:35 +0800
+Message-ID: <53755CDF.9030803@linaro.org>
+References: <1399991966-14582-1-git-send-email-santosh.shilimkar@ti.com> <5373C78E.7040301@linaro.org> <5373C8E8.6040208@ti.com> <5373CBB9.40506@linaro.org> <5373DD94.8030208@ti.com> <5374F35E.5040900@ti.com> <5374FE61.50901@linaro.org> <5374FF5B.8050702@ti.com> <5375079E.3060305@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55194 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752039AbaEPANM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 20:13:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20140514233119.GA31594@atomide.com>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:56263 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485AbaEPAdm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2014 20:33:42 -0400
+Received: by mail-pa0-f41.google.com with SMTP id lj1so1765340pab.28
+        for <linux-omap@vger.kernel.org>; Thu, 15 May 2014 17:33:41 -0700 (PDT)
+In-Reply-To: <5375079E.3060305@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: khilman@linaro.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [140514 16:32]:
-> * Tony Lindgren <tony@atomide.com> [140514 13:57]:
-> > * Daniel Lezcano <daniel.lezcano@linaro.org> [140514 13:02]:
-> > > 
-> > > So the broadcast timer does not operate with this revert. Moreover, I am not
-> > > sure reverting this patch is the right solution.
-> > 
-> > OK I'll hold on sending anything until there's some conclusion.
-> > 
-> > Are you able to reproduce the problem with current Linux next?
-> 
-> BTW, I'm also noticing now hangs on omap3 with my PM patches
-> on v3.15-rc4 that seem similar to the panda cpuidle hang.
-> 
-> The hangs on omap3 do not happen on my v3.14 based branch, so
-> I'm wondering if there are some recent cpuidle regressions too
-> in play?
+On 05/16/2014 02:29 AM, Santosh Shilimkar wrote:
+> Alex,
+> Please give a try with your test-case and see if you still see the hang.
+> Am just curious about your issue and hence the request..
 
-Looks like the omap3 idle hang is caused by commit 6ddeb6d84459
-(dmaengine: omap-dma: move IRQ handling to omap-dma). This may
-not be related to omap4 cpu_idle hang, but it might.
+there is no test case. I just patched your patches, then boot new
+kernel, system quickly to hang without any serial port oops, I am using
+pandaES/ubuntu.
 
-I'm trying to figure out if it's related to something like
-omap_dma_global_context_save and omap_dma_global_context_restore.
-
-Meanwhile, to test the DMA changes have an effect on the omap4
-cpu_idle issue, you can try reverting the following two patches:
-
-aa4c5b962a7a dmaengine: omap-dma: more consolidation of CCR register setup
-6ddeb6d84459 dmaengine: omap-dma: move IRQ handling to omap-dma
-
-Regards,
-
-Tony
+-- 
+Thanks
+    Alex
