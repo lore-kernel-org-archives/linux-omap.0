@@ -1,79 +1,197 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
- support
-Date: Fri, 16 May 2014 08:56:56 +0300
-Message-ID: <5375A8A8.7080306@ti.com>
-References: <CABxcv=mY0a+yJgmCTPN=BhSQD57Pw022zOd5_KxEgvvF_-=O7Q@mail.gmail.com> <20140512142646.GA31772@atomide.com> <5370E0C9.8050201@ti.com> <20140512155132.GH31772@atomide.com> <5371F923.80000@ti.com> <CABxcv==_LCw1kPYm17g=h8VfSN2V_qsgXjTnsy-JOetawSv4pA@mail.gmail.com> <20140513152518.GA16837@atomide.com> <53730AFB.2090800@ti.com> <20140514160216.GD18463@atomide.com> <537487AE.3060906@ti.com> <20140515182133.GC23659@atomide.com>
+Subject: [PATCH 2/4] OMAPDSS: panel sharp-ls037v7dw01 DT support
+Date: Fri, 16 May 2014 10:30:00 +0300
+Message-ID: <1400225402-18274-3-git-send-email-tomi.valkeinen@ti.com>
+References: <1400225402-18274-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="MMj86lUMqo3tX5of2bpS3FILk5gpEg1Pi"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44246 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42834 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753552AbaEPF5W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 May 2014 01:57:22 -0400
-In-Reply-To: <20140515182133.GC23659@atomide.com>
+	id S1754536AbaEPHa7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 May 2014 03:30:59 -0400
+In-Reply-To: <1400225402-18274-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
---MMj86lUMqo3tX5of2bpS3FILk5gpEg1Pi
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+From: Tony Lindgren <tony@atomide.com>
 
-On 15/05/14 21:21, Tony Lindgren wrote:
+Add DT support for sharp-ls037v7dw01.
 
->> But you're right, having "sharp,ls037v7dw01-omap-dss" in the .dts is a=
-n
->> alternative for the compatible-string conversion we do now. I guess it=
-'s
->> a matter of taste, but I rather hide it inside the kernel, in an
->> internal omapdss file, than pollute the .dts files with those compatib=
-le
->> strings.
->=20
-> Well it avoid you parsing through all the nodes during booting
-> and leaves out the function to do remapping. And removes the need
-> for maintaining a custom display mapping table. I'd say that's a
-> pretty good list of advantages right there :)
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ .../omap2/displays-new/panel-sharp-ls037v7dw01.c   | 102 ++++++++++++++++++++-
+ 1 file changed, 99 insertions(+), 3 deletions(-)
 
-Yep... I don't know. Maybe I'm being too careful about doing wrong
-things with .dts. I just like it more if any hacks are in kernel code,
-which I can remove without anyone noticing.
+diff --git a/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c b/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
+index 015d49300f2f..f1f72ce50a17 100644
+--- a/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
++++ b/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
+@@ -12,15 +12,18 @@
+ #include <linux/delay.h>
+ #include <linux/gpio.h>
+ #include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_gpio.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+-
++#include <linux/regulator/consumer.h>
+ #include <video/omapdss.h>
+ #include <video/omap-panel-data.h>
+ 
+ struct panel_drv_data {
+ 	struct omap_dss_device dssdev;
+ 	struct omap_dss_device *in;
++	struct regulator *vcc;
+ 
+ 	int data_lines;
+ 
+@@ -95,12 +98,21 @@ static int sharp_ls_enable(struct omap_dss_device *dssdev)
+ 	if (omapdss_device_is_enabled(dssdev))
+ 		return 0;
+ 
+-	in->ops.dpi->set_data_lines(in, ddata->data_lines);
++	if (ddata->data_lines)
++		in->ops.dpi->set_data_lines(in, ddata->data_lines);
+ 	in->ops.dpi->set_timings(in, &ddata->videomode);
+ 
++	if (ddata->vcc) {
++		r = regulator_enable(ddata->vcc);
++		if (r != 0)
++			return r;
++	}
++
+ 	r = in->ops.dpi->enable(in);
+-	if (r)
++	if (r) {
++		regulator_disable(ddata->vcc);
+ 		return r;
++	}
+ 
+ 	/* wait couple of vsyncs until enabling the LCD */
+ 	msleep(50);
+@@ -136,6 +148,9 @@ static void sharp_ls_disable(struct omap_dss_device *dssdev)
+ 
+ 	in->ops.dpi->disable(in);
+ 
++	if (ddata->vcc)
++		regulator_disable(ddata->vcc);
++
+ 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
+ }
+ 
+@@ -249,6 +264,75 @@ static int sharp_ls_probe_pdata(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static  int sharp_ls_get_gpio_of(struct device *dev, int index, int val,
++	const char *desc, struct gpio_desc **gpiod)
++{
++	struct gpio_desc *gd;
++	int r;
++
++	*gpiod = NULL;
++
++	gd = devm_gpiod_get_index(dev, desc, index);
++	if (IS_ERR(gd))
++		return PTR_ERR(gd) == -ENOENT ? 0 : PTR_ERR(gd);
++
++	r = gpiod_direction_output(gd, val);
++	if (r)
++		return r;
++
++	*gpiod = gd;
++	return 0;
++}
++
++static int sharp_ls_probe_of(struct platform_device *pdev)
++{
++	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	struct device_node *node = pdev->dev.of_node;
++	struct omap_dss_device *in;
++	int r;
++
++	ddata->vcc = devm_regulator_get(&pdev->dev, "envdd");
++	if (IS_ERR(ddata->vcc)) {
++		dev_err(&pdev->dev, "failed to get regulator\n");
++		return PTR_ERR(ddata->vcc);
++	}
++
++	/* lcd INI */
++	r = sharp_ls_get_gpio_of(&pdev->dev, 0, 0, "enable", &ddata->ini_gpio);
++	if (r)
++		return r;
++
++	/* lcd RESB */
++	r = sharp_ls_get_gpio_of(&pdev->dev, 0, 0, "reset", &ddata->resb_gpio);
++	if (r)
++		return r;
++
++	/* lcd MO */
++	r = sharp_ls_get_gpio_of(&pdev->dev, 0, 0, "mode", &ddata->mo_gpio);
++	if (r)
++		return r;
++
++	/* lcd LR */
++	r = sharp_ls_get_gpio_of(&pdev->dev, 1, 1, "mode", &ddata->lr_gpio);
++	if (r)
++		return r;
++
++	/* lcd UD */
++	r = sharp_ls_get_gpio_of(&pdev->dev, 2, 1, "mode", &ddata->ud_gpio);
++	if (r)
++		return r;
++
++	in = omapdss_of_find_source_for_first_ep(node);
++	if (IS_ERR(in)) {
++		dev_err(&pdev->dev, "failed to find video source\n");
++		return PTR_ERR(in);
++	}
++
++	ddata->in = in;
++
++	return 0;
++}
++
+ static int sharp_ls_probe(struct platform_device *pdev)
+ {
+ 	struct panel_drv_data *ddata;
+@@ -265,6 +349,10 @@ static int sharp_ls_probe(struct platform_device *pdev)
+ 		r = sharp_ls_probe_pdata(pdev);
+ 		if (r)
+ 			return r;
++	} else if (pdev->dev.of_node) {
++		r = sharp_ls_probe_of(pdev);
++		if (r)
++			return r;
+ 	} else {
+ 		return -ENODEV;
+ 	}
+@@ -308,12 +396,20 @@ static int __exit sharp_ls_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct of_device_id sharp_ls_of_match[] = {
++	{ .compatible = "omapdss,sharp,ls037v7dw01", },
++	{},
++};
++
++MODULE_DEVICE_TABLE(of, sharp_ls_of_match);
++
+ static struct platform_driver sharp_ls_driver = {
+ 	.probe = sharp_ls_probe,
+ 	.remove = __exit_p(sharp_ls_remove),
+ 	.driver = {
+ 		.name = "panel-sharp-ls037v7dw01",
+ 		.owner = THIS_MODULE,
++		.of_match_table = sharp_ls_of_match,
+ 	},
+ };
+ 
+-- 
+1.9.1
 
-Anyway, we already have board.dts files using the non-omapified
-compatible strings in the mainline, so if I would now add the omapified
-compatible strings to .dts files, those old board.dts files would break.
-
-So I guess the choice has already been made.
-
- Tomi
-
-
-
---MMj86lUMqo3tX5of2bpS3FILk5gpEg1Pi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTdaioAAoJEPo9qoy8lh711TgP/R5iokLg9Po70K6hdxxyYeyI
-urrzDsnvRfm6rQ8MAvKp/rHPRT2YzQ5zaulPXGA17XRV4Z5qRSlPYhYfxV7I6nTZ
-UjvLLQCX+WvAuAK8SR9SLidoIMCTZFN+2UyZODlPr/mwFxdrtUZ1ncMBNPyraiCq
-0M5VK+Wd/wMsBuCtN6lwl/MQoHuxNlmxyBaLJPPOi+/Zh4cwwGmcyHHdHevpI2e8
-7KKhvd1+i0SiXunDdfWGOm7erdLX1L93vpiQKRh83Kb+mTO2cdd/zwmQCvUvJQZO
-A3v5q5/fgA931gHYsBspZ24eEnM9zBqB9G0bJt0KpueZzvZTZS7lJlsoOWHKc6un
-nwZrdn4GCDIFYlJYO2jt8dgpF54Qkmut6s2oQu0Sx5PC+nQhhNwc3UtEMb+4xFeU
-FPO/yorBTxEvanLXhE213VF7ECPSz5T/d/JxiBMHLWKUYtN0ViQpkXZXaL4ekk08
-jlNbAtiLdf0TMARXktu+zFIv1YJDV+uArJl0OZGZw48rFJYKff2+82HQ+YPT1k5H
-m4FRL/fOyuMz7xVCd9pKXvmLiSKHJQwDzwf7DSYW39QKMWCGsg3SDFoXFI+z9Kev
-OUKl9AApywEWBiYRUpM96yHyPQlWDL7MqjqxF4yC2VzMnBbGQmo2oRTiraX0ofOv
-jcyLKLG5UzxETYl6EZOS
-=6cp9
------END PGP SIGNATURE-----
-
---MMj86lUMqo3tX5of2bpS3FILk5gpEg1Pi--
