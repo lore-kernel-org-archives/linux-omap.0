@@ -1,81 +1,86 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: some PRCM cleanup patches for v3.16
-Date: Fri, 16 May 2014 14:24:26 -0700
-Message-ID: <20140516212426.GJ12881@atomide.com>
-References: <alpine.DEB.2.02.1405160445440.29738@utopia.booyaka.com>
+Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
+Date: Fri, 16 May 2014 14:29:42 -0700
+Message-ID: <20140516212942.GK12881@atomide.com>
+References: <1399991966-14582-1-git-send-email-santosh.shilimkar@ti.com>
+ <5373C78E.7040301@linaro.org>
+ <5373C8E8.6040208@ti.com>
+ <5373CBB9.40506@linaro.org>
+ <5373DD94.8030208@ti.com>
+ <5374F35E.5040900@ti.com>
+ <5374FE61.50901@linaro.org>
+ <5374FF5B.8050702@ti.com>
+ <5375079E.3060305@ti.com>
+ <537615EA.3020809@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51729 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754774AbaEPVYa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 17:24:30 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43942 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753701AbaEPV3s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 17:29:48 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1405160445440.29738@utopia.booyaka.com>
+In-Reply-To: <537615EA.3020809@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Alex Shi <alex.shi@linaro.org>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [140515 21:48]:
-> Hi Tony
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [140516 06:43]:
+> Tony,
 > 
-> The following changes since commit c9eaa447e77efe77b7fa4c953bd62de8297fd6c5:
+> On Thursday 15 May 2014 02:29 PM, Santosh Shilimkar wrote:
+> > On Thursday 15 May 2014 01:54 PM, Santosh Shilimkar wrote:
+> >> On Thursday 15 May 2014 01:50 PM, Daniel Lezcano wrote:
+> >>> On 05/15/2014 07:03 PM, Santosh Shilimkar wrote:
+> > 
+> > [..]
+> > 
+> >>>>> With above mentioned change, it should work. Other alternatives is OMAP4 driver does
+> >>>>> its won registration where it can start the timer. The way it was before the
+> >>>>> consolidation.
+> >>>>>
+> >>>>> Ofcourse if you have better fix, then great.
+> >>>>>
+> >>>> What is your suggestion. We *must* fix the regression asap. I think
+> >>>> $subject patch with an update to bctimer start under CPUIDLE_FLAG_COUPLED
+> >>>> seems a good way forward.
+> >>>>
+> >>>> Do let me know.
+> >>>
+> >>> Did you see Alex Shi's email [cc'ed] ? Reverting this change makes the panda ES to hang.
+> >>>
+> >> The hang is definitely due to the bctimer not started. As I said, I assumed it was and
+> >> then you corrected saying it is under the flag.
+> >>
+> >>> I am not convinced the culprit is this code you are trying to revert.
+> >>>
+> >> fair enough. Thats why I said if you have an alternative fix thats great.
+> >>
+> > For record, below is updated patch with bctimer started which
+> > was missed in earlier version. I haven't tested it though.
+> > 
+> > Alex,
+> > Please give a try with your test-case and see if you still see the hang.
+> > Am just curious about your issue and hence the request..
+> > 
+> Alex tested below patch and he don't see the hang so the patch is
+> addressing the issue.
 > 
->   Linux 3.15-rc1 (2014-04-13 14:18:35 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git for-v3.16/prcm-cleanup-a
-> 
-> for you to fetch changes up to 70fcebf1965b66d73bd8ae7955bd663ab8012c56:
-> 
->   ARM: OMAP4: PRCM: remove references to cm-regbits-44xx.h from PRCM core files (2014-05-15 22:35:10 -0600)
-> 
-> ----------------------------------------------------------------
-> Some OMAP PRCM cleanup patches.  These help prepare to convert the PRCM
-> code into drivers.
-> 
-> Basic build, boot, and PM test results are available here:
-> 
-> http://www.pwsan.com/omap/testlogs/prcm-cleanup-v3.16/20140515213244/
+> If Daniel works out an alternate fix to avoid reverts, that will be great
+> but if not, we should merge the below patch. I let you take call on it.
+ 
+Daniel any news on this?
 
-Thanks pulling into omap-for-v3.16/prcm.
+And just to recap, this problem can be reproduced with current
+Linux next with omap2plus_defconfig with CONFIG_CPU_IDLE enabled. The
+system should hang during the boot at some point.
+
+And for the record, the omap3 hang fix is now posted to the lists as
+"[PATCH] ARM: OMAP2+: Fix DMA hang after off-idle". This should not
+have anything to do with the omap4 cpu_idle hang as omap4 does not
+currently lose context during idle.
+
+Regards,
 
 Tony
- 
-> ----------------------------------------------------------------
-> Tero Kristo (10):
->       ARM: OMAP3: CM: remove a few OMAP34XX_CM_REGADDR defines
->       ARM: OMAP2+: prcm: add omap_test_timeout to prcm-common.h
->       ARM: OMAP2/3: CM: remove some external dependencies
->       ARM: OMAP4: CM: use cm_base* in register address calculations
->       ARM: OMAP2+: PRCM: cleanup some header includes
->       ARM: OMAP2+: PRM: remove unnecessary cpu_is_XXX calls from prm_init / exit
->       ARM: OMAP3/4: PRM: provide io chain reconfig function through irq setup
->       ARM: OMAP3/OMAP4: PRM: add prm_features flags and add IO wakeup under it
->       ARM: OMAP3/4: PRM: add support of late_init call to prm_ll_ops
->       ARM: OMAP4: PRCM: remove references to cm-regbits-44xx.h from PRCM core files
-> 
->  arch/arm/mach-omap2/clockdomain.h                  |  3 ++-
->  arch/arm/mach-omap2/cm2xxx.c                       | 15 ++-----------
->  arch/arm/mach-omap2/cm33xx.h                       |  3 ---
->  arch/arm/mach-omap2/cm3xxx.c                       | 25 ++++++++--------------
->  arch/arm/mach-omap2/cm3xxx.h                       |  5 ++---
->  arch/arm/mach-omap2/cm44xx.c                       | 11 ++++------
->  arch/arm/mach-omap2/cm_common.c                    |  2 +-
->  arch/arm/mach-omap2/cminst44xx.c                   | 10 ++++++---
->  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  1 +
->  arch/arm/mach-omap2/powerdomain-common.c           |  1 -
->  arch/arm/mach-omap2/powerdomain.c                  |  1 +
->  arch/arm/mach-omap2/powerdomain.h                  |  3 +--
->  arch/arm/mach-omap2/prcm-common.h                  | 24 +++++++++++++++++++++
->  arch/arm/mach-omap2/prcm_mpu44xx.h                 |  1 -
->  arch/arm/mach-omap2/prm.h                          | 10 +++++++++
->  arch/arm/mach-omap2/prm2xxx.c                      | 13 +----------
->  arch/arm/mach-omap2/prm2xxx_3xxx.c                 |  1 -
->  arch/arm/mach-omap2/prm33xx.c                      |  1 -
->  arch/arm/mach-omap2/prm3xxx.c                      | 20 ++++++++---------
->  arch/arm/mach-omap2/prm44xx.c                      | 18 +++++++---------
->  arch/arm/mach-omap2/prm_common.c                   | 17 +++++++++------
->  21 files changed, 93 insertions(+), 92 deletions(-)
