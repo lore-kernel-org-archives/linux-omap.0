@@ -1,125 +1,99 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 2/4] ARM: dts: am437x-gp-evm: add support for parallel
- NAND flash
-Date: Fri, 16 May 2014 17:26:16 +0300
-Message-ID: <53762008.4010808@ti.com>
-References: <1400238230-26357-1-git-send-email-pekon@ti.com> <1400238230-26357-3-git-send-email-pekon@ti.com> <537602FE.4020108@ti.com> <20980858CB6D3A4BAE95CA194937D5E73EACDA8A@DBDE04.ent.ti.com>
+From: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Subject: Re: [PATCH] usb: dwc3: gadget: check link trb after free_slot is
+ increased
+Date: Fri, 16 May 2014 22:47:18 +0800
+Message-ID: <20140516144718.GI16153@intel.com>
+References: <20140515215757.GD16153@intel.com>
+ <20140515153757.GB7360@saruman.home>
+ <20140516155013.GE16153@intel.com>
+ <20140516124106.GA20386@saruman.home>
+Reply-To: jin.can.zhuang@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42682 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756785AbaEPO0X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 May 2014 10:26:23 -0400
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EACDA8A@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140516124106.GA20386@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, david.a.cohen@linux.intel.com, Yuan Hang <hang.yuan@intel.com>, Li Jiebing <jiebing.li@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-On 05/16/2014 04:58 PM, Gupta, Pekon wrote:
-> Hi Roger,
+Hi,
+On Fri, May 16, 2014 at 07:41:06AM -0500, Felipe Balbi wrote:
+> On Fri, May 16, 2014 at 11:50:13PM +0800, Zhuang Jin Can wrote:
+> > > On Fri, May 16, 2014 at 05:57:57AM +0800, Zhuang Jin Can wrote:
+> > > > In ISOC transfers, when free_slot points to the last TRB (i.e. Link
+> > > > TRB), and all queued requests meet Missed Interval Isoc error, busy_slot
+> > > > points to trb0.
+> > > > 	busy_slot->trb0
+> > > > 		   trb1
+> > > > 		   ...
+> > > > 	free_slot->trb31(Link TRB)
+> > > > 
+> > > > After end transfer and receiving the XferNotReady event, trb_left is
+> > > > caculated as 1 which is wrong, and no TRB will be primed to the
+> > > > endpoint.
+> > > > 
+> > > > The root cause is free_slot is not increased the same way as busy_slot.
+> > > > When busy_slot is increased by one, it checks if points to a link TRB
+> > > > after increasement, but free_slot checks it before increasement.
+> > > > free_slot should behave the same as busy_slot to make the trb_left
+> > > > caculation correct.
+> > > > 
+> > > > Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
+> > > > Signed-off-by: Jiebing Li <jiebing.li@intel.com>
+> > > > ---
+> > > >  drivers/usb/dwc3/gadget.c |    8 ++++----
+> > > >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+> > > > index 54da8c8..2ebe82b 100644
+> > > > --- a/drivers/usb/dwc3/gadget.c
+> > > > +++ b/drivers/usb/dwc3/gadget.c
+> > > > @@ -828,10 +828,6 @@ static void dwc3_prepare_one_trb(struct dwc3_ep *dep,
+> > > >  			length, last ? " last" : "",
+> > > >  			chain ? " chain" : "");
+> > > >  
+> > > > -	/* Skip the LINK-TRB on ISOC */
+> > > > -	if (((dep->free_slot & DWC3_TRB_MASK) == DWC3_TRB_NUM - 1) &&
+> > > > -			usb_endpoint_xfer_isoc(dep->endpoint.desc))
+> > > > -		dep->free_slot++;
+> > > >  
+> > > >  	trb = &dep->trb_pool[dep->free_slot & DWC3_TRB_MASK];
+> > > 
+> > > I have a feeling this has a negative side effect of letting us use the
+> > > link TRB for data transfer... I mean, if we don't increment free_slot
+> > > before accessing our trb_pool, we have no way to skip link trb on this
+> > > access here.
+> > After every free_slot++ Link TRB is checked and increased if appropriate,
+> > this guarantees you next time access free_slot, it can't be a Link
+> > TRB.
 > 
->> From: Quadros, Roger
->>
-> [...]
->>> +&gpmc {
->>> +	status = "okay";
->>> +	pinctrl-names = "default";
->>> +	pinctrl-0 = <&nand_flash_x8>;
->>> +	ranges = <0 0 0 0x01000000>;	/* minimum GPMC partition = 16MB */
->>> +	nand@0,0 {
->>> +		reg = <0 0 0x37c>;	/* device IO registers */
->>
->> This register space is used by the parent GPMC node as well as the NAND controller. So doing a
->> request_and_ioremap() on this space will fail as it is already taken by the GPMC driver.
->>
->> Further, the GPMC register space doesn't map to the GPMC memory map created by this Chip select
->> but it is mapped to L3_IO space. i.e. (physical address 0x6e00 0000)
->>
->> We could have split the GPMC register space into GPMC part and NAND part but to add to the
->> complexity, the register spaces for GPMC vs NAND are interleaved so it can't be easily split up.
-> Sorry I din't get this part.
-> NAND is one of the devices supported by GPMC controller.
-> Hardware wise the it's the same engine is used for NAND, NOR and OneNAND
-
-But GPMC register space is only used for 2 things, Chip Select configuration and NAND driver.
-
-GPMC registers are not used for NOR, OneNAND or other memory accessible devices. They don't need GPMC registers because their registers are mapped in the GPMC I/O space.
-
-> and even other parallel interfaces like Camera, Ethernet, etc..
-> So how can be NAND and GPMC registers space be splitted ?
-
-- all Chip select configuration registers i.e. GPMC_CONFIG* should go to GPMC device
-- all the GPMC_NAND_*, GPMC_ECC_, and GPMC_BCH_* registers go to NAND device
-
-The tricky part is that all these registers are interleaved among each other and so the register map is fragmented.
-
+> right, next access will be fine, but you're forgetting about current
+> access.
 > 
-> I see gpmc.c as generic controller driver, which just does initializations
-> and registering the device. Then it's upto the individual protocol drivers
-> to probe the device and attach it to respective sub-system; like;
-> (a) drivers/mtd/nand/omap2.c  for NAND
-> (b) drivers/mtd/chips/cfi_probe.c  for NOR
-> ...
+The current access is the next access relative to last access.
+So if the first access is fine, succeeding accesses should be fine.
+And the first access happens on when the free_slot points to slot 1
+which is not a link trb. 
 
-omap2.c needs GPMC registers, but cfi_probe.c and others don't need them.
-
+> > > How did you find the bug ? do you have good instructions on how to
+> > > reproduce it ? How did you test the patch and for how long ?
+> > The bug is reproduced on Android with f_audio_source.c enabled, which
+> > has an isoc-in endpoint keeps sending audio data to host in an interval
+> > of 1 ms. Normally, you need to run for 12+ hours to hit the issue.
+> > So I think you can just run some isoc transfers for a long time to
+> > reproduce it. To accelarte the reproducing, you can run some concurrent
+> > data transfer as well, so the possibility to meet missed interval error
+> > is larger.
+> > 
+> > The patch is tested for basic functionality like enumeration, data
+> > transfers. For this bug, it was tested for 20+ hours.
 > 
+> thanks, g_audio loop should be fine.
 > 
->> The way
->> the NAND driver is currently written is that it expects the register addresses to come via platform data,
->> primarily to get around this address interleaving issue.
->>
-> Yes, that is right.
-> I don't know the historical reasons but that is correct also because,
-> (1) large set of GPMC register configurations are common across all
->  types of devices (like NAND, NOR, OneNAND, Ethernet). These
->  register configurations define the signal timings and physical attributes
->  of device (like device width, etc).
-> 
-> (2) Individual protocol drivers (a) and (b) only uses a sub-set of registers
->  for transferring data, much of which is based on type of protocol.
->  
-> So, large part of GPMC configurations remains static and can be
-> Shared across all types of devices, hence those are put in gpmc.c
+np.
 
-Right, so just the GPMC configuration part needs to be with GPMC driver. The NAND controller bits don't need to be.
 
-> 
-> 
->> Apart from the GPMC register space, the NAND controller uses 4 bytes of GPMC memory map for I/O,
->> and that is something that could be reflected here.
->>
->> e.g.
->> 		reg = <0 0 4>;		/* NAND I/O space */
->>
->> But still, the start address can't be 0 and has to be assigned when this CS region is mapped. It is still
->> unclear to me how that can be done.
->>
-> Yes, NAND is not directly mapped. So only 4-bytes of I/O size will do.
-> But where to map these 4 bytes ? and which 4-bytes to map.
-> So I have included complete GPMC register space-size.
-
-That is not the right solution. The mapping is done in the gpmc driver in gpmc_cs_request()/gpmc_cs_remap().
-If a random address (meeting GPMC alignment needs) is specified within the GPMC 1GB space, the GPMC driver should configure the CS to map
-to that address. If 0 is specified then the GPMC must map it automatically to a sane address and then update the reg property before instantiating the child node's platform device.
-
-For the NAND controller, we don't even create a child device based on the OF node but instead legacy platform device, so this reg property isn't being even used.
-
-> 
-> Also since GPMC has a constrain that every chip-select must have
-> minimum of 16MB memory. So we specify it via  <range> property
-> to keep GPMC mapping consistent across all NAND, NOR, OneNAND, etc..
-> 
-> If you have any better approach in mind for keeping consistent
-> memory mapping across different types of devices, then please suggest ..
-> I'll try to get this done in next set of patches, if not these.
-> Or
-> May be you can take over as part of GPMC transition.
-
-As the driver doesn't rely on the reg address portion (at least for the NAND driver), you can leave this option out for now.
-
-cheers,
--roger
+Regards
+Jincan
