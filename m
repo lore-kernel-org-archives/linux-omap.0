@@ -1,60 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: a few more clock/hwmod fixes for v3.15-rc
-Date: Fri, 16 May 2014 14:44:02 -0700
-Message-ID: <20140516214401.GN12881@atomide.com>
-References: <alpine.DEB.2.02.1405141850410.21921@utopia.booyaka.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: DRA7/AM43XX: fix header definition for omap44xx_restart
+Date: Fri, 16 May 2014 17:36:09 -0500
+Message-ID: <1400279769-28704-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32912 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755874AbaEPVoI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 17:44:08 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1405141850410.21921@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57345 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754104AbaEPWgh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 18:36:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [140514 11:52]:
-> Hi Tony,
-> 
-> The following changes since commit c9eaa447e77efe77b7fa4c953bd62de8297fd6c5:
-> 
->   Linux 3.15-rc1 (2014-04-13 14:18:35 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git for-v3.15-rc/omap-fixes-b
-> 
-> for you to fetch changes up to 0f9e19ad88eee820f517b85531b555a0fa73e7e4:
-> 
->   ARM: omap5: hwmod_data: Correct IDLEMODE for McPDM (2014-05-14 11:25:58 -0600)
-> 
-> ----------------------------------------------------------------
-> Two small OMAP fixes for v3.15-rc.  One fixes "slow motion" or
-> "choppy" audio playback on OMAP5.  The other applies an OMAP3630 fix
-> for clock rate setting for camera to other OMAP3 chips.
-> 
-> Basic build, boot, and PM test results are available here:
-> 
-> http://www.pwsan.com/omap/testlogs/prcm-fixes-b-v3.15-rc/20140514112639/
+omap44xx_restart is defined as a static void inline when DRA7/AM437X is
+defined alone, which implies that the restart function is no longer
+functional even though it is built in. So, fix the definition of the
+same.
 
-Thanks pulling into omap-for-v3.15/fixes-v3.
+Unfortunately, the number of SoCs starting to use omap44xx_restart is
+starting to grow and the definition looks a little ugly.
 
-Regards,
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
 
-Tony
+based on v3.15-rc5
+
+NOTE: this generates over 80 characters checkpatch warning.. I am not
+sure other than introducing a definition for restart it could be simplified.
+
+ arch/arm/mach-omap2/common.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index d88aff7..46150f4 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -154,7 +154,7 @@ static inline void omap3xxx_restart(enum reboot_mode mode, const char *cmd)
+ }
+ #endif
  
-> ----------------------------------------------------------------
-> Laurent Pinchart (1):
->       ARM: OMAP3: clock: Back-propagate rate change from cam_mclk to dpll4_m5 on all OMAP3 platforms
-> 
-> Peter Ujfalusi (1):
->       ARM: omap5: hwmod_data: Correct IDLEMODE for McPDM
-> 
->  arch/arm/mach-omap2/cclock3xxx_data.c      | 3 ++-
->  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 2 +-
->  2 files changed, 3 insertions(+), 2 deletions(-)
-> 
+-#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
++#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
+ void omap44xx_restart(enum reboot_mode mode, const char *cmd);
+ #else
+ static inline void omap44xx_restart(enum reboot_mode mode, const char *cmd)
+-- 
+1.7.9.5
+
