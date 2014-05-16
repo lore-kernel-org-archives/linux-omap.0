@@ -1,77 +1,45 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 09/13] dt/bindings: ti,edma: Remove redundant properties from documentation
-Date: Fri, 16 May 2014 15:17:16 +0300
-Message-ID: <1400242640-9902-10-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 07/13] ARM: edma: Save number of regions from pdata to struct edma
+Date: Fri, 16 May 2014 15:17:14 +0300
+Message-ID: <1400242640-9902-8-git-send-email-peter.ujfalusi@ti.com>
 References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1400242640-9902-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: nsekhar-l0cyMroinI0@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: nsekhar@ti.com, joelf@ti.com, arnd@arndb.de
+Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
->From CCCFG register of eDMA3 we can get all the needed information for the
-driver about the IP:
-Number of channels: NUM_DMACH
-Number of regions: NUM_REGN
-Number of slots (PaRAM sets): NUM_PAENTRY
-Number of TC/EQ: NUM_EVQUE
+To be consistent in the code that we take parameters from edma_cc[j] struct
+and not randomly from info[j] as well.
 
-The ti,edma-regions; ti,edma-slots and dma-channels in DT are
-redundant since the very same information can be obtained from the HW.
-The mentioned properties are deprecated.
-
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- Documentation/devicetree/bindings/dma/ti-edma.txt | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ arch/arm/common/edma.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
-index 68ff2137bae7..5ba525a10035 100644
---- a/Documentation/devicetree/bindings/dma/ti-edma.txt
-+++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
-@@ -2,11 +2,8 @@ TI EDMA
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 929a03e4749c..aa9473cb0c23 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -1628,6 +1628,7 @@ static int edma_probe(struct platform_device *pdev)
+ 		edma_cc[j]->num_tc = info[j]->n_tc;
  
- Required properties:
- - compatible : "ti,edma3"
--- ti,edma-regions: Number of regions
--- ti,edma-slots: Number of slots
- - #dma-cells: Should be set to <1>
-               Clients should use a single channel number per DMA request.
--- dma-channels: Specify total DMA channels per CC
- - reg: Memory map for accessing module
- - interrupt-parent: Interrupt controller the interrupt is routed through
- - interrupts: Exactly 3 interrupts need to be specified in the order:
-@@ -17,6 +14,13 @@ Optional properties:
- - ti,hwmods: Name of the hwmods associated to the EDMA
- - ti,edma-xbar-event-map: Crossbar event to channel map
+ 		edma_cc[j]->default_queue = info[j]->default_queue;
++		edma_cc[j]->num_region = info[j]->n_region;
  
-+Deprecated properties:
-+Listed here in case one wants to boot an old kernel with new DTB. These
-+properties might need to be added to the new DTS files.
-+- ti,edma-regions: Number of regions
-+- ti,edma-slots: Number of slots
-+- dma-channels: Specify total DMA channels per CC
-+
- Example:
+ 		dev_dbg(&pdev->dev, "DMA REG BASE ADDR=%p\n",
+ 			edmacc_regs_base[j]);
+@@ -1725,7 +1726,7 @@ static int edma_probe(struct platform_device *pdev)
+ 		if (edma_read(j, EDMA_CCCFG) & CHMAP_EXIST)
+ 			map_dmach_param(j);
  
- edma: edma@49000000 {
-@@ -26,9 +30,6 @@ edma: edma@49000000 {
- 	compatible = "ti,edma3";
- 	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
- 	#dma-cells = <1>;
--	dma-channels = <64>;
--	ti,edma-regions = <4>;
--	ti,edma-slots = <256>;
- 	ti,edma-xbar-event-map = /bits/ 16 <1 12
- 					    2 13>;
- };
+-		for (i = 0; i < info[j]->n_region; i++) {
++		for (i = 0; i < edma_cc[j]->num_region; i++) {
+ 			edma_write_array2(j, EDMA_DRAE, i, 0, 0x0);
+ 			edma_write_array2(j, EDMA_DRAE, i, 1, 0x0);
+ 			edma_write_array(j, EDMA_QRAE, i, 0x0);
 -- 
 1.9.3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
