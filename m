@@ -1,93 +1,100 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: some PRCM cleanup patches for v3.16
-Date: Fri, 16 May 2014 04:48:05 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1405160445440.29738@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: DSS and HDMI kernel panic on OMAP4
+Date: Fri, 16 May 2014 08:24:08 +0300
+Message-ID: <5375A0F8.9000208@ti.com>
+References: <CAGhQ9VyEsX2FmJj4TWgrKMggz=zH--rrVKaztV6AWwLQZTsDUg@mail.gmail.com> <CAGhQ9VxU1Zk0Prdq-PwkM=e8W6pZ=JXFa__xjCx4ofCVyWJ0kw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="qjWUgF2IfV9X7mcwG5tQITtPM034VTVwR"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:36266 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753934AbaEPEsG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 00:48:06 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:37961 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751106AbaEPFYO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 May 2014 01:24:14 -0400
+In-Reply-To: <CAGhQ9VxU1Zk0Prdq-PwkM=e8W6pZ=JXFa__xjCx4ofCVyWJ0kw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Joachim Eastwood <manabian@gmail.com>, Jyri Sarha <jsarha@ti.com>
+Cc: linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+--qjWUgF2IfV9X7mcwG5tQITtPM034VTVwR
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Hi Tony
+On 16/05/14 00:26, Joachim Eastwood wrote:
+> On 15 May 2014 23:14, Joachim  Eastwood <manabian@gmail.com> wrote:
+>> Hello Tomi,
+>>
+>> I wanted to test my Variscite patches after Tony merged them into his
+>> 3.16 dt branch so created a base branch from Linus master and pull in
+>> Tony's 3.16 dt and your dss for-next branch.
+>>
+>> I discovered that booting with a HDMI monitor connected or plugging in=
 
-The following changes since commit c9eaa447e77efe77b7fa4c953bd62de8297fd6c5:
+>> one cause a kernel panic. See the log at:
+>> http://slexy.org/raw/s20xo68UPx
+>>
+>> Any idea what it could be?
+>>
+>> I also noted this in the boot log:
+>> [ 0.984527] omapdss_hdmi 58006000.encoder: can't request region for
+>> resource [mem 0x58006400-0x580073ff]
+>>
+>> I don't think I have seen this before.
+>>
+>> What I previously have tested have been Linus master + my Variscite
+>> patches and your panel-dpi dt + hdmi hpd patches cherry-picked.
+>=20
+> Reverting "OMAPDSS: HDMI: cleanup ioremaps" 59b3d38a3691396783df108
+> from your for-next branch fixes the problem.
 
-  Linux 3.15-rc1 (2014-04-13 14:18:35 -0700)
+I think that's somehow HDMI audio enabled. I bet if you disable HDMI
+audio, the error goes away.
 
-are available in the git repository at:
+If I cat /proc/iomem, I see:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git for-v3.16/prcm-cleanup-a
+58006000-58006fff : omap-hdmi-audio-dai
+  58006200-580062ff : pll
+  58006300-580063ff : phy
 
-for you to fetch changes up to 70fcebf1965b66d73bd8ae7955bd663ab8012c56:
+Without sound support, I don't get the error and I see:
 
-  ARM: OMAP4: PRCM: remove references to cm-regbits-44xx.h from PRCM core files (2014-05-15 22:35:10 -0600)
+58006200-580062ff : pll
+58006300-580063ff : phy
+58006400-580073ff : core
 
-- ----------------------------------------------------------------
-Some OMAP PRCM cleanup patches.  These help prepare to convert the PRCM
-code into drivers.
+Reverting 59b3d38a3691396783df108e6afbba30656edccb helps, because before
+that patch the hdmi driver didn't actually reserve the regions.
 
-Basic build, boot, and PM test results are available here:
+So, I don't really have any idea yet what's going on there, but the
+problem is somewhere around hdmi audio.
 
-http://www.pwsan.com/omap/testlogs/prcm-cleanup-v3.16/20140515213244/
+ Tomi
 
-- ----------------------------------------------------------------
-Tero Kristo (10):
-      ARM: OMAP3: CM: remove a few OMAP34XX_CM_REGADDR defines
-      ARM: OMAP2+: prcm: add omap_test_timeout to prcm-common.h
-      ARM: OMAP2/3: CM: remove some external dependencies
-      ARM: OMAP4: CM: use cm_base* in register address calculations
-      ARM: OMAP2+: PRCM: cleanup some header includes
-      ARM: OMAP2+: PRM: remove unnecessary cpu_is_XXX calls from prm_init / exit
-      ARM: OMAP3/4: PRM: provide io chain reconfig function through irq setup
-      ARM: OMAP3/OMAP4: PRM: add prm_features flags and add IO wakeup under it
-      ARM: OMAP3/4: PRM: add support of late_init call to prm_ll_ops
-      ARM: OMAP4: PRCM: remove references to cm-regbits-44xx.h from PRCM core files
 
- arch/arm/mach-omap2/clockdomain.h                  |  3 ++-
- arch/arm/mach-omap2/cm2xxx.c                       | 15 ++-----------
- arch/arm/mach-omap2/cm33xx.h                       |  3 ---
- arch/arm/mach-omap2/cm3xxx.c                       | 25 ++++++++--------------
- arch/arm/mach-omap2/cm3xxx.h                       |  5 ++---
- arch/arm/mach-omap2/cm44xx.c                       | 11 ++++------
- arch/arm/mach-omap2/cm_common.c                    |  2 +-
- arch/arm/mach-omap2/cminst44xx.c                   | 10 ++++++---
- .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  1 +
- arch/arm/mach-omap2/powerdomain-common.c           |  1 -
- arch/arm/mach-omap2/powerdomain.c                  |  1 +
- arch/arm/mach-omap2/powerdomain.h                  |  3 +--
- arch/arm/mach-omap2/prcm-common.h                  | 24 +++++++++++++++++++++
- arch/arm/mach-omap2/prcm_mpu44xx.h                 |  1 -
- arch/arm/mach-omap2/prm.h                          | 10 +++++++++
- arch/arm/mach-omap2/prm2xxx.c                      | 13 +----------
- arch/arm/mach-omap2/prm2xxx_3xxx.c                 |  1 -
- arch/arm/mach-omap2/prm33xx.c                      |  1 -
- arch/arm/mach-omap2/prm3xxx.c                      | 20 ++++++++---------
- arch/arm/mach-omap2/prm44xx.c                      | 18 +++++++---------
- arch/arm/mach-omap2/prm_common.c                   | 17 +++++++++------
- 21 files changed, 93 insertions(+), 92 deletions(-)
+
+--qjWUgF2IfV9X7mcwG5tQITtPM034VTVwR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTdZg7AAoJEMePsQ0LvSpLvYYP/1QjKttZU9isMb2/WRR3tGay
-PKLkTu0OxHn7PznzdML+vpucD0ouQoD2wuDxpVrUQ1xzrk3yu2nAMm7hCWt3oPC0
-jXzY/b6Ikf0SBk1HQ2ZqcBhYwhqAva8FwyZ6eUbztspnxPl5DIKWZ/0bEi1+3bLD
-Pp2kBX6bexssCOH26x+I4n3zVprlH9U1RgYhO/OaQ+rDaucOqTf30WyOxltCy1dI
-T/g2Q+obbTw8XGvP90T8Jognf6HgUpq8FuyX4WM6ypJ03bvlb/dNXUHj/MTcfUG0
-MWz3I2LtgtYnhh4B3Rv77bVBCRPOyEBfDTXd+Lm3n3mc3dPgSrBoeZUoJNTVKeUG
-KJbm3qxjps5/iyGJyuif+opriey8IeQrAQhQSFB7oFw0Kl++L13Cm4HKCgx9QkBc
-TFNKK8N3oNHJPlgHWIDrJY/mdqmR7/kxFVy2bvxnfmSkxSyPXxWvGSe17GjIlTfN
-/jYOaygegbMI1Q6n+EuAhUY4v7qhDuzu75BnRpItxB5mzyYIYIV+f4tJlE6uDglh
-SEtFtRQnIjmNDQ72+70mYlgjy8VvdXc++JW1bjJyONMO5Ghb3CsrpeU+EThBw3Fu
-x+HJYNWDd0M3Jhhjjn3pfhkrpGbZNfCxM2QGczkZFWjhlsqdNwn8i/u1HMGb91Yr
-nm22ofeTTQrISphxouKg
-=fLlV
+iQIcBAEBAgAGBQJTdaD7AAoJEPo9qoy8lh71jLEQAJuEtfwxy8tdBnaO0VehFmhk
+RXoYtVj1R/bf+FQycXX4qD3eu3163meGcylEThG3FMg3MSe/5MVH1LTtWYCr1L8x
+WJOovaYU/nySaf5NgpOrxbkz0SHfncuKnpzDBqSpBJmTrwbaV/jV/9nEgkR+4zvN
+haeUqoKG1ArjGJFur9rKGANOlknGC8iMb1igHprU+85499SUQhKGOFBxkqzI53Yv
+33wfZKjttCA8Qy3udCA8hirr3vrOQnchZJeRo33nqGOFSv66BDB93S/lw3OYUXkf
+d2BvcmJ8x7CsHCKhQPgQCdtSY2ZqRMH+nvqyBh39aKG0QHOAjgE6S4LLy3r3DvJq
+m/DbZY15GSrLC+KD5gCHDNRs74Rtjqu+WtRKGdtXsQ+keOFZq2v2tYKV6rGe+EQM
+e3XZr5F6fpJDB1LuRfZ51oPsCzwPiH62lbjO7TdHPk3nXmONOyrG610eOoMeiN7r
+t7EpG6y1UcTMLnanUE4R6BAPKYtie1j5hwJ/6yE6wiEwb9EbgS0ht2ITRxvqKQgk
+Uh1ZqFR8e/eJ7MVH89mUzAdOIVrxBRPJYtkNoXCBsoml3kv5E74A4GFlYe/QKsg0
+eFvOZHkAHh2/nAUVmbQcAd6GWtGNlvTQAEd0wHk7RNZzdoPXJpfFlWUrqGP7fiFa
+x468YIEntLVNKgwzLQfI
+=t8ex
 -----END PGP SIGNATURE-----
+
+--qjWUgF2IfV9X7mcwG5tQITtPM034VTVwR--
