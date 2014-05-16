@@ -1,84 +1,78 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 05/19] OMAPDSS: Kconfig: Add depencies and help section
- to OMAP4_DSS_HDMI_AUDIO
-Date: Fri, 16 May 2014 13:52:55 +0300
-Message-ID: <5375EE07.4090802@ti.com>
-References: <cover.1399884780.git.jsarha@ti.com> <198496d6220a13b0e8910361d969b8f978ee1398.1399884780.git.jsarha@ti.com>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v6 0/4]  add parallel NAND support for TI's new OMAPx and AMxx platforms (Part-2)
+Date: Fri, 16 May 2014 16:33:46 +0530
+Message-ID: <1400238230-26357-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="v37FiRuuIllofris9W3FC9QsoifXNHGRA"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50673 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932327AbaEPKxG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 May 2014 06:53:06 -0400
-In-Reply-To: <198496d6220a13b0e8910361d969b8f978ee1398.1399884780.git.jsarha@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47738 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756806AbaEPLEK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 07:04:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, Roger Quadros <rogerq@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Pekon Gupta <pekon@ti.com>
 
---v37FiRuuIllofris9W3FC9QsoifXNHGRA
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On 12/05/14 12:12, Jyri Sarha wrote:
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  drivers/video/fbdev/omap2/dss/Kconfig |   10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/video/fbdev/omap2/dss/Kconfig b/drivers/video/fbde=
-v/omap2/dss/Kconfig
-> index 8921a7a..ecc2f50 100644
-> --- a/drivers/video/fbdev/omap2/dss/Kconfig
-> +++ b/drivers/video/fbdev/omap2/dss/Kconfig
-> @@ -70,7 +70,15 @@ config OMAP4_DSS_HDMI
->  	  HDMI support for OMAP4 based SoCs.
-> =20
->  config OMAP4_DSS_HDMI_AUDIO
-> -	bool
-> +	bool "HDMI audio support for OMAP4"
-> +	depends on OMAP4_DSS_HDMI
-> +	depends on SND_OMAP_SOC=3Dy || OMAP2_DSS =3D SND_OMAP_SOC
-> +	default y
-> +	help
-> +	  HDMI audio support for OMAP4 based SoCs. Adds integrated
-> +	  ASoC Digital Audio Interface component driver into OMAPDSS
-> +	  module. Select SND_SOC_HDMI_CODEC and SND_SIMPLE_CARD with
-> +	  devicetree description for full HDMI audio support.
-
-What does "for full HDMI audio support" mean? What's the partial support?=
- =3D)
-
- Tomi
+*changes v5 -> v6*
+- removed explicit disabling of GPMC and ELM in am335x-bone-memorycape.dts
+  as both modules are already disabled by default in am33xx.dtsi
+- fixed comments for <range> and <reg> properties. keeping it consistent
+  across platforms.
+- fixed <reg size> property. Using 'exact' register space as in hardware.
+- fixed DT properties for wait-pin monitoring. Added gpmc,wait-pin = <>
+- using lower-case letter for hex digits
+Rebased on git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap :omap-for-v3.16/dt
 
 
+*changes v4 -> v5*
+use lower-case hexadecimal numbers
+add comments for using different memory sizes in <range> and <reg> properties
+fix 'reg size' property for GPMC and ELM nodes in dra7.dtsi
 
---v37FiRuuIllofris9W3FC9QsoifXNHGRA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+*changes v3 -> v4*
+fixed <reg> and <range> property for all GPMC DT nodes
+added fix for am335x-evm and am437x-epos-evm
+rebased on git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap +omap-for-v3.16/dt
 
-iQIcBAEBAgAGBQJTde4HAAoJEPo9qoy8lh71M3kP/3RwAPy6cradgWXXBhgSdDmD
-a6t6dDuqPp0ANfQuZkdbP/j1/k0B2g3wfCdepkQkYoU6lOre8bD1uABLrHn9LM8E
-N0S981tIGFssuuJaAUnivWvcvpfqGuAOB6+enUT2xDHVNqyrn1M64WjQXHZPczgG
-8Qj2arEAcIruLjI7AYkAMrJjG+tEmfvVtO2sB9fS4AFMu1ba4XAXr3+Bo5/SvVMj
-4wWo6DI3DVjLQwBozPxEXi8+bi7L2xScHIPBX4byT/6pjWvowUOlEzdMLpAdAD4D
-v+oZwpoPHbHJ2Fo+HLtQIu72shGphn/CMKxxv0q7W1+zNHSgK8zxAaLTAg6gcr3M
-vmT4dntQhNlrYfu/wOAfHW7OsAvBSyFAJ6OywgwXO2kb7bRpffIr4yPNvSrA7nHW
-BxTR3i35iokfZmbpH5qh3nZ5Q0Mgy4fUVH4nDmGbmvV7Bpx1mTpjM1f7i8YwOD28
-W8Gnq9wHivx8F74HSlLbH4bUhDlWn8Hvt5f9HarnO7HGVwCJNoUSDSAcMAaBno8p
-K5sM6IDLqcgRvcFrFAAI4ppL3/XNYD2BQd5h6IkghDuyfLw8retYym0/bTmXdHI5
-24S7CRkpSAPhMdS5mO3iAno7/raw2UQGoO9u+BSSmGmPBFadyGKdlJzaE7BEeYH/
-2iwEMn4VgOqZIKZt6C4f
-=q7Qx
------END PGP SIGNATURE-----
 
---v37FiRuuIllofris9W3FC9QsoifXNHGRA--
+*changes v2 -> v3*
+rebased on git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap :master
+merged leftover patches (dra7-evm and am43x-epos-evm fix) from Part-1 series
+
+
+*changes v1 -> v2*
+[PATCH v2 1/2] created new DTS for memory-capes based on following feedbacks
+  http://www.spinics.net/lists/linux-omap/msg104348.html from 'Nishanth Menon <nm@ti.com>'
+  http://www.spinics.net/lists/linux-omap/msg104447.html from 'Tony Lindgren <tony@atomide.com>'
+[PATCH v2 2/2] <same as [PATCH v1 1/3]>
+
+
+*original v1*
+This patch-set adds parallel NAND support on following TI platforms
+ - AM335x (am335x-bone LT, am335x-boneblack): <disabled by default>
+ - AM43xx (am437x-gp-evm)
+
+
+Minal Shah (1):
+  ARM: dts: dra7: add support for parallel NAND flash
+
+Pekon Gupta (3):
+  ARM: dts: am335x-bone: add support for beaglebone NAND cape
+  ARM: dts: am437x-gp-evm: add support for parallel NAND flash
+  ARM: dts: am43xx: fix starting offset of NAND.filesystem MTD partition
+
+ arch/arm/boot/dts/am335x-bone-memory-cape.dts | 123 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts             |   1 +
+ arch/arm/boot/dts/am335x-boneblack.dts        |   1 +
+ arch/arm/boot/dts/am437x-gp-evm.dts           | 108 ++++++++++++++++++++++
+ arch/arm/boot/dts/am43x-epos-evm.dts          |   2 +-
+ arch/arm/boot/dts/dra7-evm.dts                | 118 ++++++++++++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi                   |  20 +++++
+ 7 files changed, 372 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/boot/dts/am335x-bone-memory-cape.dts
+
+-- 
+1.8.5.1.163.gd7aced9
+
