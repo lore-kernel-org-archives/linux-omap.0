@@ -1,78 +1,56 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 00/13]  ARM/DT: edma: IP configuration from hardware and cleanups
-Date: Fri, 16 May 2014 15:17:07 +0300
-Message-ID: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 02/13] ARM: edma: Take the number of tc from edma_soc_info (pdata)
+Date: Fri, 16 May 2014 15:17:09 +0300
+Message-ID: <1400242640-9902-3-git-send-email-peter.ujfalusi@ti.com>
+References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50197 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756038AbaEPMSB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 08:18:01 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: nsekhar@ti.com, joelf@ti.com, arnd@arndb.de
 Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Instead of saving the for loop length, take the num_tc value from the pdata.
+In case of DT boot set the n_tc to 3 as it is hardwired in edma_of_parse_dt()
+This is a temporary state since upcoming patch(es) will change how we are
+dealing with these parameters.
 
-Changes since v2:
-- Comments from Sekhar and Arnd has been addressed best as I could.
-- Use the CCCFG information in all cases instead of pdata provided information
-- To achieve this I needed to do a bit more cleanup in this series
-- In the documentation patch, retrain the old properties for reference
-- Cleanups in the old davinci board files and removing edma_soc_info members
-
-Changes sicne v1:
-- added missing patch to remove the memset from edma_of_parse_dt()
-
-We are requesting redundant information via DT for the driver since the very same
-data is available in the HW: by reading and decoding the content of CCCFG
-register we can get:
-Number of channels: NUM_DMACH
-Number of regions: NUM_REGN
-Number of slots (PaRAM sets): NUM_PAENTRY
-Number of TC/EQ: NUM_EVQUE
-
-So these does not need to be provided by the DT binding.
-
-The driver will no longer look for these properties from DT and they can be
-removed from the binding documentation and from the dtsi files as well.
-The change will not introduce regression when new kernel is booted using older
-DTB (since we just ignore the mentioned properties).
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (13):
-  ARM: edma: No need to clean the pdata in edma_of_parse_dt()
-  ARM: edma: Take the number of tc from edma_soc_info (pdata)
-  ARM: edma: Do not change TC -> Queue mapping, leave it to default.
-  ARM: davinci: Remove eDMA3 queue_tc_mapping data from edma_soc_info
-  ARM/platform_data: edma: Remove queue_tc_mapping data from
-    edma_soc_info
-  ARM: edma: Remove num_cc member from struct edma
-  ARM: edma: Save number of regions from pdata to struct edma
-  ARM: edma: Get IP configuration from HW (number of channels, tc, etc)
-  dt/bindings: ti,edma: Remove redundant properties from documentation
-  ARM: dts: am33xx: Remove obsolete properties from edma node
-  ARM: dts: am4372: Remove obsolete properties from edma node
-  ARM: davinci: Remove redundant/unused parameters for edma
-  ARM/platform_data: edma: Remove redundant/unused parameters from
-    edma_soc_info
+ arch/arm/common/edma.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
- Documentation/devicetree/bindings/dma/ti-edma.txt |  13 +-
- arch/arm/boot/dts/am33xx.dtsi                     |   3 -
- arch/arm/boot/dts/am4372.dtsi                     |   3 -
- arch/arm/common/edma.c                            | 149 +++++++++++-----------
- arch/arm/mach-davinci/devices-da8xx.c             |  31 -----
- arch/arm/mach-davinci/dm355.c                     |  14 --
- arch/arm/mach-davinci/dm365.c                     |  16 ---
- arch/arm/mach-davinci/dm644x.c                    |  14 --
- arch/arm/mach-davinci/dm646x.c                    |  16 ---
- include/linux/platform_data/edma.h                |   8 --
- 10 files changed, 81 insertions(+), 186 deletions(-)
-
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 01707aae0a2b..d42c84a3432a 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -1488,6 +1488,7 @@ static int edma_of_parse_dt(struct device *dev,
+ 	pdata->n_slot = value;
+ 
+ 	pdata->n_cc = 1;
++	pdata->n_tc = 3;
+ 
+ 	rsv_info = devm_kzalloc(dev, sizeof(struct edma_rsv_info), GFP_KERNEL);
+ 	if (!rsv_info)
+@@ -1648,6 +1649,7 @@ static int edma_probe(struct platform_device *pdev)
+ 							EDMA_MAX_PARAMENTRY);
+ 		edma_cc[j]->num_cc = min_t(unsigned, info[j]->n_cc,
+ 							EDMA_MAX_CC);
++		edma_cc[j]->num_tc = info[j]->n_tc;
+ 
+ 		edma_cc[j]->default_queue = info[j]->default_queue;
+ 
+@@ -1741,9 +1743,6 @@ static int edma_probe(struct platform_device *pdev)
+ 			map_queue_tc(j, queue_tc_mapping[i][0],
+ 					queue_tc_mapping[i][1]);
+ 
+-		/* Save the number of TCs */
+-		edma_cc[j]->num_tc = i;
+-
+ 		/* Event queue priority mapping */
+ 		for (i = 0; queue_priority_mapping[i][0] != -1; i++)
+ 			assign_priority_to_queue(j,
 -- 
 1.9.3
-
