@@ -1,80 +1,72 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: DSS and HDMI kernel panic on OMAP4
-Date: Fri, 16 May 2014 08:24:08 +0300
-Message-ID: <5375A0F8.9000208@ti.com>
-References: <CAGhQ9VyEsX2FmJj4TWgrKMggz=zH--rrVKaztV6AWwLQZTsDUg@mail.gmail.com> <CAGhQ9VxU1Zk0Prdq-PwkM=e8W6pZ=JXFa__xjCx4ofCVyWJ0kw@mail.gmail.com>
+Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
+ support
+Date: Fri, 16 May 2014 08:50:11 +0300
+Message-ID: <5375A713.7030409@ti.com>
+References: <1398815562-24113-4-git-send-email-tony@atomide.com> <5369EAE7.3030705@ti.com> <20140507150343.GA9502@atomide.com> <536A5920.1020908@ti.com> <20140507175919.GH9502@atomide.com> <20140508233300.GI2198@atomide.com> <536C924E.5000307@ti.com> <20140509153008.GC17814@atomide.com> <20140513212639.GA18001@atomide.com> <53747DD5.2030406@ti.com> <20140515182548.GD23659@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="qjWUgF2IfV9X7mcwG5tQITtPM034VTVwR"
+	boundary="OtEFf5Xf3D9RHhIriCehHQNKnwEOwHMxk"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37961 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44038 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751106AbaEPFYO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 May 2014 01:24:14 -0400
-In-Reply-To: <CAGhQ9VxU1Zk0Prdq-PwkM=e8W6pZ=JXFa__xjCx4ofCVyWJ0kw@mail.gmail.com>
+	id S1753534AbaEPFuh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 May 2014 01:50:37 -0400
+In-Reply-To: <20140515182548.GD23659@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joachim Eastwood <manabian@gmail.com>, Jyri Sarha <jsarha@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
---qjWUgF2IfV9X7mcwG5tQITtPM034VTVwR
-Content-Type: text/plain; charset=UTF-8
+--OtEFf5Xf3D9RHhIriCehHQNKnwEOwHMxk
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 16/05/14 00:26, Joachim Eastwood wrote:
-> On 15 May 2014 23:14, Joachim  Eastwood <manabian@gmail.com> wrote:
->> Hello Tomi,
+On 15/05/14 21:25, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140515 01:42]:
+>> On 14/05/14 00:26, Tony Lindgren wrote:
 >>
->> I wanted to test my Variscite patches after Tony merged them into his
->> 3.16 dt branch so created a base branch from Linus master and pull in
->> Tony's 3.16 dt and your dss for-next branch.
+>>> +	/* lcd MO */
+>>> +	ddata->mo_gpio =3D sharp_ls_get_gpio_of(&pdev->dev, 0, 1, "mode");
+>>> +	if (PTR_ERR(ddata->mo_gpio) =3D=3D -EPROBE_DEFER)
+>>> +		return -EPROBE_DEFER;
+>>> +
+>>> +	if (!IS_ERR(ddata->mo_gpio))
+>>> +		if (gpiod_get_raw_value_cansleep(ddata->mo_gpio))
+>>> +			ddata->flags |=3D SHARP_LS_QVGA;
 >>
->> I discovered that booting with a HDMI monitor connected or plugging in=
-
->> one cause a kernel panic. See the log at:
->> http://slexy.org/raw/s20xo68UPx
+>> Shouldn't there be an explicit flag in the DT data for this? If the
+>> panel's MO pin is hardwired to, say, pull up, then the mode-gpios won'=
+t
+>> have MO gpio, right? So something like:
 >>
->> Any idea what it could be?
 >>
->> I also noted this in the boot log:
->> [ 0.984527] omapdss_hdmi 58006000.encoder: can't request region for
->> resource [mem 0x58006400-0x580073ff]
+>> mode-gpios =3D <0					/* high, lcd MO */
+>> 	      &gpio1 2 GPIO_ACTIVE_HIGH		/* gpio2, lcd LR */
+>> 	      &gpio1 3 GPIO_ACTIVE_HIGH>;	/* gpio3, lcd UD */
 >>
->> I don't think I have seen this before.
->>
->> What I previously have tested have been Linus master + my Variscite
->> patches and your panel-dpi dt + hdmi hpd patches cherry-picked.
->=20
-> Reverting "OMAPDSS: HDMI: cleanup ioremaps" 59b3d38a3691396783df108
-> from your for-next branch fixes the problem.
+>> vga-mode;	/* MO hardwired high */
+> =20
+> Yeah holes there are just fine. I figured let's keep the custom
+> vga-mode property out of the way until we actually run into a panel
+> that's not using a GPIO for mode.
 
-I think that's somehow HDMI audio enabled. I bet if you disable HDMI
-audio, the error goes away.
+Ok, I'm fine with that, but in that case I think we have to use all the
+panels in the same mode, i.e. the driver either sets the MO gpio always
+low and uses VGA mode, or sets the MO always high and uses QVGA mode.
 
-If I cat /proc/iomem, I see:
-
-58006000-58006fff : omap-hdmi-audio-dai
-  58006200-580062ff : pll
-  58006300-580063ff : phy
-
-Without sound support, I don't get the error and I see:
-
-58006200-580062ff : pll
-58006300-580063ff : phy
-58006400-580073ff : core
-
-Reverting 59b3d38a3691396783df108e6afbba30656edccb helps, because before
-that patch the hdmi driver didn't actually reserve the regions.
-
-So, I don't really have any idea yet what's going on there, but the
-problem is somewhere around hdmi audio.
+In your omap3-evm.dts patch, you set the MO gpio ACTIVE_LOW in order to
+change the mode, even if it really should be ACTIVE_HIGH. But if you do
+that, and we later add the support to the panel driver to manage the MO
+gpio dynamically (i.e. the user can select VGA/QVGA at runtime), then
+the panel won't work as the driver uses wrong polarity for the pin.
 
  Tomi
 
 
 
---qjWUgF2IfV9X7mcwG5tQITtPM034VTVwR
+--OtEFf5Xf3D9RHhIriCehHQNKnwEOwHMxk
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -82,19 +74,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTdaD7AAoJEPo9qoy8lh71jLEQAJuEtfwxy8tdBnaO0VehFmhk
-RXoYtVj1R/bf+FQycXX4qD3eu3163meGcylEThG3FMg3MSe/5MVH1LTtWYCr1L8x
-WJOovaYU/nySaf5NgpOrxbkz0SHfncuKnpzDBqSpBJmTrwbaV/jV/9nEgkR+4zvN
-haeUqoKG1ArjGJFur9rKGANOlknGC8iMb1igHprU+85499SUQhKGOFBxkqzI53Yv
-33wfZKjttCA8Qy3udCA8hirr3vrOQnchZJeRo33nqGOFSv66BDB93S/lw3OYUXkf
-d2BvcmJ8x7CsHCKhQPgQCdtSY2ZqRMH+nvqyBh39aKG0QHOAjgE6S4LLy3r3DvJq
-m/DbZY15GSrLC+KD5gCHDNRs74Rtjqu+WtRKGdtXsQ+keOFZq2v2tYKV6rGe+EQM
-e3XZr5F6fpJDB1LuRfZ51oPsCzwPiH62lbjO7TdHPk3nXmONOyrG610eOoMeiN7r
-t7EpG6y1UcTMLnanUE4R6BAPKYtie1j5hwJ/6yE6wiEwb9EbgS0ht2ITRxvqKQgk
-Uh1ZqFR8e/eJ7MVH89mUzAdOIVrxBRPJYtkNoXCBsoml3kv5E74A4GFlYe/QKsg0
-eFvOZHkAHh2/nAUVmbQcAd6GWtGNlvTQAEd0wHk7RNZzdoPXJpfFlWUrqGP7fiFa
-x468YIEntLVNKgwzLQfI
-=t8ex
+iQIcBAEBAgAGBQJTdacTAAoJEPo9qoy8lh71AyEQAJHLsOGh2wbSls3E25AVclfi
+GbruEh1sghk6v3Cri/rP5kEUiwyQqx3m50PK7kgwi4T3/46vxdtCaZs3F8rm4xd8
+eyi9pgJnEEz8/vEDA+ur9mD6YBAbYG+zuD95LQv4cQb2fViLP4hgNUd03dQDcZfj
+1dnyad29x30VqnqHfkXZD+tdo9IA+wOZehfAdG1ebquY4bCAgvD8/1jyhsxUEUdv
+KO+JGl8BelpK34BI1vZB5NyXJp3mCMwpgf04wR5VYZLjj94AeA4X4CpqEOpCONtq
+jmMN4wodvo3U0R1lO3wft6oi6FH7bZ1nlHqJdVkpsU+uszjJxsuICuzkhW+oQEeT
+xcRNlZuPfb5Bxn4m4DiIZXtLTTuVUplBntMHvMpho2HG+tLWfBHE0GC2VcIVwXiZ
+Xo/HBCDI1iygcbL03GNCE28M+bdgmbXKMicjEO+wHeD3Fngd4uz7oaBmVi/AlqtQ
+C7QDrMOioSteLfSQbd4CbgiFmSroLD6fnoYldfAohitwbB9wuAomyxuAkOWlg4sZ
+xEZzP2VtbhZgIU1lXFYpQovgTB+22kowDFWZsP9mm3eCAJ06Gf3u3OjWhgQJuF3k
+CEq/3Y5fzJhT4J6KMQf2VMle+WnRWzkY4UrjwHHHZdl5sSg9NuQN0u0XCPQUfU0b
+O9ofRR5bv4UwmbCdBxSi
+=rkM+
 -----END PGP SIGNATURE-----
 
---qjWUgF2IfV9X7mcwG5tQITtPM034VTVwR--
+--OtEFf5Xf3D9RHhIriCehHQNKnwEOwHMxk--
