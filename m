@@ -1,59 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
- support
-Date: Fri, 16 May 2014 09:07:17 -0700
-Message-ID: <20140516160717.GD22031@atomide.com>
-References: <5370E0C9.8050201@ti.com>
- <20140512155132.GH31772@atomide.com>
- <5371F923.80000@ti.com>
- <CABxcv==_LCw1kPYm17g=h8VfSN2V_qsgXjTnsy-JOetawSv4pA@mail.gmail.com>
- <20140513152518.GA16837@atomide.com>
- <53730AFB.2090800@ti.com>
- <20140514160216.GD18463@atomide.com>
- <537487AE.3060906@ti.com>
- <20140515182133.GC23659@atomide.com>
- <5375A8A8.7080306@ti.com>
+Subject: Re: [PATCH 0/4] OMAPDSS: sharp-ls037v7dw01 DT support
+Date: Fri, 16 May 2014 09:12:25 -0700
+Message-ID: <20140516161224.GE22031@atomide.com>
+References: <1400225402-18274-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53994 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11110 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757707AbaEPQHY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 12:07:24 -0400
+	with ESMTP id S1754651AbaEPQMa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 12:12:30 -0400
 Content-Disposition: inline
-In-Reply-To: <5375A8A8.7080306@ti.com>
+In-Reply-To: <1400225402-18274-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140515 22:57]:
-> On 15/05/14 21:21, Tony Lindgren wrote:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140516 00:31]:
+> Hi,
 > 
-> >> But you're right, having "sharp,ls037v7dw01-omap-dss" in the .dts is an
-> >> alternative for the compatible-string conversion we do now. I guess it's
-> >> a matter of taste, but I rather hide it inside the kernel, in an
-> >> internal omapdss file, than pollute the .dts files with those compatible
-> >> strings.
-> > 
-> > Well it avoid you parsing through all the nodes during booting
-> > and leaves out the function to do remapping. And removes the need
-> > for maintaining a custom display mapping table. I'd say that's a
-> > pretty good list of advantages right there :)
+> These are slightly reworked versions of the patches Tony sent:
 > 
-> Yep... I don't know. Maybe I'm being too careful about doing wrong
-> things with .dts. I just like it more if any hacks are in kernel code,
-> which I can remove without anyone noticing.
+> * Split the DT doc into separate patch
+> * Handle errors from gpio functions
+> * Remove QVGA support
+> * Removed the change to arch/arm/mach-omap2/display.c. I'll add that to my
+>   patch which moves the conversion code to omapdss. Note that if you test this
+>   version, you need to add the panel name to the conversion list for now.
+> * Set MO gpio GPIO_ACTIVE_HIGH in omap3-evm-common.dtsi
+> * Set the GPIO default values the same way for DT and non-DT versions.
 > 
-> Anyway, we already have board.dts files using the non-omapified
-> compatible strings in the mainline, so if I would now add the omapified
-> compatible strings to .dts files, those old board.dts files would break.
-> 
-> So I guess the choice has already been made.
+> Tony, I removed the QVGA support as it was a new feature, not supported by the
+> non-DT version. Also, I don't think it should be done as you had implemented
+> it, but rather either have a flag in the DT data in case the pin is hardwired
+> in the hardware, or let the user select the mode at runtime.
 
-I really think you should remove this misuse of device tree code ASAP.
-It's better to fix it up now than carry the hack for next two years
-and keep on adding to it.
+OK. Probably should have both options eventually.
+ 
+> Also, I didn't quite understand the implementation. You had set initial values
+> in the driver for MO and RESB differently than on the non-DT version. Was that
+> on purpose?
+
+I just configured things to what we had earlier for the legacy booting,
+QVGA for ldp and VGA for omap3-evm.
+ 
+> You said in a comment: "The LCD is sideways, so we want the VGA mode instead of
+> QVGA mode.". Why is that? How does the resolution affect the orientation?
+
+Yeah that's pretty confusing and probably written before I got the
+image working properly. I probably initially thought the VGA mode also
+switches the panel to 640x480, while it really sets it to 480x640.
+ 
+> With my version, the panel (should) always be in VGA mode, like the non-DT
+> version does.
+> 
+> Only compile tested, I don't have boards with the panel.
+
+Works for me on omap3-evm and ldp after patching in the mode to your
+panel compatible translation database system.
 
 Regards,
 
