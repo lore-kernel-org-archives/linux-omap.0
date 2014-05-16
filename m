@@ -1,181 +1,103 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
-Date: Fri, 16 May 2014 09:43:06 -0400
-Message-ID: <537615EA.3020809@ti.com>
-References: <1399991966-14582-1-git-send-email-santosh.shilimkar@ti.com> <5373C78E.7040301@linaro.org> <5373C8E8.6040208@ti.com> <5373CBB9.40506@linaro.org> <5373DD94.8030208@ti.com> <5374F35E.5040900@ti.com> <5374FE61.50901@linaro.org> <5374FF5B.8050702@ti.com> <5375079E.3060305@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v6 2/4] ARM: dts: am437x-gp-evm: add support for
+ parallel NAND flash
+Date: Fri, 16 May 2014 13:58:31 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACDA8A@DBDE04.ent.ti.com>
+References: <1400238230-26357-1-git-send-email-pekon@ti.com>
+ <1400238230-26357-3-git-send-email-pekon@ti.com> <537602FE.4020108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58808 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39072 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932648AbaEPNnc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 May 2014 09:43:32 -0400
-In-Reply-To: <5375079E.3060305@ti.com>
+	id S1756202AbaEPN6l convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 09:58:41 -0400
+In-Reply-To: <537602FE.4020108@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Alex Shi <alex.shi@linaro.org>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: "Quadros, Roger" <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Tony,
+Hi Roger,
 
-On Thursday 15 May 2014 02:29 PM, Santosh Shilimkar wrote:
-> On Thursday 15 May 2014 01:54 PM, Santosh Shilimkar wrote:
->> On Thursday 15 May 2014 01:50 PM, Daniel Lezcano wrote:
->>> On 05/15/2014 07:03 PM, Santosh Shilimkar wrote:
-> 
-> [..]
-> 
->>>>> With above mentioned change, it should work. Other alternatives is OMAP4 driver does
->>>>> its won registration where it can start the timer. The way it was before the
->>>>> consolidation.
->>>>>
->>>>> Ofcourse if you have better fix, then great.
->>>>>
->>>> What is your suggestion. We *must* fix the regression asap. I think
->>>> $subject patch with an update to bctimer start under CPUIDLE_FLAG_COUPLED
->>>> seems a good way forward.
->>>>
->>>> Do let me know.
->>>
->>> Did you see Alex Shi's email [cc'ed] ? Reverting this change makes the panda ES to hang.
->>>
->> The hang is definitely due to the bctimer not started. As I said, I assumed it was and
->> then you corrected saying it is under the flag.
->>
->>> I am not convinced the culprit is this code you are trying to revert.
->>>
->> fair enough. Thats why I said if you have an alternative fix thats great.
->>
-> For record, below is updated patch with bctimer started which
-> was missed in earlier version. I haven't tested it though.
-> 
-> Alex,
-> Please give a try with your test-case and see if you still see the hang.
-> Am just curious about your issue and hence the request..
-> 
-Alex tested below patch and he don't see the hang so the patch is
-addressing the issue.
+>From: Quadros, Roger
+>
+[...]
+>> +&gpmc {
+>> +	status = "okay";
+>> +	pinctrl-names = "default";
+>> +	pinctrl-0 = <&nand_flash_x8>;
+>> +	ranges = <0 0 0 0x01000000>;	/* minimum GPMC partition = 16MB */
+>> +	nand@0,0 {
+>> +		reg = <0 0 0x37c>;	/* device IO registers */
+>
+>This register space is used by the parent GPMC node as well as the NAND controller. So doing a
+>request_and_ioremap() on this space will fail as it is already taken by the GPMC driver.
+>
+>Further, the GPMC register space doesn't map to the GPMC memory map created by this Chip select
+>but it is mapped to L3_IO space. i.e. (physical address 0x6e00 0000)
+>
+>We could have split the GPMC register space into GPMC part and NAND part but to add to the
+>complexity, the register spaces for GPMC vs NAND are interleaved so it can't be easily split up.
+Sorry I din't get this part.
+NAND is one of the devices supported by GPMC controller.
+Hardware wise the it's the same engine is used for NAND, NOR and OneNAND
+and even other parallel interfaces like Camera, Ethernet, etc..
+So how can be NAND and GPMC registers space be splitted ?
 
-If Daniel works out an alternate fix to avoid reverts, that will be great
-but if not, we should merge the below patch. I let you take call on it.
+I see gpmc.c as generic controller driver, which just does initializations
+and registering the device. Then it's upto the individual protocol drivers
+to probe the device and attach it to respective sub-system; like;
+(a) drivers/mtd/nand/omap2.c  for NAND
+(b) drivers/mtd/chips/cfi_probe.c  for NOR
+...
 
-> 
-> 
-> From bb3b82cc5645b83bedf1343d03cc956f27f6fc83 Mon Sep 17 00:00:00 2001
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Date: Mon, 12 May 2014 17:37:59 -0400
-> Subject: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
-> 
-> On OMAP4 panda board, there have been several bug reports about boot
-> hang and lock-ups with CPU_IDLE enabled. The root cause of the issue
-> is missing interrupts while in idle state. Commit cb7094e8 {cpuidle / omap4 :
-> use CPUIDLE_FLAG_TIMER_STOP flag} moved the broadcast notifiers to common
-> code for right reasons but on OMAP4 which suffers from a nasty ROM code
-> bug with GIC, commit ff999b8a {ARM: OMAP4460: Workaround for ROM bug ..},
-> we loose interrupts which leads to issues like lock-up, hangs etc.
-> 
-> Patch reverts commit cb7094 {cpuidle / omap4 : use CPUIDLE_FLAG_TIMER_STOP
-> flag} and 54769d6 {cpuidle: OMAP4: remove timer broadcast initialization} to
-> avoid the issue. With this change, OMAP4 panda boards, the mentioned
-> issues are getting fixed. We no longer loose interrupts which was the cause
-> of the regression.
-> 
-> Cc: Roger Quadros <rogerq@ti.com>
-> Cc: Kevin Hilman <khilman@linaro.org>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-> Reported-tested-by: Roger Quadros <rogerq@ti.com>
-> Reported-tested-by: Kevin Hilman <khilman@linaro.org>
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/cpuidle44xx.c |   25 +++++++++++++++++++++----
->  1 file changed, 21 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-> index 01fc710..2498ab0 100644
-> --- a/arch/arm/mach-omap2/cpuidle44xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
-> @@ -14,6 +14,7 @@
->  #include <linux/cpuidle.h>
->  #include <linux/cpu_pm.h>
->  #include <linux/export.h>
-> +#include <linux/clockchips.h>
->  
->  #include <asm/cpuidle.h>
->  #include <asm/proc-fns.h>
-> @@ -83,6 +84,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
->  {
->  	struct idle_statedata *cx = state_ptr + index;
->  	u32 mpuss_can_lose_context = 0;
-> +	int cpu_id = smp_processor_id();
->  
->  	/*
->  	 * CPU0 has to wait and stay ON until CPU1 is OFF state.
-> @@ -110,6 +112,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
->  	mpuss_can_lose_context = (cx->mpu_state == PWRDM_POWER_RET) &&
->  				 (cx->mpu_logic_state == PWRDM_POWER_OFF);
->  
-> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
-> +
->  	/*
->  	 * Call idle CPU PM enter notifier chain so that
->  	 * VFP and per CPU interrupt context is saved.
-> @@ -165,6 +169,8 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
->  	if (dev->cpu == 0 && mpuss_can_lose_context)
->  		cpu_cluster_pm_exit();
->  
-> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
-> +
->  fail:
->  	cpuidle_coupled_parallel_barrier(dev, &abort_barrier);
->  	cpu_done[dev->cpu] = false;
-> @@ -172,6 +178,16 @@ fail:
->  	return index;
->  }
->  
-> +/*
-> + * For each cpu, setup the broadcast timer because local timers
-> + * stops for the states above C1.
-> + */
-> +static void omap_setup_broadcast_timer(void *arg)
-> +{
-> +	int cpu = smp_processor_id();
-> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &cpu);
-> +}
-> +
->  static struct cpuidle_driver omap4_idle_driver = {
->  	.name				= "omap4_idle",
->  	.owner				= THIS_MODULE,
-> @@ -189,8 +205,7 @@ static struct cpuidle_driver omap4_idle_driver = {
->  			/* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */
->  			.exit_latency = 328 + 440,
->  			.target_residency = 960,
-> -			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED |
-> -			         CPUIDLE_FLAG_TIMER_STOP,
-> +			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
->  			.enter = omap_enter_idle_coupled,
->  			.name = "C2",
->  			.desc = "CPUx OFF, MPUSS CSWR",
-> @@ -199,8 +214,7 @@ static struct cpuidle_driver omap4_idle_driver = {
->  			/* C3 - CPU0 OFF + CPU1 OFF + MPU OSWR */
->  			.exit_latency = 460 + 518,
->  			.target_residency = 1100,
-> -			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED |
-> -			         CPUIDLE_FLAG_TIMER_STOP,
-> +			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
->  			.enter = omap_enter_idle_coupled,
->  			.name = "C3",
->  			.desc = "CPUx OFF, MPUSS OSWR",
-> @@ -231,5 +245,8 @@ int __init omap4_idle_init(void)
->  	if (!cpu_clkdm[0] || !cpu_clkdm[1])
->  		return -ENODEV;
->  
-> +	/* Configure the broadcast timer on each cpu */
-> +	on_each_cpu(omap_setup_broadcast_timer, NULL, 1);
-> +
->  	return cpuidle_register(&omap4_idle_driver, cpu_online_mask);
->  }
-> 
 
+> The way
+>the NAND driver is currently written is that it expects the register addresses to come via platform data,
+>primarily to get around this address interleaving issue.
+>
+Yes, that is right.
+I don't know the historical reasons but that is correct also because,
+(1) large set of GPMC register configurations are common across all
+ types of devices (like NAND, NOR, OneNAND, Ethernet). These
+ register configurations define the signal timings and physical attributes
+ of device (like device width, etc).
+
+(2) Individual protocol drivers (a) and (b) only uses a sub-set of registers
+ for transferring data, much of which is based on type of protocol.
+ 
+So, large part of GPMC configurations remains static and can be
+Shared across all types of devices, hence those are put in gpmc.c
+
+
+>Apart from the GPMC register space, the NAND controller uses 4 bytes of GPMC memory map for I/O,
+>and that is something that could be reflected here.
+>
+>e.g.
+>		reg = <0 0 4>;		/* NAND I/O space */
+>
+>But still, the start address can't be 0 and has to be assigned when this CS region is mapped. It is still
+>unclear to me how that can be done.
+>
+Yes, NAND is not directly mapped. So only 4-bytes of I/O size will do.
+But where to map these 4 bytes ? and which 4-bytes to map.
+So I have included complete GPMC register space-size.
+
+Also since GPMC has a constrain that every chip-select must have
+minimum of 16MB memory. So we specify it via  <range> property
+to keep GPMC mapping consistent across all NAND, NOR, OneNAND, etc..
+
+If you have any better approach in mind for keeping consistent
+memory mapping across different types of devices, then please suggest ..
+I'll try to get this done in next set of patches, if not these.
+Or
+May be you can take over as part of GPMC transition.
+
+>cheers,
+>-roger
+>
+
+with regards, pekon
