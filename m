@@ -1,45 +1,133 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 05/13] ARM/platform_data: edma: Remove queue_tc_mapping
- data from edma_soc_info
-Date: Fri, 16 May 2014 15:17:12 +0300
-Message-ID: <1400242640-9902-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 12/13] ARM: davinci: Remove redundant/unused parameters for edma
+Date: Fri, 16 May 2014 15:17:19 +0300
+Message-ID: <1400242640-9902-13-git-send-email-peter.ujfalusi@ti.com>
 References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: nsekhar@ti.com, joelf@ti.com, arnd@arndb.de
-Cc: devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, vinod.koul@intel.com, linux-kernel@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-It is no longer in use by the driver or board files.
+The following parameters are no longer needed by the edma driver since the
+information can be obtained from the IP's CCCFG register:
+n_channel, n_region, n_slot and n_tc.
+Remove the initialization of n_cc as well since in this context it has no
+meaning. We have separate edma_soc_info struct/eDMA3_CC instance so this
+member does not make any sense (and the driver no longer uses it).
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- include/linux/platform_data/edma.h | 1 -
- 1 file changed, 1 deletion(-)
+ arch/arm/mach-davinci/devices-da8xx.c | 15 ---------------
+ arch/arm/mach-davinci/dm355.c         |  5 -----
+ arch/arm/mach-davinci/dm365.c         |  5 -----
+ arch/arm/mach-davinci/dm644x.c        |  5 -----
+ arch/arm/mach-davinci/dm646x.c        |  5 -----
+ 5 files changed, 35 deletions(-)
 
-diff --git a/include/linux/platform_data/edma.h b/include/linux/platform_data/edma.h
-index 12f134b1493c..633e196ebdf2 100644
---- a/include/linux/platform_data/edma.h
-+++ b/include/linux/platform_data/edma.h
-@@ -175,7 +175,6 @@ struct edma_soc_info {
- 	/* Resource reservation for other cores */
- 	struct edma_rsv_info	*rsv;
+diff --git a/arch/arm/mach-davinci/devices-da8xx.c b/arch/arm/mach-davinci/devices-da8xx.c
+index 7f376e54b266..b85b781b05fd 100644
+--- a/arch/arm/mach-davinci/devices-da8xx.c
++++ b/arch/arm/mach-davinci/devices-da8xx.c
+@@ -148,11 +148,6 @@ static s8 da850_queue_priority_mapping[][2] = {
+ };
  
--	s8	(*queue_tc_mapping)[2];
- 	s8	(*queue_priority_mapping)[2];
- 	const s16	(*xbar_chans)[2];
+ static struct edma_soc_info da830_edma_cc0_info = {
+-	.n_channel		= 32,
+-	.n_region		= 4,
+-	.n_slot			= 128,
+-	.n_tc			= 2,
+-	.n_cc			= 1,
+ 	.queue_priority_mapping	= da8xx_queue_priority_mapping,
+ 	.default_queue		= EVENTQ_1,
+ };
+@@ -163,20 +158,10 @@ static struct edma_soc_info *da830_edma_info[EDMA_MAX_CC] = {
+ 
+ static struct edma_soc_info da850_edma_cc_info[] = {
+ 	{
+-		.n_channel		= 32,
+-		.n_region		= 4,
+-		.n_slot			= 128,
+-		.n_tc			= 2,
+-		.n_cc			= 1,
+ 		.queue_priority_mapping	= da8xx_queue_priority_mapping,
+ 		.default_queue		= EVENTQ_1,
+ 	},
+ 	{
+-		.n_channel		= 32,
+-		.n_region		= 4,
+-		.n_slot			= 128,
+-		.n_tc			= 1,
+-		.n_cc			= 1,
+ 		.queue_priority_mapping	= da850_queue_priority_mapping,
+ 		.default_queue		= EVENTQ_0,
+ 	},
+diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
+index e27f7ff54570..2f3ed3a58d57 100644
+--- a/arch/arm/mach-davinci/dm355.c
++++ b/arch/arm/mach-davinci/dm355.c
+@@ -577,11 +577,6 @@ queue_priority_mapping[][2] = {
+ };
+ 
+ static struct edma_soc_info edma_cc0_info = {
+-	.n_channel		= 64,
+-	.n_region		= 4,
+-	.n_slot			= 128,
+-	.n_tc			= 2,
+-	.n_cc			= 1,
+ 	.queue_priority_mapping	= queue_priority_mapping,
+ 	.default_queue		= EVENTQ_1,
+ };
+diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
+index 88835b0aaead..0ae8114f5cc9 100644
+--- a/arch/arm/mach-davinci/dm365.c
++++ b/arch/arm/mach-davinci/dm365.c
+@@ -863,11 +863,6 @@ dm365_queue_priority_mapping[][2] = {
+ };
+ 
+ static struct edma_soc_info edma_cc0_info = {
+-	.n_channel		= 64,
+-	.n_region		= 4,
+-	.n_slot			= 256,
+-	.n_tc			= 4,
+-	.n_cc			= 1,
+ 	.queue_priority_mapping	= dm365_queue_priority_mapping,
+ 	.default_queue		= EVENTQ_3,
+ };
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 8ea34be879b4..dc52657909c4 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -507,11 +507,6 @@ queue_priority_mapping[][2] = {
+ };
+ 
+ static struct edma_soc_info edma_cc0_info = {
+-	.n_channel		= 64,
+-	.n_region		= 4,
+-	.n_slot			= 128,
+-	.n_tc			= 2,
+-	.n_cc			= 1,
+ 	.queue_priority_mapping	= queue_priority_mapping,
+ 	.default_queue		= EVENTQ_1,
+ };
+diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
+index 97e90dc5ed43..6c3bbea7d77d 100644
+--- a/arch/arm/mach-davinci/dm646x.c
++++ b/arch/arm/mach-davinci/dm646x.c
+@@ -543,11 +543,6 @@ dm646x_queue_priority_mapping[][2] = {
+ };
+ 
+ static struct edma_soc_info edma_cc0_info = {
+-	.n_channel		= 64,
+-	.n_region		= 6,	/* 0-1, 4-7 */
+-	.n_slot			= 512,
+-	.n_tc			= 4,
+-	.n_cc			= 1,
+ 	.queue_priority_mapping	= dm646x_queue_priority_mapping,
+ 	.default_queue		= EVENTQ_1,
  };
 -- 
 1.9.3
