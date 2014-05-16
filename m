@@ -1,107 +1,113 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
- support
-Date: Fri, 16 May 2014 14:39:07 -0700
-Message-ID: <20140516213907.GL12881@atomide.com>
-References: <CABxcv==_LCw1kPYm17g=h8VfSN2V_qsgXjTnsy-JOetawSv4pA@mail.gmail.com>
- <20140513152518.GA16837@atomide.com>
- <53730AFB.2090800@ti.com>
- <20140514160216.GD18463@atomide.com>
- <537487AE.3060906@ti.com>
- <20140515182133.GC23659@atomide.com>
- <5375A8A8.7080306@ti.com>
- <20140516160717.GD22031@atomide.com>
- <20140516174158.GA11733@earth.universe>
- <20140516180154.GG22031@atomide.com>
+Subject: Re: [PATCH v2 6/6] mmc: omap_hsmmc: split omap-dma header file
+Date: Fri, 16 May 2014 14:41:17 -0700
+Message-ID: <20140516214116.GM12881@atomide.com>
+References: <1399654013-28262-1-git-send-email-balajitk@ti.com>
+ <1399654013-28262-7-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:63132 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753822AbaEPVjQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 17:39:16 -0400
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140516180154.GG22031@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1399654013-28262-7-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-mmc@vger.kernel.org, chris@printf.net, ulf.hansson@linaro.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [140516 11:02]:
-> * Sebastian Reichel <sre@ring0.de> [140516 10:42]:
-> > On Fri, May 16, 2014 at 09:07:17AM -0700, Tony Lindgren wrote:
-> > > * Tomi Valkeinen <tomi.valkeinen@ti.com> [140515 22:57]:
-> > > > On 15/05/14 21:21, Tony Lindgren wrote:
-> > > > >> But you're right, having "sharp,ls037v7dw01-omap-dss" in the .dts is an
-> > > > >> alternative for the compatible-string conversion we do now. I guess it's
-> > > > >> a matter of taste, but I rather hide it inside the kernel, in an
-> > > > >> internal omapdss file, than pollute the .dts files with those compatible
-> > > > >> strings.
-> > > > > 
-> > > > > Well it avoid you parsing through all the nodes during booting
-> > > > > and leaves out the function to do remapping. And removes the need
-> > > > > for maintaining a custom display mapping table. I'd say that's a
-> > > > > pretty good list of advantages right there :)
-> > > > 
-> > > > Yep... I don't know. Maybe I'm being too careful about doing wrong
-> > > > things with .dts. I just like it more if any hacks are in kernel code,
-> > > > which I can remove without anyone noticing.
-> > > > 
-> > > > Anyway, we already have board.dts files using the non-omapified
-> > > > compatible strings in the mainline, so if I would now add the omapified
-> > > > compatible strings to .dts files, those old board.dts files would break.
-> > > > 
-> > > > So I guess the choice has already been made.
-> > > 
-> > > I really think you should remove this misuse of device tree code ASAP.
-> > > It's better to fix it up now than carry the hack for next two years
-> > > and keep on adding to it.
-> > 
-> > IMHO appending -omap-dss to a random device is an even bigger hack,
-> > since its adding lots of bloat to the API. Let's assume there is
-> > another OS using DT for ARM, but has no proper API for SPI
-> > controllers and it introduces your hack to SPI devices. That would
-> > mean each SPI device has -omap-spi appended (or -exynos-spi,
-> > -foo-spi, ...). At least I would blame them for creating a huge
-> > unmaintainable mess.
+* Balaji T K <balajitk@ti.com> [140509 09:47]:
+> moving dmaengine consumer specific function to omap-dmaengine.h
+> to Resolve build failure seen with sh-allmodconfig:
+>     include/linux/omap-dma.h:171:8: error: expected identifier before numeric constant
+>     make[4]: *** [drivers/mmc/host/omap_hsmmc.o] Error 1
 > 
-> I think you're misunderstanding. I do not want the naming to
-> be Linux specific. The naming should naturally be as hardware
-> specific as possible. In this case something like:
+> Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c  |    2 +-
+>  include/linux/omap-dma.h       |   19 +------------------
+>  include/linux/omap-dmaengine.h |   21 +++++++++++++++++++++
+>  3 files changed, 23 insertions(+), 19 deletions(-)
+>  create mode 100644 include/linux/omap-dmaengine.h
 > 
-> compatible = "sharp,ls037v7dw01-dss", "sharp,ls037v7dw01";
-> 
-> Or we should probably use:
-> 
-> compatible = "sharp,ls037v7dw01-dpi", "sharp,ls037v7dw01";
-> 
-> As dpi here reflects the hardware it's connected to. The dss
-> is probably a Linux name.
-> 
-> Not use what you're after with the SPI example though, but sounds
-> like that's something different.
-> 
-> > I think Tomi's workaround is a much better hack, since it keeps the
-> > API clean. If the code simply prefixes "omapdss," to all
-> > "child"-devices of omapdss it can be left mostly untouched, too.
-> 
-> AFAIK that remapping not needed at all. All that is already
-> available with the compatible flags.
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index cba71d6..6b7b755 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -31,7 +31,7 @@
+>  #include <linux/of.h>
+>  #include <linux/of_gpio.h>
+>  #include <linux/of_device.h>
+> -#include <linux/omap-dma.h>
+> +#include <linux/omap-dmaengine.h>
+>  #include <linux/mmc/host.h>
+>  #include <linux/mmc/core.h>
+>  #include <linux/mmc/mmc.h>
+> diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
+> index 41a13e7..999f52d 100644
+> --- a/include/linux/omap-dma.h
+> +++ b/include/linux/omap-dma.h
+> @@ -1,23 +1,6 @@
+> -/*
+> - * OMAP DMA Engine support
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License version 2 as
+> - * published by the Free Software Foundation.
+> - */
+>  #ifndef __LINUX_OMAP_DMA_H
+>  #define __LINUX_OMAP_DMA_H
+> -
+> -struct dma_chan;
+> -
+> -#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
+> -bool omap_dma_filter_fn(struct dma_chan *, void *);
+> -#else
+> -static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
+> -{
+> -	return false;
+> -}
+> -#endif
+> +#include <linux/omap-dmaengine.h>
 
-And alternatively we can also just use the sharp,ls037v7dw01
-in the panel driver(s). We can have the panels bail out in driver
-probe based on of_machine_is_compatible if nothing else is available.
+Can't the drivers needing this include it directly?
 
-Also, currently the remapping code also probably keeps prepending
-more and more omapdss,omapdss,omapdss,... on each kexec reboot? And
-it would be quite silly for each display controller to have to do
-their own remapping for shared panels?
+Also, has this been tested with make randconfig? Changes like
+this can easily cause problems elsewhere..
 
-If we still still despite all these reasons decide to go with
-the remapping of the compatible strings, it should really be a
-Linux generic (or drivers/video generic function), not implemented
-for each display controller.
-
-Cheers,
+Regards,
 
 Tony
+  
+>  /*
+>   *  Legacy OMAP DMA handling defines and functions
+> diff --git a/include/linux/omap-dmaengine.h b/include/linux/omap-dmaengine.h
+> new file mode 100644
+> index 0000000..2b0b6aa
+> --- /dev/null
+> +++ b/include/linux/omap-dmaengine.h
+> @@ -0,0 +1,21 @@
+> +/*
+> + * OMAP DMA Engine support
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#ifndef __LINUX_OMAP_DMAENGINE_H
+> +#define __LINUX_OMAP_DMAENGINE_H
+> +
+> +struct dma_chan;
+> +
+> +#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
+> +bool omap_dma_filter_fn(struct dma_chan *, void *);
+> +#else
+> +static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
+> +{
+> +	return false;
+> +}
+> +#endif
+> +#endif /* __LINUX_OMAP_DMAENGINE_H */
+> -- 
+> 1.7.5.4
+> 
