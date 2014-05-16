@@ -1,38 +1,202 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH v2 2/5] ARM: edma: Get IP information from HW when booting
- with DT
-Date: Fri, 16 May 2014 12:31:27 -0500
-Message-ID: <53764B6F.9030106@ti.com>
-References: <1399977032-26469-1-git-send-email-peter.ujfalusi@ti.com> <1399977032-26469-3-git-send-email-peter.ujfalusi@ti.com> <53748070.4080706@ti.com> <5374B34D.2060904@ti.com> <5374B7B8.4060604@ti.com>
-Reply-To: <joelf@ti.com>
+Subject: Re: [PATCH v3 08/13] ARM: edma: Get IP configuration from HW (number
+ of channels, tc, etc)
+Date: Fri, 16 May 2014 12:33:38 -0500
+Message-ID: <53764BF2.1030805@ti.com>
+References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com> <1400242640-9902-9-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5374B7B8.4060604@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, vinod.koul@intel.com, linux-kernel@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48884 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757735AbaEPReN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 May 2014 13:34:13 -0400
+In-Reply-To: <1400242640-9902-9-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, nsekhar@ti.com, arnd@arndb.de
+Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 
-On 05/15/2014 07:48 AM, Sekhar Nori wrote:
-> On Thursday 15 May 2014 06:00 PM, Peter Ujfalusi wrote:
+On 05/16/2014 07:17 AM, Peter Ujfalusi wrote:
+> From CCCFG register of eDMA3 we can get all the needed information for the
+> driver about the IP:
+> Number of channels: NUM_DMACH
+> Number of regions: NUM_REGN
+> Number of slots (PaRAM sets): NUM_PAENTRY
+> Number of TC/EQ: NUM_EVQUE
 > 
->> The second controller is not handled because in DT boot we only handle 1 cc as
->> far as I know. I don't know why, but this is how the DT support has been
->> written and used.
+> In case when booted with DT or the queue_priority_mapping is not provided
+> set up a default priority map.
+
+Thanks.
+
+Acked-by: Joel Fernandes <joelf@ti.com>
+
+
 > 
-> Its just because none of the platforms under heavy development use two
-> controllers. Joel promised to work on it at some point ;)
-
-Yeah, often things like that go down in priority when there aren't
-users, and when other things on fire need to be tended to :-D
-
-I think the next on-fire thing as far as EDMA goes would be to move out
-into drivers/edma. I like Peter's series in that it probably is a step
-forward there.
-
-thanks,
-
--Joel
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  arch/arm/common/edma.c | 115 +++++++++++++++++++++++++++++++------------------
+>  1 file changed, 73 insertions(+), 42 deletions(-)
+> 
+> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+> index aa9473cb0c23..485be42519b9 100644
+> --- a/arch/arm/common/edma.c
+> +++ b/arch/arm/common/edma.c
+> @@ -102,7 +102,13 @@
+>  #define PARM_OFFSET(param_no)	(EDMA_PARM + ((param_no) << 5))
+>  
+>  #define EDMA_DCHMAP	0x0100  /* 64 registers */
+> -#define CHMAP_EXIST	BIT(24)
+> +
+> +/* CCCFG register */
+> +#define GET_NUM_DMACH(x)	(x & 0x7) /* bits 0-2 */
+> +#define GET_NUM_PAENTRY(x)	((x & 0x7000) >> 12) /* bits 12-14 */
+> +#define GET_NUM_EVQUE(x)	((x & 0x70000) >> 16) /* bits 16-18 */
+> +#define GET_NUM_REGN(x)		((x & 0x300000) >> 20) /* bits 20-21 */
+> +#define CHMAP_EXIST		BIT(24)
+>  
+>  #define EDMA_MAX_DMACH           64
+>  #define EDMA_MAX_PARAMENTRY     512
+> @@ -1408,6 +1414,67 @@ void edma_clear_event(unsigned channel)
+>  }
+>  EXPORT_SYMBOL(edma_clear_event);
+>  
+> +static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
+> +			      struct edma *edma_cc)
+> +{
+> +	int i;
+> +	u32 value, cccfg;
+> +	s8 (*queue_priority_map)[2];
+> +
+> +	/* Decode the eDMA3 configuration from CCCFG register */
+> +	cccfg = edma_read(0, EDMA_CCCFG);
+> +
+> +	value = GET_NUM_REGN(cccfg);
+> +	edma_cc->num_region = BIT(value);
+> +
+> +	value = GET_NUM_DMACH(cccfg);
+> +	edma_cc->num_channels = BIT(value + 1);
+> +
+> +	value = GET_NUM_PAENTRY(cccfg);
+> +	edma_cc->num_slots = BIT(value + 4);
+> +
+> +	value = GET_NUM_EVQUE(cccfg);
+> +	edma_cc->num_tc = value + 1;
+> +
+> +	dev_dbg(dev, "eDMA3 HW configuration (cccfg: 0x%08x):\n", cccfg);
+> +	dev_dbg(dev, "num_region: %u\n", edma_cc->num_region);
+> +	dev_dbg(dev, "num_channel: %u\n", edma_cc->num_channels);
+> +	dev_dbg(dev, "num_slot: %u\n", edma_cc->num_slots);
+> +	dev_dbg(dev, "num_tc: %u\n", edma_cc->num_tc);
+> +
+> +	/* Nothing need to be done if queue priority is provided */
+> +	if (pdata->queue_priority_mapping)
+> +		return 0;
+> +
+> +	/*
+> +	 * Configure TC/queue priority as follows:
+> +	 * Q0 - priority 0
+> +	 * Q1 - priority 1
+> +	 * Q2 - priority 2
+> +	 * ...
+> +	 * The meaning of priority numbers: 0 highest priority, 7 lowest
+> +	 * priority. So Q0 is the highest priority queue and the last queue has
+> +	 * the lowest priority.
+> +	 */
+> +	queue_priority_map = devm_kzalloc(dev,
+> +					  (edma_cc->num_tc + 1) * sizeof(s8),
+> +					  GFP_KERNEL);
+> +	if (!queue_priority_map)
+> +		return -ENOMEM;
+> +
+> +	for (i = 0; i < edma_cc->num_tc; i++) {
+> +		queue_priority_map[i][0] = i;
+> +		queue_priority_map[i][1] = i;
+> +	}
+> +	queue_priority_map[i][0] = -1;
+> +	queue_priority_map[i][1] = -1;
+> +
+> +	pdata->queue_priority_mapping = queue_priority_map;
+> +	pdata->default_queue = 0;
+> +
+> +	return 0;
+> +}
+> +
+>  #if IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_DMADEVICES)
+>  
+>  static int edma_xbar_event_map(struct device *dev, struct device_node *node,
+> @@ -1458,50 +1525,16 @@ static int edma_of_parse_dt(struct device *dev,
+>  			    struct device_node *node,
+>  			    struct edma_soc_info *pdata)
+>  {
+> -	int ret = 0, i;
+> -	u32 value;
+> +	int ret = 0;
+>  	struct property *prop;
+>  	size_t sz;
+>  	struct edma_rsv_info *rsv_info;
+> -	s8 (*queue_priority_map)[2];
+> -
+> -	ret = of_property_read_u32(node, "dma-channels", &value);
+> -	if (ret < 0)
+> -		return ret;
+> -	pdata->n_channel = value;
+> -
+> -	ret = of_property_read_u32(node, "ti,edma-regions", &value);
+> -	if (ret < 0)
+> -		return ret;
+> -	pdata->n_region = value;
+> -
+> -	ret = of_property_read_u32(node, "ti,edma-slots", &value);
+> -	if (ret < 0)
+> -		return ret;
+> -	pdata->n_slot = value;
+> -
+> -	pdata->n_tc = 3;
+>  
+>  	rsv_info = devm_kzalloc(dev, sizeof(struct edma_rsv_info), GFP_KERNEL);
+>  	if (!rsv_info)
+>  		return -ENOMEM;
+>  	pdata->rsv = rsv_info;
+>  
+> -	queue_priority_map = devm_kzalloc(dev, 8*sizeof(s8), GFP_KERNEL);
+> -	if (!queue_priority_map)
+> -		return -ENOMEM;
+> -
+> -	for (i = 0; i < 3; i++) {
+> -		queue_priority_map[i][0] = i;
+> -		queue_priority_map[i][1] = i;
+> -	}
+> -	queue_priority_map[i][0] = -1;
+> -	queue_priority_map[i][1] = -1;
+> -
+> -	pdata->queue_priority_mapping = queue_priority_map;
+> -
+> -	pdata->default_queue = 0;
+> -
+>  	prop = of_find_property(node, "ti,edma-xbar-event-map", &sz);
+>  	if (prop)
+>  		ret = edma_xbar_event_map(dev, node, pdata, sz);
+> @@ -1621,14 +1654,12 @@ static int edma_probe(struct platform_device *pdev)
+>  		if (!edma_cc[j])
+>  			return -ENOMEM;
+>  
+> -		edma_cc[j]->num_channels = min_t(unsigned, info[j]->n_channel,
+> -							EDMA_MAX_DMACH);
+> -		edma_cc[j]->num_slots = min_t(unsigned, info[j]->n_slot,
+> -							EDMA_MAX_PARAMENTRY);
+> -		edma_cc[j]->num_tc = info[j]->n_tc;
+> +		/* Get eDMA3 configuration from IP */
+> +		ret = edma_setup_from_hw(dev, info[j], edma_cc[j]);
+> +		if (ret)
+> +			return ret;
+>  
+>  		edma_cc[j]->default_queue = info[j]->default_queue;
+> -		edma_cc[j]->num_region = info[j]->n_region;
+>  
+>  		dev_dbg(&pdev->dev, "DMA REG BASE ADDR=%p\n",
+>  			edmacc_regs_base[j]);
+> 
 
