@@ -1,59 +1,60 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 00/11] ARM: OMAP: OMAP5 & AM43x DSS
-Date: Fri, 16 May 2014 11:14:32 +0300
-Message-ID: <5375C8E8.1020209@ti.com>
-References: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com> <5370CBD5.3060107@ti.com> <20140512143604.GB31772@atomide.com> <5370E172.20009@ti.com> <20140512154850.GG31772@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: some hwmod data patches for v3.16
+Date: Fri, 16 May 2014 11:38:12 +0300
+Message-ID: <5375CE74.6000603@ti.com>
+References: <alpine.DEB.2.02.1405160444200.29738@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="Nh1VfcCmcTH9nrKgO9w56Rvni8Mc9XXxF"
+	boundary="DMiOGbnX7iUWaQlgmBl5ECIFdAQefGSnb"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49087 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756404AbaEPIO7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 May 2014 04:14:59 -0400
-In-Reply-To: <20140512154850.GG31772@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:42553 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756529AbaEPIik (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 04:38:40 -0400
+In-Reply-To: <alpine.DEB.2.02.1405160444200.29738@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Archit Taneja <archit@ti.com>, Tero Kristo <t-kristo@ti.com>
+To: Paul Walmsley <paul@pwsan.com>, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---Nh1VfcCmcTH9nrKgO9w56Rvni8Mc9XXxF
+--DMiOGbnX7iUWaQlgmBl5ECIFdAQefGSnb
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 12/05/14 18:48, Tony Lindgren wrote:
+Hi Paul,
 
->>> Also, I'm wondering why we still have .clk and .opt_clks entries in t=
-he
->>> hwmod data for am43xx and omap5 which are both device tree based with=
-
->>> all the clocks coming from .dts files?
->>
->> I think they are needed for the omap_device/hwmod stuff to work. Only
->> omapdss driver knows about the clocks defined in the .dts files, and t=
-he
->> omap_device/hwmod code still needs to do the reset and maybe some othe=
-r
->> tasks that require the clocks.
+On 16/05/14 07:45, Paul Walmsley wrote:
+> Hi Tony
 >=20
-> We're already populating the hwmod data from dts entries, that's done b=
-y
-> omap_device_build_from_dt. Why aren't we doing that for dt defined cloc=
-ks?
+> The following changes since commit d1db0eea852497762cab43b905b879dfcd3b=
+8987:
 >=20
-> I'd rather not start adding new data that will then just be removed, th=
-at's
-> what people call "pointless extra churn".
+>   Linux 3.15-rc3 (2014-04-27 19:29:27 -0700)
+>=20
+> are available in the git repository at:
+>=20
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git fo=
+r-v3.16/hwmod-a
+>=20
+> for you to fetch changes up to 433480707967187a74ced38bd38edba749998013=
+:
+>=20
+>   ARM: OMAP2+: hwmod: OMAP5 DSS hwmod data (2014-05-14 12:26:10 -0600)
+>=20
+> ----------------------------------------------------------------
+> First (and possibly last) set of hwmod data changes for v3.16.  This
+> set should clean up some obsolete OMAP4 hwmod data, and add OMAP5 DSS
+> support.
 
-I don't know why. I have to say I'm not 100% sure if that's done or not,
-but at least I can't find where it's done.
+What about the AM43xx hwmod data I sent in the same series:
+
+http://article.gmane.org/gmane.linux.ports.arm.omap/114192
 
  Tomi
 
 
-
---Nh1VfcCmcTH9nrKgO9w56Rvni8Mc9XXxF
+--DMiOGbnX7iUWaQlgmBl5ECIFdAQefGSnb
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -61,19 +62,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTdcjoAAoJEPo9qoy8lh718ecP/Rbuh5LQw2DrLMZlsJDrLGRk
-DkkLMwSBw7Ne0J9M6sh7CojRBGTr5U4o414GSkI6tw+UpIn/wuCfWd/LbzICTSTI
-qO9sN0skrZGTy9WbHl8hV1+vjrf6VldB9pV0U75C0UFwK58kpeFy42J2p1eC70Ha
-vcNPPKbfuYNObxV5JJ8o0lcIQExgUTRPejWB2+/4uHD041Pw6JRrOPfnRacAaIdW
-if7s+T3kWea3Ra/0P/vja2jZ8+aVEd19nDlKZeRxzMzJN2JTJant+jbB9hcJ8gSj
-k0OuMkJ7FWuowJiDKtyigfw9bH6w2BeISf/bKd8DmGcRYUi4rgXTDDc5CzglVl1q
-twIiHjGBcWdSbJugn8g9eW0u//mn+EgafzNRLkcLQb8G+nhh8MGcJFciVK4qfNMt
-L/0NZNbgU10dctq6V5bxwUhp1104mvemPPgrreRB9obDlpu293vRP9icIfZ9vYcM
-GmtB/zMY1ClChpXE8rmdlrpdWL80EbllFaOrAiNTuoOJ0hLMJqsCRPAtO2+Ehz9p
-cyoNAVEtLkfRpITkqmRIyosz8Cw6WU46YPVWcXN2XFJlFShZGc/vAuK9rhwUmioj
-yoAgnG6Kq4GJ3hflf6rxmOxVOy2ecg0pg5nLReRUGr6Qdc2d/pGiNgbvpIWHAXe4
-6uI2CJINLr6FePjZKd8R
-=gtn9
+iQIcBAEBAgAGBQJTdc50AAoJEPo9qoy8lh71+zkP/R7Visw5kCv6CAJul/syyXnH
+D2U1PnwBEe+8j1q2mUBU8eldCY0+Fkj2/uih0mMBPseFfWHg0c2XYQ8pbsvGZj4C
+9TtEPnwCub/r5yGggZJ2UgYo8kTvDypF+VBCxqGYsMmsF0NPtOZbtom+ctPlUDBd
+Xa6GRIkWgDlTa+66kh7qxUf6BkS+wksI9LCvQDwSP3BM0q3fhUXxM6bTiwTPR37v
+b2+H9DtV9WKIHNgHXFM1W4b5q62ftrbiVEyhhctzUD4sBaOctbHR2wJRUgV6aO5o
+lNsmulBrBvjWoZV+FbywnRTqD+YABBqOqQ/vRO8rwvnh8F472C5T0Cs0NrELRK+K
+kMeam5ffJed0jXwcwML6oqL+sCHdMQ8VZGVQtP49ztd0W8jiky57DKlhDI5VjNGQ
+JhNHIZ/tMWRECgi4oJVMMOt/iV7m27keeCNxWu4uMMXmQDxucVEtvfFfZofaZ3hH
+pwTeX4wuFzE1iUqZI4eyolEux5vYMHn/Glwhfc1tO9rHVnW8UQrHeGzh2zSKdLEk
+dEZHf8lGs3Z4y0wOoll/+lUUyIaP0b1lTWfrLcKpVrWclQBOlGmxqyjocP/dKal6
+EtdkDz7G8ihgc2ylVB8G19ZzbmAbCBHJ+9z8wmh955Ce0CdKfqC1KlL5l392xuX9
+pKSLiHh3XEv7ib6wSZmx
+=Gb2a
 -----END PGP SIGNATURE-----
 
---Nh1VfcCmcTH9nrKgO9w56Rvni8Mc9XXxF--
+--DMiOGbnX7iUWaQlgmBl5ECIFdAQefGSnb--
