@@ -1,92 +1,130 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
- support
-Date: Fri, 16 May 2014 11:01:54 -0700
-Message-ID: <20140516180154.GG22031@atomide.com>
-References: <5371F923.80000@ti.com>
- <CABxcv==_LCw1kPYm17g=h8VfSN2V_qsgXjTnsy-JOetawSv4pA@mail.gmail.com>
- <20140513152518.GA16837@atomide.com>
- <53730AFB.2090800@ti.com>
- <20140514160216.GD18463@atomide.com>
- <537487AE.3060906@ti.com>
- <20140515182133.GC23659@atomide.com>
- <5375A8A8.7080306@ti.com>
- <20140516160717.GD22031@atomide.com>
- <20140516174158.GA11733@earth.universe>
+From: Joachim Eastwood <manabian@gmail.com>
+Subject: Re: OMAP DSS: panel-dpi and enable gpios
+Date: Fri, 16 May 2014 20:28:49 +0200
+Message-ID: <CAGhQ9Vxxh=98qG6imYbZpfjzE03Fa=MmKLfzN40ASj=UVUJqVA@mail.gmail.com>
+References: <CAGhQ9VxDQaRzjCMm1RfxVmPt7Nk14ZTeS0-BmBfFDcxQNy__Tw@mail.gmail.com>
+	<5374BEBD.4060305@ti.com>
+	<CAGhQ9VwyrO-G4m8Rv-nEUujEmQn+tkDn+9=BwvhU-ZSk0eFtvg@mail.gmail.com>
+	<5375C1F1.7000606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27392 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756937AbaEPSCE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 14:02:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20140516174158.GA11733@earth.universe>
+Received: from mail-vc0-f169.google.com ([209.85.220.169]:49447 "EHLO
+	mail-vc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757831AbaEPS2u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 14:28:50 -0400
+Received: by mail-vc0-f169.google.com with SMTP id ij19so6792175vcb.0
+        for <linux-omap@vger.kernel.org>; Fri, 16 May 2014 11:28:49 -0700 (PDT)
+In-Reply-To: <5375C1F1.7000606@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@ring0.de> [140516 10:42]:
-> On Fri, May 16, 2014 at 09:07:17AM -0700, Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [140515 22:57]:
-> > > On 15/05/14 21:21, Tony Lindgren wrote:
-> > > >> But you're right, having "sharp,ls037v7dw01-omap-dss" in the .dts is an
-> > > >> alternative for the compatible-string conversion we do now. I guess it's
-> > > >> a matter of taste, but I rather hide it inside the kernel, in an
-> > > >> internal omapdss file, than pollute the .dts files with those compatible
-> > > >> strings.
-> > > > 
-> > > > Well it avoid you parsing through all the nodes during booting
-> > > > and leaves out the function to do remapping. And removes the need
-> > > > for maintaining a custom display mapping table. I'd say that's a
-> > > > pretty good list of advantages right there :)
-> > > 
-> > > Yep... I don't know. Maybe I'm being too careful about doing wrong
-> > > things with .dts. I just like it more if any hacks are in kernel code,
-> > > which I can remove without anyone noticing.
-> > > 
-> > > Anyway, we already have board.dts files using the non-omapified
-> > > compatible strings in the mainline, so if I would now add the omapified
-> > > compatible strings to .dts files, those old board.dts files would break.
-> > > 
-> > > So I guess the choice has already been made.
-> > 
-> > I really think you should remove this misuse of device tree code ASAP.
-> > It's better to fix it up now than carry the hack for next two years
-> > and keep on adding to it.
-> 
-> IMHO appending -omap-dss to a random device is an even bigger hack,
-> since its adding lots of bloat to the API. Let's assume there is
-> another OS using DT for ARM, but has no proper API for SPI
-> controllers and it introduces your hack to SPI devices. That would
-> mean each SPI device has -omap-spi appended (or -exynos-spi,
-> -foo-spi, ...). At least I would blame them for creating a huge
-> unmaintainable mess.
+On 16 May 2014 09:44, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 16/05/14 00:02, Joachim Eastwood wrote:
+>> On 15 May 2014 15:18, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+>>> On 12/05/14 20:58, Joachim Eastwood wrote:
+>>>> Hello Tomi,
+>>>>
+>>>> There seems to be a mismatch between your panel-dpi code and DT docs.
+>>>>
+>>>> The docs state that enable-gpios is optinal but in panel-dpi.c you
+>>>> have the following code
+>>>> gpio = devm_gpiod_get(&pdev->dev, "enable");
+>>>> if (IS_ERR(gpio)) {
+>>>>     dev_err(&pdev->dev, "failed to parse enable gpio\n");
+>>>>     return PTR_ERR(gpio);
+>>>> } else {
+>>>>     gpiod_direction_output(gpio, 0);
+>>>>     ddata->enable_gpio = gpio;
+>>>> }
+>>>>
+>>>> Making probing fail on my DT since I don't use enable-gpios with
+>>>
+>>> Would this work? Only compile tested.
+>>>
+>>> diff --git a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+>>> index dca6b10d1157..2ac38eaa4c8f 100644
+>>> --- a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+>>> +++ b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+>>> @@ -210,14 +210,19 @@ static int panel_dpi_probe_of(struct platform_device *pdev)
+>>>         struct gpio_desc *gpio;
+>>>
+>>>         gpio = devm_gpiod_get(&pdev->dev, "enable");
+>>> +
+>>>         if (IS_ERR(gpio)) {
+>>> -               dev_err(&pdev->dev, "failed to parse enable gpio\n");
+>>> -               return PTR_ERR(gpio);
+>>> +               r = PTR_ERR(gpio);
+>>> +               if (r == -EPROBE_DEFER || r != -ENOENT)
+>>> +                       return r;
+>>> +               else
+>>> +                       gpio = NULL;
+>>>         } else {
+>>>                 gpiod_direction_output(gpio, 0);
+>>> -               ddata->enable_gpio = gpio;
+>>>         }
+>>>
+>>> +       ddata->enable_gpio = gpio;
+>>> +
+>>>         ddata->backlight_gpio = -ENOENT;
+>>>
+>>>         r = of_get_display_timing(node, "panel-timing", &timing);
+>>
+>> Seems to do the trick here.
+>>
+>> Display is showing Tux's on boot up again :)
+>
+> The check above was a bit too complex. Here's an updated patch.
+>
+> From f48b44ca73e29b2328e7852d9beb06b161bb1cb4 Mon Sep 17 00:00:00 2001
+> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Date: Thu, 15 May 2014 16:19:44 +0300
+> Subject: [PATCH] OMAPDSS: panel-dpi: enable-gpio
+>
+> The enable gpio should be optional, but the driver returns an error if
+> it doesn't get the gpio.
+>
+> So change the driver to accept -ENOENT error.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  drivers/video/fbdev/omap2/displays-new/panel-dpi.c | 10 +++++++---
+>  1 file changed, 7 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+> index dca6b10d1157..3636b61dc9b4 100644
+> --- a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+> +++ b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+> @@ -210,14 +210,18 @@ static int panel_dpi_probe_of(struct platform_device *pdev)
+>         struct gpio_desc *gpio;
+>
+>         gpio = devm_gpiod_get(&pdev->dev, "enable");
+> +
+>         if (IS_ERR(gpio)) {
+> -               dev_err(&pdev->dev, "failed to parse enable gpio\n");
+> -               return PTR_ERR(gpio);
+> +               if (PTR_ERR(gpio) != -ENOENT)
+> +                       return PTR_ERR(gpio);
+> +               else
+> +                       gpio = NULL;
+>         } else {
+>                 gpiod_direction_output(gpio, 0);
+> -               ddata->enable_gpio = gpio;
+>         }
+>
+> +       ddata->enable_gpio = gpio;
+> +
+>         ddata->backlight_gpio = -ENOENT;
+>
+>         r = of_get_display_timing(node, "panel-timing", &timing);
+> --
+> 1.9.1
 
-I think you're misunderstanding. I do not want the naming to
-be Linux specific. The naming should naturally be as hardware
-specific as possible. In this case something like:
+Tested-by: Joachim Eastwood <manabian@gmail.com>
 
-compatible = "sharp,ls037v7dw01-dss", "sharp,ls037v7dw01";
+This also works fine.
 
-Or we should probably use:
-
-compatible = "sharp,ls037v7dw01-dpi", "sharp,ls037v7dw01";
-
-As dpi here reflects the hardware it's connected to. The dss
-is probably a Linux name.
-
-Not use what you're after with the SPI example though, but sounds
-like that's something different.
-
-> I think Tomi's workaround is a much better hack, since it keeps the
-> API clean. If the code simply prefixes "omapdss," to all
-> "child"-devices of omapdss it can be left mostly untouched, too.
-
-AFAIK that remapping not needed at all. All that is already
-available with the compatible flags.
-
-Regards,
-
-Tony
+regards
+Joachim Eastwood
