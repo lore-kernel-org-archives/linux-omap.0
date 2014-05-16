@@ -1,197 +1,68 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/4] OMAPDSS: panel sharp-ls037v7dw01 DT support
-Date: Fri, 16 May 2014 10:30:00 +0300
-Message-ID: <1400225402-18274-3-git-send-email-tomi.valkeinen@ti.com>
-References: <1400225402-18274-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 0/4] OMAPDSS: sharp-ls037v7dw01 DT support
+Date: Fri, 16 May 2014 10:29:58 +0300
+Message-ID: <1400225402-18274-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42834 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34584 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754536AbaEPHa7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 May 2014 03:30:59 -0400
-In-Reply-To: <1400225402-18274-1-git-send-email-tomi.valkeinen@ti.com>
+	id S1751956AbaEPHaz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 May 2014 03:30:55 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-From: Tony Lindgren <tony@atomide.com>
+Hi,
 
-Add DT support for sharp-ls037v7dw01.
+These are slightly reworked versions of the patches Tony sent:
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- .../omap2/displays-new/panel-sharp-ls037v7dw01.c   | 102 ++++++++++++++++++++-
- 1 file changed, 99 insertions(+), 3 deletions(-)
+* Split the DT doc into separate patch
+* Handle errors from gpio functions
+* Remove QVGA support
+* Removed the change to arch/arm/mach-omap2/display.c. I'll add that to my
+  patch which moves the conversion code to omapdss. Note that if you test this
+  version, you need to add the panel name to the conversion list for now.
+* Set MO gpio GPIO_ACTIVE_HIGH in omap3-evm-common.dtsi
+* Set the GPIO default values the same way for DT and non-DT versions.
 
-diff --git a/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c b/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
-index 015d49300f2f..f1f72ce50a17 100644
---- a/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
-+++ b/drivers/video/fbdev/omap2/displays-new/panel-sharp-ls037v7dw01.c
-@@ -12,15 +12,18 @@
- #include <linux/delay.h>
- #include <linux/gpio.h>
- #include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_gpio.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
--
-+#include <linux/regulator/consumer.h>
- #include <video/omapdss.h>
- #include <video/omap-panel-data.h>
- 
- struct panel_drv_data {
- 	struct omap_dss_device dssdev;
- 	struct omap_dss_device *in;
-+	struct regulator *vcc;
- 
- 	int data_lines;
- 
-@@ -95,12 +98,21 @@ static int sharp_ls_enable(struct omap_dss_device *dssdev)
- 	if (omapdss_device_is_enabled(dssdev))
- 		return 0;
- 
--	in->ops.dpi->set_data_lines(in, ddata->data_lines);
-+	if (ddata->data_lines)
-+		in->ops.dpi->set_data_lines(in, ddata->data_lines);
- 	in->ops.dpi->set_timings(in, &ddata->videomode);
- 
-+	if (ddata->vcc) {
-+		r = regulator_enable(ddata->vcc);
-+		if (r != 0)
-+			return r;
-+	}
-+
- 	r = in->ops.dpi->enable(in);
--	if (r)
-+	if (r) {
-+		regulator_disable(ddata->vcc);
- 		return r;
-+	}
- 
- 	/* wait couple of vsyncs until enabling the LCD */
- 	msleep(50);
-@@ -136,6 +148,9 @@ static void sharp_ls_disable(struct omap_dss_device *dssdev)
- 
- 	in->ops.dpi->disable(in);
- 
-+	if (ddata->vcc)
-+		regulator_disable(ddata->vcc);
-+
- 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
- }
- 
-@@ -249,6 +264,75 @@ static int sharp_ls_probe_pdata(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static  int sharp_ls_get_gpio_of(struct device *dev, int index, int val,
-+	const char *desc, struct gpio_desc **gpiod)
-+{
-+	struct gpio_desc *gd;
-+	int r;
-+
-+	*gpiod = NULL;
-+
-+	gd = devm_gpiod_get_index(dev, desc, index);
-+	if (IS_ERR(gd))
-+		return PTR_ERR(gd) == -ENOENT ? 0 : PTR_ERR(gd);
-+
-+	r = gpiod_direction_output(gd, val);
-+	if (r)
-+		return r;
-+
-+	*gpiod = gd;
-+	return 0;
-+}
-+
-+static int sharp_ls_probe_of(struct platform_device *pdev)
-+{
-+	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-+	struct device_node *node = pdev->dev.of_node;
-+	struct omap_dss_device *in;
-+	int r;
-+
-+	ddata->vcc = devm_regulator_get(&pdev->dev, "envdd");
-+	if (IS_ERR(ddata->vcc)) {
-+		dev_err(&pdev->dev, "failed to get regulator\n");
-+		return PTR_ERR(ddata->vcc);
-+	}
-+
-+	/* lcd INI */
-+	r = sharp_ls_get_gpio_of(&pdev->dev, 0, 0, "enable", &ddata->ini_gpio);
-+	if (r)
-+		return r;
-+
-+	/* lcd RESB */
-+	r = sharp_ls_get_gpio_of(&pdev->dev, 0, 0, "reset", &ddata->resb_gpio);
-+	if (r)
-+		return r;
-+
-+	/* lcd MO */
-+	r = sharp_ls_get_gpio_of(&pdev->dev, 0, 0, "mode", &ddata->mo_gpio);
-+	if (r)
-+		return r;
-+
-+	/* lcd LR */
-+	r = sharp_ls_get_gpio_of(&pdev->dev, 1, 1, "mode", &ddata->lr_gpio);
-+	if (r)
-+		return r;
-+
-+	/* lcd UD */
-+	r = sharp_ls_get_gpio_of(&pdev->dev, 2, 1, "mode", &ddata->ud_gpio);
-+	if (r)
-+		return r;
-+
-+	in = omapdss_of_find_source_for_first_ep(node);
-+	if (IS_ERR(in)) {
-+		dev_err(&pdev->dev, "failed to find video source\n");
-+		return PTR_ERR(in);
-+	}
-+
-+	ddata->in = in;
-+
-+	return 0;
-+}
-+
- static int sharp_ls_probe(struct platform_device *pdev)
- {
- 	struct panel_drv_data *ddata;
-@@ -265,6 +349,10 @@ static int sharp_ls_probe(struct platform_device *pdev)
- 		r = sharp_ls_probe_pdata(pdev);
- 		if (r)
- 			return r;
-+	} else if (pdev->dev.of_node) {
-+		r = sharp_ls_probe_of(pdev);
-+		if (r)
-+			return r;
- 	} else {
- 		return -ENODEV;
- 	}
-@@ -308,12 +396,20 @@ static int __exit sharp_ls_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static const struct of_device_id sharp_ls_of_match[] = {
-+	{ .compatible = "omapdss,sharp,ls037v7dw01", },
-+	{},
-+};
-+
-+MODULE_DEVICE_TABLE(of, sharp_ls_of_match);
-+
- static struct platform_driver sharp_ls_driver = {
- 	.probe = sharp_ls_probe,
- 	.remove = __exit_p(sharp_ls_remove),
- 	.driver = {
- 		.name = "panel-sharp-ls037v7dw01",
- 		.owner = THIS_MODULE,
-+		.of_match_table = sharp_ls_of_match,
- 	},
- };
- 
+Tony, I removed the QVGA support as it was a new feature, not supported by the
+non-DT version. Also, I don't think it should be done as you had implemented
+it, but rather either have a flag in the DT data in case the pin is hardwired
+in the hardware, or let the user select the mode at runtime.
+
+Also, I didn't quite understand the implementation. You had set initial values
+in the driver for MO and RESB differently than on the non-DT version. Was that
+on purpose?
+
+You said in a comment: "The LCD is sideways, so we want the VGA mode instead of
+QVGA mode.". Why is that? How does the resolution affect the orientation?
+
+With my version, the panel (should) always be in VGA mode, like the non-DT
+version does.
+
+Only compile tested, I don't have boards with the panel.
+
+ Tomi
+
+Tony Lindgren (4):
+  OMAPDSS: panel-sharp-ls037v7dw01: update to use gpiod
+  OMAPDSS: panel sharp-ls037v7dw01 DT support
+  Doc/DT: Add DT binding documentation for SHARP LS037V7DW01
+  ARM: dts: Add LCD panel sharp ls037v7dw01 support for omap3-evm and
+    ldp
+
+ .../bindings/video/sharp,ls037v7dw01.txt           |  43 +++++
+ arch/arm/boot/dts/omap3-evm-37xx.dts               |  50 +++++
+ arch/arm/boot/dts/omap3-evm-common.dtsi            |  26 +++
+ arch/arm/boot/dts/omap3-ldp.dts                    |  29 ++-
+ .../boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi    |  67 +++++++
+ .../omap2/displays-new/panel-sharp-ls037v7dw01.c   | 210 +++++++++++++++------
+ 6 files changed, 363 insertions(+), 62 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/video/sharp,ls037v7dw01.txt
+ create mode 100644 arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi
+
 -- 
 1.9.1
 
