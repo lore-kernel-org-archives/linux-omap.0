@@ -1,113 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 6/6] mmc: omap_hsmmc: split omap-dma header file
-Date: Fri, 16 May 2014 14:41:17 -0700
-Message-ID: <20140516214116.GM12881@atomide.com>
-References: <1399654013-28262-1-git-send-email-balajitk@ti.com>
- <1399654013-28262-7-git-send-email-balajitk@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: a few more clock/hwmod fixes for v3.15-rc
+Date: Fri, 16 May 2014 14:44:02 -0700
+Message-ID: <20140516214401.GN12881@atomide.com>
+References: <alpine.DEB.2.02.1405141850410.21921@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32912 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755874AbaEPVoI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 17:44:08 -0400
 Content-Disposition: inline
-In-Reply-To: <1399654013-28262-7-git-send-email-balajitk@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-mmc@vger.kernel.org, chris@printf.net, ulf.hansson@linaro.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
+In-Reply-To: <alpine.DEB.2.02.1405141850410.21921@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Balaji T K <balajitk@ti.com> [140509 09:47]:
-> moving dmaengine consumer specific function to omap-dmaengine.h
-> to Resolve build failure seen with sh-allmodconfig:
->     include/linux/omap-dma.h:171:8: error: expected identifier before numeric constant
->     make[4]: *** [drivers/mmc/host/omap_hsmmc.o] Error 1
+* Paul Walmsley <paul@pwsan.com> [140514 11:52]:
+> Hi Tony,
 > 
-> Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c  |    2 +-
->  include/linux/omap-dma.h       |   19 +------------------
->  include/linux/omap-dmaengine.h |   21 +++++++++++++++++++++
->  3 files changed, 23 insertions(+), 19 deletions(-)
->  create mode 100644 include/linux/omap-dmaengine.h
+> The following changes since commit c9eaa447e77efe77b7fa4c953bd62de8297fd6c5:
 > 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index cba71d6..6b7b755 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -31,7 +31,7 @@
->  #include <linux/of.h>
->  #include <linux/of_gpio.h>
->  #include <linux/of_device.h>
-> -#include <linux/omap-dma.h>
-> +#include <linux/omap-dmaengine.h>
->  #include <linux/mmc/host.h>
->  #include <linux/mmc/core.h>
->  #include <linux/mmc/mmc.h>
-> diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
-> index 41a13e7..999f52d 100644
-> --- a/include/linux/omap-dma.h
-> +++ b/include/linux/omap-dma.h
-> @@ -1,23 +1,6 @@
-> -/*
-> - * OMAP DMA Engine support
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License version 2 as
-> - * published by the Free Software Foundation.
-> - */
->  #ifndef __LINUX_OMAP_DMA_H
->  #define __LINUX_OMAP_DMA_H
-> -
-> -struct dma_chan;
-> -
-> -#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
-> -bool omap_dma_filter_fn(struct dma_chan *, void *);
-> -#else
-> -static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
-> -{
-> -	return false;
-> -}
-> -#endif
-> +#include <linux/omap-dmaengine.h>
+>   Linux 3.15-rc1 (2014-04-13 14:18:35 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git for-v3.15-rc/omap-fixes-b
+> 
+> for you to fetch changes up to 0f9e19ad88eee820f517b85531b555a0fa73e7e4:
+> 
+>   ARM: omap5: hwmod_data: Correct IDLEMODE for McPDM (2014-05-14 11:25:58 -0600)
+> 
+> ----------------------------------------------------------------
+> Two small OMAP fixes for v3.15-rc.  One fixes "slow motion" or
+> "choppy" audio playback on OMAP5.  The other applies an OMAP3630 fix
+> for clock rate setting for camera to other OMAP3 chips.
+> 
+> Basic build, boot, and PM test results are available here:
+> 
+> http://www.pwsan.com/omap/testlogs/prcm-fixes-b-v3.15-rc/20140514112639/
 
-Can't the drivers needing this include it directly?
-
-Also, has this been tested with make randconfig? Changes like
-this can easily cause problems elsewhere..
+Thanks pulling into omap-for-v3.15/fixes-v3.
 
 Regards,
 
 Tony
-  
->  /*
->   *  Legacy OMAP DMA handling defines and functions
-> diff --git a/include/linux/omap-dmaengine.h b/include/linux/omap-dmaengine.h
-> new file mode 100644
-> index 0000000..2b0b6aa
-> --- /dev/null
-> +++ b/include/linux/omap-dmaengine.h
-> @@ -0,0 +1,21 @@
-> +/*
-> + * OMAP DMA Engine support
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +#ifndef __LINUX_OMAP_DMAENGINE_H
-> +#define __LINUX_OMAP_DMAENGINE_H
-> +
-> +struct dma_chan;
-> +
-> +#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
-> +bool omap_dma_filter_fn(struct dma_chan *, void *);
-> +#else
-> +static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
-> +{
-> +	return false;
-> +}
-> +#endif
-> +#endif /* __LINUX_OMAP_DMAENGINE_H */
-> -- 
-> 1.7.5.4
+ 
+> ----------------------------------------------------------------
+> Laurent Pinchart (1):
+>       ARM: OMAP3: clock: Back-propagate rate change from cam_mclk to dpll4_m5 on all OMAP3 platforms
+> 
+> Peter Ujfalusi (1):
+>       ARM: omap5: hwmod_data: Correct IDLEMODE for McPDM
+> 
+>  arch/arm/mach-omap2/cclock3xxx_data.c      | 3 ++-
+>  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 2 +-
+>  2 files changed, 3 insertions(+), 2 deletions(-)
 > 
