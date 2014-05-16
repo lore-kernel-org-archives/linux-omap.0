@@ -1,40 +1,58 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2] ARM: OMAP: replace checks for CONFIG_USB_GADGET_OMAP
-Date: Fri, 16 May 2014 14:15:39 -0700
-Message-ID: <20140516211539.GH12881@atomide.com>
-References: <1400187345.11786.28.camel@x220>
- <20140515231229.GA25523@saruman.home>
- <1400232974.20342.22.camel@x220>
- <1400234457.20342.25.camel@x220>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: some hwmod data patches for v3.16
+Date: Fri, 16 May 2014 14:23:27 -0700
+Message-ID: <20140516212327.GI12881@atomide.com>
+References: <alpine.DEB.2.02.1405160444200.29738@utopia.booyaka.com>
+ <5375CE74.6000603@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50133 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753737AbaEPVXc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 17:23:32 -0400
 Content-Disposition: inline
-In-Reply-To: <1400234457.20342.25.camel@x220>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
-Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <5375CE74.6000603@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org> [140516 03:01]:
-> Commit 193ab2a60700 ("usb: gadget: allow multiple gadgets to be built")
-> apparently required that checks for CONFIG_USB_GADGET_OMAP would be
-> replaced with checks for CONFIG_USB_OMAP. Do so now for the remaining
-> checks for CONFIG_USB_GADGET_OMAP, even though these checks have
-> basically been broken since v3.1.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140516 01:39]:
+> Hi Paul,
 > 
-> And, since we're touching this code, use the IS_ENABLED() macro, so
-> things will now (hopefully) also work if USB_OMAP is modular.
+> On 16/05/14 07:45, Paul Walmsley wrote:
+> > Hi Tony
+> > 
+> > The following changes since commit d1db0eea852497762cab43b905b879dfcd3b8987:
+> > 
+> >   Linux 3.15-rc3 (2014-04-27 19:29:27 -0700)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git for-v3.16/hwmod-a
+> > 
+> > for you to fetch changes up to 433480707967187a74ced38bd38edba749998013:
+> > 
+> >   ARM: OMAP2+: hwmod: OMAP5 DSS hwmod data (2014-05-14 12:26:10 -0600)
+> > 
+> > ----------------------------------------------------------------
+> > First (and possibly last) set of hwmod data changes for v3.16.  This
+> > set should clean up some obsolete OMAP4 hwmod data, and add OMAP5 DSS
+> > support.
 > 
-> Fixes: 193ab2a60700 ("usb: gadget: allow multiple gadgets to be built")
-> Signed-off-by: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
-> ---
-> v2: us IS_ENABLED() as Felipe requested. Still untested.
+> What about the AM43xx hwmod data I sent in the same series:
+> 
+> http://article.gmane.org/gmane.linux.ports.arm.omap/114192
 
-Thanks applying into omap-for-v3.16/board.
+I guess the issue there is that there's no way for Paul or much
+anybody else to check it against any documentation or hardware :(
+
+Is this just cut and paste code, or has you verified it against
+the documentation and the hardare?
+
+Anyways, pulling this set into omap-for-v3.16/soc thanks.
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
