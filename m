@@ -1,130 +1,85 @@
 From: Joachim Eastwood <manabian@gmail.com>
-Subject: Re: OMAP DSS: panel-dpi and enable gpios
-Date: Fri, 16 May 2014 20:28:49 +0200
-Message-ID: <CAGhQ9Vxxh=98qG6imYbZpfjzE03Fa=MmKLfzN40ASj=UVUJqVA@mail.gmail.com>
-References: <CAGhQ9VxDQaRzjCMm1RfxVmPt7Nk14ZTeS0-BmBfFDcxQNy__Tw@mail.gmail.com>
-	<5374BEBD.4060305@ti.com>
-	<CAGhQ9VwyrO-G4m8Rv-nEUujEmQn+tkDn+9=BwvhU-ZSk0eFtvg@mail.gmail.com>
-	<5375C1F1.7000606@ti.com>
+Subject: Re: DSS and HDMI kernel panic on OMAP4
+Date: Fri, 16 May 2014 20:48:25 +0200
+Message-ID: <CAGhQ9VzJKbyugFCv-4nFpgzNLKbwUhCPDs91z5FZiXrd0EoK-A@mail.gmail.com>
+References: <CAGhQ9VyEsX2FmJj4TWgrKMggz=zH--rrVKaztV6AWwLQZTsDUg@mail.gmail.com>
+	<CAGhQ9VxU1Zk0Prdq-PwkM=e8W6pZ=JXFa__xjCx4ofCVyWJ0kw@mail.gmail.com>
+	<5375A0F8.9000208@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f169.google.com ([209.85.220.169]:49447 "EHLO
-	mail-vc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757831AbaEPS2u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 14:28:50 -0400
-Received: by mail-vc0-f169.google.com with SMTP id ij19so6792175vcb.0
-        for <linux-omap@vger.kernel.org>; Fri, 16 May 2014 11:28:49 -0700 (PDT)
-In-Reply-To: <5375C1F1.7000606@ti.com>
+Received: from mail-ve0-f179.google.com ([209.85.128.179]:58211 "EHLO
+	mail-ve0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756626AbaEPSs0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 14:48:26 -0400
+Received: by mail-ve0-f179.google.com with SMTP id oy12so3548710veb.38
+        for <linux-omap@vger.kernel.org>; Fri, 16 May 2014 11:48:26 -0700 (PDT)
+In-Reply-To: <5375A0F8.9000208@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Jyri Sarha <jsarha@ti.com>, linux-omap@vger.kernel.org
 
-On 16 May 2014 09:44, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On 16/05/14 00:02, Joachim Eastwood wrote:
->> On 15 May 2014 15:18, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->>> On 12/05/14 20:58, Joachim Eastwood wrote:
->>>> Hello Tomi,
->>>>
->>>> There seems to be a mismatch between your panel-dpi code and DT docs.
->>>>
->>>> The docs state that enable-gpios is optinal but in panel-dpi.c you
->>>> have the following code
->>>> gpio = devm_gpiod_get(&pdev->dev, "enable");
->>>> if (IS_ERR(gpio)) {
->>>>     dev_err(&pdev->dev, "failed to parse enable gpio\n");
->>>>     return PTR_ERR(gpio);
->>>> } else {
->>>>     gpiod_direction_output(gpio, 0);
->>>>     ddata->enable_gpio = gpio;
->>>> }
->>>>
->>>> Making probing fail on my DT since I don't use enable-gpios with
+On 16 May 2014 07:24, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 16/05/14 00:26, Joachim Eastwood wrote:
+>> On 15 May 2014 23:14, Joachim  Eastwood <manabian@gmail.com> wrote:
+>>> Hello Tomi,
 >>>
->>> Would this work? Only compile tested.
+>>> I wanted to test my Variscite patches after Tony merged them into his
+>>> 3.16 dt branch so created a base branch from Linus master and pull in
+>>> Tony's 3.16 dt and your dss for-next branch.
 >>>
->>> diff --git a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
->>> index dca6b10d1157..2ac38eaa4c8f 100644
->>> --- a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
->>> +++ b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
->>> @@ -210,14 +210,19 @@ static int panel_dpi_probe_of(struct platform_device *pdev)
->>>         struct gpio_desc *gpio;
+>>> I discovered that booting with a HDMI monitor connected or plugging in
+>>> one cause a kernel panic. See the log at:
+>>> http://slexy.org/raw/s20xo68UPx
 >>>
->>>         gpio = devm_gpiod_get(&pdev->dev, "enable");
->>> +
->>>         if (IS_ERR(gpio)) {
->>> -               dev_err(&pdev->dev, "failed to parse enable gpio\n");
->>> -               return PTR_ERR(gpio);
->>> +               r = PTR_ERR(gpio);
->>> +               if (r == -EPROBE_DEFER || r != -ENOENT)
->>> +                       return r;
->>> +               else
->>> +                       gpio = NULL;
->>>         } else {
->>>                 gpiod_direction_output(gpio, 0);
->>> -               ddata->enable_gpio = gpio;
->>>         }
+>>> Any idea what it could be?
 >>>
->>> +       ddata->enable_gpio = gpio;
->>> +
->>>         ddata->backlight_gpio = -ENOENT;
+>>> I also noted this in the boot log:
+>>> [ 0.984527] omapdss_hdmi 58006000.encoder: can't request region for
+>>> resource [mem 0x58006400-0x580073ff]
 >>>
->>>         r = of_get_display_timing(node, "panel-timing", &timing);
+>>> I don't think I have seen this before.
+>>>
+>>> What I previously have tested have been Linus master + my Variscite
+>>> patches and your panel-dpi dt + hdmi hpd patches cherry-picked.
 >>
->> Seems to do the trick here.
->>
->> Display is showing Tux's on boot up again :)
+>> Reverting "OMAPDSS: HDMI: cleanup ioremaps" 59b3d38a3691396783df108
+>> from your for-next branch fixes the problem.
 >
-> The check above was a bit too complex. Here's an updated patch.
->
-> From f48b44ca73e29b2328e7852d9beb06b161bb1cb4 Mon Sep 17 00:00:00 2001
-> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Date: Thu, 15 May 2014 16:19:44 +0300
-> Subject: [PATCH] OMAPDSS: panel-dpi: enable-gpio
->
-> The enable gpio should be optional, but the driver returns an error if
-> it doesn't get the gpio.
->
-> So change the driver to accept -ENOENT error.
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  drivers/video/fbdev/omap2/displays-new/panel-dpi.c | 10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
-> index dca6b10d1157..3636b61dc9b4 100644
-> --- a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
-> +++ b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
-> @@ -210,14 +210,18 @@ static int panel_dpi_probe_of(struct platform_device *pdev)
->         struct gpio_desc *gpio;
->
->         gpio = devm_gpiod_get(&pdev->dev, "enable");
-> +
->         if (IS_ERR(gpio)) {
-> -               dev_err(&pdev->dev, "failed to parse enable gpio\n");
-> -               return PTR_ERR(gpio);
-> +               if (PTR_ERR(gpio) != -ENOENT)
-> +                       return PTR_ERR(gpio);
-> +               else
-> +                       gpio = NULL;
->         } else {
->                 gpiod_direction_output(gpio, 0);
-> -               ddata->enable_gpio = gpio;
->         }
->
-> +       ddata->enable_gpio = gpio;
-> +
->         ddata->backlight_gpio = -ENOENT;
->
->         r = of_get_display_timing(node, "panel-timing", &timing);
-> --
-> 1.9.1
+> I think that's somehow HDMI audio enabled. I bet if you disable HDMI
+> audio, the error goes away.
 
-Tested-by: Joachim Eastwood <manabian@gmail.com>
+Yes, disabling HDMI audio config option makes the panic disappear. But
+since nothing prevents you from turning on this option this is not a
+solution.
 
-This also works fine.
+> If I cat /proc/iomem, I see:
+>
+> 58006000-58006fff : omap-hdmi-audio-dai
+>   58006200-580062ff : pll
+>   58006300-580063ff : phy
+>
+> Without sound support, I don't get the error and I see:
+>
+> 58006200-580062ff : pll
+> 58006300-580063ff : phy
+> 58006400-580073ff : core
+
+With the patch 59b3d38a36913 reverted I actually have 2
+"omap-hdmi-audio-dai" entries in iomem:
+48046000-48046fff : omap-hdmi-audio-dai
+58006000-58006fff : omap-hdmi-audio-dai
+
+The first one disappear after patch 59b3d38a36913 is applied.
+
+> Reverting 59b3d38a3691396783df108e6afbba30656edccb helps, because before
+> that patch the hdmi driver didn't actually reserve the regions.
+>
+> So, I don't really have any idea yet what's going on there, but the
+> problem is somewhere around hdmi audio.
+
+I see. Would be nice have this fixed before the stuff hits mainline.
 
 regards
 Joachim Eastwood
