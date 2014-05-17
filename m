@@ -1,121 +1,230 @@
 From: Joachim Eastwood <manabian@gmail.com>
-Subject: Re: [alsa-devel] [PATCH 00/19] Rework OMAP4+ HDMI audio support
-Date: Sat, 17 May 2014 11:16:15 +0200
-Message-ID: <CAGhQ9VyxKWZ9KSWoYkhf8KeUJnMKJO=b0kG=upC7uojNLHVObw@mail.gmail.com>
-References: <cover.1399884780.git.jsarha@ti.com>
-	<CAGhQ9VzjndCBp+ZHS3XPPvS4ors6u9BfHf4NY_HNYN5ynyQOYQ@mail.gmail.com>
-	<53733F2E.4030803@ti.com>
-	<CAGhQ9VzkGDPiQF7TiqiMgZY_oc9dyrW66yGsZR6ei2ejX-EXcw@mail.gmail.com>
-	<CAGhQ9VwY_qeOLsa_oAUuL3XT2tmn-mLg0WBtOdL8JL6u+0PQcw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH 1/2] ARM: dts: Convert DuoVero Parlor to use IOPAD macro
+Date: Sat, 17 May 2014 14:06:59 +0200
+Message-ID: <1400328420-28384-1-git-send-email-manabian@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f173.google.com ([209.85.220.173]:51863 "EHLO
-	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756689AbaEQJQR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 May 2014 05:16:17 -0400
-In-Reply-To: <CAGhQ9VwY_qeOLsa_oAUuL3XT2tmn-mLg0WBtOdL8JL6u+0PQcw@mail.gmail.com>
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:47409 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932247AbaEQMHv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 May 2014 08:07:51 -0400
+Received: by mail-lb0-f179.google.com with SMTP id c11so2680852lbj.24
+        for <linux-omap@vger.kernel.org>; Sat, 17 May 2014 05:07:50 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com, broonie@kernel.org, peter.ujfalusi@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Benoit Cousson <bcousson@baylibre.com>
+To: tony@atomide.com, bcousson@baylibre.com
+Cc: linux-omap@vger.kernel.org, Joachim Eastwood <manabian@gmail.com>, florian.vaussard@epfl.ch
 
-On 17 May 2014 10:51, Joachim  Eastwood <manabian@gmail.com> wrote:
-> On 14 May 2014 18:25, Joachim  Eastwood <manabian@gmail.com> wrote:
->> On 14 May 2014 12:02, Jyri Sarha <jsarha@ti.com> wrote:
->>> On 05/13/2014 12:13 AM, Joachim Eastwood wrote:
->>>>
->>>> On 12 May 2014 11:12, Jyri Sarha <jsarha@ti.com> wrote:
->>>
->>> ...
->>>
->>>>
->>>> hey, this worked straight away :)
->>>>
->>>> But there seems to be something wrong with the channel mapping.
->>>>
->>>> For stereo (speaker-test -c 2) the mapping is correct.
->>>>
->>>> But for -c 4 and -c 8 it gets weird:
->>>> speaker-test -c 4 -s X # where X is 1-4
->>>> 1: Front Left is Rear Left
->>>> 2: Front Right is Rear Right
->>>> 3: Rear Right is Front Right
->>>> 4: Rear Left is Front Left
->>>>
->>>> speaker-test -c 8 -s X # where X is 1-8
->>>> 1: Front Left is Rear Left
->>>> 2: Center is Rear Left
->>>> 3: Front Right is Rear Right
->>>> 4: Side Right is Front Right
->>>> 5: Rear Right is silent
->>>> 6: Rear Left is Center
->>>> 7: Side Left is Front Left
->>>> 8: LFE - Rear Right
->>>>
->>>> I think you need to check what channel order ALSA expects. I believe
->>>> speaker-test does the right thing on my HTPC normally connected to my
->>>> receiver.
->>>>
->>>
->>> I checked the implementation and there was indeed something weird there, but
->>> the implementation can not explain the FL and FR channels jumping around. FL
->>> and FL should always be the first two channels in all configurations and the
->>> implementation does not touch them.
->>>
->>> The implementation uses 8ch HDMI setup for anything above 2ch with "Audio
->>> InfoFrame Data Byte 4" set to 0x13. According to CEA-861 specs this means
->>> following channel order: FL, FR, LFE, FC, RL, RR, RLC, RRC
->>>
->>> This is a closest match to ALSA 8ch mapping (according to
->>> sound/core/pcm_lib.c) which is: FL, FR, FC, LFE, RL, RR, SL, SR
->>
->> hm, okey. I haven't look at the code but it do seem strange. But with
->> speaker-test -c 4 the front and back are surely swapped here.
->>
->> I'll do some more testing and also check with my HTPC. btw, I only
->> have a 5.1 setup over here so I can't test all the discrete channels.
->>
->>> Current implementation has FLE and FC channels correctly swapped, but it
->>> shifts them to last two channels and RL, RR, SL, SR are shifted down to fill
->>> the place. This is all wrong and I'll try to come up with a fix for that.
->>> Unfortunately I can not test anything beyond 2 ch myself so I would need
->>> someone to volunteer to test my patch.
->>
->> I have the dev kit setup up over here so I can test your patches.
->
-> I did some more testing over here.
->
-> My HTPC (nVidia ION2 based) works good with speaker-test and all
-> channels are where they are suppose to be.
->
-> On the OMAP4 board I tried doing: "while true; do speaker-test -c 4 -s
-> 1; done" and this had an interesting effect.
-> Most of the time FL (Front Left) is swapped with BL (Back Left) but
-> about every 10th time the sound comes out in the FL speaker... So
-> there something weird going on here. Same story for the right channel.
->
-> I also noticed that HDMI doesn't always work on boot up, it sometimes fail with:
-> [ 193.985565] omapdss_hdmi 58006000.encoder: audio not supported
-> [ 193.985565] omapdss_hdmi 58006000.encoder: ASoC: can't open
-> interface 58006000.encoder: -19
->
-> But after replugging the HDMI connector a couple of times it starts to work.
->
-> I'll see if I can try with an old TI OMAP4 kernel (3.4) and see how that works.
+Conversion done by following awk script.
+/0x[0-9a-f]{1,3} \(PIN/ {
+	offset = sprintf("OMAP4_IOPAD(0x%03x, ", strtonum($1) + 64)
+	sub(/0x[0-9a-f]{1,3} \(/, offset, $0)
+	print $0
+	next
+}
+{ print $0 }
 
-On the 3.4 Variscite kernel:
-Linux version 3.4.0-1489-omap4 (uri@pluto) (gcc version 4.6.3
-(Ubuntu/Linaro 4.6.3-1ubuntu5) ) #27 SMP PREEMPT Sun Apr 7 13:27:10
-IDT 2013
-git://dev.omapzoom.org/pub/scm/integration/kernel-ubuntu.git +
-Variscite vendor patches
+Cc: florian.vaussard@epfl.ch
+Signed-off-by: Joachim Eastwood <manabian@gmail.com>
+---
 
-Both speaker-test -c 4 and -c 8 works. All channels are where they are
-suppose to be.
+Hi,
 
-Hot plugging is broken, though. So the HDMI must be connected on boot,
-but that might be the Variscite board setup.
+Checked md5sum before and after patch and the resulting dtb is the same. So
+this should be safe.
 
-regards
-Joachim Eastwood
+ arch/arm/boot/dts/omap4-duovero-parlor.dts | 18 +++----
+ arch/arm/boot/dts/omap4-duovero.dtsi       | 84 +++++++++++++++---------------
+ 2 files changed, 51 insertions(+), 51 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap4-duovero-parlor.dts b/arch/arm/boot/dts/omap4-duovero-parlor.dts
+index 96f51d870812..cd53a64d8f2e 100644
+--- a/arch/arm/boot/dts/omap4-duovero-parlor.dts
++++ b/arch/arm/boot/dts/omap4-duovero-parlor.dts
+@@ -46,35 +46,35 @@
+ 
+ 	led_pins: pinmux_led_pins {
+ 		pinctrl-single,pins = <
+-			0xd6 (PIN_OUTPUT | MUX_MODE3)		/* abe_dmic_din3.gpio_122 */
++			OMAP4_IOPAD(0x116, PIN_OUTPUT | MUX_MODE3)		/* abe_dmic_din3.gpio_122 */
+ 		>;
+ 	};
+ 
+ 	button_pins: pinmux_button_pins {
+ 		pinctrl-single,pins = <
+-			0xd4 (PIN_INPUT_PULLUP | MUX_MODE3)	/* abe_dmic_din2.gpio_121 */
++			OMAP4_IOPAD(0x114, PIN_INPUT_PULLUP | MUX_MODE3)	/* abe_dmic_din2.gpio_121 */
+ 		>;
+ 	};
+ 
+ 	i2c2_pins: pinmux_i2c2_pins {
+ 		pinctrl-single,pins = <
+-			0xe6 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c2_scl */
+-			0xe8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c2_sda */
++			OMAP4_IOPAD(0x126, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c2_scl */
++			OMAP4_IOPAD(0x128, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c2_sda */
+ 		>;
+ 	};
+ 
+ 	i2c3_pins: pinmux_i2c3_pins {
+ 		pinctrl-single,pins = <
+-			0xea (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_scl */
+-			0xec (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_sda */
++			OMAP4_IOPAD(0x12a, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_scl */
++			OMAP4_IOPAD(0x12c, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_sda */
+ 		>;
+ 	};
+ 
+ 	smsc_pins: pinmux_smsc_pins {
+ 		pinctrl-single,pins = <
+-			0x28 (PIN_INPUT | MUX_MODE3)		/* gpmc_a20.gpio_44: IRQ */
+-			0x2a (PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_a21.gpio_45: nReset */
+-			0x30 (PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_a24.gpio_48: amdix enabled */
++			OMAP4_IOPAD(0x068, PIN_INPUT | MUX_MODE3)		/* gpmc_a20.gpio_44: IRQ */
++			OMAP4_IOPAD(0x06a, PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_a21.gpio_45: nReset */
++			OMAP4_IOPAD(0x070, PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_a24.gpio_48: amdix enabled */
+ 		>;
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/omap4-duovero.dtsi b/arch/arm/boot/dts/omap4-duovero.dtsi
+index a514791154eb..cc68a3b58648 100644
+--- a/arch/arm/boot/dts/omap4-duovero.dtsi
++++ b/arch/arm/boot/dts/omap4-duovero.dtsi
+@@ -74,93 +74,93 @@
+ 
+ 	twl6040_pins: pinmux_twl6040_pins {
+ 		pinctrl-single,pins = <
+-			0x126 (PIN_OUTPUT | MUX_MODE3)		/* usbb2_ulpitll_nxt.gpio_160 */
+-			0x160 (PIN_INPUT | MUX_MODE0)		/* sys_nirq2.sys_nirq2 */
++			OMAP4_IOPAD(0x166, PIN_OUTPUT | MUX_MODE3)		/* usbb2_ulpitll_nxt.gpio_160 */
++			OMAP4_IOPAD(0x1a0, PIN_INPUT | MUX_MODE0)		/* sys_nirq2.sys_nirq2 */
+ 		>;
+ 	};
+ 
+ 	mcpdm_pins: pinmux_mcpdm_pins {
+ 		pinctrl-single,pins = <
+-			0xc6 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_pdm_ul_data.abe_pdm_ul_data */
+-			0xc8 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_pdm_dl_data.abe_pdm_dl_data */
+-			0xca (PIN_INPUT_PULLUP   | MUX_MODE0)	/* abe_pdm_frame.abe_pdm_frame */
+-			0xcc (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_pdm_lb_clk.abe_pdm_lb_clk */
+-			0xce (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_clks.abe_clks */
++			OMAP4_IOPAD(0x106, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_pdm_ul_data.abe_pdm_ul_data */
++			OMAP4_IOPAD(0x108, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_pdm_dl_data.abe_pdm_dl_data */
++			OMAP4_IOPAD(0x10a, PIN_INPUT_PULLUP   | MUX_MODE0)	/* abe_pdm_frame.abe_pdm_frame */
++			OMAP4_IOPAD(0x10c, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_pdm_lb_clk.abe_pdm_lb_clk */
++			OMAP4_IOPAD(0x10e, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_clks.abe_clks */
+ 		>;
+ 	};
+ 
+ 	mcbsp1_pins: pinmux_mcbsp1_pins {
+ 		pinctrl-single,pins = <
+-			0xbe (PIN_INPUT | MUX_MODE0)		/* abe_mcbsp1_clkx.abe_mcbsp1_clkx */
+-			0xc0 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_mcbsp1_dr.abe_mcbsp1_dr */
+-			0xc2 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* abe_mcbsp1_dx.abe_mcbsp1_dx */
+-			0xc4 (PIN_INPUT | MUX_MODE0)		/* abe_mcbsp1_fsx.abe_mcbsp1_fsx */
++			OMAP4_IOPAD(0x0fe, PIN_INPUT | MUX_MODE0)		/* abe_mcbsp1_clkx.abe_mcbsp1_clkx */
++			OMAP4_IOPAD(0x100, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_mcbsp1_dr.abe_mcbsp1_dr */
++			OMAP4_IOPAD(0x102, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* abe_mcbsp1_dx.abe_mcbsp1_dx */
++			OMAP4_IOPAD(0x104, PIN_INPUT | MUX_MODE0)		/* abe_mcbsp1_fsx.abe_mcbsp1_fsx */
+ 		>;
+ 	};
+ 
+ 	hsusbb1_pins: pinmux_hsusbb1_pins {
+ 		pinctrl-single,pins = <
+-			0x82 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_clk.usbb1_ulpiphy_clk */
+-			0x84 (PIN_OUTPUT | MUX_MODE4)		/* usbb1_ulpitll_stp.usbb1_ulpiphy_stp */
+-			0x86 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dir.usbb1_ulpiphy_dir */
+-			0x88 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_nxt.usbb1_ulpiphy_nxt */
+-			0x8a (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat0.usbb1_ulpiphy_dat0 */
+-			0x8c (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat1.usbb1_ulpiphy_dat1 */
+-			0x8e (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat2.usbb1_ulpiphy_dat2 */
+-			0x90 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat3.usbb1_ulpiphy_dat3 */
+-			0x92 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat4.usbb1_ulpiphy_dat4 */
+-			0x94 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat5.usbb1_ulpiphy_dat5 */
+-			0x96 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat6.usbb1_ulpiphy_dat6 */
+-			0x98 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat7.usbb1_ulpiphy_dat7 */
++			OMAP4_IOPAD(0x0c2, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_clk.usbb1_ulpiphy_clk */
++			OMAP4_IOPAD(0x0c4, PIN_OUTPUT | MUX_MODE4)		/* usbb1_ulpitll_stp.usbb1_ulpiphy_stp */
++			OMAP4_IOPAD(0x0c6, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dir.usbb1_ulpiphy_dir */
++			OMAP4_IOPAD(0x0c8, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_nxt.usbb1_ulpiphy_nxt */
++			OMAP4_IOPAD(0x0ca, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat0.usbb1_ulpiphy_dat0 */
++			OMAP4_IOPAD(0x0cc, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat1.usbb1_ulpiphy_dat1 */
++			OMAP4_IOPAD(0x0ce, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat2.usbb1_ulpiphy_dat2 */
++			OMAP4_IOPAD(0x0d0, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat3.usbb1_ulpiphy_dat3 */
++			OMAP4_IOPAD(0x0d2, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat4.usbb1_ulpiphy_dat4 */
++			OMAP4_IOPAD(0x0d4, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat5.usbb1_ulpiphy_dat5 */
++			OMAP4_IOPAD(0x0d6, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat6.usbb1_ulpiphy_dat6 */
++			OMAP4_IOPAD(0x0d8, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat7.usbb1_ulpiphy_dat7 */
+ 		>;
+ 	};
+ 
+ 	hsusb1phy_pins: pinmux_hsusb1phy_pins {
+ 		pinctrl-single,pins = <
+-			0x4c (PIN_OUTPUT | MUX_MODE3)		/* gpmc_wait1.gpio_62 */
++			OMAP4_IOPAD(0x08c, PIN_OUTPUT | MUX_MODE3)		/* gpmc_wait1.gpio_62 */
+ 		>;
+ 	};
+ 
+ 	w2cbw0015_pins: pinmux_w2cbw0015_pins {
+ 		pinctrl-single,pins = <
+-			0x26 (PIN_OUTPUT | MUX_MODE3)		/* gpmc_a19.gpio_43 */
+-			0x3a (PIN_INPUT | MUX_MODE3)		/* gpmc_ncs3.gpio_53 */
++			OMAP4_IOPAD(0x066, PIN_OUTPUT | MUX_MODE3)		/* gpmc_a19.gpio_43 */
++			OMAP4_IOPAD(0x07a, PIN_INPUT | MUX_MODE3)		/* gpmc_ncs3.gpio_53 */
+ 		>;
+ 	};
+ 
+ 	i2c1_pins: pinmux_i2c1_pins {
+ 		pinctrl-single,pins = <
+-			0xe2 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl */
+-			0xe4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_sda */
++			OMAP4_IOPAD(0x122, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl */
++			OMAP4_IOPAD(0x124, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_sda */
+ 		>;
+ 	};
+ 
+ 	i2c4_pins: pinmux_i2c4_pins {
+ 		pinctrl-single,pins = <
+-			0xee (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_scl */
+-			0xf0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_sda */
++			OMAP4_IOPAD(0x12e, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_scl */
++			OMAP4_IOPAD(0x130, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_sda */
+ 		>;
+ 	};
+ 
+ 	mmc1_pins: pinmux_mmc1_pins {
+ 		pinctrl-single,pins = <
+-			0xa2 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk */
+-			0xa4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmcc1_cmd */
+-			0xa6 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmcc1_dat0 */
+-			0xa8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat1 */
+-			0xaa (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat2 */
+-			0xac (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3 */
++			OMAP4_IOPAD(0x0e2, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk */
++			OMAP4_IOPAD(0x0e4, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmcc1_cmd */
++			OMAP4_IOPAD(0x0e6, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmcc1_dat0 */
++			OMAP4_IOPAD(0x0e8, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat1 */
++			OMAP4_IOPAD(0x0ea, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat2 */
++			OMAP4_IOPAD(0x0ec, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3 */
+ 		>;
+ 	};
+ 
+ 	mmc5_pins: pinmux_mmc5_pins {
+ 		pinctrl-single,pins = <
+-			0x108 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_clk */
+-			0x10a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmcc5_cmd */
+-			0x10c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmcc5_dat0 */
+-			0x10e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_dat1 */
+-			0x110 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_dat2 */
+-			0x112 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_dat3 */
++			OMAP4_IOPAD(0x148, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_clk */
++			OMAP4_IOPAD(0x14a, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmcc5_cmd */
++			OMAP4_IOPAD(0x14c, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmcc5_dat0 */
++			OMAP4_IOPAD(0x14e, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_dat1 */
++			OMAP4_IOPAD(0x150, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_dat2 */
++			OMAP4_IOPAD(0x152, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_dat3 */
+ 		>;
+ 	};
+ };
+-- 
+1.8.0
+
