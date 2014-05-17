@@ -1,51 +1,42 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: DRA7/AM43XX: fix header definition for omap44xx_restart
-Date: Fri, 16 May 2014 17:36:09 -0500
-Message-ID: <1400279769-28704-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v11 0/6] mmc: omap_hsmmc: Enable SDIO IRQ
+Date: Fri, 16 May 2014 17:44:01 -0700
+Message-ID: <20140517004400.GO12881@atomide.com>
+References: <1399807738-32223-1-git-send-email-afenkart@gmail.com>
+ <CAPDyKFqwNYr3WHe+4e5+3gt-NCYiwPq7DxG7HHr+YTygZXPZnw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57345 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754104AbaEPWgh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2014 18:36:37 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAPDyKFqwNYr3WHe+4e5+3gt-NCYiwPq7DxG7HHr+YTygZXPZnw@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, Sebastian Reichel <sre@kernel.org>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-omap44xx_restart is defined as a static void inline when DRA7/AM437X is
-defined alone, which implies that the restart function is no longer
-functional even though it is built in. So, fix the definition of the
-same.
+* Ulf Hansson <ulf.hansson@linaro.org> [140514 03:22]:
+> On 11 May 2014 13:28, Andreas Fenkart <afenkart@gmail.com> wrote:
+> > Hi Balaji, Tony, all
+> >
+> > v12
+> > - drop !CONFIG_OF compile break only exists when
+> >   #undef CONFIG_OF after include headers 1/7(Sebastian Reichel)
+> > - do not emit "falling back to polling" if wake_irq not specified
+> >   since MMC does not need it, and it might confuse users
+> >   only emit if pinmux default/idle is not present or claiming
+> >   the irq failed 2/7(Balaji)
+> > - dropped out-of-tree patches 6/7(Balaji)
+> > - mention "ti,am33xx-hsmmc" compatible section in bindings
+> >   documentation 1/5
+> 
+> Hi Andreas,
+> 
+> It seems like we are ready to merge this patchset - I will include it
+> in the next PR I send to Chris.
 
-Unfortunately, the number of SoCs starting to use omap44xx_restart is
-starting to grow and the definition looks a little ugly.
+Great! Just gave these a try again after a while, worked fine for me.
+Thanks Andreas for the patience with updating these patches.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+Regards,
 
-based on v3.15-rc5
-
-NOTE: this generates over 80 characters checkpatch warning.. I am not
-sure other than introducing a definition for restart it could be simplified.
-
- arch/arm/mach-omap2/common.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index d88aff7..46150f4 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -154,7 +154,7 @@ static inline void omap3xxx_restart(enum reboot_mode mode, const char *cmd)
- }
- #endif
- 
--#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
-+#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
- void omap44xx_restart(enum reboot_mode mode, const char *cmd);
- #else
- static inline void omap44xx_restart(enum reboot_mode mode, const char *cmd)
--- 
-1.7.9.5
-
+Tony
