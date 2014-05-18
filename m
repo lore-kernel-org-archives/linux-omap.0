@@ -1,49 +1,73 @@
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [RFC PATCH] ARM: dts: am33xx: Re-arrange the USB dt to reflect
- the h/w configuration
-Date: Sat, 17 May 2014 21:09:08 -0300
-Message-ID: <20140518000908.GA2092@arch.cereza>
-References: <1399617068-19826-1-git-send-email-george.cherian@ti.com>
- <20140514215034.GL27426@atomide.com>
+From: Joachim Eastwood <manabian@gmail.com>
+Subject: Re: [PATCH] arm/omap4: add twd clock to DT
+Date: Sun, 18 May 2014 14:08:02 +0200
+Message-ID: <CAGhQ9Vw-QaB+OnLa3yNVvD6a=XOutSZ1ejbsuUXvEcyrxEsRcQ@mail.gmail.com>
+References: <1396901139-17268-1-git-send-email-gilles.chanteperdrix@xenomai.org>
+	<20140418223948.GK21823@atomide.com>
+	<5353F44F.5080400@xenomai.org>
+	<535662F0.4080300@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yk0-f176.google.com ([209.85.160.176]:49732 "EHLO
-	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751543AbaERAJp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 May 2014 20:09:45 -0400
-Received: by mail-yk0-f176.google.com with SMTP id q9so3382595ykb.35
-        for <linux-omap@vger.kernel.org>; Sat, 17 May 2014 17:09:44 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140514215034.GL27426@atomide.com>
+Received: from mail-la0-f51.google.com ([209.85.215.51]:51382 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751120AbaERMIF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 May 2014 08:08:05 -0400
+Received: by mail-la0-f51.google.com with SMTP id gf5so3262460lab.10
+        for <linux-omap@vger.kernel.org>; Sun, 18 May 2014 05:08:03 -0700 (PDT)
+In-Reply-To: <535662F0.4080300@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: George Cherian <george.cherian@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, bcousson@baylibre.com, bigeasy@linutronix.de, yegorslists@googlemail.com, balbi@ti.com
+Cc: Gilles Chanteperdrix <gilles.chanteperdrix@xenomai.org>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 
-Hello Tony,
+On 22 April 2014 14:39, Tero Kristo <t-kristo@ti.com> wrote:
+> On 04/20/2014 07:22 PM, Gilles Chanteperdrix wrote:
+>>
+>> Le 19/04/2014 00:39, Tony Lindgren a =C3=A9crit :
+>>>
+>>> * Gilles Chanteperdrix <gilles.chanteperdrix@xenomai.org> [140407 1=
+3:09]:
+>>>>
+>>>> Booting Linux 3.14 on Pandaboard currently gets the following
+>>>> message displayed:
+>>>>
+>>>> smp_twd: clock not found -2
+>>>>
+>>>> Define "mpu_periphclk" as the twd clock in omap4 dts to avoid this=
+=2E
+>>>
+>>>
+>>> Tero, care to ack?
+>>
+>>
+>> Sorry if I did not mail the right people, get_maintainer.pl gave me =
+a
+>> long list, and I did not feel like spamming all these people for suc=
+h a
+>> small patch. I do not believe Tero was in this list.
+>>
+>> Regards.
+>
+>
+> Yea I don't think this is my expertise area, however the patch looks =
+good to
+> me, so if you really need it:
+>
+> Acked-by: Tero Kristo <t-kristo@ti.com>
 
-On 14 May 02:50 PM, Tony Lindgren wrote:
-> * George Cherian <george.cherian@ti.com> [140508 23:34]:
-> > Re arrange the USB dt for AM33xx to take it a bit closer
-> > to the hardware configuration.
-> > 
-[..]
-> 
-> Is this just a cosmetic change or is this trying to workaround
-> some edma related init order issue?
-> 
+Tony, care to add this to your omap 3.16 dt branch?
 
-This was an attempt from George to workaround an that happens when
-the musb_am335x module is removed. However, we've agreed to prevent
-the removal instead. I've just (re)sent a patch for it:
+I am still getting:
+[ 0.000152] smp_twd: clock not found -2
 
-See: [PATCH for v3.15] usb: musb: Fix panic upon musb_am335x module removal
+So this fix from Gilles would be nice to have.
 
-AFAIK, this fixes a serious problem so I've marked it for stable.
-
-For the DMA init order issue, I've done a new patch that forces the
-probe order in the driver. I'll post that soon.
--- 
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
+regards
+Joachim Eastwood
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
