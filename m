@@ -1,149 +1,157 @@
-From: Joachim Eastwood <manabian@gmail.com>
-Subject: [PATCH 2/2] Input: omap-keypad - remove platform data support
-Date: Sat, 17 May 2014 23:24:11 +0200
-Message-ID: <1400361851-32274-3-git-send-email-manabian@gmail.com>
-References: <1400361851-32274-1-git-send-email-manabian@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:53491 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697AbaEQVY0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 May 2014 17:24:26 -0400
-In-Reply-To: <1400361851-32274-1-git-send-email-manabian@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH for v3.15] usb: musb: Fix panic upon musb_am335x module removal
+Date: Sat, 17 May 2014 21:04:33 -0300
+Message-ID: <1400371473-2053-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>, George Cherian <george.cherian@ti.com>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: illia.smyrnov@ti.com, dmitry.torokhov@gmail.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org, Joachim Eastwood <manabian@gmail.com>
 
-This is unused since all users (OMAP4/5) are DT only.
+At probe time, the musb_am335x driver register its childs by
+calling of_platform_populate(), which registers all childs in
+the devicetree hierarchy recursively.
 
-Signed-off-by: Joachim Eastwood <manabian@gmail.com>
+On the other side, the driver's remove() function uses of_device_unregister()
+to remove each child of musb_am335x's.
+
+However, when musb_dsps is loaded, its devices are attached to the musb_am335x
+device as musb_am335x childs. Hence, musb_am335x remove() will attempt to
+unregister the devices registered by musb_dsps, which produces a kernel panic.
+
+In other words, the childs in the "struct device" hierarchy are not the same
+as the childs in the "devicetree" hierarchy.
+
+Ideally, we should enforce the removal of the devices registered by
+musb_am335x *only*, instead of all its child devices. However, because of the
+recursive nature of of_platform_populate, this doesn't seem possible.
+
+Therefore, as the only solution at hand, this commit disables musb_am335x
+driver removal capability, preventing it from being ever removed. This was
+originally suggested by Sebastian Siewior:
+
+https://www.mail-archive.com/linux-omap@vger.kernel.org/msg104946.html
+
+And for reference, here's the panic upon module removal:
+
+musb-hdrc musb-hdrc.0.auto: remove, state 4
+usb usb1: USB disconnect, device number 1
+musb-hdrc musb-hdrc.0.auto: USB bus 1 deregistered
+Unable to handle kernel NULL pointer dereference at virtual address 0000008c
+pgd = de11c000
+[0000008c] *pgd=9e174831, *pte=00000000, *ppte=00000000
+Internal error: Oops: 17 [#1] ARM
+Modules linked in: musb_am335x(-) musb_dsps musb_hdrc usbcore usb_common
+CPU: 0 PID: 623 Comm: modprobe Not tainted 3.15.0-rc4-00001-g24efd13 #69
+task: de1b7500 ti: de122000 task.ti: de122000
+PC is at am335x_shutdown+0x10/0x28
+LR is at am335x_shutdown+0xc/0x28
+pc : [<c0327798>]    lr : [<c0327794>]    psr: a0000013
+sp : de123df8  ip : 00000004  fp : 00028f00
+r10: 00000000  r9 : de122000  r8 : c000e6c4
+r7 : de0e3c10  r6 : de0e3800  r5 : de624010  r4 : de1ec750
+r3 : de0e3810  r2 : 00000000  r1 : 00000001  r0 : 00000000
+Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+Control: 10c5387d  Table: 9e11c019  DAC: 00000015
+Process modprobe (pid: 623, stack limit = 0xde122240)
+Stack: (0xde123df8 to 0xde124000)
+3de0:                                                       de0e3810 bf054488
+3e00: bf05444c de624010 60000013 bf043650 000012fc de624010 de0e3810 bf043a20
+3e20: de0e3810 bf04b240 c0635b88 c02ca37c c02ca364 c02c8db0 de1b7500 de0e3844
+3e40: de0e3810 c02c8e28 c0635b88 de02824c de0e3810 c02c884c de0e3800 de0e3810
+3e60: de0e3818 c02c5b20 bf05417c de0e3800 de0e3800 c0635b88 de0f2410 c02ca838
+3e80: bf05417c de0e3800 bf055438 c02ca8cc de0e3c10 bf054194 de0e3c10 c02ca37c
+3ea0: c02ca364 c02c8db0 de1b7500 de0e3c44 de0e3c10 c02c8e28 c0635b88 de02824c
+3ec0: de0e3c10 c02c884c de0e3c10 de0e3c10 de0e3c18 c02c5b20 de0e3c10 de0e3c10
+3ee0: 00000000 bf059000 a0000013 c02c5bc0 00000000 bf05900c de0e3c10 c02c5c48
+3f00: de0dd0c0 de1ec970 de0f2410 bf05929c de0f2444 bf05902c de0f2410 c02ca37c
+3f20: c02ca364 c02c8db0 bf05929c de0f2410 bf05929c c02c94c8 bf05929c 00000000
+3f40: 00000800 c02c8ab4 bf0592e0 c007fc40 c00dd820 6273756d 336d615f 00783533
+3f60: c064a0ac de1b7500 de122000 de1b7500 c000e590 00000001 c000e6c4 c0060160
+3f80: 00028e70 00028e70 00028ea4 00000081 60000010 00028e70 00028e70 00028ea4
+3fa0: 00000081 c000e500 00028e70 00028e70 00028ea4 00000800 becb59f8 00027608
+3fc0: 00028e70 00028e70 00028ea4 00000081 00000001 00000001 00000000 00028f00
+3fe0: b6e6b6f0 becb59d4 000160e8 b6e6b6fc 60000010 00028ea4 00000000 00000000
+[<c0327798>] (am335x_shutdown) from [<bf054488>] (dsps_musb_exit+0x3c/0x4c [musb_dsps])
+[<bf054488>] (dsps_musb_exit [musb_dsps]) from [<bf043650>] (musb_shutdown+0x80/0x90 [musb_hdrc])
+[<bf043650>] (musb_shutdown [musb_hdrc]) from [<bf043a20>] (musb_remove+0x24/0x68 [musb_hdrc])
+[<bf043a20>] (musb_remove [musb_hdrc]) from [<c02ca37c>] (platform_drv_remove+0x18/0x1c)
+[<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release_driver+0x70/0xc8)
+[<c02c8db0>] (__device_release_driver) from [<c02c8e28>] (device_release_driver+0x20/0x2c)
+[<c02c8e28>] (device_release_driver) from [<c02c884c>] (bus_remove_device+0xdc/0x10c)
+[<c02c884c>] (bus_remove_device) from [<c02c5b20>] (device_del+0x104/0x198)
+[<c02c5b20>] (device_del) from [<c02ca838>] (platform_device_del+0x14/0x9c)
+[<c02ca838>] (platform_device_del) from [<c02ca8cc>] (platform_device_unregister+0xc/0x20)
+[<c02ca8cc>] (platform_device_unregister) from [<bf054194>] (dsps_remove+0x18/0x38 [musb_dsps])
+[<bf054194>] (dsps_remove [musb_dsps]) from [<c02ca37c>] (platform_drv_remove+0x18/0x1c)
+[<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release_driver+0x70/0xc8)
+[<c02c8db0>] (__device_release_driver) from [<c02c8e28>] (device_release_driver+0x20/0x2c)
+[<c02c8e28>] (device_release_driver) from [<c02c884c>] (bus_remove_device+0xdc/0x10c)
+[<c02c884c>] (bus_remove_device) from [<c02c5b20>] (device_del+0x104/0x198)
+[<c02c5b20>] (device_del) from [<c02c5bc0>] (device_unregister+0xc/0x20)
+[<c02c5bc0>] (device_unregister) from [<bf05900c>] (of_remove_populated_child+0xc/0x14 [musb_am335x])
+[<bf05900c>] (of_remove_populated_child [musb_am335x]) from [<c02c5c48>] (device_for_each_child+0x44/0x70)
+[<c02c5c48>] (device_for_each_child) from [<bf05902c>] (am335x_child_remove+0x18/0x30 [musb_am335x])
+[<bf05902c>] (am335x_child_remove [musb_am335x]) from [<c02ca37c>] (platform_drv_remove+0x18/0x1c)
+[<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release_driver+0x70/0xc8)
+[<c02c8db0>] (__device_release_driver) from [<c02c94c8>] (driver_detach+0xb4/0xb8)
+[<c02c94c8>] (driver_detach) from [<c02c8ab4>] (bus_remove_driver+0x4c/0xa0)
+[<c02c8ab4>] (bus_remove_driver) from [<c007fc40>] (SyS_delete_module+0x128/0x1cc)
+[<c007fc40>] (SyS_delete_module) from [<c000e500>] (ret_fast_syscall+0x0/0x48)
+
+Fixes: 97238b35d5bb ("usb: musb: dsps: use proper child nodes")
+Cc: <stable@vger.kernel.org> # v3.12+
+Acked-by: George Cherian <george.cherian@ti.com>
+Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 ---
- drivers/input/keyboard/Kconfig             |  2 +-
- drivers/input/keyboard/omap4-keypad.c      | 31 ++++++------------------------
- include/linux/platform_data/omap4-keypad.h | 13 -------------
- 3 files changed, 7 insertions(+), 39 deletions(-)
- delete mode 100644 include/linux/platform_data/omap4-keypad.h
+ drivers/usb/musb/musb_am335x.c | 23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-index 76842d7dc2e3..295cbf4763b1 100644
---- a/drivers/input/keyboard/Kconfig
-+++ b/drivers/input/keyboard/Kconfig
-@@ -578,7 +578,7 @@ config KEYBOARD_OMAP
- 
- config KEYBOARD_OMAP4
- 	tristate "TI OMAP4+ keypad support"
--	depends on ARCH_OMAP2PLUS
-+	depends on OF || ARCH_OMAP2PLUS
- 	select INPUT_MATRIXKMAP
- 	help
- 	  Say Y here if you want to use the OMAP4+ keypad.
-diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-index 0400b3f2b4b9..8b32f44e84ee 100644
---- a/drivers/input/keyboard/omap4-keypad.c
-+++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -28,11 +28,10 @@
- #include <linux/io.h>
- #include <linux/of.h>
- #include <linux/input.h>
-+#include <linux/input/matrix_keypad.h>
- #include <linux/slab.h>
- #include <linux/pm_runtime.h>
- 
--#include <linux/platform_data/omap4-keypad.h>
--
- /* OMAP4 registers */
- #define OMAP4_KBD_REVISION		0x00
- #define OMAP4_KBD_SYSCONFIG		0x10
-@@ -218,7 +217,6 @@ static void omap4_keypad_close(struct input_dev *input)
- 	pm_runtime_put_sync(input->dev.parent);
+diff --git a/drivers/usb/musb/musb_am335x.c b/drivers/usb/musb/musb_am335x.c
+index d235378..1e58ed2 100644
+--- a/drivers/usb/musb/musb_am335x.c
++++ b/drivers/usb/musb/musb_am335x.c
+@@ -19,21 +19,6 @@ err:
+ 	return ret;
  }
  
--#ifdef CONFIG_OF
- static int omap4_keypad_parse_dt(struct device *dev,
- 				 struct omap4_keypad *keypad_data)
- {
-@@ -235,20 +233,10 @@ static int omap4_keypad_parse_dt(struct device *dev,
- 
- 	return 0;
- }
--#else
--static inline int omap4_keypad_parse_dt(struct device *dev,
--					struct omap4_keypad *keypad_data)
+-static int of_remove_populated_child(struct device *dev, void *d)
 -{
--	return -ENOSYS;
+-	struct platform_device *pdev = to_platform_device(dev);
+-
+-	of_device_unregister(pdev);
+-	return 0;
 -}
--#endif
+-
+-static int am335x_child_remove(struct platform_device *pdev)
+-{
+-	device_for_each_child(&pdev->dev, NULL, of_remove_populated_child);
+-	pm_runtime_disable(&pdev->dev);
+-	return 0;
+-}
+-
+ static const struct of_device_id am335x_child_of_match[] = {
+ 	{ .compatible = "ti,am33xx-usb" },
+ 	{  },
+@@ -42,13 +27,17 @@ MODULE_DEVICE_TABLE(of, am335x_child_of_match);
  
- static int omap4_keypad_probe(struct platform_device *pdev)
- {
--	const struct omap4_keypad_platform_data *pdata =
--				dev_get_platdata(&pdev->dev);
--	const struct matrix_keymap_data *keymap_data =
--				pdata ? pdata->keymap_data : NULL;
-+	const struct matrix_keymap_data *keymap_data = NULL;
- 	struct omap4_keypad *keypad_data;
- 	struct input_dev *input_dev;
- 	struct resource *res;
-@@ -277,14 +265,9 @@ static int omap4_keypad_probe(struct platform_device *pdev)
- 
- 	keypad_data->irq = irq;
- 
--	if (pdata) {
--		keypad_data->rows = pdata->rows;
--		keypad_data->cols = pdata->cols;
--	} else {
--		error = omap4_keypad_parse_dt(&pdev->dev, keypad_data);
--		if (error)
--			return error;
--	}
-+	error = omap4_keypad_parse_dt(&pdev->dev, keypad_data);
-+	if (error)
-+		return error;
- 
- 	res = request_mem_region(res->start, resource_size(res), pdev->name);
- 	if (!res) {
-@@ -434,13 +417,11 @@ static int omap4_keypad_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--#ifdef CONFIG_OF
- static const struct of_device_id omap_keypad_dt_match[] = {
- 	{ .compatible = "ti,omap4-keypad" },
- 	{},
- };
- MODULE_DEVICE_TABLE(of, omap_keypad_dt_match);
--#endif
- 
- #ifdef CONFIG_PM_SLEEP
- static int omap4_keypad_suspend(struct device *dev)
-@@ -482,7 +463,7 @@ static struct platform_driver omap4_keypad_driver = {
- 		.name	= "omap4-keypad",
- 		.owner	= THIS_MODULE,
- 		.pm	= &omap4_keypad_pm_ops,
--		.of_match_table = of_match_ptr(omap_keypad_dt_match),
-+		.of_match_table = omap_keypad_dt_match,
+ static struct platform_driver am335x_child_driver = {
+ 	.probe		= am335x_child_probe,
+-	.remove         = am335x_child_remove,
+ 	.driver         = {
+ 		.name   = "am335x-usb-childs",
+ 		.of_match_table	= am335x_child_of_match,
  	},
  };
- module_platform_driver(omap4_keypad_driver);
-diff --git a/include/linux/platform_data/omap4-keypad.h b/include/linux/platform_data/omap4-keypad.h
-deleted file mode 100644
-index 4eef5fb05a17..000000000000
---- a/include/linux/platform_data/omap4-keypad.h
-+++ /dev/null
-@@ -1,13 +0,0 @@
--#ifndef __LINUX_INPUT_OMAP4_KEYPAD_H
--#define __LINUX_INPUT_OMAP4_KEYPAD_H
--
--#include <linux/input/matrix_keypad.h>
--
--struct omap4_keypad_platform_data {
--	const struct matrix_keymap_data *keymap_data;
--
--	u8 rows;
--	u8 cols;
--};
--
--#endif /* __LINUX_INPUT_OMAP4_KEYPAD_H */
+ 
+-module_platform_driver(am335x_child_driver);
++static int __init am335x_child_init(void)
++{
++	return platform_driver_register(&am335x_child_driver);
++}
++module_init(am335x_child_init);
++
+ MODULE_DESCRIPTION("AM33xx child devices");
+ MODULE_LICENSE("GPL v2");
 -- 
-1.8.0
-
+1.9.1
