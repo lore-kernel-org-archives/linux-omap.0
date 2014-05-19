@@ -1,84 +1,155 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
- support
-Date: Mon, 19 May 2014 09:04:48 -0700
-Message-ID: <20140519160447.GB4849@atomide.com>
-References: <20140513152518.GA16837@atomide.com>
- <53730AFB.2090800@ti.com>
- <20140514160216.GD18463@atomide.com>
- <537487AE.3060906@ti.com>
- <20140515182133.GC23659@atomide.com>
- <5375A8A8.7080306@ti.com>
- <20140516160717.GD22031@atomide.com>
- <20140516174158.GA11733@earth.universe>
- <20140516180154.GG22031@atomide.com>
- <5379CD24.6040508@ti.com>
+From: Bin Liu <binmlist@gmail.com>
+Subject: Re: [PATCH v4 4/6] usb: musb: core: Convert the musb_platform_reset
+ to have a return value.
+Date: Mon, 19 May 2014 11:05:10 -0500
+Message-ID: <CADYTM3aV7HSi5gcV_-K5nR6Um=pA983oHpmC_cnyeH=G8_R1hA@mail.gmail.com>
+References: <1400506776-2816-1-git-send-email-george.cherian@ti.com>
+	<1400506776-2816-5-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64634 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751331AbaESQE7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 12:04:59 -0400
-Content-Disposition: inline
-In-Reply-To: <5379CD24.6040508@ti.com>
+Received: from mail-ie0-f170.google.com ([209.85.223.170]:53360 "EHLO
+	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751987AbaESQFL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 12:05:11 -0400
+In-Reply-To: <1400506776-2816-5-git-send-email-george.cherian@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140519 02:22]:
-> On 16/05/14 21:01, Tony Lindgren wrote:
-> 
-> >> IMHO appending -omap-dss to a random device is an even bigger hack,
-> >> since its adding lots of bloat to the API. Let's assume there is
-> >> another OS using DT for ARM, but has no proper API for SPI
-> >> controllers and it introduces your hack to SPI devices. That would
-> >> mean each SPI device has -omap-spi appended (or -exynos-spi,
-> >> -foo-spi, ...). At least I would blame them for creating a huge
-> >> unmaintainable mess.
-> > 
-> > I think you're misunderstanding. I do not want the naming to
-> > be Linux specific. The naming should naturally be as hardware
-> > specific as possible. In this case something like:
-> > 
-> > compatible = "sharp,ls037v7dw01-dss", "sharp,ls037v7dw01";
-> > 
-> > Or we should probably use:
-> > 
-> > compatible = "sharp,ls037v7dw01-dpi", "sharp,ls037v7dw01";
-> > 
-> > As dpi here reflects the hardware it's connected to. The dss
-> > is probably a Linux name.
-> 
-> Well, "dss" or "omapdss" is as much a hardware term as "dpi". And "dpi"
-> wouldn't really be a good extension, as what we want is an omapdss
-> driver specific compatible string. So I think "-omapdss" is the best
-> extension if that method is used.
-> 
-> But I don't think that's really the point. The point is that the panel's
-> compatible string should be "sharp,ls037v7dw01", nothing else.
-> 
-> All the variations of "sharp,ls037v7dw01-dss" are not correct, and are
-> only made for Linux SW reasons. So I would say they are Linux specific
-> SW names, even if the words themselves are also HW terms.
+Hi,
 
-If you really want to use only "sharp,ls037v7dw01" as the compatible
-string, then you can still do that and bail out from the undesired
-drivers by using of_machine_is_compatible check.
+On Mon, May 19, 2014 at 8:39 AM, George Cherian <george.cherian@ti.com> wrote:
+> Currently musb_platform_reset() is only used by dsps.
+> In case of BABBLE interrupt for other platforms the  musb_platform_reset()
+> is a NOP. In such situations no need to re-initialize the endpoints.
+> Also in the latest silicon revision of AM335x, we do have a babble recovery
+> mechanism without resetting the IP block. In preperation to add that support
+> its better to have a rest_done return for  musb_platform_reset().
+>
+> Signed-off-by: George Cherian <george.cherian@ti.com>
+> ---
+>  drivers/usb/musb/musb_core.c | 38 +++++++++++++++++++++-----------------
+>  drivers/usb/musb/musb_core.h | 10 ++++++----
+>  drivers/usb/musb/musb_dsps.c |  3 ++-
+>  3 files changed, 29 insertions(+), 22 deletions(-)
+>
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 8920b80..1b0b85d 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -1755,28 +1755,32 @@ static void musb_irq_work(struct work_struct *data)
+>  static void musb_recover_work(struct work_struct *data)
+>  {
+>         struct musb *musb = container_of(data, struct musb, recover_work.work);
+> -       int status;
+> +       int status, ret;
+>
+> -       musb_platform_reset(musb);
+> +       ret  = musb_platform_reset(musb);
+> +       if (ret  < 0)
 
-In many cases however we do have multiple compatible strings that
-describe how the device is wired. See drivers/tty/serial/of_serial.c
-for example. It has "ns16550" but then it also has additional
-"nvidia,tegra20-uart", "nxp,lpc3220-uart" and "ibm,qpace-nwp-serial".
- 
-> > Not use what you're after with the SPI example though, but sounds
-> > like that's something different.
-> 
-> I think Sebastien's example is just like the issue here.
-
-Hmm is there some existing example in the kernel like that?
+If change it to ' if (ret)' here, you don't have to indent the reset
+of the code.
 
 Regards,
+-Bin.
 
-Tony
+> +               return;
+>
+> -       usb_phy_vbus_off(musb->xceiv);
+> -       usleep_range(100, 200);
+> +       if (!ret) {
+> +               usb_phy_vbus_off(musb->xceiv);
+> +               usleep_range(100, 200);
+>
+> -       usb_phy_vbus_on(musb->xceiv);
+> -       usleep_range(100, 200);
+> +               usb_phy_vbus_on(musb->xceiv);
+> +               usleep_range(100, 200);
+>
+> -       /*
+> -        * When a babble condition occurs, the musb controller removes the
+> -        * session bit and the endpoint config is lost.
+> -        */
+> -       if (musb->dyn_fifo)
+> -               status = ep_config_from_table(musb);
+> -       else
+> -               status = ep_config_from_hw(musb);
+> +               /*
+> +                * When a babble condition occurs, the musb controller
+> +                * removes the session bit and the endpoint config is lost.
+> +                */
+> +               if (musb->dyn_fifo)
+> +                       status = ep_config_from_table(musb);
+> +               else
+> +                       status = ep_config_from_hw(musb);
+>
+> -       /* start the session again */
+> -       if (status == 0)
+> -               musb_start(musb);
+> +               /* start the session again */
+> +               if (status == 0)
+> +                       musb_start(musb);
+> +       }
+>  }
+>
+>  /* --------------------------------------------------------------------------
+> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+> index 423cd00..3ccb428 100644
+> --- a/drivers/usb/musb/musb_core.h
+> +++ b/drivers/usb/musb/musb_core.h
+> @@ -192,7 +192,7 @@ struct musb_platform_ops {
+>
+>         int     (*set_mode)(struct musb *musb, u8 mode);
+>         void    (*try_idle)(struct musb *musb, unsigned long timeout);
+> -       void    (*reset)(struct musb *musb);
+> +       int     (*reset)(struct musb *musb);
+>
+>         int     (*vbus_status)(struct musb *musb);
+>         void    (*set_vbus)(struct musb *musb, int on);
+> @@ -554,10 +554,12 @@ static inline void musb_platform_try_idle(struct musb *musb,
+>                 musb->ops->try_idle(musb, timeout);
+>  }
+>
+> -static inline void musb_platform_reset(struct musb *musb)
+> +static inline int  musb_platform_reset(struct musb *musb)
+>  {
+> -       if (musb->ops->reset)
+> -               musb->ops->reset(musb);
+> +       if (!musb->ops->reset)
+> +               return -EINVAL;
+> +
+> +       return musb->ops->reset(musb);
+>  }
+>
+>  static inline int musb_platform_get_vbus_status(struct musb *musb)
+> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+> index 74c4193..f6f3087 100644
+> --- a/drivers/usb/musb/musb_dsps.c
+> +++ b/drivers/usb/musb/musb_dsps.c
+> @@ -536,7 +536,7 @@ static int dsps_musb_set_mode(struct musb *musb, u8 mode)
+>         return 0;
+>  }
+>
+> -static void dsps_musb_reset(struct musb *musb)
+> +static int dsps_musb_reset(struct musb *musb)
+>  {
+>         struct device *dev = musb->controller;
+>         struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+> @@ -548,6 +548,7 @@ static void dsps_musb_reset(struct musb *musb)
+>         usleep_range(100, 200);
+>         usb_phy_init(musb->xceiv);
+>
+> +       return 0;
+>  }
+>
+>  static struct musb_platform_ops dsps_ops = {
+> --
+> 1.8.3.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
