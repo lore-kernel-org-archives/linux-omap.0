@@ -1,122 +1,61 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: DRA752: add detection of SoC information
-Date: Mon, 19 May 2014 10:27:11 -0500
-Message-ID: <1400513231-25092-1-git-send-email-nm@ti.com>
+From: Bin Liu <binmlist@gmail.com>
+Subject: Re: [PATCH v4 1/6] usb: musb: core: Handle Babble condition only in
+ HOST mode
+Date: Mon, 19 May 2014 10:54:04 -0500
+Message-ID: <CADYTM3bd8Bq5QTn-HC4jYX-owEw_sF1DOtXsc-cMDqKHGJHXjQ@mail.gmail.com>
+References: <1400506776-2816-1-git-send-email-george.cherian@ti.com>
+	<1400506776-2816-2-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45909 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754214AbaESP1j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 May 2014 11:27:39 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1400506776-2816-2-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-Currently the files in /sys/devices/soc0/ show no information about
-DRA7. Few userspace programs do depend on this information to make SoC
-specific support. So update logic to detect the relevant information and
-provide to userspace.
+Hi,
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-based on v3.15-rc5
+On Mon, May 19, 2014 at 8:39 AM, George Cherian <george.cherian@ti.com> wrote:
+> BABBLE and RESET share the same interrupt. The interrupt
+> is considered to be RESET if MUSB is in peripheral mode and
+> as a BABBLE if MUSB is in HOST mode.
+>
+> Handle babble condition iff MUSB is in HOST mode.
+>
+> Signed-off-by: George Cherian <george.cherian@ti.com>
+> ---
+>  drivers/usb/musb/musb_core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 61da471..eff3c5c 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -849,7 +849,7 @@ b_host:
+>         }
+>
+>         /* handle babble condition */
+> -       if (int_usb & MUSB_INTR_BABBLE)
+> +       if (int_usb & MUSB_INTR_BABBLE && is_host_active(musb))
+>                 schedule_work(&musb->recover_work);
 
-Test log: http://slexy.org/view/s2FDZatq6f
+I guess my following comments are for Daniel's patch as while which
+initially added the babble work.
 
- arch/arm/mach-omap2/id.c  |   37 +++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/io.c  |    1 +
- arch/arm/mach-omap2/soc.h |    5 +++++
- 3 files changed, 43 insertions(+)
+Should this if statement be merged into the previous 'if(int_usb &
+MUSB_INTR_RESET)' one, which handles the same interrupt and already
+handles host and device mode respectively.
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 157412e..71bf216 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -628,6 +628,41 @@ void __init omap5xxx_check_revision(void)
- 	pr_info("%s %s\n", soc_name, soc_rev);
- }
- 
-+void __init dra7xxx_check_revision(void)
-+{
-+	u32 idcode;
-+	u16 hawkeye;
-+	u8 rev;
-+
-+	idcode = read_tap_reg(OMAP_TAP_IDCODE);
-+	hawkeye = (idcode >> 12) & 0xffff;
-+	rev = (idcode >> 28) & 0xff;
-+	switch (hawkeye) {
-+	case 0xb990:
-+		switch (rev) {
-+		case 0:
-+			omap_revision = DRA752_REV_ES1_0;
-+			break;
-+		case 1:
-+		default:
-+			omap_revision = DRA752_REV_ES1_1;
-+		}
-+		break;
-+
-+	default:
-+		/* Unknown default to latest silicon rev as default*/
-+		pr_warn("%s: unknown idcode=0x%08x (hawkeye=0x%08x,rev=0x%d)\n",
-+			__func__, idcode, hawkeye, rev);
-+		omap_revision = DRA752_REV_ES1_1;
-+	}
-+
-+	sprintf(soc_name, "DRA%03x", omap_rev() >> 16);
-+	sprintf(soc_rev, "ES%d.%d", (omap_rev() >> 12) & 0xf,
-+		(omap_rev() >> 8) & 0xf);
-+
-+	pr_info("%s %s\n", soc_name, soc_rev);
-+}
-+
- /*
-  * Set up things for map_io and processor detection later on. Gets called
-  * pretty much first thing from board init. For multi-omap, this gets
-@@ -669,6 +704,8 @@ static const char * __init omap_get_family(void)
- 		return kasprintf(GFP_KERNEL, "OMAP5");
- 	else if (soc_is_am43xx())
- 		return kasprintf(GFP_KERNEL, "AM43xx");
-+	else if (soc_is_dra7xx())
-+		return kasprintf(GFP_KERNEL, "DRA7");
- 	else
- 		return kasprintf(GFP_KERNEL, "Unknown");
- }
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index f14f9ac..4ec3b4a 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -693,6 +693,7 @@ void __init dra7xx_init_early(void)
- 	omap_prm_base_init();
- 	omap_cm_base_init();
- 	omap44xx_prm_init();
-+	dra7xxx_check_revision();
- 	dra7xx_powerdomains_init();
- 	dra7xx_clockdomains_init();
- 	dra7xx_hwmod_init();
-diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-index 30abcc8..de2a34c 100644
---- a/arch/arm/mach-omap2/soc.h
-+++ b/arch/arm/mach-omap2/soc.h
-@@ -459,10 +459,15 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define OMAP5430_REV_ES2_0	(OMAP54XX_CLASS | (0x30 << 16) | (0x20 << 8))
- #define OMAP5432_REV_ES2_0	(OMAP54XX_CLASS | (0x32 << 16) | (0x20 << 8))
- 
-+#define DRA7XX_CLASS		0x07000000
-+#define DRA752_REV_ES1_0	(DRA7XX_CLASS | (0x52 << 16) | (0x10 << 8))
-+#define DRA752_REV_ES1_1	(DRA7XX_CLASS | (0x52 << 16) | (0x11 << 8))
-+
- void omap2xxx_check_revision(void);
- void omap3xxx_check_revision(void);
- void omap4xxx_check_revision(void);
- void omap5xxx_check_revision(void);
-+void dra7xxx_check_revision(void);
- void omap3xxx_check_features(void);
- void ti81xx_check_features(void);
- void am33xx_check_features(void);
--- 
-1.7.9.5
+Regards,
+-Bin.
 
+>
+>  #if 0
+> --
+> 1.8.3.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
