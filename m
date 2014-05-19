@@ -1,96 +1,155 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2+: gpmc: enable wait-pin monitoring for NAND
- devices via DT
-Date: Mon, 19 May 2014 18:26:43 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACE25C@DBDE04.ent.ti.com>
-References: <1400267276-16001-1-git-send-email-pekon@ti.com>
- <CABxcv=k7KZAwsP-oW_8k_bZRtMLToCy904kq7Xv=c0da465w2A@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 06/11] ARM: OMAP2+: Fix voltage scaling init for device tree
+Date: Mon, 19 May 2014 13:32:46 -0500
+Message-ID: <CAGo_u6oGHFAFimYSc8Utgbp=oCahXzO0ZoYjhFgOkT3YkppS6A@mail.gmail.com>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com>
+	<1397173639-29587-7-git-send-email-tony@atomide.com>
+	<CAGhQ9VxS+Hg6EX=CDxbibV2TFw++LwZY+GQomZEHx--JGuWHNg@mail.gmail.com>
+	<20140519180104.GL4849@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60578 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751072AbaESS0v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 May 2014 14:26:51 -0400
-In-Reply-To: <CABxcv=k7KZAwsP-oW_8k_bZRtMLToCy904kq7Xv=c0da465w2A@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:49591 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751299AbaESScr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 14:32:47 -0400
+Received: by mail-wi0-f179.google.com with SMTP id bs8so4674459wib.0
+        for <linux-omap@vger.kernel.org>; Mon, 19 May 2014 11:32:46 -0700 (PDT)
+In-Reply-To: <20140519180104.GL4849@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Tony Lindgren <tony@atomide.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>, "Quadros, Roger" <rogerq@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Joachim Eastwood <manabian@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-SGkgSmF2aWVyLA0KDQo+RnJvbTogSmF2aWVyIE1hcnRpbmV6IENhbmlsbGFzIFttYWlsdG86amF2
-aWVyQGRvd2hpbGUwLm9yZ10NCj4NCj5IZWxsbyBQZWtvbiwNCj4NCj5PbiBGcmksIE1heSAxNiwg
-MjAxNCBhdCA5OjA3IFBNLCBQZWtvbiBHdXB0YSA8cGVrb25AdGkuY29tPiB3cm90ZToNCj4+IFRo
-aXMgcGF0Y2ggZW5hYmxlcyAnd2FpdC1waW4nIG1vbml0b3JpbmcgaW4gTkFORCBkcml2ZXIgaWYg
-Zm9sbG93aW5nIHByb3BlcnRpZXMNCj4+IGFyZSBwcmVzZW50IHVuZGVyIE5BTkQgRFQgbm9kZQ0K
-Pj4gICAgICAgICBncG1jLHdhaXQtcGluID0gPHdhaXQtcGluIG51bWJlcj4NCj4+ICAgICAgICAg
-Z3BtYyx3YWl0LW9uLXJlYWQ7DQo+PiAgICAgICAgIGdwbWMsd2FpdC1vbi13cml0ZTsNCj4+IEFz
-IE5BTkQgZ2VuZXJpYyBmcmFtZXdvcmsgdXNlcyBjb21tb24gcGF0aCBuYW5kX2NoaXAtPmRldl9y
-ZWFkeSgpIGZvciBtb25pdG9yaW5nDQo+PiBjb21wbGV0aW9uIG9mIFJlYWQgYW5kIFdyaXRlIHN0
-YXR1cywgc28gd2FpdC1waW4gbW9uaXRvcmluZyBpcyBlbmFibGVkIG9ubHkgd2hlbg0KPj4gYm90
-aCAnZ3BtYyx3YWl0LW9uLXJlYWQnIGFuZCAnZ3BtYyx3YWl0LW9uLXdyaXRlJyBhcmUgc3BlY2lm
-aWVkLg0KPj4NCj4NCj5JIHNlZSB0aGF0IHRoZSBHUE1DIGRyaXZlciBjaGVja3MgaWYgImdwbWMs
-d2FpdC1waW4iIHByb3BlcnR5IGlzDQo+ZGVmaW5lZCBhbmQgb25seSBpbiB0aGF0IGNhc2UgdHJp
-ZXMgdG8gcmVhZCBib3RoICJncG1jLHdhaXQtb24tcmVhZCINCj5hbmQgImdwbWMsd2FpdC1vbi13
-cml0ZSIgYW5kIHByaW50cyBhICJyZWFkL3dyaXRlIHdhaXQgbW9uaXRvcmluZyBub3QNCj5lbmFi
-bGVkISIgd2FybmluZyBpZiBvbmUgb2YgdGhvc2UgaXMgbm90IGRlZmluZWQuDQo+DQo+U28gbXkg
-cXVlc3Rpb24gaXMsIGl0J3MgYSByZXF1aXJlbWVudCBhbmQgdGhlc2UgMyBwcm9wZXJ0aWVzIG5l
-ZWQgdG8NCj5hbHdheXMgYmUgZGVmaW5lZCB0b2dldGhlcj8gIElmIHRoYXQgaXMgdGhlIGNhc2Ug
-dGhlbiBJIHdvbmRlciB3aHkNCj50aGVyZSBhcmUgMyBkaWZmZXJlbnQgcHJvcGVydGllcyBhbmQg
-d2h5IG5vdCBqdXN0IGRlZmluaW5nDQo+ImdwbWMsd2FpdC1waW4iIGltcGxpZXMgImdwbWMsd2Fp
-dC1vbi17cmVhZCx3cml0ZX0iID8NCj4NCkdQTUMgYXMgYSBoYXJkd2FyZSBlbmdpbmUgYWxsb3dz
-IHNlbGVjdGlvbiBvZiB3YWl0LXBpbiBpbmRlcGVuZGVudGx5DQpmb3IgYm90aCBSZWFkIGFuZCBX
-cml0ZSBwYXRocywgYnV0IE5BTkQgZ2VuZXJpYyBmcmFtZXdvcmsgdXNlcyBzaW5nbGUNCmNvbW1v
-biBmdW5jdGlvbiBuYW5kX2NoaXAtPmRldl9yZWFkeSgpIHdoaWNoIGlzIHVzZWQgZm9yIGJvdGgN
-ClJlYWQgYW5kIFdyaXRlIHBhdGhzIHRvIHBvbGwgd2FpdC1waW4uIA0KU28sIGluIGNhc2Ugb2Yg
-TkFORCBib3RoICdncG1jLHdhaXQtb24tcmVhZCcgYW5kICdncG1jLHdhaXQtb24td3JpdGUnDQpz
-aG91bGQgYmUgc2ltdWx0YW5lb3VzbHkgZGVmaW5lZCB0byBlbmFibGUgd2FpdC1waW4gbW9uaXRv
-cmluZy4gDQoNCkJ1dCBHUE1DIGJlaW5nIGdlbmVyaWMgaGFyZHdhcmUgZW5naW5lIGZvciBOT1Is
-IE9uZU5BTkQgYW5kIG90aGVyDQpwYXJhbGxlbCBpbnRlcmZhY2VzIGxpa2UgQ2FtZXJhLCBFdGhl
-cm5ldCB0aGUgdHdvIHNlcGFyYXRlIGJpbmRpbmdzIGFsbG93DQpmbGV4aWJpbGl0eSB0byB1c2Ug
-d2FpdC1waW4gbW9uaXRvcmluZyBmb3Igb25seSBvbmUgb2YgdGhlIHBhdGhzIHtSZWFkIHwgV3Jp
-dGV9Lg0KDQpUaGVyZWZvcmUgdGhpcyBjaGVjayBpcyBhZGRlZCBpbiBncG1jX25hbmRfaW5pdCgp
-LCBhbmQgbm90IGluIGdwbWNfcmVhZF9zZXR0aW5nc19kdCgpDQp3aGljaCBpcyBjb21tb24gZm9y
-IGFsbCB0eXBlIG9mIEdQTUMgZGV2aWNlcyAoTkFORCwgTk9SLCAuLiApDQoNCg0KPk9yIGlmIGlz
-IHZhbGlkIHRvIGRlZmluZSAiZ3BtYy13YWl0LXBpbiIgd2l0aG91dA0KPiJncG1jLXdhaXQtb24t
-e3JlYWQsd3JpdGV9IiBvciBvbmx5IG9uZSB0aG9zZSB0aGVuIHdoeSB0aGF0IHNjYXJ5DQo+d2Fy
-bmluZyBpcyBwcmludGVkPw0KPg0KPldoYXRldmVyIGlzIHRoZSBjYXNlIEkgdGhpbmsgdGhhdCB0
-aGUgR1BNQyBEVCBiaW5kaW5nIGRvY3VtZW50YXRpb24NCj4oRG9jdW1lbnRhdGlvbi9kZXZpY2V0
-cmVlL2JpbmRpbmdzL2J1cy90aS1ncG1jLnR4dCkgc2hvdWxkIGJlIG1vcmUNCj5jbGVhciBvbiB0
-aGlzIHJlZ2FyZC4NCj4NCkFncmVlLiBCdXQgSSB0aGluayB0aGlzIGNsYXJpZmljYXRpb24gZml0
-cyBiZXR0ZXIgaW4gTkFORCBzcGVjaWZpYyBkb2N1bWVudGF0aW9uDQpEb2N1bWVudGF0aW9uL2Rl
-dmljZXRyZWUvYmluZGluZ3MvbXRkL2dwbWMtbmFuZC50eHQNCg0KDQo+PiBTaWduZWQtb2ZmLWJ5
-OiBQZWtvbiBHdXB0YSA8cGVrb25AdGkuY29tPg0KPj4gLS0tDQo+PiAgYXJjaC9hcm0vbWFjaC1v
-bWFwMi9ncG1jLW5hbmQuYyB8IDggKysrKystLS0NCj4+ICAxIGZpbGUgY2hhbmdlZCwgNSBpbnNl
-cnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KPj4NCj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9t
-YWNoLW9tYXAyL2dwbWMtbmFuZC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ncG1jLW5hbmQuYw0K
-Pj4gaW5kZXggNDM0OWU4Mi4uN2RjNzQyZCAxMDA2NDQNCj4+IC0tLSBhL2FyY2gvYXJtL21hY2gt
-b21hcDIvZ3BtYy1uYW5kLmMNCj4+ICsrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvZ3BtYy1uYW5k
-LmMNCj4+IEBAIC0xMjMsMTEgKzEyMywxMyBAQCBpbnQgZ3BtY19uYW5kX2luaXQoc3RydWN0IG9t
-YXBfbmFuZF9wbGF0Zm9ybV9kYXRhICpncG1jX25hbmRfZGF0YSwNCj4+ICAgICAgICAgICAgICAg
-ICB9DQo+PiAgICAgICAgIH0NCj4+DQo+PiAtICAgICAgIGlmIChncG1jX25hbmRfZGF0YS0+b2Zf
-bm9kZSkNCj4+ICsgICAgICAgaWYgKGdwbWNfbmFuZF9kYXRhLT5vZl9ub2RlKSB7DQo+PiAgICAg
-ICAgICAgICAgICAgZ3BtY19yZWFkX3NldHRpbmdzX2R0KGdwbWNfbmFuZF9kYXRhLT5vZl9ub2Rl
-LCAmcyk7DQo+PiAtICAgICAgIGVsc2UNCj4+ICsgICAgICAgICAgICAgICBpZiAocy53YWl0X29u
-X3JlYWQgJiYgcy53YWl0X29uX3dyaXRlKQ0KPg0KPllvdSBzYWlkIHRoYXQgd2FpdC1vbi1waW4g
-bW9uaXRvcmluZyBpcyBvbmx5IGVuYWJsZWQgaWYgYm90aA0KPiJncG1jLHdhaXQtb24tcmVhZCIg
-YW5kICJncG1jLHdhaXQtb24td3JpdGUiIGFyZSBzcGVjaWZpZWQuIEJ1dCBpbg0KPnRoYXQgY2Fz
-ZSBJIHRoaW5rIHdlIHNob3VsZCBjbGVhciB0aGUgd2FpdF9waW4gb24NCj5ncG1jX3JlYWRfc2V0
-dGluZ3NfZHQoKSBpZiBlaXRoZXIgImdwbWMsd2FpdC1vbi1yZWFkIiBvcg0KPiJncG1jLHdhaXQt
-b24td3JpdGUiIHdlcmUgbm90IHNwZWNpZmllZCBhbmQgY2hlY2sgcy53YWl0X3BpbiBpbnN0ZWFk
-Lg0KPg0KPk9yIGlzIHRoaXMgc2VtYW50aWMgb25seSBmb3IgTkFORCBhbmQgb3RoZXIgZGV2aWNl
-cyBjb25uZWN0ZWQgdG8gdGhlDQo+R1BNQyBiZWhhdmUgZGlmZmVyZW50bHkgd3J0ICJncG1jLHdh
-aXQtcGluIj8NCj4NClRydWUsIHRoaXMgaXMgb25seSBmb3IgTkFORC4gT3RoZXIgZGV2aWNlIGRy
-aXZlcnMgbWF5IHVzZSB3YWl0LXBpbg0KZWl0aGVyICdvbmx5IGZvciBSZWFkJyBvciAnb25seSBm
-b3IgV3JpdGUnIGFjY2Vzcy4gSG93ZXZlciBJIGRvdWJ0IHdoeQ0KYW55b25lIHdvdWxkIGRvIHNv
-LCB1bmxlc3MgdGhlcmUgaXMgc29tZSBkZXNpZ24gYnVnIHwgY29uc3RyYWluLg0KDQoNCj4+ICsg
-ICAgICAgICAgICAgICAgICAgICAgIGdwbWNfbmFuZF9kYXRhLT5kZXZfcmVhZHkgPSAidHJ1ZSI7
-DQo+DQo+WW91IHNob3VsZCByZWFsbHkgdXNlIGdwbWNfbmFuZF9kYXRhLT5kZXZfcmVhZHkgPSB0
-cnVlIGhlcmUuIFRoZSBDOTkNCj5zdGFuZGFyZCBhbGxvd3MgeW91IHRvIGFzc2lnbiBhIHN0cmlu
-ZyBsaXRlcmFsIHRvIGEgX0Jvb2wgdHlwZSBhbmQNCj53aWxsIGJlIGV2YWx1YXRlZCB0byAxIGJ1
-dCB0aGF0IGlzIGNvbmZ1c2luZyBhbmQgSSBoYXZlbid0IHNlZW4gdGhhdA0KPnVzZWQgaW4gb3Ro
-ZXIgcGFydCBvZiB0aGUga2VybmVsLg0KPg0KU29ycnksIG15IGJhZC4gSSBvdmVyIGxvb2tlZCBp
-dC4NCkknbGwgZml4IGl0IGluIG5leHQgdmVyc2lvbiBhbG9uZyB3aXRoIERvY3VtZW50YXRpb24g
-dXBkYXRlLg0KDQoNCldpdGggcmVnYXJkcywgcGVrb24NCg==
+On Mon, May 19, 2014 at 1:01 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Joachim Eastwood <manabian@gmail.com> [140519 10:51]:
+>> Hi Tony,
+>>
+>> If found this patch in your omap-for-v3.16/pm-signed tag and tested it
+>> on top of Linus master + omap 3.16 dt + Tomi fbdev omap. I assumed
+>> it's going upstream for 3.16(?).
+>
+> Yes.
+>
+>> First of all; is this safe on OMAP4460?
+>> As far as I understand voltage scaling on 4460 has never been
+>> mainline, but this code enables voltage scaling for all omap4 parts.
+>> More below.
+>
+> Sounds like something's not right then. This should just restore
+> the earlier code path we had for legacy booting for omap4.
+>
+>> On 11 April 2014 01:47, Tony Lindgren <tony@atomide.com> wrote:
+>> > We are currently disabling the init of voltage scaling
+>> > for device tree. With the voltage scaling problems fixed
+>> > for omap3 in general, there's no need to disable the voltage
+>> > scaling init for device tree based booting.
+>> >
+>> > Cc: Kevin Hilman <khilman@linaro.org>
+>> > Cc: Nishanth Menon <nm@ti.com>
+>> > Cc: Paul Walmsley <paul@pwsan.com>
+>> > Cc: Tero Kristo <t-kristo@ti.com>
+>> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+>> > ---
+>> >  arch/arm/mach-omap2/pm.c | 28 ++++++++++++----------------
+>> >  1 file changed, 12 insertions(+), 16 deletions(-)
+>> >
+>> > diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+>> > index e1b4141..ccefd11 100644
+>> > --- a/arch/arm/mach-omap2/pm.c
+>> > +++ b/arch/arm/mach-omap2/pm.c
+>> > @@ -287,25 +287,21 @@ omap_postcore_initcall(omap2_common_pm_init);
+>> >
+>> >  int __init omap2_common_pm_late_init(void)
+>> >  {
+>> > -       /*
+>> > -        * In the case of DT, the PMIC and SR initialization will be done using
+>> > -        * a completely different mechanism.
+>> > -        * Disable this part if a DT blob is available.
+>> > -        */
+>> > -       if (!of_have_populated_dt()) {
+>> > -
+>> > -               /* Init the voltage layer */
+>> > -               omap_pmic_late_init();
+>> > -               omap_voltage_late_init();
+>> > +       if (of_have_populated_dt()) {
+>> > +               omap3_twl_init();
+>> > +               omap4_twl_init();
+>> > +       }
+>> >
+>> > -               /* Initialize the voltages */
+>> > -               omap3_init_voltages();
+>> > -               omap4_init_voltages();
+>> > +       /* Init the voltage layer */
+>> > +       omap_pmic_late_init();
+>> > +       omap_voltage_late_init();
+>> >
+>> > -               /* Smartreflex device init */
+>> > -               omap_devinit_smartreflex();
+>> > +       /* Initialize the voltages */
+>> > +       omap3_init_voltages();
+>> > +       omap4_init_voltages();
+>> >
+>> > -       }
+>> > +       /* Smartreflex device init */
+>> > +       omap_devinit_smartreflex();
+>> >
+>> >         /* cpufreq dummy device instantiation */
+>> >         omap_init_cpufreq();
+>> > --
+>>
+>> In omap4_twl_init() we have:
+>> if (!cpu_is_omap44xx())
+>>     return -ENODEV;
+>>
+>> voltdm = voltdm_lookup("mpu");
+>> omap_voltage_register_pmic(voltdm, &omap4_mpu_pmic);
+>>
+>> voltdm = voltdm_lookup("iva");
+>> omap_voltage_register_pmic(voltdm, &omap4_iva_pmic);
+>>
+>> voltdm = voltdm_lookup("core");
+>> omap_voltage_register_pmic(voltdm, &omap4_core_pmic);
+>>
+>> As far as I understand the setup above is only valid for 4430 and not
+>> 4460 since it is hook up to the twl in diffent way. External switcher
+>> (TPS62361) for mpu rail and the other rails are used differently.
+>
+> Hmm interesting, I think we had this enabled with legacy booting?
+>
+>> I also get the following messages on boot now:
+>> [ 2.458740] twl: not initialized
+>> [ 2.462127] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>> 1375000 Vs max 1316660
+>> [ 2.470581] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>> 1375000 Vs max 1316660
+>> [ 2.479003] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>> 1375000 Vs max 1316660
+>> [ 2.487457] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>> 1375000 Vs max 1316660
+>> [ 2.495880] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>> 1375000 Vs max 1316660
+>> [ 2.504302] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>> 1375000 Vs max 1316660
+>> [ 2.512725] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>> 1410000 Vs max 1316660
+>> [ 2.521179] omap2_set_init_voltage: unable to find boot up OPP for vdd_mpu
+>> [ 2.528411] omap2_set_init_voltage: unable to set vdd_mpu
+>> [ 2.534088] omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+>> [ 2.541412] omap2_set_init_voltage: unable to set vdd_core
+>> [ 2.547210] omap2_set_init_voltage: unable to find boot up OPP for vdd_iva
+>> [ 2.554443] omap2_set_init_voltage: unable to set vdd_iva
+>>
+>> It doesn't seem too happy on my 4460.
+>
+> Indeed, we need to fix it. Nishant, any comments on how we should
+> deal with this one?
+
+
+
+we can add TPS data here for 4460 mpu (panda-ES) if that is
+interesting to us - given that the common voltage domain/VC/VP stuff
+so far has gone in no positive direction in our discussions last year.
+
+Regards,
+Nishanth Menon
