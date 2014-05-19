@@ -1,62 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 6/6] mmc: omap_hsmmc: split omap-dma header file
-Date: Mon, 19 May 2014 09:54:41 -0700
-Message-ID: <20140519165441.GI4849@atomide.com>
-References: <1399654013-28262-1-git-send-email-balajitk@ti.com>
- <1399654013-28262-7-git-send-email-balajitk@ti.com>
- <20140516214116.GM12881@atomide.com>
- <5379F0C6.6070004@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
+Date: Mon, 19 May 2014 10:23:38 -0700
+Message-ID: <20140519172338.GJ4849@atomide.com>
+References: <5373C8E8.6040208@ti.com>
+ <5373CBB9.40506@linaro.org>
+ <5373DD94.8030208@ti.com>
+ <5374F35E.5040900@ti.com>
+ <5374FE61.50901@linaro.org>
+ <5374FF5B.8050702@ti.com>
+ <5375079E.3060305@ti.com>
+ <537615EA.3020809@ti.com>
+ <20140516212942.GK12881@atomide.com>
+ <537A3544.1050307@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:32159 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932683AbaESQyq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 12:54:46 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59794 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932499AbaESRXq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 13:23:46 -0400
 Content-Disposition: inline
-In-Reply-To: <5379F0C6.6070004@ti.com>
+In-Reply-To: <537A3544.1050307@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-mmc@vger.kernel.org, chris@printf.net, ulf.hansson@linaro.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Alex Shi <alex.shi@linaro.org>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-* Balaji T K <balajitk@ti.com> [140519 04:54]:
-> On Saturday 17 May 2014 03:11 AM, Tony Lindgren wrote:
-> >>-
-> >>-#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
-> >>-bool omap_dma_filter_fn(struct dma_chan *, void *);
-> >>-#else
-> >>-static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
-> >>-{
-> >>-	return false;
-> >>-}
-> >>-#endif
-> >>+#include <linux/omap-dmaengine.h>
+* Daniel Lezcano <daniel.lezcano@linaro.org> [140519 09:46]:
+> On 05/16/2014 11:29 PM, Tony Lindgren wrote:
 > >
-> >Can't the drivers needing this include it directly?
-> >
+> >And just to recap, this problem can be reproduced with current
+> >Linux next with omap2plus_defconfig with CONFIG_CPU_IDLE enabled. The
+> >system should hang during the boot at some point.
 > 
-> Yes, I have converted omap_hsmmc as part of this patch.
-> Due to lack of bandwidth, I haven't touched upon all other drivers that include
-> omap-dma.h. Once that is done in other subsystem after this patch gets merged,
-> this include can then be removed from omap-dma.h
+> I can take the time to investigate a bit more but not right now. What is
+> your deadline before committing the reverts ?
 
-OK
- 
-> >Also, has this been tested with make randconfig? Changes like
-> >this can easily cause problems elsewhere..
-> 
-> May be I am missing something, Can you please elaborate ?
+Well we do have several automated build and boot systems failing
+because of this with multi_v7_defconfig. And users are complaining,
+see this report from Tobias Jakobi:
 
-You're touching a header included in many places, so you
-need to make sure you're not accidentally breaking anything.
+https://bugzilla.kernel.org/show_bug.cgi?id=75421
 
-There's an option that allows you to specify some selected
-options like CONFIG_ARCH_OMAP2PLUS=y with KCONFIG_ALLCONFIG
-and then run make randconfig. This should expose quite fast
-if there are some issues for the other drivers.
+It seems that doing the revert is not enough based on the
+page above.
 
-Also, have you compile tested this with omap1_defconfig?
+I'd prefer we'd fix this issue properly for sure, it seems that
+we're not quite understanding what's going on. And this might
+hit other platforms too when they start implementing deeper
+PM idle states in the mainline kernel.
 
 Regards,
 
