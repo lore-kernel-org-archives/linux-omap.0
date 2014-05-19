@@ -1,97 +1,163 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH v7 1/4] ARM: dts: am335x-bone: add support for beaglebone
- NAND cape
-Date: Mon, 19 May 2014 13:39:44 -0500
-Message-ID: <CAOCHtYjAJB3xSYrq3P+R2qyLHEbMQ5LMpu=hs4rwjXSqXb-kKw@mail.gmail.com>
-References: <1400490948-11571-1-git-send-email-pekon@ti.com>
-	<1400490948-11571-2-git-send-email-pekon@ti.com>
-	<20140519162532.GF4849@atomide.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EACE21E@DBDE04.ent.ti.com>
-	<20140519181640.GA6957@arch.cereza>
+From: Joachim Eastwood <manabian@gmail.com>
+Subject: Re: [PATCH 06/11] ARM: OMAP2+: Fix voltage scaling init for device tree
+Date: Mon, 19 May 2014 20:48:26 +0200
+Message-ID: <CAGhQ9Vw38vJCS5TGRMz0MMif15narY=9=C8-vwzGuGormhwcYw@mail.gmail.com>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com>
+	<1397173639-29587-7-git-send-email-tony@atomide.com>
+	<CAGhQ9VxS+Hg6EX=CDxbibV2TFw++LwZY+GQomZEHx--JGuWHNg@mail.gmail.com>
+	<20140519180104.GL4849@atomide.com>
+	<CAGo_u6oGHFAFimYSc8Utgbp=oCahXzO0ZoYjhFgOkT3YkppS6A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yh0-f47.google.com ([209.85.213.47]:64442 "EHLO
-	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291AbaESSjp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 14:39:45 -0400
-Received: by mail-yh0-f47.google.com with SMTP id z6so7131682yhz.20
-        for <linux-omap@vger.kernel.org>; Mon, 19 May 2014 11:39:44 -0700 (PDT)
-In-Reply-To: <20140519181640.GA6957@arch.cereza>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:53299 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751073AbaESSs2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 14:48:28 -0400
+Received: by mail-lb0-f174.google.com with SMTP id n15so4416959lbi.33
+        for <linux-omap@vger.kernel.org>; Mon, 19 May 2014 11:48:26 -0700 (PDT)
+In-Reply-To: <CAGo_u6oGHFAFimYSc8Utgbp=oCahXzO0ZoYjhFgOkT3YkppS6A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: "Gupta, Pekon" <pekon@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, "Quadros, Roger" <rogerq@ti.com>, Jason Kridner <jdk@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, May 19, 2014 at 1:16 PM, Ezequiel Garcia
-<ezequiel.garcia@free-electrons.com> wrote:
-> On 19 May 05:52 PM, Gupta, Pekon wrote:
->> Hi Tony,
+On 19 May 2014 20:32, Nishanth Menon <nm@ti.com> wrote:
+> On Mon, May 19, 2014 at 1:01 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> * Joachim Eastwood <manabian@gmail.com> [140519 10:51]:
+>>> Hi Tony,
+>>>
+>>> If found this patch in your omap-for-v3.16/pm-signed tag and tested it
+>>> on top of Linus master + omap 3.16 dt + Tomi fbdev omap. I assumed
+>>> it's going upstream for 3.16(?).
 >>
->> >From: Tony Lindgren [mailto:tony@atomide.com]
->> >
->> >* Pekon Gupta <pekon@ti.com> [140519 02:16]:
->> >> --- a/arch/arm/boot/dts/am335x-bone.dts
->> >> +++ b/arch/arm/boot/dts/am335x-bone.dts
->> >> @@ -9,6 +9,7 @@
->> >>
->> >>  #include "am33xx.dtsi"
->> >>  #include "am335x-bone-common.dtsi"
->> >> +#include "am335x-bone-memory-cape.dts"
->> >>
->> >>  &ldo3_reg {
->> >>    regulator-min-microvolt = <1800000>;
->> >> --- a/arch/arm/boot/dts/am335x-boneblack.dts
->> >> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
->> >> @@ -9,6 +9,7 @@
->> >>
->> >>  #include "am33xx.dtsi"
->> >>  #include "am335x-bone-common.dtsi"
->> >> +#include "am335x-bone-memory-cape.dts"
->> >>
->> >>  &ldo3_reg {
->> >>    regulator-min-microvolt = <1800000>;
->> >
->> >Based on the recent discussions on the capes, it seems that nobody
->> >wants to implement toggling of the capes in u-boot. And as there
->> >can be other capes using GPMC bus, we can't merge this. And because
->> >the capes are stackable, we can't really have .dts files for all
->> >the combinations. And no, we're not merging any unconnected .dts
->> >files either, sorry.
->> >
->> Yes, I fully understand. This is like death for most of the capes from point
->> of view of mainline support. But I have submitted this patch just for sake
->> of completion. And to provide reference if someone wants to locally work
->> on beaglebone NAND cape.
+>> Yes.
+>>
+>>> First of all; is this safe on OMAP4460?
+>>> As far as I understand voltage scaling on 4460 has never been
+>>> mainline, but this code enables voltage scaling for all omap4 parts.
+>>> More below.
+>>
+>> Sounds like something's not right then. This should just restore
+>> the earlier code path we had for legacy booting for omap4.
+>>
+>>> On 11 April 2014 01:47, Tony Lindgren <tony@atomide.com> wrote:
+>>> > We are currently disabling the init of voltage scaling
+>>> > for device tree. With the voltage scaling problems fixed
+>>> > for omap3 in general, there's no need to disable the voltage
+>>> > scaling init for device tree based booting.
+>>> >
+>>> > Cc: Kevin Hilman <khilman@linaro.org>
+>>> > Cc: Nishanth Menon <nm@ti.com>
+>>> > Cc: Paul Walmsley <paul@pwsan.com>
+>>> > Cc: Tero Kristo <t-kristo@ti.com>
+>>> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+>>> > ---
+>>> >  arch/arm/mach-omap2/pm.c | 28 ++++++++++++----------------
+>>> >  1 file changed, 12 insertions(+), 16 deletions(-)
+>>> >
+>>> > diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+>>> > index e1b4141..ccefd11 100644
+>>> > --- a/arch/arm/mach-omap2/pm.c
+>>> > +++ b/arch/arm/mach-omap2/pm.c
+>>> > @@ -287,25 +287,21 @@ omap_postcore_initcall(omap2_common_pm_init);
+>>> >
+>>> >  int __init omap2_common_pm_late_init(void)
+>>> >  {
+>>> > -       /*
+>>> > -        * In the case of DT, the PMIC and SR initialization will be done using
+>>> > -        * a completely different mechanism.
+>>> > -        * Disable this part if a DT blob is available.
+>>> > -        */
+>>> > -       if (!of_have_populated_dt()) {
+>>> > -
+>>> > -               /* Init the voltage layer */
+>>> > -               omap_pmic_late_init();
+>>> > -               omap_voltage_late_init();
+>>> > +       if (of_have_populated_dt()) {
+>>> > +               omap3_twl_init();
+>>> > +               omap4_twl_init();
+>>> > +       }
+>>> >
+>>> > -               /* Initialize the voltages */
+>>> > -               omap3_init_voltages();
+>>> > -               omap4_init_voltages();
+>>> > +       /* Init the voltage layer */
+>>> > +       omap_pmic_late_init();
+>>> > +       omap_voltage_late_init();
+>>> >
+>>> > -               /* Smartreflex device init */
+>>> > -               omap_devinit_smartreflex();
+>>> > +       /* Initialize the voltages */
+>>> > +       omap3_init_voltages();
+>>> > +       omap4_init_voltages();
+>>> >
+>>> > -       }
+>>> > +       /* Smartreflex device init */
+>>> > +       omap_devinit_smartreflex();
+>>> >
+>>> >         /* cpufreq dummy device instantiation */
+>>> >         omap_init_cpufreq();
+>>> > --
+>>>
+>>> In omap4_twl_init() we have:
+>>> if (!cpu_is_omap44xx())
+>>>     return -ENODEV;
+>>>
+>>> voltdm = voltdm_lookup("mpu");
+>>> omap_voltage_register_pmic(voltdm, &omap4_mpu_pmic);
+>>>
+>>> voltdm = voltdm_lookup("iva");
+>>> omap_voltage_register_pmic(voltdm, &omap4_iva_pmic);
+>>>
+>>> voltdm = voltdm_lookup("core");
+>>> omap_voltage_register_pmic(voltdm, &omap4_core_pmic);
+>>>
+>>> As far as I understand the setup above is only valid for 4430 and not
+>>> 4460 since it is hook up to the twl in diffent way. External switcher
+>>> (TPS62361) for mpu rail and the other rails are used differently.
+>>
+>> Hmm interesting, I think we had this enabled with legacy booting?
+>>
+>>> I also get the following messages on boot now:
+>>> [ 2.458740] twl: not initialized
+>>> [ 2.462127] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>>> 1375000 Vs max 1316660
+>>> [ 2.470581] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>>> 1375000 Vs max 1316660
+>>> [ 2.479003] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>>> 1375000 Vs max 1316660
+>>> [ 2.487457] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>>> 1375000 Vs max 1316660
+>>> [ 2.495880] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>>> 1375000 Vs max 1316660
+>>> [ 2.504302] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>>> 1375000 Vs max 1316660
+>>> [ 2.512725] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+>>> 1410000 Vs max 1316660
+>>> [ 2.521179] omap2_set_init_voltage: unable to find boot up OPP for vdd_mpu
+>>> [ 2.528411] omap2_set_init_voltage: unable to set vdd_mpu
+>>> [ 2.534088] omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+>>> [ 2.541412] omap2_set_init_voltage: unable to set vdd_core
+>>> [ 2.547210] omap2_set_init_voltage: unable to find boot up OPP for vdd_iva
+>>> [ 2.554443] omap2_set_init_voltage: unable to set vdd_iva
+>>>
+>>> It doesn't seem too happy on my 4460.
+>>
+>> Indeed, we need to fix it. Nishant, any comments on how we should
+>> deal with this one?
 >
-> While I fully agree with Tony on this, I think the reference is much
-> appreciated. Do you think you can push the NAND cape DT example somewhere?
 >
-> Maybe some TI wiki page?
+>
+> we can add TPS data here for 4460 mpu (panda-ES) if that is
+> interesting to us - given that the common voltage domain/VC/VP stuff
+> so far has gone in no positive direction in our discussions last year.
 
-(resent in text mode for linux-omap list archive)
+If this means that voltage scaling and 1.5GHz would work for 4460 it
+would make me very happy :)
+But I assume that would bring lots of more code into mach-omap2 which
+wouldn't be good either. Escaping the old 3.4 kernel would be nice,
+though.
 
-Since the capes are always some way tied with bb.org hardware, why
-don't we put them up on https://github.com/beagleboard/ ?
-
-am335x-capes.git ?
-
-I envision, we should just mirror the base ./arch/arm/boot/dts/
-directory (as someday the dts will be external anyways). In that repo,
-we will keep these synced with mainline
-
-am335x-bone-common.dtsi
-am335x-bone.dts
-am335x-boneblack.dts
-
-and add the capes as:
-
-<baseboard>-<cape>.dts
-
-as a staging ground till a mainline overlay/etc system appears?
-
-Thoughs?
-
--- 
-Robert Nelson
-http://www.rcn-ee.com/
+regards
+Joachim Eastwood
