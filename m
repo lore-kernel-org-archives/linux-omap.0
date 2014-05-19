@@ -1,127 +1,129 @@
-From: Pratyush Anand <pratyush.anand@st.com>
-Subject: Re: [PATCH] usb: dwc3: gadget: check link trb after free_slot is
- increased
-Date: Mon, 19 May 2014 17:13:45 +0530
-Message-ID: <20140519114345.GB2718@pratyush-vbox>
-References: <20140515215757.GD16153@intel.com>
- <20140515153757.GB7360@saruman.home>
- <20140516155013.GE16153@intel.com>
- <20140516124106.GA20386@saruman.home>
- <20140516144718.GI16153@intel.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v2 6/6] mmc: omap_hsmmc: split omap-dma header file
+Date: Mon, 19 May 2014 17:23:42 +0530
+Message-ID: <5379F0C6.6070004@ti.com>
+References: <1399654013-28262-1-git-send-email-balajitk@ti.com> <1399654013-28262-7-git-send-email-balajitk@ti.com> <20140516214116.GM12881@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:37970 "EHLO
-	mx08-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753514AbaESLpC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 May 2014 07:45:02 -0400
-Content-Disposition: inline
-In-Reply-To: <20140516144718.GI16153@intel.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20140516214116.GM12881@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-mmc@vger.kernel.org, chris@printf.net, ulf.hansson@linaro.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Cc: Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, "david.a.cohen@linux.intel.com" <david.a.cohen@linux.intel.com>, Yuan Hang <hang.yuan@intel.com>, Li Jiebing <jiebing.li@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-On Fri, May 16, 2014 at 10:47:18PM +0800, Zhuang Jin Can wrote:
-> Hi,
-> On Fri, May 16, 2014 at 07:41:06AM -0500, Felipe Balbi wrote:
-> > On Fri, May 16, 2014 at 11:50:13PM +0800, Zhuang Jin Can wrote:
-> > > > On Fri, May 16, 2014 at 05:57:57AM +0800, Zhuang Jin Can wrote:
-> > > > > In ISOC transfers, when free_slot points to the last TRB (i.e. Link
-> > > > > TRB), and all queued requests meet Missed Interval Isoc error, busy_slot
-> > > > > points to trb0.
-> > > > > 	busy_slot->trb0
-> > > > > 		   trb1
-> > > > > 		   ...
-> > > > > 	free_slot->trb31(Link TRB)
-> > > > > 
-> > > > > After end transfer and receiving the XferNotReady event, trb_left is
-> > > > > caculated as 1 which is wrong, and no TRB will be primed to the
-> > > > > endpoint.
-> > > > > 
-> > > > > The root cause is free_slot is not increased the same way as busy_slot.
-> > > > > When busy_slot is increased by one, it checks if points to a link TRB
-> > > > > after increasement, but free_slot checks it before increasement.
-> > > > > free_slot should behave the same as busy_slot to make the trb_left
-> > > > > caculation correct.
-> > > > > 
+On Saturday 17 May 2014 03:11 AM, Tony Lindgren wrote:
+> * Balaji T K <balajitk@ti.com> [140509 09:47]:
+>> moving dmaengine consumer specific function to omap-dmaengine.h
+>> to Resolve build failure seen with sh-allmodconfig:
+>>      include/linux/omap-dma.h:171:8: error: expected identifier before numeric constant
+>>      make[4]: *** [drivers/mmc/host/omap_hsmmc.o] Error 1
+>>
+>> Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>> ---
+>>   drivers/mmc/host/omap_hsmmc.c  |    2 +-
+>>   include/linux/omap-dma.h       |   19 +------------------
+>>   include/linux/omap-dmaengine.h |   21 +++++++++++++++++++++
+>>   3 files changed, 23 insertions(+), 19 deletions(-)
+>>   create mode 100644 include/linux/omap-dmaengine.h
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index cba71d6..6b7b755 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -31,7 +31,7 @@
+>>   #include <linux/of.h>
+>>   #include <linux/of_gpio.h>
+>>   #include <linux/of_device.h>
+>> -#include <linux/omap-dma.h>
+>> +#include <linux/omap-dmaengine.h>
+>>   #include <linux/mmc/host.h>
+>>   #include <linux/mmc/core.h>
+>>   #include <linux/mmc/mmc.h>
+>> diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
+>> index 41a13e7..999f52d 100644
+>> --- a/include/linux/omap-dma.h
+>> +++ b/include/linux/omap-dma.h
+>> @@ -1,23 +1,6 @@
+>> -/*
+>> - * OMAP DMA Engine support
+>> - *
+>> - * This program is free software; you can redistribute it and/or modify
+>> - * it under the terms of the GNU General Public License version 2 as
+>> - * published by the Free Software Foundation.
+>> - */
+>>   #ifndef __LINUX_OMAP_DMA_H
+>>   #define __LINUX_OMAP_DMA_H
+>> -
+>> -struct dma_chan;
+>> -
+>> -#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
+>> -bool omap_dma_filter_fn(struct dma_chan *, void *);
+>> -#else
+>> -static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
+>> -{
+>> -	return false;
+>> -}
+>> -#endif
+>> +#include <linux/omap-dmaengine.h>
+>
+> Can't the drivers needing this include it directly?
+>
 
-Reviewing the code it seems that observation of Zhuang Jin Can is
-correct. Year back I did lot of testing with isoc and even with missed
-path, but may be I could not get this issue because I would not have
-landed into a situation where last missed TRB is 31st.
+Yes, I have converted omap_hsmmc as part of this patch.
+Due to lack of bandwidth, I haven't touched upon all other drivers that include
+omap-dma.h. Once that is done in other subsystem after this patch gets merged,
+this include can then be removed from omap-dma.h
 
-Infact, you could be able to see that bug even in other case, like
-submit 31 back to back ep_queue request from gadget and then wait as
-if no application data is available. They all have been transmitted to
-host and callback has been called for all of them. After some time
-application is ready with new data. So when gadget does ep_queue of
-this new data you should be able to see this issue.
+> Also, has this been tested with make randconfig? Changes like
+> this can easily cause problems elsewhere..
 
-Reviewed-by: Pratyush Anand <pratyush.anand@st.com>
+May be I am missing something, Can you please elaborate ?
+This patch is based on the discussion [1]
+I just moved the dma consumer specific things needed by users
+to a separate file and include the same file in place so that other users
+can be converted one at a time.
 
-Regards
-Pratyush
-been 
-> > > > > Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
-> > > > > Signed-off-by: Jiebing Li <jiebing.li@intel.com>
-> > > > > ---
-> > > > >  drivers/usb/dwc3/gadget.c |    8 ++++----
-> > > > >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > > > > 
-> > > > > diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-> > > > > index 54da8c8..2ebe82b 100644
-> > > > > --- a/drivers/usb/dwc3/gadget.c
-> > > > > +++ b/drivers/usb/dwc3/gadget.c
-> > > > > @@ -828,10 +828,6 @@ static void dwc3_prepare_one_trb(struct dwc3_ep *dep,
-> > > > >  			length, last ? " last" : "",
-> > > > >  			chain ? " chain" : "");
-> > > > >  
-> > > > > -	/* Skip the LINK-TRB on ISOC */
-> > > > > -	if (((dep->free_slot & DWC3_TRB_MASK) == DWC3_TRB_NUM - 1) &&
-> > > > > -			usb_endpoint_xfer_isoc(dep->endpoint.desc))
-> > > > > -		dep->free_slot++;
-> > > > >  
-> > > > >  	trb = &dep->trb_pool[dep->free_slot & DWC3_TRB_MASK];
-> > > > 
-> > > > I have a feeling this has a negative side effect of letting us use the
-> > > > link TRB for data transfer... I mean, if we don't increment free_slot
-> > > > before accessing our trb_pool, we have no way to skip link trb on this
-> > > > access here.
-> > > After every free_slot++ Link TRB is checked and increased if appropriate,
-> > > this guarantees you next time access free_slot, it can't be a Link
-> > > TRB.
-> > 
-> > right, next access will be fine, but you're forgetting about current
-> > access.
-> > 
-> The current access is the next access relative to last access.
-> So if the first access is fine, succeeding accesses should be fine.
-> And the first access happens on when the free_slot points to slot 1
-> which is not a link trb. 
-> 
-> > > > How did you find the bug ? do you have good instructions on how to
-> > > > reproduce it ? How did you test the patch and for how long ?
-> > > The bug is reproduced on Android with f_audio_source.c enabled, which
-> > > has an isoc-in endpoint keeps sending audio data to host in an interval
-> > > of 1 ms. Normally, you need to run for 12+ hours to hit the issue.
-> > > So I think you can just run some isoc transfers for a long time to
-> > > reproduce it. To accelarte the reproducing, you can run some concurrent
-> > > data transfer as well, so the possibility to meet missed interval error
-> > > is larger.
-> > > 
-> > > The patch is tested for basic functionality like enumeration, data
-> > > transfers. For this bug, it was tested for 20+ hours.
-> > 
-> > thanks, g_audio loop should be fine.
-> > 
-> np.
-> 
-> 
-> Regards
-> Jincan
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1]
+https://lkml.org/lkml/2014/1/19/16
+>
+> Regards,
+>
+> Tony
+>
+>>   /*
+>>    *  Legacy OMAP DMA handling defines and functions
+>> diff --git a/include/linux/omap-dmaengine.h b/include/linux/omap-dmaengine.h
+>> new file mode 100644
+>> index 0000000..2b0b6aa
+>> --- /dev/null
+>> +++ b/include/linux/omap-dmaengine.h
+>> @@ -0,0 +1,21 @@
+>> +/*
+>> + * OMAP DMA Engine support
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +#ifndef __LINUX_OMAP_DMAENGINE_H
+>> +#define __LINUX_OMAP_DMAENGINE_H
+>> +
+>> +struct dma_chan;
+>> +
+>> +#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
+>> +bool omap_dma_filter_fn(struct dma_chan *, void *);
+>> +#else
+>> +static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
+>> +{
+>> +	return false;
+>> +}
+>> +#endif
+>> +#endif /* __LINUX_OMAP_DMAENGINE_H */
+>> --
+>> 1.7.5.4
+>>
+
