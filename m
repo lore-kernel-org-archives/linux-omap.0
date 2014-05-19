@@ -1,62 +1,174 @@
-From: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
-Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
-Date: Mon, 19 May 2014 23:18:26 +0200
-Message-ID: <537A7522.30007@math.uni-bielefeld.de>
-References: <5374FE61.50901@linaro.org> <5374FF5B.8050702@ti.com> <5375079E.3060305@ti.com> <537615EA.3020809@ti.com> <20140516212942.GK12881@atomide.com> <537A3544.1050307@linaro.org> <20140519172338.GJ4849@atomide.com> <537A408F.7070301@ti.com> <20140519175157.GK4849@atomide.com> <537A4827.30604@linaro.org> <20140519193622.GA11945@atomide.com> <537A5F5B.6050403@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v7 2/4] ARM: dts: am437x-gp-evm: add support for parallel
+ NAND flash
+Date: Mon, 19 May 2014 15:06:59 -0700
+Message-ID: <20140519220659.GF11945@atomide.com>
+References: <1400490948-11571-1-git-send-email-pekon@ti.com>
+ <1400490948-11571-3-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.math.uni-bielefeld.de ([129.70.45.10]:54811 "EHLO
-	smtp.math.uni-bielefeld.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751423AbaESV2V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 May 2014 17:28:21 -0400
-In-Reply-To: <537A5F5B.6050403@linaro.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61976 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751611AbaESWHF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 18:07:05 -0400
+Content-Disposition: inline
+In-Reply-To: <1400490948-11571-3-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Alex Shi <alex.shi@linaro.org>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Pekon Gupta <pekon@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, Roger Quadros <rogerq@ti.com>
 
-Daniel Lezcano wrote:
->
-> So apparently Santosh, Kevin and Alex say they are not facing the
-> issue anymore with the revert. But Tobias is still facing this issue.
->
-> There is this simple program [1] which usually makes cpuidle to hang
-> the system more quickly when there is a problem somewhere. May be
-> worth to check with it.
->
-> Hope that helps.
->
->   -- Daniel
->
-> [1]
-> https://git.linaro.org/power/pm-qa.git/blob/HEAD:/cpuidle/cpuidle_killer.c
->
-Hello,
+* Pekon Gupta <pekon@ti.com> [140519 02:16]:
+> Adds pinmux and DT node for Micron (MT29F4G08AB) x8 NAND device present on
+> am437x-gp-evm board.
+> (1) As NAND Flash data lines are muxed with eMMC, Thus at a given time either
+>     eMMC or NAND can be enabled. Selection between eMMC and NAND is controlled:
+>     (a) By dynamically driving following GPIO pin from software
+>         SPI2_CS0(GPIO) == 0 NAND is selected (default)
+>         SPI2_CS0(GPIO) == 1 eMMC is selected
+>     (b) By statically using Jumper (J89) on the board
 
-just to clarify. I never encountered the boot failure problem on my
-Panda ES in the first place. The issue with CPU_IDLE for me, like I also
-say in the bugreport, showed itself through instability of the USB. I
-saw the boot issue on the ml, read that it was caused by CPU_IDLE, and
-thought I should make Tony aware that I have a similar problem.
+So which MMC controller has eMMC then? How do we select which one we
+have enabled in the am437x-gp-evm.dts by default?
 
-Now, after applying the latest version of the patch that Santosh
-proposed, the situation with CPU_IDLE improves. But it is still not
-stable for me, since after some while, working with an SSH session of
-WiFi (which IIRC is not connected via USB on the board), this 'BUG'
-storm hits. This does _not_ happen when I disable CPU_IDLE completly.
+Regards,
 
-But even if I don't connect via WiFi at all, just boot and let me system
-run with serial console connected, after some time I get a kernel 'WARNING':
-http://www.math.uni-bielefeld.de/~tjakobi/archive/dmesg.1.log
-
-So something with CPU_IDLE is not right here. However I can't say if
-it's exactly this boot issue which this thread was initially about.
-Maybe seperate issues are at work here, who knows.
-
-Anyway, I'm going to have a look at that cpuidle killer thingy later.
-
--- Tobias
-
+Tony
+ 
+> (2) As NAND device connnected to this board has page-size=4K and oob-size=224,
+>     So ROM code expects boot-loaders to be flashed in BCH16 ECC scheme for
+>     NAND boot.
+> 
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
+> Reviewed-by: Javier Martinez Canillas <javier@dowhile0.org>
+> ---
+>  arch/arm/boot/dts/am437x-gp-evm.dts | 108 ++++++++++++++++++++++++++++++++++++
+>  1 file changed, 108 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+> index 30ace1b..f432685 100644
+> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
+> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+> @@ -150,6 +150,27 @@
+>  			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>  		>;
+>  	};
+> +
+> +	nand_flash_x8: nand_flash_x8 {
+> +		pinctrl-single,pins = <
+> +			0x26c(PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* spi2_cs0.gpio/eMMCorNANDsel */
+> +			0x0  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
+> +			0x4  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
+> +			0x8  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
+> +			0xc  (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
+> +			0x10 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
+> +			0x14 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
+> +			0x18 (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
+> +			0x1c (PIN_INPUT  | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
+> +			0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
+> +			0x74 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_wpn.gpmc_wpn */
+> +			0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0  */
+> +			0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
+> +			0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
+> +			0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
+> +			0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
+> +		>;
+> +	};
+>  };
+>  
+>  &i2c0 {
+> @@ -246,3 +267,90 @@
+>  	phy_id = <&davinci_mdio>, <0>;
+>  	phy-mode = "rgmii";
+>  };
+> +
+> +&elm {
+> +	status = "okay";
+> +};
+> +
+> +&gpmc {
+> +	status = "okay";
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&nand_flash_x8>;
+> +	ranges = <0 0 0 0x01000000>;	/* minimum GPMC partition = 16MB */
+> +	nand@0,0 {
+> +		reg = <0 0 4>;		/* device IO registers */
+> +		ti,nand-ecc-opt = "bch8";
+> +		ti,elm-id = <&elm>;
+> +		nand-bus-width = <8>;
+> +		gpmc,device-width = <1>;
+> +		gpmc,sync-clk-ps = <0>;
+> +		gpmc,cs-on-ns = <0>;
+> +		gpmc,cs-rd-off-ns = <40>;
+> +		gpmc,cs-wr-off-ns = <40>;
+> +		gpmc,adv-on-ns = <0>;
+> +		gpmc,adv-rd-off-ns = <25>;
+> +		gpmc,adv-wr-off-ns = <25>;
+> +		gpmc,we-on-ns = <0>;
+> +		gpmc,we-off-ns = <20>;
+> +		gpmc,oe-on-ns = <3>;
+> +		gpmc,oe-off-ns = <30>;
+> +		gpmc,access-ns = <30>;
+> +		gpmc,rd-cycle-ns = <40>;
+> +		gpmc,wr-cycle-ns = <40>;
+> +		gpmc,wait-pin = <0>;
+> +		gpmc,wait-on-read;
+> +		gpmc,wait-on-write;
+> +		gpmc,bus-turnaround-ns = <0>;
+> +		gpmc,cycle2cycle-delay-ns = <0>;
+> +		gpmc,clk-activation-ns = <0>;
+> +		gpmc,wait-monitoring-ns = <0>;
+> +		gpmc,wr-access-ns = <40>;
+> +		gpmc,wr-data-mux-bus-ns = <0>;
+> +		/* MTD partition table */
+> +		/* All SPL-* partitions are sized to minimal length
+> +		 * which can be independently programmable. For
+> +		 * NAND flash this is equal to size of erase-block */
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		partition@0 {
+> +			label = "NAND.SPL";
+> +			reg = <0x00000000 0x00040000>;
+> +		};
+> +		partition@1 {
+> +			label = "NAND.SPL.backup1";
+> +			reg = <0x00040000 0x00040000>;
+> +		};
+> +		partition@2 {
+> +			label = "NAND.SPL.backup2";
+> +			reg = <0x00080000 0x00040000>;
+> +		};
+> +		partition@3 {
+> +			label = "NAND.SPL.backup3";
+> +			reg = <0x000c0000 0x00040000>;
+> +		};
+> +		partition@4 {
+> +			label = "NAND.u-boot-spl-os";
+> +			reg = <0x00100000 0x00080000>;
+> +		};
+> +		partition@5 {
+> +			label = "NAND.u-boot";
+> +			reg = <0x00180000 0x00100000>;
+> +		};
+> +		partition@6 {
+> +			label = "NAND.u-boot-env";
+> +			reg = <0x00280000 0x00040000>;
+> +		};
+> +		partition@7 {
+> +			label = "NAND.u-boot-env.backup1";
+> +			reg = <0x002c0000 0x00040000>;
+> +		};
+> +		partition@8 {
+> +			label = "NAND.kernel";
+> +			reg = <0x00300000 0x00700000>;
+> +		};
+> +		partition@9 {
+> +			label = "NAND.file-system";
+> +			reg = <0x00a00000 0x1f600000>;
+> +		};
+> +	};
+> +};
+> -- 
+> 1.8.5.1.163.gd7aced9
+> 
