@@ -1,74 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: some hwmod data patches for v3.16
-Date: Mon, 19 May 2014 09:09:02 -0700
-Message-ID: <20140519160901.GC4849@atomide.com>
-References: <alpine.DEB.2.02.1405160444200.29738@utopia.booyaka.com>
- <5375CE74.6000603@ti.com>
- <20140516212327.GI12881@atomide.com>
- <5379C866.2040404@ti.com>
+Subject: Re: [PATCH] arm/omap4: add twd clock to DT
+Date: Mon, 19 May 2014 09:13:20 -0700
+Message-ID: <20140519161319.GD4849@atomide.com>
+References: <1396901139-17268-1-git-send-email-gilles.chanteperdrix@xenomai.org>
+ <20140418223948.GK21823@atomide.com>
+ <5353F44F.5080400@xenomai.org>
+ <535662F0.4080300@ti.com>
+ <CAGhQ9Vw-QaB+OnLa3yNVvD6a=XOutSZ1ejbsuUXvEcyrxEsRcQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:18802 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27178 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751790AbaESQJK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 12:09:10 -0400
+	with ESMTP id S1751331AbaESQNd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 12:13:33 -0400
 Content-Disposition: inline
-In-Reply-To: <5379C866.2040404@ti.com>
+In-Reply-To: <CAGhQ9Vw-QaB+OnLa3yNVvD6a=XOutSZ1ejbsuUXvEcyrxEsRcQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Joachim Eastwood <manabian@gmail.com>
+Cc: Gilles Chanteperdrix <gilles.chanteperdrix@xenomai.org>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140519 02:02]:
-> On 17/05/14 00:23, Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [140516 01:39]:
-> >> Hi Paul,
+* Joachim Eastwood <manabian@gmail.com> [140518 05:08]:
+> On 22 April 2014 14:39, Tero Kristo <t-kristo@ti.com> wrote:
+> > On 04/20/2014 07:22 PM, Gilles Chanteperdrix wrote:
 > >>
-> >> On 16/05/14 07:45, Paul Walmsley wrote:
-> >>> Hi Tony
+> >> Le 19/04/2014 00:39, Tony Lindgren a =C3=A9crit :
 > >>>
-> >>> The following changes since commit d1db0eea852497762cab43b905b879dfcd3b8987:
+> >>> * Gilles Chanteperdrix <gilles.chanteperdrix@xenomai.org> [140407=
+ 13:09]:
+> >>>>
+> >>>> Booting Linux 3.14 on Pandaboard currently gets the following
+> >>>> message displayed:
+> >>>>
+> >>>> smp_twd: clock not found -2
+> >>>>
+> >>>> Define "mpu_periphclk" as the twd clock in omap4 dts to avoid th=
+is.
 > >>>
-> >>>   Linux 3.15-rc3 (2014-04-27 19:29:27 -0700)
 > >>>
-> >>> are available in the git repository at:
-> >>>
-> >>>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git for-v3.16/hwmod-a
-> >>>
-> >>> for you to fetch changes up to 433480707967187a74ced38bd38edba749998013:
-> >>>
-> >>>   ARM: OMAP2+: hwmod: OMAP5 DSS hwmod data (2014-05-14 12:26:10 -0600)
-> >>>
-> >>> ----------------------------------------------------------------
-> >>> First (and possibly last) set of hwmod data changes for v3.16.  This
-> >>> set should clean up some obsolete OMAP4 hwmod data, and add OMAP5 DSS
-> >>> support.
+> >>> Tero, care to ack?
 > >>
-> >> What about the AM43xx hwmod data I sent in the same series:
 > >>
-> >> http://article.gmane.org/gmane.linux.ports.arm.omap/114192
-> > 
-> > I guess the issue there is that there's no way for Paul or much
-> > anybody else to check it against any documentation or hardware :(
-> > 
-> > Is this just cut and paste code, or has you verified it against
-> > the documentation and the hardare?
-> 
-> It's a cut and paste from TI's kernel, I did not write it. I have tested
-> it on two different AM4xxx boards, and reviewed it, although I have not
-> checked every individual bit of information there as it's a bit
-> difficult to find information of all the details.
-> 
-> The AM43xx's DSS is more or less a subset of the DSS in OMAP3, so while
-> a proper bit-for-bit review cannot be done without AM43xx documentation,
-> a  "looks sane" review can be done against OMAP3.
+> >> Sorry if I did not mail the right people, get_maintainer.pl gave m=
+e a
+> >> long list, and I did not feel like spamming all these people for s=
+uch a
+> >> small patch. I do not believe Tero was in this list.
+> >>
+> >> Regards.
+> >
+> >
+> > Yea I don't think this is my expertise area, however the patch look=
+s good to
+> > me, so if you really need it:
+> >
+> > Acked-by: Tero Kristo <t-kristo@ti.com>
+>=20
+> Tony, care to add this to your omap 3.16 dt branch?
+>=20
+> I am still getting:
+> [ 0.000152] smp_twd: clock not found -2
+>=20
+> So this fix from Gilles would be nice to have.
 
-OK thanks for reviewing it. Looks like Rajendra found few issues, so
-I'm personally fine with your and Rajendra's acks on it. Paul may
-have still other comments though.
+Best that Tero picks this one up along with the other dt clock changes
+he's queueing.
 
 Regards,
 
 Tony
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
