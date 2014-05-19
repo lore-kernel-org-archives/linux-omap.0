@@ -1,42 +1,50 @@
 From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: [PATCHv2 resend 04/11] ARM: OMAP3: Beagle: initialize all the struct pwm_lookup members
-Date: Mon, 19 May 2014 22:42:35 +0200
-Message-ID: <1400532162-29483-5-git-send-email-alexandre.belloni@free-electrons.com>
+Subject: [PATCHv2 resend 10/11] leds: leds-pwm: retrieve configured pwm period
+Date: Mon, 19 May 2014 22:42:41 +0200
+Message-ID: <1400532162-29483-11-git-send-email-alexandre.belloni@free-electrons.com>
 References: <1400532162-29483-1-git-send-email-alexandre.belloni@free-electrons.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:55044 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751758AbaESUnx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 16:43:53 -0400
 In-Reply-To: <1400532162-29483-1-git-send-email-alexandre.belloni@free-electrons.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Thierry Reding <thierry.reding@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Bryan Wu <cooloney@gmail.com>, Jingoo Han <jg1.han@samsung.com>, Lee Jones <lee.jones@linaro.org>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-leds@vger.kernel.org, linux-fbdev@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>
-List-Id: linux-omap@vger.kernel.org
 
-This will allow to get rid of the .pwm_period_ns member of struct led_pwm as the
-period will be set by the PWM core.
+The PWM core is now able to initialize the PWM period. Use it and if it is not
+configured, use the supplied pwm_period_ns.
 
 Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/leds/leds-pwm.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index d6ed819ff15c..f27e1ec90b5e 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -61,7 +61,14 @@
+diff --git a/drivers/leds/leds-pwm.c b/drivers/leds/leds-pwm.c
+index 7d0aaed1e23a..aa770ec1e892 100644
+--- a/drivers/leds/leds-pwm.c
++++ b/drivers/leds/leds-pwm.c
+@@ -181,7 +181,6 @@ static int led_pwm_probe(struct platform_device *pdev)
+ 			led_dat->cdev.name = cur_led->name;
+ 			led_dat->cdev.default_trigger = cur_led->default_trigger;
+ 			led_dat->active_low = cur_led->active_low;
+-			led_dat->period = cur_led->pwm_period_ns;
+ 			led_dat->cdev.brightness_set = led_pwm_set;
+ 			led_dat->cdev.brightness = LED_OFF;
+ 			led_dat->cdev.max_brightness = cur_led->max_brightness;
+@@ -191,6 +190,10 @@ static int led_pwm_probe(struct platform_device *pdev)
+ 			if (led_dat->can_sleep)
+ 				INIT_WORK(&led_dat->work, led_pwm_work);
  
- static struct pwm_lookup pwm_lookup[] = {
- 	/* LEDB -> PMU_STAT */
--	PWM_LOOKUP("twl-pwmled", 1, "leds_pwm", "beagleboard::pmu_stat"),
-+	{
-+		.provider = "twl-pwmled",
-+		.index = 1,
-+		.dev_id = "leds_pwm",
-+		.con_id = "beagleboard::pmu_stat",
-+		.period = 7812500,
-+		.polarity = PWM_POLARITY_NORMAL,
-+	},
- };
- 
- static struct led_pwm pwm_leds[] = {
++			led_dat->period = pwm_get_period(led_dat->pwm);
++			if (!led_dat->period && (cur_led->pwm_period_ns > 0))
++				led_dat->period = cur_led->pwm_period_ns;
++
+ 			ret = led_classdev_register(&pdev->dev, &led_dat->cdev);
+ 			if (ret < 0)
+ 				goto err;
 -- 
 1.9.1
+
