@@ -1,51 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v7 4/4] ARM: dts: am43xx: fix starting offset of
- NAND.filesystem MTD partition
-Date: Mon, 19 May 2014 15:12:52 -0700
-Message-ID: <20140519221252.GH11945@atomide.com>
-References: <1400490948-11571-1-git-send-email-pekon@ti.com>
- <1400490948-11571-5-git-send-email-pekon@ti.com>
+Subject: Re: [PATCH 1/2] ARM: dts: Convert DuoVero Parlor to use IOPAD macro
+Date: Mon, 19 May 2014 15:15:41 -0700
+Message-ID: <20140519221541.GI11945@atomide.com>
+References: <1400328420-28384-1-git-send-email-manabian@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43417 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:49094 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751284AbaESWM4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 18:12:56 -0400
+	with ESMTP id S1750894AbaESWPq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 18:15:46 -0400
 Content-Disposition: inline
-In-Reply-To: <1400490948-11571-5-git-send-email-pekon@ti.com>
+In-Reply-To: <1400328420-28384-1-git-send-email-manabian@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, Roger Quadros <rogerq@ti.com>
+To: Joachim Eastwood <manabian@gmail.com>
+Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, florian.vaussard@epfl.ch
 
-* Pekon Gupta <pekon@ti.com> [140519 02:16]:
-> MTD NAND partition for file-system should start at offset=0xA00000
+* Joachim Eastwood <manabian@gmail.com> [140517 05:08]:
+> Conversion done by following awk script.
+> /0x[0-9a-f]{1,3} \(PIN/ {
+> 	offset = sprintf("OMAP4_IOPAD(0x%03x, ", strtonum($1) + 64)
+> 	sub(/0x[0-9a-f]{1,3} \(/, offset, $0)
+> 	print $0
+> 	next
+> }
+> { print $0 }
 > 
-> Signed-off-by: Pekon Gupta <pekon@ti.com>
-> Reviewed-by: Javier Martinez Canillas <javier@dowhile0.org>
+> Cc: florian.vaussard@epfl.ch
+> Signed-off-by: Joachim Eastwood <manabian@gmail.com>
+> ---
+> 
+> Hi,
+> 
+> Checked md5sum before and after patch and the resulting dtb is the same. So
+> this should be safe.
 
-Applying this too into omap-for-v3.16/dt.
+OK thanks applying into omap-for-v3.16/dt.
+
+Regards,
 
 Tony
-
-> ---
->  arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-> index 2a0fbbb..ad362c5 100644
-> --- a/arch/arm/boot/dts/am43x-epos-evm.dts
-> +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-> @@ -366,7 +366,7 @@
->  		};
->  		partition@9 {
->  			label = "NAND.file-system";
-> -			reg = <0x00800000 0x1F600000>;
-> +			reg = <0x00a00000 0x1f600000>;
->  		};
->  	};
->  };
-> -- 
-> 1.8.5.1.163.gd7aced9
-> 
