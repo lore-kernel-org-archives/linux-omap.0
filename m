@@ -1,52 +1,74 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH v7 1/4] ARM: dts: am335x-bone: add support for beaglebone
- NAND cape
-Date: Mon, 19 May 2014 15:11:42 -0500
-Message-ID: <CAOCHtYgqQpgVw1Wo0SrYux0LHjnQ5aiyPD9nRbrU90iGxxD-Kg@mail.gmail.com>
-References: <1400490948-11571-1-git-send-email-pekon@ti.com>
-	<1400490948-11571-2-git-send-email-pekon@ti.com>
-	<20140519162532.GF4849@atomide.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EACE21E@DBDE04.ent.ti.com>
-	<20140519181640.GA6957@arch.cereza>
-	<CAOCHtYjAJB3xSYrq3P+R2qyLHEbMQ5LMpu=hs4rwjXSqXb-kKw@mail.gmail.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EACE2A5@DBDE04.ent.ti.com>
-	<CAOCHtYhDz=6eU7qdpX3Le2XexVvnreJ2fBF+UnbEANbbyez1_w@mail.gmail.com>
-	<DAEAC432-DB0E-4C30-9B85-71D8987FBF77@ti.com>
-	<CAOCHtYiPWqZyDiS6dAM93tq6jo7fVk262aeYBQ_V5WAoCkcYuA@mail.gmail.com>
-	<50A3219B-8418-4CCA-8500-72119594BA97@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 06/11] ARM: OMAP2+: Fix voltage scaling init for device
+ tree
+Date: Mon, 19 May 2014 13:23:27 -0700
+Message-ID: <20140519202327.GC11945@atomide.com>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com>
+ <1397173639-29587-7-git-send-email-tony@atomide.com>
+ <CAGhQ9VxS+Hg6EX=CDxbibV2TFw++LwZY+GQomZEHx--JGuWHNg@mail.gmail.com>
+ <20140519180104.GL4849@atomide.com>
+ <CAGo_u6oGHFAFimYSc8Utgbp=oCahXzO0ZoYjhFgOkT3YkppS6A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:63195 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752343AbaESULn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 16:11:43 -0400
-Received: by mail-ig0-f180.google.com with SMTP id c1so4039798igq.1
-        for <linux-omap@vger.kernel.org>; Mon, 19 May 2014 13:11:43 -0700 (PDT)
-In-Reply-To: <50A3219B-8418-4CCA-8500-72119594BA97@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31535 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932836AbaESUXe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 16:23:34 -0400
+Content-Disposition: inline
+In-Reply-To: <CAGo_u6oGHFAFimYSc8Utgbp=oCahXzO0ZoYjhFgOkT3YkppS6A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kridner, Jason" <jdk@ti.com>
-Cc: "Gupta, Pekon" <pekon@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, "Quadros, Roger" <rogerq@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Joachim Eastwood <manabian@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
->>>
->>> I believe this is the same reason I created
->>> https://github.com/beagleboard/cape-firmware.  Is something else needed?
->>
->> Hi Jason,
->>
->> Same exact idea. But instead of the "overlay" dts's that get installed
->> in /lib/firmware/ this will be for the main kernel dtb files, that'll
->> be dumped in /boot/dtbs/*.dtb or /boot/*.dtb.  In theory we should be
->> able to build these outside kernel.org, so down the road we can add a
->> package for all the other distro's.
->
-> Why not reuse the same repo since the capes would be in there too? Does it need renaming?
+* Nishanth Menon <nm@ti.com> [140519 11:33]:
+> On Mon, May 19, 2014 at 1:01 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Joachim Eastwood <manabian@gmail.com> [140519 10:51]:
+> >>
+> >> As far as I understand the setup above is only valid for 4430 and not
+> >> 4460 since it is hook up to the twl in diffent way. External switcher
+> >> (TPS62361) for mpu rail and the other rails are used differently.
+> >
+> > Hmm interesting, I think we had this enabled with legacy booting?
+> >
+> >> I also get the following messages on boot now:
+> >> [ 2.458740] twl: not initialized
+> >> [ 2.462127] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+> >> 1375000 Vs max 1316660
+> >> [ 2.470581] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+> >> 1375000 Vs max 1316660
+> >> [ 2.479003] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+> >> 1375000 Vs max 1316660
+> >> [ 2.487457] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+> >> 1375000 Vs max 1316660
+> >> [ 2.495880] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+> >> 1375000 Vs max 1316660
+> >> [ 2.504302] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+> >> 1375000 Vs max 1316660
+> >> [ 2.512725] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
+> >> 1410000 Vs max 1316660
+> >> [ 2.521179] omap2_set_init_voltage: unable to find boot up OPP for vdd_mpu
+> >> [ 2.528411] omap2_set_init_voltage: unable to set vdd_mpu
+> >> [ 2.534088] omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+> >> [ 2.541412] omap2_set_init_voltage: unable to set vdd_core
+> >> [ 2.547210] omap2_set_init_voltage: unable to find boot up OPP for vdd_iva
+> >> [ 2.554443] omap2_set_init_voltage: unable to set vdd_iva
+> >>
+> >> It doesn't seem too happy on my 4460.
+> >
+> > Indeed, we need to fix it. Nishant, any comments on how we should
+> > deal with this one?
+> 
+> we can add TPS data here for 4460 mpu (panda-ES) if that is
+> interesting to us - given that the common voltage domain/VC/VP stuff
+> so far has gone in no positive direction in our discussions last year.
 
-Okay, i'll work with that repo and get something for v3.15.x/v3.16.x cleaned up.
+Makes sense to me. That way we have things back working after all
+these device tree related changes.
 
 Regards,
 
--- 
-Robert Nelson
-http://www.rcn-ee.com/
+Tony
+
+
