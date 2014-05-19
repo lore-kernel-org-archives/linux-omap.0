@@ -1,100 +1,122 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH] ARM: OMAP2+: gpmc: enable wait-pin monitoring for NAND
- devices via DT
-Date: Mon, 19 May 2014 17:00:23 +0200
-Message-ID: <CABxcv=k7KZAwsP-oW_8k_bZRtMLToCy904kq7Xv=c0da465w2A@mail.gmail.com>
-References: <1400267276-16001-1-git-send-email-pekon@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: DRA752: add detection of SoC information
+Date: Mon, 19 May 2014 10:27:11 -0500
+Message-ID: <1400513231-25092-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:48339 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374AbaESPAY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 11:00:24 -0400
-Received: by mail-we0-f174.google.com with SMTP id k48so5733575wev.33
-        for <linux-omap@vger.kernel.org>; Mon, 19 May 2014 08:00:23 -0700 (PDT)
-In-Reply-To: <1400267276-16001-1-git-send-email-pekon@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45909 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754214AbaESP1j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 May 2014 11:27:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-Hello Pekon,
+Currently the files in /sys/devices/soc0/ show no information about
+DRA7. Few userspace programs do depend on this information to make SoC
+specific support. So update logic to detect the relevant information and
+provide to userspace.
 
-On Fri, May 16, 2014 at 9:07 PM, Pekon Gupta <pekon@ti.com> wrote:
-> This patch enables 'wait-pin' monitoring in NAND driver if following properties
-> are present under NAND DT node
->         gpmc,wait-pin = <wait-pin number>
->         gpmc,wait-on-read;
->         gpmc,wait-on-write;
-> As NAND generic framework uses common path nand_chip->dev_ready() for monitoring
-> completion of Read and Write status, so wait-pin monitoring is enabled only when
-> both 'gpmc,wait-on-read' and 'gpmc,wait-on-write' are specified.
->
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+based on v3.15-rc5
 
-I see that the GPMC driver checks if "gpmc,wait-pin" property is
-defined and only in that case tries to read both "gpmc,wait-on-read"
-and "gpmc,wait-on-write" and prints a "read/write wait monitoring not
-enabled!" warning if one of those is not defined.
+Test log: http://slexy.org/view/s2FDZatq6f
 
-So my question is, it's a requirement and these 3 properties need to
-always be defined together?  If that is the case then I wonder why
-there are 3 different properties and why not just defining
-"gpmc,wait-pin" implies "gpmc,wait-on-{read,write}" ?
+ arch/arm/mach-omap2/id.c  |   37 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/io.c  |    1 +
+ arch/arm/mach-omap2/soc.h |    5 +++++
+ 3 files changed, 43 insertions(+)
 
-Or if is valid to define "gpmc-wait-pin" without
-"gpmc-wait-on-{read,write}" or only one those then why that scary
-warning is printed?
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 157412e..71bf216 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -628,6 +628,41 @@ void __init omap5xxx_check_revision(void)
+ 	pr_info("%s %s\n", soc_name, soc_rev);
+ }
+ 
++void __init dra7xxx_check_revision(void)
++{
++	u32 idcode;
++	u16 hawkeye;
++	u8 rev;
++
++	idcode = read_tap_reg(OMAP_TAP_IDCODE);
++	hawkeye = (idcode >> 12) & 0xffff;
++	rev = (idcode >> 28) & 0xff;
++	switch (hawkeye) {
++	case 0xb990:
++		switch (rev) {
++		case 0:
++			omap_revision = DRA752_REV_ES1_0;
++			break;
++		case 1:
++		default:
++			omap_revision = DRA752_REV_ES1_1;
++		}
++		break;
++
++	default:
++		/* Unknown default to latest silicon rev as default*/
++		pr_warn("%s: unknown idcode=0x%08x (hawkeye=0x%08x,rev=0x%d)\n",
++			__func__, idcode, hawkeye, rev);
++		omap_revision = DRA752_REV_ES1_1;
++	}
++
++	sprintf(soc_name, "DRA%03x", omap_rev() >> 16);
++	sprintf(soc_rev, "ES%d.%d", (omap_rev() >> 12) & 0xf,
++		(omap_rev() >> 8) & 0xf);
++
++	pr_info("%s %s\n", soc_name, soc_rev);
++}
++
+ /*
+  * Set up things for map_io and processor detection later on. Gets called
+  * pretty much first thing from board init. For multi-omap, this gets
+@@ -669,6 +704,8 @@ static const char * __init omap_get_family(void)
+ 		return kasprintf(GFP_KERNEL, "OMAP5");
+ 	else if (soc_is_am43xx())
+ 		return kasprintf(GFP_KERNEL, "AM43xx");
++	else if (soc_is_dra7xx())
++		return kasprintf(GFP_KERNEL, "DRA7");
+ 	else
+ 		return kasprintf(GFP_KERNEL, "Unknown");
+ }
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index f14f9ac..4ec3b4a 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -693,6 +693,7 @@ void __init dra7xx_init_early(void)
+ 	omap_prm_base_init();
+ 	omap_cm_base_init();
+ 	omap44xx_prm_init();
++	dra7xxx_check_revision();
+ 	dra7xx_powerdomains_init();
+ 	dra7xx_clockdomains_init();
+ 	dra7xx_hwmod_init();
+diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+index 30abcc8..de2a34c 100644
+--- a/arch/arm/mach-omap2/soc.h
++++ b/arch/arm/mach-omap2/soc.h
+@@ -459,10 +459,15 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define OMAP5430_REV_ES2_0	(OMAP54XX_CLASS | (0x30 << 16) | (0x20 << 8))
+ #define OMAP5432_REV_ES2_0	(OMAP54XX_CLASS | (0x32 << 16) | (0x20 << 8))
+ 
++#define DRA7XX_CLASS		0x07000000
++#define DRA752_REV_ES1_0	(DRA7XX_CLASS | (0x52 << 16) | (0x10 << 8))
++#define DRA752_REV_ES1_1	(DRA7XX_CLASS | (0x52 << 16) | (0x11 << 8))
++
+ void omap2xxx_check_revision(void);
+ void omap3xxx_check_revision(void);
+ void omap4xxx_check_revision(void);
+ void omap5xxx_check_revision(void);
++void dra7xxx_check_revision(void);
+ void omap3xxx_check_features(void);
+ void ti81xx_check_features(void);
+ void am33xx_check_features(void);
+-- 
+1.7.9.5
 
-Whatever is the case I think that the GPMC DT binding documentation
-(Documentation/devicetree/bindings/bus/ti-gpmc.txt) should be more
-clear on this regard.
-
-> Signed-off-by: Pekon Gupta <pekon@ti.com>
-> ---
->  arch/arm/mach-omap2/gpmc-nand.c | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-> index 4349e82..7dc742d 100644
-> --- a/arch/arm/mach-omap2/gpmc-nand.c
-> +++ b/arch/arm/mach-omap2/gpmc-nand.c
-> @@ -123,11 +123,13 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
->                 }
->         }
->
-> -       if (gpmc_nand_data->of_node)
-> +       if (gpmc_nand_data->of_node) {
->                 gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
-> -       else
-> +               if (s.wait_on_read && s.wait_on_write)
-
-You said that wait-on-pin monitoring is only enabled if both
-"gpmc,wait-on-read" and "gpmc,wait-on-write" are specified. But in
-that case I think we should clear the wait_pin on
-gpmc_read_settings_dt() if either "gpmc,wait-on-read" or
-"gpmc,wait-on-write" were not specified and check s.wait_pin instead.
-
-Or is this semantic only for NAND and other devices connected to the
-GPMC behave differently wrt "gpmc,wait-pin"?
-
-> +                       gpmc_nand_data->dev_ready = "true";
-
-You should really use gpmc_nand_data->dev_ready = true here. The C99
-standard allows you to assign a string literal to a _Bool type and
-will be evaluated to 1 but that is confusing and I haven't seen that
-used in other part of the kernel.
-
-> +       } else {
->                 gpmc_set_legacy(gpmc_nand_data, &s);
-> -
-> +       }
->         s.device_nand = true;
->
->         err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
-> --
-> 1.8.5.1.163.gd7aced9
->
-
-Best regards,
-Javier
