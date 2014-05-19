@@ -1,74 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 06/11] ARM: OMAP2+: Fix voltage scaling init for device
- tree
-Date: Mon, 19 May 2014 13:23:27 -0700
-Message-ID: <20140519202327.GC11945@atomide.com>
-References: <1397173639-29587-1-git-send-email-tony@atomide.com>
- <1397173639-29587-7-git-send-email-tony@atomide.com>
- <CAGhQ9VxS+Hg6EX=CDxbibV2TFw++LwZY+GQomZEHx--JGuWHNg@mail.gmail.com>
- <20140519180104.GL4849@atomide.com>
- <CAGo_u6oGHFAFimYSc8Utgbp=oCahXzO0ZoYjhFgOkT3YkppS6A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Subject: [PATCHv2 resend 02/11] ARM: shmobile: Armadillo 800 EVA: initialize all struct pwm_lookup members
+Date: Mon, 19 May 2014 22:42:33 +0200
+Message-ID: <1400532162-29483-3-git-send-email-alexandre.belloni@free-electrons.com>
+References: <1400532162-29483-1-git-send-email-alexandre.belloni@free-electrons.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31535 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932836AbaESUXe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 16:23:34 -0400
-Content-Disposition: inline
-In-Reply-To: <CAGo_u6oGHFAFimYSc8Utgbp=oCahXzO0ZoYjhFgOkT3YkppS6A@mail.gmail.com>
+Received: from top.free-electrons.com ([176.31.233.9]:54977 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751145AbaESUnY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 16:43:24 -0400
+In-Reply-To: <1400532162-29483-1-git-send-email-alexandre.belloni@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Joachim Eastwood <manabian@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Bryan Wu <cooloney@gmail.com>, Jingoo Han <jg1.han@samsung.com>, Lee Jones <lee.jones@linaro.org>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-leds@vger.kernel.org, linux-fbdev@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>
 
-* Nishanth Menon <nm@ti.com> [140519 11:33]:
-> On Mon, May 19, 2014 at 1:01 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Joachim Eastwood <manabian@gmail.com> [140519 10:51]:
-> >>
-> >> As far as I understand the setup above is only valid for 4430 and not
-> >> 4460 since it is hook up to the twl in diffent way. External switcher
-> >> (TPS62361) for mpu rail and the other rails are used differently.
-> >
-> > Hmm interesting, I think we had this enabled with legacy booting?
-> >
-> >> I also get the following messages on boot now:
-> >> [ 2.458740] twl: not initialized
-> >> [ 2.462127] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
-> >> 1375000 Vs max 1316660
-> >> [ 2.470581] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
-> >> 1375000 Vs max 1316660
-> >> [ 2.479003] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
-> >> 1375000 Vs max 1316660
-> >> [ 2.487457] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
-> >> 1375000 Vs max 1316660
-> >> [ 2.495880] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
-> >> 1375000 Vs max 1316660
-> >> [ 2.504302] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
-> >> 1375000 Vs max 1316660
-> >> [ 2.512725] twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for
-> >> 1410000 Vs max 1316660
-> >> [ 2.521179] omap2_set_init_voltage: unable to find boot up OPP for vdd_mpu
-> >> [ 2.528411] omap2_set_init_voltage: unable to set vdd_mpu
-> >> [ 2.534088] omap2_set_init_voltage: unable to find boot up OPP for vdd_core
-> >> [ 2.541412] omap2_set_init_voltage: unable to set vdd_core
-> >> [ 2.547210] omap2_set_init_voltage: unable to find boot up OPP for vdd_iva
-> >> [ 2.554443] omap2_set_init_voltage: unable to set vdd_iva
-> >>
-> >> It doesn't seem too happy on my 4460.
-> >
-> > Indeed, we need to fix it. Nishant, any comments on how we should
-> > deal with this one?
-> 
-> we can add TPS data here for 4460 mpu (panda-ES) if that is
-> interesting to us - given that the common voltage domain/VC/VP stuff
-> so far has gone in no positive direction in our discussions last year.
+Initializing all the struc pwm_lookup members allows to get rid of the struct
+tpu_pwm_platform_data as the polarity initialization will be taken care of by
+the PWM core.
 
-Makes sense to me. That way we have things back working after all
-these device tree related changes.
+Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Acked-by: Simon Horman <horms@verge.net.au>
+---
+ arch/arm/mach-shmobile/board-armadillo800eva.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-Regards,
-
-Tony
-
+diff --git a/arch/arm/mach-shmobile/board-armadillo800eva.c b/arch/arm/mach-shmobile/board-armadillo800eva.c
+index 2858f380beae..1bf61dad9a35 100644
+--- a/arch/arm/mach-shmobile/board-armadillo800eva.c
++++ b/arch/arm/mach-shmobile/board-armadillo800eva.c
+@@ -31,7 +31,7 @@
+ #include <linux/gpio_keys.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/pinctrl/machine.h>
+-#include <linux/platform_data/pwm-renesas-tpu.h>
++#include <linux/pwm.h>
+ #include <linux/pwm_backlight.h>
+ #include <linux/regulator/fixed.h>
+ #include <linux/regulator/gpio-regulator.h>
+@@ -399,24 +399,22 @@ static struct resource pwm_resources[] = {
+ 	},
+ };
+ 
+-static struct tpu_pwm_platform_data pwm_device_data = {
+-	.channels[2] = {
+-		.polarity = PWM_POLARITY_INVERSED,
+-	}
+-};
+-
+ static struct platform_device pwm_device = {
+ 	.name = "renesas-tpu-pwm",
+ 	.id = -1,
+-	.dev = {
+-		.platform_data = &pwm_device_data,
+-	},
+ 	.num_resources = ARRAY_SIZE(pwm_resources),
+ 	.resource = pwm_resources,
+ };
+ 
+ static struct pwm_lookup pwm_lookup[] = {
+-	PWM_LOOKUP("renesas-tpu-pwm", 2, "pwm-backlight.0", NULL),
++	{
++		.provider = "renesas-tpu-pwm",
++		.index = 2,
++		.dev_id = "pwm-backlight.0",
++		.con_id = NULL,
++		.period = 33333,
++		.polarity = PWM_POLARITY_INVERSED,
++	},
+ };
+ 
+ /* LCDC and backlight */
+-- 
+1.9.1
 
