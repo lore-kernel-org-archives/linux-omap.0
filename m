@@ -1,87 +1,90 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] ARM: AM43xx: clk: Change the wdt1 func clk src to per_32k
- clk
-Date: Mon, 19 May 2014 15:31:52 +0300
-Message-ID: <5379F9B8.6070402@ti.com>
-References: <1397621648-15691-1-git-send-email-lokeshvutla@ti.com> <53563F2D.20906@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 06/17] pci: host: pcie-designware: Use *base-mask* for configuring the iATU
+Date: Mon, 19 May 2014 14:45:47 +0200
+Message-ID: <5193704.9YxYic1Nyf@wuerfel>
+References: <1399383244-14556-1-git-send-email-kishon@ti.com> <5281007.CFRjW0Yeu2@wuerfel> <5375D3C8.1060204@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43404 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754418AbaESMbd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 May 2014 08:31:33 -0400
-In-Reply-To: <53563F2D.20906@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <5375D3C8.1060204@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Jingoo Han <jg1.han@samsung.com>, 'Santosh Shilimkar' <santosh.shilimkar@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, rogerq@ti.com, balajitk@ti.com, 'Bjorn Helgaas' <bhelgaas@google.com>, 'Marek Vasut' <marex@denx.de>
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, rnayak@ti.com, nsekhar@ti.com
 
-On 04/22/2014 01:06 PM, Tero Kristo wrote:
-> On 04/16/2014 07:14 AM, Lokesh Vutla wrote:
->> WDT1 module can take one of the below clocks as input functional
->> clock -
->>     - On-Chip 32K RC Osc [default/reset]
->>     - 32K from PRCM
->>
->> The On-Chip 32K RC Osc clock is not an accurate clock-source as per
->> the design/spec, so as a result, for example, timer which supposed
->> to get expired @60Sec, but will expire somewhere ~@40Sec, which is
->> not expected by any use-case.
->>
->> The solution here is to switch the input clock-source to PRCM
->> generated 32K clock-source during boot-time itself.
->> This is derived from AM33xx clock file.
->
-> I guess this patch should wait until we have a proper solution upstream
-> for selecting parents based on DT data, unless you have pressing need to
-> merge this as a temporary hack.
+On Friday 16 May 2014 14:30:56 Kishon Vijay Abraham I wrote:
+> On Wednesday 14 May 2014 06:15 PM, Arnd Bergmann wrote:
+> > On Wednesday 14 May 2014 11:14:45 Kishon Vijay Abraham I wrote:
+> > / {
+> >       #address-cells = <1>; // or <2> if you support > 4GB address space
+> >       #size-cells = <1>;
+> > 
+> >       soc {
+> >               #address-cells <1>;
+> >               #size-cells = <1>;
+> >               ranges;
+> >               dma-ranges;
+> > 
+> >               ... // all normal devices
+> > 
+> >               axi@20000000 {
+> >                       #size-cells = <1>;
+> >                       #address-cells = <1>;
+> >                       dma-ranges; // can access all 4GB outbound
+> >                       ranges = <0 0x20000000 0x10000000>; // 28-bit bus
+> > 
+> >                       pci@0 {
+> >                               reg = <0x0    0x1000>, // internal regs
+> >                                     <0x1000 0x2000>; // config space
+> 
+> The internal reg address space starts at 0x51000000. By Using this <0
+> 0x20000000 0x10000000>; as ranges, we are not able to get the memory resource
+> properly. Can we use multiple ranges? how do we specify which ranges the *reg*
+> property to use?
 
-I've decided to take this patch in its current form as the DT parenting 
-is still WIP.
+Yes, multiple ranges will work fine. You can make up a representation
+yourself if you don't know what the hardware really does.
 
-Queued for 3.16/ti-clk-drv.
+Two possible ways of doing this would be
 
--Tero
+a)
 
->
->>
->> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->> ---
->>   drivers/clk/ti/clk-43xx.c |   13 +++++++++++++
->>   1 file changed, 13 insertions(+)
->>
->> diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
->> index 67c8de5..ae2524e 100644
->> --- a/drivers/clk/ti/clk-43xx.c
->> +++ b/drivers/clk/ti/clk-43xx.c
->> @@ -110,9 +110,22 @@ static struct ti_dt_clk am43xx_clks[] = {
->>
->>   int __init am43xx_dt_clk_init(void)
->>   {
->> +    struct clk *clk1, *clk2;
->> +
->>       ti_dt_clocks_register(am43xx_clks);
->>
->>       omap2_clk_disable_autoidle_all();
->>
->> +    /*
->> +     * The On-Chip 32K RC Osc clock is not an accurate clock-source
->> as per
->> +     * the design/spec, so as a result, for example, timer which
->> supposed
->> +     * to get expired @60Sec, but will expire somewhere ~@40Sec,
->> which is
->> +     * not expected by any use-case, so change WDT1 clock source to PRCM
->> +     * 32KHz clock.
->> +     */
->> +    clk1 = clk_get_sys(NULL, "wdt1_fck");
->> +    clk2 = clk_get_sys(NULL, "clkdiv32k_ick");
->> +    clk_set_parent(clk1, clk2);
->> +
->>       return 0;
->>   }
->>
->
+	/* two separate physical connections represented as one logical bus */
+	axi@20000000 {
+		#address-cells = <2>;
+		#size-cells = <1>;
+		ranges = <0 0 0x20000000 0x10000000>, /* configurable registers */
+			 <1 0 0x51000000 0x01000000>; /* PCI host registers */
 
+		pci@1.0 {
+			reg = <1 0 0x01000000>, /* host registers */
+				<0 0x1000 0x2000>; /* config space */
+		}
+
+	};
+
+b) 
+
+	/* one physical bus, with some address munging */
+	axi@20000000 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0 0x20000000 0x10000000>, /* configurable registers */
+			 <0x51000000 0x51000000 0x01000000>; /* PCI host registers */
+
+		pci@1.0 {
+			reg = <0x51000000 0x01000000>, /* host registers */
+				<0x1000 0x2000>; /* config space */
+		}
+
+	};
+
+
+> Btw I was using *simple-bus* as compatible to *axi*. Or should I create a new
+> *axi* driver to create the pcie memory resources myself?
+
+simple-bus is best here, since you don't have a complex bus that needs to
+be set up using register accesses or that generates interrupts.
+
+	Arnd
