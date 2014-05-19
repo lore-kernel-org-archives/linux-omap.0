@@ -1,7 +1,7 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v2 6/6] usb: dwc3: dwc3-omap: Disable/Enable only wrapper interrupts in prepare/complete
-Date: Mon, 19 May 2014 14:02:57 +0530
-Message-ID: <1400488377-10605-7-git-send-email-george.cherian@ti.com>
+Subject: [PATCH v2 1/6] usb: dwc3: dwc3-omap: Remove x_major calculation from revision register
+Date: Mon, 19 May 2014 14:02:52 +0530
+Message-ID: <1400488377-10605-2-git-send-email-george.cherian@ti.com>
 References: <1400488377-10605-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,48 +12,82 @@ To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.ker
 Cc: gregkh@linuxfoundation.org, balbi@ti.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The dwc3 wrapper driver should not be fiddling with the core interrupts.
-Disabling the core interrupts in prepare stops xhci from proper operation.
-So remove disable/enable of core interrupts from prepare/complete.
+Remove the x_major calculation logic from the wrapper revision register
+to differentiate between OMAP5 and AM437x. This was done to find the
+register offsets of wrapper register. Now that We do it using dt
+compatible, remove the whole logic.
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c | 35 +++--------------------------------
+ 1 file changed, 3 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index e4f681a..3f86f29 100644
+index 1160ff4..53f6490 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -596,7 +596,7 @@ static int dwc3_omap_prepare(struct device *dev)
- {
- 	struct dwc3_omap	*omap = dev_get_drvdata(dev);
+@@ -77,10 +77,6 @@
+ #define USBOTGSS_DEV_EBC_EN			0x0110
+ #define USBOTGSS_DEBUG_OFFSET			0x0600
  
--	dwc3_omap_disable_irqs(omap);
-+	dwc3_omap_write_irqmisc_set(omap, 0x00);
+-/* REVISION REGISTER */
+-#define USBOTGSS_REVISION_XMAJOR(reg)		((reg >> 8) & 0x7)
+-#define USBOTGSS_REVISION_XMAJOR1		1
+-#define USBOTGSS_REVISION_XMAJOR2		2
+ /* SYSCONFIG REGISTER */
+ #define USBOTGSS_SYSCONFIG_DMADISABLE		(1 << 16)
  
- 	return 0;
- }
-@@ -604,8 +604,19 @@ static int dwc3_omap_prepare(struct device *dev)
- static void dwc3_omap_complete(struct device *dev)
- {
- 	struct dwc3_omap	*omap = dev_get_drvdata(dev);
-+	u32			reg;
+@@ -129,7 +125,6 @@ struct dwc3_omap {
+ 	u32			irq_eoi_offset;
+ 	u32			debug_offset;
+ 	u32			irq0_offset;
+-	u32			revision;
  
--	dwc3_omap_enable_irqs(omap);
-+	reg = (USBOTGSS_IRQMISC_OEVT |
-+			USBOTGSS_IRQMISC_DRVVBUS_RISE |
-+			USBOTGSS_IRQMISC_CHRGVBUS_RISE |
-+			USBOTGSS_IRQMISC_DISCHRGVBUS_RISE |
-+			USBOTGSS_IRQMISC_IDPULLUP_RISE |
-+			USBOTGSS_IRQMISC_DRVVBUS_FALL |
-+			USBOTGSS_IRQMISC_CHRGVBUS_FALL |
-+			USBOTGSS_IRQMISC_DISCHRGVBUS_FALL |
-+			USBOTGSS_IRQMISC_IDPULLUP_FALL);
-+
-+	dwc3_omap_write_irqmisc_set(omap, reg);
- }
+ 	u32			dma_status:1;
  
- static int dwc3_omap_suspend(struct device *dev)
+@@ -397,7 +392,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 	int			irq;
+ 
+ 	int			utmi_mode = 0;
+-	int			x_major;
+ 
+ 	u32			reg;
+ 
+@@ -448,32 +442,9 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
+ 
+-	reg = dwc3_omap_readl(omap->base, USBOTGSS_REVISION);
+-	omap->revision = reg;
+-	x_major = USBOTGSS_REVISION_XMAJOR(reg);
+-
+-	/* Differentiate between OMAP5 and AM437x */
+-	switch (x_major) {
+-	case USBOTGSS_REVISION_XMAJOR1:
+-	case USBOTGSS_REVISION_XMAJOR2:
+-		omap->irq_eoi_offset = 0;
+-		omap->irq0_offset = 0;
+-		omap->irqmisc_offset = 0;
+-		omap->utmi_otg_offset = 0;
+-		omap->debug_offset = 0;
+-		break;
+-	default:
+-		/* Default to the latest revision */
+-		omap->irq_eoi_offset = USBOTGSS_EOI_OFFSET;
+-		omap->irq0_offset = USBOTGSS_IRQ0_OFFSET;
+-		omap->irqmisc_offset = USBOTGSS_IRQMISC_OFFSET;
+-		omap->utmi_otg_offset = USBOTGSS_UTMI_OTG_OFFSET;
+-		omap->debug_offset = USBOTGSS_DEBUG_OFFSET;
+-		break;
+-	}
+-
+-	/* For OMAP5(ES2.0) and AM437x x_major is 2 even though there are
+-	 * changes in wrapper registers, Using dt compatible for aegis
++	/* Differentiate between OMAP5 and AM437x
++	 * For OMAP5(ES2.0) and AM437x x_major is 2 even though there are
++	 * changes in wrapper registers, Using dt compatible for AM437x
+ 	 */
+ 
+ 	if (of_device_is_compatible(node, "ti,am437x-dwc3")) {
 -- 
 1.8.3.1
