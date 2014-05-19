@@ -1,96 +1,107 @@
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCHv3 1/5] Input: add common DT binding for touchscreens
-Date: Sun, 18 May 2014 22:35:20 -0700
-Message-ID: <20140519053520.GC29386@core.coreip.homeip.net>
-References: <1398470179-20880-1-git-send-email-sre@kernel.org>
- <1398470179-20880-2-git-send-email-sre@kernel.org>
- <20140505194125.GD25949@atomide.com>
- <20140505195139.GA26978@core.coreip.homeip.net>
- <20140505230412.GC6261@earth.universe>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: remove unused omap4-keypad file and code
+Date: Sun, 18 May 2014 22:37:10 -0700
+Message-ID: <20140519053710.GD29386@core.coreip.homeip.net>
+References: <1400361851-32274-1-git-send-email-manabian@gmail.com>
+ <1400361851-32274-2-git-send-email-manabian@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140505230412.GC6261@earth.universe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-input@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1400361851-32274-2-git-send-email-manabian@gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Joachim Eastwood <manabian@gmail.com>
+Cc: illia.smyrnov@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, May 06, 2014 at 01:04:12AM +0200, Sebastian Reichel wrote:
-> On Mon, May 05, 2014 at 12:51:39PM -0700, Dmitry Torokhov wrote:
-> > On Mon, May 05, 2014 at 12:41:26PM -0700, Tony Lindgren wrote:
-> > > * Sebastian Reichel <sre@kernel.org> [140425 16:56]:
-> > > > Add common DT binding documentation for touchscreen devices and
-> > > > implement input_parse_touchscreen_of_params, which parses the common
-> > > > properties and configures the input device accordingly.
-> > > > 
-> > > > The method currently does not interpret the axis inversion properties,
-> > > > since there is no matching flag in the generic linux input device.
-> > > > 
-> > > > Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> > > > ---
-> > > >  .../bindings/input/touchscreen/touchscreen.txt     | 27 +++++++++++++++++
-> > > >  drivers/input/input.c                              | 34 ++++++++++++++++++++++
-> > > >  include/linux/input.h                              |  8 +++++
-> > > >  3 files changed, 69 insertions(+)
-> > > >  create mode 100644 Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-> > > > 
-> > > > diff --git a/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt b/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-> > > > new file mode 100644
-> > > > index 0000000..d8e0616
-> > > > --- /dev/null
-> > > > +++ b/Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
-> > > > @@ -0,0 +1,27 @@
-> > > > +General Touchscreen Properties:
-> > > > +
-> > > > +Optional properties for Touchscreens:
-> > > > + - touchscreen-size-x		: horizontal resolution of touchscreen
-> > > > +				  (in pixels)
-> > > > + - touchscreen-size-y		: vertical resolution of touchscreen
-> > > > +				  (in pixels)
-> > > > + - touchscreen-max-pressure	: maximum reported pressure (arbitrary range
-> > > > +				  dependent on the controller)
-> > > > + - touchscreen-fuzz-x		: horizontal noise value of the absolute input
-> > > > +				  device (in pixels)
-> > > > + - touchscreen-fuzz-y		: vertical noise value of the absolute input
-> > > > +				  device (in pixels)
-> > > > + - touchscreen-fuzz-pressure	: pressure noise value of the absolute input
-> > > > +				  device (arbitrary range dependent on the
-> > > > +				  controller)
-> > 
-> > Fuzz seems like linux-specific property, not generic one.
+On Sat, May 17, 2014 at 11:24:10PM +0200, Joachim Eastwood wrote:
+> This has been unused since omap4 board files went away.
 > 
-> I don't know about the term "fuzz", but the idea is pretty generic
-> IMHO. It's similar to debouncing switches/buttons.
+> Signed-off-by: Joachim Eastwood <manabian@gmail.com>
 
-OK, fair enough.
+Tony, can I merge both through my tree?
 
+> ---
+>  arch/arm/mach-omap2/devices.c      | 33 ---------------------------------
+>  arch/arm/mach-omap2/omap4-keypad.h |  8 --------
+>  2 files changed, 41 deletions(-)
+>  delete mode 100644 arch/arm/mach-omap2/omap4-keypad.h
 > 
-> > > > + - touchscreen-inverted-x	: X axis is inverted (boolean)
-> > > > + - touchscreen-inverted-y	: Y axis is inverted (boolean)
-> > > 
-> > > We probably also need something to swap x and y depending on the
-> > > display orientation in addition to the touchscreen-inverted-x and y.
-> > > Just swapping x and y is not enough depending if we rotate by 270
-> > > degrees instead of 90 degrees.
-> > > 
-> > > Naturally that part can be added later.
-> > 
-> > So far we've been relying on upper layers (such as tslib) to perform
-> > such transformations rather than re-implementing it in every driver. Are
-> > we saying that we need to implement this in input core?
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index e58609b312c7..592ba0a0ecf3 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -18,7 +18,6 @@
+>  #include <linux/slab.h>
+>  #include <linux/of.h>
+>  #include <linux/pinctrl/machine.h>
+> -#include <linux/platform_data/omap4-keypad.h>
+>  #include <linux/platform_data/mailbox-omap.h>
+>  
+>  #include <asm/mach-types.h>
+> @@ -29,7 +28,6 @@
+>  #include "iomap.h"
+>  #include "omap_hwmod.h"
+>  #include "omap_device.h"
+> -#include "omap4-keypad.h"
+>  
+>  #include "soc.h"
+>  #include "common.h"
+> @@ -255,37 +253,6 @@ static inline void omap_init_camera(void)
+>  #endif
+>  }
+>  
+> -int __init omap4_keyboard_init(struct omap4_keypad_platform_data
+> -			*sdp4430_keypad_data, struct omap_board_data *bdata)
+> -{
+> -	struct platform_device *pdev;
+> -	struct omap_hwmod *oh;
+> -	struct omap4_keypad_platform_data *keypad_data;
+> -	unsigned int id = -1;
+> -	char *oh_name = "kbd";
+> -	char *name = "omap4-keypad";
+> -
+> -	oh = omap_hwmod_lookup(oh_name);
+> -	if (!oh) {
+> -		pr_err("Could not look up %s\n", oh_name);
+> -		return -ENODEV;
+> -	}
+> -
+> -	keypad_data = sdp4430_keypad_data;
+> -
+> -	pdev = omap_device_build(name, id, oh, keypad_data,
+> -				 sizeof(struct omap4_keypad_platform_data));
+> -
+> -	if (IS_ERR(pdev)) {
+> -		WARN(1, "Can't build omap_device for %s:%s.\n",
+> -						name, oh->name);
+> -		return PTR_ERR(pdev);
+> -	}
+> -	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
+> -
+> -	return 0;
+> -}
+> -
+>  #if defined(CONFIG_OMAP2PLUS_MBOX) || defined(CONFIG_OMAP2PLUS_MBOX_MODULE)
+>  static inline void __init omap_init_mbox(void)
+>  {
+> diff --git a/arch/arm/mach-omap2/omap4-keypad.h b/arch/arm/mach-omap2/omap4-keypad.h
+> deleted file mode 100644
+> index 20de0d5a7e77..000000000000
+> --- a/arch/arm/mach-omap2/omap4-keypad.h
+> +++ /dev/null
+> @@ -1,8 +0,0 @@
+> -#ifndef ARCH_ARM_PLAT_OMAP4_KEYPAD_H
+> -#define ARCH_ARM_PLAT_OMAP4_KEYPAD_H
+> -
+> -struct omap_board_data;
+> -
+> -extern int omap4_keyboard_init(struct omap4_keypad_platform_data *,
+> -				struct omap_board_data *);
+> -#endif
+> -- 
+> 1.8.0
 > 
-> I would appreciate to add this later to move on with this patchset.
-> Having the N900's touchscreen working via DT in 3.16 would be nice
-> now that the display is working :)
-> 
-
-Please remove the "inverted" bits and move touchscreen OF parsing into a
-separate file/module, similarly to support for sparse and matrix keymaps
-that we have - it does not really belong to input core.
-
-Thanks.
 
 -- 
 Dmitry
