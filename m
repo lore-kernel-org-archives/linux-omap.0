@@ -1,91 +1,36 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v3 09/13] dt/bindings: ti,edma: Remove redundant properties
- from documentation
-Date: Mon, 19 May 2014 13:45:53 +0530
-Message-ID: <5379BDB9.50905@ti.com>
-References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com> <1400242640-9902-10-git-send-email-peter.ujfalusi@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH v2 0/6] Cleanup and fixes for dwc3-omap
+Date: Mon, 19 May 2014 14:02:51 +0530
+Message-ID: <1400488377-10605-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1400242640-9902-10-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, joelf@ti.com, arnd@arndb.de, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>
-Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-+ DT maintainers
 
-On Friday 16 May 2014 05:47 PM, Peter Ujfalusi wrote:
-> From CCCFG register of eDMA3 we can get all the needed information for the
-> driver about the IP:
-> Number of channels: NUM_DMACH
-> Number of regions: NUM_REGN
-> Number of slots (PaRAM sets): NUM_PAENTRY
-> Number of TC/EQ: NUM_EVQUE
-> 
-> The ti,edma-regions; ti,edma-slots and dma-channels in DT are
-> redundant since the very same information can be obtained from the HW.
-> The mentioned properties are deprecated.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+The series does some refactoring on dwc3_probe()
 
-DT maintainers,
+Patch 1 - Now that we use driver compatible for revision check, remove the unnecessary logic.
+Patch 2-4 - reduce the size of dwc3_probe()
+Patch 5 - Fix the crash on dwc3_omap removal
+Patch 6 - Addresses the issue of  xhci hang while resuming from system sleep.
 
-Can I get an ack on deprecation of these bindings? We are using hardware
-to detect the same properties so it should not cause any backward
-compatibility issue when moving to newer kernels while keeping the same DTB.
 
-Link to last mail on this topic as part of v2 thread:
+George Cherian (6):
+  usb: dwc3: dwc3-omap: Remove x_major calculation from revision
+    register
+  usb: dwc3: dwc3-omap: Add dwc3_omap_map_offset() function
+  usb: dwc3: dwc3-omap: Add dwc3_omap_set_utmi_mode() function
+  usb: dwc3: dwc3-omap: Add dwc3_omap_extcon_register function
+  usb: dwc3: dwc3-omap: Fix the crash on module removal
+  usb: dwc3: dwc3-omap: Disable/Enable only wrapper interrupts in
+    prepare/complete
 
-http://lkml.iu.edu/hypermail/linux/kernel/1405.1/05152.html
+ drivers/usb/dwc3/dwc3-omap.c | 186 ++++++++++++++++++++++---------------------
+ 1 file changed, 97 insertions(+), 89 deletions(-)
 
-Thanks,
-Sekhar
-
-> ---
->  Documentation/devicetree/bindings/dma/ti-edma.txt | 13 +++++++------
->  1 file changed, 7 insertions(+), 6 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
-> index 68ff2137bae7..5ba525a10035 100644
-> --- a/Documentation/devicetree/bindings/dma/ti-edma.txt
-> +++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
-> @@ -2,11 +2,8 @@ TI EDMA
->  
->  Required properties:
->  - compatible : "ti,edma3"
-> -- ti,edma-regions: Number of regions
-> -- ti,edma-slots: Number of slots
->  - #dma-cells: Should be set to <1>
->                Clients should use a single channel number per DMA request.
-> -- dma-channels: Specify total DMA channels per CC
->  - reg: Memory map for accessing module
->  - interrupt-parent: Interrupt controller the interrupt is routed through
->  - interrupts: Exactly 3 interrupts need to be specified in the order:
-> @@ -17,6 +14,13 @@ Optional properties:
->  - ti,hwmods: Name of the hwmods associated to the EDMA
->  - ti,edma-xbar-event-map: Crossbar event to channel map
->  
-> +Deprecated properties:
-> +Listed here in case one wants to boot an old kernel with new DTB. These
-> +properties might need to be added to the new DTS files.
-> +- ti,edma-regions: Number of regions
-> +- ti,edma-slots: Number of slots
-> +- dma-channels: Specify total DMA channels per CC
-> +
->  Example:
->  
->  edma: edma@49000000 {
-> @@ -26,9 +30,6 @@ edma: edma@49000000 {
->  	compatible = "ti,edma3";
->  	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
->  	#dma-cells = <1>;
-> -	dma-channels = <64>;
-> -	ti,edma-regions = <4>;
-> -	ti,edma-slots = <256>;
->  	ti,edma-xbar-event-map = /bits/ 16 <1 12
->  					    2 13>;
->  };
-> 
-
+-- 
+1.8.3.1
