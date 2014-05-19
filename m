@@ -1,75 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
-Date: Mon, 19 May 2014 10:51:57 -0700
-Message-ID: <20140519175157.GK4849@atomide.com>
-References: <5373DD94.8030208@ti.com>
- <5374F35E.5040900@ti.com>
- <5374FE61.50901@linaro.org>
- <5374FF5B.8050702@ti.com>
- <5375079E.3060305@ti.com>
- <537615EA.3020809@ti.com>
- <20140516212942.GK12881@atomide.com>
- <537A3544.1050307@linaro.org>
- <20140519172338.GJ4849@atomide.com>
- <537A408F.7070301@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v7 1/4] ARM: dts: am335x-bone: add support for
+ beaglebone NAND cape
+Date: Mon, 19 May 2014 17:52:56 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACE21E@DBDE04.ent.ti.com>
+References: <1400490948-11571-1-git-send-email-pekon@ti.com>
+ <1400490948-11571-2-git-send-email-pekon@ti.com>
+ <20140519162532.GF4849@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62300 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182AbaESRwD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 13:52:03 -0400
-Content-Disposition: inline
-In-Reply-To: <537A408F.7070301@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:52541 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750760AbaESRxL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 13:53:11 -0400
+In-Reply-To: <20140519162532.GF4849@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Alex Shi <alex.shi@linaro.org>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, "Quadros, Roger" <rogerq@ti.com>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [140519 10:35]:
-> On Monday 19 May 2014 01:23 PM, Tony Lindgren wrote:
-> > * Daniel Lezcano <daniel.lezcano@linaro.org> [140519 09:46]:
-> >> On 05/16/2014 11:29 PM, Tony Lindgren wrote:
-> >>>
-> >>> And just to recap, this problem can be reproduced with current
-> >>> Linux next with omap2plus_defconfig with CONFIG_CPU_IDLE enabled. The
-> >>> system should hang during the boot at some point.
-> >>
-> >> I can take the time to investigate a bit more but not right now. What is
-> >> your deadline before committing the reverts ?
-> > 
-> > Well we do have several automated build and boot systems failing
-> > because of this with multi_v7_defconfig. And users are complaining,
-> > see this report from Tobias Jakobi:
-> > 
-> > https://bugzilla.kernel.org/show_bug.cgi?id=75421
-> > 
-> > It seems that doing the revert is not enough based on the
-> > page above.
-> >
-> Thats not true. The above link used the half patch and not the
-> updated patch. Updated patch worked for Alex also. As you can
-> see they saw RCU stalls and they go away after the updated patch.
-> 
-> Can you please point them to try out the updated patch ?
+Hi Tony,
 
-OK good point. I added a link to the updated patch in
-bugzilla.
-  
-> > I'd prefer we'd fix this issue properly for sure, it seems that
-> > we're not quite understanding what's going on. And this might
-> > hit other platforms too when they start implementing deeper
-> > PM idle states in the mainline kernel.
-> > 
-> I am certain that the updated patch fixed the regression
-> for sure. The issue is really not generic enough since its related
-> an OMAP ROM errata which needs that special handling of
-> interrupt re-trigger etc. You don't need that for other platforms
-> so they are not likely get affected.
+>From: Tony Lindgren [mailto:tony@atomide.com]
+>
+>* Pekon Gupta <pekon@ti.com> [140519 02:16]:
+>> --- a/arch/arm/boot/dts/am335x-bone.dts
+>> +++ b/arch/arm/boot/dts/am335x-bone.dts
+>> @@ -9,6 +9,7 @@
+>>
+>>  #include "am33xx.dtsi"
+>>  #include "am335x-bone-common.dtsi"
+>> +#include "am335x-bone-memory-cape.dts"
+>>
+>>  &ldo3_reg {
+>>  	regulator-min-microvolt = <1800000>;
+>> --- a/arch/arm/boot/dts/am335x-boneblack.dts
+>> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
+>> @@ -9,6 +9,7 @@
+>>
+>>  #include "am33xx.dtsi"
+>>  #include "am335x-bone-common.dtsi"
+>> +#include "am335x-bone-memory-cape.dts"
+>>
+>>  &ldo3_reg {
+>>  	regulator-min-microvolt = <1800000>;
+>
+>Based on the recent discussions on the capes, it seems that nobody
+>wants to implement toggling of the capes in u-boot. And as there
+>can be other capes using GPMC bus, we can't merge this. And because
+>the capes are stackable, we can't really have .dts files for all
+>the combinations. And no, we're not merging any unconnected .dts
+>files either, sorry.
+>
+Yes, I fully understand. This is like death for most of the capes from point
+of view of mainline support. But I have submitted this patch just for sake
+of completion. And to provide reference if someone wants to locally work
+on beaglebone NAND cape.
+You may ignore this patch, and take the remaining ones if they are suitable.
 
-OK makes sense to me considering the ROM code. Daniel, are you OK
-with that or do you still want to investigate further?
-
-Regards,
-
-Tony
+with regards, pekon
