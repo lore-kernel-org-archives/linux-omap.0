@@ -1,7 +1,7 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v2 1/6] usb: dwc3: dwc3-omap: Remove x_major calculation from revision register
-Date: Mon, 19 May 2014 14:02:52 +0530
-Message-ID: <1400488377-10605-2-git-send-email-george.cherian@ti.com>
+Subject: [PATCH v2 3/6] usb: dwc3: dwc3-omap: Add dwc3_omap_set_utmi_mode() function
+Date: Mon, 19 May 2014 14:02:54 +0530
+Message-ID: <1400488377-10605-4-git-send-email-george.cherian@ti.com>
 References: <1400488377-10605-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,82 +12,82 @@ To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.ker
 Cc: gregkh@linuxfoundation.org, balbi@ti.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Remove the x_major calculation logic from the wrapper revision register
-to differentiate between OMAP5 and AM437x. This was done to find the
-register offsets of wrapper register. Now that We do it using dt
-compatible, remove the whole logic.
+Move find and set the utmi mode to its own seperate function.
+Improve code readability, decrease the dwc3_probe() size.
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 35 +++--------------------------------
- 1 file changed, 3 insertions(+), 32 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c | 44 +++++++++++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 1160ff4..53f6490 100644
+index 0df8adf..2223ab8 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -77,10 +77,6 @@
- #define USBOTGSS_DEV_EBC_EN			0x0110
- #define USBOTGSS_DEBUG_OFFSET			0x0600
+@@ -396,6 +396,30 @@ static void dwc3_omap_map_offset(struct dwc3_omap *omap)
+ 	}
+ }
  
--/* REVISION REGISTER */
--#define USBOTGSS_REVISION_XMAJOR(reg)		((reg >> 8) & 0x7)
--#define USBOTGSS_REVISION_XMAJOR1		1
--#define USBOTGSS_REVISION_XMAJOR2		2
- /* SYSCONFIG REGISTER */
- #define USBOTGSS_SYSCONFIG_DMADISABLE		(1 << 16)
- 
-@@ -129,7 +125,6 @@ struct dwc3_omap {
- 	u32			irq_eoi_offset;
- 	u32			debug_offset;
- 	u32			irq0_offset;
--	u32			revision;
- 
- 	u32			dma_status:1;
- 
-@@ -397,7 +392,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
++static void dwc3_omap_set_utmi_mode(struct dwc3_omap *omap)
++{
++	u32			reg;
++	struct device_node	*node = omap->dev->of_node;
++	int			utmi_mode = 0;
++
++	reg = dwc3_omap_read_utmi_status(omap);
++
++	of_property_read_u32(node, "utmi-mode", &utmi_mode);
++
++	switch (utmi_mode) {
++	case DWC3_OMAP_UTMI_MODE_SW:
++		reg |= USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
++		break;
++	case DWC3_OMAP_UTMI_MODE_HW:
++		reg &= ~USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
++		break;
++	default:
++		dev_dbg(omap->dev, "UNKNOWN utmi mode %d\n", utmi_mode);
++	}
++
++	dwc3_omap_write_utmi_status(omap, reg);
++}
++
+ static int dwc3_omap_probe(struct platform_device *pdev)
+ {
+ 	struct device_node	*node = pdev->dev.of_node;
+@@ -409,8 +433,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 	int			ret = -ENOMEM;
  	int			irq;
  
- 	int			utmi_mode = 0;
--	int			x_major;
- 
+-	int			utmi_mode = 0;
+-
  	u32			reg;
  
-@@ -448,32 +442,9 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 		goto err0;
+ 	void __iomem		*base;
+@@ -461,23 +483,7 @@ static int dwc3_omap_probe(struct platform_device *pdev)
  	}
  
--	reg = dwc3_omap_readl(omap->base, USBOTGSS_REVISION);
--	omap->revision = reg;
--	x_major = USBOTGSS_REVISION_XMAJOR(reg);
+ 	dwc3_omap_map_offset(omap);
 -
--	/* Differentiate between OMAP5 and AM437x */
--	switch (x_major) {
--	case USBOTGSS_REVISION_XMAJOR1:
--	case USBOTGSS_REVISION_XMAJOR2:
--		omap->irq_eoi_offset = 0;
--		omap->irq0_offset = 0;
--		omap->irqmisc_offset = 0;
--		omap->utmi_otg_offset = 0;
--		omap->debug_offset = 0;
+-	reg = dwc3_omap_read_utmi_status(omap);
+-
+-	of_property_read_u32(node, "utmi-mode", &utmi_mode);
+-
+-	switch (utmi_mode) {
+-	case DWC3_OMAP_UTMI_MODE_SW:
+-		reg |= USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
+-		break;
+-	case DWC3_OMAP_UTMI_MODE_HW:
+-		reg &= ~USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
 -		break;
 -	default:
--		/* Default to the latest revision */
--		omap->irq_eoi_offset = USBOTGSS_EOI_OFFSET;
--		omap->irq0_offset = USBOTGSS_IRQ0_OFFSET;
--		omap->irqmisc_offset = USBOTGSS_IRQMISC_OFFSET;
--		omap->utmi_otg_offset = USBOTGSS_UTMI_OTG_OFFSET;
--		omap->debug_offset = USBOTGSS_DEBUG_OFFSET;
--		break;
+-		dev_dbg(dev, "UNKNOWN utmi mode %d\n", utmi_mode);
 -	}
 -
--	/* For OMAP5(ES2.0) and AM437x x_major is 2 even though there are
--	 * changes in wrapper registers, Using dt compatible for aegis
-+	/* Differentiate between OMAP5 and AM437x
-+	 * For OMAP5(ES2.0) and AM437x x_major is 2 even though there are
-+	 * changes in wrapper registers, Using dt compatible for AM437x
- 	 */
+-	dwc3_omap_write_utmi_status(omap, reg);
++	dwc3_omap_set_utmi_mode(omap);
  
- 	if (of_device_is_compatible(node, "ti,am437x-dwc3")) {
+ 	/* check the DMA Status */
+ 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
 -- 
 1.8.3.1
