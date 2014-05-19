@@ -1,179 +1,110 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
- support
-Date: Mon, 19 May 2014 12:51:01 -0700
-Message-ID: <20140519195100.GB11945@atomide.com>
-References: <537487AE.3060906@ti.com>
- <20140515182133.GC23659@atomide.com>
- <5375A8A8.7080306@ti.com>
- <20140516160717.GD22031@atomide.com>
- <20140516174158.GA11733@earth.universe>
- <20140516180154.GG22031@atomide.com>
- <20140516213907.GL12881@atomide.com>
- <5379D35F.8040207@ti.com>
- <20140519155732.GA4849@atomide.com>
- <537A540E.8070302@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
+Date: Mon, 19 May 2014 16:00:44 -0400
+Message-ID: <537A62EC.1080806@ti.com>
+References: <5374FE61.50901@linaro.org> <5374FF5B.8050702@ti.com> <5375079E.3060305@ti.com> <537615EA.3020809@ti.com> <20140516212942.GK12881@atomide.com> <537A3544.1050307@linaro.org> <20140519172338.GJ4849@atomide.com> <537A408F.7070301@ti.com> <20140519175157.GK4849@atomide.com> <537A4827.30604@linaro.org> <20140519193622.GA11945@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41107 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751254AbaESTvK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 15:51:10 -0400
-Content-Disposition: inline
-In-Reply-To: <537A540E.8070302@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59223 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932143AbaESUBP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 16:01:15 -0400
+In-Reply-To: <20140519193622.GA11945@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Alex Shi <alex.shi@linaro.org>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140519 11:58]:
-> On 19/05/14 18:57, Tony Lindgren wrote:
+On Monday 19 May 2014 03:36 PM, Tony Lindgren wrote:
+> * Daniel Lezcano <daniel.lezcano@linaro.org> [140519 11:07]:
+>> On 05/19/2014 07:51 PM, Tony Lindgren wrote:
+>>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [140519 10:35]:
+>>>> On Monday 19 May 2014 01:23 PM, Tony Lindgren wrote:
+>>>>> * Daniel Lezcano <daniel.lezcano@linaro.org> [140519 09:46]:
+>>>>>> On 05/16/2014 11:29 PM, Tony Lindgren wrote:
+>>>>>>>
+>>>>>>> And just to recap, this problem can be reproduced with current
+>>>>>>> Linux next with omap2plus_defconfig with CONFIG_CPU_IDLE enabled. The
+>>>>>>> system should hang during the boot at some point.
+>>>>>>
+>>>>>> I can take the time to investigate a bit more but not right now. What is
+>>>>>> your deadline before committing the reverts ?
+>>>>>
+>>>>> Well we do have several automated build and boot systems failing
+>>>>> because of this with multi_v7_defconfig. And users are complaining,
+>>>>> see this report from Tobias Jakobi:
+>>>>>
+>>>>> https://bugzilla.kernel.org/show_bug.cgi?id=75421
+>>>>>
+>>>>> It seems that doing the revert is not enough based on the
+>>>>> page above.
+>>>>>
+>>>> Thats not true. The above link used the half patch and not the
+>>>> updated patch. Updated patch worked for Alex also. As you can
+>>>> see they saw RCU stalls and they go away after the updated patch.
+>>>>
+>>>> Can you please point them to try out the updated patch ?
+>>>
+>>> OK good point. I added a link to the updated patch in
+>>> bugzilla.
+>>>
+>>>>> I'd prefer we'd fix this issue properly for sure, it seems that
+>>>>> we're not quite understanding what's going on. And this might
+>>>>> hit other platforms too when they start implementing deeper
+>>>>> PM idle states in the mainline kernel.
+>>>>>
+>>>> I am certain that the updated patch fixed the regression
+>>>> for sure. The issue is really not generic enough since its related
+>>>> an OMAP ROM errata which needs that special handling of
+>>>> interrupt re-trigger etc. You don't need that for other platforms
+>>>> so they are not likely get affected.
+>>>
+>>> OK makes sense to me considering the ROM code. Daniel, are you OK
+>>> with that or do you still want to investigate further?
+>>
+>> For the moment I am a bit short in time for some other tasks. So feel free
+>> to apply the revert and I will look for a proper fix when I will have time.
 > 
-> >> I'm not sure if it's even possible to load both of those drivers at the
-> >> same time, but if it was, and the first one would get probe() called for
-> >> a device, and the driver would return an error, I'm quite sure the
-> >> driver framework won't continue trying with the other driver, as the
-> >> first driver already matched for the device.
-> > 
-> > No need to load multiple drivers at this point. That's why I'm saying
-> > you can bail out on the undesired display controller probes using
-> > of_machine_is_compatible test. It's not that uncommon for drivers to do:
+> Added Tobias to Cc. At the bugzilla link Tobias is saying
+> he used the right patch from Santosh to test and it still 
+> fails.
 > 
-> Hmm, I don't follow. If both, say, omap and exynos have a panel driver
-> for the same sharp panel, both need a driver for it (presuming exynos
-> has a proper display component driver system, which may not be true).
-> 
-> Both drivers would be loaded at boot time for the probe to be even to be
-> possible. Even if the other one bails out from a device probe using
-> of_machine_is_compatible, afaik the driver framework will stop probing
-> at that point, as that driver reports being compatible with the device
-> in question.
-> 
-> ...
-> 
-> Ah, ok, now I see. I think you mean module init, not probe? For some
-> reason I was just thinking about the probe stage.
-> 
-> Maybe that would work. I need to test tomorrow.
+The link of the patch in bugzilla shows that it was not the updated
+patch and that was my reference point. The other bugzilla issue seems to
+be different and mostly not related to cpuidle. I could be wrong.
 
-Ah right probe is too late as the match has been made already by then :)
- 
-> >>> it would be quite silly for each display controller to have to do
-> >>> their own remapping for shared panels?
-> >>
-> >> It would, but wouldn't it be just as silly (well, even more silly in my
-> >> opinion) to have each display controller require driver specific
-> >> compatible strings for the panels used?
-> > 
-> > Not driver specific, but hardware package specific. That's being done
-> > all the time. For example, compatible strings like "nvidia,tegra124",
-> > "ti,omap5" describe a package of an ARM core and various devices.
-> 
-> It feels to me rather wrong if I'd specify the compatible string for an
-> external piece of hardware based on the SoC it's connected to.
-> 
-> > But by using of_machine_is_compatible in the display drivers, you
-> > can use the right compatible flags from the start if you want to go
-> > that way.
-> 
-> Yes, with that we could have right compatible flags in the .dts.
-> 
-> >> Well, I sure hope nobody else has to implement similar thing.
-> > 
-> > Suuuure.. I've heard that about 20 times before and guess what
-> > happenened? Things never got fixed until some poor maintainer
-> > had to start fixing it all over the place about three years later.
-> 
-> The poor maintainer here being me =). And it's still a case of
-> pick-your-poison. We need to hack around the issue, in some form or
-> another. So in any case the poor maintainer has to fix it at some point
-> in the future.
+----------------------
 
-Yeah I agree none of the options so far have been very nice.
- 
-> But all this is fixed when we have a common display framework. And
-> that's something that is really badly needed in some form or another,
-> the sooner the better.
-> 
-> So the "fix" here is not just some internal thing that could be left at
-> that and forgotten.
+dmesg | grep idle:
+cpuidle: using governor ladder
+cpuidle: using governor menu
 
-Yes..
- 
-> >> To open that up a bit, traditionally other display driver architectures
-> >> have not had drivers for each display "entity", like the panels. So you
-> >> would really just have the display subsystem in the .dts, and some raw
-> >> data there (panel timings) to get the panel running.
-> > 
-> > Right, I believe that is the way to go, no doubt about it.
-> 
-> No, that's exactly _not_ the way to go =). We need proper drivers for
-> display components, instead of trying to avoid that and embed panel data
-> into the display controller's data.
+grep . /sys/devices/system/cpu/cpu*/cpuidle/*/*:
+(now attached as 'cpuidle states')
 
-Right, sorry I misread it :)
- 
-> > Here's a list of things that bothers me:
-> > 
-> > 1. Searching through the dtb from a driver instead of relying on the
-> >    driver probe mechanism for the components in question. If the parsing
-> >    of the dtb needs to be done it should be done in a Linux generic way
-> >    from some framework instead.
-> 
-> The reason I haven't made the conversion code available for others to
-> use is that there are no other users at the moment. And I hope there
-> will be no other user until we get the common display framework. If
-> there is, we'll need to move the code to a generic place.
-> 
-> > 2. Having to do this all early before we even have any debug console
-> >    available. We are trying to move everything to happen later on to avoid
-> >    all the issues related to initializing things early.
-> 
-> It worked fine for me when doing it as subsys_init level. Why do you say
-> it'd be early, before debug console?
+The 'BUG' looks like this:
+BUG: scheduling while atomic: swapper/1/0/0xffff0000
+Modules linked in: ctr ccm btrfs xor xor_neon zlib_inflate zlib_deflate omapfb cfbfillrect cfbimgblt cfbcopyarea raid6_pq arc4 wl12xx wlcore mac80211 cfg80211 rfkill usb_storage snd_soc_omap_hdmi snd_soc_omap_hdmi_card wlcore_sdio
+CPU: 1 PID: 0 Comm: swapper/1 Tainted: G        W     3.15.0-rc5+ #1
+Backtrace: 
+[<c001152c>] (dump_backtrace) from [<c00116c8>] (show_stack+0x18/0x1c)
+ r6:eb894000 r5:00000001 r4:00000000 r3:00000000
+[<c00116b0>] (show_stack) from [<c0430a94>] (dump_stack+0x7c/0x98)
+[<c0430a18>] (dump_stack) from [<c042ec10>] (__schedule_bug+0x48/0x60)
+ r4:00000000 r3:00000153
+[<c042ebc8>] (__schedule_bug) from [<c0432248>] (__schedule+0x41c/0x4b4)
+ r4:2b9fe000 r3:00000000
+[<c0431e2c>] (__schedule) from [<c04323d4>] (schedule+0x38/0x88)
+ r10:eb894000 r9:eb894000 r8:00000000 r7:eb894000 r6:c05b0450 r5:c05b04a0
+ r4:eb894000
+[<c043239c>] (schedule) from [<c04326fc>] (schedule_preempt_disabled+0x10/0x14)
+[<c04326ec>] (schedule_preempt_disabled) from [<c006d8f0>] (cpu_startup_entry+0xec/0x22c)
+[<c006d804>] (cpu_startup_entry) from [<c00131a4>] (secondary_start_kernel+0xe8/0x100)
+ r7:c05de240
+[<c00130bc>] (secondary_start_kernel) from [<80008664>] (0x80008664)
+ r4:ab87c06a r3:c000864c
+----------------------
 
-The debug console should not be needed for debugging drivers.. Just
-the serial console. This is because it's hard for users to produce
-decent error information when the system does not boot if DEBUG_LL
-and earlyprintk need to be enabled.
- 
-> All the drivers with converted compatible strings are normal drivers, so
-> afaik things work fine if we just convert the strings before the module
-> init level.
 
-Yes that seems like the right place to do the workarounds.
- 
-> > 3. Having to maintain a database in kernel of display mappings separately
-> >    in addition to the .dts files.
-> 
-> Yes, that's slightly annoying. Not really a big burden, though, as it's
-> quite rare to get a new encoder or panel driver.
-> 
-> > 4. Having this hack limited to device tree based booting while we are
-> >    trying to unify the functions for drivers to use to get their
-> >    resources.
-> 
-> I don't understand this one. With non-DT boot we don't have the issue at
-> all, there's no need for hacks.
-
-Hmm can't we still have multiarch booting happening with the same
-panel name being used by two different display drivers?
- 
-> > 5. Seeing the possibility of this spreading to other drivers.
-> 
-> Well, until we have a common display framework, one of the hacky options
-> we've discussed will spread to other drivers if they need to have their
-> own drivers for the same hardware devices.
-> 
-> Which is not nice, but not something we can escape. And using the
-> of_machine_is_compatible or having the compatible strings in .dts
-> appended with "dss" or such doesn't change that, it just changes which
-> hack may spread.
-
-Yes I agree they are all hacks, but your version seems to carry some
-extra early init baggage with it as I noted above :)
-
-Regards,
-
-Tony
