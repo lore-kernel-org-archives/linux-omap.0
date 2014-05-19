@@ -1,155 +1,74 @@
-From: Bin Liu <binmlist@gmail.com>
-Subject: Re: [PATCH v4 4/6] usb: musb: core: Convert the musb_platform_reset
- to have a return value.
-Date: Mon, 19 May 2014 11:05:10 -0500
-Message-ID: <CADYTM3aV7HSi5gcV_-K5nR6Um=pA983oHpmC_cnyeH=G8_R1hA@mail.gmail.com>
-References: <1400506776-2816-1-git-send-email-george.cherian@ti.com>
-	<1400506776-2816-5-git-send-email-george.cherian@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: some hwmod data patches for v3.16
+Date: Mon, 19 May 2014 09:09:02 -0700
+Message-ID: <20140519160901.GC4849@atomide.com>
+References: <alpine.DEB.2.02.1405160444200.29738@utopia.booyaka.com>
+ <5375CE74.6000603@ti.com>
+ <20140516212327.GI12881@atomide.com>
+ <5379C866.2040404@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:53360 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751987AbaESQFL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 12:05:11 -0400
-In-Reply-To: <1400506776-2816-5-git-send-email-george.cherian@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:18802 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790AbaESQJK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 12:09:10 -0400
+Content-Disposition: inline
+In-Reply-To: <5379C866.2040404@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140519 02:02]:
+> On 17/05/14 00:23, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [140516 01:39]:
+> >> Hi Paul,
+> >>
+> >> On 16/05/14 07:45, Paul Walmsley wrote:
+> >>> Hi Tony
+> >>>
+> >>> The following changes since commit d1db0eea852497762cab43b905b879dfcd3b8987:
+> >>>
+> >>>   Linux 3.15-rc3 (2014-04-27 19:29:27 -0700)
+> >>>
+> >>> are available in the git repository at:
+> >>>
+> >>>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git for-v3.16/hwmod-a
+> >>>
+> >>> for you to fetch changes up to 433480707967187a74ced38bd38edba749998013:
+> >>>
+> >>>   ARM: OMAP2+: hwmod: OMAP5 DSS hwmod data (2014-05-14 12:26:10 -0600)
+> >>>
+> >>> ----------------------------------------------------------------
+> >>> First (and possibly last) set of hwmod data changes for v3.16.  This
+> >>> set should clean up some obsolete OMAP4 hwmod data, and add OMAP5 DSS
+> >>> support.
+> >>
+> >> What about the AM43xx hwmod data I sent in the same series:
+> >>
+> >> http://article.gmane.org/gmane.linux.ports.arm.omap/114192
+> > 
+> > I guess the issue there is that there's no way for Paul or much
+> > anybody else to check it against any documentation or hardware :(
+> > 
+> > Is this just cut and paste code, or has you verified it against
+> > the documentation and the hardare?
+> 
+> It's a cut and paste from TI's kernel, I did not write it. I have tested
+> it on two different AM4xxx boards, and reviewed it, although I have not
+> checked every individual bit of information there as it's a bit
+> difficult to find information of all the details.
+> 
+> The AM43xx's DSS is more or less a subset of the DSS in OMAP3, so while
+> a proper bit-for-bit review cannot be done without AM43xx documentation,
+> a  "looks sane" review can be done against OMAP3.
 
-On Mon, May 19, 2014 at 8:39 AM, George Cherian <george.cherian@ti.com> wrote:
-> Currently musb_platform_reset() is only used by dsps.
-> In case of BABBLE interrupt for other platforms the  musb_platform_reset()
-> is a NOP. In such situations no need to re-initialize the endpoints.
-> Also in the latest silicon revision of AM335x, we do have a babble recovery
-> mechanism without resetting the IP block. In preperation to add that support
-> its better to have a rest_done return for  musb_platform_reset().
->
-> Signed-off-by: George Cherian <george.cherian@ti.com>
-> ---
->  drivers/usb/musb/musb_core.c | 38 +++++++++++++++++++++-----------------
->  drivers/usb/musb/musb_core.h | 10 ++++++----
->  drivers/usb/musb/musb_dsps.c |  3 ++-
->  3 files changed, 29 insertions(+), 22 deletions(-)
->
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 8920b80..1b0b85d 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -1755,28 +1755,32 @@ static void musb_irq_work(struct work_struct *data)
->  static void musb_recover_work(struct work_struct *data)
->  {
->         struct musb *musb = container_of(data, struct musb, recover_work.work);
-> -       int status;
-> +       int status, ret;
->
-> -       musb_platform_reset(musb);
-> +       ret  = musb_platform_reset(musb);
-> +       if (ret  < 0)
-
-If change it to ' if (ret)' here, you don't have to indent the reset
-of the code.
+OK thanks for reviewing it. Looks like Rajendra found few issues, so
+I'm personally fine with your and Rajendra's acks on it. Paul may
+have still other comments though.
 
 Regards,
--Bin.
 
-> +               return;
->
-> -       usb_phy_vbus_off(musb->xceiv);
-> -       usleep_range(100, 200);
-> +       if (!ret) {
-> +               usb_phy_vbus_off(musb->xceiv);
-> +               usleep_range(100, 200);
->
-> -       usb_phy_vbus_on(musb->xceiv);
-> -       usleep_range(100, 200);
-> +               usb_phy_vbus_on(musb->xceiv);
-> +               usleep_range(100, 200);
->
-> -       /*
-> -        * When a babble condition occurs, the musb controller removes the
-> -        * session bit and the endpoint config is lost.
-> -        */
-> -       if (musb->dyn_fifo)
-> -               status = ep_config_from_table(musb);
-> -       else
-> -               status = ep_config_from_hw(musb);
-> +               /*
-> +                * When a babble condition occurs, the musb controller
-> +                * removes the session bit and the endpoint config is lost.
-> +                */
-> +               if (musb->dyn_fifo)
-> +                       status = ep_config_from_table(musb);
-> +               else
-> +                       status = ep_config_from_hw(musb);
->
-> -       /* start the session again */
-> -       if (status == 0)
-> -               musb_start(musb);
-> +               /* start the session again */
-> +               if (status == 0)
-> +                       musb_start(musb);
-> +       }
->  }
->
->  /* --------------------------------------------------------------------------
-> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-> index 423cd00..3ccb428 100644
-> --- a/drivers/usb/musb/musb_core.h
-> +++ b/drivers/usb/musb/musb_core.h
-> @@ -192,7 +192,7 @@ struct musb_platform_ops {
->
->         int     (*set_mode)(struct musb *musb, u8 mode);
->         void    (*try_idle)(struct musb *musb, unsigned long timeout);
-> -       void    (*reset)(struct musb *musb);
-> +       int     (*reset)(struct musb *musb);
->
->         int     (*vbus_status)(struct musb *musb);
->         void    (*set_vbus)(struct musb *musb, int on);
-> @@ -554,10 +554,12 @@ static inline void musb_platform_try_idle(struct musb *musb,
->                 musb->ops->try_idle(musb, timeout);
->  }
->
-> -static inline void musb_platform_reset(struct musb *musb)
-> +static inline int  musb_platform_reset(struct musb *musb)
->  {
-> -       if (musb->ops->reset)
-> -               musb->ops->reset(musb);
-> +       if (!musb->ops->reset)
-> +               return -EINVAL;
-> +
-> +       return musb->ops->reset(musb);
->  }
->
->  static inline int musb_platform_get_vbus_status(struct musb *musb)
-> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-> index 74c4193..f6f3087 100644
-> --- a/drivers/usb/musb/musb_dsps.c
-> +++ b/drivers/usb/musb/musb_dsps.c
-> @@ -536,7 +536,7 @@ static int dsps_musb_set_mode(struct musb *musb, u8 mode)
->         return 0;
->  }
->
-> -static void dsps_musb_reset(struct musb *musb)
-> +static int dsps_musb_reset(struct musb *musb)
->  {
->         struct device *dev = musb->controller;
->         struct dsps_glue *glue = dev_get_drvdata(dev->parent);
-> @@ -548,6 +548,7 @@ static void dsps_musb_reset(struct musb *musb)
->         usleep_range(100, 200);
->         usb_phy_init(musb->xceiv);
->
-> +       return 0;
->  }
->
->  static struct musb_platform_ops dsps_ops = {
-> --
-> 1.8.3.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
+
