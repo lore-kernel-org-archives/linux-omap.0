@@ -1,74 +1,100 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [alsa-devel] [PATCH 00/19] Rework OMAP4+ HDMI audio support
-Date: Mon, 19 May 2014 17:44:09 +0300
-Message-ID: <537A18B9.3040504@ti.com>
-References: <cover.1399884780.git.jsarha@ti.com>	<CAGhQ9VzjndCBp+ZHS3XPPvS4ors6u9BfHf4NY_HNYN5ynyQOYQ@mail.gmail.com>	<53733F2E.4030803@ti.com>	<CAGhQ9VzkGDPiQF7TiqiMgZY_oc9dyrW66yGsZR6ei2ejX-EXcw@mail.gmail.com>	<CAGhQ9VwY_qeOLsa_oAUuL3XT2tmn-mLg0WBtOdL8JL6u+0PQcw@mail.gmail.com> <CAGhQ9VyxKWZ9KSWoYkhf8KeUJnMKJO=b0kG=upC7uojNLHVObw@mail.gmail.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH] ARM: OMAP2+: gpmc: enable wait-pin monitoring for NAND
+ devices via DT
+Date: Mon, 19 May 2014 17:00:23 +0200
+Message-ID: <CABxcv=k7KZAwsP-oW_8k_bZRtMLToCy904kq7Xv=c0da465w2A@mail.gmail.com>
+References: <1400267276-16001-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42473 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932236AbaESOoY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 May 2014 10:44:24 -0400
-In-Reply-To: <CAGhQ9VyxKWZ9KSWoYkhf8KeUJnMKJO=b0kG=upC7uojNLHVObw@mail.gmail.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:48339 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751374AbaESPAY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 11:00:24 -0400
+Received: by mail-we0-f174.google.com with SMTP id k48so5733575wev.33
+        for <linux-omap@vger.kernel.org>; Mon, 19 May 2014 08:00:23 -0700 (PDT)
+In-Reply-To: <1400267276-16001-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joachim Eastwood <manabian@gmail.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com, broonie@kernel.org, peter.ujfalusi@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Benoit Cousson <bcousson@baylibre.com>
+To: Pekon Gupta <pekon@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
 
-On 05/17/2014 12:16 PM, Joachim Eastwood wrote:
-> On 17 May 2014 10:51, Joachim  Eastwood <manabian@gmail.com> wrote:
->> On 14 May 2014 18:25, Joachim  Eastwood <manabian@gmail.com> wrote:
-...
->>
->> I did some more testing over here.
->>
->> My HTPC (nVidia ION2 based) works good with speaker-test and all
->> channels are where they are suppose to be.
->>
->> On the OMAP4 board I tried doing: "while true; do speaker-test -c 4 -s
->> 1; done" and this had an interesting effect.
->> Most of the time FL (Front Left) is swapped with BL (Back Left) but
->> about every 10th time the sound comes out in the FL speaker... So
->> there something weird going on here. Same story for the right channel.
->>
->> I also noticed that HDMI doesn't always work on boot up, it sometimes fail with:
->> [ 193.985565] omapdss_hdmi 58006000.encoder: audio not supported
->> [ 193.985565] omapdss_hdmi 58006000.encoder: ASoC: can't open
->> interface 58006000.encoder: -19
->>
->> But after replugging the HDMI connector a couple of times it starts to work.
->>
+Hello Pekon,
 
-That is weird I can not reproduce this problem. I rebooted my panda 
-several times and the audio device was always there. Could it be that 
-the connector is in DVI mode or something?
-
->> I'll see if I can try with an old TI OMAP4 kernel (3.4) and see how that works.
->
-> On the 3.4 Variscite kernel:
-> Linux version 3.4.0-1489-omap4 (uri@pluto) (gcc version 4.6.3
-> (Ubuntu/Linaro 4.6.3-1ubuntu5) ) #27 SMP PREEMPT Sun Apr 7 13:27:10
-> IDT 2013
-> git://dev.omapzoom.org/pub/scm/integration/kernel-ubuntu.git +
-> Variscite vendor patches
->
-> Both speaker-test -c 4 and -c 8 works. All channels are where they are
-> suppose to be.
->
-> Hot plugging is broken, though. So the HDMI must be connected on boot,
-> but that might be the Variscite board setup.
+On Fri, May 16, 2014 at 9:07 PM, Pekon Gupta <pekon@ti.com> wrote:
+> This patch enables 'wait-pin' monitoring in NAND driver if following properties
+> are present under NAND DT node
+>         gpmc,wait-pin = <wait-pin number>
+>         gpmc,wait-on-read;
+>         gpmc,wait-on-write;
+> As NAND generic framework uses common path nand_chip->dev_ready() for monitoring
+> completion of Read and Write status, so wait-pin monitoring is enabled only when
+> both 'gpmc,wait-on-read' and 'gpmc,wait-on-write' are specified.
 >
 
-I checked the ubuntu branch implementation and found that it is quite 
-different in many places, but the one place that affects the i2s channel 
-mapping to HDMI looks exactly the same. So there must be a bug some 
-where else and there is no point trying to fix it by changing the 
-mapping (it would be impossible anyway). I'll compare the 
-implementations further when I have time.
+I see that the GPMC driver checks if "gpmc,wait-pin" property is
+defined and only in that case tries to read both "gpmc,wait-on-read"
+and "gpmc,wait-on-write" and prints a "read/write wait monitoring not
+enabled!" warning if one of those is not defined.
 
-Thanks for your testing. Now I at least now where the bug is not.
+So my question is, it's a requirement and these 3 properties need to
+always be defined together?  If that is the case then I wonder why
+there are 3 different properties and why not just defining
+"gpmc,wait-pin" implies "gpmc,wait-on-{read,write}" ?
+
+Or if is valid to define "gpmc-wait-pin" without
+"gpmc-wait-on-{read,write}" or only one those then why that scary
+warning is printed?
+
+Whatever is the case I think that the GPMC DT binding documentation
+(Documentation/devicetree/bindings/bus/ti-gpmc.txt) should be more
+clear on this regard.
+
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
+> ---
+>  arch/arm/mach-omap2/gpmc-nand.c | 8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+> index 4349e82..7dc742d 100644
+> --- a/arch/arm/mach-omap2/gpmc-nand.c
+> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+> @@ -123,11 +123,13 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+>                 }
+>         }
+>
+> -       if (gpmc_nand_data->of_node)
+> +       if (gpmc_nand_data->of_node) {
+>                 gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
+> -       else
+> +               if (s.wait_on_read && s.wait_on_write)
+
+You said that wait-on-pin monitoring is only enabled if both
+"gpmc,wait-on-read" and "gpmc,wait-on-write" are specified. But in
+that case I think we should clear the wait_pin on
+gpmc_read_settings_dt() if either "gpmc,wait-on-read" or
+"gpmc,wait-on-write" were not specified and check s.wait_pin instead.
+
+Or is this semantic only for NAND and other devices connected to the
+GPMC behave differently wrt "gpmc,wait-pin"?
+
+> +                       gpmc_nand_data->dev_ready = "true";
+
+You should really use gpmc_nand_data->dev_ready = true here. The C99
+standard allows you to assign a string literal to a _Bool type and
+will be evaluated to 1 but that is confusing and I haven't seen that
+used in other part of the kernel.
+
+> +       } else {
+>                 gpmc_set_legacy(gpmc_nand_data, &s);
+> -
+> +       }
+>         s.device_nand = true;
+>
+>         err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
+> --
+> 1.8.5.1.163.gd7aced9
+>
 
 Best regards,
-Jyri
+Javier
