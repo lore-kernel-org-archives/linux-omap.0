@@ -1,53 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 resend 04/11] ARM: OMAP3: Beagle: initialize all the
- struct pwm_lookup members
-Date: Mon, 19 May 2014 13:49:54 -0700
-Message-ID: <20140519204954.GD11945@atomide.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCHv2 resend 00/11] improve PWM lookup support without device
+ tree
+Date: Mon, 19 May 2014 23:08:49 +0200
+Message-ID: <20140519210848.GF30737@mithrandir>
 References: <1400532162-29483-1-git-send-email-alexandre.belloni@free-electrons.com>
- <1400532162-29483-5-git-send-email-alexandre.belloni@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-leds-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="rWhLK7VZz0iBluhq"
+Return-path: <linux-pwm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1400532162-29483-5-git-send-email-alexandre.belloni@free-electrons.com>
-Sender: linux-leds-owner@vger.kernel.org
+In-Reply-To: <1400532162-29483-1-git-send-email-alexandre.belloni@free-electrons.com>
+Sender: linux-pwm-owner@vger.kernel.org
 To: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Bryan Wu <cooloney@gmail.com>, Jingoo Han <jg1.han@samsung.com>, Lee Jones <lee.jones@linaro.org>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-leds@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Bryan Wu <cooloney@gmail.com>, Jingoo Han <jg1.han@samsung.com>, Lee Jones <lee.jones@linaro.org>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-leds@vger.kernel.org, linux-fbdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Alexandre Belloni <alexandre.belloni@free-electrons.com> [140519 13:44]:
-> This will allow to get rid of the .pwm_period_ns member of struct led_pwm as the
-> period will be set by the PWM core.
 
-This should not conflict with anything I have:
+--rWhLK7VZz0iBluhq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
-> Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-> ---
->  arch/arm/mach-omap2/board-omap3beagle.c | 9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index d6ed819ff15c..f27e1ec90b5e 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -61,7 +61,14 @@
->  
->  static struct pwm_lookup pwm_lookup[] = {
->  	/* LEDB -> PMU_STAT */
-> -	PWM_LOOKUP("twl-pwmled", 1, "leds_pwm", "beagleboard::pmu_stat"),
-> +	{
-> +		.provider = "twl-pwmled",
-> +		.index = 1,
-> +		.dev_id = "leds_pwm",
-> +		.con_id = "beagleboard::pmu_stat",
-> +		.period = 7812500,
-> +		.polarity = PWM_POLARITY_NORMAL,
-> +	},
->  };
->  
->  static struct led_pwm pwm_leds[] = {
-> -- 
-> 1.9.1
-> 
+On Mon, May 19, 2014 at 10:42:31PM +0200, Alexandre Belloni wrote:
+> Hi,
+>=20
+> Originally sent on Apr 14th, note that this series is blocking another 16
+> patches series, I would like it to be taken in 3.16 if we can agree on th=
+is
+> implementation.
+
+It's kind of late for 3.16 now, but it doesn't look very risky from a
+quick look. I'll sleep on it and if I don't feel too uncomfortable about
+it in the morning I'll apply it for linux-next and see how that goes.
+
+Thierry
+
+--rWhLK7VZz0iBluhq
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTenLgAAoJEN0jrNd/PrOhJQsP/1C09qs8Y85T+8vvFJH8yWyU
+IKOd3JKjimnPqBXZsa23U9aFr8lBJCFyQGJGayeXTJNw1ql3Chu0B4+HQSbUNOCD
+/3a70J5GnDlB5GU2KOq2i9tfT4/m+Bv3s+3maXB+As6m09ksmt+shO9+kM+NrmGC
+eqX9IOmCKxnbd90vxPCSlgDXQ1jFTcMShwDwaG7iU8rS3aUSHLIaeL2K2Dh10l6R
+1e0ivk4dDWTKxmje9Jq62hlw5BeC7EDVJxtv1bf4HftbHRfbcEVw827Ff8ofnqzF
+If/tFKqm61AtJ8qlfzjdV35dGSd4B3Qm+dh1ZZPQPz45aIzbAi6/jFss6Xcf9PH6
+hMsWJPPrfptfrKWm83kx9ynLHjZgv7zpNztsDh1sZ5pjM73bzfBkCEvu1Mau/rRx
+ZCzgQfUafoH2xlgrShl0c70MZ3qJuc0OLMTSXnxwKwn4TwlWv7Dg/DCHjIgoQBAS
+7trJhhQzhzMSPeVE/kIWQLv0c9mt/EuGekFL7rUMECIYIzZaK7HESERFatk3ZhPI
+/QlzAsLaHA8+J4G674aTI20jiAfkhkFiUCDG6LVmv2NTWF2ean9fDpsJrNSv4voX
+lcQnw2vbnSRvMCHX4PG5F29Mg/Usl76qQAmndN22831gWa5ULfP6Zo7rac0TSJJu
+ABlXVGZkZ8ncXuQzKF85
+=WwQk
+-----END PGP SIGNATURE-----
+
+--rWhLK7VZz0iBluhq--
