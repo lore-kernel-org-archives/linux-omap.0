@@ -1,7 +1,7 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v2 4/6] usb: dwc3: dwc3-omap: Add dwc3_omap_extcon_register function
-Date: Mon, 19 May 2014 14:02:55 +0530
-Message-ID: <1400488377-10605-5-git-send-email-george.cherian@ti.com>
+Subject: [PATCH v2 2/6] usb: dwc3: dwc3-omap: Add dwc3_omap_map_offset() function
+Date: Mon, 19 May 2014 14:02:53 +0530
+Message-ID: <1400488377-10605-3-git-send-email-george.cherian@ti.com>
 References: <1400488377-10605-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,103 +12,62 @@ To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.ker
 Cc: gregkh@linuxfoundation.org, balbi@ti.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Move the extcon related code to its own function.
+Move map offset to its own seperate function.
 Improve code readability, decrease the dwc3_probe() size.
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 65 ++++++++++++++++++++++++++------------------
- 1 file changed, 39 insertions(+), 26 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c | 31 +++++++++++++++++++------------
+ 1 file changed, 19 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 2223ab8..131d75a 100644
+index 53f6490..0df8adf 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -420,6 +420,42 @@ static void dwc3_omap_set_utmi_mode(struct dwc3_omap *omap)
- 	dwc3_omap_write_utmi_status(omap, reg);
+@@ -378,6 +378,24 @@ static int dwc3_omap_vbus_notifier(struct notifier_block *nb,
+ 	return NOTIFY_DONE;
  }
  
-+static int dwc3_omap_extcon_register(struct dwc3_omap *omap)
++static void dwc3_omap_map_offset(struct dwc3_omap *omap)
 +{
-+	u32			ret;
 +	struct device_node	*node = omap->dev->of_node;
-+	struct extcon_dev	*edev;
 +
-+	if (of_property_read_bool(node, "extcon")) {
-+		edev = extcon_get_edev_by_phandle(omap->dev, 0);
-+		if (IS_ERR(edev)) {
-+			dev_vdbg(omap->dev, "couldn't get extcon device\n");
-+			return -EPROBE_DEFER;
-+		}
++	/* Differentiate between OMAP5 and AM437x
++	 * For OMAP5(ES2.0) and AM437x x_major is 2 even though there are
++	 * changes in wrapper registers, Using dt compatible for AM437x
++	 */
 +
-+		omap->vbus_nb.notifier_call = dwc3_omap_vbus_notifier;
-+		ret = extcon_register_interest(&omap->extcon_vbus_dev,
-+					       edev->name, "USB",
-+					       &omap->vbus_nb);
-+		if (ret < 0)
-+			dev_vdbg(omap->dev, "failed to register notifier for USB\n");
-+
-+		omap->id_nb.notifier_call = dwc3_omap_id_notifier;
-+		ret = extcon_register_interest(&omap->extcon_id_dev,
-+					       edev->name, "USB-HOST",
-+					       &omap->id_nb);
-+		if (ret < 0)
-+			dev_vdbg(omap->dev, "failed to register notifier for USB-HOST\n");
-+
-+		if (extcon_get_cable_state(edev, "USB") == true)
-+			dwc3_omap_set_mailbox(omap, OMAP_DWC3_VBUS_VALID);
-+		if (extcon_get_cable_state(edev, "USB-HOST") == true)
-+			dwc3_omap_set_mailbox(omap, OMAP_DWC3_ID_GROUND);
++	if (of_device_is_compatible(node, "ti,am437x-dwc3")) {
++		omap->irq_eoi_offset = USBOTGSS_EOI_OFFSET;
++		omap->irq0_offset = USBOTGSS_IRQ0_OFFSET;
++		omap->irqmisc_offset = USBOTGSS_IRQMISC_OFFSET;
++		omap->utmi_otg_offset = USBOTGSS_UTMI_OTG_OFFSET;
++		omap->debug_offset = USBOTGSS_DEBUG_OFFSET;
 +	}
-+
-+	return 0;
 +}
 +
  static int dwc3_omap_probe(struct platform_device *pdev)
  {
  	struct device_node	*node = pdev->dev.of_node;
-@@ -427,7 +463,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 	struct dwc3_omap	*omap;
- 	struct resource		*res;
- 	struct device		*dev = &pdev->dev;
--	struct extcon_dev	*edev;
- 	struct regulator	*vbus_reg = NULL;
+@@ -442,18 +460,7 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
  
- 	int			ret = -ENOMEM;
-@@ -499,31 +534,9 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 
- 	dwc3_omap_enable_irqs(omap);
- 
--	if (of_property_read_bool(node, "extcon")) {
--		edev = extcon_get_edev_by_phandle(dev, 0);
--		if (IS_ERR(edev)) {
--			dev_vdbg(dev, "couldn't get extcon device\n");
--			ret = -EPROBE_DEFER;
--			goto err2;
--		}
+-	/* Differentiate between OMAP5 and AM437x
+-	 * For OMAP5(ES2.0) and AM437x x_major is 2 even though there are
+-	 * changes in wrapper registers, Using dt compatible for AM437x
+-	 */
 -
--		omap->vbus_nb.notifier_call = dwc3_omap_vbus_notifier;
--		ret = extcon_register_interest(&omap->extcon_vbus_dev,
--			edev->name, "USB", &omap->vbus_nb);
--		if (ret < 0)
--			dev_vdbg(dev, "failed to register notifier for USB\n");
--		omap->id_nb.notifier_call = dwc3_omap_id_notifier;
--		ret = extcon_register_interest(&omap->extcon_id_dev, edev->name,
--					 "USB-HOST", &omap->id_nb);
--		if (ret < 0)
--			dev_vdbg(dev,
--				"failed to register notifier for USB-HOST\n");
--
--		if (extcon_get_cable_state(edev, "USB") == true)
--			dwc3_omap_set_mailbox(omap, OMAP_DWC3_VBUS_VALID);
--		if (extcon_get_cable_state(edev, "USB-HOST") == true)
--			dwc3_omap_set_mailbox(omap, OMAP_DWC3_ID_GROUND);
+-	if (of_device_is_compatible(node, "ti,am437x-dwc3")) {
+-		omap->irq_eoi_offset = USBOTGSS_EOI_OFFSET;
+-		omap->irq0_offset = USBOTGSS_IRQ0_OFFSET;
+-		omap->irqmisc_offset = USBOTGSS_IRQMISC_OFFSET;
+-		omap->utmi_otg_offset = USBOTGSS_UTMI_OTG_OFFSET;
+-		omap->debug_offset = USBOTGSS_DEBUG_OFFSET;
 -	}
-+	ret = dwc3_omap_extcon_register(omap);
-+	if (ret < 0)
-+		goto err2;
++	dwc3_omap_map_offset(omap);
  
- 	ret = of_platform_populate(node, NULL, NULL, dev);
- 	if (ret) {
+ 	reg = dwc3_omap_read_utmi_status(omap);
+ 
 -- 
 1.8.3.1
