@@ -1,101 +1,84 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH v7 1/4] ARM: dts: am335x-bone: add support for beaglebone
- NAND cape
-Date: Mon, 19 May 2014 14:22:15 -0500
-Message-ID: <CAOCHtYiPWqZyDiS6dAM93tq6jo7fVk262aeYBQ_V5WAoCkcYuA@mail.gmail.com>
-References: <1400490948-11571-1-git-send-email-pekon@ti.com>
-	<1400490948-11571-2-git-send-email-pekon@ti.com>
-	<20140519162532.GF4849@atomide.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EACE21E@DBDE04.ent.ti.com>
-	<20140519181640.GA6957@arch.cereza>
-	<CAOCHtYjAJB3xSYrq3P+R2qyLHEbMQ5LMpu=hs4rwjXSqXb-kKw@mail.gmail.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EACE2A5@DBDE04.ent.ti.com>
-	<CAOCHtYhDz=6eU7qdpX3Le2XexVvnreJ2fBF+UnbEANbbyez1_w@mail.gmail.com>
-	<DAEAC432-DB0E-4C30-9B85-71D8987FBF77@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
+Date: Mon, 19 May 2014 12:36:22 -0700
+Message-ID: <20140519193622.GA11945@atomide.com>
+References: <5374FE61.50901@linaro.org>
+ <5374FF5B.8050702@ti.com>
+ <5375079E.3060305@ti.com>
+ <537615EA.3020809@ti.com>
+ <20140516212942.GK12881@atomide.com>
+ <537A3544.1050307@linaro.org>
+ <20140519172338.GJ4849@atomide.com>
+ <537A408F.7070301@ti.com>
+ <20140519175157.GK4849@atomide.com>
+ <537A4827.30604@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yk0-f173.google.com ([209.85.160.173]:34753 "EHLO
-	mail-yk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752137AbaESTWQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 15:22:16 -0400
-Received: by mail-yk0-f173.google.com with SMTP id 142so4866742ykq.32
-        for <linux-omap@vger.kernel.org>; Mon, 19 May 2014 12:22:15 -0700 (PDT)
-In-Reply-To: <DAEAC432-DB0E-4C30-9B85-71D8987FBF77@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49939 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964829AbaESTga (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 15:36:30 -0400
+Content-Disposition: inline
+In-Reply-To: <537A4827.30604@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kridner, Jason" <jdk@ti.com>
-Cc: "Gupta, Pekon" <pekon@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, "Quadros, Roger" <rogerq@ti.com>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Alex Shi <alex.shi@linaro.org>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
 
-On Mon, May 19, 2014 at 2:11 PM, Kridner, Jason <jdk@ti.com> wrote:
->
->
-> On May 19, 2014, at 11:58 AM, "Robert Nelson" <robertcnelson@gmail.com>
-> wrote:
->
-> On Mon, May 19, 2014 at 1:51 PM, Gupta, Pekon <pekon@ti.com> wrote:
->
-> From: Robert Nelson [mailto:robertcnelson@gmail.com]
->
-> [...]
->
-> Since the capes are always some way tied with bb.org hardware, why
->
-> don't we put them up on https://github.com/beagleboard/ ?
->
->
-> am335x-capes.git ?
->
->
-> I envision, we should just mirror the base ./arch/arm/boot/dts/
->
-> directory (as someday the dts will be external anyways). In that repo,
->
-> we will keep these synced with mainline
->
->
-> am335x-bone-common.dtsi
->
-> am335x-bone.dts
->
-> am335x-boneblack.dts
->
->
-> and add the capes as:
->
->
-> <baseboard>-<cape>.dts
->
->
-> as a staging ground till a mainline overlay/etc system appears?
->
->
-> Thoughs?
->
->
->
-> If you know and can convince 'Gerald Coley' then plz try. I failed :-)
->
->
-> Oh, I'll do it... ;)
->
-> I just need Jason to create the intial "repo" for me on
-> github.com/beagleboard and enable my permission for it.
->
->
-> I believe this is the same reason I created
-> https://github.com/beagleboard/cape-firmware.  Is something else needed?
+* Daniel Lezcano <daniel.lezcano@linaro.org> [140519 11:07]:
+> On 05/19/2014 07:51 PM, Tony Lindgren wrote:
+> >* Santosh Shilimkar <santosh.shilimkar@ti.com> [140519 10:35]:
+> >>On Monday 19 May 2014 01:23 PM, Tony Lindgren wrote:
+> >>>* Daniel Lezcano <daniel.lezcano@linaro.org> [140519 09:46]:
+> >>>>On 05/16/2014 11:29 PM, Tony Lindgren wrote:
+> >>>>>
+> >>>>>And just to recap, this problem can be reproduced with current
+> >>>>>Linux next with omap2plus_defconfig with CONFIG_CPU_IDLE enabled. The
+> >>>>>system should hang during the boot at some point.
+> >>>>
+> >>>>I can take the time to investigate a bit more but not right now. What is
+> >>>>your deadline before committing the reverts ?
+> >>>
+> >>>Well we do have several automated build and boot systems failing
+> >>>because of this with multi_v7_defconfig. And users are complaining,
+> >>>see this report from Tobias Jakobi:
+> >>>
+> >>>https://bugzilla.kernel.org/show_bug.cgi?id=75421
+> >>>
+> >>>It seems that doing the revert is not enough based on the
+> >>>page above.
+> >>>
+> >>Thats not true. The above link used the half patch and not the
+> >>updated patch. Updated patch worked for Alex also. As you can
+> >>see they saw RCU stalls and they go away after the updated patch.
+> >>
+> >>Can you please point them to try out the updated patch ?
+> >
+> >OK good point. I added a link to the updated patch in
+> >bugzilla.
+> >
+> >>>I'd prefer we'd fix this issue properly for sure, it seems that
+> >>>we're not quite understanding what's going on. And this might
+> >>>hit other platforms too when they start implementing deeper
+> >>>PM idle states in the mainline kernel.
+> >>>
+> >>I am certain that the updated patch fixed the regression
+> >>for sure. The issue is really not generic enough since its related
+> >>an OMAP ROM errata which needs that special handling of
+> >>interrupt re-trigger etc. You don't need that for other platforms
+> >>so they are not likely get affected.
+> >
+> >OK makes sense to me considering the ROM code. Daniel, are you OK
+> >with that or do you still want to investigate further?
+> 
+> For the moment I am a bit short in time for some other tasks. So feel free
+> to apply the revert and I will look for a proper fix when I will have time.
 
-Hi Jason,
-
-Same exact idea. But instead of the "overlay" dts's that get installed
-in /lib/firmware/ this will be for the main kernel dtb files, that'll
-be dumped in /boot/dtbs/*.dtb or /boot/*.dtb.  In theory we should be
-able to build these outside kernel.org, so down the road we can add a
-package for all the other distro's.
+Added Tobias to Cc. At the bugzilla link Tobias is saying
+he used the right patch from Santosh to test and it still 
+fails.
 
 Regards,
 
--- 
-Robert Nelson
-http://www.rcn-ee.com/
+Tony
