@@ -1,107 +1,84 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
-Date: Mon, 19 May 2014 18:45:56 +0200
-Message-ID: <537A3544.1050307@linaro.org>
-References: <1399991966-14582-1-git-send-email-santosh.shilimkar@ti.com> <5373C78E.7040301@linaro.org> <5373C8E8.6040208@ti.com> <5373CBB9.40506@linaro.org> <5373DD94.8030208@ti.com> <5374F35E.5040900@ti.com> <5374FE61.50901@linaro.org> <5374FF5B.8050702@ti.com> <5375079E.3060305@ti.com> <537615EA.3020809@ti.com> <20140516212942.GK12881@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 00/13]  ARM/DT: edma: IP configuration from hardware
+ and cleanups
+Date: Mon, 19 May 2014 19:53:13 +0300
+Message-ID: <537A36F9.40004@ti.com>
+References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com> <537A01F2.2090107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:56764 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752137AbaESQpp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 12:45:45 -0400
-Received: by mail-we0-f179.google.com with SMTP id q59so5700193wes.24
-        for <linux-omap@vger.kernel.org>; Mon, 19 May 2014 09:45:44 -0700 (PDT)
-In-Reply-To: <20140516212942.GK12881@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <537A01F2.2090107@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>, joelf@ti.com, arnd@arndb.de
+Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Alex Shi <alex.shi@linaro.org>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-On 05/16/2014 11:29 PM, Tony Lindgren wrote:
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [140516 06:43]:
->> Tony,
+On 05/19/2014 04:06 PM, Sekhar Nori wrote:
+> On Friday 16 May 2014 05:47 PM, Peter Ujfalusi wrote:
+>> Hi,
 >>
->> On Thursday 15 May 2014 02:29 PM, Santosh Shilimkar wrote:
->>> On Thursday 15 May 2014 01:54 PM, Santosh Shilimkar wrote:
->>>> On Thursday 15 May 2014 01:50 PM, Daniel Lezcano wrote:
->>>>> On 05/15/2014 07:03 PM, Santosh Shilimkar wrote:
->>>
->>> [..]
->>>
->>>>>>> With above mentioned change, it should work. Other alternatives=
- is OMAP4 driver does
->>>>>>> its won registration where it can start the timer. The way it w=
-as before the
->>>>>>> consolidation.
->>>>>>>
->>>>>>> Ofcourse if you have better fix, then great.
->>>>>>>
->>>>>> What is your suggestion. We *must* fix the regression asap. I th=
-ink
->>>>>> $subject patch with an update to bctimer start under CPUIDLE_FLA=
-G_COUPLED
->>>>>> seems a good way forward.
->>>>>>
->>>>>> Do let me know.
->>>>>
->>>>> Did you see Alex Shi's email [cc'ed] ? Reverting this change make=
-s the panda ES to hang.
->>>>>
->>>> The hang is definitely due to the bctimer not started. As I said, =
-I assumed it was and
->>>> then you corrected saying it is under the flag.
->>>>
->>>>> I am not convinced the culprit is this code you are trying to rev=
-ert.
->>>>>
->>>> fair enough. Thats why I said if you have an alternative fix thats=
- great.
->>>>
->>> For record, below is updated patch with bctimer started which
->>> was missed in earlier version. I haven't tested it though.
->>>
->>> Alex,
->>> Please give a try with your test-case and see if you still see the =
-hang.
->>> Am just curious about your issue and hence the request..
->>>
->> Alex tested below patch and he don't see the hang so the patch is
->> addressing the issue.
+>> Changes since v2:
+>> - Comments from Sekhar and Arnd has been addressed best as I could.
+>> - Use the CCCFG information in all cases instead of pdata provided i=
+nformation
+>> - To achieve this I needed to do a bit more cleanup in this series
+>> - In the documentation patch, retrain the old properties for referen=
+ce
+>> - Cleanups in the old davinci board files and removing edma_soc_info=
+ members
 >>
->> If Daniel works out an alternate fix to avoid reverts, that will be =
-great
->> but if not, we should merge the below patch. I let you take call on =
-it.
->
-> Daniel any news on this?
->
-> And just to recap, this problem can be reproduced with current
-> Linux next with omap2plus_defconfig with CONFIG_CPU_IDLE enabled. The
-> system should hang during the boot at some point.
+>> Changes sicne v1:
+>> - added missing patch to remove the memset from edma_of_parse_dt()
+>>
+>> We are requesting redundant information via DT for the driver since =
+the very same
+>> data is available in the HW: by reading and decoding the content of =
+CCCFG
+>> register we can get:
+>> Number of channels: NUM_DMACH
+>> Number of regions: NUM_REGN
+>> Number of slots (PaRAM sets): NUM_PAENTRY
+>> Number of TC/EQ: NUM_EVQUE
+>>
+>> So these does not need to be provided by the DT binding.
+>>
+>> The driver will no longer look for these properties from DT and they=
+ can be
+>> removed from the binding documentation and from the dtsi files as we=
+ll.
+>> The change will not introduce regression when new kernel is booted u=
+sing older
+>> DTB (since we just ignore the mentioned properties).
+>=20
+> Applied all patches and pushed to branch v3.16/edma of:
+>=20
+> git://git.kernel.org/pub/scm/linux/kernel/git/nsekhar/linux-davinci.g=
+it
+>=20
+> Since the patches did not apply cleanly, please verify. I tested on
+> DA850 EVM using MMC/SD as EDMA user.
 
-I can take the time to investigate a bit more but not right now. What i=
-s=20
-your deadline before committing the reverts ?
+The patches in this series looks OK in your branch.
+However I can not find the following commits in there, which I have in =
+linux-next:
+c689a7b79c28 Merge remote-tracking branch 'slave-dma/next'
+cdae05a0f0f7 dmaengine: edma: Make reading the position of active chann=
+els work
+cf7eb979116c ARM: common: edma: Fix xbar mapping
+232b223d8281 dmaengine: edma: Set DMA_CYCLIC capability flag
+7cf2af90cd51 arm: common: edma: Save the number of event queues/TCs
 
-> And for the record, the omap3 hang fix is now posted to the lists as
-> "[PATCH] ARM: OMAP2+: Fix DMA hang after off-idle". This should not
-> have anything to do with the omap4 cpu_idle hang as omap4 does not
-> currently lose context during idle.
+They might come via different route...
+
+>=20
+> I will wait to get acks from DT maintainers before sending to ARM-SoC=
+=2E
+>=20
+> Thanks,
+> Sekhar
+>=20
 
 
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+P=E9ter
