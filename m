@@ -1,39 +1,47 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v7 1/4] ARM: dts: am335x-bone: add support for
- beaglebone NAND cape
-Date: Mon, 19 May 2014 18:51:24 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACE2A5@DBDE04.ent.ti.com>
-References: <1400490948-11571-1-git-send-email-pekon@ti.com>
-	<1400490948-11571-2-git-send-email-pekon@ti.com>
-	<20140519162532.GF4849@atomide.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EACE21E@DBDE04.ent.ti.com>
-	<20140519181640.GA6957@arch.cereza>
- <CAOCHtYjAJB3xSYrq3P+R2qyLHEbMQ5LMpu=hs4rwjXSqXb-kKw@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 06/11] ARM: OMAP2+: Fix voltage scaling init for device
+ tree
+Date: Mon, 19 May 2014 13:52:18 -0500
+Message-ID: <537A52E2.6080601@ti.com>
+References: <1397173639-29587-1-git-send-email-tony@atomide.com>	<1397173639-29587-7-git-send-email-tony@atomide.com>	<CAGhQ9VxS+Hg6EX=CDxbibV2TFw++LwZY+GQomZEHx--JGuWHNg@mail.gmail.com>	<20140519180104.GL4849@atomide.com>	<CAGo_u6oGHFAFimYSc8Utgbp=oCahXzO0ZoYjhFgOkT3YkppS6A@mail.gmail.com> <CAGhQ9Vw38vJCS5TGRMz0MMif15narY=9=C8-vwzGuGormhwcYw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33780 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53596 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753704AbaESSvj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 May 2014 14:51:39 -0400
-In-Reply-To: <CAOCHtYjAJB3xSYrq3P+R2qyLHEbMQ5LMpu=hs4rwjXSqXb-kKw@mail.gmail.com>
-Content-Language: en-US
+	id S1751302AbaESSwo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 May 2014 14:52:44 -0400
+In-Reply-To: <CAGhQ9Vw38vJCS5TGRMz0MMif15narY=9=C8-vwzGuGormhwcYw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, "Quadros, Roger" <rogerq@ti.com>, "Kridner, Jason" <jdk@ti.com>
+To: Joachim Eastwood <manabian@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-PkZyb206IFJvYmVydCBOZWxzb24gW21haWx0bzpyb2JlcnRjbmVsc29uQGdtYWlsLmNvbV0NClsu
-Li5dDQo+U2luY2UgdGhlIGNhcGVzIGFyZSBhbHdheXMgc29tZSB3YXkgdGllZCB3aXRoIGJiLm9y
-ZyBoYXJkd2FyZSwgd2h5DQo+ZG9uJ3Qgd2UgcHV0IHRoZW0gdXAgb24gaHR0cHM6Ly9naXRodWIu
-Y29tL2JlYWdsZWJvYXJkLyA/DQo+DQo+YW0zMzV4LWNhcGVzLmdpdCA/DQo+DQo+SSBlbnZpc2lv
-biwgd2Ugc2hvdWxkIGp1c3QgbWlycm9yIHRoZSBiYXNlIC4vYXJjaC9hcm0vYm9vdC9kdHMvDQo+
-ZGlyZWN0b3J5IChhcyBzb21lZGF5IHRoZSBkdHMgd2lsbCBiZSBleHRlcm5hbCBhbnl3YXlzKS4g
-SW4gdGhhdCByZXBvLA0KPndlIHdpbGwga2VlcCB0aGVzZSBzeW5jZWQgd2l0aCBtYWlubGluZQ0K
-Pg0KPmFtMzM1eC1ib25lLWNvbW1vbi5kdHNpDQo+YW0zMzV4LWJvbmUuZHRzDQo+YW0zMzV4LWJv
-bmVibGFjay5kdHMNCj4NCj5hbmQgYWRkIHRoZSBjYXBlcyBhczoNCj4NCj48YmFzZWJvYXJkPi08
-Y2FwZT4uZHRzDQo+DQo+YXMgYSBzdGFnaW5nIGdyb3VuZCB0aWxsIGEgbWFpbmxpbmUgb3Zlcmxh
-eS9ldGMgc3lzdGVtIGFwcGVhcnM/DQo+DQo+VGhvdWdocz8NCj4NCg0KSWYgeW91IGtub3cgYW5k
-IGNhbiBjb252aW5jZSAnR2VyYWxkIENvbGV5JyB0aGVuIHBseiB0cnkuIEkgZmFpbGVkIDotKQ0K
-DQoNCndpdGggcmVnYXJkcywgcGVrb24NCg==
+On 05/19/2014 01:48 PM, Joachim Eastwood wrote:
+[...]
+>> we can add TPS data here for 4460 mpu (panda-ES) if that is
+>> interesting to us - given that the common voltage domain/VC/VP stuff
+>> so far has gone in no positive direction in our discussions last year.
+> 
+> If this means that voltage scaling and 1.5GHz would work for 4460 it
+> would make me very happy :)
+> But I assume that would bring lots of more code into mach-omap2 which
+> wouldn't be good either. Escaping the old 3.4 kernel would be nice,
+> though.
+Not really.. we cannot make 1.5GHz work without ABB integration into
+the transition sequence[1] - what we can try to do is make basic dvfs
+work. the approach we'd be taking (if we introduce tps handlers) is to
+do exactly what we did in 3.0/3.4 kernels. I am not too happy with
+that. instead, I would prefer we skip dvfs for 4460(which was never
+working in upstream) and do it the *right* way - which ever the
+upstream maintainers want it to be. that is my personal 2 cents.
+
+[1] last attempt:
+http://marc.info/?l=linux-omap&m=139275579731801&w=2 (patch 1-5).
+Blocked at:
+http://marc.info/?l=linux-arm-kernel&m=139526861215152&w=2
+
+-- 
+Regards,
+Nishanth Menon
