@@ -1,52 +1,96 @@
 From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v7 1/4] ARM: dts: am335x-bone: add support for
- beaglebone NAND cape
-Date: Mon, 19 May 2014 18:22:13 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACE24C@DBDE04.ent.ti.com>
-References: <1400490948-11571-1-git-send-email-pekon@ti.com>
- <1400490948-11571-2-git-send-email-pekon@ti.com>
- <20140519162532.GF4849@atomide.com>
- <20980858CB6D3A4BAE95CA194937D5E73EACE21E@DBDE04.ent.ti.com>
- <20140519181640.GA6957@arch.cereza>
+Subject: RE: [PATCH] ARM: OMAP2+: gpmc: enable wait-pin monitoring for NAND
+ devices via DT
+Date: Mon, 19 May 2014 18:26:43 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACE25C@DBDE04.ent.ti.com>
+References: <1400267276-16001-1-git-send-email-pekon@ti.com>
+ <CABxcv=k7KZAwsP-oW_8k_bZRtMLToCy904kq7Xv=c0da465w2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53963 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60578 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752256AbaESSW2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 14:22:28 -0400
-In-Reply-To: <20140519181640.GA6957@arch.cereza>
+	id S1751072AbaESS0v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 May 2014 14:26:51 -0400
+In-Reply-To: <CABxcv=k7KZAwsP-oW_8k_bZRtMLToCy904kq7Xv=c0da465w2A@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, "Quadros, Roger" <rogerq@ti.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Tony Lindgren <tony@atomide.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>, "Quadros, Roger" <rogerq@ti.com>
 
-From: Ezequiel Garcia [mailto:ezequiel.garcia@free-electrons.com]
->On 19 May 05:52 PM, Gupta, Pekon wrote:
->> >From: Tony Lindgren [mailto:tony@atomide.com]
->> >Based on the recent discussions on the capes, it seems that nobody
->> >wants to implement toggling of the capes in u-boot. And as there
->> >can be other capes using GPMC bus, we can't merge this. And because
->> >the capes are stackable, we can't really have .dts files for all
->> >the combinations. And no, we're not merging any unconnected .dts
->> >files either, sorry.
->> >
->> Yes, I fully understand. This is like death for most of the capes from point
->> of view of mainline support. But I have submitted this patch just for sake
->> of completion. And to provide reference if someone wants to locally work
->> on beaglebone NAND cape.
->
->While I fully agree with Tony on this, I think the reference is much
->appreciated. Do you think you can push the NAND cape DT example somewhere?
->
->Maybe some TI wiki page?
-
-Yes, that's my intent. I usually keep updating following TI wiki pages [1] and [2]
-which I think are helpful for NAND users on OMAP platforms.
-
-[1]  https://processors.wiki.ti.com/index.php/Linux_Core_NAND_User%27s_Guide#Board_specific_configurations
-[2] https://processors.wiki.ti.com/index.php/Linux_Core_NAND_User%27s_Guide
-
-with regards, pekon
+SGkgSmF2aWVyLA0KDQo+RnJvbTogSmF2aWVyIE1hcnRpbmV6IENhbmlsbGFzIFttYWlsdG86amF2
+aWVyQGRvd2hpbGUwLm9yZ10NCj4NCj5IZWxsbyBQZWtvbiwNCj4NCj5PbiBGcmksIE1heSAxNiwg
+MjAxNCBhdCA5OjA3IFBNLCBQZWtvbiBHdXB0YSA8cGVrb25AdGkuY29tPiB3cm90ZToNCj4+IFRo
+aXMgcGF0Y2ggZW5hYmxlcyAnd2FpdC1waW4nIG1vbml0b3JpbmcgaW4gTkFORCBkcml2ZXIgaWYg
+Zm9sbG93aW5nIHByb3BlcnRpZXMNCj4+IGFyZSBwcmVzZW50IHVuZGVyIE5BTkQgRFQgbm9kZQ0K
+Pj4gICAgICAgICBncG1jLHdhaXQtcGluID0gPHdhaXQtcGluIG51bWJlcj4NCj4+ICAgICAgICAg
+Z3BtYyx3YWl0LW9uLXJlYWQ7DQo+PiAgICAgICAgIGdwbWMsd2FpdC1vbi13cml0ZTsNCj4+IEFz
+IE5BTkQgZ2VuZXJpYyBmcmFtZXdvcmsgdXNlcyBjb21tb24gcGF0aCBuYW5kX2NoaXAtPmRldl9y
+ZWFkeSgpIGZvciBtb25pdG9yaW5nDQo+PiBjb21wbGV0aW9uIG9mIFJlYWQgYW5kIFdyaXRlIHN0
+YXR1cywgc28gd2FpdC1waW4gbW9uaXRvcmluZyBpcyBlbmFibGVkIG9ubHkgd2hlbg0KPj4gYm90
+aCAnZ3BtYyx3YWl0LW9uLXJlYWQnIGFuZCAnZ3BtYyx3YWl0LW9uLXdyaXRlJyBhcmUgc3BlY2lm
+aWVkLg0KPj4NCj4NCj5JIHNlZSB0aGF0IHRoZSBHUE1DIGRyaXZlciBjaGVja3MgaWYgImdwbWMs
+d2FpdC1waW4iIHByb3BlcnR5IGlzDQo+ZGVmaW5lZCBhbmQgb25seSBpbiB0aGF0IGNhc2UgdHJp
+ZXMgdG8gcmVhZCBib3RoICJncG1jLHdhaXQtb24tcmVhZCINCj5hbmQgImdwbWMsd2FpdC1vbi13
+cml0ZSIgYW5kIHByaW50cyBhICJyZWFkL3dyaXRlIHdhaXQgbW9uaXRvcmluZyBub3QNCj5lbmFi
+bGVkISIgd2FybmluZyBpZiBvbmUgb2YgdGhvc2UgaXMgbm90IGRlZmluZWQuDQo+DQo+U28gbXkg
+cXVlc3Rpb24gaXMsIGl0J3MgYSByZXF1aXJlbWVudCBhbmQgdGhlc2UgMyBwcm9wZXJ0aWVzIG5l
+ZWQgdG8NCj5hbHdheXMgYmUgZGVmaW5lZCB0b2dldGhlcj8gIElmIHRoYXQgaXMgdGhlIGNhc2Ug
+dGhlbiBJIHdvbmRlciB3aHkNCj50aGVyZSBhcmUgMyBkaWZmZXJlbnQgcHJvcGVydGllcyBhbmQg
+d2h5IG5vdCBqdXN0IGRlZmluaW5nDQo+ImdwbWMsd2FpdC1waW4iIGltcGxpZXMgImdwbWMsd2Fp
+dC1vbi17cmVhZCx3cml0ZX0iID8NCj4NCkdQTUMgYXMgYSBoYXJkd2FyZSBlbmdpbmUgYWxsb3dz
+IHNlbGVjdGlvbiBvZiB3YWl0LXBpbiBpbmRlcGVuZGVudGx5DQpmb3IgYm90aCBSZWFkIGFuZCBX
+cml0ZSBwYXRocywgYnV0IE5BTkQgZ2VuZXJpYyBmcmFtZXdvcmsgdXNlcyBzaW5nbGUNCmNvbW1v
+biBmdW5jdGlvbiBuYW5kX2NoaXAtPmRldl9yZWFkeSgpIHdoaWNoIGlzIHVzZWQgZm9yIGJvdGgN
+ClJlYWQgYW5kIFdyaXRlIHBhdGhzIHRvIHBvbGwgd2FpdC1waW4uIA0KU28sIGluIGNhc2Ugb2Yg
+TkFORCBib3RoICdncG1jLHdhaXQtb24tcmVhZCcgYW5kICdncG1jLHdhaXQtb24td3JpdGUnDQpz
+aG91bGQgYmUgc2ltdWx0YW5lb3VzbHkgZGVmaW5lZCB0byBlbmFibGUgd2FpdC1waW4gbW9uaXRv
+cmluZy4gDQoNCkJ1dCBHUE1DIGJlaW5nIGdlbmVyaWMgaGFyZHdhcmUgZW5naW5lIGZvciBOT1Is
+IE9uZU5BTkQgYW5kIG90aGVyDQpwYXJhbGxlbCBpbnRlcmZhY2VzIGxpa2UgQ2FtZXJhLCBFdGhl
+cm5ldCB0aGUgdHdvIHNlcGFyYXRlIGJpbmRpbmdzIGFsbG93DQpmbGV4aWJpbGl0eSB0byB1c2Ug
+d2FpdC1waW4gbW9uaXRvcmluZyBmb3Igb25seSBvbmUgb2YgdGhlIHBhdGhzIHtSZWFkIHwgV3Jp
+dGV9Lg0KDQpUaGVyZWZvcmUgdGhpcyBjaGVjayBpcyBhZGRlZCBpbiBncG1jX25hbmRfaW5pdCgp
+LCBhbmQgbm90IGluIGdwbWNfcmVhZF9zZXR0aW5nc19kdCgpDQp3aGljaCBpcyBjb21tb24gZm9y
+IGFsbCB0eXBlIG9mIEdQTUMgZGV2aWNlcyAoTkFORCwgTk9SLCAuLiApDQoNCg0KPk9yIGlmIGlz
+IHZhbGlkIHRvIGRlZmluZSAiZ3BtYy13YWl0LXBpbiIgd2l0aG91dA0KPiJncG1jLXdhaXQtb24t
+e3JlYWQsd3JpdGV9IiBvciBvbmx5IG9uZSB0aG9zZSB0aGVuIHdoeSB0aGF0IHNjYXJ5DQo+d2Fy
+bmluZyBpcyBwcmludGVkPw0KPg0KPldoYXRldmVyIGlzIHRoZSBjYXNlIEkgdGhpbmsgdGhhdCB0
+aGUgR1BNQyBEVCBiaW5kaW5nIGRvY3VtZW50YXRpb24NCj4oRG9jdW1lbnRhdGlvbi9kZXZpY2V0
+cmVlL2JpbmRpbmdzL2J1cy90aS1ncG1jLnR4dCkgc2hvdWxkIGJlIG1vcmUNCj5jbGVhciBvbiB0
+aGlzIHJlZ2FyZC4NCj4NCkFncmVlLiBCdXQgSSB0aGluayB0aGlzIGNsYXJpZmljYXRpb24gZml0
+cyBiZXR0ZXIgaW4gTkFORCBzcGVjaWZpYyBkb2N1bWVudGF0aW9uDQpEb2N1bWVudGF0aW9uL2Rl
+dmljZXRyZWUvYmluZGluZ3MvbXRkL2dwbWMtbmFuZC50eHQNCg0KDQo+PiBTaWduZWQtb2ZmLWJ5
+OiBQZWtvbiBHdXB0YSA8cGVrb25AdGkuY29tPg0KPj4gLS0tDQo+PiAgYXJjaC9hcm0vbWFjaC1v
+bWFwMi9ncG1jLW5hbmQuYyB8IDggKysrKystLS0NCj4+ICAxIGZpbGUgY2hhbmdlZCwgNSBpbnNl
+cnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KPj4NCj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9t
+YWNoLW9tYXAyL2dwbWMtbmFuZC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ncG1jLW5hbmQuYw0K
+Pj4gaW5kZXggNDM0OWU4Mi4uN2RjNzQyZCAxMDA2NDQNCj4+IC0tLSBhL2FyY2gvYXJtL21hY2gt
+b21hcDIvZ3BtYy1uYW5kLmMNCj4+ICsrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvZ3BtYy1uYW5k
+LmMNCj4+IEBAIC0xMjMsMTEgKzEyMywxMyBAQCBpbnQgZ3BtY19uYW5kX2luaXQoc3RydWN0IG9t
+YXBfbmFuZF9wbGF0Zm9ybV9kYXRhICpncG1jX25hbmRfZGF0YSwNCj4+ICAgICAgICAgICAgICAg
+ICB9DQo+PiAgICAgICAgIH0NCj4+DQo+PiAtICAgICAgIGlmIChncG1jX25hbmRfZGF0YS0+b2Zf
+bm9kZSkNCj4+ICsgICAgICAgaWYgKGdwbWNfbmFuZF9kYXRhLT5vZl9ub2RlKSB7DQo+PiAgICAg
+ICAgICAgICAgICAgZ3BtY19yZWFkX3NldHRpbmdzX2R0KGdwbWNfbmFuZF9kYXRhLT5vZl9ub2Rl
+LCAmcyk7DQo+PiAtICAgICAgIGVsc2UNCj4+ICsgICAgICAgICAgICAgICBpZiAocy53YWl0X29u
+X3JlYWQgJiYgcy53YWl0X29uX3dyaXRlKQ0KPg0KPllvdSBzYWlkIHRoYXQgd2FpdC1vbi1waW4g
+bW9uaXRvcmluZyBpcyBvbmx5IGVuYWJsZWQgaWYgYm90aA0KPiJncG1jLHdhaXQtb24tcmVhZCIg
+YW5kICJncG1jLHdhaXQtb24td3JpdGUiIGFyZSBzcGVjaWZpZWQuIEJ1dCBpbg0KPnRoYXQgY2Fz
+ZSBJIHRoaW5rIHdlIHNob3VsZCBjbGVhciB0aGUgd2FpdF9waW4gb24NCj5ncG1jX3JlYWRfc2V0
+dGluZ3NfZHQoKSBpZiBlaXRoZXIgImdwbWMsd2FpdC1vbi1yZWFkIiBvcg0KPiJncG1jLHdhaXQt
+b24td3JpdGUiIHdlcmUgbm90IHNwZWNpZmllZCBhbmQgY2hlY2sgcy53YWl0X3BpbiBpbnN0ZWFk
+Lg0KPg0KPk9yIGlzIHRoaXMgc2VtYW50aWMgb25seSBmb3IgTkFORCBhbmQgb3RoZXIgZGV2aWNl
+cyBjb25uZWN0ZWQgdG8gdGhlDQo+R1BNQyBiZWhhdmUgZGlmZmVyZW50bHkgd3J0ICJncG1jLHdh
+aXQtcGluIj8NCj4NClRydWUsIHRoaXMgaXMgb25seSBmb3IgTkFORC4gT3RoZXIgZGV2aWNlIGRy
+aXZlcnMgbWF5IHVzZSB3YWl0LXBpbg0KZWl0aGVyICdvbmx5IGZvciBSZWFkJyBvciAnb25seSBm
+b3IgV3JpdGUnIGFjY2Vzcy4gSG93ZXZlciBJIGRvdWJ0IHdoeQ0KYW55b25lIHdvdWxkIGRvIHNv
+LCB1bmxlc3MgdGhlcmUgaXMgc29tZSBkZXNpZ24gYnVnIHwgY29uc3RyYWluLg0KDQoNCj4+ICsg
+ICAgICAgICAgICAgICAgICAgICAgIGdwbWNfbmFuZF9kYXRhLT5kZXZfcmVhZHkgPSAidHJ1ZSI7
+DQo+DQo+WW91IHNob3VsZCByZWFsbHkgdXNlIGdwbWNfbmFuZF9kYXRhLT5kZXZfcmVhZHkgPSB0
+cnVlIGhlcmUuIFRoZSBDOTkNCj5zdGFuZGFyZCBhbGxvd3MgeW91IHRvIGFzc2lnbiBhIHN0cmlu
+ZyBsaXRlcmFsIHRvIGEgX0Jvb2wgdHlwZSBhbmQNCj53aWxsIGJlIGV2YWx1YXRlZCB0byAxIGJ1
+dCB0aGF0IGlzIGNvbmZ1c2luZyBhbmQgSSBoYXZlbid0IHNlZW4gdGhhdA0KPnVzZWQgaW4gb3Ro
+ZXIgcGFydCBvZiB0aGUga2VybmVsLg0KPg0KU29ycnksIG15IGJhZC4gSSBvdmVyIGxvb2tlZCBp
+dC4NCkknbGwgZml4IGl0IGluIG5leHQgdmVyc2lvbiBhbG9uZyB3aXRoIERvY3VtZW50YXRpb24g
+dXBkYXRlLg0KDQoNCldpdGggcmVnYXJkcywgcGVrb24NCg==
