@@ -1,86 +1,113 @@
 From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v4 0/4]  mtd: nand: omap: add support for BCH16_ECC
-Date: Mon, 19 May 2014 13:24:38 +0530
-Message-ID: <1400486082-4345-1-git-send-email-pekon@ti.com>
+Subject: [PATCH v4 2/4] mtd: nand: omap: add support for BCH16_ECC - ELM driver updates
+Date: Mon, 19 May 2014 13:24:40 +0530
+Message-ID: <1400486082-4345-3-git-send-email-pekon@ti.com>
+References: <1400486082-4345-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54566 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751317AbaESHza (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 May 2014 03:55:30 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:54690 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750993AbaESHzb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 03:55:31 -0400
+In-Reply-To: <1400486082-4345-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>
 Cc: linux-mtd <linux-mtd@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Felipe Balbi <balbi@ti.com>, Pekon Gupta <pekon@ti.com>
 
-As this series touches both linux-mtd and linux-omap (GPMC) sub-systems but in
-independent patch-sets, so looping both maintainers. 'Ack' from maintainers would
-help in getting this series accepted for 3.16
+ELM hardware engine is used to detect ECC errors for BCHx ecc-schemes
+(like BCH4/BCH8/BCH16). This patch extends configuration of ELM registers
+for adding support of BCH16_HW ecc-scheme.
 
-*changes v3 -> v4*
-[PATCH v4 1/4]: minor update in comments
-[PATCH v4 2/4]: fixed coding style to keep it generic for big/little endianess
-[PATCH v4 3/4]: no change
-[PATCH v4 4/4]: use plain english (non linux stuff)
+Signed-off-by: Pekon Gupta <pekon@ti.com>
+---
+ drivers/mtd/devices/elm.c         | 36 ++++++++++++++++++++++++++++++++++++
+ include/linux/platform_data/elm.h |  3 ++-
+ 2 files changed, 38 insertions(+), 1 deletion(-)
 
-
-*changes v2 -> v3*
-[PATCH v2 3/4] rebased to http://lists.infradead.org/pipermail/linux-mtd/2014-March/052655.html
-- no change in other patches
-
-
-*changes v1 -> v2*
- rebased and cleaned on following versions of pending patches
-  (1) [PATCH v8 0/6] mtd: nand: omap: optimized chip->ecc.correct() for H/W ECC schemes
-  http://lists.infradead.org/pipermail/linux-mtd/2014-February/052092.html
-
-  (2) [PATCH v6 0/4] mtd: nand: omap: optimize chip->ecc.calculate() for H/W ECC schemes
-  http://lists.infradead.org/pipermail/linux-mtd/2014-February/052272.html
-
-  (3) [PATCH v5 0/4] mtd: nand: omap: optimize chip->ecc.hwctl() for H/W ECC schemes
-  http://lists.infradead.org/pipermail/linux-mtd/2014-March/052327.html
-
-  (4) [PATCH v6 0/4] mtd: devices: elm: add checks ELM H/W constrains, driver code cleanup
-  http://lists.infradead.org/pipermail/linux-mtd/2014-March/052455.html
+diff --git a/drivers/mtd/devices/elm.c b/drivers/mtd/devices/elm.c
+index 1fd4a0f..8c55e0d 100644
+--- a/drivers/mtd/devices/elm.c
++++ b/drivers/mtd/devices/elm.c
+@@ -213,6 +213,28 @@ static void elm_load_syndrome(struct elm_info *info,
+ 				val = cpu_to_be32(*(u32 *) &ecc[0]) >> 12;
+ 				elm_write_reg(info, offset, val);
+ 				break;
++			case BCH16_ECC:
++				val = cpu_to_be32(*(u32 *) &ecc[22]);
++				elm_write_reg(info, offset, val);
++				offset += 4;
++				val = cpu_to_be32(*(u32 *) &ecc[18]);
++				elm_write_reg(info, offset, val);
++				offset += 4;
++				val = cpu_to_be32(*(u32 *) &ecc[14]);
++				elm_write_reg(info, offset, val);
++				offset += 4;
++				val = cpu_to_be32(*(u32 *) &ecc[10]);
++				elm_write_reg(info, offset, val);
++				offset += 4;
++				val = cpu_to_be32(*(u32 *) &ecc[6]);
++				elm_write_reg(info, offset, val);
++				offset += 4;
++				val = cpu_to_be32(*(u32 *) &ecc[2]);
++				elm_write_reg(info, offset, val);
++				offset += 4;
++				val = cpu_to_be32(*(u32 *) &ecc[0]) >> 16;
++				elm_write_reg(info, offset, val);
++				break;
+ 			default:
+ 				pr_err("invalid config bch_type\n");
+ 			}
+@@ -435,6 +457,13 @@ static int elm_context_save(struct elm_info *info)
+ 	for (i = 0; i < ERROR_VECTOR_MAX; i++) {
+ 		offset = i * SYNDROME_FRAGMENT_REG_SIZE;
+ 		switch (bch_type) {
++		case BCH16_ECC:
++			regs->elm_syndrome_fragment_6[i] = elm_read_reg(info,
++					ELM_SYNDROME_FRAGMENT_6 + offset);
++			regs->elm_syndrome_fragment_5[i] = elm_read_reg(info,
++					ELM_SYNDROME_FRAGMENT_5 + offset);
++			regs->elm_syndrome_fragment_4[i] = elm_read_reg(info,
++					ELM_SYNDROME_FRAGMENT_4 + offset);
+ 		case BCH8_ECC:
+ 			regs->elm_syndrome_fragment_3[i] = elm_read_reg(info,
+ 					ELM_SYNDROME_FRAGMENT_3 + offset);
+@@ -473,6 +502,13 @@ static int elm_context_restore(struct elm_info *info)
+ 	for (i = 0; i < ERROR_VECTOR_MAX; i++) {
+ 		offset = i * SYNDROME_FRAGMENT_REG_SIZE;
+ 		switch (bch_type) {
++		case BCH16_ECC:
++			elm_write_reg(info, ELM_SYNDROME_FRAGMENT_6 + offset,
++					regs->elm_syndrome_fragment_6[i]);
++			elm_write_reg(info, ELM_SYNDROME_FRAGMENT_5 + offset,
++					regs->elm_syndrome_fragment_5[i]);
++			elm_write_reg(info, ELM_SYNDROME_FRAGMENT_4 + offset,
++					regs->elm_syndrome_fragment_4[i]);
+ 		case BCH8_ECC:
+ 			elm_write_reg(info, ELM_SYNDROME_FRAGMENT_3 + offset,
+ 					regs->elm_syndrome_fragment_3[i]);
+diff --git a/include/linux/platform_data/elm.h b/include/linux/platform_data/elm.h
+index 4edb406..780d1e9 100644
+--- a/include/linux/platform_data/elm.h
++++ b/include/linux/platform_data/elm.h
+@@ -21,6 +21,7 @@
+ enum bch_ecc {
+ 	BCH4_ECC = 0,
+ 	BCH8_ECC,
++	BCH16_ECC,
+ };
  
- Tested on Beaglebone-LT(white) NAND cape having NAND Device with
-       bus-width=16, block-size=256k, page-size=4k, oob-size=224
-
-
-*original v1*
-http://lists.infradead.org/pipermail/linux-mtd/2013-July/047562.html
-
-With increase in NAND flash densities and shrinking of technology
-NAND flash has become more suspectible to multiple bit-flips.
-Thus stronger ECC schemes are required for detecting and correcting multiple
-simultaneous bit-flips in same NAND page. But stronger ECC schemes have large
-ECC syndrome which require more space in OOB/Spare.
-
-This patch add support for BCH16 ecc-scheme on OMAP NAND driver:
-(a) BCH16 ecc-scheme can correct 16 bit-flips per 512Bytes of data.
-(b) BCH16 ecc-scheme generates 26-bytes of ECC syndrome / 512B.
-
-Due to (b) this scheme can only be used with NAND devices which have enough
-OOB to satisfy following equation:
-OOBsize per page >= 26 * (page-size / 512)
-
-
-Pekon Gupta (4):
-  mtd: nand: omap: add support for BCH16_ECC - GPMC driver updates
-  mtd: nand: omap: add support for BCH16_ECC - ELM driver updates
-  mtd: nand: omap: add support for BCH16_ECC - NAND driver updates
-  mtd: nand: omap: Documentation: How to select correct ECC scheme for
-    your device ?
-
- .../devicetree/bindings/mtd/gpmc-nand.txt          | 45 +++++++++++
- arch/arm/mach-omap2/gpmc.c                         | 15 ++++
- drivers/mtd/devices/elm.c                          | 36 +++++++++
- drivers/mtd/nand/omap2.c                           | 94 ++++++++++++++++++++++
- include/linux/platform_data/elm.h                  |  3 +-
- include/linux/platform_data/mtd-nand-omap2.h       |  5 ++
- 6 files changed, 197 insertions(+), 1 deletion(-)
-
+ /* ELM support 8 error syndrome process */
+@@ -38,7 +39,7 @@ struct elm_errorvec {
+ 	bool error_reported;
+ 	bool error_uncorrectable;
+ 	int error_count;
+-	int error_loc[ERROR_VECTOR_MAX];
++	int error_loc[16];
+ };
+ 
+ void elm_decode_bch_error_page(struct device *dev, u8 *ecc_calc,
 -- 
 1.8.5.1.163.gd7aced9
 
