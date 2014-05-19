@@ -1,190 +1,127 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 01/11] ARM: AM43xx: hwmod: add DSS hwmod data
-Date: Mon, 19 May 2014 16:53:01 +0530
-Message-ID: <5379E995.80604@ti.com>
-References: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com> <1399636579-8062-2-git-send-email-tomi.valkeinen@ti.com> <5379CDD2.6080807@ti.com> <5379D8F5.9030008@ti.com> <5379DCCE.3050400@ti.com> <5379E6B1.5000409@ti.com>
+From: Pratyush Anand <pratyush.anand@st.com>
+Subject: Re: [PATCH] usb: dwc3: gadget: check link trb after free_slot is
+ increased
+Date: Mon, 19 May 2014 17:13:45 +0530
+Message-ID: <20140519114345.GB2718@pratyush-vbox>
+References: <20140515215757.GD16153@intel.com>
+ <20140515153757.GB7360@saruman.home>
+ <20140516155013.GE16153@intel.com>
+ <20140516124106.GA20386@saruman.home>
+ <20140516144718.GI16153@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34633 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751317AbaESLZP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 May 2014 07:25:15 -0400
-In-Reply-To: <5379E6B1.5000409@ti.com>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:37970 "EHLO
+	mx08-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753514AbaESLpC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 May 2014 07:45:02 -0400
+Content-Disposition: inline
+In-Reply-To: <20140516144718.GI16153@intel.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Archit Taneja <archit@ti.com>, Sathya Prakash M R <sathyap@ti.com>
+To: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Cc: Felipe Balbi <balbi@ti.com>, USB list <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, "david.a.cohen@linux.intel.com" <david.a.cohen@linux.intel.com>, Yuan Hang <hang.yuan@intel.com>, Li Jiebing <jiebing.li@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-On Monday 19 May 2014 04:40 PM, Tomi Valkeinen wrote:
-> On 19/05/14 13:28, Rajendra Nayak wrote:
-> 
->> Yeah, thats what it looks like to me. l3_gclk is the 200Mhz clock derived from 
->> core-m4 post divider and l3s_gclk/l4ls_gclk are half of that at 100Mhz, derived
->> using a fixed divider of 2.
-> 
-> Here's an updated patch, with the sdma entry removed and the ocp clock
-> changed to l3_gclk.
-> 
-> From bfaf0fafb21c698c86640764c1aa62d6fc73992a Mon Sep 17 00:00:00 2001
-> From: Sathya Prakash M R <sathyap@ti.com>
-> Date: Mon, 24 Mar 2014 16:31:53 +0530
-> Subject: [PATCH] ARM: AM43xx: hwmod: add DSS hwmod data
-> 
-> Add DSS hwmod data for AM43xx.
-> 
-> Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+On Fri, May 16, 2014 at 10:47:18PM +0800, Zhuang Jin Can wrote:
+> Hi,
+> On Fri, May 16, 2014 at 07:41:06AM -0500, Felipe Balbi wrote:
+> > On Fri, May 16, 2014 at 11:50:13PM +0800, Zhuang Jin Can wrote:
+> > > > On Fri, May 16, 2014 at 05:57:57AM +0800, Zhuang Jin Can wrote:
+> > > > > In ISOC transfers, when free_slot points to the last TRB (i.e. Link
+> > > > > TRB), and all queued requests meet Missed Interval Isoc error, busy_slot
+> > > > > points to trb0.
+> > > > > 	busy_slot->trb0
+> > > > > 		   trb1
+> > > > > 		   ...
+> > > > > 	free_slot->trb31(Link TRB)
+> > > > > 
+> > > > > After end transfer and receiving the XferNotReady event, trb_left is
+> > > > > caculated as 1 which is wrong, and no TRB will be primed to the
+> > > > > endpoint.
+> > > > > 
+> > > > > The root cause is free_slot is not increased the same way as busy_slot.
+> > > > > When busy_slot is increased by one, it checks if points to a link TRB
+> > > > > after increasement, but free_slot checks it before increasement.
+> > > > > free_slot should behave the same as busy_slot to make the trb_left
+> > > > > caculation correct.
+> > > > > 
 
-Looks good to me, feel free to add
-Acked-by: Rajendra Nayak <rnayak@ti.com>
+Reviewing the code it seems that observation of Zhuang Jin Can is
+correct. Year back I did lot of testing with isoc and even with missed
+path, but may be I could not get this issue because I would not have
+landed into a situation where last missed TRB is 31st.
 
-> ---
->  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 98 ++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/prcm43xx.h             |  1 +
->  2 files changed, 99 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> index 5c2cc8083fdd..d2a7b6dc36f2 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> @@ -19,6 +19,8 @@
->  #include "omap_hwmod.h"
->  #include "omap_hwmod_33xx_43xx_common_data.h"
->  #include "prcm43xx.h"
-> +#include "omap_hwmod_common_data.h"
-> +
->  
->  /* IP blocks */
->  static struct omap_hwmod am43xx_l4_hs_hwmod = {
-> @@ -415,6 +417,70 @@ static struct omap_hwmod am43xx_qspi_hwmod = {
->  	},
->  };
->  
-> +/* Display sub system - DSS */
-> +
-> +struct omap_dss_dispc_dev_attr am43xx_dss_dispc_dev_attr = {
-> +	.manager_count		= 1,
-> +	.has_framedonetv_irq	= 0
-> +};
-> +
-> +
-> +static struct omap_hwmod_class_sysconfig am43xx_dispc_sysc = {
-> +	.rev_offs	= 0x0000,
-> +	.sysc_offs	= 0x0010,
-> +	.syss_offs	= 0x0014,
-> +	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.sysc_fields	= &omap_hwmod_sysc_type1,
-> +};
-> +
-> +static struct omap_hwmod_class am43xx_dispc_hwmod_class = {
-> +	.name	= "dispc",
-> +	.sysc	= &am43xx_dispc_sysc,
-> +};
-> +
-> +static struct omap_hwmod am43xx_dss_core_hwmod = {
-> +	.name		= "dss_core",
-> +	.class		= &omap2_dss_hwmod_class,
-> +	.clkdm_name	= "dss_clkdm",
-> +	.main_clk	= "disp_clk",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
-> +			.modulemode   = MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +};
-> +
-> +/* display controller -dispc*/
-> +
-> +static struct omap_hwmod am43xx_dss_dispc_hwmod = {
-> +	.name		= "dss_dispc",
-> +	.class		= &am43xx_dispc_hwmod_class,
-> +	.clkdm_name	= "dss_clkdm",
-> +	.main_clk	= "disp_clk",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
-> +		},
-> +	},
-> +	.dev_attr	= &am43xx_dss_dispc_dev_attr,
-> +};
-> +
-> +/*RFBI*/
-> +
-> +static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
-> +	.name		= "dss_rfbi",
-> +	.class		= &omap2_rfbi_hwmod_class,
-> +	.clkdm_name	= "dss_clkdm",
-> +	.main_clk	= "disp_clk",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
-> +		},
-> +	},
-> +};
-> +
->  /* Interfaces */
->  static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
->  	.master		= &am33xx_l3_main_hwmod,
-> @@ -654,6 +720,34 @@ static struct omap_hwmod_ocp_if am43xx_l3_s__qspi = {
->  	.user           = OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +static struct omap_hwmod_ocp_if am43xx_dss__l3_main = {
-> +	.master		= &am43xx_dss_core_hwmod,
-> +	.slave		= &am33xx_l3_main_hwmod,
-> +	.clk		= "l3_gclk",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am43xx_l4_ls__dss = {
-> +	.master		= &am33xx_l4_ls_hwmod,
-> +	.slave		= &am43xx_dss_core_hwmod,
-> +	.clk		= "l4ls_gclk",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_dispc = {
-> +	.master		= &am33xx_l4_ls_hwmod,
-> +	.slave		= &am43xx_dss_dispc_hwmod,
-> +	.clk		= "l4ls_gclk",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
-> +	.master		= &am33xx_l4_ls_hwmod,
-> +	.slave		= &am43xx_dss_rfbi_hwmod,
-> +	.clk		= "l4ls_gclk",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
->  	&am33xx_l4_wkup__synctimer,
->  	&am43xx_l4_ls__timer8,
-> @@ -748,6 +842,10 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
->  	&am43xx_l4_ls__ocp2scp1,
->  	&am43xx_l3_s__usbotgss0,
->  	&am43xx_l3_s__usbotgss1,
-> +	&am43xx_dss__l3_main,
-> +	&am43xx_l4_ls__dss,
-> +	&am43xx_l4_ls__dss_dispc,
-> +	&am43xx_l4_ls__dss_rfbi,
->  	NULL,
->  };
->  
-> diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
-> index 7785be984edd..ad7b3e9977f8 100644
-> --- a/arch/arm/mach-omap2/prcm43xx.h
-> +++ b/arch/arm/mach-omap2/prcm43xx.h
-> @@ -142,5 +142,6 @@
->  #define AM43XX_CM_PER_USBPHYOCP2SCP0_CLKCTRL_OFFSET	0x05B8
->  #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
->  #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
-> +#define AM43XX_CM_PER_DSS_CLKCTRL_OFFSET		0x0a20
->  
->  #endif
-> 
+Infact, you could be able to see that bug even in other case, like
+submit 31 back to back ep_queue request from gadget and then wait as
+if no application data is available. They all have been transmitted to
+host and callback has been called for all of them. After some time
+application is ready with new data. So when gadget does ep_queue of
+this new data you should be able to see this issue.
 
+Reviewed-by: Pratyush Anand <pratyush.anand@st.com>
+
+Regards
+Pratyush
+been 
+> > > > > Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
+> > > > > Signed-off-by: Jiebing Li <jiebing.li@intel.com>
+> > > > > ---
+> > > > >  drivers/usb/dwc3/gadget.c |    8 ++++----
+> > > > >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > > > > 
+> > > > > diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+> > > > > index 54da8c8..2ebe82b 100644
+> > > > > --- a/drivers/usb/dwc3/gadget.c
+> > > > > +++ b/drivers/usb/dwc3/gadget.c
+> > > > > @@ -828,10 +828,6 @@ static void dwc3_prepare_one_trb(struct dwc3_ep *dep,
+> > > > >  			length, last ? " last" : "",
+> > > > >  			chain ? " chain" : "");
+> > > > >  
+> > > > > -	/* Skip the LINK-TRB on ISOC */
+> > > > > -	if (((dep->free_slot & DWC3_TRB_MASK) == DWC3_TRB_NUM - 1) &&
+> > > > > -			usb_endpoint_xfer_isoc(dep->endpoint.desc))
+> > > > > -		dep->free_slot++;
+> > > > >  
+> > > > >  	trb = &dep->trb_pool[dep->free_slot & DWC3_TRB_MASK];
+> > > > 
+> > > > I have a feeling this has a negative side effect of letting us use the
+> > > > link TRB for data transfer... I mean, if we don't increment free_slot
+> > > > before accessing our trb_pool, we have no way to skip link trb on this
+> > > > access here.
+> > > After every free_slot++ Link TRB is checked and increased if appropriate,
+> > > this guarantees you next time access free_slot, it can't be a Link
+> > > TRB.
+> > 
+> > right, next access will be fine, but you're forgetting about current
+> > access.
+> > 
+> The current access is the next access relative to last access.
+> So if the first access is fine, succeeding accesses should be fine.
+> And the first access happens on when the free_slot points to slot 1
+> which is not a link trb. 
+> 
+> > > > How did you find the bug ? do you have good instructions on how to
+> > > > reproduce it ? How did you test the patch and for how long ?
+> > > The bug is reproduced on Android with f_audio_source.c enabled, which
+> > > has an isoc-in endpoint keeps sending audio data to host in an interval
+> > > of 1 ms. Normally, you need to run for 12+ hours to hit the issue.
+> > > So I think you can just run some isoc transfers for a long time to
+> > > reproduce it. To accelarte the reproducing, you can run some concurrent
+> > > data transfer as well, so the possibility to meet missed interval error
+> > > is larger.
+> > > 
+> > > The patch is tested for basic functionality like enumeration, data
+> > > transfers. For this bug, it was tested for 20+ hours.
+> > 
+> > thanks, g_audio loop should be fine.
+> > 
+> np.
+> 
+> 
+> Regards
+> Jincan
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
