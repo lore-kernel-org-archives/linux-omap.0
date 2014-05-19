@@ -1,7 +1,7 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v4 2/6] usb: musb: core: Convert babble recover work to delayed work
-Date: Mon, 19 May 2014 19:09:32 +0530
-Message-ID: <1400506776-2816-3-git-send-email-george.cherian@ti.com>
+Subject: [PATCH v4 5/6] usb: musb: dsps: Add the sw_babble_control()
+Date: Mon, 19 May 2014 19:09:35 +0530
+Message-ID: <1400506776-2816-6-git-send-email-george.cherian@ti.com>
 References: <1400506776-2816-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,94 +12,104 @@ To: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.ker
 Cc: gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-During babble condition both first disconnect of devices are
-initiated. Make sure MUSB controller is reset and re-initialized
-after all disconnects.
+Add sw_babble_control() logic to differentiate between transient
+babble and real babble condition. Also add the SW babble control
+register definitions.
 
-To acheive this schedule a delayed work for babble rrecovery.
-
-While at that convert udelay to usleep_range.
-Refer Documentation/timers/timers-howto.txt
+Babble control register logic is implemented in the latest
+revision of AM335x.
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/usb/musb/musb_core.c | 15 ++++++++-------
- drivers/usb/musb/musb_core.h |  2 +-
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ drivers/usb/musb/musb_dsps.c | 50 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/musb/musb_regs.h |  7 +++++++
+ 2 files changed, 57 insertions(+)
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index eff3c5c..8920b80 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -850,7 +850,8 @@ b_host:
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index f6f3087..eb1985a 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -536,6 +536,56 @@ static int dsps_musb_set_mode(struct musb *musb, u8 mode)
+ 	return 0;
+ }
  
- 	/* handle babble condition */
- 	if (int_usb & MUSB_INTR_BABBLE && is_host_active(musb))
--		schedule_work(&musb->recover_work);
-+		schedule_delayed_work(&musb->recover_work,
-+				      msecs_to_jiffies(100));
- 
- #if 0
- /* REVISIT ... this would be for multiplexing periodic endpoints, or
-@@ -1753,16 +1754,16 @@ static void musb_irq_work(struct work_struct *data)
- /* Recover from babble interrupt conditions */
- static void musb_recover_work(struct work_struct *data)
++static int sw_babble_control(struct musb *musb)
++{
++	int timeout = 10;
++	u8 babble_ctl, session_restart = 0;
++
++	babble_ctl = dsps_readb(musb->mregs, MUSB_BABBLE_CTL);
++	dev_dbg(musb->controller, "babble: MUSB_BABBLE_CTL value %x\n",
++		babble_ctl);
++	/*
++	 * check line monitor flag to check whether babble is
++	 * due to noise
++	 */
++	dev_dbg(musb->controller, "STUCK_J is %s\n",
++		babble_ctl & MUSB_BABBLE_STUCK_J ? "set" : "reset");
++
++	if (babble_ctl & MUSB_BABBLE_STUCK_J) {
++		/*
++		 * babble is due to noise, then set transmit idle (d7 bit)
++		 * to resume normal operation
++		 */
++		babble_ctl = musb_readb(musb->mregs, MUSB_BABBLE_CTL);
++		babble_ctl |= MUSB_BABBLE_FORCE_TXIDLE;
++		dsps_writeb(musb->mregs, MUSB_BABBLE_CTL, babble_ctl);
++
++		/* wait till line monitor flag cleared */
++		dev_dbg(musb->controller, "Set TXIDLE, wait J to clear\n");
++		do {
++			babble_ctl = dsps_readb(musb->mregs, MUSB_BABBLE_CTL);
++			udelay(1);
++		} while ((babble_ctl & MUSB_BABBLE_STUCK_J) && timeout--);
++
++		/* check whether stuck_at_j bit cleared */
++		if (babble_ctl & MUSB_BABBLE_STUCK_J) {
++			/*
++			 * real babble condition is occured
++			 * restart the controller to start the
++			 * session again
++			 */
++			dev_dbg(musb->controller, "J not cleared, misc (%x)\n",
++				babble_ctl);
++			session_restart = 1;
++		}
++
++	} else {
++		session_restart = 1;
++	}
++
++	return session_restart;
++}
++
+ static int dsps_musb_reset(struct musb *musb)
  {
--	struct musb *musb = container_of(data, struct musb, recover_work);
-+	struct musb *musb = container_of(data, struct musb, recover_work.work);
- 	int status;
+ 	struct device *dev = musb->controller;
+diff --git a/drivers/usb/musb/musb_regs.h b/drivers/usb/musb/musb_regs.h
+index 03f2655..b9bcda5 100644
+--- a/drivers/usb/musb/musb_regs.h
++++ b/drivers/usb/musb/musb_regs.h
+@@ -72,6 +72,12 @@
+ #define MUSB_DEVCTL_HR		0x02
+ #define MUSB_DEVCTL_SESSION	0x01
  
- 	musb_platform_reset(musb);
++/* BABBLE_CTL */
++#define MUSB_BABBLE_FORCE_TXIDLE	0x80
++#define MUSB_BABBLE_SW_SESSION_CTRL	0x40
++#define MUSB_BABBLE_STUCK_J		0x20
++#define MUSB_BABBLE_RCV_DISABLE		0x04
++
+ /* MUSB ULPI VBUSCONTROL */
+ #define MUSB_ULPI_USE_EXTVBUS	0x01
+ #define MUSB_ULPI_USE_EXTVBUSIND 0x02
+@@ -246,6 +252,7 @@
+  */
  
- 	usb_phy_vbus_off(musb->xceiv);
--	udelay(100);
-+	usleep_range(100, 200);
+ #define MUSB_DEVCTL		0x60	/* 8 bit */
++#define MUSB_BABBLE_CTL		0x61	/* 8 bit */
  
- 	usb_phy_vbus_on(musb->xceiv);
--	udelay(100);
-+	usleep_range(100, 200);
- 
- 	/*
- 	 * When a babble condition occurs, the musb controller removes the
-@@ -1945,7 +1946,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 
- 	/* Init IRQ workqueue before request_irq */
- 	INIT_WORK(&musb->irq_work, musb_irq_work);
--	INIT_WORK(&musb->recover_work, musb_recover_work);
-+	INIT_DELAYED_WORK(&musb->recover_work, musb_recover_work);
- 	INIT_DELAYED_WORK(&musb->deassert_reset_work, musb_deassert_reset);
- 	INIT_DELAYED_WORK(&musb->finish_resume_work, musb_host_finish_resume);
- 
-@@ -2041,7 +2042,7 @@ fail4:
- 
- fail3:
- 	cancel_work_sync(&musb->irq_work);
--	cancel_work_sync(&musb->recover_work);
-+	cancel_delayed_work_sync(&musb->recover_work);
- 	cancel_delayed_work_sync(&musb->finish_resume_work);
- 	cancel_delayed_work_sync(&musb->deassert_reset_work);
- 	if (musb->dma_controller)
-@@ -2107,7 +2108,7 @@ static int musb_remove(struct platform_device *pdev)
- 		dma_controller_destroy(musb->dma_controller);
- 
- 	cancel_work_sync(&musb->irq_work);
--	cancel_work_sync(&musb->recover_work);
-+	cancel_delayed_work_sync(&musb->recover_work);
- 	cancel_delayed_work_sync(&musb->finish_resume_work);
- 	cancel_delayed_work_sync(&musb->deassert_reset_work);
- 	musb_free(musb);
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 47e8874..423cd00 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -297,7 +297,7 @@ struct musb {
- 
- 	irqreturn_t		(*isr)(int, void *);
- 	struct work_struct	irq_work;
--	struct work_struct	recover_work;
-+	struct delayed_work	recover_work;
- 	struct delayed_work	deassert_reset_work;
- 	struct delayed_work	finish_resume_work;
- 	u16			hwvers;
+ /* These are always controlled through the INDEX register */
+ #define MUSB_TXFIFOSZ		0x62	/* 8-bit (see masks) */
 -- 
 1.8.3.1
