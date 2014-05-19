@@ -1,95 +1,47 @@
-From: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 6/6] usb: musb: dsps: Enable sw babble control for newer silicon
-Date: Mon, 19 May 2014 19:09:36 +0530
-Message-ID: <1400506776-2816-7-git-send-email-george.cherian@ti.com>
-References: <1400506776-2816-1-git-send-email-george.cherian@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] clk: ti: clk-54xx: Set the rate for dpll_abe_m2x2_ck
+Date: Mon, 19 May 2014 16:42:45 +0300
+Message-ID: <537A0A55.3030208@ti.com>
+References: <1398857977-30114-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1400506776-2816-1-git-send-email-george.cherian-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1398857977-30114-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, mturquette@linaro.org, tony@atomide.com
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Find whether we are running on newer silicon. The babble control
-register reads 0x4 by default in newer silicon as opposed to 0
-in old versions of AM335x. Based on this enable the sw babble
-control logic.
+On 04/30/2014 02:39 PM, Peter Ujfalusi wrote:
+> In order to get correct clock dividers for AESS/ABE we need to set the
+> dpll_abe_m2x2_ck rate to be double of dpll_abe_ck.
+>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Signed-off-by: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/musb/musb_dsps.c | 37 +++++++++++++++++++++++++++++++------
- 1 file changed, 31 insertions(+), 6 deletions(-)
+Thanks, queued for 3.15-rc/ti-clk-drv.
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index eb1985a..8daccb2 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -136,6 +136,7 @@ struct dsps_glue {
- 	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
- 	struct timer_list timer;	/* otg_workaround timer */
- 	unsigned long last_timer;    /* last timer data for each instance */
-+	bool sw_babble_enabled;
- 
- 	struct dsps_context context;
- 	struct debugfs_regset32 regset;
-@@ -469,6 +470,19 @@ static int dsps_musb_init(struct musb *musb)
- 	val &= ~(1 << wrp->otg_disable);
- 	dsps_writel(musb->ctrl_base, wrp->phy_utmi, val);
- 
-+	/*
-+	 *  Check whether the dsps version has babble control enabled.
-+	 * In latest silicon revision the babble control logic is enabled.
-+	 * If MUSB_BABBLE_CTL returns 0x4 then we have the babble control
-+	 * logic enabled.
-+	 */
-+	val = dsps_readb(musb->mregs, MUSB_BABBLE_CTL);
-+	if (val == MUSB_BABBLE_RCV_DISABLE) {
-+		glue->sw_babble_enabled = true;
-+		val |= MUSB_BABBLE_SW_SESSION_CTRL;
-+		dsps_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
-+	}
-+
- 	ret = dsps_musb_dbg_init(musb, glue);
- 	if (ret)
- 		return ret;
-@@ -591,14 +605,25 @@ static int dsps_musb_reset(struct musb *musb)
- 	struct device *dev = musb->controller;
- 	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
- 	const struct dsps_musb_wrapper *wrp = glue->wrp;
-+	int session_restart = 0;
- 
--	dsps_writel(musb->ctrl_base, wrp->control, (1 << wrp->reset));
--	usleep_range(100, 200);
--	usb_phy_shutdown(musb->xceiv);
--	usleep_range(100, 200);
--	usb_phy_init(musb->xceiv);
-+	if (glue->sw_babble_enabled)
-+		session_restart = sw_babble_control(musb);
-+	/*
-+	 * In case of new silicon version babble condition can be recovered
-+	 * without resetting the MUSB. But for older silicon versions, MUSB
-+	 * reset is needed
-+	 */
-+	if (session_restart || !glue->sw_babble_enabled) {
-+		dsps_writel(musb->ctrl_base, wrp->control, (1 << wrp->reset));
-+		usleep_range(100, 200);
-+		usb_phy_shutdown(musb->xceiv);
-+		usleep_range(100, 200);
-+		usb_phy_init(musb->xceiv);
-+		session_restart = 1;
-+	}
- 
--	return 0;
-+	return !session_restart;
- }
- 
- static struct musb_platform_ops dsps_ops = {
--- 
-1.8.3.1
+-Tero
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>   drivers/clk/ti/clk-54xx.c | 6 ++++++
+>   1 file changed, 6 insertions(+)
+>
+> diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
+> index 08f3d1b915b3..5e183993e3ec 100644
+> --- a/drivers/clk/ti/clk-54xx.c
+> +++ b/drivers/clk/ti/clk-54xx.c
+> @@ -240,6 +240,12 @@ int __init omap5xxx_dt_clk_init(void)
+>   	if (rc)
+>   		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+>
+> +	abe_dpll = clk_get_sys(NULL, "dpll_abe_m2x2_ck");
+> +	if (!rc)
+> +		rc = clk_set_rate(abe_dpll, OMAP5_DPLL_ABE_DEFFREQ * 2);
+> +	if (rc)
+> +		pr_err("%s: failed to configure ABE m2x2 DPLL!\n", __func__);
+> +
+>   	usb_dpll = clk_get_sys(NULL, "dpll_usb_ck");
+>   	rc = clk_set_rate(usb_dpll, OMAP5_DPLL_USB_DEFFREQ);
+>   	if (rc)
+>
