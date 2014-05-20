@@ -1,84 +1,73 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
- support
-Date: Tue, 20 May 2014 06:57:49 +0200
-Message-ID: <20140520045748.GA28812@earth.universe>
-References: <537487AE.3060906@ti.com>
- <20140515182133.GC23659@atomide.com>
- <5375A8A8.7080306@ti.com>
- <20140516160717.GD22031@atomide.com>
- <20140516174158.GA11733@earth.universe>
- <20140516180154.GG22031@atomide.com>
- <20140516213907.GL12881@atomide.com>
- <5379D35F.8040207@ti.com>
- <20140519155732.GA4849@atomide.com>
- <537A540E.8070302@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v7 2/4] ARM: dts: am437x-gp-evm: add support for
+ parallel NAND flash
+Date: Tue, 20 May 2014 04:06:47 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACE46E@DBDE04.ent.ti.com>
+References: <1400490948-11571-1-git-send-email-pekon@ti.com>
+ <1400490948-11571-3-git-send-email-pekon@ti.com>
+ <20140519220659.GF11945@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="r5Pyd7+fXNt84Ff3"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <537A540E.8070302-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:50833 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750699AbaETEHB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2014 00:07:01 -0400
+In-Reply-To: <20140519220659.GF11945@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, "Quadros, Roger" <rogerq@ti.com>
+
+From: Tony Lindgren [mailto:tony@atomide.com]
+>* Pekon Gupta <pekon@ti.com> [140519 02:16]:
+>> Adds pinmux and DT node for Micron (MT29F4G08AB) x8 NAND device present on
+>> am437x-gp-evm board.
+>> (1) As NAND Flash data lines are muxed with eMMC, Thus at a given time either
+>>     eMMC or NAND can be enabled. Selection between eMMC and NAND is controlled:
+>>     (a) By dynamically driving following GPIO pin from software
+>>         SPI2_CS0(GPIO) == 0 NAND is selected (default)
+>>         SPI2_CS0(GPIO) == 1 eMMC is selected
+>>     (b) By statically using Jumper (J89) on the board
+>
+>So which MMC controller has eMMC then? How do we select which one we
+>have enabled in the am437x-gp-evm.dts by default?
+>
+If there is no Jumper on the board, then driving SPI2_CS0 before device
+probe decides the selection between NAND and eMMC. Therefore NAND
+pin-mux also includes SPI2_CS0 and enables PULLDOWN on it to select NAND.
+
++ 0x26c(PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* spi2_cs0.gpio/eMMCorNANDsel */
+
+>Regards,
+>
+>Tony
+>
+>> (2) As NAND device connnected to this board has page-size=4K and oob-size=224,
+>>     So ROM code expects boot-loaders to be flashed in BCH16 ECC scheme for
+>>     NAND boot.
+>>
+>> Signed-off-by: Pekon Gupta <pekon@ti.com>
+>> Reviewed-by: Javier Martinez Canillas <javier@dowhile0.org>
+>> ---
+>>  arch/arm/boot/dts/am437x-gp-evm.dts | 108 ++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 108 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+>> index 30ace1b..f432685 100644
+>> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
+>> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+>> @@ -150,6 +150,27 @@
+>>  			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>>  		>;
+>>  	};
+>> +
+>> +	nand_flash_x8: nand_flash_x8 {
+>> +		pinctrl-single,pins = <
+>> +			0x26c(PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/*  <------
+>spi2_cs0.gpio/eMMCorNANDsel */
 
 
---r5Pyd7+fXNt84Ff3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, May 19, 2014 at 09:57:18PM +0300, Tomi Valkeinen wrote:
-> > 3. Having to maintain a database in kernel of display mappings separate=
-ly
-> >    in addition to the .dts files.
->=20
-> Yes, that's slightly annoying. Not really a big burden, though, as it's
-> quite rare to get a new encoder or panel driver.
-
-I wonder if the "omapdss," prefix could be added to *all* remote
-endpoints seen by omapdss. Pseudocode:
-
-for each port in dss {
-    for each endpoint in port {
-        panel =3D get_phandle(endpoint, "remote-endpoint");
-
-        /* only add prefix if it's not already there (kexec) */
-        if (panel.compatible !=3D "omapdss,.*")
-            panel.compatible =3D "omapdss," + panel.compatible;
-    }
-}
-
--- Sebastian
-
---r5Pyd7+fXNt84Ff3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTeuDMAAoJENju1/PIO/qaa90P/jWbyjy8ne+1LaxDrjVzww9Y
-bLdyw0T0BD643YSAq/0OC/akNUVeANZyEqsTME+eE8gW9X8Q1jaDoTYCFRRCgMsG
-vBXv3l0IAl3m97uxZEnriBqgOva4GxgZ+aRil0fjB+yq6mok+OqULRi92Gj5mfmm
-0u1L5uOdv3fAJmW6UK6XepTJgW+tv5hxYKP/MznaVxQ/SlXweTf5jf2oPHBFjlg6
-j4GaeJN30AH87J9xNFlrSzihvSUY73oT1mG1f7yrdLShVU6rkp3sVeDfLs9Tf/rn
-8mw/FYh0JnJO0jqdw1OWPOGimSLE0zKIS1JZWF8Rb6K5lMijlkEctjKobu8aHKAc
-R/dfe4wFCKzzcjRx1ar/cCYPcca740It+cJ9O1Gr+Jy5hhVRX44MqDKA9sSRuNG8
-SDzQztmbsj7YWze87YrWLLU42E8dJHtusESYgSMkI5Ww0x1jo9aImLTe0vizt1Dg
-RUIJlAiAG06o2lwGdmo40wZ63d+91ldxPC8m2hZE5WnwH42dYIQiK7K5OloFJTOU
-P2lHVLEVeZ3weIdBZW2qCVsLDcOhFnK8ePqYpXQfzYx+Roh/f1d9P30qb6GS7cTk
-txLFq1tqJzAiS5dfoC3aAVkKvM9iMFqbQwtNVW+mmd2CbKCqh6PJOsOU7Z933AbG
-gJrX0Mw8OleUAWUnGqNm
-=mWXY
------END PGP SIGNATURE-----
-
---r5Pyd7+fXNt84Ff3--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+with regards, pekon
