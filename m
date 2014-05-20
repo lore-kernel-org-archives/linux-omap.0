@@ -1,253 +1,97 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 3/4] mfd: tps65917: Add driver for the TPS65917 PMIC
-Date: Tue, 20 May 2014 09:15:18 -0500
-Message-ID: <537B6376.2050000@ti.com>
-References: <1400577099-8743-1-git-send-email-j-keerthy@ti.com> <1400577099-8743-4-git-send-email-j-keerthy@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1400577099-8743-4-git-send-email-j-keerthy@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, devicetree@vger.kernel.org
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, sameo@linux.intel.com, grant.likely@linaro.org, ian@slimlogic.co.uk, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, broonie@linaro.org, swarren@nvidia.com, lee.jones@linaro.org, linux-omap@vger.kernel.org
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: [PATCH] ARM: dts: duovero-parlor: Add HDMI output
+Date: Tue, 20 May 2014 16:25:46 +0200
+Message-ID: <1400595946-1294-1-git-send-email-florian.vaussard@epfl.ch>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp5.epfl.ch ([128.178.224.8]:40786 "EHLO smtp5.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751760AbaETO0E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 May 2014 10:26:04 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 05/20/2014 04:11 AM, Keerthy wrote:
-[...]
-> +config MFD_TPS65917
-> +	bool "TI TPS65917 series chips"
-> +	select MFD_CORE
-> +	select REGMAP_I2C
-> +	select REGMAP_IRQ
-> +	depends on I2C=y
-^^ why =y?
+Add the necessary DTS nodes to enable the micro-HDMI output on Parlor
+board.
 
-> +	help
-> +	  If you say yes here you get support for the TPS65917
-> +	  PMIC chips from Texas Instruments. The device provides
-> +	  5 confgurable SPMSs and 5 LDOs, thermal protection module,
-> +	  GPADC.
-> +
->  config MFD_TPS80031
->  	bool "TI TPS80031/TPS80032 Power Management chips"
->  	depends on I2C=y
-> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-> index 2851275..248a60b 100644
-> --- a/drivers/mfd/Makefile
-> +++ b/drivers/mfd/Makefile
-> @@ -69,6 +69,7 @@ tps65912-objs                   := tps65912-core.o tps65912-irq.o
->  obj-$(CONFIG_MFD_TPS65912)	+= tps65912.o
->  obj-$(CONFIG_MFD_TPS65912_I2C)	+= tps65912-i2c.o
->  obj-$(CONFIG_MFD_TPS65912_SPI)  += tps65912-spi.o
-> +obj-$(CONFIG_MFD_TPS65917)	+= tps65917.o
->  obj-$(CONFIG_MFD_TPS80031)	+= tps80031.o
->  obj-$(CONFIG_MENELAUS)		+= menelaus.o
->  
-> diff --git a/drivers/mfd/tps65917.c b/drivers/mfd/tps65917.c
-> new file mode 100644
-> index 0000000..dbd67c5
-> --- /dev/null
-> +++ b/drivers/mfd/tps65917.c
-> @@ -0,0 +1,573 @@
-> +/*
-> + * TI TPS65917 Integrated power management chipsets
-> + *
-> + * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether expressed or implied; without even the implied warranty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License version 2 for more details.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/moduleparam.h>
-> +#include <linux/init.h>
-> +#include <linux/slab.h>
-> +#include <linux/i2c.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/irq.h>
-> +#include <linux/regmap.h>
-> +#include <linux/err.h>
-> +#include <linux/mfd/core.h>
-> +#include <linux/mfd/tps65917.h>
-> +#include <linux/of_device.h>
-<snip>
-> +
-> +static int tps65917_voltaile_regs[] = {
-> +	TPS65917_SMPS1_CTRL,
-> +	TPS65917_SMPS2_CTRL,
-> +	TPS65917_SMPS3_CTRL,
-> +	TPS65917_SMPS4_CTRL,
-> +	TPS65917_SMPS5_CTRL,
-> +	TPS65917_LDO1_CTRL,
-> +	TPS65917_LDO2_CTRL,
-> +	TPS65917_LDO3_CTRL,
-> +	TPS65917_LDO4_CTRL,
-> +	TPS65917_LDO5_CTRL,
-> +};
-> +
-> +static bool is_volatile_reg(struct device *dev, unsigned int reg)
-> +{
-> +	int i;
-> +
-> +	/*
-> +	 * Caching all the required regulator registers.
-> +	 */
-> +
-> +	for (i = 0; i < 11; i++)
-> +		if (reg == tps65917_voltaile_regs[i])
-> +			return true;
-> +
-> +	return false;
-> +}
-> +
-> +static const struct regmap_config tps65917_regmap_config[TPS65917_NUM_CLIENTS] = {
-> +	{
-> +		.reg_bits = 8,
-> +		.val_bits = 8,
-> +		.volatile_reg = is_volatile_reg,
-> +		.cache_type = REGCACHE_NONE,
-Assume you wanted cached here, since you are marking certain registers
-as volatile?
-[...]
-> 
-> +};
-> +
-> +int tps65917_ext_control_req_config(struct tps65917 *tps65917,
-> +				    enum tps65917_external_requestor_id id,
-> +				    int ext_ctrl, bool enable)
-> +{
+Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+---
+ arch/arm/boot/dts/omap4-duovero-parlor.dts | 42 ++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
-kernel doc style documentation
-[...]
-
-> +static struct tps65917 *tps65917_dev;
-> +
-> +static const struct of_device_id of_tps65917_match_tbl[] = {
-> +	{
-> +		.compatible = "ti,tps65917",
-> +	},
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(of, of_tps65917_match_tbl);
-> +
-> +static int tps65917_i2c_probe(struct i2c_client *i2c,
-> +			      const struct i2c_device_id *id)
-> +{
-
-[...]
-> +	/*
-> +	 * If we are probing with DT do this the DT way and return here
-> +	 * otherwise continue and add devices using mfd helpers.
-> +	 */
-> +	if (node) {
-> +		ret = of_platform_populate(node, NULL, NULL, &i2c->dev);
-> +		if (ret < 0)
-> +			goto err_irq;
-> +		else if (pdata->pm_off && !pm_power_off)
-> +			tps65917_dev = tps65917;
-
-and where is the actual power off function?
-
-> +	}
-> +
-> +	return ret;
-> +
-> +err_irq:
-> +	regmap_del_irq_chip(tps65917->irq, tps65917->irq_data);
-> +err_i2c:
-> +	for (i = 1; i < TPS65917_NUM_CLIENTS; i++) {
-> +		if (tps65917->i2c_clients[i])
-> +			i2c_unregister_device(tps65917->i2c_clients[i]);
-> +	}
-> +	return ret;
-> +}
-> +
-> +static int tps65917_i2c_remove(struct i2c_client *i2c)
-> +{
-> +	struct tps65917 *tps65917 = i2c_get_clientdata(i2c);
-> +	int i;
-> +
-> +	regmap_del_irq_chip(tps65917->irq, tps65917->irq_data);
-> +
-> +	for (i = 1; i < TPS65917_NUM_CLIENTS; i++) {
-> +		if (tps65917->i2c_clients[i])
-> +			i2c_unregister_device(tps65917->i2c_clients[i]);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id tps65917_i2c_id[] = {
-> +	{ "tps65917", },
-> +};
-> +MODULE_DEVICE_TABLE(i2c, tps65917_i2c_id);
-> +
-> +static struct i2c_driver tps65917_i2c_driver = {
-> +	.driver = {
-> +		   .name = "tps65917",
-> +		   .of_match_table = of_tps65917_match_tbl,
-> +		   .owner = THIS_MODULE,
-> +	},
-> +	.probe = tps65917_i2c_probe,
-> +	.remove = tps65917_i2c_remove,
-> +	.id_table = tps65917_i2c_id,
-> +};
-> +
-> +static int __init tps65917_i2c_init(void)
-> +{
-> +	return i2c_add_driver(&tps65917_i2c_driver);
-> +}
-> +/* init early so consumer devices can complete system boot */
-> +subsys_initcall(tps65917_i2c_init);
-Should we let them just defer?
-
-[...]
-
-> diff --git a/include/linux/mfd/tps65917.h b/include/linux/mfd/tps65917.h
-> new file mode 100644
-> index 0000000..8232e22
-> --- /dev/null
-> +++ b/include/linux/mfd/tps65917.h
-
-> +
-> +struct tps65917 {
-> +	struct device *dev;
-> +
-> +	struct i2c_client *i2c_clients[TPS65917_NUM_CLIENTS];
-> +	struct regmap *regmap[TPS65917_NUM_CLIENTS];
-> +
-> +	/* Stored chip id */
-> +	int id;
-> +
-> +	struct tps65917_pmic *pmic;
-> +
-> +	/* IRQ Data */
-> +	int irq;
-> +	u32 irq_mask;
-> +	/* mutext for irq */
-> +	struct mutex irq_lock;
-> +	struct regmap_irq_chip_data *irq_data;
-> +};
-
-For all structures, could you use kerneldoc style documentation?
-See: Documentation/kernel-doc-nano-HOWTO.txt +273
-
-
-> +static inline int tps65917_read(struct tps65917 *tps65917, unsigned int base,
-> +				unsigned int reg, unsigned int *val)
-
-Again for all functions expected to be called by other driver(such as
-regulator) to mfd, kernel-doc style documentation?
-
-[...]
-
+diff --git a/arch/arm/boot/dts/omap4-duovero-parlor.dts b/arch/arm/boot/dts/omap4-duovero-parlor.dts
+index 96f51d8..3b234b8 100644
+--- a/arch/arm/boot/dts/omap4-duovero-parlor.dts
++++ b/arch/arm/boot/dts/omap4-duovero-parlor.dts
+@@ -15,6 +15,10 @@
+ 	model = "OMAP4430 Gumstix Duovero on Parlor";
+ 	compatible = "gumstix,omap4-duovero-parlor", "gumstix,omap4-duovero", "ti,omap4430", "ti,omap4";
+ 
++	aliases {
++		display0 = &hdmi0;
++	};
++
+ 	leds {
+ 		compatible = "gpio-leds";
+ 		led0 {
+@@ -35,6 +39,19 @@
+ 			gpio-key,wakeup;
+ 		};
+ 	};
++
++	hdmi0: connector@0 {
++		compatible = "hdmi-connector";
++		label = "hdmi";
++
++		type = "d";
++
++		port {
++			hdmi_connector_in: endpoint {
++				remote-endpoint = <&hdmi_out>;
++			};
++		};
++	};
+ };
+ 
+ &omap4_pmx_core {
+@@ -77,6 +94,15 @@
+ 			0x30 (PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_a24.gpio_48: amdix enabled */
+ 		>;
+ 	};
++
++	dss_hdmi_pins: pinmux_dss_hdmi_pins {
++		pinctrl-single,pins = <
++			0x58 (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_hpd.hdmi_hpd */
++			0x5a (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++			0x5c (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_ddc_scl.hdmi_ddc_scl */
++			0x5e (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_ddc_sda.hdmi_ddc_sda */
++		>;
++	};
+ };
+ 
+ &i2c2 {
+@@ -143,4 +169,20 @@
+ 	};
+ };
+ 
++&dss {
++	status = "ok";
++};
++
++&hdmi {
++	status = "ok";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&dss_hdmi_pins>;
++
++	port {
++		hdmi_out: endpoint {
++			remote-endpoint = <&hdmi_connector_in>;
++		};
++	};
++};
+ 
 -- 
-Regards,
-Nishanth Menon
+1.8.3.2
+
