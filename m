@@ -1,75 +1,47 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v3 00/13]  ARM/DT: edma: IP configuration from hardware
- and cleanups
-Date: Tue, 20 May 2014 16:26:09 +0530
-Message-ID: <537B34C9.1020508@ti.com>
-References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com> <537A01F2.2090107@ti.com> <537A36F9.40004@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH 0/3] OMAPDSS: DT support for panel-lgphilips-lb035q02
+Date: Tue, 20 May 2014 13:04:02 +0200
+Message-ID: <537B36A2.1080107@epfl.ch>
+References: <1400148637-17726-1-git-send-email-tomi.valkeinen@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <537A36F9.40004@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, joelf@ti.com, arnd@arndb.de
-Cc: linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp0.epfl.ch ([128.178.224.218]:42491 "EHLO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751853AbaETLEI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 May 2014 07:04:08 -0400
+In-Reply-To: <1400148637-17726-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Archit Taneja <archit@ti.com>
 
-On Monday 19 May 2014 10:23 PM, Peter Ujfalusi wrote:
-> On 05/19/2014 04:06 PM, Sekhar Nori wrote:
->> On Friday 16 May 2014 05:47 PM, Peter Ujfalusi wrote:
->>> Hi,
->>>
->>> Changes since v2:
->>> - Comments from Sekhar and Arnd has been addressed best as I could.
->>> - Use the CCCFG information in all cases instead of pdata provided information
->>> - To achieve this I needed to do a bit more cleanup in this series
->>> - In the documentation patch, retrain the old properties for reference
->>> - Cleanups in the old davinci board files and removing edma_soc_info members
->>>
->>> Changes sicne v1:
->>> - added missing patch to remove the memset from edma_of_parse_dt()
->>>
->>> We are requesting redundant information via DT for the driver since the very same
->>> data is available in the HW: by reading and decoding the content of CCCFG
->>> register we can get:
->>> Number of channels: NUM_DMACH
->>> Number of regions: NUM_REGN
->>> Number of slots (PaRAM sets): NUM_PAENTRY
->>> Number of TC/EQ: NUM_EVQUE
->>>
->>> So these does not need to be provided by the DT binding.
->>>
->>> The driver will no longer look for these properties from DT and they can be
->>> removed from the binding documentation and from the dtsi files as well.
->>> The change will not introduce regression when new kernel is booted using older
->>> DTB (since we just ignore the mentioned properties).
->>
->> Applied all patches and pushed to branch v3.16/edma of:
->>
->> git://git.kernel.org/pub/scm/linux/kernel/git/nsekhar/linux-davinci.git
->>
->> Since the patches did not apply cleanly, please verify. I tested on
->> DA850 EVM using MMC/SD as EDMA user.
+Hi Tomi,
+
+On 05/15/2014 12:10 PM, Tomi Valkeinen wrote:
+> Hi,
 > 
-> The patches in this series looks OK in your branch.
-> However I can not find the following commits in there, which I have in linux-next:
-> c689a7b79c28 Merge remote-tracking branch 'slave-dma/next'
-> cdae05a0f0f7 dmaengine: edma: Make reading the position of active channels work
-> cf7eb979116c ARM: common: edma: Fix xbar mapping
-> 232b223d8281 dmaengine: edma: Set DMA_CYCLIC capability flag
-> 7cf2af90cd51 arm: common: edma: Save the number of event queues/TCs
+> This adds DT support to panel-lgphilips-lb035q02. Compile tested only.
 > 
-> They might come via different route...
+> This panel is used on some Overo boards (alto35, if I'm not mistaken).
+> 
 
-Vinod,
+I tested with the Alto35. Using the small fix for patch 2, I was able to
+use the panel. I will post the related DTS changes soon.
 
-Do you have an immutable branch based on which I can send this patch
-series to ARM-SoC? Some of the patches in the series depend on code that
-went through your tree.
+Tested-by: Florian Vaussard <florian.vaussard@epfl.ch>
 
-Or if you are comfortable taking this series through your tree, thats
-okay by me too. We are still waiting for acks from DT maintainers on the
-binding change patches.
-
-Thanks,
-Sekhar
+>  Tomi
+> 
+> Tomi Valkeinen (3):
+>   OMAPDSS: panel-lgphilips-lb035q02: use gpiod for enable gpio
+>   OMAPDSS: panel-lgphilips-lb035q02: Add DT support
+>   Doc/DT: Add binding doc for lgphilips,lb035q02.txt
+> 
+>  .../bindings/video/lgphilips,lb035q02.txt          | 33 ++++++++++
+>  .../omap2/displays-new/panel-lgphilips-lb035q02.c  | 76 +++++++++++++++++-----
+>  2 files changed, 94 insertions(+), 15 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/video/lgphilips,lb035q02.txt
+> 
