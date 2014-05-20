@@ -1,71 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/3] omap pm changes for v3.16 merge window, resend
-Date: Mon, 19 May 2014 19:11:52 -0700
-Message-ID: <20140520021151.GL15793@atomide.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] ARM: edma: Clean up and simplify the code around irq
+ request
+Date: Tue, 20 May 2014 11:53:41 +0530
+Message-ID: <537AF4ED.9070106@ti.com>
+References: <1399965961-23739-1-git-send-email-peter.ujfalusi@ti.com> <5374AD6D.8090002@ti.com> <20140520055741.GR18956@quad.lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14267 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751303AbaETCL4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 22:11:56 -0400
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140520055741.GR18956@quad.lixom.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, joelf@ti.com, linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arm@kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The following changes since commit 89ca3b881987f5a4be4c5dbaa7f0df12bbdde2fd:
+On Tuesday 20 May 2014 11:27 AM, Olof Johansson wrote:
+> On Thu, May 15, 2014 at 05:35:01PM +0530, Sekhar Nori wrote:
+>> + ARM SoC team
+>>
+>> On Tuesday 13 May 2014 12:56 PM, Peter Ujfalusi wrote:
+>>> Get the two interrupt line number at the same time by merging the two
+>>> instance of if(node){}else{} places.
+>>> replace the &pdev->dev with the already existing dev which makes it possible
+>>> to collapse lines with devm_request_irq()
+>>>
+>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>>
+>> Acked-by: Sekhar Nori <nsekhar@ti.com>
+>>
+>> Arnd, Olof, Kevin,
+>>
+>> Do you mind applying this directly for v3.16? I do not have anything
+>> else queued ATM so not sending a pull request.
+> 
+> I see it was reposted today as part of a larger patch set with some
+> question as to what it applies to.
 
-  Linux 3.15-rc4 (2014-05-04 18:14:42 -0700)
+That 13 patch set from Peter does not include this patch. If you have
+not applied this directly, I will send everything together as a pull
+request.
 
-are available in the git repository at:
+> Sekhar, if you just have one patch for us to apply, then feel free to
+> resend it to use (git send-email --to=arm@kernel.org) and make it clear
+> (below the --- separator) that you want us to apply it directly, and
+> we'll be happy to do so.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/pm-signed
+Okay, will do so in future.
 
-for you to fetch changes up to 57b05572267581c2320462e9b606709fa6da4c5a:
-
-  ARM: OMAP2+: Enable CPUidle in omap2plus_defconfig (2014-05-06 15:45:15 -0700)
-
-----------------------------------------------------------------
-PM related fixes for omap3 that were discovered during omap3
-conversion to device tree. This series sets up the PMIC signaling
-in a way where we can test for PM regressions easily by
-looking at state of the the sys_clkreq and sys_off_mode pins.
-
-Note that this series alone does not make omap3 PM to cut
-off core voltage during off-idle, changes to twl4030-power.c
-configurations are still needed. Those will be posted
-separately.
-
-----------------------------------------------------------------
-Tony Lindgren (10):
-      mfd: twl-core: Fix idle mode signaling for omaps when booted with device tree
-      Merge tag 'ib-mfd-omap-3.16' of git://git.kernel.org/.../lee/mfd into omap-for-v3.16/pm
-      ARM: dts: Fix omap serial wake-up when booted with device tree
-      ARM: OMAP3: Fix idle mode signaling for sys_clkreq and sys_off_mode
-      ARM: OMAP3: Disable broken omap3_set_off_timings function
-      ARM: OMAP3: Fix voltage control for deeper idle states
-      ARM: dts: Configure omap3 twl4030 I2C4 pins by default
-      ARM: OMAP2+: Fix voltage scaling init for device tree
-      ARM: dts: Enable N900 keyboard sleep leds by default
-      ARM: OMAP2+: Enable CPUidle in omap2plus_defconfig
-
- arch/arm/boot/dts/omap3-evm-37xx.dts      |   9 ++
- arch/arm/boot/dts/omap3-ldp.dts           |   4 +
- arch/arm/boot/dts/omap3-n900.dts          |  19 +++
- arch/arm/boot/dts/omap3.dtsi              |   6 +-
- arch/arm/boot/dts/omap4-panda-common.dtsi |  15 ++
- arch/arm/boot/dts/omap4-sdp.dts           |   6 +
- arch/arm/boot/dts/omap4.dtsi              |   6 +-
- arch/arm/boot/dts/twl4030_omap3.dtsi      |  19 ++-
- arch/arm/configs/omap2plus_defconfig      |   8 ++
- arch/arm/mach-omap2/omap_twl.c            |  60 --------
- arch/arm/mach-omap2/pm.c                  |  28 ++--
- arch/arm/mach-omap2/pm34xx.c              |   4 +
- arch/arm/mach-omap2/prm-regbits-34xx.h    |  11 +-
- arch/arm/mach-omap2/vc.c                  | 232 ++++++++++++++++++++----------
- arch/arm/mach-omap2/vc.h                  |   3 +
- drivers/mfd/twl-core.c                    |  15 ++
- include/dt-bindings/pinctrl/omap.h        |  12 ++
- 17 files changed, 296 insertions(+), 161 deletions(-)
+Thanks,
+Sekhar
