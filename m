@@ -1,172 +1,253 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH v3 1/3] ARM: dts: overo: Add support for DVI output
-Date: Tue, 20 May 2014 15:58:55 +0200
-Message-ID: <1400594337-5096-2-git-send-email-florian.vaussard@epfl.ch>
-References: <1400594337-5096-1-git-send-email-florian.vaussard@epfl.ch>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp5.epfl.ch ([128.178.224.8]:44477 "EHLO smtp5.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753870AbaETN7M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 May 2014 09:59:12 -0400
-In-Reply-To: <1400594337-5096-1-git-send-email-florian.vaussard@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2 3/4] mfd: tps65917: Add driver for the TPS65917 PMIC
+Date: Tue, 20 May 2014 09:15:18 -0500
+Message-ID: <537B6376.2050000@ti.com>
+References: <1400577099-8743-1-git-send-email-j-keerthy@ti.com> <1400577099-8743-4-git-send-email-j-keerthy@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1400577099-8743-4-git-send-email-j-keerthy@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>, devicetree@vger.kernel.org
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, sameo@linux.intel.com, grant.likely@linaro.org, ian@slimlogic.co.uk, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, broonie@linaro.org, swarren@nvidia.com, lee.jones@linaro.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Summit and Tobi expansion boards have a HDMI connector with a TFP410
-encoder. Add a common include file for this configuration, and then
-use it for Summit and Tobi.
+On 05/20/2014 04:11 AM, Keerthy wrote:
+[...]
+> +config MFD_TPS65917
+> +	bool "TI TPS65917 series chips"
+> +	select MFD_CORE
+> +	select REGMAP_I2C
+> +	select REGMAP_IRQ
+> +	depends on I2C=y
+^^ why =y?
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
----
- arch/arm/boot/dts/omap3-overo-common-dvi.dtsi    | 111 +++++++++++++++++++++++
- arch/arm/boot/dts/omap3-overo-summit-common.dtsi |   1 +
- arch/arm/boot/dts/omap3-overo-tobi-common.dtsi   |   1 +
- 3 files changed, 113 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap3-overo-common-dvi.dtsi
+> +	help
+> +	  If you say yes here you get support for the TPS65917
+> +	  PMIC chips from Texas Instruments. The device provides
+> +	  5 confgurable SPMSs and 5 LDOs, thermal protection module,
+> +	  GPADC.
+> +
+>  config MFD_TPS80031
+>  	bool "TI TPS80031/TPS80032 Power Management chips"
+>  	depends on I2C=y
+> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+> index 2851275..248a60b 100644
+> --- a/drivers/mfd/Makefile
+> +++ b/drivers/mfd/Makefile
+> @@ -69,6 +69,7 @@ tps65912-objs                   := tps65912-core.o tps65912-irq.o
+>  obj-$(CONFIG_MFD_TPS65912)	+= tps65912.o
+>  obj-$(CONFIG_MFD_TPS65912_I2C)	+= tps65912-i2c.o
+>  obj-$(CONFIG_MFD_TPS65912_SPI)  += tps65912-spi.o
+> +obj-$(CONFIG_MFD_TPS65917)	+= tps65917.o
+>  obj-$(CONFIG_MFD_TPS80031)	+= tps80031.o
+>  obj-$(CONFIG_MENELAUS)		+= menelaus.o
+>  
+> diff --git a/drivers/mfd/tps65917.c b/drivers/mfd/tps65917.c
+> new file mode 100644
+> index 0000000..dbd67c5
+> --- /dev/null
+> +++ b/drivers/mfd/tps65917.c
+> @@ -0,0 +1,573 @@
+> +/*
+> + * TI TPS65917 Integrated power management chipsets
+> + *
+> + * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+> + * kind, whether expressed or implied; without even the implied warranty
+> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License version 2 for more details.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/moduleparam.h>
+> +#include <linux/init.h>
+> +#include <linux/slab.h>
+> +#include <linux/i2c.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/irq.h>
+> +#include <linux/regmap.h>
+> +#include <linux/err.h>
+> +#include <linux/mfd/core.h>
+> +#include <linux/mfd/tps65917.h>
+> +#include <linux/of_device.h>
+<snip>
+> +
+> +static int tps65917_voltaile_regs[] = {
+> +	TPS65917_SMPS1_CTRL,
+> +	TPS65917_SMPS2_CTRL,
+> +	TPS65917_SMPS3_CTRL,
+> +	TPS65917_SMPS4_CTRL,
+> +	TPS65917_SMPS5_CTRL,
+> +	TPS65917_LDO1_CTRL,
+> +	TPS65917_LDO2_CTRL,
+> +	TPS65917_LDO3_CTRL,
+> +	TPS65917_LDO4_CTRL,
+> +	TPS65917_LDO5_CTRL,
+> +};
+> +
+> +static bool is_volatile_reg(struct device *dev, unsigned int reg)
+> +{
+> +	int i;
+> +
+> +	/*
+> +	 * Caching all the required regulator registers.
+> +	 */
+> +
+> +	for (i = 0; i < 11; i++)
+> +		if (reg == tps65917_voltaile_regs[i])
+> +			return true;
+> +
+> +	return false;
+> +}
+> +
+> +static const struct regmap_config tps65917_regmap_config[TPS65917_NUM_CLIENTS] = {
+> +	{
+> +		.reg_bits = 8,
+> +		.val_bits = 8,
+> +		.volatile_reg = is_volatile_reg,
+> +		.cache_type = REGCACHE_NONE,
+Assume you wanted cached here, since you are marking certain registers
+as volatile?
+[...]
+> 
+> +};
+> +
+> +int tps65917_ext_control_req_config(struct tps65917 *tps65917,
+> +				    enum tps65917_external_requestor_id id,
+> +				    int ext_ctrl, bool enable)
+> +{
 
-diff --git a/arch/arm/boot/dts/omap3-overo-common-dvi.dtsi b/arch/arm/boot/dts/omap3-overo-common-dvi.dtsi
-new file mode 100644
-index 0000000..802f704
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-overo-common-dvi.dtsi
-@@ -0,0 +1,111 @@
-+/*
-+ * Copyright (C) 2014 Florian Vaussard, EPFL Mobots group
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * DVI output for some Gumstix Overo boards (Tobi and Summit)
-+ */
-+
-+&omap3_pmx_core {
-+	dss_dpi_pins: pinmux_dss_dpi_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x20d4, PIN_OUTPUT | MUX_MODE0)	/* dss_pclk.dss_pclk */
-+			OMAP3_CORE1_IOPAD(0x20d6, PIN_OUTPUT | MUX_MODE0)	/* dss_hsync.dss_hsync */
-+			OMAP3_CORE1_IOPAD(0x20d8, PIN_OUTPUT | MUX_MODE0)	/* dss_vsync.dss_vsync */
-+			OMAP3_CORE1_IOPAD(0x20da, PIN_OUTPUT | MUX_MODE0)	/* dss_acbias.dss_acbias */
-+			OMAP3_CORE1_IOPAD(0x20dc, PIN_OUTPUT | MUX_MODE0)	/* dss_data0.dss_data0 */
-+			OMAP3_CORE1_IOPAD(0x20de, PIN_OUTPUT | MUX_MODE0)	/* dss_data1.dss_data1 */
-+			OMAP3_CORE1_IOPAD(0x20e0, PIN_OUTPUT | MUX_MODE0)	/* dss_data2.dss_data2 */
-+			OMAP3_CORE1_IOPAD(0x20e2, PIN_OUTPUT | MUX_MODE0)	/* dss_data3.dss_data3 */
-+			OMAP3_CORE1_IOPAD(0x20e4, PIN_OUTPUT | MUX_MODE0)	/* dss_data4.dss_data4 */
-+			OMAP3_CORE1_IOPAD(0x20e6, PIN_OUTPUT | MUX_MODE0)	/* dss_data5.dss_data5 */
-+			OMAP3_CORE1_IOPAD(0x20e8, PIN_OUTPUT | MUX_MODE0)	/* dss_data6.dss_data6 */
-+			OMAP3_CORE1_IOPAD(0x20ea, PIN_OUTPUT | MUX_MODE0)	/* dss_data7.dss_data7 */
-+			OMAP3_CORE1_IOPAD(0x20ec, PIN_OUTPUT | MUX_MODE0)	/* dss_data8.dss_data8 */
-+			OMAP3_CORE1_IOPAD(0x20ee, PIN_OUTPUT | MUX_MODE0)	/* dss_data9.dss_data9 */
-+			OMAP3_CORE1_IOPAD(0x20f0, PIN_OUTPUT | MUX_MODE0)	/* dss_data10.dss_data10 */
-+			OMAP3_CORE1_IOPAD(0x20f2, PIN_OUTPUT | MUX_MODE0)	/* dss_data11.dss_data11 */
-+			OMAP3_CORE1_IOPAD(0x20f4, PIN_OUTPUT | MUX_MODE0)	/* dss_data12.dss_data12 */
-+			OMAP3_CORE1_IOPAD(0x20f6, PIN_OUTPUT | MUX_MODE0)	/* dss_data13.dss_data13 */
-+			OMAP3_CORE1_IOPAD(0x20f8, PIN_OUTPUT | MUX_MODE0)	/* dss_data14.dss_data14 */
-+			OMAP3_CORE1_IOPAD(0x20fa, PIN_OUTPUT | MUX_MODE0)	/* dss_data15.dss_data15 */
-+			OMAP3_CORE1_IOPAD(0x20fc, PIN_OUTPUT | MUX_MODE0)	/* dss_data16.dss_data16 */
-+			OMAP3_CORE1_IOPAD(0x20fe, PIN_OUTPUT | MUX_MODE0)	/* dss_data17.dss_data17 */
-+			OMAP3_CORE1_IOPAD(0x2100, PIN_OUTPUT | MUX_MODE0)	/* dss_data18.dss_data18 */
-+			OMAP3_CORE1_IOPAD(0x2102, PIN_OUTPUT | MUX_MODE0)	/* dss_data19.dss_data19 */
-+			OMAP3_CORE1_IOPAD(0x2104, PIN_OUTPUT | MUX_MODE0)	/* dss_data20.dss_data20 */
-+			OMAP3_CORE1_IOPAD(0x2106, PIN_OUTPUT | MUX_MODE0)	/* dss_data21.dss_data21 */
-+			OMAP3_CORE1_IOPAD(0x2108, PIN_OUTPUT | MUX_MODE0)	/* dss_data22.dss_data22 */
-+			OMAP3_CORE1_IOPAD(0x210a, PIN_OUTPUT | MUX_MODE0)	/* dss_data23.dss_data23 */
-+		>;
-+	};
-+};
-+
-+/* Needed to power the DPI pins */
-+&vpll2 {
-+	regulator-always-on;
-+};
-+
-+&dss {
-+	status = "ok";
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&dss_dpi_pins>;
-+
-+	port {
-+		dpi_out: endpoint {
-+			remote-endpoint = <&tfp410_in>;
-+			data-lines = <24>;
-+		};
-+	};
-+};
-+
-+/ {
-+	aliases {
-+		display0 = &dvi0;
-+	};
-+
-+	tfp410: encoder@0 {
-+		compatible = "ti,tfp410";
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+
-+				tfp410_in: endpoint@0 {
-+					remote-endpoint = <&dpi_out>;
-+				};
-+			};
-+
-+			port@1 {
-+				reg = <1>;
-+
-+				tfp410_out: endpoint@0 {
-+					remote-endpoint = <&dvi_connector_in>;
-+				};
-+			};
-+		};
-+	};
-+
-+	dvi0: connector@0 {
-+		compatible = "dvi-connector";
-+		label = "dvi";
-+
-+		digital;
-+		ddc-i2c-bus = <&i2c3>;
-+
-+		port {
-+			dvi_connector_in: endpoint {
-+				remote-endpoint = <&tfp410_out>;
-+			};
-+		};
-+	};
-+};
-+
-diff --git a/arch/arm/boot/dts/omap3-overo-summit-common.dtsi b/arch/arm/boot/dts/omap3-overo-summit-common.dtsi
-index 999d1cd..0ac97ba 100644
---- a/arch/arm/boot/dts/omap3-overo-summit-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-summit-common.dtsi
-@@ -11,6 +11,7 @@
-  */
- 
- #include "omap3-overo-common-peripherals.dtsi"
-+#include "omap3-overo-common-dvi.dtsi"
- 
- / {
- 	leds {
-diff --git a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-index 13df50b..9e24b6a 100644
---- a/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-tobi-common.dtsi
-@@ -11,6 +11,7 @@
-  */
- 
- #include "omap3-overo-common-peripherals.dtsi"
-+#include "omap3-overo-common-dvi.dtsi"
- 
- / {
- 	leds {
+kernel doc style documentation
+[...]
+
+> +static struct tps65917 *tps65917_dev;
+> +
+> +static const struct of_device_id of_tps65917_match_tbl[] = {
+> +	{
+> +		.compatible = "ti,tps65917",
+> +	},
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, of_tps65917_match_tbl);
+> +
+> +static int tps65917_i2c_probe(struct i2c_client *i2c,
+> +			      const struct i2c_device_id *id)
+> +{
+
+[...]
+> +	/*
+> +	 * If we are probing with DT do this the DT way and return here
+> +	 * otherwise continue and add devices using mfd helpers.
+> +	 */
+> +	if (node) {
+> +		ret = of_platform_populate(node, NULL, NULL, &i2c->dev);
+> +		if (ret < 0)
+> +			goto err_irq;
+> +		else if (pdata->pm_off && !pm_power_off)
+> +			tps65917_dev = tps65917;
+
+and where is the actual power off function?
+
+> +	}
+> +
+> +	return ret;
+> +
+> +err_irq:
+> +	regmap_del_irq_chip(tps65917->irq, tps65917->irq_data);
+> +err_i2c:
+> +	for (i = 1; i < TPS65917_NUM_CLIENTS; i++) {
+> +		if (tps65917->i2c_clients[i])
+> +			i2c_unregister_device(tps65917->i2c_clients[i]);
+> +	}
+> +	return ret;
+> +}
+> +
+> +static int tps65917_i2c_remove(struct i2c_client *i2c)
+> +{
+> +	struct tps65917 *tps65917 = i2c_get_clientdata(i2c);
+> +	int i;
+> +
+> +	regmap_del_irq_chip(tps65917->irq, tps65917->irq_data);
+> +
+> +	for (i = 1; i < TPS65917_NUM_CLIENTS; i++) {
+> +		if (tps65917->i2c_clients[i])
+> +			i2c_unregister_device(tps65917->i2c_clients[i]);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id tps65917_i2c_id[] = {
+> +	{ "tps65917", },
+> +};
+> +MODULE_DEVICE_TABLE(i2c, tps65917_i2c_id);
+> +
+> +static struct i2c_driver tps65917_i2c_driver = {
+> +	.driver = {
+> +		   .name = "tps65917",
+> +		   .of_match_table = of_tps65917_match_tbl,
+> +		   .owner = THIS_MODULE,
+> +	},
+> +	.probe = tps65917_i2c_probe,
+> +	.remove = tps65917_i2c_remove,
+> +	.id_table = tps65917_i2c_id,
+> +};
+> +
+> +static int __init tps65917_i2c_init(void)
+> +{
+> +	return i2c_add_driver(&tps65917_i2c_driver);
+> +}
+> +/* init early so consumer devices can complete system boot */
+> +subsys_initcall(tps65917_i2c_init);
+Should we let them just defer?
+
+[...]
+
+> diff --git a/include/linux/mfd/tps65917.h b/include/linux/mfd/tps65917.h
+> new file mode 100644
+> index 0000000..8232e22
+> --- /dev/null
+> +++ b/include/linux/mfd/tps65917.h
+
+> +
+> +struct tps65917 {
+> +	struct device *dev;
+> +
+> +	struct i2c_client *i2c_clients[TPS65917_NUM_CLIENTS];
+> +	struct regmap *regmap[TPS65917_NUM_CLIENTS];
+> +
+> +	/* Stored chip id */
+> +	int id;
+> +
+> +	struct tps65917_pmic *pmic;
+> +
+> +	/* IRQ Data */
+> +	int irq;
+> +	u32 irq_mask;
+> +	/* mutext for irq */
+> +	struct mutex irq_lock;
+> +	struct regmap_irq_chip_data *irq_data;
+> +};
+
+For all structures, could you use kerneldoc style documentation?
+See: Documentation/kernel-doc-nano-HOWTO.txt +273
+
+
+> +static inline int tps65917_read(struct tps65917 *tps65917, unsigned int base,
+> +				unsigned int reg, unsigned int *val)
+
+Again for all functions expected to be called by other driver(such as
+regulator) to mfd, kernel-doc style documentation?
+
+[...]
+
 -- 
-1.8.3.2
-
+Regards,
+Nishanth Menon
