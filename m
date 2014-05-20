@@ -1,68 +1,80 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
- support
-Date: Mon, 19 May 2014 22:48:52 -0700
-Message-ID: <20140520054852.GA12384@atomide.com>
-References: <537487AE.3060906@ti.com>
- <20140515182133.GC23659@atomide.com>
- <5375A8A8.7080306@ti.com>
- <20140516160717.GD22031@atomide.com>
- <20140516174158.GA11733@earth.universe>
- <20140516180154.GG22031@atomide.com>
- <5379CD24.6040508@ti.com>
- <20140519160447.GB4849@atomide.com>
- <537A55EB.1080507@ti.com>
- <20140520051203.GB28812@earth.universe>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 2/4] omap prcm changes for v3.16 merge window
+Date: Mon, 19 May 2014 18:30:50 -0700
+Message-ID: <20140520013050.GF15793@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38436 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751870AbaETBa4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 21:30:56 -0400
 Content-Disposition: inline
-In-Reply-To: <20140520051203.GB28812-SfvFxonMDyemK9LvCR3Hrw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [140519 22:13]:
-> On Mon, May 19, 2014 at 10:05:15PM +0300, Tomi Valkeinen wrote:
-> > On 19/05/14 19:04, Tony Lindgren wrote:
-> > 
-> > > In many cases however we do have multiple compatible strings that
-> > > describe how the device is wired. See drivers/tty/serial/of_serial.c
-> > > for example. It has "ns16550" but then it also has additional
-> > > "nvidia,tegra20-uart", "nxp,lpc3220-uart" and "ibm,qpace-nwp-serial".
-> > 
-> > All those sound like SoC components. In that case it sounds fine to have
-> > the device compatible contain the SoC name. We're talking here about
-> > external, detachable devices.
+The following changes since commit be2d62844819b3536233b7fc726b8f17d9fa7f05:
 
-Yes I agree it's also hackish. But playing with the compatible flags
-avoids adding other custom workarounds.
+  ARM: OMAP: debug-leds: raw read and write endian fix (2014-05-08 07:09:55 -0700)
 
-> > >>> Not use what you're after with the SPI example though, but sounds
-> > >>> like that's something different.
-> > >>
-> > >> I think Sebastien's example is just like the issue here.
-> > > 
-> > > Hmm is there some existing example in the kernel like that?
-> > 
-> > No, Sebastien's example was just a hypothetical case. Here, using your
-> > way of having SoC specific data in the .dts, we would have
-> > "sharp,ls037v7dw01-omap-dss", and in Sebastien's example with a touch
-> > sensor we'd have, say, "synaptics,xyz123-omap-spi".
-> 
-> Yes, that's what I wanted to say :)
+are available in the git repository at:
 
-Hmm I think we need to add few things to the hypothetical SPI case
-to get it even close to the panel example. Like assume that no SPI bus
-exists, and that potentially multiple different Synaptics drivers are
-trying to share the same compatible flag for a non-existing generic
-binding.. I think then it's getting close to the panel example :)
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/prcm-signed
 
-Regards,
+for you to fetch changes up to ea351c1603df0607b68eb4663b82ba7a70519d2e:
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  Merge tag 'for-v3.16/prcm-cleanup-a' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.16/prcm (2014-05-16 15:26:22 -0700)
+
+----------------------------------------------------------------
+
+PRCM changes for omaps. I ended up merging these with the
+big endian changes because of the merge conflicts for read
+and write operations. Via Paul Walmsley <paul@pwsan.com>:
+
+Some OMAP PRCM cleanup patches.  These help prepare to convert the PRCM
+code into drivers.
+
+Basic build, boot, and PM test results are available here:
+
+http://www.pwsan.com/omap/testlogs/prcm-cleanup-v3.16/20140515213244/
+
+----------------------------------------------------------------
+Tero Kristo (10):
+      ARM: OMAP3: CM: remove a few OMAP34XX_CM_REGADDR defines
+      ARM: OMAP2+: prcm: add omap_test_timeout to prcm-common.h
+      ARM: OMAP2/3: CM: remove some external dependencies
+      ARM: OMAP4: CM: use cm_base* in register address calculations
+      ARM: OMAP2+: PRCM: cleanup some header includes
+      ARM: OMAP2+: PRM: remove unnecessary cpu_is_XXX calls from prm_init / exit
+      ARM: OMAP3/4: PRM: provide io chain reconfig function through irq setup
+      ARM: OMAP3/OMAP4: PRM: add prm_features flags and add IO wakeup under it
+      ARM: OMAP3/4: PRM: add support of late_init call to prm_ll_ops
+      ARM: OMAP4: PRCM: remove references to cm-regbits-44xx.h from PRCM core files
+
+Tony Lindgren (1):
+      Merge tag 'for-v3.16/prcm-cleanup-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.16/prcm
+
+ arch/arm/mach-omap2/clockdomain.h                  |  3 ++-
+ arch/arm/mach-omap2/cm2xxx.c                       | 15 ++-----------
+ arch/arm/mach-omap2/cm33xx.h                       |  3 ---
+ arch/arm/mach-omap2/cm3xxx.c                       | 25 ++++++++--------------
+ arch/arm/mach-omap2/cm3xxx.h                       |  5 ++---
+ arch/arm/mach-omap2/cm44xx.c                       | 11 ++++------
+ arch/arm/mach-omap2/cm_common.c                    |  2 +-
+ arch/arm/mach-omap2/cminst44xx.c                   | 10 ++++++---
+ .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  1 +
+ arch/arm/mach-omap2/powerdomain-common.c           |  1 -
+ arch/arm/mach-omap2/powerdomain.c                  |  1 +
+ arch/arm/mach-omap2/powerdomain.h                  |  3 +--
+ arch/arm/mach-omap2/prcm-common.h                  | 24 +++++++++++++++++++++
+ arch/arm/mach-omap2/prcm_mpu44xx.h                 |  1 -
+ arch/arm/mach-omap2/prm.h                          | 10 +++++++++
+ arch/arm/mach-omap2/prm2xxx.c                      | 13 +----------
+ arch/arm/mach-omap2/prm2xxx_3xxx.c                 |  1 -
+ arch/arm/mach-omap2/prm33xx.c                      |  1 -
+ arch/arm/mach-omap2/prm3xxx.c                      | 22 +++++++++----------
+ arch/arm/mach-omap2/prm44xx.c                      | 20 ++++++++---------
+ arch/arm/mach-omap2/prm_common.c                   | 17 +++++++++------
+ 21 files changed, 95 insertions(+), 94 deletions(-)
