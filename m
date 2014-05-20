@@ -1,117 +1,78 @@
-From: "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2] ARM: OMAP2+: gpmc: enable wait-pin monitoring for
- NAND devices via DT
-Date: Tue, 20 May 2014 08:46:08 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EACE5C0@DBDE04.ent.ti.com>
-References: <1400567064-20033-1-git-send-email-pekon@ti.com>
- <537B0803.6070702@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 00/11] ARM: OMAP: OMAP5 & AM43x DSS
+Date: Tue, 20 May 2014 14:10:09 +0530
+Message-ID: <537B14E9.2050108@ti.com>
+References: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com>
+ <5370CBD5.3060107@ti.com> <20140512143604.GB31772@atomide.com>
+ <5370E172.20009@ti.com> <20140512154850.GG31772@atomide.com>
+ <5375C8E8.1020209@ti.com> <537AE8A7.4080307@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <537B0803.6070702-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Quadros, Roger" <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Stefan Roese <sr-ynQEQJNshbs@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <537AE8A7.4080307@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Archit Taneja <archit@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
-
-From: Quadros, Roger
->On 05/20/2014 09:24 AM, Pekon Gupta wrote:
->> This patch enables 'wait-pin' monitoring in NAND driver if following properties
->> are present under NAND DT node
->>   gpmc,wait-pin = <wait-pin number>
->>   gpmc,wait-on-read
->>   gpmc,wait-on-write
->> As NAND generic framework uses common path nand_chip->dev_ready() for monitoring
->> completion of Read and Write status, so wait-pin monitoring is enabled only when
->> *both* 'gpmc,wait-on-read' and 'gpmc,wait-on-write' are specified.
+On Tuesday 20 May 2014 11:01 AM, Archit Taneja wrote:
+> Hi,
+> 
+> On Friday 16 May 2014 01:44 PM, Tomi Valkeinen wrote:
+>> On 12/05/14 18:48, Tony Lindgren wrote:
 >>
->> CC: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Signed-off-by: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
->> ---
->>  Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 8 ++++++++
->>  arch/arm/mach-omap2/gpmc-nand.c                     | 8 +++++---
->>  2 files changed, 13 insertions(+), 3 deletions(-)
+>>>>> Also, I'm wondering why we still have .clk and .opt_clks entries in the
+>>>>> hwmod data for am43xx and omap5 which are both device tree based with
+>>>>> all the clocks coming from .dts files?
+>>>>
+>>>> I think they are needed for the omap_device/hwmod stuff to work. Only
+>>>> omapdss driver knows about the clocks defined in the .dts files, and the
+>>>> omap_device/hwmod code still needs to do the reset and maybe some other
+>>>> tasks that require the clocks.
+>>>
+>>> We're already populating the hwmod data from dts entries, that's done by
+>>> omap_device_build_from_dt. Why aren't we doing that for dt defined clocks?
+>>>
+>>> I'd rather not start adding new data that will then just be removed, that's
+>>> what people call "pointless extra churn".
 >>
->> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->> index eb81435..4039032 100644
->> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->> @@ -45,6 +45,14 @@ Optional properties:
->>  		ELM hardware engines should specify this device node in .dtsi
->>  		Using ELM for ECC error correction frees some CPU cycles.
->>
->> + - gpmc,wait-pin=<pin number>	Specifies GPMC wait-pin number to monitor
->> + - gpmc,wait-on-read		Enable wait-pin monitoring for Read accesses
->> + - gpmc,wait-on-write		Enable wait-pin monitoring for Write accesses
->> +		As NAND generic framework uses single common function
->> +		nand_chip->dev_ready() for polling wait-pin both for Read and
->> +		Write accesses. So for NAND devices both 'gpmc,wait-on-read' and
->> +		'gpmc,wait-on-write' need to be specified together.
->> +
->>  For inline partiton table parsing (optional):
->>
->
->
->>   - #address-cells: should be set to 1
->> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
->> index 17cd393..62bc3de 100644
->> --- a/arch/arm/mach-omap2/gpmc-nand.c
->> +++ b/arch/arm/mach-omap2/gpmc-nand.c
->> @@ -123,11 +123,13 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
->>  		}
->>  	}
->>
->> -	if (gpmc_nand_data->of_node)
->> +	if (gpmc_nand_data->of_node) {
->>  		gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
->> -	else
->> +		if (s.wait_on_read && s.wait_on_write)
->> +			gpmc_nand_data->dev_ready = true;
->> +	} else {
->>  		gpmc_set_legacy(gpmc_nand_data, &s);
->> -
->> +	}
->>  	s.device_nand = true;
->
->NACK.
->
->For NAND, we only need the wait-pin property. The wait-on-read/wait-on-write flags are meaningless.
+>> I don't know why. I have to say I'm not 100% sure if that's done or not,
+>> but at least I can't find where it's done.
+> 
+> The reason why clocks are needed from hwmod data is because we still don't populate hwmod fields like main_clk and opt_clock from DT clocks.
+> 
+> The reason why this isn't done yet is because we currently haven't figured out a clean way to tell hwmod what clock is the main_clk, and what clocks are optional clocks.
+> 
+> One of the proposed methods was to assume the clock named to be "fck" as main_clk, and the remaining clocks as optional clocks for hwmod. That method wasn't agreed upon, this looks like the thread which discusses this:
+> 
+> http://marc.info/?l=linux-arm-kernel&m=138928084823142&w=2
 
-There is a check in arch/arm/mach-omap2/gpmc.c : @@gpmc_read_settings_dt()
-which expects at-least one of the 'gpmc,wait-on-read' or 'gpmc,wait-on-write' to be enabled.
-	if (!p->wait_on_read && !p->wait_on_write)
-			pr_warn("%s: read/write wait monitoring not enabled!\n",
-				__func__);
+So I started to look through this again and I realized most of the opt clock information
+is actually unused within hwmod and does not even need to be there. I just proposed an RFC here to clean some of that [1]
 
-And gpmc_read_settings_dt() is common for all GPMC devices (NAND, NOR, .. )
-Now, if you remove that check it means you are deviating from the behavior of
-DT binding, so you need to be backward compatible.
-In practice, I agree that a single gpmc,wait-pin binding was enough to both
-- Select the wait-pin
-- Enable wait-pin monitoring for GPMC devices.
-But now as we have two extra bindings, you have to maintain backward compatibility.
+The only modules which do need this seem to be gpio and dss (though we still need to check if all the newer platforms
+need this, or this is one of those things just carried forward because some old platform had an issue with gpio and dss
+ocp reset)
 
-If you have better solution, then please send a patch, I'll be happy to test it.
+As far as DSS is concerned, this is used within the custom reset function (not within hwmod) in display.c in mach-omap2/
+Its just that the current code relies on hwmod structures, which can very easily now extract this from DT instead.
 
+That just leaves gpio, which should be the only clock information that will have to exist in hwmod till we figure out
+how to move it to DT. All the main_clks from hwmod can very easily to moved to DT as already proposed using something like
+'fck' to identify them.
 
->Also, the wait-pin number needs to be communicated to the NAND driver and omap_dev_ready()
->function updated so that it checks for the right wait pin status.
->
-Yes, that's true.
-And this was my plan to have it as separate patch.
-Also, the real benefit of wait-pin monitoring will be seen only
-when its implemented as IRQ source. [1]
+[1] http://marc.info/?l=linux-omap&m=140057445618162&w=2
 
-
-with regards, pekon
-
-[1] http://www.spinics.net/lists/linux-omap/msg107236.html
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Archit
+> 
+> 
