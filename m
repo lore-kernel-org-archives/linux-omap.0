@@ -1,88 +1,110 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [RFC 2/6] omapdss: add init port functions for different omap
- revs
-Date: Tue, 20 May 2014 11:04:49 +0300
-Message-ID: <537B0CA1.5060100@ti.com>
-References: <1399540517-17883-1-git-send-email-archit@ti.com> <1399540517-17883-2-git-send-email-archit@ti.com>
+From: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: OMAP2+: gpmc: enable wait-pin monitoring for NAND
+ devices via DT
+Date: Tue, 20 May 2014 10:34:34 +0200
+Message-ID: <CABxcv=k_6gk2QhZj3LVaNgPkg7HnSwfskgJa3y7ORDSFZNRcmA@mail.gmail.com>
+References: <1400567064-20033-1-git-send-email-pekon@ti.com>
+	<537B0803.6070702@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="GhX5XKH4egPTauKiawJr0PPHoW9t8sVXg"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60829 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752584AbaETIFB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 May 2014 04:05:01 -0400
-In-Reply-To: <1399540517-17883-2-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <537B0803.6070702-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Stefan Roese <sr-ynQEQJNshbs@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
---GhX5XKH4egPTauKiawJr0PPHoW9t8sVXg
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Tue, May 20, 2014 at 9:45 AM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+> Hi Pekon,
+>
+> On 05/20/2014 09:24 AM, Pekon Gupta wrote:
+>> This patch enables 'wait-pin' monitoring in NAND driver if following properties
+>> are present under NAND DT node
+>>   gpmc,wait-pin = <wait-pin number>
+>>   gpmc,wait-on-read
+>>   gpmc,wait-on-write
+>> As NAND generic framework uses common path nand_chip->dev_ready() for monitoring
+>> completion of Read and Write status, so wait-pin monitoring is enabled only when
+>> *both* 'gpmc,wait-on-read' and 'gpmc,wait-on-write' are specified.
+>>
+>> CC: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Signed-off-by: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 8 ++++++++
+>>  arch/arm/mach-omap2/gpmc-nand.c                     | 8 +++++---
+>>  2 files changed, 13 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>> index eb81435..4039032 100644
+>> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>> @@ -45,6 +45,14 @@ Optional properties:
+>>               ELM hardware engines should specify this device node in .dtsi
+>>               Using ELM for ECC error correction frees some CPU cycles.
+>>
+>> + - gpmc,wait-pin=<pin number>        Specifies GPMC wait-pin number to monitor
+>> + - gpmc,wait-on-read         Enable wait-pin monitoring for Read accesses
+>> + - gpmc,wait-on-write                Enable wait-pin monitoring for Write accesses
+>> +             As NAND generic framework uses single common function
+>> +             nand_chip->dev_ready() for polling wait-pin both for Read and
+>> +             Write accesses. So for NAND devices both 'gpmc,wait-on-read' and
+>> +             'gpmc,wait-on-write' need to be specified together.
+>> +
+>>  For inline partiton table parsing (optional):
+>>
 
-On 08/05/14 12:15, Archit Taneja wrote:
-> The init/uninit port functions are used to set up the DPI and SDI outpu=
-ts under
-> the dss platform device. A 'reg' property is used to determine whether =
-the node
-> is DPI or SDI for OMAP34xx DSS revision. For other DSS revisions, only =
-DPI
-> output exists.
->=20
-> For multiple DPI output instances(introduced in DRA7xx DSS), we would u=
-se the
-> 'reg' property to specify the DPI output number.
->=20
-> The current functions work fine if there is only one DPI output instanc=
-e in
-> DSS. For multiple DPI instances, it would get complicated to figure out=
- whether
-> 'reg' is used to specify whether the output is SDI, or a later DPI inst=
-ance.
->=20
-> Create DSS revision specific init/uninit_port functions such that we ha=
-ve a
-> separate functions for OMAP34xx, this helps us deal with the SDI case
-> separately.
+Pekon,
 
-Could we instead have an array of the ports for the said DSS version,
-assigned to dss_features? Maybe just something like:
+Please do not add Linux specific information in Device Tree binding
+documents. Remember that DT are meant to be used by any operating
+system that implements DT parsing so we should not leak Linux
+implementation details in the documents. They should just describe the
+hardware and how each property configures it.
 
-static enum omap_display_type omap34xx_ports[] =3D {
-	OMAP_DISPLAY_TYPE_DPI,
-	OMAP_DISPLAY_TYPE_SDI,
-};
+In fact Device Tree source files and documents will be split from the
+kernel repository in the future to make this more clear.
 
-The index on the array tells the matching 'reg' value.
+>
+>
+>>   - #address-cells: should be set to 1
+>> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+>> index 17cd393..62bc3de 100644
+>> --- a/arch/arm/mach-omap2/gpmc-nand.c
+>> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+>> @@ -123,11 +123,13 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+>>               }
+>>       }
+>>
+>> -     if (gpmc_nand_data->of_node)
+>> +     if (gpmc_nand_data->of_node) {
+>>               gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
+>> -     else
+>> +             if (s.wait_on_read && s.wait_on_write)
+>> +                     gpmc_nand_data->dev_ready = true;
+>> +     } else {
+>>               gpmc_set_legacy(gpmc_nand_data, &s);
+>> -
+>> +     }
+>>       s.device_nand = true;
+>
+> NACK.
+>
+> For NAND, we only need the wait-pin property. The wait-on-read/wait-on-write flags are meaningless.
+> Also, the wait-pin number needs to be communicated to the NAND driver and omap_dev_ready() function updated so that it checks for the right wait pin status.
+>
 
- Tomi
+Thanks a lot for your explanations Roger.
 
+>>
+>>       err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
+>>
+>
+> cheers,
+> -roger
 
-
---GhX5XKH4egPTauKiawJr0PPHoW9t8sVXg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTewynAAoJEPo9qoy8lh71+aAQAJoZM/PLVRxuKylbZbQ4VPii
-LnytDKLQTuyV+As2sy91CRrA3v7TXJLpqTBVh0wSNeyAtw9OwTIovP3cSdx/zIvc
-WcK+kqA+69sTx/MJJ5Q2uwADPDO8sI+K1EfDFAZDuDZq0afKbWehNOsRPO6k4Tyb
-jL0wPb8R+kOLE+tfUCF+ukcmoC2KCnWcp1hO98Cv3zZP4X/cr4aVAZmN5NhMsahG
-XRrqMoRxFEpk3uv+60kCD7j+e5oexNoVymA3+gWcHOn+M37tslajKYoZkf7XAR0H
-yz2mpPcB/rChwMf98B6htRWFzujoPntxS+w77ocz1PSpPTkmaHJJECbWsRs6NB92
-fziJyQRkRzOzfc3OQLT6gSe+BEaa6NdCfR978tQ07819dRbGBVoWm9JN35IYKhq4
-nR2+h/pUkzKTqCbn/Bpd0k5DQY/YoVA3NRaL3mw6GXTIbQg97ERtWMrSQ5XiHMGr
-m87FvnwVFxxyblSmMLs8jjKZEVIXgE7t4rBnDHnaP/J1XXhp6UydlCRvFFFNGXFd
-rAyRejVeWNXFdep7M1j8IjcMg1cHR9P7mCg59W2JRaAxidcdog5B34BCeRwAfOAR
-81zRH208tDLS3qYJimfdl+MktE5Z7R//tvyacyErxYctZGiwZ/bFYsZn/RFDdL8J
-fqfQ23VK8bt1gyIn/0zp
-=w9Op
------END PGP SIGNATURE-----
-
---GhX5XKH4egPTauKiawJr0PPHoW9t8sVXg--
+Best regards,
+Javier
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
