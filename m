@@ -1,61 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v3.15 -rc cycle
-Date: Mon, 19 May 2014 17:34:20 -0700
-Message-ID: <20140520003419.GA15793@atomide.com>
+Subject: [GIT PULL 1/4] omap soc changes for v3.16 merge window
+Date: Mon, 19 May 2014 18:30:31 -0700
+Message-ID: <20140520013030.GE15793@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:37954 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750948AbaETBag (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 21:30:36 -0400
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The following changes since commit 89ca3b881987f5a4be4c5dbaa7f0df12bbdde2fd:
+Looks like I'm still having trouble sending out some pull requests,
+so apologies you're seeing these as duplicates.
 
-  Linux 3.15-rc4 (2014-05-04 18:14:42 -0700)
+The following changes since commit d1db0eea852497762cab43b905b879dfcd3b8987:
+
+  Linux 3.15-rc3 (2014-04-27 19:29:27 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/fixes-v3-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/soc-signed
 
-for you to fetch changes up to 4b353a706a86598ba47307c47301c3c428b79e09:
+for you to fetch changes up to 733d20eeeeb31587aacd917fb0aaf2888c26a4b5:
 
-  ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled (2014-05-19 11:20:38 -0700)
-
-----------------------------------------------------------------
-Regression fixes for omaps for NAND, DMA, cpu_idle and audio.
-Also a minor one line fix for audio clock on 54xx.
+  ARM: DRA752: add detection of SoC information (2014-05-19 15:38:03 -0700)
 
 ----------------------------------------------------------------
-Laurent Pinchart (1):
-      ARM: OMAP3: clock: Back-propagate rate change from cam_mclk to dpll4_m5 on all OMAP3 platforms
+SoC related changes for omaps.
+
+----------------------------------------------------------------
+Archit Taneja (1):
+      ARM: OMAP2+: hwmod: OMAP5 DSS hwmod data
+
+Dave Gerlach (1):
+      ARM: OMAP2+: Remove suspend_set_ops from common pm late init
+
+Nishanth Menon (1):
+      ARM: DRA752: add detection of SoC information
 
 Peter Ujfalusi (1):
-      ARM: omap5: hwmod_data: Correct IDLEMODE for McPDM
+      ARM: omap4: hwmod_data: Clean up audio related structures (remove/merge them)
 
-Roger Quadros (1):
-      ARM: OMAP2+: nand: Fix NAND on OMAP2 and OMAP3 boards
+Tony Lindgren (1):
+      Merge tag 'for-v3.16/hwmod-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.16/soc
 
-Santosh Shilimkar (1):
-      ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
-
-Tony Lindgren (2):
-      Merge tag 'for-v3.15-rc/omap-fixes-b' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.15/fixes-v3
-      ARM: OMAP2+: Fix DMA hang after off-idle
-
- arch/arm/mach-omap2/board-flash.c          |  2 +-
- arch/arm/mach-omap2/cclock3xxx_data.c      |  3 ++-
- arch/arm/mach-omap2/cpuidle44xx.c          | 25 +++++++++++++++++++++----
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c |  2 +-
- arch/arm/plat-omap/dma.c                   | 10 ++++++++++
- 5 files changed, 35 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/id.c                   |  37 ++++
+ arch/arm/mach-omap2/io.c                   |   1 +
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  99 +---------
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 283 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.c                   |  17 +-
+ arch/arm/mach-omap2/pm.h                   |   8 +-
+ arch/arm/mach-omap2/pm24xx.c               |   4 +-
+ arch/arm/mach-omap2/pm34xx.c               |   7 +-
+ arch/arm/mach-omap2/pm44xx.c               |   6 +-
+ arch/arm/mach-omap2/soc.h                  |   5 +
+ 10 files changed, 361 insertions(+), 106 deletions(-)
