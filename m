@@ -1,12 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/3] omap non urgent fixes for v3.16 merge window, resend
-Date: Mon, 19 May 2014 19:10:30 -0700
-Message-ID: <20140520021029.GK15793@atomide.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCHv2 resend 00/11] improve PWM lookup support without device
+ tree
+Date: Tue, 20 May 2014 02:55:54 +0200
+Message-ID: <1902427.MlnO7xrXmN@avalon>
+References: <1400532162-29483-1-git-send-email-alexandre.belloni@free-electrons.com>
+ <20140519223913.GE20590@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
+In-Reply-To: <20140519223913.GE20590@verge.net.au>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,88 +19,102 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Simon Horman <horms@verge.net.au>
+Cc: linux-pwm@vger.kernel.org, linux-fbdev@vger.kernel.org, Jingoo Han <jg1.han@samsung.com>, Eric Miao <eric.y.miao@gmail.com>, linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Bryan Wu <cooloney@gmail.com>, Magnus Damm <magnus.damm@gmail.com>, linux-kernel@vger.kernel.org, Haojian Zhuang <haojian.zhuang@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-leds@vger.kernel.org, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Alexandre and Simon,
 
-Here are three pull requests that never made the lists
-on the 8th of May as I have something still wrong with
-my scripts it seems. Anyways, these should be fine pulled
-out of order, if in doubt see my temporary merge branch
-at omap-for-v3.16/tmp-merge-2014-05-19.
+On Tuesday 20 May 2014 07:39:13 Simon Horman wrote:
+> [ CCed Laurent Pinchart ]
+> 
+> The renesas and shmobile portions of this seem reasonable to me
+> and I have checked that there do not seem to be any conflicts
+> with changes I already have queued up for v3.16 (and v3.17).
+> 
+> I have CCed Laurent Pinchart as I believe he most recently
+> did work on the renesas and shmobile code in question.
 
-The following changes since commit fb677ef70b65e22cd4401d31b700a8b4041efae1:
+The series look sane to me. For the three patches that Simon has acked below,
 
-  ARM: OMAP2+: Fix GPMC remap for devices using an offset (2014-04-23 11:09:22 -0700)
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-are available in the git repository at:
+> On Mon, May 19, 2014 at 10:42:31PM +0200, Alexandre Belloni wrote:
+> > Hi,
+> > 
+> > Originally sent on Apr 14th, note that this series is blocking another 16
+> > patches series, I would like it to be taken in 3.16 if we can agree on
+> > this implementation.
+> > 
+> > A patch set as suggested by Thierry to make lookup with the lookup table
+> > instead of device tree behave more like when using device tree.
+> > 
+> > The first patch adds a period and a polarity member to the lookup table
+> > and use those to set period and polarity.
+> > 
+> > Patch 2, 4 and 5 are making use of those new members from the board files.
+> > Patch 3 removes useless code since setting the polarity is now handled by
+> > the PWM core.
+> > 
+> > I couldn't decide on a good name for the extended PWM_LOOKUP macro and I
+> > believe we won't have to add members to that structure soon so:
+> > Patch 6 modifies the PWM_LOOKUP macro to also initialize period and
+> > polarity and Patch 7-9 are making use of the new PWM_LOOKUP macro in the
+> > board files
+> > 
+> > Patch 10 and 11 are making the leds-pwm and pwm_bl drivers get the period
+> > from the PWM before using pwm_period_ns if it is not already set.
+> > 
+> > Patch 10 will obviously conflict with the series of Russell reworking the
+> > leds-pwm probing. I can rebase if necessary
+> > 
+> > The final goal would be to get rid of .pwm_period_ns in leds-pwm and
+> > pwm_bl after moving all the remaining users (still around 25) to
+> > pwm_lookup.
+> > 
+> > Changes in v2:
+> >  - correctly unlock the pwm_lookup_lock mutex before returning.
+> >  - don't change PWM_LOOKUP atomically
+> >  - remove tpu_pwm_platform_data and the associated header file
+> >  - make the leds-pwm and pwm_bl drivers get the period from the PWM
+> > 
+> > Alexandre Belloni (11):
+> >   pwm: add period and polarity to struct pwm_lookup
+> >   ARM: shmobile: Armadillo 800 EVA: initialize all struct pwm_lookup
+> >     members
+> >   pwm: renesas-tpu: remove useless struct tpu_pwm_platform_data
+> 
+> The above two patches:
+> Acked-by: Simon Horman <horms+renesas@verge.net.au>
+> 
+> >   ARM: OMAP3: Beagle: initialize all the struct pwm_lookup members
+> >   ARM: pxa: hx4700: initialize all the struct pwm_lookup members
+> >   pwm: modify PWM_LOOKUP to initialize all struct pwm_lookup members
+> >   ARM: OMAP3: Beagle: use PWM_LOOKUP to initialize struct pwm_lookup
+> >   ARM: shmobile: Armadillo 800 EVA: use PWM_LOOKUP to initialize struct
+> >     pwm_lookup
+> 
+> The above patch:
+> Acked-by: Simon Horman <horms+renesas@verge.net.au>
+> 
+> >   ARM: pxa: hx4700: use PWM_LOOKUP to initialize struct pwm_lookup
+> >   leds: leds-pwm: retrieve configured pwm period
+> >   backlight: pwm_bl: retrieve configured pwm period
+> >  
+> >  Documentation/pwm.txt                          |  3 ++-
+> >  arch/arm/mach-omap2/board-omap3beagle.c        |  3 ++-
+> >  arch/arm/mach-pxa/hx4700.c                     |  3 ++-
+> >  arch/arm/mach-shmobile/board-armadillo800eva.c | 14 +++-----------
+> >  drivers/leds/leds-pwm.c                        |  5 ++++-
+> >  drivers/pwm/core.c                             |  8 +++++++-
+> >  drivers/pwm/pwm-renesas-tpu.c                  | 19 +++----------------
+> >  drivers/video/backlight/pwm_bl.c               |  8 +++++---
+> >  include/linux/platform_data/pwm-renesas-tpu.h  | 16 ----------------
+> >  include/linux/pwm.h                            |  6 +++++-
+> >  10 files changed, 33 insertions(+), 52 deletions(-)
+> >  delete mode 100644 include/linux/platform_data/pwm-renesas-tpu.h
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/fixes-not-urgent-signed
+-- 
+Regards,
 
-for you to fetch changes up to e610c9d3aeca8d7335803f816ae2e39e5103233e:
-
-  Merge branch 'pull/l3noc/dts-fixes' of https://github.com/nmenon/linux-2.6-playground into omap-for-v3.16/fixes-not-urgent (2014-05-08 08:02:57 -0700)
-
-----------------------------------------------------------------
-
-Non urgent omap fixes for v3.16 merge window.
-
-----------------------------------------------------------------
-Afzal Mohammed (1):
-      ARM: dts: AM4372: add l3-noc information
-
-Dave Gerlach (1):
-      ARM: dts: am437x-gp-evm: Do not reset gpio5
-
-Javier Martinez Canillas (1):
-      ARM: dts: omap3-igep0020: use SMSC9221 timings
-
-Joel Fernandes (2):
-      ARM: OMAP5: Switch to THUMB mode if needed on secondary CPU
-      ARM: OMAP5: Redo THUMB mode switch on secondary CPU
-
-Johan Hovold (1):
-      ARM: dts: am335x-boneblack: remove use of ti,vcc-aux-disable-is-sleep
-
-Oussama Ghorbel (1):
-      ARM: OMAP2+: free use_gptimer_clksrc variable after boot
-
-Pekon Gupta (1):
-      ARM: dts: am43xx: fix starting offset of NAND.filesystem MTD partition
-
-Rajendra Nayak (1):
-      ARM: dts: DRA7: Use dra7-l3-noc instead of omap4-l3-noc
-
-Suman Anna (3):
-      ARM: dts: OMAP5: Add mailbox dt node to fix boot warning
-      ARM: dts: OMAP2: Fix interrupts for OMAP2420 mailbox
-      ARM: dts: AM3517: Disable absent IPs inherited from OMAP3
-
-Tony Lindgren (4):
-      ARM: dts: Fix bad OTG muxing for cm-t boards
-      ARM: dts: Fix GPMC Ethernet timings for omap cm-t sbc-t boards for device tree
-      ARM: dts: Fix GPMC timings for LAN9220
-      Merge branch 'pull/l3noc/dts-fixes' of https://github.com/nmenon/linux-2.6-playground into omap-for-v3.16/fixes-not-urgent
-
- arch/arm/boot/dts/am335x-boneblack.dts    |  1 -
- arch/arm/boot/dts/am3517.dtsi             | 16 ++++++++
- arch/arm/boot/dts/am4372.dtsi             |  6 ++-
- arch/arm/boot/dts/am437x-gp-evm.dts       |  5 +++
- arch/arm/boot/dts/am43x-epos-evm.dts      |  2 +-
- arch/arm/boot/dts/dra7.dtsi               |  6 +--
- arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi | 19 ++++-----
- arch/arm/boot/dts/omap2.dtsi              |  7 ----
- arch/arm/boot/dts/omap2420.dtsi           |  8 ++++
- arch/arm/boot/dts/omap2430.dtsi           |  7 ++++
- arch/arm/boot/dts/omap3-cm-t3x30.dtsi     | 66 +++++++------------------------
- arch/arm/boot/dts/omap3-igep.dtsi         |  2 +-
- arch/arm/boot/dts/omap3-igep0020.dts      |  4 +-
- arch/arm/boot/dts/omap3-sb-t35.dtsi       | 37 +++++------------
- arch/arm/boot/dts/omap3-sbc-t3517.dts     | 13 ++++++
- arch/arm/boot/dts/omap3.dtsi              |  2 +-
- arch/arm/boot/dts/omap5.dtsi              |  7 ++++
- arch/arm/mach-omap2/omap-headsmp.S        |  6 +--
- arch/arm/mach-omap2/timer.c               |  2 +-
- 19 files changed, 106 insertions(+), 110 deletions(-)
+Laurent Pinchart
