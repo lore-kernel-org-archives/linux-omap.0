@@ -1,38 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv5 09/10] DTS: ARM: OMAP3-N900: Add SSI support
-Date: Mon, 19 May 2014 17:35:39 -0700
-Message-ID: <20140520003538.GD15793@atomide.com>
-References: <1399739870-13526-1-git-send-email-sre@kernel.org>
- <1399739870-13526-10-git-send-email-sre@kernel.org>
- <20140514215503.GM27426@atomide.com>
+Subject: Re: [PATCH v2] ARM: OMAP2+: Remove suspend_set_ops from common pm
+ late init
+Date: Mon, 19 May 2014 17:34:42 -0700
+Message-ID: <20140520003442.GC15793@atomide.com>
+References: <1399919601-15543-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20140514215503.GM27426@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>
+In-Reply-To: <1399919601-15543-1-git-send-email-d-gerlach@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [140514 14:57]:
-> * Sebastian Reichel <sre@kernel.org> [140510 09:40]:
-> > Add SSI device tree data for OMAP3 and Nokia N900.
+* Dave Gerlach <d-gerlach@ti.com> [140512 11:34]:
+> In omap2_common_pm_late_init suspend_set_ops was called to set common
+> suspend handling functions for all omap platforms. This created two
+> problems. First, these suspend ops were being set for all platforms,
+> regardless of whether or not suspend support has been integrated so in
+> the case of AM33XX, suspend to mem was presented as available but
+> failed every time. Second, some platforms will need to define a
+> completely separate set of suspend ops, such as AM33XX, due to
+> differences from previous omap platforms so there is no need to
+> always set the common omap ops.
 > 
-> Picking this patch into omap-for-v3.16/dt thanks.
+> This patch moves the suspend_set_ops call from omap2_common_pm_late_init
+> into a separate function that then gets called in the omap*_pm_init
+> functions for each platform.
 
-Just noticed that this patch seems to somehow break idle
-modes on n900, so dropping both dts changes for now.
-
-Basically the n900 debug LEDs won't ever go off with
-these two dts patches enabled, even without the modem
-drivers loaded. I did not dig deeper, but it's probably
-something related to hwmod using this data for some
-settings.
-
-Sorry did not notice it earlier as I did not have the
-PM regression fix patches merged with my testing branch.
-
-Regards,
+Gets rid of some ifdefs too. Applying into omap-for-v3.16/soc
+thanks.
 
 Tony
