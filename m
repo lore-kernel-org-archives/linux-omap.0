@@ -1,50 +1,48 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH v3 2/3] ARM: dts: overo: Add support for 4.3'' LCD output
-Date: Tue, 20 May 2014 15:58:56 +0200
-Message-ID: <1400594337-5096-3-git-send-email-florian.vaussard@epfl.ch>
+Subject: [PATCH v3 3/3] ARM: dts: overo: Add support for 3.5'' LCD output
+Date: Tue, 20 May 2014 15:58:57 +0200
+Message-ID: <1400594337-5096-4-git-send-email-florian.vaussard@epfl.ch>
 References: <1400594337-5096-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp5.epfl.ch ([128.178.224.8]:44488 "EHLO smtp5.epfl.ch"
+Received: from smtp5.epfl.ch ([128.178.224.8]:44497 "EHLO smtp5.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753879AbaETN7N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 May 2014 09:59:13 -0400
+	id S1753882AbaETN7O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 May 2014 09:59:14 -0400
 In-Reply-To: <1400594337-5096-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Chestnut43, Gallop43 and Palo43 expansion boards have a ZIF connector
-for a 4.3'' LCD. Add a common include file for this configuration, and
-use it on relevant expansion boards.
+Alto35 expansion board has a ZIF connector for a 3.5'' LCD.
+Add a common include file for this configuration, and use it
+on Alto35.
 
 Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 ---
- .../boot/dts/omap3-overo-chestnut43-common.dtsi    |   1 +
- arch/arm/boot/dts/omap3-overo-common-lcd43.dtsi    | 178 +++++++++++++++++++++
- arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi |   1 +
- arch/arm/boot/dts/omap3-overo-palo43-common.dtsi   |   1 +
- 4 files changed, 181 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap3-overo-common-lcd43.dtsi
+ arch/arm/boot/dts/omap3-overo-alto35-common.dtsi |   1 +
+ arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi  | 165 +++++++++++++++++++++++
+ 2 files changed, 166 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi
 
-diff --git a/arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi b/arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi
-index 19de6ff..17b82f8 100644
---- a/arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-chestnut43-common.dtsi
+diff --git a/arch/arm/boot/dts/omap3-overo-alto35-common.dtsi b/arch/arm/boot/dts/omap3-overo-alto35-common.dtsi
+index 19d6486..7aae8fb 100644
+--- a/arch/arm/boot/dts/omap3-overo-alto35-common.dtsi
++++ b/arch/arm/boot/dts/omap3-overo-alto35-common.dtsi
 @@ -11,6 +11,7 @@
   */
  
  #include "omap3-overo-common-peripherals.dtsi"
-+#include "omap3-overo-common-lcd43.dtsi"
++#include "omap3-overo-common-lcd35.dtsi"
  
  #include <dt-bindings/input/input.h>
  
-diff --git a/arch/arm/boot/dts/omap3-overo-common-lcd43.dtsi b/arch/arm/boot/dts/omap3-overo-common-lcd43.dtsi
+diff --git a/arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi b/arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi
 new file mode 100644
-index 0000000..f5395b7
+index 0000000..233c69e
 --- /dev/null
-+++ b/arch/arm/boot/dts/omap3-overo-common-lcd43.dtsi
-@@ -0,0 +1,178 @@
++++ b/arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi
+@@ -0,0 +1,165 @@
 +/*
 + * Copyright (C) 2014 Florian Vaussard, EPFL Mobots group
 + *
@@ -91,7 +89,7 @@ index 0000000..f5395b7
 +		>;
 +	};
 +
-+	lte430_pins: pinmux_lte430_pins {
++	lb035_pins: pinmux_lb035_pins {
 +		pinctrl-single,pins = <
 +			OMAP3_CORE1_IOPAD(0x2174, PIN_OUTPUT | MUX_MODE4)	/* uart2_cts.gpio_144 */
 +		>;
@@ -143,38 +141,6 @@ index 0000000..f5395b7
 +		display0 = &lcd0;
 +	};
 +
-+	lcd0: display@0 {
-+		compatible = "samsung,lte430wq-f0c", "panel-dpi";
-+		label = "lcd";
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&lte430_pins>;
-+		enable-gpios = <&gpio5 16 GPIO_ACTIVE_HIGH>;		/* gpio_144 */
-+
-+		port {
-+			lcd_in: endpoint {
-+				remote-endpoint = <&dpi_out>;
-+			};
-+		};
-+
-+		panel-timing {
-+			clock-frequency = <9200000>;
-+			hactive = <480>;
-+			vactive = <272>;
-+			hfront-porch = <8>;
-+			hback-porch = <4>;
-+			hsync-len = <41>;
-+			vback-porch = <2>;
-+			vfront-porch = <4>;
-+			vsync-len = <10>;
-+
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			de-active = <1>;
-+			pixelclk-active = <1>;
-+		};
-+	};
-+
 +	ads7846reg: ads7846-reg {
 +		compatible = "regulator-fixed";
 +		regulator-name = "ads7846-reg";
@@ -196,6 +162,26 @@ index 0000000..f5395b7
 +&mcspi1 {
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&mcspi1_pins>;
++
++	lcd0: display@0 {
++		compatible = "lgphilips,lb035q02";
++		label = "lcd";
++
++		reg = <1>;					/* CS1 */
++		spi-max-frequency = <10000000>;
++		spi-cpol;
++		spi-cpha;
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&lb035_pins>;
++		enable-gpios = <&gpio5 16 GPIO_ACTIVE_HIGH>;	/* gpio_144 */
++
++		port {
++			lcd_in: endpoint {
++				remote-endpoint = <&dpi_out>;
++			};
++		};
++	};
 +
 +	/* touch controller */
 +	ads7846@0 {
@@ -222,31 +208,6 @@ index 0000000..f5395b7
 +		linux,wakeup;
 +	};
 +};
-+
-diff --git a/arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi b/arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi
-index 5e848c2..49d2254 100644
---- a/arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi
-@@ -11,6 +11,7 @@
-  */
- 
- #include "omap3-overo-common-peripherals.dtsi"
-+#include "omap3-overo-common-lcd43.dtsi"
- 
- #include <dt-bindings/input/input.h>
- 
-diff --git a/arch/arm/boot/dts/omap3-overo-palo43-common.dtsi b/arch/arm/boot/dts/omap3-overo-palo43-common.dtsi
-index abea232..087aedf 100644
---- a/arch/arm/boot/dts/omap3-overo-palo43-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-palo43-common.dtsi
-@@ -11,6 +11,7 @@
-  */
- 
- #include "omap3-overo-common-peripherals.dtsi"
-+#include "omap3-overo-common-lcd43.dtsi"
- 
- #include <dt-bindings/input/input.h>
- 
 -- 
 1.8.3.2
 
