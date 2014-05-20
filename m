@@ -1,99 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 2/4] omap prcm changes for v3.16 merge window
-Date: Mon, 19 May 2014 18:56:37 -0700
-Message-ID: <20140520015636.GJ15793@atomide.com>
-References: <20140520013050.GF15793@atomide.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 00/11] ARM: OMAP: OMAP5 & AM43x DSS
+Date: Tue, 20 May 2014 11:01:19 +0530
+Message-ID: <537AE8A7.4080307@ti.com>
+References: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com> <5370CBD5.3060107@ti.com> <20140512143604.GB31772@atomide.com> <5370E172.20009@ti.com> <20140512154850.GG31772@atomide.com> <5375C8E8.1020209@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20140520013050.GF15793@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50932 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750699AbaETFdB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 May 2014 01:33:01 -0400
+In-Reply-To: <5375C8E8.1020209@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [140519 18:31]:
-> The following changes since commit be2d62844819b3536233b7fc726b8f17d9fa7f05:
-> 
->   ARM: OMAP: debug-leds: raw read and write endian fix (2014-05-08 07:09:55 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/prcm-signed
-> 
-> for you to fetch changes up to ea351c1603df0607b68eb4663b82ba7a70519d2e:
-> 
->   Merge tag 'for-v3.16/prcm-cleanup-a' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.16/prcm (2014-05-16 15:26:22 -0700)
-> 
-> ----------------------------------------------------------------
-> 
-> PRCM changes for omaps. I ended up merging these with the
-> big endian changes because of the merge conflicts for read
-> and write operations. Via Paul Walmsley <paul@pwsan.com>:
-> 
-> Some OMAP PRCM cleanup patches.  These help prepare to convert the PRCM
-> code into drivers.
-> 
-> Basic build, boot, and PM test results are available here:
-> 
-> http://www.pwsan.com/omap/testlogs/prcm-cleanup-v3.16/20140515213244/
+Hi,
 
-Note that pulling this will also pull in the earlier trivial big
-endian changes I posted on the 8th of May but did not make the lists.
+On Friday 16 May 2014 01:44 PM, Tomi Valkeinen wrote:
+> On 12/05/14 18:48, Tony Lindgren wrote:
+>
+>>>> Also, I'm wondering why we still have .clk and .opt_clks entries in the
+>>>> hwmod data for am43xx and omap5 which are both device tree based with
+>>>> all the clocks coming from .dts files?
+>>>
+>>> I think they are needed for the omap_device/hwmod stuff to work. Only
+>>> omapdss driver knows about the clocks defined in the .dts files, and the
+>>> omap_device/hwmod code still needs to do the reset and maybe some other
+>>> tasks that require the clocks.
+>>
+>> We're already populating the hwmod data from dts entries, that's done by
+>> omap_device_build_from_dt. Why aren't we doing that for dt defined clocks?
+>>
+>> I'd rather not start adding new data that will then just be removed, that's
+>> what people call "pointless extra churn".
+>
+> I don't know why. I have to say I'm not 100% sure if that's done or not,
+> but at least I can't find where it's done.
 
-Regards,
+The reason why clocks are needed from hwmod data is because we still 
+don't populate hwmod fields like main_clk and opt_clock from DT clocks.
 
-Tony
- 
-> ----------------------------------------------------------------
-> Tero Kristo (10):
->       ARM: OMAP3: CM: remove a few OMAP34XX_CM_REGADDR defines
->       ARM: OMAP2+: prcm: add omap_test_timeout to prcm-common.h
->       ARM: OMAP2/3: CM: remove some external dependencies
->       ARM: OMAP4: CM: use cm_base* in register address calculations
->       ARM: OMAP2+: PRCM: cleanup some header includes
->       ARM: OMAP2+: PRM: remove unnecessary cpu_is_XXX calls from prm_init / exit
->       ARM: OMAP3/4: PRM: provide io chain reconfig function through irq setup
->       ARM: OMAP3/OMAP4: PRM: add prm_features flags and add IO wakeup under it
->       ARM: OMAP3/4: PRM: add support of late_init call to prm_ll_ops
->       ARM: OMAP4: PRCM: remove references to cm-regbits-44xx.h from PRCM core files
-> 
-> Tony Lindgren (1):
->       Merge tag 'for-v3.16/prcm-cleanup-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.16/prcm
-> 
->  arch/arm/mach-omap2/clockdomain.h                  |  3 ++-
->  arch/arm/mach-omap2/cm2xxx.c                       | 15 ++-----------
->  arch/arm/mach-omap2/cm33xx.h                       |  3 ---
->  arch/arm/mach-omap2/cm3xxx.c                       | 25 ++++++++--------------
->  arch/arm/mach-omap2/cm3xxx.h                       |  5 ++---
->  arch/arm/mach-omap2/cm44xx.c                       | 11 ++++------
->  arch/arm/mach-omap2/cm_common.c                    |  2 +-
->  arch/arm/mach-omap2/cminst44xx.c                   | 10 ++++++---
->  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  1 +
->  arch/arm/mach-omap2/powerdomain-common.c           |  1 -
->  arch/arm/mach-omap2/powerdomain.c                  |  1 +
->  arch/arm/mach-omap2/powerdomain.h                  |  3 +--
->  arch/arm/mach-omap2/prcm-common.h                  | 24 +++++++++++++++++++++
->  arch/arm/mach-omap2/prcm_mpu44xx.h                 |  1 -
->  arch/arm/mach-omap2/prm.h                          | 10 +++++++++
->  arch/arm/mach-omap2/prm2xxx.c                      | 13 +----------
->  arch/arm/mach-omap2/prm2xxx_3xxx.c                 |  1 -
->  arch/arm/mach-omap2/prm33xx.c                      |  1 -
->  arch/arm/mach-omap2/prm3xxx.c                      | 22 +++++++++----------
->  arch/arm/mach-omap2/prm44xx.c                      | 20 ++++++++---------
->  arch/arm/mach-omap2/prm_common.c                   | 17 +++++++++------
->  21 files changed, 95 insertions(+), 94 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The reason why this isn't done yet is because we currently haven't 
+figured out a clean way to tell hwmod what clock is the main_clk, and 
+what clocks are optional clocks.
+
+One of the proposed methods was to assume the clock named to be "fck" as 
+main_clk, and the remaining clocks as optional clocks for hwmod. That 
+method wasn't agreed upon, this looks like the thread which discusses this:
+
+http://marc.info/?l=linux-arm-kernel&m=138928084823142&w=2
+
+Archit
+
+
