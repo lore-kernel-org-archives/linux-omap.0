@@ -1,188 +1,222 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2] ARM: OMAP2+: gpmc: enable wait-pin monitoring for
- NAND devices via DT
-Date: Tue, 20 May 2014 12:51:01 +0300
-Message-ID: <537B2585.8030309@ti.com>
-References: <1400567064-20033-1-git-send-email-pekon@ti.com>	<537B0803.6070702@ti.com>	<20980858CB6D3A4BAE95CA194937D5E73EACE5C0@DBDE04.ent.ti.com> <CABxcv=ngns6J8iRfqaJohRP9oXF-6YoM=N5fMkn1nRz0aVqQ+g@mail.gmail.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH v2] ARM: OMAP2+: gpmc: enable wait-pin monitoring for NAND
+ devices via DT
+Date: Tue, 20 May 2014 12:03:52 +0200
+Message-ID: <CABxcv=mEF5ripWpUvPh8q7YL=UmYvmDMvVVO6RLn98+OsYMoZw@mail.gmail.com>
+References: <1400567064-20033-1-git-send-email-pekon@ti.com>
+	<537B0803.6070702@ti.com>
+	<20980858CB6D3A4BAE95CA194937D5E73EACE5C0@DBDE04.ent.ti.com>
+	<CABxcv=ngns6J8iRfqaJohRP9oXF-6YoM=N5fMkn1nRz0aVqQ+g@mail.gmail.com>
+	<537B2585.8030309@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36971 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752448AbaETJvM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2014 05:51:12 -0400
-In-Reply-To: <CABxcv=ngns6J8iRfqaJohRP9oXF-6YoM=N5fMkn1nRz0aVqQ+g@mail.gmail.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:38751 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751878AbaETKDy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2014 06:03:54 -0400
+Received: by mail-we0-f174.google.com with SMTP id k48so253717wev.5
+        for <linux-omap@vger.kernel.org>; Tue, 20 May 2014 03:03:52 -0700 (PDT)
+In-Reply-To: <537B2585.8030309@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>, "Gupta, Pekon" <pekon@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Roger Quadros <rogerq@ti.com>
+Cc: "Gupta, Pekon" <pekon@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On 05/20/2014 12:24 PM, Javier Martinez Canillas wrote:
-> Hello Pekon,
-> 
-> On Tue, May 20, 2014 at 10:46 AM, Gupta, Pekon <pekon@ti.com> wrote:
->> Hi Roger,
+Hello Roger,
+
+On Tue, May 20, 2014 at 11:51 AM, Roger Quadros <rogerq@ti.com> wrote:
+> On 05/20/2014 12:24 PM, Javier Martinez Canillas wrote:
+>> Hello Pekon,
 >>
->> From: Quadros, Roger
->>> On 05/20/2014 09:24 AM, Pekon Gupta wrote:
->>>> This patch enables 'wait-pin' monitoring in NAND driver if following properties
->>>> are present under NAND DT node
->>>>   gpmc,wait-pin = <wait-pin number>
->>>>   gpmc,wait-on-read
->>>>   gpmc,wait-on-write
->>>> As NAND generic framework uses common path nand_chip->dev_ready() for monitoring
->>>> completion of Read and Write status, so wait-pin monitoring is enabled only when
->>>> *both* 'gpmc,wait-on-read' and 'gpmc,wait-on-write' are specified.
+>> On Tue, May 20, 2014 at 10:46 AM, Gupta, Pekon <pekon@ti.com> wrote:
+>>> Hi Roger,
+>>>
+>>> From: Quadros, Roger
+>>>> On 05/20/2014 09:24 AM, Pekon Gupta wrote:
+>>>>> This patch enables 'wait-pin' monitoring in NAND driver if following properties
+>>>>> are present under NAND DT node
+>>>>>   gpmc,wait-pin = <wait-pin number>
+>>>>>   gpmc,wait-on-read
+>>>>>   gpmc,wait-on-write
+>>>>> As NAND generic framework uses common path nand_chip->dev_ready() for monitoring
+>>>>> completion of Read and Write status, so wait-pin monitoring is enabled only when
+>>>>> *both* 'gpmc,wait-on-read' and 'gpmc,wait-on-write' are specified.
+>>>>>
+>>>>> CC: devicetree@vger.kernel.org
+>>>>> Signed-off-by: Pekon Gupta <pekon@ti.com>
+>>>>> ---
+>>>>>  Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 8 ++++++++
+>>>>>  arch/arm/mach-omap2/gpmc-nand.c                     | 8 +++++---
+>>>>>  2 files changed, 13 insertions(+), 3 deletions(-)
+>>>>>
+>>>>> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>>>> b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>>>>> index eb81435..4039032 100644
+>>>>> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>>>>> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>>>>> @@ -45,6 +45,14 @@ Optional properties:
+>>>>>              ELM hardware engines should specify this device node in .dtsi
+>>>>>              Using ELM for ECC error correction frees some CPU cycles.
+>>>>>
+>>>>> + - gpmc,wait-pin=<pin number>       Specifies GPMC wait-pin number to monitor
+>>>>> + - gpmc,wait-on-read                Enable wait-pin monitoring for Read accesses
+>>>>> + - gpmc,wait-on-write               Enable wait-pin monitoring for Write accesses
+>>>>> +            As NAND generic framework uses single common function
+>>>>> +            nand_chip->dev_ready() for polling wait-pin both for Read and
+>>>>> +            Write accesses. So for NAND devices both 'gpmc,wait-on-read' and
+>>>>> +            'gpmc,wait-on-write' need to be specified together.
+>>>>> +
+>>>>>  For inline partiton table parsing (optional):
+>>>>>
 >>>>
->>>> CC: devicetree@vger.kernel.org
->>>> Signed-off-by: Pekon Gupta <pekon@ti.com>
->>>> ---
->>>>  Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 8 ++++++++
->>>>  arch/arm/mach-omap2/gpmc-nand.c                     | 8 +++++---
->>>>  2 files changed, 13 insertions(+), 3 deletions(-)
 >>>>
->>>> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->>> b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->>>> index eb81435..4039032 100644
->>>> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->>>> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->>>> @@ -45,6 +45,14 @@ Optional properties:
->>>>              ELM hardware engines should specify this device node in .dtsi
->>>>              Using ELM for ECC error correction frees some CPU cycles.
+>>>>>   - #address-cells: should be set to 1
+>>>>> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+>>>>> index 17cd393..62bc3de 100644
+>>>>> --- a/arch/arm/mach-omap2/gpmc-nand.c
+>>>>> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+>>>>> @@ -123,11 +123,13 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+>>>>>              }
+>>>>>      }
+>>>>>
+>>>>> -    if (gpmc_nand_data->of_node)
+>>>>> +    if (gpmc_nand_data->of_node) {
+>>>>>              gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
+>>>>> -    else
+>>>>> +            if (s.wait_on_read && s.wait_on_write)
+>>>>> +                    gpmc_nand_data->dev_ready = true;
+>>>>> +    } else {
+>>>>>              gpmc_set_legacy(gpmc_nand_data, &s);
+>>>>> -
+>>>>> +    }
+>>>>>      s.device_nand = true;
 >>>>
->>>> + - gpmc,wait-pin=<pin number>       Specifies GPMC wait-pin number to monitor
->>>> + - gpmc,wait-on-read                Enable wait-pin monitoring for Read accesses
->>>> + - gpmc,wait-on-write               Enable wait-pin monitoring for Write accesses
->>>> +            As NAND generic framework uses single common function
->>>> +            nand_chip->dev_ready() for polling wait-pin both for Read and
->>>> +            Write accesses. So for NAND devices both 'gpmc,wait-on-read' and
->>>> +            'gpmc,wait-on-write' need to be specified together.
->>>> +
->>>>  For inline partiton table parsing (optional):
+>>>> NACK.
 >>>>
+>>>> For NAND, we only need the wait-pin property. The wait-on-read/wait-on-write flags are meaningless.
+>>>
+>>> There is a check in arch/arm/mach-omap2/gpmc.c : @@gpmc_read_settings_dt()
+>>> which expects at-least one of the 'gpmc,wait-on-read' or 'gpmc,wait-on-write' to be enabled.
+>>>         if (!p->wait_on_read && !p->wait_on_write)
+>>>                         pr_warn("%s: read/write wait monitoring not enabled!\n",
+>>>                                 __func__);
+>>>
+>>
+>> Note that this does not check that you should have at least one of
+>> "gpmc,wait-on-read" or "gpmc,wait-on-write" like you said but expects
+>> both read an write to be enabled since is an && operator and not an
+>> ||.
+>>
+>>> And gpmc_read_settings_dt() is common for all GPMC devices (NAND, NOR, .. )
+>>> Now, if you remove that check it means you are deviating from the behavior of
+>>> DT binding, so you need to be backward compatible.
+>>> In practice, I agree that a single gpmc,wait-pin binding was enough to both
+>>> - Select the wait-pin
+>>> - Enable wait-pin monitoring for GPMC devices.
+>>
+>> I'm confused, I asked exactly this question yesterday and you said the opposite:
+>>
+>>     On Mon, May 19, 2014 at 5:00 PM, Javier Martinez Canillas
+>> <javier@dowhile0.org> wrote:
+>>     > So my question is, it's a requirement and these 3 properties need to
+>>     > always be defined together?  If that is the case then I wonder why
+>>     > there are 3 different properties and why not just defining
+>>     > "gpmc,wait-pin" implies "gpmc,wait-on-{read,write}" ?
+>>
+>>> But now as we have two extra bindings, you have to maintain backward compatibility.
+>>>
+>>
+>> Not really, being backward compatible means that you have to be sure
+>> that old DTB will continue to be working with newer kernels in case a
+>> platform has the DTB on read-only memory or can't be updated.
+>>
+>> Removing "gpmc,wait-on-read" and "gpmc,wait-on-write" if they don't
+>> make sense is totally acceptable. Old DTB will still have these
+>> properties but just won't be parsed by the driver.
+>>
+>>> If you have better solution, then please send a patch, I'll be happy to test it.
 >>>
 >>>
->>>>   - #address-cells: should be set to 1
->>>> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
->>>> index 17cd393..62bc3de 100644
->>>> --- a/arch/arm/mach-omap2/gpmc-nand.c
->>>> +++ b/arch/arm/mach-omap2/gpmc-nand.c
->>>> @@ -123,11 +123,13 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
->>>>              }
->>>>      }
+>>>> Also, the wait-pin number needs to be communicated to the NAND driver and omap_dev_ready()
+>>>> function updated so that it checks for the right wait pin status.
 >>>>
->>>> -    if (gpmc_nand_data->of_node)
->>>> +    if (gpmc_nand_data->of_node) {
->>>>              gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
->>>> -    else
->>>> +            if (s.wait_on_read && s.wait_on_write)
->>>> +                    gpmc_nand_data->dev_ready = true;
->>>> +    } else {
->>>>              gpmc_set_legacy(gpmc_nand_data, &s);
->>>> -
->>>> +    }
->>>>      s.device_nand = true;
+>>> Yes, that's true.
+>>> And this was my plan to have it as separate patch.
+>>> Also, the real benefit of wait-pin monitoring will be seen only
+>>> when its implemented as IRQ source. [1]
 >>>
->>> NACK.
->>>
->>> For NAND, we only need the wait-pin property. The wait-on-read/wait-on-write flags are meaningless.
 >>
->> There is a check in arch/arm/mach-omap2/gpmc.c : @@gpmc_read_settings_dt()
->> which expects at-least one of the 'gpmc,wait-on-read' or 'gpmc,wait-on-write' to be enabled.
->>         if (!p->wait_on_read && !p->wait_on_write)
->>                         pr_warn("%s: read/write wait monitoring not enabled!\n",
->>                                 __func__);
+>> Not related with $subject but I think that the GPMC driver needs a
+>> really big refactoring. It's full of ad-hoc logic for parsing DT
+>> properties for each child device type and it has becoming a
+>> maintenance nightmare.
+>
+> +1
+>
+> Nothing against you Pekon, but GPMC driver has been suffering from lot of legacy stuff.
+>
+> FYI. I'm currently working on restructuring it. I will be sending out an RFC series by end of this week.
+>
+
+That's very good news, thanks a lot for working on that.
+
 >>
-> 
-> Note that this does not check that you should have at least one of
-> "gpmc,wait-on-read" or "gpmc,wait-on-write" like you said but expects
-> both read an write to be enabled since is an && operator and not an
-> ||.
-> 
->> And gpmc_read_settings_dt() is common for all GPMC devices (NAND, NOR, .. )
->> Now, if you remove that check it means you are deviating from the behavior of
->> DT binding, so you need to be backward compatible.
->> In practice, I agree that a single gpmc,wait-pin binding was enough to both
->> - Select the wait-pin
->> - Enable wait-pin monitoring for GPMC devices.
-> 
-> I'm confused, I asked exactly this question yesterday and you said the opposite:
-> 
->     On Mon, May 19, 2014 at 5:00 PM, Javier Martinez Canillas
-> <javier@dowhile0.org> wrote:
->     > So my question is, it's a requirement and these 3 properties need to
->     > always be defined together?  If that is the case then I wonder why
->     > there are 3 different properties and why not just defining
->     > "gpmc,wait-pin" implies "gpmc,wait-on-{read,write}" ?
-> 
->> But now as we have two extra bindings, you have to maintain backward compatibility.
->>
-> 
-> Not really, being backward compatible means that you have to be sure
-> that old DTB will continue to be working with newer kernels in case a
-> platform has the DTB on read-only memory or can't be updated.
-> 
-> Removing "gpmc,wait-on-read" and "gpmc,wait-on-write" if they don't
-> make sense is totally acceptable. Old DTB will still have these
-> properties but just won't be parsed by the driver.
-> 
->> If you have better solution, then please send a patch, I'll be happy to test it.
->>
->>
->>> Also, the wait-pin number needs to be communicated to the NAND driver and omap_dev_ready()
->>> function updated so that it checks for the right wait pin status.
->>>
->> Yes, that's true.
->> And this was my plan to have it as separate patch.
->> Also, the real benefit of wait-pin monitoring will be seen only
->> when its implemented as IRQ source. [1]
->>
-> 
-> Not related with $subject but I think that the GPMC driver needs a
-> really big refactoring. It's full of ad-hoc logic for parsing DT
-> properties for each child device type and it has becoming a
-> maintenance nightmare.
+>> It would be better to have some sort of GPMC framework that would do
+>> any generic GPMC setup and export an interface that can be used by
+>> child devices drivers in case they need any custom configuration but
+>> still have sane defaults if there is no need for special handling.
+>
+> My plan is to create a clear separation between GPMC CS configuration (settings + timings) and device configuration. A good example of DT binding is here
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/memory-controllers/ti-aemif.txt
+>
+> There you can see that a CS node must have a child node to represent the device present in the CS region. Device specific DT options must go there. With respect to the $subject, ideally the nand wait-pin option should have gone in the nand device node and not the CS node.
+>
+> I will suggest that we refrain from making any new changes to DT bindings till we have cleaned up the existing stuff. Hope this is understandable.
+>
 
 +1
 
-Nothing against you Pekon, but GPMC driver has been suffering from lot of legacy stuff.
+> My first goal is to move all device specific stuff done in mach-omap2/gpmc-xxx.c to their respective device drivers in drivers/mtd/. Then I will be moving gpmc.c from mach-omap2 to drivers/memory
 
-FYI. I'm currently working on restructuring it. I will be sending out an RFC series by end of this week.
+Right, I had the same on my TO-DO list but I was waiting for Tony to
+remove all the legacy OMAP2+ board files first to avoid unnecessary
+churn changing headers on those files that are scheduled to be removed
+anyways.
 
-> 
-> It would be better to have some sort of GPMC framework that would do
-> any generic GPMC setup and export an interface that can be used by
-> child devices drivers in case they need any custom configuration but
-> still have sane defaults if there is no need for special handling.
+Once board files are gone then it will be easier to move
+arch/arm/mach-omap2/gpmc-{nand,onenand}.c to drivers/mtd and gpmc core
+to drivers/memory.
 
-My plan is to create a clear separation between GPMC CS configuration (settings + timings) and device configuration. A good example of DT binding is here 
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/memory-controllers/ti-aemif.txt
+In fact I sent a patch to get rid of arch/arm/mach-omap2/gpmc-smc91*
+and Tony queued [0] on his omap-for-v3.14/omap3-board-removal branch
+that never got pushed.
 
-There you can see that a CS node must have a child node to represent the device present in the CS region. Device specific DT options must go there. With respect to the $subject, ideally the nand wait-pin option should have gone in the nand device node and not the CS node.
-
-I will suggest that we refrain from making any new changes to DT bindings till we have cleaned up the existing stuff. Hope this is understandable.
-
-My first goal is to move all device specific stuff done in mach-omap2/gpmc-xxx.c to their respective device drivers in drivers/mtd/. Then I will be moving gpmc.c from mach-omap2 to drivers/memory
-Finally I'll be updating DT bindings to be like ti-aemif.txt, with actual device nodes being created instead of legacy platform devices.
-
-cheers,
--roger
-
-> 
-> By looking at the driver it seems that gpmc_probe_nand_child() has
-> some similarities with gpmc_probe_onenand_child() and there are
-> already other kind of devices that use a generic
-> gpmc_probe_generic_child(). So I think this should be doable.
-> 
-> Sorry for hijacking the thread but I thought it was worth mentioning.
-> 
+> Finally I'll be updating DT bindings to be like ti-aemif.txt, with actual device nodes being created instead of legacy platform devices.
+>
+> cheers,
+> -roger
+>
 >>
->> with regards, pekon
+>> By looking at the driver it seems that gpmc_probe_nand_child() has
+>> some similarities with gpmc_probe_onenand_child() and there are
+>> already other kind of devices that use a generic
+>> gpmc_probe_generic_child(). So I think this should be doable.
 >>
->> [1] http://www.spinics.net/lists/linux-omap/msg107236.html
-> 
-> Best regards,
-> Javier
-> 
+>> Sorry for hijacking the thread but I thought it was worth mentioning.
+>>
+>>>
+>>> with regards, pekon
+>>>
+>>> [1] http://www.spinics.net/lists/linux-omap/msg107236.html
+>>
+>> Best regards,
+>> Javier
+>>
+>
 
+Best regards,
+Javier
+
+[0]: https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/commit/?h=omap-for-v3.14/omap3-board-removal&id=b8841892821eebc03b19c43e251dac90dfbb4601
