@@ -1,125 +1,86 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH 2/3] OMAPDSS: panel-lgphilips-lb035q02: Add DT support
-Date: Tue, 20 May 2014 12:58:11 +0200
-Message-ID: <537B3543.2040906@epfl.ch>
-References: <1400148637-17726-1-git-send-email-tomi.valkeinen@ti.com> <1400148637-17726-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/3] Doc/DT: Add binding doc for lgphilips,lb035q02.txt
+Date: Tue, 20 May 2014 13:01:16 +0200
+Message-ID: <537B35FC.8060602@epfl.ch>
+References: <1400148637-17726-1-git-send-email-tomi.valkeinen@ti.com> <1400148637-17726-4-git-send-email-tomi.valkeinen@ti.com>
 Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:46180 "EHLO smtp4.epfl.ch"
+Received: from smtp5.epfl.ch ([128.178.224.8]:56003 "EHLO smtp5.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750771AbaETLEz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 May 2014 07:04:55 -0400
-In-Reply-To: <1400148637-17726-3-git-send-email-tomi.valkeinen@ti.com>
+	id S1751974AbaETLID (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 May 2014 07:08:03 -0400
+In-Reply-To: <1400148637-17726-4-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Archit Taneja <archit@ti.com>
+Cc: Archit Taneja <archit@ti.com>, devicetree@vger.kernel.org
 
 Hi Tomi,
 
 On 05/15/2014 12:10 PM, Tomi Valkeinen wrote:
-> Add DT support for panel-lgphilips-lb035q02.
-> 
-> We disable the use of the backlight_gpio as it should be handled via
-> backlight framework with DT boots.
+> Add DT bindings documentation for LG.Philips LB035Q02 LCD panel.
 > 
 > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: devicetree@vger.kernel.org
 > ---
->  .../omap2/displays-new/panel-lgphilips-lb035q02.c  | 44 +++++++++++++++++++++-
->  1 file changed, 43 insertions(+), 1 deletion(-)
+>  .../bindings/video/lgphilips,lb035q02.txt          | 33 ++++++++++++++++++++++
+>  1 file changed, 33 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/video/lgphilips,lb035q02.txt
 > 
-> diff --git a/drivers/video/fbdev/omap2/displays-new/panel-lgphilips-lb035q02.c b/drivers/video/fbdev/omap2/displays-new/panel-lgphilips-lb035q02.c
-> index 6e6acd696a70..76c4fdc51c31 100644
-> --- a/drivers/video/fbdev/omap2/displays-new/panel-lgphilips-lb035q02.c
-> +++ b/drivers/video/fbdev/omap2/displays-new/panel-lgphilips-lb035q02.c
-> @@ -159,7 +159,8 @@ static int lb035q02_enable(struct omap_dss_device *dssdev)
->  	if (omapdss_device_is_enabled(dssdev))
->  		return 0;
->  
-> -	in->ops.dpi->set_data_lines(in, ddata->data_lines);
-> +	if (ddata->data_lines)
-> +		in->ops.dpi->set_data_lines(in, ddata->data_lines);
->  	in->ops.dpi->set_timings(in, &ddata->videomode);
->  
->  	r = in->ops.dpi->enable(in);
-> @@ -277,6 +278,35 @@ err_gpio:
->  	return r;
->  }
->  
-> +static int lb035q02_probe_of(struct spi_device *spi)
-> +{
-> +	struct device_node *node = spi->dev.of_node;
-> +	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
-> +	struct omap_dss_device *in;
-> +	struct gpio_desc *gpio;
+> diff --git a/Documentation/devicetree/bindings/video/lgphilips,lb035q02.txt b/Documentation/devicetree/bindings/video/lgphilips,lb035q02.txt
+> new file mode 100644
+> index 000000000000..1a1e653e5407
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/video/lgphilips,lb035q02.txt
+> @@ -0,0 +1,33 @@
+> +LG.Philips LB035Q02 Panel
+> +=========================
 > +
-> +	gpio = devm_gpiod_get(&spi->dev, "enable");
-> +	if (IS_ERR(gpio)) {
-> +		dev_err(&spi->dev, "failed to parse enable gpio\n");
-> +		return PTR_ERR(gpio);
-> +	} else {
-> +		gpiod_direction_output(gpio, 0);
-> +		ddata->enable_gpio = gpio;
-> +	}
+> +Required properties:
+> +- compatible: "lgphilips,lb035q02"
+> +- enable-gpios: panel enable gpio
 > +
-> +	ddata->backlight_gpio = -ENOENT;
+> +Optional properties:
+> +- label: a symbolic name for the panel
 > +
-> +	in = omapdss_of_find_source_for_first_ep(node);
-> +	if (IS_ERR(in)) {
-> +		dev_err(&spi->dev, "failed to find video source\n");
-> +		return PTR_ERR(in);
-> +	}
+> +Required nodes:
+> +- Video port for DPI input
 > +
-> +	ddata->in = in;
+> +Example
+> +-------
 > +
-> +	return 0;
-> +}
+> +lcd-panel: panel@0 {
+> +	compatible = "lgphilips,lb035q02";
+> +	reg = <0>;
+> +	spi-max-frequency = <100000>;
+> +	spi-cpol;
+> +	spi-cpha;
 > +
->  static int lb035q02_panel_spi_probe(struct spi_device *spi)
->  {
->  	struct panel_drv_data *ddata;
-> @@ -295,6 +325,10 @@ static int lb035q02_panel_spi_probe(struct spi_device *spi)
->  		r = lb035q02_probe_pdata(spi);
->  		if (r)
->  			return r;
-> +	} else if (spi->dev.of_node) {
-> +		r = lb035q02_probe_of(spi);
-> +		if (r)
-> +			return r;
->  	} else {
->  		return -ENODEV;
->  	}
-> @@ -346,6 +380,13 @@ static int lb035q02_panel_spi_remove(struct spi_device *spi)
->  	return 0;
->  }
->  
-> +static const struct of_device_id lb035q02_of_match[] = {
-> +	{ .compatible = "omapdss,lgphilips,lb035q02", },
-> +	{},
+> +	label = "lcd";
+> +
+> +	enable-gpios = <&gpio7 7 0>;
+> +
+> +	port {
+> +		lcd_in: endpoint {
+> +			remote-endpoint = <&dpi_out>;
+> +		};
+> +	};
 > +};
-> +
-> +MODULE_DEVICE_TABLE(of, lb035q02_of_match);
-> +
->  static struct spi_driver lb035q02_spi_driver = {
->  	.probe		= lb035q02_panel_spi_probe,
->  	.remove		= lb035q02_panel_spi_remove,
-> @@ -357,6 +398,7 @@ static struct spi_driver lb035q02_spi_driver = {
->  
-
-		.of_match_table = lb035q02_of_match,
-
-is missing.
-
->  module_spi_driver(lb035q02_spi_driver);
->  
-> +MODULE_ALIAS("spi:lgphilips,lb035q02");
->  MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@ti.com>");
->  MODULE_DESCRIPTION("LG.Philips LB035Q02 LCD Panel driver");
->  MODULE_LICENSE("GPL");
 > 
+
+The lcd-panel should be a child node of a SPI controller. Maybe this
+could be mentioned? Or the example could be more explicit, like:
+
+&mcspi1 {
+	lcd-panel: panel@0 {
+
+....
+
+	};
+};
 
 Regards,
 
