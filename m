@@ -1,66 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 2/3] ARM: dts: overo: Add support for 4.3'' LCD output
-Date: Tue, 20 May 2014 15:41:15 +0300
-Message-ID: <537B4D6B.5070106@ti.com>
-References: <1400589069-21572-1-git-send-email-florian.vaussard@epfl.ch> <1400589069-21572-3-git-send-email-florian.vaussard@epfl.ch>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v2 6/6] mmc: omap_hsmmc: split omap-dma header file
+Date: Tue, 20 May 2014 18:58:19 +0530
+Message-ID: <537B5873.5010006@ti.com>
+References: <1399654013-28262-1-git-send-email-balajitk@ti.com> <1399654013-28262-7-git-send-email-balajitk@ti.com> <20140516214116.GM12881@atomide.com> <5379F0C6.6070004@ti.com> <20140519165441.GI4849@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="C2hPikkvkVhstBrWI98lg8fqKcw6TUxIu"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52646 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753111AbaETMlt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 May 2014 08:41:49 -0400
-In-Reply-To: <1400589069-21572-3-git-send-email-florian.vaussard@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20140519165441.GI4849@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-mmc@vger.kernel.org, chris@printf.net, ulf.hansson@linaro.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
---C2hPikkvkVhstBrWI98lg8fqKcw6TUxIu
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Monday 19 May 2014 10:24 PM, Tony Lindgren wrote:
+> * Balaji T K <balajitk@ti.com> [140519 04:54]:
+>> On Saturday 17 May 2014 03:11 AM, Tony Lindgren wrote:
+>>>> -
+>>>> -#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
+>>>> -bool omap_dma_filter_fn(struct dma_chan *, void *);
+>>>> -#else
+>>>> -static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
+>>>> -{
+>>>> -	return false;
+>>>> -}
+>>>> -#endif
+>>>> +#include <linux/omap-dmaengine.h>
+>>>
+>>> Can't the drivers needing this include it directly?
+>>>
+>>
+>> Yes, I have converted omap_hsmmc as part of this patch.
+>> Due to lack of bandwidth, I haven't touched upon all other drivers that include
+>> omap-dma.h. Once that is done in other subsystem after this patch gets merged,
+>> this include can then be removed from omap-dma.h
+>
+> OK
+>
+>>> Also, has this been tested with make randconfig? Changes like
+>>> this can easily cause problems elsewhere..
+>>
+>> May be I am missing something, Can you please elaborate ?
+>
+> You're touching a header included in many places, so you
+> need to make sure you're not accidentally breaking anything.
+>
 
-On 20/05/14 15:31, Florian Vaussard wrote:
+True
 
-> +	lcd0: display@0 {
-> +		compatible =3D "samsung,lte430wq-f0c", "panel-dpi";
-> +		label =3D "lcd";
-> +
-> +		gpios =3D <&gpio5 16 GPIO_ACTIVE_HIGH		/* gpio_144: enable */
-> +			 &gpio5 17 GPIO_ACTIVE_HIGH>;		/* gpio_145: brightness */
+> There's an option that allows you to specify some selected
+> options like CONFIG_ARCH_OMAP2PLUS=y with KCONFIG_ALLCONFIG
+> and then run make randconfig. This should expose quite fast
+> if there are some issues for the other drivers.
+>
+> Also, have you compile tested this with omap1_defconfig?
+>
 
-The panel-dpi only takes one gpio, the enable. The backlight should be
-handled with gpio-backlight driver.
+checked omap1_defconfig and randconfig's, both are OK.
 
-The same applies for the Alto35 patch.
-
- Tomi
-
-
-
---C2hPikkvkVhstBrWI98lg8fqKcw6TUxIu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTe01rAAoJEPo9qoy8lh71xQAQAIu4PgJWlIVjqNPzXCxjMMXw
-qN6goGZBIOLenk8m/YlFksyn6RqoqDsKR4OlELCG9UQ8JzJJD5tWftSaC+1FziD6
-9a00LZWGwJC6yHZQqaT6YzmwkQk4OF3ajnKgLRYn8JYF+VpMjwse6PbT+Tfm/0/f
-07ivZt88uu2Q2Gr64aIz+NbQcsxok7pcxTFQTh5CbTtKcSKLz3FGoPBHYP4waCSw
-Kd4FwXgozHRNxJrxSZqp06kApzHE7m8RH/XPcQgUMeoABC5SIo94pT63R2tQMjZ/
-tvW4k4KbJvB61bFfv4IRlYC8ZKekh5+tmVbcQ67us+M2FeeIuoJNGfEY2L+OGsBU
-HNxm2BQeBpX9Zrg6lIRMuIjfE6nObuTLhAZC4QP8gdPS7So7L0G7BCd3Wh8IwtVF
-hPjEAOC2NJQToCkzx4mlZgm1LxDu7FLatyZrKk5eBsIyiBeZcjJy3gukUjZ+KRBZ
-VY9/9MiiFLlfcQGFxw9ZWkR+fj0HyyR88JbJdXqXyIff+ixKdIjaTL/6gA52t5WL
-ukxVel8peq7gKb3xok1APoxL4Qwo+IWMkhEevx7fWnfAjNKo+ePas4CKjLDqeCGu
-9KdJpvJ0y74F/jDZ+jdwt6P5CHNMB4DDOTXJ3nbGt3h4LjVBgOQq64dVghbbvdyJ
-zO7RkVzLJ2QzoHs9EzLs
-=m0H/
------END PGP SIGNATURE-----
-
---C2hPikkvkVhstBrWI98lg8fqKcw6TUxIu--
+Thanks and Regards,
+Balaji T K
