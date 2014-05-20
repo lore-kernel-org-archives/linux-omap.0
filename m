@@ -1,68 +1,91 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: gpmc: enable wait-pin monitoring for NAND
- devices via DT
-Date: Tue, 20 May 2014 10:38:04 +0300
-Message-ID: <537B065C.4080502@ti.com>
-References: <1400267276-16001-1-git-send-email-pekon@ti.com> <CABxcv=k7KZAwsP-oW_8k_bZRtMLToCy904kq7Xv=c0da465w2A@mail.gmail.com> <20980858CB6D3A4BAE95CA194937D5E73EACE25C@DBDE04.ent.ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: OMAP2+: gpmc: enable wait-pin monitoring for
+ NAND devices via DT
+Date: Tue, 20 May 2014 10:45:07 +0300
+Message-ID: <537B0803.6070702@ti.com>
+References: <1400567064-20033-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59270 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987AbaETHiL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2014 03:38:11 -0400
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EACE25C@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1400567064-20033-1-git-send-email-pekon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Stefan Roese <sr-ynQEQJNshbs@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Tony Lindgren <tony@atomide.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On 05/19/2014 09:26 PM, Gupta, Pekon wrote:
-> Hi Javier,
-> 
->> From: Javier Martinez Canillas [mailto:javier@dowhile0.org]
->>
->> Hello Pekon,
->>
->> On Fri, May 16, 2014 at 9:07 PM, Pekon Gupta <pekon@ti.com> wrote:
->>> This patch enables 'wait-pin' monitoring in NAND driver if following properties
->>> are present under NAND DT node
->>>         gpmc,wait-pin = <wait-pin number>
->>>         gpmc,wait-on-read;
->>>         gpmc,wait-on-write;
->>> As NAND generic framework uses common path nand_chip->dev_ready() for monitoring
->>> completion of Read and Write status, so wait-pin monitoring is enabled only when
->>> both 'gpmc,wait-on-read' and 'gpmc,wait-on-write' are specified.
->>>
->>
->> I see that the GPMC driver checks if "gpmc,wait-pin" property is
->> defined and only in that case tries to read both "gpmc,wait-on-read"
->> and "gpmc,wait-on-write" and prints a "read/write wait monitoring not
->> enabled!" warning if one of those is not defined.
->>
->> So my question is, it's a requirement and these 3 properties need to
->> always be defined together?  If that is the case then I wonder why
->> there are 3 different properties and why not just defining
->> "gpmc,wait-pin" implies "gpmc,wait-on-{read,write}" ?
->>
-> GPMC as a hardware engine allows selection of wait-pin independently
-> for both Read and Write paths, but NAND generic framework uses single
-> common function nand_chip->dev_ready() which is used for both
-> Read and Write paths to poll wait-pin. 
-> So, in case of NAND both 'gpmc,wait-on-read' and 'gpmc,wait-on-write'
-> should be simultaneously defined to enable wait-pin monitoring. 
-> 
-> But GPMC being generic hardware engine for NOR, OneNAND and other
-> parallel interfaces like Camera, Ethernet the two separate bindings allow
-> flexibility to use wait-pin monitoring for only one of the paths {Read | Write}.
-> 
-> Therefore this check is added in gpmc_nand_init(), and not in gpmc_read_settings_dt()
-> which is common for all type of GPMC devices (NAND, NOR, .. )
+Hi Pekon,
 
-The behavior of wait pin is slightly different when it is a NAND device when compared to other NOR like devices. On NAND, the pin is not used for inserting wait states in the bus access cycle, but instead it is used for waiting for the device to be ready after a particular command. So this wait logic must be implemented in the NAND driver software. GPMC will only forward the wait pin state via a status register, or at best give you an interrupt.
+On 05/20/2014 09:24 AM, Pekon Gupta wrote:
+> This patch enables 'wait-pin' monitoring in NAND driver if following properties
+> are present under NAND DT node
+>   gpmc,wait-pin = <wait-pin number>
+>   gpmc,wait-on-read
+>   gpmc,wait-on-write
+> As NAND generic framework uses common path nand_chip->dev_ready() for monitoring
+> completion of Read and Write status, so wait-pin monitoring is enabled only when
+> *both* 'gpmc,wait-on-read' and 'gpmc,wait-on-write' are specified.
+> 
+> CC: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Signed-off-by: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
+> ---
+>  Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 8 ++++++++
+>  arch/arm/mach-omap2/gpmc-nand.c                     | 8 +++++---
+>  2 files changed, 13 insertions(+), 3 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> index eb81435..4039032 100644
+> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> @@ -45,6 +45,14 @@ Optional properties:
+>  		ELM hardware engines should specify this device node in .dtsi
+>  		Using ELM for ECC error correction frees some CPU cycles.
+>  
+> + - gpmc,wait-pin=<pin number>	Specifies GPMC wait-pin number to monitor
+> + - gpmc,wait-on-read		Enable wait-pin monitoring for Read accesses
+> + - gpmc,wait-on-write		Enable wait-pin monitoring for Write accesses
+> +		As NAND generic framework uses single common function
+> +		nand_chip->dev_ready() for polling wait-pin both for Read and
+> +		Write accesses. So for NAND devices both 'gpmc,wait-on-read' and
+> +		'gpmc,wait-on-write' need to be specified together.
+> +
+>  For inline partiton table parsing (optional):
+>  
 
-For NAND use case, the GPMC hardware WAIT pin monitoring logic needs to be disabled (see NOTE in section 10.1.5.14.2 NAND Device-Ready Pin). The NAND driver only needs to know which wait pin the NAND chips device ready is connected to so that it can monitor it via the GPMC.STATUS register. The current omap_dev_ready() is so fragile that it will break if NAND device is not on CS0.
+
+>   - #address-cells: should be set to 1
+> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+> index 17cd393..62bc3de 100644
+> --- a/arch/arm/mach-omap2/gpmc-nand.c
+> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+> @@ -123,11 +123,13 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+>  		}
+>  	}
+>  
+> -	if (gpmc_nand_data->of_node)
+> +	if (gpmc_nand_data->of_node) {
+>  		gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
+> -	else
+> +		if (s.wait_on_read && s.wait_on_write)
+> +			gpmc_nand_data->dev_ready = true;
+> +	} else {
+>  		gpmc_set_legacy(gpmc_nand_data, &s);
+> -
+> +	}
+>  	s.device_nand = true;
+
+NACK.
+
+For NAND, we only need the wait-pin property. The wait-on-read/wait-on-write flags are meaningless.
+Also, the wait-pin number needs to be communicated to the NAND driver and omap_dev_ready() function updated so that it checks for the right wait pin status.
+
+>  
+>  	err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
+> 
 
 cheers,
 -roger
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
