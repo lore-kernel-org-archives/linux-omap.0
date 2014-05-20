@@ -1,90 +1,83 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2] ARM: OMAP2+: gpmc: enable wait-pin monitoring for
- NAND devices via DT
-Date: Tue, 20 May 2014 10:45:07 +0300
-Message-ID: <537B0803.6070702@ti.com>
-References: <1400567064-20033-1-git-send-email-pekon@ti.com>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 3/4] OMAPDSS: panel-sharp-ls037v7dw01: add device tree
+ support
+Date: Tue, 20 May 2014 06:57:49 +0200
+Message-ID: <20140520045748.GA28812@earth.universe>
+References: <537487AE.3060906@ti.com>
+ <20140515182133.GC23659@atomide.com>
+ <5375A8A8.7080306@ti.com>
+ <20140516160717.GD22031@atomide.com>
+ <20140516174158.GA11733@earth.universe>
+ <20140516180154.GG22031@atomide.com>
+ <20140516213907.GL12881@atomide.com>
+ <5379D35F.8040207@ti.com>
+ <20140519155732.GA4849@atomide.com>
+ <537A540E.8070302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="r5Pyd7+fXNt84Ff3"
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1400567064-20033-1-git-send-email-pekon-l0cyMroinI0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <537A540E.8070302-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Stefan Roese <sr-ynQEQJNshbs@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pekon,
 
-On 05/20/2014 09:24 AM, Pekon Gupta wrote:
-> This patch enables 'wait-pin' monitoring in NAND driver if following properties
-> are present under NAND DT node
->   gpmc,wait-pin = <wait-pin number>
->   gpmc,wait-on-read
->   gpmc,wait-on-write
-> As NAND generic framework uses common path nand_chip->dev_ready() for monitoring
-> completion of Read and Write status, so wait-pin monitoring is enabled only when
-> *both* 'gpmc,wait-on-read' and 'gpmc,wait-on-write' are specified.
-> 
-> CC: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Signed-off-by: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 8 ++++++++
->  arch/arm/mach-omap2/gpmc-nand.c                     | 8 +++++---
->  2 files changed, 13 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> index eb81435..4039032 100644
-> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> @@ -45,6 +45,14 @@ Optional properties:
->  		ELM hardware engines should specify this device node in .dtsi
->  		Using ELM for ECC error correction frees some CPU cycles.
->  
-> + - gpmc,wait-pin=<pin number>	Specifies GPMC wait-pin number to monitor
-> + - gpmc,wait-on-read		Enable wait-pin monitoring for Read accesses
-> + - gpmc,wait-on-write		Enable wait-pin monitoring for Write accesses
-> +		As NAND generic framework uses single common function
-> +		nand_chip->dev_ready() for polling wait-pin both for Read and
-> +		Write accesses. So for NAND devices both 'gpmc,wait-on-read' and
-> +		'gpmc,wait-on-write' need to be specified together.
-> +
->  For inline partiton table parsing (optional):
->  
+--r5Pyd7+fXNt84Ff3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+Hi,
 
->   - #address-cells: should be set to 1
-> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-> index 17cd393..62bc3de 100644
-> --- a/arch/arm/mach-omap2/gpmc-nand.c
-> +++ b/arch/arm/mach-omap2/gpmc-nand.c
-> @@ -123,11 +123,13 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
->  		}
->  	}
->  
-> -	if (gpmc_nand_data->of_node)
-> +	if (gpmc_nand_data->of_node) {
->  		gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
-> -	else
-> +		if (s.wait_on_read && s.wait_on_write)
-> +			gpmc_nand_data->dev_ready = true;
-> +	} else {
->  		gpmc_set_legacy(gpmc_nand_data, &s);
-> -
-> +	}
->  	s.device_nand = true;
+On Mon, May 19, 2014 at 09:57:18PM +0300, Tomi Valkeinen wrote:
+> > 3. Having to maintain a database in kernel of display mappings separate=
+ly
+> >    in addition to the .dts files.
+>=20
+> Yes, that's slightly annoying. Not really a big burden, though, as it's
+> quite rare to get a new encoder or panel driver.
 
-NACK.
+I wonder if the "omapdss," prefix could be added to *all* remote
+endpoints seen by omapdss. Pseudocode:
 
-For NAND, we only need the wait-pin property. The wait-on-read/wait-on-write flags are meaningless.
-Also, the wait-pin number needs to be communicated to the NAND driver and omap_dev_ready() function updated so that it checks for the right wait pin status.
+for each port in dss {
+    for each endpoint in port {
+        panel =3D get_phandle(endpoint, "remote-endpoint");
 
->  
->  	err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
-> 
+        /* only add prefix if it's not already there (kexec) */
+        if (panel.compatible !=3D "omapdss,.*")
+            panel.compatible =3D "omapdss," + panel.compatible;
+    }
+}
 
-cheers,
--roger
+-- Sebastian
+
+--r5Pyd7+fXNt84Ff3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJTeuDMAAoJENju1/PIO/qaa90P/jWbyjy8ne+1LaxDrjVzww9Y
+bLdyw0T0BD643YSAq/0OC/akNUVeANZyEqsTME+eE8gW9X8Q1jaDoTYCFRRCgMsG
+vBXv3l0IAl3m97uxZEnriBqgOva4GxgZ+aRil0fjB+yq6mok+OqULRi92Gj5mfmm
+0u1L5uOdv3fAJmW6UK6XepTJgW+tv5hxYKP/MznaVxQ/SlXweTf5jf2oPHBFjlg6
+j4GaeJN30AH87J9xNFlrSzihvSUY73oT1mG1f7yrdLShVU6rkp3sVeDfLs9Tf/rn
+8mw/FYh0JnJO0jqdw1OWPOGimSLE0zKIS1JZWF8Rb6K5lMijlkEctjKobu8aHKAc
+R/dfe4wFCKzzcjRx1ar/cCYPcca740It+cJ9O1Gr+Jy5hhVRX44MqDKA9sSRuNG8
+SDzQztmbsj7YWze87YrWLLU42E8dJHtusESYgSMkI5Ww0x1jo9aImLTe0vizt1Dg
+RUIJlAiAG06o2lwGdmo40wZ63d+91ldxPC8m2hZE5WnwH42dYIQiK7K5OloFJTOU
+P2lHVLEVeZ3weIdBZW2qCVsLDcOhFnK8ePqYpXQfzYx+Roh/f1d9P30qb6GS7cTk
+txLFq1tqJzAiS5dfoC3aAVkKvM9iMFqbQwtNVW+mmd2CbKCqh6PJOsOU7Z933AbG
+gJrX0Mw8OleUAWUnGqNm
+=mWXY
+-----END PGP SIGNATURE-----
+
+--r5Pyd7+fXNt84Ff3--
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
