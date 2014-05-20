@@ -1,89 +1,58 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] arm/omap4: add twd clock to DT
-Date: Tue, 20 May 2014 12:01:37 +0300
-Message-ID: <537B19F1.5040907@ti.com>
-References: <1396901139-17268-1-git-send-email-gilles.chanteperdrix@xenomai.org> <20140418223948.GK21823@atomide.com> <5353F44F.5080400@xenomai.org> <535662F0.4080300@ti.com> <CAGhQ9Vw-QaB+OnLa3yNVvD6a=XOutSZ1ejbsuUXvEcyrxEsRcQ@mail.gmail.com> <20140519161319.GD4849@atomide.com> <CAGhQ9Vy-mvaXZ_=E_mmqYqxF5EiJSdN1rJayussm+AgKf94a+g@mail.gmail.com> <20140519162741.GG4849@atomide.com>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 0/4]  tps65917: Drivers for TPS65917 PMIC
+Date: Tue, 20 May 2014 14:41:35 +0530
+Message-ID: <1400577099-8743-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59261 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750714AbaETJBU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 May 2014 05:01:20 -0400
-In-Reply-To: <20140519162741.GG4849@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, ian-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Joachim Eastwood <manabian@gmail.com>
-Cc: Gilles Chanteperdrix <gilles.chanteperdrix@xenomai.org>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 
-On 05/19/2014 07:27 PM, Tony Lindgren wrote:
-> * Joachim Eastwood <manabian@gmail.com> [140519 09:24]:
->> On 19 May 2014 18:13, Tony Lindgren <tony@atomide.com> wrote:
->>> * Joachim Eastwood <manabian@gmail.com> [140518 05:08]:
->>>> On 22 April 2014 14:39, Tero Kristo <t-kristo@ti.com> wrote:
->>>>> On 04/20/2014 07:22 PM, Gilles Chanteperdrix wrote:
->>>>>>
->>>>>> Le 19/04/2014 00:39, Tony Lindgren a =C3=A9crit :
->>>>>>>
->>>>>>> * Gilles Chanteperdrix <gilles.chanteperdrix@xenomai.org> [1404=
-07 13:09]:
->>>>>>>>
->>>>>>>> Booting Linux 3.14 on Pandaboard currently gets the following
->>>>>>>> message displayed:
->>>>>>>>
->>>>>>>> smp_twd: clock not found -2
->>>>>>>>
->>>>>>>> Define "mpu_periphclk" as the twd clock in omap4 dts to avoid =
-this.
->>>>>>>
->>>>>>>
->>>>>>> Tero, care to ack?
->>>>>>
->>>>>>
->>>>>> Sorry if I did not mail the right people, get_maintainer.pl gave=
- me a
->>>>>> long list, and I did not feel like spamming all these people for=
- such a
->>>>>> small patch. I do not believe Tero was in this list.
->>>>>>
->>>>>> Regards.
->>>>>
->>>>>
->>>>> Yea I don't think this is my expertise area, however the patch lo=
-oks good to
->>>>> me, so if you really need it:
->>>>>
->>>>> Acked-by: Tero Kristo <t-kristo@ti.com>
->>>>
->>>> Tony, care to add this to your omap 3.16 dt branch?
->>>>
->>>> I am still getting:
->>>> [ 0.000152] smp_twd: clock not found -2
->>>>
->>>> So this fix from Gilles would be nice to have.
->>>
->>> Best that Tero picks this one up along with the other dt clock chan=
-ges
->>> he's queueing.
->>
->> I kinda assumed you would take it since you asked Tero to ack it. Bu=
-t
->> either way is fine :)
->
-> Yes that was before Tero started collecting the dt clock patches :)
+The TPS65917 chip is a power management IC for Portable Navigation Systems
+and Tablet Computing devices. It contains the following components:
 
-I wouldn't say this to be a clock patch as such, this touches the drive=
-r=20
-behavior, i.e. registers the correct clock for the driver. That being=20
-said, I can still queue this up with the clock patches if that is what=20
-you want.
+ - Regulators.
+ - GPADC.
+ - Over Temperature warning and Shut down.
 
--Tero
+This patch series adds support for TPS65917 mfd device. At this time only
+the regulator functionality is made available.
+
+The closest drivers are PALMAS series drivers.
+The register set is changed. Bit-field defenitions are changed.
+Hence based on the PALMAS drivers and created a new set of drivers
+with code changes as required.
+
+The patches are boot tested on DRA72-EVM.
+
+Keerthy (4):
+  MFD: DT bindings for the TPS65917 family MFD
+  Regulators: Add TPS65917 Bindings
+  mfd: tps65917: Add driver for the TPS65917 PMIC
+  regulator: tps65917: Add Regulator driver for TPS65917 PMIC
+
+ Documentation/devicetree/bindings/mfd/tps65917.txt |   35 +
+ .../bindings/regulator/tps65917-pmic.txt           |   67 +
+ drivers/mfd/Kconfig                                |   12 +
+ drivers/mfd/Makefile                               |    1 +
+ drivers/mfd/tps65917.c                             |  573 ++++++++
+ drivers/regulator/Kconfig                          |   12 +
+ drivers/regulator/Makefile                         |    1 +
+ drivers/regulator/tps65917-regulator.c             |  810 +++++++++++
+ include/linux/mfd/tps65917.h                       | 1509 ++++++++++++++++++++
+ 9 files changed, 3020 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/mfd/tps65917.txt
+ create mode 100644 Documentation/devicetree/bindings/regulator/tps65917-pmic.txt
+ create mode 100644 drivers/mfd/tps65917.c
+ create mode 100644 drivers/regulator/tps65917-regulator.c
+ create mode 100644 include/linux/mfd/tps65917.h
+
+-- 
+1.7.9.5
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
