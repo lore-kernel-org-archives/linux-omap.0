@@ -1,87 +1,46 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH 3/3] Doc/DT: Add binding doc for lgphilips,lb035q02.txt
-Date: Tue, 20 May 2014 13:01:16 +0200
-Message-ID: <537B35FC.8060602@epfl.ch>
-References: <1400148637-17726-1-git-send-email-tomi.valkeinen@ti.com> <1400148637-17726-4-git-send-email-tomi.valkeinen@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: DRA752: add detection of SoC information
+Date: Tue, 20 May 2014 06:20:05 -0500
+Message-ID: <CAGo_u6om25s4Fxyf6LAEcoL0t0jfm_QREJuD57FQQ16E9A=bWw@mail.gmail.com>
+References: <1400513231-25092-1-git-send-email-nm@ti.com>
+	<537AF088.4000506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp5.epfl.ch ([128.178.224.8]:56003 "EHLO smtp5.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751974AbaETLID (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 May 2014 07:08:03 -0400
-In-Reply-To: <1400148637-17726-4-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:46739 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887AbaETLUH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2014 07:20:07 -0400
+Received: by mail-wi0-f179.google.com with SMTP id bs8so725929wib.12
+        for <linux-omap@vger.kernel.org>; Tue, 20 May 2014 04:20:06 -0700 (PDT)
+In-Reply-To: <537AF088.4000506@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Archit Taneja <archit@ti.com>, devicetree@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tomi,
+On Tue, May 20, 2014 at 1:04 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+> So we are back to checking revisions based on idcode register then?
+> This patch was posted almost a year back and was shot down by you
+> included saying we need to use dt compatibles for it.
+>
+> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg93136.html
 
-On 05/15/2014 12:10 PM, Tomi Valkeinen wrote:
-> Add DT bindings documentation for LG.Philips LB035Q02 LCD panel.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: devicetree@vger.kernel.org
-> ---
->  .../bindings/video/lgphilips,lb035q02.txt          | 33 ++++++++++++++++++++++
->  1 file changed, 33 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/video/lgphilips,lb035q02.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/video/lgphilips,lb035q02.txt b/Documentation/devicetree/bindings/video/lgphilips,lb035q02.txt
-> new file mode 100644
-> index 000000000000..1a1e653e5407
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/video/lgphilips,lb035q02.txt
-> @@ -0,0 +1,33 @@
-> +LG.Philips LB035Q02 Panel
-> +=========================
-> +
-> +Required properties:
-> +- compatible: "lgphilips,lb035q02"
-> +- enable-gpios: panel enable gpio
-> +
-> +Optional properties:
-> +- label: a symbolic name for the panel
-> +
-> +Required nodes:
-> +- Video port for DPI input
-> +
-> +Example
-> +-------
-> +
-> +lcd-panel: panel@0 {
-> +	compatible = "lgphilips,lb035q02";
-> +	reg = <0>;
-> +	spi-max-frequency = <100000>;
-> +	spi-cpol;
-> +	spi-cpha;
-> +
-> +	label = "lcd";
-> +
-> +	enable-gpios = <&gpio7 7 0>;
-> +
-> +	port {
-> +		lcd_in: endpoint {
-> +			remote-endpoint = <&dpi_out>;
-> +		};
-> +	};
-> +};
-> 
+No, even thought it looks like, we are not intending to here. we are
+fixing a sysfs break.
 
-The lcd-panel should be a child node of a SPI controller. Maybe this
-could be mentioned? Or the example could be more explicit, like:
+soc_is_dra7xx() is still based on machine_of_ compatible - we have'nt
+touched that here. What is taking place at the moment is that
+/sys/devices/soc0/ sysfs entries are being populated in same way as
+AM437x and other DT only platforms. Currently we follow the same style
+as non-dt code as OMAP3 still co-exist DT+non-DT - we have not yet
+introduced a new driver for soc device - but once we go full DT, we
+probably should do that at the root of the entire dt tree (similar  to
+what tegra has done) and populare soc sysfs with proper values. Now,
+if that generic driver decides to use only OF-information for
+revision, That is good as well -> so far, there has been no attempt to
+support such a revision binding (despite our discussion).
 
-&mcspi1 {
-	lcd-panel: panel@0 {
-
-....
-
-	};
-};
 
 Regards,
-
-Florian
+Nishanth Menon
