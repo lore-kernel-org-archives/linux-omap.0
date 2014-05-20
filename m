@@ -1,15 +1,12 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCHv2 resend 00/11] improve PWM lookup support without device
- tree
-Date: Tue, 20 May 2014 02:55:54 +0200
-Message-ID: <1902427.MlnO7xrXmN@avalon>
-References: <1400532162-29483-1-git-send-email-alexandre.belloni@free-electrons.com>
- <20140519223913.GE20590@verge.net.au>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 4/4] omap dt changes for v3.16 merge window, part 2
+Date: Mon, 19 May 2014 18:31:25 -0700
+Message-ID: <20140520013125.GH15793@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140519223913.GE20590@verge.net.au>
+Content-Disposition: inline
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,102 +16,100 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Simon Horman <horms@verge.net.au>
-Cc: linux-pwm@vger.kernel.org, linux-fbdev@vger.kernel.org, Jingoo Han <jg1.han@samsung.com>, Eric Miao <eric.y.miao@gmail.com>, linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Bryan Wu <cooloney@gmail.com>, Magnus Damm <magnus.damm@gmail.com>, linux-kernel@vger.kernel.org, Haojian Zhuang <haojian.zhuang@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-leds@vger.kernel.org, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Alexandre and Simon,
+The following changes since commit 3fdb77174a2c173e0e69f2499b836a0e412f6c4d:
 
-On Tuesday 20 May 2014 07:39:13 Simon Horman wrote:
-> [ CCed Laurent Pinchart ]
-> 
-> The renesas and shmobile portions of this seem reasonable to me
-> and I have checked that there do not seem to be any conflicts
-> with changes I already have queued up for v3.16 (and v3.17).
-> 
-> I have CCed Laurent Pinchart as I believe he most recently
-> did work on the renesas and shmobile code in question.
+  ARM: dts: omap3-n900: use MATRIX_KEY for keymap (2014-05-06 10:22:51 -0700)
 
-The series look sane to me. For the three patches that Simon has acked below,
+are available in the git repository at:
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/dt-part2-v2
 
-> On Mon, May 19, 2014 at 10:42:31PM +0200, Alexandre Belloni wrote:
-> > Hi,
-> > 
-> > Originally sent on Apr 14th, note that this series is blocking another 16
-> > patches series, I would like it to be taken in 3.16 if we can agree on
-> > this implementation.
-> > 
-> > A patch set as suggested by Thierry to make lookup with the lookup table
-> > instead of device tree behave more like when using device tree.
-> > 
-> > The first patch adds a period and a polarity member to the lookup table
-> > and use those to set period and polarity.
-> > 
-> > Patch 2, 4 and 5 are making use of those new members from the board files.
-> > Patch 3 removes useless code since setting the polarity is now handled by
-> > the PWM core.
-> > 
-> > I couldn't decide on a good name for the extended PWM_LOOKUP macro and I
-> > believe we won't have to add members to that structure soon so:
-> > Patch 6 modifies the PWM_LOOKUP macro to also initialize period and
-> > polarity and Patch 7-9 are making use of the new PWM_LOOKUP macro in the
-> > board files
-> > 
-> > Patch 10 and 11 are making the leds-pwm and pwm_bl drivers get the period
-> > from the PWM before using pwm_period_ns if it is not already set.
-> > 
-> > Patch 10 will obviously conflict with the series of Russell reworking the
-> > leds-pwm probing. I can rebase if necessary
-> > 
-> > The final goal would be to get rid of .pwm_period_ns in leds-pwm and
-> > pwm_bl after moving all the remaining users (still around 25) to
-> > pwm_lookup.
-> > 
-> > Changes in v2:
-> >  - correctly unlock the pwm_lookup_lock mutex before returning.
-> >  - don't change PWM_LOOKUP atomically
-> >  - remove tpu_pwm_platform_data and the associated header file
-> >  - make the leds-pwm and pwm_bl drivers get the period from the PWM
-> > 
-> > Alexandre Belloni (11):
-> >   pwm: add period and polarity to struct pwm_lookup
-> >   ARM: shmobile: Armadillo 800 EVA: initialize all struct pwm_lookup
-> >     members
-> >   pwm: renesas-tpu: remove useless struct tpu_pwm_platform_data
-> 
-> The above two patches:
-> Acked-by: Simon Horman <horms+renesas@verge.net.au>
-> 
-> >   ARM: OMAP3: Beagle: initialize all the struct pwm_lookup members
-> >   ARM: pxa: hx4700: initialize all the struct pwm_lookup members
-> >   pwm: modify PWM_LOOKUP to initialize all struct pwm_lookup members
-> >   ARM: OMAP3: Beagle: use PWM_LOOKUP to initialize struct pwm_lookup
-> >   ARM: shmobile: Armadillo 800 EVA: use PWM_LOOKUP to initialize struct
-> >     pwm_lookup
-> 
-> The above patch:
-> Acked-by: Simon Horman <horms+renesas@verge.net.au>
-> 
-> >   ARM: pxa: hx4700: use PWM_LOOKUP to initialize struct pwm_lookup
-> >   leds: leds-pwm: retrieve configured pwm period
-> >   backlight: pwm_bl: retrieve configured pwm period
-> >  
-> >  Documentation/pwm.txt                          |  3 ++-
-> >  arch/arm/mach-omap2/board-omap3beagle.c        |  3 ++-
-> >  arch/arm/mach-pxa/hx4700.c                     |  3 ++-
-> >  arch/arm/mach-shmobile/board-armadillo800eva.c | 14 +++-----------
-> >  drivers/leds/leds-pwm.c                        |  5 ++++-
-> >  drivers/pwm/core.c                             |  8 +++++++-
-> >  drivers/pwm/pwm-renesas-tpu.c                  | 19 +++----------------
-> >  drivers/video/backlight/pwm_bl.c               |  8 +++++---
-> >  include/linux/platform_data/pwm-renesas-tpu.h  | 16 ----------------
-> >  include/linux/pwm.h                            |  6 +++++-
-> >  10 files changed, 33 insertions(+), 52 deletions(-)
-> >  delete mode 100644 include/linux/platform_data/pwm-renesas-tpu.h
+for you to fetch changes up to d712ff63b18309c939396f593510fbcccbafb9e4:
 
--- 
-Regards,
+  ARM: dts: Enable mcpdm and mcbsp1 on DuoVero (2014-05-19 17:20:31 -0700)
 
-Laurent Pinchart
+----------------------------------------------------------------
+Device tree related changes for omaps.
+
+----------------------------------------------------------------
+Balaji T K (2):
+      ARM: dts: omap5: add sata node
+      ARM: dts: dra7: add OCP2SCP3 and SATA nodes
+
+Joachim Eastwood (7):
+      ARM: dts: Change IOPAD macro's for OMAP4/5
+      ARM: dts: Add support for OMAP4 Variscite OM44 family
+      ARM: dts: Add support for OMAP4 VAR-DVK-OM44
+      ARM: dts: Add VAR-SOM-OM44 WLAN nodes
+      ARM: OMAP2+: Use pdata quirks for wl12xx on VAR-STK/DVK-OM44
+      ARM: dts: Convert DuoVero Parlor to use IOPAD macro
+      ARM: dts: Enable mcpdm and mcbsp1 on DuoVero
+
+Johan Hovold (1):
+      ARM: dts: AM33XX: fix ethernet and mdio default state
+
+Minal Shah (1):
+      ARM: dts: dra7: add support for parallel NAND flash
+
+Mugunthan V N (2):
+      ARM: dts: am4372: Add cpsw phy sel dt node
+      ARM: dts: am437x-gp-evm: Add ethernet support for GP EVM
+
+Pekon Gupta (1):
+      ARM: dts: am43xx: fix starting offset of NAND.filesystem MTD partition
+
+Roger Quadros (4):
+      ARM: dts: omap4+: Add clocks to USB2 PHY node
+      ARM: dts: dra7-clock: Add "l3init_960m_gfclk" clock gate
+      ARM: dts: dra7: Add USB related nodes
+      dts: dra7-evm: add USB support
+
+Sourav Poddar (2):
+      ARM: omap2+: skip device build from platform code for dt
+      ARM: dts: am4372: Add hdq device tree data
+
+Wolfram Sang (1):
+      ARM: dts: am335x-evm: fix comments for lcd pins
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   6 +
+ .../devicetree/bindings/vendor-prefixes.txt        |   1 +
+ arch/arm/boot/dts/Makefile                         |   3 +-
+ arch/arm/boot/dts/am335x-bone-common.dtsi          |   3 +-
+ arch/arm/boot/dts/am335x-evm.dts                   |  58 ++--
+ arch/arm/boot/dts/am335x-evmsk.dts                 |   2 +
+ arch/arm/boot/dts/am335x-igep0033.dtsi             |   8 +
+ arch/arm/boot/dts/am335x-nano.dts                  |   5 +
+ arch/arm/boot/dts/am33xx.dtsi                      |   2 +
+ arch/arm/boot/dts/am4372.dtsi                      |  16 +
+ arch/arm/boot/dts/am437x-gp-evm.dts                |  72 +++++
+ arch/arm/boot/dts/am43x-epos-evm.dts               |  14 +-
+ arch/arm/boot/dts/dra7-evm.dts                     | 142 +++++++++
+ arch/arm/boot/dts/dra7.dtsi                        | 208 +++++++++++++
+ arch/arm/boot/dts/dra7xx-clocks.dtsi               |  12 +-
+ arch/arm/boot/dts/omap4-duovero-parlor.dts         |  18 +-
+ arch/arm/boot/dts/omap4-duovero.dtsi               |  98 +++---
+ arch/arm/boot/dts/omap4-var-dvk-om44.dts           |  71 +++++
+ arch/arm/boot/dts/omap4-var-om44customboard.dtsi   | 235 ++++++++++++++
+ arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi     |  68 ++++
+ arch/arm/boot/dts/omap4-var-som-om44.dtsi          | 343 +++++++++++++++++++++
+ arch/arm/boot/dts/omap4-var-som.dts                |  96 ------
+ arch/arm/boot/dts/omap4-var-stk-om44.dts           |  17 +
+ arch/arm/boot/dts/omap4.dtsi                       |   2 +
+ arch/arm/boot/dts/omap5-cm-t54.dts                 |  66 ++--
+ arch/arm/boot/dts/omap5-sbc-t54.dts                |   8 +-
+ arch/arm/boot/dts/omap5.dtsi                       |  42 +++
+ arch/arm/mach-omap2/hdq1w.c                        |   2 +
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  10 -
+ arch/arm/mach-omap2/pdata-quirks.c                 |   7 +
+ include/dt-bindings/pinctrl/omap.h                 |  13 +-
+ 31 files changed, 1415 insertions(+), 233 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap4-var-dvk-om44.dts
+ create mode 100644 arch/arm/boot/dts/omap4-var-om44customboard.dtsi
+ create mode 100644 arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi
+ create mode 100644 arch/arm/boot/dts/omap4-var-som-om44.dtsi
+ delete mode 100644 arch/arm/boot/dts/omap4-var-som.dts
+ create mode 100644 arch/arm/boot/dts/omap4-var-stk-om44.dts
