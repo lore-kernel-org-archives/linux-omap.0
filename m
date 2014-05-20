@@ -1,102 +1,73 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm/omap4: add twd clock to DT
-Date: Tue, 20 May 2014 07:49:28 -0700
-Message-ID: <20140520144928.GB27830@atomide.com>
-References: <1396901139-17268-1-git-send-email-gilles.chanteperdrix@xenomai.org>
- <20140418223948.GK21823@atomide.com>
- <5353F44F.5080400@xenomai.org>
- <535662F0.4080300@ti.com>
- <CAGhQ9Vw-QaB+OnLa3yNVvD6a=XOutSZ1ejbsuUXvEcyrxEsRcQ@mail.gmail.com>
- <20140519161319.GD4849@atomide.com>
- <CAGhQ9Vy-mvaXZ_=E_mmqYqxF5EiJSdN1rJayussm+AgKf94a+g@mail.gmail.com>
- <20140519162741.GG4849@atomide.com>
- <537B19F1.5040907@ti.com>
+Subject: Re: [PATCH v2 6/6] mmc: omap_hsmmc: split omap-dma header file
+Date: Tue, 20 May 2014 07:50:09 -0700
+Message-ID: <20140520145009.GC27830@atomide.com>
+References: <1399654013-28262-1-git-send-email-balajitk@ti.com>
+ <1399654013-28262-7-git-send-email-balajitk@ti.com>
+ <20140516214116.GM12881@atomide.com>
+ <5379F0C6.6070004@ti.com>
+ <20140519165441.GI4849@atomide.com>
+ <537B5873.5010006@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63396 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65272 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753843AbaETOtg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2014 10:49:36 -0400
+	with ESMTP id S1753913AbaETOuO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2014 10:50:14 -0400
 Content-Disposition: inline
-In-Reply-To: <537B19F1.5040907@ti.com>
+In-Reply-To: <537B5873.5010006@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Joachim Eastwood <manabian@gmail.com>, Gilles Chanteperdrix <gilles.chanteperdrix@xenomai.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-mmc@vger.kernel.org, chris@printf.net, ulf.hansson@linaro.org, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-* Tero Kristo <t-kristo@ti.com> [140520 02:01]:
-> On 05/19/2014 07:27 PM, Tony Lindgren wrote:
-> >* Joachim Eastwood <manabian@gmail.com> [140519 09:24]:
-> >>On 19 May 2014 18:13, Tony Lindgren <tony@atomide.com> wrote:
-> >>>* Joachim Eastwood <manabian@gmail.com> [140518 05:08]:
-> >>>>On 22 April 2014 14:39, Tero Kristo <t-kristo@ti.com> wrote:
-> >>>>>On 04/20/2014 07:22 PM, Gilles Chanteperdrix wrote:
-> >>>>>>
-> >>>>>>Le 19/04/2014 00:39, Tony Lindgren a =C3=A9crit :
-> >>>>>>>
-> >>>>>>>* Gilles Chanteperdrix <gilles.chanteperdrix@xenomai.org> [140=
-407 13:09]:
-> >>>>>>>>
-> >>>>>>>>Booting Linux 3.14 on Pandaboard currently gets the following
-> >>>>>>>>message displayed:
-> >>>>>>>>
-> >>>>>>>>smp_twd: clock not found -2
-> >>>>>>>>
-> >>>>>>>>Define "mpu_periphclk" as the twd clock in omap4 dts to avoid=
- this.
-> >>>>>>>
-> >>>>>>>
-> >>>>>>>Tero, care to ack?
-> >>>>>>
-> >>>>>>
-> >>>>>>Sorry if I did not mail the right people, get_maintainer.pl gav=
-e me a
-> >>>>>>long list, and I did not feel like spamming all these people fo=
-r such a
-> >>>>>>small patch. I do not believe Tero was in this list.
-> >>>>>>
-> >>>>>>Regards.
-> >>>>>
-> >>>>>
-> >>>>>Yea I don't think this is my expertise area, however the patch l=
-ooks good to
-> >>>>>me, so if you really need it:
-> >>>>>
-> >>>>>Acked-by: Tero Kristo <t-kristo@ti.com>
-> >>>>
-> >>>>Tony, care to add this to your omap 3.16 dt branch?
-> >>>>
-> >>>>I am still getting:
-> >>>>[ 0.000152] smp_twd: clock not found -2
-> >>>>
-> >>>>So this fix from Gilles would be nice to have.
+* Balaji T K <balajitk@ti.com> [140520 06:29]:
+> On Monday 19 May 2014 10:24 PM, Tony Lindgren wrote:
+> >* Balaji T K <balajitk@ti.com> [140519 04:54]:
+> >>On Saturday 17 May 2014 03:11 AM, Tony Lindgren wrote:
+> >>>>-
+> >>>>-#if defined(CONFIG_DMA_OMAP) || defined(CONFIG_DMA_OMAP_MODULE)
+> >>>>-bool omap_dma_filter_fn(struct dma_chan *, void *);
+> >>>>-#else
+> >>>>-static inline bool omap_dma_filter_fn(struct dma_chan *c, void *d)
+> >>>>-{
+> >>>>-	return false;
+> >>>>-}
+> >>>>-#endif
+> >>>>+#include <linux/omap-dmaengine.h>
 > >>>
-> >>>Best that Tero picks this one up along with the other dt clock cha=
-nges
-> >>>he's queueing.
+> >>>Can't the drivers needing this include it directly?
+> >>>
 > >>
-> >>I kinda assumed you would take it since you asked Tero to ack it. B=
-ut
-> >>either way is fine :)
+> >>Yes, I have converted omap_hsmmc as part of this patch.
+> >>Due to lack of bandwidth, I haven't touched upon all other drivers that include
+> >>omap-dma.h. Once that is done in other subsystem after this patch gets merged,
+> >>this include can then be removed from omap-dma.h
 > >
-> >Yes that was before Tero started collecting the dt clock patches :)
->=20
-> I wouldn't say this to be a clock patch as such, this touches the dri=
-ver
-> behavior, i.e. registers the correct clock for the driver. That being=
- said,
-> I can still queue this up with the clock patches if that is what you =
-want.
+> >OK
+> >
+> >>>Also, has this been tested with make randconfig? Changes like
+> >>>this can easily cause problems elsewhere..
+> >>
+> >>May be I am missing something, Can you please elaborate ?
+> >
+> >You're touching a header included in many places, so you
+> >need to make sure you're not accidentally breaking anything.
+> >
+> 
+> True
+> 
+> >There's an option that allows you to specify some selected
+> >options like CONFIG_ARCH_OMAP2PLUS=y with KCONFIG_ALLCONFIG
+> >and then run make randconfig. This should expose quite fast
+> >if there are some issues for the other drivers.
+> >
+> >Also, have you compile tested this with omap1_defconfig?
+> >
+> 
+> checked omap1_defconfig and randconfig's, both are OK.
 
-Yes please go ahead and take this one.
+OK thanks:
 
-Thanks,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony@atomide.com>
