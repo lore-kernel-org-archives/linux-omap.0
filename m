@@ -1,51 +1,54 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH] ARM: edma: Clean up and simplify the code around irq
- request
-Date: Tue, 20 May 2014 11:53:41 +0530
-Message-ID: <537AF4ED.9070106@ti.com>
-References: <1399965961-23739-1-git-send-email-peter.ujfalusi@ti.com> <5374AD6D.8090002@ti.com> <20140520055741.GR18956@quad.lixom.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 3/4] omap board changes for v3.16 merge window
+Date: Mon, 19 May 2014 18:31:08 -0700
+Message-ID: <20140520013107.GG15793@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140520055741.GR18956@quad.lixom.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, joelf@ti.com, linux@arm.linux.org.uk, vinod.koul@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arm@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:17054 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751322AbaETBbP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 May 2014 21:31:15 -0400
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tuesday 20 May 2014 11:27 AM, Olof Johansson wrote:
-> On Thu, May 15, 2014 at 05:35:01PM +0530, Sekhar Nori wrote:
->> + ARM SoC team
->>
->> On Tuesday 13 May 2014 12:56 PM, Peter Ujfalusi wrote:
->>> Get the two interrupt line number at the same time by merging the two
->>> instance of if(node){}else{} places.
->>> replace the &pdev->dev with the already existing dev which makes it possible
->>> to collapse lines with devm_request_irq()
->>>
->>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->>
->> Acked-by: Sekhar Nori <nsekhar@ti.com>
->>
->> Arnd, Olof, Kevin,
->>
->> Do you mind applying this directly for v3.16? I do not have anything
->> else queued ATM so not sending a pull request.
-> 
-> I see it was reposted today as part of a larger patch set with some
-> question as to what it applies to.
+The following changes since commit 89ca3b881987f5a4be4c5dbaa7f0df12bbdde2fd:
 
-That 13 patch set from Peter does not include this patch. If you have
-not applied this directly, I will send everything together as a pull
-request.
+  Linux 3.15-rc4 (2014-05-04 18:14:42 -0700)
 
-> Sekhar, if you just have one patch for us to apply, then feel free to
-> resend it to use (git send-email --to=arm@kernel.org) and make it clear
-> (below the --- separator) that you want us to apply it directly, and
-> we'll be happy to do so.
+are available in the git repository at:
 
-Okay, will do so in future.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/board-signed
 
-Thanks,
-Sekhar
+for you to fetch changes up to 77c2f02edbeda9409a7cf3fd66233015820c213a:
+
+  ARM: OMAP: replace checks for CONFIG_USB_GADGET_OMAP (2014-05-16 14:14:25 -0700)
+
+----------------------------------------------------------------
+Board related changes for omaps.
+
+----------------------------------------------------------------
+Paul Bolle (5):
+      ARM: OMAP: omap3stalker: remove two Kconfig macros
+      ARM: OMAP: remove some dead code
+      ARM: OMAP: SX1: remove check for CONFIG_SX1_OLD_FLASH
+      ARM: OMAP: AM3517EVM: remove check for CONFIG_PANEL_SHARP_LQ043T1DG01
+      ARM: OMAP: replace checks for CONFIG_USB_GADGET_OMAP
+
+Sebastian Reichel (1):
+      ARM: OMAP2+: Add support for RNG on DT booted N900
+
+ arch/arm/mach-omap1/board-h2.c           |  2 +-
+ arch/arm/mach-omap1/board-h3.c           |  2 +-
+ arch/arm/mach-omap1/board-innovator.c    |  2 +-
+ arch/arm/mach-omap1/board-osk.c          |  2 +-
+ arch/arm/mach-omap1/board-sx1.c          | 26 --------------------------
+ arch/arm/mach-omap1/pm.c                 | 13 +------------
+ arch/arm/mach-omap2/board-am3517evm.c    |  5 -----
+ arch/arm/mach-omap2/board-omap3stalker.c |  4 ----
+ arch/arm/mach-omap2/pdata-quirks.c       | 12 ++++++++++++
+ drivers/usb/phy/phy-isp1301-omap.c       |  2 +-
+ 10 files changed, 18 insertions(+), 52 deletions(-)
