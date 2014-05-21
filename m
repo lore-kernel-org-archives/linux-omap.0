@@ -1,32 +1,58 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] mmc: omap_hsmmc: use IS_ERR macro for error checking
-Date: Wed, 21 May 2014 12:10:05 +0200
-Message-ID: <CAPDyKFqPc+ibP+mZgkVDTx-CxrcvaZ2m-y9Vh3JsJ1A+-ugtLQ@mail.gmail.com>
-References: <CAPDyKFqJc92kZn_Yj87q3GJWOq+jftm0UPsShAPREqkMKC5S4g@mail.gmail.com>
-	<1400160229-2578-1-git-send-email-balajitk@ti.com>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: omap:am335x: unable to start kernel via kexec
+Date: Wed, 21 May 2014 12:26:28 +0200
+Message-ID: <CAGm1_ksYHbdWLxBUt3QetkmKLF-fegEGgYO=mt3t44ApwEJiMA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f177.google.com ([209.85.216.177]:46763 "EHLO
-	mail-qc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750796AbaEUKKG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2014 06:10:06 -0400
-Received: by mail-qc0-f177.google.com with SMTP id i17so2742712qcy.8
-        for <linux-omap@vger.kernel.org>; Wed, 21 May 2014 03:10:05 -0700 (PDT)
-In-Reply-To: <1400160229-2578-1-git-send-email-balajitk@ti.com>
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:42735 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751243AbaEUK0u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2014 06:26:50 -0400
+Received: by mail-lb0-f179.google.com with SMTP id c11so1387191lbj.38
+        for <linux-omap@vger.kernel.org>; Wed, 21 May 2014 03:26:48 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-mmc <linux-mmc@vger.kernel.org>, Chris Ball <chris@printf.net>, linux-omap <linux-omap@vger.kernel.org>
+To: wangnan0@huawei.com
+Cc: kexec <kexec@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 15 May 2014 15:23, Balaji T K <balajitk@ti.com> wrote:
-> Debounce clock is optional, use IS_ERR macro instead of NULL pointer check.
->
-> Signed-off-by: Balaji T K <balajitk@ti.com>
+Kernel: vanilla 3.15-rc5
+kexec: latest git (21.05.2014)
 
-Thanks Balaji,
+I can load the zImage + dtb from u-boot, but invoking kexec prints
+following data and nothing happens after "Bye!":
 
-I will include this in the next PR I send to Chris.
+# kexec -d -f --dtb=/mnt/boot/am335x-evmsk.dtb /mnt/boot/zImage
+kernel: 0xb5eab008 kernel_size: 0x2036c
+kexec_load: entry = 0x80008000 flags = 0x280000
+nr_segments = 2
+segment[0].buf   = 0xb5eab008
+segment[0].bufsz = 0x43d328
+segment[0].mem   = 0x80008000
+segment[0].memsz = 0x43e000
+segment[1].buf   = 0x29008
+segment[1].bufsz = 0x7e89
+segment[1].mem   = 0x810f6000
+segment[1].memsz = 0x8000
+Starting new kernel
+Bye!
 
-Kind regards
-Ulf Hansson
+u-boot output for the same kernel+dtb:
+
+SD/MMC found on device 0
+reading uEnv.txt
+582 bytes read in 8 ms (70.3 KiB/s)
+Loaded environment from uEnv.txt
+Importing environment from mmc ...
+Running uenvcmd ...
+4444968 bytes read in 466 ms (9.1 MiB/s)
+32393 bytes read in 46 ms (687.5 KiB/s)
+Kernel image @ 0x82000000 [ 0x000000 - 0x43d328 ]
+## Flattened Device Tree blob at 80000000
+   Booting using the fdt blob at 0x80000000
+   Loading Device Tree to 8f618000, end 8f622e88 ... OK
+
+Wang, what hardware do you use?
+
+Regards,
+Yegor
