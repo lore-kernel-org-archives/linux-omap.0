@@ -1,68 +1,122 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/6] AM43xx & OMAP5 DSS DT changes
-Date: Wed, 21 May 2014 08:41:54 -0700
-Message-ID: <20140521154153.GK17417@atomide.com>
-References: <1400676625-30078-1-git-send-email-tomi.valkeinen@ti.com>
- <20140521150231.GH17417@atomide.com>
- <537CC376.5050501@ti.com>
- <20140521152613.GJ17417@atomide.com>
- <537CC6E7.6010103@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Joachim Eastwood <manabian@gmail.com>
+Subject: [PATCH] ARM: OMAP4: Ctrl module register define diet
+Date: Wed, 21 May 2014 17:48:48 +0200
+Message-ID: <1400687328-16913-1-git-send-email-manabian@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27537 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137AbaEUPl6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2014 11:41:58 -0400
-Content-Disposition: inline
-In-Reply-To: <537CC6E7.6010103@ti.com>
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:34799 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751450AbaEUPtA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2014 11:49:00 -0400
+Received: by mail-lb0-f172.google.com with SMTP id l4so1745486lbv.31
+        for <linux-omap@vger.kernel.org>; Wed, 21 May 2014 08:48:59 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Joachim Eastwood <manabian@gmail.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140521 08:33]:
-> On 21/05/14 18:26, Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [140521 08:18]:
-> >> On 21/05/14 18:02, Tony Lindgren wrote:
-> >>> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140521 05:51]:
-> >>>> Hi,
-> >>>>
-> >>>> Here are the AM43xx and OMAP5 display DT changes again. I've sent the clock
-> >>>> related changes separately, and I removed OMAP5's RFBI node, which depends on
-> >>>> more clock changes. The RFBI driver doesn't work at the moment anyway, so
-> >>>> removing the RFBI node should not be an issue.
-> >>>>
-> >>>> Tony, if these look fine (the rfbi change is the only one compared to the
-> >>>> previous versions), can you queue them for 3.16?
-> >>>
-> >>> Probably best that you do a late branch again after arm-soc dts changes
-> >>> have been merged. Sounds like you have at least that macro dependency
-> >>> to omap-for-v3.16/dt-v2 so you should probably base your branch on
-> >>
-> >> There are no dependencies that I know of. Which macro dependency is that?
-> > 
-> > Oh for the "[PATCH v2] ARM: dts: duovero-parlor: Add HDMI output" that
-> > now uses the OMAP4_IOPAD macro.
-> 
-> Ok.
-> 
-> But generally, isn't it better if the .dts changes go through your tree?
-> None of the display related .dts changes have any dependencies to
-> omapdss as such.
+Signed-off-by: Joachim Eastwood <manabian@gmail.com>
+---
 
-Yes in general, but it's getting very late for v3.16, and..
+Hi,
+
+The mach-omap2 directory contains full register defines for OMAP4
+control module but only around 27 of those are used. There are is
+a total of 1795 register defines in four files with only 27 in use.
+That is pretty low usefulness ratio...
+
+I guess alot more was used when we had omap4 board files and
+mach-omap2 contained more drivers but this has now changed.
+
+So I propose we move just what we need to control.h, were other
+OMAP parts have their minimal set of defines already. Patch has
+been compile tested and I have also grepped the tree for users
+outside the mach dir.
+
+Note that patch was created with format-patch -D to keep the
+size down so it may not apply directly.
+
+regards
+Joachim Eastwood
+
+ arch/arm/mach-omap2/control.h                   |   38 +-
+ arch/arm/mach-omap2/ctrl_module_core_44xx.h     |  392 -------
+ arch/arm/mach-omap2/ctrl_module_pad_core_44xx.h | 1409 -----------------------
+ arch/arm/mach-omap2/ctrl_module_pad_wkup_44xx.h |  236 ----
+ arch/arm/mach-omap2/ctrl_module_wkup_44xx.h     |   92 --
+ 5 files changed, 33 insertions(+), 2134 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/ctrl_module_core_44xx.h
+ delete mode 100644 arch/arm/mach-omap2/ctrl_module_pad_core_44xx.h
+ delete mode 100644 arch/arm/mach-omap2/ctrl_module_pad_wkup_44xx.h
+ delete mode 100644 arch/arm/mach-omap2/ctrl_module_wkup_44xx.h
+
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index da054801b114..5dc2310c281d 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -16,11 +16,6 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_CONTROL_H
+ #define __ARCH_ARM_MACH_OMAP2_CONTROL_H
  
-> I can collect the patches, as I've done, to let them mature a bit in my
-> tree, but I'd rather get them merged via your dt branch.
-
-..I may not queue any more patches for v3.16. The branches I've sent have
-not yet been merged into arm-soc, so at minimum I'm going to wait for
-that. If we have -rc6 tagged today and no -rc7, I'm switching into fixes
-only mode. So in this case it's probably best that you merge them so
-we can get the display dependency out of the way for v3.16.
-
-Regards,
-
-Tony 
+-#include "ctrl_module_core_44xx.h"
+-#include "ctrl_module_wkup_44xx.h"
+-#include "ctrl_module_pad_core_44xx.h"
+-#include "ctrl_module_pad_wkup_44xx.h"
+-
+ #include "am33xx.h"
+ 
+ #ifndef __ASSEMBLY__
+@@ -254,6 +249,39 @@
+ /* TI81XX CONTROL_DEVCONF register offsets */
+ #define TI81XX_CONTROL_DEVICE_ID	(TI81XX_CONTROL_DEVCONF + 0x000)
+ 
++/* OMAP4 CONTROL MODULE */
++#define OMAP4_CTRL_MODULE_PAD_WKUP			0x4a31e000
++#define OMAP4_CTRL_MODULE_PAD_WKUP_CONTROL_I2C_2	0x0604
++#define OMAP4_CTRL_MODULE_CORE_STATUS			0x02c4
++#define OMAP4_CTRL_MODULE_CORE_STD_FUSE_PROD_ID_1	0x0218
++#define OMAP4_CTRL_MODULE_CORE_DSP_BOOTADDR		0x0304
++#define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_DSIPHY	0x0618
++#define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX	0x0608
++
++/* OMAP4 CONTROL_DSIPHY */
++#define OMAP4_DSI2_LANEENABLE_SHIFT			29
++#define OMAP4_DSI2_LANEENABLE_MASK			(0x7 << 29)
++#define OMAP4_DSI1_LANEENABLE_SHIFT			24
++#define OMAP4_DSI1_LANEENABLE_MASK			(0x1f << 24)
++#define OMAP4_DSI1_PIPD_SHIFT				19
++#define OMAP4_DSI1_PIPD_MASK				(0x1f << 19)
++#define OMAP4_DSI2_PIPD_SHIFT				14
++#define OMAP4_DSI2_PIPD_MASK				(0x1f << 14)
++
++/* OMAP4 CONTROL_CAMERA_RX */
++#define OMAP4_CAMERARX_CSI21_LANEENABLE_SHIFT		24
++#define OMAP4_CAMERARX_CSI21_LANEENABLE_MASK		(0x1f << 24)
++#define OMAP4_CAMERARX_CSI22_LANEENABLE_SHIFT		29
++#define OMAP4_CAMERARX_CSI22_LANEENABLE_MASK		(0x3 << 29)
++#define OMAP4_CAMERARX_CSI22_CTRLCLKEN_SHIFT		21
++#define OMAP4_CAMERARX_CSI22_CTRLCLKEN_MASK		(1 << 21)
++#define OMAP4_CAMERARX_CSI22_CAMMODE_SHIFT		19
++#define OMAP4_CAMERARX_CSI22_CAMMODE_MASK		(0x3 << 19)
++#define OMAP4_CAMERARX_CSI21_CTRLCLKEN_SHIFT		18
++#define OMAP4_CAMERARX_CSI21_CTRLCLKEN_MASK		(1 << 18)
++#define OMAP4_CAMERARX_CSI21_CAMMODE_SHIFT		16
++#define OMAP4_CAMERARX_CSI21_CAMMODE_MASK		(0x3 << 16)
++
+ /* OMAP54XX CONTROL STATUS register */
+ #define OMAP5XXX_CONTROL_STATUS                0x134
+ #define OMAP5_DEVICETYPE_MASK          (0x7 << 6)
+diff --git a/arch/arm/mach-omap2/ctrl_module_core_44xx.h b/arch/arm/mach-omap2/ctrl_module_core_44xx.h
+deleted file mode 100644
+index 01970824e0e5..000000000000
+diff --git a/arch/arm/mach-omap2/ctrl_module_pad_core_44xx.h b/arch/arm/mach-omap2/ctrl_module_pad_core_44xx.h
+deleted file mode 100644
+index c88420de1151..000000000000
+diff --git a/arch/arm/mach-omap2/ctrl_module_pad_wkup_44xx.h b/arch/arm/mach-omap2/ctrl_module_pad_wkup_44xx.h
+deleted file mode 100644
+index 17c9b37042c0..000000000000
+diff --git a/arch/arm/mach-omap2/ctrl_module_wkup_44xx.h b/arch/arm/mach-omap2/ctrl_module_wkup_44xx.h
+deleted file mode 100644
+index a0af9baec3f7..000000000000
+-- 
+1.8.0
 
