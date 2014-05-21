@@ -1,60 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] ARM: dts: Add LCD panel sharp ls037v7dw01 support
- for omap3-evm and ldp
-Date: Wed, 21 May 2014 07:50:54 -0700
-Message-ID: <20140521145053.GG17417@atomide.com>
-References: <1398815562-24113-1-git-send-email-tony@atomide.com>
- <1398815562-24113-5-git-send-email-tony@atomide.com>
- <CAGhQ9Vwa8xXQEo5dNEKAvmaS9DoBjVSthtd8=owk+atVdFuiiA@mail.gmail.com>
- <20140430174751.GA12362@atomide.com>
- <20140505183919.GA15463@atomide.com>
- <20140508233628.GJ2198@atomide.com>
- <536C7EA7.5000306@ti.com>
- <20140509153723.GD17814@atomide.com>
- <20140513213205.GB18001@atomide.com>
- <537C9FC6.8020104@ti.com>
+Subject: Re: [PATCH 0/6] AM43xx & OMAP5 DSS DT changes
+Date: Wed, 21 May 2014 08:02:31 -0700
+Message-ID: <20140521150231.GH17417@atomide.com>
+References: <1400676625-30078-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45682 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:24395 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751018AbaEUOvA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2014 10:51:00 -0400
+	with ESMTP id S1751616AbaEUPCi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2014 11:02:38 -0400
 Content-Disposition: inline
-In-Reply-To: <537C9FC6.8020104@ti.com>
+In-Reply-To: <1400676625-30078-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Joachim Eastwood <manabian@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140521 05:45]:
-> On 14/05/14 00:32, Tony Lindgren wrote:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140521 05:51]:
+> Hi,
 > 
-> > +&dss {
-> > +	status = "ok";
-> > +	vdds_dsi-supply = <&vpll2>;
-> > +	port {
-> > +		dpi_out: endpoint {
-> > +			remote-endpoint = <&lcd_in>;
-> > +			data-lines = <18>;
-> > +		};
-> > +	};
-> > +};
+> Here are the AM43xx and OMAP5 display DT changes again. I've sent the clock
+> related changes separately, and I removed OMAP5's RFBI node, which depends on
+> more clock changes. The RFBI driver doesn't work at the moment anyway, so
+> removing the RFBI node should not be an issue.
 > 
-> I just noticed the vdds_dsi-supply there. While the driver currently
-> uses that if available, I think it should be removed, and done the same
-> way Florian did with his overo patches:
-> 
-> /* Needed to power the DPI pins */
-> &vpll2 {
-> 	regulator-always-on;
-> };
-> 
-> That supply is not DSS's supply, but it's used to power up the pins. If
-> the pins were used as GPIOs, that power should be enabled.
+> Tony, if these look fine (the rfbi change is the only one compared to the
+> previous versions), can you queue them for 3.16?
 
-OK thanks for catching it.
+Probably best that you do a late branch again after arm-soc dts changes
+have been merged. Sounds like you have at least that macro dependency
+to omap-for-v3.16/dt-v2 so you should probably base your branch on
+that. So for this:
 
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
