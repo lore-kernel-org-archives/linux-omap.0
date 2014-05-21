@@ -1,78 +1,150 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 4/4] ARM: dts: Add LCD panel sharp ls037v7dw01 support
- for omap3-evm and ldp
-Date: Wed, 21 May 2014 15:44:54 +0300
-Message-ID: <537C9FC6.8020104@ti.com>
-References: <1398815562-24113-1-git-send-email-tony@atomide.com> <1398815562-24113-5-git-send-email-tony@atomide.com> <CAGhQ9Vwa8xXQEo5dNEKAvmaS9DoBjVSthtd8=owk+atVdFuiiA@mail.gmail.com> <20140430174751.GA12362@atomide.com> <20140505183919.GA15463@atomide.com> <20140508233628.GJ2198@atomide.com> <536C7EA7.5000306@ti.com> <20140509153723.GD17814@atomide.com> <20140513213205.GB18001@atomide.com>
+Subject: [PATCH 2/6] ARM: dts: am437x-gp-evm: add LCD data
+Date: Wed, 21 May 2014 15:50:21 +0300
+Message-ID: <1400676625-30078-3-git-send-email-tomi.valkeinen@ti.com>
+References: <1400676625-30078-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="xpK7v2KfhktUI3jTN0Oj8XrBLrXP9G2hB"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56871 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40155 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751972AbaEUMpa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 May 2014 08:45:30 -0400
-In-Reply-To: <20140513213205.GB18001@atomide.com>
+	id S1752312AbaEUMu7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 May 2014 08:50:59 -0400
+In-Reply-To: <1400676625-30078-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Joachim Eastwood <manabian@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sathya Prakash M R <sathyap@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
---xpK7v2KfhktUI3jTN0Oj8XrBLrXP9G2hB
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+From: Sathya Prakash M R <sathyap@ti.com>
 
-On 14/05/14 00:32, Tony Lindgren wrote:
+Add DT data for am437x-gp-evm's LCD panel.
 
-> +&dss {
-> +	status =3D "ok";
-> +	vdds_dsi-supply =3D <&vpll2>;
-> +	port {
-> +		dpi_out: endpoint {
-> +			remote-endpoint =3D <&lcd_in>;
-> +			data-lines =3D <18>;
-> +		};
-> +	};
-> +};
+Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/boot/dts/am437x-gp-evm.dts | 97 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 97 insertions(+)
 
-I just noticed the vdds_dsi-supply there. While the driver currently
-uses that if available, I think it should be removed, and done the same
-way Florian did with his overo patches:
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index df8798e8bd25..350e896a0d89 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -53,6 +53,48 @@
+ 				0x02000069      /* LEFT */
+ 				0x0201006c>;      /* DOWN */
+ 		};
++
++	aliases {
++		display0 = &lcd0;
++	};
++
++	lcd0: display {
++		compatible = "osddisplays,osd057T0559-34ts", "panel-dpi";
++		label = "lcd";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&lcd_pins>;
++
++		/*
++		 * SelLCDorHDMI, LOW to select HDMI. This is not really the
++		 * panel's enable GPIO, but we don't have HDMI driver support nor
++		 * support to switch between two displays, so using this gpio as
++		 * panel's enable should be safe.
++		 */
++		enable-gpios = <&gpio5 8 GPIO_ACTIVE_HIGH>;
++
++		panel-timing {
++			clock-frequency = <33000000>;
++			hactive = <800>;
++			vactive = <480>;
++			hfront-porch = <210>;
++			hback-porch = <16>;
++			hsync-len = <30>;
++			vback-porch = <10>;
++			vfront-porch = <22>;
++			vsync-len = <13>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			de-active = <1>;
++			pixelclk-active = <1>;
++		};
++
++		port {
++			lcd_in: endpoint {
++				remote-endpoint = <&dpi_out>;
++			};
++		};
++	};
+ };
+ 
+ &am43xx_pinmux {
+@@ -81,6 +123,47 @@
+ 			0x164 MUX_MODE0       /* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
+ 		>;
+ 	};
++
++	dss_pins: dss_pins {
++		pinctrl-single,pins = <
++			0x020 (PIN_OUTPUT_PULLUP | MUX_MODE1) /*gpmc ad 8 -> DSS DATA 23 */
++			0x024 (PIN_OUTPUT_PULLUP | MUX_MODE1)
++			0x028 (PIN_OUTPUT_PULLUP | MUX_MODE1)
++			0x02c (PIN_OUTPUT_PULLUP | MUX_MODE1)
++			0x030 (PIN_OUTPUT_PULLUP | MUX_MODE1)
++			0x034 (PIN_OUTPUT_PULLUP | MUX_MODE1)
++			0x038 (PIN_OUTPUT_PULLUP | MUX_MODE1)
++			0x03c (PIN_OUTPUT_PULLUP | MUX_MODE1) /*gpmc ad 15 -> DSS DATA 16 */
++			0x0a0 (PIN_OUTPUT_PULLUP | MUX_MODE0) /* DSS DATA 0 */
++			0x0a4 (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0a8 (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0ac (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0b0 (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0b4 (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0b8 (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0bc (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0c0 (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0c4 (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0c8 (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0cc (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0d0 (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0d4 (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0d8 (PIN_OUTPUT_PULLUP | MUX_MODE0)
++			0x0dc (PIN_OUTPUT_PULLUP | MUX_MODE0) /* DSS DATA 15 */
++			0x0e0 (PIN_OUTPUT_PULLUP | MUX_MODE0) /* DSS VSYNC */
++			0x0e4 (PIN_OUTPUT_PULLUP | MUX_MODE0) /* DSS HSYNC */
++			0x0e8 (PIN_OUTPUT_PULLUP | MUX_MODE0) /* DSS PCLK */
++			0x0ec (PIN_OUTPUT_PULLUP | MUX_MODE0) /* DSS AC BIAS EN */
++
++		>;
++	};
++
++	lcd_pins: lcd_pins {
++		pinctrl-single,pins = <
++			/* GPIO 5_8 to select LCD / HDMI */
++			0x238 (PIN_OUTPUT_PULLUP | MUX_MODE7)
++		>;
++	};
+ };
+ 
+ &i2c0 {
+@@ -125,3 +208,17 @@
+ 	pinctrl-0 = <&mmc1_pins>;
+ 	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+ };
++
++&dss {
++	status = "ok";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&dss_pins>;
++
++	port {
++		dpi_out: endpoint@0 {
++			remote-endpoint = <&lcd_in>;
++			data-lines = <24>;
++		};
++	};
++};
+-- 
+1.9.1
 
-/* Needed to power the DPI pins */
-&vpll2 {
-	regulator-always-on;
-};
-
-That supply is not DSS's supply, but it's used to power up the pins. If
-the pins were used as GPIOs, that power should be enabled.
-
- Tomi
-
-
-
---xpK7v2KfhktUI3jTN0Oj8XrBLrXP9G2hB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTfJ/GAAoJEPo9qoy8lh716JsP/1ZfdXg29Y4pgxRAe29m9sex
-wNKAIbnYzl8MMQviJ9BMHKSIqryYT8375JOL69P1JzDtZ6ZZCXinYxpS44RU5FDi
-+klfT5IOMeC75au+uHKdeGOOky+zoNpzaVhs4HvJw77gFpRMvzvkZIjP2GqwapZe
-/o7//zcnpzhsyBzAY8od9NYR0FWMYDca2b6oYqohJmnN1SJpTanivxmBYQ8swYEr
-X+S9B7DuGDJaJajFeZR1uo5RBig5gVEmMF5O/y7zgfeLMSyUkWtOGW51GJWPifbi
-RNxci+lia0ZHelIRxxMBfYDft3diiO8ZKA25HcTqerxQBn0SMI5KwRgdkFfGjGVY
-Ht7vmZO4J8U6iVYAAPh3jwE8qss9dR4qLrH9sQzVkMHZuACKhniHf2tf8+eG9/u/
-9/O6OCf+RIbjR6+ITkmdknroBM4onUboNT41bU5Fcpn6UxglJ0a9/9xkYZGxpPOX
-u49/YYOY3dGekYsY5Pa0ba9eZ+eI52AbPwOFc0d9ei3uupZt9SXg2vSI2oaG8eHR
-iouihZ4ZyXY6Le91DirttrwU3+pmnu0OW4oPRylyWFXQYXGNso8+1w83oaevThk+
-MPoauEjatreqhpq5GdqnEJWz8VQuSmaLjhjIwM7JWzZprqRO5jG8LsJCv2auxoeH
-28Wjn78xXc44wOrvY2Dj
-=GcNQ
------END PGP SIGNATURE-----
-
---xpK7v2KfhktUI3jTN0Oj8XrBLrXP9G2hB--
