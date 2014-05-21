@@ -1,58 +1,90 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: omap:am335x: unable to start kernel via kexec
-Date: Wed, 21 May 2014 12:26:28 +0200
-Message-ID: <CAGm1_ksYHbdWLxBUt3QetkmKLF-fegEGgYO=mt3t44ApwEJiMA@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [RFC PATCH 01/16] ARM: OMAP2+: gpmc: Add platform data
+Date: Wed, 21 May 2014 14:20:49 +0300
+Message-ID: <1400671264-10702-2-git-send-email-rogerq@ti.com>
+References: <1400671264-10702-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:42735 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751243AbaEUK0u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2014 06:26:50 -0400
-Received: by mail-lb0-f179.google.com with SMTP id c11so1387191lbj.38
-        for <linux-omap@vger.kernel.org>; Wed, 21 May 2014 03:26:48 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36784 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751033AbaEULVs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 May 2014 07:21:48 -0400
+In-Reply-To: <1400671264-10702-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: wangnan0@huawei.com
-Cc: kexec <kexec@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tony@atomide.com, computersforpeace@gmail.com
+Cc: pekon@ti.com, ezequiel.garcia@free-electrons.com, robertcnelson@gmail.com, jg1.han@samsung.com, dwmw2@infradead.org, javier@dowhile0.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-Kernel: vanilla 3.15-rc5
-kexec: latest git (21.05.2014)
+Add a platform data structure for GPMC. It contains all the necessary
+platform information that needs to be passed from platform init code
+to GPMC driver.
 
-I can load the zImage + dtb from u-boot, but invoking kexec prints
-following data and nothing happens after "Bye!":
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.h              |  4 +---
+ include/linux/platform_data/gpmc-omap.h | 37 +++++++++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+), 3 deletions(-)
+ create mode 100644 include/linux/platform_data/gpmc-omap.h
 
-# kexec -d -f --dtb=/mnt/boot/am335x-evmsk.dtb /mnt/boot/zImage
-kernel: 0xb5eab008 kernel_size: 0x2036c
-kexec_load: entry = 0x80008000 flags = 0x280000
-nr_segments = 2
-segment[0].buf   = 0xb5eab008
-segment[0].bufsz = 0x43d328
-segment[0].mem   = 0x80008000
-segment[0].memsz = 0x43e000
-segment[1].buf   = 0x29008
-segment[1].bufsz = 0x7e89
-segment[1].mem   = 0x810f6000
-segment[1].memsz = 0x8000
-Starting new kernel
-Bye!
+diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
+index 707f6d5..c476712 100644
+--- a/arch/arm/mach-omap2/gpmc.h
++++ b/arch/arm/mach-omap2/gpmc.h
+@@ -12,9 +12,7 @@
+ #define __OMAP2_GPMC_H
+ 
+ #include <linux/platform_data/mtd-nand-omap2.h>
+-
+-/* Maximum Number of Chip Selects */
+-#define GPMC_CS_NUM		8
++#include <linux/platform_data/gpmc-omap.h>
+ 
+ #define GPMC_CS_CONFIG1		0x00
+ #define GPMC_CS_CONFIG2		0x04
+diff --git a/include/linux/platform_data/gpmc-omap.h b/include/linux/platform_data/gpmc-omap.h
+new file mode 100644
+index 0000000..bff352f
+--- /dev/null
++++ b/include/linux/platform_data/gpmc-omap.h
+@@ -0,0 +1,37 @@
++/*
++ * OMAP GPMC Platform data
++ *
++ * Copyright (C) 2014 Texas Instruments, Inc. - http://www.ti.com
++ *	Roger Quadros <rogerq@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ */
++
++#ifndef _GPMC_OMAP_H_
++#define _GPMC_OMAP_H_
++
++/* Maximum Number of Chip Selects */
++#define GPMC_CS_NUM		8
++
++enum gpmc_omap_type {
++	GPMC_OMAP_TYPE_NOR,
++	GPMC_OMAP_TYPE_NAND,
++	GPMC_OMAP_TYPE_ONENAND,
++	GPMC_OMAP_TYPE_GENERIC,
++};
++
++/* Data for each chip select */
++struct gpmc_omap_cs_data {
++	bool valid;	/* data is valid */
++	enum gpmc_omap_type type;
++	struct platform_device *pdev;	/* device within this CS region */
++	unsigned pdata_size;
++};
++
++struct gpmc_omap_platform_data {
++	struct gpmc_omap_cs_data cs[GPMC_CS_NUM];
++};
++
++#endif /* _GPMC_OMAP_H */
+-- 
+1.8.3.2
 
-u-boot output for the same kernel+dtb:
-
-SD/MMC found on device 0
-reading uEnv.txt
-582 bytes read in 8 ms (70.3 KiB/s)
-Loaded environment from uEnv.txt
-Importing environment from mmc ...
-Running uenvcmd ...
-4444968 bytes read in 466 ms (9.1 MiB/s)
-32393 bytes read in 46 ms (687.5 KiB/s)
-Kernel image @ 0x82000000 [ 0x000000 - 0x43d328 ]
-## Flattened Device Tree blob at 80000000
-   Booting using the fdt blob at 0x80000000
-   Loading Device Tree to 8f618000, end 8f622e88 ... OK
-
-Wang, what hardware do you use?
-
-Regards,
-Yegor
