@@ -1,69 +1,52 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2] ARM: dts: duovero-parlor: Add HDMI output
-Date: Wed, 21 May 2014 15:03:59 +0300
-Message-ID: <537C962F.6050104@ti.com>
-References: <1400663706-24104-1-git-send-email-florian.vaussard@epfl.ch>
+Subject: [PATCH 2/2] ARM: dts: am43xx-clocks.dtsi: add ti,set-rate-parent to display clock path
+Date: Wed, 21 May 2014 15:16:11 +0300
+Message-ID: <1400674571-633-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1400674571-633-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="GBMOpaQWTQSbNecKVx7UtUo4Kijbc7sEH"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48262 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48815 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751827AbaEUME2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 May 2014 08:04:28 -0400
-In-Reply-To: <1400663706-24104-1-git-send-email-florian.vaussard@epfl.ch>
+	id S1752518AbaEUMQ6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 May 2014 08:16:58 -0400
+In-Reply-To: <1400674571-633-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
---GBMOpaQWTQSbNecKVx7UtUo4Kijbc7sEH
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+We need set-rate-parent flags for the display's clock path so that the
+DSS driver can change the clock rate of the PLL.
 
-On 21/05/14 12:15, Florian Vaussard wrote:
-> Add the necessary DTS nodes to enable the micro-HDMI output on Parlor
-> board.
->=20
-> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> ---
-> v1->v2:
-> - Rebased on Tony's omap-for-v3.16/dt-v2
-> - Use OMAP4_IOPAD macro
-> - Use hpd pin as GPIO with hdmi-connector
->=20
->  arch/arm/boot/dts/omap4-duovero-parlor.dts | 44 ++++++++++++++++++++++=
-++++++++
->  1 file changed, 44 insertions(+)
+This patchs adds the ti,set-rate-parent flag to disp_clk and
+dpll_disp_m2_ck clock nodes.
 
-Looks good to me.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/boot/dts/am43xx-clocks.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
- Tomi
+diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+index 142009cc9332..a6f7ee74990f 100644
+--- a/arch/arm/boot/dts/am43xx-clocks.dtsi
++++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+@@ -229,6 +229,7 @@
+ 		reg = <0x2e30>;
+ 		ti,index-starts-at-one;
+ 		ti,invert-autoidle-bit;
++		ti,set-rate-parent;
+ 	};
+ 
+ 	dpll_per_ck: dpll_per_ck {
+@@ -511,6 +512,7 @@
+ 		compatible = "ti,mux-clock";
+ 		clocks = <&dpll_disp_m2_ck>, <&dpll_core_m5_ck>, <&dpll_per_m2_ck>;
+ 		reg = <0x4244>;
++		ti,set-rate-parent;
+ 	};
+ 
+ 	dpll_extdev_ck: dpll_extdev_ck {
+-- 
+1.9.1
 
-
-
---GBMOpaQWTQSbNecKVx7UtUo4Kijbc7sEH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTfJYvAAoJEPo9qoy8lh71c40P/2+5NgA9MKzjhM6h48ol+H5X
-NP2S9GONO/ovh05UEOlLh6y/lRuR8bQYpi5WVSqFZWp4It1GSYJM5r3YZMXz+UEA
-2Vr+yns1o1yMcJ/fHybLlXgGxl32TZb+Rc51TVjqa7YVjQxzhgK82Vf6IBsKg75E
-LqZdiBCmDfz+j6f1e8+HGvC0np0LjfNXntUog0uhQ/8ppitscMfxIutWRIYr3NT5
-8ENMJmMDgQ+CEYWNZc+9abL9KEBFQGNV1XApSwUTq1154odA7zOr4QswoWQQcgcu
-NVQZz1Er3d+90uH3f+DXLt1ku0FSu+GQg92wN+yOriVxPP2TLF4PRH/IbzfaQetI
-lXd4NL9n4Cz0lA89Z5v2PxYOH41pqWKVCQ0/wea0iFCl8bbteqMlZAxMZcXlxSA9
-cTCKFO2Zov/ujrPKJhPQGuQgDOa94U2xC4Ma6pBZgclRUF4YPhaaloUMEiHgwV3g
-NyUkLQ0msyLs2Afddl+jqMYD5IPwEzjtnM8W4OxgI5+NWvuIWBLoswlDG053+HFW
-N7cdM1eWxhM/V5+q5ow5Nj6snGrjNKugsOz6tC//nTrJT4ZaqkojnYsvip4/COFA
-nH8P30Jd/gov5j5EUmuu9oX/gGfIdo7u5BiDHtc4T+D1aXoH4dKWbZ17vVX73AmN
-eW4S2BdBoYOHbu/wgBKa
-=bfhk
------END PGP SIGNATURE-----
-
---GBMOpaQWTQSbNecKVx7UtUo4Kijbc7sEH--
