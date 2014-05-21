@@ -1,40 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: dts: duovero-parlor: Add HDMI output
-Date: Wed, 21 May 2014 08:03:14 -0700
-Message-ID: <20140521150314.GI17417@atomide.com>
-References: <1400663706-24104-1-git-send-email-florian.vaussard@epfl.ch>
- <537C962F.6050104@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 5/7] mfd: twl4030-power: Add support for board specific
+ configuration
+Date: Wed, 21 May 2014 16:06:26 +0100
+Message-ID: <20140521150626.GK6679@lee--X1>
+References: <1400031250-29542-1-git-send-email-tony@atomide.com>
+ <1400031250-29542-6-git-send-email-tony@atomide.com>
+ <20140520151722.GA24991@lee--X1>
+ <20140521024552.GD17417@atomide.com>
+ <20140521091857.GD6679@lee--X1>
+ <20140521144158.GE17417@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26183 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751616AbaEUPDT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2014 11:03:19 -0400
+Received: from mail-ie0-f176.google.com ([209.85.223.176]:34317 "EHLO
+	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752300AbaEUPGc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2014 11:06:32 -0400
+Received: by mail-ie0-f176.google.com with SMTP id rl12so2107846iec.35
+        for <linux-omap@vger.kernel.org>; Wed, 21 May 2014 08:06:31 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <537C962F.6050104@ti.com>
+In-Reply-To: <20140521144158.GE17417@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Peter De Schrijver <pdeschrijver@nvidia.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140521 05:04]:
-> On 21/05/14 12:15, Florian Vaussard wrote:
-> > Add the necessary DTS nodes to enable the micro-HDMI output on Parlor
-> > board.
-> > 
-> > Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> > ---
-> > v1->v2:
-> > - Rebased on Tony's omap-for-v3.16/dt-v2
-> > - Use OMAP4_IOPAD macro
-> > - Use hpd pin as GPIO with hdmi-connector
-> > 
-> >  arch/arm/boot/dts/omap4-duovero-parlor.dts | 44 ++++++++++++++++++++++++++++++
-> >  1 file changed, 44 insertions(+)
-> 
-> Looks good to me.
+> > > * Lee Jones <lee.jones@linaro.org> [140520 08:18]:
+> > > >=20
+> > > > Ah, I forgot to Ack this last time, didn't I?
+> > > >=20
+> > > >   Acked-by: Lee Jones <lee.jones@linaro.org>
+> > >=20
+> > > Yeah, here's this one updated with your ack.
+> >=20
+> > Has the code changed at all, or are you just reposting with my Ack
+> > applied?
+>=20
+> No changes, I just reposted this with your ack as you
+> seemed to prefer for some of the other patches :)
 
-Assuming Tomi will queue the display dts file separately:
+Only for whole series re-submissions.  I'm not that lazy. :)
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
