@@ -1,73 +1,77 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv4 4/4] DTS: ARM: OMAP3-N900: Add tsc2005 support
-Date: Wed, 21 May 2014 15:19:55 -0700
-Message-ID: <20140521221955.GC14520@atomide.com>
-References: <1400693774-21306-1-git-send-email-sre@kernel.org>
- <1400693774-21306-5-git-send-email-sre@kernel.org>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Locking problem during N900 shutdown with power management patchset
+Date: Thu, 22 May 2014 01:54:36 +0200
+Message-ID: <20140521235436.GB29118@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="H1spWtNR+x+ondvy"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.19.201]:37680 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750796AbaEUXyn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 May 2014 19:54:43 -0400
 Content-Disposition: inline
-In-Reply-To: <1400693774-21306-5-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dtor-JGs/UdohzUI@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [140521 10:38]:
-> This adds support for the tsc2005 touchscreen
-> to the Nokia N900 DTS file.
-> 
-> Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Dmitry, if no other comments, feel free to pick this one too.
-This does not seem to conflict with anything I have queued:
+--H1spWtNR+x+ondvy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Hi Tony,
 
-> ---
->  arch/arm/boot/dts/omap3-n900.dts | 17 ++++++++++++++++-
->  1 file changed, 16 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> index 1a57b61..cb8ed2d5 100644
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -580,9 +580,24 @@
->  	 * Also... order in the device tree actually matters here.
->  	 */
->  	tsc2005@0 {
-> -		compatible = "tsc2005";
-> +		compatible = "ti,tsc2005";
->  		spi-max-frequency = <6000000>;
->  		reg = <0>;
-> +
-> +		vio-supply = <&vio>;
-> +
-> +		reset-gpios = <&gpio4 8 GPIO_ACTIVE_HIGH>; /* 104 */
-> +		interrupts-extended = <&gpio4 4 IRQ_TYPE_EDGE_RISING>; /* 100 */
-> +
-> +		touchscreen-fuzz-x = <4>;
-> +		touchscreen-fuzz-y = <7>;
-> +		touchscreen-fuzz-pressure = <2>;
-> +		touchscreen-max-x = <4096>;
-> +		touchscreen-max-y = <4096>;
-> +		touchscreen-max-pressure = <2048>;
-> +
-> +		ti,x-plate-ohms = <280>;
-> +		ti,esd-recovery-timeout-ms = <8000>;
->  	};
->  
->  	acx565akm@2 {
-> -- 
-> 2.0.0.rc2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Now that I have added the dma fix in addition to the idle support
+patchset I can do clean shutdowns (versus removing battery :)) and
+see the following final warning during shutdown:
+
+[ 3724.136474] reboot: Power down
+[ 3724.139770] ------------[ cut here ]------------
+[ 3724.144683] WARNING: CPU: 0 PID: 3076 at kernel/locking/lockdep.c:2742 lockdep_trace_alloc+0xd8/0xf8()
+[ 3724.154510] DEBUG_LOCKS_WARN_ON(irqs_disabled_flags(flags))
+[ 3724.160217] Modules linked in:
+[ 3724.163665] CPU: 0 PID: 3076 Comm: halt Not tainted 3.15.0-rc5-00035-gf6796c0 #89
+[ 3724.171630] [<c0014cdc>] (unwind_backtrace) from [<c0011924>] (show_stack+0x10/0x14)
+[ 3724.179840] [<c0011924>] (show_stack) from [<c056baf0>] (dump_stack+0x80/0x9c)
+[ 3724.187499] [<c056baf0>] (dump_stack) from [<c003fc44>] (warn_slowpath_common+0x68/0x8c)
+[ 3724.196044] [<c003fc44>] (warn_slowpath_common) from [<c003fcfc>] (warn_slowpath_fmt+0x30/0x40)
+[ 3724.205261] [<c003fcfc>] (warn_slowpath_fmt) from [<c00855cc>] (lockdep_trace_alloc+0xd8/0xf8)
+[ 3724.214385] [<c00855cc>] (lockdep_trace_alloc) from [<c0111e80>] (__kmalloc_track_caller+0x38/0x184)
+[ 3724.224060] [<c0111e80>] (__kmalloc_track_caller) from [<c00f0e1c>] (kmemdup+0x1c/0x38)
+[ 3724.232543] [<c00f0e1c>] (kmemdup) from [<c0383a70>] (regmap_bulk_write+0xf8/0x19c)
+[ 3724.240661] [<c0383a70>] (regmap_bulk_write) from [<c038df6c>] (twl_i2c_write+0x48/0x8c)
+[ 3724.249237] [<c038df6c>] (twl_i2c_write) from [<c038fb48>] (twl4030_power_off+0x20/0x40)
+[ 3724.257781] [<c038fb48>] (twl4030_power_off) from [<c000f394>] (machine_power_off+0x24/0x2c)
+[ 3724.266723] [<c000f394>] (machine_power_off) from [<c00640d4>] (SyS_reboot+0xf0/0x1dc)
+[ 3724.275115] [<c00640d4>] (SyS_reboot) from [<c000e6a0>] (ret_fast_syscall+0x0/0x48)
+[ 3724.283203] ---[ end trace b06de91d3cd82ea1 ]---
+
+Is this already being worked on or should I try to trace the
+problem?
+
+-- Sebastian
+
+--H1spWtNR+x+ondvy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJTfTy7AAoJENju1/PIO/qad08P/Rq2GeJxTIAiHL2HKmpdFHbq
+GwBz6frokjwYai217LSLphc7nTqj4t8FOny22Muac0Y4Kj/i/PvlNuu3UGYecRS3
+PYWPcMyzm18JdNJz2WX05tFHvhOYk81uKFw3fME9gx1WeC3sRKDCOhqhACA22gWg
+/fH1ijwk/Il8U0JZbv2lngFibgf3TMjOutgCzX5x/h09nm9NsjCgqPZirXJaR5rM
+XbJbJj+qLh2U/kGLqNsQfF0ApdGLNE+QDto58H0JDrZQRqOBJfG4D/rLDux2ay/8
+sL9pKe3bBzaazFbD1M70AE4tEKH28Fc2CU8LCvPmw08+Z7KOIdgu3XIF7VX+SxZl
+L+62BdKYW/9Y4JztAKk0C6OI9iPy8S7JMyveTLwDNYp7ep/YY28T5LjhEEZaIaAW
+ka1rOo0pT/Tp9IvRCeCmAD/ov41fwsHnUAEliSgEEw/3J9mxDmMpFBxrL1rmVM5A
+xuHgTZFl1oli2nQvyl+idn3mOy5jFPEG6fiCKn6C4eOt40sUoKsT+fcs6p5Zsgj8
+iznB6clrKxcHKdcg0+MPCwi8TCquYccNwD6WNJbP6SSGDFD2ifCGJvsjLWymFfYH
++J5VtLc0sn2JccZvs7B++DZMZHCNObx1Qgi2IMh8Zi7ZYUxdOz5j6ISoUC1HU+ZS
+rrZgvUBVdy0KwQfWjMy6
+=/A26
+-----END PGP SIGNATURE-----
+
+--H1spWtNR+x+ondvy--
