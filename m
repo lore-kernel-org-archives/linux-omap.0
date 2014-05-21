@@ -1,72 +1,81 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv4 3/4] Documentation: dt: Document TSC2005 DT binding
-Date: Wed, 21 May 2014 19:36:13 +0200
-Message-ID: <1400693774-21306-4-git-send-email-sre@kernel.org>
-References: <1400693774-21306-1-git-send-email-sre@kernel.org>
+Subject: Re: [PATCHv5 09/10] DTS: ARM: OMAP3-N900: Add SSI support
+Date: Wed, 21 May 2014 20:25:14 +0200
+Message-ID: <20140521182513.GA26285@earth.universe>
+References: <1399739870-13526-1-git-send-email-sre@kernel.org>
+ <1399739870-13526-10-git-send-email-sre@kernel.org>
+ <20140514215503.GM27426@atomide.com>
+ <20140520003538.GD15793@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="Q68bSM7Ycu6FN28Q"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1400693774-21306-1-git-send-email-sre@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140520003538.GD15793@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, linux-input@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-omap@vger.kernel.org
 
-Add devicetree binding documentation for TSC2005 touchscreen.
 
-Reviewed-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- .../bindings/input/touchscreen/tsc2005.txt         | 42 ++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
+--Q68bSM7Ycu6FN28Q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt b/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
-new file mode 100644
-index 0000000..4b641c7
---- /dev/null
-+++ b/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
-@@ -0,0 +1,42 @@
-+* Texas Instruments tsc2005 touchscreen controller
-+
-+Required properties:
-+ - compatible		      : "ti,tsc2005"
-+ - reg			      : SPI device address
-+ - spi-max-frequency	      : Maximal SPI speed
-+ - interrupts		      : IRQ specifier
-+ - reset-gpios		      : GPIO specifier
-+ - vio-supply                 : Regulator specifier
-+
-+Optional properties:
-+ - ti,x-plate-ohms	      : integer, resistance of the touchscreen's X plates
-+				in ohm (defaults to 280)
-+ - ti,esd-recovery-timeout-ms : integer, if the touchscreen does not respond after
-+				the configured time (in milli seconds), the driver
-+				will reset it. This is disabled by default.
-+ - properties defined in touchscreen.txt
-+
-+Example:
-+
-+&mcspi1 {
-+	tsc2005@0 {
-+		compatible = "ti,tsc2005";
-+		spi-max-frequency = <6000000>;
-+		reg = <0>;
-+
-+		vio-supply = <&vio>;
-+
-+		reset-gpios = <&gpio4 8 GPIO_ACTIVE_HIGH>; /* 104 */
-+		interrupts-extended = <&gpio4 4 IRQ_TYPE_EDGE_RISING>; /* 100 */
-+
-+		touchscreen-fuzz-x = <4>;
-+		touchscreen-fuzz-y = <7>;
-+		touchscreen-fuzz-pressure = <2>;
-+		touchscreen-max-x = <4096>;
-+		touchscreen-max-y = <4096>;
-+		touchscreen-max-pressure = <2048>;
-+
-+		ti,x-plate-ohms = <280>;
-+		ti,esd-recovery-timeout-ms = <8000>;
-+	};
-+}
--- 
-2.0.0.rc2
+Hi,
+
+On Mon, May 19, 2014 at 05:35:39PM -0700, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [140514 14:57]:
+> > * Sebastian Reichel <sre@kernel.org> [140510 09:40]:
+> > > Add SSI device tree data for OMAP3 and Nokia N900.
+> >=20
+> > Picking this patch into omap-for-v3.16/dt thanks.
+>=20
+> Just noticed that this patch seems to somehow break idle
+> modes on n900, so dropping both dts changes for now.
+>=20
+> Basically the n900 debug LEDs won't ever go off with
+> these two dts patches enabled, even without the modem
+> drivers loaded. I did not dig deeper, but it's probably
+> something related to hwmod using this data for some
+> settings.
+
+Is hwmod data interpreted at all without the DT entries?
+The hwmod data may be wrong. The information from commit
+398917ce161e10d3c66afaefdb89c73c64c4b02d was simply
+interpolated from all information I found. The OMAP3
+public TRM does not contain *any* information about the
+ssi IP-Core.
+
+> Sorry did not notice it earlier as I did not have the
+> PM regression fix patches merged with my testing branch.
+
+I hoped to see working modem in 3.16, which will probably
+be used for the next Debian stable :(
+
+-- Sebastian
+
+--Q68bSM7Ycu6FN28Q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJTfO+JAAoJENju1/PIO/qaa5wP/i+jGUtLwNgMyVplgZdMvC6W
+NzJnNZN6um2eipY5aHNXn6SdLPM+EqhopTPrsVopm01xXHjRAJxzHI2skSjQgnP7
+ipEIHRNceMr946NTJtP8YUGO04pOhu6HiXmsfqBp00LbWvFeGSTTMNhY308WU+LQ
+A/jvVilsfItfUvy1mG9ZYlDUGvpz8GptheTw3bPbZ4oW9XgnNiUWgfpvgbPkFu8n
+iw4hcBY5TLeLAcUEBSbpPXfy370h86PSvfmX9LmOTEKwNgtIMi7+dPl6vRjHUbIi
+H8dCdPlaRBOIUlqCTVfHqE8kJx628hI/6RJKYAWe/+LuWdzZrnY1lqgxidJUd2Xc
+bgB+2qammupvS6Xw3wv35cniUT3h8x0LrTIAHxK/7RiEzXRzj7PVX9N4ygv2Wk9Y
+SR3ZU8oAPld0xKOiDiaDX8LEt3AdD+f4Ok5KYhj5wKX4tRnP45NfOR6Vzg5tnFvg
+II1f+xWRvv7TtwnSekMWov2SzNwvblja1GuOnkULoAIJAPM+Bkrb1It98bqOTthO
+6VsXW2OSVcBNeUrkViNTo0mtgKtKglxE41lmdJ0kuGRjv/XPk0e+MY+afo2NBdnB
+uhuA53YHvpRs04xLt/RhdFcar15IfZw2YzyZpUYeEkWbFcPx6clTI948EqzmSW7b
+OHDamv85gjC5+n6ZDR8x
+=uNaS
+-----END PGP SIGNATURE-----
+
+--Q68bSM7Ycu6FN28Q--
