@@ -1,48 +1,100 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 0/6] AM43xx & OMAP5 DSS DT changes
-Date: Wed, 21 May 2014 15:50:19 +0300
-Message-ID: <1400676625-30078-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 4/6] ARM: dts: omap5.dtsi: add DSS nodes
+Date: Wed, 21 May 2014 15:50:23 +0300
+Message-ID: <1400676625-30078-5-git-send-email-tomi.valkeinen@ti.com>
+References: <1400676625-30078-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40156 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752313AbaEUMu7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 May 2014 08:50:59 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:48119 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752448AbaEUMvF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2014 08:51:05 -0400
+In-Reply-To: <1400676625-30078-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+Add OMAP5 DSS nodes to omap5.dtsi.
 
-Here are the AM43xx and OMAP5 display DT changes again. I've sent the clock
-related changes separately, and I removed OMAP5's RFBI node, which depends on
-more clock changes. The RFBI driver doesn't work at the moment anyway, so
-removing the RFBI node should not be an issue.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/boot/dts/omap5.dtsi | 61 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 61 insertions(+)
 
-Tony, if these look fine (the rfbi change is the only one compared to the
-previous versions), can you queue them for 3.16?
-
- Tomi
-
-Sathya Prakash M R (2):
-  ARM: dts: am4372.dtsi: add DSS information
-  ARM: dts: am437x-gp-evm: add LCD data
-
-Tomi Valkeinen (4):
-  ARM: dts: am43x-epos-evm: add LCD data
-  ARM: dts: omap5.dtsi: add DSS nodes
-  ARM: dts: omap5-uevm.dts: add tca6424a
-  ARM: dts: omap5-uevm.dts: add display nodes
-
- arch/arm/boot/dts/am4372.dtsi        |  30 +++++++++++
- arch/arm/boot/dts/am437x-gp-evm.dts  |  97 +++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/am43x-epos-evm.dts | 101 +++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap5-uevm.dts     |  89 ++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap5.dtsi         |  61 +++++++++++++++++++++
- 5 files changed, 378 insertions(+)
-
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index f8c9855ce587..b80f4c5d0a5b 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -869,6 +869,67 @@
+ 
+ 			#thermal-sensor-cells = <1>;
+ 		};
++
++		dss: dss@58000000 {
++			compatible = "ti,omap5-dss";
++			reg = <0x58000000 0x80>;
++			status = "disabled";
++			ti,hwmods = "dss_core";
++			clocks = <&dss_dss_clk>;
++			clock-names = "fck";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
++
++			dispc@58001000 {
++				compatible = "ti,omap5-dispc";
++				reg = <0x58001000 0x1000>;
++				interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
++				ti,hwmods = "dss_dispc";
++				clocks = <&dss_dss_clk>;
++				clock-names = "fck";
++			};
++
++			dsi1: encoder@58004000 {
++				compatible = "ti,omap5-dsi";
++				reg = <0x58004000 0x200>,
++				      <0x58004200 0x40>,
++				      <0x58004300 0x40>;
++				reg-names = "proto", "phy", "pll";
++				interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
++				status = "disabled";
++				ti,hwmods = "dss_dsi1";
++				clocks = <&dss_dss_clk>, <&dss_sys_clk>;
++				clock-names = "fck", "sys_clk";
++			};
++
++			dsi2: encoder@58005000 {
++				compatible = "ti,omap5-dsi";
++				reg = <0x58009000 0x200>,
++				      <0x58009200 0x40>,
++				      <0x58009300 0x40>;
++				reg-names = "proto", "phy", "pll";
++				interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
++				status = "disabled";
++				ti,hwmods = "dss_dsi2";
++				clocks = <&dss_dss_clk>, <&dss_sys_clk>;
++				clock-names = "fck", "sys_clk";
++			};
++
++			hdmi: encoder@58060000 {
++				compatible = "ti,omap5-hdmi";
++				reg = <0x58040000 0x400>,
++				      <0x58040200 0x80>,
++				      <0x58040300 0x80>,
++				      <0x58060000 0x19000>;
++				reg-names = "wp", "pll", "phy", "core";
++				interrupts = <GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH>;
++				status = "disabled";
++				ti,hwmods = "dss_hdmi";
++				clocks = <&dss_48mhz_clk>, <&dss_sys_clk>;
++				clock-names = "fck", "sys_clk";
++			};
++		};
+ 	};
+ };
+ 
 -- 
 1.9.1
 
